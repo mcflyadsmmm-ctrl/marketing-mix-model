@@ -2,12 +2,8 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import {
-  buildDashboardMetrics,
-  formatCurrency,
-  formatMer,
-  formatPercent,
-} from "../lib/mer-dashboard.server";
+import { buildDashboardMetrics } from "../lib/mer-dashboard.server";
+import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { fetchShopifySales } from "../lib/shopify-sales.server";
 import { PERIOD_PRESETS, resolvePeriod, type PeriodPreset } from "../lib/periods";
 

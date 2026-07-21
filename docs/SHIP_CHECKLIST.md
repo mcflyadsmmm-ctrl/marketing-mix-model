@@ -35,7 +35,10 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 
 ## C. Reliability (required before big ASP)
 
-- [ ] Live Meta spend sync OR documented Script/export path that reconcilies ±5%
+- [x] `/v1` MER API (`/mer`, `/spend`, `/allocation`)
+- [x] Overnight worker + `SyncRun` / `MerSnapshot` tables
+- [x] GitHub Actions nightly orchestrator (`.github/workflows/overnight.yml`)
+- [x] Enterprise Sheets orchestrator (hourly triggers, recon, alerts)
 - [ ] Live Google spend sync OR Ads Script path
 - [ ] Freshness badges + failed-sync alerts
 - [ ] Postgres in production (not SQLite)

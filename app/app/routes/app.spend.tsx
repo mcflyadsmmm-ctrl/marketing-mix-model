@@ -130,7 +130,7 @@ export default function SpendEntryPage() {
       <s-section heading="Recent entries">
         {entries.length === 0 ? (
           <s-paragraph>
-            <s-text tone="subdued">No spend entries yet.</s-text>
+            <s-text tone="neutral">No spend entries yet.</s-text>
           </s-paragraph>
         ) : (
           <s-stack direction="block" gap="base">
@@ -139,10 +139,10 @@ export default function SpendEntryPage() {
                 <s-stack direction="inline" gap="base">
                   <s-text>{entry.channel}</s-text>
                   <s-text>${entry.amount.toLocaleString()}</s-text>
-                  <s-text tone="subdued">
+                  <s-text tone="neutral">
                     {entry.periodStart.toLocaleDateString()} – {entry.periodEnd.toLocaleDateString()}
                   </s-text>
-                  {entry.note && <s-text tone="subdued">{entry.note}</s-text>}
+                  {entry.note && <s-text tone="neutral">{entry.note}</s-text>}
                 </s-stack>
               </s-box>
             ))}

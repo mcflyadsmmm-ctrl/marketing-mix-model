@@ -33,12 +33,15 @@ model Session {
 }
 
 model Shop {
-  id           String       @id @default(cuid())
-  domain       String       @unique
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id           String        @id @default(cuid())
+  domain       String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
   settings     Settings?
   spendEntries SpendEntry[]
+  apiTokens    ApiToken[]
+  syncRuns     SyncRun[]
+  merSnapshots MerSnapshot[]
 }
 
 model Settings {
@@ -70,4 +73,56 @@ model SpendEntry {
   updatedAt   DateTime     @updatedAt
 
   @@index([shopId, periodStart, periodEnd])
+}
+
+/// Bearer tokens for Sheets companion + external API clients.
+model ApiToken {
+  id         String    @id @default(cuid())
+  shopId     String
+  shop       Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  label      String    @default("default")
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  @@index([shopId])
+}
+
+/// Overnight / scheduled orchestrator run ledger (one row per phase).
+model SyncRun {
+  id         String    @id @default(cuid())
+  runId      String
+  shopId     String?
+  shop       Shop?     @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  phase      String
+  status     String
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  metrics    Json?
+  errors     Json?
+
+  @@index([runId])
+  @@index([shopId, startedAt])
+}
+
+/// Daily MER snapshots for recon, Sheets history, and kill-criteria monitoring.
+model MerSnapshot {
+  id           String   @id @default(cuid())
+  shopId       String
+  shop         Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  periodStart  DateTime
+  periodEnd    DateTime
+  sales        Float
+  spend        Float
+  mer          Float?
+  breakEvenMer Float
+  channelMix   Json
+  allocation   Json?
+  reconStatus  String   @default("pending")
+  reconDelta   Float?
+  createdAt    DateTime @default(now())
+
+  @@unique([shopId, periodStart, periodEnd])
+  @@index([shopId, createdAt])
 }

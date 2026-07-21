@@ -26,6 +26,8 @@
     "node": ">=20.19 <22 || >=22.12"
   },
   "dependencies": {
+    "@mcfly/api-contract": "*",
+    "@mcfly/connectors": "*",
     "@mcfly/mer-core": "*",
     "@mcfly/mer-engine": "*",
     "@prisma/client": "^6.16.3",

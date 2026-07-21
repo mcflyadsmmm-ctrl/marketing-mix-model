@@ -67,7 +67,7 @@ export default function SettingsPage() {
               />
             </label>
             <s-paragraph>
-              <s-text tone="subdued">
+              <s-text tone="neutral">
                 Break-even MER = 1 ÷ margin. At {(settings.marginPct * 100).toFixed(0)}% margin,
                 break-even MER ≈ {(1 / settings.marginPct).toFixed(2)}.
               </s-text>
@@ -86,7 +86,7 @@ export default function SettingsPage() {
               />
             </label>
             <s-paragraph>
-              <s-text tone="subdued">
+              <s-text tone="neutral">
                 Operating goal above break-even (e.g. 3.0 means $3 sales per $1 ad spend).
               </s-text>
             </s-paragraph>

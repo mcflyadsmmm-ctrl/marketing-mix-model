@@ -1,0 +1,83 @@
+name: Mcfly Overnight Orchestrator
+
+on:
+  schedule:
+    # 07:00 UTC daily (~midnight MT in summer)
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: Spend sync lookback window (days)
+        required: false
+        default: "14"
+
+permissions:
+  contents: read
+
+jobs:
+  overnight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mcfly
+          POSTGRES_PASSWORD: mcfly
+          POSTGRES_DB: mcfly
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mcfly -d mcfly"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build packages
+        run: |
+          npm run build --workspace=@mcfly/mer-core
+          npm run build --workspace=@mcfly/mer-engine
+          npm run build --workspace=@mcfly/connectors
+          npm run build --workspace=@mcfly/worker
+          npm run build --workspace=@mcfly/api-contract
+
+      - name: Migrate database
+        working-directory: app
+        env:
+          DATABASE_URL: postgresql://mcfly:mcfly@localhost:5432/mcfly
+        run: npx prisma migrate deploy && npx prisma generate
+
+      - name: Seed demo shop
+        working-directory: app
+        env:
+          DATABASE_URL: postgresql://mcfly:mcfly@localhost:5432/mcfly
+        run: node scripts/seed-sample-data.mjs || true
+
+      - name: Run overnight orchestrator
+        env:
+          DATABASE_URL: postgresql://mcfly:mcfly@localhost:5432/mcfly
+          MCFLY_LOOKBACK_DAYS: ${{ github.event.inputs.lookback_days || '14' }}
+        run: node app/scripts/overnight-run.mjs
+
+      - name: Upload overnight report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: overnight-report
+          path: reports/
+          if-no-files-found: ignore
+
+      - name: Run unit tests (gate)
+        run: npm test

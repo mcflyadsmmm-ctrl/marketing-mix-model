@@ -33,7 +33,7 @@ const ORDERS_QUERY = `#graphql
  * Paginates through orders (100 per page).
  */
 export async function fetchShopifySales(
-  admin: AdminApiContext["admin"],
+  admin: AdminApiContext,
   range: DateRange,
 ): Promise<SalesResult> {
   const query = formatPeriodQuery(range);

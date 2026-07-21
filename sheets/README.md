@@ -1,37 +1,43 @@
-# Mcfly Sheets companion (Phase 5 scaffold)
+# Mcfly Sheets companion — enterprise orchestrator
 
-Thin Google Sheets add-on that **consumes the same MER API** as the Shopify embedded app — not a SyncWith-style connector product.
+Thin Google Sheets add-on that consumes the **same `/v1` MER API** as the Shopify app.
 
-## Template columns
+## vs Black Clover-style MER Dashboard
 
-| Date | Sales | Spend | MER | Break-even MER | Meta spend | Google spend |
+| Basic web app | Mcfly enterprise Sheets |
+| --- | --- |
+| Single MER table | Executive Summary + MER history + Allocation + Ops log |
+| Manual refresh only | Hourly overnight triggers + daily email digest |
+| No recon | ±5% spend drift detection + alerts |
+| No allocation | Live cut/shift/hold/watch cards from `mer-core` |
+| No audit trail | Ops log with phased timestamps |
 
-## Quick start (no Marketplace publish required)
+## Files to copy into Apps Script
 
-1. Create a Google Sheet from the Mcfly MER template (or blank sheet).
-2. **Extensions → Apps Script** — add `Code.gs` and `appsscript.json` from this folder.
-3. **Project Settings → Script properties**:
-   - `MCFLY_API_BASE` — e.g. `https://api.mcflyads.com/v1` or local app URL
-   - `MCFLY_API_TOKEN` — issued by Mcfly app after Shopify install
-   - `MCFLY_SHOP_ID` — optional shop scope header
-4. Reload the sheet → **Mcfly Analytics → Refresh MER table**.
+| File | Role |
+| --- | --- |
+| `Code.gs` | Menu + trigger install |
+| `Api.gs` | REST client |
+| `Orchestrator.gs` | Phased overnight loop |
+| `Dashboard.gs` | Multi-tab rendering |
+| `Alerts.gs` | Email + Slack |
+| `appsscript.json` | Scopes |
 
-## API contract
+## Script properties
 
-Uses `@mcfly/api-contract`:
+| Key | Required | Example |
+| --- | --- | --- |
+| `MCFLY_API_BASE` | Yes | `https://app.mcflyads.com/v1` |
+| `MCFLY_API_TOKEN` | Yes | from `node app/scripts/mint-api-token.mjs` |
+| `MCFLY_SHOP_ID` | Recommended | `your-store.myshopify.com` |
+| `MCFLY_ALERT_EMAIL` | No | `you@domain.com` |
+| `MCFLY_SLACK_WEBHOOK` | No | Slack incoming webhook |
+| `MCFLY_RECON_THRESHOLD` | No | `0.05` |
 
-- `GET /mer?from=YYYY-MM-DD&to=YYYY-MM-DD&includeAllocation=true`
+## Install
 
-See [packages/api-contract/openapi.yaml](../packages/api-contract/openapi.yaml).
+1. Paste all `.gs` files + `appsscript.json`
+2. Set script properties
+3. Reload sheet → **Mcfly Analytics → Install overnight triggers**
 
-## Human gates
-
-- Mcfly API must be deployed (Shopify app sibling under `/app` when scaffolded)
-- Merchant OAuth / API token from app settings
-- Optional: Google Workspace Marketplace listing (later; not required for design partners)
-
-## Not in scope
-
-- Bidirectional sync with ad platforms from Sheets
-- Path attribution or pixel imports
-- SyncWith clone behavior
+Full detail: [OVERNIGHT_ORCHESTRATOR.md](../docs/OVERNIGHT_ORCHESTRATOR.md)

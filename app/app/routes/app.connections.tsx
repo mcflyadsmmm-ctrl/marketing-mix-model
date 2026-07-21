@@ -32,10 +32,10 @@ export default function ConnectionsPage() {
             >
               <s-stack direction="block" gap="small">
                 <s-heading>{providerLabel(connector.provider)}</s-heading>
-                <s-text tone={connector.connected ? "success" : "subdued"}>
+                <s-text tone={connector.connected ? "success" : "neutral"}>
                   {connector.connected ? "Connected" : "Not connected"}
                 </s-text>
-                <s-text tone="subdued">{connector.message}</s-text>
+                <s-text tone="neutral">{connector.message}</s-text>
                 <s-button disabled variant="secondary">
                   Connect {providerLabel(connector.provider)} (Phase 2)
                 </s-button>

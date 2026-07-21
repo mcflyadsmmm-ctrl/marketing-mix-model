@@ -3,6 +3,9 @@ dist/
 *.tsbuildinfo
 .env
 .env.*
+# Overnight orchestrator artifacts (CI uploads these)
+reports/
+
 .DS_Store
 coverage/
 packages/**/node_modules/
