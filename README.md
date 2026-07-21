@@ -12,9 +12,25 @@ Anti-attribution marketing cockpit for Shopify: **real ad spend vs Shopify sales
 
 Static marketing site in [`/site`](site/) (home, product, pricing, privacy, terms, support). Deploy via GitHub Pages workflow.
 
+## Shared packages (`/packages`)
+
+| Package | Purpose |
+| --- | --- |
+| [`@mcfly/mer-core`](packages/mer-core) | MER math + rules-based allocation |
+| [`@mcfly/connectors`](packages/connectors) | Meta/Google spend pipe stubs + daily sync job |
+| [`@mcfly/api-contract`](packages/api-contract) | Zod + OpenAPI for `/mer`, `/spend`, `/allocation` |
+
+Sheets companion scaffold: [`/sheets`](sheets/). Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+```bash
+npm install
+npm test          # allocation unit tests (@mcfly/mer-core)
+npm run build     # compile all packages
+```
+
 ## Status
 
-Phase 0 — directive locked; product marketing site in repo. Shopify app not scaffolded yet (site before app before Sheets).
+Phase 0 — product marketing site in `/site`. Shared backend foundations (items 3–5 stubs) in `/packages` + `/sheets`. Shopify app scaffold pending (sibling agent).
 
 ## Optimal path (short)
 

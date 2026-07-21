@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mcfly Analytics — Spend vs sales. Not attribution theater.</title>
   <meta name="description" content="Mcfly Analytics syncs real ad spend against Shopify sales. MER, break-even MER, and allocation — without path attribution." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#1a222c" />
+  <link rel="canonical" href="https://mcflyads.com/" />
+  <meta property="og:site_name" content="Mcfly Analytics" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/" />
+  <meta property="og:title" content="Mcfly Analytics — Spend vs sales. Not attribution theater." />
+  <meta property="og:description" content="Cash MER, break-even MER, and channel allocation for Shopify — without path attribution theater." />
+  <meta property="og:image" content="https://mcflyads.com/og-image.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mcfly Analytics — Spend vs sales. Not attribution theater." />
+  <meta name="twitter:description" content="Cash MER, break-even MER, and channel allocation for Shopify — without path attribution theater." />
+  <meta name="twitter:image" content="https://mcflyads.com/og-image.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -19,10 +32,10 @@
       <span class="brand-name">Mcfly</span>
     </a>
     <nav class="nav" aria-label="Primary">
-      <a href="product.html">Product</a>
-      <a href="pricing.html">Pricing</a>
-      <a href="#demo">Demo</a>
-      <a class="nav-cta" href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Early access</a>
+      <a href="product.html" data-nav="product">Product</a>
+      <a href="pricing.html" data-nav="pricing">Pricing</a>
+      <a href="#demo" data-nav="demo">Demo</a>
+      <a class="nav-cta" href="#waitlist">Early access</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
       <span></span><span></span>
@@ -30,10 +43,10 @@
   </header>
 
   <div id="mobile-nav" class="mobile-nav" hidden>
-    <a href="product.html">Product</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="#demo">Demo</a>
-    <a href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Early access</a>
+    <a href="product.html" data-nav="product">Product</a>
+    <a href="pricing.html" data-nav="pricing">Pricing</a>
+    <a href="#demo" data-nav="demo">Demo</a>
+    <a href="#waitlist">Early access</a>
   </div>
 
   <main id="main">
@@ -51,8 +64,8 @@
         <h1>Your ad platforms are lying about what’s driving revenue.</h1>
         <p class="lede">We don’t do path attribution. We reconcile real spend against Shopify sales — then help you allocate budget from cash MER.</p>
         <div class="cta-row">
-          <a class="btn primary" href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Request early access</a>
-          <a class="btn ghost" href="product.html">See how it works</a>
+          <a class="btn primary" href="#waitlist">Request early access</a>
+          <a class="btn ghost" href="#how-it-works">See how it works</a>
         </div>
       </div>
     </section>
@@ -60,6 +73,34 @@
     <section class="section thesis" aria-labelledby="thesis-title">
       <h2 id="thesis-title">Attribution theater is expensive.</h2>
       <p>Multi-touch models and pixel “truth” train teams to optimize a story. Mcfly only asks: what left the bank for ads, and what Shopify rang up.</p>
+    </section>
+
+    <section class="section steps" id="how-it-works" aria-labelledby="steps-title">
+      <h2 id="steps-title">How it works</h2>
+      <p class="section-lede">Three steps. One cash view. No path credit.</p>
+      <ol class="step-list">
+        <li>
+          <span class="step-num" aria-hidden="true">1</span>
+          <div>
+            <h3>Connect Shopify</h3>
+            <p>Pull sales for the period you care about — MTD, QTD, or custom. Shopify is the system of record for revenue in the till.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num" aria-hidden="true">2</span>
+          <div>
+            <h3>Sync spend</h3>
+            <p>Pipe Meta and Google cost daily. Manual entry or CSV works on day one; live OAuth pipes follow. What matters is what left the bank.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num" aria-hidden="true">3</span>
+          <div>
+            <h3>Operate on MER</h3>
+            <p>Set contribution margin, see break-even MER, compare blended cash MER, and get one allocation suggestion you can audit — not a path model.</p>
+          </div>
+        </li>
+      </ol>
     </section>
 
     <section class="section surfaces" aria-labelledby="surfaces-title">
@@ -83,12 +124,12 @@
 
     <section class="section demo" id="demo" aria-labelledby="demo-title">
       <h2 id="demo-title">Feel the difference</h2>
-      <p class="section-lede">Two interactive sketches of the Mcfly worldview. Illustrative — not your store’s live data.</p>
+      <p class="section-lede">Three interactive sketches of the Mcfly worldview. Illustrative — not your store’s live data.</p>
 
       <div class="demo-block">
         <h3>Platform claims vs cash</h3>
         <p>Platforms report conversions that don’t add up to P&amp;L. Drag spend; watch “claimed” ROAS stay theatrical while cash MER stays honest.</p>
-        <div class="claims-demo">
+        <div class="claims-demo demo-card">
           <label>
             Monthly ad spend
             <input type="range" id="spend-range" min="20000" max="200000" step="1000" value="84000" />
@@ -117,7 +158,7 @@
       <div class="demo-block">
         <h3>Break-even MER</h3>
         <p>Set contribution margin. See the line you must clear before media “works.”</p>
-        <div class="mer-calc">
+        <div class="mer-calc demo-card">
           <label>
             Contribution margin
             <input type="range" id="margin-range" min="20" max="80" step="1" value="45" />
@@ -136,6 +177,87 @@
           </div>
         </div>
       </div>
+
+      <div class="demo-block">
+        <h3>Allocation suggestion</h3>
+        <p>Shift budget between Meta and Google. Mcfly compares each channel’s cash efficiency against break-even — not who got path credit.</p>
+        <div class="alloc-demo demo-card">
+          <label>
+            Meta share of monthly budget
+            <input type="range" id="alloc-range" min="20" max="80" step="1" value="55" />
+            <output id="alloc-out">55% Meta · 45% Google</output>
+          </label>
+          <div class="alloc-grid">
+            <div>
+              <span class="label">Meta spend</span>
+              <strong id="meta-spend">$46,200</strong>
+              <span class="sub">Cash efficiency <strong id="meta-eff">3.9×</strong></span>
+            </div>
+            <div>
+              <span class="label">Google spend</span>
+              <strong id="google-spend">$37,800</strong>
+              <span class="sub">Cash efficiency <strong id="google-eff">2.6×</strong></span>
+            </div>
+            <div class="highlight">
+              <span class="label">Blended MER (projected)</span>
+              <strong id="blend-mer">3.31×</strong>
+              <span class="sub">vs break-even <strong id="alloc-be">2.22×</strong></span>
+            </div>
+          </div>
+          <p class="alloc-verdict" id="alloc-verdict">Shift $8,400/mo from Google → Meta. Meta clears break-even; Google dilutes blended MER.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section contrast" aria-labelledby="contrast-title">
+      <h2 id="contrast-title">Same category. Different religion.</h2>
+      <p class="section-lede">Attribution suites sell path credit. Mcfly is a SaaS operating system for cash MER.</p>
+      <div class="contrast-wrap">
+        <table class="contrast-table">
+          <caption class="sr-only">Product comparison: Mcfly Analytics vs Triple Whale vs Northbeam</caption>
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Mcfly Analytics</th>
+              <th scope="col">Triple Whale</th>
+              <th scope="col">Northbeam</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Core question</th>
+              <td>Did spend clear break-even MER?</td>
+              <td>Who gets conversion credit?</td>
+              <td>Which touchpoints drove revenue?</td>
+            </tr>
+            <tr>
+              <th scope="row">Honesty model</th>
+              <td>Shopify sales ÷ ad spend only</td>
+              <td>Pixel + platform-reported ROAS</td>
+              <td>Multi-touch attribution models</td>
+            </tr>
+            <tr>
+              <th scope="row">Allocation basis</th>
+              <td>Cash efficiency vs break-even</td>
+              <td>Path-weighted channel ROAS</td>
+              <td>Modeled incrementality</td>
+            </tr>
+            <tr>
+              <th scope="row">Product shape</th>
+              <td>Always-on Shopify SaaS</td>
+              <td>Full attribution suite</td>
+              <td>Enterprise attribution platform</td>
+            </tr>
+            <tr>
+              <th scope="row">Typical price</th>
+              <td><strong>$79/mo</strong> early access (single store)</td>
+              <td>Mid–high three figures / mo</td>
+              <td>Enterprise contract</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="contrast-note">We are not cheaper consulting. We are a different product — spend-vs-sales, not path theater.</p>
     </section>
 
     <section class="section not-that" aria-labelledby="not-title">
@@ -148,10 +270,31 @@
       </ul>
     </section>
 
-    <section class="section close" aria-labelledby="close-title">
+    <section class="section close" id="waitlist" aria-labelledby="close-title">
       <h2 id="close-title">Run media against the bank account.</h2>
       <p>Early access for Shopify brands ready to drop attribution theater.</p>
-      <a class="btn primary" href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Request early access</a>
+      <form class="waitlist-form" data-waitlist novalidate>
+        <div class="form-row">
+          <label>
+            Name
+            <input type="text" name="name" autocomplete="name" required />
+          </label>
+          <label>
+            Email
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+        </div>
+        <label>
+          Store URL
+          <input type="url" name="store" placeholder="https://yourstore.com" autocomplete="url" required />
+        </label>
+        <button class="btn primary" type="submit">Request early access</button>
+        <p class="form-note">Opens your email client with a pre-filled message to <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. No backend — we read every note.</p>
+      </form>
+      <div class="waitlist-confirm" id="waitlist-confirm" hidden>
+        <p class="confirm-title">You’re on the list.</p>
+        <p>Your email client should open with your details. Send the message to complete the request — or email us directly at <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>.</p>
+      </div>
     </section>
   </main>
 

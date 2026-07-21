@@ -282,3 +282,9 @@ Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 
 *Document owner: Mcfly*  
 *Amend §1–§4 deliberately in-repo when strategy changes — not by chat whim.*
+
+---
+
+## Architecture pointer (shared foundations)
+
+Backend packages and Sheets scaffold: **[ARCHITECTURE.md](./ARCHITECTURE.md)** (`packages/mer-core`, `packages/connectors`, `packages/api-contract`, `sheets/`).
