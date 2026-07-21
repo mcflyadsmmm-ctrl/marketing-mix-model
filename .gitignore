@@ -7,3 +7,4 @@ dist/
 coverage/
 packages/**/node_modules/
 .cursor/
+**/node_modules/
