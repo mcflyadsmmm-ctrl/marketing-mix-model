@@ -1,4 +1,4 @@
-const CACHE = "mcfly-v4";
+const CACHE = "mcfly-v5";
 const ASSETS = [
   "/",
   "/download",

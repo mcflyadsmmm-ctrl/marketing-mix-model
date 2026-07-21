@@ -448,11 +448,18 @@
     });
   }
 
-  if (
-    "serviceWorker" in navigator &&
-    location.protocol.startsWith("http") &&
-    /download/i.test(location.pathname)
-  ) {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    const onDownload = /download/i.test(location.pathname);
+    if (onDownload) {
+      navigator.serviceWorker.register("/sw.js?v=4").catch(() => {});
+    } else {
+      // Kill stale SWs from earlier deploys that cached broken CSS on the marketing site
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.unregister());
+      });
+      if (window.caches && caches.keys) {
+        caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+      }
+    }
   }
 })();

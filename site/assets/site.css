@@ -226,19 +226,23 @@ a {
 .hero-craft {
   position: relative;
   min-height: 100svh;
-  color: #eef2f5;
+  color: #f4f6f8;
   overflow: hidden;
-  background: var(--steel);
+  background-color: #0b0e12;
+  background-image: none;
   display: flex;
   align-items: stretch;
 }
 .hero-mesh {
   position: absolute;
   inset: 0;
-  background:
+  z-index: 0;
+  pointer-events: none;
+  background-color: #0b0e12;
+  background-image:
     radial-gradient(ellipse 70% 55% at 85% 20%, rgba(26, 163, 122, 0.22), transparent 55%),
     radial-gradient(ellipse 50% 40% at 10% 90%, rgba(194, 69, 50, 0.12), transparent 50%),
-    linear-gradient(165deg, #0b0e12 0%, var(--steel) 45%, var(--steel-2) 100%);
+    linear-gradient(165deg, #0b0e12 0%, #121820 45%, #1c2530 100%);
   animation: mesh 16s var(--ease) infinite alternate;
 }
 .hero-gridline {
@@ -269,6 +273,41 @@ a {
   display: grid;
   gap: 2rem;
   align-items: end;
+  color: #f4f6f8;
+}
+.hero-copy {
+  opacity: 1;
+  animation: rise 0.85s var(--ease) forwards;
+}
+.brand-hero {
+  margin: 0 0 0.75rem;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(3rem, 10vw, 5.5rem);
+  letter-spacing: -0.055em;
+  line-height: 0.88;
+  color: #ffffff;
+}
+.hero-craft h1 {
+  margin: 0 0 1rem;
+  max-width: 14ch;
+  font-family: var(--display);
+  font-weight: 650;
+  font-size: clamp(1.45rem, 3.2vw, 2.15rem);
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  color: #ffffff;
+}
+.lede {
+  margin: 0 0 1.5rem;
+  max-width: 34ch;
+  color: rgba(244, 246, 248, 0.88);
+  font-size: 1.08rem;
+}
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 @media (min-width: 980px) {
   .hero-layout {
@@ -288,42 +327,10 @@ a {
   }
 }
 
-.hero-copy {
-  animation: rise 0.85s var(--ease) both;
-}
-.brand-hero {
-  margin: 0 0 0.75rem;
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: clamp(3rem, 10vw, 5.5rem);
-  letter-spacing: -0.055em;
-  line-height: 0.88;
-}
-.hero-craft h1 {
-  margin: 0 0 1rem;
-  max-width: 14ch;
-  font-family: var(--display);
-  font-weight: 650;
-  font-size: clamp(1.45rem, 3.2vw, 2.15rem);
-  letter-spacing: -0.035em;
-  line-height: 1.12;
-}
-.lede {
-  margin: 0 0 1.5rem;
-  max-width: 34ch;
-  color: rgba(238, 242, 245, 0.76);
-  font-size: 1.08rem;
-}
-.cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
 @keyframes rise {
   from {
-    opacity: 0;
-    transform: translateY(1rem);
+    opacity: 0.2;
+    transform: translateY(0.75rem);
   }
   to {
     opacity: 1;
@@ -334,10 +341,12 @@ a {
 /* Crafted desk UI — the product, not a stock photo */
 .desk {
   border: 1px solid rgba(238, 242, 245, 0.14);
-  background: rgba(11, 14, 18, 0.55);
+  background: rgba(11, 14, 18, 0.72);
   backdrop-filter: blur(10px);
-  animation: rise 1s var(--ease) 0.12s both;
+  opacity: 1;
+  animation: rise 1s var(--ease) 0.12s forwards;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  color: #f4f6f8;
 }
 .desk-chrome {
   display: flex;

@@ -22,7 +22,34 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260721b" />
+  <style>
+    /* Critical: never ship light text on a light hero if main CSS flakes or SW serves stale CSS */
+    body.home .hero-craft {
+      background: #0b0e12 !important;
+      color: #f4f6f8 !important;
+    }
+    body.home .hero-craft .brand-hero,
+    body.home .hero-craft h1 {
+      color: #ffffff !important;
+    }
+    body.home .hero-craft .lede {
+      color: rgba(244, 246, 248, 0.88) !important;
+    }
+    body.home .hero-craft .btn.ghost {
+      color: #f4f6f8 !important;
+      border-color: rgba(244, 246, 248, 0.45) !important;
+    }
+    body.home .top:not(.scrolled) .brand-name,
+    body.home .top:not(.scrolled) .nav-toggle span {
+      color: #f4f6f8;
+      background-color: #f4f6f8;
+    }
+    body.home .top:not(.scrolled) .brand-name {
+      background: none;
+      color: #f4f6f8 !important;
+    }
+  </style>
 </head>
 <body class="home">
   <a class="skip" href="#main">Skip to content</a>
@@ -365,7 +392,7 @@
   </main>
 
   <div data-footer></div>
-  <script src="/assets/chrome.js"></script>
-  <script src="/assets/app.js"></script>
+  <script src="/assets/chrome.js?v=20260721b"></script>
+  <script src="/assets/app.js?v=20260721b"></script>
 </body>
 </html>
