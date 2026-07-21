@@ -593,6 +593,62 @@ a {
   color: var(--mute);
 }
 
+.better-band {
+  background:
+    linear-gradient(180deg, #fff 0%, var(--paper-2) 100%);
+  border-top: 1px solid var(--line);
+}
+.better-lede {
+  max-width: 52ch;
+}
+.better-grid {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+@media (min-width: 900px) {
+  .better-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+}
+.better-grid article {
+  padding: 1.35rem 1.25rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+}
+.better-grid article.better-us {
+  border-color: rgba(15, 107, 82, 0.35);
+  background:
+    linear-gradient(165deg, rgba(26, 163, 122, 0.1), transparent 55%),
+    #fff;
+  box-shadow: 0 18px 40px rgba(15, 107, 82, 0.08);
+}
+.better-kicker {
+  margin: 0 0 0.55rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.better-us .better-kicker {
+  color: var(--truth);
+}
+.better-grid h3 {
+  margin: 0 0 0.45rem;
+  font-family: var(--display);
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+}
+.better-grid p:last-child {
+  margin: 0;
+  color: var(--mute);
+  font-size: 0.98rem;
+}
+
 .live-band {
   background: var(--paper-2);
 }
@@ -793,9 +849,9 @@ input[type="number"] {
 }
 .compare {
   width: 100%;
-  min-width: 34rem;
+  min-width: 48rem;
   border-collapse: collapse;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 .compare th,
 .compare td {

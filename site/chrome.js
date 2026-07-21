@@ -13,7 +13,7 @@
     <nav class="nav" aria-label="Primary">
       <a href="/product.html" data-nav="product">Product</a>
       <a href="/pricing.html" data-nav="pricing">Pricing</a>
-      <a href="${isHome ? "#demo" : "/#demo"}">Demos</a>
+      <a href="${isHome ? "#live" : "/#live"}">Live</a>
       <a class="nav-cta" href="${isHome ? "#waitlist" : "/#waitlist"}">Early access</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
@@ -23,7 +23,7 @@
   <div id="mobile-nav" class="mobile-nav" hidden>
     <a href="/product.html">Product</a>
     <a href="/pricing.html">Pricing</a>
-    <a href="${isHome ? "#demo" : "/#demo"}">Demos</a>
+    <a href="${isHome ? "#live" : "/#live"}">Live</a>
     <a href="${isHome ? "#waitlist" : "/#waitlist"}">Early access</a>
   </div>`;
   }
