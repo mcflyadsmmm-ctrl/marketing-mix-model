@@ -10,7 +10,7 @@ Anti-attribution marketing cockpit for Shopify: **real ad spend vs Shopify sales
 
 ## Product site
 
-Static marketing site in [`/site`](site/) (home, product, pricing, privacy, terms, support). Deploy via GitHub Pages workflow.
+Static marketing site in [`/site`](site/) (home, product, pricing, privacy, terms, support). Includes favicon, OG meta, sitemap, robots, 404, and CNAME for `mcflyads.com`. Deploy via GitHub Pages workflow.
 
 ## Shared packages (`/packages`)
 
@@ -30,7 +30,7 @@ npm run build     # compile all packages
 
 ## Status
 
-Phase 0 — product marketing site in `/site`. Shared backend foundations (items 3–5 stubs) in `/packages` + `/sheets`. Shopify app scaffold pending (sibling agent).
+Phase 0 — product marketing site ship-ready in `/site` (demos, waitlist, SEO assets, legal). Shared backend foundations in `/packages` + `/sheets`. Enable GitHub Pages + DNS when ready. Shopify app scaffold pending (sibling agent).
 
 ## Optimal path (short)
 

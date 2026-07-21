@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Downloadable MER app — Mcfly Analytics</title>
+  <meta name="description" content="Installable / offline-friendly cash MER calculator. Same religion as the Shopify app — spend vs sales." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0f1419" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+  <main id="main">
+    <header class="page-hero">
+      <p class="brand-kicker">Mcfly Analytics</p>
+      <h1>Downloadable cash MER — for Shopify and services.</h1>
+      <p>Install this site as an app (PWA). Enter spend and revenue. Get MER, break-even, and a simple allocation hint — no account required for the calculator.</p>
+    </header>
+
+    <div class="prose">
+      <h2>Offline calculator</h2>
+      <div class="panel" style="padding-top:0">
+        <label class="slider">Ad spend ($)
+          <input type="number" id="dl-spend" min="0" step="100" value="64000" />
+        </label>
+        <label class="slider">Revenue / sales ($)
+          <input type="number" id="dl-sales" min="0" step="100" value="221296" />
+        </label>
+        <label class="slider">Contribution margin (%)
+          <input type="number" id="dl-margin" min="1" max="99" step="1" value="35" />
+        </label>
+        <div class="meter-row two" style="margin-top:1rem">
+          <div>
+            <span class="lab">Cash MER</span>
+            <strong class="truth" id="dl-mer">3.46×</strong>
+          </div>
+          <div>
+            <span class="lab">Break-even MER</span>
+            <strong id="dl-be">2.86×</strong>
+          </div>
+        </div>
+        <p class="verdict" id="dl-verdict">Above break-even.</p>
+      </div>
+
+      <h2>How to install</h2>
+      <ul>
+        <li><strong>Chrome / Edge:</strong> menu → Install Mcfly Analytics / Add to Home screen</li>
+        <li><strong>Safari iOS:</strong> Share → Add to Home Screen</li>
+        <li>Works offline after first load (service worker)</li>
+      </ul>
+
+      <h2>Who this is for</h2>
+      <p>Shopify operators between installs. Service businesses without Shopify. Agencies demoing cash MER before connecting a store. Same formula as the embedded app — one religion.</p>
+    </div>
+  </main>
+
+  <div data-footer></div>
+<script src="chrome.js"></script>
+  <script src="main.js"></script>
+  <script>
+    (function () {
+      const spend = document.getElementById("dl-spend");
+      const sales = document.getElementById("dl-sales");
+      const margin = document.getElementById("dl-margin");
+      const merEl = document.getElementById("dl-mer");
+      const beEl = document.getElementById("dl-be");
+      const verdict = document.getElementById("dl-verdict");
+      function run() {
+        const s = Number(spend.value) || 0;
+        const r = Number(sales.value) || 0;
+        const m = (Number(margin.value) || 35) / 100;
+        const be = m > 0 ? 1 / m : 0;
+        const mer = s > 0 ? r / s : 0;
+        merEl.textContent = mer ? mer.toFixed(2) + "×" : "—";
+        beEl.textContent = be ? be.toFixed(2) + "×" : "—";
+        if (!s || !r) {
+          verdict.textContent = "Enter spend and sales.";
+          verdict.style.color = "var(--mute)";
+        } else if (mer >= be) {
+          verdict.textContent = "Above break-even — protect the mix.";
+          verdict.style.color = "var(--truth)";
+        } else {
+          verdict.textContent = "Below break-even — cut spend or improve margin.";
+          verdict.style.color = "var(--lie)";
+        }
+      }
+      [spend, sales, margin].forEach((el) => el.addEventListener("input", run));
+      run();
+    })();
+  </script>
+</body>
+</html>

@@ -183,9 +183,9 @@ Is the task about cash MER / spend sync / allocation / anti-attribution?
 
 ### Phase 0 — Site + foundation (NOW)
 - [x] Lock directive in this document
-- [ ] Ship solid **product** marketing site in `/site` (GitHub Pages)
-- [ ] Privacy + terms
-- [ ] Waitlist / contact CTA (email form or `mailto:` / Typeform later)
+- [x] Ship solid **product** marketing site in `/site` (GitHub Pages)
+- [x] Privacy + terms
+- [x] Waitlist / contact CTA (email form or `mailto:` / Typeform later)
 - [ ] DNS point when ready (not blocking build)
 - [ ] Shopify Partner + app scaffold **after** site is credible
 - [ ] Hosting + Postgres when app starts

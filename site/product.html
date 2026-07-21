@@ -4,81 +4,50 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Product — Mcfly Analytics</title>
-  <meta name="description" content="Shopify app + Sheets companion for cash MER, break-even MER, and channel allocation — without path attribution." />
+  <meta name="description" content="Cash MER cockpit for Shopify: spend vs sales, break-even MER, and auditable allocation — no path attribution." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="canonical" href="https://mcflyads.com/product.html" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="top">
-    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span class="brand-name">Mcfly</span></a>
-    <nav class="nav" aria-label="Primary">
-      <a href="product.html">Product</a>
-      <a href="pricing.html">Pricing</a>
-      <a href="index.html#demo">Demo</a>
-      <a class="nav-cta" href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Early access</a>
-    </nav>
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu"><span></span><span></span></button>
-  </header>
-  <div id="mobile-nav" class="mobile-nav" hidden>
-    <a href="product.html">Product</a>
-    <a href="pricing.html">Pricing</a>
-    <a href="index.html#demo">Demo</a>
-    <a href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Early access</a>
-  </div>
-
-  <main>
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+  <main id="main">
     <header class="page-hero">
       <p class="brand-kicker">Mcfly Analytics</p>
       <h1>Cash MER. Live spend. Allocation you can audit.</h1>
-      <p>One brain for spend-vs-sales. Shopify-native first; Sheets when you want the grid. No pixels. No path credit.</p>
+      <p>One brain for spend-vs-sales. Shopify-native first; Sheets and downloadable when you need them. No pixels. No path credit.</p>
     </header>
-
+    <div class="show-frame" style="margin-bottom:2.5rem">
+      <picture>
+        <source srcset="assets/product-cockpit.webp" type="image/webp" />
+        <img src="assets/product-cockpit.jpg" alt="Mcfly dashboard mock showing cash MER and channel mix" width="1200" height="675" loading="lazy" />
+      </picture>
+    </div>
     <div class="prose">
       <h2>What you get</h2>
       <ul>
-        <li><strong>Shopify sales in</strong> — from Admin API, for the period you care about.</li>
-        <li><strong>Ad spend out</strong> — Meta + Google daily (manual/CSV on day one; live pipes next).</li>
-        <li><strong>MER + break-even MER</strong> — from your contribution margin, not a black-box model.</li>
+        <li><strong>Shopify sales in</strong> — Admin API for the period you care about.</li>
+        <li><strong>Ad spend out</strong> — Meta + Google daily (manual/CSV/Script day one; live pipes next).</li>
+        <li><strong>MER + break-even MER</strong> — from your contribution margin, not a black box.</li>
         <li><strong>Channel mix</strong> — what you spent where, against total sales.</li>
-        <li><strong>One allocation card</strong> — rules-based suggestion with inputs shown. Not “who won the click.”</li>
-        <li><strong>Freshness</strong> — last synced, recon hints when connectors fail.</li>
+        <li><strong>One allocation card</strong> — rules-based, inputs shown. Not “who won the click.”</li>
       </ul>
-
-      <h2>Surfaces (build order)</h2>
-      <ol>
-        <li>This marketing site</li>
-        <li>Shopify embedded app (primary product)</li>
-        <li>Google Sheets companion (same numbers)</li>
-      </ol>
-
-      <h2>What we will not ship</h2>
+      <h2>What we refuse</h2>
       <ul>
-        <li>Multi-touch / path attribution</li>
-        <li>View-through and pixel causality cosplay</li>
-        <li>A 40-connector data warehouse dressed as SyncWith</li>
+        <li>Path attribution / MTA / view-through</li>
+        <li>Pixel causality cosplay</li>
+        <li>SyncWith-scale connector zoo as the product</li>
         <li>Custom MMM consulting as the core offer</li>
       </ul>
-
-      <h2>Who it’s for</h2>
-      <p>Shopify operators and lean agencies who already know platform ROAS doesn’t equal P&amp;L — and want a weekly source of truth they can trust.</p>
-
-      <p style="margin-top:2rem"><a class="btn primary" href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Request early access</a></p>
+      <p style="margin-top:2rem"><a class="btn primary solid" href="index.html#waitlist">Request early access</a></p>
     </div>
   </main>
-
-  <footer class="foot">
-    <div class="foot-brand">Mcfly Analytics</div>
-    <nav aria-label="Footer">
-      <a href="product.html">Product</a>
-      <a href="pricing.html">Pricing</a>
-      <a href="support.html">Support</a>
-      <a href="privacy.html">Privacy</a>
-      <a href="terms.html">Terms</a>
-    </nav>
-    <p class="fine">© <span id="y"></span> Mcfly.</p>
-  </footer>
+  <div data-footer></div>
+  <script src="chrome.js"></script>
   <script src="main.js"></script>
 </body>
 </html>

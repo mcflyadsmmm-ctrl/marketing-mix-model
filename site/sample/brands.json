@@ -1,0 +1,677 @@
+{
+  "brands": [
+    {
+      "id": "demo-dtc",
+      "label": "Northline Supply",
+      "shop_id": "shop_demo_dtc",
+      "periods": {
+        "mtd": {
+          "period_start": "2026-07-01",
+          "period_end": "2026-07-21",
+          "spend": 63657.94,
+          "sales": 221295.85,
+          "mer": 3.4763,
+          "break_even": 2.8571,
+          "target_mer": 3.5,
+          "margin_pct": 0.35,
+          "above_break_even": true,
+          "orders": 2684,
+          "channels": {
+            "meta": 39480.38,
+            "google": 18131.11,
+            "other": 6046.45
+          },
+          "channel_mix": [
+            {
+              "channel": "meta",
+              "amount": 39480.38,
+              "share": 0.6202
+            },
+            {
+              "channel": "google",
+              "amount": 18131.11,
+              "share": 0.2848
+            },
+            {
+              "channel": "other",
+              "amount": 6046.45,
+              "share": 0.095
+            }
+          ]
+        },
+        "qtd": {
+          "period_start": "2026-07-01",
+          "period_end": "2026-07-21",
+          "spend": 63657.94,
+          "sales": 221295.85,
+          "mer": 3.4763,
+          "break_even": 2.8571,
+          "target_mer": 3.5,
+          "margin_pct": 0.35,
+          "above_break_even": true,
+          "orders": 2684,
+          "channels": {
+            "meta": 39480.38,
+            "google": 18131.11,
+            "other": 6046.45
+          },
+          "channel_mix": [
+            {
+              "channel": "meta",
+              "amount": 39480.38,
+              "share": 0.6202
+            },
+            {
+              "channel": "google",
+              "amount": 18131.11,
+              "share": 0.2848
+            },
+            {
+              "channel": "other",
+              "amount": 6046.45,
+              "share": 0.095
+            }
+          ]
+        },
+        "ytd": {
+          "period_start": "2026-04-23",
+          "period_end": "2026-07-21",
+          "spend": 258761,
+          "sales": 917697,
+          "mer": 3.5465,
+          "break_even": 2.8571,
+          "target_mer": 3.5,
+          "margin_pct": 0.35,
+          "above_break_even": true,
+          "orders": 11050,
+          "channels": {
+            "meta": 161217.78,
+            "google": 72574.44,
+            "other": 24968.78
+          },
+          "channel_mix": [
+            {
+              "channel": "meta",
+              "amount": 161217.78,
+              "share": 0.623
+            },
+            {
+              "channel": "google",
+              "amount": 72574.44,
+              "share": 0.2805
+            },
+            {
+              "channel": "other",
+              "amount": 24968.78,
+              "share": 0.0965
+            }
+          ]
+        }
+      },
+      "sparkline": [
+        {
+          "date": "2026-06-07",
+          "mer": 3.727,
+          "spend": 2114.41,
+          "sales": 7880.25
+        },
+        {
+          "date": "2026-06-08",
+          "mer": 3.527,
+          "spend": 3029.79,
+          "sales": 10687.1
+        },
+        {
+          "date": "2026-06-09",
+          "mer": 3.121,
+          "spend": 3322.18,
+          "sales": 10367.66
+        },
+        {
+          "date": "2026-06-10",
+          "mer": 3.512,
+          "spend": 3136.04,
+          "sales": 11014.44
+        },
+        {
+          "date": "2026-06-11",
+          "mer": 3.534,
+          "spend": 3027.24,
+          "sales": 10699.23
+        },
+        {
+          "date": "2026-06-12",
+          "mer": 3.921,
+          "spend": 3008.25,
+          "sales": 11795.48
+        },
+        {
+          "date": "2026-06-13",
+          "mer": 4.037,
+          "spend": 1934.34,
+          "sales": 7808.87
+        },
+        {
+          "date": "2026-06-14",
+          "mer": 3.351,
+          "spend": 2535.55,
+          "sales": 8495.7
+        },
+        {
+          "date": "2026-06-15",
+          "mer": 3.864,
+          "spend": 2786.23,
+          "sales": 10766.16
+        },
+        {
+          "date": "2026-06-16",
+          "mer": 3.18,
+          "spend": 3701.42,
+          "sales": 11771.06
+        },
+        {
+          "date": "2026-06-17",
+          "mer": 4.214,
+          "spend": 2636.67,
+          "sales": 11111.35
+        },
+        {
+          "date": "2026-06-18",
+          "mer": 3.038,
+          "spend": 3399.79,
+          "sales": 10329.67
+        },
+        {
+          "date": "2026-06-19",
+          "mer": 3.049,
+          "spend": 3537.97,
+          "sales": 10785.97
+        },
+        {
+          "date": "2026-06-20",
+          "mer": 3.961,
+          "spend": 2423.63,
+          "sales": 9600.37
+        },
+        {
+          "date": "2026-06-21",
+          "mer": 4.4,
+          "spend": 1838.91,
+          "sales": 8091.22
+        },
+        {
+          "date": "2026-06-22",
+          "mer": 3.599,
+          "spend": 2964.43,
+          "sales": 10669.69
+        },
+        {
+          "date": "2026-06-23",
+          "mer": 4.174,
+          "spend": 2722.43,
+          "sales": 11363.41
+        },
+        {
+          "date": "2026-06-24",
+          "mer": 4.15,
+          "spend": 2705.36,
+          "sales": 11226.08
+        },
+        {
+          "date": "2026-06-25",
+          "mer": 3.017,
+          "spend": 3699.95,
+          "sales": 11162.28
+        },
+        {
+          "date": "2026-06-26",
+          "mer": 3.818,
+          "spend": 2859.92,
+          "sales": 10919.63
+        },
+        {
+          "date": "2026-06-27",
+          "mer": 4.254,
+          "spend": 1960.94,
+          "sales": 8342.69
+        },
+        {
+          "date": "2026-06-28",
+          "mer": 4.087,
+          "spend": 2057.43,
+          "sales": 8409.11
+        },
+        {
+          "date": "2026-06-29",
+          "mer": 3.722,
+          "spend": 3075.66,
+          "sales": 11446.53
+        },
+        {
+          "date": "2026-06-30",
+          "mer": 4.239,
+          "spend": 2762.53,
+          "sales": 11709.41
+        },
+        {
+          "date": "2026-07-01",
+          "mer": 3.231,
+          "spend": 3192.01,
+          "sales": 10314.32
+        },
+        {
+          "date": "2026-07-02",
+          "mer": 3.143,
+          "spend": 3292.37,
+          "sales": 10348.43
+        },
+        {
+          "date": "2026-07-03",
+          "mer": 4.158,
+          "spend": 2646.1,
+          "sales": 11002.23
+        },
+        {
+          "date": "2026-07-04",
+          "mer": 3.839,
+          "spend": 2452.44,
+          "sales": 9415.61
+        },
+        {
+          "date": "2026-07-05",
+          "mer": 3.207,
+          "spend": 2689.86,
+          "sales": 8625.43
+        },
+        {
+          "date": "2026-07-06",
+          "mer": 3.52,
+          "spend": 3362.07,
+          "sales": 11835.94
+        },
+        {
+          "date": "2026-07-07",
+          "mer": 3.688,
+          "spend": 2956.85,
+          "sales": 10905
+        },
+        {
+          "date": "2026-07-08",
+          "mer": 3.888,
+          "spend": 2971.9,
+          "sales": 11555.77
+        },
+        {
+          "date": "2026-07-09",
+          "mer": 3.286,
+          "spend": 3437.22,
+          "sales": 11295.93
+        },
+        {
+          "date": "2026-07-10",
+          "mer": 4.187,
+          "spend": 2655.9,
+          "sales": 11120.04
+        },
+        {
+          "date": "2026-07-11",
+          "mer": 3.256,
+          "spend": 2725.69,
+          "sales": 8875.36
+        },
+        {
+          "date": "2026-07-12",
+          "mer": 3.396,
+          "spend": 2658.28,
+          "sales": 9027.58
+        },
+        {
+          "date": "2026-07-13",
+          "mer": 3.415,
+          "spend": 3415.04,
+          "sales": 11663.34
+        },
+        {
+          "date": "2026-07-14",
+          "mer": 3.593,
+          "spend": 3152.26,
+          "sales": 11326.67
+        },
+        {
+          "date": "2026-07-15",
+          "mer": 3.372,
+          "spend": 3586.59,
+          "sales": 12093.69
+        },
+        {
+          "date": "2026-07-16",
+          "mer": 3.654,
+          "spend": 3099.71,
+          "sales": 11327.3
+        },
+        {
+          "date": "2026-07-17",
+          "mer": 3.147,
+          "spend": 3348.33,
+          "sales": 10538.83
+        },
+        {
+          "date": "2026-07-18",
+          "mer": 3.216,
+          "spend": 2867.5,
+          "sales": 9221.8
+        },
+        {
+          "date": "2026-07-19",
+          "mer": 3.597,
+          "spend": 2581.43,
+          "sales": 9284.79
+        },
+        {
+          "date": "2026-07-20",
+          "mer": 4.035,
+          "spend": 2706.87,
+          "sales": 10921.52
+        },
+        {
+          "date": "2026-07-21",
+          "mer": 2.745,
+          "spend": 3859.52,
+          "sales": 10596.27
+        }
+      ]
+    },
+    {
+      "id": "demo-agency",
+      "label": "Harbor Home Co",
+      "shop_id": "shop_demo_agency",
+      "periods": {
+        "mtd": {
+          "period_start": "2026-07-01",
+          "period_end": "2026-07-21",
+          "spend": 23414.19,
+          "sales": 82068.37,
+          "mer": 3.5051,
+          "break_even": 2.5,
+          "target_mer": 3,
+          "margin_pct": 0.4,
+          "above_break_even": true,
+          "orders": 931,
+          "channels": {
+            "meta": 12926.04,
+            "google": 8290.58,
+            "other": 2197.57
+          },
+          "channel_mix": [
+            {
+              "channel": "meta",
+              "amount": 12926.04,
+              "share": 0.5521
+            },
+            {
+              "channel": "google",
+              "amount": 8290.58,
+              "share": 0.3541
+            },
+            {
+              "channel": "other",
+              "amount": 2197.57,
+              "share": 0.0939
+            }
+          ]
+        },
+        "qtd": {
+          "period_start": "2026-07-01",
+          "period_end": "2026-07-21",
+          "spend": 23414.19,
+          "sales": 82068.37,
+          "mer": 3.5051,
+          "break_even": 2.5,
+          "target_mer": 3,
+          "margin_pct": 0.4,
+          "above_break_even": true,
+          "orders": 931,
+          "channels": {
+            "meta": 12926.04,
+            "google": 8290.58,
+            "other": 2197.57
+          },
+          "channel_mix": [
+            {
+              "channel": "meta",
+              "amount": 12926.04,
+              "share": 0.5521
+            },
+            {
+              "channel": "google",
+              "amount": 8290.58,
+              "share": 0.3541
+            },
+            {
+              "channel": "other",
+              "amount": 2197.57,
+              "share": 0.0939
+            }
+          ]
+        },
+        "ytd": {
+          "period_start": "2026-06-22",
+          "period_end": "2026-07-21",
+          "spend": 33448.92,
+          "sales": 117032.67,
+          "mer": 3.4988,
+          "break_even": 2.5,
+          "target_mer": 3,
+          "margin_pct": 0.4,
+          "above_break_even": true,
+          "orders": 1364,
+          "channels": {
+            "meta": 18492.47,
+            "google": 11743.13,
+            "other": 3213.32
+          },
+          "channel_mix": [
+            {
+              "channel": "meta",
+              "amount": 18492.47,
+              "share": 0.5529
+            },
+            {
+              "channel": "google",
+              "amount": 11743.13,
+              "share": 0.3511
+            },
+            {
+              "channel": "other",
+              "amount": 3213.32,
+              "share": 0.0961
+            }
+          ]
+        }
+      },
+      "sparkline": [
+        {
+          "date": "2026-06-22",
+          "mer": 3.342,
+          "spend": 1260.26,
+          "sales": 4211.33
+        },
+        {
+          "date": "2026-06-23",
+          "mer": 2.974,
+          "spend": 1253.91,
+          "sales": 3729.04
+        },
+        {
+          "date": "2026-06-24",
+          "mer": 3.308,
+          "spend": 1191.42,
+          "sales": 3941.71
+        },
+        {
+          "date": "2026-06-25",
+          "mer": 2.75,
+          "spend": 1507.5,
+          "sales": 4145.81
+        },
+        {
+          "date": "2026-06-26",
+          "mer": 4.262,
+          "spend": 1014.22,
+          "sales": 4322.86
+        },
+        {
+          "date": "2026-06-27",
+          "mer": 4.4,
+          "spend": 672.47,
+          "sales": 2958.87
+        },
+        {
+          "date": "2026-06-28",
+          "mer": 3.475,
+          "spend": 902.67,
+          "sales": 3136.76
+        },
+        {
+          "date": "2026-06-29",
+          "mer": 3.46,
+          "spend": 1231.33,
+          "sales": 4260.35
+        },
+        {
+          "date": "2026-06-30",
+          "mer": 4.253,
+          "spend": 1000.95,
+          "sales": 4257.57
+        },
+        {
+          "date": "2026-07-01",
+          "mer": 4.161,
+          "spend": 949.5,
+          "sales": 3950.88
+        },
+        {
+          "date": "2026-07-02",
+          "mer": 3.077,
+          "spend": 1410.15,
+          "sales": 4339.06
+        },
+        {
+          "date": "2026-07-03",
+          "mer": 3.797,
+          "spend": 1139.74,
+          "sales": 4327.79
+        },
+        {
+          "date": "2026-07-04",
+          "mer": 2.979,
+          "spend": 1095.25,
+          "sales": 3263.11
+        },
+        {
+          "date": "2026-07-05",
+          "mer": 3.692,
+          "spend": 851.06,
+          "sales": 3142.12
+        },
+        {
+          "date": "2026-07-06",
+          "mer": 2.915,
+          "spend": 1331.12,
+          "sales": 3879.83
+        },
+        {
+          "date": "2026-07-07",
+          "mer": 3.497,
+          "spend": 1115.37,
+          "sales": 3900.17
+        },
+        {
+          "date": "2026-07-08",
+          "mer": 3.659,
+          "spend": 1182.63,
+          "sales": 4326.74
+        },
+        {
+          "date": "2026-07-09",
+          "mer": 4.168,
+          "spend": 1037.11,
+          "sales": 4322.25
+        },
+        {
+          "date": "2026-07-10",
+          "mer": 3.029,
+          "spend": 1355.13,
+          "sales": 4104.34
+        },
+        {
+          "date": "2026-07-11",
+          "mer": 4.447,
+          "spend": 649.35,
+          "sales": 2887.47
+        },
+        {
+          "date": "2026-07-12",
+          "mer": 3.095,
+          "spend": 1059.37,
+          "sales": 3278.19
+        },
+        {
+          "date": "2026-07-13",
+          "mer": 3.086,
+          "spend": 1350.41,
+          "sales": 4167.36
+        },
+        {
+          "date": "2026-07-14",
+          "mer": 3.009,
+          "spend": 1453.89,
+          "sales": 4375.04
+        },
+        {
+          "date": "2026-07-15",
+          "mer": 4.092,
+          "spend": 1080.54,
+          "sales": 4421.27
+        },
+        {
+          "date": "2026-07-16",
+          "mer": 3.796,
+          "spend": 1134.54,
+          "sales": 4307.11
+        },
+        {
+          "date": "2026-07-17",
+          "mer": 3.33,
+          "spend": 1175.68,
+          "sales": 3914.55
+        },
+        {
+          "date": "2026-07-18",
+          "mer": 4.146,
+          "spend": 836.52,
+          "sales": 3468.66
+        },
+        {
+          "date": "2026-07-19",
+          "mer": 4.478,
+          "spend": 717.91,
+          "sales": 3214.64
+        },
+        {
+          "date": "2026-07-20",
+          "mer": 3.663,
+          "spend": 1205.93,
+          "sales": 4417.27
+        },
+        {
+          "date": "2026-07-21",
+          "mer": 3.165,
+          "spend": 1282.99,
+          "sales": 4060.52
+        }
+      ]
+    }
+  ],
+  "as_of": "2026-07-21"
+}

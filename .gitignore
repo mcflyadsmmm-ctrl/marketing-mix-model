@@ -5,3 +5,5 @@ dist/
 .env.*
 .DS_Store
 coverage/
+packages/**/node_modules/
+.cursor/
