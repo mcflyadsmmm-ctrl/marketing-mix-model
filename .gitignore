@@ -3,6 +3,7 @@ dist/
 *.tsbuildinfo
 .env
 .env.*
+!.env.example
 # Overnight orchestrator artifacts (CI uploads these)
 reports/
 
