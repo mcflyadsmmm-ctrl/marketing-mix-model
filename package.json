@@ -1,17 +1,15 @@
 {
   "name": "mcfly-analytics",
   "private": true,
-  "description": "Mcfly Analytics — shared backend foundations (MER, connectors, API contract)",
   "workspaces": [
+    "app",
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "test": "npm run test --workspace @mcfly/mer-core",
-    "test:all": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
-  },
-  "engines": {
-    "node": ">=20"
+    "dev": "npm run dev --workspace=app",
+    "build": "npm run build --workspace=@mcfly/mer-core && npm run build --workspace=@mcfly/mer-engine && npm run build --workspace=app",
+    "test": "npm run test --workspace=@mcfly/mer-core && npm run test --workspace=@mcfly/mer-engine",
+    "typecheck": "npm run typecheck --workspace=app",
+    "seed": "npm run seed --workspace=app"
   }
 }

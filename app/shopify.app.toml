@@ -1,0 +1,28 @@
+# Mcfly Analytics — Shopify app configuration
+# Link to Partner app via: shopify app config link (requires human Partner login)
+
+client_id = ""
+name = "Mcfly Analytics"
+application_url = "https://example.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+
+[access_scopes]
+# read_orders for Truth MVP sales totals
+scopes = "read_orders"
+
+[webhooks]
+api_version = "2025-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  [[webhooks.subscriptions]]
+  topics = ["app/scopes_update"]
+  uri = "/webhooks/app/scopes_update"
+
+[auth]
+redirect_urls = [ "https://example.com/auth/callback" ]

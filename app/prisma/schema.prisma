@@ -1,0 +1,72 @@
+// Mcfly Analytics — Prisma schema (Truth MVP)
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Shopify OAuth session storage (required by @shopify/shopify-app-session-storage-prisma)
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model Shop {
+  id           String       @id @default(cuid())
+  domain       String       @unique
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  settings     Settings?
+  spendEntries SpendEntry[]
+}
+
+model Settings {
+  id         String   @id @default(cuid())
+  shopId     String   @unique
+  shop       Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  marginPct  Float    @default(0.35)
+  targetMer  Float    @default(3.0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum SpendChannel {
+  meta
+  google
+  other
+}
+
+model SpendEntry {
+  id        String       @id @default(cuid())
+  shopId    String
+  shop      Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  channel   SpendChannel
+  amount    Float
+  periodStart DateTime
+  periodEnd   DateTime
+  note      String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([shopId, periodStart, periodEnd])
+}
