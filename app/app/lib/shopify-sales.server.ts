@@ -64,7 +64,10 @@ export async function fetchShopifySales(
   return { totalSales, orderCount, source: "shopify" };
 }
 
-/** Dev fallback when Shopify API is unavailable */
+/**
+ * Dev-only helper. Production loaders must not call this —
+ * show $0 + error banner instead of fabricated revenue.
+ */
 export function mockSales(range: DateRange): SalesResult {
   const days = Math.max(
     1,

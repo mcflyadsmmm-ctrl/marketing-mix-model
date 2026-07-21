@@ -1,16 +1,18 @@
 # Mcfly Analytics — Shopify app configuration
-# Link to Partner app via: shopify app config link (requires human Partner login)
+# After Partner login: `cd app && shopify app config link` fills client_id + updates URLs on deploy.
+# Do not invent a client_id. Leave blank until linked.
 
 client_id = ""
 name = "Mcfly Analytics"
-application_url = "https://example.com"
+application_url = "https://app.mcflyads.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
+include_config_on_deploy = true
 
 [access_scopes]
-# read_orders for Truth MVP sales totals
+# Truth MVP: order totals for cash MER. Expand only when pipes need it.
 scopes = "read_orders"
 
 [webhooks]
@@ -21,8 +23,20 @@ api_version = "2025-10"
   topics = ["app/uninstalled"]
 
   [[webhooks.subscriptions]]
-  topics = ["app/scopes_update"]
   uri = "/webhooks/app/scopes_update"
+  topics = ["app/scopes_update"]
+
+  # Mandatory App Store compliance webhooks (can share one URI; we use dedicated routes)
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/compliance"
+  compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
 
 [auth]
-redirect_urls = [ "https://example.com/auth/callback" ]
+redirect_urls = [
+  "https://app.mcflyads.com/auth/callback",
+  "https://app.mcflyads.com/auth/shopify/callback",
+  "https://app.mcflyads.com/api/auth/callback"
+]
+
+[app_preferences]
+url = "https://mcflyads.com/support.html"

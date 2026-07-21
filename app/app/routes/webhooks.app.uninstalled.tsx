@@ -7,11 +7,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   console.log(`Received ${topic} webhook for ${shop}`);
 
-  // Webhook requests can trigger multiple times and after an app has already been uninstalled.
-  // If this webhook already ran, the session may have been deleted previously.
+  // Sessions may already be gone on repeat deliveries.
   if (session) {
     await db.session.deleteMany({ where: { shop } });
   }
+
+  // Cascade deletes Settings + SpendEntry via Prisma relations.
+  await db.shop.deleteMany({ where: { domain: shop } });
 
   return new Response();
 };

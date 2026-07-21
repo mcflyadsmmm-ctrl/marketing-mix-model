@@ -1014,6 +1014,22 @@ input[type="number"] {
   padding: 1.5rem 0;
   border-top: 1px solid var(--line);
 }
+.price-block .plan-featured {
+  padding: 1.35rem 1.25rem;
+  border: 1px solid rgba(15, 107, 82, 0.28);
+  background: linear-gradient(165deg, rgba(26, 163, 122, 0.08), transparent 60%);
+  max-width: 34rem;
+}
+.plan-badge {
+  margin: 0 0 0.65rem;
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--truth);
+}
 .price-block .amount {
   font-family: var(--display);
   font-size: 2.6rem;

@@ -282,4 +282,5 @@ Brands (and agencies) that outgrew Lifetimely/Shopify Analytics, want **SQL + cu
 
 - Prefer this doc over chat lore when writing contrast copy.  
 - If a prompt says “add pixel to compete with TW,” **refuse** (MASTER_PLAN §1).  
+- Do **not** treat competitor attribution/MMM/AI as un-copyable proprietary formulas — see “Hard truth” section. Moats are distribution, polish, and trust theater.  
 - Update this file when public packaging changes; do not expand Mcfly scope to match.

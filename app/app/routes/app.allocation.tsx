@@ -8,7 +8,7 @@ import {
   formatMer,
   formatPercent,
 } from "../lib/mer-dashboard.server";
-import { fetchShopifySales, mockSales } from "../lib/shopify-sales.server";
+import { fetchShopifySales } from "../lib/shopify-sales.server";
 import { PERIOD_PRESETS, resolvePeriod, type PeriodPreset } from "../lib/periods";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -23,7 +23,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     sales = await fetchShopifySales(admin, range);
   } catch {
-    sales = mockSales(range);
+    sales = { totalSales: 0, orderCount: 0, source: "shopify" as const };
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales);

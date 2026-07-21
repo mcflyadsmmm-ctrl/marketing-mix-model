@@ -407,19 +407,20 @@
         return;
       }
       const body = [
-        "Mcfly Analytics — early access request",
+        "Mcfly Analytics — free launch / design partner",
         "",
         "Name: " + name,
         "Email: " + email,
         "Store URL: " + store,
         "",
+        "Request: free launch special (feedback + testing).",
         "Sent from mcflyads.com waitlist.",
       ].join("\n");
       window.location.href =
         "mailto:" +
         encodeURIComponent(WAITLIST_EMAIL) +
         "?subject=" +
-        encodeURIComponent("Mcfly Analytics early access — " + name) +
+        encodeURIComponent("Mcfly free launch — " + name) +
         "&body=" +
         encodeURIComponent(body);
       form.hidden = true;

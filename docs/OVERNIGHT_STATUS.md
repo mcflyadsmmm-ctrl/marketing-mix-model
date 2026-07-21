@@ -1,38 +1,24 @@
 # Overnight status — Mcfly Analytics
 
-**Last updated:** automated overnight run  
-**Live:** https://mcflyads.com (Cloudflare Pages, free tier)
+**Last updated:** Shopify launch prep  
+**Live site:** https://mcflyads.com  
+**App Store walkthrough:** docs/SHOPIFY_LAUNCH.md
 
-## You can sleep
+## Ready in repo (code)
 
-This agent continues without prompting. When you return, read this file + PR.
+- Marketing site: free launch, privacy/support App Store–ready
+- Shopify app: GDPR compliance webhook, uninstall cleanup, no shop-domain install form, no mock sales, Truth MVP migration
+- Human walkthrough for Partner → design partners → App Store approval
 
-## Done tonight (so far)
+## Human gates (do these next)
 
-- Cloudflare cleaned: only `mcflyads` Pages + zone; Workers/KV deleted
-- Product marketing site live on apex (anti-attribution SaaS, not consulting)
-- Warehouse sample data (demo-dtc + demo-agency) feeding interactive demos
-- Shopify app Truth MVP routes: dashboard, allocation, spend, settings, connections
-- Shared packages: mer-core, mer-engine, connectors, api-contract
-- Competitor deep dive locked: `docs/COMPETITORS.md` (TW / Northbeam / Polar)
-
-## Still running / next loops
-
-1. Site craft polish (anti–AI-template) when returning to frontend
-2. Commit + push + PR update after doc/code changes
-3. App seed path + Partner `client_id` when human available
-4. Enterprise audit pass (a11y, perf, copy consistency)
-5. Sheets companion after app brain stable
-
-## Human gates (need you awake)
-
-| Gate | Why |
-| --- | --- |
-| Shopify Partner `client_id` + install | Can’t finish App Store / live store without login |
-| Meta / Google OAuth apps | Optional if Script/export spend path is enough for v1 |
-| Revoke leaked API tokens | Tokens were pasted in chat — rotate in CF dashboard |
-| DNS if apex ever sticks on old cache | Usually self-heals; purge in CF if needed |
+1. partners.shopify.com → create app + development store  
+2. `cd app && shopify auth login && shopify app config link`  
+3. `shopify app dev` → install → enter spend → see MER  
+4. Host app + Postgres → `shopify app deploy` → DNS `app.mcflyads.com`  
+5. Invite design partners (free)  
+6. Later: App Store listing + submit  
 
 ## Religion (locked)
 
-Cash MER only. No pixels/MTA. Site → Shopify → Sheets. Plan beats prompt.
+Cash MER only. No pixels/MTA. Free launch → paid later via Shopify Billing.

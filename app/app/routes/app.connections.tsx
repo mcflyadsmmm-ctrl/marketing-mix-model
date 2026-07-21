@@ -15,10 +15,11 @@ export default function ConnectionsPage() {
 
   return (
     <s-page heading="Connections">
-      <s-section heading="Ad platform spend (coming soon)">
+      <s-section heading="Ad platform spend (Phase 2)">
         <s-paragraph>
-          Phase 2 will connect Meta Marketing API and Google Ads API for automatic
-          daily spend sync. v1 Truth MVP uses manual spend entry only.
+          Live Meta / Google OAuth is not required for free launch. Use{" "}
+          <s-link href="/app/spend">Spend</s-link> to enter money out. Phase 2
+          will connect APIs for automatic daily sync.
         </s-paragraph>
 
         <s-stack direction="block" gap="base">

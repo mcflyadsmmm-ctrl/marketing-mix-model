@@ -12,7 +12,7 @@ import {
   formatMer,
   formatPercent,
 } from "../lib/mer-dashboard.server";
-import { fetchShopifySales, mockSales } from "../lib/shopify-sales.server";
+import { fetchShopifySales } from "../lib/shopify-sales.server";
 import { PERIOD_PRESETS, resolvePeriod, type PeriodPreset } from "../lib/periods";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -24,15 +24,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   );
 
   let sales;
+  let salesError: string | null = null;
   try {
     sales = await fetchShopifySales(admin, range);
-  } catch {
-    sales = mockSales(range);
+  } catch (err) {
+    salesError = err instanceof Error ? err.message : "Failed to load Shopify sales";
+    sales = { totalSales: 0, orderCount: 0, source: "shopify" as const };
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales);
 
-  return { metrics, preset: preset === "mtd" || preset === "qtd" || preset === "ytd" ? preset : "mtd" };
+  return {
+    metrics,
+    salesError,
+    preset: preset === "mtd" || preset === "qtd" || preset === "ytd" ? preset : "mtd",
+  };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -41,7 +47,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Dashboard() {
-  const { metrics, preset } = useLoaderData<typeof loader>();
+  const { metrics, preset, salesError } = useLoaderData<typeof loader>();
   const [, setSearchParams] = useSearchParams();
 
   const setPeriod = (value: PeriodPreset) => {
@@ -50,6 +56,11 @@ export default function Dashboard() {
 
   return (
     <s-page heading="MER Dashboard">
+      {salesError ? (
+        <s-banner tone="critical" heading="Could not load Shopify sales">
+          <s-paragraph>{salesError}. Showing $0 sales until Admin API succeeds — not mock data.</s-paragraph>
+        </s-banner>
+      ) : null}
       <s-section heading="Period">
         <s-stack direction="inline" gap="base">
           {PERIOD_PRESETS.map(({ value, label }) => (
@@ -73,11 +84,7 @@ export default function Dashboard() {
             <MetricCard
               label="Shopify sales"
               value={formatCurrency(metrics.sales)}
-              hint={
-                metrics.salesSource === "mock"
-                  ? "Mock data — connect dev store for live sales"
-                  : `${metrics.orderCount} orders`
-              }
+              hint={`${metrics.orderCount} orders`}
             />
             <MetricCard
               label="Ad spend (manual)"

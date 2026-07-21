@@ -14,51 +14,56 @@
   margin: 0;
 }
 
+.kicker {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.heading {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
 .text {
-  font-size: 1.2rem;
-  padding-bottom: 2rem;
+  font-size: 1.1rem;
+  padding-bottom: 0.5rem;
+  opacity: 0.85;
+  max-width: 40rem;
+  margin-inline: auto;
 }
 
 .content {
   display: grid;
-  gap: 2rem;
-}
-
-.form {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin: 0 auto;
-  gap: 1rem;
-}
-
-.label {
-  display: grid;
-  gap: 0.2rem;
-  max-width: 20rem;
-  text-align: left;
-  font-size: 1rem;
-}
-
-.input {
-  padding: 0.4rem;
+  gap: 1.25rem;
+  justify-items: center;
 }
 
 .button {
-  padding: 0.4rem;
+  display: inline-block;
+  padding: 0.55rem 0.9rem;
+  margin: 0.25rem;
+  border: 1px solid currentColor;
+  text-decoration: none;
+  font-weight: 600;
 }
 
 .list {
   list-style: none;
   padding: 0;
-  padding-top: 3rem;
-  margin: 0;
+  margin: 0.5rem 0 0;
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .list > li {
-  max-width: 20rem;
+  max-width: 16rem;
   text-align: left;
 }
 
@@ -69,5 +74,6 @@
 
   .list > li {
     padding-bottom: 1rem;
+    max-width: none;
   }
 }

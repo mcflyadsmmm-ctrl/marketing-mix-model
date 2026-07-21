@@ -62,6 +62,8 @@ PLUS              → break-even MER + allocation from cash spend vs total sales
 
 **Deep dive (research):** [`docs/COMPETITORS.md`](./COMPETITORS.md) — product thesis, anatomy, pricing shape, and Mcfly wedge for each. Prefer that file over chat lore when writing contrast copy.
 
+**Shopify install & App Store:** [`docs/SHOPIFY_LAUNCH.md`](./SHOPIFY_LAUNCH.md) — human steps for Partner link, design-partner installs, and App Store submission. Agents prepare code; only the founder can log in and submit.
+
 ---
 
 ## 2. What we are / are not

@@ -22,7 +22,12 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [x] Manual spend + settings
 - [x] Connections stubs
 - [x] Sample warehouse + seed script
-- [ ] Shopify Partner app linked (`client_id`) — **human**
+- [x] GDPR compliance webhook + uninstall data cleanup
+- [x] App Store 2.3.1 — no shop-domain install form
+- [x] No silent mock sales in production loaders
+- [x] Prisma migration for Shop / Settings / SpendEntry
+- [ ] Shopify Partner app linked (`client_id`) — **human** (see [SHOPIFY_LAUNCH.md](./SHOPIFY_LAUNCH.md))
+- [ ] Hosted HTTPS app URL — **human**
 - [ ] Dev / design-partner store install — **human**
 - [ ] `npm run seed` against real `DATABASE_URL`
 
