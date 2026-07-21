@@ -19,6 +19,24 @@
 
 **“Beat them all” ≠ feature matrix.** It means: own the **cash desk** category so operators who tried SyncWith DIY, TW bloat, Northbeam invoices, or Polar warehouse tax choose Mcfly for the weekly money question.
 
+### Founder correction (locked): commodity ≠ “rebuild their entire roadmap”
+
+**True:** Almost nothing they ship is proprietary science. Pixels, MTA rules, MMM wrappers, Sheets connectors, semantic layers, AI chat — all copyable engineering + packaging.
+
+**Also true:** “We can recreate *everything* they do” is a **trap**. Their moats are **distribution, habit, surface area, and time** — not secret formulas. Rebuilding TW’s OS + Northbeam’s Apex theater + Polar’s Snowflake ski resort + SyncWith’s connector zoo is how a $250-budget founder dies of scope.
+
+| Recreate… | Verdict |
+| --- | --- |
+| Cash desk (spend vs sales, break-even, allocate) | **Yes — this is the product** |
+| Smooth operator UI / craft | **Yes — compete on craft** |
+| Honest pipes (Shopify + spend) | **Yes — enough to feed the desk** |
+| Full SyncWith connector marketplace | **No** — commodity; outsource or Script/CSV |
+| Pixel / MTA / view-through / Compass | **No** — theater; violates religion |
+| Moby-class AI OS / Causal Lift services | **No** — capital and distraction |
+| Dedicated Snowflake BI platform | **No** — wrong wedge |
+
+**Operating rule:** Assume their *features* are copyable. Still refuse to copy their *category mistakes*. Beat them by being the sharpest cash tool — not a fourth suite.
+
 ---
 
 ## One-line map
@@ -346,5 +364,6 @@ Brands (and agencies) that outgrew Lifetimely/Shopify Analytics, want **SQL + cu
 - Prefer this doc over chat lore when writing contrast copy.  
 - If a prompt says “add pixel to compete with TW” or “clone SyncWith connectors,” **refuse** (MASTER_PLAN §1–§2).  
 - “Beat them all” = own the cash desk category via the kill-shot table — **not** feature parity.  
+- **Commodity is true; “rebuild everything” is false.** Copyable ≠ should-copy. Refuse SyncWith zoo / pixels / MTA / AI OS scope (MASTER_PLAN §1–§2).  
 - Do **not** treat competitor attribution/MMM/AI as un-copyable proprietary formulas.  
 - Update this file when public packaging changes; do not expand Mcfly scope to match.
