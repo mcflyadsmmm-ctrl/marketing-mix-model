@@ -239,6 +239,31 @@
       allocRange.value = String(Math.round(periodObj.channel_mix[0].share * 100));
     }
     drawSpark(sparkline);
+    document.querySelectorAll("[data-feed-spend]").forEach((el) => {
+      el.textContent = money(periodObj.spend);
+    });
+    document.querySelectorAll("[data-feed-sales]").forEach((el) => {
+      el.textContent = money(periodObj.sales);
+    });
+    document.querySelectorAll("[data-feed-status]").forEach((el) => {
+      el.textContent = (periodObj.above_break_even ? "Above" : "Below") +
+        " break-even " + Number(periodObj.break_even).toFixed(2) + "×";
+    });
+    document.querySelectorAll("[data-feed-brand]").forEach((el) => {
+      el.textContent = brandLabel + " · " + activePeriod.toUpperCase();
+    });
+    const ch = periodObj.channels || {};
+    const tot = (ch.meta || 0) + (ch.google || 0) + (ch.other || 0) || 1;
+    const setMix = (sel, key, cls) => {
+      const pct = Math.round(((ch[key] || 0) / tot) * 100);
+      document.querySelectorAll(sel).forEach((el) => { el.textContent = pct + "%"; });
+      document.querySelectorAll(".track b." + cls).forEach((el) => {
+        el.style.setProperty("--p", pct + "%");
+      });
+    };
+    setMix("[data-mix-meta]", "meta", "m");
+    setMix("[data-mix-google]", "google", "g");
+    setMix("[data-mix-other]", "other", "o");
     updateClaims();
     updateMargin();
     updateAllocation();
@@ -276,6 +301,8 @@
         Number(periodObj.target_mer).toFixed(2) +
         "×";
     }
+    const heroRec = document.getElementById("hero-rec");
+    if (heroRec && rec.actions[0]) heroRec.textContent = rec.actions[0].detail;
   }
 
   function refreshBrandPeriod() {
@@ -401,7 +428,7 @@
     });
   });
 
-  const reveals = document.querySelectorAll(".band, .instrument, .show-frame");
+  const reveals = document.querySelectorAll(".band, .instrument, .lie-grid article, .how-rail li");
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
