@@ -1,38 +1,88 @@
-# Competitor deep dive — Triple Whale, Northbeam, Polar Analytics
+# Competitor deep dive — SyncWith, Triple Whale, Northbeam, Polar
 
-**Purpose:** High-level product truth for Mcfly positioning. Not a feature-parity checklist.  
-**Last researched:** 2026-07-21  
-**Mcfly stance (locked):** cash MER + break-even + allocation; **anti–path-attribution**. Do not chase pixels, MTA theater, warehouse BI, or AI OS.
+**Purpose:** Product truth for Mcfly positioning. Not a feature-parity checklist.  
+**Last researched:** 2026-07-21 (expanded SyncWith + kill shots)  
+**Mcfly stance (locked):** cash MER + break-even + allocation; **anti–path-attribution**. Do not chase pixels, MTA theater, warehouse BI, SyncWith connector zoo, or AI OS.
+
+---
+
+## How to beat them all (without becoming them)
+
+**Locked strategy:** Beat each player on **their failure mode**, not by copying their roadmap.
+
+| Player | Their real product | How they lose | How Mcfly wins |
+| --- | --- | --- | --- |
+| **SyncWith** | Pipes into Sheets/Looker | Leaves the **decision** to you; DIY MER; refresh tax | Opinionated cash MER + break-even + allocation **on top of** spend/sales — Sheets companion later, not a connector zoo |
+| **Triple Whale** | Operator OS + pixel + AI | Bloat, GMV tax, MER sometimes **inverted** (spend÷revenue), attribution theater | One Monday ritual, correct MER formula, free→flat ~$79, no OS babysitting |
+| **Northbeam** | Attribution court of appeal | $1.5k+, weeks of UTM/pixel theater, black-box feel | Same honesty question (“are we profitable?”) without enterprise ceremony |
+| **Polar** | Warehouse BI + pixel | $750+ GMV climb, 400 metrics, still MTA religion | Sharp knife, not a Snowflake ski resort |
+
+**“Beat them all” ≠ feature matrix.** It means: own the **cash desk** category so operators who tried SyncWith DIY, TW bloat, Northbeam invoices, or Polar warehouse tax choose Mcfly for the weekly money question.
 
 ---
 
 ## One-line map
 
-| Player | Job-to-be-done | Bet | Typical buyer |
-| --- | --- | --- | --- |
-| **Triple Whale** | Daily operator OS — see everything, act faster | Pixel + dashboards + **Moby AI** + activation (Sonar); Compass for “unified measurement” at top tier | Shopify DTC operators, $1M–$40M+, media buyers living in Slack |
-| **Northbeam** | Defensible measurement for serious spend | First-party **MTA** + **MMM+** + **Apex** passback; rigor over convenience | High-spend DTC / omnichannel ($50K+/mo ads common), analytics-minded growth teams |
-| **Polar Analytics** | Warehouse-native ecommerce BI | Dedicated **Snowflake** + semantic layer + pixel/MTA + Causal Lift + AI/MCP | Data-mature Shopify brands ($3M–$20M+), teams that want ownership + custom reports |
+| Player | Job-to-be-done | Bet | Typical buyer | Price shape |
+| --- | --- | --- | --- | --- |
+| **SyncWith** | Get data into Sheets/Looker | Connectors + scheduled refreshes | Marketers/agencies building DIY reports | ~$25–$150/mo by refresh count |
+| **Triple Whale** | Daily operator OS | Pixel + Moby AI + Sonar + Compass | Shopify DTC $1M–$40M+ | Free → ~$219 → ~$749+ (GMV) |
+| **Northbeam** | Defensible measurement | MTA + MMM+ + Apex | High ad spend ($50k+/mo common) | ~$1k–$1.5k+ → custom |
+| **Polar** | Warehouse-native BI | Snowflake + semantic layer + pixel | Data-mature $3M–$20M+ | ~$300–$750+ → GMV climb |
 
-**Shared industry religion (all three):** “Platform ROAS lies after iOS → install *our* pixel / model → credit journeys → optimize ads / budgets.”  
-**Mcfly religion:** platforms over-claim; path credit is theater; measure **ad dollars out vs Shopify sales in**.
+**Suite religion (TW / NB / Polar):** platform ROAS lies → *our* pixel/model → path credit → optimize.  
+**SyncWith religion:** raw data in Sheets → *you* invent the model.  
+**Mcfly religion:** money out vs Shopify in → break-even → allocate.
 
 ---
 
-## Category shape (why they look similar)
+## SyncWith (pipes, not product)
 
-Post–iOS 14.5, DTC measurement fragmented. Three products converged on the same stack:
+### What it is
 
-1. **First-party pixel / identity** (fill tracking gaps)  
-2. **Multi-touch attribution models** (who “owns” the order)  
-3. **Spend + Shopify + retention connectors** (one cockpit)  
-4. **MMM / incrementality** (triangulate when MTA disagrees)  
-5. **Passback / CAPI** (feed “truth” back into Meta/Google so algorithms optimize to *their* model)  
-6. **AI chat / agents** (ask questions, automate reports, eventually act)
+Google Sheets / Looker Studio **data connector**. Pulls Meta Ads, Google Ads, GA4, Shopify (orders/products/inventory), etc. on a schedule. Claims 100k+ marketers; Shopify App Store + Workspace Marketplace presence. Competes with **Supermetrics / Coupler / Coefficient**, not with Northbeam’s MTA story.
 
-They compete on **who you trust when numbers disagree** — Meta Ads Manager vs their pixel vs MMM vs lift tests — and on **how much of the operating system** they own (TW wants the whole OS; Northbeam wants the measurement layer; Polar wants the data platform).
+### Pricing (public)
 
-MER appears in some of their UIs, but it is **not** their product center. Some TW surfaces historically framed MER as spend÷revenue (inverse of Mcfly’s sales÷spend). Mcfly must keep the definition explicit and loud.
+| Plan | ~Price | Cap |
+| --- | --- | --- |
+| Hobby / trial | Free | ~35 refreshes |
+| Starter | ~$25/mo | ~100 refreshes |
+| Business+ | ~$50/mo | ~1,000 |
+| Super | ~$100/mo | ~10,000 |
+| Unlimited | ~$150/mo | Unlimited |
+
+### Strengths
+
+- Cheap, familiar (Sheets), flexible for agencies  
+- Multi-source + multi-store exports  
+- You own the spreadsheet math  
+
+### Weaknesses / Mcfly kill shots
+
+1. **No religion** — ships rows; you still build MER wrong, invert ROAS, or argue paths in cells.  
+2. **Refresh tax** — cost scales with how often you want truth.  
+3. **Not a Monday ritual product** — no break-even MER, no auditable allocation card.  
+4. **UTM/ROAS cosplay** — listing leans “correlate UTMs / track ROAS,” which is the opposite of Mcfly’s cash stance.
+
+### Mcfly relationship (locked)
+
+MASTER_PLAN: pipes are commodity; **do not become SyncWith**. Optional: use Script/CSV/SyncWith-*style* pipes early, sell the **decision layer**. Sheets companion = Mcfly formula in Sheets, not a connector marketplace.
+
+---
+
+## Category shape (TW / Northbeam / Polar)
+
+Post–iOS 14.5, the suites converged on:
+
+1. First-party pixel / identity  
+2. Multi-touch attribution models  
+3. Spend + Shopify + retention connectors  
+4. MMM / incrementality  
+5. Passback / CAPI  
+6. AI chat / agents  
+
+They compete on **who you trust when numbers disagree**. MER is a tile, not the product. **Triple Whale has defined MER in-product as spend÷revenue (inverse of canonical sales÷spend)** — finance teams trip on this; Mcfly must scream the correct formula.
 
 ---
 
@@ -258,29 +308,43 @@ Brands (and agencies) that outgrew Lifetimely/Shopify Analytics, want **SQL + cu
 
 ---
 
+## Kill shots (use in copy / sales — stay factual)
+
+| Target | Attack |
+| --- | --- |
+| SyncWith | “Connectors don’t decide. Cash MER does.” |
+| Triple Whale | “We won’t invert MER or sell you an AI OS. Sales ÷ spend. Break-even. Allocate.” |
+| Northbeam | “You don’t need a $1.5k attribution court to know if ads clear the till.” |
+| Polar | “You don’t need a private Snowflake to answer Monday’s money question.” |
+| All suites | “Pixels and seven models are packaging. We organize the cash facts.” |
+
+---
+
 ## Messaging contrast (use on site / sales)
 
 | Them | Mcfly |
 | --- | --- |
+| SyncWith: “Data in Sheets” | “Decision layer: MER + break-even + allocate” |
 | “True ROAS / true attribution” | “Cash MER — Shopify sales ÷ ad spend” |
 | “7 models / Compass / Causal Lift” | “One formula. Break-even. Allocate.” |
 | “AI operator for ecommerce” | “Monday ritual, not another OS” |
 | “Passback to Meta” | “Don’t train Meta on theater; watch cash” |
-| “Starts at $219 / $750 / $1,500” | “Serious tool, not enterprise theater pricing” |
+| “$25 refreshes / $219 / $750 / $1,500” | “Free launch → flat ~$79 — not GMV theater” |
 
 ---
 
 ## Sources & confidence
 
-- Primary: northbeam.io (Apex, MMM+, MTA), triplewhale.com (pricing, Compass, Moby), polaranalytics.com (pricing, platform).  
-- Market: SalesHive / WorkflowAutomation Northbeam reviews; Shopify App Store Polar listing; Saras / Talk Shop / Fairview / Improvado / Rule1 comparisons; TechCrunch / PR Newswire founding stories.  
-- **Confidence:** High on product shape and positioning; **medium** on exact dollar quotes (all three custom/GMV/spend-scale; pages change). Re-verify before publishing competitor price claims on mcflyads.com.
+- SyncWith: syncwith.com, pricing page, Shopify App Store + Workspace Marketplace listings.  
+- Suites: northbeam.io, triplewhale.com, polaranalytics.com; Eightx / Talk Shop / Knowi / Saras / Fairview comparisons (incl. TW inverse-MER note).  
+- **Confidence:** High on category shape; **medium** on exact dollar quotes. Re-verify before publishing competitor prices on mcflyads.com.
 
 ---
 
 ## Agent rules
 
 - Prefer this doc over chat lore when writing contrast copy.  
-- If a prompt says “add pixel to compete with TW,” **refuse** (MASTER_PLAN §1).  
-- Do **not** treat competitor attribution/MMM/AI as un-copyable proprietary formulas — see “Hard truth” section. Moats are distribution, polish, and trust theater.  
+- If a prompt says “add pixel to compete with TW” or “clone SyncWith connectors,” **refuse** (MASTER_PLAN §1–§2).  
+- “Beat them all” = own the cash desk category via the kill-shot table — **not** feature parity.  
+- Do **not** treat competitor attribution/MMM/AI as un-copyable proprietary formulas.  
 - Update this file when public packaging changes; do not expand Mcfly scope to match.
