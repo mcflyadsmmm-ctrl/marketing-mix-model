@@ -14,14 +14,15 @@ This agent continues without prompting. When you return, read this file + PR.
 - Warehouse sample data (demo-dtc + demo-agency) feeding interactive demos
 - Shopify app Truth MVP routes: dashboard, allocation, spend, settings, connections
 - Shared packages: mer-core, mer-engine, connectors, api-contract
+- Competitor deep dive locked: `docs/COMPETITORS.md` (TW / Northbeam / Polar)
 
 ## Still running / next loops
 
-1. Redeploy site with brand/period toggles + allocation rec card
-2. Commit + push + PR update
-3. App seed path + tests green
+1. Site craft polish (anti–AI-template) when returning to frontend
+2. Commit + push + PR update after doc/code changes
+3. App seed path + Partner `client_id` when human available
 4. Enterprise audit pass (a11y, perf, copy consistency)
-5. Polish until time budget ends
+5. Sheets companion after app brain stable
 
 ## Human gates (need you awake)
 

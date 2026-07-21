@@ -60,6 +60,8 @@ PLUS              → break-even MER + allocation from cash spend vs total sales
 
 **Wedge vs TW / Northbeam / Polar:** honesty + simplicity + price — **not** feature parity.
 
+**Deep dive (research):** [`docs/COMPETITORS.md`](./COMPETITORS.md) — product thesis, anatomy, pricing shape, and Mcfly wedge for each. Prefer that file over chat lore when writing contrast copy.
+
 ---
 
 ## 2. What we are / are not
