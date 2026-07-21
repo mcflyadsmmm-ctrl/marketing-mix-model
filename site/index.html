@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mcfly Analytics — Spend vs sales. Not attribution theater.</title>
+  <meta name="description" content="Mcfly Analytics syncs real ad spend against Shopify sales. MER, break-even MER, and allocation — without path attribution." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="top">
+    <a class="brand" href="index.html" aria-label="Mcfly Analytics home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Mcfly</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="product.html">Product</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="#demo">Demo</a>
+      <a class="nav-cta" href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Early access</a>
+    </nav>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <div id="mobile-nav" class="mobile-nav" hidden>
+    <a href="product.html">Product</a>
+    <a href="pricing.html">Pricing</a>
+    <a href="#demo">Demo</a>
+    <a href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Early access</a>
+  </div>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-brand">
+      <div class="hero-atmosphere" aria-hidden="true"></div>
+      <div class="hero-plane" aria-hidden="true">
+        <div class="ledger">
+          <div class="ledger-row out"><span>Ad spend out</span><span data-count="84200">$84,200</span></div>
+          <div class="ledger-row in"><span>Shopify sales in</span><span data-count="312400">$312,400</span></div>
+          <div class="ledger-mer"><span>MER</span><strong data-mer="3.71">3.71×</strong></div>
+        </div>
+      </div>
+      <div class="hero-copy">
+        <p class="brand-hero" id="hero-brand">Mcfly Analytics</p>
+        <h1>Your ad platforms are lying about what’s driving revenue.</h1>
+        <p class="lede">We don’t do path attribution. We reconcile real spend against Shopify sales — then help you allocate budget from cash MER.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Request early access</a>
+          <a class="btn ghost" href="product.html">See how it works</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section thesis" aria-labelledby="thesis-title">
+      <h2 id="thesis-title">Attribution theater is expensive.</h2>
+      <p>Multi-touch models and pixel “truth” train teams to optimize a story. Mcfly only asks: what left the bank for ads, and what Shopify rang up.</p>
+    </section>
+
+    <section class="section surfaces" aria-labelledby="surfaces-title">
+      <h2 id="surfaces-title">Built for how operators actually work</h2>
+      <p class="section-lede">Shopify-native cockpit first. Sheets companion when you want the same numbers in a grid.</p>
+      <ul class="surface-list">
+        <li>
+          <h3>Shopify app</h3>
+          <p>Embedded MER, break-even line, channel mix, and one clear allocation recommendation — no credit theater.</p>
+        </li>
+        <li>
+          <h3>Spend pipes</h3>
+          <p>Pull Meta and Google cost daily (manual entry works on day one). Sales come from Shopify — the system of record.</p>
+        </li>
+        <li>
+          <h3>Sheets companion</h3>
+          <p>Same brain, sheet-native refresh. Not a 40-connector SyncWith clone — just the numbers you run the business on.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="section demo" id="demo" aria-labelledby="demo-title">
+      <h2 id="demo-title">Feel the difference</h2>
+      <p class="section-lede">Two interactive sketches of the Mcfly worldview. Illustrative — not your store’s live data.</p>
+
+      <div class="demo-block">
+        <h3>Platform claims vs cash</h3>
+        <p>Platforms report conversions that don’t add up to P&amp;L. Drag spend; watch “claimed” ROAS stay theatrical while cash MER stays honest.</p>
+        <div class="claims-demo">
+          <label>
+            Monthly ad spend
+            <input type="range" id="spend-range" min="20000" max="200000" step="1000" value="84000" />
+            <output id="spend-out">$84,000</output>
+          </label>
+          <div class="claims-grid">
+            <div>
+              <span class="label">Platforms claim</span>
+              <strong id="claimed-roas">4.8× ROAS</strong>
+              <span class="sub" id="claimed-rev">~$403k attributed</span>
+            </div>
+            <div>
+              <span class="label">Shopify actually sold</span>
+              <strong id="actual-sales">$312,400</strong>
+              <span class="sub">Cash in the till</span>
+            </div>
+            <div class="highlight">
+              <span class="label">Cash MER</span>
+              <strong id="cash-mer">3.72×</strong>
+              <span class="sub">Sales ÷ spend</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-block">
+        <h3>Break-even MER</h3>
+        <p>Set contribution margin. See the line you must clear before media “works.”</p>
+        <div class="mer-calc">
+          <label>
+            Contribution margin
+            <input type="range" id="margin-range" min="20" max="80" step="1" value="45" />
+            <output id="margin-out">45%</output>
+          </label>
+          <div class="mer-result">
+            <div>
+              <span class="label">Break-even MER</span>
+              <strong id="be-mer">2.22×</strong>
+            </div>
+            <div>
+              <span class="label">Your MER (example)</span>
+              <strong id="ex-mer">3.72×</strong>
+            </div>
+            <p class="mer-verdict" id="mer-verdict">Above break-even — protect the mix, don’t chase platform ROAS.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section not-that" aria-labelledby="not-title">
+      <h2 id="not-title">What Mcfly refuses to sell</h2>
+      <ul class="refuse-list">
+        <li>Path attribution and “who got credit”</li>
+        <li>Pixel causality cosplay</li>
+        <li>Another Triple Whale feature checklist</li>
+        <li>Custom MMM consulting as the product</li>
+      </ul>
+    </section>
+
+    <section class="section close" aria-labelledby="close-title">
+      <h2 id="close-title">Run media against the bank account.</h2>
+      <p>Early access for Shopify brands ready to drop attribution theater.</p>
+      <a class="btn primary" href="mailto:mcflyadsmmm@gmail.com?subject=Mcfly%20Analytics%20early%20access">Request early access</a>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-brand">Mcfly Analytics</div>
+    <nav aria-label="Footer">
+      <a href="product.html">Product</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="support.html">Support</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+    </nav>
+    <p class="fine">© <span id="y"></span> Mcfly. Spend vs sales — not attribution theater.</p>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

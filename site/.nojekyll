@@ -1,0 +1,7 @@
+# GitHub Pages — serve marketing site from /site
+# Settings → Pages → Source: GitHub Actions or Deploy from branch /site
+
+/.git/
+/docs/
+/README.md
+/*.md

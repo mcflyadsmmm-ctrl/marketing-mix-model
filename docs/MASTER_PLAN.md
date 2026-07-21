@@ -1,30 +1,64 @@
-# Mcfly Marketing Analytics — Master Plan
+# Mcfly Analytics — Master Plan (LOCKED)
 
-**Domain:** mcflyads.com  
-**Working email:** mcflyadsmmm@gmail.com (owner/backup); public `hello@` / `support@` on domain when ready  
-**Status:** Planning → Phase 0 setup  
+**Domain:** mcflyads.com (point later; build domain-agnostic)  
+**Working email:** mcflyadsmmm@gmail.com  
+**GitHub:** `martysmithson04-alt/marketing-mix-model`  
+**Status:** Phase 0 — product marketing site first, then app  
 
 ---
 
-## 1. Master directive
+## 0. How to use this document (agents + humans)
 
-**Mcfly is an anti-attribution marketing cockpit for Shopify operators.**
+This file is the **source of truth**. Later chat prompts are noise unless they **strengthen** this directive.
 
-- Ad platforms over-claim conversions. Multi-touch / pixel “truth” is mostly theater.
-- Triple Whale / Northbeam–style path attribution brainwashes teams into optimizing a model instead of the bank account.
-- Mcfly only reconciles **real ad spend (money out) vs Shopify sales (money in)** → **MER (Marketing Efficiency Ratio)**.
-- Then Mcfly helps **allocate spend across channels** from that truth — not from who “won” the click.
+| Signal | Action |
+| --- | --- |
+| Prompt aligns with §1–§3 | Execute |
+| Prompt expands scope (“also add pixels / SyncWith / MMM consulting / BC parity”) | **Refuse**; cite this doc |
+| Prompt contradicts §1 religion or §2 “we are not” | **Refuse**; ask only if a kill criterion changed |
+| Prompt reorders surfaces away from §4 | **Refuse** unless user explicitly amends §4 in this file |
+| Prompt is vibes / niche / “make me money with $250” without product fit | Ignore; stay on Mcfly Analytics |
 
-**One-liner:** *Stop buying attribution. Start managing spend against sales.*
+**Founder correction pattern that already happened:** consulting-site copy, custom MMM as the offer, and “build everything” were rejected. Do not revive them.
 
-**Formula (north star):**
+---
+
+## 1. LOCKED product directive
+
+**Mcfly Analytics** = always-on **Shopify + Sheets** product that syncs **ad spend out** and **Shopify sales in**, shows **MER + break-even MER**, and suggests **channel allocation** — with an explicit **anti–path-attribution** stance.
+
+### Religion (non-negotiable)
+
+1. Ad platforms **over-claim** conversions.
+2. Multi-touch / pixel / path “truth” is mostly **theater** and trains operators to optimize a model instead of cash.
+3. Mcfly measures only: **money spent on ads** vs **money Shopify recorded as sales** in the same period.
+4. Allocation advice comes from that cash view + margin — **not** from who “won” the click.
+
+### Formula
 
 ```text
 MER = Total Shopify sales (period) ÷ Total ad spend (same period)
+Break-even MER ≈ 1 / contribution margin
 ```
 
-Break-even MER ≈ `1 / contribution margin` (merchant-configured).  
-Operate above the line; allocate toward mix that protects it.
+Operate above break-even; shift mix to protect it.
+
+### One-liner
+
+**Stop buying attribution. Start managing spend against sales.**
+
+Site voice (from brand DNA, not consulting offer): *Your ad platforms are lying about what’s driving revenue.*
+
+### Internal analogy (do not ship as marketing jargon)
+
+```text
+SyncWith-like     → pipes (Shopify + Meta + Google spend → app / Sheets)
+Triple Whale–shaped → daily operator cockpit
+MINUS             → pixels, MTA, path credit
+PLUS              → break-even MER + allocation from cash spend vs total sales
+```
+
+**Wedge vs TW / Northbeam / Polar:** honesty + simplicity + price — **not** feature parity.
 
 ---
 
@@ -32,229 +66,219 @@ Operate above the line; allocate toward mix that protects it.
 
 | We are | We are not |
 | --- | --- |
-| Spend-vs-sales operating system | SyncWith / Supermetrics clone |
-| Opinionated MER + allocation | Triple Whale / Polar / Northbeam clone |
-| Anti-path, anti-pixel-causality (v1) | MTA / “true ROAS” path product |
-| Shopify-first product | Sheets-only hobby script as the business |
-| Inspired by deep internal dashboards (e.g. BC Apps Script) | Obligated to ship that full surface on day one |
+| Spend-vs-sales operating system | SyncWith / Supermetrics clone (connector zoo) |
+| Opinionated MER + allocation SaaS | Triple Whale / Polar / Northbeam clone |
+| Anti-path, anti-pixel-causality (v1+) | MTA / “true ROAS” / view-through product |
+| Shopify-first product + Sheets companion | Sheets-only script as the business |
+| Product company with a marketing site | Custom MMM consulting as the core offer |
+| Inspired by deep internal MER dashboards | Obligated to ship that full surface in v1 |
 
-The Black Clover–style Apps Script MER dashboard is a **ceiling example** of how rich Shopify + spend data can get — not the v1 spec.
+### Explicitly discarded paths (do not reopen without rewriting this section)
+
+| Discarded | Why |
+| --- | --- |
+| POD / merch niches | Wrong EV; ops-heavy; not the founder wedge |
+| Notion OS / prompt packs / generic templates | AI-commoditized; user rejected |
+| “$250 hero” affiliate / reseller schemes | Structurally weak; not the product |
+| Custom MMM consulting / $750 diagnostics / $5–8k builds as homepage offer | User: **not the product**; existing mcflyads.com consulting page = **tone/demo reference only** |
+| Copying live consulting site into `/site` as the product | Wrong offer; wrong pricing; wrong CTA |
+| Recreating SyncWith wholesale | Pipes are commodity; sell the decision layer |
+| Shipping pixels/MTA “to compete with TW” | Violates religion; kill-on-contact |
+| Black Clover Apps Script full parity as v1 | Ceiling example only; boil-the-ocean |
+
+### Legacy brand vs product
+
+| Surface | Role |
+| --- | --- |
+| Live mcflyads.com (consulting era) | **Reference only** — thesis, demos, TW contrast, visual energy |
+| **This repo `/site` + app** | **Sells Mcfly Analytics SaaS** — waitlist/install, product pricing, Shopify/Sheets |
+
+Do **not** put consulting SKUs ($750 / $5–8k) on the product homepage.
 
 ---
 
-## 3. Product surfaces
+## 3. Optimal path (decision tree)
 
-| Surface | Priority | Role |
+```text
+Is the task about cash MER / spend sync / allocation / anti-attribution?
+  NO  → out of scope (unless amending this plan)
+  YES → which surface?
+        1. Marketing site solid?     → if NO, build site only
+        2. Shopify Truth MVP?        → sales + manual spend → MER
+        3. Live Meta/Google pipes?   → OAuth + daily spend
+        4. Allocation card?          → rules-based suggestions
+        5. Sheets companion?         → after app brain exists
+        6. Depth (multi-brand, etc.) → only if revenue pulls
+```
+
+**Capital constraint (~$250):** prefer free/static site hosting, cheap app host, DIY build. Cash goes to infra + Shopify Partner fee — not ads experiments or agency rebuilds.
+
+**Founder edge used correctly:** ads + BI literacy → trustworthy MER definitions, recon, and allocation copy — **not** “sell me as a consultant” as the SaaS.
+
+---
+
+## 4. Surface priority (LOCKED order)
+
+| # | Surface | Role |
 | --- | --- | --- |
-| **Shopify embedded app** | P0 — primary product | Connect store, MER, mix, allocation, connections, billing |
-| **Backend API + workers** | P0 | OAuth, daily sync, metrics engine, jobs |
-| **Marketing site (mcflyads.com)** | P0 — thin | Positioning, pricing, privacy, terms, install CTA |
-| **Google Sheets add-on** | P1 — companion | Live/export MER tables for sheet-native operators |
-| **Internal Apps Script lab** | Optional R&D | Prototype logic; not customer-facing host |
-| Looker / public warehouse API | P2+ | Only if paid demand |
+| **1** | **Marketing website** | Positioning, demos, pricing, privacy/terms, waitlist/CTA — **do this first** |
+| **2** | **Shopify embedded app** | Primary product; one brain for MER |
+| **3** | **Google Sheets extension** | Companion for sheet-native operators |
+| — | Backend API + workers | Required with app; not a separate “product” |
+| — | Internal Apps Script lab | R&D only; not customer host |
 
-**Architecture rule:** One brain (API + DB). Thin clients (Shopify, later Sheets). Site sells; it does not compute MER.
+**Architecture rule:** One brain (API + DB). Thin clients (Shopify, later Sheets). Site sells; site does not compute production MER.
 
 ---
 
-## 4. Recommended stack
+## 5. Stack
 
-### Marketing site (free)
-- **Host:** GitHub Pages (preferred) or Cloudflare Pages — **static only**
-- **DNS:** Stay on Cloudflare (free DNS); do **not** burn Worker quotas on the brochure site
-- **Pages:** `/`, `/pricing`, `/privacy`, `/terms`, `/support`
+### Marketing site
+- **Host:** GitHub Pages (static) — preferred
+- **DNS:** Cloudflare free DNS only; **do not** burn Worker quotas on the brochure
+- **Pages:** `/`, `/product`, `/pricing`, `/privacy`, `/terms`, `/support` (demos can live on home or `/product`)
 
 ### App + API
-- **Build:** Cursor + Shopify Remix app template (`shopify app init`)
-- **UI:** Polaris (embedded Admin)
-- **Runtime:** Node on Railway / Render / Fly
-- **DB:** Postgres
-- **Jobs:** cron / queue worker (daily Meta + Google pulls)
-- **Monitor:** Sentry (free tier OK early)
-- **Repo:** GitHub under Mcfly identity
+- Shopify Remix app (Polaris embedded)
+- Node on Railway / Render / Fly
+- Postgres + daily job worker
+- Sentry free tier early
 
-### Connectors (v1)
-- Shopify Admin API — sales / refunds as needed
-- Meta Marketing API — spend (`ads_read`)
-- Google Ads API — spend (developer token + OAuth)
+### Connectors (v1 → v2)
+- v1: Shopify Admin (sales) + **manual/CSV spend**
+- v2: Meta Marketing API spend + Google Ads API spend
+- Later: TikTok, Klaviyo, etc. — **only if pulled**
 
-### Explicitly later
-- TikTok Ads, Klaviyo, Asana, creative analytics, pixels, MMM/incrementality holdouts
-
-### Accounts / identity
-- Shopify Partner on Mcfly email
-- Meta Developer + Business Manager (Mcfly BM)
-- Google Cloud + Ads API
-- Domain email: Cloudflare Email Routing → Gmail, or Google Workspace later  
-  (`hello@mcflyads.com`, `support@mcflyads.com`)
+### Accounts
+- Shopify Partner (Mcfly email)
+- Meta Dev + BM; Google Cloud + Ads API
+- Public email on domain when DNS ready (`hello@` / `support@`)
 
 ---
 
-## 5. v1 scope (ship this, nothing else)
+## 6. v1 scope
 
 **In**
+- Product marketing site (this phase)
 - Shopify OAuth + embedded app
-- Period selectors: MTD / QTD / YTD (and custom range if cheap)
-- Total sales, total spend, **MER**, **break-even MER** (from margin input)
-- Channel mix (at least Meta + Google + “other/manual”)
-- Freshness + recon hints (“last synced”; flag if connectors fail)
-- **One allocation recommendation card** (rules-based: e.g. shift toward channel with better cash efficiency vs break-even — no path attribution)
-- Settings: margin %, target MER, connected accounts
-- Marketing site + privacy/terms
-- Shopify Billing (simple paid plan + trial)
+- Periods: MTD / QTD / YTD (+ custom if cheap)
+- Total sales, total spend, MER, break-even MER (margin input)
+- Channel mix (Meta + Google + other/manual)
+- Freshness / recon hints
+- **One** allocation recommendation card (rules-based; no path attribution)
+- Settings: margin %, target MER, connections
+- Privacy / terms; simple Billing + trial
 
 **Out of v1**
 - Pixel / MTA / view-through
-- Creative cockpit
-- Full BC feature set (Media Lab, Asana, Klaviyo depth, Hill curves, portfolio of 4 brands — unless one design partner needs a thin slice)
+- Creative cockpit / Media Lab / Asana / full Klaviyo
 - SyncWith-level connector catalog
-- Perfect parity with TW/Polar
+- TW/Polar feature parity
+- Multi-brand portfolio as default
+- Consulting checkout flows
 
 ---
 
-## 6. Phased roadmap
+## 7. Phased roadmap
 
-### Phase 0 — Foundation (week 0)
-**Goal:** Company plumbing ready; site off Worker limits.
+### Phase 0 — Site + foundation (NOW)
+- [x] Lock directive in this document
+- [ ] Ship solid **product** marketing site in `/site` (GitHub Pages)
+- [ ] Privacy + terms
+- [ ] Waitlist / contact CTA (email form or `mailto:` / Typeform later)
+- [ ] DNS point when ready (not blocking build)
+- [ ] Shopify Partner + app scaffold **after** site is credible
+- [ ] Hosting + Postgres when app starts
 
-- [ ] Mcfly Google account 2FA; Partner org intentional
-- [ ] DNS: point mcflyads.com to **GitHub Pages** (or CF Pages static)
-- [ ] Publish stub pages: home (directive), privacy, terms
-- [ ] Email routing: `support@mcflyads.com` → working inbox
-- [ ] GitHub repo + Shopify app scaffold
-- [ ] Hosting + Postgres project created
-- [ ] Dev store connected
+**Exit:** Product site live on Pages (or preview URL); messaging matches §1.
 
-**Exit:** `https://mcflyads.com` live static; empty Remix app runs locally / preview.
+### Phase 1 — Truth MVP
+Shopify sales + manual spend → trusted MER on one store.
 
-### Phase 1 — Truth MVP (weeks 1–3)
-**Goal:** Trusted number on one store without live ad APIs.
+### Phase 2 — Live spend pipes
+Meta + Google daily spend; App Review wall-clock expected.
 
-- [ ] Ingest Shopify sales for selected period
-- [ ] Manual / CSV / Sheet paste for Meta + Google spend
-- [ ] Compute MER + break-even; simple KPI UI
-- [ ] Channel mix chart (manual split OK)
+### Phase 3 — Allocation layer
+Break-even-aware suggestion card operators actually use.
 
-**Exit:** Daily use on **one real store**; merchant trusts the MER vs their own mental math.
+### Phase 4 — Public launch
+App Store listing, billing, 3–5 design partners.
 
-### Phase 2 — Live spend pipes (weeks 3–7)
-**Goal:** Automatic daily spend.
+### Phase 5 — Sheets companion
+Add-on/API refresh into template sheet — **after** app brain exists.
 
-- [ ] Meta OAuth + daily insights spend sync + cache
-- [ ] Google Ads OAuth + daily cost sync + cache
-- [ ] `install`/cron triggers; retries; freshness badges
-- [ ] Recon warnings when sync fails or data is stale
-- [ ] Start Meta App Review + Google token access upgrades for third-party
-
-**Exit:** No manual spend entry for Meta/Google on design-partner store(s).
-
-### Phase 3 — Allocation layer (weeks 6–9)
-**Goal:** Differentiation beyond a calculator.
-
-- [ ] Rules engine: break-even-aware allocation suggestion
-- [ ] Plain-language “why” + suggested test window (e.g. 7 days)
-- [ ] Optional: simple pacing vs monthly spend/sales goal
-
-**Exit:** Operators act on the card at least weekly; suggestion is auditable (inputs shown).
-
-### Phase 4 — Public launch (weeks 8–12)
-**Goal:** Installable paid app.
-
-- [ ] App Store listing copy (anti-attribution positioning)
-- [ ] Billing: trial → paid
-- [ ] Support path (`support@mcflyads.com`)
-- [ ] Soft launch to small DTC / agency list
-- [ ] Collect 3–5 design partners
-
-**Exit:** First external paid install OR clear waitlist with deposit intent.
-
-### Phase 5 — Sheets companion (post-revenue)
-**Goal:** Meet operators where they live without becoming SyncWith.
-
-- [ ] Workspace add-on or Apps Script bound to Mcfly API
-- [ ] Refresh MER / spend / sales into a template sheet
-- [ ] Refresh quotas on free vs paid
-
-**Exit:** Sheet users sync from Mcfly brain; site/Shopify remain source of truth for accounts.
-
-### Phase 6+ — Depth (only if pulled by revenue)
-Pick from the “ceiling” menu as paid demand dictates:
-
-- Multi-brand / agency portfolio
-- TikTok spend
-- Promo calendar overlays
-- Diminishing-return / frontier style sims (from internal R&D)
-- Anomaly alerts (MER breach)
-- Deeper Shopify finance (fees, refunds, COGS imports)
+### Phase 6+ — Depth
+Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 
 ---
 
-## 7. Positioning & messaging
+## 8. Positioning & pricing
 
 **Enemy:** Attribution theater; platform ROAS as P&L.  
 **Promise:** Cash MER + allocation guardrails.  
-**Proof:** Design-partner case (anonymized): spend, sales, MER vs break-even, decision taken.  
-**Price intuition (starting point, validate later):** below TW suite pricing — e.g. mid-two-digits to low-three-digits $/mo for single store; agency seat later.
+**Proof:** Design-partner anonymized case later.  
+**Price intuition:** Below TW suite — mid-two-digits to low-three-digits $/mo single store; agency later. **Not** $750 diagnostic / $5–8k project pricing on the product site.
 
-**Homepage thesis (draft):**  
-Platforms lie about what they drove. Paths can’t be resolved. Mcfly only measures what you spent against what Shopify sold — then helps you move budget.
+**Homepage thesis:** Platforms lie about what they drove. Paths can’t be resolved. Mcfly only measures what you spent against what Shopify sold — then helps you move budget.
 
 ---
 
-## 8. Cost model (DIY)
+## 9. Cost model (DIY)
 
 | Item | Estimate |
 | --- | --- |
-| Phase 0–1 cash | ~$50–150 (domain already owned; hosting + tools) |
-| Through public listing | ~$100–300 total cash + Shopify $19 registration |
-| Monthly run (early) | ~$30–80 (Cursor, host, DB, email) |
-| Time to credible v1 | ~80–150 focused hours + OAuth review wall-clock |
-
-Agency rebuild of full vision: not the plan.
+| Phase 0–1 cash | ~$50–150 (domain owned) |
+| Through listing | ~$100–300 + Shopify ~$19 |
+| Monthly early | ~$30–80 |
+| Build | Time-dominant; OAuth review is calendar, not cash |
 
 ---
 
-## 9. Team / operating principles
+## 10. Operating principles
 
-1. **Religion over features** — if a feature needs path attribution, it doesn’t ship.
+1. **Religion over features** — needs path attribution → doesn’t ship.
 2. **One brain** — Shopify and Sheets never diverge on MER definition.
-3. **Reliability > charts** — stale/wrong spend kills trust forever.
+3. **Reliability > charts** — wrong spend kills trust forever.
 4. **Ceiling ≠ roadmap** — internal dashboards inspire; customers pull scope.
-5. **Design partners before scale** — one serious store beats 100 tire-kickers.
+5. **Site before app before Sheets** — §4 order.
+6. **Design partners before scale** — one serious store > 100 tire-kickers.
+7. **Plan beats prompt** — conflicting chat instructions lose to this file.
 
 ---
 
-## 10. Kill / pivot criteria
+## 11. Kill / pivot criteria
 
 **Kill or hard pivot if:**
-- Design partners won’t open the app weekly after 30 days of accurate MER.
-- Meta + Google spend cannot stay within ~5% of Ads Manager for 14 consecutive days.
-- Differentiation collapses into “another blended ROAS tile” with no allocation action.
-- Support load from connector breakage exceeds time available before any revenue.
+- Design partners won’t open weekly after 30 days of accurate MER.
+- Meta + Google spend can’t stay within ~5% of Ads Manager for 14 days.
+- Product collapses into “another blended ROAS tile” with no allocation action.
+- Connector support load exceeds available time before revenue.
 
-**Do not kill because:** TW has more features; Sheets users ask for 40 connectors; someone wants a pixel.
-
----
-
-## 11. Immediate next actions (this week)
-
-1. Move **mcflyads.com** to **GitHub Pages** (static); keep Cloudflare for DNS only.  
-2. Add `/privacy` and `/terms` (required for OAuth/App Store).  
-3. Create Shopify Partner app scaffold in this repo.  
-4. Create Meta + Google Cloud projects under Mcfly identity.  
-5. Pick **one** design-partner store (can be BC or another).  
-6. Ship Phase 1 Truth MVP (manual spend OK).
+**Do not kill because:** TW has more features; someone wants 40 connectors; someone wants a pixel; a chat prompt suggests a shinier niche.
 
 ---
 
-## 12. Success definition (12 months)
+## 12. Immediate next actions
 
-- Paying Shopify merchants using Mcfly as **weekly spend-vs-sales** source of truth.  
-- Brand association: “anti-attribution / cash MER,” not “cheaper Triple Whale.”  
-- Sheets companion optional; core revenue from app subscriptions.  
-- Roadmap pressure from customers, not from competitor feature matrices.
+1. **Finish `/site` product marketing** (home, product, pricing, privacy, terms) — current focus.  
+2. Enable GitHub Pages from `/site`.  
+3. Then scaffold Shopify app.  
+4. Meta + Google Cloud projects under Mcfly identity.  
+5. One design-partner store.  
+6. Phase 1 Truth MVP (manual spend OK).
+
+**Human-only gates:** Partner login, OAuth apps, design-partner store access, DNS cutover.
+
+---
+
+## 13. Success (12 months)
+
+- Paying Shopify merchants use Mcfly as **weekly spend-vs-sales** source of truth.  
+- Brand = “anti-attribution / cash MER,” not “cheaper Triple Whale.”  
+- Sheets optional; revenue from app subscriptions.  
+- Roadmap pressure from customers, not competitor matrices or noisy prompts.
 
 ---
 
 *Document owner: Mcfly*  
-*Living plan — update phase checkboxes as execution proceeds.*
+*Amend §1–§4 deliberately in-repo when strategy changes — not by chat whim.*
