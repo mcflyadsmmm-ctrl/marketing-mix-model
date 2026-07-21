@@ -14,7 +14,7 @@
       <a href="/product.html" data-nav="product">Product</a>
       <a href="/pricing.html" data-nav="pricing">Pricing</a>
       <a href="${isHome ? "#live" : "/#live"}">Live</a>
-      <a class="nav-cta" href="${isHome ? "#waitlist" : "/#waitlist"}">Early access</a>
+      <a class="nav-cta" href="${isHome ? "#waitlist" : "/#waitlist"}">Free launch</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
       <span></span><span></span>
@@ -24,7 +24,7 @@
     <a href="/product.html">Product</a>
     <a href="/pricing.html">Pricing</a>
     <a href="${isHome ? "#live" : "/#live"}">Live</a>
-    <a href="${isHome ? "#waitlist" : "/#waitlist"}">Early access</a>
+    <a href="${isHome ? "#waitlist" : "/#waitlist"}">Free launch</a>
   </div>`;
   }
 

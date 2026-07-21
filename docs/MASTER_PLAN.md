@@ -58,7 +58,7 @@ MINUS             → pixels, MTA, path credit
 PLUS              → break-even MER + allocation from cash spend vs total sales
 ```
 
-**Wedge vs TW / Northbeam / Polar:** honesty + simplicity + price — **not** feature parity.
+**Wedge vs TW / Northbeam / Polar:** honesty + simplicity + price — **not** feature parity. They mostly ship **dashboards + data organization** dressed as proprietary science; Mcfly is the better version of *that* job (cash facts only).
 
 **Deep dive (research):** [`docs/COMPETITORS.md`](./COMPETITORS.md) — product thesis, anatomy, pricing shape, and Mcfly wedge for each. Prefer that file over chat lore when writing contrast copy.
 
@@ -220,6 +220,8 @@ Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 **Promise:** Cash MER + allocation guardrails.  
 **Proof:** Design-partner anonymized case later.  
 **Price intuition:** Below TW suite — mid-two-digits to low-three-digits $/mo single store; agency later. **Not** $750 diagnostic / $5–8k project pricing on the product site.
+
+**Launch special (locked for now):** Ship **free for design partners** to get feedback, testing, and interest signal first. Show target paid (~$79/store/mo) as “after launch,” announce billing before anything charges. Do **not** market “forever free.” Prefer a small set of serious stores over open freeloader flood.
 
 **Homepage thesis:** Platforms lie about what they drove. Paths can’t be resolved. Mcfly only measures what you spent against what Shopify sold — then helps you move budget.
 
