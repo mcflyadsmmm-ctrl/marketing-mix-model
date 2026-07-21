@@ -1,0 +1,452 @@
+[
+  {
+    "date": "2026-06-22",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4211.33,
+    "gross_sales": 4520.53,
+    "refunds": 309.2,
+    "orders": 54,
+    "spend": 1260.26,
+    "mer": 3.3416,
+    "channels": {
+      "meta": 678.07,
+      "google": 423.26,
+      "other": 158.93
+    }
+  },
+  {
+    "date": "2026-06-23",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3729.04,
+    "gross_sales": 4046.96,
+    "refunds": 317.92,
+    "orders": 42,
+    "spend": 1253.91,
+    "mer": 2.9739,
+    "channels": {
+      "meta": 722.15,
+      "google": 416.41,
+      "other": 115.35
+    }
+  },
+  {
+    "date": "2026-06-24",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3941.71,
+    "gross_sales": 4213.69,
+    "refunds": 271.98,
+    "orders": 50,
+    "spend": 1191.42,
+    "mer": 3.3084,
+    "channels": {
+      "meta": 668.71,
+      "google": 405.56,
+      "other": 117.15
+    }
+  },
+  {
+    "date": "2026-06-25",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4145.81,
+    "gross_sales": 4380.9,
+    "refunds": 235.09,
+    "orders": 45,
+    "spend": 1507.5,
+    "mer": 2.7501,
+    "channels": {
+      "meta": 834.39,
+      "google": 530.69,
+      "other": 142.42
+    }
+  },
+  {
+    "date": "2026-06-26",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4322.86,
+    "gross_sales": 4505.01,
+    "refunds": 182.15,
+    "orders": 55,
+    "spend": 1014.22,
+    "mer": 4.2623,
+    "channels": {
+      "meta": 536.71,
+      "google": 371.46,
+      "other": 106.05
+    }
+  },
+  {
+    "date": "2026-06-27",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 2958.87,
+    "gross_sales": 3201.4,
+    "refunds": 242.53,
+    "orders": 32,
+    "spend": 672.47,
+    "mer": 4.4,
+    "channels": {
+      "meta": 366,
+      "google": 223.28,
+      "other": 83.19
+    }
+  },
+  {
+    "date": "2026-06-28",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3136.76,
+    "gross_sales": 3332.83,
+    "refunds": 196.07,
+    "orders": 32,
+    "spend": 902.67,
+    "mer": 3.475,
+    "channels": {
+      "meta": 499.59,
+      "google": 307.82,
+      "other": 95.26
+    }
+  },
+  {
+    "date": "2026-06-29",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4260.35,
+    "gross_sales": 4488.68,
+    "refunds": 228.33,
+    "orders": 65,
+    "spend": 1231.33,
+    "mer": 3.46,
+    "channels": {
+      "meta": 691.41,
+      "google": 439.84,
+      "other": 100.08
+    }
+  },
+  {
+    "date": "2026-06-30",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4257.57,
+    "gross_sales": 4564.78,
+    "refunds": 307.21,
+    "orders": 58,
+    "spend": 1000.95,
+    "mer": 4.2535,
+    "channels": {
+      "meta": 569.4,
+      "google": 334.23,
+      "other": 97.32
+    }
+  },
+  {
+    "date": "2026-07-01",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3950.88,
+    "gross_sales": 4271.6,
+    "refunds": 320.72,
+    "orders": 40,
+    "spend": 949.5,
+    "mer": 4.161,
+    "channels": {
+      "meta": 501.15,
+      "google": 349.14,
+      "other": 99.21
+    }
+  },
+  {
+    "date": "2026-07-02",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4339.06,
+    "gross_sales": 4493.66,
+    "refunds": 154.6,
+    "orders": 46,
+    "spend": 1410.15,
+    "mer": 3.077,
+    "channels": {
+      "meta": 814.05,
+      "google": 480.11,
+      "other": 115.99
+    }
+  },
+  {
+    "date": "2026-07-03",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4327.79,
+    "gross_sales": 4496.25,
+    "refunds": 168.46,
+    "orders": 47,
+    "spend": 1139.74,
+    "mer": 3.7972,
+    "channels": {
+      "meta": 634.07,
+      "google": 416.85,
+      "other": 88.82
+    }
+  },
+  {
+    "date": "2026-07-04",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3263.11,
+    "gross_sales": 3489.41,
+    "refunds": 226.3,
+    "orders": 36,
+    "spend": 1095.25,
+    "mer": 2.9793,
+    "channels": {
+      "meta": 589.29,
+      "google": 374.75,
+      "other": 131.21
+    }
+  },
+  {
+    "date": "2026-07-05",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3142.12,
+    "gross_sales": 3299.51,
+    "refunds": 157.39,
+    "orders": 35,
+    "spend": 851.06,
+    "mer": 3.692,
+    "channels": {
+      "meta": 473.41,
+      "google": 275.07,
+      "other": 102.58
+    }
+  },
+  {
+    "date": "2026-07-06",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3879.83,
+    "gross_sales": 4043.92,
+    "refunds": 164.09,
+    "orders": 53,
+    "spend": 1331.12,
+    "mer": 2.9147,
+    "channels": {
+      "meta": 732.15,
+      "google": 471.94,
+      "other": 127.03
+    }
+  },
+  {
+    "date": "2026-07-07",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3900.17,
+    "gross_sales": 4062.94,
+    "refunds": 162.77,
+    "orders": 44,
+    "spend": 1115.37,
+    "mer": 3.4967,
+    "channels": {
+      "meta": 606.54,
+      "google": 390.32,
+      "other": 118.51
+    }
+  },
+  {
+    "date": "2026-07-08",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4326.74,
+    "gross_sales": 4583.16,
+    "refunds": 256.42,
+    "orders": 42,
+    "spend": 1182.63,
+    "mer": 3.6586,
+    "channels": {
+      "meta": 644.73,
+      "google": 392.53,
+      "other": 145.37
+    }
+  },
+  {
+    "date": "2026-07-09",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4322.25,
+    "gross_sales": 4688.06,
+    "refunds": 365.81,
+    "orders": 57,
+    "spend": 1037.11,
+    "mer": 4.1676,
+    "channels": {
+      "meta": 579.08,
+      "google": 357.18,
+      "other": 100.85
+    }
+  },
+  {
+    "date": "2026-07-10",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4104.34,
+    "gross_sales": 4383.74,
+    "refunds": 279.4,
+    "orders": 52,
+    "spend": 1355.13,
+    "mer": 3.0287,
+    "channels": {
+      "meta": 763.96,
+      "google": 469.89,
+      "other": 121.28
+    }
+  },
+  {
+    "date": "2026-07-11",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 2887.47,
+    "gross_sales": 3100.89,
+    "refunds": 213.42,
+    "orders": 30,
+    "spend": 649.35,
+    "mer": 4.4467,
+    "channels": {
+      "meta": 356.39,
+      "google": 225.62,
+      "other": 67.34
+    }
+  },
+  {
+    "date": "2026-07-12",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3278.19,
+    "gross_sales": 3551.77,
+    "refunds": 273.58,
+    "orders": 45,
+    "spend": 1059.37,
+    "mer": 3.0945,
+    "channels": {
+      "meta": 574.44,
+      "google": 402.34,
+      "other": 82.59
+    }
+  },
+  {
+    "date": "2026-07-13",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4167.36,
+    "gross_sales": 4341.84,
+    "refunds": 174.48,
+    "orders": 40,
+    "spend": 1350.41,
+    "mer": 3.086,
+    "channels": {
+      "meta": 753.98,
+      "google": 490.25,
+      "other": 106.18
+    }
+  },
+  {
+    "date": "2026-07-14",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4375.04,
+    "gross_sales": 4535.75,
+    "refunds": 160.71,
+    "orders": 51,
+    "spend": 1453.89,
+    "mer": 3.0092,
+    "channels": {
+      "meta": 785.53,
+      "google": 552.7,
+      "other": 115.66
+    }
+  },
+  {
+    "date": "2026-07-15",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4421.27,
+    "gross_sales": 4718.16,
+    "refunds": 296.89,
+    "orders": 45,
+    "spend": 1080.54,
+    "mer": 4.0917,
+    "channels": {
+      "meta": 617.95,
+      "google": 383.09,
+      "other": 79.5
+    }
+  },
+  {
+    "date": "2026-07-16",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4307.11,
+    "gross_sales": 4454.79,
+    "refunds": 147.68,
+    "orders": 43,
+    "spend": 1134.54,
+    "mer": 3.7963,
+    "channels": {
+      "meta": 632.69,
+      "google": 375.19,
+      "other": 126.66
+    }
+  },
+  {
+    "date": "2026-07-17",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3914.55,
+    "gross_sales": 4215.61,
+    "refunds": 301.06,
+    "orders": 56,
+    "spend": 1175.68,
+    "mer": 3.3296,
+    "channels": {
+      "meta": 623.84,
+      "google": 429.76,
+      "other": 122.08
+    }
+  },
+  {
+    "date": "2026-07-18",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3468.66,
+    "gross_sales": 3597.73,
+    "refunds": 129.07,
+    "orders": 35,
+    "spend": 836.52,
+    "mer": 4.1465,
+    "channels": {
+      "meta": 460.88,
+      "google": 301.85,
+      "other": 73.79
+    }
+  },
+  {
+    "date": "2026-07-19",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 3214.64,
+    "gross_sales": 3436.98,
+    "refunds": 222.34,
+    "orders": 49,
+    "spend": 717.91,
+    "mer": 4.4778,
+    "channels": {
+      "meta": 385.7,
+      "google": 264.94,
+      "other": 67.27
+    }
+  },
+  {
+    "date": "2026-07-20",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4417.27,
+    "gross_sales": 4691.92,
+    "refunds": 274.65,
+    "orders": 45,
+    "spend": 1205.93,
+    "mer": 3.663,
+    "channels": {
+      "meta": 695.32,
+      "google": 419.94,
+      "other": 90.67
+    }
+  },
+  {
+    "date": "2026-07-21",
+    "shop_id": "shop_demo_agency",
+    "net_sales": 4060.52,
+    "gross_sales": 4226.36,
+    "refunds": 165.84,
+    "orders": 40,
+    "spend": 1282.99,
+    "mer": 3.1649,
+    "channels": {
+      "meta": 700.89,
+      "google": 467.12,
+      "other": 114.98
+    }
+  }
+]

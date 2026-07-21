@@ -1,0 +1,115 @@
+{
+  "as_of": "2026-07-21",
+  "shop_id": "shop_demo_agency",
+  "mtd": {
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-21",
+    "shop_id": "shop_demo_agency",
+    "orders": 931,
+    "gross_sales": 86684.05,
+    "refunds": 4615.68,
+    "net_sales": 82068.37,
+    "spend": 23414.19,
+    "mer": 3.5051,
+    "break_even_mer": 2.5,
+    "target_mer": 3,
+    "margin_pct": 0.4,
+    "above_break_even": true,
+    "channels": {
+      "meta": 12926.04,
+      "google": 8290.58,
+      "other": 2197.57
+    },
+    "channel_mix": [
+      {
+        "channel": "meta",
+        "amount": 12926.04,
+        "share": 0.5521
+      },
+      {
+        "channel": "google",
+        "amount": 8290.58,
+        "share": 0.3541
+      },
+      {
+        "channel": "other",
+        "amount": 2197.57,
+        "share": 0.0939
+      }
+    ]
+  },
+  "qtd": {
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-21",
+    "shop_id": "shop_demo_agency",
+    "orders": 931,
+    "gross_sales": 86684.05,
+    "refunds": 4615.68,
+    "net_sales": 82068.37,
+    "spend": 23414.19,
+    "mer": 3.5051,
+    "break_even_mer": 2.5,
+    "target_mer": 3,
+    "margin_pct": 0.4,
+    "above_break_even": true,
+    "channels": {
+      "meta": 12926.04,
+      "google": 8290.58,
+      "other": 2197.57
+    },
+    "channel_mix": [
+      {
+        "channel": "meta",
+        "amount": 12926.04,
+        "share": 0.5521
+      },
+      {
+        "channel": "google",
+        "amount": 8290.58,
+        "share": 0.3541
+      },
+      {
+        "channel": "other",
+        "amount": 2197.57,
+        "share": 0.0939
+      }
+    ]
+  },
+  "ytd": {
+    "period_start": "2026-06-22",
+    "period_end": "2026-07-21",
+    "shop_id": "shop_demo_agency",
+    "orders": 1364,
+    "gross_sales": 123938.83,
+    "refunds": 6906.16,
+    "net_sales": 117032.67,
+    "spend": 33448.92,
+    "mer": 3.4988,
+    "break_even_mer": 2.5,
+    "target_mer": 3,
+    "margin_pct": 0.4,
+    "above_break_even": true,
+    "channels": {
+      "meta": 18492.47,
+      "google": 11743.13,
+      "other": 3213.32
+    },
+    "channel_mix": [
+      {
+        "channel": "meta",
+        "amount": 18492.47,
+        "share": 0.5529
+      },
+      {
+        "channel": "google",
+        "amount": 11743.13,
+        "share": 0.3511
+      },
+      {
+        "channel": "other",
+        "amount": 3213.32,
+        "share": 0.0961
+      }
+    ]
+  }
+}

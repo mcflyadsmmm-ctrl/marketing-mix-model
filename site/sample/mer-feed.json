@@ -1,0 +1,40 @@
+{
+  "product": "mcfly-analytics",
+  "metric": "cash_mer",
+  "shop_id": "shop_demo_dtc",
+  "as_of": "2026-07-21",
+  "period": "mtd",
+  "period_start": "2026-07-01",
+  "period_end": "2026-07-21",
+  "spend": 63657.94,
+  "sales": 221295.85,
+  "mer": 3.4763,
+  "break_even": 2.8571,
+  "target_mer": 3.5,
+  "margin_pct": 0.35,
+  "above_break_even": true,
+  "channels": {
+    "meta": 39480.38,
+    "google": 18131.11,
+    "other": 6046.45
+  },
+  "channel_mix": [
+    {
+      "channel": "meta",
+      "amount": 39480.38,
+      "share": 0.6202
+    },
+    {
+      "channel": "google",
+      "amount": 18131.11,
+      "share": 0.2848
+    },
+    {
+      "channel": "other",
+      "amount": 6046.45,
+      "share": 0.095
+    }
+  ],
+  "orders": 2684,
+  "source": "warehouse/demo-dtc"
+}
