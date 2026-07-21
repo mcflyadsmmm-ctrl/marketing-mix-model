@@ -22,9 +22,9 @@
 | Field | URL |
 | --- | --- |
 | Website | https://mcflyads.com |
-| Privacy | https://mcflyads.com/privacy |
-| Support | https://mcflyads.com/support |
-| Terms | https://mcflyads.com/terms |
+| Privacy | https://mcflyads.com/privacy.html |
+| Support | https://mcflyads.com/support.html |
+| Terms | https://mcflyads.com/terms.html |
 
 ## Still optional / later
 

@@ -2,7 +2,7 @@
   "name": "Mcfly Analytics",
   "short_name": "Mcfly",
   "description": "Cash MER — spend vs sales. Not attribution theater.",
-  "start_url": "/download",
+  "start_url": "/download.html",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0b0e12",
