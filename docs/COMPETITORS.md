@@ -36,6 +36,41 @@ MER appears in some of their UIs, but it is **not** their product center. Some T
 
 ---
 
+## Hard truth: almost none of this is proprietary math
+
+**Founder correction (locked):** TW / Northbeam / Polar are **not** sitting on unique un-copyable formulas. The category is mostly **marketing + smooth dashboards + data plumbing/organization**. Treat “secret attribution science” claims as sales theater unless proven otherwise.
+
+### What looks proprietary (and what it actually is)
+
+| Claimed magic | Reality |
+| --- | --- |
+| First-party pixel / identity graph | Standard pattern: JS + server events + cookie/ID stitching. Often built on commodity collectors (e.g. Snowplow-class). Engineering + ops, not a secret equation. |
+| Multi-touch attribution (7 models, “Triple Attribution,” etc.) | Textbook rules: first/last, linear, time-decay, position. Renaming ≠ invention. |
+| “Clicks + Deterministic Views” | Mostly **access + join**: platform view/click logs linked to first-party orders. Partnerships and pipelines matter more than novel math. |
+| MMM / MMM+ / Compass MMM | Classical media-mix / Bayesian / open-source lineage (Robyn, Meridian, etc.) wrapped in UI + calibration storytelling. |
+| Incrementality / Causal Lift / geo-lift | Known experimental designs + CausalImpact-class methods; Polar’s edge is often **a human data scientist + packaging**, not a patentable formula. |
+| Apex / Sonar / CAPI passback | Conversion API, custom conversions, value optimization — industry plumbing. “One-click passback” is productization, not IP. |
+| Moby / Ask Polar / AI agents | LLM on top of a metrics warehouse. Differentiator is **data access + prompts + distribution**, not a proprietary measurement formula. |
+| Semantic layer / 400 metrics | Catalog + naming conventions on warehouse tables. Valuable product work; fully copyable. |
+
+### What *is* hard to copy (and it isn’t the formula)
+
+1. **Distribution & habit** — TW’s install base, Shopify relationship, “everyone already has it.”  
+2. **Trust / brand as court of appeal** — Northbeam sold rigor to high-spend teams; switching costs after UTMs + pixel + CSM rituals.  
+3. **Surface area polish** — connectors, mobile, Slack, creative cockpit, multi-store — months of product craft, still *copyable*, just expensive.  
+4. **Sales & success motion** — demos, annual contracts, dedicated Slack, “your media strategist.”  
+5. **Optional data scale for AI claims** — if Moby really trains on tens of thousands of brands, that’s a **corpus advantage**, still not a unique MER/attribution equation.  
+6. **Platform partnerships** — Meta/TikTok view-signal deals are relationship moats, not math moats.
+
+### Implication for Mcfly
+
+- Do **not** fear “we can’t compete because they invented true ROAS.” They mostly **organized spend + Shopify + path credit** and sold confidence.  
+- Do **not** waste runway cloning their theater stack to “match features.” That race is capital- and distribution-intensive, and the buyer still can’t reconcile models to cash.  
+- Do compete on **a clearer, more honest organization of the same underlying facts** (spend out, sales in, margin, allocation) — which is *also* “dashboard + data org,” but with a different religion and less lying.  
+- Craft, reliability, and price *are* the product; pretending we need secret ML to be legitimate is how you accidentally become a worse TW.
+
+---
+
 ## Triple Whale
 
 ### Origin & thesis
