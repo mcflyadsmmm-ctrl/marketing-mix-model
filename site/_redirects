@@ -1,0 +1,9 @@
+# Cloudflare Pages — clean URLs + SPA-ish fallbacks
+/product /product.html 200
+/pricing /pricing.html 200
+/app /app.html 200
+/download /download.html 200
+/support /support.html 200
+/privacy /privacy.html 200
+/terms /terms.html 200
+/* /404.html 404

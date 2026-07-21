@@ -448,7 +448,11 @@
     });
   }
 
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  if (
+    "serviceWorker" in navigator &&
+    location.protocol.startsWith("http") &&
+    /download/i.test(location.pathname)
+  ) {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   }
 })();

@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
+# Search indexing allowed. AI training bots: Cloudflare may add Disallows
+# in the managed robots layer — keep this file simple so search stays open.
 Sitemap: https://mcflyads.com/sitemap.xml

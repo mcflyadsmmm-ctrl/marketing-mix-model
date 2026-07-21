@@ -278,6 +278,15 @@ a {
     min-height: calc(100svh - 1rem);
   }
 }
+@media (max-width: 979px) {
+  .hero-layout {
+    min-height: auto;
+    padding-top: clamp(5rem, 10vh, 6rem);
+  }
+  .hero-craft h1 {
+    max-width: 22ch;
+  }
+}
 
 .hero-copy {
   animation: rise 0.85s var(--ease) both;
@@ -849,9 +858,14 @@ input[type="number"] {
 }
 .compare {
   width: 100%;
-  min-width: 48rem;
+  min-width: 0;
   border-collapse: collapse;
   font-size: 0.92rem;
+}
+@media (min-width: 720px) {
+  .compare {
+    min-width: 40rem;
+  }
 }
 .compare th,
 .compare td {

@@ -1,6 +1,6 @@
 (function () {
-  const path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
-  const isHome = path === "" || path === "index.html";
+  const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
+  const isHome = path === "/" || path === "/index.html" || path === "";
 
   const chrome = document.querySelector("[data-chrome]");
   if (chrome) {
@@ -11,8 +11,8 @@
       <span class="brand-name">Mcfly</span>
     </a>
     <nav class="nav" aria-label="Primary">
-      <a href="/product.html" data-nav="product">Product</a>
-      <a href="/pricing.html" data-nav="pricing">Pricing</a>
+      <a href="/product" data-nav="product">Product</a>
+      <a href="/pricing" data-nav="pricing">Pricing</a>
       <a href="${isHome ? "#live" : "/#live"}">Live</a>
       <a class="nav-cta" href="${isHome ? "#waitlist" : "/#waitlist"}">Free launch</a>
     </nav>
@@ -21,8 +21,8 @@
     </button>
   </header>
   <div id="mobile-nav" class="mobile-nav" hidden>
-    <a href="/product.html">Product</a>
-    <a href="/pricing.html">Pricing</a>
+    <a href="/product">Product</a>
+    <a href="/pricing">Pricing</a>
     <a href="${isHome ? "#live" : "/#live"}">Live</a>
     <a href="${isHome ? "#waitlist" : "/#waitlist"}">Free launch</a>
   </div>`;
@@ -35,13 +35,13 @@
     <div class="wrap foot-grid">
       <div class="foot-brand">Mcfly Analytics</div>
       <nav aria-label="Footer">
-        <a href="/product.html">Product</a>
-        <a href="/pricing.html">Pricing</a>
-        <a href="/app.html">App</a>
-        <a href="/download.html">Downloadable</a>
-        <a href="/support.html">Support</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/terms.html">Terms</a>
+        <a href="/product">Product</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/app">App</a>
+        <a href="/download">Downloadable</a>
+        <a href="/support">Support</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
       </nav>
       <p class="fine">© <span data-year></span> Mcfly. Spend vs sales — not attribution theater.</p>
     </div>
