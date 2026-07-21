@@ -26,9 +26,11 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [x] App Store 2.3.1 — no shop-domain install form
 - [x] No silent mock sales in production loaders
 - [x] Prisma migration for Shop / Settings / SpendEntry
-- [ ] Shopify Partner app linked (`client_id`) — **human** (see [SHOPIFY_LAUNCH.md](./SHOPIFY_LAUNCH.md))
-- [ ] Hosted HTTPS app URL — **human**
+- [ ] Shopify Partner app linked (`client_id`) — **human** → start with [SHIP_NOW.md](./SHIP_NOW.md)
+- [ ] Hosted HTTPS app URL (Railway/Fly) — **human**
 - [ ] Dev / design-partner store install — **human**
+- [x] Postgres schema + migration (production-ready)
+- [x] `/health` route + Docker/Railway/Fly configs
 - [ ] `npm run seed` against real `DATABASE_URL`
 
 ## C. Reliability (required before big ASP)

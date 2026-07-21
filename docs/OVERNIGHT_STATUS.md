@@ -1,24 +1,26 @@
-# Overnight status — Mcfly Analytics
+# Overnight / ship status — Mcfly Analytics
 
-**Last updated:** Shopify launch prep  
 **Live site:** https://mcflyads.com  
-**App Store walkthrough:** docs/SHOPIFY_LAUNCH.md
+**Ship playbook:** [SHIP_NOW.md](./SHIP_NOW.md)
 
-## Ready in repo (code)
+## Cooking status
 
-- Marketing site: free launch, privacy/support App Store–ready
-- Shopify app: GDPR compliance webhook, uninstall cleanup, no shop-domain install form, no mock sales, Truth MVP migration
-- Human walkthrough for Partner → design partners → App Store approval
+| Layer | Status |
+| --- | --- |
+| Marketing site | Live — free launch waitlist |
+| App code | Truth MVP + GDPR + health + Postgres migrations |
+| Deploy configs | `Dockerfile`, `railway.toml`, `fly.toml`, `docker-compose.yml` |
+| Partner link / host / first install | **HUMAN — do SHIP_NOW.md** |
 
-## Human gates (do these next)
+## Your next 3 commands (after Partner login)
 
-1. partners.shopify.com → create app + development store  
-2. `cd app && shopify auth login && shopify app config link`  
-3. `shopify app dev` → install → enter spend → see MER  
-4. Host app + Postgres → `shopify app deploy` → DNS `app.mcflyads.com`  
-5. Invite design partners (free)  
-6. Later: App Store listing + submit  
+```bash
+docker compose up -d db
+cd app && npx shopify app config link && npx shopify app dev
+```
 
-## Religion (locked)
+Then host on Railway and `npx shopify app deploy`.
 
-Cash MER only. No pixels/MTA. Free launch → paid later via Shopify Billing.
+## Religion
+
+Cash MER. Free launch → ~$79 later. No pixels/MTA.

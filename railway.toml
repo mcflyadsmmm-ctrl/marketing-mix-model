@@ -1,0 +1,15 @@
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "app/Dockerfile"
+watchPatterns = ["app/**", "packages/**", "package.json"]
+
+[deploy]
+startCommand = "npm run docker-start"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+
+[environments.production.variables]
+NODE_ENV = "production"
+PORT = "3000"
+SCOPES = "read_orders"

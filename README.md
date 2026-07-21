@@ -6,10 +6,11 @@ Anti-attribution marketing cockpit for Shopify: **real ad spend vs Shopify sales
 
 ## Docs
 
-- **[Master plan](docs/MASTER_PLAN.md)** — **LOCKED directive**, scope, phases, anti-sway rules, kill criteria
-- **[Shopify launch & App Store approval](docs/SHOPIFY_LAUNCH.md)** — human walkthrough: Partner → design partners → review
-- **[Website readiness](docs/WEBSITE_READINESS.md)** — mcflyads.com launch checklist
-- **[Competitors](docs/COMPETITORS.md)** — TW / Northbeam / Polar (theater vs packaging)
+- **[SHIP NOW](docs/SHIP_NOW.md)** — **do this tonight** (Partner link → first install → host)
+- **[Master plan](docs/MASTER_PLAN.md)** — locked product directive
+- **[Shopify launch & App Store](docs/SHOPIFY_LAUNCH.md)** — full approval path
+- **[Website readiness](docs/WEBSITE_READINESS.md)** — mcflyads.com
+- **[Competitors](docs/COMPETITORS.md)** — SyncWith / TW / Northbeam / Polar
 
 ## Product site
 
