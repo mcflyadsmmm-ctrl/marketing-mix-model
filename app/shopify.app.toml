@@ -1,7 +1,8 @@
 # Mcfly Analytics — Shopify app configuration
-# Linked Partner client_id. Production App URL = Fly host until app.mcflyads.com cert is ready.
+# Active Custom-distribution app (locked to demcflyads.myshopify.com).
+# Install link client_id must match Fly SHOPIFY_API_KEY.
 
-client_id = "689279258bf1030a72ffd4b6f6dda989"
+client_id = "88c56d21f74912479d2f7581f1877bc7"
 name = "Mcfly Analytics"
 application_url = "https://mcfly-analytics.fly.dev"
 embedded = true
@@ -11,7 +12,6 @@ automatically_update_urls_on_dev = true
 include_config_on_deploy = true
 
 [access_scopes]
-# Truth MVP: order totals for cash MER. Expand only when pipes need it.
 scopes = "read_orders"
 
 [webhooks]
@@ -25,7 +25,6 @@ api_version = "2025-10"
   uri = "/webhooks/app/scopes_update"
   topics = ["app/scopes_update"]
 
-  # Mandatory App Store compliance webhooks (can share one URI; we use dedicated routes)
   [[webhooks.subscriptions]]
   uri = "/webhooks/compliance"
   compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
