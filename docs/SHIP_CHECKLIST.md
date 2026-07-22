@@ -39,11 +39,12 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [x] Overnight worker + `SyncRun` / `MerSnapshot` tables
 - [x] GitHub Actions nightly orchestrator (`.github/workflows/overnight.yml`)
 - [x] Enterprise Sheets orchestrator (hourly triggers, recon, alerts)
+- [ ] Live Meta spend sync (mock + recon loop shipped; live OAuth human-gated)
 - [ ] Live Google spend sync OR Ads Script path
 - [ ] Freshness badges + failed-sync alerts
-- [ ] Postgres in production (not SQLite)
+- [x] Postgres in production (not SQLite)
 - [ ] Sentry / error monitoring
-- [ ] Daily job worker for spend sync
+- [x] Daily job worker for spend sync (`npm run overnight`)
 
 ## D. Enterprise packaging (when buyers ask)
 

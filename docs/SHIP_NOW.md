@@ -84,11 +84,34 @@ If sales show $0 with an error banner, check `read_orders` was approved on insta
 
 ---
 
-## 4. Host for partners (20–40 min)
+## 4. Host for partners (20–40 min) — go live
 
-Pick **one**:
+**Full free/cheap walkthrough:** [GO_LIVE.md](./GO_LIVE.md) (Neon + Fly).
 
-### Option A — Railway (recommended)
+Pick **one**. Do not set App URL to `example.com` or `mcflyads.com`.
+
+### Option A — Neon + Fly (recommended, cheapest)
+
+1. Neon: https://neon.tech → project → copy `DATABASE_URL`  
+2. Fly: `brew install flyctl && fly auth login`  
+3. From repo root:
+
+```bash
+fly launch --config fly.toml --no-deploy --copy-config --name mcfly-analytics
+fly secrets set \
+  SHOPIFY_API_KEY=... \
+  SHOPIFY_API_SECRET=... \
+  SCOPES=read_orders \
+  DATABASE_URL="neon-url" \
+  SHOPIFY_APP_URL="https://mcfly-analytics.fly.dev"
+fly deploy
+curl https://mcfly-analytics.fly.dev/health
+cd app && npx shopify app deploy
+```
+
+Keep `min_machines_running = 1` (already in `fly.toml`) so cold starts don’t kill OAuth.
+
+### Option B — Railway
 
 1. https://railway.app → New Project → Deploy from GitHub (this repo)  
 2. Add **Postgres** plugin → copy `DATABASE_URL`  
@@ -113,17 +136,6 @@ PORT=3000
 cd app
 npx shopify app deploy
 ```
-
-### Option B — Fly.io
-
-```bash
-fly launch --config fly.toml
-fly postgres create
-fly secrets set SHOPIFY_API_KEY=... SHOPIFY_API_SECRET=... DATABASE_URL=... SHOPIFY_APP_URL=https://mcfly-analytics.fly.dev
-fly deploy
-```
-
-Keep `min_machines_running = 1` (already in `fly.toml`) so cold starts don’t kill OAuth.
 
 ---
 
