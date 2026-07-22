@@ -1,5 +1,9 @@
 # SHIP NOW — get Mcfly cooking tonight
 
+**Baby steps with links:** [YOUR_NEXT_STEPS.md](./YOUR_NEXT_STEPS.md)  
+**Go live (Neon+Fly):** [GO_LIVE.md](./GO_LIVE.md)  
+**Before spending money:** [ENTERPRISE_READY.md](./ENTERPRISE_READY.md)
+
 **Goal:** first Shopify install showing cash MER.  
 **Site is already live:** https://mcflyads.com (waitlist OK).  
 **You must do Partner login** — agents cannot.

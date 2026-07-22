@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260721b" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260722a" />
   <style>
     /* Critical: never ship light text on a light hero if main CSS flakes or SW serves stale CSS */
     body.home .hero-craft {
@@ -30,6 +30,7 @@
       color: #f4f6f8 !important;
     }
     body.home .hero-craft .brand-hero,
+    body.home .hero-craft .brand-hero-sub,
     body.home .hero-craft h1 {
       color: #ffffff !important;
     }
@@ -56,19 +57,20 @@
   <div data-chrome></div>
 
   <main id="main">
-    <!-- ONE composition: brand + thesis + CTA + full-bleed crafted cockpit -->
+    <!-- ONE composition: brand + thesis + CTA + full-bleed cash desk -->
     <section class="hero hero-craft" aria-labelledby="hero-brand">
       <div class="hero-mesh" aria-hidden="true"></div>
       <div class="hero-gridline" aria-hidden="true"></div>
+      <div class="hero-grain" aria-hidden="true"></div>
 
       <div class="hero-layout">
         <div class="hero-copy">
-          <p class="brand-hero" id="hero-brand">Mcfly</p>
-          <h1>Your ad platforms are lying about what’s driving revenue.</h1>
-          <p class="lede">The big suites sold dashboards and data plumbing as proprietary science. Mcfly does the useful part — spend out vs Shopify in — cleaner, cheaper, without the theater.</p>
+          <p class="brand-hero" id="hero-brand">Mcfly <span class="brand-hero-sub">Analytics</span></p>
+          <h1>Stop buying attribution. Start managing spend against sales.</h1>
+          <p class="lede">Cash MER for Shopify — ad spend out vs till sales in, break-even, and one allocation call. No pixels. No path theater.</p>
           <div class="cta-row">
             <a class="btn primary" href="#waitlist">Join free launch</a>
-            <a class="btn ghost" href="#live">See it work live</a>
+            <a class="btn ghost" href="#live">See live demos</a>
           </div>
         </div>
 
@@ -119,19 +121,32 @@
       <div class="wrap">
         <p class="eyebrow">The problem</p>
         <h2 id="lie-title" class="display">Platform ROAS is a story.<br />Your bank account is not.</h2>
+        <p class="lede-soft band-intro">Operators don’t need another model. They need a Monday number that matches the till.</p>
         <div class="lie-grid">
-          <article>
+          <article class="reveal">
             <h3>Double-counting</h3>
-            <p>Meta, Google, and email all take credit for the same order. Add the “driven revenue” and you need fantasy P&amp;L.</p>
+            <p>Meta, Google, and email all take credit for the same order. Sum “driven revenue” and you invent a P&amp;L.</p>
           </article>
-          <article>
+          <article class="reveal">
             <h3>Path theater</h3>
-            <p>Multi-touch models invent a neat journey. Real journeys are messy. Optimizing the model is not optimizing cash.</p>
+            <p>Multi-touch invents a neat journey. Real journeys are messy. Optimizing the model is not optimizing cash.</p>
           </article>
-          <article>
+          <article class="reveal">
             <h3>Science cosplay</h3>
-            <p>Pixels, seven attribution models, MMM branding — mostly marketing on top of the same spend + Shopify pipes. You’re paying for packaging.</p>
+            <p>Pixels, seven attribution windows, MMM branding — packaging on top of the same spend + Shopify pipes.</p>
           </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="band formula-band" aria-labelledby="formula-title">
+      <div class="wrap">
+        <p class="eyebrow">The religion</p>
+        <h2 id="formula-title" class="display">One formula. Auditable.</h2>
+        <div class="formula-panel reveal">
+          <p class="formula-line mono">MER = Shopify sales ÷ ad spend</p>
+          <p class="formula-line mono soft">Break-even MER ≈ 1 ÷ contribution margin</p>
+          <p class="formula-note">Operate above break-even. Shift mix to protect it. No path credit in the math.</p>
         </div>
       </div>
     </section>
@@ -139,20 +154,20 @@
     <section class="band better-band" aria-labelledby="better-title">
       <div class="wrap">
         <p class="eyebrow">The wedge</p>
-        <h2 id="better-title" class="display">A better version of what the suites<br />actually do.</h2>
+        <h2 id="better-title" class="display">A better version of what<br />the suites actually do.</h2>
         <p class="lede-soft better-lede">Triple Whale, Northbeam, and Polar aren’t sitting on secret formulas. They’re data organization and smooth operator UI. Mcfly keeps that job — and throws out the attribution religion.</p>
         <div class="better-grid">
-          <article>
+          <article class="reveal">
             <p class="better-kicker">They ship</p>
             <h3>Organize everything</h3>
             <p>Connectors, dashboards, pixels, AI chat, passback. Broad cockpit. Numbers still disagree with the till.</p>
           </article>
-          <article class="better-us">
+          <article class="better-us reveal">
             <p class="better-kicker">Mcfly ships</p>
             <h3>Organize the cash facts</h3>
             <p>Spend out. Shopify sales in. Break-even MER. One allocation card you can audit. Monday ritual, not another OS.</p>
           </article>
-          <article>
+          <article class="reveal">
             <p class="better-kicker">You keep</p>
             <h3>Craft without the tax</h3>
             <p>Same useful instinct — one place to look — at a price that isn’t GMV theater, without training Meta on path credit.</p>
@@ -372,8 +387,8 @@
     <section class="band close" id="waitlist" aria-labelledby="close-title">
       <div class="wrap narrow">
         <p class="eyebrow">Free launch</p>
-        <h2 id="close-title" class="display">Run media against the bank account.</h2>
-        <p class="lede-soft">Design partners get Mcfly free while we test and learn. Paid pricing comes later — announced before anything bills.</p>
+        <h2 id="close-title" class="display">Run media against<br />the bank account.</h2>
+        <p class="lede-soft">Design partners get Mcfly free while we harden Truth MVP. Paid pricing (~$79/store) comes later — announced before anything bills.</p>
         <form class="waitlist" data-waitlist novalidate>
           <div class="row2">
             <label>Name <input type="text" name="name" autocomplete="name" required /></label>
@@ -381,7 +396,7 @@
           </div>
           <label>Store URL <input type="url" name="store" placeholder="https://yourstore.com" autocomplete="url" required /></label>
           <button class="btn primary solid" type="submit">Join free launch</button>
-          <p class="note">Opens email to <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Tell us you’re in for feedback.</p>
+          <p class="note">Opens email to <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Tell us you’re in for weekly MER feedback.</p>
         </form>
         <div class="waitlist-confirm" hidden>
           <p class="confirm-title">You’re on the free launch list.</p>
@@ -392,7 +407,7 @@
   </main>
 
   <div data-footer></div>
-  <script src="/assets/chrome.js?v=20260721b"></script>
-  <script src="/assets/app.js?v=20260721b"></script>
+  <script src="/assets/chrome.js?v=20260722a"></script>
+  <script src="/assets/app.js?v=20260722a"></script>
 </body>
 </html>

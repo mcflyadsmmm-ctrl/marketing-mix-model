@@ -283,20 +283,35 @@ a {
   margin: 0 0 0.75rem;
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(3rem, 10vw, 5.5rem);
+  font-size: clamp(2.6rem, 8.5vw, 4.75rem);
   letter-spacing: -0.055em;
-  line-height: 0.88;
+  line-height: 0.92;
   color: #ffffff;
+}
+.brand-hero-sub {
+  display: inline-block;
+  font-weight: 650;
+  opacity: 0.72;
+  letter-spacing: -0.04em;
 }
 .hero-craft h1 {
   margin: 0 0 1rem;
-  max-width: 14ch;
+  max-width: 16ch;
   font-family: var(--display);
   font-weight: 650;
-  font-size: clamp(1.45rem, 3.2vw, 2.15rem);
+  font-size: clamp(1.35rem, 2.8vw, 1.95rem);
   letter-spacing: -0.035em;
-  line-height: 1.12;
+  line-height: 1.15;
   color: #ffffff;
+}
+.hero-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
 }
 .lede {
   margin: 0 0 1.5rem;
@@ -609,6 +624,52 @@ a {
 .lie-grid p {
   margin: 0;
   color: var(--mute);
+}
+
+.band-intro {
+  max-width: 40ch;
+}
+
+.formula-band {
+  background:
+    radial-gradient(500px 240px at 100% 0%, rgba(26, 163, 122, 0.08), transparent 55%),
+    var(--paper-2);
+}
+.formula-panel {
+  margin-top: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border: 1px solid rgba(15, 107, 82, 0.22);
+  background:
+    linear-gradient(160deg, rgba(26, 163, 122, 0.08), transparent 50%),
+    #fff;
+}
+.formula-line {
+  margin: 0 0 0.65rem;
+  font-size: clamp(1rem, 2.4vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.formula-line.soft {
+  color: var(--mute);
+  font-weight: 500;
+}
+.formula-note {
+  margin: 1rem 0 0;
+  max-width: 46ch;
+  color: var(--mute);
+  font-size: 0.98rem;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(0.85rem);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+}
+.reveal.in,
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
 }
 
 .better-band {

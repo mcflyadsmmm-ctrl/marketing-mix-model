@@ -8,7 +8,7 @@
   <header class="top" data-top>
     <a class="brand" href="/" aria-label="Mcfly Analytics home">
       <span class="brand-mark" aria-hidden="true"></span>
-      <span class="brand-name">Mcfly</span>
+      <span class="brand-name">Mcfly Analytics</span>
     </a>
     <nav class="nav" aria-label="Primary">
       <a href="/product.html" data-nav="product">Product</a>
