@@ -1,7 +1,18 @@
 # Your next steps — baby checklist (human only)
 
+**Status update (Jul 22):** Claude Desktop already linked `client_id`, Docker/Prisma, Fly app + Postgres + secrets. Branch includes Docker/Prisma build fixes + [APP_STORE_LISTING.md](./APP_STORE_LISTING.md).
+
+**Remaining on Mac:**
+1. Confirm `curl https://mcfly-analytics.fly.dev/health` → ok  
+2. `cd app && npx shopify app deploy --force`  
+3. Install on dev store → margin → spend → MER  
+
+Then use listing draft when ready to submit publicly.
+
+---
+
 Code, site, deploy configs, overnight worker, and docs are ready in the repo.  
-**Only you** (or Claude Desktop on your Mac) can finish Partner login, hosting accounts, and first install.
+**Only you** (or Claude Desktop on your Mac) can finish Partner install clicks.
 
 Work top to bottom. Don’t skip. Don’t buy ads yet.
 
