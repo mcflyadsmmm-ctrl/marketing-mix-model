@@ -28,3 +28,9 @@ primary_region = "iad"
     grace_period = "20s"
     method = "GET"
     path = "/health"
+
+# Keep 1GB — Prisma migrate/generate on boot OOMs at 256MB default.
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
