@@ -1,6 +1,6 @@
-# Mcfly Analytics — Prisma schema (Truth MVP)
-# Production: PostgreSQL. Local: docker compose up -d db
-# https://pris.ly/d/prisma-schema
+// Mcfly Analytics — Prisma schema (Truth MVP)
+// Production: PostgreSQL. Local: docker compose up -d db
+// https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"

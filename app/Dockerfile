@@ -5,14 +5,17 @@
 FROM node:22-alpine AS build
 RUN apk add --no-cache openssl libc6-compat
 WORKDIR /repo
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json* tsconfig.base.json ./
 COPY app/package.json ./app/
 COPY packages ./packages
 # Install ALL deps (need typescript to compile packages)
 RUN npm install
 COPY app ./app
-RUN npm run build --workspace=@mcfly/mer-core \
+RUN npm run build --workspace=@mcfly/api-contract \
+ && npm run build --workspace=@mcfly/mer-core \
  && npm run build --workspace=@mcfly/mer-engine \
+ && npm run build --workspace=@mcfly/connectors \
+ && npm run build --workspace=@mcfly/worker \
  && cd app \
  && npx prisma generate \
  && npm run build
