@@ -5,6 +5,9 @@ import type { DateRange } from "./periods";
 export type ShopSalesApiResult = {
   totalSales: number;
   orderCount: number;
+  newCustomers: number;
+  returningCustomers: number;
+  guestOrders: number;
   warning?: string;
 };
 
@@ -21,11 +24,17 @@ export async function fetchShopifySalesForShop(
     return {
       totalSales: sales.totalSales,
       orderCount: sales.orderCount,
+      newCustomers: sales.newCustomers,
+      returningCustomers: sales.returningCustomers,
+      guestOrders: sales.guestOrders,
     };
   } catch (err) {
     return {
       totalSales: 0,
       orderCount: 0,
+      newCustomers: 0,
+      returningCustomers: 0,
+      guestOrders: 0,
       warning:
         err instanceof Error
           ? err.message

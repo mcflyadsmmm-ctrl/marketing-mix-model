@@ -6,6 +6,10 @@ function mapChannel(channel: string): SpendChannel {
   const normalized = channel.toLowerCase();
   if (normalized === "meta" || normalized === "facebook") return "meta";
   if (normalized === "google" || normalized === "google_ads") return "google";
+  if (normalized === "microsoft" || normalized === "bing") return "microsoft";
+  if (normalized === "tiktok") return "tiktok";
+  if (normalized === "affiliate") return "affiliate";
+  if (normalized === "email" || normalized === "klaviyo") return "email";
   return "other";
 }
 

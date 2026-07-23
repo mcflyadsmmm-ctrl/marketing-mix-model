@@ -16,6 +16,10 @@ function mapChannel(channel: string) {
   const normalized = channel.toLowerCase();
   if (normalized.includes("meta") || normalized.includes("facebook")) return "meta" as const;
   if (normalized.includes("google")) return "google" as const;
+  if (normalized.includes("microsoft") || normalized.includes("bing")) return "microsoft" as const;
+  if (normalized.includes("tiktok")) return "tiktok" as const;
+  if (normalized.includes("affiliate")) return "affiliate" as const;
+  if (normalized.includes("email") || normalized.includes("klaviyo")) return "email" as const;
   return "other" as const;
 }
 

@@ -64,7 +64,7 @@ shopify app env show
 # or copy into app/.env:
 # SHOPIFY_API_KEY=...
 # SHOPIFY_API_SECRET=...
-# SCOPES=read_orders
+# SCOPES=read_orders,read_customers
 # SHOPIFY_APP_URL=https://....   # tunnel or production host
 # DATABASE_URL=file:./dev.sqlite   # local only
 ```
@@ -110,7 +110,7 @@ Minimum env on host:
 ```text
 SHOPIFY_API_KEY=
 SHOPIFY_API_SECRET=
-SCOPES=read_orders
+SCOPES=read_orders,read_customers
 SHOPIFY_APP_URL=https://app.mcflyads.com   # or your host URL
 DATABASE_URL=postgresql://...              # production
 ```

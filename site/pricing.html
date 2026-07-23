@@ -3,61 +3,316 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pricing — Mcfly Analytics</title>
-  <meta name="description" content="Free during launch for design partners. Paid pricing comes later — no GMV tax, no enterprise theater." />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta name="theme-color" content="#0b0e12" />
-  <meta property="og:site_name" content="Mcfly Analytics" />
+  <title>Pricing: free on App Store now, flat later — Mcfly Ads</title>
+  <meta name="description" content="Shopify App Store listing is free while we launch. Later: flat ~$79/store/mo via Shopify Billing — announced before anything charges. No GMV tax." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="canonical" href="https://mcflyads.com/pricing.html" />
+  <meta property="og:site_name" content="Mcfly Ads" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mcflyads.com/pricing.html" />
-  <meta property="og:title" content="Pricing — Mcfly Analytics" />
-  <meta property="og:description" content="Free during launch for design partners. Paid pricing comes later — no GMV tax." />
-  <meta property="og:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <meta property="og:title" content="Free on App Store now · flat later — Mcfly Ads" />
+  <meta property="og:description" content="App Store listing: Free now. Paid flat ~$79 later via Shopify Billing — not a GMV tax." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="canonical" href="https://mcflyads.com/pricing.html" />
+  <meta name="twitter:title" content="Free on App Store now · flat later — Mcfly Ads" />
+  <meta name="twitter:description" content="Listing is Free now. Later ~$79/store flat via Shopify Billing. Cash MER = sales ÷ spend." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260722a" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260723a" />
+  <style>
+    body.pricing-page {
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(94, 231, 240, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(26, 163, 122, 0.08), transparent 50%),
+        var(--paper-2);
+    }
+    body.pricing-page .brand-kicker .ads {
+      color: var(--cyan-deep);
+    }
+    body.pricing-page .page-hero h1 {
+      max-width: 18ch;
+    }
+    body.pricing-page .price-proof {
+      margin: 1.25rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    body.pricing-page .price-proof span {
+      color: var(--cyan-deep);
+    }
+    body.pricing-page .price-grid {
+      display: grid;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    @media (min-width: 820px) {
+      body.pricing-page .price-grid {
+        grid-template-columns: 1.15fr 1fr;
+        align-items: start;
+        gap: 2rem;
+      }
+    }
+    body.pricing-page .plan h2 {
+      font-family: var(--display);
+      margin: 0;
+      letter-spacing: -0.02em;
+      font-size: 1.35rem;
+    }
+    body.pricing-page .plan-lede {
+      color: var(--mute);
+      margin: 0 0 1rem;
+      max-width: 36ch;
+    }
+    body.pricing-page .plan-list {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--mute);
+    }
+    body.pricing-page .plan-list li + li {
+      margin-top: 0.35rem;
+    }
+    body.pricing-page .price-cta {
+      margin-top: 2.25rem;
+      padding-top: 1.75rem;
+      border-top: 1px solid var(--line);
+      max-width: 36rem;
+    }
+    body.pricing-page .price-cta .fine {
+      margin-top: 1rem;
+      max-width: 42ch;
+    }
+    body.pricing-page .honest-line {
+      margin: 0 0 1.25rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    body.pricing-page .plan-badge.muted {
+      color: var(--mute);
+    }
+
+    /* GMV-tax authority band */
+    body.pricing-page .tax-band {
+      margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+      padding: clamp(1.75rem, 4vw, 2.5rem) 0 0;
+      border-top: 1px solid var(--line);
+    }
+    body.pricing-page .tax-band .eyebrow {
+      margin: 0 0 0.65rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    body.pricing-page .tax-band h2 {
+      font-family: var(--display);
+      font-size: clamp(1.55rem, 3.2vw, 2.1rem);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin: 0 0 0.75rem;
+      max-width: 22ch;
+    }
+    body.pricing-page .tax-lede {
+      margin: 0 0 1.75rem;
+      max-width: 52ch;
+      color: var(--mute);
+      font-size: 1.02rem;
+      line-height: 1.55;
+    }
+    body.pricing-page .tax-split {
+      display: grid;
+      gap: 1.25rem;
+    }
+    @media (min-width: 780px) {
+      body.pricing-page .tax-split {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.75rem;
+        align-items: stretch;
+      }
+    }
+    body.pricing-page .tax-pane {
+      padding: 1.35rem 1.4rem 1.5rem;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.35);
+    }
+    body.pricing-page .tax-pane.mcfly {
+      border-color: rgba(26, 163, 122, 0.35);
+      background:
+        linear-gradient(165deg, rgba(94, 231, 240, 0.1), transparent 55%),
+        rgba(255, 255, 255, 0.55);
+    }
+    body.pricing-page .tax-pane h3 {
+      font-family: var(--display);
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.55rem;
+    }
+    body.pricing-page .tax-pane p {
+      margin: 0;
+      color: var(--mute);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      max-width: 38ch;
+    }
+    body.pricing-page .shape-list {
+      list-style: none;
+      margin: 1.1rem 0 0;
+      padding: 0;
+    }
+    body.pricing-page .shape-list li {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr;
+      gap: 0.75rem;
+      padding: 0.7rem 0;
+      border-top: 1px solid var(--line);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    body.pricing-page .shape-list li:last-child {
+      padding-bottom: 0;
+    }
+    body.pricing-page .shape-list .who {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      padding-top: 0.1rem;
+    }
+    body.pricing-page .shape-list .pain {
+      color: var(--mute);
+    }
+    body.pricing-page .tax-pane.mcfly .path {
+      margin-top: 1.1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(26, 163, 122, 0.25);
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      max-width: none;
+    }
+    body.pricing-page .tax-pane.mcfly .path span {
+      color: var(--cyan-deep);
+    }
+    body.pricing-page .tax-pane.mcfly .plan-list {
+      margin-top: 1rem;
+    }
+    body.pricing-page .tax-footnote {
+      margin: 1.35rem 0 0;
+      max-width: 54ch;
+      font-size: 0.88rem;
+      color: var(--mute);
+      line-height: 1.5;
+    }
+  </style>
 </head>
-<body>
+<body class="pricing-page">
   <a class="skip" href="#main">Skip to content</a>
   <div data-chrome></div>
+
   <main id="main">
     <header class="page-hero">
-      <p class="brand-kicker">Mcfly Analytics</p>
-      <h1>Free to start. Paid when it’s earned.</h1>
-      <p>Launch special: use Mcfly free while we learn with real Shopify operators. Pricing ships later — you’ll know before anything bills.</p>
+      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
+      <h1>Free on the App Store now. Flat later.</h1>
+      <p>
+        The public Shopify listing is <strong>Free</strong> while we launch — no in-app charges yet.
+        After Billing ships, target paid is <span class="mono formula-inline">~$79</span>/store/mo flat,
+        announced before anything bills. Not forever-free. Not a GMV tax.
+      </p>
+      <p class="price-proof" aria-label="What you pay for">Cash MER = <span>sales ÷ spend</span> · not path credit</p>
     </header>
+
     <div class="price-block">
-      <div class="plan plan-featured">
-        <p class="plan-badge">Launch special</p>
-        <h2 style="font-family:var(--display);margin:0;letter-spacing:-0.02em">Design partner</h2>
-        <p class="amount">$0 <span>/ store</span></p>
-        <p style="color:var(--mute);margin:0 0 1rem">Free while we gauge interest and harden the product. Feedback expected: weekly MER ritual, honest notes on what broke.</p>
-        <ul style="margin:0;padding-left:1.1rem;color:var(--mute)">
-          <li>Shopify MER cockpit</li>
-          <li>Spend in (CSV / Script → live pipes)</li>
-          <li>Break-even MER + allocation card</li>
-          <li>Direct line for bugs and wish-list</li>
-        </ul>
+      <p class="honest-line">App Store now = Free · paid later via Shopify Billing</p>
+      <div class="price-grid">
+        <div class="plan plan-featured">
+          <p class="plan-badge">App Store · now</p>
+          <h2>Free listing</h2>
+          <p class="amount">$0 <span>/ store</span></p>
+          <p class="plan-lede">
+            Install from the Shopify App Store at no charge. Run the Monday ritual. No Shopify Billing
+            charges until we announce paid plans in-app.
+          </p>
+          <ul class="plan-list">
+            <li>Cash MER cockpit (Shopify sales ÷ ad spend)</li>
+            <li>Break-even from your contribution margin</li>
+            <li>Spend in (manual / CSV → live pipes)</li>
+            <li>One allocation card with inputs shown</li>
+            <li>Direct line for bugs and wish-list</li>
+          </ul>
+        </div>
+
+        <div class="plan">
+          <p class="plan-badge muted">After launch</p>
+          <h2>~$79 flat</h2>
+          <p class="amount">~$79 <span>/ store / mo</span></p>
+          <p class="plan-lede">One flat number per store. Same cash MER religion. Exact date and terms go to partners first — no surprise invoice, no % of revenue.</p>
+          <ul class="plan-list">
+            <li>Still <span class="mono formula-inline">sales ÷ spend</span> — no bait-and-switch formula</li>
+            <li>No GMV-scaled suite tax</li>
+            <li>Agency / multi-store priced separately later</li>
+          </ul>
+        </div>
       </div>
-      <div class="plan">
-        <h2 style="font-family:var(--display);margin:0;letter-spacing:-0.02em">After launch</h2>
-        <p class="amount">~$79 <span>/ store / mo</span></p>
-        <p style="color:var(--mute);margin:0 0 1rem">Target paid price once the cash desk is proven. Flat — not GMV-scaled suite tax. Exact date and terms announced to partners first.</p>
-        <ul style="margin:0;padding-left:1.1rem;color:var(--mute)">
-          <li>Same religion: spend vs Shopify sales</li>
-          <li>No bait-and-switch on formula</li>
-          <li>Agency / multi-store priced separately later</li>
-        </ul>
+
+      <section class="tax-band" aria-labelledby="tax-title">
+        <p class="eyebrow">Why flat exists</p>
+        <h2 id="tax-title">Suite pricing punishes growth. A desk fee shouldn’t.</h2>
+        <p class="tax-lede">Triple Whale– / Polar– / Northbeam–class tools price like measurement platforms: floors that climb with GMV or ad spend, plus onboarding ceremony. Winning a bigger year shouldn’t mean a bigger tax on the same Monday question — <span class="mono formula-inline">are we above break-even MER?</span></p>
+
+        <div class="tax-split">
+          <div class="tax-pane">
+            <h3>GMV-tax suite shape</h3>
+            <p>Research framing — shapes, not a fake price sheet. List prices move; the incentive doesn’t.</p>
+            <ul class="shape-list">
+              <li>
+                <span class="who">TW-class</span>
+                <span class="pain">Operator OS + pixel theater. Free toe-hold → mid-hundreds → high-hundreds+ as trailing GMV climbs.</span>
+              </li>
+              <li>
+                <span class="who">Polar-class</span>
+                <span class="pain">Warehouse BI + pixel. High floor (often mid–high hundreds), then GMV climb as you scale.</span>
+              </li>
+              <li>
+                <span class="who">Northbeam-class</span>
+                <span class="pain">Attribution court. Enterprise contracts commonly land in the low–mid thousands+/mo, spend-scaled.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="tax-pane mcfly">
+            <h3>Mcfly cash desk</h3>
+            <p>One product: cash MER (Shopify sales ÷ ad spend), break-even from margin, rules-based allocation. No path credit. No forever-free bait.</p>
+            <p class="path">Path: <span>App Store Free now</span> → announce Billing → <span>~$79 / store / mo flat</span></p>
+            <ul class="plan-list">
+              <li>Fee stays flat when GMV grows</li>
+              <li>Billing terms before any charge</li>
+              <li>Prefer few serious stores over freeloader flood</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="tax-footnote">We don’t publish competitor SKUs as gospel — their public ladders and sales quotes drift. What we stand behind: Mcfly will not take a cut of your revenue for a cash MER desk.</p>
+      </section>
+
+      <div class="price-cta">
+        <a class="btn primary solid" href="/#waitlist">Get early access</a>
+        <p class="fine">App Store listing is Free now. ~$79 later via Shopify Billing — you’ll hear before anything charges.</p>
       </div>
-      <p style="margin-top:2rem"><a class="btn primary solid" href="/#waitlist">Join free launch</a></p>
-      <p style="color:var(--mute);font-size:0.95rem;max-width:40rem;margin:1rem 0 0">Not forever-free marketing. A time-boxed launch to get testing and signal — then introduce billing when the product deserves it.</p>
     </div>
   </main>
+
   <div data-footer></div>
-  <script src="/assets/chrome.js?v=20260722a"></script>
-  <script src="/assets/app.js?v=20260722a"></script>
+  <script src="/assets/chrome.js?v=20260723a"></script>
+  <script src="/assets/app.js?v=20260723a"></script>
 </body>
 </html>

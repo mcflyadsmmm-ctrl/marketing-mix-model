@@ -2,6 +2,9 @@
 
 Goal: charge serious money without becoming Triple Whale. Cash MER + allocation + trust + sales motion.
 
+**Agent OS:** [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) — DoD D0–D3, ship/overnight loops, P0 backlog.  
+**Rule:** Flip a box only when verified with evidence (command output, URL, screenshot). Never flip on vibes.
+
 ## A. Marketing site (ship now)
 
 - [x] Product homepage with anti-attribution thesis
@@ -20,18 +23,24 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [x] Dashboard: sales, spend, MER, break-even, mix
 - [x] Allocation card + detail (mer-core)
 - [x] Manual spend + settings
+- [x] CSV daily spend upload (`/app/spend`) — multi-platform template (Day, Meta, Google, Microsoft, TikTok, Affiliate, Email) + long format; SyncWith external tip. Evidence 2026-07-23: `bash scripts/agent-ship-gate.sh` → exit 0 (unit+typecheck+build+health); `fly deploy` image `deployment-01KY6KGZ…` released; `curl https://mcfly-analytics.fly.dev/health` → `{"ok":true,"db":"up"}` @04:27Z
+- [x] Named spend channels in DB + dashboard mix (hide $0 channels) — evidence 2026-07-23: migration `20260723043000_spend_channels_named` applied on Fly Postgres boot ("The following migration(s) have been applied"); `SpendChannel` enum = meta/google/microsoft/tiktok/affiliate/email/other in schema + `@mcfly/mer-engine`; dashboard `channelMix` filters `amount > 0`; typecheck clean after `prisma generate`
 - [x] Connections stubs
 - [x] Sample warehouse + seed script
 - [x] GDPR compliance webhook + uninstall data cleanup
 - [x] App Store 2.3.1 — no shop-domain install form
 - [x] No silent mock sales in production loaders
 - [x] Prisma migration for Shop / Settings / SpendEntry
-- [ ] Shopify Partner app linked (`client_id`) — **human** → start with [SHIP_NOW.md](./SHIP_NOW.md)
-- [ ] Hosted HTTPS app URL (Railway/Fly) — **human**
-- [ ] Dev / design-partner store install — **human**
+- [x] Shopify Partner app linked (`client_id`) — evidence: `shopify.app.toml` client_id `88c56d21…` + `shopify app deploy --allow-updates` released `mcfly-analytics-7` ("AppStore dist + AOV + URL lock", 2026-07-23; supersedes `-6`)
+- [x] Hosted HTTPS app URL (Fly) — evidence 2026-07-23: `curl https://mcfly-analytics.fly.dev/health` → `{"ok":true,"db":"up"}`; Fly deploy `deployment-01KY6MSPNZ19KVCMVWYBR12DEA`
+- [ ] Dev / design-partner store install — **human** (hosted install on `devmcflyads`, no `shopify app dev`)
 - [x] Postgres schema + migration (production-ready)
 - [x] `/health` route + Docker/Railway/Fly configs
 - [ ] `npm run seed` against real `DATABASE_URL`
+- [x] AppDistribution.AppStore + toml URL lock (`automatically_update_urls_on_dev = false`) — evidence: code + `mcfly-analytics-7`
+- [ ] Partner Dashboard Distribution → Shopify App Store — **human**
+- [ ] PCD questionnaire for `read_orders` — **human** (answers in `docs/APP_STORE_LISTING.md`)
+- [ ] App Store listing submit — **human** (draft Free-only in `docs/APP_STORE_LISTING.md`; runbook `docs/SUBMIT_TOMORROW.md`)
 
 ## C. Reliability (required before big ASP)
 

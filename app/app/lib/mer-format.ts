@@ -14,3 +14,15 @@ export function formatMer(value: number | null): string {
 export function formatPercent(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
+
+/** Calm desk timestamp for freshness / last-updated lines. */
+export function formatFreshness(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}

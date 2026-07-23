@@ -12,7 +12,7 @@ primary_region = "iad"
 [env]
   NODE_ENV = "production"
   PORT = "3000"
-  SCOPES = "read_orders"
+  SCOPES = "read_orders,read_customers"
 
 [http_service]
   internal_port = 3000
@@ -25,7 +25,8 @@ primary_region = "iad"
   [[http_service.checks]]
     interval = "15s"
     timeout = "5s"
-    grace_period = "20s"
+    # Prisma generate + migrate on boot; short grace caused false "not listening" warnings mid-deploy.
+    grace_period = "90s"
     method = "GET"
     path = "/health"
 

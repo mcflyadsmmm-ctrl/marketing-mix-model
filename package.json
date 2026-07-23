@@ -12,6 +12,8 @@
     "typecheck": "npm run typecheck --workspace=app",
     "seed": "npm run seed --workspace=app",
     "overnight": "npm run build --workspace=@mcfly/connectors && npm run build --workspace=@mcfly/worker && node app/scripts/overnight-run.mjs",
+    "ship-gate": "bash scripts/agent-ship-gate.sh",
+    "compliance-check": "bash scripts/mcfly-compliance-spotcheck.sh",
     "db:up": "docker compose up -d db",
     "db:migrate": "npm run setup --workspace=app"
   }

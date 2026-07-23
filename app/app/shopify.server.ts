@@ -15,6 +15,7 @@ const shopify = shopifyApp({
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
+  // Public App Store distribution (Partner Dashboard must also flip Distribution → App Store)
   distribution: AppDistribution.AppStore,
   future: {
     expiringOfflineAccessTokens: true,

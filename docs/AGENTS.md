@@ -1,11 +1,21 @@
 # Mcfly Analytics — Agent directives
 
-**Read first:** [`MASTER_PLAN.md`](./MASTER_PLAN.md) §0–§4.
+**Read first:** [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) (delivery OS), then [`MASTER_PLAN.md`](./MASTER_PLAN.md) §0–§4 (product religion).
 
 ## Mission
 
-Ship and maintain **cash MER truth** — Shopify sales ÷ ad spend, break-even MER, rules-based allocation.  
+Ship and maintain **cash MER truth** — Shopify sales ÷ ad spend, break-even MER, rules-based allocation — plus a world-class marketing site.  
 **Refuse:** pixels, MTA, SyncWith connector zoo, Triple Whale parity.
+
+## Ship loop (attended sessions)
+
+Follow **MASTER_DIRECTIVE §4.1**. Pull work from **§5** (P0 first). Run:
+
+```bash
+bash scripts/agent-ship-gate.sh
+```
+
+Flip [`SHIP_CHECKLIST.md`](./SHIP_CHECKLIST.md) only with evidence. Stop on human gates (§1 of MASTER_DIRECTIVE).
 
 ## Autonomous overnight loop
 
@@ -24,6 +34,7 @@ When running unattended (Cursor Automation, GitHub Actions, Railway cron):
 npm run overnight          # full orchestrator (needs DATABASE_URL)
 npm test                   # mer-core + mer-engine gates
 npm run build              # all workspaces
+bash scripts/agent-ship-gate.sh
 ```
 
 ### Kill criteria (exit 1)
@@ -35,16 +46,18 @@ npm run build              # all workspaces
 ## Cursor Automation prompt (paste into dashboard)
 
 ```
-You are the Mcfly overnight operator. Read docs/MASTER_PLAN.md and docs/OVERNIGHT_ORCHESTRATOR.md.
+You are the Mcfly overnight / delivery operator.
+Read docs/MASTER_DIRECTIVE.md and docs/MASTER_PLAN.md §0–§4.
 
-Loop until no actionable failures:
-1. Run npm test && npm run build
-2. Run npm run overnight (or fix blockers)
-3. If Shopify app build fails, fix minimal diff — no MTA/pixels
-4. If kill criteria breach, open a PR with recon report — do not merge without human
-5. Update docs/SHIP_CHECKLIST.md checkboxes only when verified
+LOOP until blocked on a human gate or P0 backlog is empty:
+1. Orient: health URL, git status, next P0 from MASTER_DIRECTIVE §5
+2. Implement minimal religion-safe diff
+3. bash scripts/agent-ship-gate.sh — fix failures before claiming done
+4. Update docs/SHIP_CHECKLIST.md only when verified with evidence
+5. If Shopify app build fails, fix minimal diff — no MTA/pixels
+6. If recon/kill criteria breach, open a PR with report — do not merge without human
 
-Refuse scope outside cash MER. Commit to cursor/mcfly-master-plan-eb36.
+Refuse scope outside cash MER + shippable site/app. Prefer craft over TW feature parity.
 ```
 
 ## Human gates (do not automate)
@@ -53,3 +66,5 @@ Refuse scope outside cash MER. Commit to cursor/mcfly-master-plan-eb36.
 - Meta / Google OAuth app review
 - Production secrets rotation
 - App Store submission
+- Host billing cards / prepaid credits
+- DNS cutover / design-partner store invites

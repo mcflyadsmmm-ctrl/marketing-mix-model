@@ -1,6 +1,6 @@
 # Mcfly Analytics — Shopify app configuration
-# Active Custom-distribution app (locked to demcflyads.myshopify.com).
-# Install link client_id must match Fly SHOPIFY_API_KEY.
+# Public App Store distribution. App URL must stay on Fly (never mcflyads.com).
+# Keep automatically_update_urls_on_dev = false so `shopify app dev` cannot overwrite production URLs.
 
 client_id = "88c56d21f74912479d2f7581f1877bc7"
 name = "Mcfly Analytics"
@@ -8,11 +8,10 @@ application_url = "https://mcfly-analytics.fly.dev"
 embedded = true
 
 [build]
-automatically_update_urls_on_dev = true
-include_config_on_deploy = true
+automatically_update_urls_on_dev = false
 
 [access_scopes]
-scopes = "read_orders"
+scopes = "read_orders,read_customers"
 
 [webhooks]
 api_version = "2025-10"
@@ -37,4 +36,4 @@ redirect_urls = [
 ]
 
 [app_preferences]
-url = "https://mcflyads.com/support.html"
+url = "https://mcflyads.com/support"

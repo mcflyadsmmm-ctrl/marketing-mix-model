@@ -1,0 +1,31 @@
+---
+description: FORCE Apps Script MER craft onto Shopify Cash MER desk — read vendor script + craft spec before any desk UI edit
+alwaysApply: false
+globs: app/app/routes/app._index.tsx,app/app/styles/mcfly-desk.css,app/app/routes/app.allocation.tsx,docs/APPS_SCRIPT_CRAFT_SPEC.md
+---
+
+# Apps Script MER craft — mandatory
+
+Before editing Cash MER desk UI, **read in order**:
+
+1. `docs/APPS_SCRIPT_CRAFT_SPEC.md`
+2. `vendor/mer-apps-script/Stylesheet.html` (or `/tmp/mcfly-mer-script2/Stylesheet.html`)
+3. Overview section of `vendor/mer-apps-script/Index.html`
+4. `renderOverviewDecision_` + KPI grid HTML in `JavaScript.html`
+
+## Non-negotiable ports
+
+Fraunces + Source Sans 3 · token match (`#e8f2fa` / `#0284c7`) · sticky context rail · editorial decision strip · 4-up KPI grid with delta up/down/flat · segmented periods · Fraunces panel heads · “not platform ROAS” copy.
+
+## Refuse to port
+
+Multi-brand · Domo · LTV/Customers CRM · Klaviyo/Meta Trends boards · seed data · pixels/MTA.
+
+## Done bar
+
+Fill the parity scorecard in `APPS_SCRIPT_CRAFT_SPEC.md` (mean ≥ 4.0) or list gaps.  
+Run `bash scripts/agent-ship-gate.sh` before claiming done.
+
+## Models
+
+Cash MER craft Task **must** use `claude-fable-5-thinking-high` or `claude-opus-4-8-thinking-high` — never inherit/Auto alone for this lane.

@@ -3,29 +3,54 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { Form, useLoaderData, useSearchParams } from "react-router";
+import { useLoaderData, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { buildDashboardMetrics } from "../lib/mer-dashboard.server";
+import { buildDashboardMetrics, ensureShop } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { fetchShopifySales } from "../lib/shopify-sales.server";
 import { PERIOD_PRESETS, resolvePeriod, type PeriodPreset } from "../lib/periods";
+import {
+  fetchSampleSales,
+  getSampleDeskEnabled,
+} from "../lib/sample-desk.server";
+
+function parsePreset(raw: string | null): PeriodPreset {
+  if (raw && PERIOD_PRESETS.some((p) => p.value === raw)) {
+    return raw as PeriodPreset;
+  }
+  return "mtd";
+}
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
-  const preset = (url.searchParams.get("period") ?? "mtd") as PeriodPreset;
-  const range = resolvePeriod(
-    PERIOD_PRESETS.some((p) => p.value === preset) ? preset : "mtd",
-  );
+  const preset = parsePreset(url.searchParams.get("period"));
+  const shotMode = url.searchParams.get("shot") === "1";
+  const range = resolvePeriod(preset);
+  const shop = await ensureShop(session.shop);
+  const useSampleDesk = await getSampleDeskEnabled(shop.id);
 
   let sales;
   let salesError: string | null = null;
-  try {
-    sales = await fetchShopifySales(admin, range);
-  } catch (err) {
-    salesError = err instanceof Error ? err.message : "Failed to load Shopify sales";
-    sales = { totalSales: 0, orderCount: 0, source: "shopify" as const };
+
+  if (useSampleDesk) {
+    sales = await fetchSampleSales(shop.id, range);
+  } else {
+    try {
+      sales = await fetchShopifySales(admin, range);
+    } catch (err) {
+      salesError = err instanceof Error ? err.message : "Failed to load Shopify sales";
+      sales = {
+        totalSales: 0,
+        orderCount: 0,
+        newCustomers: 0,
+        returningCustomers: 0,
+        guestOrders: 0,
+        customerMetricsAvailable: false,
+        source: "shopify" as const,
+      };
+    }
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales);
@@ -33,7 +58,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return {
     metrics,
     salesError,
-    preset: preset === "mtd" || preset === "qtd" || preset === "ytd" ? preset : "mtd",
+    preset,
+    useSampleDesk,
+    shotMode,
   };
 };
 
@@ -43,219 +70,292 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Dashboard() {
-  const { metrics, preset, salesError } = useLoaderData<typeof loader>();
+  const { metrics, preset, salesError, useSampleDesk, shotMode } = useLoaderData<typeof loader>();
   const [, setSearchParams] = useSearchParams();
 
   const setPeriod = (value: PeriodPreset) => {
-    setSearchParams({ period: value });
+    setSearchParams(shotMode ? { period: value, shot: "1" } : { period: value });
   };
 
+  const chipClass =
+    metrics.aboveBreakEven === true
+      ? "mcfly-chip mcfly-chip--good"
+      : metrics.aboveBreakEven === false
+        ? "mcfly-chip mcfly-chip--bad"
+        : "mcfly-chip";
+
   return (
-    <s-page heading="MER Dashboard">
-      {salesError ? (
-        <s-banner tone="critical" heading="Could not load Shopify sales">
-          <s-paragraph>{salesError}. Showing $0 sales until Admin API succeeds — not mock data.</s-paragraph>
-        </s-banner>
-      ) : null}
-      <s-section heading="Period">
-        <s-stack direction="inline" gap="base">
-          {PERIOD_PRESETS.map(({ value, label }) => (
-            <s-button
-              key={value}
-              variant={preset === value ? "primary" : "secondary"}
-              onClick={() => setPeriod(value)}
-            >
-              {label}
-            </s-button>
-          ))}
-        </s-stack>
-        <s-paragraph>
-          <s-text tone="neutral">{metrics.period.label}</s-text>
-        </s-paragraph>
-      </s-section>
-
-      <s-section heading="Cash truth (spend vs sales)">
-        <s-stack direction="block" gap="large">
-          <s-stack direction="inline" gap="large">
-            <MetricCard
-              label="Shopify sales"
-              value={formatCurrency(metrics.sales)}
-              hint={`${metrics.orderCount} orders`}
-            />
-            <MetricCard
-              label="Ad spend (manual)"
-              value={formatCurrency(metrics.totalSpend)}
-              hint="From your spend entries"
-            />
-            <MetricCard
-              label="MER"
-              value={formatMer(metrics.mer)}
-              hint="Sales ÷ spend"
-              highlight={
-                metrics.aboveBreakEven === true
-                  ? "success"
-                  : metrics.aboveBreakEven === false
-                    ? "critical"
-                    : undefined
-              }
-            />
-            <MetricCard
-              label="Break-even MER"
-              value={formatMer(metrics.breakEvenMer)}
-              hint={`${formatPercent(metrics.marginPct)} margin`}
-            />
-          </s-stack>
-
-          <s-box padding="base" borderWidth="base" borderRadius="base" background="subdued">
+    <s-page heading="Cash MER" inlineSize="large">
+      <div className={shotMode ? "mcfly-desk mcfly-desk--shot" : "mcfly-desk"}>
+        {useSampleDesk && !shotMode ? (
+          <s-banner tone="warning" heading="Sample desk is on">
             <s-paragraph>
-              <s-text>
-                Target MER: <strong>{formatMer(metrics.targetMer)}</strong>
-                {" · "}
-                {metrics.aboveBreakEven === true && "Above break-even — room to scale"}
-                {metrics.aboveBreakEven === false && "Below break-even — tighten spend or improve margin"}
-                {metrics.aboveBreakEven === null && "Add spend entries to compute MER"}
-              </s-text>
+              Numbers below are the 3-year demo dataset (matched sales + spend), not your live Shopify
+              till. Turn it off on the <s-link href="/app/demo">Demo</s-link> tab. For listing
+              captures use <s-link href="/app?period=y3&shot=1">shot mode</s-link> (hides this banner).
             </s-paragraph>
-          </s-box>
-        </s-stack>
-      </s-section>
+          </s-banner>
+        ) : null}
 
-      <s-section heading="Channel mix (spend)">
-        {metrics.totalSpend > 0 ? (
-          <s-stack direction="block" gap="base">
-            {metrics.channelMix.map(({ channel, amount, share }) => (
-              <s-stack key={channel} direction="inline" gap="base">
-                <s-text>{channelLabel(channel)}</s-text>
-                <s-text>{formatCurrency(amount)}</s-text>
-                <s-text tone="neutral">{formatPercent(share)}</s-text>
-              </s-stack>
+        {salesError ? (
+          <s-banner tone="critical" heading="Could not load Shopify sales">
+            <s-paragraph>{salesError}</s-paragraph>
+          </s-banner>
+        ) : null}
+
+        <header className="mcfly-topbar">
+          <div>
+            <h1 className="mcfly-topbar__title">Marketing Efficiency Ratio</h1>
+            <p className="mcfly-topbar__def">
+              Cash MER · Shopify sales ÷ ad spend · not platform ROAS
+            </p>
+          </div>
+          <div className="mcfly-period" role="tablist" aria-label="Reporting period">
+            {PERIOD_PRESETS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={preset === value}
+                className={`mcfly-period__btn${preset === value ? " mcfly-period__btn--on" : ""}`}
+                onClick={() => setPeriod(value)}
+              >
+                {label}
+              </button>
             ))}
-          </s-stack>
-        ) : (
-          <s-paragraph>
-            <s-text tone="neutral">
-              No spend recorded for this period.{" "}
-              <s-link href="/app/spend">Add spend entries</s-link>.
-            </s-text>
-          </s-paragraph>
-        )}
-      </s-section>
+          </div>
+        </header>
 
-      {metrics.allocation && (
-        <s-section heading="Allocation recommendation">
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack direction="block" gap="base">
-              <s-paragraph>
-                <s-text>{metrics.allocation.why}</s-text>
-              </s-paragraph>
+        <p className="mcfly-asof">
+          {metrics.period.label}
+          {shotMode ? "" : useSampleDesk ? " · sample till" : " · live Shopify till"}
+        </p>
 
-              {metrics.allocation.actions.map((action, index) => (
-                <s-box
-                  key={`${action.type}-${action.channel}-${index}`}
-                  padding="base"
-                  background="subdued"
-                  borderRadius="base"
-                >
-                  <s-stack direction="block" gap="small">
-                    <s-heading>
-                      {actionLabel(action.type)}
-                      {action.channel !== "—" ? ` · ${action.channel}` : ""}
-                      {action.percentChange != null
-                        ? ` (${action.percentChange > 0 ? "+" : ""}${action.percentChange}%)`
-                        : ""}
-                    </s-heading>
-                    <s-text tone="neutral">{action.detail}</s-text>
-                  </s-stack>
-                </s-box>
-              ))}
+        {metrics.onboarding.showGuide && !shotMode ? (
+          <section className="mcfly-guide" aria-label="First Cash MER setup">
+            <div className="mcfly-guide__head">
+              <p className="mcfly-guide__title">Your first Cash MER takes two inputs</p>
+              <p className="mcfly-guide__sub">
+                Sales come from Shopify automatically. You bring margin and spend — no
+                pixels, no tags, no code.
+              </p>
+            </div>
+            <ol className="mcfly-guide__steps">
+              <li
+                className={
+                  metrics.onboarding.settingsSaved
+                    ? "mcfly-guide__step mcfly-guide__step--done"
+                    : "mcfly-guide__step"
+                }
+              >
+                <span className="mcfly-guide__n" aria-hidden="true">
+                  {metrics.onboarding.settingsSaved ? "✓" : "1"}
+                </span>
+                <div className="mcfly-guide__body">
+                  <p className="mcfly-guide__step-title">Confirm your margin</p>
+                  <p className="mcfly-guide__step-copy">
+                    Gross margin sets your break-even MER — the line between printing
+                    cash and burning it.
+                  </p>
+                  {metrics.onboarding.settingsSaved ? (
+                    <p className="mcfly-guide__step-state">
+                      Saved · break-even {formatMer(metrics.breakEvenMer)}
+                    </p>
+                  ) : (
+                    <s-link href="/app/settings">Open Settings</s-link>
+                  )}
+                </div>
+              </li>
+              <li
+                className={
+                  metrics.onboarding.hasSpend
+                    ? "mcfly-guide__step mcfly-guide__step--done"
+                    : "mcfly-guide__step"
+                }
+              >
+                <span className="mcfly-guide__n" aria-hidden="true">
+                  {metrics.onboarding.hasSpend ? "✓" : "2"}
+                </span>
+                <div className="mcfly-guide__body">
+                  <p className="mcfly-guide__step-title">Log your ad spend</p>
+                  <p className="mcfly-guide__step-copy">
+                    Upload a CSV or type totals by channel — Meta, Google, TikTok, the
+                    rest.
+                  </p>
+                  {metrics.onboarding.hasSpend ? (
+                    <p className="mcfly-guide__step-state">
+                      Logged · {formatCurrency(metrics.totalSpend)} this period
+                    </p>
+                  ) : (
+                    <s-link href="/app/spend">Add spend</s-link>
+                  )}
+                </div>
+              </li>
+              <li className="mcfly-guide__step mcfly-guide__step--wait">
+                <span className="mcfly-guide__n" aria-hidden="true">
+                  3
+                </span>
+                <div className="mcfly-guide__body">
+                  <p className="mcfly-guide__step-title">Read your Cash MER</p>
+                  <p className="mcfly-guide__step-copy">
+                    Shopify sales ÷ ad spend lights up below the moment both inputs are
+                    in. Above break-even means the whole engine makes money.
+                  </p>
+                </div>
+              </li>
+            </ol>
+            <p className="mcfly-guide__foot">
+              Want to see it working first?{" "}
+              <s-link href="/app/demo">Load the sample desk</s-link> — 3 years of matched
+              sales and spend.
+            </p>
+          </section>
+        ) : null}
 
-              <s-box padding="base" background="subdued" borderRadius="base">
-                <s-stack direction="block" gap="small">
-                  <s-text tone="neutral">Auditable inputs (cash view)</s-text>
-                  <s-text>
-                    Sales {formatCurrency(metrics.allocation.inputs.totalSales)}
-                    {" · "}
-                    Spend {formatCurrency(metrics.allocation.inputs.totalSpend)}
-                    {" · "}
-                    MER {formatMer(metrics.allocation.overallMer)}
-                    {" · "}
-                    Break-even {formatMer(metrics.allocation.breakEvenMer)}
-                  </s-text>
-                  <s-text tone="neutral">
-                    Test window: {metrics.allocation.suggestedTestDays} days · Rules-based
-                    from spend vs sales — not path attribution
-                  </s-text>
-                </s-stack>
-              </s-box>
+        <section className="mcfly-score">
+          <div className="mcfly-score__mer">
+            <p className="mcfly-hero__label">Cash MER</p>
+            <p
+              className={
+                metrics.mer === null
+                  ? "mcfly-hero__value mcfly-hero__value--pending"
+                  : "mcfly-hero__value"
+              }
+            >
+              {metrics.mer === null ? "—.——" : formatMer(metrics.mer)}
+            </p>
+            <div className="mcfly-hero__rail">
+              <span className={chipClass}>
+                {metrics.mer === null
+                  ? "Add spend to unlock MER"
+                  : metrics.aboveBreakEven === true
+                    ? `Above break-even ${formatMer(metrics.breakEvenMer)}`
+                    : metrics.aboveBreakEven === false
+                      ? `Below break-even ${formatMer(metrics.breakEvenMer)}`
+                      : `Break-even ${formatMer(metrics.breakEvenMer)}`}
+              </span>
+              <span className="mcfly-chip">Target {formatMer(metrics.targetMer)}</span>
+            </div>
+          </div>
 
-              <s-link href={`/app/allocation?period=${preset}`}>
-                View allocation detail
-              </s-link>
-            </s-stack>
-          </s-box>
+          <div className="mcfly-score__breakdown">
+            <div className="mcfly-breakdown-row">
+              <span>Total sales</span>
+              <strong>{formatCurrency(metrics.sales)}</strong>
+            </div>
+            <div className="mcfly-breakdown-row mcfly-breakdown-row--div">
+              <span>÷ Total spend</span>
+              <strong>{formatCurrency(metrics.totalSpend)}</strong>
+            </div>
+            <div className="mcfly-breakdown-row mcfly-breakdown-row--eq">
+              <span>= Cash MER</span>
+              <strong>{formatMer(metrics.mer)}</strong>
+            </div>
+            <dl className="mcfly-substats">
+              <div className="mcfly-substats__item">
+                <dt>Orders</dt>
+                <dd>{metrics.orderCount.toLocaleString()}</dd>
+              </div>
+              <div className="mcfly-substats__item">
+                <dt>AOV</dt>
+                <dd>
+                  {metrics.orderCount > 0
+                    ? formatCurrency(metrics.sales / metrics.orderCount)
+                    : "—"}
+                </dd>
+              </div>
+              {metrics.customerMetricsAvailable ? (
+                <>
+                  <div className="mcfly-substats__item">
+                    <dt>New</dt>
+                    <dd>{metrics.newCustomers.toLocaleString()}</dd>
+                  </div>
+                  <div className="mcfly-substats__item">
+                    <dt>Returning</dt>
+                    <dd>{metrics.returningCustomers.toLocaleString()}</dd>
+                  </div>
+                </>
+              ) : null}
+            </dl>
+            <p className="mcfly-breakdown-note">
+              {formatPercent(metrics.marginPct)} margin → break-even{" "}
+              {formatMer(metrics.breakEvenMer)}
+            </p>
+          </div>
+        </section>
+
+        <s-section heading="Spend by channel">
+          {metrics.totalSpend > 0 ? (
+            <div className="mcfly-panel">
+              {metrics.channelMix
+                .filter(({ amount }) => amount > 0)
+                .map(({ channel, amount, share }) => (
+                  <div className="mcfly-channel" key={channel}>
+                    <span className="mcfly-channel__name">{channelLabel(channel)}</span>
+                    <div className="mcfly-channel__track" aria-hidden="true">
+                      <div
+                        className={`mcfly-channel__fill mcfly-channel__fill--${channel}`}
+                        style={{ width: `${Math.max(4, Math.round(share * 100))}%` }}
+                      />
+                    </div>
+                    <span className="mcfly-channel__meta">
+                      {formatCurrency(amount)} · {formatPercent(share)}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <div className="mcfly-guide-empty">
+              <p className="mcfly-guide-empty__title">
+                No spend logged for {metrics.period.label}
+              </p>
+              <p className="mcfly-guide-empty__copy">
+                {useSampleDesk ? (
+                  <>
+                    The sample desk has no spend in this window — try a wider period, or{" "}
+                    <s-link href="/app/demo">reseed the demo data</s-link>.
+                  </>
+                ) : (
+                  <>
+                    One CSV upload — or typed totals per channel — and the mix appears
+                    here. <s-link href="/app/spend">Add spend</s-link>.
+                  </>
+                )}
+              </p>
+            </div>
+          )}
         </s-section>
-      )}
 
-      <s-section slot="aside" heading="Anti-attribution">
-        <s-paragraph>
-          Mcfly measures only cash: what you spent on ads vs what Shopify recorded
-          as sales. No pixels, no path credit, no platform ROAS theater.
-        </s-paragraph>
-      </s-section>
+        {metrics.allocation ? (
+          <s-section heading="What to do next">
+            <s-paragraph>
+              <s-text>{metrics.allocation.why}</s-text>
+            </s-paragraph>
+            <s-link href={`/app/allocation?period=${preset}`}>Open allocation</s-link>
+          </s-section>
+        ) : null}
+      </div>
     </s-page>
   );
-}
-
-function actionLabel(type: string): string {
-  switch (type) {
-    case "cut":
-      return "Cut";
-    case "shift":
-      return "Shift";
-    case "hold":
-      return "Hold";
-    case "watch":
-      return "Watch";
-    default:
-      return type;
-  }
 }
 
 function channelLabel(channel: string): string {
   switch (channel) {
     case "meta":
-      return "Meta";
+      return "Meta Ads";
     case "google":
-      return "Google";
+      return "Google Ads";
+    case "microsoft":
+      return "Microsoft Ads";
+    case "tiktok":
+      return "TikTok Ads";
+    case "affiliate":
+      return "Affiliate";
+    case "email":
+      return "Email";
     default:
       return "Other";
   }
-}
-
-function MetricCard({
-  label,
-  value,
-  hint,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  highlight?: "success" | "critical";
-}) {
-  return (
-    <s-box padding="base" borderWidth="base" borderRadius="base">
-      <s-stack direction="block" gap="small">
-        <s-text tone="neutral">{label}</s-text>
-        <s-heading>{value}</s-heading>
-        {hint && (
-          <s-text tone={highlight === "critical" ? "critical" : highlight === "success" ? "success" : "neutral"}>
-            {hint}
-          </s-text>
-        )}
-      </s-stack>
-    </s-box>
-  );
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

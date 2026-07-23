@@ -266,14 +266,15 @@ Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 
 ## 12. Immediate next actions
 
-1. **Finish `/site` product marketing** (home, product, pricing, privacy, terms) — current focus.  
-2. Enable GitHub Pages from `/site`.  
-3. Then scaffold Shopify app.  
-4. Meta + Google Cloud projects under Mcfly identity.  
-5. One design-partner store.  
-6. Phase 1 Truth MVP (manual spend OK).
+**Agent delivery OS (loops, DoD, gates, lanes):** [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) — how agents ship; this file remains product religion.
 
-**Human-only gates:** Partner login, OAuth apps, design-partner store access, DNS cutover.
+1. Complete hosted app DoD (D1+D2): always-on Fly, design-partner install, margin → spend → MER ritual.  
+2. Site D0: waitlist form, deploy latest `/site`, proof band.  
+3. Meta + Google OAuth under Mcfly identity (human App Review).  
+4. Design partners free → announce ~$79 before charging.  
+5. Sheets companion only after app brain is trusted.
+
+**Human-only gates:** Partner login, host billing, OAuth apps, design-partner store access, DNS cutover, App Store submit.
 
 ---
 

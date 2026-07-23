@@ -1,4 +1,31 @@
-export type SpendChannel = "meta" | "google" | "other";
+export type SpendChannel =
+  | "meta"
+  | "google"
+  | "microsoft"
+  | "tiktok"
+  | "affiliate"
+  | "email"
+  | "other";
+
+export const SPEND_CHANNELS: SpendChannel[] = [
+  "meta",
+  "google",
+  "microsoft",
+  "tiktok",
+  "affiliate",
+  "email",
+  "other",
+];
+
+export const SPEND_CHANNEL_LABELS: Record<SpendChannel, string> = {
+  meta: "Meta Ads",
+  google: "Google Ads",
+  microsoft: "Microsoft Ads",
+  tiktok: "TikTok Ads",
+  affiliate: "Affiliate",
+  email: "Email",
+  other: "Other",
+};
 
 export interface ChannelSpend {
   channel: SpendChannel;

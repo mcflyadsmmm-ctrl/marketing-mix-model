@@ -12,3 +12,6 @@ coverage/
 packages/**/node_modules/
 .cursor/
 **/node_modules/
+
+# Proprietary MER Apps Script clasp pull (never commit seeds / sheet IDs)
+vendor/mer-apps-script/

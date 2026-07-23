@@ -1,18 +1,24 @@
 # Your next steps — baby checklist (human only)
 
-**Status update (Jul 22):** Claude Desktop already linked `client_id`, Docker/Prisma, Fly app + Postgres + secrets. Branch includes Docker/Prisma build fixes + [APP_STORE_LISTING.md](./APP_STORE_LISTING.md).
+**Status update (Jul 23):** Agent-fixable App Store blockers are done. Ship-gate + compliance **PASSED**. Fly health `{"ok":true,"db":"up"}`. Shopify version **`mcfly-analytics-7`** (`AppDistribution.AppStore` + URL lock). Runbook: [SUBMIT_TOMORROW.md](./SUBMIT_TOMORROW.md). Listing: [APP_STORE_LISTING.md](./APP_STORE_LISTING.md).
 
-**Remaining on Mac:**
-1. Confirm `curl https://mcfly-analytics.fly.dev/health` → ok  
-2. `cd app && npx shopify app deploy --force`  
-3. Install on dev store → margin → spend → MER  
+**You do now (human only — before public Submit):**
+1. Stop any `shopify app dev` / tunnel  
+2. Partner → **Distribution → Shopify App Store**  
+   https://dev.shopify.com/dashboard/227535001/apps/400772497409  
+3. Complete **PCD** questionnaire (answers in APP_STORE_LISTING §PCD)  
+4. Install / open on **`devmcflyads.myshopify.com`** → Settings → CSV Spend → Dashboard MER/AOV → Allocation  
+5. Capture 5 Admin screenshots (~1600×900); listing Pricing **Free**; paste reviewer notes  
+6. Reply in Cursor: **`install works`** → then **Submit for review**
+
+> Approval is still days–weeks after Submit — not same-day App Store live.
 
 Then use listing draft when ready to submit publicly.
 
 ---
 
 Code, site, deploy configs, overnight worker, and docs are ready in the repo.  
-**Only you** (or Claude Desktop on your Mac) can finish Partner install clicks.
+**Only you** can finish Partner / PCD / install / screenshots / Submit clicks.
 
 Work top to bottom. Don’t skip. Don’t buy ads yet.
 
@@ -107,7 +113,7 @@ Paste key/secret into `app/.env` if needed:
 ```text
 SHOPIFY_API_KEY=...
 SHOPIFY_API_SECRET=...
-SCOPES=read_orders
+SCOPES=read_orders,read_customers
 SHOPIFY_APP_URL=
 DATABASE_URL=postgresql://mcfly:mcfly@localhost:5432/mcfly
 ```

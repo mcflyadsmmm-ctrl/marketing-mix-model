@@ -58,7 +58,7 @@ Fill `app/.env`:
 ```text
 SHOPIFY_API_KEY=...
 SHOPIFY_API_SECRET=...
-SCOPES=read_orders
+SCOPES=read_orders,read_customers
 SHOPIFY_APP_URL=   # leave blank for `shopify app dev` tunnel first
 DATABASE_URL=postgresql://mcfly:mcfly@localhost:5432/mcfly
 ```
@@ -105,7 +105,7 @@ fly launch --config fly.toml --no-deploy --copy-config --name mcfly-analytics
 fly secrets set \
   SHOPIFY_API_KEY=... \
   SHOPIFY_API_SECRET=... \
-  SCOPES=read_orders \
+  SCOPES=read_orders,read_customers \
   DATABASE_URL="neon-url" \
   SHOPIFY_APP_URL="https://mcfly-analytics.fly.dev"
 fly deploy
@@ -125,7 +125,7 @@ Keep `min_machines_running = 1` (already in `fly.toml`) so cold starts don’t k
 ```text
 SHOPIFY_API_KEY=
 SHOPIFY_API_SECRET=
-SCOPES=read_orders
+SCOPES=read_orders,read_customers
 SHOPIFY_APP_URL=https://YOUR-APP.up.railway.app
 DATABASE_URL=   # from Railway Postgres
 NODE_ENV=production

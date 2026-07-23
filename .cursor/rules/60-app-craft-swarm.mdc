@@ -1,0 +1,34 @@
+---
+description: Parallel frontier swarm for world-class Shopify cash-desk craft + listing shots
+alwaysApply: false
+globs: app/app/routes/app*.tsx,app/app/styles/mcfly-desk.css,docs/LISTING_VISUAL_PACK.md,docs/CURSOR_DESIGNER_PLAYBOOK.md,docs/SUBMIT_TOMORROW.md
+---
+
+# App craft swarm (Mcfly)
+
+When polishing the embedded app for listing / world-class desk UX, spawn **parallel Task specialists with explicit models** — never one Auto-everything pass.
+
+## Required roster (one owner per lane)
+
+| Agent | Model slug | Owns (only) |
+| --- | --- | --- |
+| Cash MER craft | `claude-fable-5-thinking-high` (or Opus) | `app._index.tsx`, Cash MER classes in `mcfly-desk.css` |
+| Spend CSV UX | `claude-sonnet-5-thinking-high` | `app.spend.tsx`, `spend-csv.ts`, `.mcfly-spend-*` CSS only |
+| Allocation / Settings / Demo | `claude-sonnet-5-thinking-high` | `app.allocation.tsx`, `app.settings.tsx`, `app.demo.tsx`, `.mcfly-alloc-*` / `.mcfly-settings-*` / `.mcfly-demo-*` |
+| Reject-risk critic | `cursor-grok-4.5-high-fast` | Docs audit only (`REJECT_RISK_AUDIT.md`, `SUBMIT_TOMORROW.md`) |
+
+Parent (Auto): integrate, resolve CSS collisions, `bash scripts/agent-ship-gate.sh`, Fly deploy, human-gate list.
+
+## Hard rules
+
+1. Set Task `model` explicitly — never inherit for craft lanes.
+2. One file owner — no three agents rewriting `app._index.tsx`.
+3. Listing shots: Demo seed → ON → `/app?period=y3&shot=1` (hides SAMPLE banner).
+4. Before reviewer smoke: sample desk **OFF**.
+5. Religion: cash MER = sales ÷ spend; refuse pixels/MTA/TW clones; Free listing until Billing.
+6. Site mega-ticks stay IDLE until Pages deploy (`SITE_CRAFT_NEXT.md`) — this rule is **app lane**.
+7. **Apps Script parity:** Cash MER Fable/Opus agent must read `docs/APPS_SCRIPT_CRAFT_SPEC.md` + `vendor/mer-apps-script/Stylesheet.html` and return the parity scorecard (mean ≥ 4.0 or list gaps). See rule `65-apps-script-mer-craft.mdc`.
+
+## Playbook SoT
+
+`docs/CURSOR_DESIGNER_PLAYBOOK.md` · `docs/LISTING_VISUAL_PACK.md` · `docs/APPS_SCRIPT_CRAFT_SPEC.md`

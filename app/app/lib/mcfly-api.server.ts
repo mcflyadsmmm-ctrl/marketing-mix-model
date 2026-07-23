@@ -7,16 +7,13 @@ import {
   computeBreakEvenMer,
   computeMer,
   sumSpend,
+  SPEND_CHANNEL_LABELS,
   type SpendChannel,
 } from "@mcfly/mer-engine";
 import prisma from "../db.server";
 import { buildAllocationSuggestion, getOrCreateSettings, getSpendByChannel } from "./mer-dashboard.server";
 
-const CHANNEL_LABELS: Record<SpendChannel, string> = {
-  meta: "Meta",
-  google: "Google",
-  other: "Other / Manual",
-};
+const CHANNEL_LABELS = SPEND_CHANNEL_LABELS;
 
 export interface DateRangeInput {
   from: string;

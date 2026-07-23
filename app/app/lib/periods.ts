@@ -1,4 +1,4 @@
-export type PeriodPreset = "mtd" | "qtd" | "ytd";
+export type PeriodPreset = "mtd" | "qtd" | "ytd" | "l12m" | "y3";
 
 export interface DateRange {
   start: Date;
@@ -31,6 +31,18 @@ export function resolvePeriod(preset: PeriodPreset, now = new Date()): DateRange
       const start = startOfDay(new Date(now.getFullYear(), 0, 1));
       return { start, end, label: "Year to date" };
     }
+    case "l12m": {
+      const start = startOfDay(
+        new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()),
+      );
+      return { start, end, label: "Last 12 months" };
+    }
+    case "y3": {
+      const start = startOfDay(
+        new Date(now.getFullYear() - 3, now.getMonth(), now.getDate()),
+      );
+      return { start, end, label: "Last 3 years" };
+    }
     default: {
       const _exhaustive: never = preset;
       throw new Error(`Unknown period preset: ${_exhaustive}`);
@@ -48,4 +60,6 @@ export const PERIOD_PRESETS: { value: PeriodPreset; label: string }[] = [
   { value: "mtd", label: "MTD" },
   { value: "qtd", label: "QTD" },
   { value: "ytd", label: "YTD" },
+  { value: "l12m", label: "12 mo" },
+  { value: "y3", label: "3 yr" },
 ];

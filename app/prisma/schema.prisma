@@ -33,30 +33,37 @@ model Session {
 }
 
 model Shop {
-  id           String        @id @default(cuid())
-  domain       String        @unique
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  settings     Settings?
-  spendEntries SpendEntry[]
-  apiTokens    ApiToken[]
-  syncRuns     SyncRun[]
-  merSnapshots MerSnapshot[]
+  id              String           @id @default(cuid())
+  domain          String           @unique
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  settings        Settings?
+  spendEntries    SpendEntry[]
+  apiTokens       ApiToken[]
+  syncRuns        SyncRun[]
+  merSnapshots    MerSnapshot[]
+  sampleSalesDays SampleSalesDay[]
 }
 
 model Settings {
-  id         String   @id @default(cuid())
-  shopId     String   @unique
-  shop       Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  marginPct  Float    @default(0.35)
-  targetMer  Float    @default(3.0)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id            String   @id @default(cuid())
+  shopId        String   @unique
+  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  marginPct     Float    @default(0.35)
+  targetMer     Float    @default(3.0)
+  /// When true, Cash MER uses SampleSalesDay + sample spend (clearly labeled), not live Shopify.
+  useSampleDesk Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum SpendChannel {
   meta
   google
+  microsoft
+  tiktok
+  affiliate
+  email
   other
 }
 
@@ -69,10 +76,29 @@ model SpendEntry {
   periodStart DateTime
   periodEnd   DateTime
   note        String?
+  /// manual | csv | sample
+  source      String       @default("manual")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
   @@index([shopId, periodStart, periodEnd])
+  @@index([shopId, source])
+}
+
+/// Daily sample till sales for the Demo desk (not Shopify API).
+model SampleSalesDay {
+  id                 String   @id @default(cuid())
+  shopId             String
+  shop               Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  day                DateTime
+  sales              Float
+  orderCount         Int      @default(0)
+  newCustomers       Int      @default(0)
+  returningCustomers Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  @@unique([shopId, day])
+  @@index([shopId, day])
 }
 
 /// Bearer tokens for Sheets companion + external API clients.

@@ -44,7 +44,7 @@ export default function AppLanding() {
           <a className={styles.button} href="https://mcflyads.com/">
             Product site
           </a>{" "}
-          <a className={styles.button} href="https://mcflyads.com/support.html">
+          <a className={styles.button} href="https://mcflyads.com/support">
             Support
           </a>
         </p>

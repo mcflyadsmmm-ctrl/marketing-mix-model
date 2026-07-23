@@ -1,4 +1,7 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import deskStyles from "./styles/mcfly-desk.css?url";
+
+export const links = () => [{ rel: "stylesheet", href: deskStyles }];
 
 export default function App() {
   return (
