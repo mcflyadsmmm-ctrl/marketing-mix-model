@@ -130,6 +130,42 @@ export async function fetchSampleSales(
   };
 }
 
+/** Calendar day key → till sales for daily spine (sample desk stores UTC-midnight days). */
+export async function fetchSampleSalesByDay(
+  shopId: string,
+  range: { start: Date; end: Date },
+): Promise<Map<string, number>> {
+  const days = await prisma.sampleSalesDay.findMany({
+    where: {
+      shopId,
+      day: { gte: range.start, lte: range.end },
+    },
+    select: { day: true, sales: true },
+  });
+  const map = new Map<string, number>();
+  for (const d of days) {
+    const key = utcDayKey(d.day);
+    map.set(key, (map.get(key) ?? 0) + d.sales);
+  }
+  return map;
+}
+
+/** Local calendar YYYY-MM-DD (spend rows / closed-day window). */
+export function localDayKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** UTC calendar YYYY-MM-DD (sample desk day stamps). */
+export function utcDayKey(date: Date): string {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export async function getSampleDeskStats(shopId: string) {
   const [dayCount, spendCount, settings, first, last] = await Promise.all([
     prisma.sampleSalesDay.count({ where: { shopId } }),

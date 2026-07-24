@@ -39,7 +39,7 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [ ] `npm run seed` against real `DATABASE_URL`
 - [x] AppDistribution.AppStore + toml URL lock (`automatically_update_urls_on_dev = false`) — evidence: code + `mcfly-analytics-7`
 - [ ] Partner Dashboard Distribution → Shopify App Store — **human**
-- [ ] PCD questionnaire for `read_orders` — **human** (answers in `docs/APP_STORE_LISTING.md`)
+- [ ] PCD questionnaire for `read_orders` + minimal `read_customers` (opaque id + `numberOfOrders` only) — **human** (answers in `docs/APP_STORE_LISTING.md` §PCD)
 - [ ] App Store listing submit — **human** (draft Free-only in `docs/APP_STORE_LISTING.md`; runbook `docs/SUBMIT_TOMORROW.md`)
 
 ## C. Reliability (required before big ASP)

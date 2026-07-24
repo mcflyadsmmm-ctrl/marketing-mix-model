@@ -8,18 +8,25 @@ import { Form, useActionData, useLoaderData, useNavigation } from "react-router"
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { calculateBreakEvenMer } from "@mcfly/mer-core";
 import { authenticate } from "../shopify.server";
-import { ensureShop, getOrCreateSettings, settingsHaveBeenSaved } from "../lib/mer-dashboard.server";
+import {
+  ensureShop,
+  getOrCreateSettings,
+  settingsHaveBeenSaved,
+} from "../lib/mer-dashboard.server";
 import { formatMer, formatPercent } from "../lib/mer-format";
 import prisma from "../db.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  const url = new URL(request.url);
+  const shotMode = url.searchParams.get("shot") === "1";
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
   return {
     settings,
     breakEvenMer: calculateBreakEvenMer(settings.marginPct),
     showRitualBanner: !settingsHaveBeenSaved(settings),
+    shotMode,
   };
 };
 
@@ -75,7 +82,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function SettingsPage() {
-  const { settings, breakEvenMer, showRitualBanner } = useLoaderData<typeof loader>();
+  const { settings, breakEvenMer, showRitualBanner, shotMode } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -98,14 +106,69 @@ export default function SettingsPage() {
     Math.abs(previewBreakEven - breakEvenMer) < 0.005 &&
     Math.abs(marginDecimal - settings.marginPct) < 0.0005;
 
+  const lockState = previewBreakEven === null
+    ? "empty"
+    : previewMatchesSaved
+      ? "locked"
+      : "preview";
+
+  const marginDisplay = Number.isFinite(marginDecimal)
+    ? formatPercent(marginDecimal)
+    : "—";
+
   return (
-    <s-page heading="Settings" inlineSize="small">
-      <div className="mcfly-desk">
-        {showRitualBanner ? (
+    <s-page heading={shotMode ? undefined : "Settings"} inlineSize="small">
+      <div className={shotMode ? "mcfly-desk mcfly-desk--shot" : "mcfly-desk"}>
+        <header className="mcfly-topbar mcfly-topbar--settings">
+          <div>
+            <h1 className="mcfly-topbar__title">Settings</h1>
+            <p className="mcfly-topbar__def">
+              Margin locks break-even MER · 1 ÷ margin · not platform ROAS
+            </p>
+          </div>
+        </header>
+
+        <div className="mcfly-ctx" aria-live="polite">
+          <div className="mcfly-ctx__main">
+            <span className="mcfly-ctx__brand">Break-even lock</span>
+            <span className="mcfly-ctx__sep" aria-hidden="true">
+              ·
+            </span>
+            <span className="mcfly-ctx__asof">
+              {lockState === "locked"
+                ? "Saved on the scoreboard"
+                : lockState === "preview"
+                  ? "Preview — save to lock"
+                  : "Enter margin to preview"}
+            </span>
+          </div>
+          <div className="mcfly-ctx__chips">
+            <span
+              className={`mcfly-ctx-chip ${
+                lockState === "locked"
+                  ? "mcfly-ctx-chip--up"
+                  : lockState === "preview"
+                    ? "mcfly-ctx-chip--flat"
+                    : "mcfly-ctx-chip--flat"
+              }`}
+            >
+              BE{" "}
+              {previewBreakEven === null ? "—.——" : formatMer(previewBreakEven)}
+            </span>
+            <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+              Target {formatMer(settings.targetMer)}
+            </span>
+          </div>
+        </div>
+
+        {showRitualBanner && !shotMode ? (
           <s-banner tone="info" heading="Trusted MER in under 10 minutes">
             <s-paragraph>Three steps, in order:</s-paragraph>
             <ol className="mcfly-settings-guide">
-              <li>Set contribution margin below — break-even MER locks as 1 ÷ margin.</li>
+              <li>
+                Set contribution margin below — break-even MER locks as 1 ÷
+                margin.
+              </li>
               <li>
                 Add ad spend on <s-link href="/app/spend">Spend</s-link>.
               </li>
@@ -119,23 +182,69 @@ export default function SettingsPage() {
         {actionData?.success && actionData.breakEvenMer !== null ? (
           <s-banner tone="success" heading="Break-even MER locked">
             <s-paragraph>
-              At {formatPercent(actionData.marginPct ?? settings.marginPct)} margin, break-even MER
-              is {formatMer(actionData.breakEvenMer)}. Cash MER must clear this line.
+              At {formatPercent(actionData.marginPct ?? settings.marginPct)}{" "}
+              margin, break-even MER is {formatMer(actionData.breakEvenMer)}.
+              Cash MER must clear this line.
             </s-paragraph>
             <s-paragraph>
-              Next: log spend on <s-link href="/app/spend">Spend</s-link>, then open{" "}
-              <s-link href="/app">Cash MER</s-link>.
+              Next: log spend on <s-link href="/app/spend">Spend</s-link>, then
+              open <s-link href="/app">Cash MER</s-link>.
             </s-paragraph>
           </s-banner>
         ) : null}
 
-        <s-section heading="MER inputs">
+        <section
+          className={`mcfly-settings-lock mcfly-settings-lock--${lockState}`}
+          aria-label="Break-even MER lock"
+        >
+          <p className="mcfly-settings-lock__kicker">Ritual instrument</p>
+          <p className="mcfly-settings-lock__label">Break-even MER</p>
+          <p className="mcfly-settings-lock__value">
+            {previewBreakEven === null ? "—.——" : formatMer(previewBreakEven)}
+          </p>
+          <div className="mcfly-settings-eq" aria-label="Break-even equation">
+            <span className="mcfly-settings-eq__term">
+              <span className="mcfly-settings-eq__k">1</span>
+            </span>
+            <span className="mcfly-settings-eq__op">÷</span>
+            <span className="mcfly-settings-eq__term">
+              <span className="mcfly-settings-eq__k">Margin</span>
+              <span className="mcfly-settings-eq__v">{marginDisplay}</span>
+            </span>
+            <span className="mcfly-settings-eq__op">=</span>
+            <span className="mcfly-settings-eq__term mcfly-settings-eq__term--result">
+              <span className="mcfly-settings-eq__k">Break-even</span>
+              <span className="mcfly-settings-eq__v">
+                {previewBreakEven === null
+                  ? "—"
+                  : formatMer(previewBreakEven)}
+              </span>
+            </span>
+          </div>
+          <p className="mcfly-settings-lock__rail">
+            {lockState === "empty"
+              ? "Enter a contribution margin to preview the lock line"
+              : lockState === "locked"
+                ? `Locked · need ${formatMer(previewBreakEven)}× sales per $1 spend`
+                : "Preview — save to lock on the Cash MER scoreboard"}
+          </p>
+        </section>
+
+        <section className="mcfly-panel mcfly-settings-form">
+          <div className="mcfly-panel__head">
+            <h2>MER inputs</h2>
+            <p className="mcfly-panel__muted">
+              Quiet form · margin first, target second
+            </p>
+          </div>
           <Form method="post">
-            <s-stack direction="block" gap="base">
-              <label>
-                <s-text>Contribution margin (%)</s-text>
+            <div className="mcfly-settings-fields">
+              <label className="mcfly-settings-field">
+                <span className="mcfly-settings-field__label">
+                  Contribution margin (%)
+                </span>
                 <input
-                  className="mcfly-field"
+                  className="mcfly-field mcfly-settings-field__input"
                   name="marginPct"
                   type="number"
                   step="0.1"
@@ -143,31 +252,19 @@ export default function SettingsPage() {
                   max="100"
                   required
                   value={marginInput}
-                  onChange={(event) => setMarginInput(event.currentTarget.value)}
+                  onChange={(event) =>
+                    setMarginInput(event.currentTarget.value)
+                  }
                 />
+                <span className="mcfly-settings-field__hint">
+                  Gross contribution after COGS — sets the break-even line above.
+                </span>
               </label>
 
-              <div className="mcfly-hero">
-                <p className="mcfly-hero__label">Break-even MER</p>
-                <p className="mcfly-hero__value">
-                  {previewBreakEven === null ? "—" : formatMer(previewBreakEven)}
-                </p>
-                <p className="mcfly-hero__equation">1 ÷ margin</p>
-                <div className="mcfly-hero__rail">
-                  <span className="mcfly-chip">
-                    {previewBreakEven === null
-                      ? "Enter a margin to preview"
-                      : previewMatchesSaved
-                        ? `Saved · need ${formatMer(previewBreakEven)}× sales per $1 spend`
-                        : "Preview — save to lock on the scoreboard"}
-                  </span>
-                </div>
-              </div>
-
-              <label>
-                <s-text>Target MER</s-text>
+              <label className="mcfly-settings-field">
+                <span className="mcfly-settings-field__label">Target MER</span>
                 <input
-                  className="mcfly-field"
+                  className="mcfly-field mcfly-settings-field__input"
                   name="targetMer"
                   type="number"
                   step="0.1"
@@ -175,21 +272,31 @@ export default function SettingsPage() {
                   required
                   defaultValue={settings.targetMer}
                 />
+                <span className="mcfly-settings-field__hint">
+                  Operating goal above break-even (e.g. 4.0 = $4 sales per $1 ad
+                  spend).
+                </span>
               </label>
-              <s-paragraph>
-                <s-text tone="neutral">
-                  Operating goal above break-even (e.g. 4.0 means $4 sales per $1 ad spend).
-                </s-text>
-              </s-paragraph>
 
-              {actionData?.error ? <s-text tone="critical">{actionData.error}</s-text> : null}
+              {actionData?.error ? (
+                <p className="mcfly-settings-error">{actionData.error}</p>
+              ) : null}
 
-              <s-button type="submit" variant="primary" {...(isSubmitting ? { loading: true } : {})}>
-                Save settings
-              </s-button>
-            </s-stack>
+              <div className="mcfly-settings-form__actions">
+                <s-button
+                  type="submit"
+                  variant="primary"
+                  {...(isSubmitting ? { loading: true } : {})}
+                >
+                  {lockState === "locked" ? "Save settings" : "Lock break-even"}
+                </s-button>
+                {!shotMode ? (
+                  <s-link href="/app">Open Cash MER</s-link>
+                ) : null}
+              </div>
+            </div>
           </Form>
-        </s-section>
+        </section>
       </div>
     </s-page>
   );

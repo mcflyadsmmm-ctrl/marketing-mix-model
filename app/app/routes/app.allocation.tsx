@@ -15,10 +15,32 @@ function parsePreset(raw: string | null): PeriodPreset {
   return "mtd";
 }
 
+function deltaClass(
+  mer: number | null,
+  rail: number | null,
+): "up" | "down" | "flat" {
+  if (mer == null || rail == null) return "flat";
+  if (mer >= rail) return "up";
+  if (mer >= rail * 0.85) return "flat";
+  return "down";
+}
+
+function channelFillKey(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes("meta")) return "meta";
+  if (n.includes("google")) return "google";
+  if (n.includes("microsoft") || n.includes("bing")) return "microsoft";
+  if (n.includes("tiktok")) return "tiktok";
+  if (n.includes("affiliate")) return "affiliate";
+  if (n.includes("email") || n.includes("klaviyo")) return "email";
+  return "other";
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
   const preset = parsePreset(url.searchParams.get("period"));
+  const shotMode = url.searchParams.get("shot") === "1";
   const range = resolvePeriod(preset);
   const shop = await ensureShop(session.shop);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
@@ -43,34 +65,54 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales);
-  return { metrics, preset };
+  return { metrics, preset, shotMode, useSampleDesk };
 };
 
 export default function AllocationPage() {
-  const { metrics, preset } = useLoaderData<typeof loader>();
+  const { metrics, preset, shotMode, useSampleDesk } =
+    useLoaderData<typeof loader>();
   const [, setSearchParams] = useSearchParams();
   const allocation = metrics.allocation;
 
   const setPeriod = (value: PeriodPreset) => {
-    setSearchParams({ period: value });
+    setSearchParams(shotMode ? { period: value, shot: "1" } : { period: value });
   };
 
-  return (
-    <s-page heading="Allocation" inlineSize="large">
-      <div className="mcfly-desk">
-        <div className="mcfly-context">
-          <p className="mcfly-context__def">
-            <strong>Control panel</strong> · rules from cash MER vs break-even — not path credit
-          </p>
-          <div className="mcfly-alloc-chips">
-            {metrics.useSampleDesk ? (
-              <span className="mcfly-chip mcfly-alloc-sample-chip">Sample desk</span>
-            ) : null}
-            <span className="mcfly-chip">Target {formatMer(metrics.targetMer)}</span>
-          </div>
-        </div>
+  const merDelta = allocation
+    ? deltaClass(allocation.overallMer, allocation.breakEvenMer)
+    : "flat";
+  const targetDelta = deltaClass(metrics.mer, metrics.targetMer);
+  const tillLabel = shotMode
+    ? metrics.period.label
+    : useSampleDesk
+      ? `${metrics.period.label} · sample till`
+      : `${metrics.period.label} · live Shopify till`;
 
-        <s-section heading="Period">
+  const takeaway = allocation
+    ? allocation.why
+    : "Set contribution margin in Settings to unlock break-even-aware allocation — rules from cash MER, not path credit.";
+
+  const primaryAction = allocation?.actions[0];
+  const decisionLead = primaryAction
+    ? `${actionLabel(primaryAction.type)} ${
+        primaryAction.channel !== "—" ? primaryAction.channel : "mix"
+      }${
+        primaryAction.percentChange != null
+          ? ` (${primaryAction.percentChange > 0 ? "+" : ""}${primaryAction.percentChange}%)`
+          : ""
+      }`
+    : null;
+
+  return (
+    <s-page heading={shotMode ? undefined : "Allocation"} inlineSize="large">
+      <div className={shotMode ? "mcfly-desk mcfly-desk--shot" : "mcfly-desk"}>
+        <header className="mcfly-topbar">
+          <div>
+            <h1 className="mcfly-topbar__title">Allocation</h1>
+            <p className="mcfly-topbar__def">
+              Rules from cash MER vs break-even · not path credit
+            </p>
+          </div>
           <div className="mcfly-period" role="tablist" aria-label="Reporting period">
             {PERIOD_PRESETS.map(({ value, label }) => (
               <button
@@ -85,122 +127,230 @@ export default function AllocationPage() {
               </button>
             ))}
           </div>
-          <s-paragraph>
-            <s-text tone="neutral">{metrics.period.label}</s-text>
-          </s-paragraph>
-        </s-section>
+        </header>
+
+        <div className="mcfly-ctx" aria-live="polite">
+          <div className="mcfly-ctx__main">
+            <span className="mcfly-ctx__brand">Allocation</span>
+            <span className="mcfly-ctx__sep" aria-hidden="true">
+              ·
+            </span>
+            <span className="mcfly-ctx__asof">{tillLabel}</span>
+          </div>
+          <div className="mcfly-ctx__chips">
+            {useSampleDesk && !shotMode ? (
+              <span className="mcfly-ctx-chip mcfly-alloc-sample-dot">Sample desk</span>
+            ) : null}
+            <span className={`mcfly-ctx-chip mcfly-ctx-chip--${targetDelta}`}>
+              MER {formatMer(metrics.mer)} · target {formatMer(metrics.targetMer)}
+            </span>
+            <span className={`mcfly-ctx-chip mcfly-ctx-chip--${merDelta}`}>
+              Break-even {formatMer(metrics.breakEvenMer)}
+            </span>
+          </div>
+        </div>
+
+        <section className="mcfly-decision" aria-label="Allocation decision">
+          <p className="mcfly-decision__kicker">
+            {decisionLead
+              ? `What to do · ${decisionLead}`
+              : "What to do · cash rules, not attribution"}
+          </p>
+          <p className="mcfly-decision__takeaway">{takeaway}</p>
+          <div className="mcfly-decision__actions">
+            <s-button href="/app/spend" variant="primary">
+              Adjust spend
+            </s-button>
+            <s-link href={`/app?period=${preset}`}>Back to Cash MER</s-link>
+          </div>
+        </section>
 
         {!allocation ? (
-          <s-section heading="Recommendation">
-            <div className="mcfly-panel">
-              <s-text tone="neutral">
-                Set a valid contribution margin in{" "}
-                <s-link href="/app/settings">Settings</s-link> to unlock break-even-aware allocation.
-              </s-text>
+          <section className="mcfly-panel">
+            <div className="mcfly-panel__head">
+              <h2>Break-even required</h2>
+              <p className="mcfly-panel__muted">
+                Contribution margin unlocks the control panel
+              </p>
             </div>
-          </s-section>
+            <p className="mcfly-panel__next">
+              Set a valid margin in Settings — allocation compares cash MER to
+              break-even, then suggests cuts and shifts. No pixels.
+            </p>
+            <div className="mcfly-decision__actions">
+              <s-link href="/app/settings">Open Settings</s-link>
+            </div>
+          </section>
         ) : (
           <>
-            <s-section heading="Recommendation">
-              <s-stack direction="block" gap="base">
-                <div className="mcfly-hero">
-                  <p className="mcfly-hero__label">Cash view</p>
-                  <p className="mcfly-hero__value">{formatMer(allocation.overallMer)}</p>
-                  <p className="mcfly-hero__equation">
-                    {formatCurrency(allocation.inputs.totalSales)} ÷{" "}
-                    {formatCurrency(allocation.inputs.totalSpend)} · break-even{" "}
-                    {formatMer(allocation.breakEvenMer)}
-                  </p>
-                  <div className="mcfly-hero__rail">
-                    <span className="mcfly-chip">
-                      Test window {allocation.suggestedTestDays} days
-                    </span>
-                  </div>
-                </div>
-                <s-paragraph>
-                  <s-text>{allocation.why}</s-text>
-                </s-paragraph>
+            <section
+              className="mcfly-alloc-score"
+              aria-label="Cash MER versus break-even"
+            >
+              <div
+                className={`mcfly-alloc-score__card mcfly-alloc-score__card--mer mcfly-alloc-score__card--${merDelta}`}
+              >
+                <p className="mcfly-alloc-score__label">Cash MER</p>
+                <p className="mcfly-alloc-score__value">
+                  {allocation.overallMer === null
+                    ? "—.——"
+                    : formatMer(allocation.overallMer)}
+                </p>
+                <p className="mcfly-alloc-score__meta">
+                  {formatCurrency(allocation.inputs.totalSales)} ÷{" "}
+                  {formatCurrency(allocation.inputs.totalSpend)}
+                </p>
+              </div>
+              <div className="mcfly-alloc-score__vs" aria-hidden="true">
+                vs
+              </div>
+              <div className="mcfly-alloc-score__card mcfly-alloc-score__card--be">
+                <p className="mcfly-alloc-score__label">Break-even</p>
+                <p className="mcfly-alloc-score__value">
+                  {formatMer(allocation.breakEvenMer)}
+                </p>
+                <p
+                  className={`mcfly-alloc-score__meta mcfly-alloc-score__meta--${merDelta}`}
+                >
+                  {allocation.isAboveBreakEven === true
+                    ? "Above the line · protect or grow"
+                    : allocation.isAboveBreakEven === false
+                      ? "Below the line · cut or shift"
+                      : "Need spend to compare"}
+                </p>
+              </div>
+            </section>
 
+            <section className="mcfly-panel mcfly-alloc-shifts">
+              <div className="mcfly-panel__head">
+                <h2>Channel shifts</h2>
+                <p className="mcfly-panel__muted">
+                  Test window {allocation.suggestedTestDays} days · rules-based —
+                  not multi-touch
+                </p>
+              </div>
+              <ul className="mcfly-alloc-shift-list">
                 {allocation.actions.map((action, index) => (
-                  <div
-                    className="mcfly-action"
+                  <li
+                    className={`mcfly-alloc-shift mcfly-alloc-shift--${action.type}`}
                     key={`${action.type}-${action.channel}-${index}`}
                   >
-                    <span className={`mcfly-action__type mcfly-action__type--${action.type}`}>
+                    <span
+                      className={`mcfly-alloc-shift__badge mcfly-alloc-shift__badge--${action.type}`}
+                    >
                       {actionLabel(action.type)}
                     </span>
-                    <s-heading>
-                      {action.channel !== "—" ? action.channel : "All channels"}
-                      {action.percentChange != null
-                        ? ` (${action.percentChange > 0 ? "+" : ""}${action.percentChange}%)`
-                        : ""}
-                    </s-heading>
-                    <s-text tone="neutral">{action.detail}</s-text>
-                  </div>
+                    <div className="mcfly-alloc-shift__body">
+                      <p className="mcfly-alloc-shift__title">
+                        {action.channel !== "—" ? action.channel : "All channels"}
+                        {action.percentChange != null
+                          ? ` · ${action.percentChange > 0 ? "+" : ""}${action.percentChange}%`
+                          : ""}
+                      </p>
+                      <p className="mcfly-alloc-shift__detail">{action.detail}</p>
+                    </div>
+                    {action.percentChange != null ? (
+                      <div
+                        className="mcfly-alloc-shift__bar"
+                        aria-hidden="true"
+                      >
+                        <div
+                          className={`mcfly-alloc-shift__fill mcfly-alloc-shift__fill--${action.type}`}
+                          style={{
+                            width: `${Math.min(100, Math.max(12, Math.abs(action.percentChange) * 2.2))}%`,
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className="mcfly-alloc-shift__bar mcfly-alloc-shift__bar--quiet"
+                        aria-hidden="true"
+                      >
+                        <div
+                          className={`mcfly-alloc-shift__fill mcfly-alloc-shift__fill--${action.type}`}
+                          style={{ width: "28%" }}
+                        />
+                      </div>
+                    )}
+                  </li>
                 ))}
-              </s-stack>
-            </s-section>
+              </ul>
+            </section>
 
-            <s-section heading="Channel efficiency">
+            <section className="mcfly-panel">
+              <div className="mcfly-panel__head">
+                <h2>Channel efficiency</h2>
+                <p className="mcfly-panel__muted">
+                  Assumed sales = spend share × Shopify sales · cash math, not MTA
+                </p>
+              </div>
               {allocation.inputs.channelEfficiencies.length === 0 ? (
-                <s-paragraph>
-                  <s-text tone="neutral">
-                    No channel spend in this period.{" "}
-                    <s-link href="/app/spend">Add spend</s-link>.
-                  </s-text>
-                </s-paragraph>
+                <div className="mcfly-guide-empty">
+                  <p className="mcfly-guide-empty__title">
+                    No channel spend for {metrics.period.label}
+                  </p>
+                  <p className="mcfly-guide-empty__copy">
+                    Log Meta, Google, and the rest on{" "}
+                    <s-link href="/app/spend">Spend</s-link> — then efficiency
+                    bars light up here.
+                  </p>
+                </div>
               ) : (
-                <div className="mcfly-panel">
+                <div className="mcfly-alloc-eff">
                   {allocation.inputs.channelEfficiencies.map((channel) => {
-                    const share = Math.max(4, Math.round(channel.spendShare * 100));
+                    const share = Math.max(
+                      4,
+                      Math.round(channel.spendShare * 100),
+                    );
+                    const fill = channelFillKey(channel.name);
+                    const vsBe =
+                      channel.efficiencyVsBreakEven != null
+                        ? channel.efficiencyVsBreakEven >= 1
+                          ? "up"
+                          : channel.efficiencyVsBreakEven >= 0.85
+                            ? "flat"
+                            : "down"
+                        : "flat";
                     return (
-                      <div className="mcfly-channel" key={channel.name}>
-                        <span className="mcfly-channel__name">
-                          {channel.name}
-                          {channel.isManual ? " · manual" : ""}
-                        </span>
-                        <div className="mcfly-channel__track" aria-hidden="true">
-                          <div className="mcfly-channel__fill" style={{ width: `${share}%` }} />
+                      <div className="mcfly-alloc-eff__row" key={channel.name}>
+                        <div className="mcfly-alloc-eff__head">
+                          <span className="mcfly-alloc-eff__name">
+                            {channel.name}
+                            {channel.isManual ? " · manual" : ""}
+                          </span>
+                          <span
+                            className={`mcfly-alloc-eff__ratio mcfly-alloc-eff__ratio--${vsBe}`}
+                          >
+                            {channel.efficiencyVsBreakEven != null
+                              ? `${channel.efficiencyVsBreakEven.toFixed(2)}× BE`
+                              : "—"}
+                          </span>
                         </div>
-                        <span className="mcfly-channel__meta">
-                          {formatCurrency(channel.spend)} · MER {formatMer(channel.effectiveMer)} ·{" "}
-                          {channel.efficiencyVsBreakEven != null
-                            ? `${channel.efficiencyVsBreakEven.toFixed(2)}× BE`
-                            : "—"}
-                        </span>
+                        <div className="mcfly-alloc-eff__track" aria-hidden="true">
+                          <div
+                            className={`mcfly-channel__fill mcfly-channel__fill--${fill}`}
+                            style={{ width: `${share}%` }}
+                          />
+                        </div>
+                        <p className="mcfly-alloc-eff__meta">
+                          {formatCurrency(channel.spend)} ·{" "}
+                          {formatPercent(channel.spendShare)} spend · MER{" "}
+                          {formatMer(channel.effectiveMer)}
+                        </p>
                       </div>
                     );
                   })}
-                  <s-paragraph>
-                    <s-text tone="neutral">
-                      Assumed sales per channel = spend share × Shopify sales. Cash math — not
-                      multi-touch attribution.
-                    </s-text>
-                  </s-paragraph>
                 </div>
               )}
-            </s-section>
+            </section>
           </>
         )}
       </div>
-
-      <s-section slot="aside" heading="How this works">
-        <div className="mcfly-aside-card">
-          <p className="mcfly-aside-card__title">Quiet control panel</p>
-          <p>
-            Overall cash MER vs break-even, then channel spend-share efficiency. Cuts prefer weak
-            manual/other spend first. No pixels.
-          </p>
-          <p style={{ marginTop: "0.65rem" }}>
-            <s-link href={`/app?period=${preset}`}>Back to Cash MER</s-link>
-          </p>
-        </div>
-      </s-section>
     </s-page>
   );
 }
 
-function actionLabel(type: string): string {
+function actionLabel(type: "cut" | "shift" | "hold" | "watch"): string {
   switch (type) {
     case "cut":
       return "Cut";
@@ -210,8 +360,10 @@ function actionLabel(type: string): string {
       return "Hold";
     case "watch":
       return "Watch";
-    default:
-      return type;
+    default: {
+      const _exhaustive: never = type;
+      return _exhaustive;
+    }
   }
 }
 

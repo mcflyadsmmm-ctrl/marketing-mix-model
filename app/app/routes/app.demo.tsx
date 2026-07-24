@@ -89,11 +89,36 @@ export default function DemoPage() {
   return (
     <s-page heading="Demo" inlineSize="base">
       <div className="mcfly-desk">
+        <div className="mcfly-demo-off-warning" role="alert">
+          <p className="mcfly-demo-off-warning__kicker">Before App Store review</p>
+          <p className="mcfly-demo-off-warning__title">
+            Turn sample desk OFF before reviewer smoke
+          </p>
+          <p className="mcfly-demo-off-warning__body">
+            Listing shots use sample data. Live install smoke and App Store review must see real
+            Shopify till only — leave SAMPLE on and reviewers may reject.
+          </p>
+          {stats.enabled ? (
+            <Form method="post" className="mcfly-demo-off-warning__action">
+              <input type="hidden" name="intent" value="disable" />
+              <s-button
+                type="submit"
+                tone="critical"
+                variant="primary"
+                {...(busy && intent === "disable" ? { loading: true } : {})}
+              >
+                Turn sample desk OFF now
+              </s-button>
+            </Form>
+          ) : (
+            <p className="mcfly-demo-off-warning__status">Sample desk is OFF — live Shopify.</p>
+          )}
+        </div>
+
         <s-banner tone="info" heading="For listing screenshots + desk rehearsals">
           <s-paragraph>
             Loads <strong>3 years</strong> of matched daily Shopify-like sales and multi-channel spend
-            into Mcfly (not into Shopify Admin). Clearly sample. Turn off before App Store review if
-            reviewers should see live till only.
+            into Mcfly (not into Shopify Admin). Clearly sample.
           </s-paragraph>
         </s-banner>
 
@@ -130,19 +155,20 @@ export default function DemoPage() {
           </div>
         </s-section>
 
-        <s-section heading="1 · Load 3 years">
+        <s-section heading="Prepare listing shots">
           <s-paragraph>
-            Generates ~1,095 days of till sales + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other
-            spend targeting cash MER ≈ {formatMer(3.5)}. Deterministic — same shape every run.
+            One click seeds ~1,095 days of till sales + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other
+            spend (cash MER ≈ {formatMer(3.5)}) and turns sample desk ON. Deterministic — same shape
+            every run.
           </s-paragraph>
           <Form method="post">
-            <input type="hidden" name="intent" value="seed" />
+            <input type="hidden" name="intent" value="prepare" />
             <s-button
               type="submit"
               variant="primary"
-              {...(busy && intent === "seed" ? { loading: true } : {})}
+              {...(busy && intent === "prepare" ? { loading: true } : {})}
             >
-              Load 3-year sample desk
+              Prepare listing shots
             </s-button>
           </Form>
           {actionData && "result" in actionData && actionData.result ? (
@@ -156,10 +182,33 @@ export default function DemoPage() {
               )}
             </p>
           ) : null}
+
+          <s-paragraph>
+            Then capture in order (~1600×900, crop browser chrome). Shot mode (
+            <code>?shot=1</code>) hides the sample banner:
+          </s-paragraph>
+          <div className="mcfly-demo-steps">
+            <s-link href="/app?period=y3&shot=1">1 · Cash MER → 3 yr (shot)</s-link>
+            <s-link href="/app?period=ytd&shot=1">2 · Cash MER → YTD (shot)</s-link>
+            <s-link href="/app/spend?shot=1">3 · Spend (shot)</s-link>
+            <s-link href="/app/allocation?period=y3&shot=1">4 · Allocation → 3 yr (shot)</s-link>
+            <s-link href="/app/settings?shot=1">5 · Settings (shot)</s-link>
+          </div>
+          <s-paragraph>
+            <s-text tone="neutral">
+              Shot list + captions: <code>docs/LISTING_VISUAL_PACK.md</code>.
+            </s-text>
+          </s-paragraph>
         </s-section>
 
-        <s-section heading="2 · Use it for screenshots">
+        <s-section heading="Advanced">
           <s-stack direction="block" gap="base">
+            <Form method="post">
+              <input type="hidden" name="intent" value="seed" />
+              <s-button type="submit" {...(busy && intent === "seed" ? { loading: true } : {})}>
+                Seed only (keep current ON/OFF)
+              </s-button>
+            </Form>
             <Form method="post">
               <input type="hidden" name="intent" value="enable" />
               <s-button type="submit" {...(busy && intent === "enable" ? { loading: true } : {})}>
@@ -172,18 +221,6 @@ export default function DemoPage() {
                 Turn sample desk OFF (live Shopify)
               </s-button>
             </Form>
-            <s-paragraph>Then capture the listing shots in order:</s-paragraph>
-            <div className="mcfly-demo-steps">
-              <s-link href="/app?period=y3&shot=1">1 · Cash MER → 3 yr (shot mode)</s-link>
-              <s-link href="/app/spend">2 · Spend</s-link>
-              <s-link href="/app/allocation?period=y3">3 · Allocation</s-link>
-            </div>
-            <s-paragraph>
-              <s-text tone="neutral">
-                Shot mode hides the sample banner so the frame reads clean. Capture at ~1600×900,
-                crop browser chrome. Shot list: <code>docs/LISTING_VISUAL_PACK.md</code>.
-              </s-text>
-            </s-paragraph>
           </s-stack>
         </s-section>
 

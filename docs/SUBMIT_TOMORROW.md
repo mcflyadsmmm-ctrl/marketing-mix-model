@@ -1,6 +1,6 @@
 # Submit tomorrow — agent-fixed vs human gates
 
-**Last agent pass:** 2026-07-23 (reject-risk **re-audit** after Free support / M-only icon / SCOPES / skill / craft swarm)  
+**Last agent pass:** 2026-07-23 — Apps Script Cash MER parity live (decision strip, 4-up KPIs, sticky rail, Fraunces); support meta Free; ship-gate + Fly deploy in this pass.  
 **Goal:** public App Store submit for **Free** cash MER desk.  
 **Reject scorecard:** [`REJECT_RISK_AUDIT.md`](./REJECT_RISK_AUDIT.md)
 

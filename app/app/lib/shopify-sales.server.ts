@@ -26,6 +26,7 @@ const ORDERS_SALES_QUERY = `#graphql
       edges {
         node {
           id
+          createdAt
           totalPriceSet {
             shopMoney {
               amount
@@ -68,6 +69,7 @@ type OrdersSalesJson = {
       edges?: Array<{
         node?: {
           id?: string;
+          createdAt?: string;
           totalPriceSet?: { shopMoney?: { amount?: string } };
           customer?: {
             id?: string;
@@ -79,6 +81,15 @@ type OrdersSalesJson = {
   };
   errors?: Array<{ message?: string }>;
 };
+
+function localDayKeyFromIso(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 function emptySales(source: SalesResult["source"] = "shopify"): SalesResult {
   return {
@@ -247,6 +258,51 @@ async function fetchCustomerMix(
     guestOrders,
     available: true,
   };
+}
+
+/**
+ * Daily till sales for the channel-stack spine (closed-day MER = sales ÷ spend).
+ * Same read_orders scope as period totals; groups by local calendar day of createdAt.
+ */
+export async function fetchShopifySalesByDay(
+  admin: AdminApiContext,
+  range: DateRange,
+): Promise<Map<string, number>> {
+  const query = formatPeriodQuery(range);
+  let cursor: string | null = null;
+  const map = new Map<string, number>();
+
+  do {
+    const response = await admin.graphql(ORDERS_SALES_QUERY, {
+      variables: { query, cursor },
+    });
+    const json = (await response.json()) as OrdersSalesJson;
+
+    if (json.errors?.length) {
+      throw new Error(
+        json.errors.map((e) => e.message).filter(Boolean).join("; ") ||
+          "Shopify GraphQL error",
+      );
+    }
+
+    const orders = json.data?.orders;
+    if (!orders) {
+      throw new Error("Failed to fetch orders from Shopify Admin API");
+    }
+
+    for (const edge of orders.edges ?? []) {
+      const amount = parseFloat(edge.node?.totalPriceSet?.shopMoney?.amount ?? "0");
+      const key = localDayKeyFromIso(edge.node?.createdAt ?? "");
+      if (!key || !Number.isFinite(amount)) continue;
+      map.set(key, (map.get(key) ?? 0) + amount);
+    }
+
+    cursor = orders.pageInfo?.hasNextPage
+      ? (orders.pageInfo.endCursor ?? null)
+      : null;
+  } while (cursor);
+
+  return map;
 }
 
 /**

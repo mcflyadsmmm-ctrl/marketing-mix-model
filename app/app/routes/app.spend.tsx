@@ -19,10 +19,13 @@ import {
   type CsvImportSummary,
 } from "../lib/spend-csv";
 import { createSpendRepository } from "../lib/spend-repository.server";
-import { getSampleDeskStats } from "../lib/sample-desk.server";
+import { getSampleDeskStats, localDayKey } from "../lib/sample-desk.server";
 import { formatCurrency } from "../lib/mer-format";
 import prisma from "../db.server";
 import { SPEND_CHANNELS, SPEND_CHANNEL_LABELS } from "@mcfly/mer-engine";
+
+/** Last N local calendar days for the CSV hole strip (within 14–31). */
+const SPEND_COVERAGE_DAYS = 28;
 
 const CHANNELS = [
   {
@@ -62,20 +65,98 @@ const CHANNELS = [
   },
 ] as const;
 
+function startOfLocalDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function addLocalDays(d: Date, n: number): Date {
+  const next = new Date(d);
+  next.setDate(next.getDate() + n);
+  return startOfLocalDay(next);
+}
+
+export type SpendDayCoverageCell = {
+  dateKey: string;
+  label: string;
+  filled: boolean;
+};
+
+export type SpendDayCoverage = {
+  days: SpendDayCoverageCell[];
+  filledCount: number;
+  total: number;
+  includesSample: boolean;
+};
+
+/** Build filled/empty strip so CSV holes are visible at a glance. */
+async function loadSpendDayCoverage(
+  shopId: string,
+  includesSample: boolean,
+  now = new Date(),
+): Promise<SpendDayCoverage> {
+  const windowEnd = startOfLocalDay(now);
+  const windowStart = addLocalDays(windowEnd, -(SPEND_COVERAGE_DAYS - 1));
+
+  const entries = await prisma.spendEntry.findMany({
+    where: {
+      shopId,
+      periodStart: { lte: windowEnd },
+      periodEnd: { gte: windowStart },
+      amount: { gt: 0 },
+      ...(includesSample ? {} : { source: { not: "sample" } }),
+    },
+    select: { periodStart: true, periodEnd: true },
+  });
+
+  const filled = new Set<string>();
+  for (const entry of entries) {
+    let cursor = startOfLocalDay(
+      entry.periodStart < windowStart ? windowStart : entry.periodStart,
+    );
+    const end = startOfLocalDay(
+      entry.periodEnd > windowEnd ? windowEnd : entry.periodEnd,
+    );
+    for (; cursor <= end; cursor = addLocalDays(cursor, 1)) {
+      filled.add(localDayKey(cursor));
+    }
+  }
+
+  const days: SpendDayCoverageCell[] = [];
+  for (let cursor = windowStart; cursor <= windowEnd; cursor = addLocalDays(cursor, 1)) {
+    const dateKey = localDayKey(cursor);
+    days.push({
+      dateKey,
+      label: String(cursor.getDate()),
+      filled: filled.has(dateKey),
+    });
+  }
+
+  return {
+    days,
+    filledCount: days.filter((d) => d.filled).length,
+    total: days.length,
+    includesSample,
+  };
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
+  const sampleDesk = await getSampleDeskStats(shop.id);
   // Real entries only — sample-desk rows are demo data and would drown out
   // an operator's own uploads in "Recent entries" (sample dates run through today).
-  const entries = await prisma.spendEntry.findMany({
-    where: { shopId: shop.id, source: { not: "sample" } },
-    orderBy: { periodStart: "desc" },
-    take: 20,
-  });
-  const sampleDesk = await getSampleDeskStats(shop.id);
-  return { entries, sampleDesk, shotMode };
+  const [entries, dayCoverage] = await Promise.all([
+    prisma.spendEntry.findMany({
+      where: { shopId: shop.id, source: { not: "sample" } },
+      orderBy: { periodStart: "desc" },
+      take: 20,
+    }),
+    // Sample desk ON → coverage may include sample spend days; OFF → real only.
+    loadSpendDayCoverage(shop.id, sampleDesk.enabled),
+  ]);
+  return { entries, sampleDesk, shotMode, dayCoverage };
 };
 
 export interface SpendActionData {
@@ -220,7 +301,8 @@ function formatDayRange(start: Date, end: Date): string {
 }
 
 export default function SpendEntryPage() {
-  const { entries, sampleDesk, shotMode } = useLoaderData<typeof loader>();
+  const { entries, sampleDesk, shotMode, dayCoverage } =
+    useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
@@ -230,6 +312,7 @@ export default function SpendEntryPage() {
   const csv = actionData?.csv;
   const csvSaved = Boolean(actionData?.success && csv);
   const manualSaved = Boolean(actionData?.success && !csv);
+  const holeCount = dayCoverage.total - dayCoverage.filledCount;
 
   return (
     <s-page heading="Spend" inlineSize="large">
@@ -239,8 +322,8 @@ export default function SpendEntryPage() {
           <s-paragraph>
             Recent entries below show your own uploads only — the 3-year demo dataset
             ({sampleDesk.spendCount.toLocaleString()} sample rows) is kept out of this list so it's
-            never mistaken for real spend. Turn sample desk off on the{" "}
-            <s-link href="/app/demo">Demo</s-link> tab.
+            never mistaken for real spend. Day coverage below can include sample spend days.
+            Turn sample desk off on the <s-link href="/app/demo">Demo</s-link> tab.
           </s-paragraph>
         </s-banner>
       ) : null}
@@ -346,6 +429,57 @@ export default function SpendEntryPage() {
         </s-banner>
       ) : null}
 
+      <s-section heading="Day coverage">
+        <div className="mcfly-spend-cal">
+          <div className="mcfly-spend-cal__meta">
+            <s-text>
+              {dayCoverage.filledCount} of {dayCoverage.total} days have spend
+              {holeCount > 0 ? ` · ${holeCount} empty` : " · no holes"}
+              {dayCoverage.includesSample ? " · includes sample" : null}
+            </s-text>
+            <s-text tone="neutral">
+              Last {dayCoverage.total} days — empty cells are CSV gaps.
+            </s-text>
+          </div>
+          <div
+            className="mcfly-spend-cal__strip"
+            role="list"
+            aria-label={`Spend coverage, last ${dayCoverage.total} days`}
+          >
+            {dayCoverage.days.map((day) => (
+              <span
+                key={day.dateKey}
+                role="listitem"
+                className={
+                  day.filled
+                    ? "mcfly-spend-cal__day mcfly-spend-cal__day--filled"
+                    : "mcfly-spend-cal__day mcfly-spend-cal__day--empty"
+                }
+                title={`${day.dateKey}${day.filled ? " · spend logged" : " · no spend"}`}
+                aria-label={`${day.dateKey}${day.filled ? ", spend logged" : ", empty"}`}
+              >
+                <span className="mcfly-spend-cal__tick" aria-hidden="true" />
+                <span className="mcfly-spend-cal__label">{day.label}</span>
+              </span>
+            ))}
+          </div>
+          <div className="mcfly-spend-cal__legend" aria-hidden="true">
+            <span className="mcfly-spend-cal__legend-item">
+              <span className="mcfly-spend-cal__day mcfly-spend-cal__day--filled mcfly-spend-cal__day--swatch">
+                <span className="mcfly-spend-cal__tick" />
+              </span>
+              Filled
+            </span>
+            <span className="mcfly-spend-cal__legend-item">
+              <span className="mcfly-spend-cal__day mcfly-spend-cal__day--empty mcfly-spend-cal__day--swatch">
+                <span className="mcfly-spend-cal__tick" />
+              </span>
+              Empty
+            </span>
+          </div>
+        </div>
+      </s-section>
+
       <s-section heading="Upload daily spend (CSV)">
         <s-stack direction="block" gap="large">
           <s-paragraph>
@@ -367,7 +501,7 @@ export default function SpendEntryPage() {
                 </s-stack>
               </div>
 
-              <div className="mcfly-template-actions">
+              <div className="mcfly-template-actions mcfly-spend-template-primary">
                 <s-button
                   variant="primary"
                   onClick={() =>
@@ -416,9 +550,9 @@ export default function SpendEntryPage() {
               <s-stack direction="block" gap="small">
                 <s-heading>Fill it in Excel / Google Sheets</s-heading>
                 <s-text tone="neutral">
-                  Open the CSV → keep the header row → replace example numbers with your daily spend.
-                  Don’t rename the column headers. Shopify sales stay in Shopify — don’t paste sales
-                  into this file.
+                  Open the blank CSV → keep the header row → enter your daily spend (blank or 0 where
+                  you didn’t spend). Don’t rename the column headers. Shopify sales stay in Shopify —
+                  don’t paste sales into this file.
                 </s-text>
                 <s-text tone="neutral">
                   Optional automation: SyncWith / Supermetrics / Coupler → Sheets → export CSV → step
