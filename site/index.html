@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mcfly Analytics — Spend vs sales. Not attribution theater.</title>
+  <meta name="description" content="A better version of suite dashboards: cash MER for Shopify — spend vs sales, break-even, allocation. Not path attribution theater." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0b0e12" />
+  <link rel="canonical" href="https://mcflyads.com/" />
+  <meta property="og:site_name" content="Mcfly Analytics" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Mcfly Analytics — Spend vs sales. Not attribution theater." />
+  <meta property="og:description" content="Same useful job as the suites — organize spend and sales — without selling fake science." />
+  <meta property="og:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <meta property="og:url" content="https://mcflyads.com/" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mcfly Analytics — Spend vs sales. Not attribution theater." />
+  <meta name="twitter:description" content="Cash MER for Shopify. Free launch for design partners." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260722a" />
+  <style>
+    /* Critical: never ship light text on a light hero if main CSS flakes or SW serves stale CSS */
+    body.home .hero-craft {
+      background: #0b0e12 !important;
+      color: #f4f6f8 !important;
+    }
+    body.home .hero-craft .brand-hero,
+    body.home .hero-craft .brand-hero-sub,
+    body.home .hero-craft h1 {
+      color: #ffffff !important;
+    }
+    body.home .hero-craft .lede {
+      color: rgba(244, 246, 248, 0.88) !important;
+    }
+    body.home .hero-craft .btn.ghost {
+      color: #f4f6f8 !important;
+      border-color: rgba(244, 246, 248, 0.45) !important;
+    }
+    body.home .top:not(.scrolled) .brand-name,
+    body.home .top:not(.scrolled) .nav-toggle span {
+      color: #f4f6f8;
+      background-color: #f4f6f8;
+    }
+    body.home .top:not(.scrolled) .brand-name {
+      background: none;
+      color: #f4f6f8 !important;
+    }
+  </style>
+</head>
+<body class="home">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+
+  <main id="main">
+    <!-- ONE composition: brand + thesis + CTA + full-bleed cash desk -->
+    <section class="hero hero-craft" aria-labelledby="hero-brand">
+      <div class="hero-mesh" aria-hidden="true"></div>
+      <div class="hero-gridline" aria-hidden="true"></div>
+      <div class="hero-grain" aria-hidden="true"></div>
+
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <p class="brand-hero" id="hero-brand">Mcfly <span class="brand-hero-sub">Analytics</span></p>
+          <h1>Stop buying attribution. Start managing spend against sales.</h1>
+          <p class="lede">Cash MER for Shopify — ad spend out vs till sales in, break-even, and one allocation call. No pixels. No path theater.</p>
+          <div class="cta-row">
+            <a class="btn primary" href="#waitlist">Join free launch</a>
+            <a class="btn ghost" href="#live">See live demos</a>
+          </div>
+        </div>
+
+        <div class="desk" aria-hidden="true">
+          <div class="desk-chrome">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="desk-title">mcfly · operator</span>
+            <span class="desk-live"><i></i> sample live</span>
+          </div>
+          <div class="desk-body">
+            <div class="desk-kpis">
+              <div class="kpi">
+                <span>Spend out</span>
+                <strong class="num lie-t" data-feed-spend>$63,658</strong>
+              </div>
+              <div class="kpi">
+                <span>Shopify in</span>
+                <strong class="num truth-t" data-feed-sales>$221,296</strong>
+              </div>
+              <div class="kpi wide">
+                <span>Cash MER</span>
+                <strong class="num mer-t" data-feed-mer data-mer="3.48">3.48×</strong>
+                <em data-feed-status>Above break-even 2.86×</em>
+              </div>
+            </div>
+            <div class="desk-chart">
+              <div class="chart-head">
+                <span>45-day MER</span>
+                <span class="mono" data-feed-brand>Northline · MTD</span>
+              </div>
+              <svg class="spark" id="spark" viewBox="0 0 320 56" preserveAspectRatio="none"></svg>
+            </div>
+            <div class="desk-mix">
+              <div class="mix-row"><span>Meta</span><div class="track"><b class="m" style="--p:62%"></b></div><span class="mono" data-mix-meta>62%</span></div>
+              <div class="mix-row"><span>Google</span><div class="track"><b class="g" style="--p:28%"></b></div><span class="mono" data-mix-google>28%</span></div>
+              <div class="mix-row"><span>Other</span><div class="track"><b class="o" style="--p:10%"></b></div><span class="mono" data-mix-other>10%</span></div>
+            </div>
+            <div class="desk-rec">
+              <span class="rec-label">Allocation</span>
+              <p id="hero-rec">Shift ~10% Google → Meta for a 7-day test. Meta clears break-even on cash efficiency.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band lie-band" aria-labelledby="lie-title">
+      <div class="wrap">
+        <p class="eyebrow">The problem</p>
+        <h2 id="lie-title" class="display">Platform ROAS is a story.<br />Your bank account is not.</h2>
+        <p class="lede-soft band-intro">Operators don’t need another model. They need a Monday number that matches the till.</p>
+        <div class="lie-grid">
+          <article class="reveal">
+            <h3>Double-counting</h3>
+            <p>Meta, Google, and email all take credit for the same order. Sum “driven revenue” and you invent a P&amp;L.</p>
+          </article>
+          <article class="reveal">
+            <h3>Path theater</h3>
+            <p>Multi-touch invents a neat journey. Real journeys are messy. Optimizing the model is not optimizing cash.</p>
+          </article>
+          <article class="reveal">
+            <h3>Science cosplay</h3>
+            <p>Pixels, seven attribution windows, MMM branding — packaging on top of the same spend + Shopify pipes.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="band formula-band" aria-labelledby="formula-title">
+      <div class="wrap">
+        <p class="eyebrow">The religion</p>
+        <h2 id="formula-title" class="display">One formula. Auditable.</h2>
+        <div class="formula-panel reveal">
+          <p class="formula-line mono">MER = Shopify sales ÷ ad spend</p>
+          <p class="formula-line mono soft">Break-even MER ≈ 1 ÷ contribution margin</p>
+          <p class="formula-note">Operate above break-even. Shift mix to protect it. No path credit in the math.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band better-band" aria-labelledby="better-title">
+      <div class="wrap">
+        <p class="eyebrow">The wedge</p>
+        <h2 id="better-title" class="display">A better version of what<br />the suites actually do.</h2>
+        <p class="lede-soft better-lede">Triple Whale, Northbeam, and Polar aren’t sitting on secret formulas. They’re data organization and smooth operator UI. Mcfly keeps that job — and throws out the attribution religion.</p>
+        <div class="better-grid">
+          <article class="reveal">
+            <p class="better-kicker">They ship</p>
+            <h3>Organize everything</h3>
+            <p>Connectors, dashboards, pixels, AI chat, passback. Broad cockpit. Numbers still disagree with the till.</p>
+          </article>
+          <article class="better-us reveal">
+            <p class="better-kicker">Mcfly ships</p>
+            <h3>Organize the cash facts</h3>
+            <p>Spend out. Shopify sales in. Break-even MER. One allocation card you can audit. Monday ritual, not another OS.</p>
+          </article>
+          <article class="reveal">
+            <p class="better-kicker">You keep</p>
+            <h3>Craft without the tax</h3>
+            <p>Same useful instinct — one place to look — at a price that isn’t GMV theater, without training Meta on path credit.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="band live-band" id="live" aria-labelledby="live-title">
+      <div class="wrap">
+        <p class="eyebrow">Live instruments</p>
+        <h2 id="live-title" class="display">Feel the difference.<br />Not a slide. A cockpit.</h2>
+        <p class="lede-soft">Sample ecommerce warehouse — Northline &amp; Harbor. Same math as the Shopify app.</p>
+
+        <div class="demo-controls" role="group" aria-label="Sample data controls">
+          <div class="seg" role="group" aria-label="Brand">
+            <button type="button" class="seg-btn active" data-brand="demo-dtc">Northline</button>
+            <button type="button" class="seg-btn" data-brand="demo-agency">Harbor</button>
+          </div>
+          <div class="seg" role="group" aria-label="Period">
+            <button type="button" class="seg-btn active" data-period="mtd">MTD</button>
+            <button type="button" class="seg-btn" data-period="qtd">QTD</button>
+            <button type="button" class="seg-btn" data-period="ytd">YTD</button>
+          </div>
+        </div>
+
+        <div class="live-stage">
+          <article class="instrument featured" id="alloc-rec">
+            <header>
+              <h3>Allocation recommendation</h3>
+              <p>Auditable. Cash only.</p>
+            </header>
+            <p class="rec-why" id="rec-why">Loading…</p>
+            <ul class="rec-actions" id="rec-actions"></ul>
+            <p class="rec-inputs mono" id="rec-inputs"></p>
+          </article>
+
+          <article class="instrument">
+            <header>
+              <h3>Claims vs cash</h3>
+              <p>Drag spend. Watch platforms invent revenue.</p>
+            </header>
+            <label class="slider">
+              <span>Ad spend</span>
+              <input type="range" id="spend-range" min="20000" max="200000" step="1000" value="64000" />
+              <output id="spend-out" class="mono">$64,000</output>
+            </label>
+            <div class="meter-row">
+              <div>
+                <span class="lab">Platforms claim</span>
+                <strong class="lie" id="claimed-roas">4.8×</strong>
+                <span class="sub mono" id="claimed-rev">~$307k</span>
+              </div>
+              <div>
+                <span class="lab">Shopify sold</span>
+                <strong id="actual-sales">$221,296</strong>
+                <span class="sub">Till</span>
+              </div>
+              <div>
+                <span class="lab">Cash MER</span>
+                <strong class="truth" id="cash-mer">3.46×</strong>
+                <span class="sub">Sales ÷ spend</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="instrument">
+            <header>
+              <h3>Break-even MER</h3>
+              <p>Margin sets the floor. Below it is theater.</p>
+            </header>
+            <label class="slider">
+              <span>Contribution margin</span>
+              <input type="range" id="margin-range" min="20" max="80" step="1" value="35" />
+              <output id="margin-out" class="mono">35%</output>
+            </label>
+            <div class="meter-row two">
+              <div>
+                <span class="lab">Break-even</span>
+                <strong id="be-mer">2.86×</strong>
+              </div>
+              <div>
+                <span class="lab">Your MER</span>
+                <strong class="truth" id="ex-mer">3.46×</strong>
+              </div>
+            </div>
+            <p class="verdict" id="mer-verdict">Above break-even — protect the mix.</p>
+          </article>
+
+          <article class="instrument">
+            <header>
+              <h3>Allocate from cash</h3>
+              <p>Shift mix vs break-even — never path credit.</p>
+            </header>
+            <label class="slider">
+              <span>Meta share</span>
+              <input type="range" id="alloc-range" min="20" max="80" step="1" value="62" />
+              <output id="alloc-out" class="mono">62% Meta · 38% Google</output>
+            </label>
+            <div class="meter-row">
+              <div>
+                <span class="lab">Meta</span>
+                <strong id="meta-spend">$39,680</strong>
+                <span class="sub">Eff. <strong id="meta-eff">3.9×</strong></span>
+              </div>
+              <div>
+                <span class="lab">Google</span>
+                <strong id="google-spend">$24,320</strong>
+                <span class="sub">Eff. <strong id="google-eff">2.6×</strong></span>
+              </div>
+              <div>
+                <span class="lab">Blended</span>
+                <strong class="truth" id="blend-mer">3.41×</strong>
+                <span class="sub">vs BE <strong id="alloc-be">2.86×</strong></span>
+              </div>
+            </div>
+            <p class="verdict" id="alloc-verdict">Shift toward the channel that clears break-even.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="band how-band" aria-labelledby="how-title">
+      <div class="wrap">
+        <p class="eyebrow">Product</p>
+        <h2 id="how-title" class="display">Built like an ops tool.<br />Sold like software.</h2>
+        <ol class="how-rail">
+          <li>
+            <span class="n mono">01</span>
+            <div>
+              <h3>Shopify is the till</h3>
+              <p>Orders and net sales for MTD / QTD / YTD. No pixel “revenue.”</p>
+            </div>
+          </li>
+          <li>
+            <span class="n mono">02</span>
+            <div>
+              <h3>Spend is money out</h3>
+              <p>Meta + Google via Script, scheduled export, CSV, or live pipes. Whatever left the bank.</p>
+            </div>
+          </li>
+          <li>
+            <span class="n mono">03</span>
+            <div>
+              <h3>Operate on MER</h3>
+              <p>Break-even from your margin. One allocation card with inputs shown. Weekly ritual, not a black box.</p>
+            </div>
+          </li>
+        </ol>
+        <div class="how-links">
+          <a class="text-link" href="/product.html">Product deep dive →</a>
+          <a class="text-link" href="/app.html">App feature map →</a>
+          <a class="text-link" href="/download.html">Downloadable calculator →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="band dark-band" aria-labelledby="contrast-title">
+      <div class="wrap">
+        <p class="eyebrow on-dark">Positioning</p>
+        <h2 id="contrast-title" class="display">They sell credit.<br />We sell cash.</h2>
+        <div class="table-scroll">
+          <table class="compare on-dark">
+            <caption class="sr-only">Mcfly vs Triple Whale vs Northbeam vs Polar</caption>
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col">Mcfly</th>
+                <th scope="col">Triple Whale</th>
+                <th scope="col">Northbeam</th>
+                <th scope="col">Polar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">What it really is</th>
+                <td>Cash desk + allocation</td>
+                <td>Operator OS + pixel</td>
+                <td>Measurement suite</td>
+                <td>Warehouse BI + pixel</td>
+              </tr>
+              <tr>
+                <th scope="row">“Secret sauce”</th>
+                <td>One honest formula</td>
+                <td>Packaging + distribution</td>
+                <td>Packaging + trust brand</td>
+                <td>Packaging + Snowflake</td>
+              </tr>
+              <tr>
+                <th scope="row">Weekly question</th>
+                <td>Clear break-even MER?</td>
+                <td>Who gets credit / AI next?</td>
+                <td>Which touches drove?</td>
+                <td>What does the warehouse say?</td>
+              </tr>
+              <tr>
+                <th scope="row">Allocation</th>
+                <td>Cash vs break-even</td>
+                <td>Model / AI plans</td>
+                <td>MTA + MMM story</td>
+                <td>Reports + lift add-ons</td>
+              </tr>
+              <tr>
+                <th scope="row">Launch price</th>
+                <td><strong>Free</strong> → ~$79/mo</td>
+                <td>GMV-scaled suite</td>
+                <td>Enterprise contracts</td>
+                <td>GMV-scaled Core</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="contrast-note">We will not out-feature the suites. We will out-organize the cash facts — and be the tool operators open every Monday.</p>
+      </div>
+    </section>
+
+    <section class="band close" id="waitlist" aria-labelledby="close-title">
+      <div class="wrap narrow">
+        <p class="eyebrow">Free launch</p>
+        <h2 id="close-title" class="display">Run media against<br />the bank account.</h2>
+        <p class="lede-soft">Design partners get Mcfly free while we harden Truth MVP. Paid pricing (~$79/store) comes later — announced before anything bills.</p>
+        <form class="waitlist" data-waitlist novalidate>
+          <div class="row2">
+            <label>Name <input type="text" name="name" autocomplete="name" required /></label>
+            <label>Email <input type="email" name="email" autocomplete="email" required /></label>
+          </div>
+          <label>Store URL <input type="url" name="store" placeholder="https://yourstore.com" autocomplete="url" required /></label>
+          <button class="btn primary solid" type="submit">Join free launch</button>
+          <p class="note">Opens email to <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Tell us you’re in for weekly MER feedback.</p>
+        </form>
+        <div class="waitlist-confirm" hidden>
+          <p class="confirm-title">You’re on the free launch list.</p>
+          <p>Send the drafted email to finish.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="/assets/chrome.js?v=20260722a"></script>
+  <script src="/assets/app.js?v=20260722a"></script>
+</body>
+</html>

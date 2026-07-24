@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Support — Mcfly Ads</title>
+  <meta name="description" content="Human-backed support for the Mcfly Ads cash MER desk. App Store install (no shop-domain form), honest answers, Free now · ~$79 later. No pixels, no ticket maze." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="canonical" href="https://mcflyads.com/support.html" />
+  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/support.html" />
+  <meta property="og:title" content="Support — Mcfly Ads" />
+  <meta property="og:description" content="A human answers. App Store Free now, cash MER questions, ~$79 path — announced before anything bills." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Support — Mcfly Ads" />
+  <meta name="twitter:description" content="Human-backed help for the cash MER desk. No bot maze, no pixels." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260722q" />
+  <style>
+    body.support-page {
+      background:
+        radial-gradient(ellipse 70% 45% at 95% -5%, rgba(94, 231, 240, 0.11), transparent 55%),
+        radial-gradient(ellipse 50% 35% at 0% 15%, rgba(26, 163, 122, 0.07), transparent 50%),
+        var(--paper-2);
+    }
+    body.support-page .brand-kicker .ads {
+      color: var(--cyan-deep);
+    }
+    body.support-page .page-hero h1 {
+      max-width: 20ch;
+    }
+    body.support-page .page-hero p {
+      max-width: 46ch;
+    }
+
+    /* Trust strip — the promises this page has to keep */
+    body.support-page .trust-strip {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(2, 1fr);
+      width: min(var(--max), 100%);
+      margin: 1.75rem auto 0;
+      padding: 0 clamp(1.15rem, 3.5vw, 2rem);
+    }
+    @media (min-width: 720px) {
+      body.support-page .trust-strip {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    body.support-page .trust-chip {
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      font-size: 0.85rem;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+    body.support-page .trust-chip strong {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-family: var(--display);
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+    }
+    body.support-page .trust-chip span {
+      color: var(--mute);
+    }
+
+    /* Contact card — the one action that matters */
+    body.support-page .contact-card {
+      margin-top: 0.5rem;
+      padding: clamp(1.5rem, 4vw, 2rem);
+      border: 1px solid rgba(26, 163, 122, 0.3);
+      background:
+        linear-gradient(160deg, rgba(94, 231, 240, 0.09), transparent 55%),
+        #fff;
+    }
+    body.support-page .contact-card .reply-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0 0 0.85rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(26, 163, 122, 0.12);
+      color: var(--truth);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    body.support-page .contact-card .reply-badge::before {
+      content: "";
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: var(--truth-2);
+    }
+    body.support-page .contact-card h2 {
+      margin: 0 0 0.5rem;
+      font-family: var(--display);
+      font-size: 1.35rem;
+      letter-spacing: -0.025em;
+    }
+    body.support-page .contact-card p {
+      margin: 0 0 1.1rem;
+      color: var(--mute);
+      max-width: 40ch;
+    }
+    body.support-page .contact-card .email-link {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 2px solid var(--cyan-deep);
+      padding-bottom: 0.1rem;
+    }
+    body.support-page .contact-card .email-link:hover {
+      color: var(--cyan-deep);
+    }
+    body.support-page .contact-card .include-note {
+      margin-top: 1.1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.88rem;
+      color: var(--mute);
+      max-width: 46ch;
+    }
+
+    /* Numbered rail — install steps */
+    body.support-page .steps-rail {
+      list-style: none;
+      margin: 1.25rem 0 0;
+      padding: 0;
+      max-width: 44rem;
+    }
+    body.support-page .steps-rail li {
+      display: grid;
+      grid-template-columns: 2.5rem 1fr;
+      gap: 0.6rem 1rem;
+      padding: 1.05rem 0;
+      border-top: 1px solid var(--line);
+    }
+    body.support-page .steps-rail li:first-child {
+      border-top: 0;
+      padding-top: 0.25rem;
+    }
+    body.support-page .steps-rail .n {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cyan-deep);
+      padding-top: 0.15rem;
+    }
+    body.support-page .steps-rail h3 {
+      margin: 0 0 0.25rem;
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    body.support-page .steps-rail p {
+      margin: 0;
+      color: var(--mute);
+      line-height: 1.5;
+    }
+
+    /* FAQ — native details/summary, no JS required */
+    body.support-page .faq-list {
+      margin: 1.25rem 0 0;
+      max-width: 44rem;
+      border-top: 1px solid var(--line);
+    }
+    body.support-page .faq-item {
+      border-bottom: 1px solid var(--line);
+    }
+    body.support-page .faq-item summary {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.05rem 0;
+      cursor: pointer;
+      list-style: none;
+      font-family: var(--display);
+      font-size: 1.02rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    body.support-page .faq-item summary::-webkit-details-marker {
+      display: none;
+    }
+    body.support-page .faq-item summary::after {
+      content: "+";
+      flex: none;
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      color: var(--cyan-deep);
+      transition: transform 0.15s ease;
+    }
+    body.support-page .faq-item[open] summary::after {
+      content: "−";
+    }
+    body.support-page .faq-item p {
+      margin: 0 0 1.05rem;
+      max-width: 40ch;
+      color: var(--mute);
+      line-height: 1.55;
+    }
+
+    body.support-page .prose {
+      padding-top: clamp(2.5rem, 6vw, 3.5rem);
+    }
+    body.support-page .helps-list {
+      margin: 0.75rem 0 0;
+      padding: 0;
+      list-style: none;
+      max-width: 40ch;
+    }
+    body.support-page .helps-list li {
+      position: relative;
+      padding: 0.5rem 0 0.5rem 1.35rem;
+      color: var(--mute);
+      border-top: 1px solid var(--line);
+    }
+    body.support-page .helps-list li:first-child {
+      border-top: 0;
+    }
+    body.support-page .helps-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--cyan-deep);
+      font-family: var(--mono);
+    }
+    body.support-page .refuse-line {
+      margin: 0.35rem 0 0;
+      padding: 0.85rem 1rem;
+      border-left: 3px solid var(--lie-soft);
+      background: rgba(194, 69, 50, 0.05);
+      font-size: 0.92rem;
+      color: var(--ink);
+      max-width: 46ch;
+    }
+    body.support-page .refuse-line strong {
+      color: var(--lie);
+    }
+  </style>
+</head>
+<body class="support-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+  <main id="main">
+    <header class="page-hero">
+      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
+      <h1>You email a person. A person answers.</h1>
+      <p>One job on this page: get you unstuck fast. Install from the Shopify App Store (or a Partner invite) — never a public “type your .myshopify.com” form — and the desk behind it is <span class="mono formula-inline">cash MER</span>, not pixels.</p>
+    </header>
+
+    <div class="trust-strip" role="list">
+      <div class="trust-chip" role="listitem">
+        <strong>App Store install</strong>
+        <span>No public shop-domain box, ever</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>Human replies</strong>
+        <span>Founder-read inbox, not a bot queue</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>Cash MER, no pixels</strong>
+        <span>Sales ÷ spend — nothing tracked across the web</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>~$79 flat, announced first</strong>
+        <span>Design partners free until billing is announced</span>
+      </div>
+    </div>
+
+    <div class="prose">
+      <div class="contact-card">
+        <p class="reply-badge">Usually same business day</p>
+        <h2>Email us — that's the whole system</h2>
+        <p>No support portal, no ticket number, no chatbot pretending to be a person. Write to us directly and a person on the Mcfly team reads and answers it.</p>
+        <a class="email-link" href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com →</a>
+        <p class="include-note">Include your store domain and what you need: install, a bug, or a MER question. Screenshots welcome — they get you a faster, more specific answer.</p>
+      </div>
+
+      <h2>How install works</h2>
+      <p>App Store listing is <strong>Free</strong> now. Design partners stay free while we harden the desk — not forever-free for everyone. Target paid is <span class="mono formula-inline">~$79</span>/store/mo flat later via Shopify Billing, announced before anything charges.</p>
+      <ol class="steps-rail">
+        <li>
+          <span class="n" aria-hidden="true">01</span>
+          <div>
+            <h3>Install from Shopify</h3>
+            <p>Find <strong>Mcfly Analytics</strong> in the App Store, or use a Partner invite link we email you. There is no self-serve “paste your store” form on this site.</p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">02</span>
+          <div>
+            <h3>Approve scopes in Admin</h3>
+            <p>We request <code>read_orders</code> (sales totals) and minimal <code>read_customers</code> (opaque customer id + <code>numberOfOrders</code> only) so Cash MER can show new vs returning. No name, email, or address CRM.</p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">03</span>
+          <div>
+            <h3>Enter spend → set margin → read cash MER</h3>
+            <p>That's the whole Monday ritual. No dashboard safari, no path model to interpret.</p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">04</span>
+          <div>
+            <h3>Stuck? Email a human</h3>
+            <p>Write <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a> with your store domain — a person answers.</p>
+          </div>
+        </li>
+      </ol>
+
+      <h2>What “cash MER” means here</h2>
+      <p><span class="mono formula-inline">MER = Shopify sales for a period ÷ ad spend for the same period</span>. Break-even MER ≈ 1 ÷ contribution margin. Platform-reported ROAS can disagree with the till — that is expected, not a sync bug, because ad platforms count clicks and views their own model credits, not dollars that landed in your bank.</p>
+
+      <h2>Common questions</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Why no “type your .myshopify.com” install on this site?</summary>
+          <p>Shopify requires App Store / Partner install flows. We never put a public shop-domain form on mcflyads.com — that path is insecure and against our religion. Install from the App Store or a Partner invite we send you.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Why isn't it free forever?</summary>
+          <p>Design partners run the desk free while we harden it — that's a launch phase, not a bait price. Target paid is ~$79/store/mo flat, and we tell partners the date and terms before anything bills. No surprise invoice.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Do you use pixels or track my customers?</summary>
+          <p>No. Mcfly is not a pixel, multi-touch attribution, or “true ROAS” product and never will be. We read your Shopify order totals and the ad spend you give us — that's the entire data diet.</p>
+        </details>
+        <details class="faq-item">
+          <summary>My MER doesn't match what Meta or Google shows. Is something broken?</summary>
+          <p>Almost always no. Ad platforms report conversions their own model credits to a click or view — that number can run well ahead of what actually landed in your bank. Cash MER only counts money Shopify recorded as sales against money that left for ads, same period, both sides. Send us a screenshot with the period if you want a second look.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What happens to my data if I uninstall?</summary>
+          <p>Shopify sends us a shop-redact webhook and we delete your Mcfly shop record, settings, and spend entries on our side, subject to short backup windows. Full detail in <a href="/privacy.html">Privacy</a>.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How fast will I hear back?</summary>
+          <p>Usually the same business day. We're a small team reading a real inbox, not routing you through tiers — if something's urgent (numbers look wrong before a Monday budget call), say so in the subject line.</p>
+        </details>
+      </div>
+
+      <h2>What helps us help you</h2>
+      <ul class="helps-list">
+        <li>Shopify store domain</li>
+        <li>Period (MTD / QTD / YTD)</li>
+        <li>Spend source and amounts (manual entry today)</li>
+        <li>Screenshot if numbers look wrong vs Ads Manager — include the period both sides use</li>
+      </ul>
+
+      <h2>What we refuse to build</h2>
+      <p class="refuse-line"><strong>No pixels. No MTA. No “true ROAS.”</strong> If a request needs path attribution to work, the answer is no — that's religion, not a missing feature. We measure money spent on ads against money Shopify recorded as sales, full stop.</p>
+
+      <h2>Policies</h2>
+      <p><a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>. GDPR / data requests also flow through Shopify's compliance webhooks.</p>
+    </div>
+  </main>
+  <div data-footer></div>
+  <script src="/assets/chrome.js?v=20260722q"></script>
+  <script src="/assets/app.js?v=20260722q"></script>
+</body>
+</html>

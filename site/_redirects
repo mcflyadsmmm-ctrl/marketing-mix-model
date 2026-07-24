@@ -1,0 +1,2 @@
+# Only custom 404 — do not rewrite /page ↔ /page.html (CF already handles that).
+/* /404.html 404

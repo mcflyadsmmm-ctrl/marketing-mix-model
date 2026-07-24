@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Why pixel attribution fails after ITP — Mcfly Ads</title>
+  <meta name="description" content="Why pixel and multi-touch attribution over-claims in 2026: Safari ITP, link tracking protection, CNAME cloaking limits, and CAPI bot noise. What broke, why workarounds get capped, and why cash MER (sales ÷ spend) still holds." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="canonical" href="https://mcflyads.com/why-pixels-fail.html" />
+  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://mcflyads.com/why-pixels-fail.html" />
+  <meta property="og:title" content="Why pixel attribution fails — Mcfly Ads" />
+  <meta property="og:description" content="Browsers deleted the identity graph: ITP, link tracking protection, CNAME limits, CAPI noise. Cash MER is sales ÷ spend." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Why pixel attribution fails — Mcfly Ads" />
+  <meta name="twitter:description" content="ITP, LTP, CNAME, CAPI — why path attribution over-claims. Mcfly measures the till: sales ÷ spend." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260722q" />
+  <style>
+    body.pixels-page {
+      background:
+        radial-gradient(ellipse 70% 42% at 88% -8%, rgba(194, 69, 50, 0.09), transparent 55%),
+        radial-gradient(ellipse 55% 38% at 0% 18%, rgba(94, 231, 240, 0.1), transparent 50%),
+        var(--paper-2);
+    }
+
+    /* Brand-first hero — mark + Ads survive remove-nav */
+    body.pixels-page .page-hero .brand-kicker {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      margin: 0 0 0.65rem;
+    }
+    body.pixels-page .brand-kicker-mark {
+      width: clamp(2.1rem, 5vw, 2.75rem);
+      height: clamp(2.1rem, 5vw, 2.75rem);
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    body.pixels-page .brand-kicker .ads {
+      color: var(--cyan-deep);
+    }
+    body.pixels-page .page-hero h1 {
+      max-width: 16ch;
+    }
+    body.pixels-page .page-hero > p:not(.hero-thesis) {
+      max-width: 42ch;
+    }
+    body.pixels-page .hero-thesis {
+      margin: 1.25rem 0 0;
+      max-width: 38ch;
+      padding-left: 0.95rem;
+      border-left: 3px solid var(--lie);
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1.08rem, 2.3vw, 1.28rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.3;
+    }
+
+    body.pixels-page .authority-rail {
+      width: min(var(--max), 100%);
+      margin: 0 auto;
+      padding: 0 clamp(1.15rem, 3.5vw, 2rem) 0.5rem;
+    }
+    body.pixels-page .authority-toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem 1.1rem;
+      margin: 0;
+      padding: 1rem 0 0;
+      border-top: 1px solid var(--line);
+      list-style: none;
+    }
+    body.pixels-page .authority-toc a {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--mute);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+    body.pixels-page .authority-toc a:hover {
+      color: var(--ink);
+      border-bottom-color: var(--cyan-deep);
+    }
+
+    /* Scannable privacy verdict — authority without a whitepaper wall */
+    body.pixels-page .verdict-strip {
+      width: min(var(--max), 100%);
+      margin: 0.75rem auto 0;
+      padding: 1.25rem clamp(1.15rem, 3.5vw, 2rem) 0.25rem;
+    }
+    body.pixels-page .verdict-strip ul {
+      display: grid;
+      gap: 0.65rem 1.25rem;
+      margin: 0;
+      padding: 1.1rem 0 0;
+      border-top: 1px solid var(--line);
+      list-style: none;
+    }
+    @media (min-width: 720px) {
+      body.pixels-page .verdict-strip ul {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    body.pixels-page .verdict-strip li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.65rem;
+      align-items: baseline;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    body.pixels-page .verdict-strip .vk {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--lie);
+      white-space: nowrap;
+    }
+    body.pixels-page .verdict-strip .vv {
+      color: var(--mute);
+    }
+
+    body.pixels-page .fail-stack {
+      width: min(44rem, 100%);
+      margin: 0 auto;
+      padding: 1.75rem clamp(1.15rem, 3.5vw, 2rem) clamp(3rem, 8vw, 5rem);
+    }
+    body.pixels-page .fail-block {
+      padding: 1.75rem 0 1.75rem 0.95rem;
+      border-top: 1px solid var(--line);
+      border-left: 2px solid transparent;
+      transition: border-left-color 0.25s ease;
+    }
+    body.pixels-page .fail-block:first-of-type {
+      border-top: 0;
+      padding-top: 0.35rem;
+    }
+    body.pixels-page .fail-block.in,
+    body.pixels-page .fail-block.is-in {
+      border-left-color: rgba(194, 69, 50, 0.45);
+    }
+    body.pixels-page .fail-n {
+      margin: 0 0 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--cyan-deep);
+    }
+    body.pixels-page .fail-block h2 {
+      margin: 0 0 0.55rem;
+      font-family: var(--display);
+      font-size: clamp(1.25rem, 2.8vw, 1.55rem);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+    body.pixels-page .fail-block p {
+      margin: 0 0 0.75rem;
+      color: var(--mute);
+      font-size: 1.02rem;
+      line-height: 1.55;
+      max-width: 48ch;
+    }
+    body.pixels-page .fail-block p:last-child {
+      margin-bottom: 0;
+    }
+    body.pixels-page .fail-callout {
+      margin: 0.95rem 0 0;
+      padding: 0.9rem 1.05rem;
+      background: linear-gradient(165deg, rgba(10, 18, 33, 0.045), transparent 70%);
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--cyan-deep);
+      max-width: 46ch;
+    }
+    body.pixels-page .fail-callout p {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      max-width: none;
+    }
+    body.pixels-page .fail-soft {
+      font-size: 0.92rem !important;
+      color: var(--mute) !important;
+    }
+
+    body.pixels-page .suite-grid {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.1rem;
+    }
+    @media (min-width: 720px) {
+      body.pixels-page .suite-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.15rem;
+      }
+    }
+    body.pixels-page .suite-card {
+      padding: 1rem 0 0;
+      border-top: 2px solid var(--ink);
+    }
+    body.pixels-page .suite-card h3 {
+      margin: 0 0 0.35rem;
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    body.pixels-page .suite-card p {
+      margin: 0;
+      font-size: 0.95rem;
+      max-width: none;
+    }
+    body.pixels-page .suite-tax {
+      margin-top: 1.35rem;
+      max-width: 48ch;
+    }
+
+    body.pixels-page .cash-close {
+      width: min(var(--max), 100%);
+      margin: 0 auto 3rem;
+      padding: clamp(1.75rem, 4vw, 2.5rem) clamp(1.15rem, 3.5vw, 2rem);
+      background:
+        radial-gradient(ellipse 60% 80% at 100% 0%, rgba(94, 231, 240, 0.14), transparent 55%),
+        var(--steel);
+      color: #f4f6f8;
+    }
+    body.pixels-page .cash-close .eyebrow {
+      margin: 0 0 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(244, 246, 248, 0.45);
+    }
+    body.pixels-page .cash-close h2 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: clamp(1.55rem, 3.5vw, 2.1rem);
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+      color: #fff;
+      max-width: 16ch;
+    }
+    body.pixels-page .cash-close .lede {
+      margin: 0 0 1.25rem;
+      max-width: 42ch;
+      color: rgba(244, 246, 248, 0.78);
+      font-size: 1.05rem;
+    }
+    body.pixels-page .cash-close .formula {
+      margin: 0 0 1.35rem;
+      font-family: var(--mono);
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      letter-spacing: -0.03em;
+      color: var(--cyan);
+    }
+    body.pixels-page .cash-close .honest-catch {
+      margin: 0 0 1.4rem;
+      padding: 0.95rem 1.1rem;
+      max-width: 44ch;
+      border-left: 3px solid var(--cyan);
+      background: rgba(94, 231, 240, 0.06);
+    }
+    body.pixels-page .cash-close .honest-catch .label {
+      margin: 0 0 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+    body.pixels-page .cash-close .honest-catch p:last-child {
+      margin: 0;
+      font-size: 0.98rem;
+      line-height: 1.55;
+      color: rgba(244, 246, 248, 0.82);
+      max-width: none;
+    }
+    body.pixels-page .cash-close .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1rem;
+      align-items: center;
+    }
+    body.pixels-page .cash-close .btn.ghost {
+      color: #f4f6f8;
+      border-color: rgba(244, 246, 248, 0.4);
+    }
+    body.pixels-page .cash-close .fine-line {
+      margin: 1.15rem 0 0;
+      max-width: 40ch;
+      font-size: 0.9rem;
+      color: rgba(244, 246, 248, 0.5);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.pixels-page .authority-toc a,
+      body.pixels-page .fail-block {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body class="pixels-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+
+  <main id="main">
+    <header class="page-hero">
+      <p class="brand-kicker">
+        <img class="brand-kicker-mark" src="/assets/brand/mcfly-m-transparent.png" width="44" height="44" alt="" />
+        Mcfly <span class="ads">Ads</span>
+      </p>
+      <h1>Why pixels fail after privacy.</h1>
+      <p>Browsers deleted the identity graph. Path suites still sell journey credit. Here is what broke — and why Monday’s budget should ride the till, not the model.</p>
+      <p class="hero-thesis">Platforms sell identity graphs. Browsers deleted them. Mcfly measures sales ÷ spend.</p>
+    </header>
+
+    <nav class="authority-rail" aria-label="On this page">
+      <ol class="authority-toc">
+        <li><a href="#category">The category problem</a></li>
+        <li><a href="#itp">Safari ITP</a></li>
+        <li><a href="#ltp">iOS LTP</a></li>
+        <li><a href="#cname">CNAME cloaking</a></li>
+        <li><a href="#capi">CAPI bot risk</a></li>
+        <li><a href="#suites">What suites still sell</a></li>
+        <li><a href="#cash">Cash MER instead</a></li>
+      </ol>
+    </nav>
+
+    <aside class="verdict-strip reveal" aria-label="Privacy-era verdict">
+      <ul>
+        <li><span class="vk">ITP</span> <span class="vv">JS cookies ~a week — ~a day after an ad-click landing</span></li>
+        <li><span class="vk">LTP</span> <span class="vv">iOS strips click IDs before they reach your stack</span></li>
+        <li><span class="vk">CNAME</span> <span class="vv">First-party cloaking collapses on IP distance</span></li>
+        <li><span class="vk">CAPI</span> <span class="vv">Junk server events → delivery optimizes to noise</span></li>
+      </ul>
+    </aside>
+
+    <div class="fail-stack">
+      <article class="fail-block reveal" id="category">
+        <p class="fail-n">01 · The category</p>
+        <h2>Path tools over-claim. That is the product, not a bug.</h2>
+        <p>Multi-touch and “true ROAS” products need a continuous person across ads, site, and checkout. After ITP, ATT, and link-tracking protections, that chain is broken for a large share of traffic — especially Safari and iOS.</p>
+        <p>When the graph is sparse, models still output neat credit. Founders see stacked revenue that does not reconcile to the till. The category problem is not “bad vendors.” It is selling path certainty on rails privacy removed.</p>
+        <div class="fail-callout">
+          <p>Path credit trains the model. Cash MER trains the Monday budget.</p>
+        </div>
+      </article>
+
+      <article class="fail-block reveal" id="itp">
+        <p class="fail-n">02 · Safari ITP</p>
+        <h2>Cookies that used to last months now last days — or hours.</h2>
+        <p>Intelligent Tracking Prevention caps client-side cookies set by JavaScript. In practice that means short windows (on the order of a week for many JS cookies), and much shorter after certain click-ID landings — often measured in about a day before storage is purged.</p>
+        <p>If your “attribution” depends on a browser cookie sticking around long enough to stitch a later purchase, Safari quietly ends the experiment. Desktop Chrome is not the whole internet.</p>
+      </article>
+
+      <article class="fail-block reveal" id="ltp">
+        <p class="fail-n">03 · iOS LTP</p>
+        <h2>Click IDs get stripped before they ever reach your stack.</h2>
+        <p>Link Tracking Protection and related iOS behaviors remove or rewrite tracking parameters on links users tap in Mail, Messages, and other system surfaces. The ad platform may still report a click. Your site may never see the click ID the pixel needed.</p>
+        <p>No ID in → no trustworthy match out. Suites paper over the gap with modeled fills. Finance still only sees what cleared the till.</p>
+      </article>
+
+      <article class="fail-block reveal" id="cname">
+        <p class="fail-n">04 · CNAME cloaking</p>
+        <h2>First-party DNS tricks hit an IP-distance wall.</h2>
+        <p>For a while, vendors routed tracking through a CNAME on your domain so cookies looked “first-party.” Browsers responded with IP-distance and related checks: if the CNAME resolves far from your real origin, the cloaking collapses and the cookie advantages go away.</p>
+        <p>DNS work is not a durable moat. It is an arms race — and Apple, Safari, and peers keep tightening the rules. Complexity for your team; diminishing returns for truth.</p>
+      </article>
+
+      <article class="fail-block reveal" id="capi">
+        <p class="fail-n">05 · CAPI &amp; bots</p>
+        <h2>Server events can poison the same loop they claim to fix.</h2>
+        <p>Conversions API was meant to replace the brittle browser pixel. But a server event accepts whatever your backend — or a bot — claims happened. Invalid and automated traffic is a well-documented industry problem; credible estimates land somewhere in the mid-twenties to low-thirties percent range depending on vertical and defenses. We cite that as context, not as a measurement of your store.</p>
+        <p class="fail-soft">The takeaway is simpler than the number: if junk events enter CAPI, delivery optimizes toward noise. More server events is not more truth.</p>
+      </article>
+
+      <article class="fail-block reveal" id="suites">
+        <p class="fail-n">06 · How the suites respond</p>
+        <h2>Same broken rails. Different packaging.</h2>
+        <p>We are not alleging fraud. We are naming approaches founders already pay for — and what those approaches still depend on.</p>
+        <div class="suite-grid">
+          <div class="suite-card">
+            <h3>Triple Whale–class</h3>
+            <p>Operator OS plus a “pixel” that, under the hood, is still JavaScript, UTMs, and cookies — not a new physics of causality. Useful workflows; path theater stays on privacy-era rails.</p>
+          </div>
+          <div class="suite-card">
+            <h3>Northbeam–class</h3>
+            <p>Attribution court with heavier DNS and install friction, often behind a high price wall. More ceremony around the same identity problem browsers already constrained.</p>
+          </div>
+          <div class="suite-card">
+            <h3>Polar–class</h3>
+            <p>Warehouse / BI depth for teams that want pipelines and latency. Not a Monday cash desk. Still typically sits on pixel or event identity assumptions for “who drove.”</p>
+          </div>
+        </div>
+        <p class="suite-tax">GMV-scaled suite pricing taxes growth while the underlying graph stays incomplete. Mcfly’s bet is the opposite: a flat desk fee and a number finance will accept.</p>
+      </article>
+    </div>
+
+    <section class="cash-close" id="cash" aria-labelledby="cash-title">
+      <p class="eyebrow">What Mcfly ships instead</p>
+      <h2 id="cash-title">Sales ÷ spend. Break-even. One budget call.</h2>
+      <p class="lede">Cash MER is not path credit. It is money out against money in — then whether you clear break-even from your margin. Design partners free while we harden; ~$79/store/mo flat after launch. Not forever-free. Not a GMV tax.</p>
+      <p class="formula">MER = sales ÷ ad spend · Break-even ≈ 1 ÷ contribution margin</p>
+      <div class="honest-catch">
+        <p class="label">The honest catch</p>
+        <p>Cash MER will not tell you which single ad earned the sale — because after privacy, nothing honestly can. It tells you whether this week's spend, in total, bought profitable revenue. That is the call finance actually makes on Monday.</p>
+      </div>
+      <div class="cta-row">
+        <a class="btn primary" href="/#waitlist">Get early access</a>
+        <a class="btn ghost" href="/pricing.html">See pricing</a>
+        <a class="btn ghost" href="/product.html">Product deep dive</a>
+      </div>
+      <p class="fine-line">We will not ship a Mcfly pixel, MTA, or SyncWith zoo. Explaining why path tools fail is not the same as selling one.</p>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="/assets/chrome.js?v=20260722q"></script>
+  <script src="/assets/app.js?v=20260722q"></script>
+</body>
+</html>

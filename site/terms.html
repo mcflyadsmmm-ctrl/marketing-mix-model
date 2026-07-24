@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terms — Mcfly Ads</title>
+  <meta name="description" content="Terms of use for Mcfly Ads — cash MER desk, time-boxed free launch, target ~$79/store/mo paid." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="canonical" href="https://mcflyads.com/terms.html" />
+  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/terms.html" />
+  <meta property="og:title" content="Terms — Mcfly Ads" />
+  <meta property="og:description" content="Terms of use for Mcfly Ads — cash MER, design-partner launch, target ~$79 paid." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Terms — Mcfly Ads" />
+  <meta name="twitter:description" content="Design partners free now, time-boxed → ~$79/store/mo flat, announced before billing. No GMV tax." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260722q" />
+  <style>
+    body.terms-page {
+      background:
+        radial-gradient(ellipse 70% 45% at 95% -5%, rgba(94, 231, 240, 0.11), transparent 55%),
+        radial-gradient(ellipse 50% 35% at 0% 15%, rgba(26, 163, 122, 0.07), transparent 50%),
+        var(--paper-2);
+    }
+    body.terms-page .brand-kicker .ads {
+      color: var(--cyan-deep);
+    }
+    body.terms-page .page-hero h1 {
+      max-width: 20ch;
+    }
+    body.terms-page .page-hero p {
+      max-width: 48ch;
+    }
+
+    /* Trust strip — the promises this page has to keep */
+    body.terms-page .trust-strip {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(2, 1fr);
+      width: min(var(--max), 100%);
+      margin: 1.75rem auto 0;
+      padding: 0 clamp(1.15rem, 3.5vw, 2rem);
+    }
+    @media (min-width: 720px) {
+      body.terms-page .trust-strip {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    body.terms-page .trust-chip {
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      font-size: 0.85rem;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+    body.terms-page .trust-chip strong {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-family: var(--display);
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+    }
+    body.terms-page .trust-chip span {
+      color: var(--mute);
+    }
+
+    /* Plain-English summary — orientation before the legal detail */
+    body.terms-page .legal-summary {
+      margin: 0.5rem 0 2rem;
+      padding: clamp(1.35rem, 3.5vw, 1.75rem);
+      border: 1px solid rgba(26, 163, 122, 0.3);
+      background:
+        linear-gradient(160deg, rgba(94, 231, 240, 0.09), transparent 55%),
+        #fff;
+    }
+    body.terms-page .legal-summary .tag {
+      display: inline-block;
+      margin: 0 0 0.75rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--truth);
+    }
+    body.terms-page .summary-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    body.terms-page .summary-list li {
+      position: relative;
+      padding: 0.55rem 0 0.55rem 1.35rem;
+      color: var(--ink);
+      border-top: 1px solid var(--line);
+      line-height: 1.45;
+    }
+    body.terms-page .summary-list li:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    body.terms-page .summary-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--cyan-deep);
+      font-family: var(--mono);
+    }
+    body.terms-page .summary-note {
+      margin: 1rem 0 0;
+      font-size: 0.85rem;
+      color: var(--mute);
+    }
+
+    /* Jump nav — full scope of the terms, up front */
+    body.terms-page .jump-nav {
+      margin: 0 0 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+    }
+    body.terms-page .jump-nav a {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      letter-spacing: -0.01em;
+      color: var(--mute);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+    body.terms-page .jump-nav a:hover {
+      color: var(--cyan-deep);
+      border-bottom-color: var(--cyan-deep);
+    }
+    body.terms-page .prose h2 {
+      scroll-margin-top: 5.5rem;
+    }
+
+    /* Neutral callout for the disclaimer / liability clauses — no color coding, just emphasis */
+    body.terms-page .legal-note {
+      margin: 0.75rem 0 0;
+      padding: 1.1rem 1.25rem;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.5);
+    }
+    body.terms-page .legal-note p {
+      margin: 0;
+    }
+    body.terms-page .legal-note p + p {
+      margin-top: 0.75rem;
+    }
+  </style>
+</head>
+<body class="terms-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+  <main id="main">
+    <header class="page-hero">
+      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
+      <h1>Terms of use</h1>
+      <p>Last updated: July 22, 2026. Covers mcflyads.com, the downloadable calculator, and the Mcfly Ads Shopify app (including the free launch).</p>
+    </header>
+
+    <div class="trust-strip" role="list">
+      <div class="trust-chip" role="listitem">
+        <strong>Cash MER desk</strong>
+        <span>Sales ÷ spend — informational, not advice</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>Time-boxed free</strong>
+        <span>Design partners now — not forever-free marketing</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>~$79 flat, announced first</strong>
+        <span>No surprise invoice, no % of revenue</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>Utah governing law</strong>
+        <span>Utah County exclusive venue for disputes</span>
+      </div>
+    </div>
+
+    <div class="prose">
+      <div class="legal-summary">
+        <p class="tag">Plain-English summary</p>
+        <ul class="summary-list">
+          <li>Mcfly shows cash MER (<span class="mono formula-inline">Shopify sales ÷ ad spend</span>) and break-even from your margin — informational, not financial or legal advice.</li>
+          <li>Design partners run the desk free right now. That's a launch phase, not a bait price — target paid is <span class="mono formula-inline">~$79</span>/store/mo flat, and we tell you the date and terms before anything bills.</li>
+          <li>No pixels, multi-touch attribution, or "true ROAS" — that's religion, not a missing feature.</li>
+          <li>Full terms below govern; this summary doesn't add or remove any obligation.</li>
+        </ul>
+        <p class="summary-note">See <a href="/pricing.html">Pricing</a> for the full free → ~$79 path, and <a href="/privacy.html">Privacy</a> for how we handle your data.</p>
+      </div>
+
+      <nav class="jump-nav" aria-label="Jump to section">
+        <a href="#service">Service</a>
+        <a href="#accounts">Accounts</a>
+        <a href="#free-launch">Free launch</a>
+        <a href="#acceptable-use">Acceptable use</a>
+        <a href="#data">Data</a>
+        <a href="#disclaimer">Disclaimer</a>
+        <a href="#liability">Limitation of liability</a>
+        <a href="#governing-law">Governing law</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <h2 id="service">Service</h2>
+      <p>Mcfly Ads helps merchants compare advertising spend to Shopify sales (cash MER = sales ÷ spend for the same period), show break-even MER from margin, and offer rules-based allocation guidance. Insights are informational — not financial, legal, or investment advice. We do not sell path attribution, multi-touch “truth,” or pixel causality.</p>
+
+      <h2 id="accounts">Accounts</h2>
+      <p>You must have authority to connect the Shopify store and ad accounts you authorize. You are responsible for credential security and for the accuracy of margin and manual spend inputs.</p>
+
+      <h2 id="free-launch">Free launch</h2>
+      <p>App Store listing is Free now. Design partners may also get Partner invites. There is never a public “type your .myshopify.com” form on this site. Free is time-boxed — not forever-free marketing. Target paid is ~$79/store/mo flat later via Shopify Billing; we notify before anything charges.</p>
+
+      <h2 id="acceptable-use">Acceptable use</h2>
+      <p>Do not abuse APIs, reverse engineer beyond permitted law, resell access without agreement, or use the service to violate platform policies or applicable law.</p>
+
+      <h2 id="data">Data</h2>
+      <p>Our <a href="/privacy.html">Privacy</a> policy describes how we handle data. You grant us a limited license to process store and ad data solely to provide the service.</p>
+
+      <h2 id="disclaimer">Disclaimer</h2>
+      <div class="legal-note">
+        <p>The service is provided “as is.” We do not warrant uninterrupted availability or that MER or allocation suggestions will achieve any business result. Platform-reported conversions may differ from cash MER by design — Mcfly measures till sales against spend, not attributed click paths.</p>
+      </div>
+
+      <h2 id="liability">Limitation of liability</h2>
+      <div class="legal-note">
+        <p>To the fullest extent permitted by law, Mcfly’s total liability for claims relating to the service is limited to the greater of (a) fees you paid us in the three months before the claim, or (b) USD $50 if you used the free launch at no charge.</p>
+      </div>
+
+      <h2 id="governing-law">Governing law</h2>
+      <p>These terms are governed by the laws of the State of Utah, USA, without regard to conflict-of-law rules. Courts in Utah County, Utah are the exclusive venue for disputes, except where prohibited.</p>
+
+      <h2 id="contact">Contact</h2>
+      <p><a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a> · <a href="/support.html">Support</a></p>
+    </div>
+  </main>
+  <div data-footer></div>
+  <script src="/assets/chrome.js?v=20260722q"></script>
+  <script src="/assets/app.js?v=20260722q"></script>
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy — Mcfly Ads</title>
+  <meta name="description" content="Privacy policy for Mcfly Ads — what we collect for cash MER, what we refuse, and how to request deletion." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="canonical" href="https://mcflyads.com/privacy.html" />
+  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/privacy.html" />
+  <meta property="og:title" content="Privacy — Mcfly Ads" />
+  <meta property="og:description" content="What Mcfly collects for cash MER — and what we refuse to do." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Privacy — Mcfly Ads" />
+  <meta name="twitter:description" content="Shopify order totals + spend you enter — that's the data diet. No pixels, no data sold." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260723a" />
+  <style>
+    body.privacy-page {
+      background:
+        radial-gradient(ellipse 70% 45% at 95% -5%, rgba(94, 231, 240, 0.11), transparent 55%),
+        radial-gradient(ellipse 50% 35% at 0% 15%, rgba(26, 163, 122, 0.07), transparent 50%),
+        var(--paper-2);
+    }
+    body.privacy-page .brand-kicker .ads {
+      color: var(--cyan-deep);
+    }
+    body.privacy-page .page-hero h1 {
+      max-width: 20ch;
+    }
+    body.privacy-page .page-hero p {
+      max-width: 48ch;
+    }
+
+    /* Trust strip — the promises this page has to keep */
+    body.privacy-page .trust-strip {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(2, 1fr);
+      width: min(var(--max), 100%);
+      margin: 1.75rem auto 0;
+      padding: 0 clamp(1.15rem, 3.5vw, 2rem);
+    }
+    @media (min-width: 720px) {
+      body.privacy-page .trust-strip {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    body.privacy-page .trust-chip {
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.55);
+      font-size: 0.85rem;
+      line-height: 1.35;
+      color: var(--ink);
+    }
+    body.privacy-page .trust-chip strong {
+      display: block;
+      margin-bottom: 0.2rem;
+      font-family: var(--display);
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+    }
+    body.privacy-page .trust-chip span {
+      color: var(--mute);
+    }
+
+    /* Plain-English summary — orientation before the legal detail */
+    body.privacy-page .legal-summary {
+      margin: 0.5rem 0 2rem;
+      padding: clamp(1.35rem, 3.5vw, 1.75rem);
+      border: 1px solid rgba(26, 163, 122, 0.3);
+      background:
+        linear-gradient(160deg, rgba(94, 231, 240, 0.09), transparent 55%),
+        #fff;
+    }
+    body.privacy-page .legal-summary .tag {
+      display: inline-block;
+      margin: 0 0 0.75rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--truth);
+    }
+    body.privacy-page .summary-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    body.privacy-page .summary-list li {
+      position: relative;
+      padding: 0.55rem 0 0.55rem 1.35rem;
+      color: var(--ink);
+      border-top: 1px solid var(--line);
+      line-height: 1.45;
+    }
+    body.privacy-page .summary-list li:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    body.privacy-page .summary-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--cyan-deep);
+      font-family: var(--mono);
+    }
+    body.privacy-page .summary-note {
+      margin: 1rem 0 0;
+      font-size: 0.85rem;
+      color: var(--mute);
+    }
+
+    /* Jump nav — full scope of the policy, up front */
+    body.privacy-page .jump-nav {
+      margin: 0 0 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+    }
+    body.privacy-page .jump-nav a {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      letter-spacing: -0.01em;
+      color: var(--mute);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+    body.privacy-page .jump-nav a:hover {
+      color: var(--cyan-deep);
+      border-bottom-color: var(--cyan-deep);
+    }
+    body.privacy-page .prose h2 {
+      scroll-margin-top: 5.5rem;
+    }
+  </style>
+</head>
+<body class="privacy-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+  <main id="main">
+    <header class="page-hero">
+      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
+      <h1>Privacy policy</h1>
+      <p>Last updated: July 22, 2026. We process store and spend data to show cash MER — <span class="mono formula-inline">Shopify sales ÷ ad spend</span> — never path attribution.</p>
+    </header>
+
+    <div class="trust-strip" role="list">
+      <div class="trust-chip" role="listitem">
+        <strong>Cash MER data only</strong>
+        <span>Order totals, order counts, new/returning customer counts + spend you enter</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>Never sold</strong>
+        <span>Merchant and customer data isn't for sale</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>No pixels</strong>
+        <span>Not a path-attribution product, by design</span>
+      </div>
+      <div class="trust-chip" role="listitem">
+        <strong>Deleted on uninstall</strong>
+        <span>Shopify shop-redact removes your Mcfly record</span>
+      </div>
+    </div>
+
+    <div class="prose">
+      <div class="legal-summary">
+        <p class="tag">Plain-English summary</p>
+        <ul class="summary-list">
+          <li>We read Shopify order totals and order counts, classify unique customers as new vs returning using only opaque customer IDs and lifetime order counts (no names, emails, or addresses), and combine that with the ad spend you enter — that is the data diet behind cash MER, break-even, and allocation.</li>
+          <li>We don't sell merchant or customer data, run tracking pixels, or build a customer CRM from your orders.</li>
+          <li>Uninstalling triggers Shopify's <code>shop/redact</code> webhook — we delete your Mcfly shop record, settings, and spend entries on our side.</li>
+          <li>Same cash MER religion as the product: we measure money against money, not who "won" the click. The Shopify App Store listing is free while we launch; see <a href="/pricing.html">Pricing</a> for the later flat ~$79 path via Shopify Billing.</li>
+        </ul>
+        <p class="summary-note">This summary is an orientation, not a substitute — the full policy below governs.</p>
+      </div>
+
+      <nav class="jump-nav" aria-label="Jump to section">
+        <a href="#who-we-are">Who we are</a>
+        <a href="#why-we-process">Why we process data</a>
+        <a href="#what-we-collect">What we collect</a>
+        <a href="#what-we-refuse">What we refuse to do</a>
+        <a href="#gdpr">GDPR / data requests</a>
+        <a href="#retention">Retention</a>
+        <a href="#processors">Processors</a>
+        <a href="#your-rights">Your rights</a>
+        <a href="#governing-law">Governing law</a>
+      </nav>
+
+      <h2 id="who-we-are">Who we are</h2>
+      <p>Mcfly Ads (“Mcfly,” “we”) is operated by Marty Smithson (Utah, United States). Contact: <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Support: <a href="/support.html">mcflyads.com/support</a>.</p>
+      <p>This policy applies to mcflyads.com and the Mcfly Ads Shopify app.</p>
+
+      <h2 id="why-we-process">Why we process data</h2>
+      <p>To run the MER dashboard, break-even MER, and rules-based allocation; to provide support and security; and to comply with law and Shopify’s app requirements (including GDPR webhooks). We measure money spent on ads against money Shopify recorded as sales — not who “won” the click.</p>
+
+      <h2 id="what-we-collect">What we collect</h2>
+      <ul>
+        <li><strong>Account contact</strong> you give us (name, email, store URL) via waitlist or support.</li>
+        <li><strong>Shopify shop domain</strong> and OAuth session tokens when you install the app.</li>
+        <li><strong>Order / sales totals and order counts</strong> for periods you view (Shopify Admin API <code>read_orders</code>) to compute cash MER and AOV.</li>
+        <li><strong>New vs returning customer counts</strong> derived in-request from opaque Shopify customer IDs and <code>numberOfOrders</code> only. We do not request or store customer name, email, phone, or address, and we do not keep a customer CRM.</li>
+        <li><strong>Ad spend you enter</strong> (CSV or manual: Meta, Google, Microsoft, TikTok, Affiliate, Email, Other) and settings (margin %, target MER).</li>
+        <li><strong>Technical logs</strong> (IP, user agent, error events) for security and reliability.</li>
+      </ul>
+
+      <h2 id="what-we-refuse">What we refuse to do</h2>
+      <ul>
+        <li>We do not sell merchant or customer data.</li>
+        <li>We do not run path-attribution pixels as a product.</li>
+        <li>We do not build a customer CRM from your orders — we aggregate sales for MER.</li>
+        <li>We do not train public AI models on your store data.</li>
+      </ul>
+
+      <h2 id="gdpr">Shopify GDPR / data requests</h2>
+      <p>When Shopify sends <code>customers/data_request</code>, <code>customers/redact</code>, or <code>shop/redact</code>, we process them per Shopify’s timelines. Shop uninstall and <code>shop/redact</code> delete your Mcfly shop record, settings, spend entries, and sessions.</p>
+
+      <h2 id="retention">Retention</h2>
+      <p>We keep app data while the app is installed. After uninstall / shop redact, we delete merchant app data subject to short backup windows and legal holds.</p>
+
+      <h2 id="processors">Processors</h2>
+      <p>We use infrastructure vendors such as Cloudflare (site hosting/CDN), our application host and database provider (when the Shopify app is live), email, and Shopify. They process data only to provide services to us.</p>
+
+      <h2 id="your-rights">Your rights</h2>
+      <p>Depending on your location, you may request access, correction, deletion, or export of personal data. Email <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Merchants can also uninstall the app to stop processing store data through Mcfly.</p>
+
+      <h2 id="governing-law">Governing law</h2>
+      <p>Privacy disputes relating to this site and app are handled under Utah, USA law, consistent with our <a href="/terms.html">Terms</a>.</p>
+
+      <h2 id="children">Children</h2>
+      <p>The service is for businesses, not directed at children under 16.</p>
+
+      <h2 id="changes">Changes</h2>
+      <p>We may update this policy. Material changes will be posted here with a new date.</p>
+    </div>
+  </main>
+  <div data-footer></div>
+  <script src="/assets/chrome.js?v=20260723a"></script>
+  <script src="/assets/app.js?v=20260723a"></script>
+</body>
+</html>
