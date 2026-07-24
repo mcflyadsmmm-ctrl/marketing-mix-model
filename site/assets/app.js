@@ -21,11 +21,13 @@
       toggle.setAttribute("aria-expanded", String(!open));
       mobile.hidden = open;
       toggle.setAttribute("aria-label", open ? "Open menu" : "Close menu");
+      document.dispatchEvent(new CustomEvent("mcfly:mobile-nav", { detail: { open: !open } }));
     });
     mobile.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", () => {
         toggle.setAttribute("aria-expanded", "false");
         mobile.hidden = true;
+        document.dispatchEvent(new CustomEvent("mcfly:mobile-nav", { detail: { open: false } }));
       });
     });
   }
@@ -395,41 +397,184 @@
   }
 
   const WAITLIST_EMAIL = "mcflyadsmmm@gmail.com";
+
+  function normalizeStoreUrl(raw) {
+    const value = String(raw || "").trim();
+    if (!value) return "";
+    if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return value;
+    return "https://" + value;
+  }
+
+  function buildWaitlistDraft(fields) {
+    const subject = "Mcfly early access — " + fields.name;
+    const body = [
+      "Mcfly Ads — early access request",
+      "",
+      "Name: " + fields.name,
+      "Email: " + fields.email,
+      "Role / context: " + (fields.role || "(not specified)"),
+      "Site / store: " + (fields.store || "(not specified — exploring)"),
+      "",
+      "Request: early access / free launch feedback.",
+      "From: mcflyads.com waitlist.",
+    ].join("\n");
+    const mailto =
+      "mailto:" +
+      encodeURIComponent(WAITLIST_EMAIL) +
+      "?subject=" +
+      encodeURIComponent(subject) +
+      "&body=" +
+      encodeURIComponent(body);
+    const clipboard = [
+      "To: " + WAITLIST_EMAIL,
+      "Subject: " + subject,
+      "",
+      body,
+    ].join("\n");
+    return { subject, body, mailto, clipboard };
+  }
+
+  function openMailto(url) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.rel = "noopener";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
   document.querySelectorAll("[data-waitlist]").forEach((form) => {
+    const panel = form.parentElement && form.parentElement.querySelector(".waitlist-confirm");
+    const errorEl = form.querySelector("[data-waitlist-error]");
+    const openBtn = panel && panel.querySelector("[data-waitlist-open]");
+    const copyBtn = panel && panel.querySelector("[data-waitlist-copy]");
+    const editBtn = panel && panel.querySelector("[data-waitlist-edit]");
+    const metaEl = panel && panel.querySelector("[data-waitlist-meta]");
+    const copyStatus = panel && panel.querySelector("[data-waitlist-copy-status]");
+    let lastDraft = null;
+
+    function showError(message) {
+      if (!errorEl) return;
+      errorEl.hidden = !message;
+      errorEl.textContent = message || "";
+    }
+
+    function showDraft(draft) {
+      lastDraft = draft;
+      if (openBtn) openBtn.setAttribute("href", draft.mailto);
+      if (metaEl) {
+        metaEl.replaceChildren();
+        metaEl.append("To ");
+        const mailLink = document.createElement("a");
+        mailLink.href = draft.mailto;
+        mailLink.textContent = WAITLIST_EMAIL;
+        metaEl.append(mailLink);
+        metaEl.append(" · Subject: ");
+        const subjectStrong = document.createElement("strong");
+        subjectStrong.textContent = draft.subject;
+        metaEl.append(subjectStrong);
+      }
+      if (copyStatus) {
+        copyStatus.hidden = true;
+        copyStatus.textContent = "";
+      }
+      form.hidden = true;
+      if (panel) {
+        panel.hidden = false;
+        if (openBtn && typeof openBtn.focus === "function") openBtn.focus();
+      }
+    }
+
+    function showForm() {
+      if (panel) panel.hidden = true;
+      form.hidden = false;
+      showError("");
+      const nameInput = form.querySelector('[name="name"]');
+      if (nameInput && typeof nameInput.focus === "function") nameInput.focus();
+    }
+
     form.addEventListener("submit", (event) => {
       event.preventDefault();
+      showError("");
       const data = new FormData(form);
       const name = String(data.get("name") || "").trim();
       const email = String(data.get("email") || "").trim();
-      const store = String(data.get("store") || "").trim();
-      if (!name || !email || !store) {
+      const role = String(data.get("role") || "").trim();
+      const store = normalizeStoreUrl(data.get("store"));
+
+      const emailInput = form.querySelector('[name="email"]');
+      if (!name || !email) {
         form.reportValidity();
+        showError("Name and email are required to draft the request.");
         return;
       }
-      const body = [
-        "Mcfly Analytics — free launch / design partner",
-        "",
-        "Name: " + name,
-        "Email: " + email,
-        "Store URL: " + store,
-        "",
-        "Request: free launch special (feedback + testing).",
-        "Sent from mcflyads.com waitlist.",
-      ].join("\n");
-      window.location.href =
-        "mailto:" +
-        encodeURIComponent(WAITLIST_EMAIL) +
-        "?subject=" +
-        encodeURIComponent("Mcfly free launch — " + name) +
-        "&body=" +
-        encodeURIComponent(body);
-      form.hidden = true;
-      const confirm = form.parentElement.querySelector(".waitlist-confirm");
-      if (confirm) confirm.hidden = false;
+      if (emailInput && typeof emailInput.checkValidity === "function" && !emailInput.checkValidity()) {
+        emailInput.reportValidity();
+        showError("Enter a valid email so we can reply.");
+        return;
+      }
+
+      const draft = buildWaitlistDraft({ name, email, role, store });
+      showDraft(draft);
+      openMailto(draft.mailto);
     });
+
+    if (copyBtn) {
+      copyBtn.addEventListener("click", async () => {
+        if (!lastDraft) return;
+        const text = lastDraft.clipboard;
+        let ok = false;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+            ok = true;
+          }
+        } catch (_) {
+          ok = false;
+        }
+        if (!ok) {
+          const area = document.createElement("textarea");
+          area.value = text;
+          area.setAttribute("readonly", "");
+          area.style.position = "fixed";
+          area.style.left = "-9999px";
+          document.body.appendChild(area);
+          area.select();
+          try {
+            ok = document.execCommand("copy");
+          } catch (_) {
+            ok = false;
+          }
+          area.remove();
+        }
+        if (copyStatus) {
+          copyStatus.hidden = false;
+          copyStatus.textContent = ok
+            ? "Copied. Paste into any email to " + WAITLIST_EMAIL + ", then send."
+            : "Copy failed — select Open email app, or write to " + WAITLIST_EMAIL + " yourself.";
+        }
+      });
+    }
+
+    if (editBtn) {
+      editBtn.addEventListener("click", () => {
+        showForm();
+      });
+    }
+
+    if (openBtn) {
+      openBtn.addEventListener("click", (event) => {
+        if (!lastDraft) return;
+        event.preventDefault();
+        openMailto(lastDraft.mailto);
+      });
+    }
   });
 
-  const reveals = document.querySelectorAll(".band, .instrument, .lie-grid article, .how-rail li");
+  const reveals = document.querySelectorAll(
+    ".band, .instrument, .lie-grid article, .how-rail li, .reveal",
+  );
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
@@ -445,6 +590,10 @@
     reveals.forEach((el) => {
       el.classList.add("reveal");
       io.observe(el);
+    });
+  } else {
+    reveals.forEach((el) => {
+      el.classList.add("reveal", "in");
     });
   }
 
