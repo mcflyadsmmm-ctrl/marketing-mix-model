@@ -594,8 +594,8 @@ export default function Dashboard() {
   const bothBlockedEmpty = marginBlocked && spendBlocked;
   /** Spend missing, margin OK. */
   const spendOnlyEmpty = spendBlocked && !marginBlocked;
-  /** Margin missing, spend present — banner above scoreboard. */
-  const marginOnlyBanner = marginBlocked && !spendBlocked;
+  /** Margin missing, spend present — empty owns the body; scoreboard waits. */
+  const marginOnlyEmpty = marginBlocked && !spendBlocked;
   const headroomMonth = control?.headroomMonth ?? 0;
   const headroomPeriod = control?.headroomPeriod ?? 0;
   const headroomDay = control?.headroomDay ?? 0;
@@ -680,20 +680,39 @@ export default function Dashboard() {
           </section>
         ) : null}
 
-        {marginOnlyBanner ? (
-          <section
-            className="mcfly-state mcfly-state--warn"
-            aria-label="Break-even margin required"
-          >
-            <p className="mcfly-state__copy">
-              Set contribution margin so break-even MER can lock — then the scoreboard knows the line.
-            </p>
-            <div className="mcfly-state__cta">
-              <s-button href="/app/settings" variant="primary">
-                Set contribution margin
-              </s-button>
-            </div>
-          </section>
+        {marginOnlyEmpty ? (
+          <s-section accessibilityLabel="Empty state — set contribution margin for break-even MER">
+            <s-grid gap="base" justifyItems="center" paddingBlock="large-400">
+              <s-grid justifyItems="center" maxInlineSize="450px" gap="base">
+                <s-stack alignItems="center">
+                  <s-heading>Set contribution margin to lock break-even</s-heading>
+                  <s-paragraph>
+                    Sales and spend are already on the till. Cash MER is Shopify
+                    sales ÷ ad spend — not platform ROAS. Confirm margin so
+                    break-even MER can lock, and the scoreboard lights up with the
+                    line between printing cash and burning it.
+                  </s-paragraph>
+                </s-stack>
+                <s-button-group>
+                  <s-button
+                    slot="primary-action"
+                    variant="primary"
+                    href="/app/settings"
+                    aria-label="Set contribution margin"
+                  >
+                    Set contribution margin
+                  </s-button>
+                  <s-button
+                    slot="secondary-actions"
+                    href="/app/spend"
+                    aria-label="Review logged spend"
+                  >
+                    Review spend
+                  </s-button>
+                </s-button-group>
+              </s-grid>
+            </s-grid>
+          </s-section>
         ) : null}
 
         <header className="mcfly-topbar">
@@ -891,7 +910,7 @@ export default function Dashboard() {
           </section>
         ) : null}
 
-        {!spendBlocked ? (
+        {!spendBlocked && !marginBlocked ? (
           <>
         <section className="mcfly-decision" aria-label="Cash MER decision">
           <p className="mcfly-decision__kicker">
@@ -959,6 +978,14 @@ export default function Dashboard() {
           </div>
         </section>
 
+        <details
+          className="mcfly-explore-mix"
+          {...(shotMode ? { open: true } : {})}
+        >
+          <summary className="mcfly-explore-mix__summary">
+            Explore spend mix
+          </summary>
+          <div className="mcfly-explore-mix__body">
         {!shotMode && metrics.totalSpend > 0
           ? (() => {
               const aov =
@@ -1026,14 +1053,6 @@ export default function Dashboard() {
             })()
           : null}
 
-        <details
-          className="mcfly-explore-mix"
-          {...(shotMode ? { open: true } : {})}
-        >
-          <summary className="mcfly-explore-mix__summary">
-            Explore spend mix
-          </summary>
-          <div className="mcfly-explore-mix__body">
         <SpendExplorer
           series={explorer}
           period={preset}

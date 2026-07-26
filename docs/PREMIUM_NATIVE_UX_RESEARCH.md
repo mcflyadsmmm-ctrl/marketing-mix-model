@@ -239,6 +239,65 @@ Do NOT commit unless asked. Return: paths + top 5 AGENT_FIX + 3 founder Cursor s
 
 | Date | Note |
 | --- | --- |
+| 2026-07-26 | Deep craft raid §8: STEAL/NEVER matrix + P0 first-viewport diet (unit-econ in Explore; margin gate = spend gate) |
 | 2026-07-24 | P1 #4 desk chrome scope, P1 #5 zero-spend Polaris empty state (code evidence in routes + `mcfly-desk.css`) |
 | 2026-07-23 | Catch-up: P1 #6 Settings template, P1 #7 PeriodControl, P2 #8 mobile density |
 | 2026-07-23 | Initial deep research cycle; hybrid rule + top 8 AGENT_FIX from repo + shopify.dev BFS Design §4 |
+
+---
+
+## 8. Deep craft raid (2026-07-26)
+
+**Thesis deepened:** TW / Northbeam / Polar sell proprietary science; the real moat is habit + craft + distribution. Commodity plumbing + packaging ≠ secret equations. Mcfly steals craft, deletes theater, owns the cash desk.
+
+### 10 STEAL_CRAFT
+
+| Pattern | Why it wins | Mcfly file target | Priority |
+| --- | --- | --- | --- |
+| Outcome-first hierarchy | “What happened / what do I do?” before analysis | `app._index.tsx` | P0 |
+| Sticky trust context | Period, freshness, target, BE stay visible while scanning | `app._index.tsx` | P0 |
+| One dominant KPI | Cash MER primary; Sales/Spend/EOM explain | `app._index.tsx` | P0 |
+| Decision copy with a verb | Desk, not dashboard: cut / shift / hold / add spend | `app._index.tsx` | P0 |
+| Progressive disclosure | Depth without warehouse-BI first viewport | `app._index.tsx` (Explore) | P0 |
+| One blocked-state action | Confirm margin **or** add spend — one primary CTA | `app._index.tsx` | P0 |
+| Preview-vs-confirmed | Defaults never look locked | `app.settings.tsx` (`marginConfirmedAt`) | P0 |
+| Admin-native save | CSB confirm/discard | Settings + Goals | P1 |
+| Period + persistent context | Deliberate windows, not decoration | `PeriodControl.tsx` | P1 |
+| Purpose-matched density | Scoreboard tight; Settings airy | `mcfly-desk.css` | P1 |
+
+### 10 NEVER_CLONE (why operators feel burned)
+
+| Item | Burn | Mcfly refuse |
+| --- | --- | --- |
+| First-party pixel | Setup before value; models ≠ finance | No pixels; till + spend |
+| MTA model picker | Arguments about paths, not cash | No MTA / view-through |
+| “True ROAS” | Renames theater as truth | Cash MER only |
+| MMM / Causal Lift cockpit | Calibration ceremony | No Compass clone |
+| AI operator home | Another system to babysit | No Moby-as-identity |
+| Connector marketplace | Refresh tax, still no decision | No SyncWith zoo |
+| Warehouse + 400 metrics | Analyst work for a Monday answer | No Snowflake ski resort |
+| GMV / spend tax pricing | Bill rises with success | Flat desk fee |
+| Inverted MER | Breaks cash intuition | Always sales ÷ spend |
+| PII LTV on first listing | Heavy PCD / speculative value | Aggregates only |
+
+### Positioning lines (no bitterness)
+
+- No secret MER equation. Just the cash facts, organized well.
+- Shopify sales ÷ ad spend. Same period.
+- Break-even from your confirmed margin.
+- Allocation follows rules you can inspect.
+- No pixel deciding which path deserves credit.
+- No warehouse, model court, or AI operator to babysit.
+- Premium craft without proprietary-science theater.
+- One Monday desk. One defensible next move.
+
+### Implemented this raid (evidence)
+
+- Unit-econ chips moved inside collapsed **Explore spend mix** (`app._index.tsx`).
+- Scoreboard gated on `!(spendBlocked \|\| marginBlocked)` — margin-only gets one Polaris empty (Settings primary), no duplicate decision CTAs.
+- Apps Script note: secondary unit-econ density now behind Explore (intentional first-viewport diet).
+
+### Next craft P1 (do not expand this tick)
+
+- Soften Settings preview BE visual weight when `marginConfirmedAt` is null.
+- Reduce “Cash MER” identity repetition under Admin title bar (ctx brand / kicker).
