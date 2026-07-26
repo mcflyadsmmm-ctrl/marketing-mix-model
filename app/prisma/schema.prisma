@@ -35,6 +35,10 @@ model Session {
 model Shop {
   id              String           @id @default(cuid())
   domain          String           @unique
+  /// IANA tz (e.g. "America/Chicago") for local-day boundaries on sales facts.
+  ianaTimezone    String?
+  /// ISO 4217 currency code (e.g. "USD") for sales fact amounts.
+  currencyCode    String?          @db.Char(3)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   settings        Settings?
@@ -44,6 +48,7 @@ model Shop {
   merSnapshots    MerSnapshot[]
   sampleSalesDays SampleSalesDay[]
   salesGoals      SalesGoal[]
+  salesDayFacts   SalesDayFact[]
 }
 
 model Settings {
@@ -84,8 +89,39 @@ model SpendEntry {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  /// One entry per channel per period-start — writers upsert on this key
+  /// (latest write wins on amount/periodEnd/note/source; never sum duplicates).
+  @@unique([shopId, channel, periodStart])
   @@index([shopId, periodStart, periodEnd])
   @@index([shopId, source])
+}
+
+/// Daily Shopify sales fact (real store, not sample) — one row per shop/local-day.
+/// Populated by the sync/backfill lane; the desk reads from this table once wired.
+model SalesDayFact {
+  id                       String   @id @default(cuid())
+  shopId                   String
+  shop                     Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  day                      DateTime @db.Date
+  sales                    Float
+  orderCount               Int      @default(0)
+  newCustomers             Int      @default(0)
+  returningCustomers       Int      @default(0)
+  guestOrders              Int      @default(0)
+  /// False when Shopify customer-linkage data (new/returning/guest) was unavailable
+  /// for this day — sales/orderCount still trustworthy, customer split is not.
+  customerMetricsAvailable Boolean  @default(true)
+  /// ISO 4217 currency of `sales` for this row (falls back to Shop.currencyCode).
+  currency                 String?
+  /// When this row was last computed/fetched from Shopify.
+  asOf                     DateTime?
+  /// shopify | sample | backfill
+  source                   String   @default("shopify")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  @@unique([shopId, day])
+  @@index([shopId, day])
 }
 
 /// Daily sample till sales for the Demo desk (not Shopify API).

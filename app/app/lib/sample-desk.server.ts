@@ -75,8 +75,13 @@ export async function seedThreeYearSampleDesk(shopId: string, targetMer = 3.5) {
         });
       }
     }
+    // skipDuplicates guards the (shopId, channel, periodStart) unique index in the rare
+    // case a real (non-sample) entry already occupies that day/channel — sample rows lose.
     for (let i = 0; i < spendData.length; i += 200) {
-      await tx.spendEntry.createMany({ data: spendData.slice(i, i + 200) });
+      await tx.spendEntry.createMany({
+        data: spendData.slice(i, i + 200),
+        skipDuplicates: true,
+      });
     }
 
     await tx.settings.update({

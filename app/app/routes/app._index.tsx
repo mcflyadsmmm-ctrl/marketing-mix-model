@@ -25,15 +25,26 @@ import {
 } from "../lib/mer-format";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
+  emptySales,
   fetchShopifySales,
   fetchShopifySalesByDay,
+  shopLocalDayKey,
+  shopLocalDayRange,
+  type SalesResult,
 } from "../lib/shopify-sales.server";
+import {
+  runSalesFactsBackfill,
+  getSalesFactsCoverage,
+  getSalesFactsTotals,
+  getSalesFactsByDay,
+} from "../lib/sales-facts.server";
 import {
   parsePeriodPreset,
   periodMayExceedShopifyOrderWindow,
   resolvePeriod,
   resolvePriorPeriod,
   type PeriodPreset,
+  type DateRange,
 } from "../lib/periods";
 import {
   fetchSampleSales,
@@ -81,6 +92,13 @@ function formatMerAbsDelta(abs: number | null): string {
   if (abs == null) return "vs prior —";
   const sign = abs > 0 ? "+" : "";
   return `${sign}${abs.toFixed(2)}× vs prior`;
+}
+
+/** Today so far in shop IANA tz (midnight → now). Facts never cover the open day. */
+function todayPartialRange(now: Date, ianaTimezone: string): DateRange {
+  const dayKey = shopLocalDayKey(now, ianaTimezone);
+  const day = shopLocalDayRange(dayKey, ianaTimezone);
+  return { start: day.start, end: now, label: "Today (partial)" };
 }
 
 function decisionTakeaway(metrics: {
@@ -308,7 +326,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = await ensureShop(session.shop);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
 
-  let sales;
+  let sales: SalesResult = emptySales("shopify");
   let priorSales = { totalSales: 0 };
   let salesError: string | null = null;
   let salesByDay = new Map<string, number>();
@@ -365,56 +383,123 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       customerMetricsAvailable: sampleExplorer.customerMetricsAvailable,
     };
   } else {
+    // Facts-first: metadata sync + a bounded backfill resume (small maxDays — this
+    // must never turn a desk page load into a long-running Shopify crawl). Best-effort:
+    // errors here just mean ingest resumes on the next auth callback / desk load.
     try {
-      const [liveSales, livePrior, liveExplorer] = await Promise.all([
-        fetchShopifySales(admin, range),
-        fetchShopifySales(admin, priorRange).catch(() => ({
-          totalSales: 0,
-          orderCount: 0,
-          newCustomers: 0,
-          returningCustomers: 0,
-          guestOrders: 0,
-          customerMetricsAvailable: false,
-          source: "shopify" as const,
-        })),
-        fetchShopifySales(admin, {
-          start: explorerWindow.start,
-          end: explorerWindow.end,
-          label: explorerWindow.label,
-        }).catch(() => ({
-          totalSales: 0,
-          orderCount: 0,
-          newCustomers: 0,
-          returningCustomers: 0,
-          guestOrders: 0,
-          customerMetricsAvailable: false,
-          source: "shopify" as const,
-        })),
+      await runSalesFactsBackfill(admin, shop.id);
+    } catch {
+      // ignore — facts coverage below naturally falls back to live
+    }
+
+    let mainCoverage = { expectedClosedDays: 0, factDays: 0, complete: false };
+    let dayCoverage = { expectedClosedDays: 0, factDays: 0, complete: false };
+    try {
+      [mainCoverage, dayCoverage] = await Promise.all([
+        getSalesFactsCoverage(shop.id, range),
+        getSalesFactsCoverage(shop.id, dayFetchRange),
       ]);
-      sales = liveSales;
+    } catch {
+      // Coverage read failed — both stay incomplete, live path below covers it.
+    }
+
+    let usedFactsForTotals = false;
+    if (mainCoverage.complete) {
+      try {
+        const factsTotals = await getSalesFactsTotals(shop.id, range);
+        // Facts only cover closed days. Top up "today so far" only when we know
+        // the shop IANA timezone — never invent server-local midnight.
+        const ianaTimezone = shop.ianaTimezone;
+        let todaySales: SalesResult | null = null;
+        if (ianaTimezone) {
+          const now = new Date();
+          const todayKey = shopLocalDayKey(now, ianaTimezone);
+          const todayBounds = shopLocalDayRange(todayKey, ianaTimezone);
+          const includesOpenToday = range.end >= todayBounds.start;
+          if (includesOpenToday) {
+            todaySales = await fetchShopifySales(
+              admin,
+              todayPartialRange(now, ianaTimezone),
+            ).catch(() => null);
+          }
+        }
+        sales = {
+          totalSales: factsTotals.totalSales + (todaySales?.totalSales ?? 0),
+          orderCount: factsTotals.orderCount + (todaySales?.orderCount ?? 0),
+          newCustomers: 0,
+          returningCustomers: 0,
+          guestOrders: 0,
+          // Per-day new/returning sums are not a unique cross-period count —
+          // never present a facts-derived total as having live customer metrics.
+          customerMetricsAvailable: false,
+          source: "shopify" as const,
+        };
+        usedFactsForTotals = true;
+      } catch {
+        usedFactsForTotals = false;
+      }
+    }
+
+    if (!usedFactsForTotals) {
+      try {
+        sales = await fetchShopifySales(admin, range);
+      } catch (err) {
+        salesError = err instanceof Error ? err.message : "Failed to load Shopify sales";
+        // Honest empty till — never fall back to mockSales as live Shopify.
+        sales = {
+          totalSales: 0,
+          orderCount: 0,
+          newCustomers: 0,
+          returningCustomers: 0,
+          guestOrders: 0,
+          customerMetricsAvailable: false,
+          source: "shopify" as const,
+        };
+      }
+    }
+
+    try {
+      const livePrior = await fetchShopifySales(admin, priorRange);
       priorSales = { totalSales: livePrior.totalSales };
-      explorerCustomers = {
-        newCustomers: liveExplorer.newCustomers,
-        returningCustomers: liveExplorer.returningCustomers,
-        customerMetricsAvailable: liveExplorer.customerMetricsAvailable,
-      };
+    } catch {
+      priorSales = { totalSales: 0 };
+    }
+
+    let usedFactsForDay = false;
+    if (dayCoverage.complete) {
+      try {
+        salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange);
+        explorerCustomers = {
+          newCustomers: 0,
+          returningCustomers: 0,
+          customerMetricsAvailable: false,
+        };
+        usedFactsForDay = true;
+      } catch {
+        usedFactsForDay = false;
+      }
+    }
+
+    if (!usedFactsForDay) {
       try {
         salesByDay = await fetchShopifySalesByDay(admin, dayFetchRange);
       } catch {
         salesByDay = new Map();
       }
-    } catch (err) {
-      salesError = err instanceof Error ? err.message : "Failed to load Shopify sales";
-      // Honest empty till — never fall back to mockSales as live Shopify.
-      sales = {
-        totalSales: 0,
-        orderCount: 0,
-        newCustomers: 0,
-        returningCustomers: 0,
-        guestOrders: 0,
-        customerMetricsAvailable: false,
-        source: "shopify" as const,
-      };
+      try {
+        const liveExplorer = await fetchShopifySales(admin, {
+          start: explorerWindow.start,
+          end: explorerWindow.end,
+          label: explorerWindow.label,
+        });
+        explorerCustomers = {
+          newCustomers: liveExplorer.newCustomers,
+          returningCustomers: liveExplorer.returningCustomers,
+          customerMetricsAvailable: liveExplorer.customerMetricsAvailable,
+        };
+      } catch {
+        // keep defaults — explorer just shows without cost-per-customer stats
+      }
     }
   }
 

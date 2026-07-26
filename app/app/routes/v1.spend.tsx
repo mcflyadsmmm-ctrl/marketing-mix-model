@@ -51,12 +51,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   for (const entry of parsed.data.entries) {
     const channel = mapChannel(entry.channel);
     const { start, end } = dayBounds(entry.date);
-    await prisma.spendEntry.create({
-      data: {
+    // Upsert on shopId+channel+periodStart (SpendEntry_shopId_channel_periodStart_key) —
+    // re-posting the same shop/channel/day updates that row (latest write wins), no summing.
+    await prisma.spendEntry.upsert({
+      where: {
+        shopId_channel_periodStart: { shopId: shop.id, channel, periodStart: start },
+      },
+      create: {
         shopId: shop.id,
         channel,
         amount: entry.amount,
         periodStart: start,
+        periodEnd: end,
+        note: `api:${entry.currency}`,
+      },
+      update: {
+        amount: entry.amount,
         periodEnd: end,
         note: `api:${entry.currency}`,
       },

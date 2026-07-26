@@ -22,7 +22,8 @@ function dayBounds(date: string): { start: Date; end: Date } {
 
 /**
  * Prisma-backed SpendRepository for connector sync jobs.
- * Upserts one SpendEntry per shop/channel/day.
+ * Upserts one SpendEntry per shop/channel/periodStart (the `SpendEntry_shopId_channel_periodStart_key`
+ * unique index) — latest write wins on amount/periodEnd/note/source. Never sums duplicates.
  */
 export function createSpendRepository(): SpendRepository {
   return {
@@ -34,37 +35,32 @@ export function createSpendRepository(): SpendRepository {
         const channel = mapChannel(row.channel);
         const { start, end } = dayBounds(row.date);
 
-        const existing = await prisma.spendEntry.findFirst({
+        const existing = await prisma.spendEntry.findUnique({
           where: {
-            shopId,
-            channel,
-            periodStart: start,
-            periodEnd: end,
+            shopId_channel_periodStart: { shopId, channel, periodStart: start },
           },
+          select: { amount: true },
         });
 
-        if (existing) {
-          if (existing.amount !== row.amount) {
-            await prisma.spendEntry.update({
-              where: { id: existing.id },
-              data: {
-                amount: row.amount,
-                note: `sync:${row.source}`,
-              },
-            });
-            written += 1;
-          } else {
-            skipped += 1;
-          }
+        if (existing && existing.amount === row.amount) {
+          skipped += 1;
           continue;
         }
 
-        await prisma.spendEntry.create({
-          data: {
+        await prisma.spendEntry.upsert({
+          where: {
+            shopId_channel_periodStart: { shopId, channel, periodStart: start },
+          },
+          create: {
             shopId,
             channel,
             amount: row.amount,
             periodStart: start,
+            periodEnd: end,
+            note: `sync:${row.source}`,
+          },
+          update: {
+            amount: row.amount,
             periodEnd: end,
             note: `sync:${row.source}`,
           },

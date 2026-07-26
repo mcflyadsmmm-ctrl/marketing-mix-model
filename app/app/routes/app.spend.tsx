@@ -261,12 +261,26 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
   }
 
   const range = resolvePeriod(period);
-  await prisma.spendEntry.create({
-    data: {
+  // Upsert on shopId+channel+periodStart (SpendEntry_shopId_channel_periodStart_key) —
+  // re-saving the same channel/period updates that line rather than creating a duplicate.
+  await prisma.spendEntry.upsert({
+    where: {
+      shopId_channel_periodStart: {
+        shopId: shop.id,
+        channel: channel as CsvChannel,
+        periodStart: range.start,
+      },
+    },
+    create: {
       shopId: shop.id,
       channel: channel as CsvChannel,
       amount,
       periodStart: range.start,
+      periodEnd: range.end,
+      note,
+    },
+    update: {
+      amount,
       periodEnd: range.end,
       note,
     },
