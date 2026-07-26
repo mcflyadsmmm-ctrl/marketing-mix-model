@@ -26,8 +26,8 @@ export default function AppLanding() {
         <p className={styles.kicker}>Mcfly Analytics</p>
         <h1 className={styles.heading}>Spend vs Shopify sales. Not attribution theater.</h1>
         <p className={styles.text}>
-          Cash MER, break-even, and allocation — installed from Shopify Admin or a Partner invite.
-          We never ask you to type your .myshopify.com domain to install.
+          Cash MER, break-even, and allocation — install from the Shopify App Store (Free now) or a
+          Partner invite. We never ask you to type your .myshopify.com domain here.
         </p>
         <ul className={styles.list}>
           <li>
@@ -49,8 +49,8 @@ export default function AppLanding() {
           </a>
         </p>
         <p className={styles.text}>
-          Design partners: install via Shopify Partner Dashboard → your store, or the install
-          link we email you.{" "}
+          App Store listing is Free while we launch. Prefer Admin install / App Store, or a Partner
+          invite we email.{" "}
           <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>
         </p>
       </div>

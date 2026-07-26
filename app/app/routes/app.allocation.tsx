@@ -1,19 +1,13 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useSearchParams } from "react-router";
+import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { PeriodControl } from "../components/PeriodControl";
 import { buildDashboardMetrics, ensureShop } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { fetchShopifySales } from "../lib/shopify-sales.server";
-import { PERIOD_PRESETS, resolvePeriod, type PeriodPreset } from "../lib/periods";
+import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
-
-function parsePreset(raw: string | null): PeriodPreset {
-  if (raw && PERIOD_PRESETS.some((p) => p.value === raw)) {
-    return raw as PeriodPreset;
-  }
-  return "mtd";
-}
 
 function deltaClass(
   mer: number | null,
@@ -39,19 +33,22 @@ function channelFillKey(name: string): string {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
-  const preset = parsePreset(url.searchParams.get("period"));
+  const preset = parsePeriodPreset(url.searchParams.get("period"));
   const shotMode = url.searchParams.get("shot") === "1";
   const range = resolvePeriod(preset);
   const shop = await ensureShop(session.shop);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
 
   let sales;
+  let salesError: string | null = null;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
     try {
       sales = await fetchShopifySales(admin, range);
-    } catch {
+    } catch (err) {
+      salesError =
+        err instanceof Error ? err.message : "Failed to load Shopify sales";
       sales = {
         totalSales: 0,
         orderCount: 0,
@@ -65,18 +62,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales);
-  return { metrics, preset, shotMode, useSampleDesk };
+  return { metrics, preset, shotMode, useSampleDesk, salesError };
 };
 
 export default function AllocationPage() {
-  const { metrics, preset, shotMode, useSampleDesk } =
+  const { metrics, preset, shotMode, useSampleDesk, salesError } =
     useLoaderData<typeof loader>();
-  const [, setSearchParams] = useSearchParams();
+  const navigation = useNavigation();
+  const isLoading = navigation.state === "loading";
   const allocation = metrics.allocation;
-
-  const setPeriod = (value: PeriodPreset) => {
-    setSearchParams(shotMode ? { period: value, shot: "1" } : { period: value });
-  };
 
   const merDelta = allocation
     ? deltaClass(allocation.overallMer, allocation.breakEvenMer)
@@ -88,9 +82,9 @@ export default function AllocationPage() {
       ? `${metrics.period.label} · sample till`
       : `${metrics.period.label} · live Shopify till`;
 
-  const takeaway = allocation
+  const whyLine = allocation
     ? allocation.why
-    : "Set contribution margin in Settings to unlock break-even-aware allocation — rules from cash MER, not path credit.";
+    : "Set contribution margin so break-even can lock — rules from cash MER, not path credit.";
 
   const primaryAction = allocation?.actions[0];
   const decisionLead = primaryAction
@@ -103,30 +97,83 @@ export default function AllocationPage() {
       }`
     : null;
 
+  const recommendation =
+    decisionLead ??
+    (allocation
+      ? "Hold the mix — no cut or shift this period"
+      : "Unlock allocation with break-even");
+
+  const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
+  const noSpendMix =
+    allocation != null && allocation.inputs.channelEfficiencies.length === 0;
+
   return (
     <s-page heading={shotMode ? undefined : "Allocation"} inlineSize="large">
-      <div className={shotMode ? "mcfly-desk mcfly-desk--shot" : "mcfly-desk"}>
+      <div
+        className={
+          shotMode
+            ? "mcfly-desk mcfly-desk--shot"
+            : isLoading
+              ? "mcfly-desk mcfly-desk--loading"
+              : "mcfly-desk"
+        }
+      >
+        {useSampleDesk && !shotMode ? (
+          <s-banner tone="warning" heading="Sample desk is on — not live Shopify">
+            <s-paragraph>
+              Allocation below uses sample till + spend, not your live Shopify orders. Turn sample
+              desk <strong>OFF</strong> on the <s-link href="/app/demo">Demo</s-link> tab before
+              App Store review. <code>?shot=1</code> hides this banner only — numbers stay sample
+              until OFF.
+            </s-paragraph>
+          </s-banner>
+        ) : null}
+
+        {isLoading && !shotMode ? (
+          <section className="mcfly-state mcfly-state--loading" aria-live="polite">
+            <p className="mcfly-state__copy">Refreshing allocation for this period…</p>
+          </section>
+        ) : null}
+
+        {salesError && !shotMode ? (
+          <section
+            className="mcfly-state mcfly-state--critical"
+            aria-label="Sales load error"
+          >
+            <p className="mcfly-state__copy">
+              Shopify sales didn’t load — allocation needs cash MER from sales ÷ spend.
+            </p>
+            <div className="mcfly-state__cta">
+              <s-button href={`/app/allocation?period=${preset}`} variant="primary">
+                Retry
+              </s-button>
+            </div>
+          </section>
+        ) : null}
+
+        {zeroMargin ? (
+          <section
+            className="mcfly-state mcfly-state--warn"
+            aria-label="Break-even margin required"
+          >
+            <p className="mcfly-state__copy">
+              Set contribution margin so break-even MER can lock — then Monday rules can cut or shift.
+            </p>
+            <div className="mcfly-state__cta">
+              <s-button href="/app/settings" variant="primary">
+                Open Settings
+              </s-button>
+            </div>
+          </section>
+        ) : null}
+
         <header className="mcfly-topbar">
           <div>
-            <h1 className="mcfly-topbar__title">Allocation</h1>
-            <p className="mcfly-topbar__def">
+            <p className="mcfly-topbar__def mcfly-topbar__def--solo">
               Rules from cash MER vs break-even · not path credit
             </p>
           </div>
-          <div className="mcfly-period" role="tablist" aria-label="Reporting period">
-            {PERIOD_PRESETS.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={preset === value}
-                className={`mcfly-period__btn${preset === value ? " mcfly-period__btn--on" : ""}`}
-                onClick={() => setPeriod(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <PeriodControl preset={preset} shotMode={shotMode} />
         </header>
 
         <div className="mcfly-ctx" aria-live="polite">
@@ -150,37 +197,67 @@ export default function AllocationPage() {
           </div>
         </div>
 
-        <section className="mcfly-decision" aria-label="Allocation decision">
+        <section
+          className="mcfly-decision mcfly-decision--hero"
+          aria-label="Allocation recommendation"
+        >
           <p className="mcfly-decision__kicker">
-            {decisionLead
-              ? `What to do · ${decisionLead}`
-              : "What to do · cash rules, not attribution"}
+            Monday recommendation · cash rules, not attribution
           </p>
-          <p className="mcfly-decision__takeaway">{takeaway}</p>
+          <p className="mcfly-decision__takeaway">{recommendation}</p>
+          <p className="mcfly-decision__why">{whyLine}</p>
           <div className="mcfly-decision__actions">
-            <s-button href="/app/spend" variant="primary">
-              Adjust spend
+            <s-button
+              href={allocation ? "/app/spend" : "/app/settings"}
+              variant="primary"
+            >
+              {allocation ? "Adjust spend" : "Open Settings"}
             </s-button>
             <s-link href={`/app?period=${preset}`}>Back to Cash MER</s-link>
           </div>
         </section>
 
+        {allocation ? (
+          <dl className="mcfly-alloc-inputs" aria-label="Inputs used for this recommendation">
+            <div className="mcfly-alloc-inputs__item">
+              <dt>Spend</dt>
+              <dd>{formatCurrency(allocation.inputs.totalSpend)}</dd>
+            </div>
+            <div className="mcfly-alloc-inputs__item">
+              <dt>Cash MER</dt>
+              <dd>
+                {allocation.overallMer === null
+                  ? "—.——"
+                  : formatMer(allocation.overallMer)}
+              </dd>
+            </div>
+            <div className="mcfly-alloc-inputs__item">
+              <dt>Break-even</dt>
+              <dd>{formatMer(allocation.breakEvenMer)}</dd>
+            </div>
+            <div className="mcfly-alloc-inputs__item">
+              <dt>Shopify sales</dt>
+              <dd>{formatCurrency(allocation.inputs.totalSales)}</dd>
+            </div>
+          </dl>
+        ) : null}
+
         {!allocation ? (
-          <section className="mcfly-panel">
-            <div className="mcfly-panel__head">
-              <h2>Break-even required</h2>
-              <p className="mcfly-panel__muted">
-                Contribution margin unlocks the control panel
+          !zeroMargin ? (
+            <section
+              className="mcfly-state mcfly-state--empty"
+              aria-label="Allocation unavailable"
+            >
+              <p className="mcfly-state__copy">
+                Allocation compares cash MER to break-even — confirm margin, then log spend.
               </p>
-            </div>
-            <p className="mcfly-panel__next">
-              Set a valid margin in Settings — allocation compares cash MER to
-              break-even, then suggests cuts and shifts. No pixels.
-            </p>
-            <div className="mcfly-decision__actions">
-              <s-link href="/app/settings">Open Settings</s-link>
-            </div>
-          </section>
+              <div className="mcfly-state__cta">
+                <s-button href="/app/settings" variant="primary">
+                  Open Settings
+                </s-button>
+              </div>
+            </section>
+          ) : null
         ) : (
           <>
             <section
@@ -284,17 +361,20 @@ export default function AllocationPage() {
                   Assumed sales = spend share × Shopify sales · cash math, not MTA
                 </p>
               </div>
-              {allocation.inputs.channelEfficiencies.length === 0 ? (
-                <div className="mcfly-guide-empty">
-                  <p className="mcfly-guide-empty__title">
-                    No channel spend for {metrics.period.label}
+              {noSpendMix ? (
+                <section
+                  className="mcfly-state mcfly-state--empty"
+                  aria-label="No channel spend"
+                >
+                  <p className="mcfly-state__copy">
+                    No channel spend for {metrics.period.label} — log Meta, Google, and the rest to light efficiency.
                   </p>
-                  <p className="mcfly-guide-empty__copy">
-                    Log Meta, Google, and the rest on{" "}
-                    <s-link href="/app/spend">Spend</s-link> — then efficiency
-                    bars light up here.
-                  </p>
-                </div>
+                  <div className="mcfly-state__cta">
+                    <s-button href="/app/spend" variant="primary">
+                      Add spend
+                    </s-button>
+                  </div>
+                </section>
               ) : (
                 <div className="mcfly-alloc-eff">
                   {allocation.inputs.channelEfficiencies.map((channel) => {
@@ -303,6 +383,11 @@ export default function AllocationPage() {
                       Math.round(channel.spendShare * 100),
                     );
                     const fill = channelFillKey(channel.name);
+                    const action = allocation.actions.find(
+                      (a) =>
+                        a.channel.toLowerCase() === channel.name.toLowerCase() &&
+                        a.type !== "watch",
+                    );
                     const vsBe =
                       channel.efficiencyVsBreakEven != null
                         ? channel.efficiencyVsBreakEven >= 1
@@ -317,6 +402,16 @@ export default function AllocationPage() {
                           <span className="mcfly-alloc-eff__name">
                             {channel.name}
                             {channel.isManual ? " · manual" : ""}
+                            {action ? (
+                              <span
+                                className={`mcfly-channel__badge mcfly-channel__badge--${action.type}`}
+                              >
+                                {actionLabel(action.type)}
+                                {action.percentChange != null
+                                  ? ` ${action.percentChange > 0 ? "+" : ""}${action.percentChange}%`
+                                  : ""}
+                              </span>
+                            ) : null}
                           </span>
                           <span
                             className={`mcfly-alloc-eff__ratio mcfly-alloc-eff__ratio--${vsBe}`}

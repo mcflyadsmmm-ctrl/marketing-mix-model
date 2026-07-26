@@ -9,6 +9,10 @@
 5. [`docs/AGENTS.md`](./docs/AGENTS.md) — overnight / automation prompts
 6. [`.cursor/skills/mcfly-shopify-compliance/SKILL.md`](./.cursor/skills/mcfly-shopify-compliance/SKILL.md) — App Store / GDPR / PCD before approval claims
 7. **Cash MER desk UI:** [`docs/APPS_SCRIPT_CRAFT_SPEC.md`](./docs/APPS_SCRIPT_CRAFT_SPEC.md) + clasp source in `vendor/mer-apps-script/` (gitignored) — see [`docs/APPS_SCRIPT_ACCESS.md`](./docs/APPS_SCRIPT_ACCESS.md)
+8. **App Store ship audit (anti-circle):** [`docs/MEGAPROMPT_SHIP_AUDIT.md`](./docs/MEGAPROMPT_SHIP_AUDIT.md) · competitive gaps [`docs/COMPETITIVE_APP_STORE_GAP_AUDIT.md`](./docs/COMPETITIVE_APP_STORE_GAP_AUDIT.md) · runbook [`docs/SUBMIT_NOW.md`](./docs/SUBMIT_NOW.md)
+9. **Premium Shopify-native UX (craft, not TW parity):** [`docs/PREMIUM_NATIVE_UX_RESEARCH.md`](./docs/PREMIUM_NATIVE_UX_RESEARCH.md) · skill [`.cursor/skills/mcfly-premium-native-ux/SKILL.md`](./.cursor/skills/mcfly-premium-native-ux/SKILL.md)
+10. **Install smoke / Billing later:** [`docs/INSTALL_SMOKE.md`](./docs/INSTALL_SMOKE.md) · [`docs/BILLING_TIERS.md`](./docs/BILLING_TIERS.md)
+11. **Value thesis (cash desk, flat fee, why not TW):** [`docs/VALUE_THESIS.md`](./docs/VALUE_THESIS.md)
 
 ## Mission
 

@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260723a" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260723b" />
   <style>
     body.privacy-page {
       background:
@@ -154,7 +154,7 @@
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
       <h1>Privacy policy</h1>
-      <p>Last updated: July 22, 2026. We process store and spend data to show cash MER — <span class="mono formula-inline">Shopify sales ÷ ad spend</span> — never path attribution.</p>
+      <p>Last updated: July 24, 2026. We process store and spend data to show cash MER — <span class="mono formula-inline">Shopify sales ÷ ad spend</span> — never path attribution.</p>
     </header>
 
     <div class="trust-strip" role="list">
@@ -171,8 +171,8 @@
         <span>Not a path-attribution product, by design</span>
       </div>
       <div class="trust-chip" role="listitem">
-        <strong>Deleted on uninstall</strong>
-        <span>Shopify shop-redact removes your Mcfly record</span>
+        <strong>App Store Free now</strong>
+        <span>Deleted on uninstall · shop-redact clears your Mcfly record</span>
       </div>
     </div>
 
@@ -180,7 +180,7 @@
       <div class="legal-summary">
         <p class="tag">Plain-English summary</p>
         <ul class="summary-list">
-          <li>We read Shopify order totals and order counts, classify unique customers as new vs returning using only opaque customer IDs and lifetime order counts (no names, emails, or addresses), and combine that with the ad spend you enter — that is the data diet behind cash MER, break-even, and allocation.</li>
+          <li>We read Shopify order totals (<code>read_orders</code>) and classify unique customers as new vs returning using minimal <code>read_customers</code> — opaque customer IDs + <code>numberOfOrders</code> only (no names, emails, or addresses) — then combine that with the ad spend you enter. That is the data diet behind cash MER, break-even, and allocation.</li>
           <li>We don't sell merchant or customer data, run tracking pixels, or build a customer CRM from your orders.</li>
           <li>Uninstalling triggers Shopify's <code>shop/redact</code> webhook — we delete your Mcfly shop record, settings, and spend entries on our side.</li>
           <li>Same cash MER religion as the product: we measure money against money, not who "won" the click. The Shopify App Store listing is free while we launch; see <a href="/pricing.html">Pricing</a> for the later flat ~$79 path via Shopify Billing.</li>
@@ -211,8 +211,8 @@
       <ul>
         <li><strong>Account contact</strong> you give us (name, email, store URL) via waitlist or support.</li>
         <li><strong>Shopify shop domain</strong> and OAuth session tokens when you install the app.</li>
-        <li><strong>Order / sales totals and order counts</strong> for periods you view (Shopify Admin API <code>read_orders</code>) to compute cash MER and AOV.</li>
-        <li><strong>New vs returning customer counts</strong> derived in-request from opaque Shopify customer IDs and <code>numberOfOrders</code> only. We do not request or store customer name, email, phone, or address, and we do not keep a customer CRM.</li>
+        <li><strong>Order / sales totals and order counts</strong> for periods you view (Shopify Admin API scope <code>read_orders</code>) to compute cash MER and AOV.</li>
+        <li><strong>New vs returning customer counts</strong> via minimal scope <code>read_customers</code>: on each order we read only the opaque customer <code>id</code> and <code>numberOfOrders</code>, classify new vs returning in-request, and do not persist a customer database. We do not request or store customer name, email, phone, or address, and we do not keep a customer CRM.</li>
         <li><strong>Ad spend you enter</strong> (CSV or manual: Meta, Google, Microsoft, TikTok, Affiliate, Email, Other) and settings (margin %, target MER).</li>
         <li><strong>Technical logs</strong> (IP, user agent, error events) for security and reliability.</li>
       </ul>
@@ -226,7 +226,7 @@
       </ul>
 
       <h2 id="gdpr">Shopify GDPR / data requests</h2>
-      <p>When Shopify sends <code>customers/data_request</code>, <code>customers/redact</code>, or <code>shop/redact</code>, we process them per Shopify’s timelines. Shop uninstall and <code>shop/redact</code> delete your Mcfly shop record, settings, spend entries, and sessions.</p>
+      <p>When Shopify sends <code>customers/data_request</code>, <code>customers/redact</code>, or <code>shop/redact</code>, we verify the request HMAC and process them per Shopify’s timelines. Because we do not store a customer CRM (only ephemeral id / <code>numberOfOrders</code> for in-request counts), <code>customers/data_request</code> and <code>customers/redact</code> have no customer records to export or erase beyond those aggregates. Shop uninstall and <code>shop/redact</code> delete your Mcfly shop record, settings, spend entries, MER snapshots, and sessions.</p>
 
       <h2 id="retention">Retention</h2>
       <p>We keep app data while the app is installed. After uninstall / shop redact, we delete merchant app data subject to short backup windows and legal holds.</p>
@@ -248,7 +248,7 @@
     </div>
   </main>
   <div data-footer></div>
-  <script src="/assets/chrome.js?v=20260723a"></script>
-  <script src="/assets/app.js?v=20260723a"></script>
+  <script src="/assets/chrome.js?v=20260723b"></script>
+  <script src="/assets/app.js?v=20260723b"></script>
 </body>
 </html>

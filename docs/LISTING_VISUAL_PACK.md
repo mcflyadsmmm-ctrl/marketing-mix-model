@@ -49,13 +49,29 @@ Capture from **embedded Admin** iframe only. Crop to ~**1600×900**. No browser 
 
 | # | Caption (paste under shot) | URL path | Show this |
 | --- | --- | --- | --- |
-| 1 | Cash MER vs break-even — one glance | `/app?period=y3&shot=1` | Hero MER + sales/spend + status vs break-even |
-| 2 | Sales ÷ spend — the only formula we use | `/app?period=ytd&shot=1` | Same desk, YTD — MER definition readable |
+| 1 | Cash MER vs break-even — one glance | `/app?period=y3&shot=1` | **Outcome frame:** crop `mcfly-decision` takeaway + `mcfly-kpi-grid` (lead MER + BE chip). Period tab **3 yr** visible. Exclude equation panel from frame. |
+| 2 | Sales ÷ spend — the only formula we use | `/app?period=mtd&shot=1` | **Definition frame:** scroll/crop to `mcfly-panel--eq` (“Sales ÷ spend” breakdown rows). Exclude hero KPI grid + decision strip. Period **MTD** (not 3 yr). Must look unlike shot 1 for 4.4.4. |
 | 3 | Upload daily spend — all channels + Other | `/app/spend?shot=1` | Template + Meta…Email/**Other** + import |
 | 4 | One clear cut / shift / hold call | `/app/allocation?period=y3&shot=1` | Recommendation + efficiency bars |
 | 5 | Lock break-even from your margin % | `/app/settings?shot=1` | Margin input + live break-even preview |
 
 **Why this order converts:** outcome → trust the math → prove spend ingest (Other included) → Monday decision → “I can set this up.” Settings last so the gallery doesn’t open on a form.
+
+### Shot 1 vs shot 2 — 4.4.4 uniqueness (mandatory)
+
+Shopify rejects **near-duplicate** screenshots. These are **different compositions**, not a period swap on the same crop.
+
+| | Shot 1 | Shot 2 |
+| --- | --- | --- |
+| **Merchant question** | “Am I above break-even?” | “What is cash MER, exactly?” |
+| **DOM focus** | Decision strip + 4-up KPI grid | Equation panel (`Sales ÷ spend` rows: total sales, ÷ spend, = MER) |
+| **Period tab** | **3 yr** | **MTD** (proves period control without cloning shot 1) |
+| **Must NOT appear** | — | Hero MER tile dominating frame; same crop as shot 1 |
+| **Caption proves** | Break-even vs MER at a glance | Formula honesty — sales ÷ spend, not platform ROAS |
+
+After capture, side-by-side the PNGs: if both show the big MER number in the same position, re-crop shot 2 to the equation panel only.
+
+**Upload runbook:** icon + filenames + sample OFF → [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) §D.
 
 ### Caption hygiene
 

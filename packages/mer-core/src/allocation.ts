@@ -1,4 +1,4 @@
-import { calculateMer } from "./mer.js";
+import { calculateMer, isAboveBreakEven } from "./mer.js";
 
 export type AllocationChannelInput = {
   name: string;
@@ -60,7 +60,10 @@ function assumedSalesForChannel(
   totalSales: number,
   totalSpend: number,
 ): number {
-  if (channel.salesContribution !== undefined) {
+  if (
+    channel.salesContribution !== undefined &&
+    Number.isFinite(channel.salesContribution)
+  ) {
     return channel.salesContribution;
   }
   if (totalSpend <= 0 || channel.spend <= 0) {
@@ -76,14 +79,18 @@ function channelEfficiencies(
   breakEvenMer: number,
 ): ChannelEfficiency[] {
   return channels
-    .filter((c) => c.spend >= 0)
+    .filter((c) => Number.isFinite(c.spend) && c.spend >= 0)
     .map((channel) => {
       const spendShare = totalSpend > 0 ? channel.spend / totalSpend : 0;
       const assumedSales = assumedSalesForChannel(channel, totalSales, totalSpend);
       const effectiveMer =
-        channel.spend > 0 ? assumedSales / channel.spend : null;
+        channel.spend > 0 && Number.isFinite(assumedSales)
+          ? assumedSales / channel.spend
+          : null;
       const efficiencyVsBreakEven =
-        effectiveMer !== null && breakEvenMer > 0
+        effectiveMer !== null &&
+        Number.isFinite(effectiveMer) &&
+        breakEvenMer > 0
           ? effectiveMer / breakEvenMer
           : null;
 
@@ -92,9 +99,14 @@ function channelEfficiencies(
         spend: channel.spend,
         spendShare: round(spendShare, 4),
         assumedSales: round(assumedSales, 2),
-        effectiveMer: effectiveMer !== null ? round(effectiveMer, 4) : null,
+        effectiveMer:
+          effectiveMer !== null && Number.isFinite(effectiveMer)
+            ? round(effectiveMer, 4)
+            : null,
         efficiencyVsBreakEven:
-          efficiencyVsBreakEven !== null ? round(efficiencyVsBreakEven, 4) : null,
+          efficiencyVsBreakEven !== null && Number.isFinite(efficiencyVsBreakEven)
+            ? round(efficiencyVsBreakEven, 4)
+            : null,
         isManual: channel.isManual ?? inferManual(channel.name),
       };
     });
@@ -160,20 +172,27 @@ export function suggestAllocation(
     suggestedTestDays = DEFAULT_TEST_DAYS,
   } = input;
 
-  const overallMer = calculateMer(totalSales, totalSpend);
-  const aboveBreakEven =
-    overallMer !== null ? overallMer >= breakEvenMer : null;
+  const spendOk = Number.isFinite(totalSpend) && totalSpend > 0;
+  const salesOk = Number.isFinite(totalSales);
+  const validBreakEven = Number.isFinite(breakEvenMer) && breakEvenMer > 0;
+  const safeSales = salesOk ? totalSales : 0;
+
+  const overallMer =
+    salesOk && spendOk ? calculateMer(totalSales, totalSpend) : null;
+  const aboveBreakEven = validBreakEven
+    ? isAboveBreakEven(overallMer, breakEvenMer)
+    : null;
   const efficiencies = channelEfficiencies(
     channels,
-    totalSales,
-    totalSpend,
-    breakEvenMer,
+    safeSales,
+    spendOk ? totalSpend : 0,
+    validBreakEven ? breakEvenMer : 0,
   );
 
   const actions: AllocationAction[] = [];
   let why: string;
 
-  if (totalSpend <= 0) {
+  if (!Number.isFinite(totalSpend) || totalSpend <= 0) {
     why =
       "No ad spend recorded for this period. Add spend (manual or synced) before allocation advice applies.";
     actions.push({
@@ -181,8 +200,21 @@ export function suggestAllocation(
       channel: "—",
       detail: "Enter channel spend to unlock mix suggestions.",
     });
-  } else if (overallMer === null) {
+  } else if (!validBreakEven) {
+    why =
+      "Break-even MER is invalid. Set a contribution margin in (0, 100%] before allocation advice applies.";
+    actions.push({
+      type: "watch",
+      channel: "—",
+      detail: "Save a valid contribution margin in Settings to unlock mix suggestions.",
+    });
+  } else if (!salesOk || overallMer === null) {
     why = "MER could not be calculated. Check sales and spend inputs.";
+    actions.push({
+      type: "watch",
+      channel: "—",
+      detail: "Fix non-finite sales or spend inputs, then retry allocation.",
+    });
   } else if (aboveBreakEven === true) {
     const heavy = [...efficiencies].sort((a, b) => b.spendShare - a.spendShare)[0];
     why = `Overall MER (${round(overallMer)}) is at or above break-even (${round(breakEvenMer)}). Hold core mix; trim overweight channels only if MER softens.`;
@@ -229,14 +261,14 @@ export function suggestAllocation(
 
   return {
     overallMer: overallMer !== null ? round(overallMer, 4) : null,
-    breakEvenMer: round(breakEvenMer, 4),
+    breakEvenMer: validBreakEven ? round(breakEvenMer, 4) : breakEvenMer,
     isAboveBreakEven: aboveBreakEven,
     suggestedTestDays,
     actions,
     why,
     inputs: {
-      totalSales: round(totalSales, 2),
-      totalSpend: round(totalSpend, 2),
+      totalSales: round(safeSales, 2),
+      totalSpend: round(Number.isFinite(totalSpend) ? totalSpend : 0, 2),
       channelEfficiencies: efficiencies,
     },
   };

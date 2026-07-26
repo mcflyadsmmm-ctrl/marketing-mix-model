@@ -15,17 +15,40 @@ import {
 } from "@mcfly/mer-core";
 import type { DateRange } from "./periods";
 import { localDayKey } from "./sample-desk.server";
+import {
+  collectFilledSpendDayKeys,
+  computeSpendPeriodCoverage,
+  countClosedDaysInPeriod,
+  resolveHonestSales,
+  type FreshnessSource,
+  type SpendPeriodCoverage,
+} from "./mer-trust";
+import {
+  applyExplorerMode,
+  bucketExplorerRows,
+  summarizeExplorer,
+  type ExplorerDailyRow,
+  type ExplorerGranularity,
+  type ExplorerMode,
+  type ExplorerPlotBucket,
+  type ExplorerSummary,
+  type ExplorerWindow,
+} from "./spend-explorer";
 
 const CHANNEL_DISPLAY = SPEND_CHANNEL_LABELS;
 
-export type FreshnessSource = "snapshot" | "sync" | "live";
+export type { FreshnessSource, SpendPeriodCoverage };
 
-/** D3 trust: last overnight snapshot / sync, or live desk refresh. */
+/** D3 trust: last overnight snapshot / sync, live sales pull, spend log time. */
 export interface DashboardFreshness {
   snapshotAt: string | null;
   syncAt: string | null;
   lastAt: string | null;
   source: FreshnessSource;
+  /** When Shopify (or sample) sales were pulled for this desk render. */
+  salesPulledAt: string | null;
+  /** Latest spend entry touch in the active desk scope (ISO). */
+  spendUpdatedAt: string | null;
 }
 
 /** One closed calendar day for the 14-day channel × MER stack. */
@@ -88,6 +111,11 @@ export interface DashboardMetrics {
   customerMetricsAvailable: boolean;
   /** True when Cash MER is driven by the Demo sample desk (not live Shopify). */
   useSampleDesk: boolean;
+  /**
+   * True when caller passed mock sales with sample desk OFF —
+   * till totals were zeroed; UI must not label as live Shopify.
+   */
+  blockedMockAsLive: boolean;
   totalSpend: number;
   mer: number | null;
   breakEvenMer: number | null;
@@ -98,6 +126,8 @@ export interface DashboardMetrics {
   allocation: SuggestAllocationResult | null;
   onboarding: RitualOnboarding;
   freshness: DashboardFreshness;
+  /** Closed-day spend coverage vs selected period (recon-style honesty). */
+  spendCoverage: SpendPeriodCoverage;
   /** Last ≤14 closed days — channel stack + MER rail. */
   dailySpine: DailySpineDay[];
   /** Safe-spend headroom + days-elapsed density. */
@@ -138,6 +168,10 @@ export interface RitualOnboarding {
 
 export async function getDashboardFreshness(
   shopId: string,
+  options?: {
+    salesPulledAt?: string | null;
+    spendUpdatedAt?: string | null;
+  },
 ): Promise<DashboardFreshness> {
   const [snapshot, syncRun] = await Promise.all([
     prisma.merSnapshot.findFirst({
@@ -154,9 +188,18 @@ export async function getDashboardFreshness(
 
   const snapshotAt = snapshot?.createdAt.toISOString() ?? null;
   const syncAt = syncRun?.finishedAt?.toISOString() ?? null;
+  const salesPulledAt = options?.salesPulledAt ?? null;
+  const spendUpdatedAt = options?.spendUpdatedAt ?? null;
 
   if (!snapshotAt && !syncAt) {
-    return { snapshotAt: null, syncAt: null, lastAt: null, source: "live" };
+    return {
+      snapshotAt: null,
+      syncAt: null,
+      lastAt: salesPulledAt,
+      source: "live",
+      salesPulledAt,
+      spendUpdatedAt,
+    };
   }
 
   const snapshotMs = snapshotAt ? Date.parse(snapshotAt) : Number.NEGATIVE_INFINITY;
@@ -168,7 +211,45 @@ export async function getDashboardFreshness(
     syncAt,
     lastAt: preferSnapshot ? snapshotAt : syncAt,
     source: preferSnapshot ? "snapshot" : "sync",
+    salesPulledAt,
+    spendUpdatedAt,
   };
+}
+
+/**
+ * Closed-day spend coverage for the selected period — sparse CSV gaps, not attribution.
+ */
+export async function getSpendPeriodCoverage(
+  shopId: string,
+  range: DateRange,
+  options?: { sampleOnly?: boolean; excludeSample?: boolean; now?: Date },
+): Promise<SpendPeriodCoverage> {
+  const now = options?.now ?? new Date();
+  const entries = await prisma.spendEntry.findMany({
+    where: {
+      shopId,
+      periodStart: { lte: range.end },
+      periodEnd: { gte: range.start },
+      amount: { gt: 0 },
+      ...(options?.sampleOnly
+        ? { source: "sample" }
+        : options?.excludeSample
+          ? { NOT: { source: "sample" } }
+          : {}),
+    },
+    select: { periodStart: true, periodEnd: true, amount: true },
+  });
+
+  const filled = collectFilledSpendDayKeys(
+    entries,
+    range.start,
+    range.end,
+    now,
+  );
+  return computeSpendPeriodCoverage({
+    daysWithSpend: filled.size,
+    daysInPeriod: countClosedDaysInPeriod(range.start, range.end, now),
+  });
 }
 
 export async function getSpendByChannel(
@@ -309,26 +390,26 @@ function attributeSpendAcrossDays(
 }
 
 /**
- * Last ≤14 closed calendar days with channel spend + cash MER (sales ÷ spend).
+ * Closed-day cash spine for an arbitrary window (≤ ~366 days).
+ * Sales from Shopify/sample map; spend attributed across overlapping CSV days.
  */
-export async function buildDailySpine(
+export async function buildDailyRowsForWindow(
   shopId: string,
   options: {
     sampleOnly?: boolean;
     excludeSample?: boolean;
     salesByDay: Map<string, number>;
-    targetMer: number;
-    now?: Date;
+    windowStart: Date;
+    windowEnd: Date;
   },
-): Promise<DailySpineDay[]> {
-  const now = options.now ?? new Date();
-  const windowEnd = closedDayEnd(now);
-  const windowStart = addLocalDays(startOfLocalDay(windowEnd), -13);
+): Promise<ExplorerDailyRow[]> {
+  const windowStart = startOfLocalDay(options.windowStart);
+  const windowEnd = startOfLocalDay(options.windowEnd);
 
   const entries = await prisma.spendEntry.findMany({
     where: {
       shopId,
-      periodStart: { lte: windowEnd },
+      periodStart: { lte: endOfLocalDay(windowEnd) },
       periodEnd: { gte: windowStart },
       ...(options.sampleOnly
         ? { source: "sample" }
@@ -370,7 +451,7 @@ export async function buildDailySpine(
       entry.periodEnd,
       entry.amount,
       windowStart,
-      windowEnd,
+      endOfLocalDay(windowEnd),
     );
     for (const slice of slices) {
       const row = ensureDay(slice.dateKey);
@@ -378,12 +459,13 @@ export async function buildDailySpine(
     }
   }
 
-  const keys: string[] = [];
-  for (let cursor = windowStart; cursor <= windowEnd; cursor = addLocalDays(cursor, 1)) {
-    keys.push(localDayKey(cursor));
-  }
-
-  const spine: DailySpineDay[] = keys.map((dateKey) => {
+  const rows: ExplorerDailyRow[] = [];
+  for (
+    let cursor = windowStart;
+    cursor <= windowEnd;
+    cursor = addLocalDays(cursor, 1)
+  ) {
+    const dateKey = localDayKey(cursor);
     const row = byDay.get(dateKey) ?? {
       sales: 0,
       channels: emptyChannelTotals(),
@@ -395,6 +477,112 @@ export async function buildDailySpine(
     const spend =
       Math.round(channels.reduce((s, c) => s + c.amount, 0) * 100) / 100;
     const sales = Math.round(row.sales * 100) / 100;
+    if (sales <= 0 && spend <= 0) continue;
+    rows.push({ dateKey, sales, spend, channels });
+  }
+  return rows;
+}
+
+export type SpendExplorerSeries = {
+  window: ExplorerWindow;
+  granularity: ExplorerGranularity;
+  mode: ExplorerMode;
+  targetMer: number;
+  buckets: ExplorerPlotBucket[];
+  summary: ExplorerSummary;
+  /** Raw closed days used for bucketing (activity-only). */
+  dailyRows: ExplorerDailyRow[];
+};
+
+/**
+ * Spend explorer · channel mix vs MER — Apps Script `renderSpendExplorer` core.
+ */
+export async function buildSpendExplorerSeries(
+  shopId: string,
+  options: {
+    sampleOnly?: boolean;
+    excludeSample?: boolean;
+    salesByDay: Map<string, number>;
+    window: ExplorerWindow;
+    granularity: ExplorerGranularity;
+    mode: ExplorerMode;
+    targetMer: number;
+    newCustomers?: number;
+    returningCustomers?: number;
+    customerMetricsAvailable?: boolean;
+  },
+): Promise<SpendExplorerSeries> {
+  const dailyRows = await buildDailyRowsForWindow(shopId, {
+    sampleOnly: options.sampleOnly,
+    excludeSample: options.excludeSample,
+    salesByDay: options.salesByDay,
+    windowStart: options.window.start,
+    windowEnd: options.window.end,
+  });
+
+  const buckets = bucketExplorerRows(dailyRows, options.granularity);
+  const plot = applyExplorerMode(buckets, options.mode);
+  const summary = summarizeExplorer(dailyRows, {
+    newCustomers: options.newCustomers,
+    returningCustomers: options.returningCustomers,
+    customerMetricsAvailable: options.customerMetricsAvailable,
+    bucketCount: plot.length,
+  });
+
+  return {
+    window: options.window,
+    granularity: options.granularity,
+    mode: options.mode,
+    targetMer: options.targetMer,
+    buckets: plot,
+    summary,
+    dailyRows,
+  };
+}
+
+/**
+ * Last ≤14 closed calendar days with channel spend + cash MER (sales ÷ spend).
+ */
+export async function buildDailySpine(
+  shopId: string,
+  options: {
+    sampleOnly?: boolean;
+    excludeSample?: boolean;
+    salesByDay: Map<string, number>;
+    targetMer: number;
+    now?: Date;
+  },
+): Promise<DailySpineDay[]> {
+  const now = options.now ?? new Date();
+  const windowEnd = closedDayEnd(now);
+  const windowStart = addLocalDays(startOfLocalDay(windowEnd), -13);
+
+  const dailyRows = await buildDailyRowsForWindow(shopId, {
+    sampleOnly: options.sampleOnly,
+    excludeSample: options.excludeSample,
+    salesByDay: options.salesByDay,
+    windowStart,
+    windowEnd,
+  });
+
+  const byKey = new Map(dailyRows.map((r) => [r.dateKey, r]));
+  const keys: string[] = [];
+  for (
+    let cursor = windowStart;
+    cursor <= startOfLocalDay(windowEnd);
+    cursor = addLocalDays(cursor, 1)
+  ) {
+    keys.push(localDayKey(cursor));
+  }
+
+  const spine: DailySpineDay[] = keys.map((dateKey) => {
+    const row = byKey.get(dateKey);
+    const channels = (row?.channels ?? []).map((c) => ({
+      channel: c.channel as SpendChannel,
+      amount: c.amount,
+    }));
+    const spend = row?.spend ?? 0;
+    const sales = row?.sales ?? 0;
     const mer = computeMer(sales, spend);
     return {
       dateKey,
@@ -412,6 +600,18 @@ export async function buildDailySpine(
   const active = spine.filter((d) => d.spend > 0 || d.sales > 0);
   if (active.length >= 3) return active.slice(-14);
   return spine.slice(-14);
+}
+
+function endOfLocalDay(d: Date): Date {
+  return new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
 }
 
 /**
@@ -529,6 +729,8 @@ export async function buildDashboardMetrics(
     salesByDay?: Map<string, number>;
     priorSales?: { totalSales: number };
     priorRange?: DateRange;
+    /** ISO timestamp when sales were pulled for this render. */
+    salesPulledAt?: string | null;
   },
 ): Promise<DashboardMetrics> {
   const shop = await ensureShop(shopDomain);
@@ -538,21 +740,52 @@ export async function buildDashboardMetrics(
     ? { sampleOnly: true as const }
     : { excludeSample: true as const };
 
+  const { sales: honestSales, blockedMockAsLive } = resolveHonestSales(
+    sales,
+    useSampleDesk,
+  );
+
   const priorRange = options?.priorRange;
-  const [spends, freshness, dailySpine, priorSpends] = await Promise.all([
-    getSpendByChannel(shop.id, range, spendOpts),
-    getDashboardFreshness(shop.id),
-    buildDailySpine(shop.id, {
-      ...spendOpts,
-      salesByDay: options?.salesByDay ?? new Map(),
-      targetMer: settings.targetMer,
-    }),
-    priorRange
-      ? getSpendByChannel(shop.id, priorRange, spendOpts)
-      : Promise.resolve(null),
-  ]);
+  // Distinguish "caller omitted" vs "caller said no pull" (null on sales error).
+  const salesPulledAt =
+    options != null && "salesPulledAt" in options
+      ? (options.salesPulledAt ?? null)
+      : honestSales.source === "shopify" || useSampleDesk
+        ? new Date().toISOString()
+        : null;
+
+  const [spends, spendCoverage, latestSpend, dailySpine, priorSpends] =
+    await Promise.all([
+      getSpendByChannel(shop.id, range, spendOpts),
+      getSpendPeriodCoverage(shop.id, range, spendOpts),
+      prisma.spendEntry.findFirst({
+        where: {
+          shopId: shop.id,
+          ...(spendOpts.sampleOnly
+            ? { source: "sample" }
+            : { NOT: { source: "sample" } }),
+        },
+        orderBy: { updatedAt: "desc" },
+        select: { updatedAt: true },
+      }),
+      buildDailySpine(shop.id, {
+        ...spendOpts,
+        salesByDay: options?.salesByDay ?? new Map(),
+        targetMer: settings.targetMer,
+      }),
+      priorRange
+        ? getSpendByChannel(shop.id, priorRange, spendOpts)
+        : Promise.resolve(null),
+    ]);
+
+  const spendUpdatedAt = latestSpend?.updatedAt.toISOString() ?? null;
+  const freshness = await getDashboardFreshness(shop.id, {
+    salesPulledAt: blockedMockAsLive ? null : salesPulledAt,
+    spendUpdatedAt,
+  });
+
   const totalSpend = sumSpend(spends);
-  const mer = computeMer(sales.totalSales, totalSpend);
+  const mer = computeMer(honestSales.totalSales, totalSpend);
   const breakEvenMer = computeBreakEvenMer(settings.marginPct);
   const mix = channelMix(spends);
   const settingsSaved = settingsHaveBeenSaved(settings) || useSampleDesk;
@@ -563,7 +796,7 @@ export async function buildDashboardMetrics(
     showGuide: !useSampleDesk && (!settingsSaved || !hasSpend),
   };
   const control = buildControlPace({
-    sales: sales.totalSales,
+    sales: honestSales.totalSales,
     totalSpend,
     targetMer: settings.targetMer,
     period: range,
@@ -578,7 +811,7 @@ export async function buildDashboardMetrics(
       priorSales: options.priorSales.totalSales,
       priorSpend,
       priorMer,
-      salesPct: pctChange(sales.totalSales, options.priorSales.totalSales),
+      salesPct: pctChange(honestSales.totalSales, options.priorSales.totalSales),
       spendPct: pctChange(totalSpend, priorSpend),
       merAbs:
         mer !== null && priorMer !== null
@@ -589,14 +822,15 @@ export async function buildDashboardMetrics(
 
   return {
     period: range,
-    sales: sales.totalSales,
-    salesSource: sales.source,
-    orderCount: sales.orderCount,
-    newCustomers: sales.newCustomers ?? 0,
-    returningCustomers: sales.returningCustomers ?? 0,
-    guestOrders: sales.guestOrders ?? 0,
-    customerMetricsAvailable: sales.customerMetricsAvailable ?? false,
+    sales: honestSales.totalSales,
+    salesSource: honestSales.source,
+    orderCount: honestSales.orderCount,
+    newCustomers: honestSales.newCustomers ?? 0,
+    returningCustomers: honestSales.returningCustomers ?? 0,
+    guestOrders: honestSales.guestOrders ?? 0,
+    customerMetricsAvailable: honestSales.customerMetricsAvailable ?? false,
     useSampleDesk,
+    blockedMockAsLive,
     totalSpend,
     mer,
     breakEvenMer,
@@ -607,16 +841,26 @@ export async function buildDashboardMetrics(
       mer !== null && breakEvenMer !== null ? mer >= breakEvenMer : null,
     allocation: buildAllocationSuggestion(
       spends,
-      sales.totalSales,
+      honestSales.totalSales,
       totalSpend,
       breakEvenMer,
     ),
     onboarding,
     freshness,
+    spendCoverage,
     dailySpine,
     control,
     deltas,
   };
 }
 
-export { formatCurrency, formatMer, formatPercent, formatFreshness } from "./mer-format";
+export {
+  formatCurrency,
+  formatMer,
+  formatPercent,
+  formatFreshness,
+} from "./mer-format";
+export {
+  formatCashFreshnessChip,
+  formatSpendCoverageLine,
+} from "./mer-trust";

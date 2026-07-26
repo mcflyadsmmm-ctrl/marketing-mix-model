@@ -15,8 +15,11 @@ import {
   WIDE_TEMPLATE_HEADERS,
   WIDE_TEMPLATE_SAMPLE,
   buildBlankSpendTemplate,
+  buildBlankSpendTemplateForDates,
+  groupCsvErrors,
   type CsvChannel,
   type CsvImportSummary,
+  type GroupedCsvErrors,
 } from "../lib/spend-csv";
 import { createSpendRepository } from "../lib/spend-repository.server";
 import { getSampleDeskStats, localDayKey } from "../lib/sample-desk.server";
@@ -188,7 +191,7 @@ async function handleCsvImport(
     return {
       error:
         parsed.errors[0] ??
-        "No valid spend rows found. Use date+channel+amount rows, or a wide day sheet with Google/Meta columns.",
+        "No valid spend rows found. Use the Mcfly template (Day + channel columns) or date,channel,amount rows. This file is ad spend only — Shopify sales stay in Shopify.",
       success: false,
       csv: {
         written: 0,
@@ -300,6 +303,34 @@ function formatDayRange(start: Date, end: Date): string {
     : `${start.toLocaleDateString()} – ${end.toLocaleDateString()}`;
 }
 
+function CsvErrorGroups({ grouped }: { grouped: GroupedCsvErrors }) {
+  if (grouped.total === 0) return null;
+  return (
+    <div className="mcfly-spend-errors">
+      <s-text tone="critical">
+        {grouped.total} CSV issue{grouped.total === 1 ? "" : "s"}
+        {grouped.truncated ? " (showing top groups)" : ""} — fix the file and re-import.
+        Spend CSV only; Shopify till is unchanged.
+      </s-text>
+      <ul className="mcfly-spend-errors__list">
+        {grouped.groups.map((group) => (
+          <li key={group.label} className="mcfly-spend-errors__item">
+            <s-text>
+              {group.label}
+              {group.count > 1 ? ` ×${group.count}` : ""}
+            </s-text>
+            {group.examples.map((ex) => (
+              <s-text key={ex} tone="neutral">
+                {ex}
+              </s-text>
+            ))}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function SpendEntryPage() {
   const { entries, sampleDesk, shotMode, dayCoverage } =
     useLoaderData<typeof loader>();
@@ -313,17 +344,40 @@ export default function SpendEntryPage() {
   const csvSaved = Boolean(actionData?.success && csv);
   const manualSaved = Boolean(actionData?.success && !csv);
   const holeCount = dayCoverage.total - dayCoverage.filledCount;
+  const missingDates = dayCoverage.days
+    .filter((d) => !d.filled)
+    .map((d) => d.dateKey);
+  const missingDatesPreview = missingDates.slice(0, 8);
+  const missingDatesCsv = buildBlankSpendTemplateForDates(missingDates).trim();
+  const missingDatesHref =
+    missingDates.length > 0
+      ? `/app/spend/template?dates=${encodeURIComponent(missingDates.slice(0, 62).join(","))}`
+      : "/app/spend/template?blank=1";
+  const csvErrorGroups =
+    csv && csv.errors.length > 0 ? groupCsvErrors(csv.errors) : null;
+  const actionErrorGroups =
+    actionData && !actionData.success && csv && csv.errors.length > 0
+      ? groupCsvErrors(csv.errors)
+      : null;
 
   return (
     <s-page heading="Spend" inlineSize="large">
-      <div className={shotMode ? "mcfly-desk mcfly-desk--shot" : "mcfly-desk"}>
+      <div
+        className={
+          shotMode
+            ? "mcfly-desk mcfly-desk--chrome mcfly-desk--shot"
+            : "mcfly-desk mcfly-desk--chrome"
+        }
+      >
       {sampleDesk.enabled && !shotMode ? (
-        <s-banner tone="warning" heading="Sample desk is on">
+        <s-banner tone="warning" heading="Sample desk is on — not live Shopify">
           <s-paragraph>
             Recent entries below show your own uploads only — the 3-year demo dataset
-            ({sampleDesk.spendCount.toLocaleString()} sample rows) is kept out of this list so it's
-            never mistaken for real spend. Day coverage below can include sample spend days.
-            Turn sample desk off on the <s-link href="/app/demo">Demo</s-link> tab.
+            ({sampleDesk.spendCount.toLocaleString()} sample rows) is kept out of this list so it is
+            never mistaken for real spend. Day coverage and Cash MER can still include sample days.
+            Turn sample desk <strong>OFF</strong> on the <s-link href="/app/demo">Demo</s-link> tab
+            before App Store review. <code>?shot=1</code> hides this banner only — metrics stay
+            sample until OFF.
           </s-paragraph>
         </s-banner>
       ) : null}
@@ -331,8 +385,8 @@ export default function SpendEntryPage() {
       {isEmpty && !actionData?.success ? (
         <s-banner tone="info" heading="Step 2 · Add daily spend for cash MER">
           <s-paragraph>
-            Upload one CSV of what you spent, per channel, per day. Mcfly pairs it with Shopify sales
-            for cash MER (sales ÷ spend) — same desk logic as a serious operator MER board.
+            Upload one CSV of spend by channel by day. Shopify sales power MER
+            (sales ÷ spend) — same desk logic as a serious operator MER board.
           </s-paragraph>
           <div className="mcfly-ritual">
             <div className="mcfly-ritual__step">
@@ -356,17 +410,20 @@ export default function SpendEntryPage() {
       ) : null}
 
       {csvSaved && csv ? (
-        <s-banner tone="success" heading="Spend imported — MER is ready">
+        <s-banner tone="success" heading="Spend imported — next: Cash MER">
           <div className="mcfly-metrics mcfly-spend-summary">
             <div className="mcfly-metric mcfly-metric--success mcfly-metric--compact">
-              <p className="mcfly-metric__label">Rows imported</p>
+              <p className="mcfly-metric__label">Rows written</p>
               <p className="mcfly-metric__value">{csv.written}</p>
-              {csv.skipped > 0 ? (
-                <p className="mcfly-metric__hint">{csv.skipped} already up to date</p>
-              ) : null}
+              <p className="mcfly-metric__hint">
+                {csv.totalDataRows > 0
+                  ? `${csv.totalDataRows} data row${csv.totalDataRows === 1 ? "" : "s"} scanned`
+                  : "from your CSV"}
+                {csv.skipped > 0 ? ` · ${csv.skipped} already up to date` : ""}
+              </p>
             </div>
             <div className="mcfly-metric mcfly-metric--compact">
-              <p className="mcfly-metric__label">Days</p>
+              <p className="mcfly-metric__label">Days covered</p>
               <p className="mcfly-metric__value">{csv.days}</p>
               {csv.dateRange ? (
                 <p className="mcfly-metric__hint">
@@ -388,44 +445,44 @@ export default function SpendEntryPage() {
               <p className="mcfly-metric__value">{formatCurrency(csv.totalAmount)}</p>
             </div>
           </div>
-          <s-paragraph>
-            Next: open <s-link href="/app">Cash MER</s-link> for sales ÷ spend.
-          </s-paragraph>
-          {csv.errors.length > 0 ? (
-            <s-stack direction="block" gap="small">
-              <s-text tone="critical">
-                {csv.errors.length} row(s) were skipped and need a look:
-              </s-text>
-              {csv.errors.slice(0, 8).map((err, i) => (
-                <s-text key={i} tone="neutral">
-                  {err}
-                </s-text>
-              ))}
-            </s-stack>
-          ) : null}
+          <div className="mcfly-spend-next">
+            <s-button href="/app" variant="primary">
+              Open Cash MER
+            </s-button>
+            <s-text tone="neutral">
+              Cash MER = Shopify sales ÷ this spend. Fill any empty days below if the strip shows holes.
+            </s-text>
+          </div>
+          {csvErrorGroups ? <CsvErrorGroups grouped={csvErrorGroups} /> : null}
         </s-banner>
       ) : null}
 
       {manualSaved ? (
-        <s-banner tone="success" heading="Spend saved — MER is ready">
-          <s-paragraph>
-            Next: open <s-link href="/app">Cash MER</s-link>. Add another channel below if needed.
-          </s-paragraph>
+        <s-banner tone="success" heading="Spend saved — next: Cash MER">
+          <div className="mcfly-spend-next">
+            <s-button href="/app" variant="primary">
+              Open Cash MER
+            </s-button>
+            <s-text tone="neutral">
+              Add another channel below if needed, or upload a full daily CSV.
+            </s-text>
+          </div>
         </s-banner>
       ) : null}
 
       {actionData && !actionData.success && actionData.error ? (
-        <s-banner tone="critical" heading="Import needs a fix">
+        <s-banner tone="critical" heading="CSV needs a fix — Shopify till is fine">
           <s-paragraph>{actionData.error}</s-paragraph>
-          {csv && csv.errors.length > 1 ? (
-            <s-stack direction="block" gap="small">
-              {csv.errors.slice(0, 8).map((err, i) => (
-                <s-text key={i} tone="neutral">
-                  {err}
-                </s-text>
-              ))}
-            </s-stack>
+          {actionErrorGroups ? (
+            <CsvErrorGroups grouped={actionErrorGroups} />
           ) : null}
+          <s-paragraph>
+            <s-text tone="neutral">
+              Download the{" "}
+              <s-link href="/app/spend/template?blank=1">blank template</s-link>, keep the header
+              row, and re-import. This file is spend aggregates only — never paste sales here.
+            </s-text>
+          </s-paragraph>
         </s-banner>
       ) : null}
 
@@ -438,7 +495,7 @@ export default function SpendEntryPage() {
               {dayCoverage.includesSample ? " · includes sample" : null}
             </s-text>
             <s-text tone="neutral">
-              Last {dayCoverage.total} days — empty cells are CSV gaps.
+              Last {dayCoverage.total} days — empty cells are CSV gaps to fill.
             </s-text>
           </div>
           <div
@@ -477,15 +534,43 @@ export default function SpendEntryPage() {
               Empty
             </span>
           </div>
+          {holeCount > 0 ? (
+            <div className="mcfly-spend-holes">
+              <s-text>
+                Missing days
+                {missingDatesPreview.length < missingDates.length
+                  ? ` (first ${missingDatesPreview.length} of ${missingDates.length})`
+                  : ""}
+                : {missingDatesPreview.join(", ")}
+                {missingDates.length > missingDatesPreview.length ? "…" : ""}
+              </s-text>
+              <div className="mcfly-spend-holes__actions">
+                <s-button
+                  variant="primary"
+                  onClick={() =>
+                    downloadCsvFile(missingDatesCsv, "mcfly-spend-missing-days.csv")
+                  }
+                >
+                  Download blank for empty days
+                </s-button>
+                <s-link href={missingDatesHref}>Direct download link</s-link>
+                <s-link href="#mcfly-spend-csv">Jump to upload</s-link>
+              </div>
+              <s-text tone="neutral">
+                Fill those rows in Sheets/Excel, then import below. Blank or 0 = no spend that day.
+              </s-text>
+            </div>
+          ) : null}
         </div>
       </s-section>
 
       <s-section heading="Upload daily spend (CSV)">
+        <div id="mcfly-spend-csv">
         <s-stack direction="block" gap="large">
           <s-paragraph>
-            Easiest path: download the blank template, fill one row per day, upload it back. Mcfly
-            pairs that spend with Shopify sales for cash MER (sales ÷ spend). Re-uploading the same
-            days updates them — no double counting.
+            Template = spend by channel by day. Download the blank CSV, fill it, upload it back.
+            Shopify sales power MER (sales ÷ spend). Re-uploading the same days updates them — no
+            double counting.
           </s-paragraph>
 
           <div className="mcfly-panel mcfly-template-hero">
@@ -495,8 +580,9 @@ export default function SpendEntryPage() {
                 <s-stack direction="block" gap="small">
                   <s-heading>Download the blank spend template</s-heading>
                   <s-text tone="neutral">
-                    One row = one day. Columns cover every spend area Mcfly tracks. Leave a cell blank
-                    or 0 when you didn’t spend.
+                    Spend by channel by day — one row per day. Columns cover every spend area Mcfly
+                    tracks. Leave a cell blank or 0 when you didn’t spend. Shopify sales stay in
+                    Shopify.
                   </s-text>
                 </s-stack>
               </div>
@@ -550,13 +636,14 @@ export default function SpendEntryPage() {
               <s-stack direction="block" gap="small">
                 <s-heading>Fill it in Excel / Google Sheets</s-heading>
                 <s-text tone="neutral">
-                  Open the blank CSV → keep the header row → enter your daily spend (blank or 0 where
-                  you didn’t spend). Don’t rename the column headers. Shopify sales stay in Shopify —
-                  don’t paste sales into this file.
+                  Open the blank CSV → keep the header row → enter spend by channel by day
+                  (blank or 0 where you didn’t spend). Don’t rename the column headers. Shopify
+                  sales power MER — don’t paste sales into this file.
                 </s-text>
                 <s-text tone="neutral">
-                  Optional automation: SyncWith / Supermetrics / Coupler → Sheets → export CSV → step
-                  3. Mcfly stays the cash desk (no connector zoo inside the app).
+                  External tip only: if you already pull ads into Sheets with SyncWith / Supermetrics /
+                  Coupler, export that sheet as CSV and upload in step 3. Mcfly stays CSV spend
+                  aggregates — no ad-platform login inside the app.
                 </s-text>
               </s-stack>
             </div>
@@ -571,18 +658,30 @@ export default function SpendEntryPage() {
                   <s-stack direction="block" gap="small">
                     <s-heading>Upload your filled CSV</s-heading>
                     <s-text tone="neutral">
-                      Choose the file you saved, or paste the rows below.
+                      Drop a spend-by-channel-by-day CSV, or paste rows below. Shopify
+                      sales stay in Shopify.
                     </s-text>
                   </s-stack>
                 </div>
-                <label>
-                  <s-text>Choose CSV file</s-text>
+                <label
+                  className={`mcfly-dropzone${
+                    isSubmitting && submittingIntent === "csv"
+                      ? " mcfly-dropzone--busy"
+                      : ""
+                  }`}
+                >
                   <input
-                    className="mcfly-field mcfly-field--file"
+                    className="mcfly-dropzone__input"
                     type="file"
                     name="file"
-                    accept=".csv,text/csv"
+                    accept=".csv,text/csv,application/vnd.ms-excel"
+                    disabled={isSubmitting && submittingIntent === "csv"}
+                    aria-label="Upload spend CSV"
                   />
+                  <span className="mcfly-dropzone__body">
+                    <strong>Drop CSV here</strong>
+                    <span>or click to choose · .csv only · one file</span>
+                  </span>
                 </label>
                 <label>
                   <s-text>…or paste rows</s-text>
@@ -591,6 +690,7 @@ export default function SpendEntryPage() {
                     name="csv"
                     rows={7}
                     placeholder={CSV_SAMPLE}
+                    disabled={isSubmitting && submittingIntent === "csv"}
                   />
                 </label>
                 <s-button
@@ -604,24 +704,23 @@ export default function SpendEntryPage() {
             </Form>
           </div>
         </s-stack>
+        </div>
       </s-section>
 
       <s-section heading="Or add one line manually">
         <Form method="post">
           <input type="hidden" name="intent" value="manual" />
           <s-stack direction="block" gap="base">
-            {isEmpty ? (
-              <s-box padding="base" borderWidth="base" borderRadius="base" background="subdued">
-                <s-stack direction="block" gap="small">
-                  <s-text>What to enter per channel</s-text>
-                  {CHANNELS.map(({ label, hint }) => (
-                    <s-text key={label} tone="neutral">
-                      {label}: {hint}
-                    </s-text>
-                  ))}
-                </s-stack>
-              </s-box>
-            ) : null}
+            <s-box padding="base" borderWidth="base" borderRadius="base" background="subdued">
+              <s-stack direction="block" gap="small">
+                <s-text>Named channels (paste totals from each ads manager)</s-text>
+                {CHANNELS.map(({ label, hint }) => (
+                  <s-text key={label} tone="neutral">
+                    {label}: {hint}
+                  </s-text>
+                ))}
+              </s-stack>
+            </s-box>
 
             <label>
               <s-text>Channel</s-text>
@@ -636,7 +735,7 @@ export default function SpendEntryPage() {
             <s-paragraph>
               <s-text tone="neutral">
                 Start with Meta or Google if that is where most ad dollars went. Use Other for the
-                rest. No OAuth required — paste totals from each ads manager.
+                rest. No OAuth — export or copy the amount from each ads manager into Mcfly.
               </s-text>
             </s-paragraph>
 
@@ -692,16 +791,26 @@ export default function SpendEntryPage() {
 
       <s-section heading="Recent entries">
         {isEmpty ? (
-          <div className="mcfly-panel">
-            <s-stack direction="block" gap="small">
-              <s-text>No spend yet — MER needs money out</s-text>
-              <s-paragraph>
-                <s-text tone="neutral">
-                  One Meta, Google, or Other line unlocks cash MER on{" "}
-                  <s-link href="/app">Cash MER</s-link>.
-                </s-text>
-              </s-paragraph>
-            </s-stack>
+          <div className="mcfly-spend-empty">
+            <s-box padding="large" background="subdued" borderRadius="base">
+              <s-stack direction="block" gap="base" alignItems="center">
+                <s-heading>No spend logged yet</s-heading>
+                <s-paragraph>
+                  <s-text tone="neutral">
+                    Cash MER needs money out. Upload a daily CSV or save one channel line — then
+                    Shopify sales ÷ spend unlocks on Cash MER.
+                  </s-text>
+                </s-paragraph>
+                <div className="mcfly-spend-empty__actions">
+                  <s-button href="#mcfly-spend-csv" variant="primary">
+                    Upload daily CSV
+                  </s-button>
+                  <s-button href="/app/spend/template?blank=1">
+                    Download blank template
+                  </s-button>
+                </div>
+              </s-stack>
+            </s-box>
           </div>
         ) : (
           <s-stack direction="block" gap="small">
@@ -742,8 +851,8 @@ export default function SpendEntryPage() {
         <div className="mcfly-aside-card">
           <p className="mcfly-aside-card__title">Settings → Spend → Cash MER</p>
           <p>
-            Upload daily spend, then read MER. Live Meta/Google sync is later — CSV means you never
-            wait on OAuth.
+            Upload daily spend CSV (or one manual line), then read MER. Mcfly stays CSV aggregates —
+            no ad-platform login inside the app.
           </p>
         </div>
       </s-section>

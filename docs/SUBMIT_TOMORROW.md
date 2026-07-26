@@ -1,6 +1,6 @@
 # Submit tomorrow — agent-fixed vs human gates
 
-**Last agent pass:** 2026-07-23 — Apps Script Cash MER parity live (decision strip, 4-up KPIs, sticky rail, Fraunces); support meta Free; ship-gate + Fly deploy in this pass.  
+**Last agent pass:** 2026-07-24 — B1+B2 compliance: bare App URL Free voice, privacy `read_customers`/GDPR honesty, App Bridge CDN head, Demo OFF/shot clarity; trust Pages still lagging live.  
 **Goal:** public App Store submit for **Free** cash MER desk.  
 **Reject scorecard:** [`REJECT_RISK_AUDIT.md`](./REJECT_RISK_AUDIT.md)
 
@@ -10,9 +10,12 @@
 
 | Issue | Fix | Evidence |
 | --- | --- | --- |
-| Privacy lag vs new/returning | Privacy discloses order totals + opaque customer id / numberOfOrders; no CRM | `site/privacy.html` (**local**; live Pages still lagging) |
+| Privacy lag vs new/returning | Privacy discloses `read_orders` + minimal `read_customers` (opaque id / numberOfOrders); GDPR empty-CRM | `site/privacy.html` (**local**; live Pages still lagging) |
 | Pricing vs Free listing conflict | Pricing leads with **App Store Free now**; ~$79 later via Billing | `site/pricing.html` (**local**; live lagging) |
-| Support invite-only vs Free listing | Body: App Store Free + Partner invite; no shop-domain form | `site/support.html` (**local**; live still invite-only) |
+| Support invite-only vs Free listing | Meta + body: App Store Free + Partner invite; no shop-domain form | `site/support.html` (**local**; live still invite-only) |
+| Bare App URL invite-only voice | Fly `/` says App Store Free + Partner invite | `app/app/routes/_index/route.tsx` (needs Fly redeploy) |
+| App Bridge head (2.2.3) | CDN `app-bridge.js` + `shopify-api-key` meta | `app/app/root.tsx` (needs Fly redeploy) |
+| Demo OFF / shot deception | Shot hides banner; numbers stay sample until OFF — called out on Demo | `app.demo.tsx` |
 | AppDistribution + URL lock | `AppDistribution.AppStore`; `automatically_update_urls_on_dev = false` | code + toml |
 | Compliance HMAC | Invalid HMAC header → **401**; empty POST w/o headers → **400** | curl 2026-07-23 |
 | Trust URLs respond | privacy / support / terms / pricing **200** | curl (copy may lag) |
@@ -33,10 +36,10 @@
 | Issue | Recommended fix | Owner lane |
 | --- | --- | --- |
 | Live mcflyads.com trust pages lag local Free + PCD copy | **Publish Cloudflare Pages** (`site/**`) — see `SITE_CRAFT_NEXT.md` | **Human deploy** (P0 before review) |
-| `support.html` meta/OG still say “Invite-only” | Align meta with App Store Free body | Site (P2 cosmetic) |
+| Fly HTML still pre–App Bridge / Free landing (if not redeployed) | `fly deploy -a mcfly-analytics` after this pass | Agent or human ops |
 | Optional: default sample desk OFF after seed | Only if founder asks | App |
 
-Prior open items (support body Free, skill `read_customers`, listing Other, SCOPES examples) are **done in repo**.
+Prior open items (support meta Free, skill `read_customers`, listing Other, SCOPES examples, bare-URL Free voice, privacy PCD wording, App Bridge CDN, Demo OFF clarity) are **done in repo**.
 
 ---
 

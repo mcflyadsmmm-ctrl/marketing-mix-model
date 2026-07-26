@@ -38,33 +38,52 @@ export interface ChannelMixEntry {
   share: number;
 }
 
+function nonNegativeFinite(amount: number): number {
+  return Number.isFinite(amount) && amount > 0 ? amount : 0;
+}
+
 /**
  * MER = total Shopify sales ÷ total ad spend (same period).
- * Returns null when spend is zero (undefined ratio).
+ * Returns null when spend is zero/negative or inputs are non-finite.
  */
 export function computeMer(sales: number, spend: number): number | null {
-  if (spend <= 0) return null;
-  return sales / spend;
+  if (!Number.isFinite(sales) || !Number.isFinite(spend) || spend <= 0) {
+    return null;
+  }
+  const mer = sales / spend;
+  return Number.isFinite(mer) ? mer : null;
 }
 
 /**
  * Break-even MER ≈ 1 / contribution margin.
- * Margin is a decimal (e.g. 0.35 for 35%).
+ * Margin is a decimal in (0, 1] (e.g. 0.35 for 35%).
  */
 export function computeBreakEvenMer(contributionMargin: number): number | null {
-  if (contributionMargin <= 0 || contributionMargin > 1) return null;
-  return 1 / contributionMargin;
+  if (
+    !Number.isFinite(contributionMargin) ||
+    contributionMargin <= 0 ||
+    contributionMargin > 1
+  ) {
+    return null;
+  }
+  const breakEven = 1 / contributionMargin;
+  return Number.isFinite(breakEven) ? breakEven : null;
 }
 
 /**
  * Channel mix as spend share per channel (sums to 1 when total > 0).
+ * Negative / non-finite amounts are treated as zero spend.
  */
 export function channelMix(spends: ChannelSpend[]): ChannelMixEntry[] {
-  const total = spends.reduce((sum, entry) => sum + entry.amount, 0);
+  const cleaned = spends.map(({ channel, amount }) => ({
+    channel,
+    amount: nonNegativeFinite(amount),
+  }));
+  const total = cleaned.reduce((sum, entry) => sum + entry.amount, 0);
   if (total <= 0) {
-    return spends.map(({ channel }) => ({ channel, amount: 0, share: 0 }));
+    return cleaned.map(({ channel, amount }) => ({ channel, amount, share: 0 }));
   }
-  return spends.map(({ channel, amount }) => ({
+  return cleaned.map(({ channel, amount }) => ({
     channel,
     amount,
     share: amount / total,
@@ -72,5 +91,5 @@ export function channelMix(spends: ChannelSpend[]): ChannelMixEntry[] {
 }
 
 export function sumSpend(spends: ChannelSpend[]): number {
-  return spends.reduce((sum, entry) => sum + entry.amount, 0);
+  return spends.reduce((sum, entry) => sum + nonNegativeFinite(entry.amount), 0);
 }

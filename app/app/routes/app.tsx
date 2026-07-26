@@ -17,11 +17,12 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
+      {/* Ritual IA: Cash MER · Spend · Allocation · Goals · Settings (Demo stays out) */}
       <s-app-nav>
         <s-link href="/app">Cash MER</s-link>
         <s-link href="/app/spend">Spend</s-link>
         <s-link href="/app/allocation">Allocation</s-link>
-        <s-link href="/app/demo">Demo</s-link>
+        <s-link href="/app/goals">Goals</s-link>
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
       <Outlet />

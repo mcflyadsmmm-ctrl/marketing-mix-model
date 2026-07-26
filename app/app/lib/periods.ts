@@ -132,3 +132,11 @@ export const PERIOD_PRESETS: { value: PeriodPreset; label: string }[] = [
   { value: "l12m", label: "12 mo" },
   { value: "y3", label: "3 yr" },
 ];
+
+/** Parse URL `period` query; unknown/missing → MTD. */
+export function parsePeriodPreset(raw: string | null): PeriodPreset {
+  if (raw && PERIOD_PRESETS.some((p) => p.value === raw)) {
+    return raw as PeriodPreset;
+  }
+  return "mtd";
+}

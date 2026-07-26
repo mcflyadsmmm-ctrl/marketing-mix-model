@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260722q" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260723b" />
   <style>
     body.support-page {
       background:
@@ -344,7 +344,7 @@
         </details>
         <details class="faq-item">
           <summary>Do you use pixels or track my customers?</summary>
-          <p>No. Mcfly is not a pixel, multi-touch attribution, or “true ROAS” product and never will be. We read your Shopify order totals and the ad spend you give us — that's the entire data diet.</p>
+          <p>No. Mcfly is not a pixel, multi-touch attribution, or “true ROAS” product and never will be. We read Shopify order totals (<code>read_orders</code>), classify new vs returning with opaque customer id + <code>numberOfOrders</code> only (no name/email/address CRM), and the ad spend you enter — that’s the entire data diet.</p>
         </details>
         <details class="faq-item">
           <summary>My MER doesn't match what Meta or Google shows. Is something broken?</summary>
@@ -364,7 +364,7 @@
       <ul class="helps-list">
         <li>Shopify store domain</li>
         <li>Period (MTD / QTD / YTD)</li>
-        <li>Spend source and amounts (manual entry today)</li>
+        <li>Spend source and amounts (CSV template or manual entry)</li>
         <li>Screenshot if numbers look wrong vs Ads Manager — include the period both sides use</li>
       </ul>
 
@@ -376,7 +376,7 @@
     </div>
   </main>
   <div data-footer></div>
-  <script src="/assets/chrome.js?v=20260722q"></script>
-  <script src="/assets/app.js?v=20260722q"></script>
+  <script src="/assets/chrome.js?v=20260723b"></script>
+  <script src="/assets/app.js?v=20260723b"></script>
 </body>
 </html>

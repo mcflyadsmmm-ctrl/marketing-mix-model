@@ -37,17 +37,17 @@ Score 1–5 each. **Ship only if mean ≥ 4.0** or list explicit gaps.
 | Dimension | Score | Notes |
 | --- | ---: | --- |
 | Fonts (Fraunces + Source Sans 3) | **5** | Loaded in `root.tsx`; CSS `--mcfly-display` / `--mcfly-font` |
-| Token match (bg/ink/accent/shadow) | **5** | `#e8f2fa` desk paper / `#0284c7` / one cool shadow |
-| Decision strip present + useful | **5** | Left accent + Fraunces takeaway + EOM + headroom + Spend/Allocation |
-| 4-up KPI grid + delta lines | **5** | MER · Sales · Spend · **EOM projected MER**; prior-period deltas; BE in lead/ctx |
+| Token match (bg/ink/accent/shadow) | **5** | `#e8f2fa` desk paper / `#0284c7` / one cool shadow; chrome soft on Spend/Settings only |
+| Decision strip present + useful | **5** | MER strip + Allocation **recommendation hero** + why line + Spend/Settings CTAs |
+| 4-up KPI grid + delta lines | **5** | MER · Sales · Spend · EOM; formula line under lead KPI; prior deltas |
 | Sticky context rail (not chip soup) | **5** | Sticky blur rail + MER/target + BE + freshness dots |
-| Segmented periods like script | **5** | Bordered group + hairline dividers + accent-soft active |
-| Panel heads Fraunces | **5** | Equation + channel + control + next |
-| Control pacing visual | **5** | Sales-vs-calendar bars + daily sales needed (CSS only) |
-| Channel Cut/Hold/Shift badges | **5** | From `allocation.actions` on spend-by-channel rows |
-| Religion (no theater features) | **5** | No LTV/Domo/pixels; sample banner + `shot=1` preserved |
-| Listing shot readability | **5** | Shot = decision+KPIs+stack+compact equation; control hidden |
-| **Mean** | **~5.0** | Pass 2026-07-23 Cash MER polish P0s (EOM / pace / prior / badges / shot) |
+| Segmented periods like script | **5** | Shared `PeriodControl`; bordered group + accent-soft active |
+| Panel heads Fraunces | **5** | Equation “Shopify sales ÷ ad spend” + channel + control + next |
+| Control pacing visual | **5** | Sales-vs-calendar bars + daily sales needed (CSS only); hidden in shot |
+| Channel Cut/Hold/Shift badges | **5** | Larger bordered badges; empty mix → primary Spend CTA; alloc eff badges |
+| Religion (no theater features) | **5** | No LTV/Domo/pixels; digestible loading/error/zero-margin states |
+| Listing shot readability | **5** | Shot keeps formula + decision+KPIs+stack+eq; hides state strips/control |
+| **Mean** | **~4.9** | Pass 2026-07-23 hybrid scoreboard craft (states / alloc hero / formula / badges) |
 
 ---
 

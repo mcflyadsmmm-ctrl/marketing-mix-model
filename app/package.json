@@ -19,7 +19,9 @@
     "vite": "vite",
     "typecheck": "react-router typegen && tsc --noEmit",
     "seed": "node --env-file=.env scripts/seed-sample-data.mjs",
-    "seed:sample": "node --env-file=.env scripts/seed-sample-data.mjs"
+    "seed:sample": "node --env-file=.env scripts/seed-sample-data.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "type": "module",
   "engines": {
@@ -63,7 +65,8 @@
     "graphql-config": "^5.1.1",
     "prettier": "^3.6.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^3.2.4"
   },
   "trustedDependencies": [
     "@shopify/plugin-cloudflare"

@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type {
   ActionFunctionArgs,
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { Form, useActionData, useLoaderData, useNavigation } from "react-router";
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { calculateBreakEvenMer } from "@mcfly/mer-core";
 import { authenticate } from "../shopify.server";
@@ -14,7 +19,22 @@ import {
   settingsHaveBeenSaved,
 } from "../lib/mer-dashboard.server";
 import { formatMer, formatPercent } from "../lib/mer-format";
+import { getSampleDeskEnabled } from "../lib/sample-desk.server";
 import prisma from "../db.server";
+
+type ShopifyToast = {
+  show?: (message: string, options?: { duration?: number; isError?: boolean }) => void;
+};
+
+function showAdminToast(
+  message: string,
+  options?: { duration?: number; isError?: boolean },
+) {
+  const bridge = (
+    window as Window & { shopify?: { toast?: ShopifyToast } }
+  ).shopify;
+  bridge?.toast?.show?.(message, options);
+}
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -22,11 +42,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shotMode = url.searchParams.get("shot") === "1";
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
+  const useSampleDesk = await getSampleDeskEnabled(shop.id);
   return {
     settings,
     breakEvenMer: calculateBreakEvenMer(settings.marginPct),
     showRitualBanner: !settingsHaveBeenSaved(settings),
     shotMode,
+    useSampleDesk,
   };
 };
 
@@ -82,19 +104,54 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function SettingsPage() {
-  const { settings, breakEvenMer, showRitualBanner, shotMode } =
+  const { settings, breakEvenMer, showRitualBanner, shotMode, useSampleDesk } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const isSubmitting = navigation.state === "submitting";
+  const fieldIds = useId();
+  const marginFieldId = `${fieldIds}-margin`;
+  const targetFieldId = `${fieldIds}-target`;
+  const marginHintId = `${fieldIds}-margin-hint`;
+  const targetHintId = `${fieldIds}-target-hint`;
+
+  const isSaving = navigation.state === "submitting";
+  const isRevalidating =
+    navigation.state === "loading" && navigation.formMethod != null;
 
   const [marginInput, setMarginInput] = useState(
     () => (settings.marginPct * 100).toFixed(1),
   );
+  const [targetInput, setTargetInput] = useState(() =>
+    String(settings.targetMer),
+  );
 
   useEffect(() => {
     setMarginInput((settings.marginPct * 100).toFixed(1));
-  }, [settings.marginPct, settings.updatedAt]);
+    setTargetInput(String(settings.targetMer));
+  }, [settings.marginPct, settings.targetMer, settings.updatedAt]);
+
+  useEffect(() => {
+    if (!actionData) return;
+    if (actionData.success && actionData.breakEvenMer !== null) {
+      showAdminToast(
+        `Break-even MER locked at ${formatMer(actionData.breakEvenMer)}`,
+        { duration: 4500 },
+      );
+      return;
+    }
+    if (actionData.error) {
+      showAdminToast(actionData.error, { duration: 5000, isError: true });
+    }
+  }, [actionData]);
+
+  const syncFormPreviewFromSaved = () => {
+    setMarginInput((settings.marginPct * 100).toFixed(1));
+    setTargetInput(String(settings.targetMer));
+  };
+
+  const handleDiscard = () => {
+    syncFormPreviewFromSaved();
+  };
 
   const marginDecimal = parseFloat(marginInput) / 100;
   const previewBreakEven = Number.isFinite(marginDecimal)
@@ -106,23 +163,29 @@ export default function SettingsPage() {
     Math.abs(previewBreakEven - breakEvenMer) < 0.005 &&
     Math.abs(marginDecimal - settings.marginPct) < 0.0005;
 
-  const lockState = previewBreakEven === null
-    ? "empty"
-    : previewMatchesSaved
-      ? "locked"
-      : "preview";
+  const lockState =
+    previewBreakEven === null
+      ? "empty"
+      : previewMatchesSaved
+        ? "locked"
+        : "preview";
 
   const marginDisplay = Number.isFinite(marginDecimal)
     ? formatPercent(marginDecimal)
     : "—";
 
   return (
-    <s-page heading={shotMode ? undefined : "Settings"} inlineSize="small">
-      <div className={shotMode ? "mcfly-desk mcfly-desk--shot" : "mcfly-desk"}>
+    <s-page heading={shotMode ? undefined : "Settings"} inlineSize="base">
+      <div
+        className={
+          shotMode
+            ? "mcfly-desk mcfly-desk--chrome mcfly-desk--shot"
+            : "mcfly-desk mcfly-desk--chrome"
+        }
+      >
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
-            <h1 className="mcfly-topbar__title">Settings</h1>
-            <p className="mcfly-topbar__def">
+            <p className="mcfly-topbar__def mcfly-topbar__def--solo">
               Margin locks break-even MER · 1 ÷ margin · not platform ROAS
             </p>
           </div>
@@ -135,11 +198,13 @@ export default function SettingsPage() {
               ·
             </span>
             <span className="mcfly-ctx__asof">
-              {lockState === "locked"
-                ? "Saved on the scoreboard"
-                : lockState === "preview"
-                  ? "Preview — save to lock"
-                  : "Enter margin to preview"}
+              {isSaving
+                ? "Saving lock…"
+                : lockState === "locked"
+                  ? "Saved on the scoreboard"
+                  : lockState === "preview"
+                    ? "Preview — save to lock"
+                    : "Enter margin to preview"}
             </span>
           </div>
           <div className="mcfly-ctx__chips">
@@ -147,19 +212,43 @@ export default function SettingsPage() {
               className={`mcfly-ctx-chip ${
                 lockState === "locked"
                   ? "mcfly-ctx-chip--up"
-                  : lockState === "preview"
-                    ? "mcfly-ctx-chip--flat"
-                    : "mcfly-ctx-chip--flat"
+                  : "mcfly-ctx-chip--flat"
               }`}
             >
               BE{" "}
               {previewBreakEven === null ? "—.——" : formatMer(previewBreakEven)}
             </span>
             <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-              Target {formatMer(settings.targetMer)}
+              Target {formatMer(Number.parseFloat(targetInput) || settings.targetMer)}
             </span>
           </div>
         </div>
+
+        {useSampleDesk && !shotMode ? (
+          <s-banner tone="warning" heading="Sample desk is on elsewhere">
+            <s-paragraph>
+              Margin and break-even here are your real settings. Cash MER /
+              Allocation may still show sample till until you turn sample desk{" "}
+              <strong>OFF</strong> on the <s-link href="/app/demo">Demo</s-link>{" "}
+              tab. Required before App Store review.
+            </s-paragraph>
+          </s-banner>
+        ) : null}
+
+        {isSaving || isRevalidating ? (
+          <s-banner tone="info" heading="Saving break-even lock">
+            <s-stack direction="inline" gap="small" alignItems="center">
+              <s-spinner
+                size="base"
+                accessibilityLabel="Saving settings"
+              ></s-spinner>
+              <s-paragraph>
+                Updating your margin and target MER — waiting on the real save,
+                not sample numbers.
+              </s-paragraph>
+            </s-stack>
+          </s-banner>
+        ) : null}
 
         {showRitualBanner && !shotMode ? (
           <s-banner tone="info" heading="Trusted MER in under 10 minutes">
@@ -179,7 +268,9 @@ export default function SettingsPage() {
           </s-banner>
         ) : null}
 
-        {actionData?.success && actionData.breakEvenMer !== null ? (
+        {actionData?.success &&
+        actionData.breakEvenMer !== null &&
+        !isSaving ? (
           <s-banner tone="success" heading="Break-even MER locked">
             <s-paragraph>
               At {formatPercent(actionData.marginPct ?? settings.marginPct)}{" "}
@@ -196,6 +287,7 @@ export default function SettingsPage() {
         <section
           className={`mcfly-settings-lock mcfly-settings-lock--${lockState}`}
           aria-label="Break-even MER lock"
+          aria-busy={isSaving || undefined}
         >
           <p className="mcfly-settings-lock__kicker">Ritual instrument</p>
           <p className="mcfly-settings-lock__label">Break-even MER</p>
@@ -226,77 +318,159 @@ export default function SettingsPage() {
               ? "Enter a contribution margin to preview the lock line"
               : lockState === "locked"
                 ? `Locked · need ${formatMer(previewBreakEven)}× sales per $1 spend`
-                : "Preview — save to lock on the Cash MER scoreboard"}
+                : "Preview — use Admin Save to lock on Cash MER · Discard restores last save"}
           </p>
         </section>
 
-        <section className="mcfly-panel mcfly-settings-form">
-          <div className="mcfly-panel__head">
-            <h2>MER inputs</h2>
-            <p className="mcfly-panel__muted">
-              Quiet form · margin first, target second
+        {/* Polaris Settings template: description column + form column */}
+        <div className="mcfly-settings-template">
+          <aside className="mcfly-settings-template__desc">
+            <h2 className="mcfly-settings-template__heading">
+              Break-even locks from contribution margin
+            </h2>
+            <p className="mcfly-settings-template__copy">
+              Contribution margin after COGS sets break-even MER as 1 ÷ margin.
+              Cash MER (Shopify sales ÷ ad spend) must clear that line — not
+              platform ROAS.
             </p>
-          </div>
-          <Form method="post">
-            <div className="mcfly-settings-fields">
-              <label className="mcfly-settings-field">
-                <span className="mcfly-settings-field__label">
-                  Contribution margin (%)
-                </span>
-                <input
-                  className="mcfly-field mcfly-settings-field__input"
-                  name="marginPct"
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  max="100"
-                  required
-                  value={marginInput}
-                  onChange={(event) =>
-                    setMarginInput(event.currentTarget.value)
-                  }
-                />
-                <span className="mcfly-settings-field__hint">
-                  Gross contribution after COGS — sets the break-even line above.
-                </span>
-              </label>
+            <p className="mcfly-settings-template__copy">
+              Dirty fields open the Admin save bar. Save locks break-even on the
+              scoreboard; Discard restores the last saved margin and target.
+            </p>
+          </aside>
 
-              <label className="mcfly-settings-field">
-                <span className="mcfly-settings-field__label">Target MER</span>
-                <input
-                  className="mcfly-field mcfly-settings-field__input"
-                  name="targetMer"
-                  type="number"
-                  step="0.1"
-                  min="0.1"
-                  required
-                  defaultValue={settings.targetMer}
-                />
-                <span className="mcfly-settings-field__hint">
-                  Operating goal above break-even (e.g. 4.0 = $4 sales per $1 ad
-                  spend).
-                </span>
-              </label>
-
-              {actionData?.error ? (
-                <p className="mcfly-settings-error">{actionData.error}</p>
-              ) : null}
-
-              <div className="mcfly-settings-form__actions">
-                <s-button
-                  type="submit"
-                  variant="primary"
-                  {...(isSubmitting ? { loading: true } : {})}
-                >
-                  {lockState === "locked" ? "Save settings" : "Lock break-even"}
-                </s-button>
-                {!shotMode ? (
-                  <s-link href="/app">Open Cash MER</s-link>
-                ) : null}
-              </div>
+          <section className="mcfly-panel mcfly-settings-form mcfly-settings-template__form">
+            <div className="mcfly-panel__head">
+              <h2>MER inputs</h2>
+              <p className="mcfly-panel__muted">
+                Quiet form · margin first, target second
+              </p>
             </div>
-          </Form>
-        </section>
+            <Form
+              method="post"
+              key={String(settings.updatedAt)}
+              data-save-bar
+              onReset={handleDiscard}
+              aria-busy={isSaving || undefined}
+            >
+              <fieldset
+                className="mcfly-settings-fields"
+                disabled={isSaving}
+                aria-describedby={
+                  actionData?.error ? `${fieldIds}-error` : undefined
+                }
+              >
+                <legend className="mcfly-settings-fields__legend">
+                  Contribution margin and target MER
+                </legend>
+
+                <div className="mcfly-settings-field">
+                  <label
+                    className="mcfly-settings-field__label"
+                    htmlFor={marginFieldId}
+                  >
+                    Contribution margin (%)
+                  </label>
+                  <input
+                    id={marginFieldId}
+                    className="mcfly-field mcfly-settings-field__input"
+                    name="marginPct"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    max="100"
+                    required
+                    inputMode="decimal"
+                    autoComplete="off"
+                    aria-describedby={marginHintId}
+                    defaultValue={(settings.marginPct * 100).toFixed(1)}
+                    onChange={(event) =>
+                      setMarginInput(event.currentTarget.value)
+                    }
+                  />
+                  <span
+                    id={marginHintId}
+                    className="mcfly-settings-field__hint"
+                  >
+                    Gross contribution after COGS — sets the break-even line
+                    above.
+                  </span>
+                </div>
+
+                <div className="mcfly-settings-field">
+                  <label
+                    className="mcfly-settings-field__label"
+                    htmlFor={targetFieldId}
+                  >
+                    Target MER
+                  </label>
+                  <input
+                    id={targetFieldId}
+                    className="mcfly-field mcfly-settings-field__input"
+                    name="targetMer"
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    required
+                    inputMode="decimal"
+                    autoComplete="off"
+                    aria-describedby={targetHintId}
+                    defaultValue={settings.targetMer}
+                    onChange={(event) =>
+                      setTargetInput(event.currentTarget.value)
+                    }
+                  />
+                  <span
+                    id={targetHintId}
+                    className="mcfly-settings-field__hint"
+                  >
+                    Operating goal above break-even (e.g. 4.0 = $4 sales per $1
+                    ad spend).
+                  </span>
+                </div>
+
+                {actionData?.error ? (
+                  <p
+                    id={`${fieldIds}-error`}
+                    className="mcfly-settings-error"
+                    role="alert"
+                  >
+                    {actionData.error}
+                  </p>
+                ) : null}
+
+                <div className="mcfly-settings-form__actions">
+                  {!shotMode ? (
+                    <s-link href="/app">Open Cash MER</s-link>
+                  ) : null}
+                </div>
+              </fieldset>
+            </Form>
+            {!shotMode ? (
+              <p className="mcfly-settings-aside-link">
+                <s-link href="/app/demo">Demo & sample desk</s-link>
+                <span className="mcfly-panel__muted">
+                  {" "}
+                  — listing screenshots and desk rehearsals (not primary nav).
+                </span>
+              </p>
+            ) : null}
+          </section>
+        </div>
+
+        {!shotMode ? (
+          <footer className="mcfly-settings-footer-help">
+            <s-stack alignItems="center">
+              <s-text>
+                Learn more about{" "}
+                <s-link href="https://mcflyads.com/support" target="_blank">
+                  cash MER support
+                </s-link>
+                .
+              </s-text>
+            </s-stack>
+          </footer>
+        ) : null}
       </div>
     </s-page>
   );

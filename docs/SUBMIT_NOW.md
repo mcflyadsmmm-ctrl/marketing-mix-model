@@ -57,11 +57,13 @@ Reply: **`pages live`**
 
 ### 4. Install smoke on `devmcflyads`
 
+Full baby steps: [`INSTALL_SMOKE.md`](./INSTALL_SMOKE.md).
+
 **Critical:** Demo → **Turn sample desk OFF** before judging live numbers.
 
 1. Open Mcfly Analytics inside Admin on `devmcflyads`  
-2. **Demo** → sample desk **OFF**  
-3. **Settings** → set contribution margin (e.g. 35%) → see break-even update  
+2. **Demo** → sample desk **OFF** (Settings footer link if Demo not in nav)  
+3. **Settings** → set contribution margin (e.g. 35%) → contextual save bar → see break-even update  
 4. **Spend** → download CSV template → fill a few days (include **Other**) → Import  
 5. **Cash MER** → confirm MER ≈ Shopify sales ÷ spend; orders / new / returning show  
 6. **Allocation** → confirm a recommendation when spend > 0  

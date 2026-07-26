@@ -107,14 +107,105 @@ export const WIDE_TEMPLATE_SAMPLE = `${WIDE_TEMPLATE_HEADERS.join(",")}
 /** Blank starter: header + empty day rows ready to fill. */
 export function buildBlankSpendTemplate(dayCount = 14): string {
   const today = new Date();
-  const rows: string[] = [WIDE_TEMPLATE_HEADERS.join(",")];
+  const dates: string[] = [];
   for (let i = dayCount - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    rows.push(`${iso},,,,,,,`);
+    dates.push(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+    );
+  }
+  return buildBlankSpendTemplateForDates(dates);
+}
+
+/**
+ * Blank template for specific YYYY-MM-DD days (coverage holes).
+ * Invalid / empty dates are skipped; order preserved.
+ */
+export function buildBlankSpendTemplateForDates(dates: string[]): string {
+  const rows: string[] = [WIDE_TEMPLATE_HEADERS.join(",")];
+  for (const raw of dates) {
+    const date = parseSpendDate(raw) ?? (/^\d{4}-\d{2}-\d{2}$/.test(raw.trim()) ? raw.trim() : null);
+    if (!date) continue;
+    rows.push(`${date},,,,,,,`);
   }
   return `${rows.join("\n")}\n`;
+}
+
+export interface GroupedCsvError {
+  /** Short category label for the banner. */
+  label: string;
+  /** How many raw errors fell in this bucket. */
+  count: number;
+  /** Up to a few concrete line messages. */
+  examples: string[];
+}
+
+export interface GroupedCsvErrors {
+  groups: GroupedCsvError[];
+  total: number;
+  /** True when more raw errors exist than we surface in examples. */
+  truncated: boolean;
+}
+
+const ERROR_DISPLAY_MAX_GROUPS = 6;
+const ERROR_DISPLAY_EXAMPLES = 2;
+
+/**
+ * Collapse per-line CSV parse noise into scannable groups.
+ * Never invents Shopify/till blame — spend CSV only.
+ */
+export function groupCsvErrors(
+  errors: string[],
+  maxGroups = ERROR_DISPLAY_MAX_GROUPS,
+): GroupedCsvErrors {
+  const buckets = new Map<string, GroupedCsvError>();
+
+  for (const err of errors) {
+    const key = classifyCsvError(err);
+    const existing = buckets.get(key);
+    if (existing) {
+      existing.count += 1;
+      if (existing.examples.length < ERROR_DISPLAY_EXAMPLES) {
+        existing.examples.push(err);
+      }
+    } else {
+      buckets.set(key, {
+        label: key,
+        count: 1,
+        examples: [err],
+      });
+    }
+  }
+
+  const groups = Array.from(buckets.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, maxGroups);
+
+  const shownExamples = groups.reduce((n, g) => n + g.examples.length, 0);
+  return {
+    groups,
+    total: errors.length,
+    truncated: shownExamples < errors.length || buckets.size > maxGroups,
+  };
+}
+
+function classifyCsvError(err: string): string {
+  const v = err.toLowerCase();
+  if (v.includes("empty")) return "Empty file";
+  if (v.includes("missing a day") || v.includes("missing a date")) {
+    return "Missing Day/date column";
+  }
+  if (v.includes("could not detect platform")) {
+    return "Unrecognized columns";
+  }
+  if (v.includes("cannot be negative")) return "Negative spend amounts";
+  if (v.includes("could not read date")) return "Unreadable dates";
+  if (v.includes("could not read") && v.includes("amount")) {
+    return "Unreadable amounts";
+  }
+  if (v.includes("could not read")) return "Unreadable cells";
+  return "Row problems";
 }
 /**
  * Bucket free-text channel/header into a named MER channel.
@@ -444,7 +535,7 @@ export function parseSpendCsv(text: string): CsvParseResult {
     return {
       rows: [],
       errors: [
-        "Missing a Day/date column. Download the Mcfly spend template (Day + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other).",
+        "Missing a Day/date column. Download the Mcfly spend template (Day + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other). Sales stay in Shopify — this file is spend only.",
       ],
       totalDataRows: 0,
     };
@@ -461,7 +552,7 @@ export function parseSpendCsv(text: string): CsvParseResult {
   return {
     rows: [],
     errors: [
-      "Could not detect platform spend columns. Download the Mcfly template (Day + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other) or use long format date,channel,amount.",
+      "Could not detect platform spend columns. Download the Mcfly template (Day + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other) or use long format date,channel,amount. Do not paste Shopify sales into this CSV.",
     ],
     totalDataRows: 0,
   };

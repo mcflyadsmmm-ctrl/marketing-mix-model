@@ -23,7 +23,7 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [x] Dashboard: sales, spend, MER, break-even, mix
 - [x] Allocation card + detail (mer-core)
 - [x] Manual spend + settings
-- [x] CSV daily spend upload (`/app/spend`) — multi-platform template (Day, Meta, Google, Microsoft, TikTok, Affiliate, Email) + long format; SyncWith external tip. Evidence 2026-07-23: `bash scripts/agent-ship-gate.sh` → exit 0 (unit+typecheck+build+health); `fly deploy` image `deployment-01KY6KGZ…` released; `curl https://mcfly-analytics.fly.dev/health` → `{"ok":true,"db":"up"}` @04:27Z
+- [x] CSV daily spend upload (`/app/spend`) — multi-platform wide template (Day, Meta, Google, Microsoft, TikTok, Affiliate, Email, **Other**) + long format; blank + filled downloads; SyncWith/Supermetrics/Coupler as **external** tip only. Prisma `SpendChannel` enum live. Evidence 2026-07-24: `bash scripts/agent-ship-gate.sh` → exit 0; `fly deploy -a mcfly-analytics` → health `{"ok":true,"db":"up"}`; code `app/app/lib/spend-csv.ts` + `app.spend.tsx` + migration `20260723043000_spend_channels_named`
 - [x] Named spend channels in DB + dashboard mix (hide $0 channels) — evidence 2026-07-23: migration `20260723043000_spend_channels_named` applied on Fly Postgres boot ("The following migration(s) have been applied"); `SpendChannel` enum = meta/google/microsoft/tiktok/affiliate/email/other in schema + `@mcfly/mer-engine`; dashboard `channelMix` filters `amount > 0`; typecheck clean after `prisma generate`
 - [x] Connections stubs
 - [x] Sample warehouse + seed script
@@ -33,7 +33,7 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [x] Prisma migration for Shop / Settings / SpendEntry
 - [x] Shopify Partner app linked (`client_id`) — evidence: `shopify.app.toml` client_id `88c56d21…` + `shopify app deploy --allow-updates` released `mcfly-analytics-7` ("AppStore dist + AOV + URL lock", 2026-07-23; supersedes `-6`)
 - [x] Hosted HTTPS app URL (Fly) — evidence 2026-07-23: `curl https://mcfly-analytics.fly.dev/health` → `{"ok":true,"db":"up"}`; Fly deploy `deployment-01KY6MSPNZ19KVCMVWYBR12DEA`
-- [ ] Dev / design-partner store install — **human** (hosted install on `devmcflyads`, no `shopify app dev`)
+- [ ] Dev / design-partner store **ritual smoke** — **human** (Settings → CSV → Cash MER → Allocation). App **installed** on `devmcflyads` (evidence 2026-07-24 Admin Apps → Installed → Mcfly Analytics). Runbook: [`INSTALL_SMOKE.md`](./INSTALL_SMOKE.md). Reply **`install works`** when ritual passes. Fly **v28** health ok; CSV multi-platform + Other live; compliance spotcheck PASS.
 - [x] Postgres schema + migration (production-ready)
 - [x] `/health` route + Docker/Railway/Fly configs
 - [ ] `npm run seed` against real `DATABASE_URL`

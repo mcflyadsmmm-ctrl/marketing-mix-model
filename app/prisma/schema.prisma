@@ -43,6 +43,7 @@ model Shop {
   syncRuns        SyncRun[]
   merSnapshots    MerSnapshot[]
   sampleSalesDays SampleSalesDay[]
+  salesGoals      SalesGoal[]
 }
 
 model Settings {
@@ -99,6 +100,22 @@ model SampleSalesDay {
 
   @@unique([shopId, day])
   @@index([shopId, day])
+}
+
+/// Monthly Shopify sales goal (cash dollars) — Goals tab vs till + cash MER.
+model SalesGoal {
+  id         String   @id @default(cuid())
+  shopId     String
+  shop       Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  year       Int
+  /// Calendar month 1–12
+  month      Int
+  salesGoal  Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([shopId, year, month])
+  @@index([shopId, year])
 }
 
 /// Bearer tokens for Sheets companion + external API clients.

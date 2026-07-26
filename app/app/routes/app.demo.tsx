@@ -88,15 +88,17 @@ export default function DemoPage() {
 
   return (
     <s-page heading="Demo" inlineSize="base">
-      <div className="mcfly-desk">
+      <div className="mcfly-desk mcfly-desk--chrome">
         <div className="mcfly-demo-off-warning" role="alert">
           <p className="mcfly-demo-off-warning__kicker">Before App Store review</p>
           <p className="mcfly-demo-off-warning__title">
             Turn sample desk OFF before reviewer smoke
           </p>
           <p className="mcfly-demo-off-warning__body">
-            Listing shots use sample data. Live install smoke and App Store review must see real
-            Shopify till only — leave SAMPLE on and reviewers may reject.
+            Listing shots use sample data. <code>?shot=1</code> only hides the SAMPLE banner —
+            Cash MER, Spend, and Allocation numbers stay sample until you turn this OFF. App Store
+            review (requirement 1.1.4 factual info) and install smoke must see live Shopify till
+            only — leave SAMPLE on and reviewers may reject for fake metrics.
           </p>
           {stats.enabled ? (
             <Form method="post" className="mcfly-demo-off-warning__action">
@@ -189,7 +191,7 @@ export default function DemoPage() {
           </s-paragraph>
           <div className="mcfly-demo-steps">
             <s-link href="/app?period=y3&shot=1">1 · Cash MER → 3 yr (shot)</s-link>
-            <s-link href="/app?period=ytd&shot=1">2 · Cash MER → YTD (shot)</s-link>
+            <s-link href="/app?period=mtd&shot=1">2 · Cash MER → MTD · equation panel (shot)</s-link>
             <s-link href="/app/spend?shot=1">3 · Spend (shot)</s-link>
             <s-link href="/app/allocation?period=y3&shot=1">4 · Allocation → 3 yr (shot)</s-link>
             <s-link href="/app/settings?shot=1">5 · Settings (shot)</s-link>
