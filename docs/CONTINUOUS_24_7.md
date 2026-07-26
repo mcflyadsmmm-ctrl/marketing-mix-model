@@ -21,24 +21,26 @@ Read product religion + delivery OS (paraphrased if files not on branch yet):
 - Zero shortcuts: ship gate before claiming done; checklist only with evidence
 - Human gates stop the agent (Partner MFA, App Store submit, billing cards, DNS)
 
+## Redesign mode (6–8 weeks — **active**)
+
+See [`ENTERPRISE_REDESIGN.md`](./ENTERPRISE_REDESIGN.md) + [`docs/superpowers/specs/2026-07-26-enterprise-redesign-design.md`](./superpowers/specs/2026-07-26-enterprise-redesign-design.md).
+
+- **App lane is P0.** Site mega-ticks (≥80% site-first) are **paused**.
+- Specialists default to **Grok 4.5** (`cursor-grok-4.5-high-fast`).
+- Topology: Parent + 1 Grok implementer + 1 Grok critic.
+- **No automation `fly deploy`** unless the founder explicitly asks.
+
 ## Tick protocol (orchestrator)
 
 Every tick:
 
-1. **Orient** — health URL, site HTTP (`?v=` live vs local), git status, next **site curriculum** step from [`SITE_CRAFT_LOOP.md`](./SITE_CRAFT_LOOP.md)  
-2. **Site-first spawn** (training-style multitask — see SITE_CRAFT_LOOP):
-   - **≥80% ticks:** Generator + Critic in parallel on `site/**`; Verifier after; Distiller → next brief  
-   - **≤20% ticks / only if site blocked or gate red:** App cash desk and/or QA ship-gate  
-   - **Model routing (frontier-first — quality over cheap Auto):**
-     - Parent Auto **orchestrates only**. Specialists use frontier models via Task `model`.
-     - **Claude Fable 5** (`claude-fable-5-thinking-high`) / **Opus 4.8** (`claude-opus-4-8-thinking-high`) — hero, authority pages, pricing narrative, hard taste
-     - **Claude Sonnet 5** (`claude-sonnet-5-thinking-high`) — app UX, strong secondary craft
-     - **Grok 4.5 high fast** (`cursor-grok-4.5-high-fast`) — critics, explore, QA, hygiene, parallel sweeps
-     - **Composer 2.5 fast** (`composer-2.5-fast`) — trivial renames / ?v= only
-     - **GPT 5.6 Sol/Terra** — alternate judgment / Best-of-N when useful
-     - **Every site mega-tick:** ≥1 Fable or Opus Generator on craft-critical work; never all-inherit Auto
+1. **Orient** — health URL, git status, next item from [`ENTERPRISE_REDESIGN.md`](./ENTERPRISE_REDESIGN.md) (or site curriculum only if redesign paused)  
+2. **Spawn** (redesign-active):
+   - **App / QA ticks:** Grok implementer (one file owner) ∥ Grok critic  
+   - **Site ticks:** paused unless founder re-enables; then Grok/GPT (Claude if quota allows)  
+   - Parent Auto **orchestrates only**. Specialists set Task `model` explicitly — never all-inherit Auto  
 3. **Integrate** — merge safe diffs; reject religion violations / critic religion fails  
-4. **Gate** — site ticks: visual + `?v=` bump; full `bash scripts/agent-ship-gate.sh` when app touched (or red QA)  
+4. **Gate** — `bash scripts/agent-ship-gate.sh` when app touched (CI may set `SKIP_HEALTH=1`)  
 5. **Report** — 5 lines: shipped, **models used**, critic scores, blocked (human), next  
 
 ## Intensity settings

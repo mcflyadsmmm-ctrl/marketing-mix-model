@@ -1,0 +1,43 @@
+name: PR CI
+
+on:
+  pull_request:
+    branches: [main, "cursor/**", "redesign/**"]
+  push:
+    branches: ["redesign/**"]
+
+concurrency:
+  group: pr-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build packages
+        run: |
+          npm run build --workspace=@mcfly/api-contract
+          npm run build --workspace=@mcfly/mer-core
+          npm run build --workspace=@mcfly/mer-engine
+          npm run build --workspace=@mcfly/connectors
+          npm run build --workspace=@mcfly/worker
+      - name: Prisma generate
+        working-directory: app
+        run: npx prisma generate
+      - name: Unit tests
+        run: npm test
+      - name: Typecheck
+        run: npm run typecheck
+      - name: App build (no Fly health)
+        working-directory: app
+        env:
+          SKIP_HEALTH: "1"
+        run: npm run build
