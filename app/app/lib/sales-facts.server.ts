@@ -91,6 +91,10 @@ async function upsertSalesDayFact(
 
   // Upsert only after the full per-day pagination above has succeeded — a zero-sales
   // day is a legitimate fact (written as sales: 0), a failed fetch is not (left missing).
+  // Never write demo/sample into SalesDayFact — sample till stays on SampleSalesDay.
+  if (data.source !== SALES_DAY_FACT_SOURCE) {
+    throw new Error(`SalesDayFact source must be ${SALES_DAY_FACT_SOURCE}`);
+  }
   await prisma.salesDayFact.upsert({
     where: { shopId_day: { shopId, day } },
     create: { shopId, day, ...data },
