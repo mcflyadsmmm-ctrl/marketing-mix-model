@@ -17,8 +17,9 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 /**
- * Resolve shop from Bearer token + optional X-Mcfly-Shop-Id (domain or cuid).
- * Supports env MCFLY_API_TOKEN (global) and per-shop ApiToken rows.
+ * Resolve shop from Bearer token + shop hint.
+ * Global MCFLY_API_TOKEN requires X-Mcfly-Shop-Id (domain or cuid) — never
+ * falls back to “first shop”. Per-shop ApiToken rows bind to their shop.
  */
 export async function authenticateApiRequest(
   request: Request,
@@ -34,18 +35,18 @@ export async function authenticateApiRequest(
   }
 
   const shopHint =
-    request.headers.get("X-Mcfly-Shop-Id") ??
-    request.headers.get("x-mcfly-shop-id") ??
+    request.headers.get("X-Mcfly-Shop-Id")?.trim() ||
+    request.headers.get("x-mcfly-shop-id")?.trim() ||
     null;
 
   const envToken = process.env.MCFLY_API_TOKEN;
   if (envToken && safeEqual(token, envToken)) {
     if (!shopHint) {
-      const first = await prisma.shop.findFirst({ orderBy: { createdAt: "asc" } });
-      if (!first) {
-        return { ok: false, status: 404, message: "No shop installed" };
-      }
-      return { ok: true, shopId: first.id, shopDomain: first.domain };
+      return {
+        ok: false,
+        status: 401,
+        message: "X-Mcfly-Shop-Id header required for global API token",
+      };
     }
     const shop = await resolveShop(shopHint);
     if (!shop) {

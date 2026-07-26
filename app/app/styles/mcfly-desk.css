@@ -719,6 +719,52 @@
   letter-spacing: -0.02em;
 }
 
+/* First-viewport diet: one secondary disclosure for spend mix panels */
+.mcfly-explore-mix {
+  margin: 0.15rem 0 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.mcfly-explore-mix__summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.85rem;
+  padding: 0.2rem 0;
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-explore-mix__summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcfly-explore-mix__summary::before {
+  content: "▸";
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-explore-mix[open] > .mcfly-explore-mix__summary::before {
+  content: "▾";
+}
+
+.mcfly-explore-mix__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mcfly-desk--shot .mcfly-explore-mix__summary {
+  display: none;
+}
+
 /* Premium analytics density: two-row KPI board (Lifetimely-clean, not TW soup) */
 .mcfly-kpi-board {
   display: grid;

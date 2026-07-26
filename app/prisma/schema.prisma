@@ -52,6 +52,8 @@ model Settings {
   shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   marginPct     Float    @default(0.35)
   targetMer     Float    @default(3.0)
+  /// Set when the merchant confirms margin via Settings save. Null = preview defaults only.
+  marginConfirmedAt DateTime?
   /// When true, Cash MER uses SampleSalesDay + sample spend (clearly labeled), not live Shopify.
   useSampleDesk Boolean  @default(false)
   createdAt     DateTime @default(now())

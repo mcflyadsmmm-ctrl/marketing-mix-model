@@ -10,6 +10,8 @@ type Props = {
   blockedMockAsLive: boolean;
   spendCoverage: SpendPeriodCoverage | null;
   periodLabel: string;
+  /** Live Shopify (not sample) + period wider than ~60d read_orders window. */
+  shopifyOrderWindowLimited?: boolean;
   shotMode?: boolean;
 };
 
@@ -17,6 +19,7 @@ export function CashTrustBanners({
   blockedMockAsLive,
   spendCoverage,
   periodLabel,
+  shopifyOrderWindowLimited = false,
   shotMode = false,
 }: Props) {
   if (shotMode) return null;
@@ -29,6 +32,18 @@ export function CashTrustBanners({
             Fabricated sales were refused — Cash MER never treats mock numbers as live Shopify
             when the sample desk is off. Retry the till pull, or turn on the{" "}
             <s-link href="/app/demo">sample desk</s-link> for a clearly labeled demo.
+          </s-paragraph>
+        </s-banner>
+      ) : null}
+
+      {shopifyOrderWindowLimited ? (
+        <s-banner tone="info" heading="Live till may be incomplete for this period">
+          <s-paragraph>
+            {periodLabel} is longer than Shopify’s default ~60-day order window (
+            <code>read_orders</code>). Cash MER still uses sales ÷ spend for orders the till
+            returns — not a full L12M/3yr claim until daily sales facts backfill. Prefer MTD /
+            QTD for a complete live window, or use the{" "}
+            <s-link href="/app/demo">sample desk</s-link> for a labeled multi-year rehearsal.
           </s-paragraph>
         </s-banner>
       ) : null}

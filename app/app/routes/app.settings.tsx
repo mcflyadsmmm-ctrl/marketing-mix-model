@@ -16,7 +16,7 @@ import { authenticate } from "../shopify.server";
 import {
   ensureShop,
   getOrCreateSettings,
-  settingsHaveBeenSaved,
+  marginIsConfirmed,
 } from "../lib/mer-dashboard.server";
 import { formatMer, formatPercent } from "../lib/mer-format";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
@@ -46,7 +46,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return {
     settings,
     breakEvenMer: calculateBreakEvenMer(settings.marginPct),
-    showRitualBanner: !settingsHaveBeenSaved(settings),
+    showRitualBanner: !marginIsConfirmed(settings),
     shotMode,
     useSampleDesk,
   };
@@ -92,6 +92,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     data: {
       marginPct,
       targetMer,
+      marginConfirmedAt: new Date(),
     },
   });
 
@@ -134,7 +135,7 @@ export default function SettingsPage() {
     if (!actionData) return;
     if (actionData.success && actionData.breakEvenMer !== null) {
       showAdminToast(
-        `Break-even MER locked at ${formatMer(actionData.breakEvenMer)}`,
+        `Margin confirmed · break-even locked at ${formatMer(actionData.breakEvenMer)}`,
         { duration: 4500 },
       );
       return;
@@ -153,6 +154,7 @@ export default function SettingsPage() {
     syncFormPreviewFromSaved();
   };
 
+  const marginConfirmed = settings.marginConfirmedAt != null;
   const marginDecimal = parseFloat(marginInput) / 100;
   const previewBreakEven = Number.isFinite(marginDecimal)
     ? calculateBreakEvenMer(marginDecimal)
@@ -163,10 +165,11 @@ export default function SettingsPage() {
     Math.abs(previewBreakEven - breakEvenMer) < 0.005 &&
     Math.abs(marginDecimal - settings.marginPct) < 0.0005;
 
+  // Unconfirmed defaults are preview only — never claim "locked" before save.
   const lockState =
     previewBreakEven === null
       ? "empty"
-      : previewMatchesSaved
+      : marginConfirmed && previewMatchesSaved
         ? "locked"
         : "preview";
 
@@ -186,24 +189,29 @@ export default function SettingsPage() {
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              Margin locks break-even MER · 1 ÷ margin · not platform ROAS
+              Confirm margin to lock break-even MER · 1 ÷ margin · not platform
+              ROAS
             </p>
           </div>
         </header>
 
         <div className="mcfly-ctx" aria-live="polite">
           <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">Break-even lock</span>
+            <span className="mcfly-ctx__brand">
+              {marginConfirmed ? "Break-even locked" : "Confirm margin"}
+            </span>
             <span className="mcfly-ctx__sep" aria-hidden="true">
               ·
             </span>
             <span className="mcfly-ctx__asof">
               {isSaving
-                ? "Saving lock…"
+                ? "Confirming margin…"
                 : lockState === "locked"
-                  ? "Saved on the scoreboard"
+                  ? "Confirmed on the scoreboard"
                   : lockState === "preview"
-                    ? "Preview — save to lock"
+                    ? marginConfirmed
+                      ? "Preview — save to update lock"
+                      : "Preview — save to confirm & lock"
                     : "Enter margin to preview"}
             </span>
           </div>
@@ -236,15 +244,15 @@ export default function SettingsPage() {
         ) : null}
 
         {isSaving || isRevalidating ? (
-          <s-banner tone="info" heading="Saving break-even lock">
+          <s-banner tone="info" heading="Confirming margin">
             <s-stack direction="inline" gap="small" alignItems="center">
               <s-spinner
                 size="base"
                 accessibilityLabel="Saving settings"
               ></s-spinner>
               <s-paragraph>
-                Updating your margin and target MER — waiting on the real save,
-                not sample numbers.
+                Confirming your margin and target MER — waiting on the real
+                save, not sample numbers.
               </s-paragraph>
             </s-stack>
           </s-banner>
@@ -255,8 +263,8 @@ export default function SettingsPage() {
             <s-paragraph>Three steps, in order:</s-paragraph>
             <ol className="mcfly-settings-guide">
               <li>
-                Set contribution margin below — break-even MER locks as 1 ÷
-                margin.
+                Confirm contribution margin below — defaults are preview only
+                until you save; then break-even locks as 1 ÷ margin.
               </li>
               <li>
                 Add ad spend on <s-link href="/app/spend">Spend</s-link>.
@@ -273,7 +281,8 @@ export default function SettingsPage() {
         !isSaving ? (
           <s-banner tone="success" heading="Break-even MER locked">
             <s-paragraph>
-              At {formatPercent(actionData.marginPct ?? settings.marginPct)}{" "}
+              Margin confirmed. At{" "}
+              {formatPercent(actionData.marginPct ?? settings.marginPct)}{" "}
               margin, break-even MER is {formatMer(actionData.breakEvenMer)}.
               Cash MER must clear this line.
             </s-paragraph>
@@ -317,8 +326,10 @@ export default function SettingsPage() {
             {lockState === "empty"
               ? "Enter a contribution margin to preview the lock line"
               : lockState === "locked"
-                ? `Locked · need ${formatMer(previewBreakEven)}× sales per $1 spend`
-                : "Preview — use Admin Save to lock on Cash MER · Discard restores last save"}
+                ? `Break-even locked · need ${formatMer(previewBreakEven)}× sales per $1 spend`
+                : marginConfirmed
+                  ? "Preview — use Admin Save to update the lock · Discard restores last save"
+                  : "Preview only — use Admin Save to confirm margin & lock break-even"}
           </p>
         </section>
 
@@ -326,16 +337,18 @@ export default function SettingsPage() {
         <div className="mcfly-settings-template">
           <aside className="mcfly-settings-template__desc">
             <h2 className="mcfly-settings-template__heading">
-              Break-even locks from contribution margin
+              Confirm margin to lock break-even
             </h2>
             <p className="mcfly-settings-template__copy">
               Contribution margin after COGS sets break-even MER as 1 ÷ margin.
-              Cash MER (Shopify sales ÷ ad spend) must clear that line — not
+              Until you save, defaults are preview only — not locked. Cash MER
+              (Shopify sales ÷ ad spend) must clear the confirmed line — not
               platform ROAS.
             </p>
             <p className="mcfly-settings-template__copy">
-              Dirty fields open the Admin save bar. Save locks break-even on the
-              scoreboard; Discard restores the last saved margin and target.
+              Dirty fields open the Admin save bar. Save confirms margin and
+              locks break-even on the scoreboard; Discard restores the last
+              saved margin and target.
             </p>
           </aside>
 

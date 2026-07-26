@@ -145,21 +145,21 @@ export async function ensureShop(domain: string) {
 }
 
 export async function getOrCreateSettings(shopId: string) {
-  // find-then-create (not empty upsert) so @updatedAt stays meaningful for first-run detection
+  // find-then-create leaves marginConfirmedAt null until Settings save
   const existing = await prisma.settings.findUnique({ where: { shopId } });
   if (existing) return existing;
   return prisma.settings.create({ data: { shopId } });
 }
 
-/** True after the merchant has saved Settings at least once (not just defaults). */
-export function settingsHaveBeenSaved(settings: {
-  createdAt: Date;
-  updatedAt: Date;
+/** True after the merchant confirmed margin via Settings save (not just defaults). */
+export function marginIsConfirmed(settings: {
+  marginConfirmedAt: Date | null;
 }): boolean {
-  return settings.updatedAt.getTime() - settings.createdAt.getTime() > 500;
+  return settings.marginConfirmedAt != null;
 }
 
 export interface RitualOnboarding {
+  /** Margin confirmed via Settings save (or sample desk treated as confirmed). */
   settingsSaved: boolean;
   hasSpend: boolean;
   /** First-run guide until margin confirmed and spend exists */
@@ -788,7 +788,7 @@ export async function buildDashboardMetrics(
   const mer = computeMer(honestSales.totalSales, totalSpend);
   const breakEvenMer = computeBreakEvenMer(settings.marginPct);
   const mix = channelMix(spends);
-  const settingsSaved = settingsHaveBeenSaved(settings) || useSampleDesk;
+  const settingsSaved = marginIsConfirmed(settings) || useSampleDesk;
   const hasSpend = totalSpend > 0;
   const onboarding: RitualOnboarding = {
     settingsSaved,

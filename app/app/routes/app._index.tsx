@@ -30,6 +30,7 @@ import {
 } from "../lib/shopify-sales.server";
 import {
   parsePeriodPreset,
+  periodMayExceedShopifyOrderWindow,
   resolvePeriod,
   resolvePriorPeriod,
   type PeriodPreset,
@@ -90,10 +91,14 @@ function decisionTakeaway(metrics: {
   sales: number;
   totalSpend: number;
   control: { projMer: number | null; railOk: boolean } | null;
+  onboarding: { settingsSaved: boolean };
 }): string {
   const target = metrics.targetMer;
   const { mer } = metrics;
   if (mer == null) {
+    if (!metrics.onboarding.settingsSaved || metrics.breakEvenMer == null) {
+      return "Set contribution margin so break-even MER can lock — then add spend to unlock cash MER.";
+    }
     return "Add spend to unlock cash MER — Shopify sales are on the till; the scoreboard needs the other half.";
   }
   const bits: string[] = [];
@@ -131,6 +136,7 @@ type DecisionVerb = {
 function decisionVerbs(
   metrics: {
     mer: number | null;
+    breakEvenMer: number | null;
     allocation: {
       actions: Array<{
         type: "cut" | "shift" | "hold" | "watch";
@@ -138,11 +144,23 @@ function decisionVerbs(
         percentChange?: number;
       }>;
     } | null;
+    onboarding: { settingsSaved: boolean };
   },
   preset: PeriodPreset,
 ): DecisionVerb[] {
   const allocHref = `/app/allocation?period=${preset}`;
   if (metrics.mer == null) {
+    // Margin before spend when both are missing — Settings owns the first CTA.
+    if (!metrics.onboarding.settingsSaved || metrics.breakEvenMer == null) {
+      return [
+        {
+          label: "Set contribution margin",
+          href: "/app/settings",
+          primary: true,
+        },
+        { label: "Add spend", href: "/app/spend", primary: false },
+      ];
+    }
     return [
       { label: "Add spend", href: "/app/spend", primary: true },
       { label: "Open allocation", href: allocHref, primary: false },
@@ -479,12 +497,20 @@ export default function Dashboard() {
   const targetRailPct =
     merCeil > 0 ? Math.min(100, (metrics.targetMer / merCeil) * 100) : 0;
   const stackHasSpend = spine.some((d) => d.spend > 0);
+  /** Margin unconfirmed or break-even unset — Settings before spend. */
+  const marginBlocked =
+    (!metrics.onboarding.settingsSaved || metrics.breakEvenMer == null) &&
+    !useSampleDesk &&
+    !shotMode;
   /** Live install, no spend yet — Polaris Empty owns the body; scoreboard waits. */
-  const zeroSpendEmpty =
+  const spendBlocked =
     !metrics.onboarding.hasSpend && !useSampleDesk && !shotMode;
-  /** Margin unset / zero → no break-even line; one sentence + Settings. */
-  const zeroMargin =
-    metrics.breakEvenMer == null && !zeroSpendEmpty && !shotMode;
+  /** Both missing: one empty with Settings primary (do not let spend swallow margin). */
+  const bothBlockedEmpty = marginBlocked && spendBlocked;
+  /** Spend missing, margin OK. */
+  const spendOnlyEmpty = spendBlocked && !marginBlocked;
+  /** Margin missing, spend present — banner above scoreboard. */
+  const marginOnlyBanner = marginBlocked && !spendBlocked;
   const headroomMonth = control?.headroomMonth ?? 0;
   const headroomPeriod = control?.headroomPeriod ?? 0;
   const headroomDay = control?.headroomDay ?? 0;
@@ -540,6 +566,10 @@ export default function Dashboard() {
               : null
           }
           periodLabel={metrics.period.label}
+          shopifyOrderWindowLimited={
+            !useSampleDesk &&
+            periodMayExceedShopifyOrderWindow(metrics.period)
+          }
           shotMode={shotMode}
         />
 
@@ -565,7 +595,7 @@ export default function Dashboard() {
           </section>
         ) : null}
 
-        {zeroMargin ? (
+        {marginOnlyBanner ? (
           <section
             className="mcfly-state mcfly-state--warn"
             aria-label="Break-even margin required"
@@ -575,7 +605,7 @@ export default function Dashboard() {
             </p>
             <div className="mcfly-state__cta">
               <s-button href="/app/settings" variant="primary">
-                Open Settings
+                Set contribution margin
               </s-button>
             </div>
           </section>
@@ -614,7 +644,46 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {zeroSpendEmpty ? (
+        {bothBlockedEmpty ? (
+          <s-section accessibilityLabel="Empty state — set contribution margin for Cash MER">
+            <s-grid gap="base" justifyItems="center" paddingBlock="large-400">
+              <s-grid justifyItems="center" maxInlineSize="450px" gap="base">
+                <s-stack alignItems="center">
+                  <s-heading>Set contribution margin first</s-heading>
+                  <s-paragraph>
+                    Cash MER is Shopify sales ÷ ad spend for the same period — not
+                    platform ROAS. Confirm margin so break-even MER can lock, then log
+                    spend — most merchants light the scoreboard in under 10 minutes.
+                  </s-paragraph>
+                </s-stack>
+                <s-button-group>
+                  <s-button
+                    slot="primary-action"
+                    variant="primary"
+                    href="/app/settings"
+                    aria-label="Set contribution margin"
+                  >
+                    Set contribution margin
+                  </s-button>
+                  <s-button
+                    slot="secondary-actions"
+                    href="/app/spend"
+                    aria-label="Add ad spend"
+                  >
+                    Add spend
+                  </s-button>
+                </s-button-group>
+              </s-grid>
+            </s-grid>
+            <p className="mcfly-guide__foot">
+              Want to see a filled desk first?{" "}
+              <s-link href="/app/demo">Load the sample desk</s-link> — 3 years of
+              matched sales and spend.
+            </p>
+          </s-section>
+        ) : null}
+
+        {spendOnlyEmpty ? (
           <s-section accessibilityLabel="Empty state — add spend for Cash MER">
             <s-grid gap="base" justifyItems="center" paddingBlock="large-400">
               <s-grid justifyItems="center" maxInlineSize="450px" gap="base">
@@ -622,8 +691,8 @@ export default function Dashboard() {
                   <s-heading>Add spend to unlock Cash MER</s-heading>
                   <s-paragraph>
                     Cash MER is Shopify sales ÷ ad spend for the same period — not
-                    platform ROAS. Sales are already on the till; most merchants light
-                    the scoreboard in under 10 minutes — confirm margin, then log spend.
+                    platform ROAS. Sales are already on the till; log spend to light
+                    the scoreboard.
                   </s-paragraph>
                 </s-stack>
                 <s-button-group>
@@ -655,8 +724,8 @@ export default function Dashboard() {
 
         {metrics.onboarding.showGuide &&
         !shotMode &&
-        !zeroSpendEmpty &&
-        !zeroMargin ? (
+        !spendBlocked &&
+        !marginBlocked ? (
           <section className="mcfly-guide" aria-label="First Cash MER setup">
             <div className="mcfly-guide__head">
               <p className="mcfly-guide__title">Your first Cash MER takes under 10 minutes</p>
@@ -737,7 +806,7 @@ export default function Dashboard() {
           </section>
         ) : null}
 
-        {!zeroSpendEmpty ? (
+        {!spendBlocked ? (
           <>
         <section className="mcfly-decision" aria-label="Cash MER decision">
           <p className="mcfly-decision__kicker">
@@ -872,6 +941,14 @@ export default function Dashboard() {
             })()
           : null}
 
+        <details
+          className="mcfly-explore-mix"
+          {...(shotMode ? { open: true } : {})}
+        >
+          <summary className="mcfly-explore-mix__summary">
+            Explore spend mix
+          </summary>
+          <div className="mcfly-explore-mix__body">
         <SpendExplorer
           series={explorer}
           period={preset}
@@ -1225,6 +1302,8 @@ export default function Dashboard() {
             </div>
           </section>
         ) : null}
+          </div>
+        </details>
           </>
         ) : null}
       </div>

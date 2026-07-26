@@ -133,6 +133,22 @@ export const PERIOD_PRESETS: { value: PeriodPreset; label: string }[] = [
   { value: "y3", label: "3 yr" },
 ];
 
+/**
+ * Shopify `read_orders` default window is ~60 days without `read_all_orders`.
+ * Periods longer than that can overclaim live till coverage until SalesDayFact.
+ */
+export const SHOPIFY_READ_ORDERS_WINDOW_DAYS = 60;
+
+export function periodSpanDays(range: DateRange): number {
+  const ms = range.end.getTime() - range.start.getTime();
+  return Math.max(0, Math.ceil(ms / 86_400_000));
+}
+
+/** True when the selected range is wider than the default live order window. */
+export function periodMayExceedShopifyOrderWindow(range: DateRange): boolean {
+  return periodSpanDays(range) > SHOPIFY_READ_ORDERS_WINDOW_DAYS;
+}
+
 /** Parse URL `period` query; unknown/missing → MTD. */
 export function parsePeriodPreset(raw: string | null): PeriodPreset {
   if (raw && PERIOD_PRESETS.some((p) => p.value === raw)) {

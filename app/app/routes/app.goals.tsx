@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId } from "react";
 import type {
   ActionFunctionArgs,
   HeadersFunction,
@@ -169,16 +169,7 @@ export default function GoalsPage() {
   const isRevalidating =
     navigation.state === "loading" && navigation.formMethod != null;
 
-  const goalsKey = board.rows.map((r) => r.salesGoal).join("|");
-  const [draftGoals, setDraftGoals] = useState<string[]>(() =>
-    board.rows.map((r) => formatGoalInput(r.salesGoal)),
-  );
-
-  useEffect(() => {
-    setDraftGoals(
-      goalsKey.split("|").map((g) => formatGoalInput(Number(g) || 0)),
-    );
-  }, [board.year, goalsKey]);
+  const goalsKey = `${board.year}:${board.rows.map((r) => r.salesGoal).join("|")}`;
 
   useEffect(() => {
     if (!actionData) return;
@@ -193,15 +184,16 @@ export default function GoalsPage() {
     }
   }, [actionData]);
 
+  /** Native form reset restores uncontrolled defaultValue inputs (App Bridge Discard). */
+  const handleDiscard = () => {
+    /* no-op: browser reset + form key remount keep CSB parity with Settings */
+  };
+
   const ytdTone = deltaTone(board.ytd.delta, board.ytd.goal);
   const forecast = board.forecast;
   const tillLabel = useSampleDesk
     ? `${year} · sample till`
     : `${year} · live Shopify till`;
-
-  const dirty = board.rows.some(
-    (r, i) => formatGoalInput(r.salesGoal) !== (draftGoals[i] ?? ""),
-  );
 
   const onYearChange = (next: string) => {
     const params = new URLSearchParams(searchParams);
@@ -460,14 +452,22 @@ export default function GoalsPage() {
           </section>
         ) : null}
 
-        <Form method="post" className="mcfly-goals-form">
+        <Form
+          method="post"
+          className="mcfly-goals-form"
+          key={goalsKey}
+          data-save-bar
+          onReset={handleDiscard}
+          aria-busy={isSaving || undefined}
+        >
           <input type="hidden" name="year" value={year} />
           <section className="mcfly-panel mcfly-goals-panel" aria-label="Monthly plan">
             <div className="mcfly-panel__head">
               <h2>12-month sales plan</h2>
               <p>
-                Enter sales dollars per month. MER is till ÷ spend — not platform
-                ROAS.
+                Enter sales dollars per month. Dirty fields open the Admin save
+                bar — Discard restores the last saved plan. MER is till ÷ spend —
+                not platform ROAS.
               </p>
             </div>
 
@@ -486,19 +486,12 @@ export default function GoalsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {board.rows.map((row, index) => (
+                  {board.rows.map((row) => (
                     <GoalRow
                       key={row.month}
                       row={row}
                       inputId={`${formId}-g${row.month}`}
-                      value={draftGoals[index] ?? ""}
-                      onChange={(v) => {
-                        setDraftGoals((prev) => {
-                          const next = [...prev];
-                          next[index] = v;
-                          return next;
-                        });
-                      }}
+                      defaultValue={formatGoalInput(row.salesGoal)}
                     />
                   ))}
                 </tbody>
@@ -506,13 +499,6 @@ export default function GoalsPage() {
             </div>
 
             <div className="mcfly-goals-form__actions">
-              <s-button
-                type="submit"
-                variant="primary"
-                {...(isSaving || !dirty ? { disabled: true } : {})}
-              >
-                {isSaving ? "Saving…" : "Save year goals"}
-              </s-button>
               <s-link href="/app">Cash MER</s-link>
               <s-link href="/app/spend">Spend</s-link>
             </div>
@@ -526,13 +512,11 @@ export default function GoalsPage() {
 function GoalRow({
   row,
   inputId,
-  value,
-  onChange,
+  defaultValue,
 }: {
   row: GoalMonthRow;
   inputId: string;
-  value: string;
-  onChange: (v: string) => void;
+  defaultValue: string;
 }) {
   const rowClass = [
     "mcfly-goals-table__row",
@@ -557,8 +541,7 @@ function GoalRow({
           name={`goal_${row.month}`}
           inputMode="decimal"
           placeholder="0"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          defaultValue={defaultValue}
           aria-label={`${row.monthLong} sales goal`}
         />
       </td>
