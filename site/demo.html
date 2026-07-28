@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sample Total ROAS desk — Mcfly Ads</title>
+  <meta name="description" content="Interactive sample Total ROAS desk: net Shopify sales ÷ ad spend, break-even from margin, channel mix, Monday close preview. SAMPLE data only — no pixels." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="canonical" href="https://mcflyads.com/demo" />
+  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/demo" />
+  <meta property="og:title" content="Sample Total ROAS desk — Mcfly Ads" />
+  <meta property="og:description" content="Toggle MTD / QTD / YTD on a sample cash desk. Net sales ÷ spend. No pixels. No path credit." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sample Total ROAS desk — Mcfly Ads" />
+  <meta name="twitter:description" content="Interactive SAMPLE Total ROAS desk — sales ÷ spend, break-even, Monday close." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;650;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260728h" />
+  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260728j" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Sample Total ROAS desk — Mcfly Ads",
+    "url": "https://mcflyads.com/demo",
+    "description": "Interactive sample Total ROAS desk using demo data only. Net sales ÷ ad spend. No pixels.",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Mcfly Ads",
+      "url": "https://mcflyads.com/"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcflyads.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Sample Total ROAS desk", "item": "https://mcflyads.com/demo.html" }
+    ]
+  }
+  </script>
+</head>
+<body class="demo-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+
+  <main id="main">
+    <header class="page-hero">
+      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
+      <h1>Sample Total ROAS desk</h1>
+      <p>Click around a fake store. Same math you’ll run Monday: sales ÷ spend vs break-even. SAMPLE data only.</p>
+      <div class="demo-hero-meta">
+        <span class="demo-sample-badge"><i aria-hidden="true"></i> SAMPLE · Northline Supply</span>
+      </div>
+      <div class="cta-row demo-hero-actions">
+        <a class="btn primary solid" data-mcfly-cta="primary" href="/#waitlist">Request Partner invite</a>
+        <a class="btn ghost" data-mcfly-cta="secondary" href="/support">App Store Free when listed</a>
+        <a class="btn ghost" href="/product">Product</a>
+      </div>
+    </header>
+
+    <aside class="demo-howto" aria-label="How to use this demo">
+      <p class="demo-howto__kicker">How to use this demo</p>
+      <ul class="demo-howto__list">
+        <li>Toggle <strong>Last 7d / MTD / QTD / YTD</strong> — same till math, new window</li>
+        <li>Click a <strong>KPI</strong> or <strong>channel row</strong> for the cash formula and next move</li>
+        <li><strong>Install</strong> when the craft clicks — SAMPLE numbers stay SAMPLE</li>
+      </ul>
+    </aside>
+
+    <div class="demo-stage">
+      <div
+        id="dd-desk"
+        class="dd-desk"
+        role="region"
+        aria-label="Sample Total ROAS desk — Northline Supply"
+      >
+        <p id="dd-live" class="dd-sr-only" aria-live="polite"></p>
+
+        <div class="dd-topbar">
+          <div>
+            <h2 class="dd-topbar__title">Total ROAS</h2>
+            <p class="dd-topbar__def">Cash MER · Shopify sales ÷ ad spend · not platform ROAS</p>
+          </div>
+          <p class="dd-topbar__shop">
+            Northline Supply
+            <span>SAMPLE desk · Jul 2026</span>
+          </p>
+        </div>
+
+        <nav class="dd-nav" aria-label="Desk sections">
+          <button type="button" class="dd-nav__btn" data-dd-nav="overview" aria-current="true">Overview</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="mix">Mix</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="explorer">Explorer</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="close">Close</button>
+        </nav>
+
+        <div class="dd-ctx">
+          <div class="dd-ctx__main">
+            <span class="dd-ctx__brand">Northline</span>
+            <span class="dd-ctx__sep" aria-hidden="true">·</span>
+            <span class="dd-ctx__asof" id="dd-asof">Jul 1–27, 2026</span>
+            <div class="dd-period" role="group" aria-label="Period">
+              <button type="button" class="dd-period__btn" data-dd-period="l7d" aria-pressed="false">Last 7d</button>
+              <button type="button" class="dd-period__btn" data-dd-period="mtd" aria-pressed="true">MTD</button>
+              <button type="button" class="dd-period__btn" data-dd-period="qtd" aria-pressed="false">QTD</button>
+              <button type="button" class="dd-period__btn" data-dd-period="ytd" aria-pressed="false">YTD</button>
+            </div>
+          </div>
+          <div class="dd-trust" aria-label="Trust and freshness">
+            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-coverage">Coverage 92%</span>
+            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-recon">Recon ±2.8%</span>
+            <span class="dd-trust__chip dd-trust__chip--ok" id="dd-trust-margin">Margin 35% confirmed</span>
+            <span class="dd-trust__chip dd-trust__chip--sample">SAMPLE</span>
+            <span class="dd-trust__chip" id="dd-trust-asof">As-of Jul 27</span>
+          </div>
+        </div>
+
+        <div id="dd-sec-overview" data-dd-section="overview">
+          <section class="dd-decision" aria-labelledby="dd-decision-takeaway">
+            <p class="dd-decision__kicker">Monday call</p>
+            <p class="dd-decision__takeaway" id="dd-decision-takeaway">Above target on net sales ÷ spend.</p>
+            <p class="dd-decision__why" id="dd-decision-why">MTD Total ROAS clears the 4.00× target and break-even.</p>
+            <div class="dd-decision__actions">
+              <a class="dd-decision__verb" data-mcfly-cta="primary" href="/#waitlist">Request Partner invite</a>
+              <a class="dd-decision__link" href="/product">Product →</a>
+            </div>
+          </section>
+
+          <aside class="dd-claim" id="dd-claim" aria-label="Claimed versus cash Total ROAS">
+            <div class="dd-claim__col dd-claim__col--lie">
+              <p class="dd-claim__kicker">Platforms claim</p>
+              <p class="dd-claim__value" id="dd-claim-lie">~4.8×</p>
+              <p class="dd-claim__note">Path credit · SAMPLE theater</p>
+            </div>
+            <div class="dd-claim__vs" aria-hidden="true">vs</div>
+            <div class="dd-claim__col dd-claim__col--truth">
+              <p class="dd-claim__kicker">Cash Total ROAS</p>
+              <p class="dd-claim__value" id="dd-claim-truth">4.19×</p>
+              <p class="dd-claim__note">net sales ÷ spend</p>
+            </div>
+            <p class="dd-claim__foot">Same spend. Till ≠ path credit.</p>
+            <button
+              type="button"
+              class="dd-claim__toggle"
+              id="dd-claim-toggle"
+              aria-expanded="false"
+              aria-controls="dd-claim-why"
+            >
+              <span class="dd-claim__toggle-label">Why platforms disagree with the till</span>
+              <span class="dd-claim__chev" aria-hidden="true"></span>
+            </button>
+            <div class="dd-claim__why" id="dd-claim-why" hidden>
+              <div class="dd-claim__why-inner">
+                <p>
+                  Ads Managers count path credit, view-through, and overlapping clicks.
+                  Mcfly counts <strong>net Shopify sales ÷ ad spend</strong> for the same window —
+                  one till number both finance and media can trust.
+                </p>
+                <p>
+                  When platforms claim ~4.8× and cash shows lower, believe the till.
+                  No pixels. No path graph. SAMPLE theater on the left is the lie we refuse to ship.
+                </p>
+              </div>
+            </div>
+          </aside>
+
+          <div class="dd-kpi-grid">
+            <button type="button" class="dd-kpi dd-kpi--lead dd-kpi--drill" data-dd-kpi="mer" aria-haspopup="dialog">
+              <span class="dd-kpi__label">Total ROAS</span>
+              <span class="dd-kpi__value" id="dd-kpi-mer">4.19×</span>
+              <span class="dd-kpi__formula">net sales ÷ ad spend</span>
+              <span class="dd-kpi__delta" id="dd-kpi-mer-delta">+0.28× vs prior · +1.33× vs BE</span>
+              <span class="dd-kpi__hint">Click for detail</span>
+            </button>
+            <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="sales" aria-haspopup="dialog">
+              <span class="dd-kpi__label">Net sales</span>
+              <span class="dd-kpi__value" id="dd-kpi-sales">$412,400</span>
+              <span class="dd-kpi__sub" id="dd-kpi-sales-sub">Gross $468,200 · Ads Manager–comparable</span>
+              <span class="dd-kpi__delta" id="dd-kpi-sales-delta">+$34,200 vs prior</span>
+              <span class="dd-kpi__hint">Click for detail</span>
+            </button>
+            <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="spend" aria-haspopup="dialog">
+              <span class="dd-kpi__label">Ad spend</span>
+              <span class="dd-kpi__value" id="dd-kpi-spend">$98,500</span>
+              <span class="dd-kpi__sub">Paste-first Free CSV path</span>
+              <span class="dd-kpi__delta" id="dd-kpi-spend-delta">+$1,700 vs prior</span>
+              <span class="dd-kpi__hint">Click for detail</span>
+            </button>
+            <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="eom" aria-haspopup="dialog">
+              <span class="dd-kpi__label" id="dd-kpi-eom-label">EOM projected MER</span>
+              <span class="dd-kpi__value" id="dd-kpi-eom">4.28×</span>
+              <span class="dd-kpi__sub">Target 4.00× · SAMPLE</span>
+              <span class="dd-kpi__delta" id="dd-kpi-eom-delta">EOM proj. 4.28× · +0.19× vs target</span>
+              <span class="dd-kpi__hint">Click for detail</span>
+            </button>
+          </div>
+
+          <div class="dd-compact" aria-label="Suite density metrics">
+            <article class="dd-compact__cell">
+              <p class="dd-compact__label">Orders</p>
+              <p class="dd-compact__value" id="dd-compact-orders">4,480</p>
+            </article>
+            <article class="dd-compact__cell">
+              <p class="dd-compact__label">New customers</p>
+              <p class="dd-compact__value" id="dd-compact-new">2,860</p>
+            </article>
+            <article class="dd-compact__cell">
+              <p class="dd-compact__label">Returning</p>
+              <p class="dd-compact__value" id="dd-compact-returning">1,620</p>
+            </article>
+            <article class="dd-compact__cell">
+              <p class="dd-compact__label">AOV</p>
+              <p class="dd-compact__value" id="dd-compact-aov">$92</p>
+            </article>
+          </div>
+
+          <p class="dd-pipe" id="dd-pipe">
+            Get spend into Mcfly: pick platforms → download a blank template → Sheets Import → paste on Spend.
+            Free CSV always works; SyncWith / Coupler / Supermetrics optional <em>(you pay them)</em>.
+            <a class="dd-pipe__link" href="/assets/mcfly-sheets-spend-guide">Sheets guide →</a>
+          </p>
+
+          <div class="dd-margin">
+            <div class="dd-margin__row">
+              <p class="dd-margin__label">Contribution margin</p>
+              <p class="dd-margin__value" id="dd-margin-value">35%</p>
+            </div>
+            <p class="dd-margin__hint" id="dd-margin-be">Break-even ≈ 2.86×</p>
+            <label class="dd-sr-only" for="dd-margin-range">Contribution margin percent</label>
+            <input
+              id="dd-margin-range"
+              type="range"
+              min="25"
+              max="55"
+              step="1"
+              value="35"
+            />
+          </div>
+
+          <div class="dd-ops">
+            <section class="dd-panel dd-pace" aria-labelledby="dd-pace-title">
+              <div class="dd-panel__head">
+                <h2 id="dd-pace-title">Monthly pacing</h2>
+                <p class="dd-panel__muted" id="dd-pace-period">MTD · target 4.00× · SAMPLE</p>
+              </div>
+              <div class="dd-pace__stats">
+                <div class="dd-pace__stat">
+                  <p class="dd-pace__k">Days elapsed</p>
+                  <p class="dd-pace__v" id="dd-pace-days">27 / 31 days</p>
+                </div>
+                <div class="dd-pace__stat">
+                  <p class="dd-pace__k">Avg daily sales</p>
+                  <p class="dd-pace__v" id="dd-pace-avg">$15,274</p>
+                </div>
+                <div class="dd-pace__stat">
+                  <p class="dd-pace__k">Daily sales needed</p>
+                  <p class="dd-pace__v" id="dd-pace-need">$9,993</p>
+                </div>
+              </div>
+              <div class="dd-pace__bars">
+                <div class="dd-pace__bar-row">
+                  <span>Sales vs target pace</span>
+                  <span id="dd-pace-sales-pct">91%</span>
+                </div>
+                <div class="dd-pace__track" aria-hidden="true">
+                  <div class="dd-pace__fill" id="dd-pace-sales-fill"></div>
+                </div>
+                <div class="dd-pace__bar-row">
+                  <span>Calendar progress</span>
+                  <span id="dd-pace-cal-pct">87%</span>
+                </div>
+                <div class="dd-pace__track" aria-hidden="true">
+                  <div class="dd-pace__fill dd-pace__fill--cal" id="dd-pace-cal-fill"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="dd-panel dd-goals" aria-labelledby="dd-goals-title">
+              <div class="dd-panel__head">
+                <h2 id="dd-goals-title">Goals · headroom</h2>
+                <p class="dd-panel__muted">Plain cash · not path credit · SAMPLE</p>
+              </div>
+              <div class="dd-goals__row">
+                <div>
+                  <p class="dd-goals__k">Headroom to BE</p>
+                  <p class="dd-goals__v" id="dd-goals-headroom">$45,840</p>
+                  <p class="dd-goals__hint" id="dd-goals-headroom-hint">Spend you can still add before break-even 2.86×</p>
+                </div>
+                <div>
+                  <p class="dd-goals__k">Gap to 4.00× target</p>
+                  <p class="dd-goals__v" id="dd-goals-gap">Cleared · $18,400</p>
+                  <p class="dd-goals__hint" id="dd-goals-gap-hint">Above 4.00× at this spend · SAMPLE</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="dd-panel dd-ltv" aria-labelledby="dd-ltv-title">
+            <div class="dd-panel__head">
+              <h2 id="dd-ltv-title">Till LTV peek</h2>
+              <p class="dd-panel__muted">till LTV · opaque id · not CRM · SAMPLE</p>
+            </div>
+            <div class="dd-ltv__grid">
+              <div>
+                <p class="dd-ltv__k">30d cohort AOV</p>
+                <p class="dd-ltv__v" id="dd-ltv-aov30">$124</p>
+              </div>
+              <div>
+                <p class="dd-ltv__k">90d cohort AOV</p>
+                <p class="dd-ltv__v" id="dd-ltv-aov90">$151</p>
+              </div>
+              <div>
+                <p class="dd-ltv__k">30d repeat rate</p>
+                <p class="dd-ltv__v" id="dd-ltv-repeat">21%</p>
+              </div>
+            </div>
+            <p class="dd-ltv__foot">Shopify till orders only — opaque customer keys, no email/PII profiles.</p>
+          </section>
+        </div>
+
+        <div id="dd-sec-mix" data-dd-section="mix">
+          <div class="dd-panels">
+            <section class="dd-panel" aria-labelledby="dd-mix-title">
+              <div class="dd-panel__head">
+                <h2 id="dd-mix-title">Channel mix</h2>
+                <p class="dd-panel__muted">Spend share · Hold / step-test badges are illustrative</p>
+              </div>
+              <div id="dd-channels"></div>
+            </section>
+
+            <section class="dd-panel" aria-labelledby="dd-eq-title">
+              <div class="dd-panel__head">
+                <h2 id="dd-eq-title">Shopify sales ÷ ad spend</h2>
+                <p class="dd-panel__muted">Equation for the selected period</p>
+              </div>
+              <p class="dd-eq__label">Action Total ROAS</p>
+              <p class="dd-eq__me" id="dd-eq-me">4.19×</p>
+              <p class="dd-eq__formula" id="dd-eq-formula">$412,400 ÷ $98,500 = 4.19×</p>
+              <p class="dd-eq__meta" id="dd-eq-meta">Action Total ROAS uses net sales. Gross $468,200 is secondary for Ads Manager comparison — not path credit.</p>
+              <div class="dd-eq__trust" id="dd-eq-trust"></div>
+            </section>
+          </div>
+
+          <aside class="dd-alloc" aria-label="Allocation recommendation">
+            <p class="dd-alloc__kicker">Allocation · SAMPLE</p>
+            <p class="dd-alloc__title" id="dd-alloc-title">Hold Meta · step-test −10% Google</p>
+            <p class="dd-alloc__why" id="dd-alloc-why">Illustrative only — average ≠ marginal.</p>
+          </aside>
+        </div>
+
+        <section id="dd-sec-explorer" class="dd-explorer" data-dd-section="explorer" aria-labelledby="dd-explorer-title">
+          <p class="dd-explorer-note" id="dd-explorer-title">Spend explorer · SAMPLE spine (independent of period toggle above)</p>
+          <div
+            id="mcfly-spend-explorer"
+            class="sx-demo sx-demo--desk"
+            data-sample="1"
+            aria-label="Spend explorer — sample data"
+          >
+            <div class="sx-demo__controls">
+              <div class="sx-demo__primary">
+                <div class="sx-demo__seg" role="group" aria-label="Explorer range">
+                  <button type="button" class="sx-demo__btn" data-sx-range="14d">14d</button>
+                  <button type="button" class="sx-demo__btn is-on" data-sx-range="90d" aria-current="true">90d</button>
+                  <button type="button" class="sx-demo__btn" data-sx-range="1y">1y</button>
+                </div>
+                <div class="sx-demo__seg" role="group" aria-label="Bucket size">
+                  <button type="button" class="sx-demo__btn" data-sx-gran="Day">Day</button>
+                  <button type="button" class="sx-demo__btn is-on" data-sx-gran="Week" aria-current="true">Week</button>
+                </div>
+              </div>
+            </div>
+            <div class="sx-demo__chart-wrap">
+              <div class="sx-demo__chart" data-sx-chart></div>
+              <div class="sx-demo__tip" data-sx-tip hidden role="tooltip"></div>
+            </div>
+            <p class="sx-demo__inspect" data-sx-inspect aria-live="polite">
+              Select a column to inspect a spend bucket
+            </p>
+            <div class="sx-demo__readout" data-sx-readout aria-live="polite">
+              Select a column · Total ROAS = sales ÷ spend
+            </div>
+            <ul class="sx-demo__legend" data-sx-legend aria-label="Chart legend"></ul>
+          </div>
+        </section>
+
+        <section id="dd-sec-close" class="dd-close" data-dd-section="close" aria-labelledby="dd-close-title">
+          <div class="dd-close__head">
+            <h2 class="dd-close__title" id="dd-close-title">Monday Close · preview</h2>
+            <p class="dd-close__sub">Read-only ritual · SAMPLE</p>
+          </div>
+          <ol class="dd-close-ritual" aria-label="Close ritual steps">
+            <li class="dd-close-ritual__step dd-close-ritual__step--done">
+              <span class="dd-close-ritual__n" aria-hidden="true">1</span>
+              <span>Exceptions</span>
+            </li>
+            <li class="dd-close-ritual__step dd-close-ritual__step--done">
+              <span class="dd-close-ritual__n" aria-hidden="true">2</span>
+              <span>Lock</span>
+            </li>
+            <li class="dd-close-ritual__step dd-close-ritual__step--done">
+              <span class="dd-close-ritual__n" aria-hidden="true">3</span>
+              <span>Variance</span>
+            </li>
+            <li class="dd-close-ritual__step dd-close-ritual__step--active">
+              <span class="dd-close-ritual__n" aria-hidden="true">4</span>
+              <span>Decision</span>
+            </li>
+          </ol>
+          <div class="dd-close__panel">
+            <h3>Decision</h3>
+            <p id="dd-close-decision">
+              Decision preview: Hold Meta · step-test −10% Google. Lock this Monday close after exceptions are clear — illustrative only.
+            </p>
+            <p>
+              Average channel Total ROAS <strong>≠</strong> marginal. No pixels. No path credit.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <div
+        id="dd-drawer-backdrop"
+        class="dd-drawer-backdrop"
+        hidden
+        aria-hidden="true"
+      ></div>
+      <aside
+        id="dd-drawer"
+        class="dd-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dd-drawer-title"
+        hidden
+      >
+        <div class="dd-drawer__head">
+          <h2 class="dd-drawer__title" id="dd-drawer-title">Detail</h2>
+          <button type="button" class="dd-drawer__close" id="dd-drawer-close" aria-label="Close detail">
+            ×
+          </button>
+        </div>
+        <div class="dd-drawer__body" id="dd-drawer-body"></div>
+      </aside>
+    </div>
+
+    <section class="demo-seeing" aria-labelledby="seeing-title">
+      <p class="eyebrow">What you’re seeing</p>
+      <h2 id="seeing-title" class="display">Three truths.<br />Zero theater.</h2>
+      <ul class="demo-seeing__grid">
+        <li>
+          <h3>Net ÷ spend</h3>
+          <p>Action Total ROAS is net Shopify sales ÷ ad spend for the same window. Gross is secondary for Ads Manager comparison only.</p>
+        </li>
+        <li>
+          <h3>Free CSV path</h3>
+          <p>Pick platforms → blank Mcfly template → Sheets Import → paste on Spend. SyncWith / Coupler / Supermetrics optional — you pay them; we don’t pretend “Works with.”</p>
+        </li>
+        <li>
+          <h3>No pixels</h3>
+          <p>This desk never ships path credit, view-through, or “true ROAS.” SAMPLE numbers only — polish the craft, not the attribution story.</p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="/assets/cta-config.js?v=20260728cta"></script>
+  <script src="/assets/chrome.js?v=20260728cta"></script>
+  <script src="/assets/app.js?v=20260728h"></script>
+  <script src="/assets/demo-desk.js?v=20260728j"></script>
+  <script src="/assets/spend-explorer-demo.js?v=20260728h"></script>
+</body>
+</html>

@@ -32,13 +32,15 @@
     });
   }
 
-  const page = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+  const page = (window.location.pathname.split("/").pop() || "index")
+    .toLowerCase()
+    .replace(/\.html$/, "");
   document.querySelectorAll("[data-nav]").forEach((link) => {
     const key = link.getAttribute("data-nav");
     if (
-      (key === "product" && page === "product.html") ||
-      (key === "pricing" && page === "pricing.html") ||
-      (key === "app" && page === "app.html")
+      (key === "product" && page === "product") ||
+      (key === "pricing" && page === "pricing") ||
+      (key === "app" && page === "app")
     ) {
       link.classList.add("active");
       link.setAttribute("aria-current", "page");

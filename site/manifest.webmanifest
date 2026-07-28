@@ -2,7 +2,7 @@
   "name": "Mcfly Ads",
   "short_name": "Mcfly",
   "description": "Marketing Data Science you can trust — Total ROAS = sales ÷ spend. Not attribution theater.",
-  "start_url": "/download.html",
+  "start_url": "/download",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0a1221",

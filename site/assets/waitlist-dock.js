@@ -9,13 +9,17 @@
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mq = window.matchMedia("(max-width: 720px)");
 
-  const cssHref = "/assets/waitlist-dock.css?v=20260728a";
+  const cssHref = "/assets/waitlist-dock.css?v=20260728h";
   if (!document.querySelector(`link[href="${cssHref}"]`)) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = cssHref;
     document.head.appendChild(link);
   }
+
+  const live = !!window.MCFLY_APP_STORE_LIVE;
+  const dockLabel = live ? "Get free install" : "Request Partner invite";
+  const dockTitle = live ? "Get free install (App Store)" : "Get a Partner invite";
 
   const aside = document.createElement("aside");
   aside.className = "wl-dock";
@@ -24,16 +28,16 @@
   aside.innerHTML = `
     <button type="button" class="wl-dock__peek" aria-expanded="false" aria-controls="wl-dock-sheet">
       <span class="wl-dock__mark" aria-hidden="true"></span>
-      <span class="wl-dock__label">Early access</span>
+      <span class="wl-dock__label">${dockLabel}</span>
     </button>
     <div id="wl-dock-sheet" class="wl-dock__sheet" role="dialog" aria-labelledby="wl-dock-title" hidden>
       <div class="wl-dock__grab" aria-hidden="true"></div>
-      <p id="wl-dock-title" class="wl-dock__title">Join early access</p>
+      <p id="wl-dock-title" class="wl-dock__title">${dockTitle}</p>
       <p class="wl-dock__sub"><span class="mono">sales ÷ spend</span> — then your sales decide.</p>
       <form class="waitlist waitlist--dock" data-waitlist novalidate>
         <label>Email <input type="email" name="email" autocomplete="email" required /></label>
         <label class="sr-only">Name <input type="text" name="name" autocomplete="name" /></label>
-        <button class="btn primary solid" type="submit">Request access</button>
+        <button class="btn primary solid" type="submit">Request Partner invite</button>
       </form>
       <button type="button" class="wl-dock__close">Close</button>
     </div>`;

@@ -673,7 +673,20 @@
       if (clientX != null && clientY != null) placeTip(clientX, clientY);
     }
 
+    function updateInspect(bucket) {
+      var inspect = root.querySelector("[data-sx-inspect]");
+      if (!inspect) return;
+      if (!bucket) {
+        inspect.classList.remove("sx-demo__inspect--on");
+        inspect.textContent = "Select a column to inspect a spend bucket";
+        return;
+      }
+      inspect.classList.add("sx-demo__inspect--on");
+      inspect.textContent = "You’re inspecting " + bucket.label;
+    }
+
     function updateReadout(bucket) {
+      updateInspect(bucket);
       if (!readout) return;
       if (!bucket) {
         readout.classList.remove("sx-demo__readout--on");
