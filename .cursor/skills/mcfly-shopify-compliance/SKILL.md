@@ -14,6 +14,9 @@ Allowed in `shopify.app.toml` / Fly `SCOPES`:
 - `read_orders` — Shopify sales totals for cash MER
 - `read_customers` — **minimal only**: opaque customer `id` + `numberOfOrders` to classify new vs returning. No name, email, address, phone, or CRM.
 
+**PCD:** First submit = **Level 1 only** (protected customer data without name/email/phone/address).  
+Till LTV later still Level 1. Level 2 (PII fields) is optional post-launch CRM only — see `docs/PCD_AND_LTV.md`.
+
 Do **not** ban `read_customers` for first listing if new/returning KPIs ship. PCD questionnaire must disclose both scopes (answers in `docs/APP_STORE_LISTING.md` §PCD).
 
 Refuse: `read_all_orders` unless explicitly decided later; customer PII fields in GraphQL; public “type your .myshopify.com” install on mcflyads.com.

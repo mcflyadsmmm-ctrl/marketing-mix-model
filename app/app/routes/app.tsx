@@ -3,6 +3,7 @@ import { Outlet, useLoaderData, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
+import { PRODUCT_NOUN } from "../lib/product-labels";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -17,11 +18,11 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      {/* Ritual IA: Cash MER · Spend · Allocation · Goals · Settings (Demo stays out) */}
+      {/* Ritual IA: Total ROAS · Spend · LTV · Goals · Settings (Allocation via dashboard; Demo stays out) */}
       <s-app-nav>
-        <s-link href="/app">Cash MER</s-link>
+        <s-link href="/app">{PRODUCT_NOUN.deskTitle}</s-link>
         <s-link href="/app/spend">Spend</s-link>
-        <s-link href="/app/allocation">Allocation</s-link>
+        <s-link href="/app/ltv">LTV</s-link>
         <s-link href="/app/goals">Goals</s-link>
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>

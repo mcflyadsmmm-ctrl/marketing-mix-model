@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Why pixels fail after privacy — Mcfly Ads</title>
+  <meta name="description" content="Safari ITP, iOS LTP, CNAME cloaking collapse, and CAPI noise broke the identity graph. Suites still sell path credit. Mcfly stops at Total ROAS: sales ÷ ad spend." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="canonical" href="https://mcflyads.com/why-pixels-fail.html" />
+  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/why-pixels-fail.html" />
+  <meta property="og:title" content="Why pixels fail after privacy — Mcfly Ads" />
+  <meta property="og:description" content="Browsers deleted the identity graph. Suites still sell path theater. Total ROAS = sales ÷ spend." />
+  <meta property="og:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Why pixels fail after privacy — Mcfly Ads" />
+  <meta name="twitter:description" content="ITP, LTP, CNAME collapse, CAPI noise. Mcfly measures sales ÷ spend — no pixels." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260728a" />
+  <style>
+    body.why-pixels-page {
+      background:
+        radial-gradient(ellipse 70% 45% at 90% -5%, rgba(94, 231, 240, 0.11), transparent 55%),
+        radial-gradient(ellipse 50% 35% at 0% 20%, rgba(26, 163, 122, 0.07), transparent 50%),
+        var(--paper-2);
+    }
+    body.why-pixels-page .brand-kicker .ads { color: var(--cyan-deep); }
+    body.why-pixels-page .page-hero h1 { max-width: 22ch; }
+    body.why-pixels-page .page-hero p { max-width: 48ch; }
+    body.why-pixels-page .fail-rail {
+      list-style: none; margin: 2rem 0 0; padding: 0; max-width: 46rem;
+    }
+    body.why-pixels-page .fail-rail li {
+      display: grid; grid-template-columns: 2.5rem 1fr; gap: 0.75rem 1rem;
+      padding: 1.15rem 0; border-top: 1px solid var(--line);
+    }
+    body.why-pixels-page .fail-rail li:first-child { border-top: 0; padding-top: 0.25rem; }
+    body.why-pixels-page .fail-rail .n {
+      font-family: var(--mono); font-size: 0.8rem; font-weight: 600;
+      color: var(--cyan-deep); padding-top: 0.2rem;
+    }
+    body.why-pixels-page .fail-rail h3 {
+      margin: 0 0 0.3rem; font-family: var(--display); font-size: 1.15rem;
+      letter-spacing: -0.025em; color: var(--ink);
+    }
+    body.why-pixels-page .fail-rail p { margin: 0; color: var(--mute); line-height: 1.5; }
+    body.why-pixels-page .refuse-band {
+      background:
+        radial-gradient(500px 240px at 0% 0%, rgba(94, 231, 240, 0.08), transparent 55%),
+        var(--paper-2);
+    }
+    body.why-pixels-page .refuse-list { margin: 1.25rem 0 0; padding: 0; list-style: none; max-width: 40rem; }
+    body.why-pixels-page .refuse-list li {
+      padding: 0.65rem 0 0.65rem 1.35rem; border-top: 1px solid var(--line);
+      color: var(--ink); line-height: 1.45; position: relative;
+    }
+    body.why-pixels-page .refuse-list li:first-child { border-top: 0; padding-top: 0; }
+    body.why-pixels-page .refuse-list li::before {
+      content: "×"; position: absolute; left: 0; color: var(--cyan-deep); font-family: var(--mono);
+    }
+    body.why-pixels-page .faq-band .faq-item { padding: 1.15rem 0; border-top: 1px solid var(--line); max-width: 46rem; }
+    body.why-pixels-page .faq-band .faq-item:first-of-type { border-top: 0; padding-top: 0.25rem; }
+    body.why-pixels-page .faq-band h3 {
+      margin: 0 0 0.4rem; font-family: var(--display); font-size: 1.05rem;
+      letter-spacing: -0.02em; color: var(--ink);
+    }
+    body.why-pixels-page .faq-band p { margin: 0; color: var(--mute); line-height: 1.5; }
+    body.why-pixels-page .close-band .cta-row { margin-top: 1.25rem; flex-wrap: wrap; gap: 0.85rem 1.25rem; }
+    body.why-pixels-page .close-band .text-link { color: var(--cyan-deep); }
+  </style>
+</head>
+<body class="why-pixels-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+
+  <main id="main">
+    <header class="page-hero">
+      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
+      <h1>Why pixels fail after privacy.</h1>
+      <p>Platforms still sell an identity graph browsers dismantled. This page is the authority cut — not a product feature list. Marketing Data Science from your sales — not path credit: <span class="mono">sales ÷ ad spend</span>.</p>
+    </header>
+
+    <section class="band" aria-labelledby="broke-title">
+      <div class="wrap">
+        <p class="eyebrow">What broke</p>
+        <h2 id="broke-title" class="display">The graph needed one continuous person.<br />Privacy cut the rail.</h2>
+        <p class="lede-soft">Path credit assumes a durable join from ad click → site → checkout. That join is sparse by design now. Cover carefully — these are structural constraints, not Mcfly lab stats.</p>
+        <ol class="fail-rail">
+          <li>
+            <span class="n" aria-hidden="true">01</span>
+            <div>
+              <h3>Safari ITP</h3>
+              <p>JavaScript cookies get a short leash — roughly a week in many cases, and often about a day after an ad-click landing. Storage that attribution models treat as durable is not.</p>
+            </div>
+          </li>
+          <li>
+            <span class="n" aria-hidden="true">02</span>
+            <div>
+              <h3>iOS link tracking protection</h3>
+              <p>Tapped links can lose the click IDs suites need to stitch sessions. When the ID is stripped, the model still prints neat credit — from a thinner graph.</p>
+            </div>
+          </li>
+          <li>
+            <span class="n" aria-hidden="true">03</span>
+            <div>
+              <h3>CNAME cloaking collapsed</h3>
+              <p>First-party DNS workarounds that tried to look “same-site” got capped when IP distance and browser heuristics caught up. The cloaking era is over as a reliable fix.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band dark-band" aria-labelledby="noise-title">
+      <div class="wrap">
+        <p class="eyebrow on-dark">Noise in, noise out</p>
+        <h2 id="noise-title" class="display">CAPI is not a resurrection spell.<br />Triple Pixel is not magic.</h2>
+        <p class="contrast-lede on-dark">Server-side event streams still ingest junk. Industry reporting often puts invalid / bot-adjacent traffic risk in a rough ~25–30% band — treat that as a risk narrative, not a Mcfly measurement of your store. Feed that into Conversion API and delivery can optimize toward noise.</p>
+        <p class="contrast-note">Triple Whale’s “Triple Pixel” is still the standard stack: JS tag + UTMs + cookies. Renaming the pipe does not restore a deleted identity graph.</p>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="tax-title">
+      <div class="wrap">
+        <p class="eyebrow">Price honesty</p>
+        <h2 id="tax-title" class="display">GMV tax vs a flat desk.</h2>
+        <p class="lede-soft">Suites that scale with your sales punish the merchants who grow. Mcfly’s path is App Store Free now → a flat desk fee later (~$79/store/mo via Shopify Billing) — not a cut of GMV. See <a href="/pricing.html">Pricing</a>.</p>
+      </div>
+    </section>
+
+    <section class="band refuse-band" aria-labelledby="refuse-title">
+      <div class="wrap">
+        <p class="eyebrow">Product refuse</p>
+        <h2 id="refuse-title" class="display">Explaining theater ≠ shipping theater.</h2>
+        <p class="lede-soft">This site may demystify why pixels fail. The Shopify app does not ship them. Full desk: <a href="/product.html">Product</a>. Data diet: <a href="/privacy.html">Privacy</a>.</p>
+        <ul class="refuse-list">
+          <li>No tracking pixels as a Mcfly product</li>
+          <li>No path / multi-touch / view-through “true ROAS”</li>
+          <li>No identity-graph cosplay or connector zoo as the core offer</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="band close close-band" aria-labelledby="close-title">
+      <div class="wrap narrow">
+        <p class="eyebrow">What to do instead</p>
+        <h2 id="close-title" class="display">Measure sales.<br />Train Monday’s budget.</h2>
+        <p class="lede-soft">Total ROAS = sales ÷ ad spend for the same period. Break-even from your margin. One allocation call. Path credit trains the model; Total ROAS trains the week.</p>
+        <div class="cta-row">
+          <a class="btn primary solid" href="/support.html">Install Free on Shopify</a>
+          <a class="text-link" href="/">Total ROAS on the home desk →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="band faq-band" aria-labelledby="faq-title">
+      <div class="wrap">
+        <p class="eyebrow">Quick answers</p>
+        <h2 id="faq-title" class="display">Questions we get.</h2>
+        <div class="faq-item">
+          <h3>Does Mcfly replace my Meta or Google pixel?</h3>
+          <p>No. Platforms keep their own tags for delivery. Mcfly never ships a path pixel or claims to resurrect cross-site identity. We reconcile money out against money Shopify recorded.</p>
+        </div>
+        <div class="faq-item">
+          <h3>If the graph is dead, why do suites still look precise?</h3>
+          <p>Sparse joins still produce confident-looking credit. Stacked “driven revenue” that never ties to real sales is the failure mode — not a sync bug you can patch with another tag.</p>
+        </div>
+        <div class="faq-item">
+          <h3>What number should Monday trust?</h3>
+          <p><span class="mono">Total ROAS = sales ÷ spend</span>, then compare to break-even Total ROAS from contribution margin. That is the whole desk — see <a href="/product.html">Product</a>.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="/assets/chrome.js?v=20260728a"></script>
+  <script src="/assets/app.js?v=20260728a"></script>
+</body>
+</html>

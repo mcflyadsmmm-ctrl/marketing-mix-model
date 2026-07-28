@@ -18,6 +18,21 @@ function mapChannel(channel: string) {
   if (normalized.includes("google")) return "google" as const;
   if (normalized.includes("microsoft") || normalized.includes("bing")) return "microsoft" as const;
   if (normalized.includes("tiktok")) return "tiktok" as const;
+  if (normalized.includes("pinterest")) return "pinterest" as const;
+  if (normalized.includes("snapchat") || normalized === "snap") return "snapchat" as const;
+  if (normalized.includes("reddit")) return "reddit" as const;
+  if (
+    normalized === "x" ||
+    normalized.includes("twitter") ||
+    normalized.includes("x ads")
+  ) {
+    return "x" as const;
+  }
+  if (normalized.includes("linkedin")) return "linkedin" as const;
+  if (normalized.includes("amazon")) return "amazon" as const;
+  if (normalized.includes("apple search") || normalized.includes("apple_search")) {
+    return "apple_search" as const;
+  }
   if (normalized.includes("affiliate")) return "affiliate" as const;
   if (normalized.includes("email") || normalized.includes("klaviyo")) return "email" as const;
   return "other" as const;
@@ -46,33 +61,40 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   const shop = await ensureShop(auth.shopDomain);
-  let accepted = 0;
+  const entries = parsed.data.entries;
 
-  for (const entry of parsed.data.entries) {
-    const channel = mapChannel(entry.channel);
-    const { start, end } = dayBounds(entry.date);
-    // Upsert on shopId+channel+periodStart (SpendEntry_shopId_channel_periodStart_key) —
-    // re-posting the same shop/channel/day updates that row (latest write wins), no summing.
-    await prisma.spendEntry.upsert({
-      where: {
-        shopId_channel_periodStart: { shopId: shop.id, channel, periodStart: start },
-      },
-      create: {
-        shopId: shop.id,
-        channel,
-        amount: entry.amount,
-        periodStart: start,
-        periodEnd: end,
-        note: `api:${entry.currency}`,
-      },
-      update: {
-        amount: entry.amount,
-        periodEnd: end,
-        note: `api:${entry.currency}`,
-      },
-    });
-    accepted += 1;
-  }
+  const accepted = await prisma.$transaction(async (tx) => {
+    let count = 0;
+    for (const entry of entries) {
+      const channel = mapChannel(entry.channel);
+      const { start, end } = dayBounds(entry.date);
+      // Upsert on shopId+channel+periodStart (SpendEntry_shopId_channel_periodStart_key) —
+      // re-posting the same shop/channel/day updates that row (latest write wins), no summing.
+      // source: csv — API posts are desk imports; clears sample so sample-OFF keeps spend.
+      await tx.spendEntry.upsert({
+        where: {
+          shopId_channel_periodStart: { shopId: shop.id, channel, periodStart: start },
+        },
+        create: {
+          shopId: shop.id,
+          channel,
+          amount: entry.amount,
+          periodStart: start,
+          periodEnd: end,
+          note: `api:${entry.currency}`,
+          source: "csv",
+        },
+        update: {
+          amount: entry.amount,
+          periodEnd: end,
+          note: `api:${entry.currency}`,
+          source: "csv",
+        },
+      });
+      count += 1;
+    }
+    return count;
+  });
 
   return Response.json(
     { accepted, shopId: shop.id },

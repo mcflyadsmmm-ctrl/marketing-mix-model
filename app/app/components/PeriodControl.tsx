@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router";
-import { PERIOD_PRESETS, type PeriodPreset } from "../lib/periods";
+import type { PeriodPreset } from "../lib/periods";
 
 type PeriodControlProps = {
   preset: PeriodPreset;
@@ -9,9 +9,33 @@ type PeriodControlProps = {
   onChange?: (value: PeriodPreset) => void;
 };
 
+type DeskPeriodPreset = "mtd" | "qtd" | "ytd" | "y3";
+
+/** Desk UI: MTD / QTD / YTD; shot mode adds 3 yr for listing captures. */
+const DESK_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
+  { value: "mtd", label: "MTD" },
+  { value: "qtd", label: "QTD" },
+  { value: "ytd", label: "YTD" },
+];
+
+const SHOT_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
+  ...DESK_PERIOD_OPTIONS,
+  { value: "y3", label: "3 yr" },
+];
+
+const PERIOD_SELECT_LABELS: Record<DeskPeriodPreset, string> = {
+  mtd: "Month to date",
+  qtd: "Quarter to date",
+  ytd: "Year to date",
+  y3: "Last 3 years",
+};
+
+const LEGACY_PERIOD_LABELS: Partial<Record<PeriodPreset, string>> = {
+  l12m: "Last 12 months",
+};
+
 /**
- * Segmented reporting-period control shared by Cash MER + Allocation.
- * Habit affordance: a11y tabs, URL `period`, shot-mode param preservation.
+ * Native Polaris period filter (BFS sticky context). URL `period` + shot-mode.
  */
 export function PeriodControl({
   preset,
@@ -19,6 +43,11 @@ export function PeriodControl({
   onChange,
 }: PeriodControlProps) {
   const [, setSearchParams] = useSearchParams();
+  const periodOptions = shotMode ? SHOT_PERIOD_OPTIONS : DESK_PERIOD_OPTIONS;
+  const legacyLabel = LEGACY_PERIOD_LABELS[preset];
+  const selectValue = periodOptions.some((p) => p.value === preset)
+    ? preset
+    : "mtd";
 
   const setPeriod = (value: PeriodPreset) => {
     if (onChange) {
@@ -35,19 +64,29 @@ export function PeriodControl({
   };
 
   return (
-    <div className="mcfly-period" role="tablist" aria-label="Reporting period">
-      {PERIOD_PRESETS.map(({ value, label }) => (
-        <button
-          key={value}
-          type="button"
-          role="tab"
-          aria-selected={preset === value}
-          className={`mcfly-period__btn${preset === value ? " mcfly-period__btn--on" : ""}`}
-          onClick={() => setPeriod(value)}
-        >
-          {label}
-        </button>
-      ))}
+    <div className="mcfly-period">
+      {legacyLabel ? (
+        <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">{legacyLabel}</span>
+      ) : null}
+      <s-select
+        label="Period"
+        labelAccessibilityVisibility="exclusive"
+        name="period"
+        value={selectValue}
+        onChange={(event: Event) => {
+          const el = event.currentTarget as HTMLElement & { value?: string };
+          const raw = el.value ?? "";
+          if (periodOptions.some((p) => p.value === raw)) {
+            setPeriod(raw as PeriodPreset);
+          }
+        }}
+      >
+        {periodOptions.map(({ value }) => (
+          <s-option key={value} value={value}>
+            {PERIOD_SELECT_LABELS[value]}
+          </s-option>
+        ))}
+      </s-select>
     </div>
   );
 }

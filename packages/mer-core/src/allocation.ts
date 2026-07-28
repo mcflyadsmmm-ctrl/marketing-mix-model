@@ -202,14 +202,15 @@ export function suggestAllocation(
     });
   } else if (!validBreakEven) {
     why =
-      "Break-even MER is invalid. Set a contribution margin in (0, 100%] before allocation advice applies.";
+      "Break-even Total ROAS is invalid. Set a contribution margin in (0, 100%] before allocation advice applies.";
     actions.push({
       type: "watch",
       channel: "—",
       detail: "Save a valid contribution margin in Settings to unlock mix suggestions.",
     });
   } else if (!salesOk || overallMer === null) {
-    why = "MER could not be calculated. Check sales and spend inputs.";
+    why =
+      "Total ROAS could not be calculated. Check sales and spend inputs.";
     actions.push({
       type: "watch",
       channel: "—",
@@ -217,11 +218,12 @@ export function suggestAllocation(
     });
   } else if (aboveBreakEven === true) {
     const heavy = [...efficiencies].sort((a, b) => b.spendShare - a.spendShare)[0];
-    why = `Overall MER (${round(overallMer)}) is at or above break-even (${round(breakEvenMer)}). Hold core mix; trim overweight channels only if MER softens.`;
+    const sharePct = heavy ? round(heavy.spendShare * 100, 1) : 0;
+    why = `Total ROAS (${round(overallMer)}) is at or above break-even (${round(breakEvenMer)}). Largest spend share: ${sharePct}%.`;
     actions.push({
       type: "hold",
       channel: heavy?.name ?? "portfolio",
-      detail: `Largest spend share: ${heavy ? round(heavy.spendShare * 100, 1) : 0}%. Monitor before shifting.`,
+      detail: `Largest spend share: ${sharePct}%. Monitor before shifting.`,
     });
   } else {
     const cut = worstCutCandidate(efficiencies);
@@ -230,7 +232,7 @@ export function suggestAllocation(
     );
     const cutPct = cut && cut.spendShare >= 0.15 ? 20 : 15;
 
-    why = `Overall MER (${round(overallMer)}) is below break-even (${round(breakEvenMer)}). Cash view says reduce least efficient spend before scaling winners.`;
+    why = `Total ROAS (${round(overallMer)}) is below break-even (${round(breakEvenMer)}). Lowest-efficiency channel is the cut candidate.`;
 
     if (cut) {
       actions.push({
@@ -248,7 +250,7 @@ export function suggestAllocation(
         type: "shift",
         channel: target.name,
         percentChange: Math.min(15, cutPct),
-        detail: `Reallocate freed budget toward ${target.name} (stronger spend-share efficiency in cash view).`,
+        detail: `Reallocate freed budget toward ${target.name} (stronger spend-share efficiency).`,
       });
     } else if (!cut) {
       actions.push({

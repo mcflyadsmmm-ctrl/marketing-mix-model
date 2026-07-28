@@ -19,6 +19,7 @@ import {
   marginIsConfirmed,
 } from "../lib/mer-dashboard.server";
 import { formatMer, formatPercent } from "../lib/mer-format";
+import { PRODUCT_NOUN } from "../lib/product-labels";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
 import prisma from "../db.server";
 
@@ -70,7 +71,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
   if (!Number.isFinite(targetMer) || targetMer <= 0) {
     return {
-      error: "Target MER must be positive",
+      error: `Target ${PRODUCT_NOUN.totalRoas} must be positive`,
       success: false as const,
       breakEvenMer: null as number | null,
       marginPct: null as number | null,
@@ -80,7 +81,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const breakEvenMer = calculateBreakEvenMer(marginPct);
   if (breakEvenMer === null) {
     return {
-      error: "Could not compute break-even MER from that margin",
+      error: `Could not compute ${PRODUCT_NOUN.breakEvenTotalRoas} from that margin`,
       success: false as const,
       breakEvenMer: null as number | null,
       marginPct: null as number | null,
@@ -189,8 +190,8 @@ export default function SettingsPage() {
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              Confirm margin to lock break-even MER · 1 ÷ margin · not platform
-              ROAS
+              Confirm margin to lock {PRODUCT_NOUN.breakEvenTotalRoas} · 1 ÷
+              margin · {PRODUCT_NOUN.notTrueRoas}
             </p>
           </div>
         </header>
@@ -227,7 +228,8 @@ export default function SettingsPage() {
               {previewBreakEven === null ? "—.——" : formatMer(previewBreakEven)}
             </span>
             <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-              Target {formatMer(Number.parseFloat(targetInput) || settings.targetMer)}
+              Target {PRODUCT_NOUN.totalRoas}{" "}
+              {formatMer(Number.parseFloat(targetInput) || settings.targetMer)}
             </span>
           </div>
         </div>
@@ -235,10 +237,11 @@ export default function SettingsPage() {
         {useSampleDesk && !shotMode ? (
           <s-banner tone="warning" heading="Sample desk is on elsewhere">
             <s-paragraph>
-              Margin and break-even here are your real settings. Cash MER /
-              Allocation may still show sample till until you turn sample desk{" "}
-              <strong>OFF</strong> on the <s-link href="/app/demo">Demo</s-link>{" "}
-              tab. Required before App Store review.
+              Margin and break-even here are your real settings.{" "}
+              {PRODUCT_NOUN.totalRoas} may still show sample sales until you turn
+              sample desk <strong>OFF</strong> on the{" "}
+              <s-link href="/app/demo">Demo</s-link> tab. Required before App
+              Store review.
             </s-paragraph>
           </s-banner>
         ) : null}
@@ -251,15 +254,18 @@ export default function SettingsPage() {
                 accessibilityLabel="Saving settings"
               ></s-spinner>
               <s-paragraph>
-                Confirming your margin and target MER — waiting on the real
-                save, not sample numbers.
+                Confirming your margin and target — waiting on the real save,
+                not sample numbers.
               </s-paragraph>
             </s-stack>
           </s-banner>
         ) : null}
 
         {showRitualBanner && !shotMode ? (
-          <s-banner tone="info" heading="Trusted MER in under 10 minutes">
+          <s-banner
+            tone="info"
+            heading={`${PRODUCT_NOUN.totalRoas} in under 10 minutes`}
+          >
             <s-paragraph>Three steps, in order:</s-paragraph>
             <ol className="mcfly-settings-guide">
               <li>
@@ -270,7 +276,7 @@ export default function SettingsPage() {
                 Add ad spend on <s-link href="/app/spend">Spend</s-link>.
               </li>
               <li>
-                Read cash MER on <s-link href="/app">Cash MER</s-link>.
+                <s-link href="/app">{PRODUCT_NOUN.openTotalRoas}</s-link>.
               </li>
             </ol>
           </s-banner>
@@ -279,27 +285,29 @@ export default function SettingsPage() {
         {actionData?.success &&
         actionData.breakEvenMer !== null &&
         !isSaving ? (
-          <s-banner tone="success" heading="Break-even MER locked">
+          <s-banner tone="success" heading="Break-even locked">
             <s-paragraph>
               Margin confirmed. At{" "}
               {formatPercent(actionData.marginPct ?? settings.marginPct)}{" "}
-              margin, break-even MER is {formatMer(actionData.breakEvenMer)}.
-              Cash MER must clear this line.
+              margin, break-even is {formatMer(actionData.breakEvenMer)}.{" "}
+              {PRODUCT_NOUN.totalRoas} must clear this line.
             </s-paragraph>
             <s-paragraph>
-              Next: log spend on <s-link href="/app/spend">Spend</s-link>, then
-              open <s-link href="/app">Cash MER</s-link>.
+              Next: log spend on <s-link href="/app/spend">Spend</s-link>, then{" "}
+              <s-link href="/app">{PRODUCT_NOUN.openTotalRoas}</s-link>.
             </s-paragraph>
           </s-banner>
         ) : null}
 
         <section
           className={`mcfly-settings-lock mcfly-settings-lock--${lockState}`}
-          aria-label="Break-even MER lock"
+          aria-label={`${PRODUCT_NOUN.breakEvenTotalRoas} lock`}
           aria-busy={isSaving || undefined}
         >
-          <p className="mcfly-settings-lock__kicker">Ritual instrument</p>
-          <p className="mcfly-settings-lock__label">Break-even MER</p>
+          <p className="mcfly-settings-lock__kicker">Break-even lock</p>
+          <p className="mcfly-settings-lock__label">
+            {PRODUCT_NOUN.breakEvenTotalRoas}
+          </p>
           <p className="mcfly-settings-lock__value">
             {previewBreakEven === null ? "—.——" : formatMer(previewBreakEven)}
           </p>
@@ -340,10 +348,11 @@ export default function SettingsPage() {
               Confirm margin to lock break-even
             </h2>
             <p className="mcfly-settings-template__copy">
-              Contribution margin after COGS sets break-even MER as 1 ÷ margin.
-              Until you save, defaults are preview only — not locked. Cash MER
-              (Shopify sales ÷ ad spend) must clear the confirmed line — not
-              platform ROAS.
+              Contribution margin after COGS sets{" "}
+              {PRODUCT_NOUN.breakEvenTotalRoas} as 1 ÷ margin. Until you save,
+              defaults are preview only — not locked. {PRODUCT_NOUN.totalRoas}{" "}
+              ({PRODUCT_NOUN.definition}) must clear the confirmed line.{" "}
+              {PRODUCT_NOUN.notTrueRoas}
             </p>
             <p className="mcfly-settings-template__copy">
               Dirty fields open the Admin save bar. Save confirms margin and
@@ -354,7 +363,7 @@ export default function SettingsPage() {
 
           <section className="mcfly-panel mcfly-settings-form mcfly-settings-template__form">
             <div className="mcfly-panel__head">
-              <h2>MER inputs</h2>
+              <h2>{PRODUCT_NOUN.totalRoas} inputs</h2>
               <p className="mcfly-panel__muted">
                 Quiet form · margin first, target second
               </p>
@@ -374,7 +383,7 @@ export default function SettingsPage() {
                 }
               >
                 <legend className="mcfly-settings-fields__legend">
-                  Contribution margin and target MER
+                  Contribution margin and target {PRODUCT_NOUN.totalRoas}
                 </legend>
 
                 <div className="mcfly-settings-field">
@@ -415,7 +424,7 @@ export default function SettingsPage() {
                     className="mcfly-settings-field__label"
                     htmlFor={targetFieldId}
                   >
-                    Target MER
+                    Target {PRODUCT_NOUN.totalRoas}
                   </label>
                   <input
                     id={targetFieldId}
@@ -454,7 +463,7 @@ export default function SettingsPage() {
 
                 <div className="mcfly-settings-form__actions">
                   {!shotMode ? (
-                    <s-link href="/app">Open Cash MER</s-link>
+                    <s-link href="/app">{PRODUCT_NOUN.openTotalRoas}</s-link>
                   ) : null}
                 </div>
               </fieldset>
@@ -477,7 +486,7 @@ export default function SettingsPage() {
               <s-text>
                 Learn more about{" "}
                 <s-link href="https://mcflyads.com/support" target="_blank">
-                  cash MER support
+                  {PRODUCT_NOUN.totalRoas} support
                 </s-link>
                 .
               </s-text>

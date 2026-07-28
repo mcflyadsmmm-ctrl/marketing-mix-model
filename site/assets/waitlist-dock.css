@@ -1,0 +1,104 @@
+/* Mobile-only thumb dock — cyan/navy; no purple, no glow stack */
+.wl-dock {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .wl-dock:not([hidden]) {
+    display: block;
+    position: fixed;
+    right: 0;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    z-index: 40;
+    pointer-events: none;
+  }
+
+  .wl-dock__peek {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0.65rem 0.75rem 0.65rem 0.55rem;
+    border: 1px solid rgba(94, 231, 240, 0.35);
+    border-right: 0;
+    border-radius: 0.65rem 0 0 0.65rem;
+    background: linear-gradient(160deg, #152036 0%, #0a1221 100%);
+    color: #f4f6f8;
+    font-family: var(--body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: none;
+    cursor: pointer;
+  }
+
+  .wl-dock__mark {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 1px;
+    background: #5ee7f0;
+  }
+
+  .wl-dock__sheet {
+    pointer-events: auto;
+    position: fixed;
+    inset: auto 0 0;
+    padding: 0.75rem 1.15rem calc(1.1rem + env(safe-area-inset-bottom, 0px));
+    background: var(--paper-2, #f4f6f8);
+    border-top: 1px solid var(--line, rgba(10, 18, 33, 0.12));
+    background-image:
+      linear-gradient(180deg, rgba(21, 32, 54, 0.04), transparent 40%),
+      radial-gradient(120% 80% at 100% 100%, rgba(94, 231, 240, 0.08), transparent 55%);
+  }
+
+  .wl-dock__grab {
+    width: 2.25rem;
+    height: 3px;
+    margin: 0.15rem auto 0.85rem;
+    border-radius: 2px;
+    background: rgba(10, 18, 33, 0.18);
+  }
+
+  .wl-dock__title {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    margin: 0 0 0.25rem;
+    color: var(--ink, #0a1221);
+  }
+
+  .wl-dock__sub {
+    margin: 0 0 0.9rem;
+    color: var(--mute, #5a6577);
+    font-size: 0.9rem;
+  }
+
+  .waitlist--dock {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .wl-dock__close {
+    margin-top: 0.75rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    color: var(--mute, #5a6577);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

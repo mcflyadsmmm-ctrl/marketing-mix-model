@@ -7,16 +7,18 @@
 3. [`docs/MASTER_PLAN.md`](./docs/MASTER_PLAN.md) §0–§4 — product religion (wins on conflict)
 4. [`docs/SHIP_CHECKLIST.md`](./docs/SHIP_CHECKLIST.md) — flip boxes only with evidence
 5. [`docs/AGENTS.md`](./docs/AGENTS.md) — overnight / automation prompts
-6. [`.cursor/skills/mcfly-shopify-compliance/SKILL.md`](./.cursor/skills/mcfly-shopify-compliance/SKILL.md) — App Store / GDPR / PCD before approval claims
-7. **Cash MER desk UI:** [`docs/APPS_SCRIPT_CRAFT_SPEC.md`](./docs/APPS_SCRIPT_CRAFT_SPEC.md) + clasp source in `vendor/mer-apps-script/` (gitignored) — see [`docs/APPS_SCRIPT_ACCESS.md`](./docs/APPS_SCRIPT_ACCESS.md)
+6. [`.cursor/skills/mcfly-shopify-compliance/SKILL.md`](./.cursor/skills/mcfly-shopify-compliance/SKILL.md) — App Store / GDPR / PCD before approval claims  
+6b. [`docs/PCD_AND_LTV.md`](./docs/PCD_AND_LTV.md) — Level 1 vs 2, till LTV without Level 2, post-launch expansion
+7. **Total ROAS desk UI:** [`docs/APPS_SCRIPT_CRAFT_SPEC.md`](./docs/APPS_SCRIPT_CRAFT_SPEC.md) + clasp source in `vendor/mer-apps-script/` (gitignored) — see [`docs/APPS_SCRIPT_ACCESS.md`](./docs/APPS_SCRIPT_ACCESS.md)
 8. **App Store ship audit (anti-circle):** [`docs/MEGAPROMPT_SHIP_AUDIT.md`](./docs/MEGAPROMPT_SHIP_AUDIT.md) · competitive gaps [`docs/COMPETITIVE_APP_STORE_GAP_AUDIT.md`](./docs/COMPETITIVE_APP_STORE_GAP_AUDIT.md) · runbook [`docs/SUBMIT_NOW.md`](./docs/SUBMIT_NOW.md)
 9. **Premium Shopify-native UX (craft, not TW parity):** [`docs/PREMIUM_NATIVE_UX_RESEARCH.md`](./docs/PREMIUM_NATIVE_UX_RESEARCH.md) · skill [`.cursor/skills/mcfly-premium-native-ux/SKILL.md`](./.cursor/skills/mcfly-premium-native-ux/SKILL.md)
 10. **Install smoke / Billing later:** [`docs/INSTALL_SMOKE.md`](./docs/INSTALL_SMOKE.md) · [`docs/BILLING_TIERS.md`](./docs/BILLING_TIERS.md)
 11. **Value thesis (cash desk, flat fee, why not TW):** [`docs/VALUE_THESIS.md`](./docs/VALUE_THESIS.md)
+12. **Voice / copy SoT (MDS):** [`docs/MDS_RESEARCH_ABSORB.md`](./docs/MDS_RESEARCH_ABSORB.md)
 
 ## Mission
 
-Ship a **world-class marketing site** (mcflyads.com) and a **world-class Shopify cash desk** (cash MER + break-even + allocation). Companies succeed when they get a trusted MER in **&lt;10 minutes** and use the Monday ritual weekly. Ambition: **incredible vs any alternative** on craft — zero shortcuts.
+Ship a **world-class marketing site** (mcflyads.com) and a **world-class Shopify cash desk** (Total ROAS + break-even + allocation). Companies succeed when they get a trusted Total ROAS in **&lt;10 minutes** and use the Monday ritual weekly. Ambition: **incredible vs any alternative** on craft — zero shortcuts.
 
 ## 24/7
 

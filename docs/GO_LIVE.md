@@ -63,7 +63,7 @@ Then from **repo root**:
 fly secrets set \
   SHOPIFY_API_KEY="YOUR_API_KEY" \
   SHOPIFY_API_SECRET="YOUR_API_SECRET" \
-  SCOPES="read_orders" \
+  SCOPES="read_orders,read_customers" \
   DATABASE_URL="YOUR_NEON_POSTGRES_URL" \
   SHOPIFY_APP_URL="https://mcfly-analytics.fly.dev" \
   NODE_ENV="production"
@@ -113,7 +113,7 @@ Or in **Dev Dashboard → Mcfly Analytics → Versions**:
 
 - Dev Dashboard → **Install app** / get install link for your development store  
 - Or open: `https://YOUR-STORE.myshopify.com/admin/oauth/install?client_id=YOUR_CLIENT_ID`  
-- Approve `read_orders`  
+- Approve `read_orders` + minimal `read_customers` (opaque id + `numberOfOrders` only — see listing PCD)  
 - Open **Mcfly Analytics** → Settings (margin) → Spend → Dashboard
 
 ### 9. Optional: branded subdomain

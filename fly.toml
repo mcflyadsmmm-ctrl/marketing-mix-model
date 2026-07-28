@@ -12,7 +12,7 @@ primary_region = "iad"
 [env]
   NODE_ENV = "production"
   PORT = "3000"
-  SCOPES = "read_orders,read_customers"
+  SCOPES = "read_orders,read_customers,read_all_orders"
 
 [http_service]
   internal_port = 3000

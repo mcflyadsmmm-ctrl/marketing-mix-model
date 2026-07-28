@@ -38,20 +38,34 @@ const CHANNELS: SpendChannel[] = [
   "google",
   "microsoft",
   "tiktok",
+  "pinterest",
+  "snapchat",
+  "reddit",
+  "x",
+  "linkedin",
+  "amazon",
+  "apple_search",
   "affiliate",
   "email",
   "other",
 ];
 
-/** Mix shares — sum ≈ 1 */
+/** Mix shares — sum ≈ 1 (new named channels keep small %) */
 const MIX: Record<SpendChannel, number> = {
-  meta: 0.38,
-  google: 0.28,
-  microsoft: 0.06,
-  tiktok: 0.1,
-  affiliate: 0.06,
-  email: 0.07,
-  other: 0.05,
+  meta: 0.33,
+  google: 0.24,
+  microsoft: 0.04,
+  tiktok: 0.07,
+  pinterest: 0.035,
+  snapchat: 0.025,
+  reddit: 0.015,
+  x: 0.02,
+  linkedin: 0.015,
+  amazon: 0.03,
+  apple_search: 0.015,
+  affiliate: 0.055,
+  email: 0.06,
+  other: 0.04,
 };
 
 /**

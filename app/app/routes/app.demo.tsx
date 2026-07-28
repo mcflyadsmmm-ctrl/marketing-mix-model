@@ -8,6 +8,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   clearSampleDesk,
   getSampleDeskStats,
@@ -44,7 +45,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const result = await seedThreeYearSampleDesk(shop.id, 3.5);
       return {
         ok: true as const,
-        message: `Loaded ${result.days.toLocaleString()} days of matched sales + spend. Open Cash MER → 3 yr.`,
+        message: `Loaded ${result.days.toLocaleString()} days of matched sales + spend. Open ${PRODUCT_NOUN.deskTitle} → 3 yr.`,
         result,
       };
     }
@@ -57,13 +58,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         };
       }
       await setSampleDeskEnabled(shop.id, true);
-      return { ok: true as const, message: "Sample desk on — Cash MER reads sample till + spend." };
+      return {
+        ok: true as const,
+        message: `Sample desk on — ${PRODUCT_NOUN.totalRoas} reads sample sales + spend.`,
+      };
     }
     if (intent === "disable") {
       await setSampleDeskEnabled(shop.id, false);
       return {
         ok: true as const,
-        message: "Sample desk off — Cash MER reads live Shopify again.",
+        message: `Sample desk off — ${PRODUCT_NOUN.totalRoas} reads live sales again.`,
       };
     }
     if (intent === "clear") {
@@ -95,10 +99,11 @@ export default function DemoPage() {
             Turn sample desk OFF before reviewer smoke
           </p>
           <p className="mcfly-demo-off-warning__body">
-            Listing shots use sample data. <code>?shot=1</code> only hides the SAMPLE banner —
-            Cash MER, Spend, and Allocation numbers stay sample until you turn this OFF. App Store
-            review (requirement 1.1.4 factual info) and install smoke must see live Shopify till
-            only — leave SAMPLE on and reviewers may reject for fake metrics.
+            Listing shots use sample data. <code>?shot=1</code> only hides the
+            SAMPLE banner — {PRODUCT_NOUN.totalRoas}, Spend, and Allocation stay
+            sample until OFF. App Store review and install smoke must see live
+            live sales only — leave SAMPLE on and reviewers may reject for
+            fake metrics.
           </p>
           {stats.enabled ? (
             <Form method="post" className="mcfly-demo-off-warning__action">
@@ -117,10 +122,11 @@ export default function DemoPage() {
           )}
         </div>
 
-        <s-banner tone="info" heading="For listing screenshots + desk rehearsals">
+        <s-banner tone="info" heading="Listing screenshots and desk rehearsals">
           <s-paragraph>
-            Loads <strong>3 years</strong> of matched daily Shopify-like sales and multi-channel spend
-            into Mcfly (not into Shopify Admin). Clearly sample.
+            Loads <strong>3 years</strong> of matched daily Shopify-like sales
+            and multi-channel spend into Mcfly (not Shopify Admin). Clearly
+            labeled sample — preview the desk before live data.
           </s-paragraph>
         </s-banner>
 
@@ -159,9 +165,9 @@ export default function DemoPage() {
 
         <s-section heading="Prepare listing shots">
           <s-paragraph>
-            One click seeds ~1,095 days of till sales + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other
-            spend (cash MER ≈ {formatMer(3.5)}) and turns sample desk ON. Deterministic — same shape
-            every run.
+            One click seeds ~1,095 days of sales + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other
+            spend ({PRODUCT_NOUN.totalRoas} ≈ {formatMer(3.5)}) and turns sample desk ON.
+            Deterministic — same shape every run.
           </s-paragraph>
           <Form method="post">
             <input type="hidden" name="intent" value="prepare" />
@@ -176,7 +182,8 @@ export default function DemoPage() {
           {actionData && "result" in actionData && actionData.result ? (
             <p className="mcfly-breakdown-note">
               Seeded sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
-              {formatCurrency(actionData.result.totalSpend)} · MER ≈{" "}
+              {formatCurrency(actionData.result.totalSpend)} ·{" "}
+              {PRODUCT_NOUN.totalRoas} ≈{" "}
               {formatMer(
                 actionData.result.totalSpend > 0
                   ? actionData.result.totalSales / actionData.result.totalSpend
@@ -190,8 +197,12 @@ export default function DemoPage() {
             <code>?shot=1</code>) hides the sample banner:
           </s-paragraph>
           <div className="mcfly-demo-steps">
-            <s-link href="/app?period=y3&shot=1">1 · Cash MER → 3 yr (shot)</s-link>
-            <s-link href="/app?period=mtd&shot=1">2 · Cash MER → MTD · equation panel (shot)</s-link>
+            <s-link href="/app?period=y3&shot=1">
+              1 · {PRODUCT_NOUN.deskTitle} → 3 yr (shot)
+            </s-link>
+            <s-link href="/app?period=mtd&shot=1">
+              2 · {PRODUCT_NOUN.deskTitle} → MTD · equation panel (shot)
+            </s-link>
             <s-link href="/app/spend?shot=1">3 · Spend (shot)</s-link>
             <s-link href="/app/allocation?period=y3&shot=1">4 · Allocation → 3 yr (shot)</s-link>
             <s-link href="/app/settings?shot=1">5 · Settings (shot)</s-link>

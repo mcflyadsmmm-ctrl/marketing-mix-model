@@ -14,7 +14,8 @@
       <a href="/product.html" data-nav="product">Product</a>
       <a href="/pricing.html" data-nav="pricing">Pricing</a>
       <a href="${isHome ? "#digest" : "/#digest"}">How it works</a>
-      <a class="nav-cta" href="${isHome ? "#waitlist" : "/#waitlist"}">Get early access</a>
+      <a href="/support.html" data-nav="support">Support</a>
+      <a class="nav-cta" href="/support.html">Install Free</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
       <span></span><span></span>
@@ -24,7 +25,8 @@
     <a href="/product.html">Product</a>
     <a href="/pricing.html">Pricing</a>
     <a href="${isHome ? "#digest" : "/#digest"}">How it works</a>
-    <a href="${isHome ? "#waitlist" : "/#waitlist"}">Get early access</a>
+    <a href="/support.html">Support</a>
+    <a href="/support.html">Install Free</a>
   </div>`;
   }
 
@@ -39,14 +41,19 @@
       </div>
       <nav aria-label="Footer">
         <a href="/product.html">Product</a>
+        <a href="/product.html#spend-csv">Spend CSV</a>
         <a href="/pricing.html">Pricing</a>
+        <a href="/cash-mer.html">Total ROAS</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/why-pixels-fail.html">Why pixels fail</a>
+        <a href="/vs-attribution-suites.html">Total ROAS vs suites</a>
         <a href="/app.html">App</a>
         <a href="/download.html">Calculator</a>
         <a href="/support.html">Support</a>
         <a href="/privacy.html">Privacy</a>
         <a href="/terms.html">Terms</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Ads. Marketing math you can explain in one breath.</p>
+        <p class="fine">© <span data-year></span> Mcfly Ads. Marketing Data Science — Total ROAS = sales ÷ spend.</p>
     </div>
   </footer>`;
   }

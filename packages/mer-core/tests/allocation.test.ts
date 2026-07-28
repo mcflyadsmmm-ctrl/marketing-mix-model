@@ -136,7 +136,7 @@ describe("suggestAllocation", () => {
       expect(result.isAboveBreakEven).toBeNull();
       expect(result.actions.every((a) => a.type === "watch")).toBe(true);
       expect(result.actions.some((a) => a.type === "hold")).toBe(false);
-      expect(result.why).toMatch(/break-even MER is invalid/i);
+      expect(result.why).toMatch(/break-even Total ROAS is invalid/i);
     }
   });
 

@@ -45,10 +45,13 @@ model Shop {
   spendEntries    SpendEntry[]
   apiTokens       ApiToken[]
   syncRuns        SyncRun[]
-  merSnapshots    MerSnapshot[]
-  sampleSalesDays SampleSalesDay[]
-  salesGoals      SalesGoal[]
-  salesDayFacts   SalesDayFact[]
+  merSnapshots       MerSnapshot[]
+  sampleSalesDays    SampleSalesDay[]
+  salesGoals         SalesGoal[]
+  salesDayFacts      SalesDayFact[]
+  orderFacts         OrderFact[]
+  cohortFacts        CohortFact[]
+  orderBackfillState OrderBackfillState?
 }
 
 model Settings {
@@ -61,6 +64,8 @@ model Settings {
   marginConfirmedAt DateTime?
   /// When true, Cash MER uses SampleSalesDay + sample spend (clearly labeled), not live Shopify.
   useSampleDesk Boolean  @default(false)
+  /// When false, Goals tab shows YoY sales/spend only (no sales goal plan).
+  goalsEnabled  Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -70,6 +75,13 @@ enum SpendChannel {
   google
   microsoft
   tiktok
+  pinterest
+  snapchat
+  reddit
+  x
+  linkedin
+  amazon
+  apple_search
   affiliate
   email
   other
@@ -187,7 +199,7 @@ model SyncRun {
   @@index([shopId, startedAt])
 }
 
-/// Daily MER snapshots for recon, Sheets history, and kill-criteria monitoring.
+/// Optional daily MER ledger for recon / overnight / freshness — written from the desk.
 model MerSnapshot {
   id           String   @id @default(cuid())
   shopId       String
@@ -206,4 +218,65 @@ model MerSnapshot {
 
   @@unique([shopId, periodStart, periodEnd])
   @@index([shopId, createdAt])
+}
+
+/// Per-order till fact (Level 1) — opaque customerKey + amount/date only. No PII.
+model OrderFact {
+  id             String    @id @default(cuid())
+  shopId         String
+  shop           Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  shopifyOrderId String
+  /// Opaque Shopify customer GID, or "guest" when no customer.
+  customerKey    String
+  orderedAt      DateTime
+  shopLocalDate  DateTime  @db.Date
+  amount         Float
+  currency       String?
+  asOf           DateTime?
+  /// shopify_order_v1 | sample
+  source         String    @default("shopify_order_v1")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([shopId, shopifyOrderId])
+  @@index([shopId, orderedAt])
+  @@index([shopId, customerKey, orderedAt])
+}
+
+/// Monthly first-order cohort rollups (till LTV) — revenue/orders at 30/90/365d.
+model CohortFact {
+  id           String    @id @default(cuid())
+  shopId       String
+  shop         Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  /// YYYY-MM of first non-guest order
+  cohortMonth  String
+  customers    Int
+  revenueD30   Float
+  revenueD90   Float
+  revenueD365  Float
+  ordersD30    Int
+  ordersD90    Int
+  ordersD365   Int
+  asOf         DateTime?
+  /// shopify_order_v1 (live) | sample (demo desk) — never mix on read.
+  source       String    @default("shopify_order_v1")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([shopId, cohortMonth, source])
+  @@index([shopId, source, cohortMonth])
+}
+
+/// Cursor / window state for chunked OrderFact backfill (≤7 shop-local days per kick).
+model OrderBackfillState {
+  shopId         String   @id
+  shop           Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  cursor         String?
+  windowStart    DateTime?
+  windowEnd      DateTime?
+  status         String   @default("idle")
+  lastError      String?
+  /// True when Shopify denied deep history (no read_all_orders / ACCESS_DENIED).
+  historyLimited Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
 }

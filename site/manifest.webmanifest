@@ -1,7 +1,7 @@
 {
   "name": "Mcfly Ads",
   "short_name": "Mcfly",
-  "description": "Marketing math you can trust — spend vs sales, cash MER. Not attribution theater.",
+  "description": "Marketing Data Science you can trust — Total ROAS = sales ÷ spend. Not attribution theater.",
   "start_url": "/download.html",
   "scope": "/",
   "display": "standalone",

@@ -61,6 +61,11 @@
   const marginRange = document.getElementById("margin-range");
   const allocRange = document.getElementById("alloc-range");
 
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
   function getSpend() {
     return spendRange ? Number(spendRange.value) : TOTAL_BUDGET;
   }
@@ -72,28 +77,55 @@
     if (!spendRange) return;
     const spend = getSpend();
     const claimedMult = 4.8;
-    document.getElementById("spend-out").textContent = money(spend);
-    document.getElementById("claimed-roas").textContent = claimedMult.toFixed(1) + "×";
-    document.getElementById("claimed-rev").textContent =
-      "~" + money(spend * claimedMult) + " attributed";
-    document.getElementById("actual-sales").textContent = money(FIXED_SALES);
-    document.getElementById("cash-mer").textContent = (FIXED_SALES / spend).toFixed(2) + "×";
+    setText("spend-out", money(spend));
+    setText("claimed-roas", claimedMult.toFixed(1) + "×");
+    setText("claimed-rev", "~" + money(spend * claimedMult) + " attributed");
+    setText("actual-sales", money(FIXED_SALES));
+    const cashMer = FIXED_SALES / spend;
+    const cashMerLabel = cashMer.toFixed(2) + "×";
+    // Instruments band only — glass claim strip is struck platforms claim (no live Total ROAS)
+    setText("cash-mer", cashMerLabel);
+    const cashMerEl = document.getElementById("cash-mer");
+    if (cashMerEl) cashMerEl.setAttribute("data-mer", cashMer.toFixed(2));
   }
 
   function updateMargin() {
     if (!marginRange) return;
     const breakEven = 1 / getMargin();
     const exampleMer = FIXED_SALES / getSpend();
-    document.getElementById("margin-out").textContent = Math.round(getMargin() * 100) + "%";
-    document.getElementById("be-mer").textContent = breakEven.toFixed(2) + "×";
-    document.getElementById("ex-mer").textContent = exampleMer.toFixed(2) + "×";
+    const delta = exampleMer - breakEven;
+    setText("margin-out", Math.round(getMargin() * 100) + "%");
+    setText("be-mer", breakEven.toFixed(2) + "×");
+    // Claims owns Total ROAS — Break-even shows gap vs BE only (never reprint the same ×)
+    const exMer = document.getElementById("ex-mer");
+    if (exMer) {
+      if (Math.abs(delta) < 0.005) {
+        exMer.textContent = "at BE";
+        exMer.classList.remove("lie");
+        exMer.classList.add("truth");
+      } else if (delta > 0) {
+        exMer.textContent = "+" + delta.toFixed(2) + "×";
+        exMer.classList.remove("lie");
+        exMer.classList.add("truth");
+      } else {
+        exMer.textContent = delta.toFixed(2) + "×";
+        exMer.classList.remove("truth");
+        exMer.classList.add("lie");
+      }
+    }
     const verdict = document.getElementById("mer-verdict");
-    if (exampleMer >= breakEven) {
-      verdict.textContent = "Above break-even — protect the mix, don’t chase platform ROAS.";
-      verdict.style.color = "var(--truth)";
-    } else {
-      verdict.textContent = "Below break-even — cut or reallocate before scaling spend.";
-      verdict.style.color = "var(--lie)";
+    if (verdict) {
+      if (exampleMer >= breakEven) {
+        verdict.textContent = "Above break-even — protect the mix, don’t chase platform ROAS.";
+        verdict.style.color = "";
+        verdict.classList.remove("lie");
+        verdict.classList.add("truth");
+      } else {
+        verdict.textContent = "Below break-even — cut or reallocate before scaling spend.";
+        verdict.style.color = "";
+        verdict.classList.remove("truth");
+        verdict.classList.add("lie");
+      }
     }
     updateAllocation();
   }
@@ -106,31 +138,44 @@
     const googleSpend = budget * (1 - metaPct);
     const blendedMer = (metaSpend * META_EFF + googleSpend * GOOGLE_EFF) / budget;
     const breakEven = 1 / getMargin();
-    document.getElementById("alloc-out").textContent =
-      Math.round(metaPct * 100) + "% Meta · " + Math.round((1 - metaPct) * 100) + "% Google";
-    document.getElementById("meta-spend").textContent = money(metaSpend);
-    document.getElementById("google-spend").textContent = money(googleSpend);
-    document.getElementById("blend-mer").textContent = blendedMer.toFixed(2) + "×";
-    document.getElementById("alloc-be").textContent = breakEven.toFixed(2) + "×";
+    setText(
+      "alloc-out",
+      Math.round(metaPct * 100) + "% Meta · " + Math.round((1 - metaPct) * 100) + "% Google",
+    );
+    setText("meta-spend", money(metaSpend));
+    setText("google-spend", money(googleSpend));
+    setText("meta-eff", META_EFF.toFixed(1) + "×");
+    setText("google-eff", GOOGLE_EFF.toFixed(1) + "×");
+    setText("blend-mer", blendedMer.toFixed(2) + "×");
+    setText("alloc-be", breakEven.toFixed(2) + "×");
     const shift = Math.round(budget * 0.1);
     const verdict = document.getElementById("alloc-verdict");
+    if (!verdict) return;
     const metaAbove = META_EFF >= breakEven;
     const googleAbove = GOOGLE_EFF >= breakEven;
     if (metaAbove && !googleAbove && metaPct < 0.75) {
       verdict.textContent =
-        "Shift " + money(shift) + "/mo from Google → Meta. Meta clears break-even; Google dilutes blended MER.";
-      verdict.style.color = "var(--truth)";
+        "Shift " + money(shift) + "/mo from Google → Meta. Meta clears break-even; Google dilutes blended Total ROAS.";
+      verdict.style.color = "";
+      verdict.classList.remove("lie");
+      verdict.classList.add("truth");
     } else if (!metaAbove && googleAbove && metaPct > 0.25) {
       verdict.textContent =
         "Shift " + money(shift) + "/mo from Meta → Google. Google clears break-even on cash efficiency.";
-      verdict.style.color = "var(--truth)";
+      verdict.style.color = "";
+      verdict.classList.remove("lie");
+      verdict.classList.add("truth");
     } else if (metaAbove && googleAbove) {
-      verdict.textContent = "Both channels clear break-even — hold mix unless MER headroom changes.";
-      verdict.style.color = "var(--truth)";
+      verdict.textContent = "Both channels clear break-even — hold mix unless Total ROAS headroom changes.";
+      verdict.style.color = "";
+      verdict.classList.remove("lie");
+      verdict.classList.add("truth");
     } else {
       verdict.textContent =
-        "Blended MER under pressure — cut total spend or shift to the stronger cash channel.";
-      verdict.style.color = "var(--lie)";
+        "Blended Total ROAS under pressure — cut total spend or shift to the stronger cash channel.";
+      verdict.style.color = "";
+      verdict.classList.remove("truth");
+      verdict.classList.add("lie");
     }
   }
 
@@ -143,241 +188,137 @@
   if (marginRange) marginRange.addEventListener("input", updateMargin);
   if (allocRange) allocRange.addEventListener("input", updateAllocation);
 
-  function drawSpark(points) {
-    const svg = document.getElementById("spark");
-    if (!svg || !points || points.length < 2) return;
-    const w = 320;
-    const h = 56;
-    const pad = 4;
-    const vals = points.map((p) => p.mer);
-    const min = Math.min(...vals);
-    const max = Math.max(...vals);
-    const span = max - min || 1;
-    const coords = vals.map((v, i) => {
-      const x = pad + (i / (vals.length - 1)) * (w - pad * 2);
-      const y = h - pad - ((v - min) / span) * (h - pad * 2);
-      return [x, y];
-    });
-    const d = coords.map((c, i) => (i === 0 ? "M" : "L") + c[0].toFixed(1) + "," + c[1].toFixed(1)).join(" ");
-    const last = coords[coords.length - 1];
-    svg.innerHTML =
-      '<path d="' +
-      d +
-      '" fill="none" stroke="rgba(34,160,122,0.95)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>' +
-      '<circle cx="' +
-      last[0].toFixed(1) +
-      '" cy="' +
-      last[1].toFixed(1) +
-      '" r="3.2" fill="#22a07a"></circle>';
-  }
+  // Instruments + #rec-why only exist on home — skip 15.6KB brands feed elsewhere
+  if (spendRange) {
+    const activeBrand = "demo-dtc";
+    const activePeriod = "mtd";
 
-  let brandsData = null;
-  let activeBrand = "demo-dtc";
-  let activePeriod = "mtd";
-
-  function suggestAllocationLite(channels, breakEvenMer, totalSales, totalSpend) {
-    const actions = [];
-    const withEff = channels
-      .filter((c) => c.spend > 0)
-      .map((c) => {
-        const assumed = totalSpend > 0 ? (c.spend / totalSpend) * totalSales : 0;
-        const eff = c.spend > 0 ? assumed / c.spend : null;
-        return { ...c, assumed, eff };
-      });
-    const overall = totalSpend > 0 ? totalSales / totalSpend : null;
-    const above = overall === null ? null : overall >= breakEvenMer;
-    const below = withEff.filter((c) => c.eff !== null && c.eff < breakEvenMer);
-    const aboveCh = withEff.filter((c) => c.eff !== null && c.eff >= breakEvenMer);
-    if (below.length && aboveCh.length) {
-      const weak = below.sort((a, b) => (a.eff || 0) - (b.eff || 0))[0];
-      const strong = aboveCh.sort((a, b) => (b.eff || 0) - (a.eff || 0))[0];
-      actions.push({
-        type: "shift",
-        detail:
-          "Shift ~10% of budget from " +
-          weak.name +
-          " → " +
-          strong.name +
-          " for a 7-day test. " +
-          strong.name +
-          " clears break-even on cash efficiency.",
-      });
-    } else if (below.length && !aboveCh.length) {
-      actions.push({
-        type: "cut",
-        detail: "Blended MER under break-even — cut total spend 10–15% before reallocating.",
-      });
-    } else {
-      actions.push({
-        type: "hold",
-        detail: "Channels clear break-even on cash view — hold mix; watch MER vs target weekly.",
-      });
-    }
-    return {
-      overallMer: overall,
-      breakEvenMer,
-      isAboveBreakEven: above,
-      actions,
-      why: above
-        ? "Cash MER clears break-even. Protect the mix; don’t chase platform ROAS."
-        : "Cash MER is at or below break-even. Reallocate or cut before scaling.",
-      inputs: { totalSales, totalSpend, channels: withEff },
-    };
-  }
-
-  function applyPeriodFeed(periodObj, brandLabel, sparkline) {
-    if (!periodObj) return;
-    FIXED_SALES = Math.round(periodObj.sales);
-    TOTAL_BUDGET = Math.round(periodObj.spend);
-    document.querySelectorAll("[data-feed-mer]").forEach((el) => {
-      el.textContent = Number(periodObj.mer).toFixed(2) + "×";
-      el.setAttribute("data-mer", Number(periodObj.mer).toFixed(2));
-    });
-    if (spendRange) spendRange.value = String(Math.min(200000, Math.max(20000, TOTAL_BUDGET)));
-    if (marginRange && periodObj.margin_pct) {
-      marginRange.value = String(Math.round(periodObj.margin_pct * 100));
-    }
-    if (allocRange && periodObj.channel_mix?.[0]) {
-      allocRange.value = String(Math.round(periodObj.channel_mix[0].share * 100));
-    }
-    drawSpark(sparkline);
-    document.querySelectorAll("[data-feed-spend]").forEach((el) => {
-      el.textContent = money(periodObj.spend);
-    });
-    document.querySelectorAll("[data-feed-sales]").forEach((el) => {
-      el.textContent = money(periodObj.sales);
-    });
-    document.querySelectorAll("[data-feed-status]").forEach((el) => {
-      el.textContent = (periodObj.above_break_even ? "Above" : "Below") +
-        " break-even " + Number(periodObj.break_even).toFixed(2) + "×";
-    });
-    document.querySelectorAll("[data-feed-brand]").forEach((el) => {
-      el.textContent = brandLabel + " · " + activePeriod.toUpperCase();
-    });
-    const ch = periodObj.channels || {};
-    const tot = (ch.meta || 0) + (ch.google || 0) + (ch.other || 0) || 1;
-    const setMix = (sel, key, cls) => {
-      const pct = Math.round(((ch[key] || 0) / tot) * 100);
-      document.querySelectorAll(sel).forEach((el) => { el.textContent = pct + "%"; });
-      document.querySelectorAll(".track b." + cls).forEach((el) => {
-        el.style.setProperty("--p", pct + "%");
-      });
-    };
-    setMix("[data-mix-meta]", "meta", "m");
-    setMix("[data-mix-google]", "google", "g");
-    setMix("[data-mix-other]", "other", "o");
-    updateClaims();
-    updateMargin();
-    updateAllocation();
-
-    const channels = Object.entries(periodObj.channels || {}).map(([name, spend]) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      spend: Number(spend),
-      isManual: name === "other",
-    }));
-    const rec = suggestAllocationLite(
-      channels,
-      periodObj.break_even,
-      periodObj.sales,
-      periodObj.spend,
-    );
-    const why = document.getElementById("rec-why");
-    const actionsEl = document.getElementById("rec-actions");
-    const inputsEl = document.getElementById("rec-inputs");
-    if (why) why.textContent = rec.why;
-    if (actionsEl) {
-      actionsEl.innerHTML = rec.actions.map((a) => "<li>" + a.detail + "</li>").join("");
-    }
-    if (inputsEl) {
-      inputsEl.textContent =
-        brandLabel +
-        " · sales " +
-        money(periodObj.sales) +
-        " · spend " +
-        money(periodObj.spend) +
-        " · MER " +
-        Number(periodObj.mer).toFixed(2) +
-        "× · BE " +
-        Number(periodObj.break_even).toFixed(2) +
-        "× · target " +
-        Number(periodObj.target_mer).toFixed(2) +
-        "×";
-    }
-    const heroRec = document.getElementById("hero-rec");
-    if (heroRec && rec.actions[0]) heroRec.textContent = rec.actions[0].detail;
-  }
-
-  function refreshBrandPeriod() {
-    if (!brandsData) return;
-    const brand = brandsData.brands.find((b) => b.id === activeBrand) || brandsData.brands[0];
-    const period = brand.periods[activePeriod];
-    applyPeriodFeed(period, brand.label, brand.sparkline);
-  }
-
-  document.querySelectorAll("[data-brand]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      activeBrand = btn.getAttribute("data-brand");
-      document.querySelectorAll("[data-brand]").forEach((b) => b.classList.toggle("active", b === btn));
-      refreshBrandPeriod();
-    });
-  });
-  document.querySelectorAll("[data-period]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      activePeriod = btn.getAttribute("data-period");
-      document.querySelectorAll("[data-period]").forEach((b) => b.classList.toggle("active", b === btn));
-      refreshBrandPeriod();
-    });
-  });
-
-  fetch("/sample/brands.json")
-    .then((r) => (r.ok ? r.json() : null))
-    .then((data) => {
-      if (data?.brands?.length) {
-        brandsData = data;
-        refreshBrandPeriod();
-        return;
+    function suggestAllocationLite(channels, breakEvenMer, totalSales, totalSpend) {
+      const actions = [];
+      const withEff = channels
+        .filter((c) => c.spend > 0)
+        .map((c) => {
+          const assumed = totalSpend > 0 ? (c.spend / totalSpend) * totalSales : 0;
+          const eff = c.spend > 0 ? assumed / c.spend : null;
+          return { ...c, assumed, eff };
+        });
+      const overall = totalSpend > 0 ? totalSales / totalSpend : null;
+      const above = overall === null ? null : overall >= breakEvenMer;
+      const below = withEff.filter((c) => c.eff !== null && c.eff < breakEvenMer);
+      const aboveCh = withEff.filter((c) => c.eff !== null && c.eff >= breakEvenMer);
+      if (below.length && aboveCh.length) {
+        const weak = below.sort((a, b) => (a.eff || 0) - (b.eff || 0))[0];
+        const strong = aboveCh.sort((a, b) => (b.eff || 0) - (a.eff || 0))[0];
+        actions.push({
+          type: "shift",
+          detail:
+            "Shift ~10% of budget from " +
+            weak.name +
+            " → " +
+            strong.name +
+            " for a 7-day test. " +
+            strong.name +
+            " clears break-even on cash efficiency.",
+        });
+      } else if (below.length && !aboveCh.length) {
+        actions.push({
+          type: "cut",
+          detail: "Blended Total ROAS under break-even — cut total spend 10–15% before reallocating.",
+        });
+      } else {
+        actions.push({
+          type: "hold",
+          detail: "Channels clear break-even on cash view — hold mix; watch Total ROAS vs target weekly.",
+        });
       }
-      return fetch("/sample/mer-feed.json").then((r) => (r.ok ? r.json() : null));
-    })
-    .then((feed) => {
-      if (!feed || brandsData) return;
-      FIXED_SALES = Math.round(feed.sales);
-      TOTAL_BUDGET = Math.round(feed.spend);
-      document.querySelectorAll("[data-feed-mer]").forEach((el) => {
-        el.textContent = Number(feed.mer).toFixed(2) + "×";
-        el.setAttribute("data-mer", Number(feed.mer).toFixed(2));
-      });
-      if (spendRange) spendRange.value = String(Math.min(200000, Math.max(20000, TOTAL_BUDGET)));
-      if (marginRange && feed.margin_pct) marginRange.value = String(Math.round(feed.margin_pct * 100));
-      if (allocRange && feed.channel_mix?.[0]) {
-        allocRange.value = String(Math.round(feed.channel_mix[0].share * 100));
+      return {
+        overallMer: overall,
+        breakEvenMer,
+        isAboveBreakEven: above,
+        actions,
+        why: above
+          ? "Total ROAS clears break-even. Protect the mix; don’t chase platform ROAS."
+          : "Total ROAS is at or below break-even. Reallocate or cut before scaling.",
+      };
+    }
+
+    function applyPeriodFeed(periodObj) {
+      if (!periodObj) return;
+      FIXED_SALES = Math.round(periodObj.sales);
+      TOTAL_BUDGET = Math.round(periodObj.spend);
+      spendRange.value = String(Math.min(200000, Math.max(20000, TOTAL_BUDGET)));
+      if (marginRange && periodObj.margin_pct) {
+        marginRange.value = String(Math.round(periodObj.margin_pct * 100));
       }
-      drawSpark(feed.sparkline);
+      if (allocRange && periodObj.channel_mix?.[0]) {
+        allocRange.value = String(Math.round(periodObj.channel_mix[0].share * 100));
+      } else if (allocRange && periodObj.channels) {
+        const ch = periodObj.channels;
+        const tot = (ch.meta || 0) + (ch.google || 0) + (ch.other || 0) || 1;
+        allocRange.value = String(Math.round(((ch.meta || 0) / tot) * 100));
+      }
       updateClaims();
       updateMargin();
       updateAllocation();
-    })
-    .catch(() => {
-      updateClaims();
-      updateMargin();
-      updateAllocation();
-    });
 
-  const merEl = document.querySelector("[data-mer]");
-  if (merEl && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    let t = 0;
-    let base = Number(merEl.getAttribute("data-mer")) || 3.48;
-    const tick = () => {
-      const parsed = parseFloat(merEl.textContent);
-      if (!Number.isNaN(parsed)) base = parsed;
-      t += 0.016;
-      // avoid fighting feed updates — only micro wobble on attribute base
-      const b = Number(merEl.getAttribute("data-mer")) || base;
-      merEl.textContent = (b + Math.sin(t) * 0.015).toFixed(2) + "×";
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
+      const channels = Object.entries(periodObj.channels || {}).map(([name, spend]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        spend: Number(spend),
+        isManual: name === "other",
+      }));
+      const rec = suggestAllocationLite(
+        channels,
+        periodObj.break_even,
+        periodObj.sales,
+        periodObj.spend,
+      );
+      const why = document.getElementById("rec-why");
+      if (why) {
+        why.textContent =
+          "SAMPLE · " +
+          (rec.actions[0] ? rec.actions[0].detail : rec.why);
+      }
+      const heroRec = document.getElementById("hero-rec");
+      if (heroRec && rec.actions[0]) heroRec.textContent = rec.actions[0].detail;
+    }
+
+    fetch("/sample/brands.json")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.brands?.length) {
+          const brand =
+            data.brands.find((b) => b.id === activeBrand) || data.brands[0];
+          applyPeriodFeed(brand.periods[activePeriod]);
+          return;
+        }
+        return fetch("/sample/mer-feed.json").then((r) => (r.ok ? r.json() : null));
+      })
+      .then((feed) => {
+        if (!feed || feed.brands) return;
+        FIXED_SALES = Math.round(feed.sales);
+        TOTAL_BUDGET = Math.round(feed.spend);
+        spendRange.value = String(Math.min(200000, Math.max(20000, TOTAL_BUDGET)));
+        if (marginRange && feed.margin_pct) {
+          marginRange.value = String(Math.round(feed.margin_pct * 100));
+        }
+        if (allocRange && feed.channel_mix?.[0]) {
+          allocRange.value = String(Math.round(feed.channel_mix[0].share * 100));
+        }
+        updateClaims();
+        updateMargin();
+        updateAllocation();
+      })
+      .catch(() => {
+        updateClaims();
+        updateMargin();
+        updateAllocation();
+      });
   }
+
+  // Initial paint before feed (so strip is live immediately)
+  updateClaims();
+  updateMargin();
+  updateAllocation();
 
   const photo = document.querySelector("[data-parallax]");
   if (photo && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -573,7 +514,7 @@
   });
 
   const reveals = document.querySelectorAll(
-    ".band, .instrument, .lie-grid article, .how-rail li, .reveal",
+    ".band, .lie-grid article, .how-rail li, .reveal",
   );
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(

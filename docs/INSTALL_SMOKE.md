@@ -14,9 +14,11 @@
 ## Ritual
 
 1. **Settings** — set contribution margin (e.g. 35%) → save via contextual save bar → see break-even update.  
-2. **Spend** — Download blank template → fill a few days (include **Other** if needed) → Import.  
-3. **Cash MER** — confirm MER ≈ Shopify sales ÷ spend; formula visible.  
-4. **Allocation** — recommendation when spend > 0.
+2. **Spend** — Download blank template → fill a few days with real daily spend that lines up to days where Shopify has orders (include **Other** if needed) → Import.  
+3. **Total ROAS** — confirm sales are pulling from Shopify automatically (`read_orders`) and Total ROAS ≈ Shopify sales ÷ imported spend for the same period.  
+4. **Explorer** — confirm bars reflect the uploaded CSV channel mix and the Total ROAS dots reflect that bucket’s live Shopify sales ÷ spend.  
+5. **Customer Lifetime Value** — open the LTV tab; cohorts should fill from Shopify order backfill, or show an honest backfilling / history-limited state.  
+6. **Allocation** — recommendation when spend > 0.
 
 ## Reply in Cursor
 

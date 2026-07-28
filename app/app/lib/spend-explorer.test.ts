@@ -3,13 +3,22 @@ import {
   applyExplorerMode,
   bucketExplorerRows,
   closedDayEnd,
+  explorerSalesCeil,
+  formatExplorerSubtitle,
+  parseExplorerDateParam,
   parseExplorerGranularity,
   parseExplorerMode,
   parseExplorerRange,
+  parseExplorerShowSales,
   resolveExplorerWindow,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
+import {
+  listRecentClosedShopLocalDays,
+  shopLocalDayKey,
+  shopLocalDayRange,
+} from "./shop-local-day";
 
 function day(
   dateKey: string,
@@ -29,18 +38,27 @@ describe("parseExplorer*", () => {
     expect(parseExplorerRange(null)).toBe("90d");
     expect(parseExplorerGranularity(null)).toBe("Week");
     expect(parseExplorerMode(null)).toBe("stacked");
+    expect(parseExplorerShowSales(null)).toBe(false);
   });
 
   it("accepts known values", () => {
     expect(parseExplorerRange("14d")).toBe("14d");
+    expect(parseExplorerRange("All")).toBe("All");
     expect(parseExplorerGranularity("Month")).toBe("Month");
+    expect(parseExplorerGranularity("Quarter")).toBe("Quarter");
     expect(parseExplorerMode("share")).toBe("share");
+    expect(parseExplorerShowSales("1")).toBe(true);
+    expect(parseExplorerShowSales("true")).toBe(true);
+    expect(parseExplorerDateParam("2026-07-01")).toBe("2026-07-01");
   });
 
   it("rejects unknown", () => {
-    expect(parseExplorerRange("All")).toBe("90d");
-    expect(parseExplorerGranularity("Quarter")).toBe("Week");
+    expect(parseExplorerRange("forever")).toBe("90d");
+    expect(parseExplorerGranularity("Hour")).toBe("Week");
     expect(parseExplorerMode("pie")).toBe("stacked");
+    expect(parseExplorerShowSales("0")).toBe(false);
+    expect(parseExplorerDateParam("07/01/2026")).toBeNull();
+    expect(parseExplorerDateParam("2026-13-40")).toBeNull();
   });
 });
 
@@ -74,6 +92,114 @@ describe("resolveExplorerWindow", () => {
     };
     expect(inclusiveDays(d90.start, d90.end)).toBe(90);
     expect(inclusiveDays(d1y.start, d1y.end)).toBe(365);
+  });
+
+  it("resolves All to a multi-year closed-day span", () => {
+    const now = new Date(2026, 6, 23);
+    const win = resolveExplorerWindow("All", now);
+    expect(win.range).toBe("All");
+    expect(win.label).toBe("All closed days");
+    const endDay = new Date(
+      win.end.getFullYear(),
+      win.end.getMonth(),
+      win.end.getDate(),
+    );
+    const days =
+      Math.round((endDay.getTime() - win.start.getTime()) / 86_400_000) + 1;
+    expect(days).toBe(1095);
+  });
+
+  it("resolves custom FROM/TO when range is custom", () => {
+    const now = new Date(2026, 6, 23);
+    const win = resolveExplorerWindow("custom", now, {
+      from: "2026-06-01",
+      to: "2026-06-15",
+    });
+    expect(win.range).toBe("custom");
+    expect(win.start.getMonth()).toBe(5);
+    expect(win.start.getDate()).toBe(1);
+    expect(win.end.getDate()).toBe(15);
+    expect(win.label).toBe("2026-06-01 → 2026-06-15");
+  });
+
+  it("ignores FROM/TO when a preset range is selected", () => {
+    const now = new Date(2026, 6, 23);
+    const win = resolveExplorerWindow("14d", now, {
+      from: "2026-01-01",
+      to: "2026-01-31",
+    });
+    expect(win.range).toBe("14d");
+    expect(win.start.getDate()).toBe(9);
+  });
+
+  it("America/Denver closed day differs from UTC near midnight", () => {
+    // 2026-07-01 05:30 UTC = still 2026-06-30 evening in Denver (MDT = UTC-6).
+    // Denver today = Jun 30 → last closed = Jun 29.
+    // UTC today = Jul 1 → last closed = Jun 30.
+    const now = new Date("2026-07-01T05:30:00.000Z");
+    const denver = resolveExplorerWindow("14d", now, {
+      timeZone: "America/Denver",
+    });
+    const utc = resolveExplorerWindow("14d", now, { timeZone: "UTC" });
+
+    const denverClosed = listRecentClosedShopLocalDays(
+      "America/Denver",
+      14,
+      now,
+    );
+    const utcClosed = listRecentClosedShopLocalDays("UTC", 14, now);
+    expect(denverClosed[denverClosed.length - 1]).toBe("2026-06-29");
+    expect(utcClosed[utcClosed.length - 1]).toBe("2026-06-30");
+    expect(denverClosed[0]).toBe("2026-06-16");
+    expect(utcClosed[0]).toBe("2026-06-17");
+
+    expect(shopLocalDayKey(denver.start, "America/Denver")).toBe("2026-06-16");
+    expect(shopLocalDayKey(denver.end, "America/Denver")).toBe("2026-06-29");
+    expect(shopLocalDayKey(utc.start, "UTC")).toBe("2026-06-17");
+    expect(shopLocalDayKey(utc.end, "UTC")).toBe("2026-06-30");
+
+    expect(denver.start.toISOString()).toBe(
+      shopLocalDayRange("2026-06-16", "America/Denver").start.toISOString(),
+    );
+    expect(denver.end.toISOString()).toBe(
+      shopLocalDayRange("2026-06-29", "America/Denver").end.toISOString(),
+    );
+    expect(denver.end.getTime()).toBeLessThan(utc.end.getTime());
+  });
+
+  it("America/Denver YTD uses shop-local Jan 1 and closed-day end", () => {
+    const now = new Date("2026-07-01T05:30:00.000Z");
+    const denver = resolveExplorerWindow("YTD", now, {
+      timeZone: "America/Denver",
+    });
+    const utc = resolveExplorerWindow("YTD", now, { timeZone: "UTC" });
+
+    expect(denver.start.toISOString()).toBe(
+      shopLocalDayRange("2026-01-01", "America/Denver").start.toISOString(),
+    );
+    expect(shopLocalDayKey(denver.end, "America/Denver")).toBe("2026-06-29");
+    expect(utc.start.toISOString()).toBe(
+      shopLocalDayRange("2026-01-01", "UTC").start.toISOString(),
+    );
+    expect(shopLocalDayKey(utc.end, "UTC")).toBe("2026-06-30");
+    expect(denver.end.toISOString()).not.toBe(utc.end.toISOString());
+  });
+
+  it("custom FROM/TO with timeZone uses shop-local day ranges", () => {
+    const now = new Date("2026-07-15T18:00:00.000Z");
+    const win = resolveExplorerWindow("custom", now, {
+      from: "2026-06-01",
+      to: "2026-06-15",
+      timeZone: "America/Denver",
+    });
+    expect(win.range).toBe("custom");
+    expect(win.start.toISOString()).toBe(
+      shopLocalDayRange("2026-06-01", "America/Denver").start.toISOString(),
+    );
+    expect(win.end.toISOString()).toBe(
+      shopLocalDayRange("2026-06-15", "America/Denver").end.toISOString(),
+    );
+    expect(win.label).toBe("2026-06-01 → 2026-06-15");
   });
 });
 
@@ -112,6 +238,51 @@ describe("bucketExplorerRows", () => {
     expect(buckets[0].sales).toBe(13500);
     expect(buckets[1].label).toMatch(/^Aug/);
     expect(buckets[1].spend).toBe(1000);
+  });
+
+  it("Quarter buckets aggregate Q3 months", () => {
+    const qRows: ExplorerDailyRow[] = [
+      day("2026-07-06", 4000, { meta: 500 }),
+      day("2026-08-01", 6000, { google: 1000 }),
+      day("2026-10-01", 3000, { meta: 400 }), // Q4
+    ];
+    const buckets = bucketExplorerRows(qRows, "Quarter");
+    expect(buckets).toHaveLength(2);
+    expect(buckets[0].key).toBe("q:2026-Q3");
+    expect(buckets[0].label).toBe("Q3 ’26");
+    expect(buckets[0].sales).toBe(10000);
+    expect(buckets[0].spend).toBe(1500);
+    expect(buckets[0].mer).toBeCloseTo(10000 / 1500, 5);
+    expect(buckets[1].key).toBe("q:2026-Q4");
+    expect(buckets[1].label).toBe("Q4 ’26");
+  });
+
+  it("includes new SpendChannels in bucket mix", () => {
+    const mixed = bucketExplorerRows(
+      [
+        day("2026-07-06", 5000, {
+          pinterest: 100,
+          snapchat: 80,
+          reddit: 60,
+          x: 40,
+          linkedin: 30,
+          amazon: 20,
+          apple_search: 10,
+        }),
+      ],
+      "Day",
+    );
+    const channels = mixed[0].channels.map((c) => c.channel);
+    expect(channels).toEqual([
+      "pinterest",
+      "snapchat",
+      "reddit",
+      "x",
+      "linkedin",
+      "amazon",
+      "apple_search",
+    ]);
+    expect(mixed[0].mer).toBeCloseTo(5000 / 340, 5);
   });
 });
 
@@ -199,5 +370,36 @@ describe("summarizeExplorer", () => {
     });
     expect(s.costPerNew).toBeNull();
     expect(s.costPerCustomer).toBeNull();
+  });
+});
+
+describe("explorerSalesCeil + subtitle", () => {
+  it("sales ceil lifts left axis above bars when sales are larger", () => {
+    const plot = applyExplorerMode(
+      bucketExplorerRows(
+        [day("2026-07-06", 9000, { meta: 1000 })],
+        "Day",
+      ),
+      "stacked",
+    );
+    expect(explorerSalesCeil(plot, 1000)).toBe(9000);
+  });
+
+  it("formats Apps Script–style subtitle", () => {
+    const sub = formatExplorerSubtitle({
+      bucketCount: 12,
+      granularity: "Week",
+      totalSpend: 42000,
+      overallMer: 3.5,
+      asOfKey: "2026-07-22",
+      formatCurrency: (n) => `$${n.toLocaleString("en-US")}`,
+      formatMer: (n) => (n == null ? "—" : `${n.toFixed(1)}x`),
+    });
+    expect(sub).toContain("12 ISO weeks (Mon start)");
+    expect(sub).toContain("spend $42,000");
+    expect(sub).toContain("Total ROAS 3.5x (Σsales ÷ Σspend)");
+    expect(sub).toContain("Total ROAS = sales ÷ spend");
+    expect(sub).toContain("closed days only");
+    expect(sub).toContain("as of 2026-07-22");
   });
 });

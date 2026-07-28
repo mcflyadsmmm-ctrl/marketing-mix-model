@@ -4,14 +4,13 @@ import { redirect } from "react-router";
 import styles from "./styles.module.css";
 
 /**
- * Public app origin landing.
- * App Store rule 2.3.1: merchants must install from Shopify surfaces —
- * do not collect .myshopify.com domains here for production installs.
+ * Public app origin landing (bare Fly URL — not the Admin embed).
+ * App Store 2.3.1: never collect .myshopify.com for install here.
+ * Aesthetic: mcflyads.com till-room (navy + cyan), not default template gray.
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
 
-  // OAuth / embedded entry with shop already present
   if (url.searchParams.get("shop")) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
@@ -21,39 +20,51 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function AppLanding() {
   return (
-    <div className={styles.index}>
-      <div className={styles.content}>
-        <p className={styles.kicker}>Mcfly Analytics</p>
-        <h1 className={styles.heading}>Spend vs Shopify sales. Not attribution theater.</h1>
-        <p className={styles.text}>
-          Cash MER, break-even, and allocation — install from the Shopify App Store (Free now) or a
-          Partner invite. We never ask you to type your .myshopify.com domain here.
+    <div className={styles.page}>
+      <div className={styles.atmosphere} aria-hidden="true" />
+      <main className={styles.shell}>
+        <header className={styles.brand}>
+          <img
+            className={styles.mark}
+            src="/brand/mcfly-m-64.png"
+            width={40}
+            height={40}
+            alt=""
+          />
+          <p className={styles.wordmark}>
+            Mcfly <span className={styles.wordmarkAccent}>Analytics</span>
+          </p>
+        </header>
+
+        <h1 className={styles.heading}>
+          Total ROAS = Sales ÷ Spend
+        </h1>
+        <p className={styles.lede}>
+          Shopify sales over your ad spend. Break-even from margin. One
+          allocation call — not attribution theater.
         </p>
-        <ul className={styles.list}>
-          <li>
-            <strong>Shopify is the till</strong>. Order totals for the period you choose.
-          </li>
-          <li>
-            <strong>Spend is money out</strong>. Manual entry day one; live pipes next.
-          </li>
-          <li>
-            <strong>Operate on MER</strong>. Break-even from your margin. One allocation card.
-          </li>
-        </ul>
-        <p className={styles.text}>
-          <a className={styles.button} href="https://mcflyads.com/">
+
+        <div className={styles.ctas}>
+          <a className={styles.ctaPrimary} href="https://mcflyads.com/">
             Product site
-          </a>{" "}
-          <a className={styles.button} href="https://mcflyads.com/support">
+          </a>
+          <a className={styles.ctaGhost} href="https://mcflyads.com/support">
             Support
           </a>
+        </div>
+
+        <p className={styles.install}>
+          Install from the Shopify App Store (Free) or a Partner invite. We never
+          ask you to type your .myshopify.com domain here.
         </p>
-        <p className={styles.text}>
-          App Store listing is Free while we launch. Prefer Admin install / App Store, or a Partner
-          invite we email.{" "}
-          <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>
-        </p>
-      </div>
+
+        <footer className={styles.foot}>
+          <p>
+            Partner invites:{" "}
+            <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>
+          </p>
+        </footer>
+      </main>
     </div>
   );
 }

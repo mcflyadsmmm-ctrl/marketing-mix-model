@@ -37,9 +37,11 @@ This file is the **source of truth**. Later chat prompts are noise unless they *
 ### Formula
 
 ```text
-MER = Total Shopify sales (period) ÷ Total ad spend (same period)
-Break-even MER ≈ 1 / contribution margin
+Total ROAS = Total Shopify sales (period) ÷ Total ad spend (same period)
+Break-even Total ROAS ≈ 1 / contribution margin
 ```
+
+(Public noun: **Total ROAS**. Same cash equation formerly called MER / cash MER. Not path / “true ROAS.”)
 
 Operate above break-even; shift mix to protect it.
 
@@ -47,7 +49,7 @@ Operate above break-even; shift mix to protect it.
 
 **Stop buying attribution. Start managing spend against sales.**
 
-Site voice (from brand DNA, not consulting offer): *Your ad platforms are lying about what’s driving revenue.*
+Site voice: *Advanced Marketing Data Science for your business* — Total ROAS you can defend to finance.
 
 ### Internal analogy (do not ship as marketing jargon)
 
@@ -55,7 +57,7 @@ Site voice (from brand DNA, not consulting offer): *Your ad platforms are lying 
 SyncWith-like     → pipes (Shopify + Meta + Google spend → app / Sheets)
 Triple Whale–shaped → daily operator cockpit
 MINUS             → pixels, MTA, path credit
-PLUS              → break-even MER + allocation from cash spend vs total sales
+PLUS              → break-even Total ROAS + allocation from cash spend vs total sales
 ```
 
 **Wedge vs TW / Northbeam / Polar:** honesty + simplicity + price — **not** feature parity. They mostly ship **dashboards + data organization** dressed as proprietary science; Mcfly is the better version of *that* job (cash facts only).
@@ -104,11 +106,11 @@ Do **not** put consulting SKUs ($750 / $5–8k) on the product homepage.
 ## 3. Optimal path (decision tree)
 
 ```text
-Is the task about cash MER / spend sync / allocation / anti-attribution?
+Is the task about Total ROAS / spend sync / allocation / anti-attribution?
   NO  → out of scope (unless amending this plan)
   YES → which surface?
         1. Marketing site solid?     → if NO, build site only
-        2. Shopify Truth MVP?        → sales + manual spend → MER
+        2. Shopify Truth MVP?        → sales + manual spend → Total ROAS
         3. Live Meta/Google pipes?   → OAuth + daily spend
         4. Allocation card?          → rules-based suggestions
         5. Sheets companion?         → after app brain exists
@@ -219,13 +221,13 @@ Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 ## 8. Positioning & pricing
 
 **Enemy:** Attribution theater; platform ROAS as P&L.  
-**Promise:** Cash MER + allocation guardrails.  
+**Promise:** Total ROAS + allocation guardrails.  
 **Proof:** Design-partner anonymized case later.  
 **Price intuition:** Below TW suite — mid-two-digits to low-three-digits $/mo single store; agency later. **Not** $750 diagnostic / $5–8k project pricing on the product site.
 
 **Launch special (locked for now):** Ship **free for design partners** to get feedback, testing, and interest signal first. Show target paid (~$79/store/mo) as “after launch,” announce billing before anything charges. Do **not** market “forever free.” Prefer a small set of serious stores over open freeloader flood.
 
-**Homepage thesis:** Platforms lie about what they drove. Paths can’t be resolved. Mcfly only measures what you spent against what Shopify sold — then helps you move budget.
+**Homepage thesis:** Advanced Marketing Data Science for your business — Total ROAS is Shopify sales ÷ ad spend; break-even from margin; one Monday budget call. Not path / “true ROAS.” Voice SoT: [`MDS_RESEARCH_ABSORB.md`](./MDS_RESEARCH_ABSORB.md).
 
 ---
 
@@ -281,7 +283,7 @@ Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 ## 13. Success (12 months)
 
 - Paying Shopify merchants use Mcfly as **weekly spend-vs-sales** source of truth.  
-- Brand = “anti-attribution / cash MER,” not “cheaper Triple Whale.”  
+- Brand = “anti-attribution / Total ROAS,” not “cheaper Triple Whale.”  
 - Sheets optional; revenue from app subscriptions.  
 - Roadmap pressure from customers, not competitor matrices or noisy prompts.
 

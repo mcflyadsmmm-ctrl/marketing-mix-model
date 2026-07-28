@@ -1,6 +1,6 @@
 # Mcfly Analytics — App feature inventory
 
-Cash MER + break-even MER + rules-based allocation from **spend vs sales**.  
+Total ROAS + Break-even Total ROAS + rules-based allocation from **spend vs sales**.  
 **Not in product:** pixels, multi-touch attribution (MTA), path credit, or platform ROAS theater.
 
 Status legend: **Shipped** · **Planned** · **Later**
@@ -11,11 +11,11 @@ Status legend: **Shipped** · **Planned** · **Later**
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| **Dashboard** | **Shipped** | Period presets (MTD / QTD / YTD); Shopify sales vs manual ad spend; MER; break-even MER; channel mix; anti-attribution aside |
-| **Allocation (card)** | **Shipped** | One recommendation card on Dashboard via `@mcfly/mer-core` `suggestAllocation`; auditable inputs (sales, spend, MER, break-even, test window) |
+| **Dashboard** | **Shipped** | Period presets (MTD / QTD / YTD); Shopify sales vs manual ad spend; MER; Break-even Total ROAS; channel mix; anti-attribution aside |
+| **Allocation (card)** | **Shipped** | One recommendation card on Dashboard via `@mcfly/mer-core` `suggestAllocation`; auditable inputs (sales, spend, Total ROAS, break-even, test window) |
 | **Allocation (detail)** | **Shipped** | `/app/allocation` — actions, channel efficiency table, cash-view assumptions |
-| **Spend** | **Shipped** | Manual Meta / Google / Other spend entry + recent list |
-| **Settings** | **Shipped** | Contribution margin % → break-even MER; target MER |
+| **Spend** | **Shipped** | Multi-platform CSV (combine uploads + wide template), Bill → daily, manual entry, coverage strip, export guides |
+| **Settings** | **Shipped** | Contribution margin % → Break-even Total ROAS; target Total ROAS |
 | **Connections** | **Shipped (stubs)** | Meta / Google connector UI stubs; OAuth deferred to Phase 2 |
 | **Shopify OAuth / embedded** | **Shipped** | React Router + Shopify app bridge; session storage via Prisma |
 | **Seed sample data** | **Shipped** | `npm run seed` — warehouse snapshots or inline fallback for `demo-store.myshopify.com` (needs `DATABASE_URL`) |
@@ -30,7 +30,7 @@ Status legend: **Shipped** · **Planned** · **Later**
 | **Google Ads API spend sync** | **Planned** | Same; Connections page enables Connect |
 | **Freshness / recon hints** | **Planned** | Last sync age, spend gaps vs sales period |
 | **Custom date ranges** | **Planned** | Beyond MTD / QTD / YTD when cheap |
-| **CSV spend import** | **Planned** | Bulk “Other / Manual” for agencies |
+| **CSV spend import** | **Shipped** | Platform export guides + combine; wide Day+channels; long date,channel,amount; Bill → daily |
 | **Manual sales contribution per channel** | **Planned** | Optional operator input into allocation — still not MTA |
 
 ---
@@ -42,9 +42,9 @@ Status legend: **Shipped** · **Planned** · **Later**
 | **Billing** | **Planned** | Shopify Billing / trial; App Store listing |
 | **Multi-store** | **Planned** | Portfolio view across shops — revenue-pulled, not default v1 |
 | **SSO** | **Later** | Enterprise IdP; after multi-store demand |
-| **Sheets companion** | **Planned** | Thin client → same MER brain / API; after app brain is stable |
+| **Sheets companion** | **Planned** | Thin client → same Total ROAS brain / API; after app brain is stable |
 | **PWA / downloadable** | **Later** | Installable / offline-friendly shell; not blocking design partners |
-| **Alerts** | **Later** | MER below break-even notifications — revenue-pulled |
+| **Alerts** | **Later** | Total ROAS below break-even notifications — revenue-pulled |
 | **TikTok / other pipes** | **Later** | Only if pulled by paying operators |
 
 ---
@@ -65,7 +65,7 @@ Status legend: **Shipped** · **Planned** · **Later**
 | `/app` | Dashboard + allocation card |
 | `/app/allocation` | Allocation detail |
 | `/app/spend` | Manual spend |
-| `/app/settings` | Margin + target MER |
+| `/app/settings` | Margin + target Total ROAS |
 | `/app/connections` | Connector stubs |
 
 ---

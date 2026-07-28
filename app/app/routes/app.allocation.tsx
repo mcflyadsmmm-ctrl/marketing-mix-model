@@ -5,6 +5,7 @@ import { authenticate } from "../shopify.server";
 import { PeriodControl } from "../components/PeriodControl";
 import { buildDashboardMetrics, ensureShop } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
+import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchShopifySales } from "../lib/shopify-sales.server";
 import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
@@ -25,6 +26,13 @@ function channelFillKey(name: string): string {
   if (n.includes("google")) return "google";
   if (n.includes("microsoft") || n.includes("bing")) return "microsoft";
   if (n.includes("tiktok")) return "tiktok";
+  if (n.includes("pinterest")) return "pinterest";
+  if (n.includes("snapchat") || n === "snap") return "snapchat";
+  if (n.includes("reddit")) return "reddit";
+  if (n === "x" || n.includes("twitter") || n.includes("x ads")) return "x";
+  if (n.includes("linkedin")) return "linkedin";
+  if (n.includes("amazon")) return "amazon";
+  if (n.includes("apple search") || n.includes("apple_search")) return "apple_search";
   if (n.includes("affiliate")) return "affiliate";
   if (n.includes("email") || n.includes("klaviyo")) return "email";
   return "other";
@@ -35,8 +43,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   const shotMode = url.searchParams.get("shot") === "1";
-  const range = resolvePeriod(preset);
   const shop = await ensureShop(session.shop);
+  const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
 
   let sales;
@@ -79,12 +87,12 @@ export default function AllocationPage() {
   const tillLabel = shotMode
     ? metrics.period.label
     : useSampleDesk
-      ? `${metrics.period.label} · sample till`
-      : `${metrics.period.label} · live Shopify till`;
+      ? `${metrics.period.label} · sample data`
+      : `${metrics.period.label} · live sales`;
 
   const whyLine = allocation
     ? allocation.why
-    : "Set contribution margin so break-even can lock — rules from cash MER, not path credit.";
+    : `Set contribution margin so break-even can lock. ${PRODUCT_NOUN.mondayCall}.`;
 
   const primaryAction = allocation?.actions[0];
   const decisionLead = primaryAction
@@ -101,7 +109,7 @@ export default function AllocationPage() {
     decisionLead ??
     (allocation
       ? "Hold the mix — no cut or shift this period"
-      : "Unlock allocation with break-even");
+      : "Confirm margin to open allocation");
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
   const noSpendMix =
@@ -121,7 +129,7 @@ export default function AllocationPage() {
         {useSampleDesk && !shotMode ? (
           <s-banner tone="warning" heading="Sample desk is on — not live Shopify">
             <s-paragraph>
-              Allocation below uses sample till + spend, not your live Shopify orders. Turn sample
+              Allocation below uses sample sales + spend, not your live Shopify orders. Turn sample
               desk <strong>OFF</strong> on the <s-link href="/app/demo">Demo</s-link> tab before
               App Store review. <code>?shot=1</code> hides this banner only — numbers stay sample
               until OFF.
@@ -141,7 +149,7 @@ export default function AllocationPage() {
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">
-              Shopify sales didn’t load — allocation needs cash MER from sales ÷ spend.
+              Sales didn’t load — allocation needs {PRODUCT_NOUN.totalRoas} from sales ÷ spend.
             </p>
             <div className="mcfly-state__cta">
               <s-button href={`/app/allocation?period=${preset}`} variant="primary">
@@ -157,7 +165,8 @@ export default function AllocationPage() {
             aria-label="Break-even margin required"
           >
             <p className="mcfly-state__copy">
-              Set contribution margin so break-even MER can lock — then Monday rules can cut or shift.
+              Set contribution margin so {PRODUCT_NOUN.breakEvenTotalRoas} can
+              lock. {PRODUCT_NOUN.mondayCall}.
             </p>
             <div className="mcfly-state__cta">
               <s-button href="/app/settings" variant="primary">
@@ -170,7 +179,7 @@ export default function AllocationPage() {
         <header className="mcfly-topbar">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              Rules from cash MER vs break-even · not path credit
+              {PRODUCT_NOUN.mondayCall}
             </p>
           </div>
           <PeriodControl preset={preset} shotMode={shotMode} />
@@ -188,34 +197,40 @@ export default function AllocationPage() {
             {useSampleDesk && !shotMode ? (
               <span className="mcfly-ctx-chip mcfly-alloc-sample-dot">Sample desk</span>
             ) : null}
-            <span className={`mcfly-ctx-chip mcfly-ctx-chip--${targetDelta}`}>
-              MER {formatMer(metrics.mer)} · target {formatMer(metrics.targetMer)}
-            </span>
-            <span className={`mcfly-ctx-chip mcfly-ctx-chip--${merDelta}`}>
-              Break-even {formatMer(metrics.breakEvenMer)}
-            </span>
+            {allocation ? (
+              <>
+                <span className={`mcfly-ctx-chip mcfly-ctx-chip--${targetDelta}`}>
+                  {PRODUCT_NOUN.totalRoas} {formatMer(metrics.mer)} · target{" "}
+                  {formatMer(metrics.targetMer)}
+                </span>
+                <span className={`mcfly-ctx-chip mcfly-ctx-chip--${merDelta}`}>
+                  Break-even {formatMer(metrics.breakEvenMer)}
+                </span>
+              </>
+            ) : null}
           </div>
         </div>
 
-        <section
-          className="mcfly-decision mcfly-decision--hero"
-          aria-label="Allocation recommendation"
-        >
-          <p className="mcfly-decision__kicker">
-            Monday recommendation · cash rules, not attribution
-          </p>
-          <p className="mcfly-decision__takeaway">{recommendation}</p>
-          <p className="mcfly-decision__why">{whyLine}</p>
-          <div className="mcfly-decision__actions">
-            <s-button
-              href={allocation ? "/app/spend" : "/app/settings"}
-              variant="primary"
-            >
-              {allocation ? "Adjust spend" : "Open Settings"}
-            </s-button>
-            <s-link href={`/app?period=${preset}`}>Back to Cash MER</s-link>
-          </div>
-        </section>
+        {allocation ? (
+          <section
+            className="mcfly-decision mcfly-decision--hero"
+            aria-label="Allocation recommendation"
+          >
+            <p className="mcfly-decision__kicker">
+              {PRODUCT_NOUN.mondayCall}
+            </p>
+            <p className="mcfly-decision__takeaway">{recommendation}</p>
+            <p className="mcfly-decision__why">{whyLine}</p>
+            <div className="mcfly-decision__actions">
+              <s-button href="/app/spend" variant="primary">
+                Adjust spend
+              </s-button>
+              <s-link href={`/app?period=${preset}`}>
+                Back to {PRODUCT_NOUN.deskTitle}
+              </s-link>
+            </div>
+          </section>
+        ) : null}
 
         {allocation ? (
           <dl className="mcfly-alloc-inputs" aria-label="Inputs used for this recommendation">
@@ -224,7 +239,7 @@ export default function AllocationPage() {
               <dd>{formatCurrency(allocation.inputs.totalSpend)}</dd>
             </div>
             <div className="mcfly-alloc-inputs__item">
-              <dt>Cash MER</dt>
+              <dt>{PRODUCT_NOUN.totalRoas}</dt>
               <dd>
                 {allocation.overallMer === null
                   ? "—.——"
@@ -236,7 +251,7 @@ export default function AllocationPage() {
               <dd>{formatMer(allocation.breakEvenMer)}</dd>
             </div>
             <div className="mcfly-alloc-inputs__item">
-              <dt>Shopify sales</dt>
+              <dt>Sales</dt>
               <dd>{formatCurrency(allocation.inputs.totalSales)}</dd>
             </div>
           </dl>
@@ -249,12 +264,14 @@ export default function AllocationPage() {
               aria-label="Allocation unavailable"
             >
               <p className="mcfly-state__copy">
-                Allocation compares cash MER to break-even — confirm margin, then log spend.
+                Allocation needs {PRODUCT_NOUN.totalRoas} from sales ÷ spend —
+                export daily CSVs and upload so the Monday call can cut or shift.
               </p>
               <div className="mcfly-state__cta">
-                <s-button href="/app/settings" variant="primary">
-                  Open Settings
+                <s-button href="/app/spend#mcfly-spend-exports" variant="primary">
+                  Export & upload spend
                 </s-button>
+                <s-link href="/app/settings">Review margin</s-link>
               </div>
             </section>
           ) : null
@@ -262,12 +279,12 @@ export default function AllocationPage() {
           <>
             <section
               className="mcfly-alloc-score"
-              aria-label="Cash MER versus break-even"
+              aria-label={`${PRODUCT_NOUN.totalRoas} versus break-even`}
             >
               <div
                 className={`mcfly-alloc-score__card mcfly-alloc-score__card--mer mcfly-alloc-score__card--${merDelta}`}
               >
-                <p className="mcfly-alloc-score__label">Cash MER</p>
+                <p className="mcfly-alloc-score__label">{PRODUCT_NOUN.totalRoas}</p>
                 <p className="mcfly-alloc-score__value">
                   {allocation.overallMer === null
                     ? "—.——"
@@ -303,7 +320,7 @@ export default function AllocationPage() {
                 <h2>Channel shifts</h2>
                 <p className="mcfly-panel__muted">
                   Test window {allocation.suggestedTestDays} days · rules-based —
-                  not multi-touch
+                  not path credit
                 </p>
               </div>
               <ul className="mcfly-alloc-shift-list">
@@ -356,9 +373,10 @@ export default function AllocationPage() {
 
             <section className="mcfly-panel">
               <div className="mcfly-panel__head">
-                <h2>Channel efficiency</h2>
+                <h2>Channel vs break-even</h2>
                 <p className="mcfly-panel__muted">
-                  Assumed sales = spend share × Shopify sales · cash math, not MTA
+                  Assumed sales = spend share × total sales ·{" "}
+                  {PRODUCT_NOUN.notTrueRoas}
                 </p>
               </div>
               {noSpendMix ? (
@@ -367,11 +385,11 @@ export default function AllocationPage() {
                   aria-label="No channel spend"
                 >
                   <p className="mcfly-state__copy">
-                    No channel spend for {metrics.period.label} — log Meta, Google, and the rest to light efficiency.
+                    No channel spend for {metrics.period.label} — log Meta, Google, and the rest to compare vs break-even.
                   </p>
                   <div className="mcfly-state__cta">
-                    <s-button href="/app/spend" variant="primary">
-                      Add spend
+                    <s-button href="/app/spend#mcfly-spend-exports" variant="primary">
+                      Export & upload spend
                     </s-button>
                   </div>
                 </section>
@@ -429,7 +447,8 @@ export default function AllocationPage() {
                         </div>
                         <p className="mcfly-alloc-eff__meta">
                           {formatCurrency(channel.spend)} ·{" "}
-                          {formatPercent(channel.spendShare)} spend · MER{" "}
+                          {formatPercent(channel.spendShare)} spend ·{" "}
+                          {PRODUCT_NOUN.totalRoasShort}{" "}
                           {formatMer(channel.effectiveMer)}
                         </p>
                       </div>

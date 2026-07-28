@@ -30,26 +30,43 @@ Reply: **`distribution done`**
 
 ---
 
-### 2. Protected Customer Data (PCD)
+### 2. Protected Customer Data (PCD) — **before** Submit
 
-1. Open the **Protected customer data** / data access request for this app  
-2. Request access for **orders** + minimal **customers**  
-3. Paste answers from `APP_STORE_LISTING.md` → section **Protected Customer Data (PCD)**  
-4. Confirm you said: opaque `id` + `numberOfOrders` only — **no** name / email / phone / address / CRM  
+**Read first:** [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) — Level 1 vs 2 in plain English.
+
+Shopify: you **cannot** apply for PCD while the app is already under review. Do this now.
+
+1. Open **API access** → **Protected customer data access**  
+2. Request **Level 1 only**: check **Protected customer data**  
+3. Leave **name / address / email / phone unchecked** (Level 2 — slower review; **not** needed for cash MER or till LTV)  
+4. Paste answers from `APP_STORE_LISTING.md` → section **Protected Customer Data (PCD)**  
+5. Confirm: opaque `id` + `numberOfOrders` only — **no** CRM  
+
+**LTV later:** till LTV (opaque cohorts) stays on Level 1. You can request Level 2 **after launch** if you ever need email/name CRM — optional, not required for the LTV feature you want.
 
 Reply: **`pcd done`**
 
 ---
 
-### 3. Publish trust pages (before reviewers click them)
+### 2b. Emergency developer contact (Partner Settings)
 
-Reviewers open Website / Privacy / Support / Terms from the listing. Live pages must match Free + PCD.
+Shopify requires an emergency email + phone for critical app issues ([submit guide](https://shopify.dev/docs/apps/launch/app-store-review/submit-app-for-review)).
 
-1. Publish Cloudflare Pages from local `site/**` (or your usual Pages deploy)  
-2. Spot-check live:  
-   - https://mcflyads.com/support — says App Store **Free** (not invite-only)  
-   - https://mcflyads.com/pricing — Free now / paid later via Billing  
-   - https://mcflyads.com/privacy — mentions order totals + opaque id / `numberOfOrders`  
+1. Partner / Dev Dashboard → account or app **Settings** → emergency developer contact  
+2. Add a monitored **email** (no “Shopify” in the address) + **phone**  
+3. Allowlist `noreply@shopify.com` so review mail isn’t junked  
+
+Reply: **`emergency contact done`**
+
+---
+
+### 3. Spot-check trust pages (before reviewers click them)
+
+Reviewers open Website / Privacy / Support / Terms from the listing. Live pages should already match Free + PCD (verified 2026-07-26). Still spot-check:
+
+1. https://mcflyads.com/support — App Store **Free** (not invite-only)  
+2. https://mcflyads.com/pricing — Free now / paid later via Billing  
+3. https://mcflyads.com/privacy — order totals + opaque id / `numberOfOrders`  
 
 Reply: **`pages live`**
 
@@ -100,6 +117,12 @@ Do **not** enable paid plans or Shopify Billing charges yet.
 3. Upload **icon** + **5 screenshots** in that order  
 4. **Demo** → Turn sample desk **OFF** again  
 
+#### 5d. Demo screencast (required listing package)
+Short Loom/screen recording showing: install → margin → CSV spend upload → Cash MER. Upload on the App Store review / listing form where “demo video / screencast” is requested.
+
+#### 5e. Partner automated checks
+On the App Store review page, run Shopify’s **automated checks** and fix any failures before Submit.
+
 Reply: **`assets uploaded`**
 
 ---
@@ -107,8 +130,9 @@ Reply: **`assets uploaded`**
 ### 6. Submit
 
 1. Re-check: Pricing = **Free**, App URL = `https://mcfly-analytics.fly.dev` (not mcflyads.com)  
-2. Re-check: sample desk **OFF** on the test store  
-3. Click **Submit** for review  
+2. Re-check: sample desk **OFF** on the test store (never leave SAMPLE + `?shot=1` as the reviewer path — **1.1.4**)  
+3. Re-check: testing instructions + store credentials filled for reviewers  
+4. Click **Submit** for review  
 
 Reply: **`submitted`**
 

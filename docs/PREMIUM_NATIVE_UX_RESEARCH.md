@@ -1,8 +1,8 @@
 # Premium Shopify-native UX research — Mcfly cash desk
 
 **Researched:** 2026-07-23  
-**Thesis (locked):** TW / Northbeam / Polar sell proprietary science; the real moat is usability, layout, digestible hierarchy, and habit. Mcfly competes on **craft + cash MER honesty** — not feature parity.  
-**Religion:** cash MER = Shopify sales ÷ ad spend; break-even from margin; rules-based allocation. **Refuse** pixels, MTA, path / view-through / “true ROAS,” TW clones.  
+**Thesis (locked):** TW / Northbeam / Polar sell proprietary science; the real moat is usability, layout, digestible hierarchy, and habit. Mcfly competes on **craft + Total ROAS honesty** — not feature parity.  
+**Religion:** Total ROAS = Shopify sales ÷ ad spend; break-even from margin; rules-based allocation. **Refuse** pixels, MTA, path / view-through / “true ROAS,” TW clones. Voice: [`MDS_RESEARCH_ABSORB.md`](./MDS_RESEARCH_ABSORB.md).  
 **Scoreboard craft SoT:** [`APPS_SCRIPT_CRAFT_SPEC.md`](./APPS_SCRIPT_CRAFT_SPEC.md) + `vendor/mer-apps-script/` (script `1Ws8OibDzYP4HQR8q04TP_PU5zytokIcz6y8eRQuRidzWY9VyzUARINfS`).  
 **Companions:** [`COMPETITORS.md`](./COMPETITORS.md) · [`INDUSTRY_LEADERS.md`](./INDUSTRY_LEADERS.md) · [`COMPETITIVE_APP_STORE_GAP_AUDIT.md`](./COMPETITIVE_APP_STORE_GAP_AUDIT.md) · [`CURSOR_DESIGNER_PLAYBOOK.md`](./CURSOR_DESIGNER_PLAYBOOK.md) · skill `.cursor/skills/mcfly-premium-native-ux/`.  
 **Shopify sources:** [App Design Guidelines](https://shopify.dev/docs/apps/design) · [App structure](https://shopify.dev/docs/apps/design/app-structure) · [Layout](https://shopify.dev/docs/apps/design/layout) · [Built for Shopify — Design §4](https://shopify.dev/docs/apps/launch/built-for-shopify/requirements#design) · Polaris App Home patterns (Homepage / Settings / Index / Empty state).
@@ -296,8 +296,10 @@ Do NOT commit unless asked. Return: paths + top 5 AGENT_FIX + 3 founder Cursor s
 - Unit-econ chips moved inside collapsed **Explore spend mix** (`app._index.tsx`).
 - Scoreboard gated on `!(spendBlocked \|\| marginBlocked)` — margin-only gets one Polaris empty (Settings primary), no duplicate decision CTAs.
 - Apps Script note: secondary unit-econ density now behind Explore (intentional first-viewport diet).
+- **2026-07-26 uninstall-proof:** MER/BE ctx chips hidden when margin/spend blocked (freshness only); empties stacked after topbar/rail; Allocation MER chips + decision hero gated on live `allocation`.
 
 ### Next craft P1 (do not expand this tick)
 
 - Soften Settings preview BE visual weight when `marginConfirmedAt` is null.
 - Reduce “Cash MER” identity repetition under Admin title bar (ctx brand / kicker).
+- Goals out of primary nav (deep-link) if Monday ritual stays four items.
