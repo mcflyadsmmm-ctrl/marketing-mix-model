@@ -1,3 +1,4 @@
+/* launch-v2-20260728 */
 (function () {
   const top = document.querySelector("[data-top]");
   if (top) {
@@ -339,7 +340,9 @@
     );
   }
 
-  const WAITLIST_EMAIL = "mcflyadsmmm@gmail.com";
+  const INVITES_EMAIL = "invites@mcflyads.com";
+  const INTERIM_INBOX = "mcflyadsmmm@gmail.com";
+  const WAITLIST_ENDPOINT = "/api/waitlist";
 
   function normalizeStoreUrl(raw) {
     const value = String(raw || "").trim();
@@ -349,52 +352,111 @@
   }
 
   function buildWaitlistDraft(fields) {
-    const subject = "Mcfly early access — " + fields.name;
-    const body = [
-      "Mcfly Ads — early access request",
+    const custom = /custom-analytics/i.test(String(fields.source || ""));
+    const subject = custom
+      ? "Custom analytics inquiry — " + fields.name
+      : "Mcfly support — " + fields.name;
+    const bodyLines = [
+      custom
+        ? "Mcfly Analytics — custom data science inquiry"
+        : "Mcfly Ads — Install free / early access request",
       "",
       "Name: " + fields.name,
       "Email: " + fields.email,
       "Role / context: " + (fields.role || "(not specified)"),
-      "Site / store: " + (fields.store || "(not specified — exploring)"),
+      (custom ? "Company / website: " : "Site / store: ") +
+        (fields.store || "(not specified — exploring)"),
+      "Source: " + (fields.source || "mcflyads.com waitlist"),
+    ];
+    if (fields.budget) {
+      bodyLines.push("Budget band: " + fields.budget);
+    }
+    if (fields.notes) {
+      bodyLines.push(
+        "",
+        custom ? "Project brief:" : "Notes / calculator snapshot:",
+        fields.notes,
+      );
+    }
+    bodyLines.push(
       "",
-      "Request: early access / free launch feedback.",
-      "From: mcflyads.com waitlist.",
-    ].join("\n");
+      custom
+        ? "Request: custom analytics / MDS proposal ($5–25K band)."
+        : "Request: Install free / early access.",
+      "Public target: " + INVITES_EMAIL,
+      "Interim inbox: " + INTERIM_INBOX,
+    );
+    const body = bodyLines.join("\n");
     const mailto =
       "mailto:" +
-      encodeURIComponent(WAITLIST_EMAIL) +
+      encodeURIComponent(INTERIM_INBOX) +
       "?subject=" +
       encodeURIComponent(subject) +
       "&body=" +
       encodeURIComponent(body);
-    const clipboard = [
-      "To: " + WAITLIST_EMAIL,
-      "Subject: " + subject,
-      "",
-      body,
-    ].join("\n");
+    const clipboard = ["To: " + INVITES_EMAIL + " (interim: " + INTERIM_INBOX + ")", "Subject: " + subject, "", body].join(
+      "\n",
+    );
     return { subject, body, mailto, clipboard };
   }
 
-  function openMailto(url) {
-    const link = document.createElement("a");
-    link.href = url;
-    link.rel = "noopener";
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (_) {
+      /* fall through */
+    }
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.left = "-9999px";
+    document.body.appendChild(area);
+    area.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch (_) {
+      ok = false;
+    }
+    area.remove();
+    return ok;
   }
 
+  document.querySelectorAll("[data-mailto-interim]").forEach((el) => {
+    el.setAttribute("href", "mailto:" + INTERIM_INBOX);
+  });
+
+  document.querySelectorAll("[data-copy-email]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const email = btn.getAttribute("data-copy-email") || INVITES_EMAIL;
+      const ok = await copyText(email);
+      const statusSel = btn.getAttribute("data-copy-status");
+      const status = statusSel ? document.querySelector(statusSel) : btn.parentElement && btn.parentElement.querySelector("[data-copy-email-status]");
+      if (status) {
+        status.hidden = false;
+        status.textContent = ok ? "Copied " + email : "Copy failed — select the address and copy manually.";
+      }
+    });
+  });
+
   document.querySelectorAll("[data-waitlist]").forEach((form) => {
-    const panel = form.parentElement && form.parentElement.querySelector(".waitlist-confirm");
+    const panel =
+      (form.parentElement && form.parentElement.querySelector(".waitlist-confirm")) ||
+      form.querySelector(".waitlist-confirm");
     const errorEl = form.querySelector("[data-waitlist-error]");
     const openBtn = panel && panel.querySelector("[data-waitlist-open]");
     const copyBtn = panel && panel.querySelector("[data-waitlist-copy]");
     const editBtn = panel && panel.querySelector("[data-waitlist-edit]");
     const metaEl = panel && panel.querySelector("[data-waitlist-meta]");
     const copyStatus = panel && panel.querySelector("[data-waitlist-copy-status]");
+    const statusEl = panel && panel.querySelector("[data-waitlist-status]");
+    const previewEl = panel && panel.querySelector("[data-waitlist-preview]");
+    const titleEl = panel && panel.querySelector("[data-waitlist-title]");
+    const submitBtn = form.querySelector('button[type="submit"]');
     let lastDraft = null;
 
     function showError(message) {
@@ -403,20 +465,59 @@
       errorEl.textContent = message || "";
     }
 
-    function showDraft(draft) {
+    function setBusy(busy) {
+      if (!submitBtn) return;
+      submitBtn.disabled = !!busy;
+      if (busy) {
+        submitBtn.setAttribute("data-busy-label", submitBtn.textContent || "");
+        submitBtn.textContent = "Sending…";
+      } else if (submitBtn.hasAttribute("data-busy-label")) {
+        submitBtn.textContent = submitBtn.getAttribute("data-busy-label") || "Install free";
+        submitBtn.removeAttribute("data-busy-label");
+      }
+    }
+
+    function showResult(draft, result) {
       lastDraft = draft;
-      if (openBtn) openBtn.setAttribute("href", draft.mailto);
+      const emailed = !!(result && result.emailed);
+      const stored = !!(result && result.stored);
+      const failed = !result || result.ok === false;
+
+      if (titleEl) {
+        if (failed) titleEl.textContent = "Not delivered — send manually";
+        else if (emailed) titleEl.textContent = "Message received";
+        else titleEl.textContent = "Request saved — email pending";
+      }
+      if (statusEl) {
+        statusEl.textContent =
+          (result && result.statusMessage) ||
+          (result && result.error) ||
+          "We could not confirm delivery. Copy the message below and email us.";
+      }
       if (metaEl) {
         metaEl.replaceChildren();
-        metaEl.append("To ");
-        const mailLink = document.createElement("a");
-        mailLink.href = draft.mailto;
-        mailLink.textContent = WAITLIST_EMAIL;
-        metaEl.append(mailLink);
-        metaEl.append(" · Subject: ");
-        const subjectStrong = document.createElement("strong");
-        subjectStrong.textContent = draft.subject;
-        metaEl.append(subjectStrong);
+        metaEl.append("Target ");
+        const invites = document.createElement("span");
+        invites.className = "mono email-plain";
+        invites.textContent = (result && result.invites) || INVITES_EMAIL;
+        metaEl.append(invites);
+        metaEl.append(" · interim ");
+        const interim = document.createElement("span");
+        interim.className = "mono email-plain";
+        interim.textContent = (result && result.interimInbox) || INTERIM_INBOX;
+        metaEl.append(interim);
+        metaEl.append(" · ");
+        if (emailed && stored) metaEl.append("emailed + stored");
+        else if (emailed) metaEl.append("emailed");
+        else if (stored) metaEl.append("stored (not emailed yet)");
+        else metaEl.append("delivery failed");
+      }
+      if (previewEl) {
+        previewEl.textContent = draft.body;
+      }
+      if (openBtn) {
+        openBtn.setAttribute("href", draft.mailto);
+        openBtn.hidden = !failed && emailed;
       }
       if (copyStatus) {
         copyStatus.hidden = true;
@@ -425,7 +526,8 @@
       form.hidden = true;
       if (panel) {
         panel.hidden = false;
-        if (openBtn && typeof openBtn.focus === "function") openBtn.focus();
+        const focusEl = emailed || stored ? statusEl || editBtn : openBtn || copyBtn;
+        if (focusEl && typeof focusEl.focus === "function") focusEl.focus();
       }
     }
 
@@ -437,19 +539,22 @@
       if (nameInput && typeof nameInput.focus === "function") nameInput.focus();
     }
 
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
       showError("");
       const data = new FormData(form);
-      const name = String(data.get("name") || "").trim();
+      let name = String(data.get("name") || "").trim();
       const email = String(data.get("email") || "").trim();
       const role = String(data.get("role") || "").trim();
       const store = normalizeStoreUrl(data.get("store"));
+      const notes = String(data.get("notes") || "").trim();
+      const budget = String(data.get("budget") || "").trim();
+      const source = form.getAttribute("data-waitlist-source") || "mcflyads.com waitlist";
 
       const emailInput = form.querySelector('[name="email"]');
-      if (!name || !email) {
+      if (!email) {
         form.reportValidity();
-        showError("Name and email are required to draft the request.");
+        showError("Email is required so we can reply.");
         return;
       }
       if (emailInput && typeof emailInput.checkValidity === "function" && !emailInput.checkValidity()) {
@@ -457,45 +562,66 @@
         showError("Enter a valid email so we can reply.");
         return;
       }
+      if (!name) {
+        name = email.split("@")[0] || "Install free";
+      }
 
-      const draft = buildWaitlistDraft({ name, email, role, store });
-      showDraft(draft);
-      openMailto(draft.mailto);
+      const draft = buildWaitlistDraft({ name, email, role, store, source, notes, budget });
+      setBusy(true);
+      let result = null;
+      try {
+        const res = await fetch(WAITLIST_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            role,
+            store,
+            source,
+            notes,
+            budget,
+            company: data.get("company") || "",
+          }),
+        });
+        result = await res.json().catch(() => null);
+        if (!result) {
+          result = {
+            ok: false,
+            error: "Unexpected response from " + WAITLIST_ENDPOINT + ".",
+            statusMessage: "Server response was not JSON. Copy the message below and email us.",
+          };
+        } else if (!res.ok && result.ok !== false) {
+          result.ok = false;
+        }
+      } catch (_) {
+        result = {
+          ok: false,
+          error: "Network error posting to " + WAITLIST_ENDPOINT + ".",
+          statusMessage: "Could not reach the server. Copy the message below and email us.",
+        };
+      }
+      setBusy(false);
+      if (result.message) draft.body = result.message;
+      if (result.subject) draft.subject = result.subject;
+      draft.clipboard = [
+        "To: " + INVITES_EMAIL + " (interim: " + INTERIM_INBOX + ")",
+        "Subject: " + draft.subject,
+        "",
+        draft.body,
+      ].join("\n");
+      showResult(draft, result);
     });
 
     if (copyBtn) {
       copyBtn.addEventListener("click", async () => {
         if (!lastDraft) return;
-        const text = lastDraft.clipboard;
-        let ok = false;
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(text);
-            ok = true;
-          }
-        } catch (_) {
-          ok = false;
-        }
-        if (!ok) {
-          const area = document.createElement("textarea");
-          area.value = text;
-          area.setAttribute("readonly", "");
-          area.style.position = "fixed";
-          area.style.left = "-9999px";
-          document.body.appendChild(area);
-          area.select();
-          try {
-            ok = document.execCommand("copy");
-          } catch (_) {
-            ok = false;
-          }
-          area.remove();
-        }
+        const ok = await copyText(lastDraft.clipboard);
         if (copyStatus) {
           copyStatus.hidden = false;
           copyStatus.textContent = ok
-            ? "Copied. Paste into any email to " + WAITLIST_EMAIL + ", then send."
-            : "Copy failed — select Open email app, or write to " + WAITLIST_EMAIL + " yourself.";
+            ? "Copied. Paste into any email to " + INVITES_EMAIL + " or " + INTERIM_INBOX + "."
+            : "Copy failed — select the message text below, or write to " + INTERIM_INBOX + ".";
         }
       });
     }
@@ -503,14 +629,6 @@
     if (editBtn) {
       editBtn.addEventListener("click", () => {
         showForm();
-      });
-    }
-
-    if (openBtn) {
-      openBtn.addEventListener("click", (event) => {
-        if (!lastDraft) return;
-        event.preventDefault();
-        openMailto(lastDraft.mailto);
       });
     }
   });
