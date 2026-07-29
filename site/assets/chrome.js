@@ -18,8 +18,11 @@
   if (chrome && isAnalytics) {
     chrome.innerHTML = `
   <div class="site-mode-bar site-mode-bar--analytics" role="navigation" aria-label="Site mode">
-    <span class="site-mode-bar__here">You’re in <strong>Mcfly Analytics</strong> · custom data solutions</span>
-    <a class="site-mode-bar__switch" href="/product">← Back to Mcfly Ads (Shopify app)</a>
+    <p class="site-mode-bar__label">Two Mcfly products</p>
+    <div class="site-mode-toggle" role="group" aria-label="Switch site">
+      <a class="site-mode-toggle__opt" href="/">Shopify App</a>
+      <a class="site-mode-toggle__opt is-on" href="/custom-analytics" aria-current="page">Custom Data Solutions</a>
+    </div>
   </div>
   <header class="top top--analytics" data-top>
     <a class="brand" href="/custom-analytics" aria-label="Mcfly Analytics home">
@@ -45,13 +48,16 @@
     <a href="/custom-analytics#privacy">Privacy</a>
     <a href="/custom-analytics#inquire">Inquire</a>
     <a href="/custom-analytics#inquire">Request a proposal</a>
-    <a href="/product">← Back to Mcfly Ads (Shopify)</a>
+    <a href="/">← Shopify App (Mcfly Ads)</a>
   </div>`;
   } else if (chrome) {
     chrome.innerHTML = `
   <div class="site-mode-bar site-mode-bar--shopify" role="navigation" aria-label="Site mode">
-    <span class="site-mode-bar__here">Mcfly Ads · Shopify Total ROAS desk</span>
-    <a class="site-mode-bar__switch" href="/custom-analytics">Custom Data Solutions →</a>
+    <p class="site-mode-bar__label">Two Mcfly products</p>
+    <div class="site-mode-toggle" role="group" aria-label="Switch site">
+      <a class="site-mode-toggle__opt is-on" href="/" aria-current="page">Shopify App</a>
+      <a class="site-mode-toggle__opt" href="/custom-analytics">Custom Data Solutions</a>
+    </div>
   </div>
   <header class="top" data-top>
     <a class="brand" href="/" aria-label="Mcfly Ads home">
@@ -65,7 +71,6 @@
       <a href="${isHome ? "#digest" : "/#digest"}">How it works</a>
       <a href="/about" data-nav="about">About</a>
       <a href="/support" data-nav="support">Support</a>
-      <a class="nav-link-analytics" href="/custom-analytics">Custom Data Solutions</a>
       <a class="nav-cta" data-mcfly-cta="primary" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
