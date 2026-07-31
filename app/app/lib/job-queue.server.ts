@@ -44,6 +44,9 @@ export interface EnqueueJobResult {
  * the stale version: `completeJob` only matches on the lock it was given, so it
  * finds no row and the re-armed job stays `pending` for another pass.
  *
+ * Terminal `dead` / `failed` rows get a **fresh attempt budget** when dirtied again
+ * (refund after dead-letter). Soft-infinite retry without reset is refuse.
+ *
  * `runAfter` is always "now" — a debounce window would risk starving a job under
  * continuous order flow, and coalescing already collapses bursts.
  */
@@ -51,6 +54,21 @@ export async function enqueueJob(
   input: EnqueueJobInput,
   now: Date = new Date(),
 ): Promise<EnqueueJobResult> {
+  const existing = await prisma.job.findUnique({
+    where: {
+      shopId_type_dedupeKey: {
+        shopId: input.shopId,
+        type: input.type,
+        dedupeKey: input.dedupeKey,
+      },
+    },
+    select: { id: true, dedupeKey: true, status: true },
+  });
+
+  const reviveTerminal =
+    existing != null &&
+    (existing.status === "dead" || existing.status === "failed");
+
   const job = await prisma.job.upsert({
     where: {
       shopId_type_dedupeKey: {
@@ -72,7 +90,8 @@ export async function enqueueJob(
       payload: input.payload,
       status: "pending",
       runAfter: now,
-      // Keep attempts — re-arm must not erase retry progress on a hot day.
+      // Keep attempts on hot re-arm; reset only when resurrecting a terminal row.
+      ...(reviveTerminal ? { attempts: 0 } : {}),
       lockedBy: null,
       lockedAt: null,
       finishedAt: null,

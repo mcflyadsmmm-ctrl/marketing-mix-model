@@ -121,6 +121,15 @@ describe("buildCloseExceptions + canLockCashClose", () => {
     expect(canLockCashClose(baseMetrics()).ok).toBe(true);
   });
 
+  it("blocks lock when salesError or salesFactsIncomplete", () => {
+    expect(
+      canLockCashClose(baseMetrics({ salesError: "Failed to load sales" })).ok,
+    ).toBe(false);
+    expect(
+      canLockCashClose(baseMetrics({ salesFactsIncomplete: true })).ok,
+    ).toBe(false);
+  });
+
   it("marks margin unconfirmed and no spend as blocking", () => {
     const ex = buildCloseExceptions(
       baseMetrics({
@@ -308,25 +317,32 @@ describe("formatCashCloseCsv + parseExceptionsJson", () => {
     expect(utcMemo).toContain("Window: 2026-06-30 → 2026-07-14");
   });
 
-  it("formats Overview share text for merchant email/copy", () => {
+  it("formats Overview share text for merchant email", () => {
     const text = formatOverviewShareText({
       periodLabel: "Month to date",
       periodStartDay: "2026-07-01",
       periodEndDay: "2026-07-28",
-      netSales: 100_000,
-      grossSales: 110_000,
-      grossSalesKnown: true,
+      totalSales: 100_000,
       totalSpend: 25_000,
       mer: 4,
       breakEvenMer: 2.86,
       marginPct: 0.35,
       spendIncomplete: true,
       shopLabel: "demo.myshopify.com",
+      channels: [
+        { name: "Meta Ads", amount: 15_000, share: 0.6 },
+        { name: "Google Ads", amount: 10_000, share: 0.4 },
+      ],
+      salesDeltaLine: "+11% vs prior",
     });
     expect(text).toContain("Total ROAS");
+    expect(text).toContain("Shopify Total Sales");
+    expect(text).not.toMatch(/Net sales/i);
     expect(text).toContain("demo.myshopify.com");
     expect(text).toContain("incomplete");
     expect(text).toContain("4.00×");
+    expect(text).toContain("Meta Ads");
+    expect(text).toContain("60%");
   });
 
   it("parses exceptions JSON safely", () => {

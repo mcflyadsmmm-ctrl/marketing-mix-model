@@ -34,8 +34,13 @@ export interface TillLtvSummary {
   avgRevenueD30: number | null;
   avgRevenueD90: number | null;
   avgRevenueD365: number | null;
-  /** Cash CAC = totalSpend / newCustomers when newCustomers > 0. */
+  /** Cash CAC = totalSpend / newBuyers when newBuyers > 0. */
   cashCac: number | null;
+  /**
+   * New-buyer count used for cashCac (OrderFact uniques on live; sample day-sum).
+   * UI must use this — not SalesDayFact `metrics.newCustomers` (always 0 on facts spine).
+   */
+  newBuyers: number;
   /** avgRevenueD90 / cashCac when both defined. */
   ltvCacRatio: number | null;
   cohorts: TillLtvCohortRow[];
@@ -102,9 +107,10 @@ export function summarizeTillLtvFromCohorts(
     (r) => r.revenueD365,
   );
 
+  const newBuyers = Math.max(0, Math.floor(options.newCustomers));
   const cashCac =
-    options.newCustomers > 0 && Number.isFinite(options.totalSpend)
-      ? options.totalSpend / options.newCustomers
+    newBuyers > 0 && Number.isFinite(options.totalSpend)
+      ? options.totalSpend / newBuyers
       : null;
 
   const ltvCacRatio =
@@ -145,6 +151,7 @@ export function summarizeTillLtvFromCohorts(
     avgRevenueD90,
     avgRevenueD365,
     cashCac,
+    newBuyers,
     ltvCacRatio,
     cohorts,
     repeatRate,

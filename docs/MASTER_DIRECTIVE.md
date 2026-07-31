@@ -49,7 +49,7 @@ Pixels, MTA, path credit, view-through, “true ROAS,” Compass/Moby clones, Sy
 
 1. Shopify Partner login / MFA / install approve clicks  
 2. Fly / Neon / host billing cards and prepaid credits  
-3. Meta / Google OAuth app creation & App Review  
+3. Meta / Google OAuth app creation & App Review — **N/A** (ads spend OAuth retired; Shopify install OAuth remains)  
 4. DNS / domain registrar changes  
 5. App Store public submit  
 6. Design-partner NDAs / store collaborator invites  
@@ -164,7 +164,7 @@ LOOP until D0 pass:
 ```text
 LOOP until D2 “&lt;10 min ritual” pass:
   1. First-run empty states
-  2. Hide unfinished nav (Connections until live)
+  2. Hide unfinished nav; spend SoT is CSV on Spend (Connections UI retired)
   3. Claims-vs-cash education strip (optional)
   4. CSV spend → then Meta pipe
   5. Freshness / recon banners
@@ -190,11 +190,11 @@ ON failure:
 
 ### P0 — Category domination (cash close habit)
 
-0. **Domination bar** — [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1 Category Domination Bar; craft ≥4.7; &lt;10 min TTFV; paste death → OAuth  
+0. **Domination bar** — [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1; craft ≥4.7; &lt;10 min TTFV; CSV + pipe templates (no Mcfly ads OAuth)  
 1. Fly org billing complete; machines always-on; health stable &gt;30 min  
 2. DB-aware `/health`  
-3. Design-partner install + **four Monday Closes** + WTP ([`DESIGN_PARTNER_SMOKE.md`](./DESIGN_PARTNER_SMOKE.md))  
-4. Onboarding / TTFV banners; Monday Close as primary ritual CTA  
+3. Design-partner install + **desk smoke** + WTP ([`DESIGN_PARTNER_SMOKE.md`](./DESIGN_PARTNER_SMOKE.md))  
+4. Onboarding / TTFV banners; Overview + Share as primary ritual CTA  
 5. Site: App Store Free primary CTA; Partner invite secondary; deploy `/site` when asked  
 
 ### P1 — Retention & paid
@@ -203,9 +203,9 @@ ON failure:
 7. Dashboard freshness / recon / shop-IANA coverage  
 8. Overnight alert sink (email/Slack)  
 9. Fix global API token multi-shop footgun  
-10. **Meta + Google spend sync** (live Insights/GAQL; human App Review for other merchants)  
+10. ~~Meta + Google spend sync~~ — **retired** ([`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md))  
 11. Sentry  
-12. Shopify Billing scaffold → announce ~$79 after partners (`MCFLY_BILLING`)  
+12. Shopify Billing scaffold → announce ~$39 after partners (`MCFLY_BILLING`)  
 
 ### P2 — Make it public / density
 

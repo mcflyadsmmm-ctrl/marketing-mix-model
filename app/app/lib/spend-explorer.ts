@@ -131,9 +131,9 @@ export const EXPLORER_GRANULARITY_OPTIONS: {
 ];
 
 export const EXPLORER_MODE_OPTIONS: { value: ExplorerMode; label: string }[] = [
-  { value: "stacked", label: "Stacked $" },
-  { value: "share", label: "100% share" },
-  { value: "total", label: "Total" },
+  { value: "stacked", label: "Channels $" },
+  { value: "share", label: "Share %" },
+  { value: "total", label: "Total $" },
 ];
 
 function startOfLocalDay(d: Date): Date {
@@ -673,6 +673,21 @@ export function explorerLegendChannels(
     .map(([ch]) => ch);
 }
 
+/**
+ * Reorder bar segments to match legend order. Missing channels get amount 0
+ * so stack band positions stay stable across buckets (Tableau-style).
+ */
+export function orderBarsByLegend(
+  bars: ExplorerChannelSlice[],
+  legendOrder: string[],
+): ExplorerChannelSlice[] {
+  const byCh = new Map(bars.map((s) => [s.channel, s.amount]));
+  return legendOrder.map((channel) => ({
+    channel,
+    amount: byCh.get(channel) ?? 0,
+  }));
+}
+
 export function explorerBarMax(
   buckets: ExplorerPlotBucket[],
   mode: ExplorerMode,
@@ -687,6 +702,21 @@ export function explorerBarMax(
     if (h > max) max = h;
   }
   return max > 0 ? max : 1;
+}
+
+/**
+ * Left-axis $ ceiling. When Sales line is on (and not share %), uses
+ * max(spend bars, sales) so heights are comparable on one shared scale.
+ */
+export function explorerMoneyCeil(
+  buckets: ExplorerPlotBucket[],
+  mode: ExplorerMode,
+  showSales: boolean,
+): number {
+  if (mode === "share") return 100;
+  const barMax = explorerBarMax(buckets, mode);
+  if (!showSales) return barMax;
+  return explorerSalesCeil(buckets, barMax);
 }
 
 /** Left-axis ceiling when Sales line is on — max(spend bars, sales). */

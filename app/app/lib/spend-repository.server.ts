@@ -128,10 +128,11 @@ export async function assertSpendWriteAllowed(
   }
 
   let domain = gate?.shopDomain?.trim();
+  let paidPro = false;
   if (!domain) {
     const shop = await prisma.shop.findUnique({
       where: { id: shopId },
-      select: { domain: true },
+      select: { domain: true, proBillingActive: true },
     });
     if (!shop?.domain) {
       throw new SpendChannelEntitlementError(
@@ -139,9 +140,16 @@ export async function assertSpendWriteAllowed(
       );
     }
     domain = shop.domain;
+    paidPro = shop.proBillingActive;
+  } else {
+    const shop = await prisma.shop.findUnique({
+      where: { domain },
+      select: { proBillingActive: true },
+    });
+    paidPro = Boolean(shop?.proBillingActive);
   }
 
-  const entitlements = getShopEntitlements(domain);
+  const entitlements = getShopEntitlements(domain, { paidPro });
   const err = assertChannelsAllowed(entitlements, channels);
   if (err) throw new SpendChannelEntitlementError(err);
 }

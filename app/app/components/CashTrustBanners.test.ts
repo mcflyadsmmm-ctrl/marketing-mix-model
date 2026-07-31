@@ -15,9 +15,13 @@ describe("CashTrustBanners today honesty", () => {
     expect(source).toMatch(/~100 orders/);
   });
 
-  it("does not claim Ads Manager gross when grossSalesKnown is false", () => {
-    expect(source).toContain("grossSalesKnown");
-    expect(source).toMatch(/still backfilling/i);
-    expect(source).toContain("!grossSalesKnown");
+  it("keeps fail-closed trust banners and omits sales-basis info card", () => {
+    expect(source).toContain("salesFactsIncomplete");
+    expect(source).toContain("marginStale");
+    expect(source).toContain("spendCoverage");
+    expect(source).toContain("spendRecon");
+    expect(source).not.toContain("showSalesBasis");
+    expect(source).not.toMatch(/Ads Manager often ignores returns/i);
+    expect(source).not.toMatch(/not Platform ROAS/i);
   });
 });

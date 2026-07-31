@@ -28,9 +28,9 @@ Agents editing Cash MER / desk CSS **must** read this file + `vendor/mer-apps-sc
 
 Multi-brand portfolio tabs · Domo spines · Meta/Google Trends · LTV/Customers CRM · Klaviyo boards · Asana · seed dumps · spreadsheet IDs · API tokens.
 
-### Monday Close (`/app/close`) — hybrid note
+### Retired: Monday Close (`/app/close`)
 
-**Polaris owns** the whole Close surface (chrome, exceptions banners, lock form, CSV). Do **not** wrap Close in sky-paper + Fraunces scoreboard. Ritual rail = Exceptions → Lock → Variance → Decision → CSV; decision copy must say illustrative step-test / average ≠ marginal ROAS.
+**Out of product** — route redirects Home. Do not port Close ritual chrome. Share Overview (mailto) lives on Overview. See [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md).
 
 ---
 

@@ -1,6 +1,6 @@
 /**
  * Light Total ROAS trust banners — coverage, recon, below-BE habit, mock guard,
- * net/gross sales honesty, optional margin stale.
+ * optional margin stale. Fail-closed only (no sales-basis info card).
  * Polaris chrome only; keep out of the Apps Script scoreboard island.
  * Below-BE habit only when caller passes belowBreakEven (cashActionReady).
  */
@@ -35,17 +35,6 @@ type Props = {
   /** Open-day live top-up failed — closed-day facts may still be shown. */
   todaySalesUnavailable?: boolean;
   shotMode?: boolean;
-  /** Sales basis honesty line (always safe). */
-  showSalesBasis?: boolean;
-  /** Live net sales (action basis) — shown with gross when both present. */
-  netSales?: number | null;
-  /** Ads Manager–comparable gross — secondary to net. */
-  grossSales?: number | null;
-  /**
-   * When false, closed-day gross is still backfilling — never label gross as
-   * Ads Manager–comparable (skip dual line / haircut claims).
-   */
-  grossSalesKnown?: boolean;
   /** When false, finish setup before acting on budget advice. */
   cashActionReady?: boolean;
   /** Ads Manager ±X% recon — independent of margin. */
@@ -74,10 +63,6 @@ export function CashTrustBanners({
   todaySalesTruncated = false,
   todaySalesUnavailable = false,
   shotMode = false,
-  showSalesBasis = false,
-  netSales = null,
-  grossSales = null,
-  grossSalesKnown = true,
   cashActionReady = true,
   spendRecon = null,
   belowBreakEven = null,
@@ -93,19 +78,6 @@ export function CashTrustBanners({
     belowBreakEven.mer != null &&
     Number.isFinite(belowBreakEven.mer) &&
     belowBreakEven.mer < belowBreakEven.breakEvenMer;
-
-  const showNetGross =
-    showSalesBasis &&
-    grossSalesKnown &&
-    netSales != null &&
-    Number.isFinite(netSales) &&
-    grossSales != null &&
-    Number.isFinite(grossSales);
-  const showGrossBackfill =
-    showSalesBasis &&
-    !grossSalesKnown &&
-    netSales != null &&
-    Number.isFinite(netSales);
 
   return (
     <>
@@ -163,29 +135,6 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {showSalesBasis ? (
-        <s-banner tone="info" heading={PRODUCT_NOUN.salesBasisShort}>
-          <s-paragraph>
-            {PRODUCT_NOUN.totalRoas} uses Shopify sales after returns.{" "}
-            {showNetGross ? (
-              <>
-                Total Sales {formatCurrency(netSales)}
-                {grossSales !== netSales
-                  ? ` · Order totals ${formatCurrency(grossSales)} (Ads Manager–comparable)`
-                  : ""}
-                .{" "}
-              </>
-            ) : showGrossBackfill ? (
-              <>
-                Total Sales {formatCurrency(netSales)}. Order totals (gross)
-                still backfilling — not Ads Manager–comparable yet.{" "}
-              </>
-            ) : null}
-            Ads Manager often ignores returns — your P&amp;L does not.
-          </s-paragraph>
-        </s-banner>
-      ) : null}
-
       {marginStale ? (
         <s-banner tone="warning" heading="Reconfirm profit margin">
           <s-paragraph>
@@ -199,18 +148,12 @@ export function CashTrustBanners({
       {!cashActionReady && !spendCoverage?.incomplete && spendRecon?.status !== "drift" ? (
         <s-banner tone="info" heading="Almost ready">
           <s-paragraph>
-            {!onboarding?.settingsSaved
-              ? "Confirm profit margin in Settings, then paste spend."
-              : !onboarding?.hasSpend
-                ? "Paste daily ad spend next — then compare Total ROAS to break-even."
-                : `Finish spend trust, then open ${PRODUCT_NOUN.mondayClose}.`}
+            {!onboarding?.hasSpend
+              ? "Paste daily ad spend next — then read cash Total ROAS."
+              : `Finish spend trust, then read Total ROAS on Overview.`}
           </s-paragraph>
           <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
-            {!onboarding?.settingsSaved ? (
-              <s-button href="/app/settings" variant="primary">
-                {PRODUCT_NOUN.setupAdjustMargin}
-              </s-button>
-            ) : !onboarding?.hasSpend ? (
+            {!onboarding?.hasSpend ? (
               <s-button href="/app/spend" variant="primary">
                 {PRODUCT_NOUN.setupAddSpend}
               </s-button>

@@ -1,14 +1,14 @@
-import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import {
   EXPLORER_GRANULARITY_OPTIONS,
   EXPLORER_MODE_OPTIONS,
   EXPLORER_RANGE_OPTIONS,
   dateKeyFromLocal,
-  explorerBarMax,
   explorerLegendChannels,
   explorerMerCeil,
-  explorerSalesCeil,
+  explorerMoneyCeil,
+  orderBarsByLegend,
   type ExplorerGranularity,
   type ExplorerMode,
   type ExplorerPlotBucket,
@@ -30,7 +30,7 @@ export type SpendExplorerSeriesView = {
   targetMer: number;
   /** Break-even Total ROAS rail (from margin) — optional dashed accent. */
   breakEvenMer: number | null;
-  /** mcflyads till instrument — sales polyline on left $ axis. */
+  /** mcflyads till instrument — sales polyline on shared left $ axis. */
   showSales: boolean;
   /** Effective window FROM (YYYY-MM-DD) for date inputs. */
   fromKey: string;
@@ -48,9 +48,20 @@ type SpendExplorerProps = {
   shotMode?: boolean;
 };
 
+type ExplorerHover =
+  | { kind: "seg"; bucketKey: string; channel: string }
+  | { kind: "dot"; bucketKey: string }
+  | null;
+
 /** Unified scaled-mix note — always "cash spend", never Total Cost. */
 const SCALED_MIX_NOTE =
   "Channels reported > cash spend — mix scaled to cash spend";
+
+const PAD_L = 56;
+const PAD_R = 48;
+const PAD_T = 16;
+const PAD_B = 28;
+const PLOT_H = 270;
 
 function channelLabel(channel: string): string {
   if (channel === "total") return "Total spend";
@@ -58,13 +69,14 @@ function channelLabel(channel: string): string {
   return known ?? channel;
 }
 
+/** SVG fill / tip swatch class — uses CSS vars via `.mcfly-explorer__seg--*`. */
 function channelSegClass(channel: string): string {
-  if (channel === "total") return "mcfly-explorer__bar-seg--total";
+  if (channel === "total") return "mcfly-explorer__seg--total";
   const known = channel as SpendChannel;
   if (known in SPEND_CHANNEL_LABELS) {
-    return `mcfly-stack__seg--${known}`;
+    return `mcfly-explorer__seg--${known}`;
   }
-  return "mcfly-stack__seg--other";
+  return "mcfly-explorer__seg--other";
 }
 
 /** One phrase: "Total ROAS Z× · X sales ÷ Y spend" for tip / title / readout. */
@@ -127,20 +139,6 @@ function bucketTitle(bucket: ExplorerPlotBucket, mode: ExplorerMode): string {
   return `${bucket.label}: ${bucketMerPhrase(bucket)}${modeBit}${scaleBit}`;
 }
 
-function segmentDetail(
-  bucket: ExplorerPlotBucket,
-  mode: ExplorerMode,
-): string {
-  if (!bucket.bars.length) return "No channel spend in this bucket.";
-  return bucket.bars
-    .map((seg) =>
-      mode === "share"
-        ? `${channelLabel(seg.channel)} ${seg.amount.toFixed(1)}%`
-        : `${channelLabel(seg.channel)} ${formatCurrency(seg.amount)}`,
-    )
-    .join(" · ");
-}
-
 function downloadExplorerCsv(
   buckets: ExplorerPlotBucket[],
   mode: ExplorerMode,
@@ -180,10 +178,28 @@ function downloadExplorerCsv(
   URL.revokeObjectURL(url);
 }
 
+function colMinPxFor(
+  gran: ExplorerGranularity,
+  mode: ExplorerMode,
+): number {
+  if (gran === "Day") return 44;
+  if (gran === "Quarter") return 64;
+  if (mode === "total") return 48;
+  return 52;
+}
+
+function axisMoneyLabel(n: number, isShare: boolean): string {
+  if (isShare) return `${Math.round(n)}%`;
+  return formatCurrency(n).replace(/\.00$/, "");
+}
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.min(hi, Math.max(lo, n));
+}
+
 /**
  * Spend explorer — channel mix vs Total ROAS (sales ÷ spend).
- * Server-rendered controls via query links (no Chart.js).
- * URL: exRange, exGran, exMode, exSales, exFrom, exTo (period= kept for desk).
+ * Unified SVG plot (no Chart.js). URL: exRange, exGran, exMode, exSales, exFrom, exTo.
  */
 export function SpendExplorer({
   series,
@@ -192,35 +208,39 @@ export function SpendExplorer({
 }: SpendExplorerProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { buckets, mode, targetMer, breakEvenMer, showSales } = series;
+  const { buckets: allBuckets, mode, targetMer, breakEvenMer, showSales } =
+    series;
   const isShare = mode === "share";
-  const barMax = explorerBarMax(buckets, mode);
-  /** Spend bars / left axis stay on spend scale — sales polyline uses its own ceil. */
-  const leftCeil = barMax;
-  const salesCeil =
-    showSales && !isShare ? explorerSalesCeil(buckets, 0) : 0;
-  const merCeil = explorerMerCeil(buckets, targetMer, breakEvenMer);
-  const targetRailPct =
-    merCeil > 0 && targetMer > 0
-      ? Math.min(100, (targetMer / merCeil) * 100)
-      : 0;
-  const beRailPct =
-    merCeil > 0 && breakEvenMer != null && breakEvenMer > 0
-      ? Math.min(100, (breakEvenMer / merCeil) * 100)
-      : null;
-  const legend = explorerLegendChannels(buckets, mode);
-  const hasBars = buckets.some((b) => b.bars.length > 0 || b.spend > 0);
 
-  const defaultKey =
-    [...buckets].reverse().find((b) => b.spend > 0 || b.bars.length > 0)?.key ??
-    buckets[buckets.length - 1]?.key ??
-    null;
-  const [selectedKey, setSelectedKey] = useState<string | null>(defaultKey);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [hover, setHover] = useState<ExplorerHover>(null);
+  const [hiddenChannels, setHiddenChannels] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [fromDraft, setFromDraft] = useState(series.fromKey);
   const [toDraft, setToDraft] = useState(series.toKey);
 
+  const visibleBuckets = allBuckets;
+
+  const legend = useMemo(
+    () => explorerLegendChannels(allBuckets, mode),
+    [allBuckets, mode],
+  );
+
+  const leftCeil = explorerMoneyCeil(visibleBuckets, mode, showSales && !isShare);
+  const merCeil = explorerMerCeil(visibleBuckets, targetMer, breakEvenMer);
+  const hasBars = allBuckets.some((b) => b.bars.length > 0 || b.spend > 0);
+
+  const defaultKey =
+    [...visibleBuckets]
+      .reverse()
+      .find((b) => b.spend > 0 || b.bars.length > 0)?.key ??
+    visibleBuckets[visibleBuckets.length - 1]?.key ??
+    null;
+
   useEffect(() => {
     setSelectedKey(defaultKey);
+    setHover(null);
   }, [defaultKey, series.range, series.granularity, series.mode]);
 
   useEffect(() => {
@@ -228,34 +248,66 @@ export function SpendExplorer({
     setToDraft(series.toKey);
   }, [series.fromKey, series.toKey]);
 
+  useEffect(() => {
+    setHiddenChannels(new Set());
+  }, [series.mode, series.range, series.granularity]);
+
   const selected =
-    buckets.find((b) => b.key === selectedKey) ??
-    buckets.find((b) => b.key === defaultKey) ??
+    visibleBuckets.find((b) => b.key === selectedKey) ??
+    visibleBuckets.find((b) => b.key === defaultKey) ??
     null;
   const selectedIndex = selected
-    ? buckets.findIndex((b) => b.key === selected.key)
+    ? visibleBuckets.findIndex((b) => b.key === selected.key)
     : -1;
-  /** Dense: MER micro-labels only on selected ± neighbors. */
-  const showAllMerLabels = buckets.length <= 14;
-  const showMerMicro = (index: number) => {
-    if (showAllMerLabels) return true;
-    if (selectedIndex < 0) return index === buckets.length - 1;
-    return Math.abs(index - selectedIndex) <= 1;
-  };
+  const hoverBucketKey = hover?.bucketKey ?? null;
+  const tipBucket =
+    !shotMode && hoverBucketKey
+      ? (visibleBuckets.find((b) => b.key === hoverBucketKey) ?? null)
+      : null;
+  const tipIndex = tipBucket
+    ? visibleBuckets.findIndex((b) => b.key === tipBucket.key)
+    : -1;
+  const activeKey = hoverBucketKey ?? selected?.key ?? null;
+  const activeIndex =
+    activeKey != null
+      ? visibleBuckets.findIndex((b) => b.key === activeKey)
+      : -1;
+
+  const hoverSeg =
+    hover?.kind === "seg" && tipBucket
+      ? tipBucket.bars.find((s) => s.channel === hover.channel) ?? null
+      : null;
+
   const datesDirty =
     fromDraft !== series.fromKey || toDraft !== series.toKey;
-  const showColumnTips = !shotMode && buckets.length <= 10;
 
-  const merPoints = buckets.map((b, i) => {
-    const x = buckets.length > 0 ? ((i + 0.5) / buckets.length) * 100 : 0;
+  const n = visibleBuckets.length;
+  const colMinPx = colMinPxFor(series.granularity, mode);
+  const vbW = Math.max(360, n * colMinPx);
+  const vbH = PAD_T + PLOT_H + PAD_B;
+  const plotW = Math.max(1, vbW - PAD_L - PAD_R);
+  const slotW = n > 0 ? plotW / n : plotW;
+  const barW = slotW * 0.62;
+
+  const yLeft = (val: number) =>
+    PAD_T + PLOT_H - (leftCeil > 0 ? (val / leftCeil) * PLOT_H : 0);
+  const yMer = (val: number) =>
+    PAD_T + PLOT_H - (merCeil > 0 ? (val / merCeil) * PLOT_H : 0);
+  const xCenter = (i: number) => PAD_L + (i + 0.5) * slotW;
+
+  const gridFracs = [0, 0.25, 0.5, 0.75, 1] as const;
+
+  const merPoints = visibleBuckets.map((b, i) => {
+    const x = xCenter(i);
     const y =
       b.mer != null && merCeil > 0
-        ? 100 - Math.min(100, (b.mer / merCeil) * 100)
+        ? yMer(Math.min(b.mer, merCeil))
         : null;
     return {
       x,
       y,
       tone: merToneBand(b.mer, targetMer),
+      key: b.key,
     };
   });
   const merLine = merPoints
@@ -265,13 +317,13 @@ export function SpendExplorer({
 
   const salesPoints =
     showSales && !isShare
-      ? buckets.map((b, i) => {
-          const x = buckets.length > 0 ? ((i + 0.5) / buckets.length) * 100 : 0;
+      ? visibleBuckets.map((b, i) => {
+          const x = xCenter(i);
           const y =
-            salesCeil > 0
-              ? 100 - Math.min(100, (b.sales / salesCeil) * 100)
+            leftCeil > 0
+              ? yLeft(Math.min(b.sales, leftCeil))
               : null;
-          return { x, y };
+          return { x, y, key: b.key };
         })
       : [];
   const salesLine = salesPoints
@@ -279,15 +331,29 @@ export function SpendExplorer({
     .map((p) => `${p.x},${p.y as number}`)
     .join(" ");
 
-  const colMinPx =
-    series.granularity === "Day"
-      ? 44
-      : series.granularity === "Quarter"
-        ? 64
-        : mode === "total"
-          ? 48
-          : 52;
-  const chartMinWidth = Math.max(360, buckets.length * colMinPx + 40);
+  const labelCount = n;
+  const labelStep = labelCount > 10 ? Math.ceil(labelCount / 8) : 1;
+  const showAxisLabel = (index: number) => {
+    if (labelCount <= 10) return true;
+    if (index === 0 || index === labelCount - 1) return true;
+    return index % labelStep === 0;
+  };
+
+  const tipLeftPct =
+    tipIndex >= 0 && n > 0
+      ? clamp((xCenter(tipIndex) / vbW) * 100, 10, 90)
+      : 0;
+
+  /** Tip sits mid-plot vertically so it doesn't cover the whole chart. */
+  const tipTopPct =
+    hover?.kind === "dot"
+      ? 18
+      : hover?.kind === "seg"
+        ? 42
+        : 28;
+
+  const crosshairX =
+    activeIndex >= 0 ? xCenter(activeIndex) : null;
 
   const hrefBase = {
     period,
@@ -331,30 +397,26 @@ export function SpendExplorer({
     );
   }
 
-  const labelCount = buckets.length;
-  const labelStep =
-    labelCount > 10 ? Math.ceil(labelCount / 8) : 1;
-  const showAxisLabel = (index: number) => {
-    if (labelCount <= 10) return true;
-    if (index === 0 || index === labelCount - 1) return true;
-    return index % labelStep === 0;
-  };
-
   function onDateSubmit(e: FormEvent) {
     e.preventDefault();
     if (fromDraft && toDraft) goCustomDates(fromDraft, toDraft);
   }
 
   function moveSelection(delta: number) {
-    if (!buckets.length) return;
+    if (!visibleBuckets.length) return;
     const cur =
-      selectedIndex >= 0 ? selectedIndex : Math.max(0, buckets.length - 1);
-    const next = Math.min(buckets.length - 1, Math.max(0, cur + delta));
-    const key = buckets[next]?.key;
+      selectedIndex >= 0
+        ? selectedIndex
+        : Math.max(0, visibleBuckets.length - 1);
+    const next = Math.min(
+      visibleBuckets.length - 1,
+      Math.max(0, cur + delta),
+    );
+    const key = visibleBuckets[next]?.key;
     if (key) setSelectedKey(key);
   }
 
-  function onColsKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+  function onPlotKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key === "ArrowLeft") {
       e.preventDefault();
       moveSelection(-1);
@@ -367,15 +429,37 @@ export function SpendExplorer({
     }
     if (e.key === "Home") {
       e.preventDefault();
-      const key = buckets[0]?.key;
+      const key = visibleBuckets[0]?.key;
       if (key) setSelectedKey(key);
       return;
     }
     if (e.key === "End") {
       e.preventDefault();
-      const key = buckets[buckets.length - 1]?.key;
+      const key = visibleBuckets[visibleBuckets.length - 1]?.key;
       if (key) setSelectedKey(key);
     }
+  }
+
+  function toggleChannel(channel: string) {
+    setHiddenChannels((prev) => {
+      const next = new Set(prev);
+      if (next.has(channel)) next.delete(channel);
+      else next.add(channel);
+      return next;
+    });
+  }
+
+  function visibleOrderedBars(bucket: ExplorerPlotBucket) {
+    return orderBarsByLegend(bucket.bars, legend).filter(
+      (seg) => !hiddenChannels.has(seg.channel),
+    );
+  }
+
+  function segShare(bucket: ExplorerPlotBucket, channel: string): number {
+    const ordered = visibleOrderedBars(bucket).filter((s) => s.amount > 0);
+    const barSum = ordered.reduce((s, c) => s + c.amount, 0);
+    const amt = ordered.find((s) => s.channel === channel)?.amount ?? 0;
+    return barSum > 0 ? (amt / barSum) * 100 : 0;
   }
 
   return (
@@ -383,13 +467,10 @@ export function SpendExplorer({
       className="mcfly-panel mcfly-explorer mcfly-explorer--lean"
       aria-label={PRODUCT_NOUN.explorer}
     >
-      <div className="mcfly-panel__head mcfly-explorer__head">
+      <div className="mcfly-panel__head mcfly-explorer__head mcfly-explorer__head--lean">
         <h2>{PRODUCT_NOUN.explorer}</h2>
-        <p className="mcfly-panel__muted">
-          Channel mix vs {PRODUCT_NOUN.totalRoas} · {PRODUCT_NOUN.definition} ·{" "}
-          {series.windowLabel} · as of {series.asOfKey}
-        </p>
       </div>
+
       {!shotMode ? (
         <div className="mcfly-explorer__controls">
           <div
@@ -506,8 +587,8 @@ export function SpendExplorer({
             disabled={isShare}
             title={
               isShare
-                ? "Sales line is hidden in share % mode (left axis is %)"
-                : "Toggle sales polyline (own $ scale — spend bars stay full height)"
+                ? "Sales line is hidden in share % mode"
+                : "Toggle sales on shared $ axis"
             }
             onClick={() => {
               if (isShare) return;
@@ -522,11 +603,7 @@ export function SpendExplorer({
               );
             }}
           >
-            <span
-              className="mcfly-explorer__sales-check"
-              aria-hidden="true"
-            />
-            Sales line
+            Sales
           </button>
         </div>
       ) : null}
@@ -536,317 +613,410 @@ export function SpendExplorer({
           <div className="mcfly-explorer__scroll">
             <div
               className="mcfly-explorer__chart"
-              style={{ minWidth: `${chartMinWidth}px` }}
+              style={{ minWidth: `${vbW}px` }}
             >
               <div
-                className="mcfly-explorer__mer-row"
-                style={{
-                  gridTemplateColumns: `repeat(${Math.max(buckets.length, 1)}, minmax(0, 1fr))`,
-                }}
+                className="mcfly-explorer__plot-area"
+                role="listbox"
+                aria-label={`${PRODUCT_NOUN.explorer} columns`}
+                aria-activedescendant={
+                  selected ? `explorer-col-${selected.key}` : undefined
+                }
+                tabIndex={0}
+                onKeyDown={onPlotKeyDown}
+                onPointerLeave={() => setHover(null)}
               >
-                {buckets.map((bucket, index) => {
-                  const tone = merToneBand(bucket.mer, targetMer);
-                  const showLabel = showMerMicro(index);
-                  return (
-                    <div
-                      key={`mer-${bucket.key}`}
-                      className={`mcfly-explorer__mer mcfly-explorer__mer--${tone}${showLabel ? "" : " mcfly-explorer__mer--mute"}`}
-                      title={bucketTitle(bucket, mode)}
-                      aria-hidden={showLabel ? undefined : true}
-                    >
-                      {showLabel
-                        ? bucket.mer != null
-                          ? formatMer(bucket.mer)
-                          : "—"
-                        : ""}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="mcfly-explorer__plot-area">
-                <div
-                  className="mcfly-explorer__axis mcfly-explorer__axis--left"
-                  aria-hidden="true"
-                >
-                  <span>{isShare ? "Share" : "Spend"}</span>
-                  <span>
-                    {isShare
-                      ? "100%"
-                      : formatCurrency(leftCeil).replace(/\.00$/, "")}
-                  </span>
-                  <span>0</span>
-                </div>
-                <div
-                  className="mcfly-explorer__axis mcfly-explorer__axis--right"
-                  aria-hidden="true"
-                >
-                  <span>{PRODUCT_NOUN.totalRoas}</span>
-                  <span>{formatMer(merCeil)}</span>
-                  <span>0×</span>
-                </div>
-
-                <div className="mcfly-explorer__grid" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </div>
-
-                {beRailPct != null ? (
-                  <div
-                    className="mcfly-explorer__rail mcfly-explorer__rail--be"
-                    style={{ bottom: `${beRailPct}%` }}
-                    aria-hidden="true"
-                  >
-                    <span className="mcfly-explorer__rail-label">
-                      BE {formatMer(breakEvenMer)}
-                    </span>
-                  </div>
-                ) : null}
-
-                {targetMer > 0 ? (
-                  <div
-                    className="mcfly-explorer__rail mcfly-explorer__rail--target"
-                    style={{ bottom: `${targetRailPct}%` }}
-                    aria-hidden="true"
-                  >
-                    <span className="mcfly-explorer__rail-label">
-                      Target {PRODUCT_NOUN.totalRoasShort} {formatMer(targetMer)}
-                    </span>
-                  </div>
-                ) : null}
-
                 <svg
-                  className="mcfly-explorer__mer-svg"
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
+                  className="mcfly-explorer__plot-svg"
+                  viewBox={`0 0 ${vbW} ${vbH}`}
+                  preserveAspectRatio="xMidYMid meet"
+                  width={vbW}
+                  height={vbH}
+                  role="img"
+                  aria-label={`Channel spend mix and ${PRODUCT_NOUN.totalRoas}`}
                 >
+                  {/* 1. Grid + dual axis ticks */}
+                  {gridFracs.map((frac) => {
+                    const y = PAD_T + PLOT_H * (1 - frac);
+                    const leftVal = leftCeil * frac;
+                    const rightVal = merCeil * frac;
+                    return (
+                      <g key={`grid-${frac}`} aria-hidden="true">
+                        <line
+                          className="mcfly-explorer__grid-line"
+                          x1={PAD_L}
+                          x2={vbW - PAD_R}
+                          y1={y}
+                          y2={y}
+                        />
+                        <text
+                          className="mcfly-explorer__tick mcfly-explorer__tick--left"
+                          x={PAD_L - 6}
+                          y={y}
+                          dy="0.32em"
+                          textAnchor="end"
+                        >
+                          {axisMoneyLabel(leftVal, isShare)}
+                        </text>
+                        <text
+                          className="mcfly-explorer__tick mcfly-explorer__tick--right"
+                          x={vbW - PAD_R + 6}
+                          y={y}
+                          dy="0.32em"
+                          textAnchor="start"
+                        >
+                          {formatMer(rightVal)}×
+                        </text>
+                      </g>
+                    );
+                  })}
+                  <text
+                    className="mcfly-explorer__axis-title mcfly-explorer__axis-title--left"
+                    x={4}
+                    y={PAD_T - 4}
+                    aria-hidden="true"
+                  >
+                    {isShare ? "Share %" : showSales ? "$ (shared)" : "Spend $"}
+                  </text>
+                  <text
+                    className="mcfly-explorer__axis-title mcfly-explorer__axis-title--right"
+                    x={vbW - 4}
+                    y={PAD_T - 4}
+                    textAnchor="end"
+                    aria-hidden="true"
+                  >
+                    {PRODUCT_NOUN.totalRoas} ×
+                  </text>
+
+                  {/* 2. Target + BE rails (ROAS axis) */}
+                  {targetMer > 0 && merCeil > 0 ? (
+                    <g className="mcfly-explorer__rail-g" aria-hidden="true">
+                      <line
+                        className="mcfly-explorer__rail-line mcfly-explorer__rail-line--target"
+                        x1={PAD_L}
+                        x2={vbW - PAD_R}
+                        y1={yMer(targetMer)}
+                        y2={yMer(targetMer)}
+                      />
+                      <text
+                        className="mcfly-explorer__rail-txt mcfly-explorer__rail-txt--target"
+                        x={vbW - PAD_R - 2}
+                        y={yMer(targetMer) - 4}
+                        textAnchor="end"
+                      >
+                        Target {formatMer(targetMer)}×
+                      </text>
+                    </g>
+                  ) : null}
+                  {breakEvenMer != null && breakEvenMer > 0 && merCeil > 0 ? (
+                    <g className="mcfly-explorer__rail-g" aria-hidden="true">
+                      <line
+                        className="mcfly-explorer__rail-line mcfly-explorer__rail-line--be"
+                        x1={PAD_L}
+                        x2={vbW - PAD_R}
+                        y1={yMer(breakEvenMer)}
+                        y2={yMer(breakEvenMer)}
+                      />
+                      <text
+                        className="mcfly-explorer__rail-txt mcfly-explorer__rail-txt--be"
+                        x={PAD_L + 2}
+                        y={yMer(breakEvenMer) - 4}
+                        textAnchor="start"
+                      >
+                        BE {formatMer(breakEvenMer)}×
+                      </text>
+                    </g>
+                  ) : null}
+
+                  {/* 3. Column select wash (behind bars) + stacked segments with mark hover */}
+                  {visibleBuckets.map((bucket, i) => {
+                    const ordered = visibleOrderedBars(bucket);
+                    let yCursor = PAD_T + PLOT_H;
+                    const cx = xCenter(i);
+                    const x = cx - barW / 2;
+                    const isOn = selected?.key === bucket.key;
+                    const segs: {
+                      key: string;
+                      channel: string;
+                      x: number;
+                      y: number;
+                      w: number;
+                      h: number;
+                      amount: number;
+                    }[] = [];
+                    for (const seg of ordered) {
+                      if (!(seg.amount > 0) || leftCeil <= 0) continue;
+                      const h = (seg.amount / leftCeil) * PLOT_H;
+                      yCursor -= h;
+                      segs.push({
+                        key: `${bucket.key}-${seg.channel}`,
+                        channel: seg.channel,
+                        x,
+                        y: yCursor,
+                        w: barW,
+                        h,
+                        amount: seg.amount,
+                      });
+                    }
+                    return (
+                      <g
+                        key={`bar-${bucket.key}`}
+                        className={`mcfly-explorer__bar-g${isOn ? " mcfly-explorer__bar-g--on" : ""}`}
+                      >
+                        {/* Select wash — behind segments so clicks still hit marks */}
+                        <rect
+                          id={`explorer-col-${bucket.key}`}
+                          className={`mcfly-explorer__col-wash${isOn ? " mcfly-explorer__col-wash--on" : ""}`}
+                          role="option"
+                          aria-label={bucketTitle(bucket, mode)}
+                          aria-selected={isOn}
+                          x={PAD_L + i * slotW}
+                          y={PAD_T}
+                          width={slotW}
+                          height={PLOT_H}
+                          onPointerDown={(e) => {
+                            if (e.button !== 0) return;
+                            setSelectedKey(bucket.key);
+                          }}
+                        />
+                        {segs.map((seg) => {
+                          const segHot =
+                            hover?.kind === "seg" &&
+                            hover.bucketKey === bucket.key &&
+                            hover.channel === seg.channel;
+                          const dimOthers =
+                            hover?.kind === "seg" &&
+                            !(
+                              hover.bucketKey === bucket.key &&
+                              hover.channel === seg.channel
+                            );
+                          return (
+                            <rect
+                              key={seg.key}
+                              className={`mcfly-explorer__seg ${channelSegClass(seg.channel)}${segHot ? " mcfly-explorer__seg--hot" : ""}${dimOthers ? " mcfly-explorer__seg--dim" : ""}`}
+                              x={seg.x}
+                              y={seg.y}
+                              width={seg.w}
+                              height={Math.max(seg.h, 0.5)}
+                              onPointerEnter={() => {
+                                if (shotMode) return;
+                                setHover({
+                                  kind: "seg",
+                                  bucketKey: bucket.key,
+                                  channel: seg.channel,
+                                });
+                              }}
+                              onPointerDown={(e) => {
+                                if (e.button !== 0) return;
+                                e.stopPropagation();
+                                setSelectedKey(bucket.key);
+                                setHover({
+                                  kind: "seg",
+                                  bucketKey: bucket.key,
+                                  channel: seg.channel,
+                                });
+                              }}
+                            />
+                          );
+                        })}
+                      </g>
+                    );
+                  })}
+
+                  {/* 4. Sales polyline (shared $ axis) */}
                   {salesLine ? (
                     <polyline
                       className="mcfly-explorer__sales-line"
                       points={salesLine}
                       fill="none"
+                      pointerEvents="none"
                     />
                   ) : null}
+
+                  {/* 5. Total ROAS polyline + interactive dots */}
                   {merLine ? (
-                    <polyline
-                      className="mcfly-explorer__mer-line"
-                      points={merLine}
-                      fill="none"
+                    <>
+                      <polyline
+                        className="mcfly-explorer__mer-line mcfly-explorer__mer-line--under"
+                        points={merLine}
+                        fill="none"
+                        pointerEvents="none"
+                      />
+                      <polyline
+                        className="mcfly-explorer__mer-line"
+                        points={merLine}
+                        fill="none"
+                        pointerEvents="none"
+                      />
+                    </>
+                  ) : null}
+                  {merPoints.map((p) =>
+                    p.y != null ? (
+                      <g key={`dot-${p.key}`}>
+                        {/* Larger invisible hit for the ROAS mark */}
+                        <circle
+                          className="mcfly-explorer__mer-hit"
+                          cx={p.x}
+                          cy={p.y}
+                          r={10}
+                          onPointerEnter={() => {
+                            if (shotMode) return;
+                            setHover({ kind: "dot", bucketKey: p.key });
+                          }}
+                          onPointerDown={(e) => {
+                            if (e.button !== 0) return;
+                            setSelectedKey(p.key);
+                            setHover({ kind: "dot", bucketKey: p.key });
+                          }}
+                        />
+                        <circle
+                          className={
+                            p.tone === "up"
+                              ? "mcfly-explorer__mer-dot mcfly-explorer__mer-dot--up"
+                              : p.tone === "down"
+                                ? "mcfly-explorer__mer-dot mcfly-explorer__mer-dot--down"
+                                : "mcfly-explorer__mer-dot"
+                          }
+                          cx={p.x}
+                          cy={p.y}
+                          r={
+                            hover?.kind === "dot" && hover.bucketKey === p.key
+                              ? 5
+                              : p.key === selected?.key
+                                ? 4
+                                : 3.2
+                          }
+                          pointerEvents="none"
+                        />
+                      </g>
+                    ) : null,
+                  )}
+
+                  {/* 6. Crosshair */}
+                  {crosshairX != null ? (
+                    <line
+                      className="mcfly-explorer__crosshair"
+                      x1={crosshairX}
+                      x2={crosshairX}
+                      y1={PAD_T}
+                      y2={PAD_T + PLOT_H}
+                      aria-hidden="true"
+                      pointerEvents="none"
                     />
                   ) : null}
-                  {merPoints.map((p, i) =>
-                    p.y != null ? (
-                      <circle
-                        key={buckets[i]?.key ?? i}
-                        className={
-                          p.tone === "up"
-                            ? "mcfly-explorer__mer-dot mcfly-explorer__mer-dot--up"
-                            : p.tone === "down"
-                              ? "mcfly-explorer__mer-dot mcfly-explorer__mer-dot--down"
-                              : "mcfly-explorer__mer-dot"
-                        }
-                        cx={p.x}
-                        cy={p.y}
-                        // Small, constant “point” per bucket (keeps the chart calm).
-                        r={0.85}
-                      />
+
+                  {/* X labels */}
+                  {visibleBuckets.map((bucket, i) =>
+                    showAxisLabel(i) ? (
+                      <text
+                        key={`lbl-${bucket.key}`}
+                        className="mcfly-explorer__x-label"
+                        x={xCenter(i)}
+                        y={vbH - 8}
+                        textAnchor="middle"
+                        pointerEvents="none"
+                      >
+                        {bucket.label}
+                      </text>
                     ) : null,
                   )}
                 </svg>
 
+                {tipBucket && hover ? (
                   <div
-                    className="mcfly-explorer__cols"
-                    role="listbox"
-                    aria-label={`${PRODUCT_NOUN.explorer} columns`}
-                    aria-activedescendant={
-                      selected ? `explorer-col-${selected.key}` : undefined
-                    }
-                    tabIndex={0}
-                    style={{
-                      gridTemplateColumns: `repeat(${Math.max(buckets.length, 1)}, minmax(0, 1fr))`,
-                    }}
-                    onKeyDown={onColsKeyDown}
+                    className="mcfly-explorer__tip mcfly-explorer__tip--float mcfly-explorer__tip--on mcfly-explorer__tip--compact"
+                    role="tooltip"
+                    style={{ left: `${tipLeftPct}%`, top: `${tipTopPct}%` }}
                   >
-                  {buckets.map((bucket) => {
-                    const barTotal =
-                      mode === "share"
-                        ? 100
-                        : mode === "total"
-                          ? bucket.spend
-                          : bucket.bars.reduce((s, c) => s + c.amount, 0);
-                    const barH =
-                      barTotal > 0
-                        ? Math.max(3, Math.round((barTotal / leftCeil) * 100))
-                        : 0;
-                    const isOn = selected?.key === bucket.key;
-                    return (
-                      <div
-                        id={`explorer-col-${bucket.key}`}
-                        className={`mcfly-explorer__col${isOn ? " mcfly-explorer__col--on" : ""}`}
-                        role="option"
-                        key={bucket.key}
-                        tabIndex={-1}
-                        title={bucketTitle(bucket, mode)}
-                        aria-label={bucketTitle(bucket, mode)}
-                        aria-selected={isOn}
-                        onPointerDown={(e) => {
-                          if (e.button !== 0) return;
-                          setSelectedKey(bucket.key);
-                        }}
-                      >
-                        <span
-                          className="mcfly-explorer__hit"
-                          aria-hidden="true"
-                        />
-                        <div className="mcfly-explorer__plot">
-                          {barH > 0 ? (
-                            <div
-                              className="mcfly-explorer__bar"
-                              style={{ height: `${barH}%` }}
-                            >
-                              {bucket.bars.map((seg) => (
-                                <span
-                                  key={seg.channel}
-                                  className={`mcfly-explorer__bar-seg ${channelSegClass(seg.channel)}`}
-                                  style={{
-                                    flexGrow: Math.max(seg.amount, 0.01),
-                                    flexBasis: 0,
-                                  }}
-                                  title={
-                                    mode === "share"
-                                      ? `${channelLabel(seg.channel)}: ${seg.amount.toFixed(1)}%`
-                                      : `${channelLabel(seg.channel)}: ${formatCurrency(seg.amount)}`
-                                  }
-                                />
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="mcfly-explorer__bar mcfly-explorer__bar--empty" />
-                          )}
-                        </div>
-                        {showColumnTips ? (
-                          <div className="mcfly-explorer__tip" role="tooltip">
-                            <strong>{bucket.label}</strong>
-                            <span>{bucketMerPhrase(bucket)}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div
-                className="mcfly-explorer__label-row"
-                style={{
-                  gridTemplateColumns: `repeat(${Math.max(buckets.length, 1)}, minmax(0, 1fr))`,
-                }}
-              >
-                {buckets.map((bucket, index) => {
-                  const visible = showAxisLabel(index);
-                  return (
-                    <div
-                      key={`lbl-${bucket.key}`}
-                      className={`mcfly-explorer__label${visible ? "" : " mcfly-explorer__label--mute"}`}
-                      aria-hidden={visible ? undefined : true}
-                    >
-                      {visible ? bucket.label : ""}
-                    </div>
-                  );
-                })}
+                    {hover.kind === "dot" ? (
+                      <>
+                        <strong>{tipBucket.label}</strong>
+                        <span className="mcfly-explorer__tip-lead">
+                          {PRODUCT_NOUN.totalRoas}{" "}
+                          {tipBucket.mer != null
+                            ? formatMer(tipBucket.mer)
+                            : "—"}
+                        </span>
+                        <span>
+                          Spend {formatCurrency(tipBucket.spend)}
+                        </span>
+                        <span>
+                          Sales {formatCurrency(tipBucket.sales)}
+                        </span>
+                      </>
+                    ) : hoverSeg ? (
+                      <>
+                        <strong className="mcfly-explorer__tip-ch-head">
+                          <i
+                            className={`mcfly-explorer__tip-swatch ${channelSegClass(hover.channel)}`}
+                            aria-hidden="true"
+                          />
+                          {channelLabel(hover.channel)}
+                        </strong>
+                        <span className="mcfly-explorer__tip-lead">
+                          {mode === "share"
+                            ? `${hoverSeg.amount.toFixed(1)}%`
+                            : formatCurrency(hoverSeg.amount)}
+                          {mode !== "share" ? (
+                            <span className="mcfly-explorer__tip-share">
+                              {" "}
+                              · {Math.round(segShare(tipBucket, hover.channel))}%
+                              of bar
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="mcfly-explorer__tip-period">
+                          {tipBucket.label}
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
 
-          <div
-            className={`mcfly-explorer__readout mcfly-explorer__readout--sticky${selected ? " mcfly-explorer__readout--on" : ""}`}
-            aria-live="polite"
-          >
-            {selected ? (
-              <>
-                <strong>{selected.label}</strong>
-                <span>{bucketMerPhrase(selected)}</span>
-                {selected.scaledToCash ? (
-                  <span className="mcfly-explorer__tip-note">
-                    Mix scaled to cash spend
-                  </span>
-                ) : null}
-              </>
-            ) : (
-              <span>Select a column · ← → to move</span>
-            )}
-          </div>
-
           {!shotMode ? (
-            <div className="mcfly-explorer__export">
+            <div className="mcfly-explorer__channel-toggles" role="group" aria-label="Spend channels">
+              {legend.map((channel) => {
+                const hidden = hiddenChannels.has(channel);
+                return (
+                  <button
+                    key={channel}
+                    type="button"
+                    className={`mcfly-explorer__ch-toggle${hidden ? " mcfly-explorer__ch-toggle--off" : ""}`}
+                    aria-pressed={!hidden}
+                    title={
+                      hidden
+                        ? `Show ${channelLabel(channel)}`
+                        : `Hide ${channelLabel(channel)}`
+                    }
+                    onClick={() => toggleChannel(channel)}
+                  >
+                    <i
+                      className={`mcfly-explorer__ch-dot ${channelSegClass(channel)}`}
+                      aria-hidden="true"
+                    />
+                    <span>{channelLabel(channel)}</span>
+                  </button>
+                );
+              })}
               <button
                 type="button"
-                className="mcfly-explorer__export-btn"
+                className="mcfly-explorer__export-btn mcfly-explorer__export-btn--quiet"
                 onClick={() =>
                   downloadExplorerCsv(
-                    buckets,
+                    allBuckets,
                     mode,
                     series.range,
                     series.granularity,
                   )
                 }
               >
-                Export explorer CSV
+                CSV
               </button>
-              <span>
-                Bucket sales · spend · {PRODUCT_NOUN.totalRoasShort} · channel mix
-              </span>
             </div>
           ) : null}
-
-          <ul className="mcfly-explorer__legend">
-            <li>
-              <i
-                className="mcfly-explorer__swatch mcfly-explorer__swatch--mer"
-                aria-hidden="true"
-              />
-              {PRODUCT_NOUN.totalRoas} (sales ÷ spend)
-            </li>
-            {targetMer > 0 ? (
-              <li>
-                <i
-                  className="mcfly-explorer__swatch mcfly-explorer__swatch--rail"
-                  aria-hidden="true"
-                />
-                Target {PRODUCT_NOUN.totalRoas}
-              </li>
-            ) : null}
-            {beRailPct != null ? (
-              <li>
-                <i
-                  className="mcfly-explorer__swatch mcfly-explorer__swatch--rail-be"
-                  aria-hidden="true"
-                />
-                {PRODUCT_NOUN.breakEvenShort}
-              </li>
-            ) : null}
-            {showSales && !isShare ? (
-              <li>
-                <i
-                  className="mcfly-explorer__swatch mcfly-explorer__swatch--sales"
-                  aria-hidden="true"
-                />
-                Sales
-              </li>
-            ) : null}
-            {legend.map((channel) => (
-              <li key={channel}>
-                <i
-                  className={`mcfly-explorer__swatch ${channelSegClass(channel)}`}
-                  aria-hidden="true"
-                />
-                {channelLabel(channel)}
-              </li>
-            ))}
-          </ul>
         </>
       ) : (
         <div className="mcfly-guide-empty">

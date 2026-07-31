@@ -21,7 +21,7 @@
 
 ## The offer (one sentence)
 
-**Mcfly is Free to install and Free to run on CSV paste.** Want hands-off Meta / Google / Microsoft / TikTok / email spend? **Pay SyncWith, Coupler, Supermetrics, Coefficient, etc.** — they own OAuth, refreshes, and breakage. Mcfly pulls a simple Sheet (or webhook) and runs Monday Close.
+**Mcfly is Free to install and Free to run on CSV paste.** Want hands-off Meta / Google / Microsoft / TikTok / email spend? **Pay SyncWith, Coupler, Supermetrics, Coefficient, etc.** — they own OAuth, refreshes, and breakage. Mcfly pulls a simple Sheet (or webhook CSV) into the Total ROAS desk.
 
 ---
 
@@ -32,7 +32,7 @@
 | Shopify sales | Included (Shopify OAuth) | Mcfly |
 | CSV / paste / Bill→daily spend | Free | Merchant (5–10 min Monday) |
 | Multi-platform connector zoo + refresh | **Merchant → SyncWith-class** | Pipe vendor |
-| Total ROAS + break-even + Monday Close | Mcfly (~$79 later flat) | Mcfly |
+| Total ROAS + break-even + Allocation | Mcfly (~$39 flat later) | Mcfly |
 
 We **do not** absorb Microsoft / Klaviyo / TikTok App Review or stale-token support.
 
@@ -44,9 +44,9 @@ We **do not** absorb Microsoft / Klaviyo / TikTok App Review or stale-token supp
 Merchant installs SyncWith / Coupler / Supermetrics / …
         → schedules ads spend into a Google Sheet
         → Mcfly template columns: date | channel | amount
-Merchant connects that Sheet in Mcfly (Google OAuth)  [AGENT: build]
-        → Mcfly upserts SpendEntry (source csv/sheet)
-        → recon ±5% + Monday Close as today
+Merchant downloads CSV (or future Sheet pull) → Spend Import
+        → Mcfly upserts SpendEntry
+        → recon ±5% + Overview Total ROAS
 ```
 
 Optional later: Zapier/Make/Coupler **webhook** → Mcfly import URL + shop token.
@@ -60,8 +60,8 @@ Optional later: Zapier/Make/Coupler **webhook** → Mcfly import URL + shop toke
 | Surface | Copy / behavior |
 | --- | --- |
 | Spend empty / Automate tab | Free: paste / upload CSV first (replace-on-overlap). Automate: “Use SyncWith → fill template → download CSV → paste.” No live Sheet pull yet. |
-| Listing / site | Honest: Free = CSV. Automation = customer-paid pipe tools. Meta/Google OAuth = optional Mcfly retention later, not the zoo. |
-| Connections | Meta/Google spend OAuth stays **our** near-term retention for the two big ones — still amounts only. Zoo stays external. |
+| Listing / site | Honest: Free = CSV. Automation = customer-paid pipe tools. No Mcfly ads OAuth ([`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)). |
+| Connections | **Retired** — redirects to Spend. Zoo stays external. |
 
 ---
 
@@ -91,6 +91,7 @@ Optional later: Zapier/Make/Coupler **webhook** → Mcfly import URL + shop toke
 ## Related
 
 - [`COMPETITORS.md`](./COMPETITORS.md) — SyncWith = pipes, not product  
-- [`VALUE_THESIS.md`](./VALUE_THESIS.md) — Free CSV → connected spend → ~$79  
+- [`VALUE_THESIS.md`](./VALUE_THESIS.md) — Free CSV → Pro $39  
+- [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md) — no Monday Close / no Mcfly ads OAuth
 - [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1 — refuse connector zoo  
 - [`CATEGORY_DOMINATION_MEGAPROMPT.md`](./CATEGORY_DOMINATION_MEGAPROMPT.md)  

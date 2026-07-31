@@ -79,6 +79,7 @@ export async function seedThreeYearSampleDesk(
       orderCount: r.orderCount,
       newCustomers: r.newCustomers,
       returningCustomers: r.returningCustomers,
+      newCustomerNetSales: r.newCustomerNetSales,
     }));
     for (let i = 0; i < salesData.length; i += 200) {
       await tx.sampleSalesDay.createMany({ data: salesData.slice(i, i + 200) });
@@ -174,7 +175,8 @@ export async function fetchSampleSales(
     grossSales: totalSales,
     grossSalesKnown: true,
     netSales: totalSales,
-    salesBasisUsed: "net",
+    netSalesKnown: true,
+    salesBasisUsed: "total",
     orderCount,
     newCustomers,
     returningCustomers,

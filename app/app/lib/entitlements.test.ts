@@ -110,4 +110,13 @@ describe("entitlements Free vs Pro", () => {
     expect(s.emptyReason).toBe("pro_required");
     expect(s.cohorts).toEqual([]);
   });
+
+  it("paidPro unlocks Pro without MCFLY_PRO_SHOPS", () => {
+    delete process.env.MCFLY_PRO_SHOPS;
+    expect(isProShop("acme.myshopify.com")).toBe(false);
+    expect(isProShop("acme.myshopify.com", { paidPro: true })).toBe(true);
+    const e = getShopEntitlements("acme.myshopify.com", { paidPro: true });
+    expect(e.isPro).toBe(true);
+    expect(e.canUseLiveLtv).toBe(true);
+  });
 });

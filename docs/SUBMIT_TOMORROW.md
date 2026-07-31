@@ -48,7 +48,8 @@ Prior open items (support meta Free, skill `read_customers`, listing Other, SCOP
 ## YOU must do (cannot be automated)
 
 ### A. Partner — Distribution
-https://dev.shopify.com/dashboard/227535001/apps/400772497409 → **Shopify App Store**
+https://dev.shopify.com/dashboard/227535001/apps/403721814017 (**Public**) → **Shopify App Store**  
+(not Custom `400772497409`)
 
 ### B. Protected Customer Data
 Request access for **orders +** opaque customer **id / numberOfOrders** (no name/email/address).  

@@ -9,11 +9,12 @@ type PeriodControlProps = {
   onChange?: (value: PeriodPreset) => void;
 };
 
-type DeskPeriodPreset = "mtd" | "qtd" | "ytd" | "l12m" | "y3";
+type DeskPeriodPreset = "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3";
 
-/** Desk UI: MTD / QTD / YTD / L12M; shot mode adds 3 yr for listing captures. */
+/** Desk UI: MTD / LM / QTD / YTD / L12M; shot mode adds 3 yr for listing captures. */
 const DESK_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
   { value: "mtd", label: "MTD" },
+  { value: "lm", label: "LM" },
   { value: "qtd", label: "QTD" },
   { value: "ytd", label: "YTD" },
   { value: "l12m", label: "L12M" },

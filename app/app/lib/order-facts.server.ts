@@ -704,8 +704,11 @@ export async function countNewBuyersInRange(
  * Deterministic sample CohortFacts for the Demo desk (`source = sample`).
  * Cleared with sample desk wipe — never overwrites live `shopify_order_v1` rows.
  *
- * Tuned to match impressive SAMPLE till economics (~$110 AOV, Total ROAS > 4×):
- * 30d / 90d / 365d LTV per customer land well above cash CAC so LTV:CAC reads ~3–5×.
+ * Store cohort **totals** (customers × per-customer LTV) — never per-customer
+ * alone, or weighted avg double-divides into ~$1 on the desk.
+ *
+ * Tuned vs SAMPLE cash CAC (~$70–90): 30d / 90d / 365d LTV read ~$145 / $380 / $820
+ * so LTV:CAC lands ~4–6× (impressive, not 1×).
  */
 export async function seedSampleCohortFacts(
   shopId: string,
@@ -721,28 +724,28 @@ export async function seedSampleCohortFacts(
     months.push(cohortMonthFromDate(d));
   }
 
-  // Per-customer revenue (shop dollars) — DTC growing brand, AOV ~$100–120.
+  // Per-customer revenue (shop dollars) — strong DTC repeat, never ~$1 scale.
   // Older cohorts mature further on 90d/365d; recent cohorts larger headcount.
-  const ltv30Base = 118;
-  const ltv90Base = 248;
-  const ltv365Base = 520;
+  const ltv30Base = 145;
+  const ltv90Base = 380;
+  const ltv365Base = 820;
 
   let n = 0;
   for (let i = 0; i < months.length; i += 1) {
     const cohortMonth = months[i]!;
     // Growing brand — more recent cohorts larger (index 0 = oldest).
-    const customers = 140 + i * 36;
+    const customers = 220 + i * 48;
     // Mild AOV lift over the year; older cohorts get extra maturity on long windows.
-    const aovLift = 1 + i * 0.035;
-    const maturity90 = 1 + (months.length - 1 - i) * 0.018;
-    const maturity365 = 1 + (months.length - 1 - i) * 0.04;
+    const aovLift = 1 + i * 0.03;
+    const maturity90 = 1 + (months.length - 1 - i) * 0.02;
+    const maturity365 = 1 + (months.length - 1 - i) * 0.045;
     const rev30 = Math.round(customers * ltv30Base * aovLift);
     const rev90 = Math.round(customers * ltv90Base * aovLift * maturity90);
     const rev365 = Math.round(customers * ltv365Base * aovLift * maturity365);
-    // Healthy repeat: ~1.25 / 1.7 / 2.4 orders per customer by window.
-    const ordersD30 = customers + Math.round(customers * 0.28);
-    const ordersD90 = customers + Math.round(customers * 0.72 * maturity90);
-    const ordersD365 = customers + Math.round(customers * 1.45 * maturity365);
+    // Healthy repeat: ~1.3 / 1.85 / 2.6 orders per customer by window.
+    const ordersD30 = customers + Math.round(customers * 0.32);
+    const ordersD90 = customers + Math.round(customers * 0.85 * maturity90);
+    const ordersD365 = customers + Math.round(customers * 1.6 * maturity365);
     await prisma.cohortFact.upsert({
       where: {
         shopId_cohortMonth_source: {

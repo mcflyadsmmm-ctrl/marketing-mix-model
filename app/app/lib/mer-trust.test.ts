@@ -176,17 +176,29 @@ describe("formatCashFreshnessChip", () => {
         lastAt: null,
         source: "live",
       }),
-    ).toBe("SAMPLE preview");
+    ).toMatch(/SAMPLE preview/i);
   });
 
-  it("prefers sales-as-of over snapshot theater", () => {
+  it("prefers sales last-refreshed over snapshot theater", () => {
     const label = formatCashFreshnessChip({
       useSampleDesk: false,
       salesPulledAt: "2026-07-23T21:04:00.000Z",
       lastAt: "2026-07-22T08:00:00.000Z",
       source: "snapshot",
     });
-    expect(label.startsWith("Sales as of ")).toBe(true);
+    expect(label.startsWith("Last refreshed · Sales ")).toBe(true);
+  });
+
+  it("includes spend when spendUpdatedAt is set", () => {
+    const label = formatCashFreshnessChip({
+      useSampleDesk: false,
+      salesPulledAt: "2026-07-23T21:04:00.000Z",
+      lastAt: null,
+      source: "live",
+      spendUpdatedAt: "2026-07-22T08:00:00.000Z",
+    });
+    expect(label).toMatch(/Last refreshed · Sales /);
+    expect(label).toMatch(/ · Spend /);
   });
 
   it("falls back to last sync / snapshot wording", () => {
@@ -196,7 +208,7 @@ describe("formatCashFreshnessChip", () => {
       lastAt: "2026-07-22T08:00:00.000Z",
       source: "sync",
     });
-    expect(label.startsWith("Last sync ")).toBe(true);
+    expect(label.startsWith("Last refreshed · Last sync ")).toBe(true);
   });
 
   it("omits sales-as-of when salesPulledAt is null (no freshness lie)", () => {
@@ -206,8 +218,9 @@ describe("formatCashFreshnessChip", () => {
       lastAt: null,
       source: "live",
     });
-    expect(label).toBe("Desk refresh");
+    expect(label).toMatch(/Last refreshed/i);
     expect(label.includes("Sales as of")).toBe(false);
+    expect(label).not.toMatch(/^Sales /);
   });
 });
 
@@ -325,5 +338,28 @@ describe("shop IANA closed-day coverage", () => {
     expect(filled.size).toBe(4);
     expect(filled.has("2026-07-01")).toBe(true);
     expect(filled.has("2026-07-10")).toBe(true);
+  });
+
+  it("UTC-midnight CSV day stays calendar key in America/Denver (not prior local day)", () => {
+    const now = new Date("2026-07-15T18:00:00.000Z");
+    // Shop-local Jul 1–10 window (Denver MDT = UTC-6).
+    const start = new Date("2026-07-01T06:00:00.000Z");
+    const end = new Date("2026-07-11T05:59:59.999Z");
+    const filled = collectFilledSpendDayKeys(
+      [
+        {
+          // Production stamp: utcMidnightFromDayKey("2026-07-01")
+          periodStart: new Date("2026-07-01T00:00:00.000Z"),
+          periodEnd: new Date("2026-07-01T23:59:59.999Z"),
+          amount: 80,
+        },
+      ],
+      start,
+      end,
+      now,
+      "America/Denver",
+    );
+    expect(filled.has("2026-07-01")).toBe(true);
+    expect(filled.has("2026-06-30")).toBe(false);
   });
 });

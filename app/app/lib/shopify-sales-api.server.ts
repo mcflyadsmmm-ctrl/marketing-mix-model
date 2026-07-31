@@ -59,7 +59,8 @@ export function apiQueryDateRange(
 export function isSalesFactsIncompleteForApi(
   coverage: SalesFactsCoverage | null | undefined,
 ): boolean {
-  if (!coverage) return false;
+  // Fail-closed: coverage read failure / null must not paint MER as complete.
+  if (coverage == null) return true;
   return (
     coverage.expectedClosedDays > 0 &&
     !coverage.complete &&

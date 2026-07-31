@@ -14,16 +14,8 @@ type Props = {
   variant?: "panel" | "inline";
 };
 
-const TRUTH_GREEN = "#059669";
-const MUTE_STROKE = "#94a3b8";
-
 const DEFAULT_HEADING = "Goal progress";
 const DEFAULT_MUTED = `Sales vs plan · not spend · not ${PRODUCT_NOUN.totalRoas}`;
-
-function barColor(progressPct: number | null): string {
-  if (progressPct == null || !Number.isFinite(progressPct)) return MUTE_STROKE;
-  return TRUTH_GREEN;
-}
 
 function formatYoyShort(period: SalesGoalPeriod): {
   text: string;
@@ -51,19 +43,20 @@ function GoalRow({
   const progressPct = hasGoal
     ? Math.min(100, Math.max(0, period.progressPct ?? 0))
     : 0;
-  const fill = barColor(hasGoal ? period.progressPct : null);
+  const tone: GoalPaceTone = hasGoal ? period.pace.tone : "flat";
   const yoy = formatYoyShort(period);
   const pctLabel = hasGoal
     ? `${Math.round(period.progressPct ?? 0)}%`
     : "—";
+  const calPct = Number.isFinite(period.calendarPct)
+    ? Math.min(100, Math.max(0, period.calendarPct))
+    : null;
   const paceBit =
     !compact &&
     hasGoal &&
     period.pace.kind !== "none"
       ? `${period.pace.label}${
-          Number.isFinite(period.calendarPct)
-            ? ` · ${Math.round(period.calendarPct)}% period`
-            : ""
+          calPct != null ? ` · ${Math.round(calPct)}% calendar` : ""
         }`
       : null;
 
@@ -71,6 +64,7 @@ function GoalRow({
     <article
       className={[
         "mcfly-goal-row",
+        `mcfly-goal-row--${tone}`,
         compact ? "mcfly-goal-row--compact" : null,
         !hasGoal ? "mcfly-goal-row--empty" : null,
       ]
@@ -87,7 +81,7 @@ function GoalRow({
     >
       <div className="mcfly-goal-row__head">
         <span className="mcfly-goal-row__label">{period.label}</span>
-        <span className="mcfly-goal-row__pct" style={{ color: fill }}>
+        <span className={`mcfly-goal-row__pct mcfly-goal-row__pct--${tone}`}>
           {pctLabel}
         </span>
       </div>
@@ -100,13 +94,21 @@ function GoalRow({
         aria-label={`${period.label} ${pctLabel} of goal`}
       >
         <div
-          className="mcfly-goal-row__fill"
-          style={{ width: `${progressPct}%`, background: fill }}
+          className={`mcfly-goal-row__fill mcfly-goal-row__fill--${tone}`}
+          style={{ width: `${progressPct}%` }}
         />
+        {hasGoal && calPct != null ? (
+          <span
+            className="mcfly-goal-row__cal-tick"
+            style={{ left: `${calPct}%` }}
+            title={`${Math.round(calPct)}% of period elapsed`}
+            aria-hidden="true"
+          />
+        ) : null}
       </div>
       {!compact ? (
         <div className="mcfly-goal-row__meta">
-          <span>
+          <span className="mcfly-goal-row__meta-amt">
             {formatCurrency(period.actual)}
             {hasGoal ? ` / ${formatCurrency(period.goal)}` : " / —"}
             {period.periodHint ? ` · ${period.periodHint}` : ""}

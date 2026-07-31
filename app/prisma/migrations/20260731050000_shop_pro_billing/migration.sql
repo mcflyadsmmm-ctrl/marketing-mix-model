@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Shop" ADD COLUMN IF NOT EXISTS "proBillingActive" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Shop" ADD COLUMN IF NOT EXISTS "proSubscriptionGid" TEXT;

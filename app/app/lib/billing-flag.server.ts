@@ -29,6 +29,19 @@ export const PRO_PLAN = {
   trialDays: 0,
 };
 
+export function subscriptionMatchesProPlan(
+  name: string | null | undefined,
+): boolean {
+  if (!name?.trim()) return false;
+  const n = name.trim().toLowerCase();
+  const plan = PRO_PLAN.name.toLowerCase();
+  if (n === plan) return true;
+  if (n.includes("mcfly") && n.includes("pro")) return true;
+  // Shopify App Pricing plans are often named just "Pro".
+  if (n === "pro" || n === "pro plan") return true;
+  return false;
+}
+
 /** Honest UI copy when Billing API is not charging yet. */
 export function billingStatusCopy(billingEnabled: boolean): {
   tier: BillingTier;

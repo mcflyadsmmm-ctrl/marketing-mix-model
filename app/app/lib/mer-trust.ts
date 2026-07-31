@@ -11,6 +11,14 @@ import {
 
 export type FreshnessSource = "snapshot" | "sync" | "live";
 
+/** UTC calendar YYYY-MM-DD — matches SpendEntry utcMidnightFromDayKey stamps. */
+function utcDayKey(date: Date): string {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export interface SpendPeriodCoverage {
   daysWithSpend: number;
   daysInPeriod: number;
@@ -120,8 +128,10 @@ export function collectFilledSpendDayKeys(
 
     for (const entry of entries) {
       if (!(entry.amount > 0)) continue;
-      let cursorKey = shopLocalDayKey(entry.periodStart, timeZone);
-      const entryEndKey = shopLocalDayKey(entry.periodEnd, timeZone);
+      // Spend rows are UTC-midnight of the CSV calendar day (utcMidnightFromDayKey).
+      // shopLocalDayKey(…, America/Denver) on 2026-07-01T00:00Z → 2026-06-30 — false holes.
+      let cursorKey = utcDayKey(entry.periodStart);
+      const entryEndKey = utcDayKey(entry.periodEnd);
       if (cursorKey < windowStartKey) cursorKey = windowStartKey;
       let endKey = entryEndKey > windowEndKey ? windowEndKey : entryEndKey;
       if (endKey < cursorKey) continue;
@@ -225,7 +235,7 @@ export function resolveHonestSales<
   };
 }
 
-/** Context-rail freshness chip — honest, not real-time theater. */
+/** Context-rail freshness — clear last-refreshed, sales + spend when known. */
 export function formatCashFreshnessChip(input: {
   useSampleDesk: boolean;
   salesPulledAt: string | null;
@@ -234,14 +244,19 @@ export function formatCashFreshnessChip(input: {
   spendUpdatedAt?: string | null;
 }): string {
   if (input.useSampleDesk) {
-    return "SAMPLE preview";
+    return "SAMPLE preview · not live store data";
   }
 
-  const salesBit = input.salesPulledAt
-    ? `Sales as of ${formatFreshness(input.salesPulledAt)}`
-    : null;
-
-  if (salesBit) return salesBit;
+  const bits: string[] = [];
+  if (input.salesPulledAt) {
+    bits.push(`Sales ${formatFreshness(input.salesPulledAt)}`);
+  }
+  if (input.spendUpdatedAt) {
+    bits.push(`Spend ${formatFreshness(input.spendUpdatedAt)}`);
+  }
+  if (bits.length > 0) {
+    return `Last refreshed · ${bits.join(" · ")}`;
+  }
 
   if (input.lastAt) {
     const verb =
@@ -250,10 +265,10 @@ export function formatCashFreshnessChip(input: {
         : input.source === "sync"
           ? "Last sync"
           : "As of";
-    return `${verb} ${formatFreshness(input.lastAt)}`;
+    return `Last refreshed · ${verb} ${formatFreshness(input.lastAt)}`;
   }
 
-  return "Desk refresh";
+  return "Last refreshed · open Update spend to load CSV";
 }
 
 /** Short spend-side honesty line for chips / coverage banner. */

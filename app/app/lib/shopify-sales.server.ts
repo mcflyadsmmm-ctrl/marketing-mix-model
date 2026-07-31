@@ -14,9 +14,8 @@ export {
 
 export interface SalesResult {
   /**
-   * Action Total ROAS numerator = net Shopify sales
-   * (`currentTotalPriceSet` sum). Kept as `totalSales` so mer-dashboard /
-   * allocation / Monday stay on one field.
+   * Shopify Total Sales (`currentTotalPriceSet` sum) — default Total ROAS numerator
+   * (net + shipping + taxes + duties + fees, after returns).
    */
   totalSales: number;
   /** Gross order totals (`totalPriceSet`) — Ads Manager–comparable secondary. */
@@ -26,10 +25,15 @@ export interface SalesResult {
    * not claim Ads Manager–comparable gross. Default true for live GraphQL.
    */
   grossSalesKnown?: boolean;
-  /** Same as totalSales (net) — explicit alias for UI / honesty chips. */
+  /**
+   * Shopify Net Sales (`currentSubtotalPriceSet`) — product subtotal after
+   * returns, excl. shipping/tax. Used when desk salesBasis = "net".
+   */
   netSales: number;
-  /** Action basis — always net after Phase 1A. */
-  salesBasisUsed: "net";
+  /** False when Net Sales unknown (legacy facts without subtotal). */
+  netSalesKnown?: boolean;
+  /** Basis last used to paint action MER on this result (default total). */
+  salesBasisUsed: "total" | "net";
   orderCount: number;
   /** Unique customers whose first-ever order falls in this period (cash desk definition). */
   newCustomers: number;
@@ -76,6 +80,11 @@ const ORDERS_SALES_QUERY = `#graphql
               amount
             }
           }
+          currentSubtotalPriceSet {
+            shopMoney {
+              amount
+            }
+          }
         }
       }
     }
@@ -104,6 +113,11 @@ const ORDERS_FULL_QUERY = `#graphql
             }
           }
           currentTotalPriceSet {
+            shopMoney {
+              amount
+            }
+          }
+          currentSubtotalPriceSet {
             shopMoney {
               amount
             }
@@ -142,6 +156,11 @@ const ORDERS_CUSTOMER_QUERY = `#graphql
               amount
             }
           }
+          currentSubtotalPriceSet {
+            shopMoney {
+              amount
+            }
+          }
           customer {
             id
             numberOfOrders
@@ -170,6 +189,7 @@ type OrdersSalesJson = {
           createdAt?: string;
           totalPriceSet?: MoneySet;
           currentTotalPriceSet?: MoneySet;
+          currentSubtotalPriceSet?: MoneySet;
           customer?: {
             id?: string;
             numberOfOrders?: number | string | null;
@@ -200,21 +220,46 @@ function parseMoneyAmount(set: MoneySet | undefined): number {
 }
 
 /**
- * Prefer net (after returns). Fully refunded orders have currentTotal = 0 — that
- * must win (do not treat 0 as "missing"). Fall back to gross only when
- * currentTotalPriceSet.shopMoney.amount is absent (matches OrderFact ingest).
+ * Shopify Total Sales for one order (`currentTotalPriceSet`).
+ * Fully refunded orders have currentTotal = 0 — that must win (do not treat 0 as
+ * "missing"). Fall back to gross only when currentTotal amount is absent.
  */
-export function orderNetAmount(node: {
+export function orderTotalSalesAmount(node: {
   totalPriceSet?: MoneySet;
   currentTotalPriceSet?: MoneySet;
 } | null | undefined): number {
   const gross = parseMoneyAmount(node?.totalPriceSet);
-  const netRaw = node?.currentTotalPriceSet?.shopMoney?.amount;
-  if (netRaw == null || netRaw === "") {
+  const raw = node?.currentTotalPriceSet?.shopMoney?.amount;
+  if (raw == null || raw === "") {
     return gross;
   }
-  const net = parseFloat(netRaw);
-  return Number.isFinite(net) ? net : gross;
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : gross;
+}
+
+/**
+ * Shopify Net Sales for one order (`currentSubtotalPriceSet`) — product subtotal
+ * after returns, excl. shipping/tax. Falls back to Total Sales when subtotal absent.
+ */
+export function orderNetSalesAmount(node: {
+  totalPriceSet?: MoneySet;
+  currentTotalPriceSet?: MoneySet;
+  currentSubtotalPriceSet?: MoneySet;
+} | null | undefined): number {
+  const raw = node?.currentSubtotalPriceSet?.shopMoney?.amount;
+  if (raw == null || raw === "") {
+    return orderTotalSalesAmount(node);
+  }
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : orderTotalSalesAmount(node);
+}
+
+/** @deprecated Prefer orderTotalSalesAmount — kept for OrderFact refund tests. */
+export function orderNetAmount(node: {
+  totalPriceSet?: MoneySet;
+  currentTotalPriceSet?: MoneySet;
+} | null | undefined): number {
+  return orderTotalSalesAmount(node);
 }
 
 /** Bucket an order `createdAt` ISO into a shop-local YYYY-MM-DD day key. */
@@ -230,7 +275,8 @@ function emptySales(source: SalesResult["source"] = "shopify"): SalesResult {
     grossSales: 0,
     grossSalesKnown: true,
     netSales: 0,
-    salesBasisUsed: "net",
+    netSalesKnown: true,
+    salesBasisUsed: "total",
     orderCount: 0,
     newCustomers: 0,
     returningCustomers: 0,
@@ -264,7 +310,7 @@ function accumulateCustomerMix(
       typeof lifetimeRaw === "number"
         ? lifetimeRaw
         : Number.parseInt(String(lifetimeRaw ?? "0"), 10) || 0;
-    const netAmount = orderNetAmount(edge.node);
+    const netAmount = orderTotalSalesAmount(edge.node);
     const prev = customers.get(customerId);
     if (prev) {
       prev.ordersInPeriod += 1;
@@ -338,8 +384,8 @@ export type FetchShopifySalesOptions = {
 
 /**
  * Sum Shopify order totals for a date range via Admin GraphQL.
- * Action numerator = net (`currentTotalPriceSet`); gross (`totalPriceSet`) is
- * Ads Manager–comparable secondary. Prefers one ORDERS_FULL crawl; falls back
+ * Default numerator = Total Sales (`currentTotalPriceSet`); Net Sales =
+ * `currentSubtotalPriceSet`; gross (`totalPriceSet`) is Ads Manager–comparable. Prefers one ORDERS_FULL crawl; falls back
  * to sales + customer dual crawl when read_customers is denied.
  *
  * HARD-STOP: desk nav must not call this for full multi-year / incomplete periods —
@@ -357,6 +403,7 @@ export async function fetchShopifySales(
   try {
     let cursor: string | null = null;
     let pages = 0;
+    let totalSales = 0;
     let netSales = 0;
     let grossSales = 0;
     let orderCount = 0;
@@ -388,8 +435,8 @@ export async function fetchShopifySales(
 
       for (const edge of orders.edges ?? []) {
         const gross = parseMoneyAmount(edge.node?.totalPriceSet);
-        // Prefer net (after returns); fall back to gross when currentTotal is missing.
-        netSales += orderNetAmount(edge.node);
+        totalSales += orderTotalSalesAmount(edge.node);
+        netSales += orderNetSalesAmount(edge.node);
         grossSales += gross;
         orderCount += 1;
       }
@@ -406,11 +453,12 @@ export async function fetchShopifySales(
 
     const mix = mixFromCustomerMap(customers, guestOrders);
     return {
-      totalSales: netSales,
+      totalSales,
       netSales,
+      netSalesKnown: true,
       grossSales,
       grossSalesKnown: true,
-      salesBasisUsed: "net",
+      salesBasisUsed: "total",
       orderCount,
       newCustomers: mix.newCustomers,
       returningCustomers: mix.returningCustomers,
@@ -434,6 +482,7 @@ export async function fetchShopifySales(
 
   let cursor: string | null = null;
   let pages = 0;
+  let totalSales = 0;
   let netSales = 0;
   let grossSales = 0;
   let orderCount = 0;
@@ -460,7 +509,8 @@ export async function fetchShopifySales(
 
     for (const edge of orders.edges ?? []) {
       const gross = parseMoneyAmount(edge.node?.totalPriceSet);
-      netSales += orderNetAmount(edge.node);
+      totalSales += orderTotalSalesAmount(edge.node);
+      netSales += orderNetSalesAmount(edge.node);
       grossSales += gross;
       orderCount += 1;
     }
@@ -477,11 +527,12 @@ export async function fetchShopifySales(
   // (desk today top-up never needs unique new/returning on paint).
   if (maxPages != null) {
     return {
-      totalSales: netSales,
+      totalSales,
       netSales,
+      netSalesKnown: true,
       grossSales,
       grossSalesKnown: true,
-      salesBasisUsed: "net",
+      salesBasisUsed: "total",
       orderCount,
       newCustomers: 0,
       returningCustomers: 0,
@@ -497,11 +548,12 @@ export async function fetchShopifySales(
   const customerStats = await fetchCustomerMix(admin, query);
 
   return {
-    totalSales: netSales,
+    totalSales,
     netSales,
+    netSalesKnown: true,
     grossSales,
     grossSalesKnown: true,
-    salesBasisUsed: "net",
+    salesBasisUsed: "total",
     orderCount,
     newCustomers: customerStats.newCustomers,
     returningCustomers: customerStats.returningCustomers,

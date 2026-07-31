@@ -219,13 +219,15 @@ const report = await runOvernightOrchestrator({
       );
     }
 
-    const mockAllowed = process.env.MCFLY_SPEND_OAUTH_MOCK === "1";
+    const mockAllowed =
+      process.env.MCFLY_SPEND_SYNC_MOCK === "1" ||
+      process.env.MCFLY_SPEND_OAUTH_MOCK === "1"; // legacy alias
     const allowMockFallback =
       mockAllowed || (!wantMetaLive && !wantGoogleLive);
 
     if (!metaLive && !googleLive && !allowMockFallback) {
       throw new Error(
-        "Overnight spend sync: no live Meta/Google path and MCFLY_SPEND_OAUTH_MOCK≠1. Set live flags+creds or enable mock.",
+        "Overnight spend sync: no live Meta/Google path and MCFLY_SPEND_SYNC_MOCK≠1. Set live flags+creds or enable mock.",
       );
     }
 

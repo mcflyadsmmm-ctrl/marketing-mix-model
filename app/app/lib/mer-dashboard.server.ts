@@ -54,6 +54,10 @@ import {
   getShopEntitlements,
   proRequiredLtvSummary,
 } from "./entitlements.server";
+import {
+  actionSalesForBasis,
+  parseSalesBasis,
+} from "./sales-basis";
 
 const CHANNEL_DISPLAY = SPEND_CHANNEL_LABELS;
 
@@ -131,8 +135,10 @@ export interface PeriodDeltas {
 
 export interface DashboardMetrics {
   period: DateRange;
-  /** Action Total ROAS sales numerator — always net. */
+  /** Action Total ROAS sales numerator (Total Sales or Net per salesBasis). */
   sales: number;
+  /** Shopify Total Sales (`currentTotalPriceSet`) — always available. */
+  totalSalesAmount: number;
   /** Gross order totals — Ads Manager–comparable secondary chip. */
   grossSales: number;
   /**
@@ -140,17 +146,28 @@ export interface DashboardMetrics {
    * comparability. Defaults true when sales omit the flag (live GraphQL).
    */
   grossSalesKnown: boolean;
-  /** Net sales alias (= sales / totalSales action basis). */
+  /** Shopify Net Sales (subtotal) — may equal total when unknown. */
   netSales: number;
+  /** False when Net Sales not persisted yet (legacy facts). */
+  netSalesKnown: boolean;
+  /** Desk preference that drove `sales` / `mer`. */
+  salesBasis: "total" | "net";
+  /** True when merchant asked for Net but facts lacked netSales — fell back to Total. */
+  netBasisUnavailable: boolean;
   salesSource: "shopify" | "mock";
   orderCount: number;
   newCustomers: number;
   returningCustomers: number;
   /**
-   * New-customer net sales for the period (aMER numerator).
+   * New-customer sales for the period (aMER numerator).
    * Additive from facts / live sales — not unique-customer CRM.
    */
   newCustomerNetSales: number;
+  /**
+   * Returning-customer sales for the period (additive from facts).
+   * With newCustomerNetSales, forms the new/returning sales split Shopify Admin buries.
+   */
+  returningCustomerNetSales: number;
   guestOrders: number;
   /** False when Shopify denied order.customer (needs read_customers + reinstall). */
   customerMetricsAvailable: boolean;
@@ -938,13 +955,17 @@ export async function buildDashboardMetrics(
     grossSales?: number;
     /** False when closed-day gross incomplete — omit Ads Manager claims. */
     grossSalesKnown?: boolean;
-    /** Net alias — optional; defaults to totalSales (action basis). */
+    /** Net Sales (subtotal) — optional; defaults to totalSales when absent. */
     netSales?: number;
+    /** False when Net Sales unknown (legacy facts). */
+    netSalesKnown?: boolean;
     orderCount: number;
     newCustomers?: number;
     returningCustomers?: number;
-    /** New-customer net sales — aMER numerator when present. */
+    /** New-customer sales — aMER numerator when present. */
     newCustomerNetSales?: number;
+    /** Returning-customer sales — additive from facts when present. */
+    returningCustomerNetSales?: number;
     guestOrders?: number;
     customerMetricsAvailable?: boolean;
     source: "shopify" | "mock";
@@ -955,11 +976,17 @@ export async function buildDashboardMetrics(
     priorRange?: DateRange;
     /** ISO timestamp when sales were pulled for this render. */
     salesPulledAt?: string | null;
+    /** Override Settings.salesBasis for this render (query toggle). */
+    salesBasis?: "total" | "net";
   },
 ): Promise<DashboardMetrics> {
   const shop = await ensureShop(shopDomain);
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = Boolean(settings.useSampleDesk);
+  const salesBasis = parseSalesBasis(
+    options?.salesBasis ?? settings.salesBasis,
+    "total",
+  );
   // SAMPLE economics are read-time overlays — seed must not mutate merchant settings.
   const effectiveMarginPct = useSampleDesk
     ? SAMPLE_DESK_MARGIN_PCT
@@ -969,6 +996,7 @@ export async function buildDashboardMetrics(
     : settings.targetMer;
   const entitlements = getShopEntitlements(shopDomain, {
     sampleDesk: useSampleDesk,
+    paidPro: shop.proBillingActive,
   });
   const spendOpts = useSampleDesk
     ? { sampleOnly: true as const }
@@ -1055,14 +1083,31 @@ export async function buildDashboardMetrics(
   });
 
   const totalSpend = sumSpend(spends);
-  const mer = computeMer(honestSales.totalSales, totalSpend);
+  const totalSalesAmount = honestSales.totalSales;
+  const netSalesAmount = honestSales.netSales ?? honestSales.totalSales;
+  const netSalesKnown = honestSales.netSalesKnown !== false;
+  const action = actionSalesForBasis(
+    {
+      totalSales: totalSalesAmount,
+      netSales: netSalesAmount,
+      netSalesKnown,
+    },
+    salesBasis,
+  );
+  const mer = computeMer(action.sales, totalSpend);
   const newCustomerNetSales = honestSales.newCustomerNetSales ?? 0;
+  const returningCustomerNetSales =
+    honestSales.returningCustomerNetSales ?? 0;
   const amer = calculateAmer(newCustomerNetSales, totalSpend);
   const mix = channelMix(spends);
-  /** Margin known = confirmed Settings save (or sample desk). Defaults alone do not unlock BE UI. */
-  const settingsSaved = marginIsConfirmed(settings) || useSampleDesk;
+  /**
+   * Margin is optional — Total ROAS unlocks without BE.
+   * Break-even only after an explicit margin confirm (or sample desk).
+   */
+  const settingsSaved = true;
   const breakEvenMerRaw = computeBreakEvenMer(effectiveMarginPct);
-  const breakEvenMer = settingsSaved ? breakEvenMerRaw : null;
+  const breakEvenMer =
+    marginIsConfirmed(settings) || useSampleDesk ? breakEvenMerRaw : null;
   const hasSpend = totalSpend > 0;
   const onboarding: RitualOnboarding = {
     settingsSaved,
@@ -1071,7 +1116,7 @@ export async function buildDashboardMetrics(
     showGuide: false,
   };
   const control = buildControlPace({
-    sales: honestSales.totalSales,
+    sales: action.sales,
     totalSpend,
     targetMer: effectiveTargetMer,
     period: range,
@@ -1087,7 +1132,7 @@ export async function buildDashboardMetrics(
       priorSales: options.priorSales.totalSales,
       priorSpend,
       priorMer,
-      salesPct: pctChange(honestSales.totalSales, options.priorSales.totalSales),
+      salesPct: pctChange(action.sales, options.priorSales.totalSales),
       spendPct: pctChange(totalSpend, priorSpend),
       merAbs:
         mer !== null && priorMer !== null
@@ -1138,7 +1183,7 @@ export async function buildDashboardMetrics(
     cashActionReady && breakEvenMer != null
       ? buildAllocationSuggestion(
           spends,
-          honestSales.totalSales,
+          action.sales,
           totalSpend,
           breakEvenMer,
         )
@@ -1165,7 +1210,7 @@ export async function buildDashboardMetrics(
       existing != null && Date.now() - existing.createdAt.getTime() < hourMs;
     const sameCore =
       existing != null &&
-      existing.sales === honestSales.totalSales &&
+      existing.sales === action.sales &&
       existing.spend === totalSpend &&
       existing.mer === mer;
     if (writtenRecently || sameCore) return;
@@ -1182,7 +1227,7 @@ export async function buildDashboardMetrics(
         shopId: shop.id,
         periodStart: range.start,
         periodEnd: range.end,
-        sales: honestSales.totalSales,
+        sales: action.sales,
         spend: totalSpend,
         mer,
         breakEvenMer: breakEvenMer ?? 0,
@@ -1191,7 +1236,7 @@ export async function buildDashboardMetrics(
         reconStatus: "desk",
       },
       update: {
-        sales: honestSales.totalSales,
+        sales: action.sales,
         spend: totalSpend,
         mer,
         breakEvenMer: breakEvenMer ?? 0,
@@ -1206,15 +1251,20 @@ export async function buildDashboardMetrics(
 
   return {
     period: range,
-    sales: honestSales.totalSales,
+    sales: action.sales,
+    totalSalesAmount,
     grossSales: honestSales.grossSales ?? honestSales.totalSales,
     grossSalesKnown: honestSales.grossSalesKnown !== false,
-    netSales: honestSales.netSales ?? honestSales.totalSales,
+    netSales: netSalesAmount,
+    netSalesKnown,
+    salesBasis: action.basisUsed,
+    netBasisUnavailable: action.netUnavailable,
     salesSource: honestSales.source,
     orderCount: honestSales.orderCount,
     newCustomers: honestSales.newCustomers ?? 0,
     returningCustomers: honestSales.returningCustomers ?? 0,
     newCustomerNetSales,
+    returningCustomerNetSales,
     guestOrders: honestSales.guestOrders ?? 0,
     customerMetricsAvailable: honestSales.customerMetricsAvailable ?? false,
     useSampleDesk,

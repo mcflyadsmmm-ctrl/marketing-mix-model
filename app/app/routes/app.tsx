@@ -14,6 +14,7 @@ import {
   getSamplePreviewAllowed,
 } from "../lib/sample-desk.server";
 import { DataModeBar } from "../components/DataModeBar";
+import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
 import deskStyles from "../styles/mcfly-desk.css?url";
 
@@ -39,8 +40,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const marginConfirmed = marginIsConfirmed(settings);
   const hasLiveSpend = liveSpendCount > 0;
-  /** First trusted Total ROAS inputs — unlock Goals/LTV in primary nav. */
-  const cashReady = marginConfirmed && hasLiveSpend;
 
   // eslint-disable-next-line no-undef
   return {
@@ -49,7 +48,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     samplePreviewAllowed,
     marginConfirmed,
     hasLiveSpend,
-    cashReady,
     shotMode,
   };
 };
@@ -61,23 +59,20 @@ export default function App() {
     samplePreviewAllowed,
     marginConfirmed,
     hasLiveSpend,
-    cashReady,
     shotMode,
   } = useLoaderData<typeof loader>();
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      {/* Ritual nav: Overview · Spend · Settings.
-          Goals / LTV deep-linkable after first margin + spend (uninstall guard). */}
+      {/* Always show desk nav — empty states / Pro gates live on pages.
+          Do not hide tabs when Real store (SAMPLE off); that felt broken. */}
       <s-app-nav>
         <s-link href="/app">Overview</s-link>
         <s-link href="/app/spend">Spend</s-link>
-        {cashReady || useSampleDesk ? (
-          <s-link href="/app/goals">Goals</s-link>
-        ) : null}
-        {cashReady || useSampleDesk ? (
-          <s-link href="/app/ltv">LTV</s-link>
-        ) : null}
+        <s-link href="/app/goals">Goals</s-link>
+        <s-link href="/app/allocation">{PRODUCT_NOUN.spendAllocation}</s-link>
+        <s-link href="/app/ltv">LTV / Acquisition</s-link>
+        <s-link href="/app/advanced">Advanced</s-link>
         <s-link href="/app/settings">Settings</s-link>
       </s-app-nav>
       {!shotMode ? (

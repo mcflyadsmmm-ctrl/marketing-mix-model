@@ -18,7 +18,7 @@
 | Bar | Definition |
 | --- | --- |
 | Submit-safe | Compliance + Polaris/CSB + cold reviewer script + listing honesty |
-| Habit | Cold path &lt;10 min → weekly Monday Close |
+| Habit | Cold path &lt;10 min → weekly Total ROAS desk |
 | Organic | Dual-pillar site indexed + AI citation signals + outreach |
 | Commercial | Free → ~$79 flat; Custom fixed-fee + retainer — not GMV tax |
 
@@ -41,7 +41,7 @@ Goal: approval odds; avoid Valley-of-Death reject loops.
 | W1-3 | UX reject pass: no red primary CTAs; no blocking upgrade modals; mobile Close/Spend | Agent + critic | [`ops/W1_UX_CSB_20260729.md`](./ops/W1_UX_CSB_20260729.md) |
 | W1-4 | GraphQL: `extensions.cost` + `THROTTLED` wait; sized `first`; Bulk for large history | Agent | `shopify-graphql-cost.server.ts` + sales retry · **done 2026-07-29** |
 | W1-5 | Webhooks: ACK &lt;5s; idempotent delivery; compliance stays fast | Agent | Orders + job queue pattern · spotcheck PASS |
-| W1-6 | Cold reviewer test script (margin → SAMPLE spend → desk → Close) | Agent draft · Human paste | [`ops/REVIEWER_TEST_SCRIPT.md`](./ops/REVIEWER_TEST_SCRIPT.md) · **done 2026-07-29** |
+| W1-6 | Cold reviewer test script (margin → CSV spend → desk → Allocation) | Agent draft · Human paste | [`ops/REVIEWER_TEST_SCRIPT.md`](./ops/REVIEWER_TEST_SCRIPT.md) · **relock 2026-07-31** (no Close) |
 | W1-7 | Listing shots + Distribution → Submit | **HUMAN_GATE** | Partner |
 
 **Exit:** compliance green · CSB/UX pass · GraphQL retry path · reviewer script ready · founder can Submit.
@@ -87,10 +87,10 @@ End: W1 id · evidence · next id · HUMAN_GATE.
 | ID | Work | Owner |
 | --- | --- | --- |
 | W3-1 | TTFV &lt;10 min; SAMPLE OFF unmistakable | Agent |
-| W3-2 | Close craft ≥4.7 ([`APPS_SCRIPT_CRAFT_SPEC.md`](./APPS_SCRIPT_CRAFT_SPEC.md)) | Agent + critic |
-| W3-3 | Meta/Google spend OAuth (amounts only) | Agent · **HUMAN** App Review |
+| W3-2 | Overview desk craft ≥4.7 ([`APPS_SCRIPT_CRAFT_SPEC.md`](./APPS_SCRIPT_CRAFT_SPEC.md)) | Agent + critic |
+| W3-3 | ~~Meta/Google spend OAuth~~ | **Retired** ([`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)) |
 | W3-4 | Pipe Automate polish ([`PIPE_AUTOMATION_WEDGE.md`](./PIPE_AUTOMATION_WEDGE.md)) | Agent |
-| W3-5 | Design-partner Monday Closes + WTP | **HUMAN** ([`DESIGN_PARTNER_SMOKE.md`](./DESIGN_PARTNER_SMOKE.md)) |
+| W3-5 | Design-partner desk smoke + WTP | **HUMAN** ([`DESIGN_PARTNER_SMOKE.md`](./DESIGN_PARTNER_SMOKE.md)) |
 
 ### Wave 3 fleet paste
 
@@ -136,7 +136,7 @@ Add/strengthen `.cursor/rules` (no 10k monologue; no auto-commits without ask):
 | GSC + CF AI Crawl Control + Markdown for Agents | W2-1 |
 | Save weekly Automation | W2-3 |
 | Outreach / social send | W2-4 |
-| Meta/Google App Review | W3-3 |
+| ~~Meta/Google App Review~~ | **Retired** with W3-3 |
 | Design-partner stores | W3-5 |
 | Billing announce | W4-1 |
 | Pages/Fly deploy | any — phrase required |
@@ -149,7 +149,7 @@ External research often paints Mcfly as **static one-time MMM vs TW/Northbeam/Re
 
 | Wrong story | Locked Mcfly |
 | --- | --- |
-| One-time MMM script, zero SaaS | **Pillar A:** Shopify Monday Close SaaS (Free → ~$79) |
+| One-time MMM script, zero SaaS | **Pillar A:** Shopify Total ROAS desk SaaS (Free → ~$39) |
 | Must add pixels / Apex / Sonar to compete | **Refuse** — till close coexists with suites |
 | Must become continuous Bayesian MMM SaaS | **Refuse** — not Robyn/Meridian theater |
 | Code ownership beats Robyn/Meridian | Open-source already commoditized that USP — **don’t compete there** |

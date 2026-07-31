@@ -2,7 +2,7 @@
 
 **Goal:** Prove D1+D2 ritual on hosted Fly (no `shopify app dev`).  
 **Host:** https://mcfly-analytics.fly.dev  
-**Partner:** https://dev.shopify.com/dashboard/227535001/apps/400772497409  
+**Partner:** https://dev.shopify.com/dashboard/227535001/apps/403721814017 (Public App Store app)  
 **Admin apps:** https://admin.shopify.com/store/devmcflyads/apps  
 
 ## Before you start

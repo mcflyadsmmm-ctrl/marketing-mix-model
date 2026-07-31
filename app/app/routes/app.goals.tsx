@@ -32,6 +32,8 @@ import {
 } from "../lib/sales-goals.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
+import { ProUpsellBlock } from "../components/ProUpsellBlock";
+import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 
@@ -198,7 +200,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     targetMer: settings.targetMer,
     priorYear,
     priorYearMonthly,
-    entitlements: getShopEntitlements(session.shop, { sampleDesk: useSampleDesk }),
+    entitlements: getShopEntitlements(session.shop, {
+      sampleDesk: useSampleDesk,
+      paidPro: shop.proBillingActive,
+    }),
   };
 };
 
@@ -211,6 +216,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: useSampleDesk,
+    paidPro: shop.proBillingActive,
   });
 
   if (intent === "save_target_mer") {
@@ -500,161 +506,84 @@ export default function GoalsPage() {
         className={[
           "mcfly-desk",
           "mcfly-desk--chrome",
+          "mcfly-goals",
           shotMode ? "mcfly-desk--shot" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
         ]
           .filter(Boolean)
           .join(" ")}
       >
-        <header className="mcfly-topbar mcfly-topbar--settings">
-          <div>
-            {!shotMode ? (
-              <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-                Set the plan once — Grow 10% YoY applies to all months.{" "}
-                {PRODUCT_NOUN.totalRoas} stays on Overview.
-              </p>
-            ) : null}
-          </div>
-          <div className="mcfly-goals-year" aria-label="Plan year">
-            <label className="mcfly-goals-year__label" htmlFor={`${formId}-year`}>
-              Year
-            </label>
-            <select
-              id={`${formId}-year`}
-              className="mcfly-goals-year__select"
-              value={year}
-              onChange={(e) => onYearChange(e.target.value)}
-            >
-              {yearOptions.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
-        </header>
-
-        {!shotMode && entitlements.showProTeaser ? (
-          <s-banner tone="info" heading="Pro · advanced Goals">
-            <s-paragraph>{entitlements.upsell.goals}</s-paragraph>
-            <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
-              <s-button href="/app/settings" variant="primary">
-                {entitlements.upsell.upgradeCta}
-              </s-button>
-              <s-button href="/app/demo" variant="secondary">
-                Try SAMPLE preview
-              </s-button>
+        <div className="mcfly-goals__rail">
+          <div className="mcfly-ctx mcfly-goals__ctx" aria-live="polite">
+            <div className="mcfly-ctx__main">
+              <span className="mcfly-ctx__brand">Goals</span>
+              <span className="mcfly-ctx__sep" aria-hidden="true">
+                ·
+              </span>
+              <span className="mcfly-ctx__asof">{tillLabel}</span>
+              {!shotMode ? (
+                <>
+                  <span className="mcfly-ctx__sep" aria-hidden="true">
+                    ·
+                  </span>
+                  <span className="mcfly-ctx__asof">
+                    {PRODUCT_NOUN.totalRoasGoal} {formatMer(targetMer)}×
+                  </span>
+                </>
+              ) : null}
             </div>
-          </s-banner>
-        ) : null}
-
-        <div className="mcfly-ctx" aria-live="polite">
-          <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">Goals</span>
-            <span className="mcfly-ctx__sep" aria-hidden="true">
-              ·
-            </span>
-            <span className="mcfly-ctx__asof">{tillLabel}</span>
+            <div className="mcfly-ctx__chips">
+              {useSampleDesk && !shotMode ? (
+                <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+                  {PRODUCT_NOUN.samplePreview}
+                </span>
+              ) : null}
+              {!goalsEnabled ? (
+                <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+                  Goals hidden · YoY only
+                </span>
+              ) : (
+                <span className={`mcfly-ctx-chip mcfly-ctx-chip--${ytdTone}`}>
+                  YTD{" "}
+                  {board.ytd.pct == null ? "—" : `${board.ytd.pct.toFixed(0)}%`} of
+                  goal
+                </span>
+              )}
+              <div className="mcfly-goals-year" aria-label="Plan year">
+                <label
+                  className="mcfly-goals-year__label"
+                  htmlFor={`${formId}-year`}
+                >
+                  Year
+                </label>
+                <select
+                  id={`${formId}-year`}
+                  className="mcfly-goals-year__select"
+                  value={year}
+                  onChange={(e) => onYearChange(e.target.value)}
+                >
+                  {yearOptions.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-          <div className="mcfly-ctx__chips">
-            {useSampleDesk && !shotMode ? (
-              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-                {PRODUCT_NOUN.samplePreview}
-              </span>
-            ) : null}
-            {!goalsEnabled ? (
-              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-                Goals hidden · YoY only
-              </span>
-            ) : (
-              <span className={`mcfly-ctx-chip mcfly-ctx-chip--${ytdTone}`}>
-                YTD {board.ytd.pct == null ? "—" : `${board.ytd.pct.toFixed(0)}%`} of
-                goal
-              </span>
-            )}
-          </div>
+          {!shotMode ? (
+            <p className="mcfly-goals__lede">
+              Set the plan once — Grow YoY fills all months.{" "}
+              {PRODUCT_NOUN.totalRoas} stays on Overview ·{" "}
+              <s-link href="/app/settings">edit target</s-link>
+            </p>
+          ) : null}
         </div>
 
-        <SalesGoalGauges periods={periods} />
-
-        {!shotMode ? (
-          <section
-            className="mcfly-panel mcfly-goals-declare"
-            aria-label="Declare sales goals"
-          >
-            <div className="mcfly-panel__head">
-              <h2>
-                {noGoalsYet
-                  ? "Declare goals in one click"
-                  : "Reset all months from YoY"}
-              </h2>
-              <p className="mcfly-panel__muted">
-                Grow last year’s sales by a % — applies to all 12 months.
-                {priorYearSales > 0
-                  ? ` ${priorYear} sales ${formatCurrency(priorYearSales)} → +10% plan ${formatCurrency(previewTenPct)} (${monthsWithPrior} months).`
-                  : ` Need ${priorYear} sales on file (facts or SAMPLE) to fill months.`}
-              </p>
-            </div>
-
-            {entitlements.canUseAdvancedGoals ? (
-              <>
-                <Form method="post" className="mcfly-goals-declare__primary">
-                  <input type="hidden" name="year" value={year} />
-                  <input type="hidden" name="intent" value="apply_yoy_grow" />
-                  <input type="hidden" name="yoyPct" value="10" />
-                  <s-button
-                    type="submit"
-                    variant="primary"
-                    {...(savingIntent === "apply_yoy_grow" ||
-                    savingIntent === "apply_yoy_10"
-                      ? { loading: true }
-                      : {})}
-                  >
-                    Grow 10% YoY · apply to all
-                  </s-button>
-                </Form>
-                <div
-                  className="mcfly-goals-declare__presets"
-                  aria-label="Other growth rates"
-                >
-                  {YOY_GROWTH_PRESETS.filter((p) => p !== 10).map((pct) => (
-                    <Form method="post" key={pct}>
-                      <input type="hidden" name="year" value={year} />
-                      <input type="hidden" name="intent" value="apply_yoy_grow" />
-                      <input type="hidden" name="yoyPct" value={pct} />
-                      <button
-                        type="submit"
-                        className="mcfly-goals-yoy-btn"
-                        disabled={isSaving}
-                      >
-                        +{pct}%
-                      </button>
-                    </Form>
-                  ))}
-                </div>
-                <p className="mcfly-goals-yoy-apply__hint">
-                  Each month = {priorYear} sales × (1 + %). Zero prior months stay
-                  $0. Fine-tune any month below.
-                </p>
-              </>
-            ) : (
-              <div className="mcfly-decision__actions">
-                <s-button href="/app/settings" variant="primary">
-                  {entitlements.upsell.upgradeCta}
-                </s-button>
-                <s-button href="/app/demo" variant="secondary">
-                  Try SAMPLE preview
-                </s-button>
-              </div>
-            )}
-          </section>
-        ) : null}
-
-        {!shotMode ? (
-          <p className="mcfly-sales-gauges__mer-link">
-            {PRODUCT_NOUN.totalRoasGoal} {formatMer(targetMer)}× · edit in{" "}
-            <s-link href="/app/settings">Settings</s-link>
-          </p>
+        {!shotMode && entitlements.showProTeaser ? (
+          <s-banner tone="info" heading={`${PRO_UPSELL.short} · advanced Goals`}>
+            <ProUpsellBlock lead={PRO_UPSELL.goals} />
+          </s-banner>
         ) : null}
 
         {useSampleDesk && !shotMode ? (
@@ -676,192 +605,260 @@ export default function GoalsPage() {
           </s-banner>
         ) : null}
 
-        {!shotMode ? (
-        <details className="mcfly-details mcfly-goals-plan-details">
-          <summary>Fine-tune months (optional)</summary>
+        <div className="mcfly-goals__main">
+          <SalesGoalGauges
+            periods={periods}
+            heading="MTD · QTD · YTD"
+            muted="Sales vs plan · calendar tick = period elapsed"
+          />
 
-        <div className="mcfly-goals-toggle-bar" aria-label="Show sales goals">
-          <span className="mcfly-goals-toggle-bar__label">
-            Show 12-month sales plan
-          </span>
-          <div className="mcfly-goals-toggle-bar__actions">
-            <Form method="post">
-              <input type="hidden" name="year" value={year} />
-              <input type="hidden" name="intent" value="set_goals_enabled" />
-              <input type="hidden" name="goalsEnabled" value="true" />
-              <button
-                type="submit"
-                className={
-                  goalsEnabled
-                    ? "mcfly-goals-toggle mcfly-goals-toggle--on"
-                    : "mcfly-goals-toggle"
-                }
-                disabled={goalsEnabled || isSaving}
-                aria-pressed={goalsEnabled}
-              >
-                On
-              </button>
-            </Form>
-            <Form method="post">
-              <input type="hidden" name="year" value={year} />
-              <input type="hidden" name="intent" value="set_goals_enabled" />
-              <input type="hidden" name="goalsEnabled" value="false" />
-              <button
-                type="submit"
-                className={
-                  !goalsEnabled
-                    ? "mcfly-goals-toggle mcfly-goals-toggle--on"
-                    : "mcfly-goals-toggle"
-                }
-                disabled={!goalsEnabled || isSaving}
-                aria-pressed={!goalsEnabled}
-              >
-                Off
-              </button>
-            </Form>
-          </div>
-        </div>
-
-        {goalsEnabled ? (
-          <>
+          {!shotMode ? (
             <section
-              className="mcfly-panel mcfly-goals-panel"
-              aria-label="Monthly plan"
+              className="mcfly-panel mcfly-goals-declare mcfly-goals-declare--compact"
+              aria-label="Declare sales goals"
             >
-              <div className="mcfly-panel__head">
-                <h2>12-month sales plan</h2>
-                <p>
-                  Edit any month. Dirty fields open the Admin save bar — Discard
-                  restores the last saved plan.
+              <div className="mcfly-panel__head mcfly-panel__head--tight">
+                <h2>
+                  {noGoalsYet ? "One-click plan" : "Reset from YoY"}
+                </h2>
+                <p className="mcfly-panel__muted">
+                  {priorYearSales > 0
+                    ? `${priorYear} ${formatCurrency(priorYearSales)} → +10% ${formatCurrency(previewTenPct)} · ${monthsWithPrior} mo`
+                    : `Need ${priorYear} sales on file to fill months.`}
                 </p>
               </div>
 
-              <Form
-                method="post"
-                className="mcfly-goals-form"
-                key={goalsKey}
-                data-save-bar
-                data-discard-confirmation
-                onReset={handleDiscard}
-                aria-busy={
-                  savingIntent === "save_goals" ||
-                  savingIntent === "apply_yoy_10" ||
-                  savingIntent === "apply_yoy_grow" ||
-                  undefined
-                }
+              {entitlements.canUseAdvancedGoals ? (
+                <div className="mcfly-goals-declare__row">
+                  <Form method="post" className="mcfly-goals-declare__primary">
+                    <input type="hidden" name="year" value={year} />
+                    <input type="hidden" name="intent" value="apply_yoy_grow" />
+                    <input type="hidden" name="yoyPct" value="10" />
+                    <s-button
+                      type="submit"
+                      variant="primary"
+                      {...(savingIntent === "apply_yoy_grow" ||
+                      savingIntent === "apply_yoy_10"
+                        ? { loading: true }
+                        : {})}
+                    >
+                      Grow 10% YoY
+                    </s-button>
+                  </Form>
+                  <div
+                    className="mcfly-goals-declare__presets"
+                    aria-label="Other growth rates"
+                  >
+                    {YOY_GROWTH_PRESETS.filter((p) => p !== 10).map((pct) => (
+                      <Form method="post" key={pct}>
+                        <input type="hidden" name="year" value={year} />
+                        <input
+                          type="hidden"
+                          name="intent"
+                          value="apply_yoy_grow"
+                        />
+                        <input type="hidden" name="yoyPct" value={pct} />
+                        <button
+                          type="submit"
+                          className="mcfly-goals-yoy-btn"
+                          disabled={isSaving}
+                        >
+                          +{pct}%
+                        </button>
+                      </Form>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="mcfly-decision__actions">
+                  <ProUpgradeButton />
+                  <s-button href="/app/demo" variant="secondary">
+                    Try SAMPLE preview
+                  </s-button>
+                </div>
+              )}
+            </section>
+          ) : null}
+        </div>
+
+        {!shotMode ? (
+          <details open className="mcfly-details mcfly-goals-plan-details">
+            <summary>Monthly board · fine-tune</summary>
+
+            <div className="mcfly-goals-toggle-bar" aria-label="Show sales goals">
+              <span className="mcfly-goals-toggle-bar__label">
+                Show 12-month sales plan
+              </span>
+              <div className="mcfly-goals-toggle-bar__actions">
+                <Form method="post">
+                  <input type="hidden" name="year" value={year} />
+                  <input type="hidden" name="intent" value="set_goals_enabled" />
+                  <input type="hidden" name="goalsEnabled" value="true" />
+                  <button
+                    type="submit"
+                    className={
+                      goalsEnabled
+                        ? "mcfly-goals-toggle mcfly-goals-toggle--on"
+                        : "mcfly-goals-toggle"
+                    }
+                    disabled={goalsEnabled || isSaving}
+                    aria-pressed={goalsEnabled}
+                  >
+                    On
+                  </button>
+                </Form>
+                <Form method="post">
+                  <input type="hidden" name="year" value={year} />
+                  <input type="hidden" name="intent" value="set_goals_enabled" />
+                  <input type="hidden" name="goalsEnabled" value="false" />
+                  <button
+                    type="submit"
+                    className={
+                      !goalsEnabled
+                        ? "mcfly-goals-toggle mcfly-goals-toggle--on"
+                        : "mcfly-goals-toggle"
+                    }
+                    disabled={!goalsEnabled || isSaving}
+                    aria-pressed={!goalsEnabled}
+                  >
+                    Off
+                  </button>
+                </Form>
+              </div>
+            </div>
+
+            {goalsEnabled ? (
+              <>
+                {forecast && forecast.monthGoal > 0 ? (
+                  <section
+                    className="mcfly-goals-forecast mcfly-goals-forecast--inline"
+                    aria-label="Current month forecast"
+                  >
+                    <p className="mcfly-goals-forecast__takeaway">
+                      <span className="mcfly-goals-forecast__kicker">
+                        {forecast.monthLong} close
+                      </span>
+                      {" · "}
+                      Projected {formatCurrency(forecast.projSales)} vs{" "}
+                      {formatCurrency(forecast.monthGoal)}
+                      {" · "}
+                      <span
+                        className={`mcfly-goals-pace mcfly-goals-pace--${forecast.pace.tone}`}
+                      >
+                        {forecast.pace.label}
+                      </span>
+                    </p>
+                  </section>
+                ) : null}
+
+                <section
+                  className="mcfly-panel mcfly-goals-panel mcfly-goals-panel--dense"
+                  aria-label="Monthly plan"
+                >
+                  <Form
+                    method="post"
+                    className="mcfly-goals-form"
+                    key={goalsKey}
+                    data-save-bar
+                    data-discard-confirmation
+                    onReset={handleDiscard}
+                    aria-busy={
+                      savingIntent === "save_goals" ||
+                      savingIntent === "apply_yoy_10" ||
+                      savingIntent === "apply_yoy_grow" ||
+                      undefined
+                    }
+                  >
+                    <input type="hidden" name="year" value={year} />
+                    <input type="hidden" name="intent" value="save_goals" />
+                    <div className="mcfly-goals-table-wrap">
+                      <table className="mcfly-goals-table mcfly-goals-table--sales">
+                        <thead>
+                          <tr>
+                            <th scope="col">Month</th>
+                            <th scope="col">Goal</th>
+                            <th scope="col">Actual</th>
+                            <th scope="col">Prior</th>
+                            <th scope="col">YoY</th>
+                            <th scope="col">Pace</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {board.rows.map((row) => (
+                            <GoalRow
+                              key={row.month}
+                              row={row}
+                              priorActual={priorYearMonthly[row.month - 1] ?? 0}
+                              inputId={`${formId}-g${row.month}`}
+                              defaultValue={formatGoalInput(row.salesGoal)}
+                              showGoalInput
+                            />
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="mcfly-goals-form__hint">
+                      Dirty fields open the Admin save bar.{" "}
+                      <s-link href="/app">{PRODUCT_NOUN.deskTitle}</s-link>
+                    </p>
+                  </Form>
+                </section>
+              </>
+            ) : (
+              <section
+                className="mcfly-panel mcfly-goals-panel mcfly-goals-panel--dense"
+                aria-label="Year over year board"
               >
-                <input type="hidden" name="year" value={year} />
-                <input type="hidden" name="intent" value="save_goals" />
+                <div className="mcfly-panel__head mcfly-panel__head--tight">
+                  <h2>YoY sales</h2>
+                  <p className="mcfly-panel__muted">
+                    Actual vs {priorYear}. Turn plan On to set monthly targets.
+                  </p>
+                </div>
                 <div className="mcfly-goals-table-wrap">
                   <table className="mcfly-goals-table mcfly-goals-table--sales">
                     <thead>
                       <tr>
                         <th scope="col">Month</th>
-                        <th scope="col">Goal</th>
                         <th scope="col">Actual</th>
                         <th scope="col">Prior</th>
                         <th scope="col">YoY</th>
-                        <th scope="col">Pace</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {board.rows.map((row) => (
-                        <GoalRow
-                          key={row.month}
-                          row={row}
-                          priorActual={priorYearMonthly[row.month - 1] ?? 0}
-                          inputId={`${formId}-g${row.month}`}
-                          defaultValue={formatGoalInput(row.salesGoal)}
-                          showGoalInput
-                        />
-                      ))}
+                      {board.rows.map((row) => {
+                        const prior = priorYearMonthly[row.month - 1] ?? 0;
+                        const pct = yoyPct(row.actual, prior);
+                        const rowClass = [
+                          "mcfly-goals-table__row",
+                          row.isCurrent ? "mcfly-goals-table__row--current" : "",
+                          row.isFuture ? "mcfly-goals-table__row--future" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ");
+                        return (
+                          <tr key={row.month} className={rowClass}>
+                            <th scope="row">
+                              {row.monthShort}
+                              {row.isCurrent ? (
+                                <span className="mcfly-goals-table__now">
+                                  {" "}
+                                  MTD
+                                </span>
+                              ) : null}
+                            </th>
+                            <td>{formatCurrency(row.actual)}</td>
+                            <td>{formatCurrency(prior)}</td>
+                            <td>{formatYoyPct(pct)}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
-
-                <div className="mcfly-goals-form__actions">
-                  <s-link href="/app">{PRODUCT_NOUN.deskTitle}</s-link>
-                </div>
-              </Form>
-            </section>
-
-            {forecast && forecast.monthGoal > 0 ? (
-              <section
-                className="mcfly-goals-forecast"
-                aria-label="Current month forecast"
-              >
-                <p className="mcfly-goals-forecast__kicker">
-                  {forecast.monthLong} close · pace from MTD average
-                </p>
-                <p className="mcfly-goals-forecast__takeaway">
-                  Projected {formatCurrency(forecast.projSales)}
-                  {` vs ${formatCurrency(forecast.monthGoal)} goal`}
-                  {" · "}
-                  <span
-                    className={`mcfly-goals-pace mcfly-goals-pace--${forecast.pace.tone}`}
-                  >
-                    {forecast.pace.label}
-                  </span>
-                </p>
               </section>
-            ) : null}
-          </>
-        ) : (
-          <section
-            className="mcfly-panel mcfly-goals-panel"
-            aria-label="Year over year board"
-          >
-            <div className="mcfly-panel__head">
-              <h2>YoY sales board</h2>
-              <p>
-                Actual sales vs {priorYear}. Turn on Show 12-month sales plan to
-                set monthly targets.
-              </p>
-            </div>
-            <div className="mcfly-goals-table-wrap">
-              <table className="mcfly-goals-table mcfly-goals-table--sales">
-                <thead>
-                  <tr>
-                    <th scope="col">Month</th>
-                    <th scope="col">Actual</th>
-                    <th scope="col">Prior</th>
-                    <th scope="col">YoY</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {board.rows.map((row) => {
-                    const prior = priorYearMonthly[row.month - 1] ?? 0;
-                    const pct = yoyPct(row.actual, prior);
-                    const rowClass = [
-                      "mcfly-goals-table__row",
-                      row.isCurrent ? "mcfly-goals-table__row--current" : "",
-                      row.isFuture ? "mcfly-goals-table__row--future" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ");
-                    return (
-                      <tr key={row.month} className={rowClass}>
-                        <th scope="row">
-                          {row.monthShort}
-                          {row.isCurrent ? (
-                            <span className="mcfly-goals-table__now"> MTD</span>
-                          ) : null}
-                        </th>
-                        <td>{formatCurrency(row.actual)}</td>
-                        <td>{formatCurrency(prior)}</td>
-                        <td>{formatYoyPct(pct)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="mcfly-goals-form__actions">
-              <s-link href="/app">{PRODUCT_NOUN.deskTitle}</s-link>
-            </div>
-          </section>
-        )}
-        </details>
+            )}
+          </details>
         ) : null}
       </div>
     </s-page>
@@ -881,10 +878,18 @@ function GoalRow({
   defaultValue: string;
   showGoalInput: boolean;
 }) {
+  const hasGoal = row.salesGoal > 0;
+  const barPct =
+    hasGoal && row.pct != null && Number.isFinite(row.pct)
+      ? Math.min(100, Math.max(0, row.pct))
+      : null;
   const rowClass = [
     "mcfly-goals-table__row",
     row.isCurrent ? "mcfly-goals-table__row--current" : "",
     row.isFuture ? "mcfly-goals-table__row--future" : "",
+    hasGoal && !row.isFuture
+      ? `mcfly-goals-table__row--${row.pace.tone}`
+      : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -896,6 +901,21 @@ function GoalRow({
         {row.monthShort}
         {row.isCurrent ? (
           <span className="mcfly-goals-table__now"> MTD</span>
+        ) : null}
+        {barPct != null && !row.isFuture ? (
+          <div
+            className="mcfly-goals-month-bar"
+            role="progressbar"
+            aria-valuenow={Math.round(barPct)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${row.monthLong} ${Math.round(barPct)}% of goal`}
+          >
+            <div
+              className={`mcfly-goals-month-bar__fill mcfly-goals-month-bar__fill--${row.pace.tone}`}
+              style={{ width: `${barPct}%` }}
+            />
+          </div>
         ) : null}
       </th>
       {showGoalInput ? (

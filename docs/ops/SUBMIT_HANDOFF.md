@@ -1,6 +1,7 @@
 # Submit handoff — founder one-pager
 
-**SoT runbook:** [`../SUBMIT_NOW.md`](../SUBMIT_NOW.md) (follow in order)  
+**SoT app:** [Mcfly Analytics Public](https://dev.shopify.com/dashboard/227535001/apps/403721814017) — not Custom `400772497409`  
+**SoT runbook:** [`../SUBMIT_NOW.md`](../SUBMIT_NOW.md) (follow in order) · cutover: [`FOUNDER_DO_NOW.md`](./FOUNDER_DO_NOW.md)  
 **Reviewer paste:** [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md) — paste the **full file** into Partner testing instructions  
 **Listing copy:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)
 
@@ -33,7 +34,7 @@
 
 Captions: [`../listing-assets/shots/CAPTIONS.md`](../listing-assets/shots/CAPTIONS.md)
 
-**Story for shots (optional recapture):** Home Till Truth strip (net vs gross ÷ spend + BE + headroom) · Close Till Truth + memo · Spend completeness meter.
+**Story for shots (optional recapture):** Home Total ROAS vs BE · Explorer · Spend completeness · Free vs Pro $39.
 
 ---
 

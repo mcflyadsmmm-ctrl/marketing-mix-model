@@ -98,7 +98,7 @@ describe("isSalesFactsIncompleteForApi", () => {
         periodExceedsFactWindow: false,
       }),
     ).toBe(false);
-    expect(isSalesFactsIncompleteForApi(null)).toBe(false);
+    expect(isSalesFactsIncompleteForApi(null)).toBe(true);
   });
 });
 

@@ -39,6 +39,25 @@ describe("resolvePeriod with shop IANA", () => {
     expect(range.start.getDate()).toBe(1);
     expect(range.label).toBe("Month to date");
   });
+
+  it("LM is the full previous shop-local calendar month", () => {
+    const now = new Date("2026-07-15T18:00:00.000Z");
+    const range = resolvePeriod("lm", now, "America/Denver");
+    expect(shopLocalDayKey(range.start, "America/Denver")).toBe("2026-06-01");
+    expect(shopLocalDayKey(range.end, "America/Denver")).toBe("2026-06-30");
+    expect(range.label).toBe("Last month");
+  });
+
+  it("LM server-local is previous calendar month", () => {
+    const now = new Date(2026, 6, 15, 12, 0, 0); // local Jul 15
+    const range = resolvePeriod("lm", now);
+    expect(range.start.getFullYear()).toBe(2026);
+    expect(range.start.getMonth()).toBe(5);
+    expect(range.start.getDate()).toBe(1);
+    expect(range.end.getMonth()).toBe(5);
+    expect(range.end.getDate()).toBe(30);
+    expect(range.label).toBe("Last month");
+  });
 });
 
 describe("formatPeriodQuery", () => {
@@ -63,6 +82,14 @@ describe("resolvePriorPeriod with shop IANA", () => {
     const prior = resolvePriorPeriod("mtd", now, "America/Denver");
     expect(shopLocalDayKey(prior.start, "America/Denver")).toBe("2026-06-01");
     expect(shopLocalDayKey(prior.end, "America/Denver")).toBe("2026-06-15");
+  });
+
+  it("prior LM is the month before last", () => {
+    const now = new Date("2026-07-15T18:00:00.000Z");
+    const prior = resolvePriorPeriod("lm", now, "America/Denver");
+    expect(shopLocalDayKey(prior.start, "America/Denver")).toBe("2026-05-01");
+    expect(shopLocalDayKey(prior.end, "America/Denver")).toBe("2026-05-31");
+    expect(prior.label).toBe("Prior last month");
   });
 
   it("near UTC midnight, Denver QTD stays on prior shop-local month", () => {

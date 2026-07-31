@@ -1,6 +1,11 @@
 /**
  * Deterministic 3-year sample till + matching multi-channel spend.
  * Clearly labeled SAMPLE — never presented as live Shopify.
+ *
+ * Invariants (listing / Demo must look impressive):
+ * - Every day: newCustomers ≥ floor, never 0
+ * - newCustomerNetSales > 0 whenever sales > 0 (AMER / LTV page not blank)
+ * - Scale matches strong DTC desk (~$5–8k/day, Total ROAS ~4.4×)
  */
 
 import type { SpendChannel } from "@prisma/client";
@@ -11,8 +16,13 @@ export interface SampleDayRow {
   orderCount: number;
   newCustomers: number;
   returningCustomers: number;
+  /** Net sales attributed to first-time buyers that day (shop dollars). */
+  newCustomerNetSales: number;
   spendByChannel: Record<SpendChannel, number>;
 }
+
+/** Minimum new buyers per SAMPLE day — never show 0s on the desk. */
+export const SAMPLE_MIN_NEW_CUSTOMERS = 14;
 
 function mulberry32(seed: number) {
   return function rng() {
@@ -81,7 +91,8 @@ export function buildThreeYearSampleDesk(options?: {
   const now = options?.now ?? new Date();
   const years = options?.years ?? 3;
   const targetMer = options?.targetMer ?? 4.4;
-  const rng = mulberry32(options?.seed ?? 0x4d43464d); // bump seed → new impressive series
+  // Bumped seed (…4e) so re-seed replaces the older weaker series.
+  const rng = mulberry32(options?.seed ?? 0x4d43464e);
 
   const end = startOfUtcDay(now);
   const start = addUtcDays(end, -Math.round(365.25 * years) + 1);
@@ -97,20 +108,30 @@ export function buildThreeYearSampleDesk(options?: {
       month === 10 || month === 11
         ? 1.55 // Nov–Dec peak
         : month === 0
-          ? 0.82
+          ? 0.88 // soft Jan, not a ghost month
           : month >= 5 && month <= 7
             ? 1.18
             : 1;
-    const weekend = dow === 0 || dow === 6 ? 0.88 : 1;
-    const noise = 0.92 + rng() * 0.2;
-    const baseSales = 5200 * yearFactor * season * weekend * noise;
+    const weekend = dow === 0 || dow === 6 ? 0.9 : 1;
+    const noise = 0.94 + rng() * 0.16;
+    const baseSales = 5800 * yearFactor * season * weekend * noise;
     const sales = Math.round(baseSales * 100) / 100;
 
-    const aov = 92 + rng() * 48;
-    const orderCount = Math.max(1, Math.round(sales / aov));
-    const newShare = 0.3 + rng() * 0.16;
-    const newCustomers = Math.max(0, Math.round(orderCount * newShare));
+    const aov = 98 + rng() * 42; // ~$98–140
+    const orderCount = Math.max(
+      SAMPLE_MIN_NEW_CUSTOMERS + 8,
+      Math.round(sales / aov),
+    );
+    // Healthy acquisition mix — floor so daily new never rounds to 0.
+    const newShare = 0.34 + rng() * 0.12;
+    const newCustomers = Math.max(
+      SAMPLE_MIN_NEW_CUSTOMERS,
+      Math.round(orderCount * newShare),
+    );
     const returningCustomers = Math.max(0, orderCount - newCustomers);
+    // New-buyer dollars ≈ share of till (AMER / LTV page never $0).
+    const newCustomerNetSales =
+      Math.round(sales * (newCustomers / orderCount) * 100) / 100;
 
     // Bias spend slightly under target → MER often lands ~4.2–4.7.
     const totalSpend =
@@ -138,6 +159,7 @@ export function buildThreeYearSampleDesk(options?: {
       orderCount,
       newCustomers,
       returningCustomers,
+      newCustomerNetSales,
       spendByChannel,
     });
   }

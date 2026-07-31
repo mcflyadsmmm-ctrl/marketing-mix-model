@@ -67,7 +67,19 @@ describe("summarizeTillLtvFromCohorts", () => {
     expect(summary.avgRevenueD90).toBeCloseTo(255, 5);
     expect(summary.avgRevenueD365).toBeCloseTo(545, 5);
     expect(summary.cashCac).toBeCloseTo(80, 5); // 36000/450
+    expect(summary.newBuyers).toBe(450);
     expect(summary.ltvCacRatio).toBeCloseTo(255 / 80, 5);
+  });
+
+  it("exposes newBuyers as the cashCac denominator for UI (not facts newCustomers)", () => {
+    const summary = summarizeTillLtvFromCohorts([], {
+      totalSpend: 1_000,
+      newCustomers: 25,
+      periodLabel: "W",
+      useSampleDesk: true,
+    });
+    expect(summary.newBuyers).toBe(25);
+    expect(summary.cashCac).toBeCloseTo(40, 5);
   });
 });
 

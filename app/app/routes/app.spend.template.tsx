@@ -14,7 +14,7 @@ import {
 } from "../lib/spend-csv";
 import {
   FREE_CHANNELS,
-  getShopEntitlements,
+  resolveShopEntitlements,
 } from "../lib/entitlements.server";
 import type { SpendChannel } from "@mcfly/mer-engine";
 
@@ -29,7 +29,7 @@ import type { SpendChannel } from "@mcfly/mer-engine";
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
-  const entitlements = getShopEntitlements(session.shop);
+  const entitlements = await resolveShopEntitlements(session.shop);
   const url = new URL(request.url);
   const datesParam = url.searchParams.get("dates");
   const platformsParam = url.searchParams.get("platforms");

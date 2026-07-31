@@ -1,14 +1,16 @@
-# Minimal clicks — App Store on NEW public app
+# Minimal clicks — App Store on Public app (SoT)
 
-**You only click. Agent already created + configured the public app.**
+**You only click.** Repo SoT is **Mcfly Analytics Public**. Custom app is archived (no Billing).  
+Live cutover checklist: [`ops/FOUNDER_DO_NOW.md`](./ops/FOUNDER_DO_NOW.md)
 
-| | Old (Custom — keep for testing) | **NEW (App Store path)** |
+| | Legacy Custom (do not Submit) | **SoT (App Store + Billing)** |
 | --- | --- | --- |
-| Name | Mcfly Analytics | **Mcfly Analytics Public** |
+| Name | Mcfly Analytics | **Mcfly Analytics Public** (rename in Partner if you want) |
 | Client ID | `88c56d21…` | **`bbaee078a5ab871aea1cc99a9e01cabd`** |
 | Dashboard | …/apps/400772497409 | **https://dev.shopify.com/dashboard/227535001/apps/403721814017** |
+| Toml | `shopify.app.custom.toml` | **`shopify.app.toml`** |
 
-Agent done: Partner app created · Fly URLs deployed · scopes `read_orders,read_customers` (PCD webhooks + `read_all_orders` after you approve PCD).
+Agent done: toml pointed at Public · docs updated. **Still needs:** Public Client secret on Fly + reinstall.
 
 ---
 

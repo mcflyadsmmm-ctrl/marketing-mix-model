@@ -17,7 +17,8 @@ Refuse: pixels / MTA / “true ROAS” / Triple Whale clones.
 
 ### 0. Open Partner app (once)
 
-1. Go to: https://dev.shopify.com/dashboard/227535001/apps/400772497409  
+1. Go to: https://dev.shopify.com/dashboard/227535001/apps/403721814017  
+   (**Mcfly Analytics Public** — not the Custom app `400772497409`)  
 2. Sign in as the Partner owner if asked  
 
 ---

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Import &amp; export finance trusts — MDS Made Easy (draft)</title>
+  <meta name="description" content="Period alignment, CSV spend shapes, QA before AI. Draft course." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="canonical" href="https://mcflyads.com/mds-made-easy/import-export" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260731mds" />
+  <link rel="stylesheet" href="/assets/mds-course.css?v=1" />
+</head>
+<body class="mds-course">
+  <a class="skip" href="#mds-content">Skip to content</a>
+  <div data-mds-shell id="mds-content">
+    <p class="mds-kicker">Module 03 · Marketing Data Science Made Easy</p>
+    <h1>Import &amp; export finance trusts</h1>
+    <p class="mds-lede">Correct inputs beat clever models. This module is the unglamorous core of the course.</p>
+    <div class="mds-answer">
+      <p><strong>Rule.</strong> Sales window = spend window. Currency consistent. No double-counted channels. Then — and only then — compute or ask an AI.</p>
+    </div>
+
+    <h2>Sales export (Shopify)</h2>
+    <ul>
+      <li>Pick Total Sales or Net Sales and label it on the file.</li>
+      <li>Export or API-sum for the exact start/end dates you will use for spend.</li>
+      <li>Refunds/returns: know whether your Net basis already nets them.</li>
+    </ul>
+
+    <h2>Spend import (CSV)</h2>
+    <p>Free Mcfly path is paste/import: Day + Meta + Google (+ Other), or long <span class="mono">date,channel,amount</span>. Pro adds named channels. Sales columns in a spend file are ignored — do not mix.</p>
+    <div class="mds-formula">date,channel,amount<br />2026-07-01,meta,1200.50<br />2026-07-01,google,890.00</div>
+    <ul>
+      <li>One row per channel per day (or a wide daily row — either works if consistent).</li>
+      <li>Amounts in store currency; no “$” symbols; no thousands commas if your parser hates them.</li>
+      <li>Include zero-spend days only if your process needs a continuous series — otherwise omit.</li>
+    </ul>
+
+    <h2>QA checklist (print this)</h2>
+    <ol>
+      <li>Start date and end date match on sales and spend.</li>
+      <li>No channel appears twice for the same day.</li>
+      <li>Totals roughly match the ad UIs for that window (± fees timing).</li>
+      <li>Timezone: store TZ vs ad account TZ — pick one story.</li>
+      <li>File name includes the window: <span class="mono">spend_2026-07-01_2026-07-31.csv</span>.</li>
+    </ol>
+
+    <div class="mds-lab" data-mds-align-lab>
+      <h3>Lab — period align check</h3>
+      <label>Sales start</label>
+      <input name="salesStart" type="date" value="2026-07-01" />
+      <label>Sales end</label>
+      <input name="salesEnd" type="date" value="2026-07-31" />
+      <label>Spend start</label>
+      <input name="spendStart" type="date" value="2026-07-01" />
+      <label>Spend end</label>
+      <input name="spendEnd" type="date" value="2026-07-31" />
+      <div class="mds-out" data-mds-out></div>
+      <p class="mds-hint">Change spend end to a different day and watch the warning.</p>
+    </div>
+
+    <div class="mds-cta-row">
+      <a class="text-link" href="/assets/mcfly-sheets-spend-guide.html">Sheets spend guide</a>
+      <a class="text-link" href="/support">Install Free · CSV path</a>
+    </div>
+
+    <div data-mds-mark></div>
+    <div class="mds-pager">
+      <a href="/mds-made-easy/break-even">← Break-even</a>
+      <a href="/mds-made-easy/monday-ritual">Next: Monday ritual →</a>
+    </div>
+  </div>
+  <script src="/assets/mds-course.js?v=1" defer></script>
+</body>
+</html>

@@ -34,6 +34,10 @@ export type CloseMetricsInput = {
   spendCoverage: SpendPeriodCoverage;
   spendRecon: SpendReconResult | null;
   onboarding: { settingsSaved: boolean; hasSpend: boolean };
+  /** Fail-closed: never lock when sales load failed (zeros are not cash). */
+  salesError?: string | null;
+  /** Fail-closed: never lock when closed-day SalesDayFact coverage is incomplete. */
+  salesFactsIncomplete?: boolean;
 };
 
 /** CSV row shape — no Prisma import (client-safe). */
@@ -134,6 +138,20 @@ export function canLockCashClose(metrics: CloseMetricsInput): {
   ok: boolean;
   reason: string | null;
 } {
+  if (metrics.salesError) {
+    return {
+      ok: false,
+      reason:
+        "Sales did not load for this period. Refresh before Save — zeros are not cash.",
+    };
+  }
+  if (metrics.salesFactsIncomplete) {
+    return {
+      ok: false,
+      reason:
+        "Sales day facts are incomplete for this period. Wait for backfill before Save.",
+    };
+  }
   if (!metrics.onboarding.settingsSaved) {
     return {
       ok: false,
@@ -437,20 +455,23 @@ export function formatCashCloseMemo(
 /** Alias for formatCashCloseMemo (internal name kept). */
 export const formatTillTruthMemo = formatCashCloseMemo;
 
-/** Live Overview share body — merchant emails/copies themselves (no Mcfly send). */
+/** Live Overview share body — plain text for mailto (clients ignore HTML). */
 export type OverviewShareInput = {
   periodLabel: string;
   periodStartDay: string;
   periodEndDay: string;
-  netSales: number;
-  grossSales: number | null;
-  grossSalesKnown?: boolean;
+  /** Shopify Total Sales (currentTotalPriceSet) — after returns. */
+  totalSales: number;
   totalSpend: number;
   mer: number | null;
   breakEvenMer: number | null;
   marginPct: number | null;
   spendIncomplete?: boolean;
   shopLabel?: string | null;
+  /** Optional period channel mix ($ + share 0–1). */
+  channels?: Array<{ name: string; amount: number; share: number }>;
+  salesDeltaLine?: string | null;
+  spendDeltaLine?: string | null;
 };
 
 export function formatOverviewShareText(input: OverviewShareInput): string {
@@ -463,40 +484,51 @@ export function formatOverviewShareText(input: OverviewShareInput): string {
   const mer = (v: number | null) =>
     v == null || !Number.isFinite(v) ? "—" : `${v.toFixed(2)}×`;
 
-  const lines = [
+  const lines: string[] = [
     input.shopLabel?.trim()
-      ? `Mcfly Analytics — ${input.shopLabel.trim()}`
-      : "Mcfly Analytics — Total ROAS",
-    "============================",
-    `Period: ${input.periodLabel}`,
-    `Window: ${input.periodStartDay} → ${input.periodEndDay}`,
+      ? `Total ROAS — ${input.shopLabel.trim()}`
+      : "Total ROAS",
+    input.periodLabel,
+    `${input.periodStartDay} → ${input.periodEndDay}`,
     "",
-    "SHOPIFY SALES ÷ AD SPEND",
-    `  Net sales (after returns): ${money(input.netSales)}`,
-    input.grossSalesKnown !== false && input.grossSales != null
-      ? `  Gross sales (Ads Mgr):     ${money(input.grossSales)}`
-      : null,
-    `  Ad spend:                  ${money(input.totalSpend)}`,
-    "",
-    `  Total ROAS:                ${mer(input.mer)}`,
-    `  Break-even Total ROAS:     ${mer(input.breakEvenMer)}`,
-    input.marginPct != null && Number.isFinite(input.marginPct)
-      ? `  Contribution margin:       ${(input.marginPct * 100).toFixed(1)}%`
-      : null,
-    "",
-  ].filter((line): line is string => line != null);
+    `Total ROAS: ${mer(input.mer)}`,
+  ];
 
-  if (input.spendIncomplete) {
-    lines.push(
-      "Note: Spend coverage for this period is incomplete — Total ROAS may be overstated until gaps are filled.",
-      "",
-    );
+  if (input.breakEvenMer != null && Number.isFinite(input.breakEvenMer)) {
+    lines.push(`Break-even: ${mer(input.breakEvenMer)}`);
   }
 
   lines.push(
-    "Religion: Total ROAS = Shopify sales after returns ÷ ad spend.",
-    "Not platform ROAS, path credit, or “true ROAS.”",
+    "",
+    `Shopify Total Sales: ${money(input.totalSales)}`,
   );
+  if (input.salesDeltaLine?.trim()) {
+    lines.push(`  ${input.salesDeltaLine.trim()}`);
+  }
+
+  lines.push("", `Total Spend: ${money(input.totalSpend)}`);
+  if (input.spendDeltaLine?.trim()) {
+    lines.push(`  ${input.spendDeltaLine.trim()}`);
+  }
+
+  const channels = (input.channels ?? [])
+    .filter((c) => c.amount > 0)
+    .slice(0, 8);
+  if (channels.length > 0) {
+    lines.push("");
+    for (const c of channels) {
+      const pct = Number.isFinite(c.share)
+        ? `${(c.share * 100).toFixed(0)}%`
+        : "—";
+      lines.push(`  ${c.name}: ${money(c.amount)} · ${pct}`);
+    }
+  }
+
+  if (input.spendIncomplete) {
+    lines.push("", "Note: spend coverage incomplete for this period.");
+  }
+
+  lines.push("", "Total ROAS = Shopify Total Sales ÷ ad spend");
 
   return `${lines.join("\n")}\n`;
 }

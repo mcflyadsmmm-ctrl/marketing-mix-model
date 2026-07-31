@@ -26,32 +26,42 @@ export function isFreeChannel(channel: string): channel is FreeChannel {
 /** All engine channels (Pro). */
 export const PRO_CHANNELS: readonly SpendChannel[] = SPEND_CHANNELS;
 
+/**
+ * Single SoT for Pro upsell copy. Listing stays Free until Billing announce;
+ * in-app gates + SAMPLE preview are live now.
+ */
 export const PRO_UPSELL = {
   short: "Pro · $39/store/mo",
+  priceLine: "$39 flat per store / month — not a GMV tax",
+  /** One-line “what you get” for banners and empty states. */
+  includes:
+    "Pro includes: every named ad channel (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition cohorts (Cash CAC · 30/90/365 · LTV:CAC), and the full-year Goals board with YoY fill.",
   channels:
-    "Free: Meta, Google, and custom Other (name it). Pro ($39/mo): TikTok, Microsoft, Amazon, and every named platform — plus Customer LTV and full Goals.",
-  ltv: "Customer LTV is on Pro ($39/mo at launch). Preview it on the sample desk anytime.",
+    "Free channels: Meta, Google, and custom Other (name influencers/podcasts/agency). Pro ($39/mo) unlocks TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and every other named platform — plus Customer LTV and full Goals.",
+  ltv: "Pro unlocks Customer LTV / Acquisition: Cash CAC, 30/90/365 cohort revenue, and LTV:CAC from Shopify order cohorts (opaque ids only — no email CRM). Preview the full desk on SAMPLE anytime.",
   goals:
-    "Pro: full-year sales plan and YoY. Free still shows Total ROAS and your break-even goal.",
+    "Pro unlocks the full-year sales board, Grow YoY fill, and monthly fine-tune. Free still shows MTD · QTD · YTD pace vs your Total ROAS goal and break-even.",
   close:
-    "Share Overview from Home anytime — email or copy Total ROAS yourself. Mcfly does not send mail.",
-  upgradeCta: "Unlock TikTok + more — $39/mo",
+    "Share Overview (Email) is free — opens your mail app with this period’s cards. Mcfly never sends mail for you.",
+  upgradeCta: "Upgrade to Pro — $39/mo",
+  seeSettings: "See Free vs Pro in Settings",
 } as const;
 
 export const FREE_FEATURE_BULLETS = [
-  "Total ROAS = Shopify sales after returns ÷ ad spend",
-  "Break-even from your profit margin",
-  "Meta + Google spend (CSV / Connections)",
-  "Custom Other — name influencers, podcasts, agency",
-  "Basic allocation for Meta + Google",
-  "Full SAMPLE preview of Pro",
+  "Total ROAS = Shopify Total Sales ÷ ad spend",
+  "Break-even from optional profit margin",
+  "Spend CSV: Meta + Google + custom Other",
+  "Period filters (MTD · LM · QTD · YTD · …)",
+  "Spend Allocation mix for Free channels",
+  "Email Overview (opens your mail app)",
+  "Full SAMPLE preview of Pro features",
 ] as const;
 
 export const PRO_FEATURE_BULLETS = [
   "Everything in Free",
-  "Named platforms: TikTok, Microsoft, Amazon, Pinterest, and more",
-  "Customer LTV from Shopify order cohorts (no email CRM)",
-  "Full-year sales plan and year-over-year goals",
-  "Share Overview (email or copy yourself)",
-  "Deeper spend history as it ships",
+  "All named channels: TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and more",
+  "Customer LTV / Acquisition: Cash CAC · cohort LTV 30/90/365 · LTV:CAC",
+  "Full-year Goals board + YoY plan + monthly fine-tune",
+  "Richer Explorer / mix history as it ships",
+  "$39 flat / store / mo — not GMV tax",
 ] as const;

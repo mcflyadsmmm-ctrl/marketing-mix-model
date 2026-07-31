@@ -1,9 +1,12 @@
-# Mcfly Analytics — Shopify app configuration
-# Public App Store distribution. App URL must stay on Fly (never mcflyads.com).
-# Keep automatically_update_urls_on_dev = false so `shopify app dev` cannot overwrite production URLs.
+# Mcfly Analytics — PRIMARY SoT = Public App Store app
+# Partner: https://dev.shopify.com/dashboard/227535001/apps/403721814017
+# Client: bbaee078… (Custom 88c56d21… archived in shopify.app.custom.toml — no Billing API)
+# App URL must stay on Fly (never mcflyads.com).
 
-client_id = "88c56d21f74912479d2f7581f1877bc7"
+client_id = "bbaee078a5ab871aea1cc99a9e01cabd"
 name = "Mcfly Analytics"
+# Partner-assigned handle (mcfly-analytics is taken by another app).
+handle = "mcfly-analytics-public"
 application_url = "https://mcfly-analytics.fly.dev"
 embedded = true
 
@@ -11,7 +14,8 @@ embedded = true
 automatically_update_urls_on_dev = false
 
 [access_scopes]
-scopes = "read_orders,read_customers,read_all_orders"
+# read_all_orders needs Partner approval after PCD — omit until approved so CLI can release.
+scopes = "read_orders,read_customers"
 
 [webhooks]
 api_version = "2025-10"
@@ -24,11 +28,14 @@ api_version = "2025-10"
   uri = "/webhooks/app/scopes_update"
   topics = ["app/scopes_update"]
 
-  # Dirty-day signal for SalesDayFact — the handler enqueues and ACKs, it never
-  # paginates orders inline. Level 1 fields only (order id + timestamp).
+  # Dirty-day signal for SalesDayFact — handler enqueues and ACKs only.
   [[webhooks.subscriptions]]
   uri = "/webhooks/orders"
   topics = ["orders/create", "orders/updated", "orders/cancelled"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app_subscriptions/update"
+  topics = ["app_subscriptions/update"]
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/compliance"

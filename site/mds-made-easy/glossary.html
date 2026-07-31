@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Glossary lab — MDS Made Easy (draft)</title>
+  <meta name="description" content="Interactive glossary and refuse quiz for Marketing Data Science Made Easy. Draft." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="canonical" href="https://mcflyads.com/mds-made-easy/glossary" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260731mds" />
+  <link rel="stylesheet" href="/assets/mds-course.css?v=1" />
+</head>
+<body class="mds-course">
+  <a class="skip" href="#mds-content">Skip to content</a>
+  <div data-mds-shell id="mds-content">
+    <p class="mds-kicker">Module 06 · Marketing Data Science Made Easy</p>
+    <h1>Glossary lab</h1>
+    <p class="mds-lede">Tap a card to flip. Red-edged cards are refuse terms — know them so you never sell them by accident.</p>
+
+    <div class="mds-card-stack">
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Total ROAS</span>
+        <span class="def">Sales ÷ ad spend for the same period. Average portfolio efficiency — not path credit.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Break-even Total ROAS</span>
+        <span class="def">≈ 1 ÷ contribution margin. The floor Total ROAS should clear on average.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Contribution margin</span>
+        <span class="def">Percent of sales left after variable till costs (COGS, fees, variable shipping, etc.).</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Period alignment</span>
+        <span class="def">Sales and spend use the same start and end dates (and a consistent timezone story).</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Net sales vs Total Sales</span>
+        <span class="def">Pick a basis and stick to it. Mixing mid-period breaks the ritual.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Ad spend</span>
+        <span class="def">Cash out the door to paid channels in the window — usually via CSV for Free desks.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">CSV spend import</span>
+        <span class="def">Merchant-supplied daily channel amounts. Not a sales file. Not path data.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">aMER</span>
+        <span class="def">New-customer sales ÷ spend (when you have honest new/returning counts). Still not MTA.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Allocation (cut / protect / shift)</span>
+        <span class="def">Rules-based Monday language for one budget move — not a Bayesian optimizer.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Platform ROAS</span>
+        <span class="def">That platform’s credited return. Useful for channel ops; different from Total ROAS.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Garbage-in / garbage-out</span>
+        <span class="def">AI and spreadsheets amplify bad windows and missing spend. Fix inputs first.</span>
+      </button>
+      <button type="button" class="mds-card" data-mds-card>
+        <span class="term">Custom desk</span>
+        <span class="def">Fixed-fee Mcfly engagement for multi-system / non-Shopify decision desks.</span>
+      </button>
+      <button type="button" class="mds-card refuse-term" data-mds-card>
+        <span class="term">Path credit / MTA</span>
+        <span class="def">REFUSE as product curriculum. Suites may do it; Mcfly’s course does not teach it as truth.</span>
+      </button>
+      <button type="button" class="mds-card refuse-term" data-mds-card>
+        <span class="term">“True ROAS”</span>
+        <span class="def">REFUSE. Marketing phrase for causal theater. We teach Total ROAS from the till.</span>
+      </button>
+      <button type="button" class="mds-card refuse-term" data-mds-card>
+        <span class="term">Pixels / CAPI as the desk</span>
+        <span class="def">REFUSE as Mcfly product. Not required for sales ÷ spend.</span>
+      </button>
+    </div>
+
+    <h2>Refuse quiz</h2>
+    <p>Which answer belongs in a till desk?</p>
+    <div class="mds-lab" data-mds-refuse-quiz>
+      <div data-mds-q style="margin-bottom:1rem">
+        <p><strong>1.</strong> Leadership asks for “true ROAS by click path.”</p>
+        <button type="button" data-ok="0">Build an MTA model this week</button>
+        <button type="button" data-ok="1">Rewrite to Total ROAS vs break-even for the period</button>
+      </div>
+      <div data-mds-q style="margin-bottom:1rem">
+        <p><strong>2.</strong> Sales are MTD; spend export is last-30-days.</p>
+        <button type="button" data-ok="0">Compute anyway — close enough</button>
+        <button type="button" data-ok="1">Stop; align windows before any ratio or AI</button>
+      </div>
+      <div data-mds-q style="margin-bottom:1rem">
+        <p><strong>3.</strong> An AI returns channel ROAS you never pasted.</p>
+        <button type="button" data-ok="1">Reject; require pasted tables only</button>
+        <button type="button" data-ok="0">Ship it — the model “knows”</button>
+      </div>
+      <p class="mds-out" data-mds-score>0 / 0 correct</p>
+    </div>
+
+    <div data-mds-mark></div>
+    <div class="mds-pager">
+      <a href="/mds-made-easy/ai-prompts">← AI prompts</a>
+      <a href="/mds-made-easy/suites-and-custom">Next: Suites &amp; Custom →</a>
+    </div>
+  </div>
+  <script src="/assets/mds-course.js?v=1" defer></script>
+</body>
+</html>

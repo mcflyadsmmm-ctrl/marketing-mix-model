@@ -108,25 +108,15 @@ describe("Goals shop IANA under process TZ=Asia/Tokyo", () => {
     expect(denver.get(8)).toBe(50 + 999);
   });
 
-  it("spendByMonthMap buckets via shopLocalYmd day keys, not getMonth()", async () => {
+  it("spendByMonthMap buckets UTC-midnight CSV stamps by UTC month (not shopLocalYmd)", async () => {
     const now = new Date("2026-07-31T16:00:00.000Z");
-    // periodStart is Jul 31 16:00 UTC → Aug 1 in Tokyo, Jul 31 in Denver.
-    const periodStart = new Date("2026-07-31T16:00:00.000Z");
-    expect(shopLocalDayKey(periodStart, "Asia/Tokyo")).toBe("2026-08-01");
-    expect(shopLocalDayKey(periodStart, "America/Denver")).toBe("2026-07-31");
+    // Production stamp: utcMidnightFromDayKey("2026-07-01") — Denver local would be Jun 30.
+    const periodStart = new Date("2026-07-01T00:00:00.000Z");
+    expect(shopLocalDayKey(periodStart, "America/Denver")).toBe("2026-06-30");
 
     vi.mocked(prisma.spendEntry.findMany).mockResolvedValue([
       { amount: 1_000, periodStart },
     ] as never);
-
-    const tokyo = await spendByMonthMap(
-      "shop_1",
-      2026,
-      { ianaTimezone: "Asia/Tokyo" },
-      now,
-    );
-    expect(tokyo.get(8)).toBe(1_000);
-    expect(tokyo.get(7)).toBe(0);
 
     const denver = await spendByMonthMap(
       "shop_1",
@@ -135,7 +125,16 @@ describe("Goals shop IANA under process TZ=Asia/Tokyo", () => {
       now,
     );
     expect(denver.get(7)).toBe(1_000);
-    expect(denver.get(8)).toBe(0);
+    expect(denver.get(6)).toBe(0);
+
+    const tokyo = await spendByMonthMap(
+      "shop_1",
+      2026,
+      { ianaTimezone: "Asia/Tokyo" },
+      now,
+    );
+    expect(tokyo.get(7)).toBe(1_000);
+    expect(tokyo.get(8)).toBe(0);
   });
 
   it("buildSalesGoalPeriods MTD calendar share follows Asia/Tokyo", () => {

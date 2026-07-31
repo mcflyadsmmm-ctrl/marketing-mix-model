@@ -1,13 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const upsert = vi.fn();
-const updateMany = vi.fn();
-const count = vi.fn();
-const queryRaw = vi.fn();
+const { findUnique, upsert, updateMany, count, queryRaw } = vi.hoisted(() => ({
+  findUnique: vi.fn(),
+  upsert: vi.fn(),
+  updateMany: vi.fn(),
+  count: vi.fn(),
+  queryRaw: vi.fn(),
+}));
 
 vi.mock("../db.server", () => ({
   default: {
     job: {
+      findUnique: (...args: unknown[]) => findUnique(...args),
       upsert: (...args: unknown[]) => upsert(...args),
       updateMany: (...args: unknown[]) => updateMany(...args),
       count: (...args: unknown[]) => count(...args),
@@ -44,6 +48,8 @@ function claimed(overrides: Partial<ClaimedJob> = {}): ClaimedJob {
 
 describe("enqueueJob", () => {
   beforeEach(() => {
+    findUnique.mockReset();
+    findUnique.mockResolvedValue(null);
     upsert.mockReset();
     upsert.mockResolvedValue({ id: "job_1", dedupeKey: "2026-07-27" });
   });
@@ -68,6 +74,11 @@ describe("enqueueJob", () => {
   });
 
   it("re-arms an existing row to pending and clears the worker lock", async () => {
+    findUnique.mockResolvedValue({
+      id: "job_1",
+      dedupeKey: "2026-07-27",
+      status: "running",
+    });
     await enqueueJob(
       {
         shopId: "shop_1",
@@ -88,6 +99,26 @@ describe("enqueueJob", () => {
     expect(update.lockedAt).toBeNull();
     expect(update.lastError).toBeNull();
     expect(update.finishedAt).toBeNull();
+  });
+
+  it("resets attempts when resurrecting a dead letter (bounded retry, not soft-infinite)", async () => {
+    findUnique.mockResolvedValue({
+      id: "job_1",
+      dedupeKey: "2026-07-27",
+      status: "dead",
+    });
+    await enqueueJob(
+      {
+        shopId: "shop_1",
+        type: "reconcile_sales_day",
+        dedupeKey: "2026-07-27",
+        payload: { day: "2026-07-27", reason: "ORDERS_UPDATED" },
+      },
+      NOW,
+    );
+    const update = upsert.mock.calls[0][0].update;
+    expect(update.status).toBe("pending");
+    expect(update.attempts).toBe(0);
   });
 
   it("keeps runAfter at now so continuous order flow cannot starve the job", async () => {

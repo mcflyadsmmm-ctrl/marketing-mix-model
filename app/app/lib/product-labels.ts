@@ -1,7 +1,8 @@
 /**
  * Public product noun — Total ROAS.
- * Math is unchanged: Total Sales (currentTotalPriceSet, after returns) ÷ ad spend,
- * not path / “true ROAS.” Order totals = Ads Manager–comparable secondary.
+ * Action default: Shopify Total Sales (`currentTotalPriceSet`) ÷ ad spend.
+ * Net view: product subtotal (`currentSubtotalPriceSet`) ÷ spend.
+ * Order totals (`totalPriceSet`) = Ads Manager–comparable secondary.
  * Keep code identifiers as mer* / MarketingEfficiency / till* internally.
  *
  * Admin voice: short, benefit-first (docs/MDS_RESEARCH_ABSORB.md).
@@ -14,7 +15,7 @@ export const PRODUCT_NOUN = {
   totalRoas: "Total ROAS",
   /** Short form in dense UI */
   totalRoasShort: "ROAS",
-  /** Acquisition MER — new-customer net ÷ spend (average, not causal) */
+  /** Acquisition MER — new-customer sales ÷ spend (average, not causal) */
   amer: "aMER",
   amerDef: "New-customer sales ÷ spend",
   /** Goal / target label */
@@ -24,47 +25,74 @@ export const PRODUCT_NOUN = {
   breakEvenShort: "Break-even",
   /** Explorer / chart */
   explorer: "Total ROAS Explorer",
-  /** One-line definition — Shopify sales after returns (currentTotalPriceSet) */
-  definition: "Shopify sales after returns ÷ ad spend",
+  /** One-line definition — Shopify Total Sales (incl. shipping/tax; after returns) */
+  definition: "Shopify Total Sales ÷ ad spend",
   /** Period-scoped definition for empty states / kickers */
   definitionForPeriod:
-    "Total ROAS = sales ÷ spend for this period",
+    "Total ROAS = Shopify Total Sales ÷ spend (after returns)",
   /** Clarify vs platform / path ROAS — use once under KPIs, not every banner */
   notTrueRoas: "Sales ÷ spend. Not platform ROAS.",
   /** Calm MDS trust line — sales-backed */
   mdsTrust:
-    "Marketing Data Science from Shopify sales after returns.",
+    "Marketing Data Science from Shopify Total Sales.",
   /** Thesis — Advanced MDS for the merchant */
   mdsThesis: "Advanced Marketing Data Science, made easy",
   /** Decision — any day of the week */
   mondayCall: "Total ROAS vs break-even — any day",
   /**
    * Share Overview — merchant emails/forwards Total ROAS themselves (no Mcfly email).
-   * Legacy mondayClose keys kept for any residual deep links; route /app/close redirects home.
+   * Monday Close UI is retired (`docs/RETIRED_SURFACES.md`); `/app/close` redirects home.
    */
-  mondayClose: "Share Overview",
-  mondayCloseDef:
-    "Share Total ROAS vs break-even for the period you picked — email or copy it yourself.",
   shareOverview: "Share Overview",
   shareOverviewDef:
-    "Email or copy Total ROAS vs break-even for this period — Mcfly does not send mail for you.",
+    "Share Total ROAS vs break-even for the period you picked — email or copy it yourself.",
+  shareOverviewEmail: "Email",
+  shareOverviewEmailDef:
+    "Opens your email app with this period’s Total ROAS cards — Mcfly does not send mail.",
   /** Page / nav titles */
   deskTitle: "Total ROAS",
-  /** Dedicated customer cohort deep-dive */
-  ltvTitle: "Customer Lifetime Value",
+  /** Spend mix / quarterly / rolling — route /app/allocation */
+  spendAllocation: "Spend Allocation",
+  /** Acquisition + cohort LTV deep-dive (route /app/ltv) */
+  ltvTitle: "LTV / Acquisition",
   /** Primary CTA after spend / empty states — verb + outcome */
   openTotalRoas: "Open Total ROAS",
-  openLtv: "Open Customer LTV",
+  openSpendAllocation: "Open Spend Allocation",
+  openLtv: "Open LTV / Acquisition",
+  /** Enterprise MDS lab — averages, not causal channel ROAS */
+  advancedMetrics: "Advanced Metrics",
+  openAdvanced: "Open Advanced Metrics",
+  advancedKicker:
+    "Enterprise formulas · averages, not causal channel ROAS",
+  /** Spend Allocation snapshot labels (facts, not AI advice) */
+  allocationPrimary: "Portfolio mix",
+  allocationHedge: "Spend share · Total ROAS = sales ÷ spend",
+  /** Spend Allocation history strip */
+  allocationHistoryHedge:
+    "Spend mix in top Total ROAS quarters — portfolio co-occurrence",
+  /** Customer payback one-liner prefix */
+  customerPayback: "Customer payback",
+  nextAllocation: "Next: Spend Allocation",
+  nextCustomerPayback: "Next: LTV / Acquisition",
+  /** Overview payback tile defs — plain English formulas */
+  cashCacDef: "Period ad spend ÷ new customers",
+  ltv90Def: "Avg revenue per new customer in first 90 days",
+  ltvCacDef: "LTV · 90d ÷ Cash CAC (average, not causal)",
+
   /** Support under thesis / empty states */
   supportLine:
     "Exact spend by platform. Sales ÷ spend. Goals. Allocate to grow.",
   /**
-   * Sales SoT honesty — action Total ROAS uses currentTotalPriceSet (after returns);
-   * gross (totalPriceSet) is Ads Manager–comparable secondary.
+   * Sales SoT — Shopify Total Sales (currentTotalPriceSet): shipping, taxes,
+   * duties, fees included; after returns. Cancelled/test excluded.
    */
   salesBasis:
-    "Shopify sales after returns · cancelled/test excluded · Order totals shown as Ads Manager–comparable",
-  salesBasisShort: "Sales after returns",
+    "Shopify Total Sales — shipping, taxes, duties & fees; after returns",
+  salesBasisShort: "Shopify Total Sales",
+  salesBasisNet: "Net Sales (excl. shipping & tax)",
+  salesBasisTotal: "Total Sales",
+  /** Hero one-liner under sales — no need to repeat “Shopify Total Sales” */
+  totalSalesHeroHint: "Shipping, tax & fees included · after returns",
   /** Cash-close IA one-liner */
   cashClose:
     "Exact spend by platform · sales ÷ spend · decide any day",
@@ -89,5 +117,16 @@ export const PRODUCT_NOUN = {
   setupAdjustMargin: "Adjust Profit Margin",
   /** Spend job — three steps */
   spendJob:
-    "Download a blank template → fill daily ad spend → paste or upload. Same days replace.",
+    "Select channels → download template → fill daily spend → upload. Same days replace.",
+  /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
+  ltvNotInShopify:
+    "Shopify Admin lacks this till view — Mcfly uses order cohorts and opaque customer ids only (no email CRM).",
 } as const;
+
+export type SalesBasisPreference = "total" | "net";
+
+export function isSalesBasisPreference(
+  value: unknown,
+): value is SalesBasisPreference {
+  return value === "total" || value === "net";
+}

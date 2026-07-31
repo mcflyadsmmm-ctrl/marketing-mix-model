@@ -71,8 +71,7 @@ export default function AppLanding() {
         </div>
 
         <p className={styles.install}>
-          Install from the Shopify App Store (Free). We never ask you to type
-          your .myshopify.com domain here.
+          Install Mcfly Analytics from the Shopify App Store (Free).
         </p>
 
         <footer className={styles.foot}>

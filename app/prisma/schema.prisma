@@ -39,6 +39,10 @@ model Shop {
   ianaTimezone       String?
   /// ISO 4217 currency code (e.g. "USD") for sales fact amounts.
   currencyCode       String?             @db.Char(3)
+  /// Cached Shopify Billing Pro — synced from currentAppInstallation.activeSubscriptions.
+  proBillingActive   Boolean             @default(false)
+  /// gid://shopify/AppSubscription/... when Pro is active (or last known).
+  proSubscriptionGid String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   settings           Settings?
@@ -68,6 +72,8 @@ model Settings {
   /// When true, merchant locks marginPct manually; when false, marginPct derived from stack when complete.
   marginOverride              Boolean   @default(false)
   targetMer                   Float     @default(3.0)
+  /// Action Total ROAS numerator: "total" = Shopify Total Sales (default); "net" = Net Sales view.
+  salesBasis                  String    @default("total")
   /// Set when the merchant confirms margin via Settings save. Null = preview defaults only.
   marginConfirmedAt           DateTime?
   /// When true, Cash MER uses SampleSalesDay + sample spend (clearly labeled), not live Shopify.
@@ -134,8 +140,11 @@ model SalesDayFact {
   shopId                   String
   shop                     Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
   day                      DateTime  @db.Date
-  /// Net Shopify sales for the day (`currentTotalPriceSet` sum) — Total ROAS numerator.
+  /// Shopify Total Sales for the day (`currentTotalPriceSet` sum) — default Total ROAS numerator.
   sales                    Float
+  /// Net Sales (`currentSubtotalPriceSet`) — product subtotal after returns, excl. shipping/tax.
+  /// Null on legacy rows until re-reconcile; Net toggle honesty when null.
+  netSales                 Float?
   /// Gross order totals (`totalPriceSet`) — Ads Manager–comparable. Null on legacy
   /// rows written before gross was persisted; re-reconcile fills it.
   grossSales               Float?

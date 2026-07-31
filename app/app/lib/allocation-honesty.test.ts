@@ -30,6 +30,10 @@ describe("Allocation desk sales honesty", () => {
     );
   });
 
+  it("suppresses allocation suggestion when salesError", () => {
+    expect(source).toContain("salesError ? null : metrics.allocation");
+  });
+
   it("keeps SAMPLE path distinct from live sales", () => {
     expect(source).toContain("· SAMPLE");
     expect(source).toContain("SampleDeskBanner");

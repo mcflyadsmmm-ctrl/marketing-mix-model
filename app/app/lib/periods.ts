@@ -5,7 +5,7 @@ import {
   shopLocalYmd,
 } from "./shop-local-day";
 
-export type PeriodPreset = "mtd" | "qtd" | "ytd" | "l12m" | "y3";
+export type PeriodPreset = "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3";
 
 export interface DateRange {
   start: Date;
@@ -41,6 +41,13 @@ export function resolvePeriod(
     case "mtd": {
       const start = startOfDay(new Date(now.getFullYear(), now.getMonth(), 1));
       return { start, end, label: "Month to date" };
+    }
+    case "lm": {
+      const start = startOfDay(
+        new Date(now.getFullYear(), now.getMonth() - 1, 1),
+      );
+      const monthEnd = endOfDay(new Date(now.getFullYear(), now.getMonth(), 0));
+      return { start, end: monthEnd, label: "Last month" };
     }
     case "qtd": {
       const quarter = Math.floor(now.getMonth() / 3);
@@ -83,6 +90,20 @@ function resolvePeriodInTimeZone(
     case "mtd": {
       const start = shopLocalDayRange(dateKeyFromYmd(y, m, 1), timeZone).start;
       return { start, end, label: "Month to date" };
+    }
+    case "lm": {
+      // Day 0 of current month → last day of previous month (UTC noon anchor).
+      const lastDayPrior = new Date(Date.UTC(y, m - 1, 0, 12, 0, 0));
+      const priorParts = shopLocalYmd(lastDayPrior, timeZone);
+      const start = shopLocalDayRange(
+        dateKeyFromYmd(priorParts.y, priorParts.m, 1),
+        timeZone,
+      ).start;
+      const monthEnd = shopLocalDayRange(
+        dateKeyFromYmd(priorParts.y, priorParts.m, priorParts.d),
+        timeZone,
+      ).end;
+      return { start, end: monthEnd, label: "Last month" };
     }
     case "qtd": {
       const quarter = Math.floor((m - 1) / 3);
@@ -138,6 +159,13 @@ export function resolvePriorPeriod(
       const start = startOfDay(new Date(now.getFullYear(), now.getMonth() - 1, 1));
       const end = endOfDay(new Date(now.getFullYear(), now.getMonth() - 1, day));
       return { start, end, label: "Prior MTD" };
+    }
+    case "lm": {
+      const start = startOfDay(
+        new Date(now.getFullYear(), now.getMonth() - 2, 1),
+      );
+      const end = endOfDay(new Date(now.getFullYear(), now.getMonth() - 1, 0));
+      return { start, end, label: "Prior last month" };
     }
     case "qtd": {
       const quarter = Math.floor(now.getMonth() / 3);
@@ -214,6 +242,20 @@ function resolvePriorPeriodInTimeZone(
         timeZone,
       ).end;
       return { start, end, label: "Prior MTD" };
+    }
+    case "lm": {
+      // Month before last: day 0 of prior month → last day of month-2.
+      const monthBeforeLastEnd = new Date(Date.UTC(y, m - 2, 0, 12, 0, 0));
+      const parts = shopLocalYmd(monthBeforeLastEnd, timeZone);
+      const start = shopLocalDayRange(
+        dateKeyFromYmd(parts.y, parts.m, 1),
+        timeZone,
+      ).start;
+      const end = shopLocalDayRange(
+        dateKeyFromYmd(parts.y, parts.m, parts.d),
+        timeZone,
+      ).end;
+      return { start, end, label: "Prior last month" };
     }
     case "qtd": {
       const quarter = Math.floor((m - 1) / 3);
@@ -296,6 +338,7 @@ export function formatPeriodQuery(range: DateRange): string {
 
 export const PERIOD_PRESETS: { value: PeriodPreset; label: string }[] = [
   { value: "mtd", label: "MTD" },
+  { value: "lm", label: "LM" },
   { value: "qtd", label: "QTD" },
   { value: "ytd", label: "YTD" },
   { value: "l12m", label: "L12M" },

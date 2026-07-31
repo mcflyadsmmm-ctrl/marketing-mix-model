@@ -211,8 +211,9 @@ function enumerateDates(startDateYmd: string, dayCount: number): string[] {
  * Spread a lump invoice evenly across each inclusive day in [start, end].
  * Returns [] when inputs are invalid. Sum of amounts equals cent-rounded total.
  *
- * Use for email/agency/retainer monthly (or longer) bills so Monday Close
- * and Total ROAS stay honest — not a single-day lump on invoice date.
+ * Use for email/agency/retainer monthly (or longer) bills so period totals
+ * and Total ROAS stay honest — spread across closed days (CSV spine), not a
+ * single-day lump on invoice date.
  */
 export function allocateLumpToDays(input: AllocateLumpInput): AllocateDayRow[] {
   const { totalAmount, startDateYmd, endDateYmd, channel } = input;

@@ -3,7 +3,7 @@ import { calculateBreakEvenMer, calculateMer } from "@mcfly/mer-core";
 import prisma from "../db.server";
 import { getOrCreateSettings } from "./mer-dashboard.server";
 import type { DateRange } from "./periods";
-import { getSalesFactsByDay } from "./sales-facts.server";
+import { getSalesFactsByDay, getSalesFactsCoverage } from "./sales-facts.server";
 import { fetchSampleSalesByDay } from "./sample-desk.server";
 import {
   dateKeyFromYmd,
@@ -280,13 +280,10 @@ export async function spendByMonthMap(
   });
 
   for (const entry of entries) {
-    const parts = tz
-      ? shopLocalYmd(entry.periodStart, tz)
-      : {
-          y: entry.periodStart.getFullYear(),
-          m: entry.periodStart.getMonth() + 1,
-        };
-    const { y, m } = parts;
+    // Spend stamps are UTC midnight of the CSV day key — use UTC Y/M, not shopLocalYmd
+    // (Denver would shift 2026-07-01T00:00Z → June).
+    const y = entry.periodStart.getUTCFullYear();
+    const m = entry.periodStart.getUTCMonth() + 1;
     if (y !== year || m < 1 || m > 12) continue;
     if (m > maxMonth) continue;
     if (!Number.isFinite(entry.amount) || entry.amount <= 0) continue;
@@ -915,10 +912,11 @@ function monthMapToArray(map: Map<number, number>): number[] {
 /**
  * Year / YoY sales-by-day for goals boards.
  * HARD-STOP: never unbounded GraphQL — sample desk or SalesDayFact only.
+ * Fail-closed: incomplete facts → salesError (never silent $0 YoY baselines).
  */
 export async function loadSalesByDayForGoalsRange(
   shopId: string,
-  _ianaTimezone: string | null | undefined,
+  ianaTimezone: string | null | undefined,
   range: DateRange,
   useSampleDesk: boolean,
 ): Promise<{ salesByDay: Map<string, number>; salesError: string | null }> {
@@ -929,6 +927,22 @@ export async function loadSalesByDayForGoalsRange(
     };
   }
   try {
+    const coverage = await getSalesFactsCoverage(
+      shopId,
+      range,
+      new Date(),
+      ianaTimezone,
+    );
+    if (
+      !coverage.periodExceedsFactWindow &&
+      coverage.expectedClosedDays > 0 &&
+      !coverage.complete
+    ) {
+      return {
+        salesByDay: new Map(),
+        salesError: `Sales day facts incomplete (${coverage.factDays}/${coverage.expectedClosedDays} days) — YoY baselines withheld`,
+      };
+    }
     return {
       salesByDay: await getSalesFactsByDay(shopId, range),
       salesError: null,

@@ -4,8 +4,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 
 /**
- * Memo / Export memo tab removed — Share lives on Overview.
- * Keep this route so old bookmarks and CTAs land on Home.
+ * RETIRED: Monday Close lock UI (`docs/RETIRED_SURFACES.md`).
+ * Share lives on Overview. Keep this route so old bookmarks land on Home.
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);

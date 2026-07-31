@@ -15,9 +15,9 @@ const shopify = shopifyApp({
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
-  // Fly currently runs the Custom-distribution client (88c56d21…). AppStore mode
-  // on that key returns 410 Gone for /app and /auth (session bounce broken).
-  // Public App Store client (bbaee078…) uses MCFLY_APP_DISTRIBUTION=app_store.
+  // Production SoT = Public App Store client (bbaee078…).
+  // Set MCFLY_APP_DISTRIBUTION=app_store on Fly. Custom client (88c56d21…) is
+  // archived in shopify.app.custom.toml — Custom distribution cannot use Billing.
   distribution:
     process.env.MCFLY_APP_DISTRIBUTION === "app_store"
       ? AppDistribution.AppStore

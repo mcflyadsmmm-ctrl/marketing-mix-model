@@ -1,8 +1,8 @@
 # Value thesis — why Mcfly is worth millions without a GMV tax
 
-**One-liner:** Own **marketing cash close / spend affordability control** — net Shopify sales ÷ ad spend (Total ROAS), break-even, one Monday affordability move — flat desk fee, not a slice of growth. Voice SoT: [`MDS_RESEARCH_ABSORB.md`](./MDS_RESEARCH_ABSORB.md).
+**One-liner:** Own **marketing cash desk / spend affordability** — Shopify sales ÷ ad spend (Total ROAS), break-even, allocation — flat desk fee, not a slice of growth. Voice SoT: [`MDS_RESEARCH_ABSORB.md`](./MDS_RESEARCH_ABSORB.md).
 
-**Religion:** Free on the App Store now (CSV paste) → connected Meta/Google spend OAuth near-term (retention tier) → $39/store/mo flat later via Shopify Billing. Never forever-free bait. Never pixels / MTA / “true ROAS.” **Coexists with attribution suites for CYA — dominates the Monday till so suites become optional.** Domination bar: [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1 Category Domination Bar.
+**Religion:** Free on the App Store now (**CSV paste**) → $39/store/mo flat later via Shopify Billing. Never forever-free bait. Never pixels / MTA / “true ROAS.” **No Mcfly-owned Meta/Google spend OAuth** ([`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)). **Coexists with attribution suites for CYA — dominates the till desk so suites become optional.** Domination bar: [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1.
 
 **Advanced Marketing Data Science for your business** is the cash-close desk — net sales ÷ spend (**Total ROAS**), **aMER** (new-customer net ÷ spend), break-even from a **till-level cost stack**, deterministic desk coach, and portfolio step-tests — on a **flat fee** path. Not Robyn, Meridian, incrementality, Bayesian MMM theater, or LLM chat OS.
 
@@ -30,9 +30,9 @@ That job is a **cash close**, not a warehouse:
 ## 2. Craft + pipe moat (not pixel moat)
 
 - **Definitional honesty** — Action Total ROAS uses **net** till sales; gross is Ads Manager–comparable secondary.
-- **Time-to-trusted close** — margin → paste or connected spend → scoreboard → Monday move.
-- **Free = CSV/paste**; **customer-paid SyncWith-class pipes** → Sheet/webhook into Mcfly (we do not own the zoo) — [`PIPE_AUTOMATION_WEDGE.md`](./PIPE_AUTOMATION_WEDGE.md); **Meta + Google spend OAuth** = optional Mcfly retention for the two big ones.
-- **Refusal as brand** — no path credit; no SyncWith zoo. Meta + Google only unless revenue pulls more.
+- **Time-to-trusted desk** — margin → CSV spend → scoreboard → allocation / Share Overview.
+- **Free = CSV/paste**; **customer-paid SyncWith-class pipes** → Sheet/webhook into Mcfly (we do not own the zoo) — [`PIPE_AUTOMATION_WEDGE.md`](./PIPE_AUTOMATION_WEDGE.md). Mcfly does **not** ship Meta/Google spend OAuth.
+- **Refusal as brand** — no path credit; no SyncWith zoo; no Mcfly ads OAuth.
 
 Craft beats feature matrices. A sharp cash close used weekly beats a half-finished TW clone.
 
@@ -44,7 +44,7 @@ Craft beats feature matrices. A sharp cash close used weekly beats a half-finish
 | --- | --- |
 | **GMV tax** | Bill climbs with success; merchant resentment |
 | **Forever-free** | Freeloader flood; no durable multiple |
-| **Free now (CSV paste) → connected spend → $39 flat** | Design-partner smoke → OAuth retention tier → Billing → predictable ARPU |
+| **Free now (CSV paste) → $39 flat** | Design-partner smoke → Billing announce → predictable ARPU |
 
 Prefer fewer serious desks over a freeloader flood. Cap Free support; convert ritual users who need connected spend.
 
@@ -67,10 +67,10 @@ Site may say “$39 later.” **Listing Pricing stays Free** until Billing ships
 
 ## 5. What “worth millions” means here
 
-1. **Own the job** — weekly marketing cash close (net sales vs spend vs BE).  
+1. **Own the job** — weekly marketing cash desk (sales vs spend vs BE).  
 2. **Ship trust** — App Store Free + PCD-honest privacy + real uninstall hygiene.  
-3. **Kill paste death** — Meta/Google spend OAuth for retained desks.  
-4. **Convert ritual → ARPU** — $39 flat; formula stays cash (net).  
+3. **Reduce paste pain** — export guides + optional merchant-paid pipe templates (not Mcfly ads OAuth).  
+4. **Convert desk habit → ARPU** — $39 flat; formula stays cash.  
 5. **Expand only when revenue pulls** — never invent pixels to “compete.”
 
 **Kill criteria for this thesis:** shipping MTA/pixels, forever-free marketing, or a GMV-scaled bill “to look like a suite.”
@@ -80,5 +80,6 @@ Site may say “$39 later.” **Listing Pricing stays Free** until Billing ships
 ## Agent pointers
 
 - Product SoT: [`MASTER_PLAN.md`](./MASTER_PLAN.md) §0–§4  
+- Retired surfaces: [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)  
 - Listing paste: [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md)  
 - Billing lock: [`BILLING_TIERS.md`](./BILLING_TIERS.md)

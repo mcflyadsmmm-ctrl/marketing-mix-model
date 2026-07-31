@@ -54,4 +54,8 @@ Allow: /
 # Applebot-Extended, meta-externalagent, Amazonbot) stay Disallow via
 # Cloudflare Managed Content — do not duplicate those lines here.
 
+# DRAFT course — remove this Disallow when founder says: MDS Made Easy go live
+User-agent: *
+Disallow: /mds-made-easy/
+
 Sitemap: https://mcflyads.com/sitemap.xml

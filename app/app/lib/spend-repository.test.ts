@@ -70,7 +70,10 @@ describe("assertSpendWriteAllowed", () => {
   });
 
   it("rejects tiktok on Free live writes", async () => {
-    shopFindUnique.mockResolvedValue({ domain: "acme.myshopify.com" });
+    shopFindUnique.mockResolvedValue({
+      domain: "acme.myshopify.com",
+      proBillingActive: false,
+    });
     await expect(
       assertSpendWriteAllowed("shop_1", [
         {
@@ -102,7 +105,10 @@ describe("assertSpendWriteAllowed", () => {
 
   it("allows tiktok when shop is Pro via MCFLY_PRO_SHOPS", async () => {
     process.env.MCFLY_PRO_SHOPS = "acme.myshopify.com";
-    shopFindUnique.mockResolvedValue({ domain: "acme.myshopify.com" });
+    shopFindUnique.mockResolvedValue({
+      domain: "acme.myshopify.com",
+      proBillingActive: false,
+    });
     await expect(
       assertSpendWriteAllowed("shop_1", [
         {
@@ -125,7 +131,10 @@ describe("createSpendRepository().upsertSpendDays", () => {
     shopFindUnique.mockReset();
     transaction.mockClear();
     delete process.env.MCFLY_PRO_SHOPS;
-    shopFindUnique.mockResolvedValue({ domain: "acme.myshopify.com" });
+    shopFindUnique.mockResolvedValue({
+      domain: "acme.myshopify.com",
+      proBillingActive: false,
+    });
     createMany.mockImplementation(async (args: { data: unknown[] }) => ({
       count: args.data.length,
     }));
@@ -143,7 +152,7 @@ describe("createSpendRepository().upsertSpendDays", () => {
     expect(result).toEqual({ written: 1, skipped: 0, created: 1, updated: 0 });
     expect(shopFindUnique).toHaveBeenCalledWith({
       where: { id: "shop_1" },
-      select: { domain: true },
+      select: { domain: true, proBillingActive: true },
     });
     expect(findMany).toHaveBeenCalledOnce();
     expect(createMany).toHaveBeenCalledOnce();

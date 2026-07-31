@@ -112,6 +112,7 @@ async function upsertSalesDayFact(
   const day = dayKeyToUtcDate(dayKey);
   const data = {
     sales: sales.totalSales,
+    netSales: sales.netSales,
     grossSales: sales.grossSales,
     orderCount: sales.orderCount,
     newCustomers: sales.newCustomers,
@@ -295,7 +296,7 @@ export function deskMustServeSalesFactsOnly(
 }
 
 /**
- * Monday Close lock gate for SalesDayFact coverage.
+ * SalesDayFact coverage gate for desk lock / trust (closed days in window).
  * Fail-closed: null/undefined coverage must block Save (never lock without facts).
  * Long windows that exceed the fact window still allow Save on stored facts + honesty.
  */
@@ -371,6 +372,13 @@ export async function getSalesFactsCoverage(
 export interface SalesFactsTotals {
   totalSales: number;
   /**
+   * Sum of persisted Net Sales (`currentSubtotalPriceSet`) for fact days that
+   * have it. Legacy rows with null netSales are excluded — see `netSalesComplete`.
+   */
+  netSalesSum: number;
+  /** True when every fact day has non-null `netSales` (or zero fact days). */
+  netSalesComplete: boolean;
+  /**
    * Sum of persisted `grossSales` for fact days that have it. Legacy rows with
    * null gross are excluded from this sum — see `grossSalesComplete`.
    */
@@ -389,7 +397,7 @@ export interface SalesFactsTotals {
    */
   newCustomersSum: number;
   returningCustomersSum: number;
-  /** Additive new-customer net sales across fact days (aMER numerator spine). */
+  /** Additive new-customer sales across fact days (aMER numerator spine). */
   newCustomerNetSalesSum: number;
   returningCustomerNetSalesSum: number;
   guestOrdersSum: number;
@@ -407,9 +415,8 @@ export interface SalesFactsTotals {
  * today top-up). Per-day new/returning sums are not unique — customerMetricsAvailable
  * stays false.
  *
- * Gross: uses persisted fact gross when complete; otherwise closed-day gross is
- * omitted (today gross only) and `grossSalesKnown` is false so UI never claims
- * Ads Manager–comparable totals from incomplete facts.
+ * Total Sales = `sales` column (currentTotalPriceSet).
+ * Net Sales = `netSales` column when complete; otherwise netSalesKnown false.
  */
 export function salesResultFromFactsTotals(
   facts: SalesFactsTotals,
@@ -423,29 +430,36 @@ export function salesResultFromFactsTotals(
     truncatedByPageCap?: boolean;
   } | null,
 ): SalesResult {
+  const todayTotal = today?.totalSales ?? 0;
   const todayNet = today?.netSales ?? today?.totalSales ?? 0;
   const todayGross = today?.grossSales ?? today?.totalSales ?? 0;
   const todayOrders = today?.orderCount ?? 0;
-  const netSales = facts.totalSales + todayNet;
+  const totalSales = facts.totalSales + todayTotal;
+  const closedNet = facts.netSalesComplete ? facts.netSalesSum : null;
+  const netSalesKnown = closedNet != null;
+  const netSales =
+    closedNet != null
+      ? closedNet + todayNet
+      : today != null
+        ? todayNet
+        : totalSales;
   const closedGross = facts.grossSalesComplete
     ? facts.grossSalesSum
     : null;
-  // Never invent closed-day gross from net (refund haircut lie). When fact gross
-  // is incomplete: today-only gross if open day loaded; otherwise equal net so
-  // dual-line/haircut UI stays quiet — but always mark grossSalesKnown false.
   const grossSalesKnown = closedGross != null;
   const grossSales =
     closedGross != null
       ? closedGross + todayGross
       : today != null
         ? todayGross
-        : netSales;
+        : totalSales;
   return {
-    totalSales: facts.totalSales + (today?.totalSales ?? 0),
+    totalSales,
     netSales,
+    netSalesKnown,
     grossSales,
     grossSalesKnown,
-    salesBasisUsed: "net",
+    salesBasisUsed: "total",
     orderCount: facts.orderCount + todayOrders,
     newCustomers: 0,
     returningCustomers: 0,
@@ -475,6 +489,7 @@ export async function getSalesFactsTotals(
     where: { shopId, day: { gte: clampedStart, lte: range.end } },
     select: {
       sales: true,
+      netSales: true,
       grossSales: true,
       orderCount: true,
       newCustomers: true,
@@ -486,6 +501,8 @@ export async function getSalesFactsTotals(
   });
 
   let totalSales = 0;
+  let netSalesSum = 0;
+  let netKnownDays = 0;
   let grossSalesSum = 0;
   let grossKnownDays = 0;
   let orderCount = 0;
@@ -496,6 +513,10 @@ export async function getSalesFactsTotals(
   let guestOrdersSum = 0;
   for (const row of rows) {
     totalSales += row.sales;
+    if (row.netSales != null && Number.isFinite(row.netSales)) {
+      netSalesSum += row.netSales;
+      netKnownDays += 1;
+    }
     if (row.grossSales != null && Number.isFinite(row.grossSales)) {
       grossSalesSum += row.grossSales;
       grossKnownDays += 1;
@@ -510,6 +531,8 @@ export async function getSalesFactsTotals(
 
   return {
     totalSales,
+    netSalesSum,
+    netSalesComplete: rows.length === 0 || netKnownDays === rows.length,
     grossSalesSum,
     grossSalesComplete: rows.length === 0 || grossKnownDays === rows.length,
     orderCount,

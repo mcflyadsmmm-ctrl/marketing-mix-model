@@ -11,6 +11,7 @@ import {
   isFreeChannel,
   PRO_UPSELL,
 } from "./entitlements";
+import prisma from "../db.server";
 
 export {
   FREE_CHANNELS,
@@ -40,14 +41,16 @@ export function parseProShopOverrideList(
 }
 
 /**
- * Pro when shop is in MCFLY_PRO_SHOPS override.
- * Future: also true when Billing is on and shop has an active Pro subscription.
+ * Pro when shop is in MCFLY_PRO_SHOPS override, or paidPro from Shopify Billing cache.
  */
-export function isProShop(shopDomain: string): boolean {
+export function isProShop(
+  shopDomain: string,
+  options?: { paidPro?: boolean },
+): boolean {
   const domain = normalizeShopDomain(shopDomain);
   if (!domain) return false;
   if (parseProShopOverrideList().has(domain)) return true;
-  // Subscription GraphQL not wired yet — override is the only Pro path until Billing ships.
+  if (options?.paidPro) return true;
   void isBillingEnabled;
   return false;
 }
@@ -69,9 +72,9 @@ export type ShopEntitlements = {
 
 export function getShopEntitlements(
   shopDomain: string,
-  options?: { sampleDesk?: boolean },
+  options?: { sampleDesk?: boolean; paidPro?: boolean },
 ): ShopEntitlements {
-  const isPro = isProShop(shopDomain);
+  const isPro = isProShop(shopDomain, { paidPro: options?.paidPro });
   const sampleDesk = Boolean(options?.sampleDesk);
   const canUseLiveLtv = isPro;
   const canUseLtv = isPro || sampleDesk;
@@ -94,6 +97,24 @@ export function getShopEntitlements(
     allowedChannels,
     upsell: PRO_UPSELL,
   };
+}
+
+/** Resolve Pro from Shop.proBillingActive (DB) + MCFLY_PRO_SHOPS override. */
+export async function resolveShopEntitlements(
+  shopDomain: string,
+  options?: { sampleDesk?: boolean },
+): Promise<ShopEntitlements> {
+  const domain = normalizeShopDomain(shopDomain);
+  const shop = domain
+    ? await prisma.shop.findUnique({
+        where: { domain },
+        select: { proBillingActive: true },
+      })
+    : null;
+  return getShopEntitlements(domain, {
+    sampleDesk: options?.sampleDesk,
+    paidPro: Boolean(shop?.proBillingActive),
+  });
 }
 
 export function canUseChannel(
@@ -142,6 +163,7 @@ export function proRequiredLtvSummary(periodLabel: string | null = null) {
     avgRevenueD90: null,
     avgRevenueD365: null,
     cashCac: null,
+    newBuyers: 0,
     ltvCacRatio: null,
     cohorts: [],
     repeatRate: null,

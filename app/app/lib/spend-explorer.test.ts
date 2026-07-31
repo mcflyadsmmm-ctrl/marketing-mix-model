@@ -3,8 +3,10 @@ import {
   applyExplorerMode,
   bucketExplorerRows,
   closedDayEnd,
+  explorerMoneyCeil,
   explorerSalesCeil,
   formatExplorerSubtitle,
+  orderBarsByLegend,
   parseExplorerDateParam,
   parseExplorerGranularity,
   parseExplorerMode,
@@ -383,6 +385,34 @@ describe("explorerSalesCeil + subtitle", () => {
       "stacked",
     );
     expect(explorerSalesCeil(plot, 1000)).toBe(9000);
+  });
+
+  it("orderBarsByLegend keeps stable stack order with zero gaps", () => {
+    const ordered = orderBarsByLegend(
+      [
+        { channel: "google", amount: 200 },
+        { channel: "meta", amount: 100 },
+      ],
+      ["meta", "google", "tiktok"],
+    );
+    expect(ordered).toEqual([
+      { channel: "meta", amount: 100 },
+      { channel: "google", amount: 200 },
+      { channel: "tiktok", amount: 0 },
+    ]);
+  });
+
+  it("explorerMoneyCeil shares spend+sales when sales line on", () => {
+    const plot = applyExplorerMode(
+      bucketExplorerRows(
+        [day("2026-07-06", 9000, { meta: 1000 })],
+        "Day",
+      ),
+      "stacked",
+    );
+    expect(explorerMoneyCeil(plot, "stacked", false)).toBe(1000);
+    expect(explorerMoneyCeil(plot, "stacked", true)).toBe(9000);
+    expect(explorerMoneyCeil(plot, "share", true)).toBe(100);
   });
 
   it("formats Apps Script–style subtitle", () => {
