@@ -1,8 +1,10 @@
 # Agent fleet — ship today (fresh chats)
 
+**Enterprise SoT (Wave 0+):** [`ops/FLEET_ENTERPRISE.md`](./ops/FLEET_ENTERPRISE.md) — failure audit, free-host ladder, Automations, queues under [`ops/fleet/`](./ops/fleet/). This file remains the **attended day map**; prefer enterprise queues for ongoing parallel work.
+
 **Why:** Long chats lose edges. Open **new Agent chats** (or one parent + Task specialists). Do **not** continue mega-threads.
 
-**Conductor chat:** Orchestrate only — spawn specialists with explicit `model`, integrate reports, hand HUMAN_GATE to founder. Do not implement in the conductor thread.
+**Conductor chat:** Orchestrate only — spawn specialists with explicit `model`, integrate reports, hand HUMAN_GATE to founder. Do not implement in the conductor thread. Caps: Conductor + ≤4 chats; ≤6 background Tasks ([`ops/FLEET_ENTERPRISE.md`](./ops/FLEET_ENTERPRISE.md)).
 
 **Religion:** Cash Total ROAS = net sales ÷ spend. **PCD Level 1 only** (no Level 2). Free CSV always works; SyncWith-class optional. Refuse pixels / MTA / connector zoo / App URL = mcflyads.com.
 
@@ -18,11 +20,26 @@
 
 **Deploy:** Only when founder/conductor grants that turn (`Fly deploy allowed` / `Pages deploy allowed`).
 
-**Human SoT:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) · PCD: [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) · Plan: [`SHIP_BUILD_PLAN.md`](./SHIP_BUILD_PLAN.md)
+**Human SoT:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) · PCD: [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) · Plan: [`SHIP_BUILD_PLAN.md`](./SHIP_BUILD_PLAN.md) · **Fleet OS:** [`ops/FLEET_ENTERPRISE.md`](./ops/FLEET_ENTERPRISE.md)
 
 ---
 
-## Fleet map (open these as **separate** Agent chats)
+## Enterprise attended map (prefer after Wave 0)
+
+| # | Chat name | Lane | Queue |
+| --- | --- | --- | --- |
+| **0** | `Orchestrator` | Conductor only | — |
+| **1** | `Desk — Pro + ritual` | App Pro / retention | [`ops/fleet/QUEUE_DESK.md`](./ops/fleet/QUEUE_DESK.md) |
+| **2** | `Services — custom factory` | Custom DS closes | [`ops/fleet/QUEUE_SERVICES.md`](./ops/fleet/QUEUE_SERVICES.md) |
+| **3** | `Education — MDS go-live` | Course $79 | [`ops/fleet/QUEUE_EDU.md`](./ops/fleet/QUEUE_EDU.md) |
+| **4** | `Gate — ship-gate + critic` | Quality | [`ops/fleet/QUEUE_GROWTH.md`](./ops/fleet/QUEUE_GROWTH.md) |
+| **H** | *You (human)* | [`ops/fleet/HUMAN_GATE_BOARD.md`](./ops/fleet/HUMAN_GATE_BOARD.md) | — |
+
+B2B chat only after Wave 2 unlock. Cloud schedules: [`ops/fleet/AUTOMATIONS_SETUP.md`](./ops/fleet/AUTOMATIONS_SETUP.md).
+
+---
+
+## Fleet map (open these as **separate** Agent chats) — legacy day map
 
 | # | Chat name | Lane | Deploy? |
 | --- | --- | --- | --- |

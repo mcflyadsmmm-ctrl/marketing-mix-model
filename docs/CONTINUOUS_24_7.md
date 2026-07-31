@@ -2,6 +2,8 @@
 
 **Goal:** Mcfly Ads & Analytics improves **without waiting for a human to open chat** — zero shortcuts, religion-safe, evidence-gated.
 
+**Enterprise fleet SoT:** [`ops/FLEET_ENTERPRISE.md`](./ops/FLEET_ENTERPRISE.md) — five pod Automations, failure kill criteria, free-host ladder, wave locks. Setup: [`ops/fleet/AUTOMATIONS_SETUP.md`](./ops/fleet/AUTOMATIONS_SETUP.md). Tick log: [`ops/fleet/TICK_LOG.md`](./ops/fleet/TICK_LOG.md).
+
 ## Reality check (so we don’t kid ourselves)
 
 | Layer | What it is | Runs when |
@@ -25,10 +27,11 @@ Read product religion + delivery OS (paraphrased if files not on branch yet):
 
 See [`ENTERPRISE_REDESIGN.md`](./ENTERPRISE_REDESIGN.md) + [`docs/superpowers/specs/2026-07-26-enterprise-redesign-design.md`](./superpowers/specs/2026-07-26-enterprise-redesign-design.md).
 
-- **App lane is P0.** Site mega-ticks (≥80% site-first) are **paused**.
+- **App lane is P0.** Site mega-ticks (≥80% site-first) are **paused** — except Wave 1 **Services/Education money paths** under [`ops/FLEET_ENTERPRISE.md`](./ops/FLEET_ENTERPRISE.md) (Custom CTA, MDS go-live), which are monetize not mega-site craft.
 - Specialists default to **Grok 4.5** (`cursor-grok-4.5-high-fast`).
-- Topology: Parent + 1 Grok implementer + 1 Grok critic.
-- **No automation `fly deploy`** unless the founder explicitly asks.
+- Topology: Parent + 1 Grok implementer + 1 Grok critic (fleet caps: ≤6 Tasks; Conductor + ≤4 chats).
+- **No automation `fly deploy`** unless standing grant or founder phrase — always after ship-gate PASS ([`ops/STANDING_DEPLOY_GRANT.md`](./ops/STANDING_DEPLOY_GRANT.md)).
+- Idle on HUMAN_GATE; kill criteria in FLEET_ENTERPRISE.
 
 ## Tick protocol (orchestrator)
 

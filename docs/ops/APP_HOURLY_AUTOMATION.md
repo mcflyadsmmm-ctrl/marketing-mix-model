@@ -1,5 +1,8 @@
 # Mcfly App hourly Autonomy — Cursor Automation paste
 
+**Superseded for enterprise fleet by:** [`fleet/AUTO_DESK_SAAS.md`](./fleet/AUTO_DESK_SAAS.md) (keep this file as legacy single-lane paste).  
+**Fleet SoT:** [`FLEET_ENTERPRISE.md`](./FLEET_ENTERPRISE.md) · setup [`fleet/AUTOMATIONS_SETUP.md`](./fleet/AUTOMATIONS_SETUP.md)
+
 **Purpose:** Improve the Shopify cash desk for hours without founder babysitting.  
 **SoT:** [`MAJOR_IMPROVEMENT_PLAN.md`](../MAJOR_IMPROVEMENT_PLAN.md) · [`STANDING_DEPLOY_GRANT.md`](./STANDING_DEPLOY_GRANT.md) · [`CONTINUOUS_24_7.md`](../CONTINUOUS_24_7.md)
 
