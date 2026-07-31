@@ -19,6 +19,7 @@ export type TillLtvEmptyReason =
   | "no_timezone"
   | "history_limited"
   | "backfilling"
+  | "pro_required"
   | null;
 
 export interface TillLtvSummary {
@@ -26,7 +27,7 @@ export interface TillLtvSummary {
   historyLimited: boolean;
   /**
    * Honest empty-state reason when `available` is false:
-   * no_timezone | history_limited | backfilling.
+   * no_timezone | history_limited | backfilling | pro_required.
    */
   emptyReason: TillLtvEmptyReason;
   cohortCount: number;
@@ -43,19 +44,112 @@ export interface TillLtvSummary {
   periodLabel: string | null;
 }
 
-function weightedAvg(
+/**
+ * Customer-weighted average revenue per customer.
+ * `pick` must return **cohort total revenue** (not per-customer) — we divide
+ * by customer count once: Σ revenue / Σ customers.
+ */
+export function customerWeightedAvgRevenue(
   rows: TillLtvCohortRow[],
   pick: (r: TillLtvCohortRow) => number,
 ): number | null {
-  let weight = 0;
-  let sum = 0;
+  let customers = 0;
+  let revenue = 0;
   for (const r of rows) {
     if (r.customers <= 0) continue;
-    weight += r.customers;
-    sum += pick(r);
+    customers += r.customers;
+    revenue += pick(r);
   }
-  if (weight <= 0) return null;
-  return sum / weight;
+  if (customers <= 0) return null;
+  return revenue / customers;
+}
+
+/** Pure till-LTV KPI math from cohort rows + period cash CAC inputs. */
+export function summarizeTillLtvFromCohorts(
+  allCohorts: TillLtvCohortRow[],
+  options: {
+    totalSpend: number;
+    newCustomers: number;
+    periodLabel?: string | null;
+    historyLimited?: boolean;
+    useSampleDesk?: boolean;
+    ianaTimezone?: string | null;
+  },
+): TillLtvSummary {
+  const withCustomers = allCohorts.filter((c) => c.customers > 0);
+  const cohorts = withCustomers.slice(0, 6).map((c) => ({
+    cohortMonth: c.cohortMonth,
+    customers: c.customers,
+    revenueD30: c.revenueD30,
+    revenueD90: c.revenueD90,
+    revenueD365: c.revenueD365,
+    ordersD30: c.ordersD30,
+    ordersD90: c.ordersD90,
+    ordersD365: c.ordersD365,
+  }));
+
+  // CohortFact.revenueD* are shop-currency **totals** (dollars). Divide once.
+  const avgRevenueD30 = customerWeightedAvgRevenue(
+    withCustomers,
+    (r) => r.revenueD30,
+  );
+  const avgRevenueD90 = customerWeightedAvgRevenue(
+    withCustomers,
+    (r) => r.revenueD90,
+  );
+  const avgRevenueD365 = customerWeightedAvgRevenue(
+    withCustomers,
+    (r) => r.revenueD365,
+  );
+
+  const cashCac =
+    options.newCustomers > 0 && Number.isFinite(options.totalSpend)
+      ? options.totalSpend / options.newCustomers
+      : null;
+
+  const ltvCacRatio =
+    avgRevenueD90 != null && cashCac != null && cashCac > 0
+      ? avgRevenueD90 / cashCac
+      : null;
+
+  let repeatRate: number | null = null;
+  let custSum = 0;
+  let extraOrders = 0;
+  for (const r of withCustomers) {
+    custSum += r.customers;
+    extraOrders += Math.max(0, r.ordersD90 - r.customers);
+  }
+  if (custSum > 0) {
+    repeatRate = extraOrders / custSum;
+  }
+
+  const available = withCustomers.length > 0;
+  const historyLimited = Boolean(options.historyLimited);
+  let emptyReason: TillLtvEmptyReason = null;
+  if (!available) {
+    if (!options.useSampleDesk && !options.ianaTimezone) {
+      emptyReason = "no_timezone";
+    } else if (historyLimited) {
+      emptyReason = "history_limited";
+    } else {
+      emptyReason = "backfilling";
+    }
+  }
+
+  return {
+    available,
+    historyLimited,
+    emptyReason,
+    cohortCount: withCustomers.length,
+    avgRevenueD30,
+    avgRevenueD90,
+    avgRevenueD365,
+    cashCac,
+    ltvCacRatio,
+    cohorts,
+    repeatRate,
+    periodLabel: options.periodLabel ?? null,
+  };
 }
 
 /**
@@ -84,70 +178,24 @@ export async function buildTillLtvSummary(
       : getOrderBackfillHistoryLimited(shopId),
   ]);
 
-  const withCustomers = allCohorts.filter((c) => c.customers > 0);
-  const cohorts = withCustomers.slice(0, 6).map((c) => ({
-    cohortMonth: c.cohortMonth,
-    customers: c.customers,
-    revenueD30: c.revenueD30,
-    revenueD90: c.revenueD90,
-    revenueD365: c.revenueD365,
-    ordersD30: c.ordersD30,
-    ordersD90: c.ordersD90,
-    ordersD365: c.ordersD365,
-  }));
-
-  const avgRevenueD30 = weightedAvg(withCustomers, (r) => r.revenueD30 / r.customers);
-  const avgRevenueD90 = weightedAvg(withCustomers, (r) => r.revenueD90 / r.customers);
-  const avgRevenueD365 = weightedAvg(
-    withCustomers,
-    (r) => r.revenueD365 / r.customers,
+  return summarizeTillLtvFromCohorts(
+    allCohorts.map((c) => ({
+      cohortMonth: c.cohortMonth,
+      customers: c.customers,
+      revenueD30: c.revenueD30,
+      revenueD90: c.revenueD90,
+      revenueD365: c.revenueD365,
+      ordersD30: c.ordersD30,
+      ordersD90: c.ordersD90,
+      ordersD365: c.ordersD365,
+    })),
+    {
+      totalSpend: options.totalSpend,
+      newCustomers: options.newCustomers,
+      periodLabel: options.periodLabel,
+      historyLimited,
+      useSampleDesk: options.useSampleDesk,
+      ianaTimezone: options.ianaTimezone,
+    },
   );
-
-  const cashCac =
-    options.newCustomers > 0 && Number.isFinite(options.totalSpend)
-      ? options.totalSpend / options.newCustomers
-      : null;
-
-  const ltvCacRatio =
-    avgRevenueD90 != null && cashCac != null && cashCac > 0
-      ? avgRevenueD90 / cashCac
-      : null;
-
-  let repeatRate: number | null = null;
-  let custSum = 0;
-  let extraOrders = 0;
-  for (const r of withCustomers) {
-    custSum += r.customers;
-    extraOrders += Math.max(0, r.ordersD90 - r.customers);
-  }
-  if (custSum > 0) {
-    repeatRate = extraOrders / custSum;
-  }
-
-  const available = withCustomers.length > 0;
-  let emptyReason: TillLtvEmptyReason = null;
-  if (!available) {
-    if (!options.useSampleDesk && !options.ianaTimezone) {
-      emptyReason = "no_timezone";
-    } else if (historyLimited) {
-      emptyReason = "history_limited";
-    } else {
-      emptyReason = "backfilling";
-    }
-  }
-
-  return {
-    available,
-    historyLimited,
-    emptyReason,
-    cohortCount: withCustomers.length,
-    avgRevenueD30,
-    avgRevenueD90,
-    avgRevenueD365,
-    cashCac,
-    ltvCacRatio,
-    cohorts,
-    repeatRate,
-    periodLabel: options.periodLabel ?? null,
-  };
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import {
   EXPLORER_GRANULARITY_OPTIONS,
@@ -232,6 +232,19 @@ export function SpendExplorer({
     buckets.find((b) => b.key === selectedKey) ??
     buckets.find((b) => b.key === defaultKey) ??
     null;
+  const selectedIndex = selected
+    ? buckets.findIndex((b) => b.key === selected.key)
+    : -1;
+  /** Dense: MER micro-labels only on selected ± neighbors. */
+  const showAllMerLabels = buckets.length <= 14;
+  const showMerMicro = (index: number) => {
+    if (showAllMerLabels) return true;
+    if (selectedIndex < 0) return index === buckets.length - 1;
+    return Math.abs(index - selectedIndex) <= 1;
+  };
+  const datesDirty =
+    fromDraft !== series.fromKey || toDraft !== series.toKey;
+  const showColumnTips = !shotMode && buckets.length <= 10;
 
   const merPoints = buckets.map((b, i) => {
     const x = buckets.length > 0 ? ((i + 0.5) / buckets.length) * 100 : 0;
@@ -268,12 +281,12 @@ export function SpendExplorer({
 
   const colMinPx =
     series.granularity === "Day"
-      ? 36
+      ? 44
       : series.granularity === "Quarter"
-        ? 56
+        ? 64
         : mode === "total"
-          ? 40
-          : 48;
+          ? 48
+          : 52;
   const chartMinWidth = Math.max(360, buckets.length * colMinPx + 40);
 
   const hrefBase = {
@@ -332,6 +345,39 @@ export function SpendExplorer({
     if (fromDraft && toDraft) goCustomDates(fromDraft, toDraft);
   }
 
+  function moveSelection(delta: number) {
+    if (!buckets.length) return;
+    const cur =
+      selectedIndex >= 0 ? selectedIndex : Math.max(0, buckets.length - 1);
+    const next = Math.min(buckets.length - 1, Math.max(0, cur + delta));
+    const key = buckets[next]?.key;
+    if (key) setSelectedKey(key);
+  }
+
+  function onColsKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      moveSelection(-1);
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      moveSelection(1);
+      return;
+    }
+    if (e.key === "Home") {
+      e.preventDefault();
+      const key = buckets[0]?.key;
+      if (key) setSelectedKey(key);
+      return;
+    }
+    if (e.key === "End") {
+      e.preventDefault();
+      const key = buckets[buckets.length - 1]?.key;
+      if (key) setSelectedKey(key);
+    }
+  }
+
   return (
     <section
       className="mcfly-panel mcfly-explorer mcfly-explorer--lean"
@@ -379,11 +425,7 @@ export function SpendExplorer({
                 name="exFrom"
                 value={fromDraft}
                 max={series.asOfKey || dateKeyFromLocal(new Date())}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setFromDraft(v);
-                  if (v && toDraft) goCustomDates(v, toDraft);
-                }}
+                onChange={(e) => setFromDraft(e.target.value)}
               />
             </label>
             <label className="mcfly-explorer__date">
@@ -393,13 +435,16 @@ export function SpendExplorer({
                 name="exTo"
                 value={toDraft}
                 max={series.asOfKey || dateKeyFromLocal(new Date())}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setToDraft(v);
-                  if (fromDraft && v) goCustomDates(fromDraft, v);
-                }}
+                onChange={(e) => setToDraft(e.target.value)}
               />
             </label>
+            <button
+              type="submit"
+              className={`mcfly-explorer__btn mcfly-explorer__btn--apply${datesDirty ? " mcfly-explorer__btn--on" : ""}`}
+              disabled={!fromDraft || !toDraft}
+            >
+              Apply
+            </button>
           </form>
 
           <div
@@ -499,15 +544,21 @@ export function SpendExplorer({
                   gridTemplateColumns: `repeat(${Math.max(buckets.length, 1)}, minmax(0, 1fr))`,
                 }}
               >
-                {buckets.map((bucket) => {
+                {buckets.map((bucket, index) => {
                   const tone = merToneBand(bucket.mer, targetMer);
+                  const showLabel = showMerMicro(index);
                   return (
                     <div
                       key={`mer-${bucket.key}`}
-                      className={`mcfly-explorer__mer mcfly-explorer__mer--${tone}`}
+                      className={`mcfly-explorer__mer mcfly-explorer__mer--${tone}${showLabel ? "" : " mcfly-explorer__mer--mute"}`}
                       title={bucketTitle(bucket, mode)}
+                      aria-hidden={showLabel ? undefined : true}
                     >
-                      {bucket.mer != null ? formatMer(bucket.mer) : "—"}
+                      {showLabel
+                        ? bucket.mer != null
+                          ? formatMer(bucket.mer)
+                          : "—"
+                        : ""}
                     </div>
                   );
                 })}
@@ -610,9 +661,14 @@ export function SpendExplorer({
                     className="mcfly-explorer__cols"
                     role="listbox"
                     aria-label={`${PRODUCT_NOUN.explorer} columns`}
+                    aria-activedescendant={
+                      selected ? `explorer-col-${selected.key}` : undefined
+                    }
+                    tabIndex={0}
                     style={{
                       gridTemplateColumns: `repeat(${Math.max(buckets.length, 1)}, minmax(0, 1fr))`,
                     }}
+                    onKeyDown={onColsKeyDown}
                   >
                   {buckets.map((bucket) => {
                     const barTotal =
@@ -628,23 +684,23 @@ export function SpendExplorer({
                     const isOn = selected?.key === bucket.key;
                     return (
                       <div
+                        id={`explorer-col-${bucket.key}`}
                         className={`mcfly-explorer__col${isOn ? " mcfly-explorer__col--on" : ""}`}
                         role="option"
                         key={bucket.key}
-                        tabIndex={0}
+                        tabIndex={-1}
                         title={bucketTitle(bucket, mode)}
                         aria-label={bucketTitle(bucket, mode)}
                         aria-selected={isOn}
-                        onClick={() => setSelectedKey(bucket.key)}
-                        onFocus={() => setSelectedKey(bucket.key)}
-                        onMouseEnter={() => setSelectedKey(bucket.key)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setSelectedKey(bucket.key);
-                          }
+                        onPointerDown={(e) => {
+                          if (e.button !== 0) return;
+                          setSelectedKey(bucket.key);
                         }}
                       >
+                        <span
+                          className="mcfly-explorer__hit"
+                          aria-hidden="true"
+                        />
                         <div className="mcfly-explorer__plot">
                           {barH > 0 ? (
                             <div
@@ -671,10 +727,12 @@ export function SpendExplorer({
                             <div className="mcfly-explorer__bar mcfly-explorer__bar--empty" />
                           )}
                         </div>
-                        <div className="mcfly-explorer__tip" role="tooltip">
-                          <strong>{bucket.label}</strong>
-                          <span>{bucketMerPhrase(bucket)}</span>
-                        </div>
+                        {showColumnTips ? (
+                          <div className="mcfly-explorer__tip" role="tooltip">
+                            <strong>{bucket.label}</strong>
+                            <span>{bucketMerPhrase(bucket)}</span>
+                          </div>
+                        ) : null}
                       </div>
                     );
                   })}
@@ -704,7 +762,7 @@ export function SpendExplorer({
           </div>
 
           <div
-            className={`mcfly-explorer__readout${selected ? " mcfly-explorer__readout--on" : ""}`}
+            className={`mcfly-explorer__readout mcfly-explorer__readout--sticky${selected ? " mcfly-explorer__readout--on" : ""}`}
             aria-live="polite"
           >
             {selected ? (
@@ -718,7 +776,7 @@ export function SpendExplorer({
                 ) : null}
               </>
             ) : (
-              <span>Hover or click a column</span>
+              <span>Select a column · ← → to move</span>
             )}
           </div>
 

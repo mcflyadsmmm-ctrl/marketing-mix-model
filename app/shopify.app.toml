@@ -24,6 +24,12 @@ api_version = "2025-10"
   uri = "/webhooks/app/scopes_update"
   topics = ["app/scopes_update"]
 
+  # Dirty-day signal for SalesDayFact — the handler enqueues and ACKs, it never
+  # paginates orders inline. Level 1 fields only (order id + timestamp).
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/orders"
+  topics = ["orders/create", "orders/updated", "orders/cancelled"]
+
   [[webhooks.subscriptions]]
   uri = "/webhooks/compliance"
   compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]

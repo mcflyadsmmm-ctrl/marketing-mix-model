@@ -1,6 +1,6 @@
+/* launch-v2-20260728 */
 /**
- * Candidate B — mobile waitlist dock (≤720px).
- * Shows after hero exits; hides at #waitlist. Reuses [data-waitlist] in sheet.
+ * Mobile install dock (≤720px). Launch path: App Store / Support — no Install free.
  */
 (function () {
   if (!document.body.classList.contains("home")) return;
@@ -9,7 +9,7 @@
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mq = window.matchMedia("(max-width: 720px)");
 
-  const cssHref = "/assets/waitlist-dock.css?v=20260728h";
+  const cssHref = "/assets/waitlist-dock.css?v=20260728launch";
   if (!document.querySelector(`link[href="${cssHref}"]`)) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -17,73 +17,31 @@
     document.head.appendChild(link);
   }
 
-  const live = !!window.MCFLY_APP_STORE_LIVE;
-  const dockLabel = live ? "Get free install" : "Request Partner invite";
-  const dockTitle = live ? "Get free install (App Store)" : "Get a Partner invite";
-
   const aside = document.createElement("aside");
   aside.className = "wl-dock";
   aside.setAttribute("data-waitlist-dock", "");
   aside.hidden = true;
   aside.innerHTML = `
-    <button type="button" class="wl-dock__peek" aria-expanded="false" aria-controls="wl-dock-sheet">
+    <a class="wl-dock__peek" href="/support">
       <span class="wl-dock__mark" aria-hidden="true"></span>
-      <span class="wl-dock__label">${dockLabel}</span>
-    </button>
-    <div id="wl-dock-sheet" class="wl-dock__sheet" role="dialog" aria-labelledby="wl-dock-title" hidden>
-      <div class="wl-dock__grab" aria-hidden="true"></div>
-      <p id="wl-dock-title" class="wl-dock__title">${dockTitle}</p>
-      <p class="wl-dock__sub"><span class="mono">sales ÷ spend</span> — then your sales decide.</p>
-      <form class="waitlist waitlist--dock" data-waitlist novalidate>
-        <label>Email <input type="email" name="email" autocomplete="email" required /></label>
-        <label class="sr-only">Name <input type="text" name="name" autocomplete="name" /></label>
-        <button class="btn primary solid" type="submit">Request Partner invite</button>
-      </form>
-      <button type="button" class="wl-dock__close">Close</button>
-    </div>`;
+      <span class="wl-dock__label">Install free</span>
+    </a>
+  `;
   document.body.appendChild(aside);
 
-  const peek = aside.querySelector(".wl-dock__peek");
-  const sheet = aside.querySelector("#wl-dock-sheet");
-  const closeBtn = aside.querySelector(".wl-dock__close");
   const hero = document.querySelector(".hero");
-  const waitlist = document.querySelector("#waitlist");
+  const closeBand = document.querySelector("#install") || document.querySelector("#waitlist") || document.querySelector(".band.close");
 
   let heroIn = true;
-  let waitlistIn = false;
+  let closeIn = false;
 
   function sync() {
     if (!mq.matches) {
       aside.hidden = true;
-      sheet.hidden = true;
-      peek.setAttribute("aria-expanded", "false");
       return;
     }
-    const show = !heroIn && !waitlistIn;
-    aside.hidden = !show;
-    if (!show) {
-      sheet.hidden = true;
-      peek.setAttribute("aria-expanded", "false");
-    }
+    aside.hidden = !(!heroIn && !closeIn);
   }
-
-  function openSheet() {
-    sheet.hidden = false;
-    peek.setAttribute("aria-expanded", "true");
-  }
-  function closeSheet() {
-    sheet.hidden = true;
-    peek.setAttribute("aria-expanded", "false");
-  }
-
-  peek.addEventListener("click", () => {
-    if (sheet.hidden) openSheet();
-    else closeSheet();
-  });
-  closeBtn.addEventListener("click", closeSheet);
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeSheet();
-  });
 
   if ("IntersectionObserver" in window) {
     if (hero) {
@@ -95,14 +53,14 @@
         { threshold: 0.08 }
       ).observe(hero);
     }
-    if (waitlist) {
+    if (closeBand) {
       new IntersectionObserver(
         ([e]) => {
-          waitlistIn = e.isIntersecting;
+          closeIn = e.isIntersecting;
           sync();
         },
         { threshold: 0.12 }
-      ).observe(waitlist);
+      ).observe(closeBand);
     }
   } else {
     heroIn = false;

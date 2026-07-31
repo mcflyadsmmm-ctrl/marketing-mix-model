@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  var TARGET_MER = 4;
+  var DEFAULT_TARGET = 4;
   var DEFAULT_MARGIN = 0.35;
   var AS_OF_SHORT = "Jul 27";
   var SHOP = "Northline Supply";
@@ -14,9 +14,9 @@
   var CLAIMED_MER = 4.8;
 
   /**
-   * Coherent DTC sample periods. Action Total ROAS = net sales ÷ spend.
+   * Coherent DTC sample periods. Total ROAS = sales after returns ÷ spend.
    * Gross shown as secondary (Ads Manager–comparable) only.
-   * Compact metrics + pacing days are till-safe SAMPLE numbers.
+   * Compact metrics + pacing days are SAMPLE numbers only.
    */
   var PERIODS = {
     l7d: {
@@ -40,17 +40,24 @@
       ltvAov90: 142,
       repeatRate30: 0.18,
       channels: [
-        { id: "meta", label: "Meta", spend: 13200, badge: "hold" },
-        { id: "google", label: "Google", spend: 7800, badge: "shift" },
+        { id: "meta", label: "Meta", spend: 13200, badge: "protect" },
+        { id: "google", label: "Google", spend: 7800, badge: "cut" },
         { id: "microsoft", label: "Microsoft", spend: 1980, badge: "hold" },
         { id: "email", label: "Email", spend: 1200, badge: "hold" },
       ],
-      alloc: "Hold Meta · step-test −10% Google",
+      alloc: "Protect Meta · step-test −10% Google",
       allocWhy:
         "Illustrative only — average channel Total ROAS ≠ marginal. A small Google cut tests whether cash holds while Meta carries the week.",
       decisionLead: "Above break-even; short of target.",
       decisionWhy:
-        "Last 7 days cleared break-even with room to protect Meta. Step-test Google before chasing the 4.00× target.",
+        "Last 7 days cleared break-even with room to protect Meta. Step-test Google before chasing the target rail.",
+      shiftProtect: "Meta",
+      shiftProtectWhy: "Carry the week while cash clears break-even.",
+      shiftHold: "Microsoft · Email",
+      shiftHoldWhy: "Steady lines — don’t chase platform claims.",
+      shiftCut: "Google −10%",
+      shiftCutWhy: "Learn marginal response. Average ≠ marginal.",
+      monthPlanSales: 120000,
     },
     mtd: {
       id: "mtd",
@@ -73,17 +80,24 @@
       ltvAov90: 151,
       repeatRate30: 0.21,
       channels: [
-        { id: "meta", label: "Meta", spend: 51200, badge: "hold" },
-        { id: "google", label: "Google", spend: 32800, badge: "shift" },
+        { id: "meta", label: "Meta", spend: 51200, badge: "protect" },
+        { id: "google", label: "Google", spend: 32800, badge: "cut" },
         { id: "microsoft", label: "Microsoft", spend: 8900, badge: "hold" },
         { id: "email", label: "Email", spend: 5600, badge: "hold" },
       ],
-      alloc: "Hold Meta · step-test −10% Google",
+      alloc: "Protect Meta · step-test −10% Google",
       allocWhy:
-        "Illustrative recommendation from cash efficiency vs break-even — not path credit. Average ≠ marginal ROAS.",
-      decisionLead: "Above target on net sales ÷ spend.",
+        "Illustrative recommendation from cash efficiency vs break-even — not path credit. Average ≠ marginal. Allocate to grow.",
+      decisionLead: "Above target on sales after returns ÷ spend.",
       decisionWhy:
-        "MTD Total ROAS clears the 4.00× target and break-even. Protect Meta; step-test a −10% Google cut to learn marginal response.",
+        "MTD Total ROAS clears the target rail and break-even. Protect Meta; step-test a −10% Google cut to learn marginal response.",
+      shiftProtect: "Meta",
+      shiftProtectWhy: "Carry the month while cash clears target.",
+      shiftHold: "Microsoft · Email",
+      shiftHoldWhy: "Steady lines — don’t chase platform claims.",
+      shiftCut: "Google −10%",
+      shiftCutWhy: "Learn marginal response. Average ≠ marginal.",
+      monthPlanSales: 465000,
     },
     qtd: {
       id: "qtd",
@@ -106,17 +120,24 @@
       ltvAov90: 148,
       repeatRate30: 0.2,
       channels: [
-        { id: "meta", label: "Meta", spend: 148800, badge: "hold" },
-        { id: "google", label: "Google", spend: 112600, badge: "shift" },
+        { id: "meta", label: "Meta", spend: 148800, badge: "protect" },
+        { id: "google", label: "Google", spend: 112600, badge: "cut" },
         { id: "microsoft", label: "Microsoft", spend: 31200, badge: "hold" },
         { id: "email", label: "Email", spend: 19800, badge: "hold" },
       ],
-      alloc: "Hold Meta · step-test −10% Google",
+      alloc: "Protect Meta · step-test −10% Google",
       allocWhy:
         "Quarter mix shows Google softer vs cash break-even. Illustrative step-test — average channel Total ROAS is not marginal.",
       decisionLead: "Above break-even; below target.",
       decisionWhy:
-        "QTD clears break-even with headroom, but sits under the 4.00× target. Hold Meta; step-test Google before a larger reallocation.",
+        "QTD clears break-even with headroom, but sits under the target rail. Protect Meta; step-test Google before a larger reallocation.",
+      shiftProtect: "Meta",
+      shiftProtectWhy: "Protect the cash-efficient line into quarter close.",
+      shiftHold: "Microsoft · Email",
+      shiftHoldWhy: "Steady lines — don’t chase platform claims.",
+      shiftCut: "Google −10%",
+      shiftCutWhy: "Soft vs break-even — step-test before a larger cut.",
+      monthPlanSales: 465000,
     },
     ytd: {
       id: "ytd",
@@ -139,23 +160,32 @@
       ltvAov90: 155,
       repeatRate30: 0.22,
       channels: [
-        { id: "meta", label: "Meta", spend: 324000, badge: "hold" },
-        { id: "google", label: "Google", spend: 248500, badge: "shift" },
+        { id: "meta", label: "Meta", spend: 324000, badge: "protect" },
+        { id: "google", label: "Google", spend: 248500, badge: "cut" },
         { id: "microsoft", label: "Microsoft", spend: 68500, badge: "hold" },
         { id: "email", label: "Email", spend: 41500, badge: "hold" },
       ],
-      alloc: "Hold Meta · step-test −10% Google",
+      alloc: "Protect Meta · step-test −10% Google",
       allocWhy:
         "Year-to-date cash picture favors protecting Meta. Any Google cut is a learning step-test — not attributed path credit.",
       decisionLead: "Near target on year-to-date cash.",
       decisionWhy:
-        "YTD Total ROAS sits just under the 4.00× target while clearing break-even. Keep Meta steady; step-test Google.",
+        "YTD Total ROAS sits near the target rail while clearing break-even. Keep Meta protected; step-test Google.",
+      shiftProtect: "Meta",
+      shiftProtectWhy: "YTD cash favors protecting this line.",
+      shiftHold: "Microsoft · Email",
+      shiftHoldWhy: "Steady lines — don’t chase platform claims.",
+      shiftCut: "Google −10%",
+      shiftCutWhy: "Learning cut — average ≠ marginal.",
+      monthPlanSales: 465000,
     },
   };
 
   var state = {
     period: "mtd",
+    section: "overview",
     margin: DEFAULT_MARGIN,
+    targetMer: DEFAULT_TARGET,
     drawerOpen: false,
     drawerKind: null,
     drawerId: null,
@@ -232,6 +262,7 @@
 
   function badgeLabel(badge) {
     if (badge === "hold") return "Hold";
+    if (badge === "protect") return "Protect";
     if (badge === "shift") return "Step-test";
     if (badge === "cut") return "Cut";
     return badge;
@@ -241,57 +272,81 @@
     if (badge === "hold") {
       return "Hold means keep this line steady while cash clears break-even / target. Not a platform ROAS endorsement.";
     }
+    if (badge === "protect") {
+      return "Protect means keep spend on this cash-efficient line while you grow. Not path credit.";
+    }
     if (badge === "shift") {
       return "Step-test means an illustrative small cut to learn response. Average channel Total ROAS ≠ marginal.";
     }
     if (badge === "cut") {
-      return "Cut means freeze or reduce until the till recovers above break-even. Cash first.";
+      return "Cut / step-test means reduce to learn marginal response or protect cash. Average ≠ marginal.";
     }
     return "Illustrative badge only — average ≠ marginal.";
   }
 
+  function badgeClass(badge) {
+    if (badge === "protect") return "protect";
+    if (badge === "shift" || badge === "cut") return "cut";
+    return "hold";
+  }
+
   function channelNextAction(ch) {
-    if (ch.badge === "shift") {
+    if (ch.badge === "shift" || ch.badge === "cut") {
       return (
         "Step-test about −10% on " +
         ch.label +
-        ". Watch till Total ROAS for a few closed days — not Ads Manager."
+        ". Watch cash Total ROAS for a few closed days — not Ads Manager."
       );
     }
-    if (ch.badge === "cut") {
+    if (ch.badge === "protect") {
       return (
-        "Freeze " +
+        "Protect " +
         ch.label +
-        " spend until cash MER clears break-even. Reallocate only after the till moves."
+        ". Scale only inside safe-spend headroom — cash Total ROAS, not platform claims."
       );
     }
     return (
-      "Protect " +
+      "Hold " +
       ch.label +
-      ". Don’t chase platform claims — hold spend while cash stays above break-even."
+      ". Don’t chase platform claims — keep spend steady while cash stays above break-even."
     );
   }
 
   function kpiNextAction(key, mer, be) {
+    var target = state.targetMer;
     if (key === "mer") {
-      if (mer == null || be == null) return "Enter sales and spend to read the till.";
-      if (mer < be) return "Protect cash — cut or freeze soft channels until MER clears break-even.";
-      if (mer < TARGET_MER) {
-        return "Above break-even. Hold winners; step-test weaker share before chasing 4.00×.";
+      if (mer == null || be == null) return "Enter sales and spend to see sales ÷ spend.";
+      if (mer < be) {
+        return "Protect cash — cut or freeze soft channels until Total ROAS clears break-even.";
+      }
+      if (mer < target) {
+        return (
+          "Above break-even. Protect winners; step-test weaker share before chasing " +
+          formatMer(target) +
+          "."
+        );
       }
       return "Above target. Protect the mix; only scale inside safe-spend headroom.";
     }
     if (key === "sales") {
-      return "Use net for Total ROAS. Gross is only for Ads Manager comparison — never for the Monday call.";
+      return "Use Total Sales for Total ROAS. Order totals are only for Ads Manager comparison — never for the Monday call.";
     }
     if (key === "spend") {
       return "In product: pick platforms → download a blank template → Sheets Import → paste on Spend. Free CSV always works.";
     }
     if (key === "eom") {
-      if (mer != null && mer >= TARGET_MER) {
-        return "On pace for the 4.00× rail. Scale only inside headroom; don’t invent path credit.";
+      if (mer != null && mer >= target) {
+        return (
+          "On pace for the " +
+          formatMer(target) +
+          " rail. Scale only inside headroom; don’t invent path credit."
+        );
       }
-      return "Below the 4.00× rail on current pace. Reallocate or cut before month close.";
+      return (
+        "Below the " +
+        formatMer(target) +
+        " rail on current pace. Reallocate or cut before month close."
+      );
     }
     return "Cash language only — sales ÷ spend.";
   }
@@ -313,20 +368,21 @@
       };
     }
     return {
-      lead: "Above target on net sales ÷ spend.",
+      lead: "Above target on sales after returns ÷ spend.",
       tone: "up",
     };
   }
 
-  /** Pacing: sales vs calendar toward target MER on projected spend. */
+  /** Pacing: sales vs calendar toward target Total ROAS on projected spend. */
   function computePace(period, mer) {
+    var target = state.targetMer;
     var daysElapsed = period.daysElapsed;
     var daysInPeriod = period.daysInPeriod;
     var remainingDays = Math.max(0, daysInPeriod - daysElapsed);
     var avgDailySales = daysElapsed > 0 ? period.netSales / daysElapsed : 0;
     var avgDailySpend = daysElapsed > 0 ? period.spend / daysElapsed : 0;
     var projSpend = period.spend + avgDailySpend * remainingDays;
-    var targetPeriodSales = TARGET_MER > 0 ? projSpend * TARGET_MER : 0;
+    var targetPeriodSales = target > 0 ? projSpend * target : 0;
     var remainingSalesNeeded = Math.max(0, targetPeriodSales - period.netSales);
     var dailySalesNeeded =
       remainingDays > 0 ? remainingSalesNeeded / remainingDays : 0;
@@ -341,7 +397,7 @@
     var progressCls =
       salesProgressPct >= calendarProgressPct
         ? "good"
-        : mer != null && mer >= TARGET_MER * 0.85
+        : mer != null && mer >= target * 0.85
           ? "warn"
           : "bad";
     return {
@@ -353,19 +409,21 @@
       salesProgressPct: salesProgressPct,
       calendarProgressPct: calendarProgressPct,
       progressCls: progressCls,
+      targetPeriodSales: targetPeriodSales,
+      projSpend: projSpend,
     };
   }
 
-  /** Headroom to BE = spend still addable before MER hits break-even. */
+  /** Headroom to BE = spend still addable before Total ROAS hits break-even. */
   function headroomToBe(sales, spend, be) {
     if (!(be > 0) || !(sales > 0)) return null;
     return sales / be - spend;
   }
 
-  /** Gap to target = net sales still needed at current spend to hit TARGET_MER. */
+  /** Gap to target = sales after returns still needed at current spend to hit target. */
   function gapToTarget(sales, spend) {
     if (!(spend > 0)) return null;
-    return spend * TARGET_MER - sales;
+    return spend * state.targetMer - sales;
   }
 
   function renderChannels(period) {
@@ -409,8 +467,7 @@
       name.appendChild(document.createTextNode(ch.label + " "));
       var badge = document.createElement("span");
       badge.className =
-        "dd-channel__badge dd-channel__badge--" +
-        (ch.badge === "shift" ? "shift" : ch.badge === "cut" ? "cut" : "hold");
+        "dd-channel__badge dd-channel__badge--" + badgeClass(ch.badge);
       badge.textContent = badgeLabel(ch.badge);
       name.appendChild(badge);
 
@@ -561,13 +618,13 @@
     if (key === "mer") {
       title = "Total ROAS";
       html =
-        '<p class="dd-drawer__kicker">Cash MER · SAMPLE</p>' +
+        '<p class="dd-drawer__kicker">Transparent ROAS · SAMPLE</p>' +
         '<p class="dd-drawer__value">' +
         formatMer(mer) +
         "</p>" +
         blockHtml(
           "Formula",
-          "<strong>Net Shopify sales ÷ ad spend</strong> for the selected window. Not platform ROAS.",
+          "<strong>Total Sales ÷ ad spend</strong> for the selected window. Not platform ROAS.",
         ) +
         blockHtml(
           "Period window",
@@ -590,28 +647,28 @@
                 formatMer(be) +
                 " at " +
                 Math.round(state.margin * 100) +
-                "% margin"
+                "% profit margin"
               : ""),
         ) +
         nextHtml(kpiNextAction("mer", mer, be)) +
-        '<p class="dd-drawer__foot">SAMPLE Northline Supply — till math only.</p>';
+        '<p class="dd-drawer__foot">SAMPLE Northline Supply — sales ÷ spend only.</p>';
     } else if (key === "sales") {
-      title = "Net sales";
+      title = "Total Sales";
       html =
-        '<p class="dd-drawer__kicker">Shopify till · SAMPLE</p>' +
+        '<p class="dd-drawer__kicker">Total Sales · SAMPLE</p>' +
         '<p class="dd-drawer__value">' +
         money(period.netSales) +
         "</p>" +
         blockHtml(
           "Formula role",
-          "Net sales are the numerator in Total ROAS. Gross (" +
+          "Total Sales are the numerator in Total ROAS — what you actually kept. Order totals (" +
             money(period.grossSales) +
-            ") is secondary for Ads Manager comparison only.",
+            ") are secondary for Ads Manager comparison only.",
         ) +
         blockHtml("Period window", "<strong>" + period.label + "</strong> · " + period.asOf) +
         blockHtml("Prior delta", deltaMoneyText(period.netSales, period.priorSales)) +
         nextHtml(kpiNextAction("sales", mer, be)) +
-        '<p class="dd-drawer__foot">Refunds and discounts already reflected in net.</p>';
+        '<p class="dd-drawer__foot">Returns already accounted for — not ignored.</p>';
     } else if (key === "spend") {
       title = "Ad spend";
       html =
@@ -621,14 +678,14 @@
         "</p>" +
         blockHtml(
           "Formula role",
-          "Ad spend is the denominator. Same window as net sales — no path credit, no view-through.",
+          "Ad spend is the denominator. Same window as Total Sales — no path credit, no view-through.",
         ) +
         blockHtml("Period window", "<strong>" + period.label + "</strong> · " + period.asOf) +
         blockHtml("Prior delta", deltaMoneyText(period.spend, period.priorSpend)) +
         nextHtml(kpiNextAction("spend", mer, be)) +
         '<p class="dd-drawer__foot">Optional SyncWith / Coupler / Supermetrics fill the same template — you pay them.</p>';
     } else if (key === "eom") {
-      title = "EOM projected MER";
+      title = "EOM projected Total ROAS";
       html =
         '<p class="dd-drawer__kicker">Pace · SAMPLE</p>' +
         '<p class="dd-drawer__value">' +
@@ -636,8 +693,8 @@
         "</p>" +
         blockHtml(
           "Formula",
-          "Illustrative end-of-month MER if current daily sales and spend pace continue. Target rail <strong>" +
-            formatMer(TARGET_MER) +
+          "Illustrative end-of-month Total ROAS if current daily sales and spend pace continue. Target rail <strong>" +
+            formatMer(state.targetMer) +
             "</strong>.",
         ) +
         blockHtml(
@@ -653,14 +710,14 @@
         ) +
         blockHtml(
           "Prior / vs target",
-          "MTD MER " +
+          "Period Total ROAS " +
             formatMer(mer) +
             " · EOM proj. " +
             formatMer(period.eomProjectedMer) +
             (mer != null
               ? " · " +
-                (mer - TARGET_MER >= 0 ? "+" : "") +
-                formatMer(mer - TARGET_MER) +
+                (mer - state.targetMer >= 0 ? "+" : "") +
+                formatMer(mer - state.targetMer) +
                 " vs target"
               : ""),
         ) +
@@ -684,8 +741,7 @@
     }
     if (!ch) return;
     var share = Math.round((ch.spend / period.spend) * 100);
-    var badgeCls =
-      ch.badge === "shift" ? "shift" : ch.badge === "cut" ? "cut" : "hold";
+    var badgeCls = badgeClass(ch.badge);
     var html =
       '<p class="dd-drawer__kicker">' +
       period.label +
@@ -749,7 +805,7 @@
     var pace = computePace(period, mer);
     setText(
       "#dd-pace-period",
-      period.label + " · target " + formatMer(TARGET_MER) + " · SAMPLE",
+      period.label + " · target " + formatMer(state.targetMer) + " · SAMPLE",
     );
     setText(
       "#dd-pace-days",
@@ -777,43 +833,156 @@
     }
   }
 
-  function renderGoals(period, be) {
+  function setHeadroomGap(prefix, period, be) {
     var headroom = headroomToBe(period.netSales, period.spend, be);
     var gap = gapToTarget(period.netSales, period.spend);
+    var headSel = prefix === "tab" ? "#dd-goals-tab-headroom" : "#dd-goals-headroom";
+    var headHint =
+      prefix === "tab" ? "#dd-goals-tab-headroom-hint" : "#dd-goals-headroom-hint";
+    var gapSel = prefix === "tab" ? "#dd-goals-tab-gap" : "#dd-goals-gap";
+    var gapHint = prefix === "tab" ? "#dd-goals-tab-gap-hint" : "#dd-goals-gap-hint";
 
     if (headroom == null) {
-      setText("#dd-goals-headroom", "—");
-      setText("#dd-goals-headroom-hint", "Need margin to compute break-even");
+      setText(headSel, "—");
+      setText(headHint, "Need margin to compute break-even");
     } else if (headroom >= 0) {
-      setText("#dd-goals-headroom", money(Math.round(headroom)));
+      setText(headSel, money(Math.round(headroom)));
       setText(
-        "#dd-goals-headroom-hint",
+        headHint,
         "Spend you can still add before break-even " + formatMer(be),
       );
     } else {
-      setText("#dd-goals-headroom", money(Math.round(Math.abs(headroom))) + " over");
-      setText(
-        "#dd-goals-headroom-hint",
-        "Spend above break-even capacity — protect cash",
-      );
+      setText(headSel, money(Math.round(Math.abs(headroom))) + " over");
+      setText(headHint, "Spend above break-even capacity — protect cash");
     }
 
     if (gap == null) {
-      setText("#dd-goals-gap", "—");
-      setText("#dd-goals-gap-hint", "Need spend to compute target gap");
+      setText(gapSel, "—");
+      setText(gapHint, "Need spend to compute target gap");
     } else if (gap <= 0) {
-      setText("#dd-goals-gap", "Cleared · " + money(Math.round(Math.abs(gap))));
+      setText(gapSel, "Cleared · " + money(Math.round(Math.abs(gap))));
       setText(
-        "#dd-goals-gap-hint",
-        "Above " + formatMer(TARGET_MER) + " at this spend · SAMPLE",
+        gapHint,
+        "Above " + formatMer(state.targetMer) + " at this spend · SAMPLE",
       );
     } else {
-      setText("#dd-goals-gap", money(Math.round(gap)));
+      setText(gapSel, money(Math.round(gap)));
       setText(
-        "#dd-goals-gap-hint",
-        "Sales dollars to clear " + formatMer(TARGET_MER) + " at this spend",
+        gapHint,
+        "Sales dollars to clear " + formatMer(state.targetMer) + " at this spend",
       );
     }
+  }
+
+  function renderGoals(period, be) {
+    setHeadroomGap("overview", period, be);
+    setHeadroomGap("tab", period, be);
+
+    var mer = merOf(period.netSales, period.spend);
+    var vs = mer != null ? mer - state.targetMer : null;
+    var pace = computePace(period, mer);
+    var planSales = period.monthPlanSales || Math.round(pace.targetPeriodSales);
+    var planSpend = Math.round(pace.projSpend);
+    var planRoas = state.targetMer;
+
+    setText("#dd-goals-target", formatMer(state.targetMer));
+    setText(
+      "#dd-goals-vs",
+      vs == null ? "—" : (vs >= 0 ? "+" : "") + formatMer(vs),
+    );
+    setText(
+      "#dd-goals-vs-hint",
+      vs == null
+        ? "Need sales and spend"
+        : vs >= 0
+          ? "Above " + formatMer(state.targetMer) + " at this spend"
+          : "Below " + formatMer(state.targetMer) + " — reallocate or grow sales",
+    );
+    setText("#dd-goals-be", formatMer(be));
+    setText(
+      "#dd-goals-be-hint",
+      "At " + Math.round(state.margin * 100) + "% profit margin",
+    );
+
+    setText("#dd-goals-plan-sales", money(planSales));
+    setText("#dd-goals-act-sales", money(period.netSales));
+    setText(
+      "#dd-goals-pace-sales",
+      pace.salesProgressPct >= pace.calendarProgressPct ? "On track" : "Behind",
+    );
+    setText("#dd-goals-plan-spend", money(planSpend));
+    setText("#dd-goals-act-spend", money(period.spend));
+    setText(
+      "#dd-goals-pace-spend",
+      period.spend <= planSpend ? "Inside plan" : "Over plan",
+    );
+    setText("#dd-goals-plan-roas", formatMer(planRoas));
+    setText("#dd-goals-act-roas", formatMer(mer));
+    setText(
+      "#dd-goals-pace-roas",
+      mer != null && mer >= state.targetMer ? "Cleared" : "Short",
+    );
+  }
+
+  function renderShifts(period) {
+    setText("#dd-shift-protect-ch", period.shiftProtect || "Meta");
+    setText(
+      "#dd-shift-protect-why",
+      period.shiftProtectWhy || "Carry the week while cash clears target.",
+    );
+    setText("#dd-shift-hold-ch", period.shiftHold || "Microsoft · Email");
+    setText(
+      "#dd-shift-hold-why",
+      period.shiftHoldWhy || "Steady lines — don’t chase platform claims.",
+    );
+    setText("#dd-shift-cut-ch", period.shiftCut || "Google −10%");
+    setText(
+      "#dd-shift-cut-why",
+      period.shiftCutWhy || "Learn marginal response. Average ≠ marginal.",
+    );
+  }
+
+  function renderSettings() {
+    var be = breakEven(state.margin);
+    setText("#dd-settings-margin-value", Math.round(state.margin * 100) + "%");
+    setText("#dd-settings-margin-be", "Break-even ≈ " + formatMer(be));
+    setText("#dd-settings-target-value", formatMer(state.targetMer));
+    var marginInput = $("#dd-settings-margin-range");
+    if (marginInput && Number(marginInput.value) !== Math.round(state.margin * 100)) {
+      marginInput.value = String(Math.round(state.margin * 100));
+    }
+    var targetInput = $("#dd-settings-target-range");
+    if (targetInput) {
+      var tenths = Math.round(state.targetMer * 10);
+      if (Number(targetInput.value) !== tenths) {
+        targetInput.value = String(tenths);
+      }
+    }
+    var overviewMargin = $("#dd-margin-range");
+    if (overviewMargin && Number(overviewMargin.value) !== Math.round(state.margin * 100)) {
+      overviewMargin.value = String(Math.round(state.margin * 100));
+    }
+  }
+
+  function renderSpendCoverage(period) {
+    var filled = Math.max(
+      1,
+      Math.round(period.daysElapsed * COVERAGE),
+    );
+    setText("#dd-spend-cov-pct", Math.round(COVERAGE * 100) + "%");
+    setText(
+      "#dd-spend-cov-note",
+      filled +
+        " of " +
+        period.daysElapsed +
+        " " +
+        period.label +
+        " days filled · recon ±" +
+        (RECON_PCT * 100).toFixed(1) +
+        "% · SAMPLE",
+    );
+    var fill = $("#dd-spend-cov-fill");
+    if (fill) fill.style.width = Math.round(COVERAGE * 100) + "%";
   }
 
   function render() {
@@ -821,8 +990,8 @@
     var be = breakEven(state.margin);
     var mer = merOf(period.netSales, period.spend);
     var beGap = mer != null && be != null ? mer - be : null;
-    var vsTarget = mer != null ? mer - TARGET_MER : null;
-    var verdict = verdictCopy(mer, be, TARGET_MER);
+    var vsTarget = mer != null ? mer - state.targetMer : null;
+    var verdict = verdictCopy(mer, be, state.targetMer);
     var aov =
       period.orders > 0 ? Math.round(period.netSales / period.orders) : null;
     var claimed = period.claimedMer != null ? period.claimedMer : CLAIMED_MER;
@@ -879,7 +1048,7 @@
     setText("#dd-kpi-sales", money(period.netSales));
     setText(
       "#dd-kpi-sales-sub",
-      "Gross " + money(period.grossSales) + " · Ads Manager–comparable",
+      "Order totals " + money(period.grossSales) + " · Ads Manager–comparable",
     );
     setDelta(
       "#dd-kpi-sales-delta",
@@ -895,7 +1064,11 @@
     );
 
     setText("#dd-kpi-eom", formatMer(period.eomProjectedMer));
-    setText("#dd-kpi-eom-label", "EOM projected MER");
+    setText("#dd-kpi-eom-label", "EOM projected Total ROAS");
+    setText(
+      "#dd-kpi-eom-sub",
+      "Target " + formatMer(state.targetMer) + " · SAMPLE",
+    );
     setDelta(
       "#dd-kpi-eom-delta",
       (vsTarget != null && vsTarget < 0
@@ -942,9 +1115,9 @@
     );
     setText(
       "#dd-eq-meta",
-      "Action Total ROAS uses net sales. Gross " +
+      "Total ROAS uses Shopify sales after returns. Order totals " +
         money(period.grossSales) +
-        " is secondary for Ads Manager comparison — not path credit.",
+        " are secondary for Ads Manager comparison — not path credit.",
     );
     setHtml(
       "#dd-eq-trust",
@@ -971,12 +1144,15 @@
       "#dd-close-decision",
       "Decision preview: " +
         period.alloc +
-        ". Lock this Monday close after exceptions are clear — illustrative only.",
+        ". Save and export this Monday Close memo after exceptions are clear — illustrative only.",
     );
 
     renderPace(period, mer);
     renderGoals(period, be);
+    renderShifts(period);
     renderChannels(period);
+    renderSettings();
+    renderSpendCoverage(period);
 
     flash("#dd-kpi-mer");
     flash("#dd-eq-me");
@@ -994,6 +1170,42 @@
         formatMer(mer) +
         " · BE " +
         formatMer(be);
+    }
+  }
+
+  function showSection(key) {
+    var known = {
+      overview: true,
+      spend: true,
+      goals: true,
+      mix: true,
+      explorer: true,
+      close: true,
+      settings: true,
+    };
+    if (!known[key]) key = "overview";
+    state.section = key;
+    $$("[data-dd-section]").forEach(function (sec) {
+      var id = sec.getAttribute("data-dd-section");
+      var on = id === key;
+      if (on) {
+        sec.hidden = false;
+        sec.removeAttribute("hidden");
+      } else {
+        sec.hidden = true;
+        sec.setAttribute("hidden", "");
+      }
+    });
+    $$("[data-dd-nav]").forEach(function (b) {
+      var on = b.getAttribute("data-dd-nav") === key;
+      b.setAttribute("aria-current", on ? "true" : "false");
+    });
+    var live = $("#dd-live");
+    if (live) {
+      live.textContent = "Showing " + key + " · SAMPLE desk";
+    }
+    if (key === "explorer") {
+      window.dispatchEvent(new Event("resize"));
     }
   }
 
@@ -1027,32 +1239,88 @@
   }
 
   function bindMargin() {
-    var input = $("#dd-margin-range");
+    $$("#dd-margin-range, #dd-settings-margin-range").forEach(function (input) {
+      input.addEventListener("input", function () {
+        state.margin = Number(input.value) / 100;
+        render();
+      });
+    });
+  }
+
+  function bindSettingsTarget() {
+    var input = $("#dd-settings-target-range");
     if (!input) return;
     input.addEventListener("input", function () {
-      state.margin = Number(input.value) / 100;
+      state.targetMer = Number(input.value) / 10;
       render();
     });
   }
 
+  function bindSpendDemo() {
+    $$("[data-dd-platform]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var on = btn.getAttribute("aria-pressed") === "true";
+        var next = !on;
+        btn.setAttribute("aria-pressed", next ? "true" : "false");
+        btn.classList.toggle("is-on", next);
+        var selected = $$("[data-dd-platform][aria-pressed='true']").length;
+        setText(
+          "#dd-spend-chip-hint",
+          selected +
+            " platform" +
+            (selected === 1 ? "" : "s") +
+            " selected · SAMPLE",
+        );
+      });
+    });
+
+    function toast(msg) {
+      var el = $("#dd-spend-toast");
+      if (!el) return;
+      el.textContent = msg;
+      window.setTimeout(function () {
+        if (el.textContent === msg) el.textContent = "";
+      }, 3200);
+    }
+
+    $$("[data-dd-fake]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var kind = btn.getAttribute("data-dd-fake");
+        if (kind === "template") {
+          toast("SAMPLE — blank template downloads in the app, not on this page.");
+          return;
+        }
+        if (kind === "sheets") {
+          toast("Tip: Sheets Import → fill daily spend → paste in app Spend.");
+          var tip = $(".dd-spend__tip");
+          if (tip) tip.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          return;
+        }
+        if (kind === "import") {
+          toast("SAMPLE desk — no upload. In app: paste CSV or combine platform files.");
+        }
+      });
+    });
+
+    var file = $("#dd-spend-file");
+    if (file) {
+      file.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        toast("SAMPLE — file pick disabled. Free CSV path lives in the Shopify app.");
+      });
+    }
+  }
+
   function bindNav() {
-    var map = {
-      overview: "#dd-sec-overview",
-      mix: "#dd-sec-mix",
-      explorer: "#dd-sec-explorer",
-      close: "#dd-sec-close",
-    };
     $$("[data-dd-nav]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var key = btn.getAttribute("data-dd-nav");
-        var sel = map[key];
-        if (!sel) return;
-        $$("[data-dd-nav]").forEach(function (b) {
-          b.setAttribute("aria-current", b === btn ? "true" : "false");
-        });
-        var target = $(sel);
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!key) return;
+        if (state.drawerOpen) closeDrawer();
+        showSection(key);
+        var desk = $("#dd-desk");
+        if (desk) {
+          desk.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       });
     });
@@ -1162,11 +1430,14 @@
     if (!$("#dd-desk")) return;
     bindPeriods();
     bindMargin();
+    bindSettingsTarget();
+    bindSpendDemo();
     bindNav();
     bindKpiDrills();
     bindClaimExpand();
     bindDrawerChrome();
     markNav();
+    showSection("overview");
     render();
   }
 

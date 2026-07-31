@@ -11,6 +11,51 @@ export function calculateMer(totalSales: number, totalSpend: number): number | n
 }
 
 /**
+ * Acquisition MER (aMER): new-customer net sales ÷ total ad spend for the same period.
+ * Same guards as calculateMer — no path / pixel credit; cash till only.
+ */
+export function calculateAmer(
+  newCustomerNetSales: number,
+  totalSpend: number,
+): number | null {
+  return calculateMer(newCustomerNetSales, totalSpend);
+}
+
+/** Cost stack inputs as contribution-margin decimals (e.g. 0.30 = 30% COGS). */
+export type CostStackInput = {
+  cogsPct: number;
+  paymentFeesPct: number;
+  shippingPct: number;
+};
+
+/**
+ * Contribution margin from a cost waterfall: 1 − (COGS + fees + shipping).
+ * Returns null when any input is non-finite/negative or the stack sums to ≥ 1
+ * (would leave margin ≤ 0).
+ */
+export function computeContributionMarginFromStack(
+  stack: CostStackInput,
+): number | null {
+  const { cogsPct, paymentFeesPct, shippingPct } = stack;
+  if (
+    !Number.isFinite(cogsPct) ||
+    !Number.isFinite(paymentFeesPct) ||
+    !Number.isFinite(shippingPct) ||
+    cogsPct < 0 ||
+    paymentFeesPct < 0 ||
+    shippingPct < 0
+  ) {
+    return null;
+  }
+  const sum = cogsPct + paymentFeesPct + shippingPct;
+  if (!Number.isFinite(sum) || sum >= 1) {
+    return null;
+  }
+  const margin = 1 - sum;
+  return margin > 0 && margin <= 1 && Number.isFinite(margin) ? margin : null;
+}
+
+/**
  * Break-even MER ≈ 1 / contribution margin (decimal, e.g. 0.4 → MER 2.5).
  * Margin must be in (0, 1] — 100% contribution margin ⇒ BE MER 1.
  */

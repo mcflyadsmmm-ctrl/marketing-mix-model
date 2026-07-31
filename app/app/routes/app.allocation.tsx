@@ -2,12 +2,21 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
+import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
+import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { buildDashboardMetrics, ensureShop } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import { fetchShopifySales } from "../lib/shopify-sales.server";
-import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
+import type { SalesResult } from "../lib/shopify-sales.server";
+import {
+  loadDeskSalesForPeriod,
+  salesFactsBlockLock,
+} from "../lib/sales-facts.server";
+import {
+  parsePeriodPreset,
+  resolvePeriod,
+} from "../lib/periods";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 
 function deltaClass(
@@ -47,35 +56,76 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
 
-  let sales;
+  let sales: SalesResult;
   let salesError: string | null = null;
+  let todaySalesUnavailable = false;
+  let todaySalesTruncated = false;
+  let salesFactsIncomplete: {
+    factDays: number;
+    expectedClosedDays: number;
+  } | null = null;
+  let factsIncomplete = false;
+  let shopifyOrderWindowLimited = false;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
-    try {
-      sales = await fetchShopifySales(admin, range);
-    } catch (err) {
-      salesError =
-        err instanceof Error ? err.message : "Failed to load Shopify sales";
-      sales = {
-        totalSales: 0,
-        orderCount: 0,
-        newCustomers: 0,
-        returningCustomers: 0,
-        guestOrders: 0,
-        customerMetricsAvailable: false,
-        source: "shopify" as const,
-      };
-    }
+    /*
+     * Same hard-stop as Overview: never unbounded fetchShopifySales for the
+     * period. Serve SalesDayFact + capped today top-up only.
+     */
+    const desk = await loadDeskSalesForPeriod({
+      admin,
+      shopId: shop.id,
+      range,
+      ianaTimezone: shop.ianaTimezone,
+    });
+    sales = desk.sales;
+    salesError = desk.salesError;
+    todaySalesUnavailable = desk.todaySalesUnavailable;
+    todaySalesTruncated = desk.todaySalesTruncated;
+    const coverage = desk.factsCoverage;
+    // Fail-closed lock shape — compute on server so .server is not client-bundled.
+    factsIncomplete = salesFactsBlockLock(coverage);
+    salesFactsIncomplete =
+      coverage != null &&
+      !coverage.complete &&
+      !coverage.periodExceedsFactWindow
+        ? {
+            factDays: coverage.factDays,
+            expectedClosedDays: coverage.expectedClosedDays,
+          }
+        : null;
+    shopifyOrderWindowLimited = Boolean(coverage?.periodExceedsFactWindow);
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales);
-  return { metrics, preset, shotMode, useSampleDesk, salesError };
+  return {
+    metrics,
+    preset,
+    shotMode,
+    useSampleDesk,
+    salesError,
+    todaySalesUnavailable,
+    todaySalesTruncated,
+    salesFactsIncomplete,
+    factsIncomplete,
+    shopifyOrderWindowLimited,
+  };
 };
 
 export default function AllocationPage() {
-  const { metrics, preset, shotMode, useSampleDesk, salesError } =
-    useLoaderData<typeof loader>();
+  const {
+    metrics,
+    preset,
+    shotMode,
+    useSampleDesk,
+    salesError,
+    todaySalesUnavailable,
+    todaySalesTruncated,
+    salesFactsIncomplete,
+    factsIncomplete,
+    shopifyOrderWindowLimited,
+  } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
   const allocation = metrics.allocation;
@@ -84,15 +134,33 @@ export default function AllocationPage() {
     ? deltaClass(allocation.overallMer, allocation.breakEvenMer)
     : "flat";
   const targetDelta = deltaClass(metrics.mer, metrics.targetMer);
-  const tillLabel = shotMode
-    ? metrics.period.label
-    : useSampleDesk
-      ? `${metrics.period.label} · sample data`
-      : `${metrics.period.label} · live sales`;
+  // Never label error / incomplete / mock as live Shopify. SAMPLE stays honest.
+  const tillLabel = useSampleDesk
+    ? `${metrics.period.label} · SAMPLE`
+    : shotMode
+      ? metrics.period.label
+      : salesError ||
+          metrics.blockedMockAsLive ||
+          metrics.salesSource === "mock"
+        ? `${metrics.period.label} · sales unavailable`
+        : factsIncomplete
+          ? `${metrics.period.label} · facts incomplete`
+          : `${metrics.period.label} · live sales`;
 
+  const cashLocked =
+    !allocation &&
+    metrics.breakEvenMer != null &&
+    !metrics.cashActionReady &&
+    !shotMode;
   const whyLine = allocation
     ? allocation.why
-    : `Set contribution margin so break-even can lock. ${PRODUCT_NOUN.mondayCall}.`;
+    : cashLocked
+      ? metrics.spendCoverage.incomplete
+        ? `Spend coverage is under 70% — fill empty days before Monday cash-close advice. ${PRODUCT_NOUN.mondayCall}.`
+        : metrics.spendRecon?.status === "drift"
+          ? `Desk spend vs declared Ads Manager is outside ±5% — fix recon before allocation. ${PRODUCT_NOUN.mondayCall}.`
+          : `Cash affordability is locked until spend trust is ready. ${PRODUCT_NOUN.mondayCall}.`
+      : `Set profit margin so break-even can lock. ${PRODUCT_NOUN.mondayCall}.`;
 
   const primaryAction = allocation?.actions[0];
   const decisionLead = primaryAction
@@ -109,7 +177,9 @@ export default function AllocationPage() {
     decisionLead ??
     (allocation
       ? "Hold the mix — no cut or shift this period"
-      : "Confirm margin to open allocation");
+      : cashLocked
+        ? "Fill spend trust before allocation"
+        : "Confirm margin to open allocation");
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
   const noSpendMix =
@@ -118,23 +188,31 @@ export default function AllocationPage() {
   return (
     <s-page heading={shotMode ? undefined : "Allocation"} inlineSize="large">
       <div
-        className={
-          shotMode
-            ? "mcfly-desk mcfly-desk--shot"
-            : isLoading
-              ? "mcfly-desk mcfly-desk--loading"
-              : "mcfly-desk"
-        }
+        className={[
+          "mcfly-desk",
+          shotMode ? "mcfly-desk--shot" : null,
+          useSampleDesk ? "mcfly-desk--sample" : null,
+          isLoading && !shotMode ? "mcfly-desk--loading" : null,
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         {useSampleDesk && !shotMode ? (
-          <s-banner tone="warning" heading="Sample desk is on — not live Shopify">
-            <s-paragraph>
-              Allocation below uses sample sales + spend, not your live Shopify orders. Turn sample
-              desk <strong>OFF</strong> on the <s-link href="/app/demo">Demo</s-link> tab before
-              App Store review. <code>?shot=1</code> hides this banner only — numbers stay sample
-              until OFF.
-            </s-paragraph>
-          </s-banner>
+          <SampleDeskBanner note="Allocation uses SAMPLE numbers — not your live store." />
+        ) : null}
+
+        {!useSampleDesk && !shotMode ? (
+          <CashTrustBanners
+            blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
+            spendCoverage={null}
+            periodLabel={metrics.period.label}
+            shopifyOrderWindowLimited={shopifyOrderWindowLimited}
+            salesFactsIncomplete={salesFactsIncomplete}
+            todaySalesTruncated={todaySalesTruncated}
+            todaySalesUnavailable={todaySalesUnavailable}
+            shotMode={shotMode}
+            cashActionReady={metrics.cashActionReady}
+          />
         ) : null}
 
         {isLoading && !shotMode ? (
@@ -165,13 +243,30 @@ export default function AllocationPage() {
             aria-label="Break-even margin required"
           >
             <p className="mcfly-state__copy">
-              Set contribution margin so {PRODUCT_NOUN.breakEvenTotalRoas} can
-              lock. {PRODUCT_NOUN.mondayCall}.
+              Set profit margin so {PRODUCT_NOUN.breakEvenTotalRoas} can lock.{" "}
+              {PRODUCT_NOUN.mondayCall}.
             </p>
             <div className="mcfly-state__cta">
               <s-button href="/app/settings" variant="primary">
                 Open Settings
               </s-button>
+            </div>
+          </section>
+        ) : null}
+
+        {cashLocked ? (
+          <section
+            className="mcfly-state mcfly-state--warn"
+            aria-label="Allocation locked until spend trust"
+          >
+            <p className="mcfly-state__copy">{whyLine}</p>
+            <div className="mcfly-state__cta">
+              <s-button href="/app/spend" variant="primary">
+                Fill spend holes
+              </s-button>
+              <s-link href={`/app?period=${preset}`}>
+                View {PRODUCT_NOUN.deskTitle}
+              </s-link>
             </div>
           </section>
         ) : null}
@@ -195,7 +290,9 @@ export default function AllocationPage() {
           </div>
           <div className="mcfly-ctx__chips">
             {useSampleDesk && !shotMode ? (
-              <span className="mcfly-ctx-chip mcfly-alloc-sample-dot">Sample desk</span>
+              <span className="mcfly-ctx-chip mcfly-alloc-sample-dot">
+                {PRODUCT_NOUN.samplePreview}
+              </span>
             ) : null}
             {allocation ? (
               <>
@@ -221,6 +318,7 @@ export default function AllocationPage() {
             </p>
             <p className="mcfly-decision__takeaway">{recommendation}</p>
             <p className="mcfly-decision__why">{whyLine}</p>
+            <p className="mcfly-panel__muted">{PRODUCT_NOUN.allocationHeuristic}</p>
             <div className="mcfly-decision__actions">
               <s-button href="/app/spend" variant="primary">
                 Adjust spend
@@ -258,7 +356,7 @@ export default function AllocationPage() {
         ) : null}
 
         {!allocation ? (
-          !zeroMargin ? (
+          !zeroMargin && !cashLocked ? (
             <section
               className="mcfly-state mcfly-state--empty"
               aria-label="Allocation unavailable"
@@ -268,10 +366,10 @@ export default function AllocationPage() {
                 export daily CSVs and upload so the Monday call can cut or shift.
               </p>
               <div className="mcfly-state__cta">
-                <s-button href="/app/spend#mcfly-spend-exports" variant="primary">
-                  Export & upload spend
+                <s-button href="/app/spend" variant="primary">
+                  {PRODUCT_NOUN.setupAddSpend}
                 </s-button>
-                <s-link href="/app/settings">Review margin</s-link>
+                <s-link href="/app/settings">{PRODUCT_NOUN.setupAdjustMargin}</s-link>
               </div>
             </section>
           ) : null
@@ -319,8 +417,8 @@ export default function AllocationPage() {
               <div className="mcfly-panel__head">
                 <h2>Channel shifts</h2>
                 <p className="mcfly-panel__muted">
-                  Test window {allocation.suggestedTestDays} days · rules-based —
-                  not path credit
+                  Suggested mix shift · {allocation.suggestedTestDays} days · keep
+                  at least half of this period’s spend
                 </p>
               </div>
               <ul className="mcfly-alloc-shift-list">
@@ -373,10 +471,15 @@ export default function AllocationPage() {
 
             <section className="mcfly-panel">
               <div className="mcfly-panel__head">
-                <h2>Channel vs break-even</h2>
+                <h2>
+                  {allocation.hasOperatorChannelCash
+                    ? "Channel vs break-even"
+                    : "Channel spend mix"}
+                </h2>
                 <p className="mcfly-panel__muted">
-                  Assumed sales = spend share × total sales ·{" "}
-                  {PRODUCT_NOUN.notTrueRoas}
+                  {allocation.hasOperatorChannelCash
+                    ? "Your channel spend vs break-even — labeled assumptions for one mix shift."
+                    : "Spend share only. Add your channel cash splits for clearer cut / protect advice."}
                 </p>
               </div>
               {noSpendMix ? (
@@ -388,8 +491,8 @@ export default function AllocationPage() {
                     No channel spend for {metrics.period.label} — log Meta, Google, and the rest to compare vs break-even.
                   </p>
                   <div className="mcfly-state__cta">
-                    <s-button href="/app/spend#mcfly-spend-exports" variant="primary">
-                      Export & upload spend
+                    <s-button href="/app/spend" variant="primary">
+                      {PRODUCT_NOUN.setupAddSpend}
                     </s-button>
                   </div>
                 </section>
@@ -447,9 +550,16 @@ export default function AllocationPage() {
                         </div>
                         <p className="mcfly-alloc-eff__meta">
                           {formatCurrency(channel.spend)} ·{" "}
-                          {formatPercent(channel.spendShare)} spend ·{" "}
-                          {PRODUCT_NOUN.totalRoasShort}{" "}
-                          {formatMer(channel.effectiveMer)}
+                          {formatPercent(channel.spendShare)} spend
+                          {channel.basis === "operator_cash" ? (
+                            <>
+                              {" "}
+                              · {PRODUCT_NOUN.totalRoasShort}{" "}
+                              {formatMer(channel.effectiveMer)}
+                            </>
+                          ) : (
+                            <> · spend share only</>
+                          )}
                         </p>
                       </div>
                     );

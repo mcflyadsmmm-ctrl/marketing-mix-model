@@ -1,7 +1,10 @@
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
 import prisma from "../db.server";
 import {
+  emptySales,
   fetchShopifySales,
+  LIVE_TODAY_MAX_PAGES,
+  shopLocalDayKey,
   shopLocalDayRange,
   listRecentClosedShopLocalDays,
   type SalesResult,
@@ -13,14 +16,44 @@ import type { DateRange } from "./periods";
 /** SalesDayFact.source for rows written by this ingest lane. */
 export const SALES_DAY_FACT_SOURCE = "shopify_order_current_total_v1";
 
-/** Backfill/resume window — last N closed shop-local days, per the ingest spec. */
-export const SALES_DAY_FACT_WINDOW_DAYS = 60;
+/**
+ * Serving + backfill horizon: closed days back to **Jan 1 of (UTC year − N)**.
+ * Example: mid-2026 → window starts 2022-01-01 so YTD / L12M / 3yr can complete
+ * once facts are filled (requires `read_all_orders` for Shopify history).
+ */
+export const SALES_DAY_FACT_WINDOW_YEARS_BACK = 4;
+
+/**
+ * UTC midnight Jan 1 of (calendar year − {@link SALES_DAY_FACT_WINDOW_YEARS_BACK}).
+ * Prefer this over a rolling day-count so annual desks align to shop years.
+ */
+export function salesDayFactWindowStartUtc(now: Date = new Date()): Date {
+  const y = now.getUTCFullYear() - SALES_DAY_FACT_WINDOW_YEARS_BACK;
+  return new Date(Date.UTC(y, 0, 1));
+}
+
+/**
+ * Day count from window start through `now` (inclusive upper bound for
+ * `listRecentClosedShopLocalDays`, which itself excludes in-progress today).
+ */
+export function salesDayFactWindowDayCount(now: Date = new Date()): number {
+  const start = salesDayFactWindowStartUtc(now);
+  const ms = now.getTime() - start.getTime();
+  return Math.max(1, Math.ceil(ms / 86_400_000));
+}
+
+/**
+ * @deprecated Prefer {@link salesDayFactWindowDayCount} — calendar Jan-1 window.
+ * Kept as a rough upper bound (~4×365+1) for callers that still pass a fixed count.
+ */
+export const SALES_DAY_FACT_WINDOW_DAYS = 4 * 365 + 1;
 
 /**
  * Max days ingested per `runSalesFactsBackfill` call. Keeps a single invocation
- * (auth callback, cron tick) fast — the next call resumes via missing dates.
+ * (auth callback, cron tick) bounded — the next call resumes via missing dates.
+ * Raised from 10 so a 4yr window fills in fewer ticks without blowing OAuth.
  */
-export const SALES_DAY_FACT_MAX_DAYS_PER_RUN = 10;
+export const SALES_DAY_FACT_MAX_DAYS_PER_RUN = 20;
 
 export interface SalesFactBackfillResult {
   shopId: string;
@@ -79,9 +112,12 @@ async function upsertSalesDayFact(
   const day = dayKeyToUtcDate(dayKey);
   const data = {
     sales: sales.totalSales,
+    grossSales: sales.grossSales,
     orderCount: sales.orderCount,
     newCustomers: sales.newCustomers,
     returningCustomers: sales.returningCustomers,
+    newCustomerNetSales: sales.newCustomerNetSales,
+    returningCustomerNetSales: sales.returningCustomerNetSales,
     guestOrders: sales.guestOrders,
     customerMetricsAvailable: sales.customerMetricsAvailable,
     currency: currencyCode,
@@ -104,8 +140,8 @@ async function upsertSalesDayFact(
 
 /**
  * Backfill/resume up to `SALES_DAY_FACT_MAX_DAYS_PER_RUN` missing closed shop-local
- * days within the trailing `SALES_DAY_FACT_WINDOW_DAYS` window. Idempotent and safe
- * to call repeatedly (auth callback, cron, manual) — each call re-derives the missing
+ * days within the Jan-1 × N-year serving window. Idempotent and safe to call
+ * repeatedly (auth callback, cron, manual) — each call re-derives the missing
  * dates from what's already in SalesDayFact, so it always resumes rather than restarts.
  *
  * Skips entirely (no rows touched) when the shop's ianaTimezone is unknown and a
@@ -136,7 +172,7 @@ export async function runSalesFactsBackfill(
   const timeZone = metadata.ianaTimezone;
   const windowDayKeys = listRecentClosedShopLocalDays(
     timeZone,
-    SALES_DAY_FACT_WINDOW_DAYS,
+    salesDayFactWindowDayCount(now),
     now,
   );
   const existing = await existingFactDayKeys(shopId, windowDayKeys);
@@ -168,31 +204,123 @@ export async function runSalesFactsBackfill(
   };
 }
 
+/**
+ * Why a dirty-day reconcile wrote nothing. All three are normal outcomes, not
+ * errors — the job succeeds so it is not retried against an impossible day.
+ */
+export type SalesDayReconcileSkip =
+  | "no_timezone"
+  /**
+   * The day is the shop's in-progress local today. Writing a partial fact would
+   * poison it permanently: `runSalesFactsBackfill` only fills MISSING days, so a
+   * half-day row would never be corrected once the day closed. Today's orders reach
+   * the desk through the live read path, and the day lands in facts via backfill
+   * once it closes.
+   */
+  | "day_not_closed"
+  /** Older than the Jan-1 × N-year serving window — the day can no longer be recomputed. */
+  | "day_outside_window";
+
+export interface SalesDayReconcileResult {
+  shopId: string;
+  dayKey: string;
+  written: boolean;
+  skippedReason: SalesDayReconcileSkip | null;
+}
+
+/**
+ * Recompute one closed shop-local day's SalesDayFact from Shopify and overwrite it.
+ *
+ * This is the webhook lane's counterpart to `runSalesFactsBackfill`: backfill fills
+ * days that are missing, this one refreshes a day whose stored fact went stale
+ * (edited, refunded, or cancelled order). Idempotent — the same `(shopId, day)`
+ * upsert key, so replaying a job converges rather than duplicating.
+ *
+ * Throws on Shopify fetch failure so the queue retries with backoff; the existing
+ * fact row is left untouched rather than replaced with a partial read.
+ */
+export async function reconcileSalesDayFact(
+  admin: AdminApiContext,
+  shopId: string,
+  dayKey: string,
+  options?: { now?: Date },
+): Promise<SalesDayReconcileResult> {
+  const now = options?.now ?? new Date();
+
+  const metadata = await ensureShopMetadata(admin, shopId);
+  if (!metadata.ianaTimezone) {
+    return { shopId, dayKey, written: false, skippedReason: "no_timezone" };
+  }
+  const timeZone = metadata.ianaTimezone;
+
+  if (dayKey >= shopLocalDayKey(now, timeZone)) {
+    return { shopId, dayKey, written: false, skippedReason: "day_not_closed" };
+  }
+
+  const windowStart = salesDayFactWindowStartUtc(now);
+  const range = shopLocalDayRange(dayKey, timeZone);
+  if (range.end < windowStart) {
+    return { shopId, dayKey, written: false, skippedReason: "day_outside_window" };
+  }
+
+  const sales = await fetchShopifySales(admin, range);
+  await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
+  return { shopId, dayKey, written: true, skippedReason: null };
+}
+
 export interface SalesFactsCoverage {
   expectedClosedDays: number;
   factDays: number;
   /**
-   * True only when the requested period lies entirely inside the trailing ingest
-   * window AND every expected closed day has a fact row. Long periods (L12M/YTD/3yr)
-   * that start before the window are never complete — desk must use live GraphQL.
+   * True only when the requested period lies entirely inside the Jan-1 × N-year
+   * ingest window AND every expected closed day has a fact row. Periods that start
+   * before the window are never complete — desk serves stored facts only + honest
+   * banners (HARD-STOP: no unbounded live GraphQL on paint).
    */
   complete: boolean;
-  /** True when range.start is before the trailing fact window. */
+  /** True when range.start is before the Jan-1 × N-year fact window. */
   periodExceedsFactWindow: boolean;
 }
 
 /**
- * Facts vs. live coverage for `range`. Periods reaching outside the 60-day ingest
- * window are incomplete for KPI use (no silent underclaim under a full-period label).
+ * HARD-STOP desk policy: when coverage is incomplete or the period exceeds the
+ * trailing SalesDayFact window, Cash MER must serve stored facts only (+ optional
+ * capped today top-up). Never start `fetchShopifySales` / `fetchShopifySalesByDay`
+ * for the full selected multi-day window on page load — that dies at 100k–1M orders.
+ */
+export function deskMustServeSalesFactsOnly(
+  coverage: SalesFactsCoverage,
+): boolean {
+  return !coverage.complete || coverage.periodExceedsFactWindow;
+}
+
+/**
+ * Monday Close lock gate for SalesDayFact coverage.
+ * Fail-closed: null/undefined coverage must block Save (never lock without facts).
+ * Long windows that exceed the fact window still allow Save on stored facts + honesty.
+ */
+export function salesFactsBlockLock(coverage: {
+  complete: boolean;
+  expectedClosedDays: number;
+  periodExceedsFactWindow: boolean;
+} | null | undefined): boolean {
+  if (coverage == null) return true;
+  if (coverage.periodExceedsFactWindow) return false;
+  return !coverage.complete && coverage.expectedClosedDays > 0;
+}
+
+/**
+ * Facts vs. live coverage for `range`. Periods reaching outside the Jan-1 × N-year
+ * ingest window are incomplete for KPI use (no silent underclaim under a full-period
+ * label). Desk paint uses facts-only + banners — not unbounded GraphQL fallback.
  */
 export async function getSalesFactsCoverage(
   shopId: string,
   range: DateRange,
   now: Date = new Date(),
+  timeZone?: string | null,
 ): Promise<SalesFactsCoverage> {
-  const windowStart = new Date(
-    now.getTime() - SALES_DAY_FACT_WINDOW_DAYS * 86_400_000,
-  );
+  const windowStart = salesDayFactWindowStartUtc(now);
   const periodExceedsFactWindow = range.start < windowStart;
 
   if (periodExceedsFactWindow) {
@@ -200,14 +328,24 @@ export async function getSalesFactsCoverage(
       where: { shopId, day: { gte: windowStart, lte: range.end } },
     });
     return {
-      expectedClosedDays: countClosedDaysInPeriod(windowStart, range.end, now),
+      expectedClosedDays: countClosedDaysInPeriod(
+        windowStart,
+        range.end,
+        now,
+        timeZone,
+      ),
       factDays,
       complete: false,
       periodExceedsFactWindow: true,
     };
   }
 
-  const expectedClosedDays = countClosedDaysInPeriod(range.start, range.end, now);
+  const expectedClosedDays = countClosedDaysInPeriod(
+    range.start,
+    range.end,
+    now,
+    timeZone,
+  );
 
   if (expectedClosedDays <= 0) {
     return {
@@ -232,6 +370,17 @@ export async function getSalesFactsCoverage(
 
 export interface SalesFactsTotals {
   totalSales: number;
+  /**
+   * Sum of persisted `grossSales` for fact days that have it. Legacy rows with
+   * null gross are excluded from this sum — see `grossSalesComplete`.
+   */
+  grossSalesSum: number;
+  /**
+   * True when every fact day in range has non-null `grossSales` (or there are
+   * zero fact days). False means closed-day gross is incomplete — do not treat
+   * net as gross for refund haircut.
+   */
+  grossSalesComplete: boolean;
   orderCount: number;
   /**
    * Sum of per-day new/returning counts across `range` — NOT a unique cross-day count
@@ -240,53 +389,224 @@ export interface SalesFactsTotals {
    */
   newCustomersSum: number;
   returningCustomersSum: number;
+  /** Additive new-customer net sales across fact days (aMER numerator spine). */
+  newCustomerNetSalesSum: number;
+  returningCustomerNetSalesSum: number;
   guestOrdersSum: number;
   dayCount: number;
+  /**
+   * True when `range.start` is before the Jan-1 × N-year ingest window — totals
+   * only cover the clamped window, not the full requested range. Callers must not
+   * treat `totalSales: 0` (or a partial sum) as a complete prior for deltas.
+   */
+  rangeClampedToFactWindow: boolean;
 }
 
-/** Sum SalesDayFact rows overlapping `range` (clamped to the trailing ingest window). */
+/**
+ * Build a desk SalesResult from stored SalesDayFact totals (+ optional capped
+ * today top-up). Per-day new/returning sums are not unique — customerMetricsAvailable
+ * stays false.
+ *
+ * Gross: uses persisted fact gross when complete; otherwise closed-day gross is
+ * omitted (today gross only) and `grossSalesKnown` is false so UI never claims
+ * Ads Manager–comparable totals from incomplete facts.
+ */
+export function salesResultFromFactsTotals(
+  facts: SalesFactsTotals,
+  today: {
+    totalSales: number;
+    netSales?: number;
+    grossSales?: number;
+    orderCount: number;
+    newCustomerNetSales?: number;
+    returningCustomerNetSales?: number;
+    truncatedByPageCap?: boolean;
+  } | null,
+): SalesResult {
+  const todayNet = today?.netSales ?? today?.totalSales ?? 0;
+  const todayGross = today?.grossSales ?? today?.totalSales ?? 0;
+  const todayOrders = today?.orderCount ?? 0;
+  const netSales = facts.totalSales + todayNet;
+  const closedGross = facts.grossSalesComplete
+    ? facts.grossSalesSum
+    : null;
+  // Never invent closed-day gross from net (refund haircut lie). When fact gross
+  // is incomplete: today-only gross if open day loaded; otherwise equal net so
+  // dual-line/haircut UI stays quiet — but always mark grossSalesKnown false.
+  const grossSalesKnown = closedGross != null;
+  const grossSales =
+    closedGross != null
+      ? closedGross + todayGross
+      : today != null
+        ? todayGross
+        : netSales;
+  return {
+    totalSales: facts.totalSales + (today?.totalSales ?? 0),
+    netSales,
+    grossSales,
+    grossSalesKnown,
+    salesBasisUsed: "net",
+    orderCount: facts.orderCount + todayOrders,
+    newCustomers: 0,
+    returningCustomers: 0,
+    newCustomerNetSales:
+      facts.newCustomerNetSalesSum + (today?.newCustomerNetSales ?? 0),
+    returningCustomerNetSales:
+      facts.returningCustomerNetSalesSum +
+      (today?.returningCustomerNetSales ?? 0),
+    guestOrders: 0,
+    customerMetricsAvailable: false,
+    source: "shopify",
+    ...(today?.truncatedByPageCap ? { truncatedByPageCap: true } : {}),
+  };
+}
+
+/** Sum SalesDayFact rows overlapping `range` (clamped to the Jan-1 × N-year window). */
 export async function getSalesFactsTotals(
   shopId: string,
   range: DateRange,
   now: Date = new Date(),
 ): Promise<SalesFactsTotals> {
-  const windowStart = new Date(
-    now.getTime() - SALES_DAY_FACT_WINDOW_DAYS * 86_400_000,
-  );
-  const clampedStart = range.start < windowStart ? windowStart : range.start;
+  const windowStart = salesDayFactWindowStartUtc(now);
+  const rangeClampedToFactWindow = range.start < windowStart;
+  const clampedStart = rangeClampedToFactWindow ? windowStart : range.start;
 
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: clampedStart, lte: range.end } },
     select: {
       sales: true,
+      grossSales: true,
       orderCount: true,
       newCustomers: true,
       returningCustomers: true,
+      newCustomerNetSales: true,
+      returningCustomerNetSales: true,
       guestOrders: true,
     },
   });
 
   let totalSales = 0;
+  let grossSalesSum = 0;
+  let grossKnownDays = 0;
   let orderCount = 0;
   let newCustomersSum = 0;
   let returningCustomersSum = 0;
+  let newCustomerNetSalesSum = 0;
+  let returningCustomerNetSalesSum = 0;
   let guestOrdersSum = 0;
   for (const row of rows) {
     totalSales += row.sales;
+    if (row.grossSales != null && Number.isFinite(row.grossSales)) {
+      grossSalesSum += row.grossSales;
+      grossKnownDays += 1;
+    }
     orderCount += row.orderCount;
     newCustomersSum += row.newCustomers;
     returningCustomersSum += row.returningCustomers;
+    newCustomerNetSalesSum += row.newCustomerNetSales;
+    returningCustomerNetSalesSum += row.returningCustomerNetSales;
     guestOrdersSum += row.guestOrders;
   }
 
   return {
     totalSales,
+    grossSalesSum,
+    grossSalesComplete: rows.length === 0 || grossKnownDays === rows.length,
     orderCount,
     newCustomersSum,
     returningCustomersSum,
+    newCustomerNetSalesSum,
+    returningCustomerNetSalesSum,
     guestOrdersSum,
     dayCount: rows.length,
+    rangeClampedToFactWindow,
   };
+}
+
+function todayPartialRange(now: Date, ianaTimezone: string): DateRange {
+  const dayKey = shopLocalDayKey(now, ianaTimezone);
+  const day = shopLocalDayRange(dayKey, ianaTimezone);
+  return { start: day.start, end: now, label: "Today (partial)" };
+}
+
+export interface LoadDeskSalesForPeriodResult {
+  sales: SalesResult;
+  salesError: string | null;
+  factsCoverage: SalesFactsCoverage | null;
+  /** Today live top-up threw — closed facts may still be OK; banner honesty. */
+  todaySalesUnavailable: boolean;
+  /** Today live top-up hit LIVE_TODAY_MAX_PAGES with more orders remaining. */
+  todaySalesTruncated: boolean;
+}
+
+/**
+ * HARD-STOP desk sales loader: SalesDayFact totals + optional capped today top-up.
+ * Never starts unbounded `fetchShopifySales` for a multi-day period.
+ * Callers (Overview / Allocation / Close / LTV / API) share this path.
+ */
+export async function loadDeskSalesForPeriod(args: {
+  admin: AdminApiContext;
+  shopId: string;
+  range: DateRange;
+  ianaTimezone: string | null | undefined;
+  now?: Date;
+}): Promise<LoadDeskSalesForPeriodResult> {
+  const now = args.now ?? new Date();
+  const { admin, shopId, range, ianaTimezone } = args;
+
+  let factsCoverage: SalesFactsCoverage | null = null;
+  try {
+    factsCoverage = await getSalesFactsCoverage(
+      shopId,
+      range,
+      now,
+      ianaTimezone,
+    );
+  } catch {
+    factsCoverage = null;
+  }
+
+  try {
+    const factsTotals = await getSalesFactsTotals(shopId, range, now);
+    let todaySales: SalesResult | null = null;
+    let todaySalesUnavailable = false;
+    let todaySalesTruncated = false;
+
+    if (ianaTimezone) {
+      const todayKey = shopLocalDayKey(now, ianaTimezone);
+      const todayBounds = shopLocalDayRange(todayKey, ianaTimezone);
+      if (range.end >= todayBounds.start) {
+        try {
+          todaySales = await fetchShopifySales(
+            admin,
+            todayPartialRange(now, ianaTimezone),
+            { maxPages: LIVE_TODAY_MAX_PAGES },
+          );
+          todaySalesTruncated = Boolean(todaySales.truncatedByPageCap);
+        } catch {
+          todaySales = null;
+          todaySalesUnavailable = true;
+        }
+      }
+    }
+
+    return {
+      sales: salesResultFromFactsTotals(factsTotals, todaySales),
+      salesError: null,
+      factsCoverage,
+      todaySalesUnavailable,
+      todaySalesTruncated,
+    };
+  } catch (err) {
+    return {
+      sales: emptySales("shopify"),
+      salesError:
+        err instanceof Error ? err.message : "Failed to load sales facts",
+      factsCoverage,
+      todaySalesUnavailable: false,
+      todaySalesTruncated: false,
+    };
+  }
 }
 
 /**

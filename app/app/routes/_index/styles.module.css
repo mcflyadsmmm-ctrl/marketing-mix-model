@@ -57,6 +57,7 @@
   position: relative;
   z-index: 1;
   width: min(100%, 40rem);
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   gap: 1.35rem;
@@ -134,7 +135,7 @@
 }
 
 .ctaPrimary,
-.ctaGhost {
+.ctaSecondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -163,14 +164,21 @@
   filter: brightness(1.06);
 }
 
-.ctaGhost {
-  background: transparent;
-  color: var(--ink);
-  border: 1px solid var(--line);
+.ctaPrimary:focus-visible,
+.ctaSecondary:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
 }
 
-.ctaGhost:hover {
-  border-color: rgba(94, 231, 240, 0.45);
+.ctaSecondary {
+  background: rgba(244, 246, 248, 0.08);
+  color: var(--ink);
+  border: 1px solid rgba(94, 231, 240, 0.45);
+}
+
+.ctaSecondary:hover {
+  background: rgba(94, 231, 240, 0.14);
+  border-color: var(--cyan);
   color: var(--cyan);
 }
 

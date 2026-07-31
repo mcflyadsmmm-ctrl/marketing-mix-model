@@ -10,11 +10,12 @@ import {
   type SpendChannel,
 } from "@mcfly/mer-engine";
 import {
+  calculateAmer,
   suggestAllocation,
   type SuggestAllocationResult,
 } from "@mcfly/mer-core";
 import type { DateRange } from "./periods";
-import { localDayKey, utcDayKey } from "./sample-desk.server";
+import { localDayKey, utcDayKey, SAMPLE_DESK_MARGIN_PCT, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
 import {
   listRecentClosedShopLocalDays,
   nextShopLocalDayKey,
@@ -24,10 +25,13 @@ import {
 import {
   collectFilledSpendDayKeys,
   computeSpendPeriodCoverage,
+  computeSpendRecon,
   countClosedDaysInPeriod,
   resolveHonestSales,
+  spendReconMatchesPeriod,
   type FreshnessSource,
   type SpendPeriodCoverage,
+  type SpendReconResult,
 } from "./mer-trust";
 import {
   applyExplorerMode,
@@ -45,10 +49,15 @@ import {
   type TillLtvSummary,
 } from "./till-ltv.server";
 import { countNewBuyersInRange } from "./order-facts.server";
+import {
+  filterToAllowedChannels,
+  getShopEntitlements,
+  proRequiredLtvSummary,
+} from "./entitlements.server";
 
 const CHANNEL_DISPLAY = SPEND_CHANNEL_LABELS;
 
-export type { FreshnessSource, SpendPeriodCoverage };
+export type { FreshnessSource, SpendPeriodCoverage, SpendReconResult };
 
 /** D3 trust: last overnight snapshot / sync, live sales pull, spend log time. */
 export interface DashboardFreshness {
@@ -122,11 +131,26 @@ export interface PeriodDeltas {
 
 export interface DashboardMetrics {
   period: DateRange;
+  /** Action Total ROAS sales numerator — always net. */
   sales: number;
+  /** Gross order totals — Ads Manager–comparable secondary chip. */
+  grossSales: number;
+  /**
+   * False when closed-day gross is incomplete — do not claim Ads Manager
+   * comparability. Defaults true when sales omit the flag (live GraphQL).
+   */
+  grossSalesKnown: boolean;
+  /** Net sales alias (= sales / totalSales action basis). */
+  netSales: number;
   salesSource: "shopify" | "mock";
   orderCount: number;
   newCustomers: number;
   returningCustomers: number;
+  /**
+   * New-customer net sales for the period (aMER numerator).
+   * Additive from facts / live sales — not unique-customer CRM.
+   */
+  newCustomerNetSales: number;
   guestOrders: number;
   /** False when Shopify denied order.customer (needs read_customers + reinstall). */
   customerMetricsAvailable: boolean;
@@ -139,7 +163,17 @@ export interface DashboardMetrics {
   blockedMockAsLive: boolean;
   totalSpend: number;
   mer: number | null;
+  /** Acquisition MER = newCustomerNetSales ÷ totalSpend (average, not causal). */
+  amer: number | null;
   breakEvenMer: number | null;
+  /**
+   * Margin confirmed AND spend trust OK for actionable BE / Monday cut.
+   * False on live desk when spend coverage is incomplete or Ads Manager recon drifts.
+   * Sample desk bypasses coverage/recon gates (still needs settingsSaved).
+   */
+  cashActionReady: boolean;
+  /** Soft warning — marginConfirmedAt older than 90 days. */
+  marginStale: boolean;
   targetMer: number;
   marginPct: number;
   channelMix: ReturnType<typeof channelMix>;
@@ -149,6 +183,8 @@ export interface DashboardMetrics {
   freshness: DashboardFreshness;
   /** Closed-day spend coverage vs selected period (recon-style honesty). */
   spendCoverage: SpendPeriodCoverage;
+  /** Optional Ads Manager ±5% recon for this period (null when no matching declaration). */
+  spendRecon: SpendReconResult | null;
   /** Last ≤14 closed days — channel stack + MER rail. */
   dailySpine: DailySpineDay[];
   /** Safe-spend headroom + days-elapsed density. */
@@ -181,11 +217,25 @@ export function marginIsConfirmed(settings: {
   return settings.marginConfirmedAt != null;
 }
 
+/** Soft stale — confirmed margin older than 90 days (no schema change). */
+export const MARGIN_STALE_DAYS = 90;
+
+export function marginIsStale(settings: {
+  marginConfirmedAt: Date | null;
+}): boolean {
+  if (settings.marginConfirmedAt == null) return false;
+  const ageMs = Date.now() - new Date(settings.marginConfirmedAt).getTime();
+  return ageMs > MARGIN_STALE_DAYS * 24 * 60 * 60 * 1000;
+}
+
 export interface RitualOnboarding {
   /** Margin confirmed via Settings save (or sample desk treated as confirmed). */
   settingsSaved: boolean;
   hasSpend: boolean;
-  /** First-run guide until margin confirmed and spend exists */
+  /**
+   * First-run 3-step guide. Wave 2: Polaris empties own cold-path TTFV —
+   * desk UI hides this when an empty state is showing (no duplicate guide).
+   */
   showGuide: boolean;
 }
 
@@ -249,11 +299,14 @@ export async function getSpendPeriodCoverage(
     sampleOnly?: boolean;
     excludeSample?: boolean;
     now?: Date;
+    /** Shop IANA — coverage day keys match sales spine, not server-local. */
+    timeZone?: string | null;
     /** Preloaded spend rows overlapping `range` — skips a second DB read. */
     entries?: SpendEntrySlice[];
   },
 ): Promise<SpendPeriodCoverage> {
   const now = options?.now ?? new Date();
+  const timeZone = options?.timeZone ?? null;
   const entries =
     options?.entries?.filter((e) => e.amount > 0) ??
     (
@@ -278,10 +331,16 @@ export async function getSpendPeriodCoverage(
     range.start,
     range.end,
     now,
+    timeZone,
   );
   return computeSpendPeriodCoverage({
     daysWithSpend: filled.size,
-    daysInPeriod: countClosedDaysInPeriod(range.start, range.end, now),
+    daysInPeriod: countClosedDaysInPeriod(
+      range.start,
+      range.end,
+      now,
+      timeZone,
+    ),
   });
 }
 
@@ -717,9 +776,23 @@ function endOfLocalDay(d: Date): Date {
   );
 }
 
+/** Inclusive calendar-day span between YYYY-MM-DD keys (noon-anchor safe). */
+function inclusiveDaySpan(startKey: string, endKey: string): number {
+  const [sy, sm, sd] = startKey.split("-").map(Number);
+  const [ey, em, ed] = endKey.split("-").map(Number);
+  if (!sy || !sm || !sd || !ey || !em || !ed) return 1;
+  return Math.max(
+    0,
+    Math.round(
+      (Date.UTC(ey, em - 1, ed) - Date.UTC(sy, sm - 1, sd)) / 86_400_000,
+    ) + 1,
+  );
+}
+
 /**
  * Pace + safe-spend headroom at the target rail (Apps Script control panel math).
  * Closed-day density uses period length; projections pace remaining days.
+ * When `ianaTimezone` is set, day math is shop-local (not server-local).
  */
 export function buildControlPace(input: {
   sales: number;
@@ -727,31 +800,62 @@ export function buildControlPace(input: {
   targetMer: number;
   period: DateRange;
   now?: Date;
+  ianaTimezone?: string | null;
 }): ControlPace {
   const now = input.now ?? new Date();
-  const closedEnd = closedDayEnd(now);
-  const periodStart = startOfLocalDay(input.period.start);
-  const periodEndCap =
-    startOfLocalDay(input.period.end) < startOfLocalDay(closedEnd)
-      ? startOfLocalDay(input.period.end)
-      : startOfLocalDay(closedEnd);
+  const tz = input.ianaTimezone;
 
-  const daysInPeriod = Math.max(
-    1,
-    Math.round(
-      (startOfLocalDay(input.period.end).getTime() - periodStart.getTime()) /
-        86_400_000,
-    ) + 1,
-  );
+  let daysInPeriod: number;
+  let daysElapsed: number;
 
-  const daysElapsed = Math.max(
-    0,
-    Math.min(
-      daysInPeriod,
-      Math.round((periodEndCap.getTime() - periodStart.getTime()) / 86_400_000) +
-        1,
-    ),
-  );
+  if (tz) {
+    const todayKey = shopLocalDayKey(now, tz);
+    const [ty, tm, td] = todayKey.split("-").map(Number);
+    const yesterdayKey = shopLocalDayKey(
+      new Date(Date.UTC(ty, tm - 1, td - 1, 12, 0, 0)),
+      tz,
+    );
+    const periodStartKey = shopLocalDayKey(input.period.start, tz);
+    const periodEndKey = shopLocalDayKey(input.period.end, tz);
+    daysInPeriod = Math.max(1, inclusiveDaySpan(periodStartKey, periodEndKey));
+    const periodEndCapKey =
+      periodEndKey < yesterdayKey ? periodEndKey : yesterdayKey;
+    daysElapsed =
+      periodStartKey > periodEndCapKey
+        ? 0
+        : Math.max(
+            0,
+            Math.min(
+              daysInPeriod,
+              inclusiveDaySpan(periodStartKey, periodEndCapKey),
+            ),
+          );
+  } else {
+    const closedEnd = closedDayEnd(now);
+    const periodStart = startOfLocalDay(input.period.start);
+    const periodEndCap =
+      startOfLocalDay(input.period.end) < startOfLocalDay(closedEnd)
+        ? startOfLocalDay(input.period.end)
+        : startOfLocalDay(closedEnd);
+
+    daysInPeriod = Math.max(
+      1,
+      Math.round(
+        (startOfLocalDay(input.period.end).getTime() - periodStart.getTime()) /
+          86_400_000,
+      ) + 1,
+    );
+
+    daysElapsed = Math.max(
+      0,
+      Math.min(
+        daysInPeriod,
+        Math.round(
+          (periodEndCap.getTime() - periodStart.getTime()) / 86_400_000,
+        ) + 1,
+      ),
+    );
+  }
   const remainingDays = Math.max(0, daysInPeriod - daysElapsed);
 
   const avgDailySales = daysElapsed > 0 ? input.sales / daysElapsed : 0;
@@ -830,9 +934,17 @@ export async function buildDashboardMetrics(
   range: DateRange,
   sales: {
     totalSales: number;
+    /** Gross comparable — optional; defaults to totalSales when absent (facts/sample). */
+    grossSales?: number;
+    /** False when closed-day gross incomplete — omit Ads Manager claims. */
+    grossSalesKnown?: boolean;
+    /** Net alias — optional; defaults to totalSales (action basis). */
+    netSales?: number;
     orderCount: number;
     newCustomers?: number;
     returningCustomers?: number;
+    /** New-customer net sales — aMER numerator when present. */
+    newCustomerNetSales?: number;
     guestOrders?: number;
     customerMetricsAvailable?: boolean;
     source: "shopify" | "mock";
@@ -848,6 +960,16 @@ export async function buildDashboardMetrics(
   const shop = await ensureShop(shopDomain);
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = Boolean(settings.useSampleDesk);
+  // SAMPLE economics are read-time overlays — seed must not mutate merchant settings.
+  const effectiveMarginPct = useSampleDesk
+    ? SAMPLE_DESK_MARGIN_PCT
+    : settings.marginPct;
+  const effectiveTargetMer = useSampleDesk
+    ? SAMPLE_DESK_TARGET_MER
+    : settings.targetMer;
+  const entitlements = getShopEntitlements(shopDomain, {
+    sampleDesk: useSampleDesk,
+  });
   const spendOpts = useSampleDesk
     ? { sampleOnly: true as const }
     : { excludeSample: true as const };
@@ -858,13 +980,12 @@ export async function buildDashboardMetrics(
   );
 
   const priorRange = options?.priorRange;
-  // Distinguish "caller omitted" vs "caller said no pull" (null on sales error).
+  // Honesty: never auto-stamp when the caller omits salesPulledAt — that lied
+  // about freshness before a successful desk load. Null / omitted → no sales chip.
   const salesPulledAt =
     options != null && "salesPulledAt" in options
       ? (options.salesPulledAt ?? null)
-      : honestSales.source === "shopify" || useSampleDesk
-        ? new Date().toISOString()
-        : null;
+      : null;
 
   // One spend load for channel totals + coverage + daily spine (avoid triple query).
   const spineLookbackStart = new Date(range.start);
@@ -875,7 +996,7 @@ export async function buildDashboardMetrics(
     label: range.label,
   };
 
-  const [spendEntries, latestSpend, priorSpends] = await Promise.all([
+  const [spendEntriesRaw, latestSpend, priorSpendsRaw] = await Promise.all([
     loadSpendEntries(shop.id, spendLoadRange, spendOpts),
     prisma.spendEntry.findFirst({
       where: {
@@ -892,6 +1013,22 @@ export async function buildDashboardMetrics(
       : Promise.resolve(null),
   ]);
 
+  // Free live: Meta+Google only so Total ROAS cannot be inflated by Pro channels.
+  // SAMPLE desk keeps the full demo mix (do not filter).
+  const spendEntries = useSampleDesk
+    ? spendEntriesRaw
+    : filterToAllowedChannels(entitlements, spendEntriesRaw);
+  const priorSpends =
+    priorSpendsRaw == null
+      ? null
+      : useSampleDesk || entitlements.canUseAllChannels
+        ? priorSpendsRaw
+        : priorSpendsRaw.map((s) =>
+            entitlements.allowedChannels.includes(s.channel)
+              ? s
+              : { ...s, amount: 0 },
+          );
+
   const rangeEntries = spendEntries.filter(
     (e) => e.periodStart <= range.end && e.periodEnd >= range.start,
   );
@@ -899,12 +1036,15 @@ export async function buildDashboardMetrics(
   const spendCoverage = await getSpendPeriodCoverage(shop.id, range, {
     ...spendOpts,
     entries: rangeEntries,
+    timeZone: useSampleDesk ? null : shop.ianaTimezone,
   });
   const dailySpine = await buildDailySpine(shop.id, {
     ...spendOpts,
     salesByDay: options?.salesByDay ?? new Map(),
-    targetMer: settings.targetMer,
-    timeZone: shop.ianaTimezone,
+    targetMer: effectiveTargetMer,
+    // SAMPLE desk is stamped on UTC calendar days — keep spine keys UTC so
+    // salesByDay / spend attribution join. Live desks use shop IANA.
+    timeZone: useSampleDesk ? null : shop.ianaTimezone,
     spendEntries,
   });
 
@@ -916,20 +1056,26 @@ export async function buildDashboardMetrics(
 
   const totalSpend = sumSpend(spends);
   const mer = computeMer(honestSales.totalSales, totalSpend);
-  const breakEvenMer = computeBreakEvenMer(settings.marginPct);
+  const newCustomerNetSales = honestSales.newCustomerNetSales ?? 0;
+  const amer = calculateAmer(newCustomerNetSales, totalSpend);
   const mix = channelMix(spends);
+  /** Margin known = confirmed Settings save (or sample desk). Defaults alone do not unlock BE UI. */
   const settingsSaved = marginIsConfirmed(settings) || useSampleDesk;
+  const breakEvenMerRaw = computeBreakEvenMer(effectiveMarginPct);
+  const breakEvenMer = settingsSaved ? breakEvenMerRaw : null;
   const hasSpend = totalSpend > 0;
   const onboarding: RitualOnboarding = {
     settingsSaved,
     hasSpend,
-    showGuide: !useSampleDesk && (!settingsSaved || !hasSpend),
+    // Empties own TTFV when margin/spend missing; keep false so guide never duplicates.
+    showGuide: false,
   };
   const control = buildControlPace({
     sales: honestSales.totalSales,
     totalSpend,
-    targetMer: settings.targetMer,
+    targetMer: effectiveTargetMer,
     period: range,
+    ianaTimezone: useSampleDesk ? null : shop.ianaTimezone,
   });
 
   let deltas: PeriodDeltas | null = null;
@@ -950,28 +1096,53 @@ export async function buildDashboardMetrics(
     };
   }
 
-  const tillNewBuyers =
-    useSampleDesk
-      ? (honestSales.newCustomers ?? 0)
-      : (await countNewBuyersInRange(shop.id, range)) ??
-        (honestSales.customerMetricsAvailable
-          ? (honestSales.newCustomers ?? 0)
-          : 0);
+  let tillLtv: TillLtvSummary;
+  if (!entitlements.canUseLtv) {
+    // Free + live: do not compute / expose proprietary cohort LTV.
+    tillLtv = proRequiredLtvSummary(range.label);
+  } else {
+    const tillNewBuyers =
+      useSampleDesk
+        ? (honestSales.newCustomers ?? 0)
+        : (await countNewBuyersInRange(shop.id, range)) ??
+          (honestSales.customerMetricsAvailable
+            ? (honestSales.newCustomers ?? 0)
+            : 0);
 
-  const tillLtv = await buildTillLtvSummary(shop.id, {
-    totalSpend,
-    newCustomers: tillNewBuyers,
-    periodLabel: range.label,
-    useSampleDesk,
-    ianaTimezone: shop.ianaTimezone,
-  });
+    tillLtv = await buildTillLtvSummary(shop.id, {
+      totalSpend,
+      newCustomers: tillNewBuyers,
+      periodLabel: range.label,
+      useSampleDesk,
+      ianaTimezone: shop.ianaTimezone,
+    });
+  }
 
-  const allocation = buildAllocationSuggestion(
-    spends,
-    honestSales.totalSales,
-    totalSpend,
-    breakEvenMer,
-  );
+  const spendRecon = spendReconMatchesPeriod(
+    settings.declaredAdsSpendPeriodStart,
+    settings.declaredAdsSpendPeriodEnd,
+    range.start,
+    range.end,
+    shop.ianaTimezone,
+  )
+    ? computeSpendRecon(totalSpend, settings.declaredAdsSpend)
+    : null;
+
+  /** Actionable BE / allocation — sample desk skips coverage + recon hard-gates. */
+  const cashActionReady =
+    settingsSaved &&
+    (useSampleDesk ||
+      (!spendCoverage.incomplete && spendRecon?.status !== "drift"));
+
+  const allocation =
+    cashActionReady && breakEvenMer != null
+      ? buildAllocationSuggestion(
+          spends,
+          honestSales.totalSales,
+          totalSpend,
+          breakEvenMer,
+        )
+      : null;
 
   // Optional ledger — throttle write amp (skip if same period written in last hour).
   const mixJson = JSON.parse(JSON.stringify(mix)) as object;
@@ -1036,26 +1207,36 @@ export async function buildDashboardMetrics(
   return {
     period: range,
     sales: honestSales.totalSales,
+    grossSales: honestSales.grossSales ?? honestSales.totalSales,
+    grossSalesKnown: honestSales.grossSalesKnown !== false,
+    netSales: honestSales.netSales ?? honestSales.totalSales,
     salesSource: honestSales.source,
     orderCount: honestSales.orderCount,
     newCustomers: honestSales.newCustomers ?? 0,
     returningCustomers: honestSales.returningCustomers ?? 0,
+    newCustomerNetSales,
     guestOrders: honestSales.guestOrders ?? 0,
     customerMetricsAvailable: honestSales.customerMetricsAvailable ?? false,
     useSampleDesk,
     blockedMockAsLive,
     totalSpend,
     mer,
+    amer,
     breakEvenMer,
-    targetMer: settings.targetMer,
-    marginPct: settings.marginPct,
+    cashActionReady,
+    marginStale: marginIsStale(settings),
+    targetMer: effectiveTargetMer,
+    marginPct: effectiveMarginPct,
     channelMix: mix,
     aboveBreakEven:
-      mer !== null && breakEvenMer !== null ? mer >= breakEvenMer : null,
+      cashActionReady && mer !== null && breakEvenMer !== null
+        ? mer >= breakEvenMer
+        : null,
     allocation,
     onboarding,
     freshness,
     spendCoverage,
+    spendRecon,
     dailySpine,
     control,
     deltas,
@@ -1072,4 +1253,6 @@ export {
 export {
   formatCashFreshnessChip,
   formatSpendCoverageLine,
+  formatSpendReconLine,
+  computeSpendRecon,
 } from "./mer-trust";

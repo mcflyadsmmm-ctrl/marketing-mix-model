@@ -2,21 +2,25 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
+import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { buildDashboardMetrics, ensureShop } from "../lib/mer-dashboard.server";
-import { formatCurrency } from "../lib/mer-format";
+import { formatCurrency, formatMer } from "../lib/mer-format";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
-import { fetchShopifySales } from "../lib/shopify-sales.server";
+import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import { authenticate } from "../shopify.server";
+import { getShopEntitlements } from "../lib/entitlements.server";
+import { PRO_UPSELL } from "../lib/entitlements";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
-  if (!shotMode && (preset === "y3" || preset === "l12m")) {
+  // y3 stays shot-only. L12M is a desk preset (PeriodControl) — do not redirect.
+  if (!shotMode && preset === "y3") {
     const next = new URLSearchParams(url.searchParams);
     next.set("period", "ytd");
     throw redirect(`/app/ltv?${next.toString()}`);
@@ -25,8 +29,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = await ensureShop(session.shop);
   const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const entitlements = getShopEntitlements(session.shop, {
+    sampleDesk: useSampleDesk,
+  });
+
+  // Free + live: fail closed — no live OrderFact / cohort compute on this route.
+  if (!entitlements.canUseLtv) {
+    return {
+      metrics: null,
+      preset,
+      shotMode,
+      useSampleDesk,
+      salesError: null as string | null,
+      todaySalesTruncated: false,
+      todaySalesUnavailable: false,
+      entitlements,
+      locked: true as const,
+    };
+  }
 
   let salesError: string | null = null;
+  let todaySalesTruncated = false;
+  let todaySalesUnavailable = false;
   let sales;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
@@ -34,36 +58,77 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
       // ignore — page shows honest empty/backfill states until cohort facts land
     });
-    try {
-      sales = await fetchShopifySales(admin, range);
-    } catch (err) {
-      salesError =
-        err instanceof Error ? err.message : "Failed to load Shopify sales";
-      sales = {
-        totalSales: 0,
-        orderCount: 0,
-        newCustomers: 0,
-        returningCustomers: 0,
-        guestOrders: 0,
-        customerMetricsAvailable: false,
-        source: "shopify" as const,
-      };
-    }
+    /*
+     * HARD-STOP: same as Home / Close / Allocation — never unbounded
+     * fetchShopifySales for a multi-day period. Facts + capped today only.
+     */
+    const desk = await loadDeskSalesForPeriod({
+      admin,
+      shopId: shop.id,
+      range,
+      ianaTimezone: shop.ianaTimezone,
+    });
+    sales = desk.sales;
+    salesError = desk.salesError;
+    todaySalesTruncated = desk.todaySalesTruncated;
+    todaySalesUnavailable = desk.todaySalesUnavailable;
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales);
-  return { metrics, preset, shotMode, useSampleDesk, salesError };
+  return {
+    metrics,
+    preset,
+    shotMode,
+    useSampleDesk,
+    salesError,
+    todaySalesTruncated,
+    todaySalesUnavailable,
+    entitlements,
+    locked: false as const,
+  };
 };
 
 export default function LtvPage() {
-  const { metrics, preset, shotMode, useSampleDesk, salesError } =
-    useLoaderData<typeof loader>();
+  const {
+    metrics,
+    preset,
+    shotMode,
+    useSampleDesk,
+    salesError,
+    todaySalesTruncated,
+    todaySalesUnavailable,
+    locked,
+  } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
-  const tillLabel = shotMode
-    ? metrics.period.label
-    : useSampleDesk
-      ? `${metrics.period.label} · sample data`
+
+  if (locked || !metrics) {
+    return (
+      <s-page heading={PRODUCT_NOUN.ltvTitle} inlineSize="large">
+        <div className="mcfly-desk">
+          <s-banner tone="info" heading="Pro · Customer LTV">
+            <s-paragraph>{PRO_UPSELL.ltv}</s-paragraph>
+            <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
+              <s-button href="/app/settings" variant="primary">
+                {PRO_UPSELL.upgradeCta}
+              </s-button>
+              <s-button href="/app/demo" variant="secondary">
+                Turn on sample desk to preview
+              </s-button>
+              <s-button href="/app/connections" variant="tertiary">
+                Test Meta / Google spend
+              </s-button>
+            </div>
+          </s-banner>
+        </div>
+      </s-page>
+    );
+  }
+
+  const tillLabel = useSampleDesk
+    ? `${metrics.period.label} · SAMPLE`
+    : shotMode
+      ? metrics.period.label
       : `${metrics.period.label} · live sales`;
 
   return (
@@ -72,23 +137,17 @@ export default function LtvPage() {
       inlineSize="large"
     >
       <div
-        className={
-          shotMode
-            ? "mcfly-desk mcfly-desk--shot"
-            : isLoading
-              ? "mcfly-desk mcfly-desk--loading"
-              : "mcfly-desk"
-        }
+        className={[
+          "mcfly-desk",
+          shotMode ? "mcfly-desk--shot" : null,
+          useSampleDesk ? "mcfly-desk--sample" : null,
+          isLoading && !shotMode ? "mcfly-desk--loading" : null,
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         {useSampleDesk && !shotMode ? (
-          <s-banner tone="warning" heading="Sample desk is on — not live Shopify">
-            <s-paragraph>
-              Customer cohorts below use sample sales + spend, not your live
-              Shopify orders. Turn sample desk <strong>OFF</strong> on the{" "}
-              <s-link href="/app/demo">Demo</s-link> tab before judging live
-              numbers.
-            </s-paragraph>
-          </s-banner>
+          <SampleDeskBanner note="Customer cohorts below use SAMPLE sales + spend — not your live Shopify orders." />
         ) : null}
 
         {isLoading && !shotMode ? (
@@ -116,10 +175,33 @@ export default function LtvPage() {
           </section>
         ) : null}
 
+        {!useSampleDesk && !shotMode && !salesError && todaySalesTruncated ? (
+          <s-banner tone="warning" heading="Today’s sales may be incomplete">
+            <s-paragraph>
+              Live today top-up hit the page cap — closed-day facts are still
+              included. Refresh later for a fuller today total.
+            </s-paragraph>
+          </s-banner>
+        ) : null}
+
+        {!useSampleDesk &&
+        !shotMode &&
+        !salesError &&
+        todaySalesUnavailable &&
+        !todaySalesTruncated ? (
+          <s-banner tone="warning" heading="Today’s live sales unavailable">
+            <s-paragraph>
+              Showing closed-day sales facts only — today’s Shopify pull did not
+              complete.
+            </s-paragraph>
+          </s-banner>
+        ) : null}
+
         <header className="mcfly-topbar">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              Opaque cohorts from Shopify orders — Level 1 only
+              Customer cohorts from Shopify orders — no email CRM.{" "}
+              {PRODUCT_NOUN.salesBasisShort}.
             </p>
           </div>
           <PeriodControl preset={preset} shotMode={shotMode} />
@@ -136,7 +218,7 @@ export default function LtvPage() {
           <div className="mcfly-ctx__chips">
             {useSampleDesk && !shotMode ? (
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-                Sample desk
+                {PRODUCT_NOUN.samplePreview}
               </span>
             ) : null}
           </div>
@@ -146,7 +228,7 @@ export default function LtvPage() {
           <div className="mcfly-panel__head">
             <h2>{PRODUCT_NOUN.ltvTitle}</h2>
             <p className="mcfly-panel__muted">
-              Cohort revenue from Shopify orders (Level 1) — not email CRM.
+              Cohort revenue from Shopify orders — not email CRM.
             </p>
           </div>
 
@@ -229,6 +311,27 @@ export default function LtvPage() {
                       : ""}
                   </p>
                 </div>
+                {metrics.onboarding.settingsSaved &&
+                metrics.breakEvenMer != null &&
+                metrics.tillLtv.cashCac != null &&
+                metrics.tillLtv.avgRevenueD30 != null &&
+                metrics.tillLtv.avgRevenueD30 > 0 ? (
+                  <div className="mcfly-control__tile">
+                    <p className="mcfly-control__k">Payback · 30d LTV</p>
+                    <p className="mcfly-control__v">
+                      ~
+                      {(
+                        metrics.tillLtv.cashCac / metrics.tillLtv.avgRevenueD30
+                      ).toFixed(1)}{" "}
+                      mo
+                    </p>
+                    <p className="mcfly-control__delta">
+                      Cost per new customer ÷ 30d LTV ·{" "}
+                      {PRODUCT_NOUN.breakEvenShort}{" "}
+                      {formatMer(metrics.breakEvenMer)}
+                    </p>
+                  </div>
+                ) : null}
               </div>
 
               {metrics.tillLtv.cohorts.length > 0 ? (
@@ -260,8 +363,9 @@ export default function LtvPage() {
 
               {metrics.tillLtv.historyLimited ? (
                 <p className="mcfly-panel__note">
-                  Order history limited until Partner approves read_all_orders —
-                  cohorts cover the available window only.
+                  Free desk shows cohorts for the available order window. Deeper
+                  multi-year history unlocks when Shopify approves broader order
+                  access (Pro) — still order ids and amounts only, no email CRM.
                 </p>
               ) : null}
             </>
@@ -270,7 +374,7 @@ export default function LtvPage() {
               {metrics.tillLtv.emptyReason === "no_timezone"
                 ? "Shop timezone needed before customer cohorts can bucket by local day."
                 : metrics.tillLtv.emptyReason === "history_limited"
-                  ? "Order history is limited — cohorts will fill as backfill runs (read_all_orders unlocks deeper history)."
+                  ? "Order history is limited on this shop — Free shows the available window; broader Shopify order access unlocks deeper mature cohorts (order ids and amounts only)."
                   : "Backfilling customer cohorts — Customer Lifetime Value lights up once facts land."}
             </p>
           )}

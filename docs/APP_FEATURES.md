@@ -14,9 +14,10 @@ Status legend: **Shipped** · **Planned** · **Later**
 | **Dashboard** | **Shipped** | Period presets (MTD / QTD / YTD); Shopify sales vs manual ad spend; MER; Break-even Total ROAS; channel mix; anti-attribution aside |
 | **Allocation (card)** | **Shipped** | One recommendation card on Dashboard via `@mcfly/mer-core` `suggestAllocation`; auditable inputs (sales, spend, Total ROAS, break-even, test window) |
 | **Allocation (detail)** | **Shipped** | `/app/allocation` — actions, channel efficiency table, cash-view assumptions |
-| **Spend** | **Shipped** | Multi-platform CSV (combine uploads + wide template), Bill → daily, manual entry, coverage strip, export guides |
+| **Spend** | **Shipped** | Multi-platform CSV (combine uploads + wide template), Bill → daily, manual entry, coverage strip, export guides; **Automate** optional pipe templates (`#mcfly-spend-automate`) |
 | **Settings** | **Shipped** | Contribution margin % → Break-even Total ROAS; target Total ROAS |
-| **Connections** | **Shipped (stubs)** | Meta / Google connector UI stubs; OAuth deferred to Phase 2 |
+| **Connections** | **Shipped (scaffold)** | Meta / Google OAuth UI + feature flags; live API clients still App Review–gated |
+| **Monday Close** | **Shipped** | `/app/close` — exceptions → lock → variance → hold/reduce/step_test → CSV |
 | **Shopify OAuth / embedded** | **Shipped** | React Router + Shopify app bridge; session storage via Prisma |
 | **Seed sample data** | **Shipped** | `npm run seed` — warehouse snapshots or inline fallback for `demo-store.myshopify.com` (needs `DATABASE_URL`) |
 
@@ -28,9 +29,10 @@ Status legend: **Shipped** · **Planned** · **Later**
 | --- | --- | --- |
 | **Meta Marketing API spend sync** | **Planned** | Daily cash spend pull after App Review |
 | **Google Ads API spend sync** | **Planned** | Same; Connections page enables Connect |
-| **Freshness / recon hints** | **Planned** | Last sync age, spend gaps vs sales period |
+| **Freshness / recon hints** | **Shipped** | Coverage strip + optional Ads Manager ±5% declared recon; Meta/Google sync freshness still Planned |
 | **Custom date ranges** | **Planned** | Beyond MTD / QTD / YTD when cheap |
 | **CSV spend import** | **Shipped** | Platform export guides + combine; wide Day+channels; long date,channel,amount; Bill → daily |
+| **Pipe automation templates** | **Shipped** | Long/wide blank+example for SyncWith-class tools; merchant pays pipe vendor; Mcfly Free path never requires them; public samples under `site/assets/mcfly-pipe-spend-*.csv` |
 | **Manual sales contribution per channel** | **Planned** | Optional operator input into allocation — still not MTA |
 
 ---
@@ -44,7 +46,9 @@ Status legend: **Shipped** · **Planned** · **Later**
 | **SSO** | **Later** | Enterprise IdP; after multi-store demand |
 | **Sheets companion** | **Planned** | Thin client → same Total ROAS brain / API; after app brain is stable |
 | **PWA / downloadable** | **Later** | Installable / offline-friendly shell; not blocking design partners |
-| **Alerts** | **Later** | Total ROAS below break-even notifications — revenue-pulled |
+| **Alerts** | **Shipped (in-app)** | Below break-even banner on desk when margin known + spend &gt; 0 — habit, not email/Slack yet |
+| **Spend recon** | **Shipped** | Optional declared Ads Manager total vs desk CSV ±5% |
+| **Sales basis** | **Shipped** | Dual: **net** (`currentTotalPriceSet`) for action Total ROAS; **gross** (`totalPriceSet`) Ads Manager–comparable only — labeled on desk |
 | **TikTok / other pipes** | **Later** | Only if pulled by paying operators |
 
 ---
@@ -63,10 +67,12 @@ Status legend: **Shipped** · **Planned** · **Later**
 | Route | Feature |
 | --- | --- |
 | `/app` | Dashboard + allocation card |
+| `/app/close` | Monday Close ritual |
 | `/app/allocation` | Allocation detail |
-| `/app/spend` | Manual spend |
+| `/app/spend` | Manual / CSV spend + Automate pipe templates |
+| `/app/spend/template` | CSV / pipe template downloads (`?pipe=long\|wide`) |
 | `/app/settings` | Margin + target Total ROAS |
-| `/app/connections` | Connector stubs |
+| `/app/connections` | Meta / Google OAuth scaffold |
 
 ---
 

@@ -70,6 +70,7 @@ const MIX: Record<SpendChannel, number> = {
 
 /**
  * Build ~3 years of daily sales + spend targeting ~cash MER near `targetMer`.
+ * Default ~4.4× so SAMPLE desk looks strong vs break-even (impressive listing demo).
  */
 export function buildThreeYearSampleDesk(options?: {
   now?: Date;
@@ -79,8 +80,8 @@ export function buildThreeYearSampleDesk(options?: {
 }): SampleDayRow[] {
   const now = options?.now ?? new Date();
   const years = options?.years ?? 3;
-  const targetMer = options?.targetMer ?? 3.5;
-  const rng = mulberry32(options?.seed ?? 0x4d43464c); // "MCFL"
+  const targetMer = options?.targetMer ?? 4.4;
+  const rng = mulberry32(options?.seed ?? 0x4d43464d); // bump seed → new impressive series
 
   const end = startOfUtcDay(now);
   const start = addUtcDays(end, -Math.round(365.25 * years) + 1);
@@ -89,32 +90,42 @@ export function buildThreeYearSampleDesk(options?: {
   for (let d = new Date(start); d <= end; d = addUtcDays(d, 1)) {
     const dow = d.getUTCDay(); // 0 Sun
     const month = d.getUTCMonth();
-    const yearFactor = 1 + (d.getUTCFullYear() - end.getUTCFullYear() + years) * 0.06;
+    // Strong YoY growth so Goals / deltas read positive.
+    const yearFactor =
+      1 + (d.getUTCFullYear() - end.getUTCFullYear() + years) * 0.14;
     const season =
-      month === 10 || month === 11 ? 1.45 : // Nov–Dec
-      month === 0 ? 0.75 :
-      month >= 5 && month <= 7 ? 1.12 :
-      1;
-    const weekend = dow === 0 || dow === 6 ? 0.82 : 1;
-    const noise = 0.88 + rng() * 0.28;
-    const baseSales = 4200 * yearFactor * season * weekend * noise;
+      month === 10 || month === 11
+        ? 1.55 // Nov–Dec peak
+        : month === 0
+          ? 0.82
+          : month >= 5 && month <= 7
+            ? 1.18
+            : 1;
+    const weekend = dow === 0 || dow === 6 ? 0.88 : 1;
+    const noise = 0.92 + rng() * 0.2;
+    const baseSales = 5200 * yearFactor * season * weekend * noise;
     const sales = Math.round(baseSales * 100) / 100;
 
-    const aov = 85 + rng() * 55;
+    const aov = 92 + rng() * 48;
     const orderCount = Math.max(1, Math.round(sales / aov));
-    const newShare = 0.28 + rng() * 0.18;
+    const newShare = 0.3 + rng() * 0.16;
     const newCustomers = Math.max(0, Math.round(orderCount * newShare));
     const returningCustomers = Math.max(0, orderCount - newCustomers);
 
-    const totalSpend = Math.round((sales / targetMer) * (0.92 + rng() * 0.16) * 100) / 100;
+    // Bias spend slightly under target → MER often lands ~4.2–4.7.
+    const totalSpend =
+      Math.round((sales / targetMer) * (0.88 + rng() * 0.14) * 100) / 100;
     const spendByChannel = {} as Record<SpendChannel, number>;
     let allocated = 0;
     for (let i = 0; i < CHANNELS.length; i++) {
       const ch = CHANNELS[i];
       if (i === CHANNELS.length - 1) {
-        spendByChannel[ch] = Math.max(0, Math.round((totalSpend - allocated) * 100) / 100);
+        spendByChannel[ch] = Math.max(
+          0,
+          Math.round((totalSpend - allocated) * 100) / 100,
+        );
       } else {
-        const wobble = 0.75 + rng() * 0.5;
+        const wobble = 0.8 + rng() * 0.4;
         const amt = Math.round(totalSpend * MIX[ch] * wobble * 100) / 100;
         spendByChannel[ch] = amt;
         allocated += amt;

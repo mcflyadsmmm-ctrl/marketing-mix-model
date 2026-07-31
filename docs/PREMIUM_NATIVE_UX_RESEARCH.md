@@ -118,7 +118,7 @@ From BFS §4.1.1 rejection examples — **treat as constraints on the hybrid**:
 | Shell | `AppProvider` + `s-app-nav` + per-route `s-page` | Strength — native bones |
 | Scoreboard | `.mcfly-desk` / Fraunces + Source Sans 3 / `#e8f2fa` paper (`mcfly-desk.css`) | Strength for listing shots + Apps Script parity; **BFS risk** if serif + sky paper dominate Settings/Spend too |
 | Duplicate titles | `s-page heading` **and** `.mcfly-topbar__title` h1 on Cash MER / Allocation / Settings | Feels non-Admin; wastes first viewport |
-| Settings | Custom lock instrument + in-page Save | Ritual clarity good; CSB + Settings template still missing |
+| Settings | Polaris template + App Bridge CSB (`data-save-bar`) | ✅ CSB + discard confirmation 2026-07-29 |
 | Spend | `s-section` + coverage strip + CSV | Closest to native; good model for other pages |
 | Demo | Primary nav item | Ops/listing tool in merchant IA — trust/noise risk |
 | Motion | 160ms fade, reduced-motion respected | Aligned with Apps Script + BFS restraint |
@@ -187,7 +187,7 @@ Concrete, religion-safe, **no attribution features**. Prefer hybrid polish over 
 | Rank | P | AGENT_FIX | File targets | Done when |
 | ---: | --- | --- | --- | --- |
 | 1 | **P0** | **Kill duplicate page titles** — rely on `s-page heading` for Admin title bar; demote or remove `.mcfly-topbar__title` h1 (keep micro-definition + period). | `app._index.tsx`, `app.allocation.tsx`, `app.settings.tsx`, related CSS in `mcfly-desk.css` | One title in chrome; definition line remains |
-| 2 | **P0** | **Settings → Contextual Save Bar** — dirty margin/target triggers App Bridge save bar; discard restores; block nav away while dirty (BFS 4.1.5). | `app.settings.tsx` (+ small App Bridge save-bar wiring) | No lone Save as only pattern; CSB works |
+| 2 | **P0** | **Settings → Contextual Save Bar** — dirty margin/target triggers App Bridge save bar; discard restores; block nav away while dirty (BFS 4.1.5). | `app.settings.tsx` (+ small App Bridge save-bar wiring) | ✅ Done 2026-07-29 — `data-save-bar` + `data-discard-confirmation` on Settings margin form; Goals monthly plan same; see `docs/ops/W1_UX_CSB_20260729.md` |
 | 3 | **P0** | **Nav IA: Demo out of primary ritual** — keep route for listing ops; remove from `s-app-nav` (or gate to sample-enabled / staff). Ritual: Cash MER · Spend · Allocation · Settings. | `app.tsx` (optional deep-link from Cash MER / docs) | Merchant nav = 4 ritual items |
 | 4 | **P1** | **Desk paper scope** — full `.mcfly-desk` sky paper + Fraunces body only on Cash MER (+ Allocation scoreboard). Settings/Spend: Admin-default background + `s-section` cards; Fraunces optional on BE lock value only. | `mcfly-desk.css`, `app.settings.tsx`, `app.spend.tsx`, `app.demo.tsx` | ✅ Done 2026-07-24 — `mcfly-desk--chrome` on Settings/Spend/Demo; sky paper on Cash MER / Allocation only |
 | 5 | **P1** | **Polaris Empty state on zero-spend homepage** — replace/augment `.mcfly-guide-empty` with Empty state composition (heading, body, primary Add spend, secondary Settings). | `app._index.tsx` | ✅ Done 2026-07-24 — `s-section` empty state + primary Add spend + secondary Settings when `zeroSpendEmpty` |

@@ -283,17 +283,22 @@ function resolvePriorPeriodInTimeZone(
   }
 }
 
+/**
+ * Shopify Admin order search for Cash MER / order-facts sales SoT.
+ * open|closed excludes cancelled; test:false excludes Bogus Gateway / test-mode orders.
+ * Parentheses keep OR from swallowing the created_at / test terms (Shopify search syntax).
+ */
 export function formatPeriodQuery(range: DateRange): string {
   const isoStart = range.start.toISOString();
   const isoEnd = range.end.toISOString();
-  return `created_at:>=${isoStart} created_at:<=${isoEnd}`;
+  return `created_at:>=${isoStart} created_at:<=${isoEnd} (status:open OR status:closed) test:false`;
 }
 
 export const PERIOD_PRESETS: { value: PeriodPreset; label: string }[] = [
   { value: "mtd", label: "MTD" },
   { value: "qtd", label: "QTD" },
   { value: "ytd", label: "YTD" },
-  { value: "l12m", label: "12 mo" },
+  { value: "l12m", label: "L12M" },
   { value: "y3", label: "3 yr" },
 ];
 

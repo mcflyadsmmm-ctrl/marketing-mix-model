@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { resolvePeriod, resolvePriorPeriod } from "./periods";
+import {
+  formatPeriodQuery,
+  resolvePeriod,
+  resolvePriorPeriod,
+} from "./periods";
 import { shopLocalDayKey, shopLocalDayRange } from "./shop-local-day";
+import { resolveExplorerWindow } from "./spend-explorer";
 
 describe("resolvePeriod with shop IANA", () => {
   it("MTD edges follow America/Denver calendar, not UTC machine midnight", () => {
@@ -36,6 +41,22 @@ describe("resolvePeriod with shop IANA", () => {
   });
 });
 
+describe("formatPeriodQuery", () => {
+  it("bounds created_at and excludes cancelled + test orders", () => {
+    const range = {
+      start: new Date("2026-07-01T06:00:00.000Z"),
+      end: new Date("2026-07-15T05:59:59.999Z"),
+      label: "Month to date",
+    };
+    const q = formatPeriodQuery(range);
+    expect(q).toContain("created_at:>=2026-07-01T06:00:00.000Z");
+    expect(q).toContain("created_at:<=2026-07-15T05:59:59.999Z");
+    expect(q).toContain("(status:open OR status:closed)");
+    expect(q).toContain("test:false");
+    expect(q).not.toContain("status:cancelled");
+  });
+});
+
 describe("resolvePriorPeriod with shop IANA", () => {
   it("prior MTD uses the previous shop-local month through the same calendar day", () => {
     const now = new Date("2026-07-15T18:00:00.000Z");
@@ -66,5 +87,31 @@ describe("resolvePriorPeriod with shop IANA", () => {
     expect(shopLocalDayKey(utc.end, "UTC")).toBe("2026-07-01");
     expect(denver.end.toISOString()).not.toBe(utc.end.toISOString());
     expect(denver.start.toISOString()).not.toBe(utc.start.toISOString());
+  });
+});
+
+describe("explorer day keys vs shopLocalDayKey (east-of-UTC)", () => {
+  it("Australia/Sydney explorer fromKey matches shopLocalDayKey, not UTC ISO slice", () => {
+    const tz = "Australia/Sydney";
+    // 2026-07-01 02:00 UTC = Jul 1 afternoon AEST — last closed shop day is Jun 30.
+    const now = new Date("2026-07-01T02:00:00.000Z");
+    const win = resolveExplorerWindow("14d", now, { timeZone: tz });
+    const fromKey = shopLocalDayKey(win.start, tz);
+    const toKey = shopLocalDayKey(win.end, tz);
+    const asOfKey = shopLocalDayKey(win.end, tz);
+
+    expect(fromKey).toBe(shopLocalDayKey(win.start, tz));
+    expect(toKey).toBe(asOfKey);
+    expect(toKey).toBe("2026-06-30");
+    // UTC ISO date slice on the range start is the prior UTC calendar day.
+    expect(win.start.toISOString().slice(0, 10)).not.toBe(fromKey);
+  });
+
+  it("Pacific/Auckland period start key matches shopLocalDayKey", () => {
+    const tz = "Pacific/Auckland";
+    const now = new Date("2026-07-15T10:00:00.000Z");
+    const win = resolveExplorerWindow("YTD", now, { timeZone: tz });
+    expect(shopLocalDayKey(win.start, tz)).toBe("2026-01-01");
+    expect(win.start.toISOString().slice(0, 10)).toBe("2025-12-31");
   });
 });

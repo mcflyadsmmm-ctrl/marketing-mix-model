@@ -10,13 +10,36 @@ import { seedSampleCohortFacts, clearSampleCohortFacts } from "./order-facts.ser
 
 export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
   const settings = await prisma.settings.findUnique({ where: { shopId } });
+  // Settings can hide Sample entirely — always serve real store.
+  if (settings?.samplePreviewAllowed === false) return false;
   return Boolean(settings?.useSampleDesk);
 }
 
-export async function setSampleDeskEnabled(shopId: string, enabled: boolean) {
+export async function getSamplePreviewAllowed(shopId: string): Promise<boolean> {
+  const settings = await prisma.settings.findUnique({ where: { shopId } });
+  // Default true when row missing (pre-migration / fresh shop).
+  return settings?.samplePreviewAllowed !== false;
+}
+
+export async function setSamplePreviewAllowed(
+  shopId: string,
+  allowed: boolean,
+) {
   await prisma.settings.update({
     where: { shopId },
-    data: { useSampleDesk: enabled },
+    data: {
+      samplePreviewAllowed: allowed,
+      // Hiding sample always forces real-store mode.
+      ...(allowed ? {} : { useSampleDesk: false }),
+    },
+  });
+}
+
+export async function setSampleDeskEnabled(shopId: string, enabled: boolean) {
+  const allowed = await getSamplePreviewAllowed(shopId);
+  await prisma.settings.update({
+    where: { shopId },
+    data: { useSampleDesk: allowed ? enabled : false },
   });
 }
 
@@ -33,7 +56,15 @@ export async function clearSampleDesk(shopId: string) {
   await clearSampleCohortFacts(shopId);
 }
 
-export async function seedThreeYearSampleDesk(shopId: string, targetMer = 3.5) {
+/** Impressive SAMPLE desk default — Total ROAS lands above 4×. */
+export const SAMPLE_DESK_TARGET_MER = 4.4;
+/** SAMPLE break-even economics (~35% → BE ≈ 2.86). Applied at read time only. */
+export const SAMPLE_DESK_MARGIN_PCT = 0.35;
+
+export async function seedThreeYearSampleDesk(
+  shopId: string,
+  targetMer = SAMPLE_DESK_TARGET_MER,
+) {
   const rows = buildThreeYearSampleDesk({ targetMer, years: 3 });
 
   await prisma.$transaction(async (tx) => {
@@ -87,10 +118,15 @@ export async function seedThreeYearSampleDesk(shopId: string, targetMer = 3.5) {
       });
     }
 
-    await tx.settings.update({
-      where: { shopId },
-      data: { useSampleDesk: true, targetMer },
-    });
+    // Toggle SAMPLE only when preview is still allowed — never clobber margin.
+    // Desk math applies SAMPLE_DESK_* at read time while useSampleDesk is true.
+    const settings = await tx.settings.findUnique({ where: { shopId } });
+    if (settings?.samplePreviewAllowed !== false) {
+      await tx.settings.update({
+        where: { shopId },
+        data: { useSampleDesk: true },
+      });
+    }
   });
 
   // Sample CohortFacts for Till LTV panel (clearly demo — not live Shopify).
@@ -102,7 +138,8 @@ export async function seedThreeYearSampleDesk(shopId: string, targetMer = 3.5) {
     end: rows[rows.length - 1]?.day ?? null,
     totalSales: rows.reduce((s, r) => s + r.sales, 0),
     totalSpend: rows.reduce(
-      (s, r) => s + SPEND_CHANNELS.reduce((a, ch) => a + (r.spendByChannel[ch] ?? 0), 0),
+      (s, r) =>
+        s + SPEND_CHANNELS.reduce((a, ch) => a + (r.spendByChannel[ch] ?? 0), 0),
       0,
     ),
   };
@@ -123,18 +160,26 @@ export async function fetchSampleSales(
   let orderCount = 0;
   let newCustomers = 0;
   let returningCustomers = 0;
+  let newCustomerNetSales = 0;
   for (const d of days) {
     totalSales += d.sales;
     orderCount += d.orderCount;
     newCustomers += d.newCustomers;
     returningCustomers += d.returningCustomers;
+    newCustomerNetSales += d.newCustomerNetSales;
   }
 
   return {
     totalSales,
+    grossSales: totalSales,
+    grossSalesKnown: true,
+    netSales: totalSales,
+    salesBasisUsed: "net",
     orderCount,
     newCustomers,
     returningCustomers,
+    newCustomerNetSales,
+    returningCustomerNetSales: Math.max(0, totalSales - newCustomerNetSales),
     guestOrders: 0,
     customerMetricsAvailable: true,
     source: "shopify", // treated as till totals for MER math; UI labels sample mode
@@ -194,7 +239,11 @@ export async function getSampleDeskStats(shopId: string) {
     }),
   ]);
   return {
-    enabled: Boolean(settings?.useSampleDesk),
+    enabled:
+      settings?.samplePreviewAllowed === false
+        ? false
+        : Boolean(settings?.useSampleDesk),
+    samplePreviewAllowed: settings?.samplePreviewAllowed !== false,
     dayCount,
     spendCount,
     start: first?.day ?? null,

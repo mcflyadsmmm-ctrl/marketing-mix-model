@@ -1,6 +1,57 @@
+# Mcfly Ads — robots.txt (origin) · rev 2026-07-29b
+# Cloudflare prepends Managed Content (training Disallows + Content Signals Policy).
+# This file APPENDS after that block. Do not duplicate GPTBot/ClaudeBot/CCBot Disallows.
+#
+# Policy (organic + AI GEO):
+#   search=yes     → Google/Bing classic index
+#   ai-input=yes   → cite/ground in AI answers (ChatGPT Search, Perplexity, Claude, AI Overviews-style)
+#   ai-train=no    → prefer not to train foundation models (CF already Disallows training UAs)
+#   use=reference  → index, excerpt, link back
+#
+# LLM map: https://mcflyads.com/llms.txt
+# Full citeable summary: https://mcflyads.com/llms-full.txt
+
 User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no, use=reference
 Allow: /
 
-# Search indexing allowed. AI training bots: Cloudflare may add Disallows
-# in the managed robots layer — keep this file simple so search stays open.
+# --- Classic search (always allow) ---
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# --- AI retrieval / citation (allow — this is how you show up in AI answers) ---
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Training-only agents (GPTBot, ClaudeBot, Google-Extended, CCBot, Bytespider,
+# Applebot-Extended, meta-externalagent, Amazonbot) stay Disallow via
+# Cloudflare Managed Content — do not duplicate those lines here.
+
 Sitemap: https://mcflyads.com/sitemap.xml

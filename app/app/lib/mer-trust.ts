@@ -4,6 +4,10 @@
  */
 
 import { formatFreshness } from "./mer-format";
+import {
+  nextShopLocalDayKey,
+  shopLocalDayKey,
+} from "./shop-local-day";
 
 export type FreshnessSource = "snapshot" | "sync" | "live";
 
@@ -41,12 +45,47 @@ function localDayKey(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+function yesterdayShopLocalKey(todayKey: string, timeZone: string): string {
+  const [ty, tm, td] = todayKey.split("-").map(Number);
+  return shopLocalDayKey(
+    new Date(Date.UTC(ty, tm - 1, td - 1, 12, 0, 0)),
+    timeZone,
+  );
+}
+
+function countShopLocalClosedDays(
+  rangeStart: Date,
+  rangeEnd: Date,
+  now: Date,
+  timeZone: string,
+): number {
+  const todayKey = shopLocalDayKey(now, timeZone);
+  let endKey = shopLocalDayKey(rangeEnd, timeZone);
+  const startKey = shopLocalDayKey(rangeStart, timeZone);
+  if (endKey >= todayKey) {
+    endKey = yesterdayShopLocalKey(todayKey, timeZone);
+  }
+  if (endKey < startKey) return 0;
+  let count = 0;
+  let cursor = startKey;
+  while (cursor <= endKey) {
+    count += 1;
+    cursor = nextShopLocalDayKey(cursor, timeZone);
+    if (count > 5000) break;
+  }
+  return count;
+}
+
 /** Closed calendar days in range (excludes incomplete today when range.end is "now"). */
 export function countClosedDaysInPeriod(
   rangeStart: Date,
   rangeEnd: Date,
   now = new Date(),
+  timeZone?: string | null,
 ): number {
+  if (timeZone) {
+    return countShopLocalClosedDays(rangeStart, rangeEnd, now, timeZone);
+  }
   const todayStart = startOfLocalDay(now);
   let end = startOfLocalDay(rangeEnd);
   // Cap at yesterday when range includes today — same closed-day religion as the spine.
@@ -60,13 +99,43 @@ export function countClosedDaysInPeriod(
 
 /**
  * Mark calendar days that have any positive spend overlapping the closed period window.
+ * Pass shop IANA `timeZone` so coverage matches the sales spine (not server-local).
  */
 export function collectFilledSpendDayKeys(
   entries: Array<{ periodStart: Date; periodEnd: Date; amount: number }>,
   rangeStart: Date,
   rangeEnd: Date,
   now = new Date(),
+  timeZone?: string | null,
 ): Set<string> {
+  if (timeZone) {
+    const todayKey = shopLocalDayKey(now, timeZone);
+    let windowEndKey = shopLocalDayKey(rangeEnd, timeZone);
+    if (windowEndKey >= todayKey) {
+      windowEndKey = yesterdayShopLocalKey(todayKey, timeZone);
+    }
+    const windowStartKey = shopLocalDayKey(rangeStart, timeZone);
+    const filled = new Set<string>();
+    if (windowEndKey < windowStartKey) return filled;
+
+    for (const entry of entries) {
+      if (!(entry.amount > 0)) continue;
+      let cursorKey = shopLocalDayKey(entry.periodStart, timeZone);
+      const entryEndKey = shopLocalDayKey(entry.periodEnd, timeZone);
+      if (cursorKey < windowStartKey) cursorKey = windowStartKey;
+      let endKey = entryEndKey > windowEndKey ? windowEndKey : entryEndKey;
+      if (endKey < cursorKey) continue;
+      let guard = 0;
+      while (cursorKey <= endKey) {
+        filled.add(cursorKey);
+        cursorKey = nextShopLocalDayKey(cursorKey, timeZone);
+        guard += 1;
+        if (guard > 5000) break;
+      }
+    }
+    return filled;
+  }
+
   const todayStart = startOfLocalDay(now);
   let windowEnd = startOfLocalDay(rangeEnd);
   if (windowEnd >= todayStart) {
@@ -125,8 +194,11 @@ export function resolveHonestSales<
     source: "shopify" | "mock";
     totalSales: number;
     orderCount: number;
+    grossSales?: number;
+    netSales?: number;
     newCustomers?: number;
     returningCustomers?: number;
+    newCustomerNetSales?: number;
     guestOrders?: number;
     customerMetricsAvailable?: boolean;
   },
@@ -139,9 +211,13 @@ export function resolveHonestSales<
     sales: {
       ...sales,
       totalSales: 0,
+      grossSales: 0,
+      netSales: 0,
       orderCount: 0,
       newCustomers: 0,
       returningCustomers: 0,
+      newCustomerNetSales: 0,
+      returningCustomerNetSales: 0,
       guestOrders: 0,
       customerMetricsAvailable: false,
       source: "mock",
@@ -158,7 +234,7 @@ export function formatCashFreshnessChip(input: {
   spendUpdatedAt?: string | null;
 }): string {
   if (input.useSampleDesk) {
-    return "Sample desk";
+    return "SAMPLE preview";
   }
 
   const salesBit = input.salesPulledAt
@@ -192,4 +268,85 @@ export function formatSpendCoverageLine(
     return `No spend days in ${periodLabel}`;
   }
   return `${coverage.daysWithSpend} of ${coverage.daysInPeriod} closed days have spend · ${periodLabel}`;
+}
+
+/** Default |csv − declared| / declared threshold (Sheets recon spirit). */
+export const SPEND_RECON_THRESHOLD = 0.05;
+
+export type SpendReconStatus = "none" | "ok" | "drift";
+
+export interface SpendReconResult {
+  status: SpendReconStatus;
+  csvTotal: number;
+  declared: number | null;
+  /** (csv − declared) / declared when declared > 0. */
+  deltaPct: number | null;
+  /** Threshold as percent points (e.g. 5). */
+  thresholdPct: number;
+}
+
+/**
+ * Compare desk CSV/manual spend sum vs merchant-declared Ads Manager total.
+ * Independent of contribution margin / break-even.
+ */
+export function computeSpendRecon(
+  csvTotal: number,
+  declared: number | null | undefined,
+  threshold = SPEND_RECON_THRESHOLD,
+): SpendReconResult {
+  const safeCsv = Number.isFinite(csvTotal) ? csvTotal : 0;
+  const thresholdPct = Math.round(threshold * 1000) / 10;
+  if (
+    declared == null ||
+    !Number.isFinite(declared) ||
+    declared <= 0
+  ) {
+    return {
+      status: "none",
+      csvTotal: safeCsv,
+      declared: null,
+      deltaPct: null,
+      thresholdPct,
+    };
+  }
+  const deltaPct = (safeCsv - declared) / declared;
+  const drift = Math.abs(deltaPct) > threshold;
+  return {
+    status: drift ? "drift" : "ok",
+    csvTotal: safeCsv,
+    declared,
+    deltaPct,
+    thresholdPct,
+  };
+}
+
+/**
+ * True when a stored declaration covers the same calendar bounds as the desk period.
+ * Pass shop IANA `timeZone` so recon matches the sales spine (not server-local).
+ */
+export function spendReconMatchesPeriod(
+  declaredStart: Date | null | undefined,
+  declaredEnd: Date | null | undefined,
+  rangeStart: Date,
+  rangeEnd: Date,
+  timeZone?: string | null,
+): boolean {
+  if (!declaredStart || !declaredEnd) return false;
+  const dayKey = (d: Date) =>
+    timeZone ? shopLocalDayKey(d, timeZone) : localDayKey(d);
+  return (
+    dayKey(declaredStart) === dayKey(rangeStart) &&
+    dayKey(declaredEnd) === dayKey(rangeEnd)
+  );
+}
+
+export function formatSpendReconLine(recon: SpendReconResult): string {
+  if (recon.status === "none" || recon.declared == null) {
+    return "No Ads Manager total declared for this period";
+  }
+  const pct =
+    recon.deltaPct != null
+      ? `${recon.deltaPct >= 0 ? "+" : ""}${(recon.deltaPct * 100).toFixed(1)}%`
+      : "—";
+  return `Desk spend vs declared Ads Manager: ${pct} (threshold ±${recon.thresholdPct}%)`;
 }

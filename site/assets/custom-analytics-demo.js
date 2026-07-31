@@ -95,7 +95,7 @@
       setMode(btn.getAttribute("data-ca-mode"));
     });
   });
-  if (desk) setMode("ecommerce");
+  if (desk) setMode("leadgen");
 
   /* —— 2. Spend-by-platform recon (SAMPLE) —— */
   var platforms = [
@@ -242,11 +242,11 @@
   );
   var packageHints = {
     audit:
-      "Interested in Spend & Sales Audit ($5–8K): exact spend by platform + sales/revenue recon memo.",
+      "Engagement interest: Spend & Sales Audit ($5–8K) — exact spend by platform + sales/revenue recon memo.",
     leadgen:
-      "Interested in Lead Gen Decision Desk ($8–15K): spend × CRM stages, CPL/CPQL, weekly ritual.",
+      "Engagement interest: Lead Gen Decision Desk ($8–15K) — spend × CRM stages, CPL/CPQL, weekly ritual.",
     mds:
-      "Interested in Advanced MDS Build ($15–25K): custom decision system, pipelines, allocation rules, handoff.",
+      "Engagement interest: Advanced MDS Build ($15–25K) — custom decision system, pipelines, allocation rules, handoff.",
   };
   var budgetMap = {
     audit: "$5k–$8k",

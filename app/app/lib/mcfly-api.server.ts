@@ -3,14 +3,18 @@ import type {
   MerResponse,
 } from "@mcfly/api-contract";
 import {
+  SAMPLE_DESK_MARGIN_PCT,
+} from "./sample-desk.server";
+import {
   channelMix,
   computeBreakEvenMer,
   computeMer,
   sumSpend,
   SPEND_CHANNEL_LABELS,
-  type SpendChannel,
+  type ChannelSpend,
 } from "@mcfly/mer-engine";
 import prisma from "../db.server";
+import { getShopEntitlements } from "./entitlements.server";
 import { buildAllocationSuggestion, getOrCreateSettings, getSpendByChannel } from "./mer-dashboard.server";
 
 const CHANNEL_LABELS = SPEND_CHANNEL_LABELS;
@@ -30,6 +34,24 @@ function parseDateRange(input: DateRangeInput) {
   };
 }
 
+async function loadEntitledSpends(
+  shopId: string,
+  shopDomain: string,
+  range: ReturnType<typeof parseDateRange>,
+  useSampleDesk: boolean,
+): Promise<ChannelSpend[]> {
+  const entitlements = getShopEntitlements(shopDomain, {
+    sampleDesk: useSampleDesk,
+  });
+  const spendOpts = useSampleDesk
+    ? { sampleOnly: true as const }
+    : { excludeSample: true as const };
+  const spends = await getSpendByChannel(shopId, range, spendOpts);
+  if (useSampleDesk || entitlements.canUseAllChannels) return spends;
+  const allowed = new Set(entitlements.allowedChannels);
+  return spends.map((s) => (allowed.has(s.channel) ? s : { ...s, amount: 0 }));
+}
+
 export async function buildMerResponse(
   shopId: string,
   rangeInput: DateRangeInput,
@@ -40,10 +62,19 @@ export async function buildMerResponse(
   const shop = await prisma.shop.findUniqueOrThrow({ where: { id: shopId } });
 
   const settings = await getOrCreateSettings(shop.id);
-  const spends = await getSpendByChannel(shop.id, range);
+  const useSampleDesk = Boolean(settings.useSampleDesk);
+  const spends = await loadEntitledSpends(
+    shop.id,
+    shop.domain,
+    range,
+    useSampleDesk,
+  );
   const totalSpend = sumSpend(spends);
   const mer = computeMer(sales, totalSpend);
-  const breakEvenMer = computeBreakEvenMer(settings.marginPct);
+  const marginPct = useSampleDesk
+    ? SAMPLE_DESK_MARGIN_PCT
+    : settings.marginPct;
+  const breakEvenMer = computeBreakEvenMer(marginPct);
   const mix = channelMix(spends);
 
   const allocation =
@@ -93,9 +124,16 @@ export async function buildAllocationResponse(
   const shop = await prisma.shop.findUniqueOrThrow({ where: { id: shopId } });
   const settings = await getOrCreateSettings(shop.id);
   const range = parseDateRange(rangeInput);
-  const spends = await getSpendByChannel(shop.id, range);
+  const spends = await loadEntitledSpends(
+    shop.id,
+    shop.domain,
+    range,
+    Boolean(settings.useSampleDesk),
+  );
   const totalSpend = sumSpend(spends);
-  const breakEvenMer = computeBreakEvenMer(settings.marginPct);
+  const breakEvenMer = computeBreakEvenMer(
+    settings.useSampleDesk ? SAMPLE_DESK_MARGIN_PCT : settings.marginPct,
+  );
   const allocation = buildAllocationSuggestion(
     spends,
     sales,

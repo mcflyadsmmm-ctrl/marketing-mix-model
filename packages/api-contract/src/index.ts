@@ -1,5 +1,6 @@
 export {
   IsoDateString,
+  MAX_QUERY_RANGE_DAYS,
   MerQuerySchema,
   MerResponseSchema,
   ChannelMerSchema,

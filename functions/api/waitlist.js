@@ -66,6 +66,12 @@ function buildMessage(fields) {
   if (fields.budget) {
     lines.push("Budget band: " + fields.budget);
   }
+  if (fields.spend) {
+    lines.push("Monthly paid media spend: " + fields.spend);
+  }
+  if (fields.timeline) {
+    lines.push("Target start: " + fields.timeline);
+  }
   if (fields.notes) {
     lines.push("", custom ? "Project brief:" : "Notes / calculator snapshot:", fields.notes);
   }
@@ -143,6 +149,8 @@ async function sendFormSubmit(fields, message, subjectPrefix) {
       role: fields.role || "",
       store: fields.store || "",
       budget: fields.budget || "",
+      spend: fields.spend || "",
+      timeline: fields.timeline || "",
       source: fields.source || "mcflyads.com waitlist",
       _subject: prefix + fields.name,
       message,
@@ -218,6 +226,8 @@ async function handlePost(context) {
   const source = clean(raw.source, 80) || "mcflyads.com waitlist";
   const notes = clean(raw.notes, 1200);
   const budget = clean(raw.budget, 80);
+  const spend = clean(raw.spend, 80);
+  const timeline = clean(raw.timeline, 80);
   const custom = isCustomAnalytics(source);
 
   if (!email || !isEmail(email)) {
@@ -227,7 +237,7 @@ async function handlePost(context) {
     return json({ ok: false, error: "Name is required." }, 400);
   }
 
-  const fields = { name, email, role, store, source, notes, budget };
+  const fields = { name, email, role, store, source, notes, budget, spend, timeline };
   const message = buildMessage(fields);
   const createdAt = new Date().toISOString();
   const subjectPrefix = custom

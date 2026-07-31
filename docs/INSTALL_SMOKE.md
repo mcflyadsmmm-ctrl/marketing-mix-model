@@ -13,7 +13,7 @@
 
 ## Ritual
 
-1. **Settings** — set contribution margin (e.g. 35%) → save via contextual save bar → see break-even update.  
+1. **Settings** — set profit margin (e.g. 35%; what you keep after product costs) → save via contextual save bar → see break-even update.  
 2. **Spend** — Download blank template → fill a few days with real daily spend that lines up to days where Shopify has orders (include **Other** if needed) → Import.  
 3. **Total ROAS** — confirm sales are pulling from Shopify automatically (`read_orders`) and Total ROAS ≈ Shopify sales ÷ imported spend for the same period.  
 4. **Explorer** — confirm bars reflect the uploaded CSV channel mix and the Total ROAS dots reflect that bucket’s live Shopify sales ÷ spend.  

@@ -15,6 +15,16 @@
 10. **Install smoke / Billing later:** [`docs/INSTALL_SMOKE.md`](./docs/INSTALL_SMOKE.md) · [`docs/BILLING_TIERS.md`](./docs/BILLING_TIERS.md)
 11. **Value thesis (cash desk, flat fee, why not TW):** [`docs/VALUE_THESIS.md`](./docs/VALUE_THESIS.md)
 12. **Voice / copy SoT (MDS):** [`docs/MDS_RESEARCH_ABSORB.md`](./docs/MDS_RESEARCH_ABSORB.md)
+13. **Category domination megaprompt:** [`docs/CATEGORY_DOMINATION_MEGAPROMPT.md`](./docs/CATEGORY_DOMINATION_MEGAPROMPT.md) · partner smoke [`docs/DESIGN_PARTNER_SMOKE.md`](./docs/DESIGN_PARTNER_SMOKE.md)
+14. **Pipe automation wedge:** [`docs/PIPE_AUTOMATION_WEDGE.md`](./docs/PIPE_AUTOMATION_WEDGE.md) — Free CSV; SyncWith-class paid by merchant; Mcfly pulls Sheet
+15. **Fresh-chat fleet (ship today):** [`docs/AGENT_FLEET_TODAY.md`](./docs/AGENT_FLEET_TODAY.md) — parallel Agent chats + paste prompts; don’t continue mega-threads
+16. **Conductor · frontier / enterprise scale:** [`docs/CONDUCTOR_FRONTIER.md`](./docs/CONDUCTOR_FRONTIER.md)
+17. **Full ship build plan + cost analysis:** [`docs/SHIP_BUILD_PLAN.md`](./docs/SHIP_BUILD_PLAN.md)
+18. **SEO + AI GEO (dual pillar, agent-run):** [`docs/SEO_AI_GEO_RUNBOOK.md`](./docs/SEO_AI_GEO_RUNBOOK.md) — product desk + Custom Data Solutions; fleet pastes in §9
+19. **Research absorb (MMM/pixels/agentic — steal vs refuse):** [`docs/RESEARCH_ABSORB_ATTRIBUTION_AGENTIC.md`](./docs/RESEARCH_ABSORB_ATTRIBUTION_AGENTIC.md)
+20. **Research absorb (Shopify App Store failure vectors):** [`docs/RESEARCH_ABSORB_SHOPIFY_FAILURE_VECTORS.md`](./docs/RESEARCH_ABSORB_SHOPIFY_FAILURE_VECTORS.md)
+21. **90-day Major Improvement Plan (agent SoT):** [`docs/MAJOR_IMPROVEMENT_PLAN.md`](./docs/MAJOR_IMPROVEMENT_PLAN.md) — Wave 1 submit → Wave 2 organic → Wave 3 desk → Wave 4 commercial
+22. **Competitive landscape absorb (not a roadmap):** [`docs/RESEARCH_ABSORB_COMPETITIVE_LANDSCAPE.md`](./docs/RESEARCH_ABSORB_COMPETITIVE_LANDSCAPE.md)
 
 ## Mission
 
@@ -23,7 +33,9 @@ Ship a **world-class marketing site** (mcflyads.com) and a **world-class Shopify
 ## 24/7
 
 - Chat sprint loop while this session is alive (**frontier specialists**, Auto orchestrates)
-- **True 24/7** = Cursor Automation (hourly cloud agent) — see CONTINUOUS_24_7.md
+- **True 24/7** = Cursor Automation (hourly cloud agent) — see CONTINUOUS_24_7.md · paste [`docs/ops/APP_HOURLY_AUTOMATION.md`](./docs/ops/APP_HOURLY_AUTOMATION.md)
+- **Standing deploy grant** (until revoke): [`docs/ops/STANDING_DEPLOY_GRANT.md`](./docs/ops/STANDING_DEPLOY_GRANT.md) — Fly/Pages after ship-gate; never Partner Submit
+- Overnight map: [`docs/ops/OVERNIGHT_MEANINGFUL_20260729.md`](./docs/ops/OVERNIGHT_MEANINGFUL_20260729.md)
 - Each tick: orient → parallel specialists with **explicit frontier models** (Fable/Opus/Sonnet/Grok) → ship-gate → report
 - See `.cursor/rules/50-subagent-models.mdc` — quality over cheap Auto for craft
 

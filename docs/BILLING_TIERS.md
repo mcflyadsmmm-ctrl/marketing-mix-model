@@ -1,35 +1,57 @@
-# Billing tiers — after Free App Store smoke (deferred)
+# Billing tiers — Free Meta/Google → Pro $39 at launch
 
-**Status:** Documented plan only. **Do not** ship Shopify Billing charges on the first Free listing.  
-**Religion:** cash MER desk — not GMV tax, not email CRM on day one.  
-**PCD + LTV path:** [`PCD_AND_LTV.md`](./PCD_AND_LTV.md)
+**Status:** Entitlements shipped (`app/app/lib/entitlements.server.ts`). **Charges OFF** until `MCFLY_BILLING=1` + design-partner smoke + announce.  
+**Religion:** cash Total ROAS desk — not GMV tax, not email CRM on day one. Domination bar: [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1.  
+**Founder lock (2026-07-29):** Pro **$39/store/mo** at Billing launch; may raise later for new subscribers.  
+**PCD + LTV path:** [`PCD_AND_LTV.md`](./PCD_AND_LTV.md)  
+**Partner evidence:** [`DESIGN_PARTNER_SMOKE.md`](./DESIGN_PARTNER_SMOKE.md)
 
-## When to ship each tier
+## Product matrix (SoT)
 
-| Tier | Ship when | Includes | Explicitly out |
-| --- | --- | --- | --- |
-| **Free / Desk** | **Now → first App Store submit** | Multi-platform CSV, Bill → daily, Shopify sales, cash MER, break-even, allocation, Demo sample for shots | Live ad OAuth, Level 2 PII, connector zoo, paid gates |
-| **Pro (~$79 flat / store / mo)** | After design-partner smoke (`install works`) + Billing API | Longer history, freshness/recon, richer allocation, **till LTV (opaque cohorts)** when facts lane is ready | GMV tax; email/name CRM |
-| **Scale (later)** | Revenue-pulled only | Multi-store; optional deeper analysis | Lifetimely-class **email CRM** only if merchants pull it — needs **Level 2 PCD** + listing rewrite |
+| | **Free** | **Pro ($39 flat / store / mo at launch)** |
+| --- | --- | --- |
+| Spend channels | **Meta + Google + custom Other** (name influencers/podcasts/agency; CSV + Connections later) | **Named platforms** (TikTok, Microsoft, Amazon, …) + richer Mix / Explorer |
+| Core desk | Total Sales ÷ spend, profit margin / break-even, basic allocation for Meta+Google | Same + richer Mix / Explorer / Close history |
+| LTV + PCD L1 advanced | **Teaser only** (SAMPLE preview or locked panel + upgrade CTA) | Customer LTV (opaque cohorts), order-fact depth |
+| Goals / Close | Total ROAS goal + Share Overview | 12-month plan, YoY fill, Share Overview (merchant emails themselves) |
+| Demo | Full SAMPLE desk shows Pro capability | Live shop data under Pro |
+
+**Override:** `MCFLY_PRO_SHOPS=shop1.myshopify.com,shop2.myshopify.com` grants Pro without Billing (design partners / QA).
+
+## When to ship charges
+
+| Gate | Rule |
+| --- | --- |
+| Partner listing **Pricing** | Stays **Free** until founder announces Pro (or freemium Free+$39 when Billing is live) |
+| In-app feature gates | **On now** (Free = Meta+Google+custom Other; named platforms + LTV = Pro) |
+| Shopify Billing charges | Only when `MCFLY_BILLING=1` + announce |
 
 ## LTV vs PCD (do not confuse)
 
-| Feature | PCD needed | When |
+| Feature | PCD needed | Tier |
 | --- | --- | --- |
-| New vs returning (today) | Level 1 | First submit |
-| **Till LTV** (cohort revenue from opaque ids) | Level 1 (+ later `read_all_orders` for multi-year) | Post-approve / Pro |
-| Email/name customer CRM LTV | Level 2 | Optional Scale only |
+| New vs returning (today) | Level 1 | Free |
+| **Customer LTV** (cohort revenue from opaque ids) | Level 1 (+ later `read_all_orders` for multi-year) | **Pro** (SAMPLE preview on Free) |
+| Email/name customer CRM LTV | Level 2 | Optional Scale only — refuse for v1 |
+
+## Funnel
+
+1. Public `/demo` — full Pro SAMPLE  
+2. Install Free — paste Meta/Google spend or Connections MOCK sync  
+3. See Total ROAS vs Ads Manager — easy aha  
+4. Upgrade Pro **$39** — unlock LTV + all channels + advanced Goals/Close  
 
 ## First-submit lock
 
 1. Partner listing **Pricing = Free**  
-2. No in-app Billing charges  
-3. Site may say “~$79 later via Billing” — listing must stay Free  
-4. PCD = **Level 1 only** (opaque `id` + `numberOfOrders`) — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md)  
-5. After Marty replies **`install works`**, agent may start Billing stub work — not before
+2. No in-app Billing charges until announce  
+3. Site may say “Pro $39” with feature matrix — listing stays Free until Billing ships  
+4. PCD = **Level 1 only** — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md)  
+5. After Marty replies **`install works`**, wire Billing GraphQL — not before  
 
 ## Evidence pointers
 
 - Listing Free: [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md)  
 - Submit runbook: [`SUBMIT_NOW.md`](./SUBMIT_NOW.md)  
+- Scaffold: `billing-flag.server.ts` (`PRO_PLAN.amount = 39`), `billing.server.ts`, `entitlements.ts`  
 - Competitor wedge: [`COMPETITORS.md`](./COMPETITORS.md)

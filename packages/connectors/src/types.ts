@@ -14,8 +14,14 @@ export type SpendSyncRange = {
 };
 
 export type SpendWriteResult = {
+  /** created + updated (rows actually written). */
   written: number;
+  /** Existing rows whose amount+source already matched — left alone. */
   skipped: number;
+  /** New shop+channel+day rows. */
+  created: number;
+  /** Existing rows whose amount/source was replaced. */
+  updated: number;
 };
 
 /** Repository port — app DB layer implements this. */

@@ -6,7 +6,7 @@
 
 ## One-sentence product idea
 
-**Advanced Marketing Data Science for your business** — Total ROAS (Shopify sales ÷ ad spend), break-even from margin, one clear Monday budget call. Flat fee path. No pixels, path credit, or “true ROAS.”
+**Advanced Marketing Data Science for your business** — Total ROAS (Total Sales ÷ ad spend), break-even from margin, one clear Monday budget call. Flat fee path. No pixels, path credit, or “true ROAS.”
 
 ## Steal vs refuse (deep research)
 
@@ -21,11 +21,17 @@ Research “budget allocator” sentence shape → Mcfly **rules-based allocatio
 
 ## Voice (copy SoT)
 
-**Tone:** calm senior marketing data scientist — precise, short, confident.
+**Tone:** calm operator who has sat on Monday budget calls — precise, short, human. Write like you’d say it on a Zoom with a founder, not like a landing-page generator.
 
-**Preferred nouns:** Total ROAS, break-even, till, Monday call, defendable to finance, Advanced Marketing Data Science.
+**Sales-rep test:** A new hire can read the hero + one section aloud without cringing. If it sounds like “Suite-grade craft / unlock / seamless / theater / get excited,” rewrite.
 
-**Avoid:** scrub/SAMPLE slang; cash MER / Marketing Efficiency as public noun; “true ROAS” as a product claim; “platforms are lying” as hero lead; AI fluff; Meridian / Robyn / incrementality name-drops in product UI.
+**Preferred nouns:** Total ROAS, break-even, budget call, defendable to finance, **Total Sales**. Avoid “till” and “Monday math” cringe in customer copy; decide any day. Thesis (sparingly): **Advanced Marketing Data Science, made easy**.
+
+**Avoid:** scrub/SAMPLE slang in customer-facing CTAs; cash MER / Marketing Efficiency as public noun; “true ROAS” as a product claim; “platforms are lying” as hero lead; AI fluff; Meridian / Robyn / incrementality name-drops in product UI.
+
+**Anti-slop ban list (site + app chrome):** unlock, seamless, leverage, empower, cutting-edge, game-changer, next-level, suite-grade, get excited, religion (in customer copy), theater (overuse), world-class, robust, harness, elevate, transform your, delve, landscape.
+
+**Sales shape:** name the Monday job → show the two numbers → say what happens next → one honest CTA. Objection lines beat adjectives.
 
 **Length:** headlines ≤ ~8 words when possible; ledes ≤ 2 short sentences; CTAs = verb + outcome.
 
@@ -33,24 +39,24 @@ Research “budget allocator” sentence shape → Mcfly **rules-based allocatio
 
 | Slot | Copy |
 | --- | --- |
-| H1 / thesis | Advanced Marketing Data Science for your business |
-| Support | Total ROAS is Shopify sales ÷ ad spend — then break-even, then one budget move. |
+| H1 / thesis | Advanced Marketing Data Science, made easy |
+| Support | Total ROAS is Total Sales ÷ ad spend — then break-even, then one budget move. |
 | Metric | Total ROAS |
 | Definition | Total ROAS = sales ÷ spend for this period |
-| Trust | Marketing Data Science from the till — not path credit. |
-| Monday | Your Monday call — Total ROAS vs break-even |
-| Contrast (short) | Till sales ÷ spend. Not path credit. |
+| Trust | Marketing Data Science from Total Sales — not path credit. |
+| Monday | Your budget call — Total ROAS vs break-even |
+| Contrast (short) | Total Sales ÷ spend. Not path credit. |
 
 ### Polish pairs
 
 | Rough | Polished |
 | --- | --- |
-| Marketing Data Science, tailored to you | Advanced Marketing Data Science for your business |
-| at your fingertips (as only h1) | Prefer “for your business”; fingertips OK as subhead only |
+| Marketing Data Science, tailored to you | Advanced Marketing Data Science, made easy |
+| at your fingertips (as only h1) | Prefer thesis “made easy”; fingertips OK as subhead only |
 | Try the sample desk — then move budget… | Preview the sample desk. When you clear break-even, move the budget. |
 | Open Marketing Efficiency / unlock ME | Open Total ROAS |
-| One Monday call a data scientist would make… | Your Monday call — Total ROAS vs break-even |
-| Not platform ROAS or path attribution — … | Till sales ÷ spend. Not path credit. |
+| One budget call a data scientist would make… | Your budget call — Total ROAS vs break-even |
+| Not platform ROAS or path attribution — … | Total Sales ÷ spend. Not path credit. |
 
 ## Agent checklist before ship
 

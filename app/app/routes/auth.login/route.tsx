@@ -21,8 +21,8 @@ export default function AuthLoginRedirect() {
       <s-page>
         <s-section heading="Install from Shopify">
           <s-paragraph>
-            Mcfly installs from Shopify Admin or a Partner invite — not by typing
-            your shop domain here.
+            Mcfly installs from the Shopify App Store — not by typing your shop
+            domain here.
           </s-paragraph>
           <s-link href="https://mcflyads.com/">Back to mcflyads.com</s-link>
         </s-section>

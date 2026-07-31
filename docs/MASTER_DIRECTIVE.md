@@ -186,30 +186,34 @@ ON failure:
 
 ## 5. Backlog priority (agents pull from top)
 
-### P0 — Make it real
+**90-day unified SoT:** [`MAJOR_IMPROVEMENT_PLAN.md`](./MAJOR_IMPROVEMENT_PLAN.md) (Waves 1–4). Prefer that backlog when it conflicts with older row numbers below.
 
+### P0 — Category domination (cash close habit)
+
+0. **Domination bar** — [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1 Category Domination Bar; craft ≥4.7; &lt;10 min TTFV; paste death → OAuth  
 1. Fly org billing complete; machines always-on; health stable &gt;30 min  
 2. DB-aware `/health`  
-3. Design-partner install + ritual smoke on hosted URL  
-4. Onboarding banners; hide dead Connections  
-5. Site: replace mailto waitlist; deploy latest `/site`  
+3. Design-partner install + **four Monday Closes** + WTP ([`DESIGN_PARTNER_SMOKE.md`](./DESIGN_PARTNER_SMOKE.md))  
+4. Onboarding / TTFV banners; Monday Close as primary ritual CTA  
+5. Site: App Store Free primary CTA; Partner invite secondary; deploy `/site` when asked  
 
-### P1 — Make it trusted & sticky
+### P1 — Retention & paid
 
-6. CSV spend import  
-7. Dashboard freshness / recon  
+6. CSV spend import (Free path)  
+7. Dashboard freshness / recon / shop-IANA coverage  
 8. Overnight alert sink (email/Slack)  
 9. Fix global API token multi-shop footgun  
-10. Meta spend sync (human App Review)  
+10. **Meta + Google spend sync** (live Insights/GAQL; human App Review for other merchants)  
 11. Sentry  
-12. Shopify Billing (~$79)  
+12. Shopify Billing scaffold → announce ~$79 after partners (`MCFLY_BILLING`)  
 
-### P2 — Make it public
+### P2 — Make it public / density
 
 13. App Store screenshots + listing submit (human)  
 14. Custom date ranges  
-15. Google spend pipe / Script path  
+15. Review density / demo store (post-submit)  
 16. Site proof quotes / partner logos  
+17. Sheets companion only after app brain trusted  
 
 ---
 

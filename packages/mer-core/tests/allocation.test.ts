@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   calculateBreakEvenMer,
   calculateMer,
+  clampSpendFloorCutPct,
+  portfolioCutPercent,
+  SPEND_FLOOR_PCT,
+  spendFloorMaxCutPct,
   suggestAllocation,
 } from "../src/index.js";
 
@@ -19,6 +23,44 @@ describe("MER math (smoke)", () => {
   });
 });
 
+describe("spend floor", () => {
+  it("exports SPEND_FLOOR_PCT / spendFloorMaxCutPct as 50 (max cut, keep ≥50%)", () => {
+    expect(SPEND_FLOOR_PCT).toBe(50);
+    expect(spendFloorMaxCutPct).toBe(50);
+  });
+
+  it("clampSpendFloorCutPct never exceeds 50 or drops below 10", () => {
+    expect(clampSpendFloorCutPct(80)).toBe(50);
+    expect(clampSpendFloorCutPct(5)).toBe(10);
+    expect(clampSpendFloorCutPct(25)).toBe(25);
+  });
+});
+
+describe("portfolioCutPercent", () => {
+  it("sizes cut toward BE gap, clamps [10, 50], rounds to nearest 5", () => {
+    // 1 - 1.8182/2.5 ≈ 27.27% → 25
+    expect(portfolioCutPercent(10000 / 5500, 2.5)).toBe(25);
+    // 1 - 2.0/2.5 = 20% → 20
+    expect(portfolioCutPercent(2.0, 2.5)).toBe(20);
+    // small gap → min 10
+    expect(portfolioCutPercent(2.4, 2.5)).toBe(10);
+    // mid gap that previously hit old 30 ceiling → still gap-scaled
+    // 1 - 1.5/2.5 = 40% → 40
+    expect(portfolioCutPercent(1.5, 2.5)).toBe(40);
+    // large gap → spend floor max 50 (never zero spend)
+    expect(portfolioCutPercent(0.5, 2.5)).toBe(50);
+  });
+
+  it("uses max 50% when overall MER is 0", () => {
+    expect(portfolioCutPercent(0, 2.5)).toBe(50);
+  });
+
+  it("returns min cut when at/above break-even (hold path unused)", () => {
+    expect(portfolioCutPercent(2.5, 2.5)).toBe(10);
+    expect(portfolioCutPercent(3, 2.5)).toBe(10);
+  });
+});
+
 describe("suggestAllocation", () => {
   const breakEvenMer = 2.5;
   const channels = [
@@ -27,7 +69,7 @@ describe("suggestAllocation", () => {
     { name: "Manual / Other", spend: 500, isManual: true },
   ];
 
-  it("suggests cuts when overall MER is below break-even", () => {
+  it("suggests portfolio cut when below break-even without operator channel cash", () => {
     const result = suggestAllocation({
       channels,
       breakEvenMer,
@@ -35,15 +77,37 @@ describe("suggestAllocation", () => {
       totalSpend: 5500,
     });
 
+    const expectedCut = portfolioCutPercent(10000 / 5500, breakEvenMer);
     expect(result.overallMer).toBeCloseTo(1.8182, 3);
     expect(result.isAboveBreakEven).toBe(false);
+    expect(result.hasOperatorChannelCash).toBe(false);
     expect(result.suggestedTestDays).toBe(7);
-    expect(result.actions.some((a) => a.type === "cut")).toBe(true);
-    expect(result.why).toMatch(/below break-even/i);
+    const cut = result.actions.find((a) => a.type === "cut");
+    expect(cut?.channel).toBe("portfolio");
+    expect(cut?.percentChange).toBe(-expectedCut);
+    expect(result.why).toMatch(/Total ROAS below break-even/i);
+    expect(result.why).toMatch(/illustrative step-test/i);
+    expect(result.why).toMatch(/not marginal/i);
+    expect(result.why).not.toMatch(/channel efficiency/i);
+    expect(cut?.detail).toMatch(/illustrative cash step-test/i);
+    expect(cut?.detail).toMatch(/not marginal/i);
+    expect(cut?.detail).toMatch(
+      new RegExp(`~${expectedCut}% portfolio spend cut`, "i"),
+    );
+    expect(Math.abs(cut?.percentChange ?? 0)).toBeLessThanOrEqual(
+      SPEND_FLOOR_PCT,
+    );
     expect(result.inputs.channelEfficiencies).toHaveLength(3);
+    // Spend-share must not fake channel Total ROAS
+    expect(
+      result.inputs.channelEfficiencies.every((c) => c.effectiveMer === null),
+    ).toBe(true);
+    expect(
+      result.inputs.channelEfficiencies.every((c) => c.basis === "spend_share"),
+    ).toBe(true);
   });
 
-  it("prefers cutting manual channel when below break-even", () => {
+  it("does not prefer cutting manual channel when efficiencies are spend-share only", () => {
     const result = suggestAllocation({
       channels,
       breakEvenMer,
@@ -52,10 +116,37 @@ describe("suggestAllocation", () => {
     });
 
     const cut = result.actions.find((a) => a.type === "cut");
-    expect(cut?.channel).toMatch(/manual/i);
+    expect(cut?.channel).toBe("portfolio");
+    expect(cut?.channel).not.toMatch(/manual/i);
   });
 
-  it("holds mix when MER is at or above break-even", () => {
+  it("cuts by lowest efficiency, not isManual preference", () => {
+    const result = suggestAllocation({
+      channels: [
+        {
+          name: "Manual / Other",
+          spend: 1000,
+          salesContribution: 1800,
+          isManual: true,
+        },
+        {
+          name: "Meta",
+          spend: 1000,
+          salesContribution: 500,
+          isManual: false,
+        },
+      ],
+      breakEvenMer: 2.5,
+      totalSales: 2300,
+      totalSpend: 2000,
+    });
+
+    // Meta MER 0.5 vs Manual 1.8 — cut Meta despite Manual flag
+    expect(result.hasOperatorChannelCash).toBe(true);
+    expect(result.actions.find((a) => a.type === "cut")?.channel).toBe("Meta");
+  });
+
+  it("holds portfolio when MER is at or above break-even", () => {
     const result = suggestAllocation({
       channels,
       breakEvenMer,
@@ -65,6 +156,10 @@ describe("suggestAllocation", () => {
 
     expect(result.isAboveBreakEven).toBe(true);
     expect(result.actions.some((a) => a.type === "hold")).toBe(true);
+    expect(result.actions.find((a) => a.type === "hold")?.channel).toBe(
+      "portfolio",
+    );
+    expect(result.why).toMatch(/Hold portfolio/i);
     expect(result.why).toMatch(/at or above break-even/i);
   });
 
@@ -92,9 +187,16 @@ describe("suggestAllocation", () => {
       totalSpend: 6000,
     });
 
+    const expectedCut = portfolioCutPercent(14000 / 6000, 2.5);
+    expect(result.hasOperatorChannelCash).toBe(true);
     const google = result.inputs.channelEfficiencies.find((c) => c.name === "Google");
     expect(google?.effectiveMer).toBe(1);
+    expect(google?.basis).toBe("operator_cash");
     expect(result.actions.some((a) => a.type === "cut")).toBe(true);
+    expect(result.actions.find((a) => a.type === "cut")?.channel).toBe("Google");
+    expect(result.actions.find((a) => a.type === "cut")?.percentChange).toBe(
+      -expectedCut,
+    );
   });
 
   it("returns watch guidance when no spend recorded", () => {
@@ -140,7 +242,7 @@ describe("suggestAllocation", () => {
     }
   });
 
-  it("handles zero sales with positive spend as below break-even", () => {
+  it("handles zero sales with positive spend as portfolio cut", () => {
     const result = suggestAllocation({
       channels: [
         { name: "Meta", spend: 800 },
@@ -153,7 +255,35 @@ describe("suggestAllocation", () => {
 
     expect(result.overallMer).toBe(0);
     expect(result.isAboveBreakEven).toBe(false);
-    expect(result.actions.some((a) => a.type === "cut")).toBe(true);
+    const cut = result.actions.find((a) => a.type === "cut");
+    expect(cut?.channel).toBe("portfolio");
+    expect(cut?.percentChange).toBe(-SPEND_FLOOR_PCT);
+    expect(Math.abs(cut?.percentChange ?? 0)).toBeLessThanOrEqual(
+      SPEND_FLOOR_PCT,
+    );
+  });
+
+  it("never recommends cutting more than SPEND_FLOOR_PCT (50%)", () => {
+    const result = suggestAllocation({
+      channels: [
+        { name: "Meta", spend: 9000 },
+        { name: "Google", spend: 1000 },
+      ],
+      breakEvenMer: 2.5,
+      totalSales: 1000,
+      totalSpend: 10000,
+    });
+
+    const cuts = result.actions.filter((a) => a.type === "cut");
+    expect(cuts.length).toBeGreaterThan(0);
+    for (const cut of cuts) {
+      expect(cut.percentChange).toBeDefined();
+      expect(cut.percentChange!).toBeLessThan(0);
+      expect(Math.abs(cut.percentChange!)).toBeLessThanOrEqual(SPEND_FLOOR_PCT);
+      expect(Math.abs(cut.percentChange!)).toBeGreaterThan(0);
+    }
+    expect(result.why).toMatch(/illustrative step-test|not marginal/i);
+    expect(result.why).not.toMatch(/channel efficiency/i);
   });
 
   it("ignores negative channel spend rows", () => {
@@ -185,13 +315,14 @@ describe("suggestAllocation", () => {
     const names = result.inputs.channelEfficiencies.map((c) => c.name);
     expect(names).toEqual(["Meta", "Google"]);
     const meta = result.inputs.channelEfficiencies.find((c) => c.name === "Meta");
-    // Falls back to spend-share assumption when contribution is non-finite.
+    // Non-finite contribution → spend_share basis; no fake channel MER
     expect(meta?.assumedSales).toBe(4000);
-    expect(meta?.effectiveMer).toBe(4);
+    expect(meta?.effectiveMer).toBeNull();
+    expect(meta?.basis).toBe("spend_share");
     expect(result.inputs.channelEfficiencies.find((c) => c.name === "Google")?.effectiveMer).toBeNull();
   });
 
-  it("shifts toward stronger channel when cutting below break-even", () => {
+  it("shifts toward stronger channel when operator cash differentiates", () => {
     const result = suggestAllocation({
       channels: [
         { name: "Weak", spend: 4000, salesContribution: 2000 },
@@ -202,12 +333,23 @@ describe("suggestAllocation", () => {
       totalSpend: 5000,
     });
 
+    const expectedCut = portfolioCutPercent(7000 / 5000, 2.5);
     expect(result.isAboveBreakEven).toBe(false);
+    expect(result.hasOperatorChannelCash).toBe(true);
     const cut = result.actions.find((a) => a.type === "cut");
     const shift = result.actions.find((a) => a.type === "shift");
     expect(cut?.channel).toBe("Weak");
+    expect(cut?.percentChange).toBe(-expectedCut);
     expect(shift?.channel).toBe("Strong");
     expect(shift?.percentChange).toBeGreaterThan(0);
+    expect(result.why).toMatch(/Total ROAS below break-even/i);
+    expect(result.why).toMatch(/illustrative step-test/i);
+    expect(result.why).toMatch(/not marginal/i);
+    expect(cut?.detail).toMatch(/illustrative (cash )?step-test/i);
+    expect(cut?.detail).toMatch(/not marginal/i);
+    expect(Math.abs(cut?.percentChange ?? 0)).toBeLessThanOrEqual(
+      SPEND_FLOOR_PCT,
+    );
   });
 
   it("asks for channel breakdown when below BE with empty channels", () => {
@@ -218,9 +360,12 @@ describe("suggestAllocation", () => {
       totalSpend: 1000,
     });
 
+    const expectedCut = portfolioCutPercent(1, 2.5);
     expect(result.isAboveBreakEven).toBe(false);
-    expect(result.actions[0]?.type).toBe("watch");
-    expect(result.actions[0]?.detail).toMatch(/channel-level spend/i);
+    // Empty channel list → portfolio cut (no fake channel pick)
+    expect(result.actions[0]?.type).toBe("cut");
+    expect(result.actions[0]?.channel).toBe("portfolio");
+    expect(result.actions[0]?.percentChange).toBe(-expectedCut);
   });
 
   it("includes auditable inputs", () => {

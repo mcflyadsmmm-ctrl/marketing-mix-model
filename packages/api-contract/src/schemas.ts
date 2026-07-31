@@ -1,14 +1,47 @@
 import { z } from "zod";
 
+/** Inclusive calendar-day cap for /v1/mer and /v1/allocation queries. */
+export const MAX_QUERY_RANGE_DAYS = 366;
+
 export const IsoDateString = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD");
 
-export const MerQuerySchema = z.object({
-  from: IsoDateString,
-  to: IsoDateString,
-  includeAllocation: z.coerce.boolean().optional().default(true),
-});
+function inclusiveUtcDays(from: string, to: string): number {
+  const fromMs = Date.parse(`${from}T00:00:00.000Z`);
+  const toMs = Date.parse(`${to}T00:00:00.000Z`);
+  return Math.floor((toMs - fromMs) / 86_400_000) + 1;
+}
+
+const dateRangeRefine = (
+  data: { from: string; to: string },
+  ctx: z.RefinementCtx,
+) => {
+  if (data.from > data.to) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "`from` must be on or before `to`",
+      path: ["from"],
+    });
+    return;
+  }
+  const days = inclusiveUtcDays(data.from, data.to);
+  if (days > MAX_QUERY_RANGE_DAYS) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Date range exceeds maximum of ${MAX_QUERY_RANGE_DAYS} days (${days} requested)`,
+      path: ["to"],
+    });
+  }
+};
+
+export const MerQuerySchema = z
+  .object({
+    from: IsoDateString,
+    to: IsoDateString,
+    includeAllocation: z.coerce.boolean().optional().default(true),
+  })
+  .superRefine(dateRangeRefine);
 
 export const ChannelMerSchema = z.object({
   name: z.string(),
@@ -59,10 +92,12 @@ export const PostSpendResponseSchema = z.object({
   shopId: z.string(),
 });
 
-export const AllocationQuerySchema = z.object({
-  from: IsoDateString,
-  to: IsoDateString,
-});
+export const AllocationQuerySchema = z
+  .object({
+    from: IsoDateString,
+    to: IsoDateString,
+  })
+  .superRefine(dateRangeRefine);
 
 export const AllocationResponseSchema = z.object({
   from: IsoDateString,

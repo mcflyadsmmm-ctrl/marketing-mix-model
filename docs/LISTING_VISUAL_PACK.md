@@ -121,8 +121,20 @@ E. ICON
 | --- | --- |
 | `docs/listing-assets/mcfly-app-icon-1200.png` | Partner **App icon** — ribbon **M** only (not the Mcfly Ads wordmark) |
 | `docs/listing-assets/mcfly-ads-lockup-source.png` | Full lockup source (M + Mcfly Ads) — marketing only |
-| `docs/listing-assets/shots/` | Listing screenshot PNGs (capture session above) |
+| `docs/listing-assets/shots/` | Listing screenshot PNGs — **founder pack 2026-07-28** (see `shots/CAPTIONS.md`) |
 | Brand mark sizes | `site/assets/brand/mcfly-m.png` (+ 32/64/128/256) |
+
+### Founder pack status (2026-07-28)
+
+| # | File | Status |
+| --- | --- | --- |
+| 1 | `01-total-roas-vs-breakeven.png` | **Ready** — KPI board (Sales / Spend / Total ROAS) |
+| 2 | `02-explorer-sales-div-spend.png` | **Ready** — Explorer (sales ÷ spend + channel mix) |
+| 3 | `03-margin-breakeven.png` | **Ready** — Break-even lock from margin |
+| 4 | `04-free-pro-pricing.png` | **Ready** — Free vs Pro honesty |
+| 5 | `05-spend-csv.png` | **Ready (mock)** — platforms + combine + Other; SAMPLE labeled. Re-capture live Admin when session available (`docs/ops/SHOT5_20260729.md`). HOLD stays do-not-upload. |
+
+Captions + upload order: [`listing-assets/shots/CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md).
 
 ---
 

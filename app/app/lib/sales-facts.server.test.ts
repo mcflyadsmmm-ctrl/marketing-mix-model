@@ -154,9 +154,9 @@ describe("runSalesFactsBackfill", () => {
     const now = new Date("2026-07-15T12:00:00.000Z");
     const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", { now, maxDays: 10 });
 
-    // 60-day window, 10 attempted this call -> 50 remain for the next call.
+    // Jan-1 × 4yr window (not a fixed 60d) — 10 attempted this call leaves the rest.
     expect(result.attempted).toBe(10);
-    expect(result.remainingMissingDays).toBe(50);
+    expect(result.remainingMissingDays).toBeGreaterThan(50);
   });
 });
 
@@ -192,11 +192,14 @@ describe("getSalesFactsCoverage", () => {
     expect(coverage.periodExceedsFactWindow).toBe(false);
   });
 
-  it("marks L12M/YTD/3yr incomplete when the period starts before the fact window", async () => {
-    // YTD starting Jan 1 is far more than 60 days before a July "now" —
-    // must NOT claim complete with truncated 60-day facts under a YTD label.
+  it("marks periods incomplete when the range starts before the Jan-1 × 4yr fact window", async () => {
+    // Window for mid-2026 starts 2022-01-01 — a 2021 start must exceed it.
     const now = new Date(2026, 6, 15, 9, 0, 0);
-    const range = { start: new Date(2026, 0, 1), end: new Date(2026, 6, 15, 23, 59, 59, 999), label: "YTD" };
+    const range = {
+      start: new Date(2021, 0, 1),
+      end: new Date(2026, 6, 15, 23, 59, 59, 999),
+      label: "custom deep",
+    };
     count.mockResolvedValue(60);
 
     const coverage = await getSalesFactsCoverage("shop_1", range, now);

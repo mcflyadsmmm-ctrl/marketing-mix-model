@@ -44,6 +44,14 @@ function mapChannel(channel) {
   return "other";
 }
 
+function normalizeSpendSource(source) {
+  const raw = String(source || "manual").toLowerCase().trim();
+  if (raw === "meta" || raw === "google" || raw === "csv" || raw === "manual") {
+    return raw;
+  }
+  return "csv";
+}
+
 function createSpendRepository() {
   return {
     async upsertSpendDays(shopId, rows) {
@@ -51,6 +59,7 @@ function createSpendRepository() {
       let skipped = 0;
       for (const row of rows) {
         const channel = mapChannel(row.channel);
+        const source = normalizeSpendSource(row.source);
         const [y, m, d] = row.date.split("-").map(Number);
         const start = new Date(y, m - 1, d);
         const end = new Date(y, m - 1, d, 23, 59, 59, 999);
@@ -59,9 +68,13 @@ function createSpendRepository() {
           where: {
             shopId_channel_periodStart: { shopId, channel, periodStart: start },
           },
-          select: { amount: true },
+          select: { amount: true, source: true },
         });
-        if (existing && existing.amount === row.amount) {
+        if (
+          existing &&
+          existing.amount === row.amount &&
+          existing.source === source
+        ) {
           skipped += 1;
           continue;
         }
@@ -76,11 +89,13 @@ function createSpendRepository() {
             periodStart: start,
             periodEnd: end,
             note: `sync:${row.source}`,
+            source,
           },
           update: {
             amount: row.amount,
             periodEnd: end,
             note: `sync:${row.source}`,
+            source,
           },
         });
         written += 1;
@@ -88,6 +103,23 @@ function createSpendRepository() {
       return { written, skipped };
     },
   };
+}
+
+function hasMetaLiveCreds() {
+  return Boolean(
+    process.env.META_ACCESS_TOKEN?.trim() &&
+      process.env.META_AD_ACCOUNT_ID?.trim(),
+  );
+}
+
+function hasGoogleLiveCreds() {
+  return Boolean(
+    process.env.GOOGLE_ADS_DEVELOPER_TOKEN?.trim() &&
+      process.env.GOOGLE_ADS_CUSTOMER_ID?.trim() &&
+      process.env.GOOGLE_ADS_REFRESH_TOKEN?.trim() &&
+      process.env.GOOGLE_CLIENT_ID?.trim() &&
+      process.env.GOOGLE_CLIENT_SECRET?.trim(),
+  );
 }
 
 const repository = createSpendRepository();
@@ -170,14 +202,65 @@ const report = await runOvernightOrchestrator({
   runPreflight,
 
   syncSpend: async (shopId, from, to) => {
+    const wantMetaLive = process.env.MCFLY_LIVE_META === "1";
+    const wantGoogleLive = process.env.MCFLY_LIVE_GOOGLE === "1";
+    const metaLive = wantMetaLive && hasMetaLiveCreds();
+    const googleLive = wantGoogleLive && hasGoogleLiveCreds();
+
+    // Never silently mock when operator asked for live — fail loud.
+    if (wantMetaLive && !metaLive) {
+      throw new Error(
+        "MCFLY_LIVE_META=1 but Meta credentials missing (META_ACCESS_TOKEN + META_AD_ACCOUNT_ID). Refusing silent mock.",
+      );
+    }
+    if (wantGoogleLive && !googleLive) {
+      throw new Error(
+        "MCFLY_LIVE_GOOGLE=1 but Google credentials incomplete (developer token, customer id, refresh token, GOOGLE_CLIENT_ID/SECRET). Refusing silent mock.",
+      );
+    }
+
+    const mockAllowed = process.env.MCFLY_SPEND_OAUTH_MOCK === "1";
+    const allowMockFallback =
+      mockAllowed || (!wantMetaLive && !wantGoogleLive);
+
+    if (!metaLive && !googleLive && !allowMockFallback) {
+      throw new Error(
+        "Overnight spend sync: no live Meta/Google path and MCFLY_SPEND_OAUTH_MOCK≠1. Set live flags+creds or enable mock.",
+      );
+    }
+
     const result = await syncShopSpend(shopId, from, to, repository, {
-      meta: { useMock: process.env.MCFLY_LIVE_META !== "1" },
-      google: { useMock: process.env.MCFLY_LIVE_GOOGLE !== "1" },
+      meta: metaLive
+        ? {
+            enabled: true,
+            useMock: false,
+            accessToken: process.env.META_ACCESS_TOKEN,
+            adAccountId: process.env.META_AD_ACCOUNT_ID,
+          }
+        : mockAllowed || (!wantMetaLive && !wantGoogleLive)
+          ? { enabled: true, useMock: true }
+          : { enabled: false },
+      google: googleLive
+        ? {
+            enabled: true,
+            useMock: false,
+            developerToken: process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
+            customerId: process.env.GOOGLE_ADS_CUSTOMER_ID,
+            refreshToken: process.env.GOOGLE_ADS_REFRESH_TOKEN,
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            loginCustomerId: process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID,
+          }
+        : mockAllowed || (!wantMetaLive && !wantGoogleLive)
+          ? { enabled: true, useMock: true }
+          : { enabled: false },
     });
     return {
       totalRows: result.totalRows,
       metaWritten: result.meta.written,
       googleWritten: result.google.written,
+      metaMode: metaLive ? "live" : mockAllowed || (!wantMetaLive && !wantGoogleLive) ? "mock" : "skip",
+      googleMode: googleLive ? "live" : mockAllowed || (!wantMetaLive && !wantGoogleLive) ? "mock" : "skip",
     };
   },
 

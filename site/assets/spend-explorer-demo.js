@@ -1134,7 +1134,7 @@
       }
     }
 
-    // Wire primary controls (range + granularity only — sample desk)
+    // Wire primary controls: range, granularity, mode, show-sales
     root.querySelectorAll("[data-sx-range]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         state.range = btn.getAttribute("data-sx-range") || "90d";
@@ -1157,6 +1157,32 @@
           if (b === btn) b.setAttribute("aria-current", "true");
           else b.removeAttribute("aria-current");
         });
+        render();
+      });
+    });
+
+    root.querySelectorAll("[data-sx-mode]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var mode = btn.getAttribute("data-sx-mode") || "stacked";
+        if (mode !== "stacked" && mode !== "share" && mode !== "total") {
+          mode = "stacked";
+        }
+        state.mode = mode;
+        root.querySelectorAll("[data-sx-mode]").forEach(function (b) {
+          var on = b === btn;
+          b.classList.toggle("is-on", on);
+          if (on) b.setAttribute("aria-current", "true");
+          else b.removeAttribute("aria-current");
+        });
+        render();
+      });
+    });
+
+    root.querySelectorAll("[data-sx-sales]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        state.showSales = !state.showSales;
+        btn.classList.toggle("is-on", state.showSales);
+        btn.setAttribute("aria-pressed", state.showSales ? "true" : "false");
         render();
       });
     });

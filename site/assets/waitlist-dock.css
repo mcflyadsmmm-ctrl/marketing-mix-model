@@ -90,6 +90,28 @@
     cursor: pointer;
   }
 
+  .waitlist-confirm--dock {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .waitlist-confirm--dock .waitlist-preview {
+    max-height: 8rem;
+    font-size: 0.75rem;
+  }
+
+  .wl-dock__edit {
+    font: inherit;
+    font-weight: 600;
+    color: var(--cyan-deep, #0b6e7c);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
   .sr-only {
     position: absolute;
     width: 1px;

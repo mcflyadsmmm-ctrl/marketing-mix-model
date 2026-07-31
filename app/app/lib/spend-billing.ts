@@ -1,11 +1,11 @@
-// Bill → daily: spread a month/quarter/year invoice across days for cash MER.
+// Bill → daily: spread a month/quarter/half-year/year invoice across days for cash MER.
 // Pure math only — no I/O. Religion: cash MER = sales ÷ spend; CSV spine; no OAuth.
 
 import type { SpendChannel } from "@mcfly/mer-engine";
 import { SPEND_CHANNELS, SPEND_CHANNEL_LABELS } from "@mcfly/mer-engine";
 import { WIDE_TEMPLATE_COLUMNS, WIDE_TEMPLATE_HEADERS } from "./spend-csv";
 
-export type BillCadence = "month" | "quarter" | "year";
+export type BillCadence = "month" | "quarter" | "half_year" | "year";
 export type BillDayBasis = "calendar" | "fixed";
 
 export interface BillDailyInput {
@@ -41,13 +41,23 @@ export type BillDailyResult =
   | { ok: true; plan: BillDailyPlan }
   | { ok: false; error: string };
 
+/**
+ * Fixed-day conventions (inclusive). half_year = 182 = floor(365/2), matching
+ * year=365 rather than leap-aware 183. Calendar basis uses real month lengths.
+ */
 const FIXED_DAYS: Record<BillCadence, number> = {
   month: 30,
   quarter: 90,
+  half_year: 182,
   year: 365,
 };
 
-const CADENCES: readonly BillCadence[] = ["month", "quarter", "year"];
+const CADENCES: readonly BillCadence[] = [
+  "month",
+  "quarter",
+  "half_year",
+  "year",
+];
 const DAY_BASES: readonly BillDayBasis[] = ["calendar", "fixed"];
 
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -130,6 +140,8 @@ function monthsForCadence(cadence: BillCadence): number {
       return 1;
     case "quarter":
       return 3;
+    case "half_year":
+      return 6;
     case "year":
       return 12;
     default: {
@@ -141,8 +153,8 @@ function monthsForCadence(cadence: BillCadence): number {
 
 /**
  * Inclusive end date for the billing period.
- * Calendar: start + N months − 1 day (e.g. Jul 1 → Jul 31).
- * Fixed: start + 29/89/364 days (30/90/365 inclusive).
+ * Calendar: start + N months − 1 day (e.g. Jul 1 → Jul 31; bi-annual → +6 mo − 1 day).
+ * Fixed: start + 29/89/181/364 days (30/90/182/365 inclusive).
  */
 export function periodEndDate(
   startDate: string,
@@ -213,7 +225,10 @@ export function planBillDaily(input: BillDailyInput): BillDailyResult {
     return { ok: false, error: "Enter a positive bill amount." };
   }
   if (!isBillCadence(cadence)) {
-    return { ok: false, error: "Pick a cadence: month, quarter, or year." };
+    return {
+      ok: false,
+      error: "Pick a cadence: month, quarter, half-year, or year.",
+    };
   }
   if (!isBillDayBasis(dayBasis)) {
     return { ok: false, error: "Pick a day basis: calendar or fixed." };

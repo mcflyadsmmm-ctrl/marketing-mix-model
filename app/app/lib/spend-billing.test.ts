@@ -17,14 +17,18 @@ describe("periodEndDate", () => {
     expect(periodEndDate("2024-02-01", "month", "calendar")).toBe("2024-02-29");
   });
 
-  it("calendar quarter and year span the right end dates", () => {
+  it("calendar quarter, half-year, and year span the right end dates", () => {
     expect(periodEndDate("2026-07-01", "quarter", "calendar")).toBe("2026-09-30");
+    expect(periodEndDate("2026-01-01", "half_year", "calendar")).toBe("2026-06-30");
+    expect(periodEndDate("2026-07-01", "half_year", "calendar")).toBe("2026-12-31");
     expect(periodEndDate("2026-01-01", "year", "calendar")).toBe("2026-12-31");
   });
 
-  it("fixed basis uses 30 / 90 / 365 inclusive days", () => {
+  it("fixed basis uses 30 / 90 / 182 / 365 inclusive days", () => {
     expect(periodEndDate("2026-07-01", "month", "fixed")).toBe("2026-07-30");
     expect(periodEndDate("2026-07-01", "quarter", "fixed")).toBe("2026-09-28");
+    // 182 = floor(365/2); start + 181 days inclusive
+    expect(periodEndDate("2026-01-01", "half_year", "fixed")).toBe("2026-07-01");
     expect(periodEndDate("2026-01-01", "year", "fixed")).toBe("2026-12-31");
   });
 });
@@ -93,6 +97,37 @@ describe("planBillDaily", () => {
     expect(result.plan.endDate).toBe("2026-07-30");
     expect(result.plan.dailyRate).toBe(10);
     expect(result.plan.days.every((d) => d.amount === 10)).toBe(true);
+  });
+
+  it("calendar half-year: Jan 1 → Jun 30", () => {
+    const result = planBillDaily({
+      amount: 181,
+      cadence: "half_year",
+      dayBasis: "calendar",
+      startDate: "2026-01-01",
+      channel: "email",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.plan.endDate).toBe("2026-06-30");
+    expect(result.plan.dayCount).toBe(181);
+    expect(result.plan.totalAllocated).toBe(181);
+  });
+
+  it("fixed half-year uses 182 days", () => {
+    const result = planBillDaily({
+      amount: 1820,
+      cadence: "half_year",
+      dayBasis: "fixed",
+      startDate: "2026-01-01",
+      channel: "email",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.plan.dayCount).toBe(182);
+    expect(result.plan.endDate).toBe("2026-07-01");
+    expect(result.plan.dailyRate).toBe(10);
+    expect(result.plan.totalAllocated).toBe(1820);
   });
 
   it("defaults channel labels stay on engine buckets", () => {

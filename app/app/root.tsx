@@ -1,23 +1,47 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData } from "react-router";
-import deskStyles from "./styles/mcfly-desk.css?url";
+import type { LoaderFunctionArgs } from "react-router";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useLoaderData,
+} from "react-router";
 
-export const links = () => [{ rel: "stylesheet", href: deskStyles }];
+/**
+ * App Bridge + api-key meta only for embedded / auth surfaces.
+ * Bare Fly landing (`/`) must NOT load App Bridge — it breaks Product site /
+ * Support clicks and layout when the origin is opened outside Admin.
+ */
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  const loadAppBridge =
+    path === "/app" ||
+    path.startsWith("/app/") ||
+    path.startsWith("/auth") ||
+    Boolean(url.searchParams.get("shop") || url.searchParams.get("host"));
 
-/** App Store 2.2.3: App Bridge CDN before other app scripts; api key is public client_id. */
-export const loader = async () => {
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return {
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    loadAppBridge,
+  };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey, loadAppBridge } = useLoaderData<typeof loader>();
 
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        {apiKey ? <meta name="shopify-api-key" content={apiKey} /> : null}
-        <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" />
+        {loadAppBridge && apiKey ? (
+          <meta name="shopify-api-key" content={apiKey} />
+        ) : null}
+        {loadAppBridge ? (
+          <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js" />
+        ) : null}
         <link rel="preconnect" href="https://cdn.shopify.com/" />
         <link
           rel="stylesheet"

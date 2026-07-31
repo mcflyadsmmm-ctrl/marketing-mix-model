@@ -43,6 +43,62 @@ export interface SpendCsvInput {
 
 const MAX_ERRORS = 25;
 
+/** Fail-closed paste/upload size — ~2 MiB keeps big Sheets exports in, not multi-year dumps. */
+export const SPEND_CSV_MAX_BYTES = 2 * 1024 * 1024;
+
+/** Fail-closed data-row cap (header excluded). ~50k ≈ multi-year × channel long format. */
+export const SPEND_CSV_MAX_ROWS = 50_000;
+
+export type SpendCsvLimitResult =
+  | { ok: true }
+  | { ok: false; code: "max_bytes" | "max_rows"; error: string };
+
+function utf8ByteLength(text: string): number {
+  return new TextEncoder().encode(text).length;
+}
+
+function formatByteSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Count non-empty lines after the header (BOM-safe). Empty input → 0. */
+export function countSpendCsvDataRows(text: string): number {
+  const lines = text
+    .replace(/^\uFEFF/, "")
+    .split(/\r\n|\r|\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  return Math.max(0, lines.length - 1);
+}
+
+/**
+ * Enforce MAX_BYTES + MAX_ROWS before parse/persist.
+ * Clear merchant copy — split by date range or channel; spend aggregates only.
+ */
+export function assertSpendCsvLimits(text: string): SpendCsvLimitResult {
+  const bytes = utf8ByteLength(text);
+  if (bytes > SPEND_CSV_MAX_BYTES) {
+    return {
+      ok: false,
+      code: "max_bytes",
+      error: `This paste/file is too large (${formatByteSize(bytes)}; max ${SPEND_CSV_MAX_ROWS.toLocaleString()} rows / ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Split by date range or channel and import in batches. Spend aggregates only — do not paste sales.`,
+    };
+  }
+
+  const dataRows = countSpendCsvDataRows(text);
+  if (dataRows > SPEND_CSV_MAX_ROWS) {
+    return {
+      ok: false,
+      code: "max_rows",
+      error: `This CSV has ${dataRows.toLocaleString()} data rows (max ${SPEND_CSV_MAX_ROWS.toLocaleString()} rows / ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Split by date range or channel and import in batches.`,
+    };
+  }
+
+  return { ok: true };
+}
+
 /** Exact / prefix-friendly header synonyms (matched after normalizeHeader). */
 const HEADER_SYNONYMS: Record<"date" | "channel" | "amount", string[]> = {
   date: [
@@ -203,8 +259,107 @@ export const WIDE_TEMPLATE_SAMPLE = `${WIDE_TEMPLATE_HEADERS.join(",")}
 2026-07-03,390.00,275.00,35.00,70.00,25.00,0,10.00,8.00,6.00,0,0,0,25.00,0
 `;
 
-/** Blank starter: header + empty day rows ready to fill. */
-export function buildBlankSpendTemplate(dayCount = 14): string {
+/** Long-format headers for SyncWith / Coupler / Supermetrics → Sheet → Mcfly. */
+export const PIPE_LONG_HEADERS = ["date", "channel", "amount"] as const;
+
+/** Exact channel strings for pipe Sheets — match wide CSV headers (parser-safe). */
+export const PIPE_CHANNEL_LABELS: readonly string[] = WIDE_TEMPLATE_COLUMNS.filter(
+  (col): col is (typeof WIDE_TEMPLATE_COLUMNS)[number] & { channel: SpendChannel } =>
+    col.channel !== "day",
+).map((col) => col.header);
+
+/**
+ * Long CSV for pipe tools: one row per day × channel.
+ * `example=true` fills sample Meta/Google amounts; blank leaves amount empty for mapping.
+ * Optional `channels` narrows blank rows (Free Meta+Google); omit for all wide columns.
+ */
+export function buildPipeAutomationLongTemplate(options?: {
+  dayCount?: number;
+  example?: boolean;
+  now?: Date;
+  channels?: readonly SpendChannel[];
+}): string {
+  const dayCount = options?.dayCount ?? 7;
+  const example = options?.example === true;
+  const now = options?.now ?? new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const allChannelCols = WIDE_TEMPLATE_COLUMNS.filter(
+    (col): col is (typeof WIDE_TEMPLATE_COLUMNS)[number] & { channel: SpendChannel } =>
+      col.channel !== "day",
+  );
+  const allowed =
+    options?.channels && options.channels.length > 0
+      ? new Set(options.channels)
+      : null;
+  const channelCols = allowed
+    ? allChannelCols.filter((col) => allowed.has(col.channel))
+    : allChannelCols;
+  const rows: string[] = [PIPE_LONG_HEADERS.join(",")];
+
+  for (let i = dayCount - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const date = `${y}-${m}-${day}`;
+    for (const col of channelCols) {
+      if (example) {
+        if (col.channel === "meta") {
+          rows.push(`${date},${csvEscape(col.header)},${100 + (i % 5) * 10}`);
+        } else if (col.channel === "google") {
+          rows.push(`${date},${csvEscape(col.header)},${80 + (i % 3) * 5}`);
+        }
+        // Example file stays short — Meta + Google only
+        continue;
+      }
+      rows.push(`${date},${csvEscape(col.header)},`);
+    }
+  }
+  return `${rows.join("\n")}\n`;
+}
+
+/**
+ * Wide blank/example for pipe tools that prefer one row per day (Day + channel columns).
+ * Same headers as Mcfly Free CSV so import is identical.
+ * Free (`channels` set): blank/example use selected columns only — never full WIDE sample.
+ */
+export function buildPipeAutomationWideTemplate(options?: {
+  dayCount?: number;
+  example?: boolean;
+  now?: Date;
+  channels?: readonly SpendChannel[];
+}): string {
+  const dayCount = options?.dayCount ?? 14;
+  const channels = options?.channels;
+  if (options?.example) {
+    if (channels && channels.length > 0) {
+      return buildSelectedPlatformTemplateCsv(platformsToTemplateCols([...channels]), {
+        dayCount,
+        example: true,
+        now: options?.now,
+      }).csv;
+    }
+    return WIDE_TEMPLATE_SAMPLE;
+  }
+  return buildBlankSpendTemplate(dayCount, channels);
+}
+
+function csvEscape(value: string): string {
+  if (/[",\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+/**
+ * Blank starter: header + empty day rows ready to fill.
+ * Pass `channels` (e.g. Free Meta+Google) to narrow columns; omit for full Pro wide.
+ */
+export function buildBlankSpendTemplate(
+  dayCount = 14,
+  channels?: readonly SpendChannel[],
+): string {
   const today = new Date();
   const dates: string[] = [];
   for (let i = dayCount - 1; i >= 0; i--) {
@@ -214,19 +369,35 @@ export function buildBlankSpendTemplate(dayCount = 14): string {
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
     );
   }
-  return buildBlankSpendTemplateForDates(dates);
+  return buildBlankSpendTemplateForDates(dates, channels);
 }
 
 /**
  * Blank template for specific YYYY-MM-DD days (coverage holes).
  * Invalid / empty dates are skipped; order preserved.
+ * Optional `channels` narrows to those columns (Free default = meta,google).
  */
-export function buildBlankSpendTemplateForDates(dates: string[]): string {
-  const rows: string[] = [WIDE_TEMPLATE_HEADERS.join(",")];
+export function buildBlankSpendTemplateForDates(
+  dates: string[],
+  channels?: readonly SpendChannel[],
+): string {
+  const headers =
+    channels && channels.length > 0
+      ? [
+          "Day",
+          ...channels.map(
+            (ch) =>
+              WIDE_HEADER_BY_CHANNEL.get(ch) ??
+              SPEND_CHANNEL_LABELS[ch] ??
+              ch,
+          ),
+        ]
+      : [...WIDE_TEMPLATE_HEADERS];
+  const rows: string[] = [headers.join(",")];
   for (const raw of dates) {
     const date = parseSpendDate(raw) ?? (/^\d{4}-\d{2}-\d{2}$/.test(raw.trim()) ? raw.trim() : null);
     if (!date) continue;
-    rows.push(`${date}${",".repeat(WIDE_TEMPLATE_HEADERS.length - 1)}`);
+    rows.push(`${date}${",".repeat(headers.length - 1)}`);
   }
   return `${rows.join("\n")}\n`;
 }
@@ -258,16 +429,18 @@ function formatLocalYmd(d: Date): string {
 }
 
 /**
- * Build a Day + selected-platform-columns demo CSV (illustrative numbers).
+ * Build a Day + selected-platform-columns CSV.
  * Headers use WIDE_TEMPLATE labels for each unique engineChannel (selection order).
  * Seven trailing local days ending on `now` (default today).
+ * `example` defaults true (sample amounts) for back-compat; `example:false` leaves amounts empty.
  */
 export function buildSelectedPlatformTemplateCsv(
   platforms: SelectedPlatformTemplateCol[],
-  options?: { dayCount?: number; now?: Date },
+  options?: { dayCount?: number; now?: Date; example?: boolean },
 ): SelectedPlatformTemplateCsv {
   const dayCount = options?.dayCount ?? 7;
   const now = options?.now ?? new Date();
+  const example = options?.example !== false;
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const headers: string[] = ["Day"];
@@ -291,15 +464,97 @@ export function buildSelectedPlatformTemplateCsv(
     const dayIndex = dayCount - 1 - i;
     const cells = [date];
     for (let col = 0; col < channelColCount; col++) {
-      // Small, stable fake spend so merchants see the Day × platform shape.
-      const amount = 80 + col * 35 + dayIndex * 12 + ((col + dayIndex) % 3) * 5;
-      cells.push(amount.toFixed(2));
+      if (example) {
+        // Small, stable fake spend so merchants see the Day × platform shape.
+        const amount = 80 + col * 35 + dayIndex * 12 + ((col + dayIndex) % 3) * 5;
+        cells.push(amount.toFixed(2));
+      } else {
+        cells.push("");
+      }
     }
     rows.push(cells);
   }
 
   const csv = `${[headers, ...rows].map((r) => r.join(",")).join("\n")}\n`;
   return { headers, rows, csv };
+}
+
+/** Google Sheets “create blank spreadsheet” — no OAuth required from Mcfly. */
+export const SHEETS_CREATE_URL = "https://docs.google.com/spreadsheets/create";
+
+export interface SheetsImportGuide {
+  /** Numbered merchant steps (1-indexed in UI). */
+  steps: string[];
+  sheetsNewUrl: string;
+  /** Honesty line — Free CSV never requires SyncWith-class tools. */
+  tip: string;
+}
+
+/**
+ * Pure copy helper for Sheets-first spend onboarding (Spend UI + public site).
+ * No React — keep steps identical everywhere merchants might get lost.
+ */
+export function buildSheetsImportGuide(options?: {
+  platformLabels?: string[];
+}): SheetsImportGuide {
+  const labels =
+    options?.platformLabels && options.platformLabels.length > 0
+      ? options.platformLabels.join(", ")
+      : "your selected platforms";
+  return {
+    sheetsNewUrl: SHEETS_CREATE_URL,
+    tip: "Free path never requires SyncWith, Coupler, or Supermetrics. Paste or CSV alone is enough — you only pay those tools if you want hands-off fills.",
+    steps: [
+      `Confirm platforms checked above (or on Automate): ${labels}.`,
+      "Download your Mcfly blank template — or Open Google Sheets and import that CSV.",
+      "In the new Sheet: File → Import → Upload → your CSV → Replace spreadsheet → Import data.",
+      "Fill daily spend by hand — or optionally connect SyncWith / Coupler / Supermetrics / Coefficient to these columns (you pay those tools).",
+      "File → Download → Comma Separated Values (.csv) → paste or import back on Spend.",
+    ],
+  };
+}
+
+const SPEND_CHANNEL_SET: ReadonlySet<string> = new Set(SPEND_CHANNELS);
+
+/**
+ * Parse `?platforms=meta,google,tiktok` into validated SpendChannels (deduped, order preserved).
+ * Unknown tokens are skipped — never invents channels.
+ */
+export function parsePlatformsParam(raw: string | null | undefined): SpendChannel[] {
+  if (!raw?.trim()) return [];
+  const seen = new Set<SpendChannel>();
+  const out: SpendChannel[] = [];
+  for (const part of raw.split(",")) {
+    const key = part.trim().toLowerCase().replace(/-/g, "_");
+    if (!key || !SPEND_CHANNEL_SET.has(key)) continue;
+    const channel = key as SpendChannel;
+    if (seen.has(channel)) continue;
+    seen.add(channel);
+    out.push(channel);
+  }
+  return out;
+}
+
+/** Filename for selected-platform template downloads, e.g. mcfly-spend-meta-google-blank.csv */
+export function selectedPlatformsTemplateFilename(
+  channels: SpendChannel[],
+  kind: "blank" | "example",
+): string {
+  const slug =
+    channels.length > 0
+      ? channels.map((c) => c.replace(/_/g, "-")).join("-")
+      : "day-only";
+  return `mcfly-spend-${slug}-${kind}.csv`;
+}
+
+/** Build SelectedPlatformTemplateCol[] from validated channel ids (for template route). */
+export function platformsToTemplateCols(
+  channels: SpendChannel[],
+): SelectedPlatformTemplateCol[] {
+  return channels.map((engineChannel) => ({
+    title: SPEND_CHANNEL_LABELS[engineChannel] ?? engineChannel,
+    engineChannel,
+  }));
 }
 
 export interface GroupedCsvError {
@@ -363,6 +618,12 @@ export function groupCsvErrors(
 function classifyCsvError(err: string): string {
   const v = err.toLowerCase();
   if (v.includes("empty")) return "Empty file";
+  if (v.includes("too large") || (v.includes("max ") && v.includes("mb"))) {
+    return "File too large";
+  }
+  if (v.includes("data rows") && v.includes("max")) {
+    return "Too many rows";
+  }
   if (v.includes("missing a day") || v.includes("missing a date")) {
     return "Missing Day/date column";
   }
@@ -496,17 +757,45 @@ export function parseSpendDate(raw: string): string | null {
   return `${y}-${mm}-${dd}`;
 }
 
-/** Strips currency symbols, thousands separators, and parentheses-negatives. */
+/**
+ * True when the amount looks like EU decimal comma notation (e.g. `12,50` or
+ * `1.234,56`). Fail-closed — stripping commas would silently inflate spend.
+ * US `1,234.56` / `1,234` (comma thousands) must NOT match.
+ */
+function looksLikeEuDecimal(raw: string): boolean {
+  const v = raw
+    .replace(/[$€£¥]/g, "")
+    .replace(/\b(USD|EUR|GBP)\b/gi, "")
+    .replace(/\s/g, "")
+    .trim();
+  if (!v) return false;
+  // `1.234,56` / `12,50` — comma as decimal (1–2 fractional digits).
+  if (/^-?\d{1,3}(\.\d{3})*,\d{1,2}$/.test(v)) return true;
+  // Bare `12,50` without thousand dots (already covered); keep explicit simple form.
+  if (/^-?\d+,\d{1,2}$/.test(v)) return true;
+  return false;
+}
+
+/**
+ * Strips currency symbols, thousands separators, and parentheses-negatives.
+ * Preserves scientific notation (`1.23E+05`, `1e6`) — never strip `e`/`E` into digits.
+ * Fail-closed on EU-style decimals (`12,50`, `1.234,56`) → null.
+ */
 export function parseSpendAmount(raw: string): number | null {
   let v = raw.trim().replace(/^["']|["']$/g, "");
   if (!v) return null;
   let negative = false;
   if (/^\(.*\)$/.test(v)) {
     negative = true;
-    v = v.slice(1, -1);
+    v = v.slice(1, -1).trim();
   }
-  v = v.replace(/[^0-9.\-]/g, "");
-  if (v === "" || v === "-" || v === ".") return null;
+  if (looksLikeEuDecimal(v)) return null;
+  // Keep digits, decimal, sign, and scientific e/E (+/− exponent). Do NOT use
+  // [^0-9.\-] — that turns 1.23E+05 into 1.2305.
+  v = v.replace(/[^0-9.eE+\-]/g, "");
+  if (v === "" || v === "-" || v === "+" || v === "." || v === "-." || v === "+.") {
+    return null;
+  }
   const n = Number(v);
   if (!Number.isFinite(n)) return null;
   return negative ? -n : n;
@@ -570,6 +859,95 @@ function headerMatchesSynonym(header: string, synonym: string): boolean {
   return false;
 }
 
+/**
+ * Bare short amount tokens — exact/bare match only.
+ * Prefix-matching "cost"/"total"/"spend" falsely wins "Cost / conv.",
+ * "Total impressions", "Cost per result".
+ */
+const AMOUNT_EXACT_ONLY_SYNONYMS = new Set(["cost", "total", "spend"]);
+
+/**
+ * Strongest → weakest spend header when several columns match.
+ * "Amount spent" beats bare "Cost".
+ */
+const AMOUNT_HEADER_PREFERENCE = [
+  "amount spent",
+  "amount spent (usd)",
+  "amount",
+  "cost (account currency)",
+  "cost (usd)",
+  "total spend",
+  "total cost",
+  "ad spend",
+  "ad_spend",
+  "spend (usd)",
+  "spend_usd",
+  "cost_usd",
+  "spend",
+  "cost",
+  "total",
+] as const;
+
+/** Delivery / efficiency headers that must never become the amount column. */
+function isRejectedAmountMetricHeader(header: string): boolean {
+  if (isBlockedMetricHeader(header)) return true;
+  const h = normalizeHeader(header);
+  const bare = headerBare(header);
+  const probe = `${h} ${bare}`;
+  if (/\bimpressions?\b/.test(probe) || /\bclicks?\b/.test(probe)) return true;
+  if (probe.includes("per result") || probe.includes("cost per")) return true;
+  if (probe.includes("/ conv") || probe.includes("per conv") || probe.includes("conv.")) {
+    return true;
+  }
+  return false;
+}
+
+function headerMatchesAmountSynonym(header: string, synonym: string): boolean {
+  const h = normalizeHeader(header);
+  const bare = headerBare(header);
+  const syn = synonym.toLowerCase().trim();
+  if (h === syn || bare === syn) return true;
+  // Short tokens: exact/bare only — no prefix.
+  if (AMOUNT_EXACT_ONLY_SYNONYMS.has(syn)) return false;
+  if (h.startsWith(`${syn} `) || bare.startsWith(`${syn} `)) return true;
+  return false;
+}
+
+function amountHeaderRank(header: string): number {
+  const h = normalizeHeader(header);
+  const bare = headerBare(header);
+  for (let rank = 0; rank < AMOUNT_HEADER_PREFERENCE.length; rank++) {
+    const pref = AMOUNT_HEADER_PREFERENCE[rank];
+    if (h === pref || bare === pref) return rank;
+    if (
+      !AMOUNT_EXACT_ONLY_SYNONYMS.has(pref) &&
+      (h.startsWith(`${pref} `) || bare.startsWith(`${pref} `))
+    ) {
+      return rank;
+    }
+  }
+  return AMOUNT_HEADER_PREFERENCE.length;
+}
+
+function findAmountColumn(headers: string[]): number {
+  let bestIdx = -1;
+  let bestRank = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < headers.length; i++) {
+    const header = headers[i];
+    if (isRejectedAmountMetricHeader(header)) continue;
+    const matched = HEADER_SYNONYMS.amount.some((syn) =>
+      headerMatchesAmountSynonym(header, syn),
+    );
+    if (!matched) continue;
+    const rank = amountHeaderRank(header);
+    if (rank < bestRank) {
+      bestRank = rank;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
 function findColumn(headers: string[], synonyms: string[]): number {
   for (let i = 0; i < headers.length; i++) {
     for (const syn of synonyms) {
@@ -590,7 +968,10 @@ function findDateColumn(headers: string[]): number {
 }
 
 function isAmountLikeHeader(header: string): boolean {
-  return HEADER_SYNONYMS.amount.some((syn) => headerMatchesSynonym(header, syn));
+  if (isRejectedAmountMetricHeader(header)) return false;
+  return HEADER_SYNONYMS.amount.some((syn) =>
+    headerMatchesAmountSynonym(header, syn),
+  );
 }
 
 function isDateLikeHeader(header: string): boolean {
@@ -613,11 +994,58 @@ function isSummaryDateLabel(raw: string): boolean {
   return v === "total" || v === "totals" || v.startsWith("total ") || v === "grand total";
 }
 
+/**
+ * Delivery / performance metric headers — never map as spend.
+ * ("Leads" contains the substring "ads"; bare includes("ads") is unsafe.)
+ */
+const BLOCKED_METRIC_HEADERS = [
+  "leads",
+  "impressions",
+  "clicks",
+  "ctr",
+  "cpc",
+  "cpm",
+  "reach",
+  "frequency",
+  "conversions",
+  "purchases",
+  "roas",
+  "revenue",
+] as const;
+
+function isBlockedMetricHeader(header: string): boolean {
+  const h = normalizeHeader(header);
+  const bare = headerBare(header);
+  for (const metric of BLOCKED_METRIC_HEADERS) {
+    if (h === metric || bare === metric) return true;
+    if (h.startsWith(`${metric} `) || bare.startsWith(`${metric} `)) return true;
+  }
+  return false;
+}
+
+/**
+ * True when a normalized header names an ads spend column.
+ * Uses equals / " ads" suffix / word-boundary — never bare includes("ads")
+ * (that falsely treats "Leads" as spend).
+ */
+export function headerLooksLikeAdsSpend(normalizedHeader: string): boolean {
+  const h = normalizedHeader.trim().toLowerCase();
+  if (!h) return false;
+  if (h === "ads") return true;
+  if (h.endsWith(" ads")) return true;
+  return /\bads\b/.test(h);
+}
+
 /** Wide spine: one row per day with named platform columns. */
-interface WideChannelCol {
+export interface WideChannelCol {
   index: number;
   channel: CsvChannel;
   rawHeader: string;
+}
+
+/** Detect wide platform spend columns (Ablestar-grade: ignore metric headers). */
+export function detectWideChannelColumns(headers: string[]): WideChannelCol[] {
+  return mapWideChannelCols(headers);
 }
 
 function mapWideChannelCols(headers: string[]): WideChannelCol[] {
@@ -626,8 +1054,9 @@ function mapWideChannelCols(headers: string[]): WideChannelCol[] {
     const raw = headers[i].trim();
     const h = normalizeHeader(raw);
     if (!h) continue;
-    // Never treat Day / amount / sales columns as a platform bucket.
+    // Never treat Day / amount / sales / delivery metrics as a platform bucket.
     if (isDateLikeHeader(raw) || isAmountLikeHeader(raw)) continue;
+    if (isBlockedMetricHeader(raw)) continue;
     if (
       h.includes("online sales") ||
       h === "sales" ||
@@ -664,7 +1093,7 @@ function mapWideChannelCols(headers: string[]): WideChannelCol[] {
       h.includes("sms") ||
       h.includes("criteo") ||
       h.includes("adroll") ||
-      h.includes("ads") ||
+      headerLooksLikeAdsSpend(h) ||
       h === "other" ||
       h.includes("other ads") ||
       h.includes("other spend")
@@ -852,6 +1281,15 @@ export function parseSpendCsv(
   options: ParseSpendCsvOptions = {},
 ): CsvParseResult {
   const forceChannel = options.forceChannel;
+  const limits = assertSpendCsvLimits(text);
+  if (!limits.ok) {
+    return {
+      rows: [],
+      errors: [limits.error],
+      totalDataRows: countSpendCsvDataRows(text),
+    };
+  }
+
   const clean = text.replace(/^\uFEFF/, "");
   const lines = clean
     .split(/\r\n|\r|\n/)
@@ -865,7 +1303,7 @@ export function parseSpendCsv(
   const headers = splitCsvLine(lines[0]);
   const dateCol = findDateColumn(headers);
   const channelCol = findColumn(headers, HEADER_SYNONYMS.channel);
-  const amountCol = findColumn(headers, HEADER_SYNONYMS.amount);
+  const amountCol = findAmountColumn(headers);
   const wideCols = mapWideChannelCols(headers);
 
   if (dateCol === -1) {
@@ -944,13 +1382,22 @@ export function combineSpendCsvInputs(inputs: SpendCsvInput[]): CsvParseResult {
   }
 
   let sawText = false;
+  let totalBytes = 0;
   for (const input of inputs) {
     if (!input.text.trim()) continue;
     sawText = true;
+    totalBytes += utf8ByteLength(input.text);
+    const prefix = input.label ? `${input.label}: ` : "";
+    // Per-file caps first (clearer than a combined blob error).
+    const limits = assertSpendCsvLimits(input.text);
+    if (!limits.ok) {
+      pushError(errors, `${prefix}${limits.error}`);
+      totalDataRows += countSpendCsvDataRows(input.text);
+      continue;
+    }
     const parsed = parseSpendCsv(input.text, { forceChannel: input.forceChannel });
     rows.push(...parsed.rows);
     totalDataRows += parsed.totalDataRows;
-    const prefix = input.label ? `${input.label}: ` : "";
     for (const err of parsed.errors) {
       pushError(errors, `${prefix}${err}`);
     }
@@ -964,6 +1411,26 @@ export function combineSpendCsvInputs(inputs: SpendCsvInput[]): CsvParseResult {
     };
   }
 
+  if (totalBytes > SPEND_CSV_MAX_BYTES && errors.length === 0) {
+    return {
+      rows: [],
+      errors: [
+        `Combined uploads are too large (${formatByteSize(totalBytes)}; max ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Import fewer files or split by date range.`,
+      ],
+      totalDataRows,
+    };
+  }
+
+  if (totalDataRows > SPEND_CSV_MAX_ROWS && errors.length === 0) {
+    return {
+      rows: [],
+      errors: [
+        `Combined uploads have ${totalDataRows.toLocaleString()} data rows (max ${SPEND_CSV_MAX_ROWS.toLocaleString()}). Import fewer files or split by date range.`,
+      ],
+      totalDataRows,
+    };
+  }
+
   return { rows, errors, totalDataRows };
 }
 
@@ -973,7 +1440,8 @@ export interface AggregatedSpendDay {
   amount: number;
 }
 
-/** Sum multiple rows that share the same day + channel into one entry. */
+/** Sum multiple rows that share the same day + channel into one entry.
+ * Round to cents after aggregation to avoid IEEE float drift (e.g. 0.1×N). */
 export function aggregateSpendRows(rows: ParsedSpendRow[]): AggregatedSpendDay[] {
   const map = new Map<string, AggregatedSpendDay>();
   for (const row of rows) {
@@ -985,20 +1453,40 @@ export function aggregateSpendRows(rows: ParsedSpendRow[]): AggregatedSpendDay[]
       map.set(key, { date: row.date, channel: row.channel, amount: row.amount });
     }
   }
-  return Array.from(map.values()).sort((a, b) =>
-    a.date === b.date ? a.channel.localeCompare(b.channel) : a.date.localeCompare(b.date),
-  );
+  return Array.from(map.values())
+    .map((row) => ({
+      ...row,
+      amount: Math.round(row.amount * 100) / 100,
+    }))
+    .sort((a, b) =>
+      a.date === b.date
+        ? a.channel.localeCompare(b.channel)
+        : a.date.localeCompare(b.date),
+    );
 }
 
 export interface CsvImportSummary {
   written: number;
   skipped: number;
+  /** New day+channel rows added. */
+  created: number;
+  /** Existing day+channel rows replaced (overwrite, not sum). */
+  updated: number;
   days: number;
   channels: CsvChannel[];
   dateRange: { start: string; end: string } | null;
   totalAmount: number;
   errors: string[];
   totalDataRows: number;
+  /**
+   * When true, nothing was written — merchant must confirm replace-on-overlap.
+   * Counts reflect the pending dry-run.
+   */
+  needsConfirm?: boolean;
+  /** CSV dates before sales fact floor (Jan 1 four years ago). */
+  salesWindowWarning?: string | null;
+  /** Parse hinted single-platform export without channel. */
+  needsForceChannel?: boolean;
 }
 
 export { SPEND_CHANNELS, SPEND_CHANNEL_LABELS };

@@ -1,5 +1,7 @@
 # Submit now — baby-proof human checklist
 
+**One-pager at the keyboard:** [`docs/ops/SUBMIT_HANDOFF.md`](./ops/SUBMIT_HANDOFF.md)
+
 Do these steps **in order**. After each step, reply in Cursor with the bold phrase so the agent can verify.
 
 **App:** Mcfly Analytics · **Pricing must be Free** · cash MER = sales ÷ spend  
@@ -64,9 +66,11 @@ Reply: **`emergency contact done`**
 
 Reviewers open Website / Privacy / Support / Terms from the listing. Live pages should already match Free + PCD (verified 2026-07-26). Still spot-check:
 
-1. https://mcflyads.com/support — App Store **Free** (not invite-only)  
-2. https://mcflyads.com/pricing — Free now / paid later via Billing  
+1. https://mcflyads.com/support — App Store **Free** primary (Partner invite secondary email only)  
+2. https://mcflyads.com/pricing — Free when listed / paid later via Billing  
 3. https://mcflyads.com/privacy — order totals + opaque id / `numberOfOrders`  
+4. https://mcflyads.com/terms — App Store Free primary (not invite-only)  
+5. https://mcflyads.com/download — App Store Free primary; Partner invite secondary email only  
 
 Reply: **`pages live`**
 
@@ -102,20 +106,24 @@ Open App Store listing fields. Paste from `APP_STORE_LISTING.md`:
 Set pricing to **Free**.  
 Do **not** enable paid plans or Shopify Billing charges yet.
 
-#### 5c. Capture 5 screenshots
-1. **Demo** → Load 3-year sample → Turn sample desk **ON** → use **Prepare listing shots** if shown  
-2. Capture each URL (crop Admin iframe ~1600×900, **no** browser chrome):  
+#### 5b-HUMAN. Works with
+**Leave Works with blank.** Mcfly has no Checkout UI extension — do not select Checkout. Never add Meta / Google / SyncWith. (Checkout only later if a real Checkout surface ships.)
 
-| # | Path | Caption |
+#### 5c. Screenshots (founder pack — almost ready)
+**4 of 5** letterboxed PNGs are in `docs/listing-assets/shots/` — captions in [`CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md).
+
+| # | Upload file | Caption |
 | --- | --- | --- |
-| 1 | `/app?period=y3&shot=1` | Cash MER vs break-even — one glance |
-| 2 | `/app?period=ytd&shot=1` | Sales ÷ spend — the only formula we use |
-| 3 | `/app/spend?shot=1` | Upload daily spend — all channels + Other |
-| 4 | `/app/allocation?period=y3&shot=1` | One clear cut / shift / hold call |
-| 5 | `/app/settings?shot=1` | Lock break-even from your margin % |
+| 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
+| 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
+| 3 | `03-margin-breakeven.png` | Lock break-even from your margin % |
+| 4 | `04-free-pro-pricing.png` | Free Meta + Google · Pro unlocks channels + LTV |
+| 5 | **Still capture** `/app/spend?shot=1` (or Allocation) | Select platforms → export daily → combine |
 
-3. Upload **icon** + **5 screenshots** in that order  
-4. **Demo** → Turn sample desk **OFF** again  
+**Do not upload** `05-HOLD-marketing-site-do-not-upload.png` (marketing site ≠ App Store app UI).
+
+1. Upload **icon** + screenshots **1–4**, then shot **5** when captured  
+2. **Demo** → Turn sample desk **OFF** again  
 
 #### 5d. Demo screencast (required listing package)
 Short Loom/screen recording showing: install → margin → CSV spend upload → Cash MER. Upload on the App Store review / listing form where “demo video / screencast” is requested.

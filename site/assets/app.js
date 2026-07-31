@@ -359,17 +359,23 @@
     const bodyLines = [
       custom
         ? "Mcfly Analytics — custom data science inquiry"
-        : "Mcfly Ads — Install free / early access request",
+        : "Mcfly Ads — Install free / support request",
       "",
       "Name: " + fields.name,
       "Email: " + fields.email,
       "Role / context: " + (fields.role || "(not specified)"),
       (custom ? "Company / website: " : "Site / store: ") +
         (fields.store || "(not specified — exploring)"),
-      "Source: " + (fields.source || "mcflyads.com waitlist"),
+      "Source: " + (fields.source || "mcflyads.com support"),
     ];
     if (fields.budget) {
       bodyLines.push("Budget band: " + fields.budget);
+    }
+    if (fields.spend) {
+      bodyLines.push("Monthly paid media spend: " + fields.spend);
+    }
+    if (fields.timeline) {
+      bodyLines.push("Target start: " + fields.timeline);
     }
     if (fields.notes) {
       bodyLines.push(
@@ -382,7 +388,7 @@
       "",
       custom
         ? "Request: custom analytics / MDS proposal ($5–25K band)."
-        : "Request: Install free / early access.",
+        : "Request: Install free / App Store help.",
       "Public target: " + INVITES_EMAIL,
       "Interim inbox: " + INTERIM_INBOX,
     );
@@ -549,7 +555,9 @@
       const store = normalizeStoreUrl(data.get("store"));
       const notes = String(data.get("notes") || "").trim();
       const budget = String(data.get("budget") || "").trim();
-      const source = form.getAttribute("data-waitlist-source") || "mcflyads.com waitlist";
+      const spend = String(data.get("spend") || "").trim();
+      const timeline = String(data.get("timeline") || "").trim();
+      const source = form.getAttribute("data-waitlist-source") || "mcflyads.com support";
 
       const emailInput = form.querySelector('[name="email"]');
       if (!email) {
@@ -566,7 +574,7 @@
         name = email.split("@")[0] || "Install free";
       }
 
-      const draft = buildWaitlistDraft({ name, email, role, store, source, notes, budget });
+      const draft = buildWaitlistDraft({ name, email, role, store, source, notes, budget, spend, timeline });
       setBusy(true);
       let result = null;
       try {
@@ -581,6 +589,8 @@
             source,
             notes,
             budget,
+            spend,
+            timeline,
             company: data.get("company") || "",
           }),
         });

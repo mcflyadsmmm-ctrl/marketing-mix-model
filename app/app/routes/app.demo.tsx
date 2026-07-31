@@ -3,7 +3,14 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { Form, useActionData, useLoaderData, useNavigation } from "react-router";
+import {
+  Form,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useLocation,
+  useNavigation,
+} from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
@@ -14,7 +21,16 @@ import {
   getSampleDeskStats,
   seedThreeYearSampleDesk,
   setSampleDeskEnabled,
+  SAMPLE_DESK_TARGET_MER,
 } from "../lib/sample-desk.server";
+
+/** Only allow in-app return paths (embedded Admin). Preserve shop/host query. */
+function safeAppReturnTo(raw: FormDataEntryValue | null): string | null {
+  const value = String(raw ?? "").trim();
+  if (!value.startsWith("/app")) return null;
+  if (value.includes("://") || value.includes("//")) return null;
+  return value;
+}
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -33,52 +49,73 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     if (intent === "prepare") {
-      const result = await seedThreeYearSampleDesk(shop.id, 3.5);
+      const result = await seedThreeYearSampleDesk(
+        shop.id,
+        SAMPLE_DESK_TARGET_MER,
+      );
       await setSampleDeskEnabled(shop.id, true);
       return {
         ok: true as const,
-        message: `Ready — ${result.days.toLocaleString()} days seeded, sample desk is ON. Open the shot links below.`,
+        message: `SAMPLE preview ready — ${result.days.toLocaleString()} days. Open Total ROAS to explore.`,
         result,
       };
     }
     if (intent === "seed") {
-      const result = await seedThreeYearSampleDesk(shop.id, 3.5);
+      const result = await seedThreeYearSampleDesk(
+        shop.id,
+        SAMPLE_DESK_TARGET_MER,
+      );
       return {
         ok: true as const,
-        message: `Loaded ${result.days.toLocaleString()} days of matched sales + spend. Open ${PRODUCT_NOUN.deskTitle} → 3 yr.`,
+        message: `Loaded ${result.days.toLocaleString()} SAMPLE days. Open ${PRODUCT_NOUN.deskTitle}.`,
         result,
       };
     }
     if (intent === "enable") {
       const stats = await getSampleDeskStats(shop.id);
       if (stats.dayCount === 0) {
+        const result = await seedThreeYearSampleDesk(
+          shop.id,
+          SAMPLE_DESK_TARGET_MER,
+        );
         return {
-          ok: false as const,
-          message: "Seed the 3-year sample first.",
+          ok: true as const,
+          message: `SAMPLE preview ready — ${result.days.toLocaleString()} days.`,
+          result,
         };
       }
+      // Refresh to latest impressive series when turning SAMPLE back on.
+      const result = await seedThreeYearSampleDesk(
+        shop.id,
+        SAMPLE_DESK_TARGET_MER,
+      );
       await setSampleDeskEnabled(shop.id, true);
       return {
         ok: true as const,
-        message: `Sample desk on — ${PRODUCT_NOUN.totalRoas} reads sample sales + spend.`,
+        message: `${PRODUCT_NOUN.samplePreviewOn} · refreshed (~${formatMer(SAMPLE_DESK_TARGET_MER)}× Total ROAS).`,
+        result,
       };
     }
     if (intent === "disable") {
       await setSampleDeskEnabled(shop.id, false);
+      const returnTo = safeAppReturnTo(form.get("returnTo"));
+      if (returnTo) {
+        return redirect(returnTo);
+      }
       return {
         ok: true as const,
-        message: `Sample desk off — ${PRODUCT_NOUN.totalRoas} reads live sales again.`,
+        message: `Using your real store — ${PRODUCT_NOUN.totalRoas} reads live sales again. SAMPLE chrome is off on Home, Spend, and Close.`,
       };
     }
     if (intent === "clear") {
       await clearSampleDesk(shop.id);
-      return { ok: true as const, message: "Sample sales + sample spend cleared." };
+      return { ok: true as const, message: "SAMPLE data cleared." };
     }
     return { ok: false as const, message: "Unknown action." };
   } catch (err) {
     return {
       ok: false as const,
-      message: err instanceof Error ? err.message : "Sample desk action failed",
+      message: err instanceof Error ? err.message : "SAMPLE preview action failed",
     };
   }
 };
@@ -87,48 +124,64 @@ export default function DemoPage() {
   const { stats } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const location = useLocation();
   const busy = navigation.state === "submitting";
   const intent = navigation.formData?.get("intent")?.toString();
+  const demoAction = `${location.pathname}${location.search}`;
 
   return (
-    <s-page heading="Demo" inlineSize="base">
-      <div className="mcfly-desk mcfly-desk--chrome">
-        <div className="mcfly-demo-off-warning" role="alert">
-          <p className="mcfly-demo-off-warning__kicker">Before App Store review</p>
-          <p className="mcfly-demo-off-warning__title">
-            Turn sample desk OFF before reviewer smoke
-          </p>
-          <p className="mcfly-demo-off-warning__body">
-            Listing shots use sample data. <code>?shot=1</code> only hides the
-            SAMPLE banner — {PRODUCT_NOUN.totalRoas}, Spend, and Allocation stay
-            sample until OFF. App Store review and install smoke must see live
-            live sales only — leave SAMPLE on and reviewers may reject for
-            fake metrics.
-          </p>
-          {stats.enabled ? (
-            <Form method="post" className="mcfly-demo-off-warning__action">
-              <input type="hidden" name="intent" value="disable" />
-              <s-button
-                type="submit"
-                tone="critical"
-                variant="primary"
-                {...(busy && intent === "disable" ? { loading: true } : {})}
-              >
-                Turn sample desk OFF now
+    <s-page heading={PRODUCT_NOUN.samplePreview} inlineSize="base">
+      <div
+        className={[
+          "mcfly-desk",
+          "mcfly-desk--chrome",
+          stats.enabled ? "mcfly-desk--sample" : null,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {stats.enabled ? (
+          <div className="mcfly-demo-off-warning" role="status">
+            <p className="mcfly-demo-off-warning__kicker">
+              {PRODUCT_NOUN.samplePreviewOffReviewKicker}
+            </p>
+            <h2 className="mcfly-demo-off-warning__title">
+              {PRODUCT_NOUN.samplePreviewOffReviewTitle}
+            </h2>
+            <p className="mcfly-demo-off-warning__body">
+              {PRODUCT_NOUN.samplePreviewOffReviewBody}
+            </p>
+            <div className="mcfly-demo-off-warning__action">
+              <Form method="post" action={demoAction}>
+                <input type="hidden" name="intent" value="disable" />
+                <input type="hidden" name="returnTo" value={`/app${location.search}`} />
+                <s-button
+                  type="submit"
+                  variant="primary"
+                  {...(busy && intent === "disable" ? { loading: true } : {})}
+                >
+                  {PRODUCT_NOUN.samplePreviewOffCta}
+                </s-button>
+              </Form>
+            </div>
+            <p className="mcfly-demo-off-warning__status" style={{ color: "#92400e" }}>
+              Status: Sample on — use the Sample | Real store switch at the top
+              of any page (or the button above) before live review.
+            </p>
+          </div>
+        ) : (
+          <s-banner tone="success" heading={PRODUCT_NOUN.samplePreviewLiveStore}>
+            <s-paragraph>{PRODUCT_NOUN.samplePreviewLiveStoreBody}</s-paragraph>
+            <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
+              <s-button href="/app" variant="primary">
+                {PRODUCT_NOUN.openTotalRoas}
               </s-button>
-            </Form>
-          ) : (
-            <p className="mcfly-demo-off-warning__status">Sample desk is OFF — live Shopify.</p>
-          )}
-        </div>
-
-        <s-banner tone="info" heading="Listing screenshots and desk rehearsals">
-          <s-paragraph>
-            Loads <strong>3 years</strong> of matched daily Shopify-like sales
-            and multi-channel spend into Mcfly (not Shopify Admin). Clearly
-            labeled sample — preview the desk before live data.
-          </s-paragraph>
-        </s-banner>
+              <s-button href="/app/spend" variant="secondary">
+                Go to Spend
+              </s-button>
+            </div>
+          </s-banner>
+        )}
 
         {actionData ? (
           <s-banner
@@ -139,116 +192,147 @@ export default function DemoPage() {
           </s-banner>
         ) : null}
 
-        <s-section heading="Sample desk status">
-          <div className="mcfly-panel">
-            <div className="mcfly-breakdown-row">
-              <span>Mode</span>
-              <strong>{stats.enabled ? "SAMPLE on" : "Live Shopify"}</strong>
+        {stats.enabled ? (
+          <s-section heading="Practice desk (optional)">
+            <s-paragraph>
+              SAMPLE stays labeled on Total ROAS, Goals, and Spend by platform.
+              Open the desk to rehearse — then turn SAMPLE off before live review.
+            </s-paragraph>
+            <div className="mcfly-decision__actions">
+              <s-button href="/app" variant="secondary">
+                {PRODUCT_NOUN.openTotalRoas}
+              </s-button>
+              <Form method="post" action={demoAction}>
+                <input type="hidden" name="intent" value="prepare" />
+                <s-button
+                  type="submit"
+                  variant="tertiary"
+                  {...(busy && intent === "prepare" ? { loading: true } : {})}
+                >
+                  Refresh SAMPLE data
+                </s-button>
+              </Form>
+            </div>
+            <div className="mcfly-breakdown-row" style={{ marginTop: "1rem" }}>
+              <span>Status</span>
+              <strong>SAMPLE on</strong>
             </div>
             <div className="mcfly-breakdown-row">
-              <span>Sample sales days</span>
+              <span>SAMPLE days</span>
               <strong>{stats.dayCount.toLocaleString()}</strong>
             </div>
-            <div className="mcfly-breakdown-row">
-              <span>Sample spend rows</span>
-              <strong>{stats.spendCount.toLocaleString()}</strong>
-            </div>
-            {stats.start && stats.end ? (
+            {actionData && "result" in actionData && actionData.result ? (
               <p className="mcfly-breakdown-note">
-                Range {stats.start.toISOString().slice(0, 10)} → {stats.end.toISOString().slice(0, 10)}
+                SAMPLE sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
+                {formatCurrency(actionData.result.totalSpend)} ·{" "}
+                {PRODUCT_NOUN.totalRoas} ≈{" "}
+                {formatMer(
+                  actionData.result.totalSpend > 0
+                    ? actionData.result.totalSales / actionData.result.totalSpend
+                    : null,
+                )}
               </p>
-            ) : (
-              <p className="mcfly-breakdown-note">No sample loaded yet.</p>
-            )}
-          </div>
-        </s-section>
+            ) : null}
+          </s-section>
+        ) : (
+          <s-section heading="Practice with SAMPLE (optional)">
+            <s-paragraph>
+              Secondary path only — loads matched sales + spend so you can rehearse
+              Total ROAS. Numbers are labeled SAMPLE and never pretend to be your
+              store. Leave SAMPLE off for App Store review and install smoke.
+            </s-paragraph>
+            <Form method="post" action={demoAction}>
+              <input type="hidden" name="intent" value="prepare" />
+              <s-button
+                type="submit"
+                variant="secondary"
+                {...(busy && intent === "prepare" ? { loading: true } : {})}
+              >
+                Turn SAMPLE ON for practice
+              </s-button>
+            </Form>
+            <div className="mcfly-breakdown-row" style={{ marginTop: "1rem" }}>
+              <span>Status</span>
+              <strong>Live store</strong>
+            </div>
+            <div className="mcfly-breakdown-row">
+              <span>SAMPLE days on file</span>
+              <strong>{stats.dayCount.toLocaleString()}</strong>
+            </div>
+            {actionData && "result" in actionData && actionData.result ? (
+              <p className="mcfly-breakdown-note">
+                SAMPLE sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
+                {formatCurrency(actionData.result.totalSpend)} ·{" "}
+                {PRODUCT_NOUN.totalRoas} ≈{" "}
+                {formatMer(
+                  actionData.result.totalSpend > 0
+                    ? actionData.result.totalSales / actionData.result.totalSpend
+                    : null,
+                )}
+              </p>
+            ) : null}
+          </s-section>
+        )}
 
-        <s-section heading="Prepare listing shots">
+        <s-section heading="Your real job">
           <s-paragraph>
-            One click seeds ~1,095 days of sales + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other
-            spend ({PRODUCT_NOUN.totalRoas} ≈ {formatMer(3.5)}) and turns sample desk ON.
-            Deterministic — same shape every run.
+            {PRODUCT_NOUN.spendJob}. Exact daily spend by platform — any period,
+            any day of the week. Cold path: margin → spend → Total ROAS → Close
+            in under 10 minutes with SAMPLE off.
           </s-paragraph>
-          <Form method="post">
-            <input type="hidden" name="intent" value="prepare" />
-            <s-button
-              type="submit"
-              variant="primary"
-              {...(busy && intent === "prepare" ? { loading: true } : {})}
-            >
-              Prepare listing shots
+          <div className="mcfly-decision__actions">
+            <s-button href="/app/settings" variant="secondary">
+              {PRODUCT_NOUN.setupAdjustMargin}
             </s-button>
-          </Form>
-          {actionData && "result" in actionData && actionData.result ? (
-            <p className="mcfly-breakdown-note">
-              Seeded sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
-              {formatCurrency(actionData.result.totalSpend)} ·{" "}
-              {PRODUCT_NOUN.totalRoas} ≈{" "}
-              {formatMer(
-                actionData.result.totalSpend > 0
-                  ? actionData.result.totalSales / actionData.result.totalSpend
-                  : null,
-              )}
-            </p>
-          ) : null}
-
-          <s-paragraph>
-            Then capture in order (~1600×900, crop browser chrome). Shot mode (
-            <code>?shot=1</code>) hides the sample banner:
-          </s-paragraph>
-          <div className="mcfly-demo-steps">
-            <s-link href="/app?period=y3&shot=1">
-              1 · {PRODUCT_NOUN.deskTitle} → 3 yr (shot)
-            </s-link>
-            <s-link href="/app?period=mtd&shot=1">
-              2 · {PRODUCT_NOUN.deskTitle} → MTD · equation panel (shot)
-            </s-link>
-            <s-link href="/app/spend?shot=1">3 · Spend (shot)</s-link>
-            <s-link href="/app/allocation?period=y3&shot=1">4 · Allocation → 3 yr (shot)</s-link>
-            <s-link href="/app/settings?shot=1">5 · Settings (shot)</s-link>
+            <s-button href="/app/spend" variant="primary">
+              Go to Spend
+            </s-button>
+            <s-button href="/app" variant="secondary">
+              {PRODUCT_NOUN.openTotalRoas}
+            </s-button>
+            <s-button href="/app" variant="tertiary">
+              Open Overview
+            </s-button>
           </div>
+        </s-section>
+
+        <details className="mcfly-panel" style={{ marginTop: "1rem" }}>
+          <summary className="mcfly-panel__head">
+            <h2>Listing shots (ops)</h2>
+            <p className="mcfly-panel__muted">Staff only — App Store screenshots</p>
+          </summary>
           <s-paragraph>
-            <s-text tone="neutral">
-              Shot list + captions: <code>docs/LISTING_VISUAL_PACK.md</code>.
-            </s-text>
+            After SAMPLE is on, open shot links with <code>?shot=1</code>. Leave
+            SAMPLE off for App Store review smoke.
           </s-paragraph>
-        </s-section>
-
-        <s-section heading="Advanced">
-          <s-stack direction="block" gap="base">
-            <Form method="post">
-              <input type="hidden" name="intent" value="seed" />
-              <s-button type="submit" {...(busy && intent === "seed" ? { loading: true } : {})}>
-                Seed only (keep current ON/OFF)
-              </s-button>
-            </Form>
-            <Form method="post">
-              <input type="hidden" name="intent" value="enable" />
-              <s-button type="submit" {...(busy && intent === "enable" ? { loading: true } : {})}>
-                Turn sample desk ON
-              </s-button>
-            </Form>
-            <Form method="post">
-              <input type="hidden" name="intent" value="disable" />
-              <s-button type="submit" {...(busy && intent === "disable" ? { loading: true } : {})}>
-                Turn sample desk OFF (live Shopify)
-              </s-button>
-            </Form>
-          </s-stack>
-        </s-section>
-
-        <s-section heading="Clear">
-          <Form method="post">
+          <ul>
+            <li>
+              <s-link href="/app?period=mtd&shot=1">Overview MTD shot</s-link>
+            </li>
+            <li>
+              <s-link href="/app/spend?shot=1">Spend shot</s-link>
+            </li>
+            <li>
+              <s-link href="/app/goals?shot=1">Goals shot</s-link>
+            </li>
+            <li>
+              <s-link href="/app/allocation?period=mtd&shot=1">
+                Allocation shot
+              </s-link>
+            </li>
+          </ul>
+          <Form method="post" action={demoAction} style={{ marginTop: "0.75rem" }}>
             <input type="hidden" name="intent" value="clear" />
             <s-button
               type="submit"
               tone="critical"
+              variant="tertiary"
               {...(busy && intent === "clear" ? { loading: true } : {})}
             >
-              Delete sample data
+              Clear SAMPLE data
             </s-button>
           </Form>
-        </s-section>
+        </details>
       </div>
     </s-page>
   );

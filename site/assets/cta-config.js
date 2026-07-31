@@ -1,49 +1,49 @@
+/* launch-v2-20260728-freemium */
 /**
  * Public CTA honesty gate.
- * Flip MCFLY_APP_STORE_LIVE → true when the Shopify App Store listing is live
- * and one-click install actually works. Until then: Partner invite primary.
- * Never forever-free. Never a shop-domain form on this site.
+ * App Store listing path is primary for launch.
+ * Never forever-free bait as the product. Never a shop-domain form on this site.
+ *
+ * Tokens:
+ *   data-mcfly-cta="primary"   → Install free /support
+ *   data-mcfly-cta="demo"      → Try the demo /demo
+ *   data-mcfly-cta="secondary" → left alone (page keeps App Store / custom label)
  */
 (function (w) {
   "use strict";
 
-  w.MCFLY_APP_STORE_LIVE = false;
-
-  function waitlistHref() {
-    const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
-    const isHome = path === "/" || path === "/index.html" || path === "";
-    return isHome ? "#waitlist" : "/#waitlist";
-  }
+  /** Flip false only if listing is down and install is broken. */
+  w.MCFLY_APP_STORE_LIVE = true;
 
   function primary() {
-    if (w.MCFLY_APP_STORE_LIVE) {
-      return { label: "Get free install", href: "/support" };
-    }
-    return { label: "Request Partner invite", href: waitlistHref() };
+    return { label: "Install free", href: "/support" };
   }
 
+  /** Chrome mobile nav / intentional demo CTAs only. */
   function secondary() {
-    if (w.MCFLY_APP_STORE_LIVE) {
-      return { label: "Partner invite", href: waitlistHref() };
-    }
-    return { label: "App Store Free when listed", href: "/support" };
+    return { label: "Try the demo", href: "/demo" };
+  }
+
+  function demo() {
+    return { label: "Try the demo", href: "/demo" };
   }
 
   function apply(root) {
     const scope = root || document;
     const p = primary();
-    const s = secondary();
+    const d = demo();
     scope.querySelectorAll('[data-mcfly-cta="primary"]').forEach((el) => {
       if (el.tagName === "A") el.setAttribute("href", p.href);
       el.textContent = p.label;
     });
-    scope.querySelectorAll('[data-mcfly-cta="secondary"]').forEach((el) => {
-      if (el.tagName === "A") el.setAttribute("href", s.href);
-      el.textContent = s.label;
+    // Only rewrite intentional demo CTAs — never overwrite App Store secondary links.
+    scope.querySelectorAll('[data-mcfly-cta="demo"]').forEach((el) => {
+      if (el.tagName === "A") el.setAttribute("href", d.href);
+      el.textContent = d.label;
     });
   }
 
-  w.MCFLY_CTA = { primary: primary, secondary: secondary, apply: apply };
+  w.MCFLY_CTA = { primary: primary, secondary: secondary, demo: demo, apply: apply };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {

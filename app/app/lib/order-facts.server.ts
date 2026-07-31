@@ -7,11 +7,20 @@ import {
   shopLocalDayRange,
 } from "./shop-local-day";
 import { formatPeriodQuery, SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
+import { salesDayFactWindowDayCount } from "./sales-facts.server";
+import { adminGraphqlJson, type GraphqlCost } from "./shopify-graphql-cost.server";
+import { orderNetAmount } from "./shopify-sales.server";
 
 /** OrderFact.source for live Shopify ingest — never write sample from this lane. */
 export const ORDER_FACT_SOURCE = "shopify_order_v1";
 
 export const ORDER_FACT_GUEST_KEY = "guest";
+
+/**
+ * Sentinel `shopifyOrderId` prefix: day is fully crawled and skipped by backfill.
+ * Cleared on order webhooks (refunds/cancels) so the next LTV kick re-crawls.
+ */
+export const ORDER_FACT_DAY_COMPLETE_PREFIX = "__day_complete__:";
 
 /** Max closed shop-local days ingested per `runOrderFactsBackfill` kick. */
 export const ORDER_FACT_MAX_DAYS_PER_RUN = 7;
@@ -19,6 +28,41 @@ export const ORDER_FACT_MAX_DAYS_PER_RUN = 7;
 /** Soft page cap per kick (in addition to day-window chunk). */
 export const ORDER_FACT_MAX_PAGES_PER_RUN = 25;
 
+const DAY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Marker id written when a shop-local day crawl finishes (not page-capped). */
+export function orderFactDayCompleteMarkerId(dayKey: string): string {
+  return `${ORDER_FACT_DAY_COMPLETE_PREFIX}${dayKey}`;
+}
+
+/**
+ * Delete the `__day_complete__` seal for one shop-local day so
+ * `runOrderFactsBackfill` will re-crawl (refunds/edits update net amounts).
+ *
+ * Fail-closed: returns 0 and does not touch the DB when `dayKey` is not
+ * YYYY-MM-DD. Callers must only invoke with a day derived from shop IANA —
+ * never a guessed server-local day.
+ */
+export async function clearOrderFactDayCompleteSeal(
+  shopId: string,
+  dayKey: string,
+): Promise<number> {
+  if (!shopId || !DAY_KEY_RE.test(dayKey)) return 0;
+  const result = await prisma.orderFact.deleteMany({
+    where: {
+      shopId,
+      source: ORDER_FACT_SOURCE,
+      shopifyOrderId: orderFactDayCompleteMarkerId(dayKey),
+    },
+  });
+  return result.count;
+}
+
+/**
+ * OrderFact.amount prefers currentTotalPriceSet (net after returns/refunds /
+ * edits) so till LTV aligns with action Total ROAS. totalPriceSet is still
+ * queried as a fallback when current totals are missing.
+ */
 const ORDERS_FOR_FACTS_QUERY = `#graphql
   query McflyOrdersForFacts($query: String!, $cursor: String) {
     orders(first: 100, after: $cursor, query: $query) {
@@ -31,6 +75,12 @@ const ORDERS_FOR_FACTS_QUERY = `#graphql
           id
           createdAt
           totalPriceSet {
+            shopMoney {
+              amount
+              currencyCode
+            }
+          }
+          currentTotalPriceSet {
             shopMoney {
               amount
               currencyCode
@@ -56,12 +106,16 @@ type OrdersForFactsJson = {
           totalPriceSet?: {
             shopMoney?: { amount?: string; currencyCode?: string };
           };
+          currentTotalPriceSet?: {
+            shopMoney?: { amount?: string; currencyCode?: string };
+          };
           customer?: { id?: string } | null;
         };
       }>;
     };
   };
   errors?: Array<{ message?: string; extensions?: { code?: string } }>;
+  extensions?: { cost?: GraphqlCost };
 };
 
 export interface OrderFactRow {
@@ -350,13 +404,17 @@ async function fetchOrdersForDay(
       break;
     }
     pages += 1;
-    const response = await admin.graphql(ORDERS_FOR_FACTS_QUERY, {
-      variables: { query, cursor },
-    });
-    const json = (await response.json()) as OrdersForFactsJson;
+    const json: OrdersForFactsJson = await adminGraphqlJson<OrdersForFactsJson>(
+      admin,
+      ORDERS_FOR_FACTS_QUERY,
+      { query, cursor },
+    );
 
     if (json.errors?.length) {
-      const msg = json.errors.map((e) => e.message).filter(Boolean).join("; ");
+      const msg = json.errors
+        .map((e: { message?: string }) => e.message)
+        .filter(Boolean)
+        .join("; ");
       if (isHistoryWindowError(json.errors, msg)) {
         historyLimited = true;
         error = msg || "ACCESS_DENIED";
@@ -365,7 +423,8 @@ async function fetchOrdersForDay(
       throw new Error(msg || "Shopify GraphQL error");
     }
 
-    const orders = json.data?.orders;
+    const orders: NonNullable<OrdersForFactsJson["data"]>["orders"] =
+      json.data?.orders;
     if (!orders) {
       throw new Error("Failed to fetch orders for OrderFact ingest");
     }
@@ -375,15 +434,20 @@ async function fetchOrdersForDay(
       if (!node?.id || !node.createdAt) continue;
       const orderedAt = new Date(node.createdAt);
       if (Number.isNaN(orderedAt.getTime())) continue;
-      const amount = parseFloat(node.totalPriceSet?.shopMoney?.amount ?? "0");
+      // Net (currentTotalPriceSet) for OrderFact.amount — same semantics as desk
+      // orderNetAmount: empty/missing currentTotal → gross; currentTotal=0 stays 0.
+      const amount = orderNetAmount(node);
       const localKey = shopLocalDayKey(orderedAt, timeZone) || dayKey;
       rows.push({
         shopifyOrderId: node.id,
         customerKey: node.customer?.id || ORDER_FACT_GUEST_KEY,
         orderedAt,
         shopLocalDate: dayKeyToUtcDate(localKey),
-        amount: Number.isFinite(amount) ? amount : 0,
-        currency: node.totalPriceSet?.shopMoney?.currencyCode ?? null,
+        amount,
+        currency:
+          node.currentTotalPriceSet?.shopMoney?.currencyCode ??
+          node.totalPriceSet?.shopMoney?.currencyCode ??
+          null,
       });
     }
 
@@ -431,12 +495,13 @@ export async function runOrderFactsBackfill(
   }
 
   const state = await ensureBackfillState(shopId);
-  // When TOML/env declares read_all_orders, try a deeper window until Shopify denies it.
+  // When TOML/env declares read_all_orders, try the same Jan-1 × 4yr depth as SalesDayFact.
   const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
   let historyLimited = scopesAllowDeep ? false : state.historyLimited;
+  const deepWindowDays = salesDayFactWindowDayCount(now);
   const windowDays = historyLimited
     ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
-    : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, 365);
+    : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
 
   const timeZone = metadata.ianaTimezone;
   const windowDayKeys = listRecentClosedShopLocalDays(timeZone, windowDays, now);
@@ -448,13 +513,15 @@ export async function runOrderFactsBackfill(
       shopId,
       source: ORDER_FACT_SOURCE,
       shopifyOrderId: {
-        in: windowDayKeys.map((k) => `__day_complete__:${k}`),
+        in: windowDayKeys.map((k) => orderFactDayCompleteMarkerId(k)),
       },
     },
     select: { shopifyOrderId: true },
   });
   const existingKeys = new Set(
-    completeMarkers.map((r) => r.shopifyOrderId.replace("__day_complete__:", "")),
+    completeMarkers.map((r) =>
+      r.shopifyOrderId.replace(ORDER_FACT_DAY_COMPLETE_PREFIX, ""),
+    ),
   );
   const missing = windowDayKeys.filter((k) => !existingKeys.has(k));
   const batch = missing.slice(0, maxDays);
@@ -499,7 +566,7 @@ export async function runOrderFactsBackfill(
         await upsertOrderFact(
           shopId,
           {
-            shopifyOrderId: `__day_complete__:${dayKey}`,
+            shopifyOrderId: orderFactDayCompleteMarkerId(dayKey),
             customerKey: ORDER_FACT_GUEST_KEY,
             orderedAt: shopLocalDayRange(dayKey, timeZone).start,
             shopLocalDate: dayKeyToUtcDate(dayKey),
@@ -612,7 +679,7 @@ export async function countNewBuyersInRange(
       shopId,
       source: ORDER_FACT_SOURCE,
       customerKey: { not: ORDER_FACT_GUEST_KEY },
-      NOT: { shopifyOrderId: { startsWith: "__day_complete__:" } },
+      NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
     },
     select: { customerKey: true, orderedAt: true },
   });
@@ -636,6 +703,9 @@ export async function countNewBuyersInRange(
 /**
  * Deterministic sample CohortFacts for the Demo desk (`source = sample`).
  * Cleared with sample desk wipe — never overwrites live `shopify_order_v1` rows.
+ *
+ * Tuned to match impressive SAMPLE till economics (~$110 AOV, Total ROAS > 4×):
+ * 30d / 90d / 365d LTV per customer land well above cash CAC so LTV:CAC reads ~3–5×.
  */
 export async function seedSampleCohortFacts(
   shopId: string,
@@ -643,20 +713,36 @@ export async function seedSampleCohortFacts(
 ): Promise<number> {
   const now = options?.now ?? new Date();
   const months: string[] = [];
-  for (let i = 5; i >= 0; i -= 1) {
+  // 12 months — denser LTV page + Overview till strip.
+  for (let i = 11; i >= 0; i -= 1) {
     const d = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1),
     );
     months.push(cohortMonthFromDate(d));
   }
 
+  // Per-customer revenue (shop dollars) — DTC growing brand, AOV ~$100–120.
+  // Older cohorts mature further on 90d/365d; recent cohorts larger headcount.
+  const ltv30Base = 118;
+  const ltv90Base = 248;
+  const ltv365Base = 520;
+
   let n = 0;
   for (let i = 0; i < months.length; i += 1) {
     const cohortMonth = months[i]!;
-    const customers = 40 + i * 6;
-    const rev30 = customers * (48 + i * 2);
-    const rev90 = customers * (92 + i * 4);
-    const rev365 = customers * (180 + i * 8);
+    // Growing brand — more recent cohorts larger (index 0 = oldest).
+    const customers = 140 + i * 36;
+    // Mild AOV lift over the year; older cohorts get extra maturity on long windows.
+    const aovLift = 1 + i * 0.035;
+    const maturity90 = 1 + (months.length - 1 - i) * 0.018;
+    const maturity365 = 1 + (months.length - 1 - i) * 0.04;
+    const rev30 = Math.round(customers * ltv30Base * aovLift);
+    const rev90 = Math.round(customers * ltv90Base * aovLift * maturity90);
+    const rev365 = Math.round(customers * ltv365Base * aovLift * maturity365);
+    // Healthy repeat: ~1.25 / 1.7 / 2.4 orders per customer by window.
+    const ordersD30 = customers + Math.round(customers * 0.28);
+    const ordersD90 = customers + Math.round(customers * 0.72 * maturity90);
+    const ordersD365 = customers + Math.round(customers * 1.45 * maturity365);
     await prisma.cohortFact.upsert({
       where: {
         shopId_cohortMonth_source: {
@@ -672,9 +758,9 @@ export async function seedSampleCohortFacts(
         revenueD30: rev30,
         revenueD90: rev90,
         revenueD365: rev365,
-        ordersD30: customers + Math.round(customers * 0.15),
-        ordersD90: customers + Math.round(customers * 0.45),
-        ordersD365: customers + Math.round(customers * 0.9),
+        ordersD30,
+        ordersD90,
+        ordersD365,
         asOf: now,
         source: "sample",
       },
@@ -683,9 +769,9 @@ export async function seedSampleCohortFacts(
         revenueD30: rev30,
         revenueD90: rev90,
         revenueD365: rev365,
-        ordersD30: customers + Math.round(customers * 0.15),
-        ordersD90: customers + Math.round(customers * 0.45),
-        ordersD365: customers + Math.round(customers * 0.9),
+        ordersD30,
+        ordersD90,
+        ordersD365,
         asOf: now,
       },
     });

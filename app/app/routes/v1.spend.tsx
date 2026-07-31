@@ -2,14 +2,18 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { PostSpendBodySchema } from "@mcfly/api-contract";
 import prisma from "../db.server";
 import { authenticateApiRequest, jsonError } from "../lib/api-auth.server";
+import {
+  assertChannelsAllowed,
+  getShopEntitlements,
+} from "../lib/entitlements.server";
 import { ensureShop } from "../lib/mer-dashboard.server";
+import { utcMidnightFromDayKey } from "../lib/shop-local-day";
 
+/** UTC day bounds for a YYYY-MM-DD key — matches SalesDayFact / spine day stamps. */
 function dayBounds(date: string): { start: Date; end: Date } {
-  const [y, m, d] = date.split("-").map(Number);
-  return {
-    start: new Date(y, m - 1, d),
-    end: new Date(y, m - 1, d, 23, 59, 59, 999),
-  };
+  const start = utcMidnightFromDayKey(date);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
+  return { start, end };
 }
 
 function mapChannel(channel: string) {
@@ -62,6 +66,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const shop = await ensureShop(auth.shopDomain);
   const entries = parsed.data.entries;
+  const entitlements = getShopEntitlements(auth.shopDomain);
+  const channelGate = assertChannelsAllowed(
+    entitlements,
+    entries.map((entry) => mapChannel(entry.channel)),
+  );
+  if (channelGate) {
+    return jsonError(channelGate, 403, "pro_required");
+  }
 
   const accepted = await prisma.$transaction(async (tx) => {
     let count = 0;
