@@ -54,19 +54,31 @@
       let href = "#";
       let label = el.textContent;
       if (kind === "course") {
-        href = resolve("gumroadCourse", w.MCFLY_MONEY.courseMailto);
-        if (!resolve("gumroadCourse", "")) {
-          label = el.getAttribute("data-mcfly-pay-fallback-label") || "Email for $79 checkout";
+        const live = resolve("gumroadCourse", "");
+        href = live || w.MCFLY_MONEY.courseMailto;
+        if (live) {
+          label = el.getAttribute("data-mcfly-pay-live-label") || "Buy $79";
+        } else {
+          label =
+            el.getAttribute("data-mcfly-pay-fallback-label") ||
+            "Email for $79 checkout";
         }
       } else if (kind === "custom-deposit") {
-        href = resolve("stripeCustomDeposit", w.MCFLY_MONEY.depositMailto);
-        if (!resolve("stripeCustomDeposit", "")) {
+        const live = resolve("stripeCustomDeposit", "");
+        href = live || w.MCFLY_MONEY.depositMailto;
+        if (live) {
+          label = el.getAttribute("data-mcfly-pay-live-label") || "Pay deposit";
+        } else {
           label =
-            el.getAttribute("data-mcfly-pay-fallback-label") || "Email for deposit link";
+            el.getAttribute("data-mcfly-pay-fallback-label") ||
+            "Email for deposit link";
         }
       } else if (kind === "desk-setup") {
-        href = resolve("stripeDeskSetup", w.MCFLY_MONEY.deskSetupMailto);
-        if (!resolve("stripeDeskSetup", "")) {
+        const live = resolve("stripeDeskSetup", "");
+        href = live || w.MCFLY_MONEY.deskSetupMailto;
+        if (live) {
+          label = el.getAttribute("data-mcfly-pay-live-label") || "Desk setup SKU";
+        } else {
           label =
             el.getAttribute("data-mcfly-pay-fallback-label") ||
             "Email for desk-setup link";
