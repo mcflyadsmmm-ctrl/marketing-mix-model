@@ -1,6 +1,6 @@
 /**
  * MDS Made Easy — course chrome + interactives (static, no backend).
- * Draft: pages use noindex; robots Disallow until go-live.
+ * Live: Buy CTA via money-links.js (data-mcfly-pay="course"); Gumroad URL = HUMAN H7.
  */
 (function () {
   const MODULES = [
@@ -38,12 +38,6 @@
   function injectChrome() {
     const body = document.body;
     if (!body.classList.contains("mds-course")) return;
-
-    const banner = document.createElement("div");
-    banner.className = "mds-draft-banner";
-    banner.innerHTML =
-      "<strong>DRAFT — not public.</strong> Hidden from nav, sitemap, and crawlers until you say <strong>MDS Made Easy go live</strong>.";
-    body.prepend(banner);
 
     const mount = document.querySelector("[data-mds-shell]");
     if (!mount) return;

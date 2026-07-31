@@ -6,7 +6,7 @@
 | id | wave | status | tag | revenue_hypothesis | paths | model |
 | --- | --- | --- | --- | --- | --- | --- |
 | G-001 | 0 | ready | craft | Host health + failure register keep fleet honest → protect revenue path | `docs/ops/fleet/*` | composer |
-| G-002 | 1 | ready | money-path | Pricing/product SEO copy lifts install + Custom inquire | `site/pricing.html` (serialized) | grok |
+| G-002 | 1 | done | money-path | Pricing/product SEO copy lifts install + Custom inquire — MDS Made Easy $79 live on pricing + chrome; robots/sitemap unblocked 2026-07-31 | `site/pricing.html`, `site/assets/chrome.js`, `site/robots.txt`, `site/sitemap.xml` | grok |
 | G-003 | 1 | ready | craft | Continuous ship-gate + compliance on dirty tree prevents fake done | scripts only | composer |
 
 **P0 now:** G-001 (maintain register + tick log). Never Partner Submit.

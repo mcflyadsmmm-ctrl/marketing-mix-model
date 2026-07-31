@@ -198,8 +198,11 @@ export function getShopBillingSnapshot(
 }
 
 /**
- * Start Pro upgrade via Shopify-hosted Free/Pro plan page (App Pricing).
- * Does not call appSubscriptionCreate — Managed Pricing apps cannot.
+ * Pro upgrade flow (Managed Pricing — not appSubscriptionCreate):
+ * 1. ProUpgradeButton POSTs /app/billing → this helper (requires MCFLY_BILLING=1).
+ * 2. Returns confirmationUrl = buildManagedPricingPlansUrl(shop).
+ * 3. Button top-navigates to Shopify Free/Pro picker; sync caches proBillingActive.
+ * 4. Do not announce to merchants until founder closes H9 (plans + Fly secret).
  */
 export async function requestProSubscription(input: {
   admin: AdminApiContext;

@@ -862,6 +862,23 @@
       max-width: 42ch;
       line-height: 1.45;
     }
+    body.ca-page .ca-inquire .ca-money-rails {
+      margin: 1.5rem 0 0;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--line);
+    }
+    body.ca-page .ca-inquire .ca-money-lede {
+      margin: 0 0 0.75rem;
+      font-size: 0.88rem;
+      color: var(--mute);
+      max-width: 42ch;
+      line-height: 1.45;
+    }
+    body.ca-page .ca-inquire .ca-money-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
     body.ca-page .ca-shopify-note {
       margin: 1.25rem 0 0;
       padding: 0.9rem 1rem;
@@ -1571,6 +1588,14 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
             <a class="btn ghost" data-waitlist-open href="#">Open mail app</a>
             <p class="note" data-waitlist-copy-status hidden></p>
           </div>
+
+          <div class="ca-money-rails" aria-label="Optional after-scope payment links">
+            <p class="ca-money-lede">Primary path is the engagement request above — inquire → scoped SOW. Optional only after you are scoped: secondary deposit or desk-setup ($1.5–4K) Payment Links. Until live Stripe URLs are pasted, these open email for a link — not a storefront checkout.</p>
+            <div class="ca-money-actions">
+              <a class="btn ghost" href="#" data-mcfly-pay="custom-deposit" data-mcfly-pay-fallback-label="Email for deposit link">Pay deposit</a>
+              <a class="btn ghost" href="#" data-mcfly-pay="desk-setup" data-mcfly-pay-fallback-label="Email for desk-setup link">Desk setup SKU</a>
+            </div>
+          </div>
         </div>
 
         <p class="ca-shopify-note">Need the Shopify Total ROAS cash desk instead? That’s a separate product — <a href="/product">Mcfly Analytics on Shopify</a> · <a href="/support">Install free</a>. Practice story: <a href="/about">About</a>.</p>
@@ -1582,6 +1607,7 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
   <script src="/assets/cta-config.js?v=20260731copy"></script>
   <script src="/assets/chrome.js?v=20260731copy"></script>
   <script src="/assets/app.js?v=20260731copy"></script>
+  <script src="/assets/money-links.js?v=20260731money"></script>
   <script src="/assets/custom-analytics-demo.js?v=20260728ca7"></script>
 </body>
 </html>

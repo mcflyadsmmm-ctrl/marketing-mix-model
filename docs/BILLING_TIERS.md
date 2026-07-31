@@ -32,7 +32,7 @@ Upgrade URL pattern:
 | Env | Meaning |
 | --- | --- |
 | `MCFLY_BILLING=1` | Allow Upgrade → plan page |
-| `SHOPIFY_APP_HANDLE` | Override handle (default `mcfly-analytics`) |
+| `SHOPIFY_APP_HANDLE` | Override handle (default `mcfly-analytics-public`) |
 
 ## Evidence
 

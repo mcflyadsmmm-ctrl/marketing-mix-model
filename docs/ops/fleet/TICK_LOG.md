@@ -24,11 +24,11 @@
 - failures: A8 open
 - next: commit+push fleet docs; founder create Automations per AUTOMATIONS_SETUP
 
-## 2026-07-31T23:00Z · Wave0 · Automations handoff
+## 2026-07-31T23:04Z · Conductor · pods landed
 
-- shipped: Glass Automations UI opened with Desk SaaS hourly prefill; AUTO_*.md pastes for all 5
-- models: conductor (Auto)
-- gate: SKIP · deploy: no
-- HUMAN_GATE: A8 push; founder save Desk + create Services/Education/B2B/Growth Automations
-- failures: A8 still open until push
-- next: git commit+push docs/ops/FLEET_ENTERPRISE.md docs/ops/fleet/ ; enable schedules
+- shipped: S-001 + G-002 + D-001 done; E-001 closed by integrate (hub+plan+queue)
+- models: Services/Growth/Desk agents · Conductor integrate Edu docs
+- gate: pending commit/push · deploy: need Pages phrase
+- HUMAN_GATE: H7 gumroad URL · H8 stripe URLs · H9 billing announce
+- failures: A8 watching until Wave1 push
+- next: git commit+push Wave1 surfaces · founder `Pages deploy allowed this turn.`

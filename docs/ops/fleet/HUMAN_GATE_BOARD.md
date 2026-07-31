@@ -6,7 +6,7 @@
 | ID | Gate | Status | Unblock signal | Notes |
 | --- | --- | --- | --- | --- |
 | H1 | Partner MFA / login | open | `partner logged in` | |
-| H2 | App Store Distribution / Submit | open | `submitted` / `approved` | [`SUBMIT_NOW.md`](../../SUBMIT_NOW.md) |
+| H2 | App Store Distribution / Submit | submitted | `approved` when live | Founder: submitted 2026-07-31 — wait on review |
 | H3 | PCD questionnaire | open | `pcd done` | Level 1 only |
 | H4 | Install smoke design partner | open | `install works` | [`INSTALL_SMOKE.md`](../../INSTALL_SMOKE.md) |
 | H5 | Listing shots / screencast / emergency contact | open | `listing pack uploaded` | |

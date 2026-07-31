@@ -1,4 +1,4 @@
-/* Marketing Data Science Made Easy — course shell (draft / evergreen) */
+/* Marketing Data Science Made Easy — course shell (evergreen / live) */
 body.mds-course {
   background:
     radial-gradient(ellipse 70% 40% at 88% -8%, rgba(94, 231, 240, 0.1), transparent 55%),
@@ -41,7 +41,7 @@ body.mds-course {
 
 .mds-nav {
   position: sticky;
-  top: 2.75rem;
+  top: 1rem;
   align-self: start;
   padding: 1rem 0.85rem;
   background: rgba(255, 255, 255, 0.72);

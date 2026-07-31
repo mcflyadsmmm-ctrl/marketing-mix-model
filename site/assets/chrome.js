@@ -68,6 +68,7 @@
       <a href="/product" data-nav="product">Product</a>
       <a href="/app" data-nav="app">Desk</a>
       <a href="/pricing" data-nav="pricing">Pricing</a>
+      <a href="/mds-made-easy/" data-nav="mds">MDS Made Easy</a>
       <a href="/demo" data-nav="demo">Demo</a>
       <a href="/faq" data-nav="faq">FAQ</a>
       <a href="/support" data-nav="support">Support</a>
@@ -81,6 +82,7 @@
     <a href="/product">Product</a>
     <a href="/app">Desk</a>
     <a href="/pricing">Pricing</a>
+    <a href="/mds-made-easy/">MDS Made Easy</a>
     <a href="/demo">Demo</a>
     <a href="/faq">FAQ</a>
     <a href="/support">Support</a>
@@ -105,6 +107,7 @@
         <a href="/custom-analytics#packages">Packages</a>
         <a href="/custom-analytics#privacy">Privacy</a>
         <a href="/custom-analytics#inquire">Inquire</a>
+        <a href="/mds-made-easy/">MDS Made Easy</a>
         <a href="/security">Security</a>
         <a href="/privacy">Privacy policy</a>
         <a href="/dpa">DPA</a>
@@ -126,6 +129,7 @@
         <a href="/app">Desk tabs</a>
         <a href="/product#spend-csv">Paste spend</a>
         <a href="/pricing">Pricing</a>
+        <a href="/mds-made-easy/">MDS Made Easy</a>
         <a href="/cash-mer">Total ROAS</a>
         <a href="/demo">Demo desk</a>
         <a href="/about">About</a>

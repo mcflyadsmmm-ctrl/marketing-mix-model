@@ -15,7 +15,7 @@ Status legend: `open` · `watching` · `mitigated` · `triggered`
 | A5 | Religion drift | watching | Refuse in every AUTO paste |
 | A6 | Invented work on HUMAN_GATE | watching | Automations must idle |
 | A7 | BoN cost explosion | mitigated | Max 2 BoN/day; craft\|money-path only |
-| A8 | Uncommitted fleet docs | open | **Push FLEET_ENTERPRISE + fleet/ before enabling Automations** |
+| A8 | Uncommitted fleet docs | watching | Fleet OS pushed earlier; Wave1 site money paths still need commit+push + Pages |
 | A9 | Standing deploy abuse | watching | [`STANDING_DEPLOY_GRANT.md`](../STANDING_DEPLOY_GRANT.md) + gate |
 | A10 | 30-agent fantasy | mitigated | Cap Conductor+4 chats; ≤6 Tasks |
 | B1 | Fly card / free gone | watching | See [`HOSTING_BASELINE.md`](./HOSTING_BASELINE.md) — Fly live v135 |
@@ -26,7 +26,7 @@ Status legend: `open` · `watching` · `mitigated` · `triggered`
 | B6 | Commercial free ToS ban | watching | Prefer CF/GH Pages |
 | B7 | Render hours/bandwidth | watching | Single free web service max |
 | B8 | Host suspend | watching | Gate health curl |
-| C1 | App Store reject / stuck | open | HUMAN — SUBMIT_NOW / PCD |
+| C1 | App Store reject / stuck | watching | HUMAN — submitted 2026-07-31 (H2); wait review · SUBMIT_NOW / PCD |
 | C2 | Free forever zero Pro | watching | Wave 1 Billing path |
 | C3 | Custom leads zero closes | watching | Services = sales+delivery |
 | C4 | Course no audience | watching | Funnel to app/custom |
