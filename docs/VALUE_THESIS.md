@@ -1,38 +1,40 @@
 # Value thesis — why Mcfly is worth millions without a GMV tax
 
-**One-liner:** Own the **cash desk** category — Shopify sales ÷ ad spend, break-even, one allocation call — and charge a flat desk fee, not a slice of growth.
+**One-liner:** Own **marketing cash desk / spend affordability** — Shopify sales ÷ ad spend (Total ROAS), break-even, allocation — flat desk fee, not a slice of growth. Voice SoT: [`MDS_RESEARCH_ABSORB.md`](./MDS_RESEARCH_ABSORB.md).
 
-**Religion:** Free on the App Store now → ~$79/store/mo flat later via Shopify Billing. Never forever-free bait. Never pixels / MTA / “true ROAS.”
+**Religion:** Free on the App Store now (**CSV paste**) → $39/store/mo flat later via Shopify Billing. Never forever-free bait. Never pixels / MTA / “true ROAS.” **No Mcfly-owned Meta/Google spend OAuth** ([`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)). **Coexists with attribution suites for CYA — dominates the till desk so suites become optional.** Domination bar: [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1.
+
+**Advanced Marketing Data Science for your business** is the cash-close desk — net sales ÷ spend (**Total ROAS**), **aMER** (new-customer net ÷ spend), break-even from a **till-level cost stack**, deterministic desk coach, and portfolio step-tests — on a **flat fee** path. Not Robyn, Meridian, incrementality, Bayesian MMM theater, or LLM chat OS.
 
 ---
 
-## 1. Category ownership: the cash desk
+## 1. Category ownership: marketing cash close / spend affordability control
 
-Suites sell measurement as science theater (pixels, path credit, identity graphs). Operators still open Monday needing one answer: **did ad spend clear break-even against what Shopify actually recorded?**
+Suites sell measurement as science theater (pixels, path credit, identity graphs). Operators still open Monday needing one answer: **did ad spend clear break-even against what Shopify actually kept (net)?**
 
-That job is a **desk**, not a warehouse:
+That job is a **cash close**, not a warehouse:
 
-| Desk (Mcfly) | Suite (TW / NB / Polar-class) |
+| Cash close (Mcfly) | Suite (TW / NB / Polar-class) |
 | --- | --- |
-| Sales ÷ spend, same period | Path / pixel “driven revenue” |
-| Break-even from contribution margin | Model vs model debates |
-| One rules-based allocation call | OS sprawl + AI babysitting |
+| Net sales ÷ spend, same period (+ gross comparable) | Path / pixel “driven revenue” |
+| Break-even from till-level cost stack (COGS% + fees% + shipping%) | Order-level P&L / SKU COGS theater |
+| aMER + Total ROAS (average; disclosed) | Path / pixel “true ROAS” |
+| Portfolio step-tests + illustrative response heuristics + spend floors | OS sprawl + LLM babysitting / Robyn in-app |
 | Flat fee when GMV grows | GMV- or spend-scaled tax |
+| Coexists with suites | Claims to replace them |
 
-**Category bet:** Whoever merchants trust for the weekly money question owns a durable wedge. Mcfly names that category **cash MER** and refuses to dilute it into attribution court.
+**Category bet:** Whoever merchants trust for the weekly money close owns a durable wedge. Suites already expose a blended MER **tile**; Mcfly owns recon, net basis, and the ritual that turns the number into a spend move.
 
 ---
 
-## 2. Craft moat (not connector moat)
+## 2. Craft + pipe moat (not pixel moat)
 
-Pipes and pixels are commodity engineering. Distribution and habit are hard — but **trust + ritual craft** compound:
+- **Definitional honesty** — Action Total ROAS uses **net** till sales; gross is Ads Manager–comparable secondary.
+- **Time-to-trusted desk** — margin → CSV spend → scoreboard → allocation / Share Overview.
+- **Free = CSV/paste**; **customer-paid SyncWith-class pipes** → Sheet/webhook into Mcfly (we do not own the zoo) — [`PIPE_AUTOMATION_WEDGE.md`](./PIPE_AUTOMATION_WEDGE.md). Mcfly does **not** ship Meta/Google spend OAuth.
+- **Refusal as brand** — no path credit; no SyncWith zoo; no Mcfly ads OAuth.
 
-- **Definitional honesty** — MER = till sales ÷ spend; platforms over-claim by design, not as a sync bug.
-- **Time-to-trusted-MER &lt;10 minutes** — margin → CSV/manual spend → scoreboard → allocation. No OAuth theater required for v1.
-- **Embedded Admin ritual** — Monday desk, not a second login or public “type your .myshopify.com” form.
-- **Refusal as brand** — operators who have been burned by path credit pay for clarity, not another pixel.
-
-Craft beats feature matrices. A sharp cash desk used weekly is worth more than a half-finished TW clone.
+Craft beats feature matrices. A sharp cash close used weekly beats a half-finished TW clone.
 
 ---
 
@@ -40,13 +42,13 @@ Craft beats feature matrices. A sharp cash desk used weekly is worth more than a
 
 | Path | Outcome |
 | --- | --- |
-| **GMV tax** | Bill climbs with success; incentive to over-claim “driven” revenue; merchant resentment |
-| **Forever-free** | Attracts freeloaders; no durable SaaS multiple; App Store bait risk |
-| **Free now → ~$79 flat** | Design-partner smoke → Shopify Billing → predictable ARPU; fee stays flat when GMV grows |
+| **GMV tax** | Bill climbs with success; merchant resentment |
+| **Forever-free** | Freeloader flood; no durable multiple |
+| **Free now (CSV paste) → $39 flat** | Design-partner smoke → Billing announce → predictable ARPU |
 
-Millions of enterprise value does **not** require taxing GMV. A few thousand serious stores × ~$79 flat × high retention (weekly ritual) is a clean SaaS story. Prefer fewer serious desks over a freeloader flood.
+Prefer fewer serious desks over a freeloader flood. Cap Free support; convert ritual users who need connected spend.
 
-Site may say “~$79 later.” **Listing Pricing stays Free** until Billing ships — see [`BILLING_TIERS.md`](./BILLING_TIERS.md).
+Site may say “$39 later.” **Listing Pricing stays Free** until Billing ships — see [`BILLING_TIERS.md`](./BILLING_TIERS.md).
 
 ---
 
@@ -54,21 +56,22 @@ Site may say “~$79 later.” **Listing Pricing stays Free** until Billing ship
 
 | Temptation | Why refuse |
 | --- | --- |
-| Pixel / MTA / Compass-class credit | Violates religion; privacy already killed the graph |
-| Operator OS + AI sprawl | Capital + focus death; not the Monday job |
-| GMV-scaled pricing | Punishes the merchants we want to keep |
-| SyncWith connector zoo | Commodity pipes; decision layer is the product |
+| Pixel / MTA / Compass-class credit | Privacy killed the graph; religion kill-on-contact |
+| Operator OS + LLM sprawl / in-app Meridian | Capital + focus death; deterministic coach only |
+| GMV-scaled pricing | Punishes merchants we want |
+| SyncWith connector zoo | Commodity pipes; cash close is the product |
 
-**Beat them on their failure mode** (bloat, theater, tax) — not by recreating their roadmap. Full competitor map: [`COMPETITORS.md`](./COMPETITORS.md). Pixel-era narrative for the site (not the app): [`POSITIONING_PIXEL_HONESTY.md`](./POSITIONING_PIXEL_HONESTY.md).
+**Beat them on cash close + habit + price** — not by recreating their roadmap. [`COMPETITORS.md`](./COMPETITORS.md).
 
 ---
 
 ## 5. What “worth millions” means here
 
-1. **Own the noun** — “cash desk / cash MER” becomes the default Monday language for Shopify operators who reject path theater.  
-2. **Ship trust** — App Store Free + PCD-honest privacy + real uninstall hygiene; no shop-domain install box.  
-3. **Convert ritual → ARPU** — announce Billing, land ~$79 flat, keep the formula unchanged.  
-4. **Expand only when revenue pulls** — optional spend pipes, multi-store — never invent pixels to “compete.”
+1. **Own the job** — weekly marketing cash desk (sales vs spend vs BE).  
+2. **Ship trust** — App Store Free + PCD-honest privacy + real uninstall hygiene.  
+3. **Reduce paste pain** — export guides + optional merchant-paid pipe templates (not Mcfly ads OAuth).  
+4. **Convert desk habit → ARPU** — $39 flat; formula stays cash.  
+5. **Expand only when revenue pulls** — never invent pixels to “compete.”
 
 **Kill criteria for this thesis:** shipping MTA/pixels, forever-free marketing, or a GMV-scaled bill “to look like a suite.”
 
@@ -77,5 +80,6 @@ Site may say “~$79 later.” **Listing Pricing stays Free** until Billing ship
 ## Agent pointers
 
 - Product SoT: [`MASTER_PLAN.md`](./MASTER_PLAN.md) §0–§4  
+- Retired surfaces: [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)  
 - Listing paste: [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md)  
 - Billing lock: [`BILLING_TIERS.md`](./BILLING_TIERS.md)

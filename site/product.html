@@ -3,32 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shopify cash desk: MER, break-even, allocation — Mcfly Ads</title>
-  <meta name="description" content="A Shopify cash desk instead of an attribution suite: cash MER (sales ÷ ad spend), break-even MER from your margin, and one auditable allocation call every Monday. A simpler alternative to Triple Whale-style path attribution." />
-  <link rel="icon" href="/favicon.png" type="image/png" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <title>Total ROAS desk — Total Sales ÷ spend | Mcfly</title>
+  <meta name="description" content="Shopify Total ROAS desk: Total Sales ÷ ad spend, break-even ≈ 1/margin, spend CSV, allocation, goals, LTV (Pro). Free Meta + Google + Other · Pro $39. No pixels." />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#0a1221" />
-  <link rel="canonical" href="https://mcflyads.com/product.html" />
+  <link rel="canonical" href="https://mcflyads.com/product" />
   <meta property="og:site_name" content="Mcfly Ads" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://mcflyads.com/product.html" />
-  <meta property="og:title" content="The Shopify cash desk — Mcfly Ads" />
-  <meta property="og:description" content="Cash MER (Shopify sales ÷ ad spend), break-even from margin, one auditable allocation call. No path theater." />
-  <meta property="og:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <meta property="og:url" content="https://mcflyads.com/product" />
+  <meta property="og:title" content="Total ROAS desk — Total Sales ÷ spend | Mcfly" />
+  <meta property="og:description" content="Total ROAS = Shopify Total Sales ÷ ad spend. Break-even, allocation, goals, LTV. Free Meta + Google + Other → Pro $39." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="The Shopify cash desk — Mcfly Ads" />
-  <meta name="twitter:description" content="Cash MER = sales ÷ spend. Break-even from margin. One Monday budget call." />
-  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/mcfly-ads-lockup.png" />
+  <meta name="twitter:title" content="Total ROAS desk — Total Sales ÷ spend | Mcfly" />
+  <meta name="twitter:description" content="Total Sales ÷ spend. Break-even ≈ 1/margin. Allocation, goals, LTV. Free → $39." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260722q" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260731desk" />
   <style>
     body.product-page {
       background:
         radial-gradient(ellipse 70% 45% at 90% -5%, rgba(94, 231, 240, 0.11), transparent 55%),
         radial-gradient(ellipse 50% 35% at 0% 20%, rgba(26, 163, 122, 0.07), transparent 50%),
         var(--paper-2);
+    }
+    body.product-page .spend-csv-band .lede-soft {
+      max-width: 48ch;
+    }
+    body.product-page .spend-platforms-intro {
+      margin-top: 1.75rem;
+      margin-bottom: 0;
     }
     body.product-page .brand-kicker .ads {
       color: var(--cyan-deep);
@@ -53,7 +63,7 @@
       box-shadow: 0 18px 40px -28px rgba(10, 18, 33, 0.35);
     }
 
-    /* Monday ritual — full-width numbered rail (deep-dive detail vs home's condensed 3-col) */
+    /* Scientist craft — full-width numbered rail (deep-dive vs home how-rail) */
     body.product-page .ritual-rail {
       list-style: none;
       margin: 2rem 0 0;
@@ -196,7 +206,67 @@
       color: var(--mute);
       font-size: 0.92rem;
     }
+    body.product-page .pitch-box {
+      width: min(46rem, calc(100% - 2 * clamp(1.15rem, 3.5vw, 2rem)));
+      margin: 1.5rem auto 0;
+      padding: 1.25rem 1.35rem 1.35rem;
+      border: 1px solid rgba(10, 18, 33, 0.14);
+      border-left: 3px solid var(--cyan-deep);
+      background: rgba(255, 255, 255, 0.72);
+      box-sizing: border-box;
+    }
+    body.product-page .pitch-box .pitch-kicker {
+      margin: 0 0 0.45rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--cyan-deep);
+    }
+    body.product-page .pitch-box h2 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: 1.15rem;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+    }
+    body.product-page .pitch-box p {
+      margin: 0;
+      color: var(--mute);
+      line-height: 1.55;
+      font-size: 0.98rem;
+    }
   </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Mcfly Analytics",
+        "alternateName": "Mcfly Ads",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Shopify",
+        "url": "https://mcflyads.com/product",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "App Store Free = Meta + Google + custom Other; Pro $39/store/mo for LTV + all named channels + full Goals — announced before Billing charges."
+        },
+        "description": "Shopify Total ROAS desk: Total Sales ÷ ad spend, break-even from margin, spend CSV, allocation, goals, LTV (Pro)."
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcflyads.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Product — Total ROAS desk", "item": "https://mcflyads.com/product" }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body class="product-page">
   <a class="skip" href="#main">Skip to content</a>
@@ -205,17 +275,23 @@
   <main id="main">
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
-      <h1>The Monday cash desk. Not attribution theater.</h1>
-      <p>One job on this page: what Mcfly is. Shopify sales against ad spend — <span class="mono">cash MER</span>, break-even, one allocation call, every Monday. Same pipes as the suites. Different religion.</p>
-      <p class="product-thesis">Stop buying attribution. Start managing spend against sales.</p>
+      <h1>Your Total ROAS desk</h1>
+      <p>Shopify Total Sales ÷ logged ad spend — then break-even from margin, spend CSV, allocation, goals, and LTV. Confirm margin, paste Meta + Google + Other, see Total ROAS vs break-even — about ten minutes.</p>
+      <p class="product-thesis">Advanced Marketing Data Science, made easy — the cash desk Shopify Analytics does not give you.</p>
     </header>
+
+    <aside class="pitch-box" aria-labelledby="pitch-title">
+      <p class="pitch-kicker">Sales reps</p>
+      <h2 id="pitch-title">Pitch this in 30 seconds</h2>
+      <p>Monday needs one number finance accepts: Total ROAS — Shopify Total Sales ÷ ad spend. Mcfly pulls sales; you paste Meta, Google, and custom Other from Sheets/CSV on Free. Named platforms, Customer LTV, and the full-year Goals board are Pro ($39). Email Overview opens your mail with period cards. In about ten minutes you know if you’re above break-even and what to cut or protect.</p>
+    </aside>
 
     <div class="show-frame">
       <picture>
         <source srcset="/assets/product-cockpit.webp" type="image/webp" />
         <img
           src="/assets/product-cockpit.jpg"
-          alt="Mcfly cash desk showing spend, sales, cash MER, and channel mix"
+          alt="Mcfly Total ROAS desk showing spend, sales, and channel mix"
           width="1200"
           height="675"
           loading="lazy"
@@ -226,43 +302,105 @@
     <section class="band formula-band" aria-labelledby="product-formula-title">
       <div class="wrap">
         <p class="eyebrow">The math</p>
-        <h2 id="product-formula-title" class="display">One formula. Two numbers. No black box.</h2>
+        <h2 id="product-formula-title" class="display">One formula. Two numbers.</h2>
         <div class="formula-panel reveal">
-          <p class="formula-line mono">Cash MER = Shopify sales (period) ÷ ad spend (same period)</p>
-          <p class="formula-line mono soft">Break-even MER ≈ 1 ÷ contribution margin</p>
-          <p class="formula-note">Operate above break-even. Shift mix to protect it. This is the math a CFO would sign off on — no path credit anywhere in it.</p>
+          <p class="formula-line mono">Total ROAS = sales (period) ÷ ad spend (same period)</p>
+          <p class="formula-line mono soft">Break-even Total ROAS ≈ 1 ÷ profit margin</p>
+          <p class="formula-note">Stay above break-even. Shift mix to protect it. Math a CFO will sign.</p>
         </div>
       </div>
     </section>
 
     <section class="band ritual-band" aria-labelledby="ritual-title">
       <div class="wrap">
-        <p class="eyebrow">The Monday ritual</p>
-        <h2 id="ritual-title" class="display">Ten minutes.<br />Same three moves, every week.</h2>
-        <p class="lede-soft">No dashboard safari, no “which touchpoint won.” Pull sales, pull spend, read one number against break-even, make one call.</p>
+        <p class="eyebrow">Decision ritual</p>
+        <h2 id="ritual-title" class="display">Ten minutes.<br />Same desk every week.</h2>
+        <p class="lede-soft">Margin → paste spend → Total ROAS vs break-even → one allocation call. No ad logins. No “which touchpoint won.”</p>
         <ol class="ritual-rail">
           <li>
             <span class="n" aria-hidden="true">01</span>
             <div>
-              <h3>Sales from the till</h3>
-              <p>Shopify Admin for the period you care about — orders, net sales, refunds netted out. Real store revenue, not platform-claimed revenue.</p>
+              <h3>Confirm margin</h3>
+              <p>Sets your break-even floor: Total ROAS ≈ 1 ÷ profit margin — the number finance already uses.</p>
             </div>
           </li>
           <li>
             <span class="n" aria-hidden="true">02</span>
             <div>
-              <h3>Spend is money out</h3>
-              <p>Meta + Google — manual or CSV day one, live pipes as we harden the connectors. Whatever actually left the bank for ads, nothing “influenced.”</p>
+              <h3>Paste spend from Sheets</h3>
+              <p>Shopify Total Sales are already in. Paste Meta + Google + custom Other daily spend from Sheets (CSV upload secondary). SyncWith optional — you pay them. No ad-account OAuth. <a href="#spend-csv">How paste-first spend works →</a></p>
             </div>
           </li>
           <li>
             <span class="n" aria-hidden="true">03</span>
             <div>
-              <h3>MER vs break-even</h3>
-              <p>Divide. Compare to your break-even from contribution margin. One allocation card — rules-based, inputs shown, no mystery model behind it.</p>
+              <h3>Read Total ROAS</h3>
+              <p>Sales ÷ spend for the same window, vs break-even. Optional 4.0× goal for pacing. Above the floor: protect. At or below: cut or shift.</p>
+            </div>
+          </li>
+          <li>
+            <span class="n" aria-hidden="true">04</span>
+            <div>
+              <h3>One allocation call</h3>
+              <p>Rules-based mix shift with inputs shown — cut, protect, or move budget. Done in about ten minutes.</p>
             </div>
           </li>
         </ol>
+      </div>
+    </section>
+
+    <section class="band spend-csv-band" id="spend-csv" aria-labelledby="spend-csv-title">
+      <div class="wrap">
+        <p class="eyebrow">Spend spine</p>
+        <h2 id="spend-csv-title" class="display">Paste from Sheets.<br />One Total ROAS.</h2>
+        <p class="lede-soft">No Meta or Google login on day one. Fill a Mcfly template in Sheets, download CSV, paste on Spend. Optional: SyncWith / Coupler / Supermetrics fill the same columns (you pay those tools). <a href="/assets/mcfly-sheets-spend-guide">Sheets spend guide →</a></p>
+
+        <ol class="spend-flow">
+          <li>
+            <span class="n" aria-hidden="true">01</span>
+            <h3>Template → Sheets</h3>
+            <p>Download Day + platforms (blank). Google Sheets → File → Import → Upload → Replace spreadsheet.</p>
+          </li>
+          <li>
+            <span class="n" aria-hidden="true">02</span>
+            <h3>Fill or automate</h3>
+            <p>Enter daily spend by hand, or map SyncWith / Coupler / Supermetrics to Mcfly columns. File → Download → CSV. <a href="/assets/mcfly-pipe-spend-long-example.csv">Pipe template example</a>.</p>
+          </li>
+          <li>
+            <span class="n" aria-hidden="true">03</span>
+            <h3>Paste → Total ROAS</h3>
+            <p>Paste or upload on Spend. Mcfly totals spend against Total Sales. One Total ROAS — not a connector product.</p>
+          </li>
+        </ol>
+
+        <p class="lede-soft spend-platforms-intro"><strong>Free:</strong> Meta + Google + custom Other. <strong>Pro ($39):</strong> every named platform below.</p>
+        <ul class="platform-tags" aria-label="Supported spend platforms">
+          <li>Meta · Free</li>
+          <li>Google · Free</li>
+          <li>Other (custom name) · Free</li>
+          <li>Microsoft · Pro</li>
+          <li>TikTok · Pro</li>
+          <li>Pinterest · Pro</li>
+          <li>Snapchat · Pro</li>
+          <li>Reddit · Pro</li>
+          <li>X · Pro</li>
+          <li>LinkedIn · Pro</li>
+          <li>Amazon · Pro</li>
+          <li>Apple Search · Pro</li>
+          <li>Impact / CJ · Pro</li>
+          <li>Klaviyo / Mailchimp · Pro</li>
+        </ul>
+
+        <div class="spend-vs reveal">
+          <p><span class="vs-label">Vs connector tax</span>Suites sell OAuth pipes and “Works with” logos before you see a number. Mcfly is paste-first: Meta + Google + Other day one, no ad OAuth, no connector tax. Automation means you may pay SyncWith-class tools to fill our template — we don’t claim fake partnerships.</p>
+          <p>After install, Spend accepts paste or file. Sales stay on Shopify.</p>
+        </div>
+
+        <div class="spend-csv-cta">
+          <a class="btn primary solid" data-mcfly-cta="primary" href="/support">Install free</a>
+          <a class="text-link" href="/support">App Store install steps →</a>
+          <a class="text-link" href="/faq#spend-csv">FAQ: how spend gets in →</a>
+        </div>
       </div>
     </section>
 
@@ -270,15 +408,15 @@
       <div class="wrap">
         <p class="eyebrow">Know your floor</p>
         <h2 id="be-title" class="display">Break-even isn’t a vibe.<br />It’s 1 ÷ margin.</h2>
-        <p class="lede-soft">Contribution margin sets the ceiling on how much MER you can spend down before ads stop making cash and start burning it.</p>
+        <p class="lede-soft">Contribution margin sets how far Total ROAS can fall before ads stop making cash and start burning it.</p>
         <div class="be-grid">
           <div class="be-table-wrap reveal">
             <table class="be-table">
-              <caption class="sr-only">Contribution margin against break-even MER</caption>
+              <caption class="sr-only">Contribution margin against break-even Total ROAS</caption>
               <thead>
                 <tr>
                   <th scope="col">Contribution margin</th>
-                  <th scope="col">Break-even MER</th>
+                  <th scope="col">Break-even Total ROAS</th>
                 </tr>
               </thead>
               <tbody>
@@ -290,22 +428,21 @@
             </table>
           </div>
           <div class="be-example reveal">
-            <p>Say your margin runs 35% — break-even MER ≈ <span class="mono">2.86×</span>. This week’s cash MER comes in at <span class="mono">3.2×</span>: <span class="verdict-good">above break-even, protect the mix.</span></p>
-            <p>Comes in at <span class="mono">2.4×</span> instead: <span class="verdict-bad">you’re buying revenue at a loss</span> before margin even lands — even while the platform dashboard still claims 4×. That gap is the whole product.</p>
+            <p>Margin at 35% → break-even ≈ <span class="mono">2.86×</span>. This week at <span class="mono">3.2×</span>: <span class="verdict-good">above break-even — protect the mix.</span></p>
+            <p>At <span class="mono">2.4×</span>: <span class="verdict-bad">you’re buying revenue at a loss</span> — even if a channel dashboard still looks fine. That gap is the product.</p>
           </div>
         </div>
       </div>
     </section>
 
     <div class="prose">
-      <h2>Same pipes. Different religion.</h2>
-      <p>Browsers killed the identity graph; pixel suites still sell it. Connector plumbing — Meta and Google spend meeting Shopify sales in one place — is commodity. Mcfly keeps that plumbing and stops at the till: sales ÷ spend, break-even, one budget call. No pixel, no multi-touch model, no “true ROAS.”</p>
-      <p>Curious why the identity graph broke in the first place? <a href="/why-pixels-fail.html">Why pixels fail after privacy →</a></p>
+      <h2>Same sales. Clearer decision math.</h2>
+      <p>Shopify Total Sales + paste-first spend → Total ROAS, break-even, allocation, goals, Email Overview. Full tab map: <a href="/app">What’s in the desk →</a>. Try it: <a href="/mer-calculator">ROAS calculator →</a> · <a href="/break-even-roas-calculator">Break-even ROAS →</a> · <a href="/monday-close">Monday Close →</a> · <a href="/platform-variance">Platform variance →</a>. Deep dive: <a href="/why-pixels-fail">Why pixels fail →</a> · <a href="/cash-mer">Glossary →</a> · <a href="#spend-csv">Paste-first spend →</a></p>
 
       <h2>What we refuse</h2>
       <ul class="refuse-list">
-        <li>Path attribution, MTA, view-through “true ROAS”</li>
-        <li>Pixel causality cosplay</li>
+        <li>Path attribution / MTA / view-through “true ROAS”</li>
+        <li>Tracking pixels as a Mcfly product</li>
         <li>A SyncWith-style connector zoo as the product</li>
         <li>Feature parity with Triple Whale, Northbeam, or Polar</li>
         <li>Custom MMM consulting as the core offer</li>
@@ -316,8 +453,8 @@
     <section class="band dark-band" aria-labelledby="compare-title">
       <div class="wrap">
         <p class="eyebrow on-dark">What’s on the screen</p>
-        <h2 id="compare-title" class="display">They show credit.<br />We show cash.</h2>
-        <p class="contrast-lede on-dark">Same underlying pipes — Shopify, Meta, Google. What lands on the screen Monday morning is a different religion entirely.</p>
+        <h2 id="compare-title" class="display">Path suites show credit.<br />We show money vs real results.</h2>
+        <p class="contrast-lede on-dark">Know exactly where your money is vs real Shopify sales — Total ROAS vs break-even. Paste the spend you export.</p>
         <div class="table-scroll">
           <table class="compare on-dark">
             <caption class="sr-only">What each product puts on screen: Mcfly vs Triple Whale vs Northbeam vs Polar</caption>
@@ -333,20 +470,20 @@
             <tbody>
               <tr>
                 <th scope="row">What you see</th>
-                <td>Cash MER + break-even + one allocation card</td>
+                <td>Total ROAS + break-even + one allocation card</td>
                 <td>Dashboard tiles claiming attributed revenue</td>
                 <td>Path certainty per touchpoint</td>
                 <td>Warehouse tables, BI depth</td>
               </tr>
               <tr>
                 <th scope="row">Where it comes from</th>
-                <td>Shopify sales ÷ ad spend, same period</td>
+                <td>Total Sales ÷ ad spend</td>
                 <td>Pixel + MTA model output</td>
                 <td>Multi-touch path model</td>
                 <td>Pipelines, your own queries</td>
               </tr>
               <tr>
-                <th scope="row">The Monday question</th>
+                <th scope="row">The decision question</th>
                 <td>Clear break-even? Shift mix.</td>
                 <td>Who gets credit / AI next?</td>
                 <td>Which touches drove it?</td>
@@ -355,27 +492,30 @@
             </tbody>
           </table>
         </div>
-        <p class="contrast-note">We will not out-feature the suites. We will out-clarify cash MER.</p>
+        <p class="contrast-note">We won’t out-feature the suites. We’ll out-clarify Total ROAS.</p>
       </div>
     </section>
 
     <section class="band close close-band" aria-labelledby="product-close-title">
       <div class="wrap narrow">
         <p class="eyebrow">Get in</p>
-        <h2 id="product-close-title" class="display">Get excited.<br />Then get accurate.</h2>
-        <p class="lede-soft">Shopify design partners run the desk free while we harden it. Everyone else can feel the exact same formula in the free calculator today.</p>
+        <h2 id="product-close-title" class="display">Get on the desk.<br />Defend the Monday number.</h2>
+        <p class="lede-soft">Install <strong>Mcfly Analytics</strong> free from the App Store (steps on <a href="/support">Support</a>). Free = Meta + Google + custom Other. Pro $39 when Billing is announced. Same formula in the free calculator today.</p>
         <div class="cta-row">
-          <a class="btn primary solid" href="/#waitlist">Get early access</a>
-          <a class="text-link" href="/pricing.html">See pricing →</a>
-          <a class="text-link" href="/download.html">Try the free calculator →</a>
+          <a class="btn primary solid" data-mcfly-cta="primary" href="/support">Install free</a>
+          <a class="btn ghost" href="/support">App Store install steps</a>
+          <a class="btn ghost" href="/app">Desk tabs</a>
+          <a class="text-link" href="/pricing">See pricing →</a>
+          <a class="text-link" href="/mer-calculator">Try the ROAS calculator →</a>
         </div>
-        <p class="close-fine">Design partners free now → ~$79/store/mo flat after launch, announced before anything bills. Not forever-free. Not a GMV tax.</p>
+        <p class="close-fine">Install free · Free = Meta + Google + Other · Pro $39 when Billing · Custom inquire secondary. Not forever-free.</p>
       </div>
     </section>
   </main>
 
   <div data-footer></div>
-  <script src="/assets/chrome.js?v=20260722q"></script>
-  <script src="/assets/app.js?v=20260722q"></script>
+  <script src="/assets/cta-config.js?v=20260731desk"></script>
+  <script src="/assets/chrome.js?v=20260731desk"></script>
+  <script src="/assets/app.js?v=20260731desk"></script>
 </body>
 </html>

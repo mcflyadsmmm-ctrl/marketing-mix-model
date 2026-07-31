@@ -1,79 +1,214 @@
-.index {
-  align-items: center;
+/**
+ * Bare Fly origin landing — mcflyads till-room craft.
+ * Not Polaris Admin (this page is outside the embed).
+ */
+
+.page {
+  --ink: #f4f6f8;
+  --mute: #9aa8b8;
+  --navy: #0a1221;
+  --navy-2: #121c2e;
+  --cyan: #5ee7f0;
+  --cyan-deep: #1ab8c4;
+  --line: rgba(244, 246, 248, 0.12);
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
+  align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 100%;
-  text-align: center;
-  padding: 1rem;
+  padding: clamp(1.5rem, 4vw, 3rem) 1.25rem;
+  color: var(--ink);
+  background: var(--navy);
+  font-family: var(--body);
+  text-align: left;
+  overflow: hidden;
 }
 
-.heading,
-.text {
-  padding: 0;
-  margin: 0;
+.atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(94, 231, 240, 0.16), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(26, 184, 196, 0.08), transparent 50%),
+    linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
 }
 
-.kicker {
+.atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(rgba(244, 246, 248, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 246, 248, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 75%);
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 40rem);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+  animation: land-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes land-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    animation: none;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mark {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 6px;
+}
+
+.wordmark {
   margin: 0;
-  font-size: 0.85rem;
+  font-family: var(--display);
+  font-size: clamp(1.35rem, 3.5vw, 1.75rem);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.65;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.wordmarkAccent {
+  color: var(--cyan);
 }
 
 .heading {
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
-  letter-spacing: -0.03em;
-  line-height: 1.15;
-}
-
-.text {
-  font-size: 1.1rem;
-  padding-bottom: 0.5rem;
-  opacity: 0.85;
-  max-width: 40rem;
-  margin-inline: auto;
-}
-
-.content {
-  display: grid;
-  gap: 1.25rem;
-  justify-items: center;
-}
-
-.button {
-  display: inline-block;
-  padding: 0.55rem 0.9rem;
-  margin: 0.25rem;
-  border: 1px solid currentColor;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.list {
-  list-style: none;
+  margin: 0;
   padding: 0;
-  margin: 0.5rem 0 0;
+  font-family: var(--display);
+  font-size: clamp(1.85rem, 5vw, 2.65rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+}
+
+.lede {
+  margin: 0;
+  padding: 0;
+  max-width: 36rem;
+  font-size: clamp(1.02rem, 2.2vw, 1.15rem);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--mute);
+}
+
+.ctas {
   display: flex;
-  gap: 1.5rem;
   flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: 6px;
+  font-family: var(--body);
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    filter 160ms ease;
 }
 
-.list > li {
-  max-width: 16rem;
-  text-align: left;
+.ctaPrimary {
+  background: var(--cyan);
+  color: var(--navy);
+  border: 1px solid var(--cyan);
 }
 
-@media only screen and (max-width: 50rem) {
-  .list {
-    display: block;
-  }
+.ctaPrimary:hover {
+  filter: brightness(1.06);
+}
 
-  .list > li {
-    padding-bottom: 1rem;
-    max-width: none;
-  }
+.ctaPrimary:focus-visible,
+.ctaSecondary:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+.ctaSecondary {
+  background: rgba(244, 246, 248, 0.08);
+  color: var(--ink);
+  border: 1px solid rgba(94, 231, 240, 0.45);
+}
+
+.ctaSecondary:hover {
+  background: rgba(94, 231, 240, 0.14);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.install {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  max-width: 34rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--mute);
+}
+
+.foot {
+  margin: 0.15rem 0 0;
+  padding-top: 0.15rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--mute);
+}
+
+.foot p {
+  margin: 0;
+}
+
+.foot a {
+  color: var(--cyan);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(94, 231, 240, 0.35);
+}
+
+.foot a:hover {
+  border-bottom-color: var(--cyan);
 }

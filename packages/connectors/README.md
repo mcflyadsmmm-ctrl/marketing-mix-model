@@ -1,37 +1,40 @@
-# @mcfly/connectors — Spend pipes (Phase 2 stubs)
+# @mcfly/connectors — Meta & Google daily spend clients (backend)
 
-Daily ad spend ingestion for **Meta** and **Google**. v1 uses manual/CSV spend; this package stubs live pipes for the Shopify app worker.
+Internal package for **amounts-only** Meta Insights / Google Ads cost pulls used by overnight/mock jobs.
 
-## Human gates (cannot automate in agent sandbox)
+**Merchant product:** Free desk spend SoT is **CSV on `/app/spend`**. There is **no** Connections OAuth UI — [`docs/RETIRED_SURFACES.md`](../../docs/RETIRED_SURFACES.md).
 
-| Platform | What a human must do |
-| --- | --- |
-| **Meta** | Create [Meta Developer](https://developers.facebook.com/) app, Business Manager, Marketing API access, OAuth for ad accounts, **App Review** for `ads_read` (calendar wall-clock, not code) |
-| **Google** | GCP project, enable Google Ads API, apply for **developer token** (Basic/Standard), OAuth client + refresh token for merchant MCC/customer |
-| **Shopify app** | Store install + encrypted token storage in app DB (sibling `/app` scaffold) |
+Do **not** claim this package “powers Connections” for merchants.
 
-Until credentials exist, clients default to **`useMock: true`** — deterministic daily spend for dev/tests.
+## Modes
 
-## Usage
+| Mode | When | Behavior |
+| --- | --- | --- |
+| **MOCK** | `useMock: true` (default) | Deterministic daily fixtures for local/dev/tests / overnight without creds |
+| **REAL** | `useMock: false` + env credentials | Live Meta Insights / Google Ads GAQL — **ops/internal only**, not a merchant OAuth product |
+| **OUT OF PRODUCT** | Merchant-facing ads OAuth | Retired — CSV + optional merchant-paid SyncWith-class pipes |
 
-```ts
-import { syncShopSpend } from "@mcfly/connectors";
+## Env (ops only — see `app/.env.example`)
 
-const result = await syncShopSpend(
-  shopId,
-  "2026-07-01",
-  "2026-07-07",
-  spendRepository,
-  { meta: { useMock: true }, google: { useMock: true } },
-);
+```bash
+# Overnight live (requires creds) — not a merchant Connect button
+MCFLY_LIVE_META=1
+MCFLY_LIVE_GOOGLE=1
+
+META_ACCESS_TOKEN=
+META_AD_ACCOUNT_ID=
+
+GOOGLE_ADS_DEVELOPER_TOKEN=
+GOOGLE_ADS_CUSTOMER_ID=
+GOOGLE_ADS_REFRESH_TOKEN=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 ```
 
-Implement `SpendRepository.upsertSpendDays` in the app Postgres layer.
+`MCFLY_SPEND_OAUTH*` flags are **removed** from the app (no Connections scaffold).
 
-## Not in scope
+## Religion
 
-- Path attribution, pixels, MTA
-- SyncWith-style connector catalog
-- TikTok / Klaviyo (revenue-pulled later)
-
-See [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md).
+- Amounts only — no pixels, MTA, path credit, or “true ROAS”
+- Shopify app spend path for merchants = CSV
+- Never SyncWith-scale connector zoo inside Mcfly

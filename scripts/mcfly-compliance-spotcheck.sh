@@ -25,9 +25,10 @@ TOML="app/shopify.app.toml"
 if [[ -f "$TOML" ]]; then
   grep -q 'customers/data_request' "$TOML" && grep -q 'customers/redact' "$TOML" && grep -q 'shop/redact' "$TOML" \
     && check "toml compliance_topics present" 1 || check "toml compliance_topics present" 0
-  grep -Eq 'scopes = "read_orders(,read_customers)?"' "$TOML" \
-    && check "scopes read_orders (+ optional read_customers)" 1 \
-    || check "scopes read_orders (+ optional read_customers)" 0
+  # Allow read_orders plus optional read_customers / read_all_orders (any order/subset).
+  grep -Eq 'scopes = "read_orders(,read_(customers|all_orders))*"' "$TOML" \
+    && check "scopes read_orders (+ optional read_customers/read_all_orders)" 1 \
+    || check "scopes read_orders (+ optional read_customers/read_all_orders)" 0
   if grep -q 'application_url = "https://mcflyads.com"' "$TOML"; then
     check "App URL is not marketing site" 0
   else

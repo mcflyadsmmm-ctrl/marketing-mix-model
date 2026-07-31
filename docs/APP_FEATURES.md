@@ -1,37 +1,40 @@
 # Mcfly Analytics — App feature inventory
 
-Cash MER + break-even MER + rules-based allocation from **spend vs sales**.  
-**Not in product:** pixels, multi-touch attribution (MTA), path credit, or platform ROAS theater.
+Total ROAS + Break-even Total ROAS + rules-based allocation from **spend vs sales**.  
+**Not in product:** pixels, multi-touch attribution (MTA), path credit, platform ROAS theater, **Monday Close lock UI**, **Meta/Google spend OAuth**.
 
-Status legend: **Shipped** · **Planned** · **Later**
+**Retired SoT:** [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)
 
----
-
-## Truth MVP (v1) — shipped / in progress
-
-| Feature | Status | Notes |
-| --- | --- | --- |
-| **Dashboard** | **Shipped** | Period presets (MTD / QTD / YTD); Shopify sales vs manual ad spend; MER; break-even MER; channel mix; anti-attribution aside |
-| **Allocation (card)** | **Shipped** | One recommendation card on Dashboard via `@mcfly/mer-core` `suggestAllocation`; auditable inputs (sales, spend, MER, break-even, test window) |
-| **Allocation (detail)** | **Shipped** | `/app/allocation` — actions, channel efficiency table, cash-view assumptions |
-| **Spend** | **Shipped** | Manual Meta / Google / Other spend entry + recent list |
-| **Settings** | **Shipped** | Contribution margin % → break-even MER; target MER |
-| **Connections** | **Shipped (stubs)** | Meta / Google connector UI stubs; OAuth deferred to Phase 2 |
-| **Shopify OAuth / embedded** | **Shipped** | React Router + Shopify app bridge; session storage via Prisma |
-| **Seed sample data** | **Shipped** | `npm run seed` — warehouse snapshots or inline fallback for `demo-store.myshopify.com` (needs `DATABASE_URL`) |
+Status legend: **Shipped** · **Planned** · **Later** · **Retired**
 
 ---
 
-## v2 — live spend + polish
+## Truth MVP (v1) — shipped
 
 | Feature | Status | Notes |
 | --- | --- | --- |
-| **Meta Marketing API spend sync** | **Planned** | Daily cash spend pull after App Review |
-| **Google Ads API spend sync** | **Planned** | Same; Connections page enables Connect |
-| **Freshness / recon hints** | **Planned** | Last sync age, spend gaps vs sales period |
-| **Custom date ranges** | **Planned** | Beyond MTD / QTD / YTD when cheap |
-| **CSV spend import** | **Planned** | Bulk “Other / Manual” for agencies |
-| **Manual sales contribution per channel** | **Planned** | Optional operator input into allocation — still not MTA |
+| **Dashboard (Overview)** | **Shipped** | Period presets; Shopify sales vs CSV/manual spend; Total ROAS; break-even; channel mix; Share Overview (mailto) |
+| **Allocation (card)** | **Shipped** | One recommendation card via `@mcfly/mer-core` `suggestAllocation` |
+| **Allocation (detail)** | **Shipped** | `/app/allocation` — mix, history, cash-view assumptions |
+| **Spend** | **Shipped** | Multi-platform CSV (combine + wide template), Bill → daily, manual entry, coverage strip, export guides; optional pipe templates |
+| **Settings** | **Shipped** | Margin % → break-even; Total ROAS target |
+| **Connections** | **Retired** | Redirects to `/app/spend` — no OAuth UI |
+| **Monday Close** | **Retired** | Redirects to `/app` — use Share Overview on Home |
+| **Shopify OAuth / embedded** | **Shipped** | Install/session only (not ads OAuth) |
+| **Seed sample data** | **Shipped** | `npm run seed` / SAMPLE desk |
+
+---
+
+## v2 — polish (no live ads OAuth)
+
+| Feature | Status | Notes |
+| --- | --- | --- |
+| **Meta / Google spend OAuth sync** | **Retired** | Out of product; CSV + optional merchant-paid pipes only — see `RETIRED_SURFACES.md` |
+| **Freshness / recon hints** | **Shipped** | Coverage strip + optional Ads Manager ±5% declared recon |
+| **Custom date ranges** | **Planned** | Beyond presets when cheap |
+| **CSV spend import** | **Shipped** | Platform export guides + combine; wide/long formats |
+| **Pipe automation templates** | **Shipped** | SyncWith-class templates; merchant pays pipe vendor |
+| **Manual sales contribution per channel** | **Planned** | Optional operator input — still not MTA |
 
 ---
 
@@ -40,12 +43,12 @@ Status legend: **Shipped** · **Planned** · **Later**
 | Feature | Status | Notes |
 | --- | --- | --- |
 | **Billing** | **Planned** | Shopify Billing / trial; App Store listing |
-| **Multi-store** | **Planned** | Portfolio view across shops — revenue-pulled, not default v1 |
-| **SSO** | **Later** | Enterprise IdP; after multi-store demand |
-| **Sheets companion** | **Planned** | Thin client → same MER brain / API; after app brain is stable |
-| **PWA / downloadable** | **Later** | Installable / offline-friendly shell; not blocking design partners |
-| **Alerts** | **Later** | MER below break-even notifications — revenue-pulled |
-| **TikTok / other pipes** | **Later** | Only if pulled by paying operators |
+| **Multi-store** | **Planned** | Portfolio view — revenue-pulled |
+| **SSO** | **Later** | After multi-store demand |
+| **Sheets companion** | **Planned** | Thin client → same Total ROAS brain |
+| **Alerts** | **Shipped (in-app)** | Below break-even banner when margin known + spend > 0 |
+| **Spend recon** | **Shipped** | Optional declared Ads Manager total vs desk CSV ±5% |
+| **Sales basis** | **Shipped** | Total Sales action default; Net toggle; gross Ads Manager–comparable secondary |
 
 ---
 
@@ -53,7 +56,9 @@ Status legend: **Shipped** · **Planned** · **Later**
 
 - Pixel / view-through / MTA / “true ROAS”
 - Creative cockpits, Media Lab, Asana, full Klaviyo parity
-- SyncWith-scale connector catalog in v1/v2
+- SyncWith-scale connector catalog **inside** Mcfly
+- Meta/Google (or other) **spend OAuth** owned by Mcfly
+- Monday Close lock ritual UI
 - Consulting checkout / diagnostic product pricing on the SaaS surface
 
 ---
@@ -62,15 +67,22 @@ Status legend: **Shipped** · **Planned** · **Later**
 
 | Route | Feature |
 | --- | --- |
-| `/app` | Dashboard + allocation card |
-| `/app/allocation` | Allocation detail |
-| `/app/spend` | Manual spend |
-| `/app/settings` | Margin + target MER |
-| `/app/connections` | Connector stubs |
+| `/app` | Overview + Share Overview |
+| `/app/close` | **Redirect → Home** (retired) |
+| `/app/allocation` | Spend Allocation |
+| `/app/spend` | CSV / manual spend + pipe templates |
+| `/app/spend/template` | CSV / pipe template downloads |
+| `/app/settings` | Margin + target Total ROAS |
+| `/app/connections` | **Redirect → Spend** (retired) |
+| `/app/goals` | Goals / pace |
+| `/app/ltv` | LTV / Acquisition (Pro-gated live) |
+| `/app/advanced` | Advanced metrics |
 
 ---
 
 ## Related docs
 
-- [MASTER_PLAN.md](./MASTER_PLAN.md) — product directive and phases
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — one-brain packages and clients
+- [MASTER_PLAN.md](./MASTER_PLAN.md) — product directive
+- [RETIRED_SURFACES.md](./RETIRED_SURFACES.md) — Close + ads OAuth out
+- [DESK_REFINEMENT_PRD.md](./DESK_REFINEMENT_PRD.md) — CSV-first Free desk
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — one-brain packages

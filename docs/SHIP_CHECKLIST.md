@@ -25,7 +25,7 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [x] Manual spend + settings
 - [x] CSV daily spend upload (`/app/spend`) — multi-platform wide template (Day, Meta, Google, Microsoft, TikTok, Affiliate, Email, **Other**) + long format; blank + filled downloads; SyncWith/Supermetrics/Coupler as **external** tip only. Prisma `SpendChannel` enum live. Evidence 2026-07-24: `bash scripts/agent-ship-gate.sh` → exit 0; `fly deploy -a mcfly-analytics` → health `{"ok":true,"db":"up"}`; code `app/app/lib/spend-csv.ts` + `app.spend.tsx` + migration `20260723043000_spend_channels_named`
 - [x] Named spend channels in DB + dashboard mix (hide $0 channels) — evidence 2026-07-23: migration `20260723043000_spend_channels_named` applied on Fly Postgres boot ("The following migration(s) have been applied"); `SpendChannel` enum = meta/google/microsoft/tiktok/affiliate/email/other in schema + `@mcfly/mer-engine`; dashboard `channelMix` filters `amount > 0`; typecheck clean after `prisma generate`
-- [x] Connections stubs
+- [x] Connections route retired (redirect → Spend; CSV SoT) — [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)
 - [x] Sample warehouse + seed script
 - [x] GDPR compliance webhook + uninstall data cleanup
 - [x] App Store 2.3.1 — no shop-domain install form
@@ -48,9 +48,9 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 - [x] Overnight worker + `SyncRun` / `MerSnapshot` tables
 - [x] GitHub Actions nightly orchestrator (`.github/workflows/overnight.yml`)
 - [x] Enterprise Sheets orchestrator (hourly triggers, recon, alerts)
-- [ ] Live Meta spend sync (mock + recon loop shipped; live OAuth human-gated)
-- [ ] Live Google spend sync OR Ads Script path
-- [ ] Freshness badges + failed-sync alerts
+- [x] ~~Live Meta spend sync~~ — **retired** (CSV + merchant-paid pipes only; no Mcfly ads OAuth UI)
+- [x] ~~Live Google spend sync~~ — **retired** (same)
+- [ ] Freshness badges + failed-sync alerts (CSV coverage / recon already partial)
 - [x] Postgres in production (not SQLite)
 - [ ] Sentry / error monitoring
 - [x] Daily job worker for spend sync (`npm run overnight`)
@@ -80,7 +80,7 @@ Goal: charge serious money without becoming Triple Whale. Cash MER + allocation 
 | GitHub Pages enable | API token lacks admin |
 | Cloudflare DNS → Pages | Domain ownership |
 | Shopify Partner login | App credentials |
-| Meta / Google developer apps | OAuth + review |
+| Meta / Google developer apps | **N/A** — ads spend OAuth retired |
 | Design-partner store access | Real data |
 
 ## Command cheat sheet

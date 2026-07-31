@@ -3,6 +3,13 @@ export type SpendChannel =
   | "google"
   | "microsoft"
   | "tiktok"
+  | "pinterest"
+  | "snapchat"
+  | "reddit"
+  | "x"
+  | "linkedin"
+  | "amazon"
+  | "apple_search"
   | "affiliate"
   | "email"
   | "other";
@@ -12,6 +19,13 @@ export const SPEND_CHANNELS: SpendChannel[] = [
   "google",
   "microsoft",
   "tiktok",
+  "pinterest",
+  "snapchat",
+  "reddit",
+  "x",
+  "linkedin",
+  "amazon",
+  "apple_search",
   "affiliate",
   "email",
   "other",
@@ -22,6 +36,13 @@ export const SPEND_CHANNEL_LABELS: Record<SpendChannel, string> = {
   google: "Google Ads",
   microsoft: "Microsoft Ads",
   tiktok: "TikTok Ads",
+  pinterest: "Pinterest Ads",
+  snapchat: "Snapchat Ads",
+  reddit: "Reddit Ads",
+  x: "X Ads",
+  linkedin: "LinkedIn Ads",
+  amazon: "Amazon Ads",
+  apple_search: "Apple Search Ads",
   affiliate: "Affiliate",
   email: "Email",
   other: "Other",

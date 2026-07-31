@@ -33,29 +33,66 @@ model Session {
 }
 
 model Shop {
-  id              String           @id @default(cuid())
-  domain          String           @unique
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  settings        Settings?
-  spendEntries    SpendEntry[]
-  apiTokens       ApiToken[]
-  syncRuns        SyncRun[]
-  merSnapshots    MerSnapshot[]
-  sampleSalesDays SampleSalesDay[]
-  salesGoals      SalesGoal[]
+  id                 String              @id @default(cuid())
+  domain             String              @unique
+  /// IANA tz (e.g. "America/Chicago") for local-day boundaries on sales facts.
+  ianaTimezone       String?
+  /// ISO 4217 currency code (e.g. "USD") for sales fact amounts.
+  currencyCode       String?             @db.Char(3)
+  /// Cached Shopify Billing Pro — synced from currentAppInstallation.activeSubscriptions.
+  proBillingActive   Boolean             @default(false)
+  /// gid://shopify/AppSubscription/... when Pro is active (or last known).
+  proSubscriptionGid String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  settings           Settings?
+  spendEntries       SpendEntry[]
+  apiTokens          ApiToken[]
+  syncRuns           SyncRun[]
+  merSnapshots       MerSnapshot[]
+  cashCloses         CashClose[]
+  sampleSalesDays    SampleSalesDay[]
+  salesGoals         SalesGoal[]
+  salesDayFacts      SalesDayFact[]
+  orderFacts         OrderFact[]
+  cohortFacts        CohortFact[]
+  orderBackfillState OrderBackfillState?
+  jobs               Job[]
 }
 
 model Settings {
-  id            String   @id @default(cuid())
-  shopId        String   @unique
-  shop          Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  marginPct     Float    @default(0.35)
-  targetMer     Float    @default(3.0)
+  id                          String    @id @default(cuid())
+  shopId                      String    @unique
+  shop                        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  marginPct                   Float     @default(0.35)
+  /// Contribution-margin stack decimals (0–1). Used when marginOverride is false.
+  cogsPct                     Float?
+  paymentFeesPct              Float?
+  shippingPct                 Float?
+  /// When true, merchant locks marginPct manually; when false, marginPct derived from stack when complete.
+  marginOverride              Boolean   @default(false)
+  targetMer                   Float     @default(3.0)
+  /// Action Total ROAS numerator: "total" = Shopify Total Sales (default); "net" = Net Sales view.
+  salesBasis                  String    @default("total")
+  /// Set when the merchant confirms margin via Settings save. Null = preview defaults only.
+  marginConfirmedAt           DateTime?
   /// When true, Cash MER uses SampleSalesDay + sample spend (clearly labeled), not live Shopify.
-  useSampleDesk Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  useSampleDesk               Boolean   @default(false)
+  /// When false, Sample | Real toggle is hidden and the desk is always real store.
+  samplePreviewAllowed        Boolean   @default(true)
+  /// When false, Goals tab shows YoY sales/spend only (no sales goal plan).
+  goalsEnabled                Boolean   @default(true)
+  /// Optional Ads Manager total for spend recon (±5% vs desk CSV/manual sum).
+  declaredAdsSpend            Float?
+  declaredAdsSpendPeriodStart DateTime?
+  declaredAdsSpendPeriodEnd   DateTime?
+  declaredAdsSpendUpdatedAt   DateTime?
+  /// Optional Ads Manager / platform-claimed ROAS (educational vs banked till).
+  claimedPlatformRoas         Float?
+  claimedPlatformRoasLabel    String?
+  claimedPlatformRoasUpdatedAt DateTime?
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
 }
 
 enum SpendChannel {
@@ -63,6 +100,13 @@ enum SpendChannel {
   google
   microsoft
   tiktok
+  pinterest
+  snapchat
+  reddit
+  x
+  linkedin
+  amazon
+  apple_search
   affiliate
   email
   other
@@ -82,8 +126,50 @@ model SpendEntry {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  /// One entry per channel per period-start — writers upsert on this key
+  /// (latest write wins on amount/periodEnd/note/source; never sum duplicates).
+  @@unique([shopId, channel, periodStart])
   @@index([shopId, periodStart, periodEnd])
   @@index([shopId, source])
+}
+
+/// Daily Shopify sales fact (real store, not sample) — one row per shop/local-day.
+/// Populated by the sync/backfill lane; the desk reads from this table once wired.
+model SalesDayFact {
+  id                       String    @id @default(cuid())
+  shopId                   String
+  shop                     Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  day                      DateTime  @db.Date
+  /// Shopify Total Sales for the day (`currentTotalPriceSet` sum) — default Total ROAS numerator.
+  sales                    Float
+  /// Net Sales (`currentSubtotalPriceSet`) — product subtotal after returns, excl. shipping/tax.
+  /// Null on legacy rows until re-reconcile; Net toggle honesty when null.
+  netSales                 Float?
+  /// Gross order totals (`totalPriceSet`) — Ads Manager–comparable. Null on legacy
+  /// rows written before gross was persisted; re-reconcile fills it.
+  grossSales               Float?
+  orderCount               Int       @default(0)
+  newCustomers             Int       @default(0)
+  returningCustomers       Int       @default(0)
+  /// Net sales from new-customer orders (Level-1 opaque heuristic). Guest net excluded.
+  newCustomerNetSales      Float     @default(0)
+  /// Net sales from returning-customer orders. Guest net stays in `sales` only.
+  returningCustomerNetSales Float    @default(0)
+  guestOrders              Int       @default(0)
+  /// False when Shopify customer-linkage data (new/returning/guest) was unavailable
+  /// for this day — sales/orderCount still trustworthy, customer split is not.
+  customerMetricsAvailable Boolean   @default(true)
+  /// ISO 4217 currency of `sales` for this row (falls back to Shop.currencyCode).
+  currency                 String?
+  /// When this row was last computed/fetched from Shopify.
+  asOf                     DateTime?
+  /// shopify | sample | backfill
+  source                   String    @default("shopify")
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  @@unique([shopId, day])
+  @@index([shopId, day])
 }
 
 /// Daily sample till sales for the Demo desk (not Shopify API).
@@ -96,6 +182,7 @@ model SampleSalesDay {
   orderCount         Int      @default(0)
   newCustomers       Int      @default(0)
   returningCustomers Int      @default(0)
+  newCustomerNetSales Float   @default(0)
   createdAt          DateTime @default(now())
 
   @@unique([shopId, day])
@@ -104,15 +191,15 @@ model SampleSalesDay {
 
 /// Monthly Shopify sales goal (cash dollars) — Goals tab vs till + cash MER.
 model SalesGoal {
-  id         String   @id @default(cuid())
-  shopId     String
-  shop       Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  year       Int
+  id        String   @id @default(cuid())
+  shopId    String
+  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  year      Int
   /// Calendar month 1–12
-  month      Int
-  salesGoal  Float
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  month     Int
+  salesGoal Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([shopId, year, month])
   @@index([shopId, year])
@@ -149,7 +236,7 @@ model SyncRun {
   @@index([shopId, startedAt])
 }
 
-/// Daily MER snapshots for recon, Sheets history, and kill-criteria monitoring.
+/// Optional daily MER ledger for recon / overnight / freshness — written from the desk.
 model MerSnapshot {
   id           String   @id @default(cuid())
   shopId       String
@@ -168,4 +255,197 @@ model MerSnapshot {
 
   @@unique([shopId, periodStart, periodEnd])
   @@index([shopId, createdAt])
+}
+
+/// Immutable Monday cash close — period snapshot + one recorded decision.
+model CashClose {
+  id              String   @id @default(cuid())
+  shopId          String
+  shop            Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  periodStart     DateTime
+  periodEnd       DateTime
+  periodLabel     String
+  lockedAt        DateTime @default(now())
+  netSales        Float
+  grossSales      Float
+  spend           Float
+  mer             Float?
+  breakEvenMer    Float?
+  marginPct       Float?
+  /// Cost-stack snapshot at close (optional; mirrors Settings stack decimals).
+  cogsPct         Float?
+  paymentFeesPct  Float?
+  shippingPct     Float?
+  coveragePct     Int?
+  /// none | ok | drift
+  reconStatus     String?
+  cashActionReady Boolean  @default(false)
+  /// JSON array of {code, label, blocking}
+  exceptionsJson  String   @db.Text
+  /// hold | reduce | step_test
+  decision        String
+  decisionNote    String?
+  /// Percent cut when reduce / step_test (≤50)
+  cutPct          Float?
+  priorCloseId    String?
+  deltaSales      Float?
+  deltaSpend      Float?
+  deltaMer        Float?
+  createdAt       DateTime @default(now())
+
+  @@unique([shopId, periodStart, periodEnd])
+  @@index([shopId, lockedAt])
+}
+
+/// Per-order till fact (Level 1) — opaque customerKey + amount/date only. No PII.
+model OrderFact {
+  id             String    @id @default(cuid())
+  shopId         String
+  shop           Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  shopifyOrderId String
+  /// Opaque Shopify customer GID, or "guest" when no customer.
+  customerKey    String
+  orderedAt      DateTime
+  shopLocalDate  DateTime  @db.Date
+  amount         Float
+  currency       String?
+  asOf           DateTime?
+  /// shopify_order_v1 | sample
+  source         String    @default("shopify_order_v1")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([shopId, shopifyOrderId])
+  @@index([shopId, orderedAt])
+  @@index([shopId, customerKey, orderedAt])
+}
+
+/// Monthly first-order cohort rollups (till LTV) — revenue/orders at 30/90/365d.
+model CohortFact {
+  id          String    @id @default(cuid())
+  shopId      String
+  shop        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  /// YYYY-MM of first non-guest order
+  cohortMonth String
+  customers   Int
+  revenueD30  Float
+  revenueD90  Float
+  revenueD365 Float
+  ordersD30   Int
+  ordersD90   Int
+  ordersD365  Int
+  asOf        DateTime?
+  /// shopify_order_v1 (live) | sample (demo desk) — never mix on read.
+  source      String    @default("shopify_order_v1")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([shopId, cohortMonth, source])
+  @@index([shopId, source, cohortMonth])
+}
+
+/// Cursor / window state for chunked OrderFact backfill (≤7 shop-local days per kick).
+model OrderBackfillState {
+  shopId         String    @id
+  shop           Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  cursor         String?
+  windowStart    DateTime?
+  windowEnd      DateTime?
+  status         String    @default("idle")
+  lastError      String?
+  /// True when Shopify denied deep history (no read_all_orders / ACCESS_DENIED).
+  historyLimited Boolean   @default(true)
+  updatedAt      DateTime  @updatedAt
+}
+
+/// Idempotency ledger for inbound Shopify webhook deliveries.
+///
+/// Shopify retries the same event (same `X-Shopify-Webhook-Id`) on any non-2xx or
+/// timeout, and can also deliver the same event more than once on success. Handlers
+/// insert here FIRST — a unique-violation means "already seen, ACK and do nothing."
+///
+/// Level 1 only: topic, shop domain, opaque Shopify resource id. Never payload
+/// bodies, customer email/name/address, or line items.
+///
+/// No Shop FK: deliveries can arrive before the Shop row exists (first order during
+/// install) and must survive shop/redact long enough to suppress in-flight retries.
+/// Purged explicitly by domain on app/uninstalled + shop/redact.
+model WebhookDelivery {
+  id          String   @id @default(cuid())
+  /// `X-Shopify-Webhook-Id`, or a synthesized `topic:resource:triggeredAt` key when absent.
+  deliveryKey String   @unique
+  shopDomain  String
+  /// Normalized topic, e.g. ORDERS_CREATE.
+  topic       String
+  /// Opaque Shopify order id for order topics (no customer identifiers).
+  resourceId  String?
+  receivedAt  DateTime @default(now())
+
+  @@index([shopDomain, topic, receivedAt])
+  /// Retention sweep — Shopify stops retrying long before the cutoff.
+  @@index([receivedAt])
+}
+
+enum JobStatus {
+  pending
+  running
+  succeeded
+  failed
+  /// Exhausted maxAttempts — dead-letter, needs operator attention.
+  dead
+}
+
+/// Postgres-backed job queue (no Redis/SQS). Per-shop concurrency 1 is enforced at
+/// claim time so one shop's backlog can never starve or race another's.
+///
+/// `@@unique([shopId, type, dedupeKey])` makes enqueue idempotent by coalescing:
+/// twenty `orders/updated` webhooks for the same shop-local day collapse onto one
+/// row that is re-armed to `pending` rather than twenty rows doing the same recompute.
+/// Because of that, a row is the CURRENT state of a unit of work, not an append-only
+/// attempt log — history lives in the SyncRun ledger.
+model Job {
+  id          String    @id @default(cuid())
+  /// Handler key, e.g. `reconcile_sales_day`.
+  type        String
+  shopId      String
+  shop        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  /// Coalescing key within (shopId, type) — for reconcile_sales_day this is the
+  /// shop-local day "YYYY-MM-DD".
+  dedupeKey   String
+  payload     Json
+  status      JobStatus @default(pending)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  /// Earliest time a worker may claim this job (backoff + debounce).
+  runAfter    DateTime  @default(now())
+  /// Worker id holding the claim. Cleared on re-arm so a re-dirtied job cannot be
+  /// finalized by the worker that was mid-flight when the new webhook landed.
+  lockedBy    String?
+  lockedAt    DateTime?
+  finishedAt  DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([shopId, type, dedupeKey])
+  @@index([status, runAfter])
+  @@index([shopId, status])
+}
+
+/// Level-1 package for customers/data_request — opaque order fields only (no PII).
+/// No Shop FK so the row survives shop/redact for the merchant retrieval window
+/// until explicit domain delete / TTL purge (60 days via createdAt).
+model ComplianceDataExport {
+  id                String   @id @default(cuid())
+  shopDomain        String
+  /// Nullable — shop may be gone later; no FK by design.
+  shopId            String?
+  customerNumericId String
+  orderFactCount    Int
+  /// JSON array of {shopifyOrderId, amount, orderedAt, shopLocalDate?, currency?, customerKey}
+  packageJson       String   @db.Text
+  createdAt         DateTime @default(now())
+
+  @@index([shopDomain])
+  @@index([shopDomain, customerNumericId])
 }

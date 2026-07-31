@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router";
-import { PERIOD_PRESETS, type PeriodPreset } from "../lib/periods";
+import type { PeriodPreset } from "../lib/periods";
 
 type PeriodControlProps = {
   preset: PeriodPreset;
@@ -9,9 +9,25 @@ type PeriodControlProps = {
   onChange?: (value: PeriodPreset) => void;
 };
 
+type DeskPeriodPreset = "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3";
+
+/** Desk UI: MTD / LM / QTD / YTD / L12M; shot mode adds 3 yr for listing captures. */
+const DESK_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
+  { value: "mtd", label: "MTD" },
+  { value: "lm", label: "LM" },
+  { value: "qtd", label: "QTD" },
+  { value: "ytd", label: "YTD" },
+  { value: "l12m", label: "L12M" },
+];
+
+const SHOT_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
+  ...DESK_PERIOD_OPTIONS,
+  { value: "y3", label: "3 yr" },
+];
+
 /**
- * Segmented reporting-period control shared by Cash MER + Allocation.
- * Habit affordance: a11y tabs, URL `period`, shot-mode param preservation.
+ * Segmented period control (Apps Script / demo dd-period craft).
+ * URL `period` + shot-mode param preservation; role=group + aria-pressed.
  */
 export function PeriodControl({
   preset,
@@ -19,6 +35,10 @@ export function PeriodControl({
   onChange,
 }: PeriodControlProps) {
   const [, setSearchParams] = useSearchParams();
+  const periodOptions = shotMode ? SHOT_PERIOD_OPTIONS : DESK_PERIOD_OPTIONS;
+  const activeValue = periodOptions.some((p) => p.value === preset)
+    ? preset
+    : "mtd";
 
   const setPeriod = (value: PeriodPreset) => {
     if (onChange) {
@@ -35,19 +55,27 @@ export function PeriodControl({
   };
 
   return (
-    <div className="mcfly-period" role="tablist" aria-label="Reporting period">
-      {PERIOD_PRESETS.map(({ value, label }) => (
-        <button
-          key={value}
-          type="button"
-          role="tab"
-          aria-selected={preset === value}
-          className={`mcfly-period__btn${preset === value ? " mcfly-period__btn--on" : ""}`}
-          onClick={() => setPeriod(value)}
-        >
-          {label}
-        </button>
-      ))}
+    <div className="mcfly-period">
+      <div
+        className="mcfly-period__group"
+        role="group"
+        aria-label="Reporting period"
+      >
+        {periodOptions.map(({ value, label }) => {
+          const pressed = activeValue === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              className={`mcfly-period__btn${pressed ? " mcfly-period__btn--on" : ""}`}
+              aria-pressed={pressed}
+              onClick={() => setPeriod(value)}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

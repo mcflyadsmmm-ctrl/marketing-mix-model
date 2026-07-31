@@ -1,8 +1,8 @@
 # Premium Shopify-native UX research — Mcfly cash desk
 
 **Researched:** 2026-07-23  
-**Thesis (locked):** TW / Northbeam / Polar sell proprietary science; the real moat is usability, layout, digestible hierarchy, and habit. Mcfly competes on **craft + cash MER honesty** — not feature parity.  
-**Religion:** cash MER = Shopify sales ÷ ad spend; break-even from margin; rules-based allocation. **Refuse** pixels, MTA, path / view-through / “true ROAS,” TW clones.  
+**Thesis (locked):** TW / Northbeam / Polar sell proprietary science; the real moat is usability, layout, digestible hierarchy, and habit. Mcfly competes on **craft + Total ROAS honesty** — not feature parity.  
+**Religion:** Total ROAS = Shopify sales ÷ ad spend; break-even from margin; rules-based allocation. **Refuse** pixels, MTA, path / view-through / “true ROAS,” TW clones. Voice: [`MDS_RESEARCH_ABSORB.md`](./MDS_RESEARCH_ABSORB.md).  
 **Scoreboard craft SoT:** [`APPS_SCRIPT_CRAFT_SPEC.md`](./APPS_SCRIPT_CRAFT_SPEC.md) + `vendor/mer-apps-script/` (script `1Ws8OibDzYP4HQR8q04TP_PU5zytokIcz6y8eRQuRidzWY9VyzUARINfS`).  
 **Companions:** [`COMPETITORS.md`](./COMPETITORS.md) · [`INDUSTRY_LEADERS.md`](./INDUSTRY_LEADERS.md) · [`COMPETITIVE_APP_STORE_GAP_AUDIT.md`](./COMPETITIVE_APP_STORE_GAP_AUDIT.md) · [`CURSOR_DESIGNER_PLAYBOOK.md`](./CURSOR_DESIGNER_PLAYBOOK.md) · skill `.cursor/skills/mcfly-premium-native-ux/`.  
 **Shopify sources:** [App Design Guidelines](https://shopify.dev/docs/apps/design) · [App structure](https://shopify.dev/docs/apps/design/app-structure) · [Layout](https://shopify.dev/docs/apps/design/layout) · [Built for Shopify — Design §4](https://shopify.dev/docs/apps/launch/built-for-shopify/requirements#design) · Polaris App Home patterns (Homepage / Settings / Index / Empty state).
@@ -118,7 +118,7 @@ From BFS §4.1.1 rejection examples — **treat as constraints on the hybrid**:
 | Shell | `AppProvider` + `s-app-nav` + per-route `s-page` | Strength — native bones |
 | Scoreboard | `.mcfly-desk` / Fraunces + Source Sans 3 / `#e8f2fa` paper (`mcfly-desk.css`) | Strength for listing shots + Apps Script parity; **BFS risk** if serif + sky paper dominate Settings/Spend too |
 | Duplicate titles | `s-page heading` **and** `.mcfly-topbar__title` h1 on Cash MER / Allocation / Settings | Feels non-Admin; wastes first viewport |
-| Settings | Custom lock instrument + in-page Save | Ritual clarity good; CSB + Settings template still missing |
+| Settings | Polaris template + App Bridge CSB (`data-save-bar`) | ✅ CSB + discard confirmation 2026-07-29 |
 | Spend | `s-section` + coverage strip + CSV | Closest to native; good model for other pages |
 | Demo | Primary nav item | Ops/listing tool in merchant IA — trust/noise risk |
 | Motion | 160ms fade, reduced-motion respected | Aligned with Apps Script + BFS restraint |
@@ -187,7 +187,7 @@ Concrete, religion-safe, **no attribution features**. Prefer hybrid polish over 
 | Rank | P | AGENT_FIX | File targets | Done when |
 | ---: | --- | --- | --- | --- |
 | 1 | **P0** | **Kill duplicate page titles** — rely on `s-page heading` for Admin title bar; demote or remove `.mcfly-topbar__title` h1 (keep micro-definition + period). | `app._index.tsx`, `app.allocation.tsx`, `app.settings.tsx`, related CSS in `mcfly-desk.css` | One title in chrome; definition line remains |
-| 2 | **P0** | **Settings → Contextual Save Bar** — dirty margin/target triggers App Bridge save bar; discard restores; block nav away while dirty (BFS 4.1.5). | `app.settings.tsx` (+ small App Bridge save-bar wiring) | No lone Save as only pattern; CSB works |
+| 2 | **P0** | **Settings → Contextual Save Bar** — dirty margin/target triggers App Bridge save bar; discard restores; block nav away while dirty (BFS 4.1.5). | `app.settings.tsx` (+ small App Bridge save-bar wiring) | ✅ Done 2026-07-29 — `data-save-bar` + `data-discard-confirmation` on Settings margin form; Goals monthly plan same; see `docs/ops/W1_UX_CSB_20260729.md` |
 | 3 | **P0** | **Nav IA: Demo out of primary ritual** — keep route for listing ops; remove from `s-app-nav` (or gate to sample-enabled / staff). Ritual: Cash MER · Spend · Allocation · Settings. | `app.tsx` (optional deep-link from Cash MER / docs) | Merchant nav = 4 ritual items |
 | 4 | **P1** | **Desk paper scope** — full `.mcfly-desk` sky paper + Fraunces body only on Cash MER (+ Allocation scoreboard). Settings/Spend: Admin-default background + `s-section` cards; Fraunces optional on BE lock value only. | `mcfly-desk.css`, `app.settings.tsx`, `app.spend.tsx`, `app.demo.tsx` | ✅ Done 2026-07-24 — `mcfly-desk--chrome` on Settings/Spend/Demo; sky paper on Cash MER / Allocation only |
 | 5 | **P1** | **Polaris Empty state on zero-spend homepage** — replace/augment `.mcfly-guide-empty` with Empty state composition (heading, body, primary Add spend, secondary Settings). | `app._index.tsx` | ✅ Done 2026-07-24 — `s-section` empty state + primary Add spend + secondary Settings when `zeroSpendEmpty` |
@@ -239,6 +239,67 @@ Do NOT commit unless asked. Return: paths + top 5 AGENT_FIX + 3 founder Cursor s
 
 | Date | Note |
 | --- | --- |
+| 2026-07-26 | Deep craft raid §8: STEAL/NEVER matrix + P0 first-viewport diet (unit-econ in Explore; margin gate = spend gate) |
 | 2026-07-24 | P1 #4 desk chrome scope, P1 #5 zero-spend Polaris empty state (code evidence in routes + `mcfly-desk.css`) |
 | 2026-07-23 | Catch-up: P1 #6 Settings template, P1 #7 PeriodControl, P2 #8 mobile density |
 | 2026-07-23 | Initial deep research cycle; hybrid rule + top 8 AGENT_FIX from repo + shopify.dev BFS Design §4 |
+
+---
+
+## 8. Deep craft raid (2026-07-26)
+
+**Thesis deepened:** TW / Northbeam / Polar sell proprietary science; the real moat is habit + craft + distribution. Commodity plumbing + packaging ≠ secret equations. Mcfly steals craft, deletes theater, owns the cash desk.
+
+### 10 STEAL_CRAFT
+
+| Pattern | Why it wins | Mcfly file target | Priority |
+| --- | --- | --- | --- |
+| Outcome-first hierarchy | “What happened / what do I do?” before analysis | `app._index.tsx` | P0 |
+| Sticky trust context | Period, freshness, target, BE stay visible while scanning | `app._index.tsx` | P0 |
+| One dominant KPI | Cash MER primary; Sales/Spend/EOM explain | `app._index.tsx` | P0 |
+| Decision copy with a verb | Desk, not dashboard: cut / shift / hold / add spend | `app._index.tsx` | P0 |
+| Progressive disclosure | Depth without warehouse-BI first viewport | `app._index.tsx` (Explore) | P0 |
+| One blocked-state action | Confirm margin **or** add spend — one primary CTA | `app._index.tsx` | P0 |
+| Preview-vs-confirmed | Defaults never look locked | `app.settings.tsx` (`marginConfirmedAt`) | P0 |
+| Admin-native save | CSB confirm/discard | Settings + Goals | P1 |
+| Period + persistent context | Deliberate windows, not decoration | `PeriodControl.tsx` | P1 |
+| Purpose-matched density | Scoreboard tight; Settings airy | `mcfly-desk.css` | P1 |
+
+### 10 NEVER_CLONE (why operators feel burned)
+
+| Item | Burn | Mcfly refuse |
+| --- | --- | --- |
+| First-party pixel | Setup before value; models ≠ finance | No pixels; till + spend |
+| MTA model picker | Arguments about paths, not cash | No MTA / view-through |
+| “True ROAS” | Renames theater as truth | Cash MER only |
+| MMM / Causal Lift cockpit | Calibration ceremony | No Compass clone |
+| AI operator home | Another system to babysit | No Moby-as-identity |
+| Connector marketplace | Refresh tax, still no decision | No SyncWith zoo |
+| Warehouse + 400 metrics | Analyst work for a Monday answer | No Snowflake ski resort |
+| GMV / spend tax pricing | Bill rises with success | Flat desk fee |
+| Inverted MER | Breaks cash intuition | Always sales ÷ spend |
+| PII LTV on first listing | Heavy PCD / speculative value | Aggregates only |
+
+### Positioning lines (no bitterness)
+
+- No secret MER equation. Just the cash facts, organized well.
+- Shopify sales ÷ ad spend. Same period.
+- Break-even from your confirmed margin.
+- Allocation follows rules you can inspect.
+- No pixel deciding which path deserves credit.
+- No warehouse, model court, or AI operator to babysit.
+- Premium craft without proprietary-science theater.
+- One Monday desk. One defensible next move.
+
+### Implemented this raid (evidence)
+
+- Unit-econ chips moved inside collapsed **Explore spend mix** (`app._index.tsx`).
+- Scoreboard gated on `!(spendBlocked \|\| marginBlocked)` — margin-only gets one Polaris empty (Settings primary), no duplicate decision CTAs.
+- Apps Script note: secondary unit-econ density now behind Explore (intentional first-viewport diet).
+- **2026-07-26 uninstall-proof:** MER/BE ctx chips hidden when margin/spend blocked (freshness only); empties stacked after topbar/rail; Allocation MER chips + decision hero gated on live `allocation`.
+
+### Next craft P1 (do not expand this tick)
+
+- Soften Settings preview BE visual weight when `marginConfirmedAt` is null.
+- Reduce “Cash MER” identity repetition under Admin title bar (ctx brand / kicker).
+- Goals out of primary nav (deep-link) if Monday ritual stays four items.

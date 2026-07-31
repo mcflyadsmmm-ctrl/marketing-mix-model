@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Total ROAS, period-aligned — MDS Made Easy (draft)</title>
+  <meta name="description" content="Total ROAS = sales ÷ ad spend for the same dates. Interactive lab. Draft course." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="canonical" href="https://mcflyads.com/mds-made-easy/total-roas" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260731mds" />
+  <link rel="stylesheet" href="/assets/mds-course.css?v=1" />
+</head>
+<body class="mds-course">
+  <a class="skip" href="#mds-content">Skip to content</a>
+  <div data-mds-shell id="mds-content">
+    <p class="mds-kicker">Module 01 · Marketing Data Science Made Easy</p>
+    <h1>Total ROAS, period-aligned</h1>
+    <p class="mds-lede">One ratio. Two inputs. Same calendar window. That is the whole trick.</p>
+    <div class="mds-answer">
+      <p><strong>Definition.</strong> Total ROAS = Total Sales ÷ ad spend for a chosen period. It is average portfolio efficiency — not which click “caused” the order.</p>
+    </div>
+
+    <div class="mds-formula">Total ROAS = Sales (period) ÷ Ad spend (same period)</div>
+
+    <h2>Why “period-aligned” is the skill</h2>
+    <p>If sales are MTD and spend is last-30-days, the ratio is fiction. Finance will smell it. So will any AI you paste into. Always write the window on the memo: e.g. <span class="mono">2026-07-01 → 2026-07-31</span>.</p>
+    <ul>
+      <li><strong>Sales</strong> — Shopify Total Sales (or Net, if you choose Net and stick to it).</li>
+      <li><strong>Spend</strong> — sum of paid channels for those exact dates (CSV is fine).</li>
+      <li><strong>Basis</strong> — Total vs Net: pick one; never mix mid-week.</li>
+    </ul>
+
+    <h2>Platform ROAS vs Total ROAS</h2>
+    <p>Platform ROAS credits that platform’s model. Total ROAS asks: for every dollar that left the bank for ads, how many dollars of Shopify sales landed in the same window? Both can be useful. Only one is the till desk.</p>
+
+    <div class="mds-lab" data-mds-roas-lab>
+      <h3>Lab — compute Total ROAS</h3>
+      <label for="sales">Sales ($)</label>
+      <input id="sales" name="sales" type="number" min="0" step="1" value="120000" />
+      <label for="spend">Ad spend ($)</label>
+      <input id="spend" name="spend" type="number" min="0" step="1" value="40000" />
+      <div class="mds-out" data-mds-out></div>
+      <p class="mds-hint" data-mds-hint></p>
+    </div>
+
+    <h2>New vs returning (honest)</h2>
+    <p>You may also track <strong>aMER</strong> ≈ new-customer sales ÷ spend when you have opaque new/returning counts. Still Level-1: no email CRM required. Do not invent path credit to “explain” new customers.</p>
+
+    <div class="mds-cta-row">
+      <a class="text-link" href="/mer-calculator">Open free MER calculator</a>
+      <a class="text-link" href="/cash-mer">Cash MER glossary</a>
+    </div>
+
+    <div data-mds-mark></div>
+    <div class="mds-pager">
+      <a href="/mds-made-easy/">← Hub</a>
+      <a href="/mds-made-easy/break-even">Next: Break-even →</a>
+    </div>
+  </div>
+  <script src="/assets/mds-course.js?v=1" defer></script>
+</body>
+</html>

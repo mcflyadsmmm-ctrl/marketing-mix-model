@@ -11,7 +11,7 @@ This file tells agents **how to deliver**. MASTER_PLAN tells agents **what produ
 
 ## 0. Mission (one sentence)
 
-Deliver a **shippable, always-on Shopify cash desk** (world-class embedded app) and a **world-class marketing site** (mcflyads.com) so operators can install, see **cash MER**, set **break-even**, enter/sync **spend**, and get one **allocation** call — without attribution theater — with **gates that catch agent and human error**.
+Deliver a **shippable, always-on Shopify cash desk** (world-class embedded app) and a **world-class marketing site** (mcflyads.com) so operators feel **advanced Marketing Data Science at their fingertips**: install, see **Total ROAS** (sales ÷ spend), set **break-even**, enter/sync **spend**, and get one **allocation** call — without attribution theater — with **gates that catch agent and human error**.
 
 ### Ambition bar (no shortcuts)
 
@@ -19,10 +19,10 @@ Mcfly must feel **incredible vs any alternative** on craft, clarity, trust, and 
 
 ### Success = companies succeed when
 
-1. Time-to-first trusted MER **&lt; 10 minutes** after install  
+1. Time-to-first trusted **Total ROAS** **&lt; 10 minutes** after install  
 2. Numbers match the **Shopify till** + entered/synced spend  
 3. They open the app **weekly** for the Monday ritual  
-4. They understand: platforms over-claim; Mcfly measures **sales ÷ spend**  
+4. They understand: Mcfly is Marketing Data Science on the till — **sales ÷ spend**, not path theater  
 5. Price path is honest: free design partners → **~$79 flat** (not GMV tax)
 
 ### Explicit NON-goals (refuse every time)
@@ -49,7 +49,7 @@ Pixels, MTA, path credit, view-through, “true ROAS,” Compass/Moby clones, Sy
 
 1. Shopify Partner login / MFA / install approve clicks  
 2. Fly / Neon / host billing cards and prepaid credits  
-3. Meta / Google OAuth app creation & App Review  
+3. Meta / Google OAuth app creation & App Review — **N/A** (ads spend OAuth retired; Shopify install OAuth remains)  
 4. DNS / domain registrar changes  
 5. App Store public submit  
 6. Design-partner NDAs / store collaborator invites  
@@ -68,7 +68,7 @@ Agent response when blocked: state gate, exact URL, baby steps, wait for user si
 - [ ] Privacy, terms, support, pricing live and linked  
 - [ ] Mobile first viewport readable; ≥2 intentional motions; reduced-motion respected  
 - [ ] No public “type your .myshopify.com to install”  
-- [ ] Copy matches religion (cash MER; refuse path theater)  
+- [ ] Copy matches religion (Total ROAS = sales ÷ spend; refuse path / “true ROAS” theater)  
 - [ ] Proof band (even “seeking design partners”) before CTA  
 
 ### D1 — Hosted app (world-class product ops)
@@ -164,7 +164,7 @@ LOOP until D0 pass:
 ```text
 LOOP until D2 “&lt;10 min ritual” pass:
   1. First-run empty states
-  2. Hide unfinished nav (Connections until live)
+  2. Hide unfinished nav; spend SoT is CSV on Spend (Connections UI retired)
   3. Claims-vs-cash education strip (optional)
   4. CSV spend → then Meta pipe
   5. Freshness / recon banners
@@ -186,30 +186,34 @@ ON failure:
 
 ## 5. Backlog priority (agents pull from top)
 
-### P0 — Make it real
+**90-day unified SoT:** [`MAJOR_IMPROVEMENT_PLAN.md`](./MAJOR_IMPROVEMENT_PLAN.md) (Waves 1–4). Prefer that backlog when it conflicts with older row numbers below.
 
+### P0 — Category domination (cash close habit)
+
+0. **Domination bar** — [`MASTER_PLAN.md`](./MASTER_PLAN.md) §1; craft ≥4.7; &lt;10 min TTFV; CSV + pipe templates (no Mcfly ads OAuth)  
 1. Fly org billing complete; machines always-on; health stable &gt;30 min  
 2. DB-aware `/health`  
-3. Design-partner install + ritual smoke on hosted URL  
-4. Onboarding banners; hide dead Connections  
-5. Site: replace mailto waitlist; deploy latest `/site`  
+3. Design-partner install + **desk smoke** + WTP ([`DESIGN_PARTNER_SMOKE.md`](./DESIGN_PARTNER_SMOKE.md))  
+4. Onboarding / TTFV banners; Overview + Share as primary ritual CTA  
+5. Site: App Store Free primary CTA; Partner invite secondary; deploy `/site` when asked  
 
-### P1 — Make it trusted & sticky
+### P1 — Retention & paid
 
-6. CSV spend import  
-7. Dashboard freshness / recon  
+6. CSV spend import (Free path)  
+7. Dashboard freshness / recon / shop-IANA coverage  
 8. Overnight alert sink (email/Slack)  
 9. Fix global API token multi-shop footgun  
-10. Meta spend sync (human App Review)  
+10. ~~Meta + Google spend sync~~ — **retired** ([`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md))  
 11. Sentry  
-12. Shopify Billing (~$79)  
+12. Shopify Billing scaffold → announce ~$39 after partners (`MCFLY_BILLING`)  
 
-### P2 — Make it public
+### P2 — Make it public / density
 
 13. App Store screenshots + listing submit (human)  
 14. Custom date ranges  
-15. Google spend pipe / Script path  
+15. Review density / demo store (post-submit)  
 16. Site proof quotes / partner logos  
+17. Sheets companion only after app brain trusted  
 
 ---
 

@@ -1,0 +1,43 @@
+# LEGACY — Custom distribution only (Billing API blocked).
+# Do not use for App Store Submit or production Fly.
+# Kept for reference / emergency rollback.
+
+client_id = "88c56d21f74912479d2f7581f1877bc7"
+name = "Mcfly Analytics"
+application_url = "https://mcfly-analytics.fly.dev"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = false
+
+[access_scopes]
+scopes = "read_orders,read_customers,read_all_orders"
+
+[webhooks]
+api_version = "2025-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/scopes_update"
+  topics = ["app/scopes_update"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/orders"
+  topics = ["orders/create", "orders/updated", "orders/cancelled"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/compliance"
+  compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
+
+[auth]
+redirect_urls = [
+  "https://mcfly-analytics.fly.dev/auth/callback",
+  "https://mcfly-analytics.fly.dev/auth/shopify/callback",
+  "https://mcfly-analytics.fly.dev/api/auth/callback"
+]
+
+[app_preferences]
+url = "https://mcflyads.com/support"

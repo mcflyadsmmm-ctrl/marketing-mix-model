@@ -1,2 +1,46 @@
-# Only custom 404 — do not rewrite /page ↔ /page.html (CF already handles that).
+# Legacy MMM / consulting-era → live cash Total ROAS (301).
+# www → apex is zone-level (path preserved). Keep splat 404 last.
+# No /page ↔ /page.html rewrites (CF already handles).
+
+# Fable P0 — indexed MMM comparison + old home
+/mmm-vs-triple-whale-vs-northbeam /vs-attribution-suites 301
+/mmm-vs-triple-whale-vs-northbeam/ /vs-attribution-suites 301
+/mmm-vs-triple-whale /vs-attribution-suites 301
+/mmm-vs-northbeam /vs-attribution-suites 301
+/home / 301
+/home/ / 301
+
+# MMM product / tools branding + indexed legacy explainer URLs (GPT diversity 2026-07-28)
+/mmm /cash-mer 301
+/mmm/ /cash-mer 301
+/mmm-tools /vs-attribution-suites 301
+/marketing-mix-model /product 301
+/marketing-mix-model/ /product 301
+/marketing-mix-modeling /cash-mer 301
+/marketing-mix-modeling/ /cash-mer 301
+/what-is-marketing-mix-modeling /cash-mer 301
+/what-is-marketing-mix-modeling/ /cash-mer 301
+/custom-mmm /product 301
+/custom-mmm/ /product 301
+/custom-marketing-mix-model /product 301
+/custom-marketing-mix-model/ /product 301
+
+# Old brand ("MCFLY Advertising")
+/mcfly-advertising / 301
+/advertising / 301
+
+# Suite stubs → single live comparison (no doorway pages)
+# /triple-whale-alternative is a real page (A3) — do not 301 away
+/vs-triple-whale /vs-attribution-suites 301
+/vs-northbeam /vs-attribution-suites 301
+/vs-polar /vs-attribution-suites 301
+/northbeam-alternative /vs-attribution-suites 301
+/polar-alternative /vs-attribution-suites 301
+
+# MER / Total ROAS synonyms → glossary
+# Keep /mer-calculator and /break-even-roas-calculator as real pages (A4)
+/mer /cash-mer 301
+/total-roas /cash-mer 301
+/break-even /cash-mer 301
+
 /* /404.html 404

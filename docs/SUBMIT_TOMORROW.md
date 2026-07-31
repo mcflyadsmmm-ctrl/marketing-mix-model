@@ -1,8 +1,8 @@
 # Submit tomorrow — agent-fixed vs human gates
 
-**Last agent pass:** 2026-07-24 — B1+B2 compliance: bare App URL Free voice, privacy `read_customers`/GDPR honesty, App Bridge CDN head, Demo OFF/shot clarity; trust Pages still lagging live.  
+**Last agent pass:** 2026-07-30 — reject-risk re-audit (Fly **v88**, shot 5 mock on disk, SAMPLE strip, compliance green); pricing title → Mcfly Analytics; Connections SAMPLE strip.  
 **Goal:** public App Store submit for **Free** cash MER desk.  
-**Reject scorecard:** [`REJECT_RISK_AUDIT.md`](./REJECT_RISK_AUDIT.md)
+**Reject scorecard:** [`REJECT_RISK_AUDIT.md`](./REJECT_RISK_AUDIT.md) · money path [`ops/MAKE_MONEY_20260729.md`](./ops/MAKE_MONEY_20260729.md)
 
 ---
 
@@ -10,11 +10,11 @@
 
 | Issue | Fix | Evidence |
 | --- | --- | --- |
-| Privacy lag vs new/returning | Privacy discloses `read_orders` + minimal `read_customers` (opaque id / numberOfOrders); GDPR empty-CRM | `site/privacy.html` (**local**; live Pages still lagging) |
-| Pricing vs Free listing conflict | Pricing leads with **App Store Free now**; ~$79 later via Billing | `site/pricing.html` (**local**; live lagging) |
-| Support invite-only vs Free listing | Meta + body: App Store Free + Partner invite; no shop-domain form | `site/support.html` (**local**; live still invite-only) |
-| Bare App URL invite-only voice | Fly `/` says App Store Free + Partner invite | `app/app/routes/_index/route.tsx` (needs Fly redeploy) |
-| App Bridge head (2.2.3) | CDN `app-bridge.js` + `shopify-api-key` meta | `app/app/root.tsx` (needs Fly redeploy) |
+| Privacy lag vs new/returning | Privacy discloses `read_orders` + minimal `read_customers` (opaque id / numberOfOrders); GDPR empty-CRM | `site/privacy.html` (**Pages Free closed**) |
+| Pricing vs Free listing conflict | Pricing leads with **App Store Free now**; ~$79 later via Billing | `site/pricing.html` (**Pages Free closed**) |
+| Support invite-only vs Free listing | Meta + body: App Store Free + Partner invite; no shop-domain form | `site/support.html` (**Pages Free closed**) |
+| Bare App URL invite-only voice | Fly `/` says App Store Free · never type `.myshopify.com` | `app/app/routes/_index/route.tsx` (**Fly v88 live**) |
+| App Bridge head (2.2.3) | CDN `app-bridge.js` + `shopify-api-key` meta | `app/app/root.tsx` (**Fly v88 live**) |
 | Demo OFF / shot deception | Shot hides banner; numbers stay sample until OFF — called out on Demo | `app.demo.tsx` |
 | AppDistribution + URL lock | `AppDistribution.AppStore`; `automatically_update_urls_on_dev = false` | code + toml |
 | Compliance HMAC | Invalid HMAC header → **401**; empty POST w/o headers → **400** | curl 2026-07-23 |
@@ -35,18 +35,21 @@
 
 | Issue | Recommended fix | Owner lane |
 | --- | --- | --- |
-| Live mcflyads.com trust pages lag local Free + PCD copy | **Publish Cloudflare Pages** (`site/**`) — see `SITE_CRAFT_NEXT.md` | **Human deploy** (P0 before review) |
-| Fly HTML still pre–App Bridge / Free landing (if not redeployed) | `fly deploy -a mcfly-analytics` after this pass | Agent or human ops |
+| Live mcflyads.com trust pages Free + PCD copy | **Closed** — re-curl before Submit | Spot-check only |
+| Fly Free landing + App Bridge | **Closed** — Fly **v88** | Spot-check only |
+| Connections SAMPLE strip | **Closed** this tick — **needs Fly deploy** for reviewer | Parent deploy |
+| Pricing title Mcfly Analytics | **Closed** this tick — **needs Pages deploy** | Parent deploy |
 | Optional: default sample desk OFF after seed | Only if founder asks | App |
 
-Prior open items (support meta Free, skill `read_customers`, listing Other, SCOPES examples, bare-URL Free voice, privacy PCD wording, App Bridge CDN, Demo OFF clarity) are **done in repo**.
+Prior open items (support meta Free, skill `read_customers`, listing Other, SCOPES examples, bare-URL Free voice, privacy PCD wording, App Bridge CDN, Demo OFF clarity, Pages Free, shot 5 on disk) are **done in repo**.
 
 ---
 
 ## YOU must do (cannot be automated)
 
 ### A. Partner — Distribution
-https://dev.shopify.com/dashboard/227535001/apps/400772497409 → **Shopify App Store**
+https://dev.shopify.com/dashboard/227535001/apps/403721814017 (**Public**) → **Shopify App Store**  
+(not Custom `400772497409`)
 
 ### B. Protected Customer Data
 Request access for **orders +** opaque customer **id / numberOfOrders** (no name/email/address).  
@@ -65,7 +68,7 @@ Settings → CSV template → Cash MER (sales/orders/new/returning) → Allocati
 Submit for review. Approval is still **days–weeks**.
 
 ### F. Pages publish (before reviewer opens trust URLs)
-Deploy local `site/support.html` + `pricing.html` + `privacy.html` so live no longer says invite-only / omits `numberOfOrders` disclosure.
+**Closed** — Pages Free lag closed 2026-07-26. Before Submit, spot-check live `/support` `/pricing` `/privacy` still match Free + PCD voice (re-publish only if curl shows drift).
 
 ---
 

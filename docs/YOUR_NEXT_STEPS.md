@@ -4,8 +4,10 @@
 
 **You do now (human only — before public Submit):**
 1. Stop any `shopify app dev` / tunnel  
-2. Partner → **Distribution → Shopify App Store**  
-   https://dev.shopify.com/dashboard/227535001/apps/400772497409  
+2. Partner → **Distribution → Shopify App Store** on **Public** app  
+   https://dev.shopify.com/dashboard/227535001/apps/403721814017  
+   (not Custom `400772497409`)  
+
 3. Complete **PCD** questionnaire (answers in APP_STORE_LISTING §PCD)  
 4. Install / open on **`devmcflyads.myshopify.com`** → Settings → CSV Spend → Dashboard MER/AOV → Allocation  
 5. Capture 5 Admin screenshots (~1600×900); listing Pricing **Free**; paste reviewer notes  

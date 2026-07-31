@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads</title>
+  <meta name="description" content="Fixed-fee marketing data science engagements ($5–8K / $8–15K / $15–25K): weekly decision desks, written metric contracts, spend &amp; sales audits. Not hourly consulting. No pixels or MTA." />
+  <link rel="icon" href="/assets/brand/favicon-custom-analytics.svg" type="image/svg+xml" />
+  <link rel="icon" href="/assets/brand/favicon-custom-analytics-32.png" type="image/png" sizes="32x32" />
+  <link rel="icon" href="/assets/brand/favicon-custom-analytics-192.png" type="image/png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/assets/brand/apple-touch-custom-analytics.png" sizes="180x180" />
+  <meta name="theme-color" content="#082830" />
+  <link rel="canonical" href="https://mcflyads.com/custom-analytics" />
+  <meta name="robots" content="index,follow" />
+  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/custom-analytics" />
+  <meta property="og:title" content="Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads" />
+  <meta property="og:description" content="Fixed-fee Custom Data Solutions $5–25K: weekly decision desks and metric contracts. Spend audits, lead-gen desks, MDS builds. You own the system." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-custom-analytics.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads" />
+  <meta name="twitter:description" content="Fixed-fee Custom Data Solutions $5–25K: weekly decision desks and metric contracts. Not hourly bait." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-custom-analytics.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260731copy" />
+  <style>
+    /* Page-scoped only — does not alter Shopify product pages */
+    body.ca-page {
+      background: var(--paper-2);
+      color: var(--ink);
+    }
+
+    /* Hero — homepage craft language */
+    body.ca-page .ca-hero {
+      position: relative;
+      overflow: hidden;
+      background: var(--ink);
+      color: #eef2f5;
+      min-height: min(92vh, 52rem);
+      display: flex;
+      align-items: center;
+      padding: clamp(5.5rem, 12vw, 7.5rem) 0 clamp(3rem, 6vw, 4.5rem);
+    }
+    body.ca-page .ca-hero .hero-atmosphere,
+    body.ca-page .ca-hero .hero-mesh,
+    body.ca-page .ca-hero .hero-gridline,
+    body.ca-page .ca-hero .hero-grain {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    body.ca-page .ca-hero .hero-atmosphere img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.35;
+    }
+    body.ca-page .ca-hero .hero-mesh {
+      background:
+        radial-gradient(ellipse 70% 55% at 85% 15%, rgba(94, 231, 240, 0.22), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 10% 80%, rgba(26, 163, 122, 0.14), transparent 50%);
+    }
+    body.ca-page .ca-hero .hero-gridline {
+      background-image:
+        linear-gradient(rgba(94, 231, 240, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(94, 231, 240, 0.05) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.55), transparent 85%);
+    }
+    body.ca-page .ca-hero-layout {
+      position: relative;
+      z-index: 1;
+      width: min(var(--max), 100%);
+      margin: 0 auto;
+      padding: 0 clamp(1.15rem, 3.5vw, 2rem);
+      display: grid;
+      gap: clamp(2rem, 5vw, 3rem);
+    }
+    @media (min-width: 960px) {
+      body.ca-page .ca-hero-layout {
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+        align-items: center;
+      }
+    }
+    /* Kill homepage hero entrance opacity:0 — this page is not the home craft timeline */
+    body.ca-page .hero-copy > .brand-hero,
+    body.ca-page .hero-copy > h1 {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+    }
+    body.ca-page .ca-hero .brand-hero {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin: 0 0 1rem;
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: #f4f6f8;
+    }
+    body.ca-page .ca-hero .brand-hero-mark {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+    body.ca-page .ca-hero .brand-hero-sub {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+    body.ca-page .ca-hero .brand-hero-practice {
+      display: block;
+      margin-top: 0.35rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(94, 231, 240, 0.85);
+    }
+    body.ca-page .ca-hero h1 {
+      margin: 0 0 0.85rem;
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(2.1rem, 5.2vw, 3.35rem);
+      letter-spacing: -0.045em;
+      line-height: 1.02;
+      max-width: 14ch;
+      color: #f4f6f8;
+    }
+    body.ca-page .ca-hero .lede {
+      margin: 0 0 1.5rem;
+      max-width: 42ch;
+      font-size: 1.08rem;
+      line-height: 1.5;
+      color: rgba(238, 242, 245, 0.78);
+    }
+    body.ca-page .ca-hero .hero-actions .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    body.ca-page .ca-hero .btn.primary,
+    body.ca-page .ca-hero .btn.primary.solid {
+      background: var(--cyan);
+      color: var(--ink);
+      border-color: var(--cyan);
+    }
+    body.ca-page .ca-hero .btn.ghost {
+      color: #eef2f5;
+      border-color: rgba(238, 242, 245, 0.35);
+    }
+    body.ca-page .ca-hero .btn.ghost:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+    body.ca-page .ca-hero .hero-proof {
+      margin: 1rem 0 0;
+      font-size: 0.9rem;
+      color: rgba(238, 242, 245, 0.65);
+    }
+    body.ca-page .ca-hero .hero-proof a {
+      color: var(--cyan);
+      text-underline-offset: 0.18em;
+    }
+
+    /* Live outcome desk (hero interactive) */
+    body.ca-page .ca-desk {
+      padding: 1.15rem 1.2rem 1.25rem;
+      border: 1px solid rgba(94, 231, 240, 0.22);
+      background:
+        linear-gradient(165deg, rgba(94, 231, 240, 0.08), transparent 45%),
+        rgba(8, 14, 26, 0.88);
+      backdrop-filter: blur(8px);
+    }
+    body.ca-page .ca-desk__claim {
+      margin: 0 0 0.85rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(94, 231, 240, 0.85);
+    }
+    body.ca-page .ca-desk__seg {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+    body.ca-page .ca-desk__btn {
+      appearance: none;
+      border: 1px solid rgba(238, 242, 245, 0.22);
+      background: transparent;
+      color: rgba(238, 242, 245, 0.78);
+      font: inherit;
+      font-size: 0.82rem;
+      padding: 0.4rem 0.7rem;
+      cursor: pointer;
+    }
+    body.ca-page .ca-desk__btn.is-on {
+      border-color: var(--cyan);
+      color: var(--ink);
+      background: var(--cyan);
+      font-weight: 600;
+    }
+    body.ca-page .ca-desk__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+    body.ca-page .ca-desk__stat {
+      padding: 0.7rem 0.75rem;
+      border: 1px solid rgba(238, 242, 245, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    body.ca-page .ca-desk__stat--out {
+      grid-column: 1 / -1;
+      border-color: rgba(94, 231, 240, 0.35);
+      background: rgba(94, 231, 240, 0.08);
+    }
+    body.ca-page .ca-desk__k {
+      margin: 0;
+      font-size: 0.75rem;
+      color: rgba(238, 242, 245, 0.55);
+    }
+    body.ca-page .ca-desk__v {
+      margin: 0.2rem 0 0;
+      font-family: var(--mono);
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #f4f6f8;
+    }
+    body.ca-page .ca-desk__stat--out .ca-desk__v {
+      font-size: 1.55rem;
+      color: var(--cyan);
+    }
+    body.ca-page .ca-desk__note {
+      margin: 0.85rem 0 0;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: rgba(238, 242, 245, 0.62);
+      max-width: 40ch;
+    }
+
+    /* Sections */
+    body.ca-page .ca-band {
+      padding: clamp(2.75rem, 7vw, 4.5rem) 0;
+      border-top: 1px solid var(--line);
+    }
+    body.ca-page .ca-band--dark {
+      background: linear-gradient(180deg, var(--ink) 0%, #0f1a2e 100%);
+      color: #eef2f5;
+      border-top-color: var(--line-dark);
+    }
+    body.ca-page .ca-band--dark .eyebrow {
+      color: var(--cyan);
+    }
+    body.ca-page .ca-band--dark .display {
+      color: #f4f6f8;
+    }
+    body.ca-page .ca-band--dark .lede {
+      color: rgba(238, 242, 245, 0.72);
+    }
+    body.ca-page .ca-wrap {
+      width: min(var(--max), 100%);
+      margin: 0 auto;
+      padding: 0 clamp(1.15rem, 3.5vw, 2rem);
+    }
+    body.ca-page .ca-band .display {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.55rem, 3.5vw, 2.25rem);
+      max-width: 18ch;
+    }
+    body.ca-page .ca-band .lede {
+      margin: 0 0 1.75rem;
+      max-width: 48ch;
+      color: var(--mute);
+      font-size: 1.05rem;
+      line-height: 1.55;
+    }
+
+    /* Recon lab */
+    body.ca-page .ca-recon {
+      display: grid;
+      gap: 1.5rem;
+    }
+    @media (min-width: 860px) {
+      body.ca-page .ca-recon {
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 2rem;
+        align-items: start;
+      }
+    }
+    body.ca-page .ca-plat-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    body.ca-page .ca-plat-list li {
+      border-top: 1px solid var(--line);
+      padding: 0.65rem 0;
+    }
+    body.ca-page .ca-plat-list li:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+    body.ca-page .ca-plat-list label {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    body.ca-page .ca-recon-readout {
+      padding: 1.2rem 1.25rem;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    body.ca-page .ca-recon-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    body.ca-page .ca-recon-metrics div {
+      padding: 0.65rem 0.7rem;
+      background: var(--paper-2);
+      border-top: 2px solid var(--ink);
+    }
+    body.ca-page .ca-recon-metrics .k {
+      margin: 0;
+      font-size: 0.75rem;
+      color: var(--mute);
+    }
+    body.ca-page .ca-recon-metrics .v {
+      margin: 0.2rem 0 0;
+      font-family: var(--mono);
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+    body.ca-page .ca-recon-metrics .full {
+      grid-column: 1 / -1;
+      border-top-color: var(--cyan-deep);
+    }
+    body.ca-page [data-ca-variance-tone][data-tone="good"] { color: var(--truth); }
+    body.ca-page [data-ca-variance-tone][data-tone="warn"] { color: #9a6b12; }
+    body.ca-page [data-ca-variance-tone][data-tone="bad"] { color: var(--lie); }
+    body.ca-page .ca-bar-row {
+      display: grid;
+      grid-template-columns: 5.5rem 1fr auto;
+      gap: 0.5rem 0.65rem;
+      align-items: center;
+      margin-bottom: 0.55rem;
+      font-size: 0.82rem;
+    }
+    body.ca-page .ca-bar-lab { color: var(--ink); font-weight: 500; }
+    body.ca-page .ca-bar-track {
+      position: relative;
+      height: 1.35rem;
+      background: var(--paper);
+      border: 1px solid var(--line);
+    }
+    body.ca-page .ca-bar-fill {
+      position: absolute;
+      left: 0;
+      height: 50%;
+      min-width: 2px;
+    }
+    body.ca-page .ca-bar-fill--billed {
+      top: 0;
+      background: var(--ink);
+    }
+    body.ca-page .ca-bar-fill--reported {
+      bottom: 0;
+      background: var(--cyan-deep);
+      opacity: 0.75;
+    }
+    body.ca-page .ca-bar-vals {
+      font-size: 0.72rem;
+      color: var(--mute);
+      white-space: nowrap;
+    }
+    body.ca-page .ca-legend {
+      display: flex;
+      gap: 1rem;
+      margin: 0.85rem 0 0;
+      font-size: 0.78rem;
+      color: var(--mute);
+    }
+    body.ca-page .ca-legend i {
+      display: inline-block;
+      width: 0.7rem;
+      height: 0.7rem;
+      margin-right: 0.35rem;
+      vertical-align: -0.05rem;
+    }
+    body.ca-page .ca-legend .billed { background: var(--ink); }
+    body.ca-page .ca-legend .reported { background: var(--cyan-deep); }
+
+    /* Lead-gen till */
+    body.ca-page .ca-lg {
+      max-width: 36rem;
+      padding: 1.35rem 1.4rem 1.5rem;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    body.ca-page .ca-lg label {
+      display: block;
+      margin-bottom: 1rem;
+    }
+    body.ca-page .ca-lg label span {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.35rem;
+      font-size: 0.92rem;
+    }
+    body.ca-page .ca-lg input[type="range"] {
+      width: 100%;
+      accent-color: var(--cyan-deep);
+    }
+    body.ca-page .ca-lg__out {
+      margin: 0.5rem 0 0;
+      padding: 1rem;
+      border-top: 1px solid var(--line);
+    }
+    body.ca-page .ca-lg__cpql {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    body.ca-page .ca-lg__verdict {
+      margin: 0.5rem 0 0;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      max-width: 40ch;
+    }
+    body.ca-page .ca-lg__verdict[data-tone="good"] { color: var(--truth); }
+    body.ca-page .ca-lg__verdict[data-tone="bad"] { color: var(--lie); }
+
+    /* Packages */
+    body.ca-page .ca-packages {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 800px) {
+      body.ca-page .ca-packages {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    body.ca-page .ca-pkg {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      padding: 1.35rem 1.3rem 1.4rem;
+      border: 1px solid var(--line);
+      background: #fff;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    body.ca-page .ca-pkg:hover,
+    body.ca-page .ca-pkg.is-selected {
+      border-color: var(--cyan-deep);
+      box-shadow: 0 0 0 1px var(--cyan-deep);
+    }
+    body.ca-page .ca-pkg .price {
+      margin: 0 0 0.35rem;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--cyan-deep);
+      letter-spacing: 0.02em;
+    }
+    body.ca-page .ca-pkg h3 {
+      margin: 0 0 0.55rem;
+      font-family: var(--display);
+      font-size: 1.2rem;
+      letter-spacing: -0.025em;
+    }
+    body.ca-page .ca-pkg p {
+      margin: 0 0 0.85rem;
+      color: var(--mute);
+      font-size: 0.92rem;
+      line-height: 1.45;
+      flex: 1;
+    }
+    body.ca-page .ca-pkg ul {
+      margin: 0 0 1rem;
+      padding: 0;
+      list-style: none;
+      font-size: 0.88rem;
+      color: var(--ink);
+    }
+    body.ca-page .ca-pkg li {
+      position: relative;
+      padding: 0.35rem 0 0.35rem 1.15rem;
+      border-top: 1px solid var(--line);
+    }
+    body.ca-page .ca-pkg li:first-child { border-top: 0; }
+    body.ca-page .ca-pkg li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--cyan-deep);
+      font-family: var(--mono);
+    }
+    body.ca-page .ca-pkg .cta {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--cyan-deep);
+    }
+    body.ca-page .ca-pkg .scope {
+      margin: 0 0 0.85rem;
+      padding: 0.65rem 0.75rem;
+      border: 1px dashed var(--line);
+      background: var(--paper-2);
+      font-size: 0.8rem;
+      line-height: 1.4;
+      color: var(--mute);
+    }
+    body.ca-page .ca-pkg .scope strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* Market map */
+    body.ca-page .ca-market {
+      display: grid;
+      gap: 0.85rem;
+      margin: 1.5rem 0 0;
+    }
+    @media (min-width: 800px) {
+      body.ca-page .ca-market {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    body.ca-page .ca-market article {
+      padding: 1.1rem 1.15rem 1.2rem;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    body.ca-page .ca-market .tag {
+      margin: 0 0 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    body.ca-page .ca-market .tag[data-tone="out"] { color: var(--lie); }
+    body.ca-page .ca-market .tag[data-tone="adj"] { color: #b45309; }
+    body.ca-page .ca-market .tag[data-tone="in"] { color: var(--truth); }
+    body.ca-page .ca-market h3 {
+      margin: 0 0 0.45rem;
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+    body.ca-page .ca-market p {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: var(--mute);
+    }
+    body.ca-page .ca-market .band {
+      margin: 0.55rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--ink);
+    }
+    body.ca-page .ca-anchor {
+      margin: 1.25rem 0 0;
+      max-width: 52ch;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--mute);
+    }
+    body.ca-page .ca-memo {
+      margin: 2rem 0 0;
+      max-width: 40rem;
+      padding: 1.15rem 1.25rem 1.25rem;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--ink);
+      background: var(--paper-2);
+    }
+    body.ca-page .ca-memo__label {
+      margin: 0 0 0.65rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--cyan-deep);
+    }
+    body.ca-page .ca-memo__body {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: var(--ink);
+      white-space: pre-wrap;
+    }
+    body.ca-page .ca-memo__note {
+      margin: 0.75rem 0 0;
+      font-size: 0.78rem;
+      color: var(--mute);
+    }
+
+    /* Expectations */
+    body.ca-page .ca-expect {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    @media (min-width: 720px) {
+      body.ca-page .ca-expect {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    body.ca-page .ca-expect article {
+      padding: 1.2rem 1.25rem;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    body.ca-page .ca-expect h3 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: 1.1rem;
+    }
+    body.ca-page .ca-expect ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    body.ca-page .ca-expect li {
+      padding: 0.4rem 0 0.4rem 1.1rem;
+      position: relative;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      border-top: 1px solid var(--line);
+    }
+    body.ca-page .ca-expect li:first-child { border-top: 0; }
+    body.ca-page .ca-expect li::before {
+      content: "·";
+      position: absolute;
+      left: 0;
+      color: var(--cyan-deep);
+      font-weight: 700;
+    }
+
+    /* FAQ */
+    body.ca-page .ca-faq {
+      display: grid;
+      gap: 0.65rem;
+      max-width: 44rem;
+      margin-top: 1.25rem;
+    }
+    body.ca-page .ca-faq details {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 0.85rem 1.05rem;
+    }
+    body.ca-page .ca-faq summary {
+      cursor: pointer;
+      font-family: var(--display);
+      font-size: 1.02rem;
+      letter-spacing: -0.02em;
+      list-style: none;
+    }
+    body.ca-page .ca-faq summary::-webkit-details-marker { display: none; }
+    body.ca-page .ca-faq details[open] summary {
+      margin-bottom: 0.45rem;
+      color: var(--cyan-deep);
+    }
+    body.ca-page .ca-faq p {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--mute);
+    }
+
+    /* Privacy */
+    body.ca-page .ca-privacy-strip {
+      margin: 0 0 1.25rem;
+      padding: 0.85rem 1rem;
+      max-width: 44rem;
+      border: 1px solid rgba(94, 231, 240, 0.28);
+      background: rgba(94, 231, 240, 0.06);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+      line-height: 1.45;
+      color: rgba(238, 242, 245, 0.88);
+    }
+    body.ca-page .ca-privacy-grid {
+      display: grid;
+      gap: 0.75rem;
+      max-width: 44rem;
+    }
+    body.ca-page .ca-privacy-item {
+      border: 1px solid rgba(94, 231, 240, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    body.ca-page .ca-privacy-item > button {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 1rem 1.1rem;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: #f4f6f8;
+      font: inherit;
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      text-align: left;
+      cursor: pointer;
+    }
+    body.ca-page .ca-privacy-item > button::after {
+      content: "+";
+      font-family: var(--mono);
+      color: var(--cyan);
+      flex: none;
+    }
+    body.ca-page .ca-privacy-item[data-open="true"] > button::after {
+      content: "−";
+    }
+    body.ca-page .ca-privacy-item [data-ca-privacy-panel] {
+      padding: 0 1.1rem 1.1rem;
+      color: rgba(238, 242, 245, 0.72);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      max-width: 48ch;
+    }
+    body.ca-page .ca-refuse {
+      margin: 1.5rem 0 0;
+      padding: 0.95rem 1.1rem;
+      border-left: 3px solid #e8a090;
+      background: rgba(194, 69, 50, 0.12);
+      color: #f4f6f8;
+      max-width: 48ch;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    body.ca-page .ca-refuse strong { color: #f4b4a8; }
+
+    /* Fit */
+    body.ca-page .ca-fit {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 720px) {
+      body.ca-page .ca-fit { grid-template-columns: 1fr 1fr; }
+    }
+    body.ca-page .ca-fit article {
+      padding: 1.25rem 1.3rem;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.75);
+    }
+    body.ca-page .ca-fit h3 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: 1.1rem;
+    }
+    body.ca-page .ca-fit.yes h3 { color: var(--truth); }
+    body.ca-page .ca-fit.no h3 { color: var(--lie); }
+    body.ca-page .ca-fit ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    body.ca-page .ca-fit li {
+      padding: 0.4rem 0;
+      border-top: 1px solid var(--line);
+      color: var(--mute);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+    body.ca-page .ca-fit li:first-child { border-top: 0; padding-top: 0; }
+
+    /* Inquiry */
+    body.ca-page .ca-inquire {
+      max-width: 36rem;
+      padding: clamp(1.6rem, 4vw, 2.25rem);
+      border: 1px solid var(--line);
+      background: #fff;
+      scroll-margin-top: 5rem;
+    }
+    body.ca-page .ca-inquire .reply-line {
+      margin: 0 0 0.85rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      color: var(--mute);
+    }
+    body.ca-page .ca-inquire .nda-opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      margin: 0 0 1rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: var(--ink);
+      cursor: pointer;
+    }
+    body.ca-page .ca-inquire .nda-opt input {
+      margin-top: 0.2rem;
+      flex: none;
+    }
+    body.ca-page .ca-inquire h2 {
+      margin: 0 0 0.45rem;
+      font-family: var(--display);
+      font-size: clamp(1.35rem, 3vw, 1.7rem);
+      letter-spacing: -0.03em;
+    }
+    body.ca-page .ca-inquire > p {
+      margin: 0 0 1.25rem;
+      color: var(--mute);
+      max-width: 42ch;
+      line-height: 1.5;
+    }
+    body.ca-page .ca-inquire .waitlist textarea {
+      width: 100%;
+      min-height: 7rem;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid var(--line);
+      background: #fff;
+      font: inherit;
+      color: var(--ink);
+      resize: vertical;
+    }
+    body.ca-page .ca-inquire .waitlist textarea:focus,
+    body.ca-page .ca-inquire .waitlist select:focus {
+      outline: 2px solid var(--cyan-deep);
+      outline-offset: 1px;
+    }
+    body.ca-page .ca-inquire .waitlist select { width: 100%; }
+    body.ca-page .ca-inquire .fine-print {
+      margin: 0.85rem 0 0;
+      font-size: 0.82rem;
+      color: var(--mute);
+      max-width: 42ch;
+      line-height: 1.45;
+    }
+    body.ca-page .ca-shopify-note {
+      margin: 1.25rem 0 0;
+      padding: 0.9rem 1rem;
+      border-left: 3px solid var(--cyan-deep);
+      background: rgba(26, 163, 122, 0.06);
+      font-size: 0.92rem;
+      max-width: 48ch;
+      line-height: 1.5;
+    }
+
+    /* Process */
+    body.ca-page .ca-process {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      counter-reset: ca-step;
+    }
+    @media (min-width: 800px) {
+      body.ca-page .ca-process {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.85rem;
+      }
+    }
+    body.ca-page .ca-process article {
+      position: relative;
+      padding: 1.2rem 1.15rem 1.25rem;
+      border: 1px solid var(--line);
+      background: #fff;
+      counter-increment: ca-step;
+    }
+    body.ca-page .ca-process article::before {
+      content: counter(ca-step, decimal-leading-zero);
+      display: block;
+      margin-bottom: 0.65rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--cyan-deep);
+    }
+    body.ca-page .ca-process h3 {
+      margin: 0 0 0.45rem;
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+    body.ca-page .ca-process p {
+      margin: 0;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: var(--mute);
+    }
+
+    /* Capacity strip */
+    body.ca-page .ca-capacity {
+      margin: 1.75rem 0 0;
+      padding: 1rem 1.15rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 1.25rem;
+      border: 1px solid rgba(8, 40, 48, 0.12);
+      background:
+        linear-gradient(90deg, rgba(94, 231, 240, 0.08), transparent 55%),
+        var(--paper-2);
+    }
+    body.ca-page .ca-capacity__label {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--cyan-deep);
+    }
+    body.ca-page .ca-capacity__text {
+      margin: 0;
+      flex: 1 1 16rem;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      color: var(--ink);
+      max-width: 52ch;
+    }
+    body.ca-page .ca-engage-link {
+      margin: 1.15rem 0 0;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      max-width: 48ch;
+    }
+    body.ca-page .ca-engage-link a {
+      color: var(--cyan-deep);
+      font-weight: 600;
+      text-underline-offset: 0.18em;
+    }
+
+    /* Answer-first GEO quote */
+    body.ca-page .ca-answer {
+      padding: clamp(1.5rem, 4vw, 2.25rem) 0;
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+    body.ca-page .ca-answer__quote {
+      margin: 0;
+      max-width: 52ch;
+      font-size: 1.08rem;
+      line-height: 1.55;
+      color: var(--ink);
+    }
+    body.ca-page .ca-answer__quote dfn {
+      font-style: normal;
+      font-weight: 600;
+    }
+    body.ca-page .ca-answer__links {
+      margin: 0.85rem 0 0;
+      font-size: 0.9rem;
+      color: var(--mute);
+      max-width: 48ch;
+      line-height: 1.5;
+    }
+    body.ca-page .ca-answer__links a {
+      color: var(--cyan-deep);
+      font-weight: 600;
+      text-underline-offset: 0.18em;
+    }
+
+    /* B6 retainer callout */
+    body.ca-page .ca-retainer {
+      margin: 1.5rem 0 0;
+      padding: 1.1rem 1.2rem 1.2rem;
+      max-width: 44rem;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--cyan-deep);
+      background: rgba(26, 163, 122, 0.05);
+    }
+    body.ca-page .ca-retainer h3 {
+      margin: 0 0 0.45rem;
+      font-family: var(--display);
+      font-size: 1.08rem;
+      letter-spacing: -0.02em;
+    }
+    body.ca-page .ca-retainer p {
+      margin: 0;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: var(--mute);
+      max-width: 52ch;
+    }
+    body.ca-page .ca-retainer .mono {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.ca-page .ca-pkg { transition: none; }
+    }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Service",
+        "name": "Custom Data Solutions",
+        "serviceType": "Fixed-fee marketing data science",
+        "provider": {
+          "@type": "Organization",
+          "name": "Mcfly Ads",
+          "alternateName": ["Mcfly Advertising and Analytics", "Mcfly Analytics"],
+          "url": "https://mcflyads.com/"
+        },
+        "url": "https://mcflyads.com/custom-analytics",
+        "description": "Custom Data Solutions are fixed-fee engagements ($5–25K bands) that ship a weekly decision desk and written metric contracts — not always-on MMM theater and not an identity-graph product.",
+        "areaServed": {
+          "@type": "Country",
+          "name": "United States"
+        },
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "Spend & Sales Audit",
+            "priceCurrency": "USD",
+            "price": "5000",
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "priceCurrency": "USD",
+              "minPrice": "5000",
+              "maxPrice": "8000"
+            },
+            "description": "Fixed-fee close memo: exact spend by platform, invoice vs UI recon, sales/revenue period check. 2–3 weeks.",
+            "url": "https://mcflyads.com/custom-analytics#packages"
+          },
+          {
+            "@type": "Offer",
+            "name": "Lead Gen Decision Desk",
+            "priceCurrency": "USD",
+            "price": "8000",
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "priceCurrency": "USD",
+              "minPrice": "8000",
+              "maxPrice": "15000"
+            },
+            "description": "Spend joined to CRM stages — CPQL desk, metric contracts, weekly demos. 3–6 weeks.",
+            "url": "https://mcflyads.com/custom-analytics#packages"
+          },
+          {
+            "@type": "Offer",
+            "name": "Advanced MDS Build",
+            "priceCurrency": "USD",
+            "price": "15000",
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "priceCurrency": "USD",
+              "minPrice": "15000",
+              "maxPrice": "25000"
+            },
+            "description": "Custom marketing data science system: pipelines or Sheet SoT, decision UI, rules-based allocation, handoff. 6–10 weeks.",
+            "url": "https://mcflyads.com/custom-analytics#packages"
+          }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcflyads.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Custom Data Solutions", "item": "https://mcflyads.com/custom-analytics" }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body class="ca-page" data-page="custom-analytics">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+
+  <main id="main">
+    <section class="ca-hero hero hero-craft" id="overview" aria-labelledby="ca-hero-brand">
+      <div class="hero-atmosphere" aria-hidden="true">
+        <picture>
+          <source srcset="/assets/hero-atmosphere.webp" type="image/webp" />
+          <img src="/assets/hero-atmosphere.jpg" alt="" width="1920" height="1080" decoding="async" fetchpriority="high" />
+        </picture>
+      </div>
+      <div class="hero-mesh" aria-hidden="true"></div>
+      <div class="hero-gridline" aria-hidden="true"></div>
+      <div class="hero-grain" aria-hidden="true"></div>
+
+      <div class="ca-hero-layout">
+        <div class="hero-copy">
+          <p class="brand-hero" id="ca-hero-brand">
+            <img class="brand-hero-mark" src="/assets/brand/mcfly-m-transparent.png" width="56" height="56" alt="" />
+            <span>
+              Mcfly <span class="brand-hero-sub">Analytics</span>
+              <span class="brand-hero-practice">Custom Data Solutions</span>
+            </span>
+          </p>
+          <h1>Exact spend. Audited outcomes. Systems finance will sign off on.</h1>
+          <p class="lede">Boutique marketing data science for operators who need a written SOW — platform recon, sales audits, lead-gen desks. Fixed fee <span class="mono">$5–25K</span>. You own the system. Not forensic theater. Not MMM SaaS.</p>
+          <div class="hero-actions">
+            <div class="cta-row">
+              <a class="btn primary solid" href="#inquire">Request a proposal</a>
+              <a class="btn ghost" href="#packages">See packages</a>
+            </div>
+            <p class="hero-proof">
+              <a href="#how">Process</a>
+              <span aria-hidden="true"> · </span>
+              <a href="/custom-analytics-engagement">Engagement specimen</a>
+              <span aria-hidden="true"> · </span>
+              <a href="/about">About</a>
+              <span aria-hidden="true"> · </span>
+              <a href="#privacy">Privacy</a>
+            </p>
+          </div>
+        </div>
+
+        <div class="ca-desk" id="ca-labs" aria-label="Illustrative sample desk — not a live client desk">
+          <p class="ca-desk__claim">Illustrative SAMPLE · not a live client desk</p>
+          <div class="ca-desk__seg" role="group" aria-label="Business model">
+            <button type="button" class="ca-desk__btn" data-ca-mode="ecommerce">Ecommerce</button>
+            <button type="button" class="ca-desk__btn is-on" data-ca-mode="leadgen" aria-current="true">Lead gen</button>
+            <button type="button" class="ca-desk__btn" data-ca-mode="services">Services / B2B</button>
+          </div>
+          <div class="ca-desk__grid">
+            <div class="ca-desk__stat">
+              <p class="ca-desk__k" data-ca-num-label>Qualified leads</p>
+              <p class="ca-desk__v" data-ca-num-val>186</p>
+            </div>
+            <div class="ca-desk__stat">
+              <p class="ca-desk__k">Audited spend</p>
+              <p class="ca-desk__v" data-ca-spend-val>$42,000</p>
+            </div>
+            <div class="ca-desk__stat ca-desk__stat--out">
+              <p class="ca-desk__k" data-ca-out-label>Cost / qualified lead</p>
+              <p class="ca-desk__v" data-ca-out-val>$226</p>
+            </div>
+          </div>
+          <p class="ca-desk__note" data-ca-mode-note>CRM-qualified stages ÷ paid spend — not form-fill vanity.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="ca-answer" id="what-is" aria-label="What Custom Data Solutions are">
+      <div class="ca-wrap">
+        <p class="ca-answer__quote">
+          <dfn>Custom Data Solutions</dfn> are fixed-fee engagements ($5–25K bands) that ship a weekly decision desk and written metric contracts — not always-on MMM theater and not an identity-graph product. Bands: Spend &amp; Sales Audit <span class="mono">$5–8K</span>, Lead Gen Desk <span class="mono">$8–15K</span>, Advanced MDS <span class="mono">$15–25K</span>.
+        </p>
+        <p class="ca-answer__links">Shopify-only shops that need the Monday cash desk: start on <a href="/product">Product</a>. Company story: <a href="/about">About</a>.</p>
+      </div>
+    </section>
+
+    <section class="ca-band" id="packages" aria-labelledby="pkg-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Market map · then packages</p>
+        <h2 id="pkg-title" class="display">Where do Custom Data Solutions sit vs forensic audits and MMM?</h2>
+        <p class="lede">Elite buyers confuse forensic media audits, MMM subscriptions, and productized decision desks. Mcfly Ads — Custom Data Solutions is the third — fixed fee, written scope, outcomes ÷ spend.</p>
+
+        <div class="ca-market reveal">
+          <article>
+            <p class="tag" data-tone="out">Not our lane</p>
+            <h3>Forensic media audit</h3>
+            <p>Independent plan → invoice → platform recon for finance and procurement. Agency contracts, rebates, multi-market leakage.</p>
+            <p class="band">~$100K–$450K · $2M+ spend typical</p>
+          </article>
+          <article>
+            <p class="tag" data-tone="adj">Adjacent</p>
+            <h3>MMM / incrementality SaaS</h3>
+            <p>Bayesian mix models, geo tests, always-on scenario tools. Useful later — not what a $15–25K build claims to be.</p>
+            <p class="band">~$30K–$200K+/yr mid-market · six figures enterprise</p>
+          </article>
+          <article>
+            <p class="tag" data-tone="in">Our lane</p>
+            <h3>Productized decision desks</h3>
+            <p>Exact spend by platform, audited outcomes, CPQL / efficiency rituals, rules-based allocation — you keep the system.</p>
+            <p class="band">$5–40K discrete market · Mcfly $5–25K</p>
+          </article>
+        </div>
+        <p class="ca-anchor">We sit in the <span class="mono">$5–25K</span> productized desk band — below forensic media audits and beside (not inside) MMM SaaS. Market comps in FAQ.</p>
+
+        <p class="eyebrow" style="margin-top:2.5rem">Fixed-fee engagements</p>
+        <h2 class="display" id="pkg-cards-title">What does a $5–25K fixed-fee engagement include?</h2>
+        <p class="lede">Choose an engagement below to prefill the intake form. Tools/licenses billed at cost when needed — never buried in the fee. Structure of the letter: <a href="/custom-analytics-engagement">engagement specimen</a>.</p>
+        <div class="ca-packages reveal">
+          <button type="button" class="ca-pkg" data-ca-package="audit">
+            <p class="price">$5–8K · 2–3 weeks</p>
+            <h3>Spend &amp; Sales Audit</h3>
+            <p>Operator close memo: exact spend by platform, invoice vs UI recon, and a sales / revenue period check finance can use.</p>
+            <ul>
+              <li>Platform spend rollup + variance flags</li>
+              <li>Sales or closed-revenue period check</li>
+              <li>Written close memo + next actions</li>
+              <li>30-day Q&amp;A on the memo</li>
+            </ul>
+            <div class="scope">
+              <strong>Excluded</strong>
+              Not a $100K forensic agency/rebate audit. Not multi-year contract forensics. Not pixels.
+            </div>
+            <span class="cta">Select engagement →</span>
+          </button>
+          <button type="button" class="ca-pkg" data-ca-package="leadgen">
+            <p class="price">$8–15K · 3–6 weeks</p>
+            <h3>Lead Gen Decision Desk</h3>
+            <p>Spend joined to CRM stages — CPL, CPQL, and a weekly ritual operators actually open. For agencies, SaaS, and services — not only stores.</p>
+            <ul>
+              <li>Metric contracts (lead → MQL → SQL)</li>
+              <li>Channel efficiency vs targets</li>
+              <li>Operator desk + handoff docs</li>
+              <li>Weekly demo cadence during build</li>
+            </ul>
+            <div class="scope">
+              <strong>Excluded</strong>
+              Not multi-touch path credit. Not forever-free BI seats. CRM licenses separate.
+            </div>
+            <span class="cta">Select engagement →</span>
+          </button>
+          <button type="button" class="ca-pkg" data-ca-package="mds">
+            <p class="price">$15–25K · 6–10 weeks</p>
+            <h3>Advanced MDS Build</h3>
+            <p>Custom marketing data science system: pipelines or Sheet SoT, decision UI, rules-based allocation, production handoff.</p>
+            <ul>
+              <li>Outcome ÷ spend as the spine</li>
+              <li>Lightweight mix / allocation helpers</li>
+              <li>Runbooks + ownership transfer</li>
+              <li>Optional retainer quote at handoff</li>
+            </ul>
+            <div class="scope">
+              <strong>Excluded</strong>
+              Not Nielsen / Meridian / Recast parity. Not CDP or identity graph. Not a $40K+ warehouse rebuild.
+            </div>
+            <span class="cta">Select engagement →</span>
+          </button>
+        </div>
+        <aside class="ca-retainer" id="retainer" aria-labelledby="retainer-title">
+          <h3 id="retainer-title">Optional ongoing Monday close retainer</h3>
+          <p>After handoff, you can add a continuity retainer — typically <span class="mono">$3–8K / month</span> — for monitored weekly closes, light desk changes, and a named monthly review. It is an add-on to the fixed-fee build, not hourly bait and not required to keep the system you own.</p>
+        </aside>
+        <p class="ca-engage-link"><a href="/custom-analytics-engagement">Review the engagement letter specimen</a> — parties, fee, scope tiers, refuse list, signatures. Specimen only; final terms in the signed letter.</p>
+
+        <aside class="ca-memo" aria-label="Sample close memo excerpt">
+          <p class="ca-memo__label">Close memo excerpt · SAMPLE</p>
+          <p class="ca-memo__body">Period: prior calendar month · channels: Meta + Google
+Invoice billed $84,200 · Ads Manager UI $87,910 · variance +$3,710 (4.4%)
+Net sales (returns adjusted) $312,400 · audited spend $84,200
+Outcome ÷ spend: 3.71× · flag: Meta UI ahead of invoice — tax/fee timing
+Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
+          <p class="ca-memo__note">Redacted SAMPLE figures for illustration — not a live client close.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="ca-band" id="how" aria-labelledby="how-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Process</p>
+        <h2 id="how-title" class="display">How does a fixed-fee engagement run?</h2>
+        <p class="lede">Four steps from first call to ownership transfer. Same spine every build — discovery, fixed fee, demos, handoff.</p>
+        <div class="ca-process reveal">
+          <article>
+            <h3>Discovery call</h3>
+            <p>Fit, data access, success metric. We say no when pixels, MTA, or forensic depth is what you actually need.</p>
+          </article>
+          <article>
+            <h3>Fixed-fee SOW</h3>
+            <p>Written engagement letter: tier, fee, deliverables, refuse list. No hourly surprise. See the <a href="/custom-analytics-engagement">specimen</a>.</p>
+          </article>
+          <article>
+            <h3>Build with weekly demos</h3>
+            <p>Metric contracts first. Then desk or memo work with a standing weekly touch on Tier II / III.</p>
+          </article>
+          <article>
+            <h3>Handoff &amp; ownership</h3>
+            <p>Deliverables in your environment, runbooks, time-boxed credentials. Retainer optional — never required to keep the system.</p>
+          </article>
+        </div>
+        <div class="ca-capacity" role="note">
+          <p class="ca-capacity__label">Capacity</p>
+          <p class="ca-capacity__text">We run a small number of concurrent custom builds so weekly demos stay real. If the calendar is full, we’ll give you the next open start window — not a waitlist theater.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="ca-band" id="expectations" aria-labelledby="expect-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Expectations</p>
+        <h2 id="expect-title" class="display">What does “premium” mean in the SOW?</h2>
+        <p class="lede">Elite buyers pay for clarity: fixed fee, named deliverables, ownership, and an honest refuse list — not a logo wall.</p>
+        <div class="ca-expect reveal">
+          <article>
+            <h3>You provide</h3>
+            <ul>
+              <li>Read access to ad platforms + invoice / billing exports</li>
+              <li>Sales or CRM stage definitions (and a decision owner)</li>
+              <li>Margin or target efficiency assumptions when allocation matters</li>
+              <li>One weekly 30–45 min touch for Tier II / III</li>
+            </ul>
+          </article>
+          <article>
+            <h3>We provide</h3>
+            <ul>
+              <li>Fixed fee in the engagement letter — addenda only for scope adds</li>
+              <li>Written metric contracts before models or desks ship</li>
+              <li>Deliverables in your cloud / Sheets when possible</li>
+              <li>Handoff checklist, runbooks, time-boxed credentials</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="ca-band" id="fit" aria-labelledby="fit-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Fit</p>
+        <h2 id="fit-title" class="display">Who is Custom Data Solutions for?</h2>
+        <p class="lede">We take a small number of custom builds. Budget band is $5–25K project fees — not $39 SaaS seats, not $100K forensic audits.</p>
+        <div class="ca-fit reveal">
+          <article class="yes">
+            <h3>Good fit</h3>
+            <ul>
+              <li>Need exact spend by platform + outcome audit</li>
+              <li>Lead-gen, services, retail, or mixed — not Shopify-only</li>
+              <li>Budget owner ready for a scoped $5–25K SOW</li>
+              <li>Want production handoff, not a black-box suite</li>
+            </ul>
+          </article>
+          <article class="no">
+            <h3>Not a fit</h3>
+            <ul>
+              <li>Want pixels / MTA / path-credit “true ROAS”</li>
+              <li>Need a free trial or sub-$5K dabble</li>
+              <li>Looking for the Shopify cash desk app — use <a href="/product">Product</a></li>
+              <li>Need forensic $100K+ media audit or full MMM SaaS (we’ll redirect)</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="ca-band" id="recon" aria-labelledby="recon-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Illustrative method · SAMPLE figures</p>
+        <h2 id="recon-title" class="display">How do you reconcile exact spend by platform?</h2>
+        <p class="lede">Toggle channels. Compare billed invoices to Ads Manager. Variance is the close — not a sync animation. Figures below are SAMPLE only.</p>
+        <div class="ca-recon reveal">
+          <div>
+            <p class="eyebrow" style="margin-bottom:0.75rem">Include platforms</p>
+            <ul class="ca-plat-list">
+              <li><label><input type="checkbox" data-ca-plat="meta" checked /> Meta</label></li>
+              <li><label><input type="checkbox" data-ca-plat="google" checked /> Google</label></li>
+              <li><label><input type="checkbox" data-ca-plat="linkedin" checked /> LinkedIn</label></li>
+              <li><label><input type="checkbox" data-ca-plat="other" checked /> Other paid</label></li>
+            </ul>
+            <p class="ca-legend" aria-hidden="true">
+              <span><i class="billed"></i>Invoice / billed</span>
+              <span><i class="reported"></i>Platform UI</span>
+            </p>
+          </div>
+          <div class="ca-recon-readout">
+            <div class="ca-recon-metrics">
+              <div>
+                <p class="k">Billed total</p>
+                <p class="v" data-ca-billed>$0</p>
+              </div>
+              <div>
+                <p class="k">Platform UI total</p>
+                <p class="v" data-ca-reported>$0</p>
+              </div>
+              <div class="full">
+                <p class="k">Variance</p>
+                <p class="v" data-ca-variance>$0</p>
+                <p class="k" style="margin-top:0.45rem" data-ca-variance-tone data-tone="good">Within tolerance.</p>
+              </div>
+            </div>
+            <div data-ca-bars></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ca-band" id="lead-gen" aria-labelledby="lg-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Illustrative method · SAMPLE figures</p>
+        <h2 id="lg-title" class="display">What is cost per qualified lead on a decision desk?</h2>
+        <p class="lede">Drag spend, qualified volume, and your CPQL target. SAMPLE figures for agencies, SaaS, and services — not a live client desk.</p>
+        <div class="ca-lg reveal">
+          <label>
+            <span>Paid spend <strong class="mono" data-ca-lg-spend-out>$42,000</strong></span>
+            <input data-ca-lg-spend type="range" min="10000" max="120000" step="1000" value="42000" />
+          </label>
+          <label>
+            <span>Qualified leads (CRM) <strong class="mono" data-ca-lg-leads-out>186</strong></span>
+            <input data-ca-lg-leads type="range" min="20" max="500" step="1" value="186" />
+          </label>
+          <label>
+            <span>Target CPQL <strong class="mono" data-ca-lg-target-out>$250</strong></span>
+            <input data-ca-lg-target type="range" min="50" max="800" step="10" value="250" />
+          </label>
+          <div class="ca-lg__out">
+            <p class="eyebrow">Actual CPQL</p>
+            <p class="ca-lg__cpql" data-ca-lg-cpql>$226</p>
+            <p class="ca-lg__verdict" data-ca-lg-verdict data-tone="good">Under target — protect the mix.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ca-band ca-band--dark" id="privacy" aria-labelledby="privacy-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Enterprise assurance</p>
+        <h2 id="privacy-title" class="display">How do you handle data ownership and privacy?</h2>
+        <p class="lede">Custom engagements follow the same privacy posture as our product: least data, written definitions, no identity-graph theater.</p>
+        <p class="ca-privacy-strip">NDA / DPA available · time-boxed credentials · work in your cloud when possible</p>
+        <div class="ca-privacy-grid reveal">
+          <div class="ca-privacy-item" data-ca-privacy-item data-open="false">
+            <button type="button" aria-expanded="false">You keep ownership</button>
+            <div data-ca-privacy-panel hidden>
+              Work lands in your cloud / warehouse / Sheets when possible. We don’t build a shadow CRM of your customers. Deliverables and credentials transfer at handoff.
+            </div>
+          </div>
+          <div class="ca-privacy-item" data-ca-privacy-item data-open="false">
+            <button type="button" aria-expanded="false">Least-privilege access</button>
+            <div data-ca-privacy-panel hidden>
+              Time-boxed credentials, scoped service accounts, and access logs on request. No standing admin unless the SOW says so.
+            </div>
+          </div>
+          <div class="ca-privacy-item" data-ca-privacy-item data-open="false">
+            <button type="button" aria-expanded="false">Metric contracts before models</button>
+            <div data-ca-privacy-panel hidden>
+              Written definitions for sales, spend, lead stages, and margin — versioned so finance and marketing argue from the same sheet.
+            </div>
+          </div>
+          <div class="ca-privacy-item" data-ca-privacy-item data-open="false">
+            <button type="button" aria-expanded="false">Security baseline</button>
+            <div data-ca-privacy-panel hidden>
+              HTTPS, secrets outside repos, encrypted transit. For product posture see <a href="/security" style="color:var(--cyan)">Security</a>, <a href="/privacy" style="color:var(--cyan)">Privacy</a>, and draft <a href="/dpa" style="color:var(--cyan)">DPA</a>. Custom SOWs can add NDA + DPA schedules.
+            </div>
+          </div>
+        </div>
+        <p class="ca-refuse"><strong>We refuse:</strong> pixels, multi-touch path credit, “true ROAS” identity graphs, and forever-free bait. Outcomes ÷ spend. Full stop.</p>
+      </div>
+    </section>
+
+    <section class="ca-band" id="faq" aria-labelledby="faq-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Pricing &amp; fit FAQs</p>
+        <h2 id="faq-title" class="display">Answers before the call</h2>
+        <div class="ca-faq reveal">
+          <details>
+            <summary>Where do market comps land?</summary>
+            <p>Discrete analytics / decision-desk projects often run <span class="mono">$5–40K</span>; dashboard builds <span class="mono">$5–20K</span>; full MMM projects often <span class="mono">$30–150K</span>; forensic paid-media audits start near <span class="mono">$100K</span>. Mcfly Analytics — Custom Data Solutions publishes the <span class="mono">$5–25K</span> band so the SOW isn’t a surprise.</p>
+          </details>
+          <details>
+            <summary>Is $5–8K a “real” audit?</summary>
+            <p>Yes for a finance-grade close memo: invoice vs platform spend, variance flags, and a sales/outcome period check. That sits with elite boutique audits (~$6K class). It is not a $100K forensic agency/rebate audit — and not a $249 CSV micro-recon. Different jobs; we name ours.</p>
+          </details>
+          <details>
+            <summary>Do you replace Recast, Measured, Paramark, or Nielsen?</summary>
+            <p>No. We build the weekly decision desk and metric contracts. Always-on measurement OS pricing often starts near $100K/year — we don’t fake that inside $25K. If you need full MMM SaaS later, we say so.</p>
+          </details>
+          <details>
+            <summary>Who owns the data and the system?</summary>
+            <p>You. Work lands in your environment when possible. Credentials are time-boxed. Handoff includes runbooks. Retainer is optional continuity — not a hostage fee.</p>
+          </details>
+          <details>
+            <summary>What blows the budget?</summary>
+            <p>Dirty source data and undefined metrics. Cleanup and scope expansion only via written addendum. Tools and third-party licenses are billed at cost, called out in the SOW.</p>
+          </details>
+          <details>
+            <summary>Why refuse pixels and “true ROAS”?</summary>
+            <p>Identity graphs thinned; finance still needs sales (or qualified pipeline) ÷ audited spend. Path credit is a different product category — we don’t sell it.</p>
+          </details>
+          <details>
+            <summary>How is this different from the Shopify app?</summary>
+            <p>The Shopify cash desk is a productized Total ROAS seat for merchants. Mcfly Analytics — Custom Data Solutions is a fixed-fee practice for companies that need spend recon, lead-gen desks, or MDS beyond that app — toggle between the two on this site.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="ca-band" aria-labelledby="inquire-title">
+      <div class="ca-wrap">
+        <div class="ca-inquire" id="inquire">
+          <p class="reply-line">Human review · 1–2 business days</p>
+          <h2 id="inquire-title">Request an engagement letter</h2>
+          <p>Intake for scoped builds only. Selecting an engagement above prefills budget and notes — or choose manually. Review the <a href="/custom-analytics-engagement">engagement specimen</a> before the call.</p>
+
+          <form class="waitlist" data-waitlist data-waitlist-source="custom-analytics inquiry" novalidate>
+            <label>Name
+              <input name="name" type="text" autocomplete="name" required maxlength="120" />
+            </label>
+            <label>Work email
+              <input name="email" type="email" required autocomplete="email" maxlength="254" />
+            </label>
+            <label>Company / website
+              <input name="store" type="text" autocomplete="organization" placeholder="company.com" maxlength="200" />
+            </label>
+            <label>Role / title
+              <input name="role" type="text" autocomplete="organization-title" placeholder="VP Marketing, CFO, Founder…" maxlength="120" />
+            </label>
+            <label>Engagement / budget band
+              <select name="budget" required>
+                <option value="" disabled selected>Select a range</option>
+                <option value="$5k–$8k">$5k – $8k (Spend &amp; Sales Audit)</option>
+                <option value="$8k–$15k">$8k – $15k (Lead Gen Desk)</option>
+                <option value="$15k–$25k">$15k – $25k (Advanced MDS)</option>
+                <option value="Not sure — need guidance">Not sure — need guidance</option>
+              </select>
+            </label>
+            <label>Monthly paid media spend
+              <select name="spend" required>
+                <option value="" disabled selected>Select a range</option>
+                <option value="Under $25k / mo">Under $25k / mo</option>
+                <option value="$25k–$100k / mo">$25k – $100k / mo</option>
+                <option value="$100k–$500k / mo">$100k – $500k / mo</option>
+                <option value="$500k+ / mo">$500k+ / mo</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+            </label>
+            <label>Target start
+              <select name="timeline" required>
+                <option value="" disabled selected>Select a window</option>
+                <option value="ASAP / this month">ASAP / this month</option>
+                <option value="Next 30–60 days">Next 30–60 days</option>
+                <option value="This quarter">This quarter</option>
+                <option value="Exploring / no date yet">Exploring / no date yet</option>
+              </select>
+            </label>
+            <label>What should the engagement cover?
+              <textarea name="notes" required maxlength="1200" placeholder="Outcomes, data sources, constraints. No need to restate spend/timeline if selected above."></textarea>
+            </label>
+            <label class="nda-opt">
+              <input type="checkbox" name="nda" value="NDA available on request before data access" />
+              <span>NDA available on request before data access</span>
+            </label>
+            <input type="text" name="company" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
+            <button class="btn primary solid" type="submit">Submit engagement request</button>
+            <p class="note" data-waitlist-error hidden role="alert"></p>
+            <p class="fine-print">By submitting, you agree we may email you about this engagement request. We don’t sell your information. <a href="/privacy">Privacy</a>. Terms are finalized only in a signed engagement letter — see <a href="/custom-analytics-engagement">specimen</a>.</p>
+          </form>
+
+          <div class="waitlist-confirm" hidden aria-live="polite">
+            <p data-waitlist-title></p>
+            <p class="note" data-waitlist-status></p>
+            <p class="note" data-waitlist-meta></p>
+            <pre class="mono" data-waitlist-preview style="white-space:pre-wrap;font-size:0.8rem"></pre>
+            <button type="button" class="btn ghost" data-waitlist-edit>Edit</button>
+            <button type="button" class="btn ghost" data-waitlist-copy>Copy message</button>
+            <a class="btn ghost" data-waitlist-open href="#">Open mail app</a>
+            <p class="note" data-waitlist-copy-status hidden></p>
+          </div>
+        </div>
+
+        <p class="ca-shopify-note">Need the Shopify Total ROAS cash desk instead? That’s a separate product — <a href="/product">Mcfly Analytics on Shopify</a> · <a href="/support">Install free</a>. Practice story: <a href="/about">About</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="/assets/cta-config.js?v=20260731copy"></script>
+  <script src="/assets/chrome.js?v=20260731copy"></script>
+  <script src="/assets/app.js?v=20260731copy"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260728ca7"></script>
+</body>
+</html>

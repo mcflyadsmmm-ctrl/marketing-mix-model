@@ -1,0 +1,49 @@
+# Alias / mirror of primary shopify.app.toml (Public App Store client).
+# Prefer editing shopify.app.toml. Kept so older scripts that reference
+# shopify.app.public.toml keep working.
+
+client_id = "bbaee078a5ab871aea1cc99a9e01cabd"
+name = "Mcfly Analytics"
+handle = "mcfly-analytics-public"
+application_url = "https://mcfly-analytics.fly.dev"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = false
+
+[access_scopes]
+# read_all_orders needs Partner approval after PCD — omit until approved so CLI can release.
+scopes = "read_orders,read_customers"
+
+[webhooks]
+api_version = "2025-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = ["app/uninstalled"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/scopes_update"
+  topics = ["app/scopes_update"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/orders"
+  topics = ["orders/create", "orders/updated", "orders/cancelled"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app_subscriptions/update"
+  topics = ["app_subscriptions/update"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/compliance"
+  compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
+
+[auth]
+redirect_urls = [
+  "https://mcfly-analytics.fly.dev/auth/callback",
+  "https://mcfly-analytics.fly.dev/auth/shopify/callback",
+  "https://mcfly-analytics.fly.dev/api/auth/callback"
+]
+
+[app_preferences]
+url = "https://mcflyads.com/support"

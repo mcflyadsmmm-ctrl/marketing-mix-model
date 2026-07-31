@@ -1,8 +1,10 @@
 # Mcfly Analytics — Shopify App
 
-Embedded Shopify app for **Truth MVP**: Shopify sales + manual ad spend → **MER dashboard**.
+Embedded Shopify app: **Shopify sales + CSV/manual ad spend → Total ROAS desk**.
 
-> **Human gate:** Shopify Partner login is required to link this app to your Partner account and run `shopify app dev`. This scaffold is ready; you must authenticate locally.
+> **Human gate:** Shopify Partner login is required to link this app and run `shopify app dev`.
+
+**Retired (not product):** Monday Close lock UI; Meta/Google spend OAuth — see [`docs/RETIRED_SURFACES.md`](../docs/RETIRED_SURFACES.md).
 
 ## Quick start
 
@@ -29,7 +31,7 @@ npm run dev            # delegates to app workspace
 | --- | --- |
 | `SHOPIFY_API_KEY` | App API key (set by Shopify CLI after config link) |
 | `SHOPIFY_API_SECRET` | App secret |
-| `SCOPES` | `read_orders` for sales totals |
+| `SCOPES` | `read_orders` (+ minimal `read_customers` for opaque id / order counts) |
 | `SHOPIFY_APP_URL` | Public app URL (CLI sets during dev tunnel) |
 | `DATABASE_URL` | Prisma DB URL — default `file:./dev.sqlite` for local dev |
 
@@ -39,30 +41,34 @@ Do **not** commit `.env` or secrets.
 
 | Feature | Status |
 | --- | --- |
-| Shopify OAuth + embedded shell | Real (via `@shopify/shopify-app-react-router`) |
-| Shopify sales (orders sum) | **Real** Admin GraphQL when installed on a dev store with `read_orders` |
-| Sales fallback | Mock data if GraphQL fails (e.g. no linked store) |
-| Ad spend | **Manual entry** (Meta / Google / Other) — Truth MVP |
-| Meta / Google OAuth | **Stub only** — Connections page placeholder; Phase 2 |
-| MER / break-even / channel mix | **Real** — `@mcfly/mer-engine` pure functions |
+| Shopify install OAuth + embedded shell | Real (via `@shopify/shopify-app-react-router`) |
+| Shopify sales | Real Admin GraphQL / SalesDayFact when installed |
+| Ad spend | **CSV / paste / manual** on Spend — Free path |
+| Meta / Google spend OAuth | **Retired** — `/app/connections` redirects to Spend |
+| Total ROAS / break-even / channel mix | Real — `@mcfly/mer-engine` / `@mcfly/mer-core` |
+| SAMPLE desk | Optional practice toggle on Demo (labeled SAMPLE) |
 
 ## App routes
 
 | Route | Purpose |
 | --- | --- |
-| `/app` | MER dashboard — MTD/QTD/YTD, sales, spend, MER, break-even, channel mix |
-| `/app/spend` | Manual spend entry form |
-| `/app/settings` | Contribution margin %, target MER |
-| `/app/connections` | Placeholder for future Meta/Google OAuth |
+| `/app` | Overview — Total ROAS, break-even, Share Overview |
+| `/app/spend` | CSV / manual spend + pipe templates |
+| `/app/settings` | Margin %, Total ROAS target |
+| `/app/allocation` | Spend Allocation |
+| `/app/goals` | Goals / pace |
+| `/app/ltv` | LTV / Acquisition (Pro-gated live) |
+| `/app/close` | **Redirect → Home** (retired Monday Close UI) |
+| `/app/connections` | **Redirect → Spend** (retired ads OAuth UI) |
 
 ## Data model (Prisma)
 
 - **Shop** — one row per installed store domain
 - **SpendEntry** — channel, amount, period range, optional note
 - **Settings** — `marginPct`, `targetMer`
-- **Session** — Shopify OAuth sessions (framework requirement)
+- **Session** — Shopify install OAuth sessions (framework requirement)
 
-No attribution tables.
+No attribution tables. No Mcfly-owned ads OAuth tokens.
 
 ## MER engine
 
@@ -72,15 +78,8 @@ Shared package at `packages/mer-engine`:
 npm run test --workspace=@mcfly/mer-engine
 ```
 
-Functions: `computeMer`, `computeBreakEvenMer`, `channelMix`, `sumSpend`.
-
 ## Production notes
 
-- Replace SQLite with Postgres (`DATABASE_URL`) before deploy
-- Run `npm run setup` on deploy (migrate + generate)
-- Meta/Google connectors: stub interfaces in `app/lib/connectors/` — another agent may add `packages/connectors`
-
-## Related docs
-
-- [Master plan](../docs/MASTER_PLAN.md) — locked product directive
-- [Shopify React Router template](https://github.com/Shopify/shopify-app-template-react-router)
+- Postgres (`DATABASE_URL`) on Fly
+- Run migrations on deploy
+- App URL = hosted HTTPS (never mcflyads.com)

@@ -1,7 +1,9 @@
 # Mcfly Analytics on Fly.io (optional — Railway/Render also fine)
 # From repo root after `fly launch`:
 #   fly secrets set SHOPIFY_API_KEY=... SHOPIFY_API_SECRET=... DATABASE_URL=... SHOPIFY_APP_URL=https://....fly.dev
+#   fly secrets set MCFLY_JOBS_TICK_SECRET="$(openssl rand -hex 32)"
 #   fly deploy
+# Queue drain: `worker` process POSTs /api/jobs/tick (no Redis). See docs/ops/JOB_QUEUE.md §6.
 
 app = "mcfly-analytics"
 primary_region = "iad"
@@ -12,7 +14,15 @@ primary_region = "iad"
 [env]
   NODE_ENV = "production"
   PORT = "3000"
-  SCOPES = "read_orders,read_customers"
+  SCOPES = "read_orders,read_customers,read_all_orders"
+  # Worker polls the public app URL (request-driven web dyno). Same image; no Redis.
+  MCFLY_APP_URL = "https://mcfly-analytics.fly.dev"
+  MCFLY_QUEUE_INTERVAL_MS = "15000"
+
+# app = web + prisma migrate on boot. worker = HTTP tick runner only (no migrate, no ports).
+[processes]
+  app = "npm run docker-start"
+  worker = "node scripts/queue-worker.mjs"
 
 [http_service]
   internal_port = 3000
@@ -30,8 +40,16 @@ primary_region = "iad"
     method = "GET"
     path = "/health"
 
-# Keep 1GB — Prisma migrate/generate on boot OOMs at 256MB default.
+# Keep headroom for 10 concurrent desks + queue drain (Prisma + GraphQL).
 [[vm]]
-  memory = "1gb"
+  memory = "2gb"
+  cpu_kind = "shared"
+  cpus = 2
+  processes = ["app"]
+
+# Tiny always-on poller: Bearer POST /api/jobs/tick every MCFLY_QUEUE_INTERVAL_MS.
+[[vm]]
+  memory = "512mb"
   cpu_kind = "shared"
   cpus = 1
+  processes = ["worker"]

@@ -7,18 +7,28 @@ import type {
 } from "../types.js";
 
 export type SyncShopSpendOptions = {
-  meta?: { useMock?: boolean; accessToken?: string; adAccountId?: string };
+  meta?: {
+    enabled?: boolean;
+    useMock?: boolean;
+    accessToken?: string;
+    adAccountId?: string;
+  };
   google?: {
+    enabled?: boolean;
     useMock?: boolean;
     developerToken?: string;
     customerId?: string;
     refreshToken?: string;
+    clientId?: string;
+    clientSecret?: string;
+    loginCustomerId?: string;
   };
 };
 
 /**
- * Orchestration stub: pull Meta + Google daily spend and persist via repository.
+ * Orchestration: pull Meta + Google daily spend and persist via repository.
  * Defaults to mock clients until OAuth credentials are wired by a human.
+ * Set `enabled: false` to skip a platform (no silent mock writes).
  */
 export async function syncShopSpend(
   shopId: string,
@@ -28,27 +38,40 @@ export async function syncShopSpend(
   options: SyncShopSpendOptions = {},
 ): Promise<SyncShopSpendResult> {
   const range: SpendSyncRange = { from, to };
+  const metaEnabled = options.meta?.enabled !== false;
+  const googleEnabled = options.google?.enabled !== false;
 
-  const metaClient = createMetaSpendClient({
-    useMock: options.meta?.useMock ?? true,
-    accessToken: options.meta?.accessToken,
-    adAccountId: options.meta?.adAccountId,
-  });
+  const emptyUpsert = { written: 0, skipped: 0, created: 0, updated: 0 };
 
-  const googleClient = createGoogleSpendClient({
-    useMock: options.google?.useMock ?? true,
-    developerToken: options.google?.developerToken,
-    customerId: options.google?.customerId,
-    refreshToken: options.google?.refreshToken,
-  });
+  const metaPromise = metaEnabled
+    ? (async () => {
+        const client = createMetaSpendClient({
+          useMock: options.meta?.useMock ?? true,
+          accessToken: options.meta?.accessToken,
+          adAccountId: options.meta?.adAccountId,
+        });
+        const rows = await client.fetchDailySpend(range);
+        return repository.upsertSpendDays(shopId, rows);
+      })()
+    : Promise.resolve(emptyUpsert);
 
-  const [metaRows, googleRows] = await Promise.all([
-    metaClient.fetchDailySpend(range),
-    googleClient.fetchDailySpend(range),
-  ]);
+  const googlePromise = googleEnabled
+    ? (async () => {
+        const client = createGoogleSpendClient({
+          useMock: options.google?.useMock ?? true,
+          developerToken: options.google?.developerToken,
+          customerId: options.google?.customerId,
+          refreshToken: options.google?.refreshToken,
+          clientId: options.google?.clientId,
+          clientSecret: options.google?.clientSecret,
+          loginCustomerId: options.google?.loginCustomerId,
+        });
+        const rows = await client.fetchDailySpend(range);
+        return repository.upsertSpendDays(shopId, rows);
+      })()
+    : Promise.resolve(emptyUpsert);
 
-  const meta = await repository.upsertSpendDays(shopId, metaRows);
-  const google = await repository.upsertSpendDays(shopId, googleRows);
+  const [meta, google] = await Promise.all([metaPromise, googlePromise]);
 
   return {
     shopId,

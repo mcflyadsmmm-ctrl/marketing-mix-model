@@ -3,15 +3,21 @@ import type {
   MerResponse,
 } from "@mcfly/api-contract";
 import {
+  SAMPLE_DESK_MARGIN_PCT,
+} from "./sample-desk.server";
+import {
   channelMix,
   computeBreakEvenMer,
   computeMer,
   sumSpend,
   SPEND_CHANNEL_LABELS,
-  type SpendChannel,
+  type ChannelSpend,
 } from "@mcfly/mer-engine";
 import prisma from "../db.server";
+import { resolveShopEntitlements } from "./entitlements.server";
 import { buildAllocationSuggestion, getOrCreateSettings, getSpendByChannel } from "./mer-dashboard.server";
+import type { DateRange } from "./periods";
+import { apiQueryDateRange } from "./shopify-sales-api.server";
 
 const CHANNEL_LABELS = SPEND_CHANNEL_LABELS;
 
@@ -20,14 +26,33 @@ export interface DateRangeInput {
   to: string;
 }
 
-function parseDateRange(input: DateRangeInput) {
-  const [fy, fm, fd] = input.from.split("-").map(Number);
-  const [ty, tm, td] = input.to.split("-").map(Number);
-  return {
-    start: new Date(fy, fm - 1, fd),
-    end: new Date(ty, tm - 1, td, 23, 59, 59, 999),
-    label: `${input.from} → ${input.to}`,
-  };
+/**
+ * Spend window for v1 MER/allocation — must match sales (`apiQueryDateRange` +
+ * shop IANA). Never host-local `new Date(y, m, d)` (silent ±1 day vs Overview).
+ */
+export function merApiSpendRange(
+  input: DateRangeInput,
+  ianaTimezone?: string | null,
+): DateRange {
+  return apiQueryDateRange(input.from, input.to, ianaTimezone);
+}
+
+async function loadEntitledSpends(
+  shopId: string,
+  shopDomain: string,
+  range: DateRange,
+  useSampleDesk: boolean,
+): Promise<ChannelSpend[]> {
+  const entitlements = await resolveShopEntitlements(shopDomain, {
+    sampleDesk: useSampleDesk,
+  });
+  const spendOpts = useSampleDesk
+    ? { sampleOnly: true as const }
+    : { excludeSample: true as const };
+  const spends = await getSpendByChannel(shopId, range, spendOpts);
+  if (useSampleDesk || entitlements.canUseAllChannels) return spends;
+  const allowed = new Set(entitlements.allowedChannels);
+  return spends.map((s) => (allowed.has(s.channel) ? s : { ...s, amount: 0 }));
 }
 
 export async function buildMerResponse(
@@ -36,14 +61,23 @@ export async function buildMerResponse(
   sales: number,
   options: { includeAllocation?: boolean } = {},
 ): Promise<MerResponse> {
-  const range = parseDateRange(rangeInput);
   const shop = await prisma.shop.findUniqueOrThrow({ where: { id: shopId } });
+  const range = merApiSpendRange(rangeInput, shop.ianaTimezone);
 
   const settings = await getOrCreateSettings(shop.id);
-  const spends = await getSpendByChannel(shop.id, range);
+  const useSampleDesk = Boolean(settings.useSampleDesk);
+  const spends = await loadEntitledSpends(
+    shop.id,
+    shop.domain,
+    range,
+    useSampleDesk,
+  );
   const totalSpend = sumSpend(spends);
   const mer = computeMer(sales, totalSpend);
-  const breakEvenMer = computeBreakEvenMer(settings.marginPct);
+  const marginPct = useSampleDesk
+    ? SAMPLE_DESK_MARGIN_PCT
+    : settings.marginPct;
+  const breakEvenMer = computeBreakEvenMer(marginPct);
   const mix = channelMix(spends);
 
   const allocation =
@@ -92,10 +126,17 @@ export async function buildAllocationResponse(
   });
   const shop = await prisma.shop.findUniqueOrThrow({ where: { id: shopId } });
   const settings = await getOrCreateSettings(shop.id);
-  const range = parseDateRange(rangeInput);
-  const spends = await getSpendByChannel(shop.id, range);
+  const range = merApiSpendRange(rangeInput, shop.ianaTimezone);
+  const spends = await loadEntitledSpends(
+    shop.id,
+    shop.domain,
+    range,
+    Boolean(settings.useSampleDesk),
+  );
   const totalSpend = sumSpend(spends);
-  const breakEvenMer = computeBreakEvenMer(settings.marginPct);
+  const breakEvenMer = computeBreakEvenMer(
+    settings.useSampleDesk ? SAMPLE_DESK_MARGIN_PCT : settings.marginPct,
+  );
   const allocation = buildAllocationSuggestion(
     spends,
     sales,

@@ -28,6 +28,10 @@ Agents editing Cash MER / desk CSS **must** read this file + `vendor/mer-apps-sc
 
 Multi-brand portfolio tabs · Domo spines · Meta/Google Trends · LTV/Customers CRM · Klaviyo boards · Asana · seed dumps · spreadsheet IDs · API tokens.
 
+### Retired: Monday Close (`/app/close`)
+
+**Out of product** — route redirects Home. Do not port Close ritual chrome. Share Overview (mailto) lives on Overview. See [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md).
+
 ---
 
 ## Parity scorecard (agent must self-score before “done”)

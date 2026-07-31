@@ -18,18 +18,20 @@ Read in order:
 3. docs/PREMIUM_NATIVE_UX_RESEARCH.md §4–§6 + skill .cursor/skills/mcfly-premium-native-ux/SKILL.md
 4. docs/CONTINUOUS_24_7.md
 
-Models: Grok 4.5 / Composer / GPT Sol only — skip Claude if quota-blocked.
+Models: **Grok 4.5 default** / Composer / GPT Sol — skip Claude if quota-blocked.
+
+**Redesign mode (active):** App lane only. Do **NOT** `fly deploy` unless the human explicitly asks in the run prompt. Prefer PR + ship-gate evidence.
 
 Each run:
 1. Orient: curl -sS https://mcfly-analytics.fly.dev/health; git status -sb
-2. Pick next undone AGENT_FIX from PREMIUM_NATIVE_UX_RESEARCH §6 (or critic pass if backlog empty). Usability/Polaris hybrid ONLY.
-3. Refuse: pixels, MTA, path credit, true ROAS, TW feature clones, inventing tabs.
+2. Pick next open item from docs/ENTERPRISE_REDESIGN.md or PREMIUM_NATIVE_UX_RESEARCH §6. Usability/Polaris hybrid + scale architecture ONLY.
+3. Refuse: pixels, MTA, path credit, true ROAS, TW feature clones, inventing tabs, site mega-ticks.
 4. Implement minimal diffs; Apps Script scoreboard craft on Cash MER/Allocation only.
-5. bash scripts/agent-ship-gate.sh — must pass
-6. If app changed and gate passes: fly deploy -a mcfly-analytics --yes (PATH ~/.fly/bin)
+5. bash scripts/agent-ship-gate.sh — must pass (SKIP_HEALTH=1 OK in CI)
+6. **Do not fly deploy** during redesign unless the user message explicitly says deploy.
 7. Short report: shipped / skipped / human gates / next
 
-Stop conditions: human-only Partner/Pages/Submit gates; AGENT_EXHAUSTED when §6 backlog done and no BFS UX gaps — then only light critic + health check, no churn.
+Stop conditions: human-only Partner/Pages/Submit gates; AGENT_EXHAUSTED when redesign backlog done — then only light critic + health check, no churn.
 
 Do not force-push. Do not commit secrets. Commit only if automation policy allows and changes are coherent.
 ```

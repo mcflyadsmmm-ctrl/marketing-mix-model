@@ -15,8 +15,13 @@ const shopify = shopifyApp({
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
-  // Public App Store distribution (Partner Dashboard must also flip Distribution → App Store)
-  distribution: AppDistribution.AppStore,
+  // Production SoT = Public App Store client (bbaee078…).
+  // Set MCFLY_APP_DISTRIBUTION=app_store on Fly. Custom client (88c56d21…) is
+  // archived in shopify.app.custom.toml — Custom distribution cannot use Billing.
+  distribution:
+    process.env.MCFLY_APP_DISTRIBUTION === "app_store"
+      ? AppDistribution.AppStore
+      : AppDistribution.SingleMerchant,
   future: {
     expiringOfflineAccessTokens: true,
   },

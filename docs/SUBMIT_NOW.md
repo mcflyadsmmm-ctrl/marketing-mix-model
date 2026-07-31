@@ -1,5 +1,7 @@
 # Submit now — baby-proof human checklist
 
+**One-pager at the keyboard:** [`docs/ops/SUBMIT_HANDOFF.md`](./ops/SUBMIT_HANDOFF.md)
+
 Do these steps **in order**. After each step, reply in Cursor with the bold phrase so the agent can verify.
 
 **App:** Mcfly Analytics · **Pricing must be Free** · cash MER = sales ÷ spend  
@@ -15,7 +17,8 @@ Refuse: pixels / MTA / “true ROAS” / Triple Whale clones.
 
 ### 0. Open Partner app (once)
 
-1. Go to: https://dev.shopify.com/dashboard/227535001/apps/400772497409  
+1. Go to: https://dev.shopify.com/dashboard/227535001/apps/403721814017  
+   (**Mcfly Analytics Public** — not the Custom app `400772497409`)  
 2. Sign in as the Partner owner if asked  
 
 ---
@@ -30,26 +33,45 @@ Reply: **`distribution done`**
 
 ---
 
-### 2. Protected Customer Data (PCD)
+### 2. Protected Customer Data (PCD) — **before** Submit
 
-1. Open the **Protected customer data** / data access request for this app  
-2. Request access for **orders** + minimal **customers**  
-3. Paste answers from `APP_STORE_LISTING.md` → section **Protected Customer Data (PCD)**  
-4. Confirm you said: opaque `id` + `numberOfOrders` only — **no** name / email / phone / address / CRM  
+**Read first:** [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) — Level 1 vs 2 in plain English.
+
+Shopify: you **cannot** apply for PCD while the app is already under review. Do this now.
+
+1. Open **API access** → **Protected customer data access**  
+2. Request **Level 1 only**: check **Protected customer data**  
+3. Leave **name / address / email / phone unchecked** (Level 2 — slower review; **not** needed for cash MER or till LTV)  
+4. Paste answers from `APP_STORE_LISTING.md` → section **Protected Customer Data (PCD)**  
+5. Confirm: opaque `id` + `numberOfOrders` only — **no** CRM  
+
+**LTV later:** till LTV (opaque cohorts) stays on Level 1. You can request Level 2 **after launch** if you ever need email/name CRM — optional, not required for the LTV feature you want.
 
 Reply: **`pcd done`**
 
 ---
 
-### 3. Publish trust pages (before reviewers click them)
+### 2b. Emergency developer contact (Partner Settings)
 
-Reviewers open Website / Privacy / Support / Terms from the listing. Live pages must match Free + PCD.
+Shopify requires an emergency email + phone for critical app issues ([submit guide](https://shopify.dev/docs/apps/launch/app-store-review/submit-app-for-review)).
 
-1. Publish Cloudflare Pages from local `site/**` (or your usual Pages deploy)  
-2. Spot-check live:  
-   - https://mcflyads.com/support — says App Store **Free** (not invite-only)  
-   - https://mcflyads.com/pricing — Free now / paid later via Billing  
-   - https://mcflyads.com/privacy — mentions order totals + opaque id / `numberOfOrders`  
+1. Partner / Dev Dashboard → account or app **Settings** → emergency developer contact  
+2. Add a monitored **email** (no “Shopify” in the address) + **phone**  
+3. Allowlist `noreply@shopify.com` so review mail isn’t junked  
+
+Reply: **`emergency contact done`**
+
+---
+
+### 3. Spot-check trust pages (before reviewers click them)
+
+Reviewers open Website / Privacy / Support / Terms from the listing. Live pages should already match Free + PCD (verified 2026-07-26). Still spot-check:
+
+1. https://mcflyads.com/support — App Store **Free** primary (Partner invite secondary email only)  
+2. https://mcflyads.com/pricing — Free when listed / paid later via Billing  
+3. https://mcflyads.com/privacy — order totals + opaque id / `numberOfOrders`  
+4. https://mcflyads.com/terms — App Store Free primary (not invite-only)  
+5. https://mcflyads.com/download — App Store Free primary; Partner invite secondary email only  
 
 Reply: **`pages live`**
 
@@ -85,20 +107,30 @@ Open App Store listing fields. Paste from `APP_STORE_LISTING.md`:
 Set pricing to **Free**.  
 Do **not** enable paid plans or Shopify Billing charges yet.
 
-#### 5c. Capture 5 screenshots
-1. **Demo** → Load 3-year sample → Turn sample desk **ON** → use **Prepare listing shots** if shown  
-2. Capture each URL (crop Admin iframe ~1600×900, **no** browser chrome):  
+#### 5b-HUMAN. Works with
+**Leave Works with blank.** Mcfly has no Checkout UI extension — do not select Checkout. Never add Meta / Google / SyncWith. (Checkout only later if a real Checkout surface ships.)
 
-| # | Path | Caption |
+#### 5c. Screenshots (founder pack — almost ready)
+**4 of 5** letterboxed PNGs are in `docs/listing-assets/shots/` — captions in [`CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md).
+
+| # | Upload file | Caption |
 | --- | --- | --- |
-| 1 | `/app?period=y3&shot=1` | Cash MER vs break-even — one glance |
-| 2 | `/app?period=ytd&shot=1` | Sales ÷ spend — the only formula we use |
-| 3 | `/app/spend?shot=1` | Upload daily spend — all channels + Other |
-| 4 | `/app/allocation?period=y3&shot=1` | One clear cut / shift / hold call |
-| 5 | `/app/settings?shot=1` | Lock break-even from your margin % |
+| 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
+| 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
+| 3 | `03-margin-breakeven.png` | Lock break-even from your margin % |
+| 4 | `04-free-pro-pricing.png` | Free Meta + Google · Pro unlocks channels + LTV |
+| 5 | **Still capture** `/app/spend?shot=1` (or Allocation) | Select platforms → export daily → combine |
 
-3. Upload **icon** + **5 screenshots** in that order  
-4. **Demo** → Turn sample desk **OFF** again  
+**Do not upload** `05-HOLD-marketing-site-do-not-upload.png` (marketing site ≠ App Store app UI).
+
+1. Upload **icon** + screenshots **1–4**, then shot **5** when captured  
+2. **Demo** → Turn sample desk **OFF** again  
+
+#### 5d. Demo screencast (required listing package)
+Short Loom/screen recording showing: install → margin → CSV spend upload → Cash MER. Upload on the App Store review / listing form where “demo video / screencast” is requested.
+
+#### 5e. Partner automated checks
+On the App Store review page, run Shopify’s **automated checks** and fix any failures before Submit.
 
 Reply: **`assets uploaded`**
 
@@ -107,8 +139,9 @@ Reply: **`assets uploaded`**
 ### 6. Submit
 
 1. Re-check: Pricing = **Free**, App URL = `https://mcfly-analytics.fly.dev` (not mcflyads.com)  
-2. Re-check: sample desk **OFF** on the test store  
-3. Click **Submit** for review  
+2. Re-check: sample desk **OFF** on the test store (never leave SAMPLE + `?shot=1` as the reviewer path — **1.1.4**)  
+3. Re-check: testing instructions + store credentials filled for reviewers  
+4. Click **Submit** for review  
 
 Reply: **`submitted`**
 

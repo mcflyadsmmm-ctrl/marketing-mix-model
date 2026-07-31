@@ -3,11 +3,16 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { useLoaderData, useNavigation, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import {
+  SPEND_CHANNEL_LABELS,
+  type SpendChannel,
+} from "@mcfly/mer-engine";
 import { authenticate } from "../shopify.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
+import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import {
   SpendExplorer,
   type SpendExplorerSeriesView,
@@ -16,18 +21,30 @@ import {
   buildDashboardMetrics,
   buildSpendExplorerSeries,
   ensureShop,
-  type DailySpineDay,
+  getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
-import {
-  formatCurrency,
-  formatMer,
-  formatPercent,
-} from "../lib/mer-format";
+import { channelFillKey } from "../lib/channel-fill";
+import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
+import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
+import { formatOverviewShareText } from "../lib/cash-close";
+import { ShareOverviewButton } from "../components/ShareOverviewButton";
+import { ProUpsellBlock } from "../components/ProUpsellBlock";
+import { TotalRoasGauge } from "../components/TotalRoasGauge";
+import { PRO_UPSELL } from "../lib/entitlements";
 import {
-  fetchShopifySales,
-  fetchShopifySalesByDay,
+  emptySales,
+  type SalesResult,
 } from "../lib/shopify-sales.server";
+import {
+  runSalesFactsBackfill,
+  getSalesFactsCoverage,
+  getSalesFactsTotals,
+  getSalesFactsByDay,
+  loadDeskSalesForPeriod,
+  type SalesFactsCoverage,
+} from "../lib/sales-facts.server";
+import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import {
   parsePeriodPreset,
   resolvePeriod,
@@ -39,294 +56,95 @@ import {
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
+import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
+  dateKeyFromLocal,
+  parseExplorerDateParam,
   parseExplorerGranularity,
   parseExplorerMode,
   parseExplorerRange,
+  parseExplorerShowSales,
   resolveExplorerWindow,
 } from "../lib/spend-explorer";
-import {
-  SPEND_CHANNEL_LABELS,
-  type SpendChannel,
-} from "@mcfly/mer-engine";
 
-function deltaClass(
-  mer: number | null,
-  rail: number | null,
-): "up" | "down" | "flat" {
-  if (mer == null || rail == null) return "flat";
-  if (mer >= rail) return "up";
-  if (mer >= rail * 0.85) return "flat";
-  return "down";
+function channelDisplayLabel(channel: string): string {
+  return SPEND_CHANNEL_LABELS[channel as SpendChannel] ?? channel;
 }
 
-function pctDeltaClass(pct: number | null): "up" | "down" | "flat" {
-  if (pct == null || Math.abs(pct) < 0.5) return "flat";
-  return pct > 0 ? "up" : "down";
+/** Compact prior-period label for KPI deltas. */
+function deltaVsLabel(priorLabel: string | undefined): string {
+  if (!priorLabel) return "prior";
+  const label = priorLabel.trim();
+  if (/^prior ytd$/i.test(label)) return "YoY";
+  if (label.length > 32) return `${label.slice(0, 29)}…`;
+  return label;
 }
 
-function merAbsDeltaClass(abs: number | null): "up" | "down" | "flat" {
-  if (abs == null || Math.abs(abs) < 0.01) return "flat";
-  return abs > 0 ? "up" : "down";
-}
-
-function formatPctDelta(pct: number | null): string {
-  if (pct == null) return "vs prior —";
+function formatPctDelta(pct: number | null, priorLabel?: string): string {
+  const vs = deltaVsLabel(priorLabel);
+  if (pct == null) return vs === "YoY" ? "YoY —" : `vs ${vs} —`;
   const sign = pct > 0 ? "+" : "";
-  return `${sign}${pct.toFixed(0)}% vs prior`;
-}
-
-function formatMerAbsDelta(abs: number | null): string {
-  if (abs == null) return "vs prior —";
-  const sign = abs > 0 ? "+" : "";
-  return `${sign}${abs.toFixed(2)}× vs prior`;
-}
-
-function decisionTakeaway(metrics: {
-  mer: number | null;
-  targetMer: number;
-  breakEvenMer: number | null;
-  aboveBreakEven: boolean | null;
-  sales: number;
-  totalSpend: number;
-  control: { projMer: number | null; railOk: boolean } | null;
-}): string {
-  const target = metrics.targetMer;
-  const { mer } = metrics;
-  if (mer == null) {
-    return "Add spend to unlock cash MER — Shopify sales are on the till; the scoreboard needs the other half.";
-  }
-  const bits: string[] = [];
-  const proj = metrics.control?.projMer ?? null;
-  if (metrics.control?.railOk) {
-    bits.push(
-      `Protect the ${formatMer(target)} rail · MER ${formatMer(mer)} · EOM projected ${formatMer(proj)}`,
-    );
-  } else if (metrics.aboveBreakEven) {
-    bits.push(
-      `Above break-even but below ${formatMer(target)} · MER ${formatMer(mer)} · EOM ${formatMer(proj)} — tighten mix before month close`,
-    );
-  } else {
-    bits.push(
-      `Below break-even ${formatMer(metrics.breakEvenMer)} · MER ${formatMer(mer)} · EOM ${formatMer(proj)} — reallocate or cut`,
-    );
-  }
-  if (metrics.sales > 0 && target > 0) {
-    const headroom = metrics.sales / target - metrics.totalSpend;
-    bits.push(
-      headroom >= 0
-        ? `${formatCurrency(headroom)} safe-spend headroom at the rail`
-        : `${formatCurrency(Math.abs(headroom))} over target-safe spend`,
-    );
-  }
-  return bits.join(" · ");
-}
-
-type DecisionVerb = {
-  label: string;
-  href: string;
-  primary: boolean;
-};
-
-function decisionVerbs(
-  metrics: {
-    mer: number | null;
-    allocation: {
-      actions: Array<{
-        type: "cut" | "shift" | "hold" | "watch";
-        channel: string;
-        percentChange?: number;
-      }>;
-    } | null;
-  },
-  preset: PeriodPreset,
-): DecisionVerb[] {
-  const allocHref = `/app/allocation?period=${preset}`;
-  if (metrics.mer == null) {
-    return [
-      { label: "Add spend", href: "/app/spend", primary: true },
-      { label: "Open allocation", href: allocHref, primary: false },
-    ];
-  }
-
-  const action = metrics.allocation?.actions[0];
-  if (!action) {
-    return [
-      { label: "Open allocation", href: allocHref, primary: true },
-      { label: "Log spend", href: "/app/spend", primary: false },
-    ];
-  }
-
-  const channel = action.channel && action.channel !== "—" ? action.channel : "mix";
-  const pct =
-    action.percentChange != null
-      ? ` ${action.percentChange > 0 ? "+" : ""}${action.percentChange}%`
-      : "";
-
-  let label: string;
-  switch (action.type) {
-    case "cut":
-      label = `Cut ${channel}${pct}`;
-      break;
-    case "shift":
-      label = `Shift toward ${channel}${pct}`;
-      break;
-    case "hold":
-      label = `Hold ${channel}`;
-      break;
-    case "watch":
-      label = "Watch mix";
-      break;
-    default: {
-      const _exhaustive: never = action.type;
-      void _exhaustive;
-      label = "Open allocation";
-    }
-  }
-
-  return [
-    { label, href: allocHref, primary: true },
-    { label: "Log spend", href: "/app/spend", primary: false },
-  ];
-}
-
-function spineSubtitle(
-  spine: DailySpineDay[],
-  targetMer: number,
-): string {
-  const spendDays = spine.filter((d) => d.spend > 0).length;
-  const railDays = spine.filter((d) => d.aboveTarget === true).length;
-  if (spendDays === 0) {
-    return `Cash MER = sales ÷ spend · closed days only · dashed rail = ${formatMer(targetMer)} target`;
-  }
-  return `${railDays} of ${spendDays} spend days ≥ the ${formatMer(targetMer)} rail · closed days only`;
-}
-
-function stackMaxSpend(spine: DailySpineDay[]): number {
-  let max = 0;
-  for (const day of spine) {
-    if (day.spend > max) max = day.spend;
-  }
-  return max > 0 ? max : 1;
-}
-
-function merRailTop(spine: DailySpineDay[], targetMer: number): number {
-  let max = targetMer > 0 ? targetMer : 1;
-  for (const day of spine) {
-    if (day.mer != null && day.mer > max) max = day.mer;
-  }
-  return max * 1.08;
-}
-
-type ChannelAction = {
-  type: "cut" | "shift" | "hold" | "watch";
-  percentChange?: number;
-};
-
-function channelActionMap(
-  actions:
-    | Array<{
-        type: "cut" | "shift" | "hold" | "watch";
-        channel: string;
-        percentChange?: number;
-      }>
-    | undefined,
-): Map<SpendChannel, ChannelAction> {
-  const map = new Map<SpendChannel, ChannelAction>();
-  if (!actions) return map;
-  const labelToChannel = new Map<string, SpendChannel>();
-  for (const [key, label] of Object.entries(SPEND_CHANNEL_LABELS) as Array<
-    [SpendChannel, string]
-  >) {
-    labelToChannel.set(label.toLowerCase(), key);
-    labelToChannel.set(key.toLowerCase(), key);
-  }
-  for (const action of actions) {
-    if (action.type === "watch") continue;
-    const key = labelToChannel.get(action.channel.toLowerCase());
-    if (!key) continue;
-    // Prefer cut over shift/hold when both mention a channel
-    const existing = map.get(key);
-    if (existing?.type === "cut") continue;
-    map.set(key, {
-      type: action.type,
-      percentChange: action.percentChange,
-    });
-  }
-  return map;
-}
-
-function actionBadgeLabel(action: ChannelAction): string {
-  const pct =
-    action.percentChange != null
-      ? ` ${action.percentChange > 0 ? "+" : ""}${action.percentChange}%`
-      : "";
-  switch (action.type) {
-    case "cut":
-      return `Cut${pct}`;
-    case "shift":
-      return `Shift${pct}`;
-    case "hold":
-      return "Hold";
-    case "watch":
-      return "Watch";
-    default: {
-      const _exhaustive: never = action.type;
-      return _exhaustive;
-    }
-  }
+  if (vs === "YoY") return `${sign}${pct.toFixed(0)}% YoY`;
+  return `${sign}${pct.toFixed(0)}% vs ${vs}`;
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
-  const preset = parsePeriodPreset(url.searchParams.get("period"));
   const shotMode = url.searchParams.get("shot") === "1";
-  const exRange = parseExplorerRange(url.searchParams.get("exRange"));
+  const rawPeriod = url.searchParams.get("period");
+  const preset = parsePeriodPreset(rawPeriod);
+  // y3 stays shot-only (listing captures). L12M is a desk preset — do not redirect.
+  if (!shotMode && preset === "y3") {
+    const next = new URLSearchParams(url.searchParams);
+    next.set("period", "ytd");
+    throw redirect(`/app?${next.toString()}`);
+  }
+  // Desk default: short window (14d) when explorer range unset.
+  const exRange = parseExplorerRange(url.searchParams.get("exRange") || "14d");
   const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
-  const range = resolvePeriod(preset);
-  const priorRange = resolvePriorPeriod(preset);
+  const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
+  const exFrom = parseExplorerDateParam(url.searchParams.get("exFrom"));
+  const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
   const shop = await ensureShop(session.shop);
+  await getOrCreateSettings(shop.id);
+  // Overview locks to Shopify Total Sales (after returns) — no Net toggle on this desk.
+  const salesBasis = "total" as const;
+  const ianaTimezone = shop.ianaTimezone;
+  const now = new Date();
+  // Shop-local calendar when IANA is known; otherwise legacy server-local edges.
+  const range = resolvePeriod(preset, now, ianaTimezone);
+  const priorRange = resolvePriorPeriod(preset, now, ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
 
-  let sales;
-  let priorSales = { totalSales: 0 };
+  let sales: SalesResult = emptySales("shopify");
+  /** Null when prior facts are outside the window / failed — skip deltas (never fake 0). */
+  let priorSales: { totalSales: number } | null = null;
   let salesError: string | null = null;
+  let todaySalesUnavailable = false;
+  let todaySalesTruncated = false;
   let salesByDay = new Map<string, number>();
   let explorerCustomers = {
     newCustomers: 0,
     returningCustomers: 0,
     customerMetricsAvailable: false,
   };
+  let salesFactsCoverageForBanner: SalesFactsCoverage | null = null;
+  /** Stamp only after a successful desk load — never before. */
+  let salesPulledAt: string | null = null;
 
-  // Spine window: last 14 closed local days (exclude incomplete today)
-  const spineEnd = new Date();
-  spineEnd.setHours(0, 0, 0, 0);
-  spineEnd.setDate(spineEnd.getDate() - 1);
-  spineEnd.setHours(23, 59, 59, 999);
-  const spineStart = new Date(spineEnd);
-  spineStart.setHours(0, 0, 0, 0);
-  spineStart.setDate(spineStart.getDate() - 13);
-  const spineRange = {
-    start: spineStart,
-    end: spineEnd,
-    label: "14 closed days",
-  };
-
-  const explorerWindow = resolveExplorerWindow(exRange);
-  // Fetch the wider window so spine + explorer share one by-day pull.
+  const explorerWindow = resolveExplorerWindow(exRange, now, {
+    from: exFrom,
+    to: exTo,
+    // SAMPLE stamps UTC calendar days — don't shift explorer edges to shop-local.
+    timeZone: useSampleDesk ? null : ianaTimezone,
+  });
   const dayFetchRange = {
-    start:
-      explorerWindow.start < spineRange.start
-        ? explorerWindow.start
-        : spineRange.start,
-    end:
-      explorerWindow.end > spineRange.end ? explorerWindow.end : spineRange.end,
+    start: explorerWindow.start,
+    end: explorerWindow.end,
     label: explorerWindow.label,
   };
-
-  const salesPulledAt = new Date().toISOString();
 
   if (useSampleDesk) {
     const [sampleSales, samplePrior, sampleExplorer] = await Promise.all([
@@ -346,65 +164,99 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       returningCustomers: sampleExplorer.returningCustomers,
       customerMetricsAvailable: sampleExplorer.customerMetricsAvailable,
     };
+    salesPulledAt = new Date().toISOString();
   } else {
+    /*
+     * HARD-STOP (enterprise): desk paint NEVER starts unbounded fetchShopifySales /
+     * fetchShopifySalesByDay for the selected period, prior, or explorer window —
+     * that dies at 100k–1M orders on L12M / 3yr / incomplete coverage.
+     *
+     * Always serve stored SalesDayFact (+ honesty banners when incomplete /
+     * periodExceedsFactWindow). Live GraphQL is only the capped "today" top-up
+     * (LIVE_TODAY_MAX_PAGES). Fire-and-forget backfill stays chunked (maxDays: 2).
+     */
+    let mainCoverage: SalesFactsCoverage = {
+      expectedClosedDays: 0,
+      factDays: 0,
+      complete: false,
+      periodExceedsFactWindow: false,
+    };
+    let dayCoverage: SalesFactsCoverage = {
+      expectedClosedDays: 0,
+      factDays: 0,
+      complete: false,
+      periodExceedsFactWindow: false,
+    };
     try {
-      const [liveSales, livePrior, liveExplorer] = await Promise.all([
-        fetchShopifySales(admin, range),
-        fetchShopifySales(admin, priorRange).catch(() => ({
-          totalSales: 0,
-          orderCount: 0,
-          newCustomers: 0,
-          returningCustomers: 0,
-          guestOrders: 0,
-          customerMetricsAvailable: false,
-          source: "shopify" as const,
-        })),
-        fetchShopifySales(admin, {
-          start: explorerWindow.start,
-          end: explorerWindow.end,
-          label: explorerWindow.label,
-        }).catch(() => ({
-          totalSales: 0,
-          orderCount: 0,
-          newCustomers: 0,
-          returningCustomers: 0,
-          guestOrders: 0,
-          customerMetricsAvailable: false,
-          source: "shopify" as const,
-        })),
+      [mainCoverage, dayCoverage] = await Promise.all([
+        getSalesFactsCoverage(shop.id, range, now, ianaTimezone),
+        getSalesFactsCoverage(shop.id, dayFetchRange, now, ianaTimezone),
       ]);
-      sales = liveSales;
-      priorSales = { totalSales: livePrior.totalSales };
-      explorerCustomers = {
-        newCustomers: liveExplorer.newCustomers,
-        returningCustomers: liveExplorer.returningCustomers,
-        customerMetricsAvailable: liveExplorer.customerMetricsAvailable,
-      };
-      try {
-        salesByDay = await fetchShopifySalesByDay(admin, dayFetchRange);
-      } catch {
-        salesByDay = new Map();
-      }
-    } catch (err) {
-      salesError = err instanceof Error ? err.message : "Failed to load Shopify sales";
-      // Honest empty till — never fall back to mockSales as live Shopify.
-      sales = {
-        totalSales: 0,
-        orderCount: 0,
-        newCustomers: 0,
-        returningCustomers: 0,
-        guestOrders: 0,
-        customerMetricsAvailable: false,
-        source: "shopify" as const,
-      };
+    } catch {
+      // Coverage read failed — still facts-only below (never unbounded live crawl).
     }
+
+    // Chunked resume only — never full history inside this request.
+    if (!mainCoverage.complete || !dayCoverage.complete) {
+      void runSalesFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+        // ignore — banners disclose incomplete facts
+      });
+    }
+    // Till LTV OrderFact ingest — throttled like sales facts (≤2 closed days / paint).
+    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+      // ignore — panel shows empty/backfilling until cohorts land
+    });
+
+    const desk = await loadDeskSalesForPeriod({
+      admin,
+      shopId: shop.id,
+      range,
+      ianaTimezone,
+      now,
+    });
+    sales = desk.sales;
+    salesError = desk.salesError;
+    todaySalesUnavailable = desk.todaySalesUnavailable;
+    todaySalesTruncated = desk.todaySalesTruncated;
+    salesFactsCoverageForBanner = desk.factsCoverage ?? mainCoverage;
+    // Freshness only after a successful facts load; unavailable today → null chip.
+    salesPulledAt =
+      desk.salesError || desk.todaySalesUnavailable
+        ? null
+        : new Date().toISOString();
+
+    try {
+      const [priorFacts, priorCoverage] = await Promise.all([
+        getSalesFactsTotals(shop.id, priorRange, now),
+        getSalesFactsCoverage(shop.id, priorRange, now, ianaTimezone),
+      ]);
+      // Clamped/incomplete prior → skip deltas (never fake priorMer=0 improvement).
+      priorSales =
+        priorFacts.rangeClampedToFactWindow || !priorCoverage.complete
+          ? null
+          : { totalSales: priorFacts.totalSales };
+    } catch {
+      priorSales = null;
+    }
+
+    try {
+      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange);
+    } catch {
+      salesByDay = new Map();
+    }
+    // Explorer new/returning needs a unique cross-day crawl — refused on paint.
+    explorerCustomers = {
+      newCustomers: 0,
+      returningCustomers: 0,
+      customerMetricsAvailable: false,
+    };
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesByDay,
-    priorSales,
-    priorRange,
-    salesPulledAt: salesError ? null : salesPulledAt,
+    ...(priorSales != null ? { priorSales, priorRange } : {}),
+    salesPulledAt,
+    salesBasis,
   });
 
   const explorerSeries = await buildSpendExplorerSeries(shop.id, {
@@ -418,51 +270,92 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     newCustomers: explorerCustomers.newCustomers,
     returningCustomers: explorerCustomers.returningCustomers,
     customerMetricsAvailable: explorerCustomers.customerMetricsAvailable,
+    timeZone: useSampleDesk ? null : ianaTimezone,
   });
+
+  const explorerTz = useSampleDesk ? null : ianaTimezone;
+  const explorerDayKey = (instant: Date) =>
+    explorerTz
+      ? shopLocalDayKey(instant, explorerTz)
+      : dateKeyFromLocal(instant);
 
   const explorer: SpendExplorerSeriesView = {
     buckets: explorerSeries.buckets,
     summary: explorerSeries.summary,
     mode: explorerSeries.mode,
     granularity: explorerSeries.granularity,
-    range: exRange,
+    range: explorerWindow.range,
     windowLabel: explorerWindow.label,
     targetMer: explorerSeries.targetMer,
+    breakEvenMer: metrics.breakEvenMer,
+    showSales: exSales,
+    fromKey: explorerDayKey(explorerWindow.start),
+    toKey: explorerDayKey(explorerWindow.end),
+    asOfKey: explorerDayKey(explorerWindow.end),
   };
+
+  const shareTz = useSampleDesk ? null : ianaTimezone;
+  const shareDayKey = (instant: Date) =>
+    shareTz
+      ? shopLocalDayKey(instant, shareTz)
+      : instant.toISOString().slice(0, 10);
 
   return {
     metrics,
     salesError,
+    todaySalesUnavailable,
+    todaySalesTruncated,
     preset,
     useSampleDesk,
     shotMode,
     explorer,
+    salesFactsCoverage: salesFactsCoverageForBanner,
+    shareSubject: `Total ROAS — ${metrics.period.label}`,
+    sharePeriodStartDay: shareDayKey(metrics.period.start),
+    sharePeriodEndDay: shareDayKey(metrics.period.end),
+    shopLabel: session.shop,
   };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  // Overview locks to Shopify Total Sales — sales basis is Settings-only.
   await authenticate.admin(request);
   return null;
 };
 
 export default function Dashboard() {
-  const { metrics, preset, salesError, useSampleDesk, shotMode, explorer } =
-    useLoaderData<typeof loader>();
+  const {
+    metrics,
+    preset,
+    salesError,
+    todaySalesUnavailable,
+    todaySalesTruncated,
+    useSampleDesk,
+    shotMode,
+    explorer,
+    salesFactsCoverage,
+    shareSubject,
+    sharePeriodStartDay,
+    sharePeriodEndDay,
+    shopLabel,
+  } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
-
-  const merDelta = deltaClass(metrics.mer, metrics.targetMer);
-  const beDelta = deltaClass(metrics.mer, metrics.breakEvenMer);
-  const takeaway = decisionTakeaway(metrics);
-  const verbs = decisionVerbs(metrics, preset);
   // Never label mock / blocked sales as live Shopify when sample is off.
-  const tillLabel = shotMode
-    ? metrics.period.label
-    : useSampleDesk
-      ? `${metrics.period.label} · sample till`
-      : metrics.blockedMockAsLive || metrics.salesSource === "mock"
-        ? `${metrics.period.label} · till unavailable`
-        : `${metrics.period.label} · live Shopify till`;
+  // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
+  const tillLabel = useSampleDesk
+    ? `${metrics.period.label} · SAMPLE`
+    : shotMode
+      ? metrics.period.label
+      : salesError ||
+          metrics.blockedMockAsLive ||
+          metrics.salesSource === "mock"
+        ? `${metrics.period.label} · sales unavailable`
+        : salesFactsCoverage != null &&
+            !salesFactsCoverage.complete &&
+            !salesFactsCoverage.periodExceedsFactWindow
+          ? `${metrics.period.label} · facts incomplete`
+          : `${metrics.period.label} · live sales`;
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk,
     salesPulledAt: metrics.freshness.salesPulledAt,
@@ -470,82 +363,193 @@ export default function Dashboard() {
     source: metrics.freshness.source,
     spendUpdatedAt: metrics.freshness.spendUpdatedAt,
   });
-
-  const spine = metrics.dailySpine ?? [];
-  const control = metrics.control;
-  const deltas = metrics.deltas;
-  const maxSpend = stackMaxSpend(spine);
-  const merCeil = merRailTop(spine, metrics.targetMer);
-  const targetRailPct =
-    merCeil > 0 ? Math.min(100, (metrics.targetMer / merCeil) * 100) : 0;
-  const stackHasSpend = spine.some((d) => d.spend > 0);
+  /** Margin is optional (BE only). Total ROAS never waits on Settings margin. */
+  const marginBlocked = false;
   /** Live install, no spend yet — Polaris Empty owns the body; scoreboard waits. */
-  const zeroSpendEmpty =
+  const spendBlocked =
     !metrics.onboarding.hasSpend && !useSampleDesk && !shotMode;
-  /** Margin unset / zero → no break-even line; one sentence + Settings. */
-  const zeroMargin =
-    metrics.breakEvenMer == null && !zeroSpendEmpty && !shotMode;
-  const headroomMonth = control?.headroomMonth ?? 0;
-  const headroomPeriod = control?.headroomPeriod ?? 0;
-  const headroomDay = control?.headroomDay ?? 0;
-  const projDelta = deltaClass(control?.projMer ?? null, metrics.targetMer);
-  const actionsByChannel = channelActionMap(metrics.allocation?.actions);
+  /** Both missing: one empty with Settings primary (do not let spend swallow margin). */
+  const bothBlockedEmpty = marginBlocked && spendBlocked;
+  /** Spend missing, margin OK. */
+  const spendOnlyEmpty = spendBlocked && !marginBlocked;
+  /** Margin missing, spend present — empty owns the body; scoreboard waits. */
+  const marginOnlyEmpty = marginBlocked && !spendBlocked;
+  const coldEmpty = marginOnlyEmpty || bothBlockedEmpty || spendOnlyEmpty;
+  // Never paint Total ROAS scoreboard from emptySales zeros after a load failure.
+  const scoreboardReady =
+    !spendBlocked && !marginBlocked && !salesError;
 
-  const merDeltaLine = [
-    `Target ${formatMer(metrics.targetMer)}`,
-    metrics.breakEvenMer != null ? `BE ${formatMer(metrics.breakEvenMer)}` : null,
-    deltas ? formatMerAbsDelta(deltas.merAbs) : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
+  const deltas = metrics.deltas;
+  const priorLabel = deltas?.priorLabel;
   const salesDeltaLine = deltas
-    ? formatPctDelta(deltas.salesPct)
+    ? formatPctDelta(deltas.salesPct, priorLabel)
     : metrics.orderCount > 0
       ? `${metrics.orderCount.toLocaleString()} orders · AOV ${formatCurrency(metrics.sales / metrics.orderCount)}`
       : `${metrics.orderCount.toLocaleString()} orders`;
-
   const spendDeltaLine = deltas
-    ? formatPctDelta(deltas.spendPct)
-    : (control?.densityLabel ?? metrics.period.label);
+    ? formatPctDelta(deltas.spendPct, priorLabel)
+    : null;
+  const merDeltaLine = deltas
+    ? formatPctDelta(
+        deltas.priorMer != null && deltas.priorMer > 0 && metrics.mer != null
+          ? ((metrics.mer - deltas.priorMer) / deltas.priorMer) * 100
+          : null,
+        priorLabel,
+      )
+    : null;
+  const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
+  const periodChannels = [...metrics.channelMix]
+    .filter((entry) => entry.amount > 0)
+    .sort((a, b) => b.amount - a.amount)
+    .map((entry) => {
+      const name = channelDisplayLabel(entry.channel);
+      return {
+        name,
+        amount: entry.amount,
+        share: entry.share,
+        fill: channelFillKey(name),
+      };
+    });
+
+  const shareText = formatOverviewShareText({
+    periodLabel: metrics.period.label,
+    periodStartDay: sharePeriodStartDay,
+    periodEndDay: sharePeriodEndDay,
+    totalSales: totalSalesDisplay,
+    totalSpend: metrics.totalSpend,
+    mer: metrics.mer,
+    breakEvenMer: metrics.breakEvenMer,
+    marginPct: metrics.marginPct,
+    spendIncomplete: Boolean(metrics.spendCoverage?.incomplete),
+    shopLabel,
+    channels: periodChannels,
+    salesDeltaLine,
+    spendDeltaLine,
+  });
+
+  const trustBanners = (
+    <CashTrustBanners
+      blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
+      spendCoverage={
+        !useSampleDesk && metrics.onboarding.hasSpend
+          ? metrics.spendCoverage
+          : null
+      }
+      periodLabel={metrics.period.label}
+      shopifyOrderWindowLimited={
+        !useSampleDesk &&
+        Boolean(salesFactsCoverage?.periodExceedsFactWindow)
+      }
+      salesFactsIncomplete={
+        !useSampleDesk &&
+        salesFactsCoverage != null &&
+        !salesFactsCoverage.complete &&
+        !salesFactsCoverage.periodExceedsFactWindow
+          ? {
+              factDays: salesFactsCoverage.factDays,
+              expectedClosedDays: salesFactsCoverage.expectedClosedDays,
+            }
+          : null
+      }
+      todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
+      todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
+      shotMode={shotMode}
+      cashActionReady={metrics.cashActionReady}
+      spendRecon={
+        !useSampleDesk && metrics.onboarding.hasSpend
+          ? metrics.spendRecon
+          : null
+      }
+      belowBreakEven={
+        metrics.cashActionReady &&
+        metrics.breakEvenMer != null &&
+        metrics.aboveBreakEven === false
+          ? {
+              mer: metrics.mer,
+              breakEvenMer: metrics.breakEvenMer,
+              totalSpend: metrics.totalSpend,
+            }
+          : null
+      }
+      marginStale={!useSampleDesk && Boolean(metrics.marginStale)}
+      onboarding={
+        !useSampleDesk &&
+        !shotMode &&
+        !marginBlocked &&
+        !spendBlocked
+          ? {
+              settingsSaved: metrics.onboarding.settingsSaved,
+              hasSpend: metrics.onboarding.hasSpend,
+            }
+          : null
+      }
+    />
+  );
 
   return (
-    <s-page heading={shotMode ? undefined : "Cash MER"} inlineSize="large">
+    <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
+      {!shotMode ? (
+        useSampleDesk ? (
+          <s-button
+            slot="primary-action"
+            variant="primary"
+            href="/app/demo"
+            aria-label={PRODUCT_NOUN.samplePreviewOffReviewTitle}
+          >
+            {PRODUCT_NOUN.samplePreviewOffReviewTitle}
+          </s-button>
+        ) : metrics.cashActionReady ? (
+          <s-button
+            slot="primary-action"
+            variant="primary"
+            href="/app/spend"
+            aria-label="Update spend"
+          >
+            Update spend
+          </s-button>
+        ) : marginBlocked ? (
+          <s-button
+            slot="primary-action"
+            variant="primary"
+            href="/app/settings"
+            aria-label={PRODUCT_NOUN.setupAdjustMargin}
+          >
+            {PRODUCT_NOUN.setupAdjustMargin}
+          </s-button>
+        ) : (
+          <s-button
+            slot="primary-action"
+            variant="primary"
+            href="/app/spend"
+            aria-label={PRODUCT_NOUN.setupAddSpend}
+          >
+            {PRODUCT_NOUN.setupAddSpend}
+          </s-button>
+        )
+      ) : null}
       <div
-        className={
-          shotMode
-            ? "mcfly-desk mcfly-desk--shot"
-            : isLoading
-              ? "mcfly-desk mcfly-desk--loading"
-              : "mcfly-desk"
-        }
+        className={[
+          "mcfly-desk",
+          shotMode ? "mcfly-desk--shot" : null,
+          useSampleDesk ? "mcfly-desk--sample" : null,
+          scoreboardReady && !useSampleDesk ? "mcfly-desk--live-ready" : null,
+          coldEmpty ? "mcfly-desk--cold-empty" : null,
+          isLoading && !shotMode ? "mcfly-desk--loading" : null,
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
-        {useSampleDesk && !shotMode ? (
-          <s-banner tone="warning" heading="Sample desk is on — not live Shopify">
-            <s-paragraph>
-              Numbers below are the 3-year demo dataset (matched sales + spend), not your live
-              Shopify till. Turn sample desk <strong>OFF</strong> on the{" "}
-              <s-link href="/app/demo">Demo</s-link> tab before App Store review or install smoke.
-              Listing captures may use <code>?shot=1</code> (hides this banner only — metrics stay
-              sample until OFF).
-            </s-paragraph>
-          </s-banner>
-        ) : null}
+        {/* SAMPLE chrome only when ON — never competes with live KPI story. */}
+        {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
 
-        <CashTrustBanners
-          blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
-          spendCoverage={
-            !useSampleDesk && metrics.onboarding.hasSpend
-              ? metrics.spendCoverage
-              : null
-          }
-          periodLabel={metrics.period.label}
-          shotMode={shotMode}
-        />
+        {/* Cold path: trust can sit above the one empty. Live ready: defer below KPIs. */}
+        {coldEmpty || (!scoreboardReady && !useSampleDesk)
+          ? trustBanners
+          : null}
 
         {isLoading && !shotMode ? (
           <section className="mcfly-state mcfly-state--loading" aria-live="polite">
-            <p className="mcfly-state__copy">Refreshing the cash till for this period…</p>
+            <p className="mcfly-state__copy">Refreshing sales and spend for this period…</p>
           </section>
         ) : null}
 
@@ -555,7 +559,7 @@ export default function Dashboard() {
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">
-              Shopify sales didn’t load — Cash MER needs the till half of sales ÷ spend.
+              Sales didn’t load — {PRODUCT_NOUN.totalRoas} needs the sales side of sales ÷ spend.
             </p>
             <div className="mcfly-state__cta">
               <s-button href={`/app?period=${preset}`} variant="primary">
@@ -565,130 +569,166 @@ export default function Dashboard() {
           </section>
         ) : null}
 
-        {zeroMargin ? (
-          <section
-            className="mcfly-state mcfly-state--warn"
-            aria-label="Break-even margin required"
-          >
-            <p className="mcfly-state__copy">
-              Set contribution margin so break-even MER can lock — then the scoreboard knows the line.
-            </p>
-            <div className="mcfly-state__cta">
-              <s-button href="/app/settings" variant="primary">
-                Open Settings
-              </s-button>
-            </div>
-          </section>
-        ) : null}
-
-        <header className="mcfly-topbar">
-          <div>
-            <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              Cash MER · Shopify sales ÷ ad spend · not platform ROAS
-            </p>
-          </div>
-          <PeriodControl preset={preset} shotMode={shotMode} />
-        </header>
-
         <div className="mcfly-ctx" aria-live="polite">
           <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">Cash MER</span>
+            <span className="mcfly-ctx__brand">{PRODUCT_NOUN.deskTitle}</span>
             <span className="mcfly-ctx__sep" aria-hidden="true">
               ·
             </span>
             <span className="mcfly-ctx__asof">{tillLabel}</span>
+            <PeriodControl preset={preset} shotMode={shotMode} />
           </div>
           <div className="mcfly-ctx__chips">
-            <span className={`mcfly-ctx-chip mcfly-ctx-chip--${merDelta}`}>
-              MER {formatMer(metrics.mer)} · target {formatMer(metrics.targetMer)}
+            <span
+              className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-ctx-chip--fresh"
+              title={freshLabel}
+            >
+              {freshLabel}
             </span>
-            <span className={`mcfly-ctx-chip mcfly-ctx-chip--${beDelta}`}>
-              BE {formatMer(metrics.breakEvenMer)}
-              {metrics.aboveBreakEven === true
-                ? " · above"
-                : metrics.aboveBreakEven === false
-                  ? " · below"
-                  : ""}
-            </span>
-            <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">{freshLabel}</span>
+            {!shotMode && scoreboardReady ? (
+              <s-link href="/app/spend#mcfly-spend-uploads">Update spend</s-link>
+            ) : null}
+            {!metrics.cashActionReady &&
+            !shotMode &&
+            !useSampleDesk &&
+            scoreboardReady ? (
+              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
+                Finish spend trust
+              </span>
+            ) : null}
           </div>
         </div>
 
-        {zeroSpendEmpty ? (
-          <s-section accessibilityLabel="Empty state — add spend for Cash MER">
-            <s-grid gap="base" justifyItems="center" paddingBlock="large-400">
-              <s-grid justifyItems="center" maxInlineSize="450px" gap="base">
-                <s-stack alignItems="center">
-                  <s-heading>Add spend to unlock Cash MER</s-heading>
-                  <s-paragraph>
-                    Cash MER is Shopify sales ÷ ad spend for the same period — not
-                    platform ROAS. Sales are already on the till; most merchants light
-                    the scoreboard in under 10 minutes — confirm margin, then log spend.
-                  </s-paragraph>
-                </s-stack>
-                <s-button-group>
+        {marginOnlyEmpty ? (
+          <div className="mcfly-cold-empty">
+            <s-section accessibilityLabel="Empty state — set profit margin for break-even">
+              <s-grid gap="base" justifyItems="center" paddingBlock="base">
+                <s-grid justifyItems="center" maxInlineSize="420px" gap="base">
+                  <s-stack alignItems="center">
+                    <s-heading>Lock break-even</s-heading>
+                    <s-paragraph>
+                      Sales and spend are ready. Confirm profit margin — then read{" "}
+                      {PRODUCT_NOUN.totalRoas} vs that line.
+                    </s-paragraph>
+                  </s-stack>
                   <s-button
-                    slot="primary-action"
                     variant="primary"
-                    href="/app/spend"
-                    aria-label="Add ad spend"
-                  >
-                    Add spend
-                  </s-button>
-                  <s-button
-                    slot="secondary-actions"
                     href="/app/settings"
-                    aria-label="Open Settings for break-even margin"
+                    aria-label={PRODUCT_NOUN.setupAdjustMargin}
                   >
-                    Settings
+                    {PRODUCT_NOUN.setupAdjustMargin}
                   </s-button>
-                </s-button-group>
+                  <p className="mcfly-cold-empty__foot">
+                    <s-link href="/app/spend">Review logged spend</s-link>
+                  </p>
+                </s-grid>
               </s-grid>
-            </s-grid>
-            <p className="mcfly-guide__foot">
-              Want to see a filled desk first?{" "}
-              <s-link href="/app/demo">Load the sample desk</s-link> — 3 years of
-              matched sales and spend.
-            </p>
-          </s-section>
+            </s-section>
+          </div>
         ) : null}
 
+        {bothBlockedEmpty ? (
+          <div className="mcfly-cold-empty">
+            <s-section
+              accessibilityLabel={`Empty state — set profit margin for ${PRODUCT_NOUN.totalRoas}`}
+            >
+              <s-grid gap="base" justifyItems="center" paddingBlock="base">
+                <s-grid justifyItems="center" maxInlineSize="420px" gap="base">
+                  <s-stack alignItems="center">
+                    <s-heading>Get {PRODUCT_NOUN.totalRoas} in ~10 minutes</s-heading>
+                    <s-paragraph>
+                      Start with profit margin (sets break-even). Then upload
+                      Spend CSV. Sales are already in.
+                    </s-paragraph>
+                  </s-stack>
+                  <s-button
+                    variant="primary"
+                    href="/app/settings"
+                    aria-label={PRODUCT_NOUN.setupAdjustMargin}
+                  >
+                    {PRODUCT_NOUN.setupAdjustMargin}
+                  </s-button>
+                  <p className="mcfly-cold-empty__foot">
+                    Next: <s-link href="/app/spend">{PRODUCT_NOUN.setupAddSpend}</s-link>
+                    {" · "}
+                    <s-link href="/app/demo">Try SAMPLE preview</s-link>
+                  </p>
+                </s-grid>
+              </s-grid>
+            </s-section>
+          </div>
+        ) : null}
+
+        {spendOnlyEmpty ? (
+          <div className="mcfly-cold-empty">
+            <s-section
+              accessibilityLabel={`Empty state — add spend for ${PRODUCT_NOUN.totalRoas}`}
+            >
+              <s-grid gap="base" justifyItems="center" paddingBlock="base">
+                <s-grid justifyItems="center" maxInlineSize="420px" gap="base">
+                  <s-stack alignItems="center">
+                    <s-heading>{PRODUCT_NOUN.setupAddSpend}</s-heading>
+                    <s-paragraph>
+                      Margin is set. Upload daily Spend CSV to unlock{" "}
+                      {PRODUCT_NOUN.totalRoas} vs break-even.
+                    </s-paragraph>
+                  </s-stack>
+                  <s-button
+                    variant="primary"
+                    href="/app/spend"
+                    aria-label={PRODUCT_NOUN.setupAddSpend}
+                  >
+                    {PRODUCT_NOUN.setupAddSpend}
+                  </s-button>
+                  <p className="mcfly-cold-empty__foot">
+                    Want a labeled walkthrough first?{" "}
+                    <s-link href="/app/demo">Try SAMPLE preview</s-link>
+                  </p>
+                </s-grid>
+              </s-grid>
+            </s-section>
+          </div>
+        ) : null}
+
+        {/* Wave 2: Polaris empties own TTFV — hide 3-step guide while empties show. */}
         {metrics.onboarding.showGuide &&
         !shotMode &&
-        !zeroSpendEmpty &&
-        !zeroMargin ? (
-          <section className="mcfly-guide" aria-label="First Cash MER setup">
+        !marginOnlyEmpty &&
+        !bothBlockedEmpty &&
+        !spendOnlyEmpty ? (
+          <section className="mcfly-guide" aria-label={`First ${PRODUCT_NOUN.totalRoas} setup`}>
             <div className="mcfly-guide__head">
-              <p className="mcfly-guide__title">Your first Cash MER takes under 10 minutes</p>
+              <p className="mcfly-guide__title">
+                First {PRODUCT_NOUN.totalRoas} in under 10 minutes
+              </p>
               <p className="mcfly-guide__sub">
-                Sales come from Shopify automatically. You bring margin and spend — no
-                pixels, no tags, no code.
+                Sales load automatically. Set a Total ROAS target, add spend,
+                then read cash Total ROAS. Profit margin is optional for
+                break-even.
               </p>
             </div>
             <ol className="mcfly-guide__steps">
-              <li
-                className={
-                  metrics.onboarding.settingsSaved
-                    ? "mcfly-guide__step mcfly-guide__step--done"
-                    : "mcfly-guide__step"
-                }
-              >
+              <li className="mcfly-guide__step mcfly-guide__step--done">
                 <span className="mcfly-guide__n" aria-hidden="true">
-                  {metrics.onboarding.settingsSaved ? "✓" : "1"}
+                  ✓
                 </span>
                 <div className="mcfly-guide__body">
-                  <p className="mcfly-guide__step-title">Confirm your margin</p>
-                  <p className="mcfly-guide__step-copy">
-                    Gross margin sets your break-even MER — the line between printing
-                    cash and burning it.
+                  <p className="mcfly-guide__step-title">
+                    Set Total ROAS target
                   </p>
-                  {metrics.onboarding.settingsSaved ? (
-                    <p className="mcfly-guide__step-state">
-                      Saved · break-even {formatMer(metrics.breakEvenMer)}
-                    </p>
-                  ) : (
-                    <s-link href="/app/settings">Open Settings</s-link>
-                  )}
+                  <p className="mcfly-guide__step-copy">
+                    Operating goal (e.g. 4.0×). Margin is optional — only if you
+                    want break-even.
+                  </p>
+                  <p className="mcfly-guide__step-state">
+                    Target {formatMer(metrics.targetMer)}
+                    {metrics.breakEvenMer != null
+                      ? ` · break-even ${formatMer(metrics.breakEvenMer)}`
+                      : " · margin optional"}
+                  </p>
+                  <s-button href="/app/settings" variant="tertiary">
+                    Open Settings
+                  </s-button>
                 </div>
               </li>
               <li
@@ -702,529 +742,198 @@ export default function Dashboard() {
                   {metrics.onboarding.hasSpend ? "✓" : "2"}
                 </span>
                 <div className="mcfly-guide__body">
-                  <p className="mcfly-guide__step-title">Log your ad spend</p>
+                  <p className="mcfly-guide__step-title">
+                    {PRODUCT_NOUN.setupAddSpend}
+                  </p>
                   <p className="mcfly-guide__step-copy">
-                    Upload a CSV or type totals by channel — Meta, Google, TikTok, the
-                    rest.
+                    Logged Spend via CSV — upload or paste Day + channel columns
+                    from Sheets. No ad network logins.
                   </p>
                   {metrics.onboarding.hasSpend ? (
                     <p className="mcfly-guide__step-state">
                       Logged · {formatCurrency(metrics.totalSpend)} this period
                     </p>
                   ) : (
-                    <s-link href="/app/spend">Add spend</s-link>
+                    <s-button href="/app/spend" variant="primary">
+                      {PRODUCT_NOUN.setupAddSpend}
+                    </s-button>
                   )}
                 </div>
               </li>
-              <li className="mcfly-guide__step mcfly-guide__step--wait">
+              <li className="mcfly-guide__step">
                 <span className="mcfly-guide__n" aria-hidden="true">
                   3
                 </span>
                 <div className="mcfly-guide__body">
-                  <p className="mcfly-guide__step-title">Read your Cash MER</p>
-                  <p className="mcfly-guide__step-copy">
-                    Shopify sales ÷ ad spend lights up below the moment both inputs are
-                    in. Above break-even means the whole engine makes money.
+                  <p className="mcfly-guide__step-title">
+                    Read Total ROAS — share if you want
                   </p>
+                  <p className="mcfly-guide__step-copy">
+                    See sales ÷ spend vs break-even. Share Overview emails or
+                    copies the summary yourself — Mcfly does not send mail.
+                  </p>
+                  <s-button href="/app" variant="secondary">
+                    {PRODUCT_NOUN.openTotalRoas}
+                  </s-button>
                 </div>
               </li>
             </ol>
             <p className="mcfly-guide__foot">
-              Want to see it working first?{" "}
-              <s-link href="/app/demo">Load the sample desk</s-link> — 3 years of matched
-              sales and spend.
+              Want a labeled walkthrough first?{" "}
+              <s-link href="/app/demo">Try SAMPLE preview</s-link>
             </p>
           </section>
         ) : null}
 
-        {!zeroSpendEmpty ? (
+        {!spendBlocked && !marginBlocked ? (
           <>
-        <section className="mcfly-decision" aria-label="Cash MER decision">
-          <p className="mcfly-decision__kicker">
-            Cash MER scoreboard · not platform ROAS
-          </p>
-          <p className="mcfly-decision__takeaway">{takeaway}</p>
-          <div className="mcfly-decision__actions">
-            {verbs.map((verb) =>
-              verb.primary ? (
-                <s-button key={verb.label} href={verb.href} variant="primary">
-                  {verb.label}
-                </s-button>
-              ) : (
-                <s-link key={verb.label} href={verb.href}>
-                  {verb.label}
-                </s-link>
-              ),
-            )}
-          </div>
-        </section>
-
-        <section className="mcfly-kpi-grid" aria-label="Cash MER KPIs">
-          <div className="mcfly-kpi mcfly-kpi--lead">
-            <p className="mcfly-kpi__label">Cash MER</p>
-            <p className="mcfly-kpi__value">
-              {metrics.mer === null ? "—.——" : formatMer(metrics.mer)}
-            </p>
-            <p className="mcfly-kpi__formula">Shopify sales ÷ ad spend</p>
-            <p
-              className={`mcfly-kpi__delta mcfly-kpi__delta--${
-                deltas ? merAbsDeltaClass(deltas.merAbs) : merDelta
-              }`}
-            >
-              {merDeltaLine}
-            </p>
-          </div>
-          <div className="mcfly-kpi">
-            <p className="mcfly-kpi__label">Sales</p>
-            <p className="mcfly-kpi__value">{formatCurrency(metrics.sales)}</p>
-            <p
-              className={`mcfly-kpi__delta mcfly-kpi__delta--${
-                deltas ? pctDeltaClass(deltas.salesPct) : "flat"
-              }`}
-            >
-              {salesDeltaLine}
-            </p>
-          </div>
-          <div className="mcfly-kpi">
-            <p className="mcfly-kpi__label">Spend</p>
-            <p className="mcfly-kpi__value">{formatCurrency(metrics.totalSpend)}</p>
-            <p className="mcfly-kpi__delta mcfly-kpi__delta--flat">
-              {spendDeltaLine}
-            </p>
-          </div>
-          <div className="mcfly-kpi">
-            <p className="mcfly-kpi__label">EOM projected MER</p>
-            <p className="mcfly-kpi__value">
-              {control?.projMer == null ? "—.——" : formatMer(control.projMer)}
-            </p>
-            <p className={`mcfly-kpi__delta mcfly-kpi__delta--${projDelta}`}>
-              {control
-                ? `${control.railOk ? "On pace ≥ " : "Below "}${formatMer(metrics.targetMer)} · ${formatCurrency(control.projSales)} sales`
-                : `Target ${formatMer(metrics.targetMer)}`}
-            </p>
-          </div>
-        </section>
-
-        {!shotMode && metrics.totalSpend > 0
-          ? (() => {
-              const aov =
-                metrics.orderCount > 0
-                  ? metrics.sales / metrics.orderCount
-                  : null;
-              const costNew =
-                metrics.customerMetricsAvailable && metrics.newCustomers > 0
-                  ? metrics.totalSpend / metrics.newCustomers
-                  : null;
-              const customers =
-                metrics.newCustomers + metrics.returningCustomers;
-              const costCust =
-                metrics.customerMetricsAvailable && customers > 0
-                  ? metrics.totalSpend / customers
-                  : null;
-              const showRatio =
-                metrics.customerMetricsAvailable &&
-                (metrics.newCustomers > 0 || metrics.returningCustomers > 0);
-              if (
-                aov == null &&
-                costNew == null &&
-                costCust == null &&
-                !showRatio
-              ) {
-                return null;
-              }
-              return (
-                <ul className="mcfly-unit-econ" aria-label="Unit economics">
-                  {aov != null ? (
-                    <li className="mcfly-unit-econ__chip">
-                      <span className="mcfly-unit-econ__k">AOV</span>
-                      <span className="mcfly-unit-econ__v">
-                        {formatCurrency(aov)}
-                      </span>
-                    </li>
-                  ) : null}
-                  {costNew != null ? (
-                    <li className="mcfly-unit-econ__chip">
-                      <span className="mcfly-unit-econ__k">Cost / new</span>
-                      <span className="mcfly-unit-econ__v">
-                        {formatCurrency(costNew)}
-                      </span>
-                    </li>
-                  ) : null}
-                  {costCust != null ? (
-                    <li className="mcfly-unit-econ__chip">
-                      <span className="mcfly-unit-econ__k">Cost / customer</span>
-                      <span className="mcfly-unit-econ__v">
-                        {formatCurrency(costCust)}
-                      </span>
-                    </li>
-                  ) : null}
-                  {showRatio ? (
-                    <li className="mcfly-unit-econ__chip">
-                      <span className="mcfly-unit-econ__k">New : returning</span>
-                      <span className="mcfly-unit-econ__v">
-                        {metrics.newCustomers.toLocaleString()} :{" "}
-                        {metrics.returningCustomers.toLocaleString()}
-                      </span>
-                    </li>
-                  ) : null}
-                </ul>
-              );
-            })()
-          : null}
-
-        <SpendExplorer
-          series={explorer}
-          period={preset}
-          shotMode={shotMode}
-        />
-
-        {control && !shotMode ? (
-          <section
-            className="mcfly-panel mcfly-control"
-            aria-label="Safe spend control"
-          >
-            <div className="mcfly-panel__head">
-              <h2>Control panel</h2>
-              <p className="mcfly-panel__muted">
-                {metrics.period.label} pace · target {formatMer(metrics.targetMer)} ·{" "}
-                {control.statusLabel}
-              </p>
-            </div>
-            <div className="mcfly-control__grid">
-              <div className="mcfly-control__tile">
-                <p className="mcfly-control__k">Safe spend headroom @ rail</p>
-                <p
-                  className={`mcfly-control__v${
-                    headroomPeriod >= 0
-                      ? " mcfly-control__v--good"
-                      : " mcfly-control__v--bad"
-                  }`}
-                >
-                  {formatCurrency(Math.abs(headroomPeriod))}
-                </p>
-                <p className="mcfly-control__delta">
-                  {headroomPeriod >= 0 ? "headroom" : "over target-safe spend"} · period
-                </p>
-              </div>
-              <div className="mcfly-control__tile">
-                <p className="mcfly-control__k">Projected close headroom</p>
-                <p
-                  className={`mcfly-control__v${
-                    headroomMonth > 0
-                      ? " mcfly-control__v--good"
-                      : " mcfly-control__v--bad"
-                  }`}
-                >
-                  {headroomMonth > 0 ? formatCurrency(headroomMonth) : "$0"}
-                </p>
-                <p className="mcfly-control__delta">
-                  pace-forward · {control.remainingDays} days left
-                </p>
-              </div>
-              <div className="mcfly-control__tile">
-                <p className="mcfly-control__k">Safe headroom / day left</p>
-                <p className="mcfly-control__v">
-                  {headroomDay > 0 && control.remainingDays > 0
-                    ? formatCurrency(headroomDay)
-                    : "—"}
-                </p>
-                <p className="mcfly-control__delta">at {formatMer(metrics.targetMer)} rail</p>
-              </div>
-              <div className="mcfly-control__tile">
-                <p className="mcfly-control__k">Days elapsed</p>
-                <p className="mcfly-control__v">{control.densityLabel}</p>
-                <p className="mcfly-control__delta">
-                  projected MER {formatMer(control.projMer)}
-                  {control.railOk ? " · on rail" : " · below rail"}
-                </p>
-              </div>
-              <div className="mcfly-control__tile mcfly-control__tile--action">
-                <p className="mcfly-control__k">Control action</p>
-                <p className="mcfly-control__v mcfly-control__v--action">
-                  {control.railOk
-                    ? "Scale only within headroom"
-                    : `Cut/freeze spend until pace ≥ ${formatMer(metrics.targetMer)}`}
-                </p>
-              </div>
-            </div>
-
-            <div className="mcfly-pace" aria-label="Sales vs calendar pace">
-              <div className="mcfly-pace__row">
-                <span>Sales vs target pace</span>
-                <span>{Math.round(control.salesProgressPct)}%</span>
-              </div>
-              <div className="mcfly-pace__track">
-                <div
-                  className={`mcfly-pace__fill mcfly-pace__fill--${control.progressCls}`}
-                  style={{ width: `${Math.round(control.salesProgressPct)}%` }}
-                />
-                <span
-                  className="mcfly-pace__tick"
-                  style={{ left: `${Math.round(control.calendarProgressPct)}%` }}
-                  title={`Calendar ${Math.round(control.calendarProgressPct)}%`}
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="mcfly-pace__row mcfly-pace__row--cal">
-                <span>Calendar progress</span>
-                <span>{Math.round(control.calendarProgressPct)}%</span>
-              </div>
-              <div className="mcfly-pace__track mcfly-pace__track--cal">
-                <div
-                  className="mcfly-pace__fill mcfly-pace__fill--cal"
-                  style={{ width: `${Math.round(control.calendarProgressPct)}%` }}
-                />
-              </div>
-              <p className="mcfly-pace__needed">
-                Daily sales needed{" "}
-                <strong>
-                  {control.remainingDays > 0
-                    ? formatCurrency(control.dailySalesNeeded)
-                    : "—"}
-                </strong>
-                {control.remainingDays > 0
-                  ? ` · ${control.remainingDays} days left to hold ${formatMer(metrics.targetMer)}`
-                  : " · period closed"}
-              </p>
-            </div>
-          </section>
-        ) : null}
-
-        <section
-          className="mcfly-panel mcfly-stack mcfly-stack--compact"
-          aria-label="14-day channel stack"
-        >
-          <div className="mcfly-panel__head">
-            <h2>14-day channel stack</h2>
-            <p className="mcfly-panel__muted">
-              Compact daily mix · {spineSubtitle(spine, metrics.targetMer)}
-            </p>
-          </div>
-          {stackHasSpend ? (
-            <>
-              <div className="mcfly-stack__chart">
-                <div className="mcfly-stack__cols" role="list">
-                  {spine.map((day) => {
-                    const barH = Math.max(
-                      2,
-                      Math.round((day.spend / maxSpend) * 100),
-                    );
-                    const merPct =
-                      day.mer != null
-                        ? Math.min(100, (day.mer / merCeil) * 100)
-                        : null;
-                    return (
-                      <div
-                        className="mcfly-stack__col"
-                        role="listitem"
-                        key={day.dateKey}
-                        title={
-                          day.mer != null
-                            ? `${day.label}: MER ${formatMer(day.mer)} · ${formatCurrency(day.sales)} ÷ ${formatCurrency(day.spend)}`
-                            : `${day.label}: ${formatCurrency(day.spend)} spend`
-                        }
+            {!shotMode && scoreboardReady ? (
+              <section
+                className="mcfly-hero-compact mcfly-hero-compact--v2"
+                aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
+              >
+                <div className="mcfly-hero-compact__status mcfly-hero-compact__status--gauge">
+                  <TotalRoasGauge
+                    mer={metrics.mer}
+                    targetMer={metrics.targetMer}
+                    deltaLine={merDeltaLine}
+                  />
+                  <div className="mcfly-hero-compact__actions">
+                    <s-button href="/app/goals" variant="secondary">
+                      {PRODUCT_NOUN.setupSetGoals}
+                    </s-button>
+                    <s-button
+                      href="/app/spend#mcfly-spend-uploads"
+                      variant="primary"
+                    >
+                      Update spend
+                    </s-button>
+                    <ShareOverviewButton
+                      subject={shareSubject}
+                      body={shareText}
+                      enabled={!shotMode && scoreboardReady}
+                      compact
+                    />
+                  </div>
+                </div>
+                <div className="mcfly-hero-compact__pair">
+                  <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--sales">
+                    <p className="mcfly-hero-compact__label">
+                      Shopify Total Sales
+                    </p>
+                    <p className="mcfly-hero-compact__value">
+                      {formatCurrency(totalSalesDisplay)}
+                    </p>
+                    <p className="mcfly-hero-compact__meta">
+                      {PRODUCT_NOUN.totalSalesHeroHint}
+                    </p>
+                    <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
+                  </div>
+                  <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
+                    <p className="mcfly-hero-compact__label">Total Spend</p>
+                    <p className="mcfly-hero-compact__value">
+                      {formatCurrency(metrics.totalSpend)}
+                    </p>
+                    <p className="mcfly-hero-compact__meta">
+                      {metrics.period.label} · Logged via CSV
+                    </p>
+                    {spendDeltaLine ? (
+                      <p className="mcfly-hero-compact__meta">{spendDeltaLine}</p>
+                    ) : null}
+                    {periodChannels.length > 0 ? (
+                      <ul
+                        className="mcfly-kpi-channels mcfly-kpi-channels--scroll"
+                        aria-label={`Spend allocation · ${metrics.period.label}`}
                       >
-                        <div className="mcfly-stack__mer">
-                          {day.mer != null ? formatMer(day.mer) : "—"}
-                        </div>
-                        <div className="mcfly-stack__plot">
-                          {merPct != null ? (
+                        {periodChannels.map((entry) => (
+                          <li
+                            className="mcfly-kpi-channels__row"
+                            key={entry.name}
+                          >
                             <span
-                              className={`mcfly-stack__dot${
-                                day.aboveTarget
-                                  ? " mcfly-stack__dot--up"
-                                  : " mcfly-stack__dot--down"
-                              }`}
-                              style={{ bottom: `${merPct}%` }}
+                              className={`mcfly-spend-dot mcfly-spend-dot--${entry.fill}`}
                               aria-hidden="true"
                             />
-                          ) : null}
-                          <div
-                            className="mcfly-stack__bar"
-                            style={{ height: `${barH}%` }}
-                          >
-                            {day.channels.map(({ channel, amount }) => (
-                              <span
-                                key={channel}
-                                className={`mcfly-stack__seg mcfly-stack__seg--${channel}`}
-                                style={{
-                                  flexGrow: amount,
-                                  flexBasis: 0,
-                                }}
-                                title={`${channelLabel(channel)}: ${formatCurrency(amount)}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <div className="mcfly-stack__label">{day.label}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div
-                  className="mcfly-stack__rail"
-                  style={{
-                    bottom: `calc(1.35rem + ${(targetRailPct / 100) * 8.5}rem)`,
-                  }}
-                  aria-hidden="true"
-                >
-                  <span className="mcfly-stack__rail-label">
-                    {formatMer(metrics.targetMer)}
-                  </span>
-                </div>
-              </div>
-              <ul className="mcfly-stack__legend">
-                {legendChannels(spine).map((channel) => (
-                  <li key={channel}>
-                    <i
-                      className={`mcfly-stack__swatch mcfly-stack__seg--${channel}`}
-                      aria-hidden="true"
-                    />
-                    {channelLabel(channel)}
-                  </li>
-                ))}
-                <li>
-                  <i
-                    className="mcfly-stack__swatch mcfly-stack__swatch--rail"
-                    aria-hidden="true"
-                  />
-                  Target {formatMer(metrics.targetMer)}
-                </li>
-              </ul>
-            </>
-          ) : (
-            <div className="mcfly-guide-empty">
-              <p className="mcfly-guide-empty__title">
-                No channel spend in the last 14 closed days
-              </p>
-              <p className="mcfly-guide-empty__copy">
-                {useSampleDesk ? (
-                  <>
-                    Try a wider period after reseeding, or{" "}
-                    <s-link href="/app/demo">open Demo</s-link>.
-                  </>
-                ) : (
-                  <>
-                    Log daily CSV rows (or sync) and the stack lights up.{" "}
-                    <s-link href="/app/spend">Add spend</s-link>.
-                  </>
-                )}
-              </p>
-            </div>
-          )}
-        </section>
-
-        <section
-          className={`mcfly-panel mcfly-panel--eq${shotMode ? " mcfly-panel--eq-compact" : ""}`}
-          aria-label="Shopify sales divided by ad spend"
-        >
-          <div className="mcfly-panel__head">
-            <h2>Shopify sales ÷ ad spend</h2>
-            <p className="mcfly-panel__muted">The only formula — not platform ROAS</p>
-          </div>
-          <div className="mcfly-breakdown-row">
-            <span>Shopify sales</span>
-            <strong>{formatCurrency(metrics.sales)}</strong>
-          </div>
-          <div className="mcfly-breakdown-row mcfly-breakdown-row--div">
-            <span>÷ Ad spend</span>
-            <strong>{formatCurrency(metrics.totalSpend)}</strong>
-          </div>
-          <div className="mcfly-breakdown-row mcfly-breakdown-row--eq">
-            <span>= Cash MER</span>
-            <strong>{formatMer(metrics.mer)}</strong>
-          </div>
-          {!shotMode && metrics.customerMetricsAvailable ? (
-            <dl className="mcfly-substats">
-              <div className="mcfly-substats__item">
-                <dt>New</dt>
-                <dd>{metrics.newCustomers.toLocaleString()}</dd>
-              </div>
-              <div className="mcfly-substats__item">
-                <dt>Returning</dt>
-                <dd>{metrics.returningCustomers.toLocaleString()}</dd>
-              </div>
-            </dl>
-          ) : null}
-        </section>
-
-        {!shotMode ? (
-          <section className="mcfly-panel">
-            <div className="mcfly-panel__head">
-              <h2>Spend by channel</h2>
-              <p className="mcfly-panel__muted">{metrics.period.label}</p>
-            </div>
-            {metrics.totalSpend > 0 ? (
-              <div>
-                {metrics.channelMix
-                  .filter(({ amount }) => amount > 0)
-                  .map(({ channel, amount, share }) => {
-                    const action = actionsByChannel.get(channel);
-                    return (
-                      <div className="mcfly-channel" key={channel}>
-                        <span className="mcfly-channel__name">
-                          {channelLabel(channel)}
-                          {action ? (
-                            <span
-                              className={`mcfly-channel__badge mcfly-channel__badge--${action.type}`}
-                            >
-                              {actionBadgeLabel(action)}
+                            <span className="mcfly-kpi-channels__name">
+                              {entry.name}
                             </span>
-                          ) : null}
-                        </span>
-                        <div className="mcfly-channel__track" aria-hidden="true">
-                          <div
-                            className={`mcfly-channel__fill mcfly-channel__fill--${channel}`}
-                            style={{
-                              width: `${Math.max(4, Math.round(share * 100))}%`,
-                            }}
-                          />
-                        </div>
-                        <span className="mcfly-channel__meta">
-                          {formatCurrency(amount)} · {formatPercent(share)}
-                        </span>
-                      </div>
-                    );
-                  })}
-              </div>
-            ) : (
-              <section
-                className="mcfly-state mcfly-state--empty"
-                aria-label="No channel spend"
-              >
-                <p className="mcfly-state__copy">
-                  {useSampleDesk
-                    ? `No spend in ${metrics.period.label} on the sample desk — widen the period or reseed.`
-                    : `No spend for ${metrics.period.label} — log channels to light the mix.`}
-                </p>
-                <div className="mcfly-state__cta">
-                  {useSampleDesk ? (
-                    <s-button href="/app/demo" variant="primary">
-                      Open Demo
-                    </s-button>
-                  ) : (
-                    <s-button href="/app/spend" variant="primary">
-                      Add spend
-                    </s-button>
-                  )}
+                            <span className="mcfly-kpi-channels__amt">
+                              {formatCurrency(entry.amount)}
+                              <span className="mcfly-kpi-channels__share">
+                                {" "}
+                                · {formatPercent(entry.share)}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="mcfly-hero-compact__meta">
+                        No channel spend in this period
+                      </p>
+                    )}
+                    <p className="mcfly-hero-compact__dive">
+                      <s-link href="/app/spend#mcfly-spend-uploads">
+                        Update spend
+                      </s-link>
+                      {" · "}
+                      <s-link href={`/app/allocation?period=${preset}`}>
+                        {PRODUCT_NOUN.spendAllocation}
+                      </s-link>
+                    </p>
+                  </div>
                 </div>
               </section>
-            )}
-          </section>
-        ) : null}
+            ) : null}
 
-        {metrics.allocation && !shotMode ? (
-          <section className="mcfly-panel">
-            <div className="mcfly-panel__head">
-              <h2>What to do next</h2>
-              <p className="mcfly-panel__muted">Rules-based allocation — not attribution</p>
+            {/* LTV snapshot — Spend + mix live in the Total Spend tile above */}
+            {!shotMode && scoreboardReady ? (
+              <div className="mcfly-tab-snaps mcfly-tab-snaps--solo" aria-label="Tab snapshots">
+                <LtvSnapSection
+                  tillLtv={metrics.tillLtv}
+                  preset={preset}
+                />
+              </div>
+            ) : null}
+
+            <div className="mcfly-me-spine">
+              <div className="mcfly-explorer-csv-bar">
+                <s-button
+                  href="/app/spend#mcfly-spend-uploads"
+                  variant="primary"
+                >
+                  Update spend
+                </s-button>
+                <span className="mcfly-explorer-csv-bar__hint">
+                  Upload daily CSV — channels come from your columns
+                </span>
+              </div>
+              <SpendExplorer
+                series={explorer}
+                period={preset}
+                shotMode={shotMode}
+              />
             </div>
-            <p className="mcfly-panel__next">{metrics.allocation.why}</p>
-            <div className="mcfly-decision__actions">
-              <s-link href={`/app/allocation?period=${preset}`}>Open allocation</s-link>
-            </div>
-          </section>
-        ) : null}
+
+            {!coldEmpty ? trustBanners : null}
+
+            {!shotMode ? (
+              <p className="mcfly-overview-more" aria-label="More tools">
+                <s-link href="/app/spend">Spend</s-link>
+                {" · "}
+                <s-link href={`/app/allocation?period=${preset}`}>
+                  {PRODUCT_NOUN.spendAllocation}
+                </s-link>
+                {" · "}
+                <s-link href={`/app/advanced?period=${preset}`}>
+                  {PRODUCT_NOUN.advancedMetrics}
+                </s-link>
+                {" · "}
+                <s-link href="/app/goals">Goals</s-link>
+                {" · "}
+                <s-link href="/app/settings">Settings</s-link>
+              </p>
+            ) : null}
           </>
         ) : null}
       </div>
@@ -1232,35 +941,118 @@ export default function Dashboard() {
   );
 }
 
-function legendChannels(spine: DailySpineDay[]): SpendChannel[] {
-  const present = new Set<SpendChannel>();
-  for (const day of spine) {
-    for (const { channel, amount } of day.channels) {
-      if (amount > 0) present.add(channel);
-    }
-  }
-  return (["meta", "google", "microsoft", "tiktok", "affiliate", "email", "other"] as SpendChannel[]).filter(
-    (c) => present.has(c),
-  );
-}
+function LtvSnapSection({
+  tillLtv,
+  preset,
+}: {
+  tillLtv: {
+    available: boolean;
+    emptyReason: string | null;
+    cashCac: number | null;
+    avgRevenueD30: number | null;
+    avgRevenueD90: number | null;
+    ltvCacRatio: number | null;
+    newBuyers: number;
+  };
+  preset: PeriodPreset;
+}) {
+  return (
+    <section
+      className="mcfly-tab-snap mcfly-tab-snap--ltv"
+      aria-label={`${PRODUCT_NOUN.ltvTitle} snapshot`}
+    >
+      <div className="mcfly-tab-snap__head">
+        <h2>{PRODUCT_NOUN.ltvTitle}</h2>
+        <p className="mcfly-tab-snap__muted">
+          Cash CAC · LTV · LTV:CAC
+        </p>
+      </div>
 
-function channelLabel(channel: string): string {
-  switch (channel) {
-    case "meta":
-      return "Meta Ads";
-    case "google":
-      return "Google Ads";
-    case "microsoft":
-      return "Microsoft Ads";
-    case "tiktok":
-      return "TikTok Ads";
-    case "affiliate":
-      return "Affiliate";
-    case "email":
-      return "Email";
-    default:
-      return "Other";
-  }
+      {tillLtv.available ? (
+        <>
+          <div className="mcfly-tab-snap__tiles">
+            <div className="mcfly-tab-snap__tile">
+              <p className="mcfly-tab-snap__tile-k">Cash CAC</p>
+              <p className="mcfly-tab-snap__tile-v">
+                {tillLtv.cashCac != null
+                  ? formatCurrency(tillLtv.cashCac)
+                  : "—"}
+              </p>
+              <p className="mcfly-tab-snap__tile-def">
+                {PRODUCT_NOUN.cashCacDef}
+              </p>
+            </div>
+            <div className="mcfly-tab-snap__tile">
+              <p className="mcfly-tab-snap__tile-k">LTV · 90d</p>
+              <p className="mcfly-tab-snap__tile-v">
+                {tillLtv.avgRevenueD90 != null
+                  ? formatCurrency(tillLtv.avgRevenueD90)
+                  : "—"}
+              </p>
+              <p className="mcfly-tab-snap__tile-def">
+                {PRODUCT_NOUN.ltv90Def}
+              </p>
+            </div>
+            <div className="mcfly-tab-snap__tile">
+              <p className="mcfly-tab-snap__tile-k">LTV : CAC</p>
+              <p
+                className={`mcfly-tab-snap__tile-v${
+                  tillLtv.ltvCacRatio != null && tillLtv.ltvCacRatio >= 1
+                    ? " mcfly-tab-snap__tile-v--good"
+                    : tillLtv.ltvCacRatio != null
+                      ? " mcfly-tab-snap__tile-v--bad"
+                      : ""
+                }`}
+              >
+                {tillLtv.ltvCacRatio != null
+                  ? `${tillLtv.ltvCacRatio.toFixed(2)}×`
+                  : "—"}
+              </p>
+              <p className="mcfly-tab-snap__tile-def">
+                {PRODUCT_NOUN.ltvCacDef}
+              </p>
+            </div>
+          </div>
+          <p className="mcfly-tab-snap__sentence">
+            {tillLtv.cashCac != null &&
+            tillLtv.avgRevenueD90 != null &&
+            tillLtv.cashCac > 0
+              ? `At 90d, new customers return ${formatCurrency(tillLtv.avgRevenueD90)} per ${formatCurrency(tillLtv.cashCac)} Cash CAC.`
+              : tillLtv.newBuyers > 0
+                ? `${tillLtv.newBuyers.toLocaleString()} new customers · open for cohorts`
+                : "Open for cohort windows and history coverage."}
+          </p>
+          {tillLtv.avgRevenueD30 != null ? (
+            <p className="mcfly-tab-snap__muted">
+              LTV · 30d {formatCurrency(tillLtv.avgRevenueD30)}
+            </p>
+          ) : null}
+        </>
+      ) : tillLtv.emptyReason === "pro_required" ? (
+        <ProUpsellBlock lead={PRO_UPSELL.ltv} />
+      ) : (
+        <p className="mcfly-tab-snap__empty">
+          {tillLtv.emptyReason === "no_timezone"
+            ? "Shop timezone needed before customer cohorts can bucket by local day."
+            : tillLtv.emptyReason === "history_limited"
+              ? `Order history is limited — open ${PRODUCT_NOUN.ltvTitle} for coverage.`
+              : `Backfilling cohorts — open ${PRODUCT_NOUN.ltvTitle} for progress.`}
+        </p>
+      )}
+
+      <div className="mcfly-tab-snap__cta">
+        {tillLtv.emptyReason === "pro_required" && !tillLtv.available ? (
+          <s-link href={`/app/ltv?period=${preset}`}>
+            {PRODUCT_NOUN.openLtv}
+          </s-link>
+        ) : (
+          <s-button href={`/app/ltv?period=${preset}`} variant="primary">
+            {PRODUCT_NOUN.openLtv}
+          </s-button>
+        )}
+      </div>
+    </section>
+  );
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

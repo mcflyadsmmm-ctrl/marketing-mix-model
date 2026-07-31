@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  calculateAmer,
   calculateBreakEvenMer,
   calculateMer,
+  computeContributionMarginFromStack,
   formatMer,
   isAboveBreakEven,
 } from "../src/index.js";
@@ -32,6 +34,68 @@ describe("calculateMer", () => {
     expect(calculateMer(Infinity, 1_000)).toBeNull();
     expect(calculateMer(1_000, Infinity)).toBeNull();
     expect(calculateMer(-Infinity, 1_000)).toBeNull();
+  });
+});
+
+describe("calculateAmer", () => {
+  it("is new-customer net sales ÷ spend (same null rules as calculateMer)", () => {
+    expect(calculateAmer(4_000, 2_000)).toBe(2);
+    expect(calculateAmer(0, 1_000)).toBe(0);
+    expect(calculateAmer(-200, 1_000)).toBe(-0.2);
+    expect(calculateAmer(1_000, 0)).toBeNull();
+    expect(calculateAmer(1_000, -1)).toBeNull();
+    expect(calculateAmer(NaN, 1_000)).toBeNull();
+    expect(calculateAmer(1_000, Infinity)).toBeNull();
+  });
+});
+
+describe("computeContributionMarginFromStack", () => {
+  it("returns 1 − (cogs + fees + shipping) when stack is valid", () => {
+    expect(
+      computeContributionMarginFromStack({
+        cogsPct: 0.3,
+        paymentFeesPct: 0.03,
+        shippingPct: 0.07,
+      }),
+    ).toBeCloseTo(0.6);
+    expect(
+      computeContributionMarginFromStack({
+        cogsPct: 0,
+        paymentFeesPct: 0,
+        shippingPct: 0,
+      }),
+    ).toBe(1);
+  });
+
+  it("returns null when stack sum ≥ 1, any input is negative, or non-finite", () => {
+    expect(
+      computeContributionMarginFromStack({
+        cogsPct: 0.5,
+        paymentFeesPct: 0.3,
+        shippingPct: 0.2,
+      }),
+    ).toBeNull();
+    expect(
+      computeContributionMarginFromStack({
+        cogsPct: 0.6,
+        paymentFeesPct: 0.3,
+        shippingPct: 0.2,
+      }),
+    ).toBeNull();
+    expect(
+      computeContributionMarginFromStack({
+        cogsPct: -0.1,
+        paymentFeesPct: 0.1,
+        shippingPct: 0.1,
+      }),
+    ).toBeNull();
+    expect(
+      computeContributionMarginFromStack({
+        cogsPct: NaN,
+        paymentFeesPct: 0.1,
+        shippingPct: 0.1,
+      }),
+    ).toBeNull();
   });
 });
 

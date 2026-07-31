@@ -25,40 +25,70 @@ This file is the **source of truth**. Later chat prompts are noise unless they *
 
 ## 1. LOCKED product directive
 
-**Mcfly Analytics** = always-on **Shopify + Sheets** product that syncs **ad spend out** and **Shopify sales in**, shows **MER + break-even MER**, and suggests **channel allocation** — with an explicit **anti–path-attribution** stance.
+**Mcfly Analytics** = Shopify **marketing cash desk / spend affordability control**: ingest **ad spend** (**CSV / paste / template** — Free) and **Shopify sales**, show **Total ROAS + aMER + break-even**, and give operators a **trusted any-day desk** (Overview + Share) — with an explicit **anti–path-attribution** stance. Coexists with attribution suites; does not rip-and-replace them.
+
+**Retired (do not revive without amending this §1):** Monday Close lock UI; Meta/Google **spend** OAuth — see [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md).
 
 ### Religion (non-negotiable)
 
 1. Ad platforms **over-claim** conversions.
 2. Multi-touch / pixel / path “truth” is mostly **theater** and trains operators to optimize a model instead of cash.
-3. Mcfly measures only: **money spent on ads** vs **money Shopify recorded as sales** in the same period.
-4. Allocation advice comes from that cash view + margin — **not** from who “won” the click.
+3. Mcfly measures: **money spent on ads** vs **Shopify till sales** in the same period — **Total Sales drive actions** (net + shipping + taxes + duties + fees, after returns); **Net Sales** is an optional desk view; gross order totals remain Ads Manager–comparable secondary.
+4. **Total ROAS and aMER are average portfolio / acquisition efficiency, not marginal or causal return.** Recommendations must disclose inputs, spend floors, and uncertainty; **prohibit channel-level profitability claims** from blended math. Advice = portfolio affordability + constrained step-tests (hold / reduce / step-test) with spend floors — never spend-share theater.
+5. Category lock (**A**): **Shopify cash Total ROAS desk** — coexist with attribution suites for CYA path decks; **dominate the till** so suites become optional budget, not required weekly software. Religion editable for growth (Total Sales basis + Net toggle, CSV spend spine, craft bar, cost stack, aMER, deterministic desk coach, portfolio response heuristics). Still refuse pixels / MTA / connector zoo / Mcfly-owned ads spend OAuth / Monday Close lock UI / in-app Robyn·Meridian·Bayesian MMM theater / LLM chat OS unless this section is rewritten.
+6. **Allowed desk science (till SoT):** till-level **contribution margin** (primary: merchant margin %; optional advanced cost stack → BE); **aMER** = new-customer sales ÷ spend; **CSV/manual spend** (optional merchant-paid external pipes); deterministic **desk coach** (rules/banners, not generative OS); **portfolio response lab** = deepened step-tests + illustrative spend→till heuristics with uncertainty — **not** causal channel ROAS.
+
+### Category Domination Bar (founder ambition — locked)
+
+**Outcome:** Shopify operators flock because Mcfly is the **cleanest, fastest trusted Monday money close** — so good that TW / Northbeam / Polar lose the weekly habit seat and eventually **offer to buy**.
+
+| Bar | Standard |
+| --- | --- |
+| TTFV | Cold merchant: margin → CSV spend → trusted Total ROAS in **&lt;10 minutes** without Slack |
+| Craft | Apps Script scorecard ≥ **4.7**; Polaris chrome; zero attribution theater |
+| Retention | CSV + export guides + optional merchant-paid pipes (not Mcfly ads OAuth) |
+| Honesty | Total Sales action Total ROAS (Net toggle); average ≠ marginal; Share Overview when useful |
+| Price | Flat **$39**/store/mo after partners prove WTP — never GMV tax, never forever-free |
+| Distribution | Public App Store + review density — human gates, not agent polish loops |
+
+**How we steal share (not by cloning):** own the **cash close habit**. Suites keep pixels/OS; operators reopen **Mcfly** every Monday. Acquisition pressure comes from **lost weekly seats**, not feature parity.
+
+**Still refuse (even under domination pressure):** pixels, MTA, path/view-through/“true ROAS,” SyncWith zoo, App URL = mcflyads.com, public shop-domain install form.
 
 ### Formula
 
 ```text
-MER = Total Shopify sales (period) ÷ Total ad spend (same period)
-Break-even MER ≈ 1 / contribution margin
+Total ROAS (action) = Shopify Total Sales (period) ÷ Total ad spend (same period)
+  Total Sales = Net Sales + additional fees + duties + shipping + taxes (after returns)
+  ⚠ Average portfolio efficiency — NOT marginal channel return / NOT causal
+Total ROAS (net view) = Shopify Net Sales (product subtotal after returns, excl. shipping/tax) ÷ spend
+aMER (acquisition) = New-customer sales (period) ÷ Total ad spend (same period)
+  ⚠ Average acquisition efficiency — NOT channel CAC truth / NOT causal
+Total ROAS (gross, optional) = Gross order totals ÷ spend — Ads Manager–comparable only
+Contribution margin = merchant margin % (or 1 − COGS% − fees% − shipping% when stack used)
+Break-even Total ROAS ≈ 1 / contribution margin
 ```
 
-Operate above break-even; shift mix to protect it.
+(Public noun: **Total ROAS**. Product = **cash desk** workflow, not a suite tile.)
+
+Operate above break-even via trusted period reads + constrained step-tests — not a growth optimizer that pushes spend to zero.
 
 ### One-liner
 
-**Stop buying attribution. Start managing spend against sales.**
+**Stop buying attribution. Start closing the week: spend vs till.**
 
-Site voice (from brand DNA, not consulting offer): *Your ad platforms are lying about what’s driving revenue.*
+Site voice: *Advanced Marketing Data Science for your business* — cash close you can defend to finance.
 
 ### Internal analogy (do not ship as marketing jargon)
 
 ```text
 SyncWith-like     → pipes (Shopify + Meta + Google spend → app / Sheets)
 Triple Whale–shaped → daily operator cockpit
-MINUS             → pixels, MTA, path credit
-PLUS              → break-even MER + allocation from cash spend vs total sales
+MINUS             → pixels, MTA, path credit, connector zoo
+PLUS              → cash close + break-even Total ROAS + affordability / step-change Monday
 ```
 
-**Wedge vs TW / Northbeam / Polar:** honesty + simplicity + price — **not** feature parity. They mostly ship **dashboards + data organization** dressed as proprietary science; Mcfly is the better version of *that* job (cash facts only).
+**Wedge vs TW / Northbeam / Polar:** cash close habit + flat fee + honesty — **not** feature parity. Suites own CYA path decks; Mcfly owns the till close.
 
 **Deep dive (research):** [`docs/COMPETITORS.md`](./COMPETITORS.md) — product thesis, anatomy, pricing shape, and Mcfly wedge for each. Prefer that file over chat lore when writing contrast copy.
 
@@ -70,11 +100,13 @@ PLUS              → break-even MER + allocation from cash spend vs total sales
 
 | We are | We are not |
 | --- | --- |
-| Spend-vs-sales operating system | SyncWith / Supermetrics clone (connector zoo) |
-| Opinionated MER + allocation SaaS | Triple Whale / Polar / Northbeam clone |
+| Marketing cash close / spend affordability desk | SyncWith / Supermetrics clone (connector zoo) |
+| Opinionated Total ROAS + aMER + Monday affordability SaaS | Triple Whale / Polar / Northbeam clone |
 | Anti-path, anti-pixel-causality (v1+) | MTA / “true ROAS” / view-through product |
-| Shopify-first product + Sheets companion | Sheets-only script as the business |
-| Product company with a marketing site | Custom MMM consulting as the core offer |
+| Shopify-first + CSV Free (+ optional merchant-paid pipes) | Sheets-only script as the business |
+| Till-level cost stack + deterministic desk coach | Order-level BeProfit P&L / LLM chat OS |
+| Product company with a marketing site | Custom MMM consulting / Robyn·Meridian in-app as core offer |
+| Coexist-with-suites cash close | Rip-and-replace attribution OS |
 | Inspired by deep internal MER dashboards | Obligated to ship that full surface in v1 |
 
 ### Explicitly discarded paths (do not reopen without rewriting this section)
@@ -104,13 +136,13 @@ Do **not** put consulting SKUs ($750 / $5–8k) on the product homepage.
 ## 3. Optimal path (decision tree)
 
 ```text
-Is the task about cash MER / spend sync / allocation / anti-attribution?
+Is the task about Total ROAS / cash desk / spend CSV / affordability / anti-attribution?
   NO  → out of scope (unless amending this plan)
   YES → which surface?
         1. Marketing site solid?     → if NO, build site only
-        2. Shopify Truth MVP?        → sales + manual spend → MER
-        3. Live Meta/Google pipes?   → OAuth + daily spend
-        4. Allocation card?          → rules-based suggestions
+        2. Shopify Truth MVP?        → Total Sales + CSV spend → Total ROAS
+        3. ~~Live Meta/Google OAuth?~~ → RETIRED — CSV + merchant-paid pipes only
+        4. Affordability / allocation? → period step-tests + spend floors
         5. Sheets companion?         → after app brain exists
         6. Depth (multi-brand, etc.) → only if revenue pulls
 ```
@@ -148,15 +180,15 @@ Is the task about cash MER / spend sync / allocation / anti-attribution?
 - Postgres + daily job worker
 - Sentry free tier early
 
-### Connectors (v1 → v2)
-- v1: Shopify Admin (sales) + **manual/CSV spend**
-- v2: Meta Marketing API spend + Google Ads API spend
-- Later: TikTok, Klaviyo, etc. — **only if pulled**
+### Connectors (v1)
+- v1: Shopify Admin (sales) + **manual/CSV spend** — **Free App Store path** (paste / export)
+- Optional: merchant-paid SyncWith-class pipes → CSV/Sheet into Mcfly (Mcfly does **not** own ads OAuth)
+- **Out:** Meta/Google spend OAuth inside Mcfly — [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)
 
 ### Accounts
 - Shopify Partner (Mcfly email)
-- Meta Dev + BM; Google Cloud + Ads API
 - Public email on domain when DNS ready (`hello@` / `support@`)
+- ~~Meta Dev + Google Ads API for Mcfly OAuth~~ — **retired**
 
 ---
 
@@ -166,20 +198,24 @@ Is the task about cash MER / spend sync / allocation / anti-attribution?
 - Product marketing site (this phase)
 - Shopify OAuth + embedded app
 - Periods: MTD / QTD / YTD (+ custom if cheap)
-- Total sales, total spend, MER, break-even MER (margin input)
-- Channel mix (Meta + Google + other/manual)
+- Shopify Total Sales (action basis; Net Sales toggle), gross order totals (Ads Manager–comparable secondary), total spend, Total ROAS, break-even Total ROAS (margin / target input)
+- Channel mix (Meta + Google + other/manual via CSV)
 - Freshness / recon hints
-- **One** allocation recommendation card (rules-based; no path attribution)
-- Settings: margin %, target MER, connections
+- **Share Overview** — mailto period cards (merchant sends; Mcfly does not email)
+- Settings: margin %, target Total ROAS
 - Privacy / terms; simple Billing + trial
+- Paid-intent validation with design partners **before** locking ~$39–$79 or adding depth
 
 **Out of v1**
 - Pixel / MTA / view-through
 - Creative cockpit / Media Lab / Asana / full Klaviyo
 - SyncWith-level connector catalog
+- **Meta/Google spend OAuth** (retired — CSV only)
+- **Monday Close lock UI** (retired — Overview + Share)
 - TW/Polar feature parity
 - Multi-brand portfolio as default
 - Consulting checkout flows
+- Channel profitability claims from blended Total ROAS
 
 ---
 
@@ -199,8 +235,8 @@ Is the task about cash MER / spend sync / allocation / anti-attribution?
 ### Phase 1 — Truth MVP
 Shopify sales + manual spend → trusted MER on one store.
 
-### Phase 2 — Live spend pipes
-Meta + Google daily spend; App Review wall-clock expected.
+### Phase 2 — ~~Live spend pipes~~ **RETIRED**
+Meta + Google OAuth spend sync is **out of product**. CSV Free path + optional merchant-paid pipes only. See [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md).
 
 ### Phase 3 — Allocation layer
 Break-even-aware suggestion card operators actually use.
@@ -219,13 +255,13 @@ Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 ## 8. Positioning & pricing
 
 **Enemy:** Attribution theater; platform ROAS as P&L.  
-**Promise:** Cash MER + allocation guardrails.  
+**Promise:** Total ROAS + allocation guardrails.  
 **Proof:** Design-partner anonymized case later.  
 **Price intuition:** Below TW suite — mid-two-digits to low-three-digits $/mo single store; agency later. **Not** $750 diagnostic / $5–8k project pricing on the product site.
 
 **Launch special (locked for now):** Ship **free for design partners** to get feedback, testing, and interest signal first. Show target paid (~$79/store/mo) as “after launch,” announce billing before anything charges. Do **not** market “forever free.” Prefer a small set of serious stores over open freeloader flood.
 
-**Homepage thesis:** Platforms lie about what they drove. Paths can’t be resolved. Mcfly only measures what you spent against what Shopify sold — then helps you move budget.
+**Homepage thesis:** Advanced Marketing Data Science for your business — Total ROAS (action) is **Shopify Total Sales ÷ ad spend**; Net Sales optional; gross order totals Ads Manager–comparable secondary; break-even from margin; one Monday affordability call. Coexists with attribution suites. Not path / “true ROAS.” Voice SoT: [`MDS_RESEARCH_ABSORB.md`](./MDS_RESEARCH_ABSORB.md).
 
 ---
 
@@ -255,10 +291,14 @@ Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 ## 11. Kill / pivot criteria
 
 **Kill or hard pivot if:**
-- Design partners won’t open weekly after 30 days of accurate MER.
-- Meta + Google spend can’t stay within ~5% of Ads Manager for 14 days.
-- Product collapses into “another blended ROAS tile” with no allocation action.
-- Connector support load exceeds available time before revenue.
+- Design partners won’t open weekly after 30 days of accurate Total ROAS.
+- CSV spend can’t stay within ~5% of Ads Manager when merchants declare recon.
+- Product collapses into “another blended ROAS tile” with no clear next action.
+- Connector/pipe support load exceeds available time before revenue.
+- **Sheets remains sufficient** for the ICP (no paid conversion after four weeks of desk use).
+- **Zero paid conversions** after design-partner desks with clear price intent.
+- **Paste churn** dominates (operators abandon despite export guides + pipe templates).
+- **Support-heavy unit economics** on Free flood (COGS ≥ contribution at ~$39–$79).
 
 **Do not kill because:** TW has more features; someone wants 40 connectors; someone wants a pixel; a chat prompt suggests a shinier niche.
 
@@ -268,20 +308,20 @@ Multi-brand, TikTok, frontiers, alerts — **revenue-pulled only**.
 
 **Agent delivery OS (loops, DoD, gates, lanes):** [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) — how agents ship; this file remains product religion.
 
-1. Complete hosted app DoD (D1+D2): always-on Fly, design-partner install, margin → spend → MER ritual.  
+1. Complete hosted app DoD (D1+D2): always-on Fly, design-partner install, margin → CSV spend → Total ROAS ritual.  
 2. Site D0: waitlist form, deploy latest `/site`, proof band.  
-3. Meta + Google OAuth under Mcfly identity (human App Review).  
-4. Design partners free → announce ~$79 before charging.  
+3. ~~Meta + Google spend OAuth~~ — **retired** ([`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md)).  
+4. Design partners free → announce ~$39–$79 before charging.  
 5. Sheets companion only after app brain is trusted.
 
-**Human-only gates:** Partner login, host billing, OAuth apps, design-partner store access, DNS cutover, App Store submit.
+**Human-only gates:** Partner login, host billing, design-partner store access, DNS cutover, App Store submit.
 
 ---
 
 ## 13. Success (12 months)
 
 - Paying Shopify merchants use Mcfly as **weekly spend-vs-sales** source of truth.  
-- Brand = “anti-attribution / cash MER,” not “cheaper Triple Whale.”  
+- Brand = “anti-attribution / Total ROAS,” not “cheaper Triple Whale.”  
 - Sheets optional; revenue from app subscriptions.  
 - Roadmap pressure from customers, not competitor matrices or noisy prompts.
 

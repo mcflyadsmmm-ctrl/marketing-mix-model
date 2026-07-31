@@ -3,9 +3,24 @@
  * Cash MER = sales ÷ spend (never inverted). Channel bars are spend mix only.
  */
 
-export type ExplorerRange = "14d" | "30d" | "90d" | "YTD" | "1y";
-export type ExplorerGranularity = "Day" | "Week" | "Month";
+import {
+  dateKeyFromYmd,
+  listRecentClosedShopLocalDays,
+  shopLocalDayKey,
+  shopLocalDayRange,
+  shopLocalYmd,
+} from "./shop-local-day";
+
+export type ExplorerRange = "14d" | "30d" | "90d" | "YTD" | "1y" | "All" | "custom";
+export type ExplorerGranularity = "Day" | "Week" | "Month" | "Quarter";
 export type ExplorerMode = "stacked" | "share" | "total";
+
+export type ExplorerWindowOptions = {
+  from?: string | null;
+  to?: string | null;
+  /** Shop IANA timezone — when set, closed-day edges follow merchant calendar. */
+  timeZone?: string | null;
+};
 
 export type ExplorerChannelSlice = {
   channel: string;
@@ -76,9 +91,24 @@ const MONTHS_SHORT = [
   "Dec",
 ] as const;
 
-const RANGE_PRESETS: ExplorerRange[] = ["14d", "30d", "90d", "YTD", "1y"];
-const GRANULARITIES: ExplorerGranularity[] = ["Day", "Week", "Month"];
+const RANGE_PRESETS: ExplorerRange[] = [
+  "14d",
+  "30d",
+  "90d",
+  "YTD",
+  "1y",
+  "All",
+];
+const GRANULARITIES: ExplorerGranularity[] = [
+  "Day",
+  "Week",
+  "Month",
+  "Quarter",
+];
 const MODES: ExplorerMode[] = ["stacked", "share", "total"];
+
+/** ISO date YYYY-MM-DD */
+const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export const EXPLORER_RANGE_OPTIONS: { value: ExplorerRange; label: string }[] =
   [
@@ -87,6 +117,7 @@ export const EXPLORER_RANGE_OPTIONS: { value: ExplorerRange; label: string }[] =
     { value: "90d", label: "90d" },
     { value: "YTD", label: "YTD" },
     { value: "1y", label: "1y" },
+    { value: "All", label: "All" },
   ];
 
 export const EXPLORER_GRANULARITY_OPTIONS: {
@@ -96,12 +127,13 @@ export const EXPLORER_GRANULARITY_OPTIONS: {
   { value: "Day", label: "Day" },
   { value: "Week", label: "Week" },
   { value: "Month", label: "Month" },
+  { value: "Quarter", label: "Quarter" },
 ];
 
 export const EXPLORER_MODE_OPTIONS: { value: ExplorerMode; label: string }[] = [
-  { value: "stacked", label: "Stacked $" },
-  { value: "share", label: "100% share" },
-  { value: "total", label: "Total" },
+  { value: "stacked", label: "Channels $" },
+  { value: "share", label: "Share %" },
+  { value: "total", label: "Total $" },
 ];
 
 function startOfLocalDay(d: Date): Date {
@@ -141,9 +173,18 @@ export function dateKeyFromLocal(d: Date): string {
 }
 
 function parseDateKey(dateKey: string): Date | null {
+  if (!DATE_KEY_RE.test(dateKey)) return null;
   const [y, m, d] = dateKey.split("-").map(Number);
   if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
+  const dt = new Date(y, m - 1, d);
+  if (
+    dt.getFullYear() !== y ||
+    dt.getMonth() !== m - 1 ||
+    dt.getDate() !== d
+  ) {
+    return null;
+  }
+  return dt;
 }
 
 function merOf(sales: number, spend: number): number | null {
@@ -162,6 +203,7 @@ export function parseExplorerRange(raw: string | null): ExplorerRange {
   if (raw && RANGE_PRESETS.includes(raw as ExplorerRange)) {
     return raw as ExplorerRange;
   }
+  if (raw === "custom") return "custom";
   return "90d";
 }
 
@@ -181,16 +223,60 @@ export function parseExplorerMode(raw: string | null): ExplorerMode {
   return "stacked";
 }
 
+/** Apps Script `ex.showSales` — URL `exSales=1`. */
+export function parseExplorerShowSales(raw: string | null): boolean {
+  if (raw == null || raw === "") return false;
+  const v = raw.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+/** Parse optional YYYY-MM-DD; returns null when missing/invalid. */
+export function parseExplorerDateParam(raw: string | null): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  return parseDateKey(trimmed) ? trimmed : null;
+}
+
 /**
  * Resolve explorer window from "now" (closed-day end).
- * Caps at ~366 closed days for 1y.
+ * Custom FROM/TO (exFrom/exTo) wins when both valid and ordered.
+ * All ≈ full available history capped at ~3y closed days (Apps Script: min→max rows).
+ * When `options.timeZone` (IANA) is set, edges follow the shop calendar — not Fly UTC.
  */
 export function resolveExplorerWindow(
   range: ExplorerRange,
   now = new Date(),
+  options?: ExplorerWindowOptions,
 ): ExplorerWindow {
+  const tz = options?.timeZone?.trim() || null;
+  if (tz) {
+    return resolveExplorerWindowInTimeZone(range, now, tz, options);
+  }
+
   const end = closedDayEnd(now);
   const endStart = startOfLocalDay(end);
+
+  const customFrom = options?.from ? parseDateKey(options.from) : null;
+  const customTo = options?.to ? parseDateKey(options.to) : null;
+  if (
+    range === "custom" &&
+    customFrom &&
+    customTo &&
+    customFrom.getTime() <= customTo.getTime()
+  ) {
+    let start = startOfLocalDay(customFrom);
+    let to = endOfLocalDay(customTo);
+    if (to.getTime() > end.getTime()) to = end;
+    if (start.getTime() > startOfLocalDay(to).getTime()) {
+      start = startOfLocalDay(to);
+    }
+    return {
+      start,
+      end: to,
+      label: `${dateKeyFromLocal(start)} → ${dateKeyFromLocal(to)}`,
+      range: "custom",
+    };
+  }
 
   switch (range) {
     case "14d": {
@@ -213,6 +299,99 @@ export function resolveExplorerWindow(
       const start = addLocalDays(endStart, -364);
       return { start, end, label: "Last 365 closed days", range };
     }
+    case "All": {
+      // Cap at ~3 years of closed days — Apps Script uses full row span.
+      const start = addLocalDays(endStart, -1094);
+      return { start, end, label: "All closed days", range };
+    }
+    case "custom": {
+      // Custom without valid dates — fall back to 90d.
+      const start = addLocalDays(endStart, -89);
+      return { start, end, label: "90 closed days", range: "90d" };
+    }
+    default: {
+      const _exhaustive: never = range;
+      throw new Error(`Unknown explorer range: ${_exhaustive}`);
+    }
+  }
+}
+
+function resolveExplorerWindowInTimeZone(
+  range: ExplorerRange,
+  now: Date,
+  timeZone: string,
+  options?: ExplorerWindowOptions,
+): ExplorerWindow {
+  // Last fully closed shop-local day (excludes incomplete "today" in shop TZ).
+  const lastClosedKey = listRecentClosedShopLocalDays(timeZone, 1, now)[0];
+  const end = shopLocalDayRange(lastClosedKey, timeZone).end;
+
+  const customFromKey =
+    options?.from && DATE_KEY_RE.test(options.from.trim())
+      ? options.from.trim()
+      : null;
+  const customToKey =
+    options?.to && DATE_KEY_RE.test(options.to.trim())
+      ? options.to.trim()
+      : null;
+  if (
+    range === "custom" &&
+    customFromKey &&
+    customToKey &&
+    customFromKey <= customToKey
+  ) {
+    let fromKey = customFromKey;
+    let toKey = customToKey > lastClosedKey ? lastClosedKey : customToKey;
+    if (fromKey > toKey) fromKey = toKey;
+    return {
+      start: shopLocalDayRange(fromKey, timeZone).start,
+      end: shopLocalDayRange(toKey, timeZone).end,
+      label: `${fromKey} → ${toKey}`,
+      range: "custom",
+    };
+  }
+
+  const takeClosed = (
+    n: number,
+    label: string,
+    rangeId: ExplorerRange,
+  ): ExplorerWindow => {
+    const keys = listRecentClosedShopLocalDays(timeZone, n, now);
+    return {
+      start: shopLocalDayRange(keys[0], timeZone).start,
+      end: shopLocalDayRange(keys[keys.length - 1], timeZone).end,
+      label,
+      range: rangeId,
+    };
+  };
+
+  switch (range) {
+    case "14d":
+      return takeClosed(14, "14 closed days", range);
+    case "30d":
+      return takeClosed(30, "30 closed days", range);
+    case "90d":
+      return takeClosed(90, "90 closed days", range);
+    case "1y":
+      return takeClosed(365, "Last 365 closed days", range);
+    case "All":
+      return takeClosed(1095, "All closed days", range);
+    case "YTD": {
+      // Match server-local path: YTD year is the year of the last closed day
+      // (not open "today"), so Jan 1 shop-morning stays in the prior year.
+      const closedStart = shopLocalDayRange(lastClosedKey, timeZone).start;
+      const endKey = shopLocalDayKey(closedStart, timeZone);
+      const { y } = shopLocalYmd(closedStart, timeZone);
+      const start = shopLocalDayRange(dateKeyFromYmd(y, 1, 1), timeZone).start;
+      return {
+        start,
+        end: shopLocalDayRange(endKey, timeZone).end,
+        label: "Year to date",
+        range,
+      };
+    }
+    case "custom":
+      return takeClosed(90, "90 closed days", "90d");
     default: {
       const _exhaustive: never = range;
       throw new Error(`Unknown explorer range: ${_exhaustive}`);
@@ -262,6 +441,17 @@ function bucketMetaForDay(
         sortMs: new Date(y, monthIndex, 1).getTime(),
       };
     }
+    case "Quarter": {
+      const q = Math.floor(monthIndex / 3) + 1;
+      const key = `q:${y}-Q${q}`;
+      // Apps Script: `Q${q}${yy}` e.g. "Q3 ’26"
+      const label = `Q${q}${yy}`;
+      return {
+        key,
+        label,
+        sortMs: new Date(y, (q - 1) * 3, 1).getTime(),
+      };
+    }
     default: {
       const _exhaustive: never = granularity;
       throw new Error(`Unknown granularity: ${_exhaustive}`);
@@ -287,7 +477,7 @@ function channelsFromMap(map: Map<string, number>): ExplorerChannelSlice[] {
 }
 
 /**
- * Aggregate daily rows into Day | Week | Month buckets.
+ * Aggregate daily rows into Day | Week | Month | Quarter buckets.
  * MER per bucket = Σsales ÷ Σspend (cash formula).
  */
 export function bucketExplorerRows(
@@ -483,6 +673,21 @@ export function explorerLegendChannels(
     .map(([ch]) => ch);
 }
 
+/**
+ * Reorder bar segments to match legend order. Missing channels get amount 0
+ * so stack band positions stay stable across buckets (Tableau-style).
+ */
+export function orderBarsByLegend(
+  bars: ExplorerChannelSlice[],
+  legendOrder: string[],
+): ExplorerChannelSlice[] {
+  const byCh = new Map(bars.map((s) => [s.channel, s.amount]));
+  return legendOrder.map((channel) => ({
+    channel,
+    amount: byCh.get(channel) ?? 0,
+  }));
+}
+
 export function explorerBarMax(
   buckets: ExplorerPlotBucket[],
   mode: ExplorerMode,
@@ -499,13 +704,102 @@ export function explorerBarMax(
   return max > 0 ? max : 1;
 }
 
+/**
+ * Left-axis $ ceiling. When Sales line is on (and not share %), uses
+ * max(spend bars, sales) so heights are comparable on one shared scale.
+ */
+export function explorerMoneyCeil(
+  buckets: ExplorerPlotBucket[],
+  mode: ExplorerMode,
+  showSales: boolean,
+): number {
+  if (mode === "share") return 100;
+  const barMax = explorerBarMax(buckets, mode);
+  if (!showSales) return barMax;
+  return explorerSalesCeil(buckets, barMax);
+}
+
+/** Left-axis ceiling when Sales line is on — max(spend bars, sales). */
+export function explorerSalesCeil(
+  buckets: ExplorerPlotBucket[],
+  barMax: number,
+): number {
+  let max = barMax;
+  for (const b of buckets) {
+    if (b.sales > max) max = b.sales;
+  }
+  return max > 0 ? max : 1;
+}
+
 export function explorerMerCeil(
   buckets: ExplorerPlotBucket[],
   targetMer: number,
+  breakEvenMer: number | null = null,
 ): number {
   let max = targetMer > 0 ? targetMer : 1;
+  if (breakEvenMer != null && breakEvenMer > max) max = breakEvenMer;
   for (const b of buckets) {
     if (b.mer != null && b.mer > max) max = b.mer;
   }
   return max * 1.08;
+}
+
+/** Apps Script gran subtitle phrase (without count). */
+export function explorerGranLabel(granularity: ExplorerGranularity): string {
+  switch (granularity) {
+    case "Week":
+      return "ISO weeks (Mon start)";
+    case "Day":
+      return "day buckets";
+    case "Month":
+      return "month buckets";
+    case "Quarter":
+      return "quarter buckets";
+    default: {
+      const _exhaustive: never = granularity;
+      return _exhaustive;
+    }
+  }
+}
+
+/**
+ * Apps Script subtitle parity:
+ * `{n} {gran} · spend $ · Total ROAS (Σsales ÷ Σspend) · Total ROAS = sales ÷ spend · closed days only · as of …`
+ */
+export function formatExplorerSubtitle(opts: {
+  bucketCount: number;
+  granularity: ExplorerGranularity;
+  totalSpend: number;
+  overallMer: number | null;
+  asOfKey: string | null;
+  empty?: boolean;
+  formatCurrency: (n: number) => string;
+  formatMer: (n: number | null) => string;
+}): string {
+  const formula = "Total ROAS = sales ÷ spend";
+  if (opts.empty) {
+    return `No closed days in the selected window · ${formula} · closed days only`;
+  }
+  const gran =
+    opts.bucketCount === 1 && opts.granularity === "Week"
+      ? "ISO week (Mon start)"
+      : opts.granularity === "Week"
+        ? "ISO weeks (Mon start)"
+        : opts.granularity === "Day"
+          ? opts.bucketCount === 1
+            ? "day bucket"
+            : "day buckets"
+          : opts.granularity === "Month"
+            ? opts.bucketCount === 1
+              ? "month bucket"
+              : "month buckets"
+            : opts.bucketCount === 1
+              ? "quarter bucket"
+              : "quarter buckets";
+  const asOf = opts.asOfKey ? ` · as of ${opts.asOfKey}` : "";
+  return (
+    `${opts.bucketCount} ${gran} · spend ${opts.formatCurrency(opts.totalSpend)}` +
+    ` · Total ROAS ${opts.formatMer(opts.overallMer)} (Σsales ÷ Σspend)` +
+    ` · ${formula} · closed days only${asOf}`
+  );
 }

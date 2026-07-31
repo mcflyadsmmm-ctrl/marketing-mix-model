@@ -11,6 +11,7 @@ export {
   createMetaSpendClient,
   MockMetaSpendClient,
   MetaSpendClientLive,
+  normalizeMetaAdAccountId,
   type MetaSpendClient,
   type MetaSpendClientConfig,
 } from "./meta/client.js";
@@ -19,6 +20,7 @@ export {
   createGoogleSpendClient,
   MockGoogleSpendClient,
   GoogleSpendClientLive,
+  normalizeGoogleCustomerId,
   type GoogleSpendClient,
   type GoogleSpendClientConfig,
 } from "./google/client.js";

@@ -1,18 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import {
   EXPLORER_GRANULARITY_OPTIONS,
   EXPLORER_MODE_OPTIONS,
   EXPLORER_RANGE_OPTIONS,
-  explorerBarMax,
+  dateKeyFromLocal,
   explorerLegendChannels,
   explorerMerCeil,
+  explorerMoneyCeil,
+  orderBarsByLegend,
   type ExplorerGranularity,
   type ExplorerMode,
   type ExplorerPlotBucket,
   type ExplorerRange,
   type ExplorerSummary,
 } from "../lib/spend-explorer";
-import { formatCurrency, formatMer } from "../lib/mer-format";
+import { formatCurrency, formatMer, merToneBand } from "../lib/mer-format";
+import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
 import type { PeriodPreset } from "../lib/periods";
 
@@ -24,6 +28,16 @@ export type SpendExplorerSeriesView = {
   range: ExplorerRange;
   windowLabel: string;
   targetMer: number;
+  /** Break-even Total ROAS rail (from margin) — optional dashed accent. */
+  breakEvenMer: number | null;
+  /** mcflyads till instrument — sales polyline on shared left $ axis. */
+  showSales: boolean;
+  /** Effective window FROM (YYYY-MM-DD) for date inputs. */
+  fromKey: string;
+  /** Effective window TO (YYYY-MM-DD) for date inputs. */
+  toKey: string;
+  /** Closed-day as-of key for subtitle. */
+  asOfKey: string;
 };
 
 type SpendExplorerProps = {
@@ -34,100 +48,95 @@ type SpendExplorerProps = {
   shotMode?: boolean;
 };
 
+type ExplorerHover =
+  | { kind: "seg"; bucketKey: string; channel: string }
+  | { kind: "dot"; bucketKey: string }
+  | null;
+
+/** Unified scaled-mix note — always "cash spend", never Total Cost. */
+const SCALED_MIX_NOTE =
+  "Channels reported > cash spend — mix scaled to cash spend";
+
+const PAD_L = 56;
+const PAD_R = 48;
+const PAD_T = 16;
+const PAD_B = 28;
+const PLOT_H = 270;
+
 function channelLabel(channel: string): string {
   if (channel === "total") return "Total spend";
   const known = SPEND_CHANNEL_LABELS[channel as SpendChannel];
   return known ?? channel;
 }
 
+/** SVG fill / tip swatch class — uses CSS vars via `.mcfly-explorer__seg--*`. */
 function channelSegClass(channel: string): string {
-  if (channel === "total") return "mcfly-explorer__bar-seg--total";
+  if (channel === "total") return "mcfly-explorer__seg--total";
   const known = channel as SpendChannel;
   if (known in SPEND_CHANNEL_LABELS) {
-    return `mcfly-stack__seg--${known}`;
+    return `mcfly-explorer__seg--${known}`;
   }
-  return "mcfly-stack__seg--other";
+  return "mcfly-explorer__seg--other";
 }
 
-function granPhrase(granularity: ExplorerGranularity, count: number): string {
-  switch (granularity) {
-    case "Day":
-      return count === 1 ? "1 day" : `${count} days`;
-    case "Week":
-      return count === 1 ? "1 ISO week (Mon start)" : `${count} ISO weeks (Mon start)`;
-    case "Month":
-      return count === 1 ? "1 month" : `${count} months`;
-    default: {
-      const _exhaustive: never = granularity;
-      return _exhaustive;
-    }
-  }
-}
-
-function modeAxisHint(mode: ExplorerMode): string {
-  switch (mode) {
-    case "share":
-      return "Channel share (%)";
-    case "total":
-      return "Total spend ($)";
-    case "stacked":
-      return "Spend by channel ($)";
-    default: {
-      const _exhaustive: never = mode;
-      return _exhaustive;
-    }
-  }
-}
-
-function merToneClass(
-  mer: number | null,
-  targetMer: number,
-): "up" | "down" | "flat" {
-  if (mer == null || !(targetMer > 0)) return "flat";
-  if (mer >= targetMer) return "up";
-  if (mer >= targetMer * 0.85) return "flat";
-  return "down";
-}
-
-function explorerHref(opts: {
-  period: PeriodPreset;
-  shotMode: boolean;
-  range: ExplorerRange;
-  gran: ExplorerGranularity;
-  mode: ExplorerMode;
+/** One phrase: "Total ROAS Z× · X sales ÷ Y spend" for tip / title / readout. */
+function bucketMerPhrase(bucket: {
+  sales: number;
+  spend: number;
+  mer: number | null;
 }): string {
-  const params = new URLSearchParams();
+  const base = `${formatCurrency(bucket.sales)} sales ÷ ${formatCurrency(bucket.spend)} spend`;
+  return bucket.mer != null
+    ? `${PRODUCT_NOUN.totalRoas} ${formatMer(bucket.mer)} · ${base}`
+    : base;
+}
+
+/** Desk query keys we own — everything else (shop/host/embedded/…) must survive. */
+const EXPLORER_OWNED_KEYS = [
+  "period",
+  "exRange",
+  "exGran",
+  "exMode",
+  "exSales",
+  "exFrom",
+  "exTo",
+  "shot",
+] as const;
+
+function explorerSearch(
+  current: URLSearchParams,
+  opts: {
+    period: PeriodPreset;
+    shotMode: boolean;
+    range: ExplorerRange;
+    gran: ExplorerGranularity;
+    mode: ExplorerMode;
+    showSales: boolean;
+    from?: string | null;
+    to?: string | null;
+  },
+): string {
+  const params = new URLSearchParams(current);
+  for (const key of EXPLORER_OWNED_KEYS) params.delete(key);
   params.set("period", opts.period);
   params.set("exRange", opts.range);
   params.set("exGran", opts.gran);
   params.set("exMode", opts.mode);
+  if (opts.showSales) params.set("exSales", "1");
+  if (opts.range === "custom" && opts.from && opts.to) {
+    params.set("exFrom", opts.from);
+    params.set("exTo", opts.to);
+  }
   if (opts.shotMode) params.set("shot", "1");
-  return `/app?${params.toString()}`;
+  const q = params.toString();
+  return q ? `?${q}` : "";
 }
 
 function bucketTitle(bucket: ExplorerPlotBucket, mode: ExplorerMode): string {
-  const merBit =
-    bucket.mer != null
-      ? `MER ${formatMer(bucket.mer)} · ${formatCurrency(bucket.sales)} ÷ ${formatCurrency(bucket.spend)}`
-      : `${formatCurrency(bucket.spend)} spend · no MER yet`;
-  const scaleBit = bucket.scaledToCash ? " · mix scaled to cash spend" : "";
+  const scaleBit = bucket.scaledToCash ? ` · ${SCALED_MIX_NOTE}` : "";
   const modeBit =
     mode === "share" ? " · 100% share" : mode === "total" ? " · total" : "";
-  return `${bucket.label}: ${merBit}${modeBit}${scaleBit}`;
-}
-
-function segmentDetail(
-  bucket: ExplorerPlotBucket,
-  mode: ExplorerMode,
-): string {
-  if (!bucket.bars.length) return "No channel spend in this bucket.";
-  return bucket.bars
-    .map((seg) =>
-      mode === "share"
-        ? `${channelLabel(seg.channel)} ${seg.amount.toFixed(1)}%`
-        : `${channelLabel(seg.channel)} ${formatCurrency(seg.amount)}`,
-    )
-    .join(" · ");
+  return `${bucket.label}: ${bucketMerPhrase(bucket)}${modeBit}${scaleBit}`;
 }
 
 function downloadExplorerCsv(
@@ -144,7 +153,7 @@ function downloadExplorerCsv(
     "label",
     "sales",
     "spend",
-    "mer",
+    "total_roas",
     ...channels.map((c) => `spend_${c}`),
   ];
   const lines = [headers.join(",")];
@@ -169,50 +178,136 @@ function downloadExplorerCsv(
   URL.revokeObjectURL(url);
 }
 
+function colMinPxFor(
+  gran: ExplorerGranularity,
+  mode: ExplorerMode,
+): number {
+  if (gran === "Day") return 44;
+  if (gran === "Quarter") return 64;
+  if (mode === "total") return 48;
+  return 52;
+}
+
+function axisMoneyLabel(n: number, isShare: boolean): string {
+  if (isShare) return `${Math.round(n)}%`;
+  return formatCurrency(n).replace(/\.00$/, "");
+}
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.min(hi, Math.max(lo, n));
+}
+
 /**
- * Spend explorer — channel mix vs cash MER (sales ÷ spend).
- * Server-rendered controls via query links (no Chart.js).
- * URL params: exRange, exGran, exMode (period= kept for main period control).
+ * Spend explorer — channel mix vs Total ROAS (sales ÷ spend).
+ * Unified SVG plot (no Chart.js). URL: exRange, exGran, exMode, exSales, exFrom, exTo.
  */
 export function SpendExplorer({
   series,
   period,
   shotMode = false,
 }: SpendExplorerProps) {
-  const { buckets, mode, targetMer, summary } = series;
-  const barMax = explorerBarMax(buckets, mode);
-  const merCeil = explorerMerCeil(buckets, targetMer);
-  const targetRailPct =
-    merCeil > 0 ? Math.min(100, (targetMer / merCeil) * 100) : 0;
-  const legend = explorerLegendChannels(buckets, mode);
-  const hasBars = buckets.some((b) => b.bars.length > 0 || b.spend > 0);
-  const bucketCount = summary.bucketCount || buckets.length;
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { buckets: allBuckets, mode, targetMer, breakEvenMer, showSales } =
+    series;
+  const isShare = mode === "share";
+
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [hover, setHover] = useState<ExplorerHover>(null);
+  const [hiddenChannels, setHiddenChannels] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [fromDraft, setFromDraft] = useState(series.fromKey);
+  const [toDraft, setToDraft] = useState(series.toKey);
+
+  const visibleBuckets = allBuckets;
+
+  const legend = useMemo(
+    () => explorerLegendChannels(allBuckets, mode),
+    [allBuckets, mode],
+  );
+
+  const leftCeil = explorerMoneyCeil(visibleBuckets, mode, showSales && !isShare);
+  const merCeil = explorerMerCeil(visibleBuckets, targetMer, breakEvenMer);
+  const hasBars = allBuckets.some((b) => b.bars.length > 0 || b.spend > 0);
 
   const defaultKey =
-    [...buckets].reverse().find((b) => b.spend > 0 || b.bars.length > 0)?.key ??
-    buckets[buckets.length - 1]?.key ??
+    [...visibleBuckets]
+      .reverse()
+      .find((b) => b.spend > 0 || b.bars.length > 0)?.key ??
+    visibleBuckets[visibleBuckets.length - 1]?.key ??
     null;
-  const [selectedKey, setSelectedKey] = useState<string | null>(defaultKey);
 
   useEffect(() => {
     setSelectedKey(defaultKey);
+    setHover(null);
   }, [defaultKey, series.range, series.granularity, series.mode]);
 
-  const selected =
-    buckets.find((b) => b.key === selectedKey) ??
-    buckets.find((b) => b.key === defaultKey) ??
-    null;
+  useEffect(() => {
+    setFromDraft(series.fromKey);
+    setToDraft(series.toKey);
+  }, [series.fromKey, series.toKey]);
 
-  const merPoints = buckets.map((b, i) => {
-    const x = buckets.length > 0 ? ((i + 0.5) / buckets.length) * 100 : 0;
+  useEffect(() => {
+    setHiddenChannels(new Set());
+  }, [series.mode, series.range, series.granularity]);
+
+  const selected =
+    visibleBuckets.find((b) => b.key === selectedKey) ??
+    visibleBuckets.find((b) => b.key === defaultKey) ??
+    null;
+  const selectedIndex = selected
+    ? visibleBuckets.findIndex((b) => b.key === selected.key)
+    : -1;
+  const hoverBucketKey = hover?.bucketKey ?? null;
+  const tipBucket =
+    !shotMode && hoverBucketKey
+      ? (visibleBuckets.find((b) => b.key === hoverBucketKey) ?? null)
+      : null;
+  const tipIndex = tipBucket
+    ? visibleBuckets.findIndex((b) => b.key === tipBucket.key)
+    : -1;
+  const activeKey = hoverBucketKey ?? selected?.key ?? null;
+  const activeIndex =
+    activeKey != null
+      ? visibleBuckets.findIndex((b) => b.key === activeKey)
+      : -1;
+
+  const hoverSeg =
+    hover?.kind === "seg" && tipBucket
+      ? tipBucket.bars.find((s) => s.channel === hover.channel) ?? null
+      : null;
+
+  const datesDirty =
+    fromDraft !== series.fromKey || toDraft !== series.toKey;
+
+  const n = visibleBuckets.length;
+  const colMinPx = colMinPxFor(series.granularity, mode);
+  const vbW = Math.max(360, n * colMinPx);
+  const vbH = PAD_T + PLOT_H + PAD_B;
+  const plotW = Math.max(1, vbW - PAD_L - PAD_R);
+  const slotW = n > 0 ? plotW / n : plotW;
+  const barW = slotW * 0.62;
+
+  const yLeft = (val: number) =>
+    PAD_T + PLOT_H - (leftCeil > 0 ? (val / leftCeil) * PLOT_H : 0);
+  const yMer = (val: number) =>
+    PAD_T + PLOT_H - (merCeil > 0 ? (val / merCeil) * PLOT_H : 0);
+  const xCenter = (i: number) => PAD_L + (i + 0.5) * slotW;
+
+  const gridFracs = [0, 0.25, 0.5, 0.75, 1] as const;
+
+  const merPoints = visibleBuckets.map((b, i) => {
+    const x = xCenter(i);
     const y =
       b.mer != null && merCeil > 0
-        ? 100 - Math.min(100, (b.mer / merCeil) * 100)
+        ? yMer(Math.min(b.mer, merCeil))
         : null;
     return {
       x,
       y,
-      above: b.mer != null && targetMer > 0 ? b.mer >= targetMer : null,
+      tone: merToneBand(b.mer, targetMer),
+      key: b.key,
     };
   });
   const merLine = merPoints
@@ -220,65 +315,161 @@ export function SpendExplorer({
     .map((p) => `${p.x},${p.y as number}`)
     .join(" ");
 
-  const colMinPx =
-    series.granularity === "Day" ? 36 : mode === "total" ? 40 : 48;
-  const chartMinWidth = Math.max(360, buckets.length * colMinPx + 40);
+  const salesPoints =
+    showSales && !isShare
+      ? visibleBuckets.map((b, i) => {
+          const x = xCenter(i);
+          const y =
+            leftCeil > 0
+              ? yLeft(Math.min(b.sales, leftCeil))
+              : null;
+          return { x, y, key: b.key };
+        })
+      : [];
+  const salesLine = salesPoints
+    .filter((p) => p.y != null)
+    .map((p) => `${p.x},${p.y as number}`)
+    .join(" ");
+
+  const labelCount = n;
+  const labelStep = labelCount > 10 ? Math.ceil(labelCount / 8) : 1;
+  const showAxisLabel = (index: number) => {
+    if (labelCount <= 10) return true;
+    if (index === 0 || index === labelCount - 1) return true;
+    return index % labelStep === 0;
+  };
+
+  const tipLeftPct =
+    tipIndex >= 0 && n > 0
+      ? clamp((xCenter(tipIndex) / vbW) * 100, 10, 90)
+      : 0;
+
+  /** Tip sits mid-plot vertically so it doesn't cover the whole chart. */
+  const tipTopPct =
+    hover?.kind === "dot"
+      ? 18
+      : hover?.kind === "seg"
+        ? 42
+        : 28;
+
+  const crosshairX =
+    activeIndex >= 0 ? xCenter(activeIndex) : null;
+
+  const hrefBase = {
+    period,
+    shotMode,
+    gran: series.granularity,
+    mode: series.mode,
+    showSales,
+  };
+
+  function toExplorer(opts: {
+    range: ExplorerRange;
+    gran?: ExplorerGranularity;
+    mode?: ExplorerMode;
+    showSales?: boolean;
+    from?: string | null;
+    to?: string | null;
+  }) {
+    return {
+      pathname: "/app" as const,
+      search: explorerSearch(searchParams, {
+        ...hrefBase,
+        range: opts.range,
+        gran: opts.gran ?? series.granularity,
+        mode: opts.mode ?? series.mode,
+        showSales: opts.showSales ?? showSales,
+        from: opts.from,
+        to: opts.to,
+      }),
+    };
+  }
+
+  function goCustomDates(from: string, to: string) {
+    if (!from || !to) return;
+    navigate(
+      toExplorer({
+        range: "custom",
+        from,
+        to,
+      }),
+      { preventScrollReset: true },
+    );
+  }
+
+  function onDateSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (fromDraft && toDraft) goCustomDates(fromDraft, toDraft);
+  }
+
+  function moveSelection(delta: number) {
+    if (!visibleBuckets.length) return;
+    const cur =
+      selectedIndex >= 0
+        ? selectedIndex
+        : Math.max(0, visibleBuckets.length - 1);
+    const next = Math.min(
+      visibleBuckets.length - 1,
+      Math.max(0, cur + delta),
+    );
+    const key = visibleBuckets[next]?.key;
+    if (key) setSelectedKey(key);
+  }
+
+  function onPlotKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      moveSelection(-1);
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      moveSelection(1);
+      return;
+    }
+    if (e.key === "Home") {
+      e.preventDefault();
+      const key = visibleBuckets[0]?.key;
+      if (key) setSelectedKey(key);
+      return;
+    }
+    if (e.key === "End") {
+      e.preventDefault();
+      const key = visibleBuckets[visibleBuckets.length - 1]?.key;
+      if (key) setSelectedKey(key);
+    }
+  }
+
+  function toggleChannel(channel: string) {
+    setHiddenChannels((prev) => {
+      const next = new Set(prev);
+      if (next.has(channel)) next.delete(channel);
+      else next.add(channel);
+      return next;
+    });
+  }
+
+  function visibleOrderedBars(bucket: ExplorerPlotBucket) {
+    return orderBarsByLegend(bucket.bars, legend).filter(
+      (seg) => !hiddenChannels.has(seg.channel),
+    );
+  }
+
+  function segShare(bucket: ExplorerPlotBucket, channel: string): number {
+    const ordered = visibleOrderedBars(bucket).filter((s) => s.amount > 0);
+    const barSum = ordered.reduce((s, c) => s + c.amount, 0);
+    const amt = ordered.find((s) => s.channel === channel)?.amount ?? 0;
+    return barSum > 0 ? (amt / barSum) * 100 : 0;
+  }
 
   return (
     <section
-      className="mcfly-panel mcfly-explorer"
-      aria-label="Spend explorer — channel mix vs MER"
+      className="mcfly-panel mcfly-explorer mcfly-explorer--lean"
+      aria-label={PRODUCT_NOUN.explorer}
     >
-      <div className="mcfly-panel__head">
-        <h2>Spend explorer · channel mix vs MER</h2>
-        <p className="mcfly-panel__muted">
-          {hasBars
-            ? `${granPhrase(series.granularity, bucketCount)} · ${series.windowLabel} · cash MER = sales ÷ spend · closed days only`
-            : `No closed days in ${series.windowLabel.toLowerCase()} · cash MER = sales ÷ spend · closed days only`}
-        </p>
+      <div className="mcfly-panel__head mcfly-explorer__head mcfly-explorer__head--lean">
+        <h2>{PRODUCT_NOUN.explorer}</h2>
       </div>
-
-      {hasBars ? (
-        <>
-          <ul className="mcfly-explorer__chips" aria-label="Explorer summary">
-            <li className="mcfly-explorer__chip">
-              <span className="mcfly-explorer__chip-k">Sales</span>
-              <span className="mcfly-explorer__chip-v">
-                {formatCurrency(summary.totalSales)}
-              </span>
-            </li>
-            <li className="mcfly-explorer__chip">
-              <span className="mcfly-explorer__chip-k">Spend</span>
-              <span className="mcfly-explorer__chip-v">
-                {formatCurrency(summary.totalSpend)}
-              </span>
-            </li>
-            <li className="mcfly-explorer__chip">
-              <span className="mcfly-explorer__chip-k">Cash MER</span>
-              <span
-                className={`mcfly-explorer__chip-v mcfly-explorer__chip-v--${merToneClass(summary.overallMer, targetMer)}`}
-              >
-                {formatMer(summary.overallMer)}
-              </span>
-            </li>
-            <li className="mcfly-explorer__chip mcfly-explorer__chip--mute">
-              <span className="mcfly-explorer__chip-k">Bars</span>
-              <span className="mcfly-explorer__chip-v">{modeAxisHint(mode)}</span>
-            </li>
-          </ul>
-          {summary.costPerNew != null || summary.costPerCustomer != null ? (
-            <p className="mcfly-explorer__eff">
-              Efficiency
-              {summary.costPerNew != null
-                ? ` · cost/new ${formatCurrency(summary.costPerNew)}`
-                : ""}
-              {summary.costPerCustomer != null
-                ? ` · cost/customer ${formatCurrency(summary.costPerCustomer)}`
-                : ""}
-            </p>
-          ) : null}
-        </>
-      ) : null}
 
       {!shotMode ? (
         <div className="mcfly-explorer__controls">
@@ -290,23 +481,53 @@ export function SpendExplorer({
             {EXPLORER_RANGE_OPTIONS.map(({ value, label }) => {
               const on = series.range === value;
               return (
-                <a
+                <Link
                   key={value}
-                  href={explorerHref({
-                    period,
-                    shotMode,
-                    range: value,
-                    gran: series.granularity,
-                    mode: series.mode,
-                  })}
+                  to={toExplorer({ range: value })}
+                  preventScrollReset
                   className={`mcfly-explorer__btn${on ? " mcfly-explorer__btn--on" : ""}`}
                   aria-current={on ? "true" : undefined}
                 >
                   {label}
-                </a>
+                </Link>
               );
             })}
           </div>
+
+          <form
+            className="mcfly-explorer__dates"
+            aria-label="Custom date range"
+            onSubmit={onDateSubmit}
+          >
+            <label className="mcfly-explorer__date">
+              FROM
+              <input
+                type="date"
+                name="exFrom"
+                value={fromDraft}
+                max={series.asOfKey || dateKeyFromLocal(new Date())}
+                onChange={(e) => setFromDraft(e.target.value)}
+              />
+            </label>
+            <label className="mcfly-explorer__date">
+              TO
+              <input
+                type="date"
+                name="exTo"
+                value={toDraft}
+                max={series.asOfKey || dateKeyFromLocal(new Date())}
+                onChange={(e) => setToDraft(e.target.value)}
+              />
+            </label>
+            <button
+              type="submit"
+              className={`mcfly-explorer__btn mcfly-explorer__btn--apply${datesDirty ? " mcfly-explorer__btn--on" : ""}`}
+              disabled={!fromDraft || !toDraft}
+            >
+              Apply
+            </button>
+          </form>
+
           <div
             className="mcfly-explorer__segmented"
             role="group"
@@ -315,23 +536,24 @@ export function SpendExplorer({
             {EXPLORER_GRANULARITY_OPTIONS.map(({ value, label }) => {
               const on = series.granularity === value;
               return (
-                <a
+                <Link
                   key={value}
-                  href={explorerHref({
-                    period,
-                    shotMode,
+                  to={toExplorer({
                     range: series.range,
                     gran: value,
-                    mode: series.mode,
+                    from: series.range === "custom" ? series.fromKey : null,
+                    to: series.range === "custom" ? series.toKey : null,
                   })}
+                  preventScrollReset
                   className={`mcfly-explorer__btn${on ? " mcfly-explorer__btn--on" : ""}`}
                   aria-current={on ? "true" : undefined}
                 >
                   {label}
-                </a>
+                </Link>
               );
             })}
           </div>
+
           <div
             className="mcfly-explorer__segmented"
             role="group"
@@ -340,23 +562,49 @@ export function SpendExplorer({
             {EXPLORER_MODE_OPTIONS.map(({ value, label }) => {
               const on = series.mode === value;
               return (
-                <a
+                <Link
                   key={value}
-                  href={explorerHref({
-                    period,
-                    shotMode,
+                  to={toExplorer({
                     range: series.range,
-                    gran: series.granularity,
                     mode: value,
+                    from: series.range === "custom" ? series.fromKey : null,
+                    to: series.range === "custom" ? series.toKey : null,
                   })}
+                  preventScrollReset
                   className={`mcfly-explorer__btn${on ? " mcfly-explorer__btn--on" : ""}`}
                   aria-current={on ? "true" : undefined}
                 >
                   {label}
-                </a>
+                </Link>
               );
             })}
           </div>
+
+          <button
+            type="button"
+            className={`mcfly-explorer__sales-toggle${showSales ? " mcfly-explorer__sales-toggle--on" : ""}${isShare ? " mcfly-explorer__sales-toggle--disabled" : ""}`}
+            aria-pressed={showSales}
+            disabled={isShare}
+            title={
+              isShare
+                ? "Sales line is hidden in share % mode"
+                : "Toggle sales on shared $ axis"
+            }
+            onClick={() => {
+              if (isShare) return;
+              navigate(
+                toExplorer({
+                  range: series.range,
+                  showSales: !showSales,
+                  from: series.range === "custom" ? series.fromKey : null,
+                  to: series.range === "custom" ? series.toKey : null,
+                }),
+                { preventScrollReset: true },
+              );
+            }}
+          >
+            Sales
+          </button>
         </div>
       ) : null}
 
@@ -365,266 +613,410 @@ export function SpendExplorer({
           <div className="mcfly-explorer__scroll">
             <div
               className="mcfly-explorer__chart"
-              style={{ minWidth: `${chartMinWidth}px` }}
+              style={{ minWidth: `${vbW}px` }}
             >
               <div
-                className="mcfly-explorer__mer-row"
-                style={{
-                  gridTemplateColumns: `repeat(${Math.max(buckets.length, 1)}, minmax(0, 1fr))`,
-                }}
+                className="mcfly-explorer__plot-area"
+                role="listbox"
+                aria-label={`${PRODUCT_NOUN.explorer} columns`}
+                aria-activedescendant={
+                  selected ? `explorer-col-${selected.key}` : undefined
+                }
+                tabIndex={0}
+                onKeyDown={onPlotKeyDown}
+                onPointerLeave={() => setHover(null)}
               >
-                {buckets.map((bucket) => {
-                  const tone = merToneClass(bucket.mer, targetMer);
-                  return (
-                    <div
-                      key={`mer-${bucket.key}`}
-                      className={`mcfly-explorer__mer mcfly-explorer__mer--${tone}`}
-                      title={bucketTitle(bucket, mode)}
-                    >
-                      {bucket.mer != null ? formatMer(bucket.mer) : "—"}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="mcfly-explorer__plot-area">
-                <div className="mcfly-explorer__axis mcfly-explorer__axis--left" aria-hidden="true">
-                  <span>Bars</span>
-                  <span>
-                    {mode === "share"
-                      ? "100%"
-                      : formatCurrency(barMax).replace(/\.00$/, "")}
-                  </span>
-                  <span>0</span>
-                </div>
-                <div className="mcfly-explorer__axis mcfly-explorer__axis--right" aria-hidden="true">
-                  <span>MER</span>
-                  <span>{formatMer(merCeil)}</span>
-                  <span>0×</span>
-                </div>
-
-                <div className="mcfly-explorer__grid" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </div>
-
-                <div
-                  className="mcfly-explorer__rail"
-                  style={{ bottom: `${targetRailPct}%` }}
-                  aria-hidden="true"
-                >
-                  <span className="mcfly-explorer__rail-label">
-                    Target {formatMer(targetMer)}
-                  </span>
-                </div>
-
                 <svg
-                  className="mcfly-explorer__mer-svg"
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
+                  className="mcfly-explorer__plot-svg"
+                  viewBox={`0 0 ${vbW} ${vbH}`}
+                  preserveAspectRatio="xMidYMid meet"
+                  width={vbW}
+                  height={vbH}
+                  role="img"
+                  aria-label={`Channel spend mix and ${PRODUCT_NOUN.totalRoas}`}
                 >
-                  {merLine ? (
+                  {/* 1. Grid + dual axis ticks */}
+                  {gridFracs.map((frac) => {
+                    const y = PAD_T + PLOT_H * (1 - frac);
+                    const leftVal = leftCeil * frac;
+                    const rightVal = merCeil * frac;
+                    return (
+                      <g key={`grid-${frac}`} aria-hidden="true">
+                        <line
+                          className="mcfly-explorer__grid-line"
+                          x1={PAD_L}
+                          x2={vbW - PAD_R}
+                          y1={y}
+                          y2={y}
+                        />
+                        <text
+                          className="mcfly-explorer__tick mcfly-explorer__tick--left"
+                          x={PAD_L - 6}
+                          y={y}
+                          dy="0.32em"
+                          textAnchor="end"
+                        >
+                          {axisMoneyLabel(leftVal, isShare)}
+                        </text>
+                        <text
+                          className="mcfly-explorer__tick mcfly-explorer__tick--right"
+                          x={vbW - PAD_R + 6}
+                          y={y}
+                          dy="0.32em"
+                          textAnchor="start"
+                        >
+                          {formatMer(rightVal)}×
+                        </text>
+                      </g>
+                    );
+                  })}
+                  <text
+                    className="mcfly-explorer__axis-title mcfly-explorer__axis-title--left"
+                    x={4}
+                    y={PAD_T - 4}
+                    aria-hidden="true"
+                  >
+                    {isShare ? "Share %" : showSales ? "$ (shared)" : "Spend $"}
+                  </text>
+                  <text
+                    className="mcfly-explorer__axis-title mcfly-explorer__axis-title--right"
+                    x={vbW - 4}
+                    y={PAD_T - 4}
+                    textAnchor="end"
+                    aria-hidden="true"
+                  >
+                    {PRODUCT_NOUN.totalRoas} ×
+                  </text>
+
+                  {/* 2. Target + BE rails (ROAS axis) */}
+                  {targetMer > 0 && merCeil > 0 ? (
+                    <g className="mcfly-explorer__rail-g" aria-hidden="true">
+                      <line
+                        className="mcfly-explorer__rail-line mcfly-explorer__rail-line--target"
+                        x1={PAD_L}
+                        x2={vbW - PAD_R}
+                        y1={yMer(targetMer)}
+                        y2={yMer(targetMer)}
+                      />
+                      <text
+                        className="mcfly-explorer__rail-txt mcfly-explorer__rail-txt--target"
+                        x={vbW - PAD_R - 2}
+                        y={yMer(targetMer) - 4}
+                        textAnchor="end"
+                      >
+                        Target {formatMer(targetMer)}×
+                      </text>
+                    </g>
+                  ) : null}
+                  {breakEvenMer != null && breakEvenMer > 0 && merCeil > 0 ? (
+                    <g className="mcfly-explorer__rail-g" aria-hidden="true">
+                      <line
+                        className="mcfly-explorer__rail-line mcfly-explorer__rail-line--be"
+                        x1={PAD_L}
+                        x2={vbW - PAD_R}
+                        y1={yMer(breakEvenMer)}
+                        y2={yMer(breakEvenMer)}
+                      />
+                      <text
+                        className="mcfly-explorer__rail-txt mcfly-explorer__rail-txt--be"
+                        x={PAD_L + 2}
+                        y={yMer(breakEvenMer) - 4}
+                        textAnchor="start"
+                      >
+                        BE {formatMer(breakEvenMer)}×
+                      </text>
+                    </g>
+                  ) : null}
+
+                  {/* 3. Column select wash (behind bars) + stacked segments with mark hover */}
+                  {visibleBuckets.map((bucket, i) => {
+                    const ordered = visibleOrderedBars(bucket);
+                    let yCursor = PAD_T + PLOT_H;
+                    const cx = xCenter(i);
+                    const x = cx - barW / 2;
+                    const isOn = selected?.key === bucket.key;
+                    const segs: {
+                      key: string;
+                      channel: string;
+                      x: number;
+                      y: number;
+                      w: number;
+                      h: number;
+                      amount: number;
+                    }[] = [];
+                    for (const seg of ordered) {
+                      if (!(seg.amount > 0) || leftCeil <= 0) continue;
+                      const h = (seg.amount / leftCeil) * PLOT_H;
+                      yCursor -= h;
+                      segs.push({
+                        key: `${bucket.key}-${seg.channel}`,
+                        channel: seg.channel,
+                        x,
+                        y: yCursor,
+                        w: barW,
+                        h,
+                        amount: seg.amount,
+                      });
+                    }
+                    return (
+                      <g
+                        key={`bar-${bucket.key}`}
+                        className={`mcfly-explorer__bar-g${isOn ? " mcfly-explorer__bar-g--on" : ""}`}
+                      >
+                        {/* Select wash — behind segments so clicks still hit marks */}
+                        <rect
+                          id={`explorer-col-${bucket.key}`}
+                          className={`mcfly-explorer__col-wash${isOn ? " mcfly-explorer__col-wash--on" : ""}`}
+                          role="option"
+                          aria-label={bucketTitle(bucket, mode)}
+                          aria-selected={isOn}
+                          x={PAD_L + i * slotW}
+                          y={PAD_T}
+                          width={slotW}
+                          height={PLOT_H}
+                          onPointerDown={(e) => {
+                            if (e.button !== 0) return;
+                            setSelectedKey(bucket.key);
+                          }}
+                        />
+                        {segs.map((seg) => {
+                          const segHot =
+                            hover?.kind === "seg" &&
+                            hover.bucketKey === bucket.key &&
+                            hover.channel === seg.channel;
+                          const dimOthers =
+                            hover?.kind === "seg" &&
+                            !(
+                              hover.bucketKey === bucket.key &&
+                              hover.channel === seg.channel
+                            );
+                          return (
+                            <rect
+                              key={seg.key}
+                              className={`mcfly-explorer__seg ${channelSegClass(seg.channel)}${segHot ? " mcfly-explorer__seg--hot" : ""}${dimOthers ? " mcfly-explorer__seg--dim" : ""}`}
+                              x={seg.x}
+                              y={seg.y}
+                              width={seg.w}
+                              height={Math.max(seg.h, 0.5)}
+                              onPointerEnter={() => {
+                                if (shotMode) return;
+                                setHover({
+                                  kind: "seg",
+                                  bucketKey: bucket.key,
+                                  channel: seg.channel,
+                                });
+                              }}
+                              onPointerDown={(e) => {
+                                if (e.button !== 0) return;
+                                e.stopPropagation();
+                                setSelectedKey(bucket.key);
+                                setHover({
+                                  kind: "seg",
+                                  bucketKey: bucket.key,
+                                  channel: seg.channel,
+                                });
+                              }}
+                            />
+                          );
+                        })}
+                      </g>
+                    );
+                  })}
+
+                  {/* 4. Sales polyline (shared $ axis) */}
+                  {salesLine ? (
                     <polyline
-                      className="mcfly-explorer__mer-line"
-                      points={merLine}
+                      className="mcfly-explorer__sales-line"
+                      points={salesLine}
                       fill="none"
+                      pointerEvents="none"
                     />
                   ) : null}
-                  {merPoints.map((p, i) =>
-                    p.y != null ? (
-                      <circle
-                        key={buckets[i]?.key ?? i}
-                        className={
-                          p.above
-                            ? "mcfly-explorer__mer-dot mcfly-explorer__mer-dot--up"
-                            : p.above === false
-                              ? "mcfly-explorer__mer-dot mcfly-explorer__mer-dot--down"
-                              : "mcfly-explorer__mer-dot"
-                        }
-                        cx={p.x}
-                        cy={p.y}
-                        r={1.25}
+
+                  {/* 5. Total ROAS polyline + interactive dots */}
+                  {merLine ? (
+                    <>
+                      <polyline
+                        className="mcfly-explorer__mer-line mcfly-explorer__mer-line--under"
+                        points={merLine}
+                        fill="none"
+                        pointerEvents="none"
                       />
+                      <polyline
+                        className="mcfly-explorer__mer-line"
+                        points={merLine}
+                        fill="none"
+                        pointerEvents="none"
+                      />
+                    </>
+                  ) : null}
+                  {merPoints.map((p) =>
+                    p.y != null ? (
+                      <g key={`dot-${p.key}`}>
+                        {/* Larger invisible hit for the ROAS mark */}
+                        <circle
+                          className="mcfly-explorer__mer-hit"
+                          cx={p.x}
+                          cy={p.y}
+                          r={10}
+                          onPointerEnter={() => {
+                            if (shotMode) return;
+                            setHover({ kind: "dot", bucketKey: p.key });
+                          }}
+                          onPointerDown={(e) => {
+                            if (e.button !== 0) return;
+                            setSelectedKey(p.key);
+                            setHover({ kind: "dot", bucketKey: p.key });
+                          }}
+                        />
+                        <circle
+                          className={
+                            p.tone === "up"
+                              ? "mcfly-explorer__mer-dot mcfly-explorer__mer-dot--up"
+                              : p.tone === "down"
+                                ? "mcfly-explorer__mer-dot mcfly-explorer__mer-dot--down"
+                                : "mcfly-explorer__mer-dot"
+                          }
+                          cx={p.x}
+                          cy={p.y}
+                          r={
+                            hover?.kind === "dot" && hover.bucketKey === p.key
+                              ? 5
+                              : p.key === selected?.key
+                                ? 4
+                                : 3.2
+                          }
+                          pointerEvents="none"
+                        />
+                      </g>
+                    ) : null,
+                  )}
+
+                  {/* 6. Crosshair */}
+                  {crosshairX != null ? (
+                    <line
+                      className="mcfly-explorer__crosshair"
+                      x1={crosshairX}
+                      x2={crosshairX}
+                      y1={PAD_T}
+                      y2={PAD_T + PLOT_H}
+                      aria-hidden="true"
+                      pointerEvents="none"
+                    />
+                  ) : null}
+
+                  {/* X labels */}
+                  {visibleBuckets.map((bucket, i) =>
+                    showAxisLabel(i) ? (
+                      <text
+                        key={`lbl-${bucket.key}`}
+                        className="mcfly-explorer__x-label"
+                        x={xCenter(i)}
+                        y={vbH - 8}
+                        textAnchor="middle"
+                        pointerEvents="none"
+                      >
+                        {bucket.label}
+                      </text>
                     ) : null,
                   )}
                 </svg>
 
-                <div
-                  className="mcfly-explorer__cols"
-                  role="list"
-                  style={{
-                    gridTemplateColumns: `repeat(${Math.max(buckets.length, 1)}, minmax(0, 1fr))`,
-                  }}
-                >
-                  {buckets.map((bucket) => {
-                    const barTotal =
-                      mode === "share"
-                        ? 100
-                        : mode === "total"
-                          ? bucket.spend
-                          : bucket.bars.reduce((s, c) => s + c.amount, 0);
-                    const barH =
-                      barTotal > 0
-                        ? Math.max(3, Math.round((barTotal / barMax) * 100))
-                        : 0;
-                    const isOn = selected?.key === bucket.key;
-                    return (
-                      <div
-                        className={`mcfly-explorer__col${isOn ? " mcfly-explorer__col--on" : ""}`}
-                        role="listitem"
-                        key={bucket.key}
-                        tabIndex={0}
-                        title={bucketTitle(bucket, mode)}
-                        aria-label={bucketTitle(bucket, mode)}
-                        aria-pressed={isOn}
-                        onClick={() => setSelectedKey(bucket.key)}
-                        onFocus={() => setSelectedKey(bucket.key)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            setSelectedKey(bucket.key);
-                          }
-                        }}
-                      >
-                        <div className="mcfly-explorer__plot">
-                          {barH > 0 ? (
-                            <div
-                              className="mcfly-explorer__bar"
-                              style={{ height: `${barH}%` }}
-                            >
-                              {bucket.bars.map((seg) => (
-                                <span
-                                  key={seg.channel}
-                                  className={`mcfly-explorer__bar-seg ${channelSegClass(seg.channel)}`}
-                                  style={{
-                                    flexGrow: Math.max(seg.amount, 0.01),
-                                    flexBasis: 0,
-                                  }}
-                                  title={
-                                    mode === "share"
-                                      ? `${channelLabel(seg.channel)}: ${seg.amount.toFixed(1)}%`
-                                      : `${channelLabel(seg.channel)}: ${formatCurrency(seg.amount)}`
-                                  }
-                                />
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="mcfly-explorer__bar mcfly-explorer__bar--empty" />
-                          )}
-                        </div>
-                        <div className="mcfly-explorer__tip" role="tooltip">
-                          <strong>{bucket.label}</strong>
-                          <span>
-                            {bucket.mer != null
-                              ? `MER ${formatMer(bucket.mer)}`
-                              : "MER —"}
-                            {" · "}
-                            {formatCurrency(bucket.sales)} sales ÷{" "}
-                            {formatCurrency(bucket.spend)} spend
-                          </span>
-                          <span>{segmentDetail(bucket, mode)}</span>
-                          {bucket.scaledToCash ? (
-                            <span className="mcfly-explorer__tip-note">
-                              Mix scaled to cash spend
+                {tipBucket && hover ? (
+                  <div
+                    className="mcfly-explorer__tip mcfly-explorer__tip--float mcfly-explorer__tip--on mcfly-explorer__tip--compact"
+                    role="tooltip"
+                    style={{ left: `${tipLeftPct}%`, top: `${tipTopPct}%` }}
+                  >
+                    {hover.kind === "dot" ? (
+                      <>
+                        <strong>{tipBucket.label}</strong>
+                        <span className="mcfly-explorer__tip-lead">
+                          {PRODUCT_NOUN.totalRoas}{" "}
+                          {tipBucket.mer != null
+                            ? formatMer(tipBucket.mer)
+                            : "—"}
+                        </span>
+                        <span>
+                          Spend {formatCurrency(tipBucket.spend)}
+                        </span>
+                        <span>
+                          Sales {formatCurrency(tipBucket.sales)}
+                        </span>
+                      </>
+                    ) : hoverSeg ? (
+                      <>
+                        <strong className="mcfly-explorer__tip-ch-head">
+                          <i
+                            className={`mcfly-explorer__tip-swatch ${channelSegClass(hover.channel)}`}
+                            aria-hidden="true"
+                          />
+                          {channelLabel(hover.channel)}
+                        </strong>
+                        <span className="mcfly-explorer__tip-lead">
+                          {mode === "share"
+                            ? `${hoverSeg.amount.toFixed(1)}%`
+                            : formatCurrency(hoverSeg.amount)}
+                          {mode !== "share" ? (
+                            <span className="mcfly-explorer__tip-share">
+                              {" "}
+                              · {Math.round(segShare(tipBucket, hover.channel))}%
+                              of bar
                             </span>
                           ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div
-                className="mcfly-explorer__label-row"
-                style={{
-                  gridTemplateColumns: `repeat(${Math.max(buckets.length, 1)}, minmax(0, 1fr))`,
-                }}
-              >
-                {buckets.map((bucket) => (
-                  <div key={`lbl-${bucket.key}`} className="mcfly-explorer__label">
-                    {bucket.label}
+                        </span>
+                        <span className="mcfly-explorer__tip-period">
+                          {tipBucket.label}
+                        </span>
+                      </>
+                    ) : null}
                   </div>
-                ))}
+                ) : null}
               </div>
             </div>
           </div>
 
-          <div className="mcfly-explorer__readout" aria-live="polite">
-            {selected ? (
-              <>
-                <strong>{selected.label}</strong>
-                <span>
-                  {selected.mer != null
-                    ? `MER ${formatMer(selected.mer)}`
-                    : "MER —"}
-                  {" · "}
-                  {formatCurrency(selected.sales)} sales ÷{" "}
-                  {formatCurrency(selected.spend)} spend
-                </span>
-                <span>{segmentDetail(selected, mode)}</span>
-                {selected.scaledToCash ? (
-                  <span className="mcfly-explorer__tip-note">
-                    Mix scaled to cash spend
-                  </span>
-                ) : null}
-              </>
-            ) : (
-              <span>
-                Select a column · cash MER = sales ÷ spend · bars ={" "}
-                {modeAxisHint(mode).toLowerCase()}; line = MER (×)
-              </span>
-            )}
-          </div>
-
           {!shotMode ? (
-            <div className="mcfly-explorer__export">
+            <div className="mcfly-explorer__channel-toggles" role="group" aria-label="Spend channels">
+              {legend.map((channel) => {
+                const hidden = hiddenChannels.has(channel);
+                return (
+                  <button
+                    key={channel}
+                    type="button"
+                    className={`mcfly-explorer__ch-toggle${hidden ? " mcfly-explorer__ch-toggle--off" : ""}`}
+                    aria-pressed={!hidden}
+                    title={
+                      hidden
+                        ? `Show ${channelLabel(channel)}`
+                        : `Hide ${channelLabel(channel)}`
+                    }
+                    onClick={() => toggleChannel(channel)}
+                  >
+                    <i
+                      className={`mcfly-explorer__ch-dot ${channelSegClass(channel)}`}
+                      aria-hidden="true"
+                    />
+                    <span>{channelLabel(channel)}</span>
+                  </button>
+                );
+              })}
               <button
                 type="button"
-                className="mcfly-explorer__export-btn"
+                className="mcfly-explorer__export-btn mcfly-explorer__export-btn--quiet"
                 onClick={() =>
                   downloadExplorerCsv(
-                    buckets,
+                    allBuckets,
                     mode,
                     series.range,
                     series.granularity,
                   )
                 }
               >
-                Export explorer CSV
+                CSV
               </button>
-              <span>Bucket sales · spend · MER · channel mix</span>
             </div>
           ) : null}
-
-          <ul className="mcfly-explorer__legend">
-            <li>
-              <i
-                className="mcfly-explorer__swatch mcfly-explorer__swatch--mer"
-                aria-hidden="true"
-              />
-              MER (sales ÷ spend)
-            </li>
-            <li>
-              <i
-                className="mcfly-explorer__swatch mcfly-explorer__swatch--rail"
-                aria-hidden="true"
-              />
-              Target {formatMer(targetMer)}
-            </li>
-            {legend.map((channel) => (
-              <li key={channel}>
-                <i
-                  className={`mcfly-explorer__swatch ${channelSegClass(channel)}`}
-                  aria-hidden="true"
-                />
-                {channelLabel(channel)}
-              </li>
-            ))}
-          </ul>
         </>
       ) : (
         <div className="mcfly-guide-empty">
@@ -632,9 +1024,36 @@ export function SpendExplorer({
             No spend in {series.windowLabel.toLowerCase()}
           </p>
           <p className="mcfly-guide-empty__copy">
-            Log spend by channel by day and the explorer lights up — Shopify sales
-            power MER (sales ÷ spend).{" "}
-            <a href="/app/spend">Add spend</a>.
+            Export channel spend by day and upload.{" "}
+            {PRODUCT_NOUN.definitionForPeriod}. The explorer fills once spend
+            lands.
+          </p>
+          <p className="mcfly-guide-empty__actions">
+            <Link
+              className="mcfly-explorer__cta"
+              preventScrollReset
+              to={{
+                pathname: "/app/spend",
+                search: searchParams.toString()
+                  ? `?${searchParams.toString()}`
+                  : "",
+                hash: "mcfly-spend-uploads",
+              }}
+            >
+              Export &amp; upload spend
+            </Link>
+            <Link
+              className="mcfly-explorer__cta mcfly-explorer__cta--ghost"
+              preventScrollReset
+              to={{
+                pathname: "/app/spend",
+                search: searchParams.toString()
+                  ? `?${searchParams.toString()}`
+                  : "",
+              }}
+            >
+              Open Spend
+            </Link>
           </p>
         </div>
       )}
