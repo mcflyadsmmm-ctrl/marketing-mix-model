@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sample lab — Mcfly Analytics</title>
+  <meta name="description" content="SAMPLE interactive lab: operator desk, mix, reconciliation, and pipeline. Demonstration figures only — not a client account." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0b0e12" />
+  <link rel="canonical" href="https://mcflyads.com/lab" />
+  <meta property="og:site_name" content="Mcfly Analytics" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/lab" />
+  <meta property="og:title" content="Sample lab — Mcfly Analytics" />
+  <meta property="og:description" content="Desk, mix, recon, and pipeline — all labeled SAMPLE." />
+  <meta property="og:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sample lab — Mcfly Analytics" />
+  <meta name="twitter:description" content="Interactive sample. Not a client account." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260822a" />
+</head>
+<body class="lab-page">
+  <a class="skip" href="#main">Skip to content</a>
+  <div data-chrome></div>
+
+  <main id="main">
+    <header class="page-hero">
+      <p class="brand-kicker">Sample lab</p>
+      <h1>Four instruments. Every panel is SAMPLE.</h1>
+      <p>Demonstration figures for Northline and Harbor — the same published sample used on this site. Not a live client, not a guarantee, not a pixel.</p>
+      <p style="margin-top:0.85rem"><span class="sample-badge">SAMPLE</span></p>
+    </header>
+
+    <section class="band live-band" id="lab" aria-labelledby="lab-title">
+      <div class="wrap">
+        <p class="eyebrow">Interactive</p>
+        <h2 id="lab-title" class="display">Desk, mix, recon, pipeline.</h2>
+        <p class="lede-soft">Switch the sample brand and period. The math is sales ÷ spend for the same dates.</p>
+
+        <div class="lab-tabs" role="tablist" aria-label="Sample instruments">
+          <button type="button" role="tab" id="tab-desk" aria-controls="panel-desk" aria-selected="true">Desk</button>
+          <button type="button" role="tab" id="tab-mmm" aria-controls="panel-mmm" aria-selected="false">Mix</button>
+          <button type="button" role="tab" id="tab-recon" aria-controls="panel-recon" aria-selected="false">Recon</button>
+          <button type="button" role="tab" id="tab-pipeline" aria-controls="panel-pipeline" aria-selected="false">Pipeline</button>
+        </div>
+
+        <div class="demo-controls" role="group" aria-label="Sample data controls">
+          <div class="seg" role="group" aria-label="Brand">
+            <button type="button" class="seg-btn active" data-brand="demo-dtc">Northline</button>
+            <button type="button" class="seg-btn" data-brand="demo-agency">Harbor</button>
+          </div>
+          <div class="seg" role="group" aria-label="Period">
+            <button type="button" class="seg-btn active" data-period="mtd">MTD</button>
+            <button type="button" class="seg-btn" data-period="qtd">QTD</button>
+            <button type="button" class="seg-btn" data-period="ytd">YTD</button>
+          </div>
+        </div>
+
+        <div id="panel-desk" class="lab-panel" role="tabpanel" aria-labelledby="tab-desk">
+          <article class="instrument featured" id="alloc-rec">
+            <header>
+              <h3>Operator desk <span class="sample-badge">SAMPLE</span></h3>
+              <p>Allocation note from cash efficiency versus break-even — not path credit.</p>
+            </header>
+            <p class="rec-why" id="rec-why">Loading sample…</p>
+            <ul class="rec-actions" id="rec-actions"></ul>
+            <p class="rec-inputs mono" id="rec-inputs"></p>
+          </article>
+
+          <div class="desk" style="margin-top:1.5rem" aria-label="Sample desk">
+            <div class="desk-chrome">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <span class="desk-title">mcfly · sample</span>
+              <span class="desk-live"><i></i> SAMPLE</span>
+            </div>
+            <div class="desk-body">
+              <div class="desk-kpis">
+                <div class="kpi">
+                  <span>Ad spend</span>
+                  <strong class="num lie-t" data-feed-spend>$63,658</strong>
+                </div>
+                <div class="kpi">
+                  <span>Recorded sales</span>
+                  <strong class="num truth-t" data-feed-sales>$221,296</strong>
+                </div>
+                <div class="kpi wide">
+                  <span>Sales ÷ spend</span>
+                  <strong class="num mer-t" data-feed-mer data-mer="3.48">3.48×</strong>
+                  <em data-feed-status>Above break-even 2.86×</em>
+                </div>
+              </div>
+              <div class="desk-chart">
+                <div class="chart-head">
+                  <span>45-day ratio</span>
+                  <span class="mono" data-feed-brand>Northline · MTD</span>
+                </div>
+                <svg class="spark" id="spark" viewBox="0 0 320 56" preserveAspectRatio="none"></svg>
+              </div>
+              <div class="desk-mix">
+                <div class="mix-row"><span>Meta</span><div class="track"><b class="m" style="--p:62%"></b></div><span class="mono" data-mix-meta>62%</span></div>
+                <div class="mix-row"><span>Google</span><div class="track"><b class="g" style="--p:28%"></b></div><span class="mono" data-mix-google>28%</span></div>
+                <div class="mix-row"><span>Other</span><div class="track"><b class="o" style="--p:10%"></b></div><span class="mono" data-mix-other>10%</span></div>
+              </div>
+              <div class="desk-rec">
+                <span class="rec-label">SAMPLE note</span>
+                <p id="hero-rec">Illustrative only.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="panel-mmm" class="lab-panel" role="tabpanel" aria-labelledby="tab-mmm" hidden>
+          <article class="instrument">
+            <header>
+              <h3>Mix <span class="sample-badge">SAMPLE</span></h3>
+              <p>Shift share and watch blended efficiency versus break-even. This is a mix sketch, not a published marketing-mix model for a named brand.</p>
+            </header>
+            <label class="slider">
+              <span>Contribution margin</span>
+              <input type="range" id="margin-range" min="20" max="80" step="1" value="35" />
+              <output id="margin-out" class="mono">35%</output>
+            </label>
+            <div class="meter-row two">
+              <div>
+                <span class="lab">Break-even</span>
+                <strong id="be-mer">2.86×</strong>
+              </div>
+              <div>
+                <span class="lab">Sample ratio</span>
+                <strong class="truth" id="ex-mer">3.46×</strong>
+              </div>
+            </div>
+            <p class="verdict" id="mer-verdict">Above break-even — protect the mix.</p>
+            <label class="slider" style="margin-top:1.5rem">
+              <span>Meta share</span>
+              <input type="range" id="alloc-range" min="20" max="80" step="1" value="62" />
+              <output id="alloc-out" class="mono">62% Meta · 38% Google</output>
+            </label>
+            <div class="meter-row">
+              <div>
+                <span class="lab">Meta</span>
+                <strong id="meta-spend">$39,680</strong>
+                <span class="sub">Eff. <strong id="meta-eff">3.9×</strong></span>
+              </div>
+              <div>
+                <span class="lab">Google</span>
+                <strong id="google-spend">$24,320</strong>
+                <span class="sub">Eff. <strong id="google-eff">2.6×</strong></span>
+              </div>
+              <div>
+                <span class="lab">Blended</span>
+                <strong class="truth" id="blend-mer">3.41×</strong>
+                <span class="sub">vs BE <strong id="alloc-be">2.86×</strong></span>
+              </div>
+            </div>
+            <p class="verdict" id="alloc-verdict">Shift toward the channel that clears break-even.</p>
+          </article>
+        </div>
+
+        <div id="panel-recon" class="lab-panel" role="tabpanel" aria-labelledby="tab-recon" hidden>
+          <article class="instrument">
+            <header>
+              <h3>Recon <span class="sample-badge">SAMPLE</span></h3>
+              <p>Drag spend. Platform claims stay inflated; recorded sales do not move. That gap is the argument for a custom recon, not a pixel.</p>
+            </header>
+            <label class="slider">
+              <span>Ad spend</span>
+              <input type="range" id="spend-range" min="20000" max="200000" step="1000" value="64000" />
+              <output id="spend-out" class="mono">$64,000</output>
+            </label>
+            <div class="meter-row">
+              <div>
+                <span class="lab">Platforms claim</span>
+                <strong class="lie" id="claimed-roas">4.8×</strong>
+                <span class="sub mono" id="claimed-rev">~$307k</span>
+              </div>
+              <div>
+                <span class="lab">Recorded sales</span>
+                <strong id="actual-sales">$221,296</strong>
+                <span class="sub">Books</span>
+              </div>
+              <div>
+                <span class="lab">Sales ÷ spend</span>
+                <strong class="truth" id="cash-mer">3.46×</strong>
+                <span class="sub">Same dates</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div id="panel-pipeline" class="lab-panel" role="tabpanel" aria-labelledby="tab-pipeline" hidden>
+          <article class="instrument">
+            <header>
+              <h3>Pipeline <span class="sample-badge">SAMPLE</span></h3>
+              <p>How a custom system is usually assembled. Production work uses your sources; this diagram does not connect to any account.</p>
+            </header>
+            <div class="pipeline">
+              <article>
+                <span class="n">01 · Spend</span>
+                <h3>Money out</h3>
+                <p>Ad-platform exports or a sheet you already close. Whatever left the bank, dated.</p>
+              </article>
+              <article>
+                <span class="n">02 · Sales</span>
+                <h3>Money in</h3>
+                <p>Commerce or finance totals for the same dates — not path-attributed “revenue.”</p>
+              </article>
+              <article>
+                <span class="n">03 · Recon</span>
+                <h3>The join</h3>
+                <p>Same window, same currency, documented exceptions. Ads and finance read one table.</p>
+              </article>
+              <article>
+                <span class="n">04 · Handoff</span>
+                <h3>You keep it</h3>
+                <p>Code, docs, and the formula. We do not keep a login you cannot replace.</p>
+              </article>
+            </div>
+          </article>
+        </div>
+
+        <p class="note" style="margin-top:1.75rem">Want this built on your sources? <a href="/custom">See projects and pricing</a>.</p>
+      </div>
+    </section>
+  </main>
+
+  <div data-footer></div>
+  <script src="/assets/chrome.js?v=20260822a"></script>
+  <script src="/assets/app.js?v=20260822a"></script>
+  <script src="/assets/lab.js?v=20260822a"></script>
+</body>
+</html>

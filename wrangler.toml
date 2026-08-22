@@ -1,0 +1,6 @@
+# Cloudflare Pages — mcflyads.com
+# Output directory is site/. HTML files are served as pretty URLs
+# (/custom.html → /custom) when this project is connected to the repo.
+name = "mcflyads"
+compatibility_date = "2025-07-28"
+pages_build_output_dir = "site"

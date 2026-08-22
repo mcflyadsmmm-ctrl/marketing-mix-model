@@ -11,20 +11,23 @@
       <span class="brand-name">Mcfly Analytics</span>
     </a>
     <nav class="nav" aria-label="Primary">
-      <a href="/product.html" data-nav="product">Product</a>
-      <a href="/pricing.html" data-nav="pricing">Pricing</a>
-      <a href="${isHome ? "#live" : "/#live"}">Live</a>
-      <a class="nav-cta" href="${isHome ? "#waitlist" : "/#waitlist"}">Free launch</a>
+      <a href="/custom" data-nav="custom">Custom work</a>
+      <a href="/lab" data-nav="lab">Sample lab</a>
+      <a href="/about" data-nav="about">About</a>
+      <a href="/pricing" data-nav="pricing">Pricing</a>
+      <a class="nav-cta" href="/custom#inquire">Request a proposal</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
       <span></span><span></span>
     </button>
   </header>
   <div id="mobile-nav" class="mobile-nav" hidden>
-    <a href="/product.html">Product</a>
-    <a href="/pricing.html">Pricing</a>
-    <a href="${isHome ? "#live" : "/#live"}">Live</a>
-    <a href="${isHome ? "#waitlist" : "/#waitlist"}">Free launch</a>
+    <a href="/custom">Custom work</a>
+    <a href="/lab">Sample lab</a>
+    <a href="/about">About</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/custom#inquire">Request a proposal</a>
+    <a href="${isHome ? "#waitlist" : "/#waitlist"}">App launch list</a>
   </div>`;
   }
 
@@ -35,15 +38,15 @@
     <div class="wrap foot-grid">
       <div class="foot-brand">Mcfly Analytics</div>
       <nav aria-label="Footer">
-        <a href="/product.html">Product</a>
-        <a href="/pricing.html">Pricing</a>
-        <a href="/app.html">App</a>
-        <a href="/download.html">Downloadable</a>
-        <a href="/support.html">Support</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/terms.html">Terms</a>
+        <a href="/custom">Custom work</a>
+        <a href="/lab">Sample lab</a>
+        <a href="/about">About</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/support">Support</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly. Spend vs sales — not attribution theater.</p>
+      <p class="fine">© <span data-year></span> Mcfly. Ads and finance should agree. Marty Smithson · <a href="mailto:invites@mcflyads.com">invites@mcflyads.com</a></p>
     </div>
   </footer>`;
   }
