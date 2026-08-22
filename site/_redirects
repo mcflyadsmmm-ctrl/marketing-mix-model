@@ -1,2 +1,10 @@
+# Pretty URLs: Cloudflare Pages already serves /page from /page.html.
+# Do not invent a root cause for live /custom 404s — this file only
+# adds the missing document (custom.html) plus aliases seen on the live site.
+
+/custom-analytics /custom 301
+/custom-analytics/ /custom 301
+/custom-analytics.html /custom 301
+
 # Only custom 404 — do not rewrite /page ↔ /page.html (CF already handles that).
 /* /404.html 404

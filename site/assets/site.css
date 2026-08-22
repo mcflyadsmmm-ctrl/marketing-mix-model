@@ -566,6 +566,29 @@ a {
 .btn.ghost:hover {
   background: rgba(238, 242, 245, 0.08);
 }
+.btn.ghost-ink {
+  border-color: var(--line);
+  color: var(--ink);
+  background: transparent;
+}
+.btn.ghost-ink:hover {
+  background: #fff;
+}
+
+.sample-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--truth);
+  border: 1px solid rgba(15, 107, 82, 0.28);
+  padding: 0.22rem 0.5rem;
+  background: rgba(26, 163, 122, 0.08);
+}
 
 /* —— BANDS —— */
 .band {
@@ -978,11 +1001,16 @@ input[type="number"] {
   font-weight: 600;
   font-size: 0.92rem;
 }
-.waitlist input {
+.waitlist input,
+.waitlist textarea {
   font: inherit;
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--line);
   background: #fff;
+}
+.waitlist textarea {
+  resize: vertical;
+  min-height: 7rem;
 }
 .waitlist input:focus {
   outline: 2px solid var(--steel);
@@ -1005,7 +1033,8 @@ input[type="number"] {
 .note a {
   color: var(--truth);
 }
-.waitlist-confirm .confirm-title {
+.waitlist-confirm .confirm-title,
+.inquire-confirm .confirm-title {
   margin: 0 0 0.4rem;
   font-family: var(--display);
   font-weight: 700;
@@ -1209,6 +1238,139 @@ input[type="number"] {
   .instrument.featured {
     margin-inline: 0;
   }
+}
+
+.price-split {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+@media (min-width: 800px) {
+  .price-split {
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: stretch;
+  }
+}
+.price-card {
+  padding: 1.4rem 1.35rem 1.55rem;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.price-card.is-primary {
+  border-color: rgba(15, 107, 82, 0.32);
+  background:
+    linear-gradient(165deg, rgba(26, 163, 122, 0.1), transparent 55%),
+    #fff;
+}
+.price-card h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--display);
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+}
+.price-card .amount {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  letter-spacing: -0.04em;
+  margin: 0.35rem 0 0.75rem;
+}
+.price-card p,
+.price-card li {
+  color: var(--mute);
+}
+.price-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+.price-card li + li {
+  margin-top: 0.35rem;
+}
+
+.lab-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+}
+.lab-tabs button {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--mute);
+  cursor: pointer;
+}
+.lab-tabs button[aria-selected="true"] {
+  background: var(--steel);
+  color: #eef2f5;
+  border-color: var(--steel);
+}
+.lab-panel[hidden] {
+  display: none !important;
+}
+.lab-page .desk {
+  max-width: 42rem;
+  background: #121820;
+}
+.pipeline {
+  display: grid;
+  gap: 0.75rem;
+}
+@media (min-width: 800px) {
+  .pipeline {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+}
+.pipeline article {
+  padding: 1.1rem 1rem 1.2rem;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.pipeline .n {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--truth);
+}
+.pipeline h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--display);
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
+}
+.pipeline p {
+  margin: 0;
+  color: var(--mute);
+  font-size: 0.95rem;
+}
+
+.who-grid {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+@media (min-width: 800px) {
+  .who-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.who-card {
+  padding: 1.25rem 1.2rem;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.who-card h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--display);
+  letter-spacing: -0.02em;
+}
+.who-card p {
+  margin: 0;
+  color: var(--mute);
 }
 
 @media (prefers-reduced-motion: reduce) {

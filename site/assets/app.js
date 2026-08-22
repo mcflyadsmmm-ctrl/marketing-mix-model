@@ -35,8 +35,11 @@
     const key = link.getAttribute("data-nav");
     if (
       (key === "product" && page === "product.html") ||
-      (key === "pricing" && page === "pricing.html") ||
-      (key === "app" && page === "app.html")
+      (key === "pricing" && (page === "pricing.html" || page === "pricing")) ||
+      (key === "app" && page === "app.html") ||
+      (key === "custom" && (page === "custom.html" || page === "custom")) ||
+      (key === "about" && (page === "about.html" || page === "about")) ||
+      (key === "lab" && (page === "lab.html" || page === "lab"))
     ) {
       link.classList.add("active");
       link.setAttribute("aria-current", "page");
@@ -393,6 +396,44 @@
       { passive: true },
     );
   }
+
+  const INQUIRE_EMAIL = "invites@mcflyads.com";
+  document.querySelectorAll("[data-inquire]").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const name = String(data.get("name") || "").trim();
+      const email = String(data.get("email") || "").trim();
+      const company = String(data.get("company") || "").trim();
+      const brief = String(data.get("brief") || "").trim();
+      if (!name || !email) {
+        form.reportValidity();
+        return;
+      }
+      const body = [
+        "Mcfly Analytics — custom data science inquiry",
+        "",
+        "Name: " + name,
+        "Email: " + email,
+        "Company / site: " + (company || "(not specified)"),
+        "",
+        "Brief:",
+        brief || "(not specified)",
+        "",
+        "Sent from mcflyads.com/custom.",
+      ].join("\n");
+      window.location.href =
+        "mailto:" +
+        encodeURIComponent(INQUIRE_EMAIL) +
+        "?subject=" +
+        encodeURIComponent("Custom work inquiry — " + name) +
+        "&body=" +
+        encodeURIComponent(body);
+      form.hidden = true;
+      const confirm = form.parentElement && form.parentElement.querySelector(".inquire-confirm");
+      if (confirm) confirm.hidden = false;
+    });
+  });
 
   const WAITLIST_EMAIL = "mcflyadsmmm@gmail.com";
   document.querySelectorAll("[data-waitlist]").forEach((form) => {
