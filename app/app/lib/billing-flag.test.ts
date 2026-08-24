@@ -19,7 +19,7 @@ describe("billing flags", () => {
   it("defaults billing off", () => {
     expect(isBillingEnabled()).toBe(false);
     expect(billingStatusCopy(false).tier).toBe("free");
-    expect(billingStatusCopy(false).detail).toMatch(/No charges/i);
+    expect(billingStatusCopy(false).detail).toMatch(/temporarily unavailable/i);
   });
 
   it("enables only when MCFLY_BILLING=1", () => {

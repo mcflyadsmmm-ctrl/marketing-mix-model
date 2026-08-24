@@ -1,15 +1,15 @@
 # App Store listing draft — Mcfly Analytics
 
 Paste into Partner listing when Distribution = **Shopify App Store**.  
-**Pricing:** Free. **Religion:** Total ROAS (action) = **Shopify Total Sales ÷ ad spend** (any period); Net Sales optional view; never pixels / MTA / path / “true ROAS.” **Category:** marketing cash close / spend affordability control — coexists with attribution suites.  
+**Pricing:** Shopify App Pricing — **Free** (default) + **Pro $39/store/mo**. **Religion:** Total ROAS (action) = **Shopify Total Sales ÷ ad spend** (any period); Net Sales optional view; never pixels / MTA / path / “true ROAS.” **Category:** marketing cash close / spend affordability control — coexists with attribution suites.  
 **Voice:** calm operator desk — specific, factual, premium. No suite science theater. No forever-free.  
-**First submit lock:** Free-only listing. Defer email CRM / Level 2 PCD. Minimal `read_customers` (opaque id + `numberOfOrders`) is OK. **Till LTV** (opaque cohorts) is Level 1 Pro — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Tier path: [`BILLING_TIERS.md`](./BILLING_TIERS.md). Positioning: [`VALUE_THESIS.md`](./VALUE_THESIS.md).
+**Resubmit lock (2026-08-24):** Billing is live (`MCFLY_BILLING=1`). Partner Pricing **must** be Free + Pro $39 — never claim Free-only / “no charges.” Defer email CRM / Level 2 PCD. Minimal `read_customers` (opaque id + `numberOfOrders`) is OK. **Till LTV** (opaque cohorts) is Level 1 Pro — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Tier path: [`BILLING_TIERS.md`](./BILLING_TIERS.md). Positioning: [`VALUE_THESIS.md`](./VALUE_THESIS.md).
 
-## Paste-ready short + long (Free submit — copy final)
+## Paste-ready short + long (Free + Pro — copy final)
 
-**Status (2026-07-31 built-desk relock):** Tagline, short, long, feature bullets, reviewer notes match the shipped desk — Free = Meta + Google + custom Other; Pro teaser ($39) for named channels + LTV + full Goals board; listing Pricing stays Free; no “no paid gates” claim. Paste as-is into Partner; do not rewrite for “true ROAS,” LTV CRM, or Meta/Google logos.
+**Status (2026-08-24 resubmit):** Tagline, short, long, feature bullets, reviewer notes match the shipped desk — Free = Meta + Google + custom Other; Pro $39 for named channels + LTV + full Goals board via Shopify App Pricing. Paste as-is into Partner; do not rewrite for “true ROAS,” LTV CRM, or Meta/Google logos.
 
-Human still must: confirm ASO checklist below, upload icon + shots, set Pricing **Free**, then Submit.
+Human still must: confirm ASO checklist below, upload icon + shots, set Partner **Pricing = Shopify App Pricing (Free + Pro $39)**, paste staff password, then Submit.
 
 ## ASO checklist (before paste) — human only
 
@@ -49,7 +49,7 @@ Partner listing URLs (already live — Free + PCD voice on Pages; **verify HTTP 
 | **Tagline** (≤80 chars) | Advanced Marketing Data Science Made Easy |
 | **Category** | Marketing → Marketing analytics / Advertising (pick closest) — position as **marketing cash close / spend affordability control** |
 | **Primary language** | English |
-| **Pricing** | **Free** (design-partner launch). Listing Pricing stays Free until Billing is announced. Site may say Pro $39 with Free=Meta+Google+Other matrix — see [`BILLING_TIERS.md`](./BILLING_TIERS.md). Soft/hard feature gates in-app are OK; do not claim “no paid gates.” |
+| **Pricing** | **Shopify App Pricing: Free + Pro $39/store/mo** — see [`BILLING_TIERS.md`](./BILLING_TIERS.md). In-app Upgrade/Manage plan must match Partner plans. Do **not** mark listing Free-only while Upgrade CTAs charge. |
 
 **Tagline why (45 chars):** Category promise first — MDS made easy; formula and Free live in short/long, not squeezed into 80.
 
@@ -61,8 +61,7 @@ Partner listing URLs (already live — Free + PCD voice on Pages; **verify HTTP 
 | --- | --- |
 | Lifetimely-class **email CRM / Level 2 PCD** | Harder review; till LTV does not need it — [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) |
 | Live Meta / Google Ads OAuth | **Retired** — CSV + optional merchant-paid pipes; see [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md) |
-| Shopify Billing / paid plans | Listing stays **Free** until Billing API ships — see [`BILLING_TIERS.md`](./BILLING_TIERS.md) |
-| `read_all_orders` (deep history) | **Declare in TOML**; Partner must approve before multi-year till LTV clears `historyLimited` — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Still **no** Level 2 PII fields. |
+| `read_all_orders` (deep history) | **Not in live SCOPES** until Partner approves — omit from TOML/Fly until approved. Reviewer notes must not imply the scope is granted. See [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Still **no** Level 2 PII fields. |
 | Customer PII fields (name/email/phone/address) | Never for v1; opaque id + `numberOfOrders` + OrderFact amounts/dates only |
 
 ---
@@ -72,7 +71,7 @@ Partner listing URLs (already live — Free + PCD voice on Pages; **verify HTTP 
 Complete these in Partner **App listing** before Submit. **Works with = blank** (no Checkout UI extension — do not claim Checkout). Never invent Meta/Google/SyncWith logos. Listing copy must not imply OAuth is “never.”
 
 **Paste order (human, ~15 min once shots exist):**
-1. App name / email / language / category / Pricing **Free** / **Works with = blank** (no Checkout UI extension; never Meta/Google/SyncWith)  
+1. App name / email / language / category / Pricing **Shopify App Pricing Free + Pro $39** / **Works with = blank** (no Checkout UI extension; never Meta/Google/SyncWith)  
 2. Website + Privacy / Support / Terms URLs (extensionless mcflyads.com)  
 3. App URL = `https://mcfly-analytics.fly.dev` (never mcflyads.com)  
 4. Search keywords from table below (ban attribution / pixel / true ROAS / MTA)  
@@ -87,7 +86,7 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 | **Developer / support email** | mcflyadsmmm@gmail.com | Same as reviewer notes |
 | **Primary language** | English | No fake multi-language until translated |
 | **Category** | Marketing → **Marketing analytics** (or closest: Advertising) | Position as **cash close / spend affordability** — not “Store design” or profit-suite sprawl |
-| **Pricing** | **Free** | No Shopify Billing charges until announced; freemium feature gates OK (Free=Meta+Google+Other). No **External charges** while Free |
+| **Pricing** | **Shopify App Pricing: Free + Pro $39** | Must match in-app Upgrade. No **External charges**. Free=Meta+Google+Other; Pro unlocks named channels + LTV + full Goals |
 | **Works with** | **Leave blank** | No Checkout UI extension today — do **not** claim Checkout. Never Meta/Google/TikTok/SyncWith logos. Add Checkout later only if a real Checkout surface ships. |
 | **Website** | https://mcflyads.com | |
 | **Privacy policy URL** | https://mcflyads.com/privacy | Extensionless; local copy includes PCD scopes |
@@ -115,7 +114,7 @@ FIRST 10 MINUTES (no pixels; Free = Meta + Google + custom Other CSV)
    Optional automation: Spend → Automate → Mcfly pipe template → SyncWith / Coupler /
    Supermetrics / Coefficient (you pay those tools) → CSV → Paste / Import.
    Not a “Works with” partnership. Named platforms (TikTok, Microsoft, Amazon, …),
-   Customer LTV, and the full Goals board = Pro ($39 when Billing announced).
+   Customer LTV, and the full Goals board = Pro ($39/mo via Shopify App Pricing).
 4. Overview → confirm Total ROAS = Shopify Total Sales ÷ ad spend for any period;
    check freshness chip, channel mix %, Goals pace, Email Overview (mailto)
 5. Spend Allocation → quarters / pie / rolling 7·14·28 affordability call on Free channels
@@ -123,7 +122,7 @@ FIRST 10 MINUTES (no pixels; Free = Meta + Google + custom Other CSV)
 Demo sample desk is for listing screenshots / Pro preview only — turn OFF before judging live metrics.
 ```
 
-**Listing honesty:** Free = Meta + Google + custom Other CSV. **Optional automation** = merchant-paid SyncWith-class tools filling a Mcfly template (no fake Works-with). **Pro teaser** ($39): named channels, Customer LTV / Acquisition, full-year Goals board — listing Pricing stays Free until Billing announced. Soft/hard feature gates in-app are honest freemium — do not claim “no paid gates.” Still refuse connector zoo / pixels. Coexists with attribution suites.
+**Listing honesty:** Free = Meta + Google + custom Other CSV. **Optional automation** = merchant-paid SyncWith-class tools filling a Mcfly template (no fake Works-with). **Pro ($39 via Shopify App Pricing):** named channels, Customer LTV / Acquisition, full-year Goals board — Partner Pricing must show Free + Pro. Still refuse connector zoo / pixels. Coexists with attribution suites.
 
 ---
 
@@ -157,7 +156,7 @@ THE DESK
 • Shopify Total Sales in (Admin API — action basis; Net Sales optional view)
 • Ad spend out — Free: Meta + Google + custom Other (name influencers / podcasts / agency) via CSV paste / export combine
   Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly pipe template → CSV import — not a “Works with” partnership
-  Pro ($39 when Billing announced): every named platform (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition, full-year Goals board + YoY fill
+  Pro ($39/mo via Shopify App Pricing): every named platform (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition, full-year Goals board + YoY fill
   Per-platform export guides in-app (sales columns ignored — Shopify is the till)
 • Total ROAS (action) = Shopify Total Sales ÷ ad spend
 • Break-even Total ROAS from your profit margin %
@@ -177,7 +176,7 @@ WHO IT’S FOR
 Shopify brands that want a trusted Total ROAS in under ten minutes and a Monday cash-close ritual that stays honest when Ads Manager disagrees with the bank — alongside (not instead of) attribution suites.
 
 PRICING
-Free on the App Store now (Meta + Google + custom Other CSV desk). Listing Pricing stays Free — no Shopify Billing charges until announced. Soft/hard Pro feature gates may appear in-app (named channels, LTV, full Goals board); that is honest freemium, not a Billing charge. Target Pro $39/store/mo flat via Shopify Billing — announced before anything charges. Not a GMV-scaled suite tax. Not forever-free marketing.
+Free plan on the App Store (Meta + Google + custom Other CSV desk). Pro is $39/store/mo flat via Shopify App Pricing — Upgrade / Manage plan in Admin (top frame). Not a GMV-scaled suite tax. Not forever-free marketing.
 
 Learn more: https://mcflyads.com
 Privacy: https://mcflyads.com/privacy · Support: https://mcflyads.com/support
@@ -295,13 +294,14 @@ https://mcflyads.com/privacy
 
 ```text
 Test store: devmcflyads.myshopify.com
-Test account: mcflyadsmmm@gmail.com
+Test account email: mcflyadsmmm@gmail.com
+Test account password: <PASTE CURRENT STAFF PASSWORD — required 4.5.4 / 4.5.5>
+(Must grant full Admin access including Apps + plan selection. Keep password current.)
 
 PRICING
-Free listing (Partner Pricing = Free). No Shopify Billing API charges until announced.
-Honest freemium: Free = Meta + Google + custom Other spend; Pro soft/hard gates may lock
-named channels, Customer LTV / Acquisition, and the full Goals board — that is not a
-Billing charge yet. Target Pro $39/store/mo flat when Billing ships. No external charges.
+Shopify App Pricing (Managed Pricing): Free (default) + Pro $39/store/mo flat.
+In-app Upgrade / Manage plan opens Admin plan selection in the TOP frame
+(never inside the app iframe). Merchants can change Free ↔ Pro without reinstalling.
 
 CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
 Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
@@ -317,8 +317,12 @@ SMOKE TEST (CSV-first Free path = Meta + Google + Other)
    Confirm orders / new / returning / AOV (opaque customer id + numberOfOrders only)
 5. Spend Allocation → quarters / pie / rolling windows when Free-channel spend > 0
    Goals → MTD / QTD / YTD pace on Free
+6. BILLING (required after 2.1.1 fix): Spend → Upgrade to Pro — $39/mo
+   → must leave the embed and open Admin Free/Pro plan selection (top frame)
+   → approve Pro → return to app → Pro channels / LTV unlock
+   → Settings → Manage plan → switch back to Free without reinstall
 
-First 10 minutes: Settings → Spend → Overview → Allocation. Free spend = Meta + Google + Other CSV; Automate is optional (merchant-paid SyncWith-class tools → Mcfly template — not a Works-with claim). Pro teaser optional later.
+First 10 minutes: Settings → Spend → Overview → Allocation. Free spend = Meta + Google + Other CSV; Automate is optional (merchant-paid SyncWith-class tools → Mcfly template — not a Works-with claim). Pro is billed via Shopify App Pricing.
 
 TECHNICAL
 App URL: https://mcfly-analytics.fly.dev (not mcflyads.com)
@@ -331,12 +335,11 @@ Privacy: https://mcflyads.com/privacy
 PROTECTED CUSTOMER DATA (Level 1 only — no Level 2 PII fields)
 - read_orders: sum order totals + counts for Total ROAS / AOV
 - read_customers: opaque customer id + numberOfOrders only (new vs returning)
-- read_all_orders: deep till history for OrderFact / till LTV cohorts (no PII)
 - Never query or store customer name, email, phone, or address. No customer CRM.
 - Staff Session may include staff email/name from Shopify Admin login (not customers).
 - ComplianceDataExport (data_request packages) TTL 60 days; erased on redact/uninstall.
 - Till LTV stays Level 1: opaque cohorts from order amounts/dates — not email CRM.
-Without read_all_orders, order history is ~60 days — demo with recent orders / MTD.
+Order history without read_all_orders is ~60 days — demo with recent orders / MTD.
 ```
 
 ---
@@ -351,8 +354,9 @@ Without read_all_orders, order history is ~60 days — demo with recent orders /
 - [x] Publish Cloudflare Pages so live `/support` `/pricing` `/privacy` match Free + PCD — **verified 2026-07-26** (spot-check 200s before Submit)
 - [ ] Install on `devmcflyads`; smoke test above; sample desk **OFF** (**human**)
 - [ ] Screenshots + M-only icon uploaded (**human**)
-- [ ] Pricing marked **Free**
-- [ ] Reviewer notes pasted
+- [ ] Pricing = **Shopify App Pricing Free + Pro $39** (never Free-only while Upgrade is live)
+- [ ] Reviewer notes pasted **with real staff password** (4.5.4 / 4.5.5)
+- [ ] Embedded Admin smoke: Spend → Upgrade → top-frame plans (no “refused to connect”)
 - [ ] Submit for review (**human**)
 
 Do **not** chase Built for Shopify until ~50 paid-plan installs + 5 reviews.

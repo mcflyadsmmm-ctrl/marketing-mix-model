@@ -1,55 +1,60 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFetcher, useLocation } from "react-router";
+import {
+  navigateToBillingConfirmation,
+  withEmbeddedBillingSearch,
+} from "../lib/billing-navigate";
 import { PRO_UPSELL } from "../lib/entitlements";
 import type { ProUpgradeActionData } from "../routes/app.billing";
 
 type ProUpgradeButtonProps = {
-  /** Polaris button variant. */
   variant?: "primary" | "secondary" | "tertiary";
-  /** Override label (default PRO_UPSELL.upgradeCta). */
   label?: string;
-  /** When false, render nothing (caller already Pro). */
   enabled?: boolean;
+  mode?: "upgrade" | "manage";
 };
 
-/** Open Shopify charge confirmation in the top frame (embedded apps cannot iframe it). */
-export function navigateToBillingConfirmation(url: string) {
-  const trimmed = url.trim();
-  if (!trimmed) return;
-  try {
-    if (window.top && window.top !== window) {
-      window.top.location.assign(trimmed);
-      return;
-    }
-  } catch {
-    // Cross-origin top — fall through.
-  }
-  window.location.assign(trimmed);
-}
-
 /**
- * Starts Pro via Shopify Billing — posts to /app/billing, then top-navigates
- * to confirmationUrl. Never a plain link to Settings.
+ * Starts Managed Pricing via POST /app/billing, then top-frame open.
+ *
+ * Dual safety for App Store 2.1.1:
+ * 1) Client window.open(_, "_top") after user gesture (App Bridge patches open)
+ * 2) Fallback link to GET /app/billing?embedded=1 which returns HTML exit
+ *    (never a bare 302 to Admin)
  */
 export function ProUpgradeButton({
   variant = "primary",
-  label = PRO_UPSELL.upgradeCta,
+  label,
   enabled = true,
+  mode = "upgrade",
 }: ProUpgradeButtonProps) {
   const fetcher = useFetcher<ProUpgradeActionData>();
   const location = useLocation();
   const busy = fetcher.state !== "idle";
   const data = fetcher.data;
-  // Keep shop/host on the action URL so returnUrl after approve stays embedded-safe.
-  const action = `/app/billing${location.search}`;
+  const [navError, setNavError] = useState<string | null>(null);
+
+  const billingSearch = withEmbeddedBillingSearch(location.search);
+  const action = `/app/billing${billingSearch}`;
+  const text =
+    label ??
+    (mode === "manage" ? "Manage plan — Free or Pro" : PRO_UPSELL.upgradeCta);
 
   useEffect(() => {
-    if (data?.ok && data.confirmationUrl) {
-      navigateToBillingConfirmation(data.confirmationUrl);
+    if (!data?.ok || !data.confirmationUrl) return;
+    setNavError(null);
+    const ok = navigateToBillingConfirmation(data.confirmationUrl);
+    if (!ok) {
+      setNavError(
+        "Could not leave the app frame to open Shopify plans. Use “Open plans in Admin” below, or reload and try again.",
+      );
     }
   }, [data]);
 
   if (!enabled) return null;
+
+  const errorMessage =
+    navError ?? (data && !data.ok ? data.error : null);
 
   return (
     <div className="mcfly-pro-upgrade">
@@ -59,15 +64,21 @@ export function ProUpgradeButton({
           className={`mcfly-btn mcfly-btn--${variant}`}
           disabled={busy}
           aria-busy={busy}
+          data-mcfly-billing-exit={mode}
         >
-          {busy ? "Opening plans…" : label}
+          {busy ? "Opening plans…" : text}
         </button>
       </fetcher.Form>
-      {data && !data.ok ? (
+      {errorMessage ? (
         <p className="mcfly-pro-upgrade__error" role="alert">
-          {data.error}
+          {errorMessage}
         </p>
       ) : null}
+      <p className="mcfly-pro-upgrade__fallback">
+        <a href={action} data-mcfly-billing-exit-fallback={mode}>
+          Open plans in Admin
+        </a>
+      </p>
     </div>
   );
 }

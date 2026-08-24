@@ -198,8 +198,12 @@ export function getShopBillingSnapshot(
 }
 
 /**
- * Start Pro upgrade via Shopify-hosted Free/Pro plan page (App Pricing).
+ * Open Shopify-hosted Free/Pro plan selection (App Pricing).
  * Does not call appSubscriptionCreate — Managed Pricing apps cannot.
+ *
+ * Always returns the plan URL when billing is on — including for shops that
+ * already have Pro — so merchants can upgrade OR downgrade without reinstall
+ * (App Store 1.2.3). Syncs Pro cache when an active Pro sub is found.
  */
 export async function requestProSubscription(input: {
   admin: AdminApiContext;
@@ -211,7 +215,7 @@ export async function requestProSubscription(input: {
     return {
       ok: false,
       error:
-        "Billing is not enabled (MCFLY_BILLING≠1). Set the Fly secret to charge Pro.",
+        "Pro plans are temporarily unavailable. Try again shortly, or contact support from Settings.",
     };
   }
 
@@ -232,10 +236,7 @@ export async function requestProSubscription(input: {
           },
         });
       }
-      return {
-        ok: false,
-        error: "This shop already has an active Pro subscription.",
-      };
+      // Still open Managed Pricing so the merchant can change/downgrade plans.
     }
   } catch {
     // Still open plan page — sync may work after approve.

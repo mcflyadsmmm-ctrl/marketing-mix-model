@@ -97,6 +97,7 @@ export default function LtvPage() {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
+    entitlements,
     canUseLtv,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
@@ -428,7 +429,11 @@ export default function LtvPage() {
               </p>
             </div>
             <div className="mcfly-acq-ltv-teaser__body">
-              <ProUpsellBlock lead={PRO_UPSELL.ltv} />
+              {entitlements.showProTeaser ? (
+                <ProUpsellBlock lead={PRO_UPSELL.ltv} />
+              ) : (
+                <p className="mcfly-panel__muted">{PRO_UPSELL.ltv}</p>
+              )}
             </div>
           </section>
         ) : (

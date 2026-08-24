@@ -32,6 +32,7 @@ import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
 import { PRO_UPSELL } from "../lib/entitlements";
+import { getShopEntitlements } from "../lib/entitlements.server";
 import {
   emptySales,
   type SalesResult,
@@ -117,6 +118,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const range = resolvePeriod(preset, now, ianaTimezone);
   const priorRange = resolvePriorPeriod(preset, now, ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const entitlements = getShopEntitlements(session.shop, {
+    sampleDesk: useSampleDesk,
+    paidPro: shop.proBillingActive,
+  });
 
   let sales: SalesResult = emptySales("shopify");
   /** Null when prior facts are outside the window / failed — skip deltas (never fake 0). */
@@ -314,6 +319,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
+    showProTeaser: entitlements.showProTeaser,
   };
 };
 
@@ -338,6 +344,7 @@ export default function Dashboard() {
     sharePeriodStartDay,
     sharePeriodEndDay,
     shopLabel,
+    showProTeaser,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -1029,7 +1036,11 @@ function LtvSnapSection({
           ) : null}
         </>
       ) : tillLtv.emptyReason === "pro_required" ? (
-        <ProUpsellBlock lead={PRO_UPSELL.ltv} />
+        showProTeaser ? (
+          <ProUpsellBlock lead={PRO_UPSELL.ltv} />
+        ) : (
+          <p className="mcfly-tab-snap__empty">{PRO_UPSELL.ltv}</p>
+        )
       ) : (
         <p className="mcfly-tab-snap__empty">
           {tillLtv.emptyReason === "no_timezone"
