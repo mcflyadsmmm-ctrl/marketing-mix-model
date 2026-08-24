@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFetcher, useLocation } from "react-router";
+import { navigateToBillingConfirmation } from "../lib/billing-navigate";
 import { PRO_UPSELL } from "../lib/entitlements";
 import type { ProUpgradeActionData } from "../routes/app.billing";
 
@@ -12,24 +13,11 @@ type ProUpgradeButtonProps = {
   enabled?: boolean;
 };
 
-/** Open Shopify charge confirmation in the top frame (embedded apps cannot iframe it). */
-export function navigateToBillingConfirmation(url: string) {
-  const trimmed = url.trim();
-  if (!trimmed) return;
-  try {
-    if (window.top && window.top !== window) {
-      window.top.location.assign(trimmed);
-      return;
-    }
-  } catch {
-    // Cross-origin top — fall through.
-  }
-  window.location.assign(trimmed);
-}
+export { navigateToBillingConfirmation } from "../lib/billing-navigate";
 
 /**
  * Starts Pro via Shopify Billing — posts to /app/billing, then top-navigates
- * to confirmationUrl. Never a plain link to Settings.
+ * to the Managed Pricing plan page (never iframe Admin).
  */
 export function ProUpgradeButton({
   variant = "primary",
@@ -40,16 +28,25 @@ export function ProUpgradeButton({
   const location = useLocation();
   const busy = fetcher.state !== "idle";
   const data = fetcher.data;
+  const [navError, setNavError] = useState<string | null>(null);
   // Keep shop/host on the action URL so returnUrl after approve stays embedded-safe.
   const action = `/app/billing${location.search}`;
 
   useEffect(() => {
-    if (data?.ok && data.confirmationUrl) {
-      navigateToBillingConfirmation(data.confirmationUrl);
+    if (!data?.ok || !data.confirmationUrl) return;
+    setNavError(null);
+    const ok = navigateToBillingConfirmation(data.confirmationUrl);
+    if (!ok) {
+      setNavError(
+        "Could not open Shopify plan selection outside the app frame. Reload and try again, or open Settings → Plan in a new Admin tab.",
+      );
     }
   }, [data]);
 
   if (!enabled) return null;
+
+  const errorMessage =
+    navError ?? (data && !data.ok ? data.error : null);
 
   return (
     <div className="mcfly-pro-upgrade">
@@ -63,9 +60,9 @@ export function ProUpgradeButton({
           {busy ? "Opening plans…" : label}
         </button>
       </fetcher.Form>
-      {data && !data.ok ? (
+      {errorMessage ? (
         <p className="mcfly-pro-upgrade__error" role="alert">
-          {data.error}
+          {errorMessage}
         </p>
       ) : null}
     </div>

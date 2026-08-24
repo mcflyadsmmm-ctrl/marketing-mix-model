@@ -295,13 +295,13 @@ https://mcflyads.com/privacy
 
 ```text
 Test store: devmcflyads.myshopify.com
-Test account: mcflyadsmmm@gmail.com
+Test account email: mcflyadsmmm@gmail.com
+Test account password: <PASTE CURRENT STAFF PASSWORD — required 4.5.4 / 4.5.5>
+(Must grant full access to Free + Pro plan selection. Keep this password current.)
 
 PRICING
-Free listing (Partner Pricing = Free). No Shopify Billing API charges until announced.
-Honest freemium: Free = Meta + Google + custom Other spend; Pro soft/hard gates may lock
-named channels, Customer LTV / Acquisition, and the full Goals board — that is not a
-Billing charge yet. Target Pro $39/store/mo flat when Billing ships. No external charges.
+Shopify App Pricing: Free default + Pro $39/store/mo. Upgrade on Spend / Settings opens
+Admin plan selection in the top frame (not inside the app iframe).
 
 CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
 Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
