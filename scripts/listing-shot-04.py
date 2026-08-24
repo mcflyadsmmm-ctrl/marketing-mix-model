@@ -55,8 +55,8 @@ def main() -> None:
     d.text((88, 72), "Free · Meta + Google", fill=INK, font=f_title)
     detail = (
         "Free desk: Meta + Google spend, Total ROAS, break-even. "
-        "Pro ($39/store/mo flat at launch) adds Customer LTV, all channels, "
-        "and advanced Goals / Monday Close. Listing stays Free — no charges until Billing is announced."
+        "Pro ($39/store/mo flat) adds Customer LTV, all channels, "
+        "and advanced Goals / Monday Close. Shopify App Pricing: Free + Pro $39."
     )
     # wrap detail
     x, y = 88, 118

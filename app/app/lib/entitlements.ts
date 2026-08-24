@@ -27,7 +27,7 @@ export function isFreeChannel(channel: string): channel is FreeChannel {
 export const PRO_CHANNELS: readonly SpendChannel[] = SPEND_CHANNELS;
 
 /**
- * Single SoT for Pro upsell copy. Listing stays Free until Billing announce;
+ * Single SoT for Pro upsell copy. Partner Pricing = Free + Pro via Shopify App Pricing.
  * in-app gates + SAMPLE preview are live now.
  */
 export const PRO_UPSELL = {
