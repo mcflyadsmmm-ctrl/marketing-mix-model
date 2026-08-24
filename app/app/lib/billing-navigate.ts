@@ -23,7 +23,8 @@ export function isShopifyAdminUrl(url: string): boolean {
 }
 
 export type BillingNavigateHost = {
-  openTop: (url: string) => void;
+  /** Returns false when the browser blocked the open (popup / sandbox). */
+  openTop: (url: string) => boolean;
   clickTopAnchor: (url: string) => void;
   assignSameFrame: (url: string) => void;
 };
@@ -32,7 +33,9 @@ export type BillingNavigateHost = {
 export function createBrowserBillingNavigateHost(): BillingNavigateHost {
   return {
     openTop(url: string) {
-      window.open(url, "_top");
+      const opened = window.open(url, "_top");
+      // null/undefined = blocked; App Bridge may return a Window-like handle.
+      return opened != null;
     },
     clickTopAnchor(url: string) {
       const anchor = document.createElement("a");
@@ -62,10 +65,9 @@ export function navigateToBillingConfirmation(
   if (!trimmed) return false;
 
   try {
-    host.openTop(trimmed);
-    return true;
+    if (host.openTop(trimmed)) return true;
   } catch {
-    // continue
+    // continue to anchor fallback
   }
 
   try {

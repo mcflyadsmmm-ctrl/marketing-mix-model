@@ -297,11 +297,12 @@ https://mcflyads.com/privacy
 Test store: devmcflyads.myshopify.com
 Test account email: mcflyadsmmm@gmail.com
 Test account password: <PASTE CURRENT STAFF PASSWORD — required 4.5.4 / 4.5.5>
-(Must grant full access to Free + Pro plan selection. Keep this password current.)
+(Must grant full Admin access including Apps + plan selection. Keep password current.)
 
 PRICING
-Shopify App Pricing: Free default + Pro $39/store/mo. Upgrade on Spend / Settings opens
-Admin plan selection in the top frame (not inside the app iframe).
+Shopify App Pricing (Managed Pricing): Free (default) + Pro $39/store/mo flat.
+In-app Upgrade / Manage plan opens Admin plan selection in the TOP frame
+(never inside the app iframe). Merchants can change Free ↔ Pro without reinstalling.
 
 CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
 Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
@@ -317,8 +318,12 @@ SMOKE TEST (CSV-first Free path = Meta + Google + Other)
    Confirm orders / new / returning / AOV (opaque customer id + numberOfOrders only)
 5. Spend Allocation → quarters / pie / rolling windows when Free-channel spend > 0
    Goals → MTD / QTD / YTD pace on Free
+6. BILLING (required after 2.1.1 fix): Spend → Upgrade to Pro — $39/mo
+   → must leave the embed and open Admin Free/Pro plan selection (top frame)
+   → approve Pro → return to app → Pro channels / LTV unlock
+   → Settings → Manage plan → switch back to Free without reinstall
 
-First 10 minutes: Settings → Spend → Overview → Allocation. Free spend = Meta + Google + Other CSV; Automate is optional (merchant-paid SyncWith-class tools → Mcfly template — not a Works-with claim). Pro teaser optional later.
+First 10 minutes: Settings → Spend → Overview → Allocation. Free spend = Meta + Google + Other CSV; Automate is optional (merchant-paid SyncWith-class tools → Mcfly template — not a Works-with claim). Pro is billed via Shopify App Pricing.
 
 TECHNICAL
 App URL: https://mcfly-analytics.fly.dev (not mcflyads.com)

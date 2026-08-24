@@ -9,7 +9,7 @@ function mockHost(
   overrides: Partial<BillingNavigateHost> = {},
 ): BillingNavigateHost {
   return {
-    openTop: vi.fn(),
+    openTop: vi.fn(() => true),
     clickTopAnchor: vi.fn(),
     assignSameFrame: vi.fn(),
     ...overrides,
@@ -46,6 +46,15 @@ describe("navigateToBillingConfirmation", () => {
     expect(host.assignSameFrame).not.toHaveBeenCalled();
   });
 
+  it("falls back to target=_top anchor when openTop returns false", () => {
+    const host = mockHost({
+      openTop: vi.fn(() => false),
+    });
+    expect(navigateToBillingConfirmation(adminUrl, host)).toBe(true);
+    expect(host.clickTopAnchor).toHaveBeenCalledWith(adminUrl);
+    expect(host.assignSameFrame).not.toHaveBeenCalled();
+  });
+
   it("falls back to target=_top anchor when openTop throws", () => {
     const host = mockHost({
       openTop: vi.fn(() => {
@@ -59,9 +68,7 @@ describe("navigateToBillingConfirmation", () => {
 
   it("refuses same-frame Admin navigation when all top exits fail", () => {
     const host = mockHost({
-      openTop: vi.fn(() => {
-        throw new Error("blocked");
-      }),
+      openTop: vi.fn(() => false),
       clickTopAnchor: vi.fn(() => {
         throw new Error("no dom");
       }),
@@ -73,9 +80,7 @@ describe("navigateToBillingConfirmation", () => {
   it("may same-frame assign non-Admin URLs as last resort", () => {
     const appUrl = "https://mcfly-analytics.fly.dev/app/settings";
     const host = mockHost({
-      openTop: vi.fn(() => {
-        throw new Error("blocked");
-      }),
+      openTop: vi.fn(() => false),
       clickTopAnchor: vi.fn(() => {
         throw new Error("no dom");
       }),

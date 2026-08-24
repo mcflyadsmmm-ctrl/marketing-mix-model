@@ -86,6 +86,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sampleDesk: useSampleDesk,
     paidPro: shopFresh.proBillingActive,
   });
+  const billingError = url.searchParams.get("billingError");
   return {
     settings,
     breakEvenMer: calculateBreakEvenMer(settings.marginPct),
@@ -97,6 +98,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     samplePreviewAllowed,
     complianceExports,
     billing,
+    billingError: billingError?.trim() || null,
   };
 };
 
@@ -212,6 +214,7 @@ export default function SettingsPage() {
     samplePreviewAllowed,
     complianceExports,
     billing,
+    billingError,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -576,6 +579,15 @@ export default function SettingsPage() {
                   {billing.headline}
                 </h2>
                 <p className="mcfly-panel__muted">{billing.detail}</p>
+                {billingError ? (
+                  <p
+                    className="mcfly-pro-upgrade__error"
+                    role="alert"
+                    style={{ marginTop: "0.75rem" }}
+                  >
+                    {billingError}
+                  </p>
+                ) : null}
                 <div
                   className="mcfly-control__grid"
                   style={{ marginTop: "0.75rem" }}
@@ -609,8 +621,8 @@ export default function SettingsPage() {
                           className="mcfly-panel__muted"
                           style={{ marginTop: "0.5rem" }}
                         >
-                          Test charge mode — Shopify will not invoice real money
-                          until production billing is confirmed.
+                          Dev-store testing note — confirm Partner Managed
+                          Pricing plans before charging production shops.
                         </p>
                       ) : null}
                     </div>
@@ -619,17 +631,22 @@ export default function SettingsPage() {
                       className="mcfly-panel__muted"
                       style={{ marginTop: "0.75rem" }}
                     >
-                      Pro upgrade charges turn on when Billing is enabled on the
-                      host. Listing can stay Free; you pay only if you upgrade.
+                      Pro upgrade opens when Shopify App Pricing is enabled for
+                      this app. Free desk stays Meta + Google + custom Other.
                     </p>
                   )
                 ) : (
-                  <p
-                    className="mcfly-panel__muted"
-                    style={{ marginTop: "0.75rem" }}
-                  >
-                    This shop has Pro entitlements.
-                  </p>
+                  <div style={{ marginTop: "0.85rem" }}>
+                    <p className="mcfly-panel__muted">
+                      This shop has Pro. You can switch plans (including back to
+                      Free) without reinstalling.
+                    </p>
+                    {billing.enabled ? (
+                      <div style={{ marginTop: "0.65rem" }}>
+                        <ProUpgradeButton mode="manage" variant="secondary" />
+                      </div>
+                    ) : null}
+                  </div>
                 )}
                 {actionData &&
                 "proMessage" in actionData &&

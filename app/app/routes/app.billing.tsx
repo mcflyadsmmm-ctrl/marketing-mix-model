@@ -1,7 +1,8 @@
 /**
- * Pro upgrade — Shopify Managed Pricing plan picker (top-frame redirect).
- * POST from Upgrade CTAs returns confirmationUrl for App Bridge _top open.
- * GET uses authenticate.admin redirect({ target: "_top" }) (Shopify docs).
+ * Pro upgrade / manage plan — Shopify Managed Pricing (top-frame redirect).
+ * GET uses authenticate.admin redirect({ target: "_top" }) — preferred path
+ * for App Store 2.1.1 (never load Admin inside the app iframe).
+ * POST kept for compatibility; returns confirmationUrl JSON.
  */
 
 import type {

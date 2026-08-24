@@ -1,70 +1,48 @@
-import { useEffect, useState } from "react";
-import { useFetcher, useLocation } from "react-router";
-import { navigateToBillingConfirmation } from "../lib/billing-navigate";
+import { useLocation } from "react-router";
 import { PRO_UPSELL } from "../lib/entitlements";
-import type { ProUpgradeActionData } from "../routes/app.billing";
 
 type ProUpgradeButtonProps = {
-  /** Polaris button variant. */
+  /** Polaris / desk button variant. */
   variant?: "primary" | "secondary" | "tertiary";
-  /** Override label (default PRO_UPSELL.upgradeCta). */
+  /** Override label (default PRO_UPSELL.upgradeCta or Manage plan). */
   label?: string;
-  /** When false, render nothing (caller already Pro). */
+  /** When false, render nothing (caller already Pro / billing off). */
   enabled?: boolean;
+  /**
+   * upgrade = Free → Pro CTA.
+   * manage = Pro → open Managed Pricing to change/downgrade (App Store 1.2.3).
+   */
+  mode?: "upgrade" | "manage";
 };
 
-export { navigateToBillingConfirmation } from "../lib/billing-navigate";
-
 /**
- * Starts Pro via Shopify Billing — posts to /app/billing, then top-navigates
- * to the Managed Pricing plan page (never iframe Admin).
+ * Opens Shopify Managed Pricing via GET /app/billing.
+ * That loader uses authenticate.admin redirect({ target: "_top" }) so Admin
+ * plan selection never loads inside the app iframe (App Store 2.1.1).
  */
 export function ProUpgradeButton({
   variant = "primary",
-  label = PRO_UPSELL.upgradeCta,
+  label,
   enabled = true,
+  mode = "upgrade",
 }: ProUpgradeButtonProps) {
-  const fetcher = useFetcher<ProUpgradeActionData>();
   const location = useLocation();
-  const busy = fetcher.state !== "idle";
-  const data = fetcher.data;
-  const [navError, setNavError] = useState<string | null>(null);
-  // Keep shop/host on the action URL so returnUrl after approve stays embedded-safe.
-  const action = `/app/billing${location.search}`;
-
-  useEffect(() => {
-    if (!data?.ok || !data.confirmationUrl) return;
-    setNavError(null);
-    const ok = navigateToBillingConfirmation(data.confirmationUrl);
-    if (!ok) {
-      setNavError(
-        "Could not open Shopify plan selection outside the app frame. Reload and try again, or open Settings → Plan in a new Admin tab.",
-      );
-    }
-  }, [data]);
-
   if (!enabled) return null;
 
-  const errorMessage =
-    navError ?? (data && !data.ok ? data.error : null);
+  const href = `/app/billing${location.search}`;
+  const text =
+    label ??
+    (mode === "manage" ? "Manage plan — Free or Pro" : PRO_UPSELL.upgradeCta);
 
   return (
     <div className="mcfly-pro-upgrade">
-      <fetcher.Form method="post" action={action}>
-        <button
-          type="submit"
-          className={`mcfly-btn mcfly-btn--${variant}`}
-          disabled={busy}
-          aria-busy={busy}
-        >
-          {busy ? "Opening plans…" : label}
-        </button>
-      </fetcher.Form>
-      {errorMessage ? (
-        <p className="mcfly-pro-upgrade__error" role="alert">
-          {errorMessage}
-        </p>
-      ) : null}
+      <a
+        href={href}
+        className={`mcfly-btn mcfly-btn--${variant}`}
+        data-mcfly-billing-exit={mode}
+      >
+        {text}
+      </a>
     </div>
   );
 }
