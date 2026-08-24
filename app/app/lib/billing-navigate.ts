@@ -53,6 +53,27 @@ export function createBrowserBillingNavigateHost(): BillingNavigateHost {
   };
 }
 
+/** Ensure embedded=1 (and shop/host when known) survive on billing URLs. */
+export function withEmbeddedBillingSearch(
+  search: string,
+  extras?: { shop?: string | null; host?: string | null },
+): string {
+  const params = new URLSearchParams(
+    search.startsWith("?") ? search.slice(1) : search,
+  );
+  if (params.get("embedded") !== "1") {
+    params.set("embedded", "1");
+  }
+  if (extras?.shop && !params.get("shop")) {
+    params.set("shop", extras.shop);
+  }
+  if (extras?.host && !params.get("host")) {
+    params.set("host", extras.host);
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : "?embedded=1";
+}
+
 /**
  * Leave the embed and open a billing / plan URL in the top Admin frame.
  * Returns false if navigation could not be initiated safely.

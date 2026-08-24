@@ -671,7 +671,7 @@ export default function GoalsPage() {
                 </div>
               ) : (
                 <div className="mcfly-decision__actions">
-                  <ProUpgradeButton />
+                  {entitlements.showProTeaser ? <ProUpgradeButton /> : null}
                   <s-button href="/app/demo" variant="secondary">
                     Try SAMPLE preview
                   </s-button>

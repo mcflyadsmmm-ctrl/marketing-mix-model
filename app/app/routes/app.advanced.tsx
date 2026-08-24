@@ -207,7 +207,7 @@ export default function AdvancedMetricsPage() {
               >
                 <p className="mcfly-state__copy">{section.lockedReason}</p>
                 <div className="mcfly-state__cta">
-                  <ProUpgradeButton />
+                  {entitlements.showProTeaser ? <ProUpgradeButton /> : null}
                   <s-button href="/app/demo" variant="secondary">
                     Try SAMPLE preview
                   </s-button>

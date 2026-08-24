@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   isShopifyAdminUrl,
   navigateToBillingConfirmation,
+  withEmbeddedBillingSearch,
   type BillingNavigateHost,
 } from "./billing-navigate";
 
@@ -15,6 +16,30 @@ function mockHost(
     ...overrides,
   };
 }
+
+describe("withEmbeddedBillingSearch", () => {
+  it("forces embedded=1 when missing", () => {
+    expect(withEmbeddedBillingSearch("")).toBe("?embedded=1");
+    expect(withEmbeddedBillingSearch("?shop=acme.myshopify.com")).toBe(
+      "?shop=acme.myshopify.com&embedded=1",
+    );
+  });
+
+  it("keeps existing embedded=1 and other params", () => {
+    expect(
+      withEmbeddedBillingSearch("?embedded=1&shop=acme.myshopify.com&host=abc"),
+    ).toBe("?embedded=1&shop=acme.myshopify.com&host=abc");
+  });
+
+  it("fills shop/host from extras when absent", () => {
+    expect(
+      withEmbeddedBillingSearch("", {
+        shop: "acme.myshopify.com",
+        host: "abc",
+      }),
+    ).toBe("?embedded=1&shop=acme.myshopify.com&host=abc");
+  });
+});
 
 describe("isShopifyAdminUrl", () => {
   it("accepts Admin plan picker hosts", () => {

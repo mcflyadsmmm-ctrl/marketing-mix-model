@@ -1,8 +1,11 @@
 /**
- * Pro upgrade / manage plan — Shopify Managed Pricing (top-frame redirect).
- * GET uses authenticate.admin redirect({ target: "_top" }) — preferred path
- * for App Store 2.1.1 (never load Admin inside the app iframe).
- * POST kept for compatibility; returns confirmationUrl JSON.
+ * Pro upgrade / manage plan — Shopify Managed Pricing.
+ *
+ * NEVER return a bare HTTP 302 to admin.shopify.com from a document GET —
+ * that loads Admin inside the app iframe → "refused to connect" (2.1.1).
+ * Always return App Bridge HTML that calls window.open(_, "_top").
+ *
+ * POST returns JSON confirmationUrl for client-side _top open (user gesture).
  */
 
 import type {
@@ -13,6 +16,7 @@ import type {
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { requestProSubscription } from "../lib/billing.server";
+import { billingExitHtmlResponse } from "../lib/billing-exit.server";
 
 export type ProUpgradeActionData =
   | { ok: true; confirmationUrl: string }
@@ -23,9 +27,11 @@ function copyEmbeddedParams(from: URL, to: URL) {
     const value = from.searchParams.get(key);
     if (value) to.searchParams.set(key, value);
   }
+  if (!to.searchParams.get("embedded")) {
+    to.searchParams.set("embedded", "1");
+  }
 }
 
-/** Official Managed Pricing exit: leave the embed via App Bridge _top redirect. */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session, redirect } = await authenticate.admin(request);
   const result = await requestProSubscription({
@@ -41,8 +47,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect(back.pathname + back.search);
   }
 
-  return redirect(result.confirmationUrl, {
-    target: "_top",
+  // Bulletproof: HTML + window.open(_top). Do NOT use redirect(adminUrl).
+  throw billingExitHtmlResponse({
+    confirmationUrl: result.confirmationUrl,
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    shopDomain: session.shop,
   });
 };
 
