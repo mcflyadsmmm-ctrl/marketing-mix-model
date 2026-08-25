@@ -328,7 +328,7 @@ export default function SettingsPage() {
 
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner
-            note={`Settings here are real. ${PRODUCT_NOUN.totalRoas} may still show SAMPLE numbers until you switch to your real store.`}
+            note={`Settings here are real. ${PRODUCT_NOUN.totalRoas} may still show Practice numbers until you switch to Your store.`}
           />
         ) : null}
 
@@ -495,30 +495,122 @@ export default function SettingsPage() {
         </div>
 
         {!shotMode ? (
+          <section
+            className="mcfly-panel"
+            style={{ marginTop: "1.25rem" }}
+            aria-label="Your plan"
+          >
+            <h2 className="mcfly-settings-template__heading">Your plan</h2>
+            <p className="mcfly-panel__muted">
+              {billing.headline} — {billing.detail}
+            </p>
+            {billingError ? (
+              <p
+                className="mcfly-pro-upgrade__error"
+                role="alert"
+                style={{ marginTop: "0.75rem" }}
+              >
+                {billingError}
+              </p>
+            ) : null}
+            <div
+              className="mcfly-control__grid"
+              style={{ marginTop: "0.75rem" }}
+            >
+              <div className="mcfly-control__tile">
+                <p className="mcfly-control__k">Free</p>
+                <ul className="mcfly-settings-guide">
+                  {billing.freeBullets.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mcfly-control__tile">
+                <p className="mcfly-control__k">
+                  Pro · ${billing.amount}/{billing.currencyCode} per month
+                </p>
+                <ul className="mcfly-settings-guide">
+                  {billing.proBullets.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            {!billing.entitlements.isPro ? (
+              billing.enabled ? (
+                <div style={{ marginTop: "0.85rem" }}>
+                  <ProUpgradeButton />
+                  {billing.testCharges ? (
+                    <p
+                      className="mcfly-panel__muted"
+                      style={{ marginTop: "0.5rem" }}
+                    >
+                      Development store — Shopify will not charge a live card.
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <p
+                  className="mcfly-panel__muted"
+                  style={{ marginTop: "0.75rem" }}
+                >
+                  Upgrade opens when billing is on. Free still covers Meta,
+                  Google, and named extras.
+                </p>
+              )
+            ) : (
+              <div style={{ marginTop: "0.85rem" }}>
+                <p className="mcfly-panel__muted">
+                  This shop has Pro. You can switch back to Free without
+                  reinstalling.
+                </p>
+                {billing.enabled ? (
+                  <div style={{ marginTop: "0.65rem" }}>
+                    <ProUpgradeButton mode="manage" variant="secondary" />
+                  </div>
+                ) : null}
+              </div>
+            )}
+            {actionData &&
+            "proMessage" in actionData &&
+            actionData.proMessage ? (
+              <p
+                className="mcfly-panel__muted"
+                style={{ marginTop: "0.5rem" }}
+              >
+                {String(actionData.proMessage)}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+
+        {!shotMode ? (
           <details className="mcfly-details mcfly-settings-more">
-            <summary>More — sample desk, billing, privacy</summary>
+            <summary>More — Practice desk and privacy</summary>
             <div className="mcfly-settings-more__body">
               <section
                 className="mcfly-panel"
                 style={{ marginTop: "0.75rem" }}
-                aria-label="Sample vs real store"
+                aria-label="Practice desk"
               >
                 <h2 className="mcfly-settings-template__heading">
-                  Sample vs real store
+                  Practice desk
                 </h2>
                 <p className="mcfly-panel__muted">
-                  The Sample | Your store switch sits at the top of every page.
-                  Sample loads practice numbers. Your store is live Shopify sales
-                  ÷ the spend you upload.
+                  Practice | Your store sits at the top of every page. Practice
+                  is example numbers so you can click around. Your store is live
+                  Shopify sales and the spend you add.
                 </p>
                 <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
                   Right now:{" "}
                   <strong>
-                    {useSampleDesk ? "Sample" : "Your store"}
+                    {useSampleDesk
+                      ? PRODUCT_NOUN.practiceDesk
+                      : PRODUCT_NOUN.yourStore}
                   </strong>
                   {samplePreviewAllowed
-                    ? " · Sample option is available"
-                    : " · Sample option is hidden"}
+                    ? " · Practice option is available"
+                    : " · Practice option is hidden"}
                 </p>
                 <div
                   className="mcfly-decision__actions"
@@ -533,7 +625,7 @@ export default function SettingsPage() {
                       />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="primary">
-                        Your store only — hide Sample
+                        Your store only — hide Practice
                       </s-button>
                     </Form>
                   ) : (
@@ -545,7 +637,7 @@ export default function SettingsPage() {
                       />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="secondary">
-                        Show Sample option again
+                        Show Practice option again
                       </s-button>
                     </Form>
                   )}
@@ -554,7 +646,7 @@ export default function SettingsPage() {
                       <input type="hidden" name="intent" value="use-sample" />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="tertiary">
-                        Switch to Sample now
+                        Switch to Practice now
                       </s-button>
                     </Form>
                   ) : null}
@@ -573,111 +665,19 @@ export default function SettingsPage() {
               <section
                 className="mcfly-panel"
                 style={{ marginTop: "1rem" }}
-                aria-label="Plan and billing"
-              >
-                <h2 className="mcfly-settings-template__heading">
-                  {billing.headline}
-                </h2>
-                <p className="mcfly-panel__muted">{billing.detail}</p>
-                {billingError ? (
-                  <p
-                    className="mcfly-pro-upgrade__error"
-                    role="alert"
-                    style={{ marginTop: "0.75rem" }}
-                  >
-                    {billingError}
-                  </p>
-                ) : null}
-                <div
-                  className="mcfly-control__grid"
-                  style={{ marginTop: "0.75rem" }}
-                >
-                  <div className="mcfly-control__tile">
-                    <p className="mcfly-control__k">Free</p>
-                    <ul className="mcfly-settings-guide">
-                      {billing.freeBullets.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="mcfly-control__tile">
-                    <p className="mcfly-control__k">
-                      {billing.planName} · ${billing.amount}/
-                      {billing.currencyCode}
-                    </p>
-                    <ul className="mcfly-settings-guide">
-                      {billing.proBullets.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                {!billing.entitlements.isPro ? (
-                  billing.enabled ? (
-                    <div style={{ marginTop: "0.85rem" }}>
-                      <ProUpgradeButton />
-                      {billing.testCharges ? (
-                        <p
-                          className="mcfly-panel__muted"
-                          style={{ marginTop: "0.5rem" }}
-                        >
-                          Dev-store testing note — confirm Partner Managed
-                          Pricing plans before charging production shops.
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <p
-                      className="mcfly-panel__muted"
-                      style={{ marginTop: "0.75rem" }}
-                    >
-                      Pro upgrade opens when Shopify App Pricing is enabled for
-                      this app. Free desk stays Meta + Google + named extras
-                      (billboards, radio, …).
-                    </p>
-                  )
-                ) : (
-                  <div style={{ marginTop: "0.85rem" }}>
-                    <p className="mcfly-panel__muted">
-                      This shop has Pro. You can switch plans (including back to
-                      Free) without reinstalling.
-                    </p>
-                    {billing.enabled ? (
-                      <div style={{ marginTop: "0.65rem" }}>
-                        <ProUpgradeButton mode="manage" variant="secondary" />
-                      </div>
-                    ) : null}
-                  </div>
-                )}
-                {actionData &&
-                "proMessage" in actionData &&
-                actionData.proMessage ? (
-                  <p
-                    className="mcfly-panel__muted"
-                    style={{ marginTop: "0.5rem" }}
-                  >
-                    {String(actionData.proMessage)}
-                  </p>
-                ) : null}
-              </section>
-
-              <section
-                className="mcfly-panel"
-                style={{ marginTop: "1rem" }}
                 aria-label="Privacy data exports"
               >
                 <h2 className="mcfly-settings-template__heading">
                   Privacy data exports
                 </h2>
                 <p className="mcfly-panel__muted">
-                  When Shopify sends a customer data request, Mcfly stores an
-                  order package (order ids, amounts, dates, and a hashed
-                  customer key — never name, email, or phone). Download packages
-                  here to fulfill the request.
+                  When Shopify asks for a customer’s data, download the package
+                  here. It includes order ids and amounts — never name, email,
+                  or phone.
                 </p>
                 {complianceExports.length === 0 ? (
                   <p className="mcfly-panel__muted">
-                    No data_request packages yet.
+                    No customer data requests yet.
                   </p>
                 ) : (
                   <ul className="mcfly-settings-guide">

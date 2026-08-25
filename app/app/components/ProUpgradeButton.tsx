@@ -13,6 +13,8 @@ type ProUpgradeButtonProps = {
   label?: string;
   enabled?: boolean;
   mode?: "upgrade" | "manage";
+  /** Hide the extra billing-exit note (Settings keeps the full chrome). */
+  quiet?: boolean;
 };
 
 /**
@@ -27,6 +29,7 @@ export function ProUpgradeButton({
   label,
   enabled = true,
   mode = "upgrade",
+  quiet = false,
 }: ProUpgradeButtonProps) {
   const fetcher = useFetcher<ProUpgradeActionData>();
   const location = useLocation();
@@ -74,7 +77,11 @@ export function ProUpgradeButton({
   }
 
   return (
-    <div className="mcfly-pro-upgrade">
+    <div
+      className={["mcfly-pro-upgrade", quiet ? "mcfly-pro-upgrade--quiet" : null]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {plansUrl ? (
         <button
           type="button"
@@ -100,9 +107,11 @@ export function ProUpgradeButton({
           </button>
         </fetcher.Form>
       )}
-      <p className="mcfly-pro-upgrade__hint">
-        Opens Shopify’s Free / Pro picker in Admin ($39/store/mo) — never inside this app.
-      </p>
+      {quiet ? null : (
+        <p className="mcfly-pro-upgrade__hint">
+          Opens Shopify’s plan page · {PRO_UPSELL.priceLine}.
+        </p>
+      )}
       {errorMessage ? (
         <p className="mcfly-pro-upgrade__error" role="alert">
           {errorMessage}

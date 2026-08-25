@@ -99,18 +99,25 @@ export const PRODUCT_NOUN = {
   /** Allocation honesty */
   allocationHeuristic:
     "Shift spend to protect break-even. Keep at least half of this period’s spend.",
-  /** SAMPLE preview — listing / rehearsal only (not live store) */
-  samplePreview: "Sample preview",
-  samplePreviewOn: "Sample is on — practice numbers, not your live store",
+  /** Practice desk — example numbers (not live store) */
+  practiceDesk: "Practice",
+  yourStore: "Your store",
+  practicePeriodSuffix: " · Practice",
+  practiceHint:
+    "Example numbers so you can click around. Not your Shopify store.",
+  yourStoreHint: "Your Shopify sales and the ad spend you add.",
+  practiceHiddenStatus: "Practice desk is hidden in Settings",
+  samplePreview: "Practice",
+  samplePreviewOn: "Practice is on — example numbers, not your Shopify store",
   samplePreviewOffCta: "Switch to Your store",
-  /** Demo page copy when Sample is on — defer to the top toggle */
-  samplePreviewOffReviewKicker: "You are viewing Sample",
-  samplePreviewOffReviewTitle: "These are practice numbers",
+  /** Demo page copy when Practice is on — defer to the top toggle */
+  samplePreviewOffReviewKicker: "You are viewing Practice",
+  samplePreviewOffReviewTitle: "These are example numbers",
   samplePreviewOffReviewBody:
-    "Use Sample | Your store at the top of any page to switch. Your store shows live Shopify sales ÷ the spend you upload. Hide Sample in Settings if you never want the practice set.",
+    "Use Practice | Your store at the top of any page to switch. Your store shows live Shopify sales and the ad spend you add. Hide Practice in Settings if you never want the example set.",
   samplePreviewLiveStore: "You are viewing Your store",
   samplePreviewLiveStoreBody:
-    "Live Shopify sales. Add spend on Spend. Switch to Sample at the top anytime to rehearse with practice numbers.",
+    "Live Shopify sales. Add spend on Spend. Switch to Practice at the top anytime to try example numbers.",
   /** Founder-locked setup path labels (banner + empty-state CTAs) */
   setupAddSpend: "Add Spend",
   setupSetGoals: "Set Goals",
@@ -120,7 +127,7 @@ export const PRODUCT_NOUN = {
     "Select channels → download template → fill daily spend → upload. Same days replace.",
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
   ltvNotInShopify:
-    "Shopify Admin lacks this till view — Mcfly uses order cohorts and opaque customer ids only (no email CRM).",
+    "Shopify Admin does not show this payback view. Mcfly uses order history only — not email lists.",
 } as const;
 
 export type SalesBasisPreference = "total" | "net";

@@ -357,7 +357,7 @@ export default function Dashboard() {
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label} · SAMPLE`
+    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
     : shotMode
       ? metrics.period.label
       : salesError ||
@@ -507,7 +507,7 @@ export default function Dashboard() {
             slot="primary-action"
             variant="primary"
             href="/app/spend"
-            aria-label="See SAMPLE spend mix"
+            aria-label="See practice spend mix"
           >
             See spend mix
           </s-button>
@@ -664,7 +664,7 @@ export default function Dashboard() {
                   <p className="mcfly-cold-empty__foot">
                     Next: <s-link href="/app/spend">{PRODUCT_NOUN.setupAddSpend}</s-link>
                     {" · "}
-                    Switch to Sample at the top for practice numbers
+                    Switch to Practice at the top for example numbers
                   </p>
                 </s-grid>
               </s-grid>
@@ -694,7 +694,7 @@ export default function Dashboard() {
                     {PRODUCT_NOUN.setupAddSpend}
                   </s-button>
                   <p className="mcfly-cold-empty__foot">
-                    Want practice numbers first? Switch to Sample at the top.
+                    Want example numbers first? Switch to Practice at the top.
                   </p>
                 </s-grid>
               </s-grid>
@@ -791,7 +791,7 @@ export default function Dashboard() {
               </li>
             </ol>
             <p className="mcfly-guide__foot">
-              Want practice numbers first? Switch to Sample at the top.
+              Want example numbers first? Switch to Practice at the top.
             </p>
           </section>
         ) : null}

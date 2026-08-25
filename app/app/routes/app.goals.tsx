@@ -35,7 +35,6 @@ import {
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
-import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import { UseSampleCta } from "../components/UseSampleCta";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -496,7 +495,7 @@ export default function GoalsPage() {
   const ytdTone = deltaTone(board.ytd.delta, board.ytd.goal);
   const forecast = board.forecast;
   const tillLabel = useSampleDesk
-    ? `${year} · SAMPLE`
+    ? `${year}${PRODUCT_NOUN.practicePeriodSuffix}`
     : `${year} · live sales`;
 
   const onYearChange = (next: string) => {
@@ -589,9 +588,7 @@ export default function GoalsPage() {
         </div>
 
         {!shotMode && entitlements.showProTeaser ? (
-          <s-banner tone="info" heading={`${PRO_UPSELL.short} · advanced Goals`}>
-            <ProUpsellBlock lead={PRO_UPSELL.goals} showSample={!useSampleDesk} />
-          </s-banner>
+          <ProUpsellBlock lead={PRO_UPSELL.goals} showSample={!useSampleDesk} />
         ) : null}
 
         {useSampleDesk && !shotMode ? (
@@ -681,8 +678,13 @@ export default function GoalsPage() {
                 </div>
               ) : (
                 <div className="mcfly-decision__actions">
-                  {entitlements.showProTeaser ? <ProUpgradeButton /> : null}
-                  <UseSampleCta label="Preview on Sample" />
+                  {entitlements.showProTeaser ? (
+                    <p className="mcfly-panel__muted">
+                      Upgrade above, or switch to Practice at the top.
+                    </p>
+                  ) : (
+                    <UseSampleCta />
+                  )}
                 </div>
               )}
             </section>

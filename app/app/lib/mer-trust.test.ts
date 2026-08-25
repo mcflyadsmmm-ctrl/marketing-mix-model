@@ -176,7 +176,7 @@ describe("formatCashFreshnessChip", () => {
         lastAt: null,
         source: "live",
       }),
-    ).toMatch(/SAMPLE preview/i);
+    ).toMatch(/Practice/i);
   });
 
   it("prefers sales last-refreshed over snapshot theater", () => {

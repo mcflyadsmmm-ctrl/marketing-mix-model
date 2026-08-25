@@ -56,7 +56,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await setSampleDeskEnabled(shop.id, true);
       return {
         ok: true as const,
-        message: `SAMPLE preview ready — ${result.days.toLocaleString()} days. Open Total ROAS to explore.`,
+        message: `Practice numbers ready — ${result.days.toLocaleString()} days. Open Total ROAS to explore.`,
         result,
       };
     }
@@ -67,7 +67,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       );
       return {
         ok: true as const,
-        message: `Loaded ${result.days.toLocaleString()} SAMPLE days. Open ${PRODUCT_NOUN.deskTitle}.`,
+        message: `Loaded ${result.days.toLocaleString()} practice days. Open ${PRODUCT_NOUN.deskTitle}.`,
         result,
       };
     }
@@ -80,7 +80,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         );
         return {
           ok: true as const,
-          message: `SAMPLE preview ready — ${result.days.toLocaleString()} days.`,
+          message: `Practice numbers ready — ${result.days.toLocaleString()} days.`,
           result,
         };
       }
@@ -104,18 +104,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
       return {
         ok: true as const,
-        message: `Using your real store — ${PRODUCT_NOUN.totalRoas} reads live sales again. SAMPLE chrome is off on Home, Spend, and Close.`,
+        message: `Using your store — ${PRODUCT_NOUN.totalRoas} reads live sales again. Practice chrome is off.`,
       };
     }
     if (intent === "clear") {
       await clearSampleDesk(shop.id);
-      return { ok: true as const, message: "SAMPLE data cleared." };
+      return { ok: true as const, message: "Practice data cleared." };
     }
     return { ok: false as const, message: "Unknown action." };
   } catch (err) {
     return {
       ok: false as const,
-      message: err instanceof Error ? err.message : "SAMPLE preview action failed",
+      message: err instanceof Error ? err.message : "Practice desk action failed",
     };
   }
 };
@@ -188,7 +188,7 @@ export default function DemoPage() {
         {stats.enabled ? (
           <s-section heading="Practice desk">
             <s-paragraph>
-              Sample stays labeled on Total ROAS, Goals, and Spend. Switch to
+              Practice stays labeled on Total ROAS, Goals, and Spend. Switch to
               Your store at the top when you want live Shopify numbers.
             </s-paragraph>
             <div className="mcfly-decision__actions">
@@ -202,21 +202,21 @@ export default function DemoPage() {
                   variant="tertiary"
                   {...(busy && intent === "prepare" ? { loading: true } : {})}
                 >
-                  Refresh SAMPLE data
+                  Refresh practice numbers
                 </s-button>
               </Form>
             </div>
             <div className="mcfly-breakdown-row" style={{ marginTop: "1rem" }}>
               <span>Status</span>
-              <strong>SAMPLE on</strong>
+              <strong>Practice on</strong>
             </div>
             <div className="mcfly-breakdown-row">
-              <span>SAMPLE days</span>
+              <span>Practice days</span>
               <strong>{stats.dayCount.toLocaleString()}</strong>
             </div>
             {actionData && "result" in actionData && actionData.result ? (
               <p className="mcfly-breakdown-note">
-                SAMPLE sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
+                Practice sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
                 {formatCurrency(actionData.result.totalSpend)} ·{" "}
                 {PRODUCT_NOUN.totalRoas} ≈{" "}
                 {formatMer(
@@ -228,11 +228,11 @@ export default function DemoPage() {
             ) : null}
           </s-section>
         ) : (
-          <s-section heading="Practice with Sample (optional)">
+          <s-section heading="Practice desk (optional)">
             <s-paragraph>
-              Prefer the Sample | Your store switch at the top of any page. This
-              page can also load matched practice sales + spend. Numbers are
-              labeled Sample and never pretend to be your store.
+              Prefer Practice | Your store at the top of any page. This page can
+              also load matched example sales and spend. Numbers are labeled
+              Practice and never pretend to be your store.
             </s-paragraph>
             <Form method="post" action={demoAction}>
               <input type="hidden" name="intent" value="prepare" />
@@ -241,20 +241,20 @@ export default function DemoPage() {
                 variant="secondary"
                 {...(busy && intent === "prepare" ? { loading: true } : {})}
               >
-                Load Sample practice numbers
+                Load Practice numbers
               </s-button>
             </Form>
             <div className="mcfly-breakdown-row" style={{ marginTop: "1rem" }}>
               <span>Status</span>
-              <strong>Live store</strong>
+              <strong>Your store</strong>
             </div>
             <div className="mcfly-breakdown-row">
-              <span>SAMPLE days on file</span>
+              <span>Practice days on file</span>
               <strong>{stats.dayCount.toLocaleString()}</strong>
             </div>
             {actionData && "result" in actionData && actionData.result ? (
               <p className="mcfly-breakdown-note">
-                SAMPLE sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
+                Practice sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
                 {formatCurrency(actionData.result.totalSpend)} ·{" "}
                 {PRODUCT_NOUN.totalRoas} ≈{" "}
                 {formatMer(

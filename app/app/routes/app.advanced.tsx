@@ -88,7 +88,7 @@ export default function AdvancedMetricsPage() {
   const isLoading = navigation.state === "loading";
 
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label} · SAMPLE`
+    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
     : salesError ||
         metrics.blockedMockAsLive ||
         metrics.salesSource === "mock"
@@ -210,7 +210,7 @@ export default function AdvancedMetricsPage() {
                 <p className="mcfly-state__copy">{section.lockedReason}</p>
                 <div className="mcfly-state__cta">
                   {entitlements.showProTeaser ? <ProUpgradeButton /> : null}
-                  <UseSampleCta label="Preview on Sample" />
+                  <UseSampleCta />
                 </div>
               </section>
             ) : (
