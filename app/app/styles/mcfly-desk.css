@@ -2102,6 +2102,62 @@
   margin-bottom: 0;
 }
 
+/* Compact embed variant (Spend tab) — same chart, less chrome. */
+.mcfly-explorer--compact {
+  padding-top: 0.65rem;
+}
+
+.mcfly-explorer--compact .mcfly-explorer__head {
+  display: none;
+}
+
+.mcfly-explorer--compact .mcfly-explorer__dates {
+  display: none;
+}
+
+.mcfly-explorer--compact .mcfly-explorer__controls {
+  margin-bottom: 0.35rem;
+}
+
+/* Prior-period comparison row — selected bucket vs previous same-length bucket. */
+.mcfly-explorer__compare {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-explorer__compare strong {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.mcfly-explorer__compare-vs {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-explorer__compare-delta {
+  color: var(--mcfly-mute);
+  font-weight: 600;
+}
+
+.mcfly-explorer__compare-delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-explorer__compare-delta--down {
+  color: var(--mcfly-lie);
+}
+
+.mcfly-explorer__tip-prior {
+  display: block;
+  margin-top: 0.2rem;
+  padding-top: 0.2rem;
+  border-top: 1px dashed var(--mcfly-line-soft);
+  color: var(--mcfly-mute);
+  font-size: 0.68rem;
+}
+
 .mcfly-explorer__channel-toggles {
   display: flex;
   flex-wrap: wrap;
@@ -9754,6 +9810,13 @@
   margin: 0.85rem 0 0;
   font-size: 0.86rem;
   color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
+.mcfly-spend-history__spans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.65rem 0 0.85rem;
 }
 
 @media print {

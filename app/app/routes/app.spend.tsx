@@ -11,10 +11,34 @@ import type {
 } from "react-router";
 import { Form, useActionData, useLoaderData, useLocation, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { calculateBreakEvenMer } from "@mcfly/mer-core";
+import {
+  SPEND_CHANNELS,
+  SPEND_CHANNEL_LABELS,
+  type SpendChannel,
+} from "@mcfly/mer-engine";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
+import {
+  SpendExplorer,
+  type SpendExplorerSeriesView,
+} from "../components/SpendExplorer";
 import { authenticate } from "../shopify.server";
-import { ensureShop, getSpendPeriodCoverage } from "../lib/mer-dashboard.server";
+import {
+  buildSpendExplorerSeries,
+  ensureShop,
+  getSpendPeriodCoverage,
+} from "../lib/mer-dashboard.server";
 import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod, type PeriodPreset } from "../lib/periods";
+import {
+  dateKeyFromLocal,
+  parseExplorerDateParam,
+  parseExplorerGranularity,
+  parseExplorerMode,
+  parseExplorerRange,
+  parseExplorerShowSales,
+  resolveExplorerWindow,
+} from "../lib/spend-explorer";
+import { shopLocalDayKey } from "../lib/shop-local-day";
 import { resolveManualSpendRange } from "../lib/spend-day-entry";
 import { PeriodControl } from "../components/PeriodControl";
 import {
@@ -67,23 +91,23 @@ import {
   previewSpendUpsert,
 } from "../lib/spend-repository.server";
 import {
+  getSalesFactsByDay,
+  runSalesFactsBackfill,
   salesDayFactWindowStartUtc,
   SALES_DAY_FACT_WINDOW_YEARS_BACK,
 } from "../lib/sales-facts.server";
 import {
+  fetchSampleSalesByDay,
   getSampleDeskEnabled,
   getSampleDeskStats,
   localDayKey,
+  SAMPLE_DESK_MARGIN_PCT,
+  SAMPLE_DESK_TARGET_MER,
   utcDayKey,
 } from "../lib/sample-desk.server";
 import { formatCurrency, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
-import {
-  SPEND_CHANNELS,
-  SPEND_CHANNEL_LABELS,
-  type SpendChannel,
-} from "@mcfly/mer-engine";
 import {
   assertChannelsAllowed,
   canUseChannel,
@@ -104,8 +128,8 @@ const CUSTOM_STORAGE_KEY = "mcfly-spend-custom-channels";
 /** First-visit default checkboxes — every named platform is Free. */
 const DEFAULT_PLATFORM_IDS: SpendAdvertisePlatformId[] = ["meta", "google"];
 
-/** Last N local calendar days for the CSV hole strip (within 14–31). */
-const SPEND_COVERAGE_DAYS = 28;
+/** Last N local calendar days for the coverage strip (history, not just a month). */
+const SPEND_COVERAGE_DAYS = 90;
 
 function channelOptionsFor(entitlements: ShopEntitlements) {
   return entitlements.allowedChannels.map((value) => ({
@@ -309,21 +333,36 @@ async function loadSpendDayCoverage(
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   const sampleDesk = await getSampleDeskStats(shop.id);
-  const range = resolvePeriod(
-    preset,
-    new Date(),
-    deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone),
-  );
+  const now = new Date();
+  const timeZone = deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone);
+  const range = resolvePeriod(preset, now, timeZone);
   const settings = await prisma.settings.findUnique({ where: { shopId: shop.id } });
   const spendSourceWhere = sampleDesk.enabled
     ? { source: "sample" as const }
     : { source: { not: "sample" } };
+  // Spend tab default: 90 closed days so history backfill is visible. Overview stays 14d.
+  const exRange = parseExplorerRange(url.searchParams.get("exRange") || "90d");
+  const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
+  const exMode = parseExplorerMode(url.searchParams.get("exMode"));
+  const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
+  const exFrom = parseExplorerDateParam(url.searchParams.get("exFrom"));
+  const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
+  const explorerWindow = resolveExplorerWindow(exRange, now, {
+    from: exFrom,
+    to: exTo,
+    timeZone,
+  });
+  const dayFetchRange = {
+    start: explorerWindow.start,
+    end: explorerWindow.end,
+    label: explorerWindow.label,
+  };
   // SAMPLE ON → show sample rows (practice mix). SAMPLE OFF → real uploads only.
   const [entries, dayCoverage, periodSpend, periodCoverage] = await Promise.all([
     prisma.spendEntry.findMany({
@@ -344,7 +383,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getSpendPeriodCoverage(shop.id, range, {
       excludeSample: !sampleDesk.enabled,
       sampleOnly: sampleDesk.enabled,
-      timeZone: deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone),
+      timeZone,
     }),
   ]);
   const periodSpendTotal = periodSpend.reduce((s, e) => s + e.amount, 0);
@@ -373,6 +412,67 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     paidPro: shop.proBillingActive,
   });
 
+  let salesByDay = new Map<string, number>();
+  if (sampleDesk.enabled) {
+    try {
+      salesByDay = await fetchSampleSalesByDay(shop.id, dayFetchRange);
+    } catch {
+      salesByDay = new Map();
+    }
+  } else {
+    void runSalesFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+      // ignore — explorer uses stored facts; Overview banners disclose holes
+    });
+    try {
+      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange);
+    } catch {
+      salesByDay = new Map();
+    }
+  }
+
+  const targetMer = sampleDesk.enabled
+    ? SAMPLE_DESK_TARGET_MER
+    : (settings?.targetMer ?? 3);
+  const marginPct = sampleDesk.enabled
+    ? SAMPLE_DESK_MARGIN_PCT
+    : (settings?.marginPct ?? null);
+  const breakEvenMer =
+    marginPct != null ? calculateBreakEvenMer(marginPct) : null;
+
+  const explorerSeries = await buildSpendExplorerSeries(shop.id, {
+    sampleOnly: sampleDesk.enabled,
+    excludeSample: !sampleDesk.enabled,
+    salesByDay,
+    window: explorerWindow,
+    granularity: exGran,
+    mode: exMode,
+    targetMer,
+    newCustomers: 0,
+    returningCustomers: 0,
+    customerMetricsAvailable: false,
+    timeZone,
+  });
+
+  const explorerDayKey = (instant: Date) =>
+    timeZone
+      ? shopLocalDayKey(instant, timeZone)
+      : dateKeyFromLocal(instant);
+
+  const explorer: SpendExplorerSeriesView = {
+    buckets: explorerSeries.buckets,
+    summary: explorerSeries.summary,
+    mode: explorerSeries.mode,
+    granularity: explorerSeries.granularity,
+    range: explorerWindow.range,
+    windowLabel: explorerWindow.label,
+    targetMer: explorerSeries.targetMer,
+    breakEvenMer,
+    showSales: exSales,
+    fromKey: explorerDayKey(explorerWindow.start),
+    toKey: explorerDayKey(explorerWindow.end),
+    asOfKey: explorerDayKey(explorerWindow.end),
+  };
+
   return {
     entries,
     sampleDesk,
@@ -390,7 +490,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     addSpendChannels: addSpendSelectOptions(entitlements),
     spendHistoryFloorKey: salesDayFactWindowStartUtc().toISOString().slice(0, 10),
     spendHistoryYearsBack: SALES_DAY_FACT_WINDOW_YEARS_BACK,
-    todayKey: sampleDesk.enabled ? utcDayKey(new Date()) : localDayKey(new Date()),
+    todayKey: sampleDesk.enabled ? utcDayKey(now) : localDayKey(now),
+    explorer,
   };
 };
 
@@ -963,6 +1064,7 @@ export default function SpendEntryPage() {
     spendRecon,
     periodLabel,
     preset,
+    explorer,
   } = useLoaderData<typeof loader>();
   const periodMixRows = periodSpendMix.filter((row) => row.amount > 0);
   const hasPeriodSpend = periodMixRows.length > 0;
@@ -995,13 +1097,15 @@ export default function SpendEntryPage() {
   const holeCount = coverageThroughYesterday.missing.length;
   const missingDates = coverageThroughYesterday.missing;
   const missingDatesPreview = missingDates.slice(0, 5);
+  const coverageClosedDays = dayCoverage.days.filter(
+    (d) => d.dateKey !== todayKey,
+  );
+  const coverageFromKey = coverageClosedDays[0]?.dateKey;
+  const coverageToKey =
+    coverageClosedDays[coverageClosedDays.length - 1]?.dateKey;
   const blankTemplateHref = entitlements.canUseAllChannels
     ? "/app/spend/template?blank=1"
     : `/app/spend/template?platforms=${encodeURIComponent(entitlements.allowedChannels.join(","))}&blank=1`;
-  const missingDatesHref =
-    missingDates.length > 0
-      ? `/app/spend/template?dates=${encodeURIComponent(missingDates.slice(0, 62).join(","))}`
-      : blankTemplateHref;
   const csvErrorGroups =
     csv && csv.errors.length > 0 ? groupCsvErrors(csv.errors) : null;
   const actionErrorGroups =
@@ -1209,6 +1313,25 @@ export default function SpendEntryPage() {
       ? `&custom=${encodeURIComponent(serializeCustomChannelsParam(customChannelNames))}`
       : ""
   }`;
+  const historyRangeQuery =
+    coverageFromKey && coverageToKey
+      ? `&from=${encodeURIComponent(coverageFromKey)}&to=${encodeURIComponent(coverageToKey)}`
+      : "";
+  const missingDatesHref = `${selectedBlankTemplateHref}${historyRangeQuery}`;
+  type HistorySpan = "30d" | "90d" | "ytd" | "12m";
+  function historySpanHref(span: HistorySpan): string {
+    switch (span) {
+      case "30d":
+      case "90d":
+      case "ytd":
+      case "12m":
+        return `${selectedBlankTemplateHref}&span=${span}`;
+      default: {
+        const _exhaustive: never = span;
+        return _exhaustive;
+      }
+    }
+  }
 
   function togglePlatform(id: SpendAdvertisePlatformId) {
     if (!isPlatformSelectable(id)) return;
@@ -1410,7 +1533,7 @@ export default function SpendEntryPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>Add spend</h2>
               <p className="mcfly-panel__muted">
-                {NUMBER_HONESTY.invoiceHint} CSV for many days is below.
+                {NUMBER_HONESTY.invoiceHint} Many days: fill history below.
               </p>
             </div>
             {sampleDesk.enabled && !shotMode ? (
@@ -1542,6 +1665,27 @@ export default function SpendEntryPage() {
 
           <section
             className="mcfly-panel mcfly-panel--eq-compact"
+            aria-label="Day week month spend"
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>Day · week · month</h2>
+              <p className="mcfly-panel__muted">
+                Spend you added next to Shopify sales. Switch Day, Week, or
+                Month — stays on this tab.
+              </p>
+            </div>
+            <SpendExplorer
+              series={explorer}
+              period={preset}
+              shotMode={shotMode}
+              basePath="/app/spend"
+              compare
+              variant="spend"
+            />
+          </section>
+
+          <section
+            className="mcfly-panel mcfly-panel--eq-compact"
             aria-label={`Period spend mix · ${periodLabel}`}
           >
             <div className="mcfly-panel__head mcfly-panel__head--tight">
@@ -1599,9 +1743,36 @@ export default function SpendEntryPage() {
             )}
           </section>
 
-          <details className="mcfly-spend-secondary__details" id="mcfly-spend-csv">
-            <summary>Many days or Ads Manager export (CSV)</summary>
-            <div className="mcfly-spend-secondary__body">
+          <section
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-history"
+            id="mcfly-spend-csv"
+            aria-label="Fill history"
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>Fill history</h2>
+              <p className="mcfly-panel__muted">
+                Daily spend as far back as you have it. Download a blank,
+                paste an Ads Manager export, or upload a CSV — one row per day.
+              </p>
+            </div>
+            <div
+              className="mcfly-spend-history__spans"
+              role="group"
+              aria-label="Blank template range"
+            >
+              <s-button href={historySpanHref("30d")} variant="secondary">
+                30 days
+              </s-button>
+              <s-button href={historySpanHref("90d")} variant="secondary">
+                90 days
+              </s-button>
+              <s-button href={historySpanHref("ytd")} variant="secondary">
+                YTD
+              </s-button>
+              <s-button href={historySpanHref("12m")} variant="secondary">
+                12 months
+              </s-button>
+            </div>
             <ol className="mcfly-spend-steps" aria-label="CSV spend in three steps">
               <li>Pick channels</li>
               <li>Download the template and fill daily amounts</li>
@@ -1980,8 +2151,6 @@ export default function SpendEntryPage() {
             </Form>
           </div>
           )}
-            </div>
-          </details>
 
           {/* 4 · Status line */}
           <div className="mcfly-spend-lean__status" role="status">
@@ -2054,6 +2223,7 @@ export default function SpendEntryPage() {
               ))}
             </ul>
           ) : null}
+          </section>
 
         </div>
       </div>

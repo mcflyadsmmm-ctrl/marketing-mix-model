@@ -4,11 +4,13 @@ import {
   EXPLORER_GRANULARITY_OPTIONS,
   EXPLORER_MODE_OPTIONS,
   EXPLORER_RANGE_OPTIONS,
+  compareExplorerBuckets,
   dateKeyFromLocal,
   explorerLegendChannels,
   explorerMerCeil,
   explorerMoneyCeil,
   orderBarsByLegend,
+  type ExplorerBucketComparison,
   type ExplorerGranularity,
   type ExplorerMode,
   type ExplorerPlotBucket,
@@ -46,7 +48,23 @@ type SpendExplorerProps = {
   period: PeriodPreset;
   /** Preserve listing shot param when controls change. */
   shotMode?: boolean;
+  /**
+   * Where range / granularity clicks stay. Overview defaults to `/app`.
+   * Spend embeds the explorer and must keep drill-down on `/app/spend`.
+   */
+  basePath?: "/app" | "/app/spend";
+  /**
+   * This-period-vs-prior comparison (day vs previous day, week vs previous
+   * week, …) in the ROAS tip + a summary row. Default off — Overview
+   * unchanged until it opts in.
+   */
+  compare?: boolean;
+  /** Layout — "spend" trims chrome for the Spend tab embed. */
+  variant?: SpendExplorerVariant;
 };
+
+/** "overview" = full chrome (default); "spend" = compact embed. */
+export type SpendExplorerVariant = "overview" | "spend";
 
 type ExplorerHover =
   | { kind: "seg"; bucketKey: string; channel: string }
@@ -89,6 +107,47 @@ function bucketMerPhrase(bucket: {
   return bucket.mer != null
     ? `${PRODUCT_NOUN.totalRoas} ${formatMer(bucket.mer)} · ${base}`
     : base;
+}
+
+function explorerVariantClass(variant: SpendExplorerVariant): string {
+  switch (variant) {
+    case "overview":
+      return "";
+    case "spend":
+      return " mcfly-explorer--compact";
+    default: {
+      const _exhaustive: never = variant;
+      return _exhaustive;
+    }
+  }
+}
+
+/** "vs prior day / week / month / quarter" noun for the compare row. */
+function granCompareNoun(granularity: ExplorerGranularity): string {
+  switch (granularity) {
+    case "Day":
+      return "day";
+    case "Week":
+      return "week";
+    case "Month":
+      return "month";
+    case "Quarter":
+      return "quarter";
+    default: {
+      const _exhaustive: never = granularity;
+      return _exhaustive;
+    }
+  }
+}
+
+function signedCurrency(delta: number): string {
+  const sign = delta < 0 ? "−" : "+";
+  return `${sign}${formatCurrency(Math.abs(delta))}`;
+}
+
+function signedMer(delta: number): string {
+  const sign = delta < 0 ? "−" : "+";
+  return `${sign}${formatMer(Math.abs(delta))}×`;
 }
 
 /** Desk query keys we own — everything else (shop/host/embedded/…) must survive. */
@@ -205,12 +264,27 @@ export function SpendExplorer({
   series,
   period,
   shotMode = false,
+  basePath = "/app",
+  compare = false,
+  variant = "overview",
 }: SpendExplorerProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { buckets: allBuckets, mode, targetMer, breakEvenMer, showSales } =
     series;
   const isShare = mode === "share";
+
+  const comparisons = useMemo<Map<string, ExplorerBucketComparison> | null>(
+    () =>
+      compare
+        ? new Map(
+            compareExplorerBuckets(allBuckets, series.granularity).map(
+              (c) => [c.key, c],
+            ),
+          )
+        : null,
+    [compare, allBuckets, series.granularity],
+  );
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [hover, setHover] = useState<ExplorerHover>(null);
@@ -277,6 +351,12 @@ export function SpendExplorer({
     hover?.kind === "seg" && tipBucket
       ? tipBucket.bars.find((s) => s.channel === hover.channel) ?? null
       : null;
+
+  const selectedCmp =
+    selected && comparisons ? (comparisons.get(selected.key) ?? null) : null;
+  const tipCmp =
+    tipBucket && comparisons ? (comparisons.get(tipBucket.key) ?? null) : null;
+  const compareNoun = granCompareNoun(series.granularity);
 
   const datesDirty =
     fromDraft !== series.fromKey || toDraft !== series.toKey;
@@ -372,7 +452,7 @@ export function SpendExplorer({
     to?: string | null;
   }) {
     return {
-      pathname: "/app" as const,
+      pathname: basePath,
       search: explorerSearch(searchParams, {
         ...hrefBase,
         range: opts.range,
@@ -464,7 +544,7 @@ export function SpendExplorer({
 
   return (
     <section
-      className="mcfly-panel mcfly-explorer mcfly-explorer--lean"
+      className={`mcfly-panel mcfly-explorer mcfly-explorer--lean${explorerVariantClass(variant)}`}
       aria-label={PRODUCT_NOUN.explorer}
     >
       <div className="mcfly-panel__head mcfly-explorer__head mcfly-explorer__head--lean">
@@ -943,6 +1023,14 @@ export function SpendExplorer({
                         <span>
                           Sales {formatCurrency(tipBucket.sales)}
                         </span>
+                        {tipCmp?.hasPrior ? (
+                          <span className="mcfly-explorer__tip-prior">
+                            Prior {compareNoun} ({tipCmp.priorLabel}): spend{" "}
+                            {formatCurrency(tipCmp.priorSpend ?? 0)} ·{" "}
+                            {PRODUCT_NOUN.totalRoas}{" "}
+                            {formatMer(tipCmp.priorMer)}
+                          </span>
+                        ) : null}
                       </>
                     ) : hoverSeg ? (
                       <>
@@ -975,6 +1063,60 @@ export function SpendExplorer({
               </div>
             </div>
           </div>
+
+          {compare && selectedCmp && !shotMode ? (
+            <p className="mcfly-explorer__compare" aria-live="polite">
+              {selectedCmp.hasPrior ? (
+                <>
+                  <strong>{selectedCmp.label}</strong>
+                  <span className="mcfly-explorer__compare-vs">
+                    {" "}
+                    vs prior {compareNoun} ({selectedCmp.priorLabel})
+                  </span>
+                  {" · spend "}
+                  {formatCurrency(selectedCmp.spend)}{" "}
+                  <span className="mcfly-explorer__compare-delta">
+                    ({signedCurrency(selectedCmp.spendDelta ?? 0)})
+                  </span>
+                  {" · sales "}
+                  {formatCurrency(selectedCmp.sales)}{" "}
+                  <span className="mcfly-explorer__compare-delta">
+                    ({signedCurrency(selectedCmp.salesDelta ?? 0)})
+                  </span>
+                  {" · "}
+                  {PRODUCT_NOUN.totalRoas} {formatMer(selectedCmp.mer)}{" "}
+                  {selectedCmp.merDelta != null ? (
+                    <span
+                      className={`mcfly-explorer__compare-delta${
+                        selectedCmp.merDelta > 0
+                          ? " mcfly-explorer__compare-delta--up"
+                          : selectedCmp.merDelta < 0
+                            ? " mcfly-explorer__compare-delta--down"
+                            : ""
+                      }`}
+                    >
+                      ({signedMer(selectedCmp.merDelta)})
+                    </span>
+                  ) : (
+                    <span
+                      className="mcfly-explorer__compare-delta"
+                      title="Total ROAS needs spend in both periods"
+                    >
+                      (—)
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <strong>{selectedCmp.label}</strong>
+                  <span className="mcfly-explorer__compare-vs">
+                    {" "}
+                    — no prior {compareNoun} in this window
+                  </span>
+                </>
+              )}
+            </p>
+          ) : null}
 
           {!shotMode ? (
             <div className="mcfly-explorer__channel-toggles" role="group" aria-label="Spend channels">

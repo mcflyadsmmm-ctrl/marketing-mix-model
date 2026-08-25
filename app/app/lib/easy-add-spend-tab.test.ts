@@ -1,0 +1,58 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const here = dirname(fileURLToPath(import.meta.url));
+
+function read(rel: string) {
+  return readFileSync(join(here, rel), "utf8");
+}
+
+describe("Easy Add Spend tab (history + drill-down)", () => {
+  const spend = read("../routes/app.spend.tsx");
+  const explorer = read("../components/SpendExplorer.tsx");
+
+  it("keeps one-day Add spend above history CSV", () => {
+    const addAt = spend.indexOf('id="mcfly-spend-add"');
+    const csvAt = spend.indexOf('id="mcfly-spend-csv"');
+    expect(addAt).toBeGreaterThan(-1);
+    expect(csvAt).toBeGreaterThan(addAt);
+  });
+
+  it("does not bury history import in a closed details drawer", () => {
+    expect(spend).toContain('id="mcfly-spend-csv"');
+    expect(spend).toContain("Fill history");
+    expect(spend).not.toMatch(
+      /<details[^>]*id="mcfly-spend-csv"/,
+    );
+    expect(spend).toContain("&span=${span}");
+    expect(spend).toContain('historySpanHref("90d")');
+    expect(spend).toContain('historySpanHref("12m")');
+  });
+
+  it("covers 90 closed days and embeds day/week/month explorer on this tab", () => {
+    expect(spend).toContain("const SPEND_COVERAGE_DAYS = 90");
+    expect(spend).toContain("exRange") ;
+    expect(spend).toContain('parseExplorerRange(url.searchParams.get("exRange") || "90d")');
+    expect(spend).toContain("<SpendExplorer");
+    expect(spend).toContain('basePath="/app/spend"');
+    expect(spend).toContain("compare");
+    expect(spend).toContain('variant="spend"');
+  });
+
+  it("keeps explorer drill-down on Spend when embedded", () => {
+    expect(explorer).toContain('basePath?: "/app" | "/app/spend"');
+    expect(explorer).toContain("pathname: basePath");
+    expect(explorer).toContain("compareExplorerBuckets");
+  });
+
+  it("does not nest Upgrade inside the Add spend form", () => {
+    const formStart = spend.indexOf(
+      '<Form method="post" className="mcfly-spend-add__form"',
+    );
+    const formEnd = spend.indexOf("</Form>", formStart);
+    expect(formStart).toBeGreaterThan(-1);
+    expect(spend.slice(formStart, formEnd)).not.toContain("ProUpsellBlock");
+  });
+});

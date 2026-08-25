@@ -77,6 +77,8 @@ Ship:
 
 A ∥ B first (no file overlap) → C wires URLs + explorer comparison → ship-gate → Fly.
 
+**Status (2026-08-25):** Lane A merged (`spend-template-range` + `span`/`from`/`to` on the template route). Lane B comparison + compact explorer is on this branch. Lane C: Fill history is first-class (30d / 90d / YTD / 12m blanks), coverage is 90 days, SpendExplorer is embedded on `/app/spend` with `compare`.
+
 ## Out of scope
 
 Pixels, connectors, listing paste, Partner Submit, hiding channels behind Pro.
