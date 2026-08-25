@@ -137,10 +137,16 @@ export function compareSpendShares(
         channel,
         periodShare,
         windowShare,
-        deltaPp: (windowShare - periodShare) * 100,
+        deltaPp: round2((windowShare - periodShare) * 100),
       };
     })
-    .sort((a, b) => Math.abs(b.deltaPp) - Math.abs(a.deltaPp));
+    .sort((a, b) => {
+      const byAbs = Math.abs(b.deltaPp) - Math.abs(a.deltaPp);
+      if (byAbs !== 0) return byAbs;
+      const byDelta = b.deltaPp - a.deltaPp;
+      if (byDelta !== 0) return byDelta;
+      return a.channel.localeCompare(b.channel);
+    });
 }
 
 /** Default best-window grain for the desk period filter. */

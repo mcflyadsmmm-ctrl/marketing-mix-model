@@ -315,13 +315,13 @@ describe("window grains + period filter defaults", () => {
         { channel: "Google", share: 0.3 },
       ],
     );
+    expect(diffs.map((d) => d.channel)).toEqual(["Meta", "Google"]);
     expect(diffs[0]).toMatchObject({
       channel: "Meta",
       periodShare: 0.5,
       windowShare: 0.7,
       deltaPp: 20,
     });
-    expect(diffs[1]?.channel).toBe("Google");
     expect(diffs[1]?.deltaPp).toBeCloseTo(-20, 5);
   });
 });
