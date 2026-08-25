@@ -11,6 +11,20 @@ function read(rel: string) {
 }
 
 describe("Practice | Your store UX (no demo theater)", () => {
+  it("shot mode still labels Practice numbers (App Store 1.1.4)", () => {
+    const bar = read("../components/DataModeBar.tsx");
+    expect(bar).toContain("shotMode");
+    expect(bar).toMatch(/if \(shotMode\)/);
+    expect(bar).toContain("mcfly-data-mode--shot");
+    expect(bar).toContain("practiceHint");
+    const shell = read("../routes/app.tsx");
+    expect(shell).toContain("shotMode={shotMode}");
+    expect(shell).not.toMatch(/\{!shotMode \? \(/);
+    const css = read("../styles/mcfly-desk.css");
+    expect(css).toMatch(/mcfly-desk--shot\.mcfly-desk--sample::after/);
+    expect(css).toMatch(/content:\s*"PRACTICE"/);
+  });
+
   it("top toggle labels Practice vs Your store", () => {
     const bar = read("../components/DataModeBar.tsx");
     expect(bar).toContain("yourStore");

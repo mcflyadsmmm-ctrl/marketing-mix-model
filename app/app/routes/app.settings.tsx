@@ -38,6 +38,7 @@ import {
 } from "../lib/billing.server";
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { BILLING_HONESTY } from "../lib/entitlements";
+import { FLY_SUPPORT_URL } from "../lib/public-origin";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -715,7 +716,7 @@ export default function SettingsPage() {
             <s-stack alignItems="center">
               <s-text>
                 Learn more about{" "}
-                <s-link href="https://mcflyads.com/support" target="_blank">
+                <s-link href={FLY_SUPPORT_URL} target="_blank">
                   {PRODUCT_NOUN.totalRoas} support
                 </s-link>
                 .

@@ -19,24 +19,22 @@ Leave these unchecked until a human verifies in Partner. Agents do **not** flip 
 - [ ] **Short description** ≤ ~150 chars; lead with spend next to Shopify (billboards included) — **no plan prices** (4.2.3)
 - [ ] **Long description** opens on Shopify’s gap (no ad/offline cost, no LTV next to spend); **no $ /mo in this field**
 - [ ] **Sales channel requirements:** do **not** check “Merchant must have online store” — this app is Admin-only (4.3.1)
-- [ ] **Trust URLs** extensionless: `/privacy` `/support` `/terms` on mcflyads.com (never App URL = marketing site)
+- [ ] **Trust URLs** on the Fly origin: `https://mcfly-analytics.fly.dev/privacy` `/support` `/terms` (Fly serves the same `site/` HTML as the marketing repo; never App URL = mcflyads.com; live mcflyads.com Pages may still be waitlist until Cloudflare republish)
 - [ ] **PCD copy** still: opaque customer id + `numberOfOrders` only — no CRM / name / email
 - [ ] **Works with:** leave blank (no Checkout UI extension) — never Meta/Google/SyncWith; Checkout only if you later ship a real Checkout surface
 - [ ] Screenshots + M-only icon per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md)
 
-Partner listing URLs (already live — Free + PCD voice on Pages; **verify HTTP 200 before Submit**):
+Partner listing URLs for **this resubmit** (Fly serves the current `site/` marketing pages on this origin. Live mcflyads.com Cloudflare Pages may still be waitlist — do not send reviewers there until Pages is republished):
 
 | Field | URL |
 | --- | --- |
-| Website | https://mcflyads.com |
-| Privacy | https://mcflyads.com/privacy |
-| Support | https://mcflyads.com/support |
-| Terms | https://mcflyads.com/terms |
-| App URL (current) | https://mcfly-analytics.fly.dev |
+| Website | https://mcfly-analytics.fly.dev |
+| Privacy | https://mcfly-analytics.fly.dev/privacy |
+| Support | https://mcfly-analytics.fly.dev/support |
+| Terms | https://mcfly-analytics.fly.dev/terms |
+| App URL | https://mcfly-analytics.fly.dev |
 
-(`.html` URLs 308 to the same pages — prefer extensionless canonicals in Partner fields.)
-
-**Trust URL note:** Live mcflyads.com privacy / support / terms / pricing ship Free + PCD wording (Pages lag closed 2026-07-26). Spot-check each URL returns 200 and copy still matches this file before clicking Submit.
+App URL and Website may share the Fly host. Never set App URL to mcflyads.com.
 
 **Human runbook:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) · shots [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) · requirement matrix [`APP_STORE_REQUIREMENT_MATRIX.md`](./APP_STORE_REQUIREMENT_MATRIX.md) · scorecard [`SUBMIT_READY_SCORECARD.md`](./SUBMIT_READY_SCORECARD.md)
 
@@ -73,7 +71,7 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 
 **Paste order (human, ~15 min once shots exist):**
 1. App name / email / language / category / Pricing **Shopify App Pricing Free + Pro $39** / **Works with = blank** (no Checkout UI extension; never Meta/Google/SyncWith)  
-2. Website + Privacy / Support / Terms URLs (extensionless mcflyads.com)  
+2. Website + Privacy / Support / Terms URLs (Fly origin table above — not stale mcflyads.com Pages)  
 3. App URL = `https://mcfly-analytics.fly.dev` (never mcflyads.com)  
 4. Search keywords from table below (ban attribution / pixel / true ROAS / MTA)  
 5. App icon = `docs/listing-assets/mcfly-app-icon-1200.png`  
@@ -90,17 +88,17 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 | **Pricing** | **Shopify App Pricing: Free + Pro $39** | Must match in-app Upgrade. No **External charges**. Default plan = every named platform + extras; paid plan = LTV + full Goals |
 | **Works with** | **Leave blank** | No Checkout UI extension today — do **not** claim Checkout. Never Meta/Google/TikTok/SyncWith logos. Add Checkout later only if a real Checkout surface ships. |
 | **Online Store required?** | **No — leave unchecked** | Admin-only desk. Do not select “Merchant must have online store” (4.3.1). |
-| **Website** | https://mcflyads.com | |
-| **Privacy policy URL** | https://mcflyads.com/privacy | Extensionless; local copy includes PCD scopes |
-| **Support URL** | https://mcflyads.com/support | App Store install steps; no shop-domain form |
-| **Terms URL** | https://mcflyads.com/terms | |
+| **Website** | https://mcfly-analytics.fly.dev | Same host as App URL — Fly serves `site/` (Install free, not waitlist) |
+| **Privacy policy URL** | https://mcfly-analytics.fly.dev/privacy | PCD Level 1 scopes; no waitlist |
+| **Support URL** | https://mcfly-analytics.fly.dev/support | App Store install steps; no shop-domain form |
+| **Terms URL** | https://mcfly-analytics.fly.dev/terms | Free + Pro $39; Utah law |
 | **App URL** | https://mcfly-analytics.fly.dev | Never mcflyads.com |
 | **Search keywords** | ad spend, Shopify analytics, LTV, ROAS, billboards, marketing goals | ASO spine only — ban “attribution,” “pixel,” “true ROAS,” “MTA” |
 | **Demo store** | Leave blank for v1 | Optional post-submit; sample desk is in-app only |
 | **App icon** | `docs/listing-assets/mcfly-app-icon-1200.png` | 1200×1200, **M-only** ribbon |
 | **Screenshots** | 5 PNGs per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) | Unique compositions (4.4.4) |
 
-**Pre-flight:** Distribution = **Shopify App Store** · PCD submitted · trust URLs still Free + PCD on live curl ([`REJECT_RISK_AUDIT.md`](./REJECT_RISK_AUDIT.md)).
+**Pre-flight:** Distribution = **Shopify App Store** · PCD submitted · curl **Fly** `/privacy` `/support` `/terms` (do **not** send reviewers to stale mcflyads.com Pages).
 
 ---
 
@@ -179,8 +177,8 @@ Shopify operators who need every dollar out — including offline — next to Sh
 
 Plan prices are in the Pricing details section of this listing — not here. Upgrade and Manage plan run through Shopify App Pricing in Admin.
 
-Learn more: https://mcflyads.com
-Privacy: https://mcflyads.com/privacy · Support: https://mcflyads.com/support
+Learn more: https://mcfly-analytics.fly.dev
+Privacy: https://mcfly-analytics.fly.dev/privacy · Support: https://mcfly-analytics.fly.dev/support
 App URL: https://mcfly-analytics.fly.dev
 ```
 <!-- /APP_STORE_PASTE:long -->
@@ -263,7 +261,7 @@ Deep till history beyond ~60 days for OrderFact backfill and till LTV cohorts (o
 • Settings (margin %, targets), merchant-entered ad spend aggregates, Total ROAS / sales-day facts
 • OrderFact / CohortFact: opaque customerKey + order amounts/dates only — no CRM
 • ComplianceDataExport: temporary Level-1 opaque order package for customers/data_request (order ids, amounts, dates, customerKey). Auto-purged after 60 days; erased earlier on customers/redact, shop/redact, or uninstall
-• Waitlist/support contact only when voluntarily submitted (mcflyadsmmm@gmail.com / mcflyads.com/support)
+• Support contact only when voluntarily emailed (mcflyadsmmm@gmail.com)
 
 === DATA WE DO NOT COLLECT ===
 Customer name, email, phone, address. No pixels. No path attribution. No customer marketing lists.
@@ -275,10 +273,10 @@ Merchant-supplied ad-spend aggregates only (CSV / Sheets). Optional SyncWith / C
 App data kept while installed. Uninstall and shop/redact delete shop record, sessions, spend, OrderFacts, CohortFacts, ComplianceDataExport packages, and related rows. customers/redact deletes matching OrderFacts (+ orders_to_redact), erases that customer’s ComplianceDataExport, and recomputes CohortFacts. ComplianceDataExport TTL = 60 days.
 
 === ENCRYPTION / ACCESS ===
-HTTPS in transit (Fly.io). Database on our host only. Access limited to app runtime credentials and operators with production access. Privacy policy: https://mcflyads.com/privacy
+HTTPS in transit (Fly.io). Database on our host only. Access limited to app runtime credentials and operators with production access. Privacy policy: https://mcfly-analytics.fly.dev/privacy
 
 === PRIVACY POLICY URL ===
-https://mcflyads.com/privacy
+https://mcfly-analytics.fly.dev/privacy
 ```
 
 | Question theme | Answer |
@@ -292,7 +290,7 @@ https://mcflyads.com/privacy
 | Retention | Shop data deleted on uninstall and on `shop/redact`. Level-1 `ComplianceDataExport` packages auto-purge after **60 days** and are erased earlier on `customers/redact`, `shop/redact`, and uninstall. |
 | Data request / redact | Compliance webhook at `/webhooks/compliance` returns 200. `customers/data_request` stores a Level-1 opaque order package (order ids, amounts, dates, customerKey — no name/email/phone). `customers/redact` deletes matching OrderFacts (+ `orders_to_redact`), erases that package, and recomputes CohortFacts. Logs: shop + topic + counts only (no amount dumps). |
 | Encryption / access | HTTPS in transit (Fly); DB only on our host; access limited to app runtime credentials. |
-| Privacy policy | https://mcflyads.com/privacy — discloses staff Session fields, `read_orders` + minimal `read_customers`, ComplianceDataExport 60-day TTL, merchant-chosen SyncWith-class processors, waitlist/support contact; GDPR topics fulfill Level-1 opaque order packages only. |
+| Privacy policy | https://mcfly-analytics.fly.dev/privacy — discloses staff Session fields, `read_orders` + minimal `read_customers`, ComplianceDataExport 60-day TTL, merchant-chosen SyncWith-class processors, support email; GDPR topics fulfill Level-1 opaque order packages only. |
 
 ---
 

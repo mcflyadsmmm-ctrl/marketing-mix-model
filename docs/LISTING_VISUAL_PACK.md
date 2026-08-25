@@ -131,7 +131,7 @@ E. ICON
 | 2 | `02-explorer-sales-div-spend.png` | **Ready** — Explorer (sales ÷ spend + channel mix) |
 | 3 | `03-margin-breakeven.png` | **Ready** — Break-even lock from margin |
 | 4 | `04-free-pro-pricing.png` | **DO NOT UPLOAD** — plan prices in the image violate 4.2.2. Use Allocation / Spend UI instead. |
-| 5 | `05-spend-csv.png` | **Ready (mock)** — platforms + combine + Other; SAMPLE labeled. Re-capture live Admin when session available (`docs/ops/SHOT5_20260729.md`). HOLD stays do-not-upload. |
+| 5 | `05-spend-csv.png` | **DO NOT UPLOAD** until recaptured — July mock still says other platforms are on Pro (1.1.4). Recapture Goals or Add spend from live Admin. |
 
 Captions + upload order: [`listing-assets/shots/CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md).
 

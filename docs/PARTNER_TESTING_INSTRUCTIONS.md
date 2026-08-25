@@ -91,8 +91,8 @@ date,channel,amount
 2026-08-21,Google Ads,90
 
 App URL: https://mcfly-analytics.fly.dev
-Support: https://mcflyads.com/support
-Privacy: https://mcflyads.com/privacy
+Support: https://mcfly-analytics.fly.dev/support
+Privacy: https://mcfly-analytics.fly.dev/privacy
 Emergency contact: mcflyadsmmm@gmail.com
 ```
 <!-- /APP_STORE_PASTE:testing -->

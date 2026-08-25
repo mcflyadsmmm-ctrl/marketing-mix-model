@@ -23,10 +23,11 @@ Shot paths SoT: [`LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md).
 | --- | --- |
 | `04-free-pro-pricing.png` | Plan prices in the image — App Store 4.2.2. |
 | `05-HOLD-marketing-site-do-not-upload.png` | Marketing / install landing — **not** embedded Admin. |
+| July `05-spend-csv.png` | Spend UI says other platforms are on Pro — that packaging is false (1.1.4). Recapture Add spend or Goals. |
 
 ## Notes
 
-- Founder pack PNGs from 2026-07-31 may still show CSV-first Spend and Allocation as shots 4–5. **Retake** so shot 3 is Add spend, shot 4 is LTV, shot 5 is Goals before the next Submit.
-- Turn SAMPLE **OFF** on the review store after upload / before live review.
+- Founder pack PNGs from 2026-07-31 still show **SAMPLE** chrome and CSV-first Spend. **Retake** from live Admin (`?shot=1`, Practice labeled) so shot 3 is Add spend, shot 4 is LTV, shot 5 is Goals before Submit.
+- Turn Practice **OFF** on the review store after upload / before live review.
 - Feature media (header): `../feature-media-1600x900.png` (Custom Data Science dark/cyan).
 - Icon: `../mcfly-app-icon-1200.png`.

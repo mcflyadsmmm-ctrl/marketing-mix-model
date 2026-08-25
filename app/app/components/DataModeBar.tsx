@@ -8,6 +8,11 @@ export type DataModeBarProps = {
   marginConfirmed: boolean;
   /** Real-store activation: at least one non-sample spend row. */
   hasLiveSpend: boolean;
+  /**
+   * Listing capture (`?shot=1`). Hide the toggle on Your store.
+   * If Practice is on, keep an unmistakable example-numbers label (1.1.4).
+   */
+  shotMode?: boolean;
 };
 
 /**
@@ -19,10 +24,27 @@ export function DataModeBar({
   samplePreviewAllowed,
   marginConfirmed,
   hasLiveSpend,
+  shotMode = false,
 }: DataModeBarProps) {
   const location = useLocation();
   const [params] = useSearchParams();
   const activationIncomplete = !marginConfirmed || !hasLiveSpend;
+
+  if (shotMode) {
+    if (!useSampleDesk) return null;
+    return (
+      <div
+        className="mcfly-data-mode mcfly-data-mode--sample mcfly-data-mode--shot"
+        role="status"
+      >
+        <p className="mcfly-data-mode__status">
+          <strong>{PRODUCT_NOUN.practiceDesk}</strong>
+          <span aria-hidden="true"> · </span>
+          {PRODUCT_NOUN.practiceHint}
+        </p>
+      </div>
+    );
+  }
   const guideParam =
     params.get("guide") === "real" || params.get("guide") === "1";
   /** Sticky until first trusted Total ROAS inputs exist — uninstall protection. */

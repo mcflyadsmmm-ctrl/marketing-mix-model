@@ -4204,7 +4204,7 @@
 }
 
 .mcfly-desk--shot.mcfly-desk--sample::after {
-  content: "SAMPLE";
+  content: "PRACTICE";
   position: absolute;
   top: 0.55rem;
   right: 0.65rem;
@@ -9593,6 +9593,11 @@
 .mcfly-data-mode--sample {
   border-color: #f0c36d;
   background: #fffbeb;
+}
+
+.mcfly-data-mode--shot {
+  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.7rem;
 }
 
 .mcfly-data-mode--real-only {

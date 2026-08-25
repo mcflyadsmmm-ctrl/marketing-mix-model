@@ -65,13 +65,13 @@ Reply: **`emergency contact done`**
 
 ### 3. Spot-check trust pages (before reviewers click them)
 
-Reviewers open Website / Privacy / Support / Terms from the listing. Live pages should already match Free + PCD (verified 2026-07-26). Still spot-check:
+Reviewers open Website / Privacy / Support / Terms from the listing. **Use the Fly URLs** until mcflyads.com Pages is republished (live Support still says “when Billing”).
 
-1. https://mcflyads.com/support — App Store **Free** primary (Partner invite secondary email only)  
-2. https://mcflyads.com/pricing — Free when listed / paid later via Billing  
-3. https://mcflyads.com/privacy — order totals + opaque id / `numberOfOrders`  
-4. https://mcflyads.com/terms — App Store Free primary (not invite-only)  
-5. https://mcflyads.com/download — App Store Free primary; Partner invite secondary email only  
+1. https://mcfly-analytics.fly.dev/support — Install free / email a human. No shop-domain form.
+2. https://mcfly-analytics.fly.dev/pricing — Free + Pro $39/store/mo via Shopify App Pricing
+3. https://mcfly-analytics.fly.dev/privacy — order totals + opaque id / `numberOfOrders`
+4. https://mcfly-analytics.fly.dev/terms — App Store Free + Pro
+5. https://mcfly-analytics.fly.dev — Website / landing (same host as App URL)
 
 Reply: **`pages live`**
 

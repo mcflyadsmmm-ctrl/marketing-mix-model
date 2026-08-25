@@ -90,14 +90,13 @@ export default function App() {
           <s-link href="/app/advanced">Advanced</s-link>
           <s-link href="/app/settings">Settings</s-link>
         </s-app-nav>
-        {!shotMode ? (
-          <DataModeBar
-            useSampleDesk={useSampleDesk}
-            samplePreviewAllowed={samplePreviewAllowed}
-            marginConfirmed={marginConfirmed}
-            hasLiveSpend={hasLiveSpend}
-          />
-        ) : null}
+        <DataModeBar
+          useSampleDesk={useSampleDesk}
+          samplePreviewAllowed={samplePreviewAllowed}
+          marginConfirmed={marginConfirmed}
+          hasLiveSpend={hasLiveSpend}
+          shotMode={shotMode}
+        />
         <Outlet />
       </BillingExitProvider>
     </AppProvider>

@@ -1528,16 +1528,16 @@ export default function SpendEntryPage() {
                     Save spend
                   </s-button>
                 </div>
-                {entitlements.showProTeaser ? (
-                  <div className="mcfly-spend-add__upsell">
-                    <ProUpsellBlock
-                      lead={PRO_UPSELL.ltv}
-                      showSample={!sampleDesk.enabled}
-                    />
-                  </div>
-                ) : null}
               </Form>
             )}
+            {entitlements.showProTeaser && !shotMode ? (
+              <div className="mcfly-spend-add__upsell">
+                <ProUpsellBlock
+                  lead={PRO_UPSELL.ltv}
+                  showSample={!sampleDesk.enabled}
+                />
+              </div>
+            ) : null}
           </section>
 
           <section
