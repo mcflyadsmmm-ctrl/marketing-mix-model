@@ -47,6 +47,7 @@ import {
 } from "../lib/sales-facts.server";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import {
+  deskPeriodTimeZone,
   parsePeriodPreset,
   resolvePeriod,
   resolvePriorPeriod,
@@ -110,14 +111,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
-  // Overview locks to Shopify Total Sales (after returns) — no Net toggle on this desk.
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
-  // Shop-local calendar when IANA is known; otherwise legacy server-local edges.
-  const range = resolvePeriod(preset, now, ianaTimezone);
-  const priorRange = resolvePriorPeriod(preset, now, ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const range = resolvePeriod(
+    preset,
+    now,
+    deskPeriodTimeZone(useSampleDesk, ianaTimezone),
+  );
+  const priorRange = resolvePriorPeriod(
+    preset,
+    now,
+    deskPeriodTimeZone(useSampleDesk, ianaTimezone),
+  );
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
@@ -142,8 +149,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const explorerWindow = resolveExplorerWindow(exRange, now, {
     from: exFrom,
     to: exTo,
-    // SAMPLE stamps UTC calendar days — don't shift explorer edges to shop-local.
-    timeZone: useSampleDesk ? null : ianaTimezone,
+    timeZone: deskPeriodTimeZone(useSampleDesk, ianaTimezone),
   });
   const dayFetchRange = {
     start: explorerWindow.start,
@@ -275,10 +281,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     newCustomers: explorerCustomers.newCustomers,
     returningCustomers: explorerCustomers.returningCustomers,
     customerMetricsAvailable: explorerCustomers.customerMetricsAvailable,
-    timeZone: useSampleDesk ? null : ianaTimezone,
+    timeZone: deskPeriodTimeZone(useSampleDesk, ianaTimezone),
   });
 
-  const explorerTz = useSampleDesk ? null : ianaTimezone;
+  const explorerTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
   const explorerDayKey = (instant: Date) =>
     explorerTz
       ? shopLocalDayKey(instant, explorerTz)
@@ -299,7 +305,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     asOfKey: explorerDayKey(explorerWindow.end),
   };
 
-  const shareTz = useSampleDesk ? null : ianaTimezone;
+  const shareTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
   const shareDayKey = (instant: Date) =>
     shareTz
       ? shopLocalDayKey(instant, shareTz)
@@ -500,10 +506,10 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href="/app/demo"
-            aria-label={PRODUCT_NOUN.samplePreviewOffReviewTitle}
+            href="/app/spend"
+            aria-label="See SAMPLE spend mix"
           >
-            {PRODUCT_NOUN.samplePreviewOffReviewTitle}
+            See spend mix
           </s-button>
         ) : metrics.cashActionReady ? (
           <s-button
@@ -658,7 +664,7 @@ export default function Dashboard() {
                   <p className="mcfly-cold-empty__foot">
                     Next: <s-link href="/app/spend">{PRODUCT_NOUN.setupAddSpend}</s-link>
                     {" · "}
-                    <s-link href="/app/demo">Try SAMPLE preview</s-link>
+                    Switch to Sample at the top for practice numbers
                   </p>
                 </s-grid>
               </s-grid>
@@ -688,8 +694,7 @@ export default function Dashboard() {
                     {PRODUCT_NOUN.setupAddSpend}
                   </s-button>
                   <p className="mcfly-cold-empty__foot">
-                    Want a labeled walkthrough first?{" "}
-                    <s-link href="/app/demo">Try SAMPLE preview</s-link>
+                    Want practice numbers first? Switch to Sample at the top.
                   </p>
                 </s-grid>
               </s-grid>
@@ -786,8 +791,7 @@ export default function Dashboard() {
               </li>
             </ol>
             <p className="mcfly-guide__foot">
-              Want a labeled walkthrough first?{" "}
-              <s-link href="/app/demo">Try SAMPLE preview</s-link>
+              Want practice numbers first? Switch to Sample at the top.
             </p>
           </section>
         ) : null}
@@ -900,6 +904,7 @@ export default function Dashboard() {
                   tillLtv={metrics.tillLtv}
                   preset={preset}
                   showProTeaser={showProTeaser}
+                  showSample={!useSampleDesk}
                 />
               </div>
             ) : null}
@@ -953,6 +958,7 @@ function LtvSnapSection({
   tillLtv,
   preset,
   showProTeaser,
+  showSample,
 }: {
   tillLtv: {
     available: boolean;
@@ -965,6 +971,7 @@ function LtvSnapSection({
   };
   preset: PeriodPreset;
   showProTeaser: boolean;
+  showSample: boolean;
 }) {
   return (
     <section
@@ -1040,7 +1047,7 @@ function LtvSnapSection({
         </>
       ) : tillLtv.emptyReason === "pro_required" ? (
         showProTeaser ? (
-          <ProUpsellBlock lead={PRO_UPSELL.ltv} />
+          <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={showSample} />
         ) : (
           <p className="mcfly-tab-snap__empty">{PRO_UPSELL.ltv}</p>
         )

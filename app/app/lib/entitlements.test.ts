@@ -67,7 +67,9 @@ describe("entitlements Free vs Pro", () => {
     expect(e.canUseLtv).toBe(true);
     expect(e.canUseAdvancedGoals).toBe(true);
     expect(e.canUseAdvancedClose).toBe(false);
-    expect(e.canUseAllChannels).toBe(false);
+    expect(e.canUseAllChannels).toBe(true);
+    expect(e.allowedChannels).toContain("tiktok");
+    expect(canUseChannel(e, "tiktok")).toBe(true);
   });
 
   it("MCFLY_PRO_SHOPS grants Pro", () => {
@@ -109,6 +111,16 @@ describe("entitlements Free vs Pro", () => {
       { channel: "google", amount: 25 },
       { channel: "other", amount: 10 },
     ]);
+  });
+
+  it("filterToAllowedChannels keeps full mix on SAMPLE without Pro", () => {
+    delete process.env.MCFLY_PRO_SHOPS;
+    const e = getShopEntitlements("acme.myshopify.com", { sampleDesk: true });
+    const rows = [
+      { channel: "meta", amount: 100 },
+      { channel: "tiktok", amount: 50 },
+    ];
+    expect(filterToAllowedChannels(e, rows)).toEqual(rows);
   });
 
   it("filterToAllowedChannels keeps full mix for Pro", () => {

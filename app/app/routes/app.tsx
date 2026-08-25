@@ -80,7 +80,7 @@ export default function App() {
     <AppProvider embedded apiKey={apiKey}>
       <BillingExitProvider plansUrl={plansUrl}>
         {/* Always show desk nav — empty states / Pro gates live on pages.
-            Do not hide tabs when Real store (SAMPLE off); that felt broken. */}
+            Do not hide tabs when Your store (Sample off); that felt broken. */}
         <s-app-nav>
           <s-link href="/app">Overview</s-link>
           <s-link href="/app/spend">Spend</s-link>

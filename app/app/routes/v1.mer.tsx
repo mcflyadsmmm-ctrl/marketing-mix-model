@@ -16,6 +16,7 @@ import {
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
 import { ensureShop } from "../lib/mer-dashboard.server";
+import { deskPeriodTimeZone } from "../lib/periods";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const oversized = rejectOversizedBody(request);
@@ -51,11 +52,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { from, to, includeAllocation } = parsed.data;
   // Shop IANA bounds when known; else UTC calendar days — never host-local.
   const shop = await ensureShop(auth.shopDomain);
-  const range = apiQueryDateRange(from, to, shop.ianaTimezone);
+  const useSampleDesk = await getSampleDeskEnabled(auth.shopId);
+  const range = apiQueryDateRange(
+    from,
+    to,
+    deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone),
+  );
 
   let sales = 0;
   let salesWarning: string | undefined;
-  const useSampleDesk = await getSampleDeskEnabled(auth.shopId);
   try {
     if (useSampleDesk) {
       const sample = await fetchSampleSales(auth.shopId, range);

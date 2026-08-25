@@ -11,7 +11,7 @@ export type DataModeBarProps = {
 };
 
 /**
- * Global Sample | Real store control — one place, every desk page.
+ * Global Sample | Your store control — one place, every desk page.
  * Real-store checklist stays until first margin + spend (not only ?guide=real).
  */
 export function DataModeBar({
@@ -35,9 +35,9 @@ export function DataModeBar({
     return (
       <div className="mcfly-data-mode mcfly-data-mode--real-only" role="status">
         <p className="mcfly-data-mode__status">
-          <strong>Real store</strong>
+          <strong>Your store</strong>
           <span aria-hidden="true"> · </span>
-          Sample preview is off in Settings
+          Sample is hidden in Settings
         </p>
         {activationIncomplete ? (
           <s-banner tone="info" heading="Finish setup for Total ROAS">
@@ -113,29 +113,19 @@ export function DataModeBar({
                 .join(" ")}
               aria-pressed={!useSampleDesk}
             >
-              Real store
+              Your store
             </button>
           </Form>
         </div>
         <p className="mcfly-data-mode__hint">
           {useSampleDesk
-            ? "Practice numbers — not your live Shopify till."
-            : "Live Shopify sales ÷ your spend."}
+            ? "Practice numbers — not your live Shopify sales or ad accounts."
+            : "Live Shopify sales ÷ the spend you upload."}
         </p>
       </div>
 
-      {useSampleDesk ? (
-        <s-banner tone="warning" heading={PRODUCT_NOUN.samplePreviewOn}>
-          <s-paragraph>
-            Explore Total ROAS safely. When you are ready, tap{" "}
-            <strong>Real store</strong> — we will walk you through margin and
-            spend.
-          </s-paragraph>
-        </s-banner>
-      ) : null}
-
       {showRealGuide ? (
-        <s-banner tone="info" heading="Your real store — three steps">
+        <s-banner tone="info" heading="Your store — three steps">
           <ol className="mcfly-data-mode__steps">
             <li>
               <s-link href={`/app/settings${location.search}`}>
@@ -154,7 +144,7 @@ export function DataModeBar({
               <span>
                 {hasLiveSpend
                   ? " — done"
-                  : " — Meta, Google, or Something else you name"}
+                  : " — download the template, fill daily amounts, upload"}
               </span>
             </li>
             <li>
@@ -165,9 +155,7 @@ export function DataModeBar({
             </li>
           </ol>
           <p className="mcfly-data-mode__steps-note">
-            Shopify sales are automatic. You only add ad spend. Hide Sample for
-            good in{" "}
-            <s-link href={`/app/settings${location.search}`}>Settings</s-link>.
+            Shopify sales load automatically. You only add ad spend.
           </p>
         </s-banner>
       ) : null}

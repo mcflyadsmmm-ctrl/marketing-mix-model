@@ -507,14 +507,14 @@ export default function SettingsPage() {
                   Sample vs real store
                 </h2>
                 <p className="mcfly-panel__muted">
-                  The Sample | Real store switch sits at the top of every page.
-                  When you are done practicing, turn Sample off here so the desk
-                  only shows your live Shopify numbers.
+                  The Sample | Your store switch sits at the top of every page.
+                  Sample loads practice numbers. Your store is live Shopify sales
+                  ÷ the spend you upload.
                 </p>
                 <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
                   Right now:{" "}
                   <strong>
-                    {useSampleDesk ? "Sample preview" : "Real store"}
+                    {useSampleDesk ? "Sample" : "Your store"}
                   </strong>
                   {samplePreviewAllowed
                     ? " · Sample option is available"
@@ -533,7 +533,7 @@ export default function SettingsPage() {
                       />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="primary">
-                        Real store only — hide Sample
+                        Your store only — hide Sample
                       </s-button>
                     </Form>
                   ) : (
@@ -563,7 +563,7 @@ export default function SettingsPage() {
                       <input type="hidden" name="intent" value="use-real" />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="tertiary">
-                        Switch to Real store now
+                        Switch to Your store now
                       </s-button>
                     </Form>
                   ) : null}

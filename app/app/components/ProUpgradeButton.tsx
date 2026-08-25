@@ -101,7 +101,7 @@ export function ProUpgradeButton({
         </fetcher.Form>
       )}
       <p className="mcfly-pro-upgrade__hint">
-        Opens Shopify’s Free / Pro picker in Admin — not inside this app.
+        Opens Shopify’s Free / Pro picker in Admin ($39/store/mo) — never inside this app.
       </p>
       {errorMessage ? (
         <p className="mcfly-pro-upgrade__error" role="alert">

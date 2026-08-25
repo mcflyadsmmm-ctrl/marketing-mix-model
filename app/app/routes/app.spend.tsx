@@ -11,11 +11,10 @@ import type {
 } from "react-router";
 import { Form, useActionData, useLoaderData, useLocation, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getSpendPeriodCoverage } from "../lib/mer-dashboard.server";
-import { parsePeriodPreset, resolvePeriod, type PeriodPreset } from "../lib/periods";
+import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod, type PeriodPreset } from "../lib/periods";
 import {
   computeSpendRecon,
   spendReconMatchesPeriod,
@@ -60,6 +59,7 @@ import {
   getSampleDeskEnabled,
   getSampleDeskStats,
   localDayKey,
+  utcDayKey,
 } from "../lib/sample-desk.server";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -80,7 +80,7 @@ import { PRO_UPSELL } from "../lib/entitlements";
 const MAX_COMBINE_SLOTS = 20;
 /** Ablestar fail-closed: never punch live CSV into a sample-ON desk. */
 const SAMPLE_DESK_IMPORT_BLOCK =
-  "Sample preview is on. Tap Real store at the top of the page before importing live spend. Sample rows were not changed.";
+  "Sample is on — practice numbers are already loaded. Switch to Your store at the top, then upload your CSV.";
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
 const PLATFORM_STORAGE_KEY = "mcfly-spend-platforms";
 /** First-visit default — Free path is Meta + Google. */
@@ -165,12 +165,70 @@ export type SpendDayCoverage = {
   includesSample: boolean;
 };
 
+function addUtcDays(d: Date, n: number): Date {
+  const next = new Date(d);
+  next.setUTCDate(next.getUTCDate() + n);
+  return new Date(
+    Date.UTC(next.getUTCFullYear(), next.getUTCMonth(), next.getUTCDate()),
+  );
+}
+
+function startOfUtcDay(d: Date): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
 /** Build filled/empty strip so CSV holes are visible at a glance. */
 async function loadSpendDayCoverage(
   shopId: string,
-  includesSample: boolean,
+  sampleOn: boolean,
   now = new Date(),
 ): Promise<SpendDayCoverage> {
+  if (sampleOn) {
+    const windowEnd = startOfUtcDay(now);
+    const windowStart = addUtcDays(windowEnd, -(SPEND_COVERAGE_DAYS - 1));
+    const windowEndInclusive = new Date(
+      Date.UTC(
+        windowEnd.getUTCFullYear(),
+        windowEnd.getUTCMonth(),
+        windowEnd.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
+    const entries = await prisma.spendEntry.findMany({
+      where: {
+        shopId,
+        source: "sample",
+        periodStart: { lte: windowEndInclusive },
+        periodEnd: { gte: windowStart },
+        amount: { gt: 0 },
+      },
+      select: { periodStart: true, periodEnd: true },
+    });
+    const filled = new Set<string>();
+    for (const entry of entries) {
+      filled.add(utcDayKey(entry.periodStart));
+    }
+    const days: SpendDayCoverageCell[] = [];
+    for (let i = 0; i < SPEND_COVERAGE_DAYS; i++) {
+      const cursor = addUtcDays(windowStart, i);
+      const dateKey = utcDayKey(cursor);
+      days.push({
+        dateKey,
+        label: String(cursor.getUTCDate()),
+        filled: filled.has(dateKey),
+      });
+    }
+    return {
+      days,
+      filledCount: days.filter((d) => d.filled).length,
+      total: days.length,
+      includesSample: true,
+    };
+  }
+
   const windowEnd = startOfLocalDay(now);
   const windowStart = addLocalDays(windowEnd, -(SPEND_COVERAGE_DAYS - 1));
 
@@ -180,7 +238,7 @@ async function loadSpendDayCoverage(
       periodStart: { lte: windowEnd },
       periodEnd: { gte: windowStart },
       amount: { gt: 0 },
-      ...(includesSample ? {} : { source: { not: "sample" } }),
+      source: { not: "sample" },
     },
     select: { periodStart: true, periodEnd: true },
   });
@@ -212,7 +270,7 @@ async function loadSpendDayCoverage(
     days,
     filledCount: days.filter((d) => d.filled).length,
     total: days.length,
-    includesSample,
+    includesSample: false,
   };
 }
 
@@ -222,23 +280,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
-  const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
   const sampleDesk = await getSampleDeskStats(shop.id);
+  const range = resolvePeriod(
+    preset,
+    new Date(),
+    deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone),
+  );
   const settings = await prisma.settings.findUnique({ where: { shopId: shop.id } });
-  // Real entries only — sample-desk rows are demo data and would drown out
-  // an operator's own uploads in "Recent entries" (sample dates run through today).
+  const spendSourceWhere = sampleDesk.enabled
+    ? { source: "sample" as const }
+    : { source: { not: "sample" } };
+  // SAMPLE ON → show sample rows (practice mix). SAMPLE OFF → real uploads only.
   const [entries, dayCoverage, periodSpend, periodCoverage] = await Promise.all([
     prisma.spendEntry.findMany({
-      where: { shopId: shop.id, source: { not: "sample" } },
+      where: { shopId: shop.id, ...spendSourceWhere },
       orderBy: { periodStart: "desc" },
       take: 20,
     }),
-    // Sample desk ON → coverage may include sample spend days; OFF → real only.
     loadSpendDayCoverage(shop.id, sampleDesk.enabled),
     prisma.spendEntry.findMany({
       where: {
         shopId: shop.id,
-        source: { not: "sample" },
+        ...spendSourceWhere,
         periodStart: { lte: range.end },
         periodEnd: { gte: range.start },
       },
@@ -247,7 +310,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getSpendPeriodCoverage(shop.id, range, {
       excludeSample: !sampleDesk.enabled,
       sampleOnly: sampleDesk.enabled,
-      timeZone: sampleDesk.enabled ? null : shop.ianaTimezone,
+      timeZone: deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone),
     }),
   ]);
   const periodSpendTotal = periodSpend.reduce((s, e) => s + e.amount, 0);
@@ -286,6 +349,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     addSpendChannels: addSpendSelectOptions(entitlements),
     spendHistoryFloorKey: salesDayFactWindowStartUtc().toISOString().slice(0, 10),
     spendHistoryYearsBack: SALES_DAY_FACT_WINDOW_YEARS_BACK,
+    todayKey: sampleDesk.enabled ? utcDayKey(new Date()) : localDayKey(new Date()),
   };
 };
 
@@ -836,6 +900,7 @@ export default function SpendEntryPage() {
     addSpendChannels,
     spendHistoryFloorKey,
     spendHistoryYearsBack,
+    todayKey,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -850,10 +915,6 @@ export default function SpendEntryPage() {
   const csvSaved = Boolean(actionData?.success && csv);
   const csvNeedsConfirm = Boolean(csv?.needsConfirm);
   const manualSaved = Boolean(actionData?.success && !csv);
-  const todayKey = useMemo(() => {
-    const n = new Date();
-    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
-  }, []);
   /** Coverage status excludes today — "through yesterday" is the ritual bar. */
   const coverageThroughYesterday = useMemo(() => {
     const days = dayCoverage.days.filter((d) => d.dateKey !== todayKey);
@@ -1068,20 +1129,7 @@ export default function SpendEntryPage() {
 
   return (
     <s-page heading="Spend" inlineSize="large">
-      {sampleDesk.enabled && !shotMode ? (
-        <Form method="post" action={dataModeAction}>
-          <input type="hidden" name="intent" value="use-real" />
-          <input type="hidden" name="returnTo" value={returnTo} />
-          <s-button
-            slot="primary-action"
-            type="submit"
-            variant="primary"
-            aria-label={PRODUCT_NOUN.samplePreviewOffCta}
-          >
-            {PRODUCT_NOUN.samplePreviewOffCta}
-          </s-button>
-        </Form>
-      ) : isEmpty && !shotMode ? (
+      {isEmpty && !shotMode && !sampleDesk.enabled ? (
         <s-button
           slot="primary-action"
           variant="primary"
@@ -1103,7 +1151,24 @@ export default function SpendEntryPage() {
           .join(" ")}
       >
         {sampleDesk.enabled && !shotMode ? (
-          <SampleDeskBanner note="SAMPLE data is on. Turn it off before uploading your real spend." />
+          <s-banner
+            tone="info"
+            heading="Sample spend is on this page"
+          >
+            <s-paragraph>
+              These are practice numbers ({entries.length.toLocaleString()} recent
+              rows). They are not your live ad accounts. Switch to{" "}
+              <strong>Your store</strong> at the top, then follow the three steps
+              to upload a CSV.
+            </s-paragraph>
+            <Form method="post" action={dataModeAction}>
+              <input type="hidden" name="intent" value="use-real" />
+              <input type="hidden" name="returnTo" value={returnTo} />
+              <s-button type="submit" variant="secondary">
+                Switch to Your store to upload
+              </s-button>
+            </Form>
+          </s-banner>
         ) : null}
 
         {csvNeedsConfirm && csv ? (
@@ -1235,6 +1300,18 @@ export default function SpendEntryPage() {
         ) : null}
 
         <div className="mcfly-spend-lean__stack">
+          {sampleDesk.enabled ? (
+            <p className="mcfly-spend-steps-lead">
+              Sample spend is already loaded. The three steps below apply after
+              you switch to Your store.
+            </p>
+          ) : null}
+          <ol className="mcfly-spend-steps" aria-label="Add spend in three steps">
+            <li>Pick channels</li>
+            <li>Download the template and fill daily amounts</li>
+            <li>Upload the CSV</li>
+          </ol>
+
           {/* 1 · Advertising channels — compact dropdown */}
           <details
             id="mcfly-spend-platforms"
@@ -1246,7 +1323,7 @@ export default function SpendEntryPage() {
           >
             <summary>
               <span className="mcfly-spend-lean__channels-label">
-                Advertising channels
+                Step 1 — Advertising channels
               </span>
               <span className="mcfly-spend-lean__channels-value">
                 {selectedSummaryLabel}
@@ -1281,7 +1358,10 @@ export default function SpendEntryPage() {
               })}
               {entitlements.showProTeaser ? (
                 <div className="mcfly-spend-lean__pro-note">
-                  <ProUpsellBlock lead={PRO_UPSELL.channels} />
+                  <ProUpsellBlock
+                    lead={PRO_UPSELL.channels}
+                    showSample={!sampleDesk.enabled}
+                  />
                 </div>
               ) : null}
             </div>
@@ -1291,7 +1371,7 @@ export default function SpendEntryPage() {
           <div id="mcfly-spend-template" className="mcfly-spend-lean__template">
             <div className="mcfly-spend-lean__template-row">
               <s-button href={selectedBlankTemplateHref} variant="secondary">
-                Download blank
+                Step 2 — Download blank template
               </s-button>
               <s-text tone="neutral">One row = one day</s-text>
             </div>
@@ -1438,6 +1518,25 @@ export default function SpendEntryPage() {
           </div>
 
           {/* 3 · Upload CSV — file only */}
+          {sampleDesk.enabled && !shotMode ? (
+            <div
+              id="mcfly-spend-uploads"
+              className="mcfly-spend-lean__upload mcfly-spend-lean__upload--gated"
+            >
+              <p className="mcfly-spend-lean__drop-title">Upload is paused on Sample</p>
+              <p className="mcfly-spend-lean__drop-hint">
+                Practice spend is already on the desk. Switch to Your store to
+                import Meta / Google / Other CSVs without mixing them into Sample.
+              </p>
+              <Form method="post" action={dataModeAction}>
+                <input type="hidden" name="intent" value="use-real" />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <s-button type="submit" variant="primary">
+                  Switch to Your store to upload
+                </s-button>
+              </Form>
+            </div>
+          ) : (
           <div
             id="mcfly-spend-uploads"
             className="mcfly-spend-lean__upload"
@@ -1461,10 +1560,10 @@ export default function SpendEntryPage() {
               />
               <label className="mcfly-spend-lean__drop">
                 <span className="mcfly-spend-lean__drop-title">
-                  Upload .csv / add files
+                  Step 3 — Upload your CSV
                 </span>
                 <span className="mcfly-spend-lean__drop-hint">
-                  Proper Day + channel format only
+                  Header row required. One row per day. Same day + channel replaces.
                 </span>
                 <input
                   type="file"
@@ -1493,10 +1592,25 @@ export default function SpendEntryPage() {
               </s-button>
             </Form>
           </div>
+          )}
 
           {/* 4 · Status line */}
           <div className="mcfly-spend-lean__status" role="status">
-            {coverageThroughYesterday.upToDate ? (
+            {sampleDesk.enabled ? (
+              <>
+                <p className="mcfly-spend-lean__status-line">
+                  Practice spend is loaded
+                  {entries.length > 0
+                    ? ` · ${entries.length.toLocaleString()} recent rows shown`
+                    : ""}
+                  . CSV coverage tracking starts on Your store.
+                </p>
+                <p className="mcfly-spend-lean__status-foot">
+                  Switch to Your store at the top, then download the template,
+                  fill daily amounts, and upload.
+                </p>
+              </>
+            ) : coverageThroughYesterday.upToDate ? (
               <p className="mcfly-spend-lean__status-line">
                 ✓ Up to date through yesterday
               </p>
@@ -1520,10 +1634,12 @@ export default function SpendEntryPage() {
                 ) : null}
               </p>
             )}
+            {sampleDesk.enabled ? null : (
             <p className="mcfly-spend-lean__status-foot">
               Backdate to {spendHistoryFloorKey} ({spendHistoryYearsBack} years) —
               same window as Shopify sales. Same day + channel replaces.
             </p>
+            )}
           </div>
 
           {/* 5 · Recent entries — compact */}

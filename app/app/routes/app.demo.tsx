@@ -141,34 +141,27 @@ export default function DemoPage() {
           .join(" ")}
       >
         {stats.enabled ? (
-          <div className="mcfly-demo-off-warning" role="status">
-            <p className="mcfly-demo-off-warning__kicker">
-              {PRODUCT_NOUN.samplePreviewOffReviewKicker}
-            </p>
-            <h2 className="mcfly-demo-off-warning__title">
-              {PRODUCT_NOUN.samplePreviewOffReviewTitle}
-            </h2>
-            <p className="mcfly-demo-off-warning__body">
+          <s-banner tone="info" heading={PRODUCT_NOUN.samplePreviewOffReviewTitle}>
+            <s-paragraph>
               {PRODUCT_NOUN.samplePreviewOffReviewBody}
-            </p>
-            <div className="mcfly-demo-off-warning__action">
+            </s-paragraph>
+            <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
+              <s-button href="/app" variant="primary">
+                {PRODUCT_NOUN.openTotalRoas}
+              </s-button>
               <Form method="post" action={demoAction}>
                 <input type="hidden" name="intent" value="disable" />
                 <input type="hidden" name="returnTo" value={`/app${location.search}`} />
                 <s-button
                   type="submit"
-                  variant="primary"
+                  variant="secondary"
                   {...(busy && intent === "disable" ? { loading: true } : {})}
                 >
                   {PRODUCT_NOUN.samplePreviewOffCta}
                 </s-button>
               </Form>
             </div>
-            <p className="mcfly-demo-off-warning__status" style={{ color: "#92400e" }}>
-              Status: Sample on — use the Sample | Real store switch at the top
-              of any page (or the button above) before live review.
-            </p>
-          </div>
+          </s-banner>
         ) : (
           <s-banner tone="success" heading={PRODUCT_NOUN.samplePreviewLiveStore}>
             <s-paragraph>{PRODUCT_NOUN.samplePreviewLiveStoreBody}</s-paragraph>
@@ -193,10 +186,10 @@ export default function DemoPage() {
         ) : null}
 
         {stats.enabled ? (
-          <s-section heading="Practice desk (optional)">
+          <s-section heading="Practice desk">
             <s-paragraph>
-              SAMPLE stays labeled on Total ROAS, Goals, and Spend by platform.
-              Open the desk to rehearse — then turn SAMPLE off before live review.
+              Sample stays labeled on Total ROAS, Goals, and Spend. Switch to
+              Your store at the top when you want live Shopify numbers.
             </s-paragraph>
             <div className="mcfly-decision__actions">
               <s-button href="/app" variant="secondary">
@@ -235,11 +228,11 @@ export default function DemoPage() {
             ) : null}
           </s-section>
         ) : (
-          <s-section heading="Practice with SAMPLE (optional)">
+          <s-section heading="Practice with Sample (optional)">
             <s-paragraph>
-              Secondary path only — loads matched sales + spend so you can rehearse
-              Total ROAS. Numbers are labeled SAMPLE and never pretend to be your
-              store. Leave SAMPLE off for App Store review and install smoke.
+              Prefer the Sample | Your store switch at the top of any page. This
+              page can also load matched practice sales + spend. Numbers are
+              labeled Sample and never pretend to be your store.
             </s-paragraph>
             <Form method="post" action={demoAction}>
               <input type="hidden" name="intent" value="prepare" />
@@ -248,7 +241,7 @@ export default function DemoPage() {
                 variant="secondary"
                 {...(busy && intent === "prepare" ? { loading: true } : {})}
               >
-                Turn SAMPLE ON for practice
+                Load Sample practice numbers
               </s-button>
             </Form>
             <div className="mcfly-breakdown-row" style={{ marginTop: "1rem" }}>
@@ -277,8 +270,7 @@ export default function DemoPage() {
         <s-section heading="Your real job">
           <s-paragraph>
             {PRODUCT_NOUN.spendJob}. Exact daily spend by platform — any period,
-            any day of the week. Cold path: margin → spend → Total ROAS → Close
-            in under 10 minutes with SAMPLE off.
+            any day of the week. Cold path: margin → spend → Total ROAS.
           </s-paragraph>
           <div className="mcfly-decision__actions">
             <s-button href="/app/settings" variant="secondary">

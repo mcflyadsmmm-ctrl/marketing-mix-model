@@ -14,7 +14,7 @@ import {
   suggestAllocation,
   type SuggestAllocationResult,
 } from "@mcfly/mer-core";
-import type { DateRange } from "./periods";
+import { deskPeriodTimeZone, type DateRange } from "./periods";
 import { localDayKey, utcDayKey, SAMPLE_DESK_MARGIN_PCT, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
 import {
   listRecentClosedShopLocalDays,
@@ -998,6 +998,7 @@ export async function buildDashboardMetrics(
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
   });
+  const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
   const spendOpts = useSampleDesk
     ? { sampleOnly: true as const }
     : { excludeSample: true as const };
@@ -1064,7 +1065,7 @@ export async function buildDashboardMetrics(
   const spendCoverage = await getSpendPeriodCoverage(shop.id, range, {
     ...spendOpts,
     entries: rangeEntries,
-    timeZone: useSampleDesk ? null : shop.ianaTimezone,
+    timeZone: deskTz,
   });
   const dailySpine = await buildDailySpine(shop.id, {
     ...spendOpts,
@@ -1072,7 +1073,7 @@ export async function buildDashboardMetrics(
     targetMer: effectiveTargetMer,
     // SAMPLE desk is stamped on UTC calendar days — keep spine keys UTC so
     // salesByDay / spend attribution join. Live desks use shop IANA.
-    timeZone: useSampleDesk ? null : shop.ianaTimezone,
+    timeZone: deskTz,
     spendEntries,
   });
 
@@ -1120,7 +1121,7 @@ export async function buildDashboardMetrics(
     totalSpend,
     targetMer: effectiveTargetMer,
     period: range,
-    ianaTimezone: useSampleDesk ? null : shop.ianaTimezone,
+    ianaTimezone: deskTz,
   });
 
   let deltas: PeriodDeltas | null = null;
@@ -1159,7 +1160,7 @@ export async function buildDashboardMetrics(
       newCustomers: tillNewBuyers,
       periodLabel: range.label,
       useSampleDesk,
-      ianaTimezone: shop.ianaTimezone,
+      ianaTimezone: deskTz,
     });
   }
 
@@ -1168,7 +1169,7 @@ export async function buildDashboardMetrics(
     settings.declaredAdsSpendPeriodEnd,
     range.start,
     range.end,
-    shop.ianaTimezone,
+    deskTz,
   )
     ? computeSpendRecon(totalSpend, settings.declaredAdsSpend)
     : null;

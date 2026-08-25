@@ -36,7 +36,7 @@ import {
   loadDeskSalesForPeriod,
   salesFactsBlockLock,
 } from "../lib/sales-facts.server";
-import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
+import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
   fetchSampleSales,
@@ -96,8 +96,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shotMode = url.searchParams.get("shot") === "1";
   const shop = await ensureShop(session.shop);
   const now = new Date();
-  const range = resolvePeriod(preset, now, shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
+  const range = resolvePeriod(preset, now, deskTz);
 
   let sales: SalesResult;
   let salesError: string | null = null;
@@ -152,7 +153,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
    * Portfolio history (~L12M / 365 closed days): top quarters by Total ROAS,
    * rolling 7/14/28 vs prior window. Facts / sample only — no unbounded Shopify.
    */
-  const histTz = useSampleDesk ? null : shop.ianaTimezone;
+  const histTz = deskTz;
   const l12m = resolvePeriod("l12m", now, histTz);
   const histWindow = resolveHistoryWindow(l12m, HISTORY_QUARTER_DAYS_CAP);
   const todayKey = histTz

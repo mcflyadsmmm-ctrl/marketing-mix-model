@@ -167,11 +167,26 @@ export function buildThreeYearSampleDesk(options?: {
   return rows;
 }
 
-export function dayBoundsLocal(day: Date): { start: Date; end: Date } {
+/**
+ * SAMPLE spend stamps UTC noon so they never collide with live CSV rows
+ * (UTC midnight) on SpendEntry @@unique([shopId, channel, periodStart]).
+ * Live and SAMPLE can coexist; loaders filter by source.
+ */
+export function sampleSpendBounds(day: Date): { start: Date; end: Date } {
   const y = day.getUTCFullYear();
   const m = day.getUTCMonth();
   const d = day.getUTCDate();
-  const start = new Date(y, m, d);
-  const end = new Date(y, m, d, 23, 59, 59, 999);
+  const start = new Date(Date.UTC(y, m, d, 12, 0, 0, 0));
+  const end = new Date(Date.UTC(y, m, d, 23, 59, 59, 999));
   return { start, end };
+}
+
+/** True when a SAMPLE spend row uses the post-fix UTC-noon stamp (not live CSV midnight). */
+export function sampleSpendUsesNoonStamp(periodStart: Date): boolean {
+  return periodStart.getUTCHours() === 12;
+}
+
+/** @deprecated alias — SAMPLE spend bounds are UTC noon, not host-local midnight. */
+export function dayBoundsLocal(day: Date): { start: Date; end: Date } {
+  return sampleSpendBounds(day);
 }

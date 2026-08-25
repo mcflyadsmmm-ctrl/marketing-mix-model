@@ -83,10 +83,9 @@ export function getShopEntitlements(
   const canUseLtv = isPro || sampleDesk;
   const canUseAdvancedGoals = isPro || sampleDesk;
   const canUseAdvancedClose = isPro;
-  const canUseAllChannels = isPro;
-  const allowedChannels: readonly SpendChannel[] = isPro
-    ? SPEND_CHANNELS
-    : [...FREE_CHANNELS];
+  const canUseAllChannels = isPro || sampleDesk;
+  const allowedChannels: readonly SpendChannel[] =
+    isPro || sampleDesk ? SPEND_CHANNELS : [...FREE_CHANNELS];
 
   return {
     tier: isPro ? "pro" : "free",

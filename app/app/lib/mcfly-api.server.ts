@@ -16,7 +16,7 @@ import {
 import prisma from "../db.server";
 import { resolveShopEntitlements } from "./entitlements.server";
 import { buildAllocationSuggestion, getOrCreateSettings, getSpendByChannel } from "./mer-dashboard.server";
-import type { DateRange } from "./periods";
+import { deskPeriodTimeZone, type DateRange } from "./periods";
 import { apiQueryDateRange } from "./shopify-sales-api.server";
 
 const CHANNEL_LABELS = SPEND_CHANNEL_LABELS;
@@ -62,10 +62,13 @@ export async function buildMerResponse(
   options: { includeAllocation?: boolean } = {},
 ): Promise<MerResponse> {
   const shop = await prisma.shop.findUniqueOrThrow({ where: { id: shopId } });
-  const range = merApiSpendRange(rangeInput, shop.ianaTimezone);
-
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = Boolean(settings.useSampleDesk);
+  const range = merApiSpendRange(
+    rangeInput,
+    deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone),
+  );
+
   const spends = await loadEntitledSpends(
     shop.id,
     shop.domain,
@@ -126,12 +129,16 @@ export async function buildAllocationResponse(
   });
   const shop = await prisma.shop.findUniqueOrThrow({ where: { id: shopId } });
   const settings = await getOrCreateSettings(shop.id);
-  const range = merApiSpendRange(rangeInput, shop.ianaTimezone);
+  const useSampleDesk = Boolean(settings.useSampleDesk);
+  const range = merApiSpendRange(
+    rangeInput,
+    deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone),
+  );
   const spends = await loadEntitledSpends(
     shop.id,
     shop.domain,
     range,
-    Boolean(settings.useSampleDesk),
+    useSampleDesk,
   );
   const totalSpend = sumSpend(spends);
   const breakEvenMer = computeBreakEvenMer(

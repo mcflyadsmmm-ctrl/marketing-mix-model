@@ -22,10 +22,20 @@ function endOfDay(date: Date): Date {
 }
 
 /**
+ * SAMPLE sales/spend are stamped on the UTC calendar. Live desks follow shop IANA.
+ */
+export function deskPeriodTimeZone(
+  sampleDesk: boolean,
+  shopTimeZone?: string | null,
+): string | null {
+  return sampleDesk ? "UTC" : (shopTimeZone ?? null);
+}
+
+/**
  * Resolve a period preset. When `timeZone` (IANA) is provided, edges follow the
  * shop-local calendar (merchant midnight / month / quarter / year) — never the
  * server process TZ. Without a timezone, falls back to server-local Date parts
- * (legacy callers / sample paths).
+ * (legacy callers). SAMPLE desks pass `"UTC"` via `deskPeriodTimeZone`.
  */
 export function resolvePeriod(
   preset: PeriodPreset,

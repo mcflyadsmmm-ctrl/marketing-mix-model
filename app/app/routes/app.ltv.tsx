@@ -11,7 +11,7 @@ import {
   contributionLtvCacRatio,
 } from "../lib/contrib-ltv";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
-import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
+import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
@@ -33,8 +33,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const shop = await ensureShop(session.shop);
-  const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
+  const range = resolvePeriod(preset, new Date(), deskTz);
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
@@ -430,7 +431,7 @@ export default function LtvPage() {
             </div>
             <div className="mcfly-acq-ltv-teaser__body">
               {entitlements.showProTeaser ? (
-                <ProUpsellBlock lead={PRO_UPSELL.ltv} />
+                <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={!useSampleDesk} />
               ) : (
                 <p className="mcfly-panel__muted">{PRO_UPSELL.ltv}</p>
               )}
