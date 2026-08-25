@@ -38,4 +38,16 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("practicePeriodSuffix");
     expect(source).toContain("SampleDeskBanner");
   });
+
+  it("paints period snapshot cards and interactive windows", () => {
+    expect(source).toContain("This period");
+    expect(source).toContain("Where the money went");
+    expect(source).toContain("Best windows");
+    expect(source).toContain("Recent pace");
+    expect(source).toContain("selectWindowsForGrain");
+    expect(source).toContain("defaultWindowGrain");
+    expect(source).toContain("windowGrainLabel");
+    expect(source).toContain("mcfly-alloc-v2__snap-grid");
+    expect(source).toContain("spend share, not channel ROAS");
+  });
 });

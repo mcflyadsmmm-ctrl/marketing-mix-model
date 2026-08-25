@@ -7,10 +7,17 @@ import {
   buildRollingWindowTiles,
   buildSpendBands,
   buildTopQuarterAllocations,
+  buildTopWindowAllocations,
+  calendarMonth,
   calendarQuarter,
+  calendarYear,
+  compareSpendShares,
+  defaultWindowGrain,
   historyGroundingLine,
   mondayWeekKey,
+  selectWindowsForGrain,
   shiftDateKey,
+  windowScopeCaption,
   type HistoryDay,
 } from "./allocation-history";
 
@@ -211,6 +218,111 @@ describe("buildTopQuarterAllocations", () => {
     const top = buildTopQuarterAllocations(days, 3);
     expect(top).toHaveLength(2);
     expect(top[0].label).toBe("2025 Q1");
+  });
+});
+
+describe("window grains + period filter defaults", () => {
+  it("labels months and years from date keys", () => {
+    expect(calendarMonth("2026-08-15")).toEqual({
+      year: 2026,
+      month: 8,
+      key: "2026-08",
+      label: "Aug 2026",
+    });
+    expect(calendarYear("2025-12-31")).toEqual({
+      year: 2025,
+      key: "2025",
+      label: "2025",
+    });
+  });
+
+  it("picks a useful default grain for each desk period", () => {
+    expect(defaultWindowGrain("mtd")).toBe("week");
+    expect(defaultWindowGrain("lm")).toBe("week");
+    expect(defaultWindowGrain("qtd")).toBe("month");
+    expect(defaultWindowGrain("ytd")).toBe("month");
+    expect(defaultWindowGrain("l12m")).toBe("quarter");
+    expect(defaultWindowGrain("y3")).toBe("quarter");
+  });
+
+  it("ranks months by Total ROAS", () => {
+    const days = [
+      day("2026-01-10", 4000, [{ channel: "meta", amount: 400 }]),
+      day("2026-02-10", 1000, [{ channel: "google", amount: 500 }]),
+      day("2026-03-10", 2000, [{ channel: "meta", amount: 200 }]),
+    ];
+    const top = buildTopWindowAllocations(days, "month", 3);
+    expect(top.map((row) => row.label)).toEqual([
+      "Jan 2026",
+      "Mar 2026",
+      "Feb 2026",
+    ]);
+    expect(top[0].grain).toBe("month");
+  });
+
+  it("uses period windows when there are enough buckets, else lookback", () => {
+    const period = buildTopWindowAllocations(
+      [day("2026-01-10", 1000, [{ channel: "meta", amount: 200 }])],
+      "month",
+    );
+    const lookback = buildTopWindowAllocations(
+      [
+        day("2026-01-10", 1000, [{ channel: "meta", amount: 200 }]),
+        day("2026-02-10", 800, [{ channel: "google", amount: 200 }]),
+      ],
+      "month",
+    );
+    const picked = selectWindowsForGrain(period, lookback, "month");
+    expect(picked.scope).toBe("lookback");
+    expect(picked.items).toHaveLength(2);
+  });
+
+  it("keeps a single year inside the selected period", () => {
+    const period = buildTopWindowAllocations(
+      [day("2026-03-10", 4000, [{ channel: "meta", amount: 400 }])],
+      "year",
+    );
+    const lookback = buildTopWindowAllocations(
+      [
+        day("2025-03-10", 1000, [{ channel: "google", amount: 400 }]),
+        day("2026-03-10", 4000, [{ channel: "meta", amount: 400 }]),
+      ],
+      "year",
+    );
+    const picked = selectWindowsForGrain(period, lookback, "year");
+    expect(picked.scope).toBe("period");
+    expect(picked.items).toHaveLength(1);
+    expect(picked.items[0].label).toBe("2026");
+  });
+
+  it("explains period vs last-12-month window ranking", () => {
+    expect(windowScopeCaption("week", "period", "Month to date")).toMatch(
+      /inside Month to date/i,
+    );
+    expect(windowScopeCaption("quarter", "lookback", "Month to date")).toMatch(
+      /too short to rank quarters/i,
+    );
+  });
+
+  it("diffs a winning window mix vs this period in percentage points", () => {
+    const diffs = compareSpendShares(
+      [
+        { channel: "Meta", share: 0.5 },
+        { channel: "Google", share: 0.5 },
+      ],
+      [
+        { channel: "Meta", share: 0.7 },
+        { channel: "Google", share: 0.3 },
+      ],
+    );
+    expect(diffs[0]).toMatchObject({
+      channel: "Meta",
+      periodShare: 0.5,
+      windowShare: 0.7,
+      deltaPp: 20,
+    });
+    expect(diffs[1]?.channel).toBe("Google");
+    expect(diffs[1]?.deltaPp).toBeCloseTo(-20, 5);
   });
 });
 
