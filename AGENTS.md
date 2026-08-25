@@ -2,14 +2,15 @@
 
 **Read in order before writing code:**
 
+0. [`STRATEGY.md`](./STRATEGY.md) — App Store product (spend from any platform + Shopify + LTV + Goals). Wins over cash-desk / anti-pixel religion docs when they conflict. Plan: [`docs/superpowers/plans/2026-08-25-shopify-app-success.md`](./docs/superpowers/plans/2026-08-25-shopify-app-success.md)
 1. [`docs/MASTER_DIRECTIVE.md`](./docs/MASTER_DIRECTIVE.md) — how to deliver (loops, DoD, gates, lanes)
 2. [`docs/CONTINUOUS_24_7.md`](./docs/CONTINUOUS_24_7.md) — always-on / swarm ticks
-3. [`docs/MASTER_PLAN.md`](./docs/MASTER_PLAN.md) §0–§4 — product religion (wins on conflict)
+3. [`docs/MASTER_PLAN.md`](./docs/MASTER_PLAN.md) §0–§4 — formula honesty (sales ÷ spend). **App Store product identity:** [`STRATEGY.md`](./STRATEGY.md) wins if they conflict.
 4. [`docs/SHIP_CHECKLIST.md`](./docs/SHIP_CHECKLIST.md) — flip boxes only with evidence
 5. [`docs/AGENTS.md`](./docs/AGENTS.md) — overnight / automation prompts
 6. [`.cursor/skills/mcfly-shopify-compliance/SKILL.md`](./.cursor/skills/mcfly-shopify-compliance/SKILL.md) — App Store / GDPR / PCD before approval claims  
 6b. [`docs/PCD_AND_LTV.md`](./docs/PCD_AND_LTV.md) — Level 1 vs 2, till LTV without Level 2, post-launch expansion
-6c. [`docs/RETIRED_SURFACES.md`](./docs/RETIRED_SURFACES.md) — Monday Close UI + Meta/Google spend OAuth **out of product**
+6c. [`docs/RETIRED_SURFACES.md`](./docs/RETIRED_SURFACES.md) — Monday Close UI retired. Meta/Google **spend** OAuth is Phase 3 of the success plan (after listing), not a first-submit blocker.
 7. **Total ROAS desk UI:** [`docs/APPS_SCRIPT_CRAFT_SPEC.md`](./docs/APPS_SCRIPT_CRAFT_SPEC.md) + clasp source in `vendor/mer-apps-script/` (gitignored) — see [`docs/APPS_SCRIPT_ACCESS.md`](./docs/APPS_SCRIPT_ACCESS.md)
 8. **App Store ship audit (anti-circle):** [`docs/MEGAPROMPT_SHIP_AUDIT.md`](./docs/MEGAPROMPT_SHIP_AUDIT.md) · competitive gaps [`docs/COMPETITIVE_APP_STORE_GAP_AUDIT.md`](./docs/COMPETITIVE_APP_STORE_GAP_AUDIT.md) · runbook [`docs/SUBMIT_NOW.md`](./docs/SUBMIT_NOW.md)
 9. **Premium Shopify-native UX (craft, not TW parity):** [`docs/PREMIUM_NATIVE_UX_RESEARCH.md`](./docs/PREMIUM_NATIVE_UX_RESEARCH.md) · skill [`.cursor/skills/mcfly-premium-native-ux/SKILL.md`](./.cursor/skills/mcfly-premium-native-ux/SKILL.md)
