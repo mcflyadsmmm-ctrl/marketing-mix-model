@@ -1458,12 +1458,14 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        className={[
-          "mcfly-spend-lean__stack",
-          historyFirst ? "mcfly-spend-lean__stack--history-first" : null,
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        <div
+          className={[
+            "mcfly-spend-lean__stack",
+            historyFirst ? "mcfly-spend-lean__stack--history-first" : null,
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
           <section
             id="mcfly-spend-add"
             className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-add"
