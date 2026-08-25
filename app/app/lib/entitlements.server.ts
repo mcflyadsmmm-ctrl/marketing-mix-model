@@ -170,6 +170,8 @@ export function proRequiredLtvSummary(periodLabel: string | null = null) {
     ltvCacRatio: null,
     cohorts: [],
     repeatRate: null,
+    avgOrdersD90: null,
+    paybackDays: null,
     periodLabel,
   };
 }

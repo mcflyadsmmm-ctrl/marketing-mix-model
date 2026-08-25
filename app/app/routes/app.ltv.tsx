@@ -533,6 +533,20 @@ export default function LtvPage() {
                     </div>
                   </div>
                 </div>
+              ) : null}
+
+              {metrics.tillLtv.available ? (
+                <p className="mcfly-panel__note">
+                  {metrics.tillLtv.paybackDays != null
+                    ? `Cash CAC recovered in ~${metrics.tillLtv.paybackDays} days on average`
+                    : metrics.tillLtv.cashCac != null
+                      ? "Not recovered by 365d on average"
+                      : "Payback needs Cash CAC — upload spend and new-buyer counts"}
+                  {metrics.tillLtv.ltvCacRatio != null
+                    ? ` · LTV:CAC 90d ${metrics.tillLtv.ltvCacRatio.toFixed(2)}×`
+                    : ""}
+                  {" · average cohort, not causal"}
+                </p>
               ) : (
                 <p className="mcfly-state__copy">
                   {metrics.tillLtv.emptyReason === "no_timezone"
@@ -569,24 +583,17 @@ export default function LtvPage() {
                       Extra orders beyond first · cohort average
                     </p>
                   </div>
-                  {metrics.onboarding.settingsSaved &&
-                  metrics.breakEvenMer != null &&
-                  metrics.tillLtv.cashCac != null &&
-                  metrics.tillLtv.avgRevenueD30 != null &&
-                  metrics.tillLtv.avgRevenueD30 > 0 ? (
+                  {metrics.tillLtv.cashCac != null ? (
                     <div className="mcfly-ltv-dive__cost-tile">
-                      <p className="mcfly-ltv-summary__k">Payback · 30d</p>
+                      <p className="mcfly-ltv-summary__k">Cash payback</p>
                       <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                        ~
-                        {(
-                          metrics.tillLtv.cashCac /
-                          metrics.tillLtv.avgRevenueD30
-                        ).toFixed(1)}{" "}
-                        mo
+                        {metrics.tillLtv.paybackDays != null
+                          ? `~${metrics.tillLtv.paybackDays}d`
+                          : "Not recovered by 365d"}
                       </p>
                       <p className="mcfly-ltv-summary__delta">
-                        Cost per new ÷ 30d LTV · {PRODUCT_NOUN.breakEvenShort}{" "}
-                        {formatMer(metrics.breakEvenMer)}
+                        Days to recover {formatCurrency(metrics.tillLtv.cashCac)}{" "}
+                        Cash CAC · average cohort, not causal
                       </p>
                     </div>
                   ) : (
@@ -602,6 +609,17 @@ export default function LtvPage() {
                       </p>
                     </div>
                   )}
+                  <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
+                    <p className="mcfly-ltv-summary__k">Orders · 90d</p>
+                    <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                      {metrics.tillLtv.avgOrdersD90 != null
+                        ? metrics.tillLtv.avgOrdersD90.toFixed(2)
+                        : "—"}
+                    </p>
+                    <p className="mcfly-ltv-summary__def">
+                      Avg orders per customer · cohort average
+                    </p>
+                  </div>
                 </div>
 
                 {metrics.tillLtv.cohorts.length > 0 ? (

@@ -40,10 +40,19 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     }
   });
 
-  it("merchant paste blocks avoid unsubstantiated superlatives (4.3.3)", () => {
+  it("merchant paste blocks avoid superlatives and quantified outcome claims (4.3.3)", () => {
     for (const block of [short, long, features]) {
       expect(block).not.toMatch(/\bthe (first|best|only)\b/i);
       expect(block).not.toMatch(/\bguarantee/i);
+      expect(block).not.toMatch(
+        /\b\d+(?:\.\d+)?\s*(?:%|x|×)\s+(?:more|less|higher|lower|increase|lift|improvement|faster|growth)\b/i,
+      );
+      expect(block).not.toMatch(
+        /\b(?:increase|boost|improve|grow|save)[^.!?\n]{0,80}\b\d+(?:\.\d+)?\s*(?:%|x|×)\b/i,
+      );
+      expect(block).not.toMatch(
+        /\b\d+(?:,\d{3})*(?:\+)?\s+(?:merchants?|stores?|users?|reviews?)\b/i,
+      );
     }
   });
 

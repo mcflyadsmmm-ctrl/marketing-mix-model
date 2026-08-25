@@ -73,6 +73,8 @@ function baseMetrics(
       newBuyers: 200,
       ltvCacRatio: 0.96,
       repeatRate: 0.2,
+      avgOrdersD90: 1.4,
+      paybackDays: 30,
     },
     ...overrides,
   };
@@ -89,6 +91,44 @@ describe("buildAdvancedSections", () => {
     expect(portfolio?.tiles.some((t) => t.id === "gross-mer")).toBe(true);
     const gross = portfolio?.tiles.find((t) => t.id === "gross-mer");
     expect(gross?.value).toMatch(/4\.40/);
+  });
+
+  it("surfaces payback days and avg orders 90d in acquisition", () => {
+    const sections = buildAdvancedSections(baseMetrics(), {
+      canUseLtv: true,
+      periodLabel: "Last 30 days",
+    });
+    const acq = sections.find((s) => s.id === "acquisition");
+    const payback = acq?.tiles.find((t) => t.id === "payback-days");
+    expect(payback?.value).toBe("~30d");
+    const orders90 = acq?.tiles.find((t) => t.id === "avg-orders-90");
+    expect(orders90?.value).toBe("1.40");
+  });
+
+  it("does not claim 365d non-recovery when cash CAC is missing", () => {
+    const sections = buildAdvancedSections(
+      baseMetrics({
+        tillLtv: {
+          available: true,
+          emptyReason: null,
+          historyLimited: false,
+          avgRevenueD30: 80,
+          avgRevenueD90: 120,
+          avgRevenueD365: 200,
+          cashCac: null,
+          newBuyers: 0,
+          ltvCacRatio: null,
+          repeatRate: 0.2,
+          avgOrdersD90: 1.4,
+          paybackDays: null,
+        },
+      }),
+      { canUseLtv: true, periodLabel: "Last 30 days" },
+    );
+    const payback = sections
+      .find((s) => s.id === "acquisition")
+      ?.tiles.find((t) => t.id === "payback-days");
+    expect(payback?.value).toBe("—");
   });
 
   it("locks acquisition when canUseLtv is false", () => {

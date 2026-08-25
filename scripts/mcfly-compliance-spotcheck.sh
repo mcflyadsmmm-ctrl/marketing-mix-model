@@ -20,23 +20,21 @@ check() {
   fi
 }
 
-# TOML: compliance topics + read_orders + not marketing domain as app url
-TOML="app/shopify.app.toml"
-if [[ -f "$TOML" ]]; then
-  grep -q 'customers/data_request' "$TOML" && grep -q 'customers/redact' "$TOML" && grep -q 'shop/redact' "$TOML" \
-    && check "toml compliance_topics present" 1 || check "toml compliance_topics present" 0
-  # Allow read_orders plus optional read_customers / read_all_orders (any order/subset).
-  grep -Eq 'scopes = "read_orders(,read_(customers|all_orders))*"' "$TOML" \
-    && check "scopes read_orders (+ optional read_customers/read_all_orders)" 1 \
-    || check "scopes read_orders (+ optional read_customers/read_all_orders)" 0
-  if grep -q 'application_url = "https://mcflyads.com"' "$TOML"; then
-    check "App URL is not marketing site" 0
+# Public TOMLs: compliance topics + PCD Level 1 scopes + exact hosted App URL.
+for TOML in app/shopify.app.toml app/shopify.app.public.toml; do
+  if [[ -f "$TOML" ]]; then
+    grep -q 'customers/data_request' "$TOML" && grep -q 'customers/redact' "$TOML" && grep -q 'shop/redact' "$TOML" \
+      && check "$TOML compliance_topics present" 1 || check "$TOML compliance_topics present" 0
+    grep -Eq '^[[:space:]]*scopes = "read_orders,read_customers"[[:space:]]*$' "$TOML" \
+      && check "$TOML scopes are PCD Level 1 only" 1 \
+      || check "$TOML scopes are PCD Level 1 only" 0
+    grep -Eq '^[[:space:]]*application_url = "https://mcfly-analytics\.fly\.dev"[[:space:]]*$' "$TOML" \
+      && check "$TOML App URL is the Fly app" 1 \
+      || check "$TOML App URL is the Fly app" 0
   else
-    check "App URL is not marketing site" 1
+    check "$TOML exists" 0
   fi
-else
-  check "shopify.app.toml exists" 0
-fi
+done
 
 # Routes exist
 [[ -f app/app/routes/webhooks.compliance.tsx ]] \

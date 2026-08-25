@@ -30,6 +30,7 @@ import {
   yearDateRange,
   type GoalMonthRow,
   type GoalPaceTone,
+  type MerVsRails,
 } from "../lib/sales-goals.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
@@ -184,7 +185,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     year,
     goals: board.rows.map((r) => r.salesGoal),
     salesByMonth,
+    spendByMonth,
     priorYearMonthly,
+    targetMer: board.targetMer,
+    breakEvenMer: board.breakEvenMer,
   });
 
   const yearOptions = Array.from(
@@ -613,7 +617,9 @@ export default function GoalsPage() {
           <SalesGoalGauges
             periods={periods}
             heading="MTD · QTD · YTD"
-            muted="Sales vs plan · calendar tick = period elapsed"
+            muted={`Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} · calendar tick = period elapsed`}
+            targetMer={board.targetMer}
+            breakEvenMer={board.breakEvenMer}
           />
 
           {!shotMode ? (
@@ -749,6 +755,14 @@ export default function GoalsPage() {
                       >
                         {forecast.pace.label}
                       </span>
+                      {forecast.mtdSpend > 0 ? (
+                        <ForecastMerLine
+                          mer={forecast.mtdMer}
+                          targetMer={forecast.targetMer}
+                          breakEvenMer={board.breakEvenMer}
+                          merRails={forecast.merRails}
+                        />
+                      ) : null}
                     </p>
                   </section>
                 ) : null}
@@ -780,6 +794,8 @@ export default function GoalsPage() {
                             <th scope="col">Month</th>
                             <th scope="col">Goal</th>
                             <th scope="col">Actual</th>
+                            <th scope="col">Spend</th>
+                            <th scope="col">MER</th>
                             <th scope="col">Prior</th>
                             <th scope="col">YoY</th>
                             <th scope="col">Pace</th>
@@ -823,6 +839,8 @@ export default function GoalsPage() {
                       <tr>
                         <th scope="col">Month</th>
                         <th scope="col">Actual</th>
+                        <th scope="col">Spend</th>
+                        <th scope="col">MER</th>
                         <th scope="col">Prior</th>
                         <th scope="col">YoY</th>
                       </tr>
@@ -850,6 +868,12 @@ export default function GoalsPage() {
                               ) : null}
                             </th>
                             <td>{formatCurrency(row.actual)}</td>
+                            <SpendCell spend={row.spend} />
+                            <MerCell
+                              mer={row.mer}
+                              spend={row.spend}
+                              merRails={row.merRails}
+                            />
                             <td>{formatCurrency(prior)}</td>
                             <td>{formatYoyPct(pct)}</td>
                           </tr>
@@ -864,6 +888,65 @@ export default function GoalsPage() {
         ) : null}
       </div>
     </s-page>
+  );
+}
+
+function SpendCell({ spend }: { spend: number }) {
+  return <td>{spend > 0 ? formatCurrency(spend) : "—"}</td>;
+}
+
+function MerCell({
+  mer,
+  spend,
+  merRails,
+}: {
+  mer: number | null;
+  spend: number;
+  merRails: MerVsRails;
+}) {
+  if (!(spend > 0) || mer == null) {
+    return <td>—</td>;
+  }
+  const vsBe =
+    merRails.vsBeAbs != null ? ` vs ${PRODUCT_NOUN.breakEvenShort}` : "";
+  return (
+    <td>
+      <span className={`mcfly-goals-pace mcfly-goals-pace--${merRails.tone}`}>
+        {formatMer(mer)}
+        {vsBe}
+      </span>
+    </td>
+  );
+}
+
+function ForecastMerLine({
+  mer,
+  targetMer,
+  breakEvenMer,
+  merRails,
+}: {
+  mer: number | null;
+  targetMer: number;
+  breakEvenMer: number | null;
+  merRails: MerVsRails;
+}) {
+  const beBit =
+    breakEvenMer != null && breakEvenMer > 0
+      ? ` vs ${PRODUCT_NOUN.breakEvenShort} ${formatMer(breakEvenMer)}`
+      : "";
+  const targetBit =
+    targetMer > 0 ? ` / vs target ${formatMer(targetMer)}` : "";
+  const railLabel = merRails.label !== "—" ? ` · ${merRails.label}` : "";
+  return (
+    <>
+      {" · "}
+      <span className={`mcfly-goals-pace mcfly-goals-pace--${merRails.tone}`}>
+        {PRODUCT_NOUN.totalRoas} {formatMer(mer)}
+        {beBit}
+        {targetBit}
+        {railLabel}
+      </span>
+    </>
   );
 }
 
@@ -934,6 +1017,8 @@ function GoalRow({
         </td>
       ) : null}
       <td>{formatCurrency(row.actual)}</td>
+      <SpendCell spend={row.spend} />
+      <MerCell mer={row.mer} spend={row.spend} merRails={row.merRails} />
       <td>{formatCurrency(priorActual)}</td>
       <td>{formatYoyPct(pct)}</td>
       {showGoalInput ? (

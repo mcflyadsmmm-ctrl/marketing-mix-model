@@ -15,10 +15,13 @@ import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getSpendPeriodCoverage } from "../lib/mer-dashboard.server";
 import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod, type PeriodPreset } from "../lib/periods";
+import { PeriodControl } from "../components/PeriodControl";
 import {
   computeSpendRecon,
+  formatSpendReconLine,
   spendReconMatchesPeriod,
 } from "../lib/mer-trust";
+import { spendPeriodMix } from "../lib/spend-period-mix";
 import {
   aggregateSpendRows,
   combineSpendCsvInputs,
@@ -61,7 +64,7 @@ import {
   localDayKey,
   utcDayKey,
 } from "../lib/sample-desk.server";
-import { formatCurrency } from "../lib/mer-format";
+import { formatCurrency, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
 import {
@@ -305,7 +308,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         periodStart: { lte: range.end },
         periodEnd: { gte: range.start },
       },
-      select: { amount: true },
+      select: { amount: true, channel: true },
     }),
     getSpendPeriodCoverage(shop.id, range, {
       excludeSample: !sampleDesk.enabled,
@@ -314,6 +317,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }),
   ]);
   const periodSpendTotal = periodSpend.reduce((s, e) => s + e.amount, 0);
+  const periodSpendMix = spendPeriodMix(periodSpend);
   const declaredMatches =
     settings?.declaredAdsSpendPeriodStart &&
     settings?.declaredAdsSpendPeriodEnd &&
@@ -342,6 +346,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     preset,
     periodLabel: range.label,
     periodSpendTotal,
+    periodSpendMix,
     spendRecon,
     declaredAdsSpend: declaredMatches ? settings?.declaredAdsSpend ?? null : null,
     entitlements,
@@ -901,7 +906,18 @@ export default function SpendEntryPage() {
     spendHistoryFloorKey,
     spendHistoryYearsBack,
     todayKey,
+    periodSpendMix,
+    periodSpendTotal,
+    spendRecon,
+    periodLabel,
+    preset,
   } = useLoaderData<typeof loader>();
+  const periodMixRows = periodSpendMix.filter((row) => row.amount > 0);
+  const hasPeriodSpend = periodMixRows.length > 0;
+  const spendReconLine =
+    spendRecon && spendRecon.status !== "none" && spendRecon.declared != null
+      ? formatSpendReconLine(spendRecon)
+      : null;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const location = useLocation();
@@ -1311,6 +1327,66 @@ export default function SpendEntryPage() {
             <li>Download the template and fill daily amounts</li>
             <li>Upload the CSV</li>
           </ol>
+
+          <section
+            className="mcfly-panel mcfly-panel--eq-compact"
+            aria-label={`Period spend mix · ${periodLabel}`}
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>Period spend</h2>
+              <p className="mcfly-panel__muted">
+                {periodLabel}
+                {sampleDesk.enabled ? " · sample" : ""} · uploaded Ads Manager
+                spend
+              </p>
+            </div>
+            <PeriodControl preset={preset} shotMode={shotMode} />
+            {hasPeriodSpend ? (
+              <>
+                <div className="mcfly-acq-tile">
+                  <p className="mcfly-acq-tile__k">Total spend</p>
+                  <p className="mcfly-acq-tile__v">
+                    {formatCurrency(periodSpendTotal)}
+                  </p>
+                  <p className="mcfly-acq-tile__def">{periodLabel}</p>
+                </div>
+                <ul
+                  className="mcfly-kpi-channels"
+                  aria-label={`Channel mix · ${periodLabel}`}
+                >
+                  {periodMixRows.map((row) => (
+                    <li
+                      className="mcfly-kpi-channels__row"
+                      key={row.channel}
+                    >
+                      <span
+                        className={`mcfly-spend-dot mcfly-spend-dot--${row.channel}`}
+                        aria-hidden="true"
+                      />
+                      <span className="mcfly-kpi-channels__name">
+                        {formatSpendEntryChannelLabel(row.channel, null)}
+                      </span>
+                      <span className="mcfly-kpi-channels__amt">
+                        {formatCurrency(row.amount)}
+                        <span className="mcfly-kpi-channels__share">
+                          {" "}
+                          · {formatPercent(row.share)}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {spendReconLine ? (
+                  <p className="mcfly-panel__note">{spendReconLine}</p>
+                ) : null}
+              </>
+            ) : (
+              <p className="mcfly-panel__muted">
+                No spend in this period yet. Pick channels, fill the template,
+                and upload a CSV in the three steps on this page.
+              </p>
+            )}
+          </section>
 
           {/* 1 · Advertising channels — compact dropdown */}
           <details

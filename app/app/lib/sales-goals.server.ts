@@ -59,6 +59,13 @@ export interface GoalPace {
   tone: GoalPaceTone;
 }
 
+export interface MerVsRails {
+  vsTargetAbs: number | null;
+  vsBeAbs: number | null;
+  tone: GoalPaceTone;
+  label: string;
+}
+
 export interface GoalMonthRow {
   month: number;
   monthShort: string;
@@ -70,6 +77,7 @@ export interface GoalMonthRow {
   spend: number;
   /** Cash MER = sales ÷ spend */
   mer: number | null;
+  merRails: MerVsRails;
   delta: number;
   pct: number | null;
   pace: GoalPace;
@@ -101,6 +109,7 @@ export interface MonthCloseForecast {
   vsGoalProj: number;
   pace: GoalPace;
   targetMer: number;
+  merRails: MerVsRails;
 }
 
 export interface GoalsYearBoard {
@@ -454,11 +463,13 @@ function buildMonthCloseForecast(params: {
   salesByMonth: Map<number, number>;
   spendByMonth: Map<number, number>;
   targetMer: number;
+  breakEvenMer: number | null;
   now?: Date;
   ianaTimezone?: string | null;
 }): MonthCloseForecast | null {
   const now = params.now ?? new Date();
-  const { year, goals, salesByMonth, spendByMonth, targetMer } = params;
+  const { year, goals, salesByMonth, spendByMonth, targetMer, breakEvenMer } =
+    params;
   const tz = params.ianaTimezone?.trim() || null;
   const { y: nowY, m: nowM } = tz
     ? shopLocalYmd(now, tz)
@@ -499,6 +510,7 @@ function buildMonthCloseForecast(params: {
     vsGoalProj: projSales - monthGoal,
     pace,
     targetMer,
+    merRails: merVsRails(mtdMer, targetMer, breakEvenMer),
   };
 }
 
@@ -564,6 +576,7 @@ export async function buildYearBoard(
       actual,
       spend,
       mer,
+      merRails: merVsRails(mer, rail, breakEvenMer),
       delta,
       pct,
       pace,
@@ -598,6 +611,7 @@ export async function buildYearBoard(
     salesByMonth,
     spendByMonth,
     targetMer: rail,
+    breakEvenMer,
     now,
     ianaTimezone: tz,
   });
@@ -641,19 +655,84 @@ export interface SalesGoalPeriodYoy {
   tone: GoalPaceTone;
 }
 
-/** MTD / QTD / YTD sales vs plan — no spend / MER. */
+/** MTD / QTD / YTD sales vs plan plus uploaded spend / cash MER. */
 export interface SalesGoalPeriod {
   key: SalesGoalPeriodKey;
   label: string;
   periodHint: string;
   actual: number;
   goal: number;
+  /** Uploaded ad spend summed over the same months as `actual`. */
+  spend: number;
+  /** Cash MER = sales ÷ uploaded ad spend. */
+  mer: number | null;
+  merRails: MerVsRails;
   /** actual ÷ goal × 100; null when no goal. */
   progressPct: number | null;
   /** Calendar share of the window elapsed (0–100). */
   calendarPct: number;
   pace: GoalPace;
   yoy: SalesGoalPeriodYoy;
+}
+
+type MerVsRailsKind =
+  | "below_be"
+  | "on_target"
+  | "above_be"
+  | "below_target"
+  | "none";
+
+/**
+ * Cash MER vs target and break-even rails. Calm, short labels — not causal.
+ */
+export function merVsRails(
+  mer: number | null,
+  targetMer: number | null | undefined,
+  breakEvenMer: number | null | undefined,
+): MerVsRails {
+  const target =
+    targetMer != null && Number.isFinite(targetMer) && targetMer > 0
+      ? targetMer
+      : null;
+  const breakEven =
+    breakEvenMer != null && Number.isFinite(breakEvenMer) && breakEvenMer > 0
+      ? breakEvenMer
+      : null;
+
+  if (mer == null || !Number.isFinite(mer)) {
+    return { vsTargetAbs: null, vsBeAbs: null, tone: "flat", label: "—" };
+  }
+
+  const vsTargetAbs = target != null ? mer - target : null;
+  const vsBeAbs = breakEven != null ? mer - breakEven : null;
+
+  let kind: MerVsRailsKind = "none";
+  if (breakEven != null && mer < breakEven) {
+    kind = "below_be";
+  } else if (target != null && mer >= target * 0.95) {
+    kind = "on_target";
+  } else if (breakEven != null && mer >= breakEven) {
+    kind = "above_be";
+  } else if (target != null) {
+    kind = "below_target";
+  }
+
+  switch (kind) {
+    case "below_be":
+      return { vsTargetAbs, vsBeAbs, tone: "down", label: "Below break-even" };
+    case "on_target":
+      return { vsTargetAbs, vsBeAbs, tone: "flat", label: "On target MER" };
+    case "above_be":
+      return { vsTargetAbs, vsBeAbs, tone: "up", label: "Above break-even" };
+    case "below_target":
+      return { vsTargetAbs, vsBeAbs, tone: "down", label: "Below target MER" };
+    case "none":
+      return { vsTargetAbs, vsBeAbs, tone: "flat", label: "—" };
+    default: {
+      const _exhaustive: never = kind;
+      throw new Error(`Unhandled merVsRails kind: ${_exhaustive}`);
+    }
+  }
 }
 
 export interface SalesGoalPeriods {
@@ -675,14 +754,17 @@ function sumMonths(
   months: number[],
   goals: number[],
   salesByMonth: Map<number, number>,
-): { actual: number; goal: number } {
+  spendByMonth: Map<number, number>,
+): { actual: number; goal: number; spend: number } {
   let actual = 0;
   let goal = 0;
+  let spend = 0;
   for (const m of months) {
     actual += mapGetMonth(salesByMonth, m);
     goal += goals[m - 1] ?? 0;
+    spend += mapGetMonth(spendByMonth, m);
   }
-  return { actual, goal };
+  return { actual, goal, spend };
 }
 
 function sumPriorMonths(months: number[], priorYearMonthly: number[]): number {
@@ -739,17 +821,20 @@ function calendarPctInMonthSpan(
 }
 
 /**
- * MTD / QTD / YTD sales vs monthly plan.
- * QTD sums current-quarter months (through now) from salesByMonth + goals.
+ * MTD / QTD / YTD sales vs monthly plan, plus uploaded spend / cash MER.
+ * QTD sums current-quarter months (through now) from salesByMonth + spendByMonth + goals.
  * YoY uses priorYearMonthly for the same month windows (full prior months).
  */
 export function buildSalesGoalPeriods(params: {
   year: number;
   goals: number[];
   salesByMonth: Map<number, number>;
+  spendByMonth?: Map<number, number>;
   priorYearMonthly: number[];
   now?: Date;
   ianaTimezone?: string | null;
+  targetMer?: number | null;
+  breakEvenMer?: number | null;
 }): SalesGoalPeriods {
   const now = params.now ?? new Date();
   const goals =
@@ -762,6 +847,9 @@ export function buildSalesGoalPeriods(params: {
       : Array.from({ length: 12 }, (_, i) => params.priorYearMonthly[i] ?? 0);
 
   const { year, salesByMonth } = params;
+  const spendByMonth = params.spendByMonth ?? new Map<number, number>();
+  const targetMer = params.targetMer;
+  const breakEvenMer = params.breakEvenMer;
   const tz = params.ianaTimezone?.trim() || null;
   const { y: nowYear, m: nowMonth } = tz
     ? shopLocalYmd(now, tz)
@@ -793,6 +881,9 @@ export function buildSalesGoalPeriods(params: {
   // --- MTD ---
   const mtdActual =
     throughMonth > 0 ? mapGetMonth(salesByMonth, throughMonth) : 0;
+  const mtdSpend =
+    throughMonth > 0 ? mapGetMonth(spendByMonth, throughMonth) : 0;
+  const mtdMer = calculateMer(mtdActual, mtdSpend);
   const mtdGoal = throughMonth > 0 ? (goals[throughMonth - 1] ?? 0) : 0;
   let mtdCalendarPct = 0;
   let mtdExpected: number | null = null;
@@ -819,6 +910,9 @@ export function buildSalesGoalPeriods(params: {
     periodHint: `${MONTH_SHORT[refMonth - 1]} ${year}`,
     actual: mtdActual,
     goal: mtdGoal,
+    spend: mtdSpend,
+    mer: mtdMer,
+    merRails: merVsRails(mtdMer, targetMer, breakEvenMer),
     progressPct: mtdGoal > 0 ? (mtdActual / mtdGoal) * 100 : null,
     calendarPct: mtdCalendarPct,
     pace: paceStatus(mtdActual, mtdGoal, {
@@ -832,7 +926,7 @@ export function buildSalesGoalPeriods(params: {
   };
 
   // --- QTD ---
-  const qtdSum = sumMonths(qMonths, goals, salesByMonth);
+  const qtdSum = sumMonths(qMonths, goals, salesByMonth, spendByMonth);
   const qtdPrior = sumPriorMonths(qMonths, prior);
   let qtdCalendarPct = 0;
   let qtdExpected: number | null = null;
@@ -850,12 +944,16 @@ export function buildSalesGoalPeriods(params: {
     qtdCalendarPct = 0;
   }
 
+  const qtdMer = calculateMer(qtdSum.actual, qtdSum.spend);
   const qtd: SalesGoalPeriod = {
     key: "qtd",
     label: "QTD",
     periodHint: `Q${quarter} ${year}`,
     actual: qtdSum.actual,
     goal: qtdSum.goal,
+    spend: qtdSum.spend,
+    mer: qtdMer,
+    merRails: merVsRails(qtdMer, targetMer, breakEvenMer),
     progressPct: qtdSum.goal > 0 ? (qtdSum.actual / qtdSum.goal) * 100 : null,
     calendarPct: qtdCalendarPct,
     pace: paceStatus(qtdSum.actual, qtdSum.goal, {
@@ -866,7 +964,7 @@ export function buildSalesGoalPeriods(params: {
   };
 
   // --- YTD ---
-  const ytdSum = sumMonths(ytdMonths, goals, salesByMonth);
+  const ytdSum = sumMonths(ytdMonths, goals, salesByMonth, spendByMonth);
   const ytdPrior = sumPriorMonths(ytdMonths, prior);
   let ytdCalendarPct = 0;
   let ytdExpected: number | null = null;
@@ -884,12 +982,16 @@ export function buildSalesGoalPeriods(params: {
     ytdCalendarPct = 0;
   }
 
+  const ytdMer = calculateMer(ytdSum.actual, ytdSum.spend);
   const ytd: SalesGoalPeriod = {
     key: "ytd",
     label: "YTD",
     periodHint: String(year),
     actual: ytdSum.actual,
     goal: ytdSum.goal,
+    spend: ytdSum.spend,
+    mer: ytdMer,
+    merRails: merVsRails(ytdMer, targetMer, breakEvenMer),
     progressPct: ytdSum.goal > 0 ? (ytdSum.actual / ytdSum.goal) * 100 : null,
     calendarPct: ytdCalendarPct,
     pace: paceStatus(ytdSum.actual, ytdSum.goal, {
@@ -1022,9 +1124,12 @@ export async function loadOverviewGoalPeriods(
       year,
       goals: board.rows.map((r) => r.salesGoal),
       salesByMonth,
+      spendByMonth,
       priorYearMonthly,
       now,
       ianaTimezone: tz,
+      targetMer: board.targetMer,
+      breakEvenMer: board.breakEvenMer,
     });
   } catch {
     return null;

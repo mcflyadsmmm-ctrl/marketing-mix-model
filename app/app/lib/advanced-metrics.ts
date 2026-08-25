@@ -77,6 +77,8 @@ export type AdvancedMetricsInput = {
     newBuyers: number;
     ltvCacRatio: number | null;
     repeatRate: number | null;
+    avgOrdersD90: number | null;
+    paybackDays: number | null;
   };
 };
 
@@ -345,6 +347,28 @@ export function buildAdvancedSections(
             ltv.repeatRate != null
               ? `Repeat rate ${(ltv.repeatRate * 100).toFixed(0)}% · average, not causal`
               : "Average portfolio payback ratio.",
+        },
+        {
+          id: "payback-days",
+          label: "Cash payback",
+          value:
+            ltv.available && ltv.paybackDays != null
+              ? `~${ltv.paybackDays.toLocaleString()}d`
+              : ltv.available && ltv.cashCac != null
+                ? "Not recovered by 365d"
+                : "—",
+          formula: "Interpolated days for cohort revenue to recover cash CAC",
+          caveat: "Average cohort, not causal.",
+        },
+        {
+          id: "avg-orders-90",
+          label: "Orders · 90d",
+          value:
+            ltv.available && ltv.avgOrdersD90 != null
+              ? ltv.avgOrdersD90.toFixed(2)
+              : "—",
+          formula: "Cohort avg orders per customer · 90d window",
+          caveat: "Customer-weighted average — not causal.",
         },
       ],
     };
