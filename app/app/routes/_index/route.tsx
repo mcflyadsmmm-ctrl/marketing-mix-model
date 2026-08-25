@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { redirect } from "react-router";
 
+import { isShopifyEmbeddedSearch } from "../../../scripts/shopify-app-path.mjs";
 import { OriginShell } from "./OriginShell";
 import styles from "./styles.module.css";
 
@@ -17,7 +18,7 @@ export const meta: MetaFunction = () => [
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
 
-  if (url.searchParams.get("shop")) {
+  if (isShopifyEmbeddedSearch(url.searchParams)) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
 
