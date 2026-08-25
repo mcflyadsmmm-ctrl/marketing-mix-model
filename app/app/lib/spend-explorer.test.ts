@@ -16,7 +16,6 @@ import {
   parseExplorerShowSales,
   resolveExplorerWindow,
   summarizeExplorer,
-  compareExplorerBuckets,
   type ExplorerDailyRow,
 } from "./spend-explorer";
 import {
