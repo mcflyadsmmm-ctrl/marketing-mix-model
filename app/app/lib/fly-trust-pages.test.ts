@@ -115,7 +115,10 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(serve).toContain("MCFLY_SITE_ROOT");
     expect(serve).toContain("express.static(siteRoot");
     expect(paths).toContain('p === "/app"');
-    expect(paths).toContain('p === "/health"');
+    expect(serve).toContain("shouldSkipMarketingSite");
+    expect(serve).toContain("embeddedAppRedirectLocation");
+    expect(serve).toContain('res.redirect(302, embeddedAppRedirectLocation(req))');
+    expect(paths).toContain("isShopifyEmbeddedSearch");
     expect(docker).toContain("COPY site /repo/site");
     expect(docker).toContain("MCFLY_SITE_ROOT=/repo/site");
     const dockerignore = readRepo(".dockerignore");

@@ -43,4 +43,9 @@ describe("bare Fly landing (mcflyads.com inner-page feel)", () => {
     expect(route).not.toMatch(/Enter your shop/i);
     expect(route).toMatch(/never ask\s+you to type a store domain/i);
   });
+
+  it("sends embedded Admin entry to /app, not the public landing", () => {
+    expect(route).toContain("isShopifyEmbeddedSearch");
+    expect(route).toContain('throw redirect(`/app?${url.searchParams.toString()}`)');
+  });
 });

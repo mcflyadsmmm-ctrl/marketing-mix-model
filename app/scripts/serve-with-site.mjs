@@ -20,7 +20,11 @@ import compression from "compression";
 import express from "express";
 import morgan from "morgan";
 import sourceMapSupport from "source-map-support";
-import { isShopifyAppPath } from "./shopify-app-path.mjs";
+import {
+  embeddedAppRedirectLocation,
+  isShopifyAppPath,
+  shouldSkipMarketingSite,
+} from "./shopify-app-path.mjs";
 
 process.env.NODE_ENV = process.env.NODE_ENV ?? "production";
 
@@ -130,6 +134,12 @@ async function run() {
     app.use((req, res, next) => {
       if (req.method !== "GET" && req.method !== "HEAD") return next();
       if (isShopifyAppPath(req.path)) return next();
+      // Open app / install / billing return: App URL is `/` with shop+host.
+      // Static index.html ignores the query and would iframe the marketing site.
+      if (shouldSkipMarketingSite(req)) {
+        res.setHeader("Cache-Control", "private, no-store");
+        return res.redirect(302, embeddedAppRedirectLocation(req));
+      }
       return siteStatic(req, res, next);
     });
   }

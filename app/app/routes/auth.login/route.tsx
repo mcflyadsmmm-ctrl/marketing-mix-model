@@ -1,6 +1,7 @@
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect } from "react-router";
+import { isShopifyEmbeddedSearch } from "../../../scripts/shopify-app-path.mjs";
 
 /**
  * App Store 2.3.1: do not collect shop domains for install.
@@ -8,8 +9,7 @@ import { redirect } from "react-router";
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
-  const shop = url.searchParams.get("shop");
-  if (shop) {
+  if (isShopifyEmbeddedSearch(url.searchParams)) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
   throw redirect("/");
