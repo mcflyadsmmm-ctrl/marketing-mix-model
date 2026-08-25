@@ -54,6 +54,30 @@ describe("billing webhook helpers", () => {
     });
   });
 
+  it("clears Pro on DECLINED for known GID", async () => {
+    findUnique.mockResolvedValue({
+      id: "shop1",
+      proSubscriptionGid: "gid://shopify/AppSubscription/1",
+      proBillingActive: true,
+    });
+    update.mockResolvedValue({});
+    const result = await applyAppSubscriptionWebhook("acme.myshopify.com", {
+      app_subscription: {
+        admin_graphql_api_id: "gid://shopify/AppSubscription/1",
+        name: "Mcfly Analytics Pro",
+        status: "DECLINED",
+      },
+    });
+    expect(result).toEqual({ touched: true, active: false });
+    expect(update).toHaveBeenCalledWith({
+      where: { id: "shop1" },
+      data: {
+        proBillingActive: false,
+        proSubscriptionGid: null,
+      },
+    });
+  });
+
   it("clears Pro on CANCELLED for known GID", async () => {
     findUnique.mockResolvedValue({
       id: "shop1",

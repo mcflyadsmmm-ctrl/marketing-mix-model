@@ -157,6 +157,12 @@ describe("Shopify App Store source verification", () => {
     expect(button).toContain("/app/billing");
   });
 
+  it("1.2.2 uninstall clears sessions so reinstall re-authenticates", () => {
+    const uninstall = readRepo("app/app/routes/webhooks.app.uninstalled.tsx");
+    expect(uninstall).toContain("session.deleteMany");
+    expect(uninstall).toContain("shop.deleteMany");
+  });
+
   it("2.3.1 auth.login does not harvest a myshopify domain", () => {
     const login = readRepo("app/app/routes/auth.login/route.tsx");
 
