@@ -19,18 +19,18 @@ Work top → bottom. Save after each section.
 
 ### App introduction (short description ≤~150)
 ```text
-Advanced Marketing Data Science for Shopify: Total ROAS (net sales ÷ spend), break-even, Monday cash close. Free. No pixels.
+Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even, Goals, Allocation. No pixels.
 ```
 
 ### App details (long description)
-Paste from `docs/APP_STORE_LISTING.md` → **Long description (paste)** block (full text starting “Every Monday…”).
+Paste from `docs/APP_STORE_LISTING.md` → **Long description (paste)** block (starts with “Shopify Analytics shows sales”).
 
 ### Features (5 bullets, in order)
 ```text
-Total ROAS (action) = net Shopify sales ÷ ad spend (MTD / QTD / YTD); gross order totals as Ads Manager–comparable secondary
-Free spend = Meta + Google CSV (+ Connections when ready) · Optional SyncWith-class → Mcfly pipe template (you pay the pipe tool) · Pro unlocks all channels
+Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give
+Spend CSV: Meta + Google + custom Other · mix in dollars and percent · paid plan unlocks named channels
 Break-even Total ROAS from your profit margin %
-Monday Close ritual + one rules-based affordability call on Free; lock / finance CSV + advanced Goals on Pro
+Spend Allocation + Goals pace on the default plan; lock / finance CSV + full Goals on the paid plan
 GDPR webhooks + clean uninstall — no customer CRM · no pixels / MTA
 ```
 
@@ -42,10 +42,10 @@ Upload from `docs/listing-assets/shots/` **in order**:
 | 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
 | 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
 | 3 | `03-margin-breakeven.png` | Lock break-even from your margin % |
-| 4 | `04-free-pro-pricing.png` | Free Meta + Google · Pro unlocks channels + LTV |
+| 4 | Recapture `/app/allocation?period=y3&shot=1` → `04-allocation-call.png` | One clear cut / shift / hold call |
 | 5 | **Still need** Admin `/app/spend?shot=1` | Select platforms → export daily → combine |
 
-**Do not upload** `05-HOLD-marketing-site-do-not-upload.png`  
+**Do not upload** `04-free-pro-pricing.png` (plan prices in the image — 4.2.2) or `05-HOLD-marketing-site-do-not-upload.png`  
 Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 ### Support
@@ -68,10 +68,10 @@ Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 | Field | Value |
 | --- | --- |
-| **Pricing plans** | **Free** |
-| Paid plans / Billing | **Off** — do not enable |
+| **Pricing plans** | **Shopify App Pricing: Free + Pro $39/store/mo** |
+| Paid plans / Billing | **On** — Managed Pricing. Must match in-app Upgrade. |
 | External charges | **No** |
-| Works with / Sales channel requirements | **None / blank** — not a sales channel |
+| Works with / Sales channel requirements | **None / blank** — not a sales channel. Do **not** require Online Store (4.3.1). |
 
 ---
 
@@ -79,7 +79,7 @@ Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 ### App card subtitle (tagline ≤80)
 ```text
-Advanced Marketing Data Science — Total ROAS (net sales ÷ spend), break-even
+Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even
 ```
 
 ### App store search terms

@@ -7,17 +7,18 @@ Paste into Partner listing when Distribution = **Shopify App Store**.
 
 ## Paste-ready short + long (Free + Pro — copy final)
 
-**Status (2026-08-24 resubmit):** Tagline, short, long, feature bullets, reviewer notes match the shipped desk — Free = Meta + Google + custom Other; Pro $39 for named channels + LTV + full Goals board via Shopify App Pricing. Paste as-is into Partner; do not rewrite for “true ROAS,” LTV CRM, or Meta/Google logos.
+**Status (2026-08-25 resubmit):** Tagline, short, long, and feature bullets match the shipped desk. **4.2.2 / 4.2.3:** merchant-facing listing paste (short / long / features / captions / images) must **not** include plan prices. Put **$39** only in Partner **Pricing details** and in reviewer testing notes. Free = Meta + Google + custom Other; paid plan unlocks named channels + LTV + full Goals board via Shopify App Pricing.
 
-Human still must: confirm ASO checklist below, upload icon + shots, set Partner **Pricing = Shopify App Pricing (Free + Pro $39)**, paste **App testing information** from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (check “My app doesn't require an account to use it”), then Submit.
+Human still must: confirm ASO checklist below, upload icon + shots (**no pricing in images**), set Partner **Pricing = Shopify App Pricing (Free + Pro $39)**, paste **App testing information** from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (check “My app doesn't require an account to use it”), then Submit.
 
 ## ASO checklist (before paste) — human only
 
 Leave these unchecked until a human verifies in Partner. Agents do **not** flip these boxes.
 
 - [ ] **Keywords only:** `Total ROAS`, `marketing efficiency ratio`, `Break-even Total ROAS`, `Shopify ad spend` — never attribution / pixel / true ROAS bait
-- [ ] **Short description** ≤ ~150 chars; lead with Advanced Marketing Data Science Made Easy + Free
-- [ ] **Long description** opens on Total Sales ÷ spend desk Shopify Analytics does not give; Free now; refuse block intact
+- [ ] **Short description** ≤ ~150 chars; lead with Advanced Marketing Data Science Made Easy — **no plan prices** (4.2.3)
+- [ ] **Long description** opens on Total Sales ÷ spend desk Shopify Analytics does not give; refuse block intact; **no $ /mo in this field**
+- [ ] **Sales channel requirements:** do **not** check “Merchant must have online store” — this app is Admin-only (4.3.1)
 - [ ] **Trust URLs** extensionless: `/privacy` `/support` `/terms` on mcflyads.com (never App URL = marketing site)
 - [ ] **PCD copy** still: opaque customer id + `numberOfOrders` only — no CRM / name / email
 - [ ] **Works with:** leave blank (no Checkout UI extension) — never Meta/Google/SyncWith; Checkout only if you later ship a real Checkout surface
@@ -37,7 +38,7 @@ Partner listing URLs (already live — Free + PCD voice on Pages; **verify HTTP 
 
 **Trust URL note:** Live mcflyads.com privacy / support / terms / pricing ship Free + PCD wording (Pages lag closed 2026-07-26). Spot-check each URL returns 200 and copy still matches this file before clicking Submit.
 
-**Human runbook:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) · shots [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) · scorecard [`SUBMIT_READY_SCORECARD.md`](./SUBMIT_READY_SCORECARD.md)
+**Human runbook:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) · shots [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) · requirement matrix [`APP_STORE_REQUIREMENT_MATRIX.md`](./APP_STORE_REQUIREMENT_MATRIX.md) · scorecard [`SUBMIT_READY_SCORECARD.md`](./SUBMIT_READY_SCORECARD.md)
 
 ---
 
@@ -88,6 +89,7 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 | **Category** | Marketing → **Marketing analytics** (or closest: Advertising) | Position as **cash close / spend affordability** — not “Store design” or profit-suite sprawl |
 | **Pricing** | **Shopify App Pricing: Free + Pro $39** | Must match in-app Upgrade. No **External charges**. Free=Meta+Google+Other; Pro unlocks named channels + LTV + full Goals |
 | **Works with** | **Leave blank** | No Checkout UI extension today — do **not** claim Checkout. Never Meta/Google/TikTok/SyncWith logos. Add Checkout later only if a real Checkout surface ships. |
+| **Online Store required?** | **No — leave unchecked** | Admin-only desk. Do not select “Merchant must have online store” (4.3.1). |
 | **Website** | https://mcflyads.com | |
 | **Privacy policy URL** | https://mcflyads.com/privacy | Extensionless; local copy includes PCD scopes |
 | **Support URL** | https://mcflyads.com/support | App Store install steps; no shop-domain form |
@@ -102,65 +104,68 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 
 ---
 
-## First 10 minutes (time to first trusted Total ROAS)
+## First 10 minutes (reviewer notes only — do not paste into listing body)
 
-Merchants (and reviewers) should reach a **trusted Total ROAS** in under ten minutes without auto-sync theater. Paste this block into listing long description and reviewer notes.
+Merchants (and reviewers) should reach a trusted Total ROAS after Settings → Spend → Overview, without auto-sync theater. **Do not paste dollar amounts into the public listing.** Reviewer notes may include the $39 plan so App Review can test billing.
 
 ```text
-FIRST 10 MINUTES (no pixels; Free = Meta + Google + custom Other CSV)
-1. Install Mcfly Analytics from the Shopify App Store (Free) — opens embedded in Admin
+FIRST STEPS (no pixels; default plan = Meta + Google + custom Other CSV)
+1. Install Mcfly Analytics from the Shopify App Store — opens embedded in Admin
 2. Settings → optional profit margin % → save → Break-even Total ROAS locks (1 ÷ margin)
 3. Spend → Meta + Google (+ custom Other) → export daily CSV / paste → Import
    Optional automation: Spend → Automate → Mcfly pipe template → SyncWith / Coupler /
    Supermetrics / Coefficient (you pay those tools) → CSV → Paste / Import.
    Not a “Works with” partnership. Named platforms (TikTok, Microsoft, Amazon, …),
-   Customer LTV, and the full Goals board = Pro ($39/mo via Shopify App Pricing).
+   Customer LTV, and the full Goals board = paid plan (Shopify App Pricing — see Pricing details).
 4. Overview → confirm Total ROAS = Shopify Total Sales ÷ ad spend for any period;
    check freshness chip, channel mix %, Goals pace, Email Overview (mailto)
-5. Spend Allocation → quarters / pie / rolling 7·14·28 affordability call on Free channels
+5. Spend Allocation → quarters / pie / rolling 7·14·28 affordability call on default-plan channels
 
-Demo sample desk is for listing screenshots / Pro preview only — turn OFF before judging live metrics.
+Demo sample desk is for listing screenshots / paid-plan preview only — turn OFF before judging live metrics.
 ```
 
-**Listing honesty:** Free = Meta + Google + custom Other CSV. **Optional automation** = merchant-paid SyncWith-class tools filling a Mcfly template (no fake Works-with). **Pro ($39 via Shopify App Pricing):** named channels, Customer LTV / Acquisition, full-year Goals board — Partner Pricing must show Free + Pro. Still refuse connector zoo / pixels. Coexists with attribution suites.
+**Listing honesty:** Default plan = Meta + Google + custom Other CSV. **Optional automation** = merchant-paid SyncWith-class tools filling a Mcfly template (no fake Works-with). **Paid plan (price only in Partner Pricing details):** named channels, Customer LTV / Acquisition, full-year Goals board. Still refuse connector zoo / pixels. Coexists with attribution suites.
 
 ---
 
 ## Short description (~150 chars; Shopify often caps ~150)
 
+<!-- APP_STORE_PASTE:short -->
 ```text
-Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even, Goals, Allocation. Free. No pixels.
+Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even, Goals, Allocation. No pixels.
 ```
+<!-- /APP_STORE_PASTE:short -->
 
-**Why (~128 chars):** Tagline phrase first + formula Shopify Analytics lacks + Free + refuse — no “true ROAS” bait.
+**Why:** Tagline phrase first + formula Shopify Analytics lacks + refuse — no “true ROAS” bait. Plan prices live in Partner Pricing details only (4.2.3).
 
 ---
 
 ## Long description (paste)
 
+<!-- APP_STORE_PASTE:long -->
 ```text
 Shopify Analytics shows sales. It does not show Total ROAS = Shopify Total Sales ÷ your ad spend for any period — with break-even, channel mix, Goals, and Allocation in one Admin desk.
 
-Mcfly Analytics is Advanced Marketing Data Science Made Easy: marketing cash close / spend affordability control. Money out on ads versus money in on the till. Coexists with attribution suites — we do not rip-and-replace path decks. Ad platforms over-claim; multi-touch “truth” is mostly theater.
+Mcfly Analytics is Advanced Marketing Data Science Made Easy: marketing cash close / spend affordability control. Money out on ads versus money in on the till. Coexists with attribution suites — we do not rip-and-replace path decks.
 
 WHAT SHOPIFY ANALYTICS DOES NOT GIVE YOU
 • Total ROAS = Shopify Total Sales ÷ ad spend (MTD / QTD / YTD / custom — any period you choose)
 • Break-even Total ROAS from your profit margin %
-• Spend by channel via CSV — mix in $ and %
+• Spend by channel via CSV — mix in dollars and percent
 • Spend Allocation — quarters, pie, rolling 7 / 14 / 28
-• Goals — MTD / QTD / YTD pace + monthly board (full-year board on Pro)
-• LTV / Acquisition — Cash CAC, cohort LTV, LTV:CAC (Pro)
+• Goals — MTD / QTD / YTD pace + monthly board (full-year board on the paid plan)
+• LTV / Acquisition — Cash CAC, cohort LTV, LTV:CAC (paid plan)
 • Email Overview — opens your mail app with this period’s cards (mailto; Mcfly never sends mail)
 
 THE DESK
 • Shopify Total Sales in (Admin API — action basis; Net Sales optional view)
-• Ad spend out — Free: Meta + Google + custom Other (name influencers / podcasts / agency) via CSV paste / export combine
+• Ad spend out — default plan: Meta + Google + custom Other (name influencers / podcasts / agency) via CSV paste / export combine
   Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly pipe template → CSV import — not a “Works with” partnership
-  Pro ($39/mo via Shopify App Pricing): every named platform (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition, full-year Goals board + YoY fill
+  Paid plan: every named platform (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition, full-year Goals board + YoY fill
   Per-platform export guides in-app (sales columns ignored — Shopify is the till)
 • Total ROAS (action) = Shopify Total Sales ÷ ad spend
 • Break-even Total ROAS from your profit margin %
-• Channel mix + rules-based Spend Allocation on Free channels — portfolio affordability, not fake channel ROAS
+• Channel mix + rules-based Spend Allocation on default-plan channels — portfolio affordability, not fake channel ROAS
 • Freshness chip (“Last refreshed”) + Update spend throughout Overview
 • Orders / new / returning / AOV for the same period (opaque customer id + numberOfOrders only — no CRM)
 • Embedded in Shopify Admin — no second login, no public “type your .myshopify.com” form
@@ -173,29 +178,33 @@ WHAT WE DO NOT SHIP
 • Suite sprawl dressed as proprietary science
 
 WHO IT’S FOR
-Shopify brands that want a trusted Total ROAS in under ten minutes and a Monday cash-close ritual that stays honest when Ads Manager disagrees with the bank — alongside (not instead of) attribution suites.
+Shopify brands that want a trusted Total ROAS from spend they already know, and a Monday cash-close ritual that stays honest when Ads Manager disagrees with the bank — alongside (not instead of) attribution suites.
 
-PRICING
-Free plan on the App Store (Meta + Google + custom Other CSV desk). Pro is $39/store/mo flat via Shopify App Pricing — Upgrade / Manage plan in Admin (top frame). Not a GMV-scaled suite tax. Not forever-free marketing.
+Plan prices are in the Pricing details section of this listing — not here. Upgrade and Manage plan run through Shopify App Pricing in Admin.
 
 Learn more: https://mcflyads.com
 Privacy: https://mcflyads.com/privacy · Support: https://mcflyads.com/support
 App URL: https://mcfly-analytics.fly.dev
 ```
+<!-- /APP_STORE_PASTE:long -->
 
-**Why it converts:** Shopify gap in line one → MDS Made Easy → concrete desk Shopify Analytics lacks → Free Meta+Google+Other → honest Pro $39 teaser → refuse pixels/MTA.
+**Why it converts:** Shopify gap in line one → MDS Made Easy → concrete desk Shopify Analytics lacks → default vs paid features without dollar amounts → refuse pixels/MTA.
 
 ---
 
 ## Feature bullets (listing UI — paste in order)
 
-1. Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give  
-2. Break-even Total ROAS from your profit margin %  
-3. Free spend CSV: Meta + Google + custom Other · mix in $/% · Pro unlocks every named channel  
-4. Spend Allocation (quarters, pie, rolling 7/14/28) + Goals MTD/QTD/YTD (+ full board on Pro)  
-5. LTV/Acquisition on Pro (Cash CAC · cohort LTV · LTV:CAC) · Email Overview (mailto) · no pixels / MTA  
+<!-- APP_STORE_PASTE:features -->
+```text
+Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give
+Break-even Total ROAS from your profit margin %
+Spend CSV: Meta + Google + custom Other · mix in dollars and percent · paid plan unlocks every named channel
+Spend Allocation (quarters, pie, rolling 7/14/28) + Goals MTD/QTD/YTD (+ full board on the paid plan)
+LTV/Acquisition on the paid plan (Cash CAC · cohort LTV · LTV:CAC) · Email Overview (mailto) · no pixels / MTA
+```
+<!-- /APP_STORE_PASTE:features -->
 
-**Why this order:** Shopify gap → break-even → Free honesty → Allocation/Goals → Pro LTV + trust.
+**Why this order:** Shopify gap → break-even → spend honesty → Allocation/Goals → paid-plan LTV + trust. No plan prices in this field (4.2.3).
 
 ---
 

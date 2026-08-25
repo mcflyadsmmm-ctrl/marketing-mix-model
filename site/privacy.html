@@ -174,8 +174,8 @@
         <span>Not a path-attribution product, by design</span>
       </div>
       <div class="trust-chip" role="listitem">
-        <strong>App Store Free when listed</strong>
-        <span>customers/redact clears OrderFacts · shop/redact clears the shop</span>
+        <strong>Shopify App Pricing</strong>
+        <span>Free plan + paid plan — prices on /pricing, billed through Shopify</span>
       </div>
     </div>
 
@@ -186,7 +186,7 @@
           <li>We read Shopify order totals (<code>read_orders</code>) and classify unique customers as new vs returning using least-privilege <code>read_customers</code> — opaque customer IDs + <code>numberOfOrders</code> only. We do <strong>not</strong> request name, email, phone, or address. That diet powers Total ROAS, break-even, and allocation.</li>
           <li>We persist opaque <strong>OrderFact</strong> rows (order id, amount, date, opaque customerKey) and <strong>CohortFact</strong> aggregates for customer lifetime value — still no name/email/phone/address CRM.</li>
           <li>Uninstalling triggers Shopify's <code>shop/redact</code> webhook — we delete your Mcfly shop record, settings, spend, OrderFacts, CohortFacts, and related facts. <code>customers/redact</code> deletes that customer's OrderFacts.</li>
-          <li>Same Total ROAS religion as the product: we measure money against money, not who "won" the click. The Shopify App Store listing name is <strong>Mcfly Analytics</strong> (free while we launch); see <a href="/pricing">Pricing</a> for the later flat $39 path via Shopify Billing.</li>
+          <li>Same Total ROAS religion as the product: we measure money against money, not who "won" the click. The Shopify App Store listing name is <strong>Mcfly Analytics</strong>. Plans are billed through Shopify App Pricing (Free + Pro). See <a href="/pricing">Pricing</a> for current plan prices — not a later surprise invoice.</li>
         </ul>
         <p class="summary-note">This summary is an orientation, not a substitute — the full policy below governs.</p>
       </div>
