@@ -563,8 +563,8 @@ describe("buildSelectedPlatformTemplateCsv", () => {
     const cols = platformsToTemplateCols([...SPEND_CHANNELS]);
     const result = buildSelectedPlatformTemplateCsv(cols, {
       now,
-      from: "2026-08-01",
-      to: "2026-08-02",
+      from: "2026-07-24",
+      to: "2026-07-25",
       example: false,
     });
     expect(result.headers[0]).toBe("Day");
