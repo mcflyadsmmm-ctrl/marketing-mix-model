@@ -9,7 +9,7 @@
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mq = window.matchMedia("(max-width: 720px)");
 
-  const cssHref = "/assets/waitlist-dock.css?v=20260728launch";
+  const cssHref = "/assets/waitlist-dock.css?v=20260825live";
   if (!document.querySelector(`link[href="${cssHref}"]`)) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
