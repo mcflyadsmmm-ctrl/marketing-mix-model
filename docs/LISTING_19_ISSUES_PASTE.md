@@ -34,10 +34,10 @@ Upload from `docs/listing-assets/shots/` **in order**:
 | 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
 | 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
 | 3 | `03-margin-breakeven.png` | Lock break-even from your margin % |
-| 4 | Recapture `/app/allocation?period=y3&shot=1` → `04-allocation-call.png` | One clear cut / shift / hold call |
-| 5 | **Still need** Admin `/app/spend?shot=1` | Select platforms → export daily → combine |
+| 4 | Recapture `/app/ltv?period=mtd&shot=1` → `04-allocation-call.png` | LTV and payback Shopify Analytics does not show |
+| 5 | Recapture `/app/goals?period=mtd&shot=1` — **do not** upload July `05-spend-csv.png` | Full-year Goals board next to this period |
 
-**Do not upload** `04-free-pro-pricing.png` (plan prices in the image — 4.2.2) or `05-HOLD-marketing-site-do-not-upload.png`  
+**Do not upload** `04-free-pro-pricing.png` (plan prices in the image — 4.2.2), `05-HOLD-marketing-site-do-not-upload.png`, or the July `05-spend-csv.png` (other platforms on Pro — 1.1.4).  
 Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 ### Support

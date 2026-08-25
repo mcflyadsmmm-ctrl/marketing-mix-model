@@ -46,6 +46,13 @@ done
   && check "uninstall webhook route" 1 || check "uninstall webhook route" 0
 [[ -f app/app/routes/support.tsx && -f app/app/routes/privacy.tsx && -f app/app/routes/terms.tsx && -f app/app/routes/pricing.tsx ]] \
   && check "Fly-origin trust page routes" 1 || check "Fly-origin trust page routes" 0
+[[ -f app/scripts/serve-with-site.mjs && -f app/scripts/shopify-app-path.mjs ]] \
+  && check "Fly serves marketing site/ next to Remix" 1 || check "Fly serves marketing site/ next to Remix" 0
+if grep -q 'COPY site /repo/site' app/Dockerfile && grep -q 'serve-with-site.mjs' app/package.json; then
+  check "Docker image copies site/ and starts serve-with-site" 1
+else
+  check "Docker image copies site/ and starts serve-with-site" 0
+fi
 
 # No shop-domain install form (auth.login should not collect shop domain input)
 if [[ -f app/app/routes/auth.login/route.tsx ]]; then

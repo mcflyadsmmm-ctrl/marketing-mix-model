@@ -12,8 +12,8 @@ import { isPublicOriginPath } from "./lib/public-origin";
 
 /**
  * App Bridge + api-key meta only for embedded / auth surfaces.
- * Bare Fly origin (`/`, Support, Privacy, Terms, Pricing) must NOT load App
- * Bridge — it breaks listing trust-URL clicks outside Admin.
+ * Public Fly origin (marketing site, trust URLs, health) must NOT load App
+ * Bridge — it breaks listing Website / Support / Privacy clicks outside Admin.
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);

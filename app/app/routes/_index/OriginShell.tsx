@@ -10,8 +10,8 @@ type OriginShellProps = {
 };
 
 /**
- * Public Fly-origin chrome for App Store trust URLs.
- * Reviewers hit these when mcflyads.com Pages is still stale.
+ * Public Fly-origin chrome used when the marketing `site/` files are missing.
+ * Production serves `site/` from the same origin (see serve-with-site.mjs).
  */
 export function OriginShell({ children }: OriginShellProps) {
   return (

@@ -19,12 +19,12 @@ Leave these unchecked until a human verifies in Partner. Agents do **not** flip 
 - [ ] **Short description** ≤ ~150 chars; lead with spend next to Shopify (billboards included) — **no plan prices** (4.2.3)
 - [ ] **Long description** opens on Shopify’s gap (no ad/offline cost, no LTV next to spend); **no $ /mo in this field**
 - [ ] **Sales channel requirements:** do **not** check “Merchant must have online store” — this app is Admin-only (4.3.1)
-- [ ] **Trust URLs** on the Fly origin: `https://mcfly-analytics.fly.dev/privacy` `/support` `/terms` (never App URL = mcflyads.com; Pages is still waitlist copy)
+- [ ] **Trust URLs** on the Fly origin: `https://mcfly-analytics.fly.dev/privacy` `/support` `/terms` (Fly serves the same `site/` HTML as the marketing repo; never App URL = mcflyads.com; live mcflyads.com Pages may still be waitlist until Cloudflare republish)
 - [ ] **PCD copy** still: opaque customer id + `numberOfOrders` only — no CRM / name / email
 - [ ] **Works with:** leave blank (no Checkout UI extension) — never Meta/Google/SyncWith; Checkout only if you later ship a real Checkout surface
 - [ ] Screenshots + M-only icon per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md)
 
-Partner listing URLs for **this resubmit** (mcflyads.com Pages is still waitlist copy — do not send reviewers there until Cloudflare is published):
+Partner listing URLs for **this resubmit** (Fly serves the current `site/` marketing pages on this origin. Live mcflyads.com Cloudflare Pages may still be waitlist — do not send reviewers there until Pages is republished):
 
 | Field | URL |
 | --- | --- |
@@ -88,7 +88,7 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 | **Pricing** | **Shopify App Pricing: Free + Pro $39** | Must match in-app Upgrade. No **External charges**. Default plan = every named platform + extras; paid plan = LTV + full Goals |
 | **Works with** | **Leave blank** | No Checkout UI extension today — do **not** claim Checkout. Never Meta/Google/TikTok/SyncWith logos. Add Checkout later only if a real Checkout surface ships. |
 | **Online Store required?** | **No — leave unchecked** | Admin-only desk. Do not select “Merchant must have online store” (4.3.1). |
-| **Website** | https://mcfly-analytics.fly.dev | Same host as App URL until mcflyads.com Pages is republished |
+| **Website** | https://mcfly-analytics.fly.dev | Same host as App URL — Fly serves `site/` (Install free, not waitlist) |
 | **Privacy policy URL** | https://mcfly-analytics.fly.dev/privacy | PCD Level 1 scopes; no waitlist |
 | **Support URL** | https://mcfly-analytics.fly.dev/support | App Store install steps; no shop-domain form |
 | **Terms URL** | https://mcfly-analytics.fly.dev/terms | Free + Pro $39; Utah law |

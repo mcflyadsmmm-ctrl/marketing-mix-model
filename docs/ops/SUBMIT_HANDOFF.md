@@ -5,7 +5,7 @@
 **Reviewer paste:** [`../PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md) — **only** that `APP_STORE_PASTE:testing` block. Do **not** paste [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md).  
 **Listing copy + URLs:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)
 
-**Live (agent):** Fly `https://mcfly-analytics.fly.dev` · health `/health`. Trust URLs are **on Fly** (`/support` `/privacy` `/terms` `/pricing`) until mcflyads.com Pages is republished. SAMPLE OFF on the review store.
+**Live (agent):** Fly `https://mcfly-analytics.fly.dev` · health `/health`. That origin serves the marketing `site/` (home, Support, Privacy, Terms, Pricing) plus the embedded app. SAMPLE / Practice **OFF** on the review store.
 
 ---
 
@@ -31,8 +31,8 @@
 | Shot 2 | `docs/listing-assets/shots/02-explorer-sales-div-spend.png` — Channel mix vs Total ROAS — sales ÷ spend |
 | Shot 3 | `docs/listing-assets/shots/03-margin-breakeven.png` — Lock break-even from your margin % |
 | Shot 4 | Recapture Allocation — see [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md) |
-| Shot 5 | Recapture Spend — `/app/spend?shot=1` |
-| **Do not upload** | `04-free-pro-pricing.png` (4.2.2 prices in image) · `05-HOLD-marketing-site-do-not-upload.png` |
+| Shot 5 | Recapture Goals — `/app/goals?period=mtd&shot=1` (do **not** upload the July `05-spend-csv.png`) |
+| **Do not upload** | `04-free-pro-pricing.png` (4.2.2 prices) · `05-HOLD-marketing-site-do-not-upload.png` · July `05-spend-csv.png` (says other platforms are on Pro) |
 
 Captions: [`../listing-assets/shots/CAPTIONS.md`](../listing-assets/shots/CAPTIONS.md)
 
@@ -55,5 +55,5 @@ Captions: [`../listing-assets/shots/CAPTIONS.md`](../listing-assets/shots/CAPTIO
 ## Agent blockers for you
 
 1. **Partner clicks** — MFA / listing URLs / Pricing / testing checkbox / Spend → Upgrade smoke / Submit are human-only.  
-2. Optional: Wrangler-publish `site/` so mcflyads.com matches (not required if Partner uses Fly URLs).  
-3. Prefer re-capture shot 5 from live Admin `/app/spend?shot=1` if mock looks off.
+2. Recapture listing shots from Admin (`LISTING_VISUAL_PACK.md`) — July PNGs show SAMPLE + CSV-first Spend.  
+3. Optional: Wrangler-publish `site/` so mcflyads.com matches Fly (not required if Partner uses Fly URLs).

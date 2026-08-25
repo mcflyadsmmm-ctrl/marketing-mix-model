@@ -7,8 +7,11 @@ import {
   FLY_PRIVACY_URL,
   FLY_PUBLIC_ORIGIN,
   FLY_SUPPORT_URL,
+  PUBLIC_ORIGIN_PATHS,
   isPublicOriginPath,
+  isShopifyEmbeddedPath,
 } from "./public-origin";
+import { isShopifyAppPath } from "../../scripts/shopify-app-path.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const routes = join(here, "../routes");
@@ -73,8 +76,18 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(isPublicOriginPath("/privacy")).toBe(true);
     expect(isPublicOriginPath("/terms")).toBe(true);
     expect(isPublicOriginPath("/pricing")).toBe(true);
+    expect(PUBLIC_ORIGIN_PATHS).toContain("/support");
     expect(isPublicOriginPath("/app")).toBe(false);
     expect(isPublicOriginPath("/app/spend")).toBe(false);
+    expect(isPublicOriginPath("/auth/login")).toBe(false);
+    expect(isPublicOriginPath("/demo")).toBe(true);
+    expect(isPublicOriginPath("/health")).toBe(true);
+    expect(isShopifyEmbeddedPath("/app/billing")).toBe(true);
+    expect(isShopifyEmbeddedPath("/support")).toBe(false);
+    expect(isShopifyAppPath("/health")).toBe(true);
+    expect(isShopifyAppPath("/app/spend")).toBe(true);
+    expect(isShopifyAppPath("/support")).toBe(false);
+    expect(isShopifyAppPath("/pricing")).toBe(false);
     const root = readRepo("app/app/root.tsx");
     expect(root).toContain("isPublicOriginPath(path)");
     expect(root).toContain("!isPublicOriginPath(path)");
@@ -92,5 +105,19 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(publicToml).toContain(`url = "${FLY_SUPPORT_URL}"`);
     expect(settings).toContain("FLY_SUPPORT_URL");
     expect(settings).not.toContain("https://mcflyads.com/support");
+  });
+
+  it("production server mounts repo site/ on Fly for listing Website URLs", () => {
+    const serve = readRepo("app/scripts/serve-with-site.mjs");
+    const paths = readRepo("app/scripts/shopify-app-path.mjs");
+    const docker = readRepo("app/Dockerfile");
+    const pkg = JSON.parse(readRepo("app/package.json"));
+    expect(serve).toContain("MCFLY_SITE_ROOT");
+    expect(serve).toContain("express.static(siteRoot");
+    expect(paths).toContain('p === "/app"');
+    expect(paths).toContain('p === "/health"');
+    expect(docker).toContain("COPY site /repo/site");
+    expect(docker).toContain("MCFLY_SITE_ROOT=/repo/site");
+    expect(pkg.scripts.start).toContain("serve-with-site.mjs");
   });
 });

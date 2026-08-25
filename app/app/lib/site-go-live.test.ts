@@ -57,7 +57,17 @@ const launchLies: Array<{ name: string; pattern: RegExp }> = [
     pattern: /Free install is Meta \+ Google only/i,
   },
   { name: "$39 unlocks the rest", pattern: /\$39 unlocks the rest/i },
+  {
+    name: "LTV+all channels",
+    pattern: /LTV\+all channels/i,
+  },
   { name: "LTV + all named channels", pattern: /LTV \+ all named channels/ },
+  { name: "Meta+Google+Other", pattern: /Meta\+Google\+Other/ },
+  { name: "Pro named channels", pattern: /Pro named channels/i },
+  {
+    name: "Meta + Google + Other day one",
+    pattern: /Meta \+ Google \+ Other day one/i,
+  },
   { name: "Pro adds named channels", pattern: /Pro adds named channels/ },
   { name: "App Store Free when listed", pattern: /App Store Free when listed/i },
   {

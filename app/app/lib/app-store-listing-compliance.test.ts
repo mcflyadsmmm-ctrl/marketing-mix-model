@@ -146,6 +146,10 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
       expect(src, rel).not.toMatch(/Free install is Meta \+ Google only/i);
       expect(src, rel).not.toMatch(/\$39 unlocks the rest/i);
       expect(src, rel).not.toMatch(/LTV \+ all named channels/);
+      expect(src, rel).not.toMatch(/LTV\+all channels/i);
+      expect(src, rel).not.toMatch(/Meta\+Google\+Other/);
+      expect(src, rel).not.toMatch(/Meta \+ Google \+ Other day one/i);
+      expect(src, rel).not.toMatch(/Pro named channels/i);
     }
   });
 });
