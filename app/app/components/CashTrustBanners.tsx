@@ -11,6 +11,7 @@ import {
   formatSpendReconLine,
 } from "../lib/mer-trust";
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { salesFactsIncompleteMessage } from "../lib/cash-trust-copy";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 
 type Props = {
@@ -79,6 +80,17 @@ export function CashTrustBanners({
     Number.isFinite(belowBreakEven.mer) &&
     belowBreakEven.mer < belowBreakEven.breakEvenMer;
 
+  const salesFactsCopy =
+    salesFactsIncomplete &&
+    salesFactsIncomplete.expectedClosedDays > 0 &&
+    !shopifyOrderWindowLimited
+      ? salesFactsIncompleteMessage({
+          factDays: salesFactsIncomplete.factDays,
+          expectedClosedDays: salesFactsIncomplete.expectedClosedDays,
+          periodLabel,
+        })
+      : null;
+
   return (
     <>
       {blockedMockAsLive ? (
@@ -86,9 +98,7 @@ export function CashTrustBanners({
           <s-paragraph>
             Fabricated sales were refused — {PRODUCT_NOUN.totalRoas} never treats
             mock numbers as live Shopify when the sample desk is off. Retry the
-            sales pull, or turn on the{" "}
-            <s-link href="/app/demo">{PRODUCT_NOUN.samplePreview}</s-link> for a
-            labeled walkthrough.
+            sales pull, or switch to Sample at the top for a labeled walkthrough.
           </s-paragraph>
         </s-banner>
       ) : null}
@@ -97,22 +107,15 @@ export function CashTrustBanners({
         <s-banner tone="info" heading="Sales history limited for this period">
           <s-paragraph>
             {periodLabel} reaches before stored daily sales (back to Jan 1 four
-            years ago). Prefer a shorter period, wait for backfill, or try{" "}
-            <s-link href="/app/demo">{PRODUCT_NOUN.samplePreview}</s-link> for a
-            multi-year walkthrough.
+            years ago). Prefer a shorter period, wait for backfill, or switch to
+            Sample at the top for a multi-year walkthrough.
           </s-paragraph>
         </s-banner>
       ) : null}
 
-      {salesFactsIncomplete &&
-      salesFactsIncomplete.expectedClosedDays > 0 &&
-      !shopifyOrderWindowLimited ? (
-        <s-banner tone="info" heading="Sales facts still backfilling">
-          <s-paragraph>
-            Sales loaded for {salesFactsIncomplete.factDays} of{" "}
-            {salesFactsIncomplete.expectedClosedDays} days in {periodLabel}.
-            Refresh in a few minutes for more coverage.
-          </s-paragraph>
+      {salesFactsCopy ? (
+        <s-banner tone="info" heading={salesFactsCopy.heading}>
+          <s-paragraph>{salesFactsCopy.body}</s-paragraph>
         </s-banner>
       ) : null}
 

@@ -1,7 +1,8 @@
 import prisma from "../db.server";
 import {
   buildThreeYearSampleDesk,
-  dayBoundsLocal,
+  sampleSpendBounds,
+  sampleSpendUsesNoonStamp,
 } from "./demo-sample-desk.server";
 import type { SalesResult } from "./shopify-sales.server";
 import type { DateRange } from "./periods";
@@ -95,7 +96,7 @@ export async function seedThreeYearSampleDesk(
       source: string;
     }> = [];
     for (const r of rows) {
-      const { start, end } = dayBoundsLocal(r.day);
+      const { start, end } = sampleSpendBounds(r.day);
       for (const channel of SPEND_CHANNELS) {
         const amount = r.spendByChannel[channel];
         if (!amount || amount <= 0) continue;
@@ -222,6 +223,23 @@ export function utcDayKey(date: Date): string {
   const m = String(date.getUTCMonth() + 1).padStart(2, "0");
   const d = String(date.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+/**
+ * Re-seed when SAMPLE sales or spend is missing, or when leftover spend still
+ * uses UTC midnight (collides with live CSV unique keys → empty Spend page).
+ */
+export async function sampleDeskNeedsSeed(shopId: string): Promise<boolean> {
+  const [dayCount, probe] = await Promise.all([
+    prisma.sampleSalesDay.count({ where: { shopId } }),
+    prisma.spendEntry.findFirst({
+      where: { shopId, source: "sample" },
+      select: { periodStart: true },
+    }),
+  ]);
+  if (dayCount === 0) return true;
+  if (!probe) return true;
+  return !sampleSpendUsesNoonStamp(probe.periodStart);
 }
 
 export async function getSampleDeskStats(shopId: string) {

@@ -10,13 +10,14 @@ Raw crops in `raw/`.
 | 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
 | 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
 | 3 | `03-margin-breakeven.png` | Spend Allocation — quarters · mix · portfolio ROAS |
-| 4 | `04-free-pro-pricing.png` | Free Meta + Google · Pro unlocks channels + LTV |
+| 4 | Recapture live Admin: `/app/allocation?period=y3&shot=1` → `04-allocation-call.png` | One clear cut / shift / hold call |
 | 5 | `05-spend-csv.png` | Select platforms → export daily → combine |
 
 ## Do **not** upload
 
 | File | Why |
 | --- | --- |
+| `04-free-pro-pricing.png` | Plan prices in the image — App Store 4.2.2. |
 | `05-HOLD-marketing-site-do-not-upload.png` | Marketing / install landing — **not** embedded Admin. |
 
 ## Notes

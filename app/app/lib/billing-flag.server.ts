@@ -1,9 +1,7 @@
 /**
- * Shopify Billing scaffold flags — Pro $39 flat at launch (raise later).
- * Default OFF: first App Store listing stays Free (BILLING_TIERS.md).
- *
- * Enable charges only when: design-partner smoke (`install works`) +
- * MCFLY_BILLING=1 + explicit announce. Never forever-free marketing.
+ * Shopify App Pricing flags — Pro $39 flat (raise later).
+ * Production Fly has MCFLY_BILLING=1 — Partner listing must show Free + Pro.
+ * Never forever-free marketing; never claim “no charges” while Upgrade is live.
  */
 
 export function isBillingEnabled(): boolean {
@@ -53,7 +51,7 @@ export function billingStatusCopy(billingEnabled: boolean): {
       tier: "free",
       headline: "Free · Meta + Google + custom Other",
       detail:
-        "Free desk: Meta + Google + custom Other (name it), Total ROAS, break-even. Pro ($39/store/mo flat at launch) adds TikTok/Amazon and other named platforms, Customer LTV, and advanced Goals. Listing stays Free — no charges until Billing is announced.",
+        "Free desk: Meta + Google + custom Other (name it), Total ROAS, break-even. Pro ($39/store/mo flat) adds TikTok/Amazon and other named platforms, Customer LTV, and advanced Goals. Upgrade is temporarily unavailable on this host.",
     };
   }
   return {

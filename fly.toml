@@ -14,7 +14,7 @@ primary_region = "iad"
 [env]
   NODE_ENV = "production"
   PORT = "3000"
-  SCOPES = "read_orders,read_customers,read_all_orders"
+  SCOPES = "read_orders,read_customers"
   # Worker polls the public app URL (request-driven web dyno). Same image; no Redis.
   MCFLY_APP_URL = "https://mcfly-analytics.fly.dev"
   MCFLY_QUEUE_INTERVAL_MS = "15000"

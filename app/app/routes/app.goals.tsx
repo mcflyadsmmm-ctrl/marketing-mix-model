@@ -16,6 +16,7 @@ import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { deskPeriodTimeZone } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
 import {
@@ -34,6 +35,7 @@ import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
+import { UseSampleCta } from "../components/UseSampleCta";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 
@@ -140,16 +142,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
-  const range = yearDateRange(year, shop.ianaTimezone);
+  const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
+  const range = yearDateRange(year, deskTz);
   const priorYear = year - 1;
-  const priorRange = yearDateRange(priorYear, shop.ianaTimezone);
+  const priorRange = yearDateRange(priorYear, deskTz);
 
   const thisYear = new Date().getFullYear();
   const [currentSales, priorSales] = await Promise.all([
-    loadSalesByDayForGoalsRange(shop.id, shop.ianaTimezone, range, useSampleDesk),
+    loadSalesByDayForGoalsRange(shop.id, deskTz, range, useSampleDesk),
     loadSalesByDayForGoalsRange(
       shop.id,
-      shop.ianaTimezone,
+      deskTz,
       priorRange,
       useSampleDesk,
     ),
@@ -165,8 +168,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const priorYearMonthly = monthMapToArray(priorSalesByMonth);
 
   const spendOpts = useSampleDesk
-    ? { sampleOnly: true as const, ianaTimezone: shop.ianaTimezone }
-    : { excludeSample: true as const, ianaTimezone: shop.ianaTimezone };
+    ? { sampleOnly: true as const, ianaTimezone: deskTz }
+    : { excludeSample: true as const, ianaTimezone: deskTz };
   const spendByMonth = await spendByMonthMap(shop.id, year, spendOpts);
 
   const board = await buildYearBoard(
@@ -297,10 +300,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const growthPct =
       intent === "apply_yoy_10" ? 10 : parseYoyGrowthPct(form.get("yoyPct"));
     const priorYear = year - 1;
-    const priorRange = yearDateRange(priorYear, shop.ianaTimezone);
+    const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
+    const priorRange = yearDateRange(priorYear, deskTz);
     const { salesByDay, salesError } = await loadSalesByDayForGoalsRange(
       shop.id,
-      shop.ianaTimezone,
+      deskTz,
       priorRange,
       useSampleDesk,
     );
@@ -582,7 +586,7 @@ export default function GoalsPage() {
 
         {!shotMode && entitlements.showProTeaser ? (
           <s-banner tone="info" heading={`${PRO_UPSELL.short} · advanced Goals`}>
-            <ProUpsellBlock lead={PRO_UPSELL.goals} />
+            <ProUpsellBlock lead={PRO_UPSELL.goals} showSample={!useSampleDesk} />
           </s-banner>
         ) : null}
 
@@ -671,10 +675,8 @@ export default function GoalsPage() {
                 </div>
               ) : (
                 <div className="mcfly-decision__actions">
-                  <ProUpgradeButton />
-                  <s-button href="/app/demo" variant="secondary">
-                    Try SAMPLE preview
-                  </s-button>
+                  {entitlements.showProTeaser ? <ProUpgradeButton /> : null}
+                  <UseSampleCta label="Preview on Sample" />
                 </div>
               )}
             </section>

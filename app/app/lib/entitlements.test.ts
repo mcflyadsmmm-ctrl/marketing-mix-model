@@ -12,10 +12,13 @@ import {
 } from "./entitlements.server";
 
 const ORIG_PRO = process.env.MCFLY_PRO_SHOPS;
+const ORIG_BILLING = process.env.MCFLY_BILLING;
 
 afterEach(() => {
   if (ORIG_PRO === undefined) delete process.env.MCFLY_PRO_SHOPS;
   else process.env.MCFLY_PRO_SHOPS = ORIG_PRO;
+  if (ORIG_BILLING === undefined) delete process.env.MCFLY_BILLING;
+  else process.env.MCFLY_BILLING = ORIG_BILLING;
 });
 
 describe("entitlements Free vs Pro", () => {
@@ -29,6 +32,7 @@ describe("entitlements Free vs Pro", () => {
 
   it("defaults shops to Free without override", () => {
     delete process.env.MCFLY_PRO_SHOPS;
+    delete process.env.MCFLY_BILLING;
     expect(isProShop("acme.myshopify.com")).toBe(false);
     const e = getShopEntitlements("acme.myshopify.com");
     expect(e.tier).toBe("free");
@@ -37,9 +41,22 @@ describe("entitlements Free vs Pro", () => {
     expect(e.canUseLtv).toBe(false);
     expect(e.canUseAdvancedGoals).toBe(false);
     expect(e.canUseAdvancedClose).toBe(false);
+    expect(e.showProTeaser).toBe(false);
+    expect(e.canManagePlan).toBe(false);
     expect(canUseChannel(e, "meta")).toBe(true);
     expect(canUseChannel(e, "other")).toBe(true);
     expect(canUseChannel(e, "tiktok")).toBe(false);
+  });
+
+  it("shows Upgrade teaser only when Billing is on and shop is Free", () => {
+    delete process.env.MCFLY_PRO_SHOPS;
+    process.env.MCFLY_BILLING = "1";
+    const free = getShopEntitlements("acme.myshopify.com");
+    expect(free.showProTeaser).toBe(true);
+    expect(free.canManagePlan).toBe(false);
+    const pro = getShopEntitlements("acme.myshopify.com", { paidPro: true });
+    expect(pro.showProTeaser).toBe(false);
+    expect(pro.canManagePlan).toBe(true);
   });
 
   it("SAMPLE desk previews LTV + advanced Goals without Pro", () => {
@@ -50,7 +67,9 @@ describe("entitlements Free vs Pro", () => {
     expect(e.canUseLtv).toBe(true);
     expect(e.canUseAdvancedGoals).toBe(true);
     expect(e.canUseAdvancedClose).toBe(false);
-    expect(e.canUseAllChannels).toBe(false);
+    expect(e.canUseAllChannels).toBe(true);
+    expect(e.allowedChannels).toContain("tiktok");
+    expect(canUseChannel(e, "tiktok")).toBe(true);
   });
 
   it("MCFLY_PRO_SHOPS grants Pro", () => {
@@ -92,6 +111,16 @@ describe("entitlements Free vs Pro", () => {
       { channel: "google", amount: 25 },
       { channel: "other", amount: 10 },
     ]);
+  });
+
+  it("filterToAllowedChannels keeps full mix on SAMPLE without Pro", () => {
+    delete process.env.MCFLY_PRO_SHOPS;
+    const e = getShopEntitlements("acme.myshopify.com", { sampleDesk: true });
+    const rows = [
+      { channel: "meta", amount: 100 },
+      { channel: "tiktok", amount: 50 },
+    ];
+    expect(filterToAllowedChannels(e, rows)).toEqual(rows);
   });
 
   it("filterToAllowedChannels keeps full mix for Pro", () => {

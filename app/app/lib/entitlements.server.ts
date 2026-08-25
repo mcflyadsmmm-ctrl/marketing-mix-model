@@ -51,7 +51,6 @@ export function isProShop(
   if (!domain) return false;
   if (parseProShopOverrideList().has(domain)) return true;
   if (options?.paidPro) return true;
-  void isBillingEnabled;
   return false;
 }
 
@@ -65,7 +64,10 @@ export type ShopEntitlements = {
   canUseAdvancedGoals: boolean;
   canUseAdvancedClose: boolean;
   canUseAllChannels: boolean;
+  /** Show Upgrade CTA — only when Billing is on and shop is Free. */
   showProTeaser: boolean;
+  /** Show Manage plan CTA — Billing on and shop is Pro (App Store 1.2.3). */
+  canManagePlan: boolean;
   allowedChannels: readonly SpendChannel[];
   upsell: typeof PRO_UPSELL;
 };
@@ -76,14 +78,14 @@ export function getShopEntitlements(
 ): ShopEntitlements {
   const isPro = isProShop(shopDomain, { paidPro: options?.paidPro });
   const sampleDesk = Boolean(options?.sampleDesk);
+  const billingOn = isBillingEnabled();
   const canUseLiveLtv = isPro;
   const canUseLtv = isPro || sampleDesk;
   const canUseAdvancedGoals = isPro || sampleDesk;
   const canUseAdvancedClose = isPro;
-  const canUseAllChannels = isPro;
-  const allowedChannels: readonly SpendChannel[] = isPro
-    ? SPEND_CHANNELS
-    : [...FREE_CHANNELS];
+  const canUseAllChannels = isPro || sampleDesk;
+  const allowedChannels: readonly SpendChannel[] =
+    isPro || sampleDesk ? SPEND_CHANNELS : [...FREE_CHANNELS];
 
   return {
     tier: isPro ? "pro" : "free",
@@ -93,7 +95,8 @@ export function getShopEntitlements(
     canUseAdvancedGoals,
     canUseAdvancedClose,
     canUseAllChannels,
-    showProTeaser: !isPro,
+    showProTeaser: !isPro && billingOn,
+    canManagePlan: isPro && billingOn,
     allowedChannels,
     upsell: PRO_UPSELL,
   };

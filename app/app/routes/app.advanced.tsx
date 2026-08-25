@@ -4,6 +4,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
+import { UseSampleCta } from "../components/UseSampleCta";
 import { buildAdvancedSections } from "../lib/advanced-metrics";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
@@ -12,7 +13,7 @@ import {
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
-import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
+import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
@@ -28,8 +29,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   const shop = await ensureShop(session.shop);
-  const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
+  const range = resolvePeriod(preset, new Date(), deskTz);
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
@@ -207,10 +209,8 @@ export default function AdvancedMetricsPage() {
               >
                 <p className="mcfly-state__copy">{section.lockedReason}</p>
                 <div className="mcfly-state__cta">
-                  <ProUpgradeButton />
-                  <s-button href="/app/demo" variant="secondary">
-                    Try SAMPLE preview
-                  </s-button>
+                  {entitlements.showProTeaser ? <ProUpgradeButton /> : null}
+                  <UseSampleCta label="Preview on Sample" />
                 </div>
               </section>
             ) : (

@@ -19,18 +19,18 @@ Work top → bottom. Save after each section.
 
 ### App introduction (short description ≤~150)
 ```text
-Advanced Marketing Data Science for Shopify: Total ROAS (net sales ÷ spend), break-even, Monday cash close. Free. No pixels.
+Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even, Goals, Allocation. No pixels.
 ```
 
 ### App details (long description)
-Paste from `docs/APP_STORE_LISTING.md` → **Long description (paste)** block (full text starting “Every Monday…”).
+Paste from `docs/APP_STORE_LISTING.md` → **Long description (paste)** block (starts with “Shopify Analytics shows sales”).
 
 ### Features (5 bullets, in order)
 ```text
-Total ROAS (action) = net Shopify sales ÷ ad spend (MTD / QTD / YTD); gross order totals as Ads Manager–comparable secondary
-Free spend = Meta + Google CSV (+ Connections when ready) · Optional SyncWith-class → Mcfly pipe template (you pay the pipe tool) · Pro unlocks all channels
+Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give
+Spend CSV: Meta + Google + custom Other · mix in dollars and percent · paid plan unlocks named channels
 Break-even Total ROAS from your profit margin %
-Monday Close ritual + one rules-based affordability call on Free; lock / finance CSV + advanced Goals on Pro
+Spend Allocation + Goals pace on the default plan; lock / finance CSV + full Goals on the paid plan
 GDPR webhooks + clean uninstall — no customer CRM · no pixels / MTA
 ```
 
@@ -42,10 +42,10 @@ Upload from `docs/listing-assets/shots/` **in order**:
 | 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
 | 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
 | 3 | `03-margin-breakeven.png` | Lock break-even from your margin % |
-| 4 | `04-free-pro-pricing.png` | Free Meta + Google · Pro unlocks channels + LTV |
+| 4 | Recapture `/app/allocation?period=y3&shot=1` → `04-allocation-call.png` | One clear cut / shift / hold call |
 | 5 | **Still need** Admin `/app/spend?shot=1` | Select platforms → export daily → combine |
 
-**Do not upload** `05-HOLD-marketing-site-do-not-upload.png`  
+**Do not upload** `04-free-pro-pricing.png` (plan prices in the image — 4.2.2) or `05-HOLD-marketing-site-do-not-upload.png`  
 Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 ### Support
@@ -68,10 +68,10 @@ Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 | Field | Value |
 | --- | --- |
-| **Pricing plans** | **Free** |
-| Paid plans / Billing | **Off** — do not enable |
+| **Pricing plans** | **Shopify App Pricing: Free + Pro $39/store/mo** |
+| Paid plans / Billing | **On** — Managed Pricing. Must match in-app Upgrade. |
 | External charges | **No** |
-| Works with / Sales channel requirements | **None / blank** — not a sales channel |
+| Works with / Sales channel requirements | **None / blank** — not a sales channel. Do **not** require Online Store (4.3.1). |
 
 ---
 
@@ -79,7 +79,7 @@ Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 ### App card subtitle (tagline ≤80)
 ```text
-Advanced Marketing Data Science — Total ROAS (net sales ÷ spend), break-even
+Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even
 ```
 
 ### App store search terms
@@ -110,51 +110,22 @@ Ban: attribution, pixel, true ROAS, MTA.
 
 ## 7. App testing information
 
-### Test account
-```text
-Store: devmcflyads.myshopify.com
-Account: mcflyadsmmm@gmail.com
-```
-(Add password only in Partner private test credentials field — never in public listing.)
+Paste **only** [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md). Do not use the old “Billing Off” block.
+
+### Test account (Partner form)
+
+| Field | Value |
+| --- | --- |
+| Username | *empty* |
+| Password | *empty* |
+| **My app doesn't require an account to use it** | **Checked** |
+
+### Testing instructions
+
+Paste the `APP_STORE_PASTE:testing` block from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (starts with `TEST ACCOUNT (App Store 4.5.4 / 4.5.5)`).
 
 ### Screencast URL
-Record a short Loom: install → Settings margin → Spend CSV import → Total ROAS desk.  
-Paste the Loom/unlisted YouTube URL here.  
-If you don’t have one yet: record 2–3 min, then paste.
-
-### Testing instructions (paste)
-```text
-Test store: devmcflyads.myshopify.com
-Test account: mcflyadsmmm@gmail.com
-
-PRICING
-Free listing (Partner Pricing = Free). No Shopify Billing API charges until announced.
-Honest freemium: Free = Meta + Google spend; Pro soft/hard gates may lock other channels,
-Customer LTV, and advanced Goals / Monday Close — that is not a Billing charge yet.
-No external charges.
-
-CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
-Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
-(?shot=1 hides the SAMPLE banner for screenshots only — numbers stay sample until OFF.)
-
-SMOKE TEST (CSV-first Free path = Meta + Google)
-1. Install Mcfly Analytics (App Store or Partner test install) — embedded Admin
-2. Settings → profit margin 35% → save → Break-even Total ROAS locks
-3. Spend → Meta + Google (default Free template) → export / paste daily CSV → Import
-4. Total ROAS desk → Total ROAS (action) = net Shopify sales ÷ ad spend for the period
-   Confirm orders / new / returning / AOV (opaque customer id + numberOfOrders only)
-5. Monday Close → ritual view on Free; Allocation → one affordability recommendation when Meta/Google spend > 0
-
-TECHNICAL
-App URL: https://mcfly-analytics.fly.dev (not mcflyads.com)
-Embedded in Admin. No public “type your .myshopify.com” install form.
-Compliance: https://mcfly-analytics.fly.dev/webhooks/compliance
-Support: https://mcflyads.com/support
-Privacy: https://mcflyads.com/privacy
-
-PROTECTED CUSTOMER DATA (Level 1 only)
-- read_orders / read_customers (opaque id + numberOfOrders) / no name email phone address
-```
+Record a short Loom: install → Spend → **Upgrade to Pro** (top-frame plans, no iframe refuse) → CSV import → Overview Total ROAS. English or English subtitles (4.5.3).
 
 ---
 

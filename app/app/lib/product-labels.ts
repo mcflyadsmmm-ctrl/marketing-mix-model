@@ -100,17 +100,17 @@ export const PRODUCT_NOUN = {
   allocationHeuristic:
     "Shift spend to protect break-even. Keep at least half of this period’s spend.",
   /** SAMPLE preview — listing / rehearsal only (not live store) */
-  samplePreview: "SAMPLE preview",
-  samplePreviewOn: "SAMPLE preview is on — not your live store",
-  samplePreviewOffCta: "Use my real store",
-  /** Demo hero when SAMPLE ON — App Store / install smoke path */
-  samplePreviewOffReviewKicker: "Before App Store review",
-  samplePreviewOffReviewTitle: "Turn SAMPLE preview OFF",
+  samplePreview: "Sample preview",
+  samplePreviewOn: "Sample is on — practice numbers, not your live store",
+  samplePreviewOffCta: "Switch to Your store",
+  /** Demo page copy when Sample is on — defer to the top toggle */
+  samplePreviewOffReviewKicker: "You are viewing Sample",
+  samplePreviewOffReviewTitle: "These are practice numbers",
   samplePreviewOffReviewBody:
-    "Use the Sample | Real store switch at the top of any page — or hide Sample for good in Settings. Reviewers must see live Shopify sales ÷ your spend.",
-  samplePreviewLiveStore: "Using your real store",
+    "Use Sample | Your store at the top of any page to switch. Your store shows live Shopify sales ÷ the spend you upload. Hide Sample in Settings if you never want the practice set.",
+  samplePreviewLiveStore: "You are viewing Your store",
   samplePreviewLiveStoreBody:
-    "Live Shopify sales. Log spend on Spend anytime. Use the top Sample | Real switch to practice again, or hide Sample in Settings.",
+    "Live Shopify sales. Add spend on Spend. Switch to Sample at the top anytime to rehearse with practice numbers.",
   /** Founder-locked setup path labels (banner + empty-state CTAs) */
   setupAddSpend: "Add Spend",
   setupSetGoals: "Set Goals",

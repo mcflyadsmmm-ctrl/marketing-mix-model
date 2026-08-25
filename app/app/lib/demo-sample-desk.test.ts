@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildThreeYearSampleDesk,
   SAMPLE_MIN_NEW_CUSTOMERS,
+  sampleSpendBounds,
+  sampleSpendUsesNoonStamp,
 } from "./demo-sample-desk.server";
 import { customerWeightedAvgRevenue } from "./till-ltv.server";
 
@@ -63,5 +65,18 @@ describe("sample cohort LTV scale", () => {
     expect(avg90!).toBeGreaterThan(50);
     // Cash CAC ~$80 → LTV:CAC ~4.75× (not ~1×).
     expect(avg90! / 80).toBeGreaterThan(4);
+  });
+});
+
+describe("sampleSpendBounds", () => {
+  it("stamps UTC noon so live CSV midnight keys do not collide", () => {
+    const day = new Date("2026-08-15T00:00:00.000Z");
+    const { start, end } = sampleSpendBounds(day);
+    expect(start.toISOString()).toBe("2026-08-15T12:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-08-15T23:59:59.999Z");
+    expect(sampleSpendUsesNoonStamp(start)).toBe(true);
+    expect(sampleSpendUsesNoonStamp(new Date("2026-08-15T00:00:00.000Z"))).toBe(
+      false,
+    );
   });
 });

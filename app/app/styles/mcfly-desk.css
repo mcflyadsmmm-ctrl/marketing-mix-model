@@ -1085,6 +1085,14 @@
   margin-top: 0.15rem;
 }
 
+.mcfly-pro-upsell__actions form {
+  margin: 0;
+}
+
+.mcfly-use-sample-cta {
+  margin: 0;
+}
+
 .mcfly-pro-upgrade {
   display: grid;
   gap: 0.4rem;
@@ -1094,6 +1102,20 @@
   margin: 0;
   font-size: 0.8rem;
   color: var(--mcfly-lie, #b91c1c);
+}
+
+.mcfly-pro-upgrade__hint,
+.mcfly-pro-upgrade__fallback {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--mcfly-ink-soft, #334155);
+}
+
+.mcfly-pro-upgrade__fallback a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .mcfly-btn {
@@ -9851,6 +9873,40 @@
 .mcfly-spend-lean__ellipsis-row td {
   color: var(--mcfly-mute, #64748b);
   text-align: center;
+}
+
+/* Numbered spend upload path */
+.mcfly-spend-steps-lead {
+  margin: 0 0 0.35rem;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: var(--mcfly-ink-soft, #334155);
+}
+
+.mcfly-spend-steps {
+  margin: 0 0 0.35rem;
+  padding: 0 0 0 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--mcfly-ink, #0f172a);
+  line-height: 1.4;
+}
+
+.mcfly-spend-lean__upload--gated {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.85rem 1rem;
+  border: 1.5px dashed #e2b15a;
+  border-radius: 8px;
+  background: #fffbeb;
+}
+
+.mcfly-spend-lean__upload--gated form {
+  margin: 0;
 }
 
 .mcfly-spend-lean__upload {

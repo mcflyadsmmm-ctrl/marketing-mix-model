@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  deskPeriodTimeZone,
   formatPeriodQuery,
   resolvePeriod,
   resolvePriorPeriod,
@@ -140,5 +141,17 @@ describe("explorer day keys vs shopLocalDayKey (east-of-UTC)", () => {
     const win = resolveExplorerWindow("YTD", now, { timeZone: tz });
     expect(shopLocalDayKey(win.start, tz)).toBe("2026-01-01");
     expect(win.start.toISOString().slice(0, 10)).toBe("2025-12-31");
+  });
+});
+
+describe("deskPeriodTimeZone", () => {
+  it("forces UTC on Sample so sales/spend day keys join", () => {
+    expect(deskPeriodTimeZone(true, "America/Denver")).toBe("UTC");
+    expect(deskPeriodTimeZone(true, null)).toBe("UTC");
+  });
+
+  it("passes shop IANA on Your store", () => {
+    expect(deskPeriodTimeZone(false, "America/Denver")).toBe("America/Denver");
+    expect(deskPeriodTimeZone(false, null)).toBeNull();
   });
 });

@@ -1,18 +1,25 @@
 import {
-  PRO_FEATURE_BULLETS,
   PRO_UPSELL,
 } from "../lib/entitlements";
 import { ProUpgradeButton } from "./ProUpgradeButton";
+import { UseSampleCta } from "./UseSampleCta";
 
 type ProUpsellBlockProps = {
   /** Feature-specific lead (LTV / Goals / channels). Falls back to includes. */
   lead?: string;
-  /** Show SAMPLE preview CTA. */
+  /** Show Sample preview CTA (same toggle as the top bar). */
   showSample?: boolean;
 };
 
+const PRO_PREVIEW_BULLETS = [
+  "Every named channel (TikTok, Amazon, Email, Affiliate, …)",
+  "Customer LTV · Cash CAC · LTV:CAC",
+  "Full-year Goals board",
+] as const;
+
 /**
- * Clear Pro upsell: price, what’s included, Billing CTA (not Settings deep-link).
+ * Short Pro upsell: price, three facts, Billing CTA. Sample uses the same
+ * data-mode POST as the top toggle — never /app/demo.
  */
 export function ProUpsellBlock({
   lead,
@@ -25,16 +32,14 @@ export function ProUpsellBlock({
       </p>
       <p className="mcfly-pro-upsell__lead">{lead ?? PRO_UPSELL.includes}</p>
       <ul className="mcfly-pro-upsell__list">
-        {PRO_FEATURE_BULLETS.map((line) => (
+        {PRO_PREVIEW_BULLETS.map((line) => (
           <li key={line}>{line}</li>
         ))}
       </ul>
       <div className="mcfly-pro-upsell__actions">
         <ProUpgradeButton />
         {showSample ? (
-          <s-button href="/app/demo" variant="secondary">
-            Preview on SAMPLE
-          </s-button>
+          <UseSampleCta label="Preview on Sample" />
         ) : (
           <s-link href="/app/settings">{PRO_UPSELL.seeSettings}</s-link>
         )}

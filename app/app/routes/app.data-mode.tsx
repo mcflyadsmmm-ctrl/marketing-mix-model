@@ -4,7 +4,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import {
-  getSampleDeskStats,
+  sampleDeskNeedsSeed,
   seedThreeYearSampleDesk,
   setSampleDeskEnabled,
   setSamplePreviewAllowed,
@@ -43,8 +43,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const returnTo = safeAppReturnTo(form.get("returnTo"));
 
   if (intent === "use-sample") {
-    const stats = await getSampleDeskStats(shop.id);
-    if (stats.dayCount === 0) {
+    // Re-seed when SAMPLE is empty or still on UTC-midnight stamps that collide
+    // with live CSV unique keys. Noon stamps coexist; skip a 3-year rewrite then.
+    if (await sampleDeskNeedsSeed(shop.id)) {
       await seedThreeYearSampleDesk(shop.id, SAMPLE_DESK_TARGET_MER);
     }
     await setSampleDeskEnabled(shop.id, true);

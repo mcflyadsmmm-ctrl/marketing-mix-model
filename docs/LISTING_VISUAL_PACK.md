@@ -71,7 +71,7 @@ C. SHOT MODE + CAPTURE (hide SAMPLE banner; metrics stay sample)
      Exclude: hero MER tile + decision strip
      Period tab must show MTD (not 3 yr)
      Save: docs/listing-assets/shots/02-sales-div-spend.png
-     Caption: Sales ÷ spend — the only formula we use
+     Caption: Sales ÷ spend — the formula this desk uses
      QA: side-by-side vs shot 1 — if same big MER position, re-crop
 
    Shot 3 — spend ingest (export → combine)
@@ -131,7 +131,7 @@ E. ICON
 | 1 | `01-total-roas-vs-breakeven.png` | **Ready** — KPI board (Sales / Spend / Total ROAS) |
 | 2 | `02-explorer-sales-div-spend.png` | **Ready** — Explorer (sales ÷ spend + channel mix) |
 | 3 | `03-margin-breakeven.png` | **Ready** — Break-even lock from margin |
-| 4 | `04-free-pro-pricing.png` | **Ready** — Free vs Pro honesty |
+| 4 | `04-free-pro-pricing.png` | **DO NOT UPLOAD** — plan prices in the image violate 4.2.2. Use Allocation / Spend UI instead. |
 | 5 | `05-spend-csv.png` | **Ready (mock)** — platforms + combine + Other; SAMPLE labeled. Re-capture live Admin when session available (`docs/ops/SHOT5_20260729.md`). HOLD stays do-not-upload. |
 
 Captions + upload order: [`listing-assets/shots/CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md).
@@ -145,7 +145,7 @@ Capture from **embedded Admin** iframe only. Crop to ~**1600×900**. No browser 
 | # | Caption (paste under shot) | URL path | Show this |
 | --- | --- | --- | --- |
 | 1 | Total ROAS vs break-even — one glance | `/app?period=y3&shot=1` | **Outcome frame:** crop `mcfly-pacing` gauge + KPI tiles (Total ROAS + break-even chip). Period **3 yr** visible in shot mode. |
-| 2 | Sales ÷ spend — the only formula we use | `/app?period=mtd&shot=1` | **Definition frame:** `MonthlyPacing` sales/spend bars or explorer sales line + spend mix. Period **MTD**. Must look unlike shot 1 for 4.4.4. |
+| 2 | Sales ÷ spend — the formula this desk uses | `/app?period=mtd&shot=1` | **Definition frame:** `MonthlyPacing` sales/spend bars or explorer sales line + spend mix. Period **MTD**. Must look unlike shot 1 for 4.4.4. |
 | 3 | Select platforms → export daily → combine | `/app/spend?shot=1` | Platform checkboxes + export guides + combine/import; **Other** column visible (fallback: wide template + import) |
 | 4 | One clear cut / shift / hold call | `/app/allocation?period=y3&shot=1` | Recommendation + efficiency bars |
 | 5 | Lock break-even from your margin % | `/app/settings?shot=1` | Margin input + live break-even preview |
@@ -171,7 +171,9 @@ After capture, side-by-side the PNGs: if both show the big MER number in the sam
 ### Caption hygiene
 
 - Lead with the merchant win (“Cash MER vs break-even”), not the screen name  
-- Never say ROAS, attribution, pixel, or “true revenue”  
+- Never say attribution, pixel, or “true revenue”
+- Never put plan prices ($ / mo) in captions or in the PNG (4.2.2)
+- Never use “the first”, “the best”, or “the only” (4.3.3 / 4.3.4)
 - Keep each caption unique (Shopify rejects near-duplicate shots + captions)
 
 ---

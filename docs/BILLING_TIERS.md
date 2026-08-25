@@ -27,15 +27,21 @@ Listing → **Pricing** → Shopify App Pricing:
 Upgrade URL pattern:  
 `https://admin.shopify.com/store/{store}/charges/mcfly-analytics-public/pricing_plans`
 
+**Embed rule (App Store 2.1.1):** Never load that Admin URL inside the app iframe
+(`admin.shopify.com refused to connect`). Upgrade must exit via App Bridge
+`redirect(..., { target: "_top" })` (GET `/app/billing`) or `window.open(url, "_top")`
+after the POST action — see `billing-navigate.ts` + `ProUpgradeButton`.
+
 ## Flags
 
 | Env | Meaning |
 | --- | --- |
 | `MCFLY_BILLING=1` | Allow Upgrade → plan page |
-| `SHOPIFY_APP_HANDLE` | Override handle (default `mcfly-analytics`) |
+| `SHOPIFY_APP_HANDLE` | Override handle (default `mcfly-analytics-public`) |
 
 ## Evidence
 
 - `billing.server.ts` — `buildManagedPricingPlansUrl` + active-sub sync  
+- `billing-navigate.ts` — top-frame-only Admin navigation (no iframe fallback)  
 - `Shop.proBillingActive` — cache after sync / webhook  
-- Settings / upsell → top-frame plan picker  
+- Settings / Spend upsell → top-frame plan picker  
