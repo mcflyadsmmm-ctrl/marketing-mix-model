@@ -2,15 +2,24 @@ import { describe, expect, it } from "vitest";
 import {
   contributionAdjustedLtv,
   contributionLtvCacRatio,
+  marginAsMultiplier,
   roundMer,
   roundMoney,
 } from "./contrib-ltv";
 import { buildRecommendedMix } from "../components/AllocMixChart";
 
 describe("contrib-ltv", () => {
-  it("applies margin % to cohort revenue", () => {
+  it("treats Settings/Practice margin as 0–1 (not percent-points)", () => {
+    // Practice SAMPLE_DESK_MARGIN_PCT = 0.35. Old helper did 0.35/100 → $1.33.
+    expect(marginAsMultiplier(0.35)).toBe(0.35);
+    expect(contributionAdjustedLtv(380, 0.35)).toBe(133);
+    expect(contributionAdjustedLtv(380, 0.35)).toBeGreaterThan(50);
+    expect(contributionAdjustedLtv(null, 0.35)).toBeNull();
+  });
+
+  it("still accepts 1–100 percent-points from older callers", () => {
+    expect(marginAsMultiplier(40)).toBe(0.4);
     expect(contributionAdjustedLtv(100, 40)).toBe(40);
-    expect(contributionAdjustedLtv(null, 40)).toBeNull();
   });
 
   it("builds contrib LTV:CAC", () => {
