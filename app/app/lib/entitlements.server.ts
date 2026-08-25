@@ -1,5 +1,5 @@
 /**
- * Shop entitlements — Free (Meta + Google) vs Pro ($39 flat at launch).
+ * Shop entitlements — Free (all spend channels) vs Pro ($39 = LTV + Goals).
  * See docs/BILLING_TIERS.md. Charges stay behind MCFLY_BILLING=1.
  */
 
@@ -83,9 +83,8 @@ export function getShopEntitlements(
   const canUseLtv = isPro || sampleDesk;
   const canUseAdvancedGoals = isPro || sampleDesk;
   const canUseAdvancedClose = isPro;
-  const canUseAllChannels = isPro || sampleDesk;
-  const allowedChannels: readonly SpendChannel[] =
-    isPro || sampleDesk ? SPEND_CHANNELS : [...FREE_CHANNELS];
+  const canUseAllChannels = true;
+  const allowedChannels: readonly SpendChannel[] = SPEND_CHANNELS;
 
   return {
     tier: isPro ? "pro" : "free",
@@ -121,31 +120,28 @@ export async function resolveShopEntitlements(
 }
 
 export function canUseChannel(
-  entitlements: ShopEntitlements,
+  _entitlements: ShopEntitlements,
   channel: string,
 ): boolean {
-  if (entitlements.canUseAllChannels) return true;
   return isFreeChannel(channel);
 }
 
-/** Returns an error message if any channel is outside the shop's plan. */
+/** Known spend channels are Free. Unknown strings still fail closed. */
 export function assertChannelsAllowed(
-  entitlements: ShopEntitlements,
+  _entitlements: ShopEntitlements,
   channels: Iterable<string>,
 ): string | null {
-  if (entitlements.canUseAllChannels) return null;
   const blocked = new Set<string>();
   for (const ch of channels) {
     if (!FREE_CHANNEL_SET.has(ch)) blocked.add(ch);
   }
   if (blocked.size === 0) return null;
   const list = [...blocked].sort().join(", ");
-  return `Pro required for ${list}. Free covers Meta, Google, and named extras — named platforms need Pro (${PRO_UPSELL.short}).`;
+  return `Unknown spend channel: ${list}.`;
 }
 
 /**
- * Live Free desks: drop Pro-channel rows so Total ROAS cannot be inflated.
- * Callers with SAMPLE desk should skip this (pass through full sample mix).
+ * Drop unknown channel strings. Named platforms stay on Free.
  */
 export function filterToAllowedChannels<T extends { channel: string }>(
   entitlements: ShopEntitlements,

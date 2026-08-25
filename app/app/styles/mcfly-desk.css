@@ -9619,23 +9619,81 @@
   color: var(--mcfly-ink-muted, #5c6b7a);
 }
 
-/* Beginner Add spend card */
+/* Add spend — one day, any platform */
+.mcfly-spend-add {
+  margin: 0;
+}
+
 .mcfly-spend-add__form {
-  max-width: 28rem;
+  max-width: 40rem;
+}
+
+.mcfly-spend-add__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.65rem;
 }
 
 .mcfly-spend-add__field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
+.mcfly-spend-add__field--wide {
+  grid-column: 1 / -1;
 }
 
 .mcfly-spend-add__field .mcfly-field {
   width: 100%;
+  font-weight: 500;
+}
+
+.mcfly-spend-add__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+}
+
+.mcfly-spend-add__preset {
+  border: 1px solid var(--mcfly-line-soft, #c9d4de);
+  background: #fff;
+  color: var(--mcfly-ink, #1a2330);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.mcfly-spend-add__preset:hover,
+.mcfly-spend-add__preset:focus-visible {
+  border-color: var(--mcfly-accent, #0284c7);
+}
+
+.mcfly-spend-add__preset--on {
+  border-color: var(--mcfly-accent, #0284c7);
+  background: color-mix(in srgb, var(--mcfly-accent, #0284c7) 10%, #fff);
+}
+
+.mcfly-spend-add__actions {
+  margin-top: 0.85rem;
+}
+
+.mcfly-spend-add__gated {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
 }
 
 .mcfly-spend-add__upsell {
-  margin: 0;
+  margin: 0.85rem 0 0;
   font-size: 0.86rem;
   color: var(--mcfly-ink-muted, #5c6b7a);
 }

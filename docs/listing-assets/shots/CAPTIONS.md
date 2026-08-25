@@ -5,13 +5,17 @@ Raw crops in `raw/`.
 
 ## Upload these (Admin app UI)
 
+Recapture after 2026-08-25 reposition (Add spend + LTV + Goals). Filenames stay stable for Partner.
+
 | # | File | Caption (paste ≤80) |
 | --- | --- | --- |
-| 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
-| 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
-| 3 | `03-margin-breakeven.png` | Spend Allocation — quarters · mix · portfolio ROAS |
-| 4 | Recapture live Admin: `/app/allocation?period=y3&shot=1` → `04-allocation-call.png` | One clear cut / shift / hold call |
-| 5 | `05-spend-csv.png` | Select platforms → export daily → combine |
+| 1 | `01-total-roas-vs-breakeven.png` | Shopify sales next to the spend you added |
+| 2 | `02-explorer-sales-div-spend.png` | Sales ÷ spend — the formula this desk uses |
+| 3 | `03-margin-breakeven.png` | Add a billboard or any platform in one field |
+| 4 | Recapture live Admin: `/app/ltv?period=mtd&shot=1` → `04-allocation-call.png` | LTV and payback Shopify Analytics does not show |
+| 5 | Recapture: `/app/goals?period=mtd&shot=1` → `05-spend-csv.png` or `05-margin-breakeven.png` | Full-year Goals board next to this period |
+
+Shot paths SoT: [`LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md).
 
 ## Do **not** upload
 
@@ -22,7 +26,7 @@ Raw crops in `raw/`.
 
 ## Notes
 
-- Shots 1–3 refreshed 2026-07-31 from live SAMPLE desk captures (letterboxed to 1600×900).
+- Founder pack PNGs from 2026-07-31 may still show CSV-first Spend and Allocation as shots 4–5. **Retake** so shot 3 is Add spend, shot 4 is LTV, shot 5 is Goals before the next Submit.
 - Turn SAMPLE **OFF** on the review store after upload / before live review.
 - Feature media (header): `../feature-media-1600x900.png` (Custom Data Science dark/cyan).
 - Icon: `../mcfly-app-icon-1200.png`.

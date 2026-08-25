@@ -15,6 +15,7 @@ vi.mock("./mer-dashboard.server", () => ({
 import {
   buildSalesGoalPeriods,
   calendarDaysElapsedInMonth,
+  impliedSpendCeiling,
   merVsRails,
   monthDateRange,
   paceStatus,
@@ -358,5 +359,19 @@ describe("merVsRails", () => {
     expect(rails.label).toBe("—");
     expect(rails.vsTargetAbs).toBeNull();
     expect(rails.vsBeAbs).toBeNull();
+  });
+});
+
+describe("impliedSpendCeiling", () => {
+  it("returns salesGoal ÷ targetMer when both positive", () => {
+    expect(impliedSpendCeiling(100_000, 4)).toBeCloseTo(25_000, 5);
+    expect(impliedSpendCeiling(90_000, 3)).toBeCloseTo(30_000, 5);
+  });
+
+  it("returns null when goal or target is missing", () => {
+    expect(impliedSpendCeiling(0, 4)).toBeNull();
+    expect(impliedSpendCeiling(100_000, 0)).toBeNull();
+    expect(impliedSpendCeiling(100_000, null)).toBeNull();
+    expect(impliedSpendCeiling(100_000, undefined)).toBeNull();
   });
 });

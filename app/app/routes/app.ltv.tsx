@@ -9,6 +9,7 @@ import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import {
   contributionAdjustedLtv,
   contributionLtvCacRatio,
+  ltvWindowCaption,
 } from "../lib/contrib-ltv";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod } from "../lib/periods";
@@ -458,6 +459,12 @@ export default function LtvPage() {
                   applies {formatPercent(metrics.marginPct)} margin. Averages,
                   not causal channel ROAS.
                 </p>
+                <p className="mcfly-panel__note mcfly-acq-ltv__window">
+                  {ltvWindowCaption({
+                    periodLabel: metrics.period.label,
+                    cohortMaxDays: 365,
+                  })}
+                </p>
               </div>
 
               {metrics.tillLtv.available ? (
@@ -567,7 +574,7 @@ export default function LtvPage() {
                     ? "Shop timezone needed before customer cohorts can bucket by local day."
                     : metrics.tillLtv.emptyReason === "history_limited"
                       ? "Order history is limited on this shop — Free shows the available window; broader Shopify order access unlocks deeper mature cohorts (order ids and amounts only)."
-                      : "Backfilling customer cohorts — Lifetime Value lights up once facts land."}
+                      : "Orders still syncing — not $0 LTV"}
                 </p>
               )}
             </section>
@@ -581,7 +588,8 @@ export default function LtvPage() {
                   <h2>Cohort deep dive</h2>
                   <p className="mcfly-panel__muted">
                     Monthly first-order cohorts · cumulative revenue windows ·
-                    cash cost context for this period
+                    Cash CAC below uses this period’s spend (not the cohort
+                    window)
                   </p>
                 </div>
 

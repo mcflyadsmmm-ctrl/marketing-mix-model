@@ -51,13 +51,13 @@ export function billingStatusCopy(billingEnabled: boolean): {
       tier: "free",
       headline: "Free",
       detail:
-        "You’re on Free: Meta, Google, named extras, and Total ROAS. Pro is $39/store/mo. Upgrade is temporarily unavailable on this host.",
+        "You’re on Free: every named platform plus extras like billboards, and Total ROAS. Pro is $39/store/mo for LTV and the full Goals board. Upgrade is temporarily unavailable on this host.",
     };
   }
   return {
     tier: "pro",
     headline: "Free · upgrade anytime",
     detail:
-      "Pro is $39 per store / month. It adds named ad platforms, customer LTV, and a full-year Goals board.",
+      "Pro is $39 per store / month. It adds customer LTV and a full-year Goals board. Every named platform is already on Free.",
   };
 }

@@ -554,8 +554,9 @@ export default function SettingsPage() {
                   className="mcfly-panel__muted"
                   style={{ marginTop: "0.75rem" }}
                 >
-                  Upgrade opens when billing is on. Free still covers Meta,
-                  Google, and named extras.
+                  Upgrade opens when billing is on. Free still covers every
+                  named platform plus extras like billboards. Pro is LTV and
+                  the full Goals board.
                 </p>
               )
             ) : (

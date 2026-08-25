@@ -322,7 +322,7 @@ export function buildPipeAutomationLongTemplate(options?: {
         } else if (col.channel === "google") {
           rows.push(`${date},${csvEscape(col.header)},${80 + (i % 3) * 5}`);
         }
-        // Example file stays short — Meta + Google only
+        // Example file stays short — fill only a couple of columns when present
         continue;
       }
       rows.push(`${date},${csvEscape(col.header)},`);

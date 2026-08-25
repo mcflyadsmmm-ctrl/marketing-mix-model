@@ -404,7 +404,12 @@ describe("createSpendRepository().upsertSpendDays", () => {
     expect(createMany.mock.calls[0][0].data[0].channel).toBe("google");
   });
 
-  it("fails closed before write when Free shop posts a Pro channel", async () => {
+  it("allows tiktok live writes on Free", async () => {
+    shopFindUnique.mockResolvedValue({
+      domain: "acme.myshopify.com",
+      proBillingActive: false,
+    });
+    findMany.mockResolvedValue([]);
     const repo = createSpendRepository();
     await expect(
       repo.upsertSpendDays("shop_1", [
@@ -416,10 +421,9 @@ describe("createSpendRepository().upsertSpendDays", () => {
           source: "csv",
         },
       ]),
-    ).rejects.toThrow(/Pro required/);
-    expect(transaction).not.toHaveBeenCalled();
-    expect(createMany).not.toHaveBeenCalled();
-    expect(update).not.toHaveBeenCalled();
+    ).resolves.toEqual({ written: 1, skipped: 0, created: 1, updated: 0 });
+    expect(transaction).toHaveBeenCalled();
+    expect(createMany).toHaveBeenCalled();
   });
 
   it("soaks ~3000 Meta+Google daily rows under 5s (createMany batches)", async () => {

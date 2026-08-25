@@ -22,8 +22,8 @@ import type { SpendChannel } from "@mcfly/mer-engine";
 
 /**
  * Reliable CSV download inside Shopify Admin (data: URLs often fail in the iframe).
- *   /app/spend/template                         → Free: Meta+Google example; Pro: full wide
- *   /app/spend/template?blank=1                 → Free: Meta+Google blank; Pro: full wide blank
+ *   /app/spend/template                         → example (all named platforms)
+ *   /app/spend/template?blank=1                 → blank (all named platforms)
  *   /app/spend/template?dates=…                 → blank rows for those days (tier columns)
  *   /app/spend/template?platforms=meta,google&blank=1   → selected blank
  *   /app/spend/template?platforms=meta,google&example=1 → selected with samples
@@ -112,7 +112,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       useExample ? "example" : "blank",
     );
   } else if (blank) {
-    // Free default: Meta + Google — never serve full all-channel blank to Free.
+    // Blank download: every named platform (all Free).
     if (entitlements.canUseAllChannels) {
       body = buildBlankSpendTemplate(14);
       filename = "mcfly-spend-template-blank.csv";

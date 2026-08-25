@@ -127,7 +127,7 @@ export const PRODUCT_NOUN = {
     "Select channels → download template → fill daily spend → upload. Same days replace.",
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
   ltvNotInShopify:
-    "Shopify Admin does not show this payback view. Mcfly uses order history only — not email lists.",
+    "Shopify Analytics does not combine LTV with ad spend. Mcfly uses order history only — not email lists.",
 } as const;
 
 export type SalesBasisPreference = "total" | "net";

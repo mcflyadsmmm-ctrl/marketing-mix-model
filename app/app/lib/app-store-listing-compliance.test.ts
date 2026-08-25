@@ -40,6 +40,13 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     }
   });
 
+  it("repositioned paste leads with all-platform spend including billboards", () => {
+    expect(short).toMatch(/billboard/i);
+    expect(features).toMatch(/billboard/i);
+    expect(long).toMatch(/billboard/i);
+    expect(long).not.toMatch(/paid plan unlocks every named/i);
+  });
+
   it("merchant paste blocks avoid superlatives and quantified outcome claims (4.3.3)", () => {
     for (const block of [short, long, features]) {
       expect(block).not.toMatch(/\bthe (first|best|only)\b/i);

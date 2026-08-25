@@ -22,21 +22,22 @@ afterEach(() => {
 });
 
 describe("entitlements Free vs Pro", () => {
-  it("treats meta, google, and other as Free channels", () => {
+  it("treats every named platform as a Free channel", () => {
     expect(isFreeChannel("meta")).toBe(true);
     expect(isFreeChannel("google")).toBe(true);
     expect(isFreeChannel("other")).toBe(true);
-    expect(isFreeChannel("tiktok")).toBe(false);
-    expect(FREE_CHANNELS).toEqual(["meta", "google", "other"]);
+    expect(isFreeChannel("tiktok")).toBe(true);
+    expect(isFreeChannel("amazon")).toBe(true);
+    expect(FREE_CHANNELS).toContain("tiktok");
   });
 
-  it("defaults shops to Free without override", () => {
+  it("defaults shops to Free without override but allows all spend channels", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     delete process.env.MCFLY_BILLING;
     expect(isProShop("acme.myshopify.com")).toBe(false);
     const e = getShopEntitlements("acme.myshopify.com");
     expect(e.tier).toBe("free");
-    expect(e.canUseAllChannels).toBe(false);
+    expect(e.canUseAllChannels).toBe(true);
     expect(e.canUseLiveLtv).toBe(false);
     expect(e.canUseLtv).toBe(false);
     expect(e.canUseAdvancedGoals).toBe(false);
@@ -45,7 +46,7 @@ describe("entitlements Free vs Pro", () => {
     expect(e.canManagePlan).toBe(false);
     expect(canUseChannel(e, "meta")).toBe(true);
     expect(canUseChannel(e, "other")).toBe(true);
-    expect(canUseChannel(e, "tiktok")).toBe(false);
+    expect(canUseChannel(e, "tiktok")).toBe(true);
   });
 
   it("shows Upgrade teaser only when Billing is on and shop is Free", () => {
@@ -87,17 +88,15 @@ describe("entitlements Free vs Pro", () => {
     expect(canUseChannel(e, "amazon")).toBe(true);
   });
 
-  it("assertChannelsAllowed blocks named Pro platforms on Free (other stays Free)", () => {
+  it("assertChannelsAllowed allows named platforms on Free", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     const e = getShopEntitlements("acme.myshopify.com");
     expect(assertChannelsAllowed(e, ["meta", "google", "other"])).toBeNull();
-    const err = assertChannelsAllowed(e, ["meta", "tiktok", "amazon"]);
-    expect(err).toMatch(/Pro required/);
-    expect(err).toMatch(/tiktok/);
-    expect(err).toMatch(/amazon/);
+    expect(assertChannelsAllowed(e, ["meta", "tiktok", "amazon"])).toBeNull();
+    expect(assertChannelsAllowed(e, ["not_a_channel"])).toMatch(/Unknown spend channel/);
   });
 
-  it("filterToAllowedChannels drops tiktok on Free live reads but keeps other", () => {
+  it("filterToAllowedChannels keeps tiktok on Free live reads", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     const e = getShopEntitlements("acme.myshopify.com");
     const filtered = filterToAllowedChannels(e, [
@@ -108,6 +107,7 @@ describe("entitlements Free vs Pro", () => {
     ]);
     expect(filtered).toEqual([
       { channel: "meta", amount: 100 },
+      { channel: "tiktok", amount: 50 },
       { channel: "google", amount: 25 },
       { channel: "other", amount: 10 },
     ]);

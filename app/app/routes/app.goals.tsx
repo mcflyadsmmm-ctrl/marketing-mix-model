@@ -6,6 +6,7 @@ import type {
 } from "react-router";
 import {
   Form,
+  redirect,
   useActionData,
   useLoaderData,
   useNavigation,
@@ -14,15 +15,31 @@ import {
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
+import { PeriodControl } from "../components/PeriodControl";
+import {
+  buildDashboardMetrics,
+  ensureShop,
+  getOrCreateSettings,
+} from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
-import { deskPeriodTimeZone } from "../lib/periods";
+import {
+  deskPeriodTimeZone,
+  parsePeriodPreset,
+  resolvePeriod,
+} from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import { getSampleDeskEnabled } from "../lib/sample-desk.server";
+import { parseSalesBasis } from "../lib/sales-basis";
+import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
+import {
+  fetchSampleSales,
+  getSampleDeskEnabled,
+} from "../lib/sample-desk.server";
 import {
   buildSalesGoalPeriods,
   buildYearBoard,
+  impliedSpendCeiling,
   loadSalesByDayForGoalsRange,
+  merVsRails,
   parseGoalsYear,
   salesByMonthFromDayMap,
   spendByMonthMap,
@@ -135,19 +152,52 @@ function formatYoyPct(pct: number | null): string {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
+  const preset = parsePeriodPreset(url.searchParams.get("period"));
+  // y3 stays shot-only. L12M is a desk preset (PeriodControl) — do not redirect.
+  if (!shotMode && preset === "y3") {
+    const next = new URLSearchParams(url.searchParams);
+    next.set("period", "ytd");
+    throw redirect(`/app/goals?${next.toString()}`);
+  }
   const year = parseGoalsYear(url.searchParams.get("year"));
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
+  const periodRange = resolvePeriod(preset, new Date(), deskTz);
   const range = yearDateRange(year, deskTz);
   const priorYear = year - 1;
   const priorRange = yearDateRange(priorYear, deskTz);
 
   const thisYear = new Date().getFullYear();
+
+  // Same spend + sales spine as Overview for the selected PeriodControl window.
+  let periodSalesError: string | null = null;
+  let periodSales;
+  if (useSampleDesk) {
+    periodSales = await fetchSampleSales(shop.id, periodRange);
+  } else {
+    const desk = await loadDeskSalesForPeriod({
+      admin,
+      shopId: shop.id,
+      range: periodRange,
+      ianaTimezone: shop.ianaTimezone,
+    });
+    periodSales = desk.sales;
+    periodSalesError = desk.salesError;
+  }
+  const periodMetrics = await buildDashboardMetrics(
+    session.shop,
+    periodRange,
+    periodSales,
+    {
+      salesBasis: parseSalesBasis(settings.salesBasis, "total"),
+    },
+  );
+
   const [currentSales, priorSales] = await Promise.all([
     loadSalesByDayForGoalsRange(shop.id, deskTz, range, useSampleDesk),
     loadSalesByDayForGoalsRange(
@@ -159,7 +209,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   ]);
 
   const salesByDay = currentSales.salesByDay;
-  const salesError = currentSales.salesError;
+  const salesError = currentSales.salesError ?? periodSalesError;
   const salesByMonth = salesByMonthFromDayMap(year, salesByDay);
   const priorSalesByMonth = salesByMonthFromDayMap(
     priorYear,
@@ -194,11 +244,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     new Set([thisYear - 1, thisYear, thisYear + 1, year]),
   ).sort((a, b) => a - b);
 
+  const periodMerRails = merVsRails(
+    periodMetrics.mer,
+    board.targetMer,
+    board.breakEvenMer,
+  );
+  const periodSpendCeiling = impliedSpendCeiling(
+    periodMetrics.sales,
+    board.targetMer,
+  );
+
   return {
     board,
     periods,
     year,
     yearOptions,
+    preset,
+    periodMetrics,
+    periodMerRails,
+    periodSpendCeiling,
     shotMode,
     useSampleDesk,
     salesError,
@@ -413,6 +477,10 @@ export default function GoalsPage() {
     periods,
     year,
     yearOptions,
+    preset,
+    periodMetrics,
+    periodMerRails,
+    periodSpendCeiling,
     shotMode,
     useSampleDesk,
     salesError,
@@ -443,6 +511,7 @@ export default function GoalsPage() {
   );
   const monthsWithPrior = priorYearMonthly.filter((v) => v > 0).length;
   const noGoalsYet = board.rows.every((r) => !(r.salesGoal > 0));
+  const canUseYearBoard = entitlements.canUseAdvancedGoals;
 
   useEffect(() => {
     if (!actionData) return;
@@ -495,8 +564,12 @@ export default function GoalsPage() {
   const ytdTone = deltaTone(board.ytd.delta, board.ytd.goal);
   const forecast = board.forecast;
   const tillLabel = useSampleDesk
-    ? `${year}${PRODUCT_NOUN.practicePeriodSuffix}`
-    : `${year} · live sales`;
+    ? `${periodMetrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    : salesError ||
+        periodMetrics.blockedMockAsLive ||
+        periodMetrics.salesSource === "mock"
+      ? `${periodMetrics.period.label} · sales unavailable`
+      : `${periodMetrics.period.label} · live sales`;
 
   const onYearChange = (next: string) => {
     const params = new URLSearchParams(searchParams);
@@ -504,6 +577,13 @@ export default function GoalsPage() {
     if (shotMode) params.set("shot", "1");
     setSearchParams(params);
   };
+
+  const periodVsTarget =
+    periodMetrics.mer != null &&
+    Number.isFinite(periodMetrics.mer) &&
+    targetMer > 0
+      ? periodMetrics.mer - targetMer
+      : null;
 
   const pageHeading = shotMode ? undefined : "Goals";
 
@@ -521,6 +601,16 @@ export default function GoalsPage() {
           .join(" ")}
       >
         <div className="mcfly-goals__rail">
+          <header className="mcfly-topbar mcfly-goals__top">
+            <div>
+              <p className="mcfly-topbar__def mcfly-topbar__def--solo">
+                Set the year. Mcfly tracks sales, spend, and{" "}
+                {PRODUCT_NOUN.totalRoas} against it.
+              </p>
+            </div>
+            <PeriodControl preset={preset} shotMode={shotMode} />
+          </header>
+
           <div className="mcfly-ctx mcfly-goals__ctx" aria-live="polite">
             <div className="mcfly-ctx__main">
               <span className="mcfly-ctx__brand">Goals</span>
@@ -545,44 +635,53 @@ export default function GoalsPage() {
                   {PRODUCT_NOUN.samplePreview}
                 </span>
               ) : null}
-              {!goalsEnabled ? (
-                <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-                  Goals hidden · YoY only
-                </span>
-              ) : (
-                <span className={`mcfly-ctx-chip mcfly-ctx-chip--${ytdTone}`}>
-                  YTD{" "}
-                  {board.ytd.pct == null ? "—" : `${board.ytd.pct.toFixed(0)}%`} of
-                  goal
-                </span>
-              )}
-              <div className="mcfly-goals-year" aria-label="Plan year">
-                <label
-                  className="mcfly-goals-year__label"
-                  htmlFor={`${formId}-year`}
-                >
-                  Year
-                </label>
-                <select
-                  id={`${formId}-year`}
-                  className="mcfly-goals-year__select"
-                  value={year}
-                  onChange={(e) => onYearChange(e.target.value)}
-                >
-                  {yearOptions.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {canUseYearBoard ? (
+                !goalsEnabled ? (
+                  <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+                    Goals hidden · YoY only
+                  </span>
+                ) : (
+                  <span className={`mcfly-ctx-chip mcfly-ctx-chip--${ytdTone}`}>
+                    YTD{" "}
+                    {board.ytd.pct == null
+                      ? "—"
+                      : `${board.ytd.pct.toFixed(0)}%`}{" "}
+                    of goal
+                  </span>
+                )
+              ) : null}
+              {canUseYearBoard ? (
+                <div className="mcfly-goals-year" aria-label="Plan year">
+                  <label
+                    className="mcfly-goals-year__label"
+                    htmlFor={`${formId}-year`}
+                  >
+                    Year
+                  </label>
+                  <select
+                    id={`${formId}-year`}
+                    className="mcfly-goals-year__select"
+                    value={year}
+                    onChange={(e) => onYearChange(e.target.value)}
+                  >
+                    {yearOptions.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
             </div>
           </div>
           {!shotMode ? (
             <p className="mcfly-goals__lede">
-              Set the plan once — Grow YoY fills all months.{" "}
-              {PRODUCT_NOUN.totalRoas} stays on Overview ·{" "}
-              <s-link href="/app/settings">edit target</s-link>
+              Same sales ÷ spend as Overview for {periodMetrics.period.label}.{" "}
+              {canUseYearBoard
+                ? "Year board below sets the plan — Grow YoY fills all months."
+                : "Free tracks this period vs your Total ROAS goal."}{" "}
+              {PRODUCT_NOUN.totalRoas} target lives in{" "}
+              <s-link href="/app/settings">Settings</s-link>.
             </p>
           ) : null}
         </div>
@@ -611,15 +710,77 @@ export default function GoalsPage() {
         ) : null}
 
         <div className="mcfly-goals__main">
-          <SalesGoalGauges
-            periods={periods}
-            heading="MTD · QTD · YTD"
-            muted={`Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} · calendar tick = period elapsed`}
-            targetMer={board.targetMer}
-            breakEvenMer={board.breakEvenMer}
-          />
+          <section
+            className="mcfly-panel mcfly-goals-period"
+            aria-label={`This period · ${periodMetrics.period.label}`}
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>This period · {periodMetrics.period.label}</h2>
+              <p className="mcfly-panel__muted">
+                Same Shopify sales ÷ uploaded spend as Overview · vs{" "}
+                {PRODUCT_NOUN.totalRoasGoal} {formatMer(targetMer)}×
+              </p>
+            </div>
+            <div className="mcfly-acq-grid mcfly-goals-period__grid">
+              <div className="mcfly-acq-tile mcfly-acq-tile--cream">
+                <p className="mcfly-acq-tile__k">Sales</p>
+                <p className="mcfly-acq-tile__v">
+                  {formatCurrency(periodMetrics.sales)}
+                </p>
+                <p className="mcfly-acq-tile__def">{PRODUCT_NOUN.salesBasisShort}</p>
+              </div>
+              <div className="mcfly-acq-tile mcfly-acq-tile--cream">
+                <p className="mcfly-acq-tile__k">Spend</p>
+                <p className="mcfly-acq-tile__v">
+                  {formatCurrency(periodMetrics.totalSpend)}
+                </p>
+                <p className="mcfly-acq-tile__def">Uploaded ad spend · this period</p>
+              </div>
+              <div className="mcfly-acq-tile mcfly-acq-tile--mint">
+                <p className="mcfly-acq-tile__k">{PRODUCT_NOUN.totalRoas}</p>
+                <p className="mcfly-acq-tile__v">
+                  {periodMetrics.mer != null
+                    ? formatMer(periodMetrics.mer)
+                    : "—"}
+                </p>
+                <p className="mcfly-acq-tile__def">
+                  <span
+                    className={`mcfly-goals-pace mcfly-goals-pace--${periodMerRails.tone}`}
+                  >
+                    {periodMerRails.label !== "—"
+                      ? periodMerRails.label
+                      : periodVsTarget != null
+                        ? `${periodVsTarget >= 0 ? "+" : ""}${periodVsTarget.toFixed(2)}× vs target`
+                        : "Sales ÷ spend"}
+                  </span>
+                </p>
+              </div>
+              <div className="mcfly-acq-tile mcfly-acq-tile--sky">
+                <p className="mcfly-acq-tile__k">Spend ceiling</p>
+                <p className="mcfly-acq-tile__v">
+                  {periodSpendCeiling != null
+                    ? formatCurrency(periodSpendCeiling)
+                    : "—"}
+                </p>
+                <p className="mcfly-acq-tile__def">
+                  Period sales ÷ {PRODUCT_NOUN.totalRoasGoal}{" "}
+                  {formatMer(targetMer)}×
+                </p>
+              </div>
+            </div>
+          </section>
 
-          {!shotMode ? (
+          {canUseYearBoard ? (
+            <SalesGoalGauges
+              periods={periods}
+              heading="MTD · QTD · YTD"
+              muted={`Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} · calendar tick = period elapsed`}
+              targetMer={board.targetMer}
+              breakEvenMer={board.breakEvenMer}
+            />
+          ) : null}
+
+          {canUseYearBoard && !shotMode ? (
             <section
               className="mcfly-panel mcfly-goals-declare mcfly-goals-declare--compact"
               aria-label="Declare sales goals"
@@ -635,63 +796,73 @@ export default function GoalsPage() {
                 </p>
               </div>
 
-              {entitlements.canUseAdvancedGoals ? (
-                <div className="mcfly-goals-declare__row">
-                  <Form method="post" className="mcfly-goals-declare__primary">
-                    <input type="hidden" name="year" value={year} />
-                    <input type="hidden" name="intent" value="apply_yoy_grow" />
-                    <input type="hidden" name="yoyPct" value="10" />
-                    <s-button
-                      type="submit"
-                      variant="primary"
-                      {...(savingIntent === "apply_yoy_grow" ||
-                      savingIntent === "apply_yoy_10"
-                        ? { loading: true }
-                        : {})}
-                    >
-                      Grow 10% YoY
-                    </s-button>
-                  </Form>
-                  <div
-                    className="mcfly-goals-declare__presets"
-                    aria-label="Other growth rates"
+              <div className="mcfly-goals-declare__row">
+                <Form method="post" className="mcfly-goals-declare__primary">
+                  <input type="hidden" name="year" value={year} />
+                  <input type="hidden" name="intent" value="apply_yoy_grow" />
+                  <input type="hidden" name="yoyPct" value="10" />
+                  <s-button
+                    type="submit"
+                    variant="primary"
+                    {...(savingIntent === "apply_yoy_grow" ||
+                    savingIntent === "apply_yoy_10"
+                      ? { loading: true }
+                      : {})}
                   >
-                    {YOY_GROWTH_PRESETS.filter((p) => p !== 10).map((pct) => (
-                      <Form method="post" key={pct}>
-                        <input type="hidden" name="year" value={year} />
-                        <input
-                          type="hidden"
-                          name="intent"
-                          value="apply_yoy_grow"
-                        />
-                        <input type="hidden" name="yoyPct" value={pct} />
-                        <button
-                          type="submit"
-                          className="mcfly-goals-yoy-btn"
-                          disabled={isSaving}
-                        >
-                          +{pct}%
-                        </button>
-                      </Form>
-                    ))}
-                  </div>
+                    Grow 10% YoY
+                  </s-button>
+                </Form>
+                <div
+                  className="mcfly-goals-declare__presets"
+                  aria-label="Other growth rates"
+                >
+                  {YOY_GROWTH_PRESETS.filter((p) => p !== 10).map((pct) => (
+                    <Form method="post" key={pct}>
+                      <input type="hidden" name="year" value={year} />
+                      <input
+                        type="hidden"
+                        name="intent"
+                        value="apply_yoy_grow"
+                      />
+                      <input type="hidden" name="yoyPct" value={pct} />
+                      <button
+                        type="submit"
+                        className="mcfly-goals-yoy-btn"
+                        disabled={isSaving}
+                      >
+                        +{pct}%
+                      </button>
+                    </Form>
+                  ))}
                 </div>
+              </div>
+            </section>
+          ) : null}
+
+          {!canUseYearBoard && !shotMode ? (
+            <section
+              className="mcfly-panel mcfly-goals-year-teaser"
+              aria-label="Year board — Pro"
+            >
+              <div className="mcfly-panel__head mcfly-panel__head--tight">
+                <h2>Year board</h2>
+                <p className="mcfly-panel__muted">
+                  Monthly sales goals, spend, and {PRODUCT_NOUN.totalRoas} rails
+                  for the whole year
+                </p>
+              </div>
+              {entitlements.showProTeaser ? (
+                <p className="mcfly-panel__muted">
+                  Upgrade above, or switch to Practice at the top.
+                </p>
               ) : (
-                <div className="mcfly-decision__actions">
-                  {entitlements.showProTeaser ? (
-                    <p className="mcfly-panel__muted">
-                      Upgrade above, or switch to Practice at the top.
-                    </p>
-                  ) : (
-                    <UseSampleCta />
-                  )}
-                </div>
+                <UseSampleCta />
               )}
             </section>
           ) : null}
         </div>
 
-        {!shotMode ? (
+        {canUseYearBoard && !shotMode ? (
           <details open className="mcfly-details mcfly-goals-plan-details">
             <summary>Monthly board · fine-tune</summary>
 
@@ -797,6 +968,7 @@ export default function GoalsPage() {
                             <th scope="col">Goal</th>
                             <th scope="col">Actual</th>
                             <th scope="col">Spend</th>
+                            <th scope="col">Ceiling</th>
                             <th scope="col">MER</th>
                             <th scope="col">Prior</th>
                             <th scope="col">YoY</th>
@@ -812,13 +984,16 @@ export default function GoalsPage() {
                               inputId={`${formId}-g${row.month}`}
                               defaultValue={formatGoalInput(row.salesGoal)}
                               showGoalInput
+                              targetMer={board.targetMer}
                             />
                           ))}
                         </tbody>
                       </table>
                     </div>
                     <p className="mcfly-goals-form__hint">
-                      Dirty fields open the Admin save bar.{" "}
+                      Ceiling = sales goal ÷ {PRODUCT_NOUN.totalRoasGoal}{" "}
+                      {formatMer(board.targetMer)}×. Dirty fields open the Admin
+                      save bar.{" "}
                       <s-link href="/app">{PRODUCT_NOUN.deskTitle}</s-link>
                     </p>
                   </Form>
@@ -958,14 +1133,17 @@ function GoalRow({
   inputId,
   defaultValue,
   showGoalInput,
+  targetMer,
 }: {
   row: GoalMonthRow;
   priorActual: number;
   inputId: string;
   defaultValue: string;
   showGoalInput: boolean;
+  targetMer: number;
 }) {
   const hasGoal = row.salesGoal > 0;
+  const spendCeiling = impliedSpendCeiling(row.salesGoal, targetMer);
   const barPct =
     hasGoal && row.pct != null && Number.isFinite(row.pct)
       ? Math.min(100, Math.max(0, row.pct))
@@ -1020,6 +1198,9 @@ function GoalRow({
       ) : null}
       <td>{formatCurrency(row.actual)}</td>
       <SpendCell spend={row.spend} />
+      <td>
+        {spendCeiling != null ? formatCurrency(spendCeiling) : "—"}
+      </td>
       <MerCell mer={row.mer} spend={row.spend} merRails={row.merRails} />
       <td>{formatCurrency(priorActual)}</td>
       <td>{formatYoyPct(pct)}</td>
