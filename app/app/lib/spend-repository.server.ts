@@ -6,6 +6,7 @@ import {
   getShopEntitlements,
 } from "./entitlements.server";
 import { utcMidnightFromDayKey } from "./shop-local-day";
+import { slugCustomChannelName } from "./spend-custom-channel";
 
 /**
  * Rows per interactive transaction. With createMany + parallel updates and a
@@ -43,6 +44,8 @@ type PreparedSpendRow = {
   periodStart: Date;
   periodEnd: Date;
   source: string;
+  customKey: string;
+  note: string | null;
 };
 
 function mapChannel(channel: string): SpendChannel {
@@ -123,7 +126,7 @@ export async function assertSpendWriteAllowed(
     const blocked = [...new Set(channels.filter((ch) => !allowed.has(ch)))].sort();
     if (blocked.length === 0) return;
     throw new SpendChannelEntitlementError(
-      `Pro required for channel(s): ${blocked.join(", ")}. Free includes Meta, Google, and custom Other — named platforms need Pro.`,
+      `Pro required for channel(s): ${blocked.join(", ")}. Free includes Meta, Google, and named extras (billboards, radio, …) — named platforms need Pro.`,
     );
   }
 
@@ -155,31 +158,45 @@ export async function assertSpendWriteAllowed(
 }
 
 function prepareSpendRows(rows: SpendDay[]): PreparedSpendRow[] {
-  // Last write wins within the batch for the same shop/channel/day key.
+  // Last write wins within the batch for the same shop/channel/customKey/day key.
   const byKey = new Map<string, PreparedSpendRow>();
   for (const row of rows) {
     const channel = mapChannel(row.channel);
     const { start, end } = dayBounds(row.date);
     const source = normalizeSpendEntrySource(row.source);
-    byKey.set(`${channel}|${start.getTime()}`, {
+    const customKey =
+      channel === "other"
+        ? slugCustomChannelName(row.customKey || row.note || "")
+        : "";
+    const note =
+      channel === "other" && customKey
+        ? row.note?.trim() || customKey
+        : `sync:${source}`;
+    byKey.set(entryKey(channel, customKey, start), {
       channel,
       amount: row.amount,
       periodStart: start,
       periodEnd: end,
       source,
+      customKey,
+      note,
     });
   }
   return Array.from(byKey.values());
 }
 
-function entryKey(channel: SpendChannel, periodStart: Date): string {
-  return `${channel}|${periodStart.getTime()}`;
+function entryKey(
+  channel: SpendChannel,
+  customKey: string | null | undefined,
+  periodStart: Date,
+): string {
+  return `${channel}|${customKey ?? ""}|${periodStart.getTime()}`;
 }
 
 /**
  * One batch: single findMany for existing keys, then createMany for new rows
  * and parallel update only for changed rows. Preserves replace-on-reimport
- * (unique shopId+channel+periodStart; latest amount/source wins).
+ * (unique shopId+channel+customKey+periodStart; latest amount/source wins).
  */
 async function upsertSpendDaysBatch(
   shopId: string,
@@ -203,11 +220,17 @@ async function upsertSpendDaysBatch(
           channel: { in: channels },
           periodStart: { in: periodStarts },
         },
-        select: { amount: true, source: true, channel: true, periodStart: true },
+        select: {
+          amount: true,
+          source: true,
+          channel: true,
+          customKey: true,
+          periodStart: true,
+        },
       });
 
       const existingMap = new Map(
-        existing.map((e) => [entryKey(e.channel, e.periodStart), e]),
+        existing.map((e) => [entryKey(e.channel, e.customKey, e.periodStart), e]),
       );
 
       const toCreate: PreparedSpendRow[] = [];
@@ -215,7 +238,7 @@ async function upsertSpendDaysBatch(
       let skipped = 0;
 
       for (const row of prepared) {
-        const key = entryKey(row.channel, row.periodStart);
+        const key = entryKey(row.channel, row.customKey, row.periodStart);
         const prior = existingMap.get(key);
         // Skip only when amount AND source already match — otherwise a sample
         // row with the same dollars would stay sample after a CSV re-import.
@@ -239,10 +262,11 @@ async function upsertSpendDaysBatch(
           data: toCreate.map((row) => ({
             shopId,
             channel: row.channel,
+            customKey: row.customKey,
             amount: row.amount,
             periodStart: row.periodStart,
             periodEnd: row.periodEnd,
-            note: `sync:${row.source}`,
+            note: row.note,
             source: row.source,
           })),
         });
@@ -253,16 +277,17 @@ async function upsertSpendDaysBatch(
           toUpdate.map((row) =>
             tx.spendEntry.update({
               where: {
-                shopId_channel_periodStart: {
+                shopId_channel_customKey_periodStart: {
                   shopId,
                   channel: row.channel,
+                  customKey: row.customKey,
                   periodStart: row.periodStart,
                 },
               },
               data: {
                 amount: row.amount,
                 periodEnd: row.periodEnd,
-                note: `sync:${row.source}`,
+                note: row.note,
                 source: row.source,
               },
             }),
@@ -286,11 +311,11 @@ async function upsertSpendDaysBatch(
 
 /**
  * Prisma-backed SpendRepository for connector sync jobs + CSV/bill desk imports.
- * Upserts one SpendEntry per shop/channel/periodStart — latest write wins on
- * amount/periodEnd/note/source. Never sums duplicates.
+ * Upserts one SpendEntry per shop/channel/customKey/periodStart — latest write
+ * wins on amount/periodEnd/note/source. Never sums duplicates.
  *
  * Batches: findMany + createMany/update in chunks of SPEND_UPSERT_BATCH_SIZE.
- * Live writes fail-closed on Free when any channel is outside Meta + Google.
+ * Live writes fail-closed on Free when any channel is outside Meta + Google + extras.
  * All-sample batches skip the gate (SAMPLE desk).
  */
 export function createSpendRepository(): SpendRepository & {
@@ -359,11 +384,17 @@ export async function previewSpendUpsert(
       channel: { in: channels },
       periodStart: { in: periodStarts },
     },
-    select: { amount: true, source: true, channel: true, periodStart: true },
+    select: {
+      amount: true,
+      source: true,
+      channel: true,
+      customKey: true,
+      periodStart: true,
+    },
   });
 
   const existingMap = new Map(
-    existing.map((e) => [entryKey(e.channel, e.periodStart), e]),
+    existing.map((e) => [entryKey(e.channel, e.customKey, e.periodStart), e]),
   );
 
   let created = 0;
@@ -371,7 +402,7 @@ export async function previewSpendUpsert(
   let skipped = 0;
 
   for (const row of prepared) {
-    const key = entryKey(row.channel, row.periodStart);
+    const key = entryKey(row.channel, row.customKey, row.periodStart);
     const prior = existingMap.get(key);
     if (
       prior &&

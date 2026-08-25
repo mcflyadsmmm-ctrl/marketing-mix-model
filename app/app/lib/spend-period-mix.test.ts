@@ -78,4 +78,17 @@ describe("spendPeriodMix", () => {
   it("returns an empty list when there are no entries", () => {
     expect(spendPeriodMix([])).toEqual([]);
   });
+
+  it("keeps named extras as separate mix rows instead of one Other bucket", () => {
+    const mix = spendPeriodMix([
+      { channel: "meta", amount: 100 },
+      { channel: "Billboards / OOH", amount: 80 },
+      { channel: "Radio", amount: 20 },
+    ]);
+    expect(mix).toEqual([
+      { channel: "meta", amount: 100, share: 0.5 },
+      { channel: "Billboards / OOH", amount: 80, share: 0.4 },
+      { channel: "Radio", amount: 20, share: 0.1 },
+    ]);
+  });
 });

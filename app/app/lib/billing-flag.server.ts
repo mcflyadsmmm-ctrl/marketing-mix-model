@@ -49,9 +49,9 @@ export function billingStatusCopy(billingEnabled: boolean): {
   if (!billingEnabled) {
     return {
       tier: "free",
-      headline: "Free · Meta + Google + custom Other",
+      headline: "Free · Meta + Google + named extras",
       detail:
-        "Free desk: Meta + Google + custom Other (name it), Total ROAS, break-even. Pro ($39/store/mo flat) adds TikTok/Amazon and other named platforms, Customer LTV, and advanced Goals. Upgrade is temporarily unavailable on this host.",
+        "Free desk: Meta + Google + named extras (billboards, radio, typed channels), Total ROAS, break-even. Pro ($39/store/mo flat) adds TikTok/Amazon and other named platforms, Customer LTV, and advanced Goals. Upgrade is temporarily unavailable on this host.",
     };
   }
   return {

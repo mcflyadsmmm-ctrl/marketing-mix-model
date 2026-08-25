@@ -9,7 +9,7 @@
 
 | | **Free** | **Pro ($39 flat / store / mo)** |
 | --- | --- | --- |
-| Spend channels | Meta + Google + custom Other (CSV) | All named platforms |
+| Spend channels | Meta + Google + named extras (billboards, radio, typed) | All named platforms |
 | Core desk | Total Sales ÷ spend, break-even, Allocation | Same + richer mix |
 | LTV | Teaser / SAMPLE | Live opaque cohorts |
 | Goals | Pace + Share Overview | Full-year board + YoY |

@@ -632,7 +632,8 @@ export default function SettingsPage() {
                       style={{ marginTop: "0.75rem" }}
                     >
                       Pro upgrade opens when Shopify App Pricing is enabled for
-                      this app. Free desk stays Meta + Google + custom Other.
+                      this app. Free desk stays Meta + Google + named extras
+                      (billboards, radio, …).
                     </p>
                   )
                 ) : (

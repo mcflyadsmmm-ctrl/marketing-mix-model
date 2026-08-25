@@ -4,6 +4,11 @@
 
 import type { SpendChannel } from "@mcfly/mer-engine";
 import { SPEND_CHANNELS, SPEND_CHANNEL_LABELS } from "@mcfly/mer-engine";
+import {
+  MAX_CUSTOM_SPEND_CHANNELS,
+  customChannelFromLabel,
+  normalizeCustomChannelList,
+} from "./spend-custom-channel";
 
 export type CsvChannel = SpendChannel;
 
@@ -16,6 +21,13 @@ export interface ParsedSpendRow {
   rawChannel: string;
   /** Spend amount in the shop currency (>= 0). */
   amount: number;
+  /**
+   * SpendEntry.customKey for `other` extras (billboards, radio, …).
+   * Empty / omitted = unlabeled Other or a named digital channel.
+   */
+  customKey?: string;
+  /** Merchant-facing extra name when customKey is set. */
+  customLabel?: string;
 }
 
 export interface CsvParseResult {
@@ -245,7 +257,7 @@ export const WIDE_TEMPLATE_COLUMNS: ReadonlyArray<{
   {
     header: "Other",
     channel: "other",
-    help: "Influencers, podcasts, agencies, print, Criteo, and anything else paid to advertise.",
+    help: "Influencers, podcasts, agencies, print — or add named extra columns (Billboards, Radio, …).",
   },
 ];
 
@@ -404,9 +416,12 @@ export function buildBlankSpendTemplateForDates(
 
 /** Platform column for a selected-platform demo / downloadable CSV. */
 export interface SelectedPlatformTemplateCol {
-  /** Checkbox / UI title (unused in headers — engineChannel maps to WIDE header). */
+  /** Checkbox / UI title. */
   title: string;
   engineChannel: SpendChannel;
+  /** Unique CSV header — required for multiple `other` extras. */
+  header?: string;
+  customKey?: string;
 }
 
 export interface SelectedPlatformTemplateCsv {
@@ -430,7 +445,8 @@ function formatLocalYmd(d: Date): string {
 
 /**
  * Build a Day + selected-platform-columns CSV.
- * Headers use WIDE_TEMPLATE labels for each unique engineChannel (selection order).
+ * Headers use WIDE_TEMPLATE labels for named engines, or `header` for extras
+ * so Billboards and Radio can both live in `other` without collapsing.
  * Seven trailing local days ending on `now` (default today).
  * `example` defaults true (sample amounts) for back-compat; `example:false` leaves amounts empty.
  */
@@ -444,15 +460,16 @@ export function buildSelectedPlatformTemplateCsv(
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const headers: string[] = ["Day"];
-  const seenChannels = new Set<SpendChannel>();
+  const seenHeaders = new Set<string>();
   for (const platform of platforms) {
-    if (seenChannels.has(platform.engineChannel)) continue;
-    seenChannels.add(platform.engineChannel);
-    headers.push(
-      WIDE_HEADER_BY_CHANNEL.get(platform.engineChannel) ??
-        SPEND_CHANNEL_LABELS[platform.engineChannel] ??
-        platform.title,
-    );
+    const header =
+      platform.header?.trim() ||
+      WIDE_HEADER_BY_CHANNEL.get(platform.engineChannel) ||
+      SPEND_CHANNEL_LABELS[platform.engineChannel] ||
+      platform.title;
+    if (!header || seenHeaders.has(header)) continue;
+    seenHeaders.add(header);
+    headers.push(header);
   }
 
   const channelColCount = headers.length - 1;
@@ -555,6 +572,24 @@ export function platformsToTemplateCols(
     title: SPEND_CHANNEL_LABELS[engineChannel] ?? engineChannel,
     engineChannel,
   }));
+}
+
+/** Named extras → unique Other columns (Billboards, Radio, …). */
+export function customNamesToTemplateCols(
+  names: readonly string[],
+): SelectedPlatformTemplateCol[] {
+  return normalizeCustomChannelList(names).flatMap((customLabel) => {
+    const parsed = customChannelFromLabel(customLabel);
+    if (!parsed) return [];
+    return [
+      {
+        title: parsed.customLabel,
+        engineChannel: "other" as const,
+        header: parsed.customLabel,
+        customKey: parsed.customKey,
+      },
+    ];
+  });
 }
 
 export interface GroupedCsvError {
@@ -1037,19 +1072,69 @@ export function headerLooksLikeAdsSpend(normalizedHeader: string): boolean {
 }
 
 /** Wide spine: one row per day with named platform columns. */
+function attachOtherCustom(
+  engine: CsvChannel,
+  raw: string,
+): Pick<ParsedSpendRow, "customKey" | "customLabel"> {
+  if (engine !== "other") return {};
+  const parsed = customChannelFromLabel(raw);
+  if (!parsed) return {};
+  return { customKey: parsed.customKey, customLabel: parsed.customLabel };
+}
+
+function isGenericOtherHeader(normalized: string): boolean {
+  return (
+    normalized === "other" ||
+    normalized.includes("other ads") ||
+    normalized.includes("other spend")
+  );
+}
+
+/** Campaign / account dimensions — never treat as a spend column. */
+function isNonSpendDimensionHeader(header: string): boolean {
+  const h = normalizeHeader(header);
+  if (!h) return false;
+  return (
+    h.includes("campaign") ||
+    h.includes("ad set") ||
+    h.includes("adset") ||
+    h.includes("ad name") ||
+    h.includes("ad group") ||
+    h.includes("account id") ||
+    h.includes("account name") ||
+    h === "account" ||
+    h === "currency" ||
+    h === "status" ||
+    h === "notes" ||
+    h === "note" ||
+    h === "comment" ||
+    h === "comments" ||
+    h === "description" ||
+    h.includes("advertiser")
+  );
+}
+
 export interface WideChannelCol {
   index: number;
   channel: CsvChannel;
   rawHeader: string;
+  customKey?: string;
+  customLabel?: string;
 }
 
 /** Detect wide platform spend columns (Ablestar-grade: ignore metric headers). */
 export function detectWideChannelColumns(headers: string[]): WideChannelCol[] {
-  return mapWideChannelCols(headers);
+  return mapWideChannelCols(headers, {
+    promoteUnknown: findAmountColumn(headers) === -1,
+  });
 }
 
-function mapWideChannelCols(headers: string[]): WideChannelCol[] {
+function mapWideChannelCols(
+  headers: string[],
+  options?: { promoteUnknown?: boolean },
+): WideChannelCol[] {
   const out: WideChannelCol[] = [];
+  const used = new Set<number>();
   for (let i = 0; i < headers.length; i++) {
     const raw = headers[i].trim();
     const h = normalizeHeader(raw);
@@ -1094,12 +1179,42 @@ function mapWideChannelCols(headers: string[]): WideChannelCol[] {
       h.includes("criteo") ||
       h.includes("adroll") ||
       headerLooksLikeAdsSpend(h) ||
-      h === "other" ||
-      h.includes("other ads") ||
-      h.includes("other spend")
+      isGenericOtherHeader(h)
     ) {
-      out.push({ index: i, channel: normalizeChannel(h), rawHeader: raw });
+      const channel = normalizeChannel(h);
+      const extra = attachOtherCustom(channel, raw);
+      out.push({
+        index: i,
+        channel,
+        rawHeader: raw,
+        ...extra,
+      });
+      used.add(i);
     }
+  }
+
+  if (!options?.promoteUnknown) return out;
+
+  let extras = out.filter((col) => Boolean(col.customKey)).length;
+  for (let i = 0; i < headers.length; i++) {
+    if (extras >= MAX_CUSTOM_SPEND_CHANNELS) break;
+    if (used.has(i)) continue;
+    const raw = headers[i].trim();
+    const h = normalizeHeader(raw);
+    if (!h) continue;
+    if (isDateLikeHeader(raw) || isAmountLikeHeader(raw)) continue;
+    if (isBlockedMetricHeader(raw)) continue;
+    if (isNonSpendDimensionHeader(raw)) continue;
+    const parsed = customChannelFromLabel(raw);
+    if (!parsed) continue;
+    out.push({
+      index: i,
+      channel: "other",
+      rawHeader: raw,
+      customKey: parsed.customKey,
+      customLabel: parsed.customLabel,
+    });
+    extras += 1;
   }
   return out;
 }
@@ -1154,6 +1269,7 @@ function parseLongSpendCsv(
       channel: normalizeChannel(rawChannel),
       rawChannel: rawChannel.trim(),
       amount,
+      ...attachOtherCustom(normalizeChannel(rawChannel), rawChannel),
     });
   }
 
@@ -1259,6 +1375,9 @@ function parseWideSpendCsv(
         channel: col.channel,
         rawChannel: col.rawHeader,
         amount,
+        ...(col.customKey
+          ? { customKey: col.customKey, customLabel: col.customLabel ?? col.rawHeader }
+          : attachOtherCustom(col.channel, col.rawHeader)),
       });
     }
   }
@@ -1304,7 +1423,7 @@ export function parseSpendCsv(
   const dateCol = findDateColumn(headers);
   const channelCol = findColumn(headers, HEADER_SYNONYMS.channel);
   const amountCol = findAmountColumn(headers);
-  const wideCols = mapWideChannelCols(headers);
+  const wideCols = detectWideChannelColumns(headers);
 
   if (dateCol === -1) {
     return {
@@ -1438,19 +1557,30 @@ export interface AggregatedSpendDay {
   date: string;
   channel: CsvChannel;
   amount: number;
+  customKey?: string;
+  customLabel?: string;
 }
 
-/** Sum multiple rows that share the same day + channel into one entry.
- * Round to cents after aggregation to avoid IEEE float drift (e.g. 0.1×N). */
+/** Sum multiple rows that share the same day + channel + custom extra. */
 export function aggregateSpendRows(rows: ParsedSpendRow[]): AggregatedSpendDay[] {
   const map = new Map<string, AggregatedSpendDay>();
   for (const row of rows) {
-    const key = `${row.date}|${row.channel}`;
+    const customKey = row.customKey ?? "";
+    const key = `${row.date}|${row.channel}|${customKey}`;
     const existing = map.get(key);
     if (existing) {
       existing.amount += row.amount;
     } else {
-      map.set(key, { date: row.date, channel: row.channel, amount: row.amount });
+      const next: AggregatedSpendDay = {
+        date: row.date,
+        channel: row.channel,
+        amount: row.amount,
+      };
+      if (customKey) {
+        next.customKey = customKey;
+        next.customLabel = row.customLabel ?? row.rawChannel;
+      }
+      map.set(key, next);
     }
   }
   return Array.from(map.values())
@@ -1460,7 +1590,8 @@ export function aggregateSpendRows(rows: ParsedSpendRow[]): AggregatedSpendDay[]
     }))
     .sort((a, b) =>
       a.date === b.date
-        ? a.channel.localeCompare(b.channel)
+        ? a.channel.localeCompare(b.channel) ||
+          (a.customKey ?? "").localeCompare(b.customKey ?? "")
         : a.date.localeCompare(b.date),
     );
 }

@@ -140,7 +140,7 @@ export function assertChannelsAllowed(
   }
   if (blocked.size === 0) return null;
   const list = [...blocked].sort().join(", ");
-  return `Pro required for channel(s): ${list}. Free includes Meta, Google, and custom Other — named platforms need Pro (${PRO_UPSELL.short}).`;
+  return `Pro required for channel(s): ${list}. Free includes Meta, Google, and named extras (billboards, radio, …) — named platforms need Pro (${PRO_UPSELL.short}).`;
 }
 
 /**

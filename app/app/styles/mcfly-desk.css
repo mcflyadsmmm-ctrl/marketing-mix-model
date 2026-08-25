@@ -9739,6 +9739,89 @@
   border-radius: 4px;
 }
 
+.mcfly-spend-lean__extras {
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed var(--mcfly-line-soft, #e2e8f0);
+}
+
+.mcfly-spend-lean__extras-k {
+  margin: 0 0 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-spend-lean__preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+}
+
+.mcfly-spend-lean__preset-row .mcfly-spend-lean__channel {
+  min-width: 9.5rem;
+}
+
+.mcfly-spend-lean__custom-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+}
+
+.mcfly-spend-lean__custom-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--mcfly-line-soft, #e2e8f0);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--mcfly-ink, #0f172a);
+  background: #f8fafc;
+}
+
+.mcfly-spend-lean__chip-remove {
+  border: 0;
+  background: transparent;
+  color: var(--mcfly-mute, #64748b);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.1rem;
+}
+
+.mcfly-spend-lean__custom-add {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.mcfly-spend-lean__custom-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--mcfly-line-soft, #e2e8f0);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.mcfly-spend-lean__custom-btn {
+  flex-shrink: 0;
+  border: 1px solid var(--mcfly-line-soft, #e2e8f0);
+  border-radius: 6px;
+  background: #fff;
+  padding: 0.35rem 0.65rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  color: var(--mcfly-ink, #0f172a);
+}
+
 .mcfly-spend-lean__pro-note {
   margin: 0.4rem 0 0;
   font-size: 0.78rem;

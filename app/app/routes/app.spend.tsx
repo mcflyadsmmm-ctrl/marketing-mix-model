@@ -23,6 +23,17 @@ import {
 } from "../lib/mer-trust";
 import { spendPeriodMix } from "../lib/spend-period-mix";
 import {
+  CUSTOM_CHANNEL_PRESETS,
+  MAX_CUSTOM_SPEND_CHANNELS,
+  addTypedCustomChannel,
+  customListHasPreset,
+  normalizeCustomChannelList,
+  serializeCustomChannelsParam,
+  slugCustomChannelName,
+  toggleCustomPreset,
+} from "../lib/spend-custom-channel";
+import {
+  customNamesToTemplateCols,
   aggregateSpendRows,
   combineSpendCsvInputs,
   parseSpendCsv,
@@ -86,6 +97,8 @@ const SAMPLE_DESK_IMPORT_BLOCK =
   "Sample is on — practice numbers are already loaded. Switch to Your store at the top, then upload your CSV.";
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
 const PLATFORM_STORAGE_KEY = "mcfly-spend-platforms";
+/** JSON array of merchant-typed extra channel names (billboards, radio, …). */
+const CUSTOM_STORAGE_KEY = "mcfly-spend-custom-channels";
 /** First-visit default — Free path is Meta + Google. */
 const DEFAULT_PLATFORM_IDS: SpendAdvertisePlatformId[] = ["meta", "google"];
 
@@ -137,9 +150,27 @@ function formatSpendEntryChannelLabel(
   const base =
     SPEND_CHANNEL_LABELS[channel as SpendChannel] ?? channel;
   if (channel === "other" && note?.trim()) {
-    return `Other · ${note.trim()}`;
+    return note.trim();
   }
   return base;
+}
+
+function mixChannelId(entry: {
+  channel: string;
+  customKey?: string | null;
+  note?: string | null;
+}): string {
+  if (entry.channel !== "other") return entry.channel;
+  if (entry.note?.trim()) return entry.note.trim();
+  if (entry.customKey?.trim()) return entry.customKey.trim();
+  return "other";
+}
+
+/** Color-dot class: named extras share the Other token (ids can have spaces). */
+function spendMixDotChannel(channel: string): string {
+  return (SPEND_CHANNELS as readonly string[]).includes(channel)
+    ? channel
+    : "other";
 }
 
 const CUSTOM_CHANNEL_NAME_ERROR =
@@ -308,7 +339,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         periodStart: { lte: range.end },
         periodEnd: { gte: range.start },
       },
-      select: { amount: true, channel: true },
+      select: { amount: true, channel: true, customKey: true, note: true },
     }),
     getSpendPeriodCoverage(shop.id, range, {
       excludeSample: !sampleDesk.enabled,
@@ -317,7 +348,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }),
   ]);
   const periodSpendTotal = periodSpend.reduce((s, e) => s + e.amount, 0);
-  const periodSpendMix = spendPeriodMix(periodSpend);
+  const periodSpendMix = spendPeriodMix(
+    periodSpend.map((e) => ({
+      channel: mixChannelId(e),
+      amount: e.amount,
+    })),
+  );
   const declaredMatches =
     settings?.declaredAdsSpendPeriodStart &&
     settings?.declaredAdsSpendPeriodEnd &&
@@ -442,6 +478,8 @@ async function persistAggregatedSpend(
     amount: row.amount,
     currency: "USD",
     source: "csv" as const,
+    customKey: row.customKey,
+    note: row.customLabel,
   }));
 
   const dates = aggregated.map((r) => r.date).sort();
@@ -679,23 +717,10 @@ async function handleBillDaily(
       amount: day.amount,
       currency: "USD",
       source: "csv" as const,
+      customKey: channel === "other" ? customName : "",
+      note: channel === "other" ? customName : undefined,
     })),
   );
-
-  if (channel === "other" && customName) {
-    const periodStarts = plan.days.map((day) => {
-      const [y, m, d] = day.date.split("-").map(Number);
-      return new Date(Date.UTC(y, m - 1, d));
-    });
-    await prisma.spendEntry.updateMany({
-      where: {
-        shopId,
-        channel: "other",
-        periodStart: { in: periodStarts },
-      },
-      data: { note: customName },
-    });
-  }
 
   return {
     error: null,
@@ -727,11 +752,28 @@ function readStoredPlatforms(): SpendAdvertisePlatformId[] {
     if (!Array.isArray(parsed)) return [...DEFAULT_PLATFORM_IDS];
     const ids = parsed.filter(
       (id): id is SpendAdvertisePlatformId =>
-        typeof id === "string" && isAdvertisePlatformId(id),
+        typeof id === "string" &&
+        isAdvertisePlatformId(id) &&
+        id !== "other",
     );
     return ids.length > 0 ? ids : [...DEFAULT_PLATFORM_IDS];
   } catch {
     return [...DEFAULT_PLATFORM_IDS];
+  }
+}
+
+function readStoredCustomChannels(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(CUSTOM_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return normalizeCustomChannelList(
+      parsed.filter((name): name is string => typeof name === "string"),
+    );
+  } catch {
+    return [];
   }
 }
 
@@ -820,19 +862,23 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
   }
 
   const range = resolvePeriod(period, new Date(), shop.ianaTimezone);
-  // Upsert on shopId+channel+periodStart (SpendEntry_shopId_channel_periodStart_key) —
-  // re-saving the same channel/period updates that line rather than creating a duplicate.
+  // Upsert on shopId+channel+customKey+periodStart —
+  // re-saving the same extra/period updates that line rather than creating a duplicate.
+  const customKey =
+    channel === "other" ? slugCustomChannelName(note ?? "") : "";
   await prisma.spendEntry.upsert({
     where: {
-      shopId_channel_periodStart: {
+      shopId_channel_customKey_periodStart: {
         shopId: shop.id,
         channel: channel as CsvChannel,
+        customKey,
         periodStart: range.start,
       },
     },
     create: {
       shopId: shop.id,
       channel: channel as CsvChannel,
+      customKey,
       amount,
       periodStart: range.start,
       periodEnd: range.end,
@@ -980,6 +1026,9 @@ export default function SpendEntryPage() {
   const [confirmReplace, setConfirmReplace] = useState(false);
   /** Default open so channel pick is obvious; still collapsible. */
   const [channelsOpen, setChannelsOpen] = useState(true);
+  const [customChannelNames, setCustomChannelNames] = useState<string[]>([]);
+  const [customDraft, setCustomDraft] = useState("");
+  const [customError, setCustomError] = useState<string | null>(null);
   const [billAmount, setBillAmount] = useState("");
   const [billPeriodType, setBillPeriodType] =
     useState<PeriodWindowType>("month");
@@ -998,6 +1047,7 @@ export default function SpendEntryPage() {
   const selectablePlatforms = useMemo(
     () =>
       SPEND_ADVERTISE_PLATFORMS.filter((p) => {
+        if (p.id === "other") return false;
         if (entitlements.canUseAllChannels) return true;
         return entitlements.allowedChannels.includes(p.engineChannel);
       }),
@@ -1019,6 +1069,7 @@ export default function SpendEntryPage() {
       );
     }
     setPlatformsHydrated(true);
+    setCustomChannelNames(readStoredCustomChannels());
   }, [entitlements.allowedChannels, entitlements.canUseAllChannels]);
 
   useEffect(() => {
@@ -1086,10 +1137,14 @@ export default function SpendEntryPage() {
         PLATFORM_STORAGE_KEY,
         JSON.stringify(selectedPlatformIds),
       );
+      window.localStorage.setItem(
+        CUSTOM_STORAGE_KEY,
+        JSON.stringify(customChannelNames),
+      );
     } catch {
       // private mode / quota — selection still works in-session
     }
-  }, [selectedPlatformIds, platformsHydrated]);
+  }, [selectedPlatformIds, customChannelNames, platformsHydrated]);
 
   const selectedPlatforms = useMemo(
     () => filterAdvertisePlatforms(selectedPlatformIds),
@@ -1097,25 +1152,30 @@ export default function SpendEntryPage() {
   );
 
   const selectedSummaryLabel = useMemo(
-    () =>
-      selectedPlatforms.length > 0
-        ? selectedPlatforms
-            .map((p) => advertiseChannelShortLabel(p.engineChannel))
-            .join(", ")
-        : "Select advertise platforms",
-    [selectedPlatforms],
+    () => {
+      const named = selectedPlatforms.map((p) =>
+        advertiseChannelShortLabel(p.engineChannel),
+      );
+      const extras = customChannelNames;
+      const all = [...named, ...extras];
+      return all.length > 0 ? all.join(", ") : "Select advertise platforms";
+    },
+    [selectedPlatforms, customChannelNames],
   );
 
   const selectedTemplate = useMemo(
     () =>
       buildSelectedPlatformTemplateCsv(
-        selectedPlatforms.map((p) => ({
-          title: p.title,
-          engineChannel: p.engineChannel,
-        })),
+        [
+          ...selectedPlatforms.map((p) => ({
+            title: p.title,
+            engineChannel: p.engineChannel,
+          })),
+          ...customNamesToTemplateCols(customChannelNames),
+        ],
         { example: true, dayCount: 2 },
       ),
-    [selectedPlatforms],
+    [selectedPlatforms, customChannelNames],
   );
 
   const selectedChannels = useMemo(() => {
@@ -1130,16 +1190,41 @@ export default function SpendEntryPage() {
   }, [selectedPlatforms]);
 
   const selectedPlatformsQuery = useMemo(() => {
-    if (selectedChannels.length === 0) return "meta,google";
+    if (selectedChannels.length === 0 && customChannelNames.length === 0) {
+      return "meta,google";
+    }
     return selectedChannels.join(",");
-  }, [selectedChannels]);
+  }, [selectedChannels, customChannelNames]);
 
-  const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1`;
+  const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1${
+    customChannelNames.length > 0
+      ? `&custom=${encodeURIComponent(serializeCustomChannelsParam(customChannelNames))}`
+      : ""
+  }`;
 
   function togglePlatform(id: SpendAdvertisePlatformId) {
     if (!isPlatformSelectable(id)) return;
     setSelectedPlatformIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
+  function onToggleCustomPreset(label: string) {
+    setCustomError(null);
+    setCustomChannelNames((prev) => toggleCustomPreset(prev, label));
+  }
+
+  function onAddTypedCustomChannel() {
+    const result = addTypedCustomChannel(customChannelNames, customDraft);
+    setCustomChannelNames(result.names);
+    setCustomError(result.error);
+    if (!result.error) setCustomDraft("");
+  }
+
+  function onRemoveCustomChannel(label: string) {
+    setCustomError(null);
+    setCustomChannelNames((prev) =>
+      normalizeCustomChannelList(prev.filter((name) => name !== label)),
     );
   }
 
@@ -1360,7 +1445,7 @@ export default function SpendEntryPage() {
                       key={row.channel}
                     >
                       <span
-                        className={`mcfly-spend-dot mcfly-spend-dot--${row.channel}`}
+                        className={`mcfly-spend-dot mcfly-spend-dot--${spendMixDotChannel(row.channel)}`}
                         aria-hidden="true"
                       />
                       <span className="mcfly-kpi-channels__name">
@@ -1411,7 +1496,8 @@ export default function SpendEntryPage() {
               aria-label="Advertising channels"
             >
               <p className="mcfly-spend-lean__channels-hint">
-                Pick where you advertise — template columns follow
+                Pick where you advertise — template columns follow. Add
+                billboards, radio, or any channel we did not list.
               </p>
               {selectablePlatforms.map((platform) => {
                 const checked = selectedPlatformIds.includes(platform.id);
@@ -1432,6 +1518,104 @@ export default function SpendEntryPage() {
                   </label>
                 );
               })}
+              <div className="mcfly-spend-lean__extras">
+                <p className="mcfly-spend-lean__extras-k">
+                  Offline and other channels
+                </p>
+                <p className="mcfly-spend-lean__channels-hint">
+                  Each name becomes its own template column. You can add more
+                  than one.
+                </p>
+                <div className="mcfly-spend-lean__preset-row">
+                  {CUSTOM_CHANNEL_PRESETS.map((preset) => {
+                    const checked = customListHasPreset(
+                      customChannelNames,
+                      preset.label,
+                    );
+                    return (
+                      <label
+                        key={preset.id}
+                        className="mcfly-spend-lean__channel"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => onToggleCustomPreset(preset.label)}
+                          disabled={!platformsHydrated}
+                        />
+                        <span>{preset.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {customChannelNames.filter(
+                  (name) =>
+                    !CUSTOM_CHANNEL_PRESETS.some((preset) =>
+                      customListHasPreset([name], preset.label),
+                    ),
+                ).length > 0 ? (
+                  <ul className="mcfly-spend-lean__custom-chips">
+                    {customChannelNames
+                      .filter(
+                        (name) =>
+                          !CUSTOM_CHANNEL_PRESETS.some((preset) =>
+                            customListHasPreset([name], preset.label),
+                          ),
+                      )
+                      .map((name) => (
+                        <li key={name}>
+                          <span>{name}</span>
+                          <button
+                            type="button"
+                            className="mcfly-spend-lean__chip-remove"
+                            onClick={() => onRemoveCustomChannel(name)}
+                            aria-label={`Remove ${name}`}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                  </ul>
+                ) : null}
+                <div className="mcfly-spend-lean__custom-add">
+                  <input
+                    className="mcfly-spend-lean__custom-input"
+                    value={customDraft}
+                    onChange={(e) => {
+                      setCustomDraft(e.target.value);
+                      if (customError) setCustomError(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        onAddTypedCustomChannel();
+                      }
+                    }}
+                    placeholder="Type another (trade show, sponsorship…)"
+                    maxLength={48}
+                    aria-label="Name another advertising channel"
+                    disabled={!platformsHydrated}
+                  />
+                  <button
+                    type="button"
+                    className="mcfly-spend-lean__custom-btn"
+                    onClick={onAddTypedCustomChannel}
+                    disabled={!platformsHydrated}
+                  >
+                    Add
+                  </button>
+                </div>
+                {customError ? (
+                  <p className="mcfly-spend-lean__upload-error" role="alert">
+                    {customError}
+                  </p>
+                ) : (
+                  <p className="mcfly-spend-lean__channels-hint">
+                    Up to {MAX_CUSTOM_SPEND_CHANNELS} named extras on Free and
+                    Pro.
+                  </p>
+                )}
+              </div>
               {entitlements.showProTeaser ? (
                 <div className="mcfly-spend-lean__pro-note">
                   <ProUpsellBlock
@@ -1713,7 +1897,8 @@ export default function SpendEntryPage() {
             {sampleDesk.enabled ? null : (
             <p className="mcfly-spend-lean__status-foot">
               Backdate to {spendHistoryFloorKey} ({spendHistoryYearsBack} years) —
-              same window as Shopify sales. Same day + channel replaces.
+              same window as Shopify sales. Same day + channel or named extra
+              replaces.
             </p>
             )}
           </div>
