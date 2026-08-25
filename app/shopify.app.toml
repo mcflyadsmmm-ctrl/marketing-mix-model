@@ -49,4 +49,4 @@ redirect_urls = [
 ]
 
 [app_preferences]
-url = "https://mcflyads.com/support"
+url = "https://mcfly-analytics.fly.dev/support"

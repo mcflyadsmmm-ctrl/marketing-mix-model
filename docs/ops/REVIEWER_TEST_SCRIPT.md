@@ -1,7 +1,7 @@
 # App Store reviewer test script — Mcfly Analytics (cold path)
 
-**Paste into Partner App Store “testing instructions.”** Reviewer has never seen the product.  
-**Listing Pricing:** Free · **Religion:** Total ROAS = sales ÷ spend — no pixels.  
+**Do not paste this file into Partner.** Live 4.5.4 paste is [`PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md).  
+**Listing Pricing:** Shopify App Pricing **Free + Pro $39**. **Religion:** Total ROAS = sales ÷ spend — no pixels.  
 **No Monday Close / no Meta–Google OAuth** — spend is CSV; Share Overview is mailto on Home.
 
 ---
@@ -73,5 +73,5 @@
 
 ## Support
 
-Privacy / PCD: Level 1 — opaque customer ids + order counts as needed; see https://mcflyads.com/privacy  
-Human: https://mcflyads.com/support  
+Privacy / PCD: Level 1 — opaque customer ids + order counts as needed; see https://mcfly-analytics.fly.dev/privacy  
+Human: https://mcfly-analytics.fly.dev/support  

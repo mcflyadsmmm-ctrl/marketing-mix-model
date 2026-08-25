@@ -8,19 +8,22 @@ import {
   useLoaderData,
 } from "react-router";
 
+import { isPublicOriginPath } from "./lib/public-origin";
+
 /**
  * App Bridge + api-key meta only for embedded / auth surfaces.
- * Bare Fly landing (`/`) must NOT load App Bridge — it breaks Product site /
- * Support clicks and layout when the origin is opened outside Admin.
+ * Bare Fly origin (`/`, Support, Privacy, Terms, Pricing) must NOT load App
+ * Bridge — it breaks listing trust-URL clicks outside Admin.
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const path = url.pathname;
   const loadAppBridge =
-    path === "/app" ||
-    path.startsWith("/app/") ||
-    path.startsWith("/auth") ||
-    Boolean(url.searchParams.get("shop") || url.searchParams.get("host"));
+    !isPublicOriginPath(path) &&
+    (path === "/app" ||
+      path.startsWith("/app/") ||
+      path.startsWith("/auth") ||
+      Boolean(url.searchParams.get("shop") || url.searchParams.get("host")));
 
   return {
     apiKey: process.env.SHOPIFY_API_KEY || "",

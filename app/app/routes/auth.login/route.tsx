@@ -12,7 +12,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (shop) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
-  throw redirect("https://mcflyads.com/");
+  throw redirect("/");
 };
 
 export default function AuthLoginRedirect() {
@@ -23,7 +23,7 @@ export default function AuthLoginRedirect() {
           <s-paragraph>
             Mcfly Analytics installs from the Shopify App Store.
           </s-paragraph>
-          <s-link href="https://mcflyads.com/">Back to mcflyads.com</s-link>
+          <s-link href="/">Back to Mcfly Analytics</s-link>
         </s-section>
       </s-page>
     </AppProvider>

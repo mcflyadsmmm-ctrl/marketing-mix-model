@@ -17,7 +17,7 @@
 | Live Upgrade JS | `ProUpgradeButton-BeJLYLQ_.js` — POST + `window.open(_, "_top")` + `embedded=1`; never same-frame Admin |
 | `MCFLY_BILLING` / `SHOPIFY_APP_HANDLE` | Deployed on Fly |
 | SCOPES | `read_orders,read_customers` (no `read_all_orders`) |
-| Trust URLs | **200** — repo site copy updated to Free+Pro; **Pages deploy still needed** for live mcflyads.com |
+| Trust URLs | **Use Fly** `https://mcfly-analytics.fly.dev/{privacy,support,terms}` — repo `site/` is honest; **Pages still waitlist** |
 | Vitest | **443 passed** (+ iframe guard suite); 1 unrelated `@mcfly/api-contract` suite fail |
 | Compliance spotcheck | **PASSED** |
 
@@ -30,7 +30,7 @@
 | 1 | Partner test form empty + checkbox off — **4.5.4 / 4.5.5** | **Critical** | **HUMAN** checkbox ON; paste TEST ACCOUNT block; never `<PASTE…>` |
 | 2 | Partner Pricing Free-only while Upgrade charges — **1.1.4 / 1.2** | **Critical** | **HUMAN** set Free + Pro $39 |
 | 3 | No embedded Admin click-test of Upgrade path | **Critical** | **HUMAN** smoke |
-| 4 | Live mcflyads.com still “when Billing announced” until Pages deploy | **High** | **HUMAN** / CF token |
+| 4 | Live mcflyads.com still “when Billing announced” until Pages deploy | **High** | **HUMAN** paste Fly trust URLs (or CF token to publish Pages) |
 | 5 | SAMPLE desk ON during review | **High** | **HUMAN** OFF |
 | 6 | Emergency contact / PCD / Distribution | **High** | **HUMAN** if not already |
 

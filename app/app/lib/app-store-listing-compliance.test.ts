@@ -95,6 +95,28 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(listing).toMatch(/4\.3\.1/);
   });
 
+  it("merchant long paste and Partner URL table send reviewers to Fly, not waitlist Pages", () => {
+    const long = pasteBlock(listing, "long");
+    expect(long).toContain("https://mcfly-analytics.fly.dev/privacy");
+    expect(long).toContain("https://mcfly-analytics.fly.dev/support");
+    expect(long).not.toMatch(/https:\/\/mcflyads\.com\/(privacy|support|terms)/);
+    expect(listing).toMatch(
+      /\|\s*Website\s*\|\s*https:\/\/mcfly-analytics\.fly\.dev\s*\|/,
+    );
+    expect(listing).toContain("https://mcfly-analytics.fly.dev/privacy");
+    expect(listing).toContain("https://mcfly-analytics.fly.dev/support");
+    expect(listing).toContain("https://mcfly-analytics.fly.dev/terms");
+  });
+
+  it("LISTING_19 paste sheet does not send reviewers to waitlist Pages or old packaging", () => {
+    const sheet = readRepo("docs/LISTING_19_ISSUES_PASTE.md");
+    expect(sheet).not.toMatch(/https:\/\/mcflyads\.com\/(privacy|support|terms)/);
+    expect(sheet).not.toMatch(/paid plan unlocks named channels/i);
+    expect(sheet).not.toMatch(/Advanced Marketing Data Science/i);
+    expect(sheet).toContain("https://mcfly-analytics.fly.dev/support");
+    expect(sheet).toContain("https://mcfly-analytics.fly.dev/privacy");
+  });
+
   it("Partner listing URLs and Fly-landing nav pages match live Free vs Pro packaging (1.1.4)", () => {
     const pages = [
       "site/index.html",

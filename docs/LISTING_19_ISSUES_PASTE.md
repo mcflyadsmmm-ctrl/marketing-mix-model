@@ -18,21 +18,13 @@ Work top → bottom. Save after each section.
 ## 2. App store listing content
 
 ### App introduction (short description ≤~150)
-```text
-Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even, Goals, Allocation. No pixels.
-```
+Paste from `docs/APP_STORE_LISTING.md` → `APP_STORE_PASTE:short`.
 
 ### App details (long description)
 Paste from `docs/APP_STORE_LISTING.md` → **Long description (paste)** block (starts with “Shopify Analytics shows sales”).
 
 ### Features (5 bullets, in order)
-```text
-Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give
-Spend CSV: Meta + Google + custom Other · mix in dollars and percent · paid plan unlocks named channels
-Break-even Total ROAS from your profit margin %
-Spend Allocation + Goals pace on the default plan; lock / finance CSV + full Goals on the paid plan
-GDPR webhooks + clean uninstall — no customer CRM · no pixels / MTA
-```
+Paste from `docs/APP_STORE_LISTING.md` → `APP_STORE_PASTE:features` (never the old Meta-only Free bullets).
 
 ### Feature media / Screenshots
 Upload from `docs/listing-assets/shots/` **in order**:
@@ -51,15 +43,15 @@ Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 ### Support
 | Field | Value |
 | --- | --- |
-| Support URL | `https://mcflyads.com/support` |
+| Support URL | `https://mcfly-analytics.fly.dev/support` |
 | Support email | `mcflyadsmmm@gmail.com` |
 
 ### Resources
 | Field | Value |
 | --- | --- |
-| Website | `https://mcflyads.com` |
-| Privacy | `https://mcflyads.com/privacy` |
-| Terms | `https://mcflyads.com/terms` |
+| Website | `https://mcfly-analytics.fly.dev` |
+| Privacy | `https://mcfly-analytics.fly.dev/privacy` |
+| Terms | `https://mcfly-analytics.fly.dev/terms` |
 | App URL (app setup, not marketing) | `https://mcfly-analytics.fly.dev` |
 
 ---
@@ -78,9 +70,7 @@ Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 ## 4. App discovery content
 
 ### App card subtitle (tagline ≤80)
-```text
-Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even
-```
+Paste from `docs/APP_STORE_LISTING.md` **Tagline** (`All your ad spend — even billboards — next to Shopify`).
 
 ### App store search terms
 ```text
