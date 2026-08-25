@@ -118,6 +118,8 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(paths).toContain('p === "/health"');
     expect(docker).toContain("COPY site /repo/site");
     expect(docker).toContain("MCFLY_SITE_ROOT=/repo/site");
+    const dockerignore = readRepo(".dockerignore");
+    expect(dockerignore.split("\n")).not.toContain("site");
     expect(pkg.scripts.start).toContain("serve-with-site.mjs");
   });
 });
