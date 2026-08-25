@@ -11,7 +11,7 @@ export type DataModeBarProps = {
 };
 
 /**
- * Global Sample | Your store control — one place, every desk page.
+ * Global Practice | Your store control — one place, every desk page.
  * Real-store checklist stays until first margin + spend (not only ?guide=real).
  */
 export function DataModeBar({
@@ -31,37 +31,42 @@ export function DataModeBar({
   const returnTo = `${location.pathname}${location.search}`;
   const action = `/app/data-mode${location.search}`;
 
+  const setupSteps = (
+    <ol className="mcfly-data-mode__steps">
+      <li>
+        <s-link href={`/app/settings${location.search}`}>
+          {PRODUCT_NOUN.setupAdjustMargin}
+        </s-link>
+        {marginConfirmed ? " — done" : null}
+      </li>
+      <li>
+        <s-link href={`/app/spend${location.search}`}>
+          {PRODUCT_NOUN.setupAddSpend}
+        </s-link>
+        {hasLiveSpend ? " — done" : null}
+      </li>
+      <li>
+        <s-link href={`/app${location.search}`}>
+          {PRODUCT_NOUN.openTotalRoas}
+        </s-link>
+      </li>
+    </ol>
+  );
+
   if (!samplePreviewAllowed) {
     return (
       <div className="mcfly-data-mode mcfly-data-mode--real-only" role="status">
         <p className="mcfly-data-mode__status">
-          <strong>Your store</strong>
+          <strong>{PRODUCT_NOUN.yourStore}</strong>
           <span aria-hidden="true"> · </span>
-          Sample is hidden in Settings
+          {PRODUCT_NOUN.practiceHiddenStatus}
         </p>
         {activationIncomplete ? (
-          <s-banner tone="info" heading="Finish setup for Total ROAS">
-            <ol className="mcfly-data-mode__steps">
-              {!marginConfirmed ? (
-                <li>
-                  <s-link href={`/app/settings${location.search}`}>
-                    {PRODUCT_NOUN.setupAdjustMargin}
-                  </s-link>
-                </li>
-              ) : null}
-              {!hasLiveSpend ? (
-                <li>
-                  <s-link href={`/app/spend${location.search}`}>
-                    {PRODUCT_NOUN.setupAddSpend}
-                  </s-link>
-                </li>
-              ) : null}
-              <li>
-                <s-link href={`/app${location.search}`}>
-                  {PRODUCT_NOUN.openTotalRoas}
-                </s-link>
-              </li>
-            </ol>
+          <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
+            {setupSteps}
+            <p className="mcfly-data-mode__steps-note">
+              Shopify sales load automatically. You only add ad spend.
+            </p>
           </s-banner>
         ) : null}
       </div>
@@ -97,7 +102,7 @@ export function DataModeBar({
                 .join(" ")}
               aria-pressed={useSampleDesk}
             >
-              Sample
+              {PRODUCT_NOUN.practiceDesk}
             </button>
           </Form>
           <Form method="post" action={action} className="mcfly-data-mode__form">
@@ -113,47 +118,20 @@ export function DataModeBar({
                 .join(" ")}
               aria-pressed={!useSampleDesk}
             >
-              Your store
+              {PRODUCT_NOUN.yourStore}
             </button>
           </Form>
         </div>
         <p className="mcfly-data-mode__hint">
           {useSampleDesk
-            ? "Practice numbers — not your live Shopify sales or ad accounts."
-            : "Live Shopify sales ÷ the spend you upload."}
+            ? PRODUCT_NOUN.practiceHint
+            : PRODUCT_NOUN.yourStoreHint}
         </p>
       </div>
 
       {showRealGuide ? (
-        <s-banner tone="info" heading="Your store — three steps">
-          <ol className="mcfly-data-mode__steps">
-            <li>
-              <s-link href={`/app/settings${location.search}`}>
-                {PRODUCT_NOUN.setupAdjustMargin}
-              </s-link>
-              <span>
-                {marginConfirmed
-                  ? " — done"
-                  : " — lock break-even from your profit margin"}
-              </span>
-            </li>
-            <li>
-              <s-link href={`/app/spend${location.search}`}>
-                {PRODUCT_NOUN.setupAddSpend}
-              </s-link>
-              <span>
-                {hasLiveSpend
-                  ? " — done"
-                  : " — download the template, fill daily amounts, upload"}
-              </span>
-            </li>
-            <li>
-              <s-link href={`/app${location.search}`}>
-                {PRODUCT_NOUN.openTotalRoas}
-              </s-link>
-              <span> — sales ÷ spend vs break-even</span>
-            </li>
-          </ol>
+        <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
+          {setupSteps}
           <p className="mcfly-data-mode__steps-note">
             Shopify sales load automatically. You only add ad spend.
           </p>

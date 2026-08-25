@@ -186,7 +186,7 @@ export function getShopBillingSnapshot(
       ? "Pro · unlocked"
       : copy.headline,
     detail: entitlements.isPro
-      ? "This shop has Pro (Shopify App Pricing). Flat $39 — not a GMV tax."
+      ? "This shop has Pro. Flat $39 per store / month."
       : copy.detail,
     upgradeCta: PRO_UPSELL.upgradeCta,
     freeBullets: FREE_FEATURE_BULLETS,

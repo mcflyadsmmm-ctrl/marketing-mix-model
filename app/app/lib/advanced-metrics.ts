@@ -269,7 +269,7 @@ export function buildAdvancedSections(
       open: true,
       tiles: [],
       lockedReason:
-        "Cash CAC, cohort LTV 30/90/365, and LTV:CAC unlock on Pro ($39/store/mo). Everything in Free stays; preview the full lab on SAMPLE.",
+        "Customer LTV and payback unlock on Pro ($39/store/mo). Everything in Free stays. Try it on Practice, or upgrade for your store.",
     };
   } else {
     const ltv = metrics.tillLtv;

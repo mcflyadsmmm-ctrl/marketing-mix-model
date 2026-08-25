@@ -94,7 +94,7 @@ import { PRO_UPSELL } from "../lib/entitlements";
 const MAX_COMBINE_SLOTS = 20;
 /** Ablestar fail-closed: never punch live CSV into a sample-ON desk. */
 const SAMPLE_DESK_IMPORT_BLOCK =
-  "Sample is on — practice numbers are already loaded. Switch to Your store at the top, then upload your CSV.";
+  "Practice is on — example numbers are already loaded. Switch to Your store at the top, then upload your CSV.";
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
 const PLATFORM_STORAGE_KEY = "mcfly-spend-platforms";
 /** JSON array of merchant-typed extra channel names (billboards, radio, …). */
@@ -1251,27 +1251,6 @@ export default function SpendEntryPage() {
           .filter(Boolean)
           .join(" ")}
       >
-        {sampleDesk.enabled && !shotMode ? (
-          <s-banner
-            tone="info"
-            heading="Sample spend is on this page"
-          >
-            <s-paragraph>
-              These are practice numbers ({entries.length.toLocaleString()} recent
-              rows). They are not your live ad accounts. Switch to{" "}
-              <strong>Your store</strong> at the top, then follow the three steps
-              to upload a CSV.
-            </s-paragraph>
-            <Form method="post" action={dataModeAction}>
-              <input type="hidden" name="intent" value="use-real" />
-              <input type="hidden" name="returnTo" value={returnTo} />
-              <s-button type="submit" variant="secondary">
-                Switch to Your store to upload
-              </s-button>
-            </Form>
-          </s-banner>
-        ) : null}
-
         {csvNeedsConfirm && csv ? (
           <s-banner tone="warning" heading="Same days already on the desk">
             <s-paragraph>
@@ -1401,12 +1380,6 @@ export default function SpendEntryPage() {
         ) : null}
 
         <div className="mcfly-spend-lean__stack">
-          {sampleDesk.enabled ? (
-            <p className="mcfly-spend-steps-lead">
-              Sample spend is already loaded. The three steps below apply after
-              you switch to Your store.
-            </p>
-          ) : null}
           <ol className="mcfly-spend-steps" aria-label="Add spend in three steps">
             <li>Pick channels</li>
             <li>Download the template and fill daily amounts</li>
@@ -1783,10 +1756,10 @@ export default function SpendEntryPage() {
               id="mcfly-spend-uploads"
               className="mcfly-spend-lean__upload mcfly-spend-lean__upload--gated"
             >
-              <p className="mcfly-spend-lean__drop-title">Upload is paused on Sample</p>
+              <p className="mcfly-spend-lean__drop-title">Upload is paused on Practice</p>
               <p className="mcfly-spend-lean__drop-hint">
-                Practice spend is already on the desk. Switch to Your store to
-                import Meta / Google / Other CSVs without mixing them into Sample.
+                Example spend is already loaded. Switch to Your store so your
+                CSV is not mixed with practice numbers.
               </p>
               <Form method="post" action={dataModeAction}>
                 <input type="hidden" name="intent" value="use-real" />

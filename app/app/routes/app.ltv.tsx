@@ -105,7 +105,7 @@ export default function LtvPage() {
   const isLoading = navigation.state === "loading";
 
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label} · SAMPLE`
+    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
     : shotMode
       ? metrics.period.label
       : salesError ||
@@ -252,7 +252,7 @@ export default function LtvPage() {
               </span>
             ) : null}
             <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-              Order cohorts · not CRM
+              Order history · not email lists
             </span>
           </div>
         </div>
@@ -407,8 +407,7 @@ export default function LtvPage() {
               </div>
 
               <p className="mcfly-acq-band__hedge">
-                Not platform CAC · not path attribution · opaque customer ids +
-                order amounts only
+                Average for the period — not ads-manager ROAS
                 {!custOk
                   ? " · unique buyer counts need live customer flags; sales split uses day facts"
                   : ""}

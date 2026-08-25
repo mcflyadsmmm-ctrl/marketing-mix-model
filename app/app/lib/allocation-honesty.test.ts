@@ -34,8 +34,8 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("salesError ? null : metrics.allocation");
   });
 
-  it("keeps SAMPLE path distinct from live sales", () => {
-    expect(source).toContain("· SAMPLE");
+  it("keeps Practice path distinct from live sales", () => {
+    expect(source).toContain("· Practice");
     expect(source).toContain("SampleDeskBanner");
   });
 });

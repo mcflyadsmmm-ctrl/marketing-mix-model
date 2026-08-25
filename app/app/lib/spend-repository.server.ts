@@ -126,7 +126,7 @@ export async function assertSpendWriteAllowed(
     const blocked = [...new Set(channels.filter((ch) => !allowed.has(ch)))].sort();
     if (blocked.length === 0) return;
     throw new SpendChannelEntitlementError(
-      `Pro required for channel(s): ${blocked.join(", ")}. Free includes Meta, Google, and named extras (billboards, radio, …) — named platforms need Pro.`,
+      `Pro required for ${blocked.join(", ")}. Free covers Meta, Google, and named extras — named platforms need Pro.`,
     );
   }
 

@@ -28,19 +28,19 @@ export const PRO_CHANNELS: readonly SpendChannel[] = SPEND_CHANNELS;
 
 /**
  * Single SoT for Pro upsell copy. Partner Pricing = Free + Pro via Shopify App Pricing.
- * in-app gates + SAMPLE preview are live now.
+ * Keep $39 in-app only — never in App Store listing paste.
  */
 export const PRO_UPSELL = {
   short: "Pro · $39/store/mo",
-  priceLine: "$39 flat per store / month — not a GMV tax",
+  priceLine: "$39 per store / month",
   /** One-line “what you get” for banners and empty states. */
   includes:
-    "Pro includes: every named ad channel (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition cohorts (Cash CAC · 30/90/365 · LTV:CAC), and the full-year Goals board with YoY fill.",
+    "Named ad platforms, customer LTV, and a full-year Goals board.",
   channels:
-    "Free channels: Meta, Google, and named extras (billboards, radio, podcasts — type any we did not list). Pro ($39/mo) unlocks TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and every other named platform — plus Customer LTV and full Goals.",
-  ltv: "Pro unlocks Customer LTV / Acquisition: Cash CAC, 30/90/365 cohort revenue, and LTV:CAC from Shopify order cohorts (opaque ids only — no email CRM). Preview the full desk on SAMPLE anytime.",
+    "Free includes Meta, Google, and named extras like billboards. Pro adds TikTok, Amazon, Email, and other named platforms.",
+  ltv: "See how long new customers take to pay back ad spend. Try it on Practice, or upgrade to use it on your store.",
   goals:
-    "Pro unlocks the full-year sales board, Grow YoY fill, and monthly fine-tune. Free still shows MTD · QTD · YTD pace vs your Total ROAS goal and break-even.",
+    "Set a 12-month sales plan and fill months from last year. Free still shows this period vs your Total ROAS goal.",
   close:
     "Share Overview (Email) is free — opens your mail app with this period’s cards. Mcfly never sends mail for you.",
   upgradeCta: "Upgrade to Pro — $39/mo",
@@ -48,20 +48,18 @@ export const PRO_UPSELL = {
 } as const;
 
 export const FREE_FEATURE_BULLETS = [
-  "Total ROAS = Shopify Total Sales ÷ ad spend",
+  "Total ROAS = Shopify sales ÷ the spend you add",
   "Break-even from optional profit margin",
-  "Spend CSV: Meta + Google + named extras (billboards, radio, …)",
-  "Period filters (MTD · LM · QTD · YTD · …)",
-  "Spend Allocation mix for Free channels",
+  "Spend CSV: Meta, Google, and named extras (billboards, radio, …)",
+  "Period filters and Spend Allocation for Free channels",
   "Email Overview (opens your mail app)",
-  "Full SAMPLE preview of Pro features",
+  "Practice desk to try Pro features",
 ] as const;
 
 export const PRO_FEATURE_BULLETS = [
   "Everything in Free",
-  "All named channels: TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and more",
-  "Customer LTV / Acquisition: Cash CAC · cohort LTV 30/90/365 · LTV:CAC",
-  "Full-year Goals board + YoY plan + monthly fine-tune",
-  "Richer Explorer / mix history as it ships",
-  "$39 flat / store / mo — not GMV tax",
+  "Named platforms: TikTok, Amazon, Email, Affiliate, and more",
+  "Customer LTV and payback",
+  "Full-year Goals board",
+  "$39 per store / month",
 ] as const;

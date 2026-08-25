@@ -49,15 +49,15 @@ export function billingStatusCopy(billingEnabled: boolean): {
   if (!billingEnabled) {
     return {
       tier: "free",
-      headline: "Free · Meta + Google + named extras",
+      headline: "Free",
       detail:
-        "Free desk: Meta + Google + named extras (billboards, radio, typed channels), Total ROAS, break-even. Pro ($39/store/mo flat) adds TikTok/Amazon and other named platforms, Customer LTV, and advanced Goals. Upgrade is temporarily unavailable on this host.",
+        "You’re on Free: Meta, Google, named extras, and Total ROAS. Pro is $39/store/mo. Upgrade is temporarily unavailable on this host.",
     };
   }
   return {
     tier: "pro",
-    headline: "Pro billing available",
+    headline: "Free · upgrade anytime",
     detail:
-      "Flat $39/store/mo via Shopify Billing at launch — cash close desk, not GMV tax. LTV + all spend channels on Pro. Price may rise later for new subscribers.",
+      "Pro is $39 per store / month. It adds named ad platforms, customer LTV, and a full-year Goals board.",
   };
 }

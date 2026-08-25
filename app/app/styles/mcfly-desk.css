@@ -1068,13 +1068,28 @@
 }
 
 .mcfly-pro-upsell__list {
-  margin: 0;
+  margin: 0.4rem 0 0;
   padding: 0 0 0 1.1rem;
   display: grid;
   gap: 0.28rem;
   font-size: 0.8rem;
   line-height: 1.4;
   color: var(--mcfly-ink);
+}
+
+.mcfly-pro-upsell__more {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
+.mcfly-pro-upsell__more summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.mcfly-pro-upgrade--quiet {
+  gap: 0.25rem;
 }
 
 .mcfly-pro-upsell__actions {
@@ -9301,7 +9316,7 @@
   color: var(--mcfly-ink-muted, #5c6b7a);
 }
 
-/* Global Sample | Real store bar (every app page) */
+/* Global Practice | Your store bar (every app page) */
 .mcfly-data-mode {
   margin: 0 0 0.85rem;
   padding: 0.65rem 0.85rem;

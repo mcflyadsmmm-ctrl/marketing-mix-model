@@ -244,7 +244,7 @@ export function formatCashFreshnessChip(input: {
   spendUpdatedAt?: string | null;
 }): string {
   if (input.useSampleDesk) {
-    return "SAMPLE preview · not live store data";
+    return "Practice · example numbers, not your store";
   }
 
   const bits: string[] = [];
