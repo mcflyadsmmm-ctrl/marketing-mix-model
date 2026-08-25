@@ -424,7 +424,7 @@ export function buildPipeAutomationWideTemplate(options?: {
         example: true,
       }).csv;
     }
-    if (options.from || options.to || options.span) {
+    if (options?.from || options?.to || options?.span) {
       return buildSelectedPlatformTemplateCsv(
         platformsToTemplateCols([...SPEND_CHANNELS]),
         { ...rangeOpts, example: true },
@@ -432,7 +432,7 @@ export function buildPipeAutomationWideTemplate(options?: {
     }
     return WIDE_TEMPLATE_SAMPLE;
   }
-  if (options.from || options.to || options.span) {
+  if (options?.from || options?.to || options?.span) {
     const dates = resolveTemplateDayKeys(rangeOpts, dayCount);
     return buildBlankSpendTemplateForDates(dates, channels);
   }
