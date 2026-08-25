@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useFetcher, useLocation } from "react-router";
+import { useBillingExit } from "../lib/billing-exit-context";
 import {
   navigateToBillingConfirmation,
   withEmbeddedBillingSearch,
@@ -15,12 +16,11 @@ type ProUpgradeButtonProps = {
 };
 
 /**
- * Starts Managed Pricing via POST /app/billing, then top-frame open.
+ * Starts Managed Pricing via user-gesture top-frame open.
  *
- * Dual safety for App Store 2.1.1:
- * 1) Client window.open(_, "_top") after user gesture (App Bridge patches open)
- * 2) Fallback link to GET /app/billing?embedded=1 which returns HTML exit
- *    (never a bare 302 to Admin)
+ * Dual safety for App Store 2.1.1 (Spend → Upgrade to Pro):
+ * 1) Immediate App Bridge `open(_, "_top")` on click (no POST wait, no iframe 302)
+ * 2) GET /app/billing?embedded=1 HTML bounce if JS cannot leave the frame
  */
 export function ProUpgradeButton({
   variant = "primary",
@@ -30,9 +30,11 @@ export function ProUpgradeButton({
 }: ProUpgradeButtonProps) {
   const fetcher = useFetcher<ProUpgradeActionData>();
   const location = useLocation();
+  const { plansUrl } = useBillingExit();
   const busy = fetcher.state !== "idle";
   const data = fetcher.data;
   const [navError, setNavError] = useState<string | null>(null);
+  const [opening, setOpening] = useState(false);
 
   const billingSearch = withEmbeddedBillingSearch(location.search);
   const action = `/app/billing${billingSearch}`;
@@ -56,19 +58,51 @@ export function ProUpgradeButton({
   const errorMessage =
     navError ?? (data && !data.ok ? data.error : null);
 
+  function openPlansNow(url: string) {
+    setNavError(null);
+    setOpening(true);
+    const ok = navigateToBillingConfirmation(url);
+    if (!ok) {
+      setOpening(false);
+      setNavError(
+        "Could not leave the app frame to open Shopify plans. Use “Open plans in Admin” below — that page exits the embed safely.",
+      );
+      return;
+    }
+    // Re-enable if Admin did not take over (blocked open that still returned a handle).
+    window.setTimeout(() => setOpening(false), 2000);
+  }
+
   return (
     <div className="mcfly-pro-upgrade">
-      <fetcher.Form method="post" action={action}>
+      {plansUrl ? (
         <button
-          type="submit"
+          type="button"
           className={`mcfly-btn mcfly-btn--${variant}`}
-          disabled={busy}
-          aria-busy={busy}
+          disabled={opening}
+          aria-busy={opening}
           data-mcfly-billing-exit={mode}
+          data-mcfly-billing-user-gesture="1"
+          onClick={() => openPlansNow(plansUrl)}
         >
-          {busy ? "Opening plans…" : text}
+          {opening ? "Opening plans…" : text}
         </button>
-      </fetcher.Form>
+      ) : (
+        <fetcher.Form method="post" action={action}>
+          <button
+            type="submit"
+            className={`mcfly-btn mcfly-btn--${variant}`}
+            disabled={busy}
+            aria-busy={busy}
+            data-mcfly-billing-exit={mode}
+          >
+            {busy ? "Opening plans…" : text}
+          </button>
+        </fetcher.Form>
+      )}
+      <p className="mcfly-pro-upgrade__hint">
+        Opens Shopify’s Free / Pro picker in Admin — not inside this app.
+      </p>
       {errorMessage ? (
         <p className="mcfly-pro-upgrade__error" role="alert">
           {errorMessage}

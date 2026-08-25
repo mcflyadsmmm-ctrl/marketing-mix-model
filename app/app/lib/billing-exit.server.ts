@@ -4,7 +4,9 @@
  * Shopify's authenticate.admin redirect() only App Bridge–breakouts when
  * embedded=1 (or session-token data requests). A bare GET → redirect(admin…)
  * becomes an HTTP 302 inside the iframe → "admin.shopify.com refused to connect"
- * (App Store 2.1.1). Always return HTML that calls window.open(_, "_top").
+ * (App Store 2.1.1). Always return HTML that calls App Bridge `open(_, "_top")`.
+ *
+ * @see https://shopify.dev/docs/apps/launch/billing/shopify-app-pricing/redirect-plan-selection-page
  */
 
 export function billingExitHtmlResponse(input: {
@@ -53,22 +55,35 @@ export function billingExitHtmlResponse(input: {
   <meta name="shopify-api-key" content=${apiKey} />
   <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
   <title>Opening Shopify plans…</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 1.5rem; color: #202223; }
+    a { color: #005bd3; }
+  </style>
 </head>
 <body>
   <p>Opening Shopify plan selection…</p>
+  <p><a href=${urlJson} target="_top" rel="noopener noreferrer" data-mcfly-billing-continue>Continue to Shopify plans</a></p>
   <script>
     (function () {
       var url = ${urlJson};
-      try {
-        window.open(url, "_top");
-      } catch (e) {
-        var a = document.createElement("a");
-        a.href = url;
-        a.target = "_top";
-        a.rel = "noopener noreferrer";
-        document.body.appendChild(a);
-        a.click();
+      function goTop() {
+        try {
+          open(url, "_top");
+          return true;
+        } catch (e1) {}
+        try {
+          window.open(url, "_top");
+          return true;
+        } catch (e2) {}
+        return false;
       }
+      if (goTop()) return;
+      var a = document.createElement("a");
+      a.href = url;
+      a.target = "_top";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
     })();
   </script>
   <noscript>

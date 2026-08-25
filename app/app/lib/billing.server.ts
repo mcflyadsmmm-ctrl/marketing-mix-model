@@ -192,7 +192,14 @@ export function getShopBillingSnapshot(
     freeBullets: FREE_FEATURE_BULLETS,
     proBullets: PRO_FEATURE_BULLETS,
     entitlements,
-    confirmationUrl: null,
+    confirmationUrl: (() => {
+      if (!enabled) return null;
+      try {
+        return buildManagedPricingPlansUrl(shopDomain);
+      } catch {
+        return null;
+      }
+    })(),
     testCharges: shouldUseTestCharges(),
   };
 }

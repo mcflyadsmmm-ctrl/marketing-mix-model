@@ -2,18 +2,25 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   buildBillingReturnUrl,
   buildManagedPricingPlansUrl,
+  getShopBillingSnapshot,
   pickActiveProSubscription,
   shouldUseTestCharges,
 } from "./billing.server";
 import { PRO_PLAN, subscriptionMatchesProPlan } from "./billing-flag.server";
 
 const ORIG = {
+  MCFLY_BILLING: process.env.MCFLY_BILLING,
   MCFLY_BILLING_TEST: process.env.MCFLY_BILLING_TEST,
   SHOPIFY_APP_URL: process.env.SHOPIFY_APP_URL,
   SHOPIFY_APP_HANDLE: process.env.SHOPIFY_APP_HANDLE,
 };
 
 afterEach(() => {
+  if (ORIG.MCFLY_BILLING === undefined) {
+    delete process.env.MCFLY_BILLING;
+  } else {
+    process.env.MCFLY_BILLING = ORIG.MCFLY_BILLING;
+  }
   if (ORIG.MCFLY_BILLING_TEST === undefined) {
     delete process.env.MCFLY_BILLING_TEST;
   } else {
@@ -76,5 +83,21 @@ describe("billing subscription helpers", () => {
     expect(url).toContain("https://mcfly-analytics.fly.dev/app/settings");
     expect(url).toContain("shop=acme.myshopify.com");
     expect(url).toContain("host=abc");
+  });
+
+  it("snapshot includes Managed Pricing URL when billing is on", () => {
+    process.env.MCFLY_BILLING = "1";
+    const snap = getShopBillingSnapshot("devmcflyads.myshopify.com");
+    expect(snap.confirmationUrl).toBe(
+      "https://admin.shopify.com/store/devmcflyads/charges/mcfly-analytics-public/pricing_plans",
+    );
+    expect(snap.enabled).toBe(true);
+  });
+
+  it("snapshot omits plan URL when billing is off", () => {
+    delete process.env.MCFLY_BILLING;
+    const snap = getShopBillingSnapshot("devmcflyads.myshopify.com");
+    expect(snap.confirmationUrl).toBeNull();
+    expect(snap.enabled).toBe(false);
   });
 });

@@ -5,10 +5,11 @@
  * window.location loads Admin inside that iframe → "refused to connect" and
  * bricks the desk until reload (App Store 2.1.1).
  *
- * Prefer App Bridge–patched window.open(_, "_top"). Never fall back to
- * same-frame navigation for Admin hosts.
+ * App Bridge patches global `open(url, "_top")`. Prefer that (user gesture),
+ * then a target=_top anchor. Never same-frame-assign Admin hosts.
  *
  * @see https://shopify.dev/docs/apps/launch/billing/shopify-app-pricing/redirect-plan-selection-page
+ * @see https://shopify.dev/docs/api/app-home/apis/user-interface-and-interactions/navigation-api
  */
 
 const ADMIN_HOST_RE = /(^|\.)admin\.shopify\.com$/i;
@@ -29,13 +30,29 @@ export type BillingNavigateHost = {
   assignSameFrame: (url: string) => void;
 };
 
-/** Browser host used by ProUpgradeButton (App Bridge patches window.open). */
+type OpenFn = (url: string, target?: string, features?: string) => Window | null;
+
+function tryOpenTop(openFn: OpenFn | undefined, url: string): boolean {
+  if (typeof openFn !== "function") return false;
+  try {
+    const opened = openFn(url, "_top");
+    // null/undefined = blocked; App Bridge may return a Window-like handle.
+    return opened != null;
+  } catch {
+    return false;
+  }
+}
+
+/** Browser host used by ProUpgradeButton (App Bridge patches open / window.open). */
 export function createBrowserBillingNavigateHost(): BillingNavigateHost {
   return {
     openTop(url: string) {
-      const opened = window.open(url, "_top");
-      // null/undefined = blocked; App Bridge may return a Window-like handle.
-      return opened != null;
+      const g = globalThis as typeof globalThis & { open?: OpenFn };
+      if (tryOpenTop(g.open, url)) return true;
+      if (typeof window !== "undefined" && tryOpenTop(window.open, url)) {
+        return true;
+      }
+      return false;
     },
     clickTopAnchor(url: string) {
       const anchor = document.createElement("a");

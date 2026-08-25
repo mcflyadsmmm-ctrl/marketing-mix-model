@@ -9,7 +9,7 @@ Paste into Partner listing when Distribution = **Shopify App Store**.
 
 **Status (2026-08-24 resubmit):** Tagline, short, long, feature bullets, reviewer notes match the shipped desk — Free = Meta + Google + custom Other; Pro $39 for named channels + LTV + full Goals board via Shopify App Pricing. Paste as-is into Partner; do not rewrite for “true ROAS,” LTV CRM, or Meta/Google logos.
 
-Human still must: confirm ASO checklist below, upload icon + shots, set Partner **Pricing = Shopify App Pricing (Free + Pro $39)**, paste staff password, then Submit.
+Human still must: confirm ASO checklist below, upload icon + shots, set Partner **Pricing = Shopify App Pricing (Free + Pro $39)**, paste **App testing information** from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (check “My app doesn't require an account to use it”), then Submit.
 
 ## ASO checklist (before paste) — human only
 
@@ -292,16 +292,19 @@ https://mcflyads.com/privacy
 
 ## Reviewer notes (paste into submission)
 
+**App testing information (4.5.4 / 4.5.5):** follow [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md). Check **“My app doesn't require an account to use it.”** Do not leave Username/Password blank with the box unchecked.
+
 ```text
-Test store: devmcflyads.myshopify.com
-Test account email: mcflyadsmmm@gmail.com
-Test account password: <PASTE CURRENT STAFF PASSWORD — required 4.5.4 / 4.5.5>
-(Must grant full Admin access including Apps + plan selection. Keep password current.)
+Test store (optional demo): devmcflyads.myshopify.com
+No second Mcfly login — Shopify Admin session after install is enough.
+Optional staff (only if using our demo store): mcflyadsmmm@gmail.com / <PASTE CURRENT STAFF PASSWORD>
+(Must grant full Admin access including Apps + plan selection. Keep password current. No 2FA.)
 
 PRICING
 Shopify App Pricing (Managed Pricing): Free (default) + Pro $39/store/mo flat.
 In-app Upgrade / Manage plan opens Admin plan selection in the TOP frame
-(never inside the app iframe). Merchants can change Free ↔ Pro without reinstalling.
+(never inside the app iframe). If you see “admin.shopify.com refused to connect”
+the billing exit regressed — fail the app.
 
 CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
 Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
@@ -309,16 +312,18 @@ Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
 
 SMOKE TEST (CSV-first Free path = Meta + Google + Other)
 1. Install Mcfly Analytics (App Store or Partner test install) — embedded Admin
-2. Settings → optional profit margin 35% → save → Break-even Total ROAS locks
-3. Spend → Meta + Google (+ Other) → export / paste daily CSV → Import
+2. Overview may show “Sales still syncing — expected after install” on a new store. Not an error.
+3. Settings → optional profit margin 35% → save → Break-even Total ROAS locks
+4. Spend → Meta + Google (+ Other) → export / paste daily CSV → Import
    Optional: Spend → Automate → pipe template → SyncWith/Coupler/etc. (merchant-paid) → CSV import
-4. Overview → Total ROAS = Shopify Total Sales ÷ ad spend for the period
+5. Overview → Total ROAS = Shopify Total Sales ÷ ad spend for the period
    Confirm freshness chip, Update spend links, channel mix, Email Overview (mailto)
    Confirm orders / new / returning / AOV (opaque customer id + numberOfOrders only)
-5. Spend Allocation → quarters / pie / rolling windows when Free-channel spend > 0
+6. Spend Allocation → quarters / pie / rolling windows when Free-channel spend > 0
    Goals → MTD / QTD / YTD pace on Free
-6. BILLING (required after 2.1.1 fix): Spend → Upgrade to Pro — $39/mo
+7. BILLING (required after 2.1.1 fix): Spend → Upgrade to Pro — $39/mo
    → must leave the embed and open Admin Free/Pro plan selection (top frame)
+   → must NOT show “admin.shopify.com refused to connect”
    → approve Pro → return to app → Pro channels / LTV unlock
    → Settings → Manage plan → switch back to Free without reinstall
 
@@ -331,6 +336,7 @@ Compliance: https://mcfly-analytics.fly.dev/webhooks/compliance
 Uninstall deletes sessions + shop data.
 Support: https://mcflyads.com/support
 Privacy: https://mcflyads.com/privacy
+
 
 PROTECTED CUSTOMER DATA (Level 1 only — no Level 2 PII fields)
 - read_orders: sum order totals + counts for Total ROAS / AOV
@@ -355,7 +361,7 @@ Order history without read_all_orders is ~60 days — demo with recent orders / 
 - [ ] Install on `devmcflyads`; smoke test above; sample desk **OFF** (**human**)
 - [ ] Screenshots + M-only icon uploaded (**human**)
 - [ ] Pricing = **Shopify App Pricing Free + Pro $39** (never Free-only while Upgrade is live)
-- [ ] Reviewer notes pasted **with real staff password** (4.5.4 / 4.5.5)
+- [ ] App testing information: check **“My app doesn't require an account to use it”** + paste [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md)
 - [ ] Embedded Admin smoke: Spend → Upgrade → top-frame plans (no “refused to connect”)
 - [ ] Submit for review (**human**)
 

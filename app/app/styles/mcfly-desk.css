@@ -1096,6 +1096,20 @@
   color: var(--mcfly-lie, #b91c1c);
 }
 
+.mcfly-pro-upgrade__hint,
+.mcfly-pro-upgrade__fallback {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--mcfly-ink-soft, #334155);
+}
+
+.mcfly-pro-upgrade__fallback a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .mcfly-btn {
   appearance: none;
   border: 1px solid transparent;

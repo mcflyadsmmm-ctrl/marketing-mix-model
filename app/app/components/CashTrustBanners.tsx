@@ -11,6 +11,7 @@ import {
   formatSpendReconLine,
 } from "../lib/mer-trust";
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { salesFactsIncompleteMessage } from "../lib/cash-trust-copy";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 
 type Props = {
@@ -79,6 +80,17 @@ export function CashTrustBanners({
     Number.isFinite(belowBreakEven.mer) &&
     belowBreakEven.mer < belowBreakEven.breakEvenMer;
 
+  const salesFactsCopy =
+    salesFactsIncomplete &&
+    salesFactsIncomplete.expectedClosedDays > 0 &&
+    !shopifyOrderWindowLimited
+      ? salesFactsIncompleteMessage({
+          factDays: salesFactsIncomplete.factDays,
+          expectedClosedDays: salesFactsIncomplete.expectedClosedDays,
+          periodLabel,
+        })
+      : null;
+
   return (
     <>
       {blockedMockAsLive ? (
@@ -104,15 +116,9 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {salesFactsIncomplete &&
-      salesFactsIncomplete.expectedClosedDays > 0 &&
-      !shopifyOrderWindowLimited ? (
-        <s-banner tone="info" heading="Sales facts still backfilling">
-          <s-paragraph>
-            Sales loaded for {salesFactsIncomplete.factDays} of{" "}
-            {salesFactsIncomplete.expectedClosedDays} days in {periodLabel}.
-            Refresh in a few minutes for more coverage.
-          </s-paragraph>
+      {salesFactsCopy ? (
+        <s-banner tone="info" heading={salesFactsCopy.heading}>
+          <s-paragraph>{salesFactsCopy.body}</s-paragraph>
         </s-banner>
       ) : null}
 

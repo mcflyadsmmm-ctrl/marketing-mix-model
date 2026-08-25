@@ -5,7 +5,7 @@ describe("billingExitHtmlResponse", () => {
   const adminUrl =
     "https://admin.shopify.com/store/devmcflyads/charges/mcfly-analytics-public/pricing_plans";
 
-  it("returns HTML that opens Admin with _top (never a 302)", async () => {
+  it("returns HTML that opens Admin with App Bridge open(_top) (never a 302)", async () => {
     const res = billingExitHtmlResponse({
       confirmationUrl: adminUrl,
       apiKey: "test-api-key",
@@ -13,12 +13,16 @@ describe("billingExitHtmlResponse", () => {
     });
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toMatch(/text\/html/);
+    expect(res.headers.get("location")).toBeNull();
     const html = await res.text();
     expect(html).toContain("cdn.shopify.com/shopifycloud/app-bridge.js");
-    expect(html).toContain('window.open(');
-    expect(html).toContain('"_top"');
+    expect(html).toContain('open(url, "_top")');
+    expect(html).toContain("window.open(url, \"_top\")");
+    expect(html).toContain('target="_top"');
+    expect(html).toContain("data-mcfly-billing-continue");
     expect(html).toContain(adminUrl);
     expect(html).not.toMatch(/http-equiv=["']refresh/i);
+    expect(html).not.toMatch(/location\.(href|assign|replace)\s*=/);
   });
 
   it("rejects non-Admin destinations", async () => {

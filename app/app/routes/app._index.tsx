@@ -899,6 +899,7 @@ export default function Dashboard() {
                 <LtvSnapSection
                   tillLtv={metrics.tillLtv}
                   preset={preset}
+                  showProTeaser={showProTeaser}
                 />
               </div>
             ) : null}
@@ -951,6 +952,7 @@ export default function Dashboard() {
 function LtvSnapSection({
   tillLtv,
   preset,
+  showProTeaser,
 }: {
   tillLtv: {
     available: boolean;
@@ -962,6 +964,7 @@ function LtvSnapSection({
     newBuyers: number;
   };
   preset: PeriodPreset;
+  showProTeaser: boolean;
 }) {
   return (
     <section

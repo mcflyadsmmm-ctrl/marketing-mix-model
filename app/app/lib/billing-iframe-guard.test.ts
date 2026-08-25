@@ -41,9 +41,10 @@ describe("App Store 2.1.1 billing iframe guards", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("location")).toBeNull();
     const html = await res.text();
-    expect(html).toContain("window.open(");
+    expect(html).toContain('open(url, "_top")');
     expect(html).toContain('"_top"');
     expect(html).toContain("app-bridge.js");
+    expect(html).toContain("data-mcfly-billing-continue");
     expect(html).not.toMatch(/http-equiv\s*=\s*["']?refresh/i);
     expect(html).not.toMatch(/location\.(href|assign|replace)\s*=/);
   });
@@ -75,13 +76,15 @@ describe("App Store 2.1.1 billing iframe guards", () => {
     }
   });
 
-  it("ProUpgradeButton posts to /app/billing and keeps an HTML exit fallback", () => {
+  it("ProUpgradeButton prefers user-gesture top-frame open and keeps HTML exit fallback", () => {
     const src = readAppSource("components/ProUpgradeButton.tsx");
-    expect(src).toContain('method="post"');
-    expect(src).toContain("withEmbeddedBillingSearch");
+    expect(src).toContain("useBillingExit");
+    expect(src).toContain("data-mcfly-billing-user-gesture");
     expect(src).toContain("navigateToBillingConfirmation");
+    expect(src).toContain("withEmbeddedBillingSearch");
     expect(src).toContain("Open plans in Admin");
     expect(src).toContain("data-mcfly-billing-exit-fallback");
+    expect(src).toContain('method="post"');
     // Must not deep-link Admin from the button itself.
     expect(src).not.toMatch(/admin\.shopify\.com/);
   });
@@ -128,6 +131,7 @@ describe("App Store 2.1.1 billing iframe guards", () => {
       "routes/app.goals.tsx",
       "routes/app.advanced.tsx",
       "routes/app._index.tsx",
+      "routes/app.tsx",
     ];
     for (const rel of files) {
       const src = readAppSource(rel);
