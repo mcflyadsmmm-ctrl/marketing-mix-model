@@ -117,6 +117,15 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(sheet).toContain("https://mcfly-analytics.fly.dev/privacy");
   });
 
+  it("founder one-pager is Free+Pro and points testing paste at PARTNER_TESTING", () => {
+    const handoff = readRepo("docs/ops/SUBMIT_HANDOFF.md");
+    expect(handoff).not.toMatch(/no Billing charges yet/i);
+    expect(handoff).toMatch(/PARTNER_TESTING_INSTRUCTIONS/);
+    expect(handoff).toMatch(/Free \+ Pro \$39/);
+    expect(handoff).toContain("04-free-pro-pricing.png");
+    expect(handoff).toMatch(/Do not upload/i);
+  });
+
   it("Partner listing URLs and Fly-landing nav pages match live Free vs Pro packaging (1.1.4)", () => {
     const pages = [
       "site/index.html",
