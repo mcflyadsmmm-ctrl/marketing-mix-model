@@ -94,4 +94,27 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(listing).toMatch(/do \*\*not\*\* check .*online store/i);
     expect(listing).toMatch(/4\.3\.1/);
   });
+
+  it("Partner listing URLs and Fly-landing nav pages match live Free vs Pro packaging (1.1.4)", () => {
+    const pages = [
+      "site/index.html",
+      "site/privacy.html",
+      "site/support.html",
+      "site/terms.html",
+      "site/pricing.html",
+      "site/app.html",
+      "site/demo.html",
+      "site/product.html",
+    ];
+    for (const rel of pages) {
+      const src = readRepo(rel);
+      expect(src, rel).not.toMatch(/until Billing/i);
+      expect(src, rel).not.toMatch(/when Billing is announced/i);
+      expect(src, rel).not.toMatch(/Free = Meta \+ Google \+ Other/);
+      expect(src, rel).not.toMatch(/Free \(Meta \+ Google \+ Other\)/);
+      expect(src, rel).not.toMatch(/Free install is Meta \+ Google only/i);
+      expect(src, rel).not.toMatch(/\$39 unlocks the rest/i);
+      expect(src, rel).not.toMatch(/LTV \+ all named channels/);
+    }
+  });
 });
