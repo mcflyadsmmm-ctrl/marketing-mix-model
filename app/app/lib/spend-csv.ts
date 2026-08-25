@@ -9,6 +9,26 @@ import {
   customChannelFromLabel,
   normalizeCustomChannelList,
 } from "./spend-custom-channel";
+import {
+  spendTemplateDateRange,
+  type SpendTemplateSpan,
+} from "./spend-template-range";
+
+export {
+  SPEND_TEMPLATE_DATES_QUERY_CAP,
+  SPEND_TEMPLATE_SPANS,
+  SPEND_TEMPLATE_WINDOW_YEARS_BACK,
+  parseSpendTemplateDatesParam,
+  parseSpendTemplateSpan,
+  parseSpendTemplateYmd,
+  resolveSpendTemplateRangeQuery,
+  spendTemplateDateRange,
+  spendTemplateDefaultFloorKey,
+  spendTemplateYesterdayKey,
+  type SpendTemplateDateRange,
+  type SpendTemplateRangeQuery,
+  type SpendTemplateSpan,
+} from "./spend-template-range";
 
 export type CsvChannel = SpendChannel;
 
@@ -280,6 +300,49 @@ export const PIPE_CHANNEL_LABELS: readonly string[] = WIDE_TEMPLATE_COLUMNS.filt
     col.channel !== "day",
 ).map((col) => col.header);
 
+export type SpendTemplateBuildDates = {
+  dayCount?: number;
+  now?: Date;
+  from?: string | null;
+  to?: string | null;
+  span?: SpendTemplateSpan | string | null;
+  floorKey?: string;
+};
+
+/**
+ * Date spine for a template download.
+ * `from`/`to`/`span` win over `dayCount` (closed days through yesterday).
+ * `dayCount` alone stays trailing local days ending on `now` (includes today).
+ */
+function resolveTemplateDayKeys(
+  options: SpendTemplateBuildDates | undefined,
+  fallbackDayCount: number,
+): string[] {
+  if (options?.from || options?.to || options?.span) {
+    return spendTemplateDateRange({
+      span: options.span,
+      from: options.from,
+      to: options.to,
+      now: options.now,
+      floorKey: options.floorKey,
+    }).dates;
+  }
+  const dayCount = options?.dayCount ?? fallbackDayCount;
+  const now = options?.now ?? new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dates: string[] = [];
+  for (let i = dayCount - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    dates.push(formatLocalYmd(d));
+  }
+  return dates;
+}
+
+function formatLocalYmd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 /**
  * Long CSV for pipe tools: one row per day × channel.
  * `example=true` fills sample Meta/Google amounts; blank leaves amount empty for mapping.
@@ -290,11 +353,13 @@ export function buildPipeAutomationLongTemplate(options?: {
   example?: boolean;
   now?: Date;
   channels?: readonly SpendChannel[];
+  from?: string | null;
+  to?: string | null;
+  span?: SpendTemplateSpan | string | null;
+  floorKey?: string;
 }): string {
-  const dayCount = options?.dayCount ?? 7;
   const example = options?.example === true;
-  const now = options?.now ?? new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dates = resolveTemplateDayKeys(options, 7);
   const allChannelCols = WIDE_TEMPLATE_COLUMNS.filter(
     (col): col is (typeof WIDE_TEMPLATE_COLUMNS)[number] & { channel: SpendChannel } =>
       col.channel !== "day",
@@ -308,19 +373,15 @@ export function buildPipeAutomationLongTemplate(options?: {
     : allChannelCols;
   const rows: string[] = [PIPE_LONG_HEADERS.join(",")];
 
-  for (let i = dayCount - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const date = `${y}-${m}-${day}`;
+  for (let i = 0; i < dates.length; i++) {
+    const date = dates[i];
+    const fromEnd = dates.length - 1 - i;
     for (const col of channelCols) {
       if (example) {
         if (col.channel === "meta") {
-          rows.push(`${date},${csvEscape(col.header)},${100 + (i % 5) * 10}`);
+          rows.push(`${date},${csvEscape(col.header)},${100 + (fromEnd % 5) * 10}`);
         } else if (col.channel === "google") {
-          rows.push(`${date},${csvEscape(col.header)},${80 + (i % 3) * 5}`);
+          rows.push(`${date},${csvEscape(col.header)},${80 + (fromEnd % 3) * 5}`);
         }
         // Example file stays short — fill only a couple of columns when present
         continue;
@@ -341,18 +402,39 @@ export function buildPipeAutomationWideTemplate(options?: {
   example?: boolean;
   now?: Date;
   channels?: readonly SpendChannel[];
+  from?: string | null;
+  to?: string | null;
+  span?: SpendTemplateSpan | string | null;
+  floorKey?: string;
 }): string {
   const dayCount = options?.dayCount ?? 14;
   const channels = options?.channels;
+  const rangeOpts = {
+    dayCount,
+    now: options?.now,
+    from: options?.from,
+    to: options?.to,
+    span: options?.span,
+    floorKey: options?.floorKey,
+  };
   if (options?.example) {
     if (channels && channels.length > 0) {
       return buildSelectedPlatformTemplateCsv(platformsToTemplateCols([...channels]), {
-        dayCount,
+        ...rangeOpts,
         example: true,
-        now: options?.now,
       }).csv;
     }
+    if (options.from || options.to || options.span) {
+      return buildSelectedPlatformTemplateCsv(
+        platformsToTemplateCols([...SPEND_CHANNELS]),
+        { ...rangeOpts, example: true },
+      ).csv;
+    }
     return WIDE_TEMPLATE_SAMPLE;
+  }
+  if (options.from || options.to || options.span) {
+    const dates = resolveTemplateDayKeys(rangeOpts, dayCount);
+    return buildBlankSpendTemplateForDates(dates, channels);
   }
   return buildBlankSpendTemplate(dayCount, channels);
 }
@@ -439,25 +521,28 @@ const WIDE_HEADER_BY_CHANNEL: ReadonlyMap<SpendChannel, string> = new Map(
   ).map((col) => [col.channel, col.header]),
 );
 
-function formatLocalYmd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 /**
  * Build a Day + selected-platform-columns CSV.
  * Headers use WIDE_TEMPLATE labels for named engines, or `header` for extras
  * so Billboards and Radio can both live in `other` without collapsing.
- * Seven trailing local days ending on `now` (default today).
+ * Default: seven trailing local days ending on `now` (includes today).
+ * Pass `from`/`to` and/or `span` for closed-day history backfill (through yesterday).
  * `example` defaults true (sample amounts) for back-compat; `example:false` leaves amounts empty.
  */
 export function buildSelectedPlatformTemplateCsv(
   platforms: SelectedPlatformTemplateCol[],
-  options?: { dayCount?: number; now?: Date; example?: boolean },
+  options?: {
+    dayCount?: number;
+    now?: Date;
+    example?: boolean;
+    from?: string | null;
+    to?: string | null;
+    span?: SpendTemplateSpan | string | null;
+    floorKey?: string;
+  },
 ): SelectedPlatformTemplateCsv {
-  const dayCount = options?.dayCount ?? 7;
-  const now = options?.now ?? new Date();
   const example = options?.example !== false;
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dates = resolveTemplateDayKeys(options, 7);
 
   const headers: string[] = ["Day"];
   const seenHeaders = new Set<string>();
@@ -474,11 +559,8 @@ export function buildSelectedPlatformTemplateCsv(
 
   const channelColCount = headers.length - 1;
   const rows: string[][] = [];
-  for (let i = dayCount - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const date = formatLocalYmd(d);
-    const dayIndex = dayCount - 1 - i;
+  for (let dayIndex = 0; dayIndex < dates.length; dayIndex++) {
+    const date = dates[dayIndex];
     const cells = [date];
     for (let col = 0; col < channelColCount; col++) {
       if (example) {
