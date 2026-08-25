@@ -15,6 +15,13 @@ describe("Spend Add spend spine", () => {
     expect(spendSource).toContain("Billboards — I-15");
     expect(spendSource).toContain("mcfly-spend-csv");
     expect(spendSource).toContain("ProUpsellBlock");
+    const formStart = spendSource.indexOf(
+      '<Form method="post" className="mcfly-spend-add__form"',
+    );
+    const formEnd = spendSource.indexOf("</Form>", formStart);
+    expect(formStart).toBeGreaterThan(-1);
+    expect(formEnd).toBeGreaterThan(formStart);
+    expect(spendSource.slice(formStart, formEnd)).not.toContain("ProUpsellBlock");
   });
 });
 
