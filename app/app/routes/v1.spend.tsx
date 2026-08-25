@@ -80,16 +80,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     for (const entry of entries) {
       const channel = mapChannel(entry.channel);
       const { start, end } = dayBounds(entry.date);
-      // Upsert on shopId+channel+periodStart (SpendEntry_shopId_channel_periodStart_key) —
+      // Upsert on shopId+channel+customKey+periodStart —
       // re-posting the same shop/channel/day updates that row (latest write wins), no summing.
       // source: csv — API posts are desk imports; clears sample so sample-OFF keeps spend.
       await tx.spendEntry.upsert({
         where: {
-          shopId_channel_periodStart: { shopId: shop.id, channel, periodStart: start },
+          shopId_channel_customKey_periodStart: {
+            shopId: shop.id,
+            channel,
+            customKey: "",
+            periodStart: start,
+          },
         },
         create: {
           shopId: shop.id,
           channel,
+          customKey: "",
           amount: entry.amount,
           periodStart: start,
           periodEnd: end,

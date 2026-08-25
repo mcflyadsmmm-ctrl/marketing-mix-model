@@ -15,6 +15,7 @@ vi.mock("./mer-dashboard.server", () => ({
 import {
   buildSalesGoalPeriods,
   calendarDaysElapsedInMonth,
+  merVsRails,
   monthDateRange,
   paceStatus,
   salesByMonthFromDayMap,
@@ -259,6 +260,57 @@ describe("buildSalesGoalPeriods", () => {
     );
     expect(periods.ytd.yoy.priorActual).toBe(90_000 * 6 + 80_000);
     expect(periods.ytd.yoy.tone).toBe("up");
+    expect(periods.mtd.spend).toBe(0);
+    expect(periods.mtd.mer).toBeNull();
+    expect(periods.qtd.spend).toBe(0);
+    expect(periods.ytd.spend).toBe(0);
+  });
+
+  it("rolls uploaded spend into MTD / QTD / YTD and computes cash MER", () => {
+    const goals = Array.from({ length: 12 }, () => 100_000);
+    const salesByMonth = monthMap({
+      1: 110_000,
+      2: 95_000,
+      6: 102_000,
+      7: 52_000,
+    });
+    const spendByMonth = monthMap({
+      1: 40_000,
+      2: 40_000,
+      6: 34_000,
+      7: 20_000,
+    });
+
+    const periods = buildSalesGoalPeriods({
+      year: 2026,
+      goals,
+      salesByMonth,
+      spendByMonth,
+      priorYearMonthly: Array.from({ length: 12 }, () => 0),
+      now,
+    });
+
+    expect(periods.mtd.spend).toBe(20_000);
+    expect(periods.mtd.mer).toBeCloseTo(52_000 / 20_000, 5);
+    expect(periods.qtd.spend).toBe(20_000);
+    expect(periods.qtd.mer).toBeCloseTo(52_000 / 20_000, 5);
+    expect(periods.ytd.spend).toBe(40_000 + 40_000 + 34_000 + 20_000);
+    expect(periods.ytd.actual).toBe(110_000 + 95_000 + 102_000 + 52_000);
+    expect(periods.ytd.mer).toBeCloseTo(periods.ytd.actual / periods.ytd.spend, 5);
+
+    const withRails = buildSalesGoalPeriods({
+      year: 2026,
+      goals,
+      salesByMonth,
+      spendByMonth,
+      priorYearMonthly: Array.from({ length: 12 }, () => 0),
+      now,
+      targetMer: 3,
+      breakEvenMer: 2,
+    });
+    expect(withRails.mtd.merRails.tone).toBe("up");
+    expect(withRails.mtd.merRails.label).toBe("Above break-even");
+    expect(withRails.mtd.mer).toBeCloseTo(2.6, 5);
   });
 
   it("returns null progress and none pace when goals are empty", () => {
@@ -273,5 +325,38 @@ describe("buildSalesGoalPeriods", () => {
     expect(periods.mtd.pace.kind).toBe("none");
     expect(periods.qtd.progressPct).toBeNull();
     expect(periods.ytd.progressPct).toBeNull();
+  });
+});
+
+describe("merVsRails", () => {
+  it("labels below break-even as down", () => {
+    const rails = merVsRails(1.5, 3, 2);
+    expect(rails.tone).toBe("down");
+    expect(rails.label).toBe("Below break-even");
+    expect(rails.vsTargetAbs).toBeCloseTo(1.5 - 3, 5);
+    expect(rails.vsBeAbs).toBeCloseTo(1.5 - 2, 5);
+  });
+
+  it("labels above break-even but short of target as up", () => {
+    const rails = merVsRails(2.4, 3, 2);
+    expect(rails.tone).toBe("up");
+    expect(rails.label).toBe("Above break-even");
+    expect(rails.vsBeAbs).toBeCloseTo(0.4, 5);
+    expect(rails.vsTargetAbs).toBeCloseTo(-0.6, 5);
+  });
+
+  it("labels near-target MER as flat", () => {
+    const rails = merVsRails(2.9, 3, 2);
+    expect(rails.tone).toBe("flat");
+    expect(rails.label).toBe("On target MER");
+    expect(rails.vsTargetAbs).toBeCloseTo(-0.1, 5);
+  });
+
+  it("returns flat dashes when MER is missing", () => {
+    const rails = merVsRails(null, 3, 2);
+    expect(rails.tone).toBe("flat");
+    expect(rails.label).toBe("—");
+    expect(rails.vsTargetAbs).toBeNull();
+    expect(rails.vsBeAbs).toBeNull();
   });
 });

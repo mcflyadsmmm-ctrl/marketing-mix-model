@@ -968,6 +968,7 @@ function LtvSnapSection({
     avgRevenueD90: number | null;
     ltvCacRatio: number | null;
     newBuyers: number;
+    paybackDays: number | null;
   };
   preset: PeriodPreset;
   showProTeaser: boolean;
@@ -1039,7 +1040,11 @@ function LtvSnapSection({
                 ? `${tillLtv.newBuyers.toLocaleString()} new customers · open for cohorts`
                 : "Open for cohort windows and history coverage."}
           </p>
-          {tillLtv.avgRevenueD30 != null ? (
+          {tillLtv.paybackDays != null ? (
+            <p className="mcfly-tab-snap__muted">
+              Cash CAC recovered in ~{tillLtv.paybackDays}d on average
+            </p>
+          ) : tillLtv.avgRevenueD30 != null ? (
             <p className="mcfly-tab-snap__muted">
               LTV · 30d {formatCurrency(tillLtv.avgRevenueD30)}
             </p>

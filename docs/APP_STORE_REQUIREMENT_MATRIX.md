@@ -1,9 +1,9 @@
 # App Store requirement matrix — Mcfly Analytics
 
 Source: [App Store requirements](https://shopify.dev/docs/apps/launch/shopify-app-store/app-store-requirements) (as pasted 2026-08-25).  
-App: **Mcfly Analytics** · handle `mcfly-analytics-public` · App URL `https://mcfly-analytics.fly.dev` · Fly **v142** (2.1.1 billing-exit deploy).
+App: **Mcfly Analytics** · handle `mcfly-analytics-public` · App URL `https://mcfly-analytics.fly.dev` · Fly **v143** (reported live release; repository verification below is source-only).
 
-Legend: **PASS** = evidenced in this repo / live host · **N/A** = category does not apply · **HUMAN** = Partner Dashboard, Admin session, or MFA still required.
+Legend: **PASS** = evidenced in this repo (live-host evidence is called out separately) · **N/A** = category does not apply · **HUMAN** = Partner Dashboard, Admin session, or MFA still required.
 
 This matrix does **not** claim Shopify will approve the app. App Review can still reject. Live Admin iframe smoke and Partner Submit are HUMAN.
 
@@ -27,24 +27,24 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 | 1.1.14 Agencies | **N/A** | No freelancer marketplace. |
 | 1.1.15 Refunds via original processor | **N/A** | No refund product. |
 | 1.1.16 Capital lending | **N/A** | No lending. |
-| 1.2.1–1.2.3 Billing | **PASS (code + Fly secrets)** / **HUMAN (Partner Pricing UI)** | Shopify App Pricing only (`MCFLY_BILLING=1` on Fly). Settings Manage plan for upgrade/downgrade without reinstall. No Stripe in the app. Partner must actually list Free + Pro $39. |
-| 1.3.1 No review incentives | **PASS** | No in-app review-for-perk UI. |
+| 1.2.1–1.2.3 Billing | **PASS (repo code)** / **HUMAN (Partner Pricing + live config)** | Shopify Managed Pricing code supports plan changes without reinstall. `app-store-requirement-verify.test.ts` rejects Stripe/PayPal app-subscription indicators. Partner must actually list Free + Pro $39 and confirm live billing configuration. |
+| 1.3.1 No review incentives | **PASS** | Automated runtime-source guard rejects review-for-extra-days / discount / unlock incentives. |
 
 ## 2. Functionality
 
 | ID | Result | Evidence |
 | --- | --- | --- |
-| 2.1.1 No critical errors | **PASS (code + Fly v142)** / **HUMAN (Admin smoke)** | Pause tape: Spend → Upgrade loaded `admin.shopify.com` in the iframe. Fix: user-gesture `open(url, "_top")` + HTML bounce, never same-frame Admin. **Deployed v142.** Reviewer must still click Upgrade on a store with the app installed. |
+| 2.1.1 No critical errors | **PASS (repo code)** / **HUMAN (deployed Admin smoke)** | `billing-exit.server.ts`, `billing-navigate.ts`, and `ProUpgradeButton.tsx` preserve user-gesture `open(_, "_top")` plus the GET `/app/billing` HTML bounce. The source guard asserts both paths. A reviewer must still click Upgrade on the deployed app. |
 | 2.1.2 Minor errors | **HUMAN** | Needs a logged-in Admin pass on `devmcflyads` / `mcfly-2`. |
 | 2.1.3 Interactable UI | **PASS** | Embedded Polaris desk (Overview, Spend, Allocation, Goals, Settings). |
 | 2.1.4 Data sync | **PASS** | Sales from GraphQL Admin; spend merchant-entered. SAMPLE desk must be **OFF** for live review. |
-| 2.2.1 Shopify APIs | **PASS** | GraphQL Admin (`read_orders`, `read_customers`). |
+| 2.2.1 Shopify APIs | **PASS** | GraphQL Admin (`read_orders`, `read_customers`). PCD source guard limits customer selections to opaque `id` + `numberOfOrders`; no name/email/phone/address fields. |
 | 2.2.2 Embedded experience | **PASS** | Off-platform features (plans) exit to Admin top frame, then return. |
-| 2.2.3 Latest App Bridge | **PASS** | `app-bridge.js` first script in `app/app/root.tsx` when `loadAppBridge`. |
-| 2.2.4 GraphQL Admin API | **PASS** | `admin.graphql` only. No Admin REST. |
+| 2.2.3 Latest App Bridge | **PASS** | Source guard asserts `app-bridge.js` is in `<head>` and precedes all other scripts, `<Links>`, and `<Scripts>` when `loadAppBridge`. |
+| 2.2.4 GraphQL Admin API | **PASS** | Runtime-source scan rejects Admin REST imports, `admin.rest`, and `/admin/api/*.json`; tests and `app/CHANGELOG.md` are not treated as runtime usage. |
 | 2.2.5–2.2.7 Admin extensions | **N/A** | No admin UI blocks / actions / max-modal product. |
 | 2.2.8–2.2.9 Sidekick | **N/A** | No Sidekick extension. |
-| 2.3.1 Install from Shopify | **PASS** | `auth.login` does not harvest shop domain; marketing site has no myshopify form. |
+| 2.3.1 Install from Shopify | **PASS** | Source guard asserts `auth.login` has no shop-domain input or myshopify-domain collection prompt. |
 | 2.3.2–2.3.4 OAuth immediately | **PASS** | Shopify app template OAuth before UI. Reinstall re-auths. |
 
 ## 3. Security
@@ -52,7 +52,7 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 | ID | Result | Evidence |
 | --- | --- | --- |
 | 3.1.1 TLS | **PASS** | Fly `force_https`; live `/health` is HTTPS 200. |
-| 3.2.1 `read_all_orders` | **N/A / PASS** | Not in public TOML/Fly `SCOPES`. Do not request until Partner approves. |
+| 3.2.1 `read_all_orders` | **N/A / PASS** | Both public TOMLs are automatically pinned to `read_orders,read_customers`; `read_all_orders` is rejected. Live Fly scopes still require human confirmation. |
 | 3.2.2–3.2.5 special scopes | **N/A** | Not requested. |
 
 ## 4. App Store listing
@@ -65,7 +65,7 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 | 4.2.3 No pricing elsewhere in listing | **PASS (paste blocks)** / **HUMAN (Partner form)** | Short / long / features marked `APP_STORE_PASTE` with no `$39`. Do not paste reviewer notes into the public listing. |
 | 4.3.1 Online Store required | **PASS (docs)** / **HUMAN** | Checklist: leave “Merchant must have online store” **unchecked**. |
 | 4.3.2 Languages | **PASS** | English only. |
-| 4.3.3–4.3.4 No stats / “best/only” | **PASS (paste + captions)** | Captions no longer say “the only formula”. |
+| 4.3.3–4.3.4 No stats / “best/only” | **PASS (paste + captions)** | Listing test rejects quantified outcome claims, guarantees, and “the first/best/only”; captions no longer say “the only formula”. |
 | 4.3.5 Tags | **HUMAN** | Marketing analytics / advertising — human picks in Partner. |
 | 4.3.6–4.3.7 No testimonials | **PASS** | Listing paste has none. |
 | 4.3.8 Geographic requirements | **N/A** | None. |
@@ -81,12 +81,12 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 
 | Category | Result |
 | --- | --- |
-| 5.1 Online store / theme app extensions | **N/A** — does not modify themes |
-| 5.2–5.3 Payments | **N/A** |
+| 5.1 Online store / theme app extensions | **N/A** — source/config guard finds no theme app extension configuration |
+| 5.2–5.3 Payments | **N/A** — source/config guard finds no Payments API or payment extension |
 | 5.4 Purchase options / subscriptions | **N/A** |
 | 5.5 Product sourcing | **N/A** |
-| 5.6 Checkout customization | **N/A** |
-| 5.7 Sales channel | **N/A** |
+| 5.6 Checkout customization | **N/A** — source/config guard finds no checkout UI extension |
+| 5.7 Sales channel | **N/A** — source/config guard finds no channel configuration |
 | 5.8 Post purchase | **N/A** |
 | 5.9 Mobile app builders | **N/A** |
 | 5.10 Donation | **N/A** |

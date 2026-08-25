@@ -169,7 +169,7 @@ export function buildThreeYearSampleDesk(options?: {
 
 /**
  * SAMPLE spend stamps UTC noon so they never collide with live CSV rows
- * (UTC midnight) on SpendEntry @@unique([shopId, channel, periodStart]).
+ * (UTC midnight) on SpendEntry @@unique([shopId, channel, customKey, periodStart]).
  * Live and SAMPLE can coexist; loaders filter by source.
  */
 export function sampleSpendBounds(day: Date): { start: Date; end: Date } {

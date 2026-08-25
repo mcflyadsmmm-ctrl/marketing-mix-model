@@ -17,6 +17,7 @@ import {
   buildSheetsImportGuide,
   combineSpendCsvInputs,
   countSpendCsvDataRows,
+  customNamesToTemplateCols,
   detectWideChannelColumns,
   headerLooksLikeAdsSpend,
   normalizeChannel,
@@ -140,6 +141,39 @@ describe("channel header detection / Leads trap", () => {
       "Revenue",
     ]);
     expect(cols.map((c) => c.rawHeader)).toEqual(["Meta Ads"]);
+  });
+
+  it("promotes Billboards and Radio as separate Other extras (no Cost column)", () => {
+    const csv = `Day,Meta Ads,Billboards,Radio
+2026-07-01,100,80,40`;
+    expect(
+      detectWideChannelColumns(["Day", "Meta Ads", "Billboards", "Radio"]).map(
+        (c) => ({ header: c.rawHeader, channel: c.channel, customKey: c.customKey }),
+      ),
+    ).toEqual([
+      { header: "Meta Ads", channel: "meta", customKey: undefined },
+      { header: "Billboards", channel: "other", customKey: "billboards" },
+      { header: "Radio", channel: "other", customKey: "radio" },
+    ]);
+    const { rows, errors } = parseSpendCsv(csv);
+    expect(errors).toEqual([]);
+    expect(aggregateSpendRows(rows)).toEqual([
+      { date: "2026-07-01", channel: "meta", amount: 100 },
+      {
+        date: "2026-07-01",
+        channel: "other",
+        amount: 80,
+        customKey: "billboards",
+        customLabel: "Billboards",
+      },
+      {
+        date: "2026-07-01",
+        channel: "other",
+        amount: 40,
+        customKey: "radio",
+        customLabel: "Radio",
+      },
+    ]);
   });
 });
 
@@ -425,6 +459,37 @@ describe("buildSelectedPlatformTemplateCsv", () => {
     expect(withDefault.csv).toBe(explicit.csv);
     expect(Number(withDefault.rows[0][1])).toBeGreaterThan(0);
   });
+
+  it("keeps two named extra columns instead of collapsing Other", () => {
+    const result = buildSelectedPlatformTemplateCsv(
+      [
+        { title: "Meta", engineChannel: "meta" },
+        ...customNamesToTemplateCols(["Billboards / OOH", "Radio"]),
+      ],
+      { now, dayCount: 1, example: false },
+    );
+    expect(result.headers).toEqual([
+      "Day",
+      "Meta Ads",
+      "Billboards / OOH",
+      "Radio",
+    ]);
+    expect(result.rows[0]).toEqual(["2026-07-26", "", "", ""]);
+    const filled = buildSelectedPlatformTemplateCsv(
+      [
+        { title: "Meta", engineChannel: "meta" },
+        ...customNamesToTemplateCols(["Billboards / OOH", "Radio"]),
+      ],
+      { now, dayCount: 1, example: true },
+    );
+    const { rows, errors } = parseSpendCsv(filled.csv);
+    expect(errors).toEqual([]);
+    expect(rows.map((r) => `${r.channel}:${r.customKey ?? ""}`).sort()).toEqual([
+      "meta:",
+      "other:billboards-ooh",
+      "other:radio",
+    ]);
+  });
 });
 
 describe("parsePlatformsParam + selected template filename", () => {
@@ -491,6 +556,30 @@ describe("long format Other channel", () => {
       { date: "2026-07-01", channel: "other", amount: 99.99 },
     ]);
   });
+
+  it("keeps Billboards and Radio as separate extras on the same day", () => {
+    const csv = `date,channel,amount
+2026-07-01,Billboards,80
+2026-07-01,Radio,40`;
+    const { rows, errors } = parseSpendCsv(csv);
+    expect(errors).toEqual([]);
+    expect(aggregateSpendRows(rows)).toEqual([
+      {
+        date: "2026-07-01",
+        channel: "other",
+        amount: 80,
+        customKey: "billboards",
+        customLabel: "Billboards",
+      },
+      {
+        date: "2026-07-01",
+        channel: "other",
+        amount: 40,
+        customKey: "radio",
+        customLabel: "Radio",
+      },
+    ]);
+  });
 });
 
 describe("single-channel native exports with forceChannel", () => {
@@ -527,6 +616,21 @@ Total,813.75`;
     const { rows, errors } = parseSpendCsv(csv);
     expect(rows).toEqual([]);
     expect(errors[0]).toMatch(/single-platform export/i);
+  });
+
+  it("does not treat Campaign as a spend column in Google-like Date,Campaign,Cost", () => {
+    const headers = ["Date", "Campaign", "Cost"];
+    expect(detectWideChannelColumns(headers)).toEqual([]);
+    const csv = `Date,Campaign,Cost
+2026-07-01,Summer Sale,250.00`;
+    const unforced = parseSpendCsv(csv);
+    expect(unforced.rows).toEqual([]);
+    expect(unforced.errors[0]).toMatch(/single-platform export/i);
+    const forced = parseSpendCsv(csv, { forceChannel: "google" });
+    expect(forced.errors).toEqual([]);
+    expect(aggregateSpendRows(forced.rows)).toEqual([
+      { date: "2026-07-01", channel: "google", amount: 250 },
+    ]);
   });
 
   it("skips empty date, Total label, and missing amount rows", () => {

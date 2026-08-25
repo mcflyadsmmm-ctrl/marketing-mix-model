@@ -141,7 +141,7 @@ describe("createSpendRepository().upsertSpendDays", () => {
     update.mockResolvedValue({});
   });
 
-  it("creates on the shopId_channel_periodStart unique key (latest write wins)", async () => {
+  it("creates on the shopId_channel_customKey_periodStart unique key (latest write wins)", async () => {
     findMany.mockResolvedValue([]);
 
     const repo = createSpendRepository();
@@ -165,11 +165,46 @@ describe("createSpendRepository().upsertSpendDays", () => {
       amount: 100,
       periodStart: utcMidnightFromDayKey("2026-07-01"),
       source: "csv",
+      customKey: "",
     });
     expect(transaction.mock.calls[0][1]).toEqual({
       timeout: 60_000,
       maxWait: 10_000,
     });
+  });
+
+  it("creates two other extras on the same day without collapsing", async () => {
+    findMany.mockResolvedValue([]);
+
+    const repo = createSpendRepository();
+    const result = await repo.upsertSpendDays("shop_1", [
+      {
+        date: "2026-07-01",
+        channel: "other",
+        amount: 80,
+        currency: "USD",
+        source: "csv",
+        customKey: "billboards-ooh",
+        note: "Billboards / OOH",
+      },
+      {
+        date: "2026-07-01",
+        channel: "other",
+        amount: 40,
+        currency: "USD",
+        source: "csv",
+        customKey: "radio",
+        note: "Radio",
+      },
+    ]);
+
+    expect(result.created).toBe(2);
+    const rows = createMany.mock.calls[0][0].data;
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r: { customKey: string }) => r.customKey).sort()).toEqual([
+      "billboards-ooh",
+      "radio",
+    ]);
   });
 
   it("stores periodStart as UTC midnight for day key (host TZ independent)", async () => {
@@ -200,6 +235,7 @@ describe("createSpendRepository().upsertSpendDays", () => {
         amount: 250,
         source: "csv",
         channel: "google",
+        customKey: "",
         periodStart: utcMidnightFromDayKey("2026-07-02"),
       },
     ]);
@@ -220,6 +256,7 @@ describe("createSpendRepository().upsertSpendDays", () => {
         amount: 250,
         source: "sample",
         channel: "google",
+        customKey: "",
         periodStart: utcMidnightFromDayKey("2026-07-02"),
       },
     ]);
@@ -249,6 +286,7 @@ describe("createSpendRepository().upsertSpendDays", () => {
         amount: 80,
         source: "sample",
         channel: "meta",
+        customKey: "",
         periodStart: utcMidnightFromDayKey("2026-07-05"),
       },
     ]);
@@ -270,6 +308,7 @@ describe("createSpendRepository().upsertSpendDays", () => {
         amount: 100,
         source: "csv",
         channel: "meta",
+        customKey: "",
         periodStart: utcMidnightFromDayKey("2026-07-03"),
       },
     ]);
@@ -283,9 +322,10 @@ describe("createSpendRepository().upsertSpendDays", () => {
     const call = update.mock.calls[0][0];
     expect(call.data.amount).toBe(175);
     expect(call.data.source).toBe("csv");
-    expect(call.where.shopId_channel_periodStart).toEqual({
+    expect(call.where.shopId_channel_customKey_periodStart).toEqual({
       shopId: "shop_1",
       channel: "meta",
+      customKey: "",
       periodStart: utcMidnightFromDayKey("2026-07-03"),
     });
   });
@@ -346,6 +386,7 @@ describe("createSpendRepository().upsertSpendDays", () => {
         amount: 100,
         source: "csv",
         channel: "meta",
+        customKey: "",
         periodStart: utcMidnightFromDayKey("2026-07-01"),
       },
     ]);

@@ -126,9 +126,13 @@ model SpendEntry {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  /// One entry per channel per period-start — writers upsert on this key
+  /// Unlabeled Other is "". Named extras (billboards, radio, …) get a slug
+  /// so two custom channels on the same day do not overwrite each other.
+  customKey   String       @default("")
+
+  /// One entry per channel + customKey per period-start — writers upsert on this key
   /// (latest write wins on amount/periodEnd/note/source; never sum duplicates).
-  @@unique([shopId, channel, periodStart])
+  @@unique([shopId, channel, customKey, periodStart])
   @@index([shopId, periodStart, periodEnd])
   @@index([shopId, source])
 }

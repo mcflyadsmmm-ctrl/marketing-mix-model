@@ -207,19 +207,21 @@ async function main() {
   });
 
   for (const entry of bundle.spends) {
-    // Upsert on shopId+channel+periodStart (SpendEntry_shopId_channel_periodStart_key) —
+    // Upsert on shopId+channel+customKey+periodStart —
     // re-running the seed updates existing rows instead of hitting the unique index.
     await prisma.spendEntry.upsert({
       where: {
-        shopId_channel_periodStart: {
+        shopId_channel_customKey_periodStart: {
           shopId: shop.id,
           channel: entry.channel,
+          customKey: "",
           periodStart: entry.periodStart,
         },
       },
       create: {
         shopId: shop.id,
         channel: entry.channel,
+        customKey: "",
         amount: entry.amount,
         periodStart: entry.periodStart,
         periodEnd: entry.periodEnd,

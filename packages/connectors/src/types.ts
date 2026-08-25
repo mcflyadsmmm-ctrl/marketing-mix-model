@@ -6,6 +6,10 @@ export type SpendDay = {
   amount: number;
   currency: string;
   source: SpendSource;
+  /** SpendEntry.customKey for named Other extras. Default "". */
+  customKey?: string;
+  /** Display name for named Other extras. */
+  note?: string;
 };
 
 export type SpendSyncRange = {

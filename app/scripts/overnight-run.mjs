@@ -63,10 +63,15 @@ function createSpendRepository() {
         const [y, m, d] = row.date.split("-").map(Number);
         const start = new Date(y, m - 1, d);
         const end = new Date(y, m - 1, d, 23, 59, 59, 999);
-        // Must match SpendEntry @@unique([shopId, channel, periodStart]) upsert path.
+        // Must match SpendEntry @@unique([shopId, channel, customKey, periodStart]).
         const existing = await prisma.spendEntry.findUnique({
           where: {
-            shopId_channel_periodStart: { shopId, channel, periodStart: start },
+            shopId_channel_customKey_periodStart: {
+              shopId,
+              channel,
+              customKey: "",
+              periodStart: start,
+            },
           },
           select: { amount: true, source: true },
         });
@@ -80,11 +85,17 @@ function createSpendRepository() {
         }
         await prisma.spendEntry.upsert({
           where: {
-            shopId_channel_periodStart: { shopId, channel, periodStart: start },
+            shopId_channel_customKey_periodStart: {
+              shopId,
+              channel,
+              customKey: "",
+              periodStart: start,
+            },
           },
           create: {
             shopId,
             channel,
+            customKey: "",
             amount: row.amount,
             periodStart: start,
             periodEnd: end,

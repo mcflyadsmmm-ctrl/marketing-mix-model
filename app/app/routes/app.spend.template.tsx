@@ -7,11 +7,13 @@ import {
   buildPipeAutomationLongTemplate,
   buildPipeAutomationWideTemplate,
   buildSelectedPlatformTemplateCsv,
+  customNamesToTemplateCols,
   parsePlatformsParam,
   platformsToTemplateCols,
   selectedPlatformsTemplateFilename,
   WIDE_TEMPLATE_SAMPLE,
 } from "../lib/spend-csv";
+import { parseCustomChannelsParam } from "../lib/spend-custom-channel";
 import {
   FREE_CHANNELS,
   resolveShopEntitlements,
@@ -86,15 +88,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       channels = channels.filter((ch) =>
         entitlements.allowedChannels.includes(ch),
       );
-      if (channels.length === 0) {
-        channels = [...FREE_CHANNELS];
-      }
+    }
+    // Named extras (billboards, radio, typed) are `custom=`, not the generic Other column.
+    channels = channels.filter((ch) => ch !== "other");
+    const customCols = customNamesToTemplateCols(
+      parseCustomChannelsParam(url.searchParams.get("custom")),
+    );
+    if (channels.length === 0 && customCols.length === 0) {
+      const fallback: SpendChannel[] = ["meta", "google"];
+      channels = fallback;
     }
     const useExample = example && !blank;
-    const built = buildSelectedPlatformTemplateCsv(platformsToTemplateCols(channels), {
-      dayCount: 14,
-      example: useExample,
-    });
+    const built = buildSelectedPlatformTemplateCsv(
+      [...platformsToTemplateCols(channels), ...customCols],
+      {
+        dayCount: 14,
+        example: useExample,
+      },
+    );
     body = built.csv;
     filename = selectedPlatformsTemplateFilename(
       channels,

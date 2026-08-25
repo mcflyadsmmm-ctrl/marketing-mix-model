@@ -6,7 +6,7 @@
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
 
 /**
- * Free install: Meta + Google + custom Other (name it).
+ * Free install: Meta + Google + named extras (billboards, radio, typed channels).
  * Named paid platforms (TikTok, Microsoft, Amazon, …) stay Pro upsell.
  */
 export const FREE_CHANNELS = [
@@ -37,7 +37,7 @@ export const PRO_UPSELL = {
   includes:
     "Pro includes: every named ad channel (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition cohorts (Cash CAC · 30/90/365 · LTV:CAC), and the full-year Goals board with YoY fill.",
   channels:
-    "Free channels: Meta, Google, and custom Other (name influencers/podcasts/agency). Pro ($39/mo) unlocks TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and every other named platform — plus Customer LTV and full Goals.",
+    "Free channels: Meta, Google, and named extras (billboards, radio, podcasts — type any we did not list). Pro ($39/mo) unlocks TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and every other named platform — plus Customer LTV and full Goals.",
   ltv: "Pro unlocks Customer LTV / Acquisition: Cash CAC, 30/90/365 cohort revenue, and LTV:CAC from Shopify order cohorts (opaque ids only — no email CRM). Preview the full desk on SAMPLE anytime.",
   goals:
     "Pro unlocks the full-year sales board, Grow YoY fill, and monthly fine-tune. Free still shows MTD · QTD · YTD pace vs your Total ROAS goal and break-even.",
@@ -50,7 +50,7 @@ export const PRO_UPSELL = {
 export const FREE_FEATURE_BULLETS = [
   "Total ROAS = Shopify Total Sales ÷ ad spend",
   "Break-even from optional profit margin",
-  "Spend CSV: Meta + Google + custom Other",
+  "Spend CSV: Meta + Google + named extras (billboards, radio, …)",
   "Period filters (MTD · LM · QTD · YTD · …)",
   "Spend Allocation mix for Free channels",
   "Email Overview (opens your mail app)",

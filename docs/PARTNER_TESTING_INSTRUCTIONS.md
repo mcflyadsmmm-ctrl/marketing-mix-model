@@ -48,7 +48,7 @@ session is the only login. There is no Mcfly signup, no Google SSO, no second
 password, and no in-app account to create.
 
 How to reach the complete feature set (4.5.5)
-- Free (default): Overview, Spend (Meta + Google + custom Other CSV), Allocation,
+- Free (default): Overview, Spend (Meta + Google + named extras CSV), Allocation,
   Goals pace, Settings. No extra login.
 - Pro (named channels, Customer LTV, full Goals board): Spend → Upgrade to Pro.
   Shopify App Pricing opens in the TOP Admin frame ($39/store/mo; development
