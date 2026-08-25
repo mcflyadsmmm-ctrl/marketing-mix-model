@@ -198,6 +198,90 @@ function bucketTitle(bucket: ExplorerPlotBucket, mode: ExplorerMode): string {
   return `${bucket.label}: ${bucketMerPhrase(bucket)}${modeBit}${scaleBit}`;
 }
 
+function explorerEmptyCopy(variant: SpendExplorerVariant): string {
+  switch (variant) {
+    case "spend":
+      return "Paste daily rows in Fill history, or add one day’s invoice. Day / week / month comparison fills once spend lands.";
+    case "overview":
+      return `Export channel spend by day and upload. ${PRODUCT_NOUN.definitionForPeriod}. The explorer fills once spend lands.`;
+    default: {
+      const _exhaustive: never = variant;
+      return _exhaustive;
+    }
+  }
+}
+
+function explorerEmptySearch(searchParams: URLSearchParams): string {
+  const q = searchParams.toString();
+  return q ? `?${q}` : "";
+}
+
+function explorerEmptyActions(
+  variant: SpendExplorerVariant,
+  searchParams: URLSearchParams,
+) {
+  const search = explorerEmptySearch(searchParams);
+  switch (variant) {
+    case "spend":
+      return (
+        <>
+          <Link
+            className="mcfly-explorer__cta"
+            preventScrollReset
+            to={{
+              pathname: "/app/spend",
+              search,
+              hash: "mcfly-spend-csv",
+            }}
+          >
+            Fill history
+          </Link>
+          <Link
+            className="mcfly-explorer__cta mcfly-explorer__cta--ghost"
+            preventScrollReset
+            to={{
+              pathname: "/app/spend",
+              search,
+              hash: "mcfly-spend-add",
+            }}
+          >
+            Add a day’s spend
+          </Link>
+        </>
+      );
+    case "overview":
+      return (
+        <>
+          <Link
+            className="mcfly-explorer__cta"
+            preventScrollReset
+            to={{
+              pathname: "/app/spend",
+              search,
+              hash: "mcfly-spend-add",
+            }}
+          >
+            Add a day’s spend
+          </Link>
+          <Link
+            className="mcfly-explorer__cta mcfly-explorer__cta--ghost"
+            preventScrollReset
+            to={{
+              pathname: "/app/spend",
+              search,
+            }}
+          >
+            Open Spend
+          </Link>
+        </>
+      );
+    default: {
+      const _exhaustive: never = variant;
+      return _exhaustive;
+    }
+  }
+}
+
 function downloadExplorerCsv(
   buckets: ExplorerPlotBucket[],
   mode: ExplorerMode,
@@ -1166,36 +1250,10 @@ export function SpendExplorer({
             No spend in {series.windowLabel.toLowerCase()}
           </p>
           <p className="mcfly-guide-empty__copy">
-            Export channel spend by day and upload.{" "}
-            {PRODUCT_NOUN.definitionForPeriod}. The explorer fills once spend
-            lands.
+            {explorerEmptyCopy(variant)}
           </p>
           <p className="mcfly-guide-empty__actions">
-            <Link
-              className="mcfly-explorer__cta"
-              preventScrollReset
-              to={{
-                pathname: "/app/spend",
-                search: searchParams.toString()
-                  ? `?${searchParams.toString()}`
-                  : "",
-                hash: "mcfly-spend-add",
-              }}
-            >
-              Add a day’s spend
-            </Link>
-            <Link
-              className="mcfly-explorer__cta mcfly-explorer__cta--ghost"
-              preventScrollReset
-              to={{
-                pathname: "/app/spend",
-                search: searchParams.toString()
-                  ? `?${searchParams.toString()}`
-                  : "",
-              }}
-            >
-              Open Spend
-            </Link>
+            {explorerEmptyActions(variant, searchParams)}
           </p>
         </div>
       )}

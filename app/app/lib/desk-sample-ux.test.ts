@@ -54,7 +54,7 @@ describe("Practice | Your store UX (no demo theater)", () => {
     expect(spend).toMatch(/source:\s*"sample"/);
     expect(spend).toContain("SAMPLE_DESK_IMPORT_BLOCK");
     expect(spend).toContain("Upload is paused on Practice");
-    expect(spend).toContain("Step 3 — Upload your CSV");
+    expect(spend).toContain("Or upload a CSV");
     expect(spend).toContain("Switch to Your store to upload");
     expect(spend).not.toContain("Sample spend is on this page");
   });

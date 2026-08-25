@@ -26,7 +26,6 @@ import { authenticate } from "../shopify.server";
 import {
   buildSpendExplorerSeries,
   ensureShop,
-  getSpendPeriodCoverage,
 } from "../lib/mer-dashboard.server";
 import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod, type PeriodPreset } from "../lib/periods";
 import {
@@ -40,13 +39,6 @@ import {
 } from "../lib/spend-explorer";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import { resolveManualSpendRange } from "../lib/spend-day-entry";
-import { PeriodControl } from "../components/PeriodControl";
-import {
-  computeSpendRecon,
-  formatSpendReconLine,
-  spendReconMatchesPeriod,
-} from "../lib/mer-trust";
-import { spendPeriodMix } from "../lib/spend-period-mix";
 import {
   CUSTOM_CHANNEL_PRESETS,
   MAX_CUSTOM_SPEND_CHANNELS,
@@ -105,7 +97,7 @@ import {
   SAMPLE_DESK_TARGET_MER,
   utcDayKey,
 } from "../lib/sample-desk.server";
-import { formatCurrency, formatPercent } from "../lib/mer-format";
+import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
 import {
@@ -177,24 +169,6 @@ function formatSpendEntryChannelLabel(
     return note.trim();
   }
   return base;
-}
-
-function mixChannelId(entry: {
-  channel: string;
-  customKey?: string | null;
-  note?: string | null;
-}): string {
-  if (entry.channel !== "other") return entry.channel;
-  if (entry.note?.trim()) return entry.note.trim();
-  if (entry.customKey?.trim()) return entry.customKey.trim();
-  return "other";
-}
-
-/** Color-dot class: named extras share the Other token (ids can have spaces). */
-function spendMixDotChannel(channel: string): string {
-  return (SPEND_CHANNELS as readonly string[]).includes(channel)
-    ? channel
-    : "other";
 }
 
 const CUSTOM_CHANNEL_NAME_ERROR =
@@ -341,7 +315,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const sampleDesk = await getSampleDeskStats(shop.id);
   const now = new Date();
   const timeZone = deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone);
-  const range = resolvePeriod(preset, now, timeZone);
   const settings = await prisma.settings.findUnique({ where: { shopId: shop.id } });
   const spendSourceWhere = sampleDesk.enabled
     ? { source: "sample" as const }
@@ -364,48 +337,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     label: explorerWindow.label,
   };
   // SAMPLE ON → show sample rows (practice mix). SAMPLE OFF → real uploads only.
-  const [entries, dayCoverage, periodSpend, periodCoverage] = await Promise.all([
+  const [entries, dayCoverage] = await Promise.all([
     prisma.spendEntry.findMany({
       where: { shopId: shop.id, ...spendSourceWhere },
       orderBy: { periodStart: "desc" },
       take: 20,
     }),
     loadSpendDayCoverage(shop.id, sampleDesk.enabled),
-    prisma.spendEntry.findMany({
-      where: {
-        shopId: shop.id,
-        ...spendSourceWhere,
-        periodStart: { lte: range.end },
-        periodEnd: { gte: range.start },
-      },
-      select: { amount: true, channel: true, customKey: true, note: true },
-    }),
-    getSpendPeriodCoverage(shop.id, range, {
-      excludeSample: !sampleDesk.enabled,
-      sampleOnly: sampleDesk.enabled,
-      timeZone,
-    }),
   ]);
-  const periodSpendTotal = periodSpend.reduce((s, e) => s + e.amount, 0);
-  const periodSpendMix = spendPeriodMix(
-    periodSpend.map((e) => ({
-      channel: mixChannelId(e),
-      amount: e.amount,
-    })),
-  );
-  const declaredMatches =
-    settings?.declaredAdsSpendPeriodStart &&
-    settings?.declaredAdsSpendPeriodEnd &&
-    spendReconMatchesPeriod(
-      settings.declaredAdsSpendPeriodStart,
-      settings.declaredAdsSpendPeriodEnd,
-      range.start,
-      range.end,
-      shop.ianaTimezone,
-    );
-  const spendRecon = declaredMatches
-    ? computeSpendRecon(periodSpendTotal, settings?.declaredAdsSpend)
-    : computeSpendRecon(periodSpendTotal, null);
 
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: sampleDesk.enabled,
@@ -478,13 +417,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sampleDesk,
     shotMode,
     dayCoverage,
-    periodCoverage,
     preset,
-    periodLabel: range.label,
-    periodSpendTotal,
-    periodSpendMix,
-    spendRecon,
-    declaredAdsSpend: declaredMatches ? settings?.declaredAdsSpend ?? null : null,
     entitlements,
     channels: channelOptionsFor(entitlements),
     addSpendChannels: addSpendSelectOptions(entitlements),
@@ -1059,19 +992,9 @@ export default function SpendEntryPage() {
     spendHistoryFloorKey,
     spendHistoryYearsBack,
     todayKey,
-    periodSpendMix,
-    periodSpendTotal,
-    spendRecon,
-    periodLabel,
     preset,
     explorer,
   } = useLoaderData<typeof loader>();
-  const periodMixRows = periodSpendMix.filter((row) => row.amount > 0);
-  const hasPeriodSpend = periodMixRows.length > 0;
-  const spendReconLine =
-    spendRecon && spendRecon.status !== "none" && spendRecon.declared != null
-      ? formatSpendReconLine(spendRecon)
-      : null;
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const location = useLocation();
@@ -1081,6 +1004,7 @@ export default function SpendEntryPage() {
   const submittingIntent =
     navigation.formData?.get("intent")?.toString() ?? null;
   const isEmpty = entries.length === 0;
+  const historyFirst = isEmpty && !sampleDesk.enabled && !shotMode;
   const csv = actionData?.csv;
   const csvSaved = Boolean(actionData?.success && csv);
   const csvNeedsConfirm = Boolean(csv?.needsConfirm);
@@ -1104,8 +1028,8 @@ export default function SpendEntryPage() {
   const coverageToKey =
     coverageClosedDays[coverageClosedDays.length - 1]?.dateKey;
   const blankTemplateHref = entitlements.canUseAllChannels
-    ? "/app/spend/template?blank=1"
-    : `/app/spend/template?platforms=${encodeURIComponent(entitlements.allowedChannels.join(","))}&blank=1`;
+    ? "/app/spend/template?blank=1&span=90d"
+    : `/app/spend/template?platforms=${encodeURIComponent(entitlements.allowedChannels.join(","))}&blank=1&span=90d`;
   const csvErrorGroups =
     csv && csv.errors.length > 0 ? groupCsvErrors(csv.errors) : null;
   const actionErrorGroups =
@@ -1135,7 +1059,7 @@ export default function SpendEntryPage() {
   const [forceChannel, setForceChannel] = useState<"" | "meta" | "google">("");
   const [confirmReplace, setConfirmReplace] = useState(false);
   /** Default open so channel pick is obvious; still collapsible. */
-  const [channelsOpen, setChannelsOpen] = useState(true);
+  const [channelsOpen, setChannelsOpen] = useState(isEmpty);
   const [customChannelNames, setCustomChannelNames] = useState<string[]>([]);
   const [customDraft, setCustomDraft] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
@@ -1362,14 +1286,24 @@ export default function SpendEntryPage() {
   return (
     <s-page heading="Spend" inlineSize="large">
       {isEmpty && !shotMode && !sampleDesk.enabled ? (
-        <s-button
-          slot="primary-action"
-          variant="primary"
-          href="#mcfly-spend-add"
-          aria-label={PRODUCT_NOUN.setupAddSpend}
-        >
-          {PRODUCT_NOUN.setupAddSpend}
-        </s-button>
+        <>
+          <s-button
+            slot="primary-action"
+            variant="primary"
+            href="#mcfly-spend-add"
+            aria-label={PRODUCT_NOUN.setupAddSpend}
+          >
+            {PRODUCT_NOUN.setupAddSpend}
+          </s-button>
+          <s-button
+            slot="secondary-action"
+            variant="secondary"
+            href="#mcfly-spend-csv"
+            aria-label="Fill history"
+          >
+            Fill history
+          </s-button>
+        </>
       ) : null}
       <div
         className={[
@@ -1524,7 +1458,12 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        <div className="mcfly-spend-lean__stack">
+        className={[
+          "mcfly-spend-lean__stack",
+          historyFirst ? "mcfly-spend-lean__stack--history-first" : null,
+        ]
+          .filter(Boolean)
+          .join(" ")}
           <section
             id="mcfly-spend-add"
             className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-add"
@@ -1533,7 +1472,7 @@ export default function SpendEntryPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>Add spend</h2>
               <p className="mcfly-panel__muted">
-                {NUMBER_HONESTY.invoiceHint} Many days: fill history below.
+                {NUMBER_HONESTY.invoiceHint} Many days: Fill history on this tab.
               </p>
             </div>
             {sampleDesk.enabled && !shotMode ? (
@@ -1664,7 +1603,7 @@ export default function SpendEntryPage() {
           </section>
 
           <section
-            className="mcfly-panel mcfly-panel--eq-compact"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-explorer"
             aria-label="Day week month spend"
           >
             <div className="mcfly-panel__head mcfly-panel__head--tight">
@@ -1685,65 +1624,6 @@ export default function SpendEntryPage() {
           </section>
 
           <section
-            className="mcfly-panel mcfly-panel--eq-compact"
-            aria-label={`Period spend mix · ${periodLabel}`}
-          >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Period spend</h2>
-              <p className="mcfly-panel__muted">
-                {periodLabel}
-                {sampleDesk.enabled ? " · sample" : ""} · spend you added
-              </p>
-            </div>
-            <PeriodControl preset={preset} shotMode={shotMode} />
-            {hasPeriodSpend ? (
-              <>
-                <div className="mcfly-acq-tile">
-                  <p className="mcfly-acq-tile__k">Total spend</p>
-                  <p className="mcfly-acq-tile__v">
-                    {formatCurrency(periodSpendTotal)}
-                  </p>
-                  <p className="mcfly-acq-tile__def">{periodLabel}</p>
-                </div>
-                <ul
-                  className="mcfly-kpi-channels"
-                  aria-label={`Channel mix · ${periodLabel}`}
-                >
-                  {periodMixRows.map((row) => (
-                    <li
-                      className="mcfly-kpi-channels__row"
-                      key={row.channel}
-                    >
-                      <span
-                        className={`mcfly-spend-dot mcfly-spend-dot--${spendMixDotChannel(row.channel)}`}
-                        aria-hidden="true"
-                      />
-                      <span className="mcfly-kpi-channels__name">
-                        {formatSpendEntryChannelLabel(row.channel, null)}
-                      </span>
-                      <span className="mcfly-kpi-channels__amt">
-                        {formatCurrency(row.amount)}
-                        <span className="mcfly-kpi-channels__share">
-                          {" "}
-                          · {formatPercent(row.share)}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                {spendReconLine ? (
-                  <p className="mcfly-panel__note">{spendReconLine}</p>
-                ) : null}
-              </>
-            ) : (
-              <p className="mcfly-panel__muted">
-                No spend in this period yet. Add a day above — Meta, a
-                billboard, or anything you type.
-              </p>
-            )}
-          </section>
-
-          <section
             className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-history"
             id="mcfly-spend-csv"
             aria-label="Fill history"
@@ -1751,8 +1631,8 @@ export default function SpendEntryPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>Fill history</h2>
               <p className="mcfly-panel__muted">
-                Daily spend as far back as you have it. Download a blank,
-                paste an Ads Manager export, or upload a CSV — one row per day.
+                Daily spend as far back as you have it. Download a dated blank,
+                paste Ads Manager rows, or upload a CSV — one row per day.
               </p>
             </div>
             <div
@@ -1763,7 +1643,7 @@ export default function SpendEntryPage() {
               <s-button href={historySpanHref("30d")} variant="secondary">
                 30 days
               </s-button>
-              <s-button href={historySpanHref("90d")} variant="secondary">
+              <s-button href={historySpanHref("90d")} variant="primary">
                 90 days
               </s-button>
               <s-button href={historySpanHref("ytd")} variant="secondary">
@@ -1773,13 +1653,7 @@ export default function SpendEntryPage() {
                 12 months
               </s-button>
             </div>
-            <ol className="mcfly-spend-steps" aria-label="CSV spend in three steps">
-              <li>Pick channels</li>
-              <li>Download the template and fill daily amounts</li>
-              <li>Upload the CSV</li>
-            </ol>
 
-          {/* 1 · Advertising channels — compact dropdown */}
           <details
             id="mcfly-spend-platforms"
             className="mcfly-spend-lean__channels"
@@ -1790,7 +1664,7 @@ export default function SpendEntryPage() {
           >
             <summary>
               <span className="mcfly-spend-lean__channels-label">
-                Step 1 — Advertising channels
+                Template columns
               </span>
               <span className="mcfly-spend-lean__channels-value">
                 {selectedSummaryLabel}
@@ -1925,14 +1799,11 @@ export default function SpendEntryPage() {
             </div>
           </details>
 
-          {/* 2 · Tiny template preview */}
+          {/* Template preview */}
           <div id="mcfly-spend-template" className="mcfly-spend-lean__template">
-            <div className="mcfly-spend-lean__template-row">
-              <s-button href={selectedBlankTemplateHref} variant="secondary">
-                Step 2 — Download blank template
-              </s-button>
-              <s-text tone="neutral">One row = one day</s-text>
-            </div>
+            <p className="mcfly-spend-lean__template-row">
+              <s-text tone="neutral">One row = one day. Columns follow the channels above.</s-text>
+            </p>
             {selectedTemplate.headers.length > 0 ? (
               <table className="mcfly-spend-lean__example">
                 <thead>
@@ -2075,7 +1946,7 @@ export default function SpendEntryPage() {
             </details>
           </div>
 
-          {/* 3 · Upload CSV — file only */}
+          {/* Upload or paste */}
           {sampleDesk.enabled && !shotMode ? (
             <div
               id="mcfly-spend-uploads"
@@ -2107,18 +1978,23 @@ export default function SpendEntryPage() {
                 name="confirm_replace"
                 value={confirmReplace ? "1" : "0"}
               />
-              {/* Persists CSV text for confirm_replace after file input clears */}
+              <label className="mcfly-spend-lean__paste-label" htmlFor="mcfly-spend-csv-paste">
+                Paste daily rows
+              </label>
               <textarea
+                id="mcfly-spend-csv-paste"
                 name="csv"
+                className="mcfly-spend-lean__paste"
                 value={csvPayload}
-                readOnly
-                hidden
-                aria-hidden="true"
-                tabIndex={-1}
+                onChange={(e) => setCsvPayload(e.target.value)}
+                rows={6}
+                spellCheck={false}
+                placeholder={"Day,Meta,Google\n2026-08-01,120.00,80.00"}
+                aria-label="Paste daily spend rows"
               />
               <label className="mcfly-spend-lean__drop">
                 <span className="mcfly-spend-lean__drop-title">
-                  Step 3 — Upload your CSV
+                  Or upload a CSV
                 </span>
                 <span className="mcfly-spend-lean__drop-hint">
                   Header row required. One row per day. Same day + channel replaces.
