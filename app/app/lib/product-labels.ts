@@ -69,7 +69,7 @@ export const PRODUCT_NOUN = {
   allocationHedge: "Spend share · Total ROAS = sales ÷ spend",
   /** Spend Allocation history strip */
   allocationHistoryHedge:
-    "Spend mix in top Total ROAS quarters — portfolio co-occurrence",
+    "Spend mix in top Total ROAS windows — portfolio co-occurrence",
   /** Customer payback one-liner prefix */
   customerPayback: "Customer payback",
   nextAllocation: "Next: Spend Allocation",

@@ -57,17 +57,130 @@ export type PeriodMixCompare = {
   lm: PeriodMixSlice;
 };
 
-export type TopQuarterAllocation = {
-  /** e.g. "2025 Q3" */
+export type WindowGrain = "week" | "month" | "quarter" | "year";
+
+export type TopWindowAllocation = {
+  grain: WindowGrain;
+  /** Stable key for selection (week Monday, YYYY-MM, YYYY-Qn, year). */
+  key: string;
   label: string;
-  year: number;
-  quarter: number;
   sales: number;
   spend: number;
   mer: number | null;
   /** Budget share mix (spend %) — not channel ROAS. */
   shares: Array<{ channel: string; share: number; amount: number }>;
 };
+
+export type TopQuarterAllocation = TopWindowAllocation & {
+  year: number;
+  quarter: number;
+};
+
+export const WINDOW_GRAINS: readonly WindowGrain[] = [
+  "week",
+  "month",
+  "quarter",
+  "year",
+] as const;
+
+export function windowGrainLabel(grain: WindowGrain): string {
+  switch (grain) {
+    case "week":
+      return "Weeks";
+    case "month":
+      return "Months";
+    case "quarter":
+      return "Quarters";
+    case "year":
+      return "Years";
+    default: {
+      const _exhaustive: never = grain;
+      return _exhaustive;
+    }
+  }
+}
+
+/** Caption under Best windows — period vs last-12-month fallback. */
+export function windowScopeCaption(
+  grain: WindowGrain,
+  scope: "period" | "lookback",
+  periodLabel: string,
+): string {
+  const grainWord = windowGrainLabel(grain).toLowerCase();
+  if (scope === "period") {
+    return `Best ${grainWord} inside ${periodLabel}, ranked by Total ROAS.`;
+  }
+  return `${periodLabel} is too short to rank ${grainWord} — showing last 12 months instead.`;
+}
+
+export type SpendShareDiff = {
+  channel: string;
+  periodShare: number;
+  windowShare: number;
+  /** Window share − this-period share, in percentage points. */
+  deltaPp: number;
+};
+
+/** Spend-share mix vs this period (budget %, not channel ROAS). */
+export function compareSpendShares(
+  periodShares: Array<{ channel: string; share: number }>,
+  windowShares: Array<{ channel: string; share: number }>,
+): SpendShareDiff[] {
+  const periodMap = new Map(periodShares.map((s) => [s.channel, s.share]));
+  const windowMap = new Map(windowShares.map((s) => [s.channel, s.share]));
+  const channels = new Set([...periodMap.keys(), ...windowMap.keys()]);
+  return [...channels]
+    .map((channel) => {
+      const periodShare = periodMap.get(channel) ?? 0;
+      const windowShare = windowMap.get(channel) ?? 0;
+      return {
+        channel,
+        periodShare,
+        windowShare,
+        deltaPp: round2((windowShare - periodShare) * 100),
+      };
+    })
+    .sort((a, b) => {
+      const byAbs = Math.abs(b.deltaPp) - Math.abs(a.deltaPp);
+      if (byAbs !== 0) return byAbs;
+      const byDelta = b.deltaPp - a.deltaPp;
+      if (byDelta !== 0) return byDelta;
+      return a.channel.localeCompare(b.channel);
+    });
+}
+
+/** Default best-window grain for the desk period filter. */
+export function defaultWindowGrain(
+  preset: "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3",
+): WindowGrain {
+  switch (preset) {
+    case "mtd":
+    case "lm":
+      return "week";
+    case "qtd":
+    case "ytd":
+      return "month";
+    case "l12m":
+    case "y3":
+      return "quarter";
+    default: {
+      const _exhaustive: never = preset;
+      return _exhaustive;
+    }
+  }
+}
+
+export function selectWindowsForGrain(
+  periodItems: TopWindowAllocation[],
+  lookbackItems: TopWindowAllocation[],
+  grain: WindowGrain,
+): { items: TopWindowAllocation[]; scope: "period" | "lookback" } {
+  const minCount = grain === "year" ? 1 : 2;
+  if (periodItems.length >= minCount) {
+    return { items: periodItems, scope: "period" };
+  }
+  return { items: lookbackItems, scope: "lookback" };
+}
 
 export type RollingWindowTile = {
   days: 7 | 14 | 28;
@@ -179,6 +292,103 @@ export function calendarQuarter(dateKey: string): {
   const month = m || 1;
   const quarter = Math.floor((month - 1) / 3) + 1;
   return { year, quarter, label: `${year} Q${quarter}` };
+}
+
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+/** Calendar month from YYYY-MM-DD. */
+export function calendarMonth(dateKey: string): {
+  year: number;
+  month: number;
+  key: string;
+  label: string;
+} {
+  const [y, m] = dateKey.split("-").map(Number);
+  const year = y || 0;
+  const month = m || 1;
+  const name = MONTH_SHORT[month - 1] ?? "Jan";
+  return {
+    year,
+    month,
+    key: `${year}-${String(month).padStart(2, "0")}`,
+    label: `${name} ${year}`,
+  };
+}
+
+/** Calendar year from YYYY-MM-DD. */
+export function calendarYear(dateKey: string): {
+  year: number;
+  key: string;
+  label: string;
+} {
+  const [y] = dateKey.split("-").map(Number);
+  const year = y || 0;
+  return { year, key: String(year), label: String(year) };
+}
+
+function weekWindowLabel(weekKey: string): string {
+  const [y, m, d] = weekKey.split("-").map(Number);
+  if (!y || !m || !d) return `Week of ${weekKey}`;
+  const name = MONTH_SHORT[m - 1] ?? "Jan";
+  return `Week of ${name} ${d}`;
+}
+
+function windowKeyForDay(
+  dateKey: string,
+  grain: WindowGrain,
+): { key: string; label: string } {
+  switch (grain) {
+    case "week": {
+      const key = mondayWeekKey(dateKey);
+      return { key, label: weekWindowLabel(key) };
+    }
+    case "month": {
+      const month = calendarMonth(dateKey);
+      return { key: month.key, label: month.label };
+    }
+    case "quarter": {
+      const q = calendarQuarter(dateKey);
+      return { key: `${q.year}-Q${q.quarter}`, label: q.label };
+    }
+    case "year": {
+      const year = calendarYear(dateKey);
+      return { key: year.key, label: year.label };
+    }
+    default: {
+      const _exhaustive: never = grain;
+      return _exhaustive;
+    }
+  }
+}
+
+function minSpendForGrain(grain: WindowGrain): number {
+  switch (grain) {
+    case "week":
+      return 50;
+    case "month":
+      return 100;
+    case "quarter":
+      return MEANINGFUL_QUARTER_SPEND;
+    case "year":
+      return 200;
+    default: {
+      const _exhaustive: never = grain;
+      return _exhaustive;
+    }
+  }
 }
 
 function round2(n: number): number {
@@ -404,11 +614,29 @@ export function buildTopQuarterAllocations(
   limit = 3,
   minSpend = MEANINGFUL_QUARTER_SPEND,
 ): TopQuarterAllocation[] {
-  const byQ = new Map<
+  return buildTopWindowAllocations(days, "quarter", limit, minSpend).map(
+    (row) => {
+      const match = /^(\d{4})-Q([1-4])$/.exec(row.key);
+      const year = match ? Number(match[1]) : 0;
+      const quarter = match ? Number(match[2]) : 0;
+      return { ...row, year, quarter };
+    },
+  );
+}
+
+/**
+ * Top weeks / months / quarters / years by portfolio Total ROAS.
+ * Mix is spend share — not causal channel ROAS.
+ */
+export function buildTopWindowAllocations(
+  days: HistoryDay[],
+  grain: WindowGrain,
+  limit = 4,
+  minSpend = minSpendForGrain(grain),
+): TopWindowAllocation[] {
+  const byKey = new Map<
     string,
     {
-      year: number;
-      quarter: number;
       label: string;
       sales: number;
       spend: number;
@@ -417,19 +645,11 @@ export function buildTopQuarterAllocations(
   >();
 
   for (const day of days) {
-    const q = calendarQuarter(day.dateKey);
-    const key = `${q.year}-Q${q.quarter}`;
-    let bucket = byQ.get(key);
+    const { key, label } = windowKeyForDay(day.dateKey, grain);
+    let bucket = byKey.get(key);
     if (!bucket) {
-      bucket = {
-        year: q.year,
-        quarter: q.quarter,
-        label: q.label,
-        sales: 0,
-        spend: 0,
-        channels: new Map(),
-      };
-      byQ.set(key, bucket);
+      bucket = { label, sales: 0, spend: 0, channels: new Map() };
+      byKey.set(key, bucket);
     }
     bucket.sales += day.sales;
     bucket.spend += day.spend;
@@ -441,21 +661,21 @@ export function buildTopQuarterAllocations(
     }
   }
 
-  return [...byQ.values()]
-    .map((bucket) => {
+  return [...byKey.entries()]
+    .map(([key, bucket]) => {
       const sales = round2(bucket.sales);
       const spend = round2(bucket.spend);
       return {
+        grain,
+        key,
         label: bucket.label,
-        year: bucket.year,
-        quarter: bucket.quarter,
         sales,
         spend,
         mer: calculateMer(sales, spend),
         shares: sharesFromAmounts(bucket.channels, spend),
       };
     })
-    .filter((q) => q.spend >= minSpend && q.mer != null)
+    .filter((row) => row.spend >= minSpend && row.mer != null)
     .sort((a, b) => (b.mer as number) - (a.mer as number))
     .slice(0, Math.max(0, limit));
 }
@@ -521,6 +741,17 @@ export function buildRollingWindowTiles(
       delta,
     };
   });
+}
+
+export type WindowSets = Record<WindowGrain, TopWindowAllocation[]>;
+
+export function buildWindowSets(days: HistoryDay[]): WindowSets {
+  return {
+    week: buildTopWindowAllocations(days, "week"),
+    month: buildTopWindowAllocations(days, "month"),
+    quarter: buildTopWindowAllocations(days, "quarter"),
+    year: buildTopWindowAllocations(days, "year"),
+  };
 }
 
 function prettyChannel(channel: string): string {
