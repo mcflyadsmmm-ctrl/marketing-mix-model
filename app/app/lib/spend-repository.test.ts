@@ -41,7 +41,6 @@ import {
   assertSpendWriteAllowed,
   createSpendRepository,
   normalizeSpendEntrySource,
-  SpendChannelEntitlementError,
   SPEND_UPSERT_BATCH_SIZE,
 } from "./spend-repository.server";
 import { utcMidnightFromDayKey } from "./shop-local-day";
@@ -69,7 +68,7 @@ describe("assertSpendWriteAllowed", () => {
     delete process.env.MCFLY_PRO_SHOPS;
   });
 
-  it("rejects tiktok on Free live writes", async () => {
+  it("allows tiktok on Free live writes", async () => {
     shopFindUnique.mockResolvedValue({
       domain: "acme.myshopify.com",
       proBillingActive: false,
@@ -84,7 +83,7 @@ describe("assertSpendWriteAllowed", () => {
           source: "csv",
         },
       ]),
-    ).rejects.toBeInstanceOf(SpendChannelEntitlementError);
+    ).resolves.toBeUndefined();
   });
 
   it("allows sample-only writes even with Pro channels", async () => {

@@ -12,10 +12,10 @@ vi.mock("./mer-dashboard.server", () => ({
   getOrCreateSettings: vi.fn(),
 }));
 
+import { impliedSpendCeiling } from "./implied-spend-ceiling";
 import {
   buildSalesGoalPeriods,
   calendarDaysElapsedInMonth,
-  impliedSpendCeiling,
   merVsRails,
   monthDateRange,
   paceStatus,

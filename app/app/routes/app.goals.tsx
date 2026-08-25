@@ -34,10 +34,10 @@ import {
   fetchSampleSales,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
+import { impliedSpendCeiling } from "../lib/implied-spend-ceiling";
 import {
   buildSalesGoalPeriods,
   buildYearBoard,
-  impliedSpendCeiling,
   loadSalesByDayForGoalsRange,
   merVsRails,
   parseGoalsYear,
@@ -45,9 +45,11 @@ import {
   spendByMonthMap,
   upsertYearSalesGoals,
   yearDateRange,
-  type GoalMonthRow,
-  type GoalPaceTone,
-  type MerVsRails,
+} from "../lib/sales-goals.server";
+import type {
+  GoalMonthRow,
+  GoalPaceTone,
+  MerVsRails,
 } from "../lib/sales-goals.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
