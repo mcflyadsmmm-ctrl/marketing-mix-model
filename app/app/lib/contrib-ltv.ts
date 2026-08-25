@@ -16,16 +16,28 @@ export function roundMer(n: number): number {
 }
 
 /**
- * PC1-style contribution LTV = cohort avg revenue × (marginPct / 100).
- * `marginPct` is 0–100 (Settings contribution margin).
+ * Settings / Practice / DashboardMetrics store contribution margin as 0–1
+ * (0.35 = 35%). Older percent-point callers may still pass 1–100.
+ */
+export function marginAsMultiplier(marginPct: number): number | null {
+  if (!Number.isFinite(marginPct) || marginPct <= 0) return null;
+  if (marginPct <= 1) return marginPct;
+  if (marginPct <= 100) return marginPct / 100;
+  return null;
+}
+
+/**
+ * Contribution LTV = cohort avg revenue × contribution margin.
+ * `marginPct` is 0–1 (Practice SAMPLE_DESK_MARGIN_PCT = 0.35, Settings same).
  */
 export function contributionAdjustedLtv(
   avgRevenue: number | null | undefined,
   marginPct: number,
 ): number | null {
   if (avgRevenue == null || !Number.isFinite(avgRevenue)) return null;
-  if (!Number.isFinite(marginPct) || marginPct <= 0) return null;
-  return roundMoney(avgRevenue * (marginPct / 100));
+  const margin = marginAsMultiplier(marginPct);
+  if (margin == null) return null;
+  return roundMoney(avgRevenue * margin);
 }
 
 /** Contribution LTV : cash CAC when both defined. */

@@ -82,7 +82,7 @@ Evidence: #mcfly-spend-sheets already in app/app/routes/app.spend.tsx; template 
 DO:
 1. Orient: git status; confirm wizard + tests exist
 2. bash scripts/agent-ship-gate.sh
-3. If PASS and founder said deploy in this message: fly deploy the app (mcfly-analytics) — only then
+3. If PASS: `fly deploy -a mcfly-analytics --yes` the same turn (standing grant — do not ask)
 4. Smoke: health curl; document Admin QA: Spend → Get spend into Mcfly
 5. Report: Fly URL, exit codes, HUMAN_GATE (master Sheet /copy later)
 

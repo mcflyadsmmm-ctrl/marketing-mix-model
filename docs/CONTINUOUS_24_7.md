@@ -30,7 +30,7 @@ See [`ENTERPRISE_REDESIGN.md`](./ENTERPRISE_REDESIGN.md) + [`docs/superpowers/sp
 - **App lane is P0.** Site mega-ticks (≥80% site-first) are **paused** — except Wave 1 **Services/Education money paths** under [`ops/FLEET_ENTERPRISE.md`](./ops/FLEET_ENTERPRISE.md) (Custom CTA, MDS go-live), which are monetize not mega-site craft.
 - Specialists default to **Grok 4.5** (`cursor-grok-4.5-high-fast`).
 - Topology: Parent + 1 Grok implementer + 1 Grok critic (fleet caps: ≤6 Tasks; Conductor + ≤4 chats).
-- **No automation `fly deploy`** unless standing grant or founder phrase — always after ship-gate PASS ([`ops/STANDING_DEPLOY_GRANT.md`](./ops/STANDING_DEPLOY_GRANT.md)).
+- **Always `fly deploy`** after ship-gate PASS when the desk changed. Standing grant is on ([`ops/STANDING_DEPLOY_GRANT.md`](./ops/STANDING_DEPLOY_GRANT.md)) — do not ask. Never Partner Submit.
 - Idle on HUMAN_GATE; kill criteria in FLEET_ENTERPRISE.
 
 ## Tick protocol (orchestrator)

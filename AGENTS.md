@@ -36,7 +36,7 @@ Ship a **world-class marketing site** (mcflyads.com) and a **world-class Shopify
 
 - Chat sprint loop while this session is alive (**frontier specialists**, Auto orchestrates)
 - **True 24/7** = Cursor Automation (hourly cloud agent) — see CONTINUOUS_24_7.md · enterprise pastes [`docs/ops/fleet/AUTOMATIONS_SETUP.md`](./docs/ops/fleet/AUTOMATIONS_SETUP.md) · legacy [`docs/ops/APP_HOURLY_AUTOMATION.md`](./docs/ops/APP_HOURLY_AUTOMATION.md)
-- **Standing deploy grant** (until revoke): [`docs/ops/STANDING_DEPLOY_GRANT.md`](./docs/ops/STANDING_DEPLOY_GRANT.md) — Fly/Pages after ship-gate; never Partner Submit
+- **Standing deploy grant** (until revoke): [`docs/ops/STANDING_DEPLOY_GRANT.md`](./docs/ops/STANDING_DEPLOY_GRANT.md) — **never ask** to update Fly; after ship-gate, push and `fly deploy` the best live desk the same turn. Never Partner Submit.
 - Overnight map: [`docs/ops/OVERNIGHT_MEANINGFUL_20260729.md`](./docs/ops/OVERNIGHT_MEANINGFUL_20260729.md)
 - Each tick: orient → parallel specialists with **explicit frontier models** (Fable/Opus/Sonnet/Grok) → ship-gate → report
 - See `.cursor/rules/50-subagent-models.mdc` — quality over cheap Auto for craft

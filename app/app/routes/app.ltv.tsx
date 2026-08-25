@@ -20,6 +20,15 @@ import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 
+/** CohortFact stores window totals — desk LTV is per new customer. */
+function perCustomerRevenue(
+  total: number,
+  customers: number,
+): number | null {
+  if (!(customers > 0) || !Number.isFinite(total)) return null;
+  return total / customers;
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
@@ -445,49 +454,53 @@ export default function LtvPage() {
               <div className="mcfly-panel__head mcfly-panel__head--tight">
                 <h2>Lifetime value · cohorts</h2>
                 <p className="mcfly-panel__muted">
-                  Contribution LTV = cohort revenue × your margin (
-                  {metrics.marginPct.toFixed(0)}%) · averages, not causal
-                  channel ROAS
+                  LTV is average revenue per new customer. Contribution LTV
+                  applies {formatPercent(metrics.marginPct)} margin. Averages,
+                  not causal channel ROAS.
                 </p>
               </div>
 
               {metrics.tillLtv.available ? (
                 <div className="mcfly-ltv-summary__grid">
                   <div className="mcfly-ltv-summary__hero">
-                    <p className="mcfly-ltv-summary__k">
-                      Contribution LTV · 90d
-                    </p>
+                    <p className="mcfly-ltv-summary__k">LTV · 90d</p>
                     <p className="mcfly-ltv-summary__v">
-                      {contrib90 != null ? formatCurrency(contrib90) : "—"}
-                    </p>
-                    <p className="mcfly-ltv-summary__hint">
-                      Revenue{" "}
                       {metrics.tillLtv.avgRevenueD90 != null
                         ? formatCurrency(metrics.tillLtv.avgRevenueD90)
-                        : "—"}{" "}
-                      × {metrics.marginPct.toFixed(0)}% margin
+                        : "—"}
+                    </p>
+                    <p className="mcfly-ltv-summary__hint">
+                      {PRODUCT_NOUN.ltv90Def}
                     </p>
                     <p className="mcfly-ltv-summary__def">
-                      {PRODUCT_NOUN.ltv90Def} · then × margin
+                      Contrib{" "}
+                      {contrib90 != null ? formatCurrency(contrib90) : "—"}{" "}
+                      after {formatPercent(metrics.marginPct)} margin
                     </p>
                   </div>
                   <div className="mcfly-ltv-summary__side">
                     <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
-                      <p className="mcfly-ltv-summary__k">30d contrib.</p>
+                      <p className="mcfly-ltv-summary__k">LTV · 30d</p>
                       <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                        {contrib30 != null ? formatCurrency(contrib30) : "—"}
+                        {metrics.tillLtv.avgRevenueD30 != null
+                          ? formatCurrency(metrics.tillLtv.avgRevenueD30)
+                          : "—"}
                       </p>
                       <p className="mcfly-ltv-summary__def">
-                        Avg revenue · 30d × margin
+                        Contrib{" "}
+                        {contrib30 != null ? formatCurrency(contrib30) : "—"}
                       </p>
                     </div>
                     <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
-                      <p className="mcfly-ltv-summary__k">365d contrib.</p>
+                      <p className="mcfly-ltv-summary__k">LTV · 365d</p>
                       <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                        {contrib365 != null ? formatCurrency(contrib365) : "—"}
+                        {metrics.tillLtv.avgRevenueD365 != null
+                          ? formatCurrency(metrics.tillLtv.avgRevenueD365)
+                          : "—"}
                       </p>
                       <p className="mcfly-ltv-summary__def">
-                        Avg revenue · 365d × margin
+                        Contrib{" "}
+                        {contrib365 != null ? formatCurrency(contrib365) : "—"}
                       </p>
                     </div>
                     <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--cac">
@@ -507,27 +520,29 @@ export default function LtvPage() {
                       </p>
                     </div>
                     <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--ratio">
-                      <p className="mcfly-ltv-summary__k">Contrib LTV : CAC</p>
+                      <p className="mcfly-ltv-summary__k">LTV : CAC</p>
                       <p
                         className={`mcfly-ltv-summary__v mcfly-ltv-summary__v--sm${
-                          contribRatio == null
+                          metrics.tillLtv.ltvCacRatio == null
                             ? ""
-                            : contribRatio >= 1
+                            : metrics.tillLtv.ltvCacRatio >= 1
                               ? " mcfly-ltv-summary__v--good"
                               : " mcfly-ltv-summary__v--bad"
                         }`}
                       >
-                        {contribRatio != null
-                          ? `${contribRatio.toFixed(2)}×`
+                        {metrics.tillLtv.ltvCacRatio != null
+                          ? `${metrics.tillLtv.ltvCacRatio.toFixed(2)}×`
                           : "—"}
                       </p>
                       <p className="mcfly-ltv-summary__def">
-                        Contrib LTV · 90d ÷ Cash CAC
+                        {PRODUCT_NOUN.ltvCacDef}
                       </p>
                       <p className="mcfly-ltv-summary__delta">
-                        {metrics.tillLtv.repeatRate != null
-                          ? `Repeat ${(metrics.tillLtv.repeatRate * 100).toFixed(0)}% · average, not causal`
-                          : "Average, not causal"}
+                        {contribRatio != null
+                          ? `Contrib ${contribRatio.toFixed(2)}× after margin`
+                          : metrics.tillLtv.repeatRate != null
+                            ? `Repeat ${(metrics.tillLtv.repeatRate * 100).toFixed(0)}% · average, not causal`
+                            : "Average, not causal"}
                       </p>
                     </div>
                   </div>
@@ -628,21 +643,41 @@ export default function LtvPage() {
                         <tr>
                           <th scope="col">Cohort</th>
                           <th scope="col">Buyers</th>
-                          <th scope="col">Rev 30d</th>
-                          <th scope="col">Rev 90d</th>
-                          <th scope="col">Rev 365d</th>
+                          <th scope="col">LTV 30d</th>
+                          <th scope="col">LTV 90d</th>
+                          <th scope="col">LTV 365d</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {metrics.tillLtv.cohorts.map((row) => (
-                          <tr key={row.cohortMonth}>
-                            <th scope="row">{row.cohortMonth}</th>
-                            <td>{row.customers.toLocaleString()}</td>
-                            <td>{formatCurrency(row.revenueD30)}</td>
-                            <td>{formatCurrency(row.revenueD90)}</td>
-                            <td>{formatCurrency(row.revenueD365)}</td>
-                          </tr>
-                        ))}
+                        {metrics.tillLtv.cohorts.map((row) => {
+                          const ltv30 = perCustomerRevenue(
+                            row.revenueD30,
+                            row.customers,
+                          );
+                          const ltv90 = perCustomerRevenue(
+                            row.revenueD90,
+                            row.customers,
+                          );
+                          const ltv365 = perCustomerRevenue(
+                            row.revenueD365,
+                            row.customers,
+                          );
+                          return (
+                            <tr key={row.cohortMonth}>
+                              <th scope="row">{row.cohortMonth}</th>
+                              <td>{row.customers.toLocaleString()}</td>
+                              <td>
+                                {ltv30 != null ? formatCurrency(ltv30) : "—"}
+                              </td>
+                              <td>
+                                {ltv90 != null ? formatCurrency(ltv90) : "—"}
+                              </td>
+                              <td>
+                                {ltv365 != null ? formatCurrency(ltv365) : "—"}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
