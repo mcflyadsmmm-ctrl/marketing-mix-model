@@ -301,61 +301,11 @@ https://mcflyads.com/privacy
 
 ## Reviewer notes (paste into submission)
 
-**App testing information (4.5.4 / 4.5.5):** follow [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md). Check **“My app doesn't require an account to use it.”** Do not leave Username/Password blank with the box unchecked.
+**App testing information (4.5.4 / 4.5.5):** paste [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md). Partner form: Username/Password **empty**, **check** “My app doesn't require an account to use it.” Do **not** paste `<PASTE…>` passwords. Reviewers reach Pro via Spend → **Upgrade to Pro** (no Mcfly login).
 
-```text
-Test store (optional demo): devmcflyads.myshopify.com
-No second Mcfly login — Shopify Admin session after install is enough.
-Optional staff (only if using our demo store): mcflyadsmmm@gmail.com / <PASTE CURRENT STAFF PASSWORD>
-(Must grant full Admin access including Apps + plan selection. Keep password current. No 2FA.)
+The testing-instructions textarea must include the TEST ACCOUNT block (Username: none / Password: none). That is what 4.5.4 asked for in [the pause screenshot](https://screenshot.click/12-40-wvht7-gytqd.png). Do **not** paste the public listing long description into that field.
 
-PRICING
-Shopify App Pricing (Managed Pricing): Free (default) + Pro $39/store/mo flat.
-In-app Upgrade / Manage plan opens Admin plan selection in the TOP frame
-(never inside the app iframe). If you see “admin.shopify.com refused to connect”
-the billing exit regressed — fail the app.
-
-CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
-Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
-(?shot=1 hides the SAMPLE banner for screenshots only — numbers stay sample until OFF.)
-
-SMOKE TEST (CSV-first Free path = Meta + Google + Other)
-1. Install Mcfly Analytics (App Store or Partner test install) — embedded Admin
-2. Overview may show “Sales still syncing — expected after install” on a new store. Not an error.
-3. Settings → optional profit margin 35% → save → Break-even Total ROAS locks
-4. Spend → Meta + Google (+ Other) → export / paste daily CSV → Import
-   Optional: Spend → Automate → pipe template → SyncWith/Coupler/etc. (merchant-paid) → CSV import
-5. Overview → Total ROAS = Shopify Total Sales ÷ ad spend for the period
-   Confirm freshness chip, Update spend links, channel mix, Email Overview (mailto)
-   Confirm orders / new / returning / AOV (opaque customer id + numberOfOrders only)
-6. Spend Allocation → quarters / pie / rolling windows when Free-channel spend > 0
-   Goals → MTD / QTD / YTD pace on Free
-7. BILLING (required after 2.1.1 fix): Spend → Upgrade to Pro — $39/mo
-   → must leave the embed and open Admin Free/Pro plan selection (top frame)
-   → must NOT show “admin.shopify.com refused to connect”
-   → approve Pro → return to app → Pro channels / LTV unlock
-   → Settings → Manage plan → switch back to Free without reinstall
-
-First 10 minutes: Settings → Spend → Overview → Allocation. Free spend = Meta + Google + Other CSV; Automate is optional (merchant-paid SyncWith-class tools → Mcfly template — not a Works-with claim). Pro is billed via Shopify App Pricing.
-
-TECHNICAL
-App URL: https://mcfly-analytics.fly.dev (not mcflyads.com)
-Embedded in Admin. No public “type your .myshopify.com” install form.
-Compliance: https://mcfly-analytics.fly.dev/webhooks/compliance
-Uninstall deletes sessions + shop data.
-Support: https://mcflyads.com/support
-Privacy: https://mcflyads.com/privacy
-
-
-PROTECTED CUSTOMER DATA (Level 1 only — no Level 2 PII fields)
-- read_orders: sum order totals + counts for Total ROAS / AOV
-- read_customers: opaque customer id + numberOfOrders only (new vs returning)
-- Never query or store customer name, email, phone, or address. No customer CRM.
-- Staff Session may include staff email/name from Shopify Admin login (not customers).
-- ComplianceDataExport (data_request packages) TTL 60 days; erased on redact/uninstall.
-- Till LTV stays Level 1: opaque cohorts from order amounts/dates — not email CRM.
-Order history without read_all_orders is ~60 days — demo with recent orders / MTD.
-```
+PCD answers stay in **§ Protected Customer Data** above — different Partner form.
 
 ---
 
@@ -370,8 +320,8 @@ Order history without read_all_orders is ~60 days — demo with recent orders / 
 - [ ] Install on `devmcflyads`; smoke test above; sample desk **OFF** (**human**)
 - [ ] Screenshots + M-only icon uploaded (**human**)
 - [ ] Pricing = **Shopify App Pricing Free + Pro $39** (never Free-only while Upgrade is live)
-- [ ] App testing information: check **“My app doesn't require an account to use it”** + paste [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md)
-- [ ] Embedded Admin smoke: Spend → Upgrade → top-frame plans (no “refused to connect”)
+- [ ] App testing information: Username/Password **empty**, **check** “My app doesn't require an account to use it”, paste TEST ACCOUNT block from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md)
+- [ ] Embedded Admin smoke: Spend → Upgrade to Pro → top-frame plans (no “refused to connect”)
 - [ ] Submit for review (**human**)
 
 Do **not** chase Built for Shopify until ~50 paid-plan installs + 5 reviews.

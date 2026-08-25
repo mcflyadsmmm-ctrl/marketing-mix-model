@@ -110,51 +110,22 @@ Ban: attribution, pixel, true ROAS, MTA.
 
 ## 7. App testing information
 
-### Test account
-```text
-Store: devmcflyads.myshopify.com
-Account: mcflyadsmmm@gmail.com
-```
-(Add password only in Partner private test credentials field — never in public listing.)
+Paste **only** [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md). Do not use the old “Billing Off” block.
+
+### Test account (Partner form)
+
+| Field | Value |
+| --- | --- |
+| Username | *empty* |
+| Password | *empty* |
+| **My app doesn't require an account to use it** | **Checked** |
+
+### Testing instructions
+
+Paste the `APP_STORE_PASTE:testing` block from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (starts with `TEST ACCOUNT (App Store 4.5.4 / 4.5.5)`).
 
 ### Screencast URL
-Record a short Loom: install → Settings margin → Spend CSV import → Total ROAS desk.  
-Paste the Loom/unlisted YouTube URL here.  
-If you don’t have one yet: record 2–3 min, then paste.
-
-### Testing instructions (paste)
-```text
-Test store: devmcflyads.myshopify.com
-Test account: mcflyadsmmm@gmail.com
-
-PRICING
-Free listing (Partner Pricing = Free). No Shopify Billing API charges until announced.
-Honest freemium: Free = Meta + Google spend; Pro soft/hard gates may lock other channels,
-Customer LTV, and advanced Goals / Monday Close — that is not a Billing charge yet.
-No external charges.
-
-CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
-Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
-(?shot=1 hides the SAMPLE banner for screenshots only — numbers stay sample until OFF.)
-
-SMOKE TEST (CSV-first Free path = Meta + Google)
-1. Install Mcfly Analytics (App Store or Partner test install) — embedded Admin
-2. Settings → profit margin 35% → save → Break-even Total ROAS locks
-3. Spend → Meta + Google (default Free template) → export / paste daily CSV → Import
-4. Total ROAS desk → Total ROAS (action) = net Shopify sales ÷ ad spend for the period
-   Confirm orders / new / returning / AOV (opaque customer id + numberOfOrders only)
-5. Monday Close → ritual view on Free; Allocation → one affordability recommendation when Meta/Google spend > 0
-
-TECHNICAL
-App URL: https://mcfly-analytics.fly.dev (not mcflyads.com)
-Embedded in Admin. No public “type your .myshopify.com” install form.
-Compliance: https://mcfly-analytics.fly.dev/webhooks/compliance
-Support: https://mcflyads.com/support
-Privacy: https://mcflyads.com/privacy
-
-PROTECTED CUSTOMER DATA (Level 1 only)
-- read_orders / read_customers (opaque id + numberOfOrders) / no name email phone address
-```
+Record a short Loom: install → Spend → **Upgrade to Pro** (top-frame plans, no iframe refuse) → CSV import → Overview Total ROAS. English or English subtitles (4.5.3).
 
 ---
 

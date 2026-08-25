@@ -51,13 +51,30 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
     for (const doc of [listing, testing]) {
       expect(doc).toMatch(/My app doesn't require an account/i);
       expect(doc).toMatch(/Upgrade to Pro/i);
-      expect(doc).toMatch(/refused to connect/i);
-      expect(doc).toMatch(/top frame|top-frame/i);
     }
+    expect(testing).toMatch(/refused to connect/i);
+    expect(testing).toMatch(/top frame|TOP Admin frame/i);
     expect(testing).toMatch(/4\.5\.4/);
     expect(testing).toMatch(/4\.5\.5/);
     expect(existsSync(join(repoRoot, "docs/PARTNER_TESTING_INSTRUCTIONS.md"))).toBe(
       true,
     );
+  });
+
+  it("4.5.4 testing instructions include credentials (none) and never a password placeholder", () => {
+    const testing = readRepo("docs/PARTNER_TESTING_INSTRUCTIONS.md");
+    const listing = readRepo("docs/APP_STORE_LISTING.md");
+    const start = testing.indexOf("<!-- APP_STORE_PASTE:testing -->");
+    const end = testing.indexOf("<!-- /APP_STORE_PASTE:testing -->");
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const paste = testing.slice(start, end);
+    expect(paste).toMatch(/TEST ACCOUNT/);
+    expect(paste).toMatch(/Username: none/);
+    expect(paste).toMatch(/Password: none/);
+    expect(paste).toMatch(/complete feature set/i);
+    expect(paste).toMatch(/Upgrade to Pro/);
+    expect(paste).not.toMatch(/<PASTE/);
+    expect(listing).not.toMatch(/<PASTE CURRENT STAFF PASSWORD>/);
   });
 });

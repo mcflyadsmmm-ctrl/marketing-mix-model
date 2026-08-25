@@ -74,7 +74,7 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 | 4.4.4–4.4.5 Unique product shots | **HUMAN** | Founder pack: replace pricing shot; recapture Allocation; SAMPLE OFF after. |
 | 4.5.1–4.5.2 Sales channel category | **PASS** | Regular embedded app. No channel config. |
 | 4.5.3 Demo screencast | **HUMAN** | English (or English subtitles). Must show Spend → Upgrade **top-frame** (not iframe refuse). |
-| 4.5.4–4.5.5 Test credentials | **PASS (docs)** / **HUMAN (form)** | Check **“My app doesn't require an account to use it.”** Paste `PARTNER_TESTING_INSTRUCTIONS.md`. |
+| 4.5.4–4.5.5 Test credentials | **PASS (paste pack)** / **HUMAN (Partner form)** | Form: Username/Password **empty**, checkbox **checked**. Testing instructions include `Username: none` / `Password: none` plus how to reach Pro (Upgrade). Never submit blank fields with the box off. Never paste `<PASTE…>` or a 2FA store-owner password. |
 | 4.5.6 Emergency developer contact | **HUMAN** | Partner account settings. |
 
 ## 5. Category-specific
@@ -108,7 +108,7 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 1. Partner Pricing = Shopify App Pricing **Free + Pro $39** (not Free-only).
 2. Paste short / long / features from `APP_STORE_LISTING.md` paste markers — **not** reviewer notes.
 3. Do **not** upload `04-free-pro-pricing.png`. Recapture Allocation.
-4. Testing form: check **My app doesn't require an account to use it**.
+4. Testing form: Username/Password empty, **check** “My app doesn't require an account”; paste the TEST ACCOUNT block from `PARTNER_TESTING_INSTRUCTIONS.md`.
 5. Screencast: install → Spend → Upgrade → top-frame plans (no “refused to connect”).
 6. SAMPLE desk **OFF** on the review store.
 7. Emergency contact on the Partner account.

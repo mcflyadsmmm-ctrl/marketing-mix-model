@@ -12,7 +12,7 @@ This note is the agent audit after “make sure it doesn’t get rejected again.
 | Issue | Fix | Live evidence |
 | --- | --- | --- |
 | 2.1.1 Admin in iframe | User-gesture `open(_, "_top")` via `BillingExitProvider` + GET HTML bounce (`billing-exit.server.ts`); never bare 302 to Admin | Spend → Upgrade must open Admin plan picker in the top frame |
-| 4.5.4 / 4.5.5 credentials | [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) | **HUMAN** check “My app doesn't require an account to use it” |
+| 4.5.4 / 4.5.5 credentials | [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) | **HUMAN** checkbox ON + paste TEST ACCOUNT block (Username: none). Do not submit empty user/pass with box off. |
 
 ---
 
@@ -47,7 +47,7 @@ This note is the agent audit after “make sure it doesn’t get rejected again.
 
 ## Still HUMAN (will reject again if skipped)
 
-1. Partner → **App testing information** → check **“My app doesn't require an account to use it”** (or paste a working staff password with no 2FA) — see [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md)
+1. Partner → **App testing information** → Username/Password **empty**, check **“My app doesn't require an account to use it”**, paste the TEST ACCOUNT block from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md)
 2. Partner → Pricing → **Shopify App Pricing Free + Pro $39** (not Free-only)
 3. Embedded Admin smoke on the review install: Spend → **Upgrade to Pro** → top-frame plan picker (no refused-to-connect) → approve → Settings → **Manage plan** → Free
 4. SAMPLE desk **OFF** before judging live Total ROAS

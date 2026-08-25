@@ -27,7 +27,7 @@
 
 | # | Risk | Severity | Agent / human |
 | --- | --- | --- | --- |
-| 1 | Partner test password empty (`<PASTE…>`) — **4.5.4 / 4.5.5** | **Critical** | **HUMAN** |
+| 1 | Partner test form empty + checkbox off — **4.5.4 / 4.5.5** | **Critical** | **HUMAN** checkbox ON; paste TEST ACCOUNT block; never `<PASTE…>` |
 | 2 | Partner Pricing Free-only while Upgrade charges — **1.1.4 / 1.2** | **Critical** | **HUMAN** set Free + Pro $39 |
 | 3 | No embedded Admin click-test of Upgrade path | **Critical** | **HUMAN** smoke |
 | 4 | Live mcflyads.com still “when Billing announced” until Pages deploy | **High** | **HUMAN** / CF token |
