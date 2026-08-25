@@ -68,6 +68,8 @@ describe("ltvWindowCaption", () => {
     expect(caption).toContain(
       "Shopify Analytics does not combine LTV with ad spend",
     );
+    expect(caption).toContain("Not predictive");
+    expect(caption).toContain("Not by ad");
     expect(caption).not.toMatch(/pixel/i);
   });
 

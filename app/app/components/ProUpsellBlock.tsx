@@ -1,4 +1,5 @@
 import {
+  BILLING_HONESTY,
   PRO_FEATURE_BULLETS,
   PRO_UPSELL,
 } from "../lib/entitlements";
@@ -25,6 +26,7 @@ export function ProUpsellBlock({
     <div className="mcfly-pro-upsell" aria-label={PRO_UPSELL.short}>
       <p className="mcfly-pro-upsell__price">{PRO_UPSELL.short}</p>
       <p className="mcfly-pro-upsell__lead">{lead ?? PRO_UPSELL.includes}</p>
+      <p className="mcfly-pro-upsell__honest">{BILLING_HONESTY.flat}</p>
       <div className="mcfly-pro-upsell__actions">
         <ProUpgradeButton quiet />
         {showSample ? (
@@ -39,6 +41,7 @@ export function ProUpsellBlock({
           {PRO_FEATURE_BULLETS.map((line) => (
             <li key={line}>{line}</li>
           ))}
+          <li>{BILLING_HONESTY.cancel}</li>
         </ul>
       </details>
     </div>

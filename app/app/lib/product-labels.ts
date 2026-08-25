@@ -124,7 +124,7 @@ export const PRODUCT_NOUN = {
   setupAdjustMargin: "Adjust Profit Margin",
   /** Spend job — three steps */
   spendJob:
-    "Select channels → download template → fill daily spend → upload. Same days replace.",
+    "Add one day’s invoice (any platform, including billboards) → CSV only if you have many days. Same days replace.",
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
   ltvNotInShopify:
     "Shopify Analytics does not combine LTV with ad spend. Mcfly uses order history only — not email lists.",

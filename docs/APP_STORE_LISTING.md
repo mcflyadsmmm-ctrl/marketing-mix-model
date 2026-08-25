@@ -147,7 +147,7 @@ Add spend from Meta, Google, TikTok, or billboards. See it next to Shopify sales
 ```text
 Shopify Analytics shows sales. It does not ingest Meta, Google, TikTok, or billboard cost, and it does not compute LTV next to that spend.
 
-Mcfly Analytics is the Admin app where you add exact spend from every platform — even billboards — and see it beside Shopify sales for the same dates. Total ROAS = Shopify Total Sales ÷ that spend. The paid plan unlocks customer LTV/payback and a full-year Goals board.
+Mcfly Analytics is the Admin app where you add exact spend from every platform — even billboards — and see it beside Shopify sales for the same dates. Total ROAS = Shopify Total Sales ÷ the spend you added. It is not platform ROAS, not net profit, and not which ad to scale. The paid plan unlocks customer LTV/payback and a full-year Goals board.
 
 WHAT YOU GET
 • Add spend: type one day (amount + date + channel, or a named extra like billboards) or upload a CSV for many days
@@ -194,7 +194,7 @@ App URL: https://mcfly-analytics.fly.dev
 <!-- APP_STORE_PASTE:features -->
 ```text
 Add spend from every platform — even billboards — next to Shopify sales
-Total ROAS = Shopify Total Sales ÷ that spend for any period
+Total ROAS = Shopify Total Sales ÷ spend you added — not platform ROAS
 Break-even from optional profit margin · Spend Allocation
 Customer LTV and payback Shopify Analytics does not compute (paid plan)
 Full-year Goals board on the paid plan · Email Overview (mailto)

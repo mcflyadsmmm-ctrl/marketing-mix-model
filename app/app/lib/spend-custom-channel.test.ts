@@ -26,6 +26,10 @@ describe("customChannelFromLabel", () => {
       customKey: "billboards-ooh",
       customLabel: "Billboards / OOH",
     });
+    expect(customChannelFromLabel("Agency retainer")).toEqual({
+      customKey: "agency-retainer",
+      customLabel: "Agency retainer",
+    });
     expect(customChannelFromLabel("Meta Ads")).toBeNull();
     expect(customChannelFromLabel("Google")).toBeNull();
     expect(customNameCollidesWithNamedChannel("TikTok Ads")).toBe(true);

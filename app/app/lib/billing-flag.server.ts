@@ -58,6 +58,6 @@ export function billingStatusCopy(billingEnabled: boolean): {
     tier: "pro",
     headline: "Free · upgrade anytime",
     detail:
-      "Pro is $39 per store / month. It adds customer LTV and a full-year Goals board. Every named platform is already on Free.",
+      "Pro is $39 per store / month — not a percent of sales, not a per-order fee. It adds customer LTV and a full-year Goals board. Every named platform is already on Free. Shopify bills this app; switch to Free or uninstall in Admin to stop the next 30-day cycle (the current cycle may still charge).",
   };
 }

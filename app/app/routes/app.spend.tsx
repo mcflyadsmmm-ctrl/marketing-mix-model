@@ -91,6 +91,7 @@ import {
   type ShopEntitlements,
 } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
+import { NUMBER_HONESTY } from "../lib/number-honesty";
 
 const MAX_COMBINE_SLOTS = 20;
 /** Ablestar fail-closed: never punch live CSV into a sample-ON desk. */
@@ -1409,8 +1410,7 @@ export default function SpendEntryPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>Add spend</h2>
               <p className="mcfly-panel__muted">
-                One day, any platform — including billboards. CSV for many
-                days is below.
+                {NUMBER_HONESTY.invoiceHint} CSV for many days is below.
               </p>
             </div>
             {sampleDesk.enabled && !shotMode ? (

@@ -67,6 +67,7 @@ export function ltvWindowCaption(opts: {
   return (
     `30/90/${cohortMaxDays}d cohort windows are from each customer’s first-order month` +
     ` (often longer than ${periodLabel}). Cash CAC uses this period’s spend ÷ new buyers` +
-    ` — not the same window. Shopify Analytics does not combine LTV with ad spend.`
+    ` — not the same window. Shopify Analytics does not combine LTV with ad spend.` +
+    ` Not predictive. Not by ad. Order history only — not email CRM.`
   );
 }

@@ -45,6 +45,10 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(features).toMatch(/billboard/i);
     expect(long).toMatch(/billboard/i);
     expect(long).not.toMatch(/paid plan unlocks every named/i);
+    expect(long).toMatch(/not platform ROAS/i);
+    expect(long).toMatch(/not net profit/i);
+    expect(features).toMatch(/spend you added/i);
+    expect(features).toMatch(/not platform ROAS/i);
   });
 
   it("merchant paste blocks avoid superlatives and quantified outcome claims (4.3.3)", () => {

@@ -37,6 +37,7 @@ import {
   syncShopProFromShopify,
 } from "../lib/billing.server";
 import { isBillingEnabled } from "../lib/billing-flag.server";
+import { BILLING_HONESTY } from "../lib/entitlements";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -536,6 +537,9 @@ export default function SettingsPage() {
                 </ul>
               </div>
             </div>
+            <p className="mcfly-panel__muted" style={{ marginTop: "0.75rem" }}>
+              {BILLING_HONESTY.flat} {BILLING_HONESTY.cancel}
+            </p>
             {!billing.entitlements.isPro ? (
               billing.enabled ? (
                 <div style={{ marginTop: "0.85rem" }}>

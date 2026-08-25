@@ -31,7 +31,12 @@ import { formatOverviewShareText } from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
+import { NumberHonestyPanel } from "../components/NumberHonestyPanel";
 import { PRO_UPSELL } from "../lib/entitlements";
+import {
+  NUMBER_HONESTY,
+  SPEND_ADD_HREF,
+} from "../lib/number-honesty";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import {
   emptySales,
@@ -506,7 +511,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href="/app/spend"
+            href={SPEND_ADD_HREF}
             aria-label="See practice spend mix"
           >
             See spend mix
@@ -515,7 +520,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href="/app/spend"
+            href={SPEND_ADD_HREF}
             aria-label="Update spend"
           >
             Update spend
@@ -533,7 +538,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href="/app/spend"
+            href={SPEND_ADD_HREF}
             aria-label={PRODUCT_NOUN.setupAddSpend}
           >
             {PRODUCT_NOUN.setupAddSpend}
@@ -599,7 +604,7 @@ export default function Dashboard() {
               {freshLabel}
             </span>
             {!shotMode && scoreboardReady ? (
-              <s-link href="/app/spend#mcfly-spend-uploads">Update spend</s-link>
+              <s-link href={SPEND_ADD_HREF}>Update spend</s-link>
             ) : null}
             {!metrics.cashActionReady &&
             !shotMode &&
@@ -650,19 +655,19 @@ export default function Dashboard() {
                   <s-stack alignItems="center">
                     <s-heading>Get {PRODUCT_NOUN.totalRoas} in ~10 minutes</s-heading>
                     <s-paragraph>
-                      Start with profit margin (sets break-even). Then upload
-                      Spend CSV. Sales are already in.
+                      {NUMBER_HONESTY.empty} Sales are already in. Margin is
+                      optional for break-even.
                     </s-paragraph>
                   </s-stack>
                   <s-button
                     variant="primary"
-                    href="/app/settings"
-                    aria-label={PRODUCT_NOUN.setupAdjustMargin}
+                    href={SPEND_ADD_HREF}
+                    aria-label={PRODUCT_NOUN.setupAddSpend}
                   >
-                    {PRODUCT_NOUN.setupAdjustMargin}
+                    {PRODUCT_NOUN.setupAddSpend}
                   </s-button>
                   <p className="mcfly-cold-empty__foot">
-                    Next: <s-link href="/app/spend">{PRODUCT_NOUN.setupAddSpend}</s-link>
+                    Next: <s-link href={SPEND_ADD_HREF}>{PRODUCT_NOUN.setupAddSpend}</s-link>
                     {" · "}
                     Switch to Practice at the top for example numbers
                   </p>
@@ -682,13 +687,12 @@ export default function Dashboard() {
                   <s-stack alignItems="center">
                     <s-heading>{PRODUCT_NOUN.setupAddSpend}</s-heading>
                     <s-paragraph>
-                      Margin is set. Upload daily Spend CSV to unlock{" "}
-                      {PRODUCT_NOUN.totalRoas} vs break-even.
+                      {NUMBER_HONESTY.empty} {NUMBER_HONESTY.invoiceHint}
                     </s-paragraph>
                   </s-stack>
                   <s-button
                     variant="primary"
-                    href="/app/spend"
+                    href={SPEND_ADD_HREF}
                     aria-label={PRODUCT_NOUN.setupAddSpend}
                   >
                     {PRODUCT_NOUN.setupAddSpend}
@@ -758,15 +762,15 @@ export default function Dashboard() {
                     {PRODUCT_NOUN.setupAddSpend}
                   </p>
                   <p className="mcfly-guide__step-copy">
-                    Logged Spend via CSV — upload or paste Day + channel columns
-                    from Sheets. No ad network logins.
+                    Type one day’s invoice (any platform, including billboards).
+                    CSV is only for many days. No ad-network logins.
                   </p>
                   {metrics.onboarding.hasSpend ? (
                     <p className="mcfly-guide__step-state">
                       Logged · {formatCurrency(metrics.totalSpend)} this period
                     </p>
                   ) : (
-                    <s-button href="/app/spend" variant="primary">
+                    <s-button href={SPEND_ADD_HREF} variant="primary">
                       {PRODUCT_NOUN.setupAddSpend}
                     </s-button>
                   )}
@@ -798,7 +802,7 @@ export default function Dashboard() {
 
         {!spendBlocked && !marginBlocked ? (
           <>
-            {!shotMode && scoreboardReady ? (
+            {scoreboardReady ? (
               <section
                 className="mcfly-hero-compact mcfly-hero-compact--v2"
                 aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
@@ -814,7 +818,7 @@ export default function Dashboard() {
                       {PRODUCT_NOUN.setupSetGoals}
                     </s-button>
                     <s-button
-                      href="/app/spend#mcfly-spend-uploads"
+                      href={SPEND_ADD_HREF}
                       variant="primary"
                     >
                       Update spend
@@ -846,7 +850,7 @@ export default function Dashboard() {
                       {formatCurrency(metrics.totalSpend)}
                     </p>
                     <p className="mcfly-hero-compact__meta">
-                      {metrics.period.label} · Logged via CSV
+                      {metrics.period.label} · Spend you added
                     </p>
                     {spendDeltaLine ? (
                       <p className="mcfly-hero-compact__meta">{spendDeltaLine}</p>
@@ -884,7 +888,7 @@ export default function Dashboard() {
                       </p>
                     )}
                     <p className="mcfly-hero-compact__dive">
-                      <s-link href="/app/spend#mcfly-spend-uploads">
+                      <s-link href={SPEND_ADD_HREF}>
                         Update spend
                       </s-link>
                       {" · "}
@@ -894,6 +898,12 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
+                <NumberHonestyPanel
+                  sales={totalSalesDisplay}
+                  spend={metrics.totalSpend}
+                  mer={metrics.mer}
+                  periodLabel={metrics.period.label}
+                />
               </section>
             ) : null}
 
@@ -912,13 +922,13 @@ export default function Dashboard() {
             <div className="mcfly-me-spine">
               <div className="mcfly-explorer-csv-bar">
                 <s-button
-                  href="/app/spend#mcfly-spend-uploads"
+                  href={SPEND_ADD_HREF}
                   variant="primary"
                 >
                   Update spend
                 </s-button>
                 <span className="mcfly-explorer-csv-bar__hint">
-                  Upload daily CSV — channels come from your columns
+                  Add a day’s invoice — CSV only if you have many days
                 </span>
               </div>
               <SpendExplorer

@@ -42,6 +42,14 @@ export const PRO_UPSELL = {
   seeSettings: "See Free vs Pro in Settings",
 } as const;
 
+/** In-app only (never listing paste). Contrast GMV ladders and order overages. */
+export const BILLING_HONESTY = {
+  flat:
+    "Pro is $39 per store / month — not a percent of sales, not a per-order fee.",
+  cancel:
+    "Shopify bills this app. Switch to Free or uninstall in Admin to stop the next 30-day cycle. The current cycle may still charge.",
+} as const;
+
 export const FREE_FEATURE_BULLETS = [
   "Shopify sales beside the spend you add (any platform, including billboards)",
   "Total ROAS = Shopify sales ÷ that spend",

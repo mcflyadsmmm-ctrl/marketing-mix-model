@@ -34,7 +34,10 @@ import {
   fetchSampleSales,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
-import { impliedSpendCeiling } from "../lib/implied-spend-ceiling";
+import {
+  impliedSpendCeiling,
+  impliedSpendCeilingCaption,
+} from "../lib/implied-spend-ceiling";
 import {
   buildSalesGoalPeriods,
   buildYearBoard,
@@ -719,7 +722,7 @@ export default function GoalsPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>This period · {periodMetrics.period.label}</h2>
               <p className="mcfly-panel__muted">
-                Same Shopify sales ÷ uploaded spend as Overview · vs{" "}
+                Same Shopify sales ÷ spend you added as Overview · vs{" "}
                 {PRODUCT_NOUN.totalRoasGoal} {formatMer(targetMer)}×
               </p>
             </div>
@@ -765,8 +768,10 @@ export default function GoalsPage() {
                     : "—"}
                 </p>
                 <p className="mcfly-acq-tile__def">
-                  Period sales ÷ {PRODUCT_NOUN.totalRoasGoal}{" "}
-                  {formatMer(targetMer)}×
+                  {impliedSpendCeilingCaption(
+                    "period_sales",
+                    targetMer,
+                  )}
                 </p>
               </div>
             </div>
@@ -993,9 +998,11 @@ export default function GoalsPage() {
                       </table>
                     </div>
                     <p className="mcfly-goals-form__hint">
-                      Ceiling = sales goal ÷ {PRODUCT_NOUN.totalRoasGoal}{" "}
-                      {formatMer(board.targetMer)}×. Dirty fields open the Admin
-                      save bar.{" "}
+                      {impliedSpendCeilingCaption(
+                        "sales_goal",
+                        board.targetMer,
+                      )}{" "}
+                      Dirty fields open the Admin save bar.{" "}
                       <s-link href="/app">{PRODUCT_NOUN.deskTitle}</s-link>
                     </p>
                   </Form>

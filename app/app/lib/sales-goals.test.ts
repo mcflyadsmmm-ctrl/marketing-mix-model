@@ -12,7 +12,7 @@ vi.mock("./mer-dashboard.server", () => ({
   getOrCreateSettings: vi.fn(),
 }));
 
-import { impliedSpendCeiling } from "./implied-spend-ceiling";
+import { impliedSpendCeiling, impliedSpendCeilingCaption } from "./implied-spend-ceiling";
 import {
   buildSalesGoalPeriods,
   calendarDaysElapsedInMonth,
@@ -373,5 +373,16 @@ describe("impliedSpendCeiling", () => {
     expect(impliedSpendCeiling(100_000, 0)).toBeNull();
     expect(impliedSpendCeiling(100_000, null)).toBeNull();
     expect(impliedSpendCeiling(100_000, undefined)).toBeNull();
+  });
+
+  it("labels period sales vs sales-goal ceilings without mixing them", () => {
+    expect(impliedSpendCeilingCaption("period_sales", 4)).toMatch(
+      /This period's Shopify sales ÷ 4\.00× target/,
+    );
+    expect(impliedSpendCeilingCaption("period_sales", 4)).toMatch(/not a bid cap/i);
+    expect(impliedSpendCeilingCaption("sales_goal", 3)).toMatch(
+      /Sales goal ÷ 3\.00× target/,
+    );
+    expect(impliedSpendCeilingCaption("sales_goal", 3)).toMatch(/Not net profit/);
   });
 });

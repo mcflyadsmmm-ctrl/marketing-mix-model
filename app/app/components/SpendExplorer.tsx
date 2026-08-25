@@ -1037,10 +1037,10 @@ export function SpendExplorer({
                 search: searchParams.toString()
                   ? `?${searchParams.toString()}`
                   : "",
-                hash: "mcfly-spend-uploads",
+                hash: "mcfly-spend-add",
               }}
             >
-              Export &amp; upload spend
+              Add a day’s spend
             </Link>
             <Link
               className="mcfly-explorer__cta mcfly-explorer__cta--ghost"
