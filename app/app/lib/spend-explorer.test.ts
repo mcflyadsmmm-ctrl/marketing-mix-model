@@ -3,6 +3,8 @@ import {
   applyExplorerMode,
   bucketExplorerRows,
   closedDayEnd,
+  compareExplorerBuckets,
+  priorExplorerBucketKey,
   explorerMoneyCeil,
   explorerSalesCeil,
   formatExplorerSubtitle,
@@ -431,5 +433,189 @@ describe("explorerSalesCeil + subtitle", () => {
     expect(sub).toContain("Total ROAS = sales ÷ spend");
     expect(sub).toContain("closed days only");
     expect(sub).toContain("as of 2026-07-22");
+  });
+});
+
+describe("priorExplorerBucketKey", () => {
+  it("day → previous day, across month and year boundaries", () => {
+    expect(priorExplorerBucketKey("2026-07-15", "Day")).toBe("2026-07-14");
+    expect(priorExplorerBucketKey("2026-03-01", "Day")).toBe("2026-02-28");
+    expect(priorExplorerBucketKey("2026-01-01", "Day")).toBe("2025-12-31");
+  });
+
+  it("week → previous Monday-start week", () => {
+    expect(priorExplorerBucketKey("w:2026-07-13", "Week")).toBe("w:2026-07-06");
+    expect(priorExplorerBucketKey("w:2026-01-05", "Week")).toBe("w:2025-12-29");
+  });
+
+  it("month → previous month, Jan wraps to prior-year Dec", () => {
+    expect(priorExplorerBucketKey("m:2026-08", "Month")).toBe("m:2026-07");
+    expect(priorExplorerBucketKey("m:2026-01", "Month")).toBe("m:2025-12");
+  });
+
+  it("quarter → previous quarter, Q1 wraps to prior-year Q4", () => {
+    expect(priorExplorerBucketKey("q:2026-Q3", "Quarter")).toBe("q:2026-Q2");
+    expect(priorExplorerBucketKey("q:2026-Q1", "Quarter")).toBe("q:2025-Q4");
+  });
+
+  it("rejects malformed keys", () => {
+    expect(priorExplorerBucketKey("not-a-day", "Day")).toBeNull();
+    expect(priorExplorerBucketKey("2026-07-13", "Week")).toBeNull();
+    expect(priorExplorerBucketKey("m:2026-13", "Month")).toBeNull();
+    expect(priorExplorerBucketKey("q:2026-Q5", "Quarter")).toBeNull();
+  });
+});
+
+describe("compareExplorerBuckets", () => {
+  it("aligns week buckets to the previous ISO week and computes deltas", () => {
+    const buckets = bucketExplorerRows(
+      [
+        day("2026-07-06", 4000, { meta: 1000 }), // Wk of 7/6 → 4.0×
+        day("2026-07-13", 6000, { meta: 1200 }), // Wk of 7/13 → 5.0×
+      ],
+      "Week",
+    );
+    const cmp = compareExplorerBuckets(buckets, "Week");
+    expect(cmp[0].hasPrior).toBe(false);
+    expect(cmp[0].spendDelta).toBeNull();
+    expect(cmp[0].merDelta).toBeNull();
+    expect(cmp[1].priorKey).toBe("w:2026-07-06");
+    expect(cmp[1].hasPrior).toBe(true);
+    expect(cmp[1].priorLabel).toBe("Wk of 7/6");
+    expect(cmp[1].priorSpend).toBe(1000);
+    expect(cmp[1].priorSales).toBe(4000);
+    expect(cmp[1].spendDelta).toBe(200);
+    expect(cmp[1].salesDelta).toBe(2000);
+    expect(cmp[1].merDelta).toBeCloseTo(6000 / 1200 - 4000 / 1000, 5);
+  });
+
+  it("a week two weeks back is not treated as the prior week", () => {
+    const buckets = bucketExplorerRows(
+      [
+        day("2026-06-29", 3000, { meta: 500 }), // Wk of 6/29
+        day("2026-07-13", 6000, { meta: 1200 }), // Wk of 7/13 — no 7/6 data
+      ],
+      "Week",
+    );
+    const cmp = compareExplorerBuckets(buckets, "Week");
+    expect(cmp[1].priorKey).toBe("w:2026-07-06");
+    expect(cmp[1].hasPrior).toBe(false);
+    expect(cmp[1].spendDelta).toBeNull();
+    expect(cmp[1].merDelta).toBeNull();
+  });
+
+  it("month comparison crosses the year boundary", () => {
+    const buckets = bucketExplorerRows(
+      [
+        day("2025-12-10", 5000, { meta: 1000 }),
+        day("2026-01-10", 8000, { meta: 1600 }),
+      ],
+      "Month",
+    );
+    const cmp = compareExplorerBuckets(buckets, "Month");
+    expect(cmp[1].priorKey).toBe("m:2025-12");
+    expect(cmp[1].hasPrior).toBe(true);
+    expect(cmp[1].spendDelta).toBe(600);
+    expect(cmp[1].salesDelta).toBe(3000);
+  });
+
+  it("quarter Q1 compares against prior-year Q4", () => {
+    const buckets = bucketExplorerRows(
+      [
+        day("2025-11-05", 9000, { meta: 3000 }), // Q4 ’25 → 3.0×
+        day("2026-02-05", 8000, { meta: 2000 }), // Q1 ’26 → 4.0×
+      ],
+      "Quarter",
+    );
+    const cmp = compareExplorerBuckets(buckets, "Quarter");
+    expect(cmp[1].priorKey).toBe("q:2025-Q4");
+    expect(cmp[1].hasPrior).toBe(true);
+    expect(cmp[1].spendDelta).toBe(-1000);
+    expect(cmp[1].merDelta).toBeCloseTo(1, 5);
+  });
+
+  it("Total ROAS delta is null when the prior period has zero spend", () => {
+    const buckets = bucketExplorerRows(
+      [
+        { dateKey: "2026-07-06", sales: 900, spend: 0, channels: [] },
+        day("2026-07-07", 1200, { meta: 300 }),
+      ],
+      "Day",
+    );
+    const cmp = compareExplorerBuckets(buckets, "Day");
+    expect(cmp[1].hasPrior).toBe(true);
+    expect(cmp[1].priorMer).toBeNull();
+    expect(cmp[1].merDelta).toBeNull();
+    // Spend / sales deltas still real — only the ratio is undefined.
+    expect(cmp[1].spendDelta).toBe(300);
+    expect(cmp[1].salesDelta).toBe(300);
+  });
+
+  it("Total ROAS delta is null when the current period has zero spend", () => {
+    const buckets = bucketExplorerRows(
+      [
+        day("2026-07-06", 1000, { meta: 250 }),
+        { dateKey: "2026-07-07", sales: 800, spend: 0, channels: [] },
+      ],
+      "Day",
+    );
+    const cmp = compareExplorerBuckets(buckets, "Day");
+    expect(cmp[1].hasPrior).toBe(true);
+    expect(cmp[1].mer).toBeNull();
+    expect(cmp[1].merDelta).toBeNull();
+    expect(cmp[1].spendDelta).toBe(-250);
+  });
+
+  it("delta sign follows sales ÷ spend — never the inverted ratio", () => {
+    const buckets = bucketExplorerRows(
+      [
+        day("2026-07-06", 4000, { meta: 1000 }), // 4.0×
+        day("2026-07-07", 3000, { meta: 1500 }), // 2.0× — worse
+      ],
+      "Day",
+    );
+    const cmp = compareExplorerBuckets(buckets, "Day");
+    expect(cmp[1].merDelta).toBeCloseTo(-2, 5);
+  });
+});
+
+describe("compareExplorerBuckets", () => {
+  it("compares a month to the previous month by key, not index", () => {
+    const rows = compareExplorerBuckets(
+      [
+        { key: "m:2026-07", label: "Jul", sales: 800, spend: 200, mer: 4 },
+        { key: "m:2026-08", label: "Aug", sales: 1000, spend: 200, mer: 5 },
+      ],
+      "Month",
+    );
+    const aug = rows.find((r) => r.key === "m:2026-08");
+    expect(aug?.hasPrior).toBe(true);
+    expect(aug?.priorKey).toBe("m:2026-07");
+    expect(aug?.spendDelta).toBe(0);
+    expect(aug?.salesDelta).toBe(200);
+    expect(aug?.merDelta).toBe(1);
+  });
+
+  it("leaves merDelta null when either period has no spend", () => {
+    const rows = compareExplorerBuckets(
+      [
+        { key: "2026-08-20", label: "8/20", sales: 100, spend: 0, mer: null },
+        { key: "2026-08-21", label: "8/21", sales: 100, spend: 50, mer: 2 },
+      ],
+      "Day",
+    );
+    const today = rows.find((r) => r.key === "2026-08-21");
+    expect(today?.hasPrior).toBe(true);
+    expect(today?.merDelta).toBeNull();
+  });
+
+  it("does not invent a prior quarter outside the window", () => {
+    const rows = compareExplorerBuckets(
+      [{ key: "q:2026-Q1", label: "Q1", sales: 10, spend: 5, mer: 2 }],
+      "Quarter",
+    );
+    expect(rows[0]?.hasPrior).toBe(false);
+    expect(rows[0]?.priorKey).toBe("q:2025-Q4");
+    expect(rows[0]?.spendDelta).toBeNull();
   });
 });

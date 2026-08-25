@@ -26,6 +26,7 @@ import {
   parseSpendCsv,
   platformsToTemplateCols,
   selectedPlatformsTemplateFilename,
+  spendTemplateDateRange,
 } from "./spend-csv";
 
 const CHANNEL_COUNT = SPEND_CHANNELS.length;
@@ -369,6 +370,23 @@ describe("pipe automation templates", () => {
       true,
     );
   });
+
+  it("wide pipe blank uses from/to instead of 14 trailing days", () => {
+    const text = buildPipeAutomationWideTemplate({
+      example: false,
+      now,
+      from: "2026-07-01",
+      to: "2026-07-02",
+      channels: ["meta", "google"],
+    });
+    const lines = text.trim().split("\n");
+    expect(lines[0]).toBe("Day,Meta Ads,Google Ads");
+    expect(lines).toEqual([
+      "Day,Meta Ads,Google Ads",
+      "2026-07-01,,",
+      "2026-07-02,,",
+    ]);
+  });
 });
 
 describe("buildSelectedPlatformTemplateCsv", () => {
@@ -489,6 +507,71 @@ describe("buildSelectedPlatformTemplateCsv", () => {
       "other:billboards-ooh",
       "other:radio",
     ]);
+  });
+
+  it("uses from/to closed-day range instead of dayCount", () => {
+    const result = buildSelectedPlatformTemplateCsv(
+      [
+        { title: "Meta", engineChannel: "meta" },
+        { title: "Google", engineChannel: "google" },
+      ],
+      {
+        now,
+        dayCount: 7,
+        from: "2026-07-01",
+        to: "2026-07-03",
+        example: false,
+      },
+    );
+    expect(result.headers).toEqual(["Day", "Meta Ads", "Google Ads"]);
+    expect(result.rows).toEqual([
+      ["2026-07-01", "", ""],
+      ["2026-07-02", "", ""],
+      ["2026-07-03", "", ""],
+    ]);
+    expect(result.csv).toBe(
+      "Day,Meta Ads,Google Ads\n2026-07-01,,\n2026-07-02,,\n2026-07-03,,\n",
+    );
+  });
+
+  it("uses span=90d through yesterday with empty amounts when example:false", () => {
+    const result = buildSelectedPlatformTemplateCsv(
+      [
+        { title: "Meta", engineChannel: "meta" },
+        { title: "TikTok", engineChannel: "tiktok" },
+        ...customNamesToTemplateCols(["Billboards"]),
+      ],
+      { now, span: "90d", example: false },
+    );
+    const expected = spendTemplateDateRange({ span: "90d", now });
+    expect(result.rows).toHaveLength(90);
+    expect(result.rows[0][0]).toBe(expected.fromKey);
+    expect(result.rows[89][0]).toBe(expected.toKey);
+    expect(result.rows[0]).toEqual([expected.fromKey, "", "", ""]);
+    expect(result.headers).toEqual([
+      "Day",
+      "Meta Ads",
+      "TikTok Ads",
+      "Billboards",
+    ]);
+    const { rows, errors } = parseSpendCsv(result.csv);
+    expect(errors).toEqual([]);
+    expect(rows).toEqual([]);
+  });
+
+  it("keeps every named platform column on a range blank (no channel gate)", () => {
+    const cols = platformsToTemplateCols([...SPEND_CHANNELS]);
+    const result = buildSelectedPlatformTemplateCsv(cols, {
+      now,
+      from: "2026-07-24",
+      to: "2026-07-25",
+      example: false,
+    });
+    expect(result.headers[0]).toBe("Day");
+    expect(result.headers).toHaveLength(1 + CHANNEL_COUNT);
+    expect(result.headers).toContain("Other");
+    expect(result.rows).toHaveLength(2);
+    expect(result.rows[0].slice(1).every((cell) => cell === "")).toBe(true);
   });
 });
 
