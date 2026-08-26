@@ -98,7 +98,7 @@ Interactive regions above the fold (≤6):
 - Sentry + structured logs (`shopId`, jobId, Shopify cost)
 - SLOs: desk p95 &lt;2–3s (facts); ingest lag p95 &lt;15m; overnight ≥99% shops/day
 - Load-test matrix LT1–LT8 documented in `docs/ops/LOAD_TEST_MATRIX.md`
-- Entitlement stub: Free vs Pro flat (no GMV tax)
+- Entitlement stub: flat fee, no GMV tax (superseded: one plan, no tiers)
 
 ## 7. Cursor operating system
 

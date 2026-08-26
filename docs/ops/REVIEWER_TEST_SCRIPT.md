@@ -1,7 +1,7 @@
 # App Store reviewer test script — Mcfly Analytics (cold path)
 
 **Do not paste this file into Partner.** Live 4.5.4 paste is [`PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md).  
-**Listing Pricing:** Shopify App Pricing **Free + Pro $39**. **Religion:** Total ROAS = sales ÷ spend — no pixels.  
+**Listing Pricing:** Shopify App Pricing — **one plan**, $39/store/mo after a 7-day full-access trial. **Religion:** Total ROAS = sales ÷ spend — no pixels.  
 **No Monday Close / no Meta–Google OAuth** — spend is CSV; Share Overview is mailto on Home.
 
 ---
@@ -57,7 +57,7 @@
 | Zero spend | Honest empty / paste CTA — not fabricated ROAS |
 | API sales error | Error banner — not silent mock sales as live |
 | SAMPLE on | Banner unmistakable SAMPLE |
-| Free vs Pro | Named channels / LTV / full Goals may show Pro upgrade — listing Pricing is Free |
+| Trial vs paid | Identical desk — nothing unlocks or locks. Billing is not a view |
 
 ---
 

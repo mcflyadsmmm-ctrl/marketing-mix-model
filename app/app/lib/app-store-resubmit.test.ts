@@ -94,7 +94,9 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
     const testing = readRepo("docs/PARTNER_TESTING_INSTRUCTIONS.md");
     for (const doc of [listing, testing]) {
       expect(doc).toMatch(/My app doesn't require an account/i);
-      expect(doc).toMatch(/Upgrade to Pro/i);
+      // One plan: the CTA starts a trial, it does not upgrade to a tier.
+      expect(doc).toMatch(/Start 7-day trial/);
+      expect(doc).not.toMatch(/Upgrade to Pro/i);
     }
     expect(testing).toMatch(/refused to connect/i);
     expect(testing).toMatch(/top frame|TOP Admin frame/i);

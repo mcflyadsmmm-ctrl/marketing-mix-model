@@ -14,7 +14,7 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 | 1.1.1 Session tokens | **PASS** | Embedded app uses `authenticate.admin` + Prisma sessions. No third-party-cookie auth. Spend `localStorage` is UI prefs only (try/catch). |
 | 1.1.2 Shopify checkout | **N/A** | No checkout, payments, or order-create path. |
 | 1.1.3 Theme Store | **N/A** | No theme download. |
-| 1.1.4 Factual information | **PASS (code + paste)** / **HUMAN (Partner fields + live Pages)** | Listing paste blocks no longer include plan prices or “later $39”. Trust copy updated in `site/`. **Pages on mcflyads.com still need a human publish from this branch** (workflow is `main`-only). In-app Upgrade charges; Partner Pricing must show Free + Pro $39. |
+| 1.1.4 Factual information | **PASS (code + paste)** / **HUMAN (Partner fields + live Pages)** | Listing paste blocks no longer include plan prices or “later $39”. Trust copy updated in `site/`. **Pages on mcflyads.com still need a human publish from this branch** (workflow is `main`-only). The in-app CTA starts a 7-day trial then charges $39; Partner Pricing must show that one plan and no Free plan. |
 | 1.1.5 Unique apps | **PASS** | Single public app `mcfly-analytics-public`. Custom client archived in `shopify.app.custom.toml`. |
 | 1.1.6 Marketplaces | **N/A** | Admin cash desk, not a classifieds marketplace. |
 | 1.1.7 Payments API | **N/A** | Not a payment gateway. |
@@ -27,7 +27,7 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 | 1.1.14 Agencies | **N/A** | No freelancer marketplace. |
 | 1.1.15 Refunds via original processor | **N/A** | No refund product. |
 | 1.1.16 Capital lending | **N/A** | No lending. |
-| 1.2.1–1.2.3 Billing | **PASS (repo code)** / **HUMAN (Partner Pricing + live config)** | Shopify Managed Pricing code supports plan changes without reinstall. `app-store-requirement-verify.test.ts` rejects Stripe/PayPal app-subscription indicators. Partner must actually list Free + Pro $39 and confirm live billing configuration. |
+| 1.2.1–1.2.3 Billing | **PASS (repo code)** / **HUMAN (Partner Pricing + live config)** | Shopify Managed Pricing code supports plan changes without reinstall. `app-store-requirement-verify.test.ts` rejects Stripe/PayPal app-subscription indicators. Partner must actually list one plan ($39 / 30 days, 7-day free trial) and confirm live billing configuration. |
 | 1.3.1 No review incentives | **PASS** | Automated runtime-source guard rejects review-for-extra-days / discount / unlock incentives. |
 
 ## 2. Functionality
@@ -60,7 +60,7 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 | ID | Result | Evidence |
 | --- | --- | --- |
 | 4.1.1–4.1.2 Name | **PASS** | `Mcfly Analytics` in TOML + listing paste. HUMAN: Dashboard name matches. |
-| 4.2.1 Accurate pricing | **HUMAN** | Partner **Pricing details** = Free + Pro $39. Docs tell the human to set it. |
+| 4.2.1 Accurate pricing | **HUMAN** | Partner **Pricing details** = one plan, $39/store/mo, 7-day free trial. Docs tell the human to set it and to remove the Free plan. |
 | 4.2.2 No pricing in images | **PASS (docs + generator)** / **HUMAN (upload)** | `04-free-pro-pricing.png` is banned. `listing-shot-04.py` refuses to regenerate it. Recapture Allocation for shot 4. |
 | 4.2.3 No pricing elsewhere in listing | **PASS (paste blocks)** / **HUMAN (Partner form)** | Short / long / features marked `APP_STORE_PASTE` with no `$39`. Do not paste reviewer notes into the public listing. |
 | 4.3.1 Online Store required | **PASS (docs)** / **HUMAN** | Checklist: leave “Merchant must have online store” **unchecked**. |
@@ -105,11 +105,11 @@ This matrix does **not** claim Shopify will approve the app. App Review can stil
 
 ## Human Submit gate
 
-1. Partner Pricing = Shopify App Pricing **Free + Pro $39** (not Free-only).
+1. Partner Pricing = Shopify App Pricing **one plan, $39/store/mo, 7-day free trial** — remove the Free plan.
 2. Paste short / long / features from `APP_STORE_LISTING.md` paste markers — **not** reviewer notes.
 3. Do **not** upload `04-free-pro-pricing.png`. Recapture Allocation.
 4. Testing form: Username/Password empty, **check** “My app doesn't require an account”; paste the TEST ACCOUNT block from `PARTNER_TESTING_INSTRUCTIONS.md`.
-5. Screencast: install → Spend → Upgrade → top-frame plans (no “refused to connect”).
+5. Screencast: install → Settings → Start 7-day trial → top-frame plans (no “refused to connect”).
 6. SAMPLE desk **OFF** on the review store.
 7. Emergency contact on the Partner account.
 8. Publish updated `site/` trust pages to mcflyads.com (Pages is `main`).

@@ -21,8 +21,8 @@ This note is the agent audit after “make sure it doesn’t get rejected again.
 | Req | Risk if failed | Status |
 | --- | --- | --- |
 | **1.1.1** Session tokens | Embedded auth | Green — `@shopify/shopify-app-react-router` |
-| **1.1.4** Factual info | Listing/site claim Free-only while Upgrade charges | **Fixed in repo** — listing + Fly trust pages are Free + Pro; **do not** send reviewers to stale mcflyads.com Pages |
-| **1.2.1–1.2.3** Shopify App Pricing | Off-platform billing / no plan change | Green in code — Managed Pricing URL + Manage plan for Pro; Partner must match |
+| **1.1.4** Factual info | Listing/site plans disagree with what the app charges | **Fixed in repo** — listing + Fly trust pages state one plan ($39 after a 7-day trial); **do not** send reviewers to stale mcflyads.com Pages |
+| **1.2.1–1.2.3** Shopify App Pricing | Off-platform billing / no plan change | Green in code — Managed Pricing URL + Manage plan; Partner must list the same single plan |
 | **2.1.1** No critical UI errors | Billing iframe brick | Green in code + live JS + unit guards |
 | **2.2.3** App Bridge latest | CDN script on exit + app | Green |
 | **2.2.4** GraphQL Admin | REST banned for new apps | Green pattern |
@@ -48,10 +48,10 @@ This note is the agent audit after “make sure it doesn’t get rejected again.
 ## Still HUMAN (will reject again if skipped)
 
 1. Partner → **App testing information** → Username/Password **empty**, check **“My app doesn't require an account to use it”**, paste the TEST ACCOUNT block from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md)
-2. Partner → Pricing → **Shopify App Pricing Free + Pro $39** (not Free-only)
-3. Embedded Admin smoke on the review install: Spend → **Upgrade to Pro** → top-frame plan picker (no refused-to-connect) → approve → Settings → **Manage plan** → Free
+2. Partner → Pricing → **Shopify App Pricing · ONE plan, $39/store/mo, 7-day free trial** — **delete the Free plan** (the live page still showed Free + Pro in the 2026-08-26 smoke)
+3. Embedded Admin smoke on the review install: Settings → **Start 7-day trial** → top-frame plan picker (no refused-to-connect) → approve → Settings → **Manage plan**
 4. SAMPLE desk **OFF** before judging live Total ROAS
-5. Deploy updated `site/` to Cloudflare Pages so live `/pricing` `/support` match Free+Pro honesty
+5. Deploy updated `site/` to Cloudflare Pages so live `/pricing` `/support` match the one-plan copy
 6. Confirm Partner app handle = `mcfly-analytics-public` (= `SHOPIFY_APP_HANDLE`)
 
 ---

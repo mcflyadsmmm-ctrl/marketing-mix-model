@@ -28,7 +28,7 @@
 | # | Risk | Severity | Agent / human |
 | --- | --- | --- | --- |
 | 1 | Partner test form empty + checkbox off — **4.5.4 / 4.5.5** | **Critical** | **HUMAN** checkbox ON; paste TEST ACCOUNT block; never `<PASTE…>` |
-| 2 | Partner Pricing Free-only while Upgrade charges — **1.1.4 / 1.2** | **Critical** | **HUMAN** set Free + Pro $39 |
+| 2 | Partner Pricing disagrees with what the app charges — **1.1.4 / 1.2** | **Critical** | **HUMAN** set ONE plan, $39 + 7-day trial; remove the Free plan |
 | 3 | No embedded Admin click-test of Upgrade path | **Critical** | **HUMAN** smoke |
 | 4 | Live mcflyads.com still “when Billing announced” until Pages deploy | **High** | **HUMAN** paste Fly trust URLs (or CF token to publish Pages) |
 | 5 | SAMPLE desk ON during review | **High** | **HUMAN** OFF |

@@ -45,14 +45,18 @@ Reviewer script: [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md)
 
 ---
 
-## 6. Billing = Shopify App Pricing (Free + Pro $39)
+## 6. Billing = Shopify App Pricing (one plan, $39 + 7-day trial)
 
 Your Public app uses **Shopify App Pricing** (not Billing API create-charge).
 
 1. Partner → **Manage Shopify App Store listing** → **Pricing**
-2. Plans: **Free** + **Pro** at **$39 USD / 30 days** (name the paid plan **Pro**)
-3. In-app **Upgrade** opens Shopify’s plan page
-4. After approve → Settings should show Pro
+2. **One** plan: **$39 USD / 30 days** with a **7-day free trial**
+3. **Delete the Free plan.** The app has no feature gate, so a Free tier
+   contradicts the listing and the reviewer instructions. As of the 2026-08-26
+   Admin smoke the live managed-pricing page still showed **Free + Pro $39** —
+   this is the open item.
+4. In-app **Start 7-day trial** opens Shopify's plan page in the top frame
+5. After approve → Settings should show the plan as active
 
 Reply: **`plans set`** then **`billing works`**
 

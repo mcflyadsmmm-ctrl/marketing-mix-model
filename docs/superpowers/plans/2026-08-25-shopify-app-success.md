@@ -6,7 +6,7 @@
 
 **Architecture:** Keep the existing embedded Admin app (`app/`). Reposition listing + Pro packaging first. Then reduce spend friction and make LTV/Goals the paid reason. Optional ad-account connects come after listing, as convenience, not as the soul of the product.
 
-**Tech stack:** Shopify Admin embedded app (React Router 7), Fly `mcfly-analytics`, Prisma spend + OrderFact/CohortFact, Shopify App Pricing Free + Pro $39.
+**Tech stack:** Shopify Admin embedded app (React Router 7), Fly `mcfly-analytics`, Prisma spend + OrderFact/CohortFact, Shopify App Pricing — one plan, $39/store/mo after a 7-day trial.
 
 ## Global Constraints
 
@@ -14,7 +14,7 @@
 - Partner listing paste (short/long/features/captions) must **not** include `$39` (4.2.2 / 4.2.3). Price lives in Partner Pricing + in-app Upgrade.
 - First listing: PCD **Level 1 only** (no name/email/phone/address). Till LTV does not need Level 2.
 - Upgrade must exit the embed (`window.open(..., "_top")` / GET `/app/billing`). Never load `admin.shopify.com` in the iframe (2.1.1).
-- SAMPLE / Practice **OFF** on the review store before Submit.
+- Switch to **Live data** on the review store before Submit.
 - Do **not** build pixels, MTA, or “true ROAS.” Also do **not** market as anti-pixel.
 - Standing Fly grant: after ship-gate, deploy. Do not ask.
 - [`STRATEGY.md`](../../../STRATEGY.md) wins over [`VALUE_THESIS.md`](../../VALUE_THESIS.md) / cash-desk religion copy for App Store Mcfly Analytics.
@@ -60,24 +60,27 @@ Do not invent a staff password. Do not submit checkbox off + blanks. That is the
 
 Partner → Listing → **Pricing** = Shopify App Pricing:
 
-1. Free (default)
-2. Pro · **$39 USD** · every 30 days
+1. **One** plan · **$39 USD** · every 30 days · **7-day free trial**
+2. **No Free plan** — nothing in the app is feature-gated, so a Free tier
+   contradicts the listing and the reviewer instructions.
 
-In-app Upgrade already charges (`MCFLY_BILLING=1` on Fly). If Partner is Free-only, review fails.
+In-app Start 7-day trial already charges after the trial (`MCFLY_BILLING=1` on
+Fly). If Partner still lists Free + Pro, the plans disagree with the app.
 
 ### 0.3 Upgrade smoke (2.1.1)
 
 On a **development** store, in the **embedded** Admin app (not a standalone tab):
 
-1. Spend → **Upgrade to Pro**
+1. Settings → **Start 7-day trial**
 2. Shopify plan picker must replace the **top** Admin frame
 3. **Fail** if `admin.shopify.com refused to connect` inside the iframe
 
 Code SoT: `app/app/lib/billing-navigate.ts`, `ProUpgradeButton`. Do not “fix” this by loading Admin in the iframe.
 
-### 0.4 SAMPLE / Practice OFF
+### 0.4 Switch to Live data
 
-Demo → **Turn sample desk OFF** on the review store (`devmcflyads` / App Review store). Reviewers who see Practice numbers think the app is fake.
+Switch the top toggle to **Live data** on the review store (`devmcflyads` /
+App Review store). Reviewers who judge Sample data numbers think the app is fake.
 
 ### 0.5 Live site matches the app
 

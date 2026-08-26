@@ -6,7 +6,7 @@
 
 **Architecture:** Client-safe copy + equation helpers (`number-honesty.ts`, `implied-spend-ceiling.ts`) feed one Overview formula panel, Spend invoice language, Settings/Pro billing honesty, LTV/Goals captions. No pixels, MTA, COGS, or Level 2 PII.
 
-**Tech Stack:** React Router 7 embedded Admin app, Vitest, Shopify App Pricing Free + Pro $39, Fly `mcfly-analytics`.
+**Tech Stack:** React Router 7 embedded Admin app, Vitest, Shopify App Pricing — one plan, $39/store/mo after a 7-day trial, Fly `mcfly-analytics`.
 
 ## Global Constraints
 

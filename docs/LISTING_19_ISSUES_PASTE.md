@@ -60,7 +60,7 @@ Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 | Field | Value |
 | --- | --- |
-| **Pricing plans** | **Shopify App Pricing: Free + Pro $39/store/mo** |
+| **Pricing plans** | **Shopify App Pricing: one plan, $39/store/mo after a 7-day free trial** |
 | Paid plans / Billing | **On** — Managed Pricing. Must match in-app Upgrade. |
 | External charges | **No** |
 | Works with / Sales channel requirements | **None / blank** — not a sales channel. Do **not** require Online Store (4.3.1). |
@@ -115,7 +115,7 @@ Paste **only** [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTION
 Paste the `APP_STORE_PASTE:testing` block from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (starts with `TEST ACCOUNT (App Store 4.5.4 / 4.5.5)`).
 
 ### Screencast URL
-Record a short Loom: install → Spend → **Upgrade to Pro** (top-frame plans, no iframe refuse) → CSV import → Overview Total ROAS. English or English subtitles (4.5.3).
+Record a short Loom: install → Settings → **Start 7-day trial** (top-frame plans, no iframe refuse) → Spend CSV import → Overview Total ROAS. English or English subtitles (4.5.3).
 
 ---
 

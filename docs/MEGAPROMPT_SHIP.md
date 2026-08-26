@@ -25,7 +25,7 @@ OK: CSV spend template; recommend SyncWith/Supermetrics/Coupler externally as pi
    - Dashboard: cash MER, mix (hide $0), allocation with visible inputs
 4. When gate green: fly deploy -a mcfly-analytics --yes
 5. If toml changed: cd app && npx shopify app deploy --allow-updates
-6. Docs with evidence only: SHIP_CHECKLIST, APP_STORE_LISTING (Free-only first), INDUSTRY_LEADERS.md
+6. Docs with evidence only: SHIP_CHECKLIST, APP_STORE_LISTING (one plan $39 + 7-day trial), INDUSTRY_LEADERS.md
 7. Hand Marty: stop shopify app dev → install on demoflyads → Settings → CSV → Dashboard MER
 8. If still broken: update docs/NEXT_MEGAPROMPT.md with exact remaining failures and re-run
 

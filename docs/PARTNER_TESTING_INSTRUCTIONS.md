@@ -2,7 +2,7 @@
 
 **Why this file exists:** Shopify paused Mcfly Analytics (ref **127166**, 2026-08-24) for:
 
-1. **2.1.1** — Spend → **Upgrade to Pro** loaded `admin.shopify.com` inside the app iframe (`refused to connect`).
+1. **2.1.1** — the plan CTA loaded `admin.shopify.com` inside the app iframe (`refused to connect`).
 2. **4.5.4 / 4.5.5** — [Test account form](https://screenshot.click/12-40-wvht7-gytqd.png) had **empty Username / Password** and **“My app doesn't require an account to use it” unchecked**.
 
 Human pastes the blocks below into Partner → App listing → **App testing information**, then Submit.  
@@ -72,8 +72,9 @@ Switch the top toggle to Live data before judging this shop’s Total ROAS.
 
 SMOKE (matches the 2026-08-24 review path)
 1. Install Mcfly Analytics. App opens on Overview (Total ROAS).
-   A banner “Sales still syncing — expected after install” is normal on a new
-   store (0 of N days). It is not a 404. Continue.
+   On a brand-new store a banner explains Shopify sales are still loading
+   (0 of N days). That is expected, not a 404. Total ROAS deliberately shows
+   “—.——” rather than 0× until at least one closed sales day lands. Continue.
 2. Go to Settings → Your plan.
 3. Click Start 7-day trial. Shopify’s plan selection MUST replace the Admin app
    frame in the TOP window.
@@ -112,6 +113,7 @@ Emergency contact: mcflyadsmmm@gmail.com
 - [ ] **“My app doesn't require an account to use it”** is **checked**
 - [ ] Testing instructions pasted (block above) — includes the TEST ACCOUNT lines
 - [ ] No `<PASTE…>` / expired / 2FA password in the form
-- [ ] Partner Pricing = **Shopify App Pricing · Free + Pro $39**
-- [ ] Embedded smoke on a **non-Pro** install: Spend → Upgrade to Pro → top-frame plans
+- [ ] Partner Pricing = **Shopify App Pricing · ONE plan, $39/store/mo, 7-day free trial**
+      — **remove the Free plan.** See [`BILLING_TIERS.md`](./BILLING_TIERS.md).
+- [ ] Embedded smoke on an unpaid install: Settings → **Start 7-day trial** → top-frame plans
 - [ ] Submit fixes from Partner Dashboard
