@@ -125,7 +125,6 @@
         <a href="/cash-mer">Total ROAS</a>
         <a href="/about">About</a>
         <a href="/faq">FAQ</a>
-        <a href="/vs/profit-trackers">vs profit trackers</a>
         <a href="/platform-variance">Platform variance</a>
         <a href="/monday-close">Monday Close memo</a>
         <a href="/mer-calculator">ROAS calculator</a>
