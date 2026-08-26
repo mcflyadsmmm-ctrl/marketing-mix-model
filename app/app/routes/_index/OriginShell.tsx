@@ -2,8 +2,7 @@ import type { ReactNode } from "react";
 
 import styles from "./styles.module.css";
 
-const MARK =
-  "https://mcflyads.com/assets/brand/mcfly-m-transparent.png";
+const MARK = "/assets/brand/mcfly-m-transparent.png";
 
 type OriginShellProps = {
   children: ReactNode;
@@ -37,8 +36,8 @@ export function OriginShell({ children }: OriginShellProps) {
           <a href="/support">Support</a>
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
-          <a className={styles.navCta} href="/support">
-            Install free
+          <a className={styles.navCta} href="/demo">
+            Try the demo
           </a>
         </nav>
       </header>

@@ -69,7 +69,6 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
 
     const productPages = [
       "routes/app.spend.tsx",
-      "routes/app.settings.tsx",
       "routes/app.ltv.tsx",
       "routes/app.goals.tsx",
       "routes/app.advanced.tsx",

@@ -38,6 +38,7 @@ import {
 } from "../lib/billing.server";
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { BILLING_HONESTY } from "../lib/entitlements";
+import { FLY_SUPPORT_URL } from "../lib/public-origin";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -514,7 +515,11 @@ export default function SettingsPage() {
                 {billingError}
               </p>
             ) : null}
-            <ul className="mcfly-settings-guide" style={{ marginTop: "0.75rem" }}>
+            <p className="mcfly-control__k" style={{ marginTop: "0.75rem" }}>
+              ${billing.amount}/{billing.currencyCode} per store / month after a
+              7-day full-access trial
+            </p>
+            <ul className="mcfly-settings-guide">
               {billing.proBullets.map((line) => (
                 <li key={line}>{line}</li>
               ))}
@@ -540,15 +545,16 @@ export default function SettingsPage() {
                   className="mcfly-panel__muted"
                   style={{ marginTop: "0.75rem" }}
                 >
-                  Start 7-day trial opens when billing is on this host. The whole
-                  desk is included — Sample data | Live data is the view, not a plan.
+                  Start 7-day trial opens when billing is on this host. The
+                  whole desk is included — Sample data | Live data is the view,
+                  not a plan.
                 </p>
               )
             ) : (
               <div style={{ marginTop: "0.85rem" }}>
                 <p className="mcfly-panel__muted">
-                  This shop has the whole desk. Uninstall stops the next 30-day
-                  cycle.
+                  This shop has the whole desk. Uninstall in Admin stops the
+                  next 30-day cycle.
                 </p>
                 {billing.enabled ? (
                   <div style={{ marginTop: "0.65rem" }}>
@@ -583,9 +589,9 @@ export default function SettingsPage() {
                   Sample data
                 </h2>
                 <p className="mcfly-panel__muted">
-                  Sample data | Live data sits at the top of every page. Sample
-                  data is example numbers so you can click around. Live data is
-                  this shop’s Shopify sales and the spend you add.
+                  Sample data | Live data sits at the top of every page.
+                  Sample data is example numbers so you can click around. Live
+                  data is this shop’s Shopify sales and the spend you add.
                 </p>
                 <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
                   Right now:{" "}
@@ -696,7 +702,7 @@ export default function SettingsPage() {
             <s-stack alignItems="center">
               <s-text>
                 Learn more about{" "}
-                <s-link href="https://mcflyads.com/support" target="_blank">
+                <s-link href={FLY_SUPPORT_URL} target="_blank">
                   {PRODUCT_NOUN.totalRoas} support
                 </s-link>
                 .

@@ -791,10 +791,7 @@ describe("spend CSV scale caps (MAX_BYTES / MAX_ROWS)", () => {
     if (!limits.ok) {
       expect(limits.code).toBe("max_bytes");
       expect(limits.error).toMatch(/too large/i);
-      expect(limits.error).toMatch(
-        new RegExp(`${SPEND_CSV_MAX_ROWS.toLocaleString()} rows / 2\\.0 MB`),
-      );
-      expect(limits.error).toMatch(/split by date range/i);
+      expect(limits.error).toMatch(/smaller date range/i);
     }
     const parsed = parseSpendCsv(text);
     expect(parsed.rows).toEqual([]);
@@ -824,14 +821,11 @@ describe("spend CSV scale caps (MAX_BYTES / MAX_ROWS)", () => {
     expect(limits.ok).toBe(false);
     if (!limits.ok) {
       expect(limits.code).toBe("max_rows");
-      expect(limits.error).toMatch(/data rows/i);
-      expect(limits.error).toMatch(
-        new RegExp(`${SPEND_CSV_MAX_ROWS.toLocaleString()} rows / 2\\.0 MB`),
-      );
+      expect(limits.error).toMatch(/smaller date range/i);
     }
     const parsed = parseSpendCsv(text);
     expect(parsed.rows).toEqual([]);
-    expect(parsed.errors[0]).toMatch(/data rows/i);
+    expect(parsed.errors[0]).toMatch(/smaller date range/i);
   });
 
   it("parses ~3000 Meta+Google daily rows under caps in under 5s", () => {

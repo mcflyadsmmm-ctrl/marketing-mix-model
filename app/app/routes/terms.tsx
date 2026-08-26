@@ -8,7 +8,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "Mcfly Analytics terms: Shopify App Pricing Free + Pro $39/store/mo. Uninstall anytime. Utah governing law.",
+      "Mcfly Analytics terms: $39/store/mo after a 7-day trial, whole desk. Uninstall anytime. Utah governing law.",
   },
 ];
 
@@ -24,11 +24,12 @@ export default function TermsPage() {
 
         <h2>Plans</h2>
         <p>
-          Shopify App Pricing: <strong>Free</strong> (default) and{" "}
-          <strong>Pro $39/store/mo</strong> for Customer LTV and the full-year
-          Goals board. Named ad platforms and extras like billboards stay on
-          Free. Shopify bills Pro. Switch to Free or uninstall to stop the
-          next 30-day cycle; the current cycle may still charge.
+          Shopify App Pricing: one plan at{" "}
+          <strong>$39/store/mo after a 7-day trial</strong> — the whole desk,
+          including Customer LTV, the full-year Goals board, every named ad
+          platform, and extras like billboards. Shopify bills this app.
+          Uninstall to stop the next 30-day cycle; the current cycle may still
+          charge.
         </p>
 
         <h2>Your store</h2>

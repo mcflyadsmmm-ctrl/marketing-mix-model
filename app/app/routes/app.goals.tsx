@@ -34,7 +34,10 @@ import {
   fetchSampleSales,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
-import { impliedSpendCeiling } from "../lib/implied-spend-ceiling";
+import {
+  impliedSpendCeiling,
+  impliedSpendCeilingCaption,
+} from "../lib/implied-spend-ceiling";
 import {
   buildSalesGoalPeriods,
   buildYearBoard,
@@ -689,7 +692,7 @@ export default function GoalsPage() {
 
         {!shotMode && entitlements.showStartTrial ? (
           <p className="mcfly-panel__muted">
-            Whole desk is included. Start the 7-day trial in{" "}
+            The whole desk is included. Start the 7-day trial in{" "}
             <s-link href="/app/settings">Settings</s-link>.
           </p>
         ) : null}
@@ -721,7 +724,7 @@ export default function GoalsPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>This period · {periodMetrics.period.label}</h2>
               <p className="mcfly-panel__muted">
-                Same Shopify sales ÷ uploaded spend as Overview · vs{" "}
+                Same Shopify sales ÷ spend you added as Overview · vs{" "}
                 {PRODUCT_NOUN.totalRoasGoal} {formatMer(targetMer)}×
               </p>
             </div>
@@ -767,8 +770,10 @@ export default function GoalsPage() {
                     : "—"}
                 </p>
                 <p className="mcfly-acq-tile__def">
-                  Period sales ÷ {PRODUCT_NOUN.totalRoasGoal}{" "}
-                  {formatMer(targetMer)}×
+                  {impliedSpendCeilingCaption(
+                    "period_sales",
+                    targetMer,
+                  )}
                 </p>
               </div>
             </div>
@@ -855,13 +860,8 @@ export default function GoalsPage() {
                   for the whole year
                 </p>
               </div>
-              {entitlements.showProTeaser ? (
-                <p className="mcfly-panel__muted">
-                  Switch to Sample data at the top for a labeled walkthrough.
-                </p>
-              ) : (
-                <UseSampleCta />
-              )}
+              <GoalsYearTeaser targetMer={targetMer} />
+              <UseSampleCta />
             </section>
           ) : null}
         </div>
@@ -995,9 +995,11 @@ export default function GoalsPage() {
                       </table>
                     </div>
                     <p className="mcfly-goals-form__hint">
-                      Ceiling = sales goal ÷ {PRODUCT_NOUN.totalRoasGoal}{" "}
-                      {formatMer(board.targetMer)}×. Dirty fields open the Admin
-                      save bar.{" "}
+                      {impliedSpendCeilingCaption(
+                        "sales_goal",
+                        board.targetMer,
+                      )}{" "}
+                      Dirty fields open the Admin save bar.{" "}
                       <s-link href="/app">{PRODUCT_NOUN.deskTitle}</s-link>
                     </p>
                   </Form>

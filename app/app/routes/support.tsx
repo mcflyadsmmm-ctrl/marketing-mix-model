@@ -8,7 +8,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "Install Mcfly Analytics from the Shopify App Store. Email a human. No shop-domain form. Free + Pro $39 via Shopify App Pricing.",
+      "Install Mcfly Analytics from the Shopify App Store. Email a human. No shop-domain form. 7-day trial, then $39 via Shopify App Pricing.",
   },
 ];
 
@@ -36,27 +36,32 @@ export default function SupportPage() {
           with your store domain if you get stuck.
         </p>
 
-        <h2>Free vs Pro</h2>
+        <h2>What it costs</h2>
         <ul>
           <li>
-            <strong>Free:</strong> every named platform plus extras like
-            billboards, Total ROAS, break-even, Allocation, Email Overview.
+            <strong>7-day full-access trial</strong>, then{" "}
+            <strong>$39</strong> per store / month for the whole desk.{" "}
+            Includes every named platform plus extras like billboard, Total
+            ROAS, break-even, Allocation, Customer LTV, and the full-year Goals
+            board.
           </li>
           <li>
-            <strong>Pro ($39/store/mo):</strong> Customer LTV / payback and the
-            full-year Goals board. Shopify App Pricing bills this in Admin.
+            Shopify App Pricing bills this in Admin. Uninstall stops the next
+            30-day cycle.
           </li>
         </ul>
         <p>
-          Spend → <strong>Upgrade to Pro</strong> must open Shopify’s plan
+          Settings → <strong>Start 7-day trial</strong> must open Shopify’s plan
           picker in the top Admin frame — never inside the app iframe.
         </p>
 
-        <h2>Practice desk</h2>
+        <h2>Sample data and Live data</h2>
         <p>
-          Turn SAMPLE / Practice <strong>OFF</strong> (Your store) before
-          judging live Total ROAS. Practice numbers are examples, not your
-          store. Margin is optional — add spend first.
+          The desk has two views. Turn SAMPLE / Practice <strong>OFF</strong> —
+          switch to <strong>Live data</strong> — before judging Total ROAS.
+          Sample data is example numbers, not this shop. Live data is this
+          shop’s Shopify sales plus the spend you upload. Margin is optional —
+          add spend first.
         </p>
       </main>
     </OriginShell>

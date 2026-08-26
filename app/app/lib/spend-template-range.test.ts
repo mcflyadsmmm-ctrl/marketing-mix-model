@@ -88,10 +88,10 @@ describe("spendTemplateDateRange", () => {
     expect(range.dates).toHaveLength(14);
   });
 
-  it("clamps 12m that starts before the 4-year floor", () => {
+  it("clamps 12m that starts before the 5-year floor", () => {
     const early = new Date(2022, 2, 10, 12, 0, 0); // Mar 10 2022 → yesterday Mar 9
     const floor = spendTemplateDefaultFloorKey(early);
-    expect(floor).toBe("2018-01-01");
+    expect(floor).toBe("2017-01-01");
     const range = spendTemplateDateRange({
       span: "12m",
       now: early,
@@ -155,11 +155,11 @@ describe("spendTemplateDateRange", () => {
     expect(range.fromKey).toBe("2026-08-11");
   });
 
-  it("default floor matches salesDayFactWindowStartUtc (UTC year − 4 Jan 1)", () => {
+  it("default floor matches salesDayFactWindowStartUtc (UTC year − 5 Jan 1)", () => {
     expect(spendTemplateDefaultFloorKey(new Date(Date.UTC(2026, 7, 25)))).toBe(
-      "2022-01-01",
+      "2021-01-01",
     );
-    expect(spendTemplateDefaultFloorKey(now)).toBe("2022-01-01");
+    expect(spendTemplateDefaultFloorKey(now)).toBe("2021-01-01");
   });
 
   it("rejects invalid calendar days in from/to", () => {

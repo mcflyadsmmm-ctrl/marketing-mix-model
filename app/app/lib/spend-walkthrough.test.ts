@@ -34,15 +34,11 @@ describe("spend walkthrough examples", () => {
     expect(CSV_CLEANUP_HINT).toMatch(/Total row/i);
   });
 
-  it("renders Ads Manager export steps on Spend (not dead in spend-export-guides)", () => {
+  it("keeps the Ads Manager door on Spend without a separate walkthrough drawer", () => {
     const spend = read("../routes/app.spend.tsx");
-    const walkthrough = read("../components/SpendExportWalkthrough.tsx");
-    expect(spend).toContain("SpendExportWalkthrough");
-    expect(spend).toContain("example=1");
-    expect(spend).toContain("Save as daily spend");
+    // Founder lock: Spend is three doors on one screen, no export drawer.
+    expect(spend).toContain("Paste or upload Ads Manager CSV");
+    expect(spend).not.toContain("SpendExportWalkthrough");
     expect(spend).not.toContain("Combine & import");
-    expect(walkthrough).toContain("platform.steps");
-    expect(walkthrough).toContain("columnsNeeded");
-    expect(walkthrough).toContain("How to export the right file");
   });
 });

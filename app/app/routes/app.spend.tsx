@@ -1515,16 +1515,17 @@ export default function SpendEntryPage() {
 
         <div className="mcfly-spend-lean__stack">
           <p className="mcfly-spend-helper">
-            We already load your Shopify sales, orders, and LTV. We only need
-            what you actually spent, by day, by channel — including billboard
-            and anything with no API. Ad-platform logins often fail (expired
-            tokens, the wrong ad account, delayed Insights, PMax/TikTok gaps,
-            spend mixed with their attributed conversions). We do not ask you
-            to connect Meta or Google. Type a bill, paste a CSV, download your
-            channel template, or use a sheet tool like SyncWith to pull daily
-            Meta/Google spend and upload it here. Try yesterday’s Meta plus a
-            $400 billboard against yesterday’s Shopify sales. Empty spend is
-            $0 — we never drop unattributed spend.
+            We already load your Shopify sales, orders, and LTV. We only need what
+            you actually spent, by day, by channel — including billboard and
+            anything with no API. Ad-platform logins often fail: expired tokens,
+            the wrong ad account, delayed Insights, PMax and TikTok gaps, spend
+            mixed with their attributed conversions.{" "}
+            We do not ask you to connect Meta or Google.{" "}
+            Type a bill, paste a CSV, download your channel template, or use a
+            sheet tool like SyncWith to pull daily spend and upload it here.{" "}
+            Try yesterday’s Meta plus a $400 billboard against yesterday’s
+            Shopify sales.{" "}
+            Empty spend is $0 — we never drop unattributed spend.
           </p>
 
           <section

@@ -9,24 +9,27 @@ function read(rel: string) {
   return readFileSync(join(repoRoot, rel), "utf8");
 }
 
-describe("Marketing matches the Shopify app (Wave B)", () => {
+describe("Marketing matches the Shopify app (one product)", () => {
   const index = read("site/index.html");
   const chrome = read("site/assets/chrome.js");
   const support = read("site/support.html");
   const advanced = read("app/app/routes/app.advanced.tsx");
 
-  it("does not sell year Goals as a free homepage step", () => {
-    expect(index).not.toContain("<h3>Goals + Email</h3>");
-    expect(index).toContain("<h3>Email Overview (Free)</h3>");
-    expect(index).toContain("<h3>Goals + LTV (Pro)</h3>");
+  it("leads with the locked hero and never sells a Free vs Pro split", () => {
+    expect(index).toContain("<h1>See ad spend next to sales, day by day.</h1>");
+    expect(index).not.toMatch(/Email Overview \(Free\)/);
+    expect(index).not.toMatch(/Goals \+ LTV \(Pro\)/);
+    expect(index).not.toMatch(/Free \+ Pro|Free vs Pro/i);
+    expect(index).not.toMatch(/Advanced Marketing Data Science/);
   });
 
-  it("names the Shopify chrome Mcfly Analytics and Practice, not Ads/Sample", () => {
+  it("names the Shopify chrome Mcfly Analytics and offers the Sample desk demo", () => {
     expect(chrome).toContain('aria-label="Mcfly Analytics home"');
     expect(chrome).toContain("brand-name-sub\">Analytics");
     expect(chrome).not.toContain("brand-name-sub\">Ads");
-    expect(index).toContain("Practice desk →");
-    expect(index).not.toContain("Sample desk →");
+    // Desk modes are Sample data | Live data — Practice is retired.
+    expect(index).not.toContain("Practice desk →");
+    expect(index).toMatch(/Try the demo/i);
   });
 
   it("lists Gmail before invites on the public Support page", () => {

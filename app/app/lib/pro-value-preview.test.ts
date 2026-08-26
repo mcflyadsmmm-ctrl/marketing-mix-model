@@ -10,16 +10,16 @@ function read(rel: string) {
   return readFileSync(join(here, rel), "utf8");
 }
 
-describe("Pro value previews", () => {
-  it("shows a worked Cash CAC sentence and 90-day ghost tiles on LTV/Overview", () => {
-    const preview = read("../components/ProValuePreview.tsx");
+describe("Desk value previews", () => {
+  it("never paywalls LTV on Overview or the LTV tab", () => {
     const ltv = read("../routes/app.ltv.tsx");
     const overview = read("../routes/app._index.tsx");
-    expect(preview).toContain("Cash CAC =");
-    expect(preview).toContain("On Pro, for those customers");
-    expect(preview).toContain("October goal");
-    expect(ltv).toContain("ProPaybackPreview");
-    expect(overview).toContain("ProPaybackPreview");
+    // Founder lock: whole desk on trial and paid — LTV is not a Pro teaser.
+    for (const src of [ltv, overview]) {
+      expect(src).not.toContain("ProPaybackPreview");
+      expect(src).not.toContain("ProUpsellBlock");
+      expect(src).not.toMatch(/Upgrade to Pro/);
+    }
   });
 
   it("Goals year teaser uses the same ceiling math as the board", () => {

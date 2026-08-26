@@ -48,40 +48,47 @@ session is the only login. There is no Mcfly signup, no Google SSO, no second
 password, and no in-app account to create.
 
 How to reach the complete feature set (4.5.5)
-- Free (default): Overview, Spend (every named platform plus extras like
-  billboards — type one day or CSV), Allocation, Goals pace, Settings.
-  No extra login.
-- Pro (Customer LTV, full Goals board): Spend → Upgrade to Pro.
-  Shopify App Pricing opens in the TOP Admin frame ($39/store/mo; development
-  stores: $0 test charge is OK). Approve Pro → return to the app.
-- Downgrade without reinstall (1.2.3): Settings → Manage plan → Free.
+- One plan, whole desk: Overview, Spend, Allocation, Customer LTV, Goals,
+  Advanced, Settings. Nothing is feature-gated.
+- 7-day full-access trial, then $39/store/mo. Settings → Start 7-day trial.
+  Shopify App Pricing opens in the TOP Admin frame (development stores: $0 test
+  charge is OK). Approve → return to the app.
+- Uninstall in Admin stops the next 30-day cycle (1.2.3).
 
-Install on the App Review store (prior tape: mcfly-2.myshopify.com). Do not wait
-for a Mcfly username/password screen — it does not exist.
+Desk modes are the only views: Sample data | Live data. Sample data is example
+numbers. Live data is this shop’s Shopify sales plus the spend you upload.
+Billing is not a desk mode.
+
+Install on the App Review store. Do not wait for a Mcfly username/password
+screen — it does not exist.
 
 PRICING
-Shopify App Pricing — Free (default) + Pro $39/store/mo flat.
-Upgrade / Manage plan MUST open Shopify’s plan picker in the TOP Admin frame
-(never inside the app iframe).
+Shopify App Pricing — one plan, $39/store/mo flat after a 7-day trial.
+Start 7-day trial / Manage plan MUST open Shopify’s plan picker in the TOP
+Admin frame (never inside the app iframe).
 
-CRITICAL — SAMPLE DESK
-Open Demo → turn SAMPLE desk OFF before judging live Total ROAS.
+CRITICAL — DESK MODE
+Switch the top toggle to Live data before judging this shop’s Total ROAS.
 
 SMOKE (matches the 2026-08-24 review path)
 1. Install Mcfly Analytics. App opens on Overview (Total ROAS).
    A banner “Sales still syncing — expected after install” is normal on a new
    store (0 of N days). It is not a 404. Continue.
-2. Click Spend in the app nav.
-3. Click Upgrade to Pro (blue primary). Shopify’s Free/Pro plan selection MUST
-   replace the Admin app frame in the TOP window.
+2. Go to Settings → Your plan.
+3. Click Start 7-day trial. Shopify’s plan selection MUST replace the Admin app
+   frame in the TOP window.
    FAIL if you see “admin.shopify.com refused to connect” inside the iframe.
    FAIL if the app is bricked until reload.
-   PASS if the Shopify-hosted plan picker opens and you can pick Free or Pro.
-4. Select Pro (dev stores: $0 test charge is OK) → approve → return to the app.
-   Named channels stay on Free. LTV / full Goals unlock. Settings → Manage plan
-   → switch back to Free without reinstalling.
-5. Spend: Add spend (amount + date + channel) or paste the CSV below → Overview
-   shows Total ROAS = Shopify Total Sales ÷ ad spend.
+   PASS if the Shopify-hosted plan picker opens.
+4. Approve (dev stores: $0 test charge is OK) → return to the app. The whole
+   desk was already available during the trial; nothing unlocks or locks.
+5. Spend → three doors: (a) pick the channels you buy and download that
+   template, (b) type a channel + amount over a day/week/month/quarter/
+   half-year/year and confirm “That’s $X per day”, (c) paste or upload an Ads
+   Manager CSV. Then Overview shows Total ROAS = Shopify Total Sales ÷ ad spend.
+6. First-session check: enter yesterday’s Meta spend and a $400 billboard for
+   the same date, then compare against yesterday’s Shopify sales. Days with no
+   spend row read $0.
 
 SAMPLE SPEND CSV (paste into Spend → import)
 date,channel,amount
