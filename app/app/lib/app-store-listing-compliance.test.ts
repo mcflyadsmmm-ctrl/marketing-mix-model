@@ -177,7 +177,8 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
       "site/terms.html",
       "site/pricing.html",
       "site/app.html",
-      "site/demo.html",
+      // /demo is a Remix route now, so its data route matches the page.
+      "app/app/routes/demo.tsx",
       "site/product.html",
     ];
     for (const rel of pages) {

@@ -107,31 +107,52 @@ class SampleStore {
 const FROM = "2026-08-02";
 const TO = "2026-08-26";
 
-/** One Spend loader pass over a stale Sample shop. */
-async function spendLoaderPass(opts: {
-  store: SampleStore;
-  stale: { value: boolean };
-  awaitHeal: boolean;
-  seedSpy: ReturnType<typeof vi.fn>;
-  needsSeedSpy: ReturnType<typeof vi.fn>;
-}) {
+type Harness = ReturnType<typeof harness>;
+
+function harness(opts?: { windowDelayMs?: number; awaitMs?: number }) {
+  const store = new SampleStore();
+  const stale = { value: true };
+  const needsSeedSpy = vi.fn(async () => stale.value);
+  const seedWindowSpy = vi.fn(async () => {
+    // A real seed is a transaction; make the test await something real.
+    await new Promise((r) => setTimeout(r, opts?.windowDelayMs ?? 0));
+    store.seed();
+    stale.value = false;
+  });
+  const needsHistorySpy = vi.fn(async () => true);
+  const seedHistorySpy = vi.fn(async () => {
+    await new Promise((r) => setTimeout(r, 0));
+  });
   const deps = {
-    needsSeed: opts.needsSeedSpy as unknown as (
-      shopId: string,
-    ) => Promise<boolean>,
-    seed: opts.seedSpy as unknown as (
-      shopId: string,
-      targetMer: number,
+    needsSeed: needsSeedSpy as unknown as (s: string) => Promise<boolean>,
+    seedWindow: seedWindowSpy as unknown as (
+      s: string,
+      m: number,
     ) => Promise<unknown>,
+    needsHistory: needsHistorySpy as unknown as (s: string) => Promise<boolean>,
+    seedHistory: seedHistorySpy as unknown as (
+      s: string,
+      m: number,
+    ) => Promise<unknown>,
+    awaitMs: opts?.awaitMs ?? 2_000,
   };
-  const heal = ensureSampleDeskSeeded(
-    `shop-${Math.random()}`,
-    4.4,
+  return {
+    store,
+    stale,
+    needsSeedSpy,
+    seedWindowSpy,
+    needsHistorySpy,
+    seedHistorySpy,
     deps,
-  );
+  };
+}
+
+/** One Spend loader pass over a stale Sample shop. */
+async function spendLoaderPass(h: Harness, opts: { awaitHeal: boolean }) {
+  const heal = ensureSampleDeskSeeded(`shop-${Math.random()}`, 4.4, h.deps);
   if (opts.awaitHeal) await heal;
 
-  const { rows, channelLabels } = opts.store.dailyRows(FROM, TO);
+  const { rows, channelLabels } = h.store.dailyRows(FROM, TO);
   const buckets = applyExplorerMode(bucketExplorerRows(rows, "Day"), "stacked");
   return {
     legend: explorerLegendChannels(buckets, "stacked"),
@@ -141,26 +162,13 @@ async function spendLoaderPass(opts: {
   };
 }
 
-function harness() {
-  const store = new SampleStore();
-  const stale = { value: true };
-  const needsSeedSpy = vi.fn(async () => stale.value);
-  const seedSpy = vi.fn(async () => {
-    // A real seed is a transaction; make the test await something real.
-    await new Promise((r) => setTimeout(r, 0));
-    store.seed();
-    stale.value = false;
-  });
-  return { store, stale, needsSeedSpy, seedSpy };
-}
-
 describe("Spend Sample loader, first paint", () => {
   it("puts other:billboard in the legend on one request, no refresh", async () => {
     const h = harness();
-    const out = await spendLoaderPass({ ...h, awaitHeal: true });
+    const out = await spendLoaderPass(h, { awaitHeal: true });
 
     expect(h.needsSeedSpy).toHaveBeenCalledTimes(1);
-    expect(h.seedSpy).toHaveBeenCalledTimes(1);
+    expect(h.seedWindowSpy).toHaveBeenCalledTimes(1);
     // The thing the founder could not see on first load.
     expect(out.legend).toContain("other:billboard");
     expect(out.channelLabels["other:billboard"]).toBe("Billboard");
@@ -170,47 +178,67 @@ describe("Spend Sample loader, first paint", () => {
     expect(out.buckets.filter((b) => b.spend === 0).length).toBeGreaterThan(0);
   });
 
-  it("would have missed it if the paint did not await the heal", async () => {
+  it("would have missed it if the paint did not await the window seed", async () => {
     // Proves the assertion above has teeth: this is the v162 behaviour.
     const h = harness();
-    const out = await spendLoaderPass({ ...h, awaitHeal: false });
+    const out = await spendLoaderPass(h, { awaitHeal: false });
     expect(out.legend).not.toContain("other:billboard");
     expect(out.legend).toHaveLength(0);
     await out.heal;
   });
 
+  it("waits only for the visible window, never the full history", async () => {
+    const h = harness();
+    await spendLoaderPass(h, { awaitHeal: true });
+    // The paint drives the window seed and hands history to the background.
+    expect(h.seedWindowSpy).toHaveBeenCalledTimes(1);
+    await new Promise((r) => setTimeout(r, 5));
+    expect(h.seedHistorySpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives up waiting rather than letting the proxy answer with HTML", async () => {
+    // A slow seed used to run past Fly's timeout, and the HTML 502 it returned
+    // is what the single-fetch client could not decode.
+    const h = harness({ windowDelayMs: 60, awaitMs: 5 });
+    const started = Date.now();
+    const seeded = await ensureSampleDeskSeeded("shop-slow", 4.4, h.deps);
+    const waited = Date.now() - started;
+    expect(seeded).toBe(false);
+    expect(waited).toBeLessThan(50);
+    // The seed still completes off-request, so the next paint is correct.
+    await new Promise((r) => setTimeout(r, 80));
+    expect(h.stale.value).toBe(false);
+  });
+
   it("does not re-seed a shop that is already current", async () => {
     const h = harness();
-    await spendLoaderPass({ ...h, awaitHeal: true });
+    await spendLoaderPass(h, { awaitHeal: true });
     h.needsSeedSpy.mockClear();
-    h.seedSpy.mockClear();
+    h.seedWindowSpy.mockClear();
 
-    const second = await spendLoaderPass({ ...h, awaitHeal: true });
+    const second = await spendLoaderPass(h, { awaitHeal: true });
     expect(h.needsSeedSpy).toHaveBeenCalledTimes(1);
-    expect(h.seedSpy).not.toHaveBeenCalled();
+    expect(h.seedWindowSpy).not.toHaveBeenCalled();
     expect(second.legend).toContain("other:billboard");
   });
 
   it("shares one seed between concurrent paints of the same shop", async () => {
     const h = harness();
-    const deps = {
-      needsSeed: h.needsSeedSpy as unknown as (s: string) => Promise<boolean>,
-      seed: h.seedSpy as unknown as (s: string, m: number) => Promise<unknown>,
-    };
     const shopId = "shop-concurrent";
     const [a, b, c] = await Promise.all([
-      ensureSampleDeskSeeded(shopId, 4.4, deps),
-      ensureSampleDeskSeeded(shopId, 4.4, deps),
-      ensureSampleDeskSeeded(shopId, 4.4, deps),
+      ensureSampleDeskSeeded(shopId, 4.4, h.deps),
+      ensureSampleDeskSeeded(shopId, 4.4, h.deps),
+      ensureSampleDeskSeeded(shopId, 4.4, h.deps),
     ]);
     expect([a, b, c]).toEqual([true, true, true]);
-    expect(h.seedSpy).toHaveBeenCalledTimes(1);
+    expect(h.seedWindowSpy).toHaveBeenCalledTimes(1);
   });
 
   it("never takes the desk down when seeding fails", async () => {
+    const h = harness();
     const seeded = await ensureSampleDeskSeeded("shop-broken", 4.4, {
-      needsSeed: async () => true,
-      seed: async () => {
+      ...h.deps,
+      seedWindow: async () => {
         throw new Error("database is on fire");
       },
     });

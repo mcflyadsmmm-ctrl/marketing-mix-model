@@ -9,6 +9,7 @@ import {
   sampleSpendUsesNoonStamp,
 } from "./demo-sample-desk.server";
 import { customerWeightedAvgRevenue } from "./till-ltv.server";
+import { SAMPLE_FIRST_PAINT_DAYS } from "./sample-desk.server";
 
 describe("buildThreeYearSampleDesk", () => {
   it("never shows 0 new customers or $0 new-customer sales", () => {
@@ -93,6 +94,30 @@ describe("buildThreeYearSampleDesk", () => {
     expect(paid.size).toBeLessThanOrEqual(6);
     expect(paid.has("meta")).toBe(true);
     expect(paid.has("google")).toBe(true);
+  });
+
+  it("keeps the awaited first-paint slice tiny next to the full history", () => {
+    // The paint waits for SAMPLE_FIRST_PAINT_DAYS, not 5.7 years. Waiting for
+    // the whole history is what let a first paint run past Fly's timeout.
+    const rows = buildThreeYearSampleDesk({});
+    const window = rows.slice(-SAMPLE_FIRST_PAINT_DAYS);
+    const countSpend = (set: typeof rows) => {
+      let n = 0;
+      for (const r of set) {
+        for (const amount of Object.values(r.spendByChannel)) {
+          if ((amount ?? 0) > 0) n += 1;
+        }
+        n += r.namedExtras.length;
+      }
+      return n;
+    };
+    expect(window).toHaveLength(SAMPLE_FIRST_PAINT_DAYS);
+    // A couple of chunked inserts, not fourteen.
+    expect(countSpend(window)).toBeLessThan(1_000);
+    expect(countSpend(window) * 10).toBeLessThan(countSpend(rows));
+    // The window still carries the wow: Billboard and at least one $0 day.
+    expect(window.some((r) => r.namedExtras.length > 0)).toBe(true);
+    expect(window.some((r) => sampleDayTotalSpend(r) === 0)).toBe(true);
   });
 
   it("stays small enough that a desk paint can await the seed", () => {

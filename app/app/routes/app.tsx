@@ -1,5 +1,11 @@
 import type { HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, useLoaderData, useRouteError, useSearchParams } from "react-router";
+import {
+  Outlet,
+  isRouteErrorResponse,
+  useLoaderData,
+  useRouteError,
+  useSearchParams,
+} from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
@@ -120,9 +126,47 @@ export default function App() {
   );
 }
 
-// Shopify needs React Router to catch some thrown responses, so that their headers are included in the response.
+/**
+ * Shopify needs React Router to catch some thrown responses, so that their
+ * headers are included in the response — auth bounces and the 410 an expired
+ * session returns. Those keep going to `boundary.error`.
+ *
+ * Anything else used to fall through to React Router's default "Unexpected
+ * Application Error" white screen. A desk that failed to load should say so in
+ * the desk's own voice and offer the one thing that helps, a retry.
+ *
+ * This cannot catch a proxy timeout: when Fly answers a `.data` request with
+ * HTML the single-fetch client fails to decode it before any boundary runs.
+ * The fix for that is keeping loaders fast, not catching it here.
+ */
 export function ErrorBoundary() {
-  return boundary.error(useRouteError());
+  const error = useRouteError();
+  if (isRouteErrorResponse(error)) return boundary.error(error);
+  return <DeskLoadError />;
+}
+
+function DeskLoadError() {
+  return (
+    <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
+      <s-section>
+        <s-heading>The desk did not finish loading</s-heading>
+        <s-paragraph>
+          Your Shopify sales and the spend you added are safe — this was a
+          problem drawing the page, not a problem with your numbers.
+        </s-paragraph>
+        <s-paragraph>
+          Reload to try again. If it keeps happening, email{" "}
+          <s-link href="mailto:mcflyadsmmm@gmail.com">
+            mcflyadsmmm@gmail.com
+          </s-link>{" "}
+          and say which tab you were on.
+        </s-paragraph>
+        <s-button href="/app" variant="primary">
+          Reload the desk
+        </s-button>
+      </s-section>
+    </s-page>
+  );
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

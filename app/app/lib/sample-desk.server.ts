@@ -5,7 +5,9 @@ import {
   sampleSpendBounds,
   sampleSpendUsesNoonStamp,
   SAMPLE_SEED_VERSION_NOTE,
+  type SampleDayRow,
 } from "./demo-sample-desk.server";
+import { deskHistoryFloorYear } from "./desk-history";
 import type { SalesResult } from "./shopify-sales.server";
 import type { DateRange } from "./periods";
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
@@ -72,21 +74,37 @@ export const SAMPLE_DESK_TARGET_MER = 4.4;
 /** SAMPLE break-even economics (~35% → BE ≈ 2.86). Applied at read time only. */
 export const SAMPLE_DESK_MARGIN_PCT = 0.35;
 
-export async function seedThreeYearSampleDesk(
+/**
+ * Write one slice of the sample desk. Callers pick the slice so a desk paint
+ * can wait for just the window it is about to draw while the rest of the
+ * history lands off-request.
+ *
+ * `rows` must already be filtered to the slice; the delete is scoped to the
+ * same day range so a slice never wipes history it is not replacing.
+ */
+async function writeSampleRange(
   shopId: string,
-  targetMer = SAMPLE_DESK_TARGET_MER,
+  rows: SampleDayRow[],
+  opts: { enableSample: boolean },
 ) {
-  const rows = buildThreeYearSampleDesk({ targetMer });
+  if (rows.length === 0) return;
+  const firstDay = rows[0]!.day;
+  const lastDay = rows[rows.length - 1]!.day;
+  const spendFrom = sampleSpendBounds(firstDay).start;
+  const spendTo = sampleSpendBounds(lastDay).end;
 
-  /*
-   * A desk paint awaits this, so it has to be quick and it must not die on
-   * Prisma's 5s interactive-transaction default: ~2,000 days of sales plus
-   * ~13,000 spend rows is far too many round trips at 200 a time.
-   */
   await prisma.$transaction(
     async (tx) => {
-      await tx.sampleSalesDay.deleteMany({ where: { shopId } });
-      await tx.spendEntry.deleteMany({ where: { shopId, source: "sample" } });
+      await tx.sampleSalesDay.deleteMany({
+        where: { shopId, day: { gte: firstDay, lte: lastDay } },
+      });
+      await tx.spendEntry.deleteMany({
+        where: {
+          shopId,
+          source: "sample",
+          periodStart: { gte: spendFrom, lte: spendTo },
+        },
+      });
 
       // Batch create in chunks
       const salesData = rows.map((r) => ({
@@ -157,6 +175,7 @@ export async function seedThreeYearSampleDesk(
         });
       }
 
+      if (!opts.enableSample) return;
       // Toggle SAMPLE only when preview is still allowed — never clobber margin.
       // Desk math applies SAMPLE_DESK_* at read time while useSampleDesk is true.
       const settings = await tx.settings.findUnique({ where: { shopId } });
@@ -169,6 +188,78 @@ export async function seedThreeYearSampleDesk(
     },
     { maxWait: 15_000, timeout: 120_000 },
   );
+}
+
+/** Sample days whose calendar day falls on or after `fromDay`. */
+function rowsFrom(rows: SampleDayRow[], fromDay: Date): SampleDayRow[] {
+  return rows.filter((r) => r.day >= fromDay);
+}
+
+/** Sample days strictly before `beforeDay`. */
+function rowsBefore(rows: SampleDayRow[], beforeDay: Date): SampleDayRow[] {
+  return rows.filter((r) => r.day < beforeDay);
+}
+
+/** Start of the UTC day `days` back from the newest generated row. */
+function windowStartDay(rows: SampleDayRow[], days: number): Date {
+  const last = rows[rows.length - 1]?.day ?? new Date();
+  const start = new Date(last);
+  start.setUTCDate(start.getUTCDate() - (days - 1));
+  return start;
+}
+
+/**
+ * Days of sample a desk paint is allowed to wait for. Roughly a quarter —
+ * enough for every default explorer window and the MTD/QTD scoreboard, and a
+ * few hundred rows rather than the ~14,500 a full history costs.
+ */
+export const SAMPLE_FIRST_PAINT_DAYS = 120;
+
+/**
+ * Seed only what the first paint draws. Returns the day the window starts so
+ * the caller can hand the remainder to the background filler.
+ */
+export async function seedSampleDeskWindow(
+  shopId: string,
+  targetMer = SAMPLE_DESK_TARGET_MER,
+  days = SAMPLE_FIRST_PAINT_DAYS,
+): Promise<Date> {
+  const rows = buildThreeYearSampleDesk({ targetMer });
+  const from = windowStartDay(rows, days);
+  await writeSampleRange(shopId, rowsFrom(rows, from), { enableSample: true });
+  return from;
+}
+
+/**
+ * Fill the years behind the first-paint window.
+ *
+ * Newest chunk first, for two reasons: a merchant reaches last quarter before
+ * they reach 2021, and it keeps `sampleDeskNeedsHistory` honest — the oldest
+ * stored day only reaches the floor once every chunk has landed, so a run that
+ * dies halfway is still reported as incomplete.
+ */
+export async function seedSampleDeskHistory(
+  shopId: string,
+  targetMer = SAMPLE_DESK_TARGET_MER,
+  days = SAMPLE_FIRST_PAINT_DAYS,
+): Promise<void> {
+  const rows = buildThreeYearSampleDesk({ targetMer });
+  const older = rowsBefore(rows, windowStartDay(rows, days));
+  // A year at a time keeps each transaction small enough to never wedge.
+  const YEAR = 365;
+  for (let end = older.length; end > 0; end -= YEAR) {
+    const chunk = older.slice(Math.max(0, end - YEAR), end);
+    if (chunk.length === 0) continue;
+    await writeSampleRange(shopId, chunk, { enableSample: false });
+  }
+}
+
+export async function seedThreeYearSampleDesk(
+  shopId: string,
+  targetMer = SAMPLE_DESK_TARGET_MER,
+) {
+  const rows = buildThreeYearSampleDesk({ targetMer });
+  await writeSampleRange(shopId, rows, { enableSample: true });
 
   // Sample CohortFacts for Till LTV panel (clearly demo — not live Shopify).
   await seedSampleCohortFacts(shopId);
@@ -283,43 +374,115 @@ export async function sampleDeskNeedsSeed(shopId: string): Promise<boolean> {
   return current == null;
 }
 
+/**
+ * True until the stored sample reaches the history floor the generator aims
+ * for — Jan 1 of five years back. Compared against the intended floor rather
+ * than a rolling window so a half-finished backfill still reads as incomplete.
+ */
+export async function sampleDeskNeedsHistory(shopId: string): Promise<boolean> {
+  const oldest = await prisma.sampleSalesDay.findFirst({
+    where: { shopId },
+    orderBy: { day: "asc" },
+    select: { day: true },
+  });
+  if (!oldest) return true;
+  const intendedStart = Date.UTC(deskHistoryFloorYear(new Date()), 0, 1);
+  // A few days of slack for the generator's own edge handling.
+  return oldest.day.getTime() > intendedStart + 3 * 86_400_000;
+}
+
 /** In-flight heals, so concurrent paints share one seed instead of racing. */
 const sampleHealInFlight = new Map<string, Promise<boolean>>();
+/** Shops whose history backfill is already running in this process. */
+const sampleHistoryInFlight = new Set<string>();
+
+/**
+ * Hard ceiling on what a desk paint will wait for. Fly's proxy answers a slow
+ * request with an HTML 502/504, which the single-fetch client cannot decode
+ * ("Unable to decode turbo-stream response") — a white screen. Rendering a
+ * desk with $0 holes is strictly better than that, so past this we stop
+ * waiting and let the seed finish off-request.
+ */
+export const SAMPLE_SEED_AWAIT_MS = 2_000;
 
 export type SampleHealDeps = {
   needsSeed: (shopId: string) => Promise<boolean>;
-  seed: (shopId: string, targetMer: number) => Promise<unknown>;
+  /** Seeds only the window the first paint draws. */
+  seedWindow: (shopId: string, targetMer: number) => Promise<unknown>;
+  needsHistory: (shopId: string) => Promise<boolean>;
+  /** Fills the years behind the window; never awaited by a paint. */
+  seedHistory: (shopId: string, targetMer: number) => Promise<unknown>;
+  awaitMs: number;
 };
+
+const defaultHealDeps: SampleHealDeps = {
+  needsSeed: sampleDeskNeedsSeed,
+  seedWindow: (shopId, targetMer) => seedSampleDeskWindow(shopId, targetMer),
+  needsHistory: sampleDeskNeedsHistory,
+  seedHistory: (shopId, targetMer) => seedSampleDeskHistory(shopId, targetMer),
+  awaitMs: SAMPLE_SEED_AWAIT_MS,
+};
+
+/** Kick the history filler once per process per shop, never awaited. */
+function startHistoryFill(
+  shopId: string,
+  targetMer: number,
+  deps: SampleHealDeps,
+): void {
+  if (sampleHistoryInFlight.has(shopId)) return;
+  sampleHistoryInFlight.add(shopId);
+  void (async () => {
+    try {
+      if (await deps.needsHistory(shopId)) {
+        await deps.seedHistory(shopId, targetMer);
+      }
+    } catch {
+      // History is not first-paint critical; the next paint tries again.
+    } finally {
+      sampleHistoryInFlight.delete(shopId);
+    }
+  })();
+}
 
 /**
  * A shop already on Sample never revisits the toggle that seeds it, so a shape
  * change shipped in code would otherwise never reach it.
  *
- * This is awaited by the desk loaders on purpose. Healing in the background
- * looked cheaper but meant the merchant's first paint showed the previous
- * release's Sample and only corrected on a refresh — the one session where
- * being right matters most. The check is three indexed reads and goes quiet
- * once the shop is current, so the cost lands on exactly one request.
+ * The paint awaits only the recent window — a few hundred rows — because that
+ * is all the first screen draws. Waiting on the full ~14,500-row history was
+ * what turned a first paint into a proxy timeout. The years behind it fill
+ * off-request, so an All/1y range is complete by the time anyone picks it.
  *
- * Resolves true when a seed ran. Never throws: Sample is a demo surface and
- * must not take a desk paint down with it.
+ * Resolves true when the window was written in time. Never throws and never
+ * blocks past `awaitMs`: Sample is a demo surface and must not take a desk
+ * paint down with it.
  */
 export async function ensureSampleDeskSeeded(
   shopId: string,
   targetMer: number,
-  deps: SampleHealDeps = {
-    needsSeed: sampleDeskNeedsSeed,
-    seed: seedThreeYearSampleDesk,
-  },
+  deps: SampleHealDeps = defaultHealDeps,
 ): Promise<boolean> {
   const existing = sampleHealInFlight.get(shopId);
   if (existing) return existing;
 
   const run = (async () => {
     try {
-      if (!(await deps.needsSeed(shopId))) return false;
-      await deps.seed(shopId, targetMer);
-      return true;
+      if (!(await deps.needsSeed(shopId))) {
+        startHistoryFill(shopId, targetMer, deps);
+        return false;
+      }
+      const seeded = deps.seedWindow(shopId, targetMer).then(
+        () => true,
+        () => false,
+      );
+      const capped = await Promise.race([
+        seeded,
+        new Promise<boolean>((resolve) =>
+          setTimeout(() => resolve(false), deps.awaitMs).unref?.(),
+        ),
+      ]);
+      startHistoryFill(shopId, targetMer, deps);
+      return capped;
     } catch {
       return false;
     } finally {
