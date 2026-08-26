@@ -21,6 +21,7 @@ import {
   detectWideChannelColumns,
   headerLooksLikeAdsSpend,
   normalizeChannel,
+  groupCsvErrors,
   parseForceChannel,
   parsePlatformsParam,
   parseSpendAmount,
@@ -57,6 +58,16 @@ describe("parseSpendAmount", () => {
 
   it("fail-closes EU thousands+decimal 1.234,56", () => {
     expect(parseSpendAmount("1.234,56")).toBeNull();
+  });
+
+  it("tells operators to use a dot decimal, not 12,50", () => {
+    const csv = `Day,Amount spent
+2026-07-01,"12,50"`;
+    const { rows, errors } = parseSpendCsv(csv, { forceChannel: "meta" });
+    expect(rows).toEqual([]);
+    expect(errors[0]).toMatch(/12\.50 \(dot decimal\)/);
+    expect(errors[0]).toMatch(/12,50/);
+    expect(groupCsvErrors(errors).groups[0]?.label).toMatch(/dot/i);
   });
 });
 

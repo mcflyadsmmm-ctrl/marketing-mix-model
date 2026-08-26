@@ -62,10 +62,10 @@ describe("Close redirect (Monday Close UI retired)", () => {
 describe("Primary nav always visible (Real store)", () => {
   it("does not gate Goals/Allocation/LTV/Advanced on cashReady", () => {
     const appShell = readFileSync(join(here, "../routes/app.tsx"), "utf8");
-    expect(appShell).toContain('href="/app/goals"');
-    expect(appShell).toContain('href="/app/allocation"');
-    expect(appShell).toContain('href="/app/ltv"');
-    expect(appShell).toContain('href="/app/advanced"');
+    expect(appShell).toContain('deskNavHrefFromSearch("/app/goals"');
+    expect(appShell).toContain('deskNavHrefFromSearch("/app/allocation"');
+    expect(appShell).toContain('deskNavHrefFromSearch("/app/ltv"');
+    expect(appShell).toContain('deskNavHrefFromSearch("/app/advanced"');
     expect(appShell).not.toContain("cashReady");
   });
 });

@@ -776,6 +776,9 @@ function classifyCsvError(err: string): string {
     return "Date range instead of days";
   }
   if (v.includes("could not read date")) return "Unreadable dates";
+  if (v.includes("dot decimal")) {
+    return "Use a dot for cents (12.50, not 12,50)";
+  }
   if (v.includes("could not read") && v.includes("amount")) {
     return "Unreadable amounts";
   }
@@ -939,7 +942,7 @@ function spendDateCellProblem(
  * `1.234,56`). Fail-closed — stripping commas would silently inflate spend.
  * US `1,234.56` / `1,234` (comma thousands) must NOT match.
  */
-function looksLikeEuDecimal(raw: string): boolean {
+export function looksLikeEuDecimal(raw: string): boolean {
   const v = raw
     .replace(/[$€£¥]/g, "")
     .replace(/\b(USD|EUR|GBP)\b/gi, "")
@@ -976,6 +979,18 @@ export function parseSpendAmount(raw: string): number | null {
   const n = Number(v);
   if (!Number.isFinite(n)) return null;
   return negative ? -n : n;
+}
+
+function unreadableAmountError(
+  lineNo: number,
+  rawAmount: string,
+  header?: string,
+): string {
+  const what = header ? `${header} amount` : "amount";
+  if (looksLikeEuDecimal(rawAmount)) {
+    return `Line ${lineNo}: use 12.50 (dot decimal), not "${rawAmount}".`;
+  }
+  return `Line ${lineNo}: could not read ${what} "${rawAmount}".`;
 }
 
 /** Count unquoted delimiter chars on a header line. */
@@ -1448,7 +1463,7 @@ function parseLongSpendCsv(
 
     const amount = parseSpendAmount(rawAmount);
     if (amount === null) {
-      pushError(errors, `Line ${lineNo}: could not read amount "${rawAmount}".`);
+      pushError(errors, unreadableAmountError(lineNo, rawAmount));
       continue;
     }
     if (amount < 0) {
@@ -1507,7 +1522,7 @@ function parseForcedChannelSpendCsv(
 
     const amount = parseSpendAmount(rawAmount);
     if (amount === null) {
-      pushError(errors, `Line ${lineNo}: could not read amount "${rawAmount}".`);
+      pushError(errors, unreadableAmountError(lineNo, rawAmount));
       continue;
     }
     if (amount < 0) {
@@ -1567,7 +1582,7 @@ function parseWideSpendCsv(
       if (amount === null) {
         pushError(
           errors,
-          `Line ${lineNo}: could not read ${col.rawHeader} amount "${rawAmount}".`,
+          unreadableAmountError(lineNo, rawAmount, col.rawHeader),
         );
         continue;
       }

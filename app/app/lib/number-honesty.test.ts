@@ -83,7 +83,7 @@ describe("Overview wires the formula panel and spend-add CTA", () => {
   it("imports NumberHonestyPanel and spend-add href", () => {
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
     expect(overview).toContain("NumberHonestyPanel");
-    expect(overview).toContain("SPEND_ADD_HREF");
+    expect(overview).toContain("spendAddHref");
     expect(overview).not.toContain("Logged via CSV");
     expect(overview).toContain("NUMBER_HONESTY.empty");
   });

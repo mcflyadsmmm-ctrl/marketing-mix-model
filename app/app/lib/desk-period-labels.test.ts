@@ -27,4 +27,12 @@ describe("Desk period labels and Overview clocks", () => {
       /if \(entitlements\.canUseLtv\) \{\s*void runOrderFactsBackfill/,
     );
   });
+
+  it("keeps Spend on the same date slicer after the first save", () => {
+    const spend = read("../routes/app.spend.tsx");
+    expect(spend).toContain("explorerQueryMatchingScoreboard");
+    expect(spend).toContain("<PeriodControl");
+    expect(spend).toContain("Same dates as Overview");
+    expect(spend).not.toContain("Overview stays 14d");
+  });
 });

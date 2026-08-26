@@ -39,8 +39,14 @@ describe("Easy Add Spend tab (history + drill-down)", () => {
 
   it("covers 90 closed days and embeds day/week/month explorer on this tab", () => {
     expect(spend).toContain("const SPEND_COVERAGE_DAYS = 90");
-    expect(spend).toContain("exRange") ;
-    expect(spend).toContain('parseExplorerRange(url.searchParams.get("exRange") || "90d")');
+    expect(spend).toContain("explorerQueryMatchingScoreboard");
+    expect(spend).toContain("historyFirstEmpty");
+    expect(spend).toContain('parseExplorerRange("90d")');
+    expect(spend).not.toContain('parseExplorerRange(url.searchParams.get("exRange") || "90d")');
+    expect(spend).toContain("<PeriodControl");
+    expect(spend).toContain("Your spend is on the desk");
+    expect(spend).toContain("Days with no row are $0");
+    expect(spend).not.toContain("days in the last 90 have no spend yet");
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain('basePath="/app/spend"');
     expect(spend).toContain("compare");
@@ -89,5 +95,13 @@ describe("Easy Add Spend tab (history + drill-down)", () => {
     expect(spend).toMatch(/This looks like a single-platform/);
     expect(spend).toContain("SPEND_CHANNELS");
     expect(spend).toContain("mcfly-spend-csv-form");
+  });
+
+  it("first-session how-to is Meta + billboard vs same-day sales, empty spend is $0", () => {
+    const howto = read("../components/SpendExportWalkthrough.tsx");
+    expect(howto).toContain("yesterday’s Meta and a");
+    expect(howto).toContain("billboard");
+    expect(howto).toContain("A day with no spend row is $0");
+    expect(howto).not.toContain("Empty days are not $0");
   });
 });
