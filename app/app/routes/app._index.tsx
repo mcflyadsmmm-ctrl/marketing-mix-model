@@ -32,7 +32,6 @@ import {
   NUMBER_HONESTY,
   spendAddHref,
 } from "../lib/number-honesty";
-import { getShopEntitlements } from "../lib/entitlements.server";
 import {
   emptySales,
   type SalesResult,
@@ -114,10 +113,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const deskTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
   const range = resolvePeriod(preset, now, deskTz);
   const priorRange = resolvePriorPeriod(preset, now, deskTz);
-  const entitlements = getShopEntitlements(session.shop, {
-    sampleDesk: useSampleDesk,
-    paidPro: shop.proBillingActive,
-  });
 
   const exRangeParam = url.searchParams.get("exRange");
   const tiedExplorer = exRangeParam
