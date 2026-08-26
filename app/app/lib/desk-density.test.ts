@@ -177,16 +177,31 @@ describe("Nothing on the desk exceeds shop sales", () => {
 });
 
 describe("Sample desk", () => {
+  const demo = read("./demo-sample-desk.server.ts");
+  const sample = read("./sample-desk.server.ts");
+
   it("ships a named Billboard series so offline spend is visible in Sample", () => {
-    const demo = read("./demo-sample-desk.server.ts");
-    const sample = read("./sample-desk.server.ts");
     expect(demo).toContain("SAMPLE_BILLBOARD_LABEL");
     expect(demo).toContain("namedExtras");
     expect(sample).toContain("customKey: extra.slug");
-    // Named extras live outside spendByChannel, so totals must go through the helper.
+    // Named extras live outside spendByChannel, so totals go through the helper.
     expect(sample).toContain("sampleDayTotalSpend");
-    // An older sample without the Billboard row re-seeds rather than staying stale.
-    expect(sample).toContain('customKey: { not: "" }');
+  });
+
+  it("heals a Sample desk seeded by an older release", () => {
+    // A shop already on Sample never revisits the toggle that seeds it, so the
+    // shape marker has to be checked on paint or the desk stays stale forever.
+    expect(demo).toContain("SAMPLE_SEED_VERSION_NOTE");
+    expect(sample).toContain("note: SAMPLE_SEED_VERSION_NOTE");
+    expect(sample).toContain("export function ensureSampleDeskFresh");
+    for (const route of ["../routes/app._index.tsx", "../routes/app.spend.tsx"]) {
+      expect(read(route), route).toContain("ensureSampleDeskFresh(shop.id");
+    }
+  });
+
+  it("keeps a named channel out of the grey Other fill on Allocation too", () => {
+    expect(read("../routes/app.allocation.tsx")).toContain("displayFillKey");
+    expect(read("./channel-fill.ts")).toContain("export function displayFillKey");
   });
 });
 

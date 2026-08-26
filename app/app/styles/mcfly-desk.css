@@ -1864,32 +1864,44 @@
 
 .mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-1,
 .mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-1,
-.mcfly-spend-dot--extra-1 {
+.mcfly-spend-dot--extra-1,
+.mcfly-channel__fill--extra-1,
+.mcfly-stack__seg--extra-1 {
   background: var(--mcfly-extra-1);
 }
 .mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-2,
 .mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-2,
-.mcfly-spend-dot--extra-2 {
+.mcfly-spend-dot--extra-2,
+.mcfly-channel__fill--extra-2,
+.mcfly-stack__seg--extra-2 {
   background: var(--mcfly-extra-2);
 }
 .mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-3,
 .mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-3,
-.mcfly-spend-dot--extra-3 {
+.mcfly-spend-dot--extra-3,
+.mcfly-channel__fill--extra-3,
+.mcfly-stack__seg--extra-3 {
   background: var(--mcfly-extra-3);
 }
 .mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-4,
 .mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-4,
-.mcfly-spend-dot--extra-4 {
+.mcfly-spend-dot--extra-4,
+.mcfly-channel__fill--extra-4,
+.mcfly-stack__seg--extra-4 {
   background: var(--mcfly-extra-4);
 }
 .mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-5,
 .mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-5,
-.mcfly-spend-dot--extra-5 {
+.mcfly-spend-dot--extra-5,
+.mcfly-channel__fill--extra-5,
+.mcfly-stack__seg--extra-5 {
   background: var(--mcfly-extra-5);
 }
 .mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-6,
 .mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-6,
-.mcfly-spend-dot--extra-6 {
+.mcfly-spend-dot--extra-6,
+.mcfly-channel__fill--extra-6,
+.mcfly-stack__seg--extra-6 {
   background: var(--mcfly-extra-6);
 }
 

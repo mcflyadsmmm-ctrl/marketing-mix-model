@@ -38,7 +38,7 @@ import {
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
-import { channelCssVar, channelFillKey } from "../lib/channel-fill";
+import { channelCssVar, displayFillKey } from "../lib/channel-fill";
 import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -118,7 +118,7 @@ function buildPeriodChannelRows(
       name: c.name,
       spend: c.spend,
       share: c.spendShare,
-      fill: channelFillKey(c.name),
+      fill: displayFillKey(c.name),
     }))
     .sort((a, b) => b.spend - a.spend);
 }
@@ -142,7 +142,7 @@ function buildPeriodChannelRowsFromMix(
         name,
         spend: c.amount,
         share: c.share,
-        fill: channelFillKey(name),
+        fill: displayFillKey(name),
       };
     })
     .sort((a, b) => b.spend - a.spend);
@@ -823,7 +823,7 @@ function BestWindowsSection({
                       {row.shares.slice(0, 5).map((s) => (
                         <span
                           key={s.channel}
-                          className={`mcfly-alloc-v2__q-seg mcfly-channel__fill--${channelFillKey(s.channel)}`}
+                          className={`mcfly-alloc-v2__q-seg mcfly-channel__fill--${displayFillKey(s.channel)}`}
                           style={{ flex: Math.max(0.02, s.share) }}
                         />
                       ))}
@@ -832,7 +832,7 @@ function BestWindowsSection({
                       {row.shares.slice(0, 4).map((s) => (
                         <span key={s.channel}>
                           <span
-                            className={`mcfly-spend-dot mcfly-spend-dot--${channelFillKey(s.channel)}`}
+                            className={`mcfly-spend-dot mcfly-spend-dot--${displayFillKey(s.channel)}`}
                             aria-hidden="true"
                           />
                           {s.channel} · {formatPercent(s.share)}
@@ -863,7 +863,7 @@ function BestWindowsSection({
                 return (
                   <li key={diff.channel}>
                     <span
-                      className={`mcfly-spend-dot mcfly-spend-dot--${channelFillKey(diff.channel)}`}
+                      className={`mcfly-spend-dot mcfly-spend-dot--${displayFillKey(diff.channel)}`}
                       aria-hidden="true"
                     />
                     <span>

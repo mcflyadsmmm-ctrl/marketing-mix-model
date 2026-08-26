@@ -4,6 +4,7 @@ import {
   sampleDayTotalSpend,
   sampleSpendBounds,
   sampleSpendUsesNoonStamp,
+  SAMPLE_SEED_VERSION_NOTE,
 } from "./demo-sample-desk.server";
 import type { SalesResult } from "./shopify-sales.server";
 import type { DateRange } from "./periods";
@@ -109,7 +110,7 @@ export async function seedThreeYearSampleDesk(
           amount,
           periodStart: start,
           periodEnd: end,
-          note: "sample:3y",
+          note: SAMPLE_SEED_VERSION_NOTE,
           source: "sample",
         });
       }
@@ -244,25 +245,48 @@ export function utcDayKey(date: Date): string {
 /**
  * Re-seed when SAMPLE sales or spend is missing, when leftover spend still
  * uses UTC midnight (collides with live CSV unique keys → empty Spend page),
- * or when the sample predates the named Billboard series and would show a
- * desk with no offline channel in it.
+ * or when the seeded rows predate the current sample shape.
  */
 export async function sampleDeskNeedsSeed(shopId: string): Promise<boolean> {
-  const [dayCount, probe, namedExtra] = await Promise.all([
+  const [dayCount, probe, current] = await Promise.all([
     prisma.sampleSalesDay.count({ where: { shopId } }),
     prisma.spendEntry.findFirst({
       where: { shopId, source: "sample" },
       select: { periodStart: true },
     }),
     prisma.spendEntry.findFirst({
-      where: { shopId, source: "sample", customKey: { not: "" } },
+      where: { shopId, source: "sample", note: SAMPLE_SEED_VERSION_NOTE },
       select: { id: true },
     }),
   ]);
   if (dayCount === 0) return true;
   if (!probe) return true;
   if (!sampleSpendUsesNoonStamp(probe.periodStart)) return true;
-  return namedExtra == null;
+  return current == null;
+}
+
+/** Shops currently healing, so concurrent paints do not stampede the seeder. */
+const sampleHealInFlight = new Set<string>();
+
+/**
+ * A shop already on Sample never revisits the toggle that seeds it, so a shape
+ * change shipped in code would never reach it. Heal in the background on paint
+ * — the check is three indexed reads and goes quiet once the shop is current.
+ */
+export function ensureSampleDeskFresh(shopId: string, targetMer: number): void {
+  if (sampleHealInFlight.has(shopId)) return;
+  sampleHealInFlight.add(shopId);
+  void (async () => {
+    try {
+      if (await sampleDeskNeedsSeed(shopId)) {
+        await seedThreeYearSampleDesk(shopId, targetMer);
+      }
+    } catch {
+      // Sample is a demo surface — never break a desk paint over it.
+    } finally {
+      sampleHealInFlight.delete(shopId);
+    }
+  })();
 }
 
 export async function getSampleDeskStats(shopId: string) {

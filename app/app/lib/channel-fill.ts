@@ -60,3 +60,16 @@ export function sliceFillKey(sliceKey: string): string {
   if (base === "other" && slug) return namedExtraFillKey(slug);
   return base || "other";
 }
+
+/**
+ * Fill for a surface that only has the merchant-facing name. Anything that is
+ * not a known platform and is not literally "Other" is the merchant's own
+ * named channel, so Billboard keeps its colour instead of going grey.
+ */
+export function displayFillKey(name: string): string {
+  const key = channelFillKey(name);
+  if (key !== "other") return key;
+  const trimmed = name.trim().toLowerCase();
+  if (!trimmed || trimmed === "other") return "other";
+  return namedExtraFillKey(name);
+}

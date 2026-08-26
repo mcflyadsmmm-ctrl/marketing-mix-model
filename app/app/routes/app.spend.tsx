@@ -97,6 +97,7 @@ import {
   SALES_DAY_FACT_WINDOW_YEARS_BACK,
 } from "../lib/sales-facts.server";
 import {
+  ensureSampleDeskFresh,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
   getSampleDeskStats,
@@ -320,6 +321,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   const sampleDesk = await getSampleDeskStats(shop.id);
+  // Repairs a Sample desk seeded by an older release; no-ops once current.
+  if (sampleDesk.enabled) ensureSampleDeskFresh(shop.id, SAMPLE_DESK_TARGET_MER);
   const now = new Date();
   const timeZone = deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone);
   const settings = await prisma.settings.findUnique({ where: { shopId: shop.id } });

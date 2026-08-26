@@ -63,9 +63,11 @@ import {
   type PeriodPreset,
 } from "../lib/periods";
 import {
+  ensureSampleDeskFresh,
   fetchSampleSales,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
+  SAMPLE_DESK_TARGET_MER,
 } from "../lib/sample-desk.server";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
@@ -123,6 +125,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  // Repairs a Sample desk seeded by an older release; no-ops once current.
+  if (useSampleDesk) ensureSampleDeskFresh(shop.id, SAMPLE_DESK_TARGET_MER);
   const deskTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
   const range = resolvePeriod(preset, now, deskTz);
   const priorRange = resolvePriorPeriod(preset, now, deskTz);

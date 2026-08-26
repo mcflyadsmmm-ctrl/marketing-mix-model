@@ -36,10 +36,24 @@ export interface SampleDayRow {
 /** Minimum new buyers per SAMPLE day — never show 0s on the desk. */
 export const SAMPLE_MIN_NEW_CUSTOMERS = 14;
 
+/**
+ * Stamped on every seeded paid-spend row. Bump it whenever the shape of the
+ * sample changes — channel set, mix, dark days, named extras — so a shop
+ * already sitting on Sample heals to the new shape instead of showing last
+ * release's desk forever.
+ */
+export const SAMPLE_SEED_VERSION_NOTE = "sample:v2";
+
 export const SAMPLE_BILLBOARD_SLUG = "billboard";
 export const SAMPLE_BILLBOARD_LABEL = "Billboard";
-/** Share of the `other` bucket that runs as the billboard contract. */
-const BILLBOARD_SHARE_OF_OTHER = 0.62;
+/**
+ * Share of the day's budget on the billboard contract. Big enough to sort
+ * near the top of the legend, because a merchant's own offline buy is the
+ * whole point of the named-extra series.
+ */
+const BILLBOARD_SHARE = 0.16;
+/** The contract goes dark for the last stretch of each month. */
+const BILLBOARD_DARK_FROM_DAY = 24;
 
 /**
  * Total ad spend for a sample day. Named extras live outside
@@ -72,38 +86,27 @@ function addUtcDays(d: Date, n: number): Date {
   return startOfUtcDay(x);
 }
 
+/*
+ * A believable DTC media plan, not a catalogue of every integration. Six paid
+ * channels plus the merchant's own Billboard reads as a real shop and keeps
+ * the legend short enough to take in at a glance.
+ */
 const CHANNELS: SpendChannel[] = [
   "meta",
   "google",
-  "microsoft",
   "tiktok",
-  "pinterest",
-  "snapchat",
-  "reddit",
-  "x",
-  "linkedin",
-  "amazon",
-  "apple_search",
-  "affiliate",
   "email",
+  "affiliate",
   "other",
 ];
 
-/** Mix shares — sum ≈ 1 (new named channels keep small %) */
-const MIX: Record<SpendChannel, number> = {
-  meta: 0.33,
-  google: 0.24,
-  microsoft: 0.04,
-  tiktok: 0.07,
-  pinterest: 0.035,
-  snapchat: 0.025,
-  reddit: 0.015,
-  x: 0.02,
-  linkedin: 0.015,
-  amazon: 0.03,
-  apple_search: 0.015,
-  affiliate: 0.055,
-  email: 0.06,
+/** Paid mix shares — sum ≈ 1 across CHANNELS. */
+const MIX: Partial<Record<SpendChannel, number>> = {
+  meta: 0.4,
+  google: 0.28,
+  tiktok: 0.12,
+  email: 0.09,
+  affiliate: 0.07,
   other: 0.04,
 };
 
@@ -167,8 +170,29 @@ export function buildThreeYearSampleDesk(options?: {
       Math.round(sales * (newCustomers / orderCount) * 100) / 100;
 
     // Bias spend slightly under target → MER often lands ~4.2–4.7.
-    const totalSpend =
-      Math.round((sales / targetMer) * (0.88 + rng() * 0.14) * 100) / 100;
+    const dayOfMonth = d.getUTCDate();
+    /*
+     * Real shops go dark now and then. Two paid-media pauses a month give the
+     * chart genuine $0 columns, so "missing days are $0" is something a
+     * merchant can actually see in Sample rather than a claim.
+     */
+    const adsDark = dayOfMonth === 8 || dayOfMonth === 22;
+    // Running days carry the dark days' budget so the period still lands near
+    // the target Total ROAS rather than drifting up on a thinner spend base.
+    const totalSpend = adsDark
+      ? 0
+      : Math.round((sales / targetMer) * (0.98 + rng() * 0.14) * 100) / 100;
+
+    /*
+     * The billboard contract runs most of the month and then goes dark, so the
+     * Billboard band itself has holes — the offline case the desk exists for.
+     */
+    const billboardRuns = !adsDark && dayOfMonth < BILLBOARD_DARK_FROM_DAY;
+    const billboard = billboardRuns
+      ? Math.round(totalSpend * BILLBOARD_SHARE * 100) / 100
+      : 0;
+    const paidBudget = Math.max(0, totalSpend - billboard);
+
     const spendByChannel = {} as Record<SpendChannel, number>;
     let allocated = 0;
     for (let i = 0; i < CHANNELS.length; i++) {
@@ -176,30 +200,15 @@ export function buildThreeYearSampleDesk(options?: {
       if (i === CHANNELS.length - 1) {
         spendByChannel[ch] = Math.max(
           0,
-          Math.round((totalSpend - allocated) * 100) / 100,
+          Math.round((paidBudget - allocated) * 100) / 100,
         );
       } else {
         const wobble = 0.8 + rng() * 0.4;
-        const amt = Math.round(totalSpend * MIX[ch] * wobble * 100) / 100;
+        const amt =
+          Math.round(paidBudget * (MIX[ch] ?? 0) * wobble * 100) / 100;
         spendByChannel[ch] = amt;
         allocated += amt;
       }
-    }
-
-    /*
-     * Billboards are bought in flights, not every day. Carving the buy out of
-     * `other` on alternating months keeps total spend identical while giving
-     * the Sample desk a named extra that appears as its own Billboard band and
-     * then goes quiet — the case a merchant with offline spend needs to see.
-     */
-    const otherAmount = spendByChannel.other ?? 0;
-    const billboard =
-      month % 2 === 0
-        ? Math.round(otherAmount * BILLBOARD_SHARE_OF_OTHER * 100) / 100
-        : 0;
-    if (billboard > 0) {
-      spendByChannel.other =
-        Math.round((otherAmount - billboard) * 100) / 100;
     }
 
     rows.push({

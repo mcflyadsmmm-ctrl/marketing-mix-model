@@ -44,26 +44,70 @@ describe("buildThreeYearSampleDesk", () => {
     expect(mer).toBeLessThan(5.2);
   });
 
-  it("runs a flighted Billboard buy so Sample shows a named offline series", () => {
+  it("runs a Billboard contract big enough to see, with its own dark days", () => {
     const rows = buildThreeYearSampleDesk({
       now: new Date("2026-07-31T12:00:00Z"),
       years: 1,
     });
     const withBillboard = rows.filter((r) => r.namedExtras.length > 0);
     const withoutBillboard = rows.filter((r) => r.namedExtras.length === 0);
-    // A real contract runs in flights, so both states must exist.
-    expect(withBillboard.length).toBeGreaterThan(100);
-    expect(withoutBillboard.length).toBeGreaterThan(100);
+    // The contract runs most of the month, then goes dark — both states exist.
+    expect(withBillboard.length).toBeGreaterThan(200);
+    expect(withoutBillboard.length).toBeGreaterThan(50);
 
     const extra = withBillboard[0]!.namedExtras[0]!;
     expect(extra.slug).toBe(SAMPLE_BILLBOARD_SLUG);
     expect(extra.label).toBe(SAMPLE_BILLBOARD_LABEL);
     expect(extra.amount).toBeGreaterThan(0);
 
-    // Carving the buy out of `other` must not change what the shop spent.
+    // Any fortnight a merchant opens must contain the Billboard series.
+    for (let start = 0; start + 14 <= rows.length; start += 7) {
+      const fortnight = rows.slice(start, start + 14);
+      expect(
+        fortnight.some((r) => r.namedExtras.length > 0),
+        `window at ${start}`,
+      ).toBe(true);
+    }
+
+    // Big enough to sort near the top of a seven-chip legend.
+    let billboard = 0;
+    let total = 0;
     for (const r of rows) {
-      expect(r.spendByChannel.other).toBeGreaterThanOrEqual(0);
-      expect(sampleDayTotalSpend(r)).toBeGreaterThan(0);
+      billboard += r.namedExtras.reduce((s, e) => s + e.amount, 0);
+      total += sampleDayTotalSpend(r);
+    }
+    expect(billboard / total).toBeGreaterThan(0.06);
+  });
+
+  it("keeps the legend short — six paid channels plus the named extra", () => {
+    const rows = buildThreeYearSampleDesk({
+      now: new Date("2026-07-31T12:00:00Z"),
+      years: 1,
+    });
+    const paid = new Set<string>();
+    for (const r of rows) {
+      for (const [channel, amount] of Object.entries(r.spendByChannel)) {
+        if ((amount ?? 0) > 0) paid.add(channel);
+      }
+    }
+    expect(paid.size).toBeLessThanOrEqual(6);
+    expect(paid.has("meta")).toBe(true);
+    expect(paid.has("google")).toBe(true);
+  });
+
+  it("goes dark on some days so $0 holes are real, not just a caption", () => {
+    const rows = buildThreeYearSampleDesk({
+      now: new Date("2026-07-31T12:00:00Z"),
+      years: 1,
+    });
+    const dark = rows.filter((r) => sampleDayTotalSpend(r) === 0);
+    // Roughly two paid-media pauses a month.
+    expect(dark.length).toBeGreaterThan(18);
+    expect(dark.length).toBeLessThan(40);
+    // A dark day still sold — the hole is in spend, never in the till.
+    for (const r of dark) {
+      expect(r.sales).toBeGreaterThan(0);
+      expect(r.namedExtras).toEqual([]);
     }
   });
 });

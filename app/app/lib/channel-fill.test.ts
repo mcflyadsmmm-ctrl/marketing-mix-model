@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   NAMED_EXTRA_FILL_COUNT,
   channelFillKey,
+  displayFillKey,
   namedExtraFillKey,
   sliceFillKey,
 } from "./channel-fill";
@@ -52,5 +53,23 @@ describe("named extra fills", () => {
   it("leaves the platform resolver alone", () => {
     expect(channelFillKey("Meta Ads")).toBe("meta");
     expect(channelFillKey("Something offline")).toBe("other");
+  });
+});
+
+describe("displayFillKey — surfaces that only have the name", () => {
+  it("keeps Billboard off the grey Other fill", () => {
+    expect(displayFillKey("Billboard")).toBe(sliceFillKey("other:billboard"));
+    expect(displayFillKey("Billboard")).not.toBe("other");
+  });
+
+  it("still greys an unlabeled Other row", () => {
+    expect(displayFillKey("Other")).toBe("other");
+    expect(displayFillKey("other")).toBe("other");
+    expect(displayFillKey("  ")).toBe("other");
+  });
+
+  it("resolves known platforms unchanged", () => {
+    expect(displayFillKey("Meta Ads")).toBe("meta");
+    expect(displayFillKey("Google Ads")).toBe("google");
   });
 });
