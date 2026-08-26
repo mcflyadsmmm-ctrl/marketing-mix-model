@@ -3,6 +3,7 @@
  * Cash MER = sales ÷ spend (never inverted). Channel bars are spend mix only.
  */
 
+import type { PeriodPreset } from "./periods";
 import {
   dateKeyFromYmd,
   listRecentClosedShopLocalDays,
@@ -205,6 +206,41 @@ export function parseExplorerRange(raw: string | null): ExplorerRange {
   }
   if (raw === "custom") return "custom";
   return "90d";
+}
+
+/**
+ * When Overview has no `exRange` query, the chart follows the scoreboard
+ * period instead of a separate 14-day window.
+ */
+export function explorerQueryMatchingScoreboard(
+  preset: PeriodPreset,
+  period: { start: Date; end: Date },
+  timeZone?: string | null,
+): { range: ExplorerRange; from: string | null; to: string | null } {
+  const tz = timeZone?.trim() || null;
+  const keyOf = (instant: Date) =>
+    tz ? shopLocalDayKey(instant, tz) : dateKeyFromLocal(instant);
+
+  switch (preset) {
+    case "ytd":
+      return { range: "YTD", from: null, to: null };
+    case "l12m":
+      return { range: "1y", from: null, to: null };
+    case "y3":
+      return { range: "All", from: null, to: null };
+    case "mtd":
+    case "lm":
+    case "qtd":
+      return {
+        range: "custom",
+        from: keyOf(period.start),
+        to: keyOf(period.end),
+      };
+    default: {
+      const _exhaustive: never = preset;
+      throw new Error(`Unknown period preset: ${_exhaustive}`);
+    }
+  }
 }
 
 export function parseExplorerGranularity(

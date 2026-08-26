@@ -15,6 +15,7 @@ import {
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
+  explorerQueryMatchingScoreboard,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
@@ -23,6 +24,7 @@ import {
   shopLocalDayKey,
   shopLocalDayRange,
 } from "./shop-local-day";
+import { resolvePeriod } from "./periods";
 
 function day(
   dateKey: string,
@@ -63,6 +65,33 @@ describe("parseExplorer*", () => {
     expect(parseExplorerShowSales("0")).toBe(false);
     expect(parseExplorerDateParam("07/01/2026")).toBeNull();
     expect(parseExplorerDateParam("2026-13-40")).toBeNull();
+  });
+});
+
+describe("explorerQueryMatchingScoreboard", () => {
+  it("MTD scoreboard maps explorer to custom month keys in shop TZ", () => {
+    const period = resolvePeriod(
+      "mtd",
+      new Date("2026-08-15T18:00:00.000Z"),
+      "UTC",
+    );
+    const q = explorerQueryMatchingScoreboard("mtd", period, "UTC");
+    expect(q.range).toBe("custom");
+    expect(q.from).toBe("2026-08-01");
+    expect(q.to).toBe("2026-08-15");
+  });
+
+  it("YTD maps to the YTD explorer preset", () => {
+    const period = resolvePeriod(
+      "ytd",
+      new Date("2026-08-15T18:00:00.000Z"),
+      "UTC",
+    );
+    expect(explorerQueryMatchingScoreboard("ytd", period, "UTC")).toEqual({
+      range: "YTD",
+      from: null,
+      to: null,
+    });
   });
 });
 

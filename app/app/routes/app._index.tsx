@@ -73,6 +73,7 @@ import {
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
+  explorerQueryMatchingScoreboard,
 } from "../lib/spend-explorer";
 
 function channelDisplayLabel(channel: string): string {
@@ -108,33 +109,36 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     next.set("period", "ytd");
     throw redirect(`/app?${next.toString()}`);
   }
-  // Desk default: short window (14d) when explorer range unset.
-  const exRange = parseExplorerRange(url.searchParams.get("exRange") || "14d");
   const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
   const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
-  const exFrom = parseExplorerDateParam(url.searchParams.get("exFrom"));
-  const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
-  const range = resolvePeriod(
-    preset,
-    now,
-    deskPeriodTimeZone(useSampleDesk, ianaTimezone),
-  );
-  const priorRange = resolvePriorPeriod(
-    preset,
-    now,
-    deskPeriodTimeZone(useSampleDesk, ianaTimezone),
-  );
+  const deskTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
+  const range = resolvePeriod(preset, now, deskTz);
+  const priorRange = resolvePriorPeriod(preset, now, deskTz);
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
   });
+
+  const exRangeParam = url.searchParams.get("exRange");
+  const tiedExplorer = exRangeParam
+    ? null
+    : explorerQueryMatchingScoreboard(preset, range, deskTz);
+  const exRange = exRangeParam
+    ? parseExplorerRange(exRangeParam)
+    : (tiedExplorer?.range ?? "custom");
+  const exFrom = exRangeParam
+    ? parseExplorerDateParam(url.searchParams.get("exFrom"))
+    : (tiedExplorer?.from ?? null);
+  const exTo = exRangeParam
+    ? parseExplorerDateParam(url.searchParams.get("exTo"))
+    : (tiedExplorer?.to ?? null);
 
   let sales: SalesResult = emptySales("shopify");
   /** Null when prior facts are outside the window / failed — skip deltas (never fake 0). */
@@ -219,10 +223,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         // ignore — banners disclose incomplete facts
       });
     }
-    // Till LTV OrderFact ingest — throttled like sales facts (≤2 closed days / paint).
-    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-      // ignore — panel shows empty/backfilling until cohorts land
-    });
+    // Till LTV OrderFact ingest — Pro only (Free teasers do not crawl orders).
+    if (entitlements.canUseLtv) {
+      void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+        // ignore — panel shows empty/backfilling until cohorts land
+      });
+    }
 
     const desk = await loadDeskSalesForPeriod({
       admin,
