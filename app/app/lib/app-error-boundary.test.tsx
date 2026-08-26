@@ -32,7 +32,7 @@ beforeAll(async () => {
   process.env.SHOPIFY_APP_URL ??= "https://example.test";
   process.env.SCOPES ??= "read_orders";
   process.env.DATABASE_URL ??= "postgresql://u:p@localhost:5432/test";
-  ({ ErrorBoundary } = await import("./app"));
+  ({ ErrorBoundary } = await import("../routes/app"));
 });
 
 let root: Root | null = null;

@@ -28,6 +28,32 @@ run "unit tests" npm test
 run "typecheck" npm run typecheck
 run "build" npm run build
 
+# Fly v164 crash-looped because a test file under app/routes became a route
+# module and pulled Vitest into the server bundle: `npm run start` exited 1 on
+# "Vitest failed to access its internal state". Check the bundle we just built,
+# not a stale one.
+echo ""
+echo "==> production bundle has no test runtime"
+bundle_bad=0
+for artifact in app/build/server/index.js; do
+  if [[ -f "$artifact" ]]; then
+    if grep -qE '["'"'"']vitest["'"'"']' "$artifact"; then
+      echo "    FAIL: $artifact imports vitest" >&2
+      bundle_bad=1
+    fi
+  fi
+done
+if compgen -G "app/build/*/assets/*.test-*" >/dev/null 2>&1; then
+  echo "    FAIL: a *.test.* module was bundled as a route" >&2
+  ls app/build/*/assets/*.test-* >&2
+  bundle_bad=1
+fi
+if [[ "$bundle_bad" -ne 0 ]]; then
+  fail=1
+else
+  echo "    OK: production bundle has no test runtime"
+fi
+
 APP_URL="${APP_URL:-${SHOPIFY_APP_URL:-https://mcfly-analytics.fly.dev}}"
 APP_URL="${APP_URL%/}"
 
