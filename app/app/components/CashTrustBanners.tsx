@@ -98,7 +98,7 @@ export function CashTrustBanners({
           <s-paragraph>
             Fabricated sales were refused — {PRODUCT_NOUN.totalRoas} never treats
             mock numbers as live Shopify when the sample desk is off. Retry the
-            sales pull, or switch to Sample at the top for a labeled walkthrough.
+            sales pull, or switch to Practice at the top for a labeled walkthrough.
           </s-paragraph>
         </s-banner>
       ) : null}
@@ -108,7 +108,7 @@ export function CashTrustBanners({
           <s-paragraph>
             {periodLabel} reaches before stored daily sales (back to Jan 1 four
             years ago). Prefer a shorter period, wait for backfill, or switch to
-            Sample at the top for a multi-year walkthrough.
+            Practice at the top for a multi-year walkthrough.
           </s-paragraph>
         </s-banner>
       ) : null}
@@ -148,34 +148,29 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {!cashActionReady && !spendCoverage?.incomplete && spendRecon?.status !== "drift" ? (
-        <s-banner tone="info" heading="Almost ready">
+      {!cashActionReady &&
+      onboarding?.hasSpend &&
+      !spendCoverage?.incomplete &&
+      spendRecon?.status !== "drift" ? (
+        <s-banner tone="info" heading="Add the rest of this period’s spend">
           <s-paragraph>
-            {!onboarding?.hasSpend
-              ? "Paste daily ad spend next — then read cash Total ROAS."
-              : `Finish spend trust, then read Total ROAS on Overview.`}
+            Add more days when you have invoices — last month is enough to start.
           </s-paragraph>
           <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
-            {!onboarding?.hasSpend ? (
-              <s-button href="/app/spend" variant="primary">
-                {PRODUCT_NOUN.setupAddSpend}
-              </s-button>
-            ) : (
-              <s-button href="/app/spend" variant="primary">
-                Review spend
-              </s-button>
-            )}
+            <s-button href="/app/spend" variant="primary">
+              Review spend
+            </s-button>
           </div>
         </s-banner>
       ) : null}
 
       {spendCoverage?.incomplete ? (
-        <s-banner tone="critical" heading="Spend days missing — fill gaps first">
+        <s-banner tone="info" heading="More days of spend will complete this period">
           <s-paragraph>
             {formatSpendCoverageLine(spendCoverage, periodLabel)}. Empty days
-            understate spend and inflate {PRODUCT_NOUN.totalRoas}. Fill gaps
-            (weekend Meta/Google) before sharing or budget moves.{" "}
-            <s-link href="/app/spend#mcfly-spend-uploads">Fill spend gaps</s-link>
+            are not $0 — they just are not in the total yet, so {PRODUCT_NOUN.totalRoas}{" "}
+            can look high until you add the rest. Last month is enough to start.{" "}
+            <s-link href="/app/spend#mcfly-spend-csv">Add more days</s-link>
           </s-paragraph>
         </s-banner>
       ) : null}

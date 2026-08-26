@@ -349,7 +349,7 @@ describe("merVsRails", () => {
   it("labels near-target MER as flat", () => {
     const rails = merVsRails(2.9, 3, 2);
     expect(rails.tone).toBe("flat");
-    expect(rails.label).toBe("On target MER");
+    expect(rails.label).toBe("On target");
     expect(rails.vsTargetAbs).toBeCloseTo(-0.1, 5);
   });
 

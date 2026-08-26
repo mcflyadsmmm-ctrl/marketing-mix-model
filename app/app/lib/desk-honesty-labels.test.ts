@@ -17,7 +17,7 @@ describe("Overview / LTV tillLabel honesty", () => {
     expect(overview).toMatch(
       /salesError[\s\S]*sales unavailable[\s\S]*live sales/,
     );
-    expect(overview).toContain("facts incomplete");
+    expect(overview).toContain("factsIncompleteSuffix");
   });
 
   it("Overview scoreboardReady refuses salesError zeros", () => {

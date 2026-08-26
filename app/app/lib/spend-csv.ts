@@ -1563,7 +1563,7 @@ export function parseSpendCsv(
   return {
     rows: [],
     errors: [
-      "Could not detect platform spend columns. Download the Mcfly template (Day + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other), combine platform exports with a channel each, or use long format date,channel,amount. Do not paste Shopify sales into this CSV.",
+      "Could not detect platform spend columns. Download the Mcfly template (Day + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other), paste a native Day + Amount spent export, or use long format date,channel,amount. Do not paste Shopify sales into this CSV.",
     ],
     totalDataRows: 0,
   };

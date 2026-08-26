@@ -54,8 +54,9 @@ export default function SupportPage() {
 
         <h2>Practice desk</h2>
         <p>
-          Turn SAMPLE / Practice <strong>OFF</strong> before judging live Total
-          ROAS. Practice numbers are examples, not your store.
+          Turn SAMPLE / Practice <strong>OFF</strong> (Your store) before
+          judging live Total ROAS. Practice numbers are examples, not your
+          store. Margin is optional — add spend first.
         </p>
       </main>
     </OriginShell>

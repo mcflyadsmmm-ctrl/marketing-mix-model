@@ -28,7 +28,7 @@ export function DataModeBar({
 }: DataModeBarProps) {
   const location = useLocation();
   const [params] = useSearchParams();
-  const activationIncomplete = !marginConfirmed || !hasLiveSpend;
+  const activationIncomplete = !hasLiveSpend;
 
   if (shotMode) {
     if (!useSampleDesk) return null;
@@ -56,16 +56,16 @@ export function DataModeBar({
   const setupSteps = (
     <ol className="mcfly-data-mode__steps">
       <li>
-        <s-link href={`/app/settings${location.search}`}>
-          {PRODUCT_NOUN.setupAdjustMargin}
-        </s-link>
-        {marginConfirmed ? " — done" : null}
-      </li>
-      <li>
         <s-link href={`/app/spend${location.search}`}>
           {PRODUCT_NOUN.setupAddSpend}
         </s-link>
         {hasLiveSpend ? " — done" : null}
+      </li>
+      <li>
+        <s-link href={`/app/settings${location.search}`}>
+          {PRODUCT_NOUN.setupAdjustMargin}
+        </s-link>
+        {marginConfirmed ? " — done" : " — optional, for break-even"}
       </li>
       <li>
         <s-link href={`/app${location.search}`}>
@@ -87,7 +87,8 @@ export function DataModeBar({
           <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
             {setupSteps}
             <p className="mcfly-data-mode__steps-note">
-              Shopify sales load automatically. You only add ad spend.
+              Shopify sales load automatically. You only add ad spend. Profit
+            margin is optional — it draws a break-even line.
             </p>
           </s-banner>
         ) : null}
@@ -155,7 +156,8 @@ export function DataModeBar({
         <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
           {setupSteps}
           <p className="mcfly-data-mode__steps-note">
-            Shopify sales load automatically. You only add ad spend.
+            Shopify sales load automatically. You only add ad spend. Profit
+            margin is optional — it draws a break-even line.
           </p>
         </s-banner>
       ) : null}

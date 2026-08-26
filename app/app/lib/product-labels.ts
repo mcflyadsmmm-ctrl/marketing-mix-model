@@ -128,6 +128,7 @@ export const PRODUCT_NOUN = {
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
   ltvNotInShopify:
     "Shopify Analytics does not combine LTV with ad spend. Mcfly uses order history only — not email lists.",
+  factsIncompleteSuffix: " · still loading sales days",
 } as const;
 
 export type SalesBasisPreference = "total" | "net";

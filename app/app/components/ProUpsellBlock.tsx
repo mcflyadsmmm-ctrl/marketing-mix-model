@@ -35,7 +35,7 @@ export function ProUpsellBlock({
           <s-link href="/app/settings">{PRO_UPSELL.seeSettings}</s-link>
         )}
       </div>
-      <details className="mcfly-pro-upsell__more">
+      <details className="mcfly-pro-upsell__more" open>
         <summary>What’s in Pro</summary>
         <ul className="mcfly-pro-upsell__list">
           {PRO_FEATURE_BULLETS.map((line) => (

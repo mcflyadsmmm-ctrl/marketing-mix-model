@@ -336,20 +336,20 @@ export default function AllocationPage() {
           metrics.salesSource === "mock"
         ? `${metrics.period.label} · sales unavailable`
         : factsIncomplete
-          ? `${metrics.period.label} · facts incomplete`
+          ? `${metrics.period.label}${PRODUCT_NOUN.factsIncompleteSuffix}`
           : `${metrics.period.label} · live sales`;
 
   const cashLocked =
     !allocation &&
     metrics.breakEvenMer != null &&
-    !metrics.cashActionReady &&
-    !shotMode;
+    !shotMode &&
+    (metrics.spendCoverage.incomplete || !metrics.cashActionReady);
   const lockCopy = cashLocked
     ? metrics.spendCoverage.incomplete
-      ? `Spend coverage is under 70% — fill empty days before allocation. ${PRODUCT_NOUN.mondayCall}.`
+      ? "Spend mix waits until most days this period have spend, so empty Sundays don’t fake a high Total ROAS. Add more days when you have invoices — last month is enough to start."
       : metrics.spendRecon?.status === "drift"
-        ? `Desk spend vs declared Ads Manager is outside ±5% — fix recon before allocation. ${PRODUCT_NOUN.mondayCall}.`
-        : `Allocation is locked until spend trust is ready. ${PRODUCT_NOUN.mondayCall}.`
+        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or the declared total on Spend before mix advice."
+        : "Add spend on Spend, then come back for mix."
     : null;
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
