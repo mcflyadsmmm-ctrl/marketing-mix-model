@@ -467,6 +467,11 @@ export type OverviewShareInput = {
   breakEvenMer: number | null;
   marginPct: number | null;
   spendIncomplete?: boolean;
+  /**
+   * Closed sales days have not landed yet. A forwarded card must not state
+   * "Shopify Total Sales: $0" for a period whose sales are simply unknown.
+   */
+  salesPending?: boolean;
   shopLabel?: string | null;
   /** Optional period channel mix ($ + share 0–1). */
   channels?: Array<{ name: string; amount: number; share: number }>;
@@ -500,9 +505,11 @@ export function formatOverviewShareText(input: OverviewShareInput): string {
 
   lines.push(
     "",
-    `Shopify Total Sales: ${money(input.totalSales)}`,
+    input.salesPending
+      ? "Shopify Total Sales: still loading (not $0)"
+      : `Shopify Total Sales: ${money(input.totalSales)}`,
   );
-  if (input.salesDeltaLine?.trim()) {
+  if (!input.salesPending && input.salesDeltaLine?.trim()) {
     lines.push(`  ${input.salesDeltaLine.trim()}`);
   }
 

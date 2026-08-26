@@ -436,6 +436,7 @@ export default function Dashboard() {
     breakEvenMer: metrics.breakEvenMer,
     marginPct: metrics.marginPct,
     spendIncomplete: Boolean(metrics.spendCoverage?.incomplete),
+    salesPending: metrics.salesPending,
     shopLabel,
     channels: periodChannels,
     salesDeltaLine,
