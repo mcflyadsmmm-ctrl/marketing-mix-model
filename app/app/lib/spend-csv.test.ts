@@ -21,6 +21,7 @@ import {
   detectWideChannelColumns,
   headerLooksLikeAdsSpend,
   normalizeChannel,
+  parseForceChannel,
   parsePlatformsParam,
   parseSpendAmount,
   parseSpendCsv,
@@ -868,5 +869,86 @@ describe("spend CSV scale caps (MAX_BYTES / MAX_ROWS)", () => {
     expect(errors.some((e) => e.startsWith("Meta Ads:") && /too large/i.test(e))).toBe(
       true,
     );
+  });
+});
+
+describe("account / network are not channel columns", () => {
+  it("does not silently map Day,Account name,Amount spent to Other", () => {
+    const csv = `Day,Account name,Amount spent
+2026-07-01,ACME Brand,100`;
+    const unforced = parseSpendCsv(csv);
+    expect(unforced.rows).toEqual([]);
+    expect(unforced.errors[0]).toMatch(/single-platform export/i);
+    const forced = parseSpendCsv(csv, { forceChannel: "meta" });
+    expect(forced.errors).toEqual([]);
+    expect(aggregateSpendRows(forced.rows)).toEqual([
+      { date: "2026-07-01", channel: "meta", amount: 100 },
+    ]);
+  });
+
+  it("does not silently map Day,Network,Cost to Other", () => {
+    const csv = `Day,Network,Cost
+2026-07-01,Search,50`;
+    const unforced = parseSpendCsv(csv);
+    expect(unforced.rows).toEqual([]);
+    expect(unforced.errors[0]).toMatch(/single-platform export/i);
+  });
+
+  it("still parses date,channel,amount long format", () => {
+    const csv = `date,channel,amount
+2026-07-01,meta,80`;
+    const { rows, errors } = parseSpendCsv(csv);
+    expect(errors).toEqual([]);
+    expect(rows[0]?.channel).toBe("meta");
+    expect(rows[0]?.amount).toBe(80);
+  });
+});
+
+describe("date-span exports refuse to lump onto day one", () => {
+  it("refuses Reporting starts ≠ Reporting ends", () => {
+    const csv = `Reporting starts,Reporting ends,Amount spent
+2026-07-01,2026-07-31,5000`;
+    const { rows, errors } = parseSpendCsv(csv, { forceChannel: "meta" });
+    expect(rows).toEqual([]);
+    expect(errors[0]).toMatch(/Day breakdown|Divide a bill|not a day/i);
+  });
+
+  it("refuses a single cell date range", () => {
+    const csv = `Day,Amount spent
+2026-07-01 - 2026-07-31,5000`;
+    const { rows, errors } = parseSpendCsv(csv, { forceChannel: "google" });
+    expect(rows).toEqual([]);
+    expect(errors[0]).toMatch(/Day breakdown|Divide a bill|date range/i);
+  });
+
+  it("still accepts Reporting starts === Reporting ends", () => {
+    const csv = `Reporting starts,Reporting ends,Cost (Account currency)
+2026-07-01,2026-07-01,288.10`;
+    const { rows, errors } = parseSpendCsv(csv, { forceChannel: "google" });
+    expect(errors).toEqual([]);
+    expect(aggregateSpendRows(rows)).toEqual([
+      { date: "2026-07-01", channel: "google", amount: 288.1 },
+    ]);
+  });
+});
+
+describe("semicolon delimiter and parseForceChannel", () => {
+  it("parses semicolon Day;Amount spent with forceChannel", () => {
+    const csv = `Day;Amount spent
+2026-07-01;100`;
+    const { rows, errors } = parseSpendCsv(csv, { forceChannel: "tiktok" });
+    expect(errors).toEqual([]);
+    expect(aggregateSpendRows(rows)).toEqual([
+      { date: "2026-07-01", channel: "tiktok", amount: 100 },
+    ]);
+  });
+
+  it("parseForceChannel accepts every SPEND_CHANNELS member and rejects junk", () => {
+    for (const ch of SPEND_CHANNELS) {
+      expect(parseForceChannel(ch)).toBe(ch);
+    }
+    expect(parseForceChannel("meta ")).toBe("meta");
+    expect(parseForceChannel("facebook")).toBeUndefined();
+    expect(parseForceChannel("")).toBeUndefined();
   });
 });

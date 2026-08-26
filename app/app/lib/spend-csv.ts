@@ -145,7 +145,10 @@ const HEADER_SYNONYMS: Record<"date" | "channel" | "amount", string[]> = {
     "start date",
     "end date",
   ],
-  channel: ["channel", "source", "platform", "medium", "network", "account"],
+  // Only explicit channel/platform columns. Account name / Network / source /
+  // medium are Ads Manager dimensions — treating them as channels silently
+  // dumps native exports into Other.
+  channel: ["channel", "platform"],
   amount: [
     "amount",
     "amount spent",
@@ -615,6 +618,23 @@ export function buildSheetsImportGuide(options?: {
 
 const SPEND_CHANNEL_SET: ReadonlySet<string> = new Set(SPEND_CHANNELS);
 
+export type CsvDelimiter = "," | ";" | "\t";
+
+type CsvReadCtx = {
+  delimiter: CsvDelimiter;
+  /** Reporting ends / End date column, or -1. */
+  endsCol: number;
+};
+
+/** Accept any engine channel; reject aliases like "facebook". */
+export function parseForceChannel(
+  raw: string | null | undefined,
+): CsvChannel | undefined {
+  const v = String(raw ?? "").trim().toLowerCase();
+  if (SPEND_CHANNEL_SET.has(v)) return v as CsvChannel;
+  return undefined;
+}
+
 /**
  * Parse `?platforms=meta,google,tiktok` into validated SpendChannels (deduped, order preserved).
  * Unknown tokens are skipped — never invents channels.
@@ -748,6 +768,13 @@ function classifyCsvError(err: string): string {
     return "Unrecognized columns";
   }
   if (v.includes("cannot be negative")) return "Negative spend amounts";
+  if (
+    v.includes("day breakdown") ||
+    v.includes("not a day") ||
+    v.includes("date range")
+  ) {
+    return "Date range instead of days";
+  }
   if (v.includes("could not read date")) return "Unreadable dates";
   if (v.includes("could not read") && v.includes("amount")) {
     return "Unreadable amounts";
@@ -875,6 +902,39 @@ export function parseSpendDate(raw: string): string | null {
 }
 
 /**
+ * True when one cell holds two different calendar days
+ * (`2026-07-01 - 2026-07-31`, `2026-07-01..2026-07-31`, `to`, en-dash).
+ */
+export function looksLikeDateSpan(raw: string): boolean {
+  const v = raw.trim().replace(/^["']|["']$/g, "");
+  if (!v) return false;
+  const m =
+    /^(.+?)\s*(?:\.\.|–|—|\s+to\s+|\s+-\s+)\s*(.+)$/i.exec(v);
+  if (!m) return false;
+  const a = parseSpendDate(m[1]!.trim());
+  const b = parseSpendDate(m[2]!.trim());
+  return Boolean(a && b && a !== b);
+}
+
+function spendDateCellProblem(
+  rawDate: string,
+  lineNo: number,
+  rawEnds?: string,
+): string | null {
+  if (looksLikeDateSpan(rawDate)) {
+    return `Line ${lineNo}: this row covers a date range ("${rawDate}"). Export with a Day breakdown, or use Divide a bill.`;
+  }
+  if (rawEnds && !isSummaryDateLabel(rawEnds)) {
+    const start = parseSpendDate(rawDate);
+    const end = parseSpendDate(rawEnds);
+    if (start && end && start !== end) {
+      return `Line ${lineNo}: Reporting starts ${start} and ends ${end} — that is a range, not a day. Export with a Day breakdown, or use Divide a bill.`;
+    }
+  }
+  return null;
+}
+
+/**
  * True when the amount looks like EU decimal comma notation (e.g. `12,50` or
  * `1.234,56`). Fail-closed — stripping commas would silently inflate spend.
  * US `1,234.56` / `1,234` (comma thousands) must NOT match.
@@ -918,8 +978,37 @@ export function parseSpendAmount(raw: string): number | null {
   return negative ? -n : n;
 }
 
-/** Split one CSV line, honoring quoted fields with embedded commas. */
-function splitCsvLine(line: string): string[] {
+/** Count unquoted delimiter chars on a header line. */
+function countUnquotedDelimiter(headerLine: string, delimiter: string): number {
+  let n = 0;
+  let inQuotes = false;
+  for (let i = 0; i < headerLine.length; i++) {
+    const c = headerLine[i];
+    if (c === '"') {
+      if (inQuotes && headerLine[i + 1] === '"') {
+        i++;
+        continue;
+      }
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (!inQuotes && c === delimiter) n += 1;
+  }
+  return n;
+}
+
+/** Prefer comma; use semicolon or tab when that delimiter clearly dominates. */
+export function detectCsvDelimiter(headerLine: string): CsvDelimiter {
+  const comma = countUnquotedDelimiter(headerLine, ",");
+  const semi = countUnquotedDelimiter(headerLine, ";");
+  const tab = countUnquotedDelimiter(headerLine, "\t");
+  if (semi > comma && semi >= tab) return ";";
+  if (tab > comma && tab >= semi) return "\t";
+  return ",";
+}
+
+/** Split one CSV line, honoring quoted fields with the detected delimiter. */
+function splitCsvLine(line: string, delimiter: CsvDelimiter = ","): string[] {
   const out: string[] = [];
   let cur = "";
   let inQuotes = false;
@@ -938,7 +1027,7 @@ function splitCsvLine(line: string): string[] {
       }
     } else if (c === '"') {
       inQuotes = true;
-    } else if (c === ",") {
+    } else if (c === delimiter) {
       out.push(cur);
       cur = "";
     } else {
@@ -1082,6 +1171,20 @@ function findDateColumn(headers: string[]): number {
     }
   }
   return findColumn(headers, HEADER_SYNONYMS.date);
+}
+
+function findReportingEndsColumn(headers: string[], dateCol: number): number {
+  for (let i = 0; i < headers.length; i++) {
+    if (i === dateCol) continue;
+    const header = headers[i] ?? "";
+    if (
+      headerMatchesSynonym(header, "reporting ends") ||
+      headerMatchesSynonym(header, "end date")
+    ) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 function isAmountLikeHeader(header: string): boolean {
@@ -1310,6 +1413,7 @@ function parseLongSpendCsv(
   dateCol: number,
   channelCol: number,
   amountCol: number,
+  ctx: CsvReadCtx,
 ): CsvParseResult {
   const rows: ParsedSpendRow[] = [];
   const errors: string[] = [];
@@ -1317,15 +1421,22 @@ function parseLongSpendCsv(
 
   for (let i = 1; i < lines.length; i++) {
     totalDataRows++;
-    const cells = splitCsvLine(lines[i]);
+    const cells = splitCsvLine(lines[i] ?? "", ctx.delimiter);
     const lineNo = i + 1;
 
     const rawDate = cells[dateCol] ?? "";
     const rawChannel = cells[channelCol] ?? "";
     const rawAmount = cells[amountCol] ?? "";
+    const rawEnds = ctx.endsCol >= 0 ? (cells[ctx.endsCol] ?? "") : "";
 
     // Summary / blank rows: skip quietly.
     if (isSummaryDateLabel(rawDate) || !String(rawAmount).trim()) {
+      continue;
+    }
+
+    const spanProblem = spendDateCellProblem(rawDate, lineNo, rawEnds);
+    if (spanProblem) {
+      pushError(errors, spanProblem);
       continue;
     }
 
@@ -1363,6 +1474,7 @@ function parseForcedChannelSpendCsv(
   dateCol: number,
   amountCol: number,
   forceChannel: CsvChannel,
+  ctx: CsvReadCtx,
 ): CsvParseResult {
   const rows: ParsedSpendRow[] = [];
   const errors: string[] = [];
@@ -1371,12 +1483,19 @@ function parseForcedChannelSpendCsv(
 
   for (let i = 1; i < lines.length; i++) {
     totalDataRows++;
-    const cells = splitCsvLine(lines[i]);
+    const cells = splitCsvLine(lines[i] ?? "", ctx.delimiter);
     const lineNo = i + 1;
     const rawDate = cells[dateCol] ?? "";
     const rawAmount = cells[amountCol] ?? "";
+    const rawEnds = ctx.endsCol >= 0 ? (cells[ctx.endsCol] ?? "") : "";
 
     if (isSummaryDateLabel(rawDate) || !String(rawAmount).trim()) {
+      continue;
+    }
+
+    const spanProblem = spendDateCellProblem(rawDate, lineNo, rawEnds);
+    if (spanProblem) {
+      pushError(errors, spanProblem);
       continue;
     }
 
@@ -1412,6 +1531,7 @@ function parseWideSpendCsv(
   lines: string[],
   dateCol: number,
   channelCols: WideChannelCol[],
+  ctx: CsvReadCtx,
 ): CsvParseResult {
   const rows: ParsedSpendRow[] = [];
   const errors: string[] = [];
@@ -1419,11 +1539,18 @@ function parseWideSpendCsv(
 
   for (let i = 1; i < lines.length; i++) {
     totalDataRows++;
-    const cells = splitCsvLine(lines[i]);
+    const cells = splitCsvLine(lines[i] ?? "", ctx.delimiter);
     const lineNo = i + 1;
     const rawDate = cells[dateCol] ?? "";
+    const rawEnds = ctx.endsCol >= 0 ? (cells[ctx.endsCol] ?? "") : "";
 
     if (isSummaryDateLabel(rawDate)) {
+      continue;
+    }
+
+    const spanProblem = spendDateCellProblem(rawDate, lineNo, rawEnds);
+    if (spanProblem) {
+      pushError(errors, spanProblem);
       continue;
     }
 
@@ -1492,20 +1619,24 @@ export function parseSpendCsv(
   }
 
   const clean = text.replace(/^\uFEFF/, "");
-  const lines = clean
+  const rawLines = clean
     .split(/\r\n|\r|\n/)
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
 
-  if (lines.length === 0) {
+  if (rawLines.length === 0) {
     return { rows: [], errors: ["The file is empty."], totalDataRows: 0 };
   }
 
-  const headers = splitCsvLine(lines[0]);
+  const delimiter = detectCsvDelimiter(rawLines[0] ?? "");
+  const lines = rawLines;
+  const headers = splitCsvLine(lines[0] ?? "", delimiter);
   const dateCol = findDateColumn(headers);
   const channelCol = findColumn(headers, HEADER_SYNONYMS.channel);
   const amountCol = findAmountColumn(headers);
   const wideCols = detectWideChannelColumns(headers);
+  const endsCol = findReportingEndsColumn(headers, dateCol);
+  const ctx: CsvReadCtx = { delimiter, endsCol };
 
   if (dateCol === -1) {
     return {
@@ -1519,23 +1650,23 @@ export function parseSpendCsv(
 
   // Long format wins when channel + amount are both present.
   if (channelCol !== -1 && amountCol !== -1) {
-    return parseLongSpendCsv(lines, dateCol, channelCol, amountCol);
+    return parseLongSpendCsv(lines, dateCol, channelCol, amountCol, ctx);
   }
 
   // Wide Mcfly / multi-channel sheet (2+ platform columns).
   if (wideCols.length >= 2) {
-    return parseWideSpendCsv(lines, dateCol, wideCols);
+    return parseWideSpendCsv(lines, dateCol, wideCols, ctx);
   }
 
   // Single named platform column (e.g. only "Meta Ads") — treat as wide with one bucket.
   if (wideCols.length === 1 && amountCol === -1) {
-    return parseWideSpendCsv(lines, dateCol, wideCols);
+    return parseWideSpendCsv(lines, dateCol, wideCols, ctx);
   }
 
   // Native single-channel export: Day + Amount spent / Cost (needs forceChannel).
   if (amountCol !== -1 && (wideCols.length === 0 || wideCols.length === 1)) {
     if (forceChannel) {
-      return parseForcedChannelSpendCsv(lines, dateCol, amountCol, forceChannel);
+      return parseForcedChannelSpendCsv(lines, dateCol, amountCol, forceChannel, ctx);
     }
     return {
       rows: [],
@@ -1547,7 +1678,7 @@ export function parseSpendCsv(
   }
 
   if (wideCols.length > 0) {
-    return parseWideSpendCsv(lines, dateCol, wideCols);
+    return parseWideSpendCsv(lines, dateCol, wideCols, ctx);
   }
 
   if (forceChannel && amountCol === -1) {

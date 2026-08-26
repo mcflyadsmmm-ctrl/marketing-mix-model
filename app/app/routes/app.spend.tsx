@@ -58,6 +58,7 @@ import {
   aggregateSpendRows,
   combineSpendCsvInputs,
   parseSpendCsv,
+  parseForceChannel,
   assertSpendCsvLimits,
   SPEND_CSV_MAX_BYTES,
   buildSelectedPlatformTemplateCsv,
@@ -623,11 +624,7 @@ async function handleCsvImport(
     return { error: limits.error, success: false };
   }
 
-  const forceRaw = String(form.get("forceChannel") ?? "").trim().toLowerCase();
-  const forceChannel =
-    forceRaw === "meta" || forceRaw === "google"
-      ? (forceRaw as CsvChannel)
-      : undefined;
+  const forceChannel = parseForceChannel(String(form.get("forceChannel") ?? ""));
   const confirmReplace =
     String(form.get("confirm_replace") ?? "") === "1" ||
     String(form.get("confirm_replace") ?? "") === "true";
@@ -1061,7 +1058,7 @@ export default function SpendEntryPage() {
   const [platformsHydrated, setPlatformsHydrated] = useState(false);
   /** Survives confirm_replace re-submit after file input clears. */
   const [csvPayload, setCsvPayload] = useState("");
-  const [forceChannel, setForceChannel] = useState<"" | "meta" | "google">("");
+  const [forceChannel, setForceChannel] = useState<"" | CsvChannel>("");
   const [confirmReplace, setConfirmReplace] = useState(false);
   /** Default open so channel pick is obvious; still collapsible. */
   const [channelsOpen, setChannelsOpen] = useState(isEmpty);
@@ -1157,6 +1154,25 @@ export default function SpendEntryPage() {
     a.download = lumpSpreadFilename(result.plan);
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function submitForcedChannel(channel: CsvChannel) {
+    const form = document.getElementById("mcfly-spend-csv-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    const hidden = form.querySelector('input[name="forceChannel"]');
+    if (hidden instanceof HTMLInputElement) hidden.value = channel;
+    setForceChannel(channel);
+    setConfirmReplace(false);
+    form.requestSubmit();
+  }
+
+  function submitCsvReplaceConfirm() {
+    const form = document.getElementById("mcfly-spend-csv-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    const hidden = form.querySelector('input[name="confirm_replace"]');
+    if (hidden instanceof HTMLInputElement) hidden.value = "1";
+    setConfirmReplace(true);
+    form.requestSubmit();
   }
 
   async function onSpendFileSelected(
@@ -1354,12 +1370,7 @@ export default function SpendEntryPage() {
               <s-button
                 variant="primary"
                 onClick={() => {
-                  setConfirmReplace(true);
-                  window.setTimeout(() => {
-                    document
-                      .getElementById("mcfly-spend-csv-submit")
-                      ?.click();
-                  }, 0);
+                  submitCsvReplaceConfirm();
                 }}
               >
                 Replace overlapping days
@@ -1437,29 +1448,38 @@ export default function SpendEntryPage() {
             {csv?.needsForceChannel ? (
               <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
                 <s-text>This looks like a single-platform Ads export — pick which one:</s-text>
+                <label htmlFor="mcfly-spend-force-channel">
+                  Platform for this file
+                </label>
+                <select
+                  id="mcfly-spend-force-channel"
+                  defaultValue=""
+                  aria-label="Platform for this file"
+                >
+                  <option value="" disabled>
+                    Choose platform
+                  </option>
+                  {SPEND_CHANNELS.map((ch) => (
+                    <option key={ch} value={ch}>
+                      {SPEND_CHANNEL_LABELS[ch]}
+                    </option>
+                  ))}
+                </select>
                 <s-button
                   variant="primary"
                   onClick={() => {
-                    setForceChannel("meta");
-                    setConfirmReplace(false);
-                    window.setTimeout(() => {
-                      document.getElementById("mcfly-spend-csv-submit")?.click();
-                    }, 0);
+                    const select = document.getElementById(
+                      "mcfly-spend-force-channel",
+                    );
+                    const parsed =
+                      select instanceof HTMLSelectElement
+                        ? parseForceChannel(select.value)
+                        : undefined;
+                    if (!parsed) return;
+                    submitForcedChannel(parsed);
                   }}
                 >
-                  This is Meta
-                </s-button>
-                <s-button
-                  variant="secondary"
-                  onClick={() => {
-                    setForceChannel("google");
-                    setConfirmReplace(false);
-                    window.setTimeout(() => {
-                      document.getElementById("mcfly-spend-csv-submit")?.click();
-                    }, 0);
-                  }}
-                >
-                  This is Google
+                  Import as this platform
                 </s-button>
               </div>
             ) : csv ? (
@@ -2027,7 +2047,11 @@ export default function SpendEntryPage() {
             id="mcfly-spend-uploads"
             className="mcfly-spend-lean__upload"
           >
-            <Form method="post" encType="multipart/form-data">
+            <Form
+              id="mcfly-spend-csv-form"
+              method="post"
+              encType="multipart/form-data"
+            >
               <input type="hidden" name="intent" value="csv" />
               <input type="hidden" name="forceChannel" value={forceChannel} />
               <input

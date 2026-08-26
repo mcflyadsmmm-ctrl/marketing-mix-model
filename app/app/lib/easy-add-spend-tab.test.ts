@@ -76,4 +76,18 @@ describe("Easy Add Spend tab (history + drill-down)", () => {
     expect(formStart).toBeGreaterThan(-1);
     expect(spend.slice(formStart, formEnd)).not.toContain("ProUpsellBlock");
   });
+
+  it("force-channel allowlist is every SPEND_CHANNELS member, not Meta/Google only", () => {
+    expect(spend).toContain("parseForceChannel");
+    expect(spend).not.toMatch(
+      /forceRaw === "meta" \|\| forceRaw === "google"/,
+    );
+    expect(spend).toContain("requestSubmit");
+    expect(spend).not.toMatch(
+      /setTimeout\(\s*\(\)\s*=>\s*\{[\s\S]*mcfly-spend-csv-submit/,
+    );
+    expect(spend).toMatch(/This looks like a single-platform/);
+    expect(spend).toContain("SPEND_CHANNELS");
+    expect(spend).toContain("mcfly-spend-csv-form");
+  });
 });
