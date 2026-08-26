@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildThreeYearSampleDesk,
+  SAMPLE_BILLBOARD_LABEL,
+  SAMPLE_BILLBOARD_SLUG,
   SAMPLE_MIN_NEW_CUSTOMERS,
+  sampleDayTotalSpend,
   sampleSpendBounds,
   sampleSpendUsesNoonStamp,
 } from "./demo-sample-desk.server";
@@ -34,11 +37,34 @@ describe("buildThreeYearSampleDesk", () => {
     let spend = 0;
     for (const r of rows) {
       sales += r.sales;
-      for (const amt of Object.values(r.spendByChannel)) spend += amt;
+      spend += sampleDayTotalSpend(r);
     }
     const mer = sales / spend;
     expect(mer).toBeGreaterThan(3.8);
     expect(mer).toBeLessThan(5.2);
+  });
+
+  it("runs a flighted Billboard buy so Sample shows a named offline series", () => {
+    const rows = buildThreeYearSampleDesk({
+      now: new Date("2026-07-31T12:00:00Z"),
+      years: 1,
+    });
+    const withBillboard = rows.filter((r) => r.namedExtras.length > 0);
+    const withoutBillboard = rows.filter((r) => r.namedExtras.length === 0);
+    // A real contract runs in flights, so both states must exist.
+    expect(withBillboard.length).toBeGreaterThan(100);
+    expect(withoutBillboard.length).toBeGreaterThan(100);
+
+    const extra = withBillboard[0]!.namedExtras[0]!;
+    expect(extra.slug).toBe(SAMPLE_BILLBOARD_SLUG);
+    expect(extra.label).toBe(SAMPLE_BILLBOARD_LABEL);
+    expect(extra.amount).toBeGreaterThan(0);
+
+    // Carving the buy out of `other` must not change what the shop spent.
+    for (const r of rows) {
+      expect(r.spendByChannel.other).toBeGreaterThanOrEqual(0);
+      expect(sampleDayTotalSpend(r)).toBeGreaterThan(0);
+    }
   });
 });
 

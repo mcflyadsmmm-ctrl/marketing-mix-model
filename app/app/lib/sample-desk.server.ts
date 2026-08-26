@@ -1,6 +1,7 @@
 import prisma from "../db.server";
 import {
   buildThreeYearSampleDesk,
+  sampleDayTotalSpend,
   sampleSpendBounds,
   sampleSpendUsesNoonStamp,
 } from "./demo-sample-desk.server";
@@ -89,6 +90,7 @@ export async function seedThreeYearSampleDesk(
     const spendData: Array<{
       shopId: string;
       channel: SpendChannel;
+      customKey: string;
       amount: number;
       periodStart: Date;
       periodEnd: Date;
@@ -103,10 +105,28 @@ export async function seedThreeYearSampleDesk(
         spendData.push({
           shopId,
           channel,
+          customKey: "",
           amount,
           periodStart: start,
           periodEnd: end,
           note: "sample:3y",
+          source: "sample",
+        });
+      }
+      /*
+       * Named extras key on `other:<slug>`, so the Sample desk shows a real
+       * Billboard series instead of folding offline spend into "Other".
+       */
+      for (const extra of r.namedExtras) {
+        if (!(extra.amount > 0)) continue;
+        spendData.push({
+          shopId,
+          channel: "other",
+          customKey: extra.slug,
+          amount: extra.amount,
+          periodStart: start,
+          periodEnd: end,
+          note: extra.label,
           source: "sample",
         });
       }
@@ -139,11 +159,7 @@ export async function seedThreeYearSampleDesk(
     start: rows[0]?.day ?? null,
     end: rows[rows.length - 1]?.day ?? null,
     totalSales: rows.reduce((s, r) => s + r.sales, 0),
-    totalSpend: rows.reduce(
-      (s, r) =>
-        s + SPEND_CHANNELS.reduce((a, ch) => a + (r.spendByChannel[ch] ?? 0), 0),
-      0,
-    ),
+    totalSpend: rows.reduce((s, r) => s + sampleDayTotalSpend(r), 0),
   };
 }
 
@@ -226,20 +242,27 @@ export function utcDayKey(date: Date): string {
 }
 
 /**
- * Re-seed when SAMPLE sales or spend is missing, or when leftover spend still
- * uses UTC midnight (collides with live CSV unique keys → empty Spend page).
+ * Re-seed when SAMPLE sales or spend is missing, when leftover spend still
+ * uses UTC midnight (collides with live CSV unique keys → empty Spend page),
+ * or when the sample predates the named Billboard series and would show a
+ * desk with no offline channel in it.
  */
 export async function sampleDeskNeedsSeed(shopId: string): Promise<boolean> {
-  const [dayCount, probe] = await Promise.all([
+  const [dayCount, probe, namedExtra] = await Promise.all([
     prisma.sampleSalesDay.count({ where: { shopId } }),
     prisma.spendEntry.findFirst({
       where: { shopId, source: "sample" },
       select: { periodStart: true },
     }),
+    prisma.spendEntry.findFirst({
+      where: { shopId, source: "sample", customKey: { not: "" } },
+      select: { id: true },
+    }),
   ]);
   if (dayCount === 0) return true;
   if (!probe) return true;
-  return !sampleSpendUsesNoonStamp(probe.periodStart);
+  if (!sampleSpendUsesNoonStamp(probe.periodStart)) return true;
+  return namedExtra == null;
 }
 
 export async function getSampleDeskStats(shopId: string) {

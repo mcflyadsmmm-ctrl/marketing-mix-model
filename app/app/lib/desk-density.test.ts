@@ -120,6 +120,34 @@ describe("Spend chart mark toggle", () => {
   });
 });
 
+describe("Nothing on the desk exceeds shop sales", () => {
+  it("every cash view is clamped to the shop's own sales", () => {
+    const cash = read("./desk-cash.ts");
+    const ltv = read("./contrib-ltv.ts");
+    const explorerLib = read("./spend-explorer.ts");
+    // The readout floors at 0 and the split scales down to the sales ceiling.
+    expect(explorerLib).toContain("the shop's own sales");
+    expect(ltv).toContain("ceiling / combined");
+    // Goal figures are labelled as a goal, never merged into reported sales.
+    expect(cash).toContain("cashLeftAtGoal");
+    expect(cash).toContain("salesAtGoal");
+  });
+});
+
+describe("Sample desk", () => {
+  it("ships a named Billboard series so offline spend is visible in Sample", () => {
+    const demo = read("./demo-sample-desk.server.ts");
+    const sample = read("./sample-desk.server.ts");
+    expect(demo).toContain("SAMPLE_BILLBOARD_LABEL");
+    expect(demo).toContain("namedExtras");
+    expect(sample).toContain("customKey: extra.slug");
+    // Named extras live outside spendByChannel, so totals must go through the helper.
+    expect(sample).toContain("sampleDayTotalSpend");
+    // An older sample without the Billboard row re-seeds rather than staying stale.
+    expect(sample).toContain('customKey: { not: "" }');
+  });
+});
+
 describe("Empty Live window", () => {
   it("draws $0 days instead of swapping the plot for a white box", () => {
     expect(explorer).toContain("const hasPlot = allBuckets.length > 0");

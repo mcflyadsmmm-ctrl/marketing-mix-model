@@ -11,6 +11,15 @@
 import type { SpendChannel } from "@prisma/client";
 import { DESK_HISTORY_YEARS_BACK, deskHistoryFloorYear } from "./desk-history";
 
+/** A merchant-named `other` row, e.g. the Billboard buy. */
+export interface SampleNamedExtra {
+  /** SpendEntry.customKey — becomes the `other:<slug>` mix series. */
+  slug: string;
+  /** SpendEntry.note — the name the merchant reads. */
+  label: string;
+  amount: number;
+}
+
 export interface SampleDayRow {
   day: Date;
   sales: number;
@@ -20,10 +29,29 @@ export interface SampleDayRow {
   /** Net sales attributed to first-time buyers that day (shop dollars). */
   newCustomerNetSales: number;
   spendByChannel: Record<SpendChannel, number>;
+  /** Named `other` rows carved out of `spendByChannel.other`. */
+  namedExtras: SampleNamedExtra[];
 }
 
 /** Minimum new buyers per SAMPLE day — never show 0s on the desk. */
 export const SAMPLE_MIN_NEW_CUSTOMERS = 14;
+
+export const SAMPLE_BILLBOARD_SLUG = "billboard";
+export const SAMPLE_BILLBOARD_LABEL = "Billboard";
+/** Share of the `other` bucket that runs as the billboard contract. */
+const BILLBOARD_SHARE_OF_OTHER = 0.62;
+
+/**
+ * Total ad spend for a sample day. Named extras live outside
+ * `spendByChannel`, so every caller must sum through here or it will
+ * understate spend and overstate Total ROAS.
+ */
+export function sampleDayTotalSpend(row: SampleDayRow): number {
+  let total = 0;
+  for (const amount of Object.values(row.spendByChannel)) total += amount ?? 0;
+  for (const extra of row.namedExtras) total += extra.amount;
+  return total;
+}
 
 function mulberry32(seed: number) {
   return function rng() {
@@ -158,6 +186,22 @@ export function buildThreeYearSampleDesk(options?: {
       }
     }
 
+    /*
+     * Billboards are bought in flights, not every day. Carving the buy out of
+     * `other` on alternating months keeps total spend identical while giving
+     * the Sample desk a named extra that appears as its own Billboard band and
+     * then goes quiet — the case a merchant with offline spend needs to see.
+     */
+    const otherAmount = spendByChannel.other ?? 0;
+    const billboard =
+      month % 2 === 0
+        ? Math.round(otherAmount * BILLBOARD_SHARE_OF_OTHER * 100) / 100
+        : 0;
+    if (billboard > 0) {
+      spendByChannel.other =
+        Math.round((otherAmount - billboard) * 100) / 100;
+    }
+
     rows.push({
       day: new Date(d),
       sales,
@@ -166,6 +210,16 @@ export function buildThreeYearSampleDesk(options?: {
       returningCustomers,
       newCustomerNetSales,
       spendByChannel,
+      namedExtras:
+        billboard > 0
+          ? [
+              {
+                slug: SAMPLE_BILLBOARD_SLUG,
+                label: SAMPLE_BILLBOARD_LABEL,
+                amount: billboard,
+              },
+            ]
+          : [],
     });
   }
 
