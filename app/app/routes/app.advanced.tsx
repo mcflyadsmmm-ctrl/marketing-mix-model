@@ -176,9 +176,9 @@ export default function AdvancedMetricsPage() {
         </div>
 
         <p className="mcfly-advanced__lede">
-          Deep formulas for multi-million desks. Overview stays simple — this lab
-          is optional. Every tile is average / portfolio math from Shopify sales
-          and Logged Spend via CSV.
+          Optional. Add spend on Spend first — this page is extra math, not a
+          second scoreboard. Overview stays simple. Every tile is average /
+          portfolio math from Shopify sales and Logged Spend via CSV.
         </p>
 
         <div className="mcfly-advanced__nav">

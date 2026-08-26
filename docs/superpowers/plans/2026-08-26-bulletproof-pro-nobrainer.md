@@ -4,6 +4,10 @@
 
 **Goal:** Stop silent wrong spend, empty-after-pay LTV, dual clocks, and marketing/product lies so the first session and the first Pro charge are trustworthy.
 
+**Shipped on this branch (2026-08-26):** Wave A Tasks 1–6 and Wave B marketing/Advanced lede. Remaining: Wave C ghost intents, Wave D currency/Goals YoY/guests, Wave E Settings/EU amounts.
+
+**Architecture:** Pure parser guards in `spend-csv.ts`; LTV empty-reason + backfill progress in till/order-facts; Overview explorer tied to the scoreboard period; marketing copy aligned to entitlements. No pixels, no Partner Submit.
+
 **Architecture:** Pure parser guards in `spend-csv.ts`; LTV empty-reason + backfill progress in till/order-facts; Overview explorer tied to the scoreboard period; marketing copy aligned to entitlements. No pixels, no Partner Submit.
 
 **Tech Stack:** React Router 7 embedded Admin app, Vitest, Prisma `OrderBackfillState`, Shopify App Pricing Free + Pro $39, Fly `mcfly-analytics`.
