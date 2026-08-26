@@ -1147,21 +1147,28 @@
   text-underline-offset: 2px;
 }
 
+/* Real box, always. Never depends on a web component upgrading. */
 .mcfly-btn {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
   border: 1px solid transparent;
   border-radius: 8px;
-  padding: 0.55rem 0.95rem;
+  padding: 0.55rem 1.1rem;
   font: inherit;
   font-size: 0.88rem;
   font-weight: 650;
   cursor: pointer;
   line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
 }
 
 .mcfly-btn:disabled {
   opacity: 0.65;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .mcfly-btn--primary {
@@ -9740,6 +9747,82 @@
   color: var(--mcfly-ink-muted, #5c6b7a);
 }
 
+/* Three doors signpost — the first thing on Spend, before any explanation */
+.mcfly-spend-doors {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.9rem 0.85rem;
+  border: 1px solid var(--mcfly-line, #d8e0e8);
+  border-radius: var(--mcfly-radius, 10px);
+  background: #fff;
+}
+
+.mcfly-spend-doors__kicker {
+  margin: 0 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
+.mcfly-spend-doors__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mcfly-spend-doors__link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  height: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--mcfly-line-soft, #c9d4de);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mcfly-spend-doors__link:hover,
+.mcfly-spend-doors__link:focus-visible {
+  border-color: var(--mcfly-accent, #0284c7);
+  background: color-mix(in srgb, var(--mcfly-accent, #0284c7) 5%, #fff);
+}
+
+.mcfly-spend-doors__num {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background: var(--mcfly-ink, #1a2330);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.mcfly-spend-doors__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mcfly-spend-doors__title {
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.mcfly-spend-doors__hint {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
 /* Add spend — one day, any platform */
 .mcfly-spend-add {
   margin: 0;
@@ -9803,7 +9886,30 @@
 }
 
 .mcfly-spend-add__actions {
+  display: flex;
   margin-top: 0.85rem;
+}
+
+/*
+ * The three Spend doors submit through native buttons. Keep the hit target
+ * generous and unmistakable so a merchant's first click lands: a 2026-08-26
+ * Admin smoke lost clicks to a zero-size <s-button> host and opened the
+ * channel select instead of saving the spend.
+ */
+.mcfly-spend-submit {
+  min-height: 2.75rem;
+  min-width: 12rem;
+  margin-top: 0.85rem;
+}
+
+.mcfly-spend-add__actions .mcfly-spend-submit {
+  margin-top: 0;
+}
+
+@media (max-width: 34rem) {
+  .mcfly-spend-submit {
+    width: 100%;
+  }
 }
 
 .mcfly-spend-add__gated {

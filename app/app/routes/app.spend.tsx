@@ -118,6 +118,7 @@ import {
   spendChannelLabel,
   spendChannelShortLabel,
 } from "../lib/spend-channel-label";
+import { SPEND_DOORS } from "../lib/spend-doors";
 
 const MAX_COMBINE_SLOTS = 20;
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
@@ -1539,6 +1540,34 @@ export default function SpendEntryPage() {
         ) : null}
 
         <div className="mcfly-spend-lean__stack">
+          {/*
+           * Name the three doors before the explanation. First session should
+           * not need a tutorial to find out that typing one bill is an option.
+           */}
+          <nav className="mcfly-spend-doors" aria-label="Three ways to add spend">
+            <p className="mcfly-spend-doors__kicker">
+              Three ways to add spend — pick one
+            </p>
+            <ul className="mcfly-spend-doors__list">
+              {SPEND_DOORS.map((door, i) => (
+                <li key={door.href} className="mcfly-spend-doors__item">
+                  <a className="mcfly-spend-doors__link" href={door.href}>
+                    <span className="mcfly-spend-doors__num" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <span className="mcfly-spend-doors__body">
+                      <span className="mcfly-spend-doors__title">
+                        {door.title}
+                      </span>
+                      <span className="mcfly-spend-doors__hint">
+                        {door.hint}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
           <p className="mcfly-spend-helper">
             We already load your Shopify sales, orders, and LTV. We only need what
             you actually spent, by day, by channel — including billboard and
@@ -1767,9 +1796,13 @@ export default function SpendEntryPage() {
                   Select a channel above for a tailored template.
                 </s-text>
               )}
-              <s-button href={selectedBlankTemplateHref} variant="primary">
+              {/* Native anchor — the third door needs a real hit box too. */}
+              <a
+                className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
+                href={selectedBlankTemplateHref}
+              >
                 Download this template
-              </s-button>
+              </a>
             </div>
           </section>
 
@@ -1952,18 +1985,27 @@ export default function SpendEntryPage() {
                 </p>
               ) : null}
               <div className="mcfly-spend-add__actions">
-                <s-button
+                {/*
+                 * Native button, not <s-button>. In the 2026-08-26 Admin smoke
+                 * the web-component host measured 0×0, so the merchant's first
+                 * click sailed past it and opened the channel select instead of
+                 * saving. A real button with a real box submits on click one.
+                 */}
+                <button
                   type="submit"
-                  variant="primary"
-                  {...(isSubmitting && submittingIntent === "bill-daily"
-                    ? { loading: true }
-                    : {})}
-                  {...(!billPreview ? { disabled: true } : {})}
+                  className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
+                  disabled={
+                    !billPreview ||
+                    (isSubmitting && submittingIntent === "bill-daily")
+                  }
+                  aria-busy={isSubmitting && submittingIntent === "bill-daily"}
                 >
-                  {billPreview
-                    ? `That’s ${formatCurrency(billPreview.dailyAmount)} per day.`
-                    : "Enter an amount"}
-                </s-button>
+                  {isSubmitting && submittingIntent === "bill-daily"
+                    ? "Saving…"
+                    : billPreview
+                      ? `That’s ${formatCurrency(billPreview.dailyAmount)} per day.`
+                      : "Enter an amount"}
+                </button>
               </div>
             </Form>
           </section>
@@ -2028,16 +2070,18 @@ export default function SpendEntryPage() {
                   {csvFieldError}
                 </p>
               ) : null}
-              <s-button
+              {/* Native button — same zero-size host risk as the Type-it door. */}
+              <button
                 id="mcfly-spend-csv-submit"
                 type="submit"
-                variant="primary"
-                {...(isSubmitting && submittingIntent === "csv"
-                  ? { loading: true }
-                  : {})}
+                className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
+                disabled={isSubmitting && submittingIntent === "csv"}
+                aria-busy={isSubmitting && submittingIntent === "csv"}
               >
-                Import spend
-              </s-button>
+                {isSubmitting && submittingIntent === "csv"
+                  ? "Importing…"
+                  : "Import spend"}
+              </button>
             </Form>
           </section>
 

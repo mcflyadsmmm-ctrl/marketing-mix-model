@@ -93,6 +93,55 @@ describe("Easy Add Spend tab (three doors)", () => {
     expect(spend).toContain("mcfly-spend-csv-form");
   });
 
+  /*
+   * 2026-08-26 Admin smoke: the primary submit was an <s-button> whose host
+   * measured 0×0, so the merchant's first click fell through to the channel
+   * select instead of saving. Every door submits through a native control now.
+   */
+  it("submits each door through a native control, not a web component", () => {
+    const actionsAt = spend.indexOf('className="mcfly-spend-add__actions"');
+    expect(actionsAt).toBeGreaterThan(-1);
+    // Drop JSX comments so prose about the old bug cannot fail the assertion.
+    const actions = spend
+      .slice(actionsAt, actionsAt + 1200)
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+    expect(actions).toContain("<button");
+    expect(actions).toContain('type="submit"');
+    expect(actions).toContain("mcfly-spend-submit");
+    expect(actions).not.toContain("<s-button");
+
+    // CSV door.
+    const csvSubmitAt = spend.indexOf('id="mcfly-spend-csv-submit"');
+    expect(csvSubmitAt).toBeGreaterThan(-1);
+    expect(spend.slice(csvSubmitAt - 120, csvSubmitAt)).toContain("<button");
+
+    // Template door.
+    expect(spend).toMatch(
+      /<a\s+className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"/,
+    );
+  });
+
+  it("gives the submit a real hit box that cannot collapse to zero", () => {
+    expect(css).toContain(".mcfly-spend-submit");
+    expect(css).toMatch(
+      /\.mcfly-spend-submit \{[^}]*min-height:\s*2\.75rem/,
+    );
+    expect(css).toMatch(/\.mcfly-spend-submit \{[^}]*min-width:/);
+    expect(css).toMatch(/\.mcfly-btn \{[^}]*display:\s*inline-flex/);
+    expect(css).toMatch(/\.mcfly-btn \{[^}]*min-height:\s*2\.75rem/);
+  });
+
+  it("names the three doors up front so no tutorial is needed", () => {
+    expect(spend).toContain("mcfly-spend-doors");
+    expect(spend).toContain("SPEND_DOORS");
+    expect(spend).toContain("Three ways to add spend");
+    const doorsAt = spend.indexOf('className="mcfly-spend-doors"');
+    const helperAt = spend.indexOf('className="mcfly-spend-helper"');
+    expect(doorsAt).toBeGreaterThan(-1);
+    // Signpost lands before the wall of explanation.
+    expect(doorsAt).toBeLessThan(helperAt);
+  });
+
   it("first-session how-to is Meta + billboard vs same-day sales, empty spend is $0", () => {
     expect(spend).toContain("yesterday’s Meta plus");
     expect(spend).toContain("billboard");
