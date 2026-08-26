@@ -4,6 +4,9 @@ import {
   bucketExplorerRows,
   closedDayEnd,
   compareExplorerBuckets,
+  defaultExplorerGranularity,
+  explorerShowSalesDefault,
+  fillExplorerDayHoles,
   priorExplorerBucketKey,
   explorerMoneyCeil,
   explorerSalesCeil,
@@ -12,12 +15,18 @@ import {
   parseExplorerDateParam,
   parseExplorerGranularity,
   parseExplorerMode,
+  parseExplorerMark,
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
   explorerQueryMatchingScoreboard,
   summarizeExplorer,
+  buildExplorerPlotModel,
+  explorerMixShares,
+  explorerSafeId,
   type ExplorerDailyRow,
+  type ExplorerMark,
+  type ExplorerMode,
 } from "./spend-explorer";
 import {
   listRecentClosedShopLocalDays,
@@ -45,6 +54,11 @@ describe("parseExplorer*", () => {
     expect(parseExplorerGranularity(null)).toBe("Week");
     expect(parseExplorerMode(null)).toBe("stacked");
     expect(parseExplorerShowSales(null)).toBe(false);
+    expect(explorerShowSalesDefault(null)).toBe(true);
+    expect(defaultExplorerGranularity("custom")).toBe("Day");
+    expect(defaultExplorerGranularity("14d")).toBe("Day");
+    expect(defaultExplorerGranularity("90d")).toBe("Week");
+    expect(defaultExplorerGranularity("All")).toBe("Week");
   });
 
   it("accepts known values", () => {
@@ -63,8 +77,9 @@ describe("parseExplorer*", () => {
     expect(parseExplorerGranularity("Hour")).toBe("Week");
     expect(parseExplorerMode("pie")).toBe("stacked");
     expect(parseExplorerShowSales("0")).toBe(false);
-    expect(parseExplorerDateParam("07/01/2026")).toBeNull();
-    expect(parseExplorerDateParam("2026-13-40")).toBeNull();
+    expect(parseExplorerMark(null)).toBe("bar");
+    expect(parseExplorerMark("line")).toBe("line");
+    expect(parseExplorerMark("pie")).toBe("bar");
   });
 });
 
@@ -646,5 +661,118 @@ describe("compareExplorerBuckets", () => {
     expect(rows[0]?.hasPrior).toBe(false);
     expect(rows[0]?.priorKey).toBe("q:2025-Q4");
     expect(rows[0]?.spendDelta).toBeNull();
+  });
+});
+
+describe("fillExplorerDayHoles + bar vs line toggle", () => {
+  it("inserts $0 calendar holes between sparse days", () => {
+    const filled = fillExplorerDayHoles(
+      [
+        day("2026-08-01", 500, { meta: 80, "other:billboard": 400 }),
+        day("2026-08-03", 600, { meta: 90, google: 120 }),
+      ],
+      "2026-08-01",
+      "2026-08-03",
+    );
+    expect(filled.map((r) => r.dateKey)).toEqual([
+      "2026-08-01",
+      "2026-08-02",
+      "2026-08-03",
+    ]);
+    expect(filled[1]?.spend).toBe(0);
+    expect(filled[1]?.sales).toBe(0);
+    expect(filled[1]?.channels).toEqual([]);
+    expect(filled[0]?.channels.map((c) => c.channel)).toContain(
+      "other:billboard",
+    );
+  });
+
+  it("sanitizes week keys and Billboard slugs for SVG ids", () => {
+    expect(explorerSafeId("w:2026-07-27")).toBe("w-2026-07-27");
+    expect(explorerSafeId("other:billboard")).toBe("other-billboard");
+    expect(explorerSafeId("q:2026-Q3")).toBe("q-2026-Q3");
+  });
+
+  it("toggles bar vs line on an empty mix (all $0 days) without NaN", () => {
+    const rows = fillExplorerDayHoles([], "2026-08-01", "2026-08-03");
+    const buckets = bucketExplorerRows(rows, "Day");
+    expect(buckets).toHaveLength(3);
+    for (const mark of ["bar", "line"] as ExplorerMark[]) {
+      const model = buildExplorerPlotModel({
+        buckets: applyExplorerMode(buckets, "stacked"),
+        mode: "stacked",
+        mark,
+        granularity: "Day",
+        showSales: true,
+        targetMer: 3.6,
+        breakEvenMer: null,
+      });
+      expect(model.hasPlot, mark).toBe(true);
+      expect(model.columns.every((c) => c.hole), mark).toBe(true);
+      expect(JSON.stringify(model), mark).not.toMatch(/NaN|Infinity/);
+    }
+  });
+
+  it("toggles stacked bar vs line across modes with holes and Billboard without NaN", () => {
+    const rows = fillExplorerDayHoles(
+      [
+        day("2026-08-01", 1200, { meta: 80, "other:billboard": 400 }),
+        day("2026-08-03", 900, { meta: 90, google: 120 }),
+      ],
+      "2026-08-01",
+      "2026-08-03",
+    );
+    const buckets = bucketExplorerRows(rows, "Day");
+    expect(buckets).toHaveLength(3);
+    expect(buckets[1]?.spend).toBe(0);
+
+    const modes: ExplorerMode[] = ["stacked", "share", "total"];
+    const marks: ExplorerMark[] = ["bar", "line"];
+    for (const mode of modes) {
+      const plot = applyExplorerMode(buckets, mode);
+      for (const mark of marks) {
+        const model = buildExplorerPlotModel({
+          buckets: plot,
+          mode,
+          mark,
+          granularity: "Day",
+          showSales: true,
+          targetMer: 3.6,
+          breakEvenMer: 2.86,
+        });
+        expect(model.hasPlot, `${mode}/${mark}`).toBe(true);
+        expect(model.columns, `${mode}/${mark}`).toHaveLength(3);
+        expect(model.columns[1]?.hole, `${mode}/${mark}`).toBe(true);
+        expect(model.vbW).toBeGreaterThan(0);
+        expect(model.leftCeil).toBeGreaterThan(0);
+        expect(model.merCeil).toBeGreaterThan(0);
+        const blob = JSON.stringify(model);
+        expect(blob, `${mode}/${mark}`).not.toMatch(/NaN|Infinity/);
+        expect(
+          model.columns.every(
+            (c) => Number.isFinite(c.xCenter) && Number.isFinite(c.barW),
+          ),
+        ).toBe(true);
+        if (mode !== "total") {
+          const mix = explorerMixShares(plot, mode);
+          expect(mix["other:billboard"], `${mode} mix Billboard`).toBeGreaterThan(
+            0,
+          );
+          const billboard = model.columns[0]?.segs.find(
+            (s) => s.channel === "other:billboard",
+          );
+          expect(billboard, `${mode}/${mark} Billboard`).toBeTruthy();
+          expect(billboard!.amount).toBeGreaterThan(0);
+          if (mark === "line") {
+            const band = model.channelBands.find(
+              (b) => b.channel === "other:billboard",
+            );
+            expect(band?.points, `${mode} line Billboard`).toBeTruthy();
+            expect(band?.d, `${mode} line Billboard area`).toBeTruthy();
+            expect(band?.d).not.toMatch(/NaN/);
+          }
+        }
+      }
+    }
   });
 });

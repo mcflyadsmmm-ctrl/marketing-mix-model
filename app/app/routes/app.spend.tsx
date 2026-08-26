@@ -31,12 +31,14 @@ import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod, type PeriodPreset
 import { deskNavHref } from "../lib/desk-nav";
 import {
   dateKeyFromLocal,
+  defaultExplorerGranularity,
   explorerQueryMatchingScoreboard,
+  explorerShowSalesDefault,
   parseExplorerDateParam,
   parseExplorerGranularity,
+  parseExplorerMark,
   parseExplorerMode,
   parseExplorerRange,
-  parseExplorerShowSales,
   resolveExplorerWindow,
 } from "../lib/spend-explorer";
 import { shopLocalDayKey } from "../lib/shop-local-day";
@@ -323,9 +325,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ? { source: "sample" as const }
     : { source: { not: "sample" } };
   const periodRange = resolvePeriod(preset, now, timeZone);
-  const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
-  const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
+  const exMark = parseExplorerMark(url.searchParams.get("exMark"));
+  const exSales = explorerShowSalesDefault(url.searchParams.get("exSales"));
   // SAMPLE ON → show sample rows. SAMPLE OFF → this shop's own uploads only.
   const [entries, dayCoverage] = await Promise.all([
     prisma.spendEntry.findMany({
@@ -356,6 +358,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const exTo = explicitExRange
     ? parseExplorerDateParam(url.searchParams.get("exTo"))
     : (tiedExplorer?.to ?? null);
+  const granParam = url.searchParams.get("exGran");
+  const exGran = granParam
+    ? parseExplorerGranularity(granParam)
+    : defaultExplorerGranularity(exRange);
   const explorerWindow = resolveExplorerWindow(exRange, now, {
     from: exFrom,
     to: exTo,
@@ -428,6 +434,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     targetMer: explorerSeries.targetMer,
     breakEvenMer,
     showSales: exSales,
+    mark: exMark,
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),

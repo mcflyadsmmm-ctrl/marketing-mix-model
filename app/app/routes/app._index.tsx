@@ -60,13 +60,15 @@ import {
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
   dateKeyFromLocal,
+  defaultExplorerGranularity,
+  explorerQueryMatchingScoreboard,
+  explorerShowSalesDefault,
   parseExplorerDateParam,
   parseExplorerGranularity,
+  parseExplorerMark,
   parseExplorerMode,
   parseExplorerRange,
-  parseExplorerShowSales,
   resolveExplorerWindow,
-  explorerQueryMatchingScoreboard,
 } from "../lib/spend-explorer";
 
 /** Same resolver the Spend page uses — Billboard must not read "Other" here. */
@@ -101,9 +103,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     next.set("period", "ytd");
     throw redirect(`/app?${next.toString()}`);
   }
-  const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
-  const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
+  const exMark = parseExplorerMark(url.searchParams.get("exMark"));
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
   const salesBasis = "total" as const;
@@ -121,6 +122,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const exRange = exRangeParam
     ? parseExplorerRange(exRangeParam)
     : (tiedExplorer?.range ?? "custom");
+  const granParam = url.searchParams.get("exGran");
+  const exGran = granParam
+    ? parseExplorerGranularity(granParam)
+    : defaultExplorerGranularity(exRange);
+  const exSales = explorerShowSalesDefault(url.searchParams.get("exSales"));
   const exFrom = exRangeParam
     ? parseExplorerDateParam(url.searchParams.get("exFrom"))
     : (tiedExplorer?.from ?? null);
@@ -299,6 +305,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     targetMer: explorerSeries.targetMer,
     breakEvenMer: metrics.breakEvenMer,
     showSales: exSales,
+    mark: exMark,
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),

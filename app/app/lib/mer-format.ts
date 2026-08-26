@@ -6,8 +6,8 @@ export function formatCurrency(amount: number, currency = "USD"): string {
   }).format(amount);
 }
 
-export function formatMer(value: number | null): string {
-  if (value === null) return "—";
+export function formatMer(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—";
   return value.toFixed(2);
 }
 

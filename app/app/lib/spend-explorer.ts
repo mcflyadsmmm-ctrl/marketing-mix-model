@@ -15,6 +15,7 @@ import {
 export type ExplorerRange = "14d" | "30d" | "90d" | "YTD" | "1y" | "All" | "custom";
 export type ExplorerGranularity = "Day" | "Week" | "Month" | "Quarter";
 export type ExplorerMode = "stacked" | "share" | "total";
+export type ExplorerMark = "bar" | "line";
 
 export type ExplorerWindowOptions = {
   from?: string | null;
@@ -137,6 +138,11 @@ export const EXPLORER_MODE_OPTIONS: { value: ExplorerMode; label: string }[] = [
   { value: "total", label: "Total $" },
 ];
 
+export const EXPLORER_MARK_OPTIONS: { value: ExplorerMark; label: string }[] = [
+  { value: "bar", label: "Stacked bar" },
+  { value: "line", label: "Line" },
+];
+
 function startOfLocalDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
@@ -252,11 +258,91 @@ export function parseExplorerGranularity(
   return "Week";
 }
 
+/**
+ * Day buckets for short windows so missing spend reads as a $0 hole
+ * instead of one fat bar. Week for long windows so All/1y stay readable.
+ */
+export function defaultExplorerGranularity(
+  range: ExplorerRange,
+): ExplorerGranularity {
+  switch (range) {
+    case "14d":
+    case "30d":
+    case "custom":
+      return "Day";
+    case "90d":
+    case "YTD":
+    case "1y":
+    case "All":
+      return "Week";
+    default: {
+      const _exhaustive: never = range;
+      return _exhaustive;
+    }
+  }
+}
+
+/**
+ * Unset `exSales` means sales-on — mix vs that day's sales is the $39 view.
+ * Explicit `exSales=0` still turns the line off. `parseExplorerShowSales(null)`
+ * stays false so URL parsers do not invert a missing flag elsewhere.
+ */
+export function explorerShowSalesDefault(raw: string | null): boolean {
+  if (raw == null || raw === "") return true;
+  return parseExplorerShowSales(raw);
+}
+
+/**
+ * Insert $0 sales/spend days so a sparse CSV does not collapse into one bar.
+ * Calendar keys increment as YYYY-MM-DD (UTC date arithmetic).
+ */
+export function fillExplorerDayHoles(
+  rows: ExplorerDailyRow[],
+  startKey: string,
+  endKey: string,
+): ExplorerDailyRow[] {
+  if (!DATE_KEY_RE.test(startKey) || !DATE_KEY_RE.test(endKey)) {
+    return rows;
+  }
+  if (startKey > endKey) return rows;
+  const byKey = new Map(rows.map((row) => [row.dateKey, row]));
+  const filled: ExplorerDailyRow[] = [];
+  let guard = 0;
+  for (let key = startKey; key <= endKey; ) {
+    filled.push(
+      byKey.get(key) ?? {
+        dateKey: key,
+        sales: 0,
+        spend: 0,
+        channels: [],
+      },
+    );
+    const next = nextUtcCalendarDayKey(key);
+    if (!next || next <= key) break;
+    key = next;
+    guard += 1;
+    if (guard > 2000) break;
+  }
+  return filled;
+}
+
+function nextUtcCalendarDayKey(dateKey: string): string {
+  const parsed = parseDateKey(dateKey);
+  if (!parsed) return dateKey;
+  return dateKeyFromLocal(addLocalDays(parsed, 1));
+}
+
 export function parseExplorerMode(raw: string | null): ExplorerMode {
   if (raw && MODES.includes(raw as ExplorerMode)) {
     return raw as ExplorerMode;
   }
   return "stacked";
+}
+
+/** Stacked bar is the default mix. `line` is the same mix as polylines — not attribution. */
+export function parseExplorerMark(raw: string | null): ExplorerMark {
+  if (raw === "line" || raw === "bar") return raw;
+  return "bar";
 }
 
 /** Apps Script `ex.showSales` — URL `exSales=1`. */
@@ -907,6 +993,256 @@ export function explorerMerCeil(
     if (b.mer != null && b.mer > max) max = b.mer;
   }
   return max * 1.08;
+}
+
+/** SVG / aria ids cannot keep `:` from week keys or `other:billboard`. */
+export function explorerSafeId(key: string): string {
+  const cleaned = key.replace(/[^A-Za-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
+  return cleaned || "col";
+}
+
+/**
+ * Period mix share (0–1) per channel from plot bars.
+ * Share-% mode reconstructs dollars from bucket spend so the legend % is cash mix,
+ * not a mean of daily percentages. Total-$ mode is a single 100% band.
+ */
+export function explorerMixShares(
+  buckets: ExplorerPlotBucket[],
+  mode: ExplorerMode,
+): Record<string, number> {
+  const amounts = new Map<string, number>();
+  for (const bucket of buckets) {
+    if (mode === "share") {
+      const spend = Number.isFinite(bucket.spend) ? bucket.spend : 0;
+      for (const bar of bucket.bars) {
+        const pct = Number.isFinite(bar.amount) ? bar.amount : 0;
+        const dollars = spend * (pct / 100);
+        amounts.set(bar.channel, (amounts.get(bar.channel) ?? 0) + dollars);
+      }
+    } else {
+      for (const bar of bucket.bars) {
+        const amt = Number.isFinite(bar.amount) ? bar.amount : 0;
+        amounts.set(bar.channel, (amounts.get(bar.channel) ?? 0) + amt);
+      }
+    }
+  }
+  const total = [...amounts.values()].reduce((sum, n) => sum + n, 0);
+  const out: Record<string, number> = {};
+  for (const [channel, amount] of amounts) {
+    out[channel] = total > 0 ? amount / total : 0;
+  }
+  return out;
+}
+
+function finiteOr(n: number, fallback: number): number {
+  return Number.isFinite(n) ? n : fallback;
+}
+
+export const EXPLORER_PAD = { l: 56, r: 48, t: 16, b: 28 } as const;
+export const EXPLORER_PLOT_H = 270;
+
+export type ExplorerPlotSeg = {
+  channel: string;
+  amount: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  yTop: number;
+};
+
+export type ExplorerPlotColumn = {
+  key: string;
+  safeId: string;
+  label: string;
+  xCenter: number;
+  slotX: number;
+  slotW: number;
+  barX: number;
+  barW: number;
+  segs: ExplorerPlotSeg[];
+  hole: boolean;
+  merY: number | null;
+  salesY: number | null;
+};
+
+export type ExplorerChannelBand = {
+  channel: string;
+  /** Stacked-area path (line mark). Empty when a band cannot be drawn. */
+  d: string;
+  /** Polyline along the band top. */
+  points: string;
+};
+
+export type ExplorerPlotModel = {
+  vbW: number;
+  vbH: number;
+  leftCeil: number;
+  merCeil: number;
+  columns: ExplorerPlotColumn[];
+  merLine: string;
+  salesLine: string;
+  channelBands: ExplorerChannelBand[];
+  hasPlot: boolean;
+};
+
+function explorerColMinPx(
+  granularity: ExplorerGranularity,
+  mode: ExplorerMode,
+): number {
+  if (granularity === "Day") return 28;
+  if (granularity === "Quarter") return 64;
+  if (mode === "total") return 48;
+  return 52;
+}
+
+function polylinePoints(
+  pts: Array<{ x: number; y: number | null }>,
+): string {
+  return pts
+    .filter((p) => Number.isFinite(p.x) && p.y != null && Number.isFinite(p.y))
+    .map((p) => `${p.x},${p.y as number}`)
+    .join(" ");
+}
+
+/**
+ * Layout for stacked bar vs line. Never emits NaN coordinates — $0 days are
+ * baseline holes, Billboard extras stack as `other:<slug>`.
+ */
+export function buildExplorerPlotModel(input: {
+  buckets: ExplorerPlotBucket[];
+  mode: ExplorerMode;
+  mark: ExplorerMark;
+  granularity: ExplorerGranularity;
+  showSales: boolean;
+  targetMer: number;
+  breakEvenMer: number | null;
+  hiddenChannels?: ReadonlySet<string>;
+}): ExplorerPlotModel {
+  const hidden = input.hiddenChannels ?? new Set<string>();
+  const isShare = input.mode === "share";
+  const showSales = input.showSales && !isShare;
+  const legend = explorerLegendChannels(input.buckets, input.mode).filter(
+    (ch) => !hidden.has(ch),
+  );
+  const n = input.buckets.length;
+  const colMinPx = explorerColMinPx(input.granularity, input.mode);
+  const vbW = Math.max(360, n * colMinPx);
+  const vbH = EXPLORER_PAD.t + EXPLORER_PLOT_H + EXPLORER_PAD.b;
+  const plotW = Math.max(1, vbW - EXPLORER_PAD.l - EXPLORER_PAD.r);
+  const slotW = n > 0 ? plotW / n : plotW;
+  const barW = slotW * (input.mark === "line" ? 0.28 : 0.62);
+  const leftCeil = finiteOr(
+    explorerMoneyCeil(input.buckets, input.mode, showSales),
+    1,
+  );
+  const merCeil = finiteOr(
+    explorerMerCeil(input.buckets, input.targetMer, input.breakEvenMer),
+    1,
+  );
+  const yLeft = (val: number) =>
+    EXPLORER_PAD.t +
+    EXPLORER_PLOT_H -
+    (leftCeil > 0 ? (finiteOr(val, 0) / leftCeil) * EXPLORER_PLOT_H : 0);
+  const yMer = (val: number) =>
+    EXPLORER_PAD.t +
+    EXPLORER_PLOT_H -
+    (merCeil > 0 ? (finiteOr(val, 0) / merCeil) * EXPLORER_PLOT_H : 0);
+
+  const columns: ExplorerPlotColumn[] = input.buckets.map((bucket, i) => {
+    const ordered = orderBarsByLegend(bucket.bars, legend);
+    const cx = EXPLORER_PAD.l + (i + 0.5) * slotW;
+    const x = cx - barW / 2;
+    let yCursor = EXPLORER_PAD.t + EXPLORER_PLOT_H;
+    const segs: ExplorerPlotSeg[] = [];
+    for (const seg of ordered) {
+      const amount = finiteOr(seg.amount, 0);
+      const h =
+        amount > 0 && leftCeil > 0 ? (amount / leftCeil) * EXPLORER_PLOT_H : 0;
+      const safeH = finiteOr(h, 0);
+      yCursor -= safeH;
+      const yTop = finiteOr(yCursor, EXPLORER_PAD.t + EXPLORER_PLOT_H);
+      segs.push({
+        channel: seg.channel,
+        amount,
+        x: finiteOr(x, EXPLORER_PAD.l),
+        y: yTop,
+        w: finiteOr(barW, 1),
+        h: safeH,
+        yTop,
+      });
+    }
+    const merY =
+      bucket.mer != null && Number.isFinite(bucket.mer) && merCeil > 0
+        ? yMer(Math.min(bucket.mer, merCeil))
+        : null;
+    const salesY =
+      showSales && Number.isFinite(bucket.sales)
+        ? yLeft(Math.min(bucket.sales, leftCeil))
+        : null;
+    return {
+      key: bucket.key,
+      safeId: explorerSafeId(bucket.key),
+      label: bucket.label,
+      xCenter: finiteOr(cx, EXPLORER_PAD.l),
+      slotX: finiteOr(EXPLORER_PAD.l + i * slotW, EXPLORER_PAD.l),
+      slotW: finiteOr(slotW, 1),
+      barX: finiteOr(x, EXPLORER_PAD.l),
+      barW: finiteOr(barW, 1),
+      segs,
+      hole: !(bucket.spend > 0) && !bucket.bars.some((b) => b.amount > 0),
+      merY: merY != null && Number.isFinite(merY) ? merY : null,
+      salesY: salesY != null && Number.isFinite(salesY) ? salesY : null,
+    };
+  });
+
+  const merLine = polylinePoints(
+    columns.map((c) => ({ x: c.xCenter, y: c.merY })),
+  );
+  const salesLine = polylinePoints(
+    columns.map((c) => ({ x: c.xCenter, y: c.salesY })),
+  );
+
+  const baseline = EXPLORER_PAD.t + EXPLORER_PLOT_H;
+  const channelBands: ExplorerChannelBand[] = legend.map((channel) => {
+    const tops: Array<{ x: number; y: number }> = [];
+    const bottoms: Array<{ x: number; y: number }> = [];
+    for (const col of columns) {
+      const idx = col.segs.findIndex((s) => s.channel === channel);
+      const seg = idx >= 0 ? col.segs[idx] : null;
+      const yTop = seg && Number.isFinite(seg.yTop) ? seg.yTop : baseline;
+      const yBot =
+        idx > 0 && col.segs[idx - 1] && Number.isFinite(col.segs[idx - 1]!.yTop)
+          ? col.segs[idx - 1]!.yTop
+          : baseline;
+      tops.push({ x: col.xCenter, y: yTop });
+      bottoms.push({ x: col.xCenter, y: yBot });
+    }
+    const points = polylinePoints(tops.map((p) => ({ x: p.x, y: p.y })));
+    let d = "";
+    if (tops.length >= 2) {
+      const up = tops.map((p) => `${p.x},${p.y}`).join(" L ");
+      const down = [...bottoms]
+        .reverse()
+        .map((p) => `${p.x},${p.y}`)
+        .join(" L ");
+      d = `M ${up} L ${down} Z`;
+      if (d.includes("NaN") || d.includes("Infinity")) d = "";
+    }
+    return { channel, d, points };
+  });
+
+  return {
+    vbW: finiteOr(vbW, 360),
+    vbH: finiteOr(vbH, EXPLORER_PAD.t + EXPLORER_PLOT_H + EXPLORER_PAD.b),
+    leftCeil,
+    merCeil,
+    columns,
+    merLine,
+    salesLine,
+    channelBands,
+    hasPlot: n > 0,
+  };
 }
 
 /** Apps Script gran subtitle phrase (without count). */

@@ -43,3 +43,50 @@ export function spendPeriodMix(
       (a, b) => b.amount - a.amount || a.channel.localeCompare(b.channel),
     );
 }
+
+export type SpendMixVsPriorRow = {
+  channel: string;
+  amount: number;
+  share: number;
+  priorAmount: number;
+  priorShare: number;
+  /** This-period share − prior share, in percentage points. */
+  deltaPp: number;
+};
+
+/**
+ * Spend mix this period vs last. Budget share only — never assigns sales
+ * to a channel.
+ */
+export function spendMixVsPrior(
+  current: SpendPeriodMixInput[],
+  prior: SpendPeriodMixInput[],
+): SpendMixVsPriorRow[] {
+  const now = spendPeriodMix(current);
+  const then = spendPeriodMix(prior);
+  const nowMap = new Map(now.map((row) => [row.channel, row]));
+  const thenMap = new Map(then.map((row) => [row.channel, row]));
+  const channels = new Set([...nowMap.keys(), ...thenMap.keys()]);
+  return [...channels]
+    .map((channel) => {
+      const here = nowMap.get(channel);
+      const before = thenMap.get(channel);
+      const share = here?.share ?? 0;
+      const priorShare = before?.share ?? 0;
+      return {
+        channel,
+        amount: here?.amount ?? 0,
+        share,
+        priorAmount: before?.amount ?? 0,
+        priorShare,
+        deltaPp: Math.round((share - priorShare) * 10000) / 100,
+      };
+    })
+    .filter((row) => row.amount > 0 || row.priorAmount > 0)
+    .sort(
+      (a, b) =>
+        b.amount - a.amount ||
+        Math.abs(b.deltaPp) - Math.abs(a.deltaPp) ||
+        a.channel.localeCompare(b.channel),
+    );
+}
