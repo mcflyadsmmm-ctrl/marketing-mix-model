@@ -19,7 +19,17 @@ import {
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
-import { channelFillKey } from "../lib/channel-fill";
+import { channelFillKey, namedExtraFillKey } from "../lib/channel-fill";
+import {
+  newVsReturningPendingCopy,
+  newVsReturningSplit,
+  type NewVsReturningSplit,
+} from "../lib/contrib-ltv";
+import {
+  CASH_LEFT_LABEL,
+  goalVsLeftoverCash,
+  goalVsLeftoverCopy,
+} from "../lib/desk-cash";
 import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -53,20 +63,26 @@ import {
   type PeriodPreset,
 } from "../lib/periods";
 import {
+  ensureSampleDeskSeeded,
   fetchSampleSales,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
+  SAMPLE_DESK_TARGET_MER,
 } from "../lib/sample-desk.server";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
   dateKeyFromLocal,
+  defaultExplorerGranularity,
+  explorerQueryMatchingScoreboard,
+  explorerShowCashDefault,
+  explorerShowPriorPeriodDefault,
+  explorerShowSalesDefault,
   parseExplorerDateParam,
   parseExplorerGranularity,
+  parseExplorerMark,
   parseExplorerMode,
   parseExplorerRange,
-  parseExplorerShowSales,
   resolveExplorerWindow,
-  explorerQueryMatchingScoreboard,
 } from "../lib/spend-explorer";
 
 /** Same resolver the Spend page uses — Billboard must not read "Other" here. */
@@ -101,15 +117,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     next.set("period", "ytd");
     throw redirect(`/app?${next.toString()}`);
   }
-  const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
-  const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
+  const exMark = parseExplorerMark(url.searchParams.get("exMark"));
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  /*
+   * Awaited before any sample read below, so the first HTML already carries
+   * the current Sample shape. A background heal would paint the previous
+   * release's mix and only correct on a refresh.
+   */
+  if (useSampleDesk) {
+    await ensureSampleDeskSeeded(shop.id, SAMPLE_DESK_TARGET_MER);
+  }
   const deskTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
   const range = resolvePeriod(preset, now, deskTz);
   const priorRange = resolvePriorPeriod(preset, now, deskTz);
@@ -121,6 +144,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const exRange = exRangeParam
     ? parseExplorerRange(exRangeParam)
     : (tiedExplorer?.range ?? "custom");
+  const granParam = url.searchParams.get("exGran");
+  const exGran = granParam
+    ? parseExplorerGranularity(granParam)
+    : defaultExplorerGranularity(exRange);
+  const exSales = explorerShowSalesDefault(url.searchParams.get("exSales"));
+  const exCash = explorerShowCashDefault(url.searchParams.get("exCash"));
+  const exWow = explorerShowPriorPeriodDefault(url.searchParams.get("exWow"));
   const exFrom = exRangeParam
     ? parseExplorerDateParam(url.searchParams.get("exFrom"))
     : (tiedExplorer?.from ?? null);
@@ -299,6 +329,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     targetMer: explorerSeries.targetMer,
     breakEvenMer: metrics.breakEvenMer,
     showSales: exSales,
+    mark: exMark,
+    showCash: exCash,
+    showPriorPeriod: exWow,
+    /*
+     * Only comparable when the explorer is following the desk period, so the
+     * prior mix really is the period directly before this window.
+     */
+    priorChannelSpend: tiedExplorer
+      ? metrics.mixVsPrior
+          .filter((row) => row.priorAmount > 0)
+          .map((row) => ({ channel: row.channel, amount: row.priorAmount }))
+      : null,
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),
@@ -410,6 +452,16 @@ export default function Dashboard() {
       )
     : null;
   const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
+  /*
+   * Budget share this period vs last, in percentage points. Where the money
+   * went — never a claim about which channel caused the sale.
+   */
+  const mixDeltaByChannel = new Map(
+    metrics.mixVsPrior
+      .filter((row) => row.priorAmount > 0 || row.amount > 0)
+      .map((row) => [row.channel, row]),
+  );
+  const hasPriorMix = metrics.mixVsPrior.some((row) => row.priorAmount > 0);
   const periodChannels = [...metrics.channelMix]
     .filter((entry) => entry.amount > 0)
     .sort((a, b) => b.amount - a.amount)
@@ -418,13 +470,38 @@ export default function Dashboard() {
         channel: entry.channel,
         customLabel: entry.customLabel,
       });
+      const delta = hasPriorMix
+        ? (mixDeltaByChannel.get(name)?.deltaPp ?? null)
+        : null;
       return {
         name,
         amount: entry.amount,
         share: entry.share,
-        fill: channelFillKey(name),
+        // A merchant-named channel keeps its own colour here and on the chart.
+        fill:
+          entry.channel === "other" && entry.customLabel
+            ? namedExtraFillKey(entry.customLabel)
+            : channelFillKey(name),
+        deltaPp: delta,
       };
     });
+  /** Sales minus the ads that ran alongside them — cash, not attribution. */
+  const cashLeftAfterAds = metrics.salesPending
+    ? null
+    : totalSalesDisplay - metrics.totalSpend;
+  const newVsReturning = newVsReturningSplit({
+    newCustomerNetSales: metrics.newCustomerNetSales,
+    returningCustomerNetSales: metrics.returningCustomerNetSales,
+    totalSpend: metrics.totalSpend,
+    totalSales: totalSalesDisplay,
+  });
+  /** The Total ROAS goal restated as dollars of leftover cash. */
+  const goalCash = goalVsLeftoverCash({
+    sales: totalSalesDisplay,
+    spend: metrics.totalSpend,
+    targetMer: metrics.targetMer,
+    salesPending: metrics.salesPending,
+  });
 
   const shareText = formatOverviewShareText({
     periodLabel: metrics.period.label,
@@ -851,6 +928,37 @@ export default function Dashboard() {
                         : PRODUCT_NOUN.totalSalesHeroHint}
                     </p>
                     <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
+                    <p className="mcfly-hero-compact__cashleft">
+                      <span>{CASH_LEFT_LABEL}</span>
+                      <strong
+                        className={
+                          cashLeftAfterAds != null && cashLeftAfterAds < 0
+                            ? "mcfly-hero-compact__cashleft-neg"
+                            : undefined
+                        }
+                      >
+                        {cashLeftAfterAds == null
+                          ? "—"
+                          : formatCurrency(cashLeftAfterAds)}
+                      </strong>
+                    </p>
+                    <p className="mcfly-hero-compact__goalcash">
+                      {goalCash.comparable ? (
+                        <>
+                          <span
+                            className={
+                              (goalCash.gap ?? 0) >= 0
+                                ? "mcfly-hero-compact__goalcash-up"
+                                : "mcfly-hero-compact__goalcash-down"
+                            }
+                          >
+                            {goalVsLeftoverCopy(goalCash, formatCurrency)}
+                          </span>
+                        </>
+                      ) : (
+                        <span>{goalVsLeftoverCopy(goalCash, formatCurrency)}</span>
+                      )}
+                    </p>
                   </div>
                   <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
                     <p className="mcfly-hero-compact__label">Total Spend</p>
@@ -886,6 +994,21 @@ export default function Dashboard() {
                                 {" "}
                                 · {formatPercent(entry.share)}
                               </span>
+                              {entry.deltaPp != null &&
+                              Math.abs(entry.deltaPp) >= 1 ? (
+                                <span
+                                  className={`mcfly-kpi-channels__pp${
+                                    entry.deltaPp > 0
+                                      ? " mcfly-kpi-channels__pp--up"
+                                      : " mcfly-kpi-channels__pp--down"
+                                  }`}
+                                  title={`Budget share vs ${priorLabel ?? "prior period"}`}
+                                >
+                                  {" "}
+                                  {entry.deltaPp > 0 ? "+" : "−"}
+                                  {Math.abs(Math.round(entry.deltaPp))}pp
+                                </span>
+                              ) : null}
                             </span>
                           </li>
                         ))}
@@ -895,6 +1018,11 @@ export default function Dashboard() {
                         No channel spend in this period
                       </p>
                     )}
+                    <p className="mcfly-hero-compact__meta">
+                      {hasPriorMix
+                        ? "Share of budget vs prior period — where the money went, not who caused the sale"
+                        : "Share of budget — where the money went, not who caused the sale"}
+                    </p>
                     <p className="mcfly-hero-compact__dive">
                       <s-link href={spendHref}>
                         Update spend
@@ -922,6 +1050,8 @@ export default function Dashboard() {
                 <LtvSnapSection
                   tillLtv={metrics.tillLtv}
                   preset={preset}
+                  split={newVsReturning}
+                  periodLabel={metrics.period.label}
                 />
               </div>
             ) : null}
@@ -974,6 +1104,8 @@ export default function Dashboard() {
 function LtvSnapSection({
   tillLtv,
   preset,
+  split,
+  periodLabel,
 }: {
   tillLtv: {
     available: boolean;
@@ -986,6 +1118,8 @@ function LtvSnapSection({
     paybackDays: number | null;
   };
   preset: PeriodPreset;
+  split: NewVsReturningSplit;
+  periodLabel: string;
 }) {
   return (
     <section
@@ -999,20 +1133,73 @@ function LtvSnapSection({
         </p>
       </div>
 
+      <div className="mcfly-split" aria-label="New vs returning vs spend">
+        <div className="mcfly-split__row">
+          <span className="mcfly-split__k">New customers</span>
+          <span className="mcfly-split__v">
+            {split.available ? formatCurrency(split.newSales) : "—"}
+          </span>
+        </div>
+        <div className="mcfly-split__row">
+          <span className="mcfly-split__k">Returning</span>
+          <span className="mcfly-split__v">
+            {split.available ? formatCurrency(split.returningSales) : "—"}
+          </span>
+        </div>
+        <div className="mcfly-split__row">
+          <span className="mcfly-split__k">Ad spend</span>
+          <span className="mcfly-split__v">
+            {formatCurrency(split.spend)}
+          </span>
+        </div>
+        {split.available && split.newShare != null ? (
+          <div
+            className="mcfly-split__bar"
+            role="img"
+            aria-label={`${Math.round(split.newShare * 100)}% of ${periodLabel} customer cash is from new customers`}
+          >
+            <span
+              className="mcfly-split__bar-new"
+              style={{ width: `${Math.round(split.newShare * 100)}%` }}
+            />
+          </div>
+        ) : null}
+        <p className="mcfly-split__note">
+          {split.available
+            ? `${Math.round((split.newShare ?? 0) * 100)}% of ${periodLabel} customer cash is new. Spend ran over the same dates — dates aligned, not attribution.`
+            : newVsReturningPendingCopy(tillLtv.emptyReason)}
+        </p>
+      </div>
+
+      {/* Tiles always render — an empty cohort spine says why, never blanks. */}
+      <div className="mcfly-tab-snap__tiles">
+        <div className="mcfly-tab-snap__tile">
+          <p className="mcfly-tab-snap__tile-k">Cash CAC</p>
+          <p className="mcfly-tab-snap__tile-v">
+            {tillLtv.cashCac != null ? formatCurrency(tillLtv.cashCac) : "—"}
+          </p>
+          <p className="mcfly-tab-snap__tile-def">
+            {tillLtv.cashCac != null
+              ? `${PRODUCT_NOUN.cashCacDef} · ${tillLtv.newBuyers.toLocaleString()} new`
+              : PRODUCT_NOUN.cashCacDef}
+          </p>
+        </div>
+        <div className="mcfly-tab-snap__tile">
+          <p className="mcfly-tab-snap__tile-k">New customers</p>
+          <p className="mcfly-tab-snap__tile-v">
+            {tillLtv.newBuyers > 0
+              ? tillLtv.newBuyers.toLocaleString()
+              : "—"}
+          </p>
+          <p className="mcfly-tab-snap__tile-def">
+            First-time buyers in {periodLabel}
+          </p>
+        </div>
+      </div>
+
       {tillLtv.available ? (
         <>
           <div className="mcfly-tab-snap__tiles">
-            <div className="mcfly-tab-snap__tile">
-              <p className="mcfly-tab-snap__tile-k">Cash CAC</p>
-              <p className="mcfly-tab-snap__tile-v">
-                {tillLtv.cashCac != null
-                  ? formatCurrency(tillLtv.cashCac)
-                  : "—"}
-              </p>
-              <p className="mcfly-tab-snap__tile-def">
-                {PRODUCT_NOUN.cashCacDef}
-              </p>
-            </div>
             <div className="mcfly-tab-snap__tile">
               <p className="mcfly-tab-snap__tile-k">LTV · 90d</p>
               <p className="mcfly-tab-snap__tile-v">

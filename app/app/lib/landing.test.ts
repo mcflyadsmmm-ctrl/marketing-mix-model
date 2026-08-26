@@ -10,9 +10,9 @@ function read(rel: string) {
 }
 
 describe("bare Fly landing (mcflyads.com inner-page feel)", () => {
-  const route = read("./route.tsx");
-  const shell = read("./OriginShell.tsx");
-  const css = read("./styles.module.css");
+  const route = read("../routes/_index/route.tsx");
+  const shell = read("../routes/_index/OriginShell.tsx");
+  const css = read("../routes/_index/styles.module.css");
 
   it("uses paper tokens, not a full-bleed navy parking screen", () => {
     expect(css).toMatch(/--paper-2:\s*#f2f5f8/);

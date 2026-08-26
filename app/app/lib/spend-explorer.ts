@@ -15,6 +15,7 @@ import {
 export type ExplorerRange = "14d" | "30d" | "90d" | "YTD" | "1y" | "All" | "custom";
 export type ExplorerGranularity = "Day" | "Week" | "Month" | "Quarter";
 export type ExplorerMode = "stacked" | "share" | "total";
+export type ExplorerMark = "bar" | "line";
 
 export type ExplorerWindowOptions = {
   from?: string | null;
@@ -137,6 +138,11 @@ export const EXPLORER_MODE_OPTIONS: { value: ExplorerMode; label: string }[] = [
   { value: "total", label: "Total $" },
 ];
 
+export const EXPLORER_MARK_OPTIONS: { value: ExplorerMark; label: string }[] = [
+  { value: "bar", label: "Stacked bar" },
+  { value: "line", label: "Line" },
+];
+
 function startOfLocalDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
@@ -252,11 +258,106 @@ export function parseExplorerGranularity(
   return "Week";
 }
 
+/**
+ * Day buckets for short windows so missing spend reads as a $0 hole
+ * instead of one fat bar. Week for long windows so All/1y stay readable.
+ */
+export function defaultExplorerGranularity(
+  range: ExplorerRange,
+): ExplorerGranularity {
+  switch (range) {
+    case "14d":
+    case "30d":
+    case "custom":
+      return "Day";
+    case "90d":
+    case "YTD":
+    case "1y":
+    case "All":
+      return "Week";
+    default: {
+      const _exhaustive: never = range;
+      return _exhaustive;
+    }
+  }
+}
+
+/**
+ * Unset `exSales` means sales-on — mix vs that day's sales is the $39 view.
+ * Explicit `exSales=0` still turns the line off. `parseExplorerShowSales(null)`
+ * stays false so URL parsers do not invert a missing flag elsewhere.
+ */
+export function explorerShowSalesDefault(raw: string | null): boolean {
+  if (raw == null || raw === "") return true;
+  return parseExplorerShowSales(raw);
+}
+
+/**
+ * Insert $0 sales/spend days so a sparse CSV does not collapse into one bar.
+ * Calendar keys increment as YYYY-MM-DD (UTC date arithmetic).
+ */
+export function fillExplorerDayHoles(
+  rows: ExplorerDailyRow[],
+  startKey: string,
+  endKey: string,
+): ExplorerDailyRow[] {
+  if (!DATE_KEY_RE.test(startKey) || !DATE_KEY_RE.test(endKey)) {
+    return rows;
+  }
+  if (startKey > endKey) return rows;
+  const byKey = new Map(rows.map((row) => [row.dateKey, row]));
+  const filled: ExplorerDailyRow[] = [];
+  let guard = 0;
+  for (let key = startKey; key <= endKey; ) {
+    filled.push(
+      byKey.get(key) ?? {
+        dateKey: key,
+        sales: 0,
+        spend: 0,
+        channels: [],
+      },
+    );
+    const next = nextUtcCalendarDayKey(key);
+    if (!next || next <= key) break;
+    key = next;
+    guard += 1;
+    if (guard > 2000) break;
+  }
+  return filled;
+}
+
+function nextUtcCalendarDayKey(dateKey: string): string {
+  const parsed = parseDateKey(dateKey);
+  if (!parsed) return dateKey;
+  return dateKeyFromLocal(addLocalDays(parsed, 1));
+}
+
 export function parseExplorerMode(raw: string | null): ExplorerMode {
   if (raw && MODES.includes(raw as ExplorerMode)) {
     return raw as ExplorerMode;
   }
   return "stacked";
+}
+
+/** Stacked bar is the default mix. `line` is the same mix as polylines — not attribution. */
+export function parseExplorerMark(raw: string | null): ExplorerMark {
+  if (raw === "line" || raw === "bar") return raw;
+  return "bar";
+}
+
+/**
+ * Cash left after ads is on unless the merchant turned it off. It is the
+ * densest thing the desk owns that neither Shopify Analytics nor an Ads
+ * Manager can draw.
+ */
+export function explorerShowCashDefault(raw: string | null): boolean {
+  if (raw == null || raw === "") return true;
+  return parseExplorerShowSales(raw);
+}
+
+/** The last-week ghost is opt-in — off unless `exWow` says otherwise. */
+export function explorerShowPriorPeriodDefault(raw: string | null): boolean {
+  return parseExplorerShowSales(raw);
 }
 
 /** Apps Script `ex.showSales` — URL `exSales=1`. */
@@ -907,6 +1008,492 @@ export function explorerMerCeil(
     if (b.mer != null && b.mer > max) max = b.mer;
   }
   return max * 1.08;
+}
+
+/** SVG / aria ids cannot keep `:` from week keys or `other:billboard`. */
+export function explorerSafeId(key: string): string {
+  const cleaned = key.replace(/[^A-Za-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
+  return cleaned || "col";
+}
+
+export type ExplorerReadout = {
+  /** Shopify sales in the window — the ceiling for every cash figure here. */
+  sales: number;
+  /** Cash ad spend in the window. */
+  spend: number;
+  /** sales − spend. Negative means ads cost more than the till took. */
+  cashLeftAfterAds: number;
+  /** Σsales ÷ Σspend, or null with no spend. */
+  mer: number | null;
+  /** Plotted buckets in the window, including $0 holes. */
+  bucketCount: number;
+  /** Buckets that actually carry spend. */
+  bucketsWithSpend: number;
+  /** Buckets with no invoice — drawn as $0 holes. */
+  zeroSpendBuckets: number;
+};
+
+/** "day" / "week" / "month" / "quarter" for readout copy. */
+export function explorerBucketNoun(
+  granularity: ExplorerGranularity,
+  plural: boolean,
+): string {
+  const base = ((): string => {
+    switch (granularity) {
+      case "Day":
+        return "day";
+      case "Week":
+        return "week";
+      case "Month":
+        return "month";
+      case "Quarter":
+        return "quarter";
+      default: {
+        const _exhaustive: never = granularity;
+        return _exhaustive;
+      }
+    }
+  })();
+  return plural ? `${base}s` : base;
+}
+
+/**
+ * One honest cash readout for the window. Spend is clamped to the summed
+ * channel mix so a scaled bar and the strip never disagree, and no figure here
+ * is allowed to exceed the shop's own sales for the window.
+ */
+export function explorerReadout(
+  buckets: ExplorerPlotBucket[],
+  summary: Pick<ExplorerSummary, "totalSales" | "totalSpend">,
+): ExplorerReadout {
+  const sales = Number.isFinite(summary.totalSales)
+    ? Math.max(0, summary.totalSales)
+    : 0;
+  const spend = Number.isFinite(summary.totalSpend)
+    ? Math.max(0, summary.totalSpend)
+    : 0;
+  let bucketsWithSpend = 0;
+  for (const bucket of buckets) {
+    if (bucket.spend > 0) bucketsWithSpend += 1;
+  }
+  return {
+    sales,
+    spend,
+    cashLeftAfterAds: round2(sales - spend),
+    mer: merOf(sales, spend),
+    bucketCount: buckets.length,
+    bucketsWithSpend,
+    zeroSpendBuckets: Math.max(0, buckets.length - bucketsWithSpend),
+  };
+}
+
+/**
+ * Buckets of spend still needed before a window reads as a real period rather
+ * than a couple of invoices. Null once the window is covered.
+ */
+export function explorerNeedsBuckets(
+  readout: ExplorerReadout,
+  wanted = 7,
+): number | null {
+  const target = Math.min(wanted, readout.bucketCount);
+  const missing = target - readout.bucketsWithSpend;
+  return missing > 0 ? missing : null;
+}
+
+/**
+ * Period mix share (0–1) per channel from plot bars.
+ * Share-% mode reconstructs dollars from bucket spend so the legend % is cash mix,
+ * not a mean of daily percentages. Total-$ mode is a single 100% band.
+ */
+export function explorerMixShares(
+  buckets: ExplorerPlotBucket[],
+  mode: ExplorerMode,
+): Record<string, number> {
+  const amounts = new Map<string, number>();
+  for (const bucket of buckets) {
+    if (mode === "share") {
+      const spend = Number.isFinite(bucket.spend) ? bucket.spend : 0;
+      for (const bar of bucket.bars) {
+        const pct = Number.isFinite(bar.amount) ? bar.amount : 0;
+        const dollars = spend * (pct / 100);
+        amounts.set(bar.channel, (amounts.get(bar.channel) ?? 0) + dollars);
+      }
+    } else {
+      for (const bar of bucket.bars) {
+        const amt = Number.isFinite(bar.amount) ? bar.amount : 0;
+        amounts.set(bar.channel, (amounts.get(bar.channel) ?? 0) + amt);
+      }
+    }
+  }
+  const total = [...amounts.values()].reduce((sum, n) => sum + n, 0);
+  const out: Record<string, number> = {};
+  for (const [channel, amount] of amounts) {
+    out[channel] = total > 0 ? amount / total : 0;
+  }
+  return out;
+}
+
+function finiteOr(n: number, fallback: number): number {
+  return Number.isFinite(n) ? n : fallback;
+}
+
+export const EXPLORER_PAD = { l: 56, r: 48, t: 16, b: 28 } as const;
+export const EXPLORER_PLOT_H = 270;
+/** Height of the cash-left-after-ads strip drawn under the mix. */
+export const EXPLORER_CASH_H = 64;
+/** Gap between the mix plot and the cash strip. */
+export const EXPLORER_CASH_GAP = 14;
+
+export type ExplorerPlotSeg = {
+  channel: string;
+  amount: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  yTop: number;
+};
+
+export type ExplorerPlotColumn = {
+  key: string;
+  safeId: string;
+  label: string;
+  xCenter: number;
+  slotX: number;
+  slotW: number;
+  barX: number;
+  barW: number;
+  segs: ExplorerPlotSeg[];
+  hole: boolean;
+  merY: number | null;
+  salesY: number | null;
+  /** Day grain only — this column starts an ISO week (Monday). */
+  weekStart: boolean;
+  /** sales − spend for this bucket. Negative when ads outspent the till. */
+  cashLeft: number;
+  /** Cash-strip rect. Null when the strip is off or the value is 0. */
+  cashBar: { x: number; y: number; w: number; h: number } | null;
+};
+
+/** True when a `YYYY-MM-DD` bucket key falls on a Monday. */
+export function isWeekStartKey(key: string): boolean {
+  const parsed = parseDateKey(key);
+  return parsed != null && parsed.getDay() === 1;
+}
+
+export type ExplorerChannelBand = {
+  channel: string;
+  /** Stacked-area path (line mark). Empty when a band cannot be drawn. */
+  d: string;
+  /** Polyline along the band top. */
+  points: string;
+};
+
+export type ExplorerPlotModel = {
+  vbW: number;
+  vbH: number;
+  /** Left axis ceiling — always the spend mix, so the bands stay readable. */
+  leftCeil: number;
+  merCeil: number;
+  /**
+   * What the right axis measures. Sales dwarfs spend on a healthy shop, so a
+   * shared $ axis flattens the mix into a sliver. With the sales line on, the
+   * right axis becomes sales $; with it off, it returns to Total ROAS ×.
+   */
+  rightAxis: "roas" | "sales";
+  /** Right axis ceiling in $ when `rightAxis` is "sales". */
+  salesCeil: number;
+  columns: ExplorerPlotColumn[];
+  merLine: string;
+  salesLine: string;
+  /**
+   * Prior-week (or prior-bucket) sales, drawn at this bucket's x. A lag of the
+   * same series — never a forecast and never a second data source.
+   */
+  priorPeriodLine: string;
+  channelBands: ExplorerChannelBand[];
+  hasPlot: boolean;
+  /** Cash-left strip geometry. Null when the strip is off. */
+  cashStrip: {
+    topY: number;
+    zeroY: number;
+    bottomY: number;
+    ceil: number;
+    anyNegative: boolean;
+  } | null;
+};
+
+/**
+ * How many buckets back "last week" sits for a grain. Null where a
+ * week-over-week overlay would be a lie (month and quarter buckets).
+ */
+export function explorerPriorPeriodLag(
+  granularity: ExplorerGranularity,
+): number | null {
+  switch (granularity) {
+    case "Day":
+      return 7;
+    case "Week":
+      return 1;
+    case "Month":
+    case "Quarter":
+      return null;
+    default: {
+      const _exhaustive: never = granularity;
+      return _exhaustive;
+    }
+  }
+}
+
+/*
+ * Column width floor. Day buckets stay narrow so a month or two fits without
+ * horizontal scroll — otherwise the right-hand axis ends up off screen and the
+ * merchant never sees the scale the sales line is drawn against.
+ */
+function explorerColMinPx(
+  granularity: ExplorerGranularity,
+  mode: ExplorerMode,
+): number {
+  if (granularity === "Day") return 20;
+  if (granularity === "Quarter") return 64;
+  if (mode === "total") return 48;
+  return 52;
+}
+
+function polylinePoints(
+  pts: Array<{ x: number; y: number | null }>,
+): string {
+  return pts
+    .filter((p) => Number.isFinite(p.x) && p.y != null && Number.isFinite(p.y))
+    .map((p) => `${p.x},${p.y as number}`)
+    .join(" ");
+}
+
+/**
+ * Layout for stacked bar vs line. Never emits NaN coordinates — $0 days are
+ * baseline holes, Billboard extras stack as `other:<slug>`.
+ */
+export function buildExplorerPlotModel(input: {
+  buckets: ExplorerPlotBucket[];
+  mode: ExplorerMode;
+  mark: ExplorerMark;
+  granularity: ExplorerGranularity;
+  showSales: boolean;
+  targetMer: number;
+  breakEvenMer: number | null;
+  hiddenChannels?: ReadonlySet<string>;
+  /** Draw the sales − spend strip under the mix. */
+  showCash?: boolean;
+  /** Ghost the same series one week back at this bucket's x. */
+  showPriorPeriod?: boolean;
+}): ExplorerPlotModel {
+  const hidden = input.hiddenChannels ?? new Set<string>();
+  const isShare = input.mode === "share";
+  const showSales = input.showSales && !isShare;
+  const legend = explorerLegendChannels(input.buckets, input.mode).filter(
+    (ch) => !hidden.has(ch),
+  );
+  const n = input.buckets.length;
+  const colMinPx = explorerColMinPx(input.granularity, input.mode);
+  const vbW = Math.max(360, n * colMinPx);
+  const showCash = Boolean(input.showCash) && n > 0;
+  const cashBandH = showCash ? EXPLORER_CASH_GAP + EXPLORER_CASH_H : 0;
+  const vbH = EXPLORER_PAD.t + EXPLORER_PLOT_H + cashBandH + EXPLORER_PAD.b;
+  const plotW = Math.max(1, vbW - EXPLORER_PAD.l - EXPLORER_PAD.r);
+  const slotW = n > 0 ? plotW / n : plotW;
+  const barW = slotW * (input.mark === "line" ? 0.28 : 0.62);
+  // Left axis is the mix alone — never stretched to fit the sales line.
+  const leftCeil = finiteOr(explorerMoneyCeil(input.buckets, input.mode, false), 1);
+  const merCeil = finiteOr(
+    explorerMerCeil(input.buckets, input.targetMer, input.breakEvenMer),
+    1,
+  );
+  const rightAxis: "roas" | "sales" = showSales ? "sales" : "roas";
+  const salesCeil = showSales
+    ? finiteOr(explorerSalesCeil(input.buckets, 0) * 1.08, 1)
+    : 0;
+  const yLeft = (val: number) =>
+    EXPLORER_PAD.t +
+    EXPLORER_PLOT_H -
+    (leftCeil > 0 ? (finiteOr(val, 0) / leftCeil) * EXPLORER_PLOT_H : 0);
+  const ySales = (val: number) =>
+    EXPLORER_PAD.t +
+    EXPLORER_PLOT_H -
+    (salesCeil > 0 ? (finiteOr(val, 0) / salesCeil) * EXPLORER_PLOT_H : 0);
+  const yMer = (val: number) =>
+    EXPLORER_PAD.t +
+    EXPLORER_PLOT_H -
+    (merCeil > 0 ? (finiteOr(val, 0) / merCeil) * EXPLORER_PLOT_H : 0);
+
+  /*
+   * The cash strip is its own symmetric scale so a single heavy loss day
+   * cannot flatten the mix above it.
+   */
+  const cashTopY = EXPLORER_PAD.t + EXPLORER_PLOT_H + EXPLORER_CASH_GAP;
+  const cashBottomY = cashTopY + EXPLORER_CASH_H;
+  const cashZeroY = cashTopY + EXPLORER_CASH_H / 2;
+  const cashValues = input.buckets.map((b) =>
+    finiteOr(b.sales, 0) - finiteOr(b.spend, 0),
+  );
+  const cashCeil = cashValues.reduce(
+    (max, v) => (Math.abs(v) > max ? Math.abs(v) : max),
+    0,
+  );
+  const cashHalf = EXPLORER_CASH_H / 2;
+  const anyNegative = cashValues.some((v) => v < 0);
+
+  const cashBarW = Math.max(1, slotW * 0.62);
+
+  const columns: ExplorerPlotColumn[] = input.buckets.map((bucket, i) => {
+    const ordered = orderBarsByLegend(bucket.bars, legend);
+    const cx = EXPLORER_PAD.l + (i + 0.5) * slotW;
+    const x = cx - barW / 2;
+    let yCursor = EXPLORER_PAD.t + EXPLORER_PLOT_H;
+    const segs: ExplorerPlotSeg[] = [];
+    for (const seg of ordered) {
+      const amount = finiteOr(seg.amount, 0);
+      const h =
+        amount > 0 && leftCeil > 0 ? (amount / leftCeil) * EXPLORER_PLOT_H : 0;
+      const safeH = finiteOr(h, 0);
+      yCursor -= safeH;
+      const yTop = finiteOr(yCursor, EXPLORER_PAD.t + EXPLORER_PLOT_H);
+      segs.push({
+        channel: seg.channel,
+        amount,
+        x: finiteOr(x, EXPLORER_PAD.l),
+        y: yTop,
+        w: finiteOr(barW, 1),
+        h: safeH,
+        yTop,
+      });
+    }
+    // The ROAS line owns the right axis only while the sales line is off.
+    const merY =
+      rightAxis === "roas" &&
+      bucket.mer != null &&
+      Number.isFinite(bucket.mer) &&
+      merCeil > 0
+        ? yMer(Math.min(bucket.mer, merCeil))
+        : null;
+    const salesY =
+      showSales && Number.isFinite(bucket.sales)
+        ? ySales(Math.min(bucket.sales, salesCeil))
+        : null;
+    const cashValue = cashValues[i] ?? 0;
+    const cashH =
+      showCash && cashCeil > 0
+        ? finiteOr((Math.abs(cashValue) / cashCeil) * cashHalf, 0)
+        : 0;
+    const cashBar =
+      showCash && cashH > 0
+        ? {
+            x: finiteOr(cx - cashBarW / 2, EXPLORER_PAD.l),
+            y: cashValue >= 0 ? cashZeroY - cashH : cashZeroY,
+            w: cashBarW,
+            h: cashH,
+          }
+        : null;
+    return {
+      key: bucket.key,
+      safeId: explorerSafeId(bucket.key),
+      label: bucket.label,
+      xCenter: finiteOr(cx, EXPLORER_PAD.l),
+      slotX: finiteOr(EXPLORER_PAD.l + i * slotW, EXPLORER_PAD.l),
+      slotW: finiteOr(slotW, 1),
+      barX: finiteOr(x, EXPLORER_PAD.l),
+      barW: finiteOr(barW, 1),
+      segs,
+      hole: !(bucket.spend > 0) && !bucket.bars.some((b) => b.amount > 0),
+      merY: merY != null && Number.isFinite(merY) ? merY : null,
+      salesY: salesY != null && Number.isFinite(salesY) ? salesY : null,
+      weekStart:
+        input.granularity === "Day" && i > 0 && isWeekStartKey(bucket.key),
+      cashLeft: round2(cashValue),
+      cashBar,
+    };
+  });
+
+  const merLine = polylinePoints(
+    columns.map((c) => ({ x: c.xCenter, y: c.merY })),
+  );
+  const salesLine = polylinePoints(
+    columns.map((c) => ({ x: c.xCenter, y: c.salesY })),
+  );
+
+  /*
+   * Week-over-week ghost: the same sales series shifted by one week, drawn at
+   * this week's x so the two read against each other. Only where a lag has a
+   * calendar meaning — month and quarter buckets get nothing.
+   */
+  const lag = explorerPriorPeriodLag(input.granularity);
+  const priorPeriodLine =
+    input.showPriorPeriod && showSales && lag != null
+      ? polylinePoints(
+          columns.map((c, i) => {
+            const prior = input.buckets[i - lag];
+            return {
+              x: c.xCenter,
+              y:
+                prior && Number.isFinite(prior.sales)
+                  ? ySales(Math.min(prior.sales, salesCeil))
+                  : null,
+            };
+          }),
+        )
+      : "";
+
+  const baseline = EXPLORER_PAD.t + EXPLORER_PLOT_H;
+  const channelBands: ExplorerChannelBand[] = legend.map((channel) => {
+    const tops: Array<{ x: number; y: number }> = [];
+    const bottoms: Array<{ x: number; y: number }> = [];
+    for (const col of columns) {
+      const idx = col.segs.findIndex((s) => s.channel === channel);
+      const seg = idx >= 0 ? col.segs[idx] : null;
+      const yTop = seg && Number.isFinite(seg.yTop) ? seg.yTop : baseline;
+      const yBot =
+        idx > 0 && col.segs[idx - 1] && Number.isFinite(col.segs[idx - 1]!.yTop)
+          ? col.segs[idx - 1]!.yTop
+          : baseline;
+      tops.push({ x: col.xCenter, y: yTop });
+      bottoms.push({ x: col.xCenter, y: yBot });
+    }
+    const points = polylinePoints(tops.map((p) => ({ x: p.x, y: p.y })));
+    let d = "";
+    if (tops.length >= 2) {
+      const up = tops.map((p) => `${p.x},${p.y}`).join(" L ");
+      const down = [...bottoms]
+        .reverse()
+        .map((p) => `${p.x},${p.y}`)
+        .join(" L ");
+      d = `M ${up} L ${down} Z`;
+      if (d.includes("NaN") || d.includes("Infinity")) d = "";
+    }
+    return { channel, d, points };
+  });
+
+  return {
+    vbW: finiteOr(vbW, 360),
+    vbH: finiteOr(vbH, EXPLORER_PAD.t + EXPLORER_PLOT_H + EXPLORER_PAD.b),
+    leftCeil,
+    merCeil,
+    rightAxis,
+    salesCeil,
+    columns,
+    merLine,
+    salesLine,
+    priorPeriodLine,
+    channelBands,
+    hasPlot: n > 0,
+    cashStrip: showCash
+      ? {
+          topY: cashTopY,
+          zeroY: cashZeroY,
+          bottomY: cashBottomY,
+          ceil: cashCeil,
+          anyNegative,
+        }
+      : null,
+  };
 }
 
 /** Apps Script gran subtitle phrase (without count). */

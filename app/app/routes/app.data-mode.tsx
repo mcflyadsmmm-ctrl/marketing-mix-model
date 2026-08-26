@@ -4,8 +4,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import {
-  sampleDeskNeedsSeed,
-  seedThreeYearSampleDesk,
+  ensureSampleDeskSeeded,
   setSampleDeskEnabled,
   setSamplePreviewAllowed,
   SAMPLE_DESK_TARGET_MER,
@@ -43,11 +42,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const returnTo = safeAppReturnTo(form.get("returnTo"));
 
   if (intent === "use-sample") {
-    // Re-seed when SAMPLE is empty or still on UTC-midnight stamps that collide
-    // with live CSV unique keys. Noon stamps coexist; skip a 3-year rewrite then.
-    if (await sampleDeskNeedsSeed(shop.id)) {
-      await seedThreeYearSampleDesk(shop.id, SAMPLE_DESK_TARGET_MER);
-    }
+    /*
+     * Same window-first path the desk loaders use. Awaiting a full 5.7-year
+     * seed here was the first-paint timeout wearing a different hat: this is a
+     * request too, and Fly answers a slow one with HTML the single-fetch
+     * client cannot decode. The visible window commits before the redirect;
+     * history fills off-request.
+     */
+    await ensureSampleDeskSeeded(shop.id, SAMPLE_DESK_TARGET_MER);
     await setSampleDeskEnabled(shop.id, true);
     return redirect(withGuideParam(returnTo, null));
   }

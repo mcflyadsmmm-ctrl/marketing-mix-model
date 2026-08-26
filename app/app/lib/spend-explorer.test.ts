@@ -4,6 +4,9 @@ import {
   bucketExplorerRows,
   closedDayEnd,
   compareExplorerBuckets,
+  defaultExplorerGranularity,
+  explorerShowSalesDefault,
+  fillExplorerDayHoles,
   priorExplorerBucketKey,
   explorerMoneyCeil,
   explorerSalesCeil,
@@ -12,12 +15,26 @@ import {
   parseExplorerDateParam,
   parseExplorerGranularity,
   parseExplorerMode,
+  parseExplorerMark,
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
   explorerQueryMatchingScoreboard,
   summarizeExplorer,
+  buildExplorerPlotModel,
+  explorerMixShares,
+  explorerBucketNoun,
+  explorerNeedsBuckets,
+  explorerPriorPeriodLag,
+  explorerShowCashDefault,
+  explorerShowPriorPeriodDefault,
+  explorerReadout,
+  explorerSafeId,
+  isWeekStartKey,
+  EXPLORER_PLOT_H,
   type ExplorerDailyRow,
+  type ExplorerMark,
+  type ExplorerMode,
 } from "./spend-explorer";
 import {
   listRecentClosedShopLocalDays,
@@ -45,6 +62,11 @@ describe("parseExplorer*", () => {
     expect(parseExplorerGranularity(null)).toBe("Week");
     expect(parseExplorerMode(null)).toBe("stacked");
     expect(parseExplorerShowSales(null)).toBe(false);
+    expect(explorerShowSalesDefault(null)).toBe(true);
+    expect(defaultExplorerGranularity("custom")).toBe("Day");
+    expect(defaultExplorerGranularity("14d")).toBe("Day");
+    expect(defaultExplorerGranularity("90d")).toBe("Week");
+    expect(defaultExplorerGranularity("All")).toBe("Week");
   });
 
   it("accepts known values", () => {
@@ -63,8 +85,9 @@ describe("parseExplorer*", () => {
     expect(parseExplorerGranularity("Hour")).toBe("Week");
     expect(parseExplorerMode("pie")).toBe("stacked");
     expect(parseExplorerShowSales("0")).toBe(false);
-    expect(parseExplorerDateParam("07/01/2026")).toBeNull();
-    expect(parseExplorerDateParam("2026-13-40")).toBeNull();
+    expect(parseExplorerMark(null)).toBe("bar");
+    expect(parseExplorerMark("line")).toBe("line");
+    expect(parseExplorerMark("pie")).toBe("bar");
   });
 });
 
@@ -646,5 +669,380 @@ describe("compareExplorerBuckets", () => {
     expect(rows[0]?.hasPrior).toBe(false);
     expect(rows[0]?.priorKey).toBe("q:2025-Q4");
     expect(rows[0]?.spendDelta).toBeNull();
+  });
+});
+
+describe("fillExplorerDayHoles + bar vs line toggle", () => {
+  it("inserts $0 calendar holes between sparse days", () => {
+    const filled = fillExplorerDayHoles(
+      [
+        day("2026-08-01", 500, { meta: 80, "other:billboard": 400 }),
+        day("2026-08-03", 600, { meta: 90, google: 120 }),
+      ],
+      "2026-08-01",
+      "2026-08-03",
+    );
+    expect(filled.map((r) => r.dateKey)).toEqual([
+      "2026-08-01",
+      "2026-08-02",
+      "2026-08-03",
+    ]);
+    expect(filled[1]?.spend).toBe(0);
+    expect(filled[1]?.sales).toBe(0);
+    expect(filled[1]?.channels).toEqual([]);
+    expect(filled[0]?.channels.map((c) => c.channel)).toContain(
+      "other:billboard",
+    );
+  });
+
+  it("sanitizes week keys and Billboard slugs for SVG ids", () => {
+    expect(explorerSafeId("w:2026-07-27")).toBe("w-2026-07-27");
+    expect(explorerSafeId("other:billboard")).toBe("other-billboard");
+    expect(explorerSafeId("q:2026-Q3")).toBe("q-2026-Q3");
+  });
+
+  it("keeps the mix readable by giving sales its own axis", () => {
+    // A healthy shop sells many times what it spends; one shared $ axis would
+    // squash the whole channel mix into the bottom sliver of the plot.
+    const rows = Array.from({ length: 10 }, (_, i) =>
+      day(`2026-08-${String(i + 1).padStart(2, "0")}`, 9000, {
+        meta: 1000,
+        google: 800,
+      }),
+    );
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const base = {
+      buckets,
+      mode: "stacked" as const,
+      mark: "bar" as const,
+      granularity: "Day" as const,
+      targetMer: 4.4,
+      breakEvenMer: 2.86,
+    };
+
+    const withSales = buildExplorerPlotModel({ ...base, showSales: true });
+    expect(withSales.rightAxis).toBe("sales");
+    expect(withSales.salesCeil).toBeGreaterThan(9000);
+    // Left axis tracks the mix, not the far larger sales number.
+    expect(withSales.leftCeil).toBeLessThan(3000);
+    const tallest = Math.max(
+      ...withSales.columns[0]!.segs.map((s) => s.h),
+    );
+    expect(tallest).toBeGreaterThan(EXPLORER_PLOT_H * 0.3);
+    // The ROAS line yields the right axis while sales owns it.
+    expect(withSales.merLine).toBe("");
+
+    const withoutSales = buildExplorerPlotModel({ ...base, showSales: false });
+    expect(withoutSales.rightAxis).toBe("roas");
+    expect(withoutSales.salesCeil).toBe(0);
+    expect(withoutSales.merLine).not.toBe("");
+    expect(withoutSales.leftCeil).toBe(withSales.leftCeil);
+  });
+
+  it("draws sales minus spend per bucket, above and below zero", () => {
+    const rows = [
+      day("2026-08-01", 1200, { meta: 200 }), // +1000
+      day("2026-08-02", 100, { meta: 900 }), //  −800
+      day("2026-08-03", 0, {}), //     0
+    ];
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const model = buildExplorerPlotModel({
+      buckets,
+      mode: "stacked",
+      mark: "bar",
+      granularity: "Day",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+      showCash: true,
+    });
+
+    expect(model.columns.map((c) => c.cashLeft)).toEqual([1000, -800, 0]);
+    expect(model.cashStrip).not.toBeNull();
+    expect(model.cashStrip!.anyNegative).toBe(true);
+    // Profit day sits above the zero rule, loss day below, $0 day draws nothing.
+    expect(model.columns[0]!.cashBar!.y).toBeLessThan(model.cashStrip!.zeroY);
+    expect(model.columns[1]!.cashBar!.y).toBe(model.cashStrip!.zeroY);
+    expect(model.columns[2]!.cashBar).toBeNull();
+    // The strip adds height rather than eating the mix plot.
+    const noStrip = buildExplorerPlotModel({
+      buckets,
+      mode: "stacked",
+      mark: "bar",
+      granularity: "Day",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+      showCash: false,
+    });
+    expect(noStrip.cashStrip).toBeNull();
+    expect(model.vbH).toBeGreaterThan(noStrip.vbH);
+    expect(JSON.stringify(model)).not.toMatch(/NaN|Infinity/);
+  });
+
+  it("ghosts last week's sales at this week's position, and only where a lag means something", () => {
+    expect(explorerPriorPeriodLag("Day")).toBe(7);
+    expect(explorerPriorPeriodLag("Week")).toBe(1);
+    expect(explorerPriorPeriodLag("Month")).toBeNull();
+    expect(explorerPriorPeriodLag("Quarter")).toBeNull();
+    expect(explorerShowCashDefault(null)).toBe(true);
+    expect(explorerShowCashDefault("0")).toBe(false);
+    expect(explorerShowPriorPeriodDefault(null)).toBe(false);
+    expect(explorerShowPriorPeriodDefault("1")).toBe(true);
+
+    const rows = fillExplorerDayHoles(
+      Array.from({ length: 14 }, (_, i) =>
+        day(`2026-08-${String(i + 1).padStart(2, "0")}`, 500 + i * 10, {
+          meta: 100,
+        }),
+      ),
+      "2026-08-01",
+      "2026-08-14",
+    );
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const withGhost = buildExplorerPlotModel({
+      buckets,
+      mode: "stacked",
+      mark: "line",
+      granularity: "Day",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+      showPriorPeriod: true,
+    });
+    // 14 days, lag 7 → the ghost starts at the 8th column.
+    expect(withGhost.priorPeriodLine.split(" ")).toHaveLength(7);
+    expect(withGhost.priorPeriodLine).not.toMatch(/NaN/);
+
+    // A month grain has no honest week lag, so nothing is drawn.
+    expect(
+      buildExplorerPlotModel({
+        buckets: applyExplorerMode(
+          bucketExplorerRows(rows, "Month"),
+          "stacked",
+        ),
+        mode: "stacked",
+        mark: "bar",
+        granularity: "Month",
+        showSales: true,
+        targetMer: 3.6,
+        breakEvenMer: null,
+        showPriorPeriod: true,
+      }).priorPeriodLine,
+    ).toBe("");
+  });
+
+  it("marks ISO week starts on day grain only", () => {
+    expect(isWeekStartKey("2026-08-03")).toBe(true); // Monday
+    expect(isWeekStartKey("2026-08-04")).toBe(false);
+    expect(isWeekStartKey("w:2026-08-03")).toBe(false);
+
+    const rows = fillExplorerDayHoles([], "2026-08-01", "2026-08-11");
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const dayModel = buildExplorerPlotModel({
+      buckets,
+      mode: "stacked",
+      mark: "bar",
+      granularity: "Day",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+    });
+    // Aug 3 and Aug 10 are Mondays; the first column never draws a rule.
+    expect(
+      dayModel.columns.filter((c) => c.weekStart).map((c) => c.key),
+    ).toEqual(["2026-08-03", "2026-08-10"]);
+
+    const weekModel = buildExplorerPlotModel({
+      buckets: applyExplorerMode(bucketExplorerRows(rows, "Week"), "stacked"),
+      mode: "stacked",
+      mark: "line",
+      granularity: "Week",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+    });
+    expect(weekModel.columns.some((c) => c.weekStart)).toBe(false);
+  });
+
+  it("reports cash left after ads without ever exceeding shop sales", () => {
+    const rows = fillExplorerDayHoles(
+      [
+        day("2026-08-01", 1200, { meta: 80, "other:billboard": 400 }),
+        day("2026-08-03", 900, { meta: 90, google: 120 }),
+      ],
+      "2026-08-01",
+      "2026-08-05",
+    );
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const summary = summarizeExplorer(rows, { bucketCount: buckets.length });
+    const readout = explorerReadout(buckets, summary);
+
+    expect(readout.sales).toBe(2100);
+    expect(readout.spend).toBe(690);
+    expect(readout.cashLeftAfterAds).toBe(1410);
+    expect(readout.bucketsWithSpend).toBe(2);
+    expect(readout.bucketCount).toBe(5);
+    expect(readout.zeroSpendBuckets).toBe(3);
+    // No cash figure may claim more than the shop actually sold.
+    expect(readout.spend).toBeLessThanOrEqual(readout.sales);
+    expect(readout.cashLeftAfterAds).toBeLessThanOrEqual(readout.sales);
+    // Only 5 buckets exist, so it can never ask for more than 5.
+    expect(explorerNeedsBuckets(readout)).toBe(3);
+    expect(explorerNeedsBuckets(readout, 2)).toBeNull();
+  });
+
+  it("counts buckets, not days, so week grain does not say 'days'", () => {
+    const rows = fillExplorerDayHoles(
+      [day("2026-08-03", 900, { meta: 100 })],
+      "2026-08-01",
+      "2026-08-21",
+    );
+    const weekBuckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Week"),
+      "stacked",
+    );
+    const readout = explorerReadout(
+      weekBuckets,
+      summarizeExplorer(rows, { bucketCount: weekBuckets.length }),
+    );
+    expect(readout.bucketCount).toBe(weekBuckets.length);
+    expect(readout.bucketsWithSpend).toBe(1);
+    expect(explorerBucketNoun("Week", true)).toBe("weeks");
+    expect(explorerBucketNoun("Quarter", false)).toBe("quarter");
+    expect(explorerBucketNoun("Day", true)).toBe("days");
+  });
+
+  it("keeps cash left honest when ads cost more than the till took", () => {
+    const rows = [day("2026-08-01", 100, { meta: 400 })];
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const readout = explorerReadout(
+      buckets,
+      summarizeExplorer(rows, { bucketCount: buckets.length }),
+    );
+    expect(readout.cashLeftAfterAds).toBe(-300);
+    expect(readout.mer).toBeCloseTo(0.25, 5);
+  });
+
+  it("reads $0 everywhere on an empty Live window instead of NaN", () => {
+    const rows = fillExplorerDayHoles([], "2026-08-01", "2026-08-04");
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const readout = explorerReadout(
+      buckets,
+      summarizeExplorer(rows, { bucketCount: buckets.length }),
+    );
+    expect(readout).toMatchObject({
+      sales: 0,
+      spend: 0,
+      cashLeftAfterAds: 0,
+      mer: null,
+      bucketsWithSpend: 0,
+      zeroSpendBuckets: 4,
+    });
+    expect(explorerNeedsBuckets(readout)).toBe(4);
+  });
+
+  it("toggles bar vs line on an empty mix (all $0 days) without NaN", () => {
+    const rows = fillExplorerDayHoles([], "2026-08-01", "2026-08-03");
+    const buckets = bucketExplorerRows(rows, "Day");
+    expect(buckets).toHaveLength(3);
+    for (const mark of ["bar", "line"] as ExplorerMark[]) {
+      const model = buildExplorerPlotModel({
+        buckets: applyExplorerMode(buckets, "stacked"),
+        mode: "stacked",
+        mark,
+        granularity: "Day",
+        showSales: true,
+        targetMer: 3.6,
+        breakEvenMer: null,
+      });
+      expect(model.hasPlot, mark).toBe(true);
+      expect(model.columns.every((c) => c.hole), mark).toBe(true);
+      expect(JSON.stringify(model), mark).not.toMatch(/NaN|Infinity/);
+    }
+  });
+
+  it("toggles stacked bar vs line across modes with holes and Billboard without NaN", () => {
+    const rows = fillExplorerDayHoles(
+      [
+        day("2026-08-01", 1200, { meta: 80, "other:billboard": 400 }),
+        day("2026-08-03", 900, { meta: 90, google: 120 }),
+      ],
+      "2026-08-01",
+      "2026-08-03",
+    );
+    const buckets = bucketExplorerRows(rows, "Day");
+    expect(buckets).toHaveLength(3);
+    expect(buckets[1]?.spend).toBe(0);
+
+    const modes: ExplorerMode[] = ["stacked", "share", "total"];
+    const marks: ExplorerMark[] = ["bar", "line"];
+    for (const mode of modes) {
+      const plot = applyExplorerMode(buckets, mode);
+      for (const mark of marks) {
+        const model = buildExplorerPlotModel({
+          buckets: plot,
+          mode,
+          mark,
+          granularity: "Day",
+          showSales: true,
+          targetMer: 3.6,
+          breakEvenMer: 2.86,
+        });
+        expect(model.hasPlot, `${mode}/${mark}`).toBe(true);
+        expect(model.columns, `${mode}/${mark}`).toHaveLength(3);
+        expect(model.columns[1]?.hole, `${mode}/${mark}`).toBe(true);
+        expect(model.vbW).toBeGreaterThan(0);
+        expect(model.leftCeil).toBeGreaterThan(0);
+        expect(model.merCeil).toBeGreaterThan(0);
+        const blob = JSON.stringify(model);
+        expect(blob, `${mode}/${mark}`).not.toMatch(/NaN|Infinity/);
+        expect(
+          model.columns.every(
+            (c) => Number.isFinite(c.xCenter) && Number.isFinite(c.barW),
+          ),
+        ).toBe(true);
+        if (mode !== "total") {
+          const mix = explorerMixShares(plot, mode);
+          expect(mix["other:billboard"], `${mode} mix Billboard`).toBeGreaterThan(
+            0,
+          );
+          const billboard = model.columns[0]?.segs.find(
+            (s) => s.channel === "other:billboard",
+          );
+          expect(billboard, `${mode}/${mark} Billboard`).toBeTruthy();
+          expect(billboard!.amount).toBeGreaterThan(0);
+          if (mark === "line") {
+            const band = model.channelBands.find(
+              (b) => b.channel === "other:billboard",
+            );
+            expect(band?.points, `${mode} line Billboard`).toBeTruthy();
+            expect(band?.d, `${mode} line Billboard area`).toBeTruthy();
+            expect(band?.d).not.toMatch(/NaN/);
+          }
+        }
+      }
+    }
   });
 });

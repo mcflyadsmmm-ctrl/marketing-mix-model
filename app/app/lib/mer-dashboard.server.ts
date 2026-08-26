@@ -36,6 +36,8 @@ import {
 import {
   applyExplorerMode,
   bucketExplorerRows,
+  dateKeyFromLocal,
+  fillExplorerDayHoles,
   summarizeExplorer,
   type ExplorerDailyRow,
   type ExplorerGranularity,
@@ -44,6 +46,10 @@ import {
   type ExplorerSummary,
   type ExplorerWindow,
 } from "./spend-explorer";
+import {
+  spendMixVsPrior,
+  type SpendMixVsPriorRow,
+} from "./spend-period-mix";
 import {
   buildTillLtvSummary,
   type TillLtvSummary,
@@ -204,6 +210,8 @@ export interface DashboardMetrics {
   targetMer: number;
   marginPct: number;
   channelMix: ReturnType<typeof channelMix>;
+  /** Spend mix this period vs last — budget share only, never sales-to-channel. */
+  mixVsPrior: SpendMixVsPriorRow[];
   aboveBreakEven: boolean | null;
   allocation: SuggestAllocationResult | null;
   onboarding: RitualOnboarding;
@@ -717,7 +725,7 @@ export type SpendExplorerSeries = {
   targetMer: number;
   buckets: ExplorerPlotBucket[];
   summary: ExplorerSummary;
-  /** Raw closed days used for bucketing (activity-only). */
+  /** Closed calendar days in the window, including $0 holes. */
   dailyRows: ExplorerDailyRow[];
   /** Slice key → merchant-facing name (named `other` extras like Billboard). */
   channelLabels: Record<string, string>;
@@ -754,9 +762,18 @@ export async function buildSpendExplorerSeries(
     },
   );
 
-  const buckets = bucketExplorerRows(dailyRows, options.granularity);
+  const tz = options.timeZone?.trim() || null;
+  const startKey = tz
+    ? shopLocalDayKey(options.window.start, tz)
+    : dateKeyFromLocal(options.window.start);
+  const endKey = tz
+    ? shopLocalDayKey(options.window.end, tz)
+    : dateKeyFromLocal(options.window.end);
+  const filledDays = fillExplorerDayHoles(dailyRows, startKey, endKey);
+
+  const buckets = bucketExplorerRows(filledDays, options.granularity);
   const plot = applyExplorerMode(buckets, options.mode);
-  const summary = summarizeExplorer(dailyRows, {
+  const summary = summarizeExplorer(filledDays, {
     newCustomers: options.newCustomers,
     returningCustomers: options.returningCustomers,
     customerMetricsAvailable: options.customerMetricsAvailable,
@@ -770,7 +787,7 @@ export async function buildSpendExplorerSeries(
     targetMer: options.targetMer,
     buckets: plot,
     summary,
-    dailyRows,
+    dailyRows: filledDays,
     channelLabels,
   };
 }
@@ -1185,6 +1202,23 @@ export async function buildDashboardMetrics(
     ? null
     : calculateAmer(newCustomerNetSales, totalSpend);
   const mix = channelMix(spends);
+  const priorMix = priorSpends ? channelMix(priorSpends) : [];
+  const mixVsPrior = spendMixVsPrior(
+    mix.map((row) => ({
+      channel: spendChannelLabel({
+        channel: row.channel,
+        customLabel: row.customLabel,
+      }),
+      amount: row.amount,
+    })),
+    priorMix.map((row) => ({
+      channel: spendChannelLabel({
+        channel: row.channel,
+        customLabel: row.customLabel,
+      }),
+      amount: row.amount,
+    })),
+  );
   /**
    * Margin is optional — Total ROAS unlocks without BE.
    * Break-even only after an explicit margin confirm (or sample desk).
@@ -1359,6 +1393,7 @@ export async function buildDashboardMetrics(
     targetMer: effectiveTargetMer,
     marginPct: effectiveMarginPct,
     channelMix: mix,
+    mixVsPrior,
     salesPending,
     /**
      * Null while closed-day sales are still landing — "cut or shift spend"

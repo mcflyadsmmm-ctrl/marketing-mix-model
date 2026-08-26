@@ -53,10 +53,12 @@ describe("Sample data | Live data UX", () => {
     expect(spend).not.toContain("Switch to Your store to upload");
   });
 
-  it("data-mode reseeds Sample when noon stamps are missing", () => {
+  it("data-mode reseeds Sample through the window path, not a 5.7-year write", () => {
     const dataMode = read("../routes/app.data-mode.tsx");
-    expect(dataMode).toContain("sampleDeskNeedsSeed");
-    expect(dataMode).toContain("seedThreeYearSampleDesk");
+    // ensureSampleDeskSeeded still checks sampleDeskNeedsSeed (noon stamps,
+    // missing rows, an old shape) — it just commits the visible window first.
+    expect(dataMode).toContain("await ensureSampleDeskSeeded(");
+    expect(dataMode).not.toContain("seedThreeYearSampleDesk");
   });
 
   it("Overview empty states do not send merchants to /app/demo", () => {

@@ -38,7 +38,7 @@ import {
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
-import { channelCssVar, channelFillKey } from "../lib/channel-fill";
+import { channelCssVar, displayFillKey } from "../lib/channel-fill";
 import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -56,10 +56,12 @@ import {
 } from "../lib/periods";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
+  ensureSampleDeskSeeded,
   fetchSampleSales,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
   localDayKey,
+  SAMPLE_DESK_TARGET_MER,
 } from "../lib/sample-desk.server";
 
 /**
@@ -118,7 +120,7 @@ function buildPeriodChannelRows(
       name: c.name,
       spend: c.spend,
       share: c.spendShare,
-      fill: channelFillKey(c.name),
+      fill: displayFillKey(c.name),
     }))
     .sort((a, b) => b.spend - a.spend);
 }
@@ -142,7 +144,7 @@ function buildPeriodChannelRowsFromMix(
         name,
         spend: c.amount,
         share: c.share,
-        fill: channelFillKey(name),
+        fill: displayFillKey(name),
       };
     })
     .sort((a, b) => b.spend - a.spend);
@@ -177,6 +179,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = await ensureShop(session.shop);
   const now = new Date();
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  // Awaited before the history read below, so a direct link here is current too.
+  if (useSampleDesk) {
+    await ensureSampleDeskSeeded(shop.id, SAMPLE_DESK_TARGET_MER);
+  }
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
   const range = resolvePeriod(preset, now, deskTz);
 
@@ -823,7 +829,7 @@ function BestWindowsSection({
                       {row.shares.slice(0, 5).map((s) => (
                         <span
                           key={s.channel}
-                          className={`mcfly-alloc-v2__q-seg mcfly-channel__fill--${channelFillKey(s.channel)}`}
+                          className={`mcfly-alloc-v2__q-seg mcfly-channel__fill--${displayFillKey(s.channel)}`}
                           style={{ flex: Math.max(0.02, s.share) }}
                         />
                       ))}
@@ -832,7 +838,7 @@ function BestWindowsSection({
                       {row.shares.slice(0, 4).map((s) => (
                         <span key={s.channel}>
                           <span
-                            className={`mcfly-spend-dot mcfly-spend-dot--${channelFillKey(s.channel)}`}
+                            className={`mcfly-spend-dot mcfly-spend-dot--${displayFillKey(s.channel)}`}
                             aria-hidden="true"
                           />
                           {s.channel} · {formatPercent(s.share)}
@@ -863,7 +869,7 @@ function BestWindowsSection({
                 return (
                   <li key={diff.channel}>
                     <span
-                      className={`mcfly-spend-dot mcfly-spend-dot--${channelFillKey(diff.channel)}`}
+                      className={`mcfly-spend-dot mcfly-spend-dot--${displayFillKey(diff.channel)}`}
                       aria-hidden="true"
                     />
                     <span>

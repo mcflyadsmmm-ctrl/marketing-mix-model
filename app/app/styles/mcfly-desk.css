@@ -41,6 +41,17 @@
   --mcfly-affiliate: #d49870;
   --mcfly-email: #9aa8b8;
   --mcfly-other: #8a96a4;
+  /*
+   * A merchant's own named channels (Billboard, Radio, a sponsorship). Deeper
+   * and more saturated than the platform pastels on purpose: offline money the
+   * merchant booked themselves should stand out from the ad accounts.
+   */
+  --mcfly-extra-1: #8b5cf6;
+  --mcfly-extra-2: #0d9488;
+  --mcfly-extra-3: #b45309;
+  --mcfly-extra-4: #be185d;
+  --mcfly-extra-5: #4338ca;
+  --mcfly-extra-6: #4d7c0f;
   /* Soft tint surfaces — Overview / Allocation / LTV aesthetic */
   --mcfly-tint-sky: #f0f7fc;
   --mcfly-tint-sales: #eef8f3;
@@ -1831,6 +1842,69 @@
   opacity: 0.85;
 }
 
+/* Merchant-named channels — Billboard is its own series, never Other. */
+.mcfly-explorer__seg--extra-1 {
+  fill: var(--mcfly-extra-1);
+}
+.mcfly-explorer__seg--extra-2 {
+  fill: var(--mcfly-extra-2);
+}
+.mcfly-explorer__seg--extra-3 {
+  fill: var(--mcfly-extra-3);
+}
+.mcfly-explorer__seg--extra-4 {
+  fill: var(--mcfly-extra-4);
+}
+.mcfly-explorer__seg--extra-5 {
+  fill: var(--mcfly-extra-5);
+}
+.mcfly-explorer__seg--extra-6 {
+  fill: var(--mcfly-extra-6);
+}
+
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-1,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-1,
+.mcfly-spend-dot--extra-1,
+.mcfly-channel__fill--extra-1,
+.mcfly-stack__seg--extra-1 {
+  background: var(--mcfly-extra-1);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-2,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-2,
+.mcfly-spend-dot--extra-2,
+.mcfly-channel__fill--extra-2,
+.mcfly-stack__seg--extra-2 {
+  background: var(--mcfly-extra-2);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-3,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-3,
+.mcfly-spend-dot--extra-3,
+.mcfly-channel__fill--extra-3,
+.mcfly-stack__seg--extra-3 {
+  background: var(--mcfly-extra-3);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-4,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-4,
+.mcfly-spend-dot--extra-4,
+.mcfly-channel__fill--extra-4,
+.mcfly-stack__seg--extra-4 {
+  background: var(--mcfly-extra-4);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-5,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-5,
+.mcfly-spend-dot--extra-5,
+.mcfly-channel__fill--extra-5,
+.mcfly-stack__seg--extra-5 {
+  background: var(--mcfly-extra-5);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-6,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-6,
+.mcfly-spend-dot--extra-6,
+.mcfly-channel__fill--extra-6,
+.mcfly-stack__seg--extra-6 {
+  background: var(--mcfly-extra-6);
+}
+
 .mcfly-explorer__chart--svg {
   position: relative;
 }
@@ -1928,6 +2002,196 @@
 
 .mcfly-explorer__bar-g--on .mcfly-explorer__hit {
   fill: transparent;
+}
+
+/* Line mark — same stacked mix as the bars, drawn as bands + a top line. */
+.mcfly-explorer__band {
+  opacity: 0.34;
+}
+
+.mcfly-explorer__band-line {
+  stroke-width: 1.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Cash left after ads strip — sales minus spend, per bucket, around zero. */
+.mcfly-explorer__cash-zero {
+  stroke: var(--mcfly-mute, #5f6b78);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.mcfly-explorer__cash-bar {
+  fill: var(--mcfly-ok, #067647);
+  opacity: 0.82;
+  cursor: pointer;
+}
+
+.mcfly-explorer__cash-bar--neg {
+  fill: var(--mcfly-danger, #b42318);
+}
+
+.mcfly-explorer__cash-bar:hover {
+  opacity: 1;
+}
+
+/* Last week's sales ghosted at this week's position — a lag, not a forecast. */
+.mcfly-explorer__prior-line {
+  stroke: var(--mcfly-explorer-ink, #0a1221);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 2 5;
+  opacity: 0.42;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Where the money went — budget share, never who caused the sale. */
+.mcfly-mixtable {
+  width: 100%;
+  margin-top: 0.7rem;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.mcfly-mixtable__cap {
+  caption-side: top;
+  margin-bottom: 0.35rem;
+  color: var(--mcfly-mute);
+  font-size: 0.72rem;
+  text-align: left;
+  line-height: 1.35;
+}
+
+.mcfly-mixtable th,
+.mcfly-mixtable td {
+  padding: 0.32rem 0.5rem;
+  border-bottom: 1px solid var(--mcfly-line-soft, #e4e9ef);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-mixtable thead th {
+  color: var(--mcfly-mute);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mcfly-mixtable th:first-child,
+.mcfly-mixtable tbody th {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--mcfly-ink);
+  font-weight: 600;
+  text-align: left;
+}
+
+.mcfly-mixtable thead th:first-child {
+  display: table-cell;
+}
+
+.mcfly-mixtable__up {
+  color: var(--mcfly-ok, #067647);
+  font-weight: 600;
+}
+
+.mcfly-mixtable__down {
+  color: var(--mcfly-warn, #b45309);
+  font-weight: 600;
+}
+
+/* Week overlay on day grain — a faint rule where each ISO week starts. */
+.mcfly-explorer__week-rule {
+  stroke: var(--mcfly-line-soft, #e4e9ef);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  opacity: 0.9;
+}
+
+/* A closed day with no invoice — a $0 notch on the baseline, never a gap. */
+.mcfly-explorer__hole-tick {
+  stroke: var(--mcfly-line-soft, #e4e9ef);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* Cash readout strip — sales, spend, what is left, all from the same window. */
+.mcfly-explorer__readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0 1px;
+  margin: 0 0 0.55rem;
+  padding: 0;
+  border: 1px solid var(--mcfly-line-soft, #e4e9ef);
+  border-radius: 6px;
+  background: var(--mcfly-line-soft, #e4e9ef);
+  overflow: hidden;
+}
+
+.mcfly-explorer__readout-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--mcfly-surface, #fff);
+}
+
+.mcfly-explorer__readout-cell dt {
+  color: var(--mcfly-mute);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mcfly-explorer__readout-cell dd {
+  margin: 0;
+  color: var(--mcfly-ink);
+  font-size: 1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.mcfly-explorer__readout-cell--lead dd {
+  font-size: 1.12rem;
+}
+
+.mcfly-explorer__readout-neg {
+  color: var(--mcfly-danger, #b42318);
+}
+
+.mcfly-explorer__caption {
+  margin: 0 0 0.5rem;
+  color: var(--mcfly-mute);
+  font-size: 0.74rem;
+  letter-spacing: 0.01em;
+}
+
+.mcfly-explorer__nospend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--mcfly-line-soft, #e4e9ef);
+  border-radius: 6px;
+  background: var(--mcfly-surface-soft, #f7f9fb);
+  color: var(--mcfly-ink);
+  font-size: 0.78rem;
+}
+
+.mcfly-explorer__ch-mix {
+  margin-left: 0.3rem;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 
 .mcfly-explorer__crosshair {
@@ -8480,6 +8744,116 @@
 .mcfly-kpi-channels__share {
   color: var(--mcfly-mute);
   font-weight: 500;
+}
+
+/* Budget-share move vs the prior period, in percentage points. */
+.mcfly-kpi-channels__pp {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-kpi-channels__pp--up {
+  color: var(--mcfly-ok, #067647);
+}
+
+.mcfly-kpi-channels__pp--down {
+  color: var(--mcfly-warn, #b45309);
+}
+
+/* New vs returning cash with the spend that ran over the same dates. */
+.mcfly-split {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0 0 0.7rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--mcfly-line-soft, #e4e9ef);
+  border-radius: 6px;
+  background: var(--mcfly-surface-soft, #f7f9fb);
+}
+
+.mcfly-split__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+}
+
+.mcfly-split__k {
+  color: var(--mcfly-mute);
+  font-weight: 600;
+}
+
+.mcfly-split__v {
+  color: var(--mcfly-ink);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-split__bar {
+  height: 6px;
+  margin-top: 0.2rem;
+  border-radius: 3px;
+  background: var(--mcfly-line-soft, #e4e9ef);
+  overflow: hidden;
+}
+
+.mcfly-split__bar-new {
+  display: block;
+  height: 100%;
+  background: var(--mcfly-accent, #0284c7);
+}
+
+.mcfly-split__note {
+  margin: 0.15rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.mcfly-hero-compact__cashleft {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.45rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--mcfly-line-soft, #e4e9ef);
+  color: var(--mcfly-mute);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mcfly-hero-compact__cashleft strong {
+  color: var(--mcfly-ink);
+  font-size: 1.02rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.mcfly-hero-compact__cashleft-neg {
+  color: var(--mcfly-danger, #b42318);
+}
+
+/* The Total ROAS goal restated in dollars of leftover cash. */
+.mcfly-hero-compact__goalcash {
+  margin: 0.3rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.mcfly-hero-compact__goalcash-up {
+  color: var(--mcfly-ok, #067647);
+  font-weight: 600;
+}
+
+.mcfly-hero-compact__goalcash-down {
+  color: var(--mcfly-warn, #b45309);
+  font-weight: 600;
 }
 
 .mcfly-roas-gauge__kicker {
