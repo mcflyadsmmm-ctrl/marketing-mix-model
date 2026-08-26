@@ -112,6 +112,16 @@ function channelSegClass(channel: string): string {
   return "mcfly-explorer__seg--other";
 }
 
+/** Same palette as the segment fills, as a stroke for the line mark. */
+function channelStrokeVar(channel: string): string {
+  if (channel === "total") return "var(--mcfly-accent, #0284c7)";
+  const known = channel.split(":")[0] as SpendChannel;
+  if (known in SPEND_CHANNEL_LABELS) {
+    return `var(--mcfly-${known}, var(--mcfly-other))`;
+  }
+  return "var(--mcfly-other)";
+}
+
 /** One phrase: "Total ROAS Z× · X sales ÷ Y spend" for tip / title / readout. */
 function bucketMerPhrase(bucket: {
   sales: number;
@@ -445,7 +455,13 @@ export function SpendExplorer({
   const vbH = model.vbH;
   const merLine = model.merLine;
   const salesLine = model.salesLine;
-  const hasPlot = allBuckets.some((b) => b.bars.length > 0 || b.spend > 0);
+  /*
+   * A window with closed days always draws — every day with no invoice is a $0
+   * hole, never a white box. Only a window with no closed days at all falls
+   * back to the door copy.
+   */
+  const hasPlot = allBuckets.length > 0;
+  const hasSpend = allBuckets.some((b) => b.bars.length > 0 || b.spend > 0);
 
   const defaultKey =
     [...visibleBuckets]
@@ -836,6 +852,15 @@ export function SpendExplorer({
             Channel mix vs that day’s sales · missing days are $0 · not
             attribution
           </p>
+          {!hasSpend && !shotMode ? (
+            <p className="mcfly-explorer__nospend">
+              <span>
+                Every closed day in {series.windowLabel.toLowerCase()} is $0 —
+                no spend added yet.
+              </span>
+              {explorerEmptyActions(variant, searchParams)}
+            </p>
+          ) : null}
           <div className="mcfly-explorer__scroll">
             <div
               className={`mcfly-explorer__chart${mark === "line" ? " mcfly-explorer__chart--line" : " mcfly-explorer__chart--bar"}`}
@@ -1070,9 +1095,12 @@ export function SpendExplorer({
                             ) : null}
                             {band.points ? (
                               <polyline
-                                className={`mcfly-explorer__band-line ${channelSegClass(band.channel)}`}
+                                className="mcfly-explorer__band-line"
                                 points={band.points}
                                 fill="none"
+                                style={{
+                                  stroke: channelStrokeVar(band.channel),
+                                }}
                                 pointerEvents="none"
                               />
                             ) : null}

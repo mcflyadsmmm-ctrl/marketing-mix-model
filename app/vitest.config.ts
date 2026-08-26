@@ -15,6 +15,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["app/**/*.test.ts"],
+    // .tsx so components can be render-tested (react-dom/server, no DOM needed).
+    include: ["app/**/*.test.ts", "app/**/*.test.tsx"],
   },
 });
