@@ -1,15 +1,16 @@
 # App Store listing draft — Mcfly Analytics
 
 Paste into Partner listing when Distribution = **Shopify App Store**.  
-**Pricing:** Shopify App Pricing — **Free** (default) + **Pro $39/store/mo**. **Product:** exact spend from every platform (including billboards) next to Shopify sales, LTV Shopify Analytics does not compute, and a Goals board. Sales ÷ spend is a board number — never pixels / MTA / “true ROAS.”  
-**Voice:** calm operator desk — specific, factual. No anti-pixel sermon. No forever-free.  
-**Resubmit lock (2026-08-24):** Billing is live (`MCFLY_BILLING=1`). Partner Pricing **must** be Free + Pro $39 — never claim Free-only / “no charges.” Defer email CRM / Level 2 PCD. Minimal `read_customers` (opaque id + `numberOfOrders`) is OK. **Till LTV** (opaque cohorts) is Level 1 Pro — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Tier path: [`BILLING_TIERS.md`](./BILLING_TIERS.md). Positioning: [`STRATEGY.md`](../STRATEGY.md).
+**Pricing (Partner field only):** Shopify App Pricing — **one paid plan $39/store/mo + 7-day trial**. **Delete leftover Free.** Whole desk included.  
+**Product:** See ad spend next to sales, day by day. Exact spend from every platform (including billboards) next to Shopify sales, LTV from orders, Goals board. Sales ÷ spend is a board number — never pixels / MTA / “true ROAS.”  
+**Voice:** calm operator desk — specific, factual. No anti-pixel sermon.  
+**Resubmit lock (2026-08-26 founder FINAL PASS):** Billing is live (`MCFLY_BILLING=1`). Partner Pricing **must** be one $39 plan + 7-day trial — delete leftover Free. Never claim Free-only. Defer email CRM / Level 2 PCD. Minimal `read_customers` (opaque id + `numberOfOrders`) is OK. Till LTV (opaque cohorts) is Level 1 — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Tier path: [`BILLING_TIERS.md`](./BILLING_TIERS.md). Positioning: [`STRATEGY.md`](../STRATEGY.md).
 
-## Paste-ready short + long (Free + Pro — copy final)
+## Paste-ready short + long (copy final)
 
-**Status (2026-08-25):** Tagline, short, long, and feature bullets match STRATEGY. **4.2.2 / 4.2.3:** merchant-facing listing paste (short / long / features / captions / images) must **not** include plan prices. Put **$39** only in Partner **Pricing details** and in reviewer testing notes. Default plan = every named platform plus typed extras (billboards). Paid plan = Customer LTV + full-year Goals board.
+**Status (2026-08-26):** Tagline, short, long, and feature bullets match STRATEGY. **4.2.2 / 4.2.3:** merchant-facing listing paste (short / long / features / captions / images) must **not** include plan prices (**no $39**). Put **$39** and the **7-day trial** only in Partner **Pricing details** and in reviewer testing notes. Whole desk is included — do **not** gate LTV or Goals as a separate “paid plan” upsell in listing paste. Desk modes: **Sample data | Live data**. Spend three doors: pick channels → template; type channel + amount + period; Ads Manager CSV.
 
-Human still must: confirm ASO checklist below, upload icon + shots (**no pricing in images**), set Partner **Pricing = Shopify App Pricing (Free + Pro $39)**, paste **App testing information** from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (check “My app doesn't require an account to use it”), then Submit.
+Human still must: confirm ASO checklist below, **recapture** icon + shots (**old Free/Pro shots are stale** — no pricing in images), set Partner **Pricing = Shopify App Pricing (one $39 plan + 7-day trial; delete Free)**, paste **App testing information** from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (check “My app doesn't require an account to use it”). Do **not** tell the agent to Submit — human Submit only when ready.
 
 ## ASO checklist (before paste) — human only
 
@@ -19,12 +20,12 @@ Leave these unchecked until a human verifies in Partner. Agents do **not** flip 
 - [ ] **Short description** ≤ ~150 chars; lead with spend next to Shopify (billboards included) — **no plan prices** (4.2.3)
 - [ ] **Long description** opens on Shopify’s gap (no ad/offline cost, no LTV next to spend); **no $ /mo in this field**
 - [ ] **Sales channel requirements:** do **not** check “Merchant must have online store” — this app is Admin-only (4.3.1)
-- [ ] **Trust URLs** on the Fly origin: `https://mcfly-analytics.fly.dev/privacy` `/support` `/terms` (Fly serves the same `site/` HTML as the marketing repo; never App URL = mcflyads.com; live mcflyads.com Pages may still be waitlist until Cloudflare republish)
+- [ ] **Trust URLs** on the Fly origin only: `https://mcfly-analytics.fly.dev/privacy` `/support` `/terms` `/pricing` — never App URL = mcflyads.com; do **not** send reviewers to mcflyads.com waitlist
 - [ ] **PCD copy** still: opaque customer id + `numberOfOrders` only — no CRM / name / email
 - [ ] **Works with:** leave blank (no Checkout UI extension) — never Meta/Google/SyncWith; Checkout only if you later ship a real Checkout surface
-- [ ] Screenshots + M-only icon per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md)
+- [ ] Screenshots + M-only icon per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) — **human must recapture** (Sample | Live chrome; no Free vs Pro shots)
 
-Partner listing URLs for **this resubmit** (Fly serves the current `site/` marketing pages on this origin. Live mcflyads.com Cloudflare Pages may still be waitlist — do not send reviewers there until Pages is republished):
+Partner listing URLs for **this resubmit** (Fly serves the current `site/` marketing pages on this origin):
 
 | Field | URL |
 | --- | --- |
@@ -32,9 +33,10 @@ Partner listing URLs for **this resubmit** (Fly serves the current `site/` marke
 | Privacy | https://mcfly-analytics.fly.dev/privacy |
 | Support | https://mcfly-analytics.fly.dev/support |
 | Terms | https://mcfly-analytics.fly.dev/terms |
+| Pricing (site) | https://mcfly-analytics.fly.dev/pricing |
 | App URL | https://mcfly-analytics.fly.dev |
 
-App URL and Website may share the Fly host. Never set App URL to mcflyads.com.
+App URL and Website may share the Fly host. Never set App URL to mcflyads.com. Support email until DNS: **mcflyadsmmm@gmail.com**.
 
 **Human runbook:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) · shots [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) · requirement matrix [`APP_STORE_REQUIREMENT_MATRIX.md`](./APP_STORE_REQUIREMENT_MATRIX.md) · scorecard [`SUBMIT_READY_SCORECARD.md`](./SUBMIT_READY_SCORECARD.md)
 
@@ -45,16 +47,16 @@ App URL and Website may share the Fly host. Never set App URL to mcflyads.com.
 | Field | Draft |
 | --- | --- |
 | **App name** | Mcfly Analytics |
-| **Tagline** (≤80 chars) | All your ad spend — even billboards — next to Shopify |
+| **Tagline** (≤80 chars) | See ad spend next to sales, day by day |
 | **Category** | Marketing → Marketing analytics / Advertising (pick closest) — spend next to Shopify metrics, LTV, and goals |
 | **Primary language** | English |
-| **Pricing** | **Shopify App Pricing: Free + Pro $39/store/mo** — see [`BILLING_TIERS.md`](./BILLING_TIERS.md). In-app Upgrade/Manage plan must match Partner plans. Do **not** mark listing Free-only while Upgrade CTAs charge. |
+| **Pricing** | **Shopify App Pricing: one paid plan $39/store/mo + 7-day trial** — delete leftover Free. See [`BILLING_TIERS.md`](./BILLING_TIERS.md). In-app Start 7-day trial / Manage plan must match Partner plans. Do **not** mark listing Free-only while billing charges. |
 
-**Tagline why (53 chars):** Billboards prove this is not another Meta-OAuth clone. Formula and paid-plan details live in short/long, not squeezed into 80.
+**Tagline why:** Hero lock — spend beside sales, day by day. Formula and desk details live in short/long.
 
 ---
 
-## Explicitly deferred for first Free submit (do not expand scopes)
+## Explicitly deferred for first submit (do not expand scopes)
 
 | Defer | Why |
 | --- | --- |
@@ -62,6 +64,7 @@ App URL and Website may share the Fly host. Never set App URL to mcflyads.com.
 | Live Meta / Google Ads OAuth | **Retired** — CSV + optional merchant-paid pipes; see [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md) |
 | `read_all_orders` (deep history) | **Not in live SCOPES** until Partner approves — omit from TOML/Fly until approved. Reviewer notes must not imply the scope is granted. See [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Still **no** Level 2 PII fields. |
 | Customer PII fields (name/email/phone/address) | Never for v1; opaque id + `numberOfOrders` + OrderFact amounts/dates only |
+| `write_pixels` | **Never** — no pixels |
 
 ---
 
@@ -70,60 +73,62 @@ App URL and Website may share the Fly host. Never set App URL to mcflyads.com.
 Complete these in Partner **App listing** before Submit. **Works with = blank** (no Checkout UI extension — do not claim Checkout). Never invent Meta/Google/SyncWith logos. Listing copy must not imply OAuth is “never.”
 
 **Paste order (human, ~15 min once shots exist):**
-1. App name / email / language / category / Pricing **Shopify App Pricing Free + Pro $39** / **Works with = blank** (no Checkout UI extension; never Meta/Google/SyncWith)  
-2. Website + Privacy / Support / Terms URLs (Fly origin table above — not stale mcflyads.com Pages)  
+1. App name / email / language / category / Pricing **Shopify App Pricing one $39 plan + 7-day trial (delete Free)** / **Works with = blank** (no Checkout UI extension; never Meta/Google/SyncWith)  
+2. Website + Privacy / Support / Terms URLs (Fly origin table above — not mcflyads.com)  
 3. App URL = `https://mcfly-analytics.fly.dev` (never mcflyads.com)  
 4. Search keywords from table below (ban attribution / pixel / true ROAS / MTA)  
 5. App icon = `docs/listing-assets/mcfly-app-icon-1200.png`  
-6. Five screenshots + captions from [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md)  
+6. Five screenshots + captions from [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) — **recapture first**  
 7. Short description → long description → feature bullets → reviewer notes (sections below)  
-8. PCD Level 1 only (§PCD + [`PCD_AND_LTV.md`](./PCD_AND_LTV.md)) · Distribution = Shopify App Store · Submit
+8. PCD Level 1 only (§PCD + [`PCD_AND_LTV.md`](./PCD_AND_LTV.md)) · Distribution = Shopify App Store · human Submit when ready
 
 | Field | Set to | Notes |
 | --- | --- | --- |
 | **App name** | Mcfly Analytics | Must match embedded app + trust pages |
-| **Developer / support email** | mcflyadsmmm@gmail.com | Same as reviewer notes |
+| **Developer / support email** | mcflyadsmmm@gmail.com | Same as reviewer notes (until DNS) |
 | **Primary language** | English | No fake multi-language until translated |
-| **Category** | Marketing → **Marketing analytics** (or closest: Advertising) | Position as **cash close / spend affordability** — not “Store design” or profit-suite sprawl |
-| **Pricing** | **Shopify App Pricing: Free + Pro $39** | Must match in-app Upgrade. No **External charges**. Default plan = every named platform + extras; paid plan = LTV + full Goals |
+| **Category** | Marketing → **Marketing analytics** (or closest: Advertising) | Position as **spend next to sales** — not “Store design” or profit-suite sprawl |
+| **Pricing** | **Shopify App Pricing: one $39/store/mo + 7-day trial** | Delete leftover Free. Must match in-app Start 7-day trial. No **External charges**. Whole desk included. |
 | **Works with** | **Leave blank** | No Checkout UI extension today — do **not** claim Checkout. Never Meta/Google/TikTok/SyncWith logos. Add Checkout later only if a real Checkout surface ships. |
 | **Online Store required?** | **No — leave unchecked** | Admin-only desk. Do not select “Merchant must have online store” (4.3.1). |
-| **Website** | https://mcfly-analytics.fly.dev | Same host as App URL — Fly serves `site/` (Install free, not waitlist) |
-| **Privacy policy URL** | https://mcfly-analytics.fly.dev/privacy | PCD Level 1 scopes; no waitlist |
+| **Website** | https://mcfly-analytics.fly.dev | Same host as App URL — Fly serves `site/` |
+| **Privacy policy URL** | https://mcfly-analytics.fly.dev/privacy | PCD Level 1 scopes |
 | **Support URL** | https://mcfly-analytics.fly.dev/support | App Store install steps; no shop-domain form |
-| **Terms URL** | https://mcfly-analytics.fly.dev/terms | Free + Pro $39; Utah law |
-| **App URL** | https://mcfly-analytics.fly.dev | Never mcflyads.com |
+| **Terms URL** | https://mcfly-analytics.fly.dev/terms | One plan + trial; Utah law |
+| **App URL** | https://mcfly-analytics.fly.dev | Never mcflyads.com. `shop`+`host` → `/app`. |
 | **Search keywords** | ad spend, Shopify analytics, LTV, ROAS, billboards, marketing goals | ASO spine only — ban “attribution,” “pixel,” “true ROAS,” “MTA” |
-| **Demo store** | Leave blank for v1 | Optional post-submit; sample desk is in-app only |
+| **Demo store** | Leave blank for v1 | Optional post-submit; Sample data is in-app only |
 | **App icon** | `docs/listing-assets/mcfly-app-icon-1200.png` | 1200×1200, **M-only** ribbon |
-| **Screenshots** | 5 PNGs per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) | Unique compositions (4.4.4) |
+| **Screenshots** | 5 PNGs per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) | Unique compositions (4.4.4); **recapture** Sample \| Live |
 
-**Pre-flight:** Distribution = **Shopify App Store** · PCD submitted · curl **Fly** `/privacy` `/support` `/terms` (do **not** send reviewers to stale mcflyads.com Pages).
+**Pre-flight:** Distribution = **Shopify App Store** · PCD submitted · curl **Fly** `/privacy` `/support` `/terms` `/pricing` (do **not** send reviewers to mcflyads.com).
 
 ---
 
 ## First 10 minutes (reviewer notes only — do not paste into listing body)
 
-Merchants (and reviewers) should reach a trusted Total ROAS after Settings → Spend → Overview, without auto-sync theater. **Do not paste dollar amounts into the public listing.** Reviewer notes may include the $39 plan so App Review can test billing.
+Merchants (and reviewers) should reach trusted Total ROAS after Settings → Spend → Overview, without auto-sync theater. **Do not paste dollar amounts into the public listing.** Reviewer notes may include the $39 plan and 7-day trial so App Review can test billing.
 
 ```text
-FIRST STEPS (no required pixel; default plan = every named platform + typed extras)
+FIRST STEPS (no required pixel; whole desk on trial and after)
 1. Install Mcfly Analytics from the Shopify App Store — opens embedded in Admin
+   (shop + host → /app). No write_pixels.
 2. Settings → optional profit margin % → save → Break-even Total ROAS locks (1 ÷ margin)
-3. Spend → Add spend: amount + date + channel (or type Billboards — I-15) → Save
-   CSV remains for many days / Ads Manager export.
-   Optional automation: Spend → Automate → Mcfly pipe template → SyncWith / Coupler /
-   Supermetrics / Coefficient (you pay those tools) → CSV → Paste / Import.
-   Not a “Works with” partnership.
-   Customer LTV and the full Goals board = paid plan (Shopify App Pricing — see Pricing details).
-4. Overview → confirm Total ROAS = Shopify Total Sales ÷ ad spend for any period;
-   check freshness chip, channel mix %, Goals pace, Email Overview (mailto)
-5. Spend Allocation → quarters / pie / rolling 7·14·28 affordability call
+3. Settings → Start 7-day trial → Shopify plan picker opens in the TOP Admin frame
+   (App Store 2.1.1). One plan $39/store/mo after trial. Uninstall stops the charge.
+4. Spend — three doors: (a) pick channels → template, (b) type channel + amount +
+   period (day/week/month/quarter/half-year/year) → That’s $X/day, (c) Ads Manager CSV.
+   First session: yesterday Meta + a $400 billboard vs yesterday Shopify sales.
+   Empty spend days = $0.
+5. Overview → confirm Total ROAS = Shopify Total Sales ÷ ad spend for any period;
+   history label: Daily spend by channel, back to January 2021
+   (window = January 1 of current year − 5 through today).
 
-Demo sample desk is for listing screenshots / paid-plan preview only — turn OFF before judging live metrics.
+Desk modes: Sample data | Live data at the top. Sample data = example numbers.
+Live data = this shop’s Shopify sales + the spend you add. Billing is not a desk mode.
 ```
 
-**Listing honesty:** Default plan = every named platform plus extras like billboards (type or CSV). **Optional automation** = merchant-paid SyncWith-class tools filling a Mcfly template (no fake Works-with). **Paid plan (price only in Partner Pricing details):** Customer LTV / Acquisition and the full-year Goals board. We do not require a pixel. We do not replace Ads Manager attribution.
+**Listing honesty:** Whole desk (Spend, Overview, LTV, Goals). **Optional automation** = merchant-paid SyncWith-class tools filling a Mcfly template (no fake Works-with). Plan price and trial only in Partner Pricing details + testing notes. We do not require a pixel. We do not replace Ads Manager attribution.
 
 ---
 
@@ -131,11 +136,11 @@ Demo sample desk is for listing screenshots / paid-plan preview only — turn OF
 
 <!-- APP_STORE_PASTE:short -->
 ```text
-Add spend from Meta, Google, TikTok, or billboards. See it next to Shopify sales, LTV, and goals — numbers Shopify Analytics does not combine.
+See ad spend next to sales, day by day. Meta, Google, TikTok, or billboards beside Shopify — plus LTV and goals Analytics does not combine.
 ```
 <!-- /APP_STORE_PASTE:short -->
 
-**Why:** Shopify gap in one breath + billboards (not a Meta clone) + LTV/goals. Plan prices live in Partner Pricing details only (4.2.3).
+**Why:** Hero + billboards (not a Meta clone) + LTV/goals. Plan prices live in Partner Pricing details only (4.2.3).
 
 ---
 
@@ -145,21 +150,25 @@ Add spend from Meta, Google, TikTok, or billboards. See it next to Shopify sales
 ```text
 Shopify Analytics shows sales. It does not ingest Meta, Google, TikTok, or billboard cost, and it does not compute LTV next to that spend.
 
-Mcfly Analytics is the Admin app where you add exact spend from every platform — even billboards — and see it beside Shopify sales for the same dates. Total ROAS = Shopify Total Sales ÷ the spend you added. It is not platform ROAS, not net profit, and not which ad to scale. The paid plan unlocks customer LTV/payback and a full-year Goals board.
+Mcfly Analytics is the Admin app where you see ad spend next to sales, day by day. Add exact spend from every platform — even billboards — and see it beside Shopify sales for the same dates. Total ROAS = Shopify Total Sales ÷ the spend you added. It is not platform ROAS, not net profit, and not which ad to scale. The whole desk is included: Spend, Overview, LTV/payback, and Goals.
 
 WHAT YOU GET
-• Add spend: type one day (amount + date + channel, or a named extra like billboards) or upload a CSV for many days
-• Every named platform plus extras on the default plan — TikTok, Amazon, email, radio, billboards
-• Total ROAS = Shopify Total Sales ÷ spend for any period (MTD / QTD / YTD / custom)
+• See ad spend next to sales, day by day
+• Spend three doors: pick channels → template; type channel + amount + period; or Ads Manager CSV
+• Every named platform plus extras — TikTok, Amazon, email, radio, billboards
+• Empty spend days count as $0 — no silent UTM drop
+• Total ROAS = Shopify Total Sales ÷ spend for any period in the desk window
+• History: Daily spend by channel, back to January 2021
 • Break-even Total ROAS from optional profit margin
 • Spend Allocation — quarters, pie, rolling 7 / 14 / 28
-• Goals — this period vs your Total ROAS goal; full-year board on the paid plan
-• LTV / Acquisition — Cash CAC, cohort LTV, LTV:CAC on the paid plan
+• Goals — this period vs your Total ROAS goal + full-year board
+• LTV / Acquisition — Cash CAC, cohort LTV, LTV:CAC from orders (opaque id — no CRM)
+• Desk modes: Sample data | Live data (billing is not a desk mode)
 • Email Overview — opens your mail app with this period’s cards (mailto; Mcfly never sends mail)
 
 THE DESK
 • Shopify Total Sales in (Admin API — action basis; Net Sales optional view)
-• Ad spend out — upload, paste, or type extras. Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly template → CSV import — not a Works with partnership
+• Ad spend out — template, type, or Ads Manager CSV. Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly template → CSV import — not a Works with partnership
 • Total ROAS (action) = Shopify Total Sales ÷ ad spend
 • Channel mix in dollars and percent
 • Freshness chip plus Update spend throughout Overview
@@ -171,11 +180,12 @@ WHAT WE DO NOT SHIP
 • A required pixel or “true ROAS”
 • Fake driven revenue that does not match the till
 • Full COGS / Amazon P&L (not a profit suite)
+• write_pixels
 
 WHO IT’S FOR
 Shopify operators who need every dollar out — including offline — next to Shopify metrics, plus LTV and goals Shopify Analytics does not combine.
 
-Plan prices are in the Pricing details section of this listing — not here. Upgrade and Manage plan run through Shopify App Pricing in Admin.
+Plan prices are in the Pricing details section of this listing — not here. Manage plan runs through Shopify App Pricing in Admin.
 
 Learn more: https://mcfly-analytics.fly.dev
 Privacy: https://mcfly-analytics.fly.dev/privacy · Support: https://mcfly-analytics.fly.dev/support
@@ -183,7 +193,7 @@ App URL: https://mcfly-analytics.fly.dev
 ```
 <!-- /APP_STORE_PASTE:long -->
 
-**Why it converts:** Shopify gap in line one → billboards as proof → paid plan is LTV + Goals (not hidden channels).
+**Why it converts:** Shopify gap in line one → spend next to sales → whole desk (not a gated LTV upsell).
 
 ---
 
@@ -191,28 +201,29 @@ App URL: https://mcfly-analytics.fly.dev
 
 <!-- APP_STORE_PASTE:features -->
 ```text
-Add spend from every platform — even billboards — next to Shopify sales
+See ad spend next to sales, day by day — even billboards
 Total ROAS = Shopify Total Sales ÷ spend you added — not platform ROAS
-Break-even from optional profit margin · Spend Allocation
-Customer LTV and payback Shopify Analytics does not compute (paid plan)
-Full-year Goals board on the paid plan · Email Overview (mailto)
+Three Spend doors: template, type period, or Ads Manager CSV
+Customer LTV and payback from orders · full-year Goals board
+Sample data | Live data · Daily spend by channel, back to January 2021
 ```
 <!-- /APP_STORE_PASTE:features -->
 
-**Why this order:** Spend in (billboards) → formula → break-even/allocation → paid LTV → paid Goals. No plan prices in this field (4.2.3).
+**Why this order:** Hero → formula → Spend doors → LTV/Goals → Sample|Live + history. No plan prices in this field (4.2.3).
 
 ---
 
 ## Screenshots (after install — real Admin UI)
 
 Capture from **embedded Admin** on `devmcflyads` (not the marketing site). Target ~1600×900 PNG.  
+**Human must recapture** — old Free/Pro shots are stale.  
 Shot order + captions: [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md).
 
 | # | Screen | Caption (≤80) | What to show |
 | --- | --- | --- | --- |
-| 1 | Overview | Shopify sales next to the spend you added | Hero Total ROAS + sales/spend |
+| 1 | Overview | Shopify sales next to the spend you added | Hero Total ROAS + sales/spend; Sample \| Live chrome |
 | 2 | Formula | Sales ÷ spend — the formula this desk uses | Equation panel, period MTD |
-| 3 | Add spend | Add a billboard or any platform in one field | Amount + date + channel / typed extra |
+| 3 | Add spend | Three Spend doors — template, type, or CSV | Amount + period + channel / Billboards |
 | 4 | LTV | LTV and payback Shopify Analytics does not show | Cohort windows labeled vs period CAC |
 | 5 | Goals | Full-year Goals board next to this period | PeriodControl + year board |
 
@@ -224,7 +235,7 @@ Shot order + captions: [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md).
 
 **Full plain-English guide:** [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) (Level 1 vs 2, till LTV, post-launch expansion).
 
-**First submit:** request **Level 1 only**. Leave name / address / email / phone **unchecked**.
+**First submit:** request **Level 1 only**. Leave name / address / email / phone **unchecked**. No `write_pixels`.
 
 | Shopify level | Meaning | Mcfly first submit |
 | --- | --- | --- |
@@ -264,7 +275,7 @@ Deep till history beyond ~60 days for OrderFact backfill and till LTV cohorts (o
 • Support contact only when voluntarily emailed (mcflyadsmmm@gmail.com)
 
 === DATA WE DO NOT COLLECT ===
-Customer name, email, phone, address. No pixels. No path attribution. No customer marketing lists.
+Customer name, email, phone, address. No pixels. No write_pixels. No path attribution. No customer marketing lists.
 
 === CSV / SPEND PIPE ===
 Merchant-supplied ad-spend aggregates only (CSV / Sheets). Optional SyncWith / Coupler / Supermetrics / Coefficient are merchant-chosen processors the merchant pays — Mcfly only receives the imported spend file. Not a “Works with” partnership.
@@ -296,7 +307,7 @@ https://mcfly-analytics.fly.dev/privacy
 
 ## Reviewer notes (paste into submission)
 
-**App testing information (4.5.4 / 4.5.5):** paste [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md). Partner form: Username/Password **empty**, **check** “My app doesn't require an account to use it.” Do **not** paste `<PASTE…>` passwords. Reviewers reach Pro via Spend → **Upgrade to Pro** (no Mcfly login).
+**App testing information (4.5.4 / 4.5.5):** paste [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md). Partner form: Username/Password **empty**, **check** “My app doesn't require an account to use it.” Do **not** paste `<PASTE…>` passwords. Reviewers reach billing via Settings → **Start 7-day trial** (plan picker `_top` — App Store 2.1.1). No Mcfly login.
 
 The testing-instructions textarea must include the TEST ACCOUNT block (Username: none / Password: none). That is what 4.5.4 asked for in [the pause screenshot](https://screenshot.click/12-40-wvht7-gytqd.png). Do **not** paste the public listing long description into that field.
 
@@ -310,13 +321,13 @@ PCD answers stay in **§ Protected Customer Data** above — different Partner f
 - [x] Compliance webhook rejects bad HMAC (401)
 - [x] App code set to `AppDistribution.AppStore`; toml URLs locked; `automatically_update_urls_on_dev = false`
 - [ ] Partner Dashboard: Distribution → **Shopify App Store** (**human**)
-- [ ] PCD questionnaire submitted (**human**) — paste §PCD above
-- [x] Publish Cloudflare Pages so live `/support` `/pricing` `/privacy` match Free + PCD — **verified 2026-07-26** (spot-check 200s before Submit)
-- [ ] Install on `devmcflyads`; smoke test above; sample desk **OFF** (**human**)
-- [ ] Screenshots + M-only icon uploaded (**human**)
-- [ ] Pricing = **Shopify App Pricing Free + Pro $39** (never Free-only while Upgrade is live)
+- [ ] PCD questionnaire submitted (**human**) — paste §PCD above · Level 1 only · no `write_pixels`
+- [ ] Trust pages on Fly: `/support` `/pricing` `/privacy` `/terms` (**human** curl)
+- [ ] Install on `devmcflyads`; smoke; **Live data** at the top (**human**)
+- [ ] Screenshots + M-only icon uploaded (**human** — **recapture**; old Free/Pro shots stale)
+- [ ] Pricing = **Shopify App Pricing one $39 plan + 7-day trial** (delete leftover Free)
 - [ ] App testing information: Username/Password **empty**, **check** “My app doesn't require an account to use it”, paste TEST ACCOUNT block from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md)
-- [ ] Embedded Admin smoke: Spend → Upgrade to Pro → top-frame plans (no “refused to connect”)
-- [ ] Submit for review (**human**)
+- [ ] Embedded Admin smoke: Settings → Start 7-day trial → top-frame plans (no “refused to connect”)
+- [ ] Submit for review (**human only** — do not ask the agent to Submit)
 
 Do **not** chase Built for Shopify until ~50 paid-plan installs + 5 reviews.

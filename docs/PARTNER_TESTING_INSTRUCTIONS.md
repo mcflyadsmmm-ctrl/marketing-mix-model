@@ -2,11 +2,12 @@
 
 **Why this file exists:** Shopify paused Mcfly Analytics (ref **127166**, 2026-08-24) for:
 
-1. **2.1.1** — Spend → **Upgrade to Pro** loaded `admin.shopify.com` inside the app iframe (`refused to connect`).
+1. **2.1.1** — billing CTA loaded `admin.shopify.com` inside the app iframe (`refused to connect`). Fix: **Start 7-day trial** opens the plan picker in the **TOP** Admin frame.
 2. **4.5.4 / 4.5.5** — [Test account form](https://screenshot.click/12-40-wvht7-gytqd.png) had **empty Username / Password** and **“My app doesn't require an account to use it” unchecked**.
 
-Human pastes the blocks below into Partner → App listing → **App testing information**, then Submit.  
-**Do not commit real passwords. Do not paste `<PASTE…>` placeholders into Partner.**
+Human pastes the blocks below into Partner → App listing → **App testing information**.  
+**Do not commit real passwords. Do not paste `<PASTE…>` placeholders into Partner.**  
+**Do not ask the agent to Submit.**
 
 SoT for listing copy: [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md) · billing: [`BILLING_TIERS.md`](./BILLING_TIERS.md)
 
@@ -48,40 +49,47 @@ session is the only login. There is no Mcfly signup, no Google SSO, no second
 password, and no in-app account to create.
 
 How to reach the complete feature set (4.5.5)
-- Free (default): Overview, Spend (every named platform plus extras like
-  billboards — type one day or CSV), Allocation, Goals pace, Settings.
-  No extra login.
-- Pro (Customer LTV, full Goals board): Spend → Upgrade to Pro.
-  Shopify App Pricing opens in the TOP Admin frame ($39/store/mo; development
-  stores: $0 test charge is OK). Approve Pro → return to the app.
-- Downgrade without reinstall (1.2.3): Settings → Manage plan → Free.
+- Whole desk on a 7-day full-access trial, then one plan $39/store/mo.
+  Overview, Spend (every named platform plus extras like billboards),
+  Allocation, LTV, Goals, Settings. No extra login.
+- Settings has Start 7-day trial. That button opens Shopify’s plan picker
+  in the TOP Admin frame (development stores: $0 test charge is OK).
+  Approve → return to the app. Uninstall stops the charge.
+- Billing is not a desk mode. Desk modes at the top: Live data | Sample data.
+  Live data = this shop’s Shopify sales + the spend you add.
+  Sample data = example numbers (not this shop).
 
 Install on the App Review store (prior tape: mcfly-2.myshopify.com). Do not wait
 for a Mcfly username/password screen — it does not exist.
 
 PRICING
-Shopify App Pricing — Free (default) + Pro $39/store/mo flat.
-Upgrade / Manage plan MUST open Shopify’s plan picker in the TOP Admin frame
-(never inside the app iframe).
+Shopify App Pricing — one paid plan $39/store/mo after a 7-day trial.
+Delete leftover Free plans in Partner. Start 7-day trial / Manage plan MUST
+open Shopify’s plan picker in the TOP Admin frame (never inside the app iframe).
 
-CRITICAL — SAMPLE DESK
-Open Demo → turn SAMPLE desk OFF before judging live Total ROAS.
+CRITICAL — LIVE DATA
+Use Live data at the top before judging this shop’s Total ROAS.
+Sample data is example numbers only.
 
-SMOKE (matches the 2026-08-24 review path)
+FIRST SESSION
+Add yesterday’s Meta spend and a $400 billboard for yesterday, then compare to
+yesterday’s Shopify sales on Overview. Days with no spend show $0 (not blank).
+
+SMOKE (matches App Store 2.1.1)
 1. Install Mcfly Analytics. App opens on Overview (Total ROAS).
    A banner “Sales still syncing — expected after install” is normal on a new
    store (0 of N days). It is not a 404. Continue.
-2. Click Spend in the app nav.
-3. Click Upgrade to Pro (blue primary). Shopify’s Free/Pro plan selection MUST
+2. Click Settings in the app nav.
+3. Click Start 7-day trial (primary). Shopify’s plan selection MUST
    replace the Admin app frame in the TOP window.
    FAIL if you see “admin.shopify.com refused to connect” inside the iframe.
    FAIL if the app is bricked until reload.
-   PASS if the Shopify-hosted plan picker opens and you can pick Free or Pro.
-4. Select Pro (dev stores: $0 test charge is OK) → approve → return to the app.
-   Named channels stay on Free. LTV / full Goals unlock. Settings → Manage plan
-   → switch back to Free without reinstalling.
-5. Spend: Add spend (amount + date + channel) or paste the CSV below → Overview
+   PASS if the Shopify-hosted plan picker opens.
+4. Select the Mcfly Analytics plan (dev stores: $0 test charge is OK) → approve
+   → return to the app. Whole desk stays available. Uninstall stops the charge.
+5. Spend: Add spend (channel + amount + period) or paste the CSV below → Overview
    shows Total ROAS = Shopify Total Sales ÷ ad spend.
+   History label: Daily spend by channel, back to January 2021.
 
 SAMPLE SPEND CSV (paste into Spend → import)
 date,channel,amount
@@ -93,6 +101,8 @@ date,channel,amount
 App URL: https://mcfly-analytics.fly.dev
 Support: https://mcfly-analytics.fly.dev/support
 Privacy: https://mcfly-analytics.fly.dev/privacy
+Terms: https://mcfly-analytics.fly.dev/terms
+Pricing: https://mcfly-analytics.fly.dev/pricing
 Emergency contact: mcflyadsmmm@gmail.com
 ```
 <!-- /APP_STORE_PASTE:testing -->
@@ -105,6 +115,6 @@ Emergency contact: mcflyadsmmm@gmail.com
 - [ ] **“My app doesn't require an account to use it”** is **checked**
 - [ ] Testing instructions pasted (block above) — includes the TEST ACCOUNT lines
 - [ ] No `<PASTE…>` / expired / 2FA password in the form
-- [ ] Partner Pricing = **Shopify App Pricing · Free + Pro $39**
-- [ ] Embedded smoke on a **non-Pro** install: Spend → Upgrade to Pro → top-frame plans
-- [ ] Submit fixes from Partner Dashboard
+- [ ] Partner Pricing = **Shopify App Pricing · one $39 plan + 7-day trial** (delete leftover Free)
+- [ ] Embedded smoke: Settings → Start 7-day trial → top-frame plans
+- [ ] Human Submit when ready — do **not** ask the agent to Submit

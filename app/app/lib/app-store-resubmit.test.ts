@@ -1,7 +1,8 @@
 /**
- * Guards the 2026-08-24 App Store pause (ref 127166):
- * 2.1.1 Upgrade to Pro on Spend loaded admin.shopify.com in the iframe.
+ * Guards the 2026-08-24 App Store pause (ref 127166) + 2026-08-26 founder FINAL PASS:
+ * 2.1.1 billing CTA must open plan picker in the TOP Admin frame (Start 7-day trial).
  * 4.5.4 / 4.5.5 testing credentials were empty in Partner.
+ * Billing is Settings-only — not a desk feature gate on Overview/Spend/LTV/Goals.
  */
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -32,7 +33,7 @@ function testingPaste(): string {
 
 /**
  * Naive JSX Form-depth at each match of `needle`. Nested `<form>` is invalid HTML:
- * the parser ignores the inner start tag, so Upgrade / Practice CTAs would POST
+ * the parser ignores the inner start tag, so billing CTAs would POST
  * the outer spend form instead of leaving the embed (pause email 2.1.1).
  */
 function formDepthAtMatches(source: string, needle: RegExp): number[] {
@@ -58,21 +59,28 @@ function formDepthAtMatches(source: string, needle: RegExp): number[] {
 }
 
 describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
-  it("every Upgrade surface uses ProUpgradeButton / ProUpsellBlock, not a raw Admin href", () => {
-    const surfaces = [
+  it("Settings holds ProUpgradeButton; desk routes do not require upsell chrome", () => {
+    const settings = readApp("routes/app.settings.tsx");
+    expect(settings).toMatch(/ProUpgradeButton/);
+    expect(settings).not.toMatch(/href=\{?[`'"]https:\/\/admin\.shopify\.com/);
+    expect(settings).not.toMatch(/window\.location\.(href|assign|replace)/);
+
+    // Billing is Settings-only — do not require Upgrade chrome on these routes.
+    for (const rel of [
       "routes/app.spend.tsx",
-      "routes/app.settings.tsx",
       "routes/app.ltv.tsx",
       "routes/app.goals.tsx",
       "routes/app.advanced.tsx",
       "routes/app._index.tsx",
-    ];
-    for (const rel of surfaces) {
+    ]) {
       const src = readApp(rel);
-      expect(src).toMatch(/ProUpgradeButton|ProUpsellBlock/);
       expect(src).not.toMatch(/href=\{?[`'"]https:\/\/admin\.shopify\.com/);
       expect(src).not.toMatch(/window\.location\.(href|assign|replace)/);
     }
+
+    // Spend must not require a Pro upsell block (whole desk; trial is Settings).
+    const spend = readApp("routes/app.spend.tsx");
+    expect(spend).not.toMatch(/ProUpsellBlock/);
   });
 
   it("root app shell supplies the Managed Pricing URL to Upgrade CTAs", () => {
@@ -82,12 +90,12 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
     expect(src).toContain("plansUrl");
   });
 
-  it("Partner testing paste pack covers 4.5.4 checkbox + 2.1.1 Spend → Upgrade", () => {
+  it("Partner testing paste pack covers 4.5.4 checkbox + 2.1.1 Start 7-day trial", () => {
     const listing = readRepo("docs/APP_STORE_LISTING.md");
     const testing = readRepo("docs/PARTNER_TESTING_INSTRUCTIONS.md");
     for (const doc of [listing, testing]) {
       expect(doc).toMatch(/My app doesn't require an account/i);
-      expect(doc).toMatch(/Upgrade to Pro/i);
+      expect(doc).toMatch(/Start 7-day trial/i);
     }
     expect(testing).toMatch(/refused to connect/i);
     expect(testing).toMatch(/top frame|TOP Admin frame/i);
@@ -105,15 +113,17 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
     expect(paste).toMatch(/Username: none/);
     expect(paste).toMatch(/Password: none/);
     expect(paste).toMatch(/complete feature set/i);
-    expect(paste).toMatch(/Upgrade to Pro/);
-    expect(paste).toMatch(/SAMPLE desk OFF/i);
+    expect(paste).toMatch(/Start 7-day trial/);
+    expect(paste).toMatch(/Live data/);
+    expect(paste).not.toMatch(/SAMPLE desk OFF/i);
+    expect(paste).not.toMatch(/Upgrade to Pro for LTV/i);
     expect(paste).not.toMatch(/<PASTE/);
     expect(listing).not.toMatch(/<PASTE CURRENT STAFF PASSWORD>/);
   });
 
-  it("Spend Upgrade to Pro is outside the Add spend Form (2.1.1 nested-form brick)", () => {
+  it("Spend Add spend Form does not nest billing or sample CTAs (2.1.1 nested-form brick)", () => {
     const spend = readApp("routes/app.spend.tsx");
-    expect(spend).toMatch(/ProUpsellBlock/);
+    expect(spend).not.toMatch(/ProUpsellBlock/);
 
     const formStart = spend.indexOf(
       '<Form method="post" className="mcfly-spend-add__form"',
@@ -125,16 +135,16 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
     expect(formInner).not.toMatch(/ProUpsellBlock|ProUpgradeButton|UseSampleCta/);
   });
 
-  it("route Upgrade / Practice CTAs are never nested inside a parent Form", () => {
+  it("route ProUpgradeButton CTAs are never nested inside a parent Form", () => {
     const routesDir = join(appRoot, "routes");
     const files = readdirSync(routesDir).filter((name) => name.endsWith(".tsx"));
     for (const name of files) {
       const src = readApp(`routes/${name}`);
-      if (!/ProUpsellBlock|ProUpgradeButton/.test(src)) continue;
-      const depths = formDepthAtMatches(src, /ProUpsellBlock|ProUpgradeButton/g);
+      if (!/ProUpgradeButton/.test(src)) continue;
+      const depths = formDepthAtMatches(src, /ProUpgradeButton/g);
       expect(depths.length, name).toBeGreaterThan(0);
       for (const depth of depths) {
-        expect(depth, `${name} nested Upgrade CTA`).toBe(0);
+        expect(depth, `${name} nested ProUpgradeButton`).toBe(0);
       }
     }
   });
