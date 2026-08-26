@@ -10,18 +10,50 @@ const overview = read("../routes/app._index.tsx");
 const explorer = read("../components/SpendExplorer.tsx");
 
 describe("Cash left after ads", () => {
+  const cash = read("./desk-cash.ts");
+
   it("Overview shows sales minus spend and never while sales are loading", () => {
-    expect(overview).toContain("Cash left after ads");
+    expect(overview).toContain("CASH_LEFT_LABEL");
     expect(overview).toMatch(
       /cashLeftAfterAds\s*=\s*metrics\.salesPending\s*\?\s*null/,
     );
     expect(overview).toContain("totalSalesDisplay - metrics.totalSpend");
   });
 
-  it("the chart repeats it against the same window", () => {
-    expect(explorer).toContain("Cash left after ads");
+  it("the chart repeats it against the same window and per bucket", () => {
+    expect(explorer).toContain("CASH_LEFT_LABEL");
     expect(explorer).toContain("explorerReadout");
     expect(explorer).toContain("Shopify sales");
+    expect(explorer).toContain("mcfly-explorer__cash-bar");
+  });
+
+  it("is never called profit, because Shopify cost per item is not read", () => {
+    expect(cash).toContain('CASH_LEFT_LABEL = "Cash left after ads"');
+    expect(cash).toContain("canCallItProfit");
+    // No surface may nag for a cost the app does not ingest.
+    for (const [name, src] of [
+      ["overview", overview],
+      ["explorer", explorer],
+    ] as const) {
+      expect(src, name).not.toMatch(/cost per item/i);
+      expect(src, name).not.toMatch(/add your cost|enter your cost/i);
+    }
+  });
+});
+
+describe("Goals vs leftover cash", () => {
+  it("restates the Total ROAS goal in dollars on Overview", () => {
+    expect(overview).toContain("goalVsLeftoverCash");
+    expect(overview).toContain("goalVsLeftoverCopy");
+    expect(overview).toContain("mcfly-hero-compact__goalcash");
+  });
+});
+
+describe("Week over week", () => {
+  it("the chart can ghost last week on the same plot", () => {
+    expect(explorer).toContain("exWow");
+    expect(explorer).toContain("priorPeriodLine");
+    expect(explorer).toContain("Last week");
   });
 });
 

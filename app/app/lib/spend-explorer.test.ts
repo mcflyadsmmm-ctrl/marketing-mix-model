@@ -25,6 +25,9 @@ import {
   explorerMixShares,
   explorerBucketNoun,
   explorerNeedsBuckets,
+  explorerPriorPeriodLag,
+  explorerShowCashDefault,
+  explorerShowPriorPeriodDefault,
   explorerReadout,
   explorerSafeId,
   isWeekStartKey,
@@ -695,6 +698,105 @@ describe("fillExplorerDayHoles + bar vs line toggle", () => {
     expect(explorerSafeId("w:2026-07-27")).toBe("w-2026-07-27");
     expect(explorerSafeId("other:billboard")).toBe("other-billboard");
     expect(explorerSafeId("q:2026-Q3")).toBe("q-2026-Q3");
+  });
+
+  it("draws sales minus spend per bucket, above and below zero", () => {
+    const rows = [
+      day("2026-08-01", 1200, { meta: 200 }), // +1000
+      day("2026-08-02", 100, { meta: 900 }), //  −800
+      day("2026-08-03", 0, {}), //     0
+    ];
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const model = buildExplorerPlotModel({
+      buckets,
+      mode: "stacked",
+      mark: "bar",
+      granularity: "Day",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+      showCash: true,
+    });
+
+    expect(model.columns.map((c) => c.cashLeft)).toEqual([1000, -800, 0]);
+    expect(model.cashStrip).not.toBeNull();
+    expect(model.cashStrip!.anyNegative).toBe(true);
+    // Profit day sits above the zero rule, loss day below, $0 day draws nothing.
+    expect(model.columns[0]!.cashBar!.y).toBeLessThan(model.cashStrip!.zeroY);
+    expect(model.columns[1]!.cashBar!.y).toBe(model.cashStrip!.zeroY);
+    expect(model.columns[2]!.cashBar).toBeNull();
+    // The strip adds height rather than eating the mix plot.
+    const noStrip = buildExplorerPlotModel({
+      buckets,
+      mode: "stacked",
+      mark: "bar",
+      granularity: "Day",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+      showCash: false,
+    });
+    expect(noStrip.cashStrip).toBeNull();
+    expect(model.vbH).toBeGreaterThan(noStrip.vbH);
+    expect(JSON.stringify(model)).not.toMatch(/NaN|Infinity/);
+  });
+
+  it("ghosts last week's sales at this week's position, and only where a lag means something", () => {
+    expect(explorerPriorPeriodLag("Day")).toBe(7);
+    expect(explorerPriorPeriodLag("Week")).toBe(1);
+    expect(explorerPriorPeriodLag("Month")).toBeNull();
+    expect(explorerPriorPeriodLag("Quarter")).toBeNull();
+    expect(explorerShowCashDefault(null)).toBe(true);
+    expect(explorerShowCashDefault("0")).toBe(false);
+    expect(explorerShowPriorPeriodDefault(null)).toBe(false);
+    expect(explorerShowPriorPeriodDefault("1")).toBe(true);
+
+    const rows = fillExplorerDayHoles(
+      Array.from({ length: 14 }, (_, i) =>
+        day(`2026-08-${String(i + 1).padStart(2, "0")}`, 500 + i * 10, {
+          meta: 100,
+        }),
+      ),
+      "2026-08-01",
+      "2026-08-14",
+    );
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const withGhost = buildExplorerPlotModel({
+      buckets,
+      mode: "stacked",
+      mark: "line",
+      granularity: "Day",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+      showPriorPeriod: true,
+    });
+    // 14 days, lag 7 → the ghost starts at the 8th column.
+    expect(withGhost.priorPeriodLine.split(" ")).toHaveLength(7);
+    expect(withGhost.priorPeriodLine).not.toMatch(/NaN/);
+
+    // A month grain has no honest week lag, so nothing is drawn.
+    expect(
+      buildExplorerPlotModel({
+        buckets: applyExplorerMode(
+          bucketExplorerRows(rows, "Month"),
+          "stacked",
+        ),
+        mode: "stacked",
+        mark: "bar",
+        granularity: "Month",
+        showSales: true,
+        targetMer: 3.6,
+        breakEvenMer: null,
+        showPriorPeriod: true,
+      }).priorPeriodLine,
+    ).toBe("");
   });
 
   it("marks ISO week starts on day grain only", () => {

@@ -33,6 +33,8 @@ import {
   dateKeyFromLocal,
   defaultExplorerGranularity,
   explorerQueryMatchingScoreboard,
+  explorerShowCashDefault,
+  explorerShowPriorPeriodDefault,
   explorerShowSalesDefault,
   parseExplorerDateParam,
   parseExplorerGranularity,
@@ -328,6 +330,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
   const exMark = parseExplorerMark(url.searchParams.get("exMark"));
   const exSales = explorerShowSalesDefault(url.searchParams.get("exSales"));
+  const exCash = explorerShowCashDefault(url.searchParams.get("exCash"));
+  const exWow = explorerShowPriorPeriodDefault(url.searchParams.get("exWow"));
   // SAMPLE ON → show sample rows. SAMPLE OFF → this shop's own uploads only.
   const [entries, dayCoverage] = await Promise.all([
     prisma.spendEntry.findMany({
@@ -435,6 +439,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     breakEvenMer,
     showSales: exSales,
     mark: exMark,
+    showCash: exCash,
+    showPriorPeriod: exWow,
+    // Spend has no prior-window read; the mix table shows share without "vs last".
+    priorChannelSpend: null,
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),

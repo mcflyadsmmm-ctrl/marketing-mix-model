@@ -345,6 +345,21 @@ export function parseExplorerMark(raw: string | null): ExplorerMark {
   return "bar";
 }
 
+/**
+ * Cash left after ads is on unless the merchant turned it off. It is the
+ * densest thing the desk owns that neither Shopify Analytics nor an Ads
+ * Manager can draw.
+ */
+export function explorerShowCashDefault(raw: string | null): boolean {
+  if (raw == null || raw === "") return true;
+  return parseExplorerShowSales(raw);
+}
+
+/** The last-week ghost is opt-in — off unless `exWow` says otherwise. */
+export function explorerShowPriorPeriodDefault(raw: string | null): boolean {
+  return parseExplorerShowSales(raw);
+}
+
 /** Apps Script `ex.showSales` — URL `exSales=1`. */
 export function parseExplorerShowSales(raw: string | null): boolean {
   if (raw == null || raw === "") return false;
@@ -1124,6 +1139,10 @@ function finiteOr(n: number, fallback: number): number {
 
 export const EXPLORER_PAD = { l: 56, r: 48, t: 16, b: 28 } as const;
 export const EXPLORER_PLOT_H = 270;
+/** Height of the cash-left-after-ads strip drawn under the mix. */
+export const EXPLORER_CASH_H = 64;
+/** Gap between the mix plot and the cash strip. */
+export const EXPLORER_CASH_GAP = 14;
 
 export type ExplorerPlotSeg = {
   channel: string;
@@ -1150,6 +1169,10 @@ export type ExplorerPlotColumn = {
   salesY: number | null;
   /** Day grain only — this column starts an ISO week (Monday). */
   weekStart: boolean;
+  /** sales − spend for this bucket. Negative when ads outspent the till. */
+  cashLeft: number;
+  /** Cash-strip rect. Null when the strip is off or the value is 0. */
+  cashBar: { x: number; y: number; w: number; h: number } | null;
 };
 
 /** True when a `YYYY-MM-DD` bucket key falls on a Monday. */
@@ -1174,9 +1197,44 @@ export type ExplorerPlotModel = {
   columns: ExplorerPlotColumn[];
   merLine: string;
   salesLine: string;
+  /**
+   * Prior-week (or prior-bucket) sales, drawn at this bucket's x. A lag of the
+   * same series — never a forecast and never a second data source.
+   */
+  priorPeriodLine: string;
   channelBands: ExplorerChannelBand[];
   hasPlot: boolean;
+  /** Cash-left strip geometry. Null when the strip is off. */
+  cashStrip: {
+    topY: number;
+    zeroY: number;
+    bottomY: number;
+    ceil: number;
+    anyNegative: boolean;
+  } | null;
 };
+
+/**
+ * How many buckets back "last week" sits for a grain. Null where a
+ * week-over-week overlay would be a lie (month and quarter buckets).
+ */
+export function explorerPriorPeriodLag(
+  granularity: ExplorerGranularity,
+): number | null {
+  switch (granularity) {
+    case "Day":
+      return 7;
+    case "Week":
+      return 1;
+    case "Month":
+    case "Quarter":
+      return null;
+    default: {
+      const _exhaustive: never = granularity;
+      return _exhaustive;
+    }
+  }
+}
 
 function explorerColMinPx(
   granularity: ExplorerGranularity,
@@ -1210,6 +1268,10 @@ export function buildExplorerPlotModel(input: {
   targetMer: number;
   breakEvenMer: number | null;
   hiddenChannels?: ReadonlySet<string>;
+  /** Draw the sales − spend strip under the mix. */
+  showCash?: boolean;
+  /** Ghost the same series one week back at this bucket's x. */
+  showPriorPeriod?: boolean;
 }): ExplorerPlotModel {
   const hidden = input.hiddenChannels ?? new Set<string>();
   const isShare = input.mode === "share";
@@ -1220,7 +1282,9 @@ export function buildExplorerPlotModel(input: {
   const n = input.buckets.length;
   const colMinPx = explorerColMinPx(input.granularity, input.mode);
   const vbW = Math.max(360, n * colMinPx);
-  const vbH = EXPLORER_PAD.t + EXPLORER_PLOT_H + EXPLORER_PAD.b;
+  const showCash = Boolean(input.showCash) && n > 0;
+  const cashBandH = showCash ? EXPLORER_CASH_GAP + EXPLORER_CASH_H : 0;
+  const vbH = EXPLORER_PAD.t + EXPLORER_PLOT_H + cashBandH + EXPLORER_PAD.b;
   const plotW = Math.max(1, vbW - EXPLORER_PAD.l - EXPLORER_PAD.r);
   const slotW = n > 0 ? plotW / n : plotW;
   const barW = slotW * (input.mark === "line" ? 0.28 : 0.62);
@@ -1240,6 +1304,25 @@ export function buildExplorerPlotModel(input: {
     EXPLORER_PAD.t +
     EXPLORER_PLOT_H -
     (merCeil > 0 ? (finiteOr(val, 0) / merCeil) * EXPLORER_PLOT_H : 0);
+
+  /*
+   * The cash strip is its own symmetric scale so a single heavy loss day
+   * cannot flatten the mix above it.
+   */
+  const cashTopY = EXPLORER_PAD.t + EXPLORER_PLOT_H + EXPLORER_CASH_GAP;
+  const cashBottomY = cashTopY + EXPLORER_CASH_H;
+  const cashZeroY = cashTopY + EXPLORER_CASH_H / 2;
+  const cashValues = input.buckets.map((b) =>
+    finiteOr(b.sales, 0) - finiteOr(b.spend, 0),
+  );
+  const cashCeil = cashValues.reduce(
+    (max, v) => (Math.abs(v) > max ? Math.abs(v) : max),
+    0,
+  );
+  const cashHalf = EXPLORER_CASH_H / 2;
+  const anyNegative = cashValues.some((v) => v < 0);
+
+  const cashBarW = Math.max(1, slotW * 0.62);
 
   const columns: ExplorerPlotColumn[] = input.buckets.map((bucket, i) => {
     const ordered = orderBarsByLegend(bucket.bars, legend);
@@ -1272,6 +1355,20 @@ export function buildExplorerPlotModel(input: {
       showSales && Number.isFinite(bucket.sales)
         ? yLeft(Math.min(bucket.sales, leftCeil))
         : null;
+    const cashValue = cashValues[i] ?? 0;
+    const cashH =
+      showCash && cashCeil > 0
+        ? finiteOr((Math.abs(cashValue) / cashCeil) * cashHalf, 0)
+        : 0;
+    const cashBar =
+      showCash && cashH > 0
+        ? {
+            x: finiteOr(cx - cashBarW / 2, EXPLORER_PAD.l),
+            y: cashValue >= 0 ? cashZeroY - cashH : cashZeroY,
+            w: cashBarW,
+            h: cashH,
+          }
+        : null;
     return {
       key: bucket.key,
       safeId: explorerSafeId(bucket.key),
@@ -1287,6 +1384,8 @@ export function buildExplorerPlotModel(input: {
       salesY: salesY != null && Number.isFinite(salesY) ? salesY : null,
       weekStart:
         input.granularity === "Day" && i > 0 && isWeekStartKey(bucket.key),
+      cashLeft: round2(cashValue),
+      cashBar,
     };
   });
 
@@ -1296,6 +1395,28 @@ export function buildExplorerPlotModel(input: {
   const salesLine = polylinePoints(
     columns.map((c) => ({ x: c.xCenter, y: c.salesY })),
   );
+
+  /*
+   * Week-over-week ghost: the same sales series shifted by one week, drawn at
+   * this week's x so the two read against each other. Only where a lag has a
+   * calendar meaning — month and quarter buckets get nothing.
+   */
+  const lag = explorerPriorPeriodLag(input.granularity);
+  const priorPeriodLine =
+    input.showPriorPeriod && showSales && lag != null
+      ? polylinePoints(
+          columns.map((c, i) => {
+            const prior = input.buckets[i - lag];
+            return {
+              x: c.xCenter,
+              y:
+                prior && Number.isFinite(prior.sales)
+                  ? yLeft(Math.min(prior.sales, leftCeil))
+                  : null,
+            };
+          }),
+        )
+      : "";
 
   const baseline = EXPLORER_PAD.t + EXPLORER_PLOT_H;
   const channelBands: ExplorerChannelBand[] = legend.map((channel) => {
@@ -1334,8 +1455,18 @@ export function buildExplorerPlotModel(input: {
     columns,
     merLine,
     salesLine,
+    priorPeriodLine,
     channelBands,
     hasPlot: n > 0,
+    cashStrip: showCash
+      ? {
+          topY: cashTopY,
+          zeroY: cashZeroY,
+          bottomY: cashBottomY,
+          ceil: cashCeil,
+          anyNegative,
+        }
+      : null,
   };
 }
 

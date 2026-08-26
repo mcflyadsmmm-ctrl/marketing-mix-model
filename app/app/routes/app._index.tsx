@@ -25,6 +25,11 @@ import {
   newVsReturningSplit,
   type NewVsReturningSplit,
 } from "../lib/contrib-ltv";
+import {
+  CASH_LEFT_LABEL,
+  goalVsLeftoverCash,
+  goalVsLeftoverCopy,
+} from "../lib/desk-cash";
 import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -67,6 +72,8 @@ import {
   dateKeyFromLocal,
   defaultExplorerGranularity,
   explorerQueryMatchingScoreboard,
+  explorerShowCashDefault,
+  explorerShowPriorPeriodDefault,
   explorerShowSalesDefault,
   parseExplorerDateParam,
   parseExplorerGranularity,
@@ -132,6 +139,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ? parseExplorerGranularity(granParam)
     : defaultExplorerGranularity(exRange);
   const exSales = explorerShowSalesDefault(url.searchParams.get("exSales"));
+  const exCash = explorerShowCashDefault(url.searchParams.get("exCash"));
+  const exWow = explorerShowPriorPeriodDefault(url.searchParams.get("exWow"));
   const exFrom = exRangeParam
     ? parseExplorerDateParam(url.searchParams.get("exFrom"))
     : (tiedExplorer?.from ?? null);
@@ -311,6 +320,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     breakEvenMer: metrics.breakEvenMer,
     showSales: exSales,
     mark: exMark,
+    showCash: exCash,
+    showPriorPeriod: exWow,
+    /*
+     * Only comparable when the explorer is following the desk period, so the
+     * prior mix really is the period directly before this window.
+     */
+    priorChannelSpend: tiedExplorer
+      ? metrics.mixVsPrior
+          .filter((row) => row.priorAmount > 0)
+          .map((row) => ({ channel: row.channel, amount: row.priorAmount }))
+      : null,
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),
@@ -460,6 +480,13 @@ export default function Dashboard() {
     returningCustomerNetSales: metrics.returningCustomerNetSales,
     totalSpend: metrics.totalSpend,
     totalSales: totalSalesDisplay,
+  });
+  /** The Total ROAS goal restated as dollars of leftover cash. */
+  const goalCash = goalVsLeftoverCash({
+    sales: totalSalesDisplay,
+    spend: metrics.totalSpend,
+    targetMer: metrics.targetMer,
+    salesPending: metrics.salesPending,
   });
 
   const shareText = formatOverviewShareText({
@@ -888,7 +915,7 @@ export default function Dashboard() {
                     </p>
                     <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
                     <p className="mcfly-hero-compact__cashleft">
-                      <span>Cash left after ads</span>
+                      <span>{CASH_LEFT_LABEL}</span>
                       <strong
                         className={
                           cashLeftAfterAds != null && cashLeftAfterAds < 0
@@ -900,6 +927,23 @@ export default function Dashboard() {
                           ? "—"
                           : formatCurrency(cashLeftAfterAds)}
                       </strong>
+                    </p>
+                    <p className="mcfly-hero-compact__goalcash">
+                      {goalCash.comparable ? (
+                        <>
+                          <span
+                            className={
+                              (goalCash.gap ?? 0) >= 0
+                                ? "mcfly-hero-compact__goalcash-up"
+                                : "mcfly-hero-compact__goalcash-down"
+                            }
+                          >
+                            {goalVsLeftoverCopy(goalCash, formatCurrency)}
+                          </span>
+                        </>
+                      ) : (
+                        <span>{goalVsLeftoverCopy(goalCash, formatCurrency)}</span>
+                      )}
                     </p>
                   </div>
                   <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
@@ -1113,20 +1157,35 @@ function LtvSnapSection({
         </p>
       </div>
 
+      {/* Tiles always render — an empty cohort spine says why, never blanks. */}
+      <div className="mcfly-tab-snap__tiles">
+        <div className="mcfly-tab-snap__tile">
+          <p className="mcfly-tab-snap__tile-k">Cash CAC</p>
+          <p className="mcfly-tab-snap__tile-v">
+            {tillLtv.cashCac != null ? formatCurrency(tillLtv.cashCac) : "—"}
+          </p>
+          <p className="mcfly-tab-snap__tile-def">
+            {tillLtv.cashCac != null
+              ? `${PRODUCT_NOUN.cashCacDef} · ${tillLtv.newBuyers.toLocaleString()} new`
+              : PRODUCT_NOUN.cashCacDef}
+          </p>
+        </div>
+        <div className="mcfly-tab-snap__tile">
+          <p className="mcfly-tab-snap__tile-k">New customers</p>
+          <p className="mcfly-tab-snap__tile-v">
+            {tillLtv.newBuyers > 0
+              ? tillLtv.newBuyers.toLocaleString()
+              : "—"}
+          </p>
+          <p className="mcfly-tab-snap__tile-def">
+            First-time buyers in {periodLabel}
+          </p>
+        </div>
+      </div>
+
       {tillLtv.available ? (
         <>
           <div className="mcfly-tab-snap__tiles">
-            <div className="mcfly-tab-snap__tile">
-              <p className="mcfly-tab-snap__tile-k">Cash CAC</p>
-              <p className="mcfly-tab-snap__tile-v">
-                {tillLtv.cashCac != null
-                  ? formatCurrency(tillLtv.cashCac)
-                  : "—"}
-              </p>
-              <p className="mcfly-tab-snap__tile-def">
-                {PRODUCT_NOUN.cashCacDef}
-              </p>
-            </div>
             <div className="mcfly-tab-snap__tile">
               <p className="mcfly-tab-snap__tile-k">LTV · 90d</p>
               <p className="mcfly-tab-snap__tile-v">

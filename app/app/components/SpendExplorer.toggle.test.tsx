@@ -64,6 +64,9 @@ function seriesFor(opts: {
   mark: ExplorerMark;
   granularity: ExplorerGranularity;
   showSales: boolean;
+  showCash?: boolean;
+  showPriorPeriod?: boolean;
+  priorChannelSpend?: Array<{ channel: string; amount: number }> | null;
 }): SpendExplorerSeriesView {
   const buckets = applyExplorerMode(
     bucketExplorerRows(opts.rows, opts.granularity),
@@ -80,6 +83,9 @@ function seriesFor(opts: {
     breakEvenMer: 2.86,
     showSales: opts.showSales,
     mark: opts.mark,
+    showCash: opts.showCash ?? true,
+    showPriorPeriod: opts.showPriorPeriod ?? false,
+    priorChannelSpend: opts.priorChannelSpend ?? null,
     fromKey: "2026-08-01",
     toKey: "2026-08-06",
     asOfKey: "2026-08-06",
@@ -296,6 +302,103 @@ describe("Spend chart: stacked bar vs line", () => {
       /Needs 6 more days of spend/,
     );
     expect(host!.textContent).not.toMatch(/NaN|Infinity/);
+    act(() => created.unmount());
+    host!.remove();
+    root = null;
+  });
+
+  it("draws cash left after ads per day, and never calls it profit", () => {
+    const created = mount(
+      seriesFor({
+        rows: [
+          day("2026-08-01", 1200, { meta: 200 }),
+          day("2026-08-02", 100, { meta: 900 }),
+        ],
+        mode: "stacked",
+        mark: "bar",
+        granularity: "Day",
+        showSales: true,
+        showCash: true,
+      }),
+    );
+    expect(host!.querySelectorAll(".mcfly-explorer__cash-bar").length).toBe(2);
+    expect(
+      host!.querySelectorAll(".mcfly-explorer__cash-bar--neg").length,
+    ).toBe(1);
+    expect(host!.textContent).toContain("Cash left after ads");
+    expect(host!.textContent?.toLowerCase()).not.toContain("profit");
+    act(() => created.unmount());
+    host!.remove();
+    root = null;
+  });
+
+  it("overlays last week only where a week lag means something", () => {
+    const fourteen = fillExplorerDayHoles(
+      Array.from({ length: 14 }, (_, i) =>
+        day(`2026-08-${String(i + 1).padStart(2, "0")}`, 400 + i * 25, {
+          meta: 90,
+        }),
+      ),
+      "2026-08-01",
+      "2026-08-14",
+    );
+    const created = mount(
+      seriesFor({
+        rows: fourteen,
+        mode: "stacked",
+        mark: "bar",
+        granularity: "Day",
+        showSales: true,
+        showPriorPeriod: true,
+      }),
+    );
+    expect(host!.querySelector(".mcfly-explorer__prior-line")).toBeTruthy();
+
+    rerender(
+      created,
+      seriesFor({
+        rows: fourteen,
+        mode: "stacked",
+        mark: "bar",
+        granularity: "Month",
+        showSales: true,
+        showPriorPeriod: true,
+      }),
+    );
+    expect(host!.querySelector(".mcfly-explorer__prior-line")).toBeNull();
+    act(() => created.unmount());
+    host!.remove();
+    root = null;
+  });
+
+  it("tables where the money went, with vs-last only when a prior window is given", () => {
+    const base = {
+      rows: SPARSE_WITH_BILLBOARD,
+      mode: "stacked" as const,
+      mark: "line" as const,
+      granularity: "Day" as const,
+      showSales: true,
+    };
+    const created = mount(seriesFor(base));
+    let table = host!.querySelector(".mcfly-mixtable");
+    expect(table?.textContent).toContain("Billboard");
+    expect(table?.textContent).toMatch(/Not a claim that a channel caused/);
+    expect(table?.textContent).not.toContain("vs last");
+
+    rerender(
+      created,
+      seriesFor({
+        ...base,
+        priorChannelSpend: [
+          { channel: "Meta Ads", amount: 900 },
+          { channel: "Billboard", amount: 100 },
+        ],
+      }),
+    );
+    table = host!.querySelector(".mcfly-mixtable");
+    expect(table?.textContent).toContain("vs last");
+    expect(table?.textContent).toMatch(/pp/);
+    expect(table?.textContent).not.toContain("other:billboard");
     act(() => created.unmount());
     host!.remove();
     root = null;

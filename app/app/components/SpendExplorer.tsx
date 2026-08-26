@@ -14,6 +14,7 @@ import {
   explorerLegendChannels,
   explorerMixShares,
   explorerNeedsBuckets,
+  explorerPriorPeriodLag,
   explorerReadout,
   explorerSafeId,
   orderBarsByLegend,
@@ -25,6 +26,7 @@ import {
   type ExplorerRange,
   type ExplorerSummary,
 } from "../lib/spend-explorer";
+import { CASH_LEFT_LABEL, buildMixTable } from "../lib/desk-cash";
 import { formatCurrency, formatMer, merToneBand } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
@@ -44,6 +46,15 @@ export type SpendExplorerSeriesView = {
   showSales: boolean;
   /** Stacked bar (default) or stacked-area line — same mix, not attribution. */
   mark: ExplorerMark;
+  /** Draw the sales − spend strip under the mix. */
+  showCash: boolean;
+  /** Ghost last week's sales at this week's x. */
+  showPriorPeriod: boolean;
+  /**
+   * Prior-window channel spend for the mix table's "vs last" column. Only set
+   * when the prior window is the same length and directly before this one.
+   */
+  priorChannelSpend?: Array<{ channel: string; amount: number }> | null;
   /** Effective window FROM (YYYY-MM-DD) for date inputs. */
   fromKey: string;
   /** Effective window TO (YYYY-MM-DD) for date inputs. */
@@ -186,6 +197,8 @@ const EXPLORER_OWNED_KEYS = [
   "exMode",
   "exMark",
   "exSales",
+  "exCash",
+  "exWow",
   "exFrom",
   "exTo",
   "shot",
@@ -201,6 +214,8 @@ function explorerSearch(
     mode: ExplorerMode;
     mark: ExplorerMark;
     showSales: boolean;
+    showCash: boolean;
+    showPriorPeriod: boolean;
     from?: string | null;
     to?: string | null;
   },
@@ -213,6 +228,8 @@ function explorerSearch(
   params.set("exMode", opts.mode);
   params.set("exMark", opts.mark);
   params.set("exSales", opts.showSales ? "1" : "0");
+  params.set("exCash", opts.showCash ? "1" : "0");
+  params.set("exWow", opts.showPriorPeriod ? "1" : "0");
   if (opts.range === "custom" && opts.from && opts.to) {
     params.set("exFrom", opts.from);
     params.set("exTo", opts.to);
@@ -395,6 +412,11 @@ export function SpendExplorer({
   const mark: ExplorerMark = series.mark === "line" ? "line" : "bar";
   const customChannelLabels = series.channelLabels;
   const isShare = mode === "share";
+  const showCash = series.showCash && !isShare;
+  const priorLag = explorerPriorPeriodLag(series.granularity);
+  const showPriorPeriod =
+    series.showPriorPeriod && !isShare && showSales && priorLag != null;
+  const priorNoun = explorerBucketNoun(series.granularity, false);
 
   const comparisons = useMemo<Map<string, ExplorerBucketComparison> | null>(
     () =>
@@ -432,6 +454,42 @@ export function SpendExplorer({
     () => explorerReadout(allBuckets, series.summary),
     [allBuckets, series.summary],
   );
+
+  /*
+   * Mix table dollars come from the same window as the plot. The prior column
+   * only appears when the caller supplied a matching prior window — an
+   * unrelated period would make "vs last" a lie.
+   */
+  const mixTableHasPrior = (series.priorChannelSpend?.length ?? 0) > 0;
+  const mixTable = useMemo(() => {
+    /*
+     * Both sides key on the merchant-facing name, because the prior window
+     * arrives already labelled. `spendChannelLabel` and `channelLabel` resolve
+     * the same name for a slice, so Billboard lines up with Billboard.
+     */
+    const dollarsByName = new Map<string, number>();
+    const rawByName = new Map<string, string>();
+    for (const bucket of allBuckets) {
+      const scale = mode === "share" ? bucket.spend / 100 : 1;
+      for (const bar of bucket.bars) {
+        if (bar.channel === "total") continue;
+        const name = channelLabel(bar.channel, customChannelLabels);
+        const amt = Number.isFinite(bar.amount) ? bar.amount * scale : 0;
+        dollarsByName.set(name, (dollarsByName.get(name) ?? 0) + amt);
+        if (!rawByName.has(name)) rawByName.set(name, bar.channel);
+      }
+    }
+    return buildMixTable({
+      channels: [...dollarsByName].map(([channel, amount]) => ({
+        channel,
+        amount,
+      })),
+      prior: series.priorChannelSpend ?? null,
+    }).map((row) => ({
+      ...row,
+      rawChannel: rawByName.get(row.channel) ?? row.channel,
+    }));
+  }, [allBuckets, mode, series.priorChannelSpend, customChannelLabels]);
   const needsBuckets = explorerNeedsBuckets(readout);
   const bucketNounPlural = explorerBucketNoun(series.granularity, true);
   const bucketNounTitle =
@@ -448,6 +506,8 @@ export function SpendExplorer({
         targetMer,
         breakEvenMer,
         hiddenChannels,
+        showCash,
+        showPriorPeriod,
       }),
     [
       visibleBuckets,
@@ -458,6 +518,8 @@ export function SpendExplorer({
       targetMer,
       breakEvenMer,
       hiddenChannels,
+      showCash,
+      showPriorPeriod,
     ],
   );
 
@@ -559,6 +621,10 @@ export function SpendExplorer({
   };
 
   const tipCol = tipIndex >= 0 ? model.columns[tipIndex] : null;
+  const tipPrior =
+    showPriorPeriod && priorLag != null && tipIndex >= priorLag
+      ? (visibleBuckets[tipIndex - priorLag] ?? null)
+      : null;
   const tipLeftPct =
     tipCol && n > 0
       ? clamp((tipCol.xCenter / vbW) * 100, 10, 90)
@@ -577,6 +643,8 @@ export function SpendExplorer({
     mode: series.mode,
     mark,
     showSales,
+    showCash: series.showCash,
+    showPriorPeriod: series.showPriorPeriod,
   };
 
   function toExplorer(opts: {
@@ -585,6 +653,8 @@ export function SpendExplorer({
     mode?: ExplorerMode;
     mark?: ExplorerMark;
     showSales?: boolean;
+    showCash?: boolean;
+    showPriorPeriod?: boolean;
     from?: string | null;
     to?: string | null;
   }) {
@@ -597,9 +667,19 @@ export function SpendExplorer({
         mode: opts.mode ?? series.mode,
         mark: opts.mark ?? mark,
         showSales: opts.showSales ?? showSales,
+        showCash: opts.showCash ?? series.showCash,
+        showPriorPeriod: opts.showPriorPeriod ?? series.showPriorPeriod,
         from: opts.from,
         to: opts.to,
       }),
+    };
+  }
+
+  /** Keeps the custom window intact when a toggle navigates. */
+  function windowDates() {
+    return {
+      from: series.range === "custom" ? series.fromKey : null,
+      to: series.range === "custom" ? series.toKey : null,
     };
   }
 
@@ -846,14 +926,63 @@ export function SpendExplorer({
                 toExplorer({
                   range: series.range,
                   showSales: !showSales,
-                  from: series.range === "custom" ? series.fromKey : null,
-                  to: series.range === "custom" ? series.toKey : null,
+                  ...windowDates(),
                 }),
                 { preventScrollReset: true },
               );
             }}
           >
             Sales
+          </button>
+
+          <button
+            type="button"
+            className={`mcfly-explorer__sales-toggle${showCash ? " mcfly-explorer__sales-toggle--on" : ""}${isShare ? " mcfly-explorer__sales-toggle--disabled" : ""}`}
+            aria-pressed={showCash}
+            disabled={isShare}
+            title={
+              isShare
+                ? `${CASH_LEFT_LABEL} is hidden in share % mode`
+                : `${CASH_LEFT_LABEL} per ${priorNoun} — sales minus spend`
+            }
+            onClick={() => {
+              if (isShare) return;
+              navigate(
+                toExplorer({
+                  range: series.range,
+                  showCash: !series.showCash,
+                  ...windowDates(),
+                }),
+                { preventScrollReset: true },
+              );
+            }}
+          >
+            Cash left
+          </button>
+
+          <button
+            type="button"
+            className={`mcfly-explorer__sales-toggle${showPriorPeriod ? " mcfly-explorer__sales-toggle--on" : ""}${priorLag == null || isShare ? " mcfly-explorer__sales-toggle--disabled" : ""}`}
+            aria-pressed={showPriorPeriod}
+            disabled={priorLag == null || isShare}
+            title={
+              priorLag == null
+                ? "Last week only compares on day or week buckets"
+                : `Ghost last ${priorNoun === "day" ? "week" : priorNoun}'s sales at this ${priorNoun}'s position`
+            }
+            onClick={() => {
+              if (priorLag == null || isShare) return;
+              navigate(
+                toExplorer({
+                  range: series.range,
+                  showPriorPeriod: !series.showPriorPeriod,
+                  ...windowDates(),
+                }),
+                { preventScrollReset: true },
+              );
+            }}
+          >
+            Last week
           </button>
         </div>
       ) : null}
@@ -1172,6 +1301,15 @@ export function SpendExplorer({
                       })
                     : null}
 
+                  {model.priorPeriodLine ? (
+                    <polyline
+                      className="mcfly-explorer__prior-line"
+                      points={model.priorPeriodLine}
+                      fill="none"
+                      pointerEvents="none"
+                    />
+                  ) : null}
+
                   {salesLine ? (
                     <polyline
                       className="mcfly-explorer__sales-line"
@@ -1179,6 +1317,47 @@ export function SpendExplorer({
                       fill="none"
                       pointerEvents="none"
                     />
+                  ) : null}
+
+                  {model.cashStrip ? (
+                    <g className="mcfly-explorer__cash-g">
+                      <line
+                        className="mcfly-explorer__cash-zero"
+                        x1={pad.l}
+                        x2={vbW - pad.r}
+                        y1={model.cashStrip.zeroY}
+                        y2={model.cashStrip.zeroY}
+                        aria-hidden="true"
+                      />
+                      <text
+                        className="mcfly-explorer__axis-title"
+                        x={4}
+                        y={model.cashStrip.topY - 3}
+                        aria-hidden="true"
+                      >
+                        {CASH_LEFT_LABEL}
+                      </text>
+                      {model.columns.map((col) =>
+                        col.cashBar ? (
+                          <rect
+                            key={`cash-${col.safeId}`}
+                            className={`mcfly-explorer__cash-bar${col.cashLeft < 0 ? " mcfly-explorer__cash-bar--neg" : ""}`}
+                            x={col.cashBar.x}
+                            y={col.cashBar.y}
+                            width={col.cashBar.w}
+                            height={Math.max(col.cashBar.h, 0.5)}
+                            onPointerEnter={() => {
+                              if (shotMode) return;
+                              setHover({ kind: "col", bucketKey: col.key });
+                            }}
+                          >
+                            <title>
+                              {`${col.label}: ${formatCurrency(col.cashLeft)} ${CASH_LEFT_LABEL.toLowerCase()}`}
+                            </title>
+                          </rect>
+                        ) : null,
+                      )}
+                    </g>
                   ) : null}
 
                   {merLine ? (
@@ -1337,6 +1516,23 @@ export function SpendExplorer({
                             ? formatMer(tipBucket.mer)
                             : "—"}
                         </span>
+                        <span
+                          className={
+                            tipBucket.sales - tipBucket.spend < 0
+                              ? "mcfly-explorer__readout-neg"
+                              : undefined
+                          }
+                        >
+                          {CASH_LEFT_LABEL}{" "}
+                          {formatCurrency(tipBucket.sales - tipBucket.spend)}
+                        </span>
+                        {tipPrior ? (
+                          <span className="mcfly-explorer__tip-prior">
+                            Last {priorNoun === "day" ? "week" : priorNoun} (
+                            {tipPrior.label}): sales{" "}
+                            {formatCurrency(tipPrior.sales)}
+                          </span>
+                        ) : null}
                         {visibleOrderedBars(tipBucket).some(
                           (s) => s.amount > 0,
                         ) ? (
@@ -1474,6 +1670,55 @@ export function SpendExplorer({
                 CSV
               </button>
             </div>
+          ) : null}
+
+          {!shotMode && mixTable.length > 0 ? (
+            <table className="mcfly-mixtable">
+              <caption className="mcfly-mixtable__cap">
+                Where the money went in {series.windowLabel.toLowerCase()} —
+                share of ad budget. Not a claim that a channel caused the sale.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Channel</th>
+                  <th scope="col">Spend</th>
+                  <th scope="col">Share</th>
+                  {mixTableHasPrior ? <th scope="col">vs last</th> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {mixTable.map((row) => (
+                  <tr key={explorerSafeId(row.channel)}>
+                    <th scope="row">
+                      <i
+                        className={`mcfly-explorer__ch-dot ${channelSegClass(row.rawChannel)}`}
+                        aria-hidden="true"
+                      />
+                      {row.channel}
+                    </th>
+                    <td>{formatCurrency(row.amount)}</td>
+                    <td>{Math.round(row.share * 100)}%</td>
+                    {mixTableHasPrior ? (
+                      <td
+                        className={
+                          row.deltaPp == null
+                            ? undefined
+                            : row.deltaPp > 0
+                              ? "mcfly-mixtable__up"
+                              : row.deltaPp < 0
+                                ? "mcfly-mixtable__down"
+                                : undefined
+                        }
+                      >
+                        {row.deltaPp == null
+                          ? "—"
+                          : `${row.deltaPp > 0 ? "+" : "−"}${Math.abs(Math.round(row.deltaPp))}pp`}
+                      </td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           ) : null}
         </>
       ) : (
