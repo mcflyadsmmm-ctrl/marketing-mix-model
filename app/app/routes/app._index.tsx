@@ -5,10 +5,6 @@ import type {
 } from "react-router";
 import { useLoaderData, useNavigation, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import {
-  SPEND_CHANNEL_LABELS,
-  type SpendChannel,
-} from "@mcfly/mer-engine";
 import { authenticate } from "../shopify.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
@@ -24,6 +20,7 @@ import {
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
 import { channelFillKey } from "../lib/channel-fill";
+import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
@@ -73,9 +70,8 @@ import {
   explorerQueryMatchingScoreboard,
 } from "../lib/spend-explorer";
 
-function channelDisplayLabel(channel: string): string {
-  return SPEND_CHANNEL_LABELS[channel as SpendChannel] ?? channel;
-}
+/** Same resolver the Spend page uses — Billboard must not read "Other" here. */
+const channelDisplayLabel = spendChannelLabel;
 
 /** Compact prior-period label for KPI deltas. */
 function deltaVsLabel(priorLabel: string | undefined): string {
@@ -277,6 +273,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ...(priorSales != null ? { priorSales, priorRange } : {}),
     salesPulledAt,
     salesBasis,
+    salesCoverage: salesFactsCoverageForBanner,
   });
 
   const explorerSeries = await buildSpendExplorerSeries(shop.id, {
@@ -312,6 +309,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),
+    channelLabels: explorerSeries.channelLabels,
   };
 
   const shareTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
@@ -423,7 +421,10 @@ export default function Dashboard() {
     .filter((entry) => entry.amount > 0)
     .sort((a, b) => b.amount - a.amount)
     .map((entry) => {
-      const name = channelDisplayLabel(entry.channel);
+      const name = channelDisplayLabel({
+        channel: entry.channel,
+        customLabel: entry.customLabel,
+      });
       return {
         name,
         amount: entry.amount,
@@ -461,8 +462,14 @@ export default function Dashboard() {
         !useSampleDesk &&
         Boolean(salesFactsCoverage?.periodExceedsFactWindow)
       }
+      /*
+       * Only once spend is on the desk. Before that the layout setup card is
+       * already the one thing to read, and stacking a second sync banner on a
+       * fresh install is what made the first session look broken.
+       */
       salesFactsIncomplete={
         !useSampleDesk &&
+        metrics.onboarding.hasSpend &&
         salesFactsCoverage != null &&
         !salesFactsCoverage.complete &&
         !salesFactsCoverage.periodExceedsFactWindow
@@ -840,10 +847,14 @@ export default function Dashboard() {
                       Shopify Total Sales
                     </p>
                     <p className="mcfly-hero-compact__value">
-                      {formatCurrency(totalSalesDisplay)}
+                      {metrics.salesPending
+                        ? "—"
+                        : formatCurrency(totalSalesDisplay)}
                     </p>
                     <p className="mcfly-hero-compact__meta">
-                      {PRODUCT_NOUN.totalSalesHeroHint}
+                      {metrics.salesPending
+                        ? "Still loading closed days — not $0"
+                        : PRODUCT_NOUN.totalSalesHeroHint}
                     </p>
                     <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
                   </div>
@@ -906,6 +917,7 @@ export default function Dashboard() {
                   spend={metrics.totalSpend}
                   mer={metrics.mer}
                   periodLabel={metrics.period.label}
+                  salesPending={metrics.salesPending}
                 />
               </section>
             ) : null}

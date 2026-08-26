@@ -1830,6 +1830,11 @@ export interface CsvImportSummary {
   updated: number;
   days: number;
   channels: CsvChannel[];
+  /**
+   * Merchant's own names for the `other` rows in this import, so the confirm
+   * line says "Billboard $400" instead of "Other $400".
+   */
+  customChannelLabels?: string[];
   dateRange: { start: string; end: string } | null;
   totalAmount: number;
   errors: string[];

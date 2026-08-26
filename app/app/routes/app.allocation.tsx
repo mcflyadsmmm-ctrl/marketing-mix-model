@@ -230,7 +230,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const salesByDay = useSampleDesk
       ? await fetchSampleSalesByDay(shop.id, histWindow)
       : await getSalesFactsByDay(shop.id, histWindow);
-    const dailyRows = await buildDailyRowsForWindow(shop.id, {
+    const { rows: dailyRows } = await buildDailyRowsForWindow(shop.id, {
       sampleOnly: useSampleDesk,
       excludeSample: !useSampleDesk,
       salesByDay,

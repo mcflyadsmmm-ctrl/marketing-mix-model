@@ -114,6 +114,10 @@ import {
 import { PRO_UPSELL } from "../lib/entitlements";
 import { NUMBER_HONESTY } from "../lib/number-honesty";
 import { spendConfirmLine } from "../lib/spend-confirm-copy";
+import {
+  spendChannelLabel,
+  spendChannelShortLabel,
+} from "../lib/spend-channel-label";
 
 const MAX_COMBINE_SLOTS = 20;
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
@@ -166,12 +170,7 @@ function formatSpendEntryChannelLabel(
   channel: string,
   note: string | null | undefined,
 ): string {
-  const base =
-    SPEND_CHANNEL_LABELS[channel as SpendChannel] ?? channel;
-  if (channel === "other" && note?.trim()) {
-    return note.trim();
-  }
-  return base;
+  return spendChannelLabel({ channel, customLabel: note });
 }
 
 const CUSTOM_CHANNEL_NAME_ERROR =
@@ -431,6 +430,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),
+    channelLabels: explorerSeries.channelLabels,
   };
 
   return {
@@ -539,6 +539,14 @@ async function persistAggregatedSpend(
 
   const dates = aggregated.map((r) => r.date).sort();
   const channels = Array.from(new Set(aggregated.map((r) => r.channel))) as CsvChannel[];
+  // Named extras confirm under the merchant's own header, not as "Other".
+  const customChannelLabels = Array.from(
+    new Set(
+      aggregated
+        .filter((r) => r.channel === "other" && r.customLabel?.trim())
+        .map((r) => r.customLabel!.trim()),
+    ),
+  );
   const totalAmount = aggregated.reduce((sum, r) => sum + r.amount, 0);
   const salesWindowWarning = salesWindowWarningForDates(dates);
   const dateRange = dates.length
@@ -559,6 +567,7 @@ async function persistAggregatedSpend(
         updated: preview.updated,
         days: dayCount,
         channels,
+        customChannelLabels,
         dateRange,
         totalAmount,
         errors: [],
@@ -582,6 +591,7 @@ async function persistAggregatedSpend(
       updated: result.updated,
       days: dayCount,
       channels,
+      customChannelLabels,
       dateRange,
       totalAmount,
       errors: [],
@@ -782,6 +792,9 @@ async function handleBillDaily(
       updated: result.updated,
       days: plan.dayCount,
       channels: [channel],
+      // Confirm with the merchant's own word, not the "other" bucket name.
+      customChannelLabels:
+        channel === "other" && customName ? [customName] : [],
       dateRange: { start: plan.startDateYmd, end: plan.endDateYmd },
       totalAmount: plan.totalAllocated,
       errors: [],
@@ -958,8 +971,7 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
 
 /** Compact summary / checkbox label — e.g. Meta, Google, Other. */
 function advertiseChannelShortLabel(channel: SpendChannel): string {
-  const full = SPEND_CHANNEL_LABELS[channel];
-  return full.replace(/ Ads$/, "");
+  return spendChannelShortLabel({ channel });
 }
 
 function formatDayRange(start: Date, end: Date): string {
@@ -1296,7 +1308,20 @@ export default function SpendEntryPage() {
   const csvConfirmLine =
     csv && csv.dateRange
       ? spendConfirmLine({
-          channels: csv.channels,
+          /*
+           * Named extras replace the bare "other" entry so the merchant is told
+           * back exactly what they typed. Unlabeled other spend keeps "Other".
+           */
+          channels: [
+            ...csv.channels.filter(
+              (ch) =>
+                ch !== "other" || (csv.customChannelLabels?.length ?? 0) === 0,
+            ),
+            ...(csv.customChannelLabels ?? []).map((customLabel) => ({
+              channel: "other",
+              customLabel,
+            })),
+          ],
           totalAmount: csv.totalAmount,
           dateRange: csv.dateRange,
           formatAmount: formatCurrency,

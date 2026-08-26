@@ -14,13 +14,13 @@ export function salesFactsIncompleteMessage(input: {
 
   if (factDays <= 0) {
     return {
-      heading: "Sales still syncing — expected after install",
-      body: `Shopify sales for ${periodLabel} are still filling in (0 of ${expectedClosedDays} days ready). This is not an error. Import spend on Spend — Total ROAS updates as days close. Refresh in a few minutes.`,
+      heading: "Your spend is saved — sales are still loading",
+      body: `Shopify sales for ${periodLabel} are still filling in (0 of ${expectedClosedDays} days ready). Nothing is wrong and nothing is lost. Total ROAS waits rather than show 0× against sales we do not have yet. Refresh in a few minutes.`,
     };
   }
 
   return {
-    heading: "Sales facts still backfilling",
-    body: `Sales loaded for ${factDays} of ${expectedClosedDays} days in ${periodLabel}. Refresh in a few minutes for more coverage. The desk stays usable while backfill runs.`,
+    heading: `Sales loaded for ${factDays} of ${expectedClosedDays} days`,
+    body: `${periodLabel} is still filling in. Your spend is already counted for every day — days with no spend row are $0. Refresh in a few minutes for full coverage.`,
   };
 }
