@@ -19,6 +19,10 @@ import {
 } from "@mcfly/mer-engine";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import {
+  SpendExportWalkthrough,
+  SpendHowTo,
+} from "../components/SpendExportWalkthrough";
+import {
   SpendExplorer,
   type SpendExplorerSeriesView,
 } from "../components/SpendExplorer";
@@ -108,6 +112,7 @@ import {
 } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
 import { NUMBER_HONESTY } from "../lib/number-honesty";
+import { formatTemplatePreviewCsv } from "../lib/spend-walkthrough";
 
 const MAX_COMBINE_SLOTS = 20;
 /** Ablestar fail-closed: never punch live CSV into a sample-ON desk. */
@@ -630,7 +635,7 @@ async function handleCsvImport(
   return persistAggregatedSpend(
     shopId,
     parseSpendCsv(text, forceChannel ? { forceChannel } : undefined),
-    "No valid spend rows found. Use platform exports with Combine & import, the Mcfly template (Day + channel columns), or date,channel,amount rows. This file is ad spend only — sales stay in Shopify.",
+    "No valid spend rows found. Use a Day + spend export, the Mcfly template (Day + channel columns), or date,channel,amount rows. This file is ad spend only — sales stay in Shopify.",
     entitlements,
     { confirmReplace },
   );
@@ -685,7 +690,7 @@ async function handleCsvCombine(
   if (inputs.length === 0) {
     return {
       error:
-        "Select the platforms you spend on, attach at least one daily CSV, then Combine & import.",
+        "Paste daily rows or upload one CSV (Day + spend, or date,channel,amount). Sales stay in Shopify.",
       success: false,
     };
   }
@@ -1232,11 +1237,12 @@ export default function SpendEntryPage() {
     return selectedChannels.join(",");
   }, [selectedChannels, customChannelNames]);
 
-  const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1${
+  const customQuery =
     customChannelNames.length > 0
       ? `&custom=${encodeURIComponent(serializeCustomChannelsParam(customChannelNames))}`
-      : ""
-  }`;
+      : "";
+  const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1${customQuery}`;
+  const selectedExampleTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&example=1${customQuery}`;
   const historyRangeQuery =
     coverageFromKey && coverageToKey
       ? `&from=${encodeURIComponent(coverageFromKey)}&to=${encodeURIComponent(coverageToKey)}`
@@ -1256,6 +1262,23 @@ export default function SpendEntryPage() {
       }
     }
   }
+  function historyExampleHref(span: HistorySpan): string {
+    switch (span) {
+      case "30d":
+      case "90d":
+      case "ytd":
+      case "12m":
+        return `${selectedExampleTemplateHref}&span=${span}`;
+      default: {
+        const _exhaustive: never = span;
+        return _exhaustive;
+      }
+    }
+  }
+  const examplePasteText = formatTemplatePreviewCsv(
+    selectedTemplate.headers,
+    selectedTemplate.rows,
+  );
 
   function togglePlatform(id: SpendAdvertisePlatformId) {
     if (!isPlatformSelectable(id)) return;
@@ -1360,7 +1383,7 @@ export default function SpendEntryPage() {
               {" · "}
               {formatCurrency(csv.totalAmount)}
               {holeCount > 0
-                ? ` · ${holeCount} day${holeCount === 1 ? "" : "s"} still missing through yesterday`
+                ? ` · those days are in. ${holeCount} other day${holeCount === 1 ? "" : "s"} in the last 90 have no spend yet — add them when you have invoices`
                 : ""}
             </s-paragraph>
             {csv.salesWindowWarning ? (
@@ -1466,6 +1489,7 @@ export default function SpendEntryPage() {
             .filter(Boolean)
             .join(" ")}
         >
+          <SpendHowTo empty={isEmpty && !shotMode} />
           <section
             id="mcfly-spend-add"
             className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-add"
@@ -1594,14 +1618,6 @@ export default function SpendEntryPage() {
                 </div>
               </Form>
             )}
-            {entitlements.showProTeaser && !shotMode ? (
-              <div className="mcfly-spend-add__upsell">
-                <ProUpsellBlock
-                  lead={PRO_UPSELL.ltv}
-                  showSample={!sampleDesk.enabled}
-                />
-              </div>
-            ) : null}
           </section>
 
           <section
@@ -1633,8 +1649,8 @@ export default function SpendEntryPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>Fill history</h2>
               <p className="mcfly-panel__muted">
-                Daily spend as far back as you have it. Download a dated blank,
-                paste Ads Manager rows, or upload a CSV — one row per day.
+                Daily spend as far back as you have it. One row per day. Download a
+                dated blank, follow the export steps, or paste Ads Manager rows.
               </p>
             </div>
             <div
@@ -1642,6 +1658,9 @@ export default function SpendEntryPage() {
               role="group"
               aria-label="Blank template range"
             >
+              <p className="mcfly-spend-history__spans-k">
+                Blank template — empty amounts for the days you fill
+              </p>
               <s-button href={historySpanHref("30d")} variant="secondary">
                 30 days
               </s-button>
@@ -1655,6 +1674,12 @@ export default function SpendEntryPage() {
                 12 months
               </s-button>
             </div>
+            <p className="mcfly-spend-history__example-dl">
+              <s-link href={historyExampleHref("30d")}>
+                Download a filled 30-day example
+              </s-link>
+              {" — replace the sample numbers with yours, then paste or upload."}
+            </p>
 
           <details
             id="mcfly-spend-platforms"
@@ -1838,12 +1863,19 @@ export default function SpendEntryPage() {
               </s-text>
             )}
 
+            <SpendExportWalkthrough
+              platforms={selectedPlatforms}
+              exampleCsv={examplePasteText}
+              exampleHref={historyExampleHref("30d")}
+              onUseExample={(text) => setCsvPayload(text)}
+            />
+
             <details className="mcfly-spend-lean__bill">
               <summary>Divide a bill into daily rows</summary>
               <div className="mcfly-spend-lean__bill-body">
                 <p className="mcfly-spend-lean__bill-hint">
                   Monthly / quarterly / bi-annual / annual invoice → equal daily
-                  amounts for the template
+                  amounts on the desk (same as putting the invoice on a calendar)
                 </p>
                 <div className="mcfly-spend-lean__bill-grid">
                   <label className="mcfly-spend-lean__bill-field">
@@ -1944,6 +1976,23 @@ export default function SpendEntryPage() {
                 >
                   Download daily CSV
                 </s-button>
+                <Form method="post" className="mcfly-spend-lean__bill-save">
+                  <input type="hidden" name="intent" value="bill-daily" />
+                  <input type="hidden" name="amount" value={billAmount} />
+                  <input type="hidden" name="periodType" value={billPeriodType} />
+                  <input type="hidden" name="anchor" value={billAnchor} />
+                  <input type="hidden" name="channel" value={billChannel} />
+                  <input type="hidden" name="customName" value={billCustomName} />
+                  <s-button
+                    type="submit"
+                    variant="primary"
+                    {...(isSubmitting && submittingIntent === "bill-daily"
+                      ? { loading: true }
+                      : {})}
+                  >
+                    Save as daily spend
+                  </s-button>
+                </Form>
               </div>
             </details>
           </div>
@@ -1956,8 +2005,14 @@ export default function SpendEntryPage() {
             >
               <p className="mcfly-spend-lean__drop-title">Upload is paused on Practice</p>
               <p className="mcfly-spend-lean__drop-hint">
-                Example spend is already loaded. Switch to Your store so your
-                CSV is not mixed with practice numbers.
+                Example spend is already loaded so you can click around. Download
+                a filled example to see the CSV shape, then switch to Your store
+                before importing yours.
+              </p>
+              <p>
+                <s-link href={historyExampleHref("30d")}>
+                  Download filled example
+                </s-link>
               </p>
               <Form method="post" action={dataModeAction}>
                 <input type="hidden" name="intent" value="use-real" />
@@ -2052,8 +2107,8 @@ export default function SpendEntryPage() {
               </p>
             ) : (
               <p className="mcfly-spend-lean__status-line">
-                Spend coverage — missing {holeCount} day
-                {holeCount === 1 ? "" : "s"}
+                Spend coverage — {holeCount} day
+                {holeCount === 1 ? "" : "s"} in the last 90 have no spend yet
                 {selectedPlatforms.length > 0
                   ? ` · ${selectedSummaryLabel}`
                   : ""}
@@ -2066,6 +2121,7 @@ export default function SpendEntryPage() {
                       : ""}
                     {" · "}
                     <s-link href={missingDatesHref}>download blanks</s-link>
+                    {" (optional — last month is enough to start)"}
                   </>
                 ) : null}
               </p>
@@ -2104,6 +2160,14 @@ export default function SpendEntryPage() {
           </section>
 
         </div>
+        {entitlements.showProTeaser && !shotMode ? (
+          <div className="mcfly-spend-add__upsell">
+            <ProUpsellBlock
+              lead={PRO_UPSELL.ltv}
+              showSample={!sampleDesk.enabled}
+            />
+          </div>
+        ) : null}
       </div>
     </s-page>
   );

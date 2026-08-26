@@ -72,7 +72,8 @@ describe("collectFilledSpendDayKeys + computeSpendPeriodCoverage", () => {
       daysWithSpend: 4,
       daysInPeriod: 22,
     });
-    // Live: cashActionReady = settingsSaved && !incomplete && recon !== drift
+    // Incomplete coverage is honesty on Overview. Allocation still waits on
+    // !incomplete. Live Total ROAS: settingsSaved && hasSpend && recon !== drift
     expect(
       true &&
         !sparse.incomplete &&

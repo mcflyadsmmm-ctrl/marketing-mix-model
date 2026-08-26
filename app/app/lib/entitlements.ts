@@ -33,9 +33,9 @@ export const PRO_UPSELL = {
   includes: "Customer LTV/payback and a full-year Goals board.",
   channels:
     "Free includes every named platform plus extras like billboards. Pro is LTV and the full Goals board.",
-  ltv: "See how long new customers take to pay back ad spend. Try it on Practice, or upgrade to use it on your store.",
+  ltv: "Did this month’s new customers pay back the spend you logged? Pro follows them for 30 / 90 / 365 days. Shopify Analytics does not.",
   goals:
-    "Set a 12-month sales plan and fill months from last year. Free still shows this period vs your Total ROAS goal.",
+    "Type the sales you want this year. Pro tells you the most you can spend each month and still hit your Total ROAS target.",
   close:
     "Share Overview (Email) is free — opens your mail app with this period’s cards. Mcfly never sends mail for you.",
   upgradeCta: "Upgrade to Pro — $39/mo",

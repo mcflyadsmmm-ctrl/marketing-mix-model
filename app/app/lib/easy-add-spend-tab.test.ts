@@ -33,7 +33,8 @@ describe("Easy Add Spend tab (history + drill-down)", () => {
     expect(spend).toContain("historyFirst");
     expect(spend).toContain("mcfly-spend-lean__stack--history-first");
     expect(spend).not.toContain("<h2>Period spend</h2>");
-    expect(spend).not.toContain("CSV spend in three steps");
+    expect(spend).toContain("SpendExportWalkthrough");
+    expect(spend).toContain("Download a filled 30-day example");
   });
 
   it("covers 90 closed days and embeds day/week/month explorer on this tab", () => {

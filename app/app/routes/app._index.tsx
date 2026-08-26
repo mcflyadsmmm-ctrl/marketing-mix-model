@@ -30,6 +30,7 @@ import { formatCashFreshnessChip } from "../lib/mer-trust";
 import { formatOverviewShareText } from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
+import { ProPaybackPreview } from "../components/ProValuePreview";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
 import { NumberHonestyPanel } from "../components/NumberHonestyPanel";
 import { PRO_UPSELL } from "../lib/entitlements";
@@ -372,7 +373,7 @@ export default function Dashboard() {
         : salesFactsCoverage != null &&
             !salesFactsCoverage.complete &&
             !salesFactsCoverage.periodExceedsFactWindow
-          ? `${metrics.period.label} · facts incomplete`
+          ? `${metrics.period.label}${PRODUCT_NOUN.factsIncompleteSuffix}`
           : `${metrics.period.label} · live sales`;
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk,
@@ -606,12 +607,12 @@ export default function Dashboard() {
             {!shotMode && scoreboardReady ? (
               <s-link href={SPEND_ADD_HREF}>Update spend</s-link>
             ) : null}
-            {!metrics.cashActionReady &&
+            {metrics.spendCoverage?.incomplete &&
             !shotMode &&
             !useSampleDesk &&
             scoreboardReady ? (
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
-                Finish spend trust
+                Add more days of spend
               </span>
             ) : null}
           </div>
@@ -719,7 +720,7 @@ export default function Dashboard() {
               </p>
               <p className="mcfly-guide__sub">
                 Sales load automatically. Set a Total ROAS target, add spend,
-                then read cash Total ROAS. Profit margin is optional for
+                then read sales ÷ spend. Profit margin is optional for
                 break-even.
               </p>
             </div>
@@ -915,6 +916,9 @@ export default function Dashboard() {
                   preset={preset}
                   showProTeaser={showProTeaser}
                   showSample={!useSampleDesk}
+                  spend={metrics.totalSpend}
+                  newCustomers={metrics.newCustomers}
+                  periodLabel={metrics.period.label}
                 />
               </div>
             ) : null}
@@ -969,6 +973,9 @@ function LtvSnapSection({
   preset,
   showProTeaser,
   showSample,
+  spend,
+  newCustomers,
+  periodLabel,
 }: {
   tillLtv: {
     available: boolean;
@@ -983,6 +990,9 @@ function LtvSnapSection({
   preset: PeriodPreset;
   showProTeaser: boolean;
   showSample: boolean;
+  spend: number;
+  newCustomers: number;
+  periodLabel: string;
 }) {
   return (
     <section
@@ -1061,11 +1071,18 @@ function LtvSnapSection({
           ) : null}
         </>
       ) : tillLtv.emptyReason === "pro_required" ? (
-        showProTeaser ? (
-          <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={showSample} />
-        ) : (
-          <p className="mcfly-tab-snap__empty">{PRO_UPSELL.ltv}</p>
-        )
+        <>
+          <ProPaybackPreview
+            spend={spend}
+            newCustomers={newCustomers}
+            periodLabel={periodLabel}
+          />
+          {showProTeaser ? (
+            <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={showSample} />
+          ) : (
+            <p className="mcfly-tab-snap__empty">{PRO_UPSELL.ltv}</p>
+          )}
+        </>
       ) : (
         <p className="mcfly-tab-snap__empty">
           {tillLtv.emptyReason === "no_timezone"

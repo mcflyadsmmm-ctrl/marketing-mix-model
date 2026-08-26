@@ -20,6 +20,7 @@ import { authenticate } from "../shopify.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
+import { ProPaybackPreview } from "../components/ProValuePreview";
 
 /** CohortFact stores window totals — desk LTV is per new customer. */
 function perCustomerRevenue(
@@ -358,7 +359,7 @@ export default function LtvPage() {
                   <p className="mcfly-acq-tile__def">
                     {newSalesShare != null
                       ? `${formatPercent(newSalesShare)} of period sales`
-                      : "aMER numerator"}
+                      : "New-customer sales"}
                   </p>
                 </div>
                 <div className="mcfly-acq-tile mcfly-acq-tile--cream">
@@ -405,13 +406,14 @@ export default function LtvPage() {
                   </p>
                 </div>
                 <div className="mcfly-acq-tile mcfly-acq-tile--mint">
-                  <p className="mcfly-acq-tile__k">{PRODUCT_NOUN.amer}</p>
+                  <p className="mcfly-acq-tile__k">New-customer sales ÷ spend</p>
                   <p className="mcfly-acq-tile__v">
                     {metrics.amer != null ? formatMer(metrics.amer) : "—"}
                   </p>
                   <p className="mcfly-acq-tile__def">{PRODUCT_NOUN.amerDef}</p>
                   <p className="mcfly-acq-tile__hint">
-                    Average for the period — not causal channel ROAS
+                    Also called {PRODUCT_NOUN.amer}. Average for the period —
+                    not which ad to scale.
                   </p>
                 </div>
               </div>
@@ -439,6 +441,11 @@ export default function LtvPage() {
               </p>
             </div>
             <div className="mcfly-acq-ltv-teaser__body">
+              <ProPaybackPreview
+                spend={metrics.totalSpend}
+                newCustomers={newCount}
+                periodLabel={metrics.period.label}
+              />
               {entitlements.showProTeaser ? (
                 <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={!useSampleDesk} />
               ) : (

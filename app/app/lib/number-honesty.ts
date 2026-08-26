@@ -19,7 +19,7 @@ export const NUMBER_HONESTY = {
   isLine:
     "Shopify Total Sales for these dates (after returns) ÷ every dollar you typed, pasted, or uploaded — including billboards and retainers.",
   isNotLine:
-    "Not platform ROAS. Not net profit. Not which ad to scale.",
+    "Not platform ROAS. Not net profit. Not which ad to scale. Ads Manager will show a different number because it counts clicks, not Shopify Total Sales.",
   invoiceHint:
     "Type the invoice amount — Ads Manager, a billboard bill, or an agency retainer.",
 } as const;

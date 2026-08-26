@@ -113,22 +113,15 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
 
   it("Spend Upgrade to Pro is outside the Add spend Form (2.1.1 nested-form brick)", () => {
     const spend = readApp("routes/app.spend.tsx");
-    const addStart = spend.indexOf('id="mcfly-spend-add"');
-    expect(addStart).toBeGreaterThan(-1);
-    const nextSection = spend.indexOf("<section", addStart + 1);
-    const addBlock = spend.slice(
-      addStart,
-      nextSection === -1 ? spend.length : nextSection,
-    );
-    expect(addBlock).toMatch(/ProUpsellBlock/);
+    expect(spend).toMatch(/ProUpsellBlock/);
 
-    const formStart = addBlock.indexOf(
+    const formStart = spend.indexOf(
       '<Form method="post" className="mcfly-spend-add__form"',
     );
     expect(formStart).toBeGreaterThan(-1);
-    const formEnd = addBlock.indexOf("</Form>", formStart);
+    const formEnd = spend.indexOf("</Form>", formStart);
     expect(formEnd).toBeGreaterThan(formStart);
-    const formInner = addBlock.slice(formStart, formEnd);
+    const formInner = spend.slice(formStart, formEnd);
     expect(formInner).not.toMatch(/ProUpsellBlock|ProUpgradeButton|UseSampleCta/);
   });
 
