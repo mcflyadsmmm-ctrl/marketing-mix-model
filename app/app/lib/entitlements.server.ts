@@ -17,10 +17,9 @@ import prisma from "../db.server";
 export {
   FREE_CHANNELS,
   FREE_CHANNEL_SET,
-  FREE_FEATURE_BULLETS,
+  DESK_FEATURE_BULLETS,
   isFreeChannel,
   PRO_CHANNELS,
-  PRO_FEATURE_BULLETS,
   PRO_UPSELL,
 } from "./entitlements";
 
@@ -58,15 +57,11 @@ export function isProShop(
 export type ShopEntitlements = {
   tier: BillingTier;
   isPro: boolean;
-  /** Live Customer LTV (OrderFact / CohortFact). Whole desk — not a plan gate. */
-  canUseLiveLtv: boolean;
-  /** Show LTV UI (always on; Sample data uses example cohorts). */
-  canUseLtv: boolean;
-  canUseAdvancedGoals: boolean;
-  canUseAdvancedClose: boolean;
+  /**
+   * Every real spend channel is writable on every plan. Kept only so
+   * `filterToAllowedChannels` can drop channel strings the engine does not know.
+   */
   canUseAllChannels: boolean;
-  /** Never a feature-gate teaser on Overview/Spend/LTV/Goals. */
-  showProTeaser: boolean;
   /** Settings-only Start 7-day trial — Billing on and shop unpaid. */
   showStartTrial: boolean;
   /** Show Manage plan CTA — Billing on and shop is paid/trial (App Store 1.2.3). */
@@ -81,22 +76,12 @@ export function getShopEntitlements(
 ): ShopEntitlements {
   const isPro = isProShop(shopDomain, { paidPro: options?.paidPro });
   const billingOn = isBillingEnabled();
-  const canUseLiveLtv = true;
-  const canUseLtv = true;
-  const canUseAdvancedGoals = true;
-  const canUseAdvancedClose = true;
-  const canUseAllChannels = true;
   const allowedChannels: readonly SpendChannel[] = SPEND_CHANNELS;
 
   return {
     tier: isPro ? "pro" : "free",
     isPro,
-    canUseLiveLtv,
-    canUseLtv,
-    canUseAdvancedGoals,
-    canUseAdvancedClose,
-    canUseAllChannels,
-    showProTeaser: false,
+    canUseAllChannels: true,
     showStartTrial: !isPro && billingOn,
     canManagePlan: isPro && billingOn,
     allowedChannels,

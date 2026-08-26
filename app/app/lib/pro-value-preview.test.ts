@@ -22,9 +22,15 @@ describe("Desk value previews", () => {
     }
   });
 
-  it("Goals year teaser uses the same ceiling math as the board", () => {
+  it("keeps the implied spend ceiling math the Goals board reports", () => {
     expect(impliedSpendCeiling(80_000, 4)).toBe(20_000);
+  });
+
+  it("shows the full-year Goals board outright, with no plan teaser", () => {
     const goals = read("../routes/app.goals.tsx");
-    expect(goals).toContain("GoalsYearTeaser");
+    expect(goals).not.toContain("GoalsYearTeaser");
+    expect(goals).not.toContain("canUseYearBoard");
+    expect(goals).not.toContain("canUseAdvancedGoals");
+    expect(goals).not.toMatch(/Year board — Pro/);
   });
 });

@@ -17,7 +17,6 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import { authenticate } from "../shopify.server";
-import { getShopEntitlements } from "../lib/entitlements.server";
 
 /** CohortFact stores window totals — desk LTV is per new customer. */
 function perCustomerRevenue(
@@ -45,11 +44,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
   const range = resolvePeriod(preset, new Date(), deskTz);
-  const entitlements = getShopEntitlements(session.shop, {
-    sampleDesk: useSampleDesk,
-    paidPro: shop.proBillingActive,
-  });
-
   let salesError: string | null = null;
   let todaySalesTruncated = false;
   let todaySalesUnavailable = false;
@@ -82,12 +76,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesBasis: parseSalesBasis(settings.salesBasis, "total"),
   });
-  const orderBackfillProgress =
-    !useSampleDesk && entitlements.canUseLtv
-      ? await getOrderBackfillProgress(shop.id, {
-          ianaTimezone: shop.ianaTimezone,
-        })
-      : null;
+  const orderBackfillProgress = useSampleDesk
+    ? null
+    : await getOrderBackfillProgress(shop.id, {
+        ianaTimezone: shop.ianaTimezone,
+      });
   return {
     metrics,
     preset,
@@ -96,8 +89,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
-    entitlements,
-    canUseLtv: entitlements.canUseLtv,
     marginConfirmed: marginIsConfirmed(settings),
     orderBackfillProgress,
   };
@@ -112,8 +103,6 @@ export default function LtvPage() {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
-    entitlements,
-    canUseLtv,
     marginConfirmed,
     orderBackfillProgress,
   } = useLoaderData<typeof loader>();

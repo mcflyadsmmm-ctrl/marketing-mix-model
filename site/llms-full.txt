@@ -8,7 +8,7 @@ Total ROAS = Shopify sales after returns (period) ÷ total ad spend (same period
 Break-even Total ROAS ≈ 1 ÷ contribution margin.
 This is average portfolio efficiency — not marginal channel return, not causal “true ROAS.”
 Monday Close / Export memo: exceptions → save → variance → decision (hold / reduce / step-test with spend floor) → CSV export.
-Pricing: App Store Free while launching → Pro $39/store/mo flat via Shopify Billing when announced. Not a GMV tax. Free path = CSV paste; SyncWith-class tools optional (you pay them).
+Pricing: one plan — 7-day full-access trial, then $39/store/mo flat via Shopify App Pricing. Not a GMV tax. Nothing is feature-gated. Spend goes in by typing, pasting, or CSV; SyncWith-class tools are optional (you pay them).
 Primary URLs: https://mcflyads.com/ · https://mcflyads.com/#products · https://mcflyads.com/product · https://mcflyads.com/monday-close · https://mcflyads.com/mer-calculator · https://mcflyads.com/break-even-roas-calculator · https://mcflyads.com/pricing
 
 ## Custom Data Solutions

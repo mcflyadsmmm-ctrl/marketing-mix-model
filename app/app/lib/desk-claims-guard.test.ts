@@ -91,6 +91,47 @@ describe("desk never claims what the routes do not do", () => {
     expect(banned(/\bPro only\b/i)).toEqual([]);
     expect(banned(/Free plan/i)).toEqual([]);
     expect(banned(/Free vs Pro/i)).toEqual([]);
+    expect(banned(/Install free/i)).toEqual([]);
+  });
+
+  /*
+   * The first pass of this guard missed the Fly landing page, which sold
+   * "Free = every platform ... Pro $39 for LTV + Goals" in its meta
+   * description. Ban the shape of a two-tier pitch, not just its stock phrases.
+   */
+  it("never pitches one tier against another", () => {
+    // "Free ... Pro $39", "Pro adds X at $39", "paid plan = LTV" and friends.
+    expect(banned(/\bFree\b[^\n]{0,60}\bPro\b\s*\$/i)).toEqual([]);
+    expect(banned(/\bPro adds\b/i)).toEqual([]);
+    expect(banned(/paid plan\s*=/i)).toEqual([]);
+    expect(banned(/default plan\s*=/i)).toEqual([]);
+    // Refusal-aware: "Never claim Free+Pro feature gates" must stay.
+    expect(claimed(/\bPro\b[^\n]{0,40}\b(gate|gated|unlock)/i)).toEqual([]);
+    // No plan-scoped entitlement flags should exist to branch on.
+    expect(banned(/canUseAdvancedGoals/)).toEqual([]);
+  });
+
+  it("bills one plan, so no code branches on a tier for features", () => {
+    const server = readFileSync(
+      join(appSrc, "lib/entitlements.server.ts"),
+      "utf8",
+    );
+    // Every capability is unconditionally true — there is nothing to gate on.
+    expect(server).not.toMatch(/proRequiredLtvSummary/);
+    expect(server).toMatch(/canUseAllChannels: true/);
+    // Per-feature capability flags are gone, so nothing can branch on a tier.
+    for (const flag of [
+      "canUseLtv",
+      "canUseLiveLtv",
+      "canUseAdvancedGoals",
+      "canUseAdvancedClose",
+      "showProTeaser",
+    ]) {
+      expect(server, flag).not.toContain(flag);
+    }
+    const ent = readFileSync(join(appSrc, "lib/entitlements.ts"), "utf8");
+    expect(ent).not.toMatch(/FREE_FEATURE_BULLETS|PRO_FEATURE_BULLETS/);
+    expect(ent).toMatch(/DESK_FEATURE_BULLETS/);
   });
 
   it("keeps the Sample | Live labels as the only desk views", () => {

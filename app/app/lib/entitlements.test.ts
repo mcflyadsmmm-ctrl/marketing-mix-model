@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { SPEND_CHANNELS } from "@mcfly/mer-engine";
 import {
   assertChannelsAllowed,
   canUseChannel,
@@ -37,11 +38,7 @@ describe("entitlements whole-desk plan", () => {
     const e = getShopEntitlements("acme.myshopify.com");
     expect(e.tier).toBe("free");
     expect(e.canUseAllChannels).toBe(true);
-    expect(e.canUseLiveLtv).toBe(true);
-    expect(e.canUseLtv).toBe(true);
-    expect(e.canUseAdvancedGoals).toBe(true);
-    expect(e.canUseAdvancedClose).toBe(true);
-    expect(e.showProTeaser).toBe(false);
+    expect(e.allowedChannels).toEqual(SPEND_CHANNELS);
     expect(e.showStartTrial).toBe(false);
     expect(e.canManagePlan).toBe(false);
     expect(canUseChannel(e, "meta")).toBe(true);
@@ -53,12 +50,11 @@ describe("entitlements whole-desk plan", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     process.env.MCFLY_BILLING = "1";
     const unpaid = getShopEntitlements("acme.myshopify.com");
-    expect(unpaid.showProTeaser).toBe(false);
     expect(unpaid.showStartTrial).toBe(true);
-    expect(unpaid.canUseLiveLtv).toBe(true);
     expect(unpaid.canManagePlan).toBe(false);
+    // Unpaid and paid resolve the same feature set — LTV included.
+    expect(unpaid.allowedChannels).toEqual(SPEND_CHANNELS);
     const paid = getShopEntitlements("acme.myshopify.com", { paidPro: true });
-    expect(paid.showProTeaser).toBe(false);
     expect(paid.showStartTrial).toBe(false);
     expect(paid.canManagePlan).toBe(true);
   });
@@ -67,11 +63,10 @@ describe("entitlements whole-desk plan", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     const e = getShopEntitlements("acme.myshopify.com", { sampleDesk: true });
     expect(e.isPro).toBe(false);
-    expect(e.canUseLiveLtv).toBe(true);
-    expect(e.canUseLtv).toBe(true);
-    expect(e.canUseAdvancedGoals).toBe(true);
-    expect(e.canUseAdvancedClose).toBe(true);
+    // Nothing is plan-scoped: there are no per-feature capability flags left
+    // to gate on, and every engine channel is writable.
     expect(e.canUseAllChannels).toBe(true);
+    expect(e.allowedChannels).toEqual(SPEND_CHANNELS);
     expect(e.allowedChannels).toContain("tiktok");
     expect(canUseChannel(e, "tiktok")).toBe(true);
   });
@@ -85,9 +80,7 @@ describe("entitlements whole-desk plan", () => {
     expect(isProShop("partner.myshopify.com")).toBe(true);
     const e = getShopEntitlements("devmcflyads.myshopify.com");
     expect(e.isPro).toBe(true);
-    expect(e.canUseLiveLtv).toBe(true);
     expect(e.canUseAllChannels).toBe(true);
-    expect(e.canUseAdvancedClose).toBe(true);
     expect(canUseChannel(e, "amazon")).toBe(true);
   });
 
@@ -142,6 +135,7 @@ describe("entitlements whole-desk plan", () => {
     expect(isProShop("acme.myshopify.com", { paidPro: true })).toBe(true);
     const e = getShopEntitlements("acme.myshopify.com", { paidPro: true });
     expect(e.isPro).toBe(true);
-    expect(e.canUseLiveLtv).toBe(true);
+    // Paid changes billing state only — never which features resolve.
+    expect(e.canUseAllChannels).toBe(true);
   });
 });

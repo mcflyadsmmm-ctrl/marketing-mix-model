@@ -123,7 +123,6 @@ describe("App Store 2.1.1 billing iframe guards", () => {
   it("source tree has no bare href to Admin pricing_plans", () => {
     const files = [
       "components/ProUpgradeButton.tsx",
-      "components/ProUpsellBlock.tsx",
       "routes/app.billing.tsx",
       "routes/app.settings.tsx",
       "routes/app.spend.tsx",

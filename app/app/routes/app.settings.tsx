@@ -520,7 +520,7 @@ export default function SettingsPage() {
               7-day full-access trial
             </p>
             <ul className="mcfly-settings-guide">
-              {billing.proBullets.map((line) => (
+              {billing.deskBullets.map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>

@@ -37,15 +37,11 @@ describe("Sample data | Live data UX", () => {
     expect(labels).toContain('liveData: "Live data"');
   });
 
-  it("plan block previews Sample data via data-mode POST, not /app/demo", () => {
-    const upsell = read("../components/ProUpsellBlock.tsx");
-    expect(upsell).toContain("UseSampleCta");
-    expect(upsell).toContain("See Sample data");
-    expect(upsell).toContain("<details");
-    expect(upsell).not.toContain('href="/app/demo"');
+  it("Sample data preview uses the data-mode POST, not /app/demo", () => {
     const cta = read("../components/UseSampleCta.tsx");
     expect(cta).toContain('name="intent" value="use-sample"');
     expect(cta).toContain('action="/app/data-mode"');
+    expect(cta).not.toContain('href="/app/demo"');
   });
 
   it("Spend switches Sample to Live when saving spend", () => {

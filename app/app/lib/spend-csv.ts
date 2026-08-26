@@ -602,7 +602,7 @@ export function buildSheetsImportGuide(options?: {
       : "your selected platforms";
   return {
     sheetsNewUrl: SHEETS_CREATE_URL,
-    tip: "Free path never requires SyncWith, Coupler, or Supermetrics. Paste or CSV alone is enough — you only pay those tools if you want hands-off fills.",
+    tip: "Mcfly never requires SyncWith, Coupler, or Supermetrics. Paste or CSV alone is enough — you only pay those tools if you want hands-off fills.",
     steps: [
       `Confirm platforms checked above (or on Automate): ${labels}.`,
       "Download your Mcfly blank template — or Open Google Sheets and import that CSV.",

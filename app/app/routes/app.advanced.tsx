@@ -94,7 +94,8 @@ export default function AdvancedMetricsPage() {
       : `${metrics.period.label} · live sales`;
 
   const sections = buildAdvancedSections(metrics, {
-    canUseLtv: entitlements.canUseLtv,
+    // Not a plan gate — LTV is on the one desk. See advanced-metrics.ts.
+    canUseLtv: true,
     periodLabel: metrics.period.label,
   });
 

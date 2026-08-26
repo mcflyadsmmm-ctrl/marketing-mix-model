@@ -183,6 +183,28 @@ describe("Shopify App Store source verification", () => {
     }
   });
 
+  /*
+   * The TOML is only half the story: SCOPES in a deploy config or env sample is
+   * what the running app actually requests. Drift there asks the merchant to
+   * approve a scope Partner has not approved, and install fails.
+   */
+  it("3.2.1 deploy configs request the same scopes as the public TOML", () => {
+    for (const path of ["railway.toml", "fly.toml", "app/.env.example"]) {
+      const src = readRepo(path);
+      const declared = [
+        ...src.matchAll(/^\s*SCOPES\s*=\s*"?([^"\n#]+)"?/gm),
+      ].map((m) =>
+        m[1]
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+      for (const scopes of declared) {
+        expect(scopes, path).toEqual(["read_orders", "read_customers"]);
+      }
+    }
+  });
+
   it("5.x payment, theme, checkout, and sales-channel categories remain N/A", () => {
     const extensionConfigs = walkFiles(
       join(repoRoot, "app/extensions"),

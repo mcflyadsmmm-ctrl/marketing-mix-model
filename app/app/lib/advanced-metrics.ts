@@ -117,7 +117,10 @@ function pctOrDash(n: number | null | undefined, digits = 0): string {
 
 /**
  * Build Advanced Metrics sections from desk metrics.
- * `canUseLtv` gates the acquisition/LTV section (Pro / SAMPLE).
+ *
+ * `canUseLtv` is NOT a plan gate — the whole desk is one plan. It is false only
+ * when cohort facts are not resolvable yet, and the section then explains that
+ * rather than offering an upgrade.
  */
 export function buildAdvancedSections(
   metrics: AdvancedMetricsInput,

@@ -18,12 +18,8 @@ import {
   resolveSpendTemplateRangeQuery,
 } from "../lib/spend-template-range";
 import { parseCustomChannelsParam } from "../lib/spend-custom-channel";
-import {
-  FREE_CHANNELS,
-  resolveShopEntitlements,
-} from "../lib/entitlements.server";
 import { salesDayFactWindowStartUtc } from "../lib/sales-facts.server";
-import type { SpendChannel } from "@mcfly/mer-engine";
+import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
 
 /**
  * Reliable CSV download inside Shopify Admin (data: URLs often fail in the iframe).
@@ -40,8 +36,7 @@ import type { SpendChannel } from "@mcfly/mer-engine";
  * Prefer `from`/`to` or `span` over stuffing a year into `dates=`.
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
-  const entitlements = await resolveShopEntitlements(session.shop);
+  await authenticate.admin(request);
   const url = new URL(request.url);
   const datesParam = url.searchParams.get("dates");
   const platformsParam = url.searchParams.get("platforms");
@@ -54,10 +49,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ? { from: range.fromKey, to: range.toKey, floorKey }
     : {};
 
-  const freeDefaultChannels: readonly SpendChannel[] = [...FREE_CHANNELS];
-  const tierChannels: readonly SpendChannel[] | undefined =
-    entitlements.canUseAllChannels ? undefined : freeDefaultChannels;
-
   let body: string;
   let filename: string;
 
@@ -65,43 +56,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     body = buildPipeAutomationLongTemplate({
       dayCount: blank ? 14 : 7,
       example: example || !blank,
-      channels: tierChannels,
       ...rangeOpts,
     });
     filename = blank
-      ? entitlements.canUseAllChannels
-        ? "mcfly-pipe-spend-long-blank.csv"
-        : "mcfly-pipe-spend-long-meta-google-blank.csv"
-      : entitlements.canUseAllChannels
-        ? "mcfly-pipe-spend-long-example.csv"
-        : "mcfly-pipe-spend-long-meta-google-example.csv";
+      ? "mcfly-pipe-spend-long-blank.csv"
+      : "mcfly-pipe-spend-long-example.csv";
   } else if (pipe === "wide") {
     body = buildPipeAutomationWideTemplate({
       dayCount: 14,
       example: example || !blank,
-      channels: tierChannels,
       ...rangeOpts,
     });
     filename = blank
-      ? entitlements.canUseAllChannels
-        ? "mcfly-pipe-spend-wide-blank.csv"
-        : "mcfly-pipe-spend-wide-meta-google-blank.csv"
-      : entitlements.canUseAllChannels
-        ? "mcfly-pipe-spend-wide-example.csv"
-        : "mcfly-pipe-spend-wide-meta-google-example.csv";
+      ? "mcfly-pipe-spend-wide-blank.csv"
+      : "mcfly-pipe-spend-wide-example.csv";
   } else if (datesParam) {
     const dates = parseSpendTemplateDatesParam(datesParam);
-    body = buildBlankSpendTemplateForDates(dates, tierChannels);
-    filename = entitlements.canUseAllChannels
-      ? "mcfly-spend-missing-days.csv"
-      : "mcfly-spend-meta-google-missing-days.csv";
+    body = buildBlankSpendTemplateForDates(dates);
+    filename = "mcfly-spend-missing-days.csv";
   } else if (platformsParam !== null && platformsParam !== undefined) {
     let channels = parsePlatformsParam(platformsParam);
-    if (!entitlements.canUseAllChannels) {
-      channels = channels.filter((ch) =>
-        entitlements.allowedChannels.includes(ch),
-      );
-    }
     // Named extras (billboards, radio, typed) are `custom=`, not the generic Other column.
     channels = channels.filter((ch) => ch !== "other");
     const customCols = customNamesToTemplateCols(
@@ -126,40 +100,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       useExample ? "example" : "blank",
     );
   } else if (blank || (range && !example)) {
-    // Blank download: every named platform (all Free).
     // `span` / `from`/`to` without example=1 means history backfill (empty amounts).
-    if (entitlements.canUseAllChannels) {
-      body = range
-        ? buildBlankSpendTemplateForDates(range.dates)
-        : buildBlankSpendTemplate(14);
-      filename = "mcfly-spend-template-blank.csv";
-    } else {
-      const built = buildSelectedPlatformTemplateCsv(
-        platformsToTemplateCols([...FREE_CHANNELS]),
-        { dayCount: 14, example: false, ...rangeOpts },
-      );
-      body = built.csv;
-      filename = "mcfly-spend-meta-google-blank.csv";
-    }
+    body = range
+      ? buildBlankSpendTemplateForDates(range.dates)
+      : buildBlankSpendTemplate(14);
+    filename = "mcfly-spend-template-blank.csv";
   } else if (range && example) {
     const built = buildSelectedPlatformTemplateCsv(
-      platformsToTemplateCols([...FREE_CHANNELS]),
+      platformsToTemplateCols([...SPEND_CHANNELS]),
       { example: true, ...rangeOpts },
     );
     body = built.csv;
-    filename = entitlements.canUseAllChannels
-      ? "mcfly-spend-template.csv"
-      : "mcfly-spend-meta-google-example.csv";
-  } else if (entitlements.canUseAllChannels) {
-    body = WIDE_TEMPLATE_SAMPLE;
     filename = "mcfly-spend-template.csv";
   } else {
-    const built = buildSelectedPlatformTemplateCsv(
-      platformsToTemplateCols([...FREE_CHANNELS]),
-      { dayCount: 14, example: true },
-    );
-    body = built.csv;
-    filename = "mcfly-spend-meta-google-example.csv";
+    body = WIDE_TEMPLATE_SAMPLE;
+    filename = "mcfly-spend-template.csv";
   }
 
   return new Response(body, {

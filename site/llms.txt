@@ -15,7 +15,7 @@ This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.
 - https://mcflyads.com/monday-close — Monday Close / Export memo
 - https://mcflyads.com/mer-calculator — Free MER calculator (sales ÷ spend)
 - https://mcflyads.com/break-even-roas-calculator — Break-even ≈ 1 ÷ margin
-- https://mcflyads.com/pricing — Free (every platform) · Pro $39/store/mo for LTV + Goals
+- https://mcflyads.com/pricing — one plan: 7-day free trial, then $39/store/mo for the whole desk
 - https://mcflyads.com/demo — Sample desk
 - https://mcflyads.com/support — Install / support
 - https://mcflyads.com/triple-whale-alternative — Coexist frame (not a pixel clone)

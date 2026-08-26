@@ -23,8 +23,14 @@ describe("bare Fly landing (mcflyads.com inner-page feel)", () => {
     expect(css).toMatch(/--truth-2:\s*#1aa37a/);
   });
 
-  it("leads with Install free and on-origin trust URLs", () => {
-    expect(route).toContain("Install free");
+  it("states one plan, never a Free tier, and uses on-origin trust URLs", () => {
+    expect(route).toContain("How to install");
+    // 7-day trial then $39 for the whole desk — no Free plan to install onto.
+    expect(route).toContain("7-day free trial");
+    expect(route).toContain("$39");
+    expect(route).not.toContain("Install free");
+    expect(route).not.toMatch(/\bPro adds\b/);
+    expect(route).not.toMatch(/Free = every platform/);
     expect(route).toContain('href="/support"');
     expect(route).toContain('href="/pricing"');
     expect(route).toContain('href="/privacy"');
