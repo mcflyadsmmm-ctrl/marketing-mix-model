@@ -56,10 +56,12 @@ import {
 } from "../lib/periods";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
+  ensureSampleDeskSeeded,
   fetchSampleSales,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
   localDayKey,
+  SAMPLE_DESK_TARGET_MER,
 } from "../lib/sample-desk.server";
 
 /**
@@ -177,6 +179,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = await ensureShop(session.shop);
   const now = new Date();
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  // Awaited before the history read below, so a direct link here is current too.
+  if (useSampleDesk) {
+    await ensureSampleDeskSeeded(shop.id, SAMPLE_DESK_TARGET_MER);
+  }
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
   const range = resolvePeriod(preset, now, deskTz);
 

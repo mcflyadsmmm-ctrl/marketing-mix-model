@@ -9,7 +9,10 @@ import {
 import type { SalesResult } from "./shopify-sales.server";
 import type { DateRange } from "./periods";
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
-import { seedSampleCohortFacts, clearSampleCohortFacts } from "./order-facts.server";
+import {
+  seedSampleCohortFacts,
+  clearSampleCohortFacts,
+} from "./order-facts.server";
 
 export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
   const settings = await prisma.settings.findUnique({ where: { shopId } });
@@ -18,7 +21,9 @@ export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
   return Boolean(settings?.useSampleDesk);
 }
 
-export async function getSamplePreviewAllowed(shopId: string): Promise<boolean> {
+export async function getSamplePreviewAllowed(
+  shopId: string,
+): Promise<boolean> {
   const settings = await prisma.settings.findUnique({ where: { shopId } });
   // Default true when row missing (pre-migration / fresh shop).
   return settings?.samplePreviewAllowed !== false;
@@ -59,6 +64,9 @@ export async function clearSampleDesk(shopId: string) {
   await clearSampleCohortFacts(shopId);
 }
 
+/** Rows per createMany. Big enough that a full seed is a handful of trips. */
+const SEED_CHUNK = 1000;
+
 /** Impressive SAMPLE desk default — Total ROAS lands above 4×. */
 export const SAMPLE_DESK_TARGET_MER = 4.4;
 /** SAMPLE break-even economics (~35% → BE ≈ 2.86). Applied at read time only. */
@@ -70,87 +78,97 @@ export async function seedThreeYearSampleDesk(
 ) {
   const rows = buildThreeYearSampleDesk({ targetMer });
 
-  await prisma.$transaction(async (tx) => {
-    await tx.sampleSalesDay.deleteMany({ where: { shopId } });
-    await tx.spendEntry.deleteMany({ where: { shopId, source: "sample" } });
+  /*
+   * A desk paint awaits this, so it has to be quick and it must not die on
+   * Prisma's 5s interactive-transaction default: ~2,000 days of sales plus
+   * ~13,000 spend rows is far too many round trips at 200 a time.
+   */
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.sampleSalesDay.deleteMany({ where: { shopId } });
+      await tx.spendEntry.deleteMany({ where: { shopId, source: "sample" } });
 
-    // Batch create in chunks
-    const salesData = rows.map((r) => ({
-      shopId,
-      day: r.day,
-      sales: r.sales,
-      orderCount: r.orderCount,
-      newCustomers: r.newCustomers,
-      returningCustomers: r.returningCustomers,
-      newCustomerNetSales: r.newCustomerNetSales,
-    }));
-    for (let i = 0; i < salesData.length; i += 200) {
-      await tx.sampleSalesDay.createMany({ data: salesData.slice(i, i + 200) });
-    }
-
-    const spendData: Array<{
-      shopId: string;
-      channel: SpendChannel;
-      customKey: string;
-      amount: number;
-      periodStart: Date;
-      periodEnd: Date;
-      note: string;
-      source: string;
-    }> = [];
-    for (const r of rows) {
-      const { start, end } = sampleSpendBounds(r.day);
-      for (const channel of SPEND_CHANNELS) {
-        const amount = r.spendByChannel[channel];
-        if (!amount || amount <= 0) continue;
-        spendData.push({
-          shopId,
-          channel,
-          customKey: "",
-          amount,
-          periodStart: start,
-          periodEnd: end,
-          note: SAMPLE_SEED_VERSION_NOTE,
-          source: "sample",
+      // Batch create in chunks
+      const salesData = rows.map((r) => ({
+        shopId,
+        day: r.day,
+        sales: r.sales,
+        orderCount: r.orderCount,
+        newCustomers: r.newCustomers,
+        returningCustomers: r.returningCustomers,
+        newCustomerNetSales: r.newCustomerNetSales,
+      }));
+      for (let i = 0; i < salesData.length; i += SEED_CHUNK) {
+        await tx.sampleSalesDay.createMany({
+          data: salesData.slice(i, i + SEED_CHUNK),
         });
       }
-      /*
-       * Named extras key on `other:<slug>`, so the Sample desk shows a real
-       * Billboard series instead of folding offline spend into "Other".
-       */
-      for (const extra of r.namedExtras) {
-        if (!(extra.amount > 0)) continue;
-        spendData.push({
-          shopId,
-          channel: "other",
-          customKey: extra.slug,
-          amount: extra.amount,
-          periodStart: start,
-          periodEnd: end,
-          note: extra.label,
-          source: "sample",
+
+      const spendData: Array<{
+        shopId: string;
+        channel: SpendChannel;
+        customKey: string;
+        amount: number;
+        periodStart: Date;
+        periodEnd: Date;
+        note: string;
+        source: string;
+      }> = [];
+      for (const r of rows) {
+        const { start, end } = sampleSpendBounds(r.day);
+        for (const channel of SPEND_CHANNELS) {
+          const amount = r.spendByChannel[channel];
+          if (!amount || amount <= 0) continue;
+          spendData.push({
+            shopId,
+            channel,
+            customKey: "",
+            amount,
+            periodStart: start,
+            periodEnd: end,
+            note: SAMPLE_SEED_VERSION_NOTE,
+            source: "sample",
+          });
+        }
+        /*
+         * Named extras key on `other:<slug>`, so the Sample desk shows a real
+         * Billboard series instead of folding offline spend into "Other".
+         */
+        for (const extra of r.namedExtras) {
+          if (!(extra.amount > 0)) continue;
+          spendData.push({
+            shopId,
+            channel: "other",
+            customKey: extra.slug,
+            amount: extra.amount,
+            periodStart: start,
+            periodEnd: end,
+            note: extra.label,
+            source: "sample",
+          });
+        }
+      }
+      // skipDuplicates guards the (shopId, channel, periodStart) unique index in the rare
+      // case a real (non-sample) entry already occupies that day/channel — sample rows lose.
+      for (let i = 0; i < spendData.length; i += SEED_CHUNK) {
+        await tx.spendEntry.createMany({
+          data: spendData.slice(i, i + SEED_CHUNK),
+          skipDuplicates: true,
         });
       }
-    }
-    // skipDuplicates guards the (shopId, channel, periodStart) unique index in the rare
-    // case a real (non-sample) entry already occupies that day/channel — sample rows lose.
-    for (let i = 0; i < spendData.length; i += 200) {
-      await tx.spendEntry.createMany({
-        data: spendData.slice(i, i + 200),
-        skipDuplicates: true,
-      });
-    }
 
-    // Toggle SAMPLE only when preview is still allowed — never clobber margin.
-    // Desk math applies SAMPLE_DESK_* at read time while useSampleDesk is true.
-    const settings = await tx.settings.findUnique({ where: { shopId } });
-    if (settings?.samplePreviewAllowed !== false) {
-      await tx.settings.update({
-        where: { shopId },
-        data: { useSampleDesk: true },
-      });
-    }
-  });
+      // Toggle SAMPLE only when preview is still allowed — never clobber margin.
+      // Desk math applies SAMPLE_DESK_* at read time while useSampleDesk is true.
+      const settings = await tx.settings.findUnique({ where: { shopId } });
+      if (settings?.samplePreviewAllowed !== false) {
+        await tx.settings.update({
+          where: { shopId },
+          data: { useSampleDesk: true },
+        });
+      }
+    },
+    { maxWait: 15_000, timeout: 120_000 },
+  );
 
   // Sample CohortFacts for Till LTV panel (clearly demo — not live Shopify).
   await seedSampleCohortFacts(shopId);
@@ -265,28 +283,52 @@ export async function sampleDeskNeedsSeed(shopId: string): Promise<boolean> {
   return current == null;
 }
 
-/** Shops currently healing, so concurrent paints do not stampede the seeder. */
-const sampleHealInFlight = new Set<string>();
+/** In-flight heals, so concurrent paints share one seed instead of racing. */
+const sampleHealInFlight = new Map<string, Promise<boolean>>();
+
+export type SampleHealDeps = {
+  needsSeed: (shopId: string) => Promise<boolean>;
+  seed: (shopId: string, targetMer: number) => Promise<unknown>;
+};
 
 /**
  * A shop already on Sample never revisits the toggle that seeds it, so a shape
- * change shipped in code would never reach it. Heal in the background on paint
- * — the check is three indexed reads and goes quiet once the shop is current.
+ * change shipped in code would otherwise never reach it.
+ *
+ * This is awaited by the desk loaders on purpose. Healing in the background
+ * looked cheaper but meant the merchant's first paint showed the previous
+ * release's Sample and only corrected on a refresh — the one session where
+ * being right matters most. The check is three indexed reads and goes quiet
+ * once the shop is current, so the cost lands on exactly one request.
+ *
+ * Resolves true when a seed ran. Never throws: Sample is a demo surface and
+ * must not take a desk paint down with it.
  */
-export function ensureSampleDeskFresh(shopId: string, targetMer: number): void {
-  if (sampleHealInFlight.has(shopId)) return;
-  sampleHealInFlight.add(shopId);
-  void (async () => {
+export async function ensureSampleDeskSeeded(
+  shopId: string,
+  targetMer: number,
+  deps: SampleHealDeps = {
+    needsSeed: sampleDeskNeedsSeed,
+    seed: seedThreeYearSampleDesk,
+  },
+): Promise<boolean> {
+  const existing = sampleHealInFlight.get(shopId);
+  if (existing) return existing;
+
+  const run = (async () => {
     try {
-      if (await sampleDeskNeedsSeed(shopId)) {
-        await seedThreeYearSampleDesk(shopId, targetMer);
-      }
+      if (!(await deps.needsSeed(shopId))) return false;
+      await deps.seed(shopId, targetMer);
+      return true;
     } catch {
-      // Sample is a demo surface — never break a desk paint over it.
+      return false;
     } finally {
       sampleHealInFlight.delete(shopId);
     }
   })();
+
+  sampleHealInFlight.set(shopId, run);
+  return run;
 }
 
 export async function getSampleDeskStats(shopId: string) {

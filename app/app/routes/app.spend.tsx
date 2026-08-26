@@ -97,7 +97,7 @@ import {
   SALES_DAY_FACT_WINDOW_YEARS_BACK,
 } from "../lib/sales-facts.server";
 import {
-  ensureSampleDeskFresh,
+  ensureSampleDeskSeeded,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
   getSampleDeskStats,
@@ -320,9 +320,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
-  const sampleDesk = await getSampleDeskStats(shop.id);
-  // Repairs a Sample desk seeded by an older release; no-ops once current.
-  if (sampleDesk.enabled) ensureSampleDeskFresh(shop.id, SAMPLE_DESK_TARGET_MER);
+  let sampleDesk = await getSampleDeskStats(shop.id);
+  /*
+   * Awaited before the spend rows and the explorer series are read, so the
+   * first HTML already carries the current Sample shape — Billboard chip and
+   * $0 holes included. A background heal only showed up on a refresh.
+   */
+  if (sampleDesk.enabled) {
+    const seeded = await ensureSampleDeskSeeded(
+      shop.id,
+      SAMPLE_DESK_TARGET_MER,
+    );
+    if (seeded) sampleDesk = await getSampleDeskStats(shop.id);
+  }
   const now = new Date();
   const timeZone = deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone);
   const settings = await prisma.settings.findUnique({ where: { shopId: shop.id } });

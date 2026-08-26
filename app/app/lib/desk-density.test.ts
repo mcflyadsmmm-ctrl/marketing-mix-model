@@ -193,9 +193,13 @@ describe("Sample desk", () => {
     // shape marker has to be checked on paint or the desk stays stale forever.
     expect(demo).toContain("SAMPLE_SEED_VERSION_NOTE");
     expect(sample).toContain("note: SAMPLE_SEED_VERSION_NOTE");
-    expect(sample).toContain("export function ensureSampleDeskFresh");
-    for (const route of ["../routes/app._index.tsx", "../routes/app.spend.tsx"]) {
-      expect(read(route), route).toContain("ensureSampleDeskFresh(shop.id");
+    expect(sample).toContain("export async function ensureSampleDeskSeeded");
+    for (const route of [
+      "../routes/app._index.tsx",
+      "../routes/app.spend.tsx",
+      "../routes/app.allocation.tsx",
+    ]) {
+      expect(read(route), route).toContain("await ensureSampleDeskSeeded(");
     }
   });
 

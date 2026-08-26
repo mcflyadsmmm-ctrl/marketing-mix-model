@@ -95,6 +95,22 @@ describe("buildThreeYearSampleDesk", () => {
     expect(paid.has("google")).toBe(true);
   });
 
+  it("stays small enough that a desk paint can await the seed", () => {
+    // The Sample heal is awaited on first paint, so the write volume is a
+    // budget, not an implementation detail. Six paid channels plus Billboard
+    // over ~5.7 years is ~12.5k spend rows — 16 chunked inserts.
+    const rows = buildThreeYearSampleDesk({});
+    let spendRows = 0;
+    for (const r of rows) {
+      for (const amount of Object.values(r.spendByChannel)) {
+        if ((amount ?? 0) > 0) spendRows += 1;
+      }
+      spendRows += r.namedExtras.length;
+    }
+    expect(rows.length).toBeLessThan(2500);
+    expect(spendRows).toBeLessThan(16_000);
+  });
+
   it("goes dark on some days so $0 holes are real, not just a caption", () => {
     const rows = buildThreeYearSampleDesk({
       now: new Date("2026-07-31T12:00:00Z"),
