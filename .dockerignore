@@ -8,7 +8,7 @@
 **/.cache
 **/.turbo
 agent-logs
-site
+# `site/` is copied into the Fly image and served on public listing URLs.
 docs
 *.md
 !app/README.md

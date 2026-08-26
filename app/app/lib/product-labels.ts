@@ -127,6 +127,7 @@ export const PRODUCT_NOUN = {
   spendJob:
     "Add one day’s invoice (any platform, including billboard) → CSV only if you have many days. Same days replace.",
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
+  factsIncompleteSuffix: " · still loading sales days",
   ltvNotInShopify:
     "Shopify Analytics does not combine LTV with ad spend. Mcfly uses order history only — not email lists.",
 } as const;

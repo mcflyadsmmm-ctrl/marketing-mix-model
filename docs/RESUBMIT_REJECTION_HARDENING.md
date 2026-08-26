@@ -21,17 +21,17 @@ This note is the agent audit after “make sure it doesn’t get rejected again.
 | Req | Risk if failed | Status |
 | --- | --- | --- |
 | **1.1.1** Session tokens | Embedded auth | Green — `@shopify/shopify-app-react-router` |
-| **1.1.4** Factual info | Listing/site claim Free-only while Upgrade charges | **Fixed in repo** — site + listing now Free + Pro; **deploy Pages** + Partner Pricing |
+| **1.1.4** Factual info | Listing/site claim Free-only while Upgrade charges | **Fixed in repo** — listing + Fly trust pages are Free + Pro; **do not** send reviewers to stale mcflyads.com Pages |
 | **1.2.1–1.2.3** Shopify App Pricing | Off-platform billing / no plan change | Green in code — Managed Pricing URL + Manage plan for Pro; Partner must match |
 | **2.1.1** No critical UI errors | Billing iframe brick | Green in code + live JS + unit guards |
 | **2.2.3** App Bridge latest | CDN script on exit + app | Green |
 | **2.2.4** GraphQL Admin | REST banned for new apps | Green pattern |
-| **2.3.1** No shop-domain harvest | Public form | Green — `/auth/login` → mcflyads.com |
+| **2.3.1** No shop-domain harvest | Public form | Green — `/auth/login` → `/` (Fly origin) |
 | **3.1.1** TLS | Invalid cert | Green — Fly HTTPS |
 | **3.2.1** `read_all_orders` | Unapproved scope | Green — TOML/Fly scopes `read_orders,read_customers` only |
 | **GDPR** compliance webhooks | Missing / no HMAC | Green — toml + route; bad HMAC → non-200; spotcheck PASS |
 | **4.5.x** Testing instructions | Vague / no password | Pack ready; **password HUMAN** |
-| **Privacy URL** | 404 / mismatch | Live **200** mcflyads.com/privacy |
+| **Privacy URL** | 404 / mismatch | Use **https://mcfly-analytics.fly.dev/privacy** (mcflyads.com Pages still waitlist) |
 
 ---
 

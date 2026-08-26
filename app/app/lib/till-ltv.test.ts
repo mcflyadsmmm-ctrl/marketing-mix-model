@@ -191,6 +191,29 @@ describe("summarizeTillLtvFromCohorts", () => {
     });
     expect(summary.paybackDays).toBeNull();
   });
+
+  it("empty cohorts prefer backfilling over history_limited", () => {
+    const summary = summarizeTillLtvFromCohorts([], {
+      totalSpend: 1000,
+      newCustomers: 10,
+      historyLimited: true,
+      ianaTimezone: "America/Denver",
+    });
+    expect(summary.available).toBe(false);
+    expect(summary.emptyReason).toBe("backfilling");
+    expect(summary.historyLimited).toBe(true);
+  });
+
+  it("history_limited only when the limited window is exhausted", () => {
+    const summary = summarizeTillLtvFromCohorts([], {
+      totalSpend: 1000,
+      newCustomers: 10,
+      historyLimited: true,
+      limitedWindowExhausted: true,
+      ianaTimezone: "America/Denver",
+    });
+    expect(summary.emptyReason).toBe("history_limited");
+  });
 });
 
 describe("computeCohortRollups", () => {

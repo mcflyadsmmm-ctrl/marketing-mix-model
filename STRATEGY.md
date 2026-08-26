@@ -41,6 +41,12 @@ Make upload/paste/typed extras (billboards included) the proud path. Named platf
 
 _Why it serves the approach:_ This is the gap vs Shopify native and vs “pixel or go home.”
 
+### Show the equation, the limits, and the price rules
+
+Paint Shopify sales ÷ spend you added on Overview. Say it is not platform ROAS, not net profit, not which ad. In-app: Pro is a flat store fee, not a percent of sales or a per-order fee; uninstall/Free stops the next billing cycle.
+
+_Why it serves the approach:_ Merchants leave modeled dashboards and GMV taxes when they can see how the number is built.
+
 ### LTV and Goals Shopify does not give you
 
 Same period language everywhere. Real per-customer LTV/payback on Pro. A year Goals board that is obviously worth $39.

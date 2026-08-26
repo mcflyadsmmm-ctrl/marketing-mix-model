@@ -37,6 +37,7 @@ import {
   syncShopProFromShopify,
 } from "../lib/billing.server";
 import { isBillingEnabled } from "../lib/billing-flag.server";
+import { BILLING_HONESTY } from "../lib/entitlements";
 import prisma from "../db.server";
 
 type ShopifyToast = {

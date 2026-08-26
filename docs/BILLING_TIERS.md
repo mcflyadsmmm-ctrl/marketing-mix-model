@@ -2,7 +2,7 @@
 
 **Status:** Upgrade opens Shopify’s hosted plan page (Free / Pro $39).  
 **Not** `appSubscriptionCreate` — this Public app is on **Shopify App Pricing** (Managed Pricing), which blocks the Billing API for creating charges.  
-**Founder lock:** Pro **$39/store/mo** flat.  
+**Founder lock:** Pro **$39/store/mo** flat. Not a percent of sales. Not a per-order fee. Shopify bills the app; switch to Free or uninstall to stop the **next** 30-day cycle (the current cycle may still charge).  
 **SoT:** [`STRATEGY.md`](../STRATEGY.md) · [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) · launch [`ops/FOUNDER_DO_NOW.md`](./ops/FOUNDER_DO_NOW.md)
 
 ## Product matrix

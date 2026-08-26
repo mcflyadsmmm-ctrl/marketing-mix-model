@@ -52,6 +52,10 @@ describe("LTV sales spine (HARD-STOP)", () => {
   it("labels cohort windows vs period Cash CAC (never silently mix)", () => {
     expect(ltvSource).toContain("ltvWindowCaption");
     expect(ltvSource).toContain("Orders still syncing — not $0 LTV");
+    expect(ltvSource).not.toContain("Free shows the available window");
+    expect(ltvSource).toContain("getOrderBackfillProgress");
+    expect(ltvSource).toContain("ORDER_FACT_MAX_DAYS_PER_RUN");
+    expect(ltvSource).toContain("until you confirm in Settings");
   });
 });
 
@@ -68,6 +72,8 @@ describe("ltvWindowCaption", () => {
     expect(caption).toContain(
       "Shopify Analytics does not combine LTV with ad spend",
     );
+    expect(caption).toContain("Not predictive");
+    expect(caption).toContain("Not by ad");
     expect(caption).not.toMatch(/pixel/i);
   });
 

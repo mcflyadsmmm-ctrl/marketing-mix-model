@@ -7,7 +7,7 @@ interface LoginErrorMessage {
 
 /**
  * App Store 2.3.1: never ask merchants to type a shop domain.
- * Auth arrives with ?shop= from Shopify; bare /auth/login redirects to mcflyads.com.
+ * Auth arrives with ?shop= from Shopify; bare /auth/login redirects to `/`.
  */
 export function loginErrorMessage(loginErrors: LoginError): LoginErrorMessage {
   if (loginErrors?.shop === LoginErrorType.MissingShop) {

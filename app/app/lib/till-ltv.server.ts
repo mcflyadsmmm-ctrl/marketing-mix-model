@@ -1,6 +1,7 @@
 import {
   getCohortFacts,
   getOrderBackfillHistoryLimited,
+  getOrderBackfillProgress,
 } from "./order-facts.server";
 
 export interface TillLtvCohortRow {
@@ -138,6 +139,12 @@ export function summarizeTillLtvFromCohorts(
     newCustomers: number;
     periodLabel?: string | null;
     historyLimited?: boolean;
+    /**
+     * True only after Shopify limited the window AND every closed day in that
+     * window has a complete marker. Empty shops still ingesting must not use
+     * history_limited (that copy used to say “Free shows…”).
+     */
+    limitedWindowExhausted?: boolean;
     useSampleDesk?: boolean;
     ianaTimezone?: string | null;
   },
@@ -207,7 +214,7 @@ export function summarizeTillLtvFromCohorts(
   if (!available) {
     if (!options.useSampleDesk && !options.ianaTimezone) {
       emptyReason = "no_timezone";
-    } else if (historyLimited) {
+    } else if (historyLimited && options.limitedWindowExhausted) {
       emptyReason = "history_limited";
     } else {
       emptyReason = "backfilling";
@@ -249,7 +256,7 @@ export async function buildTillLtvSummary(
     ianaTimezone?: string | null;
   },
 ): Promise<TillLtvSummary> {
-  const [allCohorts, historyLimited] = await Promise.all([
+  const [allCohorts, historyLimited, progress] = await Promise.all([
     getCohortFacts(shopId, {
       limit: 24,
       sample: Boolean(options.useSampleDesk),
@@ -257,6 +264,11 @@ export async function buildTillLtvSummary(
     options.useSampleDesk
       ? Promise.resolve(false)
       : getOrderBackfillHistoryLimited(shopId),
+    options.useSampleDesk || !options.ianaTimezone
+      ? Promise.resolve(null)
+      : getOrderBackfillProgress(shopId, {
+          ianaTimezone: options.ianaTimezone,
+        }),
   ]);
 
   return summarizeTillLtvFromCohorts(
@@ -275,6 +287,10 @@ export async function buildTillLtvSummary(
       newCustomers: options.newCustomers,
       periodLabel: options.periodLabel,
       historyLimited,
+      limitedWindowExhausted:
+        historyLimited &&
+        progress != null &&
+        progress.remainingDays === 0,
       useSampleDesk: options.useSampleDesk,
       ianaTimezone: options.ianaTimezone,
     },

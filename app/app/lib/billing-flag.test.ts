@@ -26,6 +26,8 @@ describe("billing flags", () => {
     process.env.MCFLY_BILLING = "1";
     expect(isBillingEnabled()).toBe(true);
     expect(billingStatusCopy(true).tier).toBe("pro");
+    expect(billingStatusCopy(true).detail).toMatch(/not a percent of sales/i);
+    expect(billingStatusCopy(true).detail).toMatch(/next 30-day cycle/i);
   });
 
   it("parses free import cap", () => {

@@ -48,7 +48,7 @@
     <a href="/custom-analytics#privacy">Privacy</a>
     <a href="/custom-analytics#inquire">Inquire</a>
     <a href="/custom-analytics#inquire">Request a proposal</a>
-    <a href="/">← Shopify App (Mcfly Ads)</a>
+      <a href="/">← Shopify App (Mcfly Analytics)</a>
   </div>`;
   } else if (chrome) {
     chrome.innerHTML = `
@@ -60,9 +60,9 @@
     </div>
   </div>
   <header class="top" data-top>
-    <a class="brand" href="/" aria-label="Mcfly Ads home">
+    <a class="brand" href="/" aria-label="Mcfly Analytics home">
       <img class="brand-mark-img" src="/assets/brand/mcfly-m-transparent.png" width="36" height="36" alt="" />
-      <span class="brand-name">Mcfly <span class="brand-name-sub">Ads</span></span>
+      <span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>
     </a>
     <nav class="nav" aria-label="Primary">
       <a href="/product" data-nav="product">Product</a>
@@ -108,7 +108,7 @@
         <a href="/security">Security</a>
         <a href="/privacy">Privacy policy</a>
         <a href="/dpa">DPA</a>
-        <a href="/product">← Mcfly Ads (Shopify)</a>
+        <a href="/product">← Mcfly Analytics (Shopify)</a>
       </nav>
       <p class="fine">© <span data-year></span> Mcfly Analytics. Custom data science · $5–25K scoped builds. Not the Shopify cash desk.</p>
     </div>
@@ -119,7 +119,7 @@
     <div class="wrap foot-grid">
       <div class="foot-brand">
         <img src="/assets/brand/mcfly-m-transparent.png" width="28" height="28" alt="" />
-        <span>Mcfly Ads</span>
+        <span>Mcfly Analytics</span>
       </div>
       <nav aria-label="Footer">
         <a href="/product">Product</a>
@@ -148,7 +148,7 @@
         <a href="/dpa">DPA</a>
         <a href="/custom-analytics">Custom Data Solutions</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Ads. Advanced Marketing Data Science, made easy — Total ROAS = sales ÷ spend.</p>
+      <p class="fine">© <span data-year></span> Mcfly Analytics. Advanced Marketing Data Science, made easy — Total ROAS = sales ÷ spend.</p>
     </div>
   </footer>`;
   }

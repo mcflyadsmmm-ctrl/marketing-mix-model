@@ -24,4 +24,9 @@ describe("CashTrustBanners today honesty", () => {
     expect(source).not.toMatch(/Ads Manager often ignores returns/i);
     expect(source).not.toMatch(/not Platform ROAS/i);
   });
+
+  it("treats a day with no spend row as $0, not a missing-invoice panic", () => {
+    expect(source).toContain("Days with no spend row are $0");
+    expect(source).not.toContain("Empty days are not $0");
+  });
 });

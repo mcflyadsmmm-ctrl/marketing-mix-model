@@ -184,9 +184,9 @@ export interface DashboardMetrics {
   amer: number | null;
   breakEvenMer: number | null;
   /**
-   * Margin confirmed AND spend trust OK for actionable BE / Monday cut.
-   * False on live desk when spend coverage is incomplete or Ads Manager recon drifts.
-   * Sample desk bypasses coverage/recon gates (still needs settingsSaved).
+   * Spend is on the desk and Ads Manager recon is not drifting.
+   * Incomplete day coverage no longer blocks Total ROAS — it only locks Allocation.
+   * Sample desk bypasses recon gates (still needs settingsSaved).
    */
   cashActionReady: boolean;
   /** Soft warning — marginConfirmedAt older than 90 days. */
@@ -1174,14 +1174,16 @@ export async function buildDashboardMetrics(
     ? computeSpendRecon(totalSpend, settings.declaredAdsSpend)
     : null;
 
-  /** Actionable BE / allocation — sample desk skips coverage + recon hard-gates. */
+  /** Total ROAS is readable once spend exists; recon drift still warns. */
   const cashActionReady =
     settingsSaved &&
-    (useSampleDesk ||
-      (!spendCoverage.incomplete && spendRecon?.status !== "drift"));
+    hasSpend &&
+    (useSampleDesk || spendRecon?.status !== "drift");
 
   const allocation =
-    cashActionReady && breakEvenMer != null
+    cashActionReady &&
+    (useSampleDesk || !spendCoverage.incomplete) &&
+    breakEvenMer != null
       ? buildAllocationSuggestion(
           spends,
           action.sales,

@@ -79,6 +79,7 @@ import {
   filterAdvertisePlatforms,
   getAdvertisePlatform,
   isAdvertisePlatformId,
+  type SpendAdvertisePlatform,
   type SpendAdvertisePlatformId,
 } from "../lib/spend-export-guides";
 import {
@@ -1116,8 +1117,8 @@ export default function SpendEntryPage() {
   const featuredPlatforms = useMemo(
     () =>
       FEATURED_SPEND_PLATFORM_IDS.map((id) => getAdvertisePlatform(id)).filter(
-        (p): p is NonNullable<typeof p> =>
-          Boolean(p) && selectablePlatforms.some((s) => s.id === p.id),
+        (p): p is SpendAdvertisePlatform =>
+          p != null && selectablePlatforms.some((s) => s.id === p.id),
       ),
     [selectablePlatforms],
   );

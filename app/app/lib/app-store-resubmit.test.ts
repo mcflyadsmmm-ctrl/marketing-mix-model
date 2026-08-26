@@ -6,10 +6,11 @@
  * Founder lock 2026-08-26: billing CTA is Settings-only (Start 7-day trial).
  * Product pages must not nest Upgrade inside spend forms.
  */
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { parseSpendCsv } from "./spend-csv";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "../../..");

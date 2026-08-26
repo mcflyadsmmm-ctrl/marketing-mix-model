@@ -299,7 +299,7 @@ async function upsertOrderFact(
 async function ensureBackfillState(shopId: string) {
   return prisma.orderBackfillState.upsert({
     where: { shopId },
-    create: { shopId, status: "idle", historyLimited: true },
+    create: { shopId, status: "idle", historyLimited: false },
     update: {},
   });
 }
@@ -663,7 +663,63 @@ export async function getOrderBackfillHistoryLimited(
     where: { shopId },
     select: { historyLimited: true },
   });
-  return state?.historyLimited ?? true;
+  return state?.historyLimited ?? false;
+}
+
+export type OrderBackfillProgress = {
+  completeDays: number;
+  windowDays: number;
+  remainingDays: number;
+  historyLimited: boolean;
+  status: string;
+};
+
+/**
+ * Closed-day ingest progress for LTV empty states (not a spinner).
+ * Null when the shop has no IANA timezone yet.
+ */
+export async function getOrderBackfillProgress(
+  shopId: string,
+  options: { ianaTimezone: string | null; now?: Date },
+): Promise<OrderBackfillProgress | null> {
+  const tz = options.ianaTimezone?.trim() || null;
+  if (!tz) return null;
+  const now = options.now ?? new Date();
+  const state = await prisma.orderBackfillState.findUnique({
+    where: { shopId },
+    select: { historyLimited: true, status: true },
+  });
+  const historyLimited = state?.historyLimited ?? false;
+  const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
+  const deepWindowDays = salesDayFactWindowDayCount(now);
+  const windowDaysCount =
+    historyLimited && !scopesAllowDeep
+      ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
+      : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
+  const windowDayKeys = listRecentClosedShopLocalDays(
+    tz,
+    windowDaysCount,
+    now,
+  );
+  const completeMarkers = await prisma.orderFact.findMany({
+    where: {
+      shopId,
+      source: ORDER_FACT_SOURCE,
+      shopifyOrderId: {
+        in: windowDayKeys.map((k) => orderFactDayCompleteMarkerId(k)),
+      },
+    },
+    select: { shopifyOrderId: true },
+  });
+  const completeDays = completeMarkers.length;
+  const windowDays = windowDayKeys.length;
+  return {
+    completeDays,
+    windowDays,
+    remainingDays: Math.max(0, windowDays - completeDays),
+    historyLimited,
+    status: state?.status ?? "idle",
+  };
 }
 
 /**

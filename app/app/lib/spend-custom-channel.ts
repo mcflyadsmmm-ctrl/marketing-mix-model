@@ -16,6 +16,7 @@ export const CUSTOM_CHANNEL_PRESETS = [
   { id: "print", label: "Print" },
   { id: "podcast", label: "Podcast" },
   { id: "influencers", label: "Influencers" },
+  { id: "agency-retainer", label: "Agency retainer" },
 ] as const;
 
 export type CustomChannelPresetId = (typeof CUSTOM_CHANNEL_PRESETS)[number]["id"];
