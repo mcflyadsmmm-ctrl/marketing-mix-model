@@ -1192,8 +1192,17 @@ export type ExplorerChannelBand = {
 export type ExplorerPlotModel = {
   vbW: number;
   vbH: number;
+  /** Left axis ceiling — always the spend mix, so the bands stay readable. */
   leftCeil: number;
   merCeil: number;
+  /**
+   * What the right axis measures. Sales dwarfs spend on a healthy shop, so a
+   * shared $ axis flattens the mix into a sliver. With the sales line on, the
+   * right axis becomes sales $; with it off, it returns to Total ROAS ×.
+   */
+  rightAxis: "roas" | "sales";
+  /** Right axis ceiling in $ when `rightAxis` is "sales". */
+  salesCeil: number;
   columns: ExplorerPlotColumn[];
   merLine: string;
   salesLine: string;
@@ -1236,11 +1245,16 @@ export function explorerPriorPeriodLag(
   }
 }
 
+/*
+ * Column width floor. Day buckets stay narrow so a month or two fits without
+ * horizontal scroll — otherwise the right-hand axis ends up off screen and the
+ * merchant never sees the scale the sales line is drawn against.
+ */
 function explorerColMinPx(
   granularity: ExplorerGranularity,
   mode: ExplorerMode,
 ): number {
-  if (granularity === "Day") return 28;
+  if (granularity === "Day") return 20;
   if (granularity === "Quarter") return 64;
   if (mode === "total") return 48;
   return 52;
@@ -1288,18 +1302,24 @@ export function buildExplorerPlotModel(input: {
   const plotW = Math.max(1, vbW - EXPLORER_PAD.l - EXPLORER_PAD.r);
   const slotW = n > 0 ? plotW / n : plotW;
   const barW = slotW * (input.mark === "line" ? 0.28 : 0.62);
-  const leftCeil = finiteOr(
-    explorerMoneyCeil(input.buckets, input.mode, showSales),
-    1,
-  );
+  // Left axis is the mix alone — never stretched to fit the sales line.
+  const leftCeil = finiteOr(explorerMoneyCeil(input.buckets, input.mode, false), 1);
   const merCeil = finiteOr(
     explorerMerCeil(input.buckets, input.targetMer, input.breakEvenMer),
     1,
   );
+  const rightAxis: "roas" | "sales" = showSales ? "sales" : "roas";
+  const salesCeil = showSales
+    ? finiteOr(explorerSalesCeil(input.buckets, 0) * 1.08, 1)
+    : 0;
   const yLeft = (val: number) =>
     EXPLORER_PAD.t +
     EXPLORER_PLOT_H -
     (leftCeil > 0 ? (finiteOr(val, 0) / leftCeil) * EXPLORER_PLOT_H : 0);
+  const ySales = (val: number) =>
+    EXPLORER_PAD.t +
+    EXPLORER_PLOT_H -
+    (salesCeil > 0 ? (finiteOr(val, 0) / salesCeil) * EXPLORER_PLOT_H : 0);
   const yMer = (val: number) =>
     EXPLORER_PAD.t +
     EXPLORER_PLOT_H -
@@ -1347,13 +1367,17 @@ export function buildExplorerPlotModel(input: {
         yTop,
       });
     }
+    // The ROAS line owns the right axis only while the sales line is off.
     const merY =
-      bucket.mer != null && Number.isFinite(bucket.mer) && merCeil > 0
+      rightAxis === "roas" &&
+      bucket.mer != null &&
+      Number.isFinite(bucket.mer) &&
+      merCeil > 0
         ? yMer(Math.min(bucket.mer, merCeil))
         : null;
     const salesY =
       showSales && Number.isFinite(bucket.sales)
-        ? yLeft(Math.min(bucket.sales, leftCeil))
+        ? ySales(Math.min(bucket.sales, salesCeil))
         : null;
     const cashValue = cashValues[i] ?? 0;
     const cashH =
@@ -1411,7 +1435,7 @@ export function buildExplorerPlotModel(input: {
               x: c.xCenter,
               y:
                 prior && Number.isFinite(prior.sales)
-                  ? yLeft(Math.min(prior.sales, leftCeil))
+                  ? ySales(Math.min(prior.sales, salesCeil))
                   : null,
             };
           }),
@@ -1452,6 +1476,8 @@ export function buildExplorerPlotModel(input: {
     vbH: finiteOr(vbH, EXPLORER_PAD.t + EXPLORER_PLOT_H + EXPLORER_PAD.b),
     leftCeil,
     merCeil,
+    rightAxis,
+    salesCeil,
     columns,
     merLine,
     salesLine,

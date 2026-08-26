@@ -918,7 +918,7 @@ export function SpendExplorer({
             title={
               isShare
                 ? "Sales line is hidden in share % mode"
-                : "Toggle sales on shared $ axis"
+                : "Show this shop's sales on the right $ axis"
             }
             onClick={() => {
               if (isShare) return;
@@ -1022,9 +1022,12 @@ export function SpendExplorer({
             </div>
           </dl>
           <p className="mcfly-explorer__caption">
-            Sales are this shop’s Shopify sales; cash left after ads is sales
-            minus spend. Bands are where the money went — mix %, not who caused
-            the sale. Missing days are $0.
+            Left axis is ad spend, right axis is{" "}
+            {model.rightAxis === "sales"
+              ? "this shop’s Shopify sales"
+              : `${PRODUCT_NOUN.totalRoas}`}
+            . Cash left after ads is sales minus spend. Bands are where the
+            money went — mix %, not who caused the sale. Missing days are $0.
             {needsBuckets != null
               ? ` Needs ${needsBuckets} more ${explorerBucketNoun(series.granularity, needsBuckets !== 1)} of spend to read as a period.`
               : ""}
@@ -1094,7 +1097,9 @@ export function SpendExplorer({
                           dy="0.32em"
                           textAnchor="start"
                         >
-                          {formatMer(rightVal)}×
+                          {model.rightAxis === "sales"
+                            ? axisMoneyLabel(model.salesCeil * frac, false)
+                            : `${formatMer(rightVal)}×`}
                         </text>
                       </g>
                     );
@@ -1105,7 +1110,7 @@ export function SpendExplorer({
                     y={pad.t - 4}
                     aria-hidden="true"
                   >
-                    {isShare ? "Share %" : showSales ? "$ (shared)" : "Spend $"}
+                    {isShare ? "Share %" : "Spend $"}
                   </text>
                   <text
                     className="mcfly-explorer__axis-title mcfly-explorer__axis-title--right"
@@ -1114,10 +1119,12 @@ export function SpendExplorer({
                     textAnchor="end"
                     aria-hidden="true"
                   >
-                    {PRODUCT_NOUN.totalRoas} ×
+                    {model.rightAxis === "sales"
+                      ? "Sales $"
+                      : `${PRODUCT_NOUN.totalRoas} ×`}
                   </text>
 
-                  {targetMer > 0 && merCeil > 0 ? (
+                  {model.rightAxis === "roas" && targetMer > 0 && merCeil > 0 ? (
                     <g className="mcfly-explorer__rail-g" aria-hidden="true">
                       <line
                         className="mcfly-explorer__rail-line mcfly-explorer__rail-line--target"
@@ -1136,7 +1143,10 @@ export function SpendExplorer({
                       </text>
                     </g>
                   ) : null}
-                  {breakEvenMer != null && breakEvenMer > 0 && merCeil > 0 ? (
+                  {model.rightAxis === "roas" &&
+                  breakEvenMer != null &&
+                  breakEvenMer > 0 &&
+                  merCeil > 0 ? (
                     <g className="mcfly-explorer__rail-g" aria-hidden="true">
                       <line
                         className="mcfly-explorer__rail-line mcfly-explorer__rail-line--be"

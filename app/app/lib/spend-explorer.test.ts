@@ -31,6 +31,7 @@ import {
   explorerReadout,
   explorerSafeId,
   isWeekStartKey,
+  EXPLORER_PLOT_H,
   type ExplorerDailyRow,
   type ExplorerMark,
   type ExplorerMode,
@@ -698,6 +699,47 @@ describe("fillExplorerDayHoles + bar vs line toggle", () => {
     expect(explorerSafeId("w:2026-07-27")).toBe("w-2026-07-27");
     expect(explorerSafeId("other:billboard")).toBe("other-billboard");
     expect(explorerSafeId("q:2026-Q3")).toBe("q-2026-Q3");
+  });
+
+  it("keeps the mix readable by giving sales its own axis", () => {
+    // A healthy shop sells many times what it spends; one shared $ axis would
+    // squash the whole channel mix into the bottom sliver of the plot.
+    const rows = Array.from({ length: 10 }, (_, i) =>
+      day(`2026-08-${String(i + 1).padStart(2, "0")}`, 9000, {
+        meta: 1000,
+        google: 800,
+      }),
+    );
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const base = {
+      buckets,
+      mode: "stacked" as const,
+      mark: "bar" as const,
+      granularity: "Day" as const,
+      targetMer: 4.4,
+      breakEvenMer: 2.86,
+    };
+
+    const withSales = buildExplorerPlotModel({ ...base, showSales: true });
+    expect(withSales.rightAxis).toBe("sales");
+    expect(withSales.salesCeil).toBeGreaterThan(9000);
+    // Left axis tracks the mix, not the far larger sales number.
+    expect(withSales.leftCeil).toBeLessThan(3000);
+    const tallest = Math.max(
+      ...withSales.columns[0]!.segs.map((s) => s.h),
+    );
+    expect(tallest).toBeGreaterThan(EXPLORER_PLOT_H * 0.3);
+    // The ROAS line yields the right axis while sales owns it.
+    expect(withSales.merLine).toBe("");
+
+    const withoutSales = buildExplorerPlotModel({ ...base, showSales: false });
+    expect(withoutSales.rightAxis).toBe("roas");
+    expect(withoutSales.salesCeil).toBe(0);
+    expect(withoutSales.merLine).not.toBe("");
+    expect(withoutSales.leftCeil).toBe(withSales.leftCeil);
   });
 
   it("draws sales minus spend per bucket, above and below zero", () => {
