@@ -1001,6 +1001,66 @@ export function explorerSafeId(key: string): string {
   return cleaned || "col";
 }
 
+export type ExplorerReadout = {
+  /** Shopify sales in the window — the ceiling for every cash figure here. */
+  sales: number;
+  /** Cash ad spend in the window. */
+  spend: number;
+  /** sales − spend. Negative means ads cost more than the till took. */
+  cashLeftAfterAds: number;
+  /** Σsales ÷ Σspend, or null with no spend. */
+  mer: number | null;
+  /** Closed days in the window (including $0 holes). */
+  closedDays: number;
+  /** Closed days that actually carry spend. */
+  daysWithSpend: number;
+  /** Closed days with no invoice — drawn as $0 holes. */
+  zeroSpendDays: number;
+};
+
+/**
+ * One honest cash readout for the window. Spend is clamped to the summed
+ * channel mix so a scaled bar and the strip never disagree, and no figure here
+ * is allowed to exceed the shop's own sales for the window.
+ */
+export function explorerReadout(
+  buckets: ExplorerPlotBucket[],
+  summary: Pick<ExplorerSummary, "totalSales" | "totalSpend" | "closedDays">,
+): ExplorerReadout {
+  const sales = Number.isFinite(summary.totalSales)
+    ? Math.max(0, summary.totalSales)
+    : 0;
+  const spend = Number.isFinite(summary.totalSpend)
+    ? Math.max(0, summary.totalSpend)
+    : 0;
+  let daysWithSpend = 0;
+  for (const bucket of buckets) {
+    if (bucket.spend > 0) daysWithSpend += 1;
+  }
+  const closedDays = Math.max(summary.closedDays, buckets.length);
+  return {
+    sales,
+    spend,
+    cashLeftAfterAds: round2(sales - spend),
+    mer: merOf(sales, spend),
+    closedDays,
+    daysWithSpend,
+    zeroSpendDays: Math.max(0, buckets.length - daysWithSpend),
+  };
+}
+
+/**
+ * Days of spend still needed before a window reads as a real period rather
+ * than a couple of invoices. Null once the window is covered.
+ */
+export function explorerNeedsDays(
+  readout: ExplorerReadout,
+  wanted = 7,
+): number | null {
+  const missing = wanted - readout.daysWithSpend;
+  return missing > 0 ? missing : null;
+}
+
 /**
  * Period mix share (0–1) per channel from plot bars.
  * Share-% mode reconstructs dollars from bucket spend so the legend % is cash mix,
@@ -1064,7 +1124,15 @@ export type ExplorerPlotColumn = {
   hole: boolean;
   merY: number | null;
   salesY: number | null;
+  /** Day grain only — this column starts an ISO week (Monday). */
+  weekStart: boolean;
 };
+
+/** True when a `YYYY-MM-DD` bucket key falls on a Monday. */
+export function isWeekStartKey(key: string): boolean {
+  const parsed = parseDateKey(key);
+  return parsed != null && parsed.getDay() === 1;
+}
 
 export type ExplorerChannelBand = {
   channel: string;
@@ -1193,6 +1261,8 @@ export function buildExplorerPlotModel(input: {
       hole: !(bucket.spend > 0) && !bucket.bars.some((b) => b.amount > 0),
       merY: merY != null && Number.isFinite(merY) ? merY : null,
       salesY: salesY != null && Number.isFinite(salesY) ? salesY : null,
+      weekStart:
+        input.granularity === "Day" && i > 0 && isWeekStartKey(bucket.key),
     };
   });
 

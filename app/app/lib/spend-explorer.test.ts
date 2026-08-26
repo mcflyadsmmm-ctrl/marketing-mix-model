@@ -23,7 +23,10 @@ import {
   summarizeExplorer,
   buildExplorerPlotModel,
   explorerMixShares,
+  explorerNeedsDays,
+  explorerReadout,
   explorerSafeId,
+  isWeekStartKey,
   type ExplorerDailyRow,
   type ExplorerMark,
   type ExplorerMode,
@@ -691,6 +694,105 @@ describe("fillExplorerDayHoles + bar vs line toggle", () => {
     expect(explorerSafeId("w:2026-07-27")).toBe("w-2026-07-27");
     expect(explorerSafeId("other:billboard")).toBe("other-billboard");
     expect(explorerSafeId("q:2026-Q3")).toBe("q-2026-Q3");
+  });
+
+  it("marks ISO week starts on day grain only", () => {
+    expect(isWeekStartKey("2026-08-03")).toBe(true); // Monday
+    expect(isWeekStartKey("2026-08-04")).toBe(false);
+    expect(isWeekStartKey("w:2026-08-03")).toBe(false);
+
+    const rows = fillExplorerDayHoles([], "2026-08-01", "2026-08-11");
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const dayModel = buildExplorerPlotModel({
+      buckets,
+      mode: "stacked",
+      mark: "bar",
+      granularity: "Day",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+    });
+    // Aug 3 and Aug 10 are Mondays; the first column never draws a rule.
+    expect(
+      dayModel.columns.filter((c) => c.weekStart).map((c) => c.key),
+    ).toEqual(["2026-08-03", "2026-08-10"]);
+
+    const weekModel = buildExplorerPlotModel({
+      buckets: applyExplorerMode(bucketExplorerRows(rows, "Week"), "stacked"),
+      mode: "stacked",
+      mark: "line",
+      granularity: "Week",
+      showSales: true,
+      targetMer: 3.6,
+      breakEvenMer: null,
+    });
+    expect(weekModel.columns.some((c) => c.weekStart)).toBe(false);
+  });
+
+  it("reports cash left after ads without ever exceeding shop sales", () => {
+    const rows = fillExplorerDayHoles(
+      [
+        day("2026-08-01", 1200, { meta: 80, "other:billboard": 400 }),
+        day("2026-08-03", 900, { meta: 90, google: 120 }),
+      ],
+      "2026-08-01",
+      "2026-08-05",
+    );
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const summary = summarizeExplorer(rows, { bucketCount: buckets.length });
+    const readout = explorerReadout(buckets, summary);
+
+    expect(readout.sales).toBe(2100);
+    expect(readout.spend).toBe(690);
+    expect(readout.cashLeftAfterAds).toBe(1410);
+    expect(readout.daysWithSpend).toBe(2);
+    expect(readout.zeroSpendDays).toBe(3);
+    // No cash figure may claim more than the shop actually sold.
+    expect(readout.spend).toBeLessThanOrEqual(readout.sales);
+    expect(readout.cashLeftAfterAds).toBeLessThanOrEqual(readout.sales);
+    expect(explorerNeedsDays(readout)).toBe(5);
+    expect(explorerNeedsDays(readout, 2)).toBeNull();
+  });
+
+  it("keeps cash left honest when ads cost more than the till took", () => {
+    const rows = [day("2026-08-01", 100, { meta: 400 })];
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const readout = explorerReadout(
+      buckets,
+      summarizeExplorer(rows, { bucketCount: buckets.length }),
+    );
+    expect(readout.cashLeftAfterAds).toBe(-300);
+    expect(readout.mer).toBeCloseTo(0.25, 5);
+  });
+
+  it("reads $0 everywhere on an empty Live window instead of NaN", () => {
+    const rows = fillExplorerDayHoles([], "2026-08-01", "2026-08-04");
+    const buckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Day"),
+      "stacked",
+    );
+    const readout = explorerReadout(
+      buckets,
+      summarizeExplorer(rows, { bucketCount: buckets.length }),
+    );
+    expect(readout).toMatchObject({
+      sales: 0,
+      spend: 0,
+      cashLeftAfterAds: 0,
+      mer: null,
+      daysWithSpend: 0,
+      zeroSpendDays: 4,
+    });
+    expect(explorerNeedsDays(readout)).toBe(7);
   });
 
   it("toggles bar vs line on an empty mix (all $0 days) without NaN", () => {

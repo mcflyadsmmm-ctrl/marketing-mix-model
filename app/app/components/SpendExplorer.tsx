@@ -12,6 +12,8 @@ import {
   dateKeyFromLocal,
   explorerLegendChannels,
   explorerMixShares,
+  explorerNeedsDays,
+  explorerReadout,
   explorerSafeId,
   orderBarsByLegend,
   type ExplorerBucketComparison,
@@ -424,6 +426,12 @@ export function SpendExplorer({
     () => explorerMixShares(allBuckets, mode),
     [allBuckets, mode],
   );
+
+  const readout = useMemo(
+    () => explorerReadout(allBuckets, series.summary),
+    [allBuckets, series.summary],
+  );
+  const needsDays = explorerNeedsDays(readout);
 
   const model = useMemo(
     () =>
@@ -848,9 +856,45 @@ export function SpendExplorer({
 
       {hasPlot ? (
         <>
+          <dl className="mcfly-explorer__readout">
+            <div className="mcfly-explorer__readout-cell">
+              <dt>Shopify sales</dt>
+              <dd>{formatCurrency(readout.sales)}</dd>
+            </div>
+            <div className="mcfly-explorer__readout-cell">
+              <dt>Ad spend</dt>
+              <dd>{formatCurrency(readout.spend)}</dd>
+            </div>
+            <div className="mcfly-explorer__readout-cell mcfly-explorer__readout-cell--lead">
+              <dt>Cash left after ads</dt>
+              <dd
+                className={
+                  readout.cashLeftAfterAds < 0
+                    ? "mcfly-explorer__readout-neg"
+                    : undefined
+                }
+              >
+                {formatCurrency(readout.cashLeftAfterAds)}
+              </dd>
+            </div>
+            <div className="mcfly-explorer__readout-cell">
+              <dt>{PRODUCT_NOUN.totalRoas}</dt>
+              <dd>{readout.mer != null ? `${formatMer(readout.mer)}×` : "—"}</dd>
+            </div>
+            <div className="mcfly-explorer__readout-cell">
+              <dt>Days with spend</dt>
+              <dd>
+                {readout.daysWithSpend} of {readout.closedDays}
+              </dd>
+            </div>
+          </dl>
           <p className="mcfly-explorer__caption">
-            Channel mix vs that day’s sales · missing days are $0 · not
-            attribution
+            Sales are this shop’s Shopify sales; cash left after ads is sales
+            minus spend. Bands are where the money went — mix %, not who caused
+            the sale. Missing days are $0.
+            {needsDays != null
+              ? ` Needs ${needsDays} more day${needsDays === 1 ? "" : "s"} of spend to read as a period.`
+              : ""}
           </p>
           {!hasSpend && !shotMode ? (
             <p className="mcfly-explorer__nospend">
@@ -978,6 +1022,21 @@ export function SpendExplorer({
                       </text>
                     </g>
                   ) : null}
+
+                  {model.columns
+                    .filter((col) => col.weekStart)
+                    .map((col) => (
+                      <line
+                        key={`week-${col.safeId}`}
+                        className="mcfly-explorer__week-rule"
+                        x1={col.slotX}
+                        x2={col.slotX}
+                        y1={pad.t}
+                        y2={pad.t + plotH}
+                        aria-hidden="true"
+                        pointerEvents="none"
+                      />
+                    ))}
 
                   {model.columns.map((col) => {
                     const bucket = visibleBuckets.find((b) => b.key === col.key);

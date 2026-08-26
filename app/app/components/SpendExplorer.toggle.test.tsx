@@ -18,6 +18,7 @@ import {
   applyExplorerMode,
   bucketExplorerRows,
   fillExplorerDayHoles,
+  summarizeExplorer,
   type ExplorerDailyRow,
   type ExplorerGranularity,
   type ExplorerMark,
@@ -70,15 +71,7 @@ function seriesFor(opts: {
   );
   return {
     buckets,
-    summary: {
-      totalSales: 2100,
-      totalSpend: 690,
-      overallMer: 3.04,
-      costPerNew: null,
-      costPerCustomer: null,
-      closedDays: opts.rows.length,
-      bucketCount: buckets.length,
-    },
+    summary: summarizeExplorer(opts.rows, { bucketCount: buckets.length }),
     mode: opts.mode,
     granularity: opts.granularity,
     range: "custom",
@@ -257,6 +250,51 @@ describe("Spend chart: stacked bar vs line", () => {
     expect(legend?.textContent).not.toContain("other:billboard");
     // Mix % is the merchant-readable share of budget, shown next to the name.
     expect(legend?.textContent).toMatch(/\d+%/);
+    act(() => created.unmount());
+    host!.remove();
+    root = null;
+  });
+
+  it("reads cash left after ads without exceeding Shopify sales", () => {
+    const created = mount(
+      seriesFor({
+        rows: SPARSE_WITH_BILLBOARD,
+        mode: "stacked",
+        mark: "bar",
+        granularity: "Day",
+        showSales: true,
+      }),
+    );
+    const strip = host!.querySelector(".mcfly-explorer__readout");
+    expect(strip?.textContent).toContain("Cash left after ads");
+    expect(strip?.textContent).toContain("Shopify sales");
+    expect(strip?.textContent).toContain("Days with spend");
+    expect(strip?.textContent).not.toMatch(/NaN/);
+    // Mix is where money went, never who caused the sale.
+    const caption = host!.querySelector(".mcfly-explorer__caption");
+    expect(caption?.textContent).toMatch(/not who caused the sale/);
+    act(() => created.unmount());
+    host!.remove();
+    root = null;
+  });
+
+  it("shows $0 and a needs-more-days line on an empty Live window", () => {
+    const created = mount(
+      seriesFor({
+        rows: ALL_EMPTY_DAYS,
+        mode: "stacked",
+        mark: "line",
+        granularity: "Day",
+        showSales: true,
+      }),
+    );
+    const strip = host!.querySelector(".mcfly-explorer__readout");
+    expect(strip?.textContent).toContain("$0");
+    expect(strip?.textContent).toContain("0 of 6");
+    expect(host!.querySelector(".mcfly-explorer__caption")?.textContent).toMatch(
+      /Needs 7 more days of spend/,
+    );
+    expect(host!.textContent).not.toMatch(/NaN|Infinity/);
     act(() => created.unmount());
     host!.remove();
     root = null;

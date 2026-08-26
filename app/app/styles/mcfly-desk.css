@@ -1960,11 +1960,65 @@
   opacity: 0.3;
 }
 
+/* Week overlay on day grain — a faint rule where each ISO week starts. */
+.mcfly-explorer__week-rule {
+  stroke: var(--mcfly-line-soft, #e4e9ef);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  opacity: 0.9;
+}
+
 /* A closed day with no invoice — a $0 notch on the baseline, never a gap. */
 .mcfly-explorer__hole-tick {
   stroke: var(--mcfly-line-soft, #e4e9ef);
   stroke-width: 2;
   stroke-linecap: round;
+}
+
+/* Cash readout strip — sales, spend, what is left, all from the same window. */
+.mcfly-explorer__readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0 1px;
+  margin: 0 0 0.55rem;
+  padding: 0;
+  border: 1px solid var(--mcfly-line-soft, #e4e9ef);
+  border-radius: 6px;
+  background: var(--mcfly-line-soft, #e4e9ef);
+  overflow: hidden;
+}
+
+.mcfly-explorer__readout-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--mcfly-surface, #fff);
+}
+
+.mcfly-explorer__readout-cell dt {
+  color: var(--mcfly-mute);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mcfly-explorer__readout-cell dd {
+  margin: 0;
+  color: var(--mcfly-ink);
+  font-size: 1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.mcfly-explorer__readout-cell--lead dd {
+  font-size: 1.12rem;
+}
+
+.mcfly-explorer__readout-neg {
+  color: var(--mcfly-danger, #b42318);
 }
 
 .mcfly-explorer__caption {
