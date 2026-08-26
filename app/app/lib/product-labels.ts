@@ -36,7 +36,7 @@ export const PRODUCT_NOUN = {
   mdsTrust:
     "Marketing Data Science from Shopify Total Sales.",
   /** Thesis — Advanced MDS for the merchant */
-  mdsThesis: "Advanced Marketing Data Science, made easy",
+  mdsThesis: "See ad spend next to sales, day by day.",
   /** Decision — any day of the week */
   mondayCall: "Total ROAS vs break-even — any day",
   /**
@@ -99,32 +99,33 @@ export const PRODUCT_NOUN = {
   /** Allocation honesty */
   allocationHeuristic:
     "Shift spend to protect break-even. Keep at least half of this period’s spend.",
-  /** Practice desk — example numbers (not live store) */
-  practiceDesk: "Practice",
-  yourStore: "Your store",
-  practicePeriodSuffix: " · Practice",
+  /** Sample data | Live data — never Free/Pro/trial as a view */
+  practiceDesk: "Sample data",
+  yourStore: "Live data",
+  practicePeriodSuffix: " · Sample data",
   practiceHint:
-    "Example numbers so you can click around. Not your Shopify store.",
-  yourStoreHint: "Your Shopify sales and the ad spend you add.",
-  practiceHiddenStatus: "Practice desk is hidden in Settings",
-  samplePreview: "Practice",
-  samplePreviewOn: "Practice is on — example numbers, not your Shopify store",
-  samplePreviewOffCta: "Switch to Your store",
-  /** Demo page copy when Practice is on — defer to the top toggle */
-  samplePreviewOffReviewKicker: "You are viewing Practice",
+    "Example numbers so you can click around. Not this shop’s Shopify sales.",
+  yourStoreHint:
+    "This shop’s Shopify sales and the ad spend you add.",
+  practiceHiddenStatus: "Sample data is hidden in Settings",
+  samplePreview: "Sample data",
+  samplePreviewOn: "Sample data is on — example numbers, not this shop",
+  samplePreviewOffCta: "Switch to Live data",
+  /** Demo page copy when Sample is on — defer to the top toggle */
+  samplePreviewOffReviewKicker: "You are viewing Sample data",
   samplePreviewOffReviewTitle: "These are example numbers",
   samplePreviewOffReviewBody:
-    "Use Practice | Your store at the top of any page to switch. Your store shows live Shopify sales and the ad spend you add. Hide Practice in Settings if you never want the example set.",
-  samplePreviewLiveStore: "You are viewing Your store",
+    "Use Sample data | Live data at the top of any page to switch. Live data shows this shop’s Shopify sales and the ad spend you add. Hide Sample data in Settings if you never want the example set.",
+  samplePreviewLiveStore: "You are viewing Live data",
   samplePreviewLiveStoreBody:
-    "Live Shopify sales. Add spend on Spend. Switch to Practice at the top anytime to try example numbers.",
+    "This shop’s Shopify sales. Add spend on Spend. Switch to Sample data at the top anytime to try example numbers.",
   /** Founder-locked setup path labels (banner + empty-state CTAs) */
   setupAddSpend: "Add Spend",
   setupSetGoals: "Set Goals",
   setupAdjustMargin: "Adjust Profit Margin",
   /** Spend job — three steps */
   spendJob:
-    "Select channels → download template → fill daily spend → upload. Same days replace.",
+    "Add one day’s invoice (any platform, including billboard) → CSV only if you have many days. Same days replace.",
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
   ltvNotInShopify:
     "Shopify Analytics does not combine LTV with ad spend. Mcfly uses order history only — not email lists.",

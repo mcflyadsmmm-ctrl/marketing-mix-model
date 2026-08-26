@@ -53,7 +53,7 @@ import type {
 } from "../lib/sales-goals.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
+import { GoalsYearTeaser } from "../components/ProValuePreview";
 import { UseSampleCta } from "../components/UseSampleCta";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -679,17 +679,19 @@ export default function GoalsPage() {
           {!shotMode ? (
             <p className="mcfly-goals__lede">
               Same sales ÷ spend as Overview for {periodMetrics.period.label}.{" "}
-              {canUseYearBoard
-                ? "Year board below sets the plan — Grow YoY fills all months."
-                : "Free tracks this period vs your Total ROAS goal."}{" "}
+              Type the sales you want this year — the board shows the most you
+              can spend each month and still hit your Total ROAS target.{" "}
               {PRODUCT_NOUN.totalRoas} target lives in{" "}
               <s-link href="/app/settings">Settings</s-link>.
             </p>
           ) : null}
         </div>
 
-        {!shotMode && entitlements.showProTeaser ? (
-          <ProUpsellBlock lead={PRO_UPSELL.goals} showSample={!useSampleDesk} />
+        {!shotMode && entitlements.showStartTrial ? (
+          <p className="mcfly-panel__muted">
+            Whole desk is included. Start the 7-day trial in{" "}
+            <s-link href="/app/settings">Settings</s-link>.
+          </p>
         ) : null}
 
         {useSampleDesk && !shotMode ? (
@@ -855,7 +857,7 @@ export default function GoalsPage() {
               </div>
               {entitlements.showProTeaser ? (
                 <p className="mcfly-panel__muted">
-                  Upgrade above, or switch to Practice at the top.
+                  Switch to Sample data at the top for a labeled walkthrough.
                 </p>
               ) : (
                 <UseSampleCta />

@@ -19,7 +19,7 @@ describe("billing flags", () => {
   it("defaults billing off", () => {
     expect(isBillingEnabled()).toBe(false);
     expect(billingStatusCopy(false).tier).toBe("free");
-    expect(billingStatusCopy(false).detail).toMatch(/temporarily unavailable/i);
+    expect(billingStatusCopy(false).detail).toMatch(/not charging/i);
   });
 
   it("enables only when MCFLY_BILLING=1", () => {
@@ -34,8 +34,10 @@ describe("billing flags", () => {
     expect(freeSpendImportDailyCap()).toBe(12);
   });
 
-  it("locks Pro at $39 flat (launch)", () => {
+  it("locks $39 after a 7-day trial", () => {
     expect(PRO_PLAN.amount).toBe(39);
     expect(PRO_PLAN.interval).toBe("EVERY_30_DAYS");
+    expect(PRO_PLAN.trialDays).toBe(7);
+    expect(PRO_PLAN.name).toBe("Mcfly Analytics");
   });
 });

@@ -226,6 +226,13 @@
   z-index: 1;
 }
 
+.mcfly-period__history {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--mcfly-mute, #5c5f66);
+}
+
 .mcfly-hero {
   position: relative;
   overflow: hidden;
@@ -4197,7 +4204,7 @@
 }
 
 .mcfly-desk--shot.mcfly-desk--sample::after {
-  content: "SAMPLE";
+  content: "SAMPLE DATA";
   position: absolute;
   top: 0.55rem;
   right: 0.65rem;

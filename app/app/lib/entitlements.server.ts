@@ -1,6 +1,7 @@
 /**
- * Shop entitlements — Free (all spend channels) vs Pro ($39 = LTV + Goals).
+ * Shop entitlements — whole desk on trial and paid.
  * See docs/BILLING_TIERS.md. Charges stay behind MCFLY_BILLING=1.
+ * Desk modes are Sample data | Live data only — billing is not a view.
  */
 
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
@@ -57,16 +58,18 @@ export function isProShop(
 export type ShopEntitlements = {
   tier: BillingTier;
   isPro: boolean;
-  /** Live Customer LTV (OrderFact / CohortFact). SAMPLE desk may preview without Pro. */
+  /** Live Customer LTV (OrderFact / CohortFact). Whole desk — not a plan gate. */
   canUseLiveLtv: boolean;
-  /** Show LTV UI (live Pro or SAMPLE preview). */
+  /** Show LTV UI (always on; Sample data uses example cohorts). */
   canUseLtv: boolean;
   canUseAdvancedGoals: boolean;
   canUseAdvancedClose: boolean;
   canUseAllChannels: boolean;
-  /** Show Upgrade CTA — only when Billing is on and shop is Free. */
+  /** Never a feature-gate teaser on Overview/Spend/LTV/Goals. */
   showProTeaser: boolean;
-  /** Show Manage plan CTA — Billing on and shop is Pro (App Store 1.2.3). */
+  /** Settings-only Start 7-day trial — Billing on and shop unpaid. */
+  showStartTrial: boolean;
+  /** Show Manage plan CTA — Billing on and shop is paid/trial (App Store 1.2.3). */
   canManagePlan: boolean;
   allowedChannels: readonly SpendChannel[];
   upsell: typeof PRO_UPSELL;
@@ -77,12 +80,11 @@ export function getShopEntitlements(
   options?: { sampleDesk?: boolean; paidPro?: boolean },
 ): ShopEntitlements {
   const isPro = isProShop(shopDomain, { paidPro: options?.paidPro });
-  const sampleDesk = Boolean(options?.sampleDesk);
   const billingOn = isBillingEnabled();
-  const canUseLiveLtv = isPro;
-  const canUseLtv = isPro || sampleDesk;
-  const canUseAdvancedGoals = isPro || sampleDesk;
-  const canUseAdvancedClose = isPro;
+  const canUseLiveLtv = true;
+  const canUseLtv = true;
+  const canUseAdvancedGoals = true;
+  const canUseAdvancedClose = true;
   const canUseAllChannels = true;
   const allowedChannels: readonly SpendChannel[] = SPEND_CHANNELS;
 
@@ -94,7 +96,8 @@ export function getShopEntitlements(
     canUseAdvancedGoals,
     canUseAdvancedClose,
     canUseAllChannels,
-    showProTeaser: !isPro && billingOn,
+    showProTeaser: false,
+    showStartTrial: !isPro && billingOn,
     canManagePlan: isPro && billingOn,
     allowedChannels,
     upsell: PRO_UPSELL,

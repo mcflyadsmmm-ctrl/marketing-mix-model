@@ -18,8 +18,6 @@ import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.serve
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import { authenticate } from "../shopify.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
-import { PRO_UPSELL } from "../lib/entitlements";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
 
 /** CohortFact stores window totals — desk LTV is per new customer. */
 function perCustomerRevenue(
@@ -426,28 +424,7 @@ export default function LtvPage() {
           )}
         </section>
 
-        {/* ── B · Lifetime value (cohorts) — Pro / SAMPLE ── */}
-        {!canUseLtv ? (
-          <section
-            className="mcfly-panel mcfly-acq-ltv-teaser"
-            aria-label="Lifetime value — Pro"
-          >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Lifetime value · cohorts</h2>
-              <p className="mcfly-panel__muted">
-                Contribution LTV, Cash CAC payback, and monthly cohorts
-              </p>
-            </div>
-            <div className="mcfly-acq-ltv-teaser__body">
-              {entitlements.showProTeaser ? (
-                <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={!useSampleDesk} />
-              ) : (
-                <p className="mcfly-panel__muted">{PRO_UPSELL.ltv}</p>
-              )}
-            </div>
-          </section>
-        ) : (
-          <>
+        {/* ── B · Lifetime value (cohorts) ── */}
             <section
               className="mcfly-panel mcfly-till-ltv mcfly-ltv-summary mcfly-acq-ltv"
               aria-label="Lifetime value summary"
@@ -705,8 +682,7 @@ export default function LtvPage() {
                 ) : null}
               </section>
             ) : null}
-          </>
-        )}
+
       </div>
     </s-page>
   );

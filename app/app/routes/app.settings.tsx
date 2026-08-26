@@ -328,7 +328,7 @@ export default function SettingsPage() {
 
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner
-            note={`Settings here are real. ${PRODUCT_NOUN.totalRoas} may still show Practice numbers until you switch to Your store.`}
+            note={`Settings here are real. ${PRODUCT_NOUN.totalRoas} may still show Sample data until you switch to Live data.`}
           />
         ) : null}
 
@@ -513,29 +513,14 @@ export default function SettingsPage() {
                 {billingError}
               </p>
             ) : null}
-            <div
-              className="mcfly-control__grid"
-              style={{ marginTop: "0.75rem" }}
-            >
-              <div className="mcfly-control__tile">
-                <p className="mcfly-control__k">Free</p>
-                <ul className="mcfly-settings-guide">
-                  {billing.freeBullets.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="mcfly-control__tile">
-                <p className="mcfly-control__k">
-                  Pro · ${billing.amount}/{billing.currencyCode} per month
-                </p>
-                <ul className="mcfly-settings-guide">
-                  {billing.proBullets.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            <ul className="mcfly-settings-guide" style={{ marginTop: "0.75rem" }}>
+              {billing.proBullets.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+            <p className="mcfly-panel__muted" style={{ marginTop: "0.75rem" }}>
+              {BILLING_HONESTY.flat} {BILLING_HONESTY.cancel}
+            </p>
             {!billing.entitlements.isPro ? (
               billing.enabled ? (
                 <div style={{ marginTop: "0.85rem" }}>
@@ -554,16 +539,15 @@ export default function SettingsPage() {
                   className="mcfly-panel__muted"
                   style={{ marginTop: "0.75rem" }}
                 >
-                  Upgrade opens when billing is on. Free still covers every
-                  named platform plus extras like billboards. Pro is LTV and
-                  the full Goals board.
+                  Start 7-day trial opens when billing is on this host. The whole
+                  desk is included — Sample data | Live data is the view, not a plan.
                 </p>
               )
             ) : (
               <div style={{ marginTop: "0.85rem" }}>
                 <p className="mcfly-panel__muted">
-                  This shop has Pro. You can switch back to Free without
-                  reinstalling.
+                  This shop has the whole desk. Uninstall stops the next 30-day
+                  cycle.
                 </p>
                 {billing.enabled ? (
                   <div style={{ marginTop: "0.65rem" }}>
@@ -587,20 +571,20 @@ export default function SettingsPage() {
 
         {!shotMode ? (
           <details className="mcfly-details mcfly-settings-more">
-            <summary>More — Practice desk and privacy</summary>
+            <summary>More — Sample data and privacy</summary>
             <div className="mcfly-settings-more__body">
               <section
                 className="mcfly-panel"
                 style={{ marginTop: "0.75rem" }}
-                aria-label="Practice desk"
+                aria-label="Sample data"
               >
                 <h2 className="mcfly-settings-template__heading">
-                  Practice desk
+                  Sample data
                 </h2>
                 <p className="mcfly-panel__muted">
-                  Practice | Your store sits at the top of every page. Practice
-                  is example numbers so you can click around. Your store is live
-                  Shopify sales and the spend you add.
+                  Sample data | Live data sits at the top of every page. Sample
+                  data is example numbers so you can click around. Live data is
+                  this shop’s Shopify sales and the spend you add.
                 </p>
                 <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
                   Right now:{" "}
@@ -610,8 +594,8 @@ export default function SettingsPage() {
                       : PRODUCT_NOUN.yourStore}
                   </strong>
                   {samplePreviewAllowed
-                    ? " · Practice option is available"
-                    : " · Practice option is hidden"}
+                    ? " · Sample data option is available"
+                    : " · Sample data option is hidden"}
                 </p>
                 <div
                   className="mcfly-decision__actions"
@@ -626,7 +610,7 @@ export default function SettingsPage() {
                       />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="primary">
-                        Your store only — hide Practice
+                        Live data only — hide Sample data
                       </s-button>
                     </Form>
                   ) : (
@@ -638,7 +622,7 @@ export default function SettingsPage() {
                       />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="secondary">
-                        Show Practice option again
+                        Show Sample data option again
                       </s-button>
                     </Form>
                   )}
@@ -647,7 +631,7 @@ export default function SettingsPage() {
                       <input type="hidden" name="intent" value="use-sample" />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="tertiary">
-                        Switch to Practice now
+                        Switch to Sample data now
                       </s-button>
                     </Form>
                   ) : null}
@@ -656,7 +640,7 @@ export default function SettingsPage() {
                       <input type="hidden" name="intent" value="use-real" />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="tertiary">
-                        Switch to Your store now
+                        Switch to Live data now
                       </s-button>
                     </Form>
                   ) : null}

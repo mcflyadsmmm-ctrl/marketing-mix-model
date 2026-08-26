@@ -29,9 +29,9 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import { formatOverviewShareText } from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
-import { PRO_UPSELL } from "../lib/entitlements";
+import { NumberHonestyPanel } from "../components/NumberHonestyPanel";
+import { NUMBER_HONESTY, spendAddHref } from "../lib/number-honesty";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import {
   emptySales,
@@ -325,7 +325,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
-    showProTeaser: entitlements.showProTeaser,
   };
 };
 
@@ -350,7 +349,6 @@ export default function Dashboard() {
     sharePeriodStartDay,
     sharePeriodEndDay,
     shopLabel,
-    showProTeaser,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -664,7 +662,7 @@ export default function Dashboard() {
                   <p className="mcfly-cold-empty__foot">
                     Next: <s-link href="/app/spend">{PRODUCT_NOUN.setupAddSpend}</s-link>
                     {" · "}
-                    Switch to Practice at the top for example numbers
+                    Switch to Sample data at the top for example numbers
                   </p>
                 </s-grid>
               </s-grid>
@@ -694,7 +692,7 @@ export default function Dashboard() {
                     {PRODUCT_NOUN.setupAddSpend}
                   </s-button>
                   <p className="mcfly-cold-empty__foot">
-                    Want example numbers first? Switch to Practice at the top.
+                    Want example numbers first? Switch to Sample data at the top.
                   </p>
                 </s-grid>
               </s-grid>
@@ -791,7 +789,7 @@ export default function Dashboard() {
               </li>
             </ol>
             <p className="mcfly-guide__foot">
-              Want example numbers first? Switch to Practice at the top.
+              Want example numbers first? Switch to Sample data at the top.
             </p>
           </section>
         ) : null}
@@ -903,8 +901,6 @@ export default function Dashboard() {
                 <LtvSnapSection
                   tillLtv={metrics.tillLtv}
                   preset={preset}
-                  showProTeaser={showProTeaser}
-                  showSample={!useSampleDesk}
                 />
               </div>
             ) : null}
@@ -957,8 +953,6 @@ export default function Dashboard() {
 function LtvSnapSection({
   tillLtv,
   preset,
-  showProTeaser,
-  showSample,
 }: {
   tillLtv: {
     available: boolean;
@@ -971,8 +965,6 @@ function LtvSnapSection({
     paybackDays: number | null;
   };
   preset: PeriodPreset;
-  showProTeaser: boolean;
-  showSample: boolean;
 }) {
   return (
     <section
@@ -1050,12 +1042,6 @@ function LtvSnapSection({
             </p>
           ) : null}
         </>
-      ) : tillLtv.emptyReason === "pro_required" ? (
-        showProTeaser ? (
-          <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={showSample} />
-        ) : (
-          <p className="mcfly-tab-snap__empty">{PRO_UPSELL.ltv}</p>
-        )
       ) : (
         <p className="mcfly-tab-snap__empty">
           {tillLtv.emptyReason === "no_timezone"
@@ -1067,15 +1053,9 @@ function LtvSnapSection({
       )}
 
       <div className="mcfly-tab-snap__cta">
-        {tillLtv.emptyReason === "pro_required" && !tillLtv.available ? (
-          <s-link href={`/app/ltv?period=${preset}`}>
-            {PRODUCT_NOUN.openLtv}
-          </s-link>
-        ) : (
-          <s-button href={`/app/ltv?period=${preset}`} variant="primary">
-            {PRODUCT_NOUN.openLtv}
-          </s-button>
-        )}
+        <s-button href={`/app/ltv?period=${preset}`} variant="primary">
+          {PRODUCT_NOUN.openLtv}
+        </s-button>
       </div>
     </section>
   );

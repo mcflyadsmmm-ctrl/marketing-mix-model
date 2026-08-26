@@ -183,10 +183,10 @@ export function getShopBillingSnapshot(
     amount: PRO_PLAN.amount,
     currencyCode: PRO_PLAN.currencyCode,
     headline: entitlements.isPro
-      ? "Pro · unlocked"
+      ? "Whole desk · on"
       : copy.headline,
     detail: entitlements.isPro
-      ? "This shop has Pro. Flat $39 per store / month."
+      ? "This shop has the whole desk. $39 per store / month after the 7-day trial. Uninstall stops the next 30-day cycle."
       : copy.detail,
     upgradeCta: PRO_UPSELL.upgradeCta,
     freeBullets: FREE_FEATURE_BULLETS,

@@ -9,6 +9,7 @@
  */
 
 import type { SpendChannel } from "@prisma/client";
+import { DESK_HISTORY_YEARS_BACK, deskHistoryFloorYear } from "./desk-history";
 
 export interface SampleDayRow {
   day: Date;
@@ -79,8 +80,9 @@ const MIX: Record<SpendChannel, number> = {
 };
 
 /**
- * Build ~3 years of daily sales + spend targeting ~cash MER near `targetMer`.
- * Default ~4.4× so SAMPLE desk looks strong vs break-even (impressive listing demo).
+ * Build daily sales + spend targeting ~cash MER near `targetMer`.
+ * Default window: January 1 of (UTC year − 5) through today.
+ * Pass `years` for a rolling window (tests).
  */
 export function buildThreeYearSampleDesk(options?: {
   now?: Date;
@@ -89,13 +91,16 @@ export function buildThreeYearSampleDesk(options?: {
   seed?: number;
 }): SampleDayRow[] {
   const now = options?.now ?? new Date();
-  const years = options?.years ?? 3;
   const targetMer = options?.targetMer ?? 4.4;
   // Bumped seed (…4e) so re-seed replaces the older weaker series.
   const rng = mulberry32(options?.seed ?? 0x4d43464e);
 
   const end = startOfUtcDay(now);
-  const start = addUtcDays(end, -Math.round(365.25 * years) + 1);
+  const start =
+    options?.years != null
+      ? addUtcDays(end, -Math.round(365.25 * options.years) + 1)
+      : new Date(Date.UTC(deskHistoryFloorYear(now), 0, 1));
+  const years = options?.years ?? DESK_HISTORY_YEARS_BACK;
   const rows: SampleDayRow[] = [];
 
   for (let d = new Date(start); d <= end; d = addUtcDays(d, 1)) {

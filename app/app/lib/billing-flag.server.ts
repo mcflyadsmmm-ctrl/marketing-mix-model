@@ -1,14 +1,14 @@
 /**
- * Shopify App Pricing flags — Pro $39 flat (raise later).
- * Production Fly has MCFLY_BILLING=1 — Partner listing must show Free + Pro.
- * Never forever-free marketing; never claim “no charges” while Upgrade is live.
+ * Shopify App Pricing — one plan $39 after a 7-day whole-desk trial.
+ * Production Fly has MCFLY_BILLING=1. Billing is not a desk mode.
+ * Never claim Free+Pro feature gates while the whole desk is on trial/paid.
  */
 
 export function isBillingEnabled(): boolean {
   return process.env.MCFLY_BILLING === "1";
 }
 
-/** Soft flood control for Free CSV desks (0 = unlimited). */
+/** Soft flood control for CSV desks (0 = unlimited). */
 export function freeSpendImportDailyCap(): number {
   const raw = process.env.MCFLY_FREE_SPEND_IMPORT_CAP?.trim();
   if (!raw) return 0;
@@ -18,13 +18,13 @@ export function freeSpendImportDailyCap(): number {
 
 export type BillingTier = "free" | "pro";
 
-/** Founder lock 2026-07-29: Pro launch $39; may raise later. */
+/** Founder lock 2026-08-26: $39/store/mo after 7-day full-access trial. */
 export const PRO_PLAN = {
-  name: "Mcfly Analytics Pro",
+  name: "Mcfly Analytics",
   amount: 39,
   currencyCode: "USD",
   interval: "EVERY_30_DAYS" as const,
-  trialDays: 0,
+  trialDays: 7,
 };
 
 export function subscriptionMatchesProPlan(
@@ -34,8 +34,9 @@ export function subscriptionMatchesProPlan(
   const n = name.trim().toLowerCase();
   const plan = PRO_PLAN.name.toLowerCase();
   if (n === plan) return true;
+  if (n.includes("mcfly") && n.includes("analytics")) return true;
   if (n.includes("mcfly") && n.includes("pro")) return true;
-  // Shopify App Pricing plans are often named just "Pro".
+  // Leftover Partner names / Shopify App Pricing shorthand.
   if (n === "pro" || n === "pro plan") return true;
   return false;
 }
@@ -49,15 +50,15 @@ export function billingStatusCopy(billingEnabled: boolean): {
   if (!billingEnabled) {
     return {
       tier: "free",
-      headline: "Free",
+      headline: "Not charging on this host",
       detail:
-        "You’re on Free: every named platform plus extras like billboards, and Total ROAS. Pro is $39/store/mo for LTV and the full Goals board. Upgrade is temporarily unavailable on this host.",
+        "This host is not charging. Start 7-day trial is unavailable until billing is on. The desk still shows Sample data | Live data.",
     };
   }
   return {
     tier: "pro",
-    headline: "Free · upgrade anytime",
+    headline: "7-day trial · then $39/store/mo",
     detail:
-      "Pro is $39 per store / month. It adds customer LTV and a full-year Goals board. Every named platform is already on Free.",
+      "7-day full-access trial, then $39 per store / month for the whole desk — not a percent of sales, not a per-order fee. Shopify bills this app; uninstall in Admin to stop the next 30-day cycle (the current cycle may still charge).",
   };
 }

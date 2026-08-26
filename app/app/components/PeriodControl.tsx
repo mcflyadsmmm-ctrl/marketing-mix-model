@@ -1,5 +1,6 @@
 import { useSearchParams } from "react-router";
 import type { PeriodPreset } from "../lib/periods";
+import { deskHistoryCaption } from "../lib/desk-history";
 
 type PeriodControlProps = {
   preset: PeriodPreset;
@@ -76,6 +77,7 @@ export function PeriodControl({
           );
         })}
       </div>
+      <p className="mcfly-period__history">{deskHistoryCaption()}</p>
     </div>
   );
 }

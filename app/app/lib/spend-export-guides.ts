@@ -343,6 +343,16 @@ export const SPEND_ADVERTISE_PLATFORMS: readonly SpendAdvertisePlatform[] = [
   },
 ] as const;
 
+/** Featured checkboxes on Spend — pick these first, then download that template. */
+export const FEATURED_SPEND_PLATFORM_IDS: readonly SpendAdvertisePlatformId[] = [
+  "meta",
+  "google",
+  "tiktok",
+  "microsoft",
+  "amazon",
+  "email",
+];
+
 /** Guides array (same objects) for accordion rendering. */
 export const SPEND_EXPORT_GUIDES: readonly SpendExportGuide[] =
   SPEND_ADVERTISE_PLATFORMS.map((p) => ({

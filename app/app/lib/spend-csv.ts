@@ -55,8 +55,11 @@ export interface SpendCsvInput {
 
 const MAX_ERRORS = 25;
 
-/** Fail-closed paste/upload size — ~2 MiB keeps big Sheets exports in, not multi-year dumps. */
-export const SPEND_CSV_MAX_BYTES = 2 * 1024 * 1024;
+/** Fail-closed paste/upload size — ~5 MiB / 50k rows so a fat dump cannot OOM Fly. */
+export const SPEND_CSV_MAX_BYTES = 5 * 1024 * 1024;
+
+export const SPEND_CSV_TOO_LARGE =
+  "This file is too large. Export a smaller date range and try again.";
 
 /** Fail-closed data-row cap (header excluded). ~50k ≈ multi-year × channel long format. */
 export const SPEND_CSV_MAX_ROWS = 50_000;
@@ -67,12 +70,6 @@ export type SpendCsvLimitResult =
 
 function utf8ByteLength(text: string): number {
   return new TextEncoder().encode(text).length;
-}
-
-function formatByteSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 /** Count non-empty lines after the header (BOM-safe). Empty input → 0. */
@@ -95,7 +92,7 @@ export function assertSpendCsvLimits(text: string): SpendCsvLimitResult {
     return {
       ok: false,
       code: "max_bytes",
-      error: `This paste/file is too large (${formatByteSize(bytes)}; max ${SPEND_CSV_MAX_ROWS.toLocaleString()} rows / ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Split by date range or channel and import in batches. Spend aggregates only — do not paste sales.`,
+      error: SPEND_CSV_TOO_LARGE,
     };
   }
 
@@ -104,7 +101,7 @@ export function assertSpendCsvLimits(text: string): SpendCsvLimitResult {
     return {
       ok: false,
       code: "max_rows",
-      error: `This CSV has ${dataRows.toLocaleString()} data rows (max ${SPEND_CSV_MAX_ROWS.toLocaleString()} rows / ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Split by date range or channel and import in batches.`,
+      error: SPEND_CSV_TOO_LARGE,
     };
   }
 
@@ -1534,7 +1531,7 @@ export function combineSpendCsvInputs(inputs: SpendCsvInput[]): CsvParseResult {
     return {
       rows: [],
       errors: [
-        `Combined uploads are too large (${formatByteSize(totalBytes)}; max ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Import fewer files or split by date range.`,
+        SPEND_CSV_TOO_LARGE,
       ],
       totalDataRows,
     };
@@ -1544,7 +1541,7 @@ export function combineSpendCsvInputs(inputs: SpendCsvInput[]): CsvParseResult {
     return {
       rows: [],
       errors: [
-        `Combined uploads have ${totalDataRows.toLocaleString()} data rows (max ${SPEND_CSV_MAX_ROWS.toLocaleString()}). Import fewer files or split by date range.`,
+        SPEND_CSV_TOO_LARGE,
       ],
       totalDataRows,
     };

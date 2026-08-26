@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { PRO_UPSELL } from "./entitlements";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -10,8 +9,22 @@ function read(rel: string) {
   return readFileSync(join(here, rel), "utf8");
 }
 
-describe("Practice | Your store UX (no demo theater)", () => {
-  it("top toggle labels Practice vs Your store", () => {
+describe("Sample data | Live data UX", () => {
+  it("shot mode still labels Sample data (App Store 1.1.4)", () => {
+    const bar = read("../components/DataModeBar.tsx");
+    expect(bar).toContain("shotMode");
+    expect(bar).toMatch(/if \(shotMode\)/);
+    expect(bar).toContain("mcfly-data-mode--shot");
+    expect(bar).toContain("practiceHint");
+    const shell = read("../routes/app.tsx");
+    expect(shell).toContain("shotMode={shotMode}");
+    expect(shell).not.toMatch(/\{!shotMode \? \(/);
+    const css = read("../styles/mcfly-desk.css");
+    expect(css).toMatch(/mcfly-desk--shot\.mcfly-desk--sample::after/);
+    expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
+  });
+
+  it("top toggle labels Sample data vs Live data", () => {
     const bar = read("../components/DataModeBar.tsx");
     expect(bar).toContain("yourStore");
     expect(bar).toContain("practiceDesk");
@@ -20,14 +33,14 @@ describe("Practice | Your store UX (no demo theater)", () => {
     expect(bar).not.toMatch(/Turn SAMPLE preview OFF/);
     expect(bar).not.toContain("Before App Store review");
     const labels = read("../lib/product-labels.ts");
-    expect(labels).toContain("Example numbers so you can click around");
-    expect(labels).toContain("Practice | Your store");
+    expect(labels).toContain('practiceDesk: "Sample data"');
+    expect(labels).toContain('yourStore: "Live data"');
   });
 
-  it("Pro upsell previews Practice via data-mode POST, not /app/demo", () => {
+  it("plan block previews Sample data via data-mode POST, not /app/demo", () => {
     const upsell = read("../components/ProUpsellBlock.tsx");
     expect(upsell).toContain("UseSampleCta");
-    expect(upsell).toContain("See it on Practice");
+    expect(upsell).toContain("See Sample data");
     expect(upsell).toContain("<details");
     expect(upsell).not.toContain('href="/app/demo"');
     const cta = read("../components/UseSampleCta.tsx");
@@ -35,14 +48,13 @@ describe("Practice | Your store UX (no demo theater)", () => {
     expect(cta).toContain('action="/app/data-mode"');
   });
 
-  it("Spend shows sample source when Practice is on and gates CSV upload", () => {
+  it("Spend switches Sample to Live when saving spend", () => {
     const spend = read("../routes/app.spend.tsx");
     expect(spend).toMatch(/source:\s*"sample"/);
-    expect(spend).toContain("SAMPLE_DESK_IMPORT_BLOCK");
-    expect(spend).toContain("Upload is paused on Practice");
-    expect(spend).toContain("Step 3 — Upload your CSV");
-    expect(spend).toContain("Switch to Your store to upload");
-    expect(spend).not.toContain("Sample spend is on this page");
+    expect(spend).toContain("setSampleDeskEnabled(shop.id, false)");
+    expect(spend).toContain("Or upload a CSV");
+    expect(spend).not.toContain("Upload is paused on Practice");
+    expect(spend).not.toContain("Switch to Your store to upload");
   });
 
   it("data-mode reseeds Sample when noon stamps are missing", () => {
@@ -54,22 +66,20 @@ describe("Practice | Your store UX (no demo theater)", () => {
   it("Overview empty states do not send merchants to /app/demo", () => {
     const overview = read("../routes/app._index.tsx");
     expect(overview).not.toContain('href="/app/demo"');
-    expect(overview).toContain("Switch to Practice at the top");
+    expect(overview).toContain("Switch to Sample data at the top");
   });
 
-  it("Goals and Advanced preview Practice in place, not /app/demo", () => {
+  it("Goals and Advanced preview Sample in place, not /app/demo", () => {
     expect(read("../routes/app.goals.tsx")).not.toContain('href="/app/demo"');
     expect(read("../routes/app.advanced.tsx")).not.toContain('href="/app/demo"');
-    expect(read("../routes/app.goals.tsx")).toContain("UseSampleCta");
-    expect(read("../routes/app.advanced.tsx")).toContain("UseSampleCta");
   });
 
-  it("Settings puts Your plan on the main page and Practice in More", () => {
+  it("Settings puts Your plan on the main page and Sample data in More", () => {
     const settings = read("../routes/app.settings.tsx");
     expect(settings).toContain("Your plan");
-    expect(settings).toContain("Practice desk");
-    expect(settings).toContain("More — Practice desk and privacy");
-    expect(settings).not.toContain("Sample vs real store");
-    expect(settings).not.toContain("More — sample desk, billing, privacy");
+    expect(settings).toContain("Sample data");
+    expect(settings).toContain("More — Sample data and privacy");
+    expect(settings).toContain("ProUpgradeButton");
+    expect(settings).not.toContain("Practice desk");
   });
 });
