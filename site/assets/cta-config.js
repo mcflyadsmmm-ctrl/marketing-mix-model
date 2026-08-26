@@ -1,22 +1,22 @@
-/* launch-v2-20260728-freemium */
+/* launch-v2-20260826-one-product */
 /**
  * Public CTA honesty gate.
- * App Store listing path is primary for launch.
- * Never forever-free bait as the product. Never a shop-domain form on this site.
+ * Listing not live — primary CTA is Try the demo.
+ * Never invent apps.shopify.com URLs. Never "Install free" → /support.
  *
  * Tokens:
- *   data-mcfly-cta="primary"   → Install free /support
+ *   data-mcfly-cta="primary"   → Try the demo /demo
  *   data-mcfly-cta="demo"      → Try the demo /demo
- *   data-mcfly-cta="secondary" → left alone (page keeps App Store / custom label)
+ *   data-mcfly-cta="secondary" → left alone (page keeps custom label)
  */
 (function (w) {
   "use strict";
 
-  /** Flip false only if listing is down and install is broken. */
-  w.MCFLY_APP_STORE_LIVE = true;
+  /** Flip true only when the App Store listing is live. Do not invent apps.shopify.com. */
+  w.MCFLY_APP_STORE_LIVE = false;
 
   function primary() {
-    return { label: "Install free", href: "/support" };
+    return { label: "Try the demo", href: "/demo" };
   }
 
   /** Chrome mobile nav / intentional demo CTAs only. */
@@ -36,7 +36,6 @@
       if (el.tagName === "A") el.setAttribute("href", p.href);
       el.textContent = p.label;
     });
-    // Only rewrite intentional demo CTAs — never overwrite App Store secondary links.
     scope.querySelectorAll('[data-mcfly-cta="demo"]').forEach((el) => {
       if (el.tagName === "A") el.setAttribute("href", d.href);
       el.textContent = d.label;

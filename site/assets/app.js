@@ -359,7 +359,7 @@
     const bodyLines = [
       custom
         ? "Mcfly Analytics — custom data science inquiry"
-        : "Mcfly Ads — Install free / support request",
+        : "Mcfly Ads — support request",
       "",
       "Name: " + fields.name,
       "Email: " + fields.email,
@@ -388,7 +388,7 @@
       "",
       custom
         ? "Request: custom analytics / MDS proposal ($5–25K band)."
-        : "Request: Install free / App Store help.",
+        : "Request: App Store / Partner install help.",
       "Public target: " + INVITES_EMAIL,
       "Interim inbox: " + INTERIM_INBOX,
     );
@@ -478,7 +478,7 @@
         submitBtn.setAttribute("data-busy-label", submitBtn.textContent || "");
         submitBtn.textContent = "Sending…";
       } else if (submitBtn.hasAttribute("data-busy-label")) {
-        submitBtn.textContent = submitBtn.getAttribute("data-busy-label") || "Install free";
+        submitBtn.textContent = submitBtn.getAttribute("data-busy-label") || "Send";
         submitBtn.removeAttribute("data-busy-label");
       }
     }
@@ -571,7 +571,7 @@
         return;
       }
       if (!name) {
-        name = email.split("@")[0] || "Install free";
+        name = email.split("@")[0] || "Support";
       }
 
       const draft = buildWaitlistDraft({ name, email, role, store, source, notes, budget, spend, timeline });
