@@ -23,7 +23,8 @@ import {
   summarizeExplorer,
   buildExplorerPlotModel,
   explorerMixShares,
-  explorerNeedsDays,
+  explorerBucketNoun,
+  explorerNeedsBuckets,
   explorerReadout,
   explorerSafeId,
   isWeekStartKey,
@@ -751,13 +752,36 @@ describe("fillExplorerDayHoles + bar vs line toggle", () => {
     expect(readout.sales).toBe(2100);
     expect(readout.spend).toBe(690);
     expect(readout.cashLeftAfterAds).toBe(1410);
-    expect(readout.daysWithSpend).toBe(2);
-    expect(readout.zeroSpendDays).toBe(3);
+    expect(readout.bucketsWithSpend).toBe(2);
+    expect(readout.bucketCount).toBe(5);
+    expect(readout.zeroSpendBuckets).toBe(3);
     // No cash figure may claim more than the shop actually sold.
     expect(readout.spend).toBeLessThanOrEqual(readout.sales);
     expect(readout.cashLeftAfterAds).toBeLessThanOrEqual(readout.sales);
-    expect(explorerNeedsDays(readout)).toBe(5);
-    expect(explorerNeedsDays(readout, 2)).toBeNull();
+    // Only 5 buckets exist, so it can never ask for more than 5.
+    expect(explorerNeedsBuckets(readout)).toBe(3);
+    expect(explorerNeedsBuckets(readout, 2)).toBeNull();
+  });
+
+  it("counts buckets, not days, so week grain does not say 'days'", () => {
+    const rows = fillExplorerDayHoles(
+      [day("2026-08-03", 900, { meta: 100 })],
+      "2026-08-01",
+      "2026-08-21",
+    );
+    const weekBuckets = applyExplorerMode(
+      bucketExplorerRows(rows, "Week"),
+      "stacked",
+    );
+    const readout = explorerReadout(
+      weekBuckets,
+      summarizeExplorer(rows, { bucketCount: weekBuckets.length }),
+    );
+    expect(readout.bucketCount).toBe(weekBuckets.length);
+    expect(readout.bucketsWithSpend).toBe(1);
+    expect(explorerBucketNoun("Week", true)).toBe("weeks");
+    expect(explorerBucketNoun("Quarter", false)).toBe("quarter");
+    expect(explorerBucketNoun("Day", true)).toBe("days");
   });
 
   it("keeps cash left honest when ads cost more than the till took", () => {
@@ -789,10 +813,10 @@ describe("fillExplorerDayHoles + bar vs line toggle", () => {
       spend: 0,
       cashLeftAfterAds: 0,
       mer: null,
-      daysWithSpend: 0,
-      zeroSpendDays: 4,
+      bucketsWithSpend: 0,
+      zeroSpendBuckets: 4,
     });
-    expect(explorerNeedsDays(readout)).toBe(7);
+    expect(explorerNeedsBuckets(readout)).toBe(4);
   });
 
   it("toggles bar vs line on an empty mix (all $0 days) without NaN", () => {

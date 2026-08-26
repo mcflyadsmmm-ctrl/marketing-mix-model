@@ -1010,13 +1010,37 @@ export type ExplorerReadout = {
   cashLeftAfterAds: number;
   /** Σsales ÷ Σspend, or null with no spend. */
   mer: number | null;
-  /** Closed days in the window (including $0 holes). */
-  closedDays: number;
-  /** Closed days that actually carry spend. */
-  daysWithSpend: number;
-  /** Closed days with no invoice — drawn as $0 holes. */
-  zeroSpendDays: number;
+  /** Plotted buckets in the window, including $0 holes. */
+  bucketCount: number;
+  /** Buckets that actually carry spend. */
+  bucketsWithSpend: number;
+  /** Buckets with no invoice — drawn as $0 holes. */
+  zeroSpendBuckets: number;
 };
+
+/** "day" / "week" / "month" / "quarter" for readout copy. */
+export function explorerBucketNoun(
+  granularity: ExplorerGranularity,
+  plural: boolean,
+): string {
+  const base = ((): string => {
+    switch (granularity) {
+      case "Day":
+        return "day";
+      case "Week":
+        return "week";
+      case "Month":
+        return "month";
+      case "Quarter":
+        return "quarter";
+      default: {
+        const _exhaustive: never = granularity;
+        return _exhaustive;
+      }
+    }
+  })();
+  return plural ? `${base}s` : base;
+}
 
 /**
  * One honest cash readout for the window. Spend is clamped to the summed
@@ -1025,7 +1049,7 @@ export type ExplorerReadout = {
  */
 export function explorerReadout(
   buckets: ExplorerPlotBucket[],
-  summary: Pick<ExplorerSummary, "totalSales" | "totalSpend" | "closedDays">,
+  summary: Pick<ExplorerSummary, "totalSales" | "totalSpend">,
 ): ExplorerReadout {
   const sales = Number.isFinite(summary.totalSales)
     ? Math.max(0, summary.totalSales)
@@ -1033,31 +1057,31 @@ export function explorerReadout(
   const spend = Number.isFinite(summary.totalSpend)
     ? Math.max(0, summary.totalSpend)
     : 0;
-  let daysWithSpend = 0;
+  let bucketsWithSpend = 0;
   for (const bucket of buckets) {
-    if (bucket.spend > 0) daysWithSpend += 1;
+    if (bucket.spend > 0) bucketsWithSpend += 1;
   }
-  const closedDays = Math.max(summary.closedDays, buckets.length);
   return {
     sales,
     spend,
     cashLeftAfterAds: round2(sales - spend),
     mer: merOf(sales, spend),
-    closedDays,
-    daysWithSpend,
-    zeroSpendDays: Math.max(0, buckets.length - daysWithSpend),
+    bucketCount: buckets.length,
+    bucketsWithSpend,
+    zeroSpendBuckets: Math.max(0, buckets.length - bucketsWithSpend),
   };
 }
 
 /**
- * Days of spend still needed before a window reads as a real period rather
+ * Buckets of spend still needed before a window reads as a real period rather
  * than a couple of invoices. Null once the window is covered.
  */
-export function explorerNeedsDays(
+export function explorerNeedsBuckets(
   readout: ExplorerReadout,
   wanted = 7,
 ): number | null {
-  const missing = wanted - readout.daysWithSpend;
+  const target = Math.min(wanted, readout.bucketCount);
+  const missing = target - readout.bucketsWithSpend;
   return missing > 0 ? missing : null;
 }
 

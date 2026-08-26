@@ -290,9 +290,10 @@ describe("Spend chart: stacked bar vs line", () => {
     );
     const strip = host!.querySelector(".mcfly-explorer__readout");
     expect(strip?.textContent).toContain("$0");
+    expect(strip?.textContent).toContain("Days with spend");
     expect(strip?.textContent).toContain("0 of 6");
     expect(host!.querySelector(".mcfly-explorer__caption")?.textContent).toMatch(
-      /Needs 7 more days of spend/,
+      /Needs 6 more days of spend/,
     );
     expect(host!.textContent).not.toMatch(/NaN|Infinity/);
     act(() => created.unmount());

@@ -10,9 +10,10 @@ import {
   buildExplorerPlotModel,
   compareExplorerBuckets,
   dateKeyFromLocal,
+  explorerBucketNoun,
   explorerLegendChannels,
   explorerMixShares,
-  explorerNeedsDays,
+  explorerNeedsBuckets,
   explorerReadout,
   explorerSafeId,
   orderBarsByLegend,
@@ -431,7 +432,10 @@ export function SpendExplorer({
     () => explorerReadout(allBuckets, series.summary),
     [allBuckets, series.summary],
   );
-  const needsDays = explorerNeedsDays(readout);
+  const needsBuckets = explorerNeedsBuckets(readout);
+  const bucketNounPlural = explorerBucketNoun(series.granularity, true);
+  const bucketNounTitle =
+    bucketNounPlural.charAt(0).toUpperCase() + bucketNounPlural.slice(1);
 
   const model = useMemo(
     () =>
@@ -882,9 +886,9 @@ export function SpendExplorer({
               <dd>{readout.mer != null ? `${formatMer(readout.mer)}×` : "—"}</dd>
             </div>
             <div className="mcfly-explorer__readout-cell">
-              <dt>Days with spend</dt>
+              <dt>{bucketNounTitle} with spend</dt>
               <dd>
-                {readout.daysWithSpend} of {readout.closedDays}
+                {readout.bucketsWithSpend} of {readout.bucketCount}
               </dd>
             </div>
           </dl>
@@ -892,8 +896,8 @@ export function SpendExplorer({
             Sales are this shop’s Shopify sales; cash left after ads is sales
             minus spend. Bands are where the money went — mix %, not who caused
             the sale. Missing days are $0.
-            {needsDays != null
-              ? ` Needs ${needsDays} more day${needsDays === 1 ? "" : "s"} of spend to read as a period.`
+            {needsBuckets != null
+              ? ` Needs ${needsBuckets} more ${explorerBucketNoun(series.granularity, needsBuckets !== 1)} of spend to read as a period.`
               : ""}
           </p>
           {!hasSpend && !shotMode ? (
