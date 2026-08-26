@@ -130,4 +130,31 @@ describe("every spend-labeling surface shares one resolver", () => {
       "SPEND_CHANNEL_LABELS",
     );
   });
+
+  it("Allocation and the public API resolve the custom label too", () => {
+    for (const rel of [
+      "../routes/app.allocation.tsx",
+      "./mcfly-api.server.ts",
+    ]) {
+      const src = read(rel);
+      expect(src, rel).toContain("spendChannelLabel");
+      expect(src, rel).toContain("customLabel");
+    }
+  });
+
+  /*
+   * Explorer slices key on `other:<slug>`. Anything that renders a slice key
+   * must map it to a name — a merchant must never read "other:billboards".
+   */
+  it("never renders a raw bucket key to the merchant", () => {
+    const explorer = read("../components/SpendExplorer.tsx");
+    expect(explorer).toContain("customChannelLabels");
+    expect(explorer).toContain('channel.split(":")[0]');
+
+    const allocation = read("../routes/app.allocation.tsx");
+    expect(allocation).toContain("historyChannelLabel");
+    // Falls back to a readable slug, not the prefixed key.
+    expect(allocation).toContain('channel.split(":")');
+    expect(allocation).toContain("toHistoryDays(dailyRows, channelLabels)");
+  });
 });

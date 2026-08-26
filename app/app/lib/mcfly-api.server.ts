@@ -10,16 +10,14 @@ import {
   computeBreakEvenMer,
   computeMer,
   sumSpend,
-  SPEND_CHANNEL_LABELS,
   type ChannelSpend,
 } from "@mcfly/mer-engine";
 import prisma from "../db.server";
 import { resolveShopEntitlements } from "./entitlements.server";
 import { buildAllocationSuggestion, getOrCreateSettings, getSpendByChannel } from "./mer-dashboard.server";
 import { deskPeriodTimeZone, type DateRange } from "./periods";
+import { spendChannelLabel } from "./spend-channel-label";
 import { apiQueryDateRange } from "./shopify-sales-api.server";
-
-const CHANNEL_LABELS = SPEND_CHANNEL_LABELS;
 
 export interface DateRangeInput {
   from: string;
@@ -94,7 +92,10 @@ export async function buildMerResponse(
       : null;
 
   const channels = mix.map((entry) => ({
-    name: CHANNEL_LABELS[entry.channel],
+    name: spendChannelLabel({
+      channel: entry.channel,
+      customLabel: entry.customLabel,
+    }),
     spend: entry.amount,
     spendShare: entry.share,
     effectiveMer: entry.amount > 0 ? computeMer(sales * entry.share, entry.amount) : null,

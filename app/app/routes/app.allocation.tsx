@@ -39,6 +39,7 @@ import {
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
 import { channelCssVar, channelFillKey } from "../lib/channel-fill";
+import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
@@ -61,8 +62,24 @@ import {
   localDayKey,
 } from "../lib/sample-desk.server";
 
-function historyChannelLabel(channel: string): string {
-  return SPEND_CHANNEL_LABELS[channel as SpendChannel] ?? channel;
+/**
+ * Daily rows key named extras as `other:<slug>`. History stores display names,
+ * so resolve here — a merchant must never read a raw slug like
+ * "other:billboards" in the mix.
+ */
+function historyChannelLabel(
+  channel: string,
+  customLabels?: Record<string, string>,
+): string {
+  const custom = customLabels?.[channel];
+  if (custom) return custom;
+  const known = SPEND_CHANNEL_LABELS[channel as SpendChannel];
+  if (known) return known;
+  const [base, slug] = channel.split(":");
+  if (base === "other" && slug) {
+    return slug.replace(/-+/g, " ");
+  }
+  return channel;
 }
 
 function toHistoryDays(
@@ -72,13 +89,14 @@ function toHistoryDays(
     spend: number;
     channels: Array<{ channel: string; amount: number }>;
   }>,
+  customLabels?: Record<string, string>,
 ): HistoryDay[] {
   return rows.map((r) => ({
     dateKey: r.dateKey,
     sales: r.sales,
     spend: r.spend,
     channels: r.channels.map((c) => ({
-      channel: historyChannelLabel(c.channel),
+      channel: historyChannelLabel(c.channel, customLabels),
       amount: c.amount,
     })),
   }));
@@ -106,12 +124,20 @@ function buildPeriodChannelRows(
 }
 
 function buildPeriodChannelRowsFromMix(
-  mix: Array<{ channel: string; amount: number; share: number }>,
+  mix: Array<{
+    channel: string;
+    amount: number;
+    share: number;
+    customLabel?: string;
+  }>,
 ): PeriodChannelRow[] {
   return mix
     .filter((c) => c.amount > 0)
     .map((c) => {
-      const name = historyChannelLabel(c.channel);
+      const name = spendChannelLabel({
+        channel: c.channel,
+        customLabel: c.customLabel,
+      });
       return {
         name,
         spend: c.amount,
@@ -230,16 +256,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const salesByDay = useSampleDesk
       ? await fetchSampleSalesByDay(shop.id, histWindow)
       : await getSalesFactsByDay(shop.id, histWindow);
-    const { rows: dailyRows } = await buildDailyRowsForWindow(shop.id, {
-      sampleOnly: useSampleDesk,
-      excludeSample: !useSampleDesk,
-      salesByDay,
-      windowStart: histWindow.start,
-      windowEnd: histWindow.end,
-      timeZone: histTz,
-    });
+    const { rows: dailyRows, channelLabels } = await buildDailyRowsForWindow(
+      shop.id,
+      {
+        sampleOnly: useSampleDesk,
+        excludeSample: !useSampleDesk,
+        salesByDay,
+        windowStart: histWindow.start,
+        windowEnd: histWindow.end,
+        timeZone: histTz,
+      },
+    );
     const historyDays = capHistoryDays(
-      toHistoryDays(dailyRows),
+      toHistoryDays(dailyRows, channelLabels),
       HISTORY_QUARTER_DAYS_CAP,
     );
     const periodStartKey = histTz
