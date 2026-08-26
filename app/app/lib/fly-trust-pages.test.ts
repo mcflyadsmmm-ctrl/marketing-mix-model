@@ -48,8 +48,10 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     const src = pages.support;
     expect(src).toMatch(/live Shopify Admin app/i);
     expect(src).toMatch(/\.myshopify\.com/);
-    expect(src).toMatch(/SAMPLE \/ Practice/i);
+    // Views are Sample data | Live data. "Practice" is not a desk view.
+    expect(src).toMatch(/Sample data/);
     expect(src).toMatch(/Live data/i);
+    expect(src).not.toMatch(/practice/i);
     expect(src).toMatch(/top Admin frame/i);
     expect(src).toMatch(/every named platform/i);
     expect(src).toMatch(/\$39/);

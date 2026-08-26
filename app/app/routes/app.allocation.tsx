@@ -328,7 +328,7 @@ export default function AllocationPage() {
   const allocation = salesError ? null : metrics.allocation;
 
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : shotMode
       ? metrics.period.label
       : salesError ||

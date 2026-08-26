@@ -38,9 +38,9 @@ export function DataModeBar({
         role="status"
       >
         <p className="mcfly-data-mode__status">
-          <strong>{PRODUCT_NOUN.practiceDesk}</strong>
+          <strong>{PRODUCT_NOUN.sampleData}</strong>
           <span aria-hidden="true"> · </span>
-          {PRODUCT_NOUN.practiceHint}
+          {PRODUCT_NOUN.sampleHint}
         </p>
       </div>
     );
@@ -79,9 +79,9 @@ export function DataModeBar({
     return (
       <div className="mcfly-data-mode mcfly-data-mode--real-only" role="status">
         <p className="mcfly-data-mode__status">
-          <strong>{PRODUCT_NOUN.yourStore}</strong>
+          <strong>{PRODUCT_NOUN.liveData}</strong>
           <span aria-hidden="true"> · </span>
-          {PRODUCT_NOUN.practiceHiddenStatus}
+          {PRODUCT_NOUN.sampleHiddenStatus}
         </p>
         {activationIncomplete ? (
           <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
@@ -126,7 +126,7 @@ export function DataModeBar({
                 .join(" ")}
               aria-pressed={useSampleDesk}
             >
-              {PRODUCT_NOUN.practiceDesk}
+              {PRODUCT_NOUN.sampleData}
             </button>
           </Form>
           <Form method="post" action={action} className="mcfly-data-mode__form">
@@ -142,14 +142,14 @@ export function DataModeBar({
                 .join(" ")}
               aria-pressed={!useSampleDesk}
             >
-              {PRODUCT_NOUN.yourStore}
+              {PRODUCT_NOUN.liveData}
             </button>
           </Form>
         </div>
         <p className="mcfly-data-mode__hint">
           {useSampleDesk
-            ? PRODUCT_NOUN.practiceHint
-            : PRODUCT_NOUN.yourStoreHint}
+            ? PRODUCT_NOUN.sampleHint
+            : PRODUCT_NOUN.liveDataHint}
         </p>
       </div>
 

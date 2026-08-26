@@ -216,12 +216,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         // ignore — banners disclose incomplete facts
       });
     }
-    // Till LTV OrderFact ingest — Pro only (Free teasers do not crawl orders).
-    if (entitlements.canUseLtv) {
-      void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-        // ignore — panel shows empty/backfilling until cohorts land
-      });
-    }
+    // LTV cohort ingest — part of the one desk, chunked so paint stays fast.
+    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+      // ignore — panel shows empty/backfilling until cohorts land
+    });
 
     const desk = await loadDeskSalesForPeriod({
       admin,
@@ -363,7 +361,7 @@ export default function Dashboard() {
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : shotMode
       ? metrics.period.label
       : salesError ||
@@ -522,7 +520,7 @@ export default function Dashboard() {
             slot="primary-action"
             variant="primary"
             href={spendHref}
-            aria-label="See practice spend mix"
+            aria-label="See sample spend mix"
           >
             See spend mix
           </s-button>

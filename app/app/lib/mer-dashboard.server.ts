@@ -52,7 +52,6 @@ import { countNewBuyersInRange } from "./order-facts.server";
 import {
   filterToAllowedChannels,
   getShopEntitlements,
-  proRequiredLtvSummary,
 } from "./entitlements.server";
 import {
   actionSalesForBasis,
@@ -1118,8 +1117,8 @@ export async function buildDashboardMetrics(
       : Promise.resolve(null),
   ]);
 
-  // Free live: Meta+Google only so Total ROAS cannot be inflated by Pro channels.
-  // SAMPLE desk keeps the full demo mix (do not filter).
+  // Drop unknown channel strings only — every real channel counts on every
+  // plan. SAMPLE desk keeps the full demo mix (do not filter).
   const spendEntries = useSampleDesk
     ? spendEntriesRaw
     : filterToAllowedChannels(entitlements, spendEntriesRaw);
@@ -1239,27 +1238,21 @@ export async function buildDashboardMetrics(
     };
   }
 
-  let tillLtv: TillLtvSummary;
-  if (!entitlements.canUseLtv) {
-    // Free + live: do not compute / expose proprietary cohort LTV.
-    tillLtv = proRequiredLtvSummary(range.label);
-  } else {
-    const tillNewBuyers =
-      useSampleDesk
+  // LTV is part of the one desk — no plan branch. Trial and paid both compute it.
+  const tillNewBuyers = useSampleDesk
+    ? (honestSales.newCustomers ?? 0)
+    : ((await countNewBuyersInRange(shop.id, range)) ??
+      (honestSales.customerMetricsAvailable
         ? (honestSales.newCustomers ?? 0)
-        : (await countNewBuyersInRange(shop.id, range)) ??
-          (honestSales.customerMetricsAvailable
-            ? (honestSales.newCustomers ?? 0)
-            : 0);
+        : 0));
 
-    tillLtv = await buildTillLtvSummary(shop.id, {
-      totalSpend,
-      newCustomers: tillNewBuyers,
-      periodLabel: range.label,
-      useSampleDesk,
-      ianaTimezone: deskTz,
-    });
-  }
+  const tillLtv: TillLtvSummary = await buildTillLtvSummary(shop.id, {
+    totalSpend,
+    newCustomers: tillNewBuyers,
+    periodLabel: range.label,
+    useSampleDesk,
+    ianaTimezone: deskTz,
+  });
 
   const spendRecon = spendReconMatchesPeriod(
     settings.declaredAdsSpendPeriodStart,

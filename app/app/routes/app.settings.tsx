@@ -597,8 +597,8 @@ export default function SettingsPage() {
                   Right now:{" "}
                   <strong>
                     {useSampleDesk
-                      ? PRODUCT_NOUN.practiceDesk
-                      : PRODUCT_NOUN.yourStore}
+                      ? PRODUCT_NOUN.sampleData
+                      : PRODUCT_NOUN.liveData}
                   </strong>
                   {samplePreviewAllowed
                     ? " · Sample data option is available"

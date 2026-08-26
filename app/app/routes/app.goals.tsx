@@ -569,7 +569,7 @@ export default function GoalsPage() {
   const ytdTone = deltaTone(board.ytd.delta, board.ytd.goal);
   const forecast = board.forecast;
   const tillLabel = useSampleDesk
-    ? `${periodMetrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${periodMetrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : salesError ||
         periodMetrics.blockedMockAsLive ||
         periodMetrics.salesSource === "mock"

@@ -155,22 +155,3 @@ export function filterToAllowedChannels<T extends { channel: string }>(
   return entries.filter((e) => allowed.has(e.channel));
 }
 
-export function proRequiredLtvSummary(periodLabel: string | null = null) {
-  return {
-    available: false as const,
-    historyLimited: false,
-    emptyReason: "pro_required" as const,
-    cohortCount: 0,
-    avgRevenueD30: null,
-    avgRevenueD90: null,
-    avgRevenueD365: null,
-    cashCac: null,
-    newBuyers: 0,
-    ltvCacRatio: null,
-    cohorts: [],
-    repeatRate: null,
-    avgOrdersD90: null,
-    paybackDays: null,
-    periodLabel,
-  };
-}

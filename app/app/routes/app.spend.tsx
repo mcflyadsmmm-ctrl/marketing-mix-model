@@ -326,7 +326,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
   const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
-  // SAMPLE ON → show sample rows (practice mix). SAMPLE OFF → real uploads only.
+  // SAMPLE ON → show sample rows. SAMPLE OFF → this shop's own uploads only.
   const [entries, dayCoverage] = await Promise.all([
     prisma.spendEntry.findMany({
       where: { shopId: shop.id, ...spendSourceWhere },

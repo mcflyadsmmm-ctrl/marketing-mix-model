@@ -19,9 +19,9 @@ export const SPEND_UPSERT_BATCH_SIZE = 500;
 const SPEND_UPSERT_TX_TIMEOUT_MS = 60_000;
 const SPEND_UPSERT_TX_MAX_WAIT_MS = 10_000;
 
-/** Thrown when a live write includes channels outside the shop's plan. */
+/** Thrown when a live write includes a channel string the engine does not know. */
 export class SpendChannelEntitlementError extends Error {
-  readonly code = "pro_required" as const;
+  readonly code = "invalid_channel" as const;
 
   constructor(message: string) {
     super(message);

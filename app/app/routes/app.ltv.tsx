@@ -57,14 +57,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
-    // Cohort OrderFact backfill — Pro / SAMPLE only (not Free live).
-    if (entitlements.canUseLtv) {
-      void runOrderFactsBackfill(admin, shop.id, {
-        maxDays: ORDER_FACT_MAX_DAYS_PER_RUN,
-      }).catch(() => {
-        // ignore — page shows honest empty/backfill states until cohort facts land
-      });
-    }
+    // Cohort OrderFact backfill — one desk, chunked so paint stays fast.
+    void runOrderFactsBackfill(admin, shop.id, {
+      maxDays: ORDER_FACT_MAX_DAYS_PER_RUN,
+    }).catch(() => {
+      // ignore — page shows honest empty/backfill states until cohort facts land
+    });
     /*
      * HARD-STOP: same as Home / Close / Allocation — never unbounded
      * fetchShopifySales for a multi-day period. Facts + capped today only.
@@ -123,7 +121,7 @@ export default function LtvPage() {
   const isLoading = navigation.state === "loading";
 
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : shotMode
       ? metrics.period.label
       : salesError ||

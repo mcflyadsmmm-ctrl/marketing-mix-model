@@ -100,14 +100,14 @@ export const PRODUCT_NOUN = {
   allocationHeuristic:
     "Shift spend to protect break-even. Keep at least half of this period’s spend.",
   /** Sample data | Live data — never Free/Pro/trial as a view */
-  practiceDesk: "Sample data",
-  yourStore: "Live data",
-  practicePeriodSuffix: " · Sample data",
-  practiceHint:
+  sampleData: "Sample data",
+  liveData: "Live data",
+  samplePeriodSuffix: " · Sample data",
+  sampleHint:
     "Example numbers so you can click around. Not this shop’s Shopify sales.",
-  yourStoreHint:
+  liveDataHint:
     "This shop’s Shopify sales and the ad spend you add.",
-  practiceHiddenStatus: "Sample data is hidden in Settings",
+  sampleHiddenStatus: "Sample data is hidden in Settings",
   samplePreview: "Sample data",
   samplePreviewOn: "Sample data is on — example numbers, not this shop",
   samplePreviewOffCta: "Switch to Live data",

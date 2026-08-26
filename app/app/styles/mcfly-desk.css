@@ -3691,7 +3691,7 @@
   line-height: 1.3;
 }
 
-/* Soft Pro teaser for cohort half only */
+/* Cohort-half empty state while LTV facts backfill */
 .mcfly-acq-ltv-teaser {
   margin: 0;
   padding: 1rem 1.1rem 1.15rem;
@@ -9651,7 +9651,7 @@
   color: var(--mcfly-ink-muted, #5c6b7a);
 }
 
-/* Global Practice | Your store bar (every app page) */
+/* Global Sample data | Live data bar (every app page) */
 .mcfly-data-mode {
   margin: 0 0 0.85rem;
   padding: 0.65rem 0.85rem;

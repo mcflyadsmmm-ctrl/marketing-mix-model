@@ -20,7 +20,6 @@ export type TillLtvEmptyReason =
   | "no_timezone"
   | "history_limited"
   | "backfilling"
-  | "pro_required"
   | null;
 
 export interface TillLtvSummary {
@@ -28,7 +27,7 @@ export interface TillLtvSummary {
   historyLimited: boolean;
   /**
    * Honest empty-state reason when `available` is false:
-   * no_timezone | history_limited | backfilling | pro_required.
+   * no_timezone | history_limited | backfilling.
    */
   emptyReason: TillLtvEmptyReason;
   cohortCount: number;

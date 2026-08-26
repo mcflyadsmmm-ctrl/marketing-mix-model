@@ -15,7 +15,7 @@ describe("Sample data | Live data UX", () => {
     expect(bar).toContain("shotMode");
     expect(bar).toMatch(/if \(shotMode\)/);
     expect(bar).toContain("mcfly-data-mode--shot");
-    expect(bar).toContain("practiceHint");
+    expect(bar).toContain("sampleHint");
     const shell = read("../routes/app.tsx");
     expect(shell).toContain("shotMode={shotMode}");
     expect(shell).not.toMatch(/\{!shotMode \? \(/);
@@ -26,15 +26,15 @@ describe("Sample data | Live data UX", () => {
 
   it("top toggle labels Sample data vs Live data", () => {
     const bar = read("../components/DataModeBar.tsx");
-    expect(bar).toContain("yourStore");
-    expect(bar).toContain("practiceDesk");
-    expect(bar).toContain("practiceHint");
-    expect(bar).toContain("yourStoreHint");
+    expect(bar).toContain("liveData");
+    expect(bar).toContain("sampleData");
+    expect(bar).toContain("sampleHint");
+    expect(bar).toContain("liveDataHint");
     expect(bar).not.toMatch(/Turn SAMPLE preview OFF/);
     expect(bar).not.toContain("Before App Store review");
     const labels = read("../lib/product-labels.ts");
-    expect(labels).toContain('practiceDesk: "Sample data"');
-    expect(labels).toContain('yourStore: "Live data"');
+    expect(labels).toContain('sampleData: "Sample data"');
+    expect(labels).toContain('liveData: "Live data"');
   });
 
   it("plan block previews Sample data via data-mode POST, not /app/demo", () => {

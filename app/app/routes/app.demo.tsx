@@ -67,7 +67,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       );
       return {
         ok: true as const,
-        message: `Loaded ${result.days.toLocaleString()} practice days. Open ${PRODUCT_NOUN.deskTitle}.`,
+        message: `Sample data ready — ${result.days.toLocaleString()} days. Open ${PRODUCT_NOUN.deskTitle}.`,
         result,
       };
     }

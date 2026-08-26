@@ -81,7 +81,7 @@ export default function App() {
   return (
     <AppProvider embedded apiKey={apiKey}>
       <BillingExitProvider plansUrl={plansUrl}>
-        {/* Always show desk nav — empty states / Pro gates live on pages.
+        {/* Always show desk nav — empty states live on pages.
             Do not hide tabs when Your store (Sample off); that felt broken.
             period + shot stay on every tab so the date slicer matches. */}
         <s-app-nav>

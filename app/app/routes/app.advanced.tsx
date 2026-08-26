@@ -86,7 +86,7 @@ export default function AdvancedMetricsPage() {
   const isLoading = navigation.state === "loading";
 
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : salesError ||
         metrics.blockedMockAsLive ||
         metrics.salesSource === "mock"
