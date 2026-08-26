@@ -58,6 +58,10 @@ import {
   parseSalesBasis,
 } from "./sales-basis";
 import { spendBucketKey, spendChannelLabel } from "./spend-channel-label";
+import {
+  resolveSalesReadiness,
+  type SalesCoverageSlice,
+} from "./sales-pending";
 
 const CHANNEL_DISPLAY = SPEND_CHANNEL_LABELS;
 
@@ -1050,11 +1054,7 @@ export async function buildDashboardMetrics(
      * Closed-day SalesDayFact coverage for `range`. Drives sales-pending
      * suppression and blocks break-even advice while backfill runs.
      */
-    salesCoverage?: {
-      complete: boolean;
-      factDays: number;
-      periodExceedsFactWindow: boolean;
-    } | null;
+    salesCoverage?: SalesCoverageSlice | null;
   },
 ): Promise<DashboardMetrics> {
   const shop = await ensureShop(shopDomain);
@@ -1172,25 +1172,11 @@ export async function buildDashboardMetrics(
     },
     salesBasis,
   );
-  /**
-   * Live desk, backfill running, and not one closed sales day has landed:
-   * sales are unknown for this period, not $0. Suppress the ratio instead of
-   * painting 0.00× — a merchant seeing 0.00× reads it as "my ads made nothing".
-   */
-  const salesCoverage = options?.salesCoverage ?? null;
-  const salesPending =
-    !useSampleDesk &&
-    salesCoverage != null &&
-    !salesCoverage.complete &&
-    !salesCoverage.periodExceedsFactWindow &&
-    salesCoverage.factDays <= 0 &&
-    action.sales <= 0;
-  /** Any missing closed day makes break-even advice premature (not just zero days). */
-  const salesCoverageIncomplete =
-    !useSampleDesk &&
-    salesCoverage != null &&
-    !salesCoverage.complete &&
-    !salesCoverage.periodExceedsFactWindow;
+  const { salesPending, salesCoverageIncomplete } = resolveSalesReadiness({
+    coverage: options?.salesCoverage,
+    sales: action.sales,
+    useSampleDesk,
+  });
   const mer = salesPending ? null : computeMer(action.sales, totalSpend);
   const newCustomerNetSales = honestSales.newCustomerNetSales ?? 0;
   const returningCustomerNetSales =
