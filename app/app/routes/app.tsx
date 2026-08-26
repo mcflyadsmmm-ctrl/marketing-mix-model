@@ -1,5 +1,5 @@
 import type { HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
-import { Outlet, useLoaderData, useRouteError } from "react-router";
+import { Outlet, useLoaderData, useRouteError, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
@@ -17,6 +17,7 @@ import { DataModeBar } from "../components/DataModeBar";
 import { BillingExitProvider } from "../lib/billing-exit-context";
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { buildManagedPricingPlansUrl } from "../lib/billing.server";
+import { deskNavHrefFromSearch } from "../lib/desk-nav";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
 import deskStyles from "../styles/mcfly-desk.css?url";
@@ -75,20 +76,36 @@ export default function App() {
     shotMode,
     plansUrl,
   } = useLoaderData<typeof loader>();
+  const [searchParams] = useSearchParams();
 
   return (
     <AppProvider embedded apiKey={apiKey}>
       <BillingExitProvider plansUrl={plansUrl}>
         {/* Always show desk nav — empty states / Pro gates live on pages.
-            Do not hide tabs when Your store (Sample off); that felt broken. */}
+            Do not hide tabs when Your store (Sample off); that felt broken.
+            period + shot stay on every tab so the date slicer matches. */}
         <s-app-nav>
-          <s-link href="/app">Overview</s-link>
-          <s-link href="/app/spend">Spend</s-link>
-          <s-link href="/app/goals">Goals</s-link>
-          <s-link href="/app/allocation">{PRODUCT_NOUN.spendAllocation}</s-link>
-          <s-link href="/app/ltv">LTV / Acquisition</s-link>
-          <s-link href="/app/advanced">Advanced</s-link>
-          <s-link href="/app/settings">Settings</s-link>
+          <s-link href={deskNavHrefFromSearch("/app", searchParams)}>
+            Overview
+          </s-link>
+          <s-link href={deskNavHrefFromSearch("/app/spend", searchParams)}>
+            Spend
+          </s-link>
+          <s-link href={deskNavHrefFromSearch("/app/goals", searchParams)}>
+            Goals
+          </s-link>
+          <s-link href={deskNavHrefFromSearch("/app/allocation", searchParams)}>
+            {PRODUCT_NOUN.spendAllocation}
+          </s-link>
+          <s-link href={deskNavHrefFromSearch("/app/ltv", searchParams)}>
+            LTV / Acquisition
+          </s-link>
+          <s-link href={deskNavHrefFromSearch("/app/advanced", searchParams)}>
+            Advanced
+          </s-link>
+          <s-link href={deskNavHrefFromSearch("/app/settings", searchParams)}>
+            Settings
+          </s-link>
         </s-app-nav>
         <DataModeBar
           useSampleDesk={useSampleDesk}

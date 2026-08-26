@@ -3,10 +3,16 @@
  * Client-safe. Keep “true ROAS”, pixels, and competitor names out of chrome.
  */
 
+import { deskNavHref, type DeskNavOpts } from "./desk-nav";
 import { formatCurrency, formatMer } from "./mer-format";
 
 /** Primary Spend CTA — one-day invoice entry, not the CSV drawer. */
 export const SPEND_ADD_HREF = "/app/spend#mcfly-spend-add";
+
+/** Same Add spend deep link, keeping the Overview/Goals/LTV date slicer. */
+export function spendAddHref(opts: DeskNavOpts = {}): string {
+  return deskNavHref("/app/spend", { ...opts, hash: "mcfly-spend-add" });
+}
 
 /** CSV / Ads Manager export drawer (coverage holes, many days). */
 export const SPEND_CSV_HREF = "/app/spend#mcfly-spend-uploads";

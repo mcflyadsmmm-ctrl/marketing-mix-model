@@ -348,10 +348,10 @@ export function formatPeriodQuery(range: DateRange): string {
 
 export const PERIOD_PRESETS: { value: PeriodPreset; label: string }[] = [
   { value: "mtd", label: "MTD" },
-  { value: "lm", label: "LM" },
+  { value: "lm", label: "Last month" },
   { value: "qtd", label: "QTD" },
   { value: "ytd", label: "YTD" },
-  { value: "l12m", label: "L12M" },
+  { value: "l12m", label: "Last 12 months" },
   { value: "y3", label: "3 yr" },
 ];
 

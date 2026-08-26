@@ -36,7 +36,7 @@ import { NumberHonestyPanel } from "../components/NumberHonestyPanel";
 import { PRO_UPSELL } from "../lib/entitlements";
 import {
   NUMBER_HONESTY,
-  SPEND_ADD_HREF,
+  spendAddHref,
 } from "../lib/number-honesty";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import {
@@ -73,6 +73,7 @@ import {
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
+  explorerQueryMatchingScoreboard,
 } from "../lib/spend-explorer";
 
 function channelDisplayLabel(channel: string): string {
@@ -108,33 +109,36 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     next.set("period", "ytd");
     throw redirect(`/app?${next.toString()}`);
   }
-  // Desk default: short window (14d) when explorer range unset.
-  const exRange = parseExplorerRange(url.searchParams.get("exRange") || "14d");
   const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
   const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
-  const exFrom = parseExplorerDateParam(url.searchParams.get("exFrom"));
-  const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
-  const range = resolvePeriod(
-    preset,
-    now,
-    deskPeriodTimeZone(useSampleDesk, ianaTimezone),
-  );
-  const priorRange = resolvePriorPeriod(
-    preset,
-    now,
-    deskPeriodTimeZone(useSampleDesk, ianaTimezone),
-  );
+  const deskTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
+  const range = resolvePeriod(preset, now, deskTz);
+  const priorRange = resolvePriorPeriod(preset, now, deskTz);
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
   });
+
+  const exRangeParam = url.searchParams.get("exRange");
+  const tiedExplorer = exRangeParam
+    ? null
+    : explorerQueryMatchingScoreboard(preset, range, deskTz);
+  const exRange = exRangeParam
+    ? parseExplorerRange(exRangeParam)
+    : (tiedExplorer?.range ?? "custom");
+  const exFrom = exRangeParam
+    ? parseExplorerDateParam(url.searchParams.get("exFrom"))
+    : (tiedExplorer?.from ?? null);
+  const exTo = exRangeParam
+    ? parseExplorerDateParam(url.searchParams.get("exTo"))
+    : (tiedExplorer?.to ?? null);
 
   let sales: SalesResult = emptySales("shopify");
   /** Null when prior facts are outside the window / failed — skip deltas (never fake 0). */
@@ -219,10 +223,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         // ignore — banners disclose incomplete facts
       });
     }
-    // Till LTV OrderFact ingest — throttled like sales facts (≤2 closed days / paint).
-    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-      // ignore — panel shows empty/backfilling until cohorts land
-    });
+    // Till LTV OrderFact ingest — Pro only (Free teasers do not crawl orders).
+    if (entitlements.canUseLtv) {
+      void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+        // ignore — panel shows empty/backfilling until cohorts land
+      });
+    }
 
     const desk = await loadDeskSalesForPeriod({
       admin,
@@ -360,6 +366,7 @@ export default function Dashboard() {
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
+  const spendHref = spendAddHref({ period: preset, shot: shotMode });
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel = useSampleDesk
@@ -512,7 +519,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href={SPEND_ADD_HREF}
+            href={spendHref}
             aria-label="See practice spend mix"
           >
             See spend mix
@@ -521,7 +528,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href={SPEND_ADD_HREF}
+            href={spendHref}
             aria-label="Update spend"
           >
             Update spend
@@ -539,7 +546,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href={SPEND_ADD_HREF}
+            href={spendHref}
             aria-label={PRODUCT_NOUN.setupAddSpend}
           >
             {PRODUCT_NOUN.setupAddSpend}
@@ -605,7 +612,7 @@ export default function Dashboard() {
               {freshLabel}
             </span>
             {!shotMode && scoreboardReady ? (
-              <s-link href={SPEND_ADD_HREF}>Update spend</s-link>
+              <s-link href={spendHref}>Update spend</s-link>
             ) : null}
             {metrics.spendCoverage?.incomplete &&
             !shotMode &&
@@ -662,13 +669,13 @@ export default function Dashboard() {
                   </s-stack>
                   <s-button
                     variant="primary"
-                    href={SPEND_ADD_HREF}
+                    href={spendHref}
                     aria-label={PRODUCT_NOUN.setupAddSpend}
                   >
                     {PRODUCT_NOUN.setupAddSpend}
                   </s-button>
                   <p className="mcfly-cold-empty__foot">
-                    Next: <s-link href={SPEND_ADD_HREF}>{PRODUCT_NOUN.setupAddSpend}</s-link>
+                    Next: <s-link href={spendHref}>{PRODUCT_NOUN.setupAddSpend}</s-link>
                     {" · "}
                     Switch to Practice at the top for example numbers
                   </p>
@@ -693,7 +700,7 @@ export default function Dashboard() {
                   </s-stack>
                   <s-button
                     variant="primary"
-                    href={SPEND_ADD_HREF}
+                    href={spendHref}
                     aria-label={PRODUCT_NOUN.setupAddSpend}
                   >
                     {PRODUCT_NOUN.setupAddSpend}
@@ -771,7 +778,7 @@ export default function Dashboard() {
                       Logged · {formatCurrency(metrics.totalSpend)} this period
                     </p>
                   ) : (
-                    <s-button href={SPEND_ADD_HREF} variant="primary">
+                    <s-button href={spendHref} variant="primary">
                       {PRODUCT_NOUN.setupAddSpend}
                     </s-button>
                   )}
@@ -819,7 +826,7 @@ export default function Dashboard() {
                       {PRODUCT_NOUN.setupSetGoals}
                     </s-button>
                     <s-button
-                      href={SPEND_ADD_HREF}
+                      href={spendHref}
                       variant="primary"
                     >
                       Update spend
@@ -889,7 +896,7 @@ export default function Dashboard() {
                       </p>
                     )}
                     <p className="mcfly-hero-compact__dive">
-                      <s-link href={SPEND_ADD_HREF}>
+                      <s-link href={spendHref}>
                         Update spend
                       </s-link>
                       {" · "}
@@ -926,7 +933,7 @@ export default function Dashboard() {
             <div className="mcfly-me-spine">
               <div className="mcfly-explorer-csv-bar">
                 <s-button
-                  href={SPEND_ADD_HREF}
+                  href={spendHref}
                   variant="primary"
                 >
                   Update spend

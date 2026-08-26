@@ -162,8 +162,9 @@ export function SpendHowTo({ empty }: SpendHowToProps) {
         </li>
       </ol>
       <p>
-        Sales load from Shopify automatically. Empty days are not $0 — add them
-        when you have the invoices. Last month is enough to start.
+        Sales load from Shopify automatically. Type yesterday’s Meta and a
+        billboard — both sit next to yesterday’s Shopify sales.{" "}
+        A day with no spend row is $0. Last month is enough to start.
       </p>
     </section>
   );

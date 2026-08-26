@@ -17,6 +17,7 @@ import {
   SPEND_CHANNEL_LABELS,
   type SpendChannel,
 } from "@mcfly/mer-engine";
+import { PeriodControl } from "../components/PeriodControl";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import {
   SpendExportWalkthrough,
@@ -32,8 +33,10 @@ import {
   ensureShop,
 } from "../lib/mer-dashboard.server";
 import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod, type PeriodPreset } from "../lib/periods";
+import { deskNavHref } from "../lib/desk-nav";
 import {
   dateKeyFromLocal,
+  explorerQueryMatchingScoreboard,
   parseExplorerDateParam,
   parseExplorerGranularity,
   parseExplorerMode,
@@ -58,6 +61,7 @@ import {
   aggregateSpendRows,
   combineSpendCsvInputs,
   parseSpendCsv,
+  parseForceChannel,
   assertSpendCsvLimits,
   SPEND_CSV_MAX_BYTES,
   buildSelectedPlatformTemplateCsv,
@@ -324,13 +328,40 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const spendSourceWhere = sampleDesk.enabled
     ? { source: "sample" as const }
     : { source: { not: "sample" } };
-  // Spend tab default: 90 closed days so history backfill is visible. Overview stays 14d.
-  const exRange = parseExplorerRange(url.searchParams.get("exRange") || "90d");
+  const periodRange = resolvePeriod(preset, now, timeZone);
   const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
   const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
-  const exFrom = parseExplorerDateParam(url.searchParams.get("exFrom"));
-  const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
+  // SAMPLE ON → show sample rows (practice mix). SAMPLE OFF → real uploads only.
+  const [entries, dayCoverage] = await Promise.all([
+    prisma.spendEntry.findMany({
+      where: { shopId: shop.id, ...spendSourceWhere },
+      orderBy: { periodStart: "desc" },
+      take: 20,
+    }),
+    loadSpendDayCoverage(shop.id, sampleDesk.enabled),
+  ]);
+
+  const explicitExRange = url.searchParams.get("exRange");
+  const historyFirstEmpty =
+    entries.length === 0 && !sampleDesk.enabled && !shotMode;
+  const tiedExplorer =
+    explicitExRange || historyFirstEmpty
+      ? null
+      : explorerQueryMatchingScoreboard(preset, periodRange, timeZone);
+  // Empty Your store: 90 closed days so Fill history is visible. After the
+  // first save, the chart follows the same date slicer as Overview.
+  const exRange = explicitExRange
+    ? parseExplorerRange(explicitExRange)
+    : historyFirstEmpty
+      ? parseExplorerRange("90d")
+      : (tiedExplorer?.range ?? "custom");
+  const exFrom = explicitExRange
+    ? parseExplorerDateParam(url.searchParams.get("exFrom"))
+    : (tiedExplorer?.from ?? null);
+  const exTo = explicitExRange
+    ? parseExplorerDateParam(url.searchParams.get("exTo"))
+    : (tiedExplorer?.to ?? null);
   const explorerWindow = resolveExplorerWindow(exRange, now, {
     from: exFrom,
     to: exTo,
@@ -341,15 +372,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     end: explorerWindow.end,
     label: explorerWindow.label,
   };
-  // SAMPLE ON → show sample rows (practice mix). SAMPLE OFF → real uploads only.
-  const [entries, dayCoverage] = await Promise.all([
-    prisma.spendEntry.findMany({
-      where: { shopId: shop.id, ...spendSourceWhere },
-      orderBy: { periodStart: "desc" },
-      take: 20,
-    }),
-    loadSpendDayCoverage(shop.id, sampleDesk.enabled),
-  ]);
 
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: sampleDesk.enabled,
@@ -623,11 +645,7 @@ async function handleCsvImport(
     return { error: limits.error, success: false };
   }
 
-  const forceRaw = String(form.get("forceChannel") ?? "").trim().toLowerCase();
-  const forceChannel =
-    forceRaw === "meta" || forceRaw === "google"
-      ? (forceRaw as CsvChannel)
-      : undefined;
+  const forceChannel = parseForceChannel(String(form.get("forceChannel") ?? ""));
   const confirmReplace =
     String(form.get("confirm_replace") ?? "") === "1" ||
     String(form.get("confirm_replace") ?? "") === "true";
@@ -1009,6 +1027,10 @@ export default function SpendEntryPage() {
   const submittingIntent =
     navigation.formData?.get("intent")?.toString() ?? null;
   const isEmpty = entries.length === 0;
+  const overviewHref = deskNavHref("/app", {
+    period: preset,
+    shot: shotMode,
+  });
   const historyFirst = isEmpty && !sampleDesk.enabled && !shotMode;
   const csv = actionData?.csv;
   const csvSaved = Boolean(actionData?.success && csv);
@@ -1061,7 +1083,7 @@ export default function SpendEntryPage() {
   const [platformsHydrated, setPlatformsHydrated] = useState(false);
   /** Survives confirm_replace re-submit after file input clears. */
   const [csvPayload, setCsvPayload] = useState("");
-  const [forceChannel, setForceChannel] = useState<"" | "meta" | "google">("");
+  const [forceChannel, setForceChannel] = useState<"" | CsvChannel>("");
   const [confirmReplace, setConfirmReplace] = useState(false);
   /** Default open so channel pick is obvious; still collapsible. */
   const [channelsOpen, setChannelsOpen] = useState(isEmpty);
@@ -1157,6 +1179,25 @@ export default function SpendEntryPage() {
     a.download = lumpSpreadFilename(result.plan);
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function submitForcedChannel(channel: CsvChannel) {
+    const form = document.getElementById("mcfly-spend-csv-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    const hidden = form.querySelector('input[name="forceChannel"]');
+    if (hidden instanceof HTMLInputElement) hidden.value = channel;
+    setForceChannel(channel);
+    setConfirmReplace(false);
+    form.requestSubmit();
+  }
+
+  function submitCsvReplaceConfirm() {
+    const form = document.getElementById("mcfly-spend-csv-form");
+    if (!(form instanceof HTMLFormElement)) return;
+    const hidden = form.querySelector('input[name="confirm_replace"]');
+    if (hidden instanceof HTMLInputElement) hidden.value = "1";
+    setConfirmReplace(true);
+    form.requestSubmit();
   }
 
   async function onSpendFileSelected(
@@ -1339,6 +1380,16 @@ export default function SpendEntryPage() {
           .filter(Boolean)
           .join(" ")}
       >
+        <div className="mcfly-ctx" aria-live="polite">
+          <div className="mcfly-ctx__main">
+            <span className="mcfly-ctx__brand">{PRODUCT_NOUN.deskTitle}</span>
+            <span className="mcfly-ctx__sep" aria-hidden="true">
+              ·
+            </span>
+            <span className="mcfly-ctx__asof">Same dates as Overview</span>
+            <PeriodControl preset={preset} shotMode={shotMode} />
+          </div>
+        </div>
         {csvNeedsConfirm && csv ? (
           <s-banner tone="warning" heading="Same days already on the desk">
             <s-paragraph>
@@ -1354,12 +1405,7 @@ export default function SpendEntryPage() {
               <s-button
                 variant="primary"
                 onClick={() => {
-                  setConfirmReplace(true);
-                  window.setTimeout(() => {
-                    document
-                      .getElementById("mcfly-spend-csv-submit")
-                      ?.click();
-                  }, 0);
+                  submitCsvReplaceConfirm();
                 }}
               >
                 Replace overlapping days
@@ -1383,7 +1429,7 @@ export default function SpendEntryPage() {
               {" · "}
               {formatCurrency(csv.totalAmount)}
               {holeCount > 0
-                ? ` · those days are in. ${holeCount} other day${holeCount === 1 ? "" : "s"} in the last 90 have no spend yet — add them when you have invoices`
+                ? " · those days are in. Days with no row are $0 — last month is enough"
                 : ""}
             </s-paragraph>
             {csv.salesWindowWarning ? (
@@ -1398,12 +1444,12 @@ export default function SpendEntryPage() {
                   >
                     Download blank for missing days
                   </s-button>
-                  <s-button href="/app" variant="tertiary">
+                  <s-button href={overviewHref} variant="tertiary">
                     View {PRODUCT_NOUN.totalRoas}
                   </s-button>
                 </>
               ) : (
-                <s-button href="/app" variant="primary">
+                <s-button href={overviewHref} variant="primary">
                   {PRODUCT_NOUN.openTotalRoas}
                 </s-button>
               )}
@@ -1415,7 +1461,7 @@ export default function SpendEntryPage() {
         {manualSaved ? (
           <s-banner tone="success" heading="Spend saved">
             <s-paragraph>
-              <s-link href="/app">{PRODUCT_NOUN.openTotalRoas}</s-link>
+              <s-link href={overviewHref}>{PRODUCT_NOUN.openTotalRoas}</s-link>
               {" · "}or add another day below.
             </s-paragraph>
           </s-banner>
@@ -1437,29 +1483,38 @@ export default function SpendEntryPage() {
             {csv?.needsForceChannel ? (
               <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
                 <s-text>This looks like a single-platform Ads export — pick which one:</s-text>
+                <label htmlFor="mcfly-spend-force-channel">
+                  Platform for this file
+                </label>
+                <select
+                  id="mcfly-spend-force-channel"
+                  defaultValue=""
+                  aria-label="Platform for this file"
+                >
+                  <option value="" disabled>
+                    Choose platform
+                  </option>
+                  {SPEND_CHANNELS.map((ch) => (
+                    <option key={ch} value={ch}>
+                      {SPEND_CHANNEL_LABELS[ch]}
+                    </option>
+                  ))}
+                </select>
                 <s-button
                   variant="primary"
                   onClick={() => {
-                    setForceChannel("meta");
-                    setConfirmReplace(false);
-                    window.setTimeout(() => {
-                      document.getElementById("mcfly-spend-csv-submit")?.click();
-                    }, 0);
+                    const select = document.getElementById(
+                      "mcfly-spend-force-channel",
+                    );
+                    const parsed =
+                      select instanceof HTMLSelectElement
+                        ? parseForceChannel(select.value)
+                        : undefined;
+                    if (!parsed) return;
+                    submitForcedChannel(parsed);
                   }}
                 >
-                  This is Meta
-                </s-button>
-                <s-button
-                  variant="secondary"
-                  onClick={() => {
-                    setForceChannel("google");
-                    setConfirmReplace(false);
-                    window.setTimeout(() => {
-                      document.getElementById("mcfly-spend-csv-submit")?.click();
-                    }, 0);
-                  }}
-                >
-                  This is Google
+                  Import as this platform
                 </s-button>
               </div>
             ) : csv ? (
@@ -1627,8 +1682,9 @@ export default function SpendEntryPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>Day · week · month</h2>
               <p className="mcfly-panel__muted">
-                Spend you added next to Shopify sales. Switch Day, Week, or
-                Month — stays on this tab.
+                {isEmpty
+                  ? "Ninety closed days so you can see where history is missing. Same date buttons as Overview."
+                  : "Spend you added next to Shopify sales for this period — same dates as Overview."}
               </p>
             </div>
             <SpendExplorer
@@ -2027,7 +2083,11 @@ export default function SpendEntryPage() {
             id="mcfly-spend-uploads"
             className="mcfly-spend-lean__upload"
           >
-            <Form method="post" encType="multipart/form-data">
+            <Form
+              id="mcfly-spend-csv-form"
+              method="post"
+              encType="multipart/form-data"
+            >
               <input type="hidden" name="intent" value="csv" />
               <input type="hidden" name="forceChannel" value={forceChannel} />
               <input
@@ -2105,23 +2165,20 @@ export default function SpendEntryPage() {
               <p className="mcfly-spend-lean__status-line">
                 ✓ Up to date through yesterday
               </p>
+            ) : entries.length === 0 ? (
+              <p className="mcfly-spend-lean__status-line">
+                No spend on Your store yet. Add yesterday’s Meta and a billboard
+                — a day with no row is $0.
+              </p>
             ) : (
               <p className="mcfly-spend-lean__status-line">
-                Spend coverage — {holeCount} day
-                {holeCount === 1 ? "" : "s"} in the last 90 have no spend yet
-                {selectedPlatforms.length > 0
-                  ? ` · ${selectedSummaryLabel}`
-                  : ""}
+                Your spend is on the desk. Days with no row are $0 — last month
+                is enough to start
                 {missingDatesPreview.length > 0 ? (
                   <>
-                    {": "}
-                    {missingDatesPreview.join(", ")}
-                    {missingDates.length > missingDatesPreview.length
-                      ? ", …"
-                      : ""}
                     {" · "}
                     <s-link href={missingDatesHref}>download blanks</s-link>
-                    {" (optional — last month is enough to start)"}
+                    {" if you want them"}
                   </>
                 ) : null}
               </p>

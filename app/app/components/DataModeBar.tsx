@@ -87,8 +87,9 @@ export function DataModeBar({
           <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
             {setupSteps}
             <p className="mcfly-data-mode__steps-note">
-              Shopify sales load automatically. You only add ad spend. Profit
-            margin is optional — it draws a break-even line.
+              Shopify sales load automatically. You only add ad spend. A day
+              with no spend row is $0 — last month is enough. Profit margin is
+              optional — it draws a break-even line.
             </p>
           </s-banner>
         ) : null}
@@ -156,8 +157,9 @@ export function DataModeBar({
         <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
           {setupSteps}
           <p className="mcfly-data-mode__steps-note">
-            Shopify sales load automatically. You only add ad spend. Profit
-            margin is optional — it draws a break-even line.
+            Shopify sales load automatically. You only add ad spend. A day
+            with no spend row is $0 — last month is enough. Profit margin is
+            optional — it draws a break-even line.
           </p>
         </s-banner>
       ) : null}

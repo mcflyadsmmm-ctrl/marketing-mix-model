@@ -167,9 +167,9 @@ export function CashTrustBanners({
       {spendCoverage?.incomplete ? (
         <s-banner tone="info" heading="More days of spend will complete this period">
           <s-paragraph>
-            {formatSpendCoverageLine(spendCoverage, periodLabel)}. Empty days
-            are not $0 — they just are not in the total yet, so {PRODUCT_NOUN.totalRoas}{" "}
-            can look high until you add the rest. Last month is enough to start.{" "}
+            {formatSpendCoverageLine(spendCoverage, periodLabel)}.{" "}
+            Days with no spend row are $0 next to that day’s sales. Add more
+            invoices when you have them — last month is enough to start.{" "}
             <s-link href="/app/spend#mcfly-spend-csv">Add more days</s-link>
           </s-paragraph>
         </s-banner>

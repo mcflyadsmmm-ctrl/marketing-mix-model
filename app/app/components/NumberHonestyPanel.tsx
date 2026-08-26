@@ -1,7 +1,8 @@
+import { useSearchParams } from "react-router";
 import {
   NUMBER_HONESTY,
-  SPEND_ADD_HREF,
   formatTotalRoasEquation,
+  spendAddHref,
 } from "../lib/number-honesty";
 
 type NumberHonestyPanelProps = {
@@ -21,7 +22,12 @@ export function NumberHonestyPanel({
   mer,
   periodLabel,
 }: NumberHonestyPanelProps) {
+  const [searchParams] = useSearchParams();
   const equation = formatTotalRoasEquation({ sales, spend, mer });
+  const addSpendHref = spendAddHref({
+    period: searchParams.get("period"),
+    shot: searchParams.get("shot") === "1",
+  });
 
   return (
     <section
@@ -34,7 +40,7 @@ export function NumberHonestyPanel({
       ) : (
         <p className="mcfly-honesty__eq mcfly-honesty__eq--empty">
           {NUMBER_HONESTY.empty}{" "}
-          <s-link href={SPEND_ADD_HREF}>Add spend</s-link>
+          <s-link href={addSpendHref}>Add spend</s-link>
         </p>
       )}
       <p className="mcfly-honesty__is">{NUMBER_HONESTY.isLine}</p>
