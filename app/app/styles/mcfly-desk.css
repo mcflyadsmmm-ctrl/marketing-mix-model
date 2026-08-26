@@ -8601,6 +8601,47 @@
   font-weight: 500;
 }
 
+/* Budget-share move vs the prior period, in percentage points. */
+.mcfly-kpi-channels__pp {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-kpi-channels__pp--up {
+  color: var(--mcfly-ok, #067647);
+}
+
+.mcfly-kpi-channels__pp--down {
+  color: var(--mcfly-warn, #b45309);
+}
+
+.mcfly-hero-compact__cashleft {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.45rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--mcfly-line-soft, #e4e9ef);
+  color: var(--mcfly-mute);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mcfly-hero-compact__cashleft strong {
+  color: var(--mcfly-ink);
+  font-size: 1.02rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.mcfly-hero-compact__cashleft-neg {
+  color: var(--mcfly-danger, #b42318);
+}
+
 .mcfly-roas-gauge__kicker {
   margin: 0;
   font-size: 0.7rem;

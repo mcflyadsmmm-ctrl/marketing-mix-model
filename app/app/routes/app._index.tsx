@@ -417,6 +417,16 @@ export default function Dashboard() {
       )
     : null;
   const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
+  /*
+   * Budget share this period vs last, in percentage points. Where the money
+   * went — never a claim about which channel caused the sale.
+   */
+  const mixDeltaByChannel = new Map(
+    metrics.mixVsPrior
+      .filter((row) => row.priorAmount > 0 || row.amount > 0)
+      .map((row) => [row.channel, row]),
+  );
+  const hasPriorMix = metrics.mixVsPrior.some((row) => row.priorAmount > 0);
   const periodChannels = [...metrics.channelMix]
     .filter((entry) => entry.amount > 0)
     .sort((a, b) => b.amount - a.amount)
@@ -425,13 +435,21 @@ export default function Dashboard() {
         channel: entry.channel,
         customLabel: entry.customLabel,
       });
+      const delta = hasPriorMix
+        ? (mixDeltaByChannel.get(name)?.deltaPp ?? null)
+        : null;
       return {
         name,
         amount: entry.amount,
         share: entry.share,
         fill: channelFillKey(name),
+        deltaPp: delta,
       };
     });
+  /** Sales minus the ads that ran alongside them — cash, not attribution. */
+  const cashLeftAfterAds = metrics.salesPending
+    ? null
+    : totalSalesDisplay - metrics.totalSpend;
 
   const shareText = formatOverviewShareText({
     periodLabel: metrics.period.label,
@@ -858,6 +876,20 @@ export default function Dashboard() {
                         : PRODUCT_NOUN.totalSalesHeroHint}
                     </p>
                     <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
+                    <p className="mcfly-hero-compact__cashleft">
+                      <span>Cash left after ads</span>
+                      <strong
+                        className={
+                          cashLeftAfterAds != null && cashLeftAfterAds < 0
+                            ? "mcfly-hero-compact__cashleft-neg"
+                            : undefined
+                        }
+                      >
+                        {cashLeftAfterAds == null
+                          ? "—"
+                          : formatCurrency(cashLeftAfterAds)}
+                      </strong>
+                    </p>
                   </div>
                   <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
                     <p className="mcfly-hero-compact__label">Total Spend</p>
@@ -893,6 +925,21 @@ export default function Dashboard() {
                                 {" "}
                                 · {formatPercent(entry.share)}
                               </span>
+                              {entry.deltaPp != null &&
+                              Math.abs(entry.deltaPp) >= 1 ? (
+                                <span
+                                  className={`mcfly-kpi-channels__pp${
+                                    entry.deltaPp > 0
+                                      ? " mcfly-kpi-channels__pp--up"
+                                      : " mcfly-kpi-channels__pp--down"
+                                  }`}
+                                  title={`Budget share vs ${priorLabel ?? "prior period"}`}
+                                >
+                                  {" "}
+                                  {entry.deltaPp > 0 ? "+" : "−"}
+                                  {Math.abs(Math.round(entry.deltaPp))}pp
+                                </span>
+                              ) : null}
                             </span>
                           </li>
                         ))}
@@ -902,6 +949,11 @@ export default function Dashboard() {
                         No channel spend in this period
                       </p>
                     )}
+                    <p className="mcfly-hero-compact__meta">
+                      {hasPriorMix
+                        ? "Share of budget vs prior period — where the money went, not who caused the sale"
+                        : "Share of budget — where the money went, not who caused the sale"}
+                    </p>
                     <p className="mcfly-hero-compact__dive">
                       <s-link href={spendHref}>
                         Update spend
