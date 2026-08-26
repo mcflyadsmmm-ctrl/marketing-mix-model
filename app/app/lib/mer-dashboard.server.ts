@@ -384,7 +384,9 @@ type SpendEntrySlice = {
  * single "Other" lump. Unlabeled `other` rows stay in the "Other" slice —
  * their dollars are always counted, never dropped.
  */
-function channelSpendFromEntries(entries: SpendEntrySlice[]): ChannelSpend[] {
+export function channelSpendFromEntries(
+  entries: SpendEntrySlice[],
+): ChannelSpend[] {
   const totals = emptyChannelTotals();
   const customTotals = new Map<string, { label: string; amount: number }>();
   for (const entry of entries) {

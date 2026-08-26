@@ -91,6 +91,50 @@ describe("channelMix", () => {
     expect(mix.map((e) => e.amount)).toEqual([100, 0]);
     expect(mix[0]?.share).toBe(1);
   });
+
+  /*
+   * A merchant's own name for an offline extra rides along so Overview can say
+   * "Billboard" instead of folding it into a single "Other" lump.
+   */
+  it("carries a custom label through to the mix entry", () => {
+    const mix = channelMix([
+      { channel: "meta", amount: 250 },
+      { channel: "other", amount: 400, customLabel: "Billboard" },
+    ]);
+    expect(mix).toEqual([
+      { channel: "meta", amount: 250, share: 0.38461538461538464 },
+      {
+        channel: "other",
+        amount: 400,
+        customLabel: "Billboard",
+        share: 0.6153846153846154,
+      },
+    ]);
+  });
+
+  it("keeps named extras and unlabeled other spend as separate slices", () => {
+    const mix = channelMix([
+      { channel: "other", amount: 90 },
+      { channel: "other", amount: 400, customLabel: "Billboard" },
+      { channel: "other", amount: 10, customLabel: "Radio" },
+    ]);
+    expect(mix.map((e) => e.customLabel)).toEqual([
+      undefined,
+      "Billboard",
+      "Radio",
+    ]);
+    // Unattributed spend keeps its dollars — nothing is dropped or merged away.
+    expect(mix.reduce((s, e) => s + e.amount, 0)).toBe(500);
+    expect(mix.reduce((s, e) => s + e.share, 0)).toBeCloseTo(1);
+  });
+
+  it("omits customLabel rather than emitting an empty name", () => {
+    const mix = channelMix([
+      { channel: "other", amount: 50, customLabel: "" },
+    ]);
+    expect(mix[0]).toEqual({ channel: "other", amount: 50, share: 1 });
+    expect("customLabel" in mix[0]).toBe(false);
+  });
 });
 
 describe("sumSpend", () => {
