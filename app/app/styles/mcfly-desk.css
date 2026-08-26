@@ -8615,6 +8615,57 @@
   color: var(--mcfly-warn, #b45309);
 }
 
+/* New vs returning cash with the spend that ran over the same dates. */
+.mcfly-split {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0 0 0.7rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--mcfly-line-soft, #e4e9ef);
+  border-radius: 6px;
+  background: var(--mcfly-surface-soft, #f7f9fb);
+}
+
+.mcfly-split__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+}
+
+.mcfly-split__k {
+  color: var(--mcfly-mute);
+  font-weight: 600;
+}
+
+.mcfly-split__v {
+  color: var(--mcfly-ink);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-split__bar {
+  height: 6px;
+  margin-top: 0.2rem;
+  border-radius: 3px;
+  background: var(--mcfly-line-soft, #e4e9ef);
+  overflow: hidden;
+}
+
+.mcfly-split__bar-new {
+  display: block;
+  height: 100%;
+  background: var(--mcfly-accent, #0284c7);
+}
+
+.mcfly-split__note {
+  margin: 0.15rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
 .mcfly-hero-compact__cashleft {
   display: flex;
   align-items: baseline;

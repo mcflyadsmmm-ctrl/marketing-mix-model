@@ -122,6 +122,66 @@ export function ltvNeedsDaysCopy(
   return `Needs ${needsDays} more ${days} for a complete ${windowDays}d window — not blank LTV.`;
 }
 
+export type NewVsReturningSplit = {
+  /** Net sales from customers buying for the first time this period. */
+  newSales: number;
+  /** Net sales from customers who had bought before. */
+  returningSales: number;
+  /** Ad spend that ran over the same dates. */
+  spend: number;
+  /** newSales ÷ (newSales + returningSales); null when there is no split yet. */
+  newShare: number | null;
+  /** False when the cohort spine has not produced a split for this period. */
+  available: boolean;
+};
+
+/**
+ * New-customer vs returning-customer cash next to the spend that ran over the
+ * same dates. The split is clamped to the shop's own sales so the two halves
+ * can never add up to more than the till took, and no part of the spend is
+ * assigned to either group.
+ */
+export function newVsReturningSplit(opts: {
+  newCustomerNetSales: number;
+  returningCustomerNetSales: number;
+  totalSpend: number;
+  /** Ceiling — the shop's sales for the period. */
+  totalSales: number;
+}): NewVsReturningSplit {
+  const clamp = (n: number) => (Number.isFinite(n) && n > 0 ? n : 0);
+  const ceiling = clamp(opts.totalSales);
+  let newSales = clamp(opts.newCustomerNetSales);
+  let returningSales = clamp(opts.returningCustomerNetSales);
+  const combined = newSales + returningSales;
+  if (ceiling > 0 && combined > ceiling) {
+    const scale = ceiling / combined;
+    newSales = roundMoney(newSales * scale);
+    returningSales = roundMoney(returningSales * scale);
+  }
+  const total = newSales + returningSales;
+  return {
+    newSales: roundMoney(newSales),
+    returningSales: roundMoney(returningSales),
+    spend: roundMoney(clamp(opts.totalSpend)),
+    newShare: total > 0 ? newSales / total : null,
+    available: total > 0,
+  };
+}
+
+/** Honest line when the cohort spine has no new/returning split yet. */
+export function newVsReturningPendingCopy(
+  emptyReason: string | null,
+): string {
+  switch (emptyReason) {
+    case "no_timezone":
+      return "New vs returning needs the shop timezone before orders can bucket by local day.";
+    case "history_limited":
+      return "New vs returning needs more order history than this shop exposes.";
+    default:
+      return "New vs returning is still backfilling from order history — it fills without any new connection.";
+  }
+}
+
 /**
  * Same-period spend vs new-customer cash. Calendar alignment only —
  * never channel attribution.

@@ -49,6 +49,19 @@ describe("Mix percent is budget share, not attribution", () => {
   });
 });
 
+describe("New vs returning vs spend", () => {
+  it("Overview shows the split beside spend and never blanks it", () => {
+    expect(overview).toContain("newVsReturningSplit");
+    expect(overview).toContain("New customers");
+    expect(overview).toContain("Returning");
+    expect(overview).toContain("newVsReturningPendingCopy");
+  });
+
+  it("labels the spend as calendar-aligned, not attribution", () => {
+    expect(overview).toMatch(/dates aligned, not attribution/);
+  });
+});
+
 describe("Spend chart mark toggle", () => {
   it("offers stacked bar and line as a URL-driven control", () => {
     expect(explorer).toContain("EXPLORER_MARK_OPTIONS");

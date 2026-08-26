@@ -20,6 +20,11 @@ import {
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
 import { channelFillKey } from "../lib/channel-fill";
+import {
+  newVsReturningPendingCopy,
+  newVsReturningSplit,
+  type NewVsReturningSplit,
+} from "../lib/contrib-ltv";
 import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -450,6 +455,12 @@ export default function Dashboard() {
   const cashLeftAfterAds = metrics.salesPending
     ? null
     : totalSalesDisplay - metrics.totalSpend;
+  const newVsReturning = newVsReturningSplit({
+    newCustomerNetSales: metrics.newCustomerNetSales,
+    returningCustomerNetSales: metrics.returningCustomerNetSales,
+    totalSpend: metrics.totalSpend,
+    totalSales: totalSalesDisplay,
+  });
 
   const shareText = formatOverviewShareText({
     periodLabel: metrics.period.label,
@@ -981,6 +992,8 @@ export default function Dashboard() {
                 <LtvSnapSection
                   tillLtv={metrics.tillLtv}
                   preset={preset}
+                  split={newVsReturning}
+                  periodLabel={metrics.period.label}
                 />
               </div>
             ) : null}
@@ -1033,6 +1046,8 @@ export default function Dashboard() {
 function LtvSnapSection({
   tillLtv,
   preset,
+  split,
+  periodLabel,
 }: {
   tillLtv: {
     available: boolean;
@@ -1045,6 +1060,8 @@ function LtvSnapSection({
     paybackDays: number | null;
   };
   preset: PeriodPreset;
+  split: NewVsReturningSplit;
+  periodLabel: string;
 }) {
   return (
     <section
@@ -1055,6 +1072,44 @@ function LtvSnapSection({
         <h2>{PRODUCT_NOUN.ltvTitle}</h2>
         <p className="mcfly-tab-snap__muted">
           Cash CAC · LTV · LTV:CAC
+        </p>
+      </div>
+
+      <div className="mcfly-split" aria-label="New vs returning vs spend">
+        <div className="mcfly-split__row">
+          <span className="mcfly-split__k">New customers</span>
+          <span className="mcfly-split__v">
+            {split.available ? formatCurrency(split.newSales) : "—"}
+          </span>
+        </div>
+        <div className="mcfly-split__row">
+          <span className="mcfly-split__k">Returning</span>
+          <span className="mcfly-split__v">
+            {split.available ? formatCurrency(split.returningSales) : "—"}
+          </span>
+        </div>
+        <div className="mcfly-split__row">
+          <span className="mcfly-split__k">Ad spend</span>
+          <span className="mcfly-split__v">
+            {formatCurrency(split.spend)}
+          </span>
+        </div>
+        {split.available && split.newShare != null ? (
+          <div
+            className="mcfly-split__bar"
+            role="img"
+            aria-label={`${Math.round(split.newShare * 100)}% of ${periodLabel} customer cash is from new customers`}
+          >
+            <span
+              className="mcfly-split__bar-new"
+              style={{ width: `${Math.round(split.newShare * 100)}%` }}
+            />
+          </div>
+        ) : null}
+        <p className="mcfly-split__note">
+          {split.available
+            ? `${Math.round((split.newShare ?? 0) * 100)}% of ${periodLabel} customer cash is new. Spend ran over the same dates — dates aligned, not attribution.`
+            : newVsReturningPendingCopy(tillLtv.emptyReason)}
         </p>
       </div>
 
