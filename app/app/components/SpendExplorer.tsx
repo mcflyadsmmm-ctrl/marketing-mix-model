@@ -26,6 +26,7 @@ import {
   type ExplorerRange,
   type ExplorerSummary,
 } from "../lib/spend-explorer";
+import { channelCssVar, sliceFillKey } from "../lib/channel-fill";
 import { CASH_LEFT_LABEL, buildMixTable } from "../lib/desk-cash";
 import { formatCurrency, formatMer, merToneBand } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -115,25 +116,18 @@ function channelLabel(
 
 /**
  * SVG fill / tip swatch class — uses CSS vars via `.mcfly-explorer__seg--*`.
- * Named extras arrive as `other:<slug>` and share the Other band colour.
+ * A named extra (`other:billboard`) gets its own fill, so Billboard reads as
+ * Billboard and never as the grey Other band.
  */
 function channelSegClass(channel: string): string {
   if (channel === "total") return "mcfly-explorer__seg--total";
-  const known = channel.split(":")[0] as SpendChannel;
-  if (known in SPEND_CHANNEL_LABELS) {
-    return `mcfly-explorer__seg--${known}`;
-  }
-  return "mcfly-explorer__seg--other";
+  return `mcfly-explorer__seg--${sliceFillKey(channel)}`;
 }
 
 /** Same palette as the segment fills, as a stroke for the line mark. */
 function channelStrokeVar(channel: string): string {
   if (channel === "total") return "var(--mcfly-accent, #0284c7)";
-  const known = channel.split(":")[0] as SpendChannel;
-  if (known in SPEND_CHANNEL_LABELS) {
-    return `var(--mcfly-${known}, var(--mcfly-other))`;
-  }
-  return "var(--mcfly-other)";
+  return channelCssVar(sliceFillKey(channel));
 }
 
 /** One phrase: "Total ROAS Z× · X sales ÷ Y spend" for tip / title / readout. */
@@ -1181,6 +1175,37 @@ export function SpendExplorer({
                       />
                     ))}
 
+                  {/*
+                    * Bands are painted first and take no pointer events, so the
+                    * per-column hit rects below sit on top of them. That way a
+                    * hover in line mode reports the column actually under the
+                    * pointer instead of guessing at a selected one.
+                    */}
+                  {mark === "line"
+                    ? model.channelBands.map((band) => (
+                        <g
+                          key={`band-${explorerSafeId(band.channel)}`}
+                          className="mcfly-explorer__band-g"
+                          pointerEvents="none"
+                        >
+                          {band.d ? (
+                            <path
+                              className={`mcfly-explorer__band ${channelSegClass(band.channel)}`}
+                              d={band.d}
+                            />
+                          ) : null}
+                          {band.points ? (
+                            <polyline
+                              className="mcfly-explorer__band-line"
+                              points={band.points}
+                              fill="none"
+                              style={{ stroke: channelStrokeVar(band.channel) }}
+                            />
+                          ) : null}
+                        </g>
+                      ))
+                    : null}
+
                   {model.columns.map((col) => {
                     const bucket = visibleBuckets.find((b) => b.key === col.key);
                     if (!bucket) return null;
@@ -1267,49 +1292,6 @@ export function SpendExplorer({
                       </g>
                     );
                   })}
-
-                  {mark === "line"
-                    ? model.channelBands.map((band) => {
-                        const hot =
-                          hover?.kind === "seg" && hover.channel === band.channel;
-                        const dim =
-                          hover?.kind === "seg" && hover.channel !== band.channel;
-                        return (
-                          <g
-                            key={`band-${explorerSafeId(band.channel)}`}
-                            className={`mcfly-explorer__band-g${hot ? " mcfly-explorer__band-g--hot" : ""}${dim ? " mcfly-explorer__band-g--dim" : ""}`}
-                          >
-                            {band.d ? (
-                              <path
-                                className={`mcfly-explorer__band ${channelSegClass(band.channel)}`}
-                                d={band.d}
-                                onPointerEnter={() => {
-                                  if (shotMode) return;
-                                  const col = model.columns[0];
-                                  if (!col) return;
-                                  setHover({
-                                    kind: "seg",
-                                    bucketKey: activeKey ?? col.key,
-                                    channel: band.channel,
-                                  });
-                                }}
-                              />
-                            ) : null}
-                            {band.points ? (
-                              <polyline
-                                className="mcfly-explorer__band-line"
-                                points={band.points}
-                                fill="none"
-                                style={{
-                                  stroke: channelStrokeVar(band.channel),
-                                }}
-                                pointerEvents="none"
-                              />
-                            ) : null}
-                          </g>
-                        );
-                      })
-                    : null}
 
                   {model.priorPeriodLine ? (
                     <polyline

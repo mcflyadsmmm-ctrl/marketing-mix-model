@@ -120,6 +120,48 @@ describe("Spend chart mark toggle", () => {
   });
 });
 
+describe("A merchant-named channel is its own series", () => {
+  const fill = read("./channel-fill.ts");
+
+  it("Billboard does not fall back to the Other fill", () => {
+    expect(fill).toContain("namedExtraFillKey");
+    expect(fill).toContain("sliceFillKey");
+    // Slug and label must normalize to the same colour.
+    expect(fill).toContain("normalizeExtra");
+    expect(explorer).toContain("sliceFillKey(channel)");
+    expect(explorer).not.toMatch(
+      /return "mcfly-explorer__seg--other";/,
+    );
+  });
+
+  it("Overview colours a named extra the same way the chart does", () => {
+    expect(overview).toContain("namedExtraFillKey(entry.customLabel)");
+  });
+
+  it("the palette has a fill for every extra slot", () => {
+    const css = read("../styles/mcfly-desk.css");
+    for (let i = 1; i <= 6; i += 1) {
+      expect(css, `--mcfly-extra-${i}`).toContain(`--mcfly-extra-${i}:`);
+      expect(css, `seg--extra-${i}`).toContain(
+        `.mcfly-explorer__seg--extra-${i}`,
+      );
+      expect(css, `spend-dot--extra-${i}`).toContain(
+        `.mcfly-spend-dot--extra-${i}`,
+      );
+    }
+  });
+});
+
+describe("Line hover", () => {
+  it("takes the column from the hit rect, never from the selection", () => {
+    // Bands are painted under the per-column hit rects and take no pointer
+    // events, so a line-mode hover cannot report a guessed column.
+    expect(explorer).toContain('pointerEvents="none"');
+    expect(explorer).not.toMatch(/bucketKey:\s*activeKey\s*\?\?/);
+    expect(explorer).not.toMatch(/const col = model\.columns\[0\]/);
+  });
+});
+
 describe("Nothing on the desk exceeds shop sales", () => {
   it("every cash view is clamped to the shop's own sales", () => {
     const cash = read("./desk-cash.ts");

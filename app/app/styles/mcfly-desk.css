@@ -41,6 +41,17 @@
   --mcfly-affiliate: #d49870;
   --mcfly-email: #9aa8b8;
   --mcfly-other: #8a96a4;
+  /*
+   * A merchant's own named channels (Billboard, Radio, a sponsorship). Deeper
+   * and more saturated than the platform pastels on purpose: offline money the
+   * merchant booked themselves should stand out from the ad accounts.
+   */
+  --mcfly-extra-1: #8b5cf6;
+  --mcfly-extra-2: #0d9488;
+  --mcfly-extra-3: #b45309;
+  --mcfly-extra-4: #be185d;
+  --mcfly-extra-5: #4338ca;
+  --mcfly-extra-6: #4d7c0f;
   /* Soft tint surfaces — Overview / Allocation / LTV aesthetic */
   --mcfly-tint-sky: #f0f7fc;
   --mcfly-tint-sales: #eef8f3;
@@ -1831,6 +1842,57 @@
   opacity: 0.85;
 }
 
+/* Merchant-named channels — Billboard is its own series, never Other. */
+.mcfly-explorer__seg--extra-1 {
+  fill: var(--mcfly-extra-1);
+}
+.mcfly-explorer__seg--extra-2 {
+  fill: var(--mcfly-extra-2);
+}
+.mcfly-explorer__seg--extra-3 {
+  fill: var(--mcfly-extra-3);
+}
+.mcfly-explorer__seg--extra-4 {
+  fill: var(--mcfly-extra-4);
+}
+.mcfly-explorer__seg--extra-5 {
+  fill: var(--mcfly-extra-5);
+}
+.mcfly-explorer__seg--extra-6 {
+  fill: var(--mcfly-extra-6);
+}
+
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-1,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-1,
+.mcfly-spend-dot--extra-1 {
+  background: var(--mcfly-extra-1);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-2,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-2,
+.mcfly-spend-dot--extra-2 {
+  background: var(--mcfly-extra-2);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-3,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-3,
+.mcfly-spend-dot--extra-3 {
+  background: var(--mcfly-extra-3);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-4,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-4,
+.mcfly-spend-dot--extra-4 {
+  background: var(--mcfly-extra-4);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-5,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-5,
+.mcfly-spend-dot--extra-5 {
+  background: var(--mcfly-extra-5);
+}
+.mcfly-explorer__ch-dot.mcfly-explorer__seg--extra-6,
+.mcfly-explorer__tip-swatch.mcfly-explorer__seg--extra-6,
+.mcfly-spend-dot--extra-6 {
+  background: var(--mcfly-extra-6);
+}
+
 .mcfly-explorer__chart--svg {
   position: relative;
 }
@@ -1933,8 +1995,6 @@
 /* Line mark — same stacked mix as the bars, drawn as bands + a top line. */
 .mcfly-explorer__band {
   opacity: 0.34;
-  cursor: pointer;
-  transition: opacity 120ms var(--mcfly-ease, ease);
 }
 
 .mcfly-explorer__band-line {
@@ -1942,22 +2002,6 @@
   stroke-linejoin: round;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
-}
-
-.mcfly-explorer__band-g--hot .mcfly-explorer__band {
-  opacity: 0.62;
-}
-
-.mcfly-explorer__band-g--hot .mcfly-explorer__band-line {
-  stroke-width: 2.8;
-}
-
-.mcfly-explorer__band-g--dim .mcfly-explorer__band {
-  opacity: 0.12;
-}
-
-.mcfly-explorer__band-g--dim .mcfly-explorer__band-line {
-  opacity: 0.3;
 }
 
 /* Cash left after ads strip — sales minus spend, per bucket, around zero. */

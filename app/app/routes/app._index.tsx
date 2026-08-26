@@ -19,7 +19,7 @@ import {
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
-import { channelFillKey } from "../lib/channel-fill";
+import { channelFillKey, namedExtraFillKey } from "../lib/channel-fill";
 import {
   newVsReturningPendingCopy,
   newVsReturningSplit,
@@ -467,7 +467,11 @@ export default function Dashboard() {
         name,
         amount: entry.amount,
         share: entry.share,
-        fill: channelFillKey(name),
+        // A merchant-named channel keeps its own colour here and on the chart.
+        fill:
+          entry.channel === "other" && entry.customLabel
+            ? namedExtraFillKey(entry.customLabel)
+            : channelFillKey(name),
         deltaPp: delta,
       };
     });

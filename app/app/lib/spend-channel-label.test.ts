@@ -149,7 +149,11 @@ describe("every spend-labeling surface shares one resolver", () => {
   it("never renders a raw bucket key to the merchant", () => {
     const explorer = read("../components/SpendExplorer.tsx");
     expect(explorer).toContain("customChannelLabels");
-    expect(explorer).toContain('channel.split(":")[0]');
+    // The explorer names slices through channelLabel and colours them through
+    // sliceFillKey; neither hands a raw `other:<slug>` to the merchant.
+    expect(explorer).toContain("channelLabel(");
+    expect(explorer).toContain("sliceFillKey(channel)");
+    expect(read("./channel-fill.ts")).toContain('sliceKey.split(":")');
 
     const allocation = read("../routes/app.allocation.tsx");
     expect(allocation).toContain("historyChannelLabel");
