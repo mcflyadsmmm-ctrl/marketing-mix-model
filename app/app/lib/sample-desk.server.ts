@@ -85,7 +85,7 @@ export const SAMPLE_DESK_MARGIN_PCT = 0.35;
 async function writeSampleRange(
   shopId: string,
   rows: SampleDayRow[],
-  opts: { enableSample: boolean },
+  opts: { enableSample: boolean; timeoutMs?: number; maxWaitMs?: number },
 ) {
   if (rows.length === 0) return;
   const firstDay = rows[0]!.day;
@@ -186,7 +186,10 @@ async function writeSampleRange(
         });
       }
     },
-    { maxWait: 15_000, timeout: 120_000 },
+    {
+      maxWait: opts.maxWaitMs ?? 15_000,
+      timeout: opts.timeoutMs ?? 120_000,
+    },
   );
 }
 
@@ -216,8 +219,16 @@ function windowStartDay(rows: SampleDayRow[], days: number): Date {
 export const SAMPLE_FIRST_PAINT_DAYS = 120;
 
 /**
- * Seed only what the first paint draws. Returns the day the window starts so
- * the caller can hand the remainder to the background filler.
+ * Ceiling on the awaited window write. This is the transaction's own timeout,
+ * so exceeding it rolls the write back and throws — unlike an external timer,
+ * which would leave the write running while the caller read stale rows.
+ */
+const SAMPLE_WINDOW_TIMEOUT_MS = 10_000;
+
+/**
+ * Seed only what the first paint draws — roughly a quarter, a few hundred
+ * rows. Includes the Billboard series and the $0 days, because a Sample desk
+ * without those is not worth painting. Returns the day the window starts.
  */
 export async function seedSampleDeskWindow(
   shopId: string,
@@ -226,7 +237,11 @@ export async function seedSampleDeskWindow(
 ): Promise<Date> {
   const rows = buildThreeYearSampleDesk({ targetMer });
   const from = windowStartDay(rows, days);
-  await writeSampleRange(shopId, rowsFrom(rows, from), { enableSample: true });
+  await writeSampleRange(shopId, rowsFrom(rows, from), {
+    enableSample: true,
+    timeoutMs: SAMPLE_WINDOW_TIMEOUT_MS,
+    maxWaitMs: 5_000,
+  });
   return from;
 }
 
@@ -380,30 +395,38 @@ export async function sampleDeskNeedsSeed(shopId: string): Promise<boolean> {
  * than a rolling window so a half-finished backfill still reads as incomplete.
  */
 export async function sampleDeskNeedsHistory(shopId: string): Promise<boolean> {
-  const oldest = await prisma.sampleSalesDay.findFirst({
-    where: { shopId },
-    orderBy: { day: "asc" },
-    select: { day: true },
-  });
+  const [oldest, stale] = await Promise.all([
+    prisma.sampleSalesDay.findFirst({
+      where: { shopId },
+      orderBy: { day: "asc" },
+      select: { day: true },
+    }),
+    /*
+     * A version bump rewrites the window first, so history can still be the
+     * previous shape. Paid rows carry the version note (named extras carry the
+     * merchant's label), so one paid row on an old note means history is stale.
+     */
+    prisma.spendEntry.findFirst({
+      where: {
+        shopId,
+        source: "sample",
+        customKey: "",
+        note: { not: SAMPLE_SEED_VERSION_NOTE },
+      },
+      select: { id: true },
+    }),
+  ]);
   if (!oldest) return true;
+  if (stale) return true;
   const intendedStart = Date.UTC(deskHistoryFloorYear(new Date()), 0, 1);
   // A few days of slack for the generator's own edge handling.
   return oldest.day.getTime() > intendedStart + 3 * 86_400_000;
 }
 
-/** In-flight heals, so concurrent paints share one seed instead of racing. */
+/** In-flight heals, so concurrent paints share one write instead of racing. */
 const sampleHealInFlight = new Map<string, Promise<boolean>>();
 /** Shops whose history backfill is already running in this process. */
 const sampleHistoryInFlight = new Set<string>();
-
-/**
- * Hard ceiling on what a desk paint will wait for. Fly's proxy answers a slow
- * request with an HTML 502/504, which the single-fetch client cannot decode
- * ("Unable to decode turbo-stream response") — a white screen. Rendering a
- * desk with $0 holes is strictly better than that, so past this we stop
- * waiting and let the seed finish off-request.
- */
-export const SAMPLE_SEED_AWAIT_MS = 2_000;
 
 export type SampleHealDeps = {
   needsSeed: (shopId: string) => Promise<boolean>;
@@ -412,7 +435,6 @@ export type SampleHealDeps = {
   needsHistory: (shopId: string) => Promise<boolean>;
   /** Fills the years behind the window; never awaited by a paint. */
   seedHistory: (shopId: string, targetMer: number) => Promise<unknown>;
-  awaitMs: number;
 };
 
 const defaultHealDeps: SampleHealDeps = {
@@ -420,10 +442,13 @@ const defaultHealDeps: SampleHealDeps = {
   seedWindow: (shopId, targetMer) => seedSampleDeskWindow(shopId, targetMer),
   needsHistory: sampleDeskNeedsHistory,
   seedHistory: (shopId, targetMer) => seedSampleDeskHistory(shopId, targetMer),
-  awaitMs: SAMPLE_SEED_AWAIT_MS,
 };
 
-/** Kick the history filler once per process per shop, never awaited. */
+/**
+ * Kick the history filler once per process per shop, never awaited.
+ * Only called once the window write has committed, so the filler never
+ * contends with the write a paint is waiting on.
+ */
 function startHistoryFill(
   shopId: string,
   targetMer: number,
@@ -448,14 +473,17 @@ function startHistoryFill(
  * A shop already on Sample never revisits the toggle that seeds it, so a shape
  * change shipped in code would otherwise never reach it.
  *
- * The paint awaits only the recent window — a few hundred rows — because that
- * is all the first screen draws. Waiting on the full ~14,500-row history was
- * what turned a first paint into a proxy timeout. The years behind it fill
- * off-request, so an All/1y range is complete by the time anyone picks it.
+ * A paint awaits this and it **settles** — it is never raced against a timer.
+ * An earlier version abandoned the write after 2s and returned; the write was
+ * still open, so the loader then read pre-seed rows and painted a Sample desk
+ * with no Billboard, and the next paint started a second writer against the
+ * same rows. Safety comes from the write being small, not from walking away
+ * from it: ~120 days is a few hundred rows, and the transaction carries its
+ * own 10s ceiling that actually rolls back.
  *
- * Resolves true when the window was written in time. Never throws and never
- * blocks past `awaitMs`: Sample is a demo surface and must not take a desk
- * paint down with it.
+ * Resolves true when the visible window is committed. Never throws — on
+ * failure it resolves false and leaves `needsSeed` true so the next paint
+ * retries rather than the shop being stuck on a half-written desk.
  */
 export async function ensureSampleDeskSeeded(
   shopId: string,
@@ -467,22 +495,12 @@ export async function ensureSampleDeskSeeded(
 
   const run = (async () => {
     try {
-      if (!(await deps.needsSeed(shopId))) {
-        startHistoryFill(shopId, targetMer, deps);
-        return false;
+      if (await deps.needsSeed(shopId)) {
+        await deps.seedWindow(shopId, targetMer);
       }
-      const seeded = deps.seedWindow(shopId, targetMer).then(
-        () => true,
-        () => false,
-      );
-      const capped = await Promise.race([
-        seeded,
-        new Promise<boolean>((resolve) =>
-          setTimeout(() => resolve(false), deps.awaitMs).unref?.(),
-        ),
-      ]);
+      // Window is committed. Only now is it safe to touch the rest.
       startHistoryFill(shopId, targetMer, deps);
-      return capped;
+      return true;
     } catch {
       return false;
     } finally {
@@ -492,6 +510,38 @@ export async function ensureSampleDeskSeeded(
 
   sampleHealInFlight.set(shopId, run);
   return run;
+}
+
+/**
+ * Force the visible window to the current shape, then hand history to the
+ * background. For the Sample maintenance page's refresh buttons, which want a
+ * rewrite even when the shop already looks current — but must no more await
+ * 5.7 years than a desk paint does.
+ */
+export async function refreshSampleDeskWindow(
+  shopId: string,
+  targetMer = SAMPLE_DESK_TARGET_MER,
+): Promise<{ days: number; totalSales: number; totalSpend: number }> {
+  await seedSampleDeskWindow(shopId, targetMer);
+  startHistoryFill(shopId, targetMer, defaultHealDeps);
+  // Reports what is actually stored right now — the window, growing as
+  // history lands — rather than what the generator would eventually write.
+  const [days, sales, spend] = await Promise.all([
+    prisma.sampleSalesDay.count({ where: { shopId } }),
+    prisma.sampleSalesDay.aggregate({
+      where: { shopId },
+      _sum: { sales: true },
+    }),
+    prisma.spendEntry.aggregate({
+      where: { shopId, source: "sample" },
+      _sum: { amount: true },
+    }),
+  ]);
+  return {
+    days,
+    totalSales: sales._sum.sales ?? 0,
+    totalSpend: spend._sum.amount ?? 0,
+  };
 }
 
 export async function getSampleDeskStats(shopId: string) {

@@ -19,7 +19,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   clearSampleDesk,
   getSampleDeskStats,
-  seedThreeYearSampleDesk,
+  refreshSampleDeskWindow,
   setSampleDeskEnabled,
   SAMPLE_DESK_TARGET_MER,
 } from "../lib/sample-desk.server";
@@ -49,7 +49,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   try {
     if (intent === "prepare") {
-      const result = await seedThreeYearSampleDesk(
+      const result = await refreshSampleDeskWindow(
         shop.id,
         SAMPLE_DESK_TARGET_MER,
       );
@@ -61,7 +61,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       };
     }
     if (intent === "seed") {
-      const result = await seedThreeYearSampleDesk(
+      const result = await refreshSampleDeskWindow(
         shop.id,
         SAMPLE_DESK_TARGET_MER,
       );
@@ -74,7 +74,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (intent === "enable") {
       const stats = await getSampleDeskStats(shop.id);
       if (stats.dayCount === 0) {
-        const result = await seedThreeYearSampleDesk(
+        const result = await refreshSampleDeskWindow(
           shop.id,
           SAMPLE_DESK_TARGET_MER,
         );
@@ -85,7 +85,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         };
       }
       // Refresh to latest impressive series when turning SAMPLE back on.
-      const result = await seedThreeYearSampleDesk(
+      const result = await refreshSampleDeskWindow(
         shop.id,
         SAMPLE_DESK_TARGET_MER,
       );
