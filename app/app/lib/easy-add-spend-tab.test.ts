@@ -195,6 +195,6 @@ describe("Easy Add Spend tab (three doors)", () => {
     expect(spend).toContain("merchant-paid tool such as SyncWith");
     expect(spend).toContain("Mcfly is not partnered");
     expect(spend).toContain("Ad APIs and OAuth connections break");
-    expect(spend).toContain("never receives their ad-account tokens");
+    expect(spend).toMatch(/never\s+receives their ad-account tokens/);
   });
 });

@@ -40,6 +40,6 @@ describe("Marketing matches the Shopify app (one product)", () => {
   });
 
   it("tells first-session merchants Advanced is optional after spend", () => {
-    expect(advanced).toContain("Optional. Add spend on Spend first");
+    expect(advanced).toContain("Optional. Add spend on Upload Spend first");
   });
 });
