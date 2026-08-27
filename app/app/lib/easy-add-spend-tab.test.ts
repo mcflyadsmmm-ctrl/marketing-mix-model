@@ -49,7 +49,9 @@ describe("Easy Add Spend tab (three doors)", () => {
     expect(spend).toContain("spendTemplateRangeQuery");
     expect(spend).toContain("selectedBlankTemplateHref");
     expect(spend).toContain("Pick at least one channel");
-    expect(spend).toContain('useState<SpendTemplateRangeId>("all")');
+    expect(spend).toMatch(
+      /useState<SpendTemplateRangeId>\(\s*"all",?\s*\)/,
+    );
     expect(spend).toContain("Upload the filled template");
     expect(spend).toContain("mcfly-spend-template-upload-form");
   });
