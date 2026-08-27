@@ -70,9 +70,20 @@ import { isSpendChannel } from "../lib/spend-billing";
 import {
   currentYearMonth,
   isPeriodWindowType,
+  planCustomLumpSpread,
   planLumpSpread,
-  type PeriodWindowType,
 } from "../lib/spend-period-allocate";
+import {
+  MORE_SPEND_WHEN_OPTIONS,
+  PRIMARY_SPEND_WHEN_OPTIONS,
+  SPEND_TEMPLATE_RANGE_OPTIONS,
+  spendTemplateRangeQuery,
+  spendWhenPeriodType,
+  spendWhenUsesDate,
+  spendWhenUsesMonth,
+  type SpendTemplateRangeId,
+  type SpendWhenId,
+} from "../lib/spend-when";
 import {
   FEATURED_SPEND_PLATFORM_IDS,
   SPEND_ADVERTISE_PLATFORMS,
@@ -112,7 +123,6 @@ import {
   type ShopEntitlements,
 } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
-import { NUMBER_HONESTY } from "../lib/number-honesty";
 import { spendConfirmLine } from "../lib/spend-confirm-copy";
 import {
   spendChannelLabel,
@@ -176,6 +186,45 @@ function formatSpendEntryChannelLabel(
 
 const CUSTOM_CHANNEL_NAME_ERROR =
   "Name this channel (e.g. Influencers).";
+
+type BillChannelChoice = SpendChannel | `other:${string}`;
+
+function isBillChannelChoice(value: string): value is BillChannelChoice {
+  return isSpendChannel(value) || value.startsWith("other:");
+}
+
+function customChannelChoice(name: string): BillChannelChoice {
+  return `other:${slugCustomChannelName(name)}`;
+}
+
+function resolveBillChannelChoice(
+  choice: BillChannelChoice,
+  customChannels: readonly string[],
+  newCustomName: string,
+): { channel: SpendChannel; customName: string } {
+  if (!choice.startsWith("other:")) {
+    return {
+      channel: choice,
+      customName: choice === "other" ? newCustomName.trim() : "",
+    };
+  }
+  const slug = choice.slice("other:".length);
+  const customName =
+    customChannels.find((name) => slugCustomChannelName(name) === slug) ?? "";
+  return { channel: "other", customName };
+}
+
+const SHORT_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+] as const;
+
+function formatSpendYmd(value: string): string {
+  const [year, month, day] = value.split("-").map(Number);
+  const monthLabel = SHORT_MONTHS[month - 1];
+  if (!year || !monthLabel || !day) return value;
+  return `${monthLabel} ${day}, ${year}`;
+}
 
 function startOfLocalDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -738,12 +787,14 @@ async function handleBillDaily(
   const amount = parseFloat(String(form.get("amount") ?? ""));
   const periodTypeRaw = String(form.get("periodType") ?? "month");
   const anchor = String(form.get("anchor") ?? "").trim();
+  const customFrom = String(form.get("customFrom") ?? "").trim();
+  const customTo = String(form.get("customTo") ?? "").trim();
   const channelRaw = String(form.get("channel") ?? "");
   const customName = String(form.get("customName") ?? "").trim();
 
-  if (!isPeriodWindowType(periodTypeRaw)) {
+  if (periodTypeRaw !== "custom" && !isPeriodWindowType(periodTypeRaw)) {
     return {
-      error: "Pick a period: day, week, month, quarter, bi-annual, or year.",
+      error: "Pick when this spend happened.",
       success: false,
     };
   }
@@ -757,12 +808,20 @@ async function handleBillDaily(
     return { error: CUSTOM_CHANNEL_NAME_ERROR, success: false };
   }
 
-  const planned = planLumpSpread({
-    totalAmount: amount,
-    periodType: periodTypeRaw,
-    anchor,
-    channel: channelRaw,
-  });
+  const planned =
+    periodTypeRaw === "custom"
+      ? planCustomLumpSpread({
+          totalAmount: amount,
+          startDateYmd: customFrom,
+          endDateYmd: customTo,
+          channel: channelRaw,
+        })
+      : planLumpSpread({
+          totalAmount: amount,
+          periodType: periodTypeRaw,
+          anchor,
+          channel: channelRaw,
+        });
   if (!planned.ok) {
     return { error: planned.error, success: false };
   }
@@ -1100,12 +1159,18 @@ export default function SpendEntryPage() {
   const [customDraft, setCustomDraft] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
   const [billAmount, setBillAmount] = useState("");
-  const [billPeriodType, setBillPeriodType] =
-    useState<PeriodWindowType>("day");
+  const [billWhen, setBillWhen] = useState<SpendWhenId>("day");
   const [billAnchor, setBillAnchor] = useState(yesterdayKey);
-  const [billChannel, setBillChannel] = useState<SpendChannel>("meta");
+  const [billCustomFrom, setBillCustomFrom] = useState(yesterdayKey);
+  const [billCustomTo, setBillCustomTo] = useState(yesterdayKey);
+  const [billChannelChoice, setBillChannelChoice] =
+    useState<BillChannelChoice>("meta");
   const [billCustomName, setBillCustomName] = useState("");
   const [billError, setBillError] = useState<string | null>(null);
+  const [templateRange, setTemplateRange] =
+    useState<SpendTemplateRangeId>("90d");
+  const [templateFrom, setTemplateFrom] = useState(coverageFromKey ?? yesterdayKey);
+  const [templateTo, setTemplateTo] = useState(coverageToKey ?? yesterdayKey);
   const [calcSales, setCalcSales] = useState("");
   const [calcSpend, setCalcSpend] = useState("");
   const [calcMargin, setCalcMargin] = useState("35");
@@ -1169,17 +1234,81 @@ export default function SpendEntryPage() {
     }
   }, [csvSaved]);
 
+  const billKnownCustomChannels = normalizeCustomChannelList([
+    ...CUSTOM_CHANNEL_PRESETS.map((preset) => preset.label),
+    ...customChannelNames,
+  ]);
+  const billResolvedChannel = resolveBillChannelChoice(
+    billChannelChoice,
+    billKnownCustomChannels,
+    billCustomName,
+  );
   const billPreview = useMemo(() => {
     const amount = parseFloat(billAmount);
     if (!Number.isFinite(amount) || amount <= 0) return null;
-    const result = planLumpSpread({
-      totalAmount: amount,
-      periodType: billPeriodType,
-      anchor: billAnchor,
-      channel: billChannel,
-    });
+    const result =
+      billWhen === "custom"
+        ? planCustomLumpSpread({
+            totalAmount: amount,
+            startDateYmd: billCustomFrom,
+            endDateYmd: billCustomTo,
+            channel: billResolvedChannel.channel,
+          })
+        : planLumpSpread({
+            totalAmount: amount,
+            periodType: spendWhenPeriodType(billWhen),
+            anchor: billAnchor,
+            channel: billResolvedChannel.channel,
+          });
     return result.ok ? result.plan : null;
-  }, [billAmount, billPeriodType, billAnchor, billChannel]);
+  }, [
+    billAmount,
+    billWhen,
+    billAnchor,
+    billCustomFrom,
+    billCustomTo,
+    billResolvedChannel.channel,
+  ]);
+  const billDisplayName = spendChannelShortLabel({
+    channel: billResolvedChannel.channel,
+    customLabel: billResolvedChannel.customName,
+  });
+  const csvDraftPreview = useMemo(() => {
+    if (!csvPayload.trim()) return null;
+    const parsed = parseSpendCsv(
+      csvPayload,
+      forceChannel ? { forceChannel } : {},
+    );
+    if (parsed.rows.length === 0) {
+      return {
+        days: 0,
+        channels: Array<string>(),
+        totalAmount: 0,
+        from: null,
+        to: null,
+        firstError: parsed.errors[0] ?? null,
+      };
+    }
+    const dates = [...new Set(parsed.rows.map((row) => row.date))].sort();
+    const channels = [
+      ...new Set(
+        parsed.rows.map((row) =>
+          spendChannelShortLabel({
+            channel: row.channel,
+            customLabel: row.customLabel,
+          }),
+        ),
+      ),
+    ];
+    return {
+      days: dates.length,
+      channels,
+      totalAmount: parsed.rows.reduce((sum, row) => sum + row.amount, 0),
+      from: dates[0] ?? null,
+      to: dates[dates.length - 1] ?? null,
+      firstError: parsed.errors[0] ?? null,
+    };
+  }, [csvPayload, forceChannel]);
 
   const calcRoas = useMemo(() => {
     const sales = parseFloat(calcSales);
@@ -1299,12 +1428,24 @@ export default function SpendEntryPage() {
     customChannelNames.length > 0
       ? `&custom=${encodeURIComponent(serializeCustomChannelsParam(customChannelNames))}`
       : "";
-  const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1${customQuery}`;
+  const templateRangeQuery = spendTemplateRangeQuery({
+    range: templateRange,
+    from: templateFrom,
+    to: templateTo,
+  });
+  const selectedBlankTemplateHref = templateRangeQuery
+    ? `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1${customQuery}&${templateRangeQuery}`
+    : null;
   const historyRangeQuery =
     coverageFromKey && coverageToKey
       ? `&from=${encodeURIComponent(coverageFromKey)}&to=${encodeURIComponent(coverageToKey)}`
       : "";
-  const missingDatesHref = `${selectedBlankTemplateHref}${historyRangeQuery}`;
+  const missingDatesHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1${customQuery}${historyRangeQuery}`;
+  const templateHasChannels =
+    selectedChannels.length > 0 || customChannelNames.length > 0;
+  const templateRangeLabel =
+    SPEND_TEMPLATE_RANGE_OPTIONS.find((option) => option.id === templateRange)
+      ?.label ?? "Selected dates";
 
   const csvConfirmLine =
     csv && csv.dateRange
@@ -1355,8 +1496,43 @@ export default function SpendEntryPage() {
     );
   }
 
-  const needsDateAnchor =
-    billPeriodType === "day" || billPeriodType === "week";
+  function selectBillWhen(next: SpendWhenId) {
+    setBillWhen(next);
+    switch (next) {
+      case "day":
+      case "days7":
+        setBillAnchor(yesterdayKey);
+        break;
+      case "month":
+      case "quarter":
+      case "half":
+      case "year":
+        setBillAnchor(currentYearMonth());
+        break;
+      case "custom":
+        setBillCustomFrom(yesterdayKey);
+        setBillCustomTo(yesterdayKey);
+        break;
+      default: {
+        const _exhaustive: never = next;
+        return _exhaustive;
+      }
+    }
+    setBillError(null);
+  }
+
+  const needsDateAnchor = spendWhenUsesDate(billWhen);
+  const needsMonthAnchor = spendWhenUsesMonth(billWhen);
+  const billServerPeriodType =
+    billWhen === "custom" ? "custom" : spendWhenPeriodType(billWhen);
+  const billChannelReady =
+    billResolvedChannel.channel !== "other" ||
+    billResolvedChannel.customName.length > 0;
+  const billSaveLabel = billPreview
+    ? billPreview.startDateYmd === billPreview.endDateYmd
+      ? `Save ${billDisplayName} ${formatCurrency(billPreview.totalAmount)} for ${formatSpendYmd(billPreview.startDateYmd)}`
+      : `Save ${billDisplayName} ${formatCurrency(billPreview.totalAmount)} across ${formatSpendYmd(billPreview.startDateYmd)}–${formatSpendYmd(billPreview.endDateYmd)}`
+    : "Enter an amount";
 
   return (
     <s-page heading="Spend" inlineSize="large">
@@ -1388,7 +1564,11 @@ export default function SpendEntryPage() {
               ·
             </span>
             <span className="mcfly-ctx__asof">Same dates as Overview</span>
-            <PeriodControl preset={preset} shotMode={shotMode} />
+            <PeriodControl
+              preset={preset}
+              shotMode={shotMode}
+              language="spend"
+            />
           </div>
         </div>
         {csvNeedsConfirm && csv ? (
@@ -1569,31 +1749,358 @@ export default function SpendEntryPage() {
             </ul>
           </nav>
           <p className="mcfly-spend-helper">
-            We already load your Shopify sales, orders, and LTV. We only need what
-            you actually spent, by day, by channel — including billboard and
-            anything with no API. Ad-platform logins often fail: expired tokens,
-            the wrong ad account, delayed Insights, PMax and TikTok gaps, spend
-            mixed with their attributed conversions.{" "}
-            We do not ask you to connect Meta or Google.{" "}
-            Type a bill, paste a CSV, download your channel template, or use a
-            sheet tool like SyncWith to pull daily spend and upload it here.{" "}
-            Try yesterday’s Meta plus a $400 billboard against yesterday’s
-            Shopify sales.{" "}
-            Empty spend is $0 — we never drop unattributed spend.
+            Shopify sales are already here. Add what you spent by day and channel;
+            empty spend is $0.
           </p>
+
+          <section
+            id="mcfly-spend-add"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-add"
+            aria-label="Add spend"
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>Add spend</h2>
+              <p className="mcfly-panel__muted">
+                Shopify sales are already here. Add what you spent; longer bills
+                are spread evenly by day in your shop timezone.
+              </p>
+            </div>
+            <Form method="post" className="mcfly-spend-add__form">
+              <input type="hidden" name="intent" value="bill-daily" />
+              <input type="hidden" name="periodType" value={billServerPeriodType} />
+              <input type="hidden" name="anchor" value={billAnchor} />
+              <input type="hidden" name="customFrom" value={billCustomFrom} />
+              <input type="hidden" name="customTo" value={billCustomTo} />
+              <input type="hidden" name="channel" value={billResolvedChannel.channel} />
+              <input type="hidden" name="customName" value={billResolvedChannel.customName} />
+              <input type="hidden" name="amount" value={billAmount} />
+              <div className="mcfly-spend-add__grid">
+                <label className="mcfly-spend-add__field">
+                  <span>Channel</span>
+                  <select
+                    className="mcfly-field"
+                    value={billChannelChoice}
+                    aria-label="Spend channel"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (isBillChannelChoice(value)) setBillChannelChoice(value);
+                      setBillError(null);
+                    }}
+                  >
+                    <optgroup label="Paid platforms and channels">
+                      {addSpendChannels
+                        .filter(({ value, disabled }) => value !== "other" && !disabled)
+                        .map(({ value, label }) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                    </optgroup>
+                    <optgroup label="Named extras">
+                      {billKnownCustomChannels.map((name) => (
+                        <option key={name} value={customChannelChoice(name)}>{name}</option>
+                      ))}
+                    </optgroup>
+                    <option value="other">Something else…</option>
+                  </select>
+                </label>
+                <label className="mcfly-spend-add__field">
+                  <span>Amount (USD)</span>
+                  <input
+                    className="mcfly-field"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    required
+                    placeholder="400"
+                    aria-label="Spend amount in USD"
+                    value={billAmount}
+                    onChange={(e) => {
+                      setBillAmount(e.target.value);
+                      setBillError(null);
+                    }}
+                  />
+                </label>
+              </div>
+              {billChannelChoice === "other" ? (
+                <label className="mcfly-spend-add__field mcfly-spend-add__custom-name">
+                  <span>Name this channel</span>
+                  <input
+                    className="mcfly-field"
+                    type="text"
+                    maxLength={80}
+                    placeholder="Billboard, radio, agency…"
+                    value={billCustomName}
+                    onChange={(e) => {
+                      setBillCustomName(e.target.value);
+                      setBillError(null);
+                    }}
+                    aria-label="Channel name"
+                    required
+                  />
+                </label>
+              ) : null}
+              <fieldset className="mcfly-spend-add__when">
+                <legend>When did this spend happen?</legend>
+                <div className="mcfly-spend-add__when-options" role="group" aria-label="Spend timing">
+                  {PRIMARY_SPEND_WHEN_OPTIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={billWhen === option.id ? "mcfly-spend-add__when-btn mcfly-spend-add__when-btn--on" : "mcfly-spend-add__when-btn"}
+                      aria-pressed={billWhen === option.id}
+                      onClick={() => selectBillWhen(option.id)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <details className="mcfly-spend-add__more-when">
+                  <summary>Quarter, half year, or year</summary>
+                  <div className="mcfly-spend-add__when-options">
+                    {MORE_SPEND_WHEN_OPTIONS.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={billWhen === option.id ? "mcfly-spend-add__when-btn mcfly-spend-add__when-btn--on" : "mcfly-spend-add__when-btn"}
+                        aria-pressed={billWhen === option.id}
+                        onClick={() => selectBillWhen(option.id)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              </fieldset>
+              <div className="mcfly-spend-add__dates">
+                {needsDateAnchor ? (
+                  <label className="mcfly-spend-add__field">
+                    <span>{billWhen === "days7" ? "First of 7 days" : "Date"}</span>
+                    <input
+                      className="mcfly-field"
+                      type="date"
+                      name="spendDate"
+                      value={billAnchor}
+                      min={spendHistoryFloorKey}
+                      max={todayKey}
+                      required
+                      aria-label="Spend date"
+                      onChange={(e) => {
+                        setBillAnchor(e.target.value);
+                        setBillError(null);
+                      }}
+                    />
+                  </label>
+                ) : null}
+                {needsMonthAnchor ? (
+                  <label className="mcfly-spend-add__field">
+                    <span>{billWhen === "month" ? "Calendar month" : "Month inside the period"}</span>
+                    <input
+                      className="mcfly-field"
+                      type="month"
+                      value={billAnchor.slice(0, 7)}
+                      min={spendHistoryFloorKey.slice(0, 7)}
+                      max={todayKey.slice(0, 7)}
+                      required
+                      aria-label="Spend month"
+                      onChange={(e) => {
+                        setBillAnchor(e.target.value);
+                        setBillError(null);
+                      }}
+                    />
+                  </label>
+                ) : null}
+                {billWhen === "custom" ? (
+                  <>
+                    <label className="mcfly-spend-add__field">
+                      <span>From</span>
+                      <input className="mcfly-field" type="date" value={billCustomFrom} min={spendHistoryFloorKey} max={billCustomTo || todayKey} required onChange={(e) => { setBillCustomFrom(e.target.value); setBillError(null); }} />
+                    </label>
+                    <label className="mcfly-spend-add__field">
+                      <span>To</span>
+                      <input className="mcfly-field" type="date" value={billCustomTo} min={billCustomFrom || spendHistoryFloorKey} max={todayKey} required onChange={(e) => { setBillCustomTo(e.target.value); setBillError(null); }} />
+                    </label>
+                  </>
+                ) : null}
+              </div>
+              {billPreview && billChannelReady ? (
+                <div className="mcfly-spend-add__preview" aria-live="polite">
+                  <p className="mcfly-spend-add__preview-title">{billDisplayName} {formatCurrency(billPreview.totalAmount)}</p>
+                  <p>
+                    {formatSpendYmd(billPreview.startDateYmd)}
+                    {billPreview.endDateYmd !== billPreview.startDateYmd ? ` → ${formatSpendYmd(billPreview.endDateYmd)}` : ""}
+                    {" · "}{billPreview.dayCount} day{billPreview.dayCount === 1 ? "" : "s"}
+                  </p>
+                  <p>{formatCurrency(billPreview.dailyAmount)} per day. Same day + channel replaces the existing amount.</p>
+                </div>
+              ) : null}
+              {billChannelChoice === "other" && !billChannelReady ? (
+                <p className="mcfly-spend-lean__bill-error" role="alert">Name this channel before saving.</p>
+              ) : null}
+              {billError ? (
+                <p className="mcfly-spend-lean__bill-error" role="alert">
+                  {billError}
+                </p>
+              ) : null}
+              <div className="mcfly-spend-add__actions">
+                <button
+                  type="submit"
+                  className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
+                  disabled={
+                    !billPreview ||
+                    !billChannelReady ||
+                    (isSubmitting && submittingIntent === "bill-daily")
+                  }
+                  aria-busy={isSubmitting && submittingIntent === "bill-daily"}
+                >
+                  {isSubmitting && submittingIntent === "bill-daily"
+                    ? "Saving…"
+                    : billSaveLabel}
+                </button>
+              </div>
+              <details className="mcfly-spend-add__why">
+                <summary>Why no ad-account connection?</summary>
+                <p>CSV and typed spend keep the exact dollars you paid — including billboard, retainers, and channels with no reliable API.</p>
+              </details>
+            </Form>
+          </section>
+
+          <section
+            id="mcfly-spend-csv"
+            className="mcfly-panel mcfly-panel--eq-compact"
+            aria-label="Paste or upload a spend file"
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>Paste a file</h2>
+              <p className="mcfly-panel__muted">
+                Drop an Ads Manager CSV or paste daily rows. We need Day and
+                Amount spent; campaign columns are ignored.
+              </p>
+            </div>
+            <Form
+              id="mcfly-spend-csv-form"
+              method="post"
+              encType="multipart/form-data"
+            >
+              <input type="hidden" name="intent" value="csv" />
+              <input type="hidden" name="forceChannel" value={forceChannel} />
+              <input
+                type="hidden"
+                name="confirm_replace"
+                value={confirmReplace ? "1" : "0"}
+              />
+              <label className="mcfly-spend-lean__paste-label" htmlFor="mcfly-spend-csv-paste">
+                Paste daily rows
+              </label>
+              <textarea
+                id="mcfly-spend-csv-paste"
+                name="csv"
+                className="mcfly-spend-lean__paste"
+                value={csvPayload}
+                onChange={(e) => setCsvPayload(e.target.value)}
+                rows={6}
+                spellCheck={false}
+                placeholder={"Day,Meta,Google\n2026-08-01,120.00,80.00"}
+                aria-label="Paste daily spend rows"
+              />
+              <label className="mcfly-spend-lean__drop">
+                <span className="mcfly-spend-lean__drop-title">
+                  Or upload a CSV
+                </span>
+                <span className="mcfly-spend-lean__drop-hint">
+                  Header row required. One row per day. Same day + channel replaces.
+                </span>
+                <input
+                  type="file"
+                  name="file"
+                  accept=".csv,text/csv"
+                  className="mcfly-spend-lean__file"
+                  onChange={onSpendFileSelected}
+                  disabled={isSubmitting && submittingIntent === "csv"}
+                  aria-label="Upload spend CSV"
+                />
+              </label>
+              {csvDraftPreview ? (
+                <div className="mcfly-spend-csv-preview" aria-live="polite">
+                  {csvDraftPreview.days > 0 ? (
+                    <>
+                      <strong>
+                        {csvDraftPreview.days} day{csvDraftPreview.days === 1 ? "" : "s"} ·{" "}
+                        {csvDraftPreview.channels.join(", ")} ·{" "}
+                        {formatCurrency(csvDraftPreview.totalAmount)}
+                      </strong>
+                      <span>
+                        {csvDraftPreview.from}
+                        {csvDraftPreview.to !== csvDraftPreview.from ? ` → ${csvDraftPreview.to}` : ""}
+                      </span>
+                    </>
+                  ) : (
+                    <strong>{csvDraftPreview.firstError ?? "We could not find daily spend rows yet."}</strong>
+                  )}
+                </div>
+              ) : null}
+              {csvFieldError && !csvNeedsConfirm ? (
+                <p className="mcfly-spend-lean__upload-error" role="alert">
+                  {csvFieldError}
+                </p>
+              ) : null}
+              {/* Native button — same zero-size host risk as the Type-it door. */}
+              <button
+                id="mcfly-spend-csv-submit"
+                type="submit"
+                className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
+                disabled={isSubmitting && submittingIntent === "csv"}
+                aria-busy={isSubmitting && submittingIntent === "csv"}
+              >
+                {isSubmitting && submittingIntent === "csv"
+                  ? "Importing…"
+                  : csvDraftPreview && csvDraftPreview.days > 0
+                    ? `Import ${csvDraftPreview.days} days · ${formatCurrency(csvDraftPreview.totalAmount)}`
+                    : "Import spend"}
+              </button>
+            </Form>
+          </section>
 
           <section
             id="mcfly-spend-platforms"
             className="mcfly-panel mcfly-panel--eq-compact"
-            aria-label="Pick the channels you buy"
+            aria-label="Fill many days with a template"
           >
             <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Pick the channels you buy</h2>
+              <h2>Fill many days</h2>
               <p className="mcfly-panel__muted">
-                Check the ones you pay, then download that template (Date + those
-                columns). {selectedSummaryLabel}.
+                Pick channels and dates, then download a blank daily template.
+                Complete-day presets end yesterday.
               </p>
             </div>
+            <fieldset className="mcfly-spend-template-range">
+              <legend>Dates</legend>
+              <div className="mcfly-spend-template-range__options">
+                {SPEND_TEMPLATE_RANGE_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={templateRange === option.id ? "mcfly-spend-add__when-btn mcfly-spend-add__when-btn--on" : "mcfly-spend-add__when-btn"}
+                    aria-pressed={templateRange === option.id}
+                    onClick={() => setTemplateRange(option.id)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              {templateRange === "custom" ? (
+                <div className="mcfly-spend-add__dates">
+                  <label className="mcfly-spend-add__field">
+                    <span>From</span>
+                    <input className="mcfly-field" type="date" value={templateFrom} min={spendHistoryFloorKey} max={templateTo || yesterdayKey} onChange={(event) => setTemplateFrom(event.target.value)} />
+                  </label>
+                  <label className="mcfly-spend-add__field">
+                    <span>To</span>
+                    <input className="mcfly-field" type="date" value={templateTo} min={templateFrom || spendHistoryFloorKey} max={yesterdayKey} onChange={(event) => setTemplateTo(event.target.value)} />
+                  </label>
+                </div>
+              ) : null}
+            </fieldset>
+            <p className="mcfly-spend-lean__extras-k">Channels</p>
             <div
               className="mcfly-spend-lean__channel-list"
               role="group"
@@ -1796,307 +2303,33 @@ export default function SpendEntryPage() {
                   Select a channel above for a tailored template.
                 </s-text>
               )}
-              {/* Native anchor — the third door needs a real hit box too. */}
-              <a
-                className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
-                href={selectedBlankTemplateHref}
-              >
-                Download this template
-              </a>
-            </div>
-          </section>
-
-          <section
-            id="mcfly-spend-add"
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-add"
-            aria-label="Type it"
-          >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Type it</h2>
-              <p className="mcfly-panel__muted">
-                {NUMBER_HONESTY.invoiceHint} Channel + amount + day / week /
-                month / quarter / half-year / year — we spread it evenly in shop
-                timezone.
-              </p>
-            </div>
-            <Form method="post" className="mcfly-spend-add__form">
-              <input type="hidden" name="intent" value="bill-daily" />
-              <input type="hidden" name="periodType" value={billPeriodType} />
-              <input type="hidden" name="anchor" value={billAnchor} />
-              <input type="hidden" name="channel" value={billChannel} />
-              <input type="hidden" name="customName" value={billCustomName} />
-              <input type="hidden" name="amount" value={billAmount} />
-              <div className="mcfly-spend-add__grid">
-                <label className="mcfly-spend-add__field">
-                  <span>Amount</span>
-                  <input
-                    className="mcfly-field"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    required
-                    placeholder="400"
-                    aria-label="Spend amount"
-                    value={billAmount}
-                    onChange={(e) => {
-                      setBillAmount(e.target.value);
-                      setBillError(null);
-                    }}
-                  />
-                </label>
-                <label className="mcfly-spend-add__field">
-                  <span>Period</span>
-                  <select
-                    className="mcfly-field"
-                    value={billPeriodType}
-                    aria-label="Spend period"
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (isPeriodWindowType(v)) {
-                        setBillPeriodType(v);
-                        if (v === "day" || v === "week") {
-                          setBillAnchor(yesterdayKey);
-                        } else {
-                          setBillAnchor(currentYearMonth());
-                        }
-                      }
-                      setBillError(null);
-                    }}
-                  >
-                    <option value="day">Day</option>
-                    <option value="week">Week</option>
-                    <option value="month">Month</option>
-                    <option value="quarter">Quarter</option>
-                    <option value="half_year">Half-year</option>
-                    <option value="year">Year</option>
-                  </select>
-                </label>
-                {needsDateAnchor ? (
-                  <label className="mcfly-spend-add__field">
-                    <span>Date</span>
-                    <input
-                      className="mcfly-field"
-                      type="date"
-                      name="spendDate"
-                      value={billAnchor}
-                      min={spendHistoryFloorKey}
-                      max={todayKey}
-                      required
-                      aria-label="Spend date"
-                      onChange={(e) => {
-                        setBillAnchor(e.target.value);
-                        setBillError(null);
-                      }}
-                    />
-                  </label>
-                ) : (
-                  <label className="mcfly-spend-add__field">
-                    <span>Starting month</span>
-                    <input
-                      className="mcfly-field"
-                      type="month"
-                      value={billAnchor.slice(0, 7)}
-                      min={spendHistoryFloorKey.slice(0, 7)}
-                      max={todayKey.slice(0, 7)}
-                      required
-                      aria-label="Spend month"
-                      onChange={(e) => {
-                        setBillAnchor(e.target.value);
-                        setBillError(null);
-                      }}
-                    />
-                  </label>
-                )}
-                <label className="mcfly-spend-add__field">
-                  <span>Channel</span>
-                  <select
-                    className="mcfly-field"
-                    value={billChannel}
-                    aria-label="Spend channel"
-                    onChange={(e) => {
-                      setBillChannel(e.target.value as SpendChannel);
-                      setBillError(null);
-                    }}
-                  >
-                    {addSpendChannels.map(({ value, label, disabled }) => (
-                      <option key={value} value={value} disabled={disabled}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                {billChannel === "other" ? (
-                  <label className="mcfly-spend-add__field mcfly-spend-add__field--wide">
-                    <span>Name</span>
-                    <input
-                      className="mcfly-field"
-                      type="text"
-                      maxLength={80}
-                      placeholder="Billboard, radio, agency…"
-                      value={billCustomName}
-                      onChange={(e) => {
-                        setBillCustomName(e.target.value);
-                        setBillError(null);
-                      }}
-                      aria-label="Channel name"
-                    />
-                  </label>
-                ) : null}
-              </div>
-              <div
-                className="mcfly-spend-add__presets"
-                role="group"
-                aria-label="Offline extras"
-              >
-                {CUSTOM_CHANNEL_PRESETS.map((presetItem) => (
-                  <button
-                    key={presetItem.id}
-                    type="button"
-                    className={
-                      billChannel === "other" &&
-                      billCustomName === presetItem.label
-                        ? "mcfly-spend-add__preset mcfly-spend-add__preset--on"
-                        : "mcfly-spend-add__preset"
-                    }
-                    onClick={() => {
-                      setBillChannel("other");
-                      setBillCustomName(presetItem.label);
-                    }}
-                  >
-                    {presetItem.label}
-                  </button>
-                ))}
-              </div>
-              {billPreview ? (
-                <p className="mcfly-spend-lean__bill-preview">
-                  {billPreview.startDateYmd}
-                  {billPreview.endDateYmd !== billPreview.startDateYmd
-                    ? ` → ${billPreview.endDateYmd}`
-                    : ""}
-                  {" · "}
-                  {billPreview.dayCount} day
-                  {billPreview.dayCount === 1 ? "" : "s"}
-                </p>
-              ) : null}
-              {billError ? (
-                <p className="mcfly-spend-lean__bill-error" role="alert">
-                  {billError}
-                </p>
-              ) : null}
-              <div className="mcfly-spend-add__actions">
-                {/*
-                 * Native button, not <s-button>. In the 2026-08-26 Admin smoke
-                 * the web-component host measured 0×0, so the merchant's first
-                 * click sailed past it and opened the channel select instead of
-                 * saving. A real button with a real box submits on click one.
-                 */}
-                <button
-                  type="submit"
+              {templateHasChannels && selectedBlankTemplateHref ? (
+                <a
                   className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
-                  disabled={
-                    !billPreview ||
-                    (isSubmitting && submittingIntent === "bill-daily")
-                  }
-                  aria-busy={isSubmitting && submittingIntent === "bill-daily"}
+                  href={selectedBlankTemplateHref}
                 >
-                  {isSubmitting && submittingIntent === "bill-daily"
-                    ? "Saving…"
-                    : billPreview
-                      ? `That’s ${formatCurrency(billPreview.dailyAmount)} per day.`
-                      : "Enter an amount"}
+                  Download {selectedSummaryLabel}, {templateRangeLabel.toLowerCase()}
+                </a>
+              ) : (
+                <button
+                  className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
+                  type="button"
+                  disabled
+                >
+                  Pick at least one channel
                 </button>
-              </div>
-            </Form>
-          </section>
-
-          <section
-            id="mcfly-spend-csv"
-            className="mcfly-panel mcfly-panel--eq-compact"
-            aria-label="Paste or upload Ads Manager CSV"
-          >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Paste or upload Ads Manager CSV</h2>
-              <p className="mcfly-panel__muted">
-                Native Ads Manager export with Day + Amount spent. Same day +
-                channel replaces. Header row required.
-              </p>
+              )}
             </div>
-            <Form
-              id="mcfly-spend-csv-form"
-              method="post"
-              encType="multipart/form-data"
-            >
-              <input type="hidden" name="intent" value="csv" />
-              <input type="hidden" name="forceChannel" value={forceChannel} />
-              <input
-                type="hidden"
-                name="confirm_replace"
-                value={confirmReplace ? "1" : "0"}
-              />
-              <label className="mcfly-spend-lean__paste-label" htmlFor="mcfly-spend-csv-paste">
-                Paste daily rows
-              </label>
-              <textarea
-                id="mcfly-spend-csv-paste"
-                name="csv"
-                className="mcfly-spend-lean__paste"
-                value={csvPayload}
-                onChange={(e) => setCsvPayload(e.target.value)}
-                rows={6}
-                spellCheck={false}
-                placeholder={"Day,Meta,Google\n2026-08-01,120.00,80.00"}
-                aria-label="Paste daily spend rows"
-              />
-              <label className="mcfly-spend-lean__drop">
-                <span className="mcfly-spend-lean__drop-title">
-                  Or upload a CSV
-                </span>
-                <span className="mcfly-spend-lean__drop-hint">
-                  Header row required. One row per day. Same day + channel replaces.
-                </span>
-                <input
-                  type="file"
-                  name="file"
-                  accept=".csv,text/csv"
-                  className="mcfly-spend-lean__file"
-                  onChange={onSpendFileSelected}
-                  disabled={isSubmitting && submittingIntent === "csv"}
-                  aria-label="Upload spend CSV"
-                />
-              </label>
-              {csvFieldError && !csvNeedsConfirm ? (
-                <p className="mcfly-spend-lean__upload-error" role="alert">
-                  {csvFieldError}
-                </p>
-              ) : null}
-              {/* Native button — same zero-size host risk as the Type-it door. */}
-              <button
-                id="mcfly-spend-csv-submit"
-                type="submit"
-                className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
-                disabled={isSubmitting && submittingIntent === "csv"}
-                aria-busy={isSubmitting && submittingIntent === "csv"}
-              >
-                {isSubmitting && submittingIntent === "csv"
-                  ? "Importing…"
-                  : "Import spend"}
-              </button>
-            </Form>
           </section>
 
-          <section
+          <details
             id="mcfly-spend-calculators"
-            className="mcfly-panel mcfly-panel--eq-compact"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-calculators"
             aria-label="Calculators"
           >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Calculators</h2>
-              <p className="mcfly-panel__muted">
-                Same math as Overview — sales ÷ spend, and break-even from
-                contribution margin. Nothing is saved.
-              </p>
-            </div>
+            <summary>
+              Calculators · sales ÷ spend and break-even (nothing is saved)
+            </summary>
             <div className="mcfly-spend-add__grid">
               <label className="mcfly-spend-add__field">
                 <span>Sales</span>
@@ -2146,7 +2379,7 @@ export default function SpendEntryPage() {
               Break-even{" "}
               {calcBreakEven == null ? "—" : `${calcBreakEven.toFixed(2)}×`}
             </p>
-          </section>
+          </details>
 
           <section
             className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-explorer"

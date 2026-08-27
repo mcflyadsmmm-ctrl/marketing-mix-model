@@ -5,9 +5,9 @@ describe("SPEND_DOORS", () => {
   it("names exactly the three doors the product promises", () => {
     expect(SPEND_DOORS).toHaveLength(3);
     expect(SPEND_DOORS.map((d) => d.title)).toEqual([
-      "Type it",
-      "Paste or upload a CSV",
-      "Pick your channels",
+      "Add spend",
+      "Paste a file",
+      "Fill many days",
     ]);
   });
 

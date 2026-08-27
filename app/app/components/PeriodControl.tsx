@@ -8,6 +8,8 @@ type PeriodControlProps = {
   shotMode?: boolean;
   /** Override URL updates (defaults to setting `period` search param). */
   onChange?: (value: PeriodPreset) => void;
+  /** Spend uses plain calendar words so its entry, template, and chart agree. */
+  language?: "desk" | "spend";
 };
 
 type DeskPeriodPreset = "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3";
@@ -26,6 +28,14 @@ const SHOT_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
   { value: "y3", label: "3 yr" },
 ];
 
+const SPEND_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
+  { value: "mtd", label: "This month" },
+  { value: "lm", label: "Last month" },
+  { value: "qtd", label: "This quarter" },
+  { value: "ytd", label: "This year" },
+  { value: "l12m", label: "Last 12 months" },
+];
+
 /**
  * Segmented period control (Apps Script / demo dd-period craft).
  * URL `period` + shot-mode param preservation; role=group + aria-pressed.
@@ -34,9 +44,14 @@ export function PeriodControl({
   preset,
   shotMode = false,
   onChange,
+  language = "desk",
 }: PeriodControlProps) {
   const [, setSearchParams] = useSearchParams();
-  const periodOptions = shotMode ? SHOT_PERIOD_OPTIONS : DESK_PERIOD_OPTIONS;
+  const periodOptions = shotMode
+    ? SHOT_PERIOD_OPTIONS
+    : language === "spend"
+      ? SPEND_PERIOD_OPTIONS
+      : DESK_PERIOD_OPTIONS;
   const activeValue = periodOptions.some((p) => p.value === preset)
     ? preset
     : "mtd";

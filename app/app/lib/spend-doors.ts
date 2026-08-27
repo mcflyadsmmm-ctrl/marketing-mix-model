@@ -17,17 +17,17 @@ export type SpendDoor = {
 export const SPEND_DOORS: readonly SpendDoor[] = [
   {
     href: "#mcfly-spend-add",
-    title: "Type it",
-    hint: "One channel, one amount, one period. Fastest — start here.",
+    title: "Add spend",
+    hint: "Channel, amount, when. Fastest — start here.",
   },
   {
     href: "#mcfly-spend-csv",
-    title: "Paste or upload a CSV",
-    hint: "Already have an Ads Manager export? Drop it in.",
+    title: "Paste a file",
+    hint: "Drop an Ads Manager CSV or paste daily rows.",
   },
   {
     href: "#mcfly-spend-platforms",
-    title: "Pick your channels",
-    hint: "Get a template shaped like the channels you actually buy.",
+    title: "Fill many days",
+    hint: "Choose channels and dates for a blank daily template.",
   },
 ] as const;
