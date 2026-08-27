@@ -202,7 +202,7 @@ function resolveBillChannelChoice(
   customChannels: readonly string[],
   newCustomName: string,
 ): { channel: SpendChannel; customName: string } {
-  if (!choice.startsWith("other:")) {
+  if (isSpendChannel(choice)) {
     return {
       channel: choice,
       customName: choice === "other" ? newCustomName.trim() : "",
