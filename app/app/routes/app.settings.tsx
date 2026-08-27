@@ -609,7 +609,7 @@ export default function SettingsPage() {
                   style={{ marginTop: "0.85rem" }}
                 >
                   {samplePreviewAllowed ? (
-                    <Form method="post" action={dataModeAction}>
+                    <Form method="post" action={dataModeAction} reloadDocument>
                       <input
                         type="hidden"
                         name="intent"
@@ -621,7 +621,7 @@ export default function SettingsPage() {
                       </s-button>
                     </Form>
                   ) : (
-                    <Form method="post" action={dataModeAction}>
+                    <Form method="post" action={dataModeAction} reloadDocument>
                       <input
                         type="hidden"
                         name="intent"
@@ -634,7 +634,7 @@ export default function SettingsPage() {
                     </Form>
                   )}
                   {samplePreviewAllowed && !useSampleDesk ? (
-                    <Form method="post" action={dataModeAction}>
+                    <Form method="post" action={dataModeAction} reloadDocument>
                       <input type="hidden" name="intent" value="use-sample" />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="tertiary">
@@ -643,7 +643,7 @@ export default function SettingsPage() {
                     </Form>
                   ) : null}
                   {samplePreviewAllowed && useSampleDesk ? (
-                    <Form method="post" action={dataModeAction}>
+                    <Form method="post" action={dataModeAction} reloadDocument>
                       <input type="hidden" name="intent" value="use-real" />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="tertiary">

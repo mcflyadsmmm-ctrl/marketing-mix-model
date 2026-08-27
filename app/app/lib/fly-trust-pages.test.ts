@@ -117,6 +117,8 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     const pkg = JSON.parse(readRepo("app/package.json"));
     expect(serve).toContain("MCFLY_SITE_ROOT");
     expect(serve).toContain("express.static(siteRoot");
+    expect(serve).toContain('app.set("trust proxy", true)');
+    expect(serve).toContain("admin.shopify.com");
     expect(paths).toContain('p === "/app"');
     expect(serve).toContain("shouldSkipMarketingSite");
     expect(serve).toContain("embeddedAppRedirectLocation");

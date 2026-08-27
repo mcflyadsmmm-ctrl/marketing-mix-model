@@ -113,7 +113,12 @@ export function DataModeBar({
           role="group"
           aria-labelledby="mcfly-data-mode-label"
         >
-          <Form method="post" action={action} className="mcfly-data-mode__form">
+          <Form
+            method="post"
+            action={action}
+            reloadDocument
+            className="mcfly-data-mode__form"
+          >
             <input type="hidden" name="intent" value="use-sample" />
             <input type="hidden" name="returnTo" value={returnTo} />
             <button
@@ -129,7 +134,12 @@ export function DataModeBar({
               {PRODUCT_NOUN.sampleData}
             </button>
           </Form>
-          <Form method="post" action={action} className="mcfly-data-mode__form">
+          <Form
+            method="post"
+            action={action}
+            reloadDocument
+            className="mcfly-data-mode__form"
+          >
             <input type="hidden" name="intent" value="use-real" />
             <input type="hidden" name="returnTo" value={returnTo} />
             <button

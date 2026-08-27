@@ -40,7 +40,8 @@ describe("Sample data | Live data UX", () => {
   it("Sample data preview uses the data-mode POST, not /app/demo", () => {
     const cta = read("../components/UseSampleCta.tsx");
     expect(cta).toContain('name="intent" value="use-sample"');
-    expect(cta).toContain('action="/app/data-mode"');
+    expect(cta).toContain('action={`/app/data-mode${location.search}`}');
+    expect(cta).toContain("reloadDocument");
     expect(cta).not.toContain('href="/app/demo"');
   });
 
@@ -57,6 +58,24 @@ describe("Sample data | Live data UX", () => {
     const dataMode = read("../routes/app.data-mode.tsx");
     expect(dataMode).toContain("sampleDeskNeedsSeed");
     expect(dataMode).toContain("seedThreeYearSampleDesk");
+    expect(dataMode).toContain("export default function DataModeRoute");
+  });
+
+  it("Sample | Live posts as a document request so Admin never decodes a raw 302 as turbo-stream", () => {
+    const bar = read("../components/DataModeBar.tsx");
+    const settings = read("../routes/app.settings.tsx");
+    expect(bar).toMatch(/reloadDocument/);
+    expect(bar).toContain('name="intent" value="use-real"');
+    expect(bar).toContain('name="intent" value="use-sample"');
+    expect(settings).toMatch(/action=\{dataModeAction\} reloadDocument/);
+    const serve = read("../../scripts/serve-with-site.mjs");
+    expect(serve).toContain('app.set("trust proxy", true)');
+    expect(serve).toContain("admin.shopify.com");
+    expect(serve).toContain("allowedActionOrigins");
+    const rrConfig = read("../../react-router.config.ts");
+    expect(rrConfig).toContain("allowedActionOrigins");
+    expect(rrConfig).toContain("admin.shopify.com");
+    expect(rrConfig).toContain("mcfly-analytics.fly.dev");
   });
 
   it("Overview empty states do not send merchants to /app/demo", () => {
