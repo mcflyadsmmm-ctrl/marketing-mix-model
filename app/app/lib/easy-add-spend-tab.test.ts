@@ -56,7 +56,7 @@ describe("Easy Add Spend tab (three doors)", () => {
     const reviewer = read("../../../docs/PARTNER_TESTING_INSTRUCTIONS.md");
     const resubmit = read("../../../docs/RESUBMIT_PLAN.md");
     expect(`${reviewer}\n${resubmit}`).not.toMatch(/That['’]s \$X per day/i);
-    expect(reviewer).toContain("Save Billboard $400 for Aug 26");
+    expect(reviewer).toMatch(/Save\s+Billboard \$400 for Aug 26/);
   });
 
   it("covers 90 closed days as a visual strip and embeds the explorer", () => {
