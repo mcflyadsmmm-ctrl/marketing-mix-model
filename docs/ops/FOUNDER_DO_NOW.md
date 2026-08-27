@@ -38,7 +38,8 @@ Same as before on **403721814017**:
 - PCD Level 1 → **`pcd done`**
 - Emergency contact → **`emergency contact done`**
 - Trust pages → **`pages live`**
-- Listing Free + shots → **`assets uploaded`** → **`submitted`**
+- Listing (one plan $39 + 7-day trial, no Free) + shots → **`assets uploaded`** → **`submitted`**  
+  Full order: [`../RESUBMIT_PLAN.md`](../RESUBMIT_PLAN.md)
 
 Copy: [`APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)  
 Reviewer script: [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md)

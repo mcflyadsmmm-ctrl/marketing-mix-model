@@ -1,5 +1,7 @@
 # Submit handoff — founder one-pager
 
+**Order of operations (2026-08-27):** [`../RESUBMIT_PLAN.md`](../RESUBMIT_PLAN.md) — freeze the desk; Partner one plan; Admin smoke; listing shots; Submit. Do not follow [`../SUBMIT_NOW.md`](../SUBMIT_NOW.md) “Pricing must be Free.”
+
 **SoT app:** [Mcfly Analytics Public](https://dev.shopify.com/dashboard/227535001/apps/403721814017) — not Custom `400772497409`  
 **SoT runbook:** [`../SUBMIT_NOW.md`](../SUBMIT_NOW.md) (follow in order)  
 **Reviewer paste:** [`../PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md) — **only** that `APP_STORE_PASTE:testing` block. Do **not** paste [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md).  
