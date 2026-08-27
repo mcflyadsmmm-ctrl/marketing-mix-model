@@ -50,4 +50,12 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("mcfly-alloc-v2__snap-grid");
     expect(source).toContain("spend share, not channel ROAS");
   });
+
+  it("reuses the Upload Spend explorer for allocation drill-downs", () => {
+    expect(source).toContain("buildSpendExplorerSeries");
+    expect(source).toContain("<SpendExplorer");
+    expect(source).toContain('basePath="/app/allocation"');
+    expect(source).toContain("Spend and sales drill-down");
+    expect(source).toContain("parseExplorerRange");
+  });
 });

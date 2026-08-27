@@ -83,7 +83,7 @@ SMOKE (matches the 2026-08-24 review path)
    PASS if the Shopify-hosted plan picker opens.
 4. Approve (dev stores: $0 test charge is OK) → return to the app. The whole
    desk was already available during the trial; nothing unlocks or locks.
-5. Spend → three doors: (a) Download Template and Upload — choose channels,
+5. Upload Spend → three doors: (a) Download Template and Upload — choose channels,
    default All history (Jan 1 of year−5 through yesterday), download, fill daily
    spend, and upload the same file; (b) upload an existing Ads Manager CSV; (c)
    Add one bill — choose channel, amount, and When, preview the daily amount,
@@ -93,7 +93,7 @@ SMOKE (matches the 2026-08-24 review path)
    the same date, then compare against yesterday’s Shopify sales. Days with no
    spend row read $0.
 
-SAMPLE SPEND CSV (paste into Spend → import)
+SAMPLE SPEND CSV (paste into Upload Spend → import)
 date,channel,amount
 2026-08-20,Meta Ads,110
 2026-08-20,Google Ads,80

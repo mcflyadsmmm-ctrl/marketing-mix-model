@@ -11,6 +11,10 @@ import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import {
+  SpendExplorer,
+  type SpendExplorerSeriesView,
+} from "../components/SpendExplorer";
+import {
   buildAllocationHistoryView,
   buildWindowSets,
   capHistoryDays,
@@ -35,6 +39,7 @@ import {
 import {
   buildDailyRowsForWindow,
   buildDashboardMetrics,
+  buildSpendExplorerSeries,
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
@@ -56,6 +61,17 @@ import {
 } from "../lib/periods";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
+  dateKeyFromLocal,
+  explorerQueryMatchingScoreboard,
+  parseExplorerDateParam,
+  parseExplorerGranularity,
+  parseExplorerMode,
+  parseExplorerRange,
+  parseExplorerShowSales,
+  resolveExplorerWindow,
+} from "../lib/spend-explorer";
+import {
+  SAMPLE_DESK_TARGET_MER,
   fetchSampleSales,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
@@ -222,12 +238,84 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shopifyOrderWindowLimited = Boolean(coverage?.periodExceedsFactWindow);
   }
 
+  const settings = await getOrCreateSettings(shop.id);
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesBasis: parseSalesBasis(
-      (await getOrCreateSettings(shop.id)).salesBasis,
+      settings.salesBasis,
       "total",
     ),
   });
+
+  const explicitExplorerRange = url.searchParams.get("exRange");
+  const tiedExplorer = explicitExplorerRange
+    ? null
+    : explorerQueryMatchingScoreboard(preset, range, deskTz);
+  const explorerRange = explicitExplorerRange
+    ? parseExplorerRange(explicitExplorerRange)
+    : (tiedExplorer?.range ?? "custom");
+  const explorerFrom = explicitExplorerRange
+    ? parseExplorerDateParam(url.searchParams.get("exFrom"))
+    : (tiedExplorer?.from ?? null);
+  const explorerTo = explicitExplorerRange
+    ? parseExplorerDateParam(url.searchParams.get("exTo"))
+    : (tiedExplorer?.to ?? null);
+  const explorerWindow = resolveExplorerWindow(explorerRange, now, {
+    from: explorerFrom,
+    to: explorerTo,
+    timeZone: deskTz,
+  });
+  const explorerGranularity = parseExplorerGranularity(
+    url.searchParams.get("exGran"),
+  );
+  const explorerMode = parseExplorerMode(url.searchParams.get("exMode"));
+  const explorerShowSales = parseExplorerShowSales(
+    url.searchParams.get("exSales"),
+  );
+  const explorerDayKey = (instant: Date) =>
+    deskTz
+      ? shopLocalDayKey(instant, deskTz)
+      : dateKeyFromLocal(instant);
+
+  // Start the chart read now; allocation-history I/O below runs in parallel.
+  const explorerPromise: Promise<SpendExplorerSeriesView | null> = (async () => {
+    try {
+      const explorerSalesByDay = useSampleDesk
+        ? await fetchSampleSalesByDay(shop.id, explorerWindow)
+        : await getSalesFactsByDay(shop.id, explorerWindow);
+      const series = await buildSpendExplorerSeries(shop.id, {
+        sampleOnly: useSampleDesk,
+        excludeSample: !useSampleDesk,
+        salesByDay: explorerSalesByDay,
+        window: explorerWindow,
+        granularity: explorerGranularity,
+        mode: explorerMode,
+        targetMer: useSampleDesk
+          ? SAMPLE_DESK_TARGET_MER
+          : (settings.targetMer ?? 3),
+        newCustomers: 0,
+        returningCustomers: 0,
+        customerMetricsAvailable: false,
+        timeZone: deskTz,
+      });
+      return {
+        buckets: series.buckets,
+        summary: series.summary,
+        mode: series.mode,
+        granularity: series.granularity,
+        range: explorerWindow.range,
+        windowLabel: explorerWindow.label,
+        targetMer: series.targetMer,
+        breakEvenMer: metrics.breakEvenMer,
+        showSales: explorerShowSales,
+        fromKey: explorerDayKey(explorerWindow.start),
+        toKey: explorerDayKey(explorerWindow.end),
+        asOfKey: explorerDayKey(explorerWindow.end),
+        channelLabels: series.channelLabels,
+      };
+    } catch {
+      return null;
+    }
+  })();
 
   /*
    * Portfolio history (~L12M / 365 closed days): best week/month/quarter/year
@@ -305,9 +393,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } catch {
     history = null;
   }
+  const explorer = await explorerPromise;
 
   return {
     metrics,
+    explorer,
     history,
     windowSets,
     preset,
@@ -325,6 +415,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function AllocationPage() {
   const {
     metrics,
+    explorer,
     history,
     windowSets,
     preset,
@@ -377,8 +468,8 @@ export default function AllocationPage() {
     ? metrics.spendCoverage.incomplete
       ? "Spend mix waits until most days this period have spend, so empty Sundays don’t fake a high Total ROAS. Add more days when you have invoices — last month is enough to start."
       : metrics.spendRecon?.status === "drift"
-        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or the declared total on Spend before mix advice."
-        : "Add spend on Spend, then come back for mix."
+        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or declared total on Upload Spend before mix advice."
+        : "Upload spend on Upload Spend, then come back for mix."
     : null;
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
@@ -552,6 +643,29 @@ export default function AllocationPage() {
             setSelectedChannel((cur) => (cur === name ? null : name))
           }
         />
+
+        {explorer ? (
+          <section
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-explorer mcfly-allocation-explorer"
+            aria-label="Spend and sales drill-down"
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>Spend and sales drill-down</h2>
+              <p className="mcfly-panel__muted">
+                The daily evidence behind this allocation—zoom the dates, group
+                by day, week, month, or quarter, and inspect every channel.
+              </p>
+            </div>
+            <SpendExplorer
+              series={explorer}
+              period={preset}
+              shotMode={shotMode}
+              basePath="/app/allocation"
+              compare
+              variant="spend"
+            />
+          </section>
+        ) : null}
 
         <BestWindowsSection
           grain={grain}
@@ -918,7 +1032,7 @@ function PeriodMixSection({
       {rows.length === 0 ? (
         <p className="mcfly-alloc-v2__empty">
           No channel spend for {periodLabel} — log Meta, Google, and the rest
-          on Spend.
+          on Upload Spend.
         </p>
       ) : (
         <>

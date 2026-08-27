@@ -104,15 +104,15 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 
 ## First 10 minutes (reviewer notes only — do not paste into listing body)
 
-Merchants (and reviewers) should reach a trusted Total ROAS after Settings → Spend → Overview, without auto-sync theater. **Do not paste dollar amounts into the public listing.** Reviewer notes may include the $39 plan so App Review can test billing.
+Merchants (and reviewers) should reach a trusted Total ROAS after Settings → Upload Spend → Overview, without auto-sync theater. **Do not paste dollar amounts into the public listing.** Reviewer notes may include the $39 plan so App Review can test billing.
 
 ```text
 FIRST STEPS (no required pixel; default plan = every named platform + typed extras)
 1. Install Mcfly Analytics from the Shopify App Store — opens embedded in Admin
 2. Settings → optional profit margin % → save → Break-even Total ROAS locks (1 ÷ margin)
-3. Spend → Add spend: amount + date + channel (or type Billboards — I-15) → Save
+3. Upload Spend → Download Template and Upload: choose channels, fill daily spend, then upload
    CSV remains for many days / Ads Manager export.
-   Optional automation: Spend → Automate → Mcfly pipe template → SyncWith / Coupler /
+   Optional automation: Upload Spend → Mcfly template → SyncWith / Coupler /
    Supermetrics / Coefficient (you pay those tools) → CSV → Paste / Import.
    Not a “Works with” partnership.
    Customer LTV and the full Goals board = paid plan (Shopify App Pricing — see Pricing details).

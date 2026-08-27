@@ -89,7 +89,7 @@ export default function App() {
             Overview
           </s-link>
           <s-link href={deskNavHrefFromSearch("/app/spend", searchParams)}>
-            Spend
+            {PRODUCT_NOUN.uploadSpend}
           </s-link>
           <s-link href={deskNavHrefFromSearch("/app/goals", searchParams)}>
             Goals

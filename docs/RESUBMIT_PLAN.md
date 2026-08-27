@@ -80,7 +80,7 @@ Reply in Cursor when a step is done: `plans set` · `pcd done` · `emergency con
 On **`devmcflyads`**, Live data, after Phase 1 plans exist:
 
 1. Overview: if sales still loading, Total ROAS is **—.——**, not **0.00×**.
-2. Spend three doors: **Download Template and Upload** first; **Upload an Ads Manager CSV**; **Add one bill**. Confirm the primary template defaults to Jan 1 of year−5 through yesterday, then smoke Billboard + $400 + One day + yesterday in the helper.
+2. Upload Spend has three doors: **Download Template and Upload** first; **Upload an Ads Manager CSV**; **Add one bill**. Confirm the primary template defaults to Jan 1 of year−5 through yesterday, then smoke Billboard + $400 + One day + yesterday in the helper.
 3. Type **Billboard** (or similar) → Overview mix and Spend both show that name, not “Other.”
 4. Settings → **Start 7-day trial** → Shopify plan picker in the **top** Admin window. Fail if “refused to connect” inside the iframe.
 5. Toggle **Sample data | Live data**. Never Practice / Free / Pro as a view.

@@ -9923,6 +9923,29 @@
   font-weight: 650;
 }
 
+.mcfly-spend-automation {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--mcfly-line-soft, #c9d4de);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.mcfly-spend-automation p {
+  margin: 0;
+}
+
+.mcfly-spend-automation p + p {
+  margin-top: 0.45rem;
+}
+
+.mcfly-spend-automation .mcfly-spend-automation__k {
+  color: var(--mcfly-ink, #1a2330);
+  font-weight: 700;
+}
+
 .mcfly-explorer__control-label {
   color: var(--mcfly-ink-muted, #5c6b7a);
   font-size: 0.72rem;

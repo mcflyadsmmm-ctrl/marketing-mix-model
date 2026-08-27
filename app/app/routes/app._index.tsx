@@ -949,7 +949,7 @@ export default function Dashboard() {
 
             {!shotMode ? (
               <p className="mcfly-overview-more" aria-label="More tools">
-                <s-link href="/app/spend">Spend</s-link>
+                <s-link href="/app/spend">{PRODUCT_NOUN.uploadSpend}</s-link>
                 {" · "}
                 <s-link href={`/app/allocation?period=${preset}`}>
                   {PRODUCT_NOUN.spendAllocation}

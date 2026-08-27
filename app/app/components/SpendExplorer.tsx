@@ -55,9 +55,9 @@ type SpendExplorerProps = {
   shotMode?: boolean;
   /**
    * Where range / granularity clicks stay. Overview defaults to `/app`.
-   * Spend embeds the explorer and must keep drill-down on `/app/spend`.
+   * Upload Spend and Spend Allocation keep drill-downs on their own route.
    */
-  basePath?: "/app" | "/app/spend";
+  basePath?: "/app" | "/app/spend" | "/app/allocation";
   /**
    * This-period-vs-prior comparison (day vs previous day, week vs previous
    * week, …) in the ROAS tip + a summary row. Default off — Overview

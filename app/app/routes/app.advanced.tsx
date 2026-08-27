@@ -175,7 +175,7 @@ export default function AdvancedMetricsPage() {
         </div>
 
         <p className="mcfly-advanced__lede">
-          Optional. Add spend on Spend first — this page is extra math, not a
+          Optional. Add spend on Upload Spend first — this page is extra math, not a
           second scoreboard. Overview stays simple. Every tile is average /
           portfolio math from Shopify sales and Logged Spend via CSV.
         </p>

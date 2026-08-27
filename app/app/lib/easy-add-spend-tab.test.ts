@@ -11,6 +11,8 @@ function read(rel: string) {
 
 describe("Easy Add Spend tab (three doors)", () => {
   const spend = read("../routes/app.spend.tsx");
+  const appShell = read("../routes/app.tsx");
+  const labels = read("./product-labels.ts");
   const explorer = read("../components/SpendExplorer.tsx");
   const css = read("../styles/mcfly-desk.css");
 
@@ -25,6 +27,13 @@ describe("Easy Add Spend tab (three doors)", () => {
     expect(spend).toContain("<h2>Upload an Ads Manager CSV</h2>");
     expect(spend).toContain("<h2>Add one bill</h2>");
     expect(spend).toContain("billSaveLabel");
+  });
+
+  it("names the route Upload Spend everywhere merchants navigate", () => {
+    expect(labels).toContain('uploadSpend: "Upload Spend"');
+    expect(labels).toContain('setupAddSpend: "Upload Spend"');
+    expect(appShell).toContain("{PRODUCT_NOUN.uploadSpend}");
+    expect(spend).toContain("heading={PRODUCT_NOUN.uploadSpend}");
   });
 
   it("does not bury CSV import in a closed details drawer", () => {
@@ -77,7 +86,9 @@ describe("Easy Add Spend tab (three doors)", () => {
   });
 
   it("keeps explorer drill-down on Spend when embedded", () => {
-    expect(explorer).toContain('basePath?: "/app" | "/app/spend"');
+    expect(explorer).toContain(
+      'basePath?: "/app" | "/app/spend" | "/app/allocation"',
+    );
     expect(explorer).toContain("pathname: basePath");
     expect(explorer).toContain("compareExplorerBuckets");
     expect(explorer).toContain('hash: "mcfly-spend-csv"');
@@ -177,5 +188,13 @@ describe("Easy Add Spend tab (three doors)", () => {
     expect(spend).not.toContain("Empty days are not $0");
     expect(spend).not.toContain("Ad-platform logins often fail");
     expect(spend).toContain("Why no ad-account connection?");
+  });
+
+  it("offers honest optional automation without claiming a partnership", () => {
+    expect(spend).toContain("Want a more automated routine?");
+    expect(spend).toContain("merchant-paid tool such as SyncWith");
+    expect(spend).toContain("Mcfly is not partnered");
+    expect(spend).toContain("Ad APIs and OAuth connections break");
+    expect(spend).toContain("never receives their ad-account tokens");
   });
 });

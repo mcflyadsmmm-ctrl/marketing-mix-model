@@ -170,7 +170,7 @@ export default function DemoPage() {
                 {PRODUCT_NOUN.openTotalRoas}
               </s-button>
               <s-button href="/app/spend" variant="secondary">
-                Go to Spend
+                Go to Upload Spend
               </s-button>
             </div>
           </s-banner>
@@ -277,7 +277,7 @@ export default function DemoPage() {
               {PRODUCT_NOUN.setupAdjustMargin}
             </s-button>
             <s-button href="/app/spend" variant="primary">
-              Go to Spend
+              Go to Upload Spend
             </s-button>
             <s-button href="/app" variant="secondary">
               {PRODUCT_NOUN.openTotalRoas}
@@ -302,7 +302,7 @@ export default function DemoPage() {
               <s-link href="/app?period=mtd&shot=1">Overview MTD shot</s-link>
             </li>
             <li>
-              <s-link href="/app/spend?shot=1">Spend shot</s-link>
+              <s-link href="/app/spend?shot=1">Upload Spend shot</s-link>
             </li>
             <li>
               <s-link href="/app/goals?shot=1">Goals shot</s-link>

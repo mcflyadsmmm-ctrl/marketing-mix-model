@@ -1538,12 +1538,12 @@ export default function SpendEntryPage() {
     : "Enter an amount";
 
   return (
-    <s-page heading="Spend" inlineSize="large">
+    <s-page heading={PRODUCT_NOUN.uploadSpend} inlineSize="large">
       {isEmpty && !shotMode ? (
         <s-button
           slot="primary-action"
           variant="primary"
-          href="#mcfly-spend-add"
+          href="#mcfly-spend-platforms"
           aria-label={PRODUCT_NOUN.setupAddSpend}
         >
           {PRODUCT_NOUN.setupAddSpend}
@@ -2548,6 +2548,21 @@ export default function SpendEntryPage() {
               ))}
             </ul>
           ) : null}
+
+          <aside className="mcfly-spend-automation" aria-label="Optional spend automation">
+            <p className="mcfly-spend-automation__k">Want a more automated routine?</p>
+            <p>
+              A merchant-paid tool such as SyncWith, Coupler, or Supermetrics can
+              pull daily platform spend into this template; export the CSV and
+              upload it here. Mcfly is not partnered with those tools and never
+              receives their ad-account tokens.
+            </p>
+            <p>
+              Ad APIs and OAuth connections break—tokens expire, account access
+              changes, and platform reports arrive late. Keeping the daily file
+              visible gives you a number you can inspect, correct, and reproduce.
+            </p>
+          </aside>
         </div>
       </div>
     </s-page>

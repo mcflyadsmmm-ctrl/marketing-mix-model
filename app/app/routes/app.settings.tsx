@@ -363,7 +363,7 @@ export default function SettingsPage() {
                 : `Target ${PRODUCT_NOUN.totalRoas} updated. Profit margin stays optional — add it anytime for break-even.`}
               {hasLiveSpend
                 ? ` Open ${PRODUCT_NOUN.totalRoas} when ready.`
-                : " Next: paste daily spend on Spend."}
+                : " Next: upload daily spend on Upload Spend."}
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               {hasLiveSpend ? (
