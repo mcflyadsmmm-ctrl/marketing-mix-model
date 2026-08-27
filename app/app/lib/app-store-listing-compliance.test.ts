@@ -37,6 +37,10 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
       expect(block).not.toMatch(/\/store\/mo/i);
       expect(block).not.toMatch(/\$39/);
       expect(block).not.toMatch(/Free\./);
+      expect(block).not.toMatch(/\bone plan\b/i);
+      expect(block).not.toMatch(/free trial/i);
+      expect(block).not.toMatch(/paid plan/i);
+      expect(block).not.toMatch(/7-day/);
     }
   });
 
@@ -45,6 +49,9 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(features).toMatch(/billboard/i);
     expect(long).toMatch(/billboard/i);
     expect(long).not.toMatch(/paid plan unlocks every named/i);
+    expect(long).not.toMatch(/paid plan/i);
+    expect(long).not.toMatch(/\bone plan\b/i);
+    expect(long).not.toMatch(/free trial/i);
     expect(long).toMatch(/not platform ROAS/i);
     expect(long).toMatch(/not net profit/i);
     expect(features).toMatch(/spend you added/i);
@@ -88,6 +95,20 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     const shotScript = readRepo("scripts/listing-shot-04.py");
     expect(shotScript).toMatch(/4\.2\.2/);
     expect(shotScript).toMatch(/Refusing to generate a pricing screenshot/);
+  });
+
+  it("feature media forbids unsubstantiated ROAS statistics (listing AI / 4.3.3)", () => {
+    expect(captions).toMatch(/4\.42x/);
+    expect(captions).toMatch(/2\.86x/);
+    expect(captions).toMatch(/no/i);
+    expect(listing).toMatch(/feature-media-1600x900\.png/);
+    expect(listing).toMatch(/4\.42x/);
+    expect(listing).toMatch(/2\.86x/);
+    const features = pasteBlock(listing, "features");
+    expect(features).not.toMatch(/4\.42/);
+    expect(features).not.toMatch(/2\.86/);
+    expect(short).not.toMatch(/4\.42/);
+    expect(long).not.toMatch(/4\.42/);
   });
 
   it("listing checklist tells Partner not to require Online Store (4.3.1)", () => {

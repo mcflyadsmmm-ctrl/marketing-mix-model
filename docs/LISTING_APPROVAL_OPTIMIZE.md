@@ -91,7 +91,7 @@ Upload: `~/Pictures/Mcfly-Listing-Screenshots-Best3/feature-media-1600x900.png`
 (also in `docs/listing-assets/feature-media-1600x900.png`)  
 Alt text:
 ```text
-Total ROAS 4.42× vs break-even
+Total ROAS = Total Sales ÷ spend — next to break-even
 ```
 
 ### Screenshots (desktop) — re-upload if “No file chosen”

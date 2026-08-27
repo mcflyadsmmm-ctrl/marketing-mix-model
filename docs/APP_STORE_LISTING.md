@@ -145,16 +145,16 @@ Add spend from Meta, Google, TikTok, or billboards. See it next to Shopify sales
 ```text
 Shopify Analytics shows sales. It does not ingest Meta, Google, TikTok, or billboard cost, and it does not compute LTV next to that spend.
 
-Mcfly Analytics is the Admin app where you add exact spend from every platform — even billboards — and see it beside Shopify sales for the same dates. Total ROAS = Shopify Total Sales ÷ the spend you added. It is not platform ROAS, not net profit, and not which ad to scale. The paid plan unlocks customer LTV/payback and a full-year Goals board.
+Mcfly Analytics is the Admin app where you add exact spend from every platform — even billboards — and see it beside Shopify sales for the same dates. Total ROAS = Shopify Total Sales ÷ the spend you added. It is not platform ROAS, not net profit, and not which ad to scale. Customer LTV/payback and a full-year Goals board sit next to that same spend.
 
 WHAT YOU GET
 • Add spend: type one day (amount + date + channel, or a named extra like billboards) or upload a CSV for many days
-• Every named platform plus extras on the default plan — TikTok, Amazon, email, radio, billboards
+• Every named platform plus extras — TikTok, Amazon, email, radio, billboards
 • Total ROAS = Shopify Total Sales ÷ spend for any period (MTD / QTD / YTD / custom)
 • Break-even Total ROAS from optional profit margin
 • Spend Allocation — quarters, pie, rolling 7 / 14 / 28
-• Goals — this period vs your Total ROAS goal; full-year board on the paid plan
-• LTV / Acquisition — Cash CAC, cohort LTV, LTV:CAC on the paid plan
+• Goals — this period vs your Total ROAS goal; full-year board
+• LTV / Acquisition — Cash CAC, cohort LTV, LTV:CAC
 • Email Overview — opens your mail app with this period’s cards (mailto; Mcfly never sends mail)
 
 THE DESK
@@ -175,15 +175,13 @@ WHAT WE DO NOT SHIP
 WHO IT’S FOR
 Shopify operators who need every dollar out — including offline — next to Shopify metrics, plus LTV and goals Shopify Analytics does not combine.
 
-Plan prices are in the Pricing details section of this listing — not here. Upgrade and Manage plan run through Shopify App Pricing in Admin.
-
 Learn more: https://mcfly-analytics.fly.dev
 Privacy: https://mcfly-analytics.fly.dev/privacy · Support: https://mcfly-analytics.fly.dev/support
 App URL: https://mcfly-analytics.fly.dev
 ```
 <!-- /APP_STORE_PASTE:long -->
 
-**Why it converts:** Shopify gap in line one → billboards as proof → paid plan is LTV + Goals (not hidden channels).
+**Why it converts:** Shopify gap in line one → billboards as proof → LTV + Goals next to the same spend. Prices stay in Partner Pricing details only.
 
 ---
 
@@ -194,12 +192,12 @@ App URL: https://mcfly-analytics.fly.dev
 Add spend from every platform — even billboards — next to Shopify sales
 Total ROAS = Shopify Total Sales ÷ spend you added — not platform ROAS
 Break-even from optional profit margin · Spend Allocation
-Customer LTV and payback Shopify Analytics does not compute (paid plan)
-Full-year Goals board on the paid plan · Email Overview (mailto)
+Customer LTV and payback Shopify Analytics does not compute
+Full-year Goals board · Email Overview (mailto)
 ```
 <!-- /APP_STORE_PASTE:features -->
 
-**Why this order:** Spend in (billboards) → formula → break-even/allocation → paid LTV → paid Goals. No plan prices in this field (4.2.3).
+**Why this order:** Spend in (billboards) → formula → break-even/allocation → LTV → Goals. No plan prices, “one plan,” or “free trial” in this field (4.2.3).
 
 ---
 
@@ -217,6 +215,8 @@ Shot order + captions: [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md).
 | 5 | Goals | Full-year Goals board next to this period | PeriodControl + year board |
 
 **App icon:** upload `docs/listing-assets/mcfly-app-icon-1200.png` (1200×1200, **M-only** — no wordmark).
+
+**Feature Image 1 (header media):** upload `docs/listing-assets/feature-media-1600x900.png`. Formula only — **no** sample ROAS stats (`4.42x`, `Above break-even 2.86x`). Shopify listing AI treats those as unsubstantiated claims (4.3.3).
 
 ---
 

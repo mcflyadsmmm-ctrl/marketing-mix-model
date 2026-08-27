@@ -29,5 +29,5 @@ Shot paths SoT: [`LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md).
 
 - Founder pack PNGs from 2026-07-31 still show old SAMPLE chrome and CSV-first Spend. **Retake** from live Admin with **Sample data** on (`?shot=1`) so shot 3 is Add spend, shot 4 is LTV, and shot 5 is Goals.
 - Switch back to **Live data** on the review store after capture / before review.
-- Feature media (header): `../feature-media-1600x900.png` (Custom Data Science dark/cyan).
+- Feature media (header): `../feature-media-1600x900.png` (Custom Data Science dark/cyan). Formula only — **no** `4.42x` / `Above break-even 2.86x` (listing AI / 4.3.3).
 - Icon: `../mcfly-app-icon-1200.png`.

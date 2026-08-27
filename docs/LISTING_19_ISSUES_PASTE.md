@@ -27,7 +27,9 @@ Paste from `docs/APP_STORE_LISTING.md` → **Long description (paste)** block (s
 Paste from `docs/APP_STORE_LISTING.md` → `APP_STORE_PASTE:features` (never the old Meta-only Free bullets).
 
 ### Feature media / Screenshots
-Upload from `docs/listing-assets/shots/` **in order**:
+**Feature Image 1 (header):** re-upload `docs/listing-assets/feature-media-1600x900.png`. Formula only — do **not** keep the old file with `4.42x` / `Above break-even 2.86x` (listing AI / 4.3.3).
+
+Upload screenshots from `docs/listing-assets/shots/` **in order**:
 
 | # | File | Caption |
 | --- | --- | --- |

@@ -90,11 +90,11 @@ If any of 1–5 fail, **then** a targeted agent fix is allowed. If they pass, do
 
 ### Phase 3 — Listing package (human; blocks Submit)
 
-Merchant-facing listing fields **must not include $39** (App Store 4.2.2 / 4.2.3). Put price only in Partner Pricing + reviewer notes.
+Merchant-facing listing fields **must not include $39**, “one plan,” or “free trial” (App Store 4.2.2 / 4.2.3). Put price only in Partner Pricing + reviewer notes.
 
-1. Paste name / tagline / short / long / 5 feature bullets from [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md).
-2. Recapture **five unique ~1600×900 Admin shots** per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md). July PNGs are **not in git** and captions still say “Practice.” Do **not** upload `04-free-pro-pricing.png` or marketing-site captures.
-3. Icon: `docs/listing-assets/mcfly-app-icon-1200.png`.
+1. Paste name / tagline / short / long / 5 feature bullets from [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md) (`APP_STORE_PASTE` blocks). Re-paste if Partner still has “One plan” / “free trial” in App details.
+2. Recapture **five unique ~1600×900 Admin shots** per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md). July PNGs are **not in git** and captions still say “Practice.” Do **not** upload `04-free-pro-pricing.png` or marketing-site captures. Screenshots must not show unsubstantiated stats (`4.42x`, `Above break-even 2.86x`).
+3. Icon: `docs/listing-assets/mcfly-app-icon-1200.png`. **Feature Image 1:** re-upload `docs/listing-assets/feature-media-1600x900.png` (formula only — the old header had `4.42x` / `2.86x`).
 4. Short screencast: install → Start trial (`_top`) → type one spend line → Overview sales ÷ spend.
 5. Run Partner **automated checks**. Fix failures before Submit.
 
