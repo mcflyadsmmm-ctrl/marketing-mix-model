@@ -14,16 +14,16 @@ describe("Easy Add Spend tab (three doors)", () => {
   const explorer = read("../components/SpendExplorer.tsx");
   const css = read("../styles/mcfly-desk.css");
 
-  it("puts Add spend, CSV, then the many-day template in numbered order", () => {
+  it("puts the five-year template first, then CSV and one-bill helpers", () => {
     const pickAt = spend.indexOf('id="mcfly-spend-platforms"');
     const addAt = spend.indexOf('id="mcfly-spend-add"');
     const csvAt = spend.indexOf('id="mcfly-spend-csv"');
-    expect(addAt).toBeGreaterThan(-1);
-    expect(csvAt).toBeGreaterThan(addAt);
-    expect(pickAt).toBeGreaterThan(csvAt);
-    expect(spend).toContain("<h2>Add spend</h2>");
-    expect(spend).toContain("<h2>Paste a file</h2>");
-    expect(spend).toContain("<h2>Fill many days</h2>");
+    expect(pickAt).toBeGreaterThan(-1);
+    expect(csvAt).toBeGreaterThan(pickAt);
+    expect(addAt).toBeGreaterThan(csvAt);
+    expect(spend).toContain("<h2>Download Template and Upload</h2>");
+    expect(spend).toContain("<h2>Upload an Ads Manager CSV</h2>");
+    expect(spend).toContain("<h2>Add one bill</h2>");
     expect(spend).toContain("billSaveLabel");
   });
 
@@ -49,7 +49,9 @@ describe("Easy Add Spend tab (three doors)", () => {
     expect(spend).toContain("spendTemplateRangeQuery");
     expect(spend).toContain("selectedBlankTemplateHref");
     expect(spend).toContain("Pick at least one channel");
-    expect(spend).toContain("Complete-day presets end yesterday");
+    expect(spend).toContain('useState<SpendTemplateRangeId>("all")');
+    expect(spend).toContain("Upload the filled template");
+    expect(spend).toContain("mcfly-spend-template-upload-form");
   });
 
   it("keeps reviewer smoke copy aligned with the action-oriented save button", () => {

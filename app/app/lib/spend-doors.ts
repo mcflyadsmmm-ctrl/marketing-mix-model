@@ -2,8 +2,8 @@
  * The three ways to get spend onto the desk, named on the page so a merchant
  * picks one in the first session without a tutorial. Client-safe.
  *
- * Order is fastest-first: typing one bill beats picking a template, which beats
- * wrangling an Ads Manager export.
+ * The fill-in-the-blank template is primary: it gives a merchant an explicit
+ * daily spine for their full history, then accepts the same file back.
  */
 
 export type SpendDoor = {
@@ -16,18 +16,18 @@ export type SpendDoor = {
 
 export const SPEND_DOORS: readonly SpendDoor[] = [
   {
-    href: "#mcfly-spend-add",
-    title: "Add spend",
-    hint: "Channel, amount, when. Fastest — start here.",
+    href: "#mcfly-spend-platforms",
+    title: "Download Template and Upload",
+    hint: "Fill daily spend back to the history floor. Start here.",
   },
   {
     href: "#mcfly-spend-csv",
-    title: "Paste a file",
-    hint: "Drop an Ads Manager CSV or paste daily rows.",
+    title: "Upload an Ads Manager CSV",
+    hint: "Already have a daily export? Paste or upload it.",
   },
   {
-    href: "#mcfly-spend-platforms",
-    title: "Fill many days",
-    hint: "Choose channels and dates for a blank daily template.",
+    href: "#mcfly-spend-add",
+    title: "Add one bill",
+    hint: "Helper for one channel, amount, and date range.",
   },
 ] as const;

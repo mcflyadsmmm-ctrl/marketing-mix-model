@@ -83,11 +83,12 @@ SMOKE (matches the 2026-08-24 review path)
    PASS if the Shopify-hosted plan picker opens.
 4. Approve (dev stores: $0 test charge is OK) → return to the app. The whole
    desk was already available during the trial; nothing unlocks or locks.
-5. Spend → three doors: (a) Add spend — choose channel, amount, and When;
-   preview the daily amount, then click the action button such as “Save
-   Billboard $400 for Aug 26”; (b) paste or upload an Ads Manager CSV; (c) Fill
-   many days — choose channels + dates and download that daily template. Then
-   Overview shows Total ROAS = Shopify Total Sales ÷ ad spend.
+5. Spend → three doors: (a) Download Template and Upload — choose channels,
+   default All history (Jan 1 of year−5 through yesterday), download, fill daily
+   spend, and upload the same file; (b) upload an existing Ads Manager CSV; (c)
+   Add one bill — choose channel, amount, and When, preview the daily amount,
+   then click an action such as “Save Billboard $400 for Aug 26.” Then Overview
+   shows Total ROAS = Shopify Total Sales ÷ ad spend.
 6. First-session check: enter yesterday’s Meta spend and a $400 billboard for
    the same date, then compare against yesterday’s Shopify sales. Days with no
    spend row read $0.

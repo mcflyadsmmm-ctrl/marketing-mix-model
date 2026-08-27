@@ -5,22 +5,22 @@ describe("SPEND_DOORS", () => {
   it("names exactly the three doors the product promises", () => {
     expect(SPEND_DOORS).toHaveLength(3);
     expect(SPEND_DOORS.map((d) => d.title)).toEqual([
-      "Add spend",
-      "Paste a file",
-      "Fill many days",
+      "Download Template and Upload",
+      "Upload an Ads Manager CSV",
+      "Add one bill",
     ]);
   });
 
-  it("puts the fastest door first and says so", () => {
-    expect(SPEND_DOORS[0].href).toBe("#mcfly-spend-add");
+  it("puts the fill-in-the-blank workflow first and says so", () => {
+    expect(SPEND_DOORS[0].href).toBe("#mcfly-spend-platforms");
     expect(SPEND_DOORS[0].hint.toLowerCase()).toContain("start here");
   });
 
   it("points every door at a section that exists on Spend", () => {
     expect(SPEND_DOORS.map((d) => d.href)).toEqual([
-      "#mcfly-spend-add",
-      "#mcfly-spend-csv",
       "#mcfly-spend-platforms",
+      "#mcfly-spend-csv",
+      "#mcfly-spend-add",
     ]);
   });
 

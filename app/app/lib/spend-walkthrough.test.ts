@@ -37,7 +37,7 @@ describe("spend walkthrough examples", () => {
   it("keeps the Ads Manager door on Spend without a separate walkthrough drawer", () => {
     const spend = read("../routes/app.spend.tsx");
     // Founder lock: Spend is three doors on one screen, no export drawer.
-    expect(spend).toContain("<h2>Paste a file</h2>");
+    expect(spend).toContain("<h2>Upload an Ads Manager CSV</h2>");
     expect(spend).toContain("Drop an Ads Manager CSV");
     expect(spend).not.toContain("SpendExportWalkthrough");
     expect(spend).not.toContain("Combine & import");

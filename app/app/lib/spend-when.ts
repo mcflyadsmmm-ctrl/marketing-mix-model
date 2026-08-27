@@ -10,6 +10,7 @@ export type SpendWhenId =
   | "custom";
 
 export type SpendTemplateRangeId =
+  | "all"
   | "30d"
   | "90d"
   | "ytd"
@@ -39,6 +40,7 @@ export const SPEND_TEMPLATE_RANGE_OPTIONS: readonly {
   id: SpendTemplateRangeId;
   label: string;
 }[] = [
+  { id: "all", label: "All history" },
   { id: "30d", label: "Last 30 days" },
   { id: "90d", label: "Last 90 days" },
   { id: "ytd", label: "Year to date" },
@@ -94,7 +96,7 @@ export function spendTemplateRangeQuery(input: {
   from: string;
   to: string;
 }): string | null {
-  if (input.range !== "custom") {
+  if (input.range !== "custom" && input.range !== "all") {
     return `span=${input.range}`;
   }
   if (!input.from || !input.to || input.to < input.from) return null;

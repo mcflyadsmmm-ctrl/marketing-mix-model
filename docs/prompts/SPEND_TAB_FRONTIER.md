@@ -1,5 +1,10 @@
 # Frontier brief — Mcfly Spend tab (upload by platform, by day)
 
+> **Founder override — 2026-08-27:** The primary first door is now **Download
+> Template and Upload**, defaulting to the full spend-history spine from Jan 1
+> of year−5 through yesterday. Existing Ads Manager CSV and Add one bill are
+> helpers. This override supersedes any Type-it-first recommendation below.
+
 Paste this entire file into a frontier model (Claude Opus / GPT-5 / Gemini) as the **system + task**. Do not summarize it first. The model must read the live code, not invent a new product.
 
 **Repo:** `mcflyadsmmm-ctrl/marketing-mix-model`  

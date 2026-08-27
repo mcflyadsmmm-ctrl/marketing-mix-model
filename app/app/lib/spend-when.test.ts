@@ -27,6 +27,13 @@ describe("Spend When vocabulary", () => {
 describe("spendTemplateRangeQuery", () => {
   it("serializes preset and custom template ranges", () => {
     expect(
+      spendTemplateRangeQuery({
+        range: "all",
+        from: "2021-01-01",
+        to: "2026-08-26",
+      }),
+    ).toBe("from=2021-01-01&to=2026-08-26");
+    expect(
       spendTemplateRangeQuery({ range: "90d", from: "", to: "" }),
     ).toBe("span=90d");
     expect(
