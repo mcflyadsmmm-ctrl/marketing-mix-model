@@ -706,6 +706,9 @@ export function SpendExplorer({
             </button>
           </form>
 
+          {variant === "spend" ? (
+            <span className="mcfly-explorer__control-label">Group chart by</span>
+          ) : null}
           <div
             className="mcfly-explorer__segmented"
             role="group"

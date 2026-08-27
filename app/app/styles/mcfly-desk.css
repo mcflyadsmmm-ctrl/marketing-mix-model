@@ -9731,6 +9731,12 @@
 /* Add spend — one day, any platform */
 .mcfly-spend-add {
   margin: 0;
+  border-color: color-mix(in srgb, var(--mcfly-accent, #0284c7) 45%, #d8e0e8);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+.mcfly-spend-door--secondary {
+  background: color-mix(in srgb, #fff 96%, var(--mcfly-paper, #f8fafc));
 }
 
 .mcfly-spend-add__form {
@@ -9891,6 +9897,14 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 650;
+}
+
+.mcfly-explorer__control-label {
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .mcfly-spend-add__presets {

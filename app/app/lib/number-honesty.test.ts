@@ -105,7 +105,7 @@ describe("NUMBER_HONESTY copy contracts", () => {
 
   it("keeps spend-add as the primary deep link", () => {
     expect(SPEND_ADD_HREF).toBe("/app/spend#mcfly-spend-add");
-    expect(SPEND_CSV_HREF).toBe("/app/spend#mcfly-spend-uploads");
+    expect(SPEND_CSV_HREF).toBe("/app/spend#mcfly-spend-csv");
   });
 });
 

@@ -15,7 +15,7 @@ export function spendAddHref(opts: DeskNavOpts = {}): string {
 }
 
 /** CSV / Ads Manager export drawer (coverage holes, many days). */
-export const SPEND_CSV_HREF = "/app/spend#mcfly-spend-uploads";
+export const SPEND_CSV_HREF = "/app/spend#mcfly-spend-csv";
 
 export const NUMBER_HONESTY = {
   panelLabel: "How this number is built",

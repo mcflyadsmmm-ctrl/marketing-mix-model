@@ -70,6 +70,7 @@ import { isSpendChannel } from "../lib/spend-billing";
 import {
   currentYearMonth,
   isPeriodWindowType,
+  periodWindow,
   planCustomLumpSpread,
   planLumpSpread,
 } from "../lib/spend-period-allocate";
@@ -1525,6 +1526,8 @@ export default function SpendEntryPage() {
   const needsMonthAnchor = spendWhenUsesMonth(billWhen);
   const billServerPeriodType =
     billWhen === "custom" ? "custom" : spendWhenPeriodType(billWhen);
+  const sevenDayWindow =
+    billWhen === "days7" ? periodWindow("week", billAnchor) : null;
   const billChannelReady =
     billResolvedChannel.channel !== "other" ||
     billResolvedChannel.customName.length > 0;
@@ -1889,6 +1892,12 @@ export default function SpendEntryPage() {
                         setBillError(null);
                       }}
                     />
+                    {sevenDayWindow ? (
+                      <small>
+                        {formatSpendYmd(sevenDayWindow.startDateYmd)} →{" "}
+                        {formatSpendYmd(sevenDayWindow.endDateYmd)}
+                      </small>
+                    ) : null}
                   </label>
                 ) : null}
                 {needsMonthAnchor ? (
@@ -1966,7 +1975,7 @@ export default function SpendEntryPage() {
 
           <section
             id="mcfly-spend-csv"
-            className="mcfly-panel mcfly-panel--eq-compact"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-door--secondary"
             aria-label="Paste or upload a spend file"
           >
             <div className="mcfly-panel__head mcfly-panel__head--tight">
@@ -2062,7 +2071,7 @@ export default function SpendEntryPage() {
 
           <section
             id="mcfly-spend-platforms"
-            className="mcfly-panel mcfly-panel--eq-compact"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-door--secondary"
             aria-label="Fill many days with a template"
           >
             <div className="mcfly-panel__head mcfly-panel__head--tight">
