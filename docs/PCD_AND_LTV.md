@@ -1,6 +1,6 @@
 # Protected Customer Data (PCD) + LTV — Mcfly plain English
 
-**SoT for first Free submit:** request **Level 1 only**.  
+**SoT for resubmission:** request **Level 1 only**. Pricing does not change the data minimization requirement.  
 **Official Shopify:** [Protected customer data](https://shopify.dev/docs/apps/launch/protected-customer-data)
 
 ---
@@ -16,7 +16,7 @@
 | **Mcfly first submit** | **Yes — request this** | **No — leave unchecked** |
 | **Needed for till LTV?** | **Yes (enough)** | **No** |
 
-**Important:** Even order totals (no customer name) sit under protected customer data. That is why Free Mcfly still needs a **Level 1** request — not “opt out of PCD.”
+**Important:** Even order totals (no customer name) sit under protected customer data. That is why Mcfly still needs a **Level 1** request — not “opt out of PCD.”
 
 ---
 
@@ -93,7 +93,7 @@ Email, name, address for profiles, outreach, “customer 360,” identity graphs
 
 | When | PCD / scopes | Product |
 | --- | --- | --- |
-| **Now (Free submit)** | Level 1 only; no PII fields; declare `read_all_orders` in TOML when ready for Partner approve | Cash MER, new/returning, till LTV backfill (historyLimited until approved) |
+| **Now (resubmit)** | Level 1 only; no PII fields; keep `read_all_orders` out until separately approved | Cash MER, new/returning, till LTV with available history |
 | **Post-approve + design partners** | Still Level 1 | Till LTV panel from `CohortFact` (opaque cohorts) |
 | **When Partner approves `read_all_orders`** | Level 1 + deep history | Multi-year OrderFact backfill; clear historyLimited |
 | **Only if product pulls for CRM/email LTV** | Then consider Level 2 + privacy rewrite | Optional Scale tier — not the wedge |

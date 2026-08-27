@@ -54,7 +54,7 @@ App URL and Website may share the Fly host. Never set App URL to mcflyads.com.
 
 ---
 
-## Explicitly deferred for first Free submit (do not expand scopes)
+## Explicitly deferred for first resubmit (do not expand scopes)
 
 | Defer | Why |
 | --- | --- |

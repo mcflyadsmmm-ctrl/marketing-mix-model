@@ -262,7 +262,7 @@ export default function LtvPage() {
           </div>
         </div>
 
-        {/* ── A · Acquisition (this period) — Free + Pro ── */}
+        {/* ── A · Acquisition (this period) ── */}
         <section
           className="mcfly-panel mcfly-acq-band"
           aria-label="Acquisition this period"

@@ -129,7 +129,7 @@ export function assertChannelsAllowed(
 }
 
 /**
- * Drop unknown channel strings. Named platforms stay on Free.
+ * Drop unknown channel strings. Every named platform is included.
  */
 export function filterToAllowedChannels<T extends { channel: string }>(
   entitlements: ShopEntitlements,

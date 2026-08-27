@@ -1,8 +1,8 @@
-# Listing visual pack — convert installs (Free Submit)
+# Listing visual pack — convert installs (one-plan resubmit)
 
 **Copy SoT:** [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md)  
 **Designer playbook:** [`CURSOR_DESIGNER_PLAYBOOK.md`](./CURSOR_DESIGNER_PLAYBOOK.md)  
-**Human clicks:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md)
+**Human clicks:** [`RESUBMIT_PLAN.md`](./RESUBMIT_PLAN.md)
 
 ---
 

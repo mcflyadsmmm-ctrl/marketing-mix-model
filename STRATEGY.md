@@ -37,7 +37,7 @@ _Why it serves the approach:_ Nothing else exists until merchants can install fr
 
 ### Spend in, any platform, almost no homework
 
-Make upload/paste/typed extras (billboards included) the proud path. Named platforms on Free. Optional connects later — never required for the core job.
+Make upload/paste/typed extras (billboards included) the proud path. Every named platform and typed extra is included in the one plan. Optional connects later — never required for the core job.
 
 _Why it serves the approach:_ This is the gap vs Shopify native and vs “pixel or go home.”
 

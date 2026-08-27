@@ -90,7 +90,7 @@ export function storeHandleFromShopDomain(shopDomain: string): string {
 }
 
 /**
- * Shopify App Pricing plan picker (Free + Pro).
+ * Shopify App Pricing plan picker (one plan, full-access trial then paid).
  * https://admin.shopify.com/store/:store/charges/:app_handle/pricing_plans
  */
 export function buildManagedPricingPlansUrl(shopDomain: string): string {

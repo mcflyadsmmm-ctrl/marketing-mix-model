@@ -346,7 +346,7 @@ function formatLocalYmd(d: Date): string {
 /**
  * Long CSV for pipe tools: one row per day × channel.
  * `example=true` fills sample Meta/Google amounts; blank leaves amount empty for mapping.
- * Optional `channels` narrows blank rows (Free Meta+Google); omit for all wide columns.
+ * Optional `channels` narrows blank rows; omit for all wide columns.
  */
 export function buildPipeAutomationLongTemplate(options?: {
   dayCount?: number;
@@ -448,7 +448,7 @@ function csvEscape(value: string): string {
 
 /**
  * Blank starter: header + empty day rows ready to fill.
- * Pass `channels` (e.g. Free Meta+Google) to narrow columns; omit for full Pro wide.
+ * Pass `channels` to narrow columns; omit for the full wide template.
  */
 export function buildBlankSpendTemplate(
   dayCount = 14,
