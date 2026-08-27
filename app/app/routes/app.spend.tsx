@@ -1169,8 +1169,8 @@ export default function SpendEntryPage() {
   const [billCustomName, setBillCustomName] = useState("");
   const [billError, setBillError] = useState<string | null>(null);
   const [templateRange, setTemplateRange] =
-    useState<SpendTemplateRangeId>("90d");
-  const [templateFrom, setTemplateFrom] = useState(coverageFromKey ?? yesterdayKey);
+    useState<SpendTemplateRangeId>("all");
+  const [templateFrom, setTemplateFrom] = useState(spendHistoryFloorKey);
   const [templateTo, setTemplateTo] = useState(coverageToKey ?? yesterdayKey);
   const [calcSales, setCalcSales] = useState("");
   const [calcSpend, setCalcSpend] = useState("");
