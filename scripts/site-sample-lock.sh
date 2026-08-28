@@ -56,6 +56,31 @@ for page in "$site/lab.html" "$site/custom-analytics.html"; do
   else
     ok "$(basename "$page") no hurdle slider"
   fi
+  if ! grep -q 'Invoice $98,500 vs UI $99,950' "$page"; then
+    die "$page first-fold two totals are not invoice vs UI"
+  else
+    ok "$(basename "$page") first-fold invoice vs UI"
+  fi
+  if ! grep -q 'HOLD Meta' "$page" || ! grep -q 'PROTECT Other' "$page" || ! grep -q 'SHIFT +10% Google' "$page"; then
+    die "$page missing hold/protect/shift close memo"
+  else
+    ok "$(basename "$page") printable hold/protect/shift"
+  fi
+  if ! grep -q 'href="/about"' "$page"; then
+    die "$page missing /about link for Marty"
+  else
+    ok "$(basename "$page") Marty → /about"
+  fi
+  if grep -q 'href="/mmm"' "$page"; then
+    die "$page sends /mmm as the custom MMM story"
+  else
+    ok "$(basename "$page") no /mmm"
+  fi
+  if grep -Eiq 'calendly\.com|stripe\.com/checkout' "$page"; then
+    die "$page publishes Calendly or Stripe checkout"
+  else
+    ok "$(basename "$page") no Calendly / Stripe checkout"
+  fi
   if ! grep -q 'data-ca-billed>$98,500' "$page"; then
     die "$page billed SSR is not \$98,500"
   else

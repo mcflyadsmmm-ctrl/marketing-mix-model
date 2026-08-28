@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds3" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds4" />
   <style>
     /* Page-scoped only — does not alter Shopify product pages */
     body.ca-page {
@@ -45,7 +45,7 @@
       min-height: 0;
       display: flex;
       align-items: center;
-      padding: clamp(5.5rem, 12vw, 7.5rem) 0 clamp(1.75rem, 4vw, 2.5rem);
+      padding: clamp(4.35rem, 9vw, 5.75rem) 0 1.05rem;
     }
     body.ca-page .ca-hero .hero-atmosphere,
     body.ca-page .ca-hero .hero-mesh,
@@ -1415,38 +1415,41 @@
           </p>
 
           <section class="lab-section" id="desk-title-sec" aria-labelledby="desk-title">
-            <p class="lab-kicker">Two totals <span>same $98,500 · view-source is not $0</span></p>
-            <h2 id="desk-title">Platform ~4.8× vs cash 4.19×</h2>
-            <p class="lab-lede">Same invoice spend in both denominators. Gap is returns + last-touch, not incrementality. Unchecking Google rewrites the ledger, not this pair.</p>
-            <div class="lab-pair" aria-label="Two totals — same spend">
+            <p class="lab-kicker">Two totals <span>invoice vs UI · no login · view-source is not $0</span></p>
+            <h2 id="desk-title">Invoice $98,500 vs UI $99,950</h2>
+            <p class="lab-lede">Disagreement is the product. Unchecking Google rewrites the ledger, not cash 4.19×. Not a market map.</p>
+            <div class="lab-pair" aria-label="Two totals — invoice vs UI">
               <article>
-                <p class="lab-k">Platform ROAS (ads)</p>
-                <p class="lab-v">~4.8×</p>
-                <p class="lab-formula">platform-reported revenue ÷ spend_audited · $472,800 ÷ $98,500</p>
+                <p class="lab-k">Invoice billed</p>
+                <p class="lab-v">$98,500</p>
+                <p class="lab-formula">signed spend · finance denominator · Jul 1–27</p>
               </article>
               <article>
-                <p class="lab-k">Cash Total ROAS (finance)</p>
-                <p class="lab-v">4.19×</p>
-                <p class="lab-formula">sales_net ÷ spend_audited · $412,400 ÷ $98,500</p>
+                <p class="lab-k">Ads Manager UI</p>
+                <p class="lab-v">$99,950</p>
+                <p class="lab-formula">beside, never the signed total · billed − UI −$1,450 (−1.5%)</p>
               </article>
             </div>
-            <div class="lab-fold-spend" aria-label="Invoice vs UI — first fold">
+            <div class="lab-fold-spend" aria-label="Cash vs platform on the same $98,500">
               <div>
-                <p class="k">Invoice billed</p>
-                <p class="v">$98,500</p>
+                <p class="k">Cash Total ROAS</p>
+                <p class="v">4.19×</p>
+                <p class="lab-formula">$412,400 ÷ $98,500</p>
               </div>
               <div>
-                <p class="k">Ads Manager UI</p>
-                <p class="v">$99,950</p>
+                <p class="k">Platform ROAS</p>
+                <p class="v">~4.8×</p>
+                <p class="lab-formula">$472,800 ÷ $98,500</p>
               </div>
               <div>
                 <p class="k">Billed − UI</p>
-                <p class="v">−$1,450 (−1.5%)</p>
+                <p class="v">−$1,450</p>
+                <p class="lab-formula">−1.5% · Within 2%</p>
               </div>
             </div>
             <p class="lab-cap">SAMPLE · Northline Supply · demo-not-production. Not a live client. No invented logo wall.</p>
             <p class="lab-lock">Identity locked. Exceptions move unexplained $. They do not mint a third ROAS.</p>
-            <p class="lab-operator">Marty Smithson · Utah · <a href="/about">About</a> · human reply on inquire. No booking URL on this page.</p>
+            <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah · human reply on inquire. No booking URL on this page.</p>
           </section>
 
           <section class="lab-section" id="lineage" aria-labelledby="lineage-h">
@@ -1549,7 +1552,27 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               <p class="lab-memo__label">Printable close memo · SAMPLE · not a live client</p>
               <h3>Close memo — Northline week</h3>
               <p>From: <a href="/about">Marty Smithson</a> · Utah<br />Re: Invoice vs Ads Manager UI + outcome ÷ spend · Jul 1–27 2026</p>
-              <p><strong>Channel invoice vs UI.</strong> Meta $41,200 / $42,850 (−4.0%). Google $31,800 / $31,120 (+2.1%). LinkedIn $15,400 / $16,180 (−5.1%). Other paid $10,100 / $9,800 (+3.0%). Included invoice <span class="mono">$98,500</span> vs UI <span class="mono">$99,950</span> · billed − UI <span class="mono">−$1,450 (−1.5%)</span>.</p>
+              <table>
+                <caption>Channel invoice vs UI · SAMPLE</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Channel</th>
+                    <th scope="col">Invoice</th>
+                    <th scope="col">UI</th>
+                    <th scope="col">$</th>
+                    <th scope="col">%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono">$42,850</td><td class="mono">−$1,650</td><td class="mono">−4.0%</td></tr>
+                  <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono">$31,120</td><td class="mono">+$680</td><td class="mono">+2.1%</td></tr>
+                  <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono">$16,180</td><td class="mono">−$780</td><td class="mono">−5.1%</td></tr>
+                  <tr><th scope="row">Other paid</th><td class="mono">$10,100</td><td class="mono">$9,800</td><td class="mono">+$300</td><td class="mono">+3.0%</td></tr>
+                </tbody>
+                <tfoot>
+                  <tr><th scope="row">Included</th><td class="mono">$98,500</td><td class="mono">$99,950</td><td class="mono">−$1,450</td><td class="mono">−1.5%</td></tr>
+                </tfoot>
+              </table>
               <p><strong>Outcome ÷ spend.</strong> Cash Total ROAS <span class="mono">4.19×</span> = $412,400 ÷ $98,500. Platform ~4.8× = $472,800 ÷ $98,500. Same signed spend.</p>
               <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Other paid SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
               <p>You keep this file. Redacted. Not a live client.</p>
@@ -1829,7 +1852,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               </article>
             </div>
             <p class="lab-refuse"><strong>Refuse:</strong> pixels; MTA / multi-touch path credit; identity graph / “true ROAS.” Operating metric remains outcomes ÷ spend.</p>
-            <p class="lab-formula">Fixed-fee terms: 50% on countersignature · 50% on delivery acceptance. Tools billed at cost, itemized. Addenda in writing. Not a Stripe checkout on this page.</p>
+            <p class="lab-formula">Fixed fee in the signed letter. Tools billed at cost, itemized. Addenda in writing. Not a Stripe checkout on this page.</p>
             <div class="lab-sigs" aria-label="SAMPLE signature block">
               <div class="lab-sig">
                 <p class="role">For Mcfly Analytics · SAMPLE</p>
@@ -2025,8 +2048,8 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               <p class="eyebrow">Estimate · not a contract</p>
               <h3 data-estimate-title></h3>
               <p data-estimate-band></p>
-              <p data-estimate-cta>Reply YES to the email and we send an invoice + book a 20-min setup.</p>
-              <p class="note">20-min setup slot: placeholder on this page for a Google Appointment URL.</p>
+              <p data-estimate-cta>Reply YES to the email and we send an invoice. A person books setup — no booking URL on this page.</p>
+              <p class="note">No Google Appointment URL is published. Marty has not created one. Inquire on this form.</p>
             </aside>
             <aside class="ca-estimate ca-estimate--nofit" data-estimate-nofit hidden>
               <p class="eyebrow">No estimate</p>
@@ -2059,12 +2082,10 @@ Marty · mcflyadsmmm@gmail.com</pre>
               <li>Request engagement $5–25K on this page</li>
             </ol>
           </aside>
-          <aside class="ca-fitcall is-empty" id="fit-call" data-fitcall data-schedule-url="" aria-labelledby="fit-call-title">
-            <!-- Marty: paste a Google Appointment schedule URL into data-schedule-url. Do not add Calendly. -->
+          <aside class="ca-fitcall is-empty" id="fit-call" data-fitcall data-schedule-url="" hidden aria-labelledby="fit-call-title">
+            <!-- Marty: paste a Google Appointment schedule URL into data-schedule-url. Do not add Calendly. Do not invent a URL. -->
             <p class="eyebrow">20-min fit-call slot</p>
-            <h2 id="fit-call-title">Placeholder — not published yet</h2>
-            <p>This slot takes a Google Appointment schedule URL when one is pasted here.</p>
-            <p data-fitcall-empty>Until a slot is published: use the inquire form. A person replies in 1–2 business days.</p>
+            <h2 id="fit-call-title">Fit call</h2>
             <p data-fitcall-ready hidden>A 20-minute fit-call slot is open.</p>
             <a class="btn primary solid" data-fitcall-link hidden href="#" rel="noopener noreferrer">Book a 20-min fit call</a>
           </aside>
@@ -2081,6 +2102,6 @@ Marty · mcflyadsmmm@gmail.com</pre>
   <script src="/assets/chrome.js?v=20260828ds3"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
   <script src="/assets/lab-desk.js?v=20260828ds3"></script>
-  <script src="/assets/custom-analytics-demo.js?v=20260828ds3"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260828ds4"></script>
 </body>
 </html>

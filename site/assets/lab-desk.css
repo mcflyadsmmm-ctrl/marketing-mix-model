@@ -407,8 +407,41 @@
   line-height: 1.45;
   color: #2a251f;
 }
-.lab-paper .mono { font-size: 0.78rem; }
-.lab-paper .lab-formula { color: #5a5348; }
+.lab-paper table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  margin: 0.55rem 0 0.75rem;
+}
+.lab-paper caption {
+  caption-side: bottom;
+  text-align: left;
+  padding-top: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: #5a5348;
+}
+.lab-paper th,
+.lab-paper td {
+  padding: 0.28rem 0.35rem;
+  text-align: right;
+  border-bottom: 1px solid rgba(28, 25, 22, 0.14);
+}
+.lab-paper th {
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lab-paper tbody th,
+.lab-paper th:first-child,
+.lab-paper td:first-child { text-align: left; }
+
+.lab-fold-spend .lab-formula {
+  margin: 0.2rem 0 0;
+  color: rgba(238, 242, 245, 0.5);
+}
 .lab-redact {
   display: inline-block;
   min-width: 5.5rem;

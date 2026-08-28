@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260828ds" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds3" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds4" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -81,39 +81,42 @@
           <span>spend_audited <strong>$98,500</strong> · sales_net <strong>$412,400</strong> · cash <strong>4.19×</strong> locked</span>
         </p>
 
-        <section class="lab-section" id="lab-00" aria-labelledby="lab-00-h">
-          <p class="lab-kicker">:00 <span>Two fat columns · no login</span></p>
-          <h2 id="lab-00-h">Platform ~4.8× vs cash 4.19×</h2>
-          <p class="lab-lede">Same invoice spend in both denominators. The gap is returns + last-touch, not incrementality.</p>
-          <div class="lab-pair" aria-label="Two totals — same spend">
+          <section class="lab-section" id="lab-00" aria-labelledby="lab-00-h">
+          <p class="lab-kicker">:00 <span>Two fat columns · no login · SAMPLE</span></p>
+          <h2 id="lab-00-h">Invoice $98,500 vs UI $99,950</h2>
+          <p class="lab-lede">Disagreement is the product. Same week. No login. Uncheck Google in :12 — this pair of spend totals is the close, not a market map.</p>
+          <div class="lab-pair" aria-label="Two totals — invoice vs UI">
             <article>
-              <p class="lab-k">Platform ROAS (ads)</p>
-              <p class="lab-v">~4.8×</p>
-              <p class="lab-formula">platform-reported revenue ÷ spend_audited · $472,800 ÷ $98,500</p>
+              <p class="lab-k">Invoice billed</p>
+              <p class="lab-v">$98,500</p>
+              <p class="lab-formula">signed spend · finance denominator · Jul 1–27</p>
             </article>
             <article>
-              <p class="lab-k">Cash Total ROAS (finance)</p>
-              <p class="lab-v">4.19×</p>
-              <p class="lab-formula">sales_net ÷ spend_audited · $412,400 ÷ $98,500</p>
+              <p class="lab-k">Ads Manager UI</p>
+              <p class="lab-v">$99,950</p>
+              <p class="lab-formula">beside, never the signed total · billed − UI −$1,450 (−1.5%)</p>
             </article>
+          </div>
+          <div class="lab-fold-spend" aria-label="Cash vs platform on the same $98,500">
+            <div>
+              <p class="k">Cash Total ROAS</p>
+              <p class="v">4.19×</p>
+              <p class="lab-formula">$412,400 ÷ $98,500</p>
             </div>
-            <div class="lab-fold-spend" aria-label="Invoice vs UI — first fold">
-              <div>
-                <p class="k">Invoice billed</p>
-                <p class="v">$98,500</p>
-              </div>
-              <div>
-                <p class="k">Ads Manager UI</p>
-                <p class="v">$99,950</p>
-              </div>
-              <div>
-                <p class="k">Billed − UI</p>
-                <p class="v">−$1,450 (−1.5%)</p>
-              </div>
+            <div>
+              <p class="k">Platform ROAS</p>
+              <p class="v">~4.8×</p>
+              <p class="lab-formula">$472,800 ÷ $98,500</p>
             </div>
-            <p class="lab-cap">Same $98,500. Ads claim $472,800. Finance books $412,400 after returns. SAMPLE · Northline Supply · demo-not-production.</p>
-            <p class="lab-lock">Identity locked. Channel filters and exception rows rewrite the ledger, not this pair.</p>
-            <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah · human reply. No booking URL on this page.</p>
+            <div>
+              <p class="k">Billed − UI</p>
+              <p class="v">−$1,450</p>
+              <p class="lab-formula">−1.5% · Within 2%</p>
+            </div>
+          </div>
+          <p class="lab-cap">SAMPLE · Northline Supply · demo-not-production. Not a live client. No invented logo wall.</p>
+          <p class="lab-lock">Identity locked. Channel filters rewrite the ledger, not cash 4.19×.</p>
+          <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah · human reply. No booking URL on this page.</p>
           </section>
 
         <section class="lab-section" id="lab-12" aria-labelledby="lab-12-h">
@@ -300,7 +303,27 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
             <p class="lab-memo__label">Printable close memo · SAMPLE · not a live client</p>
             <h3>Close memo — Northline week</h3>
             <p>From: <a href="/about">Marty Smithson</a> · Utah<br />Re: Invoice vs Ads Manager UI + outcome ÷ spend · Jul 1–27 2026</p>
-            <p><strong>Channel invoice vs UI.</strong> Meta $41,200 / $42,850 (−4.0%). Google $31,800 / $31,120 (+2.1%). LinkedIn $15,400 / $16,180 (−5.1%). Other paid $10,100 / $9,800 (+3.0%). Included invoice <span class="mono">$98,500</span> vs UI <span class="mono">$99,950</span> · billed − UI <span class="mono">−$1,450 (−1.5%)</span>.</p>
+            <table>
+              <caption>Channel invoice vs UI · SAMPLE</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Channel</th>
+                  <th scope="col">Invoice</th>
+                  <th scope="col">UI</th>
+                  <th scope="col">$</th>
+                  <th scope="col">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono">$42,850</td><td class="mono">−$1,650</td><td class="mono">−4.0%</td></tr>
+                <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono">$31,120</td><td class="mono">+$680</td><td class="mono">+2.1%</td></tr>
+                <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono">$16,180</td><td class="mono">−$780</td><td class="mono">−5.1%</td></tr>
+                <tr><th scope="row">Other paid</th><td class="mono">$10,100</td><td class="mono">$9,800</td><td class="mono">+$300</td><td class="mono">+3.0%</td></tr>
+              </tbody>
+              <tfoot>
+                <tr><th scope="row">Included</th><td class="mono">$98,500</td><td class="mono">$99,950</td><td class="mono">−$1,450</td><td class="mono">−1.5%</td></tr>
+              </tfoot>
+            </table>
             <p><strong>Outcome ÷ spend.</strong> Cash Total ROAS <span class="mono">4.19×</span> = $412,400 ÷ $98,500. Platform ~4.8× = $472,800 ÷ $98,500. Same signed spend.</p>
             <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Other paid SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
             <p>You keep this file. Redacted. Not a live client.</p>
