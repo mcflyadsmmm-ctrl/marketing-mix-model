@@ -106,7 +106,7 @@
       worst.label +
       " " +
       dir +
-      " — returns + last-touch. Investigate before finance signs."
+      " — tax, fees, timezone, or credit timing. Investigate before finance signs."
     );
   }
 
@@ -149,7 +149,7 @@
         money(billed) +
         " · Ads Manager UI " +
         money(reported) +
-        " · billed − UI " +
+        " · invoice − UI " +
         signedMoney(variance) +
         " (" +
         signedPct(pct) +
