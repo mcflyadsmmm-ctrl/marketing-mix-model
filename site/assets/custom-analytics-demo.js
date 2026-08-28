@@ -208,7 +208,26 @@
     });
   });
 
-  /* —— 4. Privacy practices accordion —— */
+  /* —— 4. Google Appointment fit-call slot (no Calendly) —— */
+  var fit = document.querySelector("[data-fitcall]");
+  if (fit) {
+    var rawUrl = (fit.getAttribute("data-schedule-url") || "").trim();
+    var emptyCopy = fit.querySelector("[data-fitcall-empty]");
+    var readyCopy = fit.querySelector("[data-fitcall-ready]");
+    var bookLink = fit.querySelector("[data-fitcall-link]");
+    var googleSlot =
+      /^https:\/\/calendar\.google\.com\//i.test(rawUrl) ||
+      /^https:\/\/calendar\.app\.google\//i.test(rawUrl);
+    if (googleSlot && bookLink) {
+      bookLink.href = rawUrl;
+      bookLink.hidden = false;
+      fit.classList.remove("is-empty");
+      if (emptyCopy) emptyCopy.hidden = true;
+      if (readyCopy) readyCopy.hidden = false;
+    }
+  }
+
+  /* —— 5. Privacy practices accordion —— */
   var privacyItems = document.querySelectorAll("[data-ca-privacy-item]");
   privacyItems.forEach(function (item) {
     var trigger = item.querySelector("button");

@@ -347,6 +347,101 @@
       font-size: clamp(1.7rem, 3vw, 2.15rem);
       color: var(--cyan);
     }
+    body.ca-page .ca-audit-split {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 920px) {
+      body.ca-page .ca-audit-split {
+        grid-template-columns: minmax(0, 1.1fr) minmax(15.5rem, 0.9fr);
+        align-items: start;
+      }
+    }
+    body.ca-page .ca-artifact {
+      padding: 1rem 1.05rem 1.15rem;
+      background: #f3efe6;
+      color: #1c1916;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    body.ca-page .ca-artifact__label {
+      margin: 0 0 0.7rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #5a5348;
+    }
+    body.ca-page .ca-artifact h3 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+    body.ca-page .ca-artifact p,
+    body.ca-page .ca-artifact li {
+      margin: 0 0 0.45rem;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #2a251f;
+    }
+    body.ca-page .ca-artifact .mono { font-size: 0.78rem; }
+    body.ca-page .ca-artifact__redact {
+      display: inline-block;
+      min-width: 5.5rem;
+      height: 0.72em;
+      background: #1c1916;
+      vertical-align: -0.05em;
+    }
+    body.ca-page .ca-book {
+      display: grid;
+      gap: 1.25rem;
+    }
+    @media (min-width: 900px) {
+      body.ca-page .ca-book {
+        grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+        align-items: start;
+      }
+    }
+    body.ca-page .ca-who,
+    body.ca-page .ca-fitcall {
+      padding: 1.15rem 1.2rem 1.25rem;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    body.ca-page .ca-who { margin-bottom: 1rem; }
+    body.ca-page .ca-who .eyebrow,
+    body.ca-page .ca-fitcall .eyebrow { margin-bottom: 0.65rem; }
+    body.ca-page .ca-who ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    body.ca-page .ca-who li {
+      padding: 0.4rem 0;
+      border-top: 1px solid var(--line);
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    body.ca-page .ca-who li:first-child { border-top: 0; padding-top: 0; }
+    body.ca-page .ca-fitcall p {
+      margin: 0 0 0.65rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: var(--mute);
+    }
+    body.ca-page .ca-fitcall .btn { margin-top: 0.25rem; }
+    body.ca-page .ca-fitcall.is-empty {
+      border-style: dashed;
+    }
+    body.ca-page .ca-who h2,
+    body.ca-page .ca-fitcall h2 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
 
     /* Sections */
     body.ca-page .ca-band {
@@ -1260,6 +1355,8 @@
           </div>
 
           <div data-ca-panel="audit" id="recon">
+            <div class="ca-audit-split">
+            <div>
             <div class="ca-ledger-wrap">
               <table class="ca-ledger">
                 <caption>Each $ and % is billed − UI. Uncheck a channel to drop its row. SAMPLE dollars, not a live client.</caption>
@@ -1332,6 +1429,19 @@ Invoice billed $98,500 · Ads Manager UI $99,950 · billed − UI −$1,450 (−
 Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate before finance signs.</p>
               <p class="ca-memo__note">Illustrative SAMPLE — not a live client close. Included platforms rewrite billed, UI, variance, and the action line.</p>
             </aside>
+            </div>
+            <article class="ca-artifact" aria-label="Redacted SAMPLE close memo">
+              <p class="ca-artifact__label">SAMPLE · not a live client</p>
+              <h3>Close memo — Spend &amp; Sales Audit</h3>
+              <p>To: <span class="ca-artifact__redact" aria-hidden="true"></span> <span class="sr-only">redacted client</span><br />From: Marty Smithson<br />Re: Period close — invoice vs Ads Manager UI + sales period check<br />Period: prior calendar month · static artifact, not a calculator</p>
+              <p><strong>1. Invoice vs Ads Manager UI</strong><br />
+              Invoice billed <span class="mono">$98,500</span>. Ads Manager UI <span class="mono">$99,950</span>. Billed − UI <span class="mono">−$1,450 (−1.5%)</span>. LinkedIn UI ran ahead of the invoice. Keep billed as spend truth. Do not post the UI total.</p>
+              <p><strong>2. Sales period check</strong><br />
+              Cash after returns <span class="mono">$412,400</span> ÷ billed <span class="mono">$98,500</span> = <span class="mono">4.19×</span>. Platform-attributed revenue on the same billed dollars is a second book — returns, fees, and timing, not incrementality.</p>
+              <p>Action on this SAMPLE: reconcile LinkedIn to the invoice window before the next close. You keep the file.</p>
+              <p>Redacted. Not a live client. Numbers match the SAMPLE desk on this page.</p>
+            </article>
+            </div>
           </div>
 
           <div data-ca-panel="ecommerce" hidden>
@@ -1613,6 +1723,7 @@ Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate befo
 
     <section class="ca-band" aria-labelledby="inquire-title">
       <div class="ca-wrap">
+        <div class="ca-book">
         <div class="ca-inquire" id="inquire">
           <p class="reply-line">Human review · 1–2 business days</p>
           <h2 id="inquire-title">Request an engagement letter</h2>
@@ -1683,6 +1794,30 @@ Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate befo
             <p class="note" data-waitlist-copy-status hidden></p>
           </div>
         </div>
+        <div>
+          <aside class="ca-who" id="who-runs" aria-labelledby="who-runs-title">
+            <p class="eyebrow">Operator</p>
+            <h2 id="who-runs-title">Who runs the audit</h2>
+            <ol>
+              <li>Marty Smithson</li>
+              <li>Utah</li>
+              <li>Human replies</li>
+              <li>You keep the desk</li>
+              <li>2–3 weeks on Spend &amp; Sales Audit</li>
+              <li>Inquire on this page</li>
+            </ol>
+          </aside>
+          <aside class="ca-fitcall is-empty" id="fit-call" data-fitcall data-schedule-url="" aria-labelledby="fit-call-title">
+            <!-- Marty: paste a Google Appointment schedule URL into data-schedule-url. Do not add Calendly. -->
+            <p class="eyebrow">20-min fit-call slot</p>
+            <h2 id="fit-call-title">Placeholder — not published yet</h2>
+            <p>This slot takes a Google Appointment schedule URL when one is pasted here.</p>
+            <p data-fitcall-empty>Until a slot is published: use the inquire form. A person replies in 1–2 business days.</p>
+            <p data-fitcall-ready hidden>A 20-minute fit-call slot is open.</p>
+            <a class="btn primary solid" data-fitcall-link hidden href="#" rel="noopener noreferrer">Book a 20-min fit call</a>
+          </aside>
+        </div>
+        </div>
 
         <p class="ca-shopify-note">Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else. Product: <a href="/product">Mcfly Analytics on Shopify</a>. Background: <a href="/about">About</a>.</p>
       </div>
@@ -1693,6 +1828,6 @@ Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate befo
   <script src="/assets/cta-config.js?v=20260825live"></script>
   <script src="/assets/chrome.js?v=20260825live"></script>
   <script src="/assets/app.js?v=20260825live"></script>
-  <script src="/assets/custom-analytics-demo.js?v=20260828lab"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260828gaps"></script>
 </body>
 </html>
