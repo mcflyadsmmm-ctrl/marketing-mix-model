@@ -382,6 +382,117 @@ a {
   line-height: 1.5;
   color: rgba(238, 242, 245, 0.72);
 }
+.lab-metric {
+  margin: 0.85rem 0 0;
+  padding: 0.7rem 0.85rem;
+  border-left: 3px solid var(--cyan);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #f4f6f8;
+  max-width: 52ch;
+}
+.lab-metric .mono {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--cyan);
+}
+.lab-yaniv {
+  margin: 0.7rem 0 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px dashed rgba(94, 231, 240, 0.35);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: rgba(238, 242, 245, 0.78);
+  max-width: 62ch;
+}
+.lab-unmatched ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: rgba(238, 242, 245, 0.78);
+}
+.lab-unmatched li {
+  padding: 0.4rem 0.55rem;
+  border: 1px solid rgba(244, 180, 168, 0.28);
+  background: rgba(0, 0, 0, 0.22);
+}
+.lab-decision__grid {
+  display: grid;
+  gap: 0.55rem;
+}
+@media (min-width: 860px) {
+  .lab-decision__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.lab-decision__grid article {
+  padding: 0.75rem 0.85rem 0.9rem;
+  border: 1px solid rgba(94, 231, 240, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+}
+.lab-decision__grid .k {
+  margin: 0 0 0.3rem;
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.lab-decision__grid h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  color: #f4f6f8;
+}
+.lab-decision__grid p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: rgba(238, 242, 245, 0.72);
+}
+.lab-sot {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0 0 1rem;
+}
+@media (min-width: 860px) {
+  .lab-sot { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.lab-sot article {
+  padding: 0.75rem 0.85rem 0.9rem;
+  border: 1px solid rgba(94, 231, 240, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+}
+.lab-sot h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.lab-sot p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: rgba(238, 242, 245, 0.78);
+}
+.lab-handoff-check {
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+}
+.lab-handoff-check li {
+  padding: 0.45rem 0.6rem;
+  border-left: 3px solid var(--cyan);
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 0.9rem;
+  color: rgba(238, 242, 245, 0.8);
+}
 
 /* —— Dual site mode: Shopify Ads ↔ Custom Analytics —— */
 .site-mode-bar {

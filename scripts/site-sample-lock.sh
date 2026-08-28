@@ -149,6 +149,46 @@ if ! grep -q 'Why we do not sell pixels and true ROAS' "$ca" || ! grep -q 'not r
 else
   ok "custom-analytics Voice FAQ"
 fi
+if ! grep -q 'Net sales (returns adjusted) ÷ invoice billed, this period' "$ca"; then
+  die "custom-analytics.html missing till metric sentence"
+else
+  ok "custom-analytics till metric sentence"
+fi
+if ! grep -q 'Yaniv' "$ca" || ! grep -q '30%' "$ca"; then
+  die "custom-analytics.html missing Yaniv >30% SAMPLE rule"
+else
+  ok "custom-analytics Yaniv SAMPLE rule"
+fi
+if ! grep -q 'lab-unmatched' "$ca" || ! grep -q 'do not tie' "$ca"; then
+  die "custom-analytics.html missing unmatched-row strip"
+else
+  ok "custom-analytics unmatched-row strip"
+fi
+if ! grep -q 'period join' "$ca" || ! grep -q 'Ads + invoices + CRM/cash' "$ca"; then
+  die "custom-analytics.html missing SoT three boxes"
+else
+  ok "custom-analytics SoT three boxes"
+fi
+if ! grep -q 'Sheets / warehouse' "$ca" || ! grep -q 'Time-boxed credentials' "$ca"; then
+  die "custom-analytics.html missing handoff checklist object"
+else
+  ok "custom-analytics handoff checklist"
+fi
+if ! grep -q 'not Recast / not Meridian' "$ca"; then
+  die "custom-analytics.html mix missing not Recast / not Meridian"
+else
+  ok "custom-analytics mix not Recast / not Meridian"
+fi
+if grep -qE '62,787|62787' "$ca"; then
+  die "custom-analytics.html cloned TW leftover dollars"
+else
+  ok "custom-analytics no TW \$62,787 clone"
+fi
+if grep -Eiq 'two books' "$ca"; then
+  die "custom-analytics.html still says two books"
+else
+  ok "custom-analytics does not say two books"
+fi
 if awk '/id="recon"/,/id="exceptions"|id="except-h"|id="except"/' "$ca" | grep -q '42,000'; then
   die "custom-analytics.html put \$42,000 in the recon"
 else

@@ -297,13 +297,59 @@
                 <p class="lab-formula">−1.5% · Within 2%</p>
               </div>
             </div>
+            <p class="lab-metric">Net sales (returns adjusted) ÷ invoice billed, this period. <span class="mono">$412,400 ÷ $98,500 = 4.19×</span></p>
+            <p class="lab-yaniv"><span class="lab-chip">SAMPLE</span> Yaniv &gt;30% overclaim — labeled rule, not a client claim. Path credit 4 × $120 attributed = $480 vs $120 cash (4.0×). Northline cash vs platform on the same $98,500 is 14.6% — under the bar. Do not scale on path credit when overclaim exceeds 30%.</p>
+            <div class="lab-unmatched" aria-label="SAMPLE unmatched rows that do not tie">
+              <p class="lab-kicker">Unmatched rows <span>SAMPLE · do not tie · not a live client</span></p>
+              <ul>
+                <li>Meta invoice $41,200 ≠ UI $42,850 (−$1,650)</li>
+                <li>LinkedIn invoice $15,400 ≠ UI $16,180 (−$780)</li>
+                <li>Marketplace $1,200 — UI coverage, not on this invoice</li>
+                <li>VAT $480 — on invoice, not in Ads Manager</li>
+                <li>Aug 11 missing invoice $1,400 — timezone / credit timing</li>
+              </ul>
+            </div>
+            <div class="lab-decision" aria-label="Protect, hold, shift for the week">
+              <p class="lab-kicker">This week <span>$5–8K is the memo · MDS is the weekly desk</span></p>
+              <div class="lab-decision__grid">
+                <article>
+                  <p class="k">HOLD</p>
+                  <h3>Meta</h3>
+                  <p>UI−invoice 4.0% &gt; 3%. Do not scale.</p>
+                </article>
+                <article>
+                  <p class="k">PROTECT</p>
+                  <h3>Other paid</h3>
+                  <p>Marketplace residual on. Do not spend-optimize that SKU.</p>
+                </article>
+                <article>
+                  <p class="k">SHIFT</p>
+                  <h3>+10% Google</h3>
+                  <p>Cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%.</p>
+                </article>
+              </div>
+            </div>
             <p class="lab-lock">Cash 4.19× does not move when exceptions toggle.</p>
-            <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah</p>
+            <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah · printed band $15–25K Advanced MDS</p>
           </section>
 
           <section class="lab-section" id="lineage" aria-labelledby="lineage-h">
-            <p class="lab-kicker">Lineage <span>Jul 1–27 2026 · America/Denver</span></p>
-            <h2 id="lineage-h">invoice CSV → staged spend → signed $98,500 → desk 4.19×</h2>
+            <p class="lab-kicker">Source of truth <span>pipeline or Sheet · Jul 1–27 2026</span></p>
+            <h2 id="lineage-h">Ads + invoices + CRM/cash → period join → desk</h2>
+            <div class="lab-sot" aria-label="Pipeline or Sheet source of truth">
+              <article>
+                <h3>Sources</h3>
+                <p>Ads + invoices + CRM/cash. SAMPLE Northline week.</p>
+              </article>
+              <article>
+                <h3>Period join</h3>
+                <p>Jul 1–27 2026 · America/Denver · same window on every file.</p>
+              </article>
+              <article>
+                <h3>Desk</h3>
+                <p>4.19× on $412,400 ÷ $98,500. You keep the system.</p>
+              </article>
+            </div>
             <ol class="lab-lineage">
               <li>
                 <p class="lab-lineage__node">invoice CSV</p>
@@ -555,7 +601,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
           </section>
 
           <section class="lab-section" id="rules" aria-labelledby="rules-h">
-            <p class="lab-kicker">Allocation rules <span>four if/then · toggle mix $ · not Recast</span></p>
+            <p class="lab-kicker">Allocation rules <span>four if/then · toggle mix $ · not Recast / not Meridian</span></p>
             <h2 id="rules-h">Four SAMPLE if/then rules</h2>
             <p class="lab-lede">Toggle on/off. Mix $ table rewrites. Cash 4.19× does not. CPQL seed $42,000 ÷ 186 = $226 vs target $250 is not a slice of $98,500.</p>
             <fieldset class="lab-rules" data-lab-rules>
@@ -579,7 +625,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
             </fieldset>
             <div class="lab-scroll">
               <table class="lab-table" data-lab-mix>
-                <caption>SSR default: CPQL cut off ($226 ≤ target $250). Mix Σ $98,500. Cash stays 4.19× = $412,400 ÷ $98,500.</caption>
+                <caption>Not Recast / not Meridian. SSR default: CPQL cut off ($226 ≤ target $250). Mix Σ $98,500. Cash stays 4.19× = $412,400 ÷ $98,500.</caption>
                 <thead>
                   <tr>
                     <th scope="col">Channel</th>
@@ -601,7 +647,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                 </tfoot>
               </table>
             </div>
-            <p class="lab-formula" data-lab-mix-note>Rules rewrite mix $ only. Cash stays 4.19× = $412,400 ÷ $98,500.</p>
+            <p class="lab-formula" data-lab-mix-note>Rules rewrite mix $ only. Not Recast / not Meridian. Not geo. Not incrementality. Cash stays 4.19× = $412,400 ÷ $98,500.</p>
           </section>
 
           <section class="lab-section" id="build-log" aria-labelledby="log-h">
@@ -656,11 +702,17 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
 
           <section class="lab-section" id="handoff" aria-labelledby="hand-h">
             <p class="lab-kicker">Handoff packet <span>you keep the system</span></p>
-            <h2 id="hand-h">Packing list</h2>
-            <p class="lab-lede">Five files. One line each. Owner after week 6 is the client named in the letter.</p>
+            <h2 id="hand-h">Handoff checklist</h2>
+            <p class="lab-lede">MDS packing list. $5–8K remains the memo job. You keep the system.</p>
+            <ul class="lab-handoff-check">
+              <li>Lives in their Sheets / warehouse</li>
+              <li>Time-boxed credentials</li>
+              <li>Who owns the number after handoff: the client named in the letter</li>
+              <li>Retainer optional — not required to keep the system</li>
+            </ul>
             <div class="lab-scroll">
               <table class="lab-table lab-packet">
-                <caption>HANDOFF PACKET · SAMPLE · owner after week 6.</caption>
+                <caption>HANDOFF PACKET · SAMPLE · owner after week 6. Five files you keep.</caption>
                 <thead>
                   <tr>
                     <th scope="col">Filename</th>
