@@ -3,26 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads</title>
-  <meta name="description" content="Fixed-fee marketing data science engagements ($5–8K / $8–15K / $15–25K): weekly decision desks, written metric contracts, spend &amp; sales audits. Not hourly consulting. No pixels or MTA." />
+  <title>Custom Data Solutions — $5–8K / $8–15K / $15–25K | Mcfly Ads</title>
+  <meta name="description" content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page." />
   <link rel="icon" href="/assets/brand/favicon-custom-analytics.svg" type="image/svg+xml" />
   <link rel="icon" href="/assets/brand/favicon-custom-analytics-32.png" type="image/png" sizes="32x32" />
   <link rel="icon" href="/assets/brand/favicon-custom-analytics-192.png" type="image/png" sizes="192x192" />
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-custom-analytics.png" sizes="180x180" />
   <meta name="theme-color" content="#082830" />
-  <link rel="canonical" href="https://mcfly-analytics.fly.dev/custom-analytics" />
+  <link rel="canonical" href="https://mcflyads.com/custom-analytics" />
   <meta name="robots" content="index,follow" />
   <meta property="og:site_name" content="Mcfly Ads" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://mcfly-analytics.fly.dev/custom-analytics" />
-  <meta property="og:title" content="Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads" />
-  <meta property="og:description" content="Fixed-fee Custom Data Solutions $5–25K: weekly decision desks and metric contracts. Spend audits, lead-gen desks, MDS builds. You own the system." />
+  <meta property="og:url" content="https://mcflyads.com/custom-analytics" />
+  <meta property="og:title" content="Custom Data Solutions — $5–8K / $8–15K / $15–25K | Mcfly Ads" />
+  <meta property="og:description" content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page." />
   <meta property="og:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-custom-analytics.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads" />
-  <meta name="twitter:description" content="Fixed-fee Custom Data Solutions $5–25K: weekly decision desks and metric contracts. Not hourly bait." />
+  <meta name="twitter:title" content="Custom Data Solutions — $5–8K / $8–15K / $15–25K | Mcfly Ads" />
+  <meta name="twitter:description" content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page." />
   <meta name="twitter:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-custom-analytics.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -81,11 +81,14 @@
       display: grid;
       gap: clamp(2rem, 5vw, 3rem);
     }
-    @media (min-width: 960px) {
-      body.ca-page .ca-hero-layout {
-        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-        align-items: center;
-      }
+    body.ca-page .ca-hero-layout {
+      max-width: 44rem;
+    }
+    body.ca-page .ca-hero h1 {
+      max-width: 18ch;
+    }
+    body.ca-page .ca-hero .lede + .lede {
+      margin-top: -0.65rem;
     }
     /* Kill homepage hero entrance opacity:0 — this page is not the home craft timeline */
     body.ca-page .hero-copy > .brand-hero,
@@ -131,7 +134,7 @@
       font-size: clamp(2.1rem, 5.2vw, 3.35rem);
       letter-spacing: -0.045em;
       line-height: 1.02;
-      max-width: 14ch;
+      max-width: 18ch;
       color: #f4f6f8;
     }
     body.ca-page .ca-hero .lede {
@@ -246,6 +249,31 @@
       line-height: 1.45;
       color: rgba(238, 242, 245, 0.62);
       max-width: 40ch;
+    }
+    body.ca-page #sample .ca-desk {
+      max-width: 36rem;
+      background: #fff;
+      border-color: var(--line);
+    }
+    body.ca-page #sample .ca-desk__claim {
+      color: var(--mute);
+    }
+    body.ca-page #sample .ca-desk__stat {
+      border-color: var(--line);
+      background: var(--paper-2);
+    }
+    body.ca-page #sample .ca-desk__stat--out {
+      border-color: var(--cyan-deep);
+      background: rgba(94, 231, 240, 0.1);
+    }
+    body.ca-page #sample .ca-desk__k {
+      color: var(--mute);
+    }
+    body.ca-page #sample .ca-desk__v {
+      color: var(--ink);
+    }
+    body.ca-page #sample .ca-desk__stat--out .ca-desk__v {
+      color: var(--cyan-deep);
     }
 
     /* Sections */
@@ -1014,6 +1042,16 @@
       color: var(--ink);
       font-weight: 600;
     }
+    body.ca-page .ca-job-links {
+      margin: 1.25rem 0 0;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--mute);
+    }
+    body.ca-page .ca-job-links a {
+      color: var(--ink);
+      text-underline-offset: 0.18em;
+    }
 
     @media (prefers-reduced-motion: reduce) {
       body.ca-page .ca-pkg { transition: none; }
@@ -1031,9 +1069,9 @@
           "@type": "Organization",
           "name": "Mcfly Ads",
           "alternateName": ["Mcfly Advertising and Analytics", "Mcfly Analytics"],
-          "url": "https://mcfly-analytics.fly.dev/"
+          "url": "https://mcflyads.com/"
         },
-        "url": "https://mcfly-analytics.fly.dev/custom-analytics",
+        "url": "https://mcflyads.com/custom-analytics",
         "description": "Custom Data Solutions are fixed-fee engagements ($5–25K bands) that ship a weekly decision desk and written metric contracts — not always-on MMM theater and not an identity-graph product.",
         "areaServed": {
           "@type": "Country",
@@ -1052,11 +1090,11 @@
               "maxPrice": "8000"
             },
             "description": "Fixed-fee close memo: exact spend by platform, invoice vs UI recon, sales/revenue period check. 2–3 weeks.",
-            "url": "https://mcfly-analytics.fly.dev/custom-analytics#packages"
+            "url": "https://mcflyads.com/spend-sales-audit"
           },
           {
             "@type": "Offer",
-            "name": "Lead Gen Decision Desk",
+            "name": "Lead Gen reporting",
             "priceCurrency": "USD",
             "price": "8000",
             "priceSpecification": {
@@ -1066,11 +1104,11 @@
               "maxPrice": "15000"
             },
             "description": "Spend joined to CRM stages — CPQL desk, metric contracts, weekly demos. 3–6 weeks.",
-            "url": "https://mcfly-analytics.fly.dev/custom-analytics#packages"
+            "url": "https://mcflyads.com/lead-gen-desk"
           },
           {
             "@type": "Offer",
-            "name": "Advanced MDS Build",
+            "name": "Advanced MDS",
             "priceCurrency": "USD",
             "price": "15000",
             "priceSpecification": {
@@ -1080,15 +1118,15 @@
               "maxPrice": "25000"
             },
             "description": "Custom marketing data science system: pipelines or Sheet SoT, decision UI, rules-based allocation, handoff. 6–10 weeks.",
-            "url": "https://mcfly-analytics.fly.dev/custom-analytics#packages"
+            "url": "https://mcflyads.com/advanced-mds"
           }
         ]
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcfly-analytics.fly.dev/" },
-          { "@type": "ListItem", "position": 2, "name": "Custom Data Solutions", "item": "https://mcfly-analytics.fly.dev/custom-analytics" }
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcflyads.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Custom Data Solutions", "item": "https://mcflyads.com/custom-analytics" }
         ]
       }
     ]
@@ -1120,11 +1158,13 @@
               <span class="brand-hero-practice">Custom Data Solutions</span>
             </span>
           </p>
-          <h1>Exact spend. Audited outcomes. Systems finance will sign off on.</h1>
-          <p class="lede">Boutique marketing data science for operators who need a written SOW — platform recon, sales audits, lead-gen desks. Fixed fee <span class="mono">$5–25K</span>. You own the system. Not forensic theater. Not MMM SaaS.</p>
+          <h1>Exact spend. Audited outcomes. A system finance will accept.</h1>
+          <p class="lede">We build custom reporting when ads and finance still disagree. Platform spend, invoices, and sales or CRM stages get one written definition. You keep the system.</p>
+          <p class="lede">Fixed-fee projects, $5–25K. Three packages: Spend &amp; Sales Audit ($5–8K), Lead Gen reporting ($8–15K), and Advanced MDS ($15–25K). Written scope. Weekly check-ins on the larger builds.</p>
+          <p class="lede">Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else.</p>
           <div class="hero-actions">
             <div class="cta-row">
-              <a class="btn primary solid" href="#inquire">Request a proposal</a>
+              <a class="btn primary solid" href="#inquire">Inquire</a>
               <a class="btn ghost" href="#packages">See packages</a>
             </div>
             <p class="hero-proof">
@@ -1138,138 +1178,97 @@
             </p>
           </div>
         </div>
-
-        <div class="ca-desk" id="ca-labs" aria-label="Illustrative sample desk — not a live client desk">
-          <p class="ca-desk__claim">Illustrative SAMPLE · not a live client desk</p>
-          <div class="ca-desk__seg" role="group" aria-label="Business model">
-            <button type="button" class="ca-desk__btn" data-ca-mode="ecommerce">Ecommerce</button>
-            <button type="button" class="ca-desk__btn is-on" data-ca-mode="leadgen" aria-current="true">Lead gen</button>
-            <button type="button" class="ca-desk__btn" data-ca-mode="services">Services / B2B</button>
-          </div>
-          <div class="ca-desk__grid">
-            <div class="ca-desk__stat">
-              <p class="ca-desk__k" data-ca-num-label>Qualified leads</p>
-              <p class="ca-desk__v" data-ca-num-val>186</p>
-            </div>
-            <div class="ca-desk__stat">
-              <p class="ca-desk__k">Audited spend</p>
-              <p class="ca-desk__v" data-ca-spend-val>$42,000</p>
-            </div>
-            <div class="ca-desk__stat ca-desk__stat--out">
-              <p class="ca-desk__k" data-ca-out-label>Cost / qualified lead</p>
-              <p class="ca-desk__v" data-ca-out-val>$226</p>
-            </div>
-          </div>
-          <p class="ca-desk__note" data-ca-mode-note>CRM-qualified stages ÷ paid spend — not form-fill vanity.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="ca-answer" id="what-is" aria-label="What Custom Data Solutions are">
-      <div class="ca-wrap">
-        <p class="ca-answer__quote">
-          <dfn>Custom Data Solutions</dfn> are fixed-fee engagements ($5–25K bands) that ship a weekly decision desk and written metric contracts — not always-on MMM theater and not an identity-graph product. Bands: Spend &amp; Sales Audit <span class="mono">$5–8K</span>, Lead Gen Desk <span class="mono">$8–15K</span>, Advanced MDS <span class="mono">$15–25K</span>.
-        </p>
-        <p class="ca-answer__links">Shopify-only shops that need the Monday cash desk: start on <a href="/product">Product</a>. Company story: <a href="/about">About</a>.</p>
       </div>
     </section>
 
     <section class="ca-band" id="packages" aria-labelledby="pkg-title">
       <div class="ca-wrap">
-        <p class="eyebrow">Market map · then packages</p>
-        <h2 id="pkg-title" class="display">Where do Custom Data Solutions sit vs forensic audits and MMM?</h2>
-        <p class="lede">Elite buyers confuse forensic media audits, MMM subscriptions, and productized decision desks. Mcfly Ads — Custom Data Solutions is the third — fixed fee, written scope, outcomes ÷ spend.</p>
-
-        <div class="ca-market reveal">
-          <article>
-            <p class="tag" data-tone="out">Not our lane</p>
-            <h3>Forensic media audit</h3>
-            <p>Independent plan → invoice → platform recon for finance and procurement. Agency contracts, rebates, multi-market leakage.</p>
-            <p class="band">~$100K–$450K · $2M+ spend typical</p>
-          </article>
-          <article>
-            <p class="tag" data-tone="adj">Adjacent</p>
-            <h3>MMM / incrementality SaaS</h3>
-            <p>Bayesian mix models, geo tests, always-on scenario tools. Useful later — not what a $15–25K build claims to be.</p>
-            <p class="band">~$30K–$200K+/yr mid-market · six figures enterprise</p>
-          </article>
-          <article>
-            <p class="tag" data-tone="in">Our lane</p>
-            <h3>Productized decision desks</h3>
-            <p>Exact spend by platform, audited outcomes, CPQL / efficiency rituals, rules-based allocation — you keep the system.</p>
-            <p class="band">$5–40K discrete market · Mcfly $5–25K</p>
-          </article>
-        </div>
-        <p class="ca-anchor">We sit in the <span class="mono">$5–25K</span> productized desk band — below forensic media audits and beside (not inside) MMM SaaS. Market comps in FAQ.</p>
-
-        <p class="eyebrow" style="margin-top:2.5rem">Fixed-fee engagements</p>
-        <h2 class="display" id="pkg-cards-title">What does a $5–25K fixed-fee engagement include?</h2>
-        <p class="lede">Choose an engagement below to prefill the intake form. Tools/licenses billed at cost when needed — never buried in the fee. Structure of the letter: <a href="/custom-analytics-engagement">engagement specimen</a>.</p>
+        <p class="eyebrow">Fixed-fee projects · $5–25K</p>
+        <h2 id="pkg-title" class="display">Three packages</h2>
+        <p class="lede">Fixed-fee projects, $5–25K. Three packages: Spend &amp; Sales Audit ($5–8K), Lead Gen reporting ($8–15K), and Advanced MDS ($15–25K). Written scope. Weekly check-ins on the larger builds. Structure of the letter: <a href="/custom-analytics-engagement">engagement specimen</a>.</p>
         <div class="ca-packages reveal">
           <button type="button" class="ca-pkg" data-ca-package="audit">
             <p class="price">$5–8K · 2–3 weeks</p>
             <h3>Spend &amp; Sales Audit</h3>
-            <p>Operator close memo: exact spend by platform, invoice vs UI recon, and a sales / revenue period check finance can use.</p>
+            <p>Close memo: spend by platform, invoice vs platform UI, sales period check.</p>
             <ul>
-              <li>Platform spend rollup + variance flags</li>
-              <li>Sales or closed-revenue period check</li>
-              <li>Written close memo + next actions</li>
-              <li>30-day Q&amp;A on the memo</li>
+              <li>Rollup</li>
+              <li>Variance flags</li>
+              <li>Memo</li>
+              <li>30 days Q&amp;A</li>
             </ul>
             <div class="scope">
-              <strong>Excluded</strong>
-              Not a $100K forensic agency/rebate audit. Not multi-year contract forensics. Not pixels.
+              <strong>Out</strong>
+              Agency rebate forensics, multi-year contract review, tracking pixels.
             </div>
             <span class="cta">Select engagement →</span>
           </button>
           <button type="button" class="ca-pkg" data-ca-package="leadgen">
             <p class="price">$8–15K · 3–6 weeks</p>
-            <h3>Lead Gen Decision Desk</h3>
-            <p>Spend joined to CRM stages — CPL, CPQL, and a weekly ritual operators actually open. For agencies, SaaS, and services — not only stores.</p>
+            <h3>Lead Gen reporting</h3>
+            <p>Paid spend joined to CRM stages, CPL / cost per qualified lead, weekly report. Agencies/SaaS/services not only stores.</p>
             <ul>
-              <li>Metric contracts (lead → MQL → SQL)</li>
-              <li>Channel efficiency vs targets</li>
-              <li>Operator desk + handoff docs</li>
-              <li>Weekly demo cadence during build</li>
+              <li>Lead→MQL→SQL defs</li>
+              <li>Channel efficiency</li>
+              <li>Handoff docs</li>
+              <li>Weekly demo</li>
             </ul>
             <div class="scope">
-              <strong>Excluded</strong>
-              Not multi-touch path credit. Not forever-free BI seats. CRM licenses separate.
+              <strong>Out</strong>
+              Multi-touch path credit. CRM licenses billed separately.
             </div>
             <span class="cta">Select engagement →</span>
           </button>
           <button type="button" class="ca-pkg" data-ca-package="mds">
             <p class="price">$15–25K · 6–10 weeks</p>
-            <h3>Advanced MDS Build</h3>
-            <p>Custom marketing data science system: pipelines or Sheet SoT, decision UI, rules-based allocation, production handoff.</p>
+            <h3>Advanced MDS</h3>
+            <p>Pipelines or Sheet source of truth, reporting UI, simple allocation, production handoff.</p>
             <ul>
-              <li>Outcome ÷ spend as the spine</li>
-              <li>Lightweight mix / allocation helpers</li>
-              <li>Runbooks + ownership transfer</li>
-              <li>Optional retainer quote at handoff</li>
+              <li>Outcome ÷ spend spine</li>
+              <li>Lightweight mix helpers</li>
+              <li>Runbooks</li>
+              <li>Optional retainer quote</li>
             </ul>
             <div class="scope">
-              <strong>Excluded</strong>
-              Not Nielsen / Meridian / Recast parity. Not CDP or identity graph. Not a $40K+ warehouse rebuild.
+              <strong>Out</strong>
+              Nielsen/Meridian/Recast parity, CDP, warehouse rebuild.
             </div>
             <span class="cta">Select engagement →</span>
           </button>
         </div>
-        <aside class="ca-retainer" id="retainer" aria-labelledby="retainer-title">
-          <h3 id="retainer-title">Optional ongoing Monday close retainer</h3>
-          <p>After handoff, you can add a continuity retainer — typically <span class="mono">$3–8K / month</span> — for monitored weekly closes, light desk changes, and a named monthly review. It is an add-on to the fixed-fee build, not hourly bait and not required to keep the system you own.</p>
-        </aside>
+        <p class="ca-job-links">One job each — you keep the system:
+          <a href="/spend-sales-audit">Spend &amp; Sales Audit</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/lead-gen-desk">Lead Gen reporting</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/advanced-mds">Advanced MDS</a>
+        </p>
         <p class="ca-engage-link"><a href="/custom-analytics-engagement">Review the engagement letter specimen</a> — parties, fee, scope tiers, refuse list, signatures. Specimen only; final terms in the signed letter.</p>
+      </div>
+    </section>
 
-        <aside class="ca-memo" aria-label="Sample close memo excerpt">
-          <p class="ca-memo__label">Close memo excerpt · SAMPLE</p>
-          <p class="ca-memo__body">Period: prior calendar month · channels: Meta + Google
-Invoice billed $84,200 · Ads Manager UI $87,910 · variance +$3,710 (4.4%)
-Net sales (returns adjusted) $312,400 · audited spend $84,200
-Outcome ÷ spend: 3.71× · flag: Meta UI ahead of invoice — tax/fee timing
-Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
-          <p class="ca-memo__note">Redacted SAMPLE figures for illustration — not a live client close.</p>
-        </aside>
+    <section class="ca-band" id="sample" aria-labelledby="sample-title">
+      <div class="ca-wrap">
+        <p class="eyebrow">Illustrative SAMPLE · not a live client</p>
+        <h2 id="sample-title" class="display">Sample reporting readout</h2>
+        <p class="lede">186 qualified leads / $42,000 audited spend / $226 cost per qualified lead — illustrative SAMPLE, not a live client.</p>
+        <div class="ca-desk" id="ca-labs" aria-label="Illustrative SAMPLE — not a live client">
+          <p class="ca-desk__claim">Illustrative SAMPLE · not a live client</p>
+          <div class="ca-desk__grid">
+            <div class="ca-desk__stat">
+              <p class="ca-desk__k">Qualified leads</p>
+              <p class="ca-desk__v">186</p>
+            </div>
+            <div class="ca-desk__stat">
+              <p class="ca-desk__k">Audited spend</p>
+              <p class="ca-desk__v">$42,000</p>
+            </div>
+            <div class="ca-desk__stat ca-desk__stat--out">
+              <p class="ca-desk__k">Cost per qualified lead</p>
+              <p class="ca-desk__v">$226</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1351,7 +1350,7 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
             <ul>
               <li>Want pixels / MTA / path-credit “true ROAS”</li>
               <li>Need a free trial or sub-$5K dabble</li>
-              <li>Looking for the Shopify cash desk app — use <a href="/product">Product</a></li>
+              <li>Shopify-only shops that just need sales next to spend — wait for the app, or see <a href="/product">Product</a></li>
               <li>Need forensic $100K+ media audit or full MMM SaaS (we’ll redirect)</li>
             </ul>
           </article>
@@ -1494,7 +1493,7 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
           </details>
           <details>
             <summary>How is this different from the Shopify app?</summary>
-            <p>The Shopify cash desk is a productized Total ROAS seat for merchants. Mcfly Analytics — Custom Data Solutions is a fixed-fee practice for companies that need spend recon, lead-gen desks, or MDS beyond that app — toggle between the two on this site.</p>
+            <p>Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else — fixed-fee custom reporting when ads and finance still disagree.</p>
           </details>
         </div>
       </div>
@@ -1507,7 +1506,7 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
           <h2 id="inquire-title">Request an engagement letter</h2>
           <p>Intake for scoped builds only. Selecting an engagement above prefills budget and notes — or choose manually. Review the <a href="/custom-analytics-engagement">engagement specimen</a> before the call.</p>
 
-          <form class="waitlist" data-waitlist data-waitlist-source="custom-analytics inquiry" novalidate>
+          <form class="waitlist" data-waitlist data-waitlist-source="custom-analytics inquiry" data-waitlist-success="Thanks. A person will reply in 1–2 business days with next steps, or with a no if this is not a fit." novalidate>
             <label>Name
               <input name="name" type="text" autocomplete="name" required maxlength="120" />
             </label>
@@ -1524,7 +1523,7 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
               <select name="budget" required>
                 <option value="" disabled selected>Select a range</option>
                 <option value="$5k–$8k">$5k – $8k (Spend &amp; Sales Audit)</option>
-                <option value="$8k–$15k">$8k – $15k (Lead Gen Desk)</option>
+                <option value="$8k–$15k">$8k – $15k (Lead Gen reporting)</option>
                 <option value="$15k–$25k">$15k – $25k (Advanced MDS)</option>
                 <option value="Not sure — need guidance">Not sure — need guidance</option>
               </select>
@@ -1573,7 +1572,7 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
           </div>
         </div>
 
-        <p class="ca-shopify-note">Need the Shopify Total ROAS cash desk instead? That’s a separate product — <a href="/product">Mcfly Analytics on Shopify</a> · <a href="/demo">Try the demo</a>. Background: <a href="/about">About</a>.</p>
+        <p class="ca-shopify-note">Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else. Product: <a href="/product">Mcfly Analytics on Shopify</a>. Background: <a href="/about">About</a>.</p>
       </div>
     </section>
   </main>

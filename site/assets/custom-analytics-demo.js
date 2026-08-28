@@ -242,11 +242,11 @@
   );
   var packageHints = {
     audit:
-      "Engagement interest: Spend & Sales Audit ($5–8K) — exact spend by platform + sales/revenue recon memo.",
+      "Engagement interest: Spend & Sales Audit ($5–8K) — close memo: spend by platform, invoice vs platform UI, sales period check.",
     leadgen:
-      "Engagement interest: Lead Gen Decision Desk ($8–15K) — spend × CRM stages, CPL/CPQL, weekly ritual.",
+      "Engagement interest: Lead Gen reporting ($8–15K) — paid spend joined to CRM stages, CPL / cost per qualified lead, weekly report.",
     mds:
-      "Engagement interest: Advanced MDS Build ($15–25K) — custom decision system, pipelines, allocation rules, handoff.",
+      "Engagement interest: Advanced MDS ($15–25K) — pipelines or Sheet source of truth, reporting UI, simple allocation, production handoff.",
   };
   var budgetMap = {
     audit: "$5k–$8k",

@@ -490,7 +490,9 @@
       const failed = !result || result.ok === false;
 
       if (titleEl) {
-        if (failed) titleEl.textContent = "Not delivered — send manually";
+        const customSuccess = form.getAttribute("data-waitlist-success");
+        if (!failed && customSuccess) titleEl.textContent = customSuccess;
+        else if (failed) titleEl.textContent = "Not delivered — send manually";
         else if (emailed) titleEl.textContent = "Message received";
         else titleEl.textContent = "Request saved — email pending";
       }
