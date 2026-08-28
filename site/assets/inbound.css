@@ -1,0 +1,123 @@
+/* Inbound query pages — Custom Data Solutions. Not homepage / listing. */
+body.ca-page { background: var(--paper-2); color: var(--ink); }
+body.ca-page .ca-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+  color: #eef2f5;
+  padding: clamp(5.5rem, 12vw, 7.5rem) 0 clamp(3rem, 6vw, 4.5rem);
+}
+body.ca-page .ca-hero .hero-atmosphere,
+body.ca-page .ca-hero .hero-mesh,
+body.ca-page .ca-hero .hero-gridline { position: absolute; inset: 0; pointer-events: none; }
+body.ca-page .ca-hero .hero-atmosphere img { width: 100%; height: 100%; object-fit: cover; opacity: 0.35; }
+body.ca-page .ca-hero .hero-mesh {
+  background:
+    radial-gradient(ellipse 70% 55% at 85% 15%, rgba(94, 231, 240, 0.22), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 80%, rgba(26, 163, 122, 0.14), transparent 50%);
+}
+body.ca-page .ca-hero .hero-gridline {
+  background-image:
+    linear-gradient(rgba(94, 231, 240, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 231, 240, 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.55), transparent 85%);
+}
+body.ca-page .ca-hero-layout {
+  position: relative;
+  z-index: 1;
+  width: min(44rem, 100%);
+  margin: 0 auto;
+  padding: 0 clamp(1.15rem, 3.5vw, 2rem);
+}
+body.ca-page .hero-copy > .brand-hero,
+body.ca-page .hero-copy > h1 {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+body.ca-page .ca-hero .brand-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #f4f6f8;
+}
+body.ca-page .ca-hero .brand-hero-mark { width: 2.75rem; height: 2.75rem; }
+body.ca-page .ca-hero .brand-hero-sub { color: var(--cyan); font-weight: 700; }
+body.ca-page .ca-hero .brand-hero-practice {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(94, 231, 240, 0.85);
+}
+body.ca-page .ca-hero h1 {
+  margin: 0 0 0.85rem;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 5.2vw, 3.35rem);
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  max-width: 18ch;
+  color: #f4f6f8;
+}
+body.ca-page .ca-hero .lede {
+  margin: 0 0 1.5rem;
+  max-width: 48ch;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  color: rgba(238, 242, 245, 0.78);
+}
+body.ca-page .ca-hero .lede + .lede { margin-top: -0.65rem; }
+body.ca-page .ca-hero .cta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+body.ca-page .ca-hero .btn.primary.solid { background: var(--cyan); color: var(--ink); border-color: var(--cyan); }
+body.ca-page .ca-hero .btn.ghost { color: #eef2f5; border-color: rgba(238, 242, 245, 0.35); }
+body.ca-page .ca-band { padding: clamp(2.75rem, 7vw, 4.5rem) 0; border-top: 1px solid var(--line); }
+body.ca-page .ca-wrap { width: min(var(--max), 100%); margin: 0 auto; padding: 0 clamp(1.15rem, 3.5vw, 2rem); }
+body.ca-page .ca-band .display {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.55rem, 3.5vw, 2.25rem);
+  max-width: 22ch;
+}
+body.ca-page .ca-band .lede {
+  margin: 0 0 1.25rem;
+  max-width: 52ch;
+  color: var(--mute);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+body.ca-page .ca-prose {
+  max-width: 40rem;
+}
+body.ca-page .ca-prose p,
+body.ca-page .ca-prose li {
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+body.ca-page .ca-prose p + p { margin-top: 0.75rem; }
+body.ca-page .ca-prose ul { margin: 0.65rem 0 0; padding-left: 1.15rem; }
+body.ca-page .ca-prose li + li { margin-top: 0.35rem; }
+body.ca-page .ca-job-links {
+  margin: 1.5rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--mute);
+}
+body.ca-page .ca-job-links a { color: var(--ink); text-underline-offset: 0.18em; }
+body.ca-page .ca-note {
+  margin: 1.25rem 0 0;
+  font-size: 0.92rem;
+  color: var(--mute);
+  max-width: 48ch;
+}
+body.ca-page .ca-cta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }

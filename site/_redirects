@@ -43,4 +43,13 @@
 /total-roas /cash-mer 301
 /break-even /cash-mer 301
 
+# Custom Data Solutions + calculator aliases (Cloudflare Pages / apex only).
+# Do not apply these on Fly — listing-trust paths must stay 200.
+/custom /custom-analytics 301
+/custom/ /custom-analytics 301
+/calculator /mer-calculator 301
+/why-pixels /why-pixels-fail 301
+/glossary /cash-mer 301
+/lab/ /lab 301
+
 /* /404.html 404

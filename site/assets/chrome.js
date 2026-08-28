@@ -26,12 +26,12 @@
   </div>
   <header class="top top--analytics" data-top>
     <a class="brand" href="/custom-analytics" aria-label="Mcfly Analytics home">
-      <img class="brand-mark-img" src="/assets/brand/mcfly-m-transparent.png" width="36" height="36" alt="" />
+      <img class="brand-mark-img" src="/assets/brand/mcfly-m.svg" width="36" height="36" alt="" />
       <span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>
     </a>
     <nav class="nav nav--analytics" aria-label="Analytics">
       <a href="/custom-analytics#overview" data-ca-nav="overview">Overview</a>
-      <a href="/custom-analytics#recon" data-ca-nav="labs">Labs</a>
+      <a href="/lab" data-ca-nav="labs">Labs</a>
       <a href="/custom-analytics#packages" data-ca-nav="packages">Packages</a>
       <a href="/custom-analytics#privacy" data-ca-nav="privacy">Privacy</a>
       <a href="/custom-analytics#inquire" data-ca-nav="inquire">Inquire</a>
@@ -43,7 +43,7 @@
   </header>
   <div id="mobile-nav" class="mobile-nav" hidden>
     <a href="/custom-analytics#overview">Overview</a>
-    <a href="/custom-analytics#recon">Labs</a>
+    <a href="/lab">Labs</a>
     <a href="/custom-analytics#packages">Packages</a>
     <a href="/custom-analytics#privacy">Privacy</a>
     <a href="/custom-analytics#inquire">Inquire</a>
@@ -61,7 +61,7 @@
   </div>
   <header class="top" data-top>
     <a class="brand" href="/" aria-label="Mcfly Analytics home">
-      <img class="brand-mark-img" src="/assets/brand/mcfly-m-transparent.png" width="36" height="36" alt="" />
+      <img class="brand-mark-img" src="/assets/brand/mcfly-m.svg" width="36" height="36" alt="" />
       <span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>
     </a>
     <nav class="nav" aria-label="Primary">
@@ -92,12 +92,12 @@
   <footer class="foot foot--analytics">
     <div class="wrap foot-grid">
       <div class="foot-brand">
-        <img src="/assets/brand/mcfly-m-transparent.png" width="28" height="28" alt="" />
+        <img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />
         <span>Mcfly Analytics</span>
       </div>
       <nav aria-label="Footer">
         <a href="/custom-analytics#overview">Overview</a>
-        <a href="/custom-analytics#recon">Labs</a>
+        <a href="/lab">Labs</a>
         <a href="/custom-analytics#packages">Packages</a>
         <a href="/custom-analytics#privacy">Privacy</a>
         <a href="/custom-analytics#inquire">Inquire</a>
@@ -114,7 +114,7 @@
   <footer class="foot">
     <div class="wrap foot-grid">
       <div class="foot-brand">
-        <img src="/assets/brand/mcfly-m-transparent.png" width="28" height="28" alt="" />
+        <img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />
         <span>Mcfly Analytics</span>
       </div>
       <nav aria-label="Footer">
@@ -149,6 +149,7 @@
 
   // Highlight analytics subtab from hash
   if (isAnalytics) {
+    const onLab = path === "/lab" || path === "/lab.html";
     const hash = (location.hash || "#overview").replace(/^#/, "");
     const map = {
       overview: "overview",
@@ -161,7 +162,7 @@
       fit: "packages",
       inquire: "inquire",
     };
-    const key = map[hash] || "overview";
+    const key = onLab ? "labs" : map[hash] || "overview";
     document.querySelectorAll("[data-ca-nav]").forEach((link) => {
       const on = link.getAttribute("data-ca-nav") === key;
       link.classList.toggle("active", on);

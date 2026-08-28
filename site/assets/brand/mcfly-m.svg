@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Mcfly Analytics">
+  <defs>
+    <linearGradient id="bg" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#15233a"/>
+      <stop offset="1" stop-color="#0a1221"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <rect x="1.25" y="1.25" width="61.5" height="61.5" rx="12.75" fill="none" stroke="#5ee7f0" stroke-opacity="0.35" stroke-width="1.5"/>
+  <!-- Bold M -->
+  <path fill="#5ee7f0" d="M14 48V18h6.4l8.2 19.4L37 18h6.4v30h-5.3V27.6L30.6 48h-4.7L18.4 27.6V48H14z"/>
+  <!-- Tiny rising spark in corner -->
+  <circle cx="48.5" cy="15.5" r="2.2" fill="#5ee7f0"/>
+  <path d="M42 22.5l4.2-4.2 2.1 2.1 4.8-4.8" fill="none" stroke="#5ee7f0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

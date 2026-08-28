@@ -3,31 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads</title>
-  <meta name="description" content="Fixed-fee marketing data science engagements ($5–8K / $8–15K / $15–25K): weekly decision desks, written metric contracts, spend &amp; sales audits. Not hourly consulting. No pixels or MTA." />
+  <title>Custom Data Solutions — $5–8K / $8–15K / $15–25K | Mcfly Ads</title>
+  <meta name="description" content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page." />
   <link rel="icon" href="/assets/brand/favicon-custom-analytics.svg" type="image/svg+xml" />
   <link rel="icon" href="/assets/brand/favicon-custom-analytics-32.png" type="image/png" sizes="32x32" />
   <link rel="icon" href="/assets/brand/favicon-custom-analytics-192.png" type="image/png" sizes="192x192" />
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-custom-analytics.png" sizes="180x180" />
   <meta name="theme-color" content="#082830" />
-  <link rel="canonical" href="https://mcfly-analytics.fly.dev/custom-analytics" />
+  <link rel="canonical" href="https://mcflyads.com/custom-analytics" />
   <meta name="robots" content="index,follow" />
   <meta property="og:site_name" content="Mcfly Ads" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://mcfly-analytics.fly.dev/custom-analytics" />
-  <meta property="og:title" content="Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads" />
-  <meta property="og:description" content="Fixed-fee Custom Data Solutions $5–25K: weekly decision desks and metric contracts. Spend audits, lead-gen desks, MDS builds. You own the system." />
+  <meta property="og:url" content="https://mcflyads.com/custom-analytics" />
+  <meta property="og:title" content="Custom Data Solutions — $5–8K / $8–15K / $15–25K | Mcfly Ads" />
+  <meta property="og:description" content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page." />
   <meta property="og:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-custom-analytics.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Fixed-fee marketing data science — Custom Data Solutions | Mcfly Ads" />
-  <meta name="twitter:description" content="Fixed-fee Custom Data Solutions $5–25K: weekly decision desks and metric contracts. Not hourly bait." />
+  <meta name="twitter:title" content="Custom Data Solutions — $5–8K / $8–15K / $15–25K | Mcfly Ads" />
+  <meta name="twitter:description" content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page." />
   <meta name="twitter:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-custom-analytics.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828lab" />
   <style>
     /* Page-scoped only — does not alter Shopify product pages */
     body.ca-page {
@@ -81,11 +82,17 @@
       display: grid;
       gap: clamp(2rem, 5vw, 3rem);
     }
-    @media (min-width: 960px) {
+    @media (min-width: 1080px) {
       body.ca-page .ca-hero-layout {
-        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-        align-items: center;
+        grid-template-columns: minmax(0, 1fr) minmax(22rem, 1.15fr);
+        align-items: start;
       }
+    }
+    body.ca-page .ca-hero h1 {
+      max-width: 18ch;
+    }
+    body.ca-page .ca-hero .lede + .lede {
+      margin-top: -0.65rem;
     }
     /* Kill homepage hero entrance opacity:0 — this page is not the home craft timeline */
     body.ca-page .hero-copy > .brand-hero,
@@ -131,7 +138,7 @@
       font-size: clamp(2.1rem, 5.2vw, 3.35rem);
       letter-spacing: -0.045em;
       line-height: 1.02;
-      max-width: 14ch;
+      max-width: 18ch;
       color: #f4f6f8;
     }
     body.ca-page .ca-hero .lede {
@@ -245,7 +252,196 @@
       font-size: 0.85rem;
       line-height: 1.45;
       color: rgba(238, 242, 245, 0.62);
-      max-width: 40ch;
+      max-width: 46ch;
+    }
+    body.ca-page .ca-desk__formula {
+      margin: 0.3rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.02em;
+      line-height: 1.4;
+      color: rgba(238, 242, 245, 0.55);
+    }
+    body.ca-page .ca-ledger-wrap { overflow-x: auto; }
+    body.ca-page .ca-ledger {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+    body.ca-page .ca-ledger caption {
+      caption-side: bottom;
+      text-align: left;
+      padding-top: 0.55rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: rgba(238, 242, 245, 0.5);
+    }
+    body.ca-page .ca-ledger th,
+    body.ca-page .ca-ledger td {
+      padding: 0.42rem 0.35rem;
+      text-align: right;
+      border-bottom: 1px solid rgba(238, 242, 245, 0.1);
+      color: #eef2f5;
+      white-space: nowrap;
+    }
+    body.ca-page .ca-ledger th {
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: rgba(238, 242, 245, 0.55);
+    }
+    body.ca-page .ca-ledger th:nth-child(1),
+    body.ca-page .ca-ledger td:nth-child(1),
+    body.ca-page .ca-ledger th:nth-child(2),
+    body.ca-page .ca-ledger td:nth-child(2) { text-align: left; }
+    body.ca-page .ca-ledger tr[hidden] { display: none; }
+    body.ca-page .ca-ledger tfoot td,
+    body.ca-page .ca-ledger tfoot th {
+      border-bottom: 0;
+      border-top: 1px solid rgba(94, 231, 240, 0.28);
+      font-weight: 600;
+    }
+    body.ca-page .ca-ledger [data-tone="good"] { color: #8ee0b0; }
+    body.ca-page .ca-ledger [data-tone="warn"] { color: #e6c36a; }
+    body.ca-page .ca-ledger [data-tone="bad"] { color: #f4b4a8; }
+    body.ca-page .ca-desk .ca-memo {
+      margin: 1rem 0 0;
+      max-width: none;
+      padding: 0.85rem 0.95rem;
+      border-color: rgba(238, 242, 245, 0.14);
+      border-left-color: var(--cyan);
+      background: rgba(0, 0, 0, 0.22);
+    }
+    body.ca-page .ca-desk .ca-memo__label { color: var(--cyan); }
+    body.ca-page .ca-desk .ca-memo__body {
+      color: rgba(238, 242, 245, 0.86);
+      white-space: pre-wrap;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+    body.ca-page .ca-desk .ca-memo__note { color: rgba(238, 242, 245, 0.5); }
+    body.ca-page .ca-roas {
+      display: grid;
+      gap: 0.75rem;
+    }
+    @media (min-width: 640px) {
+      body.ca-page .ca-roas { grid-template-columns: 1fr 1fr; }
+    }
+    body.ca-page .ca-roas article {
+      padding: 1rem 1rem 1.1rem;
+      border: 1px solid rgba(94, 231, 240, 0.28);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    body.ca-page .ca-roas .ca-desk__v {
+      font-size: clamp(1.7rem, 3vw, 2.15rem);
+      color: var(--cyan);
+    }
+    body.ca-page .ca-cpql-tile {
+      padding: 1rem 1.05rem 1.15rem;
+      border: 1px solid rgba(94, 231, 240, 0.35);
+      background: rgba(94, 231, 240, 0.08);
+    }
+    body.ca-page .ca-cpql-tile .ca-desk__v {
+      font-size: clamp(1.7rem, 3vw, 2.15rem);
+      color: var(--cyan);
+    }
+    body.ca-page .ca-audit-split {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 920px) {
+      body.ca-page .ca-audit-split {
+        grid-template-columns: minmax(0, 1.1fr) minmax(15.5rem, 0.9fr);
+        align-items: start;
+      }
+    }
+    body.ca-page .ca-artifact {
+      padding: 1rem 1.05rem 1.15rem;
+      background: #f3efe6;
+      color: #1c1916;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    body.ca-page .ca-artifact__label {
+      margin: 0 0 0.7rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #5a5348;
+    }
+    body.ca-page .ca-artifact h3 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+    body.ca-page .ca-artifact p,
+    body.ca-page .ca-artifact li {
+      margin: 0 0 0.45rem;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #2a251f;
+    }
+    body.ca-page .ca-artifact .mono { font-size: 0.78rem; }
+    body.ca-page .ca-artifact__redact {
+      display: inline-block;
+      min-width: 5.5rem;
+      height: 0.72em;
+      background: #1c1916;
+      vertical-align: -0.05em;
+    }
+    body.ca-page .ca-book {
+      display: grid;
+      gap: 1.25rem;
+    }
+    @media (min-width: 900px) {
+      body.ca-page .ca-book {
+        grid-template-columns: minmax(0, 1.15fr) minmax(16rem, 0.85fr);
+        align-items: start;
+      }
+    }
+    body.ca-page .ca-who,
+    body.ca-page .ca-fitcall {
+      padding: 1.15rem 1.2rem 1.25rem;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    body.ca-page .ca-who { margin-bottom: 1rem; }
+    body.ca-page .ca-who .eyebrow,
+    body.ca-page .ca-fitcall .eyebrow { margin-bottom: 0.65rem; }
+    body.ca-page .ca-who ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    body.ca-page .ca-who li {
+      padding: 0.4rem 0;
+      border-top: 1px solid var(--line);
+      font-size: 0.95rem;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    body.ca-page .ca-who li:first-child { border-top: 0; padding-top: 0; }
+    body.ca-page .ca-fitcall p {
+      margin: 0 0 0.65rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: var(--mute);
+    }
+    body.ca-page .ca-fitcall .btn { margin-top: 0.25rem; }
+    body.ca-page .ca-fitcall.is-empty {
+      border-style: dashed;
+    }
+    body.ca-page .ca-who h2,
+    body.ca-page .ca-fitcall h2 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
     }
 
     /* Sections */
@@ -800,11 +996,58 @@
 
     /* Inquiry */
     body.ca-page .ca-inquire {
-      max-width: 36rem;
+      max-width: 44rem;
       padding: clamp(1.6rem, 4vw, 2.25rem);
       border: 1px solid var(--line);
       background: #fff;
       scroll-margin-top: 5rem;
+    }
+    body.ca-page .ca-propose fieldset {
+      margin: 0 0 1.1rem;
+      padding: 0.85rem 0.95rem 1rem;
+      border: 1px solid var(--line);
+    }
+    body.ca-page .ca-propose fieldset[hidden] { display: none; }
+    body.ca-page .ca-propose legend {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--mute);
+      padding: 0 0.35rem;
+    }
+    body.ca-page .ca-propose .req {
+      color: var(--lie);
+      font-weight: 700;
+    }
+    body.ca-page .ca-propose .row2 {
+      display: grid;
+      gap: 0.85rem;
+    }
+    @media (min-width: 640px) {
+      body.ca-page .ca-propose .row2 { grid-template-columns: 1fr 1fr; }
+    }
+    body.ca-page .ca-estimate {
+      margin: 0 0 1.15rem;
+      padding: 1rem 1.1rem 1.15rem;
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+    }
+    body.ca-page .ca-estimate h3 {
+      margin: 0 0 0.35rem;
+      font-family: var(--display);
+      font-size: 1.2rem;
+    }
+    body.ca-page .ca-estimate p { margin: 0 0 0.5rem; font-size: 0.92rem; line-height: 1.45; }
+    body.ca-page .ca-estimate--nofit { border-color: #c24532; background: #fff6f4; }
+    body.ca-page .ca-autoreply {
+      margin: 0.85rem 0 1rem;
+      padding: 0.75rem 0.85rem;
+      background: #fff;
+      border: 1px dashed var(--line);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
     }
     body.ca-page .ca-inquire .reply-line {
       margin: 0 0 0.85rem;
@@ -1014,6 +1257,16 @@
       color: var(--ink);
       font-weight: 600;
     }
+    body.ca-page .ca-job-links {
+      margin: 1.25rem 0 0;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--mute);
+    }
+    body.ca-page .ca-job-links a {
+      color: var(--ink);
+      text-underline-offset: 0.18em;
+    }
 
     @media (prefers-reduced-motion: reduce) {
       body.ca-page .ca-pkg { transition: none; }
@@ -1031,9 +1284,9 @@
           "@type": "Organization",
           "name": "Mcfly Ads",
           "alternateName": ["Mcfly Advertising and Analytics", "Mcfly Analytics"],
-          "url": "https://mcfly-analytics.fly.dev/"
+          "url": "https://mcflyads.com/"
         },
-        "url": "https://mcfly-analytics.fly.dev/custom-analytics",
+        "url": "https://mcflyads.com/custom-analytics",
         "description": "Custom Data Solutions are fixed-fee engagements ($5–25K bands) that ship a weekly decision desk and written metric contracts — not always-on MMM theater and not an identity-graph product.",
         "areaServed": {
           "@type": "Country",
@@ -1052,11 +1305,11 @@
               "maxPrice": "8000"
             },
             "description": "Fixed-fee close memo: exact spend by platform, invoice vs UI recon, sales/revenue period check. 2–3 weeks.",
-            "url": "https://mcfly-analytics.fly.dev/custom-analytics#packages"
+            "url": "https://mcflyads.com/spend-sales-audit"
           },
           {
             "@type": "Offer",
-            "name": "Lead Gen Decision Desk",
+            "name": "Lead Gen reporting",
             "priceCurrency": "USD",
             "price": "8000",
             "priceSpecification": {
@@ -1066,11 +1319,11 @@
               "maxPrice": "15000"
             },
             "description": "Spend joined to CRM stages — CPQL desk, metric contracts, weekly demos. 3–6 weeks.",
-            "url": "https://mcfly-analytics.fly.dev/custom-analytics#packages"
+            "url": "https://mcflyads.com/lead-gen-desk"
           },
           {
             "@type": "Offer",
-            "name": "Advanced MDS Build",
+            "name": "Advanced MDS",
             "priceCurrency": "USD",
             "price": "15000",
             "priceSpecification": {
@@ -1080,15 +1333,15 @@
               "maxPrice": "25000"
             },
             "description": "Custom marketing data science system: pipelines or Sheet SoT, decision UI, rules-based allocation, handoff. 6–10 weeks.",
-            "url": "https://mcfly-analytics.fly.dev/custom-analytics#packages"
+            "url": "https://mcflyads.com/advanced-mds"
           }
         ]
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcfly-analytics.fly.dev/" },
-          { "@type": "ListItem", "position": 2, "name": "Custom Data Solutions", "item": "https://mcfly-analytics.fly.dev/custom-analytics" }
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcflyads.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Custom Data Solutions", "item": "https://mcflyads.com/custom-analytics" }
         ]
       }
     ]
@@ -1103,7 +1356,7 @@
     <section class="ca-hero hero hero-craft" id="overview" aria-labelledby="ca-hero-brand">
       <div class="hero-atmosphere" aria-hidden="true">
         <picture>
-          <source srcset="/assets/hero-atmosphere.webp" type="image/webp" />
+          <source srcset="/assets/hero-atmosphere-1200.webp 1200w" sizes="100vw" type="image/webp" />
           <img src="/assets/hero-atmosphere.jpg" alt="" width="1920" height="1080" decoding="async" fetchpriority="high" />
         </picture>
       </div>
@@ -1114,17 +1367,19 @@
       <div class="ca-hero-layout">
         <div class="hero-copy">
           <p class="brand-hero" id="ca-hero-brand">
-            <img class="brand-hero-mark" src="/assets/brand/mcfly-m-transparent.png" width="56" height="56" alt="" />
+            <img class="brand-hero-mark" src="/assets/brand/mcfly-m.svg" width="56" height="56" alt="" />
             <span>
               Mcfly <span class="brand-hero-sub">Analytics</span>
               <span class="brand-hero-practice">Custom Data Solutions</span>
             </span>
           </p>
-          <h1>Exact spend. Audited outcomes. Systems finance will sign off on.</h1>
-          <p class="lede">Boutique marketing data science for operators who need a written SOW — platform recon, sales audits, lead-gen desks. Fixed fee <span class="mono">$5–25K</span>. You own the system. Not forensic theater. Not MMM SaaS.</p>
+          <h1>Exact spend. Audited outcomes. A system finance will accept.</h1>
+          <p class="lede">We build custom reporting when ads and finance still disagree. Platform spend, invoices, and sales or CRM stages get one written definition. You keep the system.</p>
+          <p class="lede">Fixed-fee projects, $5–25K. Three packages: Spend &amp; Sales Audit ($5–8K), Lead Gen reporting ($8–15K), and Advanced MDS ($15–25K). Written scope. Weekly check-ins on the larger builds.</p>
+          <p class="lede">Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else.</p>
           <div class="hero-actions">
             <div class="cta-row">
-              <a class="btn primary solid" href="#inquire">Request a proposal</a>
+              <a class="btn primary solid" href="#inquire">Inquire</a>
               <a class="btn ghost" href="#packages">See packages</a>
             </div>
             <p class="hero-proof">
@@ -1139,47 +1394,255 @@
           </div>
         </div>
 
-        <div class="ca-desk" id="ca-labs" aria-label="Illustrative sample desk — not a live client desk">
-          <p class="ca-desk__claim">Illustrative SAMPLE · not a live client desk</p>
-          <div class="ca-desk__seg" role="group" aria-label="Business model">
+        <div class="ca-desk" id="ca-labs" data-lab-desk aria-label="SAMPLE desk — Northline week">
+          <p class="ca-desk__claim">SAMPLE · Northline Supply · not a live client</p>
+          <div class="ca-pair" aria-label="3-second pair — same spend">
+            <article>
+              <p class="ca-desk__k">Cash Total ROAS</p>
+              <p class="ca-desk__v">4.19×</p>
+              <p class="ca-desk__formula">$412,400 ÷ $98,500</p>
+            </article>
+            <article>
+              <p class="ca-desk__k">Platform ROAS</p>
+              <p class="ca-desk__v">~4.8×</p>
+              <p class="ca-desk__formula">$472,800 ÷ $98,500 · same spend</p>
+            </article>
+          </div>
+          <p class="ca-pair__cap">Same spend. Gap is returns + last-touch, not incrementality. SAMPLE · Northline · demo-not-production.</p>
+          <div class="ca-desk__seg" role="group" aria-label="SAMPLE desk mode">
+            <button type="button" class="ca-desk__btn is-on" data-ca-mode="audit" aria-current="true">Invoice vs UI</button>
             <button type="button" class="ca-desk__btn" data-ca-mode="ecommerce">Ecommerce</button>
-            <button type="button" class="ca-desk__btn is-on" data-ca-mode="leadgen" aria-current="true">Lead gen</button>
-            <button type="button" class="ca-desk__btn" data-ca-mode="services">Services / B2B</button>
+            <button type="button" class="ca-desk__btn" data-ca-mode="leadgen">Lead gen</button>
           </div>
-          <div class="ca-desk__grid">
-            <div class="ca-desk__stat">
-              <p class="ca-desk__k" data-ca-num-label>Qualified leads</p>
-              <p class="ca-desk__v" data-ca-num-val>186</p>
-            </div>
-            <div class="ca-desk__stat">
-              <p class="ca-desk__k">Audited spend</p>
-              <p class="ca-desk__v" data-ca-spend-val>$42,000</p>
-            </div>
-            <div class="ca-desk__stat ca-desk__stat--out">
-              <p class="ca-desk__k" data-ca-out-label>Cost / qualified lead</p>
-              <p class="ca-desk__v" data-ca-out-val>$226</p>
-            </div>
-          </div>
-          <p class="ca-desk__note" data-ca-mode-note>CRM-qualified stages ÷ paid spend — not form-fill vanity.</p>
-        </div>
-      </div>
-    </section>
 
-    <section class="ca-answer" id="what-is" aria-label="What Custom Data Solutions are">
-      <div class="ca-wrap">
-        <p class="ca-answer__quote">
-          <dfn>Custom Data Solutions</dfn> are fixed-fee engagements ($5–25K bands) that ship a weekly decision desk and written metric contracts — not always-on MMM theater and not an identity-graph product. Bands: Spend &amp; Sales Audit <span class="mono">$5–8K</span>, Lead Gen Desk <span class="mono">$8–15K</span>, Advanced MDS <span class="mono">$15–25K</span>.
-        </p>
-        <p class="ca-answer__links">Shopify-only shops that need the Monday cash desk: start on <a href="/product">Product</a>. Company story: <a href="/about">About</a>.</p>
+          <div data-ca-panel="audit" id="recon">
+            <div class="ca-teach">
+              <table>
+                <caption>Do not use path credit for total revenue. Four channels × $120 attributed vs $120 cash. SAMPLE. No vendor logo.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Channel</th>
+                    <th scope="col">Attributed</th>
+                    <th scope="col">Cash</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Meta</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">Google</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">LinkedIn</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">Other paid</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="ca-audit-split">
+            <div>
+            <div class="ca-ledger-wrap">
+              <table class="ca-ledger">
+                <caption>Each $ and % is billed − UI. Uncheck a channel to drop its row. SAMPLE dollars, not a live client.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">In</th>
+                    <th scope="col">Channel</th>
+                    <th scope="col">Invoice</th>
+                    <th scope="col">Ads Manager UI</th>
+                    <th scope="col">$</th>
+                    <th scope="col">%</th>
+                    <th scope="col">Flag</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-ca-row="meta">
+                    <td><input type="checkbox" data-ca-plat="meta" checked aria-label="Include Meta" /></td>
+                    <th scope="row">Meta</th>
+                    <td class="mono">$41,200</td>
+                    <td class="mono">$42,850</td>
+                    <td class="mono">−$1,650</td>
+                    <td class="mono">−4.0%</td>
+                    <td data-tone="warn">Investigate</td>
+                  </tr>
+                  <tr data-ca-row="google">
+                    <td><input type="checkbox" data-ca-plat="google" checked aria-label="Include Google" /></td>
+                    <th scope="row">Google</th>
+                    <td class="mono">$31,800</td>
+                    <td class="mono">$31,120</td>
+                    <td class="mono">+$680</td>
+                    <td class="mono">+2.1%</td>
+                    <td data-tone="warn">Investigate</td>
+                  </tr>
+                  <tr data-ca-row="linkedin">
+                    <td><input type="checkbox" data-ca-plat="linkedin" checked aria-label="Include LinkedIn" /></td>
+                    <th scope="row">LinkedIn</th>
+                    <td class="mono">$15,400</td>
+                    <td class="mono">$16,180</td>
+                    <td class="mono">−$780</td>
+                    <td class="mono">−5.1%</td>
+                    <td data-tone="bad">Material</td>
+                  </tr>
+                  <tr data-ca-row="other">
+                    <td><input type="checkbox" data-ca-plat="other" checked aria-label="Include Other paid" /></td>
+                    <th scope="row">Other paid</th>
+                    <td class="mono">$10,100</td>
+                    <td class="mono">$9,800</td>
+                    <td class="mono">+$300</td>
+                    <td class="mono">+3.0%</td>
+                    <td data-tone="warn">Investigate</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <th scope="row" colspan="2">Included</th>
+                    <td class="mono" data-ca-billed>$98,500</td>
+                    <td class="mono" data-ca-reported>$99,950</td>
+                    <td class="mono" data-ca-variance>−$1,450</td>
+                    <td class="mono" data-ca-variance-pct>−1.5%</td>
+                    <td data-ca-variance-tone data-tone="good">Within 2%</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <p class="ca-desk__formula">Billed total = sum of included invoices. UI total = sum of included Ads Manager. Variance = billed − UI.</p>
+            <aside class="ca-memo" data-ca-memo aria-label="SAMPLE close memo">
+              <p class="ca-memo__label">Close memo · SAMPLE · not a live client</p>
+              <p class="ca-memo__body" data-ca-memo-body>Period: Northline SAMPLE week · channels: Meta, Google, LinkedIn, Other paid
+Invoice billed $98,500 · Ads Manager UI $99,950 · billed − UI −$1,450 (−1.5%)
+Action: LinkedIn UI ahead of invoice — returns + last-touch. Investigate before finance signs.</p>
+              <p class="ca-memo__note">Unchecking a channel rewrites this sentence. Not a static dump. Not a live client.</p>
+            </aside>
+            <fieldset class="ca-except">
+              <legend>Exception rows · include / exclude</legend>
+              <label><input type="checkbox" data-lab-except="1400" checked /> Aug 11 missing invoice $1,400</label>
+              <label><input type="checkbox" data-lab-except="480" checked /> VAT $480</label>
+              <label><input type="checkbox" data-lab-except="1200" checked /> Marketplace $1,200</label>
+              <p class="ca-except__residual" data-lab-residual>Residual $3,080 — reconciling line, not a new Total ROAS. Cash stays 4.19× on $412,400 ÷ $98,500.</p>
+            </fieldset>
+            </div>
+            <article class="ca-artifact" aria-label="Redacted SAMPLE close memo">
+              <p class="ca-artifact__label">SAMPLE · not a live client</p>
+              <h3>Close memo — Spend &amp; Sales Audit</h3>
+              <p>To: <span class="ca-artifact__redact" aria-hidden="true"></span> <span class="sr-only">redacted client</span><br />From: Marty Smithson<br />Re: Period close — invoice vs Ads Manager UI + sales period check<br />Period: prior calendar month · static artifact, not a calculator</p>
+              <p><strong>1. Invoice vs Ads Manager UI</strong><br />
+              Invoice billed <span class="mono">$98,500</span>. Ads Manager UI <span class="mono">$99,950</span>. Billed − UI <span class="mono">−$1,450 (−1.5%)</span>. LinkedIn UI ran ahead of the invoice. Keep billed as spend truth. Do not post the UI total.</p>
+              <p><strong>2. Sales period check</strong><br />
+              Cash after returns <span class="mono">$412,400</span> ÷ billed <span class="mono">$98,500</span> = <span class="mono">4.19×</span>. Platform-attributed revenue on the same billed dollars is a second total — returns + last-touch, not incrementality.</p>
+              <p>Action on this SAMPLE: reconcile LinkedIn to the invoice window before the next close. You keep the file.</p>
+              <p>Redacted. Not a live client. Numbers match the SAMPLE desk on this page.</p>
+            </article>
+            </div>
+          </div>
+
+          <div data-ca-panel="ecommerce" hidden>
+            <div class="ca-roas">
+              <article>
+                <p class="ca-desk__k">Cash-after-returns Total ROAS</p>
+                <p class="ca-desk__v">4.19×</p>
+                <p class="ca-desk__formula">sales_net ÷ spend · $412,400 ÷ $98,500</p>
+              </article>
+              <article>
+                <p class="ca-desk__k">Platform ROAS</p>
+                <p class="ca-desk__v">~4.8×</p>
+                <p class="ca-desk__formula">platform-reported revenue ÷ spend · $472,800 ÷ $98,500</p>
+              </article>
+            </div>
+            <p class="ca-desk__note">Same spend. Caption: returns + last-touch, not incrementality. SAMPLE · Northline.</p>
+            <div class="ca-teach">
+              <table>
+                <caption>Do not use path credit for total revenue. Four channels × $120 attributed vs $120 cash. SAMPLE. No vendor logo.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Channel</th>
+                    <th scope="col">Attributed</th>
+                    <th scope="col">Cash</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Meta</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">Google</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">LinkedIn</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">Other paid</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div data-ca-panel="leadgen" hidden>
+            <div class="ca-cpql-tile">
+              <p class="ca-desk__k">Cost per qualified lead</p>
+              <p class="ca-desk__v">$226</p>
+              <p class="ca-desk__formula">CPQL = spend ÷ CRM-qualified · $42,000 ÷ 186</p>
+            </div>
+            <p class="ca-desk__note">Identity on this tile: CRM-qualified stages, not form-fills. SAMPLE · not a live client.</p>
+          </div>
+        </div>
       </div>
     </section>
 
     <section class="ca-band" id="packages" aria-labelledby="pkg-title">
       <div class="ca-wrap">
-        <p class="eyebrow">Market map · then packages</p>
-        <h2 id="pkg-title" class="display">Where do Custom Data Solutions sit vs forensic audits and MMM?</h2>
-        <p class="lede">Elite buyers confuse forensic media audits, MMM subscriptions, and productized decision desks. Mcfly Ads — Custom Data Solutions is the third — fixed fee, written scope, outcomes ÷ spend.</p>
+        <p class="eyebrow">Fixed-fee projects · $5–25K</p>
+        <h2 id="pkg-title" class="display">Three packages</h2>
+        <p class="lede">Fixed-fee projects, $5–25K. Three packages: Spend &amp; Sales Audit ($5–8K), Lead Gen reporting ($8–15K), and Advanced MDS ($15–25K). Written scope. Weekly check-ins on the larger builds. Structure of the letter: <a href="/custom-analytics-engagement">engagement specimen</a>.</p>
+        <div class="ca-packages reveal">
+          <button type="button" class="ca-pkg" data-ca-package="audit">
+            <p class="price">$5–8K · 2–3 weeks</p>
+            <h3>Spend &amp; Sales Audit</h3>
+            <p>Close memo: spend by platform, invoice vs platform UI, sales period check.</p>
+            <ul>
+              <li>Rollup</li>
+              <li>Variance flags</li>
+              <li>Memo</li>
+              <li>30 days Q&amp;A</li>
+            </ul>
+            <div class="scope">
+              <strong>Out</strong>
+              Agency rebate forensics, multi-year contract review, tracking pixels.
+            </div>
+            <span class="cta">Select engagement →</span>
+          </button>
+          <button type="button" class="ca-pkg" data-ca-package="leadgen">
+            <p class="price">$8–15K · 3–6 weeks</p>
+            <h3>Lead Gen reporting</h3>
+            <p>Paid spend joined to CRM stages, CPL / cost per qualified lead, weekly report. Agencies/SaaS/services not only stores.</p>
+            <ul>
+              <li>Lead→MQL→SQL defs</li>
+              <li>Channel efficiency</li>
+              <li>Handoff docs</li>
+              <li>Weekly demo</li>
+            </ul>
+            <div class="scope">
+              <strong>Out</strong>
+              Multi-touch path credit. CRM licenses billed separately.
+            </div>
+            <span class="cta">Select engagement →</span>
+          </button>
+          <button type="button" class="ca-pkg" data-ca-package="mds">
+            <p class="price">$15–25K · 6–10 weeks</p>
+            <h3>Advanced MDS</h3>
+            <p>Pipelines or Sheet source of truth, reporting UI, simple allocation, production handoff.</p>
+            <ul>
+              <li>Outcome ÷ spend spine</li>
+              <li>Lightweight mix helpers</li>
+              <li>Runbooks</li>
+              <li>Optional retainer quote</li>
+            </ul>
+            <div class="scope">
+              <strong>Out</strong>
+              Nielsen/Meridian/Recast parity, CDP, warehouse rebuild.
+            </div>
+            <span class="cta">Select engagement →</span>
+          </button>
+        </div>
+        <p class="ca-job-links">One job each — you keep the system:
+          <a href="/spend-sales-audit">Spend &amp; Sales Audit</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/lead-gen-desk">Lead Gen reporting</a>
+          <span aria-hidden="true"> · </span>
+          <a href="/advanced-mds">Advanced MDS</a>
+        </p>
+        <p class="ca-engage-link"><a href="/custom-analytics-engagement">Review the engagement letter specimen</a> — parties, fee, scope tiers, refuse list, signatures. Specimen only; final terms in the signed letter.</p>
 
+        <p class="eyebrow" style="margin-top:2.75rem">Market map</p>
+        <h2 class="display" id="market-title">Where this sits vs forensic audits and MMM</h2>
+        <p class="lede">Demoted on purpose — the first screen is invoice vs UI, not a category map.</p>
         <div class="ca-market reveal">
           <article>
             <p class="tag" data-tone="out">Not our lane</p>
@@ -1195,81 +1658,11 @@
           </article>
           <article>
             <p class="tag" data-tone="in">Our lane</p>
-            <h3>Productized decision desks</h3>
-            <p>Exact spend by platform, audited outcomes, CPQL / efficiency rituals, rules-based allocation — you keep the system.</p>
+            <h3>Productized reporting</h3>
+            <p>Exact spend by platform, audited outcomes, written definitions — you keep the system.</p>
             <p class="band">$5–40K discrete market · Mcfly $5–25K</p>
           </article>
         </div>
-        <p class="ca-anchor">We sit in the <span class="mono">$5–25K</span> productized desk band — below forensic media audits and beside (not inside) MMM SaaS. Market comps in FAQ.</p>
-
-        <p class="eyebrow" style="margin-top:2.5rem">Fixed-fee engagements</p>
-        <h2 class="display" id="pkg-cards-title">What does a $5–25K fixed-fee engagement include?</h2>
-        <p class="lede">Choose an engagement below to prefill the intake form. Tools/licenses billed at cost when needed — never buried in the fee. Structure of the letter: <a href="/custom-analytics-engagement">engagement specimen</a>.</p>
-        <div class="ca-packages reveal">
-          <button type="button" class="ca-pkg" data-ca-package="audit">
-            <p class="price">$5–8K · 2–3 weeks</p>
-            <h3>Spend &amp; Sales Audit</h3>
-            <p>Operator close memo: exact spend by platform, invoice vs UI recon, and a sales / revenue period check finance can use.</p>
-            <ul>
-              <li>Platform spend rollup + variance flags</li>
-              <li>Sales or closed-revenue period check</li>
-              <li>Written close memo + next actions</li>
-              <li>30-day Q&amp;A on the memo</li>
-            </ul>
-            <div class="scope">
-              <strong>Excluded</strong>
-              Not a $100K forensic agency/rebate audit. Not multi-year contract forensics. Not pixels.
-            </div>
-            <span class="cta">Select engagement →</span>
-          </button>
-          <button type="button" class="ca-pkg" data-ca-package="leadgen">
-            <p class="price">$8–15K · 3–6 weeks</p>
-            <h3>Lead Gen Decision Desk</h3>
-            <p>Spend joined to CRM stages — CPL, CPQL, and a weekly ritual operators actually open. For agencies, SaaS, and services — not only stores.</p>
-            <ul>
-              <li>Metric contracts (lead → MQL → SQL)</li>
-              <li>Channel efficiency vs targets</li>
-              <li>Operator desk + handoff docs</li>
-              <li>Weekly demo cadence during build</li>
-            </ul>
-            <div class="scope">
-              <strong>Excluded</strong>
-              Not multi-touch path credit. Not forever-free BI seats. CRM licenses separate.
-            </div>
-            <span class="cta">Select engagement →</span>
-          </button>
-          <button type="button" class="ca-pkg" data-ca-package="mds">
-            <p class="price">$15–25K · 6–10 weeks</p>
-            <h3>Advanced MDS Build</h3>
-            <p>Custom marketing data science system: pipelines or Sheet SoT, decision UI, rules-based allocation, production handoff.</p>
-            <ul>
-              <li>Outcome ÷ spend as the spine</li>
-              <li>Lightweight mix / allocation helpers</li>
-              <li>Runbooks + ownership transfer</li>
-              <li>Optional retainer quote at handoff</li>
-            </ul>
-            <div class="scope">
-              <strong>Excluded</strong>
-              Not Nielsen / Meridian / Recast parity. Not CDP or identity graph. Not a $40K+ warehouse rebuild.
-            </div>
-            <span class="cta">Select engagement →</span>
-          </button>
-        </div>
-        <aside class="ca-retainer" id="retainer" aria-labelledby="retainer-title">
-          <h3 id="retainer-title">Optional ongoing Monday close retainer</h3>
-          <p>After handoff, you can add a continuity retainer — typically <span class="mono">$3–8K / month</span> — for monitored weekly closes, light desk changes, and a named monthly review. It is an add-on to the fixed-fee build, not hourly bait and not required to keep the system you own.</p>
-        </aside>
-        <p class="ca-engage-link"><a href="/custom-analytics-engagement">Review the engagement letter specimen</a> — parties, fee, scope tiers, refuse list, signatures. Specimen only; final terms in the signed letter.</p>
-
-        <aside class="ca-memo" aria-label="Sample close memo excerpt">
-          <p class="ca-memo__label">Close memo excerpt · SAMPLE</p>
-          <p class="ca-memo__body">Period: prior calendar month · channels: Meta + Google
-Invoice billed $84,200 · Ads Manager UI $87,910 · variance +$3,710 (4.4%)
-Net sales (returns adjusted) $312,400 · audited spend $84,200
-Outcome ÷ spend: 3.71× · flag: Meta UI ahead of invoice — tax/fee timing
-Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
-          <p class="ca-memo__note">Redacted SAMPLE figures for illustration — not a live client close.</p>
-        </aside>
       </div>
     </section>
 
@@ -1351,78 +1744,10 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
             <ul>
               <li>Want pixels / MTA / path-credit “true ROAS”</li>
               <li>Need a free trial or sub-$5K dabble</li>
-              <li>Looking for the Shopify cash desk app — use <a href="/product">Product</a></li>
+              <li>Shopify-only shops that just need sales next to spend — wait for the app, or see <a href="/product">Product</a></li>
               <li>Need forensic $100K+ media audit or full MMM SaaS (we’ll redirect)</li>
             </ul>
           </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="ca-band" id="recon" aria-labelledby="recon-title">
-      <div class="ca-wrap">
-        <p class="eyebrow">Illustrative method · SAMPLE figures</p>
-        <h2 id="recon-title" class="display">How do you reconcile exact spend by platform?</h2>
-        <p class="lede">Toggle channels. Compare billed invoices to Ads Manager. Variance is the close — not a sync animation. Figures below are SAMPLE only.</p>
-        <div class="ca-recon reveal">
-          <div>
-            <p class="eyebrow" style="margin-bottom:0.75rem">Include platforms</p>
-            <ul class="ca-plat-list">
-              <li><label><input type="checkbox" data-ca-plat="meta" checked /> Meta</label></li>
-              <li><label><input type="checkbox" data-ca-plat="google" checked /> Google</label></li>
-              <li><label><input type="checkbox" data-ca-plat="linkedin" checked /> LinkedIn</label></li>
-              <li><label><input type="checkbox" data-ca-plat="other" checked /> Other paid</label></li>
-            </ul>
-            <p class="ca-legend" aria-hidden="true">
-              <span><i class="billed"></i>Invoice / billed</span>
-              <span><i class="reported"></i>Platform UI</span>
-            </p>
-          </div>
-          <div class="ca-recon-readout">
-            <div class="ca-recon-metrics">
-              <div>
-                <p class="k">Billed total</p>
-                <p class="v" data-ca-billed>$0</p>
-              </div>
-              <div>
-                <p class="k">Platform UI total</p>
-                <p class="v" data-ca-reported>$0</p>
-              </div>
-              <div class="full">
-                <p class="k">Variance</p>
-                <p class="v" data-ca-variance>$0</p>
-                <p class="k" style="margin-top:0.45rem" data-ca-variance-tone data-tone="good">Within tolerance.</p>
-              </div>
-            </div>
-            <div data-ca-bars></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="ca-band" id="lead-gen" aria-labelledby="lg-title">
-      <div class="ca-wrap">
-        <p class="eyebrow">Illustrative method · SAMPLE figures</p>
-        <h2 id="lg-title" class="display">What is cost per qualified lead on a decision desk?</h2>
-        <p class="lede">Drag spend, qualified volume, and your CPQL target. SAMPLE figures for agencies, SaaS, and services — not a live client desk.</p>
-        <div class="ca-lg reveal">
-          <label>
-            <span>Paid spend <strong class="mono" data-ca-lg-spend-out>$42,000</strong></span>
-            <input data-ca-lg-spend type="range" min="10000" max="120000" step="1000" value="42000" />
-          </label>
-          <label>
-            <span>Qualified leads (CRM) <strong class="mono" data-ca-lg-leads-out>186</strong></span>
-            <input data-ca-lg-leads type="range" min="20" max="500" step="1" value="186" />
-          </label>
-          <label>
-            <span>Target CPQL <strong class="mono" data-ca-lg-target-out>$250</strong></span>
-            <input data-ca-lg-target type="range" min="50" max="800" step="10" value="250" />
-          </label>
-          <div class="ca-lg__out">
-            <p class="eyebrow">Actual CPQL</p>
-            <p class="ca-lg__cpql" data-ca-lg-cpql>$226</p>
-            <p class="ca-lg__verdict" data-ca-lg-verdict data-tone="good">Under target — protect the mix.</p>
-          </div>
         </div>
       </div>
     </section>
@@ -1494,7 +1819,7 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
           </details>
           <details>
             <summary>How is this different from the Shopify app?</summary>
-            <p>The Shopify cash desk is a productized Total ROAS seat for merchants. Mcfly Analytics — Custom Data Solutions is a fixed-fee practice for companies that need spend recon, lead-gen desks, or MDS beyond that app — toggle between the two on this site.</p>
+            <p>Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else — fixed-fee custom reporting when ads and finance still disagree.</p>
           </details>
         </div>
       </div>
@@ -1502,86 +1827,230 @@ Action: hold Meta scale until invoice catch-up; Google within 1%.</p>
 
     <section class="ca-band" aria-labelledby="inquire-title">
       <div class="ca-wrap">
+        <div class="ca-book">
         <div class="ca-inquire" id="inquire">
-          <p class="reply-line">Human review · 1–2 business days</p>
-          <h2 id="inquire-title">Request an engagement letter</h2>
-          <p>Intake for scoped builds only. Selecting an engagement above prefills budget and notes — or choose manually. Review the <a href="/custom-analytics-engagement">engagement specimen</a> before the call.</p>
+          <p class="reply-line">Human review · 1–2 business days · ~10 minutes</p>
+          <h2 id="inquire-title">Proposal — one sitting</h2>
+          <p>Pick a package. The rest of the form matches that job. No charge on this form. Review the <a href="/custom-analytics-engagement">engagement specimen</a> before you send.</p>
 
-          <form class="waitlist" data-waitlist data-waitlist-source="custom-analytics inquiry" novalidate>
-            <label>Name
-              <input name="name" type="text" autocomplete="name" required maxlength="120" />
-            </label>
-            <label>Work email
-              <input name="email" type="email" required autocomplete="email" maxlength="254" />
-            </label>
-            <label>Company / website
-              <input name="store" type="text" autocomplete="organization" placeholder="company.com" maxlength="200" />
-            </label>
-            <label>Role / title
-              <input name="role" type="text" autocomplete="organization-title" placeholder="VP Marketing, CFO, Founder…" maxlength="120" />
-            </label>
-            <label>Engagement / budget band
-              <select name="budget" required>
-                <option value="" disabled selected>Select a range</option>
-                <option value="$5k–$8k">$5k – $8k (Spend &amp; Sales Audit)</option>
-                <option value="$8k–$15k">$8k – $15k (Lead Gen Desk)</option>
-                <option value="$15k–$25k">$15k – $25k (Advanced MDS)</option>
-                <option value="Not sure — need guidance">Not sure — need guidance</option>
-              </select>
-            </label>
-            <label>Monthly paid media spend
-              <select name="spend" required>
-                <option value="" disabled selected>Select a range</option>
-                <option value="Under $25k / mo">Under $25k / mo</option>
-                <option value="$25k–$100k / mo">$25k – $100k / mo</option>
-                <option value="$100k–$500k / mo">$100k – $500k / mo</option>
-                <option value="$500k+ / mo">$500k+ / mo</option>
-                <option value="Prefer not to say">Prefer not to say</option>
-              </select>
-            </label>
-            <label>Target start
-              <select name="timeline" required>
-                <option value="" disabled selected>Select a window</option>
-                <option value="ASAP / this month">ASAP / this month</option>
-                <option value="Next 30–60 days">Next 30–60 days</option>
-                <option value="This quarter">This quarter</option>
-                <option value="Exploring / no date yet">Exploring / no date yet</option>
-              </select>
-            </label>
-            <label>What should the engagement cover?
-              <textarea name="notes" required maxlength="1200" placeholder="Outcomes, data sources, constraints. No need to restate spend/timeline if selected above."></textarea>
-            </label>
+          <form class="waitlist ca-propose" data-waitlist data-proposal data-waitlist-source="custom-analytics inquiry" data-waitlist-success="Thanks. A person will reply in 1–2 business days with next steps, or with a no if this is not a fit." novalidate>
+            <fieldset>
+              <legend>A · Contact</legend>
+              <div class="row2">
+                <label>Name <span class="req" aria-hidden="true">*</span>
+                  <input name="name" type="text" autocomplete="name" required maxlength="120" />
+                </label>
+                <label>Company <span class="opt">(optional)</span>
+                  <input name="company" type="text" autocomplete="organization" maxlength="200" />
+                </label>
+              </div>
+              <div class="row2">
+                <label>Work email <span class="req" aria-hidden="true">*</span>
+                  <input name="email" type="email" required autocomplete="email" maxlength="254" />
+                </label>
+                <label>Role <span class="req" aria-hidden="true">*</span>
+                  <input name="role" type="text" autocomplete="organization-title" required maxlength="120" />
+                </label>
+              </div>
+              <label>Package <span class="req" aria-hidden="true">*</span>
+                <select name="package" data-proposal-package required>
+                  <option value="" disabled selected>Select a package</option>
+                  <option value="audit">Spend &amp; Sales Audit · $5–8K · 2–3 weeks</option>
+                  <option value="leadgen">Lead Gen reporting · $8–15K · 3–6 weeks</option>
+                  <option value="mds">Advanced MDS · $15–25K · 6–10 weeks</option>
+                </select>
+              </label>
+              <input type="hidden" name="budget" value="" />
+              <label>First-look date <span class="req" aria-hidden="true">*</span>
+                <input name="first_look" type="date" required />
+              </label>
+              <label>Who signs the number, and what would make them reject it <span class="req" aria-hidden="true">*</span>
+                <textarea name="signer_reject" required maxlength="400" rows="2" placeholder="Signer + the no."></textarea>
+              </label>
+              <label>What Monday must produce <span class="req" aria-hidden="true">*</span>
+                <select name="monday_produce" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option value="one number">One number</option>
+                  <option value="variance list">Variance list</option>
+                  <option value="signed close">Signed close</option>
+                </select>
+              </label>
+              <label>The two systems that disagree, and last month’s two numbers if you have them <span class="req" aria-hidden="true">*</span>
+                <textarea name="two_systems" required maxlength="400" rows="2" placeholder="System A vs system B · last month’s two numbers if you have them"></textarea>
+              </label>
+              <label>Entities / channels / marketplaces in the first desk <span class="req" aria-hidden="true">*</span>
+                <input name="entities" type="text" required maxlength="240" placeholder="Meta, Google, Shopify US…" />
+              </label>
+              <label>Does a spreadsheet already close this on Monday? <span class="req" aria-hidden="true">*</span>
+                <select name="spreadsheet_closes" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option value="no">No</option>
+                  <option value="yes">Yes — a spreadsheet already closes Monday</option>
+                </select>
+              </label>
+              <label>How you pay later <span class="opt">(optional · no charge on this form)</span>
+                <select name="pay_later">
+                  <option value="">Prefer not to say</option>
+                  <option value="ACH">ACH</option>
+                  <option value="wire">Wire</option>
+                  <option value="card">Card</option>
+                </select>
+              </label>
+            </fieldset>
+
+            <fieldset data-proposal-mode="audit" hidden>
+              <legend>B · Spend &amp; Sales Audit</legend>
+              <label>Sales source
+                <select name="sales_source">
+                  <option value="">Select one</option>
+                  <option value="Shopify">Shopify</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <label>Ad platforms + whether invoices exist for each
+                <textarea name="platforms_invoices" maxlength="400" rows="2" placeholder="Meta — invoice yes · Google — invoice no"></textarea>
+              </label>
+              <div class="row2">
+                <label>Period start
+                  <input name="period_start" type="date" />
+                </label>
+                <label>Period end
+                  <input name="period_end" type="date" />
+                </label>
+              </div>
+              <label>Contribution margin if known
+                <input name="contribution_margin" type="text" maxlength="40" placeholder="e.g. 35%" />
+              </label>
+              <label>Current close process (who, what tool)
+                <input name="close_process" type="text" maxlength="240" />
+              </label>
+              <label class="nda-opt">
+                <input type="checkbox" name="out_scope_audit" value="Confirmed: no rebate forensics, no pixels as the product" data-mode-required="audit" />
+                <span>Confirm: no rebate forensics, no pixels as the product <span class="req" aria-hidden="true">*</span></span>
+              </label>
+            </fieldset>
+
+            <fieldset data-proposal-mode="leadgen" hidden>
+              <legend>C · Lead Gen reporting</legend>
+              <label>CRM + written stage contract (lead → MQL → SQL)
+                <input name="crm_stages" type="text" maxlength="240" />
+              </label>
+              <label>What counts as qualified <span class="req" aria-hidden="true">*</span>
+                <input name="qualified_def" type="text" maxlength="240" data-mode-required="leadgen" />
+              </label>
+              <label>Channels + last-month spend and raw leads if known
+                <textarea name="channels_leads" maxlength="400" rows="2"></textarea>
+              </label>
+              <label>Target CPQL
+                <input name="target_cpql" type="text" maxlength="40" placeholder="$250" />
+              </label>
+              <label class="nda-opt">
+                <input type="checkbox" name="out_scope_lead" value="Confirmed: not path credit; CRM licenses billed separately" data-mode-required="leadgen" />
+                <span>Confirm: not path credit; CRM licenses billed separately <span class="req" aria-hidden="true">*</span></span>
+              </label>
+            </fieldset>
+
+            <fieldset data-proposal-mode="mds" hidden>
+              <legend>D · Advanced MDS</legend>
+              <label>Source of truth today
+                <select name="source_of_truth">
+                  <option value="">Select one</option>
+                  <option value="Sheet">Sheet</option>
+                  <option value="warehouse">Warehouse</option>
+                  <option value="none">None</option>
+                </select>
+              </label>
+              <label>Outcome is dollars or leads
+                <select name="outcome_type">
+                  <option value="">Select one</option>
+                  <option value="dollars">Dollars</option>
+                  <option value="leads">Leads</option>
+                </select>
+              </label>
+              <label>Entities to include in v1 vs later
+                <input name="entities_v1" type="text" maxlength="240" />
+              </label>
+              <label>Who owns the desk after handoff
+                <input name="desk_owner" type="text" maxlength="120" />
+              </label>
+              <label class="nda-opt">
+                <input type="checkbox" name="out_scope_mds" value="Confirmed: not Nielsen/Meridian/Recast, not a CDP/warehouse rebuild" data-mode-required="mds" />
+                <span>Confirm: not Nielsen/Meridian/Recast, not a CDP/warehouse rebuild <span class="req" aria-hidden="true">*</span></span>
+              </label>
+            </fieldset>
+
             <label class="nda-opt">
               <input type="checkbox" name="nda" value="NDA available on request before data access" />
               <span>NDA available on request before data access</span>
             </label>
-            <input type="text" name="company" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
-            <button class="btn primary solid" type="submit">Submit engagement request</button>
+            <input type="text" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
+            <button class="btn primary solid" type="submit">Send proposal</button>
             <p class="note" data-waitlist-error hidden role="alert"></p>
-            <p class="fine-print">By submitting, you agree we may email you about this engagement request. We don’t sell your information. <a href="/privacy">Privacy</a>. Terms are finalized only in a signed engagement letter — see <a href="/custom-analytics-engagement">specimen</a>.</p>
+            <p class="fine-print">No charge on this form. No Stripe checkout. Terms are finalized only in a signed engagement letter — see <a href="/custom-analytics-engagement">specimen</a>. We may email you about this request. We don’t sell your information. <a href="/privacy">Privacy</a>.</p>
           </form>
 
           <div class="waitlist-confirm" hidden aria-live="polite">
             <p data-waitlist-title></p>
+            <aside class="ca-estimate" data-estimate hidden>
+              <p class="eyebrow">Estimate · not a contract</p>
+              <h3 data-estimate-title></h3>
+              <p data-estimate-band></p>
+              <p data-estimate-cta>Reply YES to the email and we send an invoice + book a 20-min setup.</p>
+              <p class="note">20-min setup slot: placeholder on this page for a Google Appointment URL.</p>
+            </aside>
+            <aside class="ca-estimate ca-estimate--nofit" data-estimate-nofit hidden>
+              <p class="eyebrow">No estimate</p>
+              <p>Not a fit. A spreadsheet already closes Monday. We stop here.</p>
+            </aside>
             <p class="note" data-waitlist-status></p>
             <p class="note" data-waitlist-meta></p>
+            <pre class="mono ca-autoreply" data-autoreply hidden></pre>
             <pre class="mono" data-waitlist-preview style="white-space:pre-wrap;font-size:0.8rem"></pre>
             <button type="button" class="btn ghost" data-waitlist-edit>Edit</button>
             <button type="button" class="btn ghost" data-waitlist-copy>Copy message</button>
             <a class="btn ghost" data-waitlist-open href="#">Open mail app</a>
             <p class="note" data-waitlist-copy-status hidden></p>
           </div>
+          <pre hidden data-autoreply-src>Subject: Estimate — Mcfly {package}
+{Name} — got the form. Based on what you wrote this looks like {package}, about {band}, {weeks}. You keep the desk.
+Reply YES if you want the invoice and a 20-min setup. Reply with a better time if the slot we offer doesn’t work. If a spreadsheet already closes this, we stop here.
+Marty · mcflyadsmmm@gmail.com</pre>
+        </div>
+        <div>
+          <aside class="ca-who" id="who-runs" aria-labelledby="who-runs-title">
+            <p class="eyebrow">Operator</p>
+            <h2 id="who-runs-title">Who runs the audit</h2>
+            <ol>
+              <li>Marty Smithson</li>
+              <li>Utah</li>
+              <li>Human replies</li>
+              <li>You keep the desk</li>
+              <li>2–3 weeks on Spend &amp; Sales Audit</li>
+              <li>Inquire on this page</li>
+            </ol>
+          </aside>
+          <aside class="ca-fitcall is-empty" id="fit-call" data-fitcall data-schedule-url="" aria-labelledby="fit-call-title">
+            <!-- Marty: paste a Google Appointment schedule URL into data-schedule-url. Do not add Calendly. -->
+            <p class="eyebrow">20-min fit-call slot</p>
+            <h2 id="fit-call-title">Placeholder — not published yet</h2>
+            <p>This slot takes a Google Appointment schedule URL when one is pasted here.</p>
+            <p data-fitcall-empty>Until a slot is published: use the inquire form. A person replies in 1–2 business days.</p>
+            <p data-fitcall-ready hidden>A 20-minute fit-call slot is open.</p>
+            <a class="btn primary solid" data-fitcall-link hidden href="#" rel="noopener noreferrer">Book a 20-min fit call</a>
+          </aside>
+        </div>
         </div>
 
-        <p class="ca-shopify-note">Need the Shopify Total ROAS cash desk instead? That’s a separate product — <a href="/product">Mcfly Analytics on Shopify</a> · <a href="/demo">Try the demo</a>. Background: <a href="/about">About</a>.</p>
+        <p class="ca-shopify-note">Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else. Product: <a href="/product">Mcfly Analytics on Shopify</a>. Background: <a href="/about">About</a>.</p>
       </div>
     </section>
   </main>
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260825live"></script>
-  <script src="/assets/chrome.js?v=20260825live"></script>
-  <script src="/assets/app.js?v=20260825live"></script>
-  <script src="/assets/custom-analytics-demo.js?v=20260728ca7"></script>
+  <script src="/assets/chrome.js?v=20260828sec"></script>
+  <script src="/assets/app.js?v=20260828sec"></script>
+  <script src="/assets/lab-desk.js?v=20260828lab"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260828lab"></script>
 </body>
 </html>
