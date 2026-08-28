@@ -473,12 +473,12 @@
     }
 
     var hash = (location.hash || "").replace(/^#/, "");
-    if (hash === "desk-exec" || hash === "desk-exec-contracts" || hash === "desk-exec-handoff") {
-      showDesk("exec");
+    if (hash === "desk-recon") {
+      showDesk("recon");
     } else if (hash === "desk-portal") {
       showDesk("portal");
     } else {
-      showDesk("recon");
+      showDesk("exec");
     }
     setRole("operator");
   }

@@ -790,6 +790,32 @@
   box-shadow: inset 0 0 0 1px rgba(94, 231, 240, 0.35);
 }
 .lab-gallery .lab-cta { margin-top: 1rem; }
+.lab-gallery-proof {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1.15rem 0 0;
+}
+@media (min-width: 920px) {
+  .lab-gallery-proof {
+    grid-template-columns: 1fr 1fr;
+  }
+  .lab-gallery-proof .lab-pipe { grid-column: 1 / -1; }
+}
+.lab-chart {
+  margin: 0;
+  padding: 0.75rem 0.85rem 0.85rem;
+  border: 1px solid rgba(94, 231, 240, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+}
+.lab-chart figcaption {
+  margin: 0 0 0.55rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(238, 242, 245, 0.55);
+}
+.lab-chart svg { display: block; width: 100%; height: auto; }
 
 /* Signed-in SAMPLE shell — session bar, not marketing mode tabs */
 .lab-app {

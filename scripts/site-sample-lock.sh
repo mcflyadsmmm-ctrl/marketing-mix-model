@@ -618,6 +618,26 @@ if grep -Eq 'type="password"|name="password"' "$lab"; then
 else
   ok "lab.html no password wall"
 fi
+if ! grep -q 'class="lab-chart"' "$lab" || ! grep -q '<svg' "$lab"; then
+  die "lab.html still has zero charts"
+else
+  ok "lab.html has SAMPLE charts"
+fi
+if ! awk '/lab-gallery/,/data-lab-app/' "$lab" | grep -q 'lab-chart'; then
+  die "lab.html hero is still only the recon ROAS fold"
+else
+  ok "lab.html gallery hero has exec charts + pipeline"
+fi
+if grep -q 'id="desk-exec" data-lab-desk="exec" hidden' "$lab"; then
+  die "lab.html still hides the exec desk by default"
+else
+  ok "lab.html opens on exec / CFO"
+fi
+if ! grep -q 'id="desk-recon" data-lab-desk="recon" hidden' "$lab"; then
+  die "lab.html recon is still the whole first desk"
+else
+  ok "lab.html recon is a hidden module until chosen"
+fi
 if ! grep -q 'Signed in as A. Chen' "$lab" || ! grep -q 'data-lab-who' "$lab"; then
   die "lab.html missing signed-in as name + role"
 else
