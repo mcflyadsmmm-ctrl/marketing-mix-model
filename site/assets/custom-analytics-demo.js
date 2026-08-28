@@ -1,15 +1,13 @@
 /**
- * Mcfly Analytics — custom solutions page demos (SAMPLE only).
+ * Mcfly Analytics — custom solutions SAMPLE desk.
  * Isolated from homepage spend-explorer.
- * Religion: cash outcomes ÷ spend — no pixels / MTA / path credit.
+ * Religion: outcomes ÷ spend — no pixels / MTA / path credit.
  */
 (function () {
   "use strict";
 
-  var page = document.body && document.body.classList.contains("ca-page");
+  var page = document.body && document.body.getAttribute("data-page") === "custom-analytics";
   if (!page) return;
-
-  var desk = document.getElementById("ca-labs");
 
   var money = function (n) {
     return n.toLocaleString("en-US", {
@@ -19,75 +17,43 @@
     });
   };
 
-  var money1 = function (n) {
-    return n.toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    });
+  var signedMoney = function (n) {
+    var abs = money(Math.abs(n));
+    if (n > 0) return "+" + abs;
+    if (n < 0) return "−" + abs;
+    return abs;
   };
 
-  /* —— 1. Mode switch: ecommerce / lead-gen / services —— */
-  var modes = {
-    ecommerce: {
-      label: "Ecommerce / retail",
-      numerator: "Net sales",
-      numeratorVal: 412400,
-      spend: 98500,
-      outcomeLabel: "Total ROAS",
-      outcome: function (sales, spend) {
-        return (sales / spend).toFixed(2) + "×";
-      },
-      note: "Sales after returns ÷ exact platform spend — same period.",
-    },
-    leadgen: {
-      label: "Lead generation",
-      numerator: "Qualified leads",
-      numeratorVal: 186,
-      spend: 42000,
-      outcomeLabel: "Cost / qualified lead",
-      outcome: function (leads, spend) {
-        return money1(spend / leads);
-      },
-      note: "CRM-qualified stages ÷ paid spend — not form-fill vanity.",
-    },
-    services: {
-      label: "Services / B2B",
-      numerator: "Closed revenue",
-      numeratorVal: 278000,
-      spend: 61000,
-      outcomeLabel: "Cash efficiency",
-      outcome: function (rev, spend) {
-        return (rev / spend).toFixed(2) + "×";
-      },
-      note: "Invoiced / closed-won revenue ÷ audited ad spend.",
-    },
+  var signedPct = function (pct) {
+    var body = Math.abs(pct).toFixed(1) + "%";
+    if (pct > 0) return "+" + body;
+    if (pct < 0) return "−" + body;
+    return "0.0%";
   };
 
+  var flagFor = function (pct) {
+    var abs = Math.abs(pct);
+    if (abs < 2) return { tone: "good", label: "Within 2%" };
+    if (abs < 5) return { tone: "warn", label: "Investigate" };
+    return { tone: "bad", label: "Material" };
+  };
+
+  /* —— 1. One SAMPLE desk, three modes —— */
+  var desk = document.getElementById("ca-labs");
   var modeBtns = desk ? desk.querySelectorAll("[data-ca-mode]") : [];
-  var modeNumLabel = desk && desk.querySelector("[data-ca-num-label]");
-  var modeNumVal = desk && desk.querySelector("[data-ca-num-val]");
-  var modeSpendVal = desk && desk.querySelector("[data-ca-spend-val]");
-  var modeOutLabel = desk && desk.querySelector("[data-ca-out-label]");
-  var modeOutVal = desk && desk.querySelector("[data-ca-out-val]");
-  var modeNote = desk && desk.querySelector("[data-ca-mode-note]");
+  var panels = desk ? desk.querySelectorAll("[data-ca-panel]") : [];
 
   function setMode(key) {
-    var m = modes[key] || modes.ecommerce;
     modeBtns.forEach(function (btn) {
       var on = btn.getAttribute("data-ca-mode") === key;
       btn.classList.toggle("is-on", on);
       if (on) btn.setAttribute("aria-current", "true");
       else btn.removeAttribute("aria-current");
     });
-    if (modeNumLabel) modeNumLabel.textContent = m.numerator;
-    if (modeNumVal)
-      modeNumVal.textContent =
-        key === "leadgen" ? String(m.numeratorVal) : money(m.numeratorVal);
-    if (modeSpendVal) modeSpendVal.textContent = money(m.spend);
-    if (modeOutLabel) modeOutLabel.textContent = m.outcomeLabel;
-    if (modeOutVal) modeOutVal.textContent = m.outcome(m.numeratorVal, m.spend);
-    if (modeNote) modeNote.textContent = m.note;
+    panels.forEach(function (panel) {
+      var on = panel.getAttribute("data-ca-panel") === key;
+      panel.hidden = !on;
+    });
   }
 
   modeBtns.forEach(function (btn) {
@@ -95,9 +61,8 @@
       setMode(btn.getAttribute("data-ca-mode"));
     });
   });
-  if (desk) setMode("leadgen");
 
-  /* —— 2. Spend-by-platform recon (SAMPLE) —— */
+  /* —— 2. Invoice vs UI ledger (SAMPLE) · variance = billed − UI —— */
   var platforms = [
     { id: "meta", label: "Meta", billed: 41200, reported: 42850 },
     { id: "google", label: "Google", billed: 31800, reported: 31120 },
@@ -109,8 +74,9 @@
   var billedEl = document.querySelector("[data-ca-billed]");
   var reportedEl = document.querySelector("[data-ca-reported]");
   var varianceEl = document.querySelector("[data-ca-variance]");
+  var variancePctEl = document.querySelector("[data-ca-variance-pct]");
   var varianceTone = document.querySelector("[data-ca-variance-tone]");
-  var barsEl = document.querySelector("[data-ca-bars]");
+  var memoBody = document.querySelector("[data-ca-memo-body]");
 
   function activePlatforms() {
     var on = {};
@@ -118,11 +84,42 @@
       on[c.getAttribute("data-ca-plat")] = c.checked;
     });
     return platforms.filter(function (p) {
-      return on[p.id] !== false;
+      return on[p.id] === true;
     });
   }
 
+  function actionLine(list) {
+    if (!list.length) {
+      return "No platforms included — tick a channel to rebuild the close.";
+    }
+    var worst = list.slice().sort(function (a, b) {
+      var ap = Math.abs((a.billed - a.reported) / a.billed);
+      var bp = Math.abs((b.billed - b.reported) / b.billed);
+      return bp - ap;
+    })[0];
+    var worstPct = ((worst.billed - worst.reported) / worst.billed) * 100;
+    if (Math.abs(worstPct) < 2) {
+      return "Rollup within 2% — ready for close.";
+    }
+    var dir =
+      worst.billed - worst.reported < 0
+        ? "UI ahead of invoice"
+        : "invoice ahead of UI";
+    return (
+      worst.label +
+      " " +
+      dir +
+      " — returns + fees/timing. Investigate before finance signs."
+    );
+  }
+
   function updateRecon() {
+    checks.forEach(function (c) {
+      var id = c.getAttribute("data-ca-plat");
+      var row = document.querySelector('[data-ca-row="' + id + '"]');
+      if (row) row.hidden = !c.checked;
+    });
+
     var list = activePlatforms();
     var billed = 0;
     var reported = 0;
@@ -130,62 +127,37 @@
       billed += p.billed;
       reported += p.reported;
     });
-    var variance = reported - billed;
+    var variance = billed - reported;
     var pct = billed ? (variance / billed) * 100 : 0;
+    var flag = flagFor(pct);
+
     if (billedEl) billedEl.textContent = money(billed);
     if (reportedEl) reportedEl.textContent = money(reported);
-    if (varianceEl) {
-      varianceEl.textContent =
-        (variance >= 0 ? "+" : "") + money(variance) + " (" + pct.toFixed(1) + "%)";
-    }
+    if (varianceEl) varianceEl.textContent = signedMoney(variance);
+    if (variancePctEl) variancePctEl.textContent = signedPct(pct);
     if (varianceTone) {
-      var abs = Math.abs(pct);
-      varianceTone.setAttribute(
-        "data-tone",
-        abs < 2 ? "good" : abs < 5 ? "warn" : "bad",
-      );
-      varianceTone.textContent =
-        abs < 2
-          ? "Within tolerance — ready for close."
-          : abs < 5
-            ? "Investigate before finance signs."
-            : "Material drift — reconcile invoices vs Ads Manager.";
+      varianceTone.setAttribute("data-tone", flag.tone);
+      varianceTone.textContent = list.length ? flag.label : "—";
     }
-    if (barsEl) {
-      var max = Math.max.apply(
-        null,
-        list
-          .map(function (p) {
-            return Math.max(p.billed, p.reported);
-          })
-          .concat([1]),
-      );
-      barsEl.replaceChildren();
-      list.forEach(function (p) {
-        var row = document.createElement("div");
-        row.className = "ca-bar-row";
-        var lab = document.createElement("span");
-        lab.className = "ca-bar-lab";
-        lab.textContent = p.label;
-        var track = document.createElement("div");
-        track.className = "ca-bar-track";
-        track.setAttribute("aria-hidden", "true");
-        var fillB = document.createElement("div");
-        fillB.className = "ca-bar-fill ca-bar-fill--billed";
-        fillB.style.width = ((p.billed / max) * 100).toFixed(1) + "%";
-        var fillR = document.createElement("div");
-        fillR.className = "ca-bar-fill ca-bar-fill--reported";
-        fillR.style.width = ((p.reported / max) * 100).toFixed(1) + "%";
-        track.appendChild(fillB);
-        track.appendChild(fillR);
-        var vals = document.createElement("span");
-        vals.className = "ca-bar-vals mono";
-        vals.textContent = money(p.billed) + " · UI " + money(p.reported);
-        row.appendChild(lab);
-        row.appendChild(track);
-        row.appendChild(vals);
-        barsEl.appendChild(row);
-      });
+    if (memoBody) {
+      var names = list
+        .map(function (p) {
+          return p.label;
+        })
+        .join(", ");
+      memoBody.textContent =
+        "Period: prior calendar month · channels: " +
+        (names || "none") +
+        "\nInvoice billed " +
+        money(billed) +
+        " · Ads Manager UI " +
+        money(reported) +
+        " · billed − UI " +
+        signedMoney(variance) +
+        " (" +
+        signedPct(pct) +
+        ")\nAction: " +
+        actionLine(list);
     }
   }
 
@@ -194,45 +166,7 @@
   });
   if (checks.length) updateRecon();
 
-  /* —— 3. Lead-gen efficiency slider —— */
-  var spendRange = document.querySelector("[data-ca-lg-spend]");
-  var leadRange = document.querySelector("[data-ca-lg-leads]");
-  var targetRange = document.querySelector("[data-ca-lg-target]");
-  var spendOut = document.querySelector("[data-ca-lg-spend-out]");
-  var leadOut = document.querySelector("[data-ca-lg-leads-out]");
-  var targetOut = document.querySelector("[data-ca-lg-target-out]");
-  var cpqlOut = document.querySelector("[data-ca-lg-cpql]");
-  var verdict = document.querySelector("[data-ca-lg-verdict]");
-
-  function updateLeadGen() {
-    if (!spendRange || !leadRange || !targetRange) return;
-    var spend = Number(spendRange.value);
-    var leads = Number(leadRange.value);
-    var target = Number(targetRange.value);
-    var cpql = leads > 0 ? spend / leads : 0;
-    if (spendOut) spendOut.textContent = money(spend);
-    if (leadOut) leadOut.textContent = String(leads);
-    if (targetOut) targetOut.textContent = money1(target);
-    if (cpqlOut) cpqlOut.textContent = money1(cpql);
-    if (verdict) {
-      if (cpql <= target) {
-        verdict.textContent =
-          "Under target CPQL — protect channels that produce qualified pipeline.";
-        verdict.setAttribute("data-tone", "good");
-      } else {
-        verdict.textContent =
-          "Above target CPQL — cut or reallocate before scaling spend.";
-        verdict.setAttribute("data-tone", "bad");
-      }
-    }
-  }
-
-  [spendRange, leadRange, targetRange].forEach(function (el) {
-    if (el) el.addEventListener("input", updateLeadGen);
-  });
-  updateLeadGen();
-
-  /* —— 4. Package picker → prefill inquiry form —— */
+  /* —— 3. Package picker → prefill inquiry form —— */
   var packageBtns = document.querySelectorAll("[data-ca-package]");
   var budgetSelect = document.querySelector(
     'form[data-waitlist-source="custom-analytics inquiry"] select[name="budget"]',
@@ -274,7 +208,7 @@
     });
   });
 
-  /* —— 5. Privacy practices accordion —— */
+  /* —— 4. Privacy practices accordion —— */
   var privacyItems = document.querySelectorAll("[data-ca-privacy-item]");
   privacyItems.forEach(function (item) {
     var trigger = item.querySelector("button");
