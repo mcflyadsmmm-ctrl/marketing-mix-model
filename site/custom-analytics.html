@@ -11,6 +11,8 @@
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-custom-analytics.png" sizes="180x180" />
   <link rel="manifest" href="/assets/brand/site.webmanifest" />
   <meta name="theme-color" content="#082830" />
+  <meta name="mcfly-version" content="v2" />
+  <meta name="mcfly-build" content="pr-23" />
   <link rel="canonical" href="https://mcflyads.com/custom-analytics" />
   <meta name="robots" content="index,follow" />
   <meta property="og:site_name" content="Mcfly Ads" />
@@ -179,7 +181,7 @@
       {
         "@type": "Service",
         "name": "Custom Data Solutions",
-        "serviceType": "Fixed-fee marketing data science",
+        "serviceType": "Fixed-fee custom data science",
         "provider": {
           "@type": "Organization",
           "name": "Mcfly Ads",
@@ -233,7 +235,7 @@
               "minPrice": "15000",
               "maxPrice": "25000"
             },
-            "description": "Custom marketing data science system: pipelines or Sheet SoT, decision UI, rules-based allocation, handoff. 6–10 weeks.",
+            "description": "Custom data science they keep. A hired system they own — exec desks and signed-in portals — that beats the BI and SaaS they already paid for. Marketing measurement is one module. 6–10 weeks.",
             "url": "https://mcflyads.com/advanced-mds"
           }
         ]
@@ -769,7 +771,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               <a href="/advanced-mds">
                 <p class="price">$15–25K · 6–10 weeks</p>
                 <h3>Advanced MDS</h3>
-                <p>Pipelines or Sheet source of truth, reporting UI, simple allocation, production handoff.</p>
+                <p>A system they own after we leave. Exec desks and signed-in portals at operational scale — a hired build that beats the BI and SaaS they already paid for. Marketing measurement is one module, not the offer.</p>
               </a>
             </div>
             <p class="lab-operator"><a href="#inquire">Inquire</a> · <a href="/custom-analytics-engagement">Engagement specimen</a></p>
@@ -887,9 +889,11 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
           <div class="ca-inquire">
             <p class="reply-line">Human review · 1–2 business days · ~10 minutes</p>
 
+            <!-- CONVERSION: kill labels Monday, first-look date, what Monday must produce, ACH/wire / pay-later. Remaining copy is name / email / company / budget / optional note. Do not change name= or POST /api/waitlist fields. -->
             <form class="waitlist ca-propose" data-waitlist data-proposal data-waitlist-source="custom-analytics inquiry" data-waitlist-success="Thanks. A person will reply in 1–2 business days with next steps, or with a no if this is not a fit." novalidate>
               <fieldset>
                 <legend>A · Contact</legend>
+                <!-- CONVERSION: keep name / email / company. Do not change name= attributes. -->
                 <div class="row2">
                   <label>Name <span class="req" aria-hidden="true">*</span>
                     <input name="name" type="text" autocomplete="name" required maxlength="120" />
@@ -915,12 +919,14 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                   </select>
                 </label>
                 <input type="hidden" name="budget" value="" />
+                <!-- CONVERSION: kill first-look date label. Keep name="first_look". -->
                 <label>First-look date <span class="req" aria-hidden="true">*</span>
                   <input name="first_look" type="date" required />
                 </label>
                 <label>Who signs the number, and what would make them reject it <span class="req" aria-hidden="true">*</span>
                   <textarea name="signer_reject" required maxlength="400" rows="2" placeholder="Signer + the no."></textarea>
                 </label>
+                <!-- CONVERSION: kill “What Monday must produce” / this Monday produce label. Keep name="monday_produce". -->
                 <label>What budget and reporting must produce <span class="req" aria-hidden="true">*</span>
                   <select name="monday_produce" required>
                     <option value="" disabled selected>Select one</option>
@@ -942,6 +948,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                     <option value="yes">Yes — a spreadsheet already closes this</option>
                   </select>
                 </label>
+                <!-- CONVERSION: kill ACH/wire / pay-later label. Keep name="pay_later". -->
                 <label>How you pay later <span class="opt">(optional · no charge on this form)</span>
                   <select name="pay_later">
                     <option value="">Prefer not to say</option>

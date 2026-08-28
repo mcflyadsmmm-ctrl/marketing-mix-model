@@ -1,5 +1,15 @@
 /* Studio chrome: one sans M = favicon = header. Home/app keep the ribbon M. */
 (function () {
+  function ensureMeta(name, content) {
+    if (document.querySelector('meta[name="' + name + '"]')) return;
+    const meta = document.createElement("meta");
+    meta.setAttribute("name", name);
+    meta.setAttribute("content", content);
+    document.head.appendChild(meta);
+  }
+  ensureMeta("mcfly-version", "v2");
+  ensureMeta("mcfly-build", "pr-23");
+
   const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
   const isHome = path === "/" || path === "/index.html" || path === "";
   const isAnalytics =

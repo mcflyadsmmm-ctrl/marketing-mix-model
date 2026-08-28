@@ -309,9 +309,127 @@ else
   ok "CPQL cut defaults off (\$226 ≤ \$250)"
 fi
 
+# Hidden version stamp — HTML on studio pages + chrome.js runtime.
+for page in "$site/custom-analytics.html" "$site/lab.html" "$site/advanced-mds.html"; do
+  if ! grep -q 'name="mcfly-version" content="v2"' "$page" || ! grep -q 'name="mcfly-build" content="pr-23"' "$page"; then
+    die "$(basename "$page") missing hidden mcfly-version / mcfly-build"
+  else
+    ok "$(basename "$page") hidden version meta"
+  fi
+done
+if ! grep -q 'mcfly-version' "$chrome" || ! grep -q 'pr-23' "$chrome"; then
+  die "chrome.js missing hidden version stamp"
+else
+  ok "chrome.js hidden version stamp"
+fi
+
+# MDS is custom DS they keep — not a marketing-science flyer.
+mds="$site/advanced-mds.html"
+if ! grep -q '<h1[^>]*>A system you keep. $15–25K.</h1>' "$mds"; then
+  die "advanced-mds H1 is not A system you keep. \$15–25K."
+else
+  ok "advanced-mds unique H1"
+fi
+if grep -Eiq 'cash desk|two books|Monday Close' "$mds"; then
+  die "advanced-mds brands Monday / cash desk / two books"
+else
+  ok "advanced-mds Voice branding"
+fi
+for needle in '98,500' '99,950' '4.19' '412,400' '472,800' '−$1,450'; do
+  if ! grep -q -- "$needle" "$mds"; then
+    die "advanced-mds missing Northline identity $needle"
+  fi
+done
+ok "advanced-mds Northline SAMPLE book"
+foils='Domo|Looker|Tableau|Triple Whale|Northbeam|Recast|Nielsen|Meridian|Polar'
+if grep -Eiq -- "$foils" "$mds"; then
+  die "advanced-mds names a competitor foil"
+else
+  ok "advanced-mds names no competitor foils"
+fi
+if awk '/href="\/advanced-mds"/,/<\/a>/' "$ca" | grep -Eiq -- "$foils"; then
+  die "custom-analytics MDS card names a competitor foil"
+else
+  ok "custom-analytics MDS card names no competitor foils"
+fi
+if grep -Eiq -- "$foils" "$site/index.html" && grep -Eiq 'Advanced MDS|advanced-mds' "$site/index.html"; then
+  die "home MDS blurb names a competitor foil"
+else
+  ok "home has no named-foil MDS blurb"
+fi
+if ! grep -q 'signed-in' "$mds" || ! grep -q 'exec desk' "$mds"; then
+  die "advanced-mds missing exec desk / signed-in portals"
+else
+  ok "advanced-mds exec desk + signed-in portals"
+fi
+if ! grep -q 'one module' "$mds" && ! grep -q 'not the product' "$mds"; then
+  die "advanced-mds does not demote marketing measurement to one module"
+else
+  ok "advanced-mds marketing is one module"
+fi
+if ! grep -q 'beats the BI' "$mds" && ! grep -q 'already paid' "$mds"; then
+  die "advanced-mds lost the hired-system-beats-BI/SaaS framing"
+else
+  ok "advanced-mds beats unnamed BI/SaaS they already paid for"
+fi
+if ! grep -q 'After we leave, they own' "$mds"; then
+  die "advanced-mds does not lead with a system they own after we leave"
+else
+  ok "advanced-mds they-own-after-we-leave"
+fi
+if grep -Eiq 'we replaced Domo for' "$mds"; then
+  die "advanced-mds invents a client replacement claim"
+else
+  ok "advanced-mds no invented client logos/claims"
+fi
+if ! grep -q 'href="/custom-analytics?package=mds#inquire"' "$mds"; then
+  die "advanced-mds inquire CTA drifted"
+else
+  ok "advanced-mds inquire ?package=mds#inquire"
+fi
+if grep -q 'fetchpriority="high"' "$mds"; then
+  die "advanced-mds atmosphere is still LCP (fetchpriority=high)"
+else
+  ok "advanced-mds atmosphere not LCP"
+fi
+if grep -q 'data-sci-mds' "$mds"; then
+  die "advanced-mds still leads with the mix-widget flyer"
+else
+  ok "advanced-mds is not a mix-widget flyer"
+fi
+
+# MDS card on the hub is not ads/MMM-only.
+if ! awk '/href="\/advanced-mds"/,/<\/a>/' "$ca" | grep -q 'signed-in'; then
+  die "custom-analytics MDS card still ads/MMM-only"
+else
+  ok "custom-analytics MDS card is exec + portals"
+fi
+
+# SEO internals — SKU + monday-close link to /lab. monday-close noindex.
+for page in "$site/spend-sales-audit.html" "$site/lead-gen-desk.html" "$site/advanced-mds.html" "$site/monday-close.html"; do
+  if ! grep -q '>SAMPLE Northline week</a>' "$page"; then
+    die "$(basename "$page") missing SAMPLE Northline week → /lab"
+  else
+    ok "$(basename "$page") SAMPLE Northline week link"
+  fi
+done
+if ! grep -q 'content="noindex,follow"' "$site/monday-close.html"; then
+  die "monday-close missing noindex,follow"
+else
+  ok "monday-close noindex,follow"
+fi
+
+# CONVERSION comments on inquire — do not require name= changes.
+if ! grep -q 'CONVERSION: kill labels Monday' "$ca"; then
+  die "custom-analytics inquire missing CONVERSION comments"
+else
+  ok "custom-analytics inquire CONVERSION comments"
+fi
+
 node --check "$site/assets/lab-desk.js"
 node --check "$site/assets/sku-science.js"
-ok "lab-desk.js and sku-science.js parse"
+node --check "$site/assets/chrome.js"
+ok "lab-desk.js, sku-science.js, and chrome.js parse"
 
 if [[ $fail -ne 0 ]]; then
   exit 1
