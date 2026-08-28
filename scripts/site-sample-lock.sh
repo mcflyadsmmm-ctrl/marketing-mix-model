@@ -61,10 +61,10 @@ for page in "$site/lab.html" "$site/custom-analytics.html"; do
   else
     ok "$(basename "$page") no craft hero"
   fi
-  if ! grep -q '<h1[^>]*>Invoice $98,500 vs UI $99,950</h1>' "$page"; then
-    die "$page h1 is not invoice vs UI"
+  if grep -Eiq 'hostage fee|weekly decision desk|Monday cash desk' "$page"; then
+    die "$page still uses Voice-killed manifesto slang"
   else
-    ok "$(basename "$page") h1 is invoice vs UI"
+    ok "$(basename "$page") Voice slang lock"
   fi
   if ! grep -q 'HOLD Meta' "$page" || ! grep -q 'PROTECT Other' "$page" || ! grep -q 'SHIFT +10% Google' "$page"; then
     die "$page missing hold/protect/shift close memo"
@@ -119,10 +119,45 @@ if grep -q 'data-lineage=' "$ca"; then
 else
   ok "custom-analytics lineage not click-to-reveal"
 fi
-if grep -Eq 'id="faq"|id="market-title"|ca-packages reveal' "$ca"; then
-  die "custom-analytics.html still brochure-centered (faq/market/price tiles)"
+if grep -q 'ca-packages reveal' "$ca"; then
+  die "custom-analytics.html still brochure-centered (JS price tiles)"
 else
-  ok "custom-analytics brochure visual center removed"
+  ok "custom-analytics no brochure price-tile widget"
+fi
+if ! grep -q '<h1[^>]*>Exact spend. Audited outcomes. A system finance will accept.</h1>' "$ca"; then
+  die "custom-analytics.html missing Voice H1"
+else
+  ok "custom-analytics Voice H1"
+fi
+if ! grep -q 'We build custom reporting when ads and finance still disagree' "$ca"; then
+  die "custom-analytics.html missing Voice lead"
+else
+  ok "custom-analytics Voice lead"
+fi
+if ! grep -q 'href="/spend-sales-audit"' "$ca" || ! grep -q 'href="/lead-gen-desk"' "$ca" || ! grep -q 'href="/advanced-mds"' "$ca"; then
+  die "custom-analytics.html missing locked SKU hrefs"
+else
+  ok "custom-analytics SKU hrefs locked"
+fi
+if ! grep -q 'data-waitlist-success="Thanks. A person will reply in 1–2 business days with next steps, or with a no if this is not a fit."' "$ca"; then
+  die "custom-analytics.html inquire thanks line drifted"
+else
+  ok "custom-analytics inquire thanks line locked"
+fi
+if ! grep -q 'Why we do not sell pixels and true ROAS' "$ca" || ! grep -q 'not required to keep the system' "$ca" || ! grep -q 'weekly report' "$ca"; then
+  die "custom-analytics.html missing Voice FAQ"
+else
+  ok "custom-analytics Voice FAQ"
+fi
+if awk '/id="recon"/,/id="exceptions"|id="except-h"|id="except"/' "$ca" | grep -q '42,000'; then
+  die "custom-analytics.html put \$42,000 in the recon"
+else
+  ok "custom-analytics recon has no \$42,000"
+fi
+if ! grep -q '<h1[^>]*>Invoice $98,500 vs UI $99,950</h1>' "$site/lab.html"; then
+  die "lab.html h1 is not invoice vs UI"
+else
+  ok "lab.html h1 is invoice vs UI"
 fi
 
 # Identity — one sans M = favicon = header (Pinemarsh). Anti-pattern: Orr mega-nav.

@@ -360,6 +360,28 @@ a {
   line-height: 1.45;
   color: rgba(238, 242, 245, 0.7);
 }
+.lab-faq {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 46rem;
+}
+.lab-faq details {
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgba(238, 242, 245, 0.12);
+  background: rgba(0, 0, 0, 0.22);
+}
+.lab-faq summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1rem;
+  color: #f4f6f8;
+}
+.lab-faq details p {
+  margin: 0.55rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: rgba(238, 242, 245, 0.72);
+}
 
 /* —— Dual site mode: Shopify Ads ↔ Custom Analytics —— */
 .site-mode-bar {
