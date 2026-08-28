@@ -1,13 +1,20 @@
 /**
- * Shared SAMPLE desk for /lab and /custom-analytics.
+ * SAMPLE instrument for /lab and /custom-analytics.
  * Book: Northline Supply week — invoice $98,500 · UI $99,950 ·
- * sales $412,400 · cash 4.19× · platform ~4.8×.
+ * sales_net $412,400 · cash 4.19× · platform ~4.8× ($472,800 ÷ $98,500).
+ * Channel toggles rewrite ledger + close memo only.
+ * Exception toggles move unexplained $. Cash identity never moves.
  */
 (function () {
   "use strict";
 
   var root = document.querySelector("[data-lab-desk]");
   if (!root) return;
+
+  var CASH_SALES = 412400;
+  var CASH_SPEND = 98500;
+  var CASH_ROAS = "4.19×";
+  var PLATFORM_REV = 472800;
 
   var money = function (n) {
     return n.toLocaleString("en-US", {
@@ -38,28 +45,6 @@
     return { tone: "bad", label: "Material" };
   };
 
-  var modeBtns = root.querySelectorAll("[data-ca-mode]");
-  var panels = root.querySelectorAll("[data-ca-panel]");
-
-  function setMode(key) {
-    modeBtns.forEach(function (btn) {
-      var on = btn.getAttribute("data-ca-mode") === key;
-      btn.classList.toggle("is-on", on);
-      if (on) btn.setAttribute("aria-current", "true");
-      else btn.removeAttribute("aria-current");
-    });
-    panels.forEach(function (panel) {
-      var on = panel.getAttribute("data-ca-panel") === key;
-      panel.hidden = !on;
-    });
-  }
-
-  modeBtns.forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      setMode(btn.getAttribute("data-ca-mode"));
-    });
-  });
-
   var platforms = [
     { id: "meta", label: "Meta", billed: 41200, reported: 42850 },
     { id: "google", label: "Google", billed: 31800, reported: 31120 },
@@ -74,6 +59,7 @@
   var variancePctEl = root.querySelector("[data-ca-variance-pct]");
   var varianceTone = root.querySelector("[data-ca-variance-tone]");
   var memoBody = root.querySelector("[data-ca-memo-body]");
+  var gapEl = root.querySelector("[data-lab-gap]");
 
   function activePlatforms() {
     var on = {};
@@ -94,10 +80,6 @@
       var bp = Math.abs((b.billed - b.reported) / b.billed);
       return bp - ap;
     })[0];
-    var worstPct = ((worst.billed - worst.reported) / worst.billed) * 100;
-    if (Math.abs(worstPct) < 2) {
-      return "Rollup within 2% — ready for close.";
-    }
     var dir =
       worst.billed - worst.reported < 0
         ? "UI ahead of invoice"
@@ -106,8 +88,19 @@
       worst.label +
       " " +
       dir +
-      " — returns + last-touch. Investigate before finance signs."
+      " — tax, fee, timezone, or credit timing. Investigate before finance signs."
     );
+  }
+
+  function ledgerTotals() {
+    var list = activePlatforms();
+    var billed = 0;
+    var reported = 0;
+    list.forEach(function (p) {
+      billed += p.billed;
+      reported += p.reported;
+    });
+    return { list: list, billed: billed, reported: reported, gap: billed - reported };
   }
 
   function updateRecon() {
@@ -117,27 +110,21 @@
       if (row) row.hidden = !c.checked;
     });
 
-    var list = activePlatforms();
-    var billed = 0;
-    var reported = 0;
-    list.forEach(function (p) {
-      billed += p.billed;
-      reported += p.reported;
-    });
-    var variance = billed - reported;
-    var pct = billed ? (variance / billed) * 100 : 0;
+    var t = ledgerTotals();
+    var pct = t.billed ? (t.gap / t.billed) * 100 : 0;
     var flag = flagFor(pct);
 
-    if (billedEl) billedEl.textContent = money(billed);
-    if (reportedEl) reportedEl.textContent = money(reported);
-    if (varianceEl) varianceEl.textContent = signedMoney(variance);
+    if (billedEl) billedEl.textContent = money(t.billed);
+    if (reportedEl) reportedEl.textContent = money(t.reported);
+    if (varianceEl) varianceEl.textContent = signedMoney(t.gap);
     if (variancePctEl) variancePctEl.textContent = signedPct(pct);
     if (varianceTone) {
-      varianceTone.setAttribute("data-tone", flag.tone);
-      varianceTone.textContent = list.length ? flag.label : "—";
+      varianceTone.setAttribute("data-tone", t.list.length ? flag.tone : "warn");
+      varianceTone.textContent = t.list.length ? flag.label : "—";
     }
+    if (gapEl) gapEl.textContent = signedMoney(t.gap);
     if (memoBody) {
-      var names = list
+      var names = t.list
         .map(function (p) {
           return p.label;
         })
@@ -146,41 +133,182 @@
         "Period: Northline SAMPLE week · channels: " +
         (names || "none") +
         "\nInvoice billed " +
-        money(billed) +
+        money(t.billed) +
         " · Ads Manager UI " +
-        money(reported) +
+        money(t.reported) +
         " · billed − UI " +
-        signedMoney(variance) +
+        signedMoney(t.gap) +
         " (" +
         signedPct(pct) +
         ")\nAction: " +
-        actionLine(list);
+        actionLine(t.list) +
+        "\nCash identity locked: " +
+        money(CASH_SALES) +
+        " ÷ " +
+        money(CASH_SPEND) +
+        " = " +
+        CASH_ROAS +
+        ". Exceptions do not rewrite it.";
     }
+    updateExceptions();
   }
 
   checks.forEach(function (c) {
     c.addEventListener("change", updateRecon);
   });
-  if (checks.length) updateRecon();
 
   var exceptChecks = root.querySelectorAll("[data-lab-except]");
   var residualEl = root.querySelector("[data-lab-residual]");
+  var worksheetBody = root.querySelector("[data-lab-ws]");
 
   function updateExceptions() {
-    var residual = 0;
+    var t = ledgerTotals();
+    var classified = 0;
+    var lines = [
+      {
+        label: "billed − UI (included channels)",
+        amount: t.gap,
+        on: true,
+      },
+    ];
     exceptChecks.forEach(function (c) {
-      if (c.checked) residual += Number(c.getAttribute("data-lab-except") || 0);
+      var amt = Number(c.getAttribute("data-except-amt") || 0);
+      var sign = Number(c.getAttribute("data-except-sign") || 1);
+      var delta = c.checked ? sign * amt : 0;
+      classified += delta;
+      lines.push({
+        label: c.getAttribute("data-except-label") || c.parentNode.textContent.trim(),
+        amount: delta,
+        on: c.checked,
+      });
     });
+    var residual = t.gap + classified;
+
+    if (worksheetBody) {
+      while (worksheetBody.firstChild) worksheetBody.removeChild(worksheetBody.firstChild);
+      lines.forEach(function (line) {
+        var tr = document.createElement("tr");
+        if (!line.on) tr.style.opacity = "0.45";
+        var th = document.createElement("th");
+        th.scope = "row";
+        th.textContent = line.label;
+        var td = document.createElement("td");
+        td.className = "mono";
+        td.textContent = line.on ? signedMoney(line.amount) : "excluded";
+        tr.appendChild(th);
+        tr.appendChild(td);
+        worksheetBody.appendChild(tr);
+      });
+      var foot = document.createElement("tr");
+      var fh = document.createElement("th");
+      fh.scope = "row";
+      fh.textContent = "Residual unexplained";
+      var fd = document.createElement("td");
+      fd.className = "mono";
+      fd.textContent = signedMoney(residual);
+      foot.appendChild(fh);
+      foot.appendChild(fd);
+      worksheetBody.appendChild(foot);
+    }
+
     if (residualEl) {
       residualEl.textContent =
         "Residual " +
-        money(residual) +
-        " — reconciling line, not a new Total ROAS. Cash stays 4.19× on $412,400 ÷ $98,500.";
+        signedMoney(residual) +
+        " after classified exceptions. Timing / fees / coverage — not a new Total ROAS. Cash stays " +
+        CASH_ROAS +
+        " on " +
+        money(CASH_SALES) +
+        " ÷ " +
+        money(CASH_SPEND) +
+        ".";
     }
   }
 
   exceptChecks.forEach(function (c) {
     c.addEventListener("change", updateExceptions);
   });
-  if (exceptChecks.length) updateExceptions();
+
+  /* Illustrative MDS split of the next SAMPLE dollar. */
+  function fillMix() {
+    var table = root.querySelector("[data-lab-mix]");
+    if (!table) return;
+    var tbody = table.querySelector("tbody");
+    var nextEl = table.querySelector("[data-lab-next]");
+    var noteEl = root.querySelector("[data-lab-mix-note]");
+    var hurdleInput = root.querySelector("[data-lab-hurdle]");
+    if (!tbody) return;
+
+    var rows = [
+      { label: "Meta", current: 41200 / 98500, eff: 4.6 },
+      { label: "Google", current: 31800 / 98500, eff: 3.7 },
+      { label: "LinkedIn", current: 15400 / 98500, eff: 3.2 },
+      { label: "Other paid", current: 10100 / 98500, eff: 5.2 },
+    ];
+    var hurdle = hurdleInput ? Number(hurdleInput.value) : 4;
+    if (!isFinite(hurdle) || hurdle <= 0) hurdle = 4;
+
+    var weights = rows.map(function (r) {
+      return Math.max(r.eff - hurdle, 0);
+    });
+    var sum = weights.reduce(function (a, b) {
+      return a + b;
+    }, 0);
+    var keep = sum === 0;
+
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    var nextBits = [];
+    rows.forEach(function (r, i) {
+      var share = keep ? r.current : weights[i] / sum;
+      var tr = document.createElement("tr");
+      var th = document.createElement("th");
+      th.scope = "row";
+      th.textContent = r.label;
+      tr.appendChild(th);
+      [
+        (r.current * 100).toFixed(1) + "%",
+        r.eff.toFixed(2) + "×",
+        hurdle.toFixed(2) + "×",
+        weights[i].toFixed(2),
+        (share * 100).toFixed(1) + "%",
+      ].forEach(function (text) {
+        var td = document.createElement("td");
+        td.className = "mono";
+        td.textContent = text;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+      if (share > 0.0005) {
+        nextBits.push(r.label + " " + (share * 100).toFixed(1) + "%");
+      }
+    });
+    if (nextEl) {
+      nextEl.textContent = keep
+        ? "Σweight = 0 — keep the current mix."
+        : "Next SAMPLE dollar: " + nextBits.join(" · ");
+    }
+    if (noteEl) {
+      noteEl.textContent =
+        "weight_c = max(eff_c − " +
+        hurdle.toFixed(2) +
+        "×, 0). Illustrative split of the next SAMPLE dollar. Not Nielsen / Meridian / Recast. Not geo. Not incrementality. Portfolio cash stays " +
+        CASH_ROAS +
+        " = " +
+        money(CASH_SALES) +
+        " ÷ " +
+        money(CASH_SPEND) +
+        ".";
+    }
+  }
+
+  var hurdleInput = root.querySelector("[data-lab-hurdle]");
+  if (hurdleInput) {
+    hurdleInput.addEventListener("input", fillMix);
+    fillMix();
+  }
+
+  if (checks.length) updateRecon();
+  else updateExceptions();
+
+  void PLATFORM_REV;
 })();

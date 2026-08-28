@@ -1,94 +1,591 @@
-/* Shared SAMPLE desk — /lab and /custom-analytics. Northline week only. */
-.ca-pair {
-  display: grid;
-  gap: 0.75rem;
-  margin: 0 0 1.15rem;
-}
-@media (min-width: 640px) {
-  .ca-pair { grid-template-columns: 1fr 1fr; }
-}
-.ca-pair article {
-  padding: 1rem 1.05rem 1.15rem;
-  border: 1px solid rgba(94, 231, 240, 0.35);
-  background: rgba(94, 231, 240, 0.08);
-}
-.ca-pair .ca-desk__v {
-  font-size: clamp(2rem, 4.5vw, 2.75rem);
-  line-height: 1;
-  color: var(--cyan);
-}
-.ca-pair__cap {
-  margin: 0.65rem 0 1rem;
-  font-size: 0.95rem;
-  line-height: 1.45;
-  color: rgba(238, 242, 245, 0.78);
-  max-width: 52ch;
-}
-.ca-teach {
-  margin: 0 0 1.15rem;
-  overflow-x: auto;
-}
-.ca-teach table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-.ca-teach caption {
-  caption-side: bottom;
-  text-align: left;
-  padding-top: 0.5rem;
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  color: rgba(238, 242, 245, 0.55);
-}
-.ca-teach th,
-.ca-teach td {
-  padding: 0.4rem 0.35rem;
-  text-align: right;
-  border-bottom: 1px solid rgba(238, 242, 245, 0.1);
+/* SAMPLE instrument — /lab and /custom-analytics. Northline week only.
+   Dark till, cyan signal, tabular numbers. No pill kits. No logo wall. */
+
+.lab-page {
+  background: #070b12;
   color: #eef2f5;
 }
-.ca-teach th:first-child,
-.ca-teach td:first-child { text-align: left; }
-.ca-except {
-  margin: 1rem 0 0;
-  padding: 0.85rem 0.95rem;
-  border: 1px solid rgba(238, 242, 245, 0.14);
-  background: rgba(0, 0, 0, 0.22);
+
+.lab-hero {
+  position: relative;
+  overflow: hidden;
+  background: #070b12;
+  color: #eef2f5;
+  padding: clamp(5.25rem, 11vw, 6.75rem) 0 1.25rem;
 }
-.ca-except legend {
+
+.lab-hero .hero-atmosphere,
+.lab-hero .hero-mesh,
+.lab-hero .hero-gridline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.lab-hero .hero-atmosphere img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.28;
+}
+
+.lab-hero .hero-mesh {
+  background:
+    radial-gradient(ellipse 55% 50% at 88% 8%, rgba(94, 231, 240, 0.16), transparent 58%),
+    radial-gradient(ellipse 40% 35% at 6% 90%, rgba(14, 40, 48, 0.55), transparent 50%);
+}
+
+.lab-hero .hero-gridline {
+  background-image:
+    linear-gradient(rgba(94, 231, 240, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(94, 231, 240, 0.045) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 88%);
+}
+
+.lab-wrap {
+  position: relative;
+  z-index: 1;
+  width: min(86rem, 100%);
+  margin: 0 auto;
+  padding: 0 clamp(1.1rem, 3vw, 2rem);
+}
+
+.lab-hero .brand-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0 0 0.85rem;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(1.3rem, 2.8vw, 1.7rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #f4f6f8;
+}
+
+.lab-hero .brand-hero-mark { width: 2.6rem; height: 2.6rem; }
+.lab-hero .brand-hero-sub { color: var(--cyan); font-weight: 700; }
+.lab-hero .brand-hero-practice {
+  display: block;
+  margin-top: 0.32rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(94, 231, 240, 0.85);
+}
+
+.lab-hero h1 {
+  margin: 0 0 0.7rem;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2.15rem, 5.4vw, 3.6rem);
+  letter-spacing: -0.048em;
+  line-height: 0.98;
+  max-width: 16ch;
+  color: #f4f6f8;
+}
+
+.lab-hero .lede {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: rgba(238, 242, 245, 0.78);
+}
+
+.lab-hero .lede a { color: var(--cyan); }
+
+.lab-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  margin: 1.15rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lab-rail a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(94, 231, 240, 0.22);
   font-family: var(--mono);
   font-size: 0.68rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(238, 242, 245, 0.72);
+}
+
+.lab-rail a:hover,
+.lab-rail a:focus-visible {
+  border-color: var(--cyan);
   color: var(--cyan);
 }
-.ca-except label {
-  display: flex;
-  gap: 0.5rem;
-  align-items: baseline;
-  margin: 0.35rem 0 0;
-  font-size: 0.88rem;
+
+.lab-rail b {
+  font-weight: 600;
+  color: var(--cyan);
+}
+
+/* —— Instrument shell —— */
+.lab-band {
+  background: #070b12;
+  padding: 0 0 3.25rem;
   color: #eef2f5;
 }
-.ca-except__residual {
-  margin: 0.65rem 0 0;
+
+.lab-instrument {
+  position: relative;
+  z-index: 1;
+  width: min(86rem, 100%);
+  margin: 0 auto;
+  padding: 0 clamp(1.1rem, 3vw, 2rem) 0.5rem;
+}
+
+.lab-page .lab-instrument { margin-bottom: 2.5rem; }
+
+.lab-shell {
+  border: 1px solid rgba(94, 231, 240, 0.22);
+  background:
+    linear-gradient(180deg, rgba(94, 231, 240, 0.05), transparent 8rem),
+    #0b121c;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+
+.lab-id {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.45rem 1.25rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgba(94, 231, 240, 0.16);
   font-family: var(--mono);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(94, 231, 240, 0.88);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.lab-id strong { font-weight: 600; color: #f4f6f8; letter-spacing: 0.02em; text-transform: none; }
+
+.lab-chip {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border: 1px solid rgba(94, 231, 240, 0.45);
+  color: var(--cyan);
+}
+
+.lab-section {
+  padding: 1.15rem 1.1rem 1.35rem;
+  border-top: 1px solid rgba(238, 242, 245, 0.08);
+}
+
+.lab-section:first-of-type { border-top: 0; }
+
+.lab-kicker {
+  margin: 0 0 0.85rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.lab-kicker span {
+  color: rgba(238, 242, 245, 0.45);
+  letter-spacing: 0.04em;
+}
+
+.lab-section h2 {
+  margin: 0 0 0.45rem;
+  font-family: var(--display);
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  letter-spacing: -0.03em;
+  color: #f4f6f8;
+}
+
+.lab-section .lab-lede {
+  margin: 0 0 1rem;
+  max-width: 62ch;
+  font-size: 0.95rem;
+  line-height: 1.5;
   color: rgba(238, 242, 245, 0.7);
 }
-.ca-page--paper .ca-pair article {
-  border-color: var(--line);
-  background: #fff;
+
+/* Two totals */
+.lab-pair {
+  display: grid;
+  gap: 0.7rem;
 }
-.ca-page--paper .ca-pair .ca-desk__v { color: var(--cyan-deep); }
-.ca-page--paper .ca-pair__cap,
-.ca-page--paper .ca-teach caption,
-.ca-page--paper .ca-except__residual { color: var(--mute); }
-.ca-page--paper .ca-teach th,
-.ca-page--paper .ca-teach td {
+
+@media (min-width: 720px) {
+  .lab-pair { grid-template-columns: 1fr 1fr; }
+}
+
+.lab-pair article {
+  padding: 1.15rem 1.15rem 1.2rem;
+  border: 1px solid rgba(94, 231, 240, 0.32);
+  background: rgba(94, 231, 240, 0.06);
+  min-height: 8.5rem;
+}
+
+.lab-pair .lab-k {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(238, 242, 245, 0.55);
+}
+
+.lab-pair .lab-v {
+  margin: 0.35rem 0 0;
+  font-family: var(--mono);
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--cyan);
+}
+
+.lab-pair .lab-formula,
+.lab-formula {
+  margin: 0.45rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: rgba(238, 242, 245, 0.55);
+}
+
+.lab-cap {
+  margin: 0.85rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: rgba(238, 242, 245, 0.78);
+  max-width: 68ch;
+}
+
+.lab-lock {
+  margin: 0.55rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: #8ee0b0;
+}
+
+/* Tables */
+.lab-scroll { overflow-x: auto; }
+
+.lab-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-table caption {
+  caption-side: bottom;
+  text-align: left;
+  padding-top: 0.55rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: rgba(238, 242, 245, 0.5);
+}
+
+.lab-table th,
+.lab-table td {
+  padding: 0.48rem 0.4rem;
+  text-align: right;
+  border-bottom: 1px solid rgba(238, 242, 245, 0.1);
+  color: #eef2f5;
+  white-space: nowrap;
+}
+
+.lab-table th {
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(238, 242, 245, 0.5);
+}
+
+.lab-table tbody th,
+.lab-table td:first-child,
+.lab-table th:first-child { text-align: left; }
+
+.lab-table .lab-in { width: 2.2rem; text-align: left; }
+
+.lab-table tfoot td,
+.lab-table tfoot th {
+  border-bottom: 0;
+  border-top: 1px solid rgba(94, 231, 240, 0.3);
+  font-weight: 600;
+}
+
+.lab-table tr[hidden] { display: none; }
+
+.lab-table [data-tone="good"] { color: #8ee0b0; }
+.lab-table [data-tone="warn"] { color: #e6c36a; }
+.lab-table [data-tone="bad"] { color: #f4b4a8; }
+
+.lab-table input[type="checkbox"] {
+  width: 0.95rem;
+  height: 0.95rem;
+  accent-color: var(--cyan);
+  cursor: pointer;
+}
+
+.lab-split {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 980px) {
+  .lab-split {
+    grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+    align-items: start;
+  }
+}
+
+.lab-memo {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(238, 242, 245, 0.12);
+  border-left: 3px solid var(--cyan);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.lab-memo__label {
+  margin: 0 0 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.lab-memo__body {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: rgba(238, 242, 245, 0.88);
+}
+
+.lab-memo__note {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(238, 242, 245, 0.5);
+}
+
+.lab-paper {
+  padding: 1rem 1.05rem 1.15rem;
+  background: #efe8d8;
+  color: #1c1916;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.lab-paper .lab-memo__label { color: #5a5348; }
+.lab-paper h3 {
+  margin: 0 0 0.55rem;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+.lab-paper p,
+.lab-paper li {
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #2a251f;
+}
+.lab-paper .mono { font-size: 0.78rem; }
+.lab-paper .lab-formula { color: #5a5348; }
+.lab-redact {
+  display: inline-block;
+  min-width: 5.5rem;
+  height: 0.72em;
+  background: #1c1916;
+  vertical-align: -0.05em;
+}
+
+/* Exceptions */
+.lab-except {
+  margin: 0;
+  padding: 0.9rem 1rem 1rem;
+  border: 1px solid rgba(238, 242, 245, 0.12);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.lab-except legend {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.lab-except label {
+  display: flex;
+  gap: 0.55rem;
+  align-items: baseline;
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  color: #eef2f5;
+  cursor: pointer;
+}
+
+.lab-except input { accent-color: var(--cyan); margin-top: 0.15rem; }
+
+.lab-except input[type="number"] {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  font-family: var(--mono);
+  font-size: 1rem;
+  padding: 0.4rem 0.5rem;
+  background: #070b12;
+  color: #f4f6f8;
+  border: 1px solid rgba(94, 231, 240, 0.35);
+}
+
+.lab-residual {
+  margin: 0.75rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #e6c36a;
+}
+
+/* Teaching */
+.lab-teach tfoot td,
+.lab-teach tfoot th {
+  color: var(--cyan);
+}
+
+/* Contracts / pipeline */
+.lab-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+@media (min-width: 860px) {
+  .lab-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lab-grid--2 { grid-template-columns: 1fr 1fr; }
+}
+
+.lab-card {
+  padding: 0.85rem 0.9rem 0.95rem;
+  border: 1px solid rgba(238, 242, 245, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lab-card h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--display);
+  font-size: 1.02rem;
+  letter-spacing: -0.02em;
+}
+
+.lab-card p,
+.lab-card li {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(238, 242, 245, 0.72);
+}
+
+.lab-card ol, .lab-card ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.lab-card li + li { margin-top: 0.3rem; }
+
+.lab-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.lab-cta .btn.primary.solid {
+  background: var(--cyan);
   color: var(--ink);
-  border-bottom-color: var(--line);
+  border-color: var(--cyan);
 }
-.ca-page--paper .ca-except {
-  background: #fff;
+
+.lab-cta .btn.ghost {
+  color: #eef2f5;
+  border-color: rgba(238, 242, 245, 0.35);
+}
+
+.lab-quiet {
+  margin: 0.85rem 0 0;
+  font-size: 0.82rem;
+  color: rgba(238, 242, 245, 0.48);
+  max-width: 62ch;
+}
+
+.lab-quiet a { color: rgba(94, 231, 240, 0.75); }
+
+.lab-seed {
+  margin-top: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed rgba(94, 231, 240, 0.35);
+  background: rgba(94, 231, 240, 0.04);
+}
+
+.lab-seed .lab-v {
+  margin: 0.2rem 0 0;
+  font-family: var(--mono);
+  font-size: 1.85rem;
+  font-weight: 600;
+  color: var(--cyan);
+}
+
+.lab-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.25rem;
+  padding: 0.65rem 1rem 0;
+}
+
+.lab-nav a {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(238, 242, 245, 0.55);
+  border-bottom: 1px solid transparent;
+  padding: 0.2rem 0;
+}
+
+.lab-nav a:hover { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+/* Paper variant on light SKU pages is unused here. */
+.ca-page--paper .lab-pair article {
   border-color: var(--line);
+  background: #fff;
 }
-.ca-page--paper .ca-except legend { color: var(--cyan-deep); }
-.ca-page--paper .ca-except label { color: var(--ink); }
+
+.lab-page .foot {
+  background: #070b12;
+  border-top-color: rgba(94, 231, 240, 0.16);
+  color: rgba(238, 242, 245, 0.55);
+}
+.lab-page .foot a { color: rgba(238, 242, 245, 0.55); }
+.lab-page .foot a:hover { color: var(--cyan); }
+.lab-page .foot-brand { color: #f4f6f8; }
+.lab-page .fine { color: rgba(238, 242, 245, 0.45); }

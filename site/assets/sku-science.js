@@ -1,6 +1,6 @@
 /**
  * Science SAMPLE contracts — SKU pages only.
- * Outcomes ÷ audited spend. UI spend is a second book.
+ * Outcomes ÷ audited spend. UI sits beside the invoice.
  * SAMPLE · demo-not-production. No lift. No $39 app CTA.
  */
 (function () {
@@ -43,9 +43,9 @@
 
   var flagFor = function (pct) {
     var abs = Math.abs(pct);
-    if (abs < 2) return { tone: "good", label: "Close" };
-    if (abs <= 5) return { tone: "warn", label: "Investigate" };
-    return { tone: "bad", label: "Material drift" };
+    if (abs < 2) return { tone: "good", label: "Within 2%" };
+    if (abs < 5) return { tone: "warn", label: "Investigate" };
+    return { tone: "bad", label: "Material" };
   };
 
   var setText = function (el, text) {
@@ -63,12 +63,11 @@
     if (!root) return;
 
     var platforms = [
-      { id: "meta", label: "Meta", invoice: 35200, ui: 37800 },
-      { id: "google", label: "Google", invoice: 28400, ui: 27910 },
-      { id: "linkedin", label: "LinkedIn", invoice: 12600, ui: 13800 },
-      { id: "other", label: "Other paid", invoice: 8000, ui: 8400 },
+      { id: "meta", label: "Meta", invoice: 41200, ui: 42850 },
+      { id: "google", label: "Google", invoice: 31800, ui: 31120 },
+      { id: "linkedin", label: "LinkedIn", invoice: 15400, ui: 16180 },
+      { id: "other", label: "Other paid", invoice: 10100, ui: 9800 },
     ];
-    var salesNet = 312400;
 
     var checks = root.querySelectorAll("[data-sci-plat]");
     var invoiceEl = root.querySelector("[data-sci-invoice]");
@@ -76,8 +75,6 @@
     var varEl = root.querySelector("[data-sci-variance]");
     var pctEl = root.querySelector("[data-sci-pct]");
     var toneEl = root.querySelector("[data-sci-tone]");
-    var finEl = root.querySelector("[data-sci-finance-roas]");
-    var uiBookEl = root.querySelector("[data-sci-ui-roas]");
     var beEl = root.querySelector("[data-sci-be]");
     var marginInput = root.querySelector("[data-sci-margin]");
     var memoBody = root.querySelector("[data-sci-memo-body]");
@@ -106,7 +103,7 @@
         invoice += p.invoice;
         ui += p.ui;
       });
-      var variance = ui - invoice;
+      var variance = invoice - ui;
       var pct = invoice ? (variance / invoice) * 100 : 0;
       var flag = flagFor(pct);
 
@@ -119,11 +116,10 @@
         toneEl.textContent = list.length ? flag.label : "—";
       }
 
-      var finance =
-        invoice > 0 ? times(salesNet / invoice) : "n/a";
-      var uiBook = ui > 0 ? times(salesNet / ui) : "n/a";
-      setText(finEl, finance);
-      setText(uiBookEl, uiBook);
+      var financeEl = root.querySelector("[data-sci-finance-roas]");
+      var platformEl = root.querySelector("[data-sci-ui-roas]");
+      setText(financeEl, "4.19×");
+      setText(platformEl, "~4.8×");
 
       var margin = marginInput ? Number(marginInput.value) : 0.35;
       if (!isFinite(margin) || margin <= 0) {
@@ -140,41 +136,31 @@
       var worstLine = "No platforms included — tick a channel to rebuild the close.";
       if (list.length) {
         var worst = list.slice().sort(function (a, b) {
-          var ap = Math.abs((a.ui - a.invoice) / a.invoice);
-          var bp = Math.abs((b.ui - b.invoice) / b.invoice);
+          var ap = Math.abs((a.invoice - a.ui) / a.invoice);
+          var bp = Math.abs((b.invoice - b.ui) / b.invoice);
           return bp - ap;
         })[0];
-        var worstPct = ((worst.ui - worst.invoice) / worst.invoice) * 100;
-        var worstFlag = flagFor(worstPct);
         worstLine =
           worst.label +
-          " " +
-          signedPct(worstPct) +
-          " — " +
-          worstFlag.label +
-          ". Do not scale on UI.";
+          (worst.invoice - worst.ui < 0 ? " UI ahead of invoice" : " invoice ahead of UI") +
+          " — tax, fee, timezone, or credit timing. Do not scale on UI.";
       }
 
       if (memoBody) {
         memoBody.textContent =
-          "Period: prior calendar month · SAMPLE · demo-not-production\n" +
+          "Period: Northline SAMPLE week · demo-not-production\n" +
           "Channels: " +
           (names || "none") +
           "\nInvoice " +
           (list.length ? money(invoice) : "n/a") +
           " · UI " +
           (list.length ? money(ui) : "n/a") +
-          " · UI − invoice " +
+          " · billed − UI " +
           (list.length ? signedMoney(variance) + " (" + signedPct(pct) + ")" : "n/a") +
           " — " +
           (list.length ? flag.label.toLowerCase() : "n/a") +
-          "\nNet sales $312,400 · finance ROAS " +
-          finance +
-          " · UI book " +
-          uiBook +
-          " (beside, never instead)\n" +
-          worstLine +
-          " Variance is not fraud.";
+          "\nCash $412,400 ÷ $98,500 = 4.19× · platform $472,800 ÷ $98,500 ≈ 4.8× (same spend)\n" +
+          worstLine;
       }
     }
 
@@ -336,10 +322,10 @@
     }
 
     fillMix(root.querySelector("[data-sci-mix='dollars']"), [
-      { label: "Meta", current: 0.418, eff: 4.1, target: 3.5 },
-      { label: "Google", current: 0.337, eff: 3.4, target: 3.5 },
-      { label: "LinkedIn", current: 0.15, eff: 2.8, target: 3.2 },
-      { label: "Other paid", current: 0.095, eff: 4.8, target: 3.8 },
+      { label: "Meta", current: 41200 / 98500, eff: 4.6, target: 4.0 },
+      { label: "Google", current: 31800 / 98500, eff: 3.7, target: 4.0 },
+      { label: "LinkedIn", current: 15400 / 98500, eff: 3.2, target: 4.0 },
+      { label: "Other paid", current: 10100 / 98500, eff: 5.2, target: 4.0 },
     ], "dollars");
 
     fillMix(root.querySelector("[data-sci-mix='leads']"), [

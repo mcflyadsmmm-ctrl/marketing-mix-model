@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SAMPLE lab — same spend, cash 4.19× vs platform ~4.8× | Mcfly Ads</title>
-  <meta name="description" content="Northline SAMPLE week. Same $98,500 spend. Cash Total ROAS 4.19× vs platform ~4.8×. Invoice vs UI ledger. Not a live client." />
+  <title>SAMPLE lab — same $98,500, cash 4.19× vs platform ~4.8× | Mcfly Ads</title>
+  <meta name="description" content="Northline SAMPLE week. Same $98,500 spend. Cash Total ROAS 4.19× vs platform ~4.8× ($472,800 ÷ $98,500). Invoice vs UI ledger. Demo-not-production." />
   <link rel="icon" href="/assets/brand/favicon-custom-analytics.svg" type="image/svg+xml" />
   <link rel="icon" href="/assets/brand/favicon-custom-analytics-32.png" type="image/png" sizes="32x32" />
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-custom-analytics.png" sizes="180x180" />
@@ -14,99 +14,35 @@
   <meta property="og:site_name" content="Mcfly Ads" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mcflyads.com/lab" />
-  <meta property="og:title" content="SAMPLE lab — same spend, cash 4.19× vs platform ~4.8× | Mcfly Ads" />
+  <meta property="og:title" content="SAMPLE lab — same $98,500, cash 4.19× vs platform ~4.8× | Mcfly Ads" />
   <meta property="og:description" content="Northline SAMPLE. $98,500 spend · $412,400 sales · cash 4.19× vs platform ~4.8×. Invoice vs UI." />
   <meta property="og:image" content="https://mcflyads.com/assets/brand/og-custom-analytics.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="SAMPLE lab — same spend, cash 4.19× vs platform ~4.8× | Mcfly Ads" />
+  <meta name="twitter:title" content="SAMPLE lab — same $98,500, cash 4.19× vs platform ~4.8× | Mcfly Ads" />
   <meta name="twitter:description" content="Same $98,500. Cash 4.19× vs platform ~4.8×. Northline SAMPLE." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-custom-analytics.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
-  <link rel="stylesheet" href="/assets/inbound.css?v=20260828inb" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828lab" />
-  <style>
-    body.ca-page .ca-hero-layout { width: min(52rem, 100%); }
-    body.ca-page .ca-hero h1 { max-width: 16ch; }
-    body.ca-page .ca-desk {
-      margin-top: 1.25rem;
-      padding: 1.15rem 1.2rem 1.25rem;
-      border: 1px solid rgba(94, 231, 240, 0.22);
-      background:
-        linear-gradient(165deg, rgba(94, 231, 240, 0.08), transparent 45%),
-        rgba(8, 14, 26, 0.88);
-    }
-    body.ca-page .ca-desk__claim {
-      margin: 0 0 0.75rem;
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: rgba(94, 231, 240, 0.85);
-    }
-    body.ca-page .ca-desk__seg { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1rem; }
-    body.ca-page .ca-desk__btn {
-      appearance: none; border: 1px solid rgba(238, 242, 245, 0.22); background: transparent;
-      color: rgba(238, 242, 245, 0.78); font: inherit; font-size: 0.82rem; padding: 0.4rem 0.7rem; cursor: pointer;
-    }
-    body.ca-page .ca-desk__btn.is-on { border-color: var(--cyan); color: var(--ink); background: var(--cyan); font-weight: 600; }
-    body.ca-page .ca-desk__k { margin: 0; font-size: 0.75rem; color: rgba(238, 242, 245, 0.55); }
-    body.ca-page .ca-desk__v { margin: 0.2rem 0 0; font-family: var(--mono); font-weight: 600; color: #f4f6f8; }
-    body.ca-page .ca-desk__formula {
-      margin: 0.3rem 0 0; font-family: var(--mono); font-size: 0.68rem; line-height: 1.4; color: rgba(238, 242, 245, 0.55);
-    }
-    body.ca-page .ca-desk__note { margin: 0.75rem 0 0; font-size: 0.85rem; color: rgba(238, 242, 245, 0.62); max-width: 48ch; }
-    body.ca-page .ca-ledger-wrap { overflow-x: auto; }
-    body.ca-page .ca-ledger { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-    body.ca-page .ca-ledger caption {
-      caption-side: bottom; text-align: left; padding-top: 0.55rem;
-      font-family: var(--mono); font-size: 0.68rem; color: rgba(238, 242, 245, 0.5);
-    }
-    body.ca-page .ca-ledger th, body.ca-page .ca-ledger td {
-      padding: 0.42rem 0.35rem; text-align: right; border-bottom: 1px solid rgba(238, 242, 245, 0.1); color: #eef2f5; white-space: nowrap;
-    }
-    body.ca-page .ca-ledger th {
-      font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.03em; text-transform: uppercase; font-weight: 600; color: rgba(238, 242, 245, 0.55);
-    }
-    body.ca-page .ca-ledger th:nth-child(1), body.ca-page .ca-ledger td:nth-child(1),
-    body.ca-page .ca-ledger th:nth-child(2), body.ca-page .ca-ledger td:nth-child(2) { text-align: left; }
-    body.ca-page .ca-ledger tr[hidden] { display: none; }
-    body.ca-page .ca-ledger tfoot td, body.ca-page .ca-ledger tfoot th {
-      border-bottom: 0; border-top: 1px solid rgba(94, 231, 240, 0.28); font-weight: 600;
-    }
-    body.ca-page .ca-ledger [data-tone="good"] { color: #8ee0b0; }
-    body.ca-page .ca-ledger [data-tone="warn"] { color: #e6c36a; }
-    body.ca-page .ca-ledger [data-tone="bad"] { color: #f4b4a8; }
-    body.ca-page .ca-memo {
-      margin: 1rem 0 0; padding: 0.85rem 0.95rem; border: 1px solid rgba(238, 242, 245, 0.14);
-      border-left: 3px solid var(--cyan); background: rgba(0, 0, 0, 0.22);
-    }
-    body.ca-page .ca-memo__label { margin: 0 0 0.4rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cyan); }
-    body.ca-page .ca-memo__body { margin: 0; white-space: pre-wrap; font-family: var(--mono); font-size: 0.78rem; line-height: 1.5; color: rgba(238, 242, 245, 0.86); }
-    body.ca-page .ca-memo__note { margin: 0.5rem 0 0; font-size: 0.8rem; color: rgba(238, 242, 245, 0.5); }
-    body.ca-page .ca-cpql-tile { padding: 1rem 1.05rem; border: 1px solid rgba(94, 231, 240, 0.35); background: rgba(94, 231, 240, 0.08); }
-    body.ca-page .ca-cpql-tile .ca-desk__v { font-size: clamp(1.7rem, 3vw, 2.15rem); color: var(--cyan); }
-    body.ca-page .ca-hero .cta-row { margin-top: 1.25rem; }
-  </style>
+  <link rel="stylesheet" href="/assets/site.css?v=20260828ds" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "SAMPLE lab — same spend, cash 4.19× vs platform ~4.8× | Mcfly Ads",
+    "name": "SAMPLE lab — same $98,500, cash 4.19× vs platform ~4.8× | Mcfly Ads",
     "url": "https://mcflyads.com/lab",
-    "description": "Northline SAMPLE week. Same $98,500 spend. Cash 4.19× vs platform ~4.8×.",
+    "description": "Northline SAMPLE week. Same $98,500 spend. Cash 4.19× vs platform ~4.8× ($472,800 ÷ $98,500).",
     "isPartOf": { "@type": "WebSite", "name": "Mcfly Ads", "url": "https://mcflyads.com/" }
   }
   </script>
 </head>
-<body class="ca-page" data-page="lab" data-site="analytics">
+<body class="ca-page lab-page" data-page="lab" data-site="analytics">
   <a class="skip" href="#main">Skip to content</a>
   <div data-chrome></div>
 
   <main id="main">
-    <section class="ca-hero hero hero-craft" aria-labelledby="lab-h1">
+    <header class="lab-hero">
       <div class="hero-atmosphere" aria-hidden="true">
         <picture>
           <source srcset="/assets/hero-atmosphere-1200.webp 1200w" sizes="100vw" type="image/webp" />
@@ -115,176 +51,231 @@
       </div>
       <div class="hero-mesh" aria-hidden="true"></div>
       <div class="hero-gridline" aria-hidden="true"></div>
-      <div class="ca-hero-layout">
-        <p class="brand-hero" id="ca-hero-brand">
+      <div class="lab-wrap">
+        <p class="brand-hero">
           <img class="brand-hero-mark" src="/assets/brand/mcfly-m.svg" width="56" height="56" alt="" />
           <span>
             Mcfly <span class="brand-hero-sub">Analytics</span>
-            <span class="brand-hero-practice">SAMPLE lab · Northline</span>
+            <span class="brand-hero-practice">SAMPLE lab · Northline · demo-not-production</span>
           </span>
         </p>
-        <h1 id="lab-h1">Same $98,500. Two totals.</h1>
-        <p class="lede">Northline SAMPLE week — the same week as <a href="/demo" style="color:var(--cyan)">/demo</a>. Not a live client. Not a third brand.</p>
-
-        <div class="ca-pair" aria-label="3-second pair — same spend">
-          <article>
-            <p class="ca-desk__k">Cash Total ROAS</p>
-            <p class="ca-desk__v">4.19×</p>
-            <p class="ca-desk__formula">$412,400 ÷ $98,500</p>
-          </article>
-          <article>
-            <p class="ca-desk__k">Platform ROAS</p>
-            <p class="ca-desk__v">~4.8×</p>
-            <p class="ca-desk__formula">$472,800 ÷ $98,500 · same spend</p>
-          </article>
-        </div>
-        <p class="ca-pair__cap">Same spend. Gap is returns + last-touch, not incrementality. SAMPLE · Northline Supply · demo-not-production.</p>
-
-        <div class="ca-desk" id="ca-labs" data-lab-desk aria-label="SAMPLE desk — Northline week">
-          <p class="ca-desk__claim">SAMPLE · Northline Supply · not a live client</p>
-          <div class="ca-desk__seg" role="group" aria-label="SAMPLE desk mode">
-            <button type="button" class="ca-desk__btn is-on" data-ca-mode="audit" aria-current="true">Invoice vs UI</button>
-            <button type="button" class="ca-desk__btn" data-ca-mode="ecommerce">Ecommerce</button>
-            <button type="button" class="ca-desk__btn" data-ca-mode="leadgen">Lead gen</button>
-          </div>
-
-          <div data-ca-panel="audit">
-            <div class="ca-teach">
-              <table>
-                <caption>Do not use path credit for total revenue. Four channels × $120 attributed vs $120 cash. SAMPLE. No vendor logo.</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Channel</th>
-                    <th scope="col">Attributed</th>
-                    <th scope="col">Cash</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><th scope="row">Meta</th><td class="mono">$120</td><td class="mono">$120</td></tr>
-                  <tr><th scope="row">Google</th><td class="mono">$120</td><td class="mono">$120</td></tr>
-                  <tr><th scope="row">LinkedIn</th><td class="mono">$120</td><td class="mono">$120</td></tr>
-                  <tr><th scope="row">Other paid</th><td class="mono">$120</td><td class="mono">$120</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="ca-ledger-wrap">
-              <table class="ca-ledger">
-                <caption>Each $ and % is billed − UI. Uncheck a channel to drop its row. SSR SAMPLE — no-JS is not $0.</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">In</th>
-                    <th scope="col">Channel</th>
-                    <th scope="col">Invoice</th>
-                    <th scope="col">Ads Manager UI</th>
-                    <th scope="col">$</th>
-                    <th scope="col">%</th>
-                    <th scope="col">Flag</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr data-ca-row="meta">
-                    <td><input type="checkbox" data-ca-plat="meta" checked aria-label="Include Meta" /></td>
-                    <th scope="row">Meta</th>
-                    <td class="mono">$41,200</td>
-                    <td class="mono">$42,850</td>
-                    <td class="mono">−$1,650</td>
-                    <td class="mono">−4.0%</td>
-                    <td data-tone="warn">Investigate</td>
-                  </tr>
-                  <tr data-ca-row="google">
-                    <td><input type="checkbox" data-ca-plat="google" checked aria-label="Include Google" /></td>
-                    <th scope="row">Google</th>
-                    <td class="mono">$31,800</td>
-                    <td class="mono">$31,120</td>
-                    <td class="mono">+$680</td>
-                    <td class="mono">+2.1%</td>
-                    <td data-tone="warn">Investigate</td>
-                  </tr>
-                  <tr data-ca-row="linkedin">
-                    <td><input type="checkbox" data-ca-plat="linkedin" checked aria-label="Include LinkedIn" /></td>
-                    <th scope="row">LinkedIn</th>
-                    <td class="mono">$15,400</td>
-                    <td class="mono">$16,180</td>
-                    <td class="mono">−$780</td>
-                    <td class="mono">−5.1%</td>
-                    <td data-tone="bad">Material</td>
-                  </tr>
-                  <tr data-ca-row="other">
-                    <td><input type="checkbox" data-ca-plat="other" checked aria-label="Include Other paid" /></td>
-                    <th scope="row">Other paid</th>
-                    <td class="mono">$10,100</td>
-                    <td class="mono">$9,800</td>
-                    <td class="mono">+$300</td>
-                    <td class="mono">+3.0%</td>
-                    <td data-tone="warn">Investigate</td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <th scope="row" colspan="2">Included</th>
-                    <td class="mono" data-ca-billed>$98,500</td>
-                    <td class="mono" data-ca-reported>$99,950</td>
-                    <td class="mono" data-ca-variance>−$1,450</td>
-                    <td class="mono" data-ca-variance-pct>−1.5%</td>
-                    <td data-ca-variance-tone data-tone="good">Within 2%</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            <aside class="ca-memo" data-ca-memo aria-label="SAMPLE close memo">
-              <p class="ca-memo__label">Close memo · SAMPLE · not a live client</p>
-              <p class="ca-memo__body" data-ca-memo-body>Period: Northline SAMPLE week · channels: Meta, Google, LinkedIn, Other paid
-Invoice billed $98,500 · Ads Manager UI $99,950 · billed − UI −$1,450 (−1.5%)
-Action: LinkedIn UI ahead of invoice — returns + last-touch. Investigate before finance signs.</p>
-              <p class="ca-memo__note">Unchecking a channel rewrites this sentence. Not a static dump. Not a live client.</p>
-            </aside>
-            <fieldset class="ca-except">
-              <legend>Exception rows · include / exclude</legend>
-              <label><input type="checkbox" data-lab-except="1400" checked /> Aug 11 missing invoice $1,400</label>
-              <label><input type="checkbox" data-lab-except="480" checked /> VAT $480</label>
-              <label><input type="checkbox" data-lab-except="1200" checked /> Marketplace $1,200</label>
-              <p class="ca-except__residual" data-lab-residual>Residual $3,080 — reconciling line, not a new Total ROAS. Cash stays 4.19× on $412,400 ÷ $98,500.</p>
-            </fieldset>
-          </div>
-
-          <div data-ca-panel="ecommerce" hidden>
-            <div class="ca-pair">
-              <article>
-                <p class="ca-desk__k">Cash-after-returns Total ROAS</p>
-                <p class="ca-desk__v">4.19×</p>
-                <p class="ca-desk__formula">sales_net ÷ spend · $412,400 ÷ $98,500</p>
-              </article>
-              <article>
-                <p class="ca-desk__k">Platform ROAS</p>
-                <p class="ca-desk__v">~4.8×</p>
-                <p class="ca-desk__formula">platform-reported revenue ÷ spend · $472,800 ÷ $98,500</p>
-              </article>
-            </div>
-            <p class="ca-desk__note">Same spend. Caption: returns + last-touch, not incrementality. SAMPLE · Northline.</p>
-          </div>
-
-          <div data-ca-panel="leadgen" hidden>
-            <div class="ca-cpql-tile">
-              <p class="ca-desk__k">Cost per qualified lead</p>
-              <p class="ca-desk__v">$226</p>
-              <p class="ca-desk__formula">CPQL = spend ÷ CRM-qualified · $42,000 ÷ 186</p>
-            </div>
-            <p class="ca-desk__note">Same desk, lead-gen mode. Not a standalone calculator. SAMPLE · not a live client.</p>
-          </div>
-        </div>
-
-        <div class="cta-row">
-          <a class="btn primary solid" href="/custom-analytics?package=audit#inquire">Inquire</a>
-          <a class="btn ghost" href="/custom-analytics">Custom Data Solutions</a>
-        </div>
+        <h1>Same $98,500. Two totals.</h1>
+        <p class="lede">Northline SAMPLE week — ads vs finance on one spend number. Not a live client. Uncheck Google. The pair does not move.</p>
+        <nav aria-label="90-second desk">
+          <ul class="lab-rail">
+            <li><a href="#lab-00"><b>:00</b> Two totals</a></li>
+            <li><a href="#lab-12"><b>:12</b> Uncheck Google</a></li>
+            <li><a href="#lab-35"><b>:35</b> Marketplace residual</a></li>
+            <li><a href="#lab-55"><b>:55</b> $480 vs $120</a></li>
+            <li><a href="#lab-75"><b>:75</b> Inquire $5–25K</a></li>
+          </ul>
+        </nav>
       </div>
-    </section>
+    </header>
+
+    <div class="lab-instrument" id="ca-labs" data-lab-desk aria-label="SAMPLE desk — Northline week">
+      <div class="lab-shell">
+        <p class="lab-id">
+          <span><span class="lab-chip">SAMPLE</span> Northline Supply · demo-not-production · not a live client</span>
+          <span>spend_audited <strong>$98,500</strong> · sales_net <strong>$412,400</strong> · cash <strong>4.19×</strong> locked</span>
+        </p>
+
+        <section class="lab-section" id="lab-00" aria-labelledby="lab-00-h">
+          <p class="lab-kicker">:00 <span>Two fat columns · no login</span></p>
+          <h2 id="lab-00-h">Platform ~4.8× vs cash 4.19×</h2>
+          <p class="lab-lede">Same invoice spend in both denominators. The gap is returns + last-touch, not incrementality.</p>
+          <div class="lab-pair" aria-label="Two totals — same spend">
+            <article>
+              <p class="lab-k">Platform ROAS (ads)</p>
+              <p class="lab-v">~4.8×</p>
+              <p class="lab-formula">platform-reported revenue ÷ spend_audited · $472,800 ÷ $98,500</p>
+            </article>
+            <article>
+              <p class="lab-k">Cash Total ROAS (finance)</p>
+              <p class="lab-v">4.19×</p>
+              <p class="lab-formula">sales_net ÷ spend_audited · $412,400 ÷ $98,500</p>
+            </article>
+          </div>
+          <p class="lab-cap">Same $98,500. Ads claim $472,800. Finance books $412,400 after returns. SAMPLE · Northline Supply · demo-not-production.</p>
+          <p class="lab-lock">Identity locked. Channel filters and exception rows rewrite the ledger, not this pair.</p>
+        </section>
+
+        <section class="lab-section" id="lab-12" aria-labelledby="lab-12-h">
+          <p class="lab-kicker">:12 <span>Uncheck Google · ledger + close memo rewrite</span></p>
+          <h2 id="lab-12-h">Invoice vs Ads Manager UI</h2>
+          <p class="lab-lede">Billed is spend truth. UI sits beside it. Uncheck Google — included totals and the memo rewrite. Cash 4.19× stays on $412,400 ÷ $98,500.</p>
+          <div class="lab-split">
+            <div>
+              <div class="lab-scroll">
+                <table class="lab-table">
+                  <caption>Each $ and % is billed − UI. Variance = billed − UI. Uncheck a channel to drop its row. SSR SAMPLE — view-source is not $0.</caption>
+                  <thead>
+                    <tr>
+                      <th class="lab-in" scope="col">In</th>
+                      <th scope="col">Channel</th>
+                      <th scope="col">Invoice</th>
+                      <th scope="col">Ads Manager UI</th>
+                      <th scope="col">$</th>
+                      <th scope="col">%</th>
+                      <th scope="col">Flag</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr data-ca-row="meta">
+                      <td class="lab-in"><input type="checkbox" data-ca-plat="meta" checked aria-label="Include Meta" /></td>
+                      <th scope="row">Meta</th>
+                      <td class="mono">$41,200</td>
+                      <td class="mono">$42,850</td>
+                      <td class="mono">−$1,650</td>
+                      <td class="mono">−4.0%</td>
+                      <td data-tone="warn">Investigate</td>
+                    </tr>
+                    <tr data-ca-row="google">
+                      <td class="lab-in"><input type="checkbox" data-ca-plat="google" checked aria-label="Include Google" /></td>
+                      <th scope="row">Google</th>
+                      <td class="mono">$31,800</td>
+                      <td class="mono">$31,120</td>
+                      <td class="mono">+$680</td>
+                      <td class="mono">+2.1%</td>
+                      <td data-tone="warn">Investigate</td>
+                    </tr>
+                    <tr data-ca-row="linkedin">
+                      <td class="lab-in"><input type="checkbox" data-ca-plat="linkedin" checked aria-label="Include LinkedIn" /></td>
+                      <th scope="row">LinkedIn</th>
+                      <td class="mono">$15,400</td>
+                      <td class="mono">$16,180</td>
+                      <td class="mono">−$780</td>
+                      <td class="mono">−5.1%</td>
+                      <td data-tone="bad">Material</td>
+                    </tr>
+                    <tr data-ca-row="other">
+                      <td class="lab-in"><input type="checkbox" data-ca-plat="other" checked aria-label="Include Other paid" /></td>
+                      <th scope="row">Other paid</th>
+                      <td class="mono">$10,100</td>
+                      <td class="mono">$9,800</td>
+                      <td class="mono">+$300</td>
+                      <td class="mono">+3.0%</td>
+                      <td data-tone="warn">Investigate</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th scope="row" colspan="2">Included</th>
+                      <td class="mono" data-ca-billed>$98,500</td>
+                      <td class="mono" data-ca-reported>$99,950</td>
+                      <td class="mono" data-ca-variance>−$1,450</td>
+                      <td class="mono" data-ca-variance-pct>−1.5%</td>
+                      <td data-ca-variance-tone data-tone="good">Within 2%</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <p class="lab-formula">Billed total = Σ included invoices. UI total = Σ included Ads Manager. Variance = billed − UI. Flag: |%| &lt; 2% within 2% · 2–5% investigate · &gt; 5% material.</p>
+            </div>
+            <aside class="lab-memo" data-ca-memo aria-label="SAMPLE close memo">
+              <p class="lab-memo__label">Close memo · SAMPLE · not a live client</p>
+              <p class="lab-memo__body" data-ca-memo-body>Period: Northline SAMPLE week · channels: Meta, Google, LinkedIn, Other paid
+Invoice billed $98,500 · Ads Manager UI $99,950 · billed − UI −$1,450 (−1.5%)
+Action: LinkedIn UI ahead of invoice — tax, fee, timezone, or credit timing. Investigate before finance signs.
+Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it.</p>
+              <p class="lab-memo__note">Unchecking a channel rewrites this sentence. Invoice vs UI is tax / fee / timezone / credit timing — not returns + last-touch. Returns + last-touch explain cash vs platform.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="lab-section" id="lab-35" aria-labelledby="lab-35-h">
+          <p class="lab-kicker">:35 <span>Marketplace exception · residual is not a ROAS</span></p>
+          <h2 id="lab-35-h">Exception rows</h2>
+          <p class="lab-lede">Uncheck marketplace. Unexplained $ moves. Cash Total ROAS does not. Residual is timing, fees, and coverage.</p>
+          <div class="lab-split">
+            <fieldset class="lab-except">
+              <legend>Classify against billed − UI</legend>
+              <label>
+                <input type="checkbox" data-lab-except="marketplace" data-except-amt="1200" data-except-sign="1" data-except-label="Marketplace (UI coverage, not on this invoice)" checked />
+                Marketplace $1,200 — UI coverage, not on this invoice
+              </label>
+              <label>
+                <input type="checkbox" data-lab-except="vat" data-except-amt="480" data-except-sign="-1" data-except-label="VAT on invoice, not in Ads Manager" checked />
+                VAT $480 — on invoice, not in UI (tax)
+              </label>
+              <label>
+                <input type="checkbox" data-lab-except="missing" data-except-amt="1400" data-except-sign="1" data-except-label="Aug 11 missing invoice (timezone / credit timing)" checked />
+                Aug 11 missing invoice $1,400 — timezone / credit timing
+              </label>
+              <p class="lab-formula">residual = (billed − UI) + marketplace − VAT + missing_invoice. Default: −$1,450 + $1,200 − $480 + $1,400 = +$670.</p>
+              <p class="lab-residual" data-lab-residual>Residual +$670 after classified exceptions. Timing / fees / coverage — not a new Total ROAS. Cash stays 4.19× on $412,400 ÷ $98,500.</p>
+            </fieldset>
+            <div class="lab-scroll">
+              <table class="lab-table">
+                <caption>Worksheet follows the included-channel gap. Uncheck marketplace to drop its +$1,200. SSR default residual +$670.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Line</th>
+                    <th scope="col">Signed $</th>
+                  </tr>
+                </thead>
+                <tbody data-lab-ws>
+                  <tr><th scope="row">billed − UI (included channels)</th><td class="mono">−$1,450</td></tr>
+                  <tr><th scope="row">Marketplace (UI coverage, not on this invoice)</th><td class="mono">+$1,200</td></tr>
+                  <tr><th scope="row">VAT on invoice, not in Ads Manager</th><td class="mono">−$480</td></tr>
+                  <tr><th scope="row">Aug 11 missing invoice (timezone / credit timing)</th><td class="mono">+$1,400</td></tr>
+                  <tr><th scope="row">Residual unexplained</th><td class="mono">+$670</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="lab-section" id="lab-55" aria-labelledby="lab-55-h">
+          <p class="lab-kicker">:55 <span>Teaching row · path credit is not cash</span></p>
+          <h2 id="lab-55-h">Four channels × $120 = $480 attributed vs $120 cash</h2>
+          <p class="lab-lede">One $120 order. Four platforms each claim it last-touch. Do not use path credit for total revenue.</p>
+          <div class="lab-scroll">
+            <table class="lab-table lab-teach">
+              <caption>Attributed sum $480. Cash $120. SAMPLE. No vendor logo. This is not a slice of the $98,500 week — it is the teaching identity for last-touch double-count.</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Channel</th>
+                  <th scope="col">Last-touch claim</th>
+                  <th scope="col">Cash (one order)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">Meta</th><td class="mono">$120</td><td class="mono">—</td></tr>
+                <tr><th scope="row">Google</th><td class="mono">$120</td><td class="mono">—</td></tr>
+                <tr><th scope="row">LinkedIn</th><td class="mono">$120</td><td class="mono">—</td></tr>
+                <tr><th scope="row">Other paid</th><td class="mono">$120</td><td class="mono">—</td></tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">Sum</th>
+                  <td class="mono">$480</td>
+                  <td class="mono">$120</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p class="lab-formula">4 × $120 attributed = $480. Cash remains $120. Returns + last-touch explain cash vs platform on the Northline pair — not this toy order.</p>
+        </section>
+
+        <section class="lab-section" id="lab-75" aria-labelledby="lab-75-h">
+          <p class="lab-kicker">:75 <span>$5–25K · a system you own</span></p>
+          <h2 id="lab-75-h">Hire the desk. Keep the system.</h2>
+          <p class="lab-lede">Spend &amp; Sales Audit $5–8K · 2–3 weeks. Lead-gen reporting $8–15K · 3–6 weeks. Advanced MDS $15–25K · 6–10 weeks. Written contracts. You keep the files.</p>
+          <div class="lab-cta">
+            <a class="btn primary solid" href="/custom-analytics?package=audit#inquire">Inquire</a>
+            <a class="btn ghost" href="/custom-analytics">Open the MDS specimen</a>
+          </div>
+          <p class="lab-quiet">Shopify-only shops that just need sales next to spend can wait for the $39 app. This page is the custom book. <a href="/product">Product</a></p>
+        </section>
+      </div>
+    </div>
   </main>
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260825live"></script>
-  <script src="/assets/chrome.js?v=20260828sec"></script>
+  <script src="/assets/chrome.js?v=20260828ds"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
-  <script src="/assets/lab-desk.js?v=20260828lab"></script>
+  <script src="/assets/lab-desk.js?v=20260828ds"></script>
 </body>
 </html>

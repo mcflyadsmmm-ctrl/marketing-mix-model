@@ -106,7 +106,7 @@
         <a href="/dpa">DPA</a>
         <a href="/product">← Mcfly Analytics (Shopify)</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Analytics. Custom data science · $5–25K scoped builds. Not the Shopify cash desk.</p>
+      <p class="fine">© <span data-year></span> Mcfly Analytics. Custom data science · $5–25K scoped builds. You keep the system.</p>
     </div>
   </footer>`;
   } else if (footer) {

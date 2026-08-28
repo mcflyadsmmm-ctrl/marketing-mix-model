@@ -154,14 +154,14 @@ function buildMessage(fields) {
     lines.push("Who signs / reject: " + fields.signer_reject);
   }
   if (fields.monday_produce) {
-    lines.push("Monday must produce: " + fields.monday_produce);
+    lines.push("Budget and reporting must produce: " + fields.monday_produce);
   }
   if (fields.two_systems) {
     lines.push("Two systems / last numbers: " + fields.two_systems);
   }
   if (fields.entities) lines.push("First desk entities: " + fields.entities);
   if (fields.spreadsheet_closes) {
-    lines.push("Spreadsheet already closes Monday: " + fields.spreadsheet_closes);
+    lines.push("Spreadsheet already closes this: " + fields.spreadsheet_closes);
   }
   if (fields.pay_later) {
     lines.push("Pay later (no charge on this form): " + fields.pay_later);
