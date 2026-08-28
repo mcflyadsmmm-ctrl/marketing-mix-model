@@ -1,6 +1,7 @@
 # Legacy MMM / consulting-era → live cash Total ROAS (301).
 # www → apex is zone-level (path preserved). Keep splat 404 last.
 # No /page ↔ /page.html rewrites (CF already handles).
+# NEVER redirect /lab away — lab.html is the hired-desk proof.
 
 # Fable P0 — indexed MMM comparison + old home
 /mmm-vs-triple-whale-vs-northbeam /vs-attribution-suites 301
@@ -43,10 +44,16 @@
 /total-roas /cash-mer 301
 /break-even /cash-mer 301
 
-# Custom Data Solutions + calculator aliases (Cloudflare Pages / apex only).
+# Custom Data Solutions + money-door aliases (Pages / apex only).
 # Do not apply these on Fly — listing-trust paths must stay 200.
+# Hash fragments are not reliable in CF redirects — land on page; #inquire is on-page.
 /custom /custom-analytics 301
 /custom/ /custom-analytics 301
+/proposal /custom-analytics 301
+/proposal/ /custom-analytics 301
+/desk-setup /custom-analytics 301
+/desk-setup/ /custom-analytics 301
+/desk-setup.html /custom-analytics 301
 /calculator /mer-calculator 301
 /why-pixels /why-pixels-fail 301
 /glossary /cash-mer 301

@@ -11,8 +11,8 @@
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-custom-analytics.png" sizes="180x180" />
   <link rel="manifest" href="/assets/brand/site.webmanifest" />
   <meta name="theme-color" content="#082830" />
-  <meta name="mcfly-version" content="v5" />
-  <meta name="mcfly-build" content="pr-23" />
+  <meta name="mcfly-version" content="v6" />
+  <meta name="mcfly-build" content="os-coherence-v6" />
   <link rel="canonical" href="https://mcflyads.com/custom-analytics" />
   <meta name="robots" content="index,follow" />
   <meta property="og:site_name" content="Mcfly Ads" />
@@ -27,9 +27,9 @@
   <meta name="twitter:title" content="Custom Data Solutions — $5–8K / $8–15K / $15–25K | Mcfly Ads" />
   <meta name="twitter:description" content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-custom-analytics.jpg" />
-  <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260828v5" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828v5" />
+  <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v6" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260828v6" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828v6" />
   <style>
     /* Inquire lives on the dark desk. Dead brochure CSS stripped. */
     body.ca-page.lab-page .ca-book {
@@ -918,16 +918,15 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
           <section class="lab-section" id="inquire" aria-labelledby="inquire-title">
             <p class="lab-kicker">Request <span>$5–8K · $8–15K · $15–25K · you keep the system</span></p>
             <h2 id="inquire-title">Request engagement $5–25K</h2>
-            <p class="lab-lede">Pick a package. No charge on this form. <a href="/custom-analytics-engagement">Engagement specimen</a>.</p>
+            <p class="lab-lede">Name, email, company, package, optional note. No charge on this form. <a href="/custom-analytics-engagement">Engagement specimen</a>.</p>
             <div class="ca-book">
           <div class="ca-inquire">
-            <p class="reply-line">Human review · 1–2 business days · ~10 minutes</p>
+            <p class="reply-line">Human review · 1–2 business days</p>
 
-            <!-- CONVERSION: kill labels Monday, first-look date, what Monday must produce, ACH/wire / pay-later. Remaining copy is name / email / company / budget / optional note. Do not change name= or POST /api/waitlist fields. -->
+            <!-- CURSOR_OS: short inquire — name / email / company / budget(package) / optional note + honeypot website. POST /api/waitlist. -->
             <form class="waitlist ca-propose" data-waitlist data-proposal data-waitlist-source="custom-analytics inquiry" data-waitlist-success="Thanks. A person will reply in 1–2 business days with next steps, or with a no if this is not a fit." novalidate>
               <fieldset>
-                <legend>A · Contact</legend>
-                <!-- CONVERSION: keep name / email / company. Do not change name= attributes. -->
+                <legend>Contact</legend>
                 <div class="row2">
                   <label>Name <span class="req" aria-hidden="true">*</span>
                     <input name="name" type="text" autocomplete="name" required maxlength="120" />
@@ -936,148 +935,22 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                     <input name="company" type="text" autocomplete="organization" maxlength="200" />
                   </label>
                 </div>
-                <div class="row2">
-                  <label>Work email <span class="req" aria-hidden="true">*</span>
-                    <input name="email" type="email" required autocomplete="email" maxlength="254" />
-                  </label>
-                  <label>Role <span class="req" aria-hidden="true">*</span>
-                    <input name="role" type="text" autocomplete="organization-title" required maxlength="120" />
-                  </label>
-                </div>
-                <label>Package <span class="req" aria-hidden="true">*</span>
+                <label>Work email <span class="req" aria-hidden="true">*</span>
+                  <input name="email" type="email" required autocomplete="email" maxlength="254" />
+                </label>
+                <label>Package / budget <span class="req" aria-hidden="true">*</span>
                   <select name="package" data-proposal-package required>
                     <option value="" disabled selected>Select a package</option>
-                    <option value="audit">Spend &amp; Sales Audit · $5–8K · 2–3 weeks</option>
-                    <option value="leadgen">Lead Gen reporting · $8–15K · 3–6 weeks</option>
-                    <option value="mds">Advanced MDS · $15–25K · 6–10 weeks</option>
+                    <option value="audit" data-budget="$5–8K">Spend &amp; Sales Audit · $5–8K · 2–3 weeks</option>
+                    <option value="leadgen" data-budget="$8–15K">Lead Gen reporting · $8–15K · 3–6 weeks</option>
+                    <option value="mds" data-budget="$15–25K">Advanced MDS · $15–25K · 6–10 weeks</option>
                   </select>
                 </label>
                 <input type="hidden" name="budget" value="" />
-                <!-- CONVERSION: kill first-look date label. Keep name="first_look". -->
-                <label>First-look date <span class="req" aria-hidden="true">*</span>
-                  <input name="first_look" type="date" required />
-                </label>
-                <label>Who signs the number, and what would make them reject it <span class="req" aria-hidden="true">*</span>
-                  <textarea name="signer_reject" required maxlength="400" rows="2" placeholder="Signer + the no."></textarea>
-                </label>
-                <!-- CONVERSION: kill “What Monday must produce” / this Monday produce label. Keep name="monday_produce". -->
-                <label>Needed close output <span class="req" aria-hidden="true">*</span>
-                  <select name="monday_produce" required>
-                    <option value="" disabled selected>Select one</option>
-                    <option value="one number">One number</option>
-                    <option value="variance list">Variance list</option>
-                    <option value="signed close">Signed close</option>
-                  </select>
-                </label>
-                <label>The two systems that disagree, and last month’s two numbers if you have them <span class="req" aria-hidden="true">*</span>
-                  <textarea name="two_systems" required maxlength="400" rows="2" placeholder="System A vs system B · last month’s two numbers if you have them"></textarea>
-                </label>
-                <label>Entities / channels / marketplaces in the first desk <span class="req" aria-hidden="true">*</span>
-                  <input name="entities" type="text" required maxlength="240" placeholder="Meta, Google, Shopify US…" />
-                </label>
-                <label>Does a spreadsheet already close this for finance? <span class="req" aria-hidden="true">*</span>
-                  <select name="spreadsheet_closes" required>
-                    <option value="" disabled selected>Select one</option>
-                    <option value="no">No</option>
-                    <option value="yes">Yes — a spreadsheet already closes this</option>
-                  </select>
-                </label>
-                <!-- CONVERSION: kill ACH/wire / pay-later label. Keep name="pay_later". -->
-                <label>How you pay later <span class="opt">(optional · no charge on this form)</span>
-                  <select name="pay_later">
-                    <option value="">Prefer not to say</option>
-                    <option value="ACH">ACH</option>
-                    <option value="wire">Wire</option>
-                    <option value="card">Card</option>
-                  </select>
+                <label>Optional note
+                  <textarea name="note" maxlength="600" rows="3" placeholder="Which two systems disagree? Anything we should know."></textarea>
                 </label>
               </fieldset>
-
-              <fieldset data-proposal-mode="audit" hidden>
-                <legend>B · Spend &amp; Sales Audit</legend>
-                <label>Sales source
-                  <select name="sales_source">
-                    <option value="">Select one</option>
-                    <option value="Shopify">Shopify</option>
-                    <option value="other">Other</option>
-                  </select>
-                </label>
-                <label>Ad platforms + whether invoices exist for each
-                  <textarea name="platforms_invoices" maxlength="400" rows="2" placeholder="Meta — invoice yes · Google — invoice no"></textarea>
-                </label>
-                <div class="row2">
-                  <label>Period start
-                    <input name="period_start" type="date" />
-                  </label>
-                  <label>Period end
-                    <input name="period_end" type="date" />
-                  </label>
-                </div>
-                <label>Contribution margin if known
-                  <input name="contribution_margin" type="text" maxlength="40" placeholder="e.g. 35%" />
-                </label>
-                <label>Current close process (who, what tool)
-                  <input name="close_process" type="text" maxlength="240" />
-                </label>
-                <label class="nda-opt">
-                  <input type="checkbox" name="out_scope_audit" value="Confirmed: no rebate forensics, no pixels as the product" data-mode-required="audit" />
-                  <span>Confirm: no rebate forensics, no pixels as the product <span class="req" aria-hidden="true">*</span></span>
-                </label>
-              </fieldset>
-
-              <fieldset data-proposal-mode="leadgen" hidden>
-                <legend>C · Lead Gen reporting</legend>
-                <label>CRM + written stage contract (lead → MQL → SQL)
-                  <input name="crm_stages" type="text" maxlength="240" />
-                </label>
-                <label>What counts as qualified <span class="req" aria-hidden="true">*</span>
-                  <input name="qualified_def" type="text" maxlength="240" data-mode-required="leadgen" />
-                </label>
-                <label>Channels + last-month spend and raw leads if known
-                  <textarea name="channels_leads" maxlength="400" rows="2"></textarea>
-                </label>
-                <label>Target CPQL
-                  <input name="target_cpql" type="text" maxlength="40" placeholder="$250" />
-                </label>
-                <label class="nda-opt">
-                  <input type="checkbox" name="out_scope_lead" value="Confirmed: not path credit; CRM licenses billed separately" data-mode-required="leadgen" />
-                  <span>Confirm: not path credit; CRM licenses billed separately <span class="req" aria-hidden="true">*</span></span>
-                </label>
-              </fieldset>
-
-              <fieldset data-proposal-mode="mds" hidden>
-                <legend>D · Advanced MDS</legend>
-                <label>Source of truth today
-                  <select name="source_of_truth">
-                    <option value="">Select one</option>
-                    <option value="Sheet">Sheet</option>
-                    <option value="warehouse">Warehouse</option>
-                    <option value="none">None</option>
-                  </select>
-                </label>
-                <label>Outcome is dollars or leads
-                  <select name="outcome_type">
-                    <option value="">Select one</option>
-                    <option value="dollars">Dollars</option>
-                    <option value="leads">Leads</option>
-                  </select>
-                </label>
-                <label>Entities to include in v1 vs later
-                  <input name="entities_v1" type="text" maxlength="240" />
-                </label>
-                <label>Who owns the desk after handoff
-                  <input name="desk_owner" type="text" maxlength="120" />
-                </label>
-                <label class="nda-opt">
-                  <input type="checkbox" name="out_scope_mds" value="Confirmed: not a mix-model SaaS rebuild, not a CDP/warehouse rebuild" data-mode-required="mds" />
-                  <span>Confirm: not a mix-model SaaS rebuild, not a CDP/warehouse rebuild <span class="req" aria-hidden="true">*</span></span>
-                </label>
-              </fieldset>
-
-              <label class="nda-opt">
-                <input type="checkbox" name="nda" value="NDA available on request before data access" />
-                <span>NDA available on request before data access</span>
-              </label>
               <input type="text" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
               <button class="btn primary solid" type="submit">Request engagement $5–25K</button>
               <p class="note" data-waitlist-error hidden role="alert"></p>
@@ -1090,8 +963,8 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                 <p class="eyebrow">Estimate · not a contract</p>
                 <h3 data-estimate-title></h3>
                 <p data-estimate-band></p>
-                <p data-estimate-cta>Reply YES to the email and we send an invoice. A person books setup — no booking URL on this page.</p>
-                <p class="note">No Google Appointment URL is published. Marty has not created one. Inquire on this form.</p>
+                <p data-estimate-cta>Reply YES to the email and we send an invoice. When it is a fit, we send a fit-call link.</p>
+                <p class="note">No charge on this form. A person replies in 1–2 business days.</p>
               </aside>
               <aside class="ca-estimate ca-estimate--nofit" data-estimate-nofit hidden>
                 <p class="eyebrow">No estimate</p>
@@ -1142,10 +1015,10 @@ Marty · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail
 
   </main>
 
-  <div data-footer></div><script src="/assets/cta-config.js?v=20260825live"></script>
-  <script src="/assets/chrome.js?v=20260828v5"></script>
-  <script src="/assets/app.js?v=20260828v5"></script>
-  <script src="/assets/lab-desk.js?v=20260828v5"></script>
-  <script src="/assets/custom-analytics-demo.js?v=20260828v5"></script>
+  <div data-footer></div><script src="/assets/cta-config.js?v=20260828v6"></script>
+  <script src="/assets/chrome.js?v=20260828v6"></script>
+  <script src="/assets/app.js?v=20260828v6"></script>
+  <script src="/assets/lab-desk.js?v=20260828v6"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260828v6"></script>
 </body>
 </html>

@@ -30,15 +30,6 @@
     packageBtns.forEach(function (b) {
       b.classList.toggle("is-selected", b.getAttribute("data-ca-package") === key);
     });
-    document.querySelectorAll("[data-proposal-mode]").forEach(function (box) {
-      var on = box.getAttribute("data-proposal-mode") === key;
-      box.hidden = !on;
-    });
-    document.querySelectorAll("[data-mode-required]").forEach(function (el) {
-      var need = el.getAttribute("data-mode-required") === key;
-      if (need) el.setAttribute("required", "required");
-      else el.removeAttribute("required");
-    });
   }
 
   packageBtns.forEach(function (btn) {
@@ -72,11 +63,7 @@
       var srcEl = document.querySelector("[data-autoreply-src]");
       var pkgKey = proposeForm.package ? proposeForm.package.value : "";
       var meta = packageMeta[pkgKey];
-      var sheet = proposeForm.spreadsheet_closes
-        ? proposeForm.spreadsheet_closes.value
-        : "";
-      var notFit =
-        (estimate && estimate.notFit) || /^yes/i.test(sheet);
+      var notFit = !!(estimate && estimate.notFit);
       if (fitCard) fitCard.hidden = notFit;
       if (noFit) noFit.hidden = !notFit;
       if (!notFit && fitCard && meta) {

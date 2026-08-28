@@ -1,0 +1,36 @@
+---
+description: McFly always-on memory — read LIVING_BOARD first every turn. Survives chat amnesia.
+alwaysApply: true
+---
+
+# McFly memory (always)
+
+**Chat history is disposable. Repo memory is not.**
+
+## Every turn — before acting
+
+1. Read [`docs/LIVING_BOARD.md`](../../docs/LIVING_BOARD.md) — live version, product lock, open gates.
+2. Read [`docs/FOUNDER_PROMPT_HISTORY.md`](../../docs/FOUNDER_PROMPT_HISTORY.md) — why the founder built McFly (cash cow, custom DS, anti-slop).
+3. Obey [`docs/ops/CURSOR_OS.md`](../../docs/ops/CURSOR_OS.md).
+4. If chat contradicts the Living Board, **board wins** unless the founder’s latest message explicitly overrides.
+
+## Authority
+
+- This Cursor chat = Conductor for `site/**` + money drafts.
+- No Grok multi-bot fleets. No parallel `dist/` sites.
+- App **frozen**: no `app/**`, no Fly, no listing copy edits until `shopify app unfreeze`.
+
+## Product lock (summary)
+
+Custom data science they keep. Marketing = one module. SAMPLE Northline `$98,500` / `4.19×`. Seat **2 of 4** not 500. No Monday/cash desk slang. Packages $5–8K / $8–15K / $15–25K. App $39 = wedge.
+
+## Deploy truth
+
+Pages `mcflyads` is Direct Upload (`martysmithson04`). Merge ≠ live.  
+`npx wrangler@3 pages deploy site --project-name=mcflyads` — never `--branch`.  
+Never redirect `/lab` away. After ship: bump `mcfly-version` + update Living Board.
+
+## Magic
+
+`status` · `go site` · `go money` · `stop fleet` · `shopify app unfreeze`
+---
