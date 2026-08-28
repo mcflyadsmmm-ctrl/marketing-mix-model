@@ -1,10 +1,13 @@
-/* launch-v2-20260826 · dual site chrome: Shopify Ads ↔ Custom Analytics */
+/* Studio chrome: one sans M = favicon = header. Home/app keep the ribbon M. */
 (function () {
   const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
   const isHome = path === "/" || path === "/index.html" || path === "";
   const isAnalytics =
     path === "/custom-analytics" ||
     path === "/custom-analytics.html" ||
+    path === "/lab" ||
+    path === "/lab.html" ||
+    path.startsWith("/custom-analytics") ||
     document.body.classList.contains("ca-page") ||
     document.body.getAttribute("data-site") === "analytics";
 
@@ -17,52 +20,25 @@
   const chrome = document.querySelector("[data-chrome]");
   if (chrome && isAnalytics) {
     chrome.innerHTML = `
-  <div class="site-mode-bar site-mode-bar--analytics" role="navigation" aria-label="Site mode">
-    <p class="site-mode-bar__label">Two Mcfly products</p>
-    <div class="site-mode-toggle" role="group" aria-label="Switch site">
-      <a class="site-mode-toggle__opt" href="/">Shopify App</a>
-      <a class="site-mode-toggle__opt is-on" href="/custom-analytics" aria-current="page">Custom Data Solutions</a>
-    </div>
-  </div>
-  <header class="top top--analytics" data-top>
-    <a class="brand" href="/custom-analytics" aria-label="Mcfly Analytics home">
-      <img class="brand-mark-img" src="/assets/brand/mcfly-m.svg" width="36" height="36" alt="" />
-      <span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>
+  <header class="top top--studio" data-top>
+    <a class="brand" href="/custom-analytics" aria-label="Mcfly Ads">
+      <img class="brand-mark-img" src="/assets/brand/mcfly-m.svg" width="32" height="32" alt="" />
+      <span class="brand-name">Mcfly <span class="brand-name-sub">Ads</span></span>
     </a>
-    <nav class="nav nav--analytics" aria-label="Analytics">
-      <a href="/custom-analytics#overview" data-ca-nav="overview">Overview</a>
-      <a href="/lab" data-ca-nav="labs">Labs</a>
-      <a href="/custom-analytics#contracts" data-ca-nav="contracts">Contracts</a>
-      <a href="/custom-analytics#handoff" data-ca-nav="handoff">Handoff</a>
-      <a href="/custom-analytics#inquire" data-ca-nav="inquire">Inquire</a>
-      <a class="nav-cta" href="/custom-analytics#inquire">Request engagement $5–25K</a>
+    <nav class="nav nav--studio" aria-label="Studio">
+      <a href="/custom-analytics#process" data-ca-nav="process">Process</a>
+      <a href="/custom-analytics#packages" data-ca-nav="packages">Packages</a>
+      <a href="/custom-analytics#specimen" data-ca-nav="specimen">Specimen</a>
+      <a href="/about" data-ca-nav="about">About</a>
+      <a class="nav-cta" href="/custom-analytics#inquire" data-ca-nav="inquire">Inquire</a>
     </nav>
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
-      <span></span><span></span>
-    </button>
-  </header>
-  <div id="mobile-nav" class="mobile-nav" hidden>
-    <a href="/custom-analytics#overview">Overview</a>
-    <a href="/lab">Labs</a>
-    <a href="/custom-analytics#contracts">Contracts</a>
-    <a href="/custom-analytics#handoff">Handoff</a>
-    <a href="/custom-analytics#inquire">Inquire</a>
-    <a href="/custom-analytics#inquire">Request engagement $5–25K</a>
-      <a href="/">← Shopify App (Mcfly Analytics)</a>
-  </div>`;
+  </header>`;
   } else if (chrome) {
     chrome.innerHTML = `
-  <div class="site-mode-bar site-mode-bar--shopify" role="navigation" aria-label="Site mode">
-    <p class="site-mode-bar__label">Two Mcfly products</p>
-    <div class="site-mode-toggle" role="group" aria-label="Switch site">
-      <a class="site-mode-toggle__opt is-on" href="/" aria-current="page">Shopify App</a>
-      <a class="site-mode-toggle__opt" href="/custom-analytics">Custom Data Solutions</a>
-    </div>
-  </div>
   <header class="top" data-top>
-    <a class="brand" href="/" aria-label="Mcfly Analytics home">
-      <img class="brand-mark-img" src="/assets/brand/mcfly-m.svg" width="36" height="36" alt="" />
-      <span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>
+    <a class="brand" href="/" aria-label="Mcfly">
+      <img class="brand-mark-img" src="/favicon-192.png" width="32" height="32" alt="" />
+      <span class="brand-name">Mcfly</span>
     </a>
     <nav class="nav" aria-label="Primary">
       <a href="/product" data-nav="product">Product</a>
@@ -93,20 +69,17 @@
     <div class="wrap foot-grid">
       <div class="foot-brand">
         <img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />
-        <span>Mcfly Analytics</span>
+        <span>Mcfly Ads</span>
       </div>
       <nav aria-label="Footer">
-        <a href="/custom-analytics#overview">Overview</a>
-        <a href="/lab">Labs</a>
-        <a href="/custom-analytics#contracts">Contracts</a>
-        <a href="/custom-analytics#handoff">Handoff</a>
+        <a href="/custom-analytics#process">Process</a>
+        <a href="/custom-analytics#packages">Packages</a>
+        <a href="/custom-analytics#specimen">Specimen</a>
+        <a href="/about">About</a>
         <a href="/custom-analytics#inquire">Inquire</a>
-        <a href="/security">Security</a>
-        <a href="/privacy">Privacy policy</a>
-        <a href="/dpa">DPA</a>
-        <a href="/product">← Mcfly Analytics (Shopify)</a>
+        <a href="/privacy">Privacy</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Analytics. Custom data science · $5–25K scoped builds. You keep the system.</p>
+      <p class="fine">© <span data-year></span> Mcfly Ads. Custom Data Solutions · $5–25K. You keep the system.</p>
     </div>
   </footer>`;
   } else if (footer) {
@@ -114,31 +87,19 @@
   <footer class="foot">
     <div class="wrap foot-grid">
       <div class="foot-brand">
-        <img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />
-        <span>Mcfly Analytics</span>
+        <img src="/favicon-192.png" width="28" height="28" alt="" />
+        <span>Mcfly</span>
       </div>
       <nav aria-label="Footer">
         <a href="/product">Product</a>
         <a href="/pricing">Pricing</a>
         <a href="/demo">Demo</a>
-        <a href="/product#spend-csv">Paste spend</a>
-        <a href="/cash-mer">Total ROAS</a>
         <a href="/about">About</a>
-        <a href="/faq">FAQ</a>
-        <a href="/platform-variance">Platform variance</a>
-        <a href="/monday-close">Monday Close memo</a>
-        <a href="/mer-calculator">ROAS calculator</a>
-        <a href="/break-even-roas-calculator">Break-even calculator</a>
-        <a href="/download">Calculator (PWA)</a>
         <a href="/support">Support</a>
         <a href="/privacy">Privacy</a>
-        <a href="/terms">Terms</a>
-        <a href="/cookies">Cookies</a>
-        <a href="/security">Security</a>
-        <a href="/dpa">DPA</a>
         <a href="/custom-analytics">Custom Data Solutions</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Analytics. See ad spend next to sales, day by day. 7-day trial then $39.</p>
+      <p class="fine">© <span data-year></span> Mcfly. See ad spend next to sales, day by day. 7-day trial then $39.</p>
     </div>
   </footer>`;
   }
@@ -147,42 +108,31 @@
     el.textContent = String(new Date().getFullYear());
   });
 
-  // Highlight analytics subtab from hash
   if (isAnalytics) {
-    const onLab = path === "/lab" || path === "/lab.html";
-    const hash = (location.hash || "#overview").replace(/^#/, "");
+    const hash = (location.hash || "").replace(/^#/, "");
     const map = {
-      overview: "overview",
-      main: "overview",
-      "lead-gen": "labs",
-      "ca-labs": "labs",
-      contracts: "contracts",
-      recon: "contracts",
-      lineage: "contracts",
-      rules: "contracts",
-      allocation: "contracts",
-      handoff: "handoff",
-      packet: "handoff",
-      specimen: "handoff",
-      "close-memo": "handoff",
-      "build-log": "handoff",
-      packages: "inquire",
-      privacy: "handoff",
-      fit: "inquire",
+      process: "process",
+      "build-log": "process",
+      how: "process",
+      packages: "packages",
+      specimen: "specimen",
       inquire: "inquire",
+      overview: "packages",
+      contracts: "packages",
+      handoff: "packages",
     };
-    const key = onLab ? "labs" : map[hash] || "overview";
+    const key = map[hash] || "";
     document.querySelectorAll("[data-ca-nav]").forEach((link) => {
-      const on = link.getAttribute("data-ca-nav") === key;
+      const on = key && link.getAttribute("data-ca-nav") === key;
       link.classList.toggle("active", on);
       if (on) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
     window.addEventListener("hashchange", () => {
-      const h = (location.hash || "#overview").replace(/^#/, "");
-      const k = onLab ? "labs" : map[h] || "overview";
+      const h = (location.hash || "").replace(/^#/, "");
+      const k = map[h] || "";
       document.querySelectorAll("[data-ca-nav]").forEach((link) => {
-        const on = link.getAttribute("data-ca-nav") === k;
+        const on = k && link.getAttribute("data-ca-nav") === k;
         link.classList.toggle("active", on);
         if (on) link.setAttribute("aria-current", "page");
         else link.removeAttribute("aria-current");
@@ -191,4 +141,5 @@
   }
 
   void isHome;
+  void shopifySecondary;
 })();

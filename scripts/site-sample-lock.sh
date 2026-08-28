@@ -125,6 +125,77 @@ else
   ok "custom-analytics brochure visual center removed"
 fi
 
+# Identity — one sans M = favicon = header (Pinemarsh). Anti-pattern: Orr mega-nav.
+title_line="$(grep -m1 '<title>' "$ca")"
+if [[ "$title_line" != *"Custom Data Solutions · Mcfly Ads"* ]]; then
+  die "custom title is not Custom Data Solutions · Mcfly Ads"
+else
+  ok "custom title Mcfly Ads, no fee bands"
+fi
+if grep -E '<title>.*\$5' "$ca"; then
+  die "custom TITLE still contains fee bands"
+else
+  ok "fee bands kept out of TITLE"
+fi
+if ! grep -q 'content="#082830"' "$ca"; then
+  die "custom-analytics missing studio theme-color #082830"
+else
+  ok "studio theme-color #082830"
+fi
+if ! grep -q 'apple-touch-custom-analytics.png" sizes="180x180"' "$ca"; then
+  die "custom-analytics apple-touch is not 180"
+else
+  ok "studio apple-touch 180"
+fi
+if grep -q 'mcfly-analytics.fly.dev' "$ca"; then
+  die "custom-analytics still cites fly.dev"
+else
+  ok "custom-analytics origin is mcflyads.com"
+fi
+if ! grep -q 'https://mcflyads.com/assets/brand/favicon-custom-analytics-192.png' "$ca"; then
+  die "custom-analytics JSON-LD logo is not the sans M on mcflyads.com"
+else
+  ok "JSON-LD logo sans M on mcflyads.com"
+fi
+if grep -qE 'href="/favicon\.png"|href="/apple-touch-icon\.png"|href="/favicon-192\.png"' "$ca" "$site/lab.html"; then
+  die "studio pages mix the ribbon M"
+else
+  ok "studio pages do not mix ribbon M"
+fi
+chrome="$site/assets/chrome.js"
+if grep -q 'site-mode-bar' "$chrome"; then
+  die "chrome.js still has a mode bar"
+else
+  ok "chrome.js has no mode bar"
+fi
+if grep -Eiq 'calendly' "$chrome"; then
+  die "chrome.js mentions Calendly"
+else
+  ok "chrome.js has no Calendly"
+fi
+for item in Process Packages Specimen About Inquire; do
+  if ! grep -q -- "$item" "$chrome"; then
+    die "chrome.js missing studio nav item $item"
+  fi
+done
+ok "studio header is Process / Packages / Specimen / About / Inquire"
+if ! grep -q 'mcfly-m.svg' "$chrome"; then
+  die "studio header missing sans M"
+else
+  ok "studio header mark is mcfly-m.svg"
+fi
+if grep -q 'Two Mcfly products' "$chrome"; then
+  die "chrome.js still has Two Mcfly products bar"
+else
+  ok "no Two Mcfly products bar"
+fi
+manifest="$site/assets/brand/site.webmanifest"
+if ! grep -q '"theme_color": "#082830"' "$manifest"; then
+  die "studio webmanifest theme_color is not #082830"
+else
+  ok "studio webmanifest theme #082830"
+fi
+
 node --check "$site/assets/lab-desk.js"
 node --check "$site/assets/sku-science.js"
 ok "lab-desk.js and sku-science.js parse"

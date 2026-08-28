@@ -6,12 +6,9 @@
   color: #eef2f5;
 }
 
-/* Mode bar 2.55rem + sticky .top ~3.5rem. No atmosphere hero to pad this. */
+/* Chrome is one studio bar. No mode bar. */
 .lab-page main {
-  padding-top: 4.85rem;
-}
-body.lab-page:has(.site-mode-bar) main {
-  padding-top: 7.4rem;
+  padding-top: 4.35rem;
 }
 
 .lab-rail {
@@ -105,6 +102,7 @@ body.lab-page:has(.site-mode-bar) main {
 .lab-section {
   padding: 1.15rem 1.1rem 1.35rem;
   border-top: 1px solid rgba(238, 242, 245, 0.08);
+  scroll-margin-top: 5rem;
 }
 
 .lab-section:first-of-type { border-top: 0; }
