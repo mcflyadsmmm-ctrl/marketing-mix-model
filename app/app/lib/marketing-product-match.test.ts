@@ -15,21 +15,23 @@ describe("Marketing matches the Shopify app (one product)", () => {
   const support = read("site/support.html");
   const advanced = read("app/app/routes/app.advanced.tsx");
 
-  it("leads with the locked hero and never sells a Free vs Pro split", () => {
-    expect(index).toContain("<h1>See ad spend next to sales, day by day.</h1>");
+  it("leads with custom DS they keep and never sells a Free vs Pro split", () => {
+    expect(index).toContain("<h1>Custom data science they keep.</h1>");
     expect(index).not.toMatch(/Email Overview \(Free\)/);
     expect(index).not.toMatch(/Goals \+ LTV \(Pro\)/);
     expect(index).not.toMatch(/Free \+ Pro|Free vs Pro/i);
     expect(index).not.toMatch(/Advanced Marketing Data Science/);
   });
 
-  it("names the Shopify chrome Mcfly Analytics and offers the Sample desk demo", () => {
-    expect(chrome).toContain('aria-label="Mcfly Analytics home"');
-    expect(chrome).toContain("brand-name-sub\">Analytics");
-    expect(chrome).not.toContain("brand-name-sub\">Ads");
+  it("names studio chrome Mcfly Ads; Shopify demo stays a quiet wedge", () => {
+    expect(chrome).toContain('aria-label="Mcfly Ads"');
+    expect(chrome).toContain("brand-name-sub\">Ads");
+    expect(chrome).not.toContain('aria-label="Mcfly Analytics home"');
+    expect(chrome).not.toContain("brand-name-sub\">Analytics");
     // Desk modes are Sample data | Live data — Practice is retired.
     expect(index).not.toContain("Practice desk →");
     expect(index).toMatch(/Try the demo/i);
+    expect(index).toContain('id="app-wedge"');
   });
 
   it("lists Gmail before invites on the public Support page", () => {
