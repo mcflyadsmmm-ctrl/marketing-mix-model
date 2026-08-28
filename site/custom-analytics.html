@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds2" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds3" />
   <style>
     /* Page-scoped only — does not alter Shopify product pages */
     body.ca-page {
@@ -1378,15 +1378,15 @@
           <p class="lede">We build custom reporting when ads and finance still disagree. Invoice vs UI. Written metric contracts. Allocation rules that do not pretend to be Nielsen. You keep the system. $5–25K.</p>
           <div class="hero-actions">
             <div class="cta-row">
-              <a class="btn primary solid" href="#inquire">Inquire</a>
-              <a class="btn ghost" href="#ca-labs">Open the specimen</a>
+              <a class="btn primary solid" href="#inquire">Request engagement $5–25K</a>
+              <a class="btn ghost" href="#ca-labs">Open the desk</a>
             </div>
             <p class="hero-proof">
               <a href="/lab">90-second lab</a>
               <span aria-hidden="true"> · </span>
-              <a href="#packages">Packages</a>
+              <a href="#contracts">Metric contracts</a>
               <span aria-hidden="true"> · </span>
-              <a href="/custom-analytics-engagement">Engagement specimen</a>
+              <a href="#specimen">Engagement specimen</a>
             </p>
           </div>
         </div>
@@ -1397,12 +1397,17 @@
       <div class="lab-instrument" id="ca-labs" data-lab-desk aria-label="SAMPLE Advanced MDS desk — Northline week">
         <div class="lab-shell">
           <nav class="lab-nav" aria-label="Desk sections">
-            <a href="#recon">Recon</a>
+            <a href="#desk-title">Two totals</a>
+            <a href="#lineage">Lineage</a>
             <a href="#contracts">Contracts</a>
+            <a href="#recon">Recon</a>
             <a href="#exceptions">Exceptions</a>
-            <a href="#allocation">Allocation</a>
-            <a href="#pipeline">Pipeline</a>
-            <a href="#cpql-seed">Lead-gen seed</a>
+            <a href="#rules">Rules</a>
+            <a href="#close-memo">Memo</a>
+            <a href="#build-log">Build log</a>
+            <a href="#handoff">Handoff</a>
+            <a href="#specimen">Specimen</a>
+            <a href="#inquire">Inquire</a>
           </nav>
           <p class="lab-id">
             <span><span class="lab-chip">SAMPLE</span> Northline Supply · demo-not-production · not a live client</span>
@@ -1425,8 +1430,38 @@
                 <p class="lab-formula">sales_net ÷ spend_audited · $412,400 ÷ $98,500</p>
               </article>
             </div>
+            <div class="lab-fold-spend" aria-label="Invoice vs UI — first fold">
+              <div>
+                <p class="k">Invoice billed</p>
+                <p class="v">$98,500</p>
+              </div>
+              <div>
+                <p class="k">Ads Manager UI</p>
+                <p class="v">$99,950</p>
+              </div>
+              <div>
+                <p class="k">Billed − UI</p>
+                <p class="v">−$1,450 (−1.5%)</p>
+              </div>
+            </div>
             <p class="lab-cap">SAMPLE · Northline Supply · demo-not-production. Not a live client. No invented logo wall.</p>
             <p class="lab-lock">Identity locked. Exceptions move unexplained $. They do not mint a third ROAS.</p>
+            <p class="lab-operator">Marty Smithson · Utah · <a href="/about">About</a> · human reply on inquire. No booking URL on this page.</p>
+          </section>
+
+          <section class="lab-section" id="lineage" aria-labelledby="lineage-h">
+            <p class="lab-kicker">Lineage <span>invoice CSV → staged spend → signed $98,500 → desk 4.19×</span></p>
+            <h2 id="lineage-h">Click a node for grain + as-of</h2>
+            <div class="lab-lineage" role="group" aria-label="Spend lineage">
+              <button type="button" data-lineage="invoice" class="is-on" aria-pressed="true">invoice CSV</button>
+              <button type="button" data-lineage="staged" aria-pressed="false">staged spend</button>
+              <button type="button" data-lineage="signed" aria-pressed="false">signed $98,500</button>
+              <button type="button" data-lineage="desk" aria-pressed="false">desk 4.19×</button>
+            </div>
+            <p class="lab-lineage-panel" data-lineage-panel="invoice">invoice CSV · grain: invoice line / vendor / channel · as-of: Jul 1–27 2026 · America/Denver. Source file for billed dollars.</p>
+            <p class="lab-lineage-panel" data-lineage-panel="staged" hidden>staged spend · grain: channel (Meta, Google, LinkedIn, Other paid) · as-of: Jul 1–27 2026. Sum of staged invoices before sign-off.</p>
+            <p class="lab-lineage-panel" data-lineage-panel="signed" hidden>signed $98,500 · grain: included invoices · as-of: Jul 1–27 2026. Ads Manager UI $99,950 is beside this total, not the signed denominator.</p>
+            <p class="lab-lineage-panel" data-lineage-panel="desk" hidden>desk 4.19× · grain: order-date · as-of: Jul 1–27 2026. $412,400 sales after returns ÷ signed $98,500. Platform ~4.8× uses the same $98,500.</p>
           </section>
 
           <section class="lab-section" id="recon" aria-labelledby="recon-h">
@@ -1510,72 +1545,86 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                 <p class="lab-memo__note">Invoice vs UI is tax / fee / timezone / credit timing. Returns + last-touch explain cash vs platform, not this ledger.</p>
               </aside>
             </div>
-            <article class="lab-paper" aria-label="Redacted SAMPLE close memo" style="margin-top:1rem">
-              <p class="lab-memo__label">Handoff artifact · SAMPLE · not a live client</p>
-              <h3>Close memo — Spend &amp; Sales Audit spine</h3>
-              <p>To: <span class="lab-redact" aria-hidden="true"></span> <span class="sr-only">redacted</span><br />From: Marty Smithson · Utah<br />Re: Period close — invoice vs Ads Manager UI + sales period check</p>
-              <p><strong>1. Invoice vs Ads Manager UI.</strong> Invoice billed <span class="mono">$98,500</span>. Ads Manager UI <span class="mono">$99,950</span>. Billed − UI <span class="mono">−$1,450 (−1.5%)</span>. LinkedIn UI ran ahead of the invoice. Keep billed as spend truth.</p>
-              <p><strong>2. Sales period check.</strong> Cash after returns <span class="mono">$412,400</span> ÷ billed <span class="mono">$98,500</span> = <span class="mono">4.19×</span>. Platform-attributed revenue on the same billed dollars is the ads total — returns + last-touch, not incrementality. $472,800 ÷ $98,500 ≈ 4.8×.</p>
+            <article class="lab-paper lab-paper--memo" id="close-memo" aria-label="Printable SAMPLE close memo" style="margin-top:1rem">
+              <p class="lab-memo__label">Printable close memo · SAMPLE · not a live client</p>
+              <h3>Close memo — Northline week</h3>
+              <p>From: <a href="/about">Marty Smithson</a> · Utah<br />Re: Invoice vs Ads Manager UI + outcome ÷ spend · Jul 1–27 2026</p>
+              <p><strong>Channel invoice vs UI.</strong> Meta $41,200 / $42,850 (−4.0%). Google $31,800 / $31,120 (+2.1%). LinkedIn $15,400 / $16,180 (−5.1%). Other paid $10,100 / $9,800 (+3.0%). Included invoice <span class="mono">$98,500</span> vs UI <span class="mono">$99,950</span> · billed − UI <span class="mono">−$1,450 (−1.5%)</span>.</p>
+              <p><strong>Outcome ÷ spend.</strong> Cash Total ROAS <span class="mono">4.19×</span> = $412,400 ÷ $98,500. Platform ~4.8× = $472,800 ÷ $98,500. Same signed spend.</p>
+              <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Other paid SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
               <p>You keep this file. Redacted. Not a live client.</p>
+              <p class="lab-formula"><button type="button" class="btn ghost" data-lab-print-memo>Print memo</button></p>
             </article>
           </section>
 
           <section class="lab-section" id="contracts" aria-labelledby="contracts-h">
-            <p class="lab-kicker">Metric contracts <span>written before the desk ships</span></p>
-            <h2 id="contracts-h">One definition per total</h2>
-            <p class="lab-lede">If a line is missing, there is no close. Dollars stay on net sales. Leads stay on CPQL — a separate SAMPLE seed, never a slice of $98,500.</p>
+            <p class="lab-kicker">METRIC CONTRACT v1 <span>name · numerator · denominator · grain · as-of · exclusions · owner</span></p>
+            <h2 id="contracts-h">METRIC CONTRACT v1</h2>
+            <p class="lab-lede">Total ROAS = sales after returns ÷ media spend. Grain: order-date. As-of: Jul 1–27. Exclusions: no path credit. Signed spend = invoice $98,500 not UI $99,950.</p>
             <div class="lab-scroll">
               <table class="lab-table">
-                <caption>America/Denver. Invoice window. Returns deducted on sales_net only. SAMPLE · demo-not-production.</caption>
+                <caption>METRIC CONTRACT v1 · Northline SAMPLE · America/Denver · Jul 1–27 2026. Identities in this table: $98,500 · $99,950 · 4.19× · ~4.8×.</caption>
                 <thead>
                   <tr>
                     <th scope="col">Name</th>
-                    <th scope="col">Written definition</th>
-                    <th scope="col">SAMPLE</th>
-                    <th scope="col">Job</th>
+                    <th scope="col">Numerator</th>
+                    <th scope="col">Denominator</th>
+                    <th scope="col">Grain</th>
+                    <th scope="col">As-of</th>
+                    <th scope="col">Exclusions</th>
+                    <th scope="col">Owner</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <th scope="row">spend_audited</th>
-                    <td>Σ invoice billed</td>
-                    <td class="mono">$98,500</td>
-                    <td>finance denominator</td>
+                    <th scope="row">Total ROAS</th>
+                    <td>sales after returns $412,400</td>
+                    <td>media spend $98,500</td>
+                    <td>order-date</td>
+                    <td>Jul 1–27 2026</td>
+                    <td>no path credit</td>
+                    <td>finance</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Signed spend</th>
+                    <td>invoice billed $98,500</td>
+                    <td>—</td>
+                    <td>invoice line</td>
+                    <td>Jul 1–27 2026</td>
+                    <td>UI $99,950 is not signed spend</td>
+                    <td>finance</td>
                   </tr>
                   <tr>
                     <th scope="row">spend_ui</th>
-                    <td>Σ Ads Manager UI, same dates</td>
-                    <td class="mono">$99,950</td>
-                    <td>beside, never instead</td>
+                    <td>Ads Manager UI $99,950</td>
+                    <td>—</td>
+                    <td>ads-manager date</td>
+                    <td>Jul 1–27 2026</td>
+                    <td>not the Total ROAS denominator</td>
+                    <td>ads</td>
                   </tr>
                   <tr>
                     <th scope="row">sales_net</th>
-                    <td>Shopify net after returns</td>
-                    <td class="mono">$412,400</td>
-                    <td>cash numerator</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">platform_rev</th>
-                    <td>Platform-attributed revenue</td>
-                    <td class="mono">$472,800</td>
-                    <td>ads numerator</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">cash Total ROAS</th>
-                    <td>sales_net ÷ spend_audited</td>
-                    <td class="mono">4.19×</td>
+                    <td>Shopify net after returns $412,400</td>
+                    <td>—</td>
+                    <td>order-date</td>
+                    <td>Jul 1–27 2026</td>
+                    <td>no path credit</td>
                     <td>finance</td>
                   </tr>
                   <tr>
                     <th scope="row">platform ROAS</th>
-                    <td>platform_rev ÷ spend_audited</td>
-                    <td class="mono">~4.8×</td>
-                    <td>ads · same spend</td>
+                    <td>platform-reported revenue $472,800</td>
+                    <td>signed spend $98,500</td>
+                    <td>platform claim</td>
+                    <td>Jul 1–27 2026</td>
+                    <td>not cash; ~4.8× on the same $98,500</td>
+                    <td>ads</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <p class="lab-formula">cash Total ROAS = $412,400 ÷ $98,500. platform ROAS = $472,800 ÷ $98,500. Same denominator.</p>
+            <p class="lab-formula">cash Total ROAS 4.19× = $412,400 ÷ $98,500. platform ROAS ~4.8× = $472,800 ÷ $98,500. Same signed spend. File: metric_contracts_v1.md.</p>
           </section>
 
           <section class="lab-section" id="exceptions" aria-labelledby="except-h">
@@ -1620,352 +1669,188 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
             </div>
           </section>
 
-          <section class="lab-section" id="allocation" aria-labelledby="alloc-h">
-            <p class="lab-kicker">Allocation <span>illustrative next SAMPLE dollar · not incrementality</span></p>
-            <h2 id="alloc-h">Rules-based split. Not Nielsen.</h2>
-            <p class="lab-lede">weight_c = max(eff_c − hurdle, 0). share = weight / Σweight. If Σ = 0, keep the current mix. Current mix is invoice share of $98,500. Channel eff is a SAMPLE teaching input — not measured channel ROAS. Portfolio cash stays 4.19×.</p>
-            <label class="lab-except" style="display:block;margin-bottom:0.85rem;max-width:16rem">
-              <span class="lab-formula" style="margin:0">Hurdle (illustrative)</span>
-              <input type="number" data-lab-hurdle value="4.00" min="1" max="10" step="0.10" aria-label="Illustrative hurdle Total ROAS" />
-            </label>
+          <section class="lab-section" id="rules" aria-labelledby="rules-h">
+            <p class="lab-kicker">Allocation rules <span>four if/then · toggle mix $ · not Recast</span></p>
+            <h2 id="rules-h">Four SAMPLE if/then rules</h2>
+            <p class="lab-lede">Toggle on/off. Mix $ table rewrites. Cash 4.19× does not. Not Nielsen / Meridian / Recast. Not geo. Not incrementality. CPQL seed $42,000 ÷ 186 = $226 is not a slice of $98,500.</p>
+            <fieldset class="lab-rules" data-lab-rules>
+              <legend>Executable SAMPLE rules</legend>
+              <label>
+                <input type="checkbox" data-lab-rule="meta-hold" checked />
+                <span>IF Meta UI−invoice &gt; 3% THEN hold scale — $42,850 − $41,200 = $1,650 / $41,200 = 4.0% &gt; 3%.</span>
+              </label>
+              <label>
+                <input type="checkbox" data-lab-rule="google-plus" checked />
+                <span>IF cash ROAS ≥ 4.00× AND recon &lt; 2% THEN +10% Google — 4.19× and −1.5%.</span>
+              </label>
+              <label>
+                <input type="checkbox" data-lab-rule="mkt-freeze" checked />
+                <span>IF marketplace residual on THEN do not spend-optimize that SKU — Other paid stays $10,100.</span>
+              </label>
+              <label>
+                <input type="checkbox" data-lab-rule="cpql-cut" checked />
+                <span>IF CPQL &gt; target THEN cut worst CRM-qualified channel — $226 &gt; $200, cut LinkedIn $2,000. Seed $42,000 ÷ 186 = $226. Not an invoice on $98,500.</span>
+              </label>
+            </fieldset>
             <div class="lab-scroll">
               <table class="lab-table" data-lab-mix>
-                <caption>SSR default hurdle 4.00×. Meta 0.60 / Other paid 1.20 / Σ 1.80 → Meta 33.3% · Other paid 66.7% of the next SAMPLE dollar.</caption>
+                <caption>SSR default: all four rules on. Mix Σ $98,500. Cash stays 4.19× = $412,400 ÷ $98,500.</caption>
                 <thead>
                   <tr>
                     <th scope="col">Channel</th>
-                    <th scope="col">Current</th>
-                    <th scope="col">Illus. eff</th>
-                    <th scope="col">Hurdle</th>
-                    <th scope="col">Weight</th>
-                    <th scope="col">Next $</th>
+                    <th scope="col">Invoice $</th>
+                    <th scope="col">Mix $</th>
+                    <th scope="col">Note</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><th scope="row">Meta</th><td class="mono">41.8%</td><td class="mono">4.60×</td><td class="mono">4.00×</td><td class="mono">0.60</td><td class="mono">33.3%</td></tr>
-                  <tr><th scope="row">Google</th><td class="mono">32.3%</td><td class="mono">3.70×</td><td class="mono">4.00×</td><td class="mono">0.00</td><td class="mono">0.0%</td></tr>
-                  <tr><th scope="row">LinkedIn</th><td class="mono">15.6%</td><td class="mono">3.20×</td><td class="mono">4.00×</td><td class="mono">0.00</td><td class="mono">0.0%</td></tr>
-                  <tr><th scope="row">Other paid</th><td class="mono">10.3%</td><td class="mono">5.20×</td><td class="mono">4.00×</td><td class="mono">1.20</td><td class="mono">66.7%</td></tr>
+                  <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono" data-lab-mix-amt="meta">$41,200</td><td>hold scale</td></tr>
+                  <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono" data-lab-mix-amt="google">$36,980</td><td>+10% Google</td></tr>
+                  <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono" data-lab-mix-amt="linkedin">$10,220</td><td>CPQL cut</td></tr>
+                  <tr><th scope="row">Other paid</th><td class="mono">$10,100</td><td class="mono" data-lab-mix-amt="other">$10,100</td><td>do not spend-optimize</td></tr>
                 </tbody>
                 <tfoot>
                   <tr>
-                    <th scope="row" colspan="6" data-lab-next>Next SAMPLE dollar: Meta 33.3% · Other paid 66.7%</th>
+                    <th scope="row" colspan="4" data-lab-next>Mix Σ $98,500 · cash stays 4.19× on $412,400 ÷ $98,500.</th>
                   </tr>
                 </tfoot>
               </table>
             </div>
-            <p class="lab-formula" data-lab-mix-note>weight_c = max(eff_c − 4.00×, 0). Illustrative split of the next SAMPLE dollar. Not Nielsen / Meridian / Recast. Not geo. Not incrementality. Portfolio cash stays 4.19× = $412,400 ÷ $98,500.</p>
+            <p class="lab-formula" data-lab-mix-note>Rules rewrite mix $ only. Not Nielsen / Meridian / Recast. Not geo. Not incrementality. Cash stays 4.19× = $412,400 ÷ $98,500.</p>
           </section>
 
-          <section class="lab-section" id="pipeline" aria-labelledby="pipe-h">
-            <p class="lab-kicker">Pipeline / handoff <span>6–10 weeks · you keep the system</span></p>
-            <h2 id="pipe-h">What an Advanced MDS engagement leaves behind</h2>
-            <div class="lab-grid lab-grid--4">
-              <article class="lab-card">
-                <h3>Week 1</h3>
-                <p>Metric contracts signed. Period, timezone, returns, invoice vs UI. Refuse list in the letter.</p>
-              </article>
-              <article class="lab-card">
-                <h3>Weeks 2–3</h3>
-                <p>Recon ledger + exception worksheet in your Sheet or warehouse. Close memo you can forward.</p>
-              </article>
-              <article class="lab-card">
-                <h3>Weeks 4–6</h3>
-                <p>Operator desk: two totals, formulas under every number, weekly demo.</p>
-              </article>
-              <article class="lab-card">
-                <h3>Weeks 6–10</h3>
-                <p>Allocation helper + runbook. Credentials time-boxed. Optional retainer quoted — never required to keep the files.</p>
-              </article>
-            </div>
-            <p class="lab-formula" style="margin-top:0.85rem">Out of this band: Nielsen / Meridian / Recast parity. Geo tests. Incrementality as a measured iROAS. CDP / warehouse rebuild. Pixels as the product.</p>
-            <div class="lab-scroll" style="margin-top:1rem">
-              <table class="lab-table lab-teach">
-                <caption>Teaching identity — not a slice of the Northline week. Four platforms × $120 last-touch = $480 attributed vs $120 cash.</caption>
+          <section class="lab-section" id="build-log" aria-labelledby="log-h">
+            <p class="lab-kicker">Build log <span>delivery tracker · not a funnel</span></p>
+            <h2 id="log-h">THE WORK</h2>
+            <p class="lab-lede">access → contracts signed → desk v0 → recon close → rules → handoff. Each row is a dated SAMPLE artifact.</p>
+            <div class="lab-scroll">
+              <table class="lab-log lab-table">
+                <caption>SAMPLE Northline engagement. Not a waitlist. No next-start date on this page.</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Channel</th>
-                    <th scope="col">Last-touch claim</th>
-                    <th scope="col">Cash (one order)</th>
+                    <th scope="col">Step</th>
+                    <th scope="col">As-of</th>
+                    <th scope="col">Artifact</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><th scope="row">Meta</th><td class="mono">$120</td><td class="mono">—</td></tr>
-                  <tr><th scope="row">Google</th><td class="mono">$120</td><td class="mono">—</td></tr>
-                  <tr><th scope="row">LinkedIn</th><td class="mono">$120</td><td class="mono">—</td></tr>
-                  <tr><th scope="row">Other paid</th><td class="mono">$120</td><td class="mono">—</td></tr>
+                  <tr>
+                    <th scope="row">access</th>
+                    <td class="mono">2026-06-12</td>
+                    <td><code>access_checklist.md</code> — time-boxed credentials issued</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">contracts signed</th>
+                    <td class="mono">2026-06-19</td>
+                    <td><code>metric_contracts_v1.md</code> — METRIC CONTRACT v1 countersigned</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">desk v0</th>
+                    <td class="mono">2026-06-26</td>
+                    <td><code>northline_desk.html</code> — two totals on $98,500</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">recon close</th>
+                    <td class="mono">2026-07-10</td>
+                    <td><code>spend_recon_jul2026.csv</code> — invoice $98,500 vs UI $99,950</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">rules</th>
+                    <td class="mono">2026-07-17</td>
+                    <td>four if/then rules in the desk — mix $ table live</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">handoff</th>
+                    <td class="mono">2026-07-24</td>
+                    <td><code>owner_transfer_checklist.md</code> + <code>runbook.md</code> — you keep the system</td>
+                  </tr>
                 </tbody>
-                <tfoot>
-                  <tr><th scope="row">Sum</th><td class="mono">$480</td><td class="mono">$120</td></tr>
-                </tfoot>
               </table>
             </div>
           </section>
 
-          <section class="lab-section" id="cpql-seed" aria-labelledby="cpql-h">
-            <p class="lab-kicker">Separate SAMPLE seed <span>not a slice of $98,500 · not an invoice</span></p>
-            <h2 id="cpql-h">Lead-gen reporting uses CPQL</h2>
-            <div class="lab-seed">
-              <p class="lab-k" style="margin:0;font-family:var(--mono);font-size:0.7rem;letter-spacing:0.04em;text-transform:uppercase;color:rgba(238,242,245,0.55)">Cost per qualified lead · SAMPLE · demo-not-production</p>
-              <p class="lab-v">$226</p>
-              <p class="lab-formula">CPQL = spend_audited ÷ CRM-qualified · $42,000 ÷ 186 · vs target $250. Qualified is a contracted stage, not a form fill. This seed is not an invoice line on the Northline week.</p>
+          <section class="lab-section" id="handoff" aria-labelledby="hand-h">
+            <p class="lab-kicker">Handoff packet <span>you keep the system</span></p>
+            <h2 id="hand-h">Packing list</h2>
+            <p class="lab-lede">Five files. One line each. Owner after week 6 is the client named in the letter.</p>
+            <div class="lab-scroll">
+              <table class="lab-table lab-packet">
+                <caption>HANDOFF PACKET · SAMPLE · owner after week 6.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Filename</th>
+                    <th scope="col">What it is</th>
+                    <th scope="col">Owner after week 6</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row"><code>metric_contracts_v1.md</code></th>
+                    <td>METRIC CONTRACT v1 definitions</td>
+                    <td>client finance</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><code>spend_recon_jul2026.csv</code></th>
+                    <td>Invoice vs UI ledger for Jul 1–27</td>
+                    <td>client finance</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><code>northline_desk.html</code></th>
+                    <td>Operator desk: 4.19× and ~4.8× on $98,500</td>
+                    <td>client ops</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><code>runbook.md</code></th>
+                    <td>How to close the week without us</td>
+                    <td>client ops</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><code>owner_transfer_checklist.md</code></th>
+                    <td>Credentials time-box + file receipt</td>
+                    <td>client IT</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <p class="lab-quiet">Lead-gen package: $8–15K · 3–6 weeks. <a href="/lead-gen-desk">Lead Gen reporting</a> · <a href="/lab">90-second lab stays on the Northline dollar book</a></p>
+          </section>
+
+          <section class="lab-section" id="specimen" aria-labelledby="spec-h">
+            <p class="lab-kicker">Engagement specimen <span>excerpt on this page</span></p>
+            <h2 id="spec-h">Parties, fee, refuse, terms, signature</h2>
+            <p class="lab-lede">Excerpt of the letter. Full structure: <a href="/custom-analytics-engagement">engagement specimen</a>. Not a contract. No public Stripe.</p>
+            <div class="lab-grid lab-grid--2">
+              <article class="lab-card">
+                <h3>Parties</h3>
+                <p>Provider: Mcfly Analytics — Custom Data Solutions. Client: [Client legal name]. Purpose: outcomes ÷ audited spend with written metric contracts, fixed fee, ownership at handoff.</p>
+              </article>
+              <article class="lab-card">
+                <h3>Fee band</h3>
+                <p>Fixed fee in the signed letter. Public bands: Spend &amp; Sales Audit $5–8K · Lead Gen reporting $8–15K · Advanced MDS $15–25K. Request engagement $5–25K.</p>
+              </article>
+            </div>
+            <p class="lab-refuse"><strong>Refuse:</strong> pixels; MTA / multi-touch path credit; identity graph / “true ROAS.” Operating metric remains outcomes ÷ spend.</p>
+            <p class="lab-formula">Fixed-fee terms: 50% on countersignature · 50% on delivery acceptance. Tools billed at cost, itemized. Addenda in writing. Not a Stripe checkout on this page.</p>
+            <div class="lab-sigs" aria-label="SAMPLE signature block">
+              <div class="lab-sig">
+                <p class="role">For Mcfly Analytics · SAMPLE</p>
+                <div class="line" aria-hidden="true"></div>
+                <p>Marty Smithson / title</p>
+                <p>Date</p>
+              </div>
+              <div class="lab-sig">
+                <p class="role">For Client · SAMPLE</p>
+                <div class="line" aria-hidden="true"></div>
+                <p>Name / title · authorized signatory</p>
+                <p>Date</p>
+              </div>
+            </div>
+            <p class="lab-operator" id="packages">Spend &amp; Sales Audit $5–8K · Lead Gen reporting $8–15K · Advanced MDS $15–25K. Select a band on the form below.</p>
             <div class="lab-cta">
-              <a class="btn primary solid" href="#inquire">Inquire $5–25K</a>
-              <a class="btn ghost" href="/lab">Run the 90-second lab</a>
+              <a class="btn primary solid" href="#inquire">Request engagement $5–25K</a>
+              <a class="btn ghost" href="/lab">90-second lab</a>
             </div>
-            <p class="lab-quiet">Shopify-only shops that just need sales next to spend can wait for the $39 app. This page is the custom book.</p>
+            <p class="lab-quiet">Shopify-only shops that just need sales next to spend: the $39 app is on <a href="/demo">/demo</a>.</p>
           </section>
-        </div>
-      </div>
-    </section>
-
-    <section class="ca-band" id="packages" aria-labelledby="pkg-title">
-      <div class="ca-wrap">
-        <p class="eyebrow">Fixed-fee projects · $5–25K</p>
-        <h2 id="pkg-title" class="display">Three packages</h2>
-        <p class="lede">Fixed-fee projects, $5–25K. Three packages: Spend &amp; Sales Audit ($5–8K), Lead Gen reporting ($8–15K), and Advanced MDS ($15–25K). Written scope. Weekly check-ins on the larger builds. Structure of the letter: <a href="/custom-analytics-engagement">engagement specimen</a>.</p>
-        <div class="ca-packages reveal">
-          <button type="button" class="ca-pkg" data-ca-package="audit">
-            <p class="price">$5–8K · 2–3 weeks</p>
-            <h3>Spend &amp; Sales Audit</h3>
-            <p>Close memo: spend by platform, invoice vs platform UI, sales period check.</p>
-            <ul>
-              <li>Rollup</li>
-              <li>Variance flags</li>
-              <li>Memo</li>
-              <li>30 days Q&amp;A</li>
-            </ul>
-            <div class="scope">
-              <strong>Out</strong>
-              Agency rebate forensics, multi-year contract review, tracking pixels.
-            </div>
-            <span class="cta">Select engagement →</span>
-          </button>
-          <button type="button" class="ca-pkg" data-ca-package="leadgen">
-            <p class="price">$8–15K · 3–6 weeks</p>
-            <h3>Lead Gen reporting</h3>
-            <p>Paid spend joined to CRM stages, CPL / cost per qualified lead, weekly report. Agencies/SaaS/services not only stores.</p>
-            <ul>
-              <li>Lead→MQL→SQL defs</li>
-              <li>Channel efficiency</li>
-              <li>Handoff docs</li>
-              <li>Weekly demo</li>
-            </ul>
-            <div class="scope">
-              <strong>Out</strong>
-              Multi-touch path credit. CRM licenses billed separately.
-            </div>
-            <span class="cta">Select engagement →</span>
-          </button>
-          <button type="button" class="ca-pkg" data-ca-package="mds">
-            <p class="price">$15–25K · 6–10 weeks</p>
-            <h3>Advanced MDS</h3>
-            <p>Pipelines or Sheet source of truth, reporting UI, simple allocation, production handoff.</p>
-            <ul>
-              <li>Outcome ÷ spend spine</li>
-              <li>Lightweight mix helpers</li>
-              <li>Runbooks</li>
-              <li>Optional retainer quote</li>
-            </ul>
-            <div class="scope">
-              <strong>Out</strong>
-              Nielsen/Meridian/Recast parity, CDP, warehouse rebuild.
-            </div>
-            <span class="cta">Select engagement →</span>
-          </button>
-        </div>
-        <p class="ca-job-links">One job each — you keep the system:
-          <a href="/spend-sales-audit">Spend &amp; Sales Audit</a>
-          <span aria-hidden="true"> · </span>
-          <a href="/lead-gen-desk">Lead Gen reporting</a>
-          <span aria-hidden="true"> · </span>
-          <a href="/advanced-mds">Advanced MDS</a>
-        </p>
-        <p class="ca-engage-link"><a href="/custom-analytics-engagement">Review the engagement letter specimen</a> — parties, fee, scope tiers, refuse list, signatures. Specimen only; final terms in the signed letter.</p>
-
-        <p class="eyebrow" style="margin-top:2.75rem">Market map</p>
-        <h2 class="display" id="market-title">Where this sits vs forensic audits and MMM</h2>
-        <p class="lede">Demoted on purpose — the first screen is invoice vs UI, not a category map.</p>
-        <div class="ca-market reveal">
-          <article>
-            <p class="tag" data-tone="out">Not our lane</p>
-            <h3>Forensic media audit</h3>
-            <p>Independent plan → invoice → platform recon for finance and procurement. Agency contracts, rebates, multi-market leakage.</p>
-            <p class="band">~$100K–$450K · $2M+ spend typical</p>
-          </article>
-          <article>
-            <p class="tag" data-tone="adj">Adjacent</p>
-            <h3>MMM / incrementality SaaS</h3>
-            <p>Bayesian mix models, geo tests, always-on scenario tools. Useful later — not what a $15–25K build claims to be.</p>
-            <p class="band">~$30K–$200K+/yr mid-market · six figures enterprise</p>
-          </article>
-          <article>
-            <p class="tag" data-tone="in">Our lane</p>
-            <h3>Productized reporting</h3>
-            <p>Exact spend by platform, audited outcomes, written definitions — you keep the system.</p>
-            <p class="band">$5–40K discrete market · Mcfly $5–25K</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="ca-band" id="how" aria-labelledby="how-title">
-      <div class="ca-wrap">
-        <p class="eyebrow">Process</p>
-        <h2 id="how-title" class="display">How does a fixed-fee engagement run?</h2>
-        <p class="lede">Four steps from first call to ownership transfer. Same spine every build — discovery, fixed fee, demos, handoff.</p>
-        <div class="ca-process reveal">
-          <article>
-            <h3>Discovery call</h3>
-            <p>Fit, data access, success metric. We say no when pixels, MTA, or forensic depth is what you actually need.</p>
-          </article>
-          <article>
-            <h3>Fixed-fee SOW</h3>
-            <p>Written engagement letter: tier, fee, deliverables, refuse list. No hourly surprise. See the <a href="/custom-analytics-engagement">specimen</a>.</p>
-          </article>
-          <article>
-            <h3>Build with weekly demos</h3>
-            <p>Metric contracts first. Then desk or memo work with a standing weekly touch on Tier II / III.</p>
-          </article>
-          <article>
-            <h3>Handoff &amp; ownership</h3>
-            <p>Deliverables in your environment, runbooks, time-boxed credentials. Retainer optional — never required to keep the system.</p>
-          </article>
-        </div>
-        <div class="ca-capacity" role="note">
-          <p class="ca-capacity__label">Capacity</p>
-          <p class="ca-capacity__text">We run a small number of concurrent custom builds so weekly demos stay real. If the calendar is full, we’ll give you the next open start window — not a waitlist theater.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="ca-band" id="expectations" aria-labelledby="expect-title">
-      <div class="ca-wrap">
-        <p class="eyebrow">Expectations</p>
-        <h2 id="expect-title" class="display">What does “premium” mean in the SOW?</h2>
-        <p class="lede">Elite buyers pay for clarity: fixed fee, named deliverables, ownership, and an honest refuse list — not a logo wall.</p>
-        <div class="ca-expect reveal">
-          <article>
-            <h3>You provide</h3>
-            <ul>
-              <li>Read access to ad platforms + invoice / billing exports</li>
-              <li>Sales or CRM stage definitions (and a decision owner)</li>
-              <li>Margin or target efficiency assumptions when allocation matters</li>
-              <li>One weekly 30–45 min touch for Tier II / III</li>
-            </ul>
-          </article>
-          <article>
-            <h3>We provide</h3>
-            <ul>
-              <li>Fixed fee in the engagement letter — addenda only for scope adds</li>
-              <li>Written metric contracts before models or desks ship</li>
-              <li>Deliverables in your cloud / Sheets when possible</li>
-              <li>Handoff checklist, runbooks, time-boxed credentials</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="ca-band" id="fit" aria-labelledby="fit-title">
-      <div class="ca-wrap">
-        <p class="eyebrow">Fit</p>
-        <h2 id="fit-title" class="display">Who is Custom Data Solutions for?</h2>
-        <p class="lede">We take a small number of custom builds. Budget band is $5–25K project fees — not $39 SaaS seats, not $100K forensic audits.</p>
-        <div class="ca-fit reveal">
-          <article class="yes">
-            <h3>Good fit</h3>
-            <ul>
-              <li>Need exact spend by platform + outcome audit</li>
-              <li>Lead-gen, services, retail, or mixed — not Shopify-only</li>
-              <li>Budget owner ready for a scoped $5–25K SOW</li>
-              <li>Want production handoff, not a black-box suite</li>
-            </ul>
-          </article>
-          <article class="no">
-            <h3>Not a fit</h3>
-            <ul>
-              <li>Want pixels / MTA / path-credit “true ROAS”</li>
-              <li>Need a free trial or sub-$5K dabble</li>
-              <li>Shopify-only shops that just need sales next to spend — wait for the app, or see <a href="/product">Product</a></li>
-              <li>Need forensic $100K+ media audit or full MMM SaaS (we’ll redirect)</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="ca-band ca-band--dark" id="privacy" aria-labelledby="privacy-title">
-      <div class="ca-wrap">
-        <p class="eyebrow">Enterprise assurance</p>
-        <h2 id="privacy-title" class="display">How do you handle data ownership and privacy?</h2>
-        <p class="lede">Custom engagements follow the same privacy posture as our product: least data, written definitions, no identity-graph theater.</p>
-        <p class="ca-privacy-strip">NDA / DPA available · time-boxed credentials · work in your cloud when possible</p>
-        <div class="ca-privacy-grid reveal">
-          <div class="ca-privacy-item" data-ca-privacy-item data-open="false">
-            <button type="button" aria-expanded="false">You keep ownership</button>
-            <div data-ca-privacy-panel hidden>
-              Work lands in your cloud / warehouse / Sheets when possible. We don’t build a shadow CRM of your customers. Deliverables and credentials transfer at handoff.
-            </div>
-          </div>
-          <div class="ca-privacy-item" data-ca-privacy-item data-open="false">
-            <button type="button" aria-expanded="false">Least-privilege access</button>
-            <div data-ca-privacy-panel hidden>
-              Time-boxed credentials, scoped service accounts, and access logs on request. No standing admin unless the SOW says so.
-            </div>
-          </div>
-          <div class="ca-privacy-item" data-ca-privacy-item data-open="false">
-            <button type="button" aria-expanded="false">Metric contracts before models</button>
-            <div data-ca-privacy-panel hidden>
-              Written definitions for sales, spend, lead stages, and margin — versioned so finance and marketing argue from the same sheet.
-            </div>
-          </div>
-          <div class="ca-privacy-item" data-ca-privacy-item data-open="false">
-            <button type="button" aria-expanded="false">Security baseline</button>
-            <div data-ca-privacy-panel hidden>
-              HTTPS, secrets outside repos, encrypted transit. For product posture see <a href="/security" style="color:var(--cyan)">Security</a>, <a href="/privacy" style="color:var(--cyan)">Privacy</a>, and draft <a href="/dpa" style="color:var(--cyan)">DPA</a>. Custom SOWs can add NDA + DPA schedules.
-            </div>
-          </div>
-        </div>
-        <p class="ca-refuse"><strong>We refuse:</strong> pixels, multi-touch path credit, “true ROAS” identity graphs, and forever-free bait. Outcomes ÷ spend. Full stop.</p>
-      </div>
-    </section>
-
-    <section class="ca-band" id="faq" aria-labelledby="faq-title">
-      <div class="ca-wrap">
-        <p class="eyebrow">Pricing &amp; fit FAQs</p>
-        <h2 id="faq-title" class="display">Answers before the call</h2>
-        <div class="ca-faq reveal">
-          <details>
-            <summary>Where do market comps land?</summary>
-            <p>Discrete analytics / decision-desk projects often run <span class="mono">$5–40K</span>; dashboard builds <span class="mono">$5–20K</span>; full MMM projects often <span class="mono">$30–150K</span>; forensic paid-media audits start near <span class="mono">$100K</span>. Mcfly Analytics — Custom Data Solutions publishes the <span class="mono">$5–25K</span> band so the SOW isn’t a surprise.</p>
-          </details>
-          <details>
-            <summary>Is $5–8K a “real” audit?</summary>
-            <p>Yes for a finance-grade close memo: invoice vs platform spend, variance flags, and a sales/outcome period check. That sits with elite boutique audits (~$6K class). It is not a $100K forensic agency/rebate audit — and not a $249 CSV micro-recon. Different jobs; we name ours.</p>
-          </details>
-          <details>
-            <summary>Do you replace Recast, Measured, Paramark, or Nielsen?</summary>
-            <p>No. We build the weekly decision desk and metric contracts. Always-on measurement OS pricing often starts near $100K/year — we don’t fake that inside $25K. If you need full MMM SaaS later, we say so.</p>
-          </details>
-          <details>
-            <summary>Who owns the data and the system?</summary>
-            <p>You. Work lands in your environment when possible. Credentials are time-boxed. Handoff includes runbooks. Retainer is optional continuity — not a hostage fee.</p>
-          </details>
-          <details>
-            <summary>What blows the budget?</summary>
-            <p>Dirty source data and undefined metrics. Cleanup and scope expansion only via written addendum. Tools and third-party licenses are billed at cost, called out in the SOW.</p>
-          </details>
-          <details>
-            <summary>Why refuse pixels and “true ROAS”?</summary>
-            <p>Identity graphs thinned; finance still needs sales (or qualified pipeline) ÷ audited spend. Path credit is a different product category — we don’t sell it.</p>
-          </details>
-          <details>
-            <summary>How is this different from the Shopify app?</summary>
-            <p>Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else — fixed-fee custom reporting when ads and finance still disagree.</p>
-          </details>
         </div>
       </div>
     </section>
@@ -1975,7 +1860,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
         <div class="ca-book">
         <div class="ca-inquire" id="inquire">
           <p class="reply-line">Human review · 1–2 business days · ~10 minutes</p>
-          <h2 id="inquire-title">Proposal — one sitting</h2>
+          <h2 id="inquire-title">Request engagement $5–25K</h2>
           <p>Pick a package. The rest of the form matches that job. No charge on this form. Review the <a href="/custom-analytics-engagement">engagement specimen</a> before you send.</p>
 
           <form class="waitlist ca-propose" data-waitlist data-proposal data-waitlist-source="custom-analytics inquiry" data-waitlist-success="Thanks. A person will reply in 1–2 business days with next steps, or with a no if this is not a fit." novalidate>
@@ -2129,7 +2014,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               <span>NDA available on request before data access</span>
             </label>
             <input type="text" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
-            <button class="btn primary solid" type="submit">Send proposal</button>
+            <button class="btn primary solid" type="submit">Request engagement $5–25K</button>
             <p class="note" data-waitlist-error hidden role="alert"></p>
             <p class="fine-print">No charge on this form. No Stripe checkout. Terms are finalized only in a signed engagement letter — see <a href="/custom-analytics-engagement">specimen</a>. We may email you about this request. We don’t sell your information. <a href="/privacy">Privacy</a>.</p>
           </form>
@@ -2166,12 +2051,12 @@ Marty · mcflyadsmmm@gmail.com</pre>
             <p class="eyebrow">Operator</p>
             <h2 id="who-runs-title">Who runs the audit</h2>
             <ol>
-              <li>Marty Smithson</li>
+              <li><a href="/about">Marty Smithson</a></li>
               <li>Utah</li>
               <li>Human replies</li>
               <li>You keep the desk</li>
               <li>2–3 weeks on Spend &amp; Sales Audit</li>
-              <li>Inquire on this page</li>
+              <li>Request engagement $5–25K on this page</li>
             </ol>
           </aside>
           <aside class="ca-fitcall is-empty" id="fit-call" data-fitcall data-schedule-url="" aria-labelledby="fit-call-title">
@@ -2186,16 +2071,16 @@ Marty · mcflyadsmmm@gmail.com</pre>
         </div>
         </div>
 
-        <p class="ca-shopify-note">Shopify-only shops that just need sales next to spend can wait for the app. This page is for everyone else. Product: <a href="/product">Mcfly Analytics on Shopify</a>. Background: <a href="/about">About</a>.</p>
+        <p class="ca-shopify-note">Shopify-only shops that just need sales next to spend: the $39 app is on <a href="/demo">/demo</a>. This page is the custom book.</p>
       </div>
     </section>
   </main>
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260825live"></script>
-  <script src="/assets/chrome.js?v=20260828ds"></script>
+  <script src="/assets/chrome.js?v=20260828ds3"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
-  <script src="/assets/lab-desk.js?v=20260828ds"></script>
-  <script src="/assets/custom-analytics-demo.js?v=20260828ds"></script>
+  <script src="/assets/lab-desk.js?v=20260828ds3"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260828ds3"></script>
 </body>
 </html>

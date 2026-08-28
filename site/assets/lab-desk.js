@@ -229,69 +229,99 @@
     c.addEventListener("change", updateExceptions);
   });
 
-  /* Illustrative MDS split of the next SAMPLE dollar. */
-  function fillMix() {
+  /* Four SAMPLE if/then rules. Toggle on/off rewrites mix $. Cash identity never moves. */
+  var BASE_MIX = { meta: 41200, google: 31800, linkedin: 15400, other: 10100 };
+  var MIX_ROWS = [
+    { id: "meta", label: "Meta" },
+    { id: "google", label: "Google" },
+    { id: "linkedin", label: "LinkedIn" },
+    { id: "other", label: "Other paid" },
+  ];
+
+  function ruleOn(name) {
+    var el = root.querySelector('[data-lab-rule="' + name + '"]');
+    return el ? el.checked : true;
+  }
+
+  function computeMix() {
+    var m = {
+      meta: BASE_MIX.meta,
+      google: BASE_MIX.google,
+      linkedin: BASE_MIX.linkedin,
+      other: BASE_MIX.other,
+    };
+    if (ruleOn("google-plus")) {
+      m.google += 3180;
+      m.linkedin -= 3180;
+    }
+    if (ruleOn("cpql-cut")) {
+      m.linkedin -= 2000;
+      m.google += 2000;
+    }
+    if (!ruleOn("mkt-freeze")) {
+      m.other -= 1000;
+      m.google += 1000;
+    }
+    if (!ruleOn("meta-hold")) {
+      m.meta += 1000;
+      m.google -= 1000;
+    }
+    return m;
+  }
+
+  function fillRulesMix() {
     var table = root.querySelector("[data-lab-mix]");
     if (!table) return;
     var tbody = table.querySelector("tbody");
     var nextEl = table.querySelector("[data-lab-next]");
     var noteEl = root.querySelector("[data-lab-mix-note]");
-    var hurdleInput = root.querySelector("[data-lab-hurdle]");
     if (!tbody) return;
 
-    var rows = [
-      { label: "Meta", current: 41200 / 98500, eff: 4.6 },
-      { label: "Google", current: 31800 / 98500, eff: 3.7 },
-      { label: "LinkedIn", current: 15400 / 98500, eff: 3.2 },
-      { label: "Other paid", current: 10100 / 98500, eff: 5.2 },
-    ];
-    var hurdle = hurdleInput ? Number(hurdleInput.value) : 4;
-    if (!isFinite(hurdle) || hurdle <= 0) hurdle = 4;
-
-    var weights = rows.map(function (r) {
-      return Math.max(r.eff - hurdle, 0);
-    });
-    var sum = weights.reduce(function (a, b) {
-      return a + b;
-    }, 0);
-    var keep = sum === 0;
+    var mix = computeMix();
+    var notes = {
+      meta: ruleOn("meta-hold") ? "hold scale" : "hold off",
+      google: ruleOn("google-plus") ? "+10% Google" : "no +10%",
+      linkedin: ruleOn("cpql-cut") ? "CPQL cut" : "no CPQL cut",
+      other: ruleOn("mkt-freeze") ? "do not spend-optimize" : "optimize on",
+    };
 
     while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
-    var nextBits = [];
-    rows.forEach(function (r, i) {
-      var share = keep ? r.current : weights[i] / sum;
+    MIX_ROWS.forEach(function (r) {
       var tr = document.createElement("tr");
       var th = document.createElement("th");
       th.scope = "row";
       th.textContent = r.label;
       tr.appendChild(th);
-      [
-        (r.current * 100).toFixed(1) + "%",
-        r.eff.toFixed(2) + "×",
-        hurdle.toFixed(2) + "×",
-        weights[i].toFixed(2),
-        (share * 100).toFixed(1) + "%",
-      ].forEach(function (text) {
-        var td = document.createElement("td");
-        td.className = "mono";
-        td.textContent = text;
-        tr.appendChild(td);
-      });
+      var invoice = document.createElement("td");
+      invoice.className = "mono";
+      invoice.textContent = money(BASE_MIX[r.id]);
+      tr.appendChild(invoice);
+      var mixTd = document.createElement("td");
+      mixTd.className = "mono";
+      mixTd.setAttribute("data-lab-mix-amt", r.id);
+      mixTd.textContent = money(mix[r.id]);
+      tr.appendChild(mixTd);
+      var noteTd = document.createElement("td");
+      noteTd.textContent = notes[r.id];
+      tr.appendChild(noteTd);
       tbody.appendChild(tr);
-      if (share > 0.0005) {
-        nextBits.push(r.label + " " + (share * 100).toFixed(1) + "%");
-      }
     });
+
     if (nextEl) {
-      nextEl.textContent = keep
-        ? "Σweight = 0 — keep the current mix."
-        : "Next SAMPLE dollar: " + nextBits.join(" · ");
+      nextEl.textContent =
+        "Mix Σ " +
+        money(mix.meta + mix.google + mix.linkedin + mix.other) +
+        " · cash stays " +
+        CASH_ROAS +
+        " on " +
+        money(CASH_SALES) +
+        " ÷ " +
+        money(CASH_SPEND) +
+        ".";
     }
     if (noteEl) {
       noteEl.textContent =
-        "weight_c = max(eff_c − " +
-        hurdle.toFixed(2) +
-        "×, 0). Illustrative split of the next SAMPLE dollar. Not Nielsen / Meridian / Recast. Not geo. Not incrementality. Portfolio cash stays " +
+        "Rules rewrite mix $ only. Not Nielsen / Meridian / Recast. Not geo. Not incrementality. Cash stays " +
         CASH_ROAS +
         " = " +
         money(CASH_SALES) +
@@ -301,10 +331,39 @@
     }
   }
 
-  var hurdleInput = root.querySelector("[data-lab-hurdle]");
-  if (hurdleInput) {
-    hurdleInput.addEventListener("input", fillMix);
-    fillMix();
+  var ruleChecks = root.querySelectorAll("[data-lab-rule]");
+  ruleChecks.forEach(function (c) {
+    c.addEventListener("change", fillRulesMix);
+  });
+  if (ruleChecks.length) fillRulesMix();
+
+  var lineageBtns = root.querySelectorAll("[data-lineage]");
+  var lineagePanels = root.querySelectorAll("[data-lineage-panel]");
+  function showLineage(id) {
+    lineageBtns.forEach(function (b) {
+      var on = b.getAttribute("data-lineage") === id;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    lineagePanels.forEach(function (p) {
+      p.hidden = p.getAttribute("data-lineage-panel") !== id;
+    });
+  }
+  lineageBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      showLineage(b.getAttribute("data-lineage"));
+    });
+  });
+
+  var printBtn = root.querySelector("[data-lab-print-memo]");
+  if (printBtn) {
+    printBtn.addEventListener("click", function () {
+      document.body.classList.add("lab-print-memo");
+      window.print();
+    });
+    window.addEventListener("afterprint", function () {
+      document.body.classList.remove("lab-print-memo");
+    });
   }
 
   if (checks.length) updateRecon();

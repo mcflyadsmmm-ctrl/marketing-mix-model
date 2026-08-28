@@ -25,12 +25,60 @@ for page in "$site/lab.html" "$site/custom-analytics.html"; do
   else
     ok "$(basename "$page") branding lock"
   fi
+  if ! grep -q 'IF Meta UI' "$page" || ! grep -q 'IF cash ROAS' "$page" || ! grep -q 'IF marketplace residual' "$page" || ! grep -q 'IF CPQL' "$page"; then
+    die "$page missing four if/then rules"
+  else
+    ok "$(basename "$page") four if/then rules"
+  fi
+  for f in metric_contracts_v1.md spend_recon_jul2026.csv northline_desk.html runbook.md owner_transfer_checklist.md; do
+    if ! grep -q -- "$f" "$page"; then
+      die "$page missing $f"
+    fi
+  done
+  ok "$(basename "$page") five handoff filenames"
+  if ! grep -q 'Refuse:' "$page"; then
+    die "$page missing refuse list"
+  else
+    ok "$(basename "$page") refuse list"
+  fi
+  if ! grep -q 'Marty Smithson' "$page"; then
+    die "$page missing Marty Smithson"
+  else
+    ok "$(basename "$page") named operator"
+  fi
+  if grep -Eiq 'next start|join the waitlist|waitlist theater' "$page"; then
+    die "$page invents a next start / waitlist"
+  else
+    ok "$(basename "$page") no invented next start"
+  fi
+  if grep -q 'data-lab-hurdle' "$page"; then
+    die "$page still has CPQL/hurdle slider toy"
+  else
+    ok "$(basename "$page") no hurdle slider"
+  fi
   if ! grep -q 'data-ca-billed>$98,500' "$page"; then
     die "$page billed SSR is not \$98,500"
   else
     ok "$(basename "$page") billed SSR \$98,500"
   fi
 done
+
+ca="$site/custom-analytics.html"
+if ! grep -q 'METRIC CONTRACT v1' "$ca"; then
+  die "custom-analytics.html missing METRIC CONTRACT v1"
+else
+  ok "custom-analytics METRIC CONTRACT v1"
+fi
+if ! grep -q 'invoice CSV' "$ca" || ! grep -q 'signed $98,500' "$ca"; then
+  die "custom-analytics.html missing lineage strip"
+else
+  ok "custom-analytics lineage strip"
+fi
+if grep -Eq 'id="faq"|id="market-title"|ca-packages reveal' "$ca"; then
+  die "custom-analytics.html still brochure-centered (faq/market/price tiles)"
+else
+  ok "custom-analytics brochure visual center removed"
+fi
 
 node --check "$site/assets/lab-desk.js"
 node --check "$site/assets/sku-science.js"

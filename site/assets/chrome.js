@@ -32,10 +32,10 @@
     <nav class="nav nav--analytics" aria-label="Analytics">
       <a href="/custom-analytics#overview" data-ca-nav="overview">Overview</a>
       <a href="/lab" data-ca-nav="labs">Labs</a>
-      <a href="/custom-analytics#packages" data-ca-nav="packages">Packages</a>
-      <a href="/custom-analytics#privacy" data-ca-nav="privacy">Privacy</a>
+      <a href="/custom-analytics#contracts" data-ca-nav="contracts">Contracts</a>
+      <a href="/custom-analytics#handoff" data-ca-nav="handoff">Handoff</a>
       <a href="/custom-analytics#inquire" data-ca-nav="inquire">Inquire</a>
-      <a class="nav-cta" href="/custom-analytics#inquire">Request a proposal</a>
+      <a class="nav-cta" href="/custom-analytics#inquire">Request engagement $5–25K</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
       <span></span><span></span>
@@ -44,10 +44,10 @@
   <div id="mobile-nav" class="mobile-nav" hidden>
     <a href="/custom-analytics#overview">Overview</a>
     <a href="/lab">Labs</a>
-    <a href="/custom-analytics#packages">Packages</a>
-    <a href="/custom-analytics#privacy">Privacy</a>
+    <a href="/custom-analytics#contracts">Contracts</a>
+    <a href="/custom-analytics#handoff">Handoff</a>
     <a href="/custom-analytics#inquire">Inquire</a>
-    <a href="/custom-analytics#inquire">Request a proposal</a>
+    <a href="/custom-analytics#inquire">Request engagement $5–25K</a>
       <a href="/">← Shopify App (Mcfly Analytics)</a>
   </div>`;
   } else if (chrome) {
@@ -98,8 +98,8 @@
       <nav aria-label="Footer">
         <a href="/custom-analytics#overview">Overview</a>
         <a href="/lab">Labs</a>
-        <a href="/custom-analytics#packages">Packages</a>
-        <a href="/custom-analytics#privacy">Privacy</a>
+        <a href="/custom-analytics#contracts">Contracts</a>
+        <a href="/custom-analytics#handoff">Handoff</a>
         <a href="/custom-analytics#inquire">Inquire</a>
         <a href="/security">Security</a>
         <a href="/privacy">Privacy policy</a>
@@ -154,12 +154,21 @@
     const map = {
       overview: "overview",
       main: "overview",
-      recon: "labs",
       "lead-gen": "labs",
       "ca-labs": "labs",
-      packages: "packages",
-      privacy: "privacy",
-      fit: "packages",
+      contracts: "contracts",
+      recon: "contracts",
+      lineage: "contracts",
+      rules: "contracts",
+      allocation: "contracts",
+      handoff: "handoff",
+      packet: "handoff",
+      specimen: "handoff",
+      "close-memo": "handoff",
+      "build-log": "handoff",
+      packages: "inquire",
+      privacy: "handoff",
+      fit: "inquire",
       inquire: "inquire",
     };
     const key = onLab ? "labs" : map[hash] || "overview";
@@ -171,7 +180,7 @@
     });
     window.addEventListener("hashchange", () => {
       const h = (location.hash || "#overview").replace(/^#/, "");
-      const k = map[h] || "overview";
+      const k = onLab ? "labs" : map[h] || "overview";
       document.querySelectorAll("[data-ca-nav]").forEach((link) => {
         const on = link.getAttribute("data-ca-nav") === k;
         link.classList.toggle("active", on);
