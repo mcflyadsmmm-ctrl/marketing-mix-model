@@ -8,9 +8,6 @@
 (function () {
   "use strict";
 
-  var root = document.querySelector("[data-lab-desk]");
-  if (!root) return;
-
   var CASH_SALES = 412400;
   var CASH_SPEND = 98500;
   var CASH_ROAS = "4.19×";
@@ -48,10 +45,12 @@
   var platforms = [
     { id: "meta", label: "Meta", billed: 41200, reported: 42850 },
     { id: "google", label: "Google", billed: 31800, reported: 31120 },
-    { id: "linkedin", label: "LinkedIn", billed: 15400, reported: 16180 },
-    { id: "other", label: "Other paid", billed: 10100, reported: 9800 },
+    { id: "linkedin", label: "Microsoft", billed: 15400, reported: 16180 },
+    { id: "other", label: "Email", billed: 10100, reported: 9800 },
   ];
 
+  function bindRecon(root) {
+  if (!root) return;
   var checks = root.querySelectorAll("[data-ca-plat]");
   var billedEl = root.querySelector("[data-ca-billed]");
   var reportedEl = root.querySelector("[data-ca-reported]");
@@ -237,13 +236,13 @@
   var MIX_ROWS = [
     { id: "meta", label: "Meta" },
     { id: "google", label: "Google" },
-    { id: "linkedin", label: "LinkedIn" },
-    { id: "other", label: "Other paid" },
+    { id: "linkedin", label: "Microsoft" },
+    { id: "other", label: "Email" },
   ];
 
   function ruleOn(name) {
     var el = root.querySelector('[data-lab-rule="' + name + '"]');
-    return el ? el.checked : true;
+    return el ? el.checked : false;
   }
 
   function computeMix() {
@@ -284,7 +283,13 @@
     var notes = {
       meta: ruleOn("meta-hold") ? "hold scale" : "hold off",
       google: ruleOn("google-plus") ? "+10% Google" : "no +10%",
-      linkedin: ruleOn("cpql-cut") ? "CPQL cut" : "no CPQL cut",
+      linkedin: root.querySelector('[data-lab-rule="cpql-cut"]')
+        ? ruleOn("cpql-cut")
+          ? "CPQL cut"
+          : "no CPQL cut"
+        : ruleOn("ms-material")
+          ? "investigate"
+          : "cleared",
       other: ruleOn("mkt-freeze") ? "do not spend-optimize" : "optimize on",
     };
 
@@ -324,7 +329,7 @@
     }
     if (noteEl) {
       noteEl.textContent =
-        "Rules rewrite mix $ only. Not Nielsen / Meridian / Recast. Not geo. Not incrementality. Cash stays " +
+        "Rules rewrite mix $ only. Cash stays " +
         CASH_ROAS +
         " = " +
         money(CASH_SALES) +
@@ -353,6 +358,128 @@
 
   if (checks.length) updateRecon();
   else updateExceptions();
+  }
+
+  document.querySelectorAll("[data-lab-desk]").forEach(bindRecon);
+
+  function initLabApp() {
+    var app = document.querySelector("[data-lab-app]");
+    if (!app) return;
+
+    var desks = {
+      recon: document.getElementById("desk-recon"),
+      exec: document.getElementById("desk-exec"),
+      portal: document.getElementById("desk-portal"),
+    };
+    var rails = app.querySelectorAll("[data-lab-rail]");
+    var roleBtns = app.querySelectorAll("[data-lab-role]");
+    var seatEl = app.querySelector("[data-lab-seat]");
+    var execMemo = app.querySelector("[data-lab-exec-memo]");
+    var holdBtn = app.querySelector("[data-lab-hold-meta]");
+    var galleryDoors = document.querySelectorAll("[data-lab-door]");
+
+    function showDesk(name) {
+      var key = desks[name] ? name : "recon";
+      Object.keys(desks).forEach(function (id) {
+        if (desks[id]) desks[id].hidden = id !== key;
+      });
+      galleryDoors.forEach(function (d) {
+        d.classList.toggle("is-on", d.getAttribute("data-lab-door") === key);
+      });
+      rails.forEach(function (r) {
+        var rail = r.getAttribute("data-lab-rail");
+        var on =
+          (key === "recon" && rail === "recon") ||
+          (key === "exec" && (rail === "desk" || rail === "contracts" || rail === "handoff")) ||
+          (key === "portal" && rail === "desk");
+        if (key === "exec" && rail === "desk") on = true;
+        if (key === "exec" && (rail === "contracts" || rail === "handoff")) on = false;
+        if (key === "portal") on = rail === "desk";
+        if (on) r.setAttribute("aria-current", "page");
+        else r.removeAttribute("aria-current");
+      });
+    }
+
+    function setRole(role) {
+      var next = role === "finance" || role === "media" ? role : "operator";
+      roleBtns.forEach(function (b) {
+        var on = b.getAttribute("data-lab-role") === next;
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      if (seatEl) {
+        var title =
+          next === "finance" ? "Finance" : next === "media" ? "Media" : "Operator";
+        seatEl.textContent = title + " seat 2 of 4";
+      }
+      app.querySelectorAll("[data-lab-role-panel]").forEach(function (panel) {
+        panel.hidden = panel.getAttribute("data-lab-role-panel") !== next;
+      });
+    }
+
+    galleryDoors.forEach(function (d) {
+      d.addEventListener("click", function (event) {
+        event.preventDefault();
+        var name = d.getAttribute("data-lab-door");
+        showDesk(name);
+        if (name === "portal") setRole("operator");
+        var target = desks[name];
+        if (target && target.scrollIntoView) {
+          target.scrollIntoView({ block: "start" });
+        }
+      });
+    });
+
+    rails.forEach(function (r) {
+      r.addEventListener("click", function (event) {
+        event.preventDefault();
+        var rail = r.getAttribute("data-lab-rail");
+        if (rail === "recon") {
+          showDesk("recon");
+        } else {
+          showDesk("exec");
+          var jump =
+            rail === "contracts"
+              ? document.getElementById("desk-exec-contracts")
+              : rail === "handoff"
+                ? document.getElementById("desk-exec-handoff")
+                : desks.exec;
+          if (jump && jump.scrollIntoView) jump.scrollIntoView({ block: "start" });
+        }
+        rails.forEach(function (x) {
+          var on = x === r;
+          if (on) x.setAttribute("aria-current", "page");
+          else x.removeAttribute("aria-current");
+        });
+      });
+    });
+
+    roleBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        setRole(b.getAttribute("data-lab-role"));
+        showDesk("portal");
+      });
+    });
+
+    if (holdBtn && execMemo) {
+      holdBtn.addEventListener("click", function () {
+        execMemo.textContent =
+          "Period: Northline SAMPLE week. Signed spend $98,500. Cash 4.19× vs BE 2.86× vs target 4.00×. invoice−UI −$1,450 (−1.5%).\nAction: HOLD Meta — UI $42,850 ahead of invoice $41,200 (−4.0%). Do not scale. Numbers do not invent lift.";
+        showDesk("exec");
+      });
+    }
+
+    var hash = (location.hash || "").replace(/^#/, "");
+    if (hash === "desk-exec" || hash === "desk-exec-contracts" || hash === "desk-exec-handoff") {
+      showDesk("exec");
+    } else if (hash === "desk-portal") {
+      showDesk("portal");
+    } else {
+      showDesk("recon");
+    }
+    setRole("operator");
+  }
+
+  initLabApp();
 
   void PLATFORM_REV;
 })();

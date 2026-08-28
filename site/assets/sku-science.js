@@ -65,8 +65,8 @@
     var platforms = [
       { id: "meta", label: "Meta", invoice: 41200, ui: 42850 },
       { id: "google", label: "Google", invoice: 31800, ui: 31120 },
-      { id: "linkedin", label: "LinkedIn", invoice: 15400, ui: 16180 },
-      { id: "other", label: "Other paid", invoice: 10100, ui: 9800 },
+      { id: "linkedin", label: "Microsoft", invoice: 15400, ui: 16180 },
+      { id: "other", label: "Email", invoice: 10100, ui: 9800 },
     ];
 
     var checks = root.querySelectorAll("[data-sci-plat]");
@@ -324,8 +324,8 @@
     fillMix(root.querySelector("[data-sci-mix='dollars']"), [
       { label: "Meta", current: 41200 / 98500, eff: 4.6, target: 4.0 },
       { label: "Google", current: 31800 / 98500, eff: 3.7, target: 4.0 },
-      { label: "LinkedIn", current: 15400 / 98500, eff: 3.2, target: 4.0 },
-      { label: "Other paid", current: 10100 / 98500, eff: 5.2, target: 4.0 },
+      { label: "Microsoft", current: 15400 / 98500, eff: 3.2, target: 4.0 },
+      { label: "Email", current: 10100 / 98500, eff: 5.2, target: 4.0 },
     ], "dollars");
 
     fillMix(root.querySelector("[data-sci-mix='leads']"), [

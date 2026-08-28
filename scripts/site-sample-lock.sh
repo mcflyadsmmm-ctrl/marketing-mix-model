@@ -25,10 +25,16 @@ for page in "$site/lab.html" "$site/custom-analytics.html"; do
   else
     ok "$(basename "$page") branding lock"
   fi
-  if ! grep -q 'IF Meta UI' "$page" || ! grep -q 'IF cash ROAS' "$page" || ! grep -q 'IF marketplace residual' "$page" || ! grep -q 'IF CPQL' "$page"; then
-    die "$page missing four if/then rules"
+  if ! grep -q 'IF Meta UI' "$page" || ! grep -q 'IF cash ROAS' "$page" || ! grep -q 'IF marketplace residual' "$page"; then
+    die "$page missing Northline if/then rules"
   else
-    ok "$(basename "$page") four if/then rules"
+    ok "$(basename "$page") Northline if/then rules"
+  fi
+  if [[ "$(basename "$page")" == "custom-analytics.html" ]] && ! grep -q 'IF CPQL' "$page"; then
+    die "custom-analytics.html missing IF CPQL rule"
+  fi
+  if [[ "$(basename "$page")" == "lab.html" ]] && grep -q 'IF CPQL' "$page"; then
+    die "lab.html still has the Lead gen CPQL if/then"
   fi
   for f in metric_contracts_v1.md spend_recon_jul2026.csv northline_desk.html runbook.md owner_transfer_checklist.md; do
     if ! grep -q -- "$f" "$page"; then
@@ -66,7 +72,7 @@ for page in "$site/lab.html" "$site/custom-analytics.html"; do
   else
     ok "$(basename "$page") Voice slang lock"
   fi
-  if ! grep -q 'HOLD Meta' "$page" || ! grep -q 'PROTECT Other' "$page" || ! grep -q 'SHIFT +10% Google' "$page"; then
+  if ! grep -q 'HOLD Meta' "$page" || ! grep -q 'PROTECT Email' "$page" || ! grep -q 'SHIFT +10% Google' "$page"; then
     die "$page missing hold/protect/shift close memo"
   else
     ok "$(basename "$page") printable hold/protect/shift"
@@ -489,7 +495,7 @@ if grep -R -n --include='*.html' --include='*.js' -E '\$226 &gt; \$200|\$226 > \
 else
   ok "no invented \$200 CPQL target"
 fi
-for page in "$site/lab.html" "$site/custom-analytics.html" "$site/lead-gen-desk.html"; do
+for page in "$site/custom-analytics.html" "$site/lead-gen-desk.html"; do
   if ! grep -q 'target $250' "$page"; then
     die "$(basename "$page") missing SAMPLE CPQL target \$250"
   else
@@ -501,10 +507,81 @@ for page in "$site/lab.html" "$site/custom-analytics.html" "$site/lead-gen-desk.
     ok "$(basename "$page") CPQL seed \$226"
   fi
 done
+if grep -q '\$226' "$site/lab.html"; then
+  die "lab.html still has the Lead gen \$226 tile / second SAMPLE"
+else
+  ok "lab.html dropped \$226 second SAMPLE"
+fi
 if grep -q 'data-lab-rule="cpql-cut" checked' "$site/lab.html" "$site/custom-analytics.html"; then
   die "CPQL cut defaults on even though \$226 ≤ \$250"
 else
   ok "CPQL cut defaults off (\$226 ≤ \$250)"
+fi
+
+# /lab gallery — three desks, signed-in chrome, one Northline book.
+lab="$site/lab.html"
+if ! grep -q 'data-lab-desk="recon"' "$lab" || ! grep -q 'data-lab-desk="exec"' "$lab" || ! grep -q 'data-lab-desk="portal"' "$lab"; then
+  die "lab.html missing three distinct desks (recon / exec / portal)"
+else
+  ok "lab.html three desks recon / exec / portal"
+fi
+if ! grep -q 'Northline Supply' "$lab" || ! grep -q 'A. Chen' "$lab" || ! grep -q 'Operator seat 2 of 4' "$lab" || ! grep -q 'last in 27 Jul 09:14' "$lab"; then
+  die "lab.html missing signed-in session bar"
+else
+  ok "lab.html SAMPLE signed-in session bar"
+fi
+if ! grep -q '4 seats on this SAMPLE desk — you keep the seats.' "$lab"; then
+  die "lab.html missing seat-scale line"
+else
+  ok "lab.html seat-scale line"
+fi
+if ! grep -q 'data-lab-role="finance"' "$lab" || ! grep -q 'data-lab-role="media"' "$lab" || ! grep -q 'data-lab-role="operator"' "$lab"; then
+  die "lab.html missing Finance / Media / Operator role switch"
+else
+  ok "lab.html role switch in the session bar"
+fi
+if ! grep -q 'data-lab-rail="desk"' "$lab" || ! grep -q 'data-lab-rail="recon"' "$lab" || ! grep -q 'data-lab-rail="contracts"' "$lab" || ! grep -q 'data-lab-rail="handoff"' "$lab"; then
+  die "lab.html missing left rail Desk / Recon / Contracts / Handoff"
+else
+  ok "lab.html left rail Desk / Recon / Contracts / Handoff"
+fi
+if grep -Eq 'Ecommerce|Lead gen' "$lab"; then
+  die "lab.html still has Invoice vs UI / Ecommerce / Lead gen tab strip"
+else
+  ok "lab.html no marketing mode tab strip"
+fi
+if grep -Eq 'LinkedIn|Other paid' "$lab"; then
+  die "lab.html still labels LinkedIn / Other paid"
+else
+  ok "lab.html channels are Microsoft / Email"
+fi
+if ! grep -q '>Microsoft<' "$lab" || ! grep -q '>Email<' "$lab"; then
+  die "lab.html missing Microsoft / Email channel labels"
+fi
+if ! grep -q '2.86×' "$lab" || ! grep -q '4.00×' "$lab"; then
+  die "lab.html missing BE 2.86× or target 4.00×"
+else
+  ok "lab.html BE 2.86× and target 4.00×"
+fi
+if ! grep -q 'data-lab-hold-meta' "$lab"; then
+  die "lab.html missing Hold Meta interaction"
+else
+  ok "lab.html Hold Meta"
+fi
+if ! grep -q 'Platform print (not for close)' "$lab"; then
+  die "lab.html missing Platform print (not for close) contract row"
+else
+  ok "lab.html Platform print not-for-close"
+fi
+if ! grep -q '07-03' "$lab" || ! grep -q '07-11' "$lab" || ! grep -q '07-18' "$lab" || ! grep -q '07-25' "$lab" || ! grep -q '07-27' "$lab"; then
+  die "lab.html missing delivery pipeline dates"
+else
+  ok "lab.html delivery pipeline 07-03 through 07-27"
+fi
+if grep -Eq 'type="password"|name="password"' "$lab"; then
+  die "lab.html added a real auth wall"
+else
+  ok "lab.html no password wall"
 fi
 
 # Hidden version stamp — HTML on studio pages + chrome.js runtime.

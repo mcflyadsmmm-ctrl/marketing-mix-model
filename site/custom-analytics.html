@@ -31,7 +31,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260828id" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828id" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828lab3" />
   <style>
     /* Inquire lives on the dark desk. Dead brochure CSS stripped. */
     body.ca-page.lab-page .ca-book {
@@ -305,7 +305,7 @@
               <p class="lab-kicker">Unmatched rows <span>SAMPLE · do not tie · not a live client</span></p>
               <ul>
                 <li>Meta invoice $41,200 ≠ UI $42,850 (−$1,650)</li>
-                <li>LinkedIn invoice $15,400 ≠ UI $16,180 (−$780)</li>
+                <li>Microsoft invoice $15,400 ≠ UI $16,180 (−$780)</li>
                 <li>Marketplace $1,200 — UI coverage, not on this invoice</li>
                 <li>VAT $480 — on invoice, not in Ads Manager</li>
                 <li>Aug 11 missing invoice $1,400 — timezone / credit timing</li>
@@ -321,7 +321,7 @@
                 </article>
                 <article>
                   <p class="k">PROTECT</p>
-                  <h3>Other paid</h3>
+                  <h3>Email</h3>
                   <p>Marketplace residual on. Do not spend-optimize that SKU.</p>
                 </article>
                 <article>
@@ -360,7 +360,7 @@
               </li>
               <li>
                 <p class="lab-lineage__node">staged spend</p>
-                <p>grain: channel (Meta, Google, LinkedIn, Other paid)</p>
+                <p>grain: channel (Meta, Google, Microsoft, Email)</p>
                 <p>as-of: Jul 1–27 2026</p>
               </li>
               <li>
@@ -486,8 +486,8 @@
                         <td data-tone="warn">Investigate</td>
                       </tr>
                       <tr data-ca-row="linkedin">
-                        <td class="lab-in"><input type="checkbox" data-ca-plat="linkedin" checked aria-label="Include LinkedIn" /></td>
-                        <th scope="row">LinkedIn</th>
+                        <td class="lab-in"><input type="checkbox" data-ca-plat="linkedin" checked aria-label="Include Microsoft" /></td>
+                        <th scope="row">Microsoft</th>
                         <td class="mono">$15,400</td>
                         <td class="mono">$16,180</td>
                         <td class="mono">−$780</td>
@@ -495,8 +495,8 @@
                         <td data-tone="bad">Material</td>
                       </tr>
                       <tr data-ca-row="other">
-                        <td class="lab-in"><input type="checkbox" data-ca-plat="other" checked aria-label="Include Other paid" /></td>
-                        <th scope="row">Other paid</th>
+                        <td class="lab-in"><input type="checkbox" data-ca-plat="other" checked aria-label="Include Email" /></td>
+                        <th scope="row">Email</th>
                         <td class="mono">$10,100</td>
                         <td class="mono">$9,800</td>
                         <td class="mono">+$300</td>
@@ -520,9 +520,9 @@
               </div>
               <aside class="lab-memo" data-ca-memo aria-label="SAMPLE close memo">
                 <p class="lab-memo__label">Close memo · SAMPLE · not a live client</p>
-                <p class="lab-memo__body" data-ca-memo-body>Period: Northline SAMPLE week · channels: Meta, Google, LinkedIn, Other paid
+                <p class="lab-memo__body" data-ca-memo-body>Period: Northline SAMPLE week · channels: Meta, Google, Microsoft, Email
 Invoice billed $98,500 · Ads Manager UI $99,950 · billed − UI −$1,450 (−1.5%)
-Action: LinkedIn UI ahead of invoice — tax, fee, timezone, or credit timing. Investigate before finance signs.
+Action: Microsoft UI ahead of invoice — tax, fee, timezone, or credit timing. Investigate before finance signs.
 Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it.</p>
                 <p class="lab-memo__note">Invoice vs UI is tax / fee / timezone / credit timing. Returns + last-touch explain cash vs platform, not this ledger.</p>
               </aside>
@@ -545,15 +545,15 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                 <tbody>
                   <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono">$42,850</td><td class="mono">−$1,650</td><td class="mono">−4.0%</td></tr>
                   <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono">$31,120</td><td class="mono">+$680</td><td class="mono">+2.1%</td></tr>
-                  <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono">$16,180</td><td class="mono">−$780</td><td class="mono">−5.1%</td></tr>
-                  <tr><th scope="row">Other paid</th><td class="mono">$10,100</td><td class="mono">$9,800</td><td class="mono">+$300</td><td class="mono">+3.0%</td></tr>
+                  <tr><th scope="row">Microsoft</th><td class="mono">$15,400</td><td class="mono">$16,180</td><td class="mono">−$780</td><td class="mono">−5.1%</td></tr>
+                  <tr><th scope="row">Email</th><td class="mono">$10,100</td><td class="mono">$9,800</td><td class="mono">+$300</td><td class="mono">+3.0%</td></tr>
                 </tbody>
                 <tfoot>
                   <tr><th scope="row">Included</th><td class="mono">$98,500</td><td class="mono">$99,950</td><td class="mono">−$1,450</td><td class="mono">−1.5%</td></tr>
                 </tfoot>
               </table>
               <p><strong>Outcome ÷ spend.</strong> Cash Total ROAS <span class="mono">4.19×</span> = $412,400 ÷ $98,500. Platform ~4.8× = $472,800 ÷ $98,500. Same signed spend.</p>
-              <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Other paid SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
+              <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Email SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
               <p>You keep this file. Redacted. Not a live client.</p>
               <p class="lab-formula"><button type="button" class="btn ghost" data-lab-print-memo>Print memo</button></p>
             </article>
@@ -618,11 +618,11 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               </label>
               <label>
                 <input type="checkbox" data-lab-rule="mkt-freeze" checked />
-                <span>IF marketplace residual on THEN do not spend-optimize that SKU — Other paid stays $10,100.</span>
+                <span>IF marketplace residual on THEN do not spend-optimize that SKU — Email stays $10,100.</span>
               </label>
               <label>
                 <input type="checkbox" data-lab-rule="cpql-cut" />
-                <span>IF CPQL &gt; target THEN cut worst CRM-qualified channel — $226 ≤ $250, rule does not fire. Same seed as /lead-gen-desk. Opt-in to see a $2,000 LinkedIn cut. Not an invoice on $98,500.</span>
+                <span>IF CPQL &gt; target THEN cut worst CRM-qualified channel — $226 ≤ $250, rule does not fire. Same seed as /lead-gen-desk. Opt-in to see a $2,000 Microsoft cut. Not an invoice on $98,500.</span>
               </label>
             </fieldset>
             <div class="lab-scroll">
@@ -639,8 +639,8 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                 <tbody>
                   <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono" data-lab-mix-amt="meta">$41,200</td><td>hold scale</td></tr>
                   <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono" data-lab-mix-amt="google">$34,980</td><td>+10% Google</td></tr>
-                  <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono" data-lab-mix-amt="linkedin">$12,220</td><td>no CPQL cut</td></tr>
-                  <tr><th scope="row">Other paid</th><td class="mono">$10,100</td><td class="mono" data-lab-mix-amt="other">$10,100</td><td>do not spend-optimize</td></tr>
+                  <tr><th scope="row">Microsoft</th><td class="mono">$15,400</td><td class="mono" data-lab-mix-amt="linkedin">$12,220</td><td>no CPQL cut</td></tr>
+                  <tr><th scope="row">Email</th><td class="mono">$10,100</td><td class="mono" data-lab-mix-amt="other">$10,100</td><td>do not spend-optimize</td></tr>
                 </tbody>
                 <tfoot>
                   <tr>
@@ -1112,7 +1112,7 @@ Marty · mcflyadsmmm@gmail.com</pre>
   <script src="/assets/cta-config.js?v=20260825live"></script>
   <script src="/assets/chrome.js?v=20260828voice"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
-  <script src="/assets/lab-desk.js?v=20260828id"></script>
+  <script src="/assets/lab-desk.js?v=20260828lab3"></script>
   <script src="/assets/custom-analytics-demo.js?v=20260828ds5"></script>
 </body>
 </html>

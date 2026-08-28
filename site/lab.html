@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260828id" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828id" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828lab3" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -52,322 +52,530 @@
   <div data-chrome></div>
 
   <main id="main">
-    <div class="lab-instrument" id="ca-labs" data-lab-desk aria-label="SAMPLE desk — Northline week">
-      <div class="lab-shell">
-        <nav aria-label="90-second desk">
-          <ul class="lab-rail">
-            <li><a href="#lab-00"><b>:00</b> Same $98,500</a></li>
-            <li><a href="#lab-12"><b>:12</b> Uncheck Google</a></li>
-            <li><a href="#lab-35"><b>:35</b> Marketplace residual</a></li>
-            <li><a href="#lab-55"><b>:55</b> If/then rules</a></li>
-            <li><a href="#lab-70"><b>:70</b> Print memo</a></li>
-            <li><a href="#lab-80"><b>:80</b> Keep the files</a></li>
-          </ul>
-        </nav>
-        <p class="lab-id">
-          <span><span class="lab-chip">SAMPLE</span> Northline Supply · demo-not-production · not a live client</span>
-          <span>spend_audited <strong>$98,500</strong> · sales_net <strong>$412,400</strong> · cash <strong>4.19×</strong> locked</span>
-        </p>
+    <header class="lab-gallery" aria-labelledby="lab-00-h">
+      <p class="lab-kicker">SAMPLE <span>Northline Supply · one book · Jul 1–27 2026 · not a live client</span></p>
+      <h1 id="lab-00-h">Same $98,500. Cash 4.19× vs platform ~4.8×.</h1>
+      <p class="lab-lede">Invoice $98,500 vs UI $99,950 · billed − UI −$1,450 (−1.5%) · sales $412,400. Three desks they keep. Not a second company.</p>
+      <div class="lab-doors" aria-label="Three SAMPLE desks · one Northline book">
+        <a class="lab-door is-on" href="#desk-recon" data-lab-door="recon">
+          <span class="lab-chip">SAMPLE</span>
+          <strong>Marketing recon</strong>
+          <span>Invoice vs UI. Live memo. Exceptions that do not move 4.19×.</span>
+        </a>
+        <a class="lab-door" href="#desk-exec" data-lab-door="exec">
+          <span class="lab-chip">SAMPLE</span>
+          <strong>Exec / CFO</strong>
+          <span>Signed spend, cash vs break-even, metric contracts, files they keep.</span>
+        </a>
+        <a class="lab-door" href="#desk-portal" data-lab-door="portal">
+          <span class="lab-chip">SAMPLE</span>
+          <strong>Signed-in portal</strong>
+          <span>A. Chen, operator. Finance / Media / Operator on the same book.</span>
+        </a>
+      </div>
+      <div class="lab-cta">
+        <a class="btn primary solid" href="/custom-analytics?package=audit#inquire">Request engagement $5–25K</a>
+        <span class="lab-quiet">You keep the system. Shopify-only shops: <a href="/demo">/demo</a>.</span>
+      </div>
+    </header>
 
-        <section class="lab-section" id="lab-00" aria-labelledby="lab-00-h">
-          <p class="lab-kicker">:00 <span>Jul 1–27 2026 · signed spend $98,500</span></p>
-          <h1 id="lab-00-h">Same $98,500. Cash 4.19× vs platform ~4.8×.</h1>
-          <p class="lab-lede">Uncheck Google in :12. Cash 4.19× stays on $412,400 ÷ $98,500. Platform ~4.8× uses the same signed spend.</p>
-          <div class="lab-pair" aria-label="Northline SAMPLE — invoice vs UI">
-            <article>
-              <p class="lab-k">Invoice billed</p>
-              <p class="lab-v">$98,500</p>
-              <p class="lab-formula">signed spend · finance denominator · Jul 1–27</p>
-            </article>
-            <article>
-              <p class="lab-k">Ads Manager UI</p>
-              <p class="lab-v">$99,950</p>
-              <p class="lab-formula">beside, never the signed total · billed − UI −$1,450 (−1.5%)</p>
-            </article>
+    <div class="lab-instrument" id="ca-labs" aria-label="SAMPLE desks — Northline week">
+      <div class="lab-app" data-lab-app>
+        <header class="lab-session">
+          <p class="lab-session__who">
+            <span>Northline Supply</span>
+            <span class="lab-chip">SAMPLE</span>
+            <span>A. Chen</span>
+            <span data-lab-seat>Operator seat 2 of 4</span>
+            <span>last in 27 Jul 09:14</span>
+          </p>
+          <div class="lab-roles" role="group" aria-label="Role on this SAMPLE desk">
+            <button type="button" data-lab-role="finance">Finance</button>
+            <button type="button" data-lab-role="media">Media</button>
+            <button type="button" data-lab-role="operator" aria-pressed="true">Operator</button>
           </div>
-          <div class="lab-fold-spend" aria-label="Cash vs platform on the same $98,500">
-            <div>
-              <p class="k">Cash Total ROAS</p>
-              <p class="v">4.19×</p>
-              <p class="lab-formula">$412,400 ÷ $98,500</p>
-            </div>
-            <div>
-              <p class="k">Platform ROAS</p>
-              <p class="v">~4.8×</p>
-              <p class="lab-formula">$472,800 ÷ $98,500</p>
-            </div>
-            <div>
-              <p class="k">Billed − UI</p>
-              <p class="v">−$1,450</p>
-              <p class="lab-formula">−1.5% · Within 2%</p>
-            </div>
-          </div>
-          <p class="lab-lock">Cash 4.19× does not move when exceptions toggle.</p>
-          <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah</p>
-        </section>
+        </header>
+        <p class="lab-seats">4 seats on this SAMPLE desk — you keep the seats.</p>
 
-        <section class="lab-section" id="lab-12" aria-labelledby="lab-12-h">
-          <p class="lab-kicker">:12 <span>Uncheck Google · ledger + close memo rewrite</span></p>
-          <h2 id="lab-12-h">Invoice vs Ads Manager UI</h2>
-          <p class="lab-lede">Billed is spend truth. UI sits beside it. Uncheck Google — included totals and the memo rewrite. Cash 4.19× stays on $412,400 ÷ $98,500.</p>
-          <div class="lab-split">
-            <div>
-              <div class="lab-scroll">
-                <table class="lab-table">
-                  <caption>Variance = billed − UI. Flag: |%| &lt; 2% within 2% · 2–5% investigate · &gt; 5% material. Uncheck a channel to drop its row.</caption>
-                  <thead>
-                    <tr>
-                      <th class="lab-in" scope="col">In</th>
-                      <th scope="col">Channel</th>
-                      <th scope="col">Invoice</th>
-                      <th scope="col">Ads Manager UI</th>
-                      <th scope="col">$</th>
-                      <th scope="col">%</th>
-                      <th scope="col">Flag</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr data-ca-row="meta">
-                      <td class="lab-in"><input type="checkbox" data-ca-plat="meta" checked aria-label="Include Meta" /></td>
-                      <th scope="row">Meta</th>
-                      <td class="mono">$41,200</td>
-                      <td class="mono">$42,850</td>
-                      <td class="mono">−$1,650</td>
-                      <td class="mono">−4.0%</td>
-                      <td data-tone="warn">Investigate</td>
-                    </tr>
-                    <tr data-ca-row="google">
-                      <td class="lab-in"><input type="checkbox" data-ca-plat="google" checked aria-label="Include Google" /></td>
-                      <th scope="row">Google</th>
-                      <td class="mono">$31,800</td>
-                      <td class="mono">$31,120</td>
-                      <td class="mono">+$680</td>
-                      <td class="mono">+2.1%</td>
-                      <td data-tone="warn">Investigate</td>
-                    </tr>
-                    <tr data-ca-row="linkedin">
-                      <td class="lab-in"><input type="checkbox" data-ca-plat="linkedin" checked aria-label="Include LinkedIn" /></td>
-                      <th scope="row">LinkedIn</th>
-                      <td class="mono">$15,400</td>
-                      <td class="mono">$16,180</td>
-                      <td class="mono">−$780</td>
-                      <td class="mono">−5.1%</td>
-                      <td data-tone="bad">Material</td>
-                    </tr>
-                    <tr data-ca-row="other">
-                      <td class="lab-in"><input type="checkbox" data-ca-plat="other" checked aria-label="Include Other paid" /></td>
-                      <th scope="row">Other paid</th>
-                      <td class="mono">$10,100</td>
-                      <td class="mono">$9,800</td>
-                      <td class="mono">+$300</td>
-                      <td class="mono">+3.0%</td>
-                      <td data-tone="warn">Investigate</td>
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <th scope="row" colspan="2">Included</th>
-                      <td class="mono" data-ca-billed>$98,500</td>
-                      <td class="mono" data-ca-reported>$99,950</td>
-                      <td class="mono" data-ca-variance>−$1,450</td>
-                      <td class="mono" data-ca-variance-pct>−1.5%</td>
-                      <td data-ca-variance-tone data-tone="good">Within 2%</td>
-                    </tr>
-                  </tfoot>
-                </table>
+        <div class="lab-app-body">
+          <nav class="lab-siderail" aria-label="Northline desk">
+            <p class="lab-siderail__brand">Northline Supply</p>
+            <a href="#desk-exec" data-lab-rail="desk">Desk</a>
+            <a href="#desk-recon" data-lab-rail="recon" aria-current="page">Recon</a>
+            <a href="#desk-exec-contracts" data-lab-rail="contracts">Contracts</a>
+            <a href="#desk-exec-handoff" data-lab-rail="handoff">Handoff</a>
+          </nav>
+
+          <div class="lab-canvas">
+            <section class="lab-desk" id="desk-recon" data-lab-desk="recon" aria-labelledby="recon-h">
+              <p class="lab-id">
+                <span><span class="lab-chip">SAMPLE</span> Marketing recon · Northline Supply · demo-not-production</span>
+                <span>spend_audited <strong>$98,500</strong> · sales_net <strong>$412,400</strong> · cash <strong>4.19×</strong> locked</span>
+              </p>
+
+              <div class="lab-section">
+                <p class="lab-kicker">Desk 1 <span>Jul 1–27 2026 · signed spend $98,500</span></p>
+                <h2 id="recon-h">Invoice $98,500 vs UI $99,950.</h2>
+                <p class="lab-lede">Uncheck Google. The memo rewrites. Cash 4.19× stays on $412,400 ÷ $98,500. Platform ~4.8× uses the same signed spend.</p>
+                <div class="lab-fold-spend" aria-label="Cash vs platform on the same $98,500">
+                  <div>
+                    <p class="k">Cash Total ROAS</p>
+                    <p class="v">4.19×</p>
+                    <p class="lab-formula">$412,400 ÷ $98,500</p>
+                  </div>
+                  <div>
+                    <p class="k">Platform ROAS</p>
+                    <p class="v">~4.8×</p>
+                    <p class="lab-formula">$472,800 ÷ $98,500 · not for close</p>
+                  </div>
+                  <div>
+                    <p class="k">Billed − UI</p>
+                    <p class="v">−$1,450</p>
+                    <p class="lab-formula">−1.5% · Within 2%</p>
+                  </div>
+                </div>
+                <p class="lab-lock">Cash 4.19× does not move when exceptions toggle.</p>
+                <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah</p>
               </div>
-              <p class="lab-formula">Billed total = Σ included invoices. UI total = Σ included Ads Manager. Variance = billed − UI. Flag: |%| &lt; 2% within 2% · 2–5% investigate · &gt; 5% material.</p>
-            </div>
-            <aside class="lab-memo" data-ca-memo aria-label="SAMPLE close memo">
-              <p class="lab-memo__label">Close memo · SAMPLE · not a live client</p>
-              <p class="lab-memo__body" data-ca-memo-body>Period: Northline SAMPLE week · channels: Meta, Google, LinkedIn, Other paid
+
+              <div class="lab-section">
+                <h2>Channel ledger</h2>
+                <p class="lab-lede">Billed is spend truth. UI sits beside it. Columns: Channel, Invoice, UI, invoice−UI $, %.</p>
+                <div class="lab-split">
+                  <div>
+                    <div class="lab-scroll">
+                      <table class="lab-table">
+                        <caption>Variance = billed − UI. Flag: |%| &lt; 2% within 2% · 2–5% investigate · &gt; 5% material. Uncheck Google — included totals and the memo rewrite.</caption>
+                        <thead>
+                          <tr>
+                            <th class="lab-in" scope="col">In</th>
+                            <th scope="col">Channel</th>
+                            <th scope="col">Invoice</th>
+                            <th scope="col">UI</th>
+                            <th scope="col">invoice−UI $</th>
+                            <th scope="col">%</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr data-ca-row="meta">
+                            <td class="lab-in"><input type="checkbox" data-ca-plat="meta" checked aria-label="Include Meta" /></td>
+                            <th scope="row">Meta</th>
+                            <td class="mono">$41,200</td>
+                            <td class="mono">$42,850</td>
+                            <td class="mono">−$1,650</td>
+                            <td class="mono">−4.0%</td>
+                          </tr>
+                          <tr data-ca-row="google">
+                            <td class="lab-in"><input type="checkbox" data-ca-plat="google" checked aria-label="Include Google" /></td>
+                            <th scope="row">Google</th>
+                            <td class="mono">$31,800</td>
+                            <td class="mono">$31,120</td>
+                            <td class="mono">+$680</td>
+                            <td class="mono">+2.1%</td>
+                          </tr>
+                          <tr data-ca-row="linkedin">
+                            <td class="lab-in"><input type="checkbox" data-ca-plat="linkedin" checked aria-label="Include Microsoft" /></td>
+                            <th scope="row">Microsoft</th>
+                            <td class="mono">$15,400</td>
+                            <td class="mono">$16,180</td>
+                            <td class="mono">−$780</td>
+                            <td class="mono">−5.1%</td>
+                          </tr>
+                          <tr data-ca-row="other">
+                            <td class="lab-in"><input type="checkbox" data-ca-plat="other" checked aria-label="Include Email" /></td>
+                            <th scope="row">Email</th>
+                            <td class="mono">$10,100</td>
+                            <td class="mono">$9,800</td>
+                            <td class="mono">+$300</td>
+                            <td class="mono">+3.0%</td>
+                          </tr>
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <th scope="row" colspan="2">Included</th>
+                            <td class="mono" data-ca-billed>$98,500</td>
+                            <td class="mono" data-ca-reported>$99,950</td>
+                            <td class="mono" data-ca-variance>−$1,450</td>
+                            <td class="mono" data-ca-variance-pct>−1.5%</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <p class="lab-formula">Billed total = Σ included invoices. UI total = Σ included Ads Manager. Variance = billed − UI.</p>
+                  </div>
+                  <aside class="lab-memo" data-ca-memo aria-label="SAMPLE close memo">
+                    <p class="lab-memo__label">Close memo · SAMPLE · not a live client</p>
+                    <p class="lab-memo__body" data-ca-memo-body>Period: Northline SAMPLE week · channels: Meta, Google, Microsoft, Email
 Invoice billed $98,500 · Ads Manager UI $99,950 · billed − UI −$1,450 (−1.5%)
-Action: LinkedIn UI ahead of invoice — tax, fee, timezone, or credit timing. Investigate before finance signs.
+Action: Microsoft UI ahead of invoice — tax, fee, timezone, or credit timing. Investigate before finance signs.
 Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it.</p>
-              <p class="lab-memo__note">Unchecking a channel rewrites this sentence. Invoice vs UI is tax / fee / timezone / credit timing — not returns + last-touch. Returns + last-touch explain cash vs platform.</p>
-            </aside>
-          </div>
-        </section>
+                    <p class="lab-memo__note">Unchecking a channel rewrites this sentence. Invoice vs UI is tax / fee / timezone / credit timing — not returns + last-touch. Returns + last-touch explain cash vs platform.</p>
+                  </aside>
+                </div>
+              </div>
 
-        <section class="lab-section" id="lab-35" aria-labelledby="lab-35-h">
-          <p class="lab-kicker">:35 <span>Marketplace exception · residual is not a ROAS</span></p>
-          <h2 id="lab-35-h">Exception rows</h2>
-          <p class="lab-lede">Uncheck marketplace. Unexplained $ moves. Cash Total ROAS does not. Residual is timing, fees, and coverage.</p>
-          <div class="lab-split">
-            <fieldset class="lab-except">
-              <legend>Classify against billed − UI</legend>
-              <label>
-                <input type="checkbox" data-lab-except="marketplace" data-except-amt="1200" data-except-sign="1" data-except-label="Marketplace (UI coverage, not on this invoice)" checked />
-                Marketplace $1,200 — UI coverage, not on this invoice
-              </label>
-              <label>
-                <input type="checkbox" data-lab-except="vat" data-except-amt="480" data-except-sign="-1" data-except-label="VAT on invoice, not in Ads Manager" checked />
-                VAT $480 — on invoice, not in UI (tax)
-              </label>
-              <label>
-                <input type="checkbox" data-lab-except="missing" data-except-amt="1400" data-except-sign="1" data-except-label="Aug 11 missing invoice (timezone / credit timing)" checked />
-                Aug 11 missing invoice $1,400 — timezone / credit timing
-              </label>
-              <p class="lab-formula">residual = (billed − UI) + marketplace − VAT + missing_invoice. Default: −$1,450 + $1,200 − $480 + $1,400 = +$670.</p>
-              <p class="lab-residual" data-lab-residual>Residual +$670 after classified exceptions. Timing / fees / coverage — not a new Total ROAS. Cash stays 4.19× on $412,400 ÷ $98,500.</p>
-            </fieldset>
-            <div class="lab-scroll">
-              <table class="lab-table">
-                <caption>Worksheet follows the included-channel gap. Uncheck marketplace to drop its +$1,200. SSR default residual +$670.</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Line</th>
-                    <th scope="col">Signed $</th>
-                  </tr>
-                </thead>
-                <tbody data-lab-ws>
-                  <tr><th scope="row">billed − UI (included channels)</th><td class="mono">−$1,450</td></tr>
-                  <tr><th scope="row">Marketplace (UI coverage, not on this invoice)</th><td class="mono">+$1,200</td></tr>
-                  <tr><th scope="row">VAT on invoice, not in Ads Manager</th><td class="mono">−$480</td></tr>
-                  <tr><th scope="row">Aug 11 missing invoice (timezone / credit timing)</th><td class="mono">+$1,400</td></tr>
-                  <tr><th scope="row">Residual unexplained</th><td class="mono">+$670</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+              <div class="lab-section" id="lab-35">
+                <h2>Exception rows</h2>
+                <p class="lab-lede">Include or exclude. Unexplained $ moves. Cash Total ROAS does not. Residual is timing, fees, and coverage.</p>
+                <div class="lab-split">
+                  <fieldset class="lab-except">
+                    <legend>Classify against billed − UI</legend>
+                    <label>
+                      <input type="checkbox" data-lab-except="marketplace" data-except-amt="1200" data-except-sign="1" data-except-label="Marketplace (UI coverage, not on this invoice)" checked />
+                      Marketplace $1,200 — UI coverage, not on this invoice
+                    </label>
+                    <label>
+                      <input type="checkbox" data-lab-except="vat" data-except-amt="480" data-except-sign="-1" data-except-label="VAT on invoice, not in Ads Manager" checked />
+                      VAT $480 — on invoice, not in UI (tax)
+                    </label>
+                    <label>
+                      <input type="checkbox" data-lab-except="missing" data-except-amt="1400" data-except-sign="1" data-except-label="Aug 11 missing invoice (timezone / credit timing)" checked />
+                      Aug 11 missing invoice $1,400 — timezone / credit timing
+                    </label>
+                    <p class="lab-formula">residual = (billed − UI) + marketplace − VAT + missing_invoice. Default: −$1,450 + $1,200 − $480 + $1,400 = +$670.</p>
+                    <p class="lab-residual" data-lab-residual>Residual +$670 after classified exceptions. Timing / fees / coverage — not a new Total ROAS. Cash stays 4.19× on $412,400 ÷ $98,500.</p>
+                  </fieldset>
+                  <div class="lab-scroll">
+                    <table class="lab-table">
+                      <caption>Worksheet follows the included-channel gap. Uncheck marketplace to drop its +$1,200. SSR default residual +$670.</caption>
+                      <thead>
+                        <tr>
+                          <th scope="col">Line</th>
+                          <th scope="col">Signed $</th>
+                        </tr>
+                      </thead>
+                      <tbody data-lab-ws>
+                        <tr><th scope="row">billed − UI (included channels)</th><td class="mono">−$1,450</td></tr>
+                        <tr><th scope="row">Marketplace (UI coverage, not on this invoice)</th><td class="mono">+$1,200</td></tr>
+                        <tr><th scope="row">VAT on invoice, not in Ads Manager</th><td class="mono">−$480</td></tr>
+                        <tr><th scope="row">Aug 11 missing invoice (timezone / credit timing)</th><td class="mono">+$1,400</td></tr>
+                        <tr><th scope="row">Residual unexplained</th><td class="mono">+$670</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
 
-        <section class="lab-section" id="lab-55" aria-labelledby="lab-55-h">
-          <p class="lab-kicker">:55 <span>four if/then · not Recast</span></p>
-          <h2 id="lab-55-h">Four SAMPLE if/then rules</h2>
-          <p class="lab-lede">Toggle on/off. Mix $ table rewrites. Cash 4.19× does not. CPQL seed $42,000 ÷ 186 = $226 vs target $250 is not a slice of $98,500.</p>
-          <fieldset class="lab-rules" data-lab-rules>
-            <legend>Executable SAMPLE rules</legend>
-            <label>
-              <input type="checkbox" data-lab-rule="meta-hold" checked />
-              <span>IF Meta UI−invoice &gt; 3% THEN hold scale — $42,850 − $41,200 = 4.0% &gt; 3%.</span>
-            </label>
-            <label>
-              <input type="checkbox" data-lab-rule="google-plus" checked />
-              <span>IF cash ROAS ≥ 4.00× AND recon &lt; 2% THEN +10% Google — 4.19× and −1.5%.</span>
-            </label>
-            <label>
-              <input type="checkbox" data-lab-rule="mkt-freeze" checked />
-              <span>IF marketplace residual on THEN do not spend-optimize that SKU — Other paid stays $10,100.</span>
-            </label>
-            <label>
-              <input type="checkbox" data-lab-rule="cpql-cut" />
-              <span>IF CPQL &gt; target THEN cut worst CRM-qualified channel — $226 ≤ $250, rule does not fire. Same seed as /lead-gen-desk. Opt-in to see a $2,000 LinkedIn cut.</span>
-            </label>
-          </fieldset>
-          <div class="lab-scroll">
-            <table class="lab-table" data-lab-mix>
-              <caption>SSR default: CPQL cut off ($226 ≤ target $250). Mix Σ $98,500. Cash stays 4.19×.</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Channel</th>
-                  <th scope="col">Invoice $</th>
-                  <th scope="col">Mix $</th>
-                  <th scope="col">Note</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono" data-lab-mix-amt="meta">$41,200</td><td>hold scale</td></tr>
-                <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono" data-lab-mix-amt="google">$34,980</td><td>+10% Google</td></tr>
-                <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono" data-lab-mix-amt="linkedin">$12,220</td><td>no CPQL cut</td></tr>
-                <tr><th scope="row">Other paid</th><td class="mono">$10,100</td><td class="mono" data-lab-mix-amt="other">$10,100</td><td>do not spend-optimize</td></tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th scope="row" colspan="4" data-lab-next>Mix Σ $98,500 · cash stays 4.19× on $412,400 ÷ $98,500.</th>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-          <p class="lab-formula" data-lab-mix-note>Rules rewrite mix $ only. Cash stays 4.19× = $412,400 ÷ $98,500.</p>
-          <p class="lab-formula">Path credit is not cash: 4 × $120 attributed = $480 vs $120 cash. Teaching identity — not a slice of $98,500.</p>
-        </section>
+              <div class="lab-section">
+                <h2>Four SAMPLE if/then rules</h2>
+                <p class="lab-lede">Toggle on/off. Mix $ table rewrites. Cash 4.19× does not. Same $98,500 book — not a second SAMPLE.</p>
+                <fieldset class="lab-rules" data-lab-rules>
+                  <legend>Executable SAMPLE rules</legend>
+                  <label>
+                    <input type="checkbox" data-lab-rule="meta-hold" checked />
+                    <span>IF Meta UI−invoice &gt; 3% THEN hold scale — $42,850 − $41,200 = 4.0% &gt; 3%.</span>
+                  </label>
+                  <label>
+                    <input type="checkbox" data-lab-rule="google-plus" checked />
+                    <span>IF cash ROAS ≥ 4.00× AND recon &lt; 2% THEN +10% Google — 4.19× and −1.5%.</span>
+                  </label>
+                  <label>
+                    <input type="checkbox" data-lab-rule="mkt-freeze" checked />
+                    <span>IF marketplace residual on THEN do not spend-optimize that SKU — Email stays $10,100.</span>
+                  </label>
+                  <label>
+                    <input type="checkbox" data-lab-rule="ms-material" checked />
+                    <span>IF Microsoft |invoice−UI| &gt; 5% THEN investigate before scale — −5.1% is Material.</span>
+                  </label>
+                </fieldset>
+                <div class="lab-scroll">
+                  <table class="lab-table" data-lab-mix>
+                    <caption>SSR default: mix Σ $98,500. Cash stays 4.19× on $412,400 ÷ $98,500.</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Channel</th>
+                        <th scope="col">Invoice $</th>
+                        <th scope="col">Mix $</th>
+                        <th scope="col">Note</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono" data-lab-mix-amt="meta">$41,200</td><td>hold scale</td></tr>
+                      <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono" data-lab-mix-amt="google">$34,980</td><td>+10% Google</td></tr>
+                      <tr><th scope="row">Microsoft</th><td class="mono">$15,400</td><td class="mono" data-lab-mix-amt="linkedin">$12,220</td><td>investigate</td></tr>
+                      <tr><th scope="row">Email</th><td class="mono">$10,100</td><td class="mono" data-lab-mix-amt="other">$10,100</td><td>do not spend-optimize</td></tr>
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <th scope="row" colspan="4" data-lab-next>Mix Σ $98,500 · cash stays 4.19× on $412,400 ÷ $98,500.</th>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <p class="lab-formula" data-lab-mix-note>Rules rewrite mix $ only. Cash stays 4.19× = $412,400 ÷ $98,500.</p>
+                <p class="lab-formula">Path credit is not cash: 4 × $120 attributed = $480 vs $120 cash. Teaching identity — not a slice of $98,500.</p>
+              </div>
+            </section>
 
-        <section class="lab-section" id="lab-70" aria-labelledby="lab-70-h">
-          <p class="lab-kicker">:70 <span>printable close memo</span></p>
-          <h2 id="lab-70-h">Hold / protect / shift</h2>
-          <article class="lab-paper lab-paper--memo" id="close-memo" aria-label="Printable SAMPLE close memo">
-            <p class="lab-memo__label">Printable close memo · SAMPLE · not a live client</p>
-            <h3>Close memo — Northline week</h3>
-            <p>From: <a href="/about">Marty Smithson</a> · Utah<br />Re: Invoice vs Ads Manager UI + outcome ÷ spend · Jul 1–27 2026</p>
-            <table>
-              <caption>Channel invoice vs UI · SAMPLE</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Channel</th>
-                  <th scope="col">Invoice</th>
-                  <th scope="col">UI</th>
-                  <th scope="col">$</th>
-                  <th scope="col">%</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono">$42,850</td><td class="mono">−$1,650</td><td class="mono">−4.0%</td></tr>
-                <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono">$31,120</td><td class="mono">+$680</td><td class="mono">+2.1%</td></tr>
-                <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono">$16,180</td><td class="mono">−$780</td><td class="mono">−5.1%</td></tr>
-                <tr><th scope="row">Other paid</th><td class="mono">$10,100</td><td class="mono">$9,800</td><td class="mono">+$300</td><td class="mono">+3.0%</td></tr>
-              </tbody>
-              <tfoot>
-                <tr><th scope="row">Included</th><td class="mono">$98,500</td><td class="mono">$99,950</td><td class="mono">−$1,450</td><td class="mono">−1.5%</td></tr>
-              </tfoot>
-            </table>
-            <p><strong>Outcome ÷ spend.</strong> Cash Total ROAS <span class="mono">4.19×</span> = $412,400 ÷ $98,500. Platform ~4.8× = $472,800 ÷ $98,500. Same signed spend.</p>
-            <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Other paid SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
-            <p>You keep this file. Redacted. Not a live client.</p>
-            <p class="lab-formula"><button type="button" class="btn ghost" data-lab-print-memo>Print memo</button></p>
-          </article>
-        </section>
+            <section class="lab-desk" id="desk-exec" data-lab-desk="exec" hidden aria-labelledby="exec-h">
+              <p class="lab-id">
+                <span><span class="lab-chip">SAMPLE</span> Exec / CFO · Northline Supply · board view</span>
+                <span>signed spend <strong>$98,500</strong> · cash <strong>4.19×</strong> vs BE <strong>2.86×</strong> · target <strong>4.00×</strong></span>
+              </p>
 
-        <section class="lab-section" id="lab-80" aria-labelledby="lab-80-h">
-          <p class="lab-kicker">:80 <span>you keep the system</span></p>
-          <h2 id="lab-80-h">Handoff packet</h2>
-          <p class="lab-lede">Five files. Owner after week 6 is the client named in the letter. Request engagement $5–25K.</p>
-          <div class="lab-scroll">
-            <table class="lab-table lab-packet">
-              <caption>HANDOFF PACKET · SAMPLE.</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Filename</th>
-                  <th scope="col">What it is</th>
-                  <th scope="col">Owner after week 6</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th scope="row"><code>metric_contracts_v1.md</code></th>
-                  <td>METRIC CONTRACT v1 definitions</td>
-                  <td>client finance</td>
-                </tr>
-                <tr>
-                  <th scope="row"><code>spend_recon_jul2026.csv</code></th>
-                  <td>Invoice vs UI ledger for Jul 1–27</td>
-                  <td>client finance</td>
-                </tr>
-                <tr>
-                  <th scope="row"><code>northline_desk.html</code></th>
-                  <td>Operator desk: 4.19× and ~4.8× on $98,500</td>
-                  <td>client ops</td>
-                </tr>
-                <tr>
-                  <th scope="row"><code>runbook.md</code></th>
-                  <td>How to close the week without us</td>
-                  <td>client ops</td>
-                </tr>
-                <tr>
-                  <th scope="row"><code>owner_transfer_checklist.md</code></th>
-                  <td>Credentials time-box + file receipt</td>
-                  <td>client IT</td>
-                </tr>
-              </tbody>
-            </table>
+              <div class="lab-section">
+                <p class="lab-kicker">Desk 2 <span>board / CFO · same week · not a marketing tile</span></p>
+                <h2 id="exec-h">Signed spend. Cash vs break-even. Files they keep.</h2>
+                <p class="lab-lede">Same Northline book. Contribution is 4.19× against BE 2.86× at 35%. Click Hold Meta — the action line writes. Numbers do not invent lift.</p>
+                <div class="lab-exec-tiles" aria-label="Exec tiles — Northline week">
+                  <article>
+                    <p class="k">Signed spend</p>
+                    <p class="v">$98,500</p>
+                    <p class="lab-formula">invoice billed · finance denominator</p>
+                  </article>
+                  <article>
+                    <p class="k">Sales after returns</p>
+                    <p class="v">$412,400</p>
+                    <p class="lab-formula">Jul 1–27 · order-date grain</p>
+                  </article>
+                  <article>
+                    <p class="k">Cash vs BE vs target</p>
+                    <p class="v">4.19×</p>
+                    <p class="lab-formula">BE 2.86× @ 35% · target 4.00× · clears both</p>
+                  </article>
+                  <article>
+                    <p class="k">invoice−UI</p>
+                    <p class="v">−$1,450</p>
+                    <p class="lab-formula">−1.5% · Within 2%</p>
+                  </article>
+                  <article class="lab-exec-hold">
+                    <p class="k">Meta · UI ahead of invoice</p>
+                    <p class="v">Hold</p>
+                    <p class="lab-formula">UI $42,850 vs invoice $41,200 · −4.0%</p>
+                    <p><button type="button" class="btn ghost" data-lab-hold-meta>Hold Meta</button></p>
+                  </article>
+                </div>
+                <aside class="lab-memo" aria-label="Exec action memo">
+                  <p class="lab-memo__label">Exec memo · SAMPLE · not a live client</p>
+                  <p class="lab-memo__body" data-lab-exec-memo>Period: Northline SAMPLE week. Signed spend $98,500. Cash 4.19× vs BE 2.86× vs target 4.00×. invoice−UI −$1,450 (−1.5%).
+Action: Meta UI is ahead of invoice. Hold scale until finance signs the −4.0% gap. Click Hold Meta to write the line. Numbers do not invent lift.</p>
+                </aside>
+              </div>
+
+              <div class="lab-section" id="desk-exec-contracts">
+                <h2>METRIC CONTRACT v1</h2>
+                <p class="lab-lede">Name, numerator, denominator, grain, as-of, exclusions, owner. Platform print is not for close.</p>
+                <div class="lab-scroll">
+                  <table class="lab-table lab-table--contract">
+                    <caption>METRIC CONTRACT v1 · Northline SAMPLE · America/Denver · Jul 1–27 2026. $98,500 · $99,950 · 4.19× · ~4.8× · BE 2.86× · target 4.00×.</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Numerator</th>
+                        <th scope="col">Denominator</th>
+                        <th scope="col">Grain</th>
+                        <th scope="col">As-of</th>
+                        <th scope="col">Exclusions</th>
+                        <th scope="col">Owner</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">Total ROAS</th>
+                        <td>sales after returns $412,400</td>
+                        <td>signed spend $98,500</td>
+                        <td>order-date · Jul 1–27</td>
+                        <td>27 Jul 2026</td>
+                        <td>no path credit · returns already netted</td>
+                        <td>finance</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Signed spend</th>
+                        <td>invoice billed $98,500</td>
+                        <td>—</td>
+                        <td>invoice line / channel</td>
+                        <td>27 Jul 2026</td>
+                        <td>UI $99,950 is not signed spend</td>
+                        <td>finance</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Platform print (not for close)</th>
+                        <td>platform attributed $472,800</td>
+                        <td>signed spend $98,500</td>
+                        <td>ads-manager date</td>
+                        <td>27 Jul 2026</td>
+                        <td>not for close · ~4.8× is a print</td>
+                        <td>media</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="lab-section" id="desk-exec-handoff">
+                <h2>Handoff packet</h2>
+                <p class="lab-lede">Five files. Owner after week 6 is the client named in the letter. Request engagement $5–25K.</p>
+                <div class="lab-scroll">
+                  <table class="lab-table lab-packet">
+                    <caption>HANDOFF PACKET · SAMPLE · you keep the files.</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Filename</th>
+                        <th scope="col">What it is</th>
+                        <th scope="col">Owner after week 6</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row"><code>metric_contracts_v1.md</code></th>
+                        <td>METRIC CONTRACT v1 definitions</td>
+                        <td>client finance</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><code>spend_recon_jul2026.csv</code></th>
+                        <td>Invoice vs UI ledger for Jul 1–27</td>
+                        <td>client finance</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><code>northline_desk.html</code></th>
+                        <td>Operator desk: 4.19× and ~4.8× on $98,500</td>
+                        <td>client ops</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><code>runbook.md</code></th>
+                        <td>How to close the week without us</td>
+                        <td>client ops</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><code>owner_transfer_checklist.md</code></th>
+                        <td>Credentials time-box + file receipt</td>
+                        <td>client IT</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Email SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
+                <article class="lab-paper lab-paper--memo" id="close-memo" aria-label="Printable SAMPLE close memo">
+                  <p class="lab-memo__label">Printable close memo · SAMPLE · not a live client</p>
+                  <h3>Close memo — Northline week</h3>
+                  <p>From: <a href="/about">Marty Smithson</a> · Utah<br />Re: Invoice vs Ads Manager UI + outcome ÷ spend · Jul 1–27 2026</p>
+                  <table>
+                    <caption>Channel invoice vs UI · SAMPLE</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Channel</th>
+                        <th scope="col">Invoice</th>
+                        <th scope="col">UI</th>
+                        <th scope="col">$</th>
+                        <th scope="col">%</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono">$42,850</td><td class="mono">−$1,650</td><td class="mono">−4.0%</td></tr>
+                      <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono">$31,120</td><td class="mono">+$680</td><td class="mono">+2.1%</td></tr>
+                      <tr><th scope="row">Microsoft</th><td class="mono">$15,400</td><td class="mono">$16,180</td><td class="mono">−$780</td><td class="mono">−5.1%</td></tr>
+                      <tr><th scope="row">Email</th><td class="mono">$10,100</td><td class="mono">$9,800</td><td class="mono">+$300</td><td class="mono">+3.0%</td></tr>
+                    </tbody>
+                    <tfoot>
+                      <tr><th scope="row">Included</th><td class="mono">$98,500</td><td class="mono">$99,950</td><td class="mono">−$1,450</td><td class="mono">−1.5%</td></tr>
+                    </tfoot>
+                  </table>
+                  <p><strong>Outcome ÷ spend.</strong> Cash Total ROAS <span class="mono">4.19×</span> = $412,400 ÷ $98,500. Platform ~4.8× = $472,800 ÷ $98,500. Same signed spend. BE 2.86× @ 35%. Target 4.00×.</p>
+                  <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Email SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
+                  <p>You keep this file. Redacted. Not a live client.</p>
+                  <p class="lab-formula"><button type="button" class="btn ghost" data-lab-print-memo>Print memo</button></p>
+                </article>
+                <p class="lab-refuse"><strong>Refuse:</strong> pixels; MTA / multi-touch path credit; identity graph / “true ROAS.”</p>
+              </div>
+            </section>
+
+            <section class="lab-desk" id="desk-portal" data-lab-desk="portal" hidden aria-labelledby="portal-h">
+              <p class="lab-id">
+                <span><span class="lab-chip">SAMPLE</span> Signed-in portal · A. Chen · operator · seat 2 of 4</span>
+                <span>same book · not a login product · last in 27 Jul 09:14</span>
+              </p>
+
+              <div class="lab-section">
+                <p class="lab-kicker">Desk 3 <span>already signed in · 4 seats · you keep the seats</span></p>
+                <h2 id="portal-h">Role-filtered book. Same Northline week.</h2>
+                <p class="lab-lede">Switch Finance / Media / Operator in the bar. The rail stays Northline Supply. No password. No second company.</p>
+
+                <div data-lab-role-panel="finance" hidden>
+                  <p class="lab-formula">Finance seat · signed spend + contract · billed $98,500 is visible</p>
+                  <div class="lab-scroll">
+                    <table class="lab-table">
+                      <caption>Finance columns · same Northline book · SAMPLE</caption>
+                      <thead>
+                        <tr>
+                          <th scope="col">Channel</th>
+                          <th scope="col">Signed spend</th>
+                          <th scope="col">Contract</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td>Signed spend · finance owner</td></tr>
+                        <tr><th scope="row">Google</th><td class="mono">$31,800</td><td>Signed spend · finance owner</td></tr>
+                        <tr><th scope="row">Microsoft</th><td class="mono">$15,400</td><td>Signed spend · finance owner</td></tr>
+                        <tr><th scope="row">Email</th><td class="mono">$10,100</td><td>Signed spend · finance owner</td></tr>
+                      </tbody>
+                      <tfoot>
+                        <tr><th scope="row">Included</th><td class="mono">$98,500</td><td>Total ROAS 4.19× = $412,400 ÷ $98,500</td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                <div data-lab-role-panel="media" hidden>
+                  <p class="lab-formula">Media seat · UI + platform ~4.8× · labeled not-for-close</p>
+                  <div class="lab-scroll">
+                    <table class="lab-table">
+                      <caption>Media columns · platform print is not for close · SAMPLE</caption>
+                      <thead>
+                        <tr>
+                          <th scope="col">Channel</th>
+                          <th scope="col">UI</th>
+                          <th scope="col">Platform print</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><th scope="row">Meta</th><td class="mono">$42,850</td><td>not for close</td></tr>
+                        <tr><th scope="row">Google</th><td class="mono">$31,120</td><td>not for close</td></tr>
+                        <tr><th scope="row">Microsoft</th><td class="mono">$16,180</td><td>not for close</td></tr>
+                        <tr><th scope="row">Email</th><td class="mono">$9,800</td><td>not for close</td></tr>
+                      </tbody>
+                      <tfoot>
+                        <tr><th scope="row">Included</th><td class="mono">$99,950</td><td>~4.8× = $472,800 ÷ $98,500 · not for close</td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                <div data-lab-role-panel="operator">
+                  <p class="lab-formula">Operator seat · Hold / Go + exceptions $1,400 / $480 / $1,200</p>
+                  <div class="lab-scroll">
+                    <table class="lab-table">
+                      <caption>Operator columns · same book · SAMPLE</caption>
+                      <thead>
+                        <tr>
+                          <th scope="col">Channel</th>
+                          <th scope="col">Hold / Go</th>
+                          <th scope="col">Exception</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><th scope="row">Meta</th><td>Hold</td><td>UI ahead of invoice −$1,650</td></tr>
+                        <tr><th scope="row">Google</th><td>Go +10%</td><td>—</td></tr>
+                        <tr><th scope="row">Microsoft</th><td>Investigate</td><td>Material −5.1%</td></tr>
+                        <tr><th scope="row">Email</th><td>Protect</td><td>Marketplace $1,200</td></tr>
+                      </tbody>
+                      <tfoot>
+                        <tr><th scope="row">Exceptions</th><td>VAT $480 · missing $1,400</td><td>Residual +$670 · cash stays 4.19×</td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+
+                <ol class="lab-pipe" aria-label="Delivery pipeline · Northline SAMPLE">
+                  <li><span>07-03</span> access</li>
+                  <li><span>07-11</span> contract v1</li>
+                  <li><span>07-18</span> desk v0</li>
+                  <li><span>07-25</span> recon close</li>
+                  <li><span>07-27</span> handoff</li>
+                </ol>
+              </div>
+            </section>
           </div>
-          <p class="lab-refuse"><strong>Refuse:</strong> pixels; MTA / multi-touch path credit; identity graph / “true ROAS.”</p>
-          <div class="lab-cta">
-            <a class="btn primary solid" href="/custom-analytics?package=audit#inquire">Request engagement $5–25K</a>
-            <a class="btn ghost" href="/custom-analytics">Open the desk</a>
-          </div>
-          <p class="lab-quiet">Shopify-only shops that just need sales next to spend: the $39 app is on <a href="/demo">/demo</a>.</p>
-        </section>
+        </div>
       </div>
     </div>
   </main>
@@ -376,6 +584,6 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
   <script src="/assets/cta-config.js?v=20260825live"></script>
   <script src="/assets/chrome.js?v=20260828voice"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
-  <script src="/assets/lab-desk.js?v=20260828id"></script>
+  <script src="/assets/lab-desk.js?v=20260828lab3"></script>
 </body>
 </html>
