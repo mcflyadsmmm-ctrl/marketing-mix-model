@@ -89,7 +89,7 @@
         <a href="/custom-analytics#inquire">Inquire</a>
         <a href="/privacy">Privacy</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Ads. Custom Data Solutions · $5–25K. You keep the system.</p>
+      <p class="fine">© <span data-year></span> Mcfly Ads. Hired reporting. You keep the system.</p>
     </div>
   </footer>`;
   } else if (footer) {
@@ -107,6 +107,7 @@
         <a href="/about">About</a>
         <a href="/support">Support</a>
         <a href="/privacy">Privacy</a>
+        <a href="/monday-close">Close memo</a>
         <a href="/custom-analytics">Custom Data Solutions</a>
       </nav>
       <p class="fine">© <span data-year></span> Mcfly. See ad spend next to sales, day by day. 7-day trial then $39.</p>

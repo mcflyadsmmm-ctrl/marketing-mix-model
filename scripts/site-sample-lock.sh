@@ -357,6 +357,111 @@ if grep -q 'Two Mcfly products' "$chrome"; then
 else
   ok "no Two Mcfly products bar"
 fi
+if ! grep -q 'Hired reporting. You keep the system.' "$chrome"; then
+  die "chrome.js analytics footer is not Hired reporting. You keep the system."
+else
+  ok "chrome.js Hired reporting footer"
+fi
+if ! grep -q 'href="/monday-close">Close memo</a>' "$chrome"; then
+  die "chrome.js missing Close memo → /monday-close"
+else
+  ok "chrome.js Close memo href /monday-close"
+fi
+if grep -q 'Monday Close memo' "$chrome"; then
+  die "chrome.js still says Monday Close memo"
+else
+  ok "chrome.js no Monday Close memo label"
+fi
+home="$site/index.html"
+if grep -q 'Whole desk' "$home"; then
+  die "index.html still says Whole desk"
+else
+  ok "index.html dropped Whole desk"
+fi
+if grep -q 'Shopify cash desk' "$home"; then
+  die "index.html still says Shopify cash desk"
+else
+  ok "index.html dropped Shopify cash desk"
+fi
+if grep -q 'Sample desk' "$home"; then
+  die "index.html still says Sample desk"
+else
+  ok "index.html Sample not Sample desk"
+fi
+if grep -q 'one desk' "$home"; then
+  die "index.html still says one desk"
+else
+  ok "index.html dropped one desk"
+fi
+if ! grep -q '<h1>See ad spend next to sales, day by day.</h1>' "$home"; then
+  die "index.html Shopify H1 drifted"
+else
+  ok "index.html Shopify H1 locked"
+fi
+if ! grep -q '$39' "$home"; then
+  die "index.html lost \$39"
+else
+  ok "index.html \$39 stays"
+fi
+if ! grep -q 'href="/demo"' "$home" || ! grep -q 'href="/pricing"' "$home"; then
+  die "index.html lost /demo or /pricing href"
+else
+  ok "index.html /demo and /pricing hrefs stay"
+fi
+if ! grep -q 'eyebrow on-dark">Shopify app</p>' "$home"; then
+  die "index.html eyebrow is not Shopify app"
+else
+  ok "index.html eyebrow Shopify app"
+fi
+if ! grep -q "What’s in the app" "$home"; then
+  die "index.html missing What’s in the app"
+else
+  ok "index.html What’s in the app"
+fi
+if ! grep -q 'Logged spend next to sales does not.' "$home"; then
+  die "index.html H2 drifted off Logged spend next to sales does not."
+else
+  ok "index.html Logged spend H2"
+fi
+if ! grep -q 'so ads and finance share one number.' "$home"; then
+  die "index.html missing ads and finance share one number"
+else
+  ok "index.html ads and finance share one number"
+fi
+if ! grep -q 'One plan. Four views.' "$home"; then
+  die "index.html missing One plan. Four views."
+else
+  ok "index.html One plan. Four views."
+fi
+if ! grep -q 'Play the sample' "$home"; then
+  die "index.html missing Play the sample"
+else
+  ok "index.html Play the sample"
+fi
+if ! grep -q 'href="/monday-close">Close memo' "$home"; then
+  die "index.html missing Close memo → /monday-close"
+else
+  ok "index.html Close memo href /monday-close"
+fi
+if grep -q 'for the whole desk' "$home"; then
+  die "index.html still says for the whole desk"
+else
+  ok "index.html dropped for the whole desk"
+fi
+for href in '/privacy' '/support' '/pricing' '/demo'; do
+  if ! grep -q "href=\"$href\"" "$chrome"; then
+    die "chrome.js lost frozen href $href"
+  fi
+done
+ok "chrome.js listing hrefs /privacy /support /pricing /demo stay"
+# PERF LCP — /lab and /custom-analytics must not LCP on atmosphere.
+for page in "$site/lab.html" "$site/custom-analytics.html"; do
+  if grep -q 'fetchpriority="high"' "$page"; then
+    die "$(basename "$page") still has fetchpriority=high (LCP would be atmosphere)"
+  else
+    ok "$(basename "$page") no fetchpriority=high"
+  fi
+done
 manifest="$site/assets/brand/site.webmanifest"
 if ! grep -q '"theme_color": "#082830"' "$manifest"; then
   die "studio webmanifest theme_color is not #082830"
