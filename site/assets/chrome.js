@@ -13,6 +13,7 @@
   const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
   const isHome = path === "/" || path === "/index.html" || path === "";
   const isAnalytics =
+    isHome ||
     path === "/custom-analytics" ||
     path === "/custom-analytics.html" ||
     path === "/lab" ||

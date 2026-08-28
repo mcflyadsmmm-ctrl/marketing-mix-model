@@ -399,25 +399,45 @@ if grep -q 'one desk' "$home"; then
 else
   ok "index.html dropped one desk"
 fi
-if ! grep -q '<h1>See ad spend next to sales, day by day.</h1>' "$home"; then
-  die "index.html Shopify H1 drifted"
+if ! grep -q '<h1>Custom data science they keep.</h1>' "$home"; then
+  die "index.html H1 is not Custom data science they keep."
 else
-  ok "index.html Shopify H1 locked"
+  ok "index.html custom DS H1"
+fi
+if awk '/<section class="hero/,/<\/section>/' "$home" | grep -q 'mcfly-spend-explorer'; then
+  die "index.html hero is still the Shopify spend explorer"
+else
+  ok "index.html hero is not the Shopify cash desk"
+fi
+if awk '/<section class="hero/,/<\/section>/' "$home" | grep -q 'Shopify app'; then
+  die "index.html hero still leads Shopify app"
+else
+  ok "index.html hero does not lead Shopify app"
+fi
+if ! grep -q 'href="/custom-analytics#inquire"' "$home"; then
+  die "index.html missing Inquire → /custom-analytics#inquire"
+else
+  ok "index.html Inquire leads custom DS"
+fi
+if ! grep -q 'id="app-wedge"' "$home"; then
+  die "index.html missing quiet Shopify app wedge"
+else
+  ok "index.html Shopify app is a quiet wedge"
 fi
 if ! grep -q '$39' "$home"; then
   die "index.html lost \$39"
 else
-  ok "index.html \$39 stays"
+  ok "index.html \$39 stays in the wedge"
 fi
 if ! grep -q 'href="/demo"' "$home" || ! grep -q 'href="/pricing"' "$home"; then
   die "index.html lost /demo or /pricing href"
 else
   ok "index.html /demo and /pricing hrefs stay"
 fi
-if ! grep -q 'eyebrow on-dark">Shopify app</p>' "$home"; then
-  die "index.html eyebrow is not Shopify app"
+if ! grep -q '>Shopify app</p>' "$home"; then
+  die "index.html lost Shopify app wedge eyebrow"
 else
-  ok "index.html eyebrow Shopify app"
+  ok "index.html Shopify app stays in the wedge"
 fi
 if ! grep -q "What’s in the app" "$home"; then
   die "index.html missing What’s in the app"
@@ -712,6 +732,64 @@ if ! grep -q 'CONVERSION: kill labels Monday' "$ca"; then
   die "custom-analytics inquire missing CONVERSION comments"
 else
   ok "custom-analytics inquire CONVERSION comments"
+fi
+
+# Desk Critic kill list — /custom-analytics hero is MDS proof, not the /lab recon widget.
+if grep -Eq '>Ecommerce<|>Lead gen<' "$ca" || grep -q 'data-lab-mode' "$ca"; then
+  die "custom-analytics still has Invoice vs UI / Ecommerce / Lead gen tabs"
+else
+  ok "custom-analytics no marketing mode tab strip"
+fi
+if grep -q 'Close memo — Spend &amp; Sales Audit' "$ca" || grep -q 'Close memo — Spend & Sales Audit' "$ca"; then
+  die "custom-analytics still sells Close memo — Spend & Sales Audit as the page"
+else
+  ok "custom-analytics close memo is not the whole page"
+fi
+if grep -Eq 'LinkedIn|Other paid' "$ca"; then
+  die "custom-analytics still labels LinkedIn / Other paid"
+else
+  ok "custom-analytics channels are Microsoft / Email"
+fi
+if ! grep -q '>Microsoft<' "$ca" || ! grep -q '>Email<' "$ca"; then
+  die "custom-analytics missing Microsoft / Email channel labels"
+fi
+if grep -Eq '<th[^>]*>Attributed' "$ca" "$lab"; then
+  die "hub/lab still has the toy Attributed \$120 grid"
+else
+  ok "no Attributed/Cash \$120 toy grid"
+fi
+if grep -q '4 × $120 attributed' "$lab" || grep -q '4 × \$120 attributed' "$lab"; then
+  die "lab.html still has the toy \$120 attributed line"
+else
+  ok "lab.html dropped \$120 attributed toy"
+fi
+if awk '/id="desk-title-sec"/,/id="mds-proof"/' "$ca" | grep -q 'data-ca-plat'; then
+  die "custom-analytics hero proof is still the recon widget"
+else
+  ok "custom-analytics hero is not the recon widget"
+fi
+if ! grep -q 'id="mds-proof"' "$ca"; then
+  die "custom-analytics missing MDS proof (exec + portal + files)"
+else
+  ok "custom-analytics MDS proof on the hub"
+fi
+# mds-proof must appear before #recon in the file
+ca_mds=$(grep -n 'id="mds-proof"' "$ca" | head -1 | cut -d: -f1)
+ca_recon=$(grep -n 'id="recon"' "$ca" | head -1 | cut -d: -f1)
+if [[ -z "$ca_mds" || -z "$ca_recon" || "$ca_mds" -ge "$ca_recon" ]]; then
+  die "custom-analytics MDS proof is not before recon"
+else
+  ok "custom-analytics MDS proof precedes recon module"
+fi
+if grep -q 'the first screen is invoice vs UI' "$ca"; then
+  die "custom-analytics market lede still says first screen is invoice vs UI"
+else
+  ok "custom-analytics first screen is not invoice vs UI"
+fi
+if ! awk '/id="mds-proof"/,/id="lineage"/' "$ca" | grep -q '07-03'; then
+  die "custom-analytics MDS proof missing delivery pipeline"
+else
+  ok "custom-analytics hub has exec + portal + pipeline"
 fi
 
 node --check "$site/assets/lab-desk.js"
