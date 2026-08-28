@@ -164,6 +164,8 @@ function buildMessage(fields) {
       "Desk owner after handoff: " + (fields.desk_owner || "(not specified)"),
       "Out of scope confirm: " + (fields.out_scope_mds || "(not confirmed)"),
     );
+  } else if (fields.package) {
+    lines.push("", "Package: " + fields.package);
   }
   if (fields.notes) {
     lines.push("", custom ? "Project brief:" : "Notes / calculator snapshot:", fields.notes);
