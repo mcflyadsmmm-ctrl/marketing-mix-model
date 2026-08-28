@@ -233,7 +233,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
         <section class="lab-section" id="lab-55" aria-labelledby="lab-55-h">
           <p class="lab-kicker">:55 <span>four if/then · not Recast</span></p>
           <h2 id="lab-55-h">Four SAMPLE if/then rules</h2>
-          <p class="lab-lede">Toggle on/off. Mix $ table rewrites. Cash 4.19× does not. CPQL $42,000 ÷ 186 = $226 is not a slice of $98,500.</p>
+          <p class="lab-lede">Toggle on/off. Mix $ table rewrites. Cash 4.19× does not. CPQL seed $42,000 ÷ 186 = $226 vs target $250 is not a slice of $98,500.</p>
           <fieldset class="lab-rules" data-lab-rules>
             <legend>Executable SAMPLE rules</legend>
             <label>
@@ -249,13 +249,13 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               <span>IF marketplace residual on THEN do not spend-optimize that SKU — Other paid stays $10,100.</span>
             </label>
             <label>
-              <input type="checkbox" data-lab-rule="cpql-cut" checked />
-              <span>IF CPQL &gt; target THEN cut worst CRM-qualified channel — $226 &gt; $200, cut LinkedIn $2,000.</span>
+              <input type="checkbox" data-lab-rule="cpql-cut" />
+              <span>IF CPQL &gt; target THEN cut worst CRM-qualified channel — $226 ≤ $250, rule does not fire. Same seed as /lead-gen-desk. Opt-in to see a $2,000 LinkedIn cut.</span>
             </label>
           </fieldset>
           <div class="lab-scroll">
             <table class="lab-table" data-lab-mix>
-              <caption>SSR default: all four rules on. Mix Σ $98,500. Cash stays 4.19×.</caption>
+              <caption>SSR default: CPQL cut off ($226 ≤ target $250). Mix Σ $98,500. Cash stays 4.19×.</caption>
               <thead>
                 <tr>
                   <th scope="col">Channel</th>
@@ -266,8 +266,8 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               </thead>
               <tbody>
                 <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono" data-lab-mix-amt="meta">$41,200</td><td>hold scale</td></tr>
-                <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono" data-lab-mix-amt="google">$36,980</td><td>+10% Google</td></tr>
-                <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono" data-lab-mix-amt="linkedin">$10,220</td><td>CPQL cut</td></tr>
+                <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono" data-lab-mix-amt="google">$34,980</td><td>+10% Google</td></tr>
+                <tr><th scope="row">LinkedIn</th><td class="mono">$15,400</td><td class="mono" data-lab-mix-amt="linkedin">$12,220</td><td>no CPQL cut</td></tr>
                 <tr><th scope="row">Other paid</th><td class="mono">$10,100</td><td class="mono" data-lab-mix-amt="other">$10,100</td><td>do not spend-optimize</td></tr>
               </tbody>
               <tfoot>

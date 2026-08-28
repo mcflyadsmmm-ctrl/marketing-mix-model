@@ -229,7 +229,10 @@
     c.addEventListener("change", updateExceptions);
   });
 
-  /* Four SAMPLE if/then rules. Toggle on/off rewrites mix $. Cash identity never moves. */
+  /* Four SAMPLE if/then rules. Toggle on/off rewrites mix $. Cash identity never moves.
+     CPQL seed is $42,000 / 186 = $226 vs target $250 (same as /lead-gen-desk).
+     $226 ≤ $250 so the cut does not fire. Do not invent target $200 to force a cut.
+     data-lab-rule="cpql-cut" is opt-in teaching, default off. */
   var BASE_MIX = { meta: 41200, google: 31800, linkedin: 15400, other: 10100 };
   var MIX_ROWS = [
     { id: "meta", label: "Meta" },

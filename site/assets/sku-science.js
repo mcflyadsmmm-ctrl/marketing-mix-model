@@ -171,12 +171,12 @@
     update();
   }
 
-  /* —— Lead Gen reporting —— */
+  /* —— Lead Gen reporting —— SAMPLE $42,000 / 186 = $226 vs target $250 (same as /lab). */
   function initLead() {
     var root = document.querySelector("[data-sci-lead]");
     if (!root) return;
 
-    var spend = 42000;
+    var spend = 42000; /* SAMPLE seed, not a slice of $98,500 */
     var qInput = root.querySelector("[data-sci-qualified]");
     var rawInput = root.querySelector("[data-sci-raw]");
     var sqlInput = root.querySelector("[data-sci-sql]");

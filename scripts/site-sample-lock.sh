@@ -196,6 +196,44 @@ else
   ok "studio webmanifest theme #082830"
 fi
 
+# Science honesty — $84,200 stays gone (above). Invoice vs UI is tax/fee/timezone/credit timing.
+for page in "$site/lab.html" "$site/custom-analytics.html"; do
+  if ! grep -q 'tax / fee / timezone / credit timing' "$page"; then
+    die "$(basename "$page") invoice-vs-UI memo is not tax/fee/timezone/credit timing"
+  else
+    ok "$(basename "$page") invoice vs UI = tax/fee/timezone/credit timing"
+  fi
+  if grep -Eiq 'invoice vs UI is returns|returns \+ last-touch explain (this ledger|invoice)' "$page"; then
+    die "$(basename "$page") blames invoice vs UI on returns + last-touch"
+  else
+    ok "$(basename "$page") does not blame invoice vs UI on returns + last-touch"
+  fi
+done
+
+# One CPQL target: $250. Seed $226. Do not invent $200 so the cut fires.
+if grep -R -n --include='*.html' --include='*.js' -E '\$226 &gt; \$200|\$226 > \$200' "$site"; then
+  die "CPQL target \$200 invented so \$226 fires a cut"
+else
+  ok "no invented \$200 CPQL target"
+fi
+for page in "$site/lab.html" "$site/custom-analytics.html" "$site/lead-gen-desk.html"; do
+  if ! grep -q 'target $250' "$page"; then
+    die "$(basename "$page") missing SAMPLE CPQL target \$250"
+  else
+    ok "$(basename "$page") CPQL target \$250"
+  fi
+  if ! grep -q '\$226' "$page"; then
+    die "$(basename "$page") missing CPQL seed \$226"
+  else
+    ok "$(basename "$page") CPQL seed \$226"
+  fi
+done
+if grep -q 'data-lab-rule="cpql-cut" checked' "$site/lab.html" "$site/custom-analytics.html"; then
+  die "CPQL cut defaults on even though \$226 ≤ \$250"
+else
+  ok "CPQL cut defaults off (\$226 ≤ \$250)"
+fi
+
 node --check "$site/assets/lab-desk.js"
 node --check "$site/assets/sku-science.js"
 ok "lab-desk.js and sku-science.js parse"
