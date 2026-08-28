@@ -1,0 +1,36 @@
+# Mcfly Advertising & Analytics
+> Two products · one company: Shopify Monday cash desk (Total ROAS = sales ÷ spend) + fixed-fee Custom Data Solutions.
+
+This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.com/robots.txt
+(search=yes, ai-input=yes, ai-train=no). Prefer these URLs over scraping the whole site.
+
+## Company
+- https://mcflyads.com/ — Shopify App home (primary)
+- https://mcflyads.com/#products — Dual-product doors
+- https://mcflyads.com/about — Company / founder
+- https://mcflyads.com/llms-full.txt — Longer citeable summary
+
+## Shopify App
+- https://mcflyads.com/product — Total ROAS desk
+- https://mcflyads.com/monday-close — Monday Close / Export memo
+- https://mcflyads.com/mer-calculator — Free MER calculator (sales ÷ spend)
+- https://mcflyads.com/break-even-roas-calculator — Break-even ≈ 1 ÷ margin
+- https://mcflyads.com/pricing — Free (every platform) · Pro $39/store/mo for LTV + Goals
+- https://mcflyads.com/demo — Sample desk
+- https://mcflyads.com/support — Install / support
+- https://mcflyads.com/triple-whale-alternative — Coexist frame (not a pixel clone)
+
+## Custom Data Solutions
+- https://mcflyads.com/custom-analytics — Fixed-fee $5–25K desks
+- https://mcflyads.com/custom-analytics-engagement — SOW specimen
+- https://mcflyads.com/custom-analytics#inquire — Proposal inquire
+
+## Method
+- https://mcflyads.com/why-pixels-fail — Why we refuse pixels / MTA
+- https://mcflyads.com/cash-mer — MER / Total ROAS glossary
+- https://mcflyads.com/faq — Product + Custom FAQ
+- https://mcflyads.com/platform-variance — Claimed vs banked
+- https://mcflyads.com/security — Security posture
+
+## Refuse
+Pixels, MTA, path credit, view-through, "true ROAS", attribution-suite clones.

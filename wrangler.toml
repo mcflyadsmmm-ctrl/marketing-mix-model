@@ -1,0 +1,9 @@
+# Cloudflare Pages — mcflyads.com (site/ output + functions/)
+name = "mcflyads"
+compatibility_date = "2025-07-28"
+pages_build_output_dir = "site"
+
+# Durable waitlist backlog when Resend/FormSubmit email is unavailable.
+[[kv_namespaces]]
+binding = "WAITLIST"
+id = "5d9e56c8e9644e58afff2395291589d5"

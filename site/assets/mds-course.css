@@ -1,0 +1,399 @@
+/* Marketing Data Science Made Easy — course shell (draft / evergreen) */
+body.mds-course {
+  background:
+    radial-gradient(ellipse 70% 40% at 88% -8%, rgba(94, 231, 240, 0.1), transparent 55%),
+    radial-gradient(ellipse 50% 35% at 0% 20%, rgba(26, 163, 122, 0.06), transparent 50%),
+    var(--paper-2);
+}
+
+.mds-draft-banner {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: #0a1221;
+  color: #e8eef4;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  padding: 0.55rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(94, 231, 240, 0.25);
+}
+.mds-draft-banner strong {
+  color: var(--cyan);
+  font-weight: 600;
+}
+
+.mds-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  gap: 1.5rem 2rem;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.15rem 3.5rem;
+}
+@media (max-width: 860px) {
+  .mds-shell {
+    grid-template-columns: 1fr;
+    padding-top: 0.75rem;
+  }
+}
+
+.mds-nav {
+  position: sticky;
+  top: 2.75rem;
+  align-self: start;
+  padding: 1rem 0.85rem;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 0;
+}
+@media (max-width: 860px) {
+  .mds-nav {
+    position: static;
+  }
+}
+.mds-nav .mds-brand {
+  display: block;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  margin-bottom: 0.35rem;
+  color: var(--ink);
+}
+.mds-nav .mds-price {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--mute);
+  margin: 0 0 0.85rem;
+}
+.mds-nav ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mds-nav li + li {
+  margin-top: 0.2rem;
+}
+.mds-nav a {
+  display: block;
+  text-decoration: none;
+  font-size: 0.84rem;
+  padding: 0.35rem 0.4rem;
+  color: var(--mute);
+  border-left: 2px solid transparent;
+}
+.mds-nav a:hover {
+  color: var(--ink);
+}
+.mds-nav a.is-active {
+  color: var(--ink);
+  border-left-color: var(--cyan-deep);
+  background: rgba(94, 231, 240, 0.08);
+}
+.mds-nav a.done::after {
+  content: " ✓";
+  color: var(--truth);
+  font-size: 0.75em;
+}
+
+.mds-main {
+  min-width: 0;
+}
+.mds-kicker {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--mute);
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.mds-main h1 {
+  font-family: var(--display);
+  font-size: clamp(1.65rem, 3.8vw, 2.35rem);
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  margin: 0 0 0.65rem;
+  max-width: 22ch;
+}
+.mds-lede {
+  font-size: 1.05rem;
+  color: var(--ink);
+  max-width: 38rem;
+  margin: 0 0 1.35rem;
+}
+.mds-answer {
+  max-width: 40rem;
+  margin: 0 0 1.5rem;
+  padding: 0.95rem 1.1rem;
+  border-left: 3px solid var(--cyan-deep);
+  background: rgba(94, 231, 240, 0.07);
+}
+.mds-answer p {
+  margin: 0;
+  line-height: 1.5;
+}
+.mds-main h2 {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+  margin: 1.75rem 0 0.5rem;
+}
+.mds-main h3 {
+  font-size: 1rem;
+  margin: 1.2rem 0 0.4rem;
+}
+.mds-main p,
+.mds-main li {
+  max-width: 40rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.mds-main ul,
+.mds-main ol {
+  padding-left: 1.2rem;
+}
+.mds-main li + li {
+  margin-top: 0.35rem;
+}
+.mds-formula {
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  padding: 0.85rem 1rem;
+  background: rgba(10, 18, 33, 0.04);
+  border-left: 3px solid var(--cyan-deep);
+  margin: 0.75rem 0 1rem;
+  max-width: 40rem;
+}
+.mds-callout {
+  max-width: 40rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  margin: 1rem 0 1.25rem;
+}
+.mds-callout strong {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.35rem;
+}
+.mds-refuse {
+  border-left: 3px solid var(--lie);
+  background: rgba(194, 69, 50, 0.06);
+}
+.mds-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin: 1.5rem 0 0.5rem;
+}
+.mds-cta-row a {
+  font-size: 0.92rem;
+}
+.mds-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+  max-width: 40rem;
+}
+.mds-pager a {
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--cyan-deep);
+}
+.mds-pager a:hover {
+  text-decoration: underline;
+}
+
+/* Interactives */
+.mds-lab {
+  max-width: 40rem;
+  margin: 1.25rem 0 1.75rem;
+  padding: 1.15rem 1.2rem 1.25rem;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.mds-lab h3 {
+  margin: 0 0 0.75rem;
+  font-family: var(--display);
+  font-size: 1.05rem;
+}
+.mds-lab label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--mute);
+  margin: 0.65rem 0 0.25rem;
+}
+.mds-lab input[type="number"],
+.mds-lab input[type="text"],
+.mds-lab select {
+  width: 100%;
+  max-width: 16rem;
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--line);
+  background: var(--paper-2);
+}
+.mds-lab input[type="range"] {
+  width: 100%;
+  max-width: 20rem;
+}
+.mds-lab .mds-out {
+  margin-top: 0.9rem;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  padding: 0.65rem 0.75rem;
+  background: rgba(10, 18, 33, 0.04);
+}
+.mds-lab .mds-hint {
+  font-size: 0.8rem;
+  color: var(--mute);
+  margin: 0.5rem 0 0;
+}
+.mds-lab [data-mds-q] button {
+  display: block;
+  width: 100%;
+  max-width: 28rem;
+  text-align: left;
+  margin: 0.35rem 0;
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  background: var(--paper-2);
+  cursor: pointer;
+}
+.mds-lab [data-mds-q] button:hover {
+  border-color: var(--cyan-deep);
+}
+
+.mds-card-stack {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 40rem;
+}
+.mds-card {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  width: 100%;
+}
+.mds-card .term {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1rem;
+}
+.mds-card .def {
+  display: none;
+  margin-top: 0.45rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.mds-card.is-open .def {
+  display: block;
+}
+.mds-card.refuse-term {
+  border-left: 3px solid var(--lie);
+}
+
+.mds-prompt {
+  max-width: 40rem;
+  margin: 0 0 1rem;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.mds-prompt header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(10, 18, 33, 0.03);
+}
+.mds-prompt header h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-family: var(--display);
+}
+.mds-prompt button {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+}
+.mds-prompt button:hover {
+  border-color: var(--cyan-deep);
+}
+.mds-prompt pre {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  white-space: pre-wrap;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.mds-syllabus {
+  max-width: 40rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+.mds-syllabus li {
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+}
+.mds-syllabus a {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 0.65rem;
+  padding: 0.85rem 0;
+  text-decoration: none;
+  color: inherit;
+}
+.mds-syllabus .n {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--mute);
+}
+.mds-syllabus .t {
+  font-family: var(--display);
+  font-weight: 650;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+.mds-syllabus .d {
+  grid-column: 2;
+  font-size: 0.88rem;
+  color: var(--mute);
+  margin-top: 0.15rem;
+}
+.mds-mark-done {
+  margin-top: 1.25rem;
+}
+.mds-mark-done button {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+}
+.mds-mark-done button:hover {
+  border-color: var(--truth);
+}

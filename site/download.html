@@ -3,93 +3,645 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Downloadable MER app — Mcfly Analytics</title>
-  <meta name="description" content="Installable / offline-friendly cash MER calculator. Same religion as the Shopify app — spend vs sales." />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <title>Break-even ROAS &amp; MER calculator | Mcfly</title>
+  <meta name="description" content="Free break-even ROAS &amp; MER calculator: sales ÷ ad spend, break-even from your contribution margin, and spend headroom. Works offline, no account — same math as the Mcfly Shopify Total ROAS desk." />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#0b0e12" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="canonical" href="https://mcflyads.com/download" />
+  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mcflyads.com/download" />
+  <meta property="og:title" content="Break-even ROAS &amp; MER calculator | Mcfly" />
+  <meta property="og:description" content="Sales ÷ spend, break-even ROAS from margin, and spend headroom — free, offline, installable. Same math as the Shopify Total ROAS desk." />
+  <meta property="og:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Break-even ROAS &amp; MER calculator | Mcfly" />
+  <meta name="twitter:description" content="MER = sales ÷ spend. Break-even ROAS ≈ 1 ÷ margin. Free, offline, no account." />
+  <meta name="twitter:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260722a" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
+  <style>
+    body.download-page {
+      background:
+        radial-gradient(ellipse 70% 45% at 90% -6%, rgba(94, 231, 240, 0.11), transparent 55%),
+        radial-gradient(ellipse 55% 38% at 0% 16%, rgba(26, 163, 122, 0.07), transparent 50%),
+        var(--paper-2);
+    }
+    body.download-page .brand-kicker .ads {
+      color: var(--cyan-deep);
+    }
+    body.download-page .page-hero h1 {
+      max-width: 20ch;
+    }
+    body.download-page .dl-thesis {
+      margin: 1.15rem 0 0;
+      max-width: 42ch;
+      padding-left: 0.9rem;
+      border-left: 3px solid var(--cyan-deep);
+      color: var(--ink);
+      font-family: var(--display);
+      font-size: clamp(1.02rem, 2.1vw, 1.15rem);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.35;
+    }
+
+    /* —— Calculator: the star. Light input side, dark cash-desk readout. —— */
+    .calc-stage {
+      width: min(var(--max), 100%);
+      margin: 0 auto;
+      padding: 0.5rem clamp(1.15rem, 3.5vw, 2rem) clamp(2rem, 5vw, 3rem);
+    }
+    .calc-card {
+      overflow: hidden;
+      border: 1px solid rgba(10, 18, 33, 0.12);
+      background: #fff;
+      box-shadow: 0 30px 70px -40px rgba(10, 18, 33, 0.4);
+    }
+    .calc-head {
+      padding: clamp(1.25rem, 3vw, 1.75rem) clamp(1.25rem, 3.5vw, 2rem) 0;
+    }
+    .calc-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.7rem;
+      padding: 0.28rem 0.6rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--truth);
+      background: rgba(26, 163, 122, 0.09);
+      border: 1px solid rgba(15, 107, 82, 0.22);
+    }
+    .calc-chip i {
+      width: 0.4rem;
+      height: 0.4rem;
+      background: var(--truth-2);
+      display: inline-block;
+    }
+    .calc-head h2 {
+      margin: 0 0 0.45rem;
+      font-family: var(--display);
+      font-size: clamp(1.45rem, 3.4vw, 2rem);
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      color: var(--ink);
+    }
+    .calc-head p {
+      margin: 0;
+      max-width: 52ch;
+      color: var(--mute);
+      font-size: 1.02rem;
+      line-height: 1.5;
+    }
+
+    .calc-grid {
+      display: grid;
+      margin-top: clamp(1.25rem, 3vw, 1.75rem);
+    }
+    @media (min-width: 820px) {
+      .calc-grid {
+        grid-template-columns: 1fr 1.08fr;
+        align-items: stretch;
+      }
+    }
+
+    .calc-inputs {
+      padding: clamp(1.25rem, 3.5vw, 2rem);
+      display: grid;
+      gap: 1.15rem;
+      align-content: start;
+    }
+    .calc-field {
+      display: grid;
+      gap: 0.4rem;
+    }
+    .calc-field .lab {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .calc-field .lab em {
+      font-style: normal;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      text-transform: none;
+      color: var(--cyan-deep);
+      font-family: var(--mono);
+      font-size: 0.92em;
+    }
+    .calc-input {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .calc-input:focus-within {
+      border-color: var(--cyan-deep);
+      background: #fff;
+    }
+    .calc-input .unit {
+      padding: 0 0.35rem 0 0.85rem;
+      font-family: var(--mono);
+      font-size: 1rem;
+      color: var(--mute);
+    }
+    .calc-input .unit.suffix {
+      padding: 0 0.85rem 0 0.35rem;
+    }
+    .calc-input input {
+      flex: 1;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      padding: 0.8rem 0.85rem 0.8rem 0.35rem;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(1.1rem, 2.4vw, 1.3rem);
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .calc-input input:focus {
+      outline: none;
+    }
+    .calc-input input.suffixed {
+      padding-right: 0.35rem;
+    }
+
+    .calc-readout {
+      position: relative;
+      padding: clamp(1.5rem, 3.5vw, 2rem);
+      color: #f4f6f8;
+      background:
+        radial-gradient(ellipse 65% 75% at 100% 0%, rgba(94, 231, 240, 0.16), transparent 55%),
+        linear-gradient(165deg, #0a1221 0%, #111c2f 55%, #152036 100%);
+    }
+    .calc-readout .ro-label {
+      margin: 0 0 0.15rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(244, 246, 248, 0.5);
+    }
+    .calc-readout .ro-mer {
+      display: block;
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(3rem, 9vw, 4.25rem);
+      letter-spacing: -0.05em;
+      line-height: 0.95;
+      color: #fff;
+    }
+    .calc-readout .ro-sub {
+      margin: 0.35rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      letter-spacing: -0.02em;
+      color: var(--cyan);
+    }
+    .ro-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1.35rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(244, 246, 248, 0.14);
+    }
+    .ro-split .ro-k span {
+      display: block;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(244, 246, 248, 0.5);
+      margin-bottom: 0.3rem;
+    }
+    .ro-split .ro-k strong {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(1.35rem, 3.2vw, 1.7rem);
+      letter-spacing: -0.03em;
+      color: #fff;
+    }
+    .ro-split .ro-k em {
+      display: block;
+      margin-top: 0.25rem;
+      font-style: normal;
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      letter-spacing: -0.02em;
+      color: rgba(244, 246, 248, 0.45);
+    }
+    #dl-head.pos { color: #9ee0c6; }
+    #dl-head.neg { color: var(--lie-soft); }
+    .calc-readout .verdict {
+      margin: 1.35rem 0 0;
+      padding-top: 1.1rem;
+      border-top: 1px solid rgba(244, 246, 248, 0.14);
+      max-width: none;
+      font-weight: 600;
+      font-size: 0.98rem;
+      line-height: 1.45;
+      color: #9ee0c6;
+    }
+    .calc-readout .verdict.below { color: var(--lie-soft); }
+    .calc-readout .verdict.neutral { color: rgba(244, 246, 248, 0.62); }
+
+    .calc-cash {
+      padding: clamp(1.1rem, 3vw, 1.4rem) clamp(1.25rem, 3.5vw, 2rem);
+      border-top: 1px solid var(--line);
+      background: var(--paper-2);
+    }
+    .calc-cash p {
+      margin: 0;
+      max-width: 68ch;
+      color: var(--ink);
+      font-size: 0.98rem;
+      line-height: 1.55;
+    }
+    .calc-cash .mono {
+      color: var(--truth);
+      font-weight: 600;
+    }
+    .calc-honest {
+      width: min(var(--max), 100%);
+      margin: 0 auto;
+      padding: 0 clamp(1.15rem, 3.5vw, 2rem);
+    }
+    .calc-honest p {
+      margin: 0;
+      max-width: 60ch;
+      padding-left: 0.9rem;
+      border-left: 3px solid var(--cyan-deep);
+      color: var(--mute);
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+    .calc-honest strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* —— Install rail —— */
+    body.download-page .install-band {
+      background:
+        radial-gradient(500px 240px at 100% 0%, rgba(26, 163, 122, 0.07), transparent 55%),
+        var(--paper-2);
+    }
+    .install-rail {
+      list-style: none;
+      margin: 2rem 0 0;
+      padding: 0;
+      display: grid;
+      gap: 1.5rem;
+    }
+    @media (min-width: 860px) {
+      .install-rail {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+      }
+    }
+    .install-rail li {
+      padding: 1.15rem 0 0;
+      border-top: 2px solid var(--ink);
+    }
+    .install-rail .n {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--cyan-deep);
+    }
+    .install-rail h3 {
+      margin: 0 0 0.35rem;
+      font-family: var(--display);
+      font-size: 1.1rem;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+    }
+    .install-rail p {
+      margin: 0;
+      color: var(--mute);
+      font-size: 0.98rem;
+      line-height: 1.5;
+    }
+    .install-note {
+      margin: 1.75rem 0 0;
+      font-size: 0.9rem;
+      color: var(--mute);
+    }
+
+    /* —— Who it's for —— */
+    body.download-page .who-band {
+      background: #fff;
+    }
+    .who-grid {
+      display: grid;
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+    @media (min-width: 800px) {
+      .who-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+      }
+    }
+    .who-grid article {
+      padding: 1.35rem 1.25rem;
+      background: var(--paper-2);
+      border-top: 3px solid var(--truth);
+    }
+    .who-grid h3 {
+      margin: 0 0 0.4rem;
+      font-family: var(--display);
+      font-size: 1.15rem;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+    }
+    .who-grid p {
+      margin: 0;
+      color: var(--mute);
+      font-size: 0.98rem;
+      line-height: 1.5;
+    }
+
+    /* —— Close (dark) —— */
+    .dl-close {
+      width: min(var(--max), 100%);
+      margin: clamp(1rem, 3vw, 2rem) auto clamp(3rem, 8vw, 5rem);
+      padding: clamp(1.75rem, 4vw, 2.75rem) clamp(1.25rem, 3.5vw, 2rem);
+      background:
+        radial-gradient(ellipse 60% 80% at 100% 0%, rgba(94, 231, 240, 0.14), transparent 55%),
+        var(--steel);
+      color: #f4f6f8;
+    }
+    .dl-close .eyebrow {
+      color: rgba(244, 246, 248, 0.45);
+    }
+    .dl-close h2 {
+      margin: 0 0 0.65rem;
+      font-family: var(--display);
+      font-size: clamp(1.55rem, 3.6vw, 2.2rem);
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+      color: #fff;
+      max-width: 18ch;
+    }
+    .dl-close .lede {
+      margin: 0 0 1.35rem;
+      max-width: 46ch;
+      color: rgba(244, 246, 248, 0.78);
+      font-size: 1.05rem;
+    }
+    .dl-close .cta-row {
+      align-items: center;
+    }
+    .dl-close .btn.ghost {
+      color: #f4f6f8;
+      border-color: rgba(244, 246, 248, 0.4);
+    }
+    .dl-close .fine-line {
+      margin: 1.15rem 0 0;
+      max-width: 46ch;
+      font-size: 0.9rem;
+      color: rgba(244, 246, 248, 0.5);
+    }
+  </style>
 </head>
-<body>
+<body class="download-page">
   <a class="skip" href="#main">Skip to content</a>
   <div data-chrome></div>
+
   <main id="main">
     <header class="page-hero">
-      <p class="brand-kicker">Mcfly Analytics</p>
-      <h1>Downloadable cash MER — for Shopify and services.</h1>
-      <p>Install this site as an app (PWA). Enter spend and revenue. Get MER, break-even, and a simple allocation hint — no account required for the calculator.</p>
+      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
+      <h1>Total ROAS calculator. Free, offline.</h1>
+      <p>Enter spend and sales. Total ROAS = sales ÷ ad spend — then break-even from margin, then spend headroom. Same math as the Shopify desk. No account.</p>
+      <p class="dl-thesis">Sales ÷ spend. Not attribution. Not a pixel.</p>
+      <p class="frame-note" style="margin:1rem 0 0;max-width:46ch;color:var(--mute);font-size:0.95rem">Also: <a href="/mer-calculator">MER calculator</a> · <a href="/break-even-roas-calculator">break-even ROAS calculator</a></p>
     </header>
 
-    <div class="prose">
-      <h2>Offline calculator</h2>
-      <div class="panel" style="padding-top:0">
-        <label class="slider">Ad spend ($)
-          <input type="number" id="dl-spend" min="0" step="100" value="64000" />
-        </label>
-        <label class="slider">Revenue / sales ($)
-          <input type="number" id="dl-sales" min="0" step="100" value="221296" />
-        </label>
-        <label class="slider">Contribution margin (%)
-          <input type="number" id="dl-margin" min="1" max="99" step="1" value="35" />
-        </label>
-        <div class="meter-row two" style="margin-top:1rem">
-          <div>
-            <span class="lab">Cash MER</span>
-            <strong class="truth" id="dl-mer">3.46×</strong>
+    <section class="calc-stage" aria-labelledby="calc-title">
+      <div class="calc-card">
+        <div class="calc-head">
+          <span class="calc-chip"><i aria-hidden="true"></i> Runs in your browser · offline</span>
+          <h2 id="calc-title">Total ROAS calculator</h2>
+          <p>Enter the three fields. Readout updates live. Break-even is 1 ÷ your contribution margin.</p>
+        </div>
+
+        <div class="calc-grid">
+          <div class="calc-inputs">
+            <div class="calc-field">
+              <label class="lab" for="dl-spend">Ad spend (period) <em>money out</em></label>
+              <div class="calc-input">
+                <span class="unit">$</span>
+                <input type="number" id="dl-spend" min="0" step="100" value="64000" inputmode="decimal" />
+              </div>
+            </div>
+            <div class="calc-field">
+              <label class="lab" for="dl-sales">Sales / revenue (period)</label>
+              <div class="calc-input">
+                <span class="unit">$</span>
+                <input type="number" id="dl-sales" min="0" step="100" value="221296" inputmode="decimal" />
+              </div>
+            </div>
+            <div class="calc-field">
+              <label class="lab" for="dl-margin">Contribution margin <em>1 ÷ margin = break-even</em></label>
+              <div class="calc-input">
+                <input type="number" id="dl-margin" class="suffixed" min="1" max="99" step="1" value="35" inputmode="decimal" />
+                <span class="unit suffix">%</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <span class="lab">Break-even MER</span>
-            <strong id="dl-be">2.86×</strong>
+
+          <div class="calc-readout">
+            <p class="ro-label">Total ROAS</p>
+            <strong class="ro-mer" id="dl-mer">3.46×</strong>
+            <p class="ro-sub" id="dl-formula">$221,296 ÷ $64,000</p>
+            <div class="ro-split">
+              <div class="ro-k">
+                <span>Break-even Total ROAS</span>
+                <strong id="dl-be">2.86×</strong>
+                <em>1 ÷ 35% margin</em>
+              </div>
+              <div class="ro-k">
+                <span>Spend headroom</span>
+                <strong id="dl-head" class="pos">+$13,454</strong>
+                <em id="dl-head-note">room before break-even</em>
+              </div>
+            </div>
+            <p class="verdict" id="dl-verdict">Above break-even — protect the mix.</p>
           </div>
         </div>
-        <p class="verdict" id="dl-verdict">Above break-even.</p>
+
+        <div class="calc-cash">
+          <p id="dl-cash">At <span class="mono">35%</span> margin, <span class="mono">$221,296</span> in sales breaks even at <span class="mono">$77,454</span> of ad spend. You're spending <span class="mono">$64,000</span> — ads left <span class="mono">$13,454</span> of contribution after covering themselves.</p>
+        </div>
       </div>
 
-      <h2>How to install</h2>
-      <ul>
-        <li><strong>Chrome / Edge:</strong> menu → Install Mcfly Analytics / Add to Home screen</li>
-        <li><strong>Safari iOS:</strong> Share → Add to Home Screen</li>
-        <li>Works offline after first load (service worker)</li>
-      </ul>
+      <div class="calc-honest">
+        <p><strong>Honest catch.</strong> This won’t name which ad earned the sale. It tells you whether this period’s spend, in total, cleared break-even — the Budget call finance can defend.</p>
+      </div>
+    </section>
 
-      <h2>Who this is for</h2>
-      <p>Shopify operators between installs. Service businesses without Shopify. Agencies demoing cash MER before connecting a store. Same formula as the embedded app — one religion.</p>
-    </div>
+    <section class="band install-band" aria-labelledby="install-title">
+      <div class="wrap">
+        <p class="eyebrow">Keep it on your home screen</p>
+        <h2 id="install-title" class="display">Install once.<br />Read Total ROAS anywhere.</h2>
+        <p class="lede-soft">Install as a PWA — works offline after first load. No login. Numbers stay on your device.</p>
+        <ol class="install-rail">
+          <li>
+            <span class="n">Chrome / Edge</span>
+            <h3>Install from the menu</h3>
+            <p>Open the browser menu and choose <strong>Install Mcfly Ads</strong> (or the install icon in the address bar). It opens in its own window.</p>
+          </li>
+          <li>
+            <span class="n">Safari · iOS</span>
+            <h3>Add to Home Screen</h3>
+            <p>Tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>. Launch it like any app — the calculator runs without a connection.</p>
+          </li>
+          <li>
+            <span class="n">Offline</span>
+            <h3>Works with no signal</h3>
+            <p>A service worker caches the page after first load, so Total ROAS and break-even keep calculating on a plane, in a warehouse, anywhere.</p>
+          </li>
+        </ol>
+        <p class="install-note">Nothing you type leaves your device. The calculator does no tracking and stores no numbers on a server.</p>
+      </div>
+    </section>
+
+    <section class="band who-band" aria-labelledby="who-title">
+      <div class="wrap">
+        <p class="eyebrow">Who this is for</p>
+        <h2 id="who-title" class="display">One formula.<br />Everyone who buys ads.</h2>
+        <div class="who-grid">
+          <article>
+            <h3>Shopify operators between installs</h3>
+            <p>Want the number before connecting a store? Feel the exact Total ROAS math here, then run it live on your data inside the embedded app.</p>
+          </article>
+          <article>
+            <h3>Service businesses without a store</h3>
+            <p>No Shopify, no checkout pixel, no problem. Sales ÷ spend works for agencies, local services, and info products just the same.</p>
+          </article>
+          <article>
+            <h3>Agencies pitching honesty</h3>
+            <p>Show Total ROAS and break-even in ten seconds — a number the client can defend to finance, without path credit.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="dl-close" aria-labelledby="dl-close-title">
+      <p class="eyebrow">When you're ready for live data</p>
+      <h2 id="dl-close-title">The desk, on your real sales</h2>
+      <p class="lede">Calculator = manual. Shopify app pulls <strong>sales</strong>; you <strong>add spend from any platform</strong> (type a day or paste CSV) — then Total ROAS vs break-even every week, one allocation call. Same math. No ad OAuth.</p>
+      <div class="cta-row">
+        <a class="btn primary" data-mcfly-cta="primary" href="/demo">Try the demo</a>
+        <a class="btn ghost" href="/support">App Store install steps</a>
+        <a class="btn ghost" href="/custom-analytics#inquire">Custom inquire</a>
+      </div>
+      <p class="fine-line">7-day trial then $39/store/mo whole desk. Uninstall stops the charge. Not a GMV tax. Not a pixel.</p>
+    </section>
   </main>
 
   <div data-footer></div>
-<script src="/assets/chrome.js?v=20260722a"></script>
-  <script src="/assets/app.js?v=20260722a"></script>
+  <script src="/assets/cta-config.js?v=20260825live"></script>
+  <script src="/assets/chrome.js?v=20260825live"></script>
+  <script src="/assets/app.js?v=20260825live"></script>
   <script>
     (function () {
       const spend = document.getElementById("dl-spend");
       const sales = document.getElementById("dl-sales");
       const margin = document.getElementById("dl-margin");
       const merEl = document.getElementById("dl-mer");
+      const formulaEl = document.getElementById("dl-formula");
       const beEl = document.getElementById("dl-be");
+      const headEl = document.getElementById("dl-head");
+      const headNote = document.getElementById("dl-head-note");
       const verdict = document.getElementById("dl-verdict");
+      const cashEl = document.getElementById("dl-cash");
+
+      const usd0 = (n) =>
+        n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
       function run() {
         const s = Number(spend.value) || 0;
         const r = Number(sales.value) || 0;
-        const m = (Number(margin.value) || 35) / 100;
-        const be = m > 0 ? 1 / m : 0;
+        const mPct = Math.min(99, Math.max(1, Number(margin.value) || 35));
+        const m = mPct / 100;
+        const be = 1 / m;
         const mer = s > 0 ? r / s : 0;
+        const beSpend = m * r; // ad spend level where Total ROAS == break-even
+        const headroom = beSpend - s; // + = room to scale, − = overspending
+
         merEl.textContent = mer ? mer.toFixed(2) + "×" : "—";
-        beEl.textContent = be ? be.toFixed(2) + "×" : "—";
+        beEl.textContent = be.toFixed(2) + "×";
+        beEl.nextElementSibling.textContent = "1 ÷ " + mPct + "% margin";
+        formulaEl.textContent = r && s ? usd0(r) + " ÷ " + usd0(s) : "enter spend and sales";
+
+        const headMag = usd0(Math.abs(headroom));
         if (!s || !r) {
-          verdict.textContent = "Enter spend and sales.";
-          verdict.style.color = "var(--mute)";
-        } else if (mer >= be) {
-          verdict.textContent = "Above break-even — protect the mix.";
-          verdict.style.color = "var(--truth)";
-        } else {
-          verdict.textContent = "Below break-even — cut spend or improve margin.";
-          verdict.style.color = "var(--lie)";
+          headEl.textContent = "—";
+          headEl.className = "";
+          headNote.textContent = "room before break-even";
+          verdict.textContent = "Enter spend and sales to read your Total ROAS.";
+          verdict.className = "verdict neutral";
+          cashEl.innerHTML =
+            "Enter spend, sales, and margin above. Break-even ad spend is simply your contribution margin × sales.";
+          return;
         }
+
+        if (headroom >= 0) {
+          headEl.textContent = "+" + headMag;
+          headEl.className = "pos";
+          headNote.textContent = "room before break-even";
+        } else {
+          headEl.textContent = "−" + headMag;
+          headEl.className = "neg";
+          headNote.textContent = "over break-even spend";
+        }
+
+        if (mer >= be) {
+          verdict.textContent =
+            "Above break-even — this spend is still buying profitable revenue. Protect the mix; don't chase platform ROAS.";
+          verdict.className = "verdict";
+        } else {
+          verdict.textContent =
+            "Below break-even — you're buying revenue at a loss before margin lands. Cut spend or lift margin.";
+          verdict.className = "verdict below";
+        }
+
+        const tail =
+          headroom >= 0
+            ? "ads left " + usd0(headroom) + " of contribution after covering themselves."
+            : "ads ran " + usd0(-headroom) + " past what this margin can carry.";
+        cashEl.innerHTML =
+          "At <span class=\"mono\">" + mPct + "%</span> margin, <span class=\"mono\">" + usd0(r) +
+          "</span> in sales breaks even at <span class=\"mono\">" + usd0(beSpend) +
+          "</span> of ad spend. You're spending <span class=\"mono\">" + usd0(s) + "</span> — " + tail;
       }
+
       [spend, sales, margin].forEach((el) => el.addEventListener("input", run));
       run();
     })();

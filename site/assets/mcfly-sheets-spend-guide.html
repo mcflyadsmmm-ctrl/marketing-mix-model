@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get spend into Mcfly via Google Sheets — Mcfly Ads</title>
+  <meta name="description" content="Sheets-first spend for Mcfly: download a blank Day + platform CSV, import into Google Sheets, fill daily spend (or optional SyncWith-class tools you pay), download CSV, paste on Spend. Free path never requires SyncWith." />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+  <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="canonical" href="https://mcflyads.com/assets/mcfly-sheets-spend-guide" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
+  <style>
+    body.sheets-guide-page {
+      background:
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(94, 231, 240, 0.1), transparent 55%),
+        var(--paper-2, #f6f8fb);
+    }
+    body.sheets-guide-page .guide-wrap {
+      width: min(40rem, 100%);
+      margin: 0 auto;
+      padding: 2.5rem clamp(1.15rem, 3.5vw, 2rem) 4rem;
+    }
+    body.sheets-guide-page .guide-wrap h1 {
+      font-family: var(--display, "Bricolage Grotesque", system-ui, sans-serif);
+      font-size: clamp(1.75rem, 4vw, 2.35rem);
+      line-height: 1.15;
+      margin: 0.35rem 0 0.75rem;
+      max-width: 18ch;
+    }
+    body.sheets-guide-page .guide-lede {
+      color: var(--mute, #4a5568);
+      line-height: 1.5;
+      margin: 0 0 1.5rem;
+      max-width: 42ch;
+    }
+    body.sheets-guide-page .guide-steps {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      border: 1px solid var(--line, #d8dee8);
+      border-radius: 0.65rem;
+      background: #fff;
+    }
+    body.sheets-guide-page .guide-steps li {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-top: 1px solid var(--line, #d8dee8);
+      line-height: 1.45;
+    }
+    body.sheets-guide-page .guide-steps li:first-child { border-top: 0; }
+    body.sheets-guide-page .guide-steps .n {
+      flex: 0 0 auto;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 999px;
+      background: var(--cyan-deep, #0e7490);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    body.sheets-guide-page .guide-tip {
+      margin: 1.25rem 0 0;
+      padding: 0.85rem 1rem;
+      border-radius: 0.5rem;
+      background: rgba(14, 116, 144, 0.08);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+    body.sheets-guide-page .guide-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1.5rem;
+    }
+    body.sheets-guide-page .guide-actions a.btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.55rem 1rem;
+      border-radius: 0.45rem;
+      background: var(--ink, #0a1221);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+    body.sheets-guide-page .guide-actions a.btn-secondary {
+      background: transparent;
+      color: var(--ink, #0a1221);
+      border: 1px solid var(--line, #d8dee8);
+    }
+  </style>
+</head>
+<body class="sheets-guide-page">
+  <div class="guide-wrap">
+    <p class="eyebrow">Spend onboarding</p>
+    <h1>Get spend into Mcfly via Google Sheets</h1>
+    <p class="guide-lede">
+      No Google OAuth from Mcfly. Download a blank Day + selected-platform CSV,
+      import it into a new Sheet, fill daily spend, download CSV, paste on Spend.
+    </p>
+    <ol class="guide-steps" aria-label="Sheets spend steps">
+      <li>
+        <span class="n" aria-hidden="true">1</span>
+        <span>In the Mcfly Spend tab, check the ad platforms you actually run (Meta + Google are pre-selected).</span>
+      </li>
+      <li>
+        <span class="n" aria-hidden="true">2</span>
+        <span>Download your Mcfly blank template — or open a new Google Sheet and import that CSV.</span>
+      </li>
+      <li>
+        <span class="n" aria-hidden="true">3</span>
+        <span>In the new Sheet: <strong>File → Import → Upload →</strong> your CSV → <strong>Replace spreadsheet → Import data</strong>.</span>
+      </li>
+      <li>
+        <span class="n" aria-hidden="true">4</span>
+        <span>Fill daily spend by hand — or optionally connect SyncWith / Coupler / Supermetrics / Coefficient to these columns (<strong>you pay those tools</strong>).</span>
+      </li>
+      <li>
+        <span class="n" aria-hidden="true">5</span>
+        <span><strong>File → Download → Comma Separated Values (.csv)</strong> → paste or import back on Spend.</span>
+      </li>
+    </ol>
+    <p class="guide-tip">
+      Free path never requires SyncWith, Coupler, or Supermetrics. Mcfly does not claim “Works with” logos for those products. Paste/CSV alone is enough.
+    </p>
+    <div class="guide-actions">
+      <a class="btn" href="https://docs.google.com/spreadsheets/create" target="_blank" rel="noopener noreferrer">Open Google Sheets</a>
+      <a class="btn btn-secondary" href="/demo">Try the public demo</a>
+      <a class="btn btn-secondary" href="/assets/mcfly-pipe-spend-long-blank.csv">Pipe long blank CSV</a>
+      <a class="btn btn-secondary" href="/support#sheets-spend">Support FAQ</a>
+    </div>
+  </div>
+</body>
+</html>
