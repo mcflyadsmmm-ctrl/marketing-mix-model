@@ -3,411 +3,377 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mcfly Analytics — Spend vs sales. Not attribution theater.</title>
-  <meta name="description" content="A better version of suite dashboards: cash MER for Shopify — spend vs sales, break-even, allocation. Not path attribution theater." />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <title>See ad spend next to sales, day by day. | Mcfly</title>
+  <meta name="description" content="Mcfly Analytics: see ad spend next to Shopify sales, day by day. Whole desk — Spend, Overview, LTV, Goals. 7-day full-access trial, then $39/store/mo. Uninstall stops the charge." />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#0b0e12" />
+  <meta name="theme-color" content="#0a1221" />
   <link rel="canonical" href="https://mcflyads.com/" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Mcfly Analytics — Spend vs sales. Not attribution theater." />
-  <meta property="og:description" content="Same useful job as the suites — organize spend and sales — without selling fake science." />
-  <meta property="og:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <meta property="og:title" content="See ad spend next to sales, day by day. | Mcfly" />
+  <meta property="og:description" content="Ad spend next to Shopify sales, day by day. Whole desk. 7-day full-access trial, then $39/store/mo." />
+  <meta property="og:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
   <meta property="og:url" content="https://mcflyads.com/" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Mcfly Analytics — Spend vs sales. Not attribution theater." />
-  <meta name="twitter:description" content="Cash MER for Shopify. Free launch for design partners." />
-  <meta name="twitter:image" content="https://mcflyads.com/assets/product-cockpit.jpg" />
+  <meta name="twitter:title" content="See ad spend next to sales, day by day. | Mcfly" />
+  <meta name="twitter:description" content="Ad spend next to Shopify sales, day by day. 7-day trial then $39/store/mo. Whole desk." />
+  <meta name="twitter:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260722a" />
-  <style>
-    /* Critical: never ship light text on a light hero if main CSS flakes or SW serves stale CSS */
-    body.home .hero-craft {
-      background: #0b0e12 !important;
-      color: #f4f6f8 !important;
-    }
-    body.home .hero-craft .brand-hero,
-    body.home .hero-craft .brand-hero-sub,
-    body.home .hero-craft h1 {
-      color: #ffffff !important;
-    }
-    body.home .hero-craft .lede {
-      color: rgba(244, 246, 248, 0.88) !important;
-    }
-    body.home .hero-craft .btn.ghost {
-      color: #f4f6f8 !important;
-      border-color: rgba(244, 246, 248, 0.45) !important;
-    }
-    body.home .top:not(.scrolled) .brand-name,
-    body.home .top:not(.scrolled) .nav-toggle span {
-      color: #f4f6f8;
-      background-color: #f4f6f8;
-    }
-    body.home .top:not(.scrolled) .brand-name {
-      background: none;
-      color: #f4f6f8 !important;
-    }
-  </style>
+  <link rel="stylesheet" href="/assets/site.css?v=20260826live" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": "Mcfly Analytics",
+        "alternateName": "Mcfly Ads",
+        "url": "https://mcfly-analytics.fly.dev/",
+        "logo": "https://mcfly-analytics.fly.dev/assets/brand/mcfly-m-transparent.png",
+        "email": "mcflyadsmmm@gmail.com"
+      },
+      {
+        "@type": "WebSite",
+        "name": "Mcfly Analytics",
+        "url": "https://mcfly-analytics.fly.dev/",
+        "description": "See ad spend next to sales, day by day. Shopify cash desk — spend beside Total Sales."
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "Mcfly Analytics",
+        "alternateName": "Mcfly Ads",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Shopify",
+        "offers": {
+          "@type": "Offer",
+          "price": "39",
+          "priceCurrency": "USD",
+          "description": "7-day full-access trial, then $39/store/mo. Whole desk. Uninstall stops the charge."
+        },
+        "description": "See ad spend next to Shopify sales, day by day. Spend, Overview, LTV, Goals — one desk."
+      }
+    ]
+  }
+  </script>
+  <!-- launch-v2-20260826 -->
 </head>
 <body class="home">
   <a class="skip" href="#main">Skip to content</a>
   <div data-chrome></div>
 
   <main id="main">
-    <!-- ONE composition: brand + thesis + CTA + full-bleed cash desk -->
     <section class="hero hero-craft" aria-labelledby="hero-brand">
+      <div class="hero-atmosphere" aria-hidden="true">
+        <picture>
+          <source srcset="/assets/hero-atmosphere-1200.webp 1200w" sizes="100vw" type="image/webp" />
+          <img
+            src="/assets/hero-atmosphere.jpg"
+            alt=""
+            width="1920"
+            height="1080"
+            decoding="async"
+            fetchpriority="high"
+          />
+        </picture>
+      </div>
       <div class="hero-mesh" aria-hidden="true"></div>
       <div class="hero-gridline" aria-hidden="true"></div>
       <div class="hero-grain" aria-hidden="true"></div>
 
       <div class="hero-layout">
         <div class="hero-copy">
-          <p class="brand-hero" id="hero-brand">Mcfly <span class="brand-hero-sub">Analytics</span></p>
-          <h1>Stop buying attribution. Start managing spend against sales.</h1>
-          <p class="lede">Cash MER for Shopify — ad spend out vs till sales in, break-even, and one allocation call. No pixels. No path theater.</p>
-          <div class="cta-row">
-            <a class="btn primary" href="#waitlist">Join free launch</a>
-            <a class="btn ghost" href="#live">See live demos</a>
+          <p class="brand-hero" id="hero-brand">
+            <img class="brand-hero-mark" src="/assets/brand/mcfly-m.svg" width="72" height="72" alt="" />
+            Mcfly <span class="brand-hero-sub">Ads</span>
+          </p>
+          <p class="eyebrow on-dark">Shopify cash desk</p>
+          <h1>See ad spend next to sales, day by day.</h1>
+          <p class="lede">Shopify sales beside the spend you upload — by channel, by day. Whole desk: Spend, Overview, LTV, Goals. 7-day full-access trial, then $39/store/mo.</p>
+          <div class="hero-actions">
+            <div class="cta-row">
+              <a class="btn primary solid" data-mcfly-cta="primary" href="/demo">Try the demo</a>
+              <a class="btn ghost" href="/pricing">See pricing</a>
+            </div>
+            <p class="hero-proof">
+              <a href="/product" style="color:var(--cyan);text-decoration:underline;text-underline-offset:0.18em">What’s in the desk →</a>
+              <span class="hero-proof-sep" aria-hidden="true"> · </span>
+              <a href="/demo" style="color:var(--cyan);text-decoration:underline;text-underline-offset:0.18em">Sample desk →</a>
+            </p>
           </div>
         </div>
 
-        <div class="desk" aria-hidden="true">
-          <div class="desk-chrome">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="desk-title">mcfly · operator</span>
-            <span class="desk-live"><i></i> sample live</span>
+        <div class="hero-demo" id="hero-demo">
+          <div id="mcfly-spend-explorer" class="sx-demo sx-demo--desk" data-sample="1" aria-label="Total ROAS explorer — Sample desk">
+            <p class="sx-claim" id="hi-scenario" aria-live="polite">
+              <span class="sx-claim__note">Sample data</span>
+              <span class="sx-claim__sep" aria-hidden="true">·</span>
+              <span>Total ROAS from your sales</span>
+            </p>
+
+            <section class="sx-pace" aria-label="Monthly pacing">
+              <div class="sx-pace__head">
+                <h2 class="sx-pace__title">Monthly pacing</h2>
+                <p class="sx-pace__muted" data-sx-pace-period>Month to date · target 4.00×</p>
+              </div>
+              <div class="sx-pace__grid">
+                <div class="sx-pace__gauge">
+                  <svg
+                    viewBox="0 0 240 130"
+                    width="180"
+                    height="98"
+                    aria-hidden="true"
+                    data-sx-pace-gauge
+                  >
+                    <path
+                      class="sx-pace__gauge-track"
+                      d="M 40 110 A 80 80 0 0 1 200 110"
+                      fill="none"
+                      stroke-width="14"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      class="sx-pace__arc"
+                      data-sx-pace-arc
+                      d="M 40 110 A 80 80 0 0 1 200 110"
+                      fill="none"
+                      stroke="#059669"
+                      stroke-width="14"
+                      stroke-linecap="round"
+                      stroke-dasharray="251.327"
+                      stroke-dashoffset="251.327"
+                    />
+                    <line
+                      class="sx-pace__target-tick"
+                      data-sx-pace-tick
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="0"
+                      stroke-width="2"
+                      hidden
+                    />
+                  </svg>
+                  <p class="sx-pace__gauge-value" data-sx-eq-me data-sx-pace-mer>4.19×</p>
+                  <p class="sx-pace__gauge-label">Total ROAS</p>
+                  <p class="sx-pace__eq-meta">
+                    <span data-sx-eq-sales>$412,400</span> sales ÷
+                    <span data-sx-eq-spend>$98,500</span> spend
+                    <span class="sx-pace__eq-asof" data-sx-eq-meta> · BE 2.86× · SAMPLE</span>
+                  </p>
+                </div>
+                <div class="sx-pace__right">
+                  <div class="sx-pace__stats">
+                    <div class="sx-pace__stat">
+                      <p class="sx-pace__k">Sales</p>
+                      <p class="sx-pace__v" data-sx-pace-sales>$412,400</p>
+                    </div>
+                    <div class="sx-pace__stat">
+                      <p class="sx-pace__k">Spend</p>
+                      <p class="sx-pace__v" data-sx-pace-spend>$98,500</p>
+                    </div>
+                    <div class="sx-pace__stat">
+                      <p class="sx-pace__k">Days elapsed</p>
+                      <p class="sx-pace__v" data-sx-pace-days>27 / 31 days</p>
+                    </div>
+                    <div class="sx-pace__stat">
+                      <p class="sx-pace__k">Avg daily sales</p>
+                      <p class="sx-pace__v" data-sx-pace-avg-sales>$15,274</p>
+                    </div>
+                    <div class="sx-pace__stat">
+                      <p class="sx-pace__k">Projected period spend</p>
+                      <p class="sx-pace__v" data-sx-pace-proj-spend>$113,093</p>
+                    </div>
+                    <div class="sx-pace__stat">
+                      <p class="sx-pace__k">Daily sales needed</p>
+                      <p class="sx-pace__v" data-sx-pace-daily-need>$9,993</p>
+                    </div>
+                  </div>
+                  <div class="sx-pace__bars">
+                    <div class="sx-pace__bar-row">
+                      <span>Sales vs target pace</span>
+                      <span data-sx-pace-sales-pct>91%</span>
+                    </div>
+                    <div class="sx-pace__track" aria-hidden="true">
+                      <div class="sx-pace__fill" data-sx-pace-sales-fill></div>
+                    </div>
+                    <div class="sx-pace__bar-row">
+                      <span>Period progress</span>
+                      <span data-sx-pace-cal-pct>87%</span>
+                    </div>
+                    <div class="sx-pace__track" aria-hidden="true">
+                      <div class="sx-pace__fill sx-pace__fill--calendar" data-sx-pace-cal-fill></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div class="sx-demo__controls">
+              <div class="sx-demo__primary">
+                <div class="sx-demo__seg" role="group" aria-label="Explorer range">
+                  <button type="button" class="sx-demo__btn" data-sx-range="14d">14d</button>
+                  <button type="button" class="sx-demo__btn is-on" data-sx-range="90d" aria-current="true">90d</button>
+                  <button type="button" class="sx-demo__btn" data-sx-range="1y">1y</button>
+                </div>
+                <div class="sx-demo__seg" role="group" aria-label="Bucket size">
+                  <button type="button" class="sx-demo__btn" data-sx-gran="Day">Day</button>
+                  <button type="button" class="sx-demo__btn is-on" data-sx-gran="Week" aria-current="true">Week</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="sx-demo__chart-wrap">
+              <div class="sx-demo__chart" data-sx-chart></div>
+              <div class="sx-demo__tip" data-sx-tip hidden role="tooltip"></div>
+            </div>
+            <div class="sx-demo__readout" data-sx-readout aria-live="polite">
+              Select a column · Total ROAS = sales ÷ spend
+            </div>
+
+            <ul class="sx-demo__legend" data-sx-legend aria-label="Chart legend"></ul>
           </div>
-          <div class="desk-body">
-            <div class="desk-kpis">
-              <div class="kpi">
-                <span>Spend out</span>
-                <strong class="num lie-t" data-feed-spend>$63,658</strong>
-              </div>
-              <div class="kpi">
-                <span>Shopify in</span>
-                <strong class="num truth-t" data-feed-sales>$221,296</strong>
-              </div>
-              <div class="kpi wide">
-                <span>Cash MER</span>
-                <strong class="num mer-t" data-feed-mer data-mer="3.48">3.48×</strong>
-                <em data-feed-status>Above break-even 2.86×</em>
-              </div>
-            </div>
-            <div class="desk-chart">
-              <div class="chart-head">
-                <span>45-day MER</span>
-                <span class="mono" data-feed-brand>Northline · MTD</span>
-              </div>
-              <svg class="spark" id="spark" viewBox="0 0 320 56" preserveAspectRatio="none"></svg>
-            </div>
-            <div class="desk-mix">
-              <div class="mix-row"><span>Meta</span><div class="track"><b class="m" style="--p:62%"></b></div><span class="mono" data-mix-meta>62%</span></div>
-              <div class="mix-row"><span>Google</span><div class="track"><b class="g" style="--p:28%"></b></div><span class="mono" data-mix-google>28%</span></div>
-              <div class="mix-row"><span>Other</span><div class="track"><b class="o" style="--p:10%"></b></div><span class="mono" data-mix-other>10%</span></div>
-            </div>
-            <div class="desk-rec">
-              <span class="rec-label">Allocation</span>
-              <p id="hero-rec">Shift ~10% Google → Meta for a 7-day test. Meta clears break-even on cash efficiency.</p>
-            </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band till-band" aria-labelledby="till-title">
+      <div class="wrap till-wrap">
+        <p class="eyebrow">Feel the floor</p>
+        <h2 id="till-title" class="display">Drag your profit margin.<br />Watch break-even move.</h2>
+        <div class="till-be" id="till-be">
+          <div class="till-be__gauge" aria-hidden="true">
+            <svg viewBox="0 0 320 120" role="presentation">
+              <path class="till-be__arc" d="M20 100 A140 140 0 0 1 300 100" fill="none" stroke-width="10" />
+              <line class="till-be__needle" data-till-needle x1="160" y1="100" x2="160" y2="28" stroke-width="3" />
+              <circle cx="160" cy="100" r="6" class="till-be__hub" />
+            </svg>
+            <p class="till-be__be mono"><span data-till-be>2.86×</span></p>
+            <p class="till-be__be-label">Break-even Total ROAS</p>
           </div>
+          <label class="till-be__control">
+            <span>Profit margin <strong class="mono" data-till-margin-val>35%</strong></span>
+            <input data-till-margin type="range" min="20" max="60" step="1" value="35" />
+          </label>
+          <p class="till-be__verdict" data-till-verdict data-tone="good">Sample Total ROAS 3.2× clears break-even — protect the mix.</p>
+          <p class="till-be__math mono">Break-even ≈ 1 ÷ margin · Sample desk at 3.2×</p>
+          <p class="till-be__more"><a href="/break-even-roas-calculator">Break-even calculator →</a> · <a href="/mer-calculator">ROAS calculator →</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band digest-band digest-band--tight" id="digest" aria-labelledby="digest-title">
+      <div class="wrap digest-wrap">
+        <h2 id="digest-title" class="display sr-only">Total ROAS formula</h2>
+        <div class="digest-read reveal" role="group" aria-label="Total ROAS in one equation">
+          <p class="digest-eq mono" aria-hidden="true">
+            <span class="digest-eq-term">Total Sales</span>
+            <span class="digest-eq-op">÷</span>
+            <span class="digest-eq-term">ad spend</span>
+            <span class="digest-eq-op">=</span>
+            <span class="digest-eq-answer">Total ROAS</span>
+          </p>
+          <p class="sr-only">Total ROAS equals Shopify Total Sales divided by ad spend.</p>
+          <p class="digest-close">Daily spend by channel, back to January 2021. Paste spend. Clear the floor — or don’t.</p>
         </div>
       </div>
     </section>
 
     <section class="band lie-band" aria-labelledby="lie-title">
-      <div class="wrap">
-        <p class="eyebrow">The problem</p>
-        <h2 id="lie-title" class="display">Platform ROAS is a story.<br />Your bank account is not.</h2>
-        <p class="lede-soft band-intro">Operators don’t need another model. They need a Monday number that matches the till.</p>
-        <div class="lie-grid">
-          <article class="reveal">
-            <h3>Double-counting</h3>
-            <p>Meta, Google, and email all take credit for the same order. Sum “driven revenue” and you invent a P&amp;L.</p>
-          </article>
-          <article class="reveal">
-            <h3>Path theater</h3>
-            <p>Multi-touch invents a neat journey. Real journeys are messy. Optimizing the model is not optimizing cash.</p>
-          </article>
-          <article class="reveal">
-            <h3>Science cosplay</h3>
-            <p>Pixels, seven attribution windows, MMM branding — packaging on top of the same spend + Shopify pipes.</p>
-          </article>
+      <div class="wrap lie-wrap">
+        <p class="eyebrow">Why this exists</p>
+        <h2 id="lie-title" class="display">Shopify Analytics stops short.<br />The cash desk doesn’t.</h2>
+        <div class="lie-contrast reveal lie-contrast--tight">
+          <p class="lie-punch">You already have Shopify sales and orders. Ads managers have platform ROAS. Mcfly puts logged spend next to Total Sales — day by day, channel by channel — so Monday has one number. <a href="/product">What’s in the desk →</a></p>
         </div>
       </div>
     </section>
 
-    <section class="band formula-band" aria-labelledby="formula-title">
+    <section class="band how-band how-band--tight" id="scientist-craft" aria-labelledby="craft-title">
       <div class="wrap">
-        <p class="eyebrow">The religion</p>
-        <h2 id="formula-title" class="display">One formula. Auditable.</h2>
-        <div class="formula-panel reveal">
-          <p class="formula-line mono">MER = Shopify sales ÷ ad spend</p>
-          <p class="formula-line mono soft">Break-even MER ≈ 1 ÷ contribution margin</p>
-          <p class="formula-note">Operate above break-even. Shift mix to protect it. No path credit in the math.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="band better-band" aria-labelledby="better-title">
-      <div class="wrap">
-        <p class="eyebrow">The wedge</p>
-        <h2 id="better-title" class="display">A better version of what<br />the suites actually do.</h2>
-        <p class="lede-soft better-lede">Triple Whale, Northbeam, and Polar aren’t sitting on secret formulas. They’re data organization and smooth operator UI. Mcfly keeps that job — and throws out the attribution religion.</p>
-        <div class="better-grid">
-          <article class="reveal">
-            <p class="better-kicker">They ship</p>
-            <h3>Organize everything</h3>
-            <p>Connectors, dashboards, pixels, AI chat, passback. Broad cockpit. Numbers still disagree with the till.</p>
-          </article>
-          <article class="better-us reveal">
-            <p class="better-kicker">Mcfly ships</p>
-            <h3>Organize the cash facts</h3>
-            <p>Spend out. Shopify sales in. Break-even MER. One allocation card you can audit. Monday ritual, not another OS.</p>
-          </article>
-          <article class="reveal">
-            <p class="better-kicker">You keep</p>
-            <h3>Craft without the tax</h3>
-            <p>Same useful instinct — one place to look — at a price that isn’t GMV theater, without training Meta on path credit.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="band live-band" id="live" aria-labelledby="live-title">
-      <div class="wrap">
-        <p class="eyebrow">Live instruments</p>
-        <h2 id="live-title" class="display">Feel the difference.<br />Not a slide. A cockpit.</h2>
-        <p class="lede-soft">Sample ecommerce warehouse — Northline &amp; Harbor. Same math as the Shopify app.</p>
-
-        <div class="demo-controls" role="group" aria-label="Sample data controls">
-          <div class="seg" role="group" aria-label="Brand">
-            <button type="button" class="seg-btn active" data-brand="demo-dtc">Northline</button>
-            <button type="button" class="seg-btn" data-brand="demo-agency">Harbor</button>
-          </div>
-          <div class="seg" role="group" aria-label="Period">
-            <button type="button" class="seg-btn active" data-period="mtd">MTD</button>
-            <button type="button" class="seg-btn" data-period="qtd">QTD</button>
-            <button type="button" class="seg-btn" data-period="ytd">YTD</button>
-          </div>
-        </div>
-
-        <div class="live-stage">
-          <article class="instrument featured" id="alloc-rec">
-            <header>
-              <h3>Allocation recommendation</h3>
-              <p>Auditable. Cash only.</p>
-            </header>
-            <p class="rec-why" id="rec-why">Loading…</p>
-            <ul class="rec-actions" id="rec-actions"></ul>
-            <p class="rec-inputs mono" id="rec-inputs"></p>
-          </article>
-
-          <article class="instrument">
-            <header>
-              <h3>Claims vs cash</h3>
-              <p>Drag spend. Watch platforms invent revenue.</p>
-            </header>
-            <label class="slider">
-              <span>Ad spend</span>
-              <input type="range" id="spend-range" min="20000" max="200000" step="1000" value="64000" />
-              <output id="spend-out" class="mono">$64,000</output>
-            </label>
-            <div class="meter-row">
-              <div>
-                <span class="lab">Platforms claim</span>
-                <strong class="lie" id="claimed-roas">4.8×</strong>
-                <span class="sub mono" id="claimed-rev">~$307k</span>
-              </div>
-              <div>
-                <span class="lab">Shopify sold</span>
-                <strong id="actual-sales">$221,296</strong>
-                <span class="sub">Till</span>
-              </div>
-              <div>
-                <span class="lab">Cash MER</span>
-                <strong class="truth" id="cash-mer">3.46×</strong>
-                <span class="sub">Sales ÷ spend</span>
-              </div>
-            </div>
-          </article>
-
-          <article class="instrument">
-            <header>
-              <h3>Break-even MER</h3>
-              <p>Margin sets the floor. Below it is theater.</p>
-            </header>
-            <label class="slider">
-              <span>Contribution margin</span>
-              <input type="range" id="margin-range" min="20" max="80" step="1" value="35" />
-              <output id="margin-out" class="mono">35%</output>
-            </label>
-            <div class="meter-row two">
-              <div>
-                <span class="lab">Break-even</span>
-                <strong id="be-mer">2.86×</strong>
-              </div>
-              <div>
-                <span class="lab">Your MER</span>
-                <strong class="truth" id="ex-mer">3.46×</strong>
-              </div>
-            </div>
-            <p class="verdict" id="mer-verdict">Above break-even — protect the mix.</p>
-          </article>
-
-          <article class="instrument">
-            <header>
-              <h3>Allocate from cash</h3>
-              <p>Shift mix vs break-even — never path credit.</p>
-            </header>
-            <label class="slider">
-              <span>Meta share</span>
-              <input type="range" id="alloc-range" min="20" max="80" step="1" value="62" />
-              <output id="alloc-out" class="mono">62% Meta · 38% Google</output>
-            </label>
-            <div class="meter-row">
-              <div>
-                <span class="lab">Meta</span>
-                <strong id="meta-spend">$39,680</strong>
-                <span class="sub">Eff. <strong id="meta-eff">3.9×</strong></span>
-              </div>
-              <div>
-                <span class="lab">Google</span>
-                <strong id="google-spend">$24,320</strong>
-                <span class="sub">Eff. <strong id="google-eff">2.6×</strong></span>
-              </div>
-              <div>
-                <span class="lab">Blended</span>
-                <strong class="truth" id="blend-mer">3.41×</strong>
-                <span class="sub">vs BE <strong id="alloc-be">2.86×</strong></span>
-              </div>
-            </div>
-            <p class="verdict" id="alloc-verdict">Shift toward the channel that clears break-even.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="band how-band" aria-labelledby="how-title">
-      <div class="wrap">
-        <p class="eyebrow">Product</p>
-        <h2 id="how-title" class="display">Built like an ops tool.<br />Sold like software.</h2>
-        <ol class="how-rail">
+        <p class="eyebrow">What’s on the desk</p>
+        <h2 id="craft-title" class="display">The whole desk. One plan.</h2>
+        <ol class="how-rail how-rail--tight">
           <li>
             <span class="n mono">01</span>
             <div>
-              <h3>Shopify is the till</h3>
-              <p>Orders and net sales for MTD / QTD / YTD. No pixel “revenue.”</p>
+              <h3>Spend</h3>
+              <p>Pick channels → download template; type channel + amount + day/week/month; or Ads Manager CSV.</p>
             </div>
           </li>
           <li>
             <span class="n mono">02</span>
             <div>
-              <h3>Spend is money out</h3>
-              <p>Meta + Google via Script, scheduled export, CSV, or live pipes. Whatever left the bank.</p>
+              <h3>Overview</h3>
+              <p>Shopify Total Sales ÷ spend, with last-refreshed clear. Sample data or Live data.</p>
             </div>
           </li>
           <li>
             <span class="n mono">03</span>
             <div>
-              <h3>Operate on MER</h3>
-              <p>Break-even from your margin. One allocation card with inputs shown. Weekly ritual, not a black box.</p>
+              <h3>LTV</h3>
+              <p>Cash CAC and cohort LTV from opaque Shopify order facts — included in the whole desk.</p>
+            </div>
+          </li>
+          <li>
+            <span class="n mono">04</span>
+            <div>
+              <h3>Goals</h3>
+              <p>Year spend ceilings and pacing — same plan as Spend and Overview, not a gated upsell.</p>
             </div>
           </li>
         </ol>
         <div class="how-links">
-          <a class="text-link" href="/product.html">Product deep dive →</a>
-          <a class="text-link" href="/app.html">App feature map →</a>
-          <a class="text-link" href="/download.html">Downloadable calculator →</a>
+          <a class="text-link" href="/product">How it works →</a>
+          <a class="text-link" href="/demo">Try the demo →</a>
+          <a class="text-link" href="/pricing">See pricing →</a>
         </div>
       </div>
     </section>
+
+    <p class="wrap feel-hero-link">
+      <a href="#hero-demo">Play the Sample desk ↑</a>
+    </p>
 
     <section class="band dark-band" aria-labelledby="contrast-title">
       <div class="wrap">
         <p class="eyebrow on-dark">Positioning</p>
-        <h2 id="contrast-title" class="display">They sell credit.<br />We sell cash.</h2>
-        <div class="table-scroll">
-          <table class="compare on-dark">
-            <caption class="sr-only">Mcfly vs Triple Whale vs Northbeam vs Polar</caption>
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col">Mcfly</th>
-                <th scope="col">Triple Whale</th>
-                <th scope="col">Northbeam</th>
-                <th scope="col">Polar</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">What it really is</th>
-                <td>Cash desk + allocation</td>
-                <td>Operator OS + pixel</td>
-                <td>Measurement suite</td>
-                <td>Warehouse BI + pixel</td>
-              </tr>
-              <tr>
-                <th scope="row">“Secret sauce”</th>
-                <td>One honest formula</td>
-                <td>Packaging + distribution</td>
-                <td>Packaging + trust brand</td>
-                <td>Packaging + Snowflake</td>
-              </tr>
-              <tr>
-                <th scope="row">Weekly question</th>
-                <td>Clear break-even MER?</td>
-                <td>Who gets credit / AI next?</td>
-                <td>Which touches drove?</td>
-                <td>What does the warehouse say?</td>
-              </tr>
-              <tr>
-                <th scope="row">Allocation</th>
-                <td>Cash vs break-even</td>
-                <td>Model / AI plans</td>
-                <td>MTA + MMM story</td>
-                <td>Reports + lift add-ons</td>
-              </tr>
-              <tr>
-                <th scope="row">Launch price</th>
-                <td><strong>Free</strong> → ~$79/mo</td>
-                <td>GMV-scaled suite</td>
-                <td>Enterprise contracts</td>
-                <td>GMV-scaled Core</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="contrast-note">We will not out-feature the suites. We will out-organize the cash facts — and be the tool operators open every Monday.</p>
+        <h2 id="contrast-title" class="display">Money vs real results.<br />Not path credit.</h2>
+        <p class="contrast-lede on-dark">Total Sales ÷ logged spend. Break-even from margin. Flat $39 after a 7-day trial. Uninstall stops the charge.</p>
+        <p class="contrast-note">We will not out-feature path suites. We put spend next to sales so you can close the week — and we never take a cut of your sales.</p>
+        <p class="contrast-more"><a href="/mer-calculator">ROAS calculator →</a> · <a href="/monday-close">Monday Close →</a> · <a href="/pricing">Pricing →</a></p>
       </div>
     </section>
 
-    <section class="band close" id="waitlist" aria-labelledby="close-title">
+    <section class="band close" id="try-demo" aria-labelledby="close-title">
       <div class="wrap narrow">
-        <p class="eyebrow">Free launch</p>
-        <h2 id="close-title" class="display">Run media against<br />the bank account.</h2>
-        <p class="lede-soft">Design partners get Mcfly free while we harden Truth MVP. Paid pricing (~$79/store) comes later — announced before anything bills.</p>
-        <form class="waitlist" data-waitlist novalidate>
-          <div class="row2">
-            <label>Name <input type="text" name="name" autocomplete="name" required /></label>
-            <label>Email <input type="email" name="email" autocomplete="email" required /></label>
-          </div>
-          <label>Store URL <input type="url" name="store" placeholder="https://yourstore.com" autocomplete="url" required /></label>
-          <button class="btn primary solid" type="submit">Join free launch</button>
-          <p class="note">Opens email to <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Tell us you’re in for weekly MER feedback.</p>
-        </form>
-        <div class="waitlist-confirm" hidden>
-          <p class="confirm-title">You’re on the free launch list.</p>
-          <p>Send the drafted email to finish.</p>
+        <p class="eyebrow">Shopify merchants</p>
+        <h2 id="close-title" class="display">Try the demo.<br />7-day trial, then $39.</h2>
+        <p class="lede-soft">Play the Sample desk now. When you install, you get <strong>7 days of full access</strong>, then <span class="mono formula-inline">$39</span>/store/mo for the whole desk. Uninstall stops the charge. Until the App Store listing is live: Partner review + <a href="/demo">/demo</a> + <a href="/pricing">/pricing</a>. No “type your .myshopify.com” box on this site.</p>
+        <div class="cta-row" style="margin-top:1.25rem">
+          <a class="btn primary solid" data-mcfly-cta="primary" href="/demo">Try the demo</a>
+          <a class="btn ghost" href="/pricing">See pricing</a>
+          <a class="btn ghost" href="/support">Support</a>
         </div>
+        <ul class="close-assurances" aria-label="What you get">
+          <li><strong>Whole desk</strong> — Spend, Overview, LTV, Goals</li>
+          <li><strong>7-day trial → $39/mo</strong> — uninstall stops the charge · never a cut of sales</li>
+          <li><strong>Sample data | Live data</strong> — Live = this shop’s Shopify sales + uploaded spend</li>
+        </ul>
+        <p class="lede-soft" style="margin-top:1.5rem">Not on Shopify? <a href="/custom-analytics">Custom Data Solutions →</a></p>
       </div>
     </section>
   </main>
 
   <div data-footer></div>
-  <script src="/assets/chrome.js?v=20260722a"></script>
-  <script src="/assets/app.js?v=20260722a"></script>
+  <script src="/assets/cta-config.js?v=20260826live"></script>
+  <script src="/assets/chrome.js?v=20260828sec"></script>
+  <script src="/assets/spend-explorer-demo.js?v=20260826live"></script>
+  <script src="/assets/till-be.js?v=20260826live"></script>
+  <script src="/assets/app.js?v=20260826live"></script>
 </body>
 </html>

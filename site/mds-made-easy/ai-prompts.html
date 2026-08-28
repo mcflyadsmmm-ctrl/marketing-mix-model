@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI with correct inputs — MDS Made Easy (draft)</title>
+  <meta name="description" content="Paste-ready prompts for Total ROAS, break-even, CSV QA. Garbage-in garbage-out. Draft course." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="canonical" href="https://mcflyads.com/mds-made-easy/ai-prompts" />
+  <meta name="theme-color" content="#0a1221" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260731mds" />
+  <link rel="stylesheet" href="/assets/mds-course.css?v=1" />
+</head>
+<body class="mds-course">
+  <a class="skip" href="#mds-content">Skip to content</a>
+  <div data-mds-shell id="mds-content">
+    <p class="mds-kicker">Module 05 · Marketing Data Science Made Easy</p>
+    <h1>AI with correct inputs</h1>
+    <p class="mds-lede">AI is fast. It is not psychic. Wrong windows and invented spend produce confident nonsense.</p>
+    <div class="mds-answer">
+      <p><strong>Law.</strong> You supply period-aligned sales, spend, and margin. The model computes and drafts. If a number is missing, it must say so — never invent platform ROAS as Total ROAS.</p>
+    </div>
+
+    <h2>Before you paste anything</h2>
+    <ol>
+      <li>Write the date window at the top of your prompt.</li>
+      <li>Paste totals or a small table — not screenshots of three different date pickers.</li>
+      <li>State the sales basis: Total Sales or Net Sales.</li>
+      <li>Add: “Do not invent numbers. If something is missing, ask.”</li>
+    </ol>
+
+    <div class="mds-callout mds-refuse">
+      <strong>Refuse these asks</strong>
+      “Build me true ROAS / MTA / pixel paths.” Rewrite to till questions: period Total ROAS, break-even, CSV QA, one allocation sentence.
+    </div>
+
+    <h2>Prompt kit — copy and fill</h2>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>1 · Period-align check</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>You are a marketing cash-desk analyst. I will give sales and spend date ranges.
+Confirm whether they are period-aligned. If not, say exactly how to fix them.
+Do not compute ROAS until dates match.
+Sales window: START → END
+Spend window: START → END</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>2 · Total ROAS from pasted totals</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>Compute Total ROAS = Sales ÷ Ad spend for one period.
+Use only the numbers I paste. Do not invent or pull external data.
+If spend is 0 or missing, say you cannot compute.
+Period: START → END
+Sales basis: Total Sales | Net Sales
+Sales: $____
+Ad spend: $____
+Return: Total ROAS as a multiple (e.g. 3.10×) and a one-sentence reading.</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>3 · Break-even from margin stack</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>Contribution margin = ____% (or build from: COGS% __ , fees% __ , shipping% __ ).
+Break-even Total ROAS ≈ 1 ÷ margin.
+Compare to my Total ROAS of ____× for period START → END.
+Say whether I am above or below the floor. Do not claim channel causality.</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>4 · Above/below Monday brief</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>Write a 5-sentence Monday brief for finance.
+Inputs: period, sales, spend, Total ROAS, break-even Total ROAS, one proposed move (cut/protect/shift).
+Tone: calm operator. No pixels, MTA, or “true ROAS.”
+Inputs:
+…</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>5 · Allocation draft (rules-based)</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>Using only this channel spend table and Total ROAS vs break-even, draft cut / protect / shift bullets.
+No MTA. No inventing channel ROAS. If a channel has no till evidence, say “protect pending data.”
+Table:
+channel, spend
+…
+Total ROAS: __× | Break-even: __×</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>6 · CSV spend QA</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>Audit this spend CSV for: duplicate channel-days, non-numeric amounts, missing dates in range, mixed currencies, sales columns mixed into spend.
+Return a checklist of issues. Do not invent spend totals.
+Paste CSV:
+…</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>7 · Export column map</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>Map my export headers to: date, channel, amount (spend) and/or date, sales.
+Say which columns to keep, rename, or drop. Refuse to treat platform “ROAS” columns as Total ROAS.
+Headers:
+…</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>8 · aMER honesty pass</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>Compute aMER ≈ new-customer sales ÷ spend if I provide both.
+State Level-1 limits: opaque ids / counts only — no CRM. If new-customer sales missing, stop.
+Period: … | New-customer sales: … | Spend: …</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>9 · Finance one-pager</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>Produce a one-page CFO memo: period, sales basis, sales, spend, Total ROAS, break-even, variance vs last period if provided, one budget call.
+No attribution theater. Flag any missing input.</pre>
+    </article>
+
+    <article class="mds-prompt" data-mds-prompt>
+      <header>
+        <h3>10 · Refuse-the-ask rewrite</h3>
+        <button type="button">Copy</button>
+      </header>
+      <pre>I was asked: “________” (pixel / MTA / true ROAS / path).
+Rewrite into a till-desk question I can answer with sales ÷ spend and break-even.
+Then answer the rewritten question only if I paste numbers; otherwise list required inputs.</pre>
+    </article>
+
+    <div data-mds-mark></div>
+    <div class="mds-pager">
+      <a href="/mds-made-easy/monday-ritual">← Monday ritual</a>
+      <a href="/mds-made-easy/glossary">Next: Glossary lab →</a>
+    </div>
+  </div>
+  <script src="/assets/mds-course.js?v=1" defer></script>
+</body>
+</html>
