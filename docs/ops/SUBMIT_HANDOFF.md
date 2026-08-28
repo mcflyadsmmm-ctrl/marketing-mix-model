@@ -1,11 +1,13 @@
 # Submit handoff — founder one-pager
 
+**Order of operations (2026-08-27):** [`../RESUBMIT_PLAN.md`](../RESUBMIT_PLAN.md) — freeze the desk; Partner one plan; Admin smoke; listing shots; Submit. Do not follow [`../SUBMIT_NOW.md`](../SUBMIT_NOW.md) “Pricing must be Free.”
+
 **SoT app:** [Mcfly Analytics Public](https://dev.shopify.com/dashboard/227535001/apps/403721814017) — not Custom `400772497409`  
 **SoT runbook:** [`../SUBMIT_NOW.md`](../SUBMIT_NOW.md) (follow in order)  
 **Reviewer paste:** [`../PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md) — **only** that `APP_STORE_PASTE:testing` block. Do **not** paste [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md).  
 **Listing copy + URLs:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)
 
-**Live (agent):** Fly `https://mcfly-analytics.fly.dev` · health `/health`. That origin serves the marketing `site/` (home, Support, Privacy, Terms, Pricing) plus the embedded app. SAMPLE / Practice **OFF** on the review store.
+**Live (agent):** Fly `https://mcfly-analytics.fly.dev` · health `/health`. That origin serves the marketing `site/` (home, Support, Privacy, Terms, Pricing) plus the embedded app. Switch to **Live data** on the review store.
 
 ---
 
@@ -15,7 +17,7 @@
 | --- | --- |
 | **App URL** | `https://mcfly-analytics.fly.dev` — **not** mcflyads.com |
 | **Website / Privacy / Support / Terms** | `https://mcfly-analytics.fly.dev` · `/privacy` · `/support` · `/terms` (full URLs in [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)) — **not** live mcflyads.com |
-| **Pricing** | **Shopify App Pricing: Free + Pro $39** (must match Upgrade) |
+| **Pricing** | **Shopify App Pricing: one plan, $39/store/mo, 7-day free trial** (no Free plan) |
 | **Works with** | **Blank** (no Checkout / Meta / Google) |
 | **Testing form** | Username/Password **empty**, **check** “My app doesn't require an account to use it” |
 | **SAMPLE desk** | **OFF** on the review store |

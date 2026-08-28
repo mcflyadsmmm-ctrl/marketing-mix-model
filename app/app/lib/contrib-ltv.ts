@@ -16,7 +16,7 @@ export function roundMer(n: number): number {
 }
 
 /**
- * Settings / Practice / DashboardMetrics store contribution margin as 0–1
+ * Settings / sample desk / DashboardMetrics store contribution margin as 0–1
  * (0.35 = 35%). Older percent-point callers may still pass 1–100.
  */
 export function marginAsMultiplier(marginPct: number): number | null {
@@ -28,7 +28,7 @@ export function marginAsMultiplier(marginPct: number): number | null {
 
 /**
  * Contribution LTV = cohort avg revenue × contribution margin.
- * `marginPct` is 0–1 (Practice SAMPLE_DESK_MARGIN_PCT = 0.35, Settings same).
+ * `marginPct` is 0–1 (SAMPLE_DESK_MARGIN_PCT = 0.35, Settings same).
  */
 export function contributionAdjustedLtv(
   avgRevenue: number | null | undefined,

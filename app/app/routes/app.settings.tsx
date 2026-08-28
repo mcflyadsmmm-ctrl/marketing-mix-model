@@ -363,7 +363,7 @@ export default function SettingsPage() {
                 : `Target ${PRODUCT_NOUN.totalRoas} updated. Profit margin stays optional — add it anytime for break-even.`}
               {hasLiveSpend
                 ? ` Open ${PRODUCT_NOUN.totalRoas} when ready.`
-                : " Next: paste daily spend on Spend."}
+                : " Next: upload daily spend on Upload Spend."}
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               {hasLiveSpend ? (
@@ -520,7 +520,7 @@ export default function SettingsPage() {
               7-day full-access trial
             </p>
             <ul className="mcfly-settings-guide">
-              {billing.proBullets.map((line) => (
+              {billing.deskBullets.map((line) => (
                 <li key={line}>{line}</li>
               ))}
             </ul>
@@ -597,8 +597,8 @@ export default function SettingsPage() {
                   Right now:{" "}
                   <strong>
                     {useSampleDesk
-                      ? PRODUCT_NOUN.practiceDesk
-                      : PRODUCT_NOUN.yourStore}
+                      ? PRODUCT_NOUN.sampleData
+                      : PRODUCT_NOUN.liveData}
                   </strong>
                   {samplePreviewAllowed
                     ? " · Sample data option is available"
@@ -609,7 +609,7 @@ export default function SettingsPage() {
                   style={{ marginTop: "0.85rem" }}
                 >
                   {samplePreviewAllowed ? (
-                    <Form method="post" action={dataModeAction}>
+                    <Form method="post" action={dataModeAction} reloadDocument>
                       <input
                         type="hidden"
                         name="intent"
@@ -621,7 +621,7 @@ export default function SettingsPage() {
                       </s-button>
                     </Form>
                   ) : (
-                    <Form method="post" action={dataModeAction}>
+                    <Form method="post" action={dataModeAction} reloadDocument>
                       <input
                         type="hidden"
                         name="intent"
@@ -634,7 +634,7 @@ export default function SettingsPage() {
                     </Form>
                   )}
                   {samplePreviewAllowed && !useSampleDesk ? (
-                    <Form method="post" action={dataModeAction}>
+                    <Form method="post" action={dataModeAction} reloadDocument>
                       <input type="hidden" name="intent" value="use-sample" />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="tertiary">
@@ -643,7 +643,7 @@ export default function SettingsPage() {
                     </Form>
                   ) : null}
                   {samplePreviewAllowed && useSampleDesk ? (
-                    <Form method="post" action={dataModeAction}>
+                    <Form method="post" action={dataModeAction} reloadDocument>
                       <input type="hidden" name="intent" value="use-real" />
                       <input type="hidden" name="returnTo" value={returnTo} />
                       <s-button type="submit" variant="tertiary">

@@ -11,6 +11,10 @@ import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import {
+  SpendExplorer,
+  type SpendExplorerSeriesView,
+} from "../components/SpendExplorer";
+import {
   buildAllocationHistoryView,
   buildWindowSets,
   capHistoryDays,
@@ -35,10 +39,12 @@ import {
 import {
   buildDailyRowsForWindow,
   buildDashboardMetrics,
+  buildSpendExplorerSeries,
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
 import { channelCssVar, channelFillKey } from "../lib/channel-fill";
+import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
@@ -55,14 +61,41 @@ import {
 } from "../lib/periods";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
+  dateKeyFromLocal,
+  explorerQueryMatchingScoreboard,
+  parseExplorerDateParam,
+  parseExplorerGranularity,
+  parseExplorerMode,
+  parseExplorerRange,
+  parseExplorerShowSales,
+  resolveExplorerWindow,
+} from "../lib/spend-explorer";
+import {
+  SAMPLE_DESK_TARGET_MER,
   fetchSampleSales,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
   localDayKey,
 } from "../lib/sample-desk.server";
 
-function historyChannelLabel(channel: string): string {
-  return SPEND_CHANNEL_LABELS[channel as SpendChannel] ?? channel;
+/**
+ * Daily rows key named extras as `other:<slug>`. History stores display names,
+ * so resolve here — a merchant must never read a raw slug like
+ * "other:billboards" in the mix.
+ */
+function historyChannelLabel(
+  channel: string,
+  customLabels?: Record<string, string>,
+): string {
+  const custom = customLabels?.[channel];
+  if (custom) return custom;
+  const known = SPEND_CHANNEL_LABELS[channel as SpendChannel];
+  if (known) return known;
+  const [base, slug] = channel.split(":");
+  if (base === "other" && slug) {
+    return slug.replace(/-+/g, " ");
+  }
+  return channel;
 }
 
 function toHistoryDays(
@@ -72,13 +105,14 @@ function toHistoryDays(
     spend: number;
     channels: Array<{ channel: string; amount: number }>;
   }>,
+  customLabels?: Record<string, string>,
 ): HistoryDay[] {
   return rows.map((r) => ({
     dateKey: r.dateKey,
     sales: r.sales,
     spend: r.spend,
     channels: r.channels.map((c) => ({
-      channel: historyChannelLabel(c.channel),
+      channel: historyChannelLabel(c.channel, customLabels),
       amount: c.amount,
     })),
   }));
@@ -106,12 +140,20 @@ function buildPeriodChannelRows(
 }
 
 function buildPeriodChannelRowsFromMix(
-  mix: Array<{ channel: string; amount: number; share: number }>,
+  mix: Array<{
+    channel: string;
+    amount: number;
+    share: number;
+    customLabel?: string;
+  }>,
 ): PeriodChannelRow[] {
   return mix
     .filter((c) => c.amount > 0)
     .map((c) => {
-      const name = historyChannelLabel(c.channel);
+      const name = spendChannelLabel({
+        channel: c.channel,
+        customLabel: c.customLabel,
+      });
       return {
         name,
         spend: c.amount,
@@ -196,12 +238,84 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shopifyOrderWindowLimited = Boolean(coverage?.periodExceedsFactWindow);
   }
 
+  const settings = await getOrCreateSettings(shop.id);
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesBasis: parseSalesBasis(
-      (await getOrCreateSettings(shop.id)).salesBasis,
+      settings.salesBasis,
       "total",
     ),
   });
+
+  const explicitExplorerRange = url.searchParams.get("exRange");
+  const tiedExplorer = explicitExplorerRange
+    ? null
+    : explorerQueryMatchingScoreboard(preset, range, deskTz);
+  const explorerRange = explicitExplorerRange
+    ? parseExplorerRange(explicitExplorerRange)
+    : (tiedExplorer?.range ?? "custom");
+  const explorerFrom = explicitExplorerRange
+    ? parseExplorerDateParam(url.searchParams.get("exFrom"))
+    : (tiedExplorer?.from ?? null);
+  const explorerTo = explicitExplorerRange
+    ? parseExplorerDateParam(url.searchParams.get("exTo"))
+    : (tiedExplorer?.to ?? null);
+  const explorerWindow = resolveExplorerWindow(explorerRange, now, {
+    from: explorerFrom,
+    to: explorerTo,
+    timeZone: deskTz,
+  });
+  const explorerGranularity = parseExplorerGranularity(
+    url.searchParams.get("exGran"),
+  );
+  const explorerMode = parseExplorerMode(url.searchParams.get("exMode"));
+  const explorerShowSales = parseExplorerShowSales(
+    url.searchParams.get("exSales"),
+  );
+  const explorerDayKey = (instant: Date) =>
+    deskTz
+      ? shopLocalDayKey(instant, deskTz)
+      : dateKeyFromLocal(instant);
+
+  // Start the chart read now; allocation-history I/O below runs in parallel.
+  const explorerPromise: Promise<SpendExplorerSeriesView | null> = (async () => {
+    try {
+      const explorerSalesByDay = useSampleDesk
+        ? await fetchSampleSalesByDay(shop.id, explorerWindow)
+        : await getSalesFactsByDay(shop.id, explorerWindow);
+      const series = await buildSpendExplorerSeries(shop.id, {
+        sampleOnly: useSampleDesk,
+        excludeSample: !useSampleDesk,
+        salesByDay: explorerSalesByDay,
+        window: explorerWindow,
+        granularity: explorerGranularity,
+        mode: explorerMode,
+        targetMer: useSampleDesk
+          ? SAMPLE_DESK_TARGET_MER
+          : (settings.targetMer ?? 3),
+        newCustomers: 0,
+        returningCustomers: 0,
+        customerMetricsAvailable: false,
+        timeZone: deskTz,
+      });
+      return {
+        buckets: series.buckets,
+        summary: series.summary,
+        mode: series.mode,
+        granularity: series.granularity,
+        range: explorerWindow.range,
+        windowLabel: explorerWindow.label,
+        targetMer: series.targetMer,
+        breakEvenMer: metrics.breakEvenMer,
+        showSales: explorerShowSales,
+        fromKey: explorerDayKey(explorerWindow.start),
+        toKey: explorerDayKey(explorerWindow.end),
+        asOfKey: explorerDayKey(explorerWindow.end),
+        channelLabels: series.channelLabels,
+      };
+    } catch {
+      return null;
+    }
+  })();
 
   /*
    * Portfolio history (~L12M / 365 closed days): best week/month/quarter/year
@@ -230,16 +344,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const salesByDay = useSampleDesk
       ? await fetchSampleSalesByDay(shop.id, histWindow)
       : await getSalesFactsByDay(shop.id, histWindow);
-    const dailyRows = await buildDailyRowsForWindow(shop.id, {
-      sampleOnly: useSampleDesk,
-      excludeSample: !useSampleDesk,
-      salesByDay,
-      windowStart: histWindow.start,
-      windowEnd: histWindow.end,
-      timeZone: histTz,
-    });
+    const { rows: dailyRows, channelLabels } = await buildDailyRowsForWindow(
+      shop.id,
+      {
+        sampleOnly: useSampleDesk,
+        excludeSample: !useSampleDesk,
+        salesByDay,
+        windowStart: histWindow.start,
+        windowEnd: histWindow.end,
+        timeZone: histTz,
+      },
+    );
     const historyDays = capHistoryDays(
-      toHistoryDays(dailyRows),
+      toHistoryDays(dailyRows, channelLabels),
       HISTORY_QUARTER_DAYS_CAP,
     );
     const periodStartKey = histTz
@@ -276,9 +393,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } catch {
     history = null;
   }
+  const explorer = await explorerPromise;
 
   return {
     metrics,
+    explorer,
     history,
     windowSets,
     preset,
@@ -296,6 +415,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function AllocationPage() {
   const {
     metrics,
+    explorer,
     history,
     windowSets,
     preset,
@@ -328,7 +448,7 @@ export default function AllocationPage() {
   const allocation = salesError ? null : metrics.allocation;
 
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : shotMode
       ? metrics.period.label
       : salesError ||
@@ -348,8 +468,8 @@ export default function AllocationPage() {
     ? metrics.spendCoverage.incomplete
       ? "Spend mix waits until most days this period have spend, so empty Sundays don’t fake a high Total ROAS. Add more days when you have invoices — last month is enough to start."
       : metrics.spendRecon?.status === "drift"
-        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or the declared total on Spend before mix advice."
-        : "Add spend on Spend, then come back for mix."
+        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or declared total on Upload Spend before mix advice."
+        : "Upload spend on Upload Spend, then come back for mix."
     : null;
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
@@ -523,6 +643,29 @@ export default function AllocationPage() {
             setSelectedChannel((cur) => (cur === name ? null : name))
           }
         />
+
+        {explorer ? (
+          <section
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-explorer mcfly-allocation-explorer"
+            aria-label="Spend and sales drill-down"
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>Spend and sales drill-down</h2>
+              <p className="mcfly-panel__muted">
+                The daily evidence behind this allocation—zoom the dates, group
+                by day, week, month, or quarter, and inspect every channel.
+              </p>
+            </div>
+            <SpendExplorer
+              series={explorer}
+              period={preset}
+              shotMode={shotMode}
+              basePath="/app/allocation"
+              compare
+              variant="spend"
+            />
+          </section>
+        ) : null}
 
         <BestWindowsSection
           grain={grain}
@@ -889,7 +1032,7 @@ function PeriodMixSection({
       {rows.length === 0 ? (
         <p className="mcfly-alloc-v2__empty">
           No channel spend for {periodLabel} — log Meta, Google, and the rest
-          on Spend.
+          on Upload Spend.
         </p>
       ) : (
         <>

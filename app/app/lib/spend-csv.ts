@@ -346,7 +346,7 @@ function formatLocalYmd(d: Date): string {
 /**
  * Long CSV for pipe tools: one row per day × channel.
  * `example=true` fills sample Meta/Google amounts; blank leaves amount empty for mapping.
- * Optional `channels` narrows blank rows (Free Meta+Google); omit for all wide columns.
+ * Optional `channels` narrows blank rows; omit for all wide columns.
  */
 export function buildPipeAutomationLongTemplate(options?: {
   dayCount?: number;
@@ -448,7 +448,7 @@ function csvEscape(value: string): string {
 
 /**
  * Blank starter: header + empty day rows ready to fill.
- * Pass `channels` (e.g. Free Meta+Google) to narrow columns; omit for full Pro wide.
+ * Pass `channels` to narrow columns; omit for the full wide template.
  */
 export function buildBlankSpendTemplate(
   dayCount = 14,
@@ -602,7 +602,7 @@ export function buildSheetsImportGuide(options?: {
       : "your selected platforms";
   return {
     sheetsNewUrl: SHEETS_CREATE_URL,
-    tip: "Free path never requires SyncWith, Coupler, or Supermetrics. Paste or CSV alone is enough — you only pay those tools if you want hands-off fills.",
+    tip: "Mcfly never requires SyncWith, Coupler, or Supermetrics. Paste or CSV alone is enough — you only pay those tools if you want hands-off fills.",
     steps: [
       `Confirm platforms checked above (or on Automate): ${labels}.`,
       "Download your Mcfly blank template — or Open Google Sheets and import that CSV.",
@@ -1830,6 +1830,11 @@ export interface CsvImportSummary {
   updated: number;
   days: number;
   channels: CsvChannel[];
+  /**
+   * Merchant's own names for the `other` rows in this import, so the confirm
+   * line says "Billboard $400" instead of "Other $400".
+   */
+  customChannelLabels?: string[];
   dateRange: { start: string; end: string } | null;
   totalAmount: number;
   errors: string[];

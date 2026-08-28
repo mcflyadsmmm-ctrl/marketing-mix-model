@@ -181,7 +181,7 @@ export function CashTrustBanners({
             {formatSpendReconLine(spendRecon)}. Desk{" "}
             {formatCurrency(spendRecon.csvTotal)} vs declared{" "}
             {formatCurrency(spendRecon.declared)}. Fix the CSV or the declared
-            total on <s-link href="/app/spend">Spend</s-link> before you act.
+            total on <s-link href="/app/spend">Upload Spend</s-link> before you act.
           </s-paragraph>
         </s-banner>
       ) : null}

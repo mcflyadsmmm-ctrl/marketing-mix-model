@@ -37,6 +37,10 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
       expect(block).not.toMatch(/\/store\/mo/i);
       expect(block).not.toMatch(/\$39/);
       expect(block).not.toMatch(/Free\./);
+      expect(block).not.toMatch(/\bone plan\b/i);
+      expect(block).not.toMatch(/free trial/i);
+      expect(block).not.toMatch(/paid plan/i);
+      expect(block).not.toMatch(/7-day/);
     }
   });
 
@@ -45,6 +49,9 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(features).toMatch(/billboard/i);
     expect(long).toMatch(/billboard/i);
     expect(long).not.toMatch(/paid plan unlocks every named/i);
+    expect(long).not.toMatch(/paid plan/i);
+    expect(long).not.toMatch(/\bone plan\b/i);
+    expect(long).not.toMatch(/free trial/i);
     expect(long).toMatch(/not platform ROAS/i);
     expect(long).toMatch(/not net profit/i);
     expect(features).toMatch(/spend you added/i);
@@ -90,6 +97,20 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(shotScript).toMatch(/Refusing to generate a pricing screenshot/);
   });
 
+  it("feature media forbids unsubstantiated ROAS statistics (listing AI / 4.3.3)", () => {
+    expect(captions).toMatch(/4\.42x/);
+    expect(captions).toMatch(/2\.86x/);
+    expect(captions).toMatch(/no/i);
+    expect(listing).toMatch(/feature-media-1600x900\.png/);
+    expect(listing).toMatch(/4\.42x/);
+    expect(listing).toMatch(/2\.86x/);
+    const features = pasteBlock(listing, "features");
+    expect(features).not.toMatch(/4\.42/);
+    expect(features).not.toMatch(/2\.86/);
+    expect(short).not.toMatch(/4\.42/);
+    expect(long).not.toMatch(/4\.42/);
+  });
+
   it("listing checklist tells Partner not to require Online Store (4.3.1)", () => {
     expect(listing).toMatch(/do \*\*not\*\* check .*online store/i);
     expect(listing).toMatch(/4\.3\.1/);
@@ -117,13 +138,56 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(sheet).toContain("https://mcfly-analytics.fly.dev/privacy");
   });
 
-  it("founder one-pager is Free+Pro and points testing paste at PARTNER_TESTING", () => {
+  it("founder one-pager sells one plan and points testing paste at PARTNER_TESTING", () => {
     const handoff = readRepo("docs/ops/SUBMIT_HANDOFF.md");
     expect(handoff).not.toMatch(/no Billing charges yet/i);
     expect(handoff).toMatch(/PARTNER_TESTING_INSTRUCTIONS/);
-    expect(handoff).toMatch(/Free \+ Pro \$39/);
+    expect(handoff).toMatch(/one plan/i);
+    expect(handoff).toMatch(/\$39/);
+    expect(handoff).toMatch(/7-day free trial/i);
+    expect(handoff).not.toMatch(/Free \+ Pro/);
     expect(handoff).toContain("04-free-pro-pricing.png");
     expect(handoff).toMatch(/Do not upload/i);
+  });
+
+  /*
+   * The Partner Dashboard still advertised Free + Pro $39 in the 2026-08-26
+   * Admin smoke. Managed Pricing plans are not in this repo, so the only thing
+   * git controls is the instruction that produced them. Keep it correct.
+   */
+  it("billing docs tell the human to configure exactly one paid plan", () => {
+    const tiers = readRepo("docs/BILLING_TIERS.md");
+    expect(tiers).toMatch(/one paid plan|ONE plan|one plan/i);
+    expect(tiers).toMatch(/7-day/);
+    expect(tiers).toMatch(/\$39/);
+    expect(tiers).toMatch(/remove the Free plan/i);
+    expect(tiers).toMatch(/nothing is \*\*feature-gated\*\*|nothing is feature-gated/i);
+    // No plan matrix may come back — a matrix implies a gate.
+    expect(tiers).not.toMatch(/\| Spend channels \|/);
+    expect(tiers).not.toMatch(/Teaser/i);
+  });
+
+  it("no submission doc still instructs a Free + Pro Partner setup", () => {
+    for (const rel of [
+      "docs/APP_STORE_LISTING.md",
+      "docs/PARTNER_TESTING_INSTRUCTIONS.md",
+      "docs/APP_STORE_REQUIREMENT_MATRIX.md",
+      "docs/ops/SUBMIT_HANDOFF.md",
+      "docs/ops/REVIEWER_TEST_SCRIPT.md",
+      "docs/ops/FOUNDER_DO_NOW.md",
+    ]) {
+      const doc = readRepo(rel);
+      // "delete the Free plan" is the fix, not a claim — allow only that shape.
+      const claims = doc
+        .split("\n")
+        .filter(
+          (line) =>
+            /Free \+ Pro/.test(line) &&
+            !/delete|remove|still showed|open item/i.test(line),
+        );
+      expect(claims, rel).toEqual([]);
+      expect(doc, rel).not.toMatch(/Upgrade to Pro/i);
+    }
   });
 
   it("Partner listing URLs and Fly-landing nav pages match live Free vs Pro packaging (1.1.4)", () => {

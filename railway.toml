@@ -12,4 +12,5 @@ restartPolicyType = "ON_FAILURE"
 [environments.production.variables]
 NODE_ENV = "production"
 PORT = "3000"
-SCOPES = "read_orders,read_customers,read_all_orders"
+# Must match shopify.app.toml — read_all_orders is not Partner-approved yet.
+SCOPES = "read_orders,read_customers"

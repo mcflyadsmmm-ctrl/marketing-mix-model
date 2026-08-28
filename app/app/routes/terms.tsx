@@ -41,7 +41,7 @@ export default function TermsPage() {
         <h2>Ending the service</h2>
         <p>
           Uninstall anytime in Shopify Admin. We may suspend access for abuse,
-          non-payment of a billed Pro plan, or security risk. Shop redact
+          non-payment of your subscription, or security risk. Shop redact
           deletes Mcfly merchant data as described in{" "}
           <a href="/privacy">Privacy</a>.
         </p>

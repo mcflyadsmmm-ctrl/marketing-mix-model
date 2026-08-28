@@ -72,7 +72,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     entries.map((entry) => mapChannel(entry.channel)),
   );
   if (channelGate) {
-    return jsonError(channelGate, 403, "pro_required");
+    // Unknown channel string — not a plan gate. The whole desk is one plan.
+    return jsonError(channelGate, 400, "invalid_channel");
   }
 
   const accepted = await prisma.$transaction(async (tx) => {

@@ -41,6 +41,44 @@ describe("formatTotalRoasEquation", () => {
       formatTotalRoasEquation({ sales: 12_400, spend: -1, mer: 4 }),
     ).toBeNull();
   });
+
+  /*
+   * 2026-08-26 Admin smoke: Overview printed "$0 sales ÷ $650 spend = 0.00×"
+   * while backfill had 0 of 25 closed days. Unknown sales are not $0 sales.
+   */
+  it("never prints a 0× ratio while closed sales days are still loading", () => {
+    const line = formatTotalRoasEquation({
+      sales: 0,
+      spend: 650,
+      mer: 0,
+      salesPending: true,
+    });
+    expect(line).toBe("$650 spend saved · sales still loading");
+    expect(line).not.toMatch(/0\.00×/);
+    expect(line).not.toMatch(/\$0 sales/);
+  });
+
+  it("still shows the merchant's own spend while sales are pending", () => {
+    expect(
+      formatTotalRoasEquation({
+        sales: 0,
+        spend: 1_250.5,
+        mer: null,
+        salesPending: true,
+      }),
+    ).toContain("$1,251");
+  });
+
+  it("prints a real 0× only when sales are known to be zero", () => {
+    expect(
+      formatTotalRoasEquation({
+        sales: 0,
+        spend: 650,
+        mer: 0,
+        salesPending: false,
+      }),
+    ).toBe("$0 sales ÷ $650 spend = 0.00×");
+  });
 });
 
 describe("NUMBER_HONESTY copy contracts", () => {
@@ -52,6 +90,8 @@ describe("NUMBER_HONESTY copy contracts", () => {
     expect(NUMBER_HONESTY.empty).toMatch(/not 0×/i);
     expect(NUMBER_HONESTY.invoiceHint).toMatch(/invoice/i);
     expect(NUMBER_HONESTY.invoiceHint).toMatch(/retainer/i);
+    expect(NUMBER_HONESTY.salesPending).toMatch(/still loading/i);
+    expect(NUMBER_HONESTY.salesPending).toMatch(/not \$0/i);
   });
 
   it("does not preach pixels, true ROAS, or competitor names", () => {
@@ -65,7 +105,7 @@ describe("NUMBER_HONESTY copy contracts", () => {
 
   it("keeps spend-add as the primary deep link", () => {
     expect(SPEND_ADD_HREF).toBe("/app/spend#mcfly-spend-add");
-    expect(SPEND_CSV_HREF).toBe("/app/spend#mcfly-spend-uploads");
+    expect(SPEND_CSV_HREF).toBe("/app/spend#mcfly-spend-csv");
   });
 });
 

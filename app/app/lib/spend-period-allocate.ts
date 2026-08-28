@@ -263,7 +263,7 @@ export function allocateLumpToDays(input: AllocateLumpInput): AllocateDayRow[] {
 }
 
 export type LumpSpreadPlan = {
-  periodType: PeriodWindowType;
+  periodType: PeriodWindowType | "custom";
   channel: string;
   startDateYmd: string;
   endDateYmd: string;
@@ -338,6 +338,58 @@ export function planLumpSpread(input: {
       startDateYmd: window.startDateYmd,
       endDateYmd: window.endDateYmd,
       dayCount: window.dayCount,
+      dailyAmount,
+      totalAmount,
+      totalAllocated,
+      days,
+    },
+  };
+}
+
+/** Allocate a merchant-selected inclusive custom range. */
+export function planCustomLumpSpread(input: {
+  totalAmount: number;
+  startDateYmd: string;
+  endDateYmd: string;
+  channel: string;
+}): LumpSpreadResult {
+  const { totalAmount, startDateYmd, endDateYmd, channel } = input;
+  if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+    return { ok: false, error: "Enter a positive bill amount." };
+  }
+  if (!channel.trim()) {
+    return { ok: false, error: "Pick a spend channel." };
+  }
+
+  const dayCount = inclusiveDayCount(startDateYmd, endDateYmd);
+  if (dayCount == null || dayCount < 1) {
+    return {
+      ok: false,
+      error: "Pick a valid custom range. The end date must be on or after the start date.",
+    };
+  }
+
+  const days = allocateLumpToDays({
+    totalAmount,
+    startDateYmd,
+    endDateYmd,
+    channel,
+  });
+  if (days.length === 0) {
+    return { ok: false, error: "Could not allocate daily amounts." };
+  }
+
+  const totalAllocated =
+    Math.round(days.reduce((sum, day) => sum + day.amount, 0) * 100) / 100;
+  const dailyAmount = Math.round((totalAmount / dayCount) * 100) / 100;
+  return {
+    ok: true,
+    plan: {
+      periodType: "custom",
+      channel: channel.trim(),
+      startDateYmd,
+      endDateYmd,
+      dayCount,
       dailyAmount,
       totalAmount,
       totalAllocated,

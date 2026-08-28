@@ -57,11 +57,11 @@ export default function SupportPage() {
 
         <h2>Sample data and Live data</h2>
         <p>
-          The desk has two views. Turn SAMPLE / Practice <strong>OFF</strong> —
-          switch to <strong>Live data</strong> — before judging Total ROAS.
-          Sample data is example numbers, not this shop. Live data is this
-          shop’s Shopify sales plus the spend you upload. Margin is optional —
-          add spend first.
+          The desk has two views, and the toggle at the top of every page says
+          which one you are on. Switch to <strong>Live data</strong> before
+          judging Total ROAS. Sample data is example numbers, not this shop.
+          Live data is this shop’s Shopify sales plus the spend you add. Margin
+          is optional — add spend first.
         </p>
       </main>
     </OriginShell>

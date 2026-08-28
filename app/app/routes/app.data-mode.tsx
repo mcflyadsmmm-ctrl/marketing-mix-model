@@ -31,9 +31,17 @@ function withGuideParam(path: string, guide: string | null): string {
 }
 
 /**
- * POST-only data-mode switcher for the global Sample | Real toggle.
+ * Data-mode switcher for the global Sample | Live toggle.
  * Intents: use-sample | use-real | allow-sample-preview | hide-sample-preview
+ *
+ * Default export makes this a UI route so a SPA Form POST is encoded as
+ * turbo-stream. Callers also use `reloadDocument` so Admin iframe toggles
+ * never depend on decoding a raw 302 as turbo-stream.
  */
+export default function DataModeRoute() {
+  return null;
+}
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);

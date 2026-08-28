@@ -51,12 +51,19 @@ export const SPEND_CHANNEL_LABELS: Record<SpendChannel, string> = {
 export interface ChannelSpend {
   channel: SpendChannel;
   amount: number;
+  /**
+   * Merchant's own name for an `other` row (Billboard, Radio, Agency retainer).
+   * Absent for named platforms and for unlabeled legacy `other` spend, which
+   * stays "Other" so unattributed dollars are never dropped or renamed.
+   */
+  customLabel?: string;
 }
 
 export interface ChannelMixEntry {
   channel: SpendChannel;
   amount: number;
   share: number;
+  customLabel?: string;
 }
 
 function nonNegativeFinite(amount: number): number {
@@ -96,18 +103,18 @@ export function computeBreakEvenMer(contributionMargin: number): number | null {
  * Negative / non-finite amounts are treated as zero spend.
  */
 export function channelMix(spends: ChannelSpend[]): ChannelMixEntry[] {
-  const cleaned = spends.map(({ channel, amount }) => ({
+  const cleaned = spends.map(({ channel, amount, customLabel }) => ({
     channel,
     amount: nonNegativeFinite(amount),
+    ...(customLabel ? { customLabel } : {}),
   }));
   const total = cleaned.reduce((sum, entry) => sum + entry.amount, 0);
   if (total <= 0) {
-    return cleaned.map(({ channel, amount }) => ({ channel, amount, share: 0 }));
+    return cleaned.map((entry) => ({ ...entry, share: 0 }));
   }
-  return cleaned.map(({ channel, amount }) => ({
-    channel,
-    amount,
-    share: amount / total,
+  return cleaned.map((entry) => ({
+    ...entry,
+    share: entry.amount / total,
   }));
 }
 

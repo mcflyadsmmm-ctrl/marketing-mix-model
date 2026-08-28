@@ -23,9 +23,12 @@ describe("Desk period labels and Overview clocks", () => {
   it("ties Overview explorer to the scoreboard when exRange is unset", () => {
     expect(overview).toContain("explorerQueryMatchingScoreboard");
     expect(overview).not.toContain('exRange") || "14d"');
-    expect(overview).toMatch(
-      /if \(entitlements\.canUseLtv\) \{\s*void runOrderFactsBackfill/,
-    );
+  });
+
+  it("ingests LTV cohorts for every shop — LTV is not a plan gate", () => {
+    expect(overview).toContain("runOrderFactsBackfill");
+    // No plan branch may wrap the cohort ingest; the desk is one plan.
+    expect(overview).not.toMatch(/if \(entitlements\.canUse\w+\)/);
   });
 
   it("keeps Spend on the same date slicer after the first save", () => {

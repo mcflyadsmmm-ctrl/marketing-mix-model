@@ -86,7 +86,7 @@ export default function AdvancedMetricsPage() {
   const isLoading = navigation.state === "loading";
 
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : salesError ||
         metrics.blockedMockAsLive ||
         metrics.salesSource === "mock"
@@ -94,7 +94,8 @@ export default function AdvancedMetricsPage() {
       : `${metrics.period.label} · live sales`;
 
   const sections = buildAdvancedSections(metrics, {
-    canUseLtv: entitlements.canUseLtv,
+    // Not a plan gate — LTV is on the one desk. See advanced-metrics.ts.
+    canUseLtv: true,
     periodLabel: metrics.period.label,
   });
 
@@ -174,7 +175,7 @@ export default function AdvancedMetricsPage() {
         </div>
 
         <p className="mcfly-advanced__lede">
-          Optional. Add spend on Spend first — this page is extra math, not a
+          Optional. Add spend on Upload Spend first — this page is extra math, not a
           second scoreboard. Overview stays simple. Every tile is average /
           portfolio math from Shopify sales and Logged Spend via CSV.
         </p>

@@ -9,8 +9,8 @@ import {
 import { buildRecommendedMix } from "../components/AllocMixChart";
 
 describe("contrib-ltv", () => {
-  it("treats Settings/Practice margin as 0–1 (not percent-points)", () => {
-    // Practice SAMPLE_DESK_MARGIN_PCT = 0.35. Old helper did 0.35/100 → $1.33.
+  it("treats Settings / sample margin as 0–1 (not percent-points)", () => {
+    // SAMPLE_DESK_MARGIN_PCT = 0.35. Old helper did 0.35/100 → $1.33.
     expect(marginAsMultiplier(0.35)).toBe(0.35);
     expect(contributionAdjustedLtv(380, 0.35)).toBe(133);
     expect(contributionAdjustedLtv(380, 0.35)).toBeGreaterThan(50);

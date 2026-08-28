@@ -52,12 +52,16 @@ import { countNewBuyersInRange } from "./order-facts.server";
 import {
   filterToAllowedChannels,
   getShopEntitlements,
-  proRequiredLtvSummary,
 } from "./entitlements.server";
 import {
   actionSalesForBasis,
   parseSalesBasis,
 } from "./sales-basis";
+import { spendBucketKey, spendChannelLabel } from "./spend-channel-label";
+import {
+  resolveSalesReadiness,
+  type SalesCoverageSlice,
+} from "./sales-pending";
 
 const CHANNEL_DISPLAY = SPEND_CHANNEL_LABELS;
 
@@ -189,6 +193,12 @@ export interface DashboardMetrics {
    * Sample desk bypasses recon gates (still needs settingsSaved).
    */
   cashActionReady: boolean;
+  /**
+   * No closed sales day has landed yet for this period while backfill runs.
+   * Sales are unknown, not zero — `mer` stays null so the desk never paints
+   * `$0 sales ÷ $X spend = 0.00×` at a merchant who did have sales.
+   */
+  salesPending: boolean;
   /** Soft warning — marginConfirmedAt older than 90 days. */
   marginStale: boolean;
   targetMer: number;
@@ -366,18 +376,49 @@ type SpendEntrySlice = {
   amount: number;
   periodStart: Date;
   periodEnd: Date;
+  /** Slug for a named `other` extra (billboard, radio…). */
+  customKey?: string | null;
+  /** Merchant's own display name for that extra. */
+  note?: string | null;
 };
 
-function channelSpendFromEntries(entries: SpendEntrySlice[]): ChannelSpend[] {
+/**
+ * One slice per named platform, plus one slice per named `other` extra so
+ * "Billboard" reads as Billboard on Overview instead of collapsing into a
+ * single "Other" lump. Unlabeled `other` rows stay in the "Other" slice —
+ * their dollars are always counted, never dropped.
+ */
+export function channelSpendFromEntries(
+  entries: SpendEntrySlice[],
+): ChannelSpend[] {
   const totals = emptyChannelTotals();
+  const customTotals = new Map<string, { label: string; amount: number }>();
   for (const entry of entries) {
     const ch = entry.channel as SpendChannel;
-    if (ch in totals) totals[ch] += entry.amount;
+    if (!(ch in totals)) continue;
+    const slug = ch === "other" ? (entry.customKey?.trim() ?? "") : "";
+    if (slug) {
+      const label = entry.note?.trim() || slug;
+      const seen = customTotals.get(slug);
+      if (seen) {
+        seen.amount += entry.amount;
+      } else {
+        customTotals.set(slug, { label, amount: entry.amount });
+      }
+      continue;
+    }
+    totals[ch] += entry.amount;
   }
-  return SPEND_CHANNELS.map((channel) => ({
+  const named: ChannelSpend[] = SPEND_CHANNELS.map((channel) => ({
     channel,
     amount: totals[channel],
   }));
+  const extras: ChannelSpend[] = [...customTotals.values()].map((extra) => ({
+    channel: "other" as SpendChannel,
+    amount: extra.amount,
+    customLabel: extra.label,
+  }));
+  return [...named, ...extras];
 }
 
 async function loadSpendEntries(
@@ -401,6 +442,8 @@ async function loadSpendEntries(
       amount: true,
       periodStart: true,
       periodEnd: true,
+      customKey: true,
+      note: true,
     },
   });
 }
@@ -428,7 +471,10 @@ export function buildAllocationSuggestion(
     channels: spends
       .filter((s) => s.amount > 0)
       .map((s) => ({
-        name: CHANNEL_DISPLAY[s.channel],
+        name: spendChannelLabel({
+          channel: s.channel,
+          customLabel: s.customLabel,
+        }),
         spend: s.amount,
         isManual:
           s.channel === "other" ||
@@ -553,7 +599,11 @@ export async function buildDailyRowsForWindow(
     /** Preloaded spend rows — skips a second DB read when the caller already has them. */
     spendEntries?: SpendEntrySlice[];
   },
-): Promise<ExplorerDailyRow[]> {
+): Promise<{
+  rows: ExplorerDailyRow[];
+  /** Slice key → merchant-facing name, for named `other` extras. */
+  channelLabels: Record<string, string>;
+}> {
   const timeZone = options.timeZone || null;
   // Shop IANA when known; else server-local keys (sample / legacy explorer windows).
   const startKey = timeZone
@@ -586,18 +636,24 @@ export async function buildDailyRowsForWindow(
         amount: true,
         periodStart: true,
         periodEnd: true,
+        customKey: true,
+        note: true,
       },
     }));
 
-  const byDay = new Map<
-    string,
-    { sales: number; channels: Record<SpendChannel, number> }
-  >();
+  /*
+   * Slices key on the spend bucket, so a named extra ("other:billboard") is its
+   * own band instead of melting into the Other lump. `channelLabels` carries the
+   * merchant's word for that key; every Map keyed by the slice string keeps
+   * working unchanged.
+   */
+  const channelLabels: Record<string, string> = {};
+  const byDay = new Map<string, { sales: number; channels: Map<string, number> }>();
 
   const ensureDay = (key: string) => {
     let row = byDay.get(key);
     if (!row) {
-      row = { sales: 0, channels: emptyChannelTotals() };
+      row = { sales: 0, channels: new Map() };
       byDay.set(key, row);
     }
     return row;
@@ -609,6 +665,13 @@ export async function buildDailyRowsForWindow(
   }
 
   for (const entry of entries) {
+    const bucket = spendBucketKey(entry.channel, entry.customKey);
+    if (bucket !== entry.channel && !channelLabels[bucket]) {
+      channelLabels[bucket] = spendChannelLabel({
+        channel: entry.channel,
+        customLabel: entry.note ?? entry.customKey,
+      });
+    }
     const slices = attributeSpendAcrossDays(
       entry.periodStart,
       entry.periodEnd,
@@ -618,7 +681,7 @@ export async function buildDailyRowsForWindow(
     );
     for (const slice of slices) {
       const row = ensureDay(slice.dateKey);
-      row.channels[entry.channel as SpendChannel] += slice.amount;
+      row.channels.set(bucket, (row.channels.get(bucket) ?? 0) + slice.amount);
     }
   }
 
@@ -628,21 +691,23 @@ export async function buildDailyRowsForWindow(
     dateKey <= endKey;
     dateKey = nextShopLocalDayKey(dateKey, stepTz)
   ) {
-    const row = byDay.get(dateKey) ?? {
-      sales: 0,
-      channels: emptyChannelTotals(),
-    };
-    const channels = SPEND_CHANNELS.map((channel) => ({
-      channel,
-      amount: Math.round(row.channels[channel] * 100) / 100,
-    })).filter((c) => c.amount > 0);
+    const row = byDay.get(dateKey);
+    const channels = row
+      ? [...row.channels.entries()]
+          .map(([channel, raw]) => ({
+            channel,
+            amount: Math.round(raw * 100) / 100,
+          }))
+          .filter((c) => c.amount > 0)
+          .sort((a, b) => b.amount - a.amount)
+      : [];
     const spend =
       Math.round(channels.reduce((s, c) => s + c.amount, 0) * 100) / 100;
-    const sales = Math.round(row.sales * 100) / 100;
+    const sales = Math.round((row?.sales ?? 0) * 100) / 100;
     if (sales <= 0 && spend <= 0) continue;
     rows.push({ dateKey, sales, spend, channels });
   }
-  return rows;
+  return { rows, channelLabels };
 }
 
 export type SpendExplorerSeries = {
@@ -654,6 +719,8 @@ export type SpendExplorerSeries = {
   summary: ExplorerSummary;
   /** Raw closed days used for bucketing (activity-only). */
   dailyRows: ExplorerDailyRow[];
+  /** Slice key → merchant-facing name (named `other` extras like Billboard). */
+  channelLabels: Record<string, string>;
 };
 
 /**
@@ -675,14 +742,17 @@ export async function buildSpendExplorerSeries(
     timeZone?: string | null;
   },
 ): Promise<SpendExplorerSeries> {
-  const dailyRows = await buildDailyRowsForWindow(shopId, {
-    sampleOnly: options.sampleOnly,
-    excludeSample: options.excludeSample,
-    salesByDay: options.salesByDay,
-    windowStart: options.window.start,
-    windowEnd: options.window.end,
-    timeZone: options.timeZone,
-  });
+  const { rows: dailyRows, channelLabels } = await buildDailyRowsForWindow(
+    shopId,
+    {
+      sampleOnly: options.sampleOnly,
+      excludeSample: options.excludeSample,
+      salesByDay: options.salesByDay,
+      windowStart: options.window.start,
+      windowEnd: options.window.end,
+      timeZone: options.timeZone,
+    },
+  );
 
   const buckets = bucketExplorerRows(dailyRows, options.granularity);
   const plot = applyExplorerMode(buckets, options.mode);
@@ -701,6 +771,7 @@ export async function buildSpendExplorerSeries(
     buckets: plot,
     summary,
     dailyRows,
+    channelLabels,
   };
 }
 
@@ -742,7 +813,7 @@ export async function buildDailySpine(
     }
   }
 
-  const dailyRows = await buildDailyRowsForWindow(shopId, {
+  const { rows: dailyRows } = await buildDailyRowsForWindow(shopId, {
     sampleOnly: options.sampleOnly,
     excludeSample: options.excludeSample,
     salesByDay: options.salesByDay,
@@ -756,8 +827,9 @@ export async function buildDailySpine(
 
   const spine: DailySpineDay[] = keys.map((dateKey) => {
     const row = byKey.get(dateKey);
+    // Spine bands colour by engine channel; a named extra rides the Other band.
     const channels = (row?.channels ?? []).map((c) => ({
-      channel: c.channel as SpendChannel,
+      channel: c.channel.split(":")[0] as SpendChannel,
       amount: c.amount,
     }));
     const spend = row?.spend ?? 0;
@@ -978,6 +1050,11 @@ export async function buildDashboardMetrics(
     salesPulledAt?: string | null;
     /** Override Settings.salesBasis for this render (query toggle). */
     salesBasis?: "total" | "net";
+    /**
+     * Closed-day SalesDayFact coverage for `range`. Drives sales-pending
+     * suppression and blocks break-even advice while backfill runs.
+     */
+    salesCoverage?: SalesCoverageSlice | null;
   },
 ): Promise<DashboardMetrics> {
   const shop = await ensureShop(shopDomain);
@@ -1042,8 +1119,8 @@ export async function buildDashboardMetrics(
       : Promise.resolve(null),
   ]);
 
-  // Free live: Meta+Google only so Total ROAS cannot be inflated by Pro channels.
-  // SAMPLE desk keeps the full demo mix (do not filter).
+  // Drop unknown channel strings only — every real channel counts on every
+  // plan. SAMPLE desk keeps the full demo mix (do not filter).
   const spendEntries = useSampleDesk
     ? spendEntriesRaw
     : filterToAllowedChannels(entitlements, spendEntriesRaw);
@@ -1095,11 +1172,18 @@ export async function buildDashboardMetrics(
     },
     salesBasis,
   );
-  const mer = computeMer(action.sales, totalSpend);
+  const { salesPending, salesCoverageIncomplete } = resolveSalesReadiness({
+    coverage: options?.salesCoverage,
+    sales: action.sales,
+    useSampleDesk,
+  });
+  const mer = salesPending ? null : computeMer(action.sales, totalSpend);
   const newCustomerNetSales = honestSales.newCustomerNetSales ?? 0;
   const returningCustomerNetSales =
     honestSales.returningCustomerNetSales ?? 0;
-  const amer = calculateAmer(newCustomerNetSales, totalSpend);
+  const amer = salesPending
+    ? null
+    : calculateAmer(newCustomerNetSales, totalSpend);
   const mix = channelMix(spends);
   /**
    * Margin is optional — Total ROAS unlocks without BE.
@@ -1142,27 +1226,21 @@ export async function buildDashboardMetrics(
     };
   }
 
-  let tillLtv: TillLtvSummary;
-  if (!entitlements.canUseLtv) {
-    // Free + live: do not compute / expose proprietary cohort LTV.
-    tillLtv = proRequiredLtvSummary(range.label);
-  } else {
-    const tillNewBuyers =
-      useSampleDesk
+  // LTV is part of the one desk — no plan branch. Trial and paid both compute it.
+  const tillNewBuyers = useSampleDesk
+    ? (honestSales.newCustomers ?? 0)
+    : ((await countNewBuyersInRange(shop.id, range)) ??
+      (honestSales.customerMetricsAvailable
         ? (honestSales.newCustomers ?? 0)
-        : (await countNewBuyersInRange(shop.id, range)) ??
-          (honestSales.customerMetricsAvailable
-            ? (honestSales.newCustomers ?? 0)
-            : 0);
+        : 0));
 
-    tillLtv = await buildTillLtvSummary(shop.id, {
-      totalSpend,
-      newCustomers: tillNewBuyers,
-      periodLabel: range.label,
-      useSampleDesk,
-      ianaTimezone: deskTz,
-    });
-  }
+  const tillLtv: TillLtvSummary = await buildTillLtvSummary(shop.id, {
+    totalSpend,
+    newCustomers: tillNewBuyers,
+    periodLabel: range.label,
+    useSampleDesk,
+    ianaTimezone: deskTz,
+  });
 
   const spendRecon = spendReconMatchesPeriod(
     settings.declaredAdsSpendPeriodStart,
@@ -1281,8 +1359,16 @@ export async function buildDashboardMetrics(
     targetMer: effectiveTargetMer,
     marginPct: effectiveMarginPct,
     channelMix: mix,
+    salesPending,
+    /**
+     * Null while closed-day sales are still landing — "cut or shift spend"
+     * must never be advised from a period whose sales are half-loaded.
+     */
     aboveBreakEven:
-      cashActionReady && mer !== null && breakEvenMer !== null
+      cashActionReady &&
+      !salesCoverageIncomplete &&
+      mer !== null &&
+      breakEvenMer !== null
         ? mer >= breakEvenMer
         : null,
     allocation,

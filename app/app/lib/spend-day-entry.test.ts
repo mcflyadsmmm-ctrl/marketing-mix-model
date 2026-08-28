@@ -7,8 +7,8 @@ import { isSpendYmd, resolveManualSpendRange } from "./spend-day-entry";
 const here = dirname(fileURLToPath(import.meta.url));
 const spendSource = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
 
-describe("Spend Add spend spine", () => {
-  it("wires one-day Add spend above CSV", () => {
+describe("Spend one-bill helper", () => {
+  it("keeps the one-day helper available after the template workflow", () => {
     expect(spendSource).toContain("resolveManualSpendRange");
     expect(spendSource).toContain('id="mcfly-spend-add"');
     expect(spendSource).toContain('name="spendDate"');

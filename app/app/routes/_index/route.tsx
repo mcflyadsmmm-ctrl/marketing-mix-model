@@ -10,7 +10,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "Total ROAS = Shopify sales ÷ ad spend. Free = every platform including billboards. Pro $39 for LTV + Goals.",
+      "Total ROAS = Shopify sales ÷ ad spend. Every platform including billboards. 7-day free trial, then $39/month for the whole desk.",
   },
   { name: "theme-color", content: "#f2f5f8" },
 ];
@@ -37,13 +37,14 @@ export default function AppLanding() {
         </h1>
         <p className={styles.lede}>
           Put spend from every platform — including billboards — next to
-          Shopify sales. Break-even from margin. Pro adds Customer LTV and a
-          full-year Goals board at $39/store/mo via Shopify App Pricing.
+          Shopify sales. Break-even from margin, Customer LTV, and a full-year
+          Goals board. One plan: 7-day free trial, then $39/store/mo for the
+          whole desk via Shopify App Pricing.
         </p>
 
         <div className={styles.ctas}>
           <a className={styles.ctaPrimary} href="/support">
-            Install free
+            How to install
           </a>
           <a className={styles.ctaSecondary} href="/pricing">
             See pricing

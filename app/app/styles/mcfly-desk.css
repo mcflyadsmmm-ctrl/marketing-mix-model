@@ -1053,71 +1053,9 @@
 .mcfly-ctx-chip--fresh::before {
   background: var(--mcfly-accent, #0e7490);
 }
-
-.mcfly-pro-upsell {
-  display: grid;
-  gap: 0.55rem;
-  margin-top: 0.35rem;
-}
-
-.mcfly-pro-upsell__price {
-  margin: 0;
-  font-size: 0.88rem;
-  font-weight: 750;
-  color: var(--mcfly-ink);
-}
-
-.mcfly-pro-upsell__lead {
-  margin: 0;
-  font-size: 0.84rem;
-  line-height: 1.45;
-  color: var(--mcfly-ink-soft, #334155);
-}
-
-.mcfly-pro-upsell__honest {
-  margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: var(--mcfly-ink-muted, #5c6b7a);
-}
-
-.mcfly-pro-upsell__list {
-  margin: 0.4rem 0 0;
-  padding: 0 0 0 1.1rem;
-  display: grid;
-  gap: 0.28rem;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  color: var(--mcfly-ink);
-}
-
-.mcfly-pro-upsell__more {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--mcfly-ink-muted, #5c6b7a);
-}
-
-.mcfly-pro-upsell__more summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-
 .mcfly-pro-upgrade--quiet {
   gap: 0.25rem;
 }
-
-.mcfly-pro-upsell__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem 0.85rem;
-  align-items: center;
-  margin-top: 0.15rem;
-}
-
-.mcfly-pro-upsell__actions form {
-  margin: 0;
-}
-
 .mcfly-use-sample-cta {
   margin: 0;
 }
@@ -1147,21 +1085,28 @@
   text-underline-offset: 2px;
 }
 
+/* Real box, always. Never depends on a web component upgrading. */
 .mcfly-btn {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
   border: 1px solid transparent;
   border-radius: 8px;
-  padding: 0.55rem 0.95rem;
+  padding: 0.55rem 1.1rem;
   font: inherit;
   font-size: 0.88rem;
   font-weight: 650;
   cursor: pointer;
   line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
 }
 
 .mcfly-btn:disabled {
   opacity: 0.65;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .mcfly-btn--primary {
@@ -3682,39 +3627,6 @@
   font-weight: 600;
   color: var(--mcfly-mute);
   line-height: 1.3;
-}
-
-/* Soft Pro teaser for cohort half only */
-.mcfly-acq-ltv-teaser {
-  margin: 0;
-  padding: 1rem 1.1rem 1.15rem;
-  border: 1px solid var(--mcfly-acq-line, var(--mcfly-line-soft));
-  border-radius: 14px;
-  background: linear-gradient(
-    180deg,
-    var(--mcfly-acq-mint, #eef8f3) 0%,
-    #fff 55%
-  );
-  box-shadow: none;
-}
-
-.mcfly-acq-ltv-teaser__body {
-  margin-top: 0.55rem;
-}
-
-.mcfly-acq-ltv-teaser__copy {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 600;
-  line-height: 1.45;
-  color: var(--mcfly-ink);
-}
-
-.mcfly-acq-ltv-teaser__hint {
-  margin: 0.45rem 0 0.75rem;
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: var(--mcfly-mute);
 }
 
 /* Band B — restyle existing LTV summary/dive under acq */
@@ -9644,7 +9556,7 @@
   color: var(--mcfly-ink-muted, #5c6b7a);
 }
 
-/* Global Practice | Your store bar (every app page) */
+/* Global Sample data | Live data bar (every app page) */
 .mcfly-data-mode {
   margin: 0 0 0.85rem;
   padding: 0.65rem 0.85rem;
@@ -9740,13 +9652,119 @@
   color: var(--mcfly-ink-muted, #5c6b7a);
 }
 
+/* Three doors signpost — the first thing on Spend, before any explanation */
+.mcfly-spend-doors {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.9rem 0.85rem;
+  border: 1px solid var(--mcfly-line, #d8e0e8);
+  border-radius: var(--mcfly-radius, 10px);
+  background: #fff;
+}
+
+.mcfly-spend-doors__kicker {
+  margin: 0 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
+.mcfly-spend-doors__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mcfly-spend-doors__link {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  height: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--mcfly-line-soft, #c9d4de);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mcfly-spend-doors__link:hover,
+.mcfly-spend-doors__link:focus-visible {
+  border-color: var(--mcfly-accent, #0284c7);
+  background: color-mix(in srgb, var(--mcfly-accent, #0284c7) 5%, #fff);
+}
+
+.mcfly-spend-doors__num {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  background: var(--mcfly-ink, #1a2330);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.mcfly-spend-doors__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mcfly-spend-doors__title {
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.mcfly-spend-doors__hint {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
 /* Add spend — one day, any platform */
 .mcfly-spend-add {
   margin: 0;
 }
 
+.mcfly-spend-door--secondary {
+  background: color-mix(in srgb, #fff 96%, var(--mcfly-paper, #f8fafc));
+}
+
+.mcfly-spend-template-primary {
+  border-color: color-mix(in srgb, var(--mcfly-accent, #0284c7) 45%, #d8e0e8);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+.mcfly-spend-template-upload {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--mcfly-line-soft, #c9d4de);
+}
+
+.mcfly-spend-template-upload h3,
+.mcfly-spend-template-upload p {
+  margin: 0;
+}
+
+.mcfly-spend-template-upload p {
+  margin-top: 0.25rem;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.82rem;
+}
+
+.mcfly-spend-template-upload form {
+  margin-top: 0.7rem;
+}
+
 .mcfly-spend-add__form {
-  max-width: 40rem;
+  max-width: 46rem;
 }
 
 .mcfly-spend-add__grid {
@@ -9772,6 +9790,168 @@
 .mcfly-spend-add__field .mcfly-field {
   width: 100%;
   font-weight: 500;
+}
+
+.mcfly-spend-add__custom-name {
+  max-width: 24rem;
+  margin-top: 0.75rem;
+}
+
+.mcfly-spend-add__when,
+.mcfly-spend-template-range {
+  margin: 0.9rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.mcfly-spend-add__when legend,
+.mcfly-spend-template-range legend {
+  margin-bottom: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--mcfly-ink, #1a2330);
+}
+
+.mcfly-spend-add__when-options,
+.mcfly-spend-template-range__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mcfly-spend-add__when-btn {
+  min-height: 2.5rem;
+  padding: 0.48rem 0.75rem;
+  border: 1px solid var(--mcfly-line-soft, #c9d4de);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--mcfly-ink, #1a2330);
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+
+.mcfly-spend-add__when-btn:hover,
+.mcfly-spend-add__when-btn:focus-visible {
+  border-color: var(--mcfly-accent, #0284c7);
+}
+
+.mcfly-spend-add__when-btn--on {
+  border-color: var(--mcfly-accent, #0284c7);
+  background: color-mix(in srgb, var(--mcfly-accent, #0284c7) 10%, #fff);
+  font-weight: 650;
+}
+
+.mcfly-spend-add__more-when {
+  margin-top: 0.5rem;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.82rem;
+}
+
+.mcfly-spend-add__more-when > summary {
+  min-height: 2.25rem;
+  cursor: pointer;
+}
+
+.mcfly-spend-add__dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  max-width: 32rem;
+  margin-top: 0.75rem;
+}
+
+.mcfly-spend-add__preview {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--mcfly-line-soft, #c9d4de);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.mcfly-spend-add__preview p {
+  margin: 0;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.mcfly-spend-add__preview .mcfly-spend-add__preview-title {
+  color: var(--mcfly-ink, #1a2330);
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.mcfly-spend-add__why {
+  margin-top: 0.7rem;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.8rem;
+}
+
+.mcfly-spend-add__why > summary {
+  cursor: pointer;
+}
+
+.mcfly-spend-add__why p {
+  margin: 0.4rem 0 0;
+  max-width: 48rem;
+}
+
+.mcfly-spend-template-range {
+  margin-bottom: 0.85rem;
+}
+
+.mcfly-spend-csv-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.82rem;
+}
+
+.mcfly-spend-csv-preview strong {
+  color: var(--mcfly-ink, #1a2330);
+}
+
+.mcfly-spend-calculators > summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.mcfly-spend-automation {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--mcfly-line-soft, #c9d4de);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.mcfly-spend-automation p {
+  margin: 0;
+}
+
+.mcfly-spend-automation p + p {
+  margin-top: 0.45rem;
+}
+
+.mcfly-spend-automation .mcfly-spend-automation__k {
+  color: var(--mcfly-ink, #1a2330);
+  font-weight: 700;
+}
+
+.mcfly-explorer__control-label {
+  color: var(--mcfly-ink-muted, #5c6b7a);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .mcfly-spend-add__presets {
@@ -9803,7 +9983,30 @@
 }
 
 .mcfly-spend-add__actions {
+  display: flex;
   margin-top: 0.85rem;
+}
+
+/*
+ * The three Spend doors submit through native buttons. Keep the hit target
+ * generous and unmistakable so a merchant's first click lands: a 2026-08-26
+ * Admin smoke lost clicks to a zero-size <s-button> host and opened the
+ * channel select instead of saving the spend.
+ */
+.mcfly-spend-submit {
+  min-height: 2.75rem;
+  min-width: 12rem;
+  margin-top: 0.85rem;
+}
+
+.mcfly-spend-add__actions .mcfly-spend-submit {
+  margin-top: 0;
+}
+
+@media (max-width: 34rem) {
+  .mcfly-spend-submit {
+    width: 100%;
+  }
 }
 
 .mcfly-spend-add__gated {
@@ -10068,7 +10271,7 @@
 
 .mcfly-spend-lean__stack > .mcfly-spend-add,
 .mcfly-spend-lean__stack > .mcfly-spend-history {
-  max-width: 36rem;
+  max-width: 46rem;
 }
 
 .mcfly-spend-lean__stack--history-first > .mcfly-spend-history {
@@ -10677,59 +10880,4 @@
 .mcfly-spend-lean__bill-save {
   display: inline-flex;
   margin-left: 0.4rem;
-}
-
-.mcfly-pro-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin: 0 0 0.75rem;
-}
-
-.mcfly-pro-preview__sentence,
-.mcfly-pro-preview__example,
-.mcfly-pro-preview__ghost-foot {
-  margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-.mcfly-pro-preview__ghost {
-  padding: 0.75rem 0.85rem;
-  border: 1px dashed var(--mcfly-line, #c9d4de);
-  border-radius: 8px;
-  background: #fbfcfe;
-}
-
-.mcfly-pro-preview__ghost-k {
-  margin: 0 0 0.45rem;
-  font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--mcfly-mute, #64748b);
-}
-
-.mcfly-pro-preview__ghost-tiles {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0.45rem;
-}
-
-.mcfly-pro-preview__ghost-tiles li {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.mcfly-pro-preview__ghost-tiles span {
-  font-size: 0.75rem;
-  color: var(--mcfly-mute, #64748b);
-}
-
-.mcfly-pro-preview__ghost-tiles strong {
-  font-size: 0.88rem;
-  font-weight: 600;
 }

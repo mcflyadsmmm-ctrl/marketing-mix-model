@@ -62,6 +62,41 @@ function parseNumber(raw) {
   return maybe;
 }
 
+/**
+ * Hosts allowed to POST UI-route actions when Origin ≠ request.url host.
+ * React Router 7.12+ CSRF no longer trusts X-Forwarded-Host by itself.
+ */
+function shopifyActionOrigins() {
+  const origins = new Set([
+    "admin.shopify.com",
+    "*.myshopify.com",
+    "mcfly-analytics.fly.dev",
+  ]);
+  for (const raw of [
+    process.env.SHOPIFY_APP_URL,
+    process.env.MCFLY_APP_URL,
+  ]) {
+    const value = String(raw ?? "").trim();
+    if (!value) continue;
+    try {
+      origins.add(new URL(value).host);
+    } catch {
+      // Ignore unparseable public URLs — Fly secrets stay valid without this.
+    }
+  }
+  return [...origins];
+}
+
+function withActionOrigins(build) {
+  const current = Array.isArray(build?.allowedActionOrigins)
+    ? build.allowedActionOrigins
+    : [];
+  return {
+    ...build,
+    allowedActionOrigins: [...new Set([...current, ...shopifyActionOrigins()])],
+  };
+}
+
 function resolveSiteRoot() {
   if (process.env.MCFLY_SITE_ROOT?.trim()) {
     return path.resolve(process.env.MCFLY_SITE_ROOT.trim());
@@ -119,6 +154,11 @@ async function run() {
 
   const app = express();
   app.disable("x-powered-by");
+  // Fly (and any TLS terminator) sets X-Forwarded-Host / Proto. Without this,
+  // @react-router/express 7.18 builds request.url from the internal Host, and
+  // Sample | Live POSTs 400 as a CSRF miss. The client then fails to decode
+  // that body as turbo-stream.
+  app.set("trust proxy", true);
   if (!isRSCBuild) {
     app.use(compression());
   }
@@ -160,7 +200,7 @@ async function run() {
     app.all(
       "*",
       createRequestHandler({
-        build: buildModule,
+        build: withActionOrigins(buildModule),
         mode: process.env.NODE_ENV,
       }),
     );

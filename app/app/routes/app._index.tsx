@@ -5,10 +5,6 @@ import type {
 } from "react-router";
 import { useLoaderData, useNavigation, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import {
-  SPEND_CHANNEL_LABELS,
-  type SpendChannel,
-} from "@mcfly/mer-engine";
 import { authenticate } from "../shopify.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
@@ -24,6 +20,7 @@ import {
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
 import { channelFillKey } from "../lib/channel-fill";
+import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
@@ -35,7 +32,6 @@ import {
   NUMBER_HONESTY,
   spendAddHref,
 } from "../lib/number-honesty";
-import { getShopEntitlements } from "../lib/entitlements.server";
 import {
   emptySales,
   type SalesResult,
@@ -73,9 +69,8 @@ import {
   explorerQueryMatchingScoreboard,
 } from "../lib/spend-explorer";
 
-function channelDisplayLabel(channel: string): string {
-  return SPEND_CHANNEL_LABELS[channel as SpendChannel] ?? channel;
-}
+/** Same resolver the Spend page uses — Billboard must not read "Other" here. */
+const channelDisplayLabel = spendChannelLabel;
 
 /** Compact prior-period label for KPI deltas. */
 function deltaVsLabel(priorLabel: string | undefined): string {
@@ -118,10 +113,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const deskTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
   const range = resolvePeriod(preset, now, deskTz);
   const priorRange = resolvePriorPeriod(preset, now, deskTz);
-  const entitlements = getShopEntitlements(session.shop, {
-    sampleDesk: useSampleDesk,
-    paidPro: shop.proBillingActive,
-  });
 
   const exRangeParam = url.searchParams.get("exRange");
   const tiedExplorer = exRangeParam
@@ -220,12 +211,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         // ignore — banners disclose incomplete facts
       });
     }
-    // Till LTV OrderFact ingest — Pro only (Free teasers do not crawl orders).
-    if (entitlements.canUseLtv) {
-      void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-        // ignore — panel shows empty/backfilling until cohorts land
-      });
-    }
+    // LTV cohort ingest — part of the one desk, chunked so paint stays fast.
+    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+      // ignore — panel shows empty/backfilling until cohorts land
+    });
 
     const desk = await loadDeskSalesForPeriod({
       admin,
@@ -277,6 +266,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ...(priorSales != null ? { priorSales, priorRange } : {}),
     salesPulledAt,
     salesBasis,
+    salesCoverage: salesFactsCoverageForBanner,
   });
 
   const explorerSeries = await buildSpendExplorerSeries(shop.id, {
@@ -312,6 +302,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),
+    channelLabels: explorerSeries.channelLabels,
   };
 
   const shareTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
@@ -365,7 +356,7 @@ export default function Dashboard() {
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : shotMode
       ? metrics.period.label
       : salesError ||
@@ -423,7 +414,10 @@ export default function Dashboard() {
     .filter((entry) => entry.amount > 0)
     .sort((a, b) => b.amount - a.amount)
     .map((entry) => {
-      const name = channelDisplayLabel(entry.channel);
+      const name = channelDisplayLabel({
+        channel: entry.channel,
+        customLabel: entry.customLabel,
+      });
       return {
         name,
         amount: entry.amount,
@@ -442,6 +436,7 @@ export default function Dashboard() {
     breakEvenMer: metrics.breakEvenMer,
     marginPct: metrics.marginPct,
     spendIncomplete: Boolean(metrics.spendCoverage?.incomplete),
+    salesPending: metrics.salesPending,
     shopLabel,
     channels: periodChannels,
     salesDeltaLine,
@@ -461,8 +456,14 @@ export default function Dashboard() {
         !useSampleDesk &&
         Boolean(salesFactsCoverage?.periodExceedsFactWindow)
       }
+      /*
+       * Only once spend is on the desk. Before that the layout setup card is
+       * already the one thing to read, and stacking a second sync banner on a
+       * fresh install is what made the first session look broken.
+       */
       salesFactsIncomplete={
         !useSampleDesk &&
+        metrics.onboarding.hasSpend &&
         salesFactsCoverage != null &&
         !salesFactsCoverage.complete &&
         !salesFactsCoverage.periodExceedsFactWindow
@@ -515,7 +516,7 @@ export default function Dashboard() {
             slot="primary-action"
             variant="primary"
             href={spendHref}
-            aria-label="See practice spend mix"
+            aria-label="See sample spend mix"
           >
             See spend mix
           </s-button>
@@ -840,10 +841,14 @@ export default function Dashboard() {
                       Shopify Total Sales
                     </p>
                     <p className="mcfly-hero-compact__value">
-                      {formatCurrency(totalSalesDisplay)}
+                      {metrics.salesPending
+                        ? "—"
+                        : formatCurrency(totalSalesDisplay)}
                     </p>
                     <p className="mcfly-hero-compact__meta">
-                      {PRODUCT_NOUN.totalSalesHeroHint}
+                      {metrics.salesPending
+                        ? "Still loading closed days — not $0"
+                        : PRODUCT_NOUN.totalSalesHeroHint}
                     </p>
                     <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
                   </div>
@@ -906,6 +911,7 @@ export default function Dashboard() {
                   spend={metrics.totalSpend}
                   mer={metrics.mer}
                   periodLabel={metrics.period.label}
+                  salesPending={metrics.salesPending}
                 />
               </section>
             ) : null}
@@ -943,7 +949,7 @@ export default function Dashboard() {
 
             {!shotMode ? (
               <p className="mcfly-overview-more" aria-label="More tools">
-                <s-link href="/app/spend">Spend</s-link>
+                <s-link href="/app/spend">{PRODUCT_NOUN.uploadSpend}</s-link>
                 {" · "}
                 <s-link href={`/app/allocation?period=${preset}`}>
                   {PRODUCT_NOUN.spendAllocation}

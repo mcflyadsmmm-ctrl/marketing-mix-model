@@ -40,6 +40,11 @@ export type SpendExplorerSeriesView = {
   toKey: string;
   /** Closed-day as-of key for subtitle. */
   asOfKey: string;
+  /**
+   * Slice key → merchant-facing name for named `other` extras, so a Billboard
+   * band is labelled Billboard here and on Overview, never "Other".
+   */
+  channelLabels?: Record<string, string>;
 };
 
 type SpendExplorerProps = {
@@ -50,9 +55,9 @@ type SpendExplorerProps = {
   shotMode?: boolean;
   /**
    * Where range / granularity clicks stay. Overview defaults to `/app`.
-   * Spend embeds the explorer and must keep drill-down on `/app/spend`.
+   * Upload Spend and Spend Allocation keep drill-downs on their own route.
    */
-  basePath?: "/app" | "/app/spend";
+  basePath?: "/app" | "/app/spend" | "/app/allocation";
   /**
    * This-period-vs-prior comparison (day vs previous day, week vs previous
    * week, …) in the ROAS tip + a summary row. Default off — Overview
@@ -81,16 +86,24 @@ const PAD_T = 16;
 const PAD_B = 28;
 const PLOT_H = 270;
 
-function channelLabel(channel: string): string {
+function channelLabel(
+  channel: string,
+  customLabels?: Record<string, string>,
+): string {
   if (channel === "total") return "Total spend";
+  const custom = customLabels?.[channel];
+  if (custom) return custom;
   const known = SPEND_CHANNEL_LABELS[channel as SpendChannel];
   return known ?? channel;
 }
 
-/** SVG fill / tip swatch class — uses CSS vars via `.mcfly-explorer__seg--*`. */
+/**
+ * SVG fill / tip swatch class — uses CSS vars via `.mcfly-explorer__seg--*`.
+ * Named extras arrive as `other:<slug>` and share the Other band colour.
+ */
 function channelSegClass(channel: string): string {
   if (channel === "total") return "mcfly-explorer__seg--total";
-  const known = channel as SpendChannel;
+  const known = channel.split(":")[0] as SpendChannel;
   if (known in SPEND_CHANNEL_LABELS) {
     return `mcfly-explorer__seg--${known}`;
   }
@@ -356,6 +369,7 @@ export function SpendExplorer({
   const [searchParams] = useSearchParams();
   const { buckets: allBuckets, mode, targetMer, breakEvenMer, showSales } =
     series;
+  const customChannelLabels = series.channelLabels;
   const isShare = mode === "share";
 
   const comparisons = useMemo<Map<string, ExplorerBucketComparison> | null>(
@@ -692,6 +706,9 @@ export function SpendExplorer({
             </button>
           </form>
 
+          {variant === "spend" ? (
+            <span className="mcfly-explorer__control-label">Group chart by</span>
+          ) : null}
           <div
             className="mcfly-explorer__segmented"
             role="group"
@@ -1123,7 +1140,7 @@ export function SpendExplorer({
                             className={`mcfly-explorer__tip-swatch ${channelSegClass(hover.channel)}`}
                             aria-hidden="true"
                           />
-                          {channelLabel(hover.channel)}
+                          {channelLabel(hover.channel, customChannelLabels)}
                         </strong>
                         <span className="mcfly-explorer__tip-lead">
                           {mode === "share"
@@ -1214,8 +1231,8 @@ export function SpendExplorer({
                     aria-pressed={!hidden}
                     title={
                       hidden
-                        ? `Show ${channelLabel(channel)}`
-                        : `Hide ${channelLabel(channel)}`
+                        ? `Show ${channelLabel(channel, customChannelLabels)}`
+                        : `Hide ${channelLabel(channel, customChannelLabels)}`
                     }
                     onClick={() => toggleChannel(channel)}
                   >
@@ -1223,7 +1240,7 @@ export function SpendExplorer({
                       className={`mcfly-explorer__ch-dot ${channelSegClass(channel)}`}
                       aria-hidden="true"
                     />
-                    <span>{channelLabel(channel)}</span>
+                    <span>{channelLabel(channel, customChannelLabels)}</span>
                   </button>
                 );
               })}

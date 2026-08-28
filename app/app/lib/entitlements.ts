@@ -52,19 +52,14 @@ export const BILLING_HONESTY = {
     "Shopify bills this app. Uninstall in Admin to stop the next 30-day cycle. The current cycle may still charge.",
 } as const;
 
-export const FREE_FEATURE_BULLETS = [
-  "Shopify sales beside the spend you add (any platform, including billboard)",
-  "Total ROAS = Shopify sales ÷ that spend",
-  "Break-even from optional profit margin",
-  "Period filters and Spend Allocation",
-  "Email Overview (opens your mail app)",
-  "Sample data to click around before Live data",
-] as const;
-
-export const PRO_FEATURE_BULLETS = [
-  "Whole desk: Spend, Overview, LTV, Goals",
+/** One plan, one list. There is no second tier to compare against. */
+export const DESK_FEATURE_BULLETS = [
+  "Whole desk: Spend, Overview, Spend Allocation, LTV, Goals",
   "Every named platform plus extras like billboard",
+  "Total ROAS = Shopify sales ÷ the spend you add",
+  "Break-even from optional profit margin",
   "Customer LTV and payback on your store",
   "Full-year Goals board",
+  "Sample data to click around before Live data",
   "7-day full-access trial, then $39 per store / month",
 ] as const;

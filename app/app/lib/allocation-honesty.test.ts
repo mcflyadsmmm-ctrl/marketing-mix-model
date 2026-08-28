@@ -34,8 +34,8 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("salesError ? null : metrics.allocation");
   });
 
-  it("keeps Practice path distinct from live sales", () => {
-    expect(source).toContain("practicePeriodSuffix");
+  it("keeps the Sample data path distinct from live sales", () => {
+    expect(source).toContain("samplePeriodSuffix");
     expect(source).toContain("SampleDeskBanner");
   });
 
@@ -49,5 +49,13 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("windowGrainLabel");
     expect(source).toContain("mcfly-alloc-v2__snap-grid");
     expect(source).toContain("spend share, not channel ROAS");
+  });
+
+  it("reuses the Upload Spend explorer for allocation drill-downs", () => {
+    expect(source).toContain("buildSpendExplorerSeries");
+    expect(source).toContain("<SpendExplorer");
+    expect(source).toContain('basePath="/app/allocation"');
+    expect(source).toContain("Spend and sales drill-down");
+    expect(source).toContain("parseExplorerRange");
   });
 });

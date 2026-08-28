@@ -1,5 +1,5 @@
 /**
- * Shopify App Pricing — Free + Pro $39 flat / store / mo.
+ * Shopify App Pricing — one plan, $39 flat / store / mo after a 7-day trial.
  * Public apps use Shopify-hosted plan selection (not appSubscriptionCreate).
  * Docs: https://shopify.dev/docs/apps/launch/billing/shopify-app-pricing
  *
@@ -16,9 +16,8 @@ import {
   type BillingTier,
 } from "./billing-flag.server";
 import {
-  FREE_FEATURE_BULLETS,
+  DESK_FEATURE_BULLETS,
   getShopEntitlements,
-  PRO_FEATURE_BULLETS,
   PRO_UPSELL,
   type ShopEntitlements,
 } from "./entitlements.server";
@@ -61,8 +60,8 @@ export type ShopBillingSnapshot = {
   headline: string;
   detail: string;
   upgradeCta: string;
-  freeBullets: readonly string[];
-  proBullets: readonly string[];
+  /** One plan, one list of what the desk includes. */
+  deskBullets: readonly string[];
   entitlements: ShopEntitlements;
   confirmationUrl: string | null;
   /** True when host still has MCFLY_BILLING_TEST=1 (dev-store testing note). */
@@ -91,7 +90,7 @@ export function storeHandleFromShopDomain(shopDomain: string): string {
 }
 
 /**
- * Shopify App Pricing plan picker (Free + Pro).
+ * Shopify App Pricing plan picker (one plan, full-access trial then paid).
  * https://admin.shopify.com/store/:store/charges/:app_handle/pricing_plans
  */
 export function buildManagedPricingPlansUrl(shopDomain: string): string {
@@ -189,8 +188,7 @@ export function getShopBillingSnapshot(
       ? "This shop has the whole desk. $39 per store / month after the 7-day trial. Uninstall stops the next 30-day cycle."
       : copy.detail,
     upgradeCta: PRO_UPSELL.upgradeCta,
-    freeBullets: FREE_FEATURE_BULLETS,
-    proBullets: PRO_FEATURE_BULLETS,
+    deskBullets: DESK_FEATURE_BULLETS,
     entitlements,
     confirmationUrl: (() => {
       if (!enabled) return null;

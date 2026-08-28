@@ -10,6 +10,8 @@ type NumberHonestyPanelProps = {
   spend: number;
   mer: number | null;
   periodLabel: string;
+  /** Closed sales days have not landed yet — show why, not a 0× ratio. */
+  salesPending?: boolean;
 };
 
 /**
@@ -21,9 +23,10 @@ export function NumberHonestyPanel({
   spend,
   mer,
   periodLabel,
+  salesPending = false,
 }: NumberHonestyPanelProps) {
   const [searchParams] = useSearchParams();
-  const equation = formatTotalRoasEquation({ sales, spend, mer });
+  const equation = formatTotalRoasEquation({ sales, spend, mer, salesPending });
   const addSpendHref = spendAddHref({
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
@@ -43,6 +46,9 @@ export function NumberHonestyPanel({
           <s-link href={addSpendHref}>Add spend</s-link>
         </p>
       )}
+      {salesPending ? (
+        <p className="mcfly-honesty__is">{NUMBER_HONESTY.salesPending}</p>
+      ) : null}
       <p className="mcfly-honesty__is">{NUMBER_HONESTY.isLine}</p>
       <p className="mcfly-honesty__not">
         {NUMBER_HONESTY.isNotLine}

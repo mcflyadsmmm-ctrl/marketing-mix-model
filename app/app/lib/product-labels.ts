@@ -51,6 +51,7 @@ export const PRODUCT_NOUN = {
     "Opens your email app with this period’s Total ROAS cards — Mcfly does not send mail.",
   /** Page / nav titles */
   deskTitle: "Total ROAS",
+  uploadSpend: "Upload Spend",
   /** Spend mix / quarterly / rolling — route /app/allocation */
   spendAllocation: "Spend Allocation",
   /** Acquisition + cohort LTV deep-dive (route /app/ltv) */
@@ -100,14 +101,14 @@ export const PRODUCT_NOUN = {
   allocationHeuristic:
     "Shift spend to protect break-even. Keep at least half of this period’s spend.",
   /** Sample data | Live data — never Free/Pro/trial as a view */
-  practiceDesk: "Sample data",
-  yourStore: "Live data",
-  practicePeriodSuffix: " · Sample data",
-  practiceHint:
+  sampleData: "Sample data",
+  liveData: "Live data",
+  samplePeriodSuffix: " · Sample data",
+  sampleHint:
     "Example numbers so you can click around. Not this shop’s Shopify sales.",
-  yourStoreHint:
+  liveDataHint:
     "This shop’s Shopify sales and the ad spend you add.",
-  practiceHiddenStatus: "Sample data is hidden in Settings",
+  sampleHiddenStatus: "Sample data is hidden in Settings",
   samplePreview: "Sample data",
   samplePreviewOn: "Sample data is on — example numbers, not this shop",
   samplePreviewOffCta: "Switch to Live data",
@@ -118,14 +119,14 @@ export const PRODUCT_NOUN = {
     "Use Sample data | Live data at the top of any page to switch. Live data shows this shop’s Shopify sales and the ad spend you add. Hide Sample data in Settings if you never want the example set.",
   samplePreviewLiveStore: "You are viewing Live data",
   samplePreviewLiveStoreBody:
-    "This shop’s Shopify sales. Add spend on Spend. Switch to Sample data at the top anytime to try example numbers.",
+    "This shop’s Shopify sales. Add daily spend on Upload Spend. Switch to Sample data at the top anytime to try example numbers.",
   /** Founder-locked setup path labels (banner + empty-state CTAs) */
-  setupAddSpend: "Add Spend",
+  setupAddSpend: "Upload Spend",
   setupSetGoals: "Set Goals",
   setupAdjustMargin: "Adjust Profit Margin",
   /** Spend job — three steps */
   spendJob:
-    "Add one day’s invoice (any platform, including billboard) → CSV only if you have many days. Same days replace.",
+    "Download the daily template → fill spend by channel → upload it. Same days replace.",
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
   factsIncompleteSuffix: " · still loading sales days",
   ltvNotInShopify:

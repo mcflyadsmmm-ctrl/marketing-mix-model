@@ -345,6 +345,34 @@ describe("formatCashCloseCsv + parseExceptionsJson", () => {
     expect(text).toContain("60%");
   });
 
+  /*
+   * A forwarded card is read outside the app, so it must not state a $0 sales
+   * figure for a period whose closed days have not landed yet.
+   */
+  it("says sales are still loading rather than emailing a false $0", () => {
+    const text = formatOverviewShareText({
+      periodLabel: "Month to date",
+      periodStartDay: "2026-08-01",
+      periodEndDay: "2026-08-26",
+      totalSales: 0,
+      totalSpend: 650,
+      mer: null,
+      breakEvenMer: null,
+      marginPct: null,
+      salesPending: true,
+      shopLabel: "devmcflyads.myshopify.com",
+      salesDeltaLine: "+11% vs prior",
+    });
+    expect(text).toContain("Shopify Total Sales: still loading (not $0)");
+    expect(text).not.toContain("Shopify Total Sales: $0");
+    // The spend the merchant entered is still stated, and the ratio is withheld.
+    expect(text).toContain("Total Spend: $650");
+    expect(text).toContain("Total ROAS: —");
+    expect(text).not.toContain("0.00×");
+    // A prior-period delta against unknown sales would be meaningless.
+    expect(text).not.toContain("+11% vs prior");
+  });
+
   it("parses exceptions JSON safely", () => {
     expect(parseExceptionsJson("not-json")).toEqual([]);
     expect(

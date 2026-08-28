@@ -1,5 +1,7 @@
 # Submit-ready scorecard — 2026-07-28 (Chat 5 critic refresh)
 
+> **ARCHIVED.** This scorecard predates paid managed pricing and the August fixes. Use [`RESUBMIT_PLAN.md`](./RESUBMIT_PLAN.md); do not use the percentages or Free-listing instructions below.
+
 **Purpose:** Honest craft vs human-gate readiness for first **Free** App Store submit.  
 **SoT:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) · [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md) · [`REJECT_RISK_AUDIT.md`](./REJECT_RISK_AUDIT.md) · [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) · [`SHIP_BUILD_PLAN.md`](./SHIP_BUILD_PLAN.md)  
 **Auditor:** Fleet Chat 5 (read-mostly). **No deploy. No App Store approval claim.**

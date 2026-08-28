@@ -15,7 +15,7 @@ describe("Sample data | Live data UX", () => {
     expect(bar).toContain("shotMode");
     expect(bar).toMatch(/if \(shotMode\)/);
     expect(bar).toContain("mcfly-data-mode--shot");
-    expect(bar).toContain("practiceHint");
+    expect(bar).toContain("sampleHint");
     const shell = read("../routes/app.tsx");
     expect(shell).toContain("shotMode={shotMode}");
     expect(shell).not.toMatch(/\{!shotMode \? \(/);
@@ -26,26 +26,23 @@ describe("Sample data | Live data UX", () => {
 
   it("top toggle labels Sample data vs Live data", () => {
     const bar = read("../components/DataModeBar.tsx");
-    expect(bar).toContain("yourStore");
-    expect(bar).toContain("practiceDesk");
-    expect(bar).toContain("practiceHint");
-    expect(bar).toContain("yourStoreHint");
+    expect(bar).toContain("liveData");
+    expect(bar).toContain("sampleData");
+    expect(bar).toContain("sampleHint");
+    expect(bar).toContain("liveDataHint");
     expect(bar).not.toMatch(/Turn SAMPLE preview OFF/);
     expect(bar).not.toContain("Before App Store review");
     const labels = read("../lib/product-labels.ts");
-    expect(labels).toContain('practiceDesk: "Sample data"');
-    expect(labels).toContain('yourStore: "Live data"');
+    expect(labels).toContain('sampleData: "Sample data"');
+    expect(labels).toContain('liveData: "Live data"');
   });
 
-  it("plan block previews Sample data via data-mode POST, not /app/demo", () => {
-    const upsell = read("../components/ProUpsellBlock.tsx");
-    expect(upsell).toContain("UseSampleCta");
-    expect(upsell).toContain("See Sample data");
-    expect(upsell).toContain("<details");
-    expect(upsell).not.toContain('href="/app/demo"');
+  it("Sample data preview uses the data-mode POST, not /app/demo", () => {
     const cta = read("../components/UseSampleCta.tsx");
     expect(cta).toContain('name="intent" value="use-sample"');
-    expect(cta).toContain('action="/app/data-mode"');
+    expect(cta).toContain('action={`/app/data-mode${location.search}`}');
+    expect(cta).toContain("reloadDocument");
+    expect(cta).not.toContain('href="/app/demo"');
   });
 
   it("Spend switches Sample to Live when saving spend", () => {
@@ -61,6 +58,24 @@ describe("Sample data | Live data UX", () => {
     const dataMode = read("../routes/app.data-mode.tsx");
     expect(dataMode).toContain("sampleDeskNeedsSeed");
     expect(dataMode).toContain("seedThreeYearSampleDesk");
+    expect(dataMode).toContain("export default function DataModeRoute");
+  });
+
+  it("Sample | Live posts as a document request so Admin never decodes a raw 302 as turbo-stream", () => {
+    const bar = read("../components/DataModeBar.tsx");
+    const settings = read("../routes/app.settings.tsx");
+    expect(bar).toMatch(/reloadDocument/);
+    expect(bar).toContain('name="intent" value="use-real"');
+    expect(bar).toContain('name="intent" value="use-sample"');
+    expect(settings).toMatch(/action=\{dataModeAction\} reloadDocument/);
+    const serve = read("../../scripts/serve-with-site.mjs");
+    expect(serve).toContain('app.set("trust proxy", true)');
+    expect(serve).toContain("admin.shopify.com");
+    expect(serve).toContain("allowedActionOrigins");
+    const rrConfig = read("../../react-router.config.ts");
+    expect(rrConfig).toContain("allowedActionOrigins");
+    expect(rrConfig).toContain("admin.shopify.com");
+    expect(rrConfig).toContain("mcfly-analytics.fly.dev");
   });
 
   it("Overview empty states do not send merchants to /app/demo", () => {

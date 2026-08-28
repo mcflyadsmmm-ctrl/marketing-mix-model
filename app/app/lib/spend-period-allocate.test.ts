@@ -5,6 +5,7 @@ import {
   currentYearMonth,
   distributeEqualDailyAmounts,
   inclusiveDayCount,
+  planCustomLumpSpread,
   periodWindow,
   planLumpSpread,
 } from "./spend-period-allocate";
@@ -74,6 +75,37 @@ describe("inclusiveDayCount", () => {
     expect(inclusiveDayCount("2026-07-01", "2026-07-31")).toBe(31);
     expect(inclusiveDayCount("2026-07-01", "2026-07-01")).toBe(1);
     expect(inclusiveDayCount("2026-07-31", "2026-07-01")).toBeNull();
+  });
+});
+
+describe("planCustomLumpSpread", () => {
+  it("spreads a custom inclusive range and preserves every cent", () => {
+    const result = planCustomLumpSpread({
+      totalAmount: 100,
+      startDateYmd: "2026-08-01",
+      endDateYmd: "2026-08-03",
+      channel: "other",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.plan.periodType).toBe("custom");
+    expect(result.plan.dayCount).toBe(3);
+    expect(result.plan.days.map((day) => day.amount)).toEqual([33.33, 33.33, 33.34]);
+    expect(result.plan.totalAllocated).toBe(100);
+  });
+
+  it("rejects a reversed custom range", () => {
+    expect(
+      planCustomLumpSpread({
+        totalAmount: 100,
+        startDateYmd: "2026-08-03",
+        endDateYmd: "2026-08-01",
+        channel: "meta",
+      }),
+    ).toEqual({
+      ok: false,
+      error: "Pick a valid custom range. The end date must be on or after the start date.",
+    });
   });
 });
 

@@ -55,9 +55,6 @@ import type {
   MerVsRails,
 } from "../lib/sales-goals.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
-import { PRO_UPSELL } from "../lib/entitlements";
-import { GoalsYearTeaser } from "../components/ProValuePreview";
-import { UseSampleCta } from "../components/UseSampleCta";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 
@@ -321,16 +318,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (intent === "set_goals_enabled") {
-    if (!entitlements.canUseAdvancedGoals) {
-      return {
-        success: false as const,
-        intent,
-        error: PRO_UPSELL.goals,
-        year,
-        goalsEnabled: null as boolean | null,
-        targetMer: null as number | null,
-      };
-    }
     const raw = String(form.get("goalsEnabled") ?? "");
     if (raw !== "true" && raw !== "false") {
       return {
@@ -358,17 +345,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (intent === "apply_yoy_10" || intent === "apply_yoy_grow") {
-    if (!entitlements.canUseAdvancedGoals) {
-      return {
-        success: false as const,
-        intent,
-        error: PRO_UPSELL.goals,
-        year,
-        goalsEnabled: null as boolean | null,
-        targetMer: null as number | null,
-        yoyPct: null as number | null,
-      };
-    }
     const growthPct =
       intent === "apply_yoy_10" ? 10 : parseYoyGrowthPct(form.get("yoyPct"));
     const priorYear = year - 1;
@@ -425,18 +401,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     };
   }
 
-  // save_goals (default) — 12-month plan is Pro (or SAMPLE preview)
-  if (!entitlements.canUseAdvancedGoals) {
-    return {
-      success: false as const,
-      intent: "save_goals" as const,
-      error: PRO_UPSELL.goals,
-      year,
-      goalsEnabled: null as boolean | null,
-      targetMer: null as number | null,
-    };
-  }
-
+  // save_goals (default) — the full-year plan is part of the one desk.
   const monthly: number[] = [];
   for (let m = 1; m <= 12; m++) {
     const n = parseGoalInput(form.get(`goal_${m}`));
@@ -516,7 +481,6 @@ export default function GoalsPage() {
   );
   const monthsWithPrior = priorYearMonthly.filter((v) => v > 0).length;
   const noGoalsYet = board.rows.every((r) => !(r.salesGoal > 0));
-  const canUseYearBoard = entitlements.canUseAdvancedGoals;
 
   useEffect(() => {
     if (!actionData) return;
@@ -569,7 +533,7 @@ export default function GoalsPage() {
   const ytdTone = deltaTone(board.ytd.delta, board.ytd.goal);
   const forecast = board.forecast;
   const tillLabel = useSampleDesk
-    ? `${periodMetrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${periodMetrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : salesError ||
         periodMetrics.blockedMockAsLive ||
         periodMetrics.salesSource === "mock"
@@ -640,23 +604,20 @@ export default function GoalsPage() {
                   {PRODUCT_NOUN.samplePreview}
                 </span>
               ) : null}
-              {canUseYearBoard ? (
-                !goalsEnabled ? (
-                  <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-                    Goals hidden · YoY only
-                  </span>
-                ) : (
-                  <span className={`mcfly-ctx-chip mcfly-ctx-chip--${ytdTone}`}>
-                    YTD{" "}
-                    {board.ytd.pct == null
-                      ? "—"
-                      : `${board.ytd.pct.toFixed(0)}%`}{" "}
-                    of goal
-                  </span>
-                )
-              ) : null}
-              {canUseYearBoard ? (
-                <div className="mcfly-goals-year" aria-label="Plan year">
+              {!goalsEnabled ? (
+                <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+                  Goals hidden · YoY only
+                </span>
+              ) : (
+                <span className={`mcfly-ctx-chip mcfly-ctx-chip--${ytdTone}`}>
+                  YTD{" "}
+                  {board.ytd.pct == null
+                    ? "—"
+                    : `${board.ytd.pct.toFixed(0)}%`}{" "}
+                  of goal
+                </span>
+              )}
+              <div className="mcfly-goals-year" aria-label="Plan year">
                   <label
                     className="mcfly-goals-year__label"
                     htmlFor={`${formId}-year`}
@@ -675,8 +636,7 @@ export default function GoalsPage() {
                       </option>
                     ))}
                   </select>
-                </div>
-              ) : null}
+              </div>
             </div>
           </div>
           {!shotMode ? (
@@ -779,17 +739,15 @@ export default function GoalsPage() {
             </div>
           </section>
 
-          {canUseYearBoard ? (
-            <SalesGoalGauges
-              periods={periods}
-              heading="MTD · QTD · YTD"
-              muted={`Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} · calendar tick = period elapsed`}
-              targetMer={board.targetMer}
-              breakEvenMer={board.breakEvenMer}
-            />
-          ) : null}
+          <SalesGoalGauges
+            periods={periods}
+            heading="MTD · QTD · YTD"
+            muted={`Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} · calendar tick = period elapsed`}
+            targetMer={board.targetMer}
+            breakEvenMer={board.breakEvenMer}
+          />
 
-          {canUseYearBoard && !shotMode ? (
+          {!shotMode ? (
             <section
               className="mcfly-panel mcfly-goals-declare mcfly-goals-declare--compact"
               aria-label="Declare sales goals"
@@ -848,25 +806,9 @@ export default function GoalsPage() {
             </section>
           ) : null}
 
-          {!canUseYearBoard && !shotMode ? (
-            <section
-              className="mcfly-panel mcfly-goals-year-teaser"
-              aria-label="Year board — Pro"
-            >
-              <div className="mcfly-panel__head mcfly-panel__head--tight">
-                <h2>Year board</h2>
-                <p className="mcfly-panel__muted">
-                  Monthly sales goals, spend, and {PRODUCT_NOUN.totalRoas} rails
-                  for the whole year
-                </p>
-              </div>
-              <GoalsYearTeaser targetMer={targetMer} />
-              <UseSampleCta />
-            </section>
-          ) : null}
         </div>
 
-        {canUseYearBoard && !shotMode ? (
+        {!shotMode ? (
           <details open className="mcfly-details mcfly-goals-plan-details">
             <summary>Monthly board · fine-tune</summary>
 

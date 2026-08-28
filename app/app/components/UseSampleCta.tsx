@@ -20,7 +20,12 @@ export function UseSampleCta({
   const dest = returnTo ?? `${location.pathname}${location.search}`;
 
   return (
-    <Form method="post" action="/app/data-mode" className="mcfly-use-sample-cta">
+    <Form
+      method="post"
+      action={`/app/data-mode${location.search}`}
+      reloadDocument
+      className="mcfly-use-sample-cta"
+    >
       <input type="hidden" name="intent" value="use-sample" />
       <input type="hidden" name="returnTo" value={dest} />
       <s-button type="submit" variant={variant}>

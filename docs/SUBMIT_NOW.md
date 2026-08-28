@@ -1,10 +1,14 @@
 # Submit now — baby-proof human checklist
 
+> **STALE (2026-08-27).** Do **not** follow the “Pricing must be Free” line below.  
+> **SoT:** [`RESUBMIT_PLAN.md`](./RESUBMIT_PLAN.md) — one plan, **$39/store/mo after a 7-day trial**, no Free plan.  
+> Keep using this file only for Partner click order **after** you have read the plan.
+
 **One-pager at the keyboard:** [`docs/ops/SUBMIT_HANDOFF.md`](./ops/SUBMIT_HANDOFF.md)
 
 Do these steps **in order**. After each step, reply in Cursor with the bold phrase so the agent can verify.
 
-**App:** Mcfly Analytics · **Pricing must be Free** · cash MER = sales ÷ spend  
+**App:** Mcfly Analytics · **Pricing = Shopify App Pricing, one plan $39 + 7-day trial (delete Free)** · Total ROAS = sales ÷ spend  
 **Host:** https://mcfly-analytics.fly.dev (must show healthy)  
 **Icon file:** `docs/listing-assets/mcfly-app-icon-1200.png` (M-only, 1200×1200)  
 **Paste copy from:** [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md)  
@@ -68,9 +72,9 @@ Reply: **`emergency contact done`**
 Reviewers open Website / Privacy / Support / Terms from the listing. **Use the Fly URLs** until mcflyads.com Pages is republished (live Support still says “when Billing”).
 
 1. https://mcfly-analytics.fly.dev/support — Install free / email a human. No shop-domain form.
-2. https://mcfly-analytics.fly.dev/pricing — Free + Pro $39/store/mo via Shopify App Pricing
+2. https://mcfly-analytics.fly.dev/pricing — one plan, $39/store/mo after a 7-day trial, via Shopify App Pricing
 3. https://mcfly-analytics.fly.dev/privacy — order totals + opaque id / `numberOfOrders`
-4. https://mcfly-analytics.fly.dev/terms — App Store Free + Pro
+4. https://mcfly-analytics.fly.dev/terms — App Store one plan
 5. https://mcfly-analytics.fly.dev — Website / landing (same host as App URL)
 
 Reply: **`pages live`**
@@ -104,8 +108,8 @@ Open App Store listing fields. Paste from `APP_STORE_LISTING.md`:
 - Reviewer notes (full block)  
 
 #### 5b. Pricing
-Set pricing to **Free**.  
-Do **not** enable paid plans or Shopify Billing charges yet.
+Shopify App Pricing: **one plan, $39/store/mo, 7-day free trial. Delete the Free plan.**  
+Do **not** upload pricing screenshots. Merchant listing copy must not include dollar amounts (4.2.2).
 
 #### 5b-HUMAN. Works with
 **Leave Works with blank.** Mcfly has no Checkout UI extension — do not select Checkout. Never add Meta / Google / SyncWith. (Checkout only later if a real Checkout surface ships.)
@@ -118,8 +122,8 @@ Do **not** enable paid plans or Shopify Billing charges yet.
 | 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
 | 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
 | 3 | `03-margin-breakeven.png` | Lock break-even from your margin % |
-| 4 | `04-free-pro-pricing.png` | Free Meta + Google · Pro unlocks channels + LTV |
-| 5 | **Still capture** `/app/spend?shot=1` (or Allocation) | Select platforms → export daily → combine |
+| 4 | Recapture LTV (`/app/ltv?period=mtd&shot=1`) — **not** `04-free-pro-pricing.png` | LTV Shopify Analytics does not show |
+| 5 | Recapture Goals (`/app/goals?period=mtd&shot=1`) | Full-year Goals board |
 
 **Do not upload** `05-HOLD-marketing-site-do-not-upload.png` (marketing site ≠ App Store app UI).
 
@@ -138,7 +142,7 @@ Reply: **`assets uploaded`**
 
 ### 6. Submit
 
-1. Re-check: Pricing = **Free**, App URL = `https://mcfly-analytics.fly.dev` (not mcflyads.com)  
+1. Re-check: Pricing = **one plan $39 + 7-day trial (no Free)**, App URL = `https://mcfly-analytics.fly.dev` (not mcflyads.com)  
 2. Re-check: sample desk **OFF** on the test store (never leave SAMPLE + `?shot=1` as the reviewer path — **1.1.4**)  
 3. Re-check: testing instructions + store credentials filled for reviewers  
 4. Click **Submit** for review  
@@ -155,6 +159,6 @@ Reply: **`submitted`**
 | CSV won’t import | Retry template; include Day + at least one channel column |
 | MER looks fake | Sample desk is probably still ON — turn **OFF** |
 | Live support says invite-only | You skipped step 3 — publish Pages first |
-| Partner asks for paid plan | Stay **Free** until Billing ships |
+| Partner still shows Free + Pro | Delete Free; keep one $39 plan — see [`RESUBMIT_PLAN.md`](./RESUBMIT_PLAN.md) |
 
 Approval can take **days–weeks**. Do not expand scope while waiting.

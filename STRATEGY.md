@@ -24,7 +24,7 @@ Be the easy place to put **exact spend from any platform** (upload, paste, typed
 - **Listed** - App Store URL is a live listing, not 404 (Partner + apps.shopify.com)
 - **Trusted first number** - Install → spend in (any method) → Shopify sales beside it, same dates, under 10 minutes
 - **Week-1 retained** - Still installed with live spend on Your store (not Practice-only)
-- **Pro conversion** - Free → Pro $39 because LTV + full Goals (not because we hid billboards)
+- **Trial conversion** - 7-day full-access trial → $39 because the desk earns the seat, never because a feature was withheld. One plan, no tiers.
 - **Reviews** - First 15 honest App Store reviews from people who used live spend
 
 ## Tracks
@@ -37,7 +37,7 @@ _Why it serves the approach:_ Nothing else exists until merchants can install fr
 
 ### Spend in, any platform, almost no homework
 
-Make upload/paste/typed extras (billboards included) the proud path. Named platforms on Free. Optional connects later — never required for the core job.
+Make upload/paste/typed extras (billboards included) the proud path. Every named platform and typed extra is included in the one plan. Optional connects later — never required for the core job.
 
 _Why it serves the approach:_ This is the gap vs Shopify native and vs “pixel or go home.”
 
@@ -77,4 +77,4 @@ _Why it serves the approach:_ Zero reviews in a 200-app aisle is a product that 
 
 **One-liner:** Upload spend from every platform — even billboards — next to Shopify sales, LTV, and goals.
 
-**Key message:** Shopify does not ingest Meta/Google/offline cost. Mcfly does, without making you join an attribution religion. Free to put spend in. Pro for LTV + the full Goals board.
+**Key message:** Shopify does not ingest Meta/Google/offline cost. Mcfly does, without making you join an attribution religion. One plan: 7-day full-access trial, then $39/store/mo for the whole desk — spend, Total ROAS, LTV, and the full Goals board.

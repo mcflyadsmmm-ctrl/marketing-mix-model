@@ -27,7 +27,9 @@ Paste from `docs/APP_STORE_LISTING.md` → **Long description (paste)** block (s
 Paste from `docs/APP_STORE_LISTING.md` → `APP_STORE_PASTE:features` (never the old Meta-only Free bullets).
 
 ### Feature media / Screenshots
-Upload from `docs/listing-assets/shots/` **in order**:
+**Feature Image 1 (header):** re-upload `docs/listing-assets/feature-media-1600x900.png`. Formula only — do **not** keep the old file with `4.42x` / `Above break-even 2.86x` (listing AI / 4.3.3).
+
+Upload screenshots from `docs/listing-assets/shots/` **in order**:
 
 | # | File | Caption |
 | --- | --- | --- |
@@ -60,7 +62,7 @@ Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
 
 | Field | Value |
 | --- | --- |
-| **Pricing plans** | **Shopify App Pricing: Free + Pro $39/store/mo** |
+| **Pricing plans** | **Shopify App Pricing: one plan, $39/store/mo after a 7-day free trial** |
 | Paid plans / Billing | **On** — Managed Pricing. Must match in-app Upgrade. |
 | External charges | **No** |
 | Works with / Sales channel requirements | **None / blank** — not a sales channel. Do **not** require Online Store (4.3.1). |
@@ -115,7 +117,7 @@ Paste **only** [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTION
 Paste the `APP_STORE_PASTE:testing` block from [`PARTNER_TESTING_INSTRUCTIONS.md`](./PARTNER_TESTING_INSTRUCTIONS.md) (starts with `TEST ACCOUNT (App Store 4.5.4 / 4.5.5)`).
 
 ### Screencast URL
-Record a short Loom: install → Spend → **Upgrade to Pro** (top-frame plans, no iframe refuse) → CSV import → Overview Total ROAS. English or English subtitles (4.5.3).
+Record a short Loom: install → Settings → **Start 7-day trial** (top-frame plans, no iframe refuse) → Spend CSV import → Overview Total ROAS. English or English subtitles (4.5.3).
 
 ---
 

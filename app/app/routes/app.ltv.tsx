@@ -17,7 +17,6 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import { authenticate } from "../shopify.server";
-import { getShopEntitlements } from "../lib/entitlements.server";
 
 /** CohortFact stores window totals — desk LTV is per new customer. */
 function perCustomerRevenue(
@@ -45,11 +44,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
   const range = resolvePeriod(preset, new Date(), deskTz);
-  const entitlements = getShopEntitlements(session.shop, {
-    sampleDesk: useSampleDesk,
-    paidPro: shop.proBillingActive,
-  });
-
   let salesError: string | null = null;
   let todaySalesTruncated = false;
   let todaySalesUnavailable = false;
@@ -57,14 +51,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
-    // Cohort OrderFact backfill — Pro / SAMPLE only (not Free live).
-    if (entitlements.canUseLtv) {
-      void runOrderFactsBackfill(admin, shop.id, {
-        maxDays: ORDER_FACT_MAX_DAYS_PER_RUN,
-      }).catch(() => {
-        // ignore — page shows honest empty/backfill states until cohort facts land
-      });
-    }
+    // Cohort OrderFact backfill — one desk, chunked so paint stays fast.
+    void runOrderFactsBackfill(admin, shop.id, {
+      maxDays: ORDER_FACT_MAX_DAYS_PER_RUN,
+    }).catch(() => {
+      // ignore — page shows honest empty/backfill states until cohort facts land
+    });
     /*
      * HARD-STOP: same as Home / Close / Allocation — never unbounded
      * fetchShopifySales for a multi-day period. Facts + capped today only.
@@ -84,12 +76,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesBasis: parseSalesBasis(settings.salesBasis, "total"),
   });
-  const orderBackfillProgress =
-    !useSampleDesk && entitlements.canUseLtv
-      ? await getOrderBackfillProgress(shop.id, {
-          ianaTimezone: shop.ianaTimezone,
-        })
-      : null;
+  const orderBackfillProgress = useSampleDesk
+    ? null
+    : await getOrderBackfillProgress(shop.id, {
+        ianaTimezone: shop.ianaTimezone,
+      });
   return {
     metrics,
     preset,
@@ -98,8 +89,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
-    entitlements,
-    canUseLtv: entitlements.canUseLtv,
     marginConfirmed: marginIsConfirmed(settings),
     orderBackfillProgress,
   };
@@ -114,8 +103,6 @@ export default function LtvPage() {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
-    entitlements,
-    canUseLtv,
     marginConfirmed,
     orderBackfillProgress,
   } = useLoaderData<typeof loader>();
@@ -123,7 +110,7 @@ export default function LtvPage() {
   const isLoading = navigation.state === "loading";
 
   const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.practicePeriodSuffix}`
+    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
     : shotMode
       ? metrics.period.label
       : salesError ||
@@ -275,7 +262,7 @@ export default function LtvPage() {
           </div>
         </div>
 
-        {/* ── A · Acquisition (this period) — Free + Pro ── */}
+        {/* ── A · Acquisition (this period) ── */}
         <section
           className="mcfly-panel mcfly-acq-band"
           aria-label="Acquisition this period"

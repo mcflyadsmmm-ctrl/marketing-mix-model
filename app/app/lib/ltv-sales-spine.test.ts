@@ -43,7 +43,7 @@ describe("LTV sales spine (HARD-STOP)", () => {
     expect(ltvSource).toMatch(/useSampleDesk[\s\S]*fetchSampleSales/);
   });
 
-  it("applies Practice/Settings 0–1 margin via formatPercent, not toFixed(0)%", () => {
+  it("applies sample / Settings 0–1 margin via formatPercent, not toFixed(0)%", () => {
     expect(ltvSource).toContain("formatPercent(metrics.marginPct)");
     expect(ltvSource).not.toContain("marginPct.toFixed(0)");
     expect(ltvSource).toContain("perCustomerRevenue");

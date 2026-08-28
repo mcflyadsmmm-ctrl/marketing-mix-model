@@ -64,6 +64,10 @@ const launchLies: Array<{ name: string; pattern: RegExp }> = [
   { name: "LTV + all named channels", pattern: /LTV \+ all named channels/ },
   { name: "Meta+Google+Other", pattern: /Meta\+Google\+Other/ },
   { name: "Pro named channels", pattern: /Pro named channels/i },
+  { name: "Free Mcfly path", pattern: /Free Mcfly path/i },
+  { name: "Pro is Customer LTV", pattern: /Pro is Customer LTV/i },
+  { name: "Flat Pro fee", pattern: /Flat Pro fee/i },
+  { name: "Flat $39 Pro", pattern: /Flat \$39\/store\/mo Pro/i },
   {
     name: "Meta + Google + Other day one",
     pattern: /Meta \+ Google \+ Other day one/i,
