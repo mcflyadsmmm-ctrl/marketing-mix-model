@@ -545,15 +545,20 @@ if ! grep -q 'data-lab-desk="recon"' "$lab" || ! grep -q 'data-lab-desk="exec"' 
 else
   ok "lab.html three desks recon / exec / portal"
 fi
-if ! grep -q 'Northline Supply' "$lab" || ! grep -q 'A. Chen' "$lab" || ! grep -q 'Operator seat 2 of 4' "$lab" || ! grep -q 'last in 27 Jul 09:14' "$lab"; then
+if ! grep -q 'Northline Supply' "$lab" || ! grep -q 'A. Chen' "$lab" || ! grep -q 'Signed in as A. Chen' "$lab" || ! grep -q 'last in 27 Jul 09:14' "$lab"; then
   die "lab.html missing signed-in session bar"
 else
   ok "lab.html SAMPLE signed-in session bar"
 fi
-if ! grep -q '4 seats on this SAMPLE desk — you keep the seats.' "$lab"; then
-  die "lab.html missing seat-scale line"
+if ! grep -q '500 seats' "$lab" || ! grep -q 'seat 2 of 500' "$lab"; then
+  die "lab.html missing 500-seat workspace scale"
 else
-  ok "lab.html seat-scale line"
+  ok "lab.html 500-seat workspace scale"
+fi
+if grep -q 'seat 2 of 4' "$lab" || grep -q '4 seats on this SAMPLE desk' "$lab"; then
+  die "lab.html still uses the 4-seat toy scale"
+else
+  ok "lab.html dropped 4-seat toy scale"
 fi
 if ! grep -q 'data-lab-role="finance"' "$lab" || ! grep -q 'data-lab-role="media"' "$lab" || ! grep -q 'data-lab-role="operator"' "$lab"; then
   die "lab.html missing Finance / Media / Operator role switch"
@@ -602,6 +607,11 @@ if grep -Eq 'type="password"|name="password"' "$lab"; then
   die "lab.html added a real auth wall"
 else
   ok "lab.html no password wall"
+fi
+if ! grep -q 'Signed in as A. Chen' "$lab" || ! grep -q 'data-lab-who' "$lab"; then
+  die "lab.html missing signed-in as name + role"
+else
+  ok "lab.html shows who you are signed in as"
 fi
 
 # Hidden version stamp — HTML curl/view-source + chrome.js runtime. No visible footer version.

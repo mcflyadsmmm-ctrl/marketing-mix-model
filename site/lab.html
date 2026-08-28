@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260828sb" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828sb" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828lab4" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -70,7 +70,7 @@
         <a class="lab-door" href="#desk-portal" data-lab-door="portal">
           <span class="lab-chip">SAMPLE</span>
           <strong>Signed-in portal</strong>
-          <span>A. Chen, operator. Finance / Media / Operator on the same book.</span>
+          <span>Signed in as A. Chen · Operator. 500-seat workspace. Same Northline book.</span>
         </a>
       </div>
       <div class="lab-cta">
@@ -82,24 +82,28 @@
     <div class="lab-instrument" id="ca-labs" aria-label="SAMPLE desks — Northline week">
       <div class="lab-app" data-lab-app>
         <header class="lab-session">
-          <p class="lab-session__who">
-            <span>Northline Supply</span>
-            <span class="lab-chip">SAMPLE</span>
-            <span>A. Chen</span>
-            <span data-lab-seat>Operator seat 2 of 4</span>
-            <span>last in 27 Jul 09:14</span>
-          </p>
-          <div class="lab-roles" role="group" aria-label="Role on this SAMPLE desk">
+          <div class="lab-session__who">
+            <span class="lab-avatar" aria-hidden="true">AC</span>
+            <p class="lab-session__id">
+              <span class="lab-chip">SAMPLE</span>
+              <strong data-lab-who>Signed in as A. Chen · Operator</strong>
+              <span>Northline Supply · workspace</span>
+              <span data-lab-seat>seat 2 of 500</span>
+              <span>last in 27 Jul 09:14</span>
+            </p>
+          </div>
+          <div class="lab-roles" role="group" aria-label="Role on this SAMPLE workspace">
             <button type="button" data-lab-role="finance">Finance</button>
             <button type="button" data-lab-role="media">Media</button>
-            <button type="button" data-lab-role="operator" aria-pressed="true">Operator</button>
+            <button type="button" data-lab-role="operator" aria-pressed="true" aria-label="Operator / sales-rep">Operator</button>
           </div>
         </header>
-        <p class="lab-seats">4 seats on this SAMPLE desk — you keep the seats.</p>
+        <p class="lab-seats">500 seats licensed on this SAMPLE workspace — you keep the seats. Named seat: A. Chen. No password. Switch role in the bar.</p>
 
         <div class="lab-app-body">
           <nav class="lab-siderail" aria-label="Northline desk">
             <p class="lab-siderail__brand">Northline Supply</p>
+            <p class="lab-siderail__meta">500 seats · SAMPLE</p>
             <a href="#desk-exec" data-lab-rail="desk">Desk</a>
             <a href="#desk-recon" data-lab-rail="recon" aria-current="page">Recon</a>
             <a href="#desk-exec-contracts" data-lab-rail="contracts">Contracts</a>
@@ -480,14 +484,22 @@ Action: Meta UI is ahead of invoice. Hold scale until finance signs the −4.0% 
 
             <section class="lab-desk" id="desk-portal" data-lab-desk="portal" hidden aria-labelledby="portal-h">
               <p class="lab-id">
-                <span><span class="lab-chip">SAMPLE</span> Signed-in portal · A. Chen · operator · seat 2 of 4</span>
+                <span><span class="lab-chip">SAMPLE</span> Signed-in portal · A. Chen · Operator / sales-rep · seat 2 of 500</span>
                 <span>same book · not a login product · last in 27 Jul 09:14</span>
               </p>
 
               <div class="lab-section">
-                <p class="lab-kicker">Desk 3 <span>already signed in · 4 seats · you keep the seats</span></p>
+                <p class="lab-kicker">Desk 3 <span>already signed in · 500-seat workspace · you keep the seats</span></p>
                 <h2 id="portal-h">Role-filtered book. Same Northline week.</h2>
-                <p class="lab-lede">Switch Finance / Media / Operator in the bar. The rail stays Northline Supply. No password. No second company.</p>
+                <p class="lab-lede">You are signed in as A. Chen. Switch Finance / Media / Operator (sales-rep) in the bar. The rail stays Northline Supply. No password. No second company. Ungated in 90 seconds.</p>
+                <aside class="lab-identity" aria-label="Signed-in identity">
+                  <span class="lab-avatar" aria-hidden="true">AC</span>
+                  <p>
+                    <strong data-lab-who>Signed in as A. Chen · Operator</strong>
+                    <span>Northline Supply · 500-seat workspace · America/Denver</span>
+                    <span>Named seat 2 of 500 · last in 27 Jul 09:14 · you keep the seats</span>
+                  </p>
+                </aside>
 
                 <div data-lab-role-panel="finance" hidden>
                   <p class="lab-formula">Finance seat · signed spend + contract · billed $98,500 is visible</p>
@@ -583,6 +595,6 @@ Action: Meta UI is ahead of invoice. Hold scale until finance signs the −4.0% 
   <script src="/assets/cta-config.js?v=20260825live"></script>
   <script src="/assets/chrome.js?v=20260828sb"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
-  <script src="/assets/lab-desk.js?v=20260828lab3"></script>
+  <script src="/assets/lab-desk.js?v=20260828lab4"></script>
 </body>
 </html>
