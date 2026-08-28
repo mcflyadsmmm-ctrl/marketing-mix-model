@@ -1,0 +1,94 @@
+/* Shared SAMPLE desk — /lab and /custom-analytics. Northline week only. */
+.ca-pair {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1.15rem;
+}
+@media (min-width: 640px) {
+  .ca-pair { grid-template-columns: 1fr 1fr; }
+}
+.ca-pair article {
+  padding: 1rem 1.05rem 1.15rem;
+  border: 1px solid rgba(94, 231, 240, 0.35);
+  background: rgba(94, 231, 240, 0.08);
+}
+.ca-pair .ca-desk__v {
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  line-height: 1;
+  color: var(--cyan);
+}
+.ca-pair__cap {
+  margin: 0.65rem 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(238, 242, 245, 0.78);
+  max-width: 52ch;
+}
+.ca-teach {
+  margin: 0 0 1.15rem;
+  overflow-x: auto;
+}
+.ca-teach table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.ca-teach caption {
+  caption-side: bottom;
+  text-align: left;
+  padding-top: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: rgba(238, 242, 245, 0.55);
+}
+.ca-teach th,
+.ca-teach td {
+  padding: 0.4rem 0.35rem;
+  text-align: right;
+  border-bottom: 1px solid rgba(238, 242, 245, 0.1);
+  color: #eef2f5;
+}
+.ca-teach th:first-child,
+.ca-teach td:first-child { text-align: left; }
+.ca-except {
+  margin: 1rem 0 0;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(238, 242, 245, 0.14);
+  background: rgba(0, 0, 0, 0.22);
+}
+.ca-except legend {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+.ca-except label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: #eef2f5;
+}
+.ca-except__residual {
+  margin: 0.65rem 0 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: rgba(238, 242, 245, 0.7);
+}
+.ca-page--paper .ca-pair article {
+  border-color: var(--line);
+  background: #fff;
+}
+.ca-page--paper .ca-pair .ca-desk__v { color: var(--cyan-deep); }
+.ca-page--paper .ca-pair__cap,
+.ca-page--paper .ca-teach caption,
+.ca-page--paper .ca-except__residual { color: var(--mute); }
+.ca-page--paper .ca-teach th,
+.ca-page--paper .ca-teach td {
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+.ca-page--paper .ca-except {
+  background: #fff;
+  border-color: var(--line);
+}
+.ca-page--paper .ca-except legend { color: var(--cyan-deep); }
+.ca-page--paper .ca-except label { color: var(--ink); }

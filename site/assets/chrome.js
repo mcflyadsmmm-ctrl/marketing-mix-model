@@ -31,7 +31,7 @@
     </a>
     <nav class="nav nav--analytics" aria-label="Analytics">
       <a href="/custom-analytics#overview" data-ca-nav="overview">Overview</a>
-      <a href="/custom-analytics#recon" data-ca-nav="labs">Labs</a>
+      <a href="/lab" data-ca-nav="labs">Labs</a>
       <a href="/custom-analytics#packages" data-ca-nav="packages">Packages</a>
       <a href="/custom-analytics#privacy" data-ca-nav="privacy">Privacy</a>
       <a href="/custom-analytics#inquire" data-ca-nav="inquire">Inquire</a>
@@ -43,7 +43,7 @@
   </header>
   <div id="mobile-nav" class="mobile-nav" hidden>
     <a href="/custom-analytics#overview">Overview</a>
-    <a href="/custom-analytics#recon">Labs</a>
+    <a href="/lab">Labs</a>
     <a href="/custom-analytics#packages">Packages</a>
     <a href="/custom-analytics#privacy">Privacy</a>
     <a href="/custom-analytics#inquire">Inquire</a>
@@ -97,7 +97,7 @@
       </div>
       <nav aria-label="Footer">
         <a href="/custom-analytics#overview">Overview</a>
-        <a href="/custom-analytics#recon">Labs</a>
+        <a href="/lab">Labs</a>
         <a href="/custom-analytics#packages">Packages</a>
         <a href="/custom-analytics#privacy">Privacy</a>
         <a href="/custom-analytics#inquire">Inquire</a>
@@ -149,6 +149,7 @@
 
   // Highlight analytics subtab from hash
   if (isAnalytics) {
+    const onLab = path === "/lab" || path === "/lab.html";
     const hash = (location.hash || "#overview").replace(/^#/, "");
     const map = {
       overview: "overview",
@@ -161,7 +162,7 @@
       fit: "packages",
       inquire: "inquire",
     };
-    const key = map[hash] || "overview";
+    const key = onLab ? "labs" : map[hash] || "overview";
     document.querySelectorAll("[data-ca-nav]").forEach((link) => {
       const on = link.getAttribute("data-ca-nav") === key;
       link.classList.toggle("active", on);

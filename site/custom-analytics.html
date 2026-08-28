@@ -28,6 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828lab" />
   <style>
     /* Page-scoped only — does not alter Shopify product pages */
     body.ca-page {
@@ -1393,8 +1394,21 @@
           </div>
         </div>
 
-        <div class="ca-desk" id="ca-labs" aria-label="SAMPLE desk — not a live client">
-          <p class="ca-desk__claim">SAMPLE · not a live client</p>
+        <div class="ca-desk" id="ca-labs" data-lab-desk aria-label="SAMPLE desk — Northline week">
+          <p class="ca-desk__claim">SAMPLE · Northline Supply · not a live client</p>
+          <div class="ca-pair" aria-label="3-second pair — same spend">
+            <article>
+              <p class="ca-desk__k">Cash Total ROAS</p>
+              <p class="ca-desk__v">4.19×</p>
+              <p class="ca-desk__formula">$412,400 ÷ $98,500</p>
+            </article>
+            <article>
+              <p class="ca-desk__k">Platform ROAS</p>
+              <p class="ca-desk__v">~4.8×</p>
+              <p class="ca-desk__formula">$472,800 ÷ $98,500 · same spend</p>
+            </article>
+          </div>
+          <p class="ca-pair__cap">Same spend. Gap is returns + last-touch, not incrementality. SAMPLE · Northline · demo-not-production.</p>
           <div class="ca-desk__seg" role="group" aria-label="SAMPLE desk mode">
             <button type="button" class="ca-desk__btn is-on" data-ca-mode="audit" aria-current="true">Invoice vs UI</button>
             <button type="button" class="ca-desk__btn" data-ca-mode="ecommerce">Ecommerce</button>
@@ -1402,6 +1416,24 @@
           </div>
 
           <div data-ca-panel="audit" id="recon">
+            <div class="ca-teach">
+              <table>
+                <caption>Do not use path credit for total revenue. Four channels × $120 attributed vs $120 cash. SAMPLE. No vendor logo.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Channel</th>
+                    <th scope="col">Attributed</th>
+                    <th scope="col">Cash</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Meta</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">Google</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">LinkedIn</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">Other paid</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                </tbody>
+              </table>
+            </div>
             <div class="ca-audit-split">
             <div>
             <div class="ca-ledger-wrap">
@@ -1471,11 +1503,18 @@
             <p class="ca-desk__formula">Billed total = sum of included invoices. UI total = sum of included Ads Manager. Variance = billed − UI.</p>
             <aside class="ca-memo" data-ca-memo aria-label="SAMPLE close memo">
               <p class="ca-memo__label">Close memo · SAMPLE · not a live client</p>
-              <p class="ca-memo__body" data-ca-memo-body>Period: prior calendar month · channels: Meta, Google, LinkedIn, Other paid
+              <p class="ca-memo__body" data-ca-memo-body>Period: Northline SAMPLE week · channels: Meta, Google, LinkedIn, Other paid
 Invoice billed $98,500 · Ads Manager UI $99,950 · billed − UI −$1,450 (−1.5%)
-Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate before finance signs.</p>
-              <p class="ca-memo__note">Illustrative SAMPLE — not a live client close. Included platforms rewrite billed, UI, variance, and the action line.</p>
+Action: LinkedIn UI ahead of invoice — returns + last-touch. Investigate before finance signs.</p>
+              <p class="ca-memo__note">Unchecking a channel rewrites this sentence. Not a static dump. Not a live client.</p>
             </aside>
+            <fieldset class="ca-except">
+              <legend>Exception rows · include / exclude</legend>
+              <label><input type="checkbox" data-lab-except="1400" checked /> Aug 11 missing invoice $1,400</label>
+              <label><input type="checkbox" data-lab-except="480" checked /> VAT $480</label>
+              <label><input type="checkbox" data-lab-except="1200" checked /> Marketplace $1,200</label>
+              <p class="ca-except__residual" data-lab-residual>Residual $3,080 — reconciling line, not a new Total ROAS. Cash stays 4.19× on $412,400 ÷ $98,500.</p>
+            </fieldset>
             </div>
             <article class="ca-artifact" aria-label="Redacted SAMPLE close memo">
               <p class="ca-artifact__label">SAMPLE · not a live client</p>
@@ -1484,7 +1523,7 @@ Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate befo
               <p><strong>1. Invoice vs Ads Manager UI</strong><br />
               Invoice billed <span class="mono">$98,500</span>. Ads Manager UI <span class="mono">$99,950</span>. Billed − UI <span class="mono">−$1,450 (−1.5%)</span>. LinkedIn UI ran ahead of the invoice. Keep billed as spend truth. Do not post the UI total.</p>
               <p><strong>2. Sales period check</strong><br />
-              Cash after returns <span class="mono">$412,400</span> ÷ billed <span class="mono">$98,500</span> = <span class="mono">4.19×</span>. Platform-attributed revenue on the same billed dollars is a second book — returns, fees, and timing, not incrementality.</p>
+              Cash after returns <span class="mono">$412,400</span> ÷ billed <span class="mono">$98,500</span> = <span class="mono">4.19×</span>. Platform-attributed revenue on the same billed dollars is a second total — returns + last-touch, not incrementality.</p>
               <p>Action on this SAMPLE: reconcile LinkedIn to the invoice window before the next close. You keep the file.</p>
               <p>Redacted. Not a live client. Numbers match the SAMPLE desk on this page.</p>
             </article>
@@ -1500,11 +1539,29 @@ Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate befo
               </article>
               <article>
                 <p class="ca-desk__k">Platform ROAS</p>
-                <p class="ca-desk__v">4.95×</p>
-                <p class="ca-desk__formula">platform-reported revenue ÷ spend · $487,200 ÷ $98,500</p>
+                <p class="ca-desk__v">~4.8×</p>
+                <p class="ca-desk__formula">platform-reported revenue ÷ spend · $472,800 ÷ $98,500</p>
               </article>
             </div>
-            <p class="ca-desk__note">Same spend. Gap is returns + fees/timing, not incrementality. SAMPLE · not a live client.</p>
+            <p class="ca-desk__note">Same spend. Caption: returns + last-touch, not incrementality. SAMPLE · Northline.</p>
+            <div class="ca-teach">
+              <table>
+                <caption>Do not use path credit for total revenue. Four channels × $120 attributed vs $120 cash. SAMPLE. No vendor logo.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Channel</th>
+                    <th scope="col">Attributed</th>
+                    <th scope="col">Cash</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><th scope="row">Meta</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">Google</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">LinkedIn</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                  <tr><th scope="row">Other paid</th><td class="mono">$120</td><td class="mono">$120</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div data-ca-panel="leadgen" hidden>
@@ -1993,6 +2050,7 @@ Marty · mcflyadsmmm@gmail.com</pre>
   <script src="/assets/cta-config.js?v=20260825live"></script>
   <script src="/assets/chrome.js?v=20260828sec"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
-  <script src="/assets/custom-analytics-demo.js?v=20260828sec"></script>
+  <script src="/assets/lab-desk.js?v=20260828lab"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260828lab"></script>
 </body>
 </html>
