@@ -548,8 +548,7 @@ else
   ok "CPQL cut defaults off (\$226 ≤ \$250)"
 fi
 
-# /lab gallery — three desks, signed-in chrome, one Northline book.
-# v3 first-pixel: session bar BEFORE door cards; seat 2 of 4; no 500-seat SaaS theater.
+# /lab first fold — signed-in exec desk. No brochure gallery. Seat 2 of 4.
 lab="$site/lab.html"
 if ! grep -q 'data-lab-desk="recon"' "$lab" || ! grep -q 'data-lab-desk="exec"' "$lab" || ! grep -q 'data-lab-desk="portal"' "$lab"; then
   die "lab.html missing three distinct desks (recon / exec / portal)"
@@ -561,20 +560,38 @@ if ! grep -q 'Northline Supply' "$lab" || ! grep -q 'A. Chen' "$lab" || ! grep -
 else
   ok "lab.html SAMPLE signed-in session bar"
 fi
-# DOM order: data-lab-app / lab-session must appear before lab-doors (or doors gone).
-session_line=$(grep -n 'data-lab-app\|class="lab-session"' "$lab" | head -1 | cut -d: -f1)
-doors_line=$(grep -n 'lab-doors\|data-lab-door' "$lab" | head -1 | cut -d: -f1 || true)
-if [[ -z "$session_line" ]]; then
-  die "lab.html missing data-lab-app / lab-session"
-elif [[ -n "$doors_line" && "$doors_line" -lt "$session_line" ]]; then
-  die "lab.html door cards still appear before the session bar (brochure first paint)"
+# DOM order: session before exec. No lab-doors / lab-gallery on /lab.
+session_line=$(grep -n 'class="lab-session"' "$lab" | head -1 | cut -d: -f1)
+exec_line=$(grep -n 'id="desk-exec"' "$lab" | head -1 | cut -d: -f1)
+if [[ -z "$session_line" || -z "$exec_line" || "$session_line" -ge "$exec_line" ]]; then
+  die "lab.html session bar is not before the exec desk"
 else
-  ok "lab.html session bar before door cards (or doors gone)"
+  ok "lab.html session precedes exec desk"
+fi
+if grep -q 'lab-doors' "$lab" || grep -q 'class="lab-gallery"' "$lab"; then
+  die "lab.html still has marketing doors / brochure gallery"
+else
+  ok "lab.html no lab-doors gallery"
+fi
+if ! grep -q 'Operator seat 2 of 4' "$lab" || ! grep -q '4 seats on this SAMPLE desk — you keep the seats.' "$lab"; then
+  die "lab.html missing Operator seat 2 of 4 scale"
+else
+  ok "lab.html Operator seat 2 of 4"
 fi
 if ! grep -q 'seat 2 of 4' "$lab"; then
   die "lab.html missing seat 2 of 4"
 else
   ok "lab.html seat 2 of 4"
+fi
+if awk '/id="main"/,/class="lab-session"/' "$lab" | grep -q 'lab-chart'; then
+  die "lab.html still puts charts above the signed-in session"
+else
+  ok "lab.html charts are not above the session"
+fi
+if ! awk '/id="desk-exec"/,/id="desk-recon"|id="desk-portal"/' "$lab" | grep -q '<h1[^>]*>Same $98,500'; then
+  die "lab.html unique H1 is not on the exec desk"
+else
+  ok "lab.html unique H1 lives on the exec desk"
 fi
 if grep -Eq '500 seats|seat 2 of 500' "$lab"; then
   die "lab.html still uses 500-seat SaaS theater"

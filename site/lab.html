@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260828sb" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828lab6" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828lab7" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -52,7 +52,7 @@
   <div data-chrome></div>
 
   <main id="main">
-    <!-- v3 first paint: session bar → rail → #desk-exec. Gallery / H1 / CTA / charts live below. -->
+    <!-- v3 first paint: session bar → rail → #desk-exec. No brochure gallery. -->
     <div class="lab-instrument" id="ca-labs" aria-label="SAMPLE desks — Northline week">
       <div class="lab-app" data-lab-app>
         <header class="lab-session">
@@ -61,8 +61,8 @@
             <p class="lab-session__id">
               <span>Northline Supply</span>
               <span class="lab-chip">SAMPLE</span>
-              <strong data-lab-who>A. Chen · Operator</strong>
-              <span data-lab-seat>seat 2 of 4</span>
+              <strong data-lab-who>Signed in as A. Chen · Operator</strong>
+              <span data-lab-seat>Operator seat 2 of 4</span>
               <span>last in 27 Jul 09:14</span>
             </p>
           </div>
@@ -72,6 +72,7 @@
             <button type="button" data-lab-role="operator" aria-pressed="true" aria-label="Operator / sales-rep">Operator</button>
           </div>
         </header>
+        <p class="lab-seats">4 seats on this SAMPLE desk — you keep the seats. Named seat: A. Chen. No password. Switch role in the bar.</p>
 
         <div class="lab-app-body">
           <nav class="lab-siderail" aria-label="Northline desk">
@@ -84,6 +85,268 @@
           </nav>
 
           <div class="lab-canvas">
+            <section class="lab-desk" id="desk-exec" data-lab-desk="exec" aria-labelledby="lab-00-h">
+              <p class="lab-id">
+                <span><span class="lab-chip">SAMPLE</span> Exec / CFO · Northline Supply · board view</span>
+                <span>signed spend <strong>$98,500</strong> · cash <strong>4.19×</strong> vs BE <strong>2.86×</strong> · target <strong>4.00×</strong></span>
+              </p>
+
+              <div class="lab-section lab-section--first-paint">
+                <p class="lab-kicker">SAMPLE <span>Northline Supply · one book · Jul 1–27 2026 · not a live client</span></p>
+                <h1 id="lab-00-h">Same $98,500. Cash 4.19× vs platform ~4.8×.</h1>
+                <p class="lab-lede">Custom data science they keep, for any company. Not only marketing. Marketing recon is one desk. Also exec + signed-in portal.</p>
+                <p class="lab-lede">Invoice $98,500 vs UI $99,950 · billed − UI −$1,450 (−1.5%) · sales $412,400. Click Hold Meta — the action line writes. Numbers do not invent lift.</p>
+                <div class="lab-exec-tiles" aria-label="Exec tiles — Northline week">
+                  <article>
+                    <p class="k">Signed spend</p>
+                    <p class="v">$98,500</p>
+                    <p class="lab-formula">invoice billed · finance denominator</p>
+                  </article>
+                  <article>
+                    <p class="k">Sales after returns</p>
+                    <p class="v">$412,400</p>
+                    <p class="lab-formula">Jul 1–27 · order-date grain</p>
+                  </article>
+                  <article>
+                    <p class="k">Cash vs BE vs target</p>
+                    <p class="v">4.19×</p>
+                    <p class="lab-formula">BE 2.86× @ 35% · target 4.00× · clears both</p>
+                  </article>
+                  <article>
+                    <p class="k">invoice−UI</p>
+                    <p class="v">−$1,450</p>
+                    <p class="lab-formula">−1.5% · Within 2%</p>
+                  </article>
+                  <article class="lab-exec-hold">
+                    <p class="k">Meta · UI ahead of invoice</p>
+                    <p class="v">Hold</p>
+                    <p class="lab-formula">UI $42,850 vs invoice $41,200 · −4.0%</p>
+                    <p><button type="button" class="btn ghost" data-lab-hold-meta>Hold Meta</button></p>
+                  </article>
+                </div>
+                <aside class="lab-memo lab-memo--compact" aria-label="Exec action memo">
+                  <p class="lab-memo__label">Exec memo · SAMPLE · not a live client</p>
+                  <p class="lab-memo__body" data-lab-exec-memo>Period: Northline SAMPLE week. Signed spend $98,500. Cash 4.19× vs BE 2.86× vs target 4.00×. invoice−UI −$1,450 (−1.5%).
+Action: Meta UI is ahead of invoice. Hold scale until finance signs the −4.0% gap. Click Hold Meta to write the line. Numbers do not invent lift.</p>
+                </aside>
+                <div class="lab-first-strip" aria-label="Contracts, packing list, pipeline on the desk">
+                  <div class="lab-scroll">
+                    <table class="lab-table lab-table--contract">
+                      <caption>METRIC CONTRACT v1 · Northline SAMPLE · America/Denver · Jul 1–27 2026. $98,500 · $99,950 · 4.19× · ~4.8× · BE 2.86× · target 4.00×.</caption>
+                      <thead>
+                        <tr>
+                          <th scope="col">Name</th>
+                          <th scope="col">Numerator</th>
+                          <th scope="col">Denominator</th>
+                          <th scope="col">Grain</th>
+                          <th scope="col">As-of</th>
+                          <th scope="col">Exclusions</th>
+                          <th scope="col">Owner</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="row">Total ROAS</th>
+                          <td>sales after returns $412,400</td>
+                          <td>signed spend $98,500</td>
+                          <td>order-date · Jul 1–27</td>
+                          <td>27 Jul 2026</td>
+                          <td>no path credit · returns already netted</td>
+                          <td>finance</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">Signed spend</th>
+                          <td>invoice billed $98,500</td>
+                          <td>—</td>
+                          <td>invoice line / channel</td>
+                          <td>27 Jul 2026</td>
+                          <td>UI $99,950 is not signed spend</td>
+                          <td>finance</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">Platform print (not for close)</th>
+                          <td>platform attributed $472,800</td>
+                          <td>signed spend $98,500</td>
+                          <td>ads-manager date</td>
+                          <td>27 Jul 2026</td>
+                          <td>not for close · ~4.8× is a print</td>
+                          <td>media</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="lab-pack">Packing list: <code>metric_contracts_v1.md</code> · <code>spend_recon_jul2026.csv</code> · <code>northline_desk.html</code> · <code>runbook.md</code> · <code>owner_transfer_checklist.md</code></p>
+                  <ol class="lab-pipe" aria-label="Delivery pipeline · Northline SAMPLE">
+                    <li><span>07-03</span> access</li>
+                    <li><span>07-11</span> contract v1</li>
+                    <li><span>07-18</span> desk v0</li>
+                    <li><span>07-25</span> recon close</li>
+                    <li><span>07-27</span> handoff</li>
+                  </ol>
+                </div>
+                <figure class="lab-chart" aria-labelledby="exec-chart-cap">
+                  <figcaption id="exec-chart-cap">Exec chart · signed spend $98,500 · Meta / Google / Microsoft / Email · SAMPLE</figcaption>
+                  <svg viewBox="0 0 420 120" role="img" aria-label="Signed spend bars: Meta $41,200, Google $31,800, Microsoft $15,400, Email $10,100">
+                    <title>Exec desk signed spend chart</title>
+                    <rect x="100" y="10" width="280" height="16" fill="#5ee7f0" />
+                    <text x="0" y="22" fill="#eef2f5" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">Meta $41,200</text>
+                    <rect x="100" y="36" width="216" height="16" fill="#5ee7f0" opacity="0.82" />
+                    <text x="0" y="48" fill="#eef2f5" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">Google $31,800</text>
+                    <rect x="100" y="62" width="105" height="16" fill="#5ee7f0" opacity="0.64" />
+                    <text x="0" y="74" fill="#eef2f5" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">Microsoft $15,400</text>
+                    <rect x="100" y="88" width="69" height="16" fill="#5ee7f0" opacity="0.5" />
+                    <text x="0" y="100" fill="#eef2f5" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">Email $10,100</text>
+                  </svg>
+                </figure>
+                <figure class="lab-chart" aria-labelledby="exec-chart-roas-cap">
+                  <figcaption id="exec-chart-roas-cap">Cash vs BE vs target vs platform print · same $98,500 · SAMPLE</figcaption>
+                  <svg viewBox="0 0 420 168" role="img" aria-label="Column chart: break-even 2.86×, target 4.00×, cash 4.19×, platform ~4.8× not for close">
+                    <title>Cash 4.19× vs BE 2.86× vs target 4.00× vs platform ~4.8×</title>
+                    <line x1="40" y1="140" x2="400" y2="140" stroke="rgba(238,242,245,0.2)" />
+                    <rect x="62" y="68" width="52" height="72" fill="rgba(238,242,245,0.28)" />
+                    <text x="88" y="156" fill="#eef2f5" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">BE 2.86×</text>
+                    <rect x="148" y="40" width="52" height="100" fill="rgba(94,231,240,0.45)" />
+                    <text x="174" y="156" fill="#eef2f5" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">4.00×</text>
+                    <rect x="234" y="35" width="52" height="105" fill="#5ee7f0" />
+                    <text x="260" y="156" fill="#eef2f5" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">4.19×</text>
+                    <rect x="320" y="20" width="52" height="120" fill="rgba(244,180,168,0.45)" />
+                    <text x="346" y="156" fill="#eef2f5" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">~4.8×</text>
+                    <text x="40" y="14" fill="rgba(238,242,245,0.55)" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">Platform print is not for close · cash $412,400 ÷ $98,500</text>
+                  </svg>
+                </figure>
+                <div class="lab-cta">
+                  <a class="btn primary solid" href="/custom-analytics?package=audit#inquire">Request engagement $5–25K</a>
+                  <span class="lab-quiet">You keep the system. Shopify-only shops: <a href="/demo">/demo</a>.</span>
+                </div>
+              </div>
+
+              <div class="lab-section" id="desk-exec-contracts">
+                <h2>METRIC CONTRACT v1 — full sheet</h2>
+                <p class="lab-lede">Same contract as the desk strip. Name, numerator, denominator, grain, as-of, exclusions, owner. Platform print is not for close.</p>
+                <div class="lab-scroll">
+                  <table class="lab-table lab-table--contract">
+                    <caption>METRIC CONTRACT v1 · Northline SAMPLE · America/Denver · Jul 1–27 2026. $98,500 · $99,950 · 4.19× · ~4.8× · BE 2.86× · target 4.00×.</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Numerator</th>
+                        <th scope="col">Denominator</th>
+                        <th scope="col">Grain</th>
+                        <th scope="col">As-of</th>
+                        <th scope="col">Exclusions</th>
+                        <th scope="col">Owner</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">Total ROAS</th>
+                        <td>sales after returns $412,400</td>
+                        <td>signed spend $98,500</td>
+                        <td>order-date · Jul 1–27</td>
+                        <td>27 Jul 2026</td>
+                        <td>no path credit · returns already netted</td>
+                        <td>finance</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Signed spend</th>
+                        <td>invoice billed $98,500</td>
+                        <td>—</td>
+                        <td>invoice line / channel</td>
+                        <td>27 Jul 2026</td>
+                        <td>UI $99,950 is not signed spend</td>
+                        <td>finance</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Platform print (not for close)</th>
+                        <td>platform attributed $472,800</td>
+                        <td>signed spend $98,500</td>
+                        <td>ads-manager date</td>
+                        <td>27 Jul 2026</td>
+                        <td>not for close · ~4.8× is a print</td>
+                        <td>media</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="lab-section" id="desk-exec-handoff">
+                <h2>Handoff packet</h2>
+                <p class="lab-lede">Five files. Owner after week 6 is the client named in the letter. Request engagement $5–25K.</p>
+                <div class="lab-scroll">
+                  <table class="lab-table lab-packet">
+                    <caption>HANDOFF PACKET · SAMPLE · you keep the files.</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Filename</th>
+                        <th scope="col">What it is</th>
+                        <th scope="col">Owner after week 6</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row"><code>metric_contracts_v1.md</code></th>
+                        <td>METRIC CONTRACT v1 definitions</td>
+                        <td>client finance</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><code>spend_recon_jul2026.csv</code></th>
+                        <td>Invoice vs UI ledger for Jul 1–27</td>
+                        <td>client finance</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><code>northline_desk.html</code></th>
+                        <td>Operator desk: 4.19× and ~4.8× on $98,500</td>
+                        <td>client ops</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><code>runbook.md</code></th>
+                        <td>How to close the week without us</td>
+                        <td>client ops</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><code>owner_transfer_checklist.md</code></th>
+                        <td>Credentials time-box + file receipt</td>
+                        <td>client IT</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Email SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
+                <article class="lab-paper lab-paper--memo" id="close-memo" aria-label="Printable SAMPLE close memo">
+                  <p class="lab-memo__label">Printable close memo · SAMPLE · not a live client</p>
+                  <h3>Close memo — Northline week</h3>
+                  <p>From: <a href="/about">Marty Smithson</a> · Utah<br />Re: Invoice vs Ads Manager UI + outcome ÷ spend · Jul 1–27 2026</p>
+                  <table>
+                    <caption>Channel invoice vs UI · SAMPLE</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Channel</th>
+                        <th scope="col">Invoice</th>
+                        <th scope="col">UI</th>
+                        <th scope="col">$</th>
+                        <th scope="col">%</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono">$42,850</td><td class="mono">−$1,650</td><td class="mono">−4.0%</td></tr>
+                      <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono">$31,120</td><td class="mono">+$680</td><td class="mono">+2.1%</td></tr>
+                      <tr><th scope="row">Microsoft</th><td class="mono">$15,400</td><td class="mono">$16,180</td><td class="mono">−$780</td><td class="mono">−5.1%</td></tr>
+                      <tr><th scope="row">Email</th><td class="mono">$10,100</td><td class="mono">$9,800</td><td class="mono">+$300</td><td class="mono">+3.0%</td></tr>
+                    </tbody>
+                    <tfoot>
+                      <tr><th scope="row">Included</th><td class="mono">$98,500</td><td class="mono">$99,950</td><td class="mono">−$1,450</td><td class="mono">−1.5%</td></tr>
+                    </tfoot>
+                  </table>
+                  <p><strong>Outcome ÷ spend.</strong> Cash Total ROAS <span class="mono">4.19×</span> = $412,400 ÷ $98,500. Platform ~4.8× = $472,800 ÷ $98,500. Same signed spend. BE 2.86× @ 35%. Target 4.00×.</p>
+                  <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Email SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
+                  <p>You keep this file. Redacted. Not a live client.</p>
+                  <p class="lab-formula"><button type="button" class="btn ghost" data-lab-print-memo>Print memo</button></p>
+                </article>
+                <p class="lab-refuse"><strong>Refuse:</strong> pixels; MTA / multi-touch path credit; identity graph / “true ROAS.”</p>
+              </div>
+            </section>
+
             <section class="lab-desk" id="desk-recon" data-lab-desk="recon" hidden aria-labelledby="recon-h">
               <p class="lab-id">
                 <span><span class="lab-chip">SAMPLE</span> Marketing recon · Northline Supply · demo-not-production</span>
@@ -283,231 +546,6 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               </div>
             </section>
 
-            <section class="lab-desk" id="desk-exec" data-lab-desk="exec" aria-labelledby="exec-h">
-              <p class="lab-id">
-                <span><span class="lab-chip">SAMPLE</span> Exec / CFO · Northline Supply · board view</span>
-                <span>signed spend <strong>$98,500</strong> · cash <strong>4.19×</strong> vs BE <strong>2.86×</strong> · target <strong>4.00×</strong></span>
-              </p>
-
-              <div class="lab-section lab-section--first-paint">
-                <h2 id="exec-h" class="lab-visually-compact">Signed spend. Cash vs break-even. Files they keep.</h2>
-                <div class="lab-exec-tiles" aria-label="Exec tiles — Northline week">
-                  <article>
-                    <p class="k">Signed spend</p>
-                    <p class="v">$98,500</p>
-                    <p class="lab-formula">invoice billed · finance denominator</p>
-                  </article>
-                  <article>
-                    <p class="k">Sales after returns</p>
-                    <p class="v">$412,400</p>
-                    <p class="lab-formula">Jul 1–27 · order-date grain</p>
-                  </article>
-                  <article>
-                    <p class="k">Cash vs BE vs target</p>
-                    <p class="v">4.19×</p>
-                    <p class="lab-formula">BE 2.86× @ 35% · target 4.00× · clears both</p>
-                  </article>
-                  <article>
-                    <p class="k">invoice−UI</p>
-                    <p class="v">−$1,450</p>
-                    <p class="lab-formula">−1.5% · Within 2%</p>
-                  </article>
-                  <article class="lab-exec-hold">
-                    <p class="k">Meta · UI ahead of invoice</p>
-                    <p class="v">Hold</p>
-                    <p class="lab-formula">UI $42,850 vs invoice $41,200 · −4.0%</p>
-                    <p><button type="button" class="btn ghost" data-lab-hold-meta>Hold Meta</button></p>
-                  </article>
-                </div>
-                <aside class="lab-memo lab-memo--compact" aria-label="Exec action memo">
-                  <p class="lab-memo__label">Exec memo · SAMPLE · not a live client</p>
-                  <p class="lab-memo__body" data-lab-exec-memo>Period: Northline SAMPLE week. Signed spend $98,500. Cash 4.19× vs BE 2.86× vs target 4.00×. invoice−UI −$1,450 (−1.5%).
-Action: Meta UI is ahead of invoice. Hold scale until finance signs the −4.0% gap. Click Hold Meta to write the line. Numbers do not invent lift.</p>
-                </aside>
-                <div class="lab-first-strip" aria-label="Contracts, packing list, pipeline on the desk">
-                  <div class="lab-scroll">
-                    <table class="lab-table lab-table--contract">
-                      <caption>METRIC CONTRACT v1 · Northline SAMPLE · America/Denver · Jul 1–27 2026. $98,500 · $99,950 · 4.19× · ~4.8× · BE 2.86× · target 4.00×.</caption>
-                      <thead>
-                        <tr>
-                          <th scope="col">Name</th>
-                          <th scope="col">Numerator</th>
-                          <th scope="col">Denominator</th>
-                          <th scope="col">Grain</th>
-                          <th scope="col">As-of</th>
-                          <th scope="col">Exclusions</th>
-                          <th scope="col">Owner</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <th scope="row">Total ROAS</th>
-                          <td>sales after returns $412,400</td>
-                          <td>signed spend $98,500</td>
-                          <td>order-date · Jul 1–27</td>
-                          <td>27 Jul 2026</td>
-                          <td>no path credit · returns already netted</td>
-                          <td>finance</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Signed spend</th>
-                          <td>invoice billed $98,500</td>
-                          <td>—</td>
-                          <td>invoice line / channel</td>
-                          <td>27 Jul 2026</td>
-                          <td>UI $99,950 is not signed spend</td>
-                          <td>finance</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">Platform print (not for close)</th>
-                          <td>platform attributed $472,800</td>
-                          <td>signed spend $98,500</td>
-                          <td>ads-manager date</td>
-                          <td>27 Jul 2026</td>
-                          <td>not for close · ~4.8× is a print</td>
-                          <td>media</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <p class="lab-pack">Packing list: <code>metric_contracts_v1.md</code> · <code>spend_recon_jul2026.csv</code> · <code>northline_desk.html</code> · <code>runbook.md</code> · <code>owner_transfer_checklist.md</code></p>
-                  <ol class="lab-pipe" aria-label="Delivery pipeline · Northline SAMPLE">
-                    <li><span>07-03</span> access</li>
-                    <li><span>07-11</span> contract v1</li>
-                    <li><span>07-18</span> desk v0</li>
-                    <li><span>07-25</span> recon close</li>
-                    <li><span>07-27</span> handoff</li>
-                  </ol>
-                </div>
-              </div>
-
-              <div class="lab-section" id="desk-exec-contracts">
-                <h2>METRIC CONTRACT v1 — full sheet</h2>
-                <p class="lab-lede">Same contract as the desk strip. Name, numerator, denominator, grain, as-of, exclusions, owner. Platform print is not for close.</p>
-                <div class="lab-scroll">
-                  <table class="lab-table lab-table--contract">
-                    <caption>METRIC CONTRACT v1 · Northline SAMPLE · America/Denver · Jul 1–27 2026. $98,500 · $99,950 · 4.19× · ~4.8× · BE 2.86× · target 4.00×.</caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Numerator</th>
-                        <th scope="col">Denominator</th>
-                        <th scope="col">Grain</th>
-                        <th scope="col">As-of</th>
-                        <th scope="col">Exclusions</th>
-                        <th scope="col">Owner</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row">Total ROAS</th>
-                        <td>sales after returns $412,400</td>
-                        <td>signed spend $98,500</td>
-                        <td>order-date · Jul 1–27</td>
-                        <td>27 Jul 2026</td>
-                        <td>no path credit · returns already netted</td>
-                        <td>finance</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">Signed spend</th>
-                        <td>invoice billed $98,500</td>
-                        <td>—</td>
-                        <td>invoice line / channel</td>
-                        <td>27 Jul 2026</td>
-                        <td>UI $99,950 is not signed spend</td>
-                        <td>finance</td>
-                      </tr>
-                      <tr>
-                        <th scope="row">Platform print (not for close)</th>
-                        <td>platform attributed $472,800</td>
-                        <td>signed spend $98,500</td>
-                        <td>ads-manager date</td>
-                        <td>27 Jul 2026</td>
-                        <td>not for close · ~4.8× is a print</td>
-                        <td>media</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div class="lab-section" id="desk-exec-handoff">
-                <h2>Handoff packet</h2>
-                <p class="lab-lede">Five files. Owner after week 6 is the client named in the letter. Request engagement $5–25K.</p>
-                <div class="lab-scroll">
-                  <table class="lab-table lab-packet">
-                    <caption>HANDOFF PACKET · SAMPLE · you keep the files.</caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Filename</th>
-                        <th scope="col">What it is</th>
-                        <th scope="col">Owner after week 6</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <th scope="row"><code>metric_contracts_v1.md</code></th>
-                        <td>METRIC CONTRACT v1 definitions</td>
-                        <td>client finance</td>
-                      </tr>
-                      <tr>
-                        <th scope="row"><code>spend_recon_jul2026.csv</code></th>
-                        <td>Invoice vs UI ledger for Jul 1–27</td>
-                        <td>client finance</td>
-                      </tr>
-                      <tr>
-                        <th scope="row"><code>northline_desk.html</code></th>
-                        <td>Operator desk: 4.19× and ~4.8× on $98,500</td>
-                        <td>client ops</td>
-                      </tr>
-                      <tr>
-                        <th scope="row"><code>runbook.md</code></th>
-                        <td>How to close the week without us</td>
-                        <td>client ops</td>
-                      </tr>
-                      <tr>
-                        <th scope="row"><code>owner_transfer_checklist.md</code></th>
-                        <td>Credentials time-box + file receipt</td>
-                        <td>client IT</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Email SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
-                <article class="lab-paper lab-paper--memo" id="close-memo" aria-label="Printable SAMPLE close memo">
-                  <p class="lab-memo__label">Printable close memo · SAMPLE · not a live client</p>
-                  <h3>Close memo — Northline week</h3>
-                  <p>From: <a href="/about">Marty Smithson</a> · Utah<br />Re: Invoice vs Ads Manager UI + outcome ÷ spend · Jul 1–27 2026</p>
-                  <table>
-                    <caption>Channel invoice vs UI · SAMPLE</caption>
-                    <thead>
-                      <tr>
-                        <th scope="col">Channel</th>
-                        <th scope="col">Invoice</th>
-                        <th scope="col">UI</th>
-                        <th scope="col">$</th>
-                        <th scope="col">%</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><th scope="row">Meta</th><td class="mono">$41,200</td><td class="mono">$42,850</td><td class="mono">−$1,650</td><td class="mono">−4.0%</td></tr>
-                      <tr><th scope="row">Google</th><td class="mono">$31,800</td><td class="mono">$31,120</td><td class="mono">+$680</td><td class="mono">+2.1%</td></tr>
-                      <tr><th scope="row">Microsoft</th><td class="mono">$15,400</td><td class="mono">$16,180</td><td class="mono">−$780</td><td class="mono">−5.1%</td></tr>
-                      <tr><th scope="row">Email</th><td class="mono">$10,100</td><td class="mono">$9,800</td><td class="mono">+$300</td><td class="mono">+3.0%</td></tr>
-                    </tbody>
-                    <tfoot>
-                      <tr><th scope="row">Included</th><td class="mono">$98,500</td><td class="mono">$99,950</td><td class="mono">−$1,450</td><td class="mono">−1.5%</td></tr>
-                    </tfoot>
-                  </table>
-                  <p><strong>Outcome ÷ spend.</strong> Cash Total ROAS <span class="mono">4.19×</span> = $412,400 ÷ $98,500. Platform ~4.8× = $472,800 ÷ $98,500. Same signed spend. BE 2.86× @ 35%. Target 4.00×.</p>
-                  <p><strong>Hold / protect / shift.</strong> HOLD Meta scale (UI−invoice 4.0% &gt; 3%). PROTECT Email SKU (marketplace residual on). SHIFT +10% Google (cash 4.19× ≥ 4.00× and recon 1.5% &lt; 2%).</p>
-                  <p>You keep this file. Redacted. Not a live client.</p>
-                  <p class="lab-formula"><button type="button" class="btn ghost" data-lab-print-memo>Print memo</button></p>
-                </article>
-                <p class="lab-refuse"><strong>Refuse:</strong> pixels; MTA / multi-touch path credit; identity graph / “true ROAS.”</p>
-              </div>
-            </section>
-
             <section class="lab-desk" id="desk-portal" data-lab-desk="portal" hidden aria-labelledby="portal-h">
               <p class="lab-id">
                 <span><span class="lab-chip">SAMPLE</span> Signed-in portal · A. Chen · Operator / sales-rep · seat 2 of 4</span>
@@ -521,7 +559,7 @@ Action: Meta UI is ahead of invoice. Hold scale until finance signs the −4.0% 
                 <aside class="lab-identity" aria-label="Signed-in identity">
                   <span class="lab-avatar" aria-hidden="true">AC</span>
                   <p>
-                    <strong data-lab-who>A. Chen · Operator</strong>
+                    <strong data-lab-who>Signed in as A. Chen · Operator</strong>
                     <span>Northline Supply · seat 2 of 4 · America/Denver</span>
                     <span>Named seat 2 of 4 · last in 27 Jul 09:14 · you keep the seats</span>
                   </p>
@@ -615,76 +653,12 @@ Action: Meta UI is ahead of invoice. Hold scale until finance signs the −4.0% 
         </div>
       </div>
     </div>
-
-    <header class="lab-gallery lab-gallery--below" aria-labelledby="lab-00-h">
-      <p class="lab-kicker">SAMPLE <span>Northline Supply · one book · Jul 1–27 2026 · not a live client</span></p>
-      <h1 id="lab-00-h">Same $98,500. Cash 4.19× vs platform ~4.8×.</h1>
-      <p class="lab-lede">Custom data science they keep, for any company. Not only marketing. Marketing recon is one desk. Also exec + signed-in portal.</p>
-      <div class="lab-doors" aria-label="Three SAMPLE desks · one Northline book">
-        <a class="lab-door" href="#desk-recon" data-lab-door="recon">
-          <span class="lab-chip">One module</span>
-          <strong>Marketing recon</strong>
-          <span>Invoice vs UI. Live memo. Exceptions that do not move 4.19×.</span>
-        </a>
-        <a class="lab-door is-on" href="#desk-exec" data-lab-door="exec">
-          <span class="lab-chip">SAMPLE</span>
-          <strong>Exec / CFO</strong>
-          <span>Signed spend, cash vs break-even, metric contracts, files they keep.</span>
-        </a>
-        <a class="lab-door" href="#desk-portal" data-lab-door="portal">
-          <span class="lab-chip">SAMPLE</span>
-          <strong>Signed-in portal</strong>
-          <span>A. Chen · Operator · seat 2 of 4. Same Northline book.</span>
-        </a>
-      </div>
-      <div class="lab-cta">
-        <a class="btn primary solid" href="/custom-analytics?package=audit#inquire">Request engagement $5–25K</a>
-        <span class="lab-quiet">You keep the system. Shopify-only shops: <a href="/demo">/demo</a>.</span>
-      </div>
-      <div class="lab-gallery-proof" aria-label="Charts below the desk · not first paint">
-        <figure class="lab-chart" aria-labelledby="lab-chart-spend-cap">
-          <figcaption id="lab-chart-spend-cap">Signed spend by channel · $98,500 · Meta / Google / Microsoft / Email · SAMPLE</figcaption>
-          <svg viewBox="0 0 420 168" role="img" aria-label="Bar chart of signed spend: Meta $41,200, Google $31,800, Microsoft $15,400, Email $10,100">
-            <title>Signed spend $98,500 by channel</title>
-            <rect x="108" y="14" width="280" height="22" fill="#5ee7f0" />
-            <text x="0" y="30" fill="#eef2f5" font-size="12" font-family="IBM Plex Mono, ui-monospace, monospace">Meta</text>
-            <text x="394" y="30" fill="#eef2f5" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace" text-anchor="end">$41,200</text>
-            <rect x="108" y="48" width="216" height="22" fill="#5ee7f0" opacity="0.82" />
-            <text x="0" y="64" fill="#eef2f5" font-size="12" font-family="IBM Plex Mono, ui-monospace, monospace">Google</text>
-            <text x="394" y="64" fill="#eef2f5" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace" text-anchor="end">$31,800</text>
-            <rect x="108" y="82" width="105" height="22" fill="#5ee7f0" opacity="0.64" />
-            <text x="0" y="98" fill="#eef2f5" font-size="12" font-family="IBM Plex Mono, ui-monospace, monospace">Microsoft</text>
-            <text x="394" y="98" fill="#eef2f5" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace" text-anchor="end">$15,400</text>
-            <rect x="108" y="116" width="69" height="22" fill="#5ee7f0" opacity="0.5" />
-            <text x="0" y="132" fill="#eef2f5" font-size="12" font-family="IBM Plex Mono, ui-monospace, monospace">Email</text>
-            <text x="394" y="132" fill="#eef2f5" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace" text-anchor="end">$10,100</text>
-            <text x="0" y="162" fill="rgba(238,242,245,0.55)" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">Σ invoice $98,500 · UI $99,950 · −$1,450</text>
-          </svg>
-        </figure>
-        <figure class="lab-chart" aria-labelledby="lab-chart-roas-cap">
-          <figcaption id="lab-chart-roas-cap">Cash vs BE vs target vs platform print · same $98,500 · SAMPLE</figcaption>
-          <svg viewBox="0 0 420 168" role="img" aria-label="Column chart: break-even 2.86×, target 4.00×, cash 4.19×, platform ~4.8× not for close">
-            <title>Cash 4.19× vs BE 2.86× vs target 4.00× vs platform ~4.8×</title>
-            <line x1="40" y1="140" x2="400" y2="140" stroke="rgba(238,242,245,0.2)" />
-            <rect x="62" y="68" width="52" height="72" fill="rgba(238,242,245,0.28)" />
-            <text x="88" y="156" fill="#eef2f5" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">BE 2.86×</text>
-            <rect x="148" y="40" width="52" height="100" fill="rgba(94,231,240,0.45)" />
-            <text x="174" y="156" fill="#eef2f5" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">4.00×</text>
-            <rect x="234" y="35" width="52" height="105" fill="#5ee7f0" />
-            <text x="260" y="156" fill="#eef2f5" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">4.19×</text>
-            <rect x="320" y="20" width="52" height="120" fill="rgba(244,180,168,0.45)" />
-            <text x="346" y="156" fill="#eef2f5" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">~4.8×</text>
-            <text x="40" y="14" fill="rgba(238,242,245,0.55)" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">Platform print is not for close · cash $412,400 ÷ $98,500</text>
-          </svg>
-        </figure>
-      </div>
-    </header>
   </main>
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260825live"></script>
   <script src="/assets/chrome.js?v=20260828v3"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
-  <script src="/assets/lab-desk.js?v=20260828lab6"></script>
+  <script src="/assets/lab-desk.js?v=20260828lab7"></script>
 </body>
 </html>
