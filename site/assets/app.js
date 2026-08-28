@@ -392,8 +392,6 @@
       custom
         ? "Request: custom analytics / MDS proposal ($5–25K band)."
         : "Request: App Store / Partner install help.",
-      "Public target: " + INVITES_EMAIL,
-      "Interim inbox: " + INTERIM_INBOX,
     );
     const body = bodyLines.join("\n");
     const mailto =
@@ -403,10 +401,12 @@
       encodeURIComponent(subject) +
       "&body=" +
       encodeURIComponent(body);
-    const clipboard = ["To: " + INVITES_EMAIL + " (interim: " + INTERIM_INBOX + ")", "Subject: " + subject, "", body].join(
-      "\n",
-    );
+    const clipboard = ["Subject: " + subject, "", body].join("\n");
     return { subject, body, mailto, clipboard };
+  }
+
+  function hasShopifyLeak(value) {
+    return /myshopify\.com|admin\.shopify/i.test(String(value || ""));
   }
 
   async function copyText(text) {
@@ -507,21 +507,10 @@
       }
       if (metaEl) {
         metaEl.replaceChildren();
-        metaEl.append("Target ");
-        const invites = document.createElement("span");
-        invites.className = "mono email-plain";
-        invites.textContent = (result && result.invites) || INVITES_EMAIL;
-        metaEl.append(invites);
-        metaEl.append(" · interim ");
-        const interim = document.createElement("span");
-        interim.className = "mono email-plain";
-        interim.textContent = (result && result.interimInbox) || INTERIM_INBOX;
-        metaEl.append(interim);
-        metaEl.append(" · ");
-        if (emailed && stored) metaEl.append("emailed + stored");
-        else if (emailed) metaEl.append("emailed");
-        else if (stored) metaEl.append("stored (not emailed yet)");
-        else metaEl.append("delivery failed");
+        if (emailed && stored) metaEl.append("Emailed + stored. We will reply by email.");
+        else if (emailed) metaEl.append("Emailed. We will reply by email.");
+        else if (stored) metaEl.append("Stored. We will reply by email.");
+        else metaEl.append("Delivery failed — copy the message and send it yourself.");
       }
       if (previewEl) {
         previewEl.textContent = draft.body;
@@ -566,6 +555,9 @@
       const timeline = String(data.get("timeline") || "").trim();
       const source = form.getAttribute("data-waitlist-source") || "mcflyads.com support";
       const website = String(data.get("website") || "").trim();
+      if (website) {
+        return;
+      }
 
       const emailInput = form.querySelector('[name="email"]');
       if (!email) {
@@ -582,12 +574,17 @@
         showError("Name is required.");
         return;
       }
-      if (isProposal && !company) {
-        showError("Company is required.");
-        return;
-      }
       if (!name) {
         name = email.split("@")[0] || "Support";
+      }
+
+      var leaked = false;
+      data.forEach(function (value) {
+        if (typeof value === "string" && hasShopifyLeak(value)) leaked = true;
+      });
+      if (leaked) {
+        showError("Remove myshopify.com / admin.shopify from this form. There is no shop-domain box.");
+        return;
       }
 
       const proposal = {};
@@ -617,7 +614,8 @@
           name,
           email,
           role,
-          store: store || company,
+          company,
+          store: store || "",
           source,
           notes,
           budget,
@@ -626,11 +624,8 @@
           website,
         };
         if (isProposal) {
-          payload.company = company;
           payload.package = String(data.get("package") || "").trim();
           payload.proposal = proposal;
-        } else {
-          payload.company = company;
         }
         const res = await fetch(WAITLIST_ENDPOINT, {
           method: "POST",
@@ -657,12 +652,7 @@
       setBusy(false);
       if (result.message) draft.body = result.message;
       if (result.subject) draft.subject = result.subject;
-      draft.clipboard = [
-        "To: " + INVITES_EMAIL + " (interim: " + INTERIM_INBOX + ")",
-        "Subject: " + draft.subject,
-        "",
-        draft.body,
-      ].join("\n");
+      draft.clipboard = ["Subject: " + draft.subject, "", draft.body].join("\n");
       showResult(draft, result);
       if (isProposal) {
         form.dispatchEvent(
@@ -681,8 +671,8 @@
         if (copyStatus) {
           copyStatus.hidden = false;
           copyStatus.textContent = ok
-            ? "Copied. Paste into any email to " + INVITES_EMAIL + " or " + INTERIM_INBOX + "."
-            : "Copy failed — select the message text below, or write to " + INTERIM_INBOX + ".";
+            ? "Copied. Paste into your mail app."
+            : "Copy failed — select the message text below.";
         }
       });
     }

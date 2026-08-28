@@ -26,7 +26,7 @@
   </div>
   <header class="top top--analytics" data-top>
     <a class="brand" href="/custom-analytics" aria-label="Mcfly Analytics home">
-      <img class="brand-mark-img" src="/assets/brand/mcfly-m-transparent.png" width="36" height="36" alt="" />
+      <img class="brand-mark-img" src="/assets/brand/mcfly-m.svg" width="36" height="36" alt="" />
       <span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>
     </a>
     <nav class="nav nav--analytics" aria-label="Analytics">
@@ -61,7 +61,7 @@
   </div>
   <header class="top" data-top>
     <a class="brand" href="/" aria-label="Mcfly Analytics home">
-      <img class="brand-mark-img" src="/assets/brand/mcfly-m-transparent.png" width="36" height="36" alt="" />
+      <img class="brand-mark-img" src="/assets/brand/mcfly-m.svg" width="36" height="36" alt="" />
       <span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>
     </a>
     <nav class="nav" aria-label="Primary">
@@ -92,7 +92,7 @@
   <footer class="foot foot--analytics">
     <div class="wrap foot-grid">
       <div class="foot-brand">
-        <img src="/assets/brand/mcfly-m-transparent.png" width="28" height="28" alt="" />
+        <img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />
         <span>Mcfly Analytics</span>
       </div>
       <nav aria-label="Footer">
@@ -114,7 +114,7 @@
   <footer class="foot">
     <div class="wrap foot-grid">
       <div class="foot-brand">
-        <img src="/assets/brand/mcfly-m-transparent.png" width="28" height="28" alt="" />
+        <img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />
         <span>Mcfly Analytics</span>
       </div>
       <nav aria-label="Footer">

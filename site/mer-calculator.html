@@ -586,11 +586,22 @@
         <form class="waitlist" data-waitlist data-waitlist-source="mer-calculator save" novalidate>
           <label>Name <input name="name" type="text" autocomplete="name" required maxlength="120" /></label>
           <label>Email <input name="email" type="email" required autocomplete="email" /></label>
+          <label>Company <span class="opt">(optional)</span>
+            <input name="company" type="text" autocomplete="organization" maxlength="200" />
+          </label>
+          <label>Budget <span class="opt">(optional)</span>
+            <select name="budget">
+              <option value="">Prefer not to say</option>
+              <option value="$5–8K">$5–8K</option>
+              <option value="$8–15K">$8–15K</option>
+              <option value="$15–25K">$15–25K</option>
+            </select>
+          </label>
           <input type="hidden" name="role" value="Calculator save" />
           <label>Snapshot
             <textarea name="notes" id="calc-notes" rows="4" readonly></textarea>
           </label>
-          <input type="text" name="company" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" />
+          <input type="text" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" />
           <button class="btn primary solid" type="submit">Save snapshot + request reply</button>
           <p class="note" data-waitlist-error hidden role="alert"></p>
         </form>
@@ -622,8 +633,8 @@
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260825live"></script>
-  <script src="/assets/chrome.js?v=20260825live"></script>
-  <script src="/assets/app.js?v=20260825live"></script>
+  <script src="/assets/chrome.js?v=20260828sec"></script>
+  <script src="/assets/app.js?v=20260828sec"></script>
   <script>
     (function () {
       const spend = document.getElementById("dl-spend");

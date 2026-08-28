@@ -16,21 +16,54 @@ const INVITES_EMAIL = "invites@mcflyads.com";
 const INTERIM_INBOX = "mcflyadsmmm@gmail.com";
 const FORMSUBMIT_URL = "https://formsubmit.co/ajax/" + INTERIM_INBOX;
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Accept",
-  "Access-Control-Max-Age": "86400",
+const PUBLIC_HEADERS = {
+  "Content-Type": "application/json; charset=utf-8",
+  "Cache-Control": "no-store",
+  Allow: "POST, OPTIONS",
 };
 
+const BLOCKED_PUBLIC_KEYS = /^(invites|interimInbox|interim_inbox|email|inbox)$/i;
+
+function redactPublicString(value) {
+  return String(value || "")
+    .split(INVITES_EMAIL)
+    .join("[redacted]")
+    .split(INTERIM_INBOX)
+    .join("[redacted]");
+}
+
+function sanitizePublicBody(body) {
+  if (body == null || typeof body !== "object") return body;
+  if (Array.isArray(body)) return body.map(sanitizePublicBody);
+  const out = {};
+  Object.keys(body).forEach(function (key) {
+    if (BLOCKED_PUBLIC_KEYS.test(key)) return;
+    var value = body[key];
+    if (typeof value === "string") out[key] = redactPublicString(value);
+    else if (value && typeof value === "object") out[key] = sanitizePublicBody(value);
+    else out[key] = value;
+  });
+  return out;
+}
+
 function json(body, status = 200) {
-  return new Response(JSON.stringify(body), {
+  return new Response(JSON.stringify(sanitizePublicBody(body)), {
     status,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
-      ...CORS,
-    },
+    headers: PUBLIC_HEADERS,
+  });
+}
+
+function hasShopifyLeak(value) {
+  return /myshopify\.com|admin\.shopify/i.test(String(value || ""));
+}
+
+function objectHasShopifyLeak(value) {
+  if (value == null) return false;
+  if (typeof value === "string") return hasShopifyLeak(value);
+  if (typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.some(objectHasShopifyLeak);
+  return Object.keys(value).some(function (key) {
+    return objectHasShopifyLeak(value[key]);
   });
 }
 
@@ -192,8 +225,6 @@ function buildMessage(fields) {
     custom
       ? "Request: custom analytics / MDS proposal ($5–25K band). No charge on this form."
       : "Request: install help / support.",
-    "Public target: " + INVITES_EMAIL,
-    "Interim inbox: " + INTERIM_INBOX,
   );
   return lines.join("\n");
 }
@@ -350,8 +381,8 @@ async function handlePost(context) {
   const custom = isCustomAnalytics(source);
   const incoming = raw.proposal && typeof raw.proposal === "object" ? raw.proposal : raw;
 
-  // Honeypot: hidden "website". Legacy calculator forms still send honeypot "company".
-  if (clean(raw.website, 80) || (!custom && clean(raw.company, 80))) {
+  // Honeypot is hidden "website" only. "company" is a real optional field.
+  if (clean(raw.website, 80)) {
     return json({
       ok: true,
       delivery: "ignored",
@@ -361,10 +392,14 @@ async function handlePost(context) {
     });
   }
 
+  if (objectHasShopifyLeak(raw)) {
+    return json({ ok: false, error: "Remove myshopify.com / admin.shopify from this request." }, 400);
+  }
+
   const name = clean(raw.name, 120);
   const email = clean(raw.email, 254).toLowerCase();
   const role = clean(raw.role || incoming.role, 120);
-  const company = custom ? clean(raw.company || incoming.company, 200) : "";
+  const company = clean(raw.company || incoming.company, 200);
   const store = clean(raw.store || incoming.store, 200) || company;
   const notes = clean(raw.notes, custom ? 8000 : 1200);
   const pkgKey = clean(raw.package || incoming.package, 20);
@@ -380,9 +415,6 @@ async function handlePost(context) {
   }
   if (!name) {
     return json({ ok: false, error: "Name is required." }, 400);
-  }
-  if (custom && !company) {
-    return json({ ok: false, error: "Company is required." }, 400);
   }
 
   const take = function (key, max) {
@@ -487,8 +519,6 @@ async function handlePost(context) {
         delivery: "failed",
         emailed: false,
         stored: false,
-        invites: INVITES_EMAIL,
-        interimInbox: INTERIM_INBOX,
         subject: subjectPrefix + name,
         message,
         estimate: estimatePayload,
@@ -503,15 +533,13 @@ async function handlePost(context) {
 
   let delivery = "stored";
   let statusMessage =
-    "Request saved on our side. Email notify did not confirm — you are not claimed as “on the list” until we reply from the inbox.";
+    "Request saved on our side. Email notify did not confirm — you are not claimed as “on the list” until we reply.";
   if (emailed && persisted) {
     delivery = "emailed_and_stored";
-    statusMessage =
-      "Message received — emailed to our interim inbox and saved. We will reply from invites@ (or the interim inbox until domain mail is live).";
+    statusMessage = "Message received — emailed and saved. We will reply by email.";
   } else if (emailed) {
     delivery = "emailed";
-    statusMessage =
-      "Message received — emailed to our interim inbox. We will reply from invites@ (or the interim inbox until domain mail is live).";
+    statusMessage = "Message received — emailed. We will reply by email.";
   }
 
   return json({
@@ -520,8 +548,6 @@ async function handlePost(context) {
     emailed,
     stored: persisted,
     storeId: stored.id || null,
-    invites: INVITES_EMAIL,
-    interimInbox: INTERIM_INBOX,
     subject: subjectPrefix + name,
     message,
     statusMessage,
@@ -535,20 +561,12 @@ async function handlePost(context) {
 export async function onRequest(context) {
   const method = (context.request.method || "GET").toUpperCase();
   if (method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: CORS });
+    return new Response(null, { status: 204, headers: { Allow: "POST, OPTIONS" } });
   }
   if (method === "GET" || method === "HEAD") {
-    const body = json({
-      ok: true,
-      endpoint: "/api/waitlist",
-      method: "POST",
-      invites: INVITES_EMAIL,
-      interimInbox: INTERIM_INBOX,
-      honesty:
-        "POST stores the request (KV when bound) and best-effort emails the interim inbox. Confirmation UI must report actual delivery.",
-    });
+    const body = json({ ok: false, error: "Method not allowed." }, 405);
     if (method === "HEAD") {
-      return new Response(null, { status: 200, headers: body.headers });
+      return new Response(null, { status: 405, headers: body.headers });
     }
     return body;
   }
