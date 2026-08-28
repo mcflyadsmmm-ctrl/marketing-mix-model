@@ -269,7 +269,7 @@ export function buildAdvancedSections(
       open: true,
       tiles: [],
       lockedReason:
-        "Customer LTV and payback unlock on Pro ($39/store/mo). Everything in Free stays. Try it on Practice, or upgrade for your store.",
+        "Customer LTV and payback are on the whole desk. Add spend, then open LTV.",
     };
   } else {
     const ltv = metrics.tillLtv;

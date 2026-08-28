@@ -1,6 +1,7 @@
 /**
- * Shop entitlements — Free (Meta + Google) vs Pro ($39 flat at launch).
+ * Shop entitlements — whole desk on trial and paid.
  * See docs/BILLING_TIERS.md. Charges stay behind MCFLY_BILLING=1.
+ * Desk modes are Sample data | Live data only — billing is not a view.
  */
 
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
@@ -57,16 +58,18 @@ export function isProShop(
 export type ShopEntitlements = {
   tier: BillingTier;
   isPro: boolean;
-  /** Live Customer LTV (OrderFact / CohortFact). SAMPLE desk may preview without Pro. */
+  /** Live Customer LTV (OrderFact / CohortFact). Whole desk — not a plan gate. */
   canUseLiveLtv: boolean;
-  /** Show LTV UI (live Pro or SAMPLE preview). */
+  /** Show LTV UI (always on; Sample data uses example cohorts). */
   canUseLtv: boolean;
   canUseAdvancedGoals: boolean;
   canUseAdvancedClose: boolean;
   canUseAllChannels: boolean;
-  /** Show Upgrade CTA — only when Billing is on and shop is Free. */
+  /** Never a feature-gate teaser on Overview/Spend/LTV/Goals. */
   showProTeaser: boolean;
-  /** Show Manage plan CTA — Billing on and shop is Pro (App Store 1.2.3). */
+  /** Settings-only Start 7-day trial — Billing on and shop unpaid. */
+  showStartTrial: boolean;
+  /** Show Manage plan CTA — Billing on and shop is paid/trial (App Store 1.2.3). */
   canManagePlan: boolean;
   allowedChannels: readonly SpendChannel[];
   upsell: typeof PRO_UPSELL;
@@ -77,15 +80,13 @@ export function getShopEntitlements(
   options?: { sampleDesk?: boolean; paidPro?: boolean },
 ): ShopEntitlements {
   const isPro = isProShop(shopDomain, { paidPro: options?.paidPro });
-  const sampleDesk = Boolean(options?.sampleDesk);
   const billingOn = isBillingEnabled();
-  const canUseLiveLtv = isPro;
-  const canUseLtv = isPro || sampleDesk;
-  const canUseAdvancedGoals = isPro || sampleDesk;
-  const canUseAdvancedClose = isPro;
-  const canUseAllChannels = isPro || sampleDesk;
-  const allowedChannels: readonly SpendChannel[] =
-    isPro || sampleDesk ? SPEND_CHANNELS : [...FREE_CHANNELS];
+  const canUseLiveLtv = true;
+  const canUseLtv = true;
+  const canUseAdvancedGoals = true;
+  const canUseAdvancedClose = true;
+  const canUseAllChannels = true;
+  const allowedChannels: readonly SpendChannel[] = SPEND_CHANNELS;
 
   return {
     tier: isPro ? "pro" : "free",
@@ -95,7 +96,8 @@ export function getShopEntitlements(
     canUseAdvancedGoals,
     canUseAdvancedClose,
     canUseAllChannels,
-    showProTeaser: !isPro && billingOn,
+    showProTeaser: false,
+    showStartTrial: !isPro && billingOn,
     canManagePlan: isPro && billingOn,
     allowedChannels,
     upsell: PRO_UPSELL,
@@ -121,31 +123,28 @@ export async function resolveShopEntitlements(
 }
 
 export function canUseChannel(
-  entitlements: ShopEntitlements,
+  _entitlements: ShopEntitlements,
   channel: string,
 ): boolean {
-  if (entitlements.canUseAllChannels) return true;
   return isFreeChannel(channel);
 }
 
-/** Returns an error message if any channel is outside the shop's plan. */
+/** Known spend channels are Free. Unknown strings still fail closed. */
 export function assertChannelsAllowed(
-  entitlements: ShopEntitlements,
+  _entitlements: ShopEntitlements,
   channels: Iterable<string>,
 ): string | null {
-  if (entitlements.canUseAllChannels) return null;
   const blocked = new Set<string>();
   for (const ch of channels) {
     if (!FREE_CHANNEL_SET.has(ch)) blocked.add(ch);
   }
   if (blocked.size === 0) return null;
   const list = [...blocked].sort().join(", ");
-  return `Pro required for ${list}. Free covers Meta, Google, and named extras — named platforms need Pro (${PRO_UPSELL.short}).`;
+  return `Unknown spend channel: ${list}.`;
 }
 
 /**
- * Live Free desks: drop Pro-channel rows so Total ROAS cannot be inflated.
- * Callers with SAMPLE desk should skip this (pass through full sample mix).
+ * Drop unknown channel strings. Named platforms stay on Free.
  */
 export function filterToAllowedChannels<T extends { channel: string }>(
   entitlements: ShopEntitlements,

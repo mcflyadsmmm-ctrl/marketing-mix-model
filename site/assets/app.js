@@ -359,7 +359,7 @@
     const bodyLines = [
       custom
         ? "Mcfly Analytics — custom data science inquiry"
-        : "Mcfly Ads — Install free / support request",
+        : "Mcfly Ads — support request",
       "",
       "Name: " + fields.name,
       "Email: " + fields.email,
@@ -377,6 +377,9 @@
     if (fields.timeline) {
       bodyLines.push("Target start: " + fields.timeline);
     }
+    if (fields.company) {
+      bodyLines.push("Company: " + fields.company);
+    }
     if (fields.notes) {
       bodyLines.push(
         "",
@@ -388,9 +391,7 @@
       "",
       custom
         ? "Request: custom analytics / MDS proposal ($5–25K band)."
-        : "Request: Install free / App Store help.",
-      "Public target: " + INVITES_EMAIL,
-      "Interim inbox: " + INTERIM_INBOX,
+        : "Request: App Store / Partner install help.",
     );
     const body = bodyLines.join("\n");
     const mailto =
@@ -400,10 +401,12 @@
       encodeURIComponent(subject) +
       "&body=" +
       encodeURIComponent(body);
-    const clipboard = ["To: " + INVITES_EMAIL + " (interim: " + INTERIM_INBOX + ")", "Subject: " + subject, "", body].join(
-      "\n",
-    );
+    const clipboard = ["Subject: " + subject, "", body].join("\n");
     return { subject, body, mailto, clipboard };
+  }
+
+  function hasShopifyLeak(value) {
+    return /myshopify\.com|admin\.shopify/i.test(String(value || ""));
   }
 
   async function copyText(text) {
@@ -478,7 +481,7 @@
         submitBtn.setAttribute("data-busy-label", submitBtn.textContent || "");
         submitBtn.textContent = "Sending…";
       } else if (submitBtn.hasAttribute("data-busy-label")) {
-        submitBtn.textContent = submitBtn.getAttribute("data-busy-label") || "Install free";
+        submitBtn.textContent = submitBtn.getAttribute("data-busy-label") || "Send";
         submitBtn.removeAttribute("data-busy-label");
       }
     }
@@ -490,7 +493,9 @@
       const failed = !result || result.ok === false;
 
       if (titleEl) {
-        if (failed) titleEl.textContent = "Not delivered — send manually";
+        const customSuccess = form.getAttribute("data-waitlist-success");
+        if (!failed && customSuccess) titleEl.textContent = customSuccess;
+        else if (failed) titleEl.textContent = "Not delivered — send manually";
         else if (emailed) titleEl.textContent = "Message received";
         else titleEl.textContent = "Request saved — email pending";
       }
@@ -502,21 +507,10 @@
       }
       if (metaEl) {
         metaEl.replaceChildren();
-        metaEl.append("Target ");
-        const invites = document.createElement("span");
-        invites.className = "mono email-plain";
-        invites.textContent = (result && result.invites) || INVITES_EMAIL;
-        metaEl.append(invites);
-        metaEl.append(" · interim ");
-        const interim = document.createElement("span");
-        interim.className = "mono email-plain";
-        interim.textContent = (result && result.interimInbox) || INTERIM_INBOX;
-        metaEl.append(interim);
-        metaEl.append(" · ");
-        if (emailed && stored) metaEl.append("emailed + stored");
-        else if (emailed) metaEl.append("emailed");
-        else if (stored) metaEl.append("stored (not emailed yet)");
-        else metaEl.append("delivery failed");
+        if (emailed && stored) metaEl.append("Emailed + stored. We will reply by email.");
+        else if (emailed) metaEl.append("Emailed. We will reply by email.");
+        else if (stored) metaEl.append("Stored. We will reply by email.");
+        else metaEl.append("Delivery failed — copy the message and send it yourself.");
       }
       if (previewEl) {
         previewEl.textContent = draft.body;
@@ -549,15 +543,21 @@
       event.preventDefault();
       showError("");
       const data = new FormData(form);
+      const isProposal = form.hasAttribute("data-proposal");
       let name = String(data.get("name") || "").trim();
       const email = String(data.get("email") || "").trim();
       const role = String(data.get("role") || "").trim();
+      const company = String(data.get("company") || "").trim();
       const store = normalizeStoreUrl(data.get("store"));
       const notes = String(data.get("notes") || "").trim();
       const budget = String(data.get("budget") || "").trim();
       const spend = String(data.get("spend") || "").trim();
       const timeline = String(data.get("timeline") || "").trim();
       const source = form.getAttribute("data-waitlist-source") || "mcflyads.com support";
+      const website = String(data.get("website") || "").trim();
+      if (website) {
+        return;
+      }
 
       const emailInput = form.querySelector('[name="email"]');
       if (!email) {
@@ -570,29 +570,67 @@
         showError("Enter a valid email so we can reply.");
         return;
       }
+      if (isProposal && !name) {
+        showError("Name is required.");
+        return;
+      }
       if (!name) {
-        name = email.split("@")[0] || "Install free";
+        name = email.split("@")[0] || "Support";
       }
 
-      const draft = buildWaitlistDraft({ name, email, role, store, source, notes, budget, spend, timeline });
+      var leaked = false;
+      data.forEach(function (value) {
+        if (typeof value === "string" && hasShopifyLeak(value)) leaked = true;
+      });
+      if (leaked) {
+        showError("Remove myshopify.com / admin.shopify from this form. There is no shop-domain box.");
+        return;
+      }
+
+      const proposal = {};
+      if (isProposal) {
+        data.forEach((value, key) => {
+          if (key === "website") return;
+          if (typeof value === "string") proposal[key] = value.trim();
+        });
+      }
+
+      const draft = buildWaitlistDraft({
+        name,
+        email,
+        role,
+        company: isProposal ? company : "",
+        store: store || company,
+        source,
+        notes,
+        budget,
+        spend,
+        timeline,
+      });
       setBusy(true);
       let result = null;
       try {
+        const payload = {
+          name,
+          email,
+          role,
+          company,
+          store: store || "",
+          source,
+          notes,
+          budget,
+          spend,
+          timeline,
+          website,
+        };
+        if (isProposal) {
+          payload.package = String(data.get("package") || "").trim();
+          payload.proposal = proposal;
+        }
         const res = await fetch(WAITLIST_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            role,
-            store,
-            source,
-            notes,
-            budget,
-            spend,
-            timeline,
-            company: data.get("company") || "",
-          }),
+          body: JSON.stringify(payload),
         });
         result = await res.json().catch(() => null);
         if (!result) {
@@ -614,13 +652,16 @@
       setBusy(false);
       if (result.message) draft.body = result.message;
       if (result.subject) draft.subject = result.subject;
-      draft.clipboard = [
-        "To: " + INVITES_EMAIL + " (interim: " + INTERIM_INBOX + ")",
-        "Subject: " + draft.subject,
-        "",
-        draft.body,
-      ].join("\n");
+      draft.clipboard = ["Subject: " + draft.subject, "", draft.body].join("\n");
       showResult(draft, result);
+      if (isProposal) {
+        form.dispatchEvent(
+          new CustomEvent("mcfly:proposal-result", {
+            bubbles: true,
+            detail: { result: result, draft: draft },
+          }),
+        );
+      }
     });
 
     if (copyBtn) {
@@ -630,8 +671,8 @@
         if (copyStatus) {
           copyStatus.hidden = false;
           copyStatus.textContent = ok
-            ? "Copied. Paste into any email to " + INVITES_EMAIL + " or " + INTERIM_INBOX + "."
-            : "Copy failed — select the message text below, or write to " + INTERIM_INBOX + ".";
+            ? "Copied. Paste into your mail app."
+            : "Copy failed — select the message text below.";
         }
       });
     }

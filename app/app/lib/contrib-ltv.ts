@@ -48,3 +48,26 @@ export function contributionLtvCacRatio(
   if (contribLtv == null || cashCac == null || !(cashCac > 0)) return null;
   return roundMer(contribLtv / cashCac);
 }
+
+/**
+ * Honest caption: cohort LTV windows ≠ selected-period Cash CAC.
+ * Never imply 30/90/365d revenue and this-period spend share one slicer.
+ */
+export function ltvWindowCaption(opts: {
+  periodLabel: string;
+  cohortMaxDays?: number;
+}): string {
+  const periodLabel = opts.periodLabel.trim() || "this period";
+  const cohortMaxDays =
+    opts.cohortMaxDays != null &&
+    Number.isFinite(opts.cohortMaxDays) &&
+    opts.cohortMaxDays > 0
+      ? Math.round(opts.cohortMaxDays)
+      : 365;
+  return (
+    `30/90/${cohortMaxDays}d cohort windows are from each customer’s first-order month` +
+    ` (often longer than ${periodLabel}). Cash CAC uses this period’s spend ÷ new buyers` +
+    ` — not the same window. Shopify Analytics does not combine LTV with ad spend.` +
+    ` Not predictive. Not by ad. Order history only — not email CRM.`
+  );
+}

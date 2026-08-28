@@ -8,14 +8,14 @@ import { UseSampleCta } from "./UseSampleCta";
 type ProUpsellBlockProps = {
   /** Feature-specific lead (LTV / Goals / channels). Falls back to includes. */
   lead?: string;
-  /** Show Practice preview CTA (same toggle as the top bar). */
+  /** Show Sample data preview CTA (same toggle as the top bar). */
   showSample?: boolean;
 };
 
 /**
- * Compact Pro upsell: one sentence, price, Upgrade.
- * Practice uses the same data-mode POST as the top toggle — never /app/demo.
- * Keep $39 visible — Free-to-Pro is the money path; do not bury the price.
+ * Compact plan block: one sentence, price, Start 7-day trial.
+ * Sample data uses the same data-mode POST as the top toggle — never /app/demo.
+ * Product pages must not render this — Settings uses ProUpgradeButton directly.
  */
 export function ProUpsellBlock({
   lead,
@@ -28,13 +28,13 @@ export function ProUpsellBlock({
       <div className="mcfly-pro-upsell__actions">
         <ProUpgradeButton quiet />
         {showSample ? (
-          <UseSampleCta label="See it on Practice" />
+          <UseSampleCta label="See Sample data" />
         ) : (
           <s-link href="/app/settings">{PRO_UPSELL.seeSettings}</s-link>
         )}
       </div>
-      <details className="mcfly-pro-upsell__more">
-        <summary>What’s in Pro</summary>
+      <details className="mcfly-pro-upsell__more" open>
+        <summary>What’s in the desk</summary>
         <ul className="mcfly-pro-upsell__list">
           {PRO_FEATURE_BULLETS.map((line) => (
             <li key={line}>{line}</li>

@@ -66,7 +66,7 @@ export async function seedThreeYearSampleDesk(
   shopId: string,
   targetMer = SAMPLE_DESK_TARGET_MER,
 ) {
-  const rows = buildThreeYearSampleDesk({ targetMer, years: 3 });
+  const rows = buildThreeYearSampleDesk({ targetMer });
 
   await prisma.$transaction(async (tx) => {
     await tx.sampleSalesDay.deleteMany({ where: { shopId } });

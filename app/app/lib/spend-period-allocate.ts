@@ -5,7 +5,13 @@
  * Pure math — no I/O. Mcfly pulls Shopify sales (PCD L1); merchants enter spend.
  */
 
-export type PeriodWindowType = "month" | "quarter" | "half_year" | "year";
+export type PeriodWindowType =
+  | "day"
+  | "week"
+  | "month"
+  | "quarter"
+  | "half_year"
+  | "year";
 
 export type AllocateDayRow = {
   date: string;
@@ -28,6 +34,8 @@ export type AllocateLumpInput = {
 };
 
 const PERIOD_TYPES: readonly PeriodWindowType[] = [
+  "day",
+  "week",
   "month",
   "quarter",
   "half_year",
@@ -121,6 +129,8 @@ export function inclusiveDayCount(
  * Calendar window for a period type containing the anchor.
  * Anchor: YYYY-MM (month picker) or YYYY-MM-DD.
  *
+ * - day: that calendar day (YYYY-MM-DD)
+ * - week: 7 days starting on the chosen date
  * - month: full calendar month
  * - quarter: calendar quarter (Q1 Jan–Mar … Q4 Oct–Dec)
  * - half_year: bi-annual H1 Jan–Jun / H2 Jul–Dec
@@ -131,6 +141,23 @@ export function periodWindow(
   anchor: string,
 ): PeriodWindow | null {
   if (!isPeriodWindowType(type)) return null;
+
+  if (type === "day") {
+    const ymd = parseYmd(anchor);
+    if (!ymd) return null;
+    const startDateYmd = formatYmd(ymd.y, ymd.m, ymd.d);
+    return { startDateYmd, endDateYmd: startDateYmd, dayCount: 1 };
+  }
+
+  if (type === "week") {
+    const ymd = parseYmd(anchor);
+    if (!ymd) return null;
+    const startDateYmd = formatYmd(ymd.y, ymd.m, ymd.d);
+    const end = addCalendarDays(ymd.y, ymd.m, ymd.d, 6);
+    const endDateYmd = formatYmd(end.y, end.m, end.d);
+    return { startDateYmd, endDateYmd, dayCount: 7 };
+  }
+
   const ym = parseYearMonth(anchor);
   if (!ym) return null;
 
@@ -270,7 +297,7 @@ export function planLumpSpread(input: {
   if (!isPeriodWindowType(periodType)) {
     return {
       ok: false,
-      error: "Pick a period: month, quarter, bi-annual, or year.",
+      error: "Pick a period: day, week, month, quarter, bi-annual, or year.",
     };
   }
   if (!channel?.trim()) {
@@ -279,7 +306,13 @@ export function planLumpSpread(input: {
 
   const window = periodWindow(periodType, anchor);
   if (!window) {
-    return { ok: false, error: "Anchor must be a valid month (YYYY-MM) or date." };
+    return {
+      ok: false,
+      error:
+        periodType === "day" || periodType === "week"
+          ? "Pick a start date (YYYY-MM-DD)."
+          : "Anchor must be a valid month (YYYY-MM) or date.",
+    };
   }
 
   const days = allocateLumpToDays({

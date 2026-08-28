@@ -11,27 +11,29 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#0a1221" />
+  <meta name="mcfly-version" content="v4" />
+  <meta name="mcfly-build" content="pr-23" />
   <link rel="canonical" href="https://mcflyads.com/mer-calculator" />
   <meta property="og:site_name" content="Mcfly Ads" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mcflyads.com/mer-calculator" />
   <meta property="og:title" content="Free MER calculator — sales ÷ spend — Mcfly Ads" />
   <meta property="og:description" content="MER = sales ÷ ad spend. Break-even from margin. Spend headroom. Free, offline, no account." />
-  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
+  <meta property="og:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Free MER calculator — sales ÷ spend — Mcfly Ads" />
   <meta name="twitter:description" content="MER = sales ÷ spend. Break-even ≈ 1 ÷ margin. Free, offline, no account." />
-  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
+  <meta name="twitter:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260731copy" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": "Free MER calculator",
-    "url": "https://mcflyads.com/mer-calculator",
+    "url": "https://mcfly-analytics.fly.dev/mer-calculator",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Any",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -586,11 +588,22 @@
         <form class="waitlist" data-waitlist data-waitlist-source="mer-calculator save" novalidate>
           <label>Name <input name="name" type="text" autocomplete="name" required maxlength="120" /></label>
           <label>Email <input name="email" type="email" required autocomplete="email" /></label>
+          <label>Company <span class="opt">(optional)</span>
+            <input name="company" type="text" autocomplete="organization" maxlength="200" />
+          </label>
+          <label>Budget <span class="opt">(optional)</span>
+            <select name="budget">
+              <option value="">Prefer not to say</option>
+              <option value="$5–8K">$5–8K</option>
+              <option value="$8–15K">$8–15K</option>
+              <option value="$15–25K">$15–25K</option>
+            </select>
+          </label>
           <input type="hidden" name="role" value="Calculator save" />
           <label>Snapshot
             <textarea name="notes" id="calc-notes" rows="4" readonly></textarea>
           </label>
-          <input type="text" name="company" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" />
+          <input type="text" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px" />
           <button class="btn primary solid" type="submit">Save snapshot + request reply</button>
           <p class="note" data-waitlist-error hidden role="alert"></p>
         </form>
@@ -610,20 +623,20 @@
     <section class="dl-close" aria-labelledby="dl-close-title">
       <p class="eyebrow">When you're ready for live data</p>
       <h2 id="dl-close-title">The desk, on your real sales</h2>
-      <p class="lede">Calculator = manual. Shopify app pulls <strong>sales</strong>; you <strong>paste Meta + Google spend from Sheets</strong> — then Total ROAS vs break-even every week, one allocation call. Same math. No ad OAuth.</p>
+      <p class="lede">Calculator = manual. Shopify app pulls <strong>sales</strong>; you <strong>add spend from any platform</strong> — then Total ROAS vs break-even every week, one allocation call. Same math. No ad OAuth.</p>
       <div class="cta-row">
-        <a class="btn primary" data-mcfly-cta="primary" href="/support">Install free</a>
+        <a class="btn primary" data-mcfly-cta="primary" href="/demo">Try the demo</a>
         <a class="btn ghost" href="/support">App Store install steps</a>
         <a class="btn ghost" href="/product">How it works</a>
       </div>
-      <p class="fine-line">Pro $39/store/mo flat via Shopify App Pricing. Not forever-free. Not a GMV tax. Not a pixel.</p>
+      <p class="fine-line">7-day trial then $39/store/mo. Uninstall stops the charge. Not a GMV tax. Not a pixel.</p>
     </section>
   </main>
 
   <div data-footer></div>
-  <script src="/assets/cta-config.js?v=20260731copy"></script>
-  <script src="/assets/chrome.js?v=20260731copy"></script>
-  <script src="/assets/app.js?v=20260731copy"></script>
+  <script src="/assets/cta-config.js?v=20260825live"></script>
+  <script src="/assets/chrome.js?v=20260828sec"></script>
+  <script src="/assets/app.js?v=20260828sec"></script>
   <script>
     (function () {
       const spend = document.getElementById("dl-spend");

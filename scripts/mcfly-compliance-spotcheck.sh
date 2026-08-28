@@ -31,6 +31,9 @@ for TOML in app/shopify.app.toml app/shopify.app.public.toml; do
     grep -Eq '^[[:space:]]*application_url = "https://mcfly-analytics\.fly\.dev"[[:space:]]*$' "$TOML" \
       && check "$TOML App URL is the Fly app" 1 \
       || check "$TOML App URL is the Fly app" 0
+    grep -Eq '^[[:space:]]*url = "https://mcfly-analytics\.fly\.dev/support"[[:space:]]*$' "$TOML" \
+      && check "$TOML app_preferences Support URL is Fly" 1 \
+      || check "$TOML app_preferences Support URL is Fly" 0
   else
     check "$TOML exists" 0
   fi
@@ -41,6 +44,15 @@ done
   && check "compliance webhook route" 1 || check "compliance webhook route" 0
 [[ -f app/app/routes/webhooks.app.uninstalled.tsx ]] \
   && check "uninstall webhook route" 1 || check "uninstall webhook route" 0
+[[ -f app/app/routes/support.tsx && -f app/app/routes/privacy.tsx && -f app/app/routes/terms.tsx && -f app/app/routes/pricing.tsx ]] \
+  && check "Fly-origin trust page routes" 1 || check "Fly-origin trust page routes" 0
+[[ -f app/scripts/serve-with-site.mjs && -f app/scripts/shopify-app-path.mjs ]] \
+  && check "Fly serves marketing site/ next to Remix" 1 || check "Fly serves marketing site/ next to Remix" 0
+if grep -q 'COPY site /repo/site' app/Dockerfile && grep -q 'serve-with-site.mjs' app/package.json; then
+  check "Docker image copies site/ and starts serve-with-site" 1
+else
+  check "Docker image copies site/ and starts serve-with-site" 0
+fi
 
 # No shop-domain install form (auth.login should not collect shop domain input)
 if [[ -f app/app/routes/auth.login/route.tsx ]]; then

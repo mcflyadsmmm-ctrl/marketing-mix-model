@@ -1,0 +1,36 @@
+{
+  "name": "Mcfly Ads",
+  "short_name": "Mcfly Ads",
+  "description": "Custom Data Solutions. Fixed-fee desks you keep.",
+  "start_url": "/custom-analytics",
+  "scope": "/",
+  "display": "browser",
+  "background_color": "#082830",
+  "theme_color": "#082830",
+  "icons": [
+    {
+      "src": "/assets/brand/favicon-custom-analytics.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/brand/favicon-custom-analytics-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/brand/favicon-custom-analytics-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/brand/apple-touch-custom-analytics.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

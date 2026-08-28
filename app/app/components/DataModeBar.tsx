@@ -8,10 +8,15 @@ export type DataModeBarProps = {
   marginConfirmed: boolean;
   /** Real-store activation: at least one non-sample spend row. */
   hasLiveSpend: boolean;
+  /**
+   * Listing capture (`?shot=1`). Hide the toggle on Live data.
+   * If Sample data is on, keep an unmistakable example-numbers label (1.1.4).
+   */
+  shotMode?: boolean;
 };
 
 /**
- * Global Practice | Your store control — one place, every desk page.
+ * Global Sample data | Live data control — one place, every desk page.
  * Real-store checklist stays until first margin + spend (not only ?guide=real).
  */
 export function DataModeBar({
@@ -19,10 +24,27 @@ export function DataModeBar({
   samplePreviewAllowed,
   marginConfirmed,
   hasLiveSpend,
+  shotMode = false,
 }: DataModeBarProps) {
   const location = useLocation();
   const [params] = useSearchParams();
-  const activationIncomplete = !marginConfirmed || !hasLiveSpend;
+  const activationIncomplete = !hasLiveSpend;
+
+  if (shotMode) {
+    if (!useSampleDesk) return null;
+    return (
+      <div
+        className="mcfly-data-mode mcfly-data-mode--sample mcfly-data-mode--shot"
+        role="status"
+      >
+        <p className="mcfly-data-mode__status">
+          <strong>{PRODUCT_NOUN.practiceDesk}</strong>
+          <span aria-hidden="true"> · </span>
+          {PRODUCT_NOUN.practiceHint}
+        </p>
+      </div>
+    );
+  }
   const guideParam =
     params.get("guide") === "real" || params.get("guide") === "1";
   /** Sticky until first trusted Total ROAS inputs exist — uninstall protection. */
@@ -34,16 +56,16 @@ export function DataModeBar({
   const setupSteps = (
     <ol className="mcfly-data-mode__steps">
       <li>
-        <s-link href={`/app/settings${location.search}`}>
-          {PRODUCT_NOUN.setupAdjustMargin}
-        </s-link>
-        {marginConfirmed ? " — done" : null}
-      </li>
-      <li>
         <s-link href={`/app/spend${location.search}`}>
           {PRODUCT_NOUN.setupAddSpend}
         </s-link>
         {hasLiveSpend ? " — done" : null}
+      </li>
+      <li>
+        <s-link href={`/app/settings${location.search}`}>
+          {PRODUCT_NOUN.setupAdjustMargin}
+        </s-link>
+        {marginConfirmed ? " — done" : " — optional, for break-even"}
       </li>
       <li>
         <s-link href={`/app${location.search}`}>
@@ -65,7 +87,9 @@ export function DataModeBar({
           <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
             {setupSteps}
             <p className="mcfly-data-mode__steps-note">
-              Shopify sales load automatically. You only add ad spend.
+              Shopify sales load automatically. You only add ad spend. A day
+              with no spend row is $0 — last month is enough. Profit margin is
+              optional — it draws a break-even line.
             </p>
           </s-banner>
         ) : null}
@@ -133,7 +157,9 @@ export function DataModeBar({
         <s-banner tone="info" heading={`Get ${PRODUCT_NOUN.totalRoas} on your store`}>
           {setupSteps}
           <p className="mcfly-data-mode__steps-note">
-            Shopify sales load automatically. You only add ad spend.
+            Shopify sales load automatically. You only add ad spend. A day
+            with no spend row is $0 — last month is enough. Profit margin is
+            optional — it draws a break-even line.
           </p>
         </s-banner>
       ) : null}

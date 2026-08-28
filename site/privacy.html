@@ -11,21 +11,23 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#0a1221" />
-  <link rel="canonical" href="https://mcflyads.com/privacy" />
+  <meta name="mcfly-version" content="v4" />
+  <meta name="mcfly-build" content="pr-23" />
+  <link rel="canonical" href="https://mcfly-analytics.fly.dev/privacy" />
   <meta property="og:site_name" content="Mcfly Ads" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://mcflyads.com/privacy" />
+  <meta property="og:url" content="https://mcfly-analytics.fly.dev/privacy" />
   <meta property="og:title" content="Privacy — Mcfly Analytics" />
-  <meta property="og:description" content="Total ROAS data diet: order totals, opaque OrderFact / CohortFact, spend you enter. No name/email CRM. App Store Free + Pro $39." />
+  <meta property="og:description" content="Total ROAS data diet: order totals, opaque OrderFact / CohortFact, spend you enter. No name/email CRM. 7-day trial then $39/store/mo." />
   <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Privacy — Mcfly Analytics" />
-  <meta name="twitter:description" content="Order totals + opaque OrderFact / CohortFact + spend you enter. No pixels, no CRM. App Store Free + Pro $39." />
+  <meta name="twitter:description" content="Order totals + opaque OrderFact / CohortFact + spend you enter. No pixels, no CRM. 7-day trial then $39/store/mo." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260731copy" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
   <style>
     body.privacy-page {
       background:
@@ -175,7 +177,7 @@
       </div>
       <div class="trust-chip" role="listitem">
         <strong>Shopify App Pricing</strong>
-        <span>Free plan + paid plan — prices on /pricing, billed through Shopify</span>
+        <span>7-day trial then $39/store/mo — uninstall stops the charge</span>
       </div>
     </div>
 
@@ -186,7 +188,7 @@
           <li>We read Shopify order totals (<code>read_orders</code>) and classify unique customers as new vs returning using least-privilege <code>read_customers</code> — opaque customer IDs + <code>numberOfOrders</code> only. We do <strong>not</strong> request name, email, phone, or address. That diet powers Total ROAS, break-even, and allocation.</li>
           <li>We persist opaque <strong>OrderFact</strong> rows (order id, amount, date, opaque customerKey) and <strong>CohortFact</strong> aggregates for customer lifetime value — still no name/email/phone/address CRM.</li>
           <li>Uninstalling triggers Shopify's <code>shop/redact</code> webhook — we delete your Mcfly shop record, settings, spend, OrderFacts, CohortFacts, and related facts. <code>customers/redact</code> deletes that customer's OrderFacts.</li>
-          <li>Same Total ROAS religion as the product: we measure money against money, not who "won" the click. The Shopify App Store listing name is <strong>Mcfly Analytics</strong>. Plans are billed through Shopify App Pricing (Free + Pro). See <a href="/pricing">Pricing</a> for current plan prices — not a later surprise invoice.</li>
+          <li>Same Total ROAS religion as the product: we measure money against money, not who "won" the click. The Shopify App Store listing name is <strong>Mcfly Analytics</strong>. Billing: 7-day full-access trial, then $39/store/mo for the whole desk. Uninstall stops the charge. See <a href="/pricing">Pricing</a>.</li>
         </ul>
         <p class="summary-note">This summary is an orientation, not a substitute — the full policy below governs.</p>
       </div>
@@ -209,8 +211,8 @@
       </nav>
 
       <h2 id="who-we-are">Who we are</h2>
-      <p>Mcfly Ads (“Mcfly,” “we”) is operated by Marty Smithson (Utah, United States). Contact: <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Support: <a href="/support">mcflyads.com/support</a>.</p>
-      <p>This policy applies to mcflyads.com and the Shopify app listed as <strong>Mcfly Analytics</strong> (product brand: Mcfly Ads).</p>
+      <p>Mcfly Ads (“Mcfly,” “we”) is operated by Marty Smithson (Utah, United States). Contact: <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Support: <a href="/support">mcfly-analytics.fly.dev/support</a> · email <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>.</p>
+      <p>This policy applies to the marketing site at <strong>https://mcfly-analytics.fly.dev</strong> and the Shopify app listed as <strong>Mcfly Analytics</strong> (product brand: Mcfly Ads).</p>
 
       <h2 id="why-we-process">Why we process data</h2>
       <p>To run the Total ROAS dashboard, break-even Total ROAS, rules-based allocation, and customer lifetime value cohorts; to provide support and security; and to comply with law and Shopify’s app requirements (including GDPR webhooks). We measure money spent on ads against money Shopify recorded as sales — not who “won” the click.</p>
@@ -219,14 +221,14 @@
       <p>Where GDPR / UK GDPR applies:</p>
       <ul>
         <li><strong>Shopify app processing for merchants</strong> — typically <strong>performance of a contract</strong> (Art. 6(1)(b)) to provide the Total ROAS desk you install, and <strong>legitimate interests</strong> (Art. 6(1)(f)) for security, abuse prevention, and product reliability — balanced against your rights.</li>
-        <li><strong>Waitlist / support contact</strong> — <strong>consent</strong> (Art. 6(1)(a)) and/or steps prior to a contract when you email us or submit the form.</li>
+        <li><strong>Support contact</strong> — <strong>consent</strong> (Art. 6(1)(a)) and/or steps prior to a contract when you email us at mcflyadsmmm@gmail.com.</li>
         <li><strong>Legal obligation</strong> (Art. 6(1)(c)) — responding to Shopify GDPR webhooks and applicable law.</li>
       </ul>
-      <p>Merchants are typically the <strong>controller</strong> of their store customer data; Mcfly acts as a <strong>processor</strong> for Shopify-sourced store data under the merchant’s instructions and Shopify’s platform rules. For waitlist/support emails you send us directly, Mcfly is the <strong>controller</strong>. A draft Data Processing Addendum is at <a href="/dpa">/dpa</a> (lawyer review pending before signature).</p>
+      <p>Merchants are typically the <strong>controller</strong> of their store customer data; Mcfly acts as a <strong>processor</strong> for Shopify-sourced store data under the merchant’s instructions and Shopify’s platform rules. For support emails you send us directly, Mcfly is the <strong>controller</strong>. A draft Data Processing Addendum is at <a href="/dpa">/dpa</a> (lawyer review pending before signature).</p>
 
       <h2 id="what-we-collect">What we collect</h2>
       <ul>
-        <li><strong>Waitlist / support contact</strong> you give us voluntarily — name, email, and optionally store URL — via the site waitlist (<a href="/support">mcflyads.com/support</a>) or email to <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a> / <a href="/support">Support</a>. Used only to reply and coordinate installs. Not customer CRM. Stored in Cloudflare KV (≤180 days TTL) and may be emailed via Resend and/or FormSubmit.co.</li>
+        <li><strong>Support contact</strong> you give us voluntarily by email to <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a> (primary until DNS) — name, email, and optionally store URL. Used only to reply and help with install/spend questions. Not customer CRM. No site waitlist product path.</li>
         <li><strong>Shopify shop domain</strong> and OAuth session tokens when you install the app.</li>
         <li><strong>Staff Session fields from Shopify login</strong> (when the merchant staffer opens the embedded app with an online session): staff <code>email</code>, <code>firstName</code>, <code>lastName</code>, and related Shopify session flags (account owner / collaborator / locale). These identify the Admin user using the app — <strong>not</strong> store customers. We do not use staff email for marketing lists.</li>
         <li><strong>Order / sales totals and order counts</strong> for periods you view (Shopify Admin API scopes <code>read_orders</code> and, when approved, <code>read_all_orders</code> for deeper history) to compute Total ROAS and AOV.</li>
@@ -234,9 +236,9 @@
         <li><strong>OrderFact</strong> (persisted): opaque <code>customerKey</code> (Shopify customer GID or guest marker), Shopify order id, order amount, and order created-at / shop-local date — used to build customer lifetime value. No name, email, phone, or address fields. Opaque IDs remain pseudonymous personal data under GDPR.</li>
         <li><strong>CohortFact</strong> (persisted aggregates): monthly first-order cohort rollups (customer counts and revenue/orders at 30/90/365 days) derived from OrderFacts — still no CRM PII.</li>
         <li><strong>SalesDayFact</strong> / <strong>MerSnapshot</strong> — day-level sales and Total ROAS snapshot rows for the desk (amounts/dates, not customer directories).</li>
-        <li><strong>CashClose</strong> — optional Monday Close / Export memo snapshots (period totals, decision labels) when Pro save/export is used.</li>
+        <li><strong>CashClose</strong> — optional Monday Close / Export memo snapshots (period totals, decision labels) when save/export is used.</li>
         <li><strong>ComplianceDataExport</strong> (temporary): when Shopify sends <code>customers/data_request</code>, we store an opaque order package (order ids, amounts, dates, opaque customerKey — never name/email/phone) so the merchant can download it in Settings. Packages are purged by a scheduled job after <strong>60 days</strong>, and erased earlier on <code>customers/redact</code>, <code>shop/redact</code>, or uninstall.</li>
-        <li><strong>Ad spend you enter or sync</strong> — Free path: paste from Sheets or CSV / manual entry (ad-spend aggregates only). Optional merchant-chosen pipe tools (e.g. SyncWith, Coupler, Supermetrics, Coefficient) may fill a Mcfly CSV template on the merchant’s side — see Processors. Near-term retention path: optional Meta + Google Ads spend OAuth (feature-flagged; never pixels / path data). Settings: margin %, target Total ROAS.</li>
+        <li><strong>Ad spend you enter or sync</strong> — Paste from Sheets or CSV / manual entry / Ads Manager CSV (ad-spend aggregates only). Optional merchant-chosen pipe tools (e.g. SyncWith, Coupler, Supermetrics, Coefficient) may fill a Mcfly CSV template on the merchant’s side — see Processors. No Meta/Google OAuth required. Settings: margin %, target Total ROAS.</li>
         <li><strong>Job / WebhookDelivery / ApiToken</strong> — operational rows (job type, shop, delivery keys, hashed API tokens) for reliability and optional merchant API access. Webhook delivery ledgers do not store full order PII packages.</li>
         <li><strong>Technical / host logs</strong> — our hosts and CDN may record standard request metadata (timestamps, paths, status codes, IP addresses, user agents) for security and reliability. Application bot detection may use user-agent strings. Compliance webhook application logs do not dump order amount packages.</li>
       </ul>
@@ -258,32 +260,32 @@
       </ul>
 
       <h2 id="california">California privacy (CCPA / CPRA)</h2>
-      <p>We do <strong>not sell</strong> personal information and do <strong>not share</strong> it for cross-context behavioral advertising. We do not use store customer profiles for ads. California residents may request to know, delete, or correct personal information we hold about them (for example waitlist contact or staff session fields) by emailing <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Merchants fulfill Shopify customer data requests through Shopify’s GDPR webhooks; Mcfly supports those webhooks as described above. We will not discriminate against you for exercising privacy rights.</p>
+      <p>We do <strong>not sell</strong> personal information and do <strong>not share</strong> it for cross-context behavioral advertising. We do not use store customer profiles for ads. California residents may request to know, delete, or correct personal information we hold about them (for example support email contact or staff session fields) by emailing <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Merchants fulfill Shopify customer data requests through Shopify’s GDPR webhooks; Mcfly supports those webhooks as described above. We will not discriminate against you for exercising privacy rights.</p>
 
       <h2 id="retention">Retention</h2>
-      <p>We keep app data while the app is installed. After uninstall / shop redact, we delete merchant app data subject to short backup windows and legal holds. <strong>ComplianceDataExport</strong> packages from <code>customers/data_request</code> are retained for at most <strong>60 days</strong>, then purged by a scheduled worker (and also on Settings list/retrieve), or erased sooner on redact/uninstall. Waitlist/support contacts in Cloudflare KV expire after <strong>180 days</strong> (TTL) and can be deleted earlier on request. Email copies in Resend/FormSubmit/your inbox follow those tools’ retention.</p>
+      <p>We keep app data while the app is installed. After uninstall / shop redact, we delete merchant app data subject to short backup windows and legal holds. <strong>ComplianceDataExport</strong> packages from <code>customers/data_request</code> are retained for at most <strong>60 days</strong>, then purged by a scheduled worker (and also on Settings list/retrieve), or erased sooner on redact/uninstall. Support emails you send to Gmail are retained only as needed to reply, then deleted on request. We do not operate a site waitlist KV product path.</p>
 
       <h2 id="processors">Processors</h2>
       <p>We use infrastructure and service vendors that process data only to provide services to us (and, for the Shopify app, to merchants). Current processors include:</p>
       <ul>
-        <li><strong>Cloudflare</strong> — marketing site hosting (Pages), CDN, DNS, email obfuscation scripts, and waitlist KV storage.</li>
+        <li><strong>Cloudflare</strong> — marketing site hosting (Pages), CDN, DNS, email obfuscation scripts, for the marketing site.</li>
         <li><strong>Fly.io</strong> — application host for the embedded Shopify app.</li>
         <li><strong>Managed Postgres</strong> (via Fly / Neon-class provider as configured) — application database.</li>
         <li><strong>Shopify</strong> — OAuth, Admin API, webhooks, App Store distribution.</li>
-        <li><strong>Resend</strong> — transactional email when configured (<code>RESEND_API_KEY</code>) for waitlist/support notifications.</li>
-        <li><strong>FormSubmit.co</strong> — fallback email relay for waitlist/support form posts when Resend is not configured.</li>
+        <li><strong>Resend</strong> — transactional email when configured (<code>RESEND_API_KEY</code>) for support notifications when configured.</li>
+        
         <li><strong>Google Fonts</strong> — font files loaded from Google’s CDN on the marketing site (see Cookies).</li>
       </ul>
-      <p><strong>Merchant-chosen spend pipe tools (not Mcfly processors by default):</strong> On the Free path you may optionally use SyncWith, Coupler, Supermetrics, Coefficient, or similar tools you contract and pay for to fill a Mcfly CSV / Sheets template, then import that file into Mcfly. Those tools are <strong>your</strong> processors under <strong>your</strong> agreements — Mcfly does not operate them, does not receive their OAuth tokens, and does not claim a “Works with” partnership. Mcfly only receives the ad-spend aggregates you paste or upload.</p>
+      <p><strong>Merchant-chosen spend pipe tools (not Mcfly processors by default):</strong> You may optionally use SyncWith, Coupler, Supermetrics, Coefficient, or similar tools you contract and pay for to fill a Mcfly CSV / Sheets template, then import that file into Mcfly. Those tools are <strong>your</strong> processors under <strong>your</strong> agreements — Mcfly does not operate them, does not receive their OAuth tokens, and does not claim a “Works with” partnership. Mcfly only receives the ad-spend aggregates you paste or upload.</p>
 
       <h2 id="transfers">International transfers</h2>
       <p>Mcfly is operated from the United States. Hosting and processors (Cloudflare, Fly.io, database, email) may process data in the US and other countries. Where required, we rely on appropriate transfer mechanisms (for example Standard Contractual Clauses) and will provide a signed DPA / SCC package on request after legal review — see <a href="/dpa">/dpa</a>.</p>
 
       <h2 id="cookies">Cookies &amp; similar tech</h2>
-      <p>See <a href="/cookies">Cookies</a> for the short notice. Summary: we do not run marketing/analytics pixels on mcflyads.com. The site may use essential hosting cookies from Cloudflare, load Google Fonts from Google’s CDN, and store waitlist submissions you send. The embedded Shopify app runs inside Shopify Admin and follows Shopify’s session model.</p>
+      <p>See <a href="/cookies">Cookies</a> for the short notice. Summary: we do not run marketing/analytics pixels on mcflyads.com. The site may use essential hosting cookies from Cloudflare, load Google Fonts from Google’s CDN, and load essential hosting assets. The embedded Shopify app runs inside Shopify Admin and follows Shopify’s session model.</p>
 
       <h2 id="your-rights">Your rights</h2>
-      <p>Depending on your location, you may request access, correction, deletion, restriction, objection, or export of personal data, and you may withdraw consent for waitlist contact. Email <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Merchants can also uninstall the app to stop processing store data through Mcfly. EU/UK residents may lodge a complaint with their supervisory authority.</p>
+      <p>Depending on your location, you may request access, correction, deletion, restriction, objection, or export of personal data, and you may withdraw consent for support contact. Email <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Merchants can also uninstall the app to stop processing store data through Mcfly. EU/UK residents may lodge a complaint with their supervisory authority.</p>
 
       <h2 id="security">Security</h2>
       <p>See <a href="/security">Security</a>. We use HTTPS, Shopify OAuth, HMAC verification on webhooks, scoped Admin API access, and a least-privilege data diet (opaque order ids — no name/email CRM). No security practice is perfect — report issues to <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>.</p>
@@ -299,8 +301,8 @@
     </div>
   </main>
   <div data-footer></div>
-  <script src="/assets/cta-config.js?v=20260731copy"></script>
-  <script src="/assets/chrome.js?v=20260731copy"></script>
-  <script src="/assets/app.js?v=20260731copy"></script>
+  <script src="/assets/cta-config.js?v=20260825live"></script>
+  <script src="/assets/chrome.js?v=20260828id"></script>
+  <script src="/assets/app.js?v=20260825live"></script>
 </body>
 </html>

@@ -3,29 +3,31 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Pricing — Free Meta + Google + Other, Pro $39 | Mcfly Analytics</title>
-  <meta name="description" content="Free = Meta + Google + custom Other Total ROAS desk. Pro $39/store/mo: LTV + all named channels + full Goals. Free + Pro $39 via Shopify App Pricing." />
+  <title>Pricing — 7-day trial, then $39/mo | Mcfly Analytics</title>
+  <meta name="description" content="One plan: 7-day full-access trial, then $39/store/mo. Whole desk — Spend, Overview, LTV, Goals. Uninstall stops the charge." />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#0a1221" />
-  <link rel="canonical" href="https://mcflyads.com/pricing" />
+  <meta name="mcfly-version" content="v4" />
+  <meta name="mcfly-build" content="pr-23" />
+  <link rel="canonical" href="https://mcfly-analytics.fly.dev/pricing" />
   <meta property="og:site_name" content="Mcfly Ads" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://mcflyads.com/pricing" />
-  <meta property="og:title" content="Pricing — Free Meta + Google + Other, Pro $39 | Mcfly Analytics" />
-  <meta property="og:description" content="Free = Meta + Google + Other. Pro $39 for LTV + all named channels. Free + Pro $39 via Shopify App Pricing." />
+  <meta property="og:url" content="https://mcfly-analytics.fly.dev/pricing" />
+  <meta property="og:title" content="Pricing — 7-day trial, then $39/mo | Mcfly Analytics" />
+  <meta property="og:description" content="7-day free trial. Then $39/month. Full desk. Uninstall stops the charge." />
   <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Pricing — Free Meta + Google + Other, Pro $39 | Mcfly Analytics" />
-  <meta name="twitter:description" content="Free = Meta + Google + Other desk. Pro $39 for LTV + all channels. Total ROAS = Total Sales ÷ spend." />
+  <meta name="twitter:title" content="Pricing — 7-day trial, then $39/mo | Mcfly Analytics" />
+  <meta name="twitter:description" content="7-day free trial. Then $39/month. Full desk. See ad spend next to sales, day by day." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260731desk" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260826live" />
   <style>
     body.pricing-page {
       background:
@@ -53,13 +55,7 @@
       display: grid;
       gap: 1.5rem;
       margin-top: 0.5rem;
-    }
-    @media (min-width: 820px) {
-      body.pricing-page .price-grid {
-        grid-template-columns: 1.15fr 1fr;
-        align-items: start;
-        gap: 2rem;
-      }
+      max-width: 28rem;
     }
     body.pricing-page .plan h2 {
       font-family: var(--display);
@@ -98,11 +94,6 @@
       text-transform: uppercase;
       color: var(--mute);
     }
-    body.pricing-page .plan-badge.muted {
-      color: var(--mute);
-    }
-
-    /* GMV-tax authority band */
     body.pricing-page .tax-band {
       margin: clamp(2.5rem, 6vw, 4rem) 0 0;
       padding: clamp(1.75rem, 4vw, 2.5rem) 0 0;
@@ -131,21 +122,11 @@
       font-size: 1.02rem;
       line-height: 1.55;
     }
-    body.pricing-page .tax-split {
-      display: grid;
-      gap: 1.25rem;
-    }
-    @media (min-width: 780px) {
-      body.pricing-page .tax-split {
-        grid-template-columns: 1fr 1fr;
-        gap: 1.75rem;
-        align-items: stretch;
-      }
-    }
     body.pricing-page .tax-pane {
       padding: 1.35rem 1.4rem 1.5rem;
       border: 1px solid var(--line);
       background: rgba(255, 255, 255, 0.35);
+      max-width: 36rem;
     }
     body.pricing-page .tax-pane.mcfly {
       border-color: rgba(26, 163, 122, 0.35);
@@ -165,33 +146,6 @@
       font-size: 0.95rem;
       line-height: 1.5;
       max-width: 38ch;
-    }
-    body.pricing-page .shape-list {
-      list-style: none;
-      margin: 1.1rem 0 0;
-      padding: 0;
-    }
-    body.pricing-page .shape-list li {
-      display: grid;
-      grid-template-columns: 7.5rem 1fr;
-      gap: 0.75rem;
-      padding: 0.7rem 0;
-      border-top: 1px solid var(--line);
-      font-size: 0.9rem;
-      line-height: 1.4;
-    }
-    body.pricing-page .shape-list li:last-child {
-      padding-bottom: 0;
-    }
-    body.pricing-page .shape-list .who {
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      letter-spacing: 0.02em;
-      color: var(--ink);
-      padding-top: 0.1rem;
-    }
-    body.pricing-page .shape-list .pain {
-      color: var(--mute);
     }
     body.pricing-page .tax-pane.mcfly .path {
       margin-top: 1.1rem;
@@ -216,6 +170,12 @@
       color: var(--mute);
       line-height: 1.5;
     }
+    body.pricing-page .custom-below {
+      margin-top: 2.5rem;
+      padding-top: 1.75rem;
+      border-top: 1px solid var(--line);
+      max-width: 42rem;
+    }
   </style>
   <script type="application/ld+json">
   {
@@ -227,36 +187,27 @@
         "alternateName": "Mcfly Ads",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Shopify",
-        "url": "https://mcflyads.com/pricing",
-        "offers": [
-          {
-            "@type": "Offer",
-            "name": "Launch — App Store Free",
-            "price": "0",
-            "priceCurrency": "USD",
-            "description": "Free = Meta + Google + custom Other Total ROAS desk (CSV). Shopify App Pricing: Free (default) + Pro $39/store/mo."
-          },
-          {
-            "@type": "Offer",
-            "name": "Pro",
-            "price": "39",
-            "priceCurrency": "USD",
-            "description": "Pro $39/store/mo: Customer LTV, all named channels, full-year Goals board — via Shopify App Pricing in Admin."
-          }
-        ],
-        "description": "Shopify Total ROAS desk: Total Sales ÷ ad spend, break-even from margin, allocation, goals, LTV (Pro)."
+        "url": "https://mcfly-analytics.fly.dev/pricing",
+        "offers": {
+          "@type": "Offer",
+          "name": "Mcfly Analytics — whole desk",
+          "price": "39",
+          "priceCurrency": "USD",
+          "description": "7-day full-access trial, then $39/store/mo. Whole desk. Uninstall stops the charge."
+        },
+        "description": "See ad spend next to Shopify sales, day by day. Whole desk after a 7-day trial."
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcflyads.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Pricing", "item": "https://mcflyads.com/pricing" }
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcfly-analytics.fly.dev/" },
+          { "@type": "ListItem", "position": 2, "name": "Pricing", "item": "https://mcfly-analytics.fly.dev/pricing" }
         ]
       }
     ]
   }
   </script>
-  <!-- launch-v2-20260728 -->
+  <!-- launch-v2-20260826 -->
 </head>
 <body class="pricing-page">
   <a class="skip" href="#main">Skip to content</a>
@@ -265,112 +216,80 @@
   <main id="main">
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
-      <h1>Free Meta + Google + Other. Pro adds LTV.</h1>
+      <h1>7-day free trial. Then $39/month. Full desk.</h1>
       <p>
-        Install <strong>Mcfly Analytics</strong> free — paste Meta, Google, and custom Other spend; Total ROAS = Shopify Total Sales ÷ ad spend.
-        Pro is <span class="mono formula-inline">$39</span>/store/mo flat: Customer LTV (opaque Shopify cohorts), every named channel, full-year Goals board.
-        Not forever-free. Not a GMV tax. Pricing is Free + Pro $39 via Shopify App Pricing.
+        One plan for <strong>Mcfly Analytics</strong>: seven days of full access, then
+        <span class="mono formula-inline">$39</span>/store/mo. Spend, Overview, LTV, Goals — the whole desk.
+        Uninstall stops the charge. Not a GMV tax. Billing is not a desk mode.
       </p>
-      <p class="price-proof" aria-label="What you pay for">Total ROAS = <span>Total Sales ÷ spend</span> · break-even from margin</p>
+      <p class="price-proof" aria-label="What you pay for">See ad spend next to sales, <span>day by day</span></p>
     </header>
 
     <div class="price-block">
-      <p class="honest-line">Install free · Free = Meta + Google + Other · Pro $39/mo · Custom inquire secondary</p>
+      <p class="honest-line">7-day full access · then $39/store/mo · uninstall stops the charge</p>
       <div class="price-grid">
         <div class="plan plan-featured">
-          <p class="plan-badge">Free · now</p>
-          <h2>Cash desk</h2>
-          <p class="amount">$0 <span>/ store</span></p>
+          <p class="plan-badge">One plan</p>
+          <h2>Whole desk</h2>
+          <p class="amount">$39 <span>/ store / mo</span></p>
           <p class="plan-lede">
-            Prove the desk on Meta, Google, and a named Other line. Free stays $0; Pro is $39/mo via Shopify App Pricing.
+            After a 7-day full-access trial. Same tabs in Sample data and Live data — Live = this shop’s Shopify sales + uploaded spend.
           </p>
           <ul class="plan-list">
-            <li>Total ROAS = Shopify Total Sales ÷ ad spend</li>
-            <li>Break-even from optional profit margin</li>
-            <li>Spend CSV: Meta + Google + custom Other</li>
-            <li>Period filters (MTD · LM · QTD · YTD · …)</li>
-            <li>Spend Allocation mix for Free channels</li>
-            <li>Email Overview (opens your mail app)</li>
-            <li>Full SAMPLE preview of Pro features</li>
-          </ul>
-        </div>
-
-        <div class="plan">
-          <p class="plan-badge muted">Pro</p>
-          <h2>$39 flat</h2>
-          <p class="amount">$39 <span>/ store / mo</span></p>
-          <p class="plan-lede">One flat number per store via Shopify App Pricing. Same Total ROAS math — plus LTV and every named channel from opaque order ids (least-privilege).</p>
-          <ul class="plan-list">
-            <li>Everything in Free</li>
-            <li>All named channels: TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and more</li>
-            <li>Customer LTV / Acquisition: Cash CAC · cohort LTV 30/90/365 · LTV:CAC</li>
-            <li>Full-year Goals board + YoY plan + monthly fine-tune</li>
-            <li>Richer Explorer / mix history as it ships</li>
-            <li>$39 flat / store / mo — not a GMV tax</li>
+            <li>Spend: pick channels → template, type amount + period, or Ads Manager CSV</li>
+            <li>Overview: Shopify Total Sales ÷ spend, day by day</li>
+            <li>LTV: Cash CAC · cohort LTV from opaque order facts</li>
+            <li>Goals: year ceilings and pacing</li>
+            <li>History back to January 2021</li>
+            <li>Uninstall stops the charge</li>
           </ul>
         </div>
       </div>
 
       <section class="tax-band" aria-labelledby="tax-title">
         <p class="eyebrow">Why flat exists</p>
-        <h2 id="tax-title">Suite pricing punishes growth. A desk fee shouldn’t.</h2>
-        <p class="tax-lede">TW- / Polar- / Northbeam-class tools often climb with GMV or ad spend. A bigger year shouldn’t tax the same Monday question — <span class="mono formula-inline">are we above break-even Total ROAS?</span></p>
+        <h2 id="tax-title">A desk fee shouldn’t climb with GMV.</h2>
+        <p class="tax-lede">Path suites often tax growth. Mcfly is one flat store fee after trial — the Monday question stays <span class="mono formula-inline">are we above break-even Total ROAS?</span></p>
 
-        <div class="tax-split">
-          <div class="tax-pane">
-            <h3>GMV-tax suite shape</h3>
-            <p>Shapes, not a fake price sheet. List prices move; the incentive doesn’t.</p>
-            <ul class="shape-list">
-              <li>
-                <span class="who">TW-class</span>
-                <span class="pain">Operator OS + pixel stack. Free toe-hold → mid-hundreds → high-hundreds+ as trailing GMV climbs.</span>
-              </li>
-              <li>
-                <span class="who">Polar-class</span>
-                <span class="pain">Warehouse BI + pixel. High floor (often mid–high hundreds), then GMV climb as you scale.</span>
-              </li>
-              <li>
-                <span class="who">Northbeam-class</span>
-                <span class="pain">Attribution court. Enterprise contracts commonly land in the low–mid thousands+/mo, spend-scaled.</span>
-              </li>
-            </ul>
-          </div>
-
-          <div class="tax-pane mcfly">
-            <h3>Mcfly Total ROAS desk</h3>
-            <p>Advanced Marketing Data Science, made easy — Total ROAS, break-even, one allocation call. Flat fee path. No forever-free bait.</p>
-            <p class="path">Path: <span>Free Meta + Google + Other</span> → try demo → <span>$39 Pro</span> for LTV + all named channels</p>
-            <ul class="plan-list">
-              <li>Fee stays flat when GMV grows</li>
-              <li>Plan changes in Shopify Admin (no reinstall)</li>
-              <li>Prefer few serious stores over freeloader flood</li>
-            </ul>
-          </div>
+        <div class="tax-pane mcfly">
+          <h3>Mcfly Total ROAS desk</h3>
+          <p>See ad spend next to sales, day by day. Spend from every platform you buy, including billboards. Whole desk. Flat fee after trial.</p>
+          <p class="path">Path: <span>Try the demo</span> → 7-day trial → <span>$39/store/mo</span></p>
+          <ul class="plan-list">
+            <li>Fee stays flat when GMV grows</li>
+            <li>Uninstall stops the charge</li>
+            <li>Until listing is live: Partner review + /demo + /pricing</li>
+          </ul>
         </div>
 
-        <p class="tax-footnote">We don’t publish competitor SKUs as gospel — their ladders drift. What we stand behind: Mcfly will not take a cut of your revenue for a Total ROAS desk.</p>
-        <p class="tax-footnote"><a href="/mer-calculator">MER calculator →</a> · <a href="/monday-close">Monday Close memo →</a> · <a href="/platform-variance">Platform variance →</a> · <a href="/vs/profit-trackers">Vs profit trackers →</a> · <a href="/vs-attribution-suites">Vs suites →</a></p>
+        <p class="tax-footnote">We don’t publish competitor SKUs as gospel. What we stand behind: Mcfly will not take a cut of your revenue for a Total ROAS desk.</p>
+        <p class="tax-footnote"><a href="/mer-calculator">MER calculator →</a> · <a href="/monday-close">Monday Close memo →</a> · <a href="/demo">Try the demo →</a></p>
       </section>
 
       <div class="price-cta">
         <div class="cta-row">
-          <a class="btn primary solid" data-mcfly-cta="primary" href="/support">Install free</a>
-          <a class="btn ghost" href="/support">App Store install steps</a>
-          <a class="btn ghost" href="/custom-analytics#inquire">Custom inquire</a>
+          <a class="btn primary solid" data-mcfly-cta="primary" href="/demo">Try the demo</a>
+          <a class="btn ghost" href="/support">Support</a>
         </div>
         <p class="fine">
-          Primary path: Install free from the App Store (steps on <a href="/support">Support</a>).
-          Free = Meta + Google + custom Other. Pro $39/store/mo via Shopify App Pricing (Upgrade opens Admin plan selection).
-          Non-Shopify / multi-system desks: <a href="/custom-analytics#inquire">Custom Data Solutions inquire</a> (secondary).
-          <a href="/demo">Try the full Pro SAMPLE demo</a>.
+          Primary path: <a href="/demo">Try the demo</a>. Pricing: 7-day full-access trial, then $39/store/mo.
+          Until the App Store listing is live: Partner review + /demo + /pricing — we do not invent App Store URLs here.
+        </p>
+      </div>
+
+      <div class="custom-below" id="custom">
+        <h2 class="display" style="font-size:1.25rem;margin:0 0 0.5rem">Not on Shopify?</h2>
+        <p class="fine" style="margin:0;max-width:42ch">
+          Multi-system or non-Shopify desks are a separate fixed-fee inquiry — below the fold on purpose.
+          <a href="/custom-analytics#inquire">Custom Data Solutions inquire →</a>
         </p>
       </div>
     </div>
   </main>
 
   <div data-footer></div>
-  <script src="/assets/cta-config.js?v=20260731desk"></script>
-  <script src="/assets/chrome.js?v=20260731desk"></script>
-  <script src="/assets/app.js?v=20260731desk"></script>
+  <script src="/assets/cta-config.js?v=20260826live"></script>
+  <script src="/assets/chrome.js?v=20260828id"></script>
+  <script src="/assets/app.js?v=20260826live"></script>
 </body>
 </html>

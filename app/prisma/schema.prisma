@@ -358,7 +358,7 @@ model OrderBackfillState {
   status         String    @default("idle")
   lastError      String?
   /// True when Shopify denied deep history (no read_all_orders / ACCESS_DENIED).
-  historyLimited Boolean   @default(true)
+  historyLimited Boolean   @default(false)
   updatedAt      DateTime  @updatedAt
 }
 

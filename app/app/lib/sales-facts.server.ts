@@ -10,6 +10,7 @@ import {
   type SalesResult,
 } from "./shopify-sales.server";
 import { ensureShopMetadata } from "./shop-metadata.server";
+import { DESK_HISTORY_YEARS_BACK } from "./desk-history";
 import { countClosedDaysInPeriod } from "./mer-trust";
 import type { DateRange } from "./periods";
 
@@ -18,10 +19,10 @@ export const SALES_DAY_FACT_SOURCE = "shopify_order_current_total_v1";
 
 /**
  * Serving + backfill horizon: closed days back to **Jan 1 of (UTC year − N)**.
- * Example: mid-2026 → window starts 2022-01-01 so YTD / L12M / 3yr can complete
+ * Example: mid-2026 → window starts 2021-01-01 so YTD / L12M / 5yr can complete
  * once facts are filled (requires `read_all_orders` for Shopify history).
  */
-export const SALES_DAY_FACT_WINDOW_YEARS_BACK = 4;
+export const SALES_DAY_FACT_WINDOW_YEARS_BACK = DESK_HISTORY_YEARS_BACK;
 
 /**
  * UTC midnight Jan 1 of (calendar year − {@link SALES_DAY_FACT_WINDOW_YEARS_BACK}).
@@ -44,9 +45,9 @@ export function salesDayFactWindowDayCount(now: Date = new Date()): number {
 
 /**
  * @deprecated Prefer {@link salesDayFactWindowDayCount} — calendar Jan-1 window.
- * Kept as a rough upper bound (~4×365+1) for callers that still pass a fixed count.
+ * Kept as a rough upper bound (~5×365+1) for callers that still pass a fixed count.
  */
-export const SALES_DAY_FACT_WINDOW_DAYS = 4 * 365 + 1;
+export const SALES_DAY_FACT_WINDOW_DAYS = 5 * 365 + 1;
 
 /**
  * Max days ingested per `runSalesFactsBackfill` call. Keeps a single invocation

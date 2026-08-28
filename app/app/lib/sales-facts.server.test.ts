@@ -154,7 +154,7 @@ describe("runSalesFactsBackfill", () => {
     const now = new Date("2026-07-15T12:00:00.000Z");
     const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", { now, maxDays: 10 });
 
-    // Jan-1 × 4yr window (not a fixed 60d) — 10 attempted this call leaves the rest.
+    // Jan-1 × 5yr window (not a fixed 60d) — 10 attempted this call leaves the rest.
     expect(result.attempted).toBe(10);
     expect(result.remainingMissingDays).toBeGreaterThan(50);
   });
@@ -192,11 +192,11 @@ describe("getSalesFactsCoverage", () => {
     expect(coverage.periodExceedsFactWindow).toBe(false);
   });
 
-  it("marks periods incomplete when the range starts before the Jan-1 × 4yr fact window", async () => {
-    // Window for mid-2026 starts 2022-01-01 — a 2021 start must exceed it.
+  it("marks periods incomplete when the range starts before the Jan-1 × 5yr fact window", async () => {
+    // Window for mid-2026 starts 2021-01-01 — a 2020 start must exceed it.
     const now = new Date(2026, 6, 15, 9, 0, 0);
     const range = {
-      start: new Date(2021, 0, 1),
+      start: new Date(2020, 0, 1),
       end: new Date(2026, 6, 15, 23, 59, 59, 999),
       label: "custom deep",
     };

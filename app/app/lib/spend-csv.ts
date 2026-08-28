@@ -9,6 +9,26 @@ import {
   customChannelFromLabel,
   normalizeCustomChannelList,
 } from "./spend-custom-channel";
+import {
+  spendTemplateDateRange,
+  type SpendTemplateSpan,
+} from "./spend-template-range";
+
+export {
+  SPEND_TEMPLATE_DATES_QUERY_CAP,
+  SPEND_TEMPLATE_SPANS,
+  SPEND_TEMPLATE_WINDOW_YEARS_BACK,
+  parseSpendTemplateDatesParam,
+  parseSpendTemplateSpan,
+  parseSpendTemplateYmd,
+  resolveSpendTemplateRangeQuery,
+  spendTemplateDateRange,
+  spendTemplateDefaultFloorKey,
+  spendTemplateYesterdayKey,
+  type SpendTemplateDateRange,
+  type SpendTemplateRangeQuery,
+  type SpendTemplateSpan,
+} from "./spend-template-range";
 
 export type CsvChannel = SpendChannel;
 
@@ -55,8 +75,11 @@ export interface SpendCsvInput {
 
 const MAX_ERRORS = 25;
 
-/** Fail-closed paste/upload size — ~2 MiB keeps big Sheets exports in, not multi-year dumps. */
-export const SPEND_CSV_MAX_BYTES = 2 * 1024 * 1024;
+/** Fail-closed paste/upload size — ~5 MiB / 50k rows so a fat dump cannot OOM Fly. */
+export const SPEND_CSV_MAX_BYTES = 5 * 1024 * 1024;
+
+export const SPEND_CSV_TOO_LARGE =
+  "This file is too large. Export a smaller date range and try again.";
 
 /** Fail-closed data-row cap (header excluded). ~50k ≈ multi-year × channel long format. */
 export const SPEND_CSV_MAX_ROWS = 50_000;
@@ -67,12 +90,6 @@ export type SpendCsvLimitResult =
 
 function utf8ByteLength(text: string): number {
   return new TextEncoder().encode(text).length;
-}
-
-function formatByteSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 /** Count non-empty lines after the header (BOM-safe). Empty input → 0. */
@@ -95,7 +112,7 @@ export function assertSpendCsvLimits(text: string): SpendCsvLimitResult {
     return {
       ok: false,
       code: "max_bytes",
-      error: `This paste/file is too large (${formatByteSize(bytes)}; max ${SPEND_CSV_MAX_ROWS.toLocaleString()} rows / ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Split by date range or channel and import in batches. Spend aggregates only — do not paste sales.`,
+      error: SPEND_CSV_TOO_LARGE,
     };
   }
 
@@ -104,7 +121,7 @@ export function assertSpendCsvLimits(text: string): SpendCsvLimitResult {
     return {
       ok: false,
       code: "max_rows",
-      error: `This CSV has ${dataRows.toLocaleString()} data rows (max ${SPEND_CSV_MAX_ROWS.toLocaleString()} rows / ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Split by date range or channel and import in batches.`,
+      error: SPEND_CSV_TOO_LARGE,
     };
   }
 
@@ -125,7 +142,10 @@ const HEADER_SYNONYMS: Record<"date" | "channel" | "amount", string[]> = {
     "start date",
     "end date",
   ],
-  channel: ["channel", "source", "platform", "medium", "network", "account"],
+  // Only explicit channel/platform columns. Account name / Network / source /
+  // medium are Ads Manager dimensions — treating them as channels silently
+  // dumps native exports into Other.
+  channel: ["channel", "platform"],
   amount: [
     "amount",
     "amount spent",
@@ -280,6 +300,49 @@ export const PIPE_CHANNEL_LABELS: readonly string[] = WIDE_TEMPLATE_COLUMNS.filt
     col.channel !== "day",
 ).map((col) => col.header);
 
+export type SpendTemplateBuildDates = {
+  dayCount?: number;
+  now?: Date;
+  from?: string | null;
+  to?: string | null;
+  span?: SpendTemplateSpan | string | null;
+  floorKey?: string;
+};
+
+/**
+ * Date spine for a template download.
+ * `from`/`to`/`span` win over `dayCount` (closed days through yesterday).
+ * `dayCount` alone stays trailing local days ending on `now` (includes today).
+ */
+function resolveTemplateDayKeys(
+  options: SpendTemplateBuildDates | undefined,
+  fallbackDayCount: number,
+): string[] {
+  if (options?.from || options?.to || options?.span) {
+    return spendTemplateDateRange({
+      span: options.span,
+      from: options.from,
+      to: options.to,
+      now: options.now,
+      floorKey: options.floorKey,
+    }).dates;
+  }
+  const dayCount = options?.dayCount ?? fallbackDayCount;
+  const now = options?.now ?? new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dates: string[] = [];
+  for (let i = dayCount - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    dates.push(formatLocalYmd(d));
+  }
+  return dates;
+}
+
+function formatLocalYmd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 /**
  * Long CSV for pipe tools: one row per day × channel.
  * `example=true` fills sample Meta/Google amounts; blank leaves amount empty for mapping.
@@ -290,11 +353,13 @@ export function buildPipeAutomationLongTemplate(options?: {
   example?: boolean;
   now?: Date;
   channels?: readonly SpendChannel[];
+  from?: string | null;
+  to?: string | null;
+  span?: SpendTemplateSpan | string | null;
+  floorKey?: string;
 }): string {
-  const dayCount = options?.dayCount ?? 7;
   const example = options?.example === true;
-  const now = options?.now ?? new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dates = resolveTemplateDayKeys(options, 7);
   const allChannelCols = WIDE_TEMPLATE_COLUMNS.filter(
     (col): col is (typeof WIDE_TEMPLATE_COLUMNS)[number] & { channel: SpendChannel } =>
       col.channel !== "day",
@@ -308,21 +373,17 @@ export function buildPipeAutomationLongTemplate(options?: {
     : allChannelCols;
   const rows: string[] = [PIPE_LONG_HEADERS.join(",")];
 
-  for (let i = dayCount - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const date = `${y}-${m}-${day}`;
+  for (let i = 0; i < dates.length; i++) {
+    const date = dates[i];
+    const fromEnd = dates.length - 1 - i;
     for (const col of channelCols) {
       if (example) {
         if (col.channel === "meta") {
-          rows.push(`${date},${csvEscape(col.header)},${100 + (i % 5) * 10}`);
+          rows.push(`${date},${csvEscape(col.header)},${100 + (fromEnd % 5) * 10}`);
         } else if (col.channel === "google") {
-          rows.push(`${date},${csvEscape(col.header)},${80 + (i % 3) * 5}`);
+          rows.push(`${date},${csvEscape(col.header)},${80 + (fromEnd % 3) * 5}`);
         }
-        // Example file stays short — Meta + Google only
+        // Example file stays short — fill only a couple of columns when present
         continue;
       }
       rows.push(`${date},${csvEscape(col.header)},`);
@@ -341,18 +402,39 @@ export function buildPipeAutomationWideTemplate(options?: {
   example?: boolean;
   now?: Date;
   channels?: readonly SpendChannel[];
+  from?: string | null;
+  to?: string | null;
+  span?: SpendTemplateSpan | string | null;
+  floorKey?: string;
 }): string {
   const dayCount = options?.dayCount ?? 14;
   const channels = options?.channels;
+  const rangeOpts = {
+    dayCount,
+    now: options?.now,
+    from: options?.from,
+    to: options?.to,
+    span: options?.span,
+    floorKey: options?.floorKey,
+  };
   if (options?.example) {
     if (channels && channels.length > 0) {
       return buildSelectedPlatformTemplateCsv(platformsToTemplateCols([...channels]), {
-        dayCount,
+        ...rangeOpts,
         example: true,
-        now: options?.now,
       }).csv;
     }
+    if (options?.from || options?.to || options?.span) {
+      return buildSelectedPlatformTemplateCsv(
+        platformsToTemplateCols([...SPEND_CHANNELS]),
+        { ...rangeOpts, example: true },
+      ).csv;
+    }
     return WIDE_TEMPLATE_SAMPLE;
+  }
+  if (options?.from || options?.to || options?.span) {
+    const dates = resolveTemplateDayKeys(rangeOpts, dayCount);
+    return buildBlankSpendTemplateForDates(dates, channels);
   }
   return buildBlankSpendTemplate(dayCount, channels);
 }
@@ -439,25 +521,28 @@ const WIDE_HEADER_BY_CHANNEL: ReadonlyMap<SpendChannel, string> = new Map(
   ).map((col) => [col.channel, col.header]),
 );
 
-function formatLocalYmd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 /**
  * Build a Day + selected-platform-columns CSV.
  * Headers use WIDE_TEMPLATE labels for named engines, or `header` for extras
  * so Billboards and Radio can both live in `other` without collapsing.
- * Seven trailing local days ending on `now` (default today).
+ * Default: seven trailing local days ending on `now` (includes today).
+ * Pass `from`/`to` and/or `span` for closed-day history backfill (through yesterday).
  * `example` defaults true (sample amounts) for back-compat; `example:false` leaves amounts empty.
  */
 export function buildSelectedPlatformTemplateCsv(
   platforms: SelectedPlatformTemplateCol[],
-  options?: { dayCount?: number; now?: Date; example?: boolean },
+  options?: {
+    dayCount?: number;
+    now?: Date;
+    example?: boolean;
+    from?: string | null;
+    to?: string | null;
+    span?: SpendTemplateSpan | string | null;
+    floorKey?: string;
+  },
 ): SelectedPlatformTemplateCsv {
-  const dayCount = options?.dayCount ?? 7;
-  const now = options?.now ?? new Date();
   const example = options?.example !== false;
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dates = resolveTemplateDayKeys(options, 7);
 
   const headers: string[] = ["Day"];
   const seenHeaders = new Set<string>();
@@ -474,11 +559,8 @@ export function buildSelectedPlatformTemplateCsv(
 
   const channelColCount = headers.length - 1;
   const rows: string[][] = [];
-  for (let i = dayCount - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const date = formatLocalYmd(d);
-    const dayIndex = dayCount - 1 - i;
+  for (let dayIndex = 0; dayIndex < dates.length; dayIndex++) {
+    const date = dates[dayIndex];
     const cells = [date];
     for (let col = 0; col < channelColCount; col++) {
       if (example) {
@@ -532,6 +614,23 @@ export function buildSheetsImportGuide(options?: {
 }
 
 const SPEND_CHANNEL_SET: ReadonlySet<string> = new Set(SPEND_CHANNELS);
+
+export type CsvDelimiter = "," | ";" | "\t";
+
+type CsvReadCtx = {
+  delimiter: CsvDelimiter;
+  /** Reporting ends / End date column, or -1. */
+  endsCol: number;
+};
+
+/** Accept any engine channel; reject aliases like "facebook". */
+export function parseForceChannel(
+  raw: string | null | undefined,
+): CsvChannel | undefined {
+  const v = String(raw ?? "").trim().toLowerCase();
+  if (SPEND_CHANNEL_SET.has(v)) return v as CsvChannel;
+  return undefined;
+}
 
 /**
  * Parse `?platforms=meta,google,tiktok` into validated SpendChannels (deduped, order preserved).
@@ -666,7 +765,17 @@ function classifyCsvError(err: string): string {
     return "Unrecognized columns";
   }
   if (v.includes("cannot be negative")) return "Negative spend amounts";
+  if (
+    v.includes("day breakdown") ||
+    v.includes("not a day") ||
+    v.includes("date range")
+  ) {
+    return "Date range instead of days";
+  }
   if (v.includes("could not read date")) return "Unreadable dates";
+  if (v.includes("dot decimal")) {
+    return "Use a dot for cents (12.50, not 12,50)";
+  }
   if (v.includes("could not read") && v.includes("amount")) {
     return "Unreadable amounts";
   }
@@ -793,11 +902,44 @@ export function parseSpendDate(raw: string): string | null {
 }
 
 /**
+ * True when one cell holds two different calendar days
+ * (`2026-07-01 - 2026-07-31`, `2026-07-01..2026-07-31`, `to`, en-dash).
+ */
+export function looksLikeDateSpan(raw: string): boolean {
+  const v = raw.trim().replace(/^["']|["']$/g, "");
+  if (!v) return false;
+  const m =
+    /^(.+?)\s*(?:\.\.|–|—|\s+to\s+|\s+-\s+)\s*(.+)$/i.exec(v);
+  if (!m) return false;
+  const a = parseSpendDate(m[1]!.trim());
+  const b = parseSpendDate(m[2]!.trim());
+  return Boolean(a && b && a !== b);
+}
+
+function spendDateCellProblem(
+  rawDate: string,
+  lineNo: number,
+  rawEnds?: string,
+): string | null {
+  if (looksLikeDateSpan(rawDate)) {
+    return `Line ${lineNo}: this row covers a date range ("${rawDate}"). Export with a Day breakdown, or use Divide a bill.`;
+  }
+  if (rawEnds && !isSummaryDateLabel(rawEnds)) {
+    const start = parseSpendDate(rawDate);
+    const end = parseSpendDate(rawEnds);
+    if (start && end && start !== end) {
+      return `Line ${lineNo}: Reporting starts ${start} and ends ${end} — that is a range, not a day. Export with a Day breakdown, or use Divide a bill.`;
+    }
+  }
+  return null;
+}
+
+/**
  * True when the amount looks like EU decimal comma notation (e.g. `12,50` or
  * `1.234,56`). Fail-closed — stripping commas would silently inflate spend.
  * US `1,234.56` / `1,234` (comma thousands) must NOT match.
  */
-function looksLikeEuDecimal(raw: string): boolean {
+export function looksLikeEuDecimal(raw: string): boolean {
   const v = raw
     .replace(/[$€£¥]/g, "")
     .replace(/\b(USD|EUR|GBP)\b/gi, "")
@@ -836,8 +978,49 @@ export function parseSpendAmount(raw: string): number | null {
   return negative ? -n : n;
 }
 
-/** Split one CSV line, honoring quoted fields with embedded commas. */
-function splitCsvLine(line: string): string[] {
+function unreadableAmountError(
+  lineNo: number,
+  rawAmount: string,
+  header?: string,
+): string {
+  const what = header ? `${header} amount` : "amount";
+  if (looksLikeEuDecimal(rawAmount)) {
+    return `Line ${lineNo}: use 12.50 (dot decimal), not "${rawAmount}".`;
+  }
+  return `Line ${lineNo}: could not read ${what} "${rawAmount}".`;
+}
+
+/** Count unquoted delimiter chars on a header line. */
+function countUnquotedDelimiter(headerLine: string, delimiter: string): number {
+  let n = 0;
+  let inQuotes = false;
+  for (let i = 0; i < headerLine.length; i++) {
+    const c = headerLine[i];
+    if (c === '"') {
+      if (inQuotes && headerLine[i + 1] === '"') {
+        i++;
+        continue;
+      }
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (!inQuotes && c === delimiter) n += 1;
+  }
+  return n;
+}
+
+/** Prefer comma; use semicolon or tab when that delimiter clearly dominates. */
+export function detectCsvDelimiter(headerLine: string): CsvDelimiter {
+  const comma = countUnquotedDelimiter(headerLine, ",");
+  const semi = countUnquotedDelimiter(headerLine, ";");
+  const tab = countUnquotedDelimiter(headerLine, "\t");
+  if (semi > comma && semi >= tab) return ";";
+  if (tab > comma && tab >= semi) return "\t";
+  return ",";
+}
+
+/** Split one CSV line, honoring quoted fields with the detected delimiter. */
+function splitCsvLine(line: string, delimiter: CsvDelimiter = ","): string[] {
   const out: string[] = [];
   let cur = "";
   let inQuotes = false;
@@ -856,7 +1039,7 @@ function splitCsvLine(line: string): string[] {
       }
     } else if (c === '"') {
       inQuotes = true;
-    } else if (c === ",") {
+    } else if (c === delimiter) {
       out.push(cur);
       cur = "";
     } else {
@@ -1000,6 +1183,20 @@ function findDateColumn(headers: string[]): number {
     }
   }
   return findColumn(headers, HEADER_SYNONYMS.date);
+}
+
+function findReportingEndsColumn(headers: string[], dateCol: number): number {
+  for (let i = 0; i < headers.length; i++) {
+    if (i === dateCol) continue;
+    const header = headers[i] ?? "";
+    if (
+      headerMatchesSynonym(header, "reporting ends") ||
+      headerMatchesSynonym(header, "end date")
+    ) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 function isAmountLikeHeader(header: string): boolean {
@@ -1228,6 +1425,7 @@ function parseLongSpendCsv(
   dateCol: number,
   channelCol: number,
   amountCol: number,
+  ctx: CsvReadCtx,
 ): CsvParseResult {
   const rows: ParsedSpendRow[] = [];
   const errors: string[] = [];
@@ -1235,15 +1433,22 @@ function parseLongSpendCsv(
 
   for (let i = 1; i < lines.length; i++) {
     totalDataRows++;
-    const cells = splitCsvLine(lines[i]);
+    const cells = splitCsvLine(lines[i] ?? "", ctx.delimiter);
     const lineNo = i + 1;
 
     const rawDate = cells[dateCol] ?? "";
     const rawChannel = cells[channelCol] ?? "";
     const rawAmount = cells[amountCol] ?? "";
+    const rawEnds = ctx.endsCol >= 0 ? (cells[ctx.endsCol] ?? "") : "";
 
     // Summary / blank rows: skip quietly.
     if (isSummaryDateLabel(rawDate) || !String(rawAmount).trim()) {
+      continue;
+    }
+
+    const spanProblem = spendDateCellProblem(rawDate, lineNo, rawEnds);
+    if (spanProblem) {
+      pushError(errors, spanProblem);
       continue;
     }
 
@@ -1255,7 +1460,7 @@ function parseLongSpendCsv(
 
     const amount = parseSpendAmount(rawAmount);
     if (amount === null) {
-      pushError(errors, `Line ${lineNo}: could not read amount "${rawAmount}".`);
+      pushError(errors, unreadableAmountError(lineNo, rawAmount));
       continue;
     }
     if (amount < 0) {
@@ -1281,6 +1486,7 @@ function parseForcedChannelSpendCsv(
   dateCol: number,
   amountCol: number,
   forceChannel: CsvChannel,
+  ctx: CsvReadCtx,
 ): CsvParseResult {
   const rows: ParsedSpendRow[] = [];
   const errors: string[] = [];
@@ -1289,12 +1495,19 @@ function parseForcedChannelSpendCsv(
 
   for (let i = 1; i < lines.length; i++) {
     totalDataRows++;
-    const cells = splitCsvLine(lines[i]);
+    const cells = splitCsvLine(lines[i] ?? "", ctx.delimiter);
     const lineNo = i + 1;
     const rawDate = cells[dateCol] ?? "";
     const rawAmount = cells[amountCol] ?? "";
+    const rawEnds = ctx.endsCol >= 0 ? (cells[ctx.endsCol] ?? "") : "";
 
     if (isSummaryDateLabel(rawDate) || !String(rawAmount).trim()) {
+      continue;
+    }
+
+    const spanProblem = spendDateCellProblem(rawDate, lineNo, rawEnds);
+    if (spanProblem) {
+      pushError(errors, spanProblem);
       continue;
     }
 
@@ -1306,7 +1519,7 @@ function parseForcedChannelSpendCsv(
 
     const amount = parseSpendAmount(rawAmount);
     if (amount === null) {
-      pushError(errors, `Line ${lineNo}: could not read amount "${rawAmount}".`);
+      pushError(errors, unreadableAmountError(lineNo, rawAmount));
       continue;
     }
     if (amount < 0) {
@@ -1330,6 +1543,7 @@ function parseWideSpendCsv(
   lines: string[],
   dateCol: number,
   channelCols: WideChannelCol[],
+  ctx: CsvReadCtx,
 ): CsvParseResult {
   const rows: ParsedSpendRow[] = [];
   const errors: string[] = [];
@@ -1337,11 +1551,18 @@ function parseWideSpendCsv(
 
   for (let i = 1; i < lines.length; i++) {
     totalDataRows++;
-    const cells = splitCsvLine(lines[i]);
+    const cells = splitCsvLine(lines[i] ?? "", ctx.delimiter);
     const lineNo = i + 1;
     const rawDate = cells[dateCol] ?? "";
+    const rawEnds = ctx.endsCol >= 0 ? (cells[ctx.endsCol] ?? "") : "";
 
     if (isSummaryDateLabel(rawDate)) {
+      continue;
+    }
+
+    const spanProblem = spendDateCellProblem(rawDate, lineNo, rawEnds);
+    if (spanProblem) {
+      pushError(errors, spanProblem);
       continue;
     }
 
@@ -1358,7 +1579,7 @@ function parseWideSpendCsv(
       if (amount === null) {
         pushError(
           errors,
-          `Line ${lineNo}: could not read ${col.rawHeader} amount "${rawAmount}".`,
+          unreadableAmountError(lineNo, rawAmount, col.rawHeader),
         );
         continue;
       }
@@ -1410,20 +1631,24 @@ export function parseSpendCsv(
   }
 
   const clean = text.replace(/^\uFEFF/, "");
-  const lines = clean
+  const rawLines = clean
     .split(/\r\n|\r|\n/)
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
 
-  if (lines.length === 0) {
+  if (rawLines.length === 0) {
     return { rows: [], errors: ["The file is empty."], totalDataRows: 0 };
   }
 
-  const headers = splitCsvLine(lines[0]);
+  const delimiter = detectCsvDelimiter(rawLines[0] ?? "");
+  const lines = rawLines;
+  const headers = splitCsvLine(lines[0] ?? "", delimiter);
   const dateCol = findDateColumn(headers);
   const channelCol = findColumn(headers, HEADER_SYNONYMS.channel);
   const amountCol = findAmountColumn(headers);
   const wideCols = detectWideChannelColumns(headers);
+  const endsCol = findReportingEndsColumn(headers, dateCol);
+  const ctx: CsvReadCtx = { delimiter, endsCol };
 
   if (dateCol === -1) {
     return {
@@ -1437,23 +1662,23 @@ export function parseSpendCsv(
 
   // Long format wins when channel + amount are both present.
   if (channelCol !== -1 && amountCol !== -1) {
-    return parseLongSpendCsv(lines, dateCol, channelCol, amountCol);
+    return parseLongSpendCsv(lines, dateCol, channelCol, amountCol, ctx);
   }
 
   // Wide Mcfly / multi-channel sheet (2+ platform columns).
   if (wideCols.length >= 2) {
-    return parseWideSpendCsv(lines, dateCol, wideCols);
+    return parseWideSpendCsv(lines, dateCol, wideCols, ctx);
   }
 
   // Single named platform column (e.g. only "Meta Ads") — treat as wide with one bucket.
   if (wideCols.length === 1 && amountCol === -1) {
-    return parseWideSpendCsv(lines, dateCol, wideCols);
+    return parseWideSpendCsv(lines, dateCol, wideCols, ctx);
   }
 
   // Native single-channel export: Day + Amount spent / Cost (needs forceChannel).
   if (amountCol !== -1 && (wideCols.length === 0 || wideCols.length === 1)) {
     if (forceChannel) {
-      return parseForcedChannelSpendCsv(lines, dateCol, amountCol, forceChannel);
+      return parseForcedChannelSpendCsv(lines, dateCol, amountCol, forceChannel, ctx);
     }
     return {
       rows: [],
@@ -1465,7 +1690,7 @@ export function parseSpendCsv(
   }
 
   if (wideCols.length > 0) {
-    return parseWideSpendCsv(lines, dateCol, wideCols);
+    return parseWideSpendCsv(lines, dateCol, wideCols, ctx);
   }
 
   if (forceChannel && amountCol === -1) {
@@ -1481,7 +1706,7 @@ export function parseSpendCsv(
   return {
     rows: [],
     errors: [
-      "Could not detect platform spend columns. Download the Mcfly template (Day + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other), combine platform exports with a channel each, or use long format date,channel,amount. Do not paste Shopify sales into this CSV.",
+      "Could not detect platform spend columns. Download the Mcfly template (Day + Meta/Google/Microsoft/TikTok/Affiliate/Email/Other), paste a native Day + Amount spent export, or use long format date,channel,amount. Do not paste Shopify sales into this CSV.",
     ],
     totalDataRows: 0,
   };
@@ -1534,7 +1759,7 @@ export function combineSpendCsvInputs(inputs: SpendCsvInput[]): CsvParseResult {
     return {
       rows: [],
       errors: [
-        `Combined uploads are too large (${formatByteSize(totalBytes)}; max ${formatByteSize(SPEND_CSV_MAX_BYTES)}). Import fewer files or split by date range.`,
+        SPEND_CSV_TOO_LARGE,
       ],
       totalDataRows,
     };
@@ -1544,7 +1769,7 @@ export function combineSpendCsvInputs(inputs: SpendCsvInput[]): CsvParseResult {
     return {
       rows: [],
       errors: [
-        `Combined uploads have ${totalDataRows.toLocaleString()} data rows (max ${SPEND_CSV_MAX_ROWS.toLocaleString()}). Import fewer files or split by date range.`,
+        SPEND_CSV_TOO_LARGE,
       ],
       totalDataRows,
     };

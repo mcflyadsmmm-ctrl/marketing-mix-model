@@ -10,12 +10,13 @@ export const MAX_CUSTOM_SPEND_CHANNELS = 12;
 export const CUSTOM_CHANNEL_NAME_MAX = 48;
 
 export const CUSTOM_CHANNEL_PRESETS = [
-  { id: "billboards", label: "Billboards / OOH" },
+  { id: "billboards", label: "Billboard" },
   { id: "tv", label: "TV" },
   { id: "radio", label: "Radio" },
   { id: "print", label: "Print" },
   { id: "podcast", label: "Podcast" },
   { id: "influencers", label: "Influencers" },
+  { id: "agency-retainer", label: "Agency retainer" },
 ] as const;
 
 export type CustomChannelPresetId = (typeof CUSTOM_CHANNEL_PRESETS)[number]["id"];

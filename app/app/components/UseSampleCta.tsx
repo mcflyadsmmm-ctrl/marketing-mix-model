@@ -8,12 +8,12 @@ type UseSampleCtaProps = {
 };
 
 /**
- * One-click Practice preview — POSTs the same data-mode switch as the top toggle.
+ * One-click Sample data preview — POSTs the same data-mode switch as the top toggle.
  * Never send merchants to /app/demo for this.
  */
 export function UseSampleCta({
   returnTo,
-  label = "See it on Practice",
+  label = "See Sample data",
   variant = "secondary",
 }: UseSampleCtaProps) {
   const location = useLocation();

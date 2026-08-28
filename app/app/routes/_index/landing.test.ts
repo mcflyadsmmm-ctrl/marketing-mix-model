@@ -11,6 +11,7 @@ function read(rel: string) {
 
 describe("bare Fly landing (mcflyads.com inner-page feel)", () => {
   const route = read("./route.tsx");
+  const shell = read("./OriginShell.tsx");
   const css = read("./styles.module.css");
 
   it("uses paper tokens, not a full-bleed navy parking screen", () => {
@@ -22,15 +23,18 @@ describe("bare Fly landing (mcflyads.com inner-page feel)", () => {
     expect(css).toMatch(/--truth-2:\s*#1aa37a/);
   });
 
-  it("leads with Install free / demo like the marketing site", () => {
+  it("leads with Install free and on-origin trust URLs", () => {
     expect(route).toContain("Install free");
-    expect(route).toContain("Try the demo");
-    expect(route).toContain('const SITE = "https://mcflyads.com"');
-    expect(route).toContain("${SITE}/support");
-    expect(route).toContain("${SITE}/demo");
-    expect(route).toContain("${SITE}/product");
+    expect(route).toContain('href="/support"');
+    expect(route).toContain('href="/pricing"');
+    expect(route).toContain('href="/privacy"');
+    expect(route).toContain('href="/terms"');
+    expect(shell).toContain('href="/support"');
+    expect(shell).toContain('href="/privacy"');
+    expect(shell).not.toMatch(/until Billing/i);
     expect(route).not.toContain("Visit product site");
     expect(route).not.toContain("Contact support");
+    expect(route).not.toContain("https://mcflyads.com/support");
   });
 
   it("never harvests a shop domain (App Store 2.3.1)", () => {
@@ -38,5 +42,10 @@ describe("bare Fly landing (mcflyads.com inner-page feel)", () => {
     expect(route).not.toMatch(/name=["']shop["']/i);
     expect(route).not.toMatch(/Enter your shop/i);
     expect(route).toMatch(/never ask\s+you to type a store domain/i);
+  });
+
+  it("sends embedded Admin entry to /app, not the public landing", () => {
+    expect(route).toContain("isShopifyEmbeddedSearch");
+    expect(route).toContain('throw redirect(`/app?${url.searchParams.toString()}`)');
   });
 });

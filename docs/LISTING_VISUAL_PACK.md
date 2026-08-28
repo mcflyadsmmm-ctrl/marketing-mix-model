@@ -10,12 +10,12 @@
 
 Premium analytics listings win when:
 
-1. **Shot 1 = outcome** — big cash MER vs break-even (not Settings, not empty CSV)
+1. **Shot 1 = outcome** — Shopify sales next to the spend you added
 2. **Shot 2 = definition** — sales ÷ spend labeled so merchants “get it” in 2 seconds
-3. **Shot 3 = how data gets in** — select platforms → export daily → combine; **Other** column visible
-4. **Shot 4 = decision** — one allocation call (cut / shift / hold)
-5. **Shot 5 = setup** — margin → break-even (proof it’s not black-box)
-6. **Polaris-native**, Lifetimely-clean KPI density — never dashboard soup
+3. **Shot 3 = how data gets in** — **Add spend** one field (billboard / typed extra), not a CSV sermon
+4. **Shot 4 = LTV** — payback Shopify Analytics does not compute
+5. **Shot 5 = Goals** — year board worth the paid plan
+6. **Polaris-native**, clean KPI density — never dashboard soup
 7. **3–6 unique** ~1600×900 shots; no browser chrome; no near-duplicates (4.4.4 / 4.4.5)
 8. **Realistic data** — empty states kill installs
 
@@ -60,10 +60,10 @@ C. SHOT MODE + CAPTURE (hide SAMPLE banner; metrics stay sample)
 
    Shot 1 — outcome
      Navigate: /app?period=y3&shot=1
-     Frame: decision strip + 4-up KPI grid; period “3 yr” visible
+     Frame: decision strip + 4-up KPI grid; period “3 yr” visible; sales next to spend
      Exclude: equation panel
      Save: docs/listing-assets/shots/01-cash-mer-vs-breakeven.png
-     Caption: Cash MER vs break-even — one glance
+     Caption: Shopify sales next to the spend you added
 
    Shot 2 — definition (MUST look unlike shot 1 — 4.4.4)
      Navigate: /app?period=mtd&shot=1
@@ -74,25 +74,24 @@ C. SHOT MODE + CAPTURE (hide SAMPLE banner; metrics stay sample)
      Caption: Sales ÷ spend — the formula this desk uses
      QA: side-by-side vs shot 1 — if same big MER position, re-crop
 
-   Shot 3 — spend ingest (export → combine)
+   Shot 3 — Add spend (billboard / typed extra)
      Navigate: /app/spend?shot=1
-     Frame: platform checkboxes + export guides + combine/import UI; **Other** column visible
-     Prefer: selected platforms (Meta…Reddit) + “Combine uploads” or wide template ending in Other
-     Fallback: wide template column cards + import if combine UI does not fit crop
+     Frame: **Add spend** card (`#mcfly-spend-add`) — amount + date + channel; Billboards chip on
+     Exclude: collapsed CSV details if they crowd the crop
      Save: docs/listing-assets/shots/03-spend-csv.png
-     Caption: Select platforms → export daily → combine
+     Caption: Add a billboard or any platform in one field
 
-   Shot 4 — Monday call
-     Navigate: /app/allocation?period=y3&shot=1
-     Frame: recommendation takeaway + efficiency / channel bars
+   Shot 4 — LTV
+     Navigate: /app/ltv?period=mtd&shot=1
+     Frame: cohort LTV tiles + caption that 30/90/365d ≠ period Cash CAC
      Save: docs/listing-assets/shots/04-allocation-call.png
-     Caption: One clear cut / shift / hold call
+     Caption: LTV and payback Shopify Analytics does not show
 
-   Shot 5 — setup proof
-     Navigate: /app/settings?shot=1
-     Frame: margin % + live break-even preview (lock instrument)
+   Shot 5 — Goals
+     Navigate: /app/goals?period=mtd&shot=1
+     Frame: PeriodControl + this period vs goal + year board (Practice ON is OK for filled board)
      Save: docs/listing-assets/shots/05-margin-breakeven.png
-     Caption: Lock break-even from your margin %
+     Caption: Full-year Goals board next to this period
 
 D. SAMPLE OFF (mandatory before smoke / reviewer)
    7. /app/demo → Turn sample desk OFF
@@ -110,8 +109,8 @@ E. ICON
 | 1 | `/app?period=y3&shot=1` | `docs/listing-assets/shots/01-cash-mer-vs-breakeven.png` |
 | 2 | `/app?period=mtd&shot=1` | `docs/listing-assets/shots/02-sales-div-spend.png` |
 | 3 | `/app/spend?shot=1` | `docs/listing-assets/shots/03-spend-csv.png` |
-| 4 | `/app/allocation?period=y3&shot=1` | `docs/listing-assets/shots/04-allocation-call.png` |
-| 5 | `/app/settings?shot=1` | `docs/listing-assets/shots/05-margin-breakeven.png` |
+| 4 | `/app/ltv?period=mtd&shot=1` | `docs/listing-assets/shots/04-allocation-call.png` |
+| 5 | `/app/goals?period=mtd&shot=1` | `docs/listing-assets/shots/05-margin-breakeven.png` |
 
 ---
 
@@ -132,7 +131,7 @@ E. ICON
 | 2 | `02-explorer-sales-div-spend.png` | **Ready** — Explorer (sales ÷ spend + channel mix) |
 | 3 | `03-margin-breakeven.png` | **Ready** — Break-even lock from margin |
 | 4 | `04-free-pro-pricing.png` | **DO NOT UPLOAD** — plan prices in the image violate 4.2.2. Use Allocation / Spend UI instead. |
-| 5 | `05-spend-csv.png` | **Ready (mock)** — platforms + combine + Other; SAMPLE labeled. Re-capture live Admin when session available (`docs/ops/SHOT5_20260729.md`). HOLD stays do-not-upload. |
+| 5 | `05-spend-csv.png` | **DO NOT UPLOAD** until recaptured — July mock still says other platforms are on Pro (1.1.4). Recapture Goals or Add spend from live Admin. |
 
 Captions + upload order: [`listing-assets/shots/CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md).
 
@@ -144,13 +143,13 @@ Capture from **embedded Admin** iframe only. Crop to ~**1600×900**. No browser 
 
 | # | Caption (paste under shot) | URL path | Show this |
 | --- | --- | --- | --- |
-| 1 | Total ROAS vs break-even — one glance | `/app?period=y3&shot=1` | **Outcome frame:** crop `mcfly-pacing` gauge + KPI tiles (Total ROAS + break-even chip). Period **3 yr** visible in shot mode. |
-| 2 | Sales ÷ spend — the formula this desk uses | `/app?period=mtd&shot=1` | **Definition frame:** `MonthlyPacing` sales/spend bars or explorer sales line + spend mix. Period **MTD**. Must look unlike shot 1 for 4.4.4. |
-| 3 | Select platforms → export daily → combine | `/app/spend?shot=1` | Platform checkboxes + export guides + combine/import; **Other** column visible (fallback: wide template + import) |
-| 4 | One clear cut / shift / hold call | `/app/allocation?period=y3&shot=1` | Recommendation + efficiency bars |
-| 5 | Lock break-even from your margin % | `/app/settings?shot=1` | Margin input + live break-even preview |
+| 1 | Shopify sales next to the spend you added | `/app?period=y3&shot=1` | **Outcome frame:** KPI tiles (sales, spend, Total ROAS). Period **3 yr** visible in shot mode. |
+| 2 | Sales ÷ spend — the formula this desk uses | `/app?period=mtd&shot=1` | **Definition frame:** `Sales ÷ spend` rows. Period **MTD**. Must look unlike shot 1 for 4.4.4. |
+| 3 | Add a billboard or any platform in one field | `/app/spend?shot=1` | **Add spend** card: amount + date + channel / Billboards chip |
+| 4 | LTV and payback Shopify Analytics does not show | `/app/ltv?period=mtd&shot=1` | Cohort LTV + caption that windows ≠ period Cash CAC |
+| 5 | Full-year Goals board next to this period | `/app/goals?period=mtd&shot=1` | PeriodControl + year board |
 
-**Why this order converts:** outcome → trust the math → prove multi-platform export/combine (Other included) → Monday decision → “I can set this up.” Settings last so the gallery doesn’t open on a form.
+**Why this order converts:** outcome → trust the math → prove billboard/offline in one field → LTV is why they pay → Goals board is why they pay. Recapture live Admin; existing founder-pack PNGs may still show the old CSV/allocation story until retaken.
 
 ### Shot 1 vs shot 2 — 4.4.4 uniqueness (mandatory)
 

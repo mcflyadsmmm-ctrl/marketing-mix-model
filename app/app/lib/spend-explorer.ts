@@ -3,6 +3,7 @@
  * Cash MER = sales ÷ spend (never inverted). Channel bars are spend mix only.
  */
 
+import type { PeriodPreset } from "./periods";
 import {
   dateKeyFromYmd,
   listRecentClosedShopLocalDays,
@@ -205,6 +206,41 @@ export function parseExplorerRange(raw: string | null): ExplorerRange {
   }
   if (raw === "custom") return "custom";
   return "90d";
+}
+
+/**
+ * When Overview has no `exRange` query, the chart follows the scoreboard
+ * period instead of a separate 14-day window.
+ */
+export function explorerQueryMatchingScoreboard(
+  preset: PeriodPreset,
+  period: { start: Date; end: Date },
+  timeZone?: string | null,
+): { range: ExplorerRange; from: string | null; to: string | null } {
+  const tz = timeZone?.trim() || null;
+  const keyOf = (instant: Date) =>
+    tz ? shopLocalDayKey(instant, tz) : dateKeyFromLocal(instant);
+
+  switch (preset) {
+    case "ytd":
+      return { range: "YTD", from: null, to: null };
+    case "l12m":
+      return { range: "1y", from: null, to: null };
+    case "y3":
+      return { range: "All", from: null, to: null };
+    case "mtd":
+    case "lm":
+    case "qtd":
+      return {
+        range: "custom",
+        from: keyOf(period.start),
+        to: keyOf(period.end),
+      };
+    default: {
+      const _exhaustive: never = preset;
+      throw new Error(`Unknown period preset: ${_exhaustive}`);
+    }
+  }
 }
 
 export function parseExplorerGranularity(
@@ -540,6 +576,135 @@ export function bucketExplorerRows(
         channels: channelsFromMap(acc.channels),
       };
     });
+}
+
+/** Minimal bucket shape both ExplorerBucket and ExplorerPlotBucket satisfy. */
+export type ExplorerComparableBucket = {
+  key: string;
+  label: string;
+  sales: number;
+  spend: number;
+  mer: number | null;
+};
+
+export type ExplorerBucketComparison = {
+  key: string;
+  label: string;
+  sales: number;
+  spend: number;
+  mer: number | null;
+  /** Prior bucket key at the same granularity (null on malformed key). */
+  priorKey: string | null;
+  /** True when the prior bucket has data inside the current window. */
+  hasPrior: boolean;
+  priorLabel: string | null;
+  priorSales: number | null;
+  priorSpend: number | null;
+  priorMer: number | null;
+  /** current − prior; null when the prior bucket is outside the window. */
+  spendDelta: number | null;
+  salesDelta: number | null;
+  /** Total ROAS (sales ÷ spend) delta — null when either period's spend is 0. */
+  merDelta: number | null;
+};
+
+/**
+ * Prior bucket key of the same length: day → previous day, week → previous
+ * ISO week (Mon start), month → previous month, quarter → previous quarter.
+ * Handles year boundaries (Jan → Dec, Q1 → Q4). Null on malformed keys.
+ */
+export function priorExplorerBucketKey(
+  key: string,
+  granularity: ExplorerGranularity,
+): string | null {
+  switch (granularity) {
+    case "Day": {
+      const d = parseDateKey(key);
+      if (!d) return null;
+      return dateKeyFromLocal(addLocalDays(d, -1));
+    }
+    case "Week": {
+      if (!key.startsWith("w:")) return null;
+      const mon = parseDateKey(key.slice(2));
+      if (!mon) return null;
+      return `w:${dateKeyFromLocal(addLocalDays(mon, -7))}`;
+    }
+    case "Month": {
+      const m = /^m:(\d{4})-(\d{2})$/.exec(key);
+      if (!m) return null;
+      const y = Number(m[1]);
+      const month = Number(m[2]);
+      if (month < 1 || month > 12) return null;
+      const prevY = month === 1 ? y - 1 : y;
+      const prevM = month === 1 ? 12 : month - 1;
+      return `m:${prevY}-${pad2(prevM)}`;
+    }
+    case "Quarter": {
+      const m = /^q:(\d{4})-Q([1-4])$/.exec(key);
+      if (!m) return null;
+      const y = Number(m[1]);
+      const q = Number(m[2]);
+      const prevY = q === 1 ? y - 1 : y;
+      const prevQ = q === 1 ? 4 : q - 1;
+      return `q:${prevY}-Q${prevQ}`;
+    }
+    default: {
+      const _exhaustive: never = granularity;
+      throw new Error(`Unknown granularity: ${_exhaustive}`);
+    }
+  }
+}
+
+/**
+ * This-period-vs-prior comparison per bucket. Prior lookup is key-based (not
+ * index-based) so data gaps never misalign windows. Total ROAS delta uses
+ * sales ÷ spend on both sides — never inverted — and is null whenever either
+ * period has no spend (ratio undefined).
+ */
+export function compareExplorerBuckets(
+  buckets: ExplorerComparableBucket[],
+  granularity: ExplorerGranularity,
+): ExplorerBucketComparison[] {
+  const byKey = new Map(buckets.map((b) => [b.key, b]));
+  return buckets.map((b) => {
+    const priorKey = priorExplorerBucketKey(b.key, granularity);
+    const prior = priorKey ? (byKey.get(priorKey) ?? null) : null;
+    if (!prior) {
+      return {
+        key: b.key,
+        label: b.label,
+        sales: b.sales,
+        spend: b.spend,
+        mer: b.mer,
+        priorKey,
+        hasPrior: false,
+        priorLabel: null,
+        priorSales: null,
+        priorSpend: null,
+        priorMer: null,
+        spendDelta: null,
+        salesDelta: null,
+        merDelta: null,
+      };
+    }
+    return {
+      key: b.key,
+      label: b.label,
+      sales: b.sales,
+      spend: b.spend,
+      mer: b.mer,
+      priorKey,
+      hasPrior: true,
+      priorLabel: prior.label,
+      priorSales: prior.sales,
+      priorSpend: prior.spend,
+      priorMer: prior.mer,
+      spendDelta: round2(b.spend - prior.spend),
+      salesDelta: round2(b.sales - prior.sales),
+      merDelta:
+        b.mer != null && prior.mer != null ? b.mer - prior.mer : null,
+    };
+  });
 }
 
 /**

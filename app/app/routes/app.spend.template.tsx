@@ -13,21 +13,31 @@ import {
   selectedPlatformsTemplateFilename,
   WIDE_TEMPLATE_SAMPLE,
 } from "../lib/spend-csv";
+import {
+  parseSpendTemplateDatesParam,
+  resolveSpendTemplateRangeQuery,
+} from "../lib/spend-template-range";
 import { parseCustomChannelsParam } from "../lib/spend-custom-channel";
 import {
   FREE_CHANNELS,
   resolveShopEntitlements,
 } from "../lib/entitlements.server";
+import { salesDayFactWindowStartUtc } from "../lib/sales-facts.server";
 import type { SpendChannel } from "@mcfly/mer-engine";
 
 /**
  * Reliable CSV download inside Shopify Admin (data: URLs often fail in the iframe).
- *   /app/spend/template                         → Free: Meta+Google example; Pro: full wide
- *   /app/spend/template?blank=1                 → Free: Meta+Google blank; Pro: full wide blank
- *   /app/spend/template?dates=…                 → blank rows for those days (tier columns)
+ *   /app/spend/template                         → example (all named platforms)
+ *   /app/spend/template?blank=1                 → blank (all named platforms, 14 trailing days)
+ *   /app/spend/template?blank=1&span=30d|90d|ytd|12m
+ *       → blank closed days through yesterday (clamped to sales window start)
+ *   /app/spend/template?blank=1&from=YYYY-MM-DD&to=YYYY-MM-DD
+ *   /app/spend/template?dates=…                 → blank rows for those days (cap 366)
  *   /app/spend/template?platforms=meta,google&blank=1   → selected blank
  *   /app/spend/template?platforms=meta,google&example=1 → selected with samples
  *   /app/spend/template?pipe=long|wide&blank=1|example=1 → SyncWith-class Sheet shape
+ *
+ * Prefer `from`/`to` or `span` over stuffing a year into `dates=`.
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -38,6 +48,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const blank = url.searchParams.get("blank") === "1";
   const pipe = url.searchParams.get("pipe");
   const example = url.searchParams.get("example") === "1";
+  const floorKey = salesDayFactWindowStartUtc().toISOString().slice(0, 10);
+  const range = resolveSpendTemplateRangeQuery(url.searchParams, { floorKey });
+  const rangeOpts = range
+    ? { from: range.fromKey, to: range.toKey, floorKey }
+    : {};
 
   const freeDefaultChannels: readonly SpendChannel[] = [...FREE_CHANNELS];
   const tierChannels: readonly SpendChannel[] | undefined =
@@ -51,6 +66,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       dayCount: blank ? 14 : 7,
       example: example || !blank,
       channels: tierChannels,
+      ...rangeOpts,
     });
     filename = blank
       ? entitlements.canUseAllChannels
@@ -64,6 +80,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       dayCount: 14,
       example: example || !blank,
       channels: tierChannels,
+      ...rangeOpts,
     });
     filename = blank
       ? entitlements.canUseAllChannels
@@ -73,11 +90,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         ? "mcfly-pipe-spend-wide-example.csv"
         : "mcfly-pipe-spend-wide-meta-google-example.csv";
   } else if (datesParam) {
-    const dates = datesParam
-      .split(",")
-      .map((d) => d.trim())
-      .filter(Boolean)
-      .slice(0, 62);
+    const dates = parseSpendTemplateDatesParam(datesParam);
     body = buildBlankSpendTemplateForDates(dates, tierChannels);
     filename = entitlements.canUseAllChannels
       ? "mcfly-spend-missing-days.csv"
@@ -104,6 +117,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       {
         dayCount: 14,
         example: useExample,
+        ...rangeOpts,
       },
     );
     body = built.csv;
@@ -111,19 +125,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       channels,
       useExample ? "example" : "blank",
     );
-  } else if (blank) {
-    // Free default: Meta + Google — never serve full all-channel blank to Free.
+  } else if (blank || (range && !example)) {
+    // Blank download: every named platform (all Free).
+    // `span` / `from`/`to` without example=1 means history backfill (empty amounts).
     if (entitlements.canUseAllChannels) {
-      body = buildBlankSpendTemplate(14);
+      body = range
+        ? buildBlankSpendTemplateForDates(range.dates)
+        : buildBlankSpendTemplate(14);
       filename = "mcfly-spend-template-blank.csv";
     } else {
       const built = buildSelectedPlatformTemplateCsv(
         platformsToTemplateCols([...FREE_CHANNELS]),
-        { dayCount: 14, example: false },
+        { dayCount: 14, example: false, ...rangeOpts },
       );
       body = built.csv;
       filename = "mcfly-spend-meta-google-blank.csv";
     }
+  } else if (range && example) {
+    const built = buildSelectedPlatformTemplateCsv(
+      platformsToTemplateCols([...FREE_CHANNELS]),
+      { example: true, ...rangeOpts },
+    );
+    body = built.csv;
+    filename = entitlements.canUseAllChannels
+      ? "mcfly-spend-template.csv"
+      : "mcfly-spend-meta-google-example.csv";
   } else if (entitlements.canUseAllChannels) {
     body = WIDE_TEMPLATE_SAMPLE;
     filename = "mcfly-spend-template.csv";

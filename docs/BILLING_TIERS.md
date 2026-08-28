@@ -2,17 +2,17 @@
 
 **Status:** Upgrade opens Shopify’s hosted plan page (Free / Pro $39).  
 **Not** `appSubscriptionCreate` — this Public app is on **Shopify App Pricing** (Managed Pricing), which blocks the Billing API for creating charges.  
-**Founder lock:** Pro **$39/store/mo** flat.  
-**SoT:** [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) · launch [`ops/FOUNDER_DO_NOW.md`](./ops/FOUNDER_DO_NOW.md)
+**Founder lock:** Pro **$39/store/mo** flat. Not a percent of sales. Not a per-order fee. Shopify bills the app; switch to Free or uninstall to stop the **next** 30-day cycle (the current cycle may still charge).  
+**SoT:** [`STRATEGY.md`](../STRATEGY.md) · [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) · launch [`ops/FOUNDER_DO_NOW.md`](./ops/FOUNDER_DO_NOW.md)
 
 ## Product matrix
 
 | | **Free** | **Pro ($39 flat / store / mo)** |
 | --- | --- | --- |
-| Spend channels | Meta + Google + named extras (billboards, radio, typed) | All named platforms |
-| Core desk | Total Sales ÷ spend, break-even, Allocation | Same + richer mix |
-| LTV | Teaser / SAMPLE | Live opaque cohorts |
-| Goals | Pace + Share Overview | Full-year board + YoY |
+| Spend channels | **Every** named platform + typed extras (billboards, radio, …) | Same — channels are not a Pro gate |
+| Core desk | Shopify sales ÷ that spend, break-even, Allocation | Same |
+| LTV | Teaser / Practice preview | Live opaque cohorts + payback |
+| Goals | This period vs Total ROAS goal | Full-year board + YoY |
 
 **Override (no charge):** `MCFLY_PRO_SHOPS=shop1.myshopify.com,...`
 
@@ -45,3 +45,4 @@ after the POST action — see `billing-navigate.ts` + `ProUpgradeButton`.
 - `billing-navigate.ts` — top-frame-only Admin navigation (no iframe fallback)  
 - `Shop.proBillingActive` — cache after sync / webhook  
 - Settings / Spend upsell → top-frame plan picker  
+- `entitlements.ts` — Free = all `SPEND_CHANNELS`; Pro = LTV + full Goals  

@@ -12,6 +12,7 @@ vi.mock("./mer-dashboard.server", () => ({
   getOrCreateSettings: vi.fn(),
 }));
 
+import { impliedSpendCeiling, impliedSpendCeilingCaption } from "./implied-spend-ceiling";
 import {
   buildSalesGoalPeriods,
   calendarDaysElapsedInMonth,
@@ -348,7 +349,7 @@ describe("merVsRails", () => {
   it("labels near-target MER as flat", () => {
     const rails = merVsRails(2.9, 3, 2);
     expect(rails.tone).toBe("flat");
-    expect(rails.label).toBe("On target MER");
+    expect(rails.label).toBe("On target");
     expect(rails.vsTargetAbs).toBeCloseTo(-0.1, 5);
   });
 
@@ -358,5 +359,30 @@ describe("merVsRails", () => {
     expect(rails.label).toBe("—");
     expect(rails.vsTargetAbs).toBeNull();
     expect(rails.vsBeAbs).toBeNull();
+  });
+});
+
+describe("impliedSpendCeiling", () => {
+  it("returns salesGoal ÷ targetMer when both positive", () => {
+    expect(impliedSpendCeiling(100_000, 4)).toBeCloseTo(25_000, 5);
+    expect(impliedSpendCeiling(90_000, 3)).toBeCloseTo(30_000, 5);
+  });
+
+  it("returns null when goal or target is missing", () => {
+    expect(impliedSpendCeiling(0, 4)).toBeNull();
+    expect(impliedSpendCeiling(100_000, 0)).toBeNull();
+    expect(impliedSpendCeiling(100_000, null)).toBeNull();
+    expect(impliedSpendCeiling(100_000, undefined)).toBeNull();
+  });
+
+  it("labels period sales vs sales-goal ceilings without mixing them", () => {
+    expect(impliedSpendCeilingCaption("period_sales", 4)).toMatch(
+      /This period's Shopify sales ÷ 4\.00× target/,
+    );
+    expect(impliedSpendCeilingCaption("period_sales", 4)).toMatch(/not a bid cap/i);
+    expect(impliedSpendCeilingCaption("sales_goal", 3)).toMatch(
+      /Sales goal ÷ 3\.00× target/,
+    );
+    expect(impliedSpendCeilingCaption("sales_goal", 3)).toMatch(/Not net profit/);
   });
 });

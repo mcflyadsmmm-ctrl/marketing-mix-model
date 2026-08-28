@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { ltvWindowCaption } from "./contrib-ltv";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ltvSource = readFileSync(join(here, "../routes/app.ltv.tsx"), "utf8");
@@ -46,5 +47,37 @@ describe("LTV sales spine (HARD-STOP)", () => {
     expect(ltvSource).toContain("formatPercent(metrics.marginPct)");
     expect(ltvSource).not.toContain("marginPct.toFixed(0)");
     expect(ltvSource).toContain("perCustomerRevenue");
+  });
+
+  it("labels cohort windows vs period Cash CAC (never silently mix)", () => {
+    expect(ltvSource).toContain("ltvWindowCaption");
+    expect(ltvSource).toContain("Orders still syncing — not $0 LTV");
+    expect(ltvSource).not.toContain("Free shows the available window");
+    expect(ltvSource).toContain("getOrderBackfillProgress");
+    expect(ltvSource).toContain("ORDER_FACT_MAX_DAYS_PER_RUN");
+    expect(ltvSource).toContain("until you confirm in Settings");
+  });
+});
+
+describe("ltvWindowCaption", () => {
+  it("names cohort max days, period label, and Cash CAC period spend", () => {
+    const caption = ltvWindowCaption({
+      periodLabel: "Month to date",
+      cohortMaxDays: 365,
+    });
+    expect(caption).toContain("30/90/365d");
+    expect(caption).toContain("first-order month");
+    expect(caption).toContain("Month to date");
+    expect(caption).toContain("Cash CAC uses this period’s spend ÷ new buyers");
+    expect(caption).toContain(
+      "Shopify Analytics does not combine LTV with ad spend",
+    );
+    expect(caption).toContain("Not predictive");
+    expect(caption).toContain("Not by ad");
+    expect(caption).not.toMatch(/pixel/i);
+  });
+
+  it("defaults cohort max to 365 when omitted", () => {
+    expect(ltvWindowCaption({ periodLabel: "YTD" })).toContain("30/90/365d");
   });
 });

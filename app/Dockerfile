@@ -30,5 +30,7 @@ COPY --from=build /repo/package.json /repo/package-lock.json* ./
 COPY --from=build /repo/node_modules ./node_modules
 COPY --from=build /repo/packages ./packages
 COPY --from=build /repo/app ./app
+COPY site /repo/site
+ENV MCFLY_SITE_ROOT=/repo/site
 WORKDIR /repo/app
 CMD ["npm", "run", "docker-start"]

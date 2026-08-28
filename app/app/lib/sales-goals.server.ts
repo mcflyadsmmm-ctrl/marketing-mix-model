@@ -11,6 +11,8 @@ import {
   shopLocalYmd,
 } from "./shop-local-day";
 
+export { impliedSpendCeiling } from "./implied-spend-ceiling";
+
 const MONTH_SHORT = [
   "Jan",
   "Feb",
@@ -721,11 +723,11 @@ export function merVsRails(
     case "below_be":
       return { vsTargetAbs, vsBeAbs, tone: "down", label: "Below break-even" };
     case "on_target":
-      return { vsTargetAbs, vsBeAbs, tone: "flat", label: "On target MER" };
+      return { vsTargetAbs, vsBeAbs, tone: "flat", label: "On target" };
     case "above_be":
       return { vsTargetAbs, vsBeAbs, tone: "up", label: "Above break-even" };
     case "below_target":
-      return { vsTargetAbs, vsBeAbs, tone: "down", label: "Below target MER" };
+      return { vsTargetAbs, vsBeAbs, tone: "down", label: "Below target" };
     case "none":
       return { vsTargetAbs, vsBeAbs, tone: "flat", label: "—" };
     default: {

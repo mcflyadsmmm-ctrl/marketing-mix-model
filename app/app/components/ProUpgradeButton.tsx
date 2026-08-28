@@ -20,7 +20,7 @@ type ProUpgradeButtonProps = {
 /**
  * Starts Managed Pricing via user-gesture top-frame open.
  *
- * Dual safety for App Store 2.1.1 (Spend → Upgrade to Pro):
+ * Dual safety for App Store 2.1.1 (Settings → Start 7-day trial):
  * 1) Immediate App Bridge `open(_, "_top")` on click (no POST wait, no iframe 302)
  * 2) GET /app/billing?embedded=1 HTML bounce if JS cannot leave the frame
  */
@@ -43,7 +43,7 @@ export function ProUpgradeButton({
   const action = `/app/billing${billingSearch}`;
   const text =
     label ??
-    (mode === "manage" ? "Manage plan — Free or Pro" : PRO_UPSELL.upgradeCta);
+    (mode === "manage" ? PRO_UPSELL.manageCta : PRO_UPSELL.upgradeCta);
 
   useEffect(() => {
     if (!data?.ok || !data.confirmationUrl) return;

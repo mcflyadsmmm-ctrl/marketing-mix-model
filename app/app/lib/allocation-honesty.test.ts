@@ -23,10 +23,10 @@ describe("Allocation desk sales honesty", () => {
 
   it("does not label error or incomplete facts as live sales", () => {
     expect(source).toContain("sales unavailable");
-    expect(source).toContain("facts incomplete");
+    expect(source).toContain("factsIncompleteSuffix");
     // Till suffix must branch before the live-sales default.
     expect(source).toMatch(
-      /sales unavailable[\s\S]*facts incomplete[\s\S]*live sales/,
+      /sales unavailable[\s\S]*factsIncompleteSuffix[\s\S]*live sales/,
     );
   });
 

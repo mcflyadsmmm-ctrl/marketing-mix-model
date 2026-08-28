@@ -3,22 +3,21 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
-import { buildDashboardMetrics, ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
+import { buildDashboardMetrics, ensureShop, getOrCreateSettings, marginIsConfirmed } from "../lib/mer-dashboard.server";
 import { parseSalesBasis } from "../lib/sales-basis";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import {
   contributionAdjustedLtv,
   contributionLtvCacRatio,
+  ltvWindowCaption,
 } from "../lib/contrib-ltv";
-import { runOrderFactsBackfill } from "../lib/order-facts.server";
+import { runOrderFactsBackfill, getOrderBackfillProgress, ORDER_FACT_MAX_DAYS_PER_RUN } from "../lib/order-facts.server";
 import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import { authenticate } from "../shopify.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
-import { PRO_UPSELL } from "../lib/entitlements";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
 
 /** CohortFact stores window totals — desk LTV is per new customer. */
 function perCustomerRevenue(
@@ -42,6 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const shop = await ensureShop(session.shop);
+  const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
   const range = resolvePeriod(preset, new Date(), deskTz);
@@ -59,7 +59,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } else {
     // Cohort OrderFact backfill — Pro / SAMPLE only (not Free live).
     if (entitlements.canUseLtv) {
-      void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+      void runOrderFactsBackfill(admin, shop.id, {
+        maxDays: ORDER_FACT_MAX_DAYS_PER_RUN,
+      }).catch(() => {
         // ignore — page shows honest empty/backfill states until cohort facts land
       });
     }
@@ -80,11 +82,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
-    salesBasis: parseSalesBasis(
-      (await getOrCreateSettings(shop.id)).salesBasis,
-      "total",
-    ),
+    salesBasis: parseSalesBasis(settings.salesBasis, "total"),
   });
+  const orderBackfillProgress =
+    !useSampleDesk && entitlements.canUseLtv
+      ? await getOrderBackfillProgress(shop.id, {
+          ianaTimezone: shop.ianaTimezone,
+        })
+      : null;
   return {
     metrics,
     preset,
@@ -95,6 +100,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesUnavailable,
     entitlements,
     canUseLtv: entitlements.canUseLtv,
+    marginConfirmed: marginIsConfirmed(settings),
+    orderBackfillProgress,
   };
 };
 
@@ -109,6 +116,8 @@ export default function LtvPage() {
     todaySalesUnavailable,
     entitlements,
     canUseLtv,
+    marginConfirmed,
+    orderBackfillProgress,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -357,7 +366,7 @@ export default function LtvPage() {
                   <p className="mcfly-acq-tile__def">
                     {newSalesShare != null
                       ? `${formatPercent(newSalesShare)} of period sales`
-                      : "aMER numerator"}
+                      : "New-customer sales"}
                   </p>
                 </div>
                 <div className="mcfly-acq-tile mcfly-acq-tile--cream">
@@ -404,13 +413,14 @@ export default function LtvPage() {
                   </p>
                 </div>
                 <div className="mcfly-acq-tile mcfly-acq-tile--mint">
-                  <p className="mcfly-acq-tile__k">{PRODUCT_NOUN.amer}</p>
+                  <p className="mcfly-acq-tile__k">New-customer sales ÷ spend</p>
                   <p className="mcfly-acq-tile__v">
                     {metrics.amer != null ? formatMer(metrics.amer) : "—"}
                   </p>
                   <p className="mcfly-acq-tile__def">{PRODUCT_NOUN.amerDef}</p>
                   <p className="mcfly-acq-tile__hint">
-                    Average for the period — not causal channel ROAS
+                    Also called {PRODUCT_NOUN.amer}. Average for the period —
+                    not which ad to scale.
                   </p>
                 </div>
               </div>
@@ -426,27 +436,6 @@ export default function LtvPage() {
         </section>
 
         {/* ── B · Lifetime value (cohorts) — Pro / SAMPLE ── */}
-        {!canUseLtv ? (
-          <section
-            className="mcfly-panel mcfly-acq-ltv-teaser"
-            aria-label="Lifetime value — Pro"
-          >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Lifetime value · cohorts</h2>
-              <p className="mcfly-panel__muted">
-                Contribution LTV, Cash CAC payback, and monthly cohorts
-              </p>
-            </div>
-            <div className="mcfly-acq-ltv-teaser__body">
-              {entitlements.showProTeaser ? (
-                <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={!useSampleDesk} />
-              ) : (
-                <p className="mcfly-panel__muted">{PRO_UPSELL.ltv}</p>
-              )}
-            </div>
-          </section>
-        ) : (
-          <>
             <section
               className="mcfly-panel mcfly-till-ltv mcfly-ltv-summary mcfly-acq-ltv"
               aria-label="Lifetime value summary"
@@ -455,8 +444,17 @@ export default function LtvPage() {
                 <h2>Lifetime value · cohorts</h2>
                 <p className="mcfly-panel__muted">
                   LTV is average revenue per new customer. Contribution LTV
-                  applies {formatPercent(metrics.marginPct)} margin. Averages,
-                  not causal channel ROAS.
+                  applies {formatPercent(metrics.marginPct)} margin
+                  {marginConfirmed
+                    ? "."
+                    : " (default until you confirm in Settings)."}{" "}
+                  Averages, not causal channel ROAS.
+                </p>
+                <p className="mcfly-panel__note mcfly-acq-ltv__window">
+                  {ltvWindowCaption({
+                    periodLabel: metrics.period.label,
+                    cohortMaxDays: 365,
+                  })}
                 </p>
               </div>
 
@@ -476,6 +474,9 @@ export default function LtvPage() {
                       Contrib{" "}
                       {contrib90 != null ? formatCurrency(contrib90) : "—"}{" "}
                       after {formatPercent(metrics.marginPct)} margin
+                      {marginConfirmed
+                        ? ""
+                        : " (default until you confirm in Settings)"}
                     </p>
                   </div>
                   <div className="mcfly-ltv-summary__side">
@@ -566,8 +567,10 @@ export default function LtvPage() {
                   {metrics.tillLtv.emptyReason === "no_timezone"
                     ? "Shop timezone needed before customer cohorts can bucket by local day."
                     : metrics.tillLtv.emptyReason === "history_limited"
-                      ? "Order history is limited on this shop — Free shows the available window; broader Shopify order access unlocks deeper mature cohorts (order ids and amounts only)."
-                      : "Backfilling customer cohorts — Lifetime Value lights up once facts land."}
+                      ? "Order history from Shopify is limited on this shop (~60 days). Cohorts only cover that window — not $0 LTV."
+                      : orderBackfillProgress
+                        ? `Orders still syncing — not $0 LTV. Ingested ${orderBackfillProgress.completeDays} of ${orderBackfillProgress.windowDays} closed days. Refresh this page.`
+                        : "Orders still syncing — not $0 LTV"}
                 </p>
               )}
             </section>
@@ -581,7 +584,8 @@ export default function LtvPage() {
                   <h2>Cohort deep dive</h2>
                   <p className="mcfly-panel__muted">
                     Monthly first-order cohorts · cumulative revenue windows ·
-                    cash cost context for this period
+                    Cash CAC below uses this period’s spend (not the cohort
+                    window)
                   </p>
                 </div>
 
@@ -697,8 +701,6 @@ export default function LtvPage() {
                 ) : null}
               </section>
             ) : null}
-          </>
-        )}
       </div>
     </s-page>
   );

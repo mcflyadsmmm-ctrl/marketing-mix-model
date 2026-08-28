@@ -299,7 +299,7 @@ export const SPEND_ADVERTISE_PLATFORMS: readonly SpendAdvertisePlatform[] = [
       "No partner PII in the file — aggregates only.",
     ],
     cadenceNote:
-      "Monthly network bills: use Bill → daily on this page (amount + cadence → Preview / Apply), or spread manually. Mcfly needs a daily amount for Total ROAS.",
+      "Monthly bills: use Divide a bill into daily rows on this page (amount + period → Save as daily spend). Mcfly needs a daily amount for Total ROAS.",
   },
   {
     id: "email",
@@ -320,7 +320,7 @@ export const SPEND_ADVERTISE_PLATFORMS: readonly SpendAdvertisePlatform[] = [
       "No subscriber PII in the CSV.",
     ],
     cadenceNote:
-      "Monthly ESP bills: use Bill → daily above (or divide by days in the period). One monthly total on a single day skews that day’s Total ROAS.",
+      "Monthly ESP bills: use Divide a bill into daily rows (amount + period → Save as daily spend). One monthly total on a single day skews that day’s Total ROAS.",
   },
   {
     id: "other",
@@ -339,9 +339,19 @@ export const SPEND_ADVERTISE_PLATFORMS: readonly SpendAdvertisePlatform[] = [
       "Skip totals rows.",
     ],
     cadenceNote:
-      "Invoice-only vendors: use Bill → daily on this page, or spread the bill across the days it covered.",
+      "Invoice-only vendors: use Divide a bill into daily rows on this page, or spread the bill across the days it covered.",
   },
 ] as const;
+
+/** Featured checkboxes on Spend — pick these first, then download that template. */
+export const FEATURED_SPEND_PLATFORM_IDS: readonly SpendAdvertisePlatformId[] = [
+  "meta",
+  "google",
+  "tiktok",
+  "microsoft",
+  "amazon",
+  "email",
+];
 
 /** Guides array (same objects) for accordion rendering. */
 export const SPEND_EXPORT_GUIDES: readonly SpendExportGuide[] =

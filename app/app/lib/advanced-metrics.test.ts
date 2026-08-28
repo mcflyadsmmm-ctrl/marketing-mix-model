@@ -131,13 +131,15 @@ describe("buildAdvancedSections", () => {
     expect(payback?.value).toBe("—");
   });
 
-  it("locks acquisition when canUseLtv is false", () => {
+  it("hides acquisition tiles when LTV is not resolvable yet, without a plan gate", () => {
     const sections = buildAdvancedSections(baseMetrics(), {
       canUseLtv: false,
       periodLabel: "Last 30 days",
     });
     const acq = sections.find((s) => s.id === "acquisition");
-    expect(acq?.lockedReason).toMatch(/Pro/i);
+    // Founder lock: whole desk on trial and paid — never "upgrade to Pro" copy.
+    expect(acq?.lockedReason).toMatch(/whole desk/i);
+    expect(acq?.lockedReason).not.toMatch(/\bPro\b/);
     expect(acq?.tiles).toHaveLength(0);
   });
 

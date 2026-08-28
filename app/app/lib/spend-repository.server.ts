@@ -126,7 +126,7 @@ export async function assertSpendWriteAllowed(
     const blocked = [...new Set(channels.filter((ch) => !allowed.has(ch)))].sort();
     if (blocked.length === 0) return;
     throw new SpendChannelEntitlementError(
-      `Pro required for ${blocked.join(", ")}. Free covers Meta, Google, and named extras — named platforms need Pro.`,
+      `Unknown spend channel: ${blocked.join(", ")}.`,
     );
   }
 
@@ -315,7 +315,7 @@ async function upsertSpendDaysBatch(
  * wins on amount/periodEnd/note/source. Never sums duplicates.
  *
  * Batches: findMany + createMany/update in chunks of SPEND_UPSERT_BATCH_SIZE.
- * Live writes fail-closed on Free when any channel is outside Meta + Google + extras.
+ * Live writes fail-closed on unknown channel strings. Named platforms are Free.
  * All-sample batches skip the gate (SAMPLE desk).
  */
 export function createSpendRepository(): SpendRepository & {

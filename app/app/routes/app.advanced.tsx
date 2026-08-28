@@ -3,11 +3,9 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
-import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import { UseSampleCta } from "../components/UseSampleCta";
 import { buildAdvancedSections } from "../lib/advanced-metrics";
 import { getShopEntitlements } from "../lib/entitlements.server";
-import { PRO_UPSELL } from "../lib/entitlements";
 import {
   buildDashboardMetrics,
   ensureShop,
@@ -176,9 +174,9 @@ export default function AdvancedMetricsPage() {
         </div>
 
         <p className="mcfly-advanced__lede">
-          Deep formulas for multi-million desks. Overview stays simple — this lab
-          is optional. Every tile is average / portfolio math from Shopify sales
-          and Logged Spend via CSV.
+          Optional. Add spend on Spend first — this page is extra math, not a
+          second scoreboard. Overview stays simple. Every tile is average /
+          portfolio math from Shopify sales and Logged Spend via CSV.
         </p>
 
         <div className="mcfly-advanced__nav">
@@ -209,7 +207,6 @@ export default function AdvancedMetricsPage() {
               >
                 <p className="mcfly-state__copy">{section.lockedReason}</p>
                 <div className="mcfly-state__cta">
-                  {entitlements.showProTeaser ? <ProUpgradeButton /> : null}
                   <UseSampleCta />
                 </div>
               </section>

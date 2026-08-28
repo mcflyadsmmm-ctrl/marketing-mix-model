@@ -29,9 +29,12 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import { formatOverviewShareText } from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
-import { PRO_UPSELL } from "../lib/entitlements";
+import { NumberHonestyPanel } from "../components/NumberHonestyPanel";
+import {
+  NUMBER_HONESTY,
+  spendAddHref,
+} from "../lib/number-honesty";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import {
   emptySales,
@@ -67,6 +70,7 @@ import {
   parseExplorerRange,
   parseExplorerShowSales,
   resolveExplorerWindow,
+  explorerQueryMatchingScoreboard,
 } from "../lib/spend-explorer";
 
 function channelDisplayLabel(channel: string): string {
@@ -102,33 +106,36 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     next.set("period", "ytd");
     throw redirect(`/app?${next.toString()}`);
   }
-  // Desk default: short window (14d) when explorer range unset.
-  const exRange = parseExplorerRange(url.searchParams.get("exRange") || "14d");
   const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
   const exMode = parseExplorerMode(url.searchParams.get("exMode"));
   const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
-  const exFrom = parseExplorerDateParam(url.searchParams.get("exFrom"));
-  const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
   const now = new Date();
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
-  const range = resolvePeriod(
-    preset,
-    now,
-    deskPeriodTimeZone(useSampleDesk, ianaTimezone),
-  );
-  const priorRange = resolvePriorPeriod(
-    preset,
-    now,
-    deskPeriodTimeZone(useSampleDesk, ianaTimezone),
-  );
+  const deskTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
+  const range = resolvePeriod(preset, now, deskTz);
+  const priorRange = resolvePriorPeriod(preset, now, deskTz);
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
   });
+
+  const exRangeParam = url.searchParams.get("exRange");
+  const tiedExplorer = exRangeParam
+    ? null
+    : explorerQueryMatchingScoreboard(preset, range, deskTz);
+  const exRange = exRangeParam
+    ? parseExplorerRange(exRangeParam)
+    : (tiedExplorer?.range ?? "custom");
+  const exFrom = exRangeParam
+    ? parseExplorerDateParam(url.searchParams.get("exFrom"))
+    : (tiedExplorer?.from ?? null);
+  const exTo = exRangeParam
+    ? parseExplorerDateParam(url.searchParams.get("exTo"))
+    : (tiedExplorer?.to ?? null);
 
   let sales: SalesResult = emptySales("shopify");
   /** Null when prior facts are outside the window / failed — skip deltas (never fake 0). */
@@ -213,10 +220,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         // ignore — banners disclose incomplete facts
       });
     }
-    // Till LTV OrderFact ingest — throttled like sales facts (≤2 closed days / paint).
-    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-      // ignore — panel shows empty/backfilling until cohorts land
-    });
+    // Till LTV OrderFact ingest — Pro only (Free teasers do not crawl orders).
+    if (entitlements.canUseLtv) {
+      void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+        // ignore — panel shows empty/backfilling until cohorts land
+      });
+    }
 
     const desk = await loadDeskSalesForPeriod({
       admin,
@@ -325,7 +334,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
-    showProTeaser: entitlements.showProTeaser,
   };
 };
 
@@ -350,10 +358,10 @@ export default function Dashboard() {
     sharePeriodStartDay,
     sharePeriodEndDay,
     shopLabel,
-    showProTeaser,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
+  const spendHref = spendAddHref({ period: preset, shot: shotMode });
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel = useSampleDesk
@@ -367,7 +375,7 @@ export default function Dashboard() {
         : salesFactsCoverage != null &&
             !salesFactsCoverage.complete &&
             !salesFactsCoverage.periodExceedsFactWindow
-          ? `${metrics.period.label} · facts incomplete`
+          ? `${metrics.period.label}${PRODUCT_NOUN.factsIncompleteSuffix}`
           : `${metrics.period.label} · live sales`;
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk,
@@ -506,7 +514,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href="/app/spend"
+            href={spendHref}
             aria-label="See practice spend mix"
           >
             See spend mix
@@ -515,7 +523,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href="/app/spend"
+            href={spendHref}
             aria-label="Update spend"
           >
             Update spend
@@ -533,7 +541,7 @@ export default function Dashboard() {
           <s-button
             slot="primary-action"
             variant="primary"
-            href="/app/spend"
+            href={spendHref}
             aria-label={PRODUCT_NOUN.setupAddSpend}
           >
             {PRODUCT_NOUN.setupAddSpend}
@@ -599,14 +607,14 @@ export default function Dashboard() {
               {freshLabel}
             </span>
             {!shotMode && scoreboardReady ? (
-              <s-link href="/app/spend#mcfly-spend-uploads">Update spend</s-link>
+              <s-link href={spendHref}>Update spend</s-link>
             ) : null}
-            {!metrics.cashActionReady &&
+            {metrics.spendCoverage?.incomplete &&
             !shotMode &&
             !useSampleDesk &&
             scoreboardReady ? (
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
-                Finish spend trust
+                Add more days of spend
               </span>
             ) : null}
           </div>
@@ -650,21 +658,21 @@ export default function Dashboard() {
                   <s-stack alignItems="center">
                     <s-heading>Get {PRODUCT_NOUN.totalRoas} in ~10 minutes</s-heading>
                     <s-paragraph>
-                      Start with profit margin (sets break-even). Then upload
-                      Spend CSV. Sales are already in.
+                      {NUMBER_HONESTY.empty} Sales are already in. Margin is
+                      optional for break-even.
                     </s-paragraph>
                   </s-stack>
                   <s-button
                     variant="primary"
-                    href="/app/settings"
-                    aria-label={PRODUCT_NOUN.setupAdjustMargin}
+                    href={spendHref}
+                    aria-label={PRODUCT_NOUN.setupAddSpend}
                   >
-                    {PRODUCT_NOUN.setupAdjustMargin}
+                    {PRODUCT_NOUN.setupAddSpend}
                   </s-button>
                   <p className="mcfly-cold-empty__foot">
-                    Next: <s-link href="/app/spend">{PRODUCT_NOUN.setupAddSpend}</s-link>
+                    Next: <s-link href={spendHref}>{PRODUCT_NOUN.setupAddSpend}</s-link>
                     {" · "}
-                    Switch to Practice at the top for example numbers
+                    Switch to Sample data at the top for example numbers
                   </p>
                 </s-grid>
               </s-grid>
@@ -682,19 +690,18 @@ export default function Dashboard() {
                   <s-stack alignItems="center">
                     <s-heading>{PRODUCT_NOUN.setupAddSpend}</s-heading>
                     <s-paragraph>
-                      Margin is set. Upload daily Spend CSV to unlock{" "}
-                      {PRODUCT_NOUN.totalRoas} vs break-even.
+                      {NUMBER_HONESTY.empty} {NUMBER_HONESTY.invoiceHint}
                     </s-paragraph>
                   </s-stack>
                   <s-button
                     variant="primary"
-                    href="/app/spend"
+                    href={spendHref}
                     aria-label={PRODUCT_NOUN.setupAddSpend}
                   >
                     {PRODUCT_NOUN.setupAddSpend}
                   </s-button>
                   <p className="mcfly-cold-empty__foot">
-                    Want example numbers first? Switch to Practice at the top.
+                    Want example numbers first? Switch to Sample data at the top.
                   </p>
                 </s-grid>
               </s-grid>
@@ -715,7 +722,7 @@ export default function Dashboard() {
               </p>
               <p className="mcfly-guide__sub">
                 Sales load automatically. Set a Total ROAS target, add spend,
-                then read cash Total ROAS. Profit margin is optional for
+                then read sales ÷ spend. Profit margin is optional for
                 break-even.
               </p>
             </div>
@@ -758,15 +765,15 @@ export default function Dashboard() {
                     {PRODUCT_NOUN.setupAddSpend}
                   </p>
                   <p className="mcfly-guide__step-copy">
-                    Logged Spend via CSV — upload or paste Day + channel columns
-                    from Sheets. No ad network logins.
+                    Type one day’s invoice (any platform, including billboards).
+                    CSV is only for many days. No ad-network logins.
                   </p>
                   {metrics.onboarding.hasSpend ? (
                     <p className="mcfly-guide__step-state">
                       Logged · {formatCurrency(metrics.totalSpend)} this period
                     </p>
                   ) : (
-                    <s-button href="/app/spend" variant="primary">
+                    <s-button href={spendHref} variant="primary">
                       {PRODUCT_NOUN.setupAddSpend}
                     </s-button>
                   )}
@@ -791,14 +798,14 @@ export default function Dashboard() {
               </li>
             </ol>
             <p className="mcfly-guide__foot">
-              Want example numbers first? Switch to Practice at the top.
+              Want example numbers first? Switch to Sample data at the top.
             </p>
           </section>
         ) : null}
 
         {!spendBlocked && !marginBlocked ? (
           <>
-            {!shotMode && scoreboardReady ? (
+            {scoreboardReady ? (
               <section
                 className="mcfly-hero-compact mcfly-hero-compact--v2"
                 aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
@@ -814,7 +821,7 @@ export default function Dashboard() {
                       {PRODUCT_NOUN.setupSetGoals}
                     </s-button>
                     <s-button
-                      href="/app/spend#mcfly-spend-uploads"
+                      href={spendHref}
                       variant="primary"
                     >
                       Update spend
@@ -846,7 +853,7 @@ export default function Dashboard() {
                       {formatCurrency(metrics.totalSpend)}
                     </p>
                     <p className="mcfly-hero-compact__meta">
-                      {metrics.period.label} · Logged via CSV
+                      {metrics.period.label} · Spend you added
                     </p>
                     {spendDeltaLine ? (
                       <p className="mcfly-hero-compact__meta">{spendDeltaLine}</p>
@@ -884,7 +891,7 @@ export default function Dashboard() {
                       </p>
                     )}
                     <p className="mcfly-hero-compact__dive">
-                      <s-link href="/app/spend#mcfly-spend-uploads">
+                      <s-link href={spendHref}>
                         Update spend
                       </s-link>
                       {" · "}
@@ -894,6 +901,12 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
+                <NumberHonestyPanel
+                  sales={totalSalesDisplay}
+                  spend={metrics.totalSpend}
+                  mer={metrics.mer}
+                  periodLabel={metrics.period.label}
+                />
               </section>
             ) : null}
 
@@ -903,8 +916,6 @@ export default function Dashboard() {
                 <LtvSnapSection
                   tillLtv={metrics.tillLtv}
                   preset={preset}
-                  showProTeaser={showProTeaser}
-                  showSample={!useSampleDesk}
                 />
               </div>
             ) : null}
@@ -912,13 +923,13 @@ export default function Dashboard() {
             <div className="mcfly-me-spine">
               <div className="mcfly-explorer-csv-bar">
                 <s-button
-                  href="/app/spend#mcfly-spend-uploads"
+                  href={spendHref}
                   variant="primary"
                 >
                   Update spend
                 </s-button>
                 <span className="mcfly-explorer-csv-bar__hint">
-                  Upload daily CSV — channels come from your columns
+                  Add a day’s invoice — CSV only if you have many days
                 </span>
               </div>
               <SpendExplorer
@@ -957,8 +968,6 @@ export default function Dashboard() {
 function LtvSnapSection({
   tillLtv,
   preset,
-  showProTeaser,
-  showSample,
 }: {
   tillLtv: {
     available: boolean;
@@ -971,8 +980,6 @@ function LtvSnapSection({
     paybackDays: number | null;
   };
   preset: PeriodPreset;
-  showProTeaser: boolean;
-  showSample: boolean;
 }) {
   return (
     <section
@@ -1050,12 +1057,6 @@ function LtvSnapSection({
             </p>
           ) : null}
         </>
-      ) : tillLtv.emptyReason === "pro_required" ? (
-        showProTeaser ? (
-          <ProUpsellBlock lead={PRO_UPSELL.ltv} showSample={showSample} />
-        ) : (
-          <p className="mcfly-tab-snap__empty">{PRO_UPSELL.ltv}</p>
-        )
       ) : (
         <p className="mcfly-tab-snap__empty">
           {tillLtv.emptyReason === "no_timezone"
@@ -1067,15 +1068,9 @@ function LtvSnapSection({
       )}
 
       <div className="mcfly-tab-snap__cta">
-        {tillLtv.emptyReason === "pro_required" && !tillLtv.available ? (
-          <s-link href={`/app/ltv?period=${preset}`}>
-            {PRODUCT_NOUN.openLtv}
-          </s-link>
-        ) : (
-          <s-button href={`/app/ltv?period=${preset}`} variant="primary">
-            {PRODUCT_NOUN.openLtv}
-          </s-button>
-        )}
+        <s-button href={`/app/ltv?period=${preset}`} variant="primary">
+          {PRODUCT_NOUN.openLtv}
+        </s-button>
       </div>
     </section>
   );

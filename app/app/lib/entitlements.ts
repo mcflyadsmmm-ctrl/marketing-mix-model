@@ -1,65 +1,70 @@
 /**
- * Client-safe Free vs Pro constants (no env / secrets).
+ * Client-safe plan constants (no env / secrets).
  * Server resolution lives in entitlements.server.ts.
+ * Founder lock 2026-08-26: whole desk on trial and paid — billing is not a desk mode.
  */
 
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
 
 /**
- * Free install: Meta + Google + named extras (billboards, radio, typed channels).
- * Named paid platforms (TikTok, Microsoft, Amazon, …) stay Pro upsell.
+ * Every named platform plus typed extras (billboard, radio, …).
+ * $39 after the 7-day trial is the whole desk — not a channel unlock.
  */
-export const FREE_CHANNELS = [
-  "meta",
-  "google",
-  "other",
-] as const satisfies readonly SpendChannel[];
+export const FREE_CHANNELS: readonly SpendChannel[] = SPEND_CHANNELS;
 
-export type FreeChannel = (typeof FREE_CHANNELS)[number];
+export type FreeChannel = SpendChannel;
 
 export const FREE_CHANNEL_SET: ReadonlySet<string> = new Set(FREE_CHANNELS);
 
-export function isFreeChannel(channel: string): channel is FreeChannel {
+export function isFreeChannel(channel: string): channel is SpendChannel {
   return FREE_CHANNEL_SET.has(channel);
 }
 
-/** All engine channels (Pro). */
+/** All engine channels (trial and paid). */
 export const PRO_CHANNELS: readonly SpendChannel[] = SPEND_CHANNELS;
 
 /**
- * Single SoT for Pro upsell copy. Partner Pricing = Free + Pro via Shopify App Pricing.
- * Keep $39 in-app only — never in App Store listing paste.
+ * Single SoT for plan copy. Keep $39 in-app only — never in App Store listing paste.
  */
 export const PRO_UPSELL = {
-  short: "Pro · $39/store/mo",
+  short: "7-day trial · then $39/store/mo",
   priceLine: "$39 per store / month",
-  /** One-line “what you get” for banners and empty states. */
+  /** One-line “what you get” for Settings. */
   includes:
-    "Named ad platforms, customer LTV, and a full-year Goals board.",
+    "Whole desk: Spend, Overview, LTV, Goals. Sample data or Live data — billing is not a view.",
   channels:
-    "Free includes Meta, Google, and named extras like billboards. Pro adds TikTok, Amazon, Email, and other named platforms.",
-  ltv: "See how long new customers take to pay back ad spend. Try it on Practice, or upgrade to use it on your store.",
+    "Every named platform plus extras like billboard. Type a channel if we did not list it.",
+  ltv: "Did this month’s new customers pay back the spend you logged? Mcfly follows them for 30 / 90 / 365 days. Shopify Analytics does not.",
   goals:
-    "Set a 12-month sales plan and fill months from last year. Free still shows this period vs your Total ROAS goal.",
+    "Type the sales you want this year. The board tells you the most you can spend each month and still hit your Total ROAS target.",
   close:
-    "Share Overview (Email) is free — opens your mail app with this period’s cards. Mcfly never sends mail for you.",
-  upgradeCta: "Upgrade to Pro — $39/mo",
-  seeSettings: "See Free vs Pro in Settings",
+    "Share Overview (Email) opens your mail app with this period’s cards. Mcfly never sends mail for you.",
+  upgradeCta: "Start 7-day trial",
+  manageCta: "Manage plan",
+  seeSettings: "See plan in Settings",
+} as const;
+
+/** In-app only (never listing paste). Contrast GMV ladders and order overages. */
+export const BILLING_HONESTY = {
+  flat:
+    "Mcfly Analytics is $39 per store / month after a 7-day full-access trial — not a percent of sales, not a per-order fee.",
+  cancel:
+    "Shopify bills this app. Uninstall in Admin to stop the next 30-day cycle. The current cycle may still charge.",
 } as const;
 
 export const FREE_FEATURE_BULLETS = [
-  "Total ROAS = Shopify sales ÷ the spend you add",
+  "Shopify sales beside the spend you add (any platform, including billboard)",
+  "Total ROAS = Shopify sales ÷ that spend",
   "Break-even from optional profit margin",
-  "Spend CSV: Meta, Google, and named extras (billboards, radio, …)",
-  "Period filters and Spend Allocation for Free channels",
+  "Period filters and Spend Allocation",
   "Email Overview (opens your mail app)",
-  "Practice desk to try Pro features",
+  "Sample data to click around before Live data",
 ] as const;
 
 export const PRO_FEATURE_BULLETS = [
-  "Everything in Free",
-  "Named platforms: TikTok, Amazon, Email, Affiliate, and more",
-  "Customer LTV and payback",
+  "Whole desk: Spend, Overview, LTV, Goals",
+  "Every named platform plus extras like billboard",
+  "Customer LTV and payback on your store",
   "Full-year Goals board",
-  "$39 per store / month",
+  "7-day full-access trial, then $39 per store / month",
 ] as const;
