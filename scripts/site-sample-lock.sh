@@ -249,16 +249,62 @@ fi
 
 # Identity — one sans M = favicon = header (Pinemarsh). Anti-pattern: Orr mega-nav.
 title_line="$(grep -m1 '<title>' "$ca")"
-if [[ "$title_line" != *"Custom Data Solutions · Mcfly Ads"* ]]; then
-  die "custom title is not Custom Data Solutions · Mcfly Ads"
+if [[ "$title_line" != *"Custom Data Solutions — \$5–8K / \$8–15K / \$15–25K | Mcfly Ads"* ]]; then
+  die "custom title is not the KEEP paste with fee bands"
 else
-  ok "custom title Mcfly Ads, no fee bands"
+  ok "custom title KEEP paste"
 fi
-if grep -E '<title>.*\$5' "$ca"; then
-  die "custom TITLE still contains fee bands"
+if ! grep -q 'content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page."' "$ca"; then
+  die "custom-analytics meta description drifted from KEEP paste"
 else
-  ok "fee bands kept out of TITLE"
+  ok "custom-analytics KEEP meta"
 fi
+if ! grep -q '<title>SAMPLE lab — $98,500 spend, cash 4.19× vs platform ~4.8× | Mcfly Ads</title>' "$site/lab.html"; then
+  die "lab.html title drifted from paste"
+else
+  ok "lab.html title paste"
+fi
+if ! grep -q 'Northline SAMPLE week. Same $98,500. Invoice $98,500 vs UI $99,950. Cash 4.19× vs platform ~4.8×. Not a live client. Custom Data Solutions $5–25K.' "$site/lab.html"; then
+  die "lab.html meta drifted from paste"
+else
+  ok "lab.html meta paste"
+fi
+if ! grep -q '<title>Spend &amp; Sales Audit — $5–8K | Mcfly Ads</title>' "$site/spend-sales-audit.html"; then
+  die "spend-sales-audit title drifted from KEEP T"
+else
+  ok "spend-sales-audit KEEP title"
+fi
+if ! grep -q 'Invoice vs UI, spend by platform, sales period check. SAMPLE: $98,500 vs $99,950. You keep the memo. Inquire on /custom-analytics.' "$site/spend-sales-audit.html"; then
+  die "spend-sales-audit meta drifted from paste"
+else
+  ok "spend-sales-audit meta paste"
+fi
+if ! grep -q '<title>Lead Gen Desk — $8–15K | Mcfly Ads</title>' "$site/lead-gen-desk.html"; then
+  die "lead-gen-desk title drifted from paste"
+else
+  ok "lead-gen-desk title paste"
+fi
+if ! grep -q 'Paid spend joined to CRM-qualified stages. CPQL = spend ÷ qualified, not form fills. You keep the system. Inquire on /custom-analytics.' "$site/lead-gen-desk.html"; then
+  die "lead-gen-desk meta drifted from paste"
+else
+  ok "lead-gen-desk meta paste"
+fi
+if ! grep -q '<title>Advanced MDS — $15–25K, you keep the system | Mcfly Ads</title>' "$site/advanced-mds.html"; then
+  die "advanced-mds title drifted from paste"
+else
+  ok "advanced-mds title paste"
+fi
+if ! grep -q 'Pipelines or Sheet source of truth, reporting UI, rules-based allocation, production handoff. $15–25K. Inquire on /custom-analytics.' "$site/advanced-mds.html"; then
+  die "advanced-mds meta drifted from paste"
+else
+  ok "advanced-mds meta paste"
+fi
+for page in "$site/lab.html" "$site/spend-sales-audit.html" "$site/lead-gen-desk.html" "$site/advanced-mds.html"; do
+  if grep -q 'class="btn[^"]*" href="/pricing"' "$page"; then
+    die "$(basename "$page") added /pricing as a peer CTA"
+  fi
+done
+ok "no /pricing peer CTA on lab/SKU pages"
 if ! grep -q 'content="#082830"' "$ca"; then
   die "custom-analytics missing studio theme-color #082830"
 else
