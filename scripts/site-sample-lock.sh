@@ -180,10 +180,10 @@ if ! grep -q 'Sheets / warehouse' "$ca" || ! grep -q 'Time-boxed credentials' "$
 else
   ok "custom-analytics handoff checklist"
 fi
-if ! grep -q 'not Recast / not Meridian' "$ca"; then
-  die "custom-analytics.html mix missing not Recast / not Meridian"
+if ! grep -q 'Not a mix-model product' "$ca"; then
+  die "custom-analytics.html mix missing Not a mix-model product"
 else
-  ok "custom-analytics mix not Recast / not Meridian"
+  ok "custom-analytics mix not a mix-model product"
 fi
 if grep -qE '62,787|62787' "$ca"; then
   die "custom-analytics.html cloned TW leftover dollars"
@@ -394,10 +394,10 @@ if grep -q 'Sample desk' "$home"; then
 else
   ok "index.html Sample not Sample desk"
 fi
-if grep -q 'one desk' "$home"; then
+if grep -q 'one desk' "$home" && ! grep -q 'Marketing recon is one desk' "$home"; then
   die "index.html still says one desk"
 else
-  ok "index.html dropped one desk"
+  ok "index.html one desk is only the canonical recon line"
 fi
 if ! grep -q '<h1>Custom data science they keep.</h1>' "$home"; then
   die "index.html H1 is not Custom data science they keep."
@@ -641,6 +641,27 @@ if ! grep -q 'https://mcfly-analytics.fly.dev/pricing' "$site/pricing.html"; the
 fi
 ok "listing Fly URLs still frozen"
 
+# Canonical lock — cannot drift. Custom DS they keep, for any company.
+canon='Custom data science they keep, for any company. Not only marketing. Marketing recon is one desk. Also exec + signed-in portal.'
+foils='Domo|Looker|Tableau|Triple Whale|Northbeam|Recast|Nielsen|Meridian|Polar'
+for page in "$site/index.html" "$site/custom-analytics.html" "$site/lab.html" "$site/advanced-mds.html"; do
+  if ! grep -q "$canon" "$page"; then
+    die "$(basename "$page") missing canonical Custom DS sentence"
+  else
+    ok "$(basename "$page") canonical Custom DS sentence"
+  fi
+  if grep -Eiq -- "$foils" "$page"; then
+    die "$(basename "$page") names a competitor"
+  else
+    ok "$(basename "$page") names no competitor"
+  fi
+done
+if ! grep -q 'data-lab-desk="recon"' "$site/lab.html" || ! grep -q 'data-lab-desk="exec"' "$site/lab.html" || ! grep -q 'data-lab-desk="portal"' "$site/lab.html"; then
+  die "canonical lock: /lab lost the three-desk spec"
+else
+  ok "canonical lock keeps three /lab desks"
+fi
+
 # MDS is custom DS they keep — not a marketing-science flyer.
 mds="$site/advanced-mds.html"
 if ! grep -q '<h1[^>]*>A system you keep. $15–25K.</h1>' "$mds"; then
@@ -659,7 +680,6 @@ for needle in '98,500' '99,950' '4.19' '412,400' '472,800' '−$1,450'; do
   fi
 done
 ok "advanced-mds Northline SAMPLE book"
-foils='Domo|Looker|Tableau|Triple Whale|Northbeam|Recast|Nielsen|Meridian|Polar'
 if grep -Eiq -- "$foils" "$mds"; then
   die "advanced-mds names a competitor foil"
 else
