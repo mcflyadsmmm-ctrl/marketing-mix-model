@@ -166,47 +166,101 @@
   });
   if (checks.length) updateRecon();
 
-  /* —— 3. Package picker → prefill inquiry form —— */
+  /* —— 3. Package picker → proposal form modes —— */
   var packageBtns = document.querySelectorAll("[data-ca-package]");
-  var budgetSelect = document.querySelector(
-    'form[data-waitlist-source="custom-analytics inquiry"] select[name="budget"]',
+  var packageSelect = document.querySelector("[data-proposal-package]");
+  var budgetHidden = document.querySelector(
+    'form[data-proposal] input[name="budget"]',
   );
-  var notesArea = document.querySelector(
-    'form[data-waitlist-source="custom-analytics inquiry"] textarea[name="notes"]',
-  );
-  var packageHints = {
-    audit:
-      "Engagement interest: Spend & Sales Audit ($5–8K) — close memo: spend by platform, invoice vs platform UI, sales period check.",
-    leadgen:
-      "Engagement interest: Lead Gen reporting ($8–15K) — paid spend joined to CRM stages, CPL / cost per qualified lead, weekly report.",
-    mds:
-      "Engagement interest: Advanced MDS ($15–25K) — pipelines or Sheet source of truth, reporting UI, simple allocation, production handoff.",
+  var packageMeta = {
+    audit: { band: "$5–8K", weeks: "2–3 weeks", name: "Spend & Sales Audit" },
+    leadgen: { band: "$8–15K", weeks: "3–6 weeks", name: "Lead Gen reporting" },
+    mds: { band: "$15–25K", weeks: "6–10 weeks", name: "Advanced MDS" },
   };
-  var budgetMap = {
-    audit: "$5k–$8k",
-    leadgen: "$8k–$15k",
-    mds: "$15k–$25k",
-  };
+
+  function setProposalMode(key) {
+    if (!packageMeta[key]) return;
+    if (packageSelect) packageSelect.value = key;
+    if (budgetHidden) budgetHidden.value = packageMeta[key].band;
+    packageBtns.forEach(function (b) {
+      b.classList.toggle("is-selected", b.getAttribute("data-ca-package") === key);
+    });
+    document.querySelectorAll("[data-proposal-mode]").forEach(function (box) {
+      var on = box.getAttribute("data-proposal-mode") === key;
+      box.hidden = !on;
+    });
+    document.querySelectorAll("[data-mode-required]").forEach(function (el) {
+      var need = el.getAttribute("data-mode-required") === key;
+      if (need) el.setAttribute("required", "required");
+      else el.removeAttribute("required");
+    });
+  }
 
   packageBtns.forEach(function (btn) {
     btn.addEventListener("click", function () {
-      var key = btn.getAttribute("data-ca-package");
-      packageBtns.forEach(function (b) {
-        b.classList.toggle("is-selected", b === btn);
-      });
-      if (budgetSelect && budgetMap[key]) {
-        budgetSelect.value = budgetMap[key];
-      }
-      if (notesArea && packageHints[key]) {
-        var existing = notesArea.value.trim();
-        if (!existing || Object.values(packageHints).indexOf(existing) !== -1) {
-          notesArea.value = packageHints[key];
-        }
-      }
+      setProposalMode(btn.getAttribute("data-ca-package"));
       var inquire = document.getElementById("inquire");
       if (inquire) inquire.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+  if (packageSelect) {
+    packageSelect.addEventListener("change", function () {
+      setProposalMode(packageSelect.value);
+    });
+  }
+  var params = new URLSearchParams(window.location.search);
+  var fromQuery = params.get("package");
+  if (fromQuery && packageMeta[fromQuery]) {
+    setProposalMode(fromQuery);
+  } else if (packageSelect && packageSelect.value) {
+    setProposalMode(packageSelect.value);
+  }
+
+  var proposeForm = document.querySelector("form[data-proposal]");
+  if (proposeForm) {
+    proposeForm.addEventListener("mcfly:proposal-result", function (event) {
+      var result = (event.detail && event.detail.result) || {};
+      var estimate = result.estimate || null;
+      var fitCard = document.querySelector("[data-estimate]");
+      var noFit = document.querySelector("[data-estimate-nofit]");
+      var autoEl = document.querySelector("[data-autoreply]");
+      var srcEl = document.querySelector("[data-autoreply-src]");
+      var pkgKey = proposeForm.package ? proposeForm.package.value : "";
+      var meta = packageMeta[pkgKey];
+      var sheet = proposeForm.spreadsheet_closes
+        ? proposeForm.spreadsheet_closes.value
+        : "";
+      var notFit =
+        (estimate && estimate.notFit) || /^yes/i.test(sheet);
+      if (fitCard) fitCard.hidden = notFit;
+      if (noFit) noFit.hidden = !notFit;
+      if (!notFit && fitCard && meta) {
+        var title = fitCard.querySelector("[data-estimate-title]");
+        var band = fitCard.querySelector("[data-estimate-band]");
+        if (title) title.textContent = meta.name;
+        if (band) band.textContent = meta.band + " · " + meta.weeks;
+      }
+      var replyText =
+        (estimate && estimate.text) ||
+        (srcEl
+          ? srcEl.textContent
+              .replace(/\{package\}/g, (meta && meta.name) || "Custom")
+              .replace(/\{Name\}/g, proposeForm.name ? proposeForm.name.value : "")
+              .replace(/\{band\}/g, (meta && meta.band) || "")
+              .replace(/\{weeks\}/g, (meta && meta.weeks) || "")
+          : "");
+      if (autoEl && replyText && !notFit) {
+        autoEl.hidden = false;
+        autoEl.textContent =
+          ((estimate && estimate.subject) ||
+            "Estimate — Mcfly " + ((meta && meta.name) || "Custom")) +
+          "\n\n" +
+          replyText;
+      } else if (autoEl) {
+        autoEl.hidden = true;
+      }
+    });
+  }
 
   /* —— 4. Google Appointment fit-call slot (no Calendly) —— */
   var fit = document.querySelector("[data-fitcall]");

@@ -995,11 +995,58 @@
 
     /* Inquiry */
     body.ca-page .ca-inquire {
-      max-width: 36rem;
+      max-width: 44rem;
       padding: clamp(1.6rem, 4vw, 2.25rem);
       border: 1px solid var(--line);
       background: #fff;
       scroll-margin-top: 5rem;
+    }
+    body.ca-page .ca-propose fieldset {
+      margin: 0 0 1.1rem;
+      padding: 0.85rem 0.95rem 1rem;
+      border: 1px solid var(--line);
+    }
+    body.ca-page .ca-propose fieldset[hidden] { display: none; }
+    body.ca-page .ca-propose legend {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--mute);
+      padding: 0 0.35rem;
+    }
+    body.ca-page .ca-propose .req {
+      color: var(--lie);
+      font-weight: 700;
+    }
+    body.ca-page .ca-propose .row2 {
+      display: grid;
+      gap: 0.85rem;
+    }
+    @media (min-width: 640px) {
+      body.ca-page .ca-propose .row2 { grid-template-columns: 1fr 1fr; }
+    }
+    body.ca-page .ca-estimate {
+      margin: 0 0 1.15rem;
+      padding: 1rem 1.1rem 1.15rem;
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+    }
+    body.ca-page .ca-estimate h3 {
+      margin: 0 0 0.35rem;
+      font-family: var(--display);
+      font-size: 1.2rem;
+    }
+    body.ca-page .ca-estimate p { margin: 0 0 0.5rem; font-size: 0.92rem; line-height: 1.45; }
+    body.ca-page .ca-estimate--nofit { border-color: #c24532; background: #fff6f4; }
+    body.ca-page .ca-autoreply {
+      margin: 0.85rem 0 1rem;
+      padding: 0.75rem 0.85rem;
+      background: #fff;
+      border: 1px dashed var(--line);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
     }
     body.ca-page .ca-inquire .reply-line {
       margin: 0 0 0.85rem;
@@ -1725,74 +1772,192 @@ Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate befo
       <div class="ca-wrap">
         <div class="ca-book">
         <div class="ca-inquire" id="inquire">
-          <p class="reply-line">Human review · 1–2 business days</p>
-          <h2 id="inquire-title">Request an engagement letter</h2>
-          <p>Intake for scoped builds only. Selecting an engagement above prefills budget and notes — or choose manually. Review the <a href="/custom-analytics-engagement">engagement specimen</a> before the call.</p>
+          <p class="reply-line">Human review · 1–2 business days · ~10 minutes</p>
+          <h2 id="inquire-title">Proposal — one sitting</h2>
+          <p>Pick a package. The rest of the form matches that job. No charge on this form. Review the <a href="/custom-analytics-engagement">engagement specimen</a> before you send.</p>
 
-          <form class="waitlist" data-waitlist data-waitlist-source="custom-analytics inquiry" data-waitlist-success="Thanks. A person will reply in 1–2 business days with next steps, or with a no if this is not a fit." novalidate>
-            <label>Name
-              <input name="name" type="text" autocomplete="name" required maxlength="120" />
-            </label>
-            <label>Work email
-              <input name="email" type="email" required autocomplete="email" maxlength="254" />
-            </label>
-            <label>Company / website
-              <input name="store" type="text" autocomplete="organization" placeholder="company.com" maxlength="200" />
-            </label>
-            <label>Role / title
-              <input name="role" type="text" autocomplete="organization-title" placeholder="VP Marketing, CFO, Founder…" maxlength="120" />
-            </label>
-            <label>Engagement / budget band
-              <select name="budget" required>
-                <option value="" disabled selected>Select a range</option>
-                <option value="$5k–$8k">$5k – $8k (Spend &amp; Sales Audit)</option>
-                <option value="$8k–$15k">$8k – $15k (Lead Gen reporting)</option>
-                <option value="$15k–$25k">$15k – $25k (Advanced MDS)</option>
-                <option value="Not sure — need guidance">Not sure — need guidance</option>
-              </select>
-            </label>
-            <label>Monthly paid media spend
-              <select name="spend" required>
-                <option value="" disabled selected>Select a range</option>
-                <option value="Under $25k / mo">Under $25k / mo</option>
-                <option value="$25k–$100k / mo">$25k – $100k / mo</option>
-                <option value="$100k–$500k / mo">$100k – $500k / mo</option>
-                <option value="$500k+ / mo">$500k+ / mo</option>
-                <option value="Prefer not to say">Prefer not to say</option>
-              </select>
-            </label>
-            <label>Target start
-              <select name="timeline" required>
-                <option value="" disabled selected>Select a window</option>
-                <option value="ASAP / this month">ASAP / this month</option>
-                <option value="Next 30–60 days">Next 30–60 days</option>
-                <option value="This quarter">This quarter</option>
-                <option value="Exploring / no date yet">Exploring / no date yet</option>
-              </select>
-            </label>
-            <label>What should the engagement cover?
-              <textarea name="notes" required maxlength="1200" placeholder="Outcomes, data sources, constraints. No need to restate spend/timeline if selected above."></textarea>
-            </label>
+          <form class="waitlist ca-propose" data-waitlist data-proposal data-waitlist-source="custom-analytics inquiry" data-waitlist-success="Thanks. A person will reply in 1–2 business days with next steps, or with a no if this is not a fit." novalidate>
+            <fieldset>
+              <legend>A · Contact</legend>
+              <div class="row2">
+                <label>Name <span class="req" aria-hidden="true">*</span>
+                  <input name="name" type="text" autocomplete="name" required maxlength="120" />
+                </label>
+                <label>Company <span class="req" aria-hidden="true">*</span>
+                  <input name="company" type="text" autocomplete="organization" required maxlength="200" />
+                </label>
+              </div>
+              <div class="row2">
+                <label>Work email <span class="req" aria-hidden="true">*</span>
+                  <input name="email" type="email" required autocomplete="email" maxlength="254" />
+                </label>
+                <label>Role <span class="req" aria-hidden="true">*</span>
+                  <input name="role" type="text" autocomplete="organization-title" required maxlength="120" />
+                </label>
+              </div>
+              <label>Package <span class="req" aria-hidden="true">*</span>
+                <select name="package" data-proposal-package required>
+                  <option value="" disabled selected>Select a package</option>
+                  <option value="audit">Spend &amp; Sales Audit · $5–8K · 2–3 weeks</option>
+                  <option value="leadgen">Lead Gen reporting · $8–15K · 3–6 weeks</option>
+                  <option value="mds">Advanced MDS · $15–25K · 6–10 weeks</option>
+                </select>
+              </label>
+              <input type="hidden" name="budget" value="" />
+              <label>First-look date <span class="req" aria-hidden="true">*</span>
+                <input name="first_look" type="date" required />
+              </label>
+              <label>Who signs the number, and what would make them reject it <span class="req" aria-hidden="true">*</span>
+                <textarea name="signer_reject" required maxlength="400" rows="2" placeholder="Signer + the no."></textarea>
+              </label>
+              <label>What Monday must produce <span class="req" aria-hidden="true">*</span>
+                <select name="monday_produce" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option value="one number">One number</option>
+                  <option value="variance list">Variance list</option>
+                  <option value="signed close">Signed close</option>
+                </select>
+              </label>
+              <label>The two systems that disagree, and last month’s two numbers if you have them <span class="req" aria-hidden="true">*</span>
+                <textarea name="two_systems" required maxlength="400" rows="2" placeholder="System A vs system B · last month’s two numbers if you have them"></textarea>
+              </label>
+              <label>Entities / channels / marketplaces in the first desk <span class="req" aria-hidden="true">*</span>
+                <input name="entities" type="text" required maxlength="240" placeholder="Meta, Google, Shopify US…" />
+              </label>
+              <label>Does a spreadsheet already close this on Monday? <span class="req" aria-hidden="true">*</span>
+                <select name="spreadsheet_closes" required>
+                  <option value="" disabled selected>Select one</option>
+                  <option value="no">No</option>
+                  <option value="yes">Yes — a spreadsheet already closes Monday</option>
+                </select>
+              </label>
+              <label>How you pay later <span class="opt">(optional · no charge on this form)</span>
+                <select name="pay_later">
+                  <option value="">Prefer not to say</option>
+                  <option value="ACH">ACH</option>
+                  <option value="wire">Wire</option>
+                  <option value="card">Card</option>
+                </select>
+              </label>
+            </fieldset>
+
+            <fieldset data-proposal-mode="audit" hidden>
+              <legend>B · Spend &amp; Sales Audit</legend>
+              <label>Sales source
+                <select name="sales_source">
+                  <option value="">Select one</option>
+                  <option value="Shopify">Shopify</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+              <label>Ad platforms + whether invoices exist for each
+                <textarea name="platforms_invoices" maxlength="400" rows="2" placeholder="Meta — invoice yes · Google — invoice no"></textarea>
+              </label>
+              <div class="row2">
+                <label>Period start
+                  <input name="period_start" type="date" />
+                </label>
+                <label>Period end
+                  <input name="period_end" type="date" />
+                </label>
+              </div>
+              <label>Contribution margin if known
+                <input name="contribution_margin" type="text" maxlength="40" placeholder="e.g. 35%" />
+              </label>
+              <label>Current close process (who, what tool)
+                <input name="close_process" type="text" maxlength="240" />
+              </label>
+              <label class="nda-opt">
+                <input type="checkbox" name="out_scope_audit" value="Confirmed: no rebate forensics, no pixels as the product" data-mode-required="audit" />
+                <span>Confirm: no rebate forensics, no pixels as the product <span class="req" aria-hidden="true">*</span></span>
+              </label>
+            </fieldset>
+
+            <fieldset data-proposal-mode="leadgen" hidden>
+              <legend>C · Lead Gen reporting</legend>
+              <label>CRM + written stage contract (lead → MQL → SQL)
+                <input name="crm_stages" type="text" maxlength="240" />
+              </label>
+              <label>What counts as qualified <span class="req" aria-hidden="true">*</span>
+                <input name="qualified_def" type="text" maxlength="240" data-mode-required="leadgen" />
+              </label>
+              <label>Channels + last-month spend and raw leads if known
+                <textarea name="channels_leads" maxlength="400" rows="2"></textarea>
+              </label>
+              <label>Target CPQL
+                <input name="target_cpql" type="text" maxlength="40" placeholder="$250" />
+              </label>
+              <label class="nda-opt">
+                <input type="checkbox" name="out_scope_lead" value="Confirmed: not path credit; CRM licenses billed separately" data-mode-required="leadgen" />
+                <span>Confirm: not path credit; CRM licenses billed separately <span class="req" aria-hidden="true">*</span></span>
+              </label>
+            </fieldset>
+
+            <fieldset data-proposal-mode="mds" hidden>
+              <legend>D · Advanced MDS</legend>
+              <label>Source of truth today
+                <select name="source_of_truth">
+                  <option value="">Select one</option>
+                  <option value="Sheet">Sheet</option>
+                  <option value="warehouse">Warehouse</option>
+                  <option value="none">None</option>
+                </select>
+              </label>
+              <label>Outcome is dollars or leads
+                <select name="outcome_type">
+                  <option value="">Select one</option>
+                  <option value="dollars">Dollars</option>
+                  <option value="leads">Leads</option>
+                </select>
+              </label>
+              <label>Entities to include in v1 vs later
+                <input name="entities_v1" type="text" maxlength="240" />
+              </label>
+              <label>Who owns the desk after handoff
+                <input name="desk_owner" type="text" maxlength="120" />
+              </label>
+              <label class="nda-opt">
+                <input type="checkbox" name="out_scope_mds" value="Confirmed: not Nielsen/Meridian/Recast, not a CDP/warehouse rebuild" data-mode-required="mds" />
+                <span>Confirm: not Nielsen/Meridian/Recast, not a CDP/warehouse rebuild <span class="req" aria-hidden="true">*</span></span>
+              </label>
+            </fieldset>
+
             <label class="nda-opt">
               <input type="checkbox" name="nda" value="NDA available on request before data access" />
               <span>NDA available on request before data access</span>
             </label>
-            <input type="text" name="company" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
-            <button class="btn primary solid" type="submit">Submit engagement request</button>
+            <input type="text" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
+            <button class="btn primary solid" type="submit">Send proposal</button>
             <p class="note" data-waitlist-error hidden role="alert"></p>
-            <p class="fine-print">By submitting, you agree we may email you about this engagement request. We don’t sell your information. <a href="/privacy">Privacy</a>. Terms are finalized only in a signed engagement letter — see <a href="/custom-analytics-engagement">specimen</a>.</p>
+            <p class="fine-print">No charge on this form. No Stripe checkout. Terms are finalized only in a signed engagement letter — see <a href="/custom-analytics-engagement">specimen</a>. We may email you about this request. We don’t sell your information. <a href="/privacy">Privacy</a>.</p>
           </form>
 
           <div class="waitlist-confirm" hidden aria-live="polite">
             <p data-waitlist-title></p>
+            <aside class="ca-estimate" data-estimate hidden>
+              <p class="eyebrow">Estimate · not a contract</p>
+              <h3 data-estimate-title></h3>
+              <p data-estimate-band></p>
+              <p data-estimate-cta>Reply YES to the email and we send an invoice + book a 20-min setup.</p>
+              <p class="note">20-min setup slot: placeholder on this page for a Google Appointment URL.</p>
+            </aside>
+            <aside class="ca-estimate ca-estimate--nofit" data-estimate-nofit hidden>
+              <p class="eyebrow">No estimate</p>
+              <p>Not a fit. A spreadsheet already closes Monday. We stop here.</p>
+            </aside>
             <p class="note" data-waitlist-status></p>
             <p class="note" data-waitlist-meta></p>
+            <pre class="mono ca-autoreply" data-autoreply hidden></pre>
             <pre class="mono" data-waitlist-preview style="white-space:pre-wrap;font-size:0.8rem"></pre>
             <button type="button" class="btn ghost" data-waitlist-edit>Edit</button>
             <button type="button" class="btn ghost" data-waitlist-copy>Copy message</button>
             <a class="btn ghost" data-waitlist-open href="#">Open mail app</a>
             <p class="note" data-waitlist-copy-status hidden></p>
           </div>
+          <pre hidden data-autoreply-src>Subject: Estimate — Mcfly {package}
+{Name} — got the form. Based on what you wrote this looks like {package}, about {band}, {weeks}. You keep the desk.
+Reply YES if you want the invoice and a 20-min setup. Reply with a better time if the slot we offer doesn’t work. If a spreadsheet already closes this, we stop here.
+Marty · mcflyadsmmm@gmail.com</pre>
         </div>
         <div>
           <aside class="ca-who" id="who-runs" aria-labelledby="who-runs-title">
@@ -1827,7 +1992,7 @@ Action: LinkedIn UI ahead of invoice — returns + fees/timing. Investigate befo
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260825live"></script>
   <script src="/assets/chrome.js?v=20260825live"></script>
-  <script src="/assets/app.js?v=20260825live"></script>
-  <script src="/assets/custom-analytics-demo.js?v=20260828gaps"></script>
+  <script src="/assets/app.js?v=20260828prop"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260828prop"></script>
 </body>
 </html>

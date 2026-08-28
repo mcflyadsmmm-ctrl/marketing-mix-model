@@ -377,6 +377,9 @@
     if (fields.timeline) {
       bodyLines.push("Target start: " + fields.timeline);
     }
+    if (fields.company) {
+      bodyLines.push("Company: " + fields.company);
+    }
     if (fields.notes) {
       bodyLines.push(
         "",
@@ -551,15 +554,18 @@
       event.preventDefault();
       showError("");
       const data = new FormData(form);
+      const isProposal = form.hasAttribute("data-proposal");
       let name = String(data.get("name") || "").trim();
       const email = String(data.get("email") || "").trim();
       const role = String(data.get("role") || "").trim();
+      const company = String(data.get("company") || "").trim();
       const store = normalizeStoreUrl(data.get("store"));
       const notes = String(data.get("notes") || "").trim();
       const budget = String(data.get("budget") || "").trim();
       const spend = String(data.get("spend") || "").trim();
       const timeline = String(data.get("timeline") || "").trim();
       const source = form.getAttribute("data-waitlist-source") || "mcflyads.com support";
+      const website = String(data.get("website") || "").trim();
 
       const emailInput = form.querySelector('[name="email"]');
       if (!email) {
@@ -572,29 +578,64 @@
         showError("Enter a valid email so we can reply.");
         return;
       }
+      if (isProposal && !name) {
+        showError("Name is required.");
+        return;
+      }
+      if (isProposal && !company) {
+        showError("Company is required.");
+        return;
+      }
       if (!name) {
         name = email.split("@")[0] || "Support";
       }
 
-      const draft = buildWaitlistDraft({ name, email, role, store, source, notes, budget, spend, timeline });
+      const proposal = {};
+      if (isProposal) {
+        data.forEach((value, key) => {
+          if (key === "website") return;
+          if (typeof value === "string") proposal[key] = value.trim();
+        });
+      }
+
+      const draft = buildWaitlistDraft({
+        name,
+        email,
+        role,
+        company: isProposal ? company : "",
+        store: store || company,
+        source,
+        notes,
+        budget,
+        spend,
+        timeline,
+      });
       setBusy(true);
       let result = null;
       try {
+        const payload = {
+          name,
+          email,
+          role,
+          store: store || company,
+          source,
+          notes,
+          budget,
+          spend,
+          timeline,
+          website,
+        };
+        if (isProposal) {
+          payload.company = company;
+          payload.package = String(data.get("package") || "").trim();
+          payload.proposal = proposal;
+        } else {
+          payload.company = company;
+        }
         const res = await fetch(WAITLIST_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            role,
-            store,
-            source,
-            notes,
-            budget,
-            spend,
-            timeline,
-            company: data.get("company") || "",
-          }),
+          body: JSON.stringify(payload),
         });
         result = await res.json().catch(() => null);
         if (!result) {
@@ -623,6 +664,14 @@
         draft.body,
       ].join("\n");
       showResult(draft, result);
+      if (isProposal) {
+        form.dispatchEvent(
+          new CustomEvent("mcfly:proposal-result", {
+            bubbles: true,
+            detail: { result: result, draft: draft },
+          }),
+        );
+      }
     });
 
     if (copyBtn) {
