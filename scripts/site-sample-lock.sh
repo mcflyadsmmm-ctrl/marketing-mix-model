@@ -414,6 +414,16 @@ if awk '/<section class="hero/,/<\/section>/' "$home" | grep -q 'Shopify app'; t
 else
   ok "index.html hero does not lead Shopify app"
 fi
+if awk '/<section class="hero/,/<\/section>/' "$home" | grep -q '$39'; then
+  die "index.html hero still leads with \$39"
+else
+  ok "index.html hero has no \$39"
+fi
+if awk '/<section class="hero/,/<\/section>/' "$home" | grep -q 'See ad spend next to sales'; then
+  die "index.html hero still leads with See ad spend next to sales"
+else
+  ok "index.html hero does not lead See ad spend"
+fi
 if ! grep -q 'href="/custom-analytics#inquire"' "$home"; then
   die "index.html missing Inquire → /custom-analytics#inquire"
 else
@@ -660,6 +670,26 @@ if ! grep -q 'data-lab-desk="recon"' "$site/lab.html" || ! grep -q 'data-lab-des
   die "canonical lock: /lab lost the three-desk spec"
 else
   ok "canonical lock keeps three /lab desks"
+fi
+if grep -q 'when ads and finance still disagree' "$site/advanced-mds.html"; then
+  die "advanced-mds still opens ads-and-finance"
+else
+  ok "advanced-mds does not open ads-and-finance"
+fi
+if grep -Eiq 'cash desk' "$chrome"; then
+  die "chrome.js still says cash desk"
+else
+  ok "chrome.js has no cash desk"
+fi
+if grep -Eiq 'cash desk' "$site/about.html" || grep -Eiq 'cash desk' "$home"; then
+  die "about/home still say cash desk"
+else
+  ok "about and home have no cash desk"
+fi
+if ! grep -q 'Custom data science they keep, for any company' "$site/about.html"; then
+  die "about.html does not lead Custom DS"
+else
+  ok "about.html leads Custom DS"
 fi
 
 # MDS is custom DS they keep — not a marketing-science flyer.

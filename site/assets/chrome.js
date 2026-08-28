@@ -14,10 +14,14 @@
   const isHome = path === "/" || path === "/index.html" || path === "";
   const isAnalytics =
     isHome ||
+    path === "/about" ||
+    path === "/about.html" ||
     path === "/custom-analytics" ||
     path === "/custom-analytics.html" ||
     path === "/lab" ||
     path === "/lab.html" ||
+    path === "/advanced-mds" ||
+    path === "/advanced-mds.html" ||
     path.startsWith("/custom-analytics") ||
     document.body.classList.contains("ca-page") ||
     document.body.getAttribute("data-site") === "analytics";
