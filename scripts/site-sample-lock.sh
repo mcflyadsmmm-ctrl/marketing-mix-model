@@ -194,10 +194,57 @@ if awk '/id="recon"/,/id="exceptions"|id="except-h"|id="except"/' "$ca" | grep -
 else
   ok "custom-analytics recon has no \$42,000"
 fi
-if ! grep -q '<h1[^>]*>Invoice $98,500 vs UI $99,950</h1>' "$site/lab.html"; then
-  die "lab.html h1 is not invoice vs UI"
+if ! grep -q '<h1[^>]*>Same $98,500. Cash 4.19× vs platform ~4.8×.</h1>' "$site/lab.html"; then
+  die "lab.html h1 is not Same \$98,500. Cash 4.19× vs platform ~4.8×."
 else
-  ok "lab.html h1 is invoice vs UI"
+  ok "lab.html unique H1"
+fi
+if grep -Eiq 'Two totals' "$site/lab.html"; then
+  die "lab.html still says Two totals"
+else
+  ok "lab.html stripped Two totals"
+fi
+if ! grep -q '<h1[^>]*>Exact spend. Audited outcomes. A system finance will accept.</h1>' "$ca"; then
+  die "custom-analytics hub H1 drifted"
+else
+  ok "custom-analytics hub H1 stays"
+fi
+if ! grep -q '<h1[^>]*>Invoice $98,500 vs UI $99,950.</h1>' "$site/spend-sales-audit.html"; then
+  die "spend-sales-audit H1 is not Invoice \$98,500 vs UI \$99,950."
+else
+  ok "spend-sales-audit unique H1"
+fi
+if ! grep -q '<h1[^>]*>Spend ÷ CRM-qualified, not form fills.</h1>' "$site/lead-gen-desk.html"; then
+  die "lead-gen-desk H1 is not Spend ÷ CRM-qualified, not form fills."
+else
+  ok "lead-gen-desk unique H1"
+fi
+for page in "$site/spend-sales-audit.html" "$site/lead-gen-desk.html"; do
+  if grep -q 'data-lab-desk' "$page"; then
+    die "$(basename "$page") embeds the full /lab widget"
+  fi
+done
+ok "SKU pages do not embed data-lab-desk"
+for needle in '98,500' '99,950' '412,400' '4.19' '4.8'; do
+  if ! grep -q -- "$needle" "$site/lead-gen-desk.html"; then
+    die "lead-gen-desk missing Northline pair identity $needle"
+  fi
+done
+ok "lead-gen-desk Northline pair labeled SAMPLE"
+if ! grep -q 'href="/custom-analytics?package=audit#inquire"' "$site/lab.html"; then
+  die "lab.html inquire CTA missing ?package=audit"
+else
+  ok "lab.html inquire ?package=audit#inquire"
+fi
+if grep -q '>What Monday must produce' "$ca" || grep -q '>What budget and reporting must produce' "$ca"; then
+  die "custom-analytics still shows the Monday-must-produce inquire label"
+else
+  ok "custom-analytics stripped Monday-must-produce label"
+fi
+if ! grep -q 'name="monday_produce"' "$ca"; then
+  die "custom-analytics dropped name=monday_produce"
+else
+  ok "custom-analytics kept name=monday_produce"
 fi
 
 # Identity — one sans M = favicon = header (Pinemarsh). Anti-pattern: Orr mega-nav.
