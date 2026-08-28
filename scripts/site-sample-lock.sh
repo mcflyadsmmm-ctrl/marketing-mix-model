@@ -584,19 +584,32 @@ else
   ok "lab.html no password wall"
 fi
 
-# Hidden version stamp — HTML on studio pages + chrome.js runtime.
-for page in "$site/custom-analytics.html" "$site/lab.html" "$site/advanced-mds.html"; do
+# Hidden version stamp — HTML curl/view-source + chrome.js runtime. No visible footer version.
+for page in "$site/custom-analytics.html" "$site/lab.html" "$site/advanced-mds.html" "$site/index.html" "$site/spend-sales-audit.html" "$site/lead-gen-desk.html" "$site/demo.html" "$site/pricing.html" "$site/privacy.html" "$site/support.html" "$site/terms.html"; do
   if ! grep -q 'name="mcfly-version" content="v2"' "$page" || ! grep -q 'name="mcfly-build" content="pr-23"' "$page"; then
     die "$(basename "$page") missing hidden mcfly-version / mcfly-build"
   else
     ok "$(basename "$page") hidden version meta"
   fi
 done
-if ! grep -q 'mcfly-version' "$chrome" || ! grep -q 'pr-23' "$chrome"; then
-  die "chrome.js missing hidden version stamp"
+if ! grep -q 'ensureMeta("mcfly-version", "v2")' "$chrome" || ! grep -q 'ensureMeta("mcfly-build", "pr-23")' "$chrome"; then
+  die "chrome.js missing hidden version stamp injector"
 else
   ok "chrome.js hidden version stamp"
 fi
+if grep 'class="fine"' "$chrome" | grep -Eq 'mcfly-version|mcfly-build|pr-23'; then
+  die "chrome.js leaked a visible footer version"
+else
+  ok "chrome.js no visible footer version"
+fi
+# Listing Fly URLs stay frozen (hidden metas only).
+if ! grep -q 'https://mcfly-analytics.fly.dev/demo' "$site/demo.html"; then
+  die "demo.html lost frozen Fly listing URL"
+fi
+if ! grep -q 'https://mcfly-analytics.fly.dev/pricing' "$site/pricing.html"; then
+  die "pricing.html lost frozen Fly listing URL"
+fi
+ok "listing Fly URLs still frozen"
 
 # MDS is custom DS they keep — not a marketing-science flyer.
 mds="$site/advanced-mds.html"
