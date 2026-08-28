@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/assets/site.css?v=20260828ds" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds4" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828ds5" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -42,25 +42,8 @@
   <div data-chrome></div>
 
   <main id="main">
-    <header class="lab-hero">
-      <div class="hero-atmosphere" aria-hidden="true">
-        <picture>
-          <source srcset="/assets/hero-atmosphere-1200.webp 1200w" sizes="100vw" type="image/webp" />
-          <img src="/assets/hero-atmosphere.jpg" alt="" width="1920" height="1080" decoding="async" fetchpriority="high" />
-        </picture>
-      </div>
-      <div class="hero-mesh" aria-hidden="true"></div>
-      <div class="hero-gridline" aria-hidden="true"></div>
-      <div class="lab-wrap">
-        <p class="brand-hero">
-          <img class="brand-hero-mark" src="/assets/brand/mcfly-m.svg" width="56" height="56" alt="" />
-          <span>
-            Mcfly <span class="brand-hero-sub">Analytics</span>
-            <span class="brand-hero-practice">SAMPLE lab · Northline · demo-not-production</span>
-          </span>
-        </p>
-        <h1>Same $98,500. Two totals.</h1>
-        <p class="lede">Northline SAMPLE week — ads vs finance on one spend number. Invoice $98,500 vs UI $99,950. Not a live client. Uncheck Google. The pair does not move.</p>
+    <div class="lab-instrument" id="ca-labs" data-lab-desk aria-label="SAMPLE desk — Northline week">
+      <div class="lab-shell">
         <nav aria-label="90-second desk">
           <ul class="lab-rail">
             <li><a href="#lab-00"><b>:00</b> Two totals</a></li>
@@ -71,20 +54,15 @@
             <li><a href="#lab-80"><b>:80</b> Keep the files</a></li>
           </ul>
         </nav>
-      </div>
-    </header>
-
-    <div class="lab-instrument" id="ca-labs" data-lab-desk aria-label="SAMPLE desk — Northline week">
-      <div class="lab-shell">
         <p class="lab-id">
           <span><span class="lab-chip">SAMPLE</span> Northline Supply · demo-not-production · not a live client</span>
           <span>spend_audited <strong>$98,500</strong> · sales_net <strong>$412,400</strong> · cash <strong>4.19×</strong> locked</span>
         </p>
 
-          <section class="lab-section" id="lab-00" aria-labelledby="lab-00-h">
-          <p class="lab-kicker">:00 <span>Two fat columns · no login · SAMPLE</span></p>
-          <h2 id="lab-00-h">Invoice $98,500 vs UI $99,950</h2>
-          <p class="lab-lede">Disagreement is the product. Same week. No login. Uncheck Google in :12 — this pair of spend totals is the close, not a market map.</p>
+        <section class="lab-section" id="lab-00" aria-labelledby="lab-00-h">
+          <p class="lab-kicker">:00 <span>Jul 1–27 2026 · signed spend $98,500</span></p>
+          <h1 id="lab-00-h">Invoice $98,500 vs UI $99,950</h1>
+          <p class="lab-lede">Uncheck Google in :12. Cash 4.19× stays on $412,400 ÷ $98,500. Platform ~4.8× uses the same signed spend.</p>
           <div class="lab-pair" aria-label="Two totals — invoice vs UI">
             <article>
               <p class="lab-k">Invoice billed</p>
@@ -114,10 +92,9 @@
               <p class="lab-formula">−1.5% · Within 2%</p>
             </div>
           </div>
-          <p class="lab-cap">SAMPLE · Northline Supply · demo-not-production. Not a live client. No invented logo wall.</p>
-          <p class="lab-lock">Identity locked. Channel filters rewrite the ledger, not cash 4.19×.</p>
-          <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah · human reply. No booking URL on this page.</p>
-          </section>
+          <p class="lab-lock">Cash 4.19× does not move when exceptions toggle.</p>
+          <p class="lab-operator"><a href="/about">Marty Smithson</a> · Utah</p>
+        </section>
 
         <section class="lab-section" id="lab-12" aria-labelledby="lab-12-h">
           <p class="lab-kicker">:12 <span>Uncheck Google · ledger + close memo rewrite</span></p>
@@ -127,7 +104,7 @@
             <div>
               <div class="lab-scroll">
                 <table class="lab-table">
-                  <caption>Each $ and % is billed − UI. Variance = billed − UI. Uncheck a channel to drop its row. SSR SAMPLE — view-source is not $0.</caption>
+                  <caption>Variance = billed − UI. Flag: |%| &lt; 2% within 2% · 2–5% investigate · &gt; 5% material. Uncheck a channel to drop its row.</caption>
                   <thead>
                     <tr>
                       <th class="lab-in" scope="col">In</th>
@@ -248,7 +225,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
         <section class="lab-section" id="lab-55" aria-labelledby="lab-55-h">
           <p class="lab-kicker">:55 <span>four if/then · not Recast</span></p>
           <h2 id="lab-55-h">Four SAMPLE if/then rules</h2>
-          <p class="lab-lede">Toggle on/off. Mix $ table rewrites. Cash 4.19× does not. Not Nielsen / Meridian / Recast. CPQL $42,000 ÷ 186 = $226 is not a slice of $98,500.</p>
+          <p class="lab-lede">Toggle on/off. Mix $ table rewrites. Cash 4.19× does not. CPQL $42,000 ÷ 186 = $226 is not a slice of $98,500.</p>
           <fieldset class="lab-rules" data-lab-rules>
             <legend>Executable SAMPLE rules</legend>
             <label>
@@ -292,7 +269,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               </tfoot>
             </table>
           </div>
-          <p class="lab-formula" data-lab-mix-note>Rules rewrite mix $ only. Not Nielsen / Meridian / Recast. Cash stays 4.19× = $412,400 ÷ $98,500.</p>
+          <p class="lab-formula" data-lab-mix-note>Rules rewrite mix $ only. Cash stays 4.19× = $412,400 ÷ $98,500.</p>
           <p class="lab-formula">Path credit is not cash: 4 × $120 attributed = $480 vs $120 cash. Teaching identity — not a slice of $98,500.</p>
         </section>
 
@@ -389,6 +366,6 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
   <script src="/assets/cta-config.js?v=20260825live"></script>
   <script src="/assets/chrome.js?v=20260828ds3"></script>
   <script src="/assets/app.js?v=20260828sec"></script>
-  <script src="/assets/lab-desk.js?v=20260828ds3"></script>
+  <script src="/assets/lab-desk.js?v=20260828ds5"></script>
 </body>
 </html>

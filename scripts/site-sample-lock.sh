@@ -56,10 +56,15 @@ for page in "$site/lab.html" "$site/custom-analytics.html"; do
   else
     ok "$(basename "$page") no hurdle slider"
   fi
-  if ! grep -q 'Invoice $98,500 vs UI $99,950' "$page"; then
-    die "$page first-fold two totals are not invoice vs UI"
+  if grep -Eq 'class="lab-hero"|hero-atmosphere' "$page"; then
+    die "$page still opens on a craft hero"
   else
-    ok "$(basename "$page") first-fold invoice vs UI"
+    ok "$(basename "$page") no craft hero"
+  fi
+  if ! grep -q '<h1[^>]*>Invoice $98,500 vs UI $99,950</h1>' "$page"; then
+    die "$page h1 is not invoice vs UI"
+  else
+    ok "$(basename "$page") h1 is invoice vs UI"
   fi
   if ! grep -q 'HOLD Meta' "$page" || ! grep -q 'PROTECT Other' "$page" || ! grep -q 'SHIFT +10% Google' "$page"; then
     die "$page missing hold/protect/shift close memo"
@@ -98,6 +103,21 @@ if ! grep -q 'invoice CSV' "$ca" || ! grep -q 'signed $98,500' "$ca"; then
   die "custom-analytics.html missing lineage strip"
 else
   ok "custom-analytics lineage strip"
+fi
+if ! grep -q 'lab-table--contract' "$ca"; then
+  die "custom-analytics.html METRIC CONTRACT table missing wrap class"
+else
+  ok "custom-analytics METRIC CONTRACT table wraps"
+fi
+if ! grep -q '<ol class="lab-lineage">' "$ca"; then
+  die "custom-analytics.html lineage is not an always-visible list"
+else
+  ok "custom-analytics lineage always visible"
+fi
+if grep -q 'data-lineage=' "$ca"; then
+  die "custom-analytics.html lineage still uses hide/show buttons"
+else
+  ok "custom-analytics lineage not click-to-reveal"
 fi
 if grep -Eq 'id="faq"|id="market-title"|ca-packages reveal' "$ca"; then
   die "custom-analytics.html still brochure-centered (faq/market/price tiles)"

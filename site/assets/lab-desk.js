@@ -337,24 +337,6 @@
   });
   if (ruleChecks.length) fillRulesMix();
 
-  var lineageBtns = root.querySelectorAll("[data-lineage]");
-  var lineagePanels = root.querySelectorAll("[data-lineage-panel]");
-  function showLineage(id) {
-    lineageBtns.forEach(function (b) {
-      var on = b.getAttribute("data-lineage") === id;
-      b.classList.toggle("is-on", on);
-      b.setAttribute("aria-pressed", on ? "true" : "false");
-    });
-    lineagePanels.forEach(function (p) {
-      p.hidden = p.getAttribute("data-lineage-panel") !== id;
-    });
-  }
-  lineageBtns.forEach(function (b) {
-    b.addEventListener("click", function () {
-      showLineage(b.getAttribute("data-lineage"));
-    });
-  });
-
   var printBtn = root.querySelector("[data-lab-print-memo]");
   if (printBtn) {
     printBtn.addEventListener("click", function () {

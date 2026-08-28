@@ -1,110 +1,31 @@
 /* SAMPLE instrument — /lab and /custom-analytics. Northline week only.
-   Dark till, cyan signal, tabular numbers. No pill kits. No logo wall. */
+   Dark till, cyan signal, tabular numbers. Opens on the desk, not a craft hero. */
 
 .lab-page {
   background: #070b12;
   color: #eef2f5;
 }
 
-.lab-hero {
-  position: relative;
-  overflow: hidden;
-  background: #070b12;
-  color: #eef2f5;
-  padding: clamp(5.25rem, 11vw, 6.75rem) 0 1.25rem;
+/* Mode bar 2.55rem + sticky .top ~3.5rem. No atmosphere hero to pad this. */
+.lab-page main {
+  padding-top: 4.85rem;
 }
-
-.lab-hero .hero-atmosphere,
-.lab-hero .hero-mesh,
-.lab-hero .hero-gridline {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+body.lab-page:has(.site-mode-bar) main {
+  padding-top: 7.4rem;
 }
-
-.lab-hero .hero-atmosphere img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.28;
-}
-
-.lab-hero .hero-mesh {
-  background:
-    radial-gradient(ellipse 55% 50% at 88% 8%, rgba(94, 231, 240, 0.16), transparent 58%),
-    radial-gradient(ellipse 40% 35% at 6% 90%, rgba(14, 40, 48, 0.55), transparent 50%);
-}
-
-.lab-hero .hero-gridline {
-  background-image:
-    linear-gradient(rgba(94, 231, 240, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(94, 231, 240, 0.045) 1px, transparent 1px);
-  background-size: 40px 40px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 88%);
-}
-
-.lab-wrap {
-  position: relative;
-  z-index: 1;
-  width: min(86rem, 100%);
-  margin: 0 auto;
-  padding: 0 clamp(1.1rem, 3vw, 2rem);
-}
-
-.lab-hero .brand-hero {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  margin: 0 0 0.85rem;
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: clamp(1.3rem, 2.8vw, 1.7rem);
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-  color: #f4f6f8;
-}
-
-.lab-hero .brand-hero-mark { width: 2.6rem; height: 2.6rem; }
-.lab-hero .brand-hero-sub { color: var(--cyan); font-weight: 700; }
-.lab-hero .brand-hero-practice {
-  display: block;
-  margin-top: 0.32rem;
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgba(94, 231, 240, 0.85);
-}
-
-.lab-hero h1 {
-  margin: 0 0 0.7rem;
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: clamp(2.15rem, 5.4vw, 3.6rem);
-  letter-spacing: -0.048em;
-  line-height: 0.98;
-  max-width: 16ch;
-  color: #f4f6f8;
-}
-
-.lab-hero .lede {
-  margin: 0;
-  max-width: 54ch;
-  font-size: 1.05rem;
-  line-height: 1.5;
-  color: rgba(238, 242, 245, 0.78);
-}
-
-.lab-hero .lede a { color: var(--cyan); }
 
 .lab-rail {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem 0.55rem;
-  margin: 1.15rem 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.lab-shell > nav[aria-label="90-second desk"] {
+  padding: 0.55rem 1rem 0.65rem;
+  border-bottom: 1px solid rgba(238, 242, 245, 0.08);
 }
 
 .lab-rail a {
@@ -202,12 +123,17 @@
   letter-spacing: 0.04em;
 }
 
+.lab-section h1,
 .lab-section h2 {
   margin: 0 0 0.45rem;
   font-family: var(--display);
   font-size: clamp(1.15rem, 2.2vw, 1.45rem);
   letter-spacing: -0.03em;
   color: #f4f6f8;
+}
+
+.lab-section h1 {
+  font-size: clamp(1.35rem, 2.6vw, 1.85rem);
 }
 
 .lab-section .lab-lede {
@@ -321,6 +247,13 @@
 .lab-table th:first-child { text-align: left; }
 
 .lab-table .lab-in { width: 2.2rem; text-align: left; }
+
+.lab-table--contract th,
+.lab-table--contract td {
+  white-space: normal;
+  vertical-align: top;
+  line-height: 1.35;
+}
 
 .lab-table tfoot td,
 .lab-table tfoot th {
@@ -655,41 +588,53 @@
   color: #f4f6f8;
 }
 
-/* Lineage strip */
+/* Lineage strip — four nodes, grain + as-of always visible */
 .lab-lineage {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem;
   margin: 0;
   padding: 0;
   list-style: none;
+  counter-reset: lineage;
 }
-.lab-lineage button {
-  font: inherit;
+@media (min-width: 900px) {
+  .lab-lineage { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.lab-lineage li {
+  position: relative;
+  padding: 0.75rem 0.8rem 0.85rem;
+  border: 1px solid rgba(94, 231, 240, 0.28);
+  background: rgba(0, 0, 0, 0.28);
+}
+.lab-lineage li + li::before {
+  content: "→";
+  position: absolute;
+  top: 0.75rem;
+  left: -0.42rem;
   font-family: var(--mono);
   font-size: 0.72rem;
-  letter-spacing: 0.03em;
-  padding: 0.4rem 0.55rem;
-  border: 1px solid rgba(94, 231, 240, 0.28);
-  background: transparent;
-  color: rgba(238, 242, 245, 0.78);
-  cursor: pointer;
-}
-.lab-lineage button.is-on,
-.lab-lineage button[aria-pressed="true"] {
-  border-color: var(--cyan);
   color: var(--cyan);
-  background: rgba(94, 231, 240, 0.08);
 }
-.lab-lineage-panel {
-  margin: 0.65rem 0 0;
-  padding: 0.7rem 0.8rem;
-  border-left: 3px solid var(--cyan);
-  background: rgba(0, 0, 0, 0.28);
+@media (max-width: 899px) {
+  .lab-lineage li + li::before {
+    content: "↓";
+    top: -0.55rem;
+    left: 0.8rem;
+  }
+}
+.lab-lineage li p {
+  margin: 0.18rem 0 0;
   font-family: var(--mono);
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: rgba(238, 242, 245, 0.62);
+}
+.lab-lineage li .lab-lineage__node {
+  margin: 0 0 0.4rem;
   font-size: 0.78rem;
-  line-height: 1.5;
-  color: rgba(238, 242, 245, 0.82);
+  font-weight: 600;
+  color: var(--cyan);
 }
 
 /* If/then rules */
