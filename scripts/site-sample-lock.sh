@@ -548,7 +548,7 @@ else
   ok "CPQL cut defaults off (\$226 ≤ \$250)"
 fi
 
-# /lab first fold — signed-in exec desk. No brochure gallery. Seat 2 of 4.
+# /lab v4 — one surface: session → rail → exec. No brochure chrome.
 lab="$site/lab.html"
 if ! grep -q 'data-lab-desk="recon"' "$lab" || ! grep -q 'data-lab-desk="exec"' "$lab" || ! grep -q 'data-lab-desk="portal"' "$lab"; then
   die "lab.html missing three distinct desks (recon / exec / portal)"
@@ -560,7 +560,6 @@ if ! grep -q 'Northline Supply' "$lab" || ! grep -q 'A. Chen' "$lab" || ! grep -
 else
   ok "lab.html SAMPLE signed-in session bar"
 fi
-# DOM order: session before exec. No lab-doors / lab-gallery on /lab.
 session_line=$(grep -n 'class="lab-session"' "$lab" | head -1 | cut -d: -f1)
 exec_line=$(grep -n 'id="desk-exec"' "$lab" | head -1 | cut -d: -f1)
 if [[ -z "$session_line" || -z "$exec_line" || "$session_line" -ge "$exec_line" ]]; then
@@ -568,40 +567,45 @@ if [[ -z "$session_line" || -z "$exec_line" || "$session_line" -ge "$exec_line" 
 else
   ok "lab.html session precedes exec desk"
 fi
-if grep -q 'lab-doors' "$lab" || grep -q 'class="lab-gallery"' "$lab"; then
-  die "lab.html still has marketing doors / brochure gallery"
+if grep -Eq 'lab-doors|lab-gallery|lab-chart' "$lab"; then
+  die "lab.html still has doors / gallery / decorative charts"
 else
-  ok "lab.html no lab-doors gallery"
+  ok "lab.html no doors/gallery/charts"
 fi
-if ! grep -q 'Operator seat 2 of 4' "$lab" || ! grep -q '4 seats on this SAMPLE desk — you keep the seats.' "$lab"; then
-  die "lab.html missing Operator seat 2 of 4 scale"
+if grep -q 'METRIC CONTRACT v1 — full sheet' "$lab"; then
+  die "lab.html still duplicates METRIC CONTRACT full sheet"
 else
-  ok "lab.html Operator seat 2 of 4"
+  ok "lab.html single METRIC CONTRACT"
 fi
 if ! grep -q 'seat 2 of 4' "$lab"; then
   die "lab.html missing seat 2 of 4"
 else
   ok "lab.html seat 2 of 4"
 fi
-if awk '/id="main"/,/class="lab-session"/' "$lab" | grep -q 'lab-chart'; then
-  die "lab.html still puts charts above the signed-in session"
+if grep -Eq '500 seats|seat 2 of 500' "$lab"; then
+  die "lab.html still uses 500-seat SaaS theater"
 else
-  ok "lab.html charts are not above the session"
+  ok "lab.html dropped 500-seat SaaS theater"
 fi
 if ! awk '/id="desk-exec"/,/id="desk-recon"|id="desk-portal"/' "$lab" | grep -q '<h1[^>]*>Same $98,500'; then
   die "lab.html unique H1 is not on the exec desk"
 else
   ok "lab.html unique H1 lives on the exec desk"
 fi
-if grep -Eq '500 seats|seat 2 of 500' "$lab"; then
-  die "lab.html still uses 500-seat SaaS theater"
-else
-  ok "lab.html dropped 500-seat SaaS theater"
-fi
 if ! grep -q 'data-lab-role="finance"' "$lab" || ! grep -q 'data-lab-role="media"' "$lab" || ! grep -q 'data-lab-role="operator"' "$lab"; then
   die "lab.html missing Finance / Media / Operator role switch"
 else
   ok "lab.html role switch in the session bar"
+fi
+if ! awk '/id="desk-exec"/,/id="desk-recon"|id="desk-portal"/' "$lab" | grep -q 'data-lab-role-panel="finance"'; then
+  die "lab.html role panels are not on the exec canvas"
+else
+  ok "lab.html role panels on exec canvas"
+fi
+if grep -A6 'roleBtns.forEach' "$site/assets/lab-desk.js" | grep -q 'showDesk("portal")'; then
+  die "lab-desk.js role switch still teleports to portal"
+else
+  ok "lab-desk.js role switch stays on exec"
 fi
 if ! grep -q 'data-lab-rail="desk"' "$lab" || ! grep -q 'data-lab-rail="recon"' "$lab" || ! grep -q 'data-lab-rail="contracts"' "$lab" || ! grep -q 'data-lab-rail="handoff"' "$lab"; then
   die "lab.html missing left rail Desk / Recon / Contracts / Handoff"
@@ -631,6 +635,11 @@ if ! grep -q 'data-lab-hold-meta' "$lab"; then
 else
   ok "lab.html Hold Meta"
 fi
+if ! grep -q 'lab-blotter' "$lab"; then
+  die "lab.html missing blotter craft"
+else
+  ok "lab.html blotter"
+fi
 if ! grep -q 'Platform print (not for close)' "$lab"; then
   die "lab.html missing Platform print (not for close) contract row"
 else
@@ -645,20 +654,6 @@ if grep -Eq 'type="password"|name="password"' "$lab"; then
   die "lab.html added a real auth wall"
 else
   ok "lab.html no password wall"
-fi
-if ! grep -q 'class="lab-chart"' "$lab" || ! grep -q '<svg' "$lab"; then
-  die "lab.html still has zero charts"
-else
-  ok "lab.html has SAMPLE charts"
-fi
-# Charts may exist below fold — must NOT sit above data-lab-app.
-if awk '
-  /data-lab-app/ { exit 0 }
-  /lab-chart/ { exit 1 }
-' "$lab"; then
-  ok "lab.html no charts above the session instrument"
-else
-  die "lab.html still has charts above data-lab-app (brochure first paint)"
 fi
 if grep -q 'id="desk-exec" data-lab-desk="exec" hidden' "$lab"; then
   die "lab.html still hides the exec desk by default"
@@ -675,30 +670,39 @@ if ! grep -q 'data-lab-who' "$lab" || ! grep -q 'A. Chen' "$lab"; then
 else
   ok "lab.html shows who you are signed in as"
 fi
-# Packing list + METRIC CONTRACT on the exec first-paint strip
-if ! awk '/id="desk-exec"/,/id="desk-exec-contracts"|id="desk-portal"/' "$lab" | grep -q 'metric_contracts_v1.md'; then
-  die "lab.html packing list missing from exec first paint"
+if ! awk '/id="desk-exec"/,/id="desk-portal"/' "$lab" | grep -q 'metric_contracts_v1.md'; then
+  die "lab.html packing list missing from exec"
 else
   ok "lab.html packing list on exec desk"
 fi
-if ! awk '/id="desk-exec"/,/id="desk-exec-contracts"|id="desk-portal"/' "$lab" | grep -q 'METRIC CONTRACT v1'; then
-  die "lab.html METRIC CONTRACT missing from exec first paint"
+if ! awk '/id="desk-exec"/,/id="desk-portal"/' "$lab" | grep -q 'METRIC CONTRACT v1'; then
+  die "lab.html METRIC CONTRACT missing from exec"
 else
-  ok "lab.html METRIC CONTRACT on exec first paint"
+  ok "lab.html METRIC CONTRACT on exec"
+fi
+if ! grep -q 'lab-after-cta' "$lab"; then
+  die "lab.html missing after-instrument CTA"
+else
+  ok "lab.html CTA after instrument"
+fi
+if grep -q 'lab-doors' "$ca"; then
+  die "custom-analytics still has lab-doors marketing cards"
+else
+  ok "custom-analytics no lab-doors"
 fi
 
 # Hidden version stamp — HTML curl/view-source + chrome.js runtime. No visible footer version.
 for page in "$site/custom-analytics.html" "$site/lab.html" "$site/advanced-mds.html" "$site/index.html" "$site/spend-sales-audit.html" "$site/lead-gen-desk.html" "$site/demo.html" "$site/pricing.html" "$site/privacy.html" "$site/support.html" "$site/terms.html"; do
-  if ! grep -q 'name="mcfly-version" content="v3"' "$page" || ! grep -q 'name="mcfly-build" content="pr-23"' "$page"; then
-    die "$(basename "$page") missing hidden mcfly-version v3 / mcfly-build"
+  if ! grep -q 'name="mcfly-version" content="v4"' "$page" || ! grep -q 'name="mcfly-build" content="pr-23"' "$page"; then
+    die "$(basename "$page") missing hidden mcfly-version v4 / mcfly-build"
   else
-    ok "$(basename "$page") hidden version meta v3"
+    ok "$(basename "$page") hidden version meta v4"
   fi
 done
-if ! grep -q 'ensureMeta("mcfly-version", "v3")' "$chrome" || ! grep -q 'ensureMeta("mcfly-build", "pr-23")' "$chrome"; then
-  die "chrome.js missing hidden version stamp injector v3"
+if ! grep -q 'ensureMeta("mcfly-version", "v4")' "$chrome" || ! grep -q 'ensureMeta("mcfly-build", "pr-23")' "$chrome"; then
+  die "chrome.js missing hidden version stamp injector v4"
 else
-  ok "chrome.js hidden version stamp v3"
+  ok "chrome.js hidden version stamp v4"
 fi
 if grep 'class="fine"' "$chrome" | grep -Eq 'mcfly-version|mcfly-build|pr-23'; then
   die "chrome.js leaked a visible footer version"

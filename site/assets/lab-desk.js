@@ -376,25 +376,21 @@
     var seatEl = app.querySelector("[data-lab-seat]");
     var execMemo = app.querySelector("[data-lab-exec-memo]");
     var holdBtn = app.querySelector("[data-lab-hold-meta]");
-    var galleryDoors = document.querySelectorAll("[data-lab-door]");
+    var holdLog = app.querySelector("[data-lab-hold-log]");
+    var holdState = app.querySelector("[data-lab-hold-state]");
+    var siderailMeta = app.querySelector(".lab-siderail__meta");
 
     function showDesk(name) {
       var key = desks[name] ? name : "exec";
       Object.keys(desks).forEach(function (id) {
         if (desks[id]) desks[id].hidden = id !== key;
       });
-      galleryDoors.forEach(function (d) {
-        d.classList.toggle("is-on", d.getAttribute("data-lab-door") === key);
-      });
       rails.forEach(function (r) {
         var rail = r.getAttribute("data-lab-rail");
         var on =
           (key === "recon" && rail === "recon") ||
-          (key === "exec" && (rail === "desk" || rail === "contracts" || rail === "handoff")) ||
-          (key === "portal" && rail === "desk");
-        if (key === "exec" && rail === "desk") on = true;
-        if (key === "exec" && (rail === "contracts" || rail === "handoff")) on = false;
-        if (key === "portal") on = rail === "desk";
+          (key === "portal" && rail === "portal") ||
+          (key === "exec" && rail === "desk");
         if (on) r.setAttribute("aria-current", "page");
         else r.removeAttribute("aria-current");
       });
@@ -408,30 +404,18 @@
       });
       var title =
         next === "finance" ? "Finance" : next === "media" ? "Media" : "Operator";
-      var whoLine = "Signed in as A. Chen · " + title;
+      var whoLine = "A. Chen · " + title;
       app.querySelectorAll("[data-lab-who]").forEach(function (el) {
         el.textContent = whoLine;
       });
-      if (seatEl) {
-        seatEl.textContent = title + " seat 2 of 4";
-      }
+      if (seatEl) seatEl.textContent = "seat 2 of 4";
+      if (siderailMeta) siderailMeta.textContent = "seat 2 of 4 · SAMPLE";
+      // Role panels stay on the exec canvas — never teleport to portal.
       app.querySelectorAll("[data-lab-role-panel]").forEach(function (panel) {
         panel.hidden = panel.getAttribute("data-lab-role-panel") !== next;
       });
+      showDesk("exec");
     }
-
-    galleryDoors.forEach(function (d) {
-      d.addEventListener("click", function (event) {
-        event.preventDefault();
-        var name = d.getAttribute("data-lab-door");
-        showDesk(name);
-        if (name === "portal") setRole("operator");
-        var target = desks[name];
-        if (target && target.scrollIntoView) {
-          target.scrollIntoView({ block: "start" });
-        }
-      });
-    });
 
     rails.forEach(function (r) {
       r.addEventListener("click", function (event) {
@@ -439,6 +423,8 @@
         var rail = r.getAttribute("data-lab-rail");
         if (rail === "recon") {
           showDesk("recon");
+        } else if (rail === "portal") {
+          showDesk("portal");
         } else {
           showDesk("exec");
           var jump =
@@ -450,8 +436,7 @@
           if (jump && jump.scrollIntoView) jump.scrollIntoView({ block: "start" });
         }
         rails.forEach(function (x) {
-          var on = x === r;
-          if (on) x.setAttribute("aria-current", "page");
+          if (x === r) x.setAttribute("aria-current", "page");
           else x.removeAttribute("aria-current");
         });
       });
@@ -460,14 +445,20 @@
     roleBtns.forEach(function (b) {
       b.addEventListener("click", function () {
         setRole(b.getAttribute("data-lab-role"));
-        showDesk("portal");
       });
     });
 
     if (holdBtn && execMemo) {
       holdBtn.addEventListener("click", function () {
+        if (holdState) holdState.textContent = "HOLD";
         execMemo.textContent =
-          "Period: Northline SAMPLE week. Signed spend $98,500. Cash 4.19× vs BE 2.86× vs target 4.00×. invoice−UI −$1,450 (−1.5%).\nAction: HOLD Meta — UI $42,850 ahead of invoice $41,200 (−4.0%). Do not scale. Numbers do not invent lift.";
+          "Northline week. Signed spend $98,500. Cash 4.19× clears BE 2.86× and target 4.00×. invoice−UI −$1,450 (−1.5%).\nHOLD Meta logged — UI $42,850 ahead of invoice $41,200 (−4.0%). Do not scale. Numbers do not invent lift.";
+        if (holdLog) {
+          holdLog.hidden = false;
+          holdLog.textContent =
+            "Action line · 27 Jul 09:14 · HOLD Meta · owner Operator · dollars unchanged.";
+        }
+        holdBtn.setAttribute("aria-pressed", "true");
         showDesk("exec");
       });
     }

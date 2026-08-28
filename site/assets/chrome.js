@@ -7,7 +7,7 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v3");
+  ensureMeta("mcfly-version", "v4");
   ensureMeta("mcfly-build", "pr-23");
 
   const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
