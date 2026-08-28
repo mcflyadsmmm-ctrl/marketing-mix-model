@@ -408,12 +408,12 @@
       });
       var title =
         next === "finance" ? "Finance" : next === "media" ? "Media" : "Operator";
-      var whoLine = "Signed in as A. Chen · " + title;
+      var whoLine = "A. Chen · " + title;
       app.querySelectorAll("[data-lab-who]").forEach(function (el) {
         el.textContent = whoLine;
       });
       if (seatEl) {
-        seatEl.textContent = "seat 2 of 500";
+        seatEl.textContent = "seat 2 of 4";
       }
       app.querySelectorAll("[data-lab-role-panel]").forEach(function (panel) {
         panel.hidden = panel.getAttribute("data-lab-role-panel") !== next;

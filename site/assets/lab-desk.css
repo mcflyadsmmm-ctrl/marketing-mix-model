@@ -747,6 +747,76 @@
   }
 }
 
+/* Desk-first /lab — session + rail + exec are first paint; gallery is below */
+.lab-page--desk-first main {
+  padding-top: 3.55rem;
+}
+.lab-page--desk-first .lab-instrument {
+  padding-top: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+.lab-gallery--below {
+  width: min(86rem, 100%);
+  margin: 0 auto 2.5rem;
+  padding: 1.25rem clamp(1.1rem, 3vw, 2rem) 1.5rem;
+  border-top: 1px solid rgba(238, 242, 245, 0.08);
+}
+.lab-section--first-paint {
+  padding: 0.65rem 0.85rem 0.85rem;
+}
+.lab-visually-compact {
+  font-size: 0.95rem !important;
+  margin: 0 0 0.55rem !important;
+  letter-spacing: -0.02em;
+}
+.lab-memo--compact {
+  margin: 0.55rem 0 0.65rem;
+  padding: 0.55rem 0.7rem;
+}
+.lab-memo--compact .lab-memo__body {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  max-height: 3.6em;
+  overflow: hidden;
+}
+.lab-first-strip {
+  display: grid;
+  gap: 0.55rem;
+}
+.lab-pack {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: rgba(238, 242, 245, 0.7);
+}
+.lab-pack code {
+  color: var(--cyan);
+  font-size: 0.66rem;
+}
+.lab-page--desk-first .lab-exec-tiles {
+  margin-bottom: 0.55rem;
+}
+.lab-page--desk-first .lab-exec-tiles article {
+  padding: 0.45rem 0.55rem 0.5rem;
+}
+.lab-page--desk-first .lab-exec-tiles .v {
+  font-size: 1.15rem;
+}
+.lab-page--desk-first .lab-id {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.68rem;
+}
+.lab-page--desk-first .lab-siderail {
+  padding: 0.55rem 0.55rem 0.75rem;
+}
+.lab-page--desk-first .lab-pipe {
+  margin: 0.35rem 0 0;
+}
+.lab-page--desk-first .lab-table--contract {
+  font-size: 0.68rem;
+}
+
 /* Gallery doors — equal cards, not a mode tab strip */
 .lab-gallery {
   width: min(86rem, 100%);

@@ -549,26 +549,37 @@ else
 fi
 
 # /lab gallery — three desks, signed-in chrome, one Northline book.
+# v3 first-pixel: session bar BEFORE door cards; seat 2 of 4; no 500-seat SaaS theater.
 lab="$site/lab.html"
 if ! grep -q 'data-lab-desk="recon"' "$lab" || ! grep -q 'data-lab-desk="exec"' "$lab" || ! grep -q 'data-lab-desk="portal"' "$lab"; then
   die "lab.html missing three distinct desks (recon / exec / portal)"
 else
   ok "lab.html three desks recon / exec / portal"
 fi
-if ! grep -q 'Northline Supply' "$lab" || ! grep -q 'A. Chen' "$lab" || ! grep -q 'Signed in as A. Chen' "$lab" || ! grep -q 'last in 27 Jul 09:14' "$lab"; then
+if ! grep -q 'Northline Supply' "$lab" || ! grep -q 'A. Chen' "$lab" || ! grep -q 'lab-session' "$lab" || ! grep -q 'last in 27 Jul 09:14' "$lab"; then
   die "lab.html missing signed-in session bar"
 else
   ok "lab.html SAMPLE signed-in session bar"
 fi
-if ! grep -q '500 seats' "$lab" || ! grep -q 'seat 2 of 500' "$lab"; then
-  die "lab.html missing 500-seat workspace scale"
+# DOM order: data-lab-app / lab-session must appear before lab-doors (or doors gone).
+session_line=$(grep -n 'data-lab-app\|class="lab-session"' "$lab" | head -1 | cut -d: -f1)
+doors_line=$(grep -n 'lab-doors\|data-lab-door' "$lab" | head -1 | cut -d: -f1 || true)
+if [[ -z "$session_line" ]]; then
+  die "lab.html missing data-lab-app / lab-session"
+elif [[ -n "$doors_line" && "$doors_line" -lt "$session_line" ]]; then
+  die "lab.html door cards still appear before the session bar (brochure first paint)"
 else
-  ok "lab.html 500-seat workspace scale"
+  ok "lab.html session bar before door cards (or doors gone)"
 fi
-if grep -q 'seat 2 of 4' "$lab" || grep -q '4 seats on this SAMPLE desk' "$lab"; then
-  die "lab.html still uses the 4-seat toy scale"
+if ! grep -q 'seat 2 of 4' "$lab"; then
+  die "lab.html missing seat 2 of 4"
 else
-  ok "lab.html dropped 4-seat toy scale"
+  ok "lab.html seat 2 of 4"
+fi
+if grep -Eq '500 seats|seat 2 of 500' "$lab"; then
+  die "lab.html still uses 500-seat SaaS theater"
+else
+  ok "lab.html dropped 500-seat SaaS theater"
 fi
 if ! grep -q 'data-lab-role="finance"' "$lab" || ! grep -q 'data-lab-role="media"' "$lab" || ! grep -q 'data-lab-role="operator"' "$lab"; then
   die "lab.html missing Finance / Media / Operator role switch"
@@ -623,10 +634,14 @@ if ! grep -q 'class="lab-chart"' "$lab" || ! grep -q '<svg' "$lab"; then
 else
   ok "lab.html has SAMPLE charts"
 fi
-if ! awk '/lab-gallery/,/data-lab-app/' "$lab" | grep -q 'lab-chart'; then
-  die "lab.html hero is still only the recon ROAS fold"
+# Charts may exist below fold — must NOT sit above data-lab-app.
+if awk '
+  /data-lab-app/ { exit 0 }
+  /lab-chart/ { exit 1 }
+' "$lab"; then
+  ok "lab.html no charts above the session instrument"
 else
-  ok "lab.html gallery hero has exec charts + pipeline"
+  die "lab.html still has charts above data-lab-app (brochure first paint)"
 fi
 if grep -q 'id="desk-exec" data-lab-desk="exec" hidden' "$lab"; then
   die "lab.html still hides the exec desk by default"
@@ -638,24 +653,35 @@ if ! grep -q 'id="desk-recon" data-lab-desk="recon" hidden' "$lab"; then
 else
   ok "lab.html recon is a hidden module until chosen"
 fi
-if ! grep -q 'Signed in as A. Chen' "$lab" || ! grep -q 'data-lab-who' "$lab"; then
+if ! grep -q 'data-lab-who' "$lab" || ! grep -q 'A. Chen' "$lab"; then
   die "lab.html missing signed-in as name + role"
 else
   ok "lab.html shows who you are signed in as"
 fi
+# Packing list + METRIC CONTRACT on the exec first-paint strip
+if ! awk '/id="desk-exec"/,/id="desk-exec-contracts"|id="desk-portal"/' "$lab" | grep -q 'metric_contracts_v1.md'; then
+  die "lab.html packing list missing from exec first paint"
+else
+  ok "lab.html packing list on exec desk"
+fi
+if ! awk '/id="desk-exec"/,/id="desk-exec-contracts"|id="desk-portal"/' "$lab" | grep -q 'METRIC CONTRACT v1'; then
+  die "lab.html METRIC CONTRACT missing from exec first paint"
+else
+  ok "lab.html METRIC CONTRACT on exec first paint"
+fi
 
 # Hidden version stamp — HTML curl/view-source + chrome.js runtime. No visible footer version.
 for page in "$site/custom-analytics.html" "$site/lab.html" "$site/advanced-mds.html" "$site/index.html" "$site/spend-sales-audit.html" "$site/lead-gen-desk.html" "$site/demo.html" "$site/pricing.html" "$site/privacy.html" "$site/support.html" "$site/terms.html"; do
-  if ! grep -q 'name="mcfly-version" content="v2"' "$page" || ! grep -q 'name="mcfly-build" content="pr-23"' "$page"; then
-    die "$(basename "$page") missing hidden mcfly-version / mcfly-build"
+  if ! grep -q 'name="mcfly-version" content="v3"' "$page" || ! grep -q 'name="mcfly-build" content="pr-23"' "$page"; then
+    die "$(basename "$page") missing hidden mcfly-version v3 / mcfly-build"
   else
-    ok "$(basename "$page") hidden version meta"
+    ok "$(basename "$page") hidden version meta v3"
   fi
 done
-if ! grep -q 'ensureMeta("mcfly-version", "v2")' "$chrome" || ! grep -q 'ensureMeta("mcfly-build", "pr-23")' "$chrome"; then
-  die "chrome.js missing hidden version stamp injector"
+if ! grep -q 'ensureMeta("mcfly-version", "v3")' "$chrome" || ! grep -q 'ensureMeta("mcfly-build", "pr-23")' "$chrome"; then
+  die "chrome.js missing hidden version stamp injector v3"
 else
-  ok "chrome.js hidden version stamp"
+  ok "chrome.js hidden version stamp v3"
 fi
 if grep 'class="fine"' "$chrome" | grep -Eq 'mcfly-version|mcfly-build|pr-23'; then
   die "chrome.js leaked a visible footer version"
@@ -843,7 +869,7 @@ if grep -q '4 × $120 attributed' "$lab" || grep -q '4 × \$120 attributed' "$la
 else
   ok "lab.html dropped \$120 attributed toy"
 fi
-if awk '/id="desk-title-sec"/,/id="mds-proof"/' "$ca" | grep -q 'data-ca-plat'; then
+if awk '/id="mds-proof"/,/id="desk-title-sec"|id="recon"/' "$ca" | grep -q 'data-ca-plat'; then
   die "custom-analytics hero proof is still the recon widget"
 else
   ok "custom-analytics hero is not the recon widget"
@@ -853,20 +879,36 @@ if ! grep -q 'id="mds-proof"' "$ca"; then
 else
   ok "custom-analytics MDS proof on the hub"
 fi
-# mds-proof must appear before #recon in the file
+# mds-proof must appear before #recon AND before marketing H1 stack as first screen
 ca_mds=$(grep -n 'id="mds-proof"' "$ca" | head -1 | cut -d: -f1)
 ca_recon=$(grep -n 'id="recon"' "$ca" | head -1 | cut -d: -f1)
+ca_title=$(grep -n 'id="desk-title-sec"' "$ca" | head -1 | cut -d: -f1)
 if [[ -z "$ca_mds" || -z "$ca_recon" || "$ca_mds" -ge "$ca_recon" ]]; then
   die "custom-analytics MDS proof is not before recon"
 else
   ok "custom-analytics MDS proof precedes recon module"
+fi
+if [[ -z "$ca_title" || "$ca_mds" -ge "$ca_title" ]]; then
+  die "custom-analytics MDS proof is not the first screen (before desk-title-sec)"
+else
+  ok "custom-analytics MDS proof is first screen"
+fi
+if grep -Eq '500 seats|seat 2 of 500' "$ca"; then
+  die "custom-analytics still uses 500-seat SaaS theater"
+else
+  ok "custom-analytics seat scale is not 500"
+fi
+if ! grep -q 'seat 2 of 4' "$ca"; then
+  die "custom-analytics missing seat 2 of 4"
+else
+  ok "custom-analytics seat 2 of 4"
 fi
 if grep -q 'the first screen is invoice vs UI' "$ca"; then
   die "custom-analytics market lede still says first screen is invoice vs UI"
 else
   ok "custom-analytics first screen is not invoice vs UI"
 fi
-if ! awk '/id="mds-proof"/,/id="lineage"/' "$ca" | grep -q '07-03'; then
+if ! awk '/id="mds-proof"/,/id="lineage"|id="recon"/' "$ca" | grep -q '07-03'; then
   die "custom-analytics MDS proof missing delivery pipeline"
 else
   ok "custom-analytics hub has exec + portal + pipeline"
