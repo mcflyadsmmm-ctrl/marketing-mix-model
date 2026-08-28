@@ -120,9 +120,12 @@
     if (googleSlot && bookLink) {
       bookLink.href = rawUrl;
       bookLink.hidden = false;
+      fit.hidden = false;
       fit.classList.remove("is-empty");
       if (emptyCopy) emptyCopy.hidden = true;
       if (readyCopy) readyCopy.hidden = false;
+    } else {
+      fit.hidden = true;
     }
   }
 
