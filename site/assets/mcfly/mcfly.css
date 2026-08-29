@@ -814,6 +814,8 @@ body.lab {
 
 .lab-rail {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 0.35rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -823,6 +825,18 @@ body.lab {
   position: sticky;
   top: var(--nav-h);
   z-index: 5;
+}
+
+/* Beat legacy lab-desk.css column siderail on phone */
+.lab-page .lab-rail.lab-siderail,
+body.lab .lab-rail.lab-siderail {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  border-right: 0 !important;
+  width: 100%;
+  max-width: 100%;
 }
 
 .lab-rail a {
@@ -890,13 +904,17 @@ body.lab {
   .lab-body {
     grid-template-columns: 11rem minmax(0, 1fr);
   }
+  .lab-page .lab-rail.lab-siderail,
+  body.lab .lab-rail.lab-siderail,
   .lab-rail {
-    flex-direction: column;
-    overflow: visible;
+    flex-direction: column !important;
+    flex-wrap: wrap !important;
+    overflow: visible !important;
     position: static;
     border-bottom: 0;
     border-right: 1px solid var(--line);
     padding: 1rem 0.75rem;
+    width: auto;
   }
 }
 
