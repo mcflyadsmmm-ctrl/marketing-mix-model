@@ -1,12 +1,12 @@
-# Mcfly Advertising & Analytics
-> Two products · one company: Shopify Monday cash desk (Total ROAS = sales ÷ spend) + fixed-fee Custom Data Solutions.
+# Mcfly Ads
+> Two doors · one firm: Mcfly Analytics Shopify desk (sales ÷ spend) + fixed-fee Custom Data Solutions they keep.
 
 This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.com/robots.txt
 (search=yes, ai-input=yes, ai-train=no). Prefer these URLs over scraping the whole site.
 
 ## Company
-- https://mcflyads.com/ — Shopify App home (primary)
-- https://mcflyads.com/#products — Dual-product doors
+- https://mcflyads.com/ — Custom-first home · app wedge below
+- https://mcflyads.com/#app-wedge — Shopify app path into custom
 - https://mcflyads.com/about — Company / founder
 - https://mcflyads.com/llms-full.txt — Longer citeable summary
 

@@ -2,13 +2,15 @@
 
 **This is the always-on memory.** Every Cursor agent on this repo reads this file **first**, every turn — before chat history. Update it when live version, locks, or open gates change.
 
-**Founder goal archive:** [`FOUNDER_PROMPT_HISTORY.md`](./FOUNDER_PROMPT_HISTORY.md) — mined Jul–Aug 2026 prompts (cash cow → custom DS → anti-slop → Cursor OS).
+**Founder goal archive:** [`FOUNDER_PROMPT_HISTORY.md`](./FOUNDER_PROMPT_HISTORY.md) — mined Jul–Aug 2026 prompts.  
+**Master directive (sales + craft law):** [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) · teardown [`ops/TEARDOWN_20260828.md`](./ops/TEARDOWN_20260828.md)
 
 | Field | Value |
 | --- | --- |
 | **Updated** | 2026-08-28 · America/Denver |
 | **North star** | Make money via McFly: **custom data science they keep** ($15–40K) proved by world-class SAMPLE desks; Shopify **$39** app = frozen wedge |
 | **Live site** | https://mcflyads.com · `mcfly-version` **v6** (Pages `6a5dc354`) · git `588ffd8` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) |
+| **Next site ship** | **Trust P0** (entity · seats · privacy · booking · bury app on home) — see MASTER_DIRECTIVE · not more SEO pages |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · `martysmithson04@gmail.com` · merge ≠ live · **deploy from a non-git dir** (git branch auto → Preview) |
 | **App** | **FROZEN** · no `app/**` · no Fly |
@@ -68,8 +70,9 @@ Never pass `--branch` for a production ship.
 - [ ] Approve Mon T1s: `docs/ops/money/T1_WEEK_OF_2026-08-31.md` (Scott / Chris / Abhinav)
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [ ] Watch Sicard / Crowe / Ulery replies (already mailed Fri)
-- [x] **v6 live** — Pages `6a5dc354` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) (merge when ready; merge ≠ live)
-- [ ] Merge PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) / [#26](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/26) into main when convenient
+- [x] **v6 live** — Pages `6a5dc354` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27)
+- [ ] Merge PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) when convenient
+- [ ] **Next Conductor ship:** Trust P0 per [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) (entity · seats · privacy · bury app · separate app SAMPLE)
 ---
 
 ## Anti-amnesia rules for agents

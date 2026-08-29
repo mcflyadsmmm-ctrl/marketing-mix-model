@@ -11,8 +11,8 @@
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-custom-analytics.png" sizes="180x180" />
   <link rel="manifest" href="/assets/brand/site.webmanifest" />
   <meta name="theme-color" content="#082830" />
-  <meta name="mcfly-version" content="v6" />
-  <meta name="mcfly-build" content="os-coherence-v6" />
+  <meta name="mcfly-version" content="v7" />
+  <meta name="mcfly-build" content="os-trust-v7" />
   <link rel="canonical" href="https://mcflyads.com/custom-analytics" />
   <meta name="robots" content="index,follow" />
   <meta property="og:site_name" content="Mcfly Ads" />
@@ -27,9 +27,9 @@
   <meta name="twitter:title" content="Custom Data Solutions — $5–8K / $8–15K / $15–25K | Mcfly Ads" />
   <meta name="twitter:description" content="Fixed-fee desks you keep. Spend &amp; Sales Audit $5–8K, Lead Gen reporting $8–15K, Advanced MDS $15–25K. Written metric contracts. Inquire on this page." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-custom-analytics.jpg" />
-  <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v6" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260828v6" />
-  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828v6" />
+  <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v7" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260828v7" />
+  <link rel="stylesheet" href="/assets/lab-desk.css?v=20260828v7" />
   <style>
     /* Inquire lives on the dark desk. Dead brochure CSS stripped. */
     body.ca-page.lab-page .ca-book {
@@ -233,7 +233,7 @@
               "minPrice": "15000",
               "maxPrice": "25000"
             },
-            "description": "Custom data science they keep. A hired system they own — exec desks and signed-in portals — that beats the BI and SaaS they already paid for. Marketing measurement is one module. 6–10 weeks.",
+            "description": "Custom data science they keep. A hired system they own — exec desks and signed-in portals — that settles the disagreement BI and SaaS left open. Marketing measurement is one module. 6–10 weeks.",
             "url": "https://mcflyads.com/advanced-mds"
           }
         ]
@@ -804,7 +804,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
               <a href="/advanced-mds">
                 <p class="price">$15–25K · 6–10 weeks</p>
                 <h3>Advanced MDS</h3>
-                <p>A system they own after we leave. Exec desks and signed-in portals at operational scale — a hired build that beats the BI and SaaS they already paid for. Marketing measurement is one module, not the offer. Proof above: exec tiles, A. Chen seat, pipeline 07-03 → 07-27, five files they keep.</p>
+                <p>A system they own after we leave. Exec desks and signed-in portals — a hired build that settles the disagreement BI and SaaS left open. Marketing measurement is one module, not the offer. Proof above: exec tiles, A. Chen seat, pipeline 07-03 → 07-27, five files they keep.</p>
               </a>
             </div>
 <p class="lab-formula">MDS files they keep: <code>metric_contracts_v1.md</code> · <code>spend_recon_jul2026.csv</code> · <code>northline_desk.html</code> · <code>runbook.md</code> · <code>owner_transfer_checklist.md</code>.</p>
@@ -931,12 +931,15 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                   <label>Name <span class="req" aria-hidden="true">*</span>
                     <input name="name" type="text" autocomplete="name" required maxlength="120" />
                   </label>
-                  <label>Company <span class="opt">(optional)</span>
-                    <input name="company" type="text" autocomplete="organization" maxlength="200" />
+                  <label>Company <span class="req" aria-hidden="true">*</span>
+                    <input name="company" type="text" autocomplete="organization" required maxlength="200" />
                   </label>
                 </div>
                 <label>Work email <span class="req" aria-hidden="true">*</span>
                   <input name="email" type="email" required autocomplete="email" maxlength="254" />
+                </label>
+                <label>Company website <span class="opt">(optional)</span>
+                  <input name="website_url" type="url" autocomplete="url" maxlength="200" placeholder="https://" />
                 </label>
                 <label>Package / budget <span class="req" aria-hidden="true">*</span>
                   <select name="package" data-proposal-package required>
@@ -948,7 +951,7 @@ Cash identity locked: $412,400 ÷ $98,500 = 4.19×. Exceptions do not rewrite it
                 </label>
                 <input type="hidden" name="budget" value="" />
                 <label>Optional note
-                  <textarea name="note" maxlength="600" rows="3" placeholder="Which two systems disagree? Anything we should know."></textarea>
+                  <textarea name="note" maxlength="600" rows="3" placeholder="Which two systems disagree? Who owns the number?"></textarea>
                 </label>
               </fieldset>
               <input type="text" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0" />
@@ -998,7 +1001,6 @@ Marty · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail
               </ol>
             </aside>
             <aside class="ca-fitcall is-empty" id="fit-call" data-fitcall data-schedule-url="" hidden aria-labelledby="fit-call-title">
-              <!-- Marty: paste a Google Appointment schedule URL into data-schedule-url. Do not add Calendly. Do not invent a URL. -->
               <p class="eyebrow">20-min fit-call slot</p>
               <h2 id="fit-call-title">Fit call</h2>
               <p data-fitcall-ready hidden>A 20-minute fit-call slot is open.</p>
@@ -1007,7 +1009,7 @@ Marty · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail
           </div>
             </div>
 
-            <p class="ca-shopify-note">Shopify-only shops that just need sales next to spend: the $39 app is on <a href="/demo">/demo</a>. This page is the custom book.</p>
+            <p class="ca-shopify-note"><strong>Mcfly Analytics</strong> (Shopify app) puts spend next to sales — start on <a href="/demo">/demo</a>. When books still disagree, this page is the custom hire. App is the wedge; custom is the close.</p>
           </section>
         </div>
       </div>
@@ -1015,10 +1017,10 @@ Marty · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail
 
   </main>
 
-  <div data-footer></div><script src="/assets/cta-config.js?v=20260828v6"></script>
-  <script src="/assets/chrome.js?v=20260828v6"></script>
-  <script src="/assets/app.js?v=20260828v6"></script>
-  <script src="/assets/lab-desk.js?v=20260828v6"></script>
-  <script src="/assets/custom-analytics-demo.js?v=20260828v6"></script>
+  <div data-footer></div><script src="/assets/cta-config.js?v=20260828v7"></script>
+  <script src="/assets/chrome.js?v=20260828v7"></script>
+  <script src="/assets/app.js?v=20260828v7"></script>
+  <script src="/assets/lab-desk.js?v=20260828v7"></script>
+  <script src="/assets/custom-analytics-demo.js?v=20260828v7"></script>
 </body>
 </html>

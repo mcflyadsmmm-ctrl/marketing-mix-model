@@ -108,7 +108,7 @@
       var weekPhase = Math.sin((i / 7) * Math.PI * 2);
       var monthPhase = Math.sin((day.getMonth() / 12) * Math.PI * 2);
       var weekend = dow === 0 || dow === 6 ? 0.78 : dow === 1 ? 0.92 : 1.05;
-      var baseSpend = 2100 + weekPhase * 280 + monthPhase * 220;
+      var baseSpend = 1150 + weekPhase * 160 + monthPhase * 120;
       var noise = 0.88 + hash01(i * 17 + 3) * 0.24;
       var totalSpend = Math.max(400, baseSpend * weekend * noise);
 

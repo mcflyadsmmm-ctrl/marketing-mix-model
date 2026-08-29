@@ -66,6 +66,11 @@ for f in "${HIRE[@]}"; do
   else
     ok "$f voice lock (no cash desk / two books)"
   fi
+  if grep -qiE '500-seat|184 of 240|login 184' "$f"; then
+    bad "$f has SaaS seat theater (500-seat / 184 of 240)"
+  else
+    ok "$f no SaaS seat theater"
+  fi
 done
 
 # Assets present

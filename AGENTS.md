@@ -3,6 +3,7 @@
 **Read in order before writing code:**
 
 0. **[`docs/LIVING_BOARD.md`](./docs/LIVING_BOARD.md)** — always-on memory (live version, locks, open gates). Outranks chat amnesia.
+0a. **[`docs/MASTER_DIRECTIVE.md`](./docs/MASTER_DIRECTIVE.md)** — how we make real sales (packages, demo bar, trust P0, vs competitors).
 0b. **[`docs/ops/CURSOR_OS.md`](./docs/ops/CURSOR_OS.md)** — Conductor OS after Grok failure. Autopsy: [`docs/ops/GROK_BOT_AUTOPSY_20260828.md`](./docs/ops/GROK_BOT_AUTOPSY_20260828.md). Magic: `status` · `go site` · `go money` · `stop fleet`.
 
 ## Mission

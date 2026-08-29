@@ -10,9 +10,10 @@ alwaysApply: true
 ## Every turn — before acting
 
 1. Read [`docs/LIVING_BOARD.md`](../../docs/LIVING_BOARD.md) — live version, product lock, open gates.
-2. Read [`docs/FOUNDER_PROMPT_HISTORY.md`](../../docs/FOUNDER_PROMPT_HISTORY.md) — why the founder built McFly (cash cow, custom DS, anti-slop).
-3. Obey [`docs/ops/CURSOR_OS.md`](../../docs/ops/CURSOR_OS.md).
-4. If chat contradicts the Living Board, **board wins** unless the founder’s latest message explicitly overrides.
+2. Read [`docs/MASTER_DIRECTIVE.md`](../../docs/MASTER_DIRECTIVE.md) — sales law, packages, demo bar, trust P0.
+3. Read [`docs/FOUNDER_PROMPT_HISTORY.md`](../../docs/FOUNDER_PROMPT_HISTORY.md) — why the founder built McFly.
+4. Obey [`docs/ops/CURSOR_OS.md`](../../docs/ops/CURSOR_OS.md).
+5. If chat contradicts the Living Board / Master Directive, **board wins** unless the founder’s latest message explicitly overrides.
 
 ## Authority
 
