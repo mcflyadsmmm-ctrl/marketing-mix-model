@@ -110,12 +110,20 @@ Mcfly Analytics solves a real Shopify problem and is how big store owners discov
 
 ---
 
-## Next build order (after trust P0)
+## Site IA freeze (v8 clean revamp)
 
-1. Home: bury Shopify explorer · separate app SAMPLE  
-2. Unify seat scale · pipeline dates · Meta Investigate/Hold language  
-3. Package rename + audit→MDS credit on page  
-4. Soften “beats SaaS” → settle disagreement  
-5. noindex thin hire clones · demote app in sitemap  
+**One sentence:** Advanced data science, displayed simply — hired systems they keep; Mcfly Analytics is the Shopify path in.
 
-Human still owns: Appointment URL · send/approve T1s · fit calls · MX.
+| Tier | URLs | Action |
+| --- | --- | --- |
+| **A — rewrite** | `/` · `/lab` · `/custom-analytics` · `/advanced-mds` · `/spend-sales-audit` · `/lead-gen-desk` · `/custom-analytics-engagement` · `/about` · chrome/CSS | One craft system |
+| **B — bridge** | `/demo` · `/pricing` · `/product` | Fly-safe; thin Custom bridge |
+| **C — freeze** | SEO hire/recon long-tail (~25) | `noindex,follow` — do not rewrite |
+| **D — lock** | Fly listing trust URLs | Untouched until `shopify app unfreeze` |
+
+**Nav (≤5):** Lab · Custom · App · About · Inquire  
+
+**Money spine:** `/` → `/lab` (demos) → `/custom-analytics` (packages + inquire) · App wedge → Custom when books disagree.
+
+---
+

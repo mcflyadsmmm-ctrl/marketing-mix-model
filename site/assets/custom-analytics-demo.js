@@ -18,9 +18,9 @@
     'form[data-proposal] input[name="budget"]',
   );
   var packageMeta = {
-    audit: { band: "$5–8K", weeks: "2–3 weeks", name: "Spend & Sales Audit" },
-    leadgen: { band: "$8–15K", weeks: "3–6 weeks", name: "Lead Gen reporting" },
-    mds: { band: "$15–25K", weeks: "6–10 weeks", name: "Advanced MDS" },
+    audit: { band: "$5–8K", weeks: "2–3 weeks", name: "Close Memo" },
+    leadgen: { band: "$8–15K", weeks: "3–6 weeks", name: "Pipeline Desk" },
+    mds: { band: "$15–25K", weeks: "6–10 weeks", name: "Hired System" },
   };
 
   function setProposalMode(key) {
