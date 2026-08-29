@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | **Updated** | 2026-08-28 · America/Denver |
-| **Live** | https://mcflyads.com · **v9** (brand law) · deploy after this stamp |
+| **Live** | https://mcflyads.com · `mcfly-version` **v9** (Pages `a48c7e48`) · git `0ed0d9d` · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
 | **North star** | Close **Custom** cash ($5–25K). App = frozen Shopify wedge into Custom. |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · `martysmithson04@gmail.com` · **deploy from non-git temp dir** · merge ≠ live |
@@ -99,9 +99,9 @@ npx wrangler@3 pages deploy site --project-name=mcflyads --commit-dirty=true
 - [ ] Approve Mon T1s: `docs/ops/money/T1_WEEK_OF_2026-08-31.md`
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [ ] Watch Sicard / Crowe / Ulery replies
-- [x] v7 · v8 clean revamp live · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28)
+- [x] v7 · v8 clean revamp · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28)
+- [x] **v9 live** — Brand law · Pages `a48c7e48` · journal [`ops/journal/STATUS_20260828_v9.md`](./ops/journal/STATUS_20260828_v9.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
-- [ ] **v9** brand law ship (this pass)
 
 **Next meaningful work (in order):** money ops (booking/T1s) → deepen `/lab` only → soft 301 Tier C. Not home rewrites.
 
@@ -123,4 +123,4 @@ npx wrangler@3 pages deploy site --project-name=mcflyads --commit-dirty=true
 | v6 | `6a5dc354` | 301s · short inquire · seat 2 of 4 |
 | v7 | `5aa2e910` | Trust P0 · app→custom bridge · Harbor |
 | v8 | `d9ce2cb1` | Clean revamp · one spine · packages rename · Tier C noindex · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| v9 | *(ship)* | Brand law · kill dual-site residue · Mcfly Ads firm lock |
+| v9 | `a48c7e48` | Brand law · Mcfly Ads firm lock · dual-site toggle dead · SAMPLE lock extended · git `0ed0d9d` |
