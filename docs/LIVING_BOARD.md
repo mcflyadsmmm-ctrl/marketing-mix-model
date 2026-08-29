@@ -9,11 +9,11 @@
 | --- | --- |
 | **Updated** | 2026-08-28 · America/Denver |
 | **North star** | Make money via McFly: **custom data science they keep** ($15–40K) proved by world-class SAMPLE desks; Shopify **$39** app = frozen wedge |
-| **Live site** | https://mcflyads.com · `mcfly-version` **v6** (Pages `6a5dc354`) · git `588ffd8` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) |
-| **Next site ship** | **Trust P0** (entity · seats · privacy · booking · bury app on home) — see MASTER_DIRECTIVE · not more SEO pages |
+| **Live site** | https://mcflyads.com · `mcfly-version` **v7** (Pages `5aa2e910`) · git `183b3e9` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) |
+| **Next site ship** | Package rename (Close Memo / Pipeline Desk) · audit→MDS credit · booking URL when pasted |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
-| **Pages** | Cloudflare `mcflyads` · Direct Upload · `martysmithson04@gmail.com` · merge ≠ live · **deploy from a non-git dir** (git branch auto → Preview) |
-| **App** | **FROZEN** · no `app/**` · no Fly |
+| **Pages** | Cloudflare `mcflyads` · Direct Upload · `martysmithson04@gmail.com` · merge ≠ live · **deploy from a non-git dir** |
+| **App** | **FROZEN** code · **important wedge** on site (spend beside sales → Custom when books disagree) · no `app/**` / Fly |
 | **Conductor** | One Cursor chat · [`ops/CURSOR_OS.md`](./ops/CURSOR_OS.md) · not a Grok fleet |
 
 ---
@@ -23,7 +23,7 @@
 1. Sell **custom data science they keep** — any company. Marketing is **one** module.
 2. MDS ~$15–25K = exec desks + signed-in portals + pipelines + handoff files.
 3. Packages on site: Audit **$5–8K** · Lead gen **$8–15K** · MDS **$15–25K**.
-4. App wedge: 7-day then **$39** · demo while listing pending · never invent App Store URLs.
+4. App wedge: **Mcfly Analytics** solves a real Shopify problem and routes owners to Custom when books disagree · 7-day then **$39** · demo while listing pending · freeze `app/**` / Fly until unfreeze.
 5. SAMPLE only — Northline: invoice **$98,500** · cash Total ROAS **4.19×** · variance **−$1,450**. No fake logos. No `$84,200` on site.
 6. Voice: no “Monday” / “cash desk” / “two books” branding. Seat copy = **2 of 4**, never “500-seat” theater.
 7. Refuse: pixels, MTA, path credit, “true ROAS,” TW clones.
@@ -70,9 +70,9 @@ Never pass `--branch` for a production ship.
 - [ ] Approve Mon T1s: `docs/ops/money/T1_WEEK_OF_2026-08-31.md` (Scott / Chris / Abhinav)
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [ ] Watch Sicard / Crowe / Ulery replies (already mailed Fri)
-- [x] **v6 live** — Pages `6a5dc354` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27)
+- [x] **v7 live** — Trust P0 + app→custom bridge · Pages `5aa2e910` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27)
 - [ ] Merge PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) when convenient
-- [ ] **Next Conductor ship:** Trust P0 per [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) (entity · seats · privacy · bury app · separate app SAMPLE)
+- [ ] **Next Conductor ship:** package rename + audit→MDS credit (MASTER_DIRECTIVE)
 ---
 
 ## Anti-amnesia rules for agents
@@ -94,3 +94,4 @@ Never pass `--branch` for a production ship.
 | v4 | ~13:21 | `94e460fc` | First paint = hired desk |
 | v5 | afternoon | `d77b276d` | Self-hosted fonts |
 | v6 | evening | `6a5dc354` | `/proposal` `/desk-setup` 301 · short inquire · seat 2 of 4 · home lede/LCP · git `588ffd8` |
+| v7 | evening | `5aa2e910` | Trust P0 · app→custom bridge · Harbor app SAMPLE · seat 2 of 4 on MDS · privacy inquire · About entity · git `183b3e9` |
