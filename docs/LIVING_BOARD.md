@@ -5,12 +5,12 @@
 | Field | Value |
 | --- | --- |
 | **Updated** | 2026-08-28 · America/Denver |
-| **Live** | https://mcflyads.com · `mcfly-version` **v10** (Pages `d7ac8030`) · git `c6dd960` · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **North star** | Close **Custom** cash ($5–25K). App = frozen Shopify wedge into Custom. |
+| **Live** | https://mcflyads.com · shipping **v11** (app-first site) |
+| **North star** | Sell **Mcfly Analytics** Shopify app — 7-day trial then **$39**/store/mo. Custom Data Solutions is **parked** (not sold on the public spine). |
 | **Craft** | `site/assets/mcfly/` only for Tier A · skill `.cursor/skills/mcfly-site/` · **never** stack into `site.css` |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
-| **App** | **FROZEN** · no `app/**` / Fly until `shopify app unfreeze` |
+| **App code** | **FROZEN** · no `app/**` / Fly listing copy until `shopify app unfreeze` |
 | **Conductor** | One Cursor chat · read board + skill every turn |
 
 Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) · skill: [`.cursor/skills/mcfly-site/SKILL.md`](../.cursor/skills/mcfly-site/SKILL.md)
@@ -22,32 +22,34 @@ Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) · skill: [`.cursor/skills/m
 | Layer | Name | Role |
 | --- | --- | --- |
 | **Firm** | **Mcfly Ads** | Domain, legal, chrome, footer |
-| **Line** | **Advanced data science, displayed simply** | Hero / H1 signal |
-| **Money** | **Custom Data Solutions** | Close Memo · Pipeline Desk · Hired System |
-| **App SKU** | **Mcfly Analytics** | Shopify / Fly only |
+| **Line** | Spend next to sales | Home H1 job |
+| **Money now** | **Mcfly Analytics** | Shopify app · 7-day then $39 |
+| **Parked** | Custom Data Solutions | Close Memo · Pipeline · Hired System — later add-on, not the public sell |
 
-**Refuse:** Ads↔Analytics toggle · ADS-as-acronym rename · parallel `dist/` · Grok fleets · new SEO landers · collage patches on `site.css` for Tier A.
+**Refuse:** Ads↔Analytics chrome toggle · inventing `apps.shopify.com` while listing is pending · selling Custom on home/nav · parallel `dist/` · Grok fleets · new SEO landers · collage patches on `site.css` for Tier A.
+
+**Agent one-liner:** Firm = Mcfly Ads. Sell the Shopify app. CTA = Try the demo (`/demo`) until listing is live. Custom is parked. No `app/**` / Fly edits until unfreeze.
 
 ---
 
-## Craft bar (terafab-quality lessons)
+## Craft bar
 
-Restraint over effects. One idea per viewport. Cinematic space + type — not dashboard chrome stacks.
+Restraint. One idea per viewport. Phone = brand + hamburger.
 
-- Phone nav = brand + hamburger only (desktop links `display:none` &lt;860px)
-- Home first paint: kicker · H1 · lede · ≤2 CTAs · proof line — then demos / packages / app
-- Lab: session (who+seat) · sticky rail · tiles — no 7 metadata rows
-- Every string wraps (`overflow-wrap`) — no clipped Inquire
-
-**Spine:** `/` → `/lab` → `/custom-analytics#inquire`
+**Spine:** `/` → `/demo` → `/pricing`  
+**Nav ≤4:** Demo · Pricing · About · (CTA Try the demo)
 
 ---
 
 ## Product + SAMPLE lock
 
-Close Memo **$5–8K** · Pipeline **$8–15K** · Hired System **$15–25K**  
-Northline: **$98,500** · **4.19×** · **−$1,450** · seat **2 of 4** · App SAMPLE = Harbor  
-Voice bans: Monday / cash desk / beats SaaS / 500-seat theater
+App: spend beside Shopify sales · sales after returns ÷ spend · not path credit · not pixels.  
+**Harbor SAMPLE:** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · not a live client.  
+Do **not** put Northline $98,500 / 4.19× on the app home.  
+Voice bans: Monday / cash desk / beats SaaS / 500-seat theater.  
+Listing pending: `MCFLY_APP_STORE_LIVE=false` → never invent App Store URLs.
+
+Custom SAMPLE (Northline) stays on parked `/lab` only.
 
 ---
 
@@ -55,10 +57,11 @@ Voice bans: Monday / cash desk / beats SaaS / 500-seat theater
 
 | Tier | Rule |
 | --- | --- |
-| **A** | `mcfly/` craft only · version + one job |
-| **B** | Fly-safe bridge |
-| **C** | `noindex` · no rewrite |
-| **D** | Fly listing URLs untouched |
+| **A** | `/` `/about` chrome — app-first rewrite |
+| **B** | `/demo` `/pricing` `/product` `/privacy` `/support` `/terms` | Fly listing surfaces — **do not rewrite** this pass |
+| **C** | SEO landers | `noindex` · no rewrite |
+| **Parked** | `/lab` `/custom-analytics` packages | Keep URLs · off nav · not the sell |
+| **D** | Fly listing copy + `app/**` | Untouched until `shopify app unfreeze` |
 
 ---
 
@@ -70,25 +73,25 @@ Voice bans: Monday / cash desk / beats SaaS / 500-seat theater
 | `go site` | One ship → PR → Pages |
 | `go money` | Cap-3 drafts |
 | `stop fleet` | Idle |
-| `shopify app unfreeze` | Touch app/Fly |
+| `shopify app unfreeze` | Only then touch `app/**` / Fly listing |
 
 ---
 
 ## Open gates (human)
 
-- [ ] Google Appointment URL → inquire
-- [ ] Paste comments · approve Mon T1s · MX for `support@`
-- [x] v8–v9 · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28)
-- [x] **v10 live** — Greenfield `mcfly/` · Pages `0f868b79` · journal [`ops/journal/STATUS_20260828_v10.md`](./ops/journal/STATUS_20260828_v10.md)
+- [ ] App Store listing live → flip `MCFLY_APP_STORE_LIVE` (do not invent URL before that)
+- [ ] Namecheap MX → Cloudflare for `support@`
+- [x] v10 greenfield craft
+- [ ] **v11** app-first site live (this ship)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next after v10:** money ops → deepen `/lab` density only · soft 301 Tier C
+**Next:** listing + demo conversion. Do not revive Custom on home.
 
 ---
 
 ## Anti-amnesia
 
-1. Board + skill + MASTER outrank chat.
+1. Board + skill + MASTER outrank chat. **This founder override beats older Custom-hero copy.**
 2. One version = one job.
 3. SAMPLE lock before deploy; phone+desktop probe after.
 4. Stamp Pages id + journal after every prod ship.
@@ -101,4 +104,5 @@ Voice bans: Monday / cash desk / beats SaaS / 500-seat theater
 | --- | --- | --- |
 | v8 | `d9ce2cb1` | Clean revamp spine |
 | v9 | `a48c7e48` | Brand law |
-| v10 | `d7ac8030` | Greenfield `mcfly/` · terafab bar · lab rail phone fix · git `c6dd960` |
+| v10 | `d7ac8030` | Greenfield `mcfly/` |
+| v11 | *(ship)* | App-first site · Custom parked · Harbor SAMPLE on home |

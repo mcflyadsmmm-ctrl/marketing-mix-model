@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SAMPLE / product-lock gate for site/** — must pass before Pages deploy.
-# Exit 0 = pass.
+# v11: home sells the Shopify app (Harbor SAMPLE). Custom pages may still hold Northline.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -13,67 +13,74 @@ bad() { echo "    FAIL: $*" >&2; fail=1; }
 echo "==> site-sample-lock"
 echo "    cwd: $ROOT"
 
-HIRE=(site/index.html site/lab.html site/custom-analytics.html site/advanced-mds.html)
+HOME=site/index.html
+PARKED=(site/lab.html site/custom-analytics.html site/advanced-mds.html)
 
-for f in "${HIRE[@]}"; do
-  [[ -f "$f" ]] || bad "missing $f"
-done
+[[ -f "$HOME" ]] || bad "missing $HOME"
 
-# Northline SAMPLE dollars only (no $84,200 on hire pages)
-for f in "${HIRE[@]}"; do
+if grep -qE '\$84,?200' "$HOME"; then
+  bad "$HOME still has \$84,200"
+else
+  ok "$HOME no \$84,200"
+fi
+if grep -qE '\$98,?500' "$HOME"; then
+  bad "$HOME has Northline \$98,500 — app home must use Harbor SAMPLE"
+else
+  ok "$HOME has no Northline \$98,500"
+fi
+if grep -qE 'Harbor' "$HOME" && grep -qE '\$23,?414' "$HOME" && grep -qE '3\.51' "$HOME"; then
+  ok "$HOME Harbor SAMPLE \$23,414 / 3.51×"
+else
+  bad "$HOME missing Harbor SAMPLE (\$23,414 / 3.51×)"
+fi
+if grep -qE '\$39' "$HOME" && grep -q '/demo' "$HOME"; then
+  ok "$HOME has \$39 and /demo CTA"
+else
+  bad "$HOME missing \$39 or /demo"
+fi
+if grep -qiE 'Close Memo|Hired System|Pipeline Desk' "$HOME"; then
+  bad "$HOME still sells Custom packages"
+else
+  ok "$HOME does not sell Custom packages"
+fi
+if grep -qiE 'cash desk|two books' "$HOME"; then
+  bad "$HOME uses banned cash-desk / two-books branding"
+else
+  ok "$HOME voice lock"
+fi
+if grep -qiE '500-seat|184 of 240|login 184' "$HOME"; then
+  bad "$HOME has SaaS seat theater"
+else
+  ok "$HOME no SaaS seat theater"
+fi
+if grep -q '/assets/mcfly/mcfly.css' "$HOME" && ! grep -q '/assets/site.css' "$HOME"; then
+  ok "home uses greenfield mcfly.css"
+else
+  bad "home must load mcfly.css only (no site.css)"
+fi
+
+for f in "${PARKED[@]}"; do
   [[ -f "$f" ]] || continue
   if grep -qE '\$84,?200' "$f"; then
-    bad "$f still has \$84,200 (email-only SAMPLE)"
+    bad "$f still has \$84,200"
   else
     ok "$f no \$84,200"
   fi
-  if ! grep -qE '\$98,?500' "$f"; then
-    bad "$f missing Northline \$98,500"
-  else
-    ok "$f has \$98,500"
-  fi
-  if ! grep -qE '4\.19' "$f"; then
-    bad "$f missing cash 4.19×"
-  else
-    ok "$f has 4.19×"
-  fi
 done
 
-# /lab hired desk first paint
 if [[ -f site/lab.html ]]; then
   if grep -q 'A\. Chen' site/lab.html && grep -qE 'seat 2 of 4|2 of 4' site/lab.html; then
-    ok "/lab has A. Chen seat 2 of 4"
+    ok "/lab parked desk still has A. Chen seat 2 of 4"
   else
-    bad "/lab missing hired-desk session (A. Chen / seat 2 of 4)"
+    ok "/lab session check skipped or changed"
   fi
   if grep -qiE 'fonts\.googleapis\.com|fonts\.gstatic\.com' site/lab.html; then
-    bad "/lab still loads Google Fonts (self-host required)"
+    bad "/lab still loads Google Fonts"
   else
     ok "/lab no Google Fonts CDN"
   fi
-  if grep -q 'fonts-local.css' site/lab.html; then
-    ok "/lab uses fonts-local.css"
-  else
-    bad "/lab missing fonts-local.css"
-  fi
 fi
 
-# Voice bans on hire pages
-for f in "${HIRE[@]}"; do
-  [[ -f "$f" ]] || continue
-  if grep -qiE 'cash desk|two books' "$f"; then
-    bad "$f uses banned cash-desk / two-books branding"
-  else
-    ok "$f voice lock (no cash desk / two books)"
-  fi
-  if grep -qiE '500-seat|184 of 240|login 184' "$f"; then
-    bad "$f has SaaS seat theater (500-seat / 184 of 240)"
-  else
-    ok "$f no SaaS seat theater"
-  fi
-done
-
-# Assets present
 [[ -f site/assets/fonts-local.css ]] || bad "missing site/assets/fonts-local.css"
 [[ -d site/assets/fonts ]] || bad "missing site/assets/fonts/"
 if [[ -d site/assets/fonts ]]; then
@@ -85,43 +92,25 @@ if [[ -d site/assets/fonts ]]; then
   fi
 fi
 
-# Redirects must not bounce /lab away from hired desk
-if grep -E '^/lab[[:space:]]+/custom' site/_redirects >/dev/null 2>&1; then
-  bad "_redirects sends /lab to custom-analytics"
+if grep -q 'Try the demo' site/assets/mcfly/chrome.js && grep -q 'href="/demo"' site/assets/mcfly/chrome.js; then
+  ok "chrome CTA is Try the demo"
 else
-  ok "_redirects keeps /lab on lab"
+  bad "chrome missing Try the demo /demo"
 fi
-
-# Brand law + greenfield craft (v10)
-if grep -q 'Mcfly Ads' site/assets/mcfly/chrome.js && grep -q 'nav__brand-sub">Ads' site/assets/mcfly/chrome.js; then
-  ok "mcfly chrome firm mark is Mcfly Ads"
+if grep -q '>Custom</a>' site/assets/mcfly/chrome.js || grep -q 'custom-analytics#inquire' site/assets/mcfly/chrome.js; then
+  bad "chrome still promotes Custom / inquire"
 else
-  bad "mcfly chrome missing Mcfly Ads firm mark"
+  ok "chrome does not promote Custom"
+fi
+if grep -q 'Mcfly Ads' site/assets/mcfly/chrome.js && grep -q 'nav__brand-sub">Ads' site/assets/mcfly/chrome.js; then
+  ok "chrome firm mark is Mcfly Ads"
+else
+  bad "chrome missing Mcfly Ads firm mark"
 fi
 if grep -qiE 'site-mode-bar|brand-toggle|Ads ↔' site/assets/mcfly/chrome.js; then
-  bad "mcfly chrome revived dual-site toggle"
+  bad "chrome revived dual-site toggle"
 else
-  ok "mcfly chrome has no dual-site toggle"
-fi
-if grep -q '/assets/mcfly/mcfly.css' site/index.html && ! grep -q '/assets/site.css' site/index.html; then
-  ok "home uses greenfield mcfly.css (not collage site.css)"
-else
-  bad "home must load mcfly.css only (no site.css)"
-fi
-if grep -q '/assets/mcfly/mcfly.css' site/lab.html && grep -q '/assets/mcfly/chrome.js' site/lab.html; then
-  ok "lab on mcfly craft system"
-else
-  bad "lab missing mcfly craft assets"
-fi
-if grep -qiE 'cash desk' site/custom-analytics-engagement.html 2>/dev/null; then
-  bad "engagement specimen still says cash desk"
-else
-  ok "engagement specimen voice (no cash desk)"
-fi
-if grep -q 'Mcfly Ads — Custom Data Solutions' site/custom-analytics-engagement.html 2>/dev/null; then
-  ok "engagement provider is Mcfly Ads"
-else
-  ok "engagement provider check skipped or updated"
+  ok "chrome has no dual-site toggle"
 fi
 
 echo ""

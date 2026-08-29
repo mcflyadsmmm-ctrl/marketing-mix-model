@@ -8,7 +8,7 @@
 
 ## One sentence
 
-Sell **cash-true custom data systems they keep** ($15–25K hero) proved by a hostile-CFO SAMPLE desk — never rent attribution SaaS, never brochure theater.
+Sell **Mcfly Analytics** — spend beside Shopify sales, 7-day then $39/store/mo. Custom Data Solutions is parked until the founder unshelves it.
 
 ---
 
@@ -18,12 +18,12 @@ Sell **cash-true custom data systems they keep** ($15–25K hero) proved by a ho
 | --- | --- | --- |
 | Firm | **Mcfly Ads** | Domain, legal, chrome, footer, schema |
 | Line | **Advanced data science, displayed simply** | Category claim under the mark |
-| Money | **Custom Data Solutions** | Close Memo · Pipeline Desk · Hired System |
-| App SKU | **Mcfly Analytics** | Shopify / Fly listing only |
+| Money now | **Mcfly Analytics** | Shopify app · 7-day then $39 |
+| Parked | **Custom Data Solutions** | Later add-on — not the public sell |
 
-**Refuse:** Ads↔Analytics chrome toggle · dual-site mode bar · company rename to “Ads (Advanced Data Science)” / ADS-as-acronym · parallel `dist/` · new SEO landers · composition “coherence” patches without a version + plan.
+**Refuse:** Ads↔Analytics chrome toggle · dual-site mode bar · inventing App Store URLs · selling Custom on home/nav · parallel `dist/` · new SEO landers · composition “coherence” patches without a version + plan.
 
-**One-liner for agents:** Firm = Mcfly Ads. Line = Advanced data science, displayed simply. Sell Custom. App = Mcfly Analytics path in. No toggle. Improve `/lab` or close money.
+**One-liner for agents:** Firm = Mcfly Ads. Sell the Shopify app. CTA = `/demo` until listing is live. Custom is parked. No `app/**` / Fly edits until `shopify app unfreeze`.
 
 ---
 
@@ -31,12 +31,11 @@ Sell **cash-true custom data systems they keep** ($15–25K hero) proved by a ho
 
 | Rank | What | Why |
 | --- | --- | --- |
-| 1 | Close **Advanced MDS / hired system** $15–25K | One desk ≫ months of $39 seats |
-| 2 | On-ramp **Close Memo / Spend Recon** $5–8K (credit toward MDS) | Pinemarsh pattern; not sold as “the system” |
-| 3 | **Pipeline Desk** $8–15K | CRM stages ÷ audited spend — not “lead gen agency” |
-| 4 | Shopify app $39 | **Important wedge** — real Shopify problem (spend beside sales) · drives owners to Custom when books disagree · never the home hero |
+| 1 | **Mcfly Analytics** Shopify app · 7-day then **$39**/store/mo | Founder priority — spend beside sales |
+| 2 | App Store listing (when live) | Install path; until then CTA = Try the demo |
+| — | Custom packages | **Parked** — do not sell on `/` or nav |
 
-**Do not wait on App Store for cash.** Custom pays first. **Do not bury the app** — keep a clear path: demo → when books disagree → inquire.
+**Do not invent `apps.shopify.com`.** Listing pending → `/demo` + `/pricing`. **Do not revive Custom as home hero.**
 
 ---
 
@@ -118,29 +117,29 @@ Mcfly Analytics solves a real Shopify problem and is how big store owners discov
 
 ## Success this quarter
 
-- Site survives 90s on `/lab` + trust P0s  
-- ≥1 paid Close Memo or Hired System  
-- Cap-3 founder outbound · free stack until first desk pays  
-- App stays frozen until `shopify app unfreeze`  
+- Home sells the app in one viewport: spend beside sales · demo · $39  
+- Merchants reach `/demo` without Custom noise  
+- App code / Fly listing stay frozen until `shopify app unfreeze`  
 
 ---
 
-## Site IA freeze (v8+ · brand law v9)
+## Site IA freeze (v11 app-first)
 
-**One sentence:** Advanced data science, displayed simply — hired systems they keep; Mcfly Analytics is the Shopify path in.
+**One sentence:** Mcfly Analytics — spend next to Shopify sales. 7-day then $39.
 
 | Tier | URLs | Action |
 | --- | --- | --- |
-| **A — rewrite** | `/` · `/lab` · `/custom-analytics` · `/advanced-mds` · `/spend-sales-audit` · `/lead-gen-desk` · `/custom-analytics-engagement` · `/about` · chrome/CSS | One craft system · version + one job |
-| **B — bridge** | `/demo` · `/pricing` · `/product` | Fly-safe; thin Custom bridge |
-| **C — freeze** | SEO hire/recon long-tail (~25) | `noindex,follow` — do not rewrite |
-| **D — lock** | Fly listing trust URLs | Untouched until `shopify app unfreeze` |
+| **A — rewrite** | `/` · `/about` · chrome | App-first |
+| **B — lock** | `/demo` · `/pricing` · `/product` · `/privacy` · `/support` · `/terms` | Fly listing — do not rewrite this pass |
+| **C — freeze** | SEO hire/recon long-tail | `noindex,follow` |
+| **Parked** | `/lab` · `/custom-analytics` · packages | Off nav · not the sell |
+| **D — lock** | `app/**` + Fly listing copy | Until `shopify app unfreeze` |
 
-**Nav (≤5):** Lab · Custom · App · About · Inquire  
+**Nav:** Demo · Pricing · About · Try the demo  
 
-**Money spine:** `/` → `/lab` (demos) → `/custom-analytics` (packages + inquire) · App wedge → Custom when books disagree.
+**Money spine:** `/` → `/demo` → `/pricing`
 
-**Ship discipline:** one version = one job. Patch = bugs/typos only. Fail spine probe (one firm · home→lab→inquire &lt;90s · app not hero) = no deploy.
+**Ship discipline:** one version = one job. Fail spine probe (app hero · demo CTA · no Custom packages on home) = no deploy.
 
 ---
 
