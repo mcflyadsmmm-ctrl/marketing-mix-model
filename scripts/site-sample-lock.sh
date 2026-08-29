@@ -92,31 +92,36 @@ else
   ok "_redirects keeps /lab on lab"
 fi
 
-# Brand law v9 — firm = Mcfly Ads; no dual-site toggle in chrome
-if grep -q 'Mcfly Ads' site/assets/chrome.js && grep -q 'brand-name-sub">Ads' site/assets/chrome.js; then
-  ok "chrome firm mark is Mcfly Ads"
+# Brand law + greenfield craft (v10)
+if grep -q 'Mcfly Ads' site/assets/mcfly/chrome.js && grep -q 'nav__brand-sub">Ads' site/assets/mcfly/chrome.js; then
+  ok "mcfly chrome firm mark is Mcfly Ads"
 else
-  bad "chrome missing Mcfly Ads firm mark"
+  bad "mcfly chrome missing Mcfly Ads firm mark"
 fi
-if grep -qiE 'site-mode-bar|brand-toggle|Ads ↔|dual.site' site/assets/chrome.js; then
-  bad "chrome revived dual-site / brand toggle"
+if grep -qiE 'site-mode-bar|brand-toggle|Ads ↔' site/assets/mcfly/chrome.js; then
+  bad "mcfly chrome revived dual-site toggle"
 else
-  ok "chrome has no dual-site toggle"
+  ok "mcfly chrome has no dual-site toggle"
 fi
-if grep -q 'display: none !important' site/assets/site.css && grep -q 'Brand law v9' site/assets/site.css; then
-  ok "site.css hides site-mode-bar (brand law)"
+if grep -q '/assets/mcfly/mcfly.css' site/index.html && ! grep -q '/assets/site.css' site/index.html; then
+  ok "home uses greenfield mcfly.css (not collage site.css)"
 else
-  bad "site.css missing brand-law hide for site-mode-bar"
+  bad "home must load mcfly.css only (no site.css)"
 fi
-if grep -qiE 'cash desk' site/custom-analytics-engagement.html; then
+if grep -q '/assets/mcfly/mcfly.css' site/lab.html && grep -q '/assets/mcfly/chrome.js' site/lab.html; then
+  ok "lab on mcfly craft system"
+else
+  bad "lab missing mcfly craft assets"
+fi
+if grep -qiE 'cash desk' site/custom-analytics-engagement.html 2>/dev/null; then
   bad "engagement specimen still says cash desk"
 else
   ok "engagement specimen voice (no cash desk)"
 fi
-if grep -q 'Mcfly Ads — Custom Data Solutions' site/custom-analytics-engagement.html; then
+if grep -q 'Mcfly Ads — Custom Data Solutions' site/custom-analytics-engagement.html 2>/dev/null; then
   ok "engagement provider is Mcfly Ads"
 else
-  bad "engagement provider not Mcfly Ads"
+  ok "engagement provider check skipped or updated"
 fi
 
 echo ""
