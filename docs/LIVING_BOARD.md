@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | **Updated** | 2026-08-28 · America/Denver |
-| **Live** | https://mcflyads.com · shipping **v11** (app-first site) |
+| **Live** | https://mcflyads.com · `mcfly-version` **v11** (Pages `2af4726c`) · git `0ad4961` · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
 | **North star** | Sell **Mcfly Analytics** Shopify app — 7-day trial then **$39**/store/mo. Custom Data Solutions is **parked** (not sold on the public spine). |
 | **Craft** | `site/assets/mcfly/` only for Tier A · skill `.cursor/skills/mcfly-site/` · **never** stack into `site.css` |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -82,7 +82,7 @@ Custom SAMPLE (Northline) stays on parked `/lab` only.
 - [ ] App Store listing live → flip `MCFLY_APP_STORE_LIVE` (do not invent URL before that)
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
-- [ ] **v11** app-first site live (this ship)
+- [x] **v11 live** — App-first site · Pages `2af4726c` · journal [`ops/journal/STATUS_20260828_v11.md`](./ops/journal/STATUS_20260828_v11.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
 **Next:** listing + demo conversion. Do not revive Custom on home.
@@ -105,4 +105,4 @@ Custom SAMPLE (Northline) stays on parked `/lab` only.
 | v8 | `d9ce2cb1` | Clean revamp spine |
 | v9 | `a48c7e48` | Brand law |
 | v10 | `d7ac8030` | Greenfield `mcfly/` |
-| v11 | *(ship)* | App-first site · Custom parked · Harbor SAMPLE on home |
+| v11 | `2af4726c` | App-first site · Custom parked · Harbor SAMPLE on home · git `0ad4961` |

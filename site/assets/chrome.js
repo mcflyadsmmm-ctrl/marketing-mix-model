@@ -1,4 +1,4 @@
-/* McFly chrome v9 — brand law: Mcfly Ads firm only. Lab · Custom · App · About · Inquire */
+/* McFly chrome v11 — Fly/legacy pages still load this file. App-first nav. Same studio markup. */
 (function () {
   function ensureMeta(name, content) {
     if (document.querySelector('meta[name="' + name + '"]')) return;
@@ -7,17 +7,16 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v9");
-  ensureMeta("mcfly-build", "brand-law-v9");
+  ensureMeta("mcfly-version", "v11");
+  ensureMeta("mcfly-build", "app-first");
 
   var path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
   var chrome = document.querySelector("[data-chrome]");
   var footer = document.querySelector("[data-footer]");
 
   function navActive(href) {
-    if (href === "/lab" && (path === "/lab" || path === "/lab.html")) return ' aria-current="page"';
-    if (href === "/custom-analytics" && path.indexOf("/custom") === 0) return ' aria-current="page"';
-    if (href === "/demo" && (path === "/demo" || path === "/product" || path === "/pricing")) return ' aria-current="page"';
+    if (href === "/demo" && (path === "/demo" || path === "/product")) return ' aria-current="page"';
+    if (href === "/pricing" && path === "/pricing") return ' aria-current="page"';
     if (href === "/about" && path === "/about") return ' aria-current="page"';
     return "";
   }
@@ -30,30 +29,26 @@
       '<span class="brand-name">Mcfly <span class="brand-name-sub">Ads</span></span>' +
       "</a>" +
       '<nav class="nav nav--studio" aria-label="Primary">' +
-      '<a href="/lab"' +
-      navActive("/lab") +
-      ">Lab</a>" +
-      '<a href="/custom-analytics"' +
-      navActive("/custom-analytics") +
-      ">Custom</a>" +
       '<a href="/demo"' +
       navActive("/demo") +
-      ">App</a>" +
+      ">Demo</a>" +
+      '<a href="/pricing"' +
+      navActive("/pricing") +
+      ">Pricing</a>" +
       '<a href="/about"' +
       navActive("/about") +
       ">About</a>" +
-      '<a class="nav-cta" href="/custom-analytics#inquire">Inquire</a>' +
+      '<a class="nav-cta" href="/demo">Try the demo</a>' +
       "</nav>" +
       '<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">' +
       "<span></span><span></span>" +
       "</button>" +
       "</header>" +
       '<div id="mobile-nav" class="mobile-nav" hidden>' +
-      '<a href="/lab">Lab</a>' +
-      '<a href="/custom-analytics">Custom</a>' +
-      '<a href="/demo">App</a>' +
+      '<a href="/demo">Demo</a>' +
+      '<a href="/pricing">Pricing</a>' +
       '<a href="/about">About</a>' +
-      '<a href="/custom-analytics#inquire">Inquire</a>' +
+      '<a href="/demo">Try the demo</a>' +
       "</div>";
   }
 
@@ -66,14 +61,14 @@
       "<span>Mcfly Ads</span>" +
       "</div>" +
       '<nav aria-label="Footer">' +
-      '<a href="/lab">Lab</a>' +
-      '<a href="/custom-analytics">Custom</a>' +
-      '<a href="/demo">App</a>' +
+      '<a href="/demo">Demo</a>' +
+      '<a href="/pricing">Pricing</a>' +
       '<a href="/about">About</a>' +
-      '<a href="/custom-analytics#inquire">Inquire</a>' +
       '<a href="/privacy">Privacy</a>' +
+      '<a href="/support">Support</a>' +
+      '<a href="/terms">Terms</a>' +
       "</nav>" +
-      '<p class="fine">© <span data-year></span> Mcfly Ads. Advanced data science, displayed simply. You keep the system.</p>' +
+      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — spend next to Shopify sales. 7-day trial, then $39/store/mo.</p>' +
       "</div>" +
       "</footer>";
   }
