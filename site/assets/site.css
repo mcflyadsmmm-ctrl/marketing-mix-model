@@ -563,31 +563,9 @@ a {
   color: rgba(238, 242, 245, 0.8);
 }
 
-/* —— Dual site mode: Shopify Ads ↔ Custom Analytics —— */
+/* —— Brand law v9: dual-site toggle REMOVED. Dead .site-mode-bar / .dual-lane-* kept inert; do not revive. —— */
 .site-mode-bar {
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: 60;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
-  padding: 0.45rem clamp(1.15rem, 3.5vw, 2rem);
-  border-bottom: 1px solid rgba(94, 231, 240, 0.18);
-}
-.site-mode-bar--shopify,
-.site-mode-bar--analytics {
-  background: #07101c;
-  color: rgba(238, 242, 245, 0.72);
-}
-.site-mode-bar__label {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(94, 231, 240, 0.7);
+  display: none !important;
 }
 
 /* Homepage dual-lane: Shopify App | Custom Data Solutions */

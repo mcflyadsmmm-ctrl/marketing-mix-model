@@ -92,6 +92,33 @@ else
   ok "_redirects keeps /lab on lab"
 fi
 
+# Brand law v9 — firm = Mcfly Ads; no dual-site toggle in chrome
+if grep -q 'Mcfly Ads' site/assets/chrome.js && grep -q 'brand-name-sub">Ads' site/assets/chrome.js; then
+  ok "chrome firm mark is Mcfly Ads"
+else
+  bad "chrome missing Mcfly Ads firm mark"
+fi
+if grep -qiE 'site-mode-bar|brand-toggle|Ads ↔|dual.site' site/assets/chrome.js; then
+  bad "chrome revived dual-site / brand toggle"
+else
+  ok "chrome has no dual-site toggle"
+fi
+if grep -q 'display: none !important' site/assets/site.css && grep -q 'Brand law v9' site/assets/site.css; then
+  ok "site.css hides site-mode-bar (brand law)"
+else
+  bad "site.css missing brand-law hide for site-mode-bar"
+fi
+if grep -qiE 'cash desk' site/custom-analytics-engagement.html; then
+  bad "engagement specimen still says cash desk"
+else
+  ok "engagement specimen voice (no cash desk)"
+fi
+if grep -q 'Mcfly Ads — Custom Data Solutions' site/custom-analytics-engagement.html; then
+  ok "engagement provider is Mcfly Ads"
+else
+  bad "engagement provider not Mcfly Ads"
+fi
+
 echo ""
 if [[ "$fail" -ne 0 ]]; then
   echo "SAMPLE LOCK FAILED"

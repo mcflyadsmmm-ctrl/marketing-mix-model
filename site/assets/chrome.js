@@ -1,4 +1,4 @@
-/* McFly chrome v8 — one firm, one nav. Lab · Custom · App · About · Inquire */
+/* McFly chrome v9 — brand law: Mcfly Ads firm only. Lab · Custom · App · About · Inquire */
 (function () {
   function ensureMeta(name, content) {
     if (document.querySelector('meta[name="' + name + '"]')) return;
@@ -7,8 +7,8 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v8");
-  ensureMeta("mcfly-build", "clean-revamp-v8");
+  ensureMeta("mcfly-version", "v9");
+  ensureMeta("mcfly-build", "brand-law-v9");
 
   var path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
   var chrome = document.querySelector("[data-chrome]");
@@ -59,7 +59,7 @@
 
   if (footer) {
     footer.innerHTML =
-      '<footer class="foot foot--analytics">' +
+      '<footer class="foot foot--studio">' +
       '<div class="wrap foot-grid">' +
       '<div class="foot-brand">' +
       '<img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />' +

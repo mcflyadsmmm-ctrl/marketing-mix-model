@@ -12,6 +12,21 @@ Sell **cash-true custom data systems they keep** ($15–25K hero) proved by a ho
 
 ---
 
+## Brand law (locked)
+
+| Layer | Name | Role |
+| --- | --- | --- |
+| Firm | **Mcfly Ads** | Domain, legal, chrome, footer, schema |
+| Line | **Advanced data science, displayed simply** | Category claim under the mark |
+| Money | **Custom Data Solutions** | Close Memo · Pipeline Desk · Hired System |
+| App SKU | **Mcfly Analytics** | Shopify / Fly listing only |
+
+**Refuse:** Ads↔Analytics chrome toggle · dual-site mode bar · company rename to “Ads (Advanced Data Science)” / ADS-as-acronym · parallel `dist/` · new SEO landers · composition “coherence” patches without a version + plan.
+
+**One-liner for agents:** Firm = Mcfly Ads. Line = Advanced data science, displayed simply. Sell Custom. App = Mcfly Analytics path in. No toggle. Improve `/lab` or close money.
+
+---
+
 ## Money truth
 
 | Rank | What | Why |
@@ -110,13 +125,13 @@ Mcfly Analytics solves a real Shopify problem and is how big store owners discov
 
 ---
 
-## Site IA freeze (v8 clean revamp)
+## Site IA freeze (v8+ · brand law v9)
 
 **One sentence:** Advanced data science, displayed simply — hired systems they keep; Mcfly Analytics is the Shopify path in.
 
 | Tier | URLs | Action |
 | --- | --- | --- |
-| **A — rewrite** | `/` · `/lab` · `/custom-analytics` · `/advanced-mds` · `/spend-sales-audit` · `/lead-gen-desk` · `/custom-analytics-engagement` · `/about` · chrome/CSS | One craft system |
+| **A — rewrite** | `/` · `/lab` · `/custom-analytics` · `/advanced-mds` · `/spend-sales-audit` · `/lead-gen-desk` · `/custom-analytics-engagement` · `/about` · chrome/CSS | One craft system · version + one job |
 | **B — bridge** | `/demo` · `/pricing` · `/product` | Fly-safe; thin Custom bridge |
 | **C — freeze** | SEO hire/recon long-tail (~25) | `noindex,follow` — do not rewrite |
 | **D — lock** | Fly listing trust URLs | Untouched until `shopify app unfreeze` |
@@ -124,6 +139,8 @@ Mcfly Analytics solves a real Shopify problem and is how big store owners discov
 **Nav (≤5):** Lab · Custom · App · About · Inquire  
 
 **Money spine:** `/` → `/lab` (demos) → `/custom-analytics` (packages + inquire) · App wedge → Custom when books disagree.
+
+**Ship discipline:** one version = one job. Patch = bugs/typos only. Fail spine probe (one firm · home→lab→inquire &lt;90s · app not hero) = no deploy.
 
 ---
 
