@@ -8,9 +8,9 @@
 | --- | --- |
 | **Updated** | 2026-08-28 · America/Denver |
 | **North star** | Make money via McFly: **custom data science they keep** ($15–40K) proved by world-class SAMPLE desks; Shopify **$39** app = frozen wedge |
-| **Live site** | https://mcflyads.com · `mcfly-version` **v5** (Pages `d77b276d`) — **v6 coherence WIP** on `cursor/os-coherence-v6` |
+| **Live site** | https://mcflyads.com · `mcfly-version` **v6** (Pages `6a5dc354`) · git `588ffd8` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
-| **Pages** | Cloudflare `mcflyads` · Direct Upload · `martysmithson04@gmail.com` · merge ≠ live |
+| **Pages** | Cloudflare `mcflyads` · Direct Upload · `martysmithson04@gmail.com` · merge ≠ live · **deploy from a non-git dir** (git branch auto → Preview) |
 | **App** | **FROZEN** · no `app/**` · no Fly |
 | **Conductor** | One Cursor chat · [`ops/CURSOR_OS.md`](./ops/CURSOR_OS.md) · not a Grok fleet |
 
@@ -38,12 +38,13 @@
 | `/custom` `/proposal` `/desk-setup` | → `/custom-analytics` (301) |
 | Fly `/demo` `/pricing` `/privacy` `/support` `/terms` | 200 · untouched during freeze |
 
-Deploy (production only — **no** `--branch`):
+Deploy (production — Direct Upload). **Do not run Wrangler inside a git checkout** (auto branch → Access-gated Preview). Copy `site/` (+ `functions/` if needed) to a temp dir, then:
 
 ```bash
 npx wrangler@3 pages deploy site --project-name=mcflyads --commit-dirty=true
 ```
 
+Never pass `--branch` for a production ship.
 ---
 
 ## Magic phrases
@@ -67,9 +68,8 @@ npx wrangler@3 pages deploy site --project-name=mcflyads --commit-dirty=true
 - [ ] Approve Mon T1s: `docs/ops/money/T1_WEEK_OF_2026-08-31.md` (Scott / Chris / Abhinav)
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [ ] Watch Sicard / Crowe / Ulery replies (already mailed Fri)
-- [ ] Cursor: finish **v6 coherence** + Pages when you say `go site`
-- [ ] Merge PR [#26](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/26) if still needed
-
+- [x] **v6 live** — Pages `6a5dc354` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) (merge when ready; merge ≠ live)
+- [ ] Merge PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) / [#26](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/26) into main when convenient
 ---
 
 ## Anti-amnesia rules for agents
@@ -90,4 +90,4 @@ npx wrangler@3 pages deploy site --project-name=mcflyads --commit-dirty=true
 | v2 | ~11:48 | `0356a7d5` | Custom H1 · A. Chen chrome |
 | v4 | ~13:21 | `94e460fc` | First paint = hired desk |
 | v5 | afternoon | `d77b276d` | Self-hosted fonts |
-| v6 | **WIP** | — | Coherence: redirects · short inquire · seat 2 of 4 · CTA inquire |
+| v6 | evening | `6a5dc354` | `/proposal` `/desk-setup` 301 · short inquire · seat 2 of 4 · home lede/LCP · git `588ffd8` |

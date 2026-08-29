@@ -20,11 +20,13 @@
 
 ## Ship
 
+Production Direct Upload. **Deploy from a temp copy of `site/` (no `.git`)** — Wrangler inside a feature branch checkout auto-names Preview and Access-gates it.
+
 ```bash
 npx wrangler@3 pages deploy site --project-name=mcflyads --commit-dirty=true
 ```
 
-Hostile 90s on `/lab` before claim. Never redirect `/lab` away. Update `LIVING_BOARD.md` after every live ship.
+Never `--branch` for production. Hostile 90s on `/lab` before claim. Never redirect `/lab` away. Update `LIVING_BOARD.md` after every live ship.
 
 ## Money
 
