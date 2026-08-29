@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | **Updated** | 2026-08-28 · America/Denver |
-| **Live** | https://mcflyads.com · `mcfly-version` **v10** (Pages `0f868b79`) · git `081c8e5` · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
+| **Live** | https://mcflyads.com · `mcfly-version` **v10** (Pages `d7ac8030`) · git `c6dd960` · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
 | **North star** | Close **Custom** cash ($5–25K). App = frozen Shopify wedge into Custom. |
 | **Craft** | `site/assets/mcfly/` only for Tier A · skill `.cursor/skills/mcfly-site/` · **never** stack into `site.css` |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -101,4 +101,4 @@ Voice bans: Monday / cash desk / beats SaaS / 500-seat theater
 | --- | --- | --- |
 | v8 | `d9ce2cb1` | Clean revamp spine |
 | v9 | `a48c7e48` | Brand law |
-| v10 | `0f868b79` | Greenfield `mcfly/` craft · terafab bar · mobile-first · git `081c8e5` |
+| v10 | `d7ac8030` | Greenfield `mcfly/` · terafab bar · lab rail phone fix · git `c6dd960` |
