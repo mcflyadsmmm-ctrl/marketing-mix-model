@@ -8,9 +8,9 @@
 | Field | Value |
 | --- | --- |
 | **Updated** | 2026-08-28 · America/Denver |
-| **North star** | Make money via McFly: **custom data science they keep** ($15–40K) proved by world-class SAMPLE desks; Shopify **$39** app = frozen wedge |
-| **Live site** | https://mcflyads.com · `mcfly-version` **v7** (Pages `5aa2e910`) · git `183b3e9` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) |
-| **Next site ship** | Package rename (Close Memo / Pipeline Desk) · audit→MDS credit · booking URL when pasted |
+| **North star** | Make money via McFly: **custom data science they keep** ($5–25K packs / MDS ~$15–25K) proved by world-class SAMPLE desks; Shopify **$39** app = frozen wedge |
+| **Live site** | https://mcflyads.com · `mcfly-version` **v8** (Pages `d9ce2cb1`) · git `3f2e7a0` · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
+| **Next site ship** | Booking URL when pasted · soft 301 Tier C later · merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · `martysmithson04@gmail.com` · merge ≠ live · **deploy from a non-git dir** |
 | **App** | **FROZEN** code · **important wedge** on site (spend beside sales → Custom when books disagree) · no `app/**` / Fly |
@@ -22,11 +22,11 @@
 
 1. Sell **custom data science they keep** — any company. Marketing is **one** module.
 2. MDS ~$15–25K = exec desks + signed-in portals + pipelines + handoff files.
-3. Packages on site: Audit **$5–8K** · Lead gen **$8–15K** · MDS **$15–25K**.
+3. Packages on site: **Close Memo $5–8K** · **Pipeline Desk $8–15K** · **Hired System $15–25K** (audit credits 100% → Hired System in 30 days).
 4. App wedge: **Mcfly Analytics** solves a real Shopify problem and routes owners to Custom when books disagree · 7-day then **$39** · demo while listing pending · freeze `app/**` / Fly until unfreeze.
-5. SAMPLE only — Northline: invoice **$98,500** · cash Total ROAS **4.19×** · variance **−$1,450**. No fake logos. No `$84,200` on site.
-6. Voice: no “Monday” / “cash desk” / “two books” branding. Seat copy = **2 of 4**, never “500-seat” theater.
-7. Refuse: pixels, MTA, path credit, “true ROAS,” TW clones.
+5. SAMPLE only — Northline: invoice **$98,500** · cash Total ROAS **4.19×** · variance **−$1,450**. No fake logos. No `$84,200` on site. App SAMPLE = Harbor (not Northline).
+6. Voice: **Advanced data science, displayed simply.** No “Monday” / “cash desk” / “beats SaaS.” Seat copy = **2 of 4**, never “500-seat” theater.
+7. Refuse: pixels, MTA, path credit, “true ROAS,” TW clones. Tier C SEO landers stay `noindex,follow` — do not rewrite in this era.
 
 ---
 
@@ -34,9 +34,9 @@
 
 | URL | Must |
 | --- | --- |
-| `/` | H1 = Custom data science they keep |
+| `/` | H1 = Advanced data science, displayed simply · proof → `/lab` · app wedge |
 | `/lab` | Hired desk first paint · A. Chen · seat 2 of 4 · **never** redirect away |
-| `/custom-analytics` | Packages + short inquire + SAMPLE |
+| `/custom-analytics` | Close Memo / Pipeline / Hired System + short inquire · link to `/lab` |
 | `/custom` `/proposal` `/desk-setup` | → `/custom-analytics` (301) |
 | Fly `/demo` `/pricing` `/privacy` `/support` `/terms` | 200 · untouched during freeze |
 
@@ -71,8 +71,8 @@ Never pass `--branch` for a production ship.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [ ] Watch Sicard / Crowe / Ulery replies (already mailed Fri)
 - [x] **v7 live** — Trust P0 + app→custom bridge · Pages `5aa2e910` · PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27)
-- [ ] Merge PR [#27](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/27) when convenient
-- [ ] **Next Conductor ship:** package rename + audit→MDS credit (MASTER_DIRECTIVE)
+- [x] **v8 live** — Clean revamp · Pages `d9ce2cb1` · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) · journal [`ops/journal/STATUS_20260828_v8.md`](./ops/journal/STATUS_20260828_v8.md)
+- [ ] Merge PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 ---
 
 ## Anti-amnesia rules for agents
@@ -95,3 +95,4 @@ Never pass `--branch` for a production ship.
 | v5 | afternoon | `d77b276d` | Self-hosted fonts |
 | v6 | evening | `6a5dc354` | `/proposal` `/desk-setup` 301 · short inquire · seat 2 of 4 · home lede/LCP · git `588ffd8` |
 | v7 | evening | `5aa2e910` | Trust P0 · app→custom bridge · Harbor app SAMPLE · seat 2 of 4 on MDS · privacy inquire · About entity · git `183b3e9` |
+| v8 | evening | `d9ce2cb1` | Clean revamp · one spine · /lab clarity · Close Memo/Pipeline/Hired System · Tier C noindex · git `3f2e7a0` · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
