@@ -9364,6 +9364,10 @@
   margin-top: 0.35rem;
 }
 
+.mcfly-data-mode__steps li[data-status="done"] {
+  color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
 .mcfly-data-mode__steps-note {
   margin: 0.65rem 0 0;
   font-size: 0.84rem;

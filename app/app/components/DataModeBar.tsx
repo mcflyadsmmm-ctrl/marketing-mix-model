@@ -1,5 +1,9 @@
 import { Form, useLocation, useSearchParams } from "react-router";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import {
+  resolveFirstSessionPath,
+  type FirstSessionPath,
+} from "../lib/first-session-path";
 
 export type DataModeBarProps = {
   useSampleDesk: boolean;
@@ -12,7 +16,8 @@ export type DataModeBarProps = {
 
 /**
  * Global Sample | Real store control — one place, every desk page.
- * Real-store checklist stays until first margin + spend (not only ?guide=real).
+ * First-session ritual (margin → CSV spend → desk → Allocation) lives here
+ * so Overview empties and this bar cannot drift.
  */
 export function DataModeBar({
   useSampleDesk,
@@ -22,14 +27,17 @@ export function DataModeBar({
 }: DataModeBarProps) {
   const location = useLocation();
   const [params] = useSearchParams();
-  const activationIncomplete = !marginConfirmed || !hasLiveSpend;
-  const guideParam =
+  const forceGuide =
     params.get("guide") === "real" || params.get("guide") === "1";
-  /** Sticky until first trusted Total ROAS inputs exist — uninstall protection. */
-  const showRealGuide =
-    !useSampleDesk && (activationIncomplete || guideParam);
   const returnTo = `${location.pathname}${location.search}`;
   const action = `/app/data-mode${location.search}`;
+  const path = resolveFirstSessionPath({
+    marginConfirmed,
+    hasLiveSpend,
+    useSampleDesk,
+    forceGuide,
+    search: location.search,
+  });
 
   if (!samplePreviewAllowed) {
     return (
@@ -39,31 +47,8 @@ export function DataModeBar({
           <span aria-hidden="true"> · </span>
           Sample preview is off in Settings
         </p>
-        {activationIncomplete ? (
-          <s-banner tone="info" heading="Finish setup for Total ROAS">
-            <ol className="mcfly-data-mode__steps">
-              {!marginConfirmed ? (
-                <li>
-                  <s-link href={`/app/settings${location.search}`}>
-                    {PRODUCT_NOUN.setupAdjustMargin}
-                  </s-link>
-                </li>
-              ) : null}
-              {!hasLiveSpend ? (
-                <li>
-                  <s-link href={`/app/spend${location.search}`}>
-                    {PRODUCT_NOUN.setupAddSpend}
-                  </s-link>
-                </li>
-              ) : null}
-              <li>
-                <s-link href={`/app${location.search}`}>
-                  {PRODUCT_NOUN.openTotalRoas}
-                </s-link>
-              </li>
-            </ol>
-          </s-banner>
-        ) : null}
+        {path.showFullGuide ? <FirstSessionGuide path={path} /> : null}
+        {path.showMarginNudge ? <MarginNudge path={path} /> : null}
       </div>
     );
   }
@@ -117,60 +102,46 @@ export function DataModeBar({
             </button>
           </Form>
         </div>
-        <p className="mcfly-data-mode__hint">
-          {useSampleDesk
-            ? "Practice numbers — not your live Shopify till."
-            : "Live Shopify sales ÷ your spend."}
-        </p>
+        <p className="mcfly-data-mode__hint">{path.viewingHint}</p>
       </div>
 
       {useSampleDesk ? (
         <s-banner tone="warning" heading={PRODUCT_NOUN.samplePreviewOn}>
           <s-paragraph>
             Explore Total ROAS safely. When you are ready, tap{" "}
-            <strong>Real store</strong> — we will walk you through margin and
-            spend.
+            <strong>Real store</strong> — we will walk you through margin, spend,
+            the desk, then Spend Allocation.
           </s-paragraph>
         </s-banner>
       ) : null}
 
-      {showRealGuide ? (
-        <s-banner tone="info" heading="Your real store — three steps">
-          <ol className="mcfly-data-mode__steps">
-            <li>
-              <s-link href={`/app/settings${location.search}`}>
-                {PRODUCT_NOUN.setupAdjustMargin}
-              </s-link>
-              <span>
-                {marginConfirmed
-                  ? " — done"
-                  : " — lock break-even from your profit margin"}
-              </span>
-            </li>
-            <li>
-              <s-link href={`/app/spend${location.search}`}>
-                {PRODUCT_NOUN.setupAddSpend}
-              </s-link>
-              <span>
-                {hasLiveSpend
-                  ? " — done"
-                  : " — Meta, Google, or Something else you name"}
-              </span>
-            </li>
-            <li>
-              <s-link href={`/app${location.search}`}>
-                {PRODUCT_NOUN.openTotalRoas}
-              </s-link>
-              <span> — sales ÷ spend vs break-even</span>
-            </li>
-          </ol>
-          <p className="mcfly-data-mode__steps-note">
-            Shopify sales are automatic. You only add ad spend. Hide Sample for
-            good in{" "}
-            <s-link href={`/app/settings${location.search}`}>Settings</s-link>.
-          </p>
-        </s-banner>
-      ) : null}
+      {path.showFullGuide ? <FirstSessionGuide path={path} /> : null}
+      {path.showMarginNudge ? <MarginNudge path={path} /> : null}
     </div>
+  );
+}
+
+function FirstSessionGuide({ path }: { path: FirstSessionPath }) {
+  return (
+    <s-banner tone="info" heading={path.guideHeading}>
+      <ol className="mcfly-data-mode__steps">
+        {path.steps.map((step) => (
+          <li key={step.id} data-status={step.status}>
+            <s-link href={step.href}>{step.label}</s-link>
+            <span>{step.hint}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="mcfly-data-mode__steps-note">{path.guideNote}</p>
+    </s-banner>
+  );
+}
+
+function MarginNudge({ path }: { path: FirstSessionPath }) {
+  return (
+    <s-banner tone="info" heading={path.marginNudgeHeading}>
+      <s-paragraph>{path.marginNudgeBody}</s-paragraph>
+      <s-link href={path.steps[0].href}>{path.steps[0].label}</s-link>
+    </s-banner>
   );
 }
