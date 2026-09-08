@@ -24,7 +24,7 @@
 
 | Asset | Path |
 | --- | --- |
-| Icon | `docs/listing-assets/mcfly-app-icon-1200.png` |
+| Icon | `docs/listing-assets/mcfly-app-icon-1200.png` (refreshed for clarity; source `mcfly-app-icon.svg`) |
 | Shot 1 | `docs/listing-assets/shots/01-total-roas-vs-breakeven.png` — Total ROAS vs break-even — one glance |
 | Shot 2 | `docs/listing-assets/shots/02-explorer-sales-div-spend.png` — Channel mix vs Total ROAS — sales ÷ spend |
 | Shot 3 | `docs/listing-assets/shots/03-margin-breakeven.png` — Lock break-even from your margin % |

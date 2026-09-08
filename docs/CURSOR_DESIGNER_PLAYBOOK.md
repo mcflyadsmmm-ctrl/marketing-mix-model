@@ -71,7 +71,7 @@ One file owner per agent. No three agents rewriting `app._index.tsx`.
 | 4 | `/app/allocation?period=y3` | One clear allocation call |
 | 5 | `/app/settings` | Lock break-even from margin |
 
-Icon: `docs/listing-assets/mcfly-app-icon-1200.png`
+Icon: `docs/listing-assets/mcfly-app-icon-1200.png` (refreshed for clarity; source `docs/listing-assets/mcfly-app-icon.svg`)
 
 ### After capture
 - Turn sample desk **OFF** before reviewer smoke if you want live till only  

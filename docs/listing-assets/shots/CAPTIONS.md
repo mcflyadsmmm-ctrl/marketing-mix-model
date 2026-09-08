@@ -25,4 +25,4 @@ Raw crops in `raw/`.
 - Re-capture with [`docs/LISTING_CAPTURE.md`](../../LISTING_CAPTURE.md) (`?listing=1`) so the yellow SAMPLE bar is off.
 - Turn SAMPLE **OFF** on the review store after upload / before live review.
 - Feature media (header): `../feature-media-1600x900.png` (Custom Data Science dark/cyan).
-- Icon: `../mcfly-app-icon-1200.png`.
+- Icon: `../mcfly-app-icon-1200.png` (refreshed for clarity; vector source `../mcfly-app-icon.svg`).

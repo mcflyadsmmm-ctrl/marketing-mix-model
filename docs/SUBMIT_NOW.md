@@ -6,7 +6,7 @@ Do these steps **in order**. After each step, reply in Cursor with the bold phra
 
 **App:** Mcfly Analytics · **Pricing must be Free** · cash MER = sales ÷ spend  
 **Host:** https://mcfly-analytics.fly.dev (must show healthy)  
-**Icon file:** `docs/listing-assets/mcfly-app-icon-1200.png` (M-only, 1200×1200)  
+**Icon file:** `docs/listing-assets/mcfly-app-icon-1200.png` (M-only, 1200×1200 — refreshed for clarity)  
 **Paste copy from:** [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md)  
 **Shot list:** [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md)
 
