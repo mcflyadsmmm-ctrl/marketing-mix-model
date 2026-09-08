@@ -6,13 +6,16 @@
  *
  * Cash religion: Total ROAS = Shopify sales ÷ ad spend.
  * Reviews API is soft and late — never on SAMPLE, never before trusted MER,
- * never before 24h. No pixels / MTA / Pro wall on the Spend empty.
+ * never before 24h, never in the first 60s of a trusted-desk session, never
+ * on empty / sales-error scoreboards. No pixels / MTA / Pro wall on Spend empty.
  */
 
 import { PRODUCT_NOUN } from "./product-labels";
 
 export const FIRST_TRUSTED_MER_MINUTES = 10;
 export const REVIEW_MIN_INSTALL_MS = 24 * 60 * 60 * 1000;
+/** Dwell after trusted Total ROAS is on screen — do not ask during first glance. */
+export const REVIEW_MIN_SESSION_MS = 60 * 1000;
 
 export type ActivationStep = "margin" | "spend" | "desk";
 
@@ -21,12 +24,33 @@ export type ReviewAskReason =
   | "sample"
   | "untrusted_mer"
   | "too_soon"
-  | "shot";
+  | "shot"
+  | "empty";
+
+export type ReviewAskRevealReason =
+  | "ok"
+  | "off"
+  | "dismissed"
+  | "no_api"
+  | "session_too_soon";
 
 export type ReviewAskDecision = {
   ask: boolean;
   reason: ReviewAskReason;
 };
+
+export type ReviewAskReveal = {
+  show: boolean;
+  reason: ReviewAskRevealReason;
+};
+
+/** Post-value, calm MDS voice. Button only — never auto-modal. */
+export const REVIEW_ASK_COPY = {
+  heading: "Trusted Total ROAS is on the desk",
+  body: "If sales ÷ spend helped, a short App Store review helps the next merchant find it. Not required.",
+  acceptLabel: "Leave a review",
+  dismissLabel: "Not now",
+} as const;
 
 export type FirstOpenRedirectInput = {
   pathname: string;
@@ -138,9 +162,19 @@ export function isTrustedMer(input: {
   return input.mer != null && Number.isFinite(input.mer);
 }
 
+function toEpochMs(value: Date | string | number | null | undefined): number | null {
+  if (value == null) return null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  const ms = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
 /**
- * Soft Reviews API gate. Shopify also refuses <24h (`recently-installed`);
- * we fail closed the same way plus SAMPLE / untrusted MER.
+ * Soft Reviews API gate (server). Shopify also refuses <24h (`recently-installed`);
+ * we fail closed the same way plus SAMPLE / untrusted MER / empty scoreboard.
+ * Client still waits {@link REVIEW_MIN_SESSION_MS} before revealing.
  */
 export function decideReviewAsk(input: {
   useSampleDesk: boolean;
@@ -148,20 +182,43 @@ export function decideReviewAsk(input: {
   installedAt: Date | string;
   now?: Date;
   shotMode?: boolean;
+  /** Live Total ROAS is on screen — not cold empty / sales error. */
+  scoreboardReady?: boolean;
 }): ReviewAskDecision {
   if (input.shotMode) return { ask: false, reason: "shot" };
   if (input.useSampleDesk) return { ask: false, reason: "sample" };
+  if (input.scoreboardReady === false) return { ask: false, reason: "empty" };
   if (!input.trustedMer) return { ask: false, reason: "untrusted_mer" };
-  const installedAt =
-    input.installedAt instanceof Date
-      ? input.installedAt
-      : new Date(input.installedAt);
-  if (!Number.isFinite(installedAt.getTime())) {
+  const installedAt = toEpochMs(input.installedAt);
+  if (installedAt == null) {
     return { ask: false, reason: "too_soon" };
   }
-  const now = input.now ?? new Date();
-  if (now.getTime() - installedAt.getTime() < REVIEW_MIN_INSTALL_MS) {
+  const now = toEpochMs(input.now ?? new Date()) ?? Date.now();
+  if (now - installedAt < REVIEW_MIN_INSTALL_MS) {
     return { ask: false, reason: "too_soon" };
   }
   return { ask: true, reason: "ok" };
+}
+
+/**
+ * Client reveal after server eligibility. Fail closed for the first 60s of a
+ * trusted-desk session, dismissed merchants, and missing Reviews API.
+ */
+export function decideReviewAskReveal(input: {
+  eligible: boolean;
+  dismissed: boolean;
+  reviewsApiAvailable: boolean;
+  sessionStartedAt: Date | string | number | null;
+  now?: Date | number;
+}): ReviewAskReveal {
+  if (!input.eligible) return { show: false, reason: "off" };
+  if (input.dismissed) return { show: false, reason: "dismissed" };
+  if (!input.reviewsApiAvailable) return { show: false, reason: "no_api" };
+  const started = toEpochMs(input.sessionStartedAt);
+  if (started == null) return { show: false, reason: "session_too_soon" };
+  const now = toEpochMs(input.now ?? Date.now()) ?? Date.now();
+  if (now - started < REVIEW_MIN_SESSION_MS) {
+    return { show: false, reason: "session_too_soon" };
+  }
+  return { show: true, reason: "ok" };
 }

@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import { PRODUCT_NOUN } from "./product-labels";
 import {
   decideReviewAsk,
+  decideReviewAskReveal,
   firstOpenRedirect,
   FIRST_TRUSTED_MER_MINUTES,
   isTrustedMer,
+  REVIEW_ASK_COPY,
   REVIEW_MIN_INSTALL_MS,
+  REVIEW_MIN_SESSION_MS,
   resolveActivationStep,
   spendEmptyTeach,
   spendSkipHref,
@@ -157,13 +160,14 @@ describe("spendEmptyTeach", () => {
 });
 
 describe("decideReviewAsk", () => {
-  it("asks only after trusted MER, 24h, and not SAMPLE", () => {
+  it("asks only after trusted MER, 24h, live scoreboard, and not SAMPLE", () => {
     expect(
       decideReviewAsk({
         useSampleDesk: false,
         trustedMer: true,
         installedAt: INSTALLED_OK,
         now: NOW,
+        scoreboardReady: true,
       }),
     ).toEqual({ ask: true, reason: "ok" });
   });
@@ -175,6 +179,7 @@ describe("decideReviewAsk", () => {
         trustedMer: true,
         installedAt: INSTALLED_OK,
         now: NOW,
+        scoreboardReady: true,
       }).reason,
     ).toBe("sample");
   });
@@ -186,8 +191,21 @@ describe("decideReviewAsk", () => {
         trustedMer: false,
         installedAt: INSTALLED_OK,
         now: NOW,
+        scoreboardReady: true,
       }).reason,
     ).toBe("untrusted_mer");
+  });
+
+  it("refuses empty / sales-error scoreboards even if mer looks trusted", () => {
+    expect(
+      decideReviewAsk({
+        useSampleDesk: false,
+        trustedMer: true,
+        installedAt: INSTALLED_OK,
+        now: NOW,
+        scoreboardReady: false,
+      }).reason,
+    ).toBe("empty");
   });
 
   it("refuses installs younger than 24h", () => {
@@ -198,6 +216,32 @@ describe("decideReviewAsk", () => {
         trustedMer: true,
         installedAt: installed,
         now: NOW,
+        scoreboardReady: true,
+      }).reason,
+    ).toBe("too_soon");
+  });
+
+  it("asks at exactly 24h", () => {
+    const installed = new Date(NOW.getTime() - REVIEW_MIN_INSTALL_MS);
+    expect(
+      decideReviewAsk({
+        useSampleDesk: false,
+        trustedMer: true,
+        installedAt: installed,
+        now: NOW,
+        scoreboardReady: true,
+      }),
+    ).toEqual({ ask: true, reason: "ok" });
+  });
+
+  it("refuses an unparseable install time", () => {
+    expect(
+      decideReviewAsk({
+        useSampleDesk: false,
+        trustedMer: true,
+        installedAt: "not-a-date",
+        now: NOW,
+        scoreboardReady: true,
       }).reason,
     ).toBe("too_soon");
   });
@@ -210,8 +254,103 @@ describe("decideReviewAsk", () => {
         installedAt: INSTALLED_OK,
         now: NOW,
         shotMode: true,
+        scoreboardReady: true,
       }).reason,
     ).toBe("shot");
+  });
+});
+
+describe("decideReviewAskReveal", () => {
+  const sessionStart = NOW.getTime();
+
+  it("reveals only after 60s dwell, with Reviews API, and not dismissed", () => {
+    expect(
+      decideReviewAskReveal({
+        eligible: true,
+        dismissed: false,
+        reviewsApiAvailable: true,
+        sessionStartedAt: sessionStart,
+        now: sessionStart + REVIEW_MIN_SESSION_MS,
+      }),
+    ).toEqual({ show: true, reason: "ok" });
+  });
+
+  it("refuses the first 60 seconds of a trusted-desk session", () => {
+    expect(
+      decideReviewAskReveal({
+        eligible: true,
+        dismissed: false,
+        reviewsApiAvailable: true,
+        sessionStartedAt: sessionStart,
+        now: sessionStart + REVIEW_MIN_SESSION_MS - 1,
+      }).reason,
+    ).toBe("session_too_soon");
+  });
+
+  it("refuses until session start is known", () => {
+    expect(
+      decideReviewAskReveal({
+        eligible: true,
+        dismissed: false,
+        reviewsApiAvailable: true,
+        sessionStartedAt: null,
+        now: sessionStart + REVIEW_MIN_SESSION_MS,
+      }).reason,
+    ).toBe("session_too_soon");
+  });
+
+  it("stays off when the server gate said no", () => {
+    expect(
+      decideReviewAskReveal({
+        eligible: false,
+        dismissed: false,
+        reviewsApiAvailable: true,
+        sessionStartedAt: sessionStart,
+        now: sessionStart + REVIEW_MIN_SESSION_MS,
+      }).reason,
+    ).toBe("off");
+  });
+
+  it("stays off after dismiss", () => {
+    expect(
+      decideReviewAskReveal({
+        eligible: true,
+        dismissed: true,
+        reviewsApiAvailable: true,
+        sessionStartedAt: sessionStart,
+        now: sessionStart + REVIEW_MIN_SESSION_MS,
+      }).reason,
+    ).toBe("dismissed");
+  });
+
+  it("hides the button when Reviews API is missing", () => {
+    expect(
+      decideReviewAskReveal({
+        eligible: true,
+        dismissed: false,
+        reviewsApiAvailable: false,
+        sessionStartedAt: sessionStart,
+        now: sessionStart + REVIEW_MIN_SESSION_MS,
+      }).reason,
+    ).toBe("no_api");
+  });
+});
+
+describe("REVIEW_ASK_COPY", () => {
+  it("is post-value Total ROAS copy — no theater, no SAMPLE, no auto-guilt", () => {
+    const blob = [
+      REVIEW_ASK_COPY.heading,
+      REVIEW_ASK_COPY.body,
+      REVIEW_ASK_COPY.acceptLabel,
+      REVIEW_ASK_COPY.dismissLabel,
+    ].join("\n");
+    expect(REVIEW_ASK_COPY.heading).toMatch(/Total ROAS/i);
+    expect(REVIEW_ASK_COPY.body).toMatch(/sales ÷ spend/i);
+    expect(REVIEW_ASK_COPY.body).toMatch(/not required/i);
+    expect(REVIEW_ASK_COPY.acceptLabel).toMatch(/review/i);
+    expect(blob).not.toMatch(THEATER);
+    expect(blob).not.toMatch(/sample/i);
+    expect(blob).not.toMatch(/unlock|seamless|get excited/i);
   });
 });
 
