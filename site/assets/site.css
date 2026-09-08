@@ -30,6 +30,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
 }
 html,
 body {
@@ -413,6 +414,26 @@ body.ca-page .top--analytics .nav a.active {
   background: var(--ink);
   color: #fff !important;
   border-radius: 6px;
+}
+body.nav-open .top,
+body.home.nav-open .top:not(.scrolled) {
+  background: rgba(244, 246, 248, 0.96);
+  border-bottom-color: var(--line);
+}
+body.nav-open .top .brand,
+body.nav-open .top .brand-name,
+body.home.nav-open .top:not(.scrolled) .brand,
+body.home.nav-open .top:not(.scrolled) .brand-name {
+  color: var(--ink);
+  background: none;
+}
+body.nav-open .top .brand-name-sub,
+body.home.nav-open .top:not(.scrolled) .brand-name-sub {
+  color: var(--cyan-deep);
+}
+body.nav-open .nav-toggle span,
+body.home.nav-open .top:not(.scrolled) .nav-toggle span {
+  background: var(--ink);
 }
 
 @media (min-width: 860px) {
@@ -3603,6 +3624,12 @@ input[type="number"] {
   color: var(--cyan-deep);
   font-weight: 600;
 }
+.enterprise-page .enterprise-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+  margin: 0.65rem 0 0;
+}
 
 /* Phone polish (~375–430): cash-desk composition, not a cramped stack */
 @media (max-width: 430px) {
@@ -3638,6 +3665,9 @@ input[type="number"] {
   .brand-hero-mark {
     width: 2.15rem;
     height: 2.15rem;
+  }
+  .hero-craft .eyebrow {
+    margin-bottom: 0.7rem;
   }
   .hero-craft h1 {
     font-size: clamp(1.18rem, 5.5vw, 1.38rem);
@@ -3716,6 +3746,18 @@ input[type="number"] {
     min-height: 2.75rem;
     padding: 0.65rem 0.95rem;
     font-size: 0.92rem;
+  }
+  .band.close .cta-row,
+  .price-cta .cta-row {
+    flex-direction: column;
+  }
+  .band.close .cta-row .btn,
+  .price-cta .cta-row .btn {
+    width: 100%;
+  }
+  .enterprise-page .enterprise-links {
+    flex-direction: column;
+    align-items: flex-start;
   }
   .close-assurances {
     flex-direction: column;
