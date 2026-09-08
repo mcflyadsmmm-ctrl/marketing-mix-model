@@ -53,7 +53,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } else {
     // Cohort OrderFact backfill — Pro / SAMPLE only (not Free live).
     if (entitlements.canUseLtv) {
-      void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+      void runOrderFactsBackfill(admin, shop.id, {
+        maxDays: 2,
+        grantedScopes: session.scope,
+      }).catch(() => {
         // ignore — page shows honest empty/backfill states until cohort facts land
       });
     }
@@ -535,8 +538,8 @@ export default function LtvPage() {
                   {metrics.tillLtv.emptyReason === "no_timezone"
                     ? "Shop timezone needed before customer cohorts can bucket by local day."
                     : metrics.tillLtv.emptyReason === "history_limited"
-                      ? "Order history is limited on this shop — Free shows the available window; broader Shopify order access unlocks deeper mature cohorts (order ids and amounts only)."
-                      : "Backfilling customer cohorts — Lifetime Value lights up once facts land."}
+                      ? "Order history on this shop covers about 60 days until the store grants deeper order access. Multi-year cohorts fill after that grant — order ids and amounts only."
+                      : "Backfilling customer cohorts — Lifetime Value lights up as facts land, including multi-year history once deeper order access is granted."}
                 </p>
               )}
             </section>
@@ -635,8 +638,8 @@ export default function LtvPage() {
 
                 {metrics.tillLtv.historyLimited ? (
                   <p className="mcfly-panel__note">
-                    Cohorts cover the available order window. Deeper multi-year
-                    history unlocks when Shopify approves broader order access —
+                    Cohorts cover the recent order window. Grant deeper order
+                    access when Shopify prompts to unlock multi-year history —
                     still order ids and amounts only, no email CRM.
                   </p>
                 ) : null}

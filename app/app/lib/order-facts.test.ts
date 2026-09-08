@@ -26,7 +26,10 @@ import {
   ORDER_FACT_SOURCE,
   clearOrderFactDayCompleteSeal,
   orderFactDayCompleteMarkerId,
+  resolveOrderFactsIngestWindow,
 } from "./order-facts.server";
+import { salesDayFactWindowDayCount } from "./sales-facts.server";
+import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const orderFactsSource = readFileSync(
@@ -111,5 +114,32 @@ describe("clearOrderFactDayCompleteSeal", () => {
     deleteManyOrderFact.mockResolvedValue({ count: 0 });
     expect(await clearOrderFactDayCompleteSeal("shop_1", "2026-07-20")).toBe(0);
     expect(deleteManyOrderFact).toHaveBeenCalledOnce();
+  });
+});
+
+describe("resolveOrderFactsIngestWindow", () => {
+  const now = new Date("2026-07-15T12:00:00.000Z");
+
+  it("fail-closed 60-day window when read_all_orders is absent", () => {
+    const resolved = resolveOrderFactsIngestWindow({
+      now,
+      scopesAllowDeep: false,
+      persistedHistoryLimited: true,
+    });
+    expect(resolved.windowDays).toBe(SHOPIFY_READ_ORDERS_WINDOW_DAYS);
+    expect(resolved.historyLimited).toBe(true);
+    expect(resolved.reprobed).toBe(false);
+  });
+
+  it("clears a stuck historyLimited flag and uses the Jan-1 × 4yr window", () => {
+    const resolved = resolveOrderFactsIngestWindow({
+      now,
+      scopesAllowDeep: true,
+      persistedHistoryLimited: true,
+    });
+    expect(resolved.windowDays).toBe(salesDayFactWindowDayCount(now));
+    expect(resolved.windowDays).toBeGreaterThan(SHOPIFY_READ_ORDERS_WINDOW_DAYS);
+    expect(resolved.historyLimited).toBe(false);
+    expect(resolved.reprobed).toBe(true);
   });
 });

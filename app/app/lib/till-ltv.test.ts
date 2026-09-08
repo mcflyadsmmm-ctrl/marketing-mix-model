@@ -83,6 +83,31 @@ describe("summarizeTillLtvFromCohorts", () => {
   });
 });
 
+describe("summarizeTillLtvFromCohorts empty reasons", () => {
+  it("uses backfilling — not history_limited — when deep history is allowed", () => {
+    const empty = summarizeTillLtvFromCohorts([], {
+      totalSpend: 0,
+      newCustomers: 0,
+      ianaTimezone: "UTC",
+      historyLimited: false,
+    });
+    expect(empty.available).toBe(false);
+    expect(empty.emptyReason).toBe("backfilling");
+    expect(empty.historyLimited).toBe(false);
+  });
+
+  it("keeps history_limited when the shop still lacks read_all_orders", () => {
+    const empty = summarizeTillLtvFromCohorts([], {
+      totalSpend: 0,
+      newCustomers: 0,
+      ianaTimezone: "UTC",
+      historyLimited: true,
+    });
+    expect(empty.emptyReason).toBe("history_limited");
+    expect(empty.historyLimited).toBe(true);
+  });
+});
+
 describe("computeCohortRollups", () => {
   it("assigns first-order month and sums 30/90/365 windows", () => {
     const first = new Date("2026-01-15T12:00:00.000Z");

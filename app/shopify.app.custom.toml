@@ -11,6 +11,7 @@ embedded = true
 automatically_update_urls_on_dev = false
 
 [access_scopes]
+# Custom distribution — same order scopes as the public app after Partner approval.
 scopes = "read_orders,read_customers,read_all_orders"
 
 [webhooks]

@@ -33,8 +33,11 @@ import {
   getSalesFactsCoverage,
   getSalesFactsTotals,
   getSalesFactsByDay,
+  salesFactsBackfillWindowDayCount,
+  salesDayFactWindowDayCount,
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
+import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 
 const FAKE_ADMIN = {} as never;
 
@@ -152,11 +155,50 @@ describe("runSalesFactsBackfill", () => {
     fetchShopifySales.mockResolvedValue(fakeSales(0));
 
     const now = new Date("2026-07-15T12:00:00.000Z");
-    const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", { now, maxDays: 10 });
+    const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
+      now,
+      maxDays: 10,
+      scopesAllowDeep: true,
+    });
 
     // Jan-1 × 4yr window (not a fixed 60d) — 10 attempted this call leaves the rest.
     expect(result.attempted).toBe(10);
     expect(result.remainingMissingDays).toBeGreaterThan(50);
+  });
+
+  it("fail-closed 60-day window when read_all_orders is absent", async () => {
+    ensureShopMetadata.mockResolvedValue({ ianaTimezone: "UTC", currencyCode: "USD" });
+    findMany.mockResolvedValue([]);
+    fetchShopifySales.mockResolvedValue(fakeSales(0));
+
+    const now = new Date("2026-07-15T12:00:00.000Z");
+    const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
+      now,
+      maxDays: 10,
+      scopesAllowDeep: false,
+    });
+
+    expect(result.attempted).toBe(10);
+    expect(result.remainingMissingDays).toBe(SHOPIFY_READ_ORDERS_WINDOW_DAYS - 10);
+  });
+});
+
+describe("salesFactsBackfillWindowDayCount", () => {
+  const now = new Date("2026-07-15T12:00:00.000Z");
+
+  it("uses the Jan-1 × 4yr horizon when scopes allow deep", () => {
+    expect(salesFactsBackfillWindowDayCount(now, true)).toBe(
+      salesDayFactWindowDayCount(now),
+    );
+    expect(salesFactsBackfillWindowDayCount(now, true)).toBeGreaterThan(
+      SHOPIFY_READ_ORDERS_WINDOW_DAYS,
+    );
+  });
+
+  it("uses the 60-day read_orders window when scopes omit read_all_orders", () => {
+    expect(salesFactsBackfillWindowDayCount(now, false)).toBe(
+      SHOPIFY_READ_ORDERS_WINDOW_DAYS,
+    );
   });
 });
 

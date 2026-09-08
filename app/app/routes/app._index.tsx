@@ -231,12 +231,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     // Chunked resume only — never full history inside this request.
     if (!mainCoverage.complete || !dayCoverage.complete) {
-      void runSalesFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+      void runSalesFactsBackfill(admin, shop.id, {
+        maxDays: 2,
+        grantedScopes: session.scope,
+      }).catch(() => {
         // ignore — banners disclose incomplete facts
       });
     }
     // Till LTV OrderFact ingest — throttled like sales facts (≤2 closed days / paint).
-    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
+    void runOrderFactsBackfill(admin, shop.id, {
+      maxDays: 2,
+      grantedScopes: session.scope,
+    }).catch(() => {
       // ignore — panel shows empty/backfilling until cohorts land
     });
 
@@ -999,7 +1005,7 @@ function LtvSnapSection({
           {tillLtv.emptyReason === "no_timezone"
             ? "Shop timezone needed before customer cohorts can bucket by local day."
             : tillLtv.emptyReason === "history_limited"
-              ? `Order history is limited — open ${PRODUCT_NOUN.ltvTitle} for coverage.`
+              ? `Recent order window only — open ${PRODUCT_NOUN.ltvTitle} after granting deeper order access.`
               : `Backfilling cohorts — open ${PRODUCT_NOUN.ltvTitle} for progress.`}
         </p>
       )}

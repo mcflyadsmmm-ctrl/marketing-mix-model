@@ -11,7 +11,11 @@ import {
 } from "./shopify-sales.server";
 import { ensureShopMetadata } from "./shop-metadata.server";
 import { countClosedDaysInPeriod } from "./mer-trust";
-import type { DateRange } from "./periods";
+import {
+  SHOPIFY_READ_ORDERS_WINDOW_DAYS,
+  type DateRange,
+} from "./periods";
+import { allowsDeepOrderHistory } from "./shopify-scopes";
 
 /** SalesDayFact.source for rows written by this ingest lane. */
 export const SALES_DAY_FACT_SOURCE = "shopify_order_current_total_v1";
@@ -40,6 +44,20 @@ export function salesDayFactWindowDayCount(now: Date = new Date()): number {
   const start = salesDayFactWindowStartUtc(now);
   const ms = now.getTime() - start.getTime();
   return Math.max(1, Math.ceil(ms / 86_400_000));
+}
+
+/**
+ * Backfill horizon: Jan-1 × N-year when `read_all_orders` is granted, otherwise
+ * the fail-closed ~60-day `read_orders` window. Serving/coverage still uses the
+ * 4yr Jan-1 window — incomplete facts stay honest until deep ingest catches up.
+ */
+export function salesFactsBackfillWindowDayCount(
+  now: Date = new Date(),
+  scopesAllowDeep = false,
+): number {
+  return scopesAllowDeep
+    ? salesDayFactWindowDayCount(now)
+    : SHOPIFY_READ_ORDERS_WINDOW_DAYS;
 }
 
 /**
@@ -151,7 +169,12 @@ async function upsertSalesDayFact(
 export async function runSalesFactsBackfill(
   admin: AdminApiContext,
   shopId: string,
-  options?: { now?: Date; maxDays?: number },
+  options?: {
+    now?: Date;
+    maxDays?: number;
+    grantedScopes?: string | string[] | null;
+    scopesAllowDeep?: boolean;
+  },
 ): Promise<SalesFactBackfillResult> {
   const now = options?.now ?? new Date();
   const maxDays = options?.maxDays ?? SALES_DAY_FACT_MAX_DAYS_PER_RUN;
@@ -170,10 +193,19 @@ export async function runSalesFactsBackfill(
     };
   }
 
+  const scopesAllowDeep =
+    typeof options?.scopesAllowDeep === "boolean"
+      ? options.scopesAllowDeep
+      : allowsDeepOrderHistory(
+          options && "grantedScopes" in options
+            ? { grantedScopes: options.grantedScopes }
+            : undefined,
+        );
+
   const timeZone = metadata.ianaTimezone;
   const windowDayKeys = listRecentClosedShopLocalDays(
     timeZone,
-    salesDayFactWindowDayCount(now),
+    salesFactsBackfillWindowDayCount(now, scopesAllowDeep),
     now,
   );
   const existing = await existingFactDayKeys(shopId, windowDayKeys);
