@@ -22,7 +22,13 @@ import {
   buildSpendExplorerSeries,
   ensureShop,
   getOrCreateSettings,
+  marginIsConfirmed,
 } from "../lib/mer-dashboard.server";
+import {
+  firstSessionPrimaryAction,
+  resolveFirstSessionPath,
+} from "../lib/first-session-path";
+import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -108,7 +114,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const exFrom = parseExplorerDateParam(url.searchParams.get("exFrom"));
   const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
   const shop = await ensureShop(session.shop);
-  await getOrCreateSettings(shop.id);
+  const settings = await getOrCreateSettings(shop.id);
+  const liveSpendCount = await prisma.spendEntry.count({
+    where: { shopId: shop.id, NOT: { source: "sample" } },
+  });
   // Overview locks to Shopify Total Sales (after returns) — no Net toggle on this desk.
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
@@ -314,6 +323,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
+    marginConfirmed: marginIsConfirmed(settings),
+    hasLiveSpend: liveSpendCount > 0,
   };
 };
 
@@ -338,6 +349,8 @@ export default function Dashboard() {
     sharePeriodStartDay,
     sharePeriodEndDay,
     shopLabel,
+    marginConfirmed,
+    hasLiveSpend,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -363,21 +376,16 @@ export default function Dashboard() {
     source: metrics.freshness.source,
     spendUpdatedAt: metrics.freshness.spendUpdatedAt,
   });
-  /** Margin is optional (BE only). Total ROAS never waits on Settings margin. */
-  const marginBlocked = false;
-  /** Live install, no spend yet — Polaris Empty owns the body; scoreboard waits. */
-  const spendBlocked =
-    !metrics.onboarding.hasSpend && !useSampleDesk && !shotMode;
-  /** Both missing: one empty with Settings primary (do not let spend swallow margin). */
-  const bothBlockedEmpty = marginBlocked && spendBlocked;
-  /** Spend missing, margin OK. */
-  const spendOnlyEmpty = spendBlocked && !marginBlocked;
-  /** Margin missing, spend present — empty owns the body; scoreboard waits. */
-  const marginOnlyEmpty = marginBlocked && !spendBlocked;
-  const coldEmpty = marginOnlyEmpty || bothBlockedEmpty || spendOnlyEmpty;
-  // Never paint Total ROAS scoreboard from emptySales zeros after a load failure.
-  const scoreboardReady =
-    !spendBlocked && !marginBlocked && !salesError;
+  const firstSession = resolveFirstSessionPath({
+    marginConfirmed,
+    hasLiveSpend,
+    useSampleDesk,
+    shotMode,
+  });
+  const coldEmpty = firstSession.showColdEmpty;
+  // Cash MER paints once any live spend exists — margin only unlocks break-even.
+  const scoreboardReady = !coldEmpty && !salesError;
+  const primaryAction = firstSessionPrimaryAction(firstSession);
 
   const deltas = metrics.deltas;
   const priorLabel = deltas?.priorLabel;
@@ -473,10 +481,7 @@ export default function Dashboard() {
       }
       marginStale={!useSampleDesk && Boolean(metrics.marginStale)}
       onboarding={
-        !useSampleDesk &&
-        !shotMode &&
-        !marginBlocked &&
-        !spendBlocked
+        !useSampleDesk && !shotMode && !coldEmpty
           ? {
               settingsSaved: metrics.onboarding.settingsSaved,
               hasSpend: metrics.onboarding.hasSpend,
@@ -489,43 +494,14 @@ export default function Dashboard() {
   return (
     <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
       {!shotMode ? (
-        useSampleDesk ? (
-          <s-button
-            slot="primary-action"
-            variant="primary"
-            href="/app/demo"
-            aria-label={PRODUCT_NOUN.samplePreviewOffReviewTitle}
-          >
-            {PRODUCT_NOUN.samplePreviewOffReviewTitle}
-          </s-button>
-        ) : metrics.cashActionReady ? (
-          <s-button
-            slot="primary-action"
-            variant="primary"
-            href="/app/spend"
-            aria-label="Update spend"
-          >
-            Update spend
-          </s-button>
-        ) : marginBlocked ? (
-          <s-button
-            slot="primary-action"
-            variant="primary"
-            href="/app/settings"
-            aria-label={PRODUCT_NOUN.setupAdjustMargin}
-          >
-            {PRODUCT_NOUN.setupAdjustMargin}
-          </s-button>
-        ) : (
-          <s-button
-            slot="primary-action"
-            variant="primary"
-            href="/app/spend"
-            aria-label={PRODUCT_NOUN.setupAddSpend}
-          >
-            {PRODUCT_NOUN.setupAddSpend}
-          </s-button>
-        )
+        <s-button
+          slot="primary-action"
+          variant="primary"
+          href={primaryAction.href}
+          aria-label={primaryAction.label}
+        >
+          {primaryAction.label}
+        </s-button>
       ) : null}
       <div
         className={[
@@ -599,59 +575,32 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {marginOnlyEmpty ? (
-          <div className="mcfly-cold-empty">
-            <s-section accessibilityLabel="Empty state — set profit margin for break-even">
-              <s-grid gap="base" justifyItems="center" paddingBlock="base">
-                <s-grid justifyItems="center" maxInlineSize="420px" gap="base">
-                  <s-stack alignItems="center">
-                    <s-heading>Lock break-even</s-heading>
-                    <s-paragraph>
-                      Sales and spend are ready. Confirm profit margin — then read{" "}
-                      {PRODUCT_NOUN.totalRoas} vs that line.
-                    </s-paragraph>
-                  </s-stack>
-                  <s-button
-                    variant="primary"
-                    href="/app/settings"
-                    aria-label={PRODUCT_NOUN.setupAdjustMargin}
-                  >
-                    {PRODUCT_NOUN.setupAdjustMargin}
-                  </s-button>
-                  <p className="mcfly-cold-empty__foot">
-                    <s-link href="/app/spend">Review logged spend</s-link>
-                  </p>
-                </s-grid>
-              </s-grid>
-            </s-section>
-          </div>
-        ) : null}
-
-        {bothBlockedEmpty ? (
+        {coldEmpty ? (
           <div className="mcfly-cold-empty">
             <s-section
-              accessibilityLabel={`Empty state — set profit margin for ${PRODUCT_NOUN.totalRoas}`}
+              accessibilityLabel={`Empty state — ${firstSession.heading}`}
             >
               <s-grid gap="base" justifyItems="center" paddingBlock="base">
                 <s-grid justifyItems="center" maxInlineSize="420px" gap="base">
                   <s-stack alignItems="center">
-                    <s-heading>Get {PRODUCT_NOUN.totalRoas} in ~10 minutes</s-heading>
-                    <s-paragraph>
-                      Start with profit margin (sets break-even). Then upload
-                      Spend CSV. Sales are already in.
-                    </s-paragraph>
+                    <s-heading>{firstSession.heading}</s-heading>
+                    <s-paragraph>{firstSession.body}</s-paragraph>
                   </s-stack>
                   <s-button
                     variant="primary"
-                    href="/app/settings"
-                    aria-label={PRODUCT_NOUN.setupAdjustMargin}
+                    href={firstSession.primaryHref}
+                    aria-label={firstSession.primaryLabel}
                   >
-                    {PRODUCT_NOUN.setupAdjustMargin}
+                    {firstSession.primaryLabel}
                   </s-button>
                   <p className="mcfly-cold-empty__foot">
-                    Next: <s-link href="/app/spend">{PRODUCT_NOUN.setupAddSpend}</s-link>
-                    {" · "}
-                    <s-link href="/app/demo">Try SAMPLE preview</s-link>
+                    Next:{" "}
+                    {firstSession.footerLinks.map((link, index) => (
+                      <span key={link.href}>
+                        {index > 0 ? " · " : null}
+                        <s-link href={link.href}>{link.label}</s-link>
+                      </span>
+                    ))}
                   </p>
                 </s-grid>
               </s-grid>
@@ -659,43 +608,10 @@ export default function Dashboard() {
           </div>
         ) : null}
 
-        {spendOnlyEmpty ? (
-          <div className="mcfly-cold-empty">
-            <s-section
-              accessibilityLabel={`Empty state — add spend for ${PRODUCT_NOUN.totalRoas}`}
-            >
-              <s-grid gap="base" justifyItems="center" paddingBlock="base">
-                <s-grid justifyItems="center" maxInlineSize="420px" gap="base">
-                  <s-stack alignItems="center">
-                    <s-heading>{PRODUCT_NOUN.setupAddSpend}</s-heading>
-                    <s-paragraph>
-                      Margin is set. Upload daily Spend CSV to unlock{" "}
-                      {PRODUCT_NOUN.totalRoas} vs break-even.
-                    </s-paragraph>
-                  </s-stack>
-                  <s-button
-                    variant="primary"
-                    href="/app/spend"
-                    aria-label={PRODUCT_NOUN.setupAddSpend}
-                  >
-                    {PRODUCT_NOUN.setupAddSpend}
-                  </s-button>
-                  <p className="mcfly-cold-empty__foot">
-                    Want a labeled walkthrough first?{" "}
-                    <s-link href="/app/demo">Try SAMPLE preview</s-link>
-                  </p>
-                </s-grid>
-              </s-grid>
-            </s-section>
-          </div>
-        ) : null}
-
-        {/* Wave 2: Polaris empties own TTFV — hide 3-step guide while empties show. */}
+        {/* Wave 2: Polaris empties own TTFV — hide leftover guide while empties show. */}
         {metrics.onboarding.showGuide &&
         !shotMode &&
-        !marginOnlyEmpty &&
-        !bothBlockedEmpty &&
-        !spendOnlyEmpty ? (
+        !coldEmpty ? (
           <section className="mcfly-guide" aria-label={`First ${PRODUCT_NOUN.totalRoas} setup`}>
             <div className="mcfly-guide__head">
               <p className="mcfly-guide__title">
@@ -785,7 +701,7 @@ export default function Dashboard() {
           </section>
         ) : null}
 
-        {!spendBlocked && !marginBlocked ? (
+        {!coldEmpty ? (
           <>
             {!shotMode && scoreboardReady ? (
               <section
