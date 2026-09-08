@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+# Overnight orchestrator artifacts (CI uploads these)
+reports/
+
+.DS_Store
+coverage/
+packages/**/node_modules/
+.cursor/
+**/node_modules/
+
+# Proprietary MER Apps Script clasp pull (never commit seeds / sheet IDs)
+vendor/mer-apps-script/

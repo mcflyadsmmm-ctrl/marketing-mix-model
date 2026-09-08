@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: Mcfly Analytics API
+  version: 0.1.0
+  description: |
+    One brain for MER — Shopify embedded app and Sheets companion consume the same contract.
+    Cash MER only; no path attribution, pixels, or MTA.
+servers:
+  - url: https://api.mcflyads.com/v1
+    description: Production (placeholder)
+  - url: http://localhost:3000/v1
+    description: Local app API
+paths:
+  /mer:
+    get:
+      summary: Period MER (sales vs spend)
+      operationId: getMer
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: includeAllocation
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: MER snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MerResponse"
+  /spend:
+    post:
+      summary: Record manual or CSV spend entries
+      operationId: postSpend
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostSpendBody"
+      responses:
+        "201":
+          description: Spend accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSpendResponse"
+  /allocation:
+    get:
+      summary: Rules-based allocation suggestion for a period
+      operationId: getAllocation
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Allocation card payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllocationResponse"
+components:
+  schemas:
+    ChannelMer:
+      type: object
+      required: [name, spend]
+      properties:
+        name:
+          type: string
+        spend:
+          type: number
+          minimum: 0
+        salesContribution:
+          type: number
+          minimum: 0
+        effectiveMer:
+          type: number
+          nullable: true
+        spendShare:
+          type: number
+          minimum: 0
+          maximum: 1
+    AllocationAction:
+      type: object
+      required: [type, channel, detail]
+      properties:
+        type:
+          type: string
+          enum: [cut, shift, hold, watch]
+        channel:
+          type: string
+        percentChange:
+          type: number
+        detail:
+          type: string
+    AllocationSuggestion:
+      type: object
+      required: [suggestedTestDays, why, actions, isAboveBreakEven]
+      properties:
+        suggestedTestDays:
+          type: integer
+          minimum: 1
+        why:
+          type: string
+        actions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AllocationAction"
+        isAboveBreakEven:
+          type: boolean
+          nullable: true
+    MerResponse:
+      type: object
+      required: [from, to, sales, spend, mer, breakEvenMer, channels]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        sales:
+          type: number
+          minimum: 0
+        spend:
+          type: number
+          minimum: 0
+        mer:
+          type: number
+          nullable: true
+        breakEvenMer:
+          type: number
+          minimum: 0
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChannelMer"
+        allocation:
+          $ref: "#/components/schemas/AllocationSuggestion"
+    ManualSpendEntry:
+      type: object
+      required: [date, channel, amount]
+      properties:
+        date:
+          type: string
+          format: date
+        channel:
+          type: string
+        amount:
+          type: number
+          minimum: 0
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+          default: USD
+    PostSpendBody:
+      type: object
+      required: [entries]
+      properties:
+        entries:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/ManualSpendEntry"
+    PostSpendResponse:
+      type: object
+      required: [accepted, shopId]
+      properties:
+        accepted:
+          type: integer
+          minimum: 0
+        shopId:
+          type: string
+    AllocationResponse:
+      type: object
+      required: [from, to, breakEvenMer, overallMer, allocation, channels]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        breakEvenMer:
+          type: number
+        overallMer:
+          type: number
+          nullable: true
+        allocation:
+          $ref: "#/components/schemas/AllocationSuggestion"
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChannelMer"

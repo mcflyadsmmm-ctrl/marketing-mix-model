@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mcfly
+      POSTGRES_PASSWORD: mcfly
+      POSTGRES_DB: mcfly
+    ports:
+      - "5432:5432"
+    volumes:
+      - mcfly_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mcfly -d mcfly"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional: run the app in Docker after Partner link fills secrets
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: app/Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     DATABASE_URL: postgresql://mcfly:mcfly@db:5432/mcfly
+  #     SHOPIFY_API_KEY: ${SHOPIFY_API_KEY}
+  #     SHOPIFY_API_SECRET: ${SHOPIFY_API_SECRET}
+  #     SCOPES: read_orders
+  #     SHOPIFY_APP_URL: ${SHOPIFY_APP_URL}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
+volumes:
+  mcfly_pg:
