@@ -22,6 +22,7 @@ Raw crops in `raw/`.
 ## Notes
 
 - Shots 1–3 refreshed 2026-07-31 from live SAMPLE desk captures (letterboxed to 1600×900).
+- Re-capture with [`docs/LISTING_CAPTURE.md`](../../LISTING_CAPTURE.md) (`?listing=1`) so the yellow SAMPLE bar is off.
 - Turn SAMPLE **OFF** on the review store after upload / before live review.
 - Feature media (header): `../feature-media-1600x900.png` (Custom Data Science dark/cyan).
 - Icon: `../mcfly-app-icon-1200.png`.

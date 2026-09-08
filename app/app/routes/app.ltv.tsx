@@ -3,6 +3,10 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import {
+  formatListingTillLabel,
+  listingCaptureFromRequest,
+} from "../lib/listing-capture";
 import { buildDashboardMetrics, ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import { parseSalesBasis } from "../lib/sales-basis";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
@@ -23,7 +27,7 @@ import { ProUpsellBlock } from "../components/ProUpsellBlock";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
-  const shotMode = url.searchParams.get("shot") === "1";
+  const shotMode = listingCaptureFromRequest(request);
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   // y3 stays shot-only. L12M is a desk preset (PeriodControl) — do not redirect.
   if (!shotMode && preset === "y3") {
@@ -102,15 +106,14 @@ export default function LtvPage() {
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
 
-  const tillLabel = useSampleDesk
-    ? `${metrics.period.label} · SAMPLE`
-    : shotMode
-      ? metrics.period.label
-      : salesError ||
-          metrics.blockedMockAsLive ||
-          metrics.salesSource === "mock"
-        ? `${metrics.period.label} · sales unavailable`
-        : `${metrics.period.label} · live sales`;
+  const tillLabel = formatListingTillLabel({
+    periodLabel: metrics.period.label,
+    useSampleDesk,
+    listingCapture: shotMode,
+    salesError: Boolean(salesError),
+    blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
+    salesSource: metrics.salesSource,
+  });
 
   const custOk = metrics.customerMetricsAvailable;
   const newCount = custOk ? metrics.newCustomers : 0;
@@ -168,7 +171,7 @@ export default function LtvPage() {
           "mcfly-desk",
           "mcfly-ltv",
           "mcfly-acq",
-          shotMode ? "mcfly-desk--shot" : null,
+          shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
           isLoading && !shotMode ? "mcfly-desk--loading" : null,
         ]

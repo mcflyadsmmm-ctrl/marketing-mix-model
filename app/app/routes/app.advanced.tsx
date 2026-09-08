@@ -3,6 +3,10 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import {
+  formatListingTillLabel,
+  listingCaptureFromRequest,
+} from "../lib/listing-capture";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import { buildAdvancedSections } from "../lib/advanced-metrics";
 import { getShopEntitlements } from "../lib/entitlements.server";
@@ -25,7 +29,7 @@ import { authenticate } from "../shopify.server";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
-  const shotMode = url.searchParams.get("shot") === "1";
+  const shotMode = listingCaptureFromRequest(request);
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   const shop = await ensureShop(session.shop);
   const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
@@ -85,13 +89,14 @@ export default function AdvancedMetricsPage() {
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
 
-  const tillLabel = useSampleDesk
-    ? `${metrics.period.label} · SAMPLE`
-    : salesError ||
-        metrics.blockedMockAsLive ||
-        metrics.salesSource === "mock"
-      ? `${metrics.period.label} · sales unavailable`
-      : `${metrics.period.label} · live sales`;
+  const tillLabel = formatListingTillLabel({
+    periodLabel: metrics.period.label,
+    useSampleDesk,
+    listingCapture: shotMode,
+    salesError: Boolean(salesError),
+    blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
+    salesSource: metrics.salesSource,
+  });
 
   const sections = buildAdvancedSections(metrics, {
     canUseLtv: entitlements.canUseLtv,
@@ -107,7 +112,7 @@ export default function AdvancedMetricsPage() {
         className={[
           "mcfly-desk",
           "mcfly-advanced",
-          shotMode ? "mcfly-desk--shot" : null,
+          shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
           isLoading && !shotMode ? "mcfly-desk--loading" : null,
         ]

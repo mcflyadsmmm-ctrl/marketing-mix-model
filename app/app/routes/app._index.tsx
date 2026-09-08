@@ -39,6 +39,10 @@ import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
+import {
+  formatListingTillLabel,
+  listingCaptureFromRequest,
+} from "../lib/listing-capture";
 import { formatOverviewShareText } from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
@@ -103,7 +107,7 @@ function formatPctDelta(pct: number | null, priorLabel?: string): string {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
-  const shotMode = url.searchParams.get("shot") === "1";
+  const shotMode = listingCaptureFromRequest(request);
   const rawPeriod = url.searchParams.get("period");
   const preset = parsePeriodPreset(rawPeriod);
   // y3 stays shot-only (listing captures). L12M is a desk preset — do not redirect.
@@ -388,23 +392,23 @@ export default function Dashboard() {
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
-  // Never label mock / blocked sales as live Shopify when sample is off.
-  // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
-  const tillLabel = useSampleDesk
-    ? `${metrics.period.label} · SAMPLE`
-    : shotMode
-      ? metrics.period.label
-      : salesError ||
-          metrics.blockedMockAsLive ||
-          metrics.salesSource === "mock"
-        ? `${metrics.period.label} · sales unavailable`
-        : salesFactsCoverage != null &&
-            !salesFactsCoverage.complete &&
-            !salesFactsCoverage.periodExceedsFactWindow
-          ? `${metrics.period.label} · facts incomplete`
-          : `${metrics.period.label} · live sales`;
+  // Listing-capture: period only (no SAMPLE banner/ctx, no live lie).
+  // Merchant mode keeps SAMPLE / facts / live honesty unchanged.
+  const tillLabel = formatListingTillLabel({
+    periodLabel: metrics.period.label,
+    useSampleDesk,
+    listingCapture: shotMode,
+    salesError: Boolean(salesError),
+    blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
+    salesSource: metrics.salesSource,
+    factsIncomplete:
+      salesFactsCoverage != null &&
+      !salesFactsCoverage.complete &&
+      !salesFactsCoverage.periodExceedsFactWindow,
+  });
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk,
+    listingCapture: shotMode,
     salesPulledAt: metrics.freshness.salesPulledAt,
     lastAt: metrics.freshness.lastAt,
     source: metrics.freshness.source,
@@ -540,7 +544,7 @@ export default function Dashboard() {
       <div
         className={[
           "mcfly-desk",
-          shotMode ? "mcfly-desk--shot" : null,
+          shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
           scoreboardReady && !useSampleDesk ? "mcfly-desk--live-ready" : null,
           coldEmpty ? "mcfly-desk--cold-empty" : null,

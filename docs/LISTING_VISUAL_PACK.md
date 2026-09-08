@@ -28,7 +28,7 @@ Refuse for shots: marketing-site captures, pixel/ROAS theater UI, TW-clone clutt
 1. Open app → **Demo** tab  
 2. Click **Load 3-year sample desk** (matched sales + spend)  
 3. Click **Turn sample desk ON**  
-4. Capture with shot mode (hides sample banner): add `shot=1` to the URL  
+4. Capture with listing-capture mode (hides SAMPLE banner + demo chrome): add `listing=1` to the URL (`shot=1` still works). See [`LISTING_CAPTURE.md`](./LISTING_CAPTURE.md).  
 5. **After uploads:** Demo → **Turn sample desk OFF** (required before live smoke / reviewer)
 
 ---
@@ -137,6 +137,8 @@ E. ICON
 Captions + upload order: [`listing-assets/shots/CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md).
 
 ---
+
+**Current Partner five (desk routes):** Overview / Spend / Goals / LTV / Allocation — exact URLs in [`LISTING_CAPTURE.md`](./LISTING_CAPTURE.md). The table below is the older conversion-funnel crop list (`shot=1`); prefer `listing=1` so the yellow SAMPLE bar stays off.
 
 ## Screenshot story — order = conversion funnel
 

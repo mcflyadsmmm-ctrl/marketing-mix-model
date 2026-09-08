@@ -179,6 +179,18 @@ describe("formatCashFreshnessChip", () => {
     ).toMatch(/SAMPLE preview/i);
   });
 
+  it("omits SAMPLE preview chip in listing-capture mode", () => {
+    const label = formatCashFreshnessChip({
+      useSampleDesk: true,
+      listingCapture: true,
+      salesPulledAt: "2026-07-23T21:04:00.000Z",
+      lastAt: null,
+      source: "live",
+    });
+    expect(label).not.toMatch(/SAMPLE/i);
+    expect(label.startsWith("Last refreshed · Sales ")).toBe(true);
+  });
+
   it("prefers sales last-refreshed over snapshot theater", () => {
     const label = formatCashFreshnessChip({
       useSampleDesk: false,

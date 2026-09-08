@@ -10,6 +10,10 @@ import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import {
+  formatListingTillLabel,
+  listingCaptureFromRequest,
+} from "../lib/listing-capture";
+import {
   buildAllocationHistoryView,
   capHistoryDays,
   HISTORY_QUARTER_DAYS_CAP,
@@ -93,7 +97,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
   const preset = parsePeriodPreset(url.searchParams.get("period"));
-  const shotMode = url.searchParams.get("shot") === "1";
+  const shotMode = listingCaptureFromRequest(request);
   const shop = await ensureShop(session.shop);
   const now = new Date();
   const range = resolvePeriod(preset, now, shop.ianaTimezone);
@@ -231,17 +235,15 @@ export default function AllocationPage() {
   // Never build Monday advice from emptySales zeros after a sales load failure.
   const allocation = salesError ? null : metrics.allocation;
 
-  const tillLabel = useSampleDesk
-    ? `${metrics.period.label} · SAMPLE`
-    : shotMode
-      ? metrics.period.label
-      : salesError ||
-          metrics.blockedMockAsLive ||
-          metrics.salesSource === "mock"
-        ? `${metrics.period.label} · sales unavailable`
-        : factsIncomplete
-          ? `${metrics.period.label} · facts incomplete`
-          : `${metrics.period.label} · live sales`;
+  const tillLabel = formatListingTillLabel({
+    periodLabel: metrics.period.label,
+    useSampleDesk,
+    listingCapture: shotMode,
+    salesError: Boolean(salesError),
+    blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
+    salesSource: metrics.salesSource,
+    factsIncomplete,
+  });
 
   const cashLocked =
     !allocation &&
@@ -269,7 +271,7 @@ export default function AllocationPage() {
         className={[
           "mcfly-desk",
           "mcfly-alloc-v2",
-          shotMode ? "mcfly-desk--shot" : null,
+          shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
           isLoading && !shotMode ? "mcfly-desk--loading" : null,
         ]
