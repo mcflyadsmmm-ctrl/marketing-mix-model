@@ -361,6 +361,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       installedAt: shop.createdAt,
       now,
       shotMode,
+      scoreboardReady:
+        !salesError &&
+        hasLiveSpend &&
+        metrics.mer != null &&
+        !metrics.blockedMockAsLive &&
+        !useSampleDesk,
     }).ask,
   };
 };
@@ -840,6 +846,10 @@ export default function Dashboard() {
               </section>
             ) : null}
 
+            {!shotMode && scoreboardReady && !useSampleDesk ? (
+              <ReviewAsk eligible={reviewAskEligible} />
+            ) : null}
+
             {/* LTV snapshot — Spend + mix live in the Total Spend tile above */}
             {!shotMode && scoreboardReady ? (
               <div className="mcfly-tab-snaps mcfly-tab-snaps--solo" aria-label="Tab snapshots">
@@ -888,8 +898,6 @@ export default function Dashboard() {
                 <s-link href="/app/settings">Settings</s-link>
               </p>
             ) : null}
-
-            <ReviewAsk eligible={reviewAskEligible} />
           </>
         ) : null}
       </div>
