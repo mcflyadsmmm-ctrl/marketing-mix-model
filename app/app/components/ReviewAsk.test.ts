@@ -31,5 +31,7 @@ describe("ReviewAsk wiring", () => {
     expect(overview).toMatch(/scoreboardReady:/);
     expect(overview).toMatch(/!useSampleDesk/);
     expect(overview).toMatch(/salesError/);
+    expect(overview).toMatch(/historyLimited:/);
+    expect(overview).toMatch(/factsIncomplete:/);
   });
 });

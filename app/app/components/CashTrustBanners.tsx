@@ -12,6 +12,8 @@ import {
 } from "../lib/mer-trust";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { DeepHistoryBanner } from "./DeepHistoryBanner";
+import type { DeepHistoryHonestyKind } from "../lib/deep-history-honesty";
 
 type Props = {
   blockedMockAsLive: boolean;
@@ -52,6 +54,11 @@ type Props = {
   marginStale?: boolean;
   /** Cold-path next step when advice is locked (margin / spend missing). */
   onboarding?: { settingsSaved: boolean; hasSpend: boolean } | null;
+  /** Deep-history honesty — missing scope vs granted-but-backfilling. */
+  deepHistoryKind?: DeepHistoryHonestyKind;
+  shopDomain?: string;
+  /** When false, never use the 4-year fact-window banner (need the grant CTA). */
+  hasReadAllOrders?: boolean;
 };
 
 export function CashTrustBanners({
@@ -68,6 +75,9 @@ export function CashTrustBanners({
   belowBreakEven = null,
   marginStale = false,
   onboarding = null,
+  deepHistoryKind = "hidden",
+  shopDomain = "",
+  hasReadAllOrders = true,
 }: Props) {
   if (shotMode) return null;
 
@@ -93,25 +103,36 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {shopifyOrderWindowLimited ? (
+      {(deepHistoryKind === "missing_scope" ||
+        deepHistoryKind === "missing_scope_wide") &&
+      shopDomain ? (
+        <DeepHistoryBanner kind={deepHistoryKind} shopDomain={shopDomain} />
+      ) : null}
+
+      {shopifyOrderWindowLimited &&
+      hasReadAllOrders &&
+      deepHistoryKind !== "missing_scope" &&
+      deepHistoryKind !== "missing_scope_wide" ? (
         <s-banner tone="info" heading="Sales history limited for this period">
           <s-paragraph>
             {periodLabel} reaches before stored daily sales (back to Jan 1 four
-            years ago). Prefer a shorter period, wait for backfill, or try{" "}
-            <s-link href="/app/demo">{PRODUCT_NOUN.samplePreview}</s-link> for a
-            multi-year walkthrough.
+            years ago). Prefer a shorter period, or wait for backfill.
           </s-paragraph>
         </s-banner>
       ) : null}
 
       {salesFactsIncomplete &&
       salesFactsIncomplete.expectedClosedDays > 0 &&
-      !shopifyOrderWindowLimited ? (
+      !shopifyOrderWindowLimited &&
+      deepHistoryKind !== "missing_scope" &&
+      deepHistoryKind !== "missing_scope_wide" ? (
         <s-banner tone="info" heading="Sales facts still backfilling">
           <s-paragraph>
             Sales loaded for {salesFactsIncomplete.factDays} of{" "}
             {salesFactsIncomplete.expectedClosedDays} days in {periodLabel}.
-            Refresh in a few minutes for more coverage.
+            {deepHistoryKind === "backfilling"
+              ? " Deeper history is granted — this is filling, not broken."
+              : " Refresh in a few minutes for more coverage."}
           </s-paragraph>
         </s-banner>
       ) : null}
@@ -145,7 +166,10 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {!cashActionReady && !spendCoverage?.incomplete && spendRecon?.status !== "drift" ? (
+      {!cashActionReady &&
+      !salesFactsIncomplete &&
+      !spendCoverage?.incomplete &&
+      spendRecon?.status !== "drift" ? (
         <s-banner tone="info" heading="Almost ready">
           <s-paragraph>
             {!onboarding?.hasSpend

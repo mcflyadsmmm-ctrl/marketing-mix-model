@@ -35,6 +35,7 @@ import {
   getSalesFactsByDay,
   salesFactsBackfillWindowDayCount,
   salesDayFactWindowDayCount,
+  selectSalesFactsBackfillDays,
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
 import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
@@ -52,6 +53,48 @@ function fakeSales(totalSales = 0) {
     source: "shopify" as const,
   };
 }
+
+describe("selectSalesFactsBackfillDays", () => {
+  const oldestFirst = ["2026-07-01", "2026-07-02", "2026-08-01", "2026-09-07"];
+
+  it("defaults to newest-first so QTD / MTD fill before a 4-year crawl", () => {
+    expect(
+      selectSalesFactsBackfillDays({
+        missingOldestFirst: oldestFirst,
+        maxDays: 2,
+      }),
+    ).toEqual(["2026-09-07", "2026-08-01"]);
+  });
+
+  it("fills the selected period first, newest day inside it", () => {
+    expect(
+      selectSalesFactsBackfillDays({
+        missingOldestFirst: oldestFirst,
+        maxDays: 2,
+        priorityStartKey: "2026-07-01",
+        priorityEndKey: "2026-09-30",
+      }),
+    ).toEqual(["2026-09-07", "2026-08-01"]);
+    expect(
+      selectSalesFactsBackfillDays({
+        missingOldestFirst: oldestFirst,
+        maxDays: 1,
+        priorityStartKey: "2026-07-01",
+        priorityEndKey: "2026-07-31",
+      }),
+    ).toEqual(["2026-07-02"]);
+  });
+
+  it("can still walk oldest-first when a caller asks", () => {
+    expect(
+      selectSalesFactsBackfillDays({
+        missingOldestFirst: oldestFirst,
+        maxDays: 2,
+        newestFirst: false,
+      }),
+    ).toEqual(["2026-07-01", "2026-07-02"]);
+  });
+});
 
 describe("runSalesFactsBackfill", () => {
   beforeEach(() => {
@@ -74,6 +117,18 @@ describe("runSalesFactsBackfill", () => {
     expect(result.written).toBe(0);
     expect(fetchShopifySales).not.toHaveBeenCalled();
     expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it("ingests newest missing closed days first so QTD is not starved by a 4-year crawl", async () => {
+    ensureShopMetadata.mockResolvedValue({ ianaTimezone: "UTC", currencyCode: "USD" });
+    findMany.mockResolvedValue([]);
+    fetchShopifySales.mockResolvedValue(fakeSales(100));
+
+    const now = new Date("2026-07-15T12:00:00.000Z");
+    await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", { now, maxDays: 2 });
+
+    const firstRange = fetchShopifySales.mock.calls[0][1] as { label: string };
+    expect(firstRange.label).toBe("2026-07-14");
   });
 
   it("upserts one SalesDayFact per closed day on the shopId_day unique key, including zero-sales days", async () => {

@@ -40,7 +40,15 @@ import {
   loadDeskSalesForPeriod,
   salesFactsBlockLock,
 } from "../lib/sales-facts.server";
-import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
+import {
+  parsePeriodPreset,
+  periodMayExceedShopifyOrderWindow,
+  resolvePeriod,
+} from "../lib/periods";
+import {
+  resolveDeepHistoryHonesty,
+  scopesIncludeReadAllOrders,
+} from "../lib/deep-history-honesty";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
   fetchSampleSales,
@@ -213,6 +221,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesFactsIncomplete,
     factsIncomplete,
     shopifyOrderWindowLimited,
+    hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
+    shopDomain: session.shop,
+    periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
   };
 };
 
@@ -229,6 +240,9 @@ export default function AllocationPage() {
     salesFactsIncomplete,
     factsIncomplete,
     shopifyOrderWindowLimited,
+    hasReadAllOrders,
+    shopDomain,
+    periodWiderThanRecentWindow,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -243,6 +257,14 @@ export default function AllocationPage() {
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
     factsIncomplete,
+    recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
+  });
+  const deepHistory = resolveDeepHistoryHonesty({
+    hasReadAllOrders,
+    useSampleDesk,
+    shotMode,
+    factsIncomplete: Boolean(salesFactsIncomplete),
+    periodWiderThanRecentWindow,
   });
 
   const cashLocked =
@@ -293,6 +315,9 @@ export default function AllocationPage() {
             todaySalesUnavailable={todaySalesUnavailable}
             shotMode={shotMode}
             cashActionReady={metrics.cashActionReady}
+            deepHistoryKind={deepHistory.kind}
+            shopDomain={shopDomain}
+            hasReadAllOrders={hasReadAllOrders}
           />
         ) : null}
 

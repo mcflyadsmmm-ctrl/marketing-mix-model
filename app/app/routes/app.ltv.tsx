@@ -18,11 +18,24 @@ import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
-import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
+import {
+  loadDeskSalesForPeriod,
+  runSalesFactsBackfill,
+} from "../lib/sales-facts.server";
+import {
+  FIRST_PAINT_SALES_BACKFILL_DAYS,
+  enqueueSalesFactsBackfill,
+} from "../lib/sales-backfill-kick.server";
 import { authenticate } from "../shopify.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
+import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
+import {
+  resolveDeepHistoryHonesty,
+  scopesIncludeReadAllOrders,
+} from "../lib/deep-history-honesty";
+import { periodMayExceedShopifyOrderWindow } from "../lib/periods";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -54,7 +67,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     // Cohort OrderFact backfill — Pro / SAMPLE only (not Free live).
     if (entitlements.canUseLtv) {
       void runOrderFactsBackfill(admin, shop.id, {
-        maxDays: 2,
+        maxDays: 7,
         grantedScopes: session.scope,
       }).catch(() => {
         // ignore — page shows honest empty/backfill states until cohort facts land
@@ -64,6 +77,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
      * HARD-STOP: same as Home / Close / Allocation — never unbounded
      * fetchShopifySales for a multi-day period. Facts + capped today only.
      */
+    void runSalesFactsBackfill(admin, shop.id, {
+      maxDays: FIRST_PAINT_SALES_BACKFILL_DAYS,
+      grantedScopes: session.scope,
+      newestFirst: true,
+      priorityRange: range,
+    }).catch(() => {
+      // Overview / job tick own the sales hero; LTV still shows honest empty.
+    });
+    void enqueueSalesFactsBackfill({
+      shopId: shop.id,
+      grantedScopes: session.scope,
+      reason: "ltv_incomplete",
+    }).catch(() => {});
     const desk = await loadDeskSalesForPeriod({
       admin,
       shopId: shop.id,
@@ -92,6 +118,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesUnavailable,
     entitlements,
     canUseLtv: entitlements.canUseLtv,
+    hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
+    shopDomain: session.shop,
+    periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
   };
 };
 
@@ -105,6 +134,9 @@ export default function LtvPage() {
     todaySalesTruncated,
     todaySalesUnavailable,
     canUseLtv,
+    hasReadAllOrders,
+    shopDomain,
+    periodWiderThanRecentWindow,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -116,6 +148,16 @@ export default function LtvPage() {
     salesError: Boolean(salesError),
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
+    recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
+  });
+  const deepHistory = resolveDeepHistoryHonesty({
+    hasReadAllOrders,
+    useSampleDesk,
+    shotMode,
+    factsIncomplete:
+      !metrics.tillLtv.available &&
+      metrics.tillLtv.emptyReason === "backfilling",
+    periodWiderThanRecentWindow,
   });
 
   const custOk = metrics.customerMetricsAvailable;
@@ -183,6 +225,10 @@ export default function LtvPage() {
       >
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner note="Acquisition + cohort figures below use SAMPLE sales + spend — not your live Shopify orders." />
+        ) : null}
+
+        {!shotMode && !useSampleDesk && deepHistory.kind !== "hidden" ? (
+          <DeepHistoryBanner kind={deepHistory.kind} shopDomain={shopDomain} />
         ) : null}
 
         {isLoading && !shotMode ? (
@@ -538,8 +584,8 @@ export default function LtvPage() {
                   {metrics.tillLtv.emptyReason === "no_timezone"
                     ? "Shop timezone needed before customer cohorts can bucket by local day."
                     : metrics.tillLtv.emptyReason === "history_limited"
-                      ? "Order history on this shop covers about 60 days until the store grants deeper order access. Multi-year cohorts fill after that grant — order ids and amounts only."
-                      : "Backfilling customer cohorts — Lifetime Value lights up as facts land, including multi-year history once deeper order access is granted."}
+                      ? "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions."
+                      : "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken."}
                 </p>
               )}
             </section>
@@ -636,10 +682,10 @@ export default function LtvPage() {
                   </p>
                 )}
 
-                {metrics.tillLtv.historyLimited ? (
+                {metrics.tillLtv.historyLimited && !hasReadAllOrders ? (
                   <p className="mcfly-panel__note">
-                    Cohorts cover the recent order window. Grant deeper order
-                    access when Shopify prompts to unlock multi-year history —
+                    Cohorts cover the recent ~60-day window. Use Update
+                    permissions above so Shopify can share multi-year history —
                     still order ids and amounts only, no email CRM.
                   </p>
                 ) : null}

@@ -64,7 +64,8 @@ import {
 } from "../lib/sample-desk.server";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import { spendEmptyTeach } from "../lib/install-stickiness";
+import { isActivationQuery, spendEmptyTeach } from "../lib/install-stickiness";
+import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
 import prisma from "../db.server";
 import {
   SPEND_CHANNELS,
@@ -266,6 +267,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const spendRecon = declaredMatches
     ? computeSpendRecon(periodSpendTotal, settings?.declaredAdsSpend)
     : computeSpendRecon(periodSpendTotal, null);
+
+  if (!sampleDesk.enabled && !shotMode) {
+    void enqueueSalesFactsBackfill({
+      shopId: shop.id,
+      grantedScopes: session.scope,
+      reason: "spend_open",
+    }).catch(() => {
+      // Overview / auth / tick still own the fill path
+    });
+  }
 
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: sampleDesk.enabled,
@@ -1111,6 +1122,15 @@ export default function SpendEntryPage() {
           <SampleDeskBanner note="SAMPLE data is on. Turn it off before uploading your real spend." />
         ) : null}
 
+        {isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled ? (
+          <s-banner tone="info" heading="Step 2 of 3 — upload spend">
+            <s-paragraph>
+              Download the blank daily CSV. Fill Meta / Google / Other. Upload.
+              Then {PRODUCT_NOUN.totalRoas} is Shopify sales ÷ that spend.
+            </s-paragraph>
+          </s-banner>
+        ) : null}
+
         {csvNeedsConfirm && csv ? (
           <s-banner tone="warning" heading="Same days already on the desk">
             <s-paragraph>
@@ -1162,23 +1182,14 @@ export default function SpendEntryPage() {
               <s-paragraph>{csv.salesWindowWarning}</s-paragraph>
             ) : null}
             <div className="mcfly-spend-lean__banner-actions">
+              <s-button href="/app?stay=1" variant="primary">
+                {PRODUCT_NOUN.openTotalRoas}
+              </s-button>
               {holeCount > 0 ? (
-                <>
-                  <s-button
-                    variant="secondary"
-                    href={missingDatesHref}
-                  >
-                    Download blank for missing days
-                  </s-button>
-                  <s-button href="/app" variant="tertiary">
-                    View {PRODUCT_NOUN.totalRoas}
-                  </s-button>
-                </>
-              ) : (
-                <s-button href="/app" variant="primary">
-                  {PRODUCT_NOUN.openTotalRoas}
+                <s-button variant="secondary" href={missingDatesHref}>
+                  Download blank for missing days
                 </s-button>
-              )}
+              ) : null}
             </div>
             {csvErrorGroups ? <CsvErrorGroups grouped={csvErrorGroups} /> : null}
           </s-banner>
@@ -1187,7 +1198,7 @@ export default function SpendEntryPage() {
         {manualSaved ? (
           <s-banner tone="success" heading="Spend saved">
             <s-paragraph>
-              <s-link href="/app">{PRODUCT_NOUN.openTotalRoas}</s-link>
+              <s-link href="/app?stay=1">{PRODUCT_NOUN.openTotalRoas}</s-link>
               {" · "}or upload another CSV below.
             </s-paragraph>
           </s-banner>

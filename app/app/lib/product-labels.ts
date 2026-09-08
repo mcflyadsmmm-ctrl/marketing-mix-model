@@ -32,6 +32,12 @@ export const PRODUCT_NOUN = {
     "Total ROAS = Shopify Total Sales ÷ spend (after returns)",
   /** Clarify vs platform / path ROAS — use once under KPIs, not every banner */
   notTrueRoas: "Sales ÷ spend. Not platform ROAS.",
+  /**
+   * Anti-attribution one-liner — Settings / Overview help.
+   * Cash Total ROAS is spend the merchant added, not pixels / MTA.
+   */
+  cashNotAttribution:
+    "Total ROAS is Shopify sales ÷ the spend you added — not pixel attribution.",
   /** Calm MDS trust line — sales-backed */
   mdsTrust:
     "Marketing Data Science from Shopify Total Sales.",

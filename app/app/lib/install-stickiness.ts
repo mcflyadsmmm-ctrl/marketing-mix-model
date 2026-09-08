@@ -25,7 +25,9 @@ export type ReviewAskReason =
   | "untrusted_mer"
   | "too_soon"
   | "shot"
-  | "empty";
+  | "empty"
+  | "history_limited"
+  | "incomplete";
 
 export type ReviewAskRevealReason =
   | "ok"
@@ -135,8 +137,8 @@ export function spendEmptyTeach(options?: {
 }): SpendEmptyTeach {
   const primaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
   return {
-    heading: `Add spend in under ${FIRST_TRUSTED_MER_MINUTES} minutes`,
-    body: `Download the blank daily CSV, fill Meta / Google / Other, upload. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    heading: `Upload spend — trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_TRUSTED_MER_MINUTES} minutes`,
+    body: `Download the blank daily CSV. Fill Meta / Google / Other. Upload. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     primaryLabel: "Download blank template",
     primaryHref,
     steps: [
@@ -159,7 +161,7 @@ export function isTrustedMer(input: {
   if (!input.hasLiveSpend) return false;
   if (input.blockedMockAsLive) return false;
   if (input.salesError) return false;
-  return input.mer != null && Number.isFinite(input.mer);
+  return input.mer != null && Number.isFinite(input.mer) && input.mer > 0;
 }
 
 function toEpochMs(value: Date | string | number | null | undefined): number | null {
@@ -184,10 +186,16 @@ export function decideReviewAsk(input: {
   shotMode?: boolean;
   /** Live Total ROAS is on screen — not cold empty / sales error. */
   scoreboardReady?: boolean;
+  /** Long period without read_all_orders — charts are history-capped. */
+  historyLimited?: boolean;
+  /** Sales facts still backfilling — do not ask over incomplete coverage. */
+  factsIncomplete?: boolean;
 }): ReviewAskDecision {
   if (input.shotMode) return { ask: false, reason: "shot" };
   if (input.useSampleDesk) return { ask: false, reason: "sample" };
   if (input.scoreboardReady === false) return { ask: false, reason: "empty" };
+  if (input.historyLimited) return { ask: false, reason: "history_limited" };
+  if (input.factsIncomplete) return { ask: false, reason: "incomplete" };
   if (!input.trustedMer) return { ask: false, reason: "untrusted_mer" };
   const installedAt = toEpochMs(input.installedAt);
   if (installedAt == null) {

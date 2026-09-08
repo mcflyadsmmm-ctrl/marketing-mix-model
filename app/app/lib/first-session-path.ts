@@ -138,8 +138,8 @@ function emptyCopy(
 > {
   if (kind === "spend_only") {
     return {
-      heading: PRODUCT_NOUN.setupAddSpend,
-      body: `Margin is set. Upload daily Spend CSV to unlock ${PRODUCT_NOUN.totalRoas} (${PRODUCT_NOUN.definition}). Then ${PRODUCT_NOUN.spendAllocation}.`,
+      heading: "Upload spend — then the number is inevitable",
+      body: `Margin is set. Upload daily Spend CSV. ${PRODUCT_NOUN.definition}. No ad-network login.`,
       primaryHref: withSearch("/app/spend", search),
       primaryLabel: PRODUCT_NOUN.setupAddSpend,
       footerLinks: [
@@ -156,8 +156,8 @@ function emptyCopy(
   }
 
   return {
-    heading: `Get ${PRODUCT_NOUN.totalRoas} in ~${FIRST_SESSION_MINUTES} minutes`,
-    body: `Start with profit margin (sets break-even). Then upload Spend CSV. Read ${PRODUCT_NOUN.definition}. Finish on ${PRODUCT_NOUN.spendAllocation}.`,
+    heading: `Trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes`,
+    body: `Save profit margin (unlocks break-even). Upload daily Spend CSV. Read ${PRODUCT_NOUN.definition}. That’s the whole desk.`,
     primaryHref: withSearch("/app/settings", search),
     primaryLabel: PRODUCT_NOUN.setupAdjustMargin,
     footerLinks: [

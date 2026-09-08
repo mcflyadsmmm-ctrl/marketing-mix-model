@@ -29,6 +29,12 @@ import { parseSalesBasis } from "../lib/sales-basis";
 import { getSampleDeskEnabled, getSamplePreviewAllowed } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
+import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
+import {
+  CASH_NOT_ATTRIBUTION,
+  resolveDeepHistoryHonesty,
+  scopesIncludeReadAllOrders,
+} from "../lib/deep-history-honesty";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import {
   getComplianceDataExportPackage,
@@ -39,6 +45,7 @@ import {
   syncShopProFromShopify,
 } from "../lib/billing.server";
 import { isBillingEnabled } from "../lib/billing-flag.server";
+import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -75,6 +82,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  if (!useSampleDesk && !shotMode) {
+    void enqueueSalesFactsBackfill({
+      shopId: shop.id,
+      grantedScopes: session.scope,
+      reason: "settings_open",
+    }).catch(() => {
+      // Overview / auth / tick still own the fill path
+    });
+  }
   const samplePreviewAllowed = await getSamplePreviewAllowed(shop.id);
   const marginConfirmed = marginIsConfirmed(settings);
   const liveSpendCount = await prisma.spendEntry.count({
@@ -99,6 +115,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     samplePreviewAllowed,
     complianceExports,
     billing,
+    hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
+    shopDomain: session.shop,
   };
 };
 
@@ -214,6 +232,8 @@ export default function SettingsPage() {
     samplePreviewAllowed,
     complianceExports,
     billing,
+    hasReadAllOrders,
+    shopDomain,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -319,17 +339,30 @@ export default function SettingsPage() {
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              {PRODUCT_NOUN.definition}. Set your target. Profit margin is
+              {CASH_NOT_ATTRIBUTION} Set your target. Profit margin is
               optional — only if you want break-even.
             </p>
           </div>
         </header>
 
+        {!shotMode && !useSampleDesk && hasLiveSpend ? (
+          <DeepHistoryBanner
+            kind={
+              resolveDeepHistoryHonesty({
+                hasReadAllOrders,
+                useSampleDesk,
+                shotMode,
+              }).kind
+            }
+            shopDomain={shopDomain}
+          />
+        ) : null}
+
         {isActivationQuery(location.search) && !shotMode ? (
-          <s-banner tone="info" heading="Step 1 of 3 — confirm margin">
+          <s-banner tone="info" heading="Step 1 of 3 — 30 seconds">
             <s-paragraph>
-              Contribution margin locks break-even. Then download a Spend CSV
-              template and read {PRODUCT_NOUN.totalRoas} (sales ÷ spend).
+              Save contribution margin to unlock break-even. Next: upload daily
+              spend. Then {PRODUCT_NOUN.totalRoas} is Shopify sales ÷ that spend.
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               <s-link href={spendSkipHref(location.search)}>
