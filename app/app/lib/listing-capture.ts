@@ -109,6 +109,8 @@ export function formatListingTillLabel(input: {
   blockedMockAsLive?: boolean;
   salesSource?: string | null;
   factsIncomplete?: boolean;
+  /** Token lacks read_all_orders — recent Shopify window, not a dead desk. */
+  recentWindowOnly?: boolean;
 }): string {
   if (input.listingCapture) {
     return input.periodLabel;
@@ -122,6 +124,9 @@ export function formatListingTillLabel(input: {
     input.salesSource === "mock"
   ) {
     return `${input.periodLabel} · sales unavailable`;
+  }
+  if (input.recentWindowOnly) {
+    return `${input.periodLabel} · recent ~60 days`;
   }
   if (input.factsIncomplete) {
     return `${input.periodLabel} · facts incomplete`;

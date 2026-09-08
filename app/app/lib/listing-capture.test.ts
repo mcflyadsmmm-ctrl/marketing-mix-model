@@ -115,6 +115,18 @@ describe("formatListingTillLabel", () => {
       }),
     ).toBe("YTD · live sales");
   });
+
+  it("labels a missing deep-history token as a recent window, not a dead desk", () => {
+    expect(
+      formatListingTillLabel({
+        periodLabel: "L12M",
+        useSampleDesk: false,
+        listingCapture: false,
+        factsIncomplete: true,
+        recentWindowOnly: true,
+      }),
+    ).toBe("L12M · recent ~60 days");
+  });
 });
 
 describe("listing-capture chrome (source + CSS)", () => {

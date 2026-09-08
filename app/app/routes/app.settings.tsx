@@ -29,6 +29,12 @@ import { parseSalesBasis } from "../lib/sales-basis";
 import { getSampleDeskEnabled, getSamplePreviewAllowed } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
+import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
+import {
+  CASH_NOT_ATTRIBUTION,
+  resolveDeepHistoryHonesty,
+  scopesIncludeReadAllOrders,
+} from "../lib/deep-history-honesty";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import {
   getComplianceDataExportPackage,
@@ -99,6 +105,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     samplePreviewAllowed,
     complianceExports,
     billing,
+    hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
+    shopDomain: session.shop,
   };
 };
 
@@ -214,6 +222,8 @@ export default function SettingsPage() {
     samplePreviewAllowed,
     complianceExports,
     billing,
+    hasReadAllOrders,
+    shopDomain,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -319,11 +329,24 @@ export default function SettingsPage() {
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              {PRODUCT_NOUN.definition}. Set your target. Profit margin is
+              {CASH_NOT_ATTRIBUTION} Set your target. Profit margin is
               optional — only if you want break-even.
             </p>
           </div>
         </header>
+
+        {!shotMode && !useSampleDesk ? (
+          <DeepHistoryBanner
+            kind={
+              resolveDeepHistoryHonesty({
+                hasReadAllOrders,
+                useSampleDesk,
+                shotMode,
+              }).kind
+            }
+            shopDomain={shopDomain}
+          />
+        ) : null}
 
         {isActivationQuery(location.search) && !shotMode ? (
           <s-banner tone="info" heading="Step 1 of 3 — confirm margin">

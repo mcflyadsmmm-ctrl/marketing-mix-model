@@ -34,6 +34,12 @@ import {
   isTrustedMer,
 } from "../lib/install-stickiness";
 import { ReviewAsk } from "../components/ReviewAsk";
+import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
+import {
+  CASH_NOT_ATTRIBUTION,
+  resolveDeepHistoryHonesty,
+  scopesIncludeReadAllOrders,
+} from "../lib/deep-history-honesty";
 import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
@@ -63,6 +69,7 @@ import {
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import {
   parsePeriodPreset,
+  periodMayExceedShopifyOrderWindow,
   resolvePeriod,
   resolvePriorPeriod,
   type PeriodPreset,
@@ -355,6 +362,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shopLabel: session.shop,
     marginConfirmed: marginIsConfirmed(settings),
     hasLiveSpend,
+    hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
+    shopDomain: session.shop,
+    periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
     reviewAskEligible: decideReviewAsk({
       useSampleDesk,
       trustedMer: isTrustedMer({
@@ -373,6 +383,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         metrics.mer != null &&
         !metrics.blockedMockAsLive &&
         !useSampleDesk,
+      historyLimited:
+        !useSampleDesk &&
+        !scopesIncludeReadAllOrders(session.scope) &&
+        periodMayExceedShopifyOrderWindow(range),
+      factsIncomplete:
+        !useSampleDesk &&
+        salesFactsCoverageForBanner != null &&
+        !salesFactsCoverageForBanner.complete &&
+        salesFactsCoverageForBanner.expectedClosedDays > 0,
     }).ask,
   };
 };
@@ -400,6 +419,9 @@ export default function Dashboard() {
     shopLabel,
     marginConfirmed,
     hasLiveSpend,
+    hasReadAllOrders,
+    shopDomain,
+    periodWiderThanRecentWindow,
     reviewAskEligible,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
@@ -417,6 +439,7 @@ export default function Dashboard() {
       salesFactsCoverage != null &&
       !salesFactsCoverage.complete &&
       !salesFactsCoverage.periodExceedsFactWindow,
+    recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
   });
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk,
@@ -431,6 +454,17 @@ export default function Dashboard() {
     hasLiveSpend,
     useSampleDesk,
     shotMode,
+  });
+  const factsIncompleteForHonesty =
+    salesFactsCoverage != null &&
+    !salesFactsCoverage.complete &&
+    salesFactsCoverage.expectedClosedDays > 0;
+  const deepHistory = resolveDeepHistoryHonesty({
+    hasReadAllOrders,
+    useSampleDesk,
+    shotMode,
+    factsIncomplete: factsIncompleteForHonesty,
+    periodWiderThanRecentWindow,
   });
   const coldEmpty = firstSession.showColdEmpty;
   // Cash MER paints once any live spend exists — margin only unlocks break-even.
@@ -538,6 +572,9 @@ export default function Dashboard() {
             }
           : null
       }
+      deepHistoryKind="hidden"
+      shopDomain={shopDomain}
+      hasReadAllOrders={hasReadAllOrders}
     />
   );
 
@@ -567,6 +604,14 @@ export default function Dashboard() {
       >
         {/* SAMPLE chrome only when ON — never competes with live KPI story. */}
         {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
+
+        {!shotMode && !useSampleDesk && deepHistory.showGrantCta ? (
+          <DeepHistoryBanner
+            kind={deepHistory.kind}
+            shopDomain={shopDomain}
+            showCashReligion
+          />
+        ) : null}
 
         {/* Cold path: trust can sit above the one empty. Live ready: defer below KPIs. */}
         {coldEmpty || (!scoreboardReady && !useSampleDesk)
@@ -624,6 +669,11 @@ export default function Dashboard() {
             ) : null}
           </div>
         </div>
+        {!shotMode ? (
+          <p className="mcfly-topbar__def mcfly-topbar__def--solo">
+            {CASH_NOT_ATTRIBUTION}
+          </p>
+        ) : null}
 
         {coldEmpty ? (
           <div className="mcfly-cold-empty">
@@ -656,99 +706,6 @@ export default function Dashboard() {
               </s-grid>
             </s-section>
           </div>
-        ) : null}
-
-        {/* Wave 2: Polaris empties own TTFV — hide leftover guide while empties show. */}
-        {metrics.onboarding.showGuide &&
-        !shotMode &&
-        !coldEmpty ? (
-          <section className="mcfly-guide" aria-label={`First ${PRODUCT_NOUN.totalRoas} setup`}>
-            <div className="mcfly-guide__head">
-              <p className="mcfly-guide__title">
-                First {PRODUCT_NOUN.totalRoas} in under 10 minutes
-              </p>
-              <p className="mcfly-guide__sub">
-                Sales load automatically. Set a Total ROAS target, add spend,
-                then read cash Total ROAS. Profit margin is optional for
-                break-even.
-              </p>
-            </div>
-            <ol className="mcfly-guide__steps">
-              <li className="mcfly-guide__step mcfly-guide__step--done">
-                <span className="mcfly-guide__n" aria-hidden="true">
-                  ✓
-                </span>
-                <div className="mcfly-guide__body">
-                  <p className="mcfly-guide__step-title">
-                    Set Total ROAS target
-                  </p>
-                  <p className="mcfly-guide__step-copy">
-                    Operating goal (e.g. 4.0×). Margin is optional — only if you
-                    want break-even.
-                  </p>
-                  <p className="mcfly-guide__step-state">
-                    Target {formatMer(metrics.targetMer)}
-                    {metrics.breakEvenMer != null
-                      ? ` · break-even ${formatMer(metrics.breakEvenMer)}`
-                      : " · margin optional"}
-                  </p>
-                  <s-button href="/app/settings" variant="tertiary">
-                    Open Settings
-                  </s-button>
-                </div>
-              </li>
-              <li
-                className={
-                  metrics.onboarding.hasSpend
-                    ? "mcfly-guide__step mcfly-guide__step--done"
-                    : "mcfly-guide__step"
-                }
-              >
-                <span className="mcfly-guide__n" aria-hidden="true">
-                  {metrics.onboarding.hasSpend ? "✓" : "2"}
-                </span>
-                <div className="mcfly-guide__body">
-                  <p className="mcfly-guide__step-title">
-                    {PRODUCT_NOUN.setupAddSpend}
-                  </p>
-                  <p className="mcfly-guide__step-copy">
-                    Logged Spend via CSV — upload or paste Day + channel columns
-                    from Sheets. No ad network logins.
-                  </p>
-                  {metrics.onboarding.hasSpend ? (
-                    <p className="mcfly-guide__step-state">
-                      Logged · {formatCurrency(metrics.totalSpend)} this period
-                    </p>
-                  ) : (
-                    <s-button href="/app/spend" variant="primary">
-                      {PRODUCT_NOUN.setupAddSpend}
-                    </s-button>
-                  )}
-                </div>
-              </li>
-              <li className="mcfly-guide__step">
-                <span className="mcfly-guide__n" aria-hidden="true">
-                  3
-                </span>
-                <div className="mcfly-guide__body">
-                  <p className="mcfly-guide__step-title">
-                    Read Total ROAS — share if you want
-                  </p>
-                  <p className="mcfly-guide__step-copy">
-                    See sales ÷ spend vs break-even. Share Overview emails or
-                    copies the summary yourself — Mcfly does not send mail.
-                  </p>
-                  <s-button href="/app" variant="secondary">
-                    {PRODUCT_NOUN.openTotalRoas}
-                  </s-button>
-                </div>
-              </li>
-            </ol>
-            <p className="mcfly-guide__foot">
-              Want a labeled walkthrough first?{" "}
-              <s-link href="/app/demo">Try SAMPLE preview</s-link>
-            </p>
-          </section>
         ) : null}
 
         {!coldEmpty ? (
@@ -1005,8 +962,8 @@ function LtvSnapSection({
           {tillLtv.emptyReason === "no_timezone"
             ? "Shop timezone needed before customer cohorts can bucket by local day."
             : tillLtv.emptyReason === "history_limited"
-              ? `Recent order window only — open ${PRODUCT_NOUN.ltvTitle} after granting deeper order access.`
-              : `Backfilling cohorts — open ${PRODUCT_NOUN.ltvTitle} for progress.`}
+              ? `Recent ~60-day window — grant deeper order access so LTV can fill. Not permanently empty.`
+              : `Backfilling cohorts — open ${PRODUCT_NOUN.ltvTitle} for progress. Not broken.`}
         </p>
       )}
 

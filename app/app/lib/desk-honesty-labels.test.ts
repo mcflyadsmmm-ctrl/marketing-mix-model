@@ -75,6 +75,19 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(ltv).not.toMatch(/when Shopify approves broader order access/i);
     expect(overview).not.toMatch(/Order history is limited — open/);
   });
+
+  it("offers a Partner-safe /auth grant CTA and does not call LTV permanently dead", () => {
+    expect(overview).toContain("DeepHistoryBanner");
+    expect(ltv).toContain("DeepHistoryBanner");
+    expect(overview).toContain("CASH_NOT_ATTRIBUTION");
+    expect(ltv).toMatch(/not permanently dead/);
+    expect(ltv).toMatch(/filling, not broken/);
+  });
+
+  it("does not render the leftover Overview brochure guide", () => {
+    expect(overview).not.toContain("mcfly-guide__steps");
+    expect(overview).not.toMatch(/Profit margin is optional for\s+break-even/);
+  });
 });
 
 describe("Primary nav always visible (Real store)", () => {

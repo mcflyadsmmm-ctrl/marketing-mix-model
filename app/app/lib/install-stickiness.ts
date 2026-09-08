@@ -25,7 +25,9 @@ export type ReviewAskReason =
   | "untrusted_mer"
   | "too_soon"
   | "shot"
-  | "empty";
+  | "empty"
+  | "history_limited"
+  | "incomplete";
 
 export type ReviewAskRevealReason =
   | "ok"
@@ -184,10 +186,16 @@ export function decideReviewAsk(input: {
   shotMode?: boolean;
   /** Live Total ROAS is on screen — not cold empty / sales error. */
   scoreboardReady?: boolean;
+  /** Long period without read_all_orders — charts are history-capped. */
+  historyLimited?: boolean;
+  /** Sales facts still backfilling — do not ask over incomplete coverage. */
+  factsIncomplete?: boolean;
 }): ReviewAskDecision {
   if (input.shotMode) return { ask: false, reason: "shot" };
   if (input.useSampleDesk) return { ask: false, reason: "sample" };
   if (input.scoreboardReady === false) return { ask: false, reason: "empty" };
+  if (input.historyLimited) return { ask: false, reason: "history_limited" };
+  if (input.factsIncomplete) return { ask: false, reason: "incomplete" };
   if (!input.trustedMer) return { ask: false, reason: "untrusted_mer" };
   const installedAt = toEpochMs(input.installedAt);
   if (installedAt == null) {

@@ -258,6 +258,29 @@ describe("decideReviewAsk", () => {
       }).reason,
     ).toBe("shot");
   });
+
+  it("refuses history-limited and backfilling desks even when MER looks trusted", () => {
+    expect(
+      decideReviewAsk({
+        useSampleDesk: false,
+        trustedMer: true,
+        installedAt: INSTALLED_OK,
+        now: NOW,
+        scoreboardReady: true,
+        historyLimited: true,
+      }).reason,
+    ).toBe("history_limited");
+    expect(
+      decideReviewAsk({
+        useSampleDesk: false,
+        trustedMer: true,
+        installedAt: INSTALLED_OK,
+        now: NOW,
+        scoreboardReady: true,
+        factsIncomplete: true,
+      }).reason,
+    ).toBe("incomplete");
+  });
 });
 
 describe("decideReviewAskReveal", () => {

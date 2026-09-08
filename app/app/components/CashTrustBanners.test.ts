@@ -24,4 +24,12 @@ describe("CashTrustBanners today honesty", () => {
     expect(source).not.toMatch(/Ads Manager often ignores returns/i);
     expect(source).not.toMatch(/not Platform ROAS/i);
   });
+
+  it("does not call a missing-scope desk broken — grant CTA + backfilling after grant", () => {
+    expect(source).toContain("DeepHistoryBanner");
+    expect(source).toContain("deepHistoryKind");
+    expect(source).toContain("missing_scope_wide");
+    expect(source).toMatch(/this is filling, not broken/);
+    expect(source).not.toMatch(/permanently (empty|limited|dead)/i);
+  });
 });
