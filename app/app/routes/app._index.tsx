@@ -28,6 +28,12 @@ import {
   firstSessionPrimaryAction,
   resolveFirstSessionPath,
 } from "../lib/first-session-path";
+import {
+  decideReviewAsk,
+  firstOpenRedirect,
+  isTrustedMer,
+} from "../lib/install-stickiness";
+import { ReviewAsk } from "../components/ReviewAsk";
 import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
@@ -115,9 +121,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const exTo = parseExplorerDateParam(url.searchParams.get("exTo"));
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
-  const liveSpendCount = await prisma.spendEntry.count({
-    where: { shopId: shop.id, NOT: { source: "sample" } },
+  const [liveSpendCount, useSampleDesk] = await Promise.all([
+    prisma.spendEntry.count({
+      where: { shopId: shop.id, NOT: { source: "sample" } },
+    }),
+    getSampleDeskEnabled(shop.id),
+  ]);
+  const hasLiveSpend = liveSpendCount > 0;
+  const activateBounce = firstOpenRedirect({
+    pathname: "/app",
+    search: url.search,
+    marginConfirmed: marginIsConfirmed(settings),
+    hasLiveSpend,
+    useSampleDesk,
+    shotMode,
   });
+  if (activateBounce) {
+    throw redirect(activateBounce);
+  }
   // Overview locks to Shopify Total Sales (after returns) — no Net toggle on this desk.
   const salesBasis = "total" as const;
   const ianaTimezone = shop.ianaTimezone;
@@ -125,7 +146,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Shop-local calendar when IANA is known; otherwise legacy server-local edges.
   const range = resolvePeriod(preset, now, ianaTimezone);
   const priorRange = resolvePriorPeriod(preset, now, ianaTimezone);
-  const useSampleDesk = await getSampleDeskEnabled(shop.id);
 
   let sales: SalesResult = emptySales("shopify");
   /** Null when prior facts are outside the window / failed — skip deltas (never fake 0). */
@@ -324,7 +344,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
     marginConfirmed: marginIsConfirmed(settings),
-    hasLiveSpend: liveSpendCount > 0,
+    hasLiveSpend,
+    reviewAskEligible: decideReviewAsk({
+      useSampleDesk,
+      trustedMer: isTrustedMer({
+        useSampleDesk,
+        hasLiveSpend,
+        mer: metrics.mer,
+        blockedMockAsLive: metrics.blockedMockAsLive,
+        salesError,
+      }),
+      installedAt: shop.createdAt,
+      now,
+      shotMode,
+    }).ask,
   };
 };
 
@@ -351,6 +384,7 @@ export default function Dashboard() {
     shopLabel,
     marginConfirmed,
     hasLiveSpend,
+    reviewAskEligible,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -850,6 +884,8 @@ export default function Dashboard() {
                 <s-link href="/app/settings">Settings</s-link>
               </p>
             ) : null}
+
+            <ReviewAsk eligible={reviewAskEligible} />
           </>
         ) : null}
       </div>
