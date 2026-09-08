@@ -595,18 +595,20 @@ export default function LtvPage() {
                   </div>
                 </div>
               ) : (
-                <p className="mcfly-state__copy">
-                  {metrics.tillLtv.emptyReason === "no_timezone"
-                    ? "Shop timezone needed before customer cohorts can bucket by local day."
-                    : metrics.tillLtv.emptyReason === "history_limited"
-                      ? "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions."
-                      : "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken."}
-                </p>
-                <div className="mcfly-state__cta">
-                  <s-button href={ltvEmpty.nextHref} variant="secondary">
-                    {ltvEmpty.nextLabel}
-                  </s-button>
-                </div>
+                <>
+                  <p className="mcfly-state__copy">
+                    {metrics.tillLtv.emptyReason === "no_timezone"
+                      ? "Shop timezone needed before customer cohorts can bucket by local day."
+                      : metrics.tillLtv.emptyReason === "history_limited"
+                        ? "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions."
+                        : "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken."}
+                  </p>
+                  <div className="mcfly-state__cta">
+                    <s-button href={ltvEmpty.nextHref} variant="secondary">
+                      {ltvEmpty.nextLabel}
+                    </s-button>
+                  </div>
+                </>
               )}
             </section>
 
