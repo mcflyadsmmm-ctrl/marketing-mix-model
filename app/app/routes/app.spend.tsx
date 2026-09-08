@@ -65,6 +65,7 @@ import {
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { spendEmptyTeach } from "../lib/install-stickiness";
+import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
 import prisma from "../db.server";
 import {
   SPEND_CHANNELS,
@@ -266,6 +267,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const spendRecon = declaredMatches
     ? computeSpendRecon(periodSpendTotal, settings?.declaredAdsSpend)
     : computeSpendRecon(periodSpendTotal, null);
+
+  if (!sampleDesk.enabled && !shotMode) {
+    void enqueueSalesFactsBackfill({
+      shopId: shop.id,
+      grantedScopes: session.scope,
+      reason: "spend_open",
+    }).catch(() => {
+      // Overview / auth / tick still own the fill path
+    });
+  }
 
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: sampleDesk.enabled,

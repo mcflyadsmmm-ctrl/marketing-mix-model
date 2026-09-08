@@ -34,5 +34,19 @@ describe("Deep history grant surfaces", () => {
     expect(auth).toContain("session.scope");
     expect(auth).toContain("runSalesFactsBackfill");
     expect(auth).toContain("runOrderFactsBackfill");
+    expect(auth).toContain("enqueueSalesFactsBackfill");
+    expect(auth).toContain("newestFirst: true");
+  });
+});
+
+describe("Job tick resumes sales facts", () => {
+  it("re-enqueues remaining newest-first work instead of completing and going idle", () => {
+    const runner = readFileSync(
+      join(here, "../lib/job-runner.server.ts"),
+      "utf8",
+    );
+    expect(runner).toContain("newestFirst: true");
+    expect(runner).toContain("salesFactsBackfillShouldContinue");
+    expect(runner).toContain("enqueueSalesFactsBackfill");
   });
 });

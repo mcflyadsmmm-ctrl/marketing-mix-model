@@ -68,6 +68,14 @@ import {
 } from "../lib/sales-facts.server";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import {
+  FIRST_PAINT_SALES_BACKFILL_DAYS,
+  enqueueSalesFactsBackfill,
+} from "../lib/sales-backfill-kick.server";
+import {
+  resolveTrustedRoasHero,
+  UNTRUSTED_ZERO_ROAS_COPY,
+} from "../lib/trusted-roas-hero";
+import {
   parsePeriodPreset,
   periodMayExceedShopifyOrderWindow,
   resolvePeriod,
@@ -213,7 +221,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
      *
      * Always serve stored SalesDayFact (+ honesty banners when incomplete /
      * periodExceedsFactWindow). Live GraphQL is only the capped "today" top-up
-     * (LIVE_TODAY_MAX_PAGES). Fire-and-forget backfill stays chunked (maxDays: 2).
+     * (LIVE_TODAY_MAX_PAGES). First paint awaits a newest-first period chunk;
+     * the job tick resumes the rest.
      */
     let mainCoverage: SalesFactsCoverage = {
       expectedClosedDays: 0,
@@ -236,18 +245,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Coverage read failed — still facts-only below (never unbounded live crawl).
     }
 
-    // Chunked resume only — never full history inside this request.
+    // First paint: await a newest-first chunk of the *selected* period so QTD
+    // cannot sit on $0 sales / 0.00 ROAS while 4-year oldest days crawl.
+    // Remainder is coalesced onto the job tick — never unbounded GraphQL.
     if (!mainCoverage.complete || !dayCoverage.complete) {
-      void runSalesFactsBackfill(admin, shop.id, {
-        maxDays: 2,
+      try {
+        await runSalesFactsBackfill(admin, shop.id, {
+          maxDays: FIRST_PAINT_SALES_BACKFILL_DAYS,
+          grantedScopes: session.scope,
+          newestFirst: true,
+          priorityRange: range,
+        });
+      } catch {
+        // ignore — hero + banners disclose incomplete facts
+      }
+      void enqueueSalesFactsBackfill({
+        shopId: shop.id,
         grantedScopes: session.scope,
+        reason: "overview_incomplete",
       }).catch(() => {
-        // ignore — banners disclose incomplete facts
+        // tick will retry on the next enqueue
       });
     }
-    // Till LTV OrderFact ingest — throttled like sales facts (≤2 closed days / paint).
+    // Till LTV OrderFact ingest — fire-and-forget; sales hero is the money path.
     void runOrderFactsBackfill(admin, shop.id, {
-      maxDays: 2,
+      maxDays: 7,
       grantedScopes: session.scope,
     }).catch(() => {
       // ignore — panel shows empty/backfilling until cohorts land
@@ -389,9 +411,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         periodMayExceedShopifyOrderWindow(range),
       factsIncomplete:
         !useSampleDesk &&
-        salesFactsCoverageForBanner != null &&
-        !salesFactsCoverageForBanner.complete &&
-        salesFactsCoverageForBanner.expectedClosedDays > 0,
+        (salesFactsCoverageForBanner == null ||
+          (!salesFactsCoverageForBanner.complete &&
+            salesFactsCoverageForBanner.expectedClosedDays > 0)),
     }).ask,
   };
 };
@@ -456,9 +478,10 @@ export default function Dashboard() {
     shotMode,
   });
   const factsIncompleteForHonesty =
-    salesFactsCoverage != null &&
-    !salesFactsCoverage.complete &&
-    salesFactsCoverage.expectedClosedDays > 0;
+    !useSampleDesk &&
+    (salesFactsCoverage == null ||
+      (!salesFactsCoverage.complete &&
+        salesFactsCoverage.expectedClosedDays > 0));
   const deepHistory = resolveDeepHistoryHonesty({
     hasReadAllOrders,
     useSampleDesk,
@@ -469,6 +492,13 @@ export default function Dashboard() {
   const coldEmpty = firstSession.showColdEmpty;
   // Cash MER paints once any live spend exists — margin only unlocks break-even.
   const scoreboardReady = !coldEmpty && !salesError;
+  const trustedHero = resolveTrustedRoasHero({
+    mer: metrics.mer,
+    sales: metrics.sales,
+    spend: metrics.totalSpend,
+    factsIncomplete: factsIncompleteForHonesty,
+    useSampleDesk,
+  });
   const primaryAction = firstSessionPrimaryAction(firstSession);
 
   const deltas = metrics.deltas;
@@ -507,15 +537,17 @@ export default function Dashboard() {
     periodLabel: metrics.period.label,
     periodStartDay: sharePeriodStartDay,
     periodEndDay: sharePeriodEndDay,
-    totalSales: totalSalesDisplay,
+    totalSales: trustedHero.hideUntrustedZero ? 0 : totalSalesDisplay,
     totalSpend: metrics.totalSpend,
-    mer: metrics.mer,
-    breakEvenMer: metrics.breakEvenMer,
+    mer: trustedHero.mer,
+    breakEvenMer: trustedHero.hideUntrustedZero ? null : metrics.breakEvenMer,
     marginPct: metrics.marginPct,
     spendIncomplete: Boolean(metrics.spendCoverage?.incomplete),
     shopLabel,
     channels: periodChannels,
-    salesDeltaLine,
+    salesDeltaLine: trustedHero.hideUntrustedZero
+      ? "Sales facts still loading — not a trusted multiple"
+      : salesDeltaLine,
     spendDeltaLine,
   });
 
@@ -553,6 +585,7 @@ export default function Dashboard() {
           : null
       }
       belowBreakEven={
+        !trustedHero.hideUntrustedZero &&
         metrics.cashActionReady &&
         metrics.breakEvenMer != null &&
         metrics.aboveBreakEven === false
@@ -659,10 +692,14 @@ export default function Dashboard() {
             {!shotMode && scoreboardReady ? (
               <s-link href="/app/spend#mcfly-spend-uploads">Update spend</s-link>
             ) : null}
-            {!metrics.cashActionReady &&
-            !shotMode &&
-            !useSampleDesk &&
-            scoreboardReady ? (
+            {trustedHero.hideUntrustedZero ? (
+              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
+                Sales facts loading
+              </span>
+            ) : !metrics.cashActionReady &&
+              !shotMode &&
+              !useSampleDesk &&
+              scoreboardReady ? (
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
                 Finish spend trust
               </span>
@@ -716,11 +753,34 @@ export default function Dashboard() {
                 aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
               >
                 <div className="mcfly-hero-compact__status mcfly-hero-compact__status--gauge">
-                  <TotalRoasGauge
-                    mer={metrics.mer}
-                    targetMer={metrics.targetMer}
-                    deltaLine={merDeltaLine}
-                  />
+                  {trustedHero.hideUntrustedZero ? (
+                    <s-banner
+                      tone="warning"
+                      heading={trustedHero.heading}
+                    >
+                      <s-paragraph>{trustedHero.body}</s-paragraph>
+                      <div
+                        className="mcfly-decision__actions"
+                        style={{ marginTop: "0.65rem" }}
+                      >
+                        <s-button
+                          href={`/app?period=${preset}`}
+                          variant="primary"
+                        >
+                          {UNTRUSTED_ZERO_ROAS_COPY.refreshLabel}
+                        </s-button>
+                        <s-button href="/app?period=mtd" variant="secondary">
+                          Try MTD
+                        </s-button>
+                      </div>
+                    </s-banner>
+                  ) : (
+                    <TotalRoasGauge
+                      mer={trustedHero.mer}
+                      targetMer={metrics.targetMer}
+                      deltaLine={merDeltaLine}
+                    />
+                  )}
                   <div className="mcfly-hero-compact__actions">
                     <s-button href="/app/goals" variant="secondary">
                       {PRODUCT_NOUN.setupSetGoals}
@@ -745,12 +805,18 @@ export default function Dashboard() {
                       Shopify Total Sales
                     </p>
                     <p className="mcfly-hero-compact__value">
-                      {formatCurrency(totalSalesDisplay)}
+                      {trustedHero.hideUntrustedZero
+                        ? "—"
+                        : formatCurrency(totalSalesDisplay)}
                     </p>
                     <p className="mcfly-hero-compact__meta">
-                      {PRODUCT_NOUN.totalSalesHeroHint}
+                      {trustedHero.hideUntrustedZero
+                        ? "Sales facts still loading for this period"
+                        : PRODUCT_NOUN.totalSalesHeroHint}
                     </p>
-                    <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
+                    {trustedHero.hideUntrustedZero ? null : (
+                      <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
+                    )}
                   </div>
                   <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
                     <p className="mcfly-hero-compact__label">Total Spend</p>

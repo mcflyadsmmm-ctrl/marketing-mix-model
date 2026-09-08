@@ -7,6 +7,7 @@ import { runSalesFactsBackfill } from "../lib/sales-facts.server";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import { parseShopifyScopes } from "../lib/shopify-scopes";
 import { applyReadAllOrdersGrant } from "../lib/scopes-update.server";
+import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -24,6 +25,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
     await runSalesFactsBackfill(admin, shop.id, {
       grantedScopes: session.scope,
+      newestFirst: true,
+    });
+    await enqueueSalesFactsBackfill({
+      shopId: shop.id,
+      grantedScopes: session.scope,
+      reason: "auth",
     });
     // Till LTV OrderFact ingest — after sales facts; never blocks OAuth.
     await runOrderFactsBackfill(admin, shop.id, {

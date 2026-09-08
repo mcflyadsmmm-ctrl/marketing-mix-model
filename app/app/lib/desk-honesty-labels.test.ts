@@ -88,6 +88,23 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).not.toContain("mcfly-guide__steps");
     expect(overview).not.toMatch(/Profit margin is optional for\s+break-even/);
   });
+
+  it("hides untrusted 0.00 ROAS and kicks newest-first sales backfill on first open", () => {
+    expect(overview).toContain("resolveTrustedRoasHero");
+    expect(overview).toContain("FIRST_PAINT_SALES_BACKFILL_DAYS");
+    expect(overview).toContain("enqueueSalesFactsBackfill");
+    expect(overview).toContain("newestFirst: true");
+    expect(overview).toContain("priorityRange: range");
+    expect(overview).toContain("UNTRUSTED_ZERO_ROAS_COPY");
+    expect(overview).toContain("hideUntrustedZero");
+  });
+
+  it("enqueues sales backfill from Settings and Spend so first-session bounce still fills", () => {
+    const settings = readFileSync(join(here, "../routes/app.settings.tsx"), "utf8");
+    const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
+    expect(settings).toContain("enqueueSalesFactsBackfill");
+    expect(spend).toContain("enqueueSalesFactsBackfill");
+  });
 });
 
 describe("Primary nav always visible (Real store)", () => {

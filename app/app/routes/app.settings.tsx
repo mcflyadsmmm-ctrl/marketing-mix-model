@@ -45,6 +45,7 @@ import {
   syncShopProFromShopify,
 } from "../lib/billing.server";
 import { isBillingEnabled } from "../lib/billing-flag.server";
+import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
 import prisma from "../db.server";
 
 type ShopifyToast = {
@@ -81,6 +82,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  if (!useSampleDesk && !shotMode) {
+    void enqueueSalesFactsBackfill({
+      shopId: shop.id,
+      grantedScopes: session.scope,
+      reason: "settings_open",
+    }).catch(() => {
+      // Overview / auth / tick still own the fill path
+    });
+  }
   const samplePreviewAllowed = await getSamplePreviewAllowed(shop.id);
   const marginConfirmed = marginIsConfirmed(settings);
   const liveSpendCount = await prisma.spendEntry.count({

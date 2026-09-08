@@ -166,6 +166,39 @@ async function upsertSalesDayFact(
  * Skips entirely (no rows touched) when the shop's ianaTimezone is unknown and a
  * metadata sync attempt does not resolve one — server-local time is never substituted.
  */
+/**
+ * Choose which missing closed days to ingest this call.
+ * Newest-first so QTD / MTD lights up before a 4-year oldest-first crawl.
+ * Optional `priorityStartKey`/`priorityEndKey` (YYYY-MM-DD) pull the selected
+ * desk period to the front of the batch.
+ */
+export function selectSalesFactsBackfillDays(args: {
+  missingOldestFirst: string[];
+  maxDays: number;
+  newestFirst?: boolean;
+  priorityStartKey?: string;
+  priorityEndKey?: string;
+}): string[] {
+  const newestFirst = args.newestFirst !== false;
+  const ordered = newestFirst
+    ? [...args.missingOldestFirst].reverse()
+    : args.missingOldestFirst;
+
+  const start = args.priorityStartKey;
+  const end = args.priorityEndKey;
+  if (!start || !end) {
+    return ordered.slice(0, args.maxDays);
+  }
+
+  const inPriority: string[] = [];
+  const rest: string[] = [];
+  for (const key of ordered) {
+    if (key >= start && key <= end) inPriority.push(key);
+    else rest.push(key);
+  }
+  return [...inPriority, ...rest].slice(0, args.maxDays);
+}
+
 export async function runSalesFactsBackfill(
   admin: AdminApiContext,
   shopId: string,
@@ -174,6 +207,10 @@ export async function runSalesFactsBackfill(
     maxDays?: number;
     grantedScopes?: string | string[] | null;
     scopesAllowDeep?: boolean;
+    /** Default true — recent closed days first (TTFV). */
+    newestFirst?: boolean;
+    /** Selected desk period — fill these missing days before the rest of the window. */
+    priorityRange?: { start: Date; end: Date };
   },
 ): Promise<SalesFactBackfillResult> {
   const now = options?.now ?? new Date();
@@ -210,7 +247,19 @@ export async function runSalesFactsBackfill(
   );
   const existing = await existingFactDayKeys(shopId, windowDayKeys);
   const missing = windowDayKeys.filter((key) => !existing.has(key));
-  const batch = missing.slice(0, maxDays);
+  const priorityStartKey = options?.priorityRange
+    ? shopLocalDayKey(options.priorityRange.start, timeZone)
+    : undefined;
+  const priorityEndKey = options?.priorityRange
+    ? shopLocalDayKey(options.priorityRange.end, timeZone)
+    : undefined;
+  const batch = selectSalesFactsBackfillDays({
+    missingOldestFirst: missing,
+    maxDays,
+    newestFirst: options?.newestFirst,
+    priorityStartKey,
+    priorityEndKey,
+  });
 
   let written = 0;
   const failed: string[] = [];

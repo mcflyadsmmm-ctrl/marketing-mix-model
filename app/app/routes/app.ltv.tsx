@@ -18,7 +18,14 @@ import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
-import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
+import {
+  loadDeskSalesForPeriod,
+  runSalesFactsBackfill,
+} from "../lib/sales-facts.server";
+import {
+  FIRST_PAINT_SALES_BACKFILL_DAYS,
+  enqueueSalesFactsBackfill,
+} from "../lib/sales-backfill-kick.server";
 import { authenticate } from "../shopify.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
@@ -60,7 +67,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     // Cohort OrderFact backfill — Pro / SAMPLE only (not Free live).
     if (entitlements.canUseLtv) {
       void runOrderFactsBackfill(admin, shop.id, {
-        maxDays: 2,
+        maxDays: 7,
         grantedScopes: session.scope,
       }).catch(() => {
         // ignore — page shows honest empty/backfill states until cohort facts land
@@ -70,6 +77,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
      * HARD-STOP: same as Home / Close / Allocation — never unbounded
      * fetchShopifySales for a multi-day period. Facts + capped today only.
      */
+    void runSalesFactsBackfill(admin, shop.id, {
+      maxDays: FIRST_PAINT_SALES_BACKFILL_DAYS,
+      grantedScopes: session.scope,
+      newestFirst: true,
+      priorityRange: range,
+    }).catch(() => {
+      // Overview / job tick own the sales hero; LTV still shows honest empty.
+    });
+    void enqueueSalesFactsBackfill({
+      shopId: shop.id,
+      grantedScopes: session.scope,
+      reason: "ltv_incomplete",
+    }).catch(() => {});
     const desk = await loadDeskSalesForPeriod({
       admin,
       shopId: shop.id,

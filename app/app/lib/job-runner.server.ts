@@ -17,6 +17,10 @@ import {
 } from "./job-worker";
 import { RECONCILE_SALES_DAY_JOB, RECOMPUTE_COHORT_FACTS_JOB } from "./order-webhook";
 import { DEEP_HISTORY_BACKFILL_JOB } from "./scopes-update.server";
+import {
+  enqueueSalesFactsBackfill,
+  salesFactsBackfillShouldContinue,
+} from "./sales-backfill-kick.server";
 import { reconcileSalesDayFact, runSalesFactsBackfill } from "./sales-facts.server";
 import { recomputeCohortFacts, runOrderFactsBackfill } from "./order-facts.server";
 import { purgeExpiredWebhookDeliveries } from "./webhook-delivery.server";
@@ -102,12 +106,21 @@ async function handleDeepHistoryBackfill(job: ClaimedJob): Promise<void> {
   const grantedScopes = grantedScopesFromPayload(job.payload);
   const sales = await runSalesFactsBackfill(admin, job.shopId, {
     grantedScopes,
+    newestFirst: true,
   });
   const orders = await runOrderFactsBackfill(admin, job.shopId, {
     grantedScopes,
   });
+  if (salesFactsBackfillShouldContinue(sales)) {
+    // Re-arm so the next tick keeps filling — ticks do not scan shops.
+    await enqueueSalesFactsBackfill({
+      shopId: job.shopId,
+      grantedScopes,
+      reason: "tick_resume",
+    });
+  }
   console.log(
-    `job ${DEEP_HISTORY_BACKFILL_JOB} shopId=${job.shopId} salesWritten=${sales.written} orderWritten=${orders.written} historyLimited=${orders.historyLimited}`,
+    `job ${DEEP_HISTORY_BACKFILL_JOB} shopId=${job.shopId} salesWritten=${sales.written} orderWritten=${orders.written} historyLimited=${orders.historyLimited} remaining=${sales.remainingMissingDays}`,
   );
 }
 
