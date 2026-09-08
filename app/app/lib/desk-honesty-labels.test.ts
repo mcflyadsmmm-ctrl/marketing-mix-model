@@ -13,11 +13,9 @@ const connections = readFileSync(
 
 describe("Overview / LTV tillLabel honesty", () => {
   it("Overview tillLabel is sales unavailable when salesError", () => {
-    expect(overview).toContain("sales unavailable");
-    expect(overview).toMatch(
-      /salesError[\s\S]*sales unavailable[\s\S]*live sales/,
-    );
-    expect(overview).toContain("facts incomplete");
+    expect(overview).toContain("formatListingTillLabel");
+    expect(overview).toMatch(/salesError:\s*Boolean\(salesError\)/);
+    expect(overview).toContain("factsIncomplete");
   });
 
   it("Overview scoreboardReady refuses salesError zeros", () => {
@@ -27,8 +25,8 @@ describe("Overview / LTV tillLabel honesty", () => {
   });
 
   it("LTV tillLabel refuses live when salesError", () => {
-    expect(ltv).toContain("sales unavailable");
-    expect(ltv).toMatch(/salesError[\s\S]*sales unavailable[\s\S]*live sales/);
+    expect(ltv).toContain("formatListingTillLabel");
+    expect(ltv).toMatch(/salesError:\s*Boolean\(salesError\)/);
   });
 
   it("CAC delta uses tillLtv.newBuyers not facts newCustomers", () => {
@@ -62,10 +60,10 @@ describe("Close redirect (Monday Close UI retired)", () => {
 describe("Primary nav always visible (Real store)", () => {
   it("does not gate Goals/Allocation/LTV/Advanced on cashReady", () => {
     const appShell = readFileSync(join(here, "../routes/app.tsx"), "utf8");
-    expect(appShell).toContain('href="/app/goals"');
-    expect(appShell).toContain('href="/app/allocation"');
-    expect(appShell).toContain('href="/app/ltv"');
-    expect(appShell).toContain('href="/app/advanced"');
+    expect(appShell).toContain('listingCaptureHref("/app/goals"');
+    expect(appShell).toContain('listingCaptureHref("/app/allocation"');
+    expect(appShell).toContain('listingCaptureHref("/app/ltv"');
+    expect(appShell).toContain('listingCaptureHref("/app/advanced"');
     expect(appShell).not.toContain("cashReady");
   });
 });

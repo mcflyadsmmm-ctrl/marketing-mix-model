@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from "react-router";
+import { LISTING_CAPTURE_BOOT_SCRIPT } from "./lib/listing-capture";
 
 /**
  * App Bridge + api-key meta only for embedded / auth surfaces.
@@ -59,6 +60,9 @@ export default function App() {
         />
         <Meta />
         <Links />
+        <script
+          dangerouslySetInnerHTML={{ __html: LISTING_CAPTURE_BOOT_SCRIPT }}
+        />
       </head>
       <body>
         <Outlet />

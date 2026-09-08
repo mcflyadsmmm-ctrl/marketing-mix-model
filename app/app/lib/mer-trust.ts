@@ -242,8 +242,10 @@ export function formatCashFreshnessChip(input: {
   lastAt: string | null;
   source: FreshnessSource;
   spendUpdatedAt?: string | null;
+  /** Listing-capture: skip SAMPLE preview chip (no live lie either). */
+  listingCapture?: boolean;
 }): string {
-  if (input.useSampleDesk) {
+  if (input.useSampleDesk && !input.listingCapture) {
     return "SAMPLE preview · not live store data";
   }
 

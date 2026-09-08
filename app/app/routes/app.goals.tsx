@@ -36,6 +36,11 @@ import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import {
+  applyListingCaptureParam,
+  formatListingTillLabel,
+  listingCaptureFromRequest,
+} from "../lib/listing-capture";
 
 type ShopifyToast = {
   show?: (message: string, options?: { duration?: number; isError?: boolean }) => void;
@@ -135,7 +140,7 @@ function formatYoyPct(pct: number | null): string {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const url = new URL(request.url);
-  const shotMode = url.searchParams.get("shot") === "1";
+  const shotMode = listingCaptureFromRequest(request);
   const year = parseGoalsYear(url.searchParams.get("year"));
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
@@ -487,14 +492,16 @@ export default function GoalsPage() {
 
   const ytdTone = deltaTone(board.ytd.delta, board.ytd.goal);
   const forecast = board.forecast;
-  const tillLabel = useSampleDesk
-    ? `${year} · SAMPLE`
-    : `${year} · live sales`;
+  const tillLabel = formatListingTillLabel({
+    periodLabel: String(year),
+    useSampleDesk,
+    listingCapture: shotMode,
+  });
 
   const onYearChange = (next: string) => {
     const params = new URLSearchParams(searchParams);
     params.set("year", next);
-    if (shotMode) params.set("shot", "1");
+    applyListingCaptureParam(params, shotMode);
     setSearchParams(params);
   };
 
@@ -507,7 +514,7 @@ export default function GoalsPage() {
           "mcfly-desk",
           "mcfly-desk--chrome",
           "mcfly-goals",
-          shotMode ? "mcfly-desk--shot" : null,
+          shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
         ]
           .filter(Boolean)

@@ -1,9 +1,10 @@
 import { useSearchParams } from "react-router";
+import { applyListingCaptureParam } from "../lib/listing-capture";
 import type { PeriodPreset } from "../lib/periods";
 
 type PeriodControlProps = {
   preset: PeriodPreset;
-  /** When true, period changes keep `shot=1` in the URL. */
+  /** When true, period changes keep listing-capture params in the URL. */
   shotMode?: boolean;
   /** Override URL updates (defaults to setting `period` search param). */
   onChange?: (value: PeriodPreset) => void;
@@ -48,8 +49,7 @@ export function PeriodControl({
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set("period", value);
-      if (shotMode) next.set("shot", "1");
-      else next.delete("shot");
+      applyListingCaptureParam(next, shotMode);
       return next;
     });
   };

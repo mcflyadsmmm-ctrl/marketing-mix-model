@@ -4154,27 +4154,16 @@
   animation: none !important;
 }
 
-/* Listing honesty: shot mode never hides that numbers are sample */
-.mcfly-desk--shot.mcfly-desk--sample {
+/* Listing capture (?listing=1 / ?shot=1): product desk only — no SAMPLE badge. */
+.mcfly-desk--shot.mcfly-desk--sample,
+.mcfly-desk--listing.mcfly-desk--sample {
   position: relative;
 }
 
-.mcfly-desk--shot.mcfly-desk--sample::after {
-  content: "SAMPLE";
-  position: absolute;
-  top: 0.55rem;
-  right: 0.65rem;
-  z-index: 5;
-  padding: 0.2rem 0.45rem;
-  border: 1px solid rgba(140, 90, 20, 0.45);
-  border-radius: 2px;
-  background: rgba(255, 248, 230, 0.92);
-  color: #7a4a0c;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
-  pointer-events: none;
+.mcfly-desk--shot.mcfly-desk--sample::after,
+.mcfly-desk--listing.mcfly-desk--sample::after {
+  content: none;
+  display: none;
 }
 
 .mcfly-desk--shot .mcfly-metric:hover {
@@ -9277,6 +9266,17 @@
   font-size: 0.7rem;
   line-height: 1.35;
   color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
+/* Listing capture: hide SAMPLE / demo chrome even if a query hop drops the flag.
+   html.mcfly-listing-capture is set by the boot script before first paint. */
+html.mcfly-listing-capture .mcfly-data-mode,
+html.mcfly-listing-capture .mcfly-sample-strip,
+html.mcfly-listing-capture .mcfly-demo-off-warning,
+.mcfly-desk--listing .mcfly-data-mode,
+.mcfly-desk--listing .mcfly-sample-strip,
+.mcfly-desk--shot .mcfly-sample-strip {
+  display: none !important;
 }
 
 /* Global Sample | Real store bar (every app page) */

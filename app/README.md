@@ -58,6 +58,8 @@ Do **not** commit `.env` or secrets.
 | `/app/allocation` | Spend Allocation |
 | `/app/goals` | Goals / pace |
 | `/app/ltv` | LTV / Acquisition (Pro-gated live) |
+
+Listing screenshots: add `?listing=1` (hides SAMPLE banner / demo chrome). Five Partner URLs + crop guidance: [`docs/LISTING_CAPTURE.md`](../docs/LISTING_CAPTURE.md).
 | `/app/close` | **Redirect → Home** (retired Monday Close UI) |
 | `/app/connections` | **Redirect → Spend** (retired ads OAuth UI) |
 

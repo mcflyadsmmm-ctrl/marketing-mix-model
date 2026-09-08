@@ -302,23 +302,37 @@ export default function DemoPage() {
             <p className="mcfly-panel__muted">Staff only — App Store screenshots</p>
           </summary>
           <s-paragraph>
-            After SAMPLE is on, open shot links with <code>?shot=1</code>. Leave
-            SAMPLE off for App Store review smoke.
+            After SAMPLE is on for filled metrics, open these{" "}
+            <code>?listing=1</code> links (aliases <code>?shot=1</code>). Yellow
+            SAMPLE banner and demo chrome stay hidden. Crop ~1600×900 of the app
+            body — no Admin / DEV-store chrome. Leave SAMPLE off for App Store
+            review smoke. Exit with <code>?listing=0</code>. Full URLs:{" "}
+            <code>docs/LISTING_CAPTURE.md</code>.
           </s-paragraph>
           <ul>
             <li>
-              <s-link href="/app?period=mtd&shot=1">Overview MTD shot</s-link>
-            </li>
-            <li>
-              <s-link href="/app/spend?shot=1">Spend shot</s-link>
-            </li>
-            <li>
-              <s-link href="/app/goals?shot=1">Goals shot</s-link>
-            </li>
-            <li>
-              <s-link href="/app/allocation?period=mtd&shot=1">
-                Allocation shot
+              <s-link href="/app?period=mtd&listing=1&shot=1">
+                1 · Overview MTD
               </s-link>
+            </li>
+            <li>
+              <s-link href="/app/spend?listing=1&shot=1">2 · Spend</s-link>
+            </li>
+            <li>
+              <s-link href="/app/goals?listing=1&shot=1">3 · Goals</s-link>
+            </li>
+            <li>
+              <s-link href="/app/ltv?period=mtd&listing=1&shot=1">
+                4 · LTV / customers
+              </s-link>
+            </li>
+            <li>
+              <s-link href="/app/allocation?period=mtd&listing=1&shot=1">
+                5 · Allocation
+              </s-link>
+            </li>
+            <li>
+              <s-link href="/app?listing=0">Exit listing capture</s-link>
             </li>
           </ul>
           <Form method="post" action={demoAction} style={{ marginTop: "0.75rem" }}>

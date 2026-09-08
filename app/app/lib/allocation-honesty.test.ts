@@ -22,12 +22,9 @@ describe("Allocation desk sales honesty", () => {
   });
 
   it("does not label error or incomplete facts as live sales", () => {
-    expect(source).toContain("sales unavailable");
-    expect(source).toContain("facts incomplete");
-    // Till suffix must branch before the live-sales default.
-    expect(source).toMatch(
-      /sales unavailable[\s\S]*facts incomplete[\s\S]*live sales/,
-    );
+    expect(source).toContain("formatListingTillLabel");
+    expect(source).toMatch(/salesError:\s*Boolean\(salesError\)/);
+    expect(source).toContain("factsIncomplete");
   });
 
   it("suppresses allocation suggestion when salesError", () => {
@@ -35,7 +32,8 @@ describe("Allocation desk sales honesty", () => {
   });
 
   it("keeps SAMPLE path distinct from live sales", () => {
-    expect(source).toContain("· SAMPLE");
+    expect(source).toContain("formatListingTillLabel");
+    expect(source).toContain("useSampleDesk");
     expect(source).toContain("SampleDeskBanner");
   });
 });

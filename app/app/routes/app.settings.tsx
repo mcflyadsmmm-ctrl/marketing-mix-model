@@ -28,6 +28,7 @@ import { isActivationQuery, spendSkipHref } from "../lib/install-stickiness";
 import { parseSalesBasis } from "../lib/sales-basis";
 import { getSampleDeskEnabled, getSamplePreviewAllowed } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { listingCaptureFromRequest } from "../lib/listing-capture";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import {
   getComplianceDataExportPackage,
@@ -57,7 +58,7 @@ function showAdminToast(
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
-  const shotMode = url.searchParams.get("shot") === "1";
+  const shotMode = listingCaptureFromRequest(request);
   const shop = await ensureShop(session.shop);
   if (isBillingEnabled()) {
     try {
@@ -309,7 +310,7 @@ export default function SettingsPage() {
         className={[
           "mcfly-desk",
           "mcfly-desk--chrome",
-          shotMode ? "mcfly-desk--shot" : null,
+          shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
         ]
           .filter(Boolean)

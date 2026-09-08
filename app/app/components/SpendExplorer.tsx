@@ -16,6 +16,7 @@ import {
   type ExplorerSummary,
 } from "../lib/spend-explorer";
 import { formatCurrency, formatMer, merToneBand } from "../lib/mer-format";
+import { applyListingCaptureParam } from "../lib/listing-capture";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
 import type { PeriodPreset } from "../lib/periods";
@@ -101,6 +102,8 @@ const EXPLORER_OWNED_KEYS = [
   "exFrom",
   "exTo",
   "shot",
+  "listing",
+  "capture",
 ] as const;
 
 function explorerSearch(
@@ -127,7 +130,7 @@ function explorerSearch(
     params.set("exFrom", opts.from);
     params.set("exTo", opts.to);
   }
-  if (opts.shotMode) params.set("shot", "1");
+  applyListingCaptureParam(params, opts.shotMode);
   const q = params.toString();
   return q ? `?${q}` : "";
 }

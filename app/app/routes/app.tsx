@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-router";
 import { Outlet, useLoaderData, useRouteError } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -14,6 +15,11 @@ import {
   getSamplePreviewAllowed,
 } from "../lib/sample-desk.server";
 import { DataModeBar } from "../components/DataModeBar";
+import {
+  LISTING_CAPTURE_HTML_CLASS,
+  listingCaptureFromRequest,
+  listingCaptureHref,
+} from "../lib/listing-capture";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
 import deskStyles from "../styles/mcfly-desk.css?url";
@@ -27,8 +33,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
-  const url = new URL(request.url);
-  const shotMode = url.searchParams.get("shot") === "1";
+  const shotMode = listingCaptureFromRequest(request);
   const [useSampleDesk, samplePreviewAllowed, liveSpendCount] =
     await Promise.all([
       getSampleDeskEnabled(shop.id),
@@ -62,18 +67,36 @@ export default function App() {
     shotMode,
   } = useLoaderData<typeof loader>();
 
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      LISTING_CAPTURE_HTML_CLASS,
+      shotMode,
+    );
+    return () => {
+      document.documentElement.classList.remove(LISTING_CAPTURE_HTML_CLASS);
+    };
+  }, [shotMode]);
+
   return (
     <AppProvider embedded apiKey={apiKey}>
       {/* Always show desk nav — empty states / Pro gates live on pages.
           Do not hide tabs when Real store (SAMPLE off); that felt broken. */}
       <s-app-nav>
-        <s-link href="/app">Overview</s-link>
-        <s-link href="/app/spend">Spend</s-link>
-        <s-link href="/app/goals">Goals</s-link>
-        <s-link href="/app/allocation">{PRODUCT_NOUN.spendAllocation}</s-link>
-        <s-link href="/app/ltv">LTV / Acquisition</s-link>
-        <s-link href="/app/advanced">Advanced</s-link>
-        <s-link href="/app/settings">Settings</s-link>
+        <s-link href={listingCaptureHref("/app", shotMode)}>Overview</s-link>
+        <s-link href={listingCaptureHref("/app/spend", shotMode)}>Spend</s-link>
+        <s-link href={listingCaptureHref("/app/goals", shotMode)}>Goals</s-link>
+        <s-link href={listingCaptureHref("/app/allocation", shotMode)}>
+          {PRODUCT_NOUN.spendAllocation}
+        </s-link>
+        <s-link href={listingCaptureHref("/app/ltv", shotMode)}>
+          LTV / Acquisition
+        </s-link>
+        <s-link href={listingCaptureHref("/app/advanced", shotMode)}>
+          Advanced
+        </s-link>
+        <s-link href={listingCaptureHref("/app/settings", shotMode)}>
+          Settings
+        </s-link>
       </s-app-nav>
       {!shotMode ? (
         <DataModeBar

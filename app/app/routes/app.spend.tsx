@@ -12,6 +12,7 @@ import type {
 import { Form, useActionData, useLoaderData, useLocation, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { listingCaptureFromRequest } from "../lib/listing-capture";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getSpendPeriodCoverage } from "../lib/mer-dashboard.server";
@@ -221,7 +222,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
   const url = new URL(request.url);
-  const shotMode = url.searchParams.get("shot") === "1";
+  const shotMode = listingCaptureFromRequest(request);
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
   const sampleDesk = await getSampleDeskStats(shop.id);
@@ -1100,7 +1101,7 @@ export default function SpendEntryPage() {
           "mcfly-desk",
           "mcfly-desk--chrome",
           "mcfly-spend-lean",
-          shotMode ? "mcfly-desk--shot" : null,
+          shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           sampleDesk.enabled ? "mcfly-desk--sample" : null,
         ]
           .filter(Boolean)
