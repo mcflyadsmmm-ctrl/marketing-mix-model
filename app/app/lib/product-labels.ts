@@ -37,7 +37,7 @@ export const PRODUCT_NOUN = {
    * Cash Total ROAS is spend the merchant added, not pixels / MTA.
    */
   cashNotAttribution:
-    "Total ROAS is the exact spend you added ÷ Shopify sales — not pixel attribution.",
+    "Total ROAS is Shopify sales ÷ the spend you added — not pixel attribution.",
   /** Calm MDS trust line — sales-backed */
   mdsTrust:
     "Marketing Data Science from Shopify Total Sales.",

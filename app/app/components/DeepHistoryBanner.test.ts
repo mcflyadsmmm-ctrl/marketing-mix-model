@@ -16,6 +16,8 @@ describe("DeepHistoryBanner", () => {
     expect(source).toContain("DEEP_HISTORY_GRANT_COPY");
     expect(source).toContain('target="_top"');
     expect(source).toContain("DEEP_HISTORY_GRANT_COPY.cta");
+    expect(source).toContain("DEEP_HISTORY_GRANT_COPY.mtdLabel");
+    expect(source).toContain('href="/app?period=mtd"');
     expect(source).not.toMatch(/oauth\/authorize|client_id=/);
   });
 });

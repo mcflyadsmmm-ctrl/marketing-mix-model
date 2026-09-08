@@ -11,6 +11,8 @@ type Props = {
   shopDomain: string;
   /** Compact help line under the grant banner (Overview / Settings). */
   showCashReligion?: boolean;
+  /** Wide period — offer MTD so they are not stuck waiting on a grant. */
+  showMtdCta?: boolean;
 };
 
 /**
@@ -21,6 +23,7 @@ export function DeepHistoryBanner({
   kind,
   shopDomain,
   showCashReligion = false,
+  showMtdCta = false,
 }: Props) {
   const copy = deepHistoryHonestyCopy(kind);
   if (!copy) return null;
@@ -42,6 +45,11 @@ export function DeepHistoryBanner({
           <s-button href={grantHref} variant="primary" target="_top">
             {DEEP_HISTORY_GRANT_COPY.cta}
           </s-button>
+          {showMtdCta || kind === "missing_scope_wide" ? (
+            <s-button href="/app?period=mtd" variant="secondary">
+              {DEEP_HISTORY_GRANT_COPY.mtdLabel}
+            </s-button>
+          ) : null}
         </div>
       ) : null}
     </s-banner>

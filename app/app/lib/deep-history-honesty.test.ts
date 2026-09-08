@@ -94,10 +94,12 @@ describe("deep-history copy", () => {
     const wide = deepHistoryHonestyCopy("missing_scope_wide");
     const backfill = deepHistoryHonestyCopy("backfilling");
     expect(missing?.heading).toBe(DEEP_HISTORY_GRANT_COPY.heading);
+    expect(missing?.heading).toMatch(/optional/i);
     expect(missing?.body).toMatch(/Shopify will prompt/i);
-    expect(missing?.body).toMatch(/~60-day/i);
-    expect(missing?.body).toMatch(/not permanently empty/i);
+    expect(missing?.body).toMatch(/~60 days/i);
+    expect(missing?.body).toMatch(/Not required for a trusted MTD/i);
     expect(wide?.body).toMatch(/recent ~60-day/i);
+    expect(wide?.body).toMatch(/open MTD/i);
     expect(wide?.body).toMatch(/not permanently empty/i);
     expect(wide?.body).not.toMatch(/permanently dead/i);
     expect(backfill?.heading).toMatch(/backfilling/i);

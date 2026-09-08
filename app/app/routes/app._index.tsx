@@ -71,10 +71,7 @@ import {
   FIRST_PAINT_SALES_BACKFILL_DAYS,
   enqueueSalesFactsBackfill,
 } from "../lib/sales-backfill-kick.server";
-import {
-  resolveTrustedRoasHero,
-  UNTRUSTED_ZERO_ROAS_COPY,
-} from "../lib/trusted-roas-hero";
+import { resolveTrustedRoasHero } from "../lib/trusted-roas-hero";
 import {
   parsePeriodPreset,
   periodMayExceedShopifyOrderWindow,
@@ -492,14 +489,21 @@ export default function Dashboard() {
   const coldEmpty = firstSession.showColdEmpty;
   // Cash MER paints once any live spend exists — margin only unlocks break-even.
   const scoreboardReady = !coldEmpty && !salesError;
+  const periodUncovered =
+    Boolean(salesFactsCoverage?.periodExceedsFactWindow) ||
+    (!hasReadAllOrders && periodWiderThanRecentWindow);
   const trustedHero = resolveTrustedRoasHero({
     mer: metrics.mer,
     sales: metrics.sales,
     spend: metrics.totalSpend,
     factsIncomplete: factsIncompleteForHonesty,
+    periodUncovered,
     useSampleDesk,
+    periodPreset: preset,
   });
-  const primaryAction = firstSessionPrimaryAction(firstSession);
+  const primaryAction = trustedHero.hideUntrustedZero
+    ? { href: trustedHero.primaryHref, label: trustedHero.primaryLabel }
+    : firstSessionPrimaryAction(firstSession);
 
   const deltas = metrics.deltas;
   const priorLabel = deltas?.priorLabel;
@@ -566,6 +570,7 @@ export default function Dashboard() {
       }
       salesFactsIncomplete={
         !useSampleDesk &&
+        !trustedHero.hideUntrustedZero &&
         salesFactsCoverage != null &&
         !salesFactsCoverage.complete &&
         !salesFactsCoverage.periodExceedsFactWindow
@@ -643,6 +648,7 @@ export default function Dashboard() {
             kind={deepHistory.kind}
             shopDomain={shopDomain}
             showCashReligion
+            showMtdCta={deepHistory.kind === "missing_scope_wide"}
           />
         ) : null}
 
@@ -692,7 +698,11 @@ export default function Dashboard() {
             {!shotMode && scoreboardReady ? (
               <s-link href="/app/spend#mcfly-spend-uploads">Update spend</s-link>
             ) : null}
-            {trustedHero.hideUntrustedZero ? (
+            {trustedHero.kind === "pick_covered_period" ? (
+              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
+                Period not covered
+              </span>
+            ) : trustedHero.hideUntrustedZero ? (
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
                 Sales facts loading
               </span>
@@ -764,13 +774,16 @@ export default function Dashboard() {
                         style={{ marginTop: "0.65rem" }}
                       >
                         <s-button
-                          href={`/app?period=${preset}`}
+                          href={trustedHero.primaryHref}
                           variant="primary"
                         >
-                          {UNTRUSTED_ZERO_ROAS_COPY.refreshLabel}
+                          {trustedHero.primaryLabel}
                         </s-button>
-                        <s-button href="/app?period=mtd" variant="secondary">
-                          Try MTD
+                        <s-button
+                          href={trustedHero.secondaryHref}
+                          variant="secondary"
+                        >
+                          {trustedHero.secondaryLabel}
                         </s-button>
                       </div>
                     </s-banner>
@@ -810,9 +823,11 @@ export default function Dashboard() {
                         : formatCurrency(totalSalesDisplay)}
                     </p>
                     <p className="mcfly-hero-compact__meta">
-                      {trustedHero.hideUntrustedZero
-                        ? "Sales facts still loading for this period"
-                        : PRODUCT_NOUN.totalSalesHeroHint}
+                      {trustedHero.kind === "pick_covered_period"
+                        ? "This period is wider than loaded sales history"
+                        : trustedHero.hideUntrustedZero
+                          ? "Sales facts still loading for this period"
+                          : PRODUCT_NOUN.totalSalesHeroHint}
                     </p>
                     {trustedHero.hideUntrustedZero ? null : (
                       <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>

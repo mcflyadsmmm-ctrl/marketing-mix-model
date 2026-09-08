@@ -50,7 +50,7 @@ describe("resolveFirstSessionPath", () => {
     expect(path.heading).toMatch(new RegExp(String(FIRST_SESSION_MINUTES)));
     expect(path.body).toMatch(/break-even/i);
     expect(path.body).toMatch(/Spend CSV/i);
-    expect(path.body).toMatch(PRODUCT_NOUN.spendAllocation);
+    expect(path.body).toMatch(/whole desk/i);
     expect(path.footerLinks.map((l) => l.href)).toEqual([
       "/app/spend",
       "/app",

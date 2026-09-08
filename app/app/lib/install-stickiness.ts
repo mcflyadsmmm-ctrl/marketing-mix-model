@@ -137,8 +137,8 @@ export function spendEmptyTeach(options?: {
 }): SpendEmptyTeach {
   const primaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
   return {
-    heading: `Add spend in under ${FIRST_TRUSTED_MER_MINUTES} minutes`,
-    body: `Download the blank daily CSV, fill Meta / Google / Other, upload. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    heading: `Upload spend — trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_TRUSTED_MER_MINUTES} minutes`,
+    body: `Download the blank daily CSV. Fill Meta / Google / Other. Upload. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     primaryLabel: "Download blank template",
     primaryHref,
     steps: [
@@ -161,7 +161,7 @@ export function isTrustedMer(input: {
   if (!input.hasLiveSpend) return false;
   if (input.blockedMockAsLive) return false;
   if (input.salesError) return false;
-  return input.mer != null && Number.isFinite(input.mer);
+  return input.mer != null && Number.isFinite(input.mer) && input.mer > 0;
 }
 
 function toEpochMs(value: Date | string | number | null | undefined): number | null {

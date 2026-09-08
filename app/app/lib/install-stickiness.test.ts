@@ -408,5 +408,12 @@ describe("isTrustedMer", () => {
         blockedMockAsLive: true,
       }),
     ).toBe(false);
+    expect(
+      isTrustedMer({
+        useSampleDesk: false,
+        hasLiveSpend: true,
+        mer: 0,
+      }),
+    ).toBe(false);
   });
 });

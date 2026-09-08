@@ -166,7 +166,10 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {!cashActionReady && !spendCoverage?.incomplete && spendRecon?.status !== "drift" ? (
+      {!cashActionReady &&
+      !salesFactsIncomplete &&
+      !spendCoverage?.incomplete &&
+      spendRecon?.status !== "drift" ? (
         <s-banner tone="info" heading="Almost ready">
           <s-paragraph>
             {!onboarding?.hasSpend

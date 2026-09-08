@@ -345,7 +345,7 @@ export default function SettingsPage() {
           </div>
         </header>
 
-        {!shotMode && !useSampleDesk ? (
+        {!shotMode && !useSampleDesk && hasLiveSpend ? (
           <DeepHistoryBanner
             kind={
               resolveDeepHistoryHonesty({
@@ -359,10 +359,10 @@ export default function SettingsPage() {
         ) : null}
 
         {isActivationQuery(location.search) && !shotMode ? (
-          <s-banner tone="info" heading="Step 1 of 3 — confirm margin">
+          <s-banner tone="info" heading="Step 1 of 3 — 30 seconds">
             <s-paragraph>
-              Contribution margin locks break-even. Then download a Spend CSV
-              template and read {PRODUCT_NOUN.totalRoas} (sales ÷ spend).
+              Save contribution margin to unlock break-even. Next: upload daily
+              spend. Then {PRODUCT_NOUN.totalRoas} is Shopify sales ÷ that spend.
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               <s-link href={spendSkipHref(location.search)}>

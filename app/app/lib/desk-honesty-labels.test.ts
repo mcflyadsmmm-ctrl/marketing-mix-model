@@ -95,8 +95,9 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).toContain("enqueueSalesFactsBackfill");
     expect(overview).toContain("newestFirst: true");
     expect(overview).toContain("priorityRange: range");
-    expect(overview).toContain("UNTRUSTED_ZERO_ROAS_COPY");
     expect(overview).toContain("hideUntrustedZero");
+    expect(overview).toContain("periodUncovered");
+    expect(overview).toContain("pick_covered_period");
   });
 
   it("enqueues sales backfill from Settings and Spend so first-session bounce still fills", () => {
@@ -104,6 +105,9 @@ describe("LTV copy after Partner-approved deep history", () => {
     const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
     expect(settings).toContain("enqueueSalesFactsBackfill");
     expect(spend).toContain("enqueueSalesFactsBackfill");
+    expect(settings).toContain("Step 1 of 3");
+    expect(spend).toContain("Step 2 of 3");
+    expect(spend).toContain("/app?stay=1");
   });
 });
 
