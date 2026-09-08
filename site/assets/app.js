@@ -84,12 +84,13 @@
     setText("claimed-roas", claimedMult.toFixed(1) + "×");
     setText("claimed-rev", "~" + money(spend * claimedMult) + " attributed");
     setText("actual-sales", money(FIXED_SALES));
-    const cashMer = FIXED_SALES / spend;
-    const cashMerLabel = cashMer.toFixed(2) + "×";
+    const totalRoas = FIXED_SALES / spend;
+    const totalRoasLabel = totalRoas.toFixed(2) + "×";
     // Instruments band only — glass claim strip is struck platforms claim (no live Total ROAS)
-    setText("cash-mer", cashMerLabel);
-    const cashMerEl = document.getElementById("cash-mer");
-    if (cashMerEl) cashMerEl.setAttribute("data-mer", cashMer.toFixed(2));
+    setText("total-roas", totalRoasLabel);
+    setText("cash-mer", totalRoasLabel);
+    const totalRoasEl = document.getElementById("total-roas") || document.getElementById("cash-mer");
+    if (totalRoasEl) totalRoasEl.setAttribute("data-mer", totalRoas.toFixed(2));
   }
 
   function updateMargin() {

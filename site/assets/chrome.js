@@ -51,7 +51,7 @@
     <a href="/custom-analytics#privacy">Privacy</a>
     <a href="/custom-analytics#inquire">Inquire</a>
     <a href="/custom-analytics#inquire">Request a proposal</a>
-    <a href="/">← Shopify App (Mcfly Ads)</a>
+    <a href="/">← Shopify App (Mcfly Analytics)</a>
   </div>`;
   } else if (chrome) {
     chrome.innerHTML = `
@@ -108,7 +108,7 @@
         <a href="/security">Security</a>
         <a href="/privacy">Privacy policy</a>
         <a href="/dpa">DPA</a>
-        <a href="/product">← Mcfly Ads (Shopify)</a>
+        <a href="/product">← Mcfly Analytics (Shopify)</a>
       </nav>
       <p class="fine">© <span data-year></span> Mcfly Analytics. Custom data science · $5–25K scoped builds. Not the Shopify cash desk.</p>
     </div>

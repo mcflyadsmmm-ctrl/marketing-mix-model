@@ -43,5 +43,12 @@
 /cash-mer /total-roas 301
 /cash-mer/ /total-roas 301
 /break-even /total-roas 301
+/attribution /vs-attribution-suites 301
+/attribution/ /vs-attribution-suites 301
+
+# Stale social / fiction cockpit files
+/assets/brand/og-cash-mer.jpg /assets/brand/og-overview.jpg 301
+/assets/product-cockpit.jpg /assets/desk/overview-hero.jpg 301
+/assets/product-cockpit.webp /assets/desk/overview-hero.webp 301
 
 /* /404.html 404
