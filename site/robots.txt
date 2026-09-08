@@ -1,4 +1,4 @@
-# Mcfly Ads — robots.txt (origin) · rev 2026-07-29b
+# Mcfly Analytics — robots.txt (origin) · rev 2026-09-08
 # Cloudflare prepends Managed Content (training Disallows + Content Signals Policy).
 # This file APPENDS after that block. Do not duplicate GPTBot/ClaudeBot/CCBot Disallows.
 #

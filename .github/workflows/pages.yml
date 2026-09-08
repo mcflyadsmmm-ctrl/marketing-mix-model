@@ -1,4 +1,10 @@
-name: Deploy site to GitHub Pages
+# GitHub Pages is NOT configured on this repo (Pages API 404).
+# Live site: Cloudflare Pages via root wrangler.toml
+#   name = mcflyads
+#   pages_build_output_dir = site
+# Do not use actions/deploy-pages or actions/configure-pages here.
+
+name: Site host (Cloudflare Pages)
 
 on:
   push:
@@ -6,28 +12,50 @@ on:
     paths:
       - "site/**"
       - ".github/workflows/pages.yml"
+      - "wrangler.toml"
+  pull_request:
+    paths:
+      - "site/**"
+      - ".github/workflows/pages.yml"
+      - "wrangler.toml"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: site-host-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  skip-github-pages:
+    name: skip-github-pages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Confirm host and print ship command
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "mcflyads.com is Cloudflare Pages — not GitHub Pages."
+          echo "wrangler.toml: name=mcflyads  pages_build_output_dir=site"
+          echo
+          echo "Ship after merge (repo root, Cloudflare account that owns project mcflyads):"
+          echo "  npx wrangler pages deploy site --project-name=mcflyads --branch=main --commit-dirty=true"
+          echo
+          echo "Optional preview (does not replace production until you deploy --branch=main):"
+          echo "  npx wrangler pages deploy site --project-name=mcflyads --branch=preview --commit-dirty=true"
+          echo
+          # Expected: 404. A 200 would mean someone enabled GitHub Pages by mistake.
+          code=$(curl -sS -o /tmp/pages.json -w '%{http_code}' \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/pages" || true)
+          echo "GitHub Pages API HTTP ${code} (404 = expected / skip)"
+          if [ "${code}" = "404" ] || [ "${code}" = "403" ]; then
+            echo "GitHub Pages is not the deploy path. This check is green on purpose."
+            exit 0
+          fi
+          echo "Pages API returned ${code}. Still not deploying from Actions — Cloudflare Pages is the host."
+          exit 0

@@ -15,7 +15,7 @@
 | Mobile | Hero not forced full-viewport on small screens; compare table scrolls |
 | 404 | Branded |
 | PWA | SW registers only on `/download`; calculator works |
-| Hosting | Cloudflare Pages (static) — handles traffic |
+| Hosting | Cloudflare Pages (`wrangler.toml` `name = mcflyads`). Ship: `npx wrangler pages deploy site --project-name=mcflyads --branch=main --commit-dirty=true`. GitHub Pages is not configured. |
 
 ## Partner Dashboard URLs (use these)
 

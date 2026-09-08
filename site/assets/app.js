@@ -84,12 +84,13 @@
     setText("claimed-roas", claimedMult.toFixed(1) + "×");
     setText("claimed-rev", "~" + money(spend * claimedMult) + " attributed");
     setText("actual-sales", money(FIXED_SALES));
-    const cashMer = FIXED_SALES / spend;
-    const cashMerLabel = cashMer.toFixed(2) + "×";
+    const totalRoas = FIXED_SALES / spend;
+    const totalRoasLabel = totalRoas.toFixed(2) + "×";
     // Instruments band only — glass claim strip is struck platforms claim (no live Total ROAS)
-    setText("cash-mer", cashMerLabel);
-    const cashMerEl = document.getElementById("cash-mer");
-    if (cashMerEl) cashMerEl.setAttribute("data-mer", cashMer.toFixed(2));
+    setText("total-roas", totalRoasLabel);
+    setText("cash-mer", totalRoasLabel);
+    const totalRoasEl = document.getElementById("total-roas") || document.getElementById("cash-mer");
+    if (totalRoasEl) totalRoasEl.setAttribute("data-mer", totalRoas.toFixed(2));
   }
 
   function updateMargin() {
@@ -359,7 +360,7 @@
     const bodyLines = [
       custom
         ? "Mcfly Analytics — custom data science inquiry"
-        : "Mcfly Ads — Install free / support request",
+        : "Mcfly Analytics — Install / support request",
       "",
       "Name: " + fields.name,
       "Email: " + fields.email,
@@ -388,7 +389,7 @@
       "",
       custom
         ? "Request: custom analytics / MDS proposal ($5–25K band)."
-        : "Request: Install free / App Store help.",
+        : "Request: App Store install / support help.",
       "Public target: " + INVITES_EMAIL,
       "Interim inbox: " + INTERIM_INBOX,
     );
@@ -478,7 +479,7 @@
         submitBtn.setAttribute("data-busy-label", submitBtn.textContent || "");
         submitBtn.textContent = "Sending…";
       } else if (submitBtn.hasAttribute("data-busy-label")) {
-        submitBtn.textContent = submitBtn.getAttribute("data-busy-label") || "Install free";
+        submitBtn.textContent = submitBtn.getAttribute("data-busy-label") || "Send";
         submitBtn.removeAttribute("data-busy-label");
       }
     }
@@ -571,7 +572,7 @@
         return;
       }
       if (!name) {
-        name = email.split("@")[0] || "Install free";
+        name = email.split("@")[0] || "Shopify merchant";
       }
 
       const draft = buildWaitlistDraft({ name, email, role, store, source, notes, budget, spend, timeline });

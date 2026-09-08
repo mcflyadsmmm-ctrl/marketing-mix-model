@@ -1,16 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Mcfly Analytics — Spend vs sales. Not attribution theater.">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Mcfly Analytics — Shopify sales next to spend you added. Total ROAS = sales ÷ spend.">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1a222c"/>
-      <stop offset="55%" stop-color="#2a3544"/>
-      <stop offset="100%" stop-color="#1e2833"/>
+      <stop offset="0%" stop-color="#0a1221"/>
+      <stop offset="100%" stop-color="#152036"/>
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <rect x="80" y="80" width="18" height="18" fill="#2a9d74" transform="rotate(12 89 89)"/>
-  <text x="110" y="98" fill="#f2f5f7" font-family="system-ui, sans-serif" font-size="28" font-weight="700">Mcfly Analytics</text>
-  <text x="80" y="220" fill="#f2f5f7" font-family="system-ui, sans-serif" font-size="52" font-weight="800">Spend vs sales.</text>
-  <text x="80" y="290" fill="#9ee0c6" font-family="system-ui, sans-serif" font-size="52" font-weight="800">Not attribution theater.</text>
-  <text x="80" y="380" fill="rgba(242,245,247,0.75)" font-family="system-ui, sans-serif" font-size="26">Total ROAS · break-even · allocation</text>
-  <rect x="80" y="430" width="320" height="4" fill="#2a9d74" opacity="0.6"/>
+  <text x="80" y="120" fill="#5ee7f0" font-family="system-ui, sans-serif" font-size="22" font-weight="700" letter-spacing="3">MCFLY ANALYTICS</text>
+  <text x="80" y="240" fill="#f4f6f8" font-family="system-ui, sans-serif" font-size="48" font-weight="800">Spend next to Shopify sales.</text>
+  <text x="80" y="310" fill="#5ee7f0" font-family="system-ui, sans-serif" font-size="36" font-weight="700">Total ROAS = sales ÷ spend</text>
+  <text x="80" y="400" fill="rgba(244,246,248,0.72)" font-family="system-ui, sans-serif" font-size="24">Overview · Spend · LTV · Goals · Allocation</text>
+  <text x="80" y="520" fill="rgba(244,246,248,0.55)" font-family="system-ui, sans-serif" font-size="20">$39/mo · 7-day trial · apps.shopify.com/mcfly-analytics-public</text>
 </svg>

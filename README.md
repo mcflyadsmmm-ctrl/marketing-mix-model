@@ -15,7 +15,11 @@ Anti-attribution marketing cockpit for Shopify: **real ad spend vs Shopify sales
 
 ## Product site
 
-Static marketing site in [`/site`](site/) (home, product, pricing, privacy, terms, support). Includes favicon, OG meta, sitemap, robots, 404, and CNAME for `mcflyads.com`. Deploy via GitHub Pages workflow.
+Static marketing site in [`/site`](site/) (home, product, pricing, privacy, terms, support). Favicon, OG, sitemap, robots, 404. Live host is **Cloudflare Pages** (`wrangler.toml`: `name = mcflyads`, `pages_build_output_dir = site`). GitHub Pages is not configured — the Actions workflow only documents this and stays green on Pages API 404.
+
+```bash
+npx wrangler pages deploy site --project-name=mcflyads --branch=main --commit-dirty=true
+```
 
 ## Shared packages (`/packages`)
 
@@ -35,7 +39,7 @@ npm run build     # compile all packages
 
 ## Status
 
-Phase 0 — product marketing site ship-ready in `/site` (demos, waitlist, SEO assets, legal). Shared backend foundations in `/packages` + `/sheets`. Enable GitHub Pages + DNS when ready. Shopify app scaffold pending (sibling agent).
+Phase 0 — product marketing site in `/site`. Shared backend in `/packages` + `/sheets`. Site ship = Cloudflare Pages wrangler deploy (not GitHub Pages).
 
 ## Optimal path (short)
 

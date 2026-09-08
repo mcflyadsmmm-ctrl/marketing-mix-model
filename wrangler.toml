@@ -1,4 +1,10 @@
 # Cloudflare Pages — mcflyads.com (site/ output + functions/)
+# GitHub Pages is NOT configured. Do not use Actions deploy-pages.
+#
+# Production ship (repo root, after merge):
+#   npx wrangler pages deploy site --project-name=mcflyads --branch=main --commit-dirty=true
+# Preview (optional):
+#   npx wrangler pages deploy site --project-name=mcflyads --branch=preview --commit-dirty=true
 name = "mcflyads"
 compatibility_date = "2025-07-28"
 pages_build_output_dir = "site"
