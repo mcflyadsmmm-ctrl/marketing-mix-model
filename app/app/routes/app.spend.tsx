@@ -66,6 +66,10 @@ import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { isActivationQuery, spendEmptyTeach } from "../lib/install-stickiness";
 import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
+import {
+  CASH_PAGE_WHY,
+  formatMissingDaysRoasImpact,
+} from "../lib/cash-desk-copy";
 import prisma from "../db.server";
 import {
   SPEND_CHANNELS,
@@ -877,6 +881,14 @@ export default function SpendEntryPage() {
     };
   }, [dayCoverage.days, todayKey]);
   const holeCount = coverageThroughYesterday.missing.length;
+  const coverageWindowDays = dayCoverage.days.filter(
+    (d) => d.dateKey !== todayKey,
+  ).length;
+  const coverageImpact = formatMissingDaysRoasImpact({
+    missingDays: holeCount,
+    windowDays: coverageWindowDays,
+    periodLabel: "the last 28 days",
+  });
   const missingDates = coverageThroughYesterday.missing;
   const missingDatesPreview = missingDates.slice(0, 5);
   const blankTemplateHref = entitlements.canUseAllChannels
@@ -1119,15 +1131,33 @@ export default function SpendEntryPage() {
           .join(" ")}
       >
         {sampleDesk.enabled && !shotMode ? (
-          <SampleDeskBanner note="SAMPLE data is on. Turn it off before uploading your real spend." />
+          <SampleDeskBanner note="Turn Real store on before importing live spend — SAMPLE rows are not your money." />
+        ) : null}
+
+        {!shotMode && !sampleDesk.enabled ? (
+          <p className="mcfly-desk-why">{CASH_PAGE_WHY.spend}</p>
         ) : null}
 
         {isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled ? (
-          <s-banner tone="info" heading="Step 2 of 3 — upload spend">
+          <s-banner tone="info" heading="Step 2 of 3 — add spend">
             <s-paragraph>
-              Download the blank daily CSV. Fill Meta / Google / Other. Upload.
-              Then {PRODUCT_NOUN.totalRoas} is Shopify sales ÷ that spend.
+              Download the blank template, fill one row per day, import. That is
+              the only path to Total ROAS.
             </s-paragraph>
+          </s-banner>
+        ) : null}
+
+        {!isEmpty && !shotMode && holeCount > 0 ? (
+          <s-banner tone="critical" heading={coverageImpact.heading}>
+            <s-paragraph>{coverageImpact.body}</s-paragraph>
+            <div
+              className="mcfly-decision__actions"
+              style={{ marginTop: "0.65rem" }}
+            >
+              <s-button href={missingDatesHref} variant="primary">
+                {coverageImpact.nextLabel}
+              </s-button>
+            </div>
           </s-banner>
         ) : null}
 
@@ -1272,6 +1302,9 @@ export default function SpendEntryPage() {
         ) : null}
 
         <div className="mcfly-spend-lean__stack">
+          {/* Empty desk: one path only. Channels / bill stay collapsed until spend exists. */}
+          {!isEmpty ? (
+          <>
           {/* 1 · Advertising channels — compact dropdown */}
           <details
             id="mcfly-spend-platforms"
@@ -1473,6 +1506,8 @@ export default function SpendEntryPage() {
               </div>
             </details>
           </div>
+          </>
+          ) : null}
 
           {/* 3 · Upload CSV — file only */}
           <div
@@ -1531,19 +1566,16 @@ export default function SpendEntryPage() {
             </Form>
           </div>
 
-          {/* 4 · Status line */}
+          {/* 4 · Status line — empty desk already taught the path above */}
+          {!isEmpty ? (
           <div className="mcfly-spend-lean__status" role="status">
             {coverageThroughYesterday.upToDate ? (
               <p className="mcfly-spend-lean__status-line">
-                ✓ Up to date through yesterday
+                ✓ Up to date through yesterday — Total ROAS can use this spend
               </p>
             ) : (
               <p className="mcfly-spend-lean__status-line">
-                Spend coverage — missing {holeCount} day
-                {holeCount === 1 ? "" : "s"}
-                {selectedPlatforms.length > 0
-                  ? ` · ${selectedSummaryLabel}`
-                  : ""}
+                {coverageImpact.heading}
                 {missingDatesPreview.length > 0 ? (
                   <>
                     {": "}
@@ -1558,10 +1590,11 @@ export default function SpendEntryPage() {
               </p>
             )}
             <p className="mcfly-spend-lean__status-foot">
-              Backdate to {spendHistoryFloorKey} ({spendHistoryYearsBack} years) —
-              same window as Shopify sales. Same day + channel replaces.
+              {coverageImpact.body} Backdate to {spendHistoryFloorKey} (
+              {spendHistoryYearsBack} years) — same window as Shopify sales.
             </p>
           </div>
+          ) : null}
 
           {/* 5 · Recent entries — compact */}
           {entries.length > 0 ? (

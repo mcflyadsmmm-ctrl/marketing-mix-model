@@ -9,6 +9,8 @@ import { authenticate } from "../shopify.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { DeskPageWhy } from "../components/DeskPageWhy";
+import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
 import {
   formatListingTillLabel,
   listingCaptureFromRequest,
@@ -304,6 +306,13 @@ export default function AllocationPage() {
           <SampleDeskBanner note={`${PRODUCT_NOUN.spendAllocation} uses SAMPLE numbers — not your live store.`} />
         ) : null}
 
+        <DeskPageWhy page="allocation" />
+        <FirstTrustedRoasGate
+          hasLiveSpend={metrics.onboarding.hasSpend}
+          useSampleDesk={useSampleDesk}
+          shotMode={shotMode}
+        />
+
         {!useSampleDesk && !shotMode ? (
           <CashTrustBanners
             blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
@@ -426,8 +435,9 @@ export default function AllocationPage() {
             aria-label="Allocation unavailable"
           >
             <p className="mcfly-state__copy">
-              Allocation needs {PRODUCT_NOUN.totalRoas} from sales ÷ spend —
-              upload daily spend CSVs to see mix and rolling windows.
+              Allocation needs trusted {PRODUCT_NOUN.totalRoas} first — not
+              broken. Upload daily spend, then this page says which channels to
+              cut or keep.
             </p>
             <div className="mcfly-state__cta">
               <s-button href="/app/spend" variant="primary">

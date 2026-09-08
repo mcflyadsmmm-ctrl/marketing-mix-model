@@ -187,7 +187,7 @@ export function resolveFirstSessionPath(
   const steps = buildSteps(input);
   const viewing: "sample" | "live" = input.useSampleDesk ? "sample" : "live";
   const viewingHint = input.useSampleDesk
-    ? "Practice numbers — not your live Shopify till."
+    ? "SAMPLE practice — not live money, not your live Shopify till."
     : "Live Shopify sales ÷ your spend.";
 
   const cashMerReady = input.useSampleDesk || input.hasLiveSpend;

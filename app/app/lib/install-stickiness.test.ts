@@ -147,9 +147,11 @@ describe("spendEmptyTeach", () => {
     });
     expect(teach.primaryLabel).toMatch(/template/i);
     expect(teach.primaryHref).toContain("/app/spend/template");
-    expect(teach.heading).toContain(String(FIRST_TRUSTED_MER_MINUTES));
+    expect(teach.heading).toMatch(/Download → fill → import/);
     expect(teach.body).toContain(PRODUCT_NOUN.definition);
-    expect(teach.steps[0]).toMatch(/Free/i);
+    expect(teach.steps[0]).toMatch(/Download the blank template/i);
+    expect(teach.steps[1]).toMatch(/Fill/i);
+    expect(teach.steps[2]).toMatch(/Import/i);
     const blob = [teach.heading, teach.body, teach.primaryLabel, ...teach.steps].join(
       "\n",
     );

@@ -137,15 +137,15 @@ export function spendEmptyTeach(options?: {
 }): SpendEmptyTeach {
   const primaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
   return {
-    heading: `Upload spend — trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_TRUSTED_MER_MINUTES} minutes`,
-    body: `Download the blank daily CSV. Fill Meta / Google / Other. Upload. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    heading: "Download → fill → import",
+    body: `One path to ${PRODUCT_NOUN.totalRoas}: download the blank daily CSV, fill one row per day, import it here. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     primaryLabel: "Download blank template",
     primaryHref,
     steps: [
-      "Pick the channels you advertise (Meta + Google are Free).",
       "Download the blank template — one row is one day.",
-      "Fill spend amounts, then upload or paste the same file here.",
-      `Open ${PRODUCT_NOUN.totalRoas} — Shopify Total Sales ÷ that spend.`,
+      "Fill Meta / Google / Other amounts for each day you advertised.",
+      "Import the same file below. Same day + channel replaces.",
+      `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
     ],
   };
 }

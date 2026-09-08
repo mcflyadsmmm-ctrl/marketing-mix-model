@@ -36,6 +36,8 @@ import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { DeskPageWhy } from "../components/DeskPageWhy";
+import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
 import {
   applyListingCaptureParam,
   formatListingTillLabel,
@@ -209,6 +211,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       sampleDesk: useSampleDesk,
       paidPro: shop.proBillingActive,
     }),
+    hasLiveSpend:
+      !useSampleDesk &&
+      (await prisma.spendEntry.count({
+        where: { shopId: shop.id, NOT: { source: "sample" } },
+      })) > 0,
   };
 };
 
@@ -419,6 +426,7 @@ export default function GoalsPage() {
     priorYear,
     priorYearMonthly,
     entitlements,
+    hasLiveSpend,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -520,6 +528,23 @@ export default function GoalsPage() {
           .filter(Boolean)
           .join(" ")}
       >
+        <DeskPageWhy page="goals" />
+        <FirstTrustedRoasGate
+          hasLiveSpend={hasLiveSpend}
+          useSampleDesk={useSampleDesk}
+          shotMode={shotMode}
+        />
+        {noGoalsYet && !shotMode ? (
+          <section
+            className="mcfly-state mcfly-state--empty"
+            aria-label="Goals empty"
+          >
+            <p className="mcfly-state__copy">
+              No monthly sales goals yet — not broken. Set a target so you can
+              see if ads bought enough till cash next to Total ROAS.
+            </p>
+          </section>
+        ) : null}
         <div className="mcfly-goals__rail">
           <div className="mcfly-ctx mcfly-goals__ctx" aria-live="polite">
             <div className="mcfly-ctx__main">

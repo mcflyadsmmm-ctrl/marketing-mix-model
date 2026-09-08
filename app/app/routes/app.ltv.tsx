@@ -3,6 +3,9 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { DeskPageWhy } from "../components/DeskPageWhy";
+import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
+import { ltvEmptyCashCopy, parseLtvEmptyKind } from "../lib/cash-desk-copy";
 import {
   formatListingTillLabel,
   listingCaptureFromRequest,
@@ -205,6 +208,11 @@ export default function LtvPage() {
     contrib90,
     metrics.tillLtv.cashCac,
   );
+  const ltvEmpty = ltvEmptyCashCopy(
+    !metrics.onboarding.hasSpend && !useSampleDesk
+      ? "no_spend"
+      : parseLtvEmptyKind(metrics.tillLtv.emptyReason),
+  );
 
   return (
     <s-page
@@ -226,6 +234,13 @@ export default function LtvPage() {
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner note="Acquisition + cohort figures below use SAMPLE sales + spend — not your live Shopify orders." />
         ) : null}
+
+        <DeskPageWhy page="ltv" />
+        <FirstTrustedRoasGate
+          hasLiveSpend={metrics.onboarding.hasSpend}
+          useSampleDesk={useSampleDesk}
+          shotMode={shotMode}
+        />
 
         {!shotMode && !useSampleDesk && deepHistory.kind !== "hidden" ? (
           <DeepHistoryBanner kind={deepHistory.kind} shopDomain={shopDomain} />
@@ -580,13 +595,20 @@ export default function LtvPage() {
                   </div>
                 </div>
               ) : (
-                <p className="mcfly-state__copy">
-                  {metrics.tillLtv.emptyReason === "no_timezone"
-                    ? "Shop timezone needed before customer cohorts can bucket by local day."
-                    : metrics.tillLtv.emptyReason === "history_limited"
-                      ? "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions."
-                      : "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken."}
-                </p>
+                <>
+                  <p className="mcfly-state__copy">
+                    {metrics.tillLtv.emptyReason === "no_timezone"
+                      ? "Shop timezone needed before customer cohorts can bucket by local day."
+                      : metrics.tillLtv.emptyReason === "history_limited"
+                        ? "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions."
+                        : "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken."}
+                  </p>
+                  <div className="mcfly-state__cta">
+                    <s-button href={ltvEmpty.nextHref} variant="secondary">
+                      {ltvEmpty.nextLabel}
+                    </s-button>
+                  </div>
+                </>
               )}
             </section>
 
