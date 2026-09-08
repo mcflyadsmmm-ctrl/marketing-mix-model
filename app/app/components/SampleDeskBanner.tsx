@@ -1,8 +1,16 @@
 /**
- * Legacy SAMPLE strip — superseded by global DataModeBar on every app page.
- * Kept as a no-op so older route imports do not double-banner.
- * Prefer DataModeBar (app layout) for Sample | Real store.
+ * Compact SAMPLE money stamp on every desk page that still imports this.
+ * DataModeBar owns the Sample | Real switch — this stamp makes numbers
+ * impossible to mistake for live cash (the switch banner is easy to skip).
  */
-export function SampleDeskBanner(_props: { note?: string }) {
-  return null;
+
+import { SAMPLE_MONEY_MARK } from "../lib/cash-desk-copy";
+
+export function SampleDeskBanner({ note }: { note?: string }) {
+  return (
+    <p className="mcfly-sample-money-mark" role="status">
+      {SAMPLE_MONEY_MARK}
+      {note ? ` · ${note}` : ""}
+    </p>
+  );
 }

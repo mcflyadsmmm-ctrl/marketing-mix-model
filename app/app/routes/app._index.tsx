@@ -53,6 +53,9 @@ import { formatOverviewShareText } from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
+import { CashVerdict } from "../components/CashVerdict";
+import { PeriodTrustNote } from "../components/PeriodTrustNote";
+import { resolvePeriodTrust } from "../lib/period-trust";
 import { PRO_UPSELL } from "../lib/entitlements";
 import {
   emptySales,
@@ -501,6 +504,22 @@ export default function Dashboard() {
     useSampleDesk,
     periodPreset: preset,
   });
+  const factsIncompleteForTrust =
+    !useSampleDesk &&
+    salesFactsCoverage != null &&
+    !salesFactsCoverage.complete &&
+    !salesFactsCoverage.periodExceedsFactWindow;
+  const periodTrust = resolvePeriodTrust({
+    preset,
+    hasSpend: metrics.onboarding.hasSpend,
+    spendIncomplete: Boolean(metrics.spendCoverage?.incomplete),
+    salesFactsIncomplete: factsIncompleteForTrust,
+    periodExceedsFactWindow: Boolean(
+      salesFactsCoverage?.periodExceedsFactWindow,
+    ),
+    useSampleDesk,
+    shotMode,
+  });
   const primaryAction = trustedHero.hideUntrustedZero
     ? { href: trustedHero.primaryHref, label: trustedHero.primaryLabel }
     : firstSessionPrimaryAction(firstSession);
@@ -706,6 +725,13 @@ export default function Dashboard() {
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
                 Sales facts loading
               </span>
+            ) : !periodTrust.trusted &&
+              !shotMode &&
+              !useSampleDesk &&
+              scoreboardReady ? (
+              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
+                Period not trusted
+              </span>
             ) : !metrics.cashActionReady &&
               !shotMode &&
               !useSampleDesk &&
@@ -720,6 +746,10 @@ export default function Dashboard() {
           <p className="mcfly-topbar__def mcfly-topbar__def--solo">
             {CASH_NOT_ATTRIBUTION}
           </p>
+        ) : null}
+
+        {!shotMode && scoreboardReady ? (
+          <PeriodTrustNote trust={periodTrust} />
         ) : null}
 
         {coldEmpty ? (
@@ -758,6 +788,24 @@ export default function Dashboard() {
         {!coldEmpty ? (
           <>
             {!shotMode && scoreboardReady ? (
+              <CashVerdict
+                mer={trustedHero.mer}
+                sales={
+                  trustedHero.hideUntrustedZero ? 0 : totalSalesDisplay
+                }
+                spend={metrics.totalSpend}
+                breakEvenMer={
+                  trustedHero.hideUntrustedZero ? null : metrics.breakEvenMer
+                }
+                spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
+                salesFactsIncomplete={
+                  factsIncompleteForTrust || trustedHero.hideUntrustedZero
+                }
+                useSampleDesk={useSampleDesk}
+              />
+            ) : null}
+
+            {!shotMode && scoreboardReady ? (
               <section
                 className="mcfly-hero-compact mcfly-hero-compact--v2"
                 aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
@@ -795,9 +843,11 @@ export default function Dashboard() {
                     />
                   )}
                   <div className="mcfly-hero-compact__actions">
-                    <s-button href="/app/goals" variant="secondary">
-                      {PRODUCT_NOUN.setupSetGoals}
-                    </s-button>
+                    {metrics.cashActionReady ? (
+                      <s-button href="/app/goals" variant="secondary">
+                        {PRODUCT_NOUN.setupSetGoals}
+                      </s-button>
+                    ) : null}
                     <s-button
                       href="/app/spend#mcfly-spend-uploads"
                       variant="primary"
@@ -894,8 +944,8 @@ export default function Dashboard() {
               <ReviewAsk eligible={reviewAskEligible} />
             ) : null}
 
-            {/* LTV snapshot — Spend + mix live in the Total Spend tile above */}
-            {!shotMode && scoreboardReady ? (
+            {/* LTV snapshot — depth after first trusted ROAS, not Monday chrome */}
+            {!shotMode && scoreboardReady && metrics.cashActionReady ? (
               <div className="mcfly-tab-snaps mcfly-tab-snaps--solo" aria-label="Tab snapshots">
                 <LtvSnapSection
                   tillLtv={metrics.tillLtv}
@@ -904,37 +954,23 @@ export default function Dashboard() {
               </div>
             ) : null}
 
-            <div className="mcfly-me-spine">
-              <div className="mcfly-explorer-csv-bar">
-                <s-button
-                  href="/app/spend#mcfly-spend-uploads"
-                  variant="primary"
-                >
-                  Update spend
-                </s-button>
-                <span className="mcfly-explorer-csv-bar__hint">
-                  Upload daily CSV — channels come from your columns
-                </span>
-              </div>
+            <details className="mcfly-me-spine mcfly-me-spine--later">
+              <summary className="mcfly-me-spine__summary">
+                Daily spend vs sales — optional
+              </summary>
               <SpendExplorer
                 series={explorer}
                 period={preset}
                 shotMode={shotMode}
               />
-            </div>
+            </details>
 
             {!coldEmpty ? trustBanners : null}
 
-            {!shotMode ? (
+            {!shotMode && metrics.cashActionReady ? (
               <p className="mcfly-overview-more" aria-label="More tools">
-                <s-link href="/app/spend">Spend</s-link>
-                {" · "}
                 <s-link href={`/app/allocation?period=${preset}`}>
                   {PRODUCT_NOUN.spendAllocation}
-                </s-link>
-                {" · "}
-                <s-link href={`/app/advanced?period=${preset}`}>
-                  {PRODUCT_NOUN.advancedMetrics}
                 </s-link>
                 {" · "}
                 <s-link href="/app/goals">Goals</s-link>

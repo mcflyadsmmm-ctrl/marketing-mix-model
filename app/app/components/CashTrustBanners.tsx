@@ -12,6 +12,7 @@ import {
 } from "../lib/mer-trust";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { formatMissingDaysRoasImpact } from "../lib/cash-desk-copy";
 import { DeepHistoryBanner } from "./DeepHistoryBanner";
 import type { DeepHistoryHonestyKind } from "../lib/deep-history-honesty";
 
@@ -88,6 +89,18 @@ export function CashTrustBanners({
     belowBreakEven.mer != null &&
     Number.isFinite(belowBreakEven.mer) &&
     belowBreakEven.mer < belowBreakEven.breakEvenMer;
+
+  const spendGapImpact =
+    spendCoverage?.incomplete
+      ? formatMissingDaysRoasImpact({
+          missingDays: Math.max(
+            0,
+            spendCoverage.daysInPeriod - spendCoverage.daysWithSpend,
+          ),
+          windowDays: spendCoverage.daysInPeriod,
+          periodLabel,
+        })
+      : null;
 
   return (
     <>
@@ -190,12 +203,11 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {spendCoverage?.incomplete ? (
-        <s-banner tone="critical" heading="Spend days missing — fill gaps first">
+      {spendCoverage?.incomplete && spendGapImpact ? (
+        <s-banner tone="critical" heading={spendGapImpact.heading}>
           <s-paragraph>
-            {formatSpendCoverageLine(spendCoverage, periodLabel)}. Empty days
-            understate spend and inflate {PRODUCT_NOUN.totalRoas}. Fill gaps
-            (weekend Meta/Google) before sharing or budget moves.{" "}
+            {formatSpendCoverageLine(spendCoverage, periodLabel)}.{" "}
+            {spendGapImpact.body}{" "}
             <s-link href="/app/spend#mcfly-spend-uploads">Fill spend gaps</s-link>
           </s-paragraph>
         </s-banner>

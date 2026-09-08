@@ -20,7 +20,7 @@ import {
   listingCaptureFromRequest,
   listingCaptureHref,
 } from "../lib/listing-capture";
-import { PRODUCT_NOUN } from "../lib/product-labels";
+import { deskNavItems } from "../lib/desk-nav";
 import prisma from "../db.server";
 import deskStyles from "../styles/mcfly-desk.css?url";
 
@@ -82,21 +82,11 @@ export default function App() {
       {/* Always show desk nav — empty states / Pro gates live on pages.
           Do not hide tabs when Real store (SAMPLE off); that felt broken. */}
       <s-app-nav>
-        <s-link href={listingCaptureHref("/app", shotMode)}>Overview</s-link>
-        <s-link href={listingCaptureHref("/app/spend", shotMode)}>Spend</s-link>
-        <s-link href={listingCaptureHref("/app/goals", shotMode)}>Goals</s-link>
-        <s-link href={listingCaptureHref("/app/allocation", shotMode)}>
-          {PRODUCT_NOUN.spendAllocation}
-        </s-link>
-        <s-link href={listingCaptureHref("/app/ltv", shotMode)}>
-          LTV / Acquisition
-        </s-link>
-        <s-link href={listingCaptureHref("/app/advanced", shotMode)}>
-          Advanced
-        </s-link>
-        <s-link href={listingCaptureHref("/app/settings", shotMode)}>
-          Settings
-        </s-link>
+        {deskNavItems().map((item) => (
+          <s-link key={item.id} href={listingCaptureHref(item.href, shotMode)}>
+            {item.label}
+          </s-link>
+        ))}
       </s-app-nav>
       {!shotMode ? (
         <DataModeBar

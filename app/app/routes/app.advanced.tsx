@@ -3,6 +3,8 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { DeskPageWhy } from "../components/DeskPageWhy";
+import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
 import {
   formatListingTillLabel,
   listingCaptureFromRequest,
@@ -123,6 +125,13 @@ export default function AdvancedMetricsPage() {
           <SampleDeskBanner note="Advanced Metrics uses SAMPLE numbers — not your live store." />
         ) : null}
 
+        <DeskPageWhy page="advanced" />
+        <FirstTrustedRoasGate
+          hasLiveSpend={metrics.onboarding.hasSpend}
+          useSampleDesk={useSampleDesk}
+          shotMode={shotMode}
+        />
+
         {isLoading && !shotMode ? (
           <section
             className="mcfly-state mcfly-state--loading"
@@ -179,9 +188,9 @@ export default function AdvancedMetricsPage() {
         </div>
 
         <p className="mcfly-advanced__lede">
-          Deep formulas for multi-million desks. Overview stays simple — this lab
-          is optional. Every tile is average / portfolio math from Shopify sales
-          and Logged Spend via CSV.
+          Optional depth after Total ROAS is trusted. Every tile is average
+          portfolio math from Shopify sales and spend you added — not causal
+          channel ROAS.
         </p>
 
         <div className="mcfly-advanced__nav">

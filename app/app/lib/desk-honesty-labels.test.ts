@@ -112,12 +112,10 @@ describe("LTV copy after Partner-approved deep history", () => {
 });
 
 describe("Primary nav always visible (Real store)", () => {
-  it("does not gate Goals/Allocation/LTV/Advanced on cashReady", () => {
+  it("lists later pages from deskNavItems — no cashReady maze", () => {
     const appShell = readFileSync(join(here, "../routes/app.tsx"), "utf8");
-    expect(appShell).toContain('listingCaptureHref("/app/goals"');
-    expect(appShell).toContain('listingCaptureHref("/app/allocation"');
-    expect(appShell).toContain('listingCaptureHref("/app/ltv"');
-    expect(appShell).toContain('listingCaptureHref("/app/advanced"');
+    expect(appShell).toContain("deskNavItems");
+    expect(appShell).toContain("listingCaptureHref");
     expect(appShell).not.toContain("cashReady");
   });
 });

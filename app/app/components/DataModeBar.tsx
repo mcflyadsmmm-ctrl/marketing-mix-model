@@ -108,9 +108,9 @@ export function DataModeBar({
       {useSampleDesk ? (
         <s-banner tone="warning" heading={PRODUCT_NOUN.samplePreviewOn}>
           <s-paragraph>
-            Explore Total ROAS safely. When you are ready, tap{" "}
-            <strong>Real store</strong> — we will walk you through margin, spend,
-            the desk, then Spend Allocation.
+            These numbers are practice — not your live Shopify money. Tap{" "}
+            <strong>Real store</strong> before you trust Total ROAS or import
+            spend.
           </s-paragraph>
         </s-banner>
       ) : null}
