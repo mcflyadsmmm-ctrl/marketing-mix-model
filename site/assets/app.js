@@ -41,6 +41,8 @@
     if (
       (key === "product" && page === "product") ||
       (key === "pricing" && page === "pricing") ||
+      (key === "faq" && page === "faq") ||
+      (key === "support" && page === "support") ||
       (key === "app" && page === "app")
     ) {
       link.classList.add("active");
