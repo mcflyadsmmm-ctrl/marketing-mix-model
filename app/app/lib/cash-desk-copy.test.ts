@@ -114,13 +114,13 @@ describe("ltvEmptyCashCopy", () => {
       "unknown",
     ] as const) {
       const copy = ltvEmptyCashCopy(kind);
-      expect(copy.body.replace(/not permanently empty/gi, "")).not.toMatch(
-        /permanently (dead|broken|empty)/i,
-      );
+      expect(
+        copy.body.replace(/not permanently (dead|empty)/gi, ""),
+      ).not.toMatch(/permanently (dead|broken|empty)/i);
       expect(copy.body).not.toMatch(THEATER);
     }
-    expect(ltvEmptyCashCopy("history_limited").body).toMatch(/not permanently empty/i);
-    expect(ltvEmptyCashCopy("backfilling").body).toMatch(/not a broken desk/i);
+    expect(ltvEmptyCashCopy("history_limited").body).toMatch(/not permanently dead/i);
+    expect(ltvEmptyCashCopy("backfilling").body).toMatch(/filling, not broken/i);
   });
 
   it("parses known empty reasons", () => {

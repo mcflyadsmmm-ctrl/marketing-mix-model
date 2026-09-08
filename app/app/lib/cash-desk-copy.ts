@@ -134,14 +134,14 @@ export function ltvEmptyCashCopy(kind: LtvEmptyCashKind): LtvEmptyCashCopy {
     case "history_limited":
       return {
         heading: "Recent order window only",
-        body: "LTV uses the recent ~60-day window until deeper history is granted. Not permanently empty — Total ROAS on a short period still works.",
+        body: "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions. Total ROAS on a short period still works.",
         nextHref: "/app",
         nextLabel: PRODUCT_NOUN.openTotalRoas,
       };
     case "backfilling":
       return {
         heading: "Cohorts are filling",
-        body: "Lifetime value lights up as order facts land. This is backfill, not a broken desk. Total ROAS does not wait on LTV.",
+        body: "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken. Total ROAS does not wait on LTV.",
         nextHref: "/app",
         nextLabel: PRODUCT_NOUN.openTotalRoas,
       };
