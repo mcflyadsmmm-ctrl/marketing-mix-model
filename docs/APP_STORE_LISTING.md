@@ -96,7 +96,7 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 | **App URL** | https://mcfly-analytics.fly.dev | Never mcflyads.com |
 | **Search keywords** | Total ROAS, marketing efficiency ratio, Break-even Total ROAS, Shopify ad spend | ASO spine only — ban “attribution,” “pixel,” “true ROAS,” “MTA” |
 | **Demo store** | Leave blank for v1 | Optional post-submit; sample desk is in-app only |
-| **App icon** | `docs/listing-assets/mcfly-app-icon-1200.png` | 1200×1200, **M-only** ribbon |
+| **App icon** | `docs/listing-assets/mcfly-app-icon-1200.png` | 1200×1200, **M-only** — refreshed for clarity (`mcfly-app-icon.svg`) |
 | **Screenshots** | 5 PNGs per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) | Unique compositions (4.4.4) |
 
 **Pre-flight:** Distribution = **Shopify App Store** · PCD submitted · trust URLs still Free + PCD on live curl ([`REJECT_RISK_AUDIT.md`](./REJECT_RISK_AUDIT.md)).
@@ -213,7 +213,7 @@ Shot order + captions: [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md).
 | 4 | Allocation | Quarters · pie · rolling 7/14/28 | Recommendation + mix visuals |
 | 5 | Goals / Settings | Goals pace + break-even from margin | MTD/QTD/YTD gauges or margin → BE preview |
 
-**App icon:** upload `docs/listing-assets/mcfly-app-icon-1200.png` (1200×1200, **M-only** — no wordmark).
+**App icon:** upload `docs/listing-assets/mcfly-app-icon-1200.png` (1200×1200, **M-only** — refreshed for clarity; no wordmark).
 
 ---
 

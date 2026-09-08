@@ -100,7 +100,7 @@ D. SAMPLE OFF (mandatory before smoke / reviewer)
 
 E. ICON
    Partner App icon: docs/listing-assets/mcfly-app-icon-1200.png
-   (1200×1200, M-only ribbon — not the Mcfly Ads wordmark)
+   (1200×1200, M-only — refreshed for clarity; vector source `mcfly-app-icon.svg`)
 ```
 
 ### Path cheat-sheet
@@ -119,7 +119,8 @@ E. ICON
 
 | File | Use |
 | --- | --- |
-| `docs/listing-assets/mcfly-app-icon-1200.png` | Partner **App icon** — ribbon **M** only (not the Mcfly Ads wordmark) |
+| `docs/listing-assets/mcfly-app-icon-1200.png` | Partner **App icon** — crisp cyan **M** on navy (refreshed for clarity; not the Mcfly Ads wordmark) |
+| `docs/listing-assets/mcfly-app-icon.svg` | Vector source for the Partner icon (`viewBox 0 0 64 64`) |
 | `docs/listing-assets/mcfly-ads-lockup-source.png` | Full lockup source (M + Mcfly Ads) — marketing only |
 | `docs/listing-assets/shots/` | Listing screenshot PNGs — **founder pack 2026-07-28** (see `shots/CAPTIONS.md`) |
 | Brand mark sizes | `site/assets/brand/mcfly-m.png` (+ 32/64/128/256) |
