@@ -63,6 +63,7 @@ import {
 } from "../lib/sample-desk.server";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { spendEmptyTeach } from "../lib/install-stickiness";
 import prisma from "../db.server";
 import {
   SPEND_CHANNELS,
@@ -1058,6 +1059,9 @@ export default function SpendEntryPage() {
   }, [selectedChannels]);
 
   const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1`;
+  const emptyTeach = spendEmptyTeach({
+    templateHref: selectedBlankTemplateHref,
+  });
 
   function togglePlatform(id: SpendAdvertisePlatformId) {
     if (!isPlatformSelectable(id)) return;
@@ -1085,10 +1089,10 @@ export default function SpendEntryPage() {
         <s-button
           slot="primary-action"
           variant="primary"
-          href="#mcfly-spend-uploads"
-          aria-label={PRODUCT_NOUN.setupAddSpend}
+          href={selectedBlankTemplateHref}
+          aria-label="Download blank template"
         >
-          {PRODUCT_NOUN.setupAddSpend}
+          Download blank template
         </s-button>
       ) : null}
       <div
@@ -1234,6 +1238,27 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
+        {isEmpty && !shotMode ? (
+          <section
+            className="mcfly-spend-teach"
+            aria-label="Empty state — download spend template"
+          >
+            <s-heading>{emptyTeach.heading}</s-heading>
+            <s-paragraph>{emptyTeach.body}</s-paragraph>
+            <ol className="mcfly-spend-teach__steps">
+              {emptyTeach.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+            <div className="mcfly-decision__actions">
+              <s-button href={emptyTeach.primaryHref} variant="primary">
+                {emptyTeach.primaryLabel}
+              </s-button>
+              <s-link href="#mcfly-spend-uploads">Upload when filled</s-link>
+            </div>
+          </section>
+        ) : null}
+
         <div className="mcfly-spend-lean__stack">
           {/* 1 · Advertising channels — compact dropdown */}
           <details
@@ -1279,7 +1304,7 @@ export default function SpendEntryPage() {
                   </label>
                 );
               })}
-              {entitlements.showProTeaser ? (
+              {entitlements.showProTeaser && !isEmpty ? (
                 <div className="mcfly-spend-lean__pro-note">
                   <ProUpsellBlock lead={PRO_UPSELL.channels} />
                 </div>

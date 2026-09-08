@@ -24,6 +24,7 @@ import {
 } from "../lib/mer-dashboard.server";
 import { formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { isActivationQuery, spendSkipHref } from "../lib/install-stickiness";
 import { parseSalesBasis } from "../lib/sales-basis";
 import { getSampleDeskEnabled, getSamplePreviewAllowed } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -322,6 +323,20 @@ export default function SettingsPage() {
             </p>
           </div>
         </header>
+
+        {isActivationQuery(location.search) && !shotMode ? (
+          <s-banner tone="info" heading="Step 1 of 3 — confirm margin">
+            <s-paragraph>
+              Contribution margin locks break-even. Then download a Spend CSV
+              template and read {PRODUCT_NOUN.totalRoas} (sales ÷ spend).
+            </s-paragraph>
+            <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
+              <s-link href={spendSkipHref(location.search)}>
+                Skip to Spend CSV
+              </s-link>
+            </div>
+          </s-banner>
+        ) : null}
 
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner
