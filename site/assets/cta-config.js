@@ -1,31 +1,30 @@
-/* launch-v2-20260728-freemium */
+/* launch-v3-20260908-appstore */
 /**
  * Public CTA honesty gate.
- * App Store listing path is primary for launch.
- * Never forever-free bait as the product. Never a shop-domain form on this site.
+ * Live listing: https://apps.shopify.com/mcfly-analytics-public
+ * $39/mo + 7-day trial. Never a shop-domain form on this site.
  *
  * Tokens:
- *   data-mcfly-cta="primary"   → Install free /support
- *   data-mcfly-cta="demo"      → Try the demo /demo
- *   data-mcfly-cta="secondary" → left alone (page keeps App Store / custom label)
+ *   data-mcfly-cta="primary"   → Install on Shopify App Store
+ *   data-mcfly-cta="demo"      → See the SAMPLE desk
+ *   data-mcfly-cta="secondary" → left alone (page keeps its own label)
  */
 (function (w) {
   "use strict";
 
-  /** Flip false only if listing is down and install is broken. */
   w.MCFLY_APP_STORE_LIVE = true;
+  w.MCFLY_APP_STORE_URL = "https://apps.shopify.com/mcfly-analytics-public";
 
   function primary() {
-    return { label: "Install free", href: "/support" };
+    return { label: "Install on Shopify", href: w.MCFLY_APP_STORE_URL };
   }
 
-  /** Chrome mobile nav / intentional demo CTAs only. */
   function secondary() {
-    return { label: "Try the demo", href: "/demo" };
+    return { label: "See SAMPLE desk", href: "/product#desk" };
   }
 
   function demo() {
-    return { label: "Try the demo", href: "/demo" };
+    return { label: "See SAMPLE desk", href: "/product#desk" };
   }
 
   function apply(root) {
@@ -33,10 +32,12 @@
     const p = primary();
     const d = demo();
     scope.querySelectorAll('[data-mcfly-cta="primary"]').forEach((el) => {
-      if (el.tagName === "A") el.setAttribute("href", p.href);
+      if (el.tagName === "A") {
+        el.setAttribute("href", p.href);
+        el.setAttribute("rel", "noopener");
+      }
       el.textContent = p.label;
     });
-    // Only rewrite intentional demo CTAs — never overwrite App Store secondary links.
     scope.querySelectorAll('[data-mcfly-cta="demo"]').forEach((el) => {
       if (el.tagName === "A") el.setAttribute("href", d.href);
       el.textContent = d.label;

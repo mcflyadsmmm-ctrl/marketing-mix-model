@@ -1,4 +1,4 @@
-/* launch-v2-20260728 · dual site chrome: Shopify Ads ↔ Custom Analytics */
+/* launch-v3-20260908 · dual site chrome: Shopify desk ↔ Custom Analytics */
 (function () {
   const path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
   const isHome = path === "/" || path === "/index.html" || path === "";
@@ -10,9 +10,12 @@
 
   const cta = window.MCFLY_CTA;
   const shopifyPrimary =
-    (cta && cta.primary()) || { label: "Install free", href: "/support" };
+    (cta && cta.primary()) || {
+      label: "Install on Shopify",
+      href: "https://apps.shopify.com/mcfly-analytics-public",
+    };
   const shopifySecondary =
-    (cta && cta.secondary()) || { label: "Try the demo", href: "/demo" };
+    (cta && cta.secondary()) || { label: "See SAMPLE desk", href: "/product#desk" };
 
   const chrome = document.querySelector("[data-chrome]");
   if (chrome && isAnalytics) {
@@ -60,19 +63,16 @@
     </div>
   </div>
   <header class="top" data-top>
-    <a class="brand" href="/" aria-label="Mcfly Ads home">
+    <a class="brand" href="/" aria-label="Mcfly Analytics home">
       <img class="brand-mark-img" src="/assets/brand/mcfly-m-transparent.png" width="36" height="36" alt="" />
-      <span class="brand-name">Mcfly <span class="brand-name-sub">Ads</span></span>
+      <span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>
     </a>
     <nav class="nav" aria-label="Primary">
       <a href="/product" data-nav="product">Product</a>
-      <a href="/app" data-nav="app">Desk</a>
       <a href="/pricing" data-nav="pricing">Pricing</a>
-      <a href="/mds-made-easy/" data-nav="mds">MDS Made Easy</a>
-      <a href="/demo" data-nav="demo">Demo</a>
       <a href="/faq" data-nav="faq">FAQ</a>
       <a href="/support" data-nav="support">Support</a>
-      <a class="nav-cta" data-mcfly-cta="primary" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
+      <a class="nav-cta" data-mcfly-cta="primary" rel="noopener" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
       <span></span><span></span>
@@ -80,14 +80,11 @@
   </header>
   <div id="mobile-nav" class="mobile-nav" hidden>
     <a href="/product">Product</a>
-    <a href="/app">Desk</a>
     <a href="/pricing">Pricing</a>
-    <a href="/mds-made-easy/">MDS Made Easy</a>
-    <a href="/demo">Demo</a>
     <a href="/faq">FAQ</a>
     <a href="/support">Support</a>
     <a href="/custom-analytics">Custom Data Solutions</a>
-    <a data-mcfly-cta="primary" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
+    <a data-mcfly-cta="primary" rel="noopener" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     <a data-mcfly-cta="demo" href="${shopifySecondary.href}">${shopifySecondary.label}</a>
   </div>`;
   }
@@ -122,28 +119,21 @@
     <div class="wrap foot-grid">
       <div class="foot-brand">
         <img src="/assets/brand/mcfly-m-transparent.png" width="28" height="28" alt="" />
-        <span>Mcfly Ads</span>
+        <span>Mcfly Analytics</span>
       </div>
       <nav aria-label="Footer">
         <a href="/product">Product</a>
-        <a href="/app">Desk tabs</a>
-        <a href="/product#spend-csv">Paste spend</a>
+        <a href="/app">What’s in the desk</a>
+        <a href="/product#spend">Add spend</a>
         <a href="/pricing">Pricing</a>
-        <a href="/mds-made-easy/">MDS Made Easy</a>
-        <a href="/cash-mer">Total ROAS</a>
-        <a href="/demo">Demo desk</a>
+        <a href="/total-roas">Total ROAS glossary</a>
         <a href="/about">About</a>
         <a href="/faq">FAQ</a>
-        <a href="/why-pixels-fail">Why pixels fail</a>
-        <a href="/vs-attribution-suites">Total ROAS vs suites</a>
-        <a href="/triple-whale-alternative">Triple Whale alternative</a>
-        <a href="/vs/profit-trackers">vs profit trackers</a>
-        <a href="/platform-variance">Platform variance</a>
-        <a href="/monday-close">Monday Close memo</a>
-        <a href="/app">App</a>
+        <a href="/monday-close">Monday Close</a>
         <a href="/mer-calculator">ROAS calculator</a>
         <a href="/break-even-roas-calculator">Break-even calculator</a>
-        <a href="/download">Calculator (PWA)</a>
+        <a href="/mds-made-easy/">MDS Made Easy</a>
+        <a href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener">Install on Shopify</a>
         <a href="/support">Support</a>
         <a href="/privacy">Privacy</a>
         <a href="/terms">Terms</a>
@@ -152,7 +142,7 @@
         <a href="/dpa">DPA</a>
         <a href="/custom-analytics">Custom Data Solutions</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Ads. Advanced Marketing Data Science, made easy — Total ROAS = sales ÷ spend.</p>
+      <p class="fine">© <span data-year></span> Mcfly Analytics. Shopify sales next to spend you added. Total ROAS = sales ÷ spend. $39/mo · 7-day trial.</p>
     </div>
   </footer>`;
   }

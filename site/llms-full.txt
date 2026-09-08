@@ -1,33 +1,28 @@
-# Mcfly Advertising & Analytics — citeable summary
+# Mcfly Analytics — citeable summary
 
-> Two products · one company. Mcfly makes marketing spend defendable against real sales: a Shopify Monday cash desk (primary home), and fixed-fee Custom Data Solutions for scoped builds.
+> Shopify cash desk: spend you added next to Shopify Total Sales. Total ROAS = sales ÷ spend. LTV depth, Goals, and Allocation on the same Admin desk.
 
 ## Product (Shopify)
 
-Total ROAS = Shopify sales after returns (period) ÷ total ad spend (same period).
-Break-even Total ROAS ≈ 1 ÷ contribution margin.
-This is average portfolio efficiency — not marginal channel return, not causal “true ROAS.”
-Monday Close / Export memo: exceptions → save → variance → decision (hold / reduce / step-test with spend floor) → CSV export.
-Pricing: App Store Free while launching → Pro $39/store/mo flat via Shopify Billing when announced. Not a GMV tax. Free path = CSV paste; SyncWith-class tools optional (you pay them).
-Primary URLs: https://mcflyads.com/ · https://mcflyads.com/#products · https://mcflyads.com/product · https://mcflyads.com/monday-close · https://mcflyads.com/mer-calculator · https://mcflyads.com/break-even-roas-calculator · https://mcflyads.com/pricing
+Shopify Analytics shows sales. It does not put the spend you added next to those sales, and it does not show Total ROAS as sales ÷ that spend, or LTV next to that spend.
+
+Mcfly Analytics is that gap. Merchants add spend (CSV, type-a-bill, offline lines such as billboards). Shopify Total Sales load from the store. Total ROAS = sales after returns ÷ spend for the same dates.
+
+Pricing: $39 per store per month on the Shopify App Store, with a 7-day trial. Flat fee — not a GMV tax.
+Install: https://apps.shopify.com/mcfly-analytics-public
+Primary URLs: https://mcflyads.com/ · https://mcflyads.com/product · https://mcflyads.com/pricing · https://mcflyads.com/total-roas
+
+SAMPLE numbers on marketing and in-app preview (including 4.45× on a 3-year Overview) are labeled SAMPLE. They are not a merchant’s live books.
 
 ## Custom Data Solutions
 
 Fixed-fee engagements that ship a weekly decision desk and written metric contracts.
 Bands: Spend & Sales Audit $5–8K · Lead Gen Desk $8–15K · Advanced MDS $15–25K.
-Optional continuity retainer ~$3–8K/mo after handoff — not required to keep the system.
-Not always-on MMM theater. Not an identity-graph product. Not hourly bait. Not the Shopify App Store homepage offer.
-Primary URLs: https://mcflyads.com/custom-analytics · https://mcflyads.com/custom-analytics-engagement · https://mcflyads.com/custom-analytics#inquire
-
-## Method / refuse
-
-Platforms over-claim conversions. Mcfly measures money spent on ads vs sales (or outcomes) in the same period.
-We do not ship: pixels, multi-touch attribution, path/view-through credit, “true ROAS,” or attribution-suite clones.
-Coexists with attribution suites for CYA path decks; owns the Export memo / Monday Close so suites become optional Monday software.
-Authority: https://mcflyads.com/why-pixels-fail · https://mcflyads.com/faq · https://mcflyads.com/cash-mer · https://mcflyads.com/about · https://mcflyads.com/security
+Not the Shopify App Store homepage offer.
+Primary URLs: https://mcflyads.com/custom-analytics · https://mcflyads.com/custom-analytics#inquire
 
 ## Entity
 
-Brand: Mcfly Ads (site) · Listing: Mcfly Analytics (Shopify) · Umbrella: Mcfly Advertising & Analytics
+Brand / listing: Mcfly Analytics · Company: Mcfly Ads / Mcfly Advertising & Analytics
 Founder: Marty Smithson · Utah, United States · invites@mcflyads.com
 Short map: https://mcflyads.com/llms.txt

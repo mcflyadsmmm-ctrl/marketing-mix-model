@@ -11,15 +11,15 @@
 /home/ / 301
 
 # MMM product / tools branding + indexed legacy explainer URLs (GPT diversity 2026-07-28)
-/mmm /cash-mer 301
-/mmm/ /cash-mer 301
+/mmm /total-roas 301
+/mmm/ /total-roas 301
 /mmm-tools /vs-attribution-suites 301
 /marketing-mix-model /product 301
 /marketing-mix-model/ /product 301
-/marketing-mix-modeling /cash-mer 301
-/marketing-mix-modeling/ /cash-mer 301
-/what-is-marketing-mix-modeling /cash-mer 301
-/what-is-marketing-mix-modeling/ /cash-mer 301
+/marketing-mix-modeling /total-roas 301
+/marketing-mix-modeling/ /total-roas 301
+/what-is-marketing-mix-modeling /total-roas 301
+/what-is-marketing-mix-modeling/ /total-roas 301
 /custom-mmm /product 301
 /custom-mmm/ /product 301
 /custom-marketing-mix-model /product 301
@@ -39,8 +39,9 @@
 
 # MER / Total ROAS synonyms → glossary
 # Keep /mer-calculator and /break-even-roas-calculator as real pages (A4)
-/mer /cash-mer 301
-/total-roas /cash-mer 301
-/break-even /cash-mer 301
+/mer /total-roas 301
+/cash-mer /total-roas 301
+/cash-mer/ /total-roas 301
+/break-even /total-roas 301
 
 /* /404.html 404

@@ -22,9 +22,9 @@
   aside.setAttribute("data-waitlist-dock", "");
   aside.hidden = true;
   aside.innerHTML = `
-    <a class="wl-dock__peek" href="/support">
+    <a class="wl-dock__peek" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener">
       <span class="wl-dock__mark" aria-hidden="true"></span>
-      <span class="wl-dock__label">Install free</span>
+      <span class="wl-dock__label">Install on Shopify</span>
     </a>
   `;
   document.body.appendChild(aside);

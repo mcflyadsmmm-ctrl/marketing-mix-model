@@ -1,7 +1,7 @@
 {
-  "name": "Mcfly Advertising & Analytics",
+  "name": "Mcfly Analytics",
   "short_name": "Mcfly",
-  "description": "Two products · one company: Shopify Monday cash desk (Total ROAS = sales ÷ spend) and fixed-fee Custom Data Solutions.",
+  "description": "Shopify cash desk: spend you added next to Shopify Total Sales. Total ROAS = sales ÷ spend. LTV, Goals, Allocation.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
