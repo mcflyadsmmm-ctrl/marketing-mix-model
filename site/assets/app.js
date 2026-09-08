@@ -17,19 +17,23 @@
   const toggle = document.querySelector(".nav-toggle");
   const mobile = document.getElementById("mobile-nav");
   if (toggle && mobile) {
+    const setMenu = (nextOpen) => {
+      toggle.setAttribute("aria-expanded", String(nextOpen));
+      mobile.hidden = !nextOpen;
+      toggle.setAttribute("aria-label", nextOpen ? "Close menu" : "Open menu");
+      document.body.classList.toggle("nav-open", nextOpen);
+      if (top) {
+        if (nextOpen) top.classList.add("scrolled");
+        else syncTop();
+      }
+      document.dispatchEvent(new CustomEvent("mcfly:mobile-nav", { detail: { open: nextOpen } }));
+    };
     toggle.addEventListener("click", () => {
       const open = toggle.getAttribute("aria-expanded") === "true";
-      toggle.setAttribute("aria-expanded", String(!open));
-      mobile.hidden = open;
-      toggle.setAttribute("aria-label", open ? "Open menu" : "Close menu");
-      document.dispatchEvent(new CustomEvent("mcfly:mobile-nav", { detail: { open: !open } }));
+      setMenu(!open);
     });
     mobile.querySelectorAll("a").forEach((link) => {
-      link.addEventListener("click", () => {
-        toggle.setAttribute("aria-expanded", "false");
-        mobile.hidden = true;
-        document.dispatchEvent(new CustomEvent("mcfly:mobile-nav", { detail: { open: false } }));
-      });
+      link.addEventListener("click", () => setMenu(false));
     });
   }
 
@@ -41,6 +45,8 @@
     if (
       (key === "product" && page === "product") ||
       (key === "pricing" && page === "pricing") ||
+      (key === "faq" && page === "faq") ||
+      (key === "support" && page === "support") ||
       (key === "app" && page === "app")
     ) {
       link.classList.add("active");

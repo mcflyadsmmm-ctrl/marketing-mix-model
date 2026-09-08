@@ -46,6 +46,10 @@
 /attribution /vs-attribution-suites 301
 /attribution/ /vs-attribution-suites 301
 
+# Retired competing-product specimen → enterprise inquire
+/custom-analytics-engagement /custom-analytics 301
+/custom-analytics-engagement/ /custom-analytics 301
+
 # Stale social / fiction cockpit files
 /assets/brand/og-cash-mer.jpg /assets/brand/og-overview.jpg 301
 /assets/product-cockpit.jpg /assets/desk/overview-hero.jpg 301

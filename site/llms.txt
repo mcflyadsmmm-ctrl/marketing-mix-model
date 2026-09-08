@@ -20,10 +20,8 @@ This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.
 - https://mcflyads.com/break-even-roas-calculator — Break-even ≈ 1 ÷ margin
 - https://mcflyads.com/support — Install / support
 
-## Custom Data Solutions
-- https://mcflyads.com/custom-analytics — Fixed-fee $5–25K desks
-- https://mcflyads.com/custom-analytics-engagement — SOW specimen
-- https://mcflyads.com/custom-analytics#inquire — Proposal inquire
+## Enterprise / custom (not the product)
+- https://mcflyads.com/custom-analytics — Scoped inquire only; not a competing App Store SKU
 
 ## Method
 - https://mcflyads.com/faq — Product FAQ
