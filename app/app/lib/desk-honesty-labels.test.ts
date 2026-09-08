@@ -57,6 +57,26 @@ describe("Close redirect (Monday Close UI retired)", () => {
   });
 });
 
+describe("Public Partner TOML requests read_all_orders", () => {
+  it("declares the approved scope on the App Store configs", () => {
+    const root = join(here, "../..");
+    for (const name of ["shopify.app.toml", "shopify.app.public.toml"]) {
+      const toml = readFileSync(join(root, name), "utf8");
+      expect(toml).toMatch(
+        /scopes\s*=\s*"read_orders,read_customers,read_all_orders"/,
+      );
+      expect(toml).not.toMatch(/omit until approved/);
+    }
+  });
+});
+
+describe("LTV copy after Partner-approved deep history", () => {
+  it("does not tell merchants Shopify still needs to approve the scope", () => {
+    expect(ltv).not.toMatch(/when Shopify approves broader order access/i);
+    expect(overview).not.toMatch(/Order history is limited — open/);
+  });
+});
+
 describe("Primary nav always visible (Real store)", () => {
   it("does not gate Goals/Allocation/LTV/Advanced on cashReady", () => {
     const appShell = readFileSync(join(here, "../routes/app.tsx"), "utf8");

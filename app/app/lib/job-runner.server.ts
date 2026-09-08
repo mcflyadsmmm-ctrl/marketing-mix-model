@@ -16,8 +16,9 @@ import {
   type JobWorkerTickResult,
 } from "./job-worker";
 import { RECONCILE_SALES_DAY_JOB, RECOMPUTE_COHORT_FACTS_JOB } from "./order-webhook";
-import { reconcileSalesDayFact } from "./sales-facts.server";
-import { recomputeCohortFacts } from "./order-facts.server";
+import { DEEP_HISTORY_BACKFILL_JOB } from "./scopes-update.server";
+import { reconcileSalesDayFact, runSalesFactsBackfill } from "./sales-facts.server";
+import { recomputeCohortFacts, runOrderFactsBackfill } from "./order-facts.server";
 import { purgeExpiredWebhookDeliveries } from "./webhook-delivery.server";
 import { purgeExpiredComplianceDataExports } from "./compliance-export-retrieve.server";
 
@@ -82,9 +83,38 @@ async function handleRecomputeCohortFacts(job: ClaimedJob): Promise<void> {
   console.log(`job ${RECOMPUTE_COHORT_FACTS_JOB} shopId=${job.shopId} ok`);
 }
 
+function grantedScopesFromPayload(payload: unknown): string | undefined {
+  if (!payload || typeof payload !== "object") return undefined;
+  const granted = (payload as { grantedScopes?: unknown }).grantedScopes;
+  return typeof granted === "string" && granted.trim() ? granted : undefined;
+}
+
+async function handleDeepHistoryBackfill(job: ClaimedJob): Promise<void> {
+  const shop = await prisma.shop.findUnique({
+    where: { id: job.shopId },
+    select: { id: true, domain: true },
+  });
+  if (!shop) {
+    throw new NonRetryableJobError(`Shop ${job.shopId} no longer exists`);
+  }
+
+  const { admin } = await unauthenticated.admin(shop.domain);
+  const grantedScopes = grantedScopesFromPayload(job.payload);
+  const sales = await runSalesFactsBackfill(admin, job.shopId, {
+    grantedScopes,
+  });
+  const orders = await runOrderFactsBackfill(admin, job.shopId, {
+    grantedScopes,
+  });
+  console.log(
+    `job ${DEEP_HISTORY_BACKFILL_JOB} shopId=${job.shopId} salesWritten=${sales.written} orderWritten=${orders.written} historyLimited=${orders.historyLimited}`,
+  );
+}
+
 export const JOB_HANDLERS: Record<string, JobHandler> = {
   [RECONCILE_SALES_DAY_JOB]: handleReconcileSalesDay,
   [RECOMPUTE_COHORT_FACTS_JOB]: handleRecomputeCohortFacts,
+  [DEEP_HISTORY_BACKFILL_JOB]: handleDeepHistoryBackfill,
 };
 
 export interface QueueTickResult extends JobWorkerTickResult {

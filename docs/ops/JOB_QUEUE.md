@@ -131,6 +131,12 @@ Three skips (all normal outcomes, so the job succeeds rather than retrying forev
 A Shopify fetch failure **throws**, so the queue retries and the existing fact row is
 left alone rather than replaced with a partial read.
 
+`deep_history_backfill` (dedupe key `read_all_orders`) is enqueued from
+`app/scopes_update` when the merchant grants `read_all_orders`. The handler clears a
+stuck `OrderBackfillState.historyLimited` flag (done on the webhook path) and runs
+chunked SalesDayFact + OrderFact backfill on the Jan-1 × 4yr window. Coalescing
+prevents a grant-storm from stacking jobs.
+
 ## 6. Running the worker
 
 The tick runs **inside the app process** (`POST /api/jobs/tick`) so it reuses Prisma
@@ -230,6 +236,7 @@ separate Neon step required for Fly’s attached DB.
 - `enqueueJob` / `claimNextJob` / `completeJob` / `failJob` / `reclaimStaleJobs`
 - `runJobWorkerTick` dispatch, backoff, dead-letter, supersede handling
 - `reconcileSalesDayFact`
+- `deep_history_backfill` — `app/scopes_update` after `read_all_orders` grant
 - `POST /api/jobs/tick`
 - Ledger purge on `app/uninstalled` + `shop/redact`, plus the hourly retention sweep
 - **Fly `worker` process** — `app/scripts/queue-worker.mjs` POSTs `/api/jobs/tick` every

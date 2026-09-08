@@ -14,9 +14,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // erroring Shopify call here is swallowed and the desk still works without facts yet.
   try {
     const shop = await ensureShop(session.shop);
-    await runSalesFactsBackfill(admin, shop.id);
+    await runSalesFactsBackfill(admin, shop.id, {
+      grantedScopes: session.scope,
+    });
     // Till LTV OrderFact ingest — after sales facts; never blocks OAuth.
-    await runOrderFactsBackfill(admin, shop.id).catch(() => {
+    await runOrderFactsBackfill(admin, shop.id, {
+      grantedScopes: session.scope,
+    }).catch(() => {
       // resumes on next auth / desk kick
     });
   } catch {

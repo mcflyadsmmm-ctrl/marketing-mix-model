@@ -2,6 +2,10 @@ import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import {
+  applyReadAllOrdersGrant,
+  readScopesUpdateLists,
+} from "../lib/scopes-update.server";
+import {
   recordWebhookDelivery,
   releaseWebhookDelivery,
 } from "../lib/webhook-delivery.server";
@@ -22,7 +26,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   try {
-    const current = payload.current as string[];
+    const { current, previous } = readScopesUpdateLists(payload);
     if (session) {
       await db.session.update({
         where: {
@@ -32,6 +36,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           scope: current.toString(),
         },
       });
+    }
+    // Fast ACK path: clear stuck historyLimited + enqueue deep backfill.
+    const grant = await applyReadAllOrdersGrant({
+      shopDomain: shop,
+      current,
+      previous,
+    });
+    if (grant.enqueued) {
+      console.log(
+        `scopes_update shop=${shop} read_all_orders clearedLimited=${grant.clearedHistoryLimited} gained=${grant.gainedReadAllOrders}`,
+      );
     }
     return new Response();
   } catch (error) {

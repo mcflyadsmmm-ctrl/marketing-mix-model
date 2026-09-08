@@ -10,6 +10,10 @@ import { formatPeriodQuery, SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
 import { adminGraphqlJson, type GraphqlCost } from "./shopify-graphql-cost.server";
 import { orderNetAmount } from "./shopify-sales.server";
+import {
+  allowsDeepOrderHistory,
+  resolveOrderHistoryWindowDays,
+} from "./shopify-scopes";
 
 /** OrderFact.source for live Shopify ingest — never write sample from this lane. */
 export const ORDER_FACT_SOURCE = "shopify_order_v1";
@@ -163,6 +167,33 @@ function cohortMonthFromDate(d: Date): string {
 
 function msDays(n: number): number {
   return n * 86_400_000;
+}
+
+function queueShallowHistoryFallback(args: {
+  timeZone: string;
+  now: Date;
+  existingKeys: Set<string>;
+  attemptedKeys: Set<string>;
+  daysToFetch: string[];
+  index: number;
+  maxDays: number;
+}): void {
+  const shallowKeys = listRecentClosedShopLocalDays(
+    args.timeZone,
+    SHOPIFY_READ_ORDERS_WINDOW_DAYS,
+    args.now,
+  );
+  const shallowMissing = shallowKeys.filter(
+    (k) => !args.existingKeys.has(k) && !args.attemptedKeys.has(k),
+  );
+  args.daysToFetch.splice(
+    args.index + 1,
+    args.daysToFetch.length - (args.index + 1),
+    ...shallowMissing.slice(
+      0,
+      Math.max(0, args.maxDays - args.attemptedKeys.size),
+    ),
+  );
 }
 
 function isHistoryWindowError(
@@ -466,6 +497,26 @@ async function fetchOrdersForDay(
 }
 
 /**
+ * Ingest window for OrderFact: 60-day fail-closed without `read_all_orders`,
+ * Jan-1 × 4yr (same as SalesDayFact) when the granted/env scopes allow deep.
+ * A persisted `historyLimited` flag is ignored when scopes now allow deep so a
+ * past ACCESS_DENIED cannot pin the shop forever after Partner approval.
+ */
+export function resolveOrderFactsIngestWindow(args: {
+  now: Date;
+  scopesAllowDeep: boolean;
+  persistedHistoryLimited: boolean;
+}): { windowDays: number; historyLimited: boolean; reprobed: boolean } {
+  return resolveOrderHistoryWindowDays({
+    now: args.now,
+    scopesAllowDeep: args.scopesAllowDeep,
+    persistedHistoryLimited: args.persistedHistoryLimited,
+    deepWindowDays: salesDayFactWindowDayCount(args.now),
+    shallowWindowDays: SHOPIFY_READ_ORDERS_WINDOW_DAYS,
+  });
+}
+
+/**
  * Chunked OrderFact backfill — up to `maxDays` closed shop-local days (default 7)
  * within the trailing Shopify order window (60d when historyLimited).
  * Never writes sample source. After upserts, recomputes touched cohort months.
@@ -473,7 +524,12 @@ async function fetchOrdersForDay(
 export async function runOrderFactsBackfill(
   admin: AdminApiContext,
   shopId: string,
-  options?: { maxDays?: number; now?: Date },
+  options?: {
+    maxDays?: number;
+    now?: Date;
+    grantedScopes?: string | string[] | null;
+    scopesAllowDeep?: boolean;
+  },
 ): Promise<OrderFactBackfillResult> {
   const now = options?.now ?? new Date();
   const maxDays = options?.maxDays ?? ORDER_FACT_MAX_DAYS_PER_RUN;
@@ -495,13 +551,21 @@ export async function runOrderFactsBackfill(
   }
 
   const state = await ensureBackfillState(shopId);
-  // When TOML/env declares read_all_orders, try the same Jan-1 × 4yr depth as SalesDayFact.
-  const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
-  let historyLimited = scopesAllowDeep ? false : state.historyLimited;
-  const deepWindowDays = salesDayFactWindowDayCount(now);
-  const windowDays = historyLimited
-    ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
-    : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
+  const scopesAllowDeep =
+    typeof options?.scopesAllowDeep === "boolean"
+      ? options.scopesAllowDeep
+      : allowsDeepOrderHistory(
+          options && "grantedScopes" in options
+            ? { grantedScopes: options.grantedScopes }
+            : undefined,
+        );
+  const resolved = resolveOrderFactsIngestWindow({
+    now,
+    scopesAllowDeep,
+    persistedHistoryLimited: state.historyLimited,
+  });
+  let historyLimited = resolved.historyLimited;
+  let windowDays = resolved.windowDays;
 
   const timeZone = metadata.ianaTimezone;
   const windowDayKeys = listRecentClosedShopLocalDays(timeZone, windowDays, now);
@@ -544,9 +608,14 @@ export async function runOrderFactsBackfill(
   let lastCompletedDay: string | null = state.cursor;
   let pagesLeft = ORDER_FACT_MAX_PAGES_PER_RUN;
   let wroteAnyOrders = false;
+  const attemptedKeys = new Set<string>();
+  let fellBackToShallow = false;
 
-  for (const dayKey of batch) {
+  const daysToFetch = [...batch];
+  for (let i = 0; i < daysToFetch.length; i += 1) {
+    const dayKey = daysToFetch[i]!;
     if (pagesLeft <= 0) break;
+    attemptedKeys.add(dayKey);
     try {
       const result = await fetchOrdersForDay(admin, dayKey, timeZone, pagesLeft);
       pages += result.pages;
@@ -554,6 +623,22 @@ export async function runOrderFactsBackfill(
       if (result.historyLimited) {
         historyLimited = true;
         lastError = result.error;
+        // Deep probe denied — finish this kick on the 60-day window so recent
+        // LTV still fills instead of stalling on oldest ACCESS_DENIED days.
+        if (!fellBackToShallow && windowDays > SHOPIFY_READ_ORDERS_WINDOW_DAYS) {
+          fellBackToShallow = true;
+          windowDays = SHOPIFY_READ_ORDERS_WINDOW_DAYS;
+          queueShallowHistoryFallback({
+            timeZone,
+            now,
+            existingKeys,
+            attemptedKeys,
+            daysToFetch,
+            index: i,
+            maxDays,
+          });
+          continue;
+        }
         break;
       }
       for (const row of result.rows) {
@@ -583,6 +668,20 @@ export async function runOrderFactsBackfill(
       if (isHistoryWindowError(undefined, msg)) {
         historyLimited = true;
         lastError = msg;
+        if (!fellBackToShallow && windowDays > SHOPIFY_READ_ORDERS_WINDOW_DAYS) {
+          fellBackToShallow = true;
+          windowDays = SHOPIFY_READ_ORDERS_WINDOW_DAYS;
+          queueShallowHistoryFallback({
+            timeZone,
+            now,
+            existingKeys,
+            attemptedKeys,
+            daysToFetch,
+            index: i,
+            maxDays,
+          });
+          continue;
+        }
         break;
       }
       lastError = msg;
@@ -658,12 +757,40 @@ export async function getCohortFacts(
 
 export async function getOrderBackfillHistoryLimited(
   shopId: string,
+  options?: { grantedScopes?: string | string[] | null },
 ): Promise<boolean> {
+  const granted =
+    options && "grantedScopes" in options
+      ? options.grantedScopes
+      : await loadGrantedScopesForShopId(shopId);
+  if (
+    allowsDeepOrderHistory(
+      granted != null ? { grantedScopes: granted } : undefined,
+    )
+  ) {
+    return false;
+  }
   const state = await prisma.orderBackfillState.findUnique({
     where: { shopId },
     select: { historyLimited: true },
   });
   return state?.historyLimited ?? true;
+}
+
+async function loadGrantedScopesForShopId(
+  shopId: string,
+): Promise<string | null> {
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { domain: true },
+  });
+  if (!shop) return null;
+  const session = await prisma.session.findFirst({
+    where: { shop: shop.domain },
+    select: { scope: true, isOnline: true },
+    orderBy: { isOnline: "asc" },
+  });
+  return session?.scope ?? null;
 }
 
 /**
