@@ -89,6 +89,7 @@ import {
   resolvePriorPeriod,
   type PeriodPreset,
 } from "../lib/periods";
+import { resolvePeriodLedgerControl } from "../lib/period-ledger";
 import {
   fetchSampleSales,
   fetchSampleSalesByDay,
@@ -428,6 +429,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shopOrdersSeen,
     });
 
+  // Closed-day ledger export readiness. Mirrors the route's gates so the desk
+  // never offers a download the server would refuse; the 409 stays authoritative.
+  const periodLedger = resolvePeriodLedgerControl({
+    preset,
+    useSampleDesk,
+    salesFactsReady:
+      !factsIncompleteForHonesty &&
+      salesFactsCoverageForBanner != null &&
+      salesFactsCoverageForBanner.complete &&
+      !salesFactsCoverageForBanner.periodExceedsFactWindow &&
+      salesFactsCoverageForBanner.factDays ===
+        salesFactsCoverageForBanner.expectedClosedDays,
+    spendReady:
+      metrics.spendCoverage.daysInPeriod > 0 &&
+      metrics.spendCoverage.daysWithSpend ===
+        metrics.spendCoverage.daysInPeriod,
+    closedDays: salesFactsCoverageForBanner?.expectedClosedDays ?? 0,
+  });
+
   return {
     metrics,
     salesError,
@@ -437,6 +457,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     useSampleDesk,
     shotMode,
     explorer,
+    periodLedger,
     salesFactsCoverage: salesFactsCoverageForBanner,
     salesUntrustedZero,
     liveConfirmedZero,
@@ -497,6 +518,7 @@ export default function Dashboard() {
     useSampleDesk,
     shotMode,
     explorer,
+    periodLedger,
     salesFactsCoverage,
     salesUntrustedZero,
     liveConfirmedZero,
@@ -919,7 +941,27 @@ export default function Dashboard() {
                       enabled={!shotMode && scoreboardReady}
                       compact
                     />
+                    <s-button
+                      variant="secondary"
+                      aria-label={periodLedger.label}
+                      {...(periodLedger.ready
+                        ? { href: periodLedger.href }
+                        : {
+                            disabled: true,
+                            "aria-describedby": "mcfly-period-ledger-help",
+                          })}
+                    >
+                      {periodLedger.label}
+                    </s-button>
                   </div>
+                  {periodLedger.blockedCopy ? (
+                    <p
+                      className="mcfly-hero-compact__meta"
+                      id="mcfly-period-ledger-help"
+                    >
+                      {periodLedger.blockedCopy}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="mcfly-hero-compact__pair">
                   <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--sales">

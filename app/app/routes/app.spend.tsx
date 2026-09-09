@@ -53,9 +53,11 @@ import {
   previewSpendUpsert,
 } from "../lib/spend-repository.server";
 import {
+  getSalesFactsCoverage,
   salesDayFactWindowStartUtc,
   SALES_DAY_FACT_WINDOW_YEARS_BACK,
 } from "../lib/sales-facts.server";
+import { resolvePeriodLedgerControl } from "../lib/period-ledger";
 import {
   getSampleDeskEnabled,
   getSampleDeskStats,
@@ -250,7 +252,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const settings = await prisma.settings.findUnique({ where: { shopId: shop.id } });
   // Real entries only — sample-desk rows are demo data and would drown out
   // an operator's own uploads in "Recent entries" (sample dates run through today).
-  const [entries, dayCoverage, periodSpend, periodCoverage] = await Promise.all([
+  const [entries, dayCoverage, periodSpend, periodCoverage, salesFactsCoverage] = await Promise.all([
     prisma.spendEntry.findMany({
       where: { shopId: shop.id, source: { not: "sample" } },
       orderBy: { periodStart: "desc" },
@@ -272,6 +274,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       excludeSample: true,
       timeZone: shop.ianaTimezone,
     }),
+    // Closed-day sales coverage — read-only, drives the ledger export control.
+    getSalesFactsCoverage(shop.id, range, new Date(), shop.ianaTimezone).catch(
+      () => null,
+    ),
   ]);
   const periodSpendTotal = periodSpend.reduce((s, e) => s + e.amount, 0);
   const declaredMatches =
@@ -303,12 +309,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     paidPro: shop.proBillingActive,
   });
 
+  // Same gates as /app/period-ledger.csv so the control never promises a file
+  // the route would refuse. The server 409 remains authoritative.
+  const periodLedger = resolvePeriodLedgerControl({
+    preset,
+    useSampleDesk: sampleDesk.enabled,
+    salesFactsReady:
+      salesFactsCoverage != null &&
+      salesFactsCoverage.complete &&
+      !salesFactsCoverage.periodExceedsFactWindow &&
+      salesFactsCoverage.factDays === salesFactsCoverage.expectedClosedDays,
+    spendReady:
+      periodCoverage.daysInPeriod > 0 &&
+      periodCoverage.daysWithSpend === periodCoverage.daysInPeriod,
+    closedDays: salesFactsCoverage?.expectedClosedDays ?? 0,
+  });
+
   return {
     entries,
     sampleDesk,
     shotMode,
     dayCoverage,
     periodCoverage,
+    periodLedger,
     preset,
     periodLabel: range.label,
     periodSpendTotal,
@@ -992,6 +1015,9 @@ export default function SpendEntryPage() {
     storeTodayKey,
     spendHistoryFloorKey,
     spendHistoryYearsBack,
+    periodLedger,
+    periodLabel,
+    periodSpendTotal,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -2006,6 +2032,38 @@ export default function SpendEntryPage() {
               {spendHistoryYearsBack} years) — same window as Shopify sales.
             </p>
           </div>
+          ) : null}
+
+          {/* 4b · Selected-period spend summary + closed-day ledger export */}
+          {!shotMode ? (
+            <div
+              className="mcfly-spend-lean__status"
+              role="group"
+              aria-label="Selected period spend summary"
+            >
+              <p className="mcfly-spend-lean__status-line">
+                {periodLabel} · {formatCurrency(periodSpendTotal)} entered spend
+              </p>
+              <s-button
+                variant="secondary"
+                aria-label={periodLedger.label}
+                {...(periodLedger.ready
+                  ? { href: periodLedger.href }
+                  : {
+                      disabled: true,
+                      "aria-describedby": "mcfly-period-ledger-help",
+                    })}
+              >
+                {periodLedger.label}
+              </s-button>
+              <p
+                className="mcfly-spend-lean__status-foot"
+                id="mcfly-period-ledger-help"
+              >
+                {periodLedger.blockedCopy ??
+                  "Closed days only — today is never in the file. Shopify sales come from stored daily facts, spend from your entries."}
+              </p>
+            </div>
           ) : null}
 
           {/* 5 · Recent entries — compact */}
