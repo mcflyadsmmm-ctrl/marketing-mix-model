@@ -51,6 +51,41 @@ describe("Overview MTD untrusted $0 smoke (demvcflyads)", () => {
     expect(verdict.tone).toBe("blocked");
   });
 
+  it("complete coverage + sales 0 + spend>0 without live shop-order confirm never says below break-even", () => {
+    const factsIncompleteForHonesty = salesFactsIncompleteForDesk(
+      SMOKE_COVERAGE,
+      {
+        sales: 0,
+        spend: 1000,
+        liveConfirmedZero: true,
+        shopOrdersSeen: 0,
+        salesUntrustedZero: false,
+      },
+    );
+    const trustedHero = resolveTrustedRoasHero({
+      mer: 0,
+      sales: 0,
+      spend: 1000,
+      factsIncomplete: factsIncompleteForHonesty,
+      periodUncovered: false,
+      periodPreset: "mtd",
+    });
+    expect(factsIncompleteForHonesty).toBe(true);
+    expect(trustedHero.hideUntrustedZero).toBe(true);
+    const verdict = resolveCashVerdict({
+      mer: trustedHero.mer,
+      sales: 0,
+      spend: 1000,
+      breakEvenMer: trustedHero.hideUntrustedZero ? null : 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete:
+        factsIncompleteForHonesty || trustedHero.hideUntrustedZero,
+      salesUntrustedZero: false,
+    });
+    expect(verdict.headline).not.toMatch(/below break-even/i);
+    expect(verdict.tone).toBe("blocked");
+  });
+
   it("blocks below break-even even if Overview forgot to OR incomplete (untrustedZero wire)", () => {
     const verdict = resolveCashVerdict({
       mer: 0,

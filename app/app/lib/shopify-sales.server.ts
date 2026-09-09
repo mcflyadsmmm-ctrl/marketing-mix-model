@@ -63,6 +63,11 @@ export interface SalesResult {
    * Desk today top-up may undercount — surface via CashTrustBanners; never silent.
    */
   truncatedByPageCap?: boolean;
+  /**
+   * Non-cancelled Admin orders seen this crawl *before* in-range filter.
+   * recent_scan uses this to tell “7 orders exist” from “none in MTD”.
+   */
+  shopOrdersSeen?: number;
 }
 
 /** Sales + order count — works with read_orders alone (fallback / by-day). */
@@ -359,6 +364,7 @@ function emptySales(source: SalesResult["source"] = "shopify"): SalesResult {
     guestOrders: 0,
     customerMetricsAvailable: false,
     source,
+    shopOrdersSeen: 0,
   };
 }
 
@@ -490,6 +496,7 @@ export async function fetchShopifySales(
     let grossSales = 0;
     let orderCount = 0;
     let guestOrders = 0;
+    let shopOrdersSeen = 0;
     let truncatedByPageCap = false;
     const customers = new Map<string, CustomerAccum>();
 
@@ -529,6 +536,9 @@ export async function fetchShopifySales(
         ) {
           hitOlderThanRange = true;
         }
+        if (includeOrderInSalesSoT(edge.node ?? {})) {
+          shopOrdersSeen += 1;
+        }
         if (!keepSalesOrder(edge.node, range, mode)) continue;
         keptEdges.push(edge);
         const gross = parseMoneyAmount(edge.node?.totalPriceSet);
@@ -567,6 +577,7 @@ export async function fetchShopifySales(
       guestOrders: mix.guestOrders,
       customerMetricsAvailable: mix.available,
       source: "shopify",
+      shopOrdersSeen,
       ...(truncatedByPageCap ? { truncatedByPageCap: true } : {}),
     };
   } catch (err) {
@@ -586,6 +597,7 @@ export async function fetchShopifySales(
   let netSales = 0;
   let grossSales = 0;
   let orderCount = 0;
+  let shopOrdersSeen = 0;
   let truncatedByPageCap = false;
   const salesDocument =
     mode === "recent_scan" ? ORDERS_RECENT_QUERY : ORDERS_SALES_QUERY;
@@ -621,6 +633,9 @@ export async function fetchShopifySales(
         Date.parse(createdAt) < range.start.getTime()
       ) {
         hitOlderThanRange = true;
+      }
+      if (includeOrderInSalesSoT(edge.node ?? {})) {
+        shopOrdersSeen += 1;
       }
       if (!keepSalesOrder(edge.node, range, mode)) continue;
       const gross = parseMoneyAmount(edge.node?.totalPriceSet);
@@ -659,6 +674,7 @@ export async function fetchShopifySales(
       guestOrders: 0,
       customerMetricsAvailable: false,
       source: "shopify",
+      shopOrdersSeen,
       ...(truncatedByPageCap ? { truncatedByPageCap: true } : {}),
     };
   }
@@ -678,6 +694,7 @@ export async function fetchShopifySales(
     newCustomerNetSales: customerStats.newCustomerNetSales,
     returningCustomerNetSales: customerStats.returningCustomerNetSales,
     guestOrders: customerStats.guestOrders,
+    shopOrdersSeen,
     customerMetricsAvailable: customerStats.available,
     source: "shopify",
   };

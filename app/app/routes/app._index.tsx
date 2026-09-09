@@ -188,6 +188,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let salesUntrustedZero = false;
   let usedLivePeriodProbe = false;
   let liveConfirmedZero = false;
+  let shopOrdersSeen = 0;
   /** Stamp only after a successful desk load — never before. */
   let salesPulledAt: string | null = null;
 
@@ -318,8 +319,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesFactsCoverageForBanner = desk.factsCoverage ?? mainCoverage;
     salesUntrustedZero = desk.salesUntrustedZero;
     usedLivePeriodProbe = desk.usedLivePeriodProbe;
+    shopOrdersSeen = desk.shopOrdersSeen;
     liveConfirmedZero =
-      usedLivePeriodProbe &&
+      desk.liveConfirmedQuiet &&
       !salesUntrustedZero &&
       !(desk.sales.totalSales > 0);
     // Freshness only after a successful facts load; unavailable today → null chip.
@@ -419,7 +421,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesFactsIncompleteForDesk(salesFactsCoverageForBanner, {
       salesUntrustedZero,
       sales: metrics.sales,
+      spend: metrics.totalSpend,
       liveConfirmedZero,
+      shopOrdersSeen,
     });
 
   return {

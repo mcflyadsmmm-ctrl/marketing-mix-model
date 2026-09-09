@@ -116,6 +116,11 @@ describe("LTV copy after Partner-approved deep history", () => {
     );
   });
 
+  it("passes spend and shopOrdersSeen into salesFactsIncompleteForDesk", () => {
+    expect(overview).toMatch(/spend:\s*metrics\.totalSpend/);
+    expect(overview).toMatch(/shopOrdersSeen/);
+  });
+
   it("computes sales-fact honesty in the loader, not the Overview client", () => {
     // react-router build fails if the default export pulls sales-facts.server.
     const client = overview.split("export default function Dashboard")[1] ?? "";

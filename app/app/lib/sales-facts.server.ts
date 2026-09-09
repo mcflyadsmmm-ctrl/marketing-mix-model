@@ -18,6 +18,7 @@ import {
 } from "./periods";
 import { allowsDeepOrderHistory } from "./shopify-scopes";
 import {
+  salesFactsAllowZeroUpsert,
   salesFactsIncompleteForDesk,
   salesFactsNeedRefreshExisting,
   salesFactsNeedSyncFill,
@@ -26,6 +27,7 @@ import {
 
 export type { SalesFactsCoverage };
 export {
+  salesFactsAllowZeroUpsert,
   salesFactsIncompleteForDesk,
   salesFactsNeedRefreshExisting,
   salesFactsNeedSyncFill,
@@ -334,13 +336,26 @@ export async function runSalesFactsBackfill(
   for (const dayKey of batch) {
     try {
       const range = shopLocalDayRange(dayKey, timeZone);
+      const usedRecentScan = Boolean(options?.refreshExisting);
       const sales = await fetchShopifySales(
         admin,
         range,
-        options?.refreshExisting
+        usedRecentScan
           ? { mode: "recent_scan", maxPages: LIVE_PERIOD_PROBE_MAX_PAGES }
           : undefined,
       );
+      if (
+        !salesFactsAllowZeroUpsert({
+          totalSales: sales.totalSales,
+          orderCount: sales.orderCount,
+          usedRecentScan,
+          shopOrdersSeen: sales.shopOrdersSeen ?? 0,
+        })
+      ) {
+        // Leave missing — a search $0 must not become a trusted complete day.
+        failed.push(dayKey);
+        continue;
+      }
       await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
       written += 1;
     } catch {
@@ -723,6 +738,13 @@ export interface LoadDeskSalesForPeriodResult {
    * Never hero 0.00 / Below break-even — sales are unconfirmed.
    */
   salesUntrustedZero: boolean;
+  /** Non-cancelled Admin orders seen by the recent-scan (before in-range filter). */
+  shopOrdersSeen: number;
+  /**
+   * Recent-scan saw shop orders and none were in-range — a real quiet period.
+   * Search-query $0 must never set this.
+   */
+  liveConfirmedQuiet: boolean;
 }
 
 /**
@@ -784,6 +806,9 @@ export async function loadDeskSalesForPeriod(args: {
     }
 
     const fromFacts = salesResultFromFactsTotals(factsTotals, todaySales);
+    const todaySeen = todaySales?.shopOrdersSeen ?? 0;
+    const factsAreZero =
+      fromFacts.totalSales === 0 && fromFacts.orderCount === 0;
     const probe = shouldProbeLivePeriodSales({
       factSales: fromFacts.totalSales,
       factOrders: fromFacts.orderCount,
@@ -797,11 +822,15 @@ export async function loadDeskSalesForPeriod(args: {
           maxPages: LIVE_PERIOD_PROBE_MAX_PAGES,
           mode: "recent_scan",
         });
+        const shopOrdersSeen = Math.max(
+          livePeriod.shopOrdersSeen ?? 0,
+          todaySeen,
+        );
         const liveHasOrders =
           livePeriod.totalSales > 0 || livePeriod.orderCount > 0;
         if (liveHasOrders) {
           return {
-            sales: livePeriod,
+            sales: { ...livePeriod, shopOrdersSeen },
             salesError: null,
             factsCoverage: factsCoverage
               ? { ...factsCoverage, complete: false }
@@ -811,10 +840,11 @@ export async function loadDeskSalesForPeriod(args: {
               todaySalesTruncated || Boolean(livePeriod.truncatedByPageCap),
             usedLivePeriodProbe: true,
             salesUntrustedZero: false,
+            shopOrdersSeen,
+            liveConfirmedQuiet: false,
           };
         }
-        // Same-query or recent-scan $0 is NOT a trusted quiet period. Search
-        // syntax can miss Admin-visible orders; never hero Below break-even.
+        const liveConfirmedQuiet = shopOrdersSeen > 0;
         return {
           sales: fromFacts,
           salesError: null,
@@ -823,7 +853,9 @@ export async function loadDeskSalesForPeriod(args: {
           todaySalesTruncated:
             todaySalesTruncated || Boolean(livePeriod.truncatedByPageCap),
           usedLivePeriodProbe: true,
-          salesUntrustedZero: true,
+          salesUntrustedZero: !liveConfirmedQuiet,
+          shopOrdersSeen,
+          liveConfirmedQuiet,
         };
       } catch {
         return {
@@ -834,6 +866,8 @@ export async function loadDeskSalesForPeriod(args: {
           todaySalesTruncated,
           usedLivePeriodProbe: false,
           salesUntrustedZero: true,
+          shopOrdersSeen: todaySeen,
+          liveConfirmedQuiet: false,
         };
       }
     }
@@ -845,7 +879,9 @@ export async function loadDeskSalesForPeriod(args: {
       todaySalesUnavailable,
       todaySalesTruncated,
       usedLivePeriodProbe: false,
-      salesUntrustedZero: false,
+      salesUntrustedZero: factsAreZero,
+      shopOrdersSeen: todaySeen,
+      liveConfirmedQuiet: false,
     };
   } catch (err) {
     return {
@@ -857,6 +893,8 @@ export async function loadDeskSalesForPeriod(args: {
       todaySalesTruncated: false,
       usedLivePeriodProbe: false,
       salesUntrustedZero: true,
+      shopOrdersSeen: 0,
+      liveConfirmedQuiet: false,
     };
   }
 }

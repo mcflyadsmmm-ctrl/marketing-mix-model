@@ -42,6 +42,7 @@ import {
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
 import {
+  salesFactsAllowZeroUpsert,
   salesFactsIncompleteForDesk,
   salesFactsNeedRefreshExisting,
   salesFactsNeedSyncFill,
@@ -50,7 +51,7 @@ import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 
 const FAKE_ADMIN = {} as never;
 
-function fakeSales(totalSales = 0, orderCount = 0) {
+function fakeSales(totalSales = 0, orderCount = 0, shopOrdersSeen = 0) {
   return {
     totalSales,
     orderCount,
@@ -59,6 +60,9 @@ function fakeSales(totalSales = 0, orderCount = 0) {
     guestOrders: 0,
     customerMetricsAvailable: true,
     source: "shopify" as const,
+    shopOrdersSeen:
+      shopOrdersSeen ||
+      (totalSales > 0 || orderCount > 0 ? orderCount || 1 : 0),
   };
 }
 
@@ -142,10 +146,14 @@ describe("runSalesFactsBackfill", () => {
   it("upserts one SalesDayFact per closed day on the shopId_day unique key, including zero-sales days", async () => {
     ensureShopMetadata.mockResolvedValue({ ianaTimezone: "UTC", currencyCode: "USD" });
     findMany.mockResolvedValue([]); // nothing ingested yet
-    fetchShopifySales.mockResolvedValue(fakeSales(0)); // legitimate zero-sales day
+    fetchShopifySales.mockResolvedValue(fakeSales(0, 0, 1)); // quiet day, shop has orders
 
     const now = new Date("2026-07-15T12:00:00.000Z");
-    const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", { now, maxDays: 3 });
+    const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
+      now,
+      maxDays: 3,
+      refreshExisting: true,
+    });
 
     expect(result.skippedReason).toBeNull();
     expect(result.attempted).toBe(3);
@@ -196,6 +204,25 @@ describe("runSalesFactsBackfill", () => {
     }
   });
 
+  it("does not upsert a search-mode $0 day (3.4s kick must not poison complete facts)", async () => {
+    ensureShopMetadata.mockResolvedValue({
+      ianaTimezone: "UTC",
+      currencyCode: "USD",
+    });
+    findMany.mockResolvedValue([]);
+    fetchShopifySales.mockResolvedValue(fakeSales(0, 0, 0));
+
+    const now = new Date("2026-07-15T12:00:00.000Z");
+    const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
+      now,
+      maxDays: 3,
+    });
+
+    expect(result.written).toBe(0);
+    expect(result.failed).toHaveLength(3);
+    expect(upsert).not.toHaveBeenCalled();
+  });
+
   it("leaves a day missing (does not upsert) when its Shopify fetch fails, so the next call retries it", async () => {
     ensureShopMetadata.mockResolvedValue({ ianaTimezone: "UTC", currencyCode: "USD" });
     findMany.mockResolvedValue([]);
@@ -215,7 +242,7 @@ describe("runSalesFactsBackfill", () => {
   it("reports remainingMissingDays when the window has more missing days than maxDays allows", async () => {
     ensureShopMetadata.mockResolvedValue({ ianaTimezone: "UTC", currencyCode: "USD" });
     findMany.mockResolvedValue([]);
-    fetchShopifySales.mockResolvedValue(fakeSales(0));
+    fetchShopifySales.mockResolvedValue(fakeSales(0, 0, 1));
 
     const now = new Date("2026-07-15T12:00:00.000Z");
     const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
@@ -477,8 +504,56 @@ describe("salesFactsIncompleteForDesk", () => {
       salesFactsIncompleteForDesk(completeZero, {
         sales: 0,
         liveConfirmedZero: true,
+        shopOrdersSeen: 7,
       }),
     ).toBe(false);
+  });
+
+  it("complete $0 + spend>0 without a shop-order live confirm is incomplete", () => {
+    expect(
+      salesFactsIncompleteForDesk(completeZero, {
+        sales: 0,
+        spend: 1000,
+        liveConfirmedZero: false,
+        shopOrdersSeen: 0,
+      }),
+    ).toBe(true);
+    // #41 smoke: probe “confirmed” $0 without seeing the 7 Admin orders.
+    expect(
+      salesFactsIncompleteForDesk(completeZero, {
+        sales: 0,
+        spend: 1000,
+        liveConfirmedZero: true,
+        shopOrdersSeen: 0,
+      }),
+    ).toBe(true);
+  });
+
+  it("refuses to upsert a search-mode $0 (poisoned complete day)", () => {
+    expect(
+      salesFactsAllowZeroUpsert({
+        totalSales: 0,
+        orderCount: 0,
+        usedRecentScan: false,
+        shopOrdersSeen: 0,
+      }),
+    ).toBe(false);
+    expect(
+      salesFactsAllowZeroUpsert({
+        totalSales: 0,
+        orderCount: 0,
+        usedRecentScan: true,
+        shopOrdersSeen: 0,
+      }),
+    ).toBe(false);
+    expect(
+      salesFactsAllowZeroUpsert({
+        totalSales: 0,
+        orderCount: 0,
+        usedRecentScan: true,
+        shopOrdersSeen: 7,
+      }),
+    ).toBe(true);
   });
 
   it("keeps a real multiple trusted even while coverage is still filling", () => {
@@ -692,6 +767,43 @@ describe("loadDeskSalesForPeriod live MTD probe", () => {
     expect(result.sales.totalSales).toBe(840);
     expect(result.sales.orderCount).toBe(7);
     expect(result.factsCoverage?.complete).toBe(false);
+  });
+
+  it("confirms a quiet MTD only when recent-scan saw Admin orders outside the period", async () => {
+    count.mockResolvedValue(8);
+    findMany.mockResolvedValue([
+      {
+        sales: 0,
+        netSales: 0,
+        grossSales: 0,
+        orderCount: 0,
+        newCustomers: 0,
+        returningCustomers: 0,
+        newCustomerNetSales: 0,
+        returningCustomerNetSales: 0,
+        guestOrders: 0,
+      },
+    ]);
+    fetchShopifySales
+      .mockResolvedValueOnce(fakeSales(0, 0, 7)) // today — 7 exist, none today
+      .mockResolvedValueOnce(fakeSales(0, 0, 7)); // MTD scan — 7 exist, none in range
+
+    const result = await loadDeskSalesForPeriod({
+      admin: FAKE_ADMIN,
+      shopId: "shop_1",
+      range: {
+        start: new Date("2026-09-01T00:00:00.000Z"),
+        end: new Date("2026-09-09T23:59:59.999Z"),
+        label: "Month to date",
+      },
+      ianaTimezone: "UTC",
+      now: new Date("2026-09-09T18:00:00.000Z"),
+    });
+
+    expect(result.shopOrdersSeen).toBe(7);
+    expect(result.liveConfirmedQuiet).toBe(true);
+    expect(result.salesUntrustedZero).toBe(false);
+    expect(result.sales.totalSales).toBe(0);
   });
 
   it("does not treat a search-query $0 as a trusted quiet period (demvcflyads smoke)", async () => {
