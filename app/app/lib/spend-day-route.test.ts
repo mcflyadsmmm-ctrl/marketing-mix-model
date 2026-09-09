@@ -117,6 +117,22 @@ describe("first-spend hand-off to Total ROAS", () => {
     expect(spend).toContain("!actionData.dayField");
     expect(spend).toContain('className="mcfly-spend-day__error"');
   });
+
+  it("clears the amount after a save but echoes a rejected row back", () => {
+    expect(spend).toContain("dayForm: { date, amount }");
+    expect(spend).toContain("actionData?.dayForm?.date || suggestedDayDate");
+    expect(spend).toContain('actionData?.dayForm?.amount ?? ""');
+    expect(typedForm).toContain("key={dayFormKey}");
+    expect(typedForm).toContain("defaultValue={dayDateDefault}");
+    expect(typedForm).toContain("defaultValue={dayAmountDefault}");
+    expect(spend).toContain('daySaved?.savedAt ?? (actionData?.dayField ? "retry" : "new")');
+  });
+
+  it("pre-fills the newest unfilled closed day so only the amount is left", () => {
+    expect(spend).toContain("quickSpendDefaultDate");
+    expect(spend).toContain("todayKey: storeTodayKey");
+    expect(spend).toContain("missingDatesKey.split(\",\")");
+  });
 });
 
 describe("Wave 4 guarantees still hold", () => {
