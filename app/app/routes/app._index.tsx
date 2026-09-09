@@ -405,7 +405,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     granularity: explorerSeries.granularity,
     range: explorerWindow.range,
     windowLabel: explorerWindow.label,
-    targetMer: explorerSeries.targetMer,
+    targetMer: metrics.targetMerConfirmed ? explorerSeries.targetMer : null,
     breakEvenMer: metrics.breakEvenMer,
     showSales: exSales,
     fromKey: explorerDayKey(explorerWindow.start),

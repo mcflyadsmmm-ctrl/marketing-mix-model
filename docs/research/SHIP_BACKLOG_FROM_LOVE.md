@@ -61,7 +61,14 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 
 ---
 
-## Wave Love-5 — Automate / pipe discoverability (P0 · L16)
+## Wave Love-1b — one-tap use-real from Overview (P1 bolt-on)
+
+| | |
+| --- | --- |
+| **Outcome** | SAMPLE “Use my real store” on Overview POSTs `use-real` in one tap (Form), not two |
+| **Exclusive files** | `app._index.tsx` primary action Form shape; optional `firstSessionPrimaryAction` POST variant |
+| **Note** | Love-1 left two-tap by design (data-mode is POST-only; Overview was Love-2 exclusive then) |
+| **Status** | Queued after Love-5 |
 
 | | |
 | --- | --- |

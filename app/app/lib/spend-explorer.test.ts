@@ -3,6 +3,7 @@ import {
   applyExplorerMode,
   bucketExplorerRows,
   closedDayEnd,
+  explorerMerCeil,
   explorerMoneyCeil,
   explorerSalesCeil,
   formatExplorerSubtitle,
@@ -431,5 +432,26 @@ describe("explorerSalesCeil + subtitle", () => {
     expect(sub).toContain("Total ROAS = sales ÷ spend");
     expect(sub).toContain("closed days only");
     expect(sub).toContain("as of 2026-07-22");
+  });
+});
+
+describe("explorerMerCeil", () => {
+  const plot = applyExplorerMode(
+    bucketExplorerRows([day("2026-07-06", 4000, { meta: 1000 })], "Day"),
+    "stacked",
+  );
+
+  it("lifts the ROAS axis to a confirmed target", () => {
+    expect(explorerMerCeil(plot, 6)).toBeCloseTo(6 * 1.08, 5);
+  });
+
+  it("ignores an unconfirmed target and follows the data", () => {
+    // Same buckets (4.0x), no confirmed goal — the ceiling is the plotted max.
+    expect(explorerMerCeil(plot, null)).toBeCloseTo(4 * 1.08, 5);
+    expect(explorerMerCeil([], null)).toBeCloseTo(1.08, 5);
+  });
+
+  it("still honors break-even without a target", () => {
+    expect(explorerMerCeil(plot, null, 5)).toBeCloseTo(5 * 1.08, 5);
   });
 });

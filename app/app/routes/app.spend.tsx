@@ -34,6 +34,12 @@ import {
 } from "../lib/spend-csv";
 import { isSpendChannel } from "../lib/spend-billing";
 import {
+  PIPE_TEMPLATE_ANCHOR,
+  PIPE_TEMPLATE_COPY,
+  PIPE_TEMPLATE_HREF,
+  PIPE_TEMPLATE_OPTIONS,
+} from "../lib/spend-pipe-templates";
+import {
   buildLumpSpreadLongCsv,
   currentYearMonth,
   isPeriodWindowType,
@@ -1584,6 +1590,9 @@ export default function SpendEntryPage() {
               </s-link>
               <s-link href="#mcfly-spend-paste">Paste one row</s-link>
               <s-link href="#mcfly-spend-playbook">Platform playbook</s-link>
+              <s-link href={PIPE_TEMPLATE_HREF}>
+                {PIPE_TEMPLATE_COPY.linkLabel}
+              </s-link>
             </div>
           </section>
         ) : null}
@@ -1746,6 +1755,9 @@ export default function SpendEntryPage() {
                 Download blank template
               </s-button>
               <s-text tone="neutral">One row = one day</s-text>
+              <s-link href={PIPE_TEMPLATE_HREF}>
+                {PIPE_TEMPLATE_COPY.linkLabel}
+              </s-link>
             </div>
             {selectedTemplate.headers.length > 0 ? (
               <table className="mcfly-spend-lean__example">
@@ -1919,6 +1931,46 @@ export default function SpendEntryPage() {
                     </ol>
                   </div>
                 ))}
+            </div>
+          </details>
+
+          {/* 2c · Pipe templates — the only "automate" surface (no OAuth tab) */}
+          <details
+            id={PIPE_TEMPLATE_ANCHOR}
+            className="mcfly-spend-lean__pipe"
+          >
+            <summary>{PIPE_TEMPLATE_COPY.summary}</summary>
+            <div className="mcfly-spend-lean__pipe-body">
+              <p className="mcfly-spend-lean__pipe-hint">
+                {PIPE_TEMPLATE_COPY.hint}
+              </p>
+              <ol className="mcfly-spend-lean__pipe-steps">
+                {PIPE_TEMPLATE_COPY.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              {PIPE_TEMPLATE_OPTIONS.map((option) => (
+                <div key={option.shape} className="mcfly-spend-lean__pipe-card">
+                  <p className="mcfly-spend-lean__pipe-title">
+                    {option.title}
+                    <code className="mcfly-spend-lean__pipe-headers">
+                      {option.headers}
+                    </code>
+                  </p>
+                  <p className="mcfly-spend-lean__pipe-note">{option.hint}</p>
+                  <div className="mcfly-spend-lean__pipe-actions">
+                    <s-button href={option.exampleHref} variant="secondary">
+                      {PIPE_TEMPLATE_COPY.exampleLabel}
+                    </s-button>
+                    <s-link href={option.blankHref}>
+                      {PIPE_TEMPLATE_COPY.blankLabel}
+                    </s-link>
+                  </div>
+                </div>
+              ))}
+              <p className="mcfly-spend-lean__pipe-note">
+                {PIPE_TEMPLATE_COPY.honesty}
+              </p>
             </div>
           </details>
           </>

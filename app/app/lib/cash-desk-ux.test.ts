@@ -20,6 +20,10 @@ const gauge = readFileSync(
   join(here, "../components/TotalRoasGauge.tsx"),
   "utf8",
 );
+const explorer = readFileSync(
+  join(here, "../components/SpendExplorer.tsx"),
+  "utf8",
+);
 const merDashboard = readFileSync(join(here, "./mer-dashboard.server.ts"), "utf8");
 const schema = readFileSync(join(here, "../../prisma/schema.prisma"), "utf8");
 
@@ -127,6 +131,24 @@ describe("Optional target Total ROAS", () => {
     expect(client).toMatch(
       /<TotalRoasGauge[\s\S]{0,320}periodTrusted=\{periodTrust\.trusted\}/,
     );
+  });
+
+  it("Overview passes only a confirmed target into the explorer series", () => {
+    expect(overview).toMatch(
+      /targetMer: metrics\.targetMerConfirmed \? explorerSeries\.targetMer : null,/,
+    );
+  });
+
+  it("explorer draws no target rail and no vs-target tone without a goal", () => {
+    expect(explorer).toMatch(/targetMer: number \| null/);
+    // Rail is gated on a real confirmed number, not the 3.0 default.
+    expect(explorer).toMatch(
+      /targetMer != null && targetMer > 0 && merCeil > 0 \?/,
+    );
+    expect(explorer).not.toMatch(/\{targetMer > 0 && merCeil > 0 \?/);
+    // merToneBand already returns "flat" for a null rail — keep it wired to the
+    // same nullable target so unconfirmed days never render red.
+    expect(explorer).toContain("merToneBand(b.mer, targetMer)");
   });
 
   it("gauge stays neutral without a configured or trusted target", () => {

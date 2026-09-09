@@ -731,12 +731,13 @@ export function explorerSalesCeil(
   return max > 0 ? max : 1;
 }
 
+/** `targetMer` is null when the merchant never confirmed a goal — no rail, no ceiling lift. */
 export function explorerMerCeil(
   buckets: ExplorerPlotBucket[],
-  targetMer: number,
+  targetMer: number | null,
   breakEvenMer: number | null = null,
 ): number {
-  let max = targetMer > 0 ? targetMer : 1;
+  let max = targetMer != null && targetMer > 0 ? targetMer : 1;
   if (breakEvenMer != null && breakEvenMer > max) max = breakEvenMer;
   for (const b of buckets) {
     if (b.mer != null && b.mer > max) max = b.mer;

@@ -28,7 +28,12 @@ export type SpendExplorerSeriesView = {
   granularity: ExplorerGranularity;
   range: ExplorerRange;
   windowLabel: string;
-  targetMer: number;
+  /**
+   * Confirmed Total ROAS goal. Null when the merchant never set one — the
+   * target rail and the vs-target day tone stay off rather than judging cash
+   * against an unconfirmed default.
+   */
+  targetMer: number | null;
   /** Break-even Total ROAS rail (from margin) — optional dashed accent. */
   breakEvenMer: number | null;
   /** mcflyads till instrument — sales polyline on shared left $ axis. */
@@ -692,7 +697,7 @@ export function SpendExplorer({
                   </text>
 
                   {/* 2. Target + BE rails (ROAS axis) */}
-                  {targetMer > 0 && merCeil > 0 ? (
+                  {targetMer != null && targetMer > 0 && merCeil > 0 ? (
                     <g className="mcfly-explorer__rail-g" aria-hidden="true">
                       <line
                         className="mcfly-explorer__rail-line mcfly-explorer__rail-line--target"
