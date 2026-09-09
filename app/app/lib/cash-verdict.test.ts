@@ -47,6 +47,20 @@ describe("resolveCashVerdict", () => {
     expect(v.headline).toMatch(/confirm margin/i);
   });
 
+  it("never says below break-even on a fake 0.00 while sales facts are untrusted", () => {
+    const v = resolveCashVerdict({
+      mer: 0,
+      sales: 0,
+      spend: 1000,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: true,
+    });
+    expect(v.tone).toBe("blocked");
+    expect(v.headline).not.toMatch(/below break-even/i);
+    expect(v.headline).toMatch(/not a trusted multiple/i);
+  });
+
   it("refuses to treat missing sales facts + $0 sales as ads failing", () => {
     const v = resolveCashVerdict({
       mer: 0,

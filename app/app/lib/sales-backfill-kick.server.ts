@@ -18,6 +18,8 @@ export async function enqueueSalesFactsBackfill(args: {
   shopId: string;
   grantedScopes?: string | null;
   reason?: string;
+  /** Re-fetch existing fact days (grant / live-probe repair). Tick resume stays missing-only. */
+  refreshExisting?: boolean;
 }): Promise<void> {
   await enqueueJob({
     shopId: args.shopId,
@@ -26,6 +28,7 @@ export async function enqueueSalesFactsBackfill(args: {
     payload: {
       reason: args.reason ?? "desk_incomplete",
       grantedScopes: args.grantedScopes ?? "",
+      refreshExisting: Boolean(args.refreshExisting),
     },
   });
 }

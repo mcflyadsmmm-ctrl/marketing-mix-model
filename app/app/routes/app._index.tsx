@@ -67,6 +67,7 @@ import {
   getSalesFactsTotals,
   getSalesFactsByDay,
   loadDeskSalesForPeriod,
+  salesFactsIncompleteForDesk,
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
@@ -179,6 +180,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     customerMetricsAvailable: false,
   };
   let salesFactsCoverageForBanner: SalesFactsCoverage | null = null;
+  /** Facts said $0 and live Admin probe failed — never a trusted 0.00. */
+  let salesUntrustedZero = false;
+  let usedLivePeriodProbe = false;
   /** Stamp only after a successful desk load — never before. */
   let salesPulledAt: string | null = null;
 
@@ -287,15 +291,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesUnavailable = desk.todaySalesUnavailable;
     todaySalesTruncated = desk.todaySalesTruncated;
     salesFactsCoverageForBanner = desk.factsCoverage ?? mainCoverage;
+    salesUntrustedZero = desk.salesUntrustedZero;
+    usedLivePeriodProbe = desk.usedLivePeriodProbe;
     // Freshness only after a successful facts load; unavailable today → null chip.
     salesPulledAt =
       desk.salesError || desk.todaySalesUnavailable
         ? null
         : new Date().toISOString();
 
+    if (usedLivePeriodProbe || salesUntrustedZero) {
+      void enqueueSalesFactsBackfill({
+        shopId: shop.id,
+        grantedScopes: session.scope,
+        reason: usedLivePeriodProbe
+          ? "overview_live_probe"
+          : "overview_untrusted_zero",
+        refreshExisting: true,
+      }).catch(() => {});
+    }
+
     try {
       const [priorFacts, priorCoverage] = await Promise.all([
-        getSalesFactsTotals(shop.id, priorRange, now),
+        getSalesFactsTotals(shop.id, priorRange, now, ianaTimezone),
         getSalesFactsCoverage(shop.id, priorRange, now, ianaTimezone),
       ]);
       // Clamped/incomplete prior → skip deltas (never fake priorMer=0 improvement).
@@ -308,7 +325,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     try {
-      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange);
+      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange, ianaTimezone);
     } catch {
       salesByDay = new Map();
     }
@@ -378,6 +395,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shotMode,
     explorer,
     salesFactsCoverage: salesFactsCoverageForBanner,
+    salesUntrustedZero,
     shareSubject: `Total ROAS — ${metrics.period.label}`,
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
@@ -411,9 +429,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         periodMayExceedShopifyOrderWindow(range),
       factsIncomplete:
         !useSampleDesk &&
-        (salesFactsCoverageForBanner == null ||
-          (!salesFactsCoverageForBanner.complete &&
-            salesFactsCoverageForBanner.expectedClosedDays > 0)),
+        salesFactsIncompleteForDesk(salesFactsCoverageForBanner, {
+          salesUntrustedZero,
+        }),
     }).ask,
   };
 };
@@ -435,6 +453,7 @@ export default function Dashboard() {
     shotMode,
     explorer,
     salesFactsCoverage,
+    salesUntrustedZero,
     shareSubject,
     sharePeriodStartDay,
     sharePeriodEndDay,
@@ -457,10 +476,9 @@ export default function Dashboard() {
     salesError: Boolean(salesError),
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
-    factsIncomplete:
-      salesFactsCoverage != null &&
-      !salesFactsCoverage.complete &&
-      !salesFactsCoverage.periodExceedsFactWindow,
+    factsIncomplete: salesFactsIncompleteForDesk(salesFactsCoverage, {
+      salesUntrustedZero,
+    }),
     recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
   });
   const freshLabel = formatCashFreshnessChip({
@@ -479,9 +497,7 @@ export default function Dashboard() {
   });
   const factsIncompleteForHonesty =
     !useSampleDesk &&
-    (salesFactsCoverage == null ||
-      (!salesFactsCoverage.complete &&
-        salesFactsCoverage.expectedClosedDays > 0));
+    salesFactsIncompleteForDesk(salesFactsCoverage, { salesUntrustedZero });
   const deepHistory = resolveDeepHistoryHonesty({
     hasReadAllOrders,
     useSampleDesk,
@@ -504,11 +520,7 @@ export default function Dashboard() {
     useSampleDesk,
     periodPreset: preset,
   });
-  const factsIncompleteForTrust =
-    !useSampleDesk &&
-    salesFactsCoverage != null &&
-    !salesFactsCoverage.complete &&
-    !salesFactsCoverage.periodExceedsFactWindow;
+  const factsIncompleteForTrust = factsIncompleteForHonesty;
   const periodTrust = resolvePeriodTrust({
     preset,
     hasSpend: metrics.onboarding.hasSpend,

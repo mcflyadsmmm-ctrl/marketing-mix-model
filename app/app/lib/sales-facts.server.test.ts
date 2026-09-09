@@ -33,19 +33,23 @@ import {
   getSalesFactsCoverage,
   getSalesFactsTotals,
   getSalesFactsByDay,
+  loadDeskSalesForPeriod,
   salesFactsBackfillWindowDayCount,
   salesDayFactWindowDayCount,
   selectSalesFactsBackfillDays,
+  salesFactsDayFilter,
+  salesFactsIncompleteForDesk,
+  shouldProbeLivePeriodSales,
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
 import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 
 const FAKE_ADMIN = {} as never;
 
-function fakeSales(totalSales = 0) {
+function fakeSales(totalSales = 0, orderCount = 0) {
   return {
     totalSales,
-    orderCount: 0,
+    orderCount,
     newCustomers: 0,
     returningCustomers: 0,
     guestOrders: 0,
@@ -390,5 +394,232 @@ describe("getSalesFactsByDay", () => {
     });
 
     expect(map.get("2026-07-14")).toBe(150);
+  });
+});
+
+describe("salesFactsDayFilter (shop-local vs UTC-midnight facts)", () => {
+  it("includes the first Denver calendar day stored at UTC midnight", () => {
+    // Sept 1 00:00 America/Denver = 2026-09-01T06:00Z; fact row is 2026-09-01T00:00Z.
+    const filter = salesFactsDayFilter(
+      {
+        start: new Date("2026-09-01T06:00:00.000Z"),
+        end: new Date("2026-09-10T05:59:59.999Z"),
+      },
+      "America/Denver",
+    );
+    expect(filter.gte.toISOString()).toBe("2026-09-01T00:00:00.000Z");
+    expect(filter.lte.toISOString()).toBe("2026-09-09T00:00:00.000Z");
+  });
+
+  it("does not pull the prior UTC calendar day for Sydney MTD", () => {
+    // Jan 1 00:00 Australia/Sydney (AEDT UTC+11) = 2025-12-31T13:00Z.
+    const filter = salesFactsDayFilter(
+      {
+        start: new Date("2025-12-31T13:00:00.000Z"),
+        end: new Date("2026-01-31T12:59:59.999Z"),
+      },
+      "Australia/Sydney",
+    );
+    expect(filter.gte.toISOString()).toBe("2026-01-01T00:00:00.000Z");
+  });
+});
+
+describe("salesFactsIncompleteForDesk", () => {
+  it("treats null coverage and untrusted $0 as incomplete", () => {
+    expect(salesFactsIncompleteForDesk(null)).toBe(true);
+    expect(
+      salesFactsIncompleteForDesk(
+        {
+          expectedClosedDays: 8,
+          factDays: 8,
+          complete: true,
+          periodExceedsFactWindow: false,
+        },
+        { salesUntrustedZero: true },
+      ),
+    ).toBe(true);
+  });
+
+  it("is incomplete when closed days are missing", () => {
+    expect(
+      salesFactsIncompleteForDesk({
+        expectedClosedDays: 8,
+        factDays: 0,
+        complete: false,
+        periodExceedsFactWindow: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("is complete only when coverage says so and $0 is trusted", () => {
+    expect(
+      salesFactsIncompleteForDesk({
+        expectedClosedDays: 8,
+        factDays: 8,
+        complete: true,
+        periodExceedsFactWindow: false,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("shouldProbeLivePeriodSales", () => {
+  const mtd = {
+    start: new Date("2026-09-01T06:00:00.000Z"),
+    end: new Date("2026-09-09T05:59:59.999Z"),
+    label: "Month to date",
+  };
+
+  it("probes MTD when stored facts are $0 / 0 orders", () => {
+    expect(
+      shouldProbeLivePeriodSales({
+        factSales: 0,
+        factOrders: 0,
+        period: mtd,
+        coverage: {
+          expectedClosedDays: 8,
+          factDays: 8,
+          complete: true,
+          periodExceedsFactWindow: false,
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it("does not probe when facts already have sales", () => {
+    expect(
+      shouldProbeLivePeriodSales({
+        factSales: 1200,
+        factOrders: 7,
+        period: mtd,
+        coverage: {
+          expectedClosedDays: 8,
+          factDays: 8,
+          complete: true,
+          periodExceedsFactWindow: false,
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("does not probe wide windows", () => {
+    expect(
+      shouldProbeLivePeriodSales({
+        factSales: 0,
+        factOrders: 0,
+        period: {
+          start: new Date("2026-01-01T00:00:00.000Z"),
+          end: new Date("2026-09-09T00:00:00.000Z"),
+          label: "YTD",
+        },
+        coverage: {
+          expectedClosedDays: 250,
+          factDays: 250,
+          complete: true,
+          periodExceedsFactWindow: false,
+        },
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("runSalesFactsBackfill refreshExisting", () => {
+  beforeEach(() => {
+    findMany.mockReset();
+    upsert.mockReset();
+    count.mockReset();
+    ensureShopMetadata.mockReset();
+    fetchShopifySales.mockReset();
+  });
+
+  it("re-fetches existing newest days so poisoned $0 facts can be overwritten", async () => {
+    ensureShopMetadata.mockResolvedValue({
+      ianaTimezone: "UTC",
+      currencyCode: "USD",
+    });
+    findMany.mockResolvedValue([{ day: new Date("2026-07-14T00:00:00.000Z") }]);
+    fetchShopifySales.mockResolvedValue(fakeSales(350, 2));
+
+    const now = new Date("2026-07-15T12:00:00.000Z");
+    await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
+      now,
+      maxDays: 1,
+      refreshExisting: true,
+    });
+
+    const firstRange = fetchShopifySales.mock.calls[0][1] as { label: string };
+    expect(firstRange.label).toBe("2026-07-14");
+    expect(upsert).toHaveBeenCalled();
+    expect(upsert.mock.calls[0][0].update.sales).toBe(350);
+  });
+});
+
+describe("loadDeskSalesForPeriod live MTD probe", () => {
+  beforeEach(() => {
+    findMany.mockReset();
+    count.mockReset();
+    fetchShopifySales.mockReset();
+  });
+
+  it("prefers bounded live Admin orders when stored facts are $0", async () => {
+    count.mockResolvedValue(8);
+    findMany.mockResolvedValue([
+      {
+        sales: 0,
+        netSales: 0,
+        grossSales: 0,
+        orderCount: 0,
+        newCustomers: 0,
+        returningCustomers: 0,
+        newCustomerNetSales: 0,
+        returningCustomerNetSales: 0,
+        guestOrders: 0,
+      },
+    ]);
+    fetchShopifySales
+      .mockResolvedValueOnce(fakeSales(0, 0)) // today top-up
+      .mockResolvedValueOnce(fakeSales(840, 7)); // period probe
+
+    const result = await loadDeskSalesForPeriod({
+      admin: FAKE_ADMIN,
+      shopId: "shop_1",
+      range: {
+        start: new Date("2026-09-01T00:00:00.000Z"),
+        end: new Date("2026-09-09T23:59:59.999Z"),
+        label: "Month to date",
+      },
+      ianaTimezone: "UTC",
+      now: new Date("2026-09-09T18:00:00.000Z"),
+    });
+
+    expect(result.usedLivePeriodProbe).toBe(true);
+    expect(result.salesUntrustedZero).toBe(false);
+    expect(result.sales.totalSales).toBe(840);
+    expect(result.sales.orderCount).toBe(7);
+    expect(result.factsCoverage?.complete).toBe(false);
+  });
+
+  it("marks $0 untrusted when the live probe throws", async () => {
+    count.mockResolvedValue(8);
+    findMany.mockResolvedValue([]);
+    fetchShopifySales
+      .mockResolvedValueOnce(fakeSales(0, 0))
+      .mockRejectedValueOnce(new Error("Shopify GraphQL error"));
+
+    const result = await loadDeskSalesForPeriod({
+      admin: FAKE_ADMIN,
+      shopId: "shop_1",
+      range: {
+        start: new Date("2026-09-01T00:00:00.000Z"),
+        end: new Date("2026-09-09T23:59:59.999Z"),
+        label: "Month to date",
+      },
+      ianaTimezone: "UTC",
+      now: new Date("2026-09-09T18:00:00.000Z"),
+    });
+
+    expect(result.sales.totalSales).toBe(0);
+    expect(result.salesUntrustedZero).toBe(true);
+    expect(result.usedLivePeriodProbe).toBe(false);
   });
 });

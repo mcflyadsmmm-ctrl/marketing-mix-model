@@ -326,14 +326,25 @@ function resolvePriorPeriodInTimeZone(
 }
 
 /**
+ * Quote an ISO-8601 instant for Shopify Admin search.
+ * Unquoted timestamps break on `:` (the field:value separator) and can
+ * silently match nothing — then SalesDayFact writes a trusted $0 day.
+ */
+export function shopifySearchInstant(date: Date): string {
+  return `'${date.toISOString()}'`;
+}
+
+/**
  * Shopify Admin order search for Cash MER / order-facts sales SoT.
- * open|closed excludes cancelled; test:false excludes Bogus Gateway / test-mode orders.
- * Parentheses keep OR from swallowing the created_at / test terms (Shopify search syntax).
+ * open|closed excludes cancelled. Test / Bogus / development-store orders stay
+ * in — Shopify Admin shows them. Excluding test checkouts is how a 7-order
+ * desk permanently heros 0.00 ROAS after grant.
+ * Parentheses keep OR from swallowing the created_at terms.
  */
 export function formatPeriodQuery(range: DateRange): string {
-  const isoStart = range.start.toISOString();
-  const isoEnd = range.end.toISOString();
-  return `created_at:>=${isoStart} created_at:<=${isoEnd} (status:open OR status:closed) test:false`;
+  const isoStart = shopifySearchInstant(range.start);
+  const isoEnd = shopifySearchInstant(range.end);
+  return `created_at:>=${isoStart} created_at:<=${isoEnd} (status:open OR status:closed)`;
 }
 
 export const PERIOD_PRESETS: { value: PeriodPreset; label: string }[] = [

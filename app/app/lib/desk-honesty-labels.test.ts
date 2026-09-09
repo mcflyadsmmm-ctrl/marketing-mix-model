@@ -16,6 +16,7 @@ describe("Overview / LTV tillLabel honesty", () => {
     expect(overview).toContain("formatListingTillLabel");
     expect(overview).toMatch(/salesError:\s*Boolean\(salesError\)/);
     expect(overview).toContain("factsIncomplete");
+    expect(overview).toContain("salesFactsIncompleteForDesk");
   });
 
   it("Overview scoreboardReady refuses salesError zeros", () => {
@@ -98,6 +99,9 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).toContain("hideUntrustedZero");
     expect(overview).toContain("periodUncovered");
     expect(overview).toContain("pick_covered_period");
+    expect(overview).toContain("salesFactsIncompleteForDesk");
+    expect(overview).toContain("salesUntrustedZero");
+    expect(overview).toContain("refreshExisting: true");
   });
 
   it("enqueues sales backfill from Settings and Spend so first-session bounce still fills", () => {

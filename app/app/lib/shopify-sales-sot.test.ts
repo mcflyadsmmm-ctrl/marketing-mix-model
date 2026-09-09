@@ -86,9 +86,12 @@ describe("Shopify sales SoT (Total ROAS numerator)", () => {
     expect(PRODUCT_NOUN.cashClose).toMatch(/exact spend/i);
   });
 
-  it("sales query SoT excludes cancelled and test via formatPeriodQuery", () => {
+  it("sales query SoT excludes cancelled via formatPeriodQuery and keeps test orders", () => {
     expect(salesSource).toContain("formatPeriodQuery");
     const periodsSource = readFileSync(join(here, "periods.ts"), "utf8");
     expect(periodsSource).toMatch(/cancelled/i);
+    expect(periodsSource).toContain("shopifySearchInstant");
+    expect(periodsSource).not.toMatch(/test:false`/);
+    expect(periodsSource).not.toMatch(/return `[^`]*test:false/);
   });
 });
