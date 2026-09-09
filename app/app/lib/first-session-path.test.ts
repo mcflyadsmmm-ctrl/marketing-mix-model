@@ -142,7 +142,45 @@ describe("resolveFirstSessionPath", () => {
     expect(path.showFullGuide).toBe(false);
     expect(path.showMarginNudge).toBe(false);
     expect(path.cashMerReady).toBe(true);
-    expect(firstSessionPrimaryAction(path).href).toBe("/app/demo");
+    expect(firstSessionPrimaryAction(path)).toEqual({
+      href: "/app/spend",
+      label: PRODUCT_NOUN.samplePreviewOffCta,
+    });
+  });
+
+  it("sends the SAMPLE viewer at the Real-store switch, never the Demo tab", () => {
+    const path = cold({ useSampleDesk: true });
+    const action = firstSessionPrimaryAction(path);
+    // `/app/data-mode` only answers POST `use-real`; Spend carries that form
+    // as its page action, so the link reaches the switch instead of a preview.
+    expect(path.realStoreHref).toBe("/app/spend");
+    expect(action.href).toBe(path.realStoreHref);
+    expect(action.href).not.toBe("/app/demo");
+    expect(action.label).toBe(PRODUCT_NOUN.samplePreviewOffCta);
+    expect(action.label).toMatch(/real store/i);
+  });
+
+  it("keeps the period on the Real-store hand-off", () => {
+    const path = cold({ useSampleDesk: true, search: "?period=mtd" });
+    expect(path.realStoreHref).toBe("/app/spend?period=mtd");
+    expect(firstSessionPrimaryAction(path).href).toBe("/app/spend?period=mtd");
+  });
+
+  it("never routes any first-session primary action to the Demo tab", () => {
+    const paths = [
+      cold(),
+      cold({ marginConfirmed: true }),
+      cold({ hasLiveSpend: true }),
+      cold({ marginConfirmed: true, hasLiveSpend: true }),
+      cold({ useSampleDesk: true }),
+      cold({ useSampleDesk: true, hasLiveSpend: true }),
+      cold({ useSampleDesk: true, shotMode: true }),
+    ];
+    for (const path of paths) {
+      const { href, label } = firstSessionPrimaryAction(path);
+      expect(href).not.toMatch(/\/app\/demo/);
+      expect(label).not.toMatch(/demo/i);
+    }
   });
 
   it("never treats shot mode as a first-session empty", () => {
@@ -158,6 +196,7 @@ describe("resolveFirstSessionPath", () => {
     expect(path.steps[0].href).toBe("/app/spend?period=mtd");
     expect(path.steps[1].href).toBe("/app/settings?period=mtd");
     expect(path.steps[3].href).toBe("/app/allocation?period=mtd");
+    expect(path.realStoreHref).toBe("/app/spend?period=mtd");
   });
 
   it("shows full guide after Sample → Real with no spend yet", () => {

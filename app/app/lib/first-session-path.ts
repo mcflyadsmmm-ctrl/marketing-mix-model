@@ -57,6 +57,16 @@ export type FirstSessionPath = {
   showMarginNudge: boolean;
   viewing: "sample" | "live";
   viewingHint: string;
+  /**
+   * Where a SAMPLE viewer goes to become a real-store viewer.
+   *
+   * `/app/data-mode` is POST-only (`use-real` intent), so a plain link can
+   * never perform the switch. Spend carries that form as its page action and
+   * is also the first real-store step, so one tap lands on the switch and the
+   * typed-day ritual together. Never the Demo tab — that is a preview, not a
+   * mode change.
+   */
+  realStoreHref: string;
   heading: string;
   body: string;
   primaryHref: string;
@@ -204,6 +214,7 @@ export function resolveFirstSessionPath(
     showMarginNudge,
     viewing,
     viewingHint,
+    realStoreHref: withSearch("/app/spend", input.search),
     ...copy,
     steps,
     guideHeading: `Your real store — ${FIRST_SESSION_STEP_IDS.length} steps`,
@@ -219,8 +230,8 @@ export function firstSessionPrimaryAction(path: FirstSessionPath): {
 } {
   if (path.viewing === "sample") {
     return {
-      href: "/app/demo",
-      label: PRODUCT_NOUN.samplePreviewOffReviewTitle,
+      href: path.realStoreHref,
+      label: PRODUCT_NOUN.samplePreviewOffCta,
     };
   }
   if (path.showColdEmpty) {
