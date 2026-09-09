@@ -45,6 +45,21 @@ describe("Overview Monday desk", () => {
     expect(verdict).toMatch(/am I making money on ads/i);
   });
 
+  it("one-taps SAMPLE → Real via Form POST use-real (Love-1b)", () => {
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    expect(client).toMatch(
+      /primaryAction\.postIntent === "use-real"[\s\S]{0,200}<Form method="post"/,
+    );
+    expect(client).toMatch(
+      /name="intent"\s+value="use-real"/,
+    );
+    expect(client).toMatch(/type="submit"/);
+    // Navigate-only SAMPLE primary would reintroduce two-tap.
+    expect(client).not.toMatch(
+      /postIntent === "use-real"[\s\S]{0,80}href=\{primaryAction\.href\}/,
+    );
+  });
+
   it("shows trial vs trust clock next to Overview trial context (F3 / L15)", () => {
     expect(overview).toContain("resolveTrialTrustClock");
     expect(overview).toContain("trialTrustClock");

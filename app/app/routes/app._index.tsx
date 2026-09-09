@@ -3,7 +3,12 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useLoaderData, useNavigation, redirect } from "react-router";
+import {
+  Form,
+  useLoaderData,
+  useNavigation,
+  redirect,
+} from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import {
   SPEND_CHANNEL_LABELS,
@@ -724,7 +729,26 @@ export default function Dashboard() {
 
   return (
     <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
-      {!shotMode ? (
+      {!shotMode &&
+      primaryAction.postIntent === "use-real" &&
+      primaryAction.postAction ? (
+        <Form method="post" action={primaryAction.postAction}>
+          <input type="hidden" name="intent" value="use-real" />
+          <input
+            type="hidden"
+            name="returnTo"
+            value={primaryAction.returnTo ?? "/app/spend"}
+          />
+          <s-button
+            slot="primary-action"
+            type="submit"
+            variant="primary"
+            aria-label={primaryAction.label}
+          >
+            {primaryAction.label}
+          </s-button>
+        </Form>
+      ) : !shotMode ? (
         <s-button
           slot="primary-action"
           variant="primary"

@@ -145,17 +145,23 @@ describe("resolveFirstSessionPath", () => {
     expect(firstSessionPrimaryAction(path)).toEqual({
       href: "/app/spend",
       label: PRODUCT_NOUN.samplePreviewOffCta,
+      postIntent: "use-real",
+      postAction: "/app/data-mode",
+      returnTo: "/app/spend",
     });
   });
 
-  it("sends the SAMPLE viewer at the Real-store switch, never the Demo tab", () => {
+  it("POSTs use-real for SAMPLE primary — never Demo, never a plain navigate-only switch", () => {
     const path = cold({ useSampleDesk: true });
     const action = firstSessionPrimaryAction(path);
-    // `/app/data-mode` only answers POST `use-real`; Spend carries that form
-    // as its page action, so the link reaches the switch instead of a preview.
+    // `/app/data-mode` is POST-only; Overview one-taps via Form, then lands on Spend.
     expect(path.realStoreHref).toBe("/app/spend");
-    expect(action.href).toBe(path.realStoreHref);
+    expect(path.realStorePostAction).toBe("/app/data-mode");
+    expect(action.postIntent).toBe("use-real");
+    expect(action.postAction).toBe("/app/data-mode");
+    expect(action.returnTo).toBe("/app/spend");
     expect(action.href).not.toBe("/app/demo");
+    expect(action.postAction).not.toMatch(/\/app\/demo/);
     expect(action.label).toBe(PRODUCT_NOUN.samplePreviewOffCta);
     expect(action.label).toMatch(/real store/i);
   });
@@ -163,7 +169,10 @@ describe("resolveFirstSessionPath", () => {
   it("keeps the period on the Real-store hand-off", () => {
     const path = cold({ useSampleDesk: true, search: "?period=mtd" });
     expect(path.realStoreHref).toBe("/app/spend?period=mtd");
-    expect(firstSessionPrimaryAction(path).href).toBe("/app/spend?period=mtd");
+    expect(path.realStorePostAction).toBe("/app/data-mode?period=mtd");
+    const action = firstSessionPrimaryAction(path);
+    expect(action.postAction).toBe("/app/data-mode?period=mtd");
+    expect(action.returnTo).toBe("/app/spend?period=mtd");
   });
 
   it("never routes any first-session primary action to the Demo tab", () => {
@@ -177,8 +186,9 @@ describe("resolveFirstSessionPath", () => {
       cold({ useSampleDesk: true, shotMode: true }),
     ];
     for (const path of paths) {
-      const { href, label } = firstSessionPrimaryAction(path);
+      const { href, label, postAction } = firstSessionPrimaryAction(path);
       expect(href).not.toMatch(/\/app\/demo/);
+      expect(postAction ?? "").not.toMatch(/\/app\/demo/);
       expect(label).not.toMatch(/demo/i);
     }
   });
@@ -197,6 +207,7 @@ describe("resolveFirstSessionPath", () => {
     expect(path.steps[1].href).toBe("/app/settings?period=mtd");
     expect(path.steps[3].href).toBe("/app/allocation?period=mtd");
     expect(path.realStoreHref).toBe("/app/spend?period=mtd");
+    expect(path.realStorePostAction).toBe("/app/data-mode?period=mtd");
   });
 
   it("shows full guide after Sample → Real with no spend yet", () => {

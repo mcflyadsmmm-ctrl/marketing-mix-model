@@ -58,15 +58,15 @@ export type FirstSessionPath = {
   viewing: "sample" | "live";
   viewingHint: string;
   /**
-   * Where a SAMPLE viewer goes to become a real-store viewer.
-   *
-   * `/app/data-mode` is POST-only (`use-real` intent), so a plain link can
-   * never perform the switch. Spend carries that form as its page action and
-   * is also the first real-store step, so one tap lands on the switch and the
-   * typed-day ritual together. Never the Demo tab — that is a preview, not a
-   * mode change.
+   * After SAMPLE → Real, land on Spend for the typed-day ritual.
+   * Never the Demo tab — that is a preview, not a mode change.
    */
   realStoreHref: string;
+  /**
+   * POST target for one-tap SAMPLE → Real (`intent=use-real`).
+   * `/app/data-mode` is POST-only — never a plain link.
+   */
+  realStorePostAction: string;
   heading: string;
   body: string;
   primaryHref: string;
@@ -215,6 +215,7 @@ export function resolveFirstSessionPath(
     viewing,
     viewingHint,
     realStoreHref: withSearch("/app/spend", input.search),
+    realStorePostAction: withSearch("/app/data-mode", input.search),
     ...copy,
     steps,
     guideHeading: `Your real store — ${FIRST_SESSION_STEP_IDS.length} steps`,
@@ -224,14 +225,31 @@ export function resolveFirstSessionPath(
   };
 }
 
-export function firstSessionPrimaryAction(path: FirstSessionPath): {
-  href: string;
+export type FirstSessionPrimaryAction = {
   label: string;
-} {
+  /** Navigate when `postIntent` is unset. */
+  href: string;
+  /**
+   * SAMPLE → Real in one tap: Form POST to `postAction` with this intent.
+   * Overview (and peers) must not use `href` when this is set.
+   */
+  postIntent?: "use-real";
+  /** Form `action` when `postIntent` is set (POST-only `/app/data-mode`). */
+  postAction?: string;
+  /** Safe in-app path after `use-real` — Spend ritual with period preserved. */
+  returnTo?: string;
+};
+
+export function firstSessionPrimaryAction(
+  path: FirstSessionPath,
+): FirstSessionPrimaryAction {
   if (path.viewing === "sample") {
     return {
       href: path.realStoreHref,
       label: PRODUCT_NOUN.samplePreviewOffCta,
+      postIntent: "use-real",
+      postAction: path.realStorePostAction,
+      returnTo: path.realStoreHref,
     };
   }
   if (path.showColdEmpty) {
