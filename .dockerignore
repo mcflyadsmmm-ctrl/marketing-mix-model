@@ -22,3 +22,5 @@ fly.toml.bak
 **/coverage
 tmp
 .DS_Store
+# Finder "Duplicate" copies (e.g. faq 2.tsx) break React Router / Fly builds
+**/* 2.*

@@ -148,7 +148,7 @@ export async function fetchActiveAppSubscriptions(
 }
 
 /**
- * Pull active subscriptions from Shopify and cache Pro on Shop.
+ * Pull active subscriptions from Shopify and cache paid desk on Shop.
  * Works with Shopify App Pricing (legacy Admin activeSubscriptions).
  */
 export async function syncShopProFromShopify(
@@ -198,10 +198,10 @@ export function getShopBillingSnapshot(
 }
 
 /**
- * Pro upgrade flow (Managed Pricing — not appSubscriptionCreate):
+ * $39 plan flow (Managed Pricing — not appSubscriptionCreate):
  * 1. ProUpgradeButton POSTs /app/billing → this helper (requires MCFLY_BILLING=1).
  * 2. Returns confirmationUrl = buildManagedPricingPlansUrl(shop).
- * 3. Button top-navigates to Shopify’s $39 plan picker; sync caches proBillingActive.
+ * 3. Button top-navigates to Shopify’s Mcfly Analytics plan picker; sync caches proBillingActive.
  */
 export async function requestProSubscription(input: {
   admin: AdminApiContext;

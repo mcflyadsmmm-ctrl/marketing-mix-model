@@ -1,3 +1,5 @@
 .cache
 build
 node_modules
+# Finder "Duplicate" copies (e.g. faq 2.tsx) — keep out of any app-scoped context
+**/* 2.*

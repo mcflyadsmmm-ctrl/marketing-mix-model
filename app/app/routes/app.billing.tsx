@@ -1,6 +1,6 @@
 /**
- * Pro upgrade — Shopify Billing confirmation (top-frame redirect).
- * POST here from Upgrade CTAs across the desk; do not deep-link Settings only.
+ * One-plan billing — Shopify confirmation (top-frame redirect).
+ * POST here from Start $39 CTAs across the desk; do not deep-link Settings only.
  */
 
 import type { ActionFunctionArgs, HeadersFunction } from "react-router";

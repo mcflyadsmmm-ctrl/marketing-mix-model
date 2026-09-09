@@ -104,6 +104,8 @@ describe("entitlements — one $39 desk", () => {
   it("copy is trial + $39 full desk — not a Free App Store plan", () => {
     expect(PRO_UPSELL.short).toMatch(/\$39/);
     expect(PRO_UPSELL.short).toMatch(/7-day trial/);
+    expect(PRO_UPSELL.upgradeCta).toBe("Start $39 plan");
+    expect(PRO_UPSELL.upgradeCta).not.toMatch(/\bPro\b/i);
     expect(PRO_UPSELL.channels).toMatch(/TikTok/);
     expect(PRO_UPSELL.channels).not.toMatch(/Free channels/i);
     expect(PRO_UPSELL.ltv).not.toMatch(/Pro unlocks/i);

@@ -47,7 +47,7 @@ export const PRO_UPSELL = {
     "The full-year sales board, Grow YoY fill, and monthly fine-tune are on the $39 desk (7-day trial). SAMPLE is preview data only.",
   close:
     "Share Overview (Email) opens your mail app with this period’s cards. Mcfly never sends mail for you.",
-  upgradeCta: "Open $39 plan — 7-day trial",
+  upgradeCta: "Start $39 plan",
   seeSettings: "See plan in Settings",
 } as const;
 

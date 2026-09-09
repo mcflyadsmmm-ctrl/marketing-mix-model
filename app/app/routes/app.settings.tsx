@@ -126,7 +126,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "save_margin");
 
-  // Pro upgrade lives on /app/billing (top-frame confirmation). Keep Settings clean.
+  // Start $39 plan lives on /app/billing (top-frame confirmation). Keep Settings clean.
 
   if (intent === "download_compliance_export") {
     const exportId = String(form.get("exportId") ?? "");

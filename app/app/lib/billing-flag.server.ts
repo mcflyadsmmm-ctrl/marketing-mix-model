@@ -21,14 +21,25 @@ export function freeSpendImportDailyCap(): number {
 /** `free` = not yet billed (cache). Not a product plan. */
 export type BillingTier = "free" | "pro";
 
-/** Founder lock: $39/store/mo · 7-day trial. */
+/**
+ * Founder lock: one desk $39/store/mo · 7-day trial.
+ * Display / create name is "Mcfly Analytics" (not a Free→Pro tier).
+ * Partner may still show legacy "Pro" until rename lands — matcher accepts both.
+ */
 export const PRO_PLAN = {
-  name: "Mcfly Analytics Pro",
+  name: "Mcfly Analytics",
   amount: 39,
   currencyCode: "USD",
   interval: "EVERY_30_DAYS" as const,
   trialDays: 7,
 };
+
+/** Legacy Partner plan strings still ACTIVE on some shops. */
+export const LEGACY_PRO_PLAN_NAMES = [
+  "Mcfly Analytics Pro",
+  "Pro",
+  "Pro plan",
+] as const;
 
 export function subscriptionMatchesProPlan(
   name: string | null | undefined,
@@ -37,10 +48,12 @@ export function subscriptionMatchesProPlan(
   const n = name.trim().toLowerCase();
   const plan = PRO_PLAN.name.toLowerCase();
   if (n === plan) return true;
+  for (const legacy of LEGACY_PRO_PLAN_NAMES) {
+    if (n === legacy.toLowerCase()) return true;
+  }
+  // Broad catch for Partner renames like "Mcfly Analytics — monthly".
   if (n.includes("mcfly") && n.includes("analytics")) return true;
   if (n.includes("mcfly") && n.includes("pro")) return true;
-  // Shopify App Pricing plans are often named just "Pro".
-  if (n === "pro" || n === "pro plan") return true;
   return false;
 }
 

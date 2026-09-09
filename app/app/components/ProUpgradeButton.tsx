@@ -6,9 +6,9 @@ import type { ProUpgradeActionData } from "../routes/app.billing";
 type ProUpgradeButtonProps = {
   /** Polaris button variant. */
   variant?: "primary" | "secondary" | "tertiary";
-  /** Override label (default PRO_UPSELL.upgradeCta). */
+  /** Override label (default PRO_UPSELL.upgradeCta = "Start $39 plan"). */
   label?: string;
-  /** When false, render nothing (caller already Pro). */
+  /** When false, render nothing (caller already on the $39 desk). */
   enabled?: boolean;
 };
 
@@ -28,8 +28,9 @@ export function navigateToBillingConfirmation(url: string) {
 }
 
 /**
- * Starts Pro via Shopify Billing — posts to /app/billing, then top-navigates
- * to confirmationUrl. Never a plain link to Settings.
+ * Starts the one $39 Mcfly Analytics plan via Shopify Billing — posts to
+ * /app/billing, then top-navigates to confirmationUrl. Unpaid → billing path.
+ * Never a Free→Pro story; never a plain link to Settings.
  */
 export function ProUpgradeButton({
   variant = "primary",
@@ -60,7 +61,7 @@ export function ProUpgradeButton({
           disabled={busy}
           aria-busy={busy}
         >
-          {busy ? "Opening plans…" : label}
+          {busy ? "Opening billing…" : label}
         </button>
       </fetcher.Form>
       {data && !data.ok ? (

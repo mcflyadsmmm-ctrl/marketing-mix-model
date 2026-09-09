@@ -8,6 +8,8 @@ dist/
 reports/
 
 .DS_Store
+# Finder "Duplicate" copies (space + 2 before extension)
+**/* 2.*
 coverage/
 packages/**/node_modules/
 .cursor/

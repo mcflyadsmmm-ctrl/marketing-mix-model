@@ -23,7 +23,8 @@ export function proActiveFromSubscriptionStatus(
 
 /**
  * Update Shop.proBillingActive from webhook body for this shop domain.
- * Only mutates when the subscription name matches Mcfly Pro (or known GID).
+ * Only mutates when the subscription name matches Mcfly Analytics
+ * (or legacy Partner "Pro" / "Mcfly Analytics Pro", or known GID).
  */
 export async function applyAppSubscriptionWebhook(
   shopDomain: string,

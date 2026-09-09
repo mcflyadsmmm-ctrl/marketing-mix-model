@@ -30,7 +30,7 @@ describe("billing webhook helpers", () => {
     expect(proActiveFromSubscriptionStatus("DECLINED")).toBe(false);
   });
 
-  it("sets Pro on ACTIVE Mcfly plan webhook", async () => {
+  it("sets billed desk on ACTIVE Mcfly plan webhook", async () => {
     findUnique.mockResolvedValue({
       id: "shop1",
       proSubscriptionGid: null,
@@ -40,7 +40,7 @@ describe("billing webhook helpers", () => {
     const result = await applyAppSubscriptionWebhook("acme.myshopify.com", {
       app_subscription: {
         admin_graphql_api_id: "gid://shopify/AppSubscription/1",
-        name: "Mcfly Analytics Pro",
+        name: "Mcfly Analytics",
         status: "ACTIVE",
       },
     });
@@ -54,7 +54,7 @@ describe("billing webhook helpers", () => {
     });
   });
 
-  it("clears Pro on CANCELLED for known GID", async () => {
+  it("clears billed desk on CANCELLED for known GID", async () => {
     findUnique.mockResolvedValue({
       id: "shop1",
       proSubscriptionGid: "gid://shopify/AppSubscription/1",
@@ -76,6 +76,23 @@ describe("billing webhook helpers", () => {
         proSubscriptionGid: null,
       },
     });
+  });
+
+  it("still accepts legacy Partner plan name Pro", async () => {
+    findUnique.mockResolvedValue({
+      id: "shop1",
+      proSubscriptionGid: null,
+      proBillingActive: false,
+    });
+    update.mockResolvedValue({});
+    const result = await applyAppSubscriptionWebhook("acme.myshopify.com", {
+      app_subscription: {
+        admin_graphql_api_id: "gid://shopify/AppSubscription/legacy",
+        name: "Pro",
+        status: "ACTIVE",
+      },
+    });
+    expect(result).toEqual({ touched: true, active: true });
   });
 
   it("ignores unrelated subscription names", async () => {

@@ -32,15 +32,17 @@ afterEach(() => {
 });
 
 describe("billing subscription helpers", () => {
-  it("matches Pro plan name", () => {
+  it("matches Mcfly Analytics and legacy Partner Pro names", () => {
     expect(subscriptionMatchesProPlan(PRO_PLAN.name)).toBe(true);
+    expect(subscriptionMatchesProPlan("Mcfly Analytics")).toBe(true);
     expect(subscriptionMatchesProPlan("Mcfly Analytics Pro")).toBe(true);
     expect(subscriptionMatchesProPlan("Pro")).toBe(true);
+    expect(subscriptionMatchesProPlan("Pro plan")).toBe(true);
     expect(subscriptionMatchesProPlan("Free")).toBe(false);
     expect(subscriptionMatchesProPlan("Other app")).toBe(false);
   });
 
-  it("picks ACTIVE Pro subscription only", () => {
+  it("picks ACTIVE paid subscription (legacy Pro name still valid)", () => {
     expect(
       pickActiveProSubscription([
         { id: "gid://1", name: "Free", status: "ACTIVE" },
@@ -48,6 +50,14 @@ describe("billing subscription helpers", () => {
         { id: "gid://3", name: "Pro", status: "ACTIVE" },
       ]),
     ).toEqual({ id: "gid://3", name: "Pro" });
+  });
+
+  it("picks ACTIVE subscription named Mcfly Analytics", () => {
+    expect(
+      pickActiveProSubscription([
+        { id: "gid://1", name: "Mcfly Analytics", status: "ACTIVE" },
+      ]),
+    ).toEqual({ id: "gid://1", name: "Mcfly Analytics" });
   });
 
   it("shouldUseTestCharges only when MCFLY_BILLING_TEST=1", () => {

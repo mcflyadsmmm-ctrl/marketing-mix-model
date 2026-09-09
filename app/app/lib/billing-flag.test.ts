@@ -37,6 +37,8 @@ describe("billing flags", () => {
   });
 
   it("locks the desk at $39 flat with a 7-day trial", () => {
+    expect(PRO_PLAN.name).toBe("Mcfly Analytics");
+    expect(PRO_PLAN.name).not.toMatch(/\bPro\b/);
     expect(PRO_PLAN.amount).toBe(39);
     expect(PRO_PLAN.interval).toBe("EVERY_30_DAYS");
     expect(PRO_PLAN.trialDays).toBe(7);

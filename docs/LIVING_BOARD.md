@@ -5,9 +5,9 @@
 | Field | Value |
 | --- | --- |
 | **Updated** | 2026-09-08 · America/Denver |
-| **Live** | https://mcflyads.com · `mcfly-version` **v15** (Pages `212bf199`) · Wave 1 Site lane (Harbor SAMPLE + Tier C 301) |
+| **Live** | https://mcflyads.com · `mcfly-version` **v16** (Pages `218a9328`) · Wave 5 Site (SAMPLE preview · Harbor lock · Tier C 301) |
 | **North star** | Sell **Mcfly Analytics** Shopify app — 7-day trial then **$39**/store/mo. Public mark, titles, favicons, OG = one name. Custom is **301 to home**. |
-| **Craft** | `site/` cash-desk craft on `cursor/ads-readiness-mac` worktree · Install CTA · Harbor SAMPLE on `/` |
+| **Craft** | `site/` cash-desk craft on `cursor/ads-readiness-mac` · Install CTA · Harbor SAMPLE = preview / not your store |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
 | **App code** | **UNFROZEN** 2026-08-29 · Fly + `app/**` open for App Store approval |
@@ -43,9 +43,9 @@ Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md)
 ## Product + SAMPLE lock
 
 App: spend beside Shopify sales · sales after returns ÷ spend · not path credit · not pixels.  
-**Harbor SAMPLE (home):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · not a live client.  
+**Harbor SAMPLE (home):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · **SAMPLE preview · not your store** (Real store blank until spend).  
 Demo widget still uses the Northline SAMPLE book (listing desk numbers) — do not put Northline **$98,500** / **4.19×** on `/`.  
-**Banned on home:** clean-tree 4.45× / $10,592,770 universe.  
+**Banned on home:** clean-tree 4.45× / $10,592,770 universe · Custom as home sell.  
 Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → https://apps.shopify.com/mcfly-analytics-public.
 
 ---
@@ -66,6 +66,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] App Store listing live → https://apps.shopify.com/mcfly-analytics-public
 - [x] **v14** — listing CTA Install · Pages `7efa4ed2`
 - [x] **v15 live** — Harbor SAMPLE restored on `/` · Tier C Custom/`/lab` 301 · Pages `212bf199` · DoD curls PASS 2026-09-08
+- [x] **v16 live** — Wave 5 Site: SAMPLE preview / not-your-store near hero MER · Harbor lock held · Install CTA · Tier C 301 · Pages `218a9328` · DoD curls PASS 2026-09-08
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [ ] First honest reviews (do not invent)
 
@@ -92,3 +93,4 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 | v13 | `89d97ad4` | Original ribbon M + paper/sky |
 | v14 | `7efa4ed2` | Listing live · Install → `mcfly-analytics-public` |
 | v15 | `212bf199` | Harbor SAMPLE on home · Tier C 301 · killed live 4.45×/$10.5M |
+| v16 | `218a9328` | Wave 5 · SAMPLE preview / not your store near hero MER · Harbor lock · Install CTA |

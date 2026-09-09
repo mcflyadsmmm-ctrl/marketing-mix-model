@@ -12,7 +12,7 @@ type ProUpsellBlockProps = {
 };
 
 /**
- * Clear Pro upsell: price, what’s included, Billing CTA (not Settings deep-link).
+ * One-plan billing CTA: price, what’s included, Start $39 path (not Settings deep-link).
  */
 export function ProUpsellBlock({
   lead,
