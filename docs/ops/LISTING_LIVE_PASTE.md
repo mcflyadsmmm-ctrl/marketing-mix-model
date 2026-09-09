@@ -15,10 +15,10 @@ Keep **$39 USD / 30 days** and **7-day free trial**. Delete any Free plan. Confi
 **0:25–0:50** — Open **Feature bullets**. Replace bullets 1–5 with these **exact five lines in this order, one line per field**:
 
 ```text
-Total ROAS = Shopify sales ÷ ad spend for any period (not Ads Manager)
+Total ROAS = Shopify sales ÷ spend — not Ads Manager phantom purchases
 Break-even Total ROAS from your profit margin %
-Spend CSV: Meta, Google, TikTok, and every named channel · mix in $/%
-Spend Allocation (7/14/28) + Goals MTD/QTD/YTD + full-year board
+Spend CSV: Meta, Google, TikTok, retainers, billboards, Other · mix in $/%
+Spend Allocation (7/14/28) + Goals — flat $39, not punished for growing
 LTV/Acquisition (Cash CAC · LTV:CAC) · mailto · no pixels / MTA
 ```
 
@@ -109,7 +109,23 @@ Advanced Marketing Data Science Made Easy
 ## 3. Short description (~150 chars)
 
 ```text
-Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), break-even, Goals, LTV. $39/mo · 7-day trial. No pixels.
+Platforms claim the same sale — Total ROAS = Shopify sales ÷ spend. Flat $39 · 7-day trial. No pixels.
+```
+
+**Steal (P01):** “platforms claim the same sale.” Flat $39 + trial facts only — no reviews / install counts / Meta auto-sync.
+
+---
+
+## 3b. Kill-shot phrases (Partner-safe — use in long / outbound; do not invent proof)
+
+From [`../research/NICHE_PAIN_BANK.md`](../research/NICHE_PAIN_BANK.md) P01 / P04 / P07 · pack [`../research/LISTING_KILL_SHOTS.md`](../research/LISTING_KILL_SHOTS.md):
+
+```text
+platforms claim the same sale
+phantom purchases
+punished for growing
+billboards
+retainers
 ```
 
 ---
@@ -123,12 +139,12 @@ Trust footer uses **mcflyads.com** for Privacy / Support. **App URL stays Fly.**
 ```text
 Shopify Analytics shows sales. It does not show Total ROAS = Shopify Total Sales ÷ your ad spend for any period — with break-even, channel mix, Goals, and Allocation in one Admin desk.
 
-Mcfly Analytics is Advanced Marketing Data Science Made Easy: marketing cash close / spend affordability control. Money out on ads versus money in on the till. Coexists with attribution suites — we do not rip-and-replace path decks. Ad platforms over-claim; multi-touch “truth” is mostly theater.
+Mcfly Analytics is Advanced Marketing Data Science Made Easy: marketing cash close / spend affordability control. Money out on ads versus money in on the till. Coexists with attribution suites — we do not rip-and-replace path decks. Platforms claim the same sale; Ads Manager phantom purchases do not equal the till. Multi-touch “truth” is mostly theater.
 
 WHAT SHOPIFY ANALYTICS DOES NOT GIVE YOU
 • Total ROAS = Shopify Total Sales ÷ ad spend (MTD / QTD / YTD / custom — any period you choose)
 • Break-even Total ROAS from your profit margin %
-• Spend by channel via CSV — mix in $ and %
+• Spend by channel via CSV — Meta, Google, TikTok, retainers, billboards, agency / offline / Other — mix in $ and %
 • Spend Allocation — quarters, pie, rolling 7 / 14 / 28
 • Goals — MTD / QTD / YTD pace + full-year board + YoY
 • LTV / Acquisition — Cash CAC, cohort LTV, LTV:CAC
@@ -136,8 +152,8 @@ WHAT SHOPIFY ANALYTICS DOES NOT GIVE YOU
 
 THE DESK
 • Shopify Total Sales in (Admin API — action basis; Net Sales optional view)
-• Ad spend out — every named platform (Meta, Google, TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, custom Other) via CSV paste / export combine
-  Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly pipe template on Spend → CSV import — not a “Works with” partnership
+• Ad spend out — every named platform (Meta, Google, TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, custom Other) via CSV paste / export combine — including retainers, billboards, and offline you type yourself
+  Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly pipe template on Spend → CSV import — not a “Works with” partnership · not Meta/Google OAuth auto-sync
   Per-platform export guides in-app (sales columns ignored — Shopify is the till)
 • Total ROAS (action) = Shopify Total Sales ÷ ad spend
 • Break-even Total ROAS from your profit margin %
@@ -152,12 +168,13 @@ WHAT WE DO NOT SHIP
 • Fake “driven revenue” that doesn’t match the till
 • Spend-share allocation theater or fake channel ROAS
 • Suite sprawl dressed as proprietary science
+• Auto-sync Meta / Google OAuth
 
 WHO IT’S FOR
-Shopify brands that want a trusted Total ROAS in under ten minutes and a Monday cash-close ritual that stays honest when Ads Manager disagrees with the bank — alongside (not instead of) attribution suites.
+Shopify brands that want a trusted Total ROAS in under ten minutes and a Monday cash-close ritual that stays honest when platforms claim the same sale and Ads Manager disagrees with the bank — including spend that “ad” tools miss (retainers, billboards, offline). Alongside (not instead of) attribution suites.
 
 PRICING
-$39/store/mo flat · 7-day trial. One plan named Mcfly Analytics: all named channels (including TikTok CSV), Customer LTV / Acquisition, and the full Goals board. SAMPLE is preview data only. Not a GMV-scaled suite tax. Not a Free listing. Not a Pro upsell tier. Not forever-free marketing.
+$39/store/mo flat · 7-day trial. One plan named Mcfly Analytics: all named channels (including TikTok CSV), Customer LTV / Acquisition, and the full Goals board. SAMPLE is preview data only. Not a GMV-scaled suite tax — you are not punished for growing. Not a Free listing. Not a Pro upsell tier. Not forever-free marketing.
 
 Learn more: https://mcflyads.com
 Privacy: https://mcflyads.com/privacy · Support: https://mcflyads.com/support
@@ -178,12 +195,14 @@ App URL: https://mcfly-analytics.fly.dev
 3. Paste the five clean lines below **in order, one line per field** (no suffixes).
 
 ```text
-Total ROAS = Shopify sales ÷ ad spend for any period (not Ads Manager)
+Total ROAS = Shopify sales ÷ spend — not Ads Manager phantom purchases
 Break-even Total ROAS from your profit margin %
-Spend CSV: Meta, Google, TikTok, and every named channel · mix in $/%
-Spend Allocation (7/14/28) + Goals MTD/QTD/YTD + full-year board
+Spend CSV: Meta, Google, TikTok, retainers, billboards, Other · mix in $/%
+Spend Allocation (7/14/28) + Goals — flat $39, not punished for growing
 LTV/Acquisition (Cash CAC · LTV:CAC) · mailto · no pixels / MTA
 ```
+
+**Steal map:** P01 phantom / same sale → bullet 1 · P07 retainers/billboards → bullet 3 · P04 punished for growing → bullet 4. Never claim auto-sync Meta.
 
 **Exact ban list for all five feature fields (case-insensitive; zero hits):**
 

@@ -14,7 +14,7 @@ Edit **To:** per prospect. Send from Partner/support identity you want merchants
 
 ## Three short variants
 
-Personalize the first sentence. Do not add review counts, install counts, customer logos, or results claims.
+Personalize the first sentence. Do not add review counts, install counts, customer logos, or results claims. Never claim Meta/Google auto-sync.
 
 ### A — Operator
 
@@ -42,6 +42,40 @@ https://apps.shopify.com/mcfly-analytics-public
 
 ```text
 Hi [First] — I just published Mcfly Analytics, a Shopify cash desk for spend versus till, not attribution. It combines Total ROAS, break-even, Goals, LTV, and allocation in Admin. It’s a 7-day trial, then $39/store/month. If it matches how you work, I’d value blunt feedback after a look.
+
+https://apps.shopify.com/mcfly-analytics-public
+```
+
+## Steal lines — P01 / P04 / P07 (subject + opener variants)
+
+From [`../../research/NICHE_PAIN_BANK.md`](../../research/NICHE_PAIN_BANK.md). Religion-safe. Flat $39 · 7-day trial OK. **No** reviews / install counts / Meta auto-sync. Full pack: [`../../research/LISTING_KILL_SHOTS.md`](../../research/LISTING_KILL_SHOTS.md).
+
+### D — P01 platforms claim the same sale
+
+**Subject variants:** `When platforms claim the same sale` · `Phantom purchases vs the Shopify till`
+
+```text
+Hi [First] — when platforms claim the same sale and Ads Manager shows phantom purchases, Mcfly is the cash check: Total ROAS = Shopify Total Sales ÷ the spend you enter (CSV / paste). No pixels, no MTA, no Meta auto-sync. 7-day trial, then $39/store/month.
+
+https://apps.shopify.com/mcfly-analytics-public
+```
+
+### E — P04 punished for growing
+
+**Subject variants:** `Not punished for growing` · `Flat $39 vs GMV analytics tax`
+
+```text
+Hi [First] — if GMV-tax analytics bills climb while MER is flat, you’re punished for growing. Mcfly is one flat $39/store/month (7-day trial): Total Sales ÷ spend, break-even, Goals — not a suite tax on volume.
+
+https://apps.shopify.com/mcfly-analytics-public
+```
+
+### F — P07 billboards / retainers
+
+**Subject variants:** `Billboards and retainers belong in MER` · `Offline spend the “ad” tools miss`
+
+```text
+Hi [First] — if retainers, billboards, or offline spend never make it into your “ad” tools, Mcfly lets you type every named channel (plus Other) next to Shopify sales. Total ROAS = till ÷ entered spend. 7-day trial, then $39/store/month.
 
 https://apps.shopify.com/mcfly-analytics-public
 ```

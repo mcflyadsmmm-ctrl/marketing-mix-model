@@ -81,11 +81,27 @@ Pixel accuracy · MTA · campaign bid tools · connector zoo inside Mcfly · inv
 
 ---
 
+## Kill shot phrases (P01 / P04 / P07) — listing/outbound steal
+
+Marty paste pack (full blocks): [`LISTING_KILL_SHOTS.md`](./LISTING_KILL_SHOTS.md) · live Partner: [`../ops/LISTING_LIVE_PASTE.md`](../ops/LISTING_LIVE_PASTE.md) · outbound D–F: [`../ops/money/OUTBOUND_MER_OPERATORS.md`](../ops/money/OUTBOUND_MER_OPERATORS.md).
+
+```text
+platforms claim the same sale
+phantom purchases
+punished for growing
+billboards
+retainers
+```
+
+**Religion lock:** till ÷ entered spend · flat $39 · 7-day trial · **no** inventing reviews · **no** Meta auto-sync.
+
+---
+
 ## Immediate Desk implications (from this pass)
 
 1. **Love-6** — first-day coverage tone (P09)  
 2. **Love-trial** — trial vs trust clock copy (P10)  
-3. **Listing/outbound** — steal P01/P04/P07 phrases; keep Automate → pipe  
+3. **Listing/outbound** — steal P01/P04/P07 phrases (**DONE** in LISTING_KILL_SHOTS + paste packs); keep Automate → pipe  
 4. **Interviews** — force P06 sales-basis and P08 sync expectation questions (script block B)  
 5. **Do not** build Keel-style Meta OAuth to “win” mobile ROAS widgets
 
