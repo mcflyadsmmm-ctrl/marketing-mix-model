@@ -118,6 +118,8 @@ Advanced Marketing Data Science Made Easy: Total ROAS (Total Sales ÷ spend), br
 
 Trust footer uses **mcflyads.com** for Privacy / Support. **App URL stays Fly.**
 
+**No Automate tab.** Optional automation lives on **Spend → “Pipe templates — automate the fill (optional)”** (`/app/spend/template?pipe=long` · `?pipe=wide`). Never paste listing, reviewer, or support copy that tells a human to click an Automate tab — that control does not exist, and a reviewer clicking for it is a rejection risk.
+
 ```text
 Shopify Analytics shows sales. It does not show Total ROAS = Shopify Total Sales ÷ your ad spend for any period — with break-even, channel mix, Goals, and Allocation in one Admin desk.
 
@@ -135,7 +137,7 @@ WHAT SHOPIFY ANALYTICS DOES NOT GIVE YOU
 THE DESK
 • Shopify Total Sales in (Admin API — action basis; Net Sales optional view)
 • Ad spend out — every named platform (Meta, Google, TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, custom Other) via CSV paste / export combine
-  Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly pipe template → CSV import — not a “Works with” partnership
+  Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly pipe template on Spend → CSV import — not a “Works with” partnership
   Per-platform export guides in-app (sales columns ignored — Shopify is the till)
 • Total ROAS (action) = Shopify Total Sales ÷ ad spend
 • Break-even Total ROAS from your profit margin %

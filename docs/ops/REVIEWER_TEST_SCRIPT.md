@@ -30,6 +30,8 @@
 3. Confirm coverage / platforms show spend &gt; 0 for the period.
 4. Do **not** expect Meta/Google OAuth — CSV-first is intentional.
 
+**Optional automation (no tab to find, no login to give):** on **Spend**, open **Pipe templates — automate the fill (optional)** and download the **long** (`date,channel,amount`) or **wide** (`Day` + channel columns) template. Direct paths: `/app/spend/template?pipe=long` and `/app/spend/template?pipe=wide`. A merchant-paid spreadsheet pipe tool (SyncWith / Coupler / Supermetrics / Coefficient) writes those headers; Mcfly imports the CSV. **There is no Automate tab and no connector to authorize** — that is the design, not a missing screen.
+
 ### 3. Desk / Total ROAS
 
 1. Go to **Overview** (Home).
@@ -66,7 +68,7 @@
 
 - Tracking pixels / CAPI setup  
 - Multi-touch / path attribution  
-- Meta/Google spend OAuth or connector zoo  
+- Meta/Google spend OAuth or connector zoo (pipe templates are CSV headers, not an integration)  
 - Public “type your .myshopify.com” install on marketing site  
 - Monday Close lock ritual (removed — Overview + Share instead)
 

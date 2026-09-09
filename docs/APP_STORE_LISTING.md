@@ -137,7 +137,7 @@ FIRST 10 MINUTES (no pixels; $39 desk = all named channels including TikTok CSV)
 1. Install Mcfly Analytics from the Shopify App Store ($39/mo · 7-day trial) — opens embedded in Admin
 2. Settings → optional profit margin % → save → Break-even Total ROAS locks (1 ÷ margin)
 3. Spend → Meta / Google / TikTok / any named channel → export daily CSV / paste → Import
-   Optional automation: Spend → Automate → Mcfly pipe template → SyncWith / Coupler /
+   Optional automation: Spend → Pipe templates (long or wide) → SyncWith / Coupler /
    Supermetrics / Coefficient (you pay those tools) → CSV → Paste / Import.
    Not a “Works with” partnership. LTV and the full Goals board are on this desk.
 4. Overview → confirm Total ROAS = Shopify Total Sales ÷ ad spend for any period;
@@ -336,7 +336,9 @@ SMOKE TEST (CSV-first $39 desk = all named channels)
 1. Install Mcfly Analytics (App Store or Partner test install) — embedded Admin
 2. Settings → optional profit margin 35% → save → Break-even Total ROAS locks
 3. Spend → Meta / Google / TikTok / Other → export / paste daily CSV → Import
-   Optional: Spend → Automate → pipe template → SyncWith/Coupler/etc. (merchant-paid) → CSV import
+   Optional: Spend → "Pipe templates — automate the fill (optional)" → long or wide template
+   (/app/spend/template?pipe=long | ?pipe=wide) → SyncWith/Coupler/etc. (merchant-paid) → CSV import
+   No Automate tab and nothing to authorize — the templates are CSV headers, not a connector
 4. Overview → Total ROAS = Shopify Total Sales ÷ ad spend for the period
    Confirm freshness chip, Update spend links, channel mix, Email Overview (mailto)
    Confirm orders / new / returning / AOV (opaque customer id + numberOfOrders only)
@@ -344,7 +346,7 @@ SMOKE TEST (CSV-first $39 desk = all named channels)
    Goals → MTD / QTD / YTD pace + full-year board
    LTV → Cash CAC / cohorts (read_all_orders is live in scopes)
 
-First 10 minutes: Settings → Spend → Overview → Allocation. Spend CSV includes TikTok and every named channel; Automate is optional (merchant-paid SyncWith-class tools → Mcfly template — not a Works-with claim).
+First 10 minutes: Settings → Spend → Overview → Allocation. Spend CSV includes TikTok and every named channel; the pipe templates on Spend are optional (merchant-paid SyncWith-class tools fill a Mcfly template — not a Works-with claim).
 
 TECHNICAL
 App URL: https://mcfly-analytics.fly.dev (not mcflyads.com)

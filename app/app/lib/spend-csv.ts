@@ -505,7 +505,7 @@ export function buildSheetsImportGuide(options?: {
     sheetsNewUrl: SHEETS_CREATE_URL,
     tip: "CSV alone is enough — SyncWith, Coupler, or Supermetrics are optional. You only pay those tools if you want hands-off fills.",
     steps: [
-      `Confirm platforms checked above (or on Automate): ${labels}.`,
+      `Confirm platforms checked above (or in Pipe templates): ${labels}.`,
       "Download your Mcfly blank template — or Open Google Sheets and import that CSV.",
       "In the new Sheet: File → Import → Upload → your CSV → Replace spreadsheet → Import data.",
       "Fill daily spend by hand — or optionally connect SyncWith / Coupler / Supermetrics / Coefficient to these columns (you pay those tools).",

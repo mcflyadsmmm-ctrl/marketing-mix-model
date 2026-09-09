@@ -48,6 +48,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Exclusive files** | `app/app/lib/spend-explorer.ts`, `app/app/components/SpendExplorer.tsx`, related tests; wire from `_index` only if needed |
 | **Must not** | Reopen Settings target semantics except passing `targetMerConfirmed` |
 | **DoD** | Series uses null target when unconfirmed; SAMPLE still shows sample target |
+| **Status** | **DONE** · `0398fcb` · Fly **v203** · [Love-3](d2330b60-d979-4be6-8e1a-1abc21e65340) |
 
 ---
 
@@ -61,14 +62,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 
 ---
 
-## Wave Love-1b — one-tap use-real from Overview (P1 bolt-on)
-
-| | |
-| --- | --- |
-| **Outcome** | SAMPLE “Use my real store” on Overview POSTs `use-real` in one tap (Form), not two |
-| **Exclusive files** | `app._index.tsx` primary action Form shape; optional `firstSessionPrimaryAction` POST variant |
-| **Note** | Love-1 left two-tap by design (data-mode is POST-only; Overview was Love-2 exclusive then) |
-| **Status** | Queued after Love-5 |
+## Wave Love-5 — Automate / pipe discoverability (P0 · L16)
 
 | | |
 | --- | --- |
@@ -76,9 +70,18 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Exclusive files** | `app.spend.tsx` (link row), optionally `docs/ops/LISTING_LIVE_PASTE.md` + `REVIEWER_TEST_SCRIPT.md` |
 | **Must not** | Build Meta/Google OAuth or resurrect Connections |
 | **DoD** | Click path from Spend → template works; Partner paste notes “pipe template” not Automate tab |
+| **Status** | **DONE** · `0398fcb` + listing paste follow-up · Fly **v203** |
 
 ---
 
+## Wave Love-1b — one-tap use-real from Overview (P1 bolt-on)
+
+| | |
+| --- | --- |
+| **Outcome** | SAMPLE “Use my real store” on Overview POSTs `use-real` in one tap (Form), not two |
+| **Exclusive files** | `app._index.tsx` primary action Form shape; optional `firstSessionPrimaryAction` POST variant |
+| **Note** | Love-1 left two-tap by design (data-mode is POST-only) — [Love-1](eb51c9ec-599c-45ff-a85e-eaf429ed9a2d) caveat |
+| **Status** | Queued |
 ## Wave Love-6 — First-day coverage tone (P0 · L14)
 
 | | |
