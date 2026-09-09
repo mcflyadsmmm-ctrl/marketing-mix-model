@@ -14,10 +14,15 @@ describe("deskNavItems", () => {
   it("keeps core ritual first: Overview · Spend · Settings", () => {
     expect(deskNavCoreIds()).toEqual(["overview", "spend", "settings"]);
     expect(deskNavItems().slice(0, 3).map((i) => i.href)).toEqual([
-      "/app",
+      "/app?stay=1",
       "/app/spend",
       "/app/settings",
     ]);
+  });
+
+  it("Overview nav uses stay=1 so cold desk is reachable", () => {
+    const overview = deskNavItems().find((i) => i.id === "overview");
+    expect(overview?.href).toBe("/app?stay=1");
   });
 
   it("keeps later pages listed — no maze, no hidden tabs", () => {
