@@ -70,7 +70,7 @@ Pre-filled from Conductor Wave 2 (2026-09-08) — do not treat as Admin PASS:
 
 | Field | Value |
 | --- | --- |
-| **Fly version / image** | v195 · `deployment-01M228T4JB0SHX7AWNHWMPESXT` (scopes_update ACK fix) |
+| **Fly version / image** | v196 · `deployment-01M229BF57R36B4SW380F8AJ4X` (SAMPLE share + one-row spend) |
 | **Curl listing** | 200 |
 | **Curl health** | `{"ok":true,"db":"up"}` (re-check before smoke) |
 
