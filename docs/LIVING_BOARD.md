@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-08 · America/Denver |
+| **Updated** | 2026-09-09 · America/Denver |
 | **Live** | https://mcflyads.com · `mcfly-version` **v16** (Pages `218a9328`) · Wave 5 Site (SAMPLE preview · Harbor lock · Tier C 301) |
 | **North star** | Sell **Mcfly Analytics** Shopify app — 7-day trial then **$39**/store/mo. Public mark, titles, favicons, OG = one name. Custom is **301 to home**. |
 | **Craft** | `site/` cash-desk craft on `cursor/ads-readiness-mac` · Install CTA · Harbor SAMPLE = preview / not your store |
@@ -71,6 +71,8 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [ ] First honest reviews (do not invent)
 
 **Next:** Paid installs. First reviews. Do not invent reviews or install counts. Do not revive Custom on home.
+
+**Love research (2026-09-09):** Full pack in [`research/`](./research/README.md) — capability map, friction autopsy, kill-shot matrix, interview script, love scorecard, ship backlog. Canvas `mcfly-love-research`. P0 = honesty + TTFV + 7C Fly; refuse pixels/OAuth zoo.
 
 ---
 
