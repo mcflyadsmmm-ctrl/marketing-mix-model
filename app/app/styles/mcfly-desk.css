@@ -9664,6 +9664,85 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   margin-top: 0.5rem;
 }
 
+/* Typed one-day spend — first viewport, no file needed. */
+.mcfly-spend-day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem 0.8rem;
+  border: 1.5px solid var(--mcfly-accent, #0284c7);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.mcfly-spend-day__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mcfly-spend-day__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.mcfly-spend-day__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 8.5rem) minmax(0, 8rem) minmax(0, 1fr);
+  gap: 0.4rem 0.55rem;
+}
+
+@media (max-width: 560px) {
+  .mcfly-spend-day__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mcfly-spend-day__field {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--mcfly-mute, #64748b);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.mcfly-spend-day__field--wide {
+  grid-column: 1 / -1;
+}
+
+.mcfly-spend-day__field .mcfly-field {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--mcfly-ink, #0f172a);
+}
+
+.mcfly-spend-day__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.mcfly-spend-day__error {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mcfly-lie, #b42318);
+}
+
+.mcfly-spend-day__backfill {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--mcfly-mute, #64748b);
+  line-height: 1.35;
+}
+
 .mcfly-spend-lean__channels {
   border: 1px solid var(--mcfly-line-soft, #e2e8f0);
   border-radius: 8px;

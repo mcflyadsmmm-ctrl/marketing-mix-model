@@ -52,9 +52,11 @@ describe("resolveFirstSessionPath", () => {
     expect(path.primaryHref).toBe("/app/spend");
     expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
     expect(path.heading).toMatch(new RegExp(String(FIRST_SESSION_MINUTES)));
-    expect(path.body).toMatch(/Paste or import/i);
+    expect(path.body).toMatch(/Type one day/i);
+    expect(path.body).toMatch(/no file/i);
     expect(path.body).toMatch(/optional/i);
     expect(path.body).toMatch(/break-even/i);
+    expect(path.steps[0].hint).toMatch(/type one day/i);
     expect(path.footerLinks.map((l) => l.href)).toEqual([
       "/app/settings",
       "/app",

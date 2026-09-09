@@ -2,7 +2,8 @@
  * First-session path for a cold merchant on the Total ROAS desk.
  *
  * Preferred ritual (under 10 minutes):
- *   CSV / paste spend → Total ROAS desk → (optional) margin for break-even → Allocation
+ *   typed one-day spend → Total ROAS desk → (optional) margin for break-even → Allocation
+ *   (CSV / paste stay for backfilling months)
  *
  * Cash religion: Total ROAS = Shopify sales ÷ ad spend. Margin only unlocks
  * break-even — it does not gate the scoreboard. Primary CTA is always Spend.
@@ -97,7 +98,9 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
       id: "spend",
       href: withSearch("/app/spend", q),
       label: PRODUCT_NOUN.setupAddSpend,
-      hint: spendDone ? " — done" : " — paste / CSV, no ad-network login",
+      hint: spendDone
+        ? " — done"
+        : " — type one day, no file, no ad-network login",
       status: stepStatus({ done: spendDone, current: spendCurrent }),
     },
     {
@@ -139,8 +142,8 @@ function emptyCopy(
   return {
     heading: `Trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes`,
     body: marginConfirmed
-      ? `Margin is set. Paste or import daily spend — then ${PRODUCT_NOUN.definition}. No ad-network login.`
-      : `Paste or import daily ad spend. ${PRODUCT_NOUN.definition}. Margin is optional — it unlocks break-even.`,
+      ? `Margin is set. Type one day of ad spend — day + amount + channel — then ${PRODUCT_NOUN.definition}. No file, no ad-network login.`
+      : `Type one day of ad spend: day + amount + channel, no file. ${PRODUCT_NOUN.definition}. Margin is optional — it unlocks break-even.`,
     primaryHref: withSearch("/app/spend", search),
     primaryLabel: PRODUCT_NOUN.setupAddSpend,
     footerLinks: [

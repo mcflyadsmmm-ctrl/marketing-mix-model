@@ -141,29 +141,45 @@ describe("firstOpenRedirect", () => {
 });
 
 describe("spendEmptyTeach", () => {
-  it("teaches paste + template first — never a Pro wall", () => {
+  it("asks for a typed day first and keeps the template as the fallback", () => {
     const teach = spendEmptyTeach({
       templateHref: "/app/spend/template?platforms=meta%2Cgoogle&blank=1",
     });
-    expect(teach.primaryLabel).toMatch(/template/i);
-    expect(teach.primaryHref).toContain("/app/spend/template");
-    expect(teach.heading).toMatch(/Paste one day/i);
-    expect(teach.body).toMatch(/paste/i);
+    expect(teach.primaryLabel).toMatch(/type one day/i);
+    expect(teach.primaryHref).toBe("#mcfly-spend-day");
+    expect(teach.secondaryLabel).toMatch(/template/i);
+    expect(teach.secondaryHref).toContain("/app/spend/template");
+    expect(teach.heading).toMatch(/no file needed/i);
+    expect(teach.body).toMatch(/no download/i);
     expect(teach.body).toContain(PRODUCT_NOUN.definition);
-    expect(teach.steps[0]).toMatch(/Paste one row/i);
-    expect(teach.steps.some((s) => /playbook/i.test(s))).toBe(true);
-    const blob = [teach.heading, teach.body, teach.primaryLabel, ...teach.steps].join(
-      "\n",
+    expect(teach.steps[0]).toMatch(/type day \+ amount \+ channel/i);
+    expect(teach.steps.some((s) => /paste rows or import a csv/i.test(s))).toBe(
+      true,
     );
+    expect(teach.steps.some((s) => /playbook/i.test(s))).toBe(true);
+    const blob = [
+      teach.heading,
+      teach.body,
+      teach.primaryLabel,
+      teach.secondaryLabel,
+      ...teach.steps,
+    ].join("\n");
     expect(blob).not.toMatch(/upgrade|pro ·|\$39/i);
     expect(blob).not.toMatch(THEATER);
     expect(blob).not.toMatch(/syncwith|oauth/i);
   });
 
-  it("after Sample → Real, empty is two sentences to paste", () => {
+  it("honors a custom typed-row href", () => {
+    expect(spendEmptyTeach({ typeHref: "/app/spend#day" }).primaryHref).toBe(
+      "/app/spend#day",
+    );
+  });
+
+  it("after Sample → Real, empty is two sentences to a typed day", () => {
     const teach = spendEmptyTeach({ justSwitchedReal: true });
     expect(teach.heading).toMatch(/Real store is on/i);
-    expect(teach.body).toMatch(/Paste or import/i);
+    expect(teach.body).toMatch(/type the day/i);
+    expect(teach.primaryLabel).toMatch(/type one day/i);
     expect(teach.body.split(/[.!?]/).filter(Boolean).length).toBeLessThanOrEqual(3);
   });
 });

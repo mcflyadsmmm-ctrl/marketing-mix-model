@@ -61,6 +61,14 @@ import {
   getSampleDeskStats,
   localDayKey,
 } from "../lib/sample-desk.server";
+import { shopLocalDayKey, utcMidnightFromDayKey } from "../lib/shop-local-day";
+import {
+  parseQuickSpendDay,
+  QUICK_SPEND_COPY,
+  quickSpendDefaultDate,
+  quickSpendSavedCopy,
+  type QuickSpendField,
+} from "../lib/spend-quick-day";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { isActivationQuery, spendEmptyTeach } from "../lib/install-stickiness";
@@ -147,6 +155,15 @@ function formatSpendEntryChannelLabel(
 
 const CUSTOM_CHANNEL_NAME_ERROR =
   "Name this channel (e.g. Influencers).";
+
+/**
+ * Today in the merchant's store calendar. Falls back to server-local when
+ * Shopify has not shared the shop timezone yet — same fallback the coverage
+ * strip uses, so the typed row and the strip never disagree by a day.
+ */
+function shopTodayKey(timeZone: string | null, now = new Date()): string {
+  return timeZone ? shopLocalDayKey(now, timeZone) : localDayKey(now);
+}
 
 function startOfLocalDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -300,15 +317,33 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     entitlements,
     channels: channelOptionsFor(entitlements),
     addSpendChannels: addSpendSelectOptions(entitlements),
+    /** Store-calendar today — `max` on the typed Day input and the action's gate. */
+    storeTodayKey: shopTodayKey(shop.ianaTimezone),
     spendHistoryFloorKey: salesDayFactWindowStartUtc().toISOString().slice(0, 10),
     spendHistoryYearsBack: SALES_DAY_FACT_WINDOW_YEARS_BACK,
   };
+};
+
+/** One typed day landed — drives the honest Total ROAS hand-off. */
+export type SpendDaySaved = {
+  dateKey: string;
+  channel: SpendChannel;
+  channelLabel: string;
+  amount: number;
+  /** Replaced the merchant's own earlier line for this day+channel. */
+  replaced: boolean;
+  /** This was the merchant's first live (non-sample) spend row. */
+  firstLiveSpend: boolean;
+  salesWindowWarning: string | null;
 };
 
 export interface SpendActionData {
   error: string | null;
   success: boolean;
   csv?: CsvImportSummary;
+  day?: SpendDaySaved;
+  /** Which typed input to blame — keeps the error beside the field. */
+  dayField?: QuickSpendField;
 }
 
 function emptyCsvSummary(
@@ -578,6 +613,85 @@ async function handleCsvCombine(
   );
 }
 
+/**
+ * Typed one-day spend — the shortest path to a first trusted Total ROAS.
+ * One UTC day per row on the same shopId+channel+periodStart key CSV uses,
+ * so a re-typed day replaces instead of doubling.
+ */
+async function handleQuickDay(
+  shopId: string,
+  form: FormData,
+  entitlements: ShopEntitlements,
+  todayKey: string,
+): Promise<SpendActionData> {
+  const parsed = parseQuickSpendDay({
+    date: String(form.get("date") ?? ""),
+    amount: String(form.get("amount") ?? ""),
+    channel: String(form.get("channel") ?? ""),
+    customName: String(form.get("customName") ?? ""),
+    todayKey,
+    salesFloorKey: salesDayFactWindowStartUtc().toISOString().slice(0, 10),
+    allowedChannels: entitlements.canUseAllChannels
+      ? undefined
+      : entitlements.allowedChannels,
+  });
+  if (!parsed.ok) {
+    return { error: parsed.error, success: false, dayField: parsed.field };
+  }
+
+  const { day } = parsed;
+  const periodStart = utcMidnightFromDayKey(day.dateKey);
+  const periodEnd = new Date(periodStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+  const key = {
+    shopId,
+    channel: day.channel as CsvChannel,
+    periodStart,
+  };
+
+  const [prior, liveRowsBefore] = await Promise.all([
+    prisma.spendEntry.findUnique({
+      where: { shopId_channel_periodStart: key },
+      select: { source: true },
+    }),
+    prisma.spendEntry.count({
+      where: { shopId, source: { not: "sample" } },
+    }),
+  ]);
+
+  await prisma.spendEntry.upsert({
+    where: { shopId_channel_periodStart: key },
+    create: {
+      ...key,
+      amount: day.amount,
+      periodEnd,
+      note: day.note,
+      source: "manual",
+    },
+    update: {
+      amount: day.amount,
+      periodEnd,
+      note: day.note,
+      // Overwrite a leftover sample row so sample-OFF still shows this spend.
+      source: "manual",
+    },
+  });
+
+  return {
+    error: null,
+    success: true,
+    day: {
+      dateKey: day.dateKey,
+      channel: day.channel,
+      channelLabel: day.channelLabel,
+      amount: day.amount,
+      // A sample row on the same key was never the merchant's money.
+      replaced: prior != null && prior.source !== "sample",
+      firstLiveSpend: liveRowsBefore === 0,
+      salesWindowWarning: parsed.warning,
+    },
+  };
+}
+
 async function handleBillDaily(
   shopId: string,
   form: FormData,
@@ -723,12 +837,25 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
     return { error: null, success: true };
   }
 
-  // Sample desk ON → block live csv / csv-combine / manual writes (do not mutate sample rows).
+  // Sample desk ON → block every live write path (do not mutate sample rows).
   if (
-    (intent === "csv" || intent === "csv-combine" || intent === "manual" || intent === "bill-daily") &&
+    (intent === "csv" ||
+      intent === "csv-combine" ||
+      intent === "manual" ||
+      intent === "bill-daily" ||
+      intent === "spend-day") &&
     sampleOn
   ) {
     return { error: SAMPLE_DESK_IMPORT_BLOCK, success: false };
+  }
+
+  if (intent === "spend-day") {
+    return handleQuickDay(
+      shop.id,
+      form,
+      entitlements,
+      shopTodayKey(shop.ianaTimezone),
+    );
   }
 
   if (intent === "csv") {
@@ -850,6 +977,7 @@ export default function SpendEntryPage() {
     dayCoverage,
     entitlements,
     addSpendChannels,
+    storeTodayKey,
     spendHistoryFloorKey,
     spendHistoryYearsBack,
   } = useLoaderData<typeof loader>();
@@ -870,7 +998,8 @@ export default function SpendEntryPage() {
   const csv = actionData?.csv;
   const csvSaved = Boolean(actionData?.success && csv);
   const csvNeedsConfirm = Boolean(csv?.needsConfirm);
-  const manualSaved = Boolean(actionData?.success && !csv);
+  const daySaved = actionData?.success ? (actionData.day ?? null) : null;
+  const manualSaved = Boolean(actionData?.success && !csv && !actionData.day);
   const todayKey = useMemo(() => {
     const n = new Date();
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
@@ -908,9 +1037,15 @@ export default function SpendEntryPage() {
     actionData && !actionData.success && csv && csv.errors.length > 0
       ? groupCsvErrors(csv.errors)
       : null;
+  /** Typed-row errors belong beside the typed inputs, never in a CSV banner. */
+  const dayFieldError =
+    actionData && !actionData.success && actionData.dayField
+      ? actionData.error
+      : null;
   /** Persistent field-level CSV error — stays until next action (not toast-only). */
   const csvFieldError = (() => {
     if (!actionData || actionData.success || !actionData.error) return null;
+    if (actionData.dayField) return null;
     if (csv) return actionData.error;
     if (
       /csv|file|paste|import|combine|platform|upload|template|row/i.test(
@@ -939,6 +1074,35 @@ export default function SpendEntryPage() {
   const [billChannel, setBillChannel] = useState<SpendChannel>("other");
   const [billCustomName, setBillCustomName] = useState("");
   const [billError, setBillError] = useState<string | null>(null);
+
+  /**
+   * Typed one-day row. Pre-filled with the newest closed day still at $0 so a
+   * cold merchant only picks an amount — and each save advances to the next hole.
+   */
+  const missingDatesKey = missingDates.join(",");
+  const suggestedDayDate = useMemo(
+    () =>
+      quickSpendDefaultDate({
+        todayKey: storeTodayKey,
+        missingDates: missingDatesKey ? missingDatesKey.split(",") : [],
+      }),
+    [storeTodayKey, missingDatesKey],
+  );
+  const [dayDate, setDayDate] = useState(suggestedDayDate);
+  const [dayAmount, setDayAmount] = useState("");
+  const [dayChannel, setDayChannel] = useState<SpendChannel>(() =>
+    entitlements.allowedChannels.includes("meta")
+      ? "meta"
+      : ((entitlements.allowedChannels[0] ?? "other") as SpendChannel),
+  );
+  const [dayCustomName, setDayCustomName] = useState("");
+
+  useEffect(() => {
+    if (!daySaved) return;
+    setDayAmount("");
+    setDayCustomName("");
+    setDayDate(suggestedDayDate);
+  }, [daySaved, suggestedDayDate]);
 
   function isPlatformSelectable(id: SpendAdvertisePlatformId): boolean {
     if (entitlements.canUseAllChannels) return true;
@@ -1092,6 +1256,20 @@ export default function SpendEntryPage() {
     justSwitchedReal: justSwitchedReal && !sampleOn,
   });
 
+  /** Honest hand-off after a typed day lands — formula, never a ROAS figure. */
+  const daySavedCopy = daySaved
+    ? quickSpendSavedCopy({
+        dateKey: daySaved.dateKey,
+        channelLabel: daySaved.channelLabel,
+        amount: daySaved.amount,
+        todayKey: storeTodayKey,
+        replaced: daySaved.replaced,
+        firstLiveSpend: daySaved.firstLiveSpend,
+        missingDays: holeCount,
+        salesFloorWarning: daySaved.salesWindowWarning,
+      })
+    : null;
+
   const pastePlaceholder = useMemo(() => {
     if (selectedTemplate.headers.length === 0) {
       return "Day,Meta,Google\n2026-07-01,120.00,80.00";
@@ -1128,14 +1306,23 @@ export default function SpendEntryPage() {
             {PRODUCT_NOUN.samplePreviewOffCta}
           </s-button>
         </Form>
+      ) : daySavedCopy && !shotMode ? (
+        <s-button
+          slot="primary-action"
+          variant="primary"
+          href={daySavedCopy.primaryHref}
+          aria-label={daySavedCopy.primaryLabel}
+        >
+          {daySavedCopy.primaryLabel}
+        </s-button>
       ) : isEmpty && !shotMode ? (
         <s-button
           slot="primary-action"
           variant="primary"
-          href={selectedBlankTemplateHref}
-          aria-label="Download blank template"
+          href="#mcfly-spend-day"
+          aria-label="Type one day of spend"
         >
-          Download blank template
+          Type one day
         </s-button>
       ) : null}
       <div
@@ -1190,7 +1377,25 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        {!isEmpty && !shotMode && holeCount > 0 ? (
+        {daySavedCopy ? (
+          <s-banner tone="success" heading={daySavedCopy.heading}>
+            <s-paragraph>{daySavedCopy.body}</s-paragraph>
+            {daySavedCopy.note ? (
+              <s-paragraph>{daySavedCopy.note}</s-paragraph>
+            ) : null}
+            <div className="mcfly-spend-lean__banner-actions">
+              <s-button href={daySavedCopy.primaryHref} variant="primary">
+                {daySavedCopy.primaryLabel}
+              </s-button>
+              <s-button href="#mcfly-spend-day" variant="secondary">
+                {daySavedCopy.secondaryLabel}
+              </s-button>
+            </div>
+          </s-banner>
+        ) : null}
+
+        {/* Coverage nag is already inside the saved banner's note — never both. */}
+        {!isEmpty && !shotMode && !daySavedCopy && holeCount > 0 ? (
           <s-banner tone="critical" heading={coverageImpact.heading}>
             <s-paragraph>{coverageImpact.body}</s-paragraph>
             <div
@@ -1277,7 +1482,11 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        {actionData && !actionData.success && actionData.error && !csvNeedsConfirm ? (
+        {actionData &&
+        !actionData.success &&
+        actionData.error &&
+        !actionData.dayField &&
+        !csvNeedsConfirm ? (
           <s-banner tone="critical" heading="CSV needs a fix — sales data is fine">
             <s-paragraph>{actionData.error}</s-paragraph>
             {actionErrorGroups ? (
@@ -1339,6 +1548,9 @@ export default function SpendEntryPage() {
               <s-button href={emptyTeach.primaryHref} variant="primary">
                 {emptyTeach.primaryLabel}
               </s-button>
+              <s-link href={emptyTeach.secondaryHref}>
+                {emptyTeach.secondaryLabel}
+              </s-link>
               <s-link href="#mcfly-spend-paste">Paste one row</s-link>
               <s-link href="#mcfly-spend-playbook">Platform playbook</s-link>
             </div>
@@ -1346,6 +1558,111 @@ export default function SpendEntryPage() {
         ) : null}
 
         <div className="mcfly-spend-lean__stack">
+          {/* 0 · Typed one day — first viewport, no file, no download. */}
+          <section
+            id="mcfly-spend-day"
+            className="mcfly-spend-day"
+            aria-label="Add one day of spend"
+          >
+            <div className="mcfly-spend-day__head">
+              <s-heading>{QUICK_SPEND_COPY.heading}</s-heading>
+              <s-text tone="neutral">{QUICK_SPEND_COPY.hint}</s-text>
+            </div>
+            <Form method="post" className="mcfly-spend-day__form">
+              <input type="hidden" name="intent" value="spend-day" />
+              <div className="mcfly-spend-day__grid">
+                <label className="mcfly-spend-day__field">
+                  <span>{QUICK_SPEND_COPY.dateLabel}</span>
+                  <input
+                    className="mcfly-field"
+                    type="date"
+                    name="date"
+                    value={dayDate}
+                    max={storeTodayKey}
+                    onChange={(e) => setDayDate(e.target.value)}
+                    disabled={importBlockedBySample}
+                    required
+                  />
+                </label>
+                <label className="mcfly-spend-day__field">
+                  <span>{QUICK_SPEND_COPY.amountLabel}</span>
+                  <input
+                    className="mcfly-field"
+                    type="number"
+                    name="amount"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder="40.00"
+                    value={dayAmount}
+                    onChange={(e) => setDayAmount(e.target.value)}
+                    disabled={importBlockedBySample}
+                    required
+                  />
+                </label>
+                <label className="mcfly-spend-day__field">
+                  <span>{QUICK_SPEND_COPY.channelLabel}</span>
+                  <select
+                    className="mcfly-field"
+                    name="channel"
+                    value={dayChannel}
+                    onChange={(e) =>
+                      setDayChannel(e.target.value as SpendChannel)
+                    }
+                    disabled={importBlockedBySample}
+                  >
+                    {addSpendChannels.map(({ value, label, disabled }) => (
+                      <option key={value} value={value} disabled={disabled}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {dayChannel === "other" ? (
+                  <label className="mcfly-spend-day__field mcfly-spend-day__field--wide">
+                    <span>{QUICK_SPEND_COPY.customNameLabel}</span>
+                    <input
+                      className="mcfly-field"
+                      type="text"
+                      name="customName"
+                      maxLength={80}
+                      placeholder={QUICK_SPEND_COPY.customNamePlaceholder}
+                      value={dayCustomName}
+                      onChange={(e) => setDayCustomName(e.target.value)}
+                      disabled={importBlockedBySample}
+                    />
+                  </label>
+                ) : null}
+              </div>
+              {dayFieldError ? (
+                <p className="mcfly-spend-day__error" role="alert">
+                  {dayFieldError}
+                </p>
+              ) : null}
+              <div className="mcfly-spend-day__actions">
+                <s-button
+                  type="submit"
+                  variant="primary"
+                  {...(importBlockedBySample ? { disabled: true } : {})}
+                  {...(isSubmitting && submittingIntent === "spend-day"
+                    ? { loading: true }
+                    : {})}
+                >
+                  {importBlockedBySample
+                    ? QUICK_SPEND_COPY.submitBlockedLabel
+                    : QUICK_SPEND_COPY.submitLabel}
+                </s-button>
+                <s-text tone="neutral">{QUICK_SPEND_COPY.replaceNote}</s-text>
+              </div>
+            </Form>
+            <p className="mcfly-spend-day__backfill">
+              {QUICK_SPEND_COPY.backfillHint}{" "}
+              <s-link href="#mcfly-spend-uploads">
+                {QUICK_SPEND_COPY.backfillLinkLabel}
+              </s-link>
+            </p>
+          </section>
+
           {/* Empty desk: channels + template + paste stay in the first viewport. */}
           <>
           {/* 1 · Advertising channels — compact dropdown */}

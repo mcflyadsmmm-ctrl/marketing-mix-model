@@ -2,7 +2,8 @@
  * Install stickiness for mass App Store installs.
  *
  * First-open ritual (under 10 minutes):
- *   paste / CSV spend → trusted Total ROAS → (optional) margin for break-even
+ *   typed one-day spend (paste / CSV for backfill) → trusted Total ROAS →
+ *   (optional) margin for break-even
  *
  * Cash religion: Total ROAS = Shopify sales ÷ ad spend.
  * Reviews API is soft and late — never on SAMPLE, never before trusted MER,
@@ -68,6 +69,9 @@ export type SpendEmptyTeach = {
   body: string;
   primaryLabel: string;
   primaryHref: string;
+  /** CSV/template fallback — never the first ask. */
+  secondaryLabel: string;
+  secondaryHref: string;
   steps: string[];
 };
 
@@ -129,36 +133,44 @@ export function spendSkipHref(search?: string): string {
 }
 
 /**
- * Teaching Spend empty — paste + template in the first viewport. Never a Pro wall.
+ * Teaching Spend empty — the typed one-day row first, CSV/template second.
+ * Nothing here needs a download. Never a Pro wall.
  */
 export function spendEmptyTeach(options?: {
+  /** Anchor / route for the typed date + amount + channel row. */
+  typeHref?: string;
   templateHref?: string;
   /** After Sample → Real with no live spend yet. */
   justSwitchedReal?: boolean;
 }): SpendEmptyTeach {
-  const primaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
+  const primaryHref = options?.typeHref ?? "#mcfly-spend-day";
+  const secondaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
+  const shared = {
+    primaryLabel: "Type one day",
+    primaryHref,
+    secondaryLabel: "Download blank template",
+    secondaryHref,
+  };
   if (options?.justSwitchedReal) {
     return {
-      heading: "Real store is on — paste spend next",
-      body: `Paste or import one daily spend row below. ${PRODUCT_NOUN.definition}.`,
-      primaryLabel: "Download blank template",
-      primaryHref,
+      ...shared,
+      heading: "Real store is on — type one day next",
+      body: `Type the day, the amount, and the channel below — no file. ${PRODUCT_NOUN.definition}.`,
       steps: [
-        "Paste one row below (keep the header) — or download the blank template.",
-        "Import. Same day + channel replaces.",
+        "Type day + amount + channel, then Save this day.",
+        "Same day + channel replaces — it never doubles.",
         `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
       ],
     };
   }
   return {
-    heading: "Paste one day — or download the template",
-    body: `One path to ${PRODUCT_NOUN.totalRoas}: paste Day + channel amounts (one row = one day), or download the blank template, fill, import. ${PRODUCT_NOUN.definition}. No ad-network login.`,
-    primaryLabel: "Download blank template",
-    primaryHref,
+    ...shared,
+    heading: "Type one day — no file needed",
+    body: `Fastest path to ${PRODUCT_NOUN.totalRoas}: type one day's spend below (day + amount + channel). ${PRODUCT_NOUN.definition}. No download, no ad-network login.`,
     steps: [
-      "Paste one row below (keep the header) — or download the blank template.",
+      "Type day + amount + channel, then Save this day.",
+      "Backfilling months? Paste rows or import a CSV below — or use the blank template.",
       "Need Ads Manager exports? Open the platform playbook for Meta / Google daily cost.",
-      "Import. Same day + channel replaces.",
       `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
     ],
   };
