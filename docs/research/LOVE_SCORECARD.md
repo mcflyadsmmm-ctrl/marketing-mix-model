@@ -1,18 +1,17 @@
 # Love scorecard — synthesis (2026-09-09)
 
-**Inputs:** CAPABILITY_MAP · FRICTION_AUTOPSY · KILL_SHOT_MATRIX · COMMUNITY_SIGNALS · INTERVIEW_SCRIPT (empty evidence until Marty runs calls) · MERCHANT_LOVE_JTBD hypotheses.
+**Inputs:** CAPABILITY_MAP (R0 deep) · FRICTION_AUTOPSY (R3 deep) · KILL_SHOT_MATRIX · COMMUNITY_SIGNALS · INTERVIEW_SCRIPT · MERCHANT_LOVE_JTBD.
 
 **Rule:** Interview evidence outranks hypotheses. Until n≥5 operator interviews, ship **P0 friction/honesty** only — do not expand MASTER_PLAN into suite features.
 
-**Ads:** NO. **Reviews:** 0.
+**Ads:** NO. **Reviews:** 0. **Fly:** v201 (7C ledger live).
 
 ---
 
 ## Score axes (0–5)
 
-Pain frequency · Uninstall/trial kill · Differentiator vs suites · Religion fit (5=perfect cash desk) · Inverse ship cost (5=cheap).
-
-**Priority score** = Pain + Uninstall + Differentiator + Religion + ShipEase (max 25).
+Pain · Uninstall/trial kill · Differentiator · Religion fit · Ship ease.  
+**Priority** = sum (max 25).
 
 ---
 
@@ -20,50 +19,54 @@ Pain frequency · Uninstall/trial kill · Differentiator vs suites · Religion f
 
 | ID | Problem | Pain | Kill | Diff | Religion | Ship | Total | Tier |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| L1 | Spend entry / first trusted ROAS still harder than sheet | 5 | 5 | 4 | 5 | 3 | **22** | **P0** |
-| L2 | SAMPLE honesty leaks (coverage + CTA → demo) | 4 | 5 | 5 | 5 | 4 | **23** | **P0** |
+| L2 | SAMPLE honesty (coverage + CTA → demo) | 4 | 5 | 5 | 5 | 4 | **23** | **P0** |
+| L1 | Spend entry / first trusted ROAS harder than sheet | 5 | 5 | 4 | 5 | 3 | **22** | **P0** |
 | L3 | Overview cold empty unreachable / bounce | 4 | 5 | 3 | 5 | 4 | **21** | **P0** |
-| L4 | Finish period ledger export on Fly + discoverable CTA | 4 | 3 | 5 | 5 | 4 | **21** | **P0** |
-| L5 | Spend Explorer shows unconfirmed target default | 3 | 3 | 4 | 5 | 5 | **20** | **P0** |
-| L6 | ReviewAsk reliability for first honest reviews | 3 | 4 | 4 | 5 | 4 | **20** | **P0** |
-| L7 | Deep-history / 60-day surprises on LTV | 3 | 3 | 3 | 5 | 4 | **18** | **P1** |
-| L8 | CSV craft pack (templates, pipe docs, Apps Script companion) | 4 | 3 | 4 | 4 | 3 | **18** | **P1** |
-| L9 | Listing/site MER literacy content from community phrases | 3 | 2 | 5 | 5 | 3 | **18** | **P1** |
-| L10 | Allocation / Goals habit prompts after first trusted ROAS | 3 | 2 | 4 | 5 | 3 | **17** | **P1** |
-| L11 | Agency multi-store weekly close ritual | 3 | 2 | 4 | 4 | 2 | **15** | **P2** |
-| L12 | Meta/Google spend OAuth inside Mcfly | 4 | 3 | 2 | **0** | 1 | **10** | **Refuse** |
+| L14 | First typed spend day → red “27-hole” critical banner | 4 | 5 | 3 | 5 | 4 | **21** | **P0** |
+| L5 | Spend Explorer unconfirmed target default rail | 3 | 4 | 4 | 5 | 5 | **20** | **P0** |
+| L6 | ReviewAsk reliability | 3 | 4 | 4 | 5 | 4 | **20** | **P0** |
+| L15 | Trial clock vs trust clock never explained on desk | 5 | 4 | 4 | 5 | 3 | **21** | **P0** |
+| L16 | Listing “Spend → Automate” points at missing tab (pipe templates unlinked) | 3 | 4 | 3 | 5 | 5 | **20** | **P0** |
+| L17 | `declare-recon` action has **no form** — three surfaces read unreachable state | 3 | 3 | 5 | 5 | 3 | **19** | **P1** |
+| L18 | Allocation computes hold/reduce advice but renders none | 3 | 2 | 5 | 5 | 3 | **18** | **P1** |
+| L4 | Period ledger export on Fly | — | — | — | — | — | — | **DONE v201** |
+| L7 | Deep-history / 60-day surprises | 3 | 3 | 3 | 5 | 4 | **18** | **P1** |
+| L8 | CSV / Apps Script craft pack | 4 | 3 | 4 | 4 | 3 | **18** | **P1** |
+| L9 | MER literacy site/listing phrases | 3 | 2 | 5 | 5 | 3 | **18** | **P1** |
+| L10 | Allocation/Goals habit after first trusted ROAS | 3 | 2 | 4 | 5 | 3 | **17** | **P1** |
+| L11 | Agency multi-store weekly close | 3 | 2 | 4 | 4 | 2 | **15** | **P2** |
+| L12 | Meta/Google spend OAuth | 4 | 3 | 2 | **0** | 1 | **10** | **Refuse** |
 | L13 | Pixel / MTA / “true ROAS” | 3 | 2 | 1 | **0** | 1 | **7** | **Refuse** |
 
 ---
 
-## Hypotheses awaiting interviews (do not ship yet)
+## Capability loose bolts (from R0 deep — not optional)
 
-From community signals + JTBD template — validate in R1 calls:
-
-- Operators abandon sheets by week three → Mcfly wins if TTFV &lt; sheet rebuild.
-- Break-even MER literacy is under-taught → educate on desk + site.
-- GMV tax resentment → keep flat $39 forever as brand.
-- “Attribution for where; MER for whether” → coexist messaging.
+1. **Recon input missing** — build declare-recon UI or remove dead read paths (L17).
+2. **Allocation verdict card** — render computed actions or rewrite empty copy (L18).
+3. **Automate discoverability** — link pipe templates from Spend; fix listing/smoke script wording (L16).
 
 ---
 
 ## Ship order (Conductor)
 
-1. **Land Wave 7C** (dirty tree) → commit → Fly → stamp smoke  
-2. **P0 Desk wave Love-Honesty** — L2 SAMPLE coverage + CTA  
-3. **P0 Desk wave Love-Cold** — L3 Overview empty  
-4. **P0 Desk wave Love-TargetExplorer** — L5 confirmed target only  
-5. **P0 ReviewAsk verify** during Marty Admin smoke (L6)  
-6. **P1** only after ≥3 interviews or smoke PASS + outbound running  
+1. ~~Land Wave 7C~~ **DONE** Fly v201  
+2. **Love-1** L2 SAMPLE honesty — *in flight*  
+3. **Love-2** L3 Overview cold empty  
+4. **Love-1b** L14 first-day coverage tone (may share Spend lane after Love-1)  
+5. **Love-3** L5 Explorer confirmed target  
+6. **Love-5** L16 Automate / pipe-template link (+ listing paste note for Marty)  
+7. **Love-4** L6 ReviewAsk on Admin smoke  
+8. **P1** L15 trial/trust copy · L17 recon form · L18 allocation verdict — after smoke+outbound rolling  
 
-Parallel Marty: smoke · outbound ×20 · FUNNEL · interviews from script.
+Parallel Marty: smoke · outbound ×20 · ≥5 interviews · FUNNEL.
 
 ---
 
-## Success for this scorecard
+## Success
 
-- [ ] Marty books ≥5 operator interviews  
-- [ ] P0 L2–L5 shipped or scheduled with exclusive files  
-- [ ] 7C live on Fly  
-- [ ] Still zero religion violations  
-- [ ] Reviews still honest (0 until real)
+- [x] 7C live on Fly  
+- [ ] Marty ≥5 operator interviews  
+- [ ] P0 L2–L3–L5–L14–L16 shipped or scheduled  
+- [ ] Zero religion violations  
+- [ ] Reviews honest (0 until real)

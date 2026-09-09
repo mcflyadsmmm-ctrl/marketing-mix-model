@@ -58,12 +58,54 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 
 ---
 
+## Wave Love-5 — Automate / pipe discoverability (P0 · L16)
+
+| | |
+| --- | --- |
+| **Outcome** | Spend surfaces links to `/app/spend/template?pipe=long\|wide`; listing/smoke no longer tell reviewers to click a missing Automate tab |
+| **Exclusive files** | `app.spend.tsx` (link row), optionally `docs/ops/LISTING_LIVE_PASTE.md` + `REVIEWER_TEST_SCRIPT.md` |
+| **Must not** | Build Meta/Google OAuth or resurrect Connections |
+| **DoD** | Click path from Spend → template works; Partner paste notes “pipe template” not Automate tab |
+
+---
+
+## Wave Love-6 — First-day coverage tone (P0 · L14)
+
+| | |
+| --- | --- |
+| **Outcome** | First typed spend day does not greet with a critical red “27-hole” banner; incomplete coverage is honest but not hostile |
+| **Exclusive files** | Spend coverage UI path in `app.spend.tsx` (+ tests) — **after Love-1** lands (same file exclusive) |
+| **DoD** | New merchant path documented; no SAMPLE counted as live |
+
+---
+
+## Wave Love-7 — declare-recon form OR delete dead reads (P1 · L17)
+
+| | |
+| --- | --- |
+| **Outcome** | Merchant can set/clear declared Ads Manager spend for ±5% recon, **or** Overview/Advanced/Allocation stop reading unreachable state |
+| **Exclusive files** | Settings or Spend recon form + `declare-recon` action wire; or remove dead banners |
+| **DoD** | No orphan action; religion intact |
+
+---
+
+## Wave Love-8 — Allocation verdict render (P1 · L18)
+
+| | |
+| --- | --- |
+| **Outcome** | Hold/reduce/step-test advice already computed is shown, or empty copy no longer promises it |
+| **Exclusive files** | `app.allocation.tsx` (+ related lib already computing actions) |
+| **DoD** | Copy matches UI |
+
+---
+
 ## P1 (park until interviews or smoke+outbound rolling)
 
 - L7 deep-history copy polish  
 - L8 CSV/Apps Script craft pack (`docs/` + templates only first)  
 - L9 site MER literacy from COMMUNITY_SIGNALS  
 - L10 habit prompts after first trusted ROAS  
+- L15 trial clock vs trust clock desk copy  
 
 ## Refuse forever (unless MASTER_PLAN amended by founder)
 
