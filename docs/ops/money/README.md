@@ -4,7 +4,7 @@ Product execution for **Mcfly Analytics** lives in this git worktree:
 
 `/Users/martysmithson/Documents/MCFLY ANALYTICS APP/mcfly-analytics`
 
-Branch: `cursor/sales-grant-zero-roas-9bdc` → PR [#41](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/41).
+Branch: `cursor/ads-readiness-mac` on `origin/redesign/enterprise-desk` (P0 [#41](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/41) + [#42](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/42) merged). Fly still needs a deploy.
 
 Do **not** execute Desk or Fly deploy from `marketing-mix-model/` on `cursor/clean-revamp-v8` (dirty tree, may lack `read_all_orders`).
 

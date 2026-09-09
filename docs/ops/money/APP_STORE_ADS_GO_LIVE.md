@@ -14,8 +14,8 @@ Dev store: https://admin.shopify.com/store/devmcflyads
 
 | # | Gate | Who | Green when |
 | --- | --- | --- | --- |
-| 1 | P0 merged | Marty / Conductor | [#41](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/41) merged into `redesign/enterprise-desk` |
-| 2 | Fly deploy | Marty / orchestrator | Production build includes #41. **Not** `cursor/clean-revamp-v8`. |
+| 1 | P0 merged | Marty / Conductor | [#41](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/41) + [#42](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/42) merged into `redesign/enterprise-desk` |
+| 2 | Fly deploy | Marty / orchestrator | Production includes #41+#42. **Not** `cursor/clean-revamp-v8`. |
 | 3 | Cold smoke PASS | Marty on `devmcflyads` | [`SMOKE_APP_STORE_ADS.md`](./SMOKE_APP_STORE_ADS.md) — trusted Total ROAS in <10 min, SAMPLE off, no fake 0.00 + Below break-even |
 | 4 | ≥3 honest reviews | Marty (orchestrator may add soft in-app ask after trusted Total ROAS only) | Live listing shows 3+ reviews. **Never incentivize.** |
 | 5 | Organic week pasted | Marty | One completed week in [`FUNNEL_WEEKLY.md`](./FUNNEL_WEEKLY.md) — visits / installs / trials. Do not invent. |
