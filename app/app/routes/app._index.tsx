@@ -10,6 +10,7 @@ import {
   type SpendChannel,
 } from "@mcfly/mer-engine";
 import { authenticate } from "../shopify.server";
+import { AcquisitionGlance } from "../components/AcquisitionGlance";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -997,6 +998,34 @@ export default function Dashboard() {
 
             {!shotMode && scoreboardReady && !useSampleDesk ? (
               <ReviewAsk eligible={reviewAskEligible} />
+            ) : null}
+
+            {/* Acquisition glance — aMER + new vs returning, same period figures as LTV */}
+            {!shotMode && scoreboardReady && metrics.cashActionReady ? (
+              <div
+                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
+                aria-label="Acquisition glance"
+              >
+                <AcquisitionGlance
+                  preset={preset}
+                  amer={metrics.amer}
+                  newCustomerSales={metrics.newCustomerNetSales}
+                  returningCustomerSales={metrics.returningCustomerNetSales}
+                  periodSales={metrics.sales}
+                  totalSpend={metrics.totalSpend}
+                  periodLabel={metrics.period.label}
+                  cashActionReady={metrics.cashActionReady}
+                  spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
+                  salesFactsIncomplete={
+                    factsIncompleteForTrust || trustedHero.hideUntrustedZero
+                  }
+                  periodUncovered={periodUncovered}
+                  newBuyers={
+                    metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null
+                  }
+                  useSampleDesk={useSampleDesk}
+                />
+              </div>
             ) : null}
 
             {/* LTV snapshot — depth after first trusted ROAS, not Monday chrome */}
