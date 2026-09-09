@@ -30,6 +30,7 @@ import {
   getOrCreateSettings,
   marginIsConfirmed,
 } from "../lib/mer-dashboard.server";
+import { FirstSessionGuide } from "../components/FirstSessionGuide";
 import {
   firstSessionPrimaryAction,
   resolveFirstSessionPath,
@@ -568,6 +569,8 @@ export default function Dashboard() {
     hasLiveSpend,
     useSampleDesk,
     shotMode,
+    hasReadAllOrders,
+    shopDomain,
   });
   const deepHistory = resolveDeepHistoryHonesty({
     hasReadAllOrders,
@@ -875,38 +878,8 @@ export default function Dashboard() {
           <PeriodTrustNote trust={periodTrust} />
         ) : null}
 
-        {coldEmpty ? (
-          <div className="mcfly-cold-empty">
-            <s-section
-              accessibilityLabel={`Empty state — ${firstSession.heading}`}
-            >
-              <s-grid gap="base" justifyItems="center" paddingBlock="base">
-                <s-grid justifyItems="center" maxInlineSize="420px" gap="base">
-                  <s-stack alignItems="center">
-                    <s-heading>{firstSession.heading}</s-heading>
-                    <s-paragraph>{firstSession.body}</s-paragraph>
-                  </s-stack>
-                  <s-button
-                    variant="primary"
-                    href={firstSession.primaryHref}
-                    aria-label={firstSession.primaryLabel}
-                  >
-                    {firstSession.primaryLabel}
-                  </s-button>
-                  <p className="mcfly-cold-empty__foot">
-                    Next:{" "}
-                    {firstSession.footerLinks.map((link, index) => (
-                      <span key={link.href}>
-                        {index > 0 ? " · " : null}
-                        <s-link href={link.href}>{link.label}</s-link>
-                      </span>
-                    ))}
-                  </p>
-                </s-grid>
-              </s-grid>
-            </s-section>
-          </div>
-        ) : null}
+        {/* Love-UX1: dismissible Setup Guide on cold Overview Home (Judge.me). */}
+        {coldEmpty ? <FirstSessionGuide path={firstSession} /> : null}
 
         {!coldEmpty ? (
           <>

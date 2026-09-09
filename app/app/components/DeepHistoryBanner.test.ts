@@ -20,6 +20,14 @@ describe("DeepHistoryBanner", () => {
     expect(source).toContain('href="/app?period=mtd"');
     expect(source).not.toMatch(/oauth\/authorize|client_id=/);
   });
+
+  it("orders Open MTD ahead of the grant CTA when both show (F7 low-trust)", () => {
+    const mtdIdx = source.indexOf('href="/app?period=mtd"');
+    const grantIdx = source.indexOf("href={grantHref}");
+    expect(mtdIdx).toBeGreaterThan(-1);
+    expect(grantIdx).toBeGreaterThan(-1);
+    expect(mtdIdx).toBeLessThan(grantIdx);
+  });
 });
 
 describe("Deep history grant surfaces", () => {

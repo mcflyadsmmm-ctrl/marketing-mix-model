@@ -89,22 +89,30 @@ describe("resolveDeepHistoryHonesty", () => {
 });
 
 describe("deep-history copy", () => {
-  it("is Partner-safe: Shopify prompt, recent window, not permanently dead", () => {
+  it("is Partner-safe: later/optional after trusted Total ROAS, not a day-one wall", () => {
     const missing = deepHistoryHonestyCopy("missing_scope");
     const wide = deepHistoryHonestyCopy("missing_scope_wide");
     const backfill = deepHistoryHonestyCopy("backfilling");
     expect(missing?.heading).toBe(DEEP_HISTORY_GRANT_COPY.heading);
-    expect(missing?.heading).toMatch(/optional/i);
+    expect(missing?.heading).toMatch(/later|optional/i);
+    expect(missing?.body).toMatch(/trusted Total ROAS/i);
+    expect(missing?.body).toMatch(/All orders is optional/i);
     expect(missing?.body).toMatch(/Shopify will prompt/i);
     expect(missing?.body).toMatch(/~60 days/i);
-    expect(missing?.body).toMatch(/Not required for a trusted MTD/i);
+    expect(missing?.body).toMatch(/not a day-one wall/i);
+    expect(missing?.body).toMatch(/order ids and amounts only/i);
     expect(wide?.body).toMatch(/recent ~60-day/i);
-    expect(wide?.body).toMatch(/open MTD/i);
+    expect(wide?.body).toMatch(/Open MTD/i);
+    expect(wide?.body).toMatch(/trusted Total ROAS/i);
+    expect(wide?.body).toMatch(/grant All orders later/i);
+    expect(wide?.body).toMatch(/optional after trust/i);
     expect(wide?.body).toMatch(/not permanently empty/i);
     expect(wide?.body).not.toMatch(/permanently dead/i);
     expect(backfill?.heading).toMatch(/backfilling/i);
     expect(backfill?.body).toMatch(/not permanently limited/i);
-    expect(DEEP_HISTORY_GRANT_COPY.cta).toMatch(/permissions/i);
+    expect(DEEP_HISTORY_GRANT_COPY.cta).toMatch(/Shopify/i);
+    expect(DEEP_HISTORY_GRANT_COPY.cta).toMatch(/deeper history/i);
+    expect(DEEP_HISTORY_GRANT_COPY.mtdLabel).toMatch(/MTD first/i);
 
     const blob = [
       DEEP_HISTORY_GRANT_COPY.heading,

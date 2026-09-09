@@ -96,6 +96,27 @@ describe("Overview Monday desk", () => {
     expect(overview).toMatch(/scoreboardReady && metrics\.cashActionReady/);
   });
 
+  it("Love-UX1: Overview cold empty owns dismissible Setup Guide (not DataModeBar)", () => {
+    expect(overview).toContain("FirstSessionGuide");
+    expect(overview).toMatch(/coldEmpty \? <FirstSessionGuide path=\{firstSession\}/);
+    expect(overview).toMatch(/hasReadAllOrders/);
+    expect(overview).toMatch(/shopDomain/);
+    const guide = readFileSync(
+      join(here, "../components/FirstSessionGuide.tsx"),
+      "utf8",
+    );
+    expect(guide).toContain("Setup Guide");
+    expect(guide).toContain("SETUP_GUIDE_DISMISS_KEY");
+    expect(guide).toContain("Dismiss Setup Guide");
+    expect(guide).toContain("guideProgressLabel");
+    expect(guide).toContain("s-checkbox");
+    // Elevated off chrome — Sample|Real bar keeps margin nudge only.
+    expect(dataMode).not.toMatch(/from ["'].*FirstSessionGuide/);
+    expect(dataMode).not.toMatch(/<FirstSessionGuide/);
+    expect(dataMode).not.toContain("showFullGuide");
+    expect(dataMode).toContain("showMarginNudge");
+  });
+
   it("Love-V2: hero actions keep one primary (Update spend); Goals/Share/ledger demoted", () => {
     const actions =
       overview.match(

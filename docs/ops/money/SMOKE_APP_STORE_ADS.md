@@ -66,18 +66,19 @@ Fly **v191** is live (Wave 2). Still treat Admin smoke as unproven until Marty s
 
 **Blank until Marty fills Result.** Curl listing/health is not a smoke PASS.
 
-Pre-filled from Conductor Wave 2 (2026-09-08) — do not treat as Admin PASS:
+Pre-filled infra (not an Admin PASS):
 
 | Field | Value |
 | --- | --- |
-| **Fly version / image** | **v213** · `deployment-01M22F50PYP1HXJZD12TH8PNTE` (Love-V3 `d66f90a`) — Admin Result still blank |
+| **Fly version / image** | **v214** · `deployment-01M234BNMQV6TEHG8554XSTMMT` (`fly status` 2026-09-09 ~13:10Z) |
 | **Curl listing** | 200 |
-| **Curl health** | `{"ok":true,"db":"up"}` (re-check before smoke) |
+| **Curl health** | `{"ok":true,"db":"up"}` |
+| **Box Admin** | Blocked — Cloudflare verify on `admin.shopify.com/store/devmcflyads` (pivot to Mac) |
 
 | Field | Value (Marty) |
 | --- | --- |
-| **Result** | _PASS / FAIL — blank_ |
-| **Date** | _YYYY-MM-DD — blank_ |
+| **Result** | _PASS / FAIL — blank (awaiting Mac Overview MTD)_ |
+| **Date** | 2026-09-09 |
 | **SAMPLE off?** | _blank_ |
 | **MTD sales** | _blank_ |
 | **MTD orders** | _blank_ |
@@ -85,7 +86,7 @@ Pre-filled from Conductor Wave 2 (2026-09-08) — do not treat as Admin PASS:
 | **Total ROAS** | _blank_ |
 | **Verdict headline** | _blank_ |
 | **SCOPES note** | _blank — e.g. Admin All orders approved?_ |
-| **BILLING_TEST note** | _blank — billing test / trial path exercised? leave n/a if not run_ |
-| **Notes** | _blank_ |
+| **BILLING_TEST note** | n/a |
+| **Notes** | Wave 3 pivot 2026-09-09: box Cloudflare unverified. Marty runs Settings → Spend CSV (`Desktop/mcfly-spend-mtd-2026-09.csv`) → Overview MTD on Mac; agent fills Result from observed numbers only. |
 
 Do not invent Partner listing views. Installs are the public metric.

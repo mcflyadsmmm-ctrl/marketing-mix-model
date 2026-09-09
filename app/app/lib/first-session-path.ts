@@ -2,8 +2,8 @@
  * First-session path for a cold merchant on the Total ROAS desk.
  *
  * Preferred ritual (under 10 minutes):
- *   typed one-day spend → Total ROAS desk → (optional) margin for break-even → Allocation
- *   (CSV / paste stay for backfilling months)
+ *   typed one-day spend → Total ROAS desk → (optional) margin for break-even →
+ *   (optional) pipe templates → (optional) deep history
  *
  * Cash religion: Total ROAS = Shopify sales ÷ ad spend. Margin only unlocks
  * break-even — it does not gate the scoreboard. Primary CTA is always Spend.
@@ -11,15 +11,19 @@
  * SAMPLE stays labeled practice. No pixels / MTA / path credit.
  */
 
+import { deepHistoryGrantHref } from "./deep-history-honesty";
 import { PRODUCT_NOUN } from "./product-labels";
+import { PIPE_TEMPLATE_ANCHOR, PIPE_TEMPLATE_COPY } from "./spend-pipe-templates";
 
 export const FIRST_SESSION_MINUTES = 10;
 
+/** Love-UX1 Setup Guide — ≤5 auto-checked steps (Judge.me / Shopify setup guide). */
 export const FIRST_SESSION_STEP_IDS = [
   "spend",
   "margin",
   "desk",
-  "allocation",
+  "pipe",
+  "deep_history",
 ] as const;
 
 export type FirstSessionStepId = (typeof FIRST_SESSION_STEP_IDS)[number];
@@ -35,6 +39,8 @@ export type FirstSessionStep = {
   label: string;
   hint: string;
   status: FirstSessionStepStatus;
+  /** Optional steps never block trusted Total ROAS. */
+  optional: boolean;
 };
 
 export type FirstSessionPathInput = {
@@ -46,6 +52,10 @@ export type FirstSessionPathInput = {
   /** `?guide=real` after switching Sample → Real store. */
   forceGuide?: boolean;
   search?: string;
+  /** `read_all_orders` — unlocks optional deep-history step. */
+  hasReadAllOrders?: boolean;
+  /** Shop domain for Partner-safe deep-history reauth href. */
+  shopDomain?: string;
 };
 
 export type FirstSessionPath = {
@@ -53,6 +63,7 @@ export type FirstSessionPath = {
   ritualReady: boolean;
   showColdEmpty: boolean;
   emptyKind: FirstSessionEmptyKind;
+  /** Cold live empty (or forceGuide) — Overview owns the Setup Guide UI. */
   showFullGuide: boolean;
   showMarginNudge: boolean;
   viewing: "sample" | "live";
@@ -73,6 +84,9 @@ export type FirstSessionPath = {
   primaryLabel: string;
   footerLinks: { href: string; label: string }[];
   steps: FirstSessionStep[];
+  stepsCompleted: number;
+  stepsTotal: number;
+  guideProgressLabel: string;
   guideHeading: string;
   guideNote: string;
   marginNudgeHeading: string;
@@ -82,6 +96,10 @@ export type FirstSessionPath = {
 function withSearch(path: string, search?: string): string {
   if (!search || search === "?") return path;
   const q = search.startsWith("?") ? search : `?${search}`;
+  const hashIdx = path.indexOf("#");
+  if (hashIdx >= 0) {
+    return `${path.slice(0, hashIdx)}${q}${path.slice(hashIdx)}`;
+  }
   return `${path}${q}`;
 }
 
@@ -99,9 +117,15 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
   const marginDone = input.marginConfirmed;
   const spendDone = input.hasLiveSpend;
   const deskDone = spendDone;
+  const deepDone = Boolean(input.hasReadAllOrders);
+  // One "current" at a time — optional pipe never auto-completes, so it is
+  // never current (link only). Deep history becomes current after spend.
   const spendCurrent = !spendDone;
   const marginCurrent = spendDone && !marginDone;
-  const allocationCurrent = spendDone && marginDone;
+  const deepCurrent = spendDone && marginDone && !deepDone;
+  const deepHref = input.shopDomain
+    ? deepHistoryGrantHref(input.shopDomain)
+    : withSearch("/app", q);
 
   return [
     {
@@ -112,15 +136,15 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
         ? " — done"
         : " — type one day, no file, no ad-network login",
       status: stepStatus({ done: spendDone, current: spendCurrent }),
+      optional: false,
     },
     {
       id: "margin",
       href: withSearch("/app/settings", q),
       label: PRODUCT_NOUN.setupAdjustMargin,
-      hint: marginDone
-        ? " — done"
-        : " — optional; unlocks break-even",
+      hint: marginDone ? " — done" : " — optional; unlocks break-even",
       status: stepStatus({ done: marginDone, current: marginCurrent }),
+      optional: true,
     },
     {
       id: "desk",
@@ -128,16 +152,25 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
       label: PRODUCT_NOUN.openTotalRoas,
       hint: " — Shopify Total Sales ÷ spend",
       status: stepStatus({ done: deskDone, current: false }),
+      optional: false,
     },
     {
-      id: "allocation",
-      href: withSearch("/app/allocation", q),
-      label: PRODUCT_NOUN.spendAllocation,
-      hint: " — this week's mix after you trust the multiple",
-      status: stepStatus({
-        done: false,
-        current: allocationCurrent,
-      }),
+      id: "pipe",
+      href: withSearch(`/app/spend#${PIPE_TEMPLATE_ANCHOR}`, q),
+      label: PIPE_TEMPLATE_COPY.linkLabel,
+      hint: " — optional; CSV shape only, no ad login here",
+      status: stepStatus({ done: false, current: false }),
+      optional: true,
+    },
+    {
+      id: "deep_history",
+      href: deepHref,
+      label: "Unlock deep history",
+      hint: deepDone
+        ? " — done"
+        : " — optional; MTD / ~60 days already work",
+      status: stepStatus({ done: deepDone, current: deepCurrent }),
+      optional: true,
     },
   ];
 }
@@ -166,8 +199,8 @@ function emptyCopy(
         label: PRODUCT_NOUN.openTotalRoas,
       },
       {
-        href: withSearch("/app/allocation", search),
-        label: PRODUCT_NOUN.spendAllocation,
+        href: withSearch(`/app/spend#${PIPE_TEMPLATE_ANCHOR}`, search),
+        label: PIPE_TEMPLATE_COPY.linkLabel,
       },
     ],
   };
@@ -181,6 +214,8 @@ export function resolveFirstSessionPath(
   input: FirstSessionPathInput,
 ): FirstSessionPath {
   const steps = buildSteps(input);
+  const stepsCompleted = steps.filter((s) => s.status === "done").length;
+  const stepsTotal = steps.length;
   const viewing: "sample" | "live" = input.useSampleDesk ? "sample" : "live";
   const viewingHint = input.useSampleDesk
     ? "SAMPLE practice — not live money, not your live Shopify till."
@@ -218,8 +253,11 @@ export function resolveFirstSessionPath(
     realStorePostAction: withSearch("/app/data-mode", input.search),
     ...copy,
     steps,
-    guideHeading: `Your real store — ${FIRST_SESSION_STEP_IDS.length} steps`,
-    guideNote: `Shopify sales are automatic. You only add ad spend. Margin is optional for break-even. Hide Sample for good in Settings. Target: trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes.`,
+    stepsCompleted,
+    stepsTotal,
+    guideProgressLabel: `${stepsCompleted} of ${stepsTotal} steps completed`,
+    guideHeading: "Setup Guide",
+    guideNote: `Shopify sales are automatic. You only add ad spend. Margin, pipe fill, and deep history are optional. Hide Sample for good in Settings. Target: trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes.`,
     marginNudgeHeading: "Confirm margin for break-even",
     marginNudgeBody: `${PRODUCT_NOUN.totalRoas} is live (${PRODUCT_NOUN.definition}). Confirm profit margin so break-even is locked — then ${PRODUCT_NOUN.spendAllocation}.`,
   };

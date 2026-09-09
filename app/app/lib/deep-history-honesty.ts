@@ -17,15 +17,16 @@ export { READ_ALL_ORDERS_SCOPE, scopesIncludeReadAllOrders };
 export const DEEP_HISTORY_GRANT_PATH = "/auth";
 
 export const DEEP_HISTORY_GRANT_COPY = {
-  heading: "Optional: unlock YTD and LTV",
-  body: "MTD and the last ~60 days already work. Shopify will prompt once for deeper order history — order ids and amounts only, no email CRM. Not required for a trusted MTD number.",
+  heading: "Later option: YTD and LTV depth",
+  body:
+    "Start with one trusted Total ROAS on MTD or the last ~60 days — those already work. After that, All orders is optional: Shopify will prompt once for deeper history (order ids and amounts only, no email CRM) so YTD and till LTV can fill. Not a day-one wall.",
   recentWindowBody:
-    "This period is wider than the recent ~60-day window. Grant deeper history so it can fill, or open MTD for a trusted number now — not permanently empty.",
+    "This period is wider than Shopify's recent ~60-day window. Open MTD for a trusted Total ROAS now; grant All orders later when you want YTD or LTV filled — optional after trust, not permanently empty.",
   backfillHeading: "Sales history is backfilling",
   backfillBody:
     "Deeper order access is granted. Multi-year sales and LTV fill as facts land — refresh in a few minutes. Not permanently limited.",
-  cta: "Update permissions in Shopify",
-  mtdLabel: "Open MTD",
+  cta: "Grant deeper history in Shopify",
+  mtdLabel: "Open MTD first",
 } as const;
 
 /** Cash religion vs attribution suites — Settings / Overview help. */

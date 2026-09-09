@@ -42,14 +42,23 @@ export function DeepHistoryBanner({
       ) : null}
       {showCta ? (
         <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
-          <s-button href={grantHref} variant="primary" target="_top">
-            {DEEP_HISTORY_GRANT_COPY.cta}
-          </s-button>
+          {/* F7: trusted MTD path before permission escalation at low trust */}
           {showMtdCta || kind === "missing_scope_wide" ? (
-            <s-button href="/app?period=mtd" variant="secondary">
+            <s-button href="/app?period=mtd" variant="primary">
               {DEEP_HISTORY_GRANT_COPY.mtdLabel}
             </s-button>
           ) : null}
+          <s-button
+            href={grantHref}
+            variant={
+              showMtdCta || kind === "missing_scope_wide"
+                ? "secondary"
+                : "primary"
+            }
+            target="_top"
+          >
+            {DEEP_HISTORY_GRANT_COPY.cta}
+          </s-button>
         </div>
       ) : null}
     </s-banner>

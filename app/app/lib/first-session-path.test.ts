@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PRODUCT_NOUN } from "./product-labels";
+import { PIPE_TEMPLATE_ANCHOR, PIPE_TEMPLATE_COPY } from "./spend-pipe-templates";
 import {
   FIRST_SESSION_MINUTES,
   firstSessionPrimaryAction,
@@ -21,7 +22,7 @@ function cold(
 }
 
 describe("resolveFirstSessionPath", () => {
-  it("starts a cold merchant on Spend — margin optional, never a Settings wall", () => {
+  it("starts a cold merchant on Spend — Setup Guide with 5 auto-check steps", () => {
     const path = cold();
     expect(path.showColdEmpty).toBe(true);
     expect(path.emptyKind).toBe("spend_only");
@@ -29,25 +30,38 @@ describe("resolveFirstSessionPath", () => {
     expect(path.showMarginNudge).toBe(false);
     expect(path.cashMerReady).toBe(false);
     expect(path.ritualReady).toBe(false);
+    expect(path.guideHeading).toBe("Setup Guide");
+    expect(path.stepsTotal).toBe(5);
+    expect(path.stepsCompleted).toBe(0);
+    expect(path.guideProgressLabel).toBe("0 of 5 steps completed");
     expect(path.steps.map((s) => s.id)).toEqual([
       "spend",
       "margin",
       "desk",
-      "allocation",
+      "pipe",
+      "deep_history",
     ]);
     expect(path.steps[0]).toMatchObject({
       status: "current",
       href: "/app/spend",
+      optional: false,
     });
     expect(path.steps[1]).toMatchObject({
       status: "todo",
       href: "/app/settings",
+      optional: true,
     });
     expect(path.steps[1].hint).toMatch(/optional/i);
     expect(path.steps[2]).toMatchObject({ status: "todo", href: "/app" });
     expect(path.steps[3]).toMatchObject({
       status: "todo",
-      href: "/app/allocation",
+      href: `/app/spend#${PIPE_TEMPLATE_ANCHOR}`,
+      optional: true,
+    });
+    expect(path.steps[3].label).toBe(PIPE_TEMPLATE_COPY.linkLabel);
+    expect(path.steps[4]).toMatchObject({
+      status: "todo",
+      optional: true,
     });
     expect(path.primaryHref).toBe("/app/spend");
     expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
@@ -60,7 +74,7 @@ describe("resolveFirstSessionPath", () => {
     expect(path.footerLinks.map((l) => l.href)).toEqual([
       "/app/settings",
       "/app",
-      "/app/allocation",
+      `/app/spend#${PIPE_TEMPLATE_ANCHOR}`,
     ]);
     expect(firstSessionPrimaryAction(path)).toEqual({
       href: "/app/spend",
@@ -79,6 +93,7 @@ describe("resolveFirstSessionPath", () => {
     expect(path.showFullGuide).toBe(true);
     expect(path.steps[0].status).toBe("current");
     expect(path.steps[1].status).toBe("done");
+    expect(path.stepsCompleted).toBe(1);
     expect(path.primaryHref).toBe("/app/spend");
     expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
     expect(path.body).toMatch(/Margin is set/);
@@ -100,6 +115,7 @@ describe("resolveFirstSessionPath", () => {
     expect(path.steps[0].status).toBe("done");
     expect(path.steps[1].status).toBe("current");
     expect(path.steps[2].status).toBe("done");
+    expect(path.stepsCompleted).toBe(2);
     expect(path.marginNudgeBody).toContain(PRODUCT_NOUN.definition);
     expect(path.marginNudgeBody).toContain(PRODUCT_NOUN.spendAllocation);
     expect(firstSessionPrimaryAction(path).label).toBe(
@@ -107,11 +123,28 @@ describe("resolveFirstSessionPath", () => {
     );
   });
 
-  it("marks Allocation current once margin and spend are in", () => {
+  it("auto-checks deep history when read_all_orders is granted", () => {
+    const path = cold({
+      marginConfirmed: true,
+      hasLiveSpend: true,
+      hasReadAllOrders: true,
+      shopDomain: "acme.myshopify.com",
+    });
+    expect(path.showColdEmpty).toBe(false);
+    expect(path.showFullGuide).toBe(false);
+    expect(path.steps.find((s) => s.id === "deep_history")).toMatchObject({
+      status: "done",
+    });
+    expect(path.stepsCompleted).toBe(4);
+    expect(path.guideProgressLabel).toBe("4 of 5 steps completed");
+  });
+
+  it("marks deep history current once spend and margin are in", () => {
     const path = cold({
       marginConfirmed: true,
       hasLiveSpend: true,
       useSampleDesk: false,
+      shopDomain: "acme.myshopify.com",
     });
     expect(path.showColdEmpty).toBe(false);
     expect(path.showFullGuide).toBe(false);
@@ -122,8 +155,10 @@ describe("resolveFirstSessionPath", () => {
       "done",
       "done",
       "done",
+      "todo",
       "current",
     ]);
+    expect(path.steps[4].href).toBe("/auth?shop=acme.myshopify.com");
     expect(firstSessionPrimaryAction(path)).toEqual({
       href: "/app/spend",
       label: "Update spend",
@@ -200,12 +235,14 @@ describe("resolveFirstSessionPath", () => {
     expect(path.showMarginNudge).toBe(false);
   });
 
-  it("preserves query strings on ritual hrefs", () => {
+  it("preserves query strings on ritual hrefs — hash after query for pipe", () => {
     const path = cold({ search: "?period=mtd" });
     expect(path.primaryHref).toBe("/app/spend?period=mtd");
     expect(path.steps[0].href).toBe("/app/spend?period=mtd");
     expect(path.steps[1].href).toBe("/app/settings?period=mtd");
-    expect(path.steps[3].href).toBe("/app/allocation?period=mtd");
+    expect(path.steps[3].href).toBe(
+      `/app/spend?period=mtd#${PIPE_TEMPLATE_ANCHOR}`,
+    );
     expect(path.realStoreHref).toBe("/app/spend?period=mtd");
     expect(path.realStorePostAction).toBe("/app/data-mode?period=mtd");
   });

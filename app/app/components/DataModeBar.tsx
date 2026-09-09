@@ -1,4 +1,4 @@
-import { Form, useLocation, useSearchParams } from "react-router";
+import { Form, useLocation } from "react-router";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   resolveFirstSessionPath,
@@ -16,8 +16,8 @@ export type DataModeBarProps = {
 
 /**
  * Global Sample | Real store control — one place, every desk page.
- * First-session ritual (spend → desk → optional margin → Allocation) lives here
- * so Overview empties and this bar cannot drift.
+ * Love-UX1: first-session Setup Guide lives on Overview Home empty,
+ * not as a chrome banner here.
  */
 export function DataModeBar({
   useSampleDesk,
@@ -26,16 +26,12 @@ export function DataModeBar({
   hasLiveSpend,
 }: DataModeBarProps) {
   const location = useLocation();
-  const [params] = useSearchParams();
-  const forceGuide =
-    params.get("guide") === "real" || params.get("guide") === "1";
   const returnTo = `${location.pathname}${location.search}`;
   const action = `/app/data-mode${location.search}`;
   const path = resolveFirstSessionPath({
     marginConfirmed,
     hasLiveSpend,
     useSampleDesk,
-    forceGuide,
     search: location.search,
   });
 
@@ -47,7 +43,6 @@ export function DataModeBar({
           <span aria-hidden="true"> · </span>
           Sample preview is off in Settings
         </p>
-        {path.showFullGuide ? <FirstSessionGuide path={path} /> : null}
         {path.showMarginNudge ? <MarginNudge path={path} /> : null}
       </div>
     );
@@ -115,25 +110,8 @@ export function DataModeBar({
         </s-banner>
       ) : null}
 
-      {path.showFullGuide ? <FirstSessionGuide path={path} /> : null}
       {path.showMarginNudge ? <MarginNudge path={path} /> : null}
     </div>
-  );
-}
-
-function FirstSessionGuide({ path }: { path: FirstSessionPath }) {
-  return (
-    <s-banner tone="info" heading={path.guideHeading}>
-      <ol className="mcfly-data-mode__steps">
-        {path.steps.map((step) => (
-          <li key={step.id} data-status={step.status}>
-            <s-link href={step.href}>{step.label}</s-link>
-            <span>{step.hint}</span>
-          </li>
-        ))}
-      </ol>
-      <p className="mcfly-data-mode__steps-note">{path.guideNote}</p>
-    </s-banner>
   );
 }
 
