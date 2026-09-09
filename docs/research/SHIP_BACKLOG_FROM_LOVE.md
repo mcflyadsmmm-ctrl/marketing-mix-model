@@ -139,7 +139,7 @@ Sources: [`PEER_APP_IA_SKETCHES.md`](./PEER_APP_IA_SKETCHES.md) · [`BEST_SHOPIF
 | **Love-UX1** | Overview dismissible Setup Guide (Judge.me) — elevate existing `FirstSessionGuide` onto Home empty, auto-check steps | small-desk | Queued |
 | **Love-UX2** | Spend pipe-template front-door elevation (Love-5 shipped link; make verbs Matrixify-loud) | small-desk | Queued after UX1/Spend free |
 | **Love-UX3** | Cold activate copy: “Shopify sales already here — no ad login” | copy-only | Queued |
-| **Love-UX6** | Overview one-line Total ROAS definition chip | copy-only | **DONE** · pending commit stamp · [Love-UX6](e2745710-0824-49c4-8064-551133821beb) |
+| **Love-UX6** | Overview one-line Total ROAS definition chip | copy-only | **DONE** · `cdc7972` · [Love-UX6](e2745710-0824-49c4-8064-551133821beb) |
 | — | Keep core nav Overview·Spend·Settings; no Integrations tab | copy-only | **LOCK** |
 | — | Meta OAuth / Integrations nav | challenge | **DEFER** |
 
