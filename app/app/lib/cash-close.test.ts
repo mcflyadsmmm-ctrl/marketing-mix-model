@@ -17,6 +17,7 @@ import {
   closeDecisionUiCopy,
   formatCashCloseCsv,
   formatCashCloseMemo,
+  formatOverviewShareSubject,
   formatOverviewShareText,
   computeGrossMer,
   returnsHaircut,
@@ -26,6 +27,7 @@ import {
   validateCloseDecision,
   type CloseMetricsInput,
 } from "./cash-close";
+import { SAMPLE_MONEY_MARK } from "./cash-desk-copy";
 
 function baseMetrics(
   overrides: Partial<CloseMetricsInput> = {},
@@ -343,6 +345,40 @@ describe("formatCashCloseCsv + parseExceptionsJson", () => {
     expect(text).toContain("4.00×");
     expect(text).toContain("Meta Ads");
     expect(text).toContain("60%");
+    // Live desk stays unstamped — no SAMPLE noise on real money.
+    expect(text).not.toMatch(/SAMPLE/);
+  });
+
+  it("stamps SAMPLE on the shared Overview so practice never leaves as the till", () => {
+    const text = formatOverviewShareText({
+      periodLabel: "Month to date",
+      periodStartDay: "2026-07-01",
+      periodEndDay: "2026-07-28",
+      totalSales: 100_000,
+      totalSpend: 25_000,
+      mer: 4,
+      breakEvenMer: 2.86,
+      marginPct: 0.35,
+      shopLabel: "demo.myshopify.com",
+      useSampleDesk: true,
+    });
+    // First line, before the merchant's real shop domain.
+    expect(text.split("\n")[0]).toBe(SAMPLE_MONEY_MARK);
+    expect(text).not.toContain("Shopify Total Sales: ");
+    expect(text).toContain("SAMPLE sales (not Shopify): $100,000");
+    expect(text).toContain("Switch to Real store");
+  });
+
+  it("stamps SAMPLE in the mail subject", () => {
+    expect(
+      formatOverviewShareSubject({ periodLabel: "Month to date" }),
+    ).toBe("Total ROAS — Month to date");
+    expect(
+      formatOverviewShareSubject({
+        periodLabel: "Month to date",
+        useSampleDesk: true,
+      }),
+    ).toBe("[SAMPLE] Total ROAS — Month to date");
   });
 
   it("parses exceptions JSON safely", () => {

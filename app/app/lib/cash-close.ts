@@ -4,6 +4,7 @@
  */
 
 import { calculateAmer } from "@mcfly/mer-core";
+import { SAMPLE_MONEY_MARK } from "./cash-desk-copy";
 import type { SpendPeriodCoverage, SpendReconResult } from "./mer-trust";
 import { PRODUCT_NOUN } from "./product-labels";
 import { shopLocalDayKey } from "./shop-local-day";
@@ -472,7 +473,21 @@ export type OverviewShareInput = {
   channels?: Array<{ name: string; amount: number; share: number }>;
   salesDeltaLine?: string | null;
   spendDeltaLine?: string | null;
+  /**
+   * SAMPLE desk was on. The body leaves the app (mailto) with the real shop
+   * domain on it, so practice numbers must be stamped or they read as the till.
+   */
+  useSampleDesk?: boolean;
 };
+
+/** Subject line for the same mailto — stamped so SAMPLE shows in the inbox list. */
+export function formatOverviewShareSubject(input: {
+  periodLabel: string;
+  useSampleDesk?: boolean;
+}): string {
+  const subject = `Total ROAS — ${input.periodLabel}`;
+  return input.useSampleDesk ? `[SAMPLE] ${subject}` : subject;
+}
 
 export function formatOverviewShareText(input: OverviewShareInput): string {
   const money = (n: number) =>
@@ -484,7 +499,10 @@ export function formatOverviewShareText(input: OverviewShareInput): string {
   const mer = (v: number | null) =>
     v == null || !Number.isFinite(v) ? "—" : `${v.toFixed(2)}×`;
 
+  const sample = Boolean(input.useSampleDesk);
+
   const lines: string[] = [
+    ...(sample ? [SAMPLE_MONEY_MARK] : []),
     input.shopLabel?.trim()
       ? `Total ROAS — ${input.shopLabel.trim()}`
       : "Total ROAS",
@@ -500,7 +518,9 @@ export function formatOverviewShareText(input: OverviewShareInput): string {
 
   lines.push(
     "",
-    `Shopify Total Sales: ${money(input.totalSales)}`,
+    sample
+      ? `SAMPLE sales (not Shopify): ${money(input.totalSales)}`
+      : `Shopify Total Sales: ${money(input.totalSales)}`,
   );
   if (input.salesDeltaLine?.trim()) {
     lines.push(`  ${input.salesDeltaLine.trim()}`);
@@ -526,6 +546,13 @@ export function formatOverviewShareText(input: OverviewShareInput): string {
 
   if (input.spendIncomplete) {
     lines.push("", "Note: spend coverage incomplete for this period.");
+  }
+
+  if (sample) {
+    lines.push(
+      "",
+      `Note: ${SAMPLE_MONEY_MARK}. Switch to Real store in Mcfly Analytics for your live Shopify till.`,
+    );
   }
 
   lines.push("", "Total ROAS = Shopify Total Sales ÷ ad spend");

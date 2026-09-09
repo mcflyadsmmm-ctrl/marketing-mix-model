@@ -49,7 +49,10 @@ import {
   formatListingTillLabel,
   listingCaptureFromRequest,
 } from "../lib/listing-capture";
-import { formatOverviewShareText } from "../lib/cash-close";
+import {
+  formatOverviewShareSubject,
+  formatOverviewShareText,
+} from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
 import { CashVerdict } from "../components/CashVerdict";
@@ -437,7 +440,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesUntrustedZero,
     liveConfirmedZero,
     factsIncompleteForHonesty,
-    shareSubject: `Total ROAS — ${metrics.period.label}`,
+    shareSubject: formatOverviewShareSubject({
+      periodLabel: metrics.period.label,
+      useSampleDesk,
+    }),
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
@@ -618,6 +624,7 @@ export default function Dashboard() {
       ? "Sales facts still loading — not a trusted multiple"
       : salesDeltaLine,
     spendDeltaLine,
+    useSampleDesk,
   });
 
   const trustBanners = (
