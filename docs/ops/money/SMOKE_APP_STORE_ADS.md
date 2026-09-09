@@ -70,7 +70,7 @@ Pre-filled from Conductor Wave 2 (2026-09-08) — do not treat as Admin PASS:
 
 | Field | Value |
 | --- | --- |
-| **Fly version / image** | v201 · `deployment-01M22BMD1276EC1EWVDM40VYYE` (Wave 7C period ledger CSV) |
+| **Fly version / image** | v202 · `deployment-01M22C2K48HKQ8EVZHMEJ7X2TV` (Love-1 SAMPLE CTA + Love-2 Overview stay=1) |
 | **Curl listing** | 200 |
 | **Curl health** | `{"ok":true,"db":"up"}` (re-check before smoke) |
 

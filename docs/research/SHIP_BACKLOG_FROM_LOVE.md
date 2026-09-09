@@ -24,6 +24,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Must not** | Touch Settings target-mer; no OAuth; do not re-litigate Hostile #1 |
 | **DoD** | Hostile #5 closed; unit tests; ship gate |
 | **Note** | Hostile #1 (SAMPLE in live coverage) stamped **CLOSED** in FRICTION_AUTOPSY §3 with file evidence — Love-1 does not re-open coverage |
+| **Status** | **DONE** · `27df782` · Fly with Love-2 |
 
 ---
 
@@ -35,6 +36,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Exclusive files** | `app/app/routes/app._index.tsx` (+ honesty tests) |
 | **Must not** | Overlap Love-1 spend.tsx in same Claude lane |
 | **DoD** | Hostile #2 closed; cold path documented in REVIEWER_TEST_SCRIPT |
+| **Status** | **DONE** · `e774d5d` · Overview href `/app?stay=1` |
 
 ---
 
