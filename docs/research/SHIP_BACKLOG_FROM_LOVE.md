@@ -155,11 +155,11 @@ Source: [`VISUAL_CRAFT_SHOPIFY_APP.md`](./VISUAL_CRAFT_SHOPIFY_APP.md) §5 + §7
 
 ## P1 (park until interviews or smoke+outbound rolling)
 
-- L7 deep-history copy polish  
-- L8 CSV/Apps Script craft pack (`docs/` + templates only first)  
-- L9 site MER literacy from COMMUNITY_SIGNALS  
-- L10 habit prompts after first trusted ROAS  
-- Goals page unconfirmed-target sister of Love-3  
+- ~~L7 deep-history copy polish~~ **DONE** (optional-after-trust copy live in `deep-history-honesty.ts` / v215)  
+- L8 CSV/Apps Script craft pack (`docs/` + templates only first) — *in flight*  
+- L9 site MER literacy from COMMUNITY_SIGNALS — *in flight*  
+- L10 habit prompts after first trusted ROAS — *in flight*  
+- ~~Goals page unconfirmed-target sister of Love-3~~ **DONE** `7c2f32a`  
 
 ## Refuse forever (unless MASTER_PLAN amended by founder)
 
