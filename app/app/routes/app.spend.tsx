@@ -1322,6 +1322,20 @@ export default function SpendEntryPage() {
     justSwitchedReal: justSwitchedReal && !sampleOn,
   });
 
+  /**
+   * Love-V3 / VISUAL_CRAFT P1.4 — one teach/activate surface above the day form.
+   * Empty teach owns cold paint; `?activate=1` folds into that surface (no second
+   * info banner). SAMPLE import-block keeps its critical honesty banner.
+   */
+  const activating =
+    isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled;
+  const showEmptyTeach = isEmpty && !shotMode && !importBlockedBySample;
+  const showActivationBanner = activating && !showEmptyTeach;
+  const emptyTeachHeading =
+    activating && showEmptyTeach
+      ? "Step 1 of 2 — type one day"
+      : emptyTeach.heading;
+
   /** Honest hand-off after a typed day lands — formula, never a ROAS figure. */
   const daySavedCopy = daySaved
     ? quickSpendSavedCopy({
@@ -1335,6 +1349,27 @@ export default function SpendEntryPage() {
         salesFloorWarning: daySaved.salesWindowWarning,
       })
     : null;
+
+  const showCoverageBanner =
+    !isEmpty && !shotMode && !daySavedCopy && coverageNotice.showBanner;
+  const showCsvErrorBanner = Boolean(
+    actionData &&
+      !actionData.success &&
+      actionData.error &&
+      !actionData.dayField &&
+      !csvNeedsConfirm,
+  );
+  /** Why-line competes with teach/status — park it when a surface is up. */
+  const showDeskWhy =
+    !shotMode &&
+    !sampleDesk.enabled &&
+    !showEmptyTeach &&
+    !daySavedCopy &&
+    !showCoverageBanner &&
+    !csvNeedsConfirm &&
+    !csvSaved &&
+    !manualSaved &&
+    !showCsvErrorBanner;
 
   const pastePlaceholder = useMemo(() => {
     if (selectedTemplate.headers.length === 0) {
@@ -1422,11 +1457,12 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        {!shotMode && !sampleDesk.enabled ? (
+        {showDeskWhy ? (
           <p className="mcfly-desk-why">{CASH_PAGE_WHY.spend}</p>
         ) : null}
 
-        {isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled ? (
+        {/* Love-V3: activation alone only when empty teach is not the surface. */}
+        {showActivationBanner ? (
           <s-banner tone="info" heading="Step 1 of 2 — add spend">
             <s-paragraph>
               Type one day below: day + amount + channel, then Save this day —
@@ -1456,7 +1492,7 @@ export default function SpendEntryPage() {
         {/* Coverage nag is already inside the saved banner's note — never both.
             Tone comes from resolveSpendCoverageNotice: a young ledger reads as
             progress, `critical` stays with the verdict and the export. */}
-        {!isEmpty && !shotMode && !daySavedCopy && coverageNotice.showBanner ? (
+        {showCoverageBanner ? (
           <s-banner tone={coverageNotice.tone} heading={coverageNotice.heading}>
             <s-paragraph>{coverageNotice.body}</s-paragraph>
             {coverageNotice.note ? (
@@ -1554,11 +1590,7 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        {actionData &&
-        !actionData.success &&
-        actionData.error &&
-        !actionData.dayField &&
-        !csvNeedsConfirm ? (
+        {showCsvErrorBanner && actionData?.error ? (
           <s-banner tone="critical" heading="CSV needs a fix — sales data is fine">
             <s-paragraph>{actionData.error}</s-paragraph>
             {actionErrorGroups ? (
@@ -1604,12 +1636,12 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        {isEmpty && !shotMode && !importBlockedBySample ? (
+        {showEmptyTeach ? (
           <section
             className="mcfly-spend-teach"
             aria-label="Empty state — type one day, or paste / import spend"
           >
-            <s-heading>{emptyTeach.heading}</s-heading>
+            <s-heading>{emptyTeachHeading}</s-heading>
             <s-paragraph>{emptyTeach.body}</s-paragraph>
             <ol className="mcfly-spend-teach__steps">
               {emptyTeach.steps.map((step) => (

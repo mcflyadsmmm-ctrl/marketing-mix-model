@@ -111,8 +111,47 @@ describe("first-spend hand-off to Total ROAS", () => {
 
   it("shows the coverage nag once — inside the saved note, not twice", () => {
     expect(spend).toContain("!daySavedCopy && coverageNotice.showBanner");
+    expect(spend).toContain("showCoverageBanner");
     // showBanner is false at full coverage, so a covered desk still gets no nag.
     expect(spend).toContain("resolveSpendCoverageNotice");
+  });
+
+  it("Love-V3: caps cold empty to one teach surface (no activation stack)", () => {
+    // Before: desk-why + Step 1 info banner + mcfly-spend-teach (3 surfaces).
+    // After: empty teach alone; activate folds into emptyTeachHeading.
+    expect(spend).toContain("showEmptyTeach");
+    expect(spend).toContain("showActivationBanner = activating && !showEmptyTeach");
+    expect(spend).toContain("emptyTeachHeading");
+    expect(spend).toContain("Step 1 of 2 — type one day");
+    expect(spend).toContain("{showEmptyTeach ? (");
+    expect(spend).toContain("{showActivationBanner ? (");
+    expect(spend).toContain("{showDeskWhy ? (");
+    // Activation banner must not share the empty-teach paint.
+    expect(spend).not.toMatch(
+      /isActivationQuery\(location\.search\) && !shotMode && !sampleDesk\.enabled \? \(/,
+    );
+  });
+
+  it("Love-V3: first day saved keeps one status banner (coverage stays in the note)", () => {
+    // Before/after: daySavedCopy success only — coverage suppressed via
+    // showCoverageBanner requiring !daySavedCopy.
+    expect(spend).toContain("showCoverageBanner =");
+    expect(spend).toContain(
+      "!isEmpty && !shotMode && !daySavedCopy && coverageNotice.showBanner",
+    );
+    expect(spend).toContain("{daySavedCopy ? (");
+    expect(spend).toContain("{showCoverageBanner ? (");
+  });
+
+  it("Love-V3: SAMPLE import-block critical stays; young coverage never critical", () => {
+    expect(spend).toContain('heading="Turn Real store on before import"');
+    expect(spend).toContain("importBlockedBySample");
+    expect(spend).toContain("SampleDeskBanner");
+    // Love-6 tone resolver — coverage banners are info/warning/success only.
+    expect(spend).toContain("resolveSpendCoverageNotice");
+    expect(spend).not.toMatch(
+      /coverageNotice\.tone[\s\S]{0,40}critical|tone="critical"[\s\S]{0,80}coverageNotice/,
+    );
   });
 
   it("keeps typed-row errors out of the CSV banner", () => {
