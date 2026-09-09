@@ -1315,16 +1315,9 @@ export default function SpendEntryPage() {
         >
           {daySavedCopy.primaryLabel}
         </s-button>
-      ) : isEmpty && !shotMode ? (
-        <s-button
-          slot="primary-action"
-          variant="primary"
-          href="#mcfly-spend-day"
-          aria-label="Type one day of spend"
-        >
-          Type one day
-        </s-button>
       ) : null}
+      {/* Empty desk needs no page action — the typed day card owns the first
+          viewport and carries its own primary Save this day. */}
       <div
         className={[
           "mcfly-desk",
@@ -1387,9 +1380,9 @@ export default function SpendEntryPage() {
               <s-button href={daySavedCopy.primaryHref} variant="primary">
                 {daySavedCopy.primaryLabel}
               </s-button>
-              <s-button href="#mcfly-spend-day" variant="secondary">
+              <s-link href="#mcfly-spend-day">
                 {daySavedCopy.secondaryLabel}
-              </s-button>
+              </s-link>
             </div>
           </s-banner>
         ) : null}
@@ -1545,9 +1538,9 @@ export default function SpendEntryPage() {
               ))}
             </ol>
             <div className="mcfly-decision__actions">
-              <s-button href={emptyTeach.primaryHref} variant="primary">
+              <s-link href={emptyTeach.primaryHref}>
                 {emptyTeach.primaryLabel}
-              </s-button>
+              </s-link>
               <s-link href={emptyTeach.secondaryHref}>
                 {emptyTeach.secondaryLabel}
               </s-link>
