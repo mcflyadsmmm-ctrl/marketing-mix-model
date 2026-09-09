@@ -4,7 +4,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 
 ---
 
-## Wave Love-0 — Finish 7C export (in flight)
+## Wave Love-0 — Finish 7C export (**DONE**)
 
 | | |
 | --- | --- |

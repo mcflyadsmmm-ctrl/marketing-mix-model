@@ -53,10 +53,12 @@ Pain · Uninstall/trial kill · Differentiator · Religion fit · Ship ease.
 ## Ship order (Conductor)
 
 1. ~~Through Love-V3 visual + Love-6/7/8/trial/1b/UX6~~ **DONE** Fly **v213**  
-2. **Love-UX1** Setup Guide on Overview (in flight)  
-3. **Love-UX2+3** Spend pipe front-door + activate copy (in flight)  
-4. **Love-Goals3** unconfirmed target on Goals (in flight)  
-5. Listing/outbound P01/P04/P07 paste (in flight)  
+2. ~~**Love-UX1** Setup Guide on Overview~~ **DONE** `b516143` · Fly **v215**  
+3. ~~**Love-UX2+3** Spend pipe front-door + activate copy~~ **DONE** `0e43a8b` · Fly **v214**  
+4. ~~**Love-Goals3** unconfirmed target on Goals~~ **DONE** `7c2f32a` · Fly **v214**  
+5. ~~Listing/outbound P01/P04/P07 paste~~ **DONE** docs `f5787ce` — Marty Partner **Save** only  
+6. ~~L8–L10 craft / FAQ / HabitNudge~~ **DONE** `8714d40` · Fly **v216**  
+7. **Love-4** ReviewAsk prove — **Marty Admin smoke** (code ready; Result blank)  
 6. Marty: smoke · outbound · ≥5 interviews · FUNNEL  
 
 Parallel Marty: smoke · outbound (+ concierge) · ≥5 interviews · FUNNEL.
