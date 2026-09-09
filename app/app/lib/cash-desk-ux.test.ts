@@ -77,6 +77,20 @@ describe("Overview Monday desk", () => {
     expect(cold.body).not.toMatch(/auto-?sync|oauth|pixel/i);
   });
 
+  it("wires Love-UX6 one-line Total ROAS definition on Overview (not SAMPLE-only)", () => {
+    expect(overview).toContain("OVERVIEW_TOTAL_ROAS_DEFINITION");
+    expect(overview).toContain("overview-roas-definition");
+    expect(overview).toContain("CASH_NOT_ATTRIBUTION");
+    // Visible under cash religion for real desk — gated on shotMode only.
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    expect(client).toMatch(
+      /\{!shotMode \? \([\s\S]*?OVERVIEW_TOTAL_ROAS_DEFINITION[\s\S]*?\) : null\}/,
+    );
+    expect(client).not.toMatch(
+      /useSampleDesk\s*&&[\s\S]{0,80}OVERVIEW_TOTAL_ROAS_DEFINITION/,
+    );
+  });
+
   it("demotes explorer and LTV snap until the multiple is trusted", () => {
     expect(overview).toContain("mcfly-me-spine--later");
     expect(overview).toMatch(/scoreboardReady && metrics\.cashActionReady/);

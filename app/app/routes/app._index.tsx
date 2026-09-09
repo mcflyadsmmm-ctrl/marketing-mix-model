@@ -50,6 +50,7 @@ import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { OVERVIEW_TOTAL_ROAS_DEFINITION } from "../lib/overview-roas-definition";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
   formatListingTillLabel,
@@ -695,11 +696,6 @@ export default function Dashboard() {
       todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
       shotMode={shotMode}
       cashActionReady={metrics.cashActionReady}
-      spendRecon={
-        !useSampleDesk && metrics.onboarding.hasSpend
-          ? metrics.spendRecon
-          : null
-      }
       belowBreakEven={
         !trustedHero.hideUntrustedZero &&
         metrics.cashActionReady &&
@@ -854,8 +850,11 @@ export default function Dashboard() {
           </div>
         </div>
         {!shotMode ? (
-          <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-            {CASH_NOT_ATTRIBUTION}
+          <p
+            className="mcfly-topbar__def mcfly-topbar__def--solo"
+            title={CASH_NOT_ATTRIBUTION}
+          >
+            {OVERVIEW_TOTAL_ROAS_DEFINITION}
           </p>
         ) : null}
 
