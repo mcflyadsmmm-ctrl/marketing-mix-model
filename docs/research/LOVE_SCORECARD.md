@@ -53,11 +53,12 @@ Pain · Uninstall/trial kill · Differentiator · Religion fit · Ship ease.
 ## Ship order (Conductor)
 
 1. ~~7C / Love-1 / Love-2 / Love-3 / Love-5~~ **DONE through v203**  
-2. **Love-6** first-day coverage tone (P09) — *in flight*  
-3. **Love-trial** L15 / P10 trial vs trust clock copy  
+2. ~~**Love-6** first-day coverage tone (P09)~~ **DONE** `621faa0` · Fly Love-6 image  
+3. ~~**Love-trial** L15 / P10 trial vs trust clock copy~~ **DONE** (deploy pending with this commit)  
 4. **Love-1b** one-tap use-real  
 5. Listing/outbound steal P01/P04/P07 from pain bank  
 6. Interviews with Top-12 pressure block  
+7. Love-7 / Love-8  
 
 Parallel Marty: smoke · outbound (+ concierge offer) · ≥5 interviews · FUNNEL.
 

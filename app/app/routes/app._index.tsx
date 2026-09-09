@@ -59,6 +59,7 @@ import { TotalRoasGauge } from "../components/TotalRoasGauge";
 import { CashVerdict } from "../components/CashVerdict";
 import { PeriodTrustNote } from "../components/PeriodTrustNote";
 import { resolvePeriodTrust } from "../lib/period-trust";
+import { resolveTrialTrustClock } from "../lib/trial-trust-clock";
 import {
   emptySales,
   type SalesResult,
@@ -596,6 +597,15 @@ export default function Dashboard() {
     useSampleDesk,
     shotMode,
   });
+  // F3 / L15: trial calendar ≠ closed-day trust — copy only, no billing API.
+  const trialTrustClock = resolveTrialTrustClock({
+    useSampleDesk,
+    shotMode,
+    periodTrusted: periodTrust.trusted,
+    closedDaysWithSpend: metrics.spendCoverage?.daysWithSpend ?? 0,
+    closedDaysInPeriod: metrics.spendCoverage?.daysInPeriod ?? 0,
+    hasLiveSpend,
+  });
   const primaryAction = trustedHero.hideUntrustedZero
     ? { href: trustedHero.primaryHref, label: trustedHero.primaryLabel }
     : firstSessionPrimaryAction(firstSession);
@@ -823,6 +833,20 @@ export default function Dashboard() {
           <p className="mcfly-topbar__def mcfly-topbar__def--solo">
             {CASH_NOT_ATTRIBUTION}
           </p>
+        ) : null}
+
+        {trialTrustClock.show ? (
+          <s-banner tone={trialTrustClock.tone} heading={trialTrustClock.heading}>
+            <s-paragraph>{trialTrustClock.body}</s-paragraph>
+            <div
+              className="mcfly-decision__actions"
+              style={{ marginTop: "0.65rem" }}
+            >
+              <s-button href="/app/spend" variant="primary">
+                {hasLiveSpend ? "Fill spend gaps" : PRODUCT_NOUN.setupAddSpend}
+              </s-button>
+            </div>
+          </s-banner>
         ) : null}
 
         {!shotMode && scoreboardReady ? (

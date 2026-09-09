@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  TRIAL_TRUST_CLOCK_HEADING,
+  TRIAL_TRUST_CLOCK_RULE,
+  resolveTrialTrustClock,
+} from "./trial-trust-clock";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
@@ -38,6 +43,23 @@ describe("Overview Monday desk", () => {
       "utf8",
     );
     expect(verdict).toMatch(/am I making money on ads/i);
+  });
+
+  it("shows trial vs trust clock next to Overview trial context (F3 / L15)", () => {
+    expect(overview).toContain("resolveTrialTrustClock");
+    expect(overview).toContain("trialTrustClock");
+    expect(overview).not.toMatch(/billing\.server|requestProSubscription/);
+    const cold = resolveTrialTrustClock({
+      periodTrusted: false,
+      closedDaysWithSpend: 0,
+      closedDaysInPeriod: 7,
+      hasLiveSpend: false,
+    });
+    expect(cold.heading).toBe(TRIAL_TRUST_CLOCK_HEADING);
+    expect(cold.body).toMatch(/7-day trial is calendar access/);
+    expect(cold.body).toMatch(/closed days of entered spend/);
+    expect(cold.body).toContain(TRIAL_TRUST_CLOCK_RULE);
+    expect(cold.body).not.toMatch(/auto-?sync|oauth|pixel/i);
   });
 
   it("demotes explorer and LTV snap until the multiple is trusted", () => {

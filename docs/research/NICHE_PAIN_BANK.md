@@ -28,8 +28,8 @@
 | P06 | Wrong sales basis (tax / returns / January lag) | “don’t MER on total sales in January” · taxes are flow-through | honesty | yes | Sales basis exists — **teach when to use Total vs Net vs demand** |
 | P07 | Influencer / agency / offline spend missing from “ad” tools | “billboards” · “retainers” | differentiator | yes | Named channels + Other — **undersold** |
 | P08 | Auto-sync expected; CSV feels “broken app” | “why won’t it connect Meta?” | uninstall | yes | Honesty copy + pipe rung — **Love-5**; still expectation risk |
-| P09 | First week of spend entry feels punished | red coverage holes on day one | TTFV | yes | **Love-6 open** |
-| P10 | Trial ends before trusted Total ROAS exists | “paid before I trusted the number” | churn | yes | **L15 open** — trial vs trust clock |
+| P09 | First week of spend entry feels punished | red coverage holes on day one | TTFV | yes | **Love-6 DONE** `621faa0` |
+| P10 | Trial ends before trusted Total ROAS exists | “paid before I trusted the number” | churn | yes | **Love-trial DONE** |
 | P11 | Want Monday check on phone | widgets / on-the-go ROAS | retention | challenge | Admin-first; **mailto Share** exists — mobile widget = later |
 | P12 | Agency needs multi-store weekly close | client MER packs | ARPU | yes | Multi-shop Shopify billing — **P2 ritual export** |
 
@@ -103,8 +103,8 @@ Internal unresolved hypotheses mapped onto the bank. Source: FRICTION_AUTOPSY ·
 | Sheet abandoned week 3 | P02 | retention — interviews |
 | Auto-sync expectation | P08 | Love-5 shipped; risk remains |
 | Overview cold bounce | — | **Love-2 shipped** (`stay=1`) |
-| First-day red coverage | P09 | **Love-6 in flight** |
-| Trial vs trust clock | P10 | Love-trial queued |
+| First-day red coverage | P09 | **Love-6 DONE** `621faa0` |
+| Trial vs trust clock | P10 | **Love-trial DONE** |
 | Unconfirmed 3.00× explorer | P25 | **Love-3 shipped** |
 | Goals page unconfirmed target | P25 sister | queue after Love-6 |
 | Ledger blocked by missing day | P24 | keep gate; entry UX |

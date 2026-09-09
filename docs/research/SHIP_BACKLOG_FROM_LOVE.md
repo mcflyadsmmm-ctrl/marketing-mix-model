@@ -92,7 +92,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Outcome** | First typed spend day does not greet with a critical red “27-hole” banner; incomplete coverage is honest but not hostile |
 | **Exclusive files** | Spend coverage UI path in `app.spend.tsx` (+ tests) — **after Love-1** lands (same file exclusive) |
 | **DoD** | New merchant path documented; no SAMPLE counted as live |
-| **Status** | **In flight** · [Love-6](2b5f6345-997b-4ffc-a823-e009d4914262) |
+| **Status** | **DONE** · `621faa0` · [Love-6](2b5f6345-997b-4ffc-a823-e009d4914262) · Fly `deployment-01M22D1W7HX6Z45WPZV0H8DJD5` |
 
 ---
 
@@ -126,7 +126,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Exclusive files** | Overview / empty-state / billing-adjacent copy only |
 | **Must not** | Change billing plan length without founder; no OAuth |
 | **DoD** | Merchant sees trust clock next to trial; SCORECARD L15 closed |
-| **Status** | Queued after Love-6 |
+| **Status** | **DONE** · uncommitted→Conductor · [Love-trial](abed2077-2524-44d9-86a3-7de68956d282) |
 
 ---
 
