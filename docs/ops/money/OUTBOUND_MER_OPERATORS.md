@@ -91,6 +91,10 @@ Operators who already track MER / ad spend in Sheets or Notion. Not cold Shopify
 | 3 |  |  |  |  |
 | … | Aim **20** this week |  |  |  |
 
+## If they ask how to fill spend without Meta login
+
+Reply with the craft pack: [`CSV_CRAFT_PACK.md`](./CSV_CRAFT_PACK.md) (SyncWith→Sheet→pipe, optional Apps Script reshape, or paste by hand). No Mcfly OAuth.
+
 ## Ask after they trust Total ROAS
 
 Honest App Store review only — never write it for them, never invent.

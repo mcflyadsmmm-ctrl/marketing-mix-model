@@ -31,10 +31,12 @@ import {
   marginIsConfirmed,
 } from "../lib/mer-dashboard.server";
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
+import { HabitNudge } from "../components/HabitNudge";
 import {
   firstSessionPrimaryAction,
   resolveFirstSessionPath,
 } from "../lib/first-session-path";
+import { decideHabitNudgeEligible } from "../lib/habit-nudge";
 import {
   decideReviewAsk,
   firstOpenRedirect,
@@ -615,6 +617,14 @@ export default function Dashboard() {
     closedDaysInPeriod: metrics.spendCoverage?.daysInPeriod ?? 0,
     hasLiveSpend,
   });
+  // L10: calm Monday habit after first trusted Total ROAS (not critical budget).
+  const habitNudgeEligible = decideHabitNudgeEligible({
+    cashActionReady: metrics.cashActionReady,
+    periodTrusted: periodTrust.trusted,
+    useSampleDesk,
+    shotMode,
+    scoreboardReady,
+  });
   const primaryAction = trustedHero.hideUntrustedZero
     ? { href: trustedHero.primaryHref, label: trustedHero.primaryLabel }
     : firstSessionPrimaryAction(firstSession);
@@ -1059,6 +1069,11 @@ export default function Dashboard() {
                   </div>
                 </div>
               </section>
+            ) : null}
+
+            {/* L10: Monday habit after trusted seat — info only, dismissible / once-per-session. */}
+            {!shotMode && habitNudgeEligible.eligible ? (
+              <HabitNudge eligible={habitNudgeEligible.eligible} periodPreset={preset} />
             ) : null}
 
             {!shotMode && scoreboardReady && !useSampleDesk ? (

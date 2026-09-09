@@ -86,6 +86,8 @@ Optional later: Zapier/Make/Coupler **webhook** → Mcfly import URL + shop toke
 
 **Merchant path today:** download Mcfly pipe template → SyncWith/Coupler/etc. fills it → download CSV → Spend Paste/Import. Free CSV never requires a pipe vendor.
 
+**Merchant craft pack (L8):** [`ops/money/CSV_CRAFT_PACK.md`](./ops/money/CSV_CRAFT_PACK.md) — SyncWith→Sheet→pipe, optional Apps Script reshape, concierge pointer.
+
 ---
 
 ## Related

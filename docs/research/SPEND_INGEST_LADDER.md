@@ -2,7 +2,7 @@
 
 **Money truth:** Mcfly’s job is the cash desk. Spend can arrive **without any ad-platform API**. That is a feature, not a bug.
 
-**Companions:** [`PIPE_AUTOMATION_WEDGE.md`](../PIPE_AUTOMATION_WEDGE.md) · [`RELIGION_CHALLENGE_SPEND_CONNECTORS.md`](./RELIGION_CHALLENGE_SPEND_CONNECTORS.md) (verdict **DEFER** on Mcfly OAuth)
+**Companions:** [`PIPE_AUTOMATION_WEDGE.md`](../PIPE_AUTOMATION_WEDGE.md) · [`RELIGION_CHALLENGE_SPEND_CONNECTORS.md`](./RELIGION_CHALLENGE_SPEND_CONNECTORS.md) (verdict **DEFER** on Mcfly OAuth) · merchant how-to [`../ops/money/CSV_CRAFT_PACK.md`](../ops/money/CSV_CRAFT_PACK.md)
 
 ---
 
