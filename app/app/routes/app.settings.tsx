@@ -363,12 +363,12 @@ export default function SettingsPage() {
           <s-banner tone="info" heading="Optional — break-even margin">
             <s-paragraph>
               Profit margin unlocks break-even only. Total ROAS does not wait —
-              paste daily spend first, then come back if you want break-even
+              type one day of spend first, then come back if you want break-even
               locked.
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               <s-link href={spendSkipHref(location.search)}>
-                Go to Spend paste / CSV
+                Go to Spend — type one day
               </s-link>
             </div>
           </s-banner>

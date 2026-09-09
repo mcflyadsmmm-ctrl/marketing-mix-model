@@ -45,6 +45,12 @@ describe("Spend ritual", () => {
     expect(spend).toMatch(/platform playbook|mcfly-spend-lean__playbook/i);
     expect(spend).toMatch(/SAMPLE_DESK_IMPORT_BLOCK|Turn Real store on/i);
   });
+
+  it("leads with a typed day so first spend needs no file", () => {
+    expect(spend).toContain('id="mcfly-spend-day"');
+    expect(spend).toContain("parseQuickSpendDay");
+    expect(spend).toContain("quickSpendSavedCopy");
+  });
 });
 
 describe("Later pages have a cash why + soft gate", () => {

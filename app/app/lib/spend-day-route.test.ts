@@ -45,9 +45,17 @@ describe("typed one-day spend form", () => {
   });
 
   it("offers typing before downloading on an empty desk", () => {
-    expect(spend).toContain('href="#mcfly-spend-day"');
-    expect(spend).toContain(">\n          Type one day\n        </s-button>");
+    expect(spend).toContain("{emptyTeach.primaryHref}");
+    expect(spend).toContain("{emptyTeach.secondaryHref}");
+    // No page-level action competes with Save this day, and no download is asked for.
     expect(spend).not.toContain('aria-label="Download blank template"');
+    expect(spend).not.toMatch(/slot="primary-action"[\s\S]{0,200}template/);
+  });
+
+  it("keeps hash targets on s-link, matching the rest of the desk", () => {
+    for (const match of spend.matchAll(/<s-button[\s\S]{0,220}?>/g)) {
+      expect(match[0]).not.toMatch(/href="#/);
+    }
   });
 });
 
