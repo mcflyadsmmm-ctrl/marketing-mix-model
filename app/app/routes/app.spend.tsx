@@ -256,8 +256,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       orderBy: { periodStart: "desc" },
       take: 20,
     }),
-    // Sample desk ON → coverage may include sample spend days; OFF → real only.
-    loadSpendDayCoverage(shop.id, sampleDesk.enabled),
+    // Total ROAS readiness is always judged from merchant spend. SAMPLE rows
+    // may render the preview, but they must never fill live coverage holes.
+    loadSpendDayCoverage(shop.id, false),
     prisma.spendEntry.findMany({
       where: {
         shopId: shop.id,
@@ -268,9 +269,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       select: { amount: true },
     }),
     getSpendPeriodCoverage(shop.id, range, {
-      excludeSample: !sampleDesk.enabled,
-      sampleOnly: sampleDesk.enabled,
-      timeZone: sampleDesk.enabled ? null : shop.ianaTimezone,
+      excludeSample: true,
+      timeZone: shop.ianaTimezone,
     }),
   ]);
   const periodSpendTotal = periodSpend.reduce((s, e) => s + e.amount, 0);
@@ -335,6 +335,8 @@ export type SpendDaySaved = {
   /** This was the merchant's first live (non-sample) spend row. */
   firstLiveSpend: boolean;
   salesWindowWarning: string | null;
+  /** Write stamp — remounts the typed inputs so the next day starts blank. */
+  savedAt: string;
 };
 
 export interface SpendActionData {
@@ -344,6 +346,8 @@ export interface SpendActionData {
   day?: SpendDaySaved;
   /** Which typed input to blame — keeps the error beside the field. */
   dayField?: QuickSpendField;
+  /** Rejected typed values, echoed back so a fix does not mean a retype. */
+  dayForm?: { date: string; amount: string };
 }
 
 function emptyCsvSummary(
@@ -624,9 +628,11 @@ async function handleQuickDay(
   entitlements: ShopEntitlements,
   todayKey: string,
 ): Promise<SpendActionData> {
+  const date = String(form.get("date") ?? "");
+  const amount = String(form.get("amount") ?? "");
   const parsed = parseQuickSpendDay({
-    date: String(form.get("date") ?? ""),
-    amount: String(form.get("amount") ?? ""),
+    date,
+    amount,
     channel: String(form.get("channel") ?? ""),
     customName: String(form.get("customName") ?? ""),
     todayKey,
@@ -636,7 +642,12 @@ async function handleQuickDay(
       : entitlements.allowedChannels,
   });
   if (!parsed.ok) {
-    return { error: parsed.error, success: false, dayField: parsed.field };
+    return {
+      error: parsed.error,
+      success: false,
+      dayField: parsed.field,
+      dayForm: { date, amount },
+    };
   }
 
   const { day } = parsed;
@@ -688,6 +699,7 @@ async function handleQuickDay(
       replaced: prior != null && prior.source !== "sample",
       firstLiveSpend: liveRowsBefore === 0,
       salesWindowWarning: parsed.warning,
+      savedAt: new Date().toISOString(),
     },
   };
 }
@@ -1077,7 +1089,7 @@ export default function SpendEntryPage() {
 
   /**
    * Typed one-day row. Pre-filled with the newest closed day still at $0 so a
-   * cold merchant only picks an amount — and each save advances to the next hole.
+   * cold merchant only picks an amount.
    */
   const missingDatesKey = missingDates.join(",");
   const suggestedDayDate = useMemo(
@@ -1088,21 +1100,21 @@ export default function SpendEntryPage() {
       }),
     [storeTodayKey, missingDatesKey],
   );
-  const [dayDate, setDayDate] = useState(suggestedDayDate);
-  const [dayAmount, setDayAmount] = useState("");
+  /**
+   * Date / amount / name are uncontrolled and remount whenever the action
+   * answers, so a save clears the amount and advances the day to the next
+   * hole while a rejected row comes back with what the merchant typed.
+   * Channel is state because the Other name field hangs off it — and keeping
+   * it across saves is right: same channel, next day.
+   */
+  const dayFormKey = daySaved?.savedAt ?? (actionData?.dayField ? "retry" : "new");
+  const dayDateDefault = actionData?.dayForm?.date || suggestedDayDate;
+  const dayAmountDefault = actionData?.dayForm?.amount ?? "";
   const [dayChannel, setDayChannel] = useState<SpendChannel>(() =>
     entitlements.allowedChannels.includes("meta")
       ? "meta"
       : ((entitlements.allowedChannels[0] ?? "other") as SpendChannel),
   );
-  const [dayCustomName, setDayCustomName] = useState("");
-
-  useEffect(() => {
-    if (!daySaved) return;
-    setDayAmount("");
-    setDayCustomName("");
-    setDayDate(suggestedDayDate);
-  }, [daySaved, suggestedDayDate]);
 
   function isPlatformSelectable(id: SpendAdvertisePlatformId): boolean {
     if (entitlements.canUseAllChannels) return true;
@@ -1330,7 +1342,7 @@ export default function SpendEntryPage() {
           .join(" ")}
       >
         {sampleDesk.enabled && !shotMode ? (
-          <SampleDeskBanner note="SAMPLE rows are not your money. Tap Real store before pasting or importing live spend." />
+          <SampleDeskBanner note="SAMPLE rows are not your money and never count toward live spend coverage or Total ROAS readiness. Tap Real store before pasting or importing live spend." />
         ) : null}
 
         {importBlockedBySample ? (
@@ -1363,9 +1375,9 @@ export default function SpendEntryPage() {
         {isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled ? (
           <s-banner tone="info" heading="Step 1 of 2 — add spend">
             <s-paragraph>
-              Paste one daily row or download the blank template, fill, import.
-              Step 2: open {PRODUCT_NOUN.totalRoas} (Shopify sales ÷ that spend).
-              Margin is optional for break-even.
+              Type one day below: day + amount + channel, then Save this day —
+              no file. Step 2: open {PRODUCT_NOUN.totalRoas} (Shopify sales ÷
+              that spend). Margin is optional for break-even.
             </s-paragraph>
           </s-banner>
         ) : null}
@@ -1528,7 +1540,7 @@ export default function SpendEntryPage() {
         {isEmpty && !shotMode && !importBlockedBySample ? (
           <section
             className="mcfly-spend-teach"
-            aria-label="Empty state — paste or download spend template"
+            aria-label="Empty state — type one day, or paste / import spend"
           >
             <s-heading>{emptyTeach.heading}</s-heading>
             <s-paragraph>{emptyTeach.body}</s-paragraph>
@@ -1563,16 +1575,15 @@ export default function SpendEntryPage() {
             </div>
             <Form method="post" className="mcfly-spend-day__form">
               <input type="hidden" name="intent" value="spend-day" />
-              <div className="mcfly-spend-day__grid">
+              <div className="mcfly-spend-day__grid" key={dayFormKey}>
                 <label className="mcfly-spend-day__field">
                   <span>{QUICK_SPEND_COPY.dateLabel}</span>
                   <input
                     className="mcfly-field"
                     type="date"
                     name="date"
-                    value={dayDate}
+                    defaultValue={dayDateDefault}
                     max={storeTodayKey}
-                    onChange={(e) => setDayDate(e.target.value)}
                     disabled={importBlockedBySample}
                     required
                   />
@@ -1587,8 +1598,7 @@ export default function SpendEntryPage() {
                     step="0.01"
                     inputMode="decimal"
                     placeholder="40.00"
-                    value={dayAmount}
-                    onChange={(e) => setDayAmount(e.target.value)}
+                    defaultValue={dayAmountDefault}
                     disabled={importBlockedBySample}
                     required
                   />
@@ -1620,8 +1630,6 @@ export default function SpendEntryPage() {
                       name="customName"
                       maxLength={80}
                       placeholder={QUICK_SPEND_COPY.customNamePlaceholder}
-                      value={dayCustomName}
-                      onChange={(e) => setDayCustomName(e.target.value)}
                       disabled={importBlockedBySample}
                     />
                   </label>

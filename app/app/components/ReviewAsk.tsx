@@ -7,10 +7,22 @@ import {
 
 const DISMISS_KEY = "mcfly-review-ask";
 const SESSION_KEY = "mcfly-review-ask-seen";
+const API_POLL_MS = 1_000;
+/** App Bridge can attach well after hydration — stop looking after the dwell. */
+const API_POLL_MAX_MS = 2 * REVIEW_MIN_SESSION_MS;
 
 type ShopifyReviews = {
   request?: () => Promise<{ success?: boolean; code?: string; message?: string }>;
 };
+
+function reviewsApi(): ShopifyReviews | undefined {
+  return (window as Window & { shopify?: { reviews?: ShopifyReviews } }).shopify
+    ?.reviews;
+}
+
+function reviewsApiReady(): boolean {
+  return typeof reviewsApi()?.request === "function";
+}
 
 function readSessionStartedAt(): number | null {
   try {
@@ -35,7 +47,7 @@ function writeSessionStartedAt(ms: number) {
  * Soft App Store review ask — button only, never auto-modal.
  * Parent must already gate: trusted MER + ≥24h + not SAMPLE + scoreboard ready.
  * This component still waits {@link REVIEW_MIN_SESSION_MS} and hides without
- * `shopify.reviews.request`.
+ * `shopify.reviews.request`, re-checking for it until {@link API_POLL_MAX_MS}.
  */
 export function ReviewAsk({ eligible }: { eligible: boolean }) {
   const [dismissed, setDismissed] = useState(true);
@@ -57,23 +69,43 @@ export function ReviewAsk({ eligible }: { eligible: boolean }) {
       setDismissed(false);
     }
 
-    const reviews = (
-      window as Window & { shopify?: { reviews?: ShopifyReviews } }
-    ).shopify?.reviews;
-    setApiAvailable(typeof reviews?.request === "function");
+    const readyNow = reviewsApiReady();
+    setApiAvailable(readyNow);
 
     const existing = readSessionStartedAt();
     const started = existing ?? Date.now();
     if (existing == null) writeSessionStartedAt(started);
     setSessionStartedAt(started);
 
+    let dwellTimer = 0;
+    let pollTimer = 0;
+
     const remaining = REVIEW_MIN_SESSION_MS - (Date.now() - started);
     if (remaining <= 0) {
       setNowMs(Date.now());
-      return;
+    } else {
+      dwellTimer = window.setTimeout(() => setNowMs(Date.now()), remaining);
     }
-    const timer = window.setTimeout(() => setNowMs(Date.now()), remaining);
-    return () => window.clearTimeout(timer);
+
+    // App Bridge often attaches after hydration. Sampling once would hide the
+    // ask for the whole session, so keep re-checking until it lands or the
+    // eligible window closes.
+    if (!readyNow) {
+      const deadline = Date.now() + API_POLL_MAX_MS;
+      pollTimer = window.setInterval(() => {
+        if (reviewsApiReady()) {
+          setApiAvailable(true);
+          window.clearInterval(pollTimer);
+          return;
+        }
+        if (Date.now() >= deadline) window.clearInterval(pollTimer);
+      }, API_POLL_MS);
+    }
+
+    return () => {
+      if (dwellTimer) window.clearTimeout(dwellTimer);
+      if (pollTimer) window.clearInterval(pollTimer);
+    };
   }, [eligible]);
 
   const reveal = decideReviewAskReveal({
@@ -96,11 +128,8 @@ export function ReviewAsk({ eligible }: { eligible: boolean }) {
   }
 
   async function requestReview() {
-    const reviews = (
-      window as Window & { shopify?: { reviews?: ShopifyReviews } }
-    ).shopify?.reviews;
     try {
-      await reviews?.request?.();
+      await reviewsApi()?.request?.();
     } catch {
       // Shopify may refuse (cooldown / already-reviewed). Still dismiss.
     }
