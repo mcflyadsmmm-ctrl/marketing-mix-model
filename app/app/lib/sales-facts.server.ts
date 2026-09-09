@@ -334,7 +334,13 @@ export async function runSalesFactsBackfill(
   for (const dayKey of batch) {
     try {
       const range = shopLocalDayRange(dayKey, timeZone);
-      const sales = await fetchShopifySales(admin, range);
+      const sales = await fetchShopifySales(
+        admin,
+        range,
+        options?.refreshExisting
+          ? { mode: "recent_scan", maxPages: LIVE_PERIOD_PROBE_MAX_PAGES }
+          : undefined,
+      );
       await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
       written += 1;
     } catch {
@@ -712,7 +718,8 @@ export interface LoadDeskSalesForPeriodResult {
    */
   usedLivePeriodProbe: boolean;
   /**
-   * Facts said $0 and the live probe failed (or was truncated at $0).
+   * Facts said $0 and the live probe failed, truncated at $0, or returned $0.
+   * A $0 probe is not a trusted quiet period — search can miss Admin orders.
    * Never hero 0.00 / Below break-even — sales are unconfirmed.
    */
   salesUntrustedZero: boolean;
@@ -766,7 +773,7 @@ export async function loadDeskSalesForPeriod(args: {
           todaySales = await fetchShopifySales(
             admin,
             todayPartialRange(now, ianaTimezone),
-            { maxPages: LIVE_TODAY_MAX_PAGES },
+            { maxPages: LIVE_TODAY_MAX_PAGES, mode: "recent_scan" },
           );
           todaySalesTruncated = Boolean(todaySales.truncatedByPageCap);
         } catch {
@@ -788,6 +795,7 @@ export async function loadDeskSalesForPeriod(args: {
       try {
         const livePeriod = await fetchShopifySales(admin, range, {
           maxPages: LIVE_PERIOD_PROBE_MAX_PAGES,
+          mode: "recent_scan",
         });
         const liveHasOrders =
           livePeriod.totalSales > 0 || livePeriod.orderCount > 0;
@@ -805,25 +813,17 @@ export async function loadDeskSalesForPeriod(args: {
             salesUntrustedZero: false,
           };
         }
-        if (livePeriod.truncatedByPageCap) {
-          return {
-            sales: fromFacts,
-            salesError: null,
-            factsCoverage,
-            todaySalesUnavailable,
-            todaySalesTruncated: true,
-            usedLivePeriodProbe: true,
-            salesUntrustedZero: true,
-          };
-        }
+        // Same-query or recent-scan $0 is NOT a trusted quiet period. Search
+        // syntax can miss Admin-visible orders; never hero Below break-even.
         return {
           sales: fromFacts,
           salesError: null,
           factsCoverage,
           todaySalesUnavailable,
-          todaySalesTruncated,
+          todaySalesTruncated:
+            todaySalesTruncated || Boolean(livePeriod.truncatedByPageCap),
           usedLivePeriodProbe: true,
-          salesUntrustedZero: false,
+          salesUntrustedZero: true,
         };
       } catch {
         return {

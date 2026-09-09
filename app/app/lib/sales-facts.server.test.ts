@@ -694,6 +694,44 @@ describe("loadDeskSalesForPeriod live MTD probe", () => {
     expect(result.factsCoverage?.complete).toBe(false);
   });
 
+  it("does not treat a search-query $0 as a trusted quiet period (demvcflyads smoke)", async () => {
+    count.mockResolvedValue(8);
+    findMany.mockResolvedValue([
+      {
+        sales: 0,
+        netSales: 0,
+        grossSales: 0,
+        orderCount: 0,
+        newCustomers: 0,
+        returningCustomers: 0,
+        newCustomerNetSales: 0,
+        returningCustomerNetSales: 0,
+        guestOrders: 0,
+      },
+    ]);
+    fetchShopifySales
+      .mockResolvedValueOnce(fakeSales(0, 0)) // today top-up
+      .mockResolvedValueOnce(fakeSales(0, 0)); // period probe — same search, 7 Admin orders missed
+
+    const result = await loadDeskSalesForPeriod({
+      admin: FAKE_ADMIN,
+      shopId: "shop_1",
+      range: {
+        start: new Date("2026-09-01T00:00:00.000Z"),
+        end: new Date("2026-09-09T23:59:59.999Z"),
+        label: "Month to date",
+      },
+      ianaTimezone: "UTC",
+      now: new Date("2026-09-09T18:00:00.000Z"),
+    });
+
+    expect(result.sales.totalSales).toBe(0);
+    expect(result.salesUntrustedZero).toBe(true);
+    expect(fetchShopifySales.mock.calls[1]?.[2]).toMatchObject({
+      mode: "recent_scan",
+    });
+  });
+
   it("marks $0 untrusted when the live probe throws", async () => {
     count.mockResolvedValue(8);
     findMany.mockResolvedValue([]);

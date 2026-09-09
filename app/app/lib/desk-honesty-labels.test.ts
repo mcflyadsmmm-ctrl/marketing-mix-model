@@ -108,6 +108,14 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).toContain("refreshExisting");
   });
 
+  it("passes salesUntrustedZero into CashVerdict so a broken incomplete flag cannot hero Below BE", () => {
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    expect(client).toMatch(/<CashVerdict[\s\S]*salesUntrustedZero=\{salesUntrustedZero\}/);
+    expect(client).toMatch(
+      /salesFactsIncomplete=\{\s*factsIncompleteForTrust\s*\|\|\s*trustedHero\.hideUntrustedZero\s*\}/,
+    );
+  });
+
   it("computes sales-fact honesty in the loader, not the Overview client", () => {
     // react-router build fails if the default export pulls sales-facts.server.
     const client = overview.split("export default function Dashboard")[1] ?? "";

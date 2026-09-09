@@ -845,6 +845,7 @@ export default function Dashboard() {
                 salesFactsIncomplete={
                   factsIncompleteForTrust || trustedHero.hideUntrustedZero
                 }
+                salesUntrustedZero={salesUntrustedZero}
                 useSampleDesk={useSampleDesk}
               />
             ) : null}

@@ -21,8 +21,9 @@ export interface SalesFactsCoverage {
  * Desk honesty for Overview / CashVerdict / trusted hero.
  *
  * Empty facts are never complete (`factDays === 0` is not a trusted quiet period).
- * `complete: true` with $0 sales is only trusted after a live Admin confirm
- * this request — otherwise poisoned $0 rows hero “Below break-even”.
+ * `complete: true` with $0 sales is only trusted after an independent
+ * recent-scan confirm (`liveConfirmedZero`) — a search-query $0 is not
+ * that confirm. Otherwise poisoned $0 rows hero “Below break-even”.
  */
 export function salesFactsIncompleteForDesk(
   coverage: SalesFactsCoverage | null | undefined,
