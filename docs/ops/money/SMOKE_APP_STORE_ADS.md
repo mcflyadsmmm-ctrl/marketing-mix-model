@@ -64,6 +64,21 @@ If Fly is still on a build **without** [#41](https://github.com/mcflyadsmmm-ctrl
 
 ## Record
 
-Date · Fly version / image · SAMPLE off? · MTD sales · MTD orders · Spend · Total ROAS · verdict headline · PASS/FAIL · notes.
+**Blank until Marty fills.** Do not invent a PASS. Curl listing/health is not a smoke PASS.
+
+| Field | Value (Marty) |
+| --- | --- |
+| **Result** | _PASS / FAIL — blank_ |
+| **Date** | _YYYY-MM-DD — blank_ |
+| **Fly version / image** | _blank — e.g. `fly status` / image digest after P0 deploy_ |
+| **SAMPLE off?** | _blank_ |
+| **MTD sales** | _blank_ |
+| **MTD orders** | _blank_ |
+| **Spend** | _blank_ |
+| **Total ROAS** | _blank_ |
+| **Verdict headline** | _blank_ |
+| **SCOPES note** | _blank — e.g. `read_all_orders` granted? Admin All orders approved?_ |
+| **BILLING_TEST note** | _blank — billing test / trial path exercised? leave n/a if not run_ |
+| **Notes** | _blank_ |
 
 Do not invent Partner listing views. Installs are the public metric.

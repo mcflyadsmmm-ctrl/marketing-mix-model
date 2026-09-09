@@ -1,54 +1,81 @@
-# Legacy MMM / consulting-era → live cash Total ROAS (301).
-# www → apex is zone-level (path preserved). Keep splat 404 last.
+# Wave 1 site lock — Mcfly Analytics public origin.
+# www → apex is zone-level. Splat 404 last.
 # No /page ↔ /page.html rewrites (CF already handles).
+# Tier B trust stay 200: /privacy /support /terms (also /demo /pricing /about /product).
 
-# Fable P0 — indexed MMM comparison + old home
-/mmm-vs-triple-whale-vs-northbeam /vs-attribution-suites 301
-/mmm-vs-triple-whale-vs-northbeam/ /vs-attribution-suites 301
-/mmm-vs-triple-whale /vs-attribution-suites 301
-/mmm-vs-northbeam /vs-attribution-suites 301
+# --- Old homes / brand ---
 /home / 301
 /home/ / 301
+/mcfly-advertising / 301
+/advertising / 301
 
-# MMM product / tools branding + indexed legacy explainer URLs (GPT diversity 2026-07-28)
-/mmm /total-roas 301
-/mmm/ /total-roas 301
-/mmm-tools /vs-attribution-suites 301
+# --- Tier C: Custom Data Solutions + lab + parked landers ---
+/custom / 301
+/custom/ / 301
+/custom-analytics / 301
+/custom-analytics/ / 301
+/custom-analytics-engagement / 301
+/custom-analytics-engagement/ / 301
+/proposal / 301
+/proposal/ / 301
+/desk-setup / 301
+/desk-setup/ / 301
+/desk-setup.html / 301
+/lab / 301
+/lab/ / 301
+/cash-mer / 301
+/cash-mer/ / 301
+/monday-close / 301
+/monday-close/ / 301
+/spend-sales-audit / 301
+/lead-gen-desk / 301
+/advanced-mds / 301
+
+# --- Tier C: suite / MMM / glossary landers ---
+/mmm / 301
+/mmm/ / 301
+/mmm-tools / 301
+/mmm-vs-triple-whale-vs-northbeam / 301
+/mmm-vs-triple-whale-vs-northbeam/ / 301
+/mmm-vs-triple-whale / 301
+/mmm-vs-northbeam / 301
+/marketing-mix-modeling / 301
+/marketing-mix-modeling/ / 301
+/what-is-marketing-mix-modeling / 301
+/what-is-marketing-mix-modeling/ / 301
+/mer / 301
+/total-roas / 301
+/total-roas/ / 301
+/why-pixels / 301
+/why-pixels-fail / 301
+/why-pixels-fail/ / 301
+/vs-attribution-suites / 301
+/vs-triple-whale / 301
+/vs-northbeam / 301
+/vs-polar / 301
+/northbeam-alternative / 301
+/polar-alternative / 301
+/triple-whale-alternative / 301
+/triple-whale-alternative/ / 301
+/platform-variance / 301
+/platform-variance/ / 301
+/vs/profit-trackers / 301
+/attribution / 301
+/attribution/ / 301
+
+# Product / tools branding (keep /product as Tier A)
 /marketing-mix-model /product 301
 /marketing-mix-model/ /product 301
-/marketing-mix-modeling /total-roas 301
-/marketing-mix-modeling/ /total-roas 301
-/what-is-marketing-mix-modeling /total-roas 301
-/what-is-marketing-mix-modeling/ /total-roas 301
 /custom-mmm /product 301
 /custom-mmm/ /product 301
 /custom-marketing-mix-model /product 301
 /custom-marketing-mix-model/ /product 301
-
-# Old brand ("MCFLY Advertising")
-/mcfly-advertising / 301
-/advertising / 301
-
-# Suite stubs → single live comparison (no doorway pages)
-# /triple-whale-alternative is a real page (A3) — do not 301 away
-/vs-triple-whale /vs-attribution-suites 301
-/vs-northbeam /vs-attribution-suites 301
-/vs-polar /vs-attribution-suites 301
-/northbeam-alternative /vs-attribution-suites 301
-/polar-alternative /vs-attribution-suites 301
-
-# MER / Total ROAS synonyms → glossary
-# Keep /mer-calculator and /break-even-roas-calculator as real pages (A4)
-/mer /total-roas 301
-/cash-mer /total-roas 301
-/cash-mer/ /total-roas 301
-/break-even /total-roas 301
-/attribution /vs-attribution-suites 301
-/attribution/ /vs-attribution-suites 301
-
-# Retired competing-product specimen → enterprise inquire
-/custom-analytics-engagement /custom-analytics 301
-/custom-analytics-engagement/ /custom-analytics 301
+/app /product 301
+/app/ /product 301
+/download /demo 301
+/download/ /demo 301
+/break-even /break-even-roas-calculator 301
+/calculator /mer-calculator 301
 
 # Stale social / fiction cockpit files
 /assets/brand/og-cash-mer.jpg /assets/brand/og-overview.jpg 301

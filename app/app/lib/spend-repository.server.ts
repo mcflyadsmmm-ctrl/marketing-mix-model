@@ -290,7 +290,7 @@ async function upsertSpendDaysBatch(
  * amount/periodEnd/note/source. Never sums duplicates.
  *
  * Batches: findMany + createMany/update in chunks of SPEND_UPSERT_BATCH_SIZE.
- * Live writes fail-closed on Free when any channel is outside Meta + Google.
+ * Live writes fail-closed only if a caller builds restricted entitlements.
  * All-sample batches skip the gate (SAMPLE desk).
  */
 export function createSpendRepository(): SpendRepository & {

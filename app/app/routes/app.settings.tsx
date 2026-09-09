@@ -339,8 +339,9 @@ export default function SettingsPage() {
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              {CASH_NOT_ATTRIBUTION} Set your target. Profit margin is
-              optional — only if you want break-even.
+              {isActivationQuery(location.search) && !shotMode
+                ? `${CASH_NOT_ATTRIBUTION} Step 1 of 3: save contribution margin (unlocks break-even). Skip to Spend if you only need Total ROAS first.`
+                : `${CASH_NOT_ATTRIBUTION} Set your target. Profit margin unlocks break-even — Total ROAS is sales ÷ spend either way.`}
             </p>
           </div>
         </header>

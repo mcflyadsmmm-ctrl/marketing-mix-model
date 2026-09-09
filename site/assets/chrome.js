@@ -52,10 +52,9 @@
         <a href="/app">What’s in the desk</a>
         <a href="/product#spend">Add spend</a>
         <a href="/pricing">Pricing</a>
-        <a href="/total-roas">Total ROAS glossary</a>
         <a href="/about">About</a>
         <a href="/faq">FAQ</a>
-        <a href="/monday-close">Monday Close</a>
+        <a href="/demo">Demo</a>
         <a href="/mer-calculator">ROAS calculator</a>
         <a href="/break-even-roas-calculator">Break-even calculator</a>
         <a href="/mds-made-easy/">MDS Made Easy</a>
@@ -67,8 +66,7 @@
         <a href="/security">Security</a>
         <a href="/dpa">DPA</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Analytics. Shopify sales next to spend you added. Total ROAS = sales ÷ spend. $39/mo · 7-day trial.</p>
-      <p class="foot-enterprise">Need a scoped non-Shopify or multi-system desk? <a href="/custom-analytics">Enterprise / custom inquire</a> — not the App Store product.</p>
+      <p class="fine">© <span data-year></span> Mcfly Analytics. Shopify sales next to spend you added. Total ROAS = sales ÷ spend. $39/mo · 7-day trial. Firm: Mcfly Ads.</p>
     </div>
   </footer>`;
   }

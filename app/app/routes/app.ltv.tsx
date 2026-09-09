@@ -322,7 +322,7 @@ export default function LtvPage() {
           </div>
         </div>
 
-        {/* ── A · Acquisition (this period) — Free + Pro ── */}
+        {/* ── A · Acquisition (this period) — $39 desk ── */}
         <section
           className="mcfly-panel mcfly-acq-band"
           aria-label="Acquisition this period"
@@ -486,7 +486,7 @@ export default function LtvPage() {
         {!canUseLtv ? (
           <section
             className="mcfly-panel mcfly-acq-ltv-teaser"
-            aria-label="Lifetime value — Pro"
+            aria-label="Lifetime value — unlock"
           >
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>Lifetime value · cohorts</h2>

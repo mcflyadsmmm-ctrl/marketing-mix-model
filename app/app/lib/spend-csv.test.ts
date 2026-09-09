@@ -467,7 +467,7 @@ describe("parsePlatformsParam + selected template filename", () => {
 });
 
 describe("buildSheetsImportGuide", () => {
-  it("returns five steps, Sheets create URL, and Free-path tip", () => {
+  it("returns five steps, Sheets create URL, and CSV-first tip", () => {
     const guide = buildSheetsImportGuide({
       platformLabels: ["Meta (Facebook + Instagram)", "Google Ads"],
     });
@@ -477,7 +477,8 @@ describe("buildSheetsImportGuide", () => {
     expect(guide.steps[0]).toContain("Meta (Facebook + Instagram)");
     expect(guide.steps[2]).toMatch(/File → Import/i);
     expect(guide.steps[3]).toMatch(/SyncWith/i);
-    expect(guide.tip).toMatch(/never requires SyncWith/i);
+    expect(guide.tip).toMatch(/CSV alone is enough/i);
+    expect(guide.tip).not.toMatch(/Free path/i);
   });
 });
 

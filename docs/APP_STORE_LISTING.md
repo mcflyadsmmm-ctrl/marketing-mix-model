@@ -1,15 +1,27 @@
 # App Store listing draft — Mcfly Analytics
 
 Paste into Partner listing when Distribution = **Shopify App Store**.  
-**Pricing:** **$39/mo · 7-day trial** (one plan — not Free). **Religion:** Total ROAS (action) = **Shopify Total Sales ÷ ad spend** (any period); Net Sales optional view; never pixels / MTA / path / “true ROAS.” **Category:** marketing cash close / spend affordability control — coexists with attribution suites.  
-**Voice:** calm operator desk — specific, factual, premium. No suite science theater. No forever-free. No Free App Store plan.  
-**Listing lock:** One paid desk. Defer email CRM / Level 2 PCD. Minimal `read_customers` (opaque id + `numberOfOrders`) is OK. **Till LTV** (opaque cohorts) is on the $39 desk — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Billing: [`BILLING_TIERS.md`](./BILLING_TIERS.md). Positioning: [`VALUE_THESIS.md`](./VALUE_THESIS.md). `read_all_orders` is **live in scopes**.
+**Pricing:** **One plan** named **Mcfly Analytics** — **$39/mo · 7-day trial**. **Not** Free. **Not** a plan named **Pro** (rename Pro → **Mcfly Analytics** in Partner Pricing). **Religion:** Total ROAS (action) = **Shopify Total Sales ÷ ad spend** (any period); Net Sales optional view; never pixels / MTA / path / “true ROAS.” **Category:** marketing cash close / spend affordability control — coexists with attribution suites.  
+**Voice:** calm operator desk — specific, factual, premium. No suite science theater. No forever-free. No Free App Store plan. No Free/Pro freemium paste.  
+**Listing lock:** One paid desk. Defer email CRM / Level 2 PCD. Minimal `read_customers` (opaque id + `numberOfOrders`) is OK. **Till LTV** (opaque cohorts) is on the $39 desk — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Billing: [`BILLING_TIERS.md`](./BILLING_TIERS.md). Positioning: [`VALUE_THESIS.md`](./VALUE_THESIS.md). `read_all_orders` is **live in scopes**.  
+**Marty paste pack (click order):** [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) · **URLs:** [`ops/PARTNER_LISTING_URLS.md`](./ops/PARTNER_LISTING_URLS.md). Live listing only: https://apps.shopify.com/mcfly-analytics-public · **Reviews: 0** (do not invent). Agents do **not** Partner-Submit.
+
+## QUARANTINED — Free / Pro freemium paste (do not paste)
+
+**Retired.** Do **not** paste Free Meta+Google / Pro unlocks / Free+Pro matrix into Partner short, long, features, captions, or Pricing.
+
+| Poison | Status |
+| --- | --- |
+| Free App Store plan + paid **Pro** | **Deleted from this SoT.** Partner: one plan **Mcfly Analytics** · $39 · 7-day trial. Rename **Pro** → **Mcfly Analytics**. Delete any Free plan. |
+| “Free = Meta + Google · Pro unlocks channels / LTV / Goals” | **Quarantined.** Trial + paid = full desk. Nothing is feature-gated behind Pro. |
+| Shot `04-free-pro-pricing.png` / captions that say Free vs Pro | **Do not upload** — see [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) |
+| Historical freemium drafts (e.g. `LISTING_19_ISSUES_PASTE.md`, old ops Site/Pricing notes) | **Not listing SoT.** Ignore for Partner paste. |
 
 ## Paste-ready short + long ($39 · 7-day trial — copy final)
 
-**Status:** Tagline, short, long, feature bullets, reviewer notes match the shipped desk — one $39 plan (7-day trial) with LTV, Goals, and all channels including TikTok CSV. SAMPLE is preview data only. Success price is **$39**, not ~$79. Paste as-is into Partner; do not rewrite for “true ROAS,” LTV CRM, or Meta/Google logos.
+**Status:** Tagline, short, long, feature bullets, reviewer notes match the shipped desk — one plan **Mcfly Analytics** at $39 (7-day trial) with LTV, Goals, and all channels including TikTok CSV. SAMPLE is preview data only. Success price is **$39**, not ~$79. Paste as-is into Partner; do not rewrite for “true ROAS,” LTV CRM, Free/Pro, or Meta/Google logos.
 
-Human still must: confirm ASO checklist below, upload icon + shots, set Pricing **$39 / 7-day trial**, then Submit. Agents do **not** Partner-Submit.
+Human still must: confirm ASO checklist below, upload icon + shots (formula hero — **not** CUSTOM DATA SCIENCE / 4.42x), set Pricing **plan name Mcfly Analytics · $39 / 7-day trial** (no Free plan), then Submit. Agents do **not** Partner-Submit.
 
 ## ASO checklist (before paste) — human only
 
@@ -18,24 +30,25 @@ Leave these unchecked until a human verifies in Partner. Agents do **not** flip 
 - [ ] **Keywords only:** `Total ROAS`, `marketing efficiency ratio`, `Break-even Total ROAS`, `Shopify ad spend` — never attribution / pixel / true ROAS bait
 - [ ] **Short description** ≤ ~150 chars; lead with Advanced Marketing Data Science Made Easy + $39 · 7-day trial
 - [ ] **Long description** opens on Total Sales ÷ spend desk Shopify Analytics does not give; $39 · 7-day trial; refuse block intact
-- [ ] **Trust URLs** extensionless: `/privacy` `/support` `/terms` on mcflyads.com (never App URL = marketing site)
+- [ ] **Trust URLs** extensionless: `/privacy` `/support` `/faq` `/terms` on mcflyads.com (never App URL = marketing site)
 - [ ] **PCD copy** still: opaque customer id + `numberOfOrders` only — no CRM / name / email
 - [ ] **Works with:** leave blank (no Checkout UI extension) — never Meta/Google/SyncWith; Checkout only if you later ship a real Checkout surface
 - [ ] Screenshots + M-only icon per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md)
 
-Partner listing URLs (already live — $39 · 7-day trial + PCD voice on Pages; **verify HTTP 200 before Submit**):
+Partner listing URLs (SoT table: [`ops/PARTNER_LISTING_URLS.md`](./ops/PARTNER_LISTING_URLS.md) — $39 · 7-day trial + PCD voice on Pages; **verify HTTP 200 before Submit**):
 
 | Field | URL |
 | --- | --- |
 | Website | https://mcflyads.com |
 | Privacy | https://mcflyads.com/privacy |
 | Support | https://mcflyads.com/support |
+| FAQ | https://mcflyads.com/faq |
 | Terms | https://mcflyads.com/terms |
 | App URL (current) | https://mcfly-analytics.fly.dev |
 
 (`.html` URLs 308 to the same pages — prefer extensionless canonicals in Partner fields.)
 
-**Trust URL note:** Live mcflyads.com privacy / support / terms / pricing must match this listing ($39 · 7-day trial + PCD). Fly origin `/privacy` `/support` `/pricing` `/terms` `/faq` 301 to the matching mcflyads.com URLs. Spot-check each site URL returns 200 before clicking Submit.
+**Trust URL note:** Website / Privacy / Support / FAQ / Terms = **mcflyads.com**. **App URL = Fly only** (`https://mcfly-analytics.fly.dev`) — never App URL = mcflyads.com. Live mcflyads.com pages must match this listing ($39 · 7-day trial + PCD). Fly origin `/privacy` `/support` `/pricing` `/terms` `/faq` 301 to the matching mcflyads.com URLs. Spot-check each site URL returns 200 before clicking Submit.
 
 **Human runbook:** [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) · shots [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) · scorecard [`SUBMIT_READY_SCORECARD.md`](./SUBMIT_READY_SCORECARD.md)
 
@@ -49,7 +62,7 @@ Partner listing URLs (already live — $39 · 7-day trial + PCD voice on Pages; 
 | **Tagline** (≤80 chars) | Advanced Marketing Data Science Made Easy |
 | **Category** | Marketing → Marketing analytics / Advertising (pick closest) — position as **marketing cash close / spend affordability control** |
 | **Primary language** | English |
-| **Pricing** | **$39 USD / 30 days · 7-day trial.** One plan: LTV, Goals, all channels (incl. TikTok CSV). Not a Free listing. See [`BILLING_TIERS.md`](./BILLING_TIERS.md). SAMPLE is preview data only. |
+| **Pricing** | **One plan named Mcfly Analytics** — **$39 USD / 30 days · 7-day trial.** LTV, Goals, all channels (incl. TikTok CSV). Not a Free listing. Rename Partner plan **Pro** → **Mcfly Analytics**. See [`BILLING_TIERS.md`](./BILLING_TIERS.md). SAMPLE is preview data only. |
 
 **Tagline why (45 chars):** Category promise first — MDS made easy; formula and $39 live in short/long, not squeezed into 80.
 
@@ -61,7 +74,7 @@ Partner listing URLs (already live — $39 · 7-day trial + PCD voice on Pages; 
 | --- | --- |
 | Lifetimely-class **email CRM / Level 2 PCD** | Harder review; till LTV does not need it — [`PCD_AND_LTV.md`](./PCD_AND_LTV.md) |
 | Live Meta / Google Ads OAuth | **Retired** — CSV + optional merchant-paid pipes; see [`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md) |
-| A Free App Store plan | **Do not invent.** One $39 desk, 7-day trial — [`BILLING_TIERS.md`](./BILLING_TIERS.md) |
+| A Free App Store plan / plan name **Pro** | **Do not invent Free.** One plan named **Mcfly Analytics**, $39 · 7-day trial — [`BILLING_TIERS.md`](./BILLING_TIERS.md) · [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) § plan rename |
 | Customer PII fields (name/email/phone/address) | Never for v1; opaque id + `numberOfOrders` + OrderFact amounts/dates only |
 
 **Live in scopes:** `read_orders`, `read_customers`, **`read_all_orders`** (Partner-approved; multi-year SalesDayFact + till LTV). Still **no** Level 2 PII fields.
@@ -73,8 +86,8 @@ Partner listing URLs (already live — $39 · 7-day trial + PCD voice on Pages; 
 Complete these in Partner **App listing** before Submit. **Works with = blank** (no Checkout UI extension — do not claim Checkout). Never invent Meta/Google/SyncWith logos. Listing copy must not imply OAuth is “never.”
 
 **Paste order (human, ~15 min once shots exist):**
-1. App name / email / language / category / Pricing **$39 · 7-day trial** / **Works with = blank** (no Checkout UI extension; never Meta/Google/SyncWith)  
-2. Website + Privacy / Support / Terms URLs (extensionless mcflyads.com)  
+1. App name / email / language / category / Pricing **plan Mcfly Analytics · $39 · 7-day trial** (delete Free; rename Pro) / **Works with = blank** (no Checkout UI extension; never Meta/Google/SyncWith)  
+2. Website + Privacy / Support / FAQ / Terms URLs (extensionless mcflyads.com — [`ops/PARTNER_LISTING_URLS.md`](./ops/PARTNER_LISTING_URLS.md))  
 3. App URL = `https://mcfly-analytics.fly.dev` (never mcflyads.com)  
 4. Search keywords from table below (ban attribution / pixel / true ROAS / MTA)  
 5. App icon = `docs/listing-assets/mcfly-app-icon-1200.png`  
@@ -88,11 +101,12 @@ Complete these in Partner **App listing** before Submit. **Works with = blank** 
 | **Developer / support email** | mcflyadsmmm@gmail.com | Same as reviewer notes |
 | **Primary language** | English | No fake multi-language until translated |
 | **Category** | Marketing → **Marketing analytics** (or closest: Advertising) | Position as **cash close / spend affordability** — not “Store design” or profit-suite sprawl |
-| **Pricing** | **$39 / 30 days · 7-day trial** | One plan. Full desk (channels + LTV + Goals). No **External charges**. Not a Free listing |
+| **Pricing** | **Plan name Mcfly Analytics · $39 / 30 days · 7-day trial** | One plan only. Rename **Pro** → **Mcfly Analytics**. Delete Free if present. Full desk (channels + LTV + Goals). No **External charges** |
 | **Works with** | **Leave blank** | No Checkout UI extension today — do **not** claim Checkout. Never Meta/Google/TikTok/SyncWith logos. Add Checkout later only if a real Checkout surface ships. |
 | **Website** | https://mcflyads.com | |
 | **Privacy policy URL** | https://mcflyads.com/privacy | Extensionless; local copy includes PCD scopes |
 | **Support URL** | https://mcflyads.com/support | App Store install steps; no shop-domain form |
+| **FAQ URL** | https://mcflyads.com/faq | If Partner exposes FAQ / help |
 | **Terms URL** | https://mcflyads.com/terms | |
 | **App URL** | https://mcfly-analytics.fly.dev | Never mcflyads.com |
 | **Search keywords** | Total ROAS, marketing efficiency ratio, Break-even Total ROAS, Shopify ad spend | ASO spine only — ban “attribution,” “pixel,” “true ROAS,” “MTA” |
@@ -176,7 +190,7 @@ WHO IT’S FOR
 Shopify brands that want a trusted Total ROAS in under ten minutes and a Monday cash-close ritual that stays honest when Ads Manager disagrees with the bank — alongside (not instead of) attribution suites.
 
 PRICING
-$39/store/mo flat · 7-day trial. One plan: all named channels (including TikTok CSV), Customer LTV / Acquisition, and the full Goals board. SAMPLE is preview data only. Not a GMV-scaled suite tax. Not a Free listing. Not forever-free marketing.
+$39/store/mo flat · 7-day trial. One plan named Mcfly Analytics: all named channels (including TikTok CSV), Customer LTV / Acquisition, and the full Goals board. SAMPLE is preview data only. Not a GMV-scaled suite tax. Not a Free listing. Not a Pro upsell tier. Not forever-free marketing.
 
 Learn more: https://mcflyads.com
 Privacy: https://mcflyads.com/privacy · Support: https://mcflyads.com/support
@@ -297,9 +311,10 @@ Test store: devmcflyads.myshopify.com
 Test account: mcflyadsmmm@gmail.com
 
 PRICING
-One plan: $39/store/mo · 7-day trial. Full desk — all named channels (TikTok CSV
-included), Customer LTV / Acquisition, and the full Goals board. SAMPLE is preview
-data only. No Free App Store plan. No external charges.
+One plan named Mcfly Analytics: $39/store/mo · 7-day trial. Full desk — all named
+channels (TikTok CSV included), Customer LTV / Acquisition, and the full Goals
+board. SAMPLE is preview data only. No Free App Store plan. No plan named Pro.
+No external charges.
 
 CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
 Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
@@ -351,8 +366,9 @@ lacks it, the merchant sees a grant CTA — history is not permanently dead.
 - [x] Publish Cloudflare Pages so live `/support` `/pricing` `/privacy` match $39 · 7-day trial + PCD — **re-spot-check 200s before Submit**
 - [ ] Install on `devmcflyads`; smoke test above; SAMPLE desk **OFF** (**human**)
 - [ ] Screenshots + M-only icon uploaded (**human**)
-- [ ] Pricing marked **$39 / 7-day trial** (not Free)
+- [ ] Pricing: plan name **Mcfly Analytics** · **$39 / 7-day trial** · **no Free plan** (rename Pro if still labeled Pro)
+- [ ] Hero / feature media = formula desk — **not** CUSTOM DATA SCIENCE / 4.42x (do not re-upload bad local PNG unless recaptured)
 - [ ] Reviewer notes pasted
 - [ ] Submit for review (**human** — agents do not Partner-Submit)
 
-Do **not** chase Built for Shopify until ~50 paid-plan installs + 5 reviews.
+Do **not** chase Built for Shopify until paid installs + honest reviews exist. Do **not** invent review counts.

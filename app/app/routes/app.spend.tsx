@@ -90,7 +90,7 @@ const SAMPLE_DESK_IMPORT_BLOCK =
   "Sample preview is on. Tap Real store at the top of the page before importing live spend. Sample rows were not changed.";
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
 const PLATFORM_STORAGE_KEY = "mcfly-spend-platforms";
-/** First-visit default — Free path is Meta + Google. */
+/** First-visit default platforms (Meta + Google). Full desk still allows every named channel. */
 const DEFAULT_PLATFORM_IDS: SpendAdvertisePlatformId[] = ["meta", "google"];
 
 /** Last N local calendar days for the CSV hole strip (within 14–31). */
@@ -122,7 +122,7 @@ function addSpendSelectOptions(entitlements: ShopEntitlements) {
       value,
       label: ok
         ? SPEND_CHANNEL_LABELS[value]
-        : `${SPEND_CHANNEL_LABELS[value]} — Pro`,
+        : `${SPEND_CHANNEL_LABELS[value]} — $39 desk`,
       disabled: !ok,
     });
   }
@@ -1141,8 +1141,8 @@ export default function SpendEntryPage() {
         {isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled ? (
           <s-banner tone="info" heading="Step 2 of 3 — add spend">
             <s-paragraph>
-              Download the blank template, fill one row per day, import. That is
-              the only path to Total ROAS.
+              Download the blank template, fill one row per day, import. Step 3:
+              open {PRODUCT_NOUN.totalRoas} (Shopify sales ÷ that spend).
             </s-paragraph>
           </s-banner>
         ) : null}
