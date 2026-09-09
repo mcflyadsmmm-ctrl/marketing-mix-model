@@ -130,6 +130,21 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 
 ---
 
+## Wave Love-UX — from Shopify peer IA research (2026-09-09)
+
+Sources: [`PEER_APP_IA_SKETCHES.md`](./PEER_APP_IA_SKETCHES.md) · [`BEST_SHOPIFY_APP_UX.md`](./BEST_SHOPIFY_APP_UX.md) · [`MCFLY_NAV_AUDIT.md`](./MCFLY_NAV_AUDIT.md)
+
+| Wave | Outcome | Tag | Status |
+| --- | --- | --- | --- |
+| **Love-UX1** | Overview dismissible Setup Guide (Judge.me) — elevate existing `FirstSessionGuide` onto Home empty, auto-check steps | small-desk | Queued |
+| **Love-UX2** | Spend pipe-template front-door elevation (Love-5 shipped link; make verbs Matrixify-loud) | small-desk | Queued after UX1/Spend free |
+| **Love-UX3** | Cold activate copy: “Shopify sales already here — no ad login” | copy-only | Queued |
+| **Love-UX6** | Overview one-line Total ROAS definition chip | copy-only | Queued |
+| — | Keep core nav Overview·Spend·Settings; no Integrations tab | copy-only | **LOCK** |
+| — | Meta OAuth / Integrations nav | challenge | **DEFER** |
+
+---
+
 ## P1 (park until interviews or smoke+outbound rolling)
 
 - L7 deep-history copy polish  
