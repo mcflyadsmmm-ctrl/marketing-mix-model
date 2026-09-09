@@ -1,9 +1,10 @@
 # Wave 1 — Ops gate card
 
 **Lane:** Ops · **Stamped:** 2026-09-09T04:19:39Z (UTC)  
+**Wave 3a note:** Fly **v191** deployed in Wave 2 (see [`SMOKE_APP_STORE_ADS.md`](./SMOKE_APP_STORE_ADS.md) Record pre-fill).  
 **Ads at $20/day:** **NO / NOT SAFE** — four-gate lock incomplete.
 
-Do not invent funnel numbers or reviews. Curl proves reachability only.
+Do not invent funnel numbers or reviews. Curl proves reachability only. Curl is not Admin smoke PASS.
 
 ---
 
@@ -23,12 +24,12 @@ $ curl -sS https://mcfly-analytics.fly.dev/health
 
 | Gate | Color | Evidence |
 | --- | --- | --- |
-| **1. Cold smoke PASS** | **RED** | [`SMOKE_APP_STORE_ADS.md`](./SMOKE_APP_STORE_ADS.md) Record template is blank — no Marty PASS stamped. Listing/health curls ≠ smoke PASS. |
+| **1. Cold smoke PASS** | **RED** | [`SMOKE_APP_STORE_ADS.md`](./SMOKE_APP_STORE_ADS.md) Record **Result** still blank — no Marty Admin PASS stamped. Listing/health curls ≠ smoke PASS. |
 | **2. ≥3 honest reviews** | **RED** | Workspace launch facts: **0 reviews**. Do not invent. |
 | **3. FUNNEL organic week** | **RED** | [`FUNNEL_WEEKLY.md`](./FUNNEL_WEEKLY.md) week of 2026-09-08 row is blank — awaiting Marty Partner paste. |
-| **4. P0 image on Fly** | **RED** | [`README.md`](./README.md): Fly still needs a deploy of P0 (#41+#42). Health `ok:true` proves service up, **not** that the P0 image is live. |
+| **4. P0 image on Fly** | **RED** | Wave 2 deployed Fly **v191**, but this gate stays **RED** until Admin smoke **Record PASS** (not curl / not version string alone). |
 
-**Verdict:** App Store Ads stay **OFF**. Do not buy. Do not set $20/day.
+**Verdict:** App Store Ads stay **OFF**. Do not buy. Do not set $20/day. **NOT SAFE.**
 
 ---
 

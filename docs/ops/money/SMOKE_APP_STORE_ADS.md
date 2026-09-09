@@ -50,7 +50,7 @@ Clock starts after install (or app open). SAMPLE **off**.
 - Never **0.00× + Below break-even** on a desk with spend and existing orders.
 - Review ask stays off until trusted Total ROAS (finite mer > 0, SAMPLE off, facts not incomplete).
 
-If Fly is still on a build **without** [#41](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/41), treat live Overview as **old product**. Unit tests on `cursor/sales-grant-zero-roas-9bdc` are the proof until Marty deploys.
+Fly **v191** is live (Wave 2). Still treat Admin smoke as unproven until Marty stamps Record **PASS** — curl/version alone is not a smoke PASS.
 
 ---
 
@@ -64,20 +64,27 @@ If Fly is still on a build **without** [#41](https://github.com/mcflyadsmmm-ctrl
 
 ## Record
 
-**Blank until Marty fills.** Do not invent a PASS. Curl listing/health is not a smoke PASS.
+**Blank until Marty fills Result.** Curl listing/health is not a smoke PASS.
+
+Pre-filled from Conductor Wave 2 (2026-09-08) — do not treat as Admin PASS:
+
+| Field | Value |
+| --- | --- |
+| **Fly version / image** | v191 · `deployment-01M226JZ630YPQGM7WDQG1AJQV` |
+| **Curl listing** | 200 |
+| **Curl health** | `{"ok":true,"db":"up"}` (re-check before smoke) |
 
 | Field | Value (Marty) |
 | --- | --- |
 | **Result** | _PASS / FAIL — blank_ |
 | **Date** | _YYYY-MM-DD — blank_ |
-| **Fly version / image** | _blank — e.g. `fly status` / image digest after P0 deploy_ |
 | **SAMPLE off?** | _blank_ |
 | **MTD sales** | _blank_ |
 | **MTD orders** | _blank_ |
 | **Spend** | _blank_ |
 | **Total ROAS** | _blank_ |
 | **Verdict headline** | _blank_ |
-| **SCOPES note** | _blank — e.g. `read_all_orders` granted? Admin All orders approved?_ |
+| **SCOPES note** | _blank — e.g. Admin All orders approved?_ |
 | **BILLING_TEST note** | _blank — billing test / trial path exercised? leave n/a if not run_ |
 | **Notes** | _blank_ |
 

@@ -4,7 +4,7 @@ Product execution for **Mcfly Analytics** lives in this git worktree:
 
 `/Users/martysmithson/Documents/MCFLY ANALYTICS APP/mcfly-analytics`
 
-Branch: `cursor/ads-readiness-mac` on `origin/redesign/enterprise-desk` (P0 [#41](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/41) + [#42](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/42) merged). Fly still needs a deploy.
+Branch: `cursor/ads-readiness-mac` on `origin/redesign/enterprise-desk` (P0 [#41](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/41) + [#42](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/42) merged). Fly **v191** deployed Wave 2; P0 gate stays RED until Admin smoke Record PASS (not curl). See [`WAVE1_OPS_GATE_CARD.md`](./WAVE1_OPS_GATE_CARD.md).
 
 Do **not** execute Desk or Fly deploy from `marketing-mix-model/` on `cursor/clean-revamp-v8` (dirty tree, may lack `read_all_orders`).
 

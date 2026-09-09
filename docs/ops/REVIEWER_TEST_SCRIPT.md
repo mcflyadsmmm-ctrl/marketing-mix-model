@@ -1,7 +1,8 @@
 # App Store reviewer test script — Mcfly Analytics (cold path)
 
 **Paste into Partner App Store “testing instructions.”** Reviewer has never seen the product.  
-**Listing Pricing:** Free · **Religion:** Total ROAS = sales ÷ spend — no pixels.  
+**Listing Pricing:** one plan **Mcfly Analytics** · **$39**/store/month · **7-day trial** (no Free plan, no Free vs Pro).  
+**Religion:** Total ROAS = sales ÷ spend — no pixels.  
 **No Monday Close / no Meta–Google OAuth** — spend is CSV; Share Overview is mailto on Home.
 
 ---
@@ -22,7 +23,7 @@
 2. Set contribution margin to **35%** (or any value 20–50%).
 3. Save (contextual save bar). Break-even Total ROAS should show ≈ **1 ÷ margin** (e.g. 35% → ~2.86×).
 
-### 2. Enter spend (Free path)
+### 2. Enter spend (CSV path)
 
 1. Go to **Spend**.
 2. Use **CSV paste** or upload for **Meta + Google** for a recent period (template download is fine).
@@ -57,7 +58,7 @@
 | Zero spend | Honest empty / paste CTA — not fabricated ROAS |
 | API sales error | Error banner — not silent mock sales as live |
 | SAMPLE on | Banner unmistakable SAMPLE |
-| Free vs Pro | Named channels / LTV / full Goals may show Pro upgrade — listing Pricing is Free |
+| Pricing | One plan only: **Mcfly Analytics** at **$39** + **7-day trial**. Named channels / LTV / full Goals are on that plan — not a Free listing or Pro upsell tier |
 
 ---
 
