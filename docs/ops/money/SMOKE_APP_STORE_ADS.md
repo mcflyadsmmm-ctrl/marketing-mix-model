@@ -70,7 +70,7 @@ Pre-filled infra (not an Admin PASS):
 
 | Field | Value |
 | --- | --- |
-| **Fly version / image** | **v214** · `deployment-01M234BNMQV6TEHG8554XSTMMT` (`fly status` 2026-09-09 ~13:10Z) |
+| **Fly version / image** | **v215** · `deployment-01M235E16DJ5V3DXQ0VBQY3QNH` (Love-UX1 live; `fly status` 2026-09-09 ~13:25Z) |
 | **Curl listing** | 200 |
 | **Curl health** | `{"ok":true,"db":"up"}` |
 | **Box Admin** | Blocked — Cloudflare verify on `admin.shopify.com/store/devmcflyads` (pivot to Mac) |

@@ -132,7 +132,7 @@ Sources: [`PEER_APP_IA_SKETCHES.md`](./PEER_APP_IA_SKETCHES.md) · [`BEST_SHOPIF
 
 | Wave | Outcome | Tag | Status |
 | --- | --- | --- | --- |
-| **Love-UX1** | Overview dismissible Setup Guide (Judge.me) — elevate existing `FirstSessionGuide` onto Home empty, auto-check steps | small-desk | **DONE** · landing commit · Fly after deploy |
+| **Love-UX1** | Overview dismissible Setup Guide (Judge.me) — elevate existing `FirstSessionGuide` onto Home empty, auto-check steps | small-desk | **DONE** · `b516143` · Fly **v215** |
 | **Love-UX2** | Spend pipe-template front-door elevation (Love-5 shipped link; make verbs Matrixify-loud) | small-desk | **DONE** · `0e43a8b` · [Love-UX2+3](7bfd5344-1510-45d8-966c-b7d0542dd336) |
 | **Love-UX3** | Cold activate copy: “Shopify sales already here — no ad login” | copy-only | **DONE** · with UX2 `0e43a8b` |
 | **Love-UX6** | Overview one-line Total ROAS definition chip | copy-only | **DONE** · `cdc7972` · [Love-UX6](e2745710-0824-49c4-8064-551133821beb) |
