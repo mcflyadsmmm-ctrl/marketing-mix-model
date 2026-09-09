@@ -1,6 +1,30 @@
-# Listing live paste pack — Mcfly Analytics (Wave 4)
+# Listing live paste pack — Mcfly Analytics (Wave 6)
 
-> **#1 odds unlock after smoke.** Live listing still wrong (2026-09-08 browser). Fix Pricing + feature bullets in Partner, then **Save**. **Cursor does not Submit** — Marty clicks Submit / re-review only when ready.
+## Marty: 60-second Save script
+
+**0:00–0:10** — Open [Mcfly Analytics Public](https://dev.shopify.com/dashboard/227535001/apps/403721814017) → **Distribution** → **Shopify App Store listing** → **Manage listing / Edit listing**. Confirm app ID `403721814017` (not Custom app `400772497409`).
+
+**0:10–0:25** — Open **Pricing details**. In the **Plan name** field, replace `Pro` with:
+
+```text
+Mcfly Analytics
+```
+
+Keep **$39 USD / 30 days** and **7-day free trial**. Delete any Free plan. Confirm **one plan only**.
+
+**0:25–0:50** — Open **Feature bullets**. Replace bullets 1–5 with these **exact five lines in this order, one line per field**:
+
+```text
+Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give
+Break-even Total ROAS from your profit margin %
+Spend CSV: Meta, Google, TikTok, and every named channel · mix in $/%
+Spend Allocation (quarters, pie, rolling 7/14/28) + Goals MTD/QTD/YTD + full-year board
+LTV/Acquisition (Cash CAC · cohort LTV · LTV:CAC) · Email Overview (mailto) · no pixels / MTA
+```
+
+**0:50–1:00** — Scan all five fields against the exact banned strings in §5; there must be **zero hits**. Click **Save**. Stop. **Do not click Submit.**
+
+> Live remains wrong until Marty saves: plan **Pro**, feature bullets **(paid)**, reviews **0**. Cursor does not Submit.
 
 **Human clicks only.** Cursor drafts this pack. **Cursor does not Submit.**  
 **App:** Mcfly Analytics Public · ID `403721814017` · handle `mcfly-analytics-public`  
@@ -20,11 +44,11 @@
 | Feature bullets with **(paid)** on LTV / Goals | Clean bullets in §5 — **zero** `(paid)` / Free / Pro freemium residue |
 | Reviews **0** | Stay **0** until honest merchants review — do not invent |
 
-This paste pack is the Wave 4 fix for those three. Pricing rename + strip `(paid)` are the conversion blockers Cursor cannot click.
+This paste pack is the Wave 6 fix for those three. Pricing rename + strip `(paid)` are the conversion blockers Cursor cannot click.
 
 ---
 
-## 0. Wave 4 human click order (impossible to miss)
+## 0. Wave 6 human click order (impossible to miss)
 
 Open: [Mcfly Analytics Public](https://dev.shopify.com/dashboard/227535001/apps/403721814017)
 
@@ -34,7 +58,7 @@ Confirm you are **not** on Custom app `400772497409`.
 
 | Step | Where | Exact action |
 | --- | --- | --- |
-| **A** | Listing → **Pricing details** | Rename **Pro** → **Mcfly Analytics**. Keep **$39 USD / 30 days** + **7-day free trial**. **Delete Free** if present. Confirm **exactly one** plan. (§7) |
+| **A** | Listing → **Pricing details** | In the **Plan name** field, replace **Pro** with exact paste value `Mcfly Analytics`. Keep **$39 USD / 30 days** + **7-day free trial**. **Delete Free** if present. Confirm **exactly one** plan. (§7) |
 | **B** | Listing → **Feature bullets** | Delete any bullet text that says **(paid)**. Paste the five clean lines in §5 in order. |
 | **C** | Listing → **URLs** | Website / Privacy / Support / FAQ / Terms → **mcflyads.com…**. **App URL** → `https://mcfly-analytics.fly.dev` only. ([`PARTNER_LISTING_URLS.md`](./PARTNER_LISTING_URLS.md)) |
 
@@ -142,14 +166,14 @@ App URL: https://mcfly-analytics.fly.dev
 
 ---
 
-## 5. Feature bullets — strip `(paid)` then paste (Wave 4 critical)
+## 5. Feature bullets — strip `(paid)` then paste (Wave 6 critical)
 
 **Live problem:** listing still shows feature bullets with **(paid)** on LTV / Goals (freemium residue). That contradicts one-plan $39.
 
 **Do this:**
 1. Open Feature bullets in Partner.
-2. **Delete / overwrite** any line that contains `(paid)`, `Free`, `Pro unlocks`, or “paid only.”
-3. Paste the five clean lines below **in order** (no suffixes).
+2. Replace bullets 1–5 rather than editing suffixes one by one.
+3. Paste the five clean lines below **in order, one line per field** (no suffixes).
 
 ```text
 Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give
@@ -159,7 +183,20 @@ Spend Allocation (quarters, pie, rolling 7/14/28) + Goals MTD/QTD/YTD + full-yea
 LTV/Acquisition (Cash CAC · cohort LTV · LTV:CAC) · Email Overview (mailto) · no pixels / MTA
 ```
 
-**After paste, eyeball:** zero occurrences of `(paid)`. Goals and LTV are on the one $39 desk — not a paid upsell callout.
+**Exact ban list for all five feature fields (case-insensitive; zero hits):**
+
+```text
+(paid)
+paid only
+free plan
+free:
+pro unlocks
+pro only
+upgrade to pro
+premium tier
+```
+
+Do not append any parenthetical price or tier marker. Goals and LTV are included in the one $39 desk.
 
 ---
 
@@ -173,7 +210,7 @@ Total ROAS, marketing efficiency ratio, Break-even Total ROAS, Shopify ad spend
 
 ---
 
-## 7. Plan rename in Partner — **Pro** → **Mcfly Analytics** (Wave 4 critical)
+## 7. Plan rename in Partner — **Pro** → **Mcfly Analytics** (Wave 6 critical)
 
 **Live problem (2026-09-08):** plan name still **Pro** @ $39 + 7-day trial.
 
@@ -181,7 +218,12 @@ Total ROAS, marketing efficiency ratio, Break-even Total ROAS, Shopify ad spend
 
 Click path: Partner → app `403721814017` → Shopify App Store listing → **Pricing details** (Shopify App Pricing / managed plans).
 
-1. Rename the paid plan from **Pro** to **Mcfly Analytics**.
+1. Click the **Plan name** field, select all, and paste:
+
+   ```text
+   Mcfly Analytics
+   ```
+
 2. **$39 USD** · every **30 days** · **7-day free trial**.
 3. **Delete the Free plan** if it is still there.
 4. Confirm the merchant plan picker shows **exactly one** plan. Name **Pro** implies a Free tier — that contradicts the desk (nothing is feature-gated).
@@ -246,7 +288,7 @@ Captions must **not** say Free / Pro / (paid) / forever-free.
 
 ---
 
-## 10. What Marty must click (Wave 4 checklist)
+## 10. What Marty must click (Wave 6 checklist)
 
 - [ ] Partner → Mcfly Analytics Public (`403721814017`) → Edit listing
 - [ ] **§0-A Pricing:** rename **Pro** → **Mcfly Analytics** · $39 · 7-day trial · **delete Free** · one plan only
