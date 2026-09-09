@@ -16,6 +16,9 @@ describe("Overview / LTV tillLabel honesty", () => {
     expect(overview).toContain("formatListingTillLabel");
     expect(overview).toMatch(/salesError:\s*Boolean\(salesError\)/);
     expect(overview).toContain("factsIncomplete");
+    expect(overview).toContain("salesFactsIncompleteForDesk");
+    expect(overview).toContain("salesFactsNeedSyncFill");
+    expect(overview).toContain("sales-facts-honesty");
   });
 
   it("Overview scoreboardReady refuses salesError zeros", () => {
@@ -98,6 +101,21 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).toContain("hideUntrustedZero");
     expect(overview).toContain("periodUncovered");
     expect(overview).toContain("pick_covered_period");
+    expect(overview).toContain("salesFactsIncompleteForDesk");
+    expect(overview).toContain("salesUntrustedZero");
+    expect(overview).toContain("liveConfirmedZero");
+    expect(overview).toContain("salesFactsNeedSyncFill");
+    expect(overview).toContain("refreshExisting");
+  });
+
+  it("computes sales-fact honesty in the loader, not the Overview client", () => {
+    // react-router build fails if the default export pulls sales-facts.server.
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    expect(overview).toContain("from \"../lib/sales-facts-honesty\"");
+    expect(overview).toContain("factsIncompleteForHonesty");
+    expect(client).toContain("factsIncomplete: factsIncompleteForHonesty");
+    expect(client).not.toContain("salesFactsIncompleteForDesk(");
+    expect(client).not.toContain("sales-facts.server");
   });
 
   it("enqueues sales backfill from Settings and Spend so first-session bounce still fills", () => {

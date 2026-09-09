@@ -67,8 +67,13 @@ import {
   getSalesFactsTotals,
   getSalesFactsByDay,
   loadDeskSalesForPeriod,
-  type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
+import {
+  salesFactsIncompleteForDesk,
+  salesFactsNeedRefreshExisting,
+  salesFactsNeedSyncFill,
+  type SalesFactsCoverage,
+} from "../lib/sales-facts-honesty";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import {
   FIRST_PAINT_SALES_BACKFILL_DAYS,
@@ -179,6 +184,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     customerMetricsAvailable: false,
   };
   let salesFactsCoverageForBanner: SalesFactsCoverage | null = null;
+  /** Facts said $0 and live Admin probe failed — never a trusted 0.00. */
+  let salesUntrustedZero = false;
+  let usedLivePeriodProbe = false;
+  let liveConfirmedZero = false;
   /** Stamp only after a successful desk load — never before. */
   let salesPulledAt: string | null = null;
 
@@ -245,16 +254,35 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Coverage read failed — still facts-only below (never unbounded live crawl).
     }
 
-    // First paint: await a newest-first chunk of the *selected* period so QTD
-    // cannot sit on $0 sales / 0.00 ROAS while 4-year oldest days crawl.
-    // Remainder is coalesced onto the job tick — never unbounded GraphQL.
-    if (!mainCoverage.complete || !dayCoverage.complete) {
+    // First paint: fill the selected period HERE. scopes_update only enqueues
+    // deep_history_backfill — Fly workers are often stopped, so a complete
+    // row-set of $0 facts must not skip ingest (732ms Overview / permanent $0).
+    let periodPeek = { totalSales: 0, orderCount: 0 };
+    try {
+      const peek = await getSalesFactsTotals(shop.id, range, now, ianaTimezone);
+      periodPeek = { totalSales: peek.totalSales, orderCount: peek.orderCount };
+    } catch {
+      periodPeek = { totalSales: 0, orderCount: 0 };
+    }
+    const needSyncFill = salesFactsNeedSyncFill({
+      mainCoverage,
+      dayCoverage,
+      periodSales: periodPeek.totalSales,
+      periodOrders: periodPeek.orderCount,
+    });
+    const refreshExisting = salesFactsNeedRefreshExisting({
+      factDays: mainCoverage.factDays,
+      periodSales: periodPeek.totalSales,
+      periodOrders: periodPeek.orderCount,
+    });
+    if (needSyncFill) {
       try {
         await runSalesFactsBackfill(admin, shop.id, {
           maxDays: FIRST_PAINT_SALES_BACKFILL_DAYS,
           grantedScopes: session.scope,
           newestFirst: true,
           priorityRange: range,
+          refreshExisting,
         });
       } catch {
         // ignore — hero + banners disclose incomplete facts
@@ -262,9 +290,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       void enqueueSalesFactsBackfill({
         shopId: shop.id,
         grantedScopes: session.scope,
-        reason: "overview_incomplete",
+        reason: refreshExisting ? "overview_refresh_zero" : "overview_incomplete",
+        refreshExisting,
       }).catch(() => {
-        // tick will retry on the next enqueue
+        // tick will retry if a worker is alive; page-open already filled MTD
       });
     }
     // Till LTV OrderFact ingest — fire-and-forget; sales hero is the money path.
@@ -287,15 +316,32 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesUnavailable = desk.todaySalesUnavailable;
     todaySalesTruncated = desk.todaySalesTruncated;
     salesFactsCoverageForBanner = desk.factsCoverage ?? mainCoverage;
+    salesUntrustedZero = desk.salesUntrustedZero;
+    usedLivePeriodProbe = desk.usedLivePeriodProbe;
+    liveConfirmedZero =
+      usedLivePeriodProbe &&
+      !salesUntrustedZero &&
+      !(desk.sales.totalSales > 0);
     // Freshness only after a successful facts load; unavailable today → null chip.
     salesPulledAt =
       desk.salesError || desk.todaySalesUnavailable
         ? null
         : new Date().toISOString();
 
+    if (usedLivePeriodProbe || salesUntrustedZero) {
+      void enqueueSalesFactsBackfill({
+        shopId: shop.id,
+        grantedScopes: session.scope,
+        reason: usedLivePeriodProbe
+          ? "overview_live_probe"
+          : "overview_untrusted_zero",
+        refreshExisting: true,
+      }).catch(() => {});
+    }
+
     try {
       const [priorFacts, priorCoverage] = await Promise.all([
-        getSalesFactsTotals(shop.id, priorRange, now),
+        getSalesFactsTotals(shop.id, priorRange, now, ianaTimezone),
         getSalesFactsCoverage(shop.id, priorRange, now, ianaTimezone),
       ]);
       // Clamped/incomplete prior → skip deltas (never fake priorMer=0 improvement).
@@ -308,7 +354,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     try {
-      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange);
+      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange, ianaTimezone);
     } catch {
       salesByDay = new Map();
     }
@@ -368,6 +414,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       ? shopLocalDayKey(instant, shareTz)
       : instant.toISOString().slice(0, 10);
 
+  const factsIncompleteForHonesty =
+    !useSampleDesk &&
+    salesFactsIncompleteForDesk(salesFactsCoverageForBanner, {
+      salesUntrustedZero,
+      sales: metrics.sales,
+      liveConfirmedZero,
+    });
+
   return {
     metrics,
     salesError,
@@ -378,6 +432,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shotMode,
     explorer,
     salesFactsCoverage: salesFactsCoverageForBanner,
+    salesUntrustedZero,
+    liveConfirmedZero,
+    factsIncompleteForHonesty,
     shareSubject: `Total ROAS — ${metrics.period.label}`,
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
@@ -409,11 +466,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         !useSampleDesk &&
         !scopesIncludeReadAllOrders(session.scope) &&
         periodMayExceedShopifyOrderWindow(range),
-      factsIncomplete:
-        !useSampleDesk &&
-        (salesFactsCoverageForBanner == null ||
-          (!salesFactsCoverageForBanner.complete &&
-            salesFactsCoverageForBanner.expectedClosedDays > 0)),
+      factsIncomplete: factsIncompleteForHonesty,
     }).ask,
   };
 };
@@ -435,6 +488,9 @@ export default function Dashboard() {
     shotMode,
     explorer,
     salesFactsCoverage,
+    salesUntrustedZero,
+    liveConfirmedZero,
+    factsIncompleteForHonesty,
     shareSubject,
     sharePeriodStartDay,
     sharePeriodEndDay,
@@ -457,10 +513,7 @@ export default function Dashboard() {
     salesError: Boolean(salesError),
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
-    factsIncomplete:
-      salesFactsCoverage != null &&
-      !salesFactsCoverage.complete &&
-      !salesFactsCoverage.periodExceedsFactWindow,
+    factsIncomplete: factsIncompleteForHonesty,
     recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
   });
   const freshLabel = formatCashFreshnessChip({
@@ -477,11 +530,6 @@ export default function Dashboard() {
     useSampleDesk,
     shotMode,
   });
-  const factsIncompleteForHonesty =
-    !useSampleDesk &&
-    (salesFactsCoverage == null ||
-      (!salesFactsCoverage.complete &&
-        salesFactsCoverage.expectedClosedDays > 0));
   const deepHistory = resolveDeepHistoryHonesty({
     hasReadAllOrders,
     useSampleDesk,
@@ -504,11 +552,7 @@ export default function Dashboard() {
     useSampleDesk,
     periodPreset: preset,
   });
-  const factsIncompleteForTrust =
-    !useSampleDesk &&
-    salesFactsCoverage != null &&
-    !salesFactsCoverage.complete &&
-    !salesFactsCoverage.periodExceedsFactWindow;
+  const factsIncompleteForTrust = factsIncompleteForHonesty;
   const periodTrust = resolvePeriodTrust({
     preset,
     hasSpend: metrics.onboarding.hasSpend,

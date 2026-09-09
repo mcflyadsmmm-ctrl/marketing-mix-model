@@ -944,7 +944,7 @@ export async function loadSalesByDayForGoalsRange(
       };
     }
     return {
-      salesByDay: await getSalesFactsByDay(shopId, range),
+      salesByDay: await getSalesFactsByDay(shopId, range, ianaTimezone),
       salesError: null,
     };
   } catch (err) {

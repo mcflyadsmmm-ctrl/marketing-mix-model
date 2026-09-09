@@ -26,11 +26,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     await runSalesFactsBackfill(admin, shop.id, {
       grantedScopes: session.scope,
       newestFirst: true,
+      refreshExisting: true,
     });
     await enqueueSalesFactsBackfill({
       shopId: shop.id,
       grantedScopes: session.scope,
       reason: "auth",
+      refreshExisting: true,
     });
     // Till LTV OrderFact ingest — after sales facts; never blocks OAuth.
     await runOrderFactsBackfill(admin, shop.id, {

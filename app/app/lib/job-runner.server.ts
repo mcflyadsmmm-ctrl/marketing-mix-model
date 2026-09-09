@@ -93,6 +93,11 @@ function grantedScopesFromPayload(payload: unknown): string | undefined {
   return typeof granted === "string" && granted.trim() ? granted : undefined;
 }
 
+function refreshExistingFromPayload(payload: unknown): boolean {
+  if (!payload || typeof payload !== "object") return false;
+  return (payload as { refreshExisting?: unknown }).refreshExisting === true;
+}
+
 async function handleDeepHistoryBackfill(job: ClaimedJob): Promise<void> {
   const shop = await prisma.shop.findUnique({
     where: { id: job.shopId },
@@ -104,15 +109,18 @@ async function handleDeepHistoryBackfill(job: ClaimedJob): Promise<void> {
 
   const { admin } = await unauthenticated.admin(shop.domain);
   const grantedScopes = grantedScopesFromPayload(job.payload);
+  const refreshExisting = refreshExistingFromPayload(job.payload);
   const sales = await runSalesFactsBackfill(admin, job.shopId, {
     grantedScopes,
     newestFirst: true,
+    refreshExisting,
   });
   const orders = await runOrderFactsBackfill(admin, job.shopId, {
     grantedScopes,
   });
   if (salesFactsBackfillShouldContinue(sales)) {
     // Re-arm so the next tick keeps filling — ticks do not scan shops.
+    // Do not keep refreshExisting: one overwrite pass, then missing-only resume.
     await enqueueSalesFactsBackfill({
       shopId: job.shopId,
       grantedScopes,

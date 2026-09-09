@@ -86,6 +86,8 @@ export async function applyReadAllOrdersGrant(args: {
     payload: {
       reason: gainedReadAllOrders ? "scopes_gained" : "scopes_present",
       grantedScopes: args.current.join(","),
+      // Poisoned $0 MTD facts must be overwritten — missing-only resume skips them.
+      refreshExisting: true,
     },
   });
 

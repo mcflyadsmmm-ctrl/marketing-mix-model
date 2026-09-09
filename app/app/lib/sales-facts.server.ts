@@ -13,9 +13,23 @@ import { ensureShopMetadata } from "./shop-metadata.server";
 import { countClosedDaysInPeriod } from "./mer-trust";
 import {
   SHOPIFY_READ_ORDERS_WINDOW_DAYS,
+  periodSpanDays,
   type DateRange,
 } from "./periods";
 import { allowsDeepOrderHistory } from "./shopify-scopes";
+import {
+  salesFactsIncompleteForDesk,
+  salesFactsNeedRefreshExisting,
+  salesFactsNeedSyncFill,
+  type SalesFactsCoverage,
+} from "./sales-facts-honesty";
+
+export type { SalesFactsCoverage };
+export {
+  salesFactsIncompleteForDesk,
+  salesFactsNeedRefreshExisting,
+  salesFactsNeedSyncFill,
+};
 
 /** SalesDayFact.source for rows written by this ingest lane. */
 export const SALES_DAY_FACT_SOURCE = "shopify_order_current_total_v1";
@@ -73,6 +87,15 @@ export const SALES_DAY_FACT_WINDOW_DAYS = 4 * 365 + 1;
  */
 export const SALES_DAY_FACT_MAX_DAYS_PER_RUN = 20;
 
+/**
+ * Bounded live GraphQL for a short period (MTD / LM) when stored facts are $0.
+ * 3 pages = ≤300 orders — enough to surface a 7-order desk, never a 4yr crawl.
+ */
+export const LIVE_PERIOD_PROBE_MAX_PAGES = 3;
+
+/** Skip the live probe on wide windows — those stay facts-only + honesty. */
+export const LIVE_PERIOD_PROBE_MAX_DAYS = 35;
+
 export interface SalesFactBackfillResult {
   shopId: string;
   ranAt: string;
@@ -98,6 +121,36 @@ function utcDayKeyFromDate(date: Date): string {
 function dayKeyToUtcDate(dayKey: string): Date {
   const [y, m, d] = dayKey.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d));
+}
+
+/**
+ * SalesDayFact.day is UTC midnight of the shop-local YYYY-MM-DD key.
+ * Comparing that to shop-local period instants (`2026-09-01T06:00Z` in Denver)
+ * drops the first calendar day — MTD can hero $0 while that day's fact exists.
+ */
+export function salesFactsDayFilter(
+  range: { start: Date; end: Date },
+  timeZone?: string | null,
+): { gte: Date; lte: Date } {
+  if (timeZone) {
+    return {
+      gte: dayKeyToUtcDate(shopLocalDayKey(range.start, timeZone)),
+      lte: dayKeyToUtcDate(shopLocalDayKey(range.end, timeZone)),
+    };
+  }
+  return { gte: range.start, lte: range.end };
+}
+
+/** $0 stored facts on a short period — probe live Admin orders instead of heros. */
+export function shouldProbeLivePeriodSales(args: {
+  factSales: number;
+  factOrders: number;
+  period: DateRange;
+  coverage: SalesFactsCoverage | null;
+}): boolean {
+  if (args.factSales > 0 || args.factOrders > 0) return false;
+  if (args.coverage?.periodExceedsFactWindow) return false;
+  return periodSpanDays(args.period) <= LIVE_PERIOD_PROBE_MAX_DAYS;
 }
 
 /** Which of `dayKeys` already have a SalesDayFact row for this shop. */
@@ -211,6 +264,11 @@ export async function runSalesFactsBackfill(
     newestFirst?: boolean;
     /** Selected desk period — fill these missing days before the rest of the window. */
     priorityRange?: { start: Date; end: Date };
+    /**
+     * Re-fetch days that already have a fact row (grant / poisoned $0 repair).
+     * Default fills missing only — a trusted-looking $0 day would never correct.
+     */
+    refreshExisting?: boolean;
   },
 ): Promise<SalesFactBackfillResult> {
   const now = options?.now ?? new Date();
@@ -253,8 +311,18 @@ export async function runSalesFactsBackfill(
   const priorityEndKey = options?.priorityRange
     ? shopLocalDayKey(options.priorityRange.end, timeZone)
     : undefined;
+  const refreshExisting = Boolean(options?.refreshExisting);
+  const candidateOldestFirst = refreshExisting
+    ? windowDayKeys.filter((key) => {
+        if (!existing.has(key)) return true;
+        if (priorityStartKey && priorityEndKey) {
+          return key >= priorityStartKey && key <= priorityEndKey;
+        }
+        return true;
+      })
+    : missing;
   const batch = selectSalesFactsBackfillDays({
-    missingOldestFirst: missing,
+    missingOldestFirst: candidateOldestFirst,
     maxDays,
     newestFirst: options?.newestFirst,
     priorityStartKey,
@@ -282,7 +350,10 @@ export async function runSalesFactsBackfill(
     written,
     failed,
     skippedReason: null,
-    remainingMissingDays: Math.max(0, missing.length - batch.length),
+    remainingMissingDays: Math.max(
+      0,
+      missing.filter((key) => !batch.includes(key)).length,
+    ),
   };
 }
 
@@ -350,20 +421,6 @@ export async function reconcileSalesDayFact(
   return { shopId, dayKey, written: true, skippedReason: null };
 }
 
-export interface SalesFactsCoverage {
-  expectedClosedDays: number;
-  factDays: number;
-  /**
-   * True only when the requested period lies entirely inside the Jan-1 × N-year
-   * ingest window AND every expected closed day has a fact row. Periods that start
-   * before the window are never complete — desk serves stored facts only + honest
-   * banners (HARD-STOP: no unbounded live GraphQL on paint).
-   */
-  complete: boolean;
-  /** True when range.start is before the Jan-1 × N-year fact window. */
-  periodExceedsFactWindow: boolean;
-}
-
 /**
  * HARD-STOP desk policy: when coverage is incomplete or the period exceeds the
  * trailing SalesDayFact window, Cash MER must serve stored facts only (+ optional
@@ -406,8 +463,10 @@ export async function getSalesFactsCoverage(
   const periodExceedsFactWindow = range.start < windowStart;
 
   if (periodExceedsFactWindow) {
+    const windowRange = { start: windowStart, end: range.end };
+    const dayFilter = salesFactsDayFilter(windowRange, timeZone);
     const factDays = await prisma.salesDayFact.count({
-      where: { shopId, day: { gte: windowStart, lte: range.end } },
+      where: { shopId, day: { gte: dayFilter.gte, lte: dayFilter.lte } },
     });
     return {
       expectedClosedDays: countClosedDaysInPeriod(
@@ -438,8 +497,9 @@ export async function getSalesFactsCoverage(
     };
   }
 
+  const dayFilter = salesFactsDayFilter(range, timeZone);
   const factDays = await prisma.salesDayFact.count({
-    where: { shopId, day: { gte: range.start, lte: range.end } },
+    where: { shopId, day: { gte: dayFilter.gte, lte: dayFilter.lte } },
   });
 
   return {
@@ -561,13 +621,18 @@ export async function getSalesFactsTotals(
   shopId: string,
   range: DateRange,
   now: Date = new Date(),
+  timeZone?: string | null,
 ): Promise<SalesFactsTotals> {
   const windowStart = salesDayFactWindowStartUtc(now);
   const rangeClampedToFactWindow = range.start < windowStart;
   const clampedStart = rangeClampedToFactWindow ? windowStart : range.start;
+  const dayFilter = salesFactsDayFilter(
+    { start: clampedStart, end: range.end },
+    timeZone,
+  );
 
   const rows = await prisma.salesDayFact.findMany({
-    where: { shopId, day: { gte: clampedStart, lte: range.end } },
+    where: { shopId, day: { gte: dayFilter.gte, lte: dayFilter.lte } },
     select: {
       sales: true,
       netSales: true,
@@ -641,11 +706,23 @@ export interface LoadDeskSalesForPeriodResult {
   todaySalesUnavailable: boolean;
   /** Today live top-up hit LIVE_TODAY_MAX_PAGES with more orders remaining. */
   todaySalesTruncated: boolean;
+  /**
+   * Facts said $0 and a bounded live period probe found Admin orders.
+   * Desk must prefer live — empty/poisoned facts are not a trusted quiet period.
+   */
+  usedLivePeriodProbe: boolean;
+  /**
+   * Facts said $0 and the live probe failed (or was truncated at $0).
+   * Never hero 0.00 / Below break-even — sales are unconfirmed.
+   */
+  salesUntrustedZero: boolean;
 }
 
 /**
  * HARD-STOP desk sales loader: SalesDayFact totals + optional capped today top-up.
- * Never starts unbounded `fetchShopifySales` for a multi-day period.
+ * Never starts unbounded `fetchShopifySales` for a multi-year / incomplete window.
+ * When closed-day facts are $0 on a short period (MTD), a bounded live probe
+ * prefers Admin orders over poisoned empty facts.
  * Callers (Overview / Allocation / Close / LTV / API) share this path.
  */
 export async function loadDeskSalesForPeriod(args: {
@@ -671,7 +748,12 @@ export async function loadDeskSalesForPeriod(args: {
   }
 
   try {
-    const factsTotals = await getSalesFactsTotals(shopId, range, now);
+    const factsTotals = await getSalesFactsTotals(
+      shopId,
+      range,
+      now,
+      ianaTimezone,
+    );
     let todaySales: SalesResult | null = null;
     let todaySalesUnavailable = false;
     let todaySalesTruncated = false;
@@ -694,12 +776,76 @@ export async function loadDeskSalesForPeriod(args: {
       }
     }
 
+    const fromFacts = salesResultFromFactsTotals(factsTotals, todaySales);
+    const probe = shouldProbeLivePeriodSales({
+      factSales: fromFacts.totalSales,
+      factOrders: fromFacts.orderCount,
+      period: range,
+      coverage: factsCoverage,
+    });
+
+    if (probe) {
+      try {
+        const livePeriod = await fetchShopifySales(admin, range, {
+          maxPages: LIVE_PERIOD_PROBE_MAX_PAGES,
+        });
+        const liveHasOrders =
+          livePeriod.totalSales > 0 || livePeriod.orderCount > 0;
+        if (liveHasOrders) {
+          return {
+            sales: livePeriod,
+            salesError: null,
+            factsCoverage: factsCoverage
+              ? { ...factsCoverage, complete: false }
+              : factsCoverage,
+            todaySalesUnavailable,
+            todaySalesTruncated:
+              todaySalesTruncated || Boolean(livePeriod.truncatedByPageCap),
+            usedLivePeriodProbe: true,
+            salesUntrustedZero: false,
+          };
+        }
+        if (livePeriod.truncatedByPageCap) {
+          return {
+            sales: fromFacts,
+            salesError: null,
+            factsCoverage,
+            todaySalesUnavailable,
+            todaySalesTruncated: true,
+            usedLivePeriodProbe: true,
+            salesUntrustedZero: true,
+          };
+        }
+        return {
+          sales: fromFacts,
+          salesError: null,
+          factsCoverage,
+          todaySalesUnavailable,
+          todaySalesTruncated,
+          usedLivePeriodProbe: true,
+          salesUntrustedZero: false,
+        };
+      } catch {
+        return {
+          sales: fromFacts,
+          salesError: null,
+          factsCoverage,
+          todaySalesUnavailable,
+          todaySalesTruncated,
+          usedLivePeriodProbe: false,
+          salesUntrustedZero: true,
+        };
+      }
+    }
+
     return {
-      sales: salesResultFromFactsTotals(factsTotals, todaySales),
+      sales: fromFacts,
       salesError: null,
       factsCoverage,
       todaySalesUnavailable,
       todaySalesTruncated,
+      usedLivePeriodProbe: false,
+      salesUntrustedZero: false,
     };
   } catch (err) {
     return {
@@ -709,6 +855,8 @@ export async function loadDeskSalesForPeriod(args: {
       factsCoverage,
       todaySalesUnavailable: false,
       todaySalesTruncated: false,
+      usedLivePeriodProbe: false,
+      salesUntrustedZero: true,
     };
   }
 }
@@ -723,9 +871,11 @@ export async function loadDeskSalesForPeriod(args: {
 export async function getSalesFactsByDay(
   shopId: string,
   range: { start: Date; end: Date },
+  timeZone?: string | null,
 ): Promise<Map<string, number>> {
+  const dayFilter = salesFactsDayFilter(range, timeZone);
   const rows = await prisma.salesDayFact.findMany({
-    where: { shopId, day: { gte: range.start, lte: range.end } },
+    where: { shopId, day: { gte: dayFilter.gte, lte: dayFilter.lte } },
     select: { day: true, sales: true },
   });
 

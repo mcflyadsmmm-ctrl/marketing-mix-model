@@ -99,6 +99,7 @@ describe("applyReadAllOrdersGrant", () => {
       payload: {
         reason: "scopes_gained",
         grantedScopes: "read_orders,read_customers,read_all_orders",
+        refreshExisting: true,
       },
     });
   });

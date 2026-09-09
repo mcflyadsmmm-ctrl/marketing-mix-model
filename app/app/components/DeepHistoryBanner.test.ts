@@ -38,6 +38,7 @@ describe("Deep history grant surfaces", () => {
     expect(auth).toContain("runOrderFactsBackfill");
     expect(auth).toContain("enqueueSalesFactsBackfill");
     expect(auth).toContain("newestFirst: true");
+    expect(auth).toContain("refreshExisting: true");
   });
 });
 
@@ -50,5 +51,6 @@ describe("Job tick resumes sales facts", () => {
     expect(runner).toContain("newestFirst: true");
     expect(runner).toContain("salesFactsBackfillShouldContinue");
     expect(runner).toContain("enqueueSalesFactsBackfill");
+    expect(runner).toContain("refreshExisting");
   });
 });
