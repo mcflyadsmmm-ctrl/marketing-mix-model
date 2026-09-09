@@ -67,32 +67,19 @@ describe("collectFilledSpendDayKeys + computeSpendPeriodCoverage", () => {
     expect(coverage.coveragePct).toBe(91);
   });
 
-  it("incomplete + recon drift are the live cashActionReady hard-gate inputs", () => {
+  it("incomplete coverage is the live cashActionReady hard-gate input", () => {
     const sparse = computeSpendPeriodCoverage({
       daysWithSpend: 4,
       daysInPeriod: 22,
     });
-    // Live: cashActionReady = settingsSaved && !incomplete && recon !== drift
-    expect(
-      true &&
-        !sparse.incomplete &&
-        computeSpendRecon(1000, 1000).status !== "drift",
-    ).toBe(false);
+    // Live: cashActionReady = settingsSaved && !incomplete (Love-7: no recon gate)
+    expect(true && !sparse.incomplete).toBe(false);
 
     const dense = computeSpendPeriodCoverage({
       daysWithSpend: 20,
       daysInPeriod: 22,
     });
-    expect(
-      true &&
-        !dense.incomplete &&
-        computeSpendRecon(1000, 1000).status !== "drift",
-    ).toBe(true);
-    expect(
-      true &&
-        !dense.incomplete &&
-        computeSpendRecon(1200, 1000).status !== "drift",
-    ).toBe(false);
+    expect(true && !dense.incomplete).toBe(true);
   });
 
   it("does not flag incomplete with zero spend (empty path owns that)", () => {

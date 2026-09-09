@@ -36,7 +36,6 @@ function baseMetrics(
       coveragePct: 93,
       incomplete: false,
     },
-    spendRecon: null,
     control: {
       headroomPeriod: 0,
       headroomMonth: 1000,
@@ -111,5 +110,15 @@ describe("buildAdvancedSections", () => {
     expect(mer?.value).toMatch(/4\.00/);
     const top = alloc?.tiles.find((t) => t.id === "alloc-top-share");
     expect(top?.value).toMatch(/meta/i);
+  });
+
+  it("surfaces spend coverage without Ads Manager declare-recon tile", () => {
+    const sections = buildAdvancedSections(baseMetrics(), {
+      canUseLtv: true,
+      periodLabel: "Last 30 days",
+    });
+    const spend = sections.find((s) => s.id === "spend");
+    expect(spend?.tiles.some((t) => t.id === "coverage")).toBe(true);
+    expect(spend?.tiles.some((t) => t.id === "recon")).toBe(false);
   });
 });

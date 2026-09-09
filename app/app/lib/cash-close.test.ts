@@ -52,13 +52,6 @@ function baseMetrics(
       coveragePct: 74,
       incomplete: false,
     },
-    spendRecon: {
-      status: "ok",
-      csvTotal: 25_000,
-      declared: 25_000,
-      deltaPct: 0,
-      thresholdPct: 5,
-    },
     onboarding: { settingsSaved: true, hasSpend: true },
     ...overrides,
   };
@@ -137,7 +130,6 @@ describe("buildCloseExceptions + canLockCashClose", () => {
       baseMetrics({
         onboarding: { settingsSaved: false, hasSpend: false },
         cashActionReady: false,
-        spendRecon: null,
       }),
     );
     expect(ex.some((e) => e.code === "margin_unconfirmed" && e.blocking)).toBe(
@@ -156,26 +148,20 @@ describe("buildCloseExceptions + canLockCashClose", () => {
         coveragePct: 37,
         incomplete: true,
       },
-      spendRecon: {
-        status: "drift",
-        csvTotal: 25_000,
-        declared: 30_000,
-        deltaPct: -0.167,
-        thresholdPct: 5,
-      },
     });
     const ex = buildCloseExceptions(incomplete);
     expect(ex.find((e) => e.code === "coverage_incomplete")?.blocking).toBe(
       true,
     );
-    expect(ex.find((e) => e.code === "recon_drift")?.blocking).toBe(false);
+    expect(ex.some((e) => e.code === "recon_drift")).toBe(false);
+    expect(ex.some((e) => e.code === "recon_none")).toBe(false);
     expect(ex.find((e) => e.code === "margin_stale")?.blocking).toBe(false);
     expect(ex.find((e) => e.code === "cash_action_not_ready")?.blocking).toBe(
       false,
     );
     expect(ex.some((e) => e.code === "sales_basis")).toBe(true);
     expect(canLockCashClose(incomplete).ok).toBe(false);
-    // Recon drift alone does not block lock when coverage is complete
+    // Coverage complete + margin/spend ok unlocks even when cashActionReady is false
     expect(
       canLockCashClose(
         baseMetrics({

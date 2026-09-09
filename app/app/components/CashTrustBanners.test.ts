@@ -19,10 +19,17 @@ describe("CashTrustBanners today honesty", () => {
     expect(source).toContain("salesFactsIncomplete");
     expect(source).toContain("marginStale");
     expect(source).toContain("spendCoverage");
-    expect(source).toContain("spendRecon");
+    expect(source).not.toContain("spendRecon");
+    expect(source).not.toMatch(/declared Ads Manager/i);
     expect(source).not.toContain("showSalesBasis");
     expect(source).not.toMatch(/Ads Manager often ignores returns/i);
     expect(source).not.toMatch(/not Platform ROAS/i);
+  });
+
+  it("does not promise Ads Manager declare-recon merchants cannot set", () => {
+    expect(source).not.toMatch(/Spend doesn.?t match Ads Manager/i);
+    expect(source).not.toMatch(/declared total/i);
+    expect(source).not.toContain("formatSpendReconLine");
   });
 
   it("does not tell merchants to finish spend trust while sales facts are the blocker", () => {

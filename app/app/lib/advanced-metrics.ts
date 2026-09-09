@@ -8,9 +8,7 @@ import { formatCurrency, formatMer } from "./mer-format";
 import { roundMer, roundMoney } from "./contrib-ltv";
 import {
   formatSpendCoverageLine,
-  formatSpendReconLine,
   type SpendPeriodCoverage,
-  type SpendReconResult,
 } from "./mer-trust";
 import { PRODUCT_NOUN } from "./product-labels";
 
@@ -36,7 +34,6 @@ export type AdvancedMetricsInput = {
   targetMer: number;
   channelMix: Array<{ channel: string; amount: number; share: number }>;
   spendCoverage: SpendPeriodCoverage;
-  spendRecon: SpendReconResult | null;
   control: {
     headroomPeriod: number;
     headroomMonth: number;
@@ -375,17 +372,6 @@ export function buildAdvancedSections(
         caveat: metrics.spendCoverage.incomplete
           ? "Incomplete days understate spend and inflate Total ROAS."
           : "Coverage looks ready for this period.",
-      },
-      {
-        id: "recon",
-        label: "Ads Manager recon",
-        value: metrics.spendRecon
-          ? metrics.spendRecon.status
-          : "none",
-        formula: metrics.spendRecon
-          ? formatSpendReconLine(metrics.spendRecon)
-          : "No Ads Manager total declared for this period",
-        caveat: "Optional honesty check — not a connector sync.",
       },
       ...mixTiles,
     ],

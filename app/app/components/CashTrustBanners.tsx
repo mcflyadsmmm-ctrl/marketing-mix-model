@@ -1,16 +1,16 @@
 /**
- * Light Total ROAS trust banners — coverage, recon, below-BE habit, mock guard,
+ * Light Total ROAS trust banners — coverage, below-BE habit, mock guard,
  * optional margin stale. Fail-closed only (no sales-basis info card).
  * Polaris chrome only; keep out of the Apps Script scoreboard island.
  * Below-BE habit only when caller passes belowBreakEven (cashActionReady).
+ *
+ * Love-7: Ads Manager ±5% declare-recon has no merchant form — do not surface
+ * drift / declared-total banners that merchants cannot set or clear.
  */
 
-import type { SpendPeriodCoverage, SpendReconResult } from "../lib/mer-trust";
-import {
-  formatSpendCoverageLine,
-  formatSpendReconLine,
-} from "../lib/mer-trust";
-import { formatCurrency, formatMer } from "../lib/mer-format";
+import type { SpendPeriodCoverage } from "../lib/mer-trust";
+import { formatSpendCoverageLine } from "../lib/mer-trust";
+import { formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatMissingDaysRoasImpact } from "../lib/cash-desk-copy";
 import { DeepHistoryBanner } from "./DeepHistoryBanner";
@@ -40,8 +40,6 @@ type Props = {
   shotMode?: boolean;
   /** When false, finish setup before acting on budget advice. */
   cashActionReady?: boolean;
-  /** Ads Manager ±X% recon — independent of margin. */
-  spendRecon?: SpendReconResult | null;
   /**
    * Below break-even habit — ONLY when margin known.
    * Pass null / omit when margin unconfirmed so this never fires.
@@ -72,7 +70,6 @@ export function CashTrustBanners({
   todaySalesUnavailable = false,
   shotMode = false,
   cashActionReady = true,
-  spendRecon = null,
   belowBreakEven = null,
   marginStale = false,
   onboarding = null,
@@ -181,8 +178,7 @@ export function CashTrustBanners({
 
       {!cashActionReady &&
       !salesFactsIncomplete &&
-      !spendCoverage?.incomplete &&
-      spendRecon?.status !== "drift" ? (
+      !spendCoverage?.incomplete ? (
         <s-banner tone="info" heading="Almost ready">
           <s-paragraph>
             {!onboarding?.hasSpend
@@ -209,17 +205,6 @@ export function CashTrustBanners({
             {formatSpendCoverageLine(spendCoverage, periodLabel)}.{" "}
             {spendGapImpact.body}{" "}
             <s-link href="/app/spend#mcfly-spend-uploads">Fill spend gaps</s-link>
-          </s-paragraph>
-        </s-banner>
-      ) : null}
-
-      {spendRecon?.status === "drift" && spendRecon.declared != null ? (
-        <s-banner tone="warning" heading="Spend doesn’t match Ads Manager">
-          <s-paragraph>
-            {formatSpendReconLine(spendRecon)}. Desk{" "}
-            {formatCurrency(spendRecon.csvTotal)} vs declared{" "}
-            {formatCurrency(spendRecon.declared)}. Fix the CSV or the declared
-            total on <s-link href="/app/spend">Spend</s-link> before you act.
           </s-paragraph>
         </s-banner>
       ) : null}

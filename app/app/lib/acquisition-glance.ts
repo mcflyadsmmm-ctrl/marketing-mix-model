@@ -112,7 +112,7 @@ export function resolveAcquisitionGlance(
   if (!input.cashActionReady) {
     return blocked(
       "spend_untrusted",
-      `Spend for ${period} isn’t reconciled yet. aMER waits until logged spend matches what you declared.`,
+      `Spend for ${period} isn’t trusted yet. aMER waits until logged spend coverage is ready.`,
     );
   }
 

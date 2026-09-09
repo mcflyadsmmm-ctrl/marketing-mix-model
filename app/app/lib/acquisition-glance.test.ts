@@ -115,10 +115,12 @@ describe("resolveAcquisitionGlance — fail closed", () => {
     expect(glance.copy).toContain("Spend days are missing");
   });
 
-  it("refuses when spend trust hasn't cleared (recon drift)", () => {
+  it("refuses when spend trust hasn't cleared", () => {
     const glance = resolveAcquisitionGlance(ready({ cashActionReady: false }));
     if (glance.available) throw new Error("expected blocked");
     expect(glance.reason).toBe("spend_untrusted");
+    expect(glance.copy).toMatch(/isn.?t trusted yet/i);
+    expect(glance.copy).not.toMatch(/what you declared/i);
   });
 
   it("refuses while Shopify sales facts are backfilling", () => {

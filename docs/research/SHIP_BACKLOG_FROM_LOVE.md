@@ -103,11 +103,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Outcome** | Merchant can set/clear declared Ads Manager spend for ±5% recon, **or** Overview/Advanced/Allocation stop reading unreachable state |
 | **Exclusive files** | Settings or Spend recon form + `declare-recon` action wire; or remove dead banners |
 | **DoD** | No orphan action; religion intact |
-| **Status** | Queued |
-
----
-
-## Wave Love-8 — Allocation verdict render (P1 · L18)
+| **Status** | **DONE** · DELETE-DEAD-READS · `998c2a0` · [Love-7](0545a5d0-37a9-4f84-af90-6cd4447f1451) · push/Fly pending Marty OK |
 
 | | |
 | --- | --- |
@@ -142,6 +138,18 @@ Sources: [`PEER_APP_IA_SKETCHES.md`](./PEER_APP_IA_SKETCHES.md) · [`BEST_SHOPIF
 | **Love-UX6** | Overview one-line Total ROAS definition chip | copy-only | **DONE** · `cdc7972` · [Love-UX6](e2745710-0824-49c4-8064-551133821beb) |
 | — | Keep core nav Overview·Spend·Settings; no Integrations tab | copy-only | **LOCK** |
 | — | Meta OAuth / Integrations nav | challenge | **DEFER** |
+
+---
+
+## Wave Love-Visual — from VISUAL_CRAFT_SHOPIFY_APP.md
+
+Source: [`VISUAL_CRAFT_SHOPIFY_APP.md`](./VISUAL_CRAFT_SHOPIFY_APP.md) §5 + §7 PR gate
+
+| Wave | Outcome | Status |
+| --- | --- | --- |
+| **Love-V1** | Banner budget on Overview/CashTrustBanners — chips for info; ≤1 critical above fold | Queued |
+| **Love-V2** | Hero actions: one primary (Update spend); demote Share/ledger | Queued |
+| **Love-V3** | Spend teach: one calm surface above day form (cap banner stack) | Queued after Spend free |
 
 ---
 

@@ -185,8 +185,8 @@ export interface DashboardMetrics {
   breakEvenMer: number | null;
   /**
    * Margin confirmed AND spend trust OK for actionable BE / Monday cut.
-   * False on live desk when spend coverage is incomplete or Ads Manager recon drifts.
-   * Sample desk bypasses coverage/recon gates (still needs settingsSaved).
+   * False on live desk when spend coverage is incomplete.
+   * Sample desk bypasses coverage gates (still needs settingsSaved).
    */
   cashActionReady: boolean;
   /** Soft warning — marginConfirmedAt older than 90 days. */
@@ -1183,11 +1183,12 @@ export async function buildDashboardMetrics(
     ? computeSpendRecon(totalSpend, settings.declaredAdsSpend)
     : null;
 
-  /** Actionable BE / allocation — sample desk skips coverage + recon hard-gates. */
+  /**
+   * Actionable BE / allocation — sample desk skips coverage hard-gates.
+   * Love-7: do not hard-gate on Ads Manager declare-recon (no merchant form yet).
+   */
   const cashActionReady =
-    settingsSaved &&
-    (useSampleDesk ||
-      (!spendCoverage.incomplete && spendRecon?.status !== "drift"));
+    settingsSaved && (useSampleDesk || !spendCoverage.incomplete);
 
   const allocation =
     cashActionReady && breakEvenMer != null

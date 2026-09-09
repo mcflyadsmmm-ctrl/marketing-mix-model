@@ -5,7 +5,7 @@
 
 import { calculateAmer } from "@mcfly/mer-core";
 import { SAMPLE_MONEY_MARK } from "./cash-desk-copy";
-import type { SpendPeriodCoverage, SpendReconResult } from "./mer-trust";
+import type { SpendPeriodCoverage } from "./mer-trust";
 import { PRODUCT_NOUN } from "./product-labels";
 import { shopLocalDayKey } from "./shop-local-day";
 
@@ -33,7 +33,6 @@ export type CloseMetricsInput = {
   cashActionReady: boolean;
   marginStale: boolean;
   spendCoverage: SpendPeriodCoverage;
-  spendRecon: SpendReconResult | null;
   onboarding: { settingsSaved: boolean; hasSpend: boolean };
   /** Fail-closed: never lock when sales load failed (zeros are not cash). */
   salesError?: string | null;
@@ -133,7 +132,7 @@ export function validateCloseDecision(
 
 /**
  * Hard lock gate — only block when margin unconfirmed or no spend logged.
- * Coverage / recon / stale / cashActionReady are warnings (still recorded).
+ * Coverage / stale / cashActionReady are warnings (still recorded).
  */
 export function canLockCashClose(metrics: CloseMetricsInput): {
   ok: boolean;
@@ -205,21 +204,6 @@ export function buildCloseExceptions(
       code: "coverage_incomplete",
       label: `Spend days missing (${metrics.spendCoverage.daysWithSpend}/${metrics.spendCoverage.daysInPeriod} filled, ${metrics.spendCoverage.coveragePct}%). Fill gaps on Spend (e.g. weekend Meta) before sharing Total ROAS.`,
       blocking: true,
-    });
-  }
-
-  const recon = metrics.spendRecon?.status ?? "none";
-  if (recon === "drift") {
-    out.push({
-      code: "recon_drift",
-      label: "Spend off Ads Manager by more than ±5%",
-      blocking: false,
-    });
-  } else if (recon === "none" && metrics.onboarding.hasSpend) {
-    out.push({
-      code: "recon_none",
-      label: "No Ads Manager total saved",
-      blocking: false,
     });
   }
 
