@@ -70,7 +70,7 @@ Pre-filled from Conductor Wave 2 (2026-09-08) — do not treat as Admin PASS:
 
 | Field | Value |
 | --- | --- |
-| **Fly version / image** | **v207** · `deployment-01M22DX0KS1R3R7Q5TK62VXBY1` (Love-UX6 `cdc7972`) — Admin Result still blank |
+| **Fly version / image** | **v208** · `deployment-01M22E09HSRZYXHFBC16BFAJZY` (Love-8 `9813811`) — Admin Result still blank |
 | **Curl listing** | 200 |
 | **Curl health** | `{"ok":true,"db":"up"}` (re-check before smoke) |
 

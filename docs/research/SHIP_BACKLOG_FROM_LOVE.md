@@ -114,7 +114,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Outcome** | Hold/reduce/step-test advice already computed is shown, or empty copy no longer promises it |
 | **Exclusive files** | `app.allocation.tsx` (+ related lib already computing actions) |
 | **DoD** | Copy matches UI |
-| **Status** | Queued |
+| **Status** | **DONE** · `9813811` · [Love-8](d15efbc2-1e72-4012-ab14-6e92513d715a) · Fly **v208** |
 
 ---
 
