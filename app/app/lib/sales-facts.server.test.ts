@@ -38,12 +38,14 @@ import {
   salesDayFactWindowDayCount,
   selectSalesFactsBackfillDays,
   salesFactsDayFilter,
-  salesFactsIncompleteForDesk,
-  salesFactsNeedRefreshExisting,
-  salesFactsNeedSyncFill,
   shouldProbeLivePeriodSales,
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
+import {
+  salesFactsIncompleteForDesk,
+  salesFactsNeedRefreshExisting,
+  salesFactsNeedSyncFill,
+} from "./sales-facts-honesty";
 import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 
 const FAKE_ADMIN = {} as never;

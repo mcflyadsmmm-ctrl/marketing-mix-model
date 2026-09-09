@@ -67,11 +67,13 @@ import {
   getSalesFactsTotals,
   getSalesFactsByDay,
   loadDeskSalesForPeriod,
+} from "../lib/sales-facts.server";
+import {
   salesFactsIncompleteForDesk,
   salesFactsNeedRefreshExisting,
   salesFactsNeedSyncFill,
   type SalesFactsCoverage,
-} from "../lib/sales-facts.server";
+} from "../lib/sales-facts-honesty";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import {
   FIRST_PAINT_SALES_BACKFILL_DAYS,
@@ -412,6 +414,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       ? shopLocalDayKey(instant, shareTz)
       : instant.toISOString().slice(0, 10);
 
+  const factsIncompleteForHonesty =
+    !useSampleDesk &&
+    salesFactsIncompleteForDesk(salesFactsCoverageForBanner, {
+      salesUntrustedZero,
+      sales: metrics.sales,
+      liveConfirmedZero,
+    });
+
   return {
     metrics,
     salesError,
@@ -424,6 +434,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesFactsCoverage: salesFactsCoverageForBanner,
     salesUntrustedZero,
     liveConfirmedZero,
+    factsIncompleteForHonesty,
     shareSubject: `Total ROAS — ${metrics.period.label}`,
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
@@ -455,13 +466,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         !useSampleDesk &&
         !scopesIncludeReadAllOrders(session.scope) &&
         periodMayExceedShopifyOrderWindow(range),
-      factsIncomplete:
-        !useSampleDesk &&
-        salesFactsIncompleteForDesk(salesFactsCoverageForBanner, {
-          salesUntrustedZero,
-          sales: metrics.sales,
-          liveConfirmedZero,
-        }),
+      factsIncomplete: factsIncompleteForHonesty,
     }).ask,
   };
 };
@@ -485,6 +490,7 @@ export default function Dashboard() {
     salesFactsCoverage,
     salesUntrustedZero,
     liveConfirmedZero,
+    factsIncompleteForHonesty,
     shareSubject,
     sharePeriodStartDay,
     sharePeriodEndDay,
@@ -507,11 +513,7 @@ export default function Dashboard() {
     salesError: Boolean(salesError),
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
-    factsIncomplete: salesFactsIncompleteForDesk(salesFactsCoverage, {
-      salesUntrustedZero,
-      sales: metrics.sales,
-      liveConfirmedZero,
-    }),
+    factsIncomplete: factsIncompleteForHonesty,
     recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
   });
   const freshLabel = formatCashFreshnessChip({
@@ -528,13 +530,6 @@ export default function Dashboard() {
     useSampleDesk,
     shotMode,
   });
-  const factsIncompleteForHonesty =
-    !useSampleDesk &&
-    salesFactsIncompleteForDesk(salesFactsCoverage, {
-      salesUntrustedZero,
-      sales: metrics.sales,
-      liveConfirmedZero,
-    });
   const deepHistory = resolveDeepHistoryHonesty({
     hasReadAllOrders,
     useSampleDesk,
