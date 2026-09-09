@@ -39,6 +39,8 @@ import {
   selectSalesFactsBackfillDays,
   salesFactsDayFilter,
   salesFactsIncompleteForDesk,
+  salesFactsNeedRefreshExisting,
+  salesFactsNeedSyncFill,
   shouldProbeLivePeriodSales,
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
@@ -425,18 +427,28 @@ describe("salesFactsDayFilter (shop-local vs UTC-midnight facts)", () => {
 });
 
 describe("salesFactsIncompleteForDesk", () => {
+  const completeZero = {
+    expectedClosedDays: 8,
+    factDays: 8,
+    complete: true,
+    periodExceedsFactWindow: false,
+  };
+
   it("treats null coverage and untrusted $0 as incomplete", () => {
     expect(salesFactsIncompleteForDesk(null)).toBe(true);
     expect(
-      salesFactsIncompleteForDesk(
-        {
-          expectedClosedDays: 8,
-          factDays: 8,
-          complete: true,
-          periodExceedsFactWindow: false,
-        },
-        { salesUntrustedZero: true },
-      ),
+      salesFactsIncompleteForDesk(completeZero, { salesUntrustedZero: true }),
+    ).toBe(true);
+  });
+
+  it("treats empty facts as incomplete even when expectedClosedDays is 0", () => {
+    expect(
+      salesFactsIncompleteForDesk({
+        expectedClosedDays: 0,
+        factDays: 0,
+        complete: false,
+        periodExceedsFactWindow: false,
+      }),
     ).toBe(true);
   });
 
@@ -451,13 +463,94 @@ describe("salesFactsIncompleteForDesk", () => {
     ).toBe(true);
   });
 
-  it("is complete only when coverage says so and $0 is trusted", () => {
+  it("does not trust complete $0 rows without a live confirm (poisoned facts)", () => {
+    expect(salesFactsIncompleteForDesk(completeZero)).toBe(true);
     expect(
-      salesFactsIncompleteForDesk({
-        expectedClosedDays: 8,
+      salesFactsIncompleteForDesk(completeZero, { sales: 0 }),
+    ).toBe(true);
+  });
+
+  it("trusts complete $0 only after a live Admin confirm this request", () => {
+    expect(
+      salesFactsIncompleteForDesk(completeZero, {
+        sales: 0,
+        liveConfirmedZero: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps a real multiple trusted even while coverage is still filling", () => {
+    expect(
+      salesFactsIncompleteForDesk(
+        {
+          expectedClosedDays: 8,
+          factDays: 3,
+          complete: false,
+          periodExceedsFactWindow: false,
+        },
+        { sales: 840 },
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("salesFactsNeedSyncFill", () => {
+  const complete = {
+    expectedClosedDays: 8,
+    factDays: 8,
+    complete: true,
+    periodExceedsFactWindow: false,
+  };
+  const empty = {
+    expectedClosedDays: 8,
+    factDays: 0,
+    complete: false,
+    periodExceedsFactWindow: false,
+  };
+
+  it("fills on page-open when coverage is complete but the period is $0", () => {
+    expect(
+      salesFactsNeedSyncFill({
+        mainCoverage: complete,
+        dayCoverage: complete,
+        periodSales: 0,
+        periodOrders: 0,
+      }),
+    ).toBe(true);
+    expect(
+      salesFactsNeedRefreshExisting({
         factDays: 8,
-        complete: true,
-        periodExceedsFactWindow: false,
+        periodSales: 0,
+        periodOrders: 0,
+      }),
+    ).toBe(true);
+  });
+
+  it("fills when the fact table is empty", () => {
+    expect(
+      salesFactsNeedSyncFill({
+        mainCoverage: empty,
+        dayCoverage: empty,
+        periodSales: 0,
+        periodOrders: 0,
+      }),
+    ).toBe(true);
+  });
+
+  it("does not block paint with a sync crawl once the period has sales", () => {
+    expect(
+      salesFactsNeedSyncFill({
+        mainCoverage: complete,
+        dayCoverage: complete,
+        periodSales: 840,
+        periodOrders: 7,
+      }),
+    ).toBe(false);
+    expect(
+      salesFactsNeedRefreshExisting({
+        factDays: 8,
+        periodSales: 840,
+        periodOrders: 7,
       }),
     ).toBe(false);
   });
