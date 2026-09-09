@@ -103,7 +103,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Outcome** | Merchant can set/clear declared Ads Manager spend for ±5% recon, **or** Overview/Advanced/Allocation stop reading unreachable state |
 | **Exclusive files** | Settings or Spend recon form + `declare-recon` action wire; or remove dead banners |
 | **DoD** | No orphan action; religion intact |
-| **Status** | **DONE** · DELETE-DEAD-READS · `998c2a0` · [Love-7](0545a5d0-37a9-4f84-af90-6cd4447f1451) · push/Fly pending Marty OK |
+| **Status** | **DONE** · DELETE-DEAD-READS · `ad39c90` · [Love-7](0545a5d0-37a9-4f84-af90-6cd4447f1451) · Fly **v210** |
 
 | | |
 | --- | --- |
