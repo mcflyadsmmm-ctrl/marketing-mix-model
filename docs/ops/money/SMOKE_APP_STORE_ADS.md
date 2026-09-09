@@ -70,7 +70,7 @@ Pre-filled from Conductor Wave 2 (2026-09-08) — do not treat as Admin PASS:
 
 | Field | Value |
 | --- | --- |
-| **Fly version / image** | Love-6 live · `deployment-01M22D1W7HX6Z45WPZV0H8DJD5` — re-check after Love-trial deploy; Admin Result still blank |
+| **Fly version / image** | **v205** · `deployment-01M22D9M9BAKM0Y4Y5Y4A1JXP3` (Love-6 + Love-trial `a309757`) — Admin Result still blank |
 | **Curl listing** | 200 |
 | **Curl health** | `{"ok":true,"db":"up"}` (re-check before smoke) |
 

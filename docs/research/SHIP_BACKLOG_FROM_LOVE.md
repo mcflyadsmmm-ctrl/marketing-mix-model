@@ -126,7 +126,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Exclusive files** | Overview / empty-state / billing-adjacent copy only |
 | **Must not** | Change billing plan length without founder; no OAuth |
 | **DoD** | Merchant sees trust clock next to trial; SCORECARD L15 closed |
-| **Status** | **DONE** · uncommitted→Conductor · [Love-trial](abed2077-2524-44d9-86a3-7de68956d282) |
+| **Status** | **DONE** · `a309757` · [Love-trial](abed2077-2524-44d9-86a3-7de68956d282) |
 
 ---
 
