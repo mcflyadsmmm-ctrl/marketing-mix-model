@@ -2,11 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const findUnique = vi.fn();
 const updateMany = vi.fn();
+const sessionUpdateMany = vi.fn();
 const enqueueJob = vi.fn();
 
 vi.mock("../db.server", () => ({
   default: {
     shop: { findUnique: (...args: unknown[]) => findUnique(...args) },
+    session: {
+      updateMany: (...args: unknown[]) => sessionUpdateMany(...args),
+    },
     orderBackfillState: {
       updateMany: (...args: unknown[]) => updateMany(...args),
     },
@@ -21,6 +25,7 @@ import {
   applyReadAllOrdersGrant,
   DEEP_HISTORY_BACKFILL_DEDUPE_KEY,
   DEEP_HISTORY_BACKFILL_JOB,
+  persistGrantedScopesOnSession,
   readScopesUpdateLists,
 } from "./scopes-update.server";
 
@@ -43,6 +48,32 @@ describe("readScopesUpdateLists", () => {
       previous: [],
       current: [],
     });
+  });
+});
+
+describe("persistGrantedScopesOnSession", () => {
+  beforeEach(() => {
+    sessionUpdateMany.mockReset();
+  });
+
+  it("writes comma-joined scopes when the Session row exists", async () => {
+    sessionUpdateMany.mockResolvedValue({ count: 1 });
+    const result = await persistGrantedScopesOnSession("offline_acme", [
+      "read_orders",
+      "read_all_orders",
+    ]);
+    expect(result).toEqual({ updated: true });
+    expect(sessionUpdateMany).toHaveBeenCalledWith({
+      where: { id: "offline_acme" },
+      data: { scope: "read_orders,read_all_orders" },
+    });
+  });
+
+  it("no-ops without throwing when Session was already deleted (uninstall race)", async () => {
+    sessionUpdateMany.mockResolvedValue({ count: 0 });
+    await expect(
+      persistGrantedScopesOnSession("offline_gone", ["read_orders"]),
+    ).resolves.toEqual({ updated: false });
   });
 });
 

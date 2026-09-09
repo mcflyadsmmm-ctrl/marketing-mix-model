@@ -1,8 +1,8 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
-import db from "../db.server";
 import {
   applyReadAllOrdersGrant,
+  persistGrantedScopesOnSession,
   readScopesUpdateLists,
 } from "../lib/scopes-update.server";
 import {
@@ -28,14 +28,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     const { current, previous } = readScopesUpdateLists(payload);
     if (session) {
-      await db.session.update({
-        where: {
-          id: session.id,
-        },
-        data: {
-          scope: current.toString(),
-        },
-      });
+      // updateMany: missing Session must not 5xx (uninstall race → Partner failures).
+      const persisted = await persistGrantedScopesOnSession(session.id, current);
+      if (!persisted.updated) {
+        console.log(
+          `scopes_update shop=${shop} session=${session.id} missing — skipped scope write`,
+        );
+      }
     }
     // Fast ACK path: clear stuck historyLimited + enqueue deep backfill.
     const grant = await applyReadAllOrdersGrant({

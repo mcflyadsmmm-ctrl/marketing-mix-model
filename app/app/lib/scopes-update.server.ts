@@ -38,6 +38,25 @@ export function readScopesUpdateLists(payload: unknown): {
 }
 
 /**
+ * Persist granted scopes on the offline Session row.
+ *
+ * Uses updateMany (not update) so a missing row — uninstall race, purged
+ * session, stale webhook context — is a no-op instead of Prisma P2025 → 5xx
+ * → Shopify retry counted in Partner "Webhook failure rate".
+ */
+export async function persistGrantedScopesOnSession(
+  sessionId: string,
+  current: string[],
+): Promise<{ updated: boolean }> {
+  const scope = current.join(",");
+  const result = await prisma.session.updateMany({
+    where: { id: sessionId },
+    data: { scope },
+  });
+  return { updated: result.count > 0 };
+}
+
+/**
  * After the merchant grants `read_all_orders`, clear a stuck `historyLimited`
  * flag and enqueue a coalesced deep backfill. ACK-path only — no GraphQL here.
  */
