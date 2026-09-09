@@ -553,9 +553,10 @@ export default function SettingsPage() {
                   Sample vs real store
                 </h2>
                 <p className="mcfly-panel__muted">
-                  The Sample | Real store switch sits at the top of every page.
-                  When you are done practicing, turn Sample off here so the desk
-                  only shows your live Shopify numbers.
+                  SAMPLE is preview data only — not a feature unlock. The Sample
+                  | Real store switch sits at the top of every page. When you
+                  are done practicing, turn Sample off here so the desk only
+                  shows your live Shopify numbers.
                 </p>
                 <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
                   Right now:{" "}
@@ -630,17 +631,9 @@ export default function SettingsPage() {
                   style={{ marginTop: "0.75rem" }}
                 >
                   <div className="mcfly-control__tile">
-                    <p className="mcfly-control__k">Free</p>
-                    <ul className="mcfly-settings-guide">
-                      {billing.freeBullets.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="mcfly-control__tile">
                     <p className="mcfly-control__k">
-                      {billing.planName} · ${billing.amount}/
-                      {billing.currencyCode}
+                      7-day trial · then ${billing.amount}/
+                      {billing.currencyCode} · mo
                     </p>
                     <ul className="mcfly-settings-guide">
                       {billing.proBullets.map((line) => (
@@ -668,8 +661,8 @@ export default function SettingsPage() {
                       className="mcfly-panel__muted"
                       style={{ marginTop: "0.75rem" }}
                     >
-                      Pro upgrade charges turn on when Billing is enabled on the
-                      host. Listing can stay Free; you pay only if you upgrade.
+                      One desk during trial and at $39/mo: TikTok CSV, LTV, and
+                      Goals are included. SAMPLE is preview data only.
                     </p>
                   )
                 ) : (
@@ -677,7 +670,7 @@ export default function SettingsPage() {
                     className="mcfly-panel__muted"
                     style={{ marginTop: "0.75rem" }}
                   >
-                    This shop has Pro entitlements.
+                    This shop is on the $39 desk.
                   </p>
                 )}
                 {actionData &&

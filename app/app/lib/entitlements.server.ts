@@ -1,6 +1,6 @@
 /**
- * Shop entitlements — Free (Meta + Google) vs Pro ($39 flat at launch).
- * See docs/BILLING_TIERS.md. Charges stay behind MCFLY_BILLING=1.
+ * Shop entitlements — one $39 desk (7-day trial), not a Free App Store plan.
+ * See docs/BILLING_TIERS.md.
  */
 
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
@@ -27,7 +27,7 @@ function normalizeShopDomain(shopDomain: string): string {
   return shopDomain.trim().toLowerCase();
 }
 
-/** Comma-separated *.myshopify.com domains treated as Pro (design partners / QA). */
+/** Comma-separated *.myshopify.com domains treated as billed (design partners / QA). */
 export function parseProShopOverrideList(
   raw: string | undefined = process.env.MCFLY_PRO_SHOPS,
 ): Set<string> {
@@ -41,7 +41,8 @@ export function parseProShopOverrideList(
 }
 
 /**
- * Pro when shop is in MCFLY_PRO_SHOPS override, or paidPro from Shopify Billing cache.
+ * Billed / override shop (Shopify App Pricing cache or MCFLY_PRO_SHOPS).
+ * Feature access does **not** wait on this — unpaid/trial first session is the full desk.
  */
 export function isProShop(
   shopDomain: string,
@@ -56,11 +57,12 @@ export function isProShop(
 }
 
 export type ShopEntitlements = {
+  /** `pro` = billed/override; `free` = not yet billed — not a product plan. */
   tier: BillingTier;
   isPro: boolean;
-  /** Live Customer LTV (OrderFact / CohortFact). SAMPLE desk may preview without Pro. */
+  /** Live Customer LTV (OrderFact / CohortFact). On the $39 desk during trial. */
   canUseLiveLtv: boolean;
-  /** Show LTV UI (live Pro or SAMPLE preview). */
+  /** Show LTV UI (desk — SAMPLE is preview data, not an unlock). */
   canUseLtv: boolean;
   canUseAdvancedGoals: boolean;
   canUseAdvancedClose: boolean;
@@ -75,31 +77,24 @@ export function getShopEntitlements(
   options?: { sampleDesk?: boolean; paidPro?: boolean },
 ): ShopEntitlements {
   const isPro = isProShop(shopDomain, { paidPro: options?.paidPro });
-  const sampleDesk = Boolean(options?.sampleDesk);
-  const canUseLiveLtv = isPro;
-  const canUseLtv = isPro || sampleDesk;
-  const canUseAdvancedGoals = isPro || sampleDesk;
-  const canUseAdvancedClose = isPro;
-  const canUseAllChannels = isPro;
-  const allowedChannels: readonly SpendChannel[] = isPro
-    ? SPEND_CHANNELS
-    : [...FREE_CHANNELS];
+  // SAMPLE is preview data only — never a feature gate.
+  void options?.sampleDesk;
 
   return {
     tier: isPro ? "pro" : "free",
     isPro,
-    canUseLiveLtv,
-    canUseLtv,
-    canUseAdvancedGoals,
-    canUseAdvancedClose,
-    canUseAllChannels,
-    showProTeaser: !isPro,
-    allowedChannels,
+    canUseLiveLtv: true,
+    canUseLtv: true,
+    canUseAdvancedGoals: true,
+    canUseAdvancedClose: true,
+    canUseAllChannels: true,
+    showProTeaser: false,
+    allowedChannels: SPEND_CHANNELS,
     upsell: PRO_UPSELL,
   };
 }
 
-/** Resolve Pro from Shop.proBillingActive (DB) + MCFLY_PRO_SHOPS override. */
+/** Resolve billing cache from Shop.proBillingActive (DB) + MCFLY_PRO_SHOPS override. */
 export async function resolveShopEntitlements(
   shopDomain: string,
   options?: { sampleDesk?: boolean },
@@ -137,12 +132,13 @@ export function assertChannelsAllowed(
   }
   if (blocked.size === 0) return null;
   const list = [...blocked].sort().join(", ");
-  return `Pro required for channel(s): ${list}. Free includes Meta, Google, and custom Other — named platforms need Pro (${PRO_UPSELL.short}).`;
+  return `Channel(s) not on this desk: ${list}. The $39 desk (7-day trial) includes every named platform (${PRO_UPSELL.short}).`;
 }
 
 /**
- * Live Free desks: drop Pro-channel rows so Total ROAS cannot be inflated.
- * Callers with SAMPLE desk should skip this (pass through full sample mix).
+ * Live desks: keep only entitled channel rows.
+ * The $39 desk includes every named channel — this is a no-op unless a
+ * caller constructs a restricted entitlement object.
  */
 export function filterToAllowedChannels<T extends { channel: string }>(
   entitlements: ShopEntitlements,

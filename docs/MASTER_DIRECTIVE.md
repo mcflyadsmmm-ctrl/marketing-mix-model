@@ -23,7 +23,7 @@ Mcfly must feel **incredible vs any alternative** on craft, clarity, trust, and 
 2. Numbers match the **Shopify till** + entered/synced spend  
 3. They open the app **weekly** for the Monday ritual  
 4. They understand: Mcfly is Marketing Data Science on the till — **sales ÷ spend**, not path theater  
-5. Price path is honest: free design partners → **~$79 flat** (not GMV tax)
+5. Price path is honest: **7-day trial, then $39/mo flat** (not GMV tax; not a Free App Store plan)
 
 ### Explicit NON-goals (refuse every time)
 
@@ -64,7 +64,7 @@ Agent response when blocked: state gate, exact URL, baby steps, wait for user si
 ### D0 — Site (world-class marketing)
 
 - [ ] mcflyads.com serves latest `/site` (Pages/CF workflow green)  
-- [ ] Brand-first hero, one thesis, one primary CTA (free launch / waitlist form — not mailto-only)  
+- [ ] Brand-first hero, one thesis, one primary CTA (Install $39 / 7-day trial — not mailto-only)  
 - [ ] Privacy, terms, support, pricing live and linked  
 - [ ] Mobile first viewport readable; ≥2 intentional motions; reduced-motion respected  
 - [ ] No public “type your .myshopify.com to install”  
@@ -83,7 +83,7 @@ Agent response when blocked: state gate, exact URL, baby steps, wait for user si
 ### D2 — Operator ritual (world-class usefulness)
 
 - [ ] Settings: margin → break-even MER  
-- [ ] Spend: Meta / Google / Other for period  
+- [ ] Spend: Meta / Google / TikTok / named channels for period  
 - [ ] Dashboard: sales, spend, MER (sales÷spend), above/below break-even  
 - [ ] Allocation card with visible inputs  
 - [ ] Empty-state banners guide first run (&lt;10 min)  
@@ -195,17 +195,17 @@ ON failure:
 2. DB-aware `/health`  
 3. Design-partner install + **desk smoke** + WTP ([`DESIGN_PARTNER_SMOKE.md`](./DESIGN_PARTNER_SMOKE.md))  
 4. Onboarding / TTFV banners; Overview + Share as primary ritual CTA  
-5. Site: App Store Free primary CTA; Partner invite secondary; deploy `/site` when asked  
+5. Site: App Store Install primary CTA ($39 · 7-day trial); Partner invite secondary; deploy `/site` when asked  
 
 ### P1 — Retention & paid
 
-6. CSV spend import (Free path)  
+6. CSV spend import (all named channels)  
 7. Dashboard freshness / recon / shop-IANA coverage  
 8. Overnight alert sink (email/Slack)  
 9. Fix global API token multi-shop footgun  
 10. ~~Meta + Google spend sync~~ — **retired** ([`RETIRED_SURFACES.md`](./RETIRED_SURFACES.md))  
 11. Sentry  
-12. Shopify Billing scaffold → announce ~$39 after partners (`MCFLY_BILLING`)  
+12. Shopify Billing — one $39 desk, 7-day trial (`MCFLY_BILLING`)  
 
 ### P2 — Make it public / density
 

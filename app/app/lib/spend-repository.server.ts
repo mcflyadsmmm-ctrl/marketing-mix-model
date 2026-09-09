@@ -123,7 +123,7 @@ export async function assertSpendWriteAllowed(
     const blocked = [...new Set(channels.filter((ch) => !allowed.has(ch)))].sort();
     if (blocked.length === 0) return;
     throw new SpendChannelEntitlementError(
-      `Pro required for channel(s): ${blocked.join(", ")}. Free includes Meta, Google, and custom Other — named platforms need Pro.`,
+      `Channel(s) not on this desk: ${blocked.join(", ")}. The $39 desk (7-day trial) includes every named platform.`,
     );
   }
 

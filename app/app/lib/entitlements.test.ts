@@ -10,6 +10,7 @@ import {
   parseProShopOverrideList,
   proRequiredLtvSummary,
 } from "./entitlements.server";
+import { PRO_UPSELL } from "./entitlements";
 
 const ORIG_PRO = process.env.MCFLY_PRO_SHOPS;
 
@@ -18,8 +19,8 @@ afterEach(() => {
   else process.env.MCFLY_PRO_SHOPS = ORIG_PRO;
 });
 
-describe("entitlements Free vs Pro", () => {
-  it("treats meta, google, and other as Free channels", () => {
+describe("entitlements — one $39 desk", () => {
+  it("keeps starter CSV columns as Meta, Google, and Other (not a Free plan)", () => {
     expect(isFreeChannel("meta")).toBe(true);
     expect(isFreeChannel("google")).toBe(true);
     expect(isFreeChannel("other")).toBe(true);
@@ -27,33 +28,37 @@ describe("entitlements Free vs Pro", () => {
     expect(FREE_CHANNELS).toEqual(["meta", "google", "other"]);
   });
 
-  it("defaults shops to Free without override", () => {
+  it("gives unpaid / first-session shops the full desk (TikTok, LTV, Goals)", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     expect(isProShop("acme.myshopify.com")).toBe(false);
     const e = getShopEntitlements("acme.myshopify.com");
     expect(e.tier).toBe("free");
-    expect(e.canUseAllChannels).toBe(false);
-    expect(e.canUseLiveLtv).toBe(false);
-    expect(e.canUseLtv).toBe(false);
-    expect(e.canUseAdvancedGoals).toBe(false);
-    expect(e.canUseAdvancedClose).toBe(false);
+    expect(e.isPro).toBe(false);
+    expect(e.canUseAllChannels).toBe(true);
+    expect(e.canUseLiveLtv).toBe(true);
+    expect(e.canUseLtv).toBe(true);
+    expect(e.canUseAdvancedGoals).toBe(true);
+    expect(e.canUseAdvancedClose).toBe(true);
+    expect(e.showProTeaser).toBe(false);
     expect(canUseChannel(e, "meta")).toBe(true);
     expect(canUseChannel(e, "other")).toBe(true);
-    expect(canUseChannel(e, "tiktok")).toBe(false);
+    expect(canUseChannel(e, "tiktok")).toBe(true);
+    expect(assertChannelsAllowed(e, ["meta", "tiktok", "amazon"])).toBeNull();
   });
 
-  it("SAMPLE desk previews LTV + advanced Goals without Pro", () => {
+  it("SAMPLE is preview data only — not a feature unlock", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     const e = getShopEntitlements("acme.myshopify.com", { sampleDesk: true });
     expect(e.isPro).toBe(false);
-    expect(e.canUseLiveLtv).toBe(false);
+    expect(e.canUseLiveLtv).toBe(true);
     expect(e.canUseLtv).toBe(true);
     expect(e.canUseAdvancedGoals).toBe(true);
-    expect(e.canUseAdvancedClose).toBe(false);
-    expect(e.canUseAllChannels).toBe(false);
+    expect(e.canUseAllChannels).toBe(true);
+    expect(e.showProTeaser).toBe(false);
+    expect(PRO_UPSELL.includes).toMatch(/SAMPLE is preview data only/i);
   });
 
-  it("MCFLY_PRO_SHOPS grants Pro", () => {
+  it("MCFLY_PRO_SHOPS marks billed without changing the desk", () => {
     process.env.MCFLY_PRO_SHOPS =
       "devmcflyads.myshopify.com, Partner.Myshopify.Com ";
     expect(parseProShopOverrideList().has("devmcflyads.myshopify.com")).toBe(
@@ -64,59 +69,44 @@ describe("entitlements Free vs Pro", () => {
     expect(e.isPro).toBe(true);
     expect(e.canUseLiveLtv).toBe(true);
     expect(e.canUseAllChannels).toBe(true);
-    expect(e.canUseAdvancedClose).toBe(true);
     expect(canUseChannel(e, "amazon")).toBe(true);
   });
 
-  it("assertChannelsAllowed blocks named Pro platforms on Free (other stays Free)", () => {
+  it("filterToAllowedChannels keeps tiktok on unpaid live reads", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     const e = getShopEntitlements("acme.myshopify.com");
-    expect(assertChannelsAllowed(e, ["meta", "google", "other"])).toBeNull();
-    const err = assertChannelsAllowed(e, ["meta", "tiktok", "amazon"]);
-    expect(err).toMatch(/Pro required/);
-    expect(err).toMatch(/tiktok/);
-    expect(err).toMatch(/amazon/);
-  });
-
-  it("filterToAllowedChannels drops tiktok on Free live reads but keeps other", () => {
-    delete process.env.MCFLY_PRO_SHOPS;
-    const e = getShopEntitlements("acme.myshopify.com");
-    const filtered = filterToAllowedChannels(e, [
-      { channel: "meta", amount: 100 },
-      { channel: "tiktok", amount: 50 },
-      { channel: "google", amount: 25 },
-      { channel: "other", amount: 10 },
-    ]);
-    expect(filtered).toEqual([
-      { channel: "meta", amount: 100 },
-      { channel: "google", amount: 25 },
-      { channel: "other", amount: 10 },
-    ]);
-  });
-
-  it("filterToAllowedChannels keeps full mix for Pro", () => {
-    process.env.MCFLY_PRO_SHOPS = "pro.myshopify.com";
-    const e = getShopEntitlements("pro.myshopify.com");
     const rows = [
       { channel: "meta", amount: 100 },
       { channel: "tiktok", amount: 50 },
+      { channel: "google", amount: 25 },
+      { channel: "other", amount: 10 },
     ];
     expect(filterToAllowedChannels(e, rows)).toEqual(rows);
   });
 
-  it("proRequiredLtvSummary is fail-closed", () => {
+  it("proRequiredLtvSummary stays fail-closed for leftover callers", () => {
     const s = proRequiredLtvSummary("MTD");
     expect(s.available).toBe(false);
     expect(s.emptyReason).toBe("pro_required");
     expect(s.cohorts).toEqual([]);
   });
 
-  it("paidPro unlocks Pro without MCFLY_PRO_SHOPS", () => {
+  it("paidPro marks billed without gating features", () => {
     delete process.env.MCFLY_PRO_SHOPS;
     expect(isProShop("acme.myshopify.com")).toBe(false);
     expect(isProShop("acme.myshopify.com", { paidPro: true })).toBe(true);
     const e = getShopEntitlements("acme.myshopify.com", { paidPro: true });
     expect(e.isPro).toBe(true);
     expect(e.canUseLiveLtv).toBe(true);
+    expect(e.showProTeaser).toBe(false);
+  });
+
+  it("copy is trial + $39 full desk — not a Free App Store plan", () => {
+    expect(PRO_UPSELL.short).toMatch(/\$39/);
+    expect(PRO_UPSELL.short).toMatch(/7-day trial/);
+    expect(PRO_UPSELL.channels).toMatch(/TikTok/);
+    expect(PRO_UPSELL.channels).not.toMatch(/Free channels/i);
+    expect(PRO_UPSELL.ltv).not.toMatch(/Pro unlocks/i);
+    expect(PRO_UPSELL.goals).not.toMatch(/Pro unlocks/i);
   });
 });

@@ -69,7 +69,7 @@ describe("assertSpendWriteAllowed", () => {
     delete process.env.MCFLY_PRO_SHOPS;
   });
 
-  it("rejects tiktok on Free live writes", async () => {
+  it("allows tiktok on unpaid / first-session live writes", async () => {
     shopFindUnique.mockResolvedValue({
       domain: "acme.myshopify.com",
       proBillingActive: false,
@@ -84,7 +84,7 @@ describe("assertSpendWriteAllowed", () => {
           source: "csv",
         },
       ]),
-    ).rejects.toBeInstanceOf(SpendChannelEntitlementError);
+    ).resolves.toBeUndefined();
   });
 
   it("allows sample-only writes even with Pro channels", async () => {
@@ -363,22 +363,21 @@ describe("createSpendRepository().upsertSpendDays", () => {
     expect(createMany.mock.calls[0][0].data[0].channel).toBe("google");
   });
 
-  it("fails closed before write when Free shop posts a Pro channel", async () => {
+  it("writes tiktok for an unpaid shop on the $39 desk", async () => {
+    findMany.mockResolvedValue([]);
     const repo = createSpendRepository();
-    await expect(
-      repo.upsertSpendDays("shop_1", [
-        {
-          date: "2026-07-01",
-          channel: "tiktok",
-          amount: 40,
-          currency: "USD",
-          source: "csv",
-        },
-      ]),
-    ).rejects.toThrow(/Pro required/);
-    expect(transaction).not.toHaveBeenCalled();
-    expect(createMany).not.toHaveBeenCalled();
-    expect(update).not.toHaveBeenCalled();
+    const result = await repo.upsertSpendDays("shop_1", [
+      {
+        date: "2026-07-01",
+        channel: "tiktok",
+        amount: 40,
+        currency: "USD",
+        source: "csv",
+      },
+    ]);
+    expect(result).toEqual({ written: 1, skipped: 0, created: 1, updated: 0 });
+    expect(createMany).toHaveBeenCalledOnce();
+    expect(createMany.mock.calls[0][0].data[0].channel).toBe("tiktok");
   });
 
   it("soaks ~3000 Meta+Google daily rows under 5s (createMany batches)", async () => {

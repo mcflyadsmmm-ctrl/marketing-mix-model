@@ -361,7 +361,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     };
   }
 
-  // save_goals (default) — 12-month plan is Pro (or SAMPLE preview)
+  // save_goals (default) — 12-month plan is on the $39 desk (SAMPLE = preview)
   if (!entitlements.canUseAdvancedGoals) {
     return {
       success: false as const,

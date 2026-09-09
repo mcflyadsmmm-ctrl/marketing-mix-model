@@ -13,7 +13,7 @@ export const meta: MetaFunction = () => [
   {
     name: "description",
     content:
-      "Total ROAS = Shopify sales ÷ ad spend. Install Free from the Shopify App Store.",
+      "Total ROAS = Shopify sales ÷ ad spend. 7-day trial, then $39/mo.",
   },
 ];
 
@@ -47,18 +47,27 @@ export default function AppLanding() {
 
         <h1 className={styles.heading}>Total ROAS = Sales ÷ Spend</h1>
         <p className={styles.lede}>
-          Shopify sales over your ad spend. Break-even from margin. One
+          Shopify sales over the ad spend you add. Break-even from margin. One
           allocation call — not attribution theater.
         </p>
+        <p className={styles.price}>7-day trial, then $39/mo. Not a GMV tax.</p>
 
         <div className={styles.ctas}>
           <a
             className={styles.ctaPrimary}
+            href="https://apps.shopify.com/mcfly-analytics-public"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Install
+          </a>
+          <a
+            className={styles.ctaSecondary}
             href="https://mcflyads.com/"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Visit product site
+            Visit mcflyads.com
           </a>
           <a
             className={styles.ctaSecondary}
@@ -66,13 +75,9 @@ export default function AppLanding() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Contact support
+            Support
           </a>
         </div>
-
-        <p className={styles.install}>
-          Install Mcfly Analytics from the Shopify App Store (Free).
-        </p>
 
         <footer className={styles.foot}>
           <p>
