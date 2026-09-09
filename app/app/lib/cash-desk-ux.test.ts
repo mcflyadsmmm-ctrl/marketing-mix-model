@@ -95,6 +95,31 @@ describe("Overview Monday desk", () => {
     expect(overview).toContain("mcfly-me-spine--later");
     expect(overview).toMatch(/scoreboardReady && metrics\.cashActionReady/);
   });
+
+  it("Love-V2: hero actions keep one primary (Update spend); Goals/Share/ledger demoted", () => {
+    const actions =
+      overview.match(
+        /mcfly-hero-compact__actions">([\s\S]*?)<\/div>/,
+      )?.[1] ?? "";
+    expect(actions.length).toBeGreaterThan(40);
+    const primaries = actions.match(/variant="primary"/g) ?? [];
+    expect(primaries).toHaveLength(1);
+    expect(actions).toMatch(
+      /variant="primary"[\s\S]{0,80}Update spend/,
+    );
+    // Goals stays secondary when cashActionReady; Share is tertiary in component.
+    expect(actions).toMatch(
+      /href="\/app\/goals"\s+variant="secondary"/,
+    );
+    expect(actions).toContain("ShareOverviewButton");
+    expect(actions).toMatch(/variant="tertiary"/);
+    const shareBtn = readFileSync(
+      join(here, "../components/ShareOverviewButton.tsx"),
+      "utf8",
+    );
+    expect(shareBtn).toMatch(/variant="tertiary"/);
+    expect(shareBtn).not.toMatch(/variant="primary"/);
+  });
 });
 
 describe("Spend ritual", () => {

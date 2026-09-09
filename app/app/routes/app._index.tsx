@@ -969,18 +969,19 @@ export default function Dashboard() {
                       deltaLine={merDeltaLine}
                     />
                   )}
+                  {/* Love-V2 / VISUAL P0.3: one primary in this cluster — Update spend. */}
                   <div className="mcfly-hero-compact__actions">
-                    {metrics.cashActionReady ? (
-                      <s-button href="/app/goals" variant="secondary">
-                        {PRODUCT_NOUN.setupSetGoals}
-                      </s-button>
-                    ) : null}
                     <s-button
                       href="/app/spend#mcfly-spend-uploads"
                       variant="primary"
                     >
                       Update spend
                     </s-button>
+                    {metrics.cashActionReady ? (
+                      <s-button href="/app/goals" variant="secondary">
+                        {PRODUCT_NOUN.setupSetGoals}
+                      </s-button>
+                    ) : null}
                     <ShareOverviewButton
                       subject={shareSubject}
                       body={shareText}
@@ -988,7 +989,7 @@ export default function Dashboard() {
                       compact
                     />
                     <s-button
-                      variant="secondary"
+                      variant="tertiary"
                       aria-label={periodLedger.label}
                       {...(periodLedger.ready
                         ? { href: periodLedger.href }
