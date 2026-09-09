@@ -19,8 +19,8 @@
 | [LOVE_SCORECARD.md](./LOVE_SCORECARD.md) | Synthesis → ranked P0–P2 backlog | Done |
 | [NICHE_PAIN_BANK.md](./NICHE_PAIN_BANK.md) | Harder niche mining — Top 12 real pains | Living |
 | [MCFLY_NAV_AUDIT.md](./MCFLY_NAV_AUDIT.md) | Primary nav + cold-path IA audit | Done |
-| [BEST_SHOPIFY_APP_UX.md](./BEST_SHOPIFY_APP_UX.md) | Shopify-blessed App Home / nav patterns | In flight |
-| [PEER_APP_IA_SKETCHES.md](./PEER_APP_IA_SKETCHES.md) | Peer tab/onboarding IA sketches | In flight |
+| [BEST_SHOPIFY_APP_UX.md](./BEST_SHOPIFY_APP_UX.md) | Shopify-blessed App Home / nav patterns | Done |
+| [PEER_APP_IA_SKETCHES.md](./PEER_APP_IA_SKETCHES.md) | Peer tab/onboarding IA sketches | Done |
 | [SPEND_INGEST_LADDER.md](./SPEND_INGEST_LADDER.md) | Manual / SyncWith Sheet / concierge / DEFER OAuth | Done |
 
 **Canvas:** `canvases/mcfly-love-research.canvas.tsx` (open beside chat).

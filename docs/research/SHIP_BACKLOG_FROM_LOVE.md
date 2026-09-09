@@ -81,7 +81,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Outcome** | SAMPLE “Use my real store” on Overview POSTs `use-real` in one tap (Form), not two |
 | **Exclusive files** | `app._index.tsx` primary action Form shape; optional `firstSessionPrimaryAction` POST variant |
 | **Note** | Love-1 left two-tap by design (data-mode is POST-only) — [Love-1](eb51c9ec-599c-45ff-a85e-eaf429ed9a2d) caveat |
-| **Status** | Queued |
+| **Status** | **DONE** · `32332ba` · [Love-1b](75a5f88d-409a-4022-8c55-9f7178080d09) · Fly **v206** `deployment-01M22DJN03JH5Q46DFVHHPC1WX` |
 
 ---
 
