@@ -11,9 +11,11 @@ const source = readFileSync(
 
 describe("Allocation desk sales honesty", () => {
   it("wires facts coverage into CashTrustBanners like Overview (server-side)", () => {
-    // Coverage must be computed in the loader — never call sales-facts.server
-    // from the client component (breaks react-router build).
-    expect(source).toContain("factsIncomplete = salesFactsBlockLock(coverage)");
+    // Same honesty as Overview — complete $0 is not trusted. Client-safe helper
+    // (not sales-facts.server) so the React Router client build stays clean.
+    expect(source).toContain("factsIncomplete = salesFactsIncompleteForDesk(deskCoverage");
+    expect(source).toContain("salesUntrustedZero: deskSalesUntrustedZero");
+    expect(source).toContain("shopOrdersSeen: deskShopOrdersSeen");
     expect(source).toContain("salesFactsIncomplete={salesFactsIncomplete}");
     expect(source).toContain(
       "shopifyOrderWindowLimited={shopifyOrderWindowLimited}",

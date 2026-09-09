@@ -37,10 +37,10 @@ import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
 import type { SalesResult } from "../lib/shopify-sales.server";
+import { salesFactsIncompleteForDesk } from "../lib/sales-facts-honesty";
 import {
   getSalesFactsByDay,
   loadDeskSalesForPeriod,
-  salesFactsBlockLock,
 } from "../lib/sales-facts.server";
 import {
   parsePeriodPreset,
@@ -123,6 +123,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } | null = null;
   let factsIncomplete = false;
   let shopifyOrderWindowLimited = false;
+  let deskCoverage: {
+    factDays: number;
+    expectedClosedDays: number;
+    complete: boolean;
+    periodExceedsFactWindow: boolean;
+  } | null = null;
+  let deskSalesUntrustedZero = false;
+  let deskLiveConfirmedZero = false;
+  let deskShopOrdersSeen = 0;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
@@ -140,19 +149,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError = desk.salesError;
     todaySalesUnavailable = desk.todaySalesUnavailable;
     todaySalesTruncated = desk.todaySalesTruncated;
-    const coverage = desk.factsCoverage;
-    // Fail-closed lock shape — compute on server so .server is not client-bundled.
-    factsIncomplete = salesFactsBlockLock(coverage);
-    salesFactsIncomplete =
-      coverage != null &&
-      !coverage.complete &&
-      !coverage.periodExceedsFactWindow
-        ? {
-            factDays: coverage.factDays,
-            expectedClosedDays: coverage.expectedClosedDays,
-          }
-        : null;
-    shopifyOrderWindowLimited = Boolean(coverage?.periodExceedsFactWindow);
+    deskCoverage = desk.factsCoverage;
+    deskSalesUntrustedZero = desk.salesUntrustedZero;
+    deskShopOrdersSeen = desk.shopOrdersSeen;
+    deskLiveConfirmedZero =
+      desk.liveConfirmedQuiet &&
+      !desk.salesUntrustedZero &&
+      !(desk.sales.totalSales > 0);
+    shopifyOrderWindowLimited = Boolean(
+      desk.factsCoverage?.periodExceedsFactWindow,
+    );
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
@@ -161,6 +167,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       "total",
     ),
   });
+
+  if (!useSampleDesk) {
+    factsIncomplete = salesFactsIncompleteForDesk(deskCoverage, {
+      salesUntrustedZero: deskSalesUntrustedZero,
+      sales: metrics.sales,
+      spend: metrics.totalSpend,
+      liveConfirmedZero: deskLiveConfirmedZero,
+      shopOrdersSeen: deskShopOrdersSeen,
+    });
+    salesFactsIncomplete = factsIncomplete
+      ? {
+          factDays: deskCoverage?.factDays ?? 0,
+          expectedClosedDays: deskCoverage?.expectedClosedDays ?? 0,
+        }
+      : null;
+  }
 
   /*
    * Portfolio history (~L12M / 365 closed days): top quarters by Total ROAS,
