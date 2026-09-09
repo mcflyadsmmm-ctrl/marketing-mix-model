@@ -19,6 +19,8 @@ describe("CASH_PAGE_WHY", () => {
     expect(CASH_PAGE_WHY.spend).toMatch(/\$0/i);
     expect(CASH_PAGE_WHY.goals).toMatch(/till cash|Total ROAS/i);
     expect(CASH_PAGE_WHY.allocation).toMatch(/break-even/i);
+    expect(CASH_PAGE_WHY.allocation).toMatch(/hold|reduce|step-test/i);
+    expect(CASH_PAGE_WHY.allocation).not.toMatch(/which channels to cut or keep/i);
     expect(CASH_PAGE_WHY.ltv).toMatch(/spend/i);
     expect(CASH_PAGE_WHY.advanced).toMatch(/trust Total ROAS/i);
     const blob = Object.values(CASH_PAGE_WHY).join("\n");

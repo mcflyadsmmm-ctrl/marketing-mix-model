@@ -15,7 +15,7 @@ export const CASH_PAGE_WHY = {
   goals:
     "A sales target tells you whether this period’s ads bought enough till cash — next to Total ROAS, not instead of it.",
   allocation:
-    "After you trust Total ROAS, this page says which channels to cut or keep so break-even is protected.",
+    "After you trust Total ROAS, this page shows hold / reduce / step-test advice so break-even is protected — sales ÷ spend, not channel attribution.",
   ltv: "Shows whether new customers pay back the spend you logged — depth next to that spend, not a science project.",
   advanced:
     "Extra formulas after you trust Total ROAS. Skip this until sales ÷ spend is on the desk.",

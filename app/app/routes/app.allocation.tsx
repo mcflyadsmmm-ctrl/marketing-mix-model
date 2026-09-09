@@ -5,6 +5,7 @@ import {
   SPEND_CHANNEL_LABELS,
   type SpendChannel,
 } from "@mcfly/mer-engine";
+import type { AllocationAction } from "@mcfly/mer-core";
 import { authenticate } from "../shopify.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
@@ -26,6 +27,10 @@ import {
   type RollingWindowTile,
   type TopQuarterAllocation,
 } from "../lib/allocation-history";
+import {
+  allocationActionLabel,
+  formatAllocationPercentChange,
+} from "../lib/allocation-verdict";
 import {
   buildDailyRowsForWindow,
   buildDashboardMetrics,
@@ -299,9 +304,7 @@ export default function AllocationPage() {
   const lockCopy = cashLocked
     ? metrics.spendCoverage.incomplete
       ? `Spend coverage is under 70% — fill empty days before allocation. ${PRODUCT_NOUN.mondayCall}.`
-      : metrics.spendRecon?.status === "drift"
-        ? `Desk spend vs declared Ads Manager is outside ±5% — fix recon before allocation. ${PRODUCT_NOUN.mondayCall}.`
-        : `Allocation is locked until spend trust is ready. ${PRODUCT_NOUN.mondayCall}.`
+      : `Allocation is locked until spend trust is ready. ${PRODUCT_NOUN.mondayCall}.`
     : null;
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
@@ -435,10 +438,21 @@ export default function AllocationPage() {
           </div>
         </div>
 
-        {/* 1. Top 3 quarterly allocations (all-time in facts window) */}
+        {/* 1. Hold / reduce / step-test already computed — show it */}
+        {allocation ? (
+          <AllocationVerdictSection
+            why={allocation.why}
+            actions={allocation.actions}
+            suggestedTestDays={allocation.suggestedTestDays}
+            overallMer={allocation.overallMer}
+            breakEvenMer={allocation.breakEvenMer}
+          />
+        ) : null}
+
+        {/* 2. Top 3 quarterly allocations (all-time in facts window) */}
         <TopQuartersSection quarters={topQuarters} />
 
-        {/* 2. ONE mix view: pie (% allocation) + channel list for selected period */}
+        {/* 3. ONE mix view: pie (% allocation) + channel list for selected period */}
         {allocation ? (
           <PeriodMixSection
             rows={channelRows}
@@ -448,7 +462,7 @@ export default function AllocationPage() {
           />
         ) : null}
 
-        {/* 3. Rolling improvement: 7 · 14 · 28 vs prior window */}
+        {/* 4. Rolling improvement: 7 · 14 · 28 vs prior window */}
         <RollingWindowsSection tiles={rollingWindows} />
 
         {!allocation && !zeroMargin && !cashLocked ? (
@@ -458,8 +472,8 @@ export default function AllocationPage() {
           >
             <p className="mcfly-state__copy">
               Allocation needs trusted {PRODUCT_NOUN.totalRoas} first — not
-              broken. Upload daily spend, then this page says which channels to
-              cut or keep.
+              broken. Log daily spend and set margin to unlock hold / reduce /
+              step-test advice from sales ÷ spend.
             </p>
             <div className="mcfly-state__cta">
               <s-button href="/app/spend" variant="primary">
@@ -471,6 +485,80 @@ export default function AllocationPage() {
         ) : null}
       </div>
     </s-page>
+  );
+}
+
+function AllocationVerdictSection({
+  why,
+  actions,
+  suggestedTestDays,
+  overallMer,
+  breakEvenMer,
+}: {
+  why: string;
+  actions: AllocationAction[];
+  suggestedTestDays: number;
+  overallMer: number | null;
+  breakEvenMer: number;
+}) {
+  return (
+    <section
+      className="mcfly-alloc-v2__mix"
+      aria-label="Hold, reduce, or step-test advice"
+    >
+      <div className="mcfly-alloc-v2__head">
+        <h2>Advice · hold / reduce / step-test</h2>
+        <p className="mcfly-alloc-v2__muted">
+          Portfolio {PRODUCT_NOUN.totalRoas}{" "}
+          {overallMer == null ? "—" : formatMer(overallMer)} vs break-even{" "}
+          {formatMer(breakEvenMer)}
+          {suggestedTestDays > 0
+            ? ` · illustrative ${suggestedTestDays}-day window`
+            : null}
+        </p>
+      </div>
+      <p className="mcfly-alloc-v2__muted">{why}</p>
+      {actions.length === 0 ? (
+        <p className="mcfly-alloc-v2__empty">
+          No action list for this period — check spend and margin.
+        </p>
+      ) : (
+        <ol className="mcfly-alloc-v2__q-list">
+          {actions.map((action) => {
+            const pct = formatAllocationPercentChange(action.percentChange);
+            const channel =
+              action.channel === "—"
+                ? null
+                : action.channel === "portfolio"
+                  ? "Portfolio"
+                  : historyChannelLabel(action.channel);
+            return (
+              <li
+                className="mcfly-alloc-v2__q-card"
+                key={`${action.type}:${action.channel}:${action.percentChange ?? ""}`}
+              >
+                <div className="mcfly-alloc-v2__q-body">
+                  <div className="mcfly-alloc-v2__q-top">
+                    <span className="mcfly-alloc-v2__q-label">
+                      {allocationActionLabel(action.type)}
+                      {channel ? ` · ${channel}` : null}
+                    </span>
+                    {pct ? (
+                      <span className="mcfly-alloc-v2__q-mer">{pct}</span>
+                    ) : null}
+                  </div>
+                  <p className="mcfly-alloc-v2__q-meta">{action.detail}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+      <p className="mcfly-alloc-v2__hedge">
+        Average {PRODUCT_NOUN.totalRoas} ≠ marginal ROAS. Spend floor keeps at
+        least 50% of period spend in one step — never zero, never path credit.
+      </p>
+    </section>
   );
 }
 

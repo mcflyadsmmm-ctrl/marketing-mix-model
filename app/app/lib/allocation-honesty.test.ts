@@ -38,4 +38,19 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("useSampleDesk");
     expect(source).toContain("SampleDeskBanner");
   });
+
+  it("renders computed hold/reduce/step-test actions (Love-8)", () => {
+    expect(source).toContain("AllocationVerdictSection");
+    expect(source).toContain("allocation.actions");
+    expect(source).toContain("allocation.why");
+    expect(source).toContain("allocationActionLabel");
+    expect(source).toMatch(/hold \/ reduce \/[\s\S]*step-test advice/);
+    expect(source).not.toMatch(/which channels to cut or keep/);
+  });
+
+  it("does not lock copy on unreachable Ads Manager declare-recon", () => {
+    expect(source).not.toMatch(/declared Ads Manager/i);
+    expect(source).not.toMatch(/fix recon before allocation/i);
+    expect(source).not.toMatch(/spendRecon\?\.status === ["']drift["']/);
+  });
 });
