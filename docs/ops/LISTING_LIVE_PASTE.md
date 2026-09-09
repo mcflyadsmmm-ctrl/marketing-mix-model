@@ -15,11 +15,11 @@ Keep **$39 USD / 30 days** and **7-day free trial**. Delete any Free plan. Confi
 **0:25–0:50** — Open **Feature bullets**. Replace bullets 1–5 with these **exact five lines in this order, one line per field**:
 
 ```text
-Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give
+Total ROAS = Shopify sales ÷ ad spend for any period (not Ads Manager)
 Break-even Total ROAS from your profit margin %
 Spend CSV: Meta, Google, TikTok, and every named channel · mix in $/%
-Spend Allocation (quarters, pie, rolling 7/14/28) + Goals MTD/QTD/YTD + full-year board
-LTV/Acquisition (Cash CAC · cohort LTV · LTV:CAC) · Email Overview (mailto) · no pixels / MTA
+Spend Allocation (7/14/28) + Goals MTD/QTD/YTD + full-year board
+LTV/Acquisition (Cash CAC · LTV:CAC) · mailto · no pixels / MTA
 ```
 
 **0:50–1:00** — Scan all five fields against the exact banned strings in §5; there must be **zero hits**. Click **Save**. Stop. **Do not click Submit.**
@@ -176,11 +176,11 @@ App URL: https://mcfly-analytics.fly.dev
 3. Paste the five clean lines below **in order, one line per field** (no suffixes).
 
 ```text
-Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give
+Total ROAS = Shopify sales ÷ ad spend for any period (not Ads Manager)
 Break-even Total ROAS from your profit margin %
 Spend CSV: Meta, Google, TikTok, and every named channel · mix in $/%
-Spend Allocation (quarters, pie, rolling 7/14/28) + Goals MTD/QTD/YTD + full-year board
-LTV/Acquisition (Cash CAC · cohort LTV · LTV:CAC) · Email Overview (mailto) · no pixels / MTA
+Spend Allocation (7/14/28) + Goals MTD/QTD/YTD + full-year board
+LTV/Acquisition (Cash CAC · LTV:CAC) · mailto · no pixels / MTA
 ```
 
 **Exact ban list for all five feature fields (case-insensitive; zero hits):**
