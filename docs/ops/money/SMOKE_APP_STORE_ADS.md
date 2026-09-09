@@ -70,7 +70,7 @@ Pre-filled from Conductor Wave 2 (2026-09-08) — do not treat as Admin PASS:
 
 | Field | Value |
 | --- | --- |
-| **Fly version / image** | v200 · `deployment-01M22AH65H3T3FY8J0C2SD1EZM` (Wave 7B optional target Total ROAS) |
+| **Fly version / image** | v201 · `deployment-01M22BMD1276EC1EWVDM40VYYE` (Wave 7C period ledger CSV) |
 | **Curl listing** | 200 |
 | **Curl health** | `{"ok":true,"db":"up"}` (re-check before smoke) |
 

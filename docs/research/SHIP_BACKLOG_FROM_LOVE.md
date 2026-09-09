@@ -11,7 +11,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Outcome** | Period ledger CSV live on Fly; Overview/Spend download when closed-day trusted |
 | **Files** | Allowlist in `docs/ops/money/WAVE7C_EXPORT_LEDGER_SPEC.md` |
 | **DoD** | Spec acceptance + ship gate + Fly health + smoke stamp |
-| **Status** | Dirty tree 2026-09-09 — Conductor merge next |
+| **Status** | **DONE** · `06a88cb` · Fly **v201** |
 
 ---
 
