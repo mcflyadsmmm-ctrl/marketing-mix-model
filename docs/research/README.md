@@ -17,7 +17,8 @@
 | [KILL_SHOT_MATRIX_2026-09.md](./KILL_SHOT_MATRIX_2026-09.md) | R2 — competitor refresh | Done |
 | [COMMUNITY_SIGNALS_2026-09.md](./COMMUNITY_SIGNALS_2026-09.md) | Public language scrape (not interviews) | Done |
 | [LOVE_SCORECARD.md](./LOVE_SCORECARD.md) | Synthesis → ranked P0–P2 backlog | Done |
-| [SHIP_BACKLOG_FROM_LOVE.md](./SHIP_BACKLOG_FROM_LOVE.md) | Exclusive-file Desk waves from scorecard | Done |
+| [NICHE_PAIN_BANK.md](./NICHE_PAIN_BANK.md) | Harder niche mining — Top 12 real pains | Living |
+| [SPEND_INGEST_LADDER.md](./SPEND_INGEST_LADDER.md) | Manual / SyncWith Sheet / concierge / DEFER OAuth | Done |
 
 **Canvas:** `canvases/mcfly-love-research.canvas.tsx` (open beside chat).
 

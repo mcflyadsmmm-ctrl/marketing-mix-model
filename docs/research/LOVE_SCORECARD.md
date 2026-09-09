@@ -1,10 +1,12 @@
 # Love scorecard — synthesis (2026-09-09)
 
-**Inputs:** CAPABILITY_MAP (R0 deep) · FRICTION_AUTOPSY (R3 deep) · KILL_SHOT_MATRIX · COMMUNITY_SIGNALS · INTERVIEW_SCRIPT · MERCHANT_LOVE_JTBD.
+**Inputs:** CAPABILITY_MAP · FRICTION_AUTOPSY · KILL_SHOT_MATRIX · COMMUNITY_SIGNALS · **NICHE_PAIN_BANK** · INTERVIEW_SCRIPT · MERCHANT_LOVE_JTBD.
 
-**Rule:** Interview evidence outranks hypotheses. Until n≥5 operator interviews, ship **P0 friction/honesty** only — do not expand MASTER_PLAN into suite features.
+**Rule:** Interview evidence outranks hypotheses. Public niche language outranks vibes. Until n≥5 operator interviews, ship **P0 friction/honesty** only.
 
-**Ads:** NO. **Reviews:** 0. **Fly:** v201 (7C ledger live).
+**Ads:** NO. **Reviews:** 0. **Fly:** v203+.
+
+**Research loop:** [`NICHE_PAIN_BANK.md`](./NICHE_PAIN_BANK.md) Top 12 — Conductor re-ranks after each scrape/interview wave.
 
 ---
 
@@ -50,16 +52,14 @@ Pain · Uninstall/trial kill · Differentiator · Religion fit · Ship ease.
 
 ## Ship order (Conductor)
 
-1. ~~Land Wave 7C~~ **DONE** Fly v201  
-2. **Love-1** L2 SAMPLE honesty — *in flight*  
-3. **Love-2** L3 Overview cold empty  
-4. **Love-1b** L14 first-day coverage tone (may share Spend lane after Love-1)  
-5. **Love-3** L5 Explorer confirmed target  
-6. **Love-5** L16 Automate / pipe-template link (+ listing paste note for Marty)  
-7. **Love-4** L6 ReviewAsk on Admin smoke  
-8. **P1** L15 trial/trust copy · L17 recon form · L18 allocation verdict — after smoke+outbound rolling  
+1. ~~7C / Love-1 / Love-2 / Love-3 / Love-5~~ **DONE through v203**  
+2. **Love-6** first-day coverage tone (P09) — *in flight*  
+3. **Love-trial** L15 / P10 trial vs trust clock copy  
+4. **Love-1b** one-tap use-real  
+5. Listing/outbound steal P01/P04/P07 from pain bank  
+6. Interviews with Top-12 pressure block  
 
-Parallel Marty: smoke · outbound ×20 · ≥5 interviews · FUNNEL.
+Parallel Marty: smoke · outbound (+ concierge offer) · ≥5 interviews · FUNNEL.
 
 ---
 

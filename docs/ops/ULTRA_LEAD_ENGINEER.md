@@ -113,7 +113,10 @@ Until that brief exists and Marty says “accept,” **do not** build Meta OAuth
 
 ---
 
-## 7. This week’s default queue (self-start)
+## Standing research loop (Ultra)
+
+Harder niche mining lives in [`NICHE_PAIN_BANK.md`](../research/NICHE_PAIN_BANK.md). Every Conductor “highest EV” pass: skim Top 12 → ship religion-safe P0 → feed interview script. Prefer merchant language over feature ideas.
+
 
 1. Land Love-1 SAMPLE honesty → Fly  
 2. Love-2 Overview cold · Love-5 Automate link · Love-3 Explorer target  
