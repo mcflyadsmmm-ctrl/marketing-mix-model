@@ -51,12 +51,10 @@ import {
 } from "../lib/listing-capture";
 import { formatOverviewShareText } from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
 import { CashVerdict } from "../components/CashVerdict";
 import { PeriodTrustNote } from "../components/PeriodTrustNote";
 import { resolvePeriodTrust } from "../lib/period-trust";
-import { PRO_UPSELL } from "../lib/entitlements";
 import {
   emptySales,
   type SalesResult,
@@ -1121,28 +1119,22 @@ function LtvSnapSection({
             </p>
           ) : null}
         </>
-      ) : tillLtv.emptyReason === "pro_required" ? (
-        <ProUpsellBlock lead={PRO_UPSELL.ltv} />
       ) : (
         <p className="mcfly-tab-snap__empty">
           {tillLtv.emptyReason === "no_timezone"
             ? "Shop timezone needed before customer cohorts can bucket by local day."
             : tillLtv.emptyReason === "history_limited"
               ? `Recent ~60-day window — grant deeper order access so LTV can fill. Not permanently empty.`
-              : `Backfilling cohorts — open ${PRODUCT_NOUN.ltvTitle} for progress. Not broken.`}
+              : tillLtv.emptyReason === "pro_required"
+                ? "Customer LTV is on the $39 desk (7-day trial). Open for cohorts while facts fill — SAMPLE is preview only."
+                : `Backfilling cohorts — open ${PRODUCT_NOUN.ltvTitle} for progress. Not broken.`}
         </p>
       )}
 
       <div className="mcfly-tab-snap__cta">
-        {tillLtv.emptyReason === "pro_required" && !tillLtv.available ? (
-          <s-link href={`/app/ltv?period=${preset}`}>
-            {PRODUCT_NOUN.openLtv}
-          </s-link>
-        ) : (
-          <s-button href={`/app/ltv?period=${preset}`} variant="primary">
-            {PRODUCT_NOUN.openLtv}
-          </s-button>
-        )}
+        <s-button href={`/app/ltv?period=${preset}`} variant="primary">
+          {PRODUCT_NOUN.openLtv}
+        </s-button>
       </div>
     </section>
   );

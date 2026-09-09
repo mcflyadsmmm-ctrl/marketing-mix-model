@@ -9,7 +9,6 @@ import {
   formatListingTillLabel,
   listingCaptureFromRequest,
 } from "../lib/listing-capture";
-import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import { buildAdvancedSections } from "../lib/advanced-metrics";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
@@ -217,14 +216,14 @@ export default function AdvancedMetricsPage() {
             {section.lockedReason ? (
               <section
                 className="mcfly-state mcfly-state--empty"
-                aria-label={`${section.title} locked`}
+                aria-label={`${section.title} unavailable`}
               >
                 <p className="mcfly-state__copy">{section.lockedReason}</p>
                 <div className="mcfly-state__cta">
-                  <ProUpgradeButton />
                   <s-button href="/app/demo" variant="secondary">
                     Try SAMPLE preview
                   </s-button>
+                  <s-link href="/app/settings">{PRO_UPSELL.seeSettings}</s-link>
                 </div>
               </section>
             ) : (

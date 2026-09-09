@@ -13,7 +13,6 @@ import { Form, useActionData, useLoaderData, useLocation, useNavigation } from "
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getSpendPeriodCoverage } from "../lib/mer-dashboard.server";
 import { parsePeriodPreset, resolvePeriod, type PeriodPreset } from "../lib/periods";
@@ -1349,11 +1348,6 @@ export default function SpendEntryPage() {
                   </label>
                 );
               })}
-              {entitlements.showProTeaser && !isEmpty ? (
-                <div className="mcfly-spend-lean__pro-note">
-                  <ProUpsellBlock lead={PRO_UPSELL.channels} />
-                </div>
-              ) : null}
             </div>
           </details>
 

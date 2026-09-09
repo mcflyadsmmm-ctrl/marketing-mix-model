@@ -32,8 +32,6 @@ import {
 } from "../lib/sales-goals.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
-import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { DeskPageWhy } from "../components/DeskPageWhy";
@@ -425,7 +423,6 @@ export default function GoalsPage() {
     targetMer,
     priorYear,
     priorYearMonthly,
-    entitlements,
     hasLiveSpend,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
@@ -612,12 +609,6 @@ export default function GoalsPage() {
           ) : null}
         </div>
 
-        {!shotMode && entitlements.showProTeaser ? (
-          <s-banner tone="info" heading={`${PRO_UPSELL.short} · advanced Goals`}>
-            <ProUpsellBlock lead={PRO_UPSELL.goals} />
-          </s-banner>
-        ) : null}
-
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner note="Goals below use SAMPLE sales." />
         ) : null}
@@ -660,55 +651,46 @@ export default function GoalsPage() {
                 </p>
               </div>
 
-              {entitlements.canUseAdvancedGoals ? (
-                <div className="mcfly-goals-declare__row">
-                  <Form method="post" className="mcfly-goals-declare__primary">
-                    <input type="hidden" name="year" value={year} />
-                    <input type="hidden" name="intent" value="apply_yoy_grow" />
-                    <input type="hidden" name="yoyPct" value="10" />
-                    <s-button
-                      type="submit"
-                      variant="primary"
-                      {...(savingIntent === "apply_yoy_grow" ||
-                      savingIntent === "apply_yoy_10"
-                        ? { loading: true }
-                        : {})}
-                    >
-                      Grow 10% YoY
-                    </s-button>
-                  </Form>
-                  <div
-                    className="mcfly-goals-declare__presets"
-                    aria-label="Other growth rates"
+              <div className="mcfly-goals-declare__row">
+                <Form method="post" className="mcfly-goals-declare__primary">
+                  <input type="hidden" name="year" value={year} />
+                  <input type="hidden" name="intent" value="apply_yoy_grow" />
+                  <input type="hidden" name="yoyPct" value="10" />
+                  <s-button
+                    type="submit"
+                    variant="primary"
+                    {...(savingIntent === "apply_yoy_grow" ||
+                    savingIntent === "apply_yoy_10"
+                      ? { loading: true }
+                      : {})}
                   >
-                    {YOY_GROWTH_PRESETS.filter((p) => p !== 10).map((pct) => (
-                      <Form method="post" key={pct}>
-                        <input type="hidden" name="year" value={year} />
-                        <input
-                          type="hidden"
-                          name="intent"
-                          value="apply_yoy_grow"
-                        />
-                        <input type="hidden" name="yoyPct" value={pct} />
-                        <button
-                          type="submit"
-                          className="mcfly-goals-yoy-btn"
-                          disabled={isSaving}
-                        >
-                          +{pct}%
-                        </button>
-                      </Form>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="mcfly-decision__actions">
-                  <ProUpgradeButton />
-                  <s-button href="/app/demo" variant="secondary">
-                    Try SAMPLE preview
+                    Grow 10% YoY
                   </s-button>
+                </Form>
+                <div
+                  className="mcfly-goals-declare__presets"
+                  aria-label="Other growth rates"
+                >
+                  {YOY_GROWTH_PRESETS.filter((p) => p !== 10).map((pct) => (
+                    <Form method="post" key={pct}>
+                      <input type="hidden" name="year" value={year} />
+                      <input
+                        type="hidden"
+                        name="intent"
+                        value="apply_yoy_grow"
+                      />
+                      <input type="hidden" name="yoyPct" value={pct} />
+                      <button
+                        type="submit"
+                        className="mcfly-goals-yoy-btn"
+                        disabled={isSaving}
+                      >
+                        +{pct}%
+                      </button>
+                    </Form>
+                  ))}
                 </div>
-              )}
+              </div>
             </section>
           ) : null}
         </div>

@@ -30,9 +30,6 @@ import {
   enqueueSalesFactsBackfill,
 } from "../lib/sales-backfill-kick.server";
 import { authenticate } from "../shopify.server";
-import { getShopEntitlements } from "../lib/entitlements.server";
-import { PRO_UPSELL } from "../lib/entitlements";
-import { ProUpsellBlock } from "../components/ProUpsellBlock";
 import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
 import {
   resolveDeepHistoryHonesty,
@@ -55,10 +52,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = await ensureShop(session.shop);
   const range = resolvePeriod(preset, new Date(), shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
-  const entitlements = getShopEntitlements(session.shop, {
-    sampleDesk: useSampleDesk,
-    paidPro: shop.proBillingActive,
-  });
 
   let salesError: string | null = null;
   let todaySalesTruncated = false;
@@ -68,14 +61,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sales = await fetchSampleSales(shop.id, range);
   } else {
     // Cohort OrderFact backfill — on the $39 desk (trial included).
-    if (entitlements.canUseLtv) {
-      void runOrderFactsBackfill(admin, shop.id, {
-        maxDays: 7,
-        grantedScopes: session.scope,
-      }).catch(() => {
-        // ignore — page shows honest empty/backfill states until cohort facts land
-      });
-    }
+    void runOrderFactsBackfill(admin, shop.id, {
+      maxDays: 7,
+      grantedScopes: session.scope,
+    }).catch(() => {
+      // ignore — page shows honest empty/backfill states until cohort facts land
+    });
     /*
      * HARD-STOP: same as Home / Close / Allocation — never unbounded
      * fetchShopifySales for a multi-day period. Facts + capped today only.
@@ -119,8 +110,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
-    entitlements,
-    canUseLtv: entitlements.canUseLtv,
     hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
     shopDomain: session.shop,
     periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
@@ -136,7 +125,6 @@ export default function LtvPage() {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
-    canUseLtv,
     hasReadAllOrders,
     shopDomain,
     periodWiderThanRecentWindow,
@@ -483,238 +471,219 @@ export default function LtvPage() {
         </section>
 
         {/* ── B · Lifetime value (cohorts) — $39 desk; SAMPLE = preview ── */}
-        {!canUseLtv ? (
-          <section
-            className="mcfly-panel mcfly-acq-ltv-teaser"
-            aria-label="Lifetime value — unlock"
-          >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Lifetime value · cohorts</h2>
-              <p className="mcfly-panel__muted">
-                Contribution LTV, Cash CAC payback, and monthly cohorts
-              </p>
-            </div>
-            <div className="mcfly-acq-ltv-teaser__body">
-              <ProUpsellBlock lead={PRO_UPSELL.ltv} />
-            </div>
-          </section>
-        ) : (
-          <>
-            <section
-              className="mcfly-panel mcfly-till-ltv mcfly-ltv-summary mcfly-acq-ltv"
-              aria-label="Lifetime value summary"
-            >
-              <div className="mcfly-panel__head mcfly-panel__head--tight">
-                <h2>Lifetime value · cohorts</h2>
-                <p className="mcfly-panel__muted">
-                  Contribution LTV = cohort revenue × your margin (
-                  {metrics.marginPct.toFixed(0)}%) · averages, not causal
-                  channel ROAS
+        <section
+          className="mcfly-panel mcfly-till-ltv mcfly-ltv-summary mcfly-acq-ltv"
+          aria-label="Lifetime value summary"
+        >
+          <div className="mcfly-panel__head mcfly-panel__head--tight">
+            <h2>Lifetime value · cohorts</h2>
+            <p className="mcfly-panel__muted">
+              Contribution LTV = cohort revenue × your margin (
+              {metrics.marginPct.toFixed(0)}%) · averages, not causal
+              channel ROAS
+            </p>
+          </div>
+
+          {metrics.tillLtv.available ? (
+            <div className="mcfly-ltv-summary__grid">
+              <div className="mcfly-ltv-summary__hero">
+                <p className="mcfly-ltv-summary__k">
+                  Contribution LTV · 90d
+                </p>
+                <p className="mcfly-ltv-summary__v">
+                  {contrib90 != null ? formatCurrency(contrib90) : "—"}
+                </p>
+                <p className="mcfly-ltv-summary__hint">
+                  Revenue{" "}
+                  {metrics.tillLtv.avgRevenueD90 != null
+                    ? formatCurrency(metrics.tillLtv.avgRevenueD90)
+                    : "—"}{" "}
+                  × {metrics.marginPct.toFixed(0)}% margin
+                </p>
+                <p className="mcfly-ltv-summary__def">
+                  {PRODUCT_NOUN.ltv90Def} · then × margin
                 </p>
               </div>
+              <div className="mcfly-ltv-summary__side">
+                <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
+                  <p className="mcfly-ltv-summary__k">30d contrib.</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    {contrib30 != null ? formatCurrency(contrib30) : "—"}
+                  </p>
+                  <p className="mcfly-ltv-summary__def">
+                    Avg revenue · 30d × margin
+                  </p>
+                </div>
+                <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
+                  <p className="mcfly-ltv-summary__k">365d contrib.</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    {contrib365 != null ? formatCurrency(contrib365) : "—"}
+                  </p>
+                  <p className="mcfly-ltv-summary__def">
+                    Avg revenue · 365d × margin
+                  </p>
+                </div>
+                <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--cac">
+                  <p className="mcfly-ltv-summary__k">Cash CAC</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    {metrics.tillLtv.cashCac != null
+                      ? formatCurrency(metrics.tillLtv.cashCac)
+                      : "—"}
+                  </p>
+                  <p className="mcfly-ltv-summary__def">
+                    {PRODUCT_NOUN.cashCacDef}
+                  </p>
+                  <p className="mcfly-ltv-summary__delta">
+                    {metrics.tillLtv.newBuyers > 0
+                      ? `${metrics.tillLtv.newBuyers.toLocaleString()} new`
+                      : "No new buyers"}
+                  </p>
+                </div>
+                <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--ratio">
+                  <p className="mcfly-ltv-summary__k">Contrib LTV : CAC</p>
+                  <p
+                    className={`mcfly-ltv-summary__v mcfly-ltv-summary__v--sm${
+                      contribRatio == null
+                        ? ""
+                        : contribRatio >= 1
+                          ? " mcfly-ltv-summary__v--good"
+                          : " mcfly-ltv-summary__v--bad"
+                    }`}
+                  >
+                    {contribRatio != null
+                      ? `${contribRatio.toFixed(2)}×`
+                      : "—"}
+                  </p>
+                  <p className="mcfly-ltv-summary__def">
+                    Contrib LTV · 90d ÷ Cash CAC
+                  </p>
+                  <p className="mcfly-ltv-summary__delta">
+                    {metrics.tillLtv.repeatRate != null
+                      ? `Repeat ${(metrics.tillLtv.repeatRate * 100).toFixed(0)}% · average, not causal`
+                      : "Average, not causal"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="mcfly-state__copy">
+                {metrics.tillLtv.emptyReason === "no_timezone"
+                  ? "Shop timezone needed before customer cohorts can bucket by local day."
+                  : metrics.tillLtv.emptyReason === "history_limited"
+                    ? "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions."
+                    : "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken."}
+              </p>
+              <div className="mcfly-state__cta">
+                <s-button href={ltvEmpty.nextHref} variant="secondary">
+                  {ltvEmpty.nextLabel}
+                </s-button>
+              </div>
+            </>
+          )}
+        </section>
 
-              {metrics.tillLtv.available ? (
-                <div className="mcfly-ltv-summary__grid">
-                  <div className="mcfly-ltv-summary__hero">
-                    <p className="mcfly-ltv-summary__k">
-                      Contribution LTV · 90d
-                    </p>
-                    <p className="mcfly-ltv-summary__v">
-                      {contrib90 != null ? formatCurrency(contrib90) : "—"}
-                    </p>
-                    <p className="mcfly-ltv-summary__hint">
-                      Revenue{" "}
-                      {metrics.tillLtv.avgRevenueD90 != null
-                        ? formatCurrency(metrics.tillLtv.avgRevenueD90)
-                        : "—"}{" "}
-                      × {metrics.marginPct.toFixed(0)}% margin
-                    </p>
-                    <p className="mcfly-ltv-summary__def">
-                      {PRODUCT_NOUN.ltv90Def} · then × margin
-                    </p>
-                  </div>
-                  <div className="mcfly-ltv-summary__side">
-                    <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
-                      <p className="mcfly-ltv-summary__k">30d contrib.</p>
-                      <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                        {contrib30 != null ? formatCurrency(contrib30) : "—"}
-                      </p>
-                      <p className="mcfly-ltv-summary__def">
-                        Avg revenue · 30d × margin
-                      </p>
-                    </div>
-                    <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
-                      <p className="mcfly-ltv-summary__k">365d contrib.</p>
-                      <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                        {contrib365 != null ? formatCurrency(contrib365) : "—"}
-                      </p>
-                      <p className="mcfly-ltv-summary__def">
-                        Avg revenue · 365d × margin
-                      </p>
-                    </div>
-                    <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--cac">
-                      <p className="mcfly-ltv-summary__k">Cash CAC</p>
-                      <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                        {metrics.tillLtv.cashCac != null
-                          ? formatCurrency(metrics.tillLtv.cashCac)
-                          : "—"}
-                      </p>
-                      <p className="mcfly-ltv-summary__def">
-                        {PRODUCT_NOUN.cashCacDef}
-                      </p>
-                      <p className="mcfly-ltv-summary__delta">
-                        {metrics.tillLtv.newBuyers > 0
-                          ? `${metrics.tillLtv.newBuyers.toLocaleString()} new`
-                          : "No new buyers"}
-                      </p>
-                    </div>
-                    <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--ratio">
-                      <p className="mcfly-ltv-summary__k">Contrib LTV : CAC</p>
-                      <p
-                        className={`mcfly-ltv-summary__v mcfly-ltv-summary__v--sm${
-                          contribRatio == null
-                            ? ""
-                            : contribRatio >= 1
-                              ? " mcfly-ltv-summary__v--good"
-                              : " mcfly-ltv-summary__v--bad"
-                        }`}
-                      >
-                        {contribRatio != null
-                          ? `${contribRatio.toFixed(2)}×`
-                          : "—"}
-                      </p>
-                      <p className="mcfly-ltv-summary__def">
-                        Contrib LTV · 90d ÷ Cash CAC
-                      </p>
-                      <p className="mcfly-ltv-summary__delta">
-                        {metrics.tillLtv.repeatRate != null
-                          ? `Repeat ${(metrics.tillLtv.repeatRate * 100).toFixed(0)}% · average, not causal`
-                          : "Average, not causal"}
-                      </p>
-                    </div>
-                  </div>
+        {metrics.tillLtv.available ? (
+          <section
+            className="mcfly-panel mcfly-ltv-dive mcfly-acq-ltv"
+            aria-label="Cohort deep dive"
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>Cohort deep dive</h2>
+              <p className="mcfly-panel__muted">
+                Monthly first-order cohorts · cumulative revenue windows ·
+                cash cost context for this period
+              </p>
+            </div>
+
+            <div className="mcfly-ltv-dive__cost">
+              <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
+                <p className="mcfly-ltv-summary__k">Repeat rate</p>
+                <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                  {metrics.tillLtv.repeatRate != null
+                    ? `${(metrics.tillLtv.repeatRate * 100).toFixed(0)}%`
+                    : "—"}
+                </p>
+                <p className="mcfly-ltv-summary__def">
+                  Extra orders beyond first · cohort average
+                </p>
+              </div>
+              {metrics.onboarding.settingsSaved &&
+              metrics.breakEvenMer != null &&
+              metrics.tillLtv.cashCac != null &&
+              metrics.tillLtv.avgRevenueD30 != null &&
+              metrics.tillLtv.avgRevenueD30 > 0 ? (
+                <div className="mcfly-ltv-dive__cost-tile">
+                  <p className="mcfly-ltv-summary__k">Payback · 30d</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    ~
+                    {(
+                      metrics.tillLtv.cashCac /
+                      metrics.tillLtv.avgRevenueD30
+                    ).toFixed(1)}{" "}
+                    mo
+                  </p>
+                  <p className="mcfly-ltv-summary__delta">
+                    Cost per new ÷ 30d LTV · {PRODUCT_NOUN.breakEvenShort}{" "}
+                    {formatMer(metrics.breakEvenMer)}
+                  </p>
                 </div>
               ) : (
-                <>
-                  <p className="mcfly-state__copy">
-                    {metrics.tillLtv.emptyReason === "no_timezone"
-                      ? "Shop timezone needed before customer cohorts can bucket by local day."
-                      : metrics.tillLtv.emptyReason === "history_limited"
-                        ? "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions."
-                        : "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken."}
+                <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
+                  <p className="mcfly-ltv-summary__k">Spend ÷ buyers</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    {knownBuyers > 0
+                      ? formatCurrency(metrics.totalSpend / knownBuyers)
+                      : "—"}
                   </p>
-                  <div className="mcfly-state__cta">
-                    <s-button href={ltvEmpty.nextHref} variant="secondary">
-                      {ltvEmpty.nextLabel}
-                    </s-button>
-                  </div>
-                </>
+                  <p className="mcfly-ltv-summary__def">
+                    Period spend ÷ new + returning (not Cash CAC)
+                  </p>
+                </div>
               )}
-            </section>
+            </div>
 
-            {metrics.tillLtv.available ? (
-              <section
-                className="mcfly-panel mcfly-ltv-dive mcfly-acq-ltv"
-                aria-label="Cohort deep dive"
-              >
-                <div className="mcfly-panel__head mcfly-panel__head--tight">
-                  <h2>Cohort deep dive</h2>
-                  <p className="mcfly-panel__muted">
-                    Monthly first-order cohorts · cumulative revenue windows ·
-                    cash cost context for this period
-                  </p>
-                </div>
+            {metrics.tillLtv.cohorts.length > 0 ? (
+              <div className="mcfly-ltv-dive__table-wrap">
+                <table className="mcfly-ltv-dive__table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Cohort</th>
+                      <th scope="col">Buyers</th>
+                      <th scope="col">Rev 30d</th>
+                      <th scope="col">Rev 90d</th>
+                      <th scope="col">Rev 365d</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {metrics.tillLtv.cohorts.map((row) => (
+                      <tr key={row.cohortMonth}>
+                        <th scope="row">{row.cohortMonth}</th>
+                        <td>{row.customers.toLocaleString()}</td>
+                        <td>{formatCurrency(row.revenueD30)}</td>
+                        <td>{formatCurrency(row.revenueD90)}</td>
+                        <td>{formatCurrency(row.revenueD365)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="mcfly-panel__note">
+                Cohort rows appear once enough first-order months are
+                backfilled.
+              </p>
+            )}
 
-                <div className="mcfly-ltv-dive__cost">
-                  <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
-                    <p className="mcfly-ltv-summary__k">Repeat rate</p>
-                    <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                      {metrics.tillLtv.repeatRate != null
-                        ? `${(metrics.tillLtv.repeatRate * 100).toFixed(0)}%`
-                        : "—"}
-                    </p>
-                    <p className="mcfly-ltv-summary__def">
-                      Extra orders beyond first · cohort average
-                    </p>
-                  </div>
-                  {metrics.onboarding.settingsSaved &&
-                  metrics.breakEvenMer != null &&
-                  metrics.tillLtv.cashCac != null &&
-                  metrics.tillLtv.avgRevenueD30 != null &&
-                  metrics.tillLtv.avgRevenueD30 > 0 ? (
-                    <div className="mcfly-ltv-dive__cost-tile">
-                      <p className="mcfly-ltv-summary__k">Payback · 30d</p>
-                      <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                        ~
-                        {(
-                          metrics.tillLtv.cashCac /
-                          metrics.tillLtv.avgRevenueD30
-                        ).toFixed(1)}{" "}
-                        mo
-                      </p>
-                      <p className="mcfly-ltv-summary__delta">
-                        Cost per new ÷ 30d LTV · {PRODUCT_NOUN.breakEvenShort}{" "}
-                        {formatMer(metrics.breakEvenMer)}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
-                      <p className="mcfly-ltv-summary__k">Spend ÷ buyers</p>
-                      <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                        {knownBuyers > 0
-                          ? formatCurrency(metrics.totalSpend / knownBuyers)
-                          : "—"}
-                      </p>
-                      <p className="mcfly-ltv-summary__def">
-                        Period spend ÷ new + returning (not Cash CAC)
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {metrics.tillLtv.cohorts.length > 0 ? (
-                  <div className="mcfly-ltv-dive__table-wrap">
-                    <table className="mcfly-ltv-dive__table">
-                      <thead>
-                        <tr>
-                          <th scope="col">Cohort</th>
-                          <th scope="col">Buyers</th>
-                          <th scope="col">Rev 30d</th>
-                          <th scope="col">Rev 90d</th>
-                          <th scope="col">Rev 365d</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {metrics.tillLtv.cohorts.map((row) => (
-                          <tr key={row.cohortMonth}>
-                            <th scope="row">{row.cohortMonth}</th>
-                            <td>{row.customers.toLocaleString()}</td>
-                            <td>{formatCurrency(row.revenueD30)}</td>
-                            <td>{formatCurrency(row.revenueD90)}</td>
-                            <td>{formatCurrency(row.revenueD365)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="mcfly-panel__note">
-                    Cohort rows appear once enough first-order months are
-                    backfilled.
-                  </p>
-                )}
-
-                {metrics.tillLtv.historyLimited && !hasReadAllOrders ? (
-                  <p className="mcfly-panel__note">
-                    Cohorts cover the recent ~60-day window. Use Update
-                    permissions above so Shopify can share multi-year history —
-                    still order ids and amounts only, no email CRM.
-                  </p>
-                ) : null}
-              </section>
+            {metrics.tillLtv.historyLimited && !hasReadAllOrders ? (
+              <p className="mcfly-panel__note">
+                Cohorts cover the recent ~60-day window. Use Update
+                permissions above so Shopify can share multi-year history —
+                still order ids and amounts only, no email CRM.
+              </p>
             ) : null}
-          </>
-        )}
+          </section>
+        ) : null}
       </div>
     </s-page>
   );
