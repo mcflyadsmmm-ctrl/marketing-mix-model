@@ -1041,8 +1041,7 @@ export async function buildDashboardMetrics(
       : Promise.resolve(null),
   ]);
 
-  // Free live: Meta+Google only so Total ROAS cannot be inflated by Pro channels.
-  // SAMPLE desk keeps the full demo mix (do not filter).
+  // $39 desk includes every named channel. SAMPLE keeps the demo mix as-is.
   const spendEntries = useSampleDesk
     ? spendEntriesRaw
     : filterToAllowedChannels(entitlements, spendEntriesRaw);
@@ -1143,7 +1142,7 @@ export async function buildDashboardMetrics(
 
   let tillLtv: TillLtvSummary;
   if (!entitlements.canUseLtv) {
-    // Free + live: do not compute / expose proprietary cohort LTV.
+    // Should not fire on the $39 desk (trial included). Keep fail-closed.
     tillLtv = proRequiredLtvSummary(range.label);
   } else {
     const tillNewBuyers =

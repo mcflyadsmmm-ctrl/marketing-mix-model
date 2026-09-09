@@ -115,7 +115,7 @@ function pctOrDash(n: number | null | undefined, digits = 0): string {
 
 /**
  * Build Advanced Metrics sections from desk metrics.
- * `canUseLtv` gates the acquisition/LTV section (Pro / SAMPLE).
+ * `canUseLtv` is always true on the $39 desk; SAMPLE is preview data only.
  */
 export function buildAdvancedSections(
   metrics: AdvancedMetricsInput,
@@ -267,7 +267,7 @@ export function buildAdvancedSections(
       open: true,
       tiles: [],
       lockedReason:
-        "Cash CAC, cohort LTV 30/90/365, and LTV:CAC unlock on Pro ($39/store/mo). Everything in Free stays; preview the full lab on SAMPLE.",
+        "Cash CAC, cohort LTV 30/90/365, and LTV:CAC are on the $39 desk (7-day trial). SAMPLE is preview data only.",
     };
   } else {
     const ltv = metrics.tillLtv;

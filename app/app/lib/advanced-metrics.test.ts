@@ -97,7 +97,7 @@ describe("buildAdvancedSections", () => {
       periodLabel: "Last 30 days",
     });
     const acq = sections.find((s) => s.id === "acquisition");
-    expect(acq?.lockedReason).toMatch(/Pro/i);
+    expect(acq?.lockedReason).toMatch(/\$39 desk/i);
     expect(acq?.tiles).toHaveLength(0);
   });
 

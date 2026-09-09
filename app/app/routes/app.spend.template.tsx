@@ -20,9 +20,9 @@ import type { SpendChannel } from "@mcfly/mer-engine";
 
 /**
  * Reliable CSV download inside Shopify Admin (data: URLs often fail in the iframe).
- *   /app/spend/template                         → Free: Meta+Google example; Pro: full wide
- *   /app/spend/template?blank=1                 → Free: Meta+Google blank; Pro: full wide blank
- *   /app/spend/template?dates=…                 → blank rows for those days (tier columns)
+ *   /app/spend/template                         → full wide (all channels on the $39 desk)
+ *   /app/spend/template?blank=1                 → full wide blank
+ *   /app/spend/template?dates=…                 → blank rows for those days
  *   /app/spend/template?platforms=meta,google&blank=1   → selected blank
  *   /app/spend/template?platforms=meta,google&example=1 → selected with samples
  *   /app/spend/template?pipe=long|wide&blank=1|example=1 → SyncWith-class Sheet shape
@@ -101,7 +101,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       useExample ? "example" : "blank",
     );
   } else if (blank) {
-    // Free default: Meta + Google — never serve full all-channel blank to Free.
+    // $39 desk: full all-channel blank. Restricted entitlements keep starter cols.
     if (entitlements.canUseAllChannels) {
       body = buildBlankSpendTemplate(14);
       filename = "mcfly-spend-template-blank.csv";

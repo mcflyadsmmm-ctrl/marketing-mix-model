@@ -1,9 +1,9 @@
 /**
- * Shopify App Pricing — Free + Pro $39 flat / store / mo.
+ * Shopify App Pricing — one $39 desk, 7-day trial (not a Free App Store plan).
  * Public apps use Shopify-hosted plan selection (not appSubscriptionCreate).
  * Docs: https://shopify.dev/docs/apps/launch/billing/shopify-app-pricing
  *
- * Religion: flat desk fee, never GMV tax.
+ * Religion: flat desk fee, never GMV tax. SAMPLE is preview data only.
  */
 
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
@@ -91,7 +91,7 @@ export function storeHandleFromShopDomain(shopDomain: string): string {
 }
 
 /**
- * Shopify App Pricing plan picker (Free + Pro).
+ * Shopify App Pricing plan picker (one $39 desk).
  * https://admin.shopify.com/store/:store/charges/:app_handle/pricing_plans
  */
 export function buildManagedPricingPlansUrl(shopDomain: string): string {
@@ -183,10 +183,10 @@ export function getShopBillingSnapshot(
     amount: PRO_PLAN.amount,
     currencyCode: PRO_PLAN.currencyCode,
     headline: entitlements.isPro
-      ? "Pro · unlocked"
+      ? "$39 desk · active"
       : copy.headline,
     detail: entitlements.isPro
-      ? "This shop has Pro (Shopify App Pricing). Flat $39 — not a GMV tax."
+      ? "This shop is on the $39 desk (Shopify App Pricing). Flat — not a GMV tax. SAMPLE is preview data only."
       : copy.detail,
     upgradeCta: PRO_UPSELL.upgradeCta,
     freeBullets: FREE_FEATURE_BULLETS,
@@ -201,8 +201,7 @@ export function getShopBillingSnapshot(
  * Pro upgrade flow (Managed Pricing — not appSubscriptionCreate):
  * 1. ProUpgradeButton POSTs /app/billing → this helper (requires MCFLY_BILLING=1).
  * 2. Returns confirmationUrl = buildManagedPricingPlansUrl(shop).
- * 3. Button top-navigates to Shopify Free/Pro picker; sync caches proBillingActive.
- * 4. Do not announce to merchants until founder closes H9 (plans + Fly secret).
+ * 3. Button top-navigates to Shopify’s $39 plan picker; sync caches proBillingActive.
  */
 export async function requestProSubscription(input: {
   admin: AdminApiContext;
@@ -214,7 +213,7 @@ export async function requestProSubscription(input: {
     return {
       ok: false,
       error:
-        "Billing is not enabled (MCFLY_BILLING≠1). Set the Fly secret to charge Pro.",
+        "Billing is not enabled (MCFLY_BILLING≠1). Set the Fly secret to open the $39 plan page.",
     };
   }
 
@@ -237,7 +236,7 @@ export async function requestProSubscription(input: {
       }
       return {
         ok: false,
-        error: "This shop already has an active Pro subscription.",
+        error: "This shop already has an active $39 desk subscription.",
       };
     }
   } catch {

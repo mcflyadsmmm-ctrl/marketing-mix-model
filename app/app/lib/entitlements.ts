@@ -1,13 +1,17 @@
 /**
- * Client-safe Free vs Pro constants (no env / secrets).
+ * Client-safe desk constants (no env / secrets).
  * Server resolution lives in entitlements.server.ts.
+ *
+ * One App Store plan: 7-day trial, then $39/mo = full desk
+ * (all channels incl. TikTok CSV, LTV, Goals). Not a Free listing.
+ * SAMPLE is preview data only — not a feature unlock.
  */
 
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
 
 /**
- * Free install: Meta + Google + custom Other (name it).
- * Named paid platforms (TikTok, Microsoft, Amazon, …) stay Pro upsell.
+ * Starter CSV columns (Meta + Google + custom Other).
+ * Not a Free App Store plan — the $39 desk includes every named channel.
  */
 export const FREE_CHANNELS = [
   "meta",
@@ -23,45 +27,47 @@ export function isFreeChannel(channel: string): channel is FreeChannel {
   return FREE_CHANNEL_SET.has(channel);
 }
 
-/** All engine channels (Pro). */
+/** All engine channels (the $39 desk). */
 export const PRO_CHANNELS: readonly SpendChannel[] = SPEND_CHANNELS;
 
 /**
- * Single SoT for Pro upsell copy. Listing stays Free until Billing announce;
- * in-app gates + SAMPLE preview are live now.
+ * Single SoT for desk / billing copy.
+ * Trial + $39 = full desk. SAMPLE stays labeled preview only.
  */
 export const PRO_UPSELL = {
-  short: "Pro · $39/store/mo",
-  priceLine: "$39 flat per store / month — not a GMV tax",
+  short: "$39/store/mo · 7-day trial",
+  priceLine: "7-day trial, then $39 flat per store / month — not a GMV tax",
   /** One-line “what you get” for banners and empty states. */
   includes:
-    "Pro includes: every named ad channel (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition cohorts (Cash CAC · 30/90/365 · LTV:CAC), and the full-year Goals board with YoY fill.",
+    "One desk: every named ad channel (TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, …), Customer LTV / Acquisition (Cash CAC · 30/90/365 · LTV:CAC), and the full-year Goals board. SAMPLE is preview data only.",
   channels:
-    "Free channels: Meta, Google, and custom Other (name influencers/podcasts/agency). Pro ($39/mo) unlocks TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and every other named platform — plus Customer LTV and full Goals.",
-  ltv: "Pro unlocks Customer LTV / Acquisition: Cash CAC, 30/90/365 cohort revenue, and LTV:CAC from Shopify order cohorts (opaque ids only — no email CRM). Preview the full desk on SAMPLE anytime.",
+    "TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and every named platform are on the $39 desk (7-day trial). SAMPLE is preview data only — not a feature unlock.",
+  ltv: "Customer LTV / Acquisition is on the $39 desk: Cash CAC, 30/90/365 cohort revenue, and LTV:CAC from Shopify order cohorts (opaque ids only — no email CRM). SAMPLE is preview data only.",
   goals:
-    "Pro unlocks the full-year sales board, Grow YoY fill, and monthly fine-tune. Free still shows MTD · QTD · YTD pace vs your Total ROAS goal and break-even.",
+    "The full-year sales board, Grow YoY fill, and monthly fine-tune are on the $39 desk (7-day trial). SAMPLE is preview data only.",
   close:
-    "Share Overview (Email) is free — opens your mail app with this period’s cards. Mcfly never sends mail for you.",
-  upgradeCta: "Upgrade to Pro — $39/mo",
-  seeSettings: "See Free vs Pro in Settings",
+    "Share Overview (Email) opens your mail app with this period’s cards. Mcfly never sends mail for you.",
+  upgradeCta: "Open $39 plan — 7-day trial",
+  seeSettings: "See plan in Settings",
 } as const;
 
+/** One-desk bullets (trial + $39). Not a Free App Store plan. */
 export const FREE_FEATURE_BULLETS = [
-  "Total ROAS = Shopify Total Sales ÷ ad spend",
+  "Total ROAS = Shopify Total Sales ÷ ad spend you added",
   "Break-even from optional profit margin",
-  "Spend CSV: Meta + Google + custom Other",
+  "Spend CSV: Meta, Google, TikTok, and every named channel",
   "Period filters (MTD · LM · QTD · YTD · …)",
-  "Spend Allocation mix for Free channels",
+  "Spend Allocation mix across channels",
+  "Customer LTV / Acquisition + full-year Goals board",
   "Email Overview (opens your mail app)",
-  "Full SAMPLE preview of Pro features",
+  "SAMPLE preview data — labeled, not live cash",
 ] as const;
 
 export const PRO_FEATURE_BULLETS = [
-  "Everything in Free",
+  "7-day trial, then $39 flat / store / mo — not GMV tax",
   "All named channels: TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, and more",
   "Customer LTV / Acquisition: Cash CAC · cohort LTV 30/90/365 · LTV:CAC",
   "Full-year Goals board + YoY plan + monthly fine-tune",
-  "Richer Explorer / mix history as it ships",
-  "$39 flat / store / mo — not GMV tax",
+  "Spend Allocation + Email Overview",
+  "SAMPLE stays preview data only",
 ] as const;

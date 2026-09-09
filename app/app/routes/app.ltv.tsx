@@ -67,7 +67,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
-    // Cohort OrderFact backfill — Pro / SAMPLE only (not Free live).
+    // Cohort OrderFact backfill — on the $39 desk (trial included).
     if (entitlements.canUseLtv) {
       void runOrderFactsBackfill(admin, shop.id, {
         maxDays: 7,
@@ -482,7 +482,7 @@ export default function LtvPage() {
           )}
         </section>
 
-        {/* ── B · Lifetime value (cohorts) — Pro / SAMPLE ── */}
+        {/* ── B · Lifetime value (cohorts) — $39 desk; SAMPLE = preview ── */}
         {!canUseLtv ? (
           <section
             className="mcfly-panel mcfly-acq-ltv-teaser"

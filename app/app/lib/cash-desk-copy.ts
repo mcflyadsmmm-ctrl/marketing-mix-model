@@ -147,8 +147,8 @@ export function ltvEmptyCashCopy(kind: LtvEmptyCashKind): LtvEmptyCashCopy {
       };
     case "pro_required":
       return {
-        heading: "LTV is a Pro depth view",
-        body: "You can still read Total ROAS on Overview for $39/mo cash. Unlock LTV when you want payback next to that spend.",
+        heading: "LTV is on the $39 desk",
+        body: "Customer LTV is included with the 7-day trial and $39 desk. Open Overview for sales ÷ spend while cohorts fill. SAMPLE is preview data only.",
         nextHref: "/app",
         nextLabel: PRODUCT_NOUN.openTotalRoas,
       };
