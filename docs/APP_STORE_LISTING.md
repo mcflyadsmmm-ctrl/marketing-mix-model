@@ -4,16 +4,26 @@ Paste into Partner listing when Distribution = **Shopify App Store**.
 **Pricing:** **One plan** named **Mcfly Analytics** — **$39/mo · 7-day trial**. **Not** Free. **Not** a plan named **Pro** (rename Pro → **Mcfly Analytics** in Partner Pricing). **Religion:** Total ROAS (action) = **Shopify Total Sales ÷ ad spend** (any period); Net Sales optional view; never pixels / MTA / path / “true ROAS.” **Category:** marketing cash close / spend affordability control — coexists with attribution suites.  
 **Voice:** calm operator desk — specific, factual, premium. No suite science theater. No forever-free. No Free App Store plan. No Free/Pro freemium paste.  
 **Listing lock:** One paid desk. Defer email CRM / Level 2 PCD. Minimal `read_customers` (opaque id + `numberOfOrders`) is OK. **Till LTV** (opaque cohorts) is on the $39 desk — see [`PCD_AND_LTV.md`](./PCD_AND_LTV.md). Billing: [`BILLING_TIERS.md`](./BILLING_TIERS.md). Positioning: [`VALUE_THESIS.md`](./VALUE_THESIS.md). `read_all_orders` is **live in scopes**.  
-**Marty paste pack (click order):** [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) · **URLs:** [`ops/PARTNER_LISTING_URLS.md`](./ops/PARTNER_LISTING_URLS.md). Live listing only: https://apps.shopify.com/mcfly-analytics-public · **Reviews: 0** (do not invent). Agents do **not** Partner-Submit.
+**Marty paste pack (Wave 4 click order):** [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) · **URLs:** [`ops/PARTNER_LISTING_URLS.md`](./ops/PARTNER_LISTING_URLS.md). Live listing only: https://apps.shopify.com/mcfly-analytics-public · **Reviews: 0** (do not invent). Agents do **not** Partner-Submit.
+
+## Wave 4 live residue (2026-09-08 browser) — Marty click leftover
+
+**#1 odds unlock after smoke.** Public listing still shows plan name **Pro** @ $39 + 7-day trial, and feature bullets with **(paid)** on LTV/Goals. Reviews **0**. Cursor cannot Submit — Marty must click in Partner using [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) §0:
+
+1. Rename **Pro** → **Mcfly Analytics** (one plan; delete Free if any)
+2. Strip every **(paid)** from feature bullets → paste clean bullets from paste pack §5
+3. Trust URLs → mcflyads.com; App URL stays Fly
+4. **Save.** Marty alone decides Submit / re-review
 
 ## QUARANTINED — Free / Pro freemium paste (do not paste)
 
-**Retired.** Do **not** paste Free Meta+Google / Pro unlocks / Free+Pro matrix into Partner short, long, features, captions, or Pricing.
+**Retired.** Do **not** paste Free Meta+Google / Pro unlocks / Free+Pro matrix / **(paid)** feature-bullet suffixes into Partner short, long, features, captions, or Pricing.
 
 | Poison | Status |
 | --- | --- |
 | Free App Store plan + paid **Pro** | **Deleted from this SoT.** Partner: one plan **Mcfly Analytics** · $39 · 7-day trial. Rename **Pro** → **Mcfly Analytics**. Delete any Free plan. |
 | “Free = Meta + Google · Pro unlocks channels / LTV / Goals” | **Quarantined.** Trial + paid = full desk. Nothing is feature-gated behind Pro. |
+| Feature bullets with **(paid)** on LTV / Goals | **Live residue (2026-09-08).** Strip → paste clean bullets in [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) §5 |
 | Shot `04-free-pro-pricing.png` / captions that say Free vs Pro | **Do not upload** — see [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) |
 | Historical freemium drafts (e.g. `LISTING_19_ISSUES_PASTE.md`, old ops Site/Pricing notes) | **Not listing SoT.** Ignore for Partner paste. |
 
@@ -203,6 +213,8 @@ App URL: https://mcfly-analytics.fly.dev
 
 ## Feature bullets (listing UI — paste in order)
 
+**Wave 4:** Live listing still had **(paid)** on LTV/Goals. Paste these five only — **no** `(paid)` / Free / Pro suffixes.
+
 1. Total ROAS = Shopify Total Sales ÷ ad spend for any period — the ratio Shopify Analytics does not give  
 2. Break-even Total ROAS from your profit margin %  
 3. Spend CSV: Meta, Google, TikTok, and every named channel · mix in $/%  
@@ -366,9 +378,11 @@ lacks it, the merchant sees a grant CTA — history is not permanently dead.
 - [x] Publish Cloudflare Pages so live `/support` `/pricing` `/privacy` match $39 · 7-day trial + PCD — **re-spot-check 200s before Submit**
 - [ ] Install on `devmcflyads`; smoke test above; SAMPLE desk **OFF** (**human**)
 - [ ] Screenshots + M-only icon uploaded (**human**)
-- [ ] Pricing: plan name **Mcfly Analytics** · **$39 / 7-day trial** · **no Free plan** (rename Pro if still labeled Pro)
+- [ ] **Wave 4 — Pricing:** rename live **Pro** → **Mcfly Analytics** · **$39 / 7-day trial** · **no Free plan** · one plan only ([`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) §0-A / §7)
+- [ ] **Wave 4 — Feature bullets:** strip every **(paid)** · paste clean five bullets ([`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) §5)
+- [ ] Trust URLs → mcflyads.com; App URL → Fly ([`ops/PARTNER_LISTING_URLS.md`](./ops/PARTNER_LISTING_URLS.md))
 - [ ] Hero / feature media = formula desk — **not** CUSTOM DATA SCIENCE / 4.42x (do not re-upload bad local PNG unless recaptured)
 - [ ] Reviewer notes pasted
-- [ ] Submit for review (**human** — agents do not Partner-Submit)
+- [ ] **Save**, then Submit for review (**human only** — Cursor does not Partner-Submit). This is the #1 odds unlock after smoke.
 
-Do **not** chase Built for Shopify until paid installs + honest reviews exist. Do **not** invent review counts.
+Do **not** chase Built for Shopify until paid installs + honest reviews exist. Do **not** invent review counts. Reviews live = **0**.
