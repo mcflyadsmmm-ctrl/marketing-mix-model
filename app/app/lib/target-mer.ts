@@ -4,8 +4,8 @@
  * Target Total ROAS is the merchant's operating goal. It is NOT break-even:
  * break-even comes only from confirmed contribution margin. A target counts as
  * configured only when `Settings.targetMerConfirmedAt` is set, so the non-null
- * `Settings.targetMer` default can keep feeding allocation / pacing / Goals
- * without ever being presented as a merchant-confirmed goal.
+ * `Settings.targetMer` default can keep feeding allocation / pacing without
+ * ever being presented as a merchant-confirmed goal (Goals / Overview / Explorer).
  *
  * Pure module — no Prisma, no request, no React.
  */
@@ -48,6 +48,21 @@ export function targetMerFieldValue(settings: {
   targetMerConfirmedAt: Date | string | null;
 }): string {
   return settings.targetMerConfirmedAt != null ? String(settings.targetMer) : "";
+}
+
+/**
+ * Merchant-confirmed Total ROAS goal for chrome / rails / year board.
+ * Null when `targetMerConfirmedAt` is unset — never the DB default 3.0.
+ * Callers treat SAMPLE as confirmed separately (locked demo target).
+ */
+export function confirmedTargetMer(settings: {
+  targetMer: number;
+  targetMerConfirmedAt: Date | string | null;
+}): number | null {
+  if (settings.targetMerConfirmedAt == null) return null;
+  return Number.isFinite(settings.targetMer) && settings.targetMer > 0
+    ? settings.targetMer
+    : null;
 }
 
 export const TARGET_MER_SAVED_PREFIX = `Target ${PRODUCT_NOUN.totalRoas} saved`;

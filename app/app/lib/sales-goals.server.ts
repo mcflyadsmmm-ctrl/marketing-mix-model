@@ -100,7 +100,8 @@ export interface MonthCloseForecast {
   projMer: number | null;
   vsGoalProj: number;
   pace: GoalPace;
-  targetMer: number;
+  /** Confirmed Total ROAS goal, or null when the merchant never set one. */
+  targetMer: number | null;
 }
 
 export interface GoalsYearBoard {
@@ -110,7 +111,8 @@ export interface GoalsYearBoard {
   yearGoal: number;
   yearActual: number;
   forecast: MonthCloseForecast | null;
-  targetMer: number;
+  /** Confirmed Total ROAS goal, or null — never the unconfirmed DB default. */
+  targetMer: number | null;
   breakEvenMer: number | null;
   marginPct: number;
 }
@@ -453,7 +455,7 @@ function buildMonthCloseForecast(params: {
   goals: number[];
   salesByMonth: Map<number, number>;
   spendByMonth: Map<number, number>;
-  targetMer: number;
+  targetMer: number | null;
   now?: Date;
   ianaTimezone?: string | null;
 }): MonthCloseForecast | null {
@@ -505,22 +507,25 @@ function buildMonthCloseForecast(params: {
 /**
  * Year board: monthly sales goals vs Shopify till + cash MER (sales ÷ spend).
  * Loads goals for shopId; actuals/spend come from caller Maps.
+ * `targetMer` must already be confirmation-gated (null = no merchant goal).
+ * Never falls back to the Settings DB default 3.0.
  */
 export async function buildYearBoard(
   shopId: string,
   year: number,
   salesByMonth: Map<number, number>,
   spendByMonth: Map<number, number>,
-  targetMer: number,
+  targetMer: number | null,
   now = new Date(),
   ianaTimezone?: string | null,
 ): Promise<GoalsYearBoard> {
   const settings = await getOrCreateSettings(shopId);
   const goals = await listSalesGoals(shopId, year);
   const breakEvenMer = calculateBreakEvenMer(settings.marginPct);
-  const rail = Number.isFinite(targetMer) && targetMer > 0
-    ? targetMer
-    : settings.targetMer;
+  const rail =
+    targetMer != null && Number.isFinite(targetMer) && targetMer > 0
+      ? targetMer
+      : null;
 
   const tz = ianaTimezone?.trim() || null;
   const { y: currentYear, m: currentMonth } = tz
@@ -972,7 +977,6 @@ export async function loadOverviewGoalPeriods(
     const range = yearDateRange(year, tz);
     const priorYear = year - 1;
     const priorRange = yearDateRange(priorYear, tz);
-    const settings = await getOrCreateSettings(shopId);
 
     const [currentSales, priorSales] = await Promise.all([
       loadSalesByDayForGoalsRange(
@@ -1008,12 +1012,13 @@ export async function loadOverviewGoalPeriods(
       : { excludeSample: true as const, ianaTimezone: tz };
     const spendByMonth = await spendByMonthMap(shopId, year, spendOpts, now);
 
+    // Periods only need monthly sales goals — do not feed unconfirmed 3.0×.
     const board = await buildYearBoard(
       shopId,
       year,
       salesByMonth,
       spendByMonth,
-      settings.targetMer,
+      null,
       now,
       tz,
     );

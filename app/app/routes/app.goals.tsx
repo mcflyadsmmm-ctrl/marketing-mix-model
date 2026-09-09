@@ -17,8 +17,11 @@ import prisma from "../db.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import { getSampleDeskEnabled } from "../lib/sample-desk.server";
-import { parseTargetMerInput } from "../lib/target-mer";
+import {
+  getSampleDeskEnabled,
+  SAMPLE_DESK_TARGET_MER,
+} from "../lib/sample-desk.server";
+import { confirmedTargetMer, parseTargetMerInput } from "../lib/target-mer";
 import {
   buildSalesGoalPeriods,
   buildYearBoard,
@@ -166,12 +169,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     : { excludeSample: true as const, ianaTimezone: shop.ianaTimezone };
   const spendByMonth = await spendByMonthMap(shop.id, year, spendOpts);
 
+  // Love-Goals3 / Love-3: SAMPLE ships a locked demo goal; live desks need
+  // targetMerConfirmedAt. Never present the DB default 3.0× as the merchant's.
+  const targetMer = useSampleDesk
+    ? SAMPLE_DESK_TARGET_MER
+    : confirmedTargetMer(settings);
+
   const board = await buildYearBoard(
     shop.id,
     year,
     salesByMonth,
     spendByMonth,
-    settings.targetMer,
+    targetMer,
   );
 
   const periods = buildSalesGoalPeriods({
@@ -194,7 +203,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     useSampleDesk,
     salesError,
     goalsEnabled: Boolean(settings.goalsEnabled),
-    targetMer: settings.targetMer,
+    targetMer,
     priorYear,
     priorYearMonthly,
     entitlements: getShopEntitlements(session.shop, {
@@ -545,7 +554,7 @@ export default function GoalsPage() {
                 ·
               </span>
               <span className="mcfly-ctx__asof">{tillLabel}</span>
-              {!shotMode ? (
+              {!shotMode && targetMer != null ? (
                 <>
                   <span className="mcfly-ctx__sep" aria-hidden="true">
                     ·

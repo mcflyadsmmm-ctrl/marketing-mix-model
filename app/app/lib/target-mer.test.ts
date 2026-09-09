@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CLOSED_DAY_NOTE,
   NO_TARGET_LINE,
+  confirmedTargetMer,
   parseTargetMerInput,
   resolveTargetMerComparison,
   targetMerFieldValue,
@@ -88,6 +89,20 @@ describe("targetMerFieldValue", () => {
     expect(
       targetMerFieldValue({ targetMer: 3, targetMerConfirmedAt: null }),
     ).toBe("");
+  });
+});
+
+describe("confirmedTargetMer", () => {
+  it("returns null for the unconfirmed DB default and the confirmed value when stamped", () => {
+    expect(
+      confirmedTargetMer({ targetMer: 3, targetMerConfirmedAt: null }),
+    ).toBeNull();
+    expect(
+      confirmedTargetMer({
+        targetMer: 4.5,
+        targetMerConfirmedAt: new Date("2026-09-08T00:00:00.000Z"),
+      }),
+    ).toBe(4.5);
   });
 });
 

@@ -14,6 +14,7 @@ vi.mock("./mer-dashboard.server", () => ({
 
 import {
   buildSalesGoalPeriods,
+  buildYearBoard,
   calendarDaysElapsedInMonth,
   monthDateRange,
   paceStatus,
@@ -23,6 +24,46 @@ import {
 } from "./sales-goals.server";
 import { shopLocalDayKey, shopLocalDayRange, shopLocalYmd } from "./shop-local-day";
 import prisma from "../db.server";
+import { getOrCreateSettings } from "./mer-dashboard.server";
+
+describe("buildYearBoard target rail", () => {
+  it("keeps a null target null and never falls back to Settings 3.0", async () => {
+    vi.mocked(getOrCreateSettings).mockResolvedValue({
+      targetMer: 3,
+      marginPct: 40,
+    } as Awaited<ReturnType<typeof getOrCreateSettings>>);
+    vi.mocked(prisma.salesGoal.findMany).mockResolvedValue([]);
+
+    const board = await buildYearBoard(
+      "shop_1",
+      2026,
+      new Map(),
+      new Map(),
+      null,
+      new Date(2026, 6, 15),
+    );
+    expect(board.targetMer).toBeNull();
+    expect(board.forecast?.targetMer ?? null).toBeNull();
+  });
+
+  it("stores a confirmed target on the board", async () => {
+    vi.mocked(getOrCreateSettings).mockResolvedValue({
+      targetMer: 3,
+      marginPct: 40,
+    } as Awaited<ReturnType<typeof getOrCreateSettings>>);
+    vi.mocked(prisma.salesGoal.findMany).mockResolvedValue([]);
+
+    const board = await buildYearBoard(
+      "shop_1",
+      2026,
+      new Map(),
+      new Map(),
+      4.5,
+      new Date(2026, 6, 15),
+    );
+    expect(board.targetMer).toBe(4.5);
+  });
+});
 
 describe("salesByMonthFromDayMap", () => {
   it("buckets day keys into months and caps current month at today", () => {

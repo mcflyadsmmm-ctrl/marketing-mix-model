@@ -199,6 +199,22 @@ describe("Optional target Total ROAS", () => {
     );
   });
 
+  it("Goals never draws unconfirmed default 3.00× (Love-Goals3)", () => {
+    expect(goals).toContain("confirmedTargetMer");
+    expect(goals).toContain("SAMPLE_DESK_TARGET_MER");
+    expect(goals).toMatch(
+      /targetMer\s*=\s*useSampleDesk\s*\?\s*SAMPLE_DESK_TARGET_MER\s*:\s*confirmedTargetMer\(settings\)/,
+    );
+    expect(goals).not.toMatch(/targetMer:\s*settings\.targetMer/);
+    expect(goals).not.toMatch(
+      /buildYearBoard\(\s*[\s\S]*?settings\.targetMer/,
+    );
+    // Chrome only when a confirmed (or SAMPLE) target exists.
+    expect(goals).toMatch(
+      /!shotMode && targetMer != null \?[\s\S]{0,280}formatMer\(targetMer\)/,
+    );
+  });
+
   it("Overview passes only a confirmed target plus period trust into the gauge", () => {
     const client = overview.split("export default function Dashboard")[1] ?? "";
     expect(client).toMatch(
