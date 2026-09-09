@@ -110,7 +110,9 @@ describe("first-spend hand-off to Total ROAS", () => {
   });
 
   it("shows the coverage nag once — inside the saved note, not twice", () => {
-    expect(spend).toContain("!daySavedCopy && holeCount > 0");
+    expect(spend).toContain("!daySavedCopy && coverageNotice.showBanner");
+    // showBanner is false at full coverage, so a covered desk still gets no nag.
+    expect(spend).toContain("resolveSpendCoverageNotice");
   });
 
   it("keeps typed-row errors out of the CSV banner", () => {

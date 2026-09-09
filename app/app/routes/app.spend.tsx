@@ -85,6 +85,10 @@ import {
   CASH_PAGE_WHY,
   formatMissingDaysRoasImpact,
 } from "../lib/cash-desk-copy";
+import {
+  resolveSpendCoverageNotice,
+  type SpendCoverageCtaTarget,
+} from "../lib/spend-coverage-tone";
 import prisma from "../db.server";
 import {
   SPEND_CHANNELS,
@@ -1049,24 +1053,28 @@ export default function SpendEntryPage() {
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
   }, []);
   /** Coverage status excludes today — "through yesterday" is the ritual bar. */
-  const coverageThroughYesterday = useMemo(() => {
-    const days = dayCoverage.days.filter((d) => d.dateKey !== todayKey);
-    const missing = days.filter((d) => !d.filled).map((d) => d.dateKey);
-    return {
-      missing,
-      upToDate: days.length > 0 && missing.length === 0,
-    };
-  }, [dayCoverage.days, todayKey]);
-  const holeCount = coverageThroughYesterday.missing.length;
-  const coverageWindowDays = dayCoverage.days.filter(
-    (d) => d.dateKey !== todayKey,
-  ).length;
+  const closedCoverageDays = useMemo(
+    () => dayCoverage.days.filter((d) => d.dateKey !== todayKey),
+    [dayCoverage.days, todayKey],
+  );
+  const missingDates = useMemo(
+    () => closedCoverageDays.filter((d) => !d.filled).map((d) => d.dateKey),
+    [closedCoverageDays],
+  );
+  const holeCount = missingDates.length;
   const coverageImpact = formatMissingDaysRoasImpact({
     missingDays: holeCount,
-    windowDays: coverageWindowDays,
+    windowDays: closedCoverageDays.length,
     periodLabel: "the last 28 days",
   });
-  const missingDates = coverageThroughYesterday.missing;
+  /**
+   * Tone only — the counts above stay exact. A one-day-old ledger reads as
+   * progress instead of a red 27-hole alarm (FRICTION_AUTOPSY F2).
+   */
+  const coverageNotice = resolveSpendCoverageNotice({
+    closedDays: closedCoverageDays,
+    impact: coverageImpact,
+  });
   const missingDatesPreview = missingDates.slice(0, 5);
   const blankTemplateHref = entitlements.canUseAllChannels
     ? "/app/spend/template?blank=1"
@@ -1075,6 +1083,20 @@ export default function SpendEntryPage() {
     missingDates.length > 0
       ? `/app/spend/template?dates=${encodeURIComponent(missingDates.slice(0, 62).join(","))}`
       : blankTemplateHref;
+  function coverageCtaHref(target: SpendCoverageCtaTarget): string {
+    switch (target) {
+      case "type_day":
+        return "#mcfly-spend-day";
+      case "blanks":
+        return missingDatesHref;
+      case "total_roas":
+        return "/app?stay=1";
+      default: {
+        const _exhaustive: never = target;
+        return _exhaustive;
+      }
+    }
+  }
   const csvErrorGroups =
     csv && csv.errors.length > 0 ? groupCsvErrors(csv.errors) : null;
   const actionErrorGroups =
@@ -1431,17 +1453,30 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        {/* Coverage nag is already inside the saved banner's note — never both. */}
-        {!isEmpty && !shotMode && !daySavedCopy && holeCount > 0 ? (
-          <s-banner tone="critical" heading={coverageImpact.heading}>
-            <s-paragraph>{coverageImpact.body}</s-paragraph>
+        {/* Coverage nag is already inside the saved banner's note — never both.
+            Tone comes from resolveSpendCoverageNotice: a young ledger reads as
+            progress, `critical` stays with the verdict and the export. */}
+        {!isEmpty && !shotMode && !daySavedCopy && coverageNotice.showBanner ? (
+          <s-banner tone={coverageNotice.tone} heading={coverageNotice.heading}>
+            <s-paragraph>{coverageNotice.body}</s-paragraph>
+            {coverageNotice.note ? (
+              <s-paragraph>{coverageNotice.note}</s-paragraph>
+            ) : null}
             <div
               className="mcfly-decision__actions"
               style={{ marginTop: "0.65rem" }}
             >
-              <s-button href={missingDatesHref} variant="primary">
-                {coverageImpact.nextLabel}
+              <s-button
+                href={coverageCtaHref(coverageNotice.primary.target)}
+                variant="primary"
+              >
+                {coverageNotice.primary.label}
               </s-button>
+              {coverageNotice.secondary ? (
+                <s-link href={coverageCtaHref(coverageNotice.secondary.target)}>
+                  {coverageNotice.secondary.label}
+                </s-link>
+              ) : null}
             </div>
           </s-banner>
         ) : null}
@@ -2059,28 +2094,20 @@ export default function SpendEntryPage() {
           {/* 4 · Status line — empty desk already taught the path above */}
           {!isEmpty ? (
           <div className="mcfly-spend-lean__status" role="status">
-            {coverageThroughYesterday.upToDate ? (
-              <p className="mcfly-spend-lean__status-line">
-                ✓ Up to date through yesterday — Total ROAS can use this spend
-              </p>
-            ) : (
-              <p className="mcfly-spend-lean__status-line">
-                {coverageImpact.heading}
-                {missingDatesPreview.length > 0 ? (
-                  <>
-                    {": "}
-                    {missingDatesPreview.join(", ")}
-                    {missingDates.length > missingDatesPreview.length
-                      ? ", …"
-                      : ""}
-                    {" · "}
-                    <s-link href={missingDatesHref}>download blanks</s-link>
-                  </>
-                ) : null}
-              </p>
-            )}
+            <p className="mcfly-spend-lean__status-line">
+              {coverageNotice.statusLine}
+              {missingDatesPreview.length > 0 ? (
+                <>
+                  {": "}
+                  {missingDatesPreview.join(", ")}
+                  {missingDates.length > missingDatesPreview.length ? ", …" : ""}
+                  {" · "}
+                  <s-link href={missingDatesHref}>download blanks</s-link>
+                </>
+              ) : null}
+            </p>
             <p className="mcfly-spend-lean__status-foot">
-              {coverageImpact.body} Backdate to {spendHistoryFloorKey} (
+              {coverageNotice.body} Backdate to {spendHistoryFloorKey} (
               {spendHistoryYearsBack} years) — same window as Shopify sales.
             </p>
           </div>
