@@ -894,7 +894,10 @@ export default function Dashboard() {
                   ) : (
                     <TotalRoasGauge
                       mer={trustedHero.mer}
-                      targetMer={metrics.targetMer}
+                      targetMer={
+                        metrics.targetMerConfirmed ? metrics.targetMer : null
+                      }
+                      periodTrusted={periodTrust.trusted}
                       deltaLine={merDeltaLine}
                     />
                   )}

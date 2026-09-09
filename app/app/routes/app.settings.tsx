@@ -26,6 +26,12 @@ import { formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { isActivationQuery, spendSkipHref } from "../lib/install-stickiness";
 import { parseSalesBasis } from "../lib/sales-basis";
+import {
+  parseTargetMerInput,
+  targetMerFieldValue,
+  targetMerSavedCopy,
+  TARGET_MER_CLEARED_COPY,
+} from "../lib/target-mer";
 import { getSampleDeskEnabled, getSamplePreviewAllowed } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
@@ -151,10 +157,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     };
   }
 
-  const targetMer = parseFloat(String(form.get("targetMer") ?? "0"));
-  if (!Number.isFinite(targetMer) || targetMer <= 0) {
+  // Blank target is valid and means "clear the goal rail" — never a 0 sentinel.
+  const target = parseTargetMerInput(form.get("targetMer"));
+  if (!target.ok) {
     return {
-      error: `Target ${PRODUCT_NOUN.totalRoas} must be positive`,
+      error: target.error,
       success: false as const,
       breakEvenMer: null as number | null,
       marginPct: null as number | null,
@@ -170,15 +177,24 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       : "total";
 
   const updateData: {
-    targetMer: number;
     salesBasis: ReturnType<typeof parseSalesBasis>;
+    targetMer?: number;
+    targetMerConfirmedAt?: Date | null;
     marginPct?: number;
     marginOverride?: boolean;
     marginConfirmedAt?: Date;
   } = {
-    targetMer,
     salesBasis,
   };
+
+  if (target.operation === "set") {
+    updateData.targetMer = target.targetMer;
+    updateData.targetMerConfirmedAt = new Date();
+  } else {
+    // Clear drops only the confirmation. The last number stays for allocation /
+    // pacing / Goals internals, and margin is never touched here.
+    updateData.targetMerConfirmedAt = null;
+  }
 
   let breakEvenMer: number | null = null;
   let marginPct: number | null = null;
@@ -217,7 +233,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     success: true as const,
     breakEvenMer,
     marginPct,
-    targetMer,
+    targetMer: target.operation === "set" ? target.targetMer : null,
+    targetCleared: target.operation === "clear",
   };
 };
 
@@ -250,10 +267,18 @@ export default function SettingsPage() {
   const isRevalidating =
     navigation.state === "loading" && navigation.formMethod != null;
 
+  // Only the target/margin save owns the success banner — a privacy download
+  // must not read as "targets saved".
+  const targetSave =
+    actionData?.success && "targetCleared" in actionData ? actionData : null;
+
   const marginConfirmed = settings.marginConfirmedAt != null;
   const [marginInput, setMarginInput] = useState(() =>
     marginConfirmed ? (settings.marginPct * 100).toFixed(1) : "",
   );
+  // Unconfirmed target loads blank — the non-null default is not a merchant goal.
+  const targetFieldValue = targetMerFieldValue(settings);
+  const [targetInput, setTargetInput] = useState(targetFieldValue);
 
   useEffect(() => {
     setMarginInput(
@@ -266,6 +291,10 @@ export default function SettingsPage() {
     settings.marginConfirmedAt,
     settings.updatedAt,
   ]);
+
+  useEffect(() => {
+    setTargetInput(targetFieldValue);
+  }, [targetFieldValue, settings.updatedAt]);
 
   useEffect(() => {
     if (!actionData) return;
@@ -289,17 +318,16 @@ export default function SettingsPage() {
       );
       return;
     }
-    if (actionData.success && actionData.breakEvenMer !== null) {
+    if (actionData.success && "targetCleared" in actionData) {
+      // Target and break-even are different numbers — never one merged claim.
+      const targetLine = actionData.targetCleared
+        ? TARGET_MER_CLEARED_COPY
+        : targetMerSavedCopy(Number(actionData.targetMer));
       showAdminToast(
-        `Margin saved · break-even ${formatMer(actionData.breakEvenMer)}`,
+        actionData.breakEvenMer != null
+          ? `${targetLine} Margin saved · break-even ${formatMer(actionData.breakEvenMer)}`
+          : targetLine,
         { duration: 4500 },
-      );
-      return;
-    }
-    if (actionData.success && "targetMer" in actionData) {
-      showAdminToast(
-        `Target ${PRODUCT_NOUN.totalRoas} saved · ${formatMer(Number(actionData.targetMer))}`,
-        { duration: 4000 },
       );
       return;
     }
@@ -308,12 +336,14 @@ export default function SettingsPage() {
     }
   }, [actionData]);
 
+  // Discard/reset restores the loader state for both fields.
   const handleDiscard = () => {
     setMarginInput(
       settings.marginConfirmedAt != null
         ? (settings.marginPct * 100).toFixed(1)
         : "",
     );
+    setTargetInput(targetFieldValue);
   };
 
   const marginDecimal = parseFloat(marginInput) / 100;
@@ -341,7 +371,7 @@ export default function SettingsPage() {
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
               {isActivationQuery(location.search) && !shotMode
                 ? `${CASH_NOT_ATTRIBUTION} Margin is optional for break-even. Paste spend first for Total ROAS — or save margin here, then go to Spend.`
-                : `${CASH_NOT_ATTRIBUTION} Set your target. Profit margin unlocks break-even — Total ROAS is sales ÷ spend either way.`}
+                : `${CASH_NOT_ATTRIBUTION} Set an optional target. Profit margin unlocks break-even — Total ROAS is sales ÷ spend either way.`}
             </p>
           </div>
         </header>
@@ -401,12 +431,15 @@ export default function SettingsPage() {
           </s-banner>
         ) : null}
 
-        {actionData?.success && !isSaving ? (
+        {targetSave && !isSaving ? (
           <s-banner tone="success" heading="Saved">
             <s-paragraph>
-              {actionData.breakEvenMer != null
-                ? `Target updated. At ${formatPercent(actionData.marginPct ?? settings.marginPct)} margin, break-even is ${formatMer(actionData.breakEvenMer)}.`
-                : `Target ${PRODUCT_NOUN.totalRoas} updated. Profit margin stays optional — add it anytime for break-even.`}
+              {targetSave.targetCleared
+                ? TARGET_MER_CLEARED_COPY
+                : targetMerSavedCopy(Number(targetSave.targetMer))}
+              {targetSave.breakEvenMer != null
+                ? ` Separately, at ${formatPercent(targetSave.marginPct ?? settings.marginPct)} margin your ${PRODUCT_NOUN.breakEvenTotalRoas} is ${formatMer(targetSave.breakEvenMer)} — the floor, not your target.`
+                : " Profit margin stays optional — add it anytime for break-even."}
               {hasLiveSpend
                 ? ` Open ${PRODUCT_NOUN.totalRoas} when ready.`
                 : " Next: paste daily spend on Spend."}
@@ -431,8 +464,9 @@ export default function SettingsPage() {
               Set your Total ROAS target
             </h2>
             <p className="mcfly-settings-template__copy">
-              {PRODUCT_NOUN.definition}. Target is the operating goal (e.g. 4.0 =
-              $4 sales per $1 spend). Profit margin is optional — use average
+              {PRODUCT_NOUN.definition}. Target is an optional operating goal
+              (e.g. 4.0 = $4 sales per $1 spend) — leave it blank and Overview
+              shows actual only. Profit margin is optional too — use average
               contribution margin from AOV and cost of goods when you want
               break-even on the desk.
             </p>
@@ -442,7 +476,7 @@ export default function SettingsPage() {
             <div className="mcfly-panel__head">
               <h2>Desk targets</h2>
               <p className="mcfly-panel__muted">
-                Target required · margin optional
+                Target optional · margin optional
               </p>
             </div>
             <Form
@@ -462,7 +496,7 @@ export default function SettingsPage() {
                 }
               >
                 <legend className="mcfly-settings-fields__legend">
-                  Target {PRODUCT_NOUN.totalRoas} and optional margin
+                  Optional target {PRODUCT_NOUN.totalRoas} and optional margin
                 </legend>
 
                 <div className="mcfly-settings-field">
@@ -470,7 +504,10 @@ export default function SettingsPage() {
                     className="mcfly-settings-field__label"
                     htmlFor={targetFieldId}
                   >
-                    Target {PRODUCT_NOUN.totalRoas}
+                    Target {PRODUCT_NOUN.totalRoas}{" "}
+                    <span className="mcfly-settings-field__optional">
+                      (optional)
+                    </span>
                   </label>
                   <input
                     id={targetFieldId}
@@ -479,15 +516,19 @@ export default function SettingsPage() {
                     type="number"
                     step="0.1"
                     min="0.1"
-                    required
                     inputMode="decimal"
                     autoComplete="off"
                     aria-describedby={targetHintId}
-                    defaultValue={settings.targetMer}
+                    placeholder="e.g. 4.0"
+                    value={targetInput}
+                    onChange={(event) =>
+                      setTargetInput(event.currentTarget.value)
+                    }
                   />
                   <span id={targetHintId} className="mcfly-settings-field__hint">
-                    Operating goal — e.g. 4.0 means $4 Shopify Total Sales per
-                    $1 ad spend. Same field as Goals.
+                    Your operating goal — for example, 4.0 means $4 in Shopify
+                    Total Sales per $1 of ad spend. Leave blank to show actual
+                    only.
                   </span>
                 </div>
 

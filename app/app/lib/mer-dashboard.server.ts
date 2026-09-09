@@ -192,6 +192,12 @@ export interface DashboardMetrics {
   /** Soft warning — marginConfirmedAt older than 90 days. */
   marginStale: boolean;
   targetMer: number;
+  /**
+   * True only when the merchant confirmed a target (or SAMPLE supplies one).
+   * `targetMer` stays numeric for allocation / pacing / Goals, so the Overview
+   * rail must gate on this before showing a goal or an above/below verdict.
+   */
+  targetMerConfirmed: boolean;
   marginPct: number;
   channelMix: ReturnType<typeof channelMix>;
   aboveBreakEven: boolean | null;
@@ -994,6 +1000,11 @@ export async function buildDashboardMetrics(
   const effectiveTargetMer = useSampleDesk
     ? SAMPLE_DESK_TARGET_MER
     : settings.targetMer;
+  // SAMPLE ships a locked target so the demo rail reads; live desks need an
+  // explicit merchant confirmation. Read-only either way — never a write.
+  const targetMerConfirmed = useSampleDesk
+    ? true
+    : settings.targetMerConfirmedAt != null;
   const entitlements = getShopEntitlements(shopDomain, {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
@@ -1275,6 +1286,7 @@ export async function buildDashboardMetrics(
     cashActionReady,
     marginStale: marginIsStale(settings),
     targetMer: effectiveTargetMer,
+    targetMerConfirmed,
     marginPct: effectiveMarginPct,
     channelMix: mix,
     aboveBreakEven:

@@ -72,6 +72,10 @@ model Settings {
   /// When true, merchant locks marginPct manually; when false, marginPct derived from stack when complete.
   marginOverride              Boolean   @default(false)
   targetMer                   Float     @default(3.0)
+  /// Set when the merchant confirms a target via Settings or Goals. Null = no
+  /// operating target — Overview shows actual Total ROAS with no goal rail.
+  /// `targetMer` stays non-null so allocation/pacing/Goals keep a numeric rail.
+  targetMerConfirmedAt        DateTime?
   /// Action Total ROAS numerator: "total" = Shopify Total Sales (default); "net" = Net Sales view.
   salesBasis                  String    @default("total")
   /// Set when the merchant confirms margin via Settings save. Null = preview defaults only.

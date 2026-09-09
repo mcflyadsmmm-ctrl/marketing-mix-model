@@ -18,6 +18,7 @@ import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
+import { parseTargetMerInput } from "../lib/target-mer";
 import {
   buildSalesGoalPeriods,
   buildYearBoard,
@@ -82,15 +83,6 @@ function parseGoalInput(raw: FormDataEntryValue | null): number {
   if (cleaned === "") return 0;
   const n = Number.parseFloat(cleaned);
   if (!Number.isFinite(n) || n < 0) return Number.NaN;
-  return n;
-}
-
-function parseTargetMerInput(raw: FormDataEntryValue | null): number {
-  const cleaned = String(raw ?? "")
-    .replace(/[×x,\s]/gi, "")
-    .trim();
-  const n = Number.parseFloat(cleaned);
-  if (!Number.isFinite(n) || n <= 0) return Number.NaN;
   return n;
 }
 
@@ -230,8 +222,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   });
 
   if (intent === "save_target_mer") {
-    const targetMer = parseTargetMerInput(form.get("targetMer"));
-    if (Number.isNaN(targetMer)) {
+    // One setting with Settings: Goals sets the number and confirms it.
+    // Goals has no clear affordance, so a blank submit is an error here.
+    const parsed = parseTargetMerInput(form.get("targetMer"));
+    if (!parsed.ok || parsed.operation === "clear") {
       return {
         success: false as const,
         intent,
@@ -241,9 +235,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         targetMer: null as number | null,
       };
     }
+    const targetMer = parsed.targetMer;
     await prisma.settings.update({
       where: { shopId: shop.id },
-      data: { targetMer },
+      data: { targetMer, targetMerConfirmedAt: new Date() },
     });
     return {
       success: true as const,

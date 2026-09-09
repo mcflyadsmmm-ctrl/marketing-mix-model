@@ -2,14 +2,23 @@
  * Semi-circle Total ROAS gauge — pure SVG, no chart library.
  * Current ROAS fills the arc; value sits inside the dial; target is a small arc label.
  * Clear definition sits beside the dial.
+ *
+ * Target Total ROAS is optional. `targetMer={null}` means the merchant has not set
+ * an operating goal, so no tick is drawn and the dial stays neutral — a hidden
+ * default must never color actual green/red. An untrusted period keeps the actual
+ * number but suppresses the above/below verdict.
  */
 
+import { resolveTargetMerComparison } from "../lib/target-mer";
 import { formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 
 type TotalRoasGaugeProps = {
   mer: number | null;
-  targetMer: number;
+  /** Confirmed operating target, or null when none is set. */
+  targetMer: number | null;
+  /** `resolvePeriodTrust().trusted` — gates the above/below verdict. */
+  periodTrusted: boolean;
   /** Prior-period delta line under the dial (optional). */
   deltaLine?: string | null;
 };
@@ -37,10 +46,18 @@ function polar(cx: number, cy: number, r: number, t: number) {
 export function TotalRoasGauge({
   mer,
   targetMer,
+  periodTrusted,
   deltaLine,
 }: TotalRoasGaugeProps) {
+  const comparison = resolveTargetMerComparison({
+    actualMer: mer,
+    targetMer,
+    periodTrusted,
+  });
+  const target = comparison.target;
+
   const scaleMax = Math.max(
-    targetMer * 1.35,
+    target != null ? target * 1.35 : 0,
     mer != null ? mer * 1.15 : 0,
     4,
   );
@@ -58,21 +75,31 @@ export function TotalRoasGauge({
       ? `M ${trackStart.x} ${trackStart.y} A ${r} ${r} 0 0 1 ${fillEnd.x} ${fillEnd.y}`
       : "";
 
-  const targetT = valueToT(targetMer, scaleMax);
+  const targetT = target != null ? valueToT(target, scaleMax) : 0;
   const targetLabel = polar(cx, cy, r + 14, targetT);
   const targetAnchor =
     targetT < 0.22 ? "start" : targetT > 0.78 ? "end" : "middle";
 
-  const tone =
-    mer == null ? "flat" : mer >= targetMer ? "ok" : "warn";
+  // Direction color only when the comparison is allowed to be a verdict.
+  const tone = !comparison.verdictAllowed
+    ? "flat"
+    : comparison.state === "above"
+      ? "ok"
+      : "warn";
 
   return (
     <div
       className={`mcfly-roas-gauge mcfly-roas-gauge--with-def mcfly-roas-gauge--${tone}`}
-      role="img"
-      aria-label={`${PRODUCT_NOUN.totalRoas} ${mer == null ? "unavailable" : formatMer(mer)}; target ${formatMer(targetMer)}. ${PRODUCT_NOUN.definitionForPeriod}`}
     >
-      <div className="mcfly-roas-gauge__main">
+      {/*
+        role="img" stays on the dial only. Wrapping the whole card would make the
+        aside presentational and strand the Settings link for keyboard/AT users.
+      */}
+      <div
+        className="mcfly-roas-gauge__main"
+        role="img"
+        aria-label={`${comparison.accessibleName} ${PRODUCT_NOUN.definitionForPeriod}`}
+      >
         <p className="mcfly-roas-gauge__kicker">{PRODUCT_NOUN.totalRoas}</p>
         <div className="mcfly-roas-gauge__dial">
           <svg
@@ -96,20 +123,23 @@ export function TotalRoasGauge({
                 strokeLinecap="round"
               />
             ) : null}
-            <text
-              className="mcfly-roas-gauge__target-num"
-              x={targetLabel.x}
-              y={targetLabel.y}
-              textAnchor={targetAnchor}
-              dominantBaseline="middle"
-            >
-              {formatMer(targetMer)}
-            </text>
+            {target != null ? (
+              <text
+                className="mcfly-roas-gauge__target-num"
+                x={targetLabel.x}
+                y={targetLabel.y}
+                textAnchor={targetAnchor}
+                dominantBaseline="middle"
+              >
+                {formatMer(target)}
+              </text>
+            ) : null}
           </svg>
           <p className="mcfly-roas-gauge__value">
             {mer == null ? "—.——" : formatMer(mer)}
           </p>
         </div>
+        <p className="mcfly-roas-gauge__delta">{comparison.line}</p>
         {deltaLine ? (
           <p className="mcfly-roas-gauge__delta">{deltaLine}</p>
         ) : null}
@@ -122,8 +152,18 @@ export function TotalRoasGauge({
           {PRODUCT_NOUN.notTrueRoas}
         </p>
         <p className="mcfly-roas-gauge__aside-meta">
-          Target {formatMer(targetMer)} on the arc
+          {comparison.closedDayNote}
         </p>
+        {target != null ? (
+          <p className="mcfly-roas-gauge__aside-meta">
+            Target {formatMer(target)} on the arc ·{" "}
+            <s-link href="/app/settings">Change target</s-link>
+          </p>
+        ) : (
+          <p className="mcfly-roas-gauge__aside-meta">
+            <s-link href="/app/settings">Set a target in Settings</s-link>
+          </p>
+        )}
       </aside>
     </div>
   );

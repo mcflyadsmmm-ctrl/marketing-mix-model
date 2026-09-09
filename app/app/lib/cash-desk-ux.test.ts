@@ -15,6 +15,13 @@ const sampleBanner = readFileSync(
   "utf8",
 );
 const dataMode = readFileSync(join(here, "../components/DataModeBar.tsx"), "utf8");
+const settings = readFileSync(join(here, "../routes/app.settings.tsx"), "utf8");
+const gauge = readFileSync(
+  join(here, "../components/TotalRoasGauge.tsx"),
+  "utf8",
+);
+const merDashboard = readFileSync(join(here, "./mer-dashboard.server.ts"), "utf8");
+const schema = readFileSync(join(here, "../../prisma/schema.prisma"), "utf8");
 
 describe("Overview Monday desk", () => {
   it("leads with a cash verdict and warns untrusted periods", () => {
@@ -63,6 +70,99 @@ describe("Later pages have a cash why + soft gate", () => {
     expect(allocation).toContain('page="allocation"');
     expect(advanced).toContain('page="advanced"');
     expect(advanced).toContain("FirstTrustedRoasGate");
+  });
+});
+
+describe("Optional target Total ROAS", () => {
+  it("keeps targetMer non-null and gates it behind a confirmation stamp", () => {
+    expect(schema).toMatch(/targetMer\s+Float\s+@default\(3\.0\)/);
+    expect(schema).toMatch(/targetMerConfirmedAt\s+DateTime\?/);
+    expect(schema).not.toMatch(/targetMer\s+Float\?/);
+    expect(merDashboard).toContain("targetMerConfirmed");
+    expect(merDashboard).toMatch(
+      /targetMerConfirmed\s*=\s*useSampleDesk\s*\?\s*true\s*:\s*settings\.targetMerConfirmedAt != null/,
+    );
+  });
+
+  it("Settings target is optional, controlled, and clears without touching margin", () => {
+    expect(settings).toContain("parseTargetMerInput");
+    expect(settings).toContain("targetMerFieldValue");
+    expect(settings).toContain("Target optional · margin optional");
+    expect(settings).not.toContain("Target required · margin optional");
+    expect(settings).toMatch(/name="targetMer"[\s\S]{0,320}value=\{targetInput\}/);
+    expect(settings).not.toMatch(/name="targetMer"[\s\S]{0,240}required/);
+    expect(settings).not.toMatch(/name="targetMer"[\s\S]{0,240}defaultValue/);
+    expect(settings).toMatch(
+      /Leave blank to show actual\s+only\./,
+    );
+    // Clear drops only the confirmation; the numeric rail and margin survive.
+    expect(settings).toMatch(
+      /updateData\.targetMerConfirmedAt = null;/,
+    );
+    expect(settings).toMatch(
+      /operation === "set"[\s\S]{0,160}updateData\.targetMer = target\.targetMer;/,
+    );
+    // Reset restores both loader values.
+    expect(settings).toMatch(
+      /handleDiscard[\s\S]{0,320}setTargetInput\(targetFieldValue\)/,
+    );
+    // Success copy keeps target and break-even as separate numbers.
+    expect(settings).toContain("TARGET_MER_CLEARED_COPY");
+    expect(settings).toContain("targetMerSavedCopy");
+    expect(settings).toMatch(/the floor, not your target/);
+  });
+
+  it("Goals writes the same confirmed target as Settings", () => {
+    expect(goals).toContain('from "../lib/target-mer"');
+    expect(goals).toMatch(
+      /data: \{ targetMer, targetMerConfirmedAt: new Date\(\) \}/,
+    );
+  });
+
+  it("Overview passes only a confirmed target plus period trust into the gauge", () => {
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    expect(client).toMatch(
+      /<TotalRoasGauge[\s\S]{0,240}targetMer=\{\s*metrics\.targetMerConfirmed \? metrics\.targetMer : null\s*\}/,
+    );
+    expect(client).toMatch(
+      /<TotalRoasGauge[\s\S]{0,320}periodTrusted=\{periodTrust\.trusted\}/,
+    );
+  });
+
+  it("gauge stays neutral without a configured or trusted target", () => {
+    expect(gauge).toContain("resolveTargetMerComparison");
+    expect(gauge).toMatch(/targetMer: number \| null/);
+    expect(gauge).toMatch(/periodTrusted: boolean/);
+    // Direction color requires an allowed verdict — never a hidden default.
+    expect(gauge).toMatch(
+      /tone = !comparison\.verdictAllowed[\s\S]{0,120}"flat"/,
+    );
+    // Target tick and arc label only render when a target exists.
+    expect(gauge).toMatch(/target != null \?[\s\S]{0,200}mcfly-roas-gauge__target-num/);
+    expect(gauge).toContain("comparison.closedDayNote");
+    expect(gauge).toContain("comparison.accessibleName");
+    // Settings link must stay keyboard reachable outside the role="img" dial.
+    expect(gauge).toContain('<s-link href="/app/settings">');
+    expect(gauge).toMatch(/mcfly-roas-gauge__main"\s*\n\s*role="img"/);
+  });
+
+  it("closed-day honesty copy is one line beside the rail, not a new banner", () => {
+    expect(gauge).not.toContain("s-banner");
+    const targetMer = readFileSync(join(here, "./target-mer.ts"), "utf8");
+    expect(targetMer).toContain(
+      "Closed-day sales and spend are complete. Today can still move.",
+    );
+    expect(targetMer).toContain(
+      "Target call paused — closed-day sales or spend is incomplete.",
+    );
+    expect(targetMer).toContain(
+      "Closed days are the trust check. Today can still move.",
+    );
+    // Trust is an input from resolvePeriodTrust — target-mer never re-derives it.
+    expect(targetMer).toMatch(/periodTrusted: boolean/);
+    expect(targetMer).not.toContain("period-trust");
+    expect(targetMer).not.toMatch(/spendCoverage|salesFactsIncomplete/);
+    expect(overview).toContain("resolvePeriodTrust");
   });
 });
 
