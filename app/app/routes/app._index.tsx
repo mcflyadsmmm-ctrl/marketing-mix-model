@@ -472,8 +472,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         !useSampleDesk,
       historyLimited:
         !useSampleDesk &&
-        !scopesIncludeReadAllOrders(session.scope) &&
-        periodMayExceedShopifyOrderWindow(range),
+        (Boolean(salesFactsCoverageForBanner?.periodExceedsFactWindow) ||
+          (!scopesIncludeReadAllOrders(session.scope) &&
+            periodMayExceedShopifyOrderWindow(range))),
       factsIncomplete: factsIncompleteForHonesty,
     }).ask,
   };
