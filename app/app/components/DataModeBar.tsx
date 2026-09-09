@@ -16,7 +16,7 @@ export type DataModeBarProps = {
 
 /**
  * Global Sample | Real store control — one place, every desk page.
- * First-session ritual (margin → CSV spend → desk → Allocation) lives here
+ * First-session ritual (spend → desk → optional margin → Allocation) lives here
  * so Overview empties and this bar cannot drift.
  */
 export function DataModeBar({
@@ -138,10 +138,12 @@ function FirstSessionGuide({ path }: { path: FirstSessionPath }) {
 }
 
 function MarginNudge({ path }: { path: FirstSessionPath }) {
+  const marginStep =
+    path.steps.find((step) => step.id === "margin") ?? path.steps[0];
   return (
     <s-banner tone="info" heading={path.marginNudgeHeading}>
       <s-paragraph>{path.marginNudgeBody}</s-paragraph>
-      <s-link href={path.steps[0].href}>{path.steps[0].label}</s-link>
+      <s-link href={marginStep.href}>{marginStep.label}</s-link>
     </s-banner>
   );
 }

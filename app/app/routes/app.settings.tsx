@@ -340,7 +340,7 @@ export default function SettingsPage() {
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
               {isActivationQuery(location.search) && !shotMode
-                ? `${CASH_NOT_ATTRIBUTION} Step 1 of 3: save contribution margin (unlocks break-even). Skip to Spend if you only need Total ROAS first.`
+                ? `${CASH_NOT_ATTRIBUTION} Margin is optional for break-even. Paste spend first for Total ROAS — or save margin here, then go to Spend.`
                 : `${CASH_NOT_ATTRIBUTION} Set your target. Profit margin unlocks break-even — Total ROAS is sales ÷ spend either way.`}
             </p>
           </div>
@@ -360,14 +360,15 @@ export default function SettingsPage() {
         ) : null}
 
         {isActivationQuery(location.search) && !shotMode ? (
-          <s-banner tone="info" heading="Step 1 of 3 — 30 seconds">
+          <s-banner tone="info" heading="Optional — break-even margin">
             <s-paragraph>
-              Save contribution margin to unlock break-even. Next: upload daily
-              spend. Then {PRODUCT_NOUN.totalRoas} is Shopify sales ÷ that spend.
+              Profit margin unlocks break-even only. Total ROAS does not wait —
+              paste daily spend first, then come back if you want break-even
+              locked.
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               <s-link href={spendSkipHref(location.search)}>
-                Skip to Spend CSV
+                Go to Spend paste / CSV
               </s-link>
             </div>
           </s-banner>

@@ -2,7 +2,7 @@
  * Install stickiness for mass App Store installs.
  *
  * First-open ritual (under 10 minutes):
- *   profit margin → CSV spend (template) → trusted Total ROAS
+ *   paste / CSV spend → trusted Total ROAS → (optional) margin for break-even
  *
  * Cash religion: Total ROAS = Shopify sales ÷ ad spend.
  * Reviews API is soft and late — never on SAMPLE, never before trusted MER,
@@ -17,7 +17,7 @@ export const REVIEW_MIN_INSTALL_MS = 24 * 60 * 60 * 1000;
 /** Dwell after trusted Total ROAS is on screen — do not ask during first glance. */
 export const REVIEW_MIN_SESSION_MS = 60 * 1000;
 
-export type ActivationStep = "margin" | "spend" | "desk";
+export type ActivationStep = "spend" | "desk";
 
 export type ReviewAskReason =
   | "ok"
@@ -91,13 +91,14 @@ export function resolveActivationStep(input: {
   hasLiveSpend: boolean;
   useSampleDesk: boolean;
 }): ActivationStep {
+  // Margin is optional for break-even — never the first-open bounce.
+  void input.marginConfirmed;
   if (input.useSampleDesk || input.hasLiveSpend) return "desk";
-  if (!input.marginConfirmed) return "margin";
   return "spend";
 }
 
 /**
- * First Overview load sends a cold live merchant to the current ritual step.
+ * First Overview load sends a cold live merchant to Spend (paste / CSV).
  * SAMPLE / shot / `?stay=1` never bounce. Once live spend exists, stay on the desk.
  */
 export function firstOpenRedirect(input: FirstOpenRedirectInput): string | null {
@@ -108,8 +109,6 @@ export function firstOpenRedirect(input: FirstOpenRedirectInput): string | null 
 
   const step = resolveActivationStep(input);
   switch (step) {
-    case "margin":
-      return withParams("/app/settings", input.search, { activate: "1" });
     case "spend":
       return withParams("/app/spend", input.search, { activate: "1" });
     case "desk":
@@ -130,21 +129,36 @@ export function spendSkipHref(search?: string): string {
 }
 
 /**
- * Teaching Spend empty — template download is the primary. Never a Pro wall.
+ * Teaching Spend empty — paste + template in the first viewport. Never a Pro wall.
  */
 export function spendEmptyTeach(options?: {
   templateHref?: string;
+  /** After Sample → Real with no live spend yet. */
+  justSwitchedReal?: boolean;
 }): SpendEmptyTeach {
   const primaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
+  if (options?.justSwitchedReal) {
+    return {
+      heading: "Real store is on — paste spend next",
+      body: `Paste or import one daily spend row below. ${PRODUCT_NOUN.definition}.`,
+      primaryLabel: "Download blank template",
+      primaryHref,
+      steps: [
+        "Paste one row below (keep the header) — or download the blank template.",
+        "Import. Same day + channel replaces.",
+        `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
+      ],
+    };
+  }
   return {
-    heading: "Download → fill → import",
-    body: `One path to ${PRODUCT_NOUN.totalRoas}: download the blank daily CSV, fill one row per day, import it here. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    heading: "Paste one day — or download the template",
+    body: `One path to ${PRODUCT_NOUN.totalRoas}: paste Day + channel amounts (one row = one day), or download the blank template, fill, import. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     primaryLabel: "Download blank template",
     primaryHref,
     steps: [
-      "Download the blank template — one row is one day.",
-      "Fill Meta / Google / Other amounts for each day you advertised.",
-      "Import the same file below. Same day + channel replaces.",
+      "Paste one row below (keep the header) — or download the blank template.",
+      "Need Ads Manager exports? Open the platform playbook for Meta / Google daily cost.",
+      "Import. Same day + channel replaces.",
       `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
     ],
   };

@@ -36,12 +36,14 @@ describe("Overview Monday desk", () => {
 });
 
 describe("Spend ritual", () => {
-  it("keeps one download → fill → import path on a blank desk", () => {
+  it("keeps paste + template + playbook visible on a blank desk", () => {
     expect(spend).toContain("formatMissingDaysRoasImpact");
     expect(spend).toContain("CASH_PAGE_WHY.spend");
     expect(spend).toContain("spendEmptyTeach");
     expect(spend).toContain("isActivationQuery");
-    expect(spend).toMatch(/Empty desk: one path only/);
+    expect(spend).toMatch(/Paste spend CSV|pastePlaceholder|Paste one row/i);
+    expect(spend).toMatch(/platform playbook|mcfly-spend-lean__playbook/i);
+    expect(spend).toMatch(/SAMPLE_DESK_IMPORT_BLOCK|Turn Real store on/i);
   });
 });
 

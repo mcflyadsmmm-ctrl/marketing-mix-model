@@ -25,7 +25,7 @@ export type CashPageId = keyof typeof CASH_PAGE_WHY;
 
 export const FIRST_TRUSTED_ROAS_GATE = {
   heading: "First get Total ROAS",
-  body: "This page pays off after Shopify sales sit next to spend you added. Download the blank template, fill one row per day, import — then come back.",
+  body: "This page pays off after Shopify sales sit next to spend you added. Paste one daily row or download the blank template, fill, import — then come back.",
   primaryLabel: "Add spend first",
   primaryHref: "/app/spend",
   secondaryLabel: PRODUCT_NOUN.openTotalRoas,

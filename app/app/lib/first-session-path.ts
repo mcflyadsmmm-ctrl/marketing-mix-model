@@ -2,11 +2,10 @@
  * First-session path for a cold merchant on the Total ROAS desk.
  *
  * Preferred ritual (under 10 minutes):
- *   profit margin → CSV spend → Total ROAS desk → Spend Allocation
+ *   CSV / paste spend → Total ROAS desk → (optional) margin for break-even → Allocation
  *
  * Cash religion: Total ROAS = Shopify sales ÷ ad spend. Margin only unlocks
- * break-even. Once any live spend exists, do not hide the scoreboard behind a
- * margin empty — that would bury cash MER.
+ * break-even — it does not gate the scoreboard. Primary CTA is always Spend.
  *
  * SAMPLE stays labeled practice. No pixels / MTA / path credit.
  */
@@ -16,8 +15,8 @@ import { PRODUCT_NOUN } from "./product-labels";
 export const FIRST_SESSION_MINUTES = 10;
 
 export const FIRST_SESSION_STEP_IDS = [
-  "margin",
   "spend",
+  "margin",
   "desk",
   "allocation",
 ] as const;
@@ -26,7 +25,8 @@ export type FirstSessionStepId = (typeof FIRST_SESSION_STEP_IDS)[number];
 
 export type FirstSessionStepStatus = "todo" | "current" | "done";
 
-export type FirstSessionEmptyKind = "margin_then_spend" | "spend_only" | null;
+/** Cold live empty — always spend-first. Margin is optional for break-even. */
+export type FirstSessionEmptyKind = "spend_only" | null;
 
 export type FirstSessionStep = {
   id: FirstSessionStepId;
@@ -88,26 +88,26 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
   const marginDone = input.marginConfirmed;
   const spendDone = input.hasLiveSpend;
   const deskDone = spendDone;
-  const marginCurrent = !marginDone;
-  const spendCurrent = marginDone && !spendDone;
-  const allocationCurrent = marginDone && spendDone;
+  const spendCurrent = !spendDone;
+  const marginCurrent = spendDone && !marginDone;
+  const allocationCurrent = spendDone && marginDone;
 
   return [
+    {
+      id: "spend",
+      href: withSearch("/app/spend", q),
+      label: PRODUCT_NOUN.setupAddSpend,
+      hint: spendDone ? " — done" : " — paste / CSV, no ad-network login",
+      status: stepStatus({ done: spendDone, current: spendCurrent }),
+    },
     {
       id: "margin",
       href: withSearch("/app/settings", q),
       label: PRODUCT_NOUN.setupAdjustMargin,
       hint: marginDone
         ? " — done"
-        : " — sets break-even from contribution margin",
+        : " — optional; unlocks break-even",
       status: stepStatus({ done: marginDone, current: marginCurrent }),
-    },
-    {
-      id: "spend",
-      href: withSearch("/app/spend", q),
-      label: PRODUCT_NOUN.setupAddSpend,
-      hint: spendDone ? " — done" : " — daily CSV / paste, no ad-network login",
-      status: stepStatus({ done: spendDone, current: spendCurrent }),
     },
     {
       id: "desk",
@@ -130,40 +130,23 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
 }
 
 function emptyCopy(
-  kind: FirstSessionEmptyKind,
+  marginConfirmed: boolean,
   search?: string,
 ): Pick<
   FirstSessionPath,
   "heading" | "body" | "primaryHref" | "primaryLabel" | "footerLinks"
 > {
-  if (kind === "spend_only") {
-    return {
-      heading: "Upload spend — then the number is inevitable",
-      body: `Margin is set. Upload daily Spend CSV. ${PRODUCT_NOUN.definition}. No ad-network login.`,
-      primaryHref: withSearch("/app/spend", search),
-      primaryLabel: PRODUCT_NOUN.setupAddSpend,
-      footerLinks: [
-        {
-          href: withSearch("/app", search),
-          label: PRODUCT_NOUN.openTotalRoas,
-        },
-        {
-          href: withSearch("/app/allocation", search),
-          label: PRODUCT_NOUN.spendAllocation,
-        },
-      ],
-    };
-  }
-
   return {
     heading: `Trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes`,
-    body: `Save profit margin (unlocks break-even). Upload daily Spend CSV. Read ${PRODUCT_NOUN.definition}. That’s the whole desk.`,
-    primaryHref: withSearch("/app/settings", search),
-    primaryLabel: PRODUCT_NOUN.setupAdjustMargin,
+    body: marginConfirmed
+      ? `Margin is set. Paste or import daily spend — then ${PRODUCT_NOUN.definition}. No ad-network login.`
+      : `Paste or import daily ad spend. ${PRODUCT_NOUN.definition}. Margin is optional — it unlocks break-even.`,
+    primaryHref: withSearch("/app/spend", search),
+    primaryLabel: PRODUCT_NOUN.setupAddSpend,
     footerLinks: [
       {
-        href: withSearch("/app/spend", search),
-        label: PRODUCT_NOUN.setupAddSpend,
+        href: withSearch("/app/settings", search),
+        label: PRODUCT_NOUN.setupAdjustMargin,
       },
       {
         href: withSearch("/app", search),
@@ -199,11 +182,7 @@ export function resolveFirstSessionPath(
   const forceGuide = Boolean(input.forceGuide);
 
   const emptyKind: FirstSessionEmptyKind =
-    shot || sample || input.hasLiveSpend
-      ? null
-      : input.marginConfirmed
-        ? "spend_only"
-        : "margin_then_spend";
+    shot || sample || input.hasLiveSpend ? null : "spend_only";
 
   const showColdEmpty = emptyKind != null;
   const showFullGuide =
@@ -211,7 +190,7 @@ export function resolveFirstSessionPath(
   const showMarginNudge =
     !shot && !sample && input.hasLiveSpend && !input.marginConfirmed;
 
-  const copy = emptyCopy(emptyKind, input.search);
+  const copy = emptyCopy(input.marginConfirmed, input.search);
 
   return {
     cashMerReady,
@@ -225,7 +204,7 @@ export function resolveFirstSessionPath(
     ...copy,
     steps,
     guideHeading: `Your real store — ${FIRST_SESSION_STEP_IDS.length} steps`,
-    guideNote: `Shopify sales are automatic. You only add ad spend. Hide Sample for good in Settings. Target: trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes.`,
+    guideNote: `Shopify sales are automatic. You only add ad spend. Margin is optional for break-even. Hide Sample for good in Settings. Target: trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes.`,
     marginNudgeHeading: "Confirm margin for break-even",
     marginNudgeBody: `${PRODUCT_NOUN.totalRoas} is live (${PRODUCT_NOUN.definition}). Confirm profit margin so break-even is locked — then ${PRODUCT_NOUN.spendAllocation}.`,
   };
@@ -245,8 +224,9 @@ export function firstSessionPrimaryAction(path: FirstSessionPath): {
     return { href: path.primaryHref, label: path.primaryLabel };
   }
   if (path.showMarginNudge) {
+    const marginStep = path.steps.find((s) => s.id === "margin");
     return {
-      href: path.steps[0].href,
+      href: marginStep?.href ?? "/app/settings",
       label: PRODUCT_NOUN.setupAdjustMargin,
     };
   }

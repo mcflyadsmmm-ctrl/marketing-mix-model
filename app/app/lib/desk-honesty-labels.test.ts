@@ -136,8 +136,8 @@ describe("LTV copy after Partner-approved deep history", () => {
     const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
     expect(settings).toContain("enqueueSalesFactsBackfill");
     expect(spend).toContain("enqueueSalesFactsBackfill");
-    expect(settings).toContain("Step 1 of 3");
-    expect(spend).toContain("Step 2 of 3");
+    expect(settings).toMatch(/Optional — break-even/i);
+    expect(spend).toContain("Step 1 of 2");
     expect(spend).toContain("/app?stay=1");
   });
 });

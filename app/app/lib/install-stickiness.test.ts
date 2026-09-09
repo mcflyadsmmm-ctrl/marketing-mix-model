@@ -21,14 +21,14 @@ const INSTALLED_OK = new Date("2026-09-01T12:00:00.000Z");
 const NOW = new Date("2026-09-08T12:00:00.000Z");
 
 describe("resolveActivationStep", () => {
-  it("starts cold live merchants on margin, then spend, then desk", () => {
+  it("starts cold live merchants on spend — margin never blocks activation", () => {
     expect(
       resolveActivationStep({
         marginConfirmed: false,
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("margin");
+    ).toBe("spend");
     expect(
       resolveActivationStep({
         marginConfirmed: true,
@@ -57,7 +57,7 @@ describe("resolveActivationStep", () => {
 });
 
 describe("firstOpenRedirect", () => {
-  it("bounces Overview to Settings, then Spend, then stays for trusted desk", () => {
+  it("bounces Overview to Spend for cold merchants, then stays for trusted desk", () => {
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -65,7 +65,7 @@ describe("firstOpenRedirect", () => {
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("/app/settings?activate=1");
+    ).toBe("/app/spend?activate=1");
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -130,7 +130,7 @@ describe("firstOpenRedirect", () => {
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("/app/settings?period=mtd&activate=1");
+    ).toBe("/app/spend?period=mtd&activate=1");
   });
 
   it("offers a Spend skip that does not return to Settings", () => {
@@ -141,23 +141,30 @@ describe("firstOpenRedirect", () => {
 });
 
 describe("spendEmptyTeach", () => {
-  it("teaches template download first — never a Pro wall", () => {
+  it("teaches paste + template first — never a Pro wall", () => {
     const teach = spendEmptyTeach({
       templateHref: "/app/spend/template?platforms=meta%2Cgoogle&blank=1",
     });
     expect(teach.primaryLabel).toMatch(/template/i);
     expect(teach.primaryHref).toContain("/app/spend/template");
-    expect(teach.heading).toMatch(/Download → fill → import/);
+    expect(teach.heading).toMatch(/Paste one day/i);
+    expect(teach.body).toMatch(/paste/i);
     expect(teach.body).toContain(PRODUCT_NOUN.definition);
-    expect(teach.steps[0]).toMatch(/Download the blank template/i);
-    expect(teach.steps[1]).toMatch(/Fill/i);
-    expect(teach.steps[2]).toMatch(/Import/i);
+    expect(teach.steps[0]).toMatch(/Paste one row/i);
+    expect(teach.steps.some((s) => /playbook/i.test(s))).toBe(true);
     const blob = [teach.heading, teach.body, teach.primaryLabel, ...teach.steps].join(
       "\n",
     );
     expect(blob).not.toMatch(/upgrade|pro ·|\$39/i);
     expect(blob).not.toMatch(THEATER);
     expect(blob).not.toMatch(/syncwith|oauth/i);
+  });
+
+  it("after Sample → Real, empty is two sentences to paste", () => {
+    const teach = spendEmptyTeach({ justSwitchedReal: true });
+    expect(teach.heading).toMatch(/Real store is on/i);
+    expect(teach.body).toMatch(/Paste or import/i);
+    expect(teach.body.split(/[.!?]/).filter(Boolean).length).toBeLessThanOrEqual(3);
   });
 });
 

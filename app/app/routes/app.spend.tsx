@@ -9,7 +9,7 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { Form, useActionData, useLoaderData, useLocation, useNavigation } from "react-router";
+import { Form, useActionData, useLoaderData, useLocation, useNavigation, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
@@ -86,7 +86,7 @@ import { PRO_UPSELL } from "../lib/entitlements";
 const MAX_COMBINE_SLOTS = 20;
 /** Ablestar fail-closed: never punch live CSV into a sample-ON desk. */
 const SAMPLE_DESK_IMPORT_BLOCK =
-  "Sample preview is on. Tap Real store at the top of the page before importing live spend. Sample rows were not changed.";
+  "SAMPLE preview is on — this is not your money. Tap Real store at the top of the page, then paste or import live spend. Nothing was written.";
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
 const PLATFORM_STORAGE_KEY = "mcfly-spend-platforms";
 /** First-visit default platforms (Meta + Google). Full desk still allows every named channel. */
@@ -856,12 +856,17 @@ export default function SpendEntryPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const dataModeAction = `/app/data-mode${location.search}`;
   const returnTo = `${location.pathname}${location.search}`;
+  const justSwitchedReal =
+    searchParams.get("guide") === "real" || searchParams.get("guide") === "1";
   const isSubmitting = navigation.state === "submitting";
   const submittingIntent =
     navigation.formData?.get("intent")?.toString() ?? null;
   const isEmpty = entries.length === 0;
+  const sampleOn = sampleDesk.enabled;
+  const importBlockedBySample = sampleOn && !shotMode;
   const csv = actionData?.csv;
   const csvSaved = Boolean(actionData?.success && csv);
   const csvNeedsConfirm = Boolean(csv?.needsConfirm);
@@ -1084,7 +1089,22 @@ export default function SpendEntryPage() {
   const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1`;
   const emptyTeach = spendEmptyTeach({
     templateHref: selectedBlankTemplateHref,
+    justSwitchedReal: justSwitchedReal && !sampleOn,
   });
+
+  const pastePlaceholder = useMemo(() => {
+    if (selectedTemplate.headers.length === 0) {
+      return "Day,Meta,Google\n2026-07-01,120.00,80.00";
+    }
+    const header = selectedTemplate.headers.join(",");
+    const sampleRow =
+      selectedTemplate.rows[0]?.join(",") ??
+      [
+        "2026-07-01",
+        ...selectedTemplate.headers.slice(1).map(() => "0.00"),
+      ].join(",");
+    return `${header}\n${sampleRow}`;
+  }, [selectedTemplate]);
 
   function togglePlatform(id: SpendAdvertisePlatformId) {
     if (!isPlatformSelectable(id)) return;
@@ -1130,7 +1150,30 @@ export default function SpendEntryPage() {
           .join(" ")}
       >
         {sampleDesk.enabled && !shotMode ? (
-          <SampleDeskBanner note="Turn Real store on before importing live spend — SAMPLE rows are not your money." />
+          <SampleDeskBanner note="SAMPLE rows are not your money. Tap Real store before pasting or importing live spend." />
+        ) : null}
+
+        {importBlockedBySample ? (
+          <s-banner tone="critical" heading="Turn Real store on before import">
+            <s-paragraph>
+              Paste and CSV import are locked while SAMPLE is on — practice
+              numbers must not mix with live spend. Tap{" "}
+              <strong>Real store</strong> (or Use my real store above), then
+              paste one daily row.
+            </s-paragraph>
+            <div
+              className="mcfly-decision__actions"
+              style={{ marginTop: "0.65rem" }}
+            >
+              <Form method="post" action={dataModeAction}>
+                <input type="hidden" name="intent" value="use-real" />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <s-button type="submit" variant="primary">
+                  {PRODUCT_NOUN.samplePreviewOffCta}
+                </s-button>
+              </Form>
+            </div>
+          </s-banner>
         ) : null}
 
         {!shotMode && !sampleDesk.enabled ? (
@@ -1138,10 +1181,11 @@ export default function SpendEntryPage() {
         ) : null}
 
         {isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled ? (
-          <s-banner tone="info" heading="Step 2 of 3 — add spend">
+          <s-banner tone="info" heading="Step 1 of 2 — add spend">
             <s-paragraph>
-              Download the blank template, fill one row per day, import. Step 3:
-              open {PRODUCT_NOUN.totalRoas} (Shopify sales ÷ that spend).
+              Paste one daily row or download the blank template, fill, import.
+              Step 2: open {PRODUCT_NOUN.totalRoas} (Shopify sales ÷ that spend).
+              Margin is optional for break-even.
             </s-paragraph>
           </s-banner>
         ) : null}
@@ -1279,10 +1323,10 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        {isEmpty && !shotMode ? (
+        {isEmpty && !shotMode && !importBlockedBySample ? (
           <section
             className="mcfly-spend-teach"
-            aria-label="Empty state — download spend template"
+            aria-label="Empty state — paste or download spend template"
           >
             <s-heading>{emptyTeach.heading}</s-heading>
             <s-paragraph>{emptyTeach.body}</s-paragraph>
@@ -1295,20 +1339,20 @@ export default function SpendEntryPage() {
               <s-button href={emptyTeach.primaryHref} variant="primary">
                 {emptyTeach.primaryLabel}
               </s-button>
-              <s-link href="#mcfly-spend-uploads">Upload when filled</s-link>
+              <s-link href="#mcfly-spend-paste">Paste one row</s-link>
+              <s-link href="#mcfly-spend-playbook">Platform playbook</s-link>
             </div>
           </section>
         ) : null}
 
         <div className="mcfly-spend-lean__stack">
-          {/* Empty desk: one path only. Channels / bill stay collapsed until spend exists. */}
-          {!isEmpty ? (
+          {/* Empty desk: channels + template + paste stay in the first viewport. */}
           <>
           {/* 1 · Advertising channels — compact dropdown */}
           <details
             id="mcfly-spend-platforms"
             className="mcfly-spend-lean__channels"
-            open={channelsOpen}
+            open={channelsOpen || isEmpty}
             onToggle={(e) => {
               setChannelsOpen(e.currentTarget.open);
             }}
@@ -1355,7 +1399,7 @@ export default function SpendEntryPage() {
           <div id="mcfly-spend-template" className="mcfly-spend-lean__template">
             <div className="mcfly-spend-lean__template-row">
               <s-button href={selectedBlankTemplateHref} variant="secondary">
-                Download blank
+                Download blank template
               </s-button>
               <s-text tone="neutral">One row = one day</s-text>
             </div>
@@ -1500,10 +1544,42 @@ export default function SpendEntryPage() {
               </div>
             </details>
           </div>
-          </>
-          ) : null}
 
-          {/* 3 · Upload CSV — file only */}
+          <details
+            id="mcfly-spend-playbook"
+            className="mcfly-spend-lean__playbook"
+            open={isEmpty && !importBlockedBySample}
+          >
+            <summary>Platform playbook — export daily cost</summary>
+            <div className="mcfly-spend-lean__playbook-body">
+              {(selectedPlatforms.length > 0
+                ? selectedPlatforms
+                : selectablePlatforms.slice(0, 2)
+              )
+                .slice(0, 2)
+                .map((platform) => (
+                  <div
+                    key={platform.id}
+                    className="mcfly-spend-lean__playbook-card"
+                  >
+                    <p className="mcfly-spend-lean__playbook-title">
+                      {platform.title}
+                    </p>
+                    <p className="mcfly-spend-lean__playbook-hint">
+                      {platform.productHint}
+                    </p>
+                    <ol className="mcfly-spend-lean__playbook-steps">
+                      {platform.steps.map((step) => (
+                        <li key={step}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+            </div>
+          </details>
+          </>
+
+          {/* 3 · Paste + upload CSV */}
           <div
             id="mcfly-spend-uploads"
             className="mcfly-spend-lean__upload"
@@ -1516,18 +1592,34 @@ export default function SpendEntryPage() {
                 name="confirm_replace"
                 value={confirmReplace ? "1" : "0"}
               />
-              {/* Persists CSV text for confirm_replace after file input clears */}
-              <textarea
-                name="csv"
-                value={csvPayload}
-                readOnly
-                hidden
-                aria-hidden="true"
-                tabIndex={-1}
-              />
+              <label
+                id="mcfly-spend-paste"
+                className="mcfly-spend-lean__paste mcfly-spend-flow__paste-box"
+              >
+                <span className="mcfly-spend-lean__drop-title">
+                  Paste one row (or more)
+                </span>
+                <span className="mcfly-spend-lean__drop-hint">
+                  Keep the header row · one row = one day
+                </span>
+                <textarea
+                  className="mcfly-field mcfly-field--wide"
+                  name="csv"
+                  rows={isEmpty ? 5 : 4}
+                  value={csvPayload}
+                  onChange={(e) => setCsvPayload(e.target.value)}
+                  placeholder={pastePlaceholder}
+                  disabled={
+                    importBlockedBySample ||
+                    (isSubmitting && submittingIntent === "csv")
+                  }
+                  spellCheck={false}
+                  aria-label="Paste spend CSV"
+                />
+              </label>
               <label className="mcfly-spend-lean__drop">
                 <span className="mcfly-spend-lean__drop-title">
-                  Upload .csv / add files
+                  Or upload .csv
                 </span>
                 <span className="mcfly-spend-lean__drop-hint">
                   Proper Day + channel format only
@@ -1538,7 +1630,10 @@ export default function SpendEntryPage() {
                   accept=".csv,text/csv"
                   className="mcfly-spend-lean__file"
                   onChange={onSpendFileSelected}
-                  disabled={isSubmitting && submittingIntent === "csv"}
+                  disabled={
+                    importBlockedBySample ||
+                    (isSubmitting && submittingIntent === "csv")
+                  }
                   aria-label="Upload spend CSV"
                 />
               </label>
@@ -1551,11 +1646,16 @@ export default function SpendEntryPage() {
                 id="mcfly-spend-csv-submit"
                 type="submit"
                 variant="primary"
+                {...(importBlockedBySample
+                  ? { disabled: true }
+                  : {})}
                 {...(isSubmitting && submittingIntent === "csv"
                   ? { loading: true }
                   : {})}
               >
-                Import spend
+                {importBlockedBySample
+                  ? "Import locked — turn Real store on"
+                  : "Import spend"}
               </s-button>
             </Form>
           </div>

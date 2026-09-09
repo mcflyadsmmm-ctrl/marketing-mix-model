@@ -21,48 +21,52 @@ function cold(
 }
 
 describe("resolveFirstSessionPath", () => {
-  it("starts a cold merchant on margin, then CSV spend, desk, Allocation", () => {
+  it("starts a cold merchant on Spend — margin optional, never a Settings wall", () => {
     const path = cold();
     expect(path.showColdEmpty).toBe(true);
-    expect(path.emptyKind).toBe("margin_then_spend");
+    expect(path.emptyKind).toBe("spend_only");
     expect(path.showFullGuide).toBe(true);
     expect(path.showMarginNudge).toBe(false);
     expect(path.cashMerReady).toBe(false);
     expect(path.ritualReady).toBe(false);
     expect(path.steps.map((s) => s.id)).toEqual([
-      "margin",
       "spend",
+      "margin",
       "desk",
       "allocation",
     ]);
     expect(path.steps[0]).toMatchObject({
       status: "current",
+      href: "/app/spend",
+    });
+    expect(path.steps[1]).toMatchObject({
+      status: "todo",
       href: "/app/settings",
     });
-    expect(path.steps[1]).toMatchObject({ status: "todo", href: "/app/spend" });
+    expect(path.steps[1].hint).toMatch(/optional/i);
     expect(path.steps[2]).toMatchObject({ status: "todo", href: "/app" });
     expect(path.steps[3]).toMatchObject({
       status: "todo",
       href: "/app/allocation",
     });
-    expect(path.primaryHref).toBe("/app/settings");
-    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAdjustMargin);
+    expect(path.primaryHref).toBe("/app/spend");
+    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
     expect(path.heading).toMatch(new RegExp(String(FIRST_SESSION_MINUTES)));
+    expect(path.body).toMatch(/Paste or import/i);
+    expect(path.body).toMatch(/optional/i);
     expect(path.body).toMatch(/break-even/i);
-    expect(path.body).toMatch(/Spend CSV/i);
-    expect(path.body).toMatch(/whole desk/i);
     expect(path.footerLinks.map((l) => l.href)).toEqual([
-      "/app/spend",
+      "/app/settings",
       "/app",
       "/app/allocation",
     ]);
     expect(firstSessionPrimaryAction(path)).toEqual({
-      href: "/app/settings",
-      label: PRODUCT_NOUN.setupAdjustMargin,
+      href: "/app/spend",
+      label: PRODUCT_NOUN.setupAddSpend,
     });
   });
 
-  it("after margin confirm, empty owns Spend — not a second Settings wall", () => {
+  it("after margin confirm, empty still owns Spend — not a second Settings wall", () => {
     const path = cold({
       marginConfirmed: true,
       hasLiveSpend: false,
@@ -71,8 +75,8 @@ describe("resolveFirstSessionPath", () => {
     expect(path.emptyKind).toBe("spend_only");
     expect(path.showColdEmpty).toBe(true);
     expect(path.showFullGuide).toBe(true);
-    expect(path.steps[0].status).toBe("done");
-    expect(path.steps[1].status).toBe("current");
+    expect(path.steps[0].status).toBe("current");
+    expect(path.steps[1].status).toBe("done");
     expect(path.primaryHref).toBe("/app/spend");
     expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
     expect(path.body).toMatch(/Margin is set/);
@@ -91,8 +95,8 @@ describe("resolveFirstSessionPath", () => {
     expect(path.showMarginNudge).toBe(true);
     expect(path.cashMerReady).toBe(true);
     expect(path.ritualReady).toBe(false);
-    expect(path.steps[0].status).toBe("current");
-    expect(path.steps[1].status).toBe("done");
+    expect(path.steps[0].status).toBe("done");
+    expect(path.steps[1].status).toBe("current");
     expect(path.steps[2].status).toBe("done");
     expect(path.marginNudgeBody).toContain(PRODUCT_NOUN.definition);
     expect(path.marginNudgeBody).toContain(PRODUCT_NOUN.spendAllocation);
@@ -148,9 +152,17 @@ describe("resolveFirstSessionPath", () => {
 
   it("preserves query strings on ritual hrefs", () => {
     const path = cold({ search: "?period=mtd" });
-    expect(path.primaryHref).toBe("/app/settings?period=mtd");
-    expect(path.steps[1].href).toBe("/app/spend?period=mtd");
+    expect(path.primaryHref).toBe("/app/spend?period=mtd");
+    expect(path.steps[0].href).toBe("/app/spend?period=mtd");
+    expect(path.steps[1].href).toBe("/app/settings?period=mtd");
     expect(path.steps[3].href).toBe("/app/allocation?period=mtd");
+  });
+
+  it("shows full guide after Sample → Real with no spend yet", () => {
+    const path = cold({ forceGuide: true });
+    expect(path.showFullGuide).toBe(true);
+    expect(path.showColdEmpty).toBe(true);
+    expect(path.guideNote).toMatch(/optional/i);
   });
 
   it("refuses attribution-theater copy on the first-session path", () => {
@@ -175,6 +187,7 @@ describe("resolveFirstSessionPath", () => {
       expect(blob).not.toMatch(THEATER);
       expect(blob).not.toMatch(/mcflyads\.com/i);
       expect(blob).not.toMatch(/gmv/i);
+      expect(blob).not.toMatch(/Free|Pro ·|upgrade/i);
     }
   });
 });
