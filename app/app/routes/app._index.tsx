@@ -667,61 +667,57 @@ export default function Dashboard() {
     useSampleDesk,
   });
 
-  const trustBanners = (
-    <CashTrustBanners
-      blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
-      spendCoverage={
-        !useSampleDesk && metrics.onboarding.hasSpend
-          ? metrics.spendCoverage
-          : null
-      }
-      periodLabel={metrics.period.label}
-      shopifyOrderWindowLimited={
-        !useSampleDesk &&
-        Boolean(salesFactsCoverage?.periodExceedsFactWindow)
-      }
-      salesFactsIncomplete={
-        !useSampleDesk &&
-        !trustedHero.hideUntrustedZero &&
-        salesFactsCoverage != null &&
-        !salesFactsCoverage.complete &&
-        !salesFactsCoverage.periodExceedsFactWindow
-          ? {
-              factDays: salesFactsCoverage.factDays,
-              expectedClosedDays: salesFactsCoverage.expectedClosedDays,
-            }
-          : null
-      }
-      todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
-      todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
-      shotMode={shotMode}
-      cashActionReady={metrics.cashActionReady}
-      belowBreakEven={
-        !trustedHero.hideUntrustedZero &&
-        metrics.cashActionReady &&
-        metrics.breakEvenMer != null &&
-        metrics.aboveBreakEven === false
-          ? {
-              mer: metrics.mer,
-              breakEvenMer: metrics.breakEvenMer,
-              totalSpend: metrics.totalSpend,
-            }
-          : null
-      }
-      marginStale={!useSampleDesk && Boolean(metrics.marginStale)}
-      onboarding={
-        !useSampleDesk && !shotMode && !coldEmpty
-          ? {
-              settingsSaved: metrics.onboarding.settingsSaved,
-              hasSpend: metrics.onboarding.hasSpend,
-            }
-          : null
-      }
-      deepHistoryKind="hidden"
-      shopDomain={shopDomain}
-      hasReadAllOrders={hasReadAllOrders}
-    />
-  );
+  /** Love-V1: split above/below so budgeted banners are not double-mounted. */
+  const showTrustAbove =
+    coldEmpty || (!scoreboardReady && !useSampleDesk);
+  const showTrustBelow = !coldEmpty;
+  const trustBannerProps = {
+    blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
+    spendCoverage:
+      !useSampleDesk && metrics.onboarding.hasSpend
+        ? metrics.spendCoverage
+        : null,
+    periodLabel: metrics.period.label,
+    shopifyOrderWindowLimited:
+      !useSampleDesk && Boolean(salesFactsCoverage?.periodExceedsFactWindow),
+    salesFactsIncomplete:
+      !useSampleDesk &&
+      !trustedHero.hideUntrustedZero &&
+      salesFactsCoverage != null &&
+      !salesFactsCoverage.complete &&
+      !salesFactsCoverage.periodExceedsFactWindow
+        ? {
+            factDays: salesFactsCoverage.factDays,
+            expectedClosedDays: salesFactsCoverage.expectedClosedDays,
+          }
+        : null,
+    todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
+    todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
+    shotMode,
+    cashActionReady: metrics.cashActionReady,
+    belowBreakEven:
+      !trustedHero.hideUntrustedZero &&
+      metrics.cashActionReady &&
+      metrics.breakEvenMer != null &&
+      metrics.aboveBreakEven === false
+        ? {
+            mer: metrics.mer,
+            breakEvenMer: metrics.breakEvenMer,
+            totalSpend: metrics.totalSpend,
+          }
+        : null,
+    marginStale: !useSampleDesk && Boolean(metrics.marginStale),
+    onboarding:
+      !useSampleDesk && !shotMode && !coldEmpty
+        ? {
+            settingsSaved: metrics.onboarding.settingsSaved,
+            hasSpend: metrics.onboarding.hasSpend,
+          }
+        : null,
+    deepHistoryKind: "hidden" as const,
+    shopDomain,
+    hasReadAllOrders,
+  };
 
   return (
     <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
@@ -778,10 +774,13 @@ export default function Dashboard() {
           />
         ) : null}
 
-        {/* Cold path: trust can sit above the one empty. Live ready: defer below KPIs. */}
-        {coldEmpty || (!scoreboardReady && !useSampleDesk)
-          ? trustBanners
-          : null}
+        {/* Cold path: trust above empty. Love-V1 budgetRole splits when both mount. */}
+        {showTrustAbove ? (
+          <CashTrustBanners
+            {...trustBannerProps}
+            budgetRole={showTrustBelow ? "above" : "all"}
+          />
+        ) : null}
 
         {isLoading && !shotMode ? (
           <section className="mcfly-state mcfly-state--loading" aria-live="polite">
@@ -1141,7 +1140,12 @@ export default function Dashboard() {
               />
             </details>
 
-            {!coldEmpty ? trustBanners : null}
+            {showTrustBelow ? (
+              <CashTrustBanners
+                {...trustBannerProps}
+                budgetRole={showTrustAbove ? "deferred" : "all"}
+              />
+            ) : null}
 
             {!shotMode && metrics.cashActionReady ? (
               <p className="mcfly-overview-more" aria-label="More tools">
