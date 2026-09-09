@@ -38,6 +38,7 @@ import {
   PIPE_TEMPLATE_COPY,
   PIPE_TEMPLATE_HREF,
   PIPE_TEMPLATE_OPTIONS,
+  PIPE_TOOL_NAMES,
 } from "../lib/spend-pipe-templates";
 import {
   buildLumpSpreadLongCsv,
@@ -107,6 +108,20 @@ const MAX_COMBINE_SLOTS = 20;
 /** Ablestar fail-closed: never punch live CSV into a sample-ON desk. */
 const SAMPLE_DESK_IMPORT_BLOCK =
   "SAMPLE preview is on — this is not your money. Tap Real store at the top of the page, then paste or import live spend. Nothing was written.";
+/**
+ * Love-UX3 — cold activate as connection health without OAuth.
+ * Folds into the single Love-V3 teach / activate surface (never a second banner).
+ */
+const SPEND_ACTIVATE_COPY =
+  `Shopify sales are already here. ${PRODUCT_NOUN.totalRoas} unlocks when spend is entered — no ad login.`;
+/**
+ * Love-UX2 — Matrixify-loud pipe front-door inside that one teach surface.
+ * Tools are nominative + merchant-paid; Mcfly never claims OAuth or partnership.
+ */
+const SPEND_PIPE_FRONT_DOOR = {
+  heading: "Automate fill — optional",
+  body: `Long and wide CSV for ${PIPE_TOOL_NAMES.join(", ")} — you pay those tools; Mcfly never asks for an ad login.`,
+} as const;
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
 const PLATFORM_STORAGE_KEY = "mcfly-spend-platforms";
 /** First-visit default platforms (Meta + Google). Full desk still allows every named channel. */
@@ -1335,6 +1350,9 @@ export default function SpendEntryPage() {
     activating && showEmptyTeach
       ? "Step 1 of 2 — type one day"
       : emptyTeach.heading;
+  /** Love-UX3: activate owns the teach body; otherwise keep emptyTeach.body. */
+  const emptyTeachBody =
+    activating && showEmptyTeach ? SPEND_ACTIVATE_COPY : emptyTeach.body;
 
   /** Honest hand-off after a typed day lands — formula, never a ROAS figure. */
   const daySavedCopy = daySaved
@@ -1461,13 +1479,15 @@ export default function SpendEntryPage() {
           <p className="mcfly-desk-why">{CASH_PAGE_WHY.spend}</p>
         ) : null}
 
-        {/* Love-V3: activation alone only when empty teach is not the surface. */}
+        {/* Love-V3: activation alone only when empty teach is not the surface.
+            Love-UX3: same religion-safe line as empty-teach activate body. */}
         {showActivationBanner ? (
           <s-banner tone="info" heading="Step 1 of 2 — add spend">
+            <s-paragraph>{SPEND_ACTIVATE_COPY}</s-paragraph>
             <s-paragraph>
               Type one day below: day + amount + channel, then Save this day —
-              no file. Step 2: open {PRODUCT_NOUN.totalRoas} (Shopify sales ÷
-              that spend). Margin is optional for break-even.
+              no file. Step 2: open {PRODUCT_NOUN.totalRoas}. Margin is optional
+              for break-even.
             </s-paragraph>
           </s-banner>
         ) : null}
@@ -1642,7 +1662,7 @@ export default function SpendEntryPage() {
             aria-label="Empty state — type one day, or paste / import spend"
           >
             <s-heading>{emptyTeachHeading}</s-heading>
-            <s-paragraph>{emptyTeach.body}</s-paragraph>
+            <s-paragraph>{emptyTeachBody}</s-paragraph>
             <ol className="mcfly-spend-teach__steps">
               {emptyTeach.steps.map((step) => (
                 <li key={step}>{step}</li>
@@ -1657,9 +1677,36 @@ export default function SpendEntryPage() {
               </s-link>
               <s-link href="#mcfly-spend-paste">Paste one row</s-link>
               <s-link href="#mcfly-spend-playbook">Platform playbook</s-link>
-              <s-link href={PIPE_TEMPLATE_HREF}>
-                {PIPE_TEMPLATE_COPY.linkLabel}
-              </s-link>
+            </div>
+            {/* Love-UX2: pipe verbs loud inside this one teach surface — no second banner. */}
+            <div
+              className="mcfly-spend-teach__pipe"
+              aria-label={SPEND_PIPE_FRONT_DOOR.heading}
+            >
+              <s-heading>{SPEND_PIPE_FRONT_DOOR.heading}</s-heading>
+              <s-paragraph>{SPEND_PIPE_FRONT_DOOR.body}</s-paragraph>
+              <div className="mcfly-decision__actions">
+                {PIPE_TEMPLATE_OPTIONS.map((option) => (
+                  <s-button
+                    key={`${option.shape}-example`}
+                    href={option.exampleHref}
+                    variant="secondary"
+                  >
+                    {option.title}
+                  </s-button>
+                ))}
+                {PIPE_TEMPLATE_OPTIONS.map((option) => (
+                  <s-link
+                    key={`${option.shape}-blank`}
+                    href={option.blankHref}
+                  >
+                    {PIPE_TEMPLATE_COPY.blankLabel} ({option.shape})
+                  </s-link>
+                ))}
+                <s-link href={PIPE_TEMPLATE_HREF}>
+                  {PIPE_TEMPLATE_COPY.linkLabel}
+                </s-link>
+              </div>
             </div>
           </section>
         ) : null}

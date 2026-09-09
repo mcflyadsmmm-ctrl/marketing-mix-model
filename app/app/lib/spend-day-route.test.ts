@@ -132,6 +132,44 @@ describe("first-spend hand-off to Total ROAS", () => {
     );
   });
 
+  it("Love-UX3: cold activate copy is religion-safe (sales already here, no ad login)", () => {
+    expect(spend).toContain("SPEND_ACTIVATE_COPY");
+    expect(spend).toContain("Shopify sales are already here");
+    expect(spend).toMatch(/unlocks when spend is entered — no ad login/);
+    expect(spend).toContain("PRODUCT_NOUN.totalRoas");
+    // Folds into empty teach body when cold; same line on activation-alone banner.
+    expect(spend).toContain("emptyTeachBody");
+    expect(spend).toContain(
+      "activating && showEmptyTeach ? SPEND_ACTIVATE_COPY : emptyTeach.body",
+    );
+    expect(spend).toContain("<s-paragraph>{SPEND_ACTIVATE_COPY}</s-paragraph>");
+    // Activate string itself: no OAuth / Meta connect theater.
+    const activateLine = spend.match(
+      /const SPEND_ACTIVATE_COPY =\s*`([^`]+)`/,
+    )?.[1];
+    expect(activateLine).toBeTruthy();
+    expect(activateLine!).not.toMatch(/oauth|connect meta|pixel|mta/i);
+    expect(activateLine!).toMatch(/no ad login/i);
+  });
+
+  it("Love-UX2: Automate fill — optional loud inside teach with long/wide downloads", () => {
+    const teachStart = spend.indexOf('className="mcfly-spend-teach"');
+    const teachEnd = spend.indexOf("</section>", teachStart);
+    expect(teachStart).toBeGreaterThan(-1);
+    const teach = spend.slice(teachStart, teachEnd);
+    expect(teach).toContain("SPEND_PIPE_FRONT_DOOR.heading");
+    expect(spend).toContain('"Automate fill — optional"');
+    expect(spend).toContain("PIPE_TOOL_NAMES");
+    expect(spend).toMatch(/SyncWith|PIPE_TOOL_NAMES\.join/);
+    expect(teach).toContain("PIPE_TEMPLATE_OPTIONS.map");
+    expect(teach).toContain("option.exampleHref");
+    expect(teach).toContain("option.blankHref");
+    expect(teach).toContain("PIPE_TEMPLATE_HREF");
+    // Still one teach surface — pipe is a subsection, not an s-banner.
+    expect(teach).not.toContain("<s-banner");
+    expect(spend).toContain("you pay those tools");
+  });
+
   it("Love-V3: first day saved keeps one status banner (coverage stays in the note)", () => {
     // Before/after: daySavedCopy success only — coverage suppressed via
     // showCoverageBanner requiring !daySavedCopy.
