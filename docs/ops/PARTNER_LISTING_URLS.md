@@ -1,7 +1,9 @@
 # Partner listing URLs — Mcfly Analytics
 
 **SoT for Partner App listing URL fields.** Paste / verify before Save. Cursor does **not** Submit.  
-**Live listing:** https://apps.shopify.com/mcfly-analytics-public · **Reviews: 0** (do not invent).  
+**Live listing:** https://apps.shopify.com/mcfly-analytics-public · **Reviews: 0** (do not invent).
+**Plan:** **Mcfly Analytics** · $39 · 7-day trial (never Free forever; never plan name Pro as live paste).
+**Shots:** Harbor SAMPLE **3.51×** ($82,068 ÷ $23,414) — see [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md).  
 **Copy SoT:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) · Marty pack: [`LISTING_LIVE_PASTE.md`](./LISTING_LIVE_PASTE.md)
 
 ## Fields

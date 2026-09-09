@@ -32,7 +32,7 @@ LTV/Acquisition (Cash CAC · LTV:CAC) · mailto · no pixels / MTA
 **Price:** 7-day trial, then **$39**/store/month. **Plan name must be:** **Mcfly Analytics** (live still shows **Pro**). **Reviews: 0** (do not invent).  
 **SoT copy:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) · URLs [`PARTNER_LISTING_URLS.md`](./PARTNER_LISTING_URLS.md) · shots [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md)
 
-**Hostile-audit locks:** No Free listing body. No Free/Pro freemium paste. No **(paid)** on feature bullets. Trust URLs → **mcflyads.com**. App URL → **Fly**. Hero = **formula** — not CUSTOM DATA SCIENCE / 4.42x. **Religion:** Total ROAS = Shopify Total Sales ÷ ad spend — no attribution bait.
+**Hostile-audit locks:** No Free listing body. No Free/Pro freemium paste. No **(paid)** on feature bullets. Trust URLs → **mcflyads.com**. App URL → **Fly**. Hero = **formula** — not CUSTOM DATA SCIENCE / **4.41×** / **4.42×**. SAMPLE / Harbor lock = **$82,068 ÷ $23,414 = 3.51×**. **Religion:** Total ROAS = Shopify Total Sales ÷ ad spend — no attribution bait. **Reviews: 0** (do not invent).
 
 ---
 
@@ -255,11 +255,11 @@ In-app Start 7-day trial / Manage plan must match this one plan. No External cha
 
 ---
 
-## 8. Hero / feature media (kill CUSTOM DATA SCIENCE / 4.42x)
+## 8. Hero / feature media (kill CUSTOM DATA SCIENCE / 4.41× / 4.42×)
 
-**Target:** formula-only Total ROAS desk — sales next to spend, break-even context. **No `4.42x`.** **No “CUSTOM DATA SCIENCE”** (Custom is parked; public mark is Mcfly Analytics).
+**Target:** formula-only Total ROAS desk — sales next to spend, break-even context. **Harbor SAMPLE lock: $82,068 ÷ $23,414 = 3.51×.** **No `4.41×` / `4.42×`.** **No “CUSTOM DATA SCIENCE”** (Custom is parked; public mark is Mcfly Analytics).
 
-**Do not re-upload** a local `feature-media-1600x900.png` (or any hero PNG) that still shows **CUSTOM DATA SCIENCE** and/or **4.42x** unless you **recapture** Overview first and overwrite that file.
+**Do not re-upload** a local `feature-media-1600x900.png` (or any hero PNG) that still shows **CUSTOM DATA SCIENCE** and/or **4.41× / 4.42×** unless you **recapture** Overview first (Harbor **3.51×**) and overwrite that file.
 
 Recapture on `devmcflyads` (embedded Admin — not mcflyads.com):
 
@@ -272,7 +272,8 @@ App:    Mcfly Analytics (stay in Admin iframe — not mcflyads.com)
    shot=1 hides the SAMPLE banner; metrics stay sample
 3. Crop ~1600×900 of the APP BODY only
    Frame: Total ROAS + sales/spend + break-even (formula story)
-   Exclude: Admin left nav, OS menubar, URL bar, CUSTOM DATA SCIENCE chrome, 4.42x callouts
+   Exclude: Admin left nav, OS menubar, URL bar, CUSTOM DATA SCIENCE chrome, 4.41×/4.42× callouts
+   Confirm: SAMPLE Total ROAS ≈ **3.51×** ($82,068 / $23,414) — not 4.41×
 4. Overwrite (do not invent a new filename for Partner):
    docs/listing-assets/feature-media-1600x900.png
 5. /app/demo → Turn sample desk OFF before any reviewer smoke
@@ -293,7 +294,7 @@ Icon: `docs/listing-assets/mcfly-app-icon-1200.png`.
 | `docs/listing-assets/shots/04-free-pro-pricing.png` | Free vs Pro — freemium poison |
 | `docs/listing-assets/shots/05-spend-csv.png` if it still says platforms are on **Pro** | Freemium / gated-channel lie |
 | `docs/listing-assets/shots/05-HOLD-marketing-site-do-not-upload.png` | Marketing site — not embedded Admin |
-| Any hero still labeled **CUSTOM DATA SCIENCE / 4.42x** | Recapture first (§8) |
+| Any hero still labeled **CUSTOM DATA SCIENCE / 4.41× / 4.42×** | Recapture Harbor **3.51×** first (§8) |
 
 **Prefer (Admin UI, unique captions — no Free/Pro/(paid), no inventing reviews):**
 
@@ -317,7 +318,7 @@ Captions must **not** say Free / Pro / (paid) / forever-free.
 - [ ] Paste tagline / short / long / keywords (§2–§4, §6) if not already current
 - [ ] **§0-C URLs:** Website / Privacy / Support / FAQ / Terms → **mcflyads.com…** ([`PARTNER_LISTING_URLS.md`](./PARTNER_LISTING_URLS.md))
 - [ ] Set **App URL** → `https://mcfly-analytics.fly.dev` (never mcflyads.com)
-- [ ] Replace hero if live still shows CUSTOM DATA SCIENCE / 4.42x — **only after recapture**
+- [ ] Replace hero if live still shows CUSTOM DATA SCIENCE / 4.41× / 4.42× — **only after Harbor 3.51× recapture**
 - [ ] Do **not** upload `04-free-pro-pricing.png`
 - [ ] **Save.** Do **not** Partner Submit from Cursor (Marty decides Submit / re-review)
 - [ ] Public listing re-check: plan name **Mcfly Analytics**, no `(paid)` on bullets, Reviews still **0** until real ones land

@@ -31,7 +31,7 @@ Paste into Partner listing when Distribution = **Shopify App Store**.
 
 **Status:** Tagline, short, long, feature bullets, reviewer notes match the shipped desk — one plan **Mcfly Analytics** at $39 (7-day trial) with LTV, Goals, and all channels including TikTok CSV. SAMPLE is preview data only. Success price is **$39**, not ~$79. Paste as-is into Partner; do not rewrite for “true ROAS,” LTV CRM, Free/Pro, or Meta/Google logos.
 
-Human still must: confirm ASO checklist below, upload icon + shots (formula hero — **not** CUSTOM DATA SCIENCE / 4.42x), set Pricing **plan name Mcfly Analytics · $39 / 7-day trial** (no Free plan), then Submit. Agents do **not** Partner-Submit.
+Human still must: confirm ASO checklist below, upload icon + shots (formula hero — Harbor **3.51×** / **not** CUSTOM DATA SCIENCE / 4.41× / 4.42×), set Pricing **plan name Mcfly Analytics · $39 / 7-day trial** (no Free plan), then Submit. Agents do **not** Partner-Submit.
 
 ## ASO checklist (before paste) — human only
 
@@ -43,7 +43,7 @@ Leave these unchecked until a human verifies in Partner. Agents do **not** flip 
 - [ ] **Trust URLs** extensionless: `/privacy` `/support` `/faq` `/terms` on mcflyads.com (never App URL = marketing site)
 - [ ] **PCD copy** still: opaque customer id + `numberOfOrders` only — no CRM / name / email
 - [ ] **Works with:** leave blank (no Checkout UI extension) — never Meta/Google/SyncWith; Checkout only if you later ship a real Checkout surface
-- [ ] Screenshots + M-only icon per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md)
+- [ ] Screenshots + M-only icon per [`LISTING_VISUAL_PACK.md`](./LISTING_VISUAL_PACK.md) — Harbor SAMPLE **3.51×**; never upload `04-free-pro-pricing.png`
 
 Partner listing URLs (SoT table: [`ops/PARTNER_LISTING_URLS.md`](./ops/PARTNER_LISTING_URLS.md) — $39 · 7-day trial + PCD voice on Pages; **verify HTTP 200 before Submit**):
 
@@ -386,7 +386,7 @@ lacks it, the merchant sees a grant CTA — history is not permanently dead.
 - [ ] **Wave 6 — Pricing:** **Plan name** exact value **Mcfly Analytics** · **$39 / 7-day trial** · **no Free plan** · one plan only ([`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) 60-second script / §7)
 - [ ] **Wave 6 — Feature bullets:** replace all with the exact five clean lines; every string in the §5 ban list returns zero hits ([`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) §5)
 - [ ] Trust URLs → mcflyads.com; App URL → Fly ([`ops/PARTNER_LISTING_URLS.md`](./ops/PARTNER_LISTING_URLS.md))
-- [ ] Hero / feature media = formula desk — **not** CUSTOM DATA SCIENCE / 4.42x (do not re-upload bad local PNG unless recaptured)
+- [ ] Hero / feature media = formula desk — Harbor **3.51×** ($82,068 ÷ $23,414); **not** CUSTOM DATA SCIENCE / 4.41× / 4.42× (do not re-upload bad local PNG unless recaptured)
 - [ ] Reviewer notes pasted
 - [ ] **Save and stop. Do not Submit.** Marty alone decides whether to Submit for review. This is the #1 odds unlock after smoke.
 
