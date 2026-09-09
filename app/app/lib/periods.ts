@@ -336,15 +336,17 @@ export function shopifySearchInstant(date: Date): string {
 
 /**
  * Shopify Admin order search for Cash MER / order-facts sales SoT.
- * open|closed excludes cancelled. Test / Bogus / development-store orders stay
- * in — Shopify Admin shows them. Excluding test checkouts is how a 7-order
- * desk permanently heros 0.00 ROAS after grant.
- * Parentheses keep OR from swallowing the created_at terms.
+ *
+ * Date only — no `status:` term. GraphQL `orders` search does not document
+ * `status:any`, and `(status:open OR status:closed)` can parse as invalid /
+ * default to open-only, then a 7-order closed/archived desk heros $0.
+ * Cancelled orders are dropped in-app via `cancelledAt`. Test / Bogus /
+ * development-store orders stay in — Shopify Admin shows them.
  */
 export function formatPeriodQuery(range: DateRange): string {
   const isoStart = shopifySearchInstant(range.start);
   const isoEnd = shopifySearchInstant(range.end);
-  return `created_at:>=${isoStart} created_at:<=${isoEnd} (status:open OR status:closed)`;
+  return `created_at:>=${isoStart} AND created_at:<=${isoEnd}`;
 }
 
 export const PERIOD_PRESETS: { value: PeriodPreset; label: string }[] = [

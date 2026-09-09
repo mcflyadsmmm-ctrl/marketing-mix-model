@@ -5,6 +5,13 @@ import {
   adminGraphqlJson as fetchAdminGraphqlJson,
   type GraphqlCost,
 } from "./shopify-graphql-cost.server";
+import {
+  assertShopifySalesFetchMode,
+  includeOrderInSalesSoT,
+  orderCreatedInRange,
+  shopifySearchHasWarnings,
+  type ShopifySalesFetchMode,
+} from "./shopify-sales-query";
 
 export {
   shopLocalDayKey,
@@ -56,12 +63,17 @@ export interface SalesResult {
    * Desk today top-up may undercount — surface via CashTrustBanners; never silent.
    */
   truncatedByPageCap?: boolean;
+  /**
+   * Non-cancelled Admin orders seen this crawl *before* in-range filter.
+   * recent_scan uses this to tell “7 orders exist” from “none in MTD”.
+   */
+  shopOrdersSeen?: number;
 }
 
 /** Sales + order count — works with read_orders alone (fallback / by-day). */
 const ORDERS_SALES_QUERY = `#graphql
   query McflyOrdersSales($query: String!, $cursor: String) {
-    orders(first: 100, after: $cursor, query: $query) {
+    orders(first: 100, after: $cursor, query: $query, sortKey: CREATED_AT, reverse: true) {
       pageInfo {
         hasNextPage
         endCursor
@@ -70,6 +82,7 @@ const ORDERS_SALES_QUERY = `#graphql
         node {
           id
           createdAt
+          cancelledAt
           totalPriceSet {
             shopMoney {
               amount
@@ -98,7 +111,7 @@ const ORDERS_SALES_QUERY = `#graphql
  */
 const ORDERS_FULL_QUERY = `#graphql
   query McflyOrdersFull($query: String!, $cursor: String) {
-    orders(first: 100, after: $cursor, query: $query) {
+    orders(first: 100, after: $cursor, query: $query, sortKey: CREATED_AT, reverse: true) {
       pageInfo {
         hasNextPage
         endCursor
@@ -107,6 +120,45 @@ const ORDERS_FULL_QUERY = `#graphql
         node {
           id
           createdAt
+          cancelledAt
+          totalPriceSet {
+            shopMoney {
+              amount
+            }
+          }
+          currentTotalPriceSet {
+            shopMoney {
+              amount
+            }
+          }
+          currentSubtotalPriceSet {
+            shopMoney {
+              amount
+            }
+          }
+          customer {
+            id
+            numberOfOrders
+          }
+        }
+      }
+    }
+  }
+`;
+
+/** Newest-first, no search query — independent of created_at / status syntax. */
+const ORDERS_RECENT_QUERY = `#graphql
+  query McflyOrdersRecent($cursor: String) {
+    orders(first: 100, after: $cursor, sortKey: CREATED_AT, reverse: true) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      edges {
+        node {
+          id
+          createdAt
+          cancelledAt
           totalPriceSet {
             shopMoney {
               amount
@@ -138,7 +190,7 @@ const ORDERS_FULL_QUERY = `#graphql
  */
 const ORDERS_CUSTOMER_QUERY = `#graphql
   query McflyOrdersCustomers($query: String!, $cursor: String) {
-    orders(first: 100, after: $cursor, query: $query) {
+    orders(first: 100, after: $cursor, query: $query, sortKey: CREATED_AT, reverse: true) {
       pageInfo {
         hasNextPage
         endCursor
@@ -146,6 +198,8 @@ const ORDERS_CUSTOMER_QUERY = `#graphql
       edges {
         node {
           id
+          createdAt
+          cancelledAt
           totalPriceSet {
             shopMoney {
               amount
@@ -187,6 +241,7 @@ type OrdersSalesJson = {
         node?: {
           id?: string;
           createdAt?: string;
+          cancelledAt?: string | null;
           totalPriceSet?: MoneySet;
           currentTotalPriceSet?: MoneySet;
           currentSubtotalPriceSet?: MoneySet;
@@ -199,7 +254,10 @@ type OrdersSalesJson = {
     };
   };
   errors?: Array<{ message?: string; extensions?: { code?: string } }>;
-  extensions?: { cost?: GraphqlCost };
+  extensions?: {
+    cost?: GraphqlCost;
+    search?: Array<{ warnings?: Array<{ message?: string }> | null } | null>;
+  };
 };
 
 /**
@@ -209,9 +267,30 @@ type OrdersSalesJson = {
 function adminGraphqlJson(
   admin: AdminApiContext,
   document: string,
-  variables: { query: string; cursor: string | null },
+  variables: { query?: string; cursor: string | null },
 ): Promise<OrdersSalesJson> {
   return fetchAdminGraphqlJson<OrdersSalesJson>(admin, document, variables);
+}
+
+function assertOrdersSearchOk(json: OrdersSalesJson): void {
+  if (shopifySearchHasWarnings(json.extensions)) {
+    throw new Error("SHOPIFY_SEARCH_INVALID");
+  }
+}
+
+function keepSalesOrder(
+  node: {
+    createdAt?: string;
+    cancelledAt?: string | null;
+  } | null | undefined,
+  range: DateRange,
+  mode: ShopifySalesFetchMode,
+): boolean {
+  if (!node || !includeOrderInSalesSoT(node)) return false;
+  if (mode === "recent_scan") {
+    return orderCreatedInRange(node.createdAt, range);
+  }
+  return true;
 }
 
 function parseMoneyAmount(set: MoneySet | undefined): number {
@@ -285,6 +364,7 @@ function emptySales(source: SalesResult["source"] = "shopify"): SalesResult {
     guestOrders: 0,
     customerMetricsAvailable: false,
     source,
+    shopOrdersSeen: 0,
   };
 }
 
@@ -380,6 +460,12 @@ export type FetchShopifySalesOptions = {
    * scopes the query to one closed shop-local day.
    */
   maxPages?: number;
+  /**
+   * `search` uses `formatPeriodQuery` (created_at range).
+   * `recent_scan` lists newest orders with no search string and filters
+   * createdAt / cancelledAt in-app — independent confirm for MTD $0 facts.
+   */
+  mode?: ShopifySalesFetchMode;
 };
 
 /**
@@ -396,7 +482,9 @@ export async function fetchShopifySales(
   range: DateRange,
   options?: FetchShopifySalesOptions,
 ): Promise<SalesResult> {
-  const query = formatPeriodQuery(range);
+  const mode = assertShopifySalesFetchMode(options?.mode ?? "search");
+  const query = mode === "search" ? formatPeriodQuery(range) : undefined;
+  const document = mode === "recent_scan" ? ORDERS_RECENT_QUERY : ORDERS_FULL_QUERY;
   const maxPages = options?.maxPages;
 
   // Preferred: single crawl with opaque customer fields.
@@ -408,13 +496,14 @@ export async function fetchShopifySales(
     let grossSales = 0;
     let orderCount = 0;
     let guestOrders = 0;
+    let shopOrdersSeen = 0;
     let truncatedByPageCap = false;
     const customers = new Map<string, CustomerAccum>();
 
     do {
       pages += 1;
-      const json = await adminGraphqlJson(admin, ORDERS_FULL_QUERY, {
-        query,
+      const json = await adminGraphqlJson(admin, document, {
+        ...(query != null ? { query } : {}),
         cursor,
       });
 
@@ -427,25 +516,46 @@ export async function fetchShopifySales(
             "Shopify GraphQL error",
         );
       }
+      if (mode === "search") {
+        assertOrdersSearchOk(json);
+      }
 
       const orders = json.data?.orders;
       if (!orders) {
         throw new Error("Failed to fetch orders from Shopify Admin API");
       }
 
+      let hitOlderThanRange = false;
+      const keptEdges: NonNullable<typeof orders.edges> = [];
       for (const edge of orders.edges ?? []) {
+        const createdAt = edge.node?.createdAt;
+        if (
+          mode === "recent_scan" &&
+          createdAt &&
+          Date.parse(createdAt) < range.start.getTime()
+        ) {
+          hitOlderThanRange = true;
+        }
+        if (includeOrderInSalesSoT(edge.node ?? {})) {
+          shopOrdersSeen += 1;
+        }
+        if (!keepSalesOrder(edge.node, range, mode)) continue;
+        keptEdges.push(edge);
         const gross = parseMoneyAmount(edge.node?.totalPriceSet);
         totalSales += orderTotalSalesAmount(edge.node);
         netSales += orderNetSalesAmount(edge.node);
         grossSales += gross;
         orderCount += 1;
       }
-      guestOrders += accumulateCustomerMix(orders.edges, customers);
+      guestOrders += accumulateCustomerMix(keptEdges, customers);
 
       const hasNext = Boolean(orders.pageInfo?.hasNextPage);
       cursor = hasNext ? (orders.pageInfo?.endCursor ?? null) : null;
+      if (hitOlderThanRange) {
+        cursor = null;
+      }
       // Cap: drop remaining pages rather than crawl 100k–1M orders on desk paint.
-      if (maxPages != null && pages >= maxPages && hasNext) {
+      if (maxPages != null && pages >= maxPages && hasNext && !hitOlderThanRange) {
         truncatedByPageCap = true;
         cursor = null;
       }
@@ -467,6 +577,7 @@ export async function fetchShopifySales(
       guestOrders: mix.guestOrders,
       customerMetricsAvailable: mix.available,
       source: "shopify",
+      shopOrdersSeen,
       ...(truncatedByPageCap ? { truncatedByPageCap: true } : {}),
     };
   } catch (err) {
@@ -486,12 +597,15 @@ export async function fetchShopifySales(
   let netSales = 0;
   let grossSales = 0;
   let orderCount = 0;
+  let shopOrdersSeen = 0;
   let truncatedByPageCap = false;
+  const salesDocument =
+    mode === "recent_scan" ? ORDERS_RECENT_QUERY : ORDERS_SALES_QUERY;
 
   do {
     pages += 1;
-    const json = await adminGraphqlJson(admin, ORDERS_SALES_QUERY, {
-      query,
+    const json = await adminGraphqlJson(admin, salesDocument, {
+      ...(query != null ? { query } : {}),
       cursor,
     });
 
@@ -501,13 +615,29 @@ export async function fetchShopifySales(
           "Shopify GraphQL error",
       );
     }
+    if (mode === "search") {
+      assertOrdersSearchOk(json);
+    }
 
     const orders = json.data?.orders;
     if (!orders) {
       throw new Error("Failed to fetch orders from Shopify Admin API");
     }
 
+    let hitOlderThanRange = false;
     for (const edge of orders.edges ?? []) {
+      const createdAt = edge.node?.createdAt;
+      if (
+        mode === "recent_scan" &&
+        createdAt &&
+        Date.parse(createdAt) < range.start.getTime()
+      ) {
+        hitOlderThanRange = true;
+      }
+      if (includeOrderInSalesSoT(edge.node ?? {})) {
+        shopOrdersSeen += 1;
+      }
+      if (!keepSalesOrder(edge.node, range, mode)) continue;
       const gross = parseMoneyAmount(edge.node?.totalPriceSet);
       totalSales += orderTotalSalesAmount(edge.node);
       netSales += orderNetSalesAmount(edge.node);
@@ -517,7 +647,10 @@ export async function fetchShopifySales(
 
     const hasNext = Boolean(orders.pageInfo?.hasNextPage);
     cursor = hasNext ? (orders.pageInfo?.endCursor ?? null) : null;
-    if (maxPages != null && pages >= maxPages && hasNext) {
+    if (hitOlderThanRange) {
+      cursor = null;
+    }
+    if (maxPages != null && pages >= maxPages && hasNext && !hitOlderThanRange) {
       truncatedByPageCap = true;
       cursor = null;
     }
@@ -525,7 +658,7 @@ export async function fetchShopifySales(
 
   // Customer mix crawl is also unbounded — skip it when the sales crawl was capped
   // (desk today top-up never needs unique new/returning on paint).
-  if (maxPages != null) {
+  if (maxPages != null || query == null) {
     return {
       totalSales,
       netSales,
@@ -541,11 +674,12 @@ export async function fetchShopifySales(
       guestOrders: 0,
       customerMetricsAvailable: false,
       source: "shopify",
+      shopOrdersSeen,
       ...(truncatedByPageCap ? { truncatedByPageCap: true } : {}),
     };
   }
 
-  const customerStats = await fetchCustomerMix(admin, query);
+  const customerStats = await fetchCustomerMix(admin, query, range);
 
   return {
     totalSales,
@@ -560,6 +694,7 @@ export async function fetchShopifySales(
     newCustomerNetSales: customerStats.newCustomerNetSales,
     returningCustomerNetSales: customerStats.returningCustomerNetSales,
     guestOrders: customerStats.guestOrders,
+    shopOrdersSeen,
     customerMetricsAvailable: customerStats.available,
     source: "shopify",
   };
@@ -568,6 +703,7 @@ export async function fetchShopifySales(
 async function fetchCustomerMix(
   admin: AdminApiContext,
   query: string,
+  range: DateRange,
 ): Promise<{
   newCustomers: number;
   returningCustomers: number;
@@ -602,13 +738,19 @@ async function fetchCustomerMix(
         // Non-scope errors: don't fail the whole desk — sales already loaded.
         return unavailable;
       }
+      if (shopifySearchHasWarnings(json.extensions)) {
+        return unavailable;
+      }
 
       const orders = json.data?.orders;
       if (!orders) {
         return unavailable;
       }
 
-      guestOrders += accumulateCustomerMix(orders.edges, customers);
+      const kept = (orders.edges ?? []).filter((edge) =>
+        keepSalesOrder(edge.node, range, "search"),
+      );
+      guestOrders += accumulateCustomerMix(kept, customers);
 
       cursor = orders.pageInfo?.hasNextPage
         ? (orders.pageInfo.endCursor ?? null)
@@ -655,6 +797,7 @@ export async function fetchShopifySalesByDay(
           "Shopify GraphQL error",
       );
     }
+    assertOrdersSearchOk(json);
 
     const orders = json.data?.orders;
     if (!orders) {
@@ -662,6 +805,7 @@ export async function fetchShopifySalesByDay(
     }
 
     for (const edge of orders.edges ?? []) {
+      if (!keepSalesOrder(edge.node, range, "search")) continue;
       // Net for by-day facts; fall back to gross only when currentTotal is absent.
       const amount = orderNetAmount(edge.node);
       const key = shopLocalDayKeyFromIso(edge.node?.createdAt ?? "", timeZone);

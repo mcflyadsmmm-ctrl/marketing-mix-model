@@ -86,10 +86,16 @@ describe("Shopify sales SoT (Total ROAS numerator)", () => {
     expect(PRODUCT_NOUN.cashClose).toMatch(/exact spend/i);
   });
 
-  it("sales query SoT excludes cancelled via formatPeriodQuery and keeps test orders", () => {
+  it("sales query SoT excludes cancelled in-app and keeps test orders", () => {
     expect(salesSource).toContain("formatPeriodQuery");
+    expect(salesSource).toContain("includeOrderInSalesSoT");
+    expect(salesSource).toContain("cancelledAt");
+    expect(salesSource).toContain("recent_scan");
     const periodsSource = readFileSync(join(here, "periods.ts"), "utf8");
     expect(periodsSource).toMatch(/cancelled/i);
+    expect(periodsSource).not.toMatch(
+      /return `[^`]*status:open OR status:closed/,
+    );
     expect(periodsSource).toContain("shopifySearchInstant");
     expect(periodsSource).not.toMatch(/test:false`/);
     expect(periodsSource).not.toMatch(/return `[^`]*test:false/);

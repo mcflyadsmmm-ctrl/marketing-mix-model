@@ -21,15 +21,18 @@ export interface SalesFactsCoverage {
  * Desk honesty for Overview / CashVerdict / trusted hero.
  *
  * Empty facts are never complete (`factDays === 0` is not a trusted quiet period).
- * `complete: true` with $0 sales is only trusted after a live Admin confirm
- * this request — otherwise poisoned $0 rows hero “Below break-even”.
+ * Complete $0 + spend>0 is untrusted until a recent-scan saw Admin orders
+ * (`shopOrdersSeen > 0`) and none fell in-range (`liveConfirmedZero`).
+ * A search-query $0 “confirm” (shopOrdersSeen 0) is the demvcflyads poison.
  */
 export function salesFactsIncompleteForDesk(
   coverage: SalesFactsCoverage | null | undefined,
   extra?: {
     salesUntrustedZero?: boolean;
     sales?: number;
+    spend?: number;
     liveConfirmedZero?: boolean;
+    shopOrdersSeen?: number;
   },
 ): boolean {
   if (extra?.salesUntrustedZero) return true;
@@ -42,8 +45,24 @@ export function salesFactsIncompleteForDesk(
   // complete $0 — never a trusted 0.00.
   if (coverage.factDays === 0) return true;
   if (!coverage.complete) return true;
+  const spendPresent = (extra?.spend ?? 0) > 0;
+  const quietConfirmed =
+    Boolean(extra?.liveConfirmedZero) && (extra?.shopOrdersSeen ?? 0) > 0;
+  if (spendPresent && !quietConfirmed) return true;
+  if (quietConfirmed) return false;
   if (extra?.liveConfirmedZero) return false;
   return true;
+}
+
+/** Search-mode $0 must not upsert — that is how MTD kick poisons complete days. */
+export function salesFactsAllowZeroUpsert(args: {
+  totalSales: number;
+  orderCount: number;
+  usedRecentScan: boolean;
+  shopOrdersSeen: number;
+}): boolean {
+  if (args.totalSales > 0 || args.orderCount > 0) return true;
+  return args.usedRecentScan && args.shopOrdersSeen > 0;
 }
 
 /**

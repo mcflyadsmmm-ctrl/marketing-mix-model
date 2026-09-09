@@ -61,7 +61,7 @@ describe("resolvePeriod with shop IANA", () => {
 });
 
 describe("formatPeriodQuery", () => {
-  it("quotes ISO instants, excludes cancelled, and keeps Admin-visible test orders", () => {
+  it("quotes ISO instants, leaves status to the app filter, and keeps Admin-visible test orders", () => {
     const range = {
       start: new Date("2026-07-01T06:00:00.000Z"),
       end: new Date("2026-07-15T05:59:59.999Z"),
@@ -70,7 +70,11 @@ describe("formatPeriodQuery", () => {
     const q = formatPeriodQuery(range);
     expect(q).toContain("created_at:>='2026-07-01T06:00:00.000Z'");
     expect(q).toContain("created_at:<='2026-07-15T05:59:59.999Z'");
-    expect(q).toContain("(status:open OR status:closed)");
+    expect(q).toContain("AND");
+    expect(q).not.toContain("status:open");
+    expect(q).not.toContain("status:closed");
+    expect(q).not.toContain("status:any");
+    expect(q).not.toMatch(/\(status:/);
     expect(q).not.toContain("test:false");
     expect(q).not.toContain("status:cancelled");
     // Unquoted ISO `:` is a search-syntax footgun — must not leak.

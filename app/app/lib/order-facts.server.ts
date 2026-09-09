@@ -7,6 +7,7 @@ import {
   shopLocalDayRange,
 } from "./shop-local-day";
 import { formatPeriodQuery, SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
+import { includeOrderInSalesSoT } from "./shopify-sales-query";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
 import { adminGraphqlJson, type GraphqlCost } from "./shopify-graphql-cost.server";
 import { orderNetAmount } from "./shopify-sales.server";
@@ -69,7 +70,7 @@ export async function clearOrderFactDayCompleteSeal(
  */
 const ORDERS_FOR_FACTS_QUERY = `#graphql
   query McflyOrdersForFacts($query: String!, $cursor: String) {
-    orders(first: 100, after: $cursor, query: $query) {
+    orders(first: 100, after: $cursor, query: $query, sortKey: CREATED_AT, reverse: true) {
       pageInfo {
         hasNextPage
         endCursor
@@ -78,6 +79,7 @@ const ORDERS_FOR_FACTS_QUERY = `#graphql
         node {
           id
           createdAt
+          cancelledAt
           totalPriceSet {
             shopMoney {
               amount
@@ -107,6 +109,7 @@ type OrdersForFactsJson = {
         node?: {
           id?: string;
           createdAt?: string;
+          cancelledAt?: string | null;
           totalPriceSet?: {
             shopMoney?: { amount?: string; currencyCode?: string };
           };
@@ -463,6 +466,7 @@ async function fetchOrdersForDay(
     for (const edge of orders.edges ?? []) {
       const node = edge.node;
       if (!node?.id || !node.createdAt) continue;
+      if (!includeOrderInSalesSoT(node)) continue;
       const orderedAt = new Date(node.createdAt);
       if (Number.isNaN(orderedAt.getTime())) continue;
       // Net (currentTotalPriceSet) for OrderFact.amount — same semantics as desk

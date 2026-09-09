@@ -1,4 +1,8 @@
-import { resolveCashVerdict, type CashVerdict } from "../lib/cash-verdict";
+import {
+  cashVerdictSalesUntrusted,
+  resolveCashVerdict,
+  type CashVerdict,
+} from "../lib/cash-verdict";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 
@@ -9,12 +13,17 @@ export type CashVerdictProps = {
   breakEvenMer: number | null;
   spendIncomplete: boolean;
   salesFactsIncomplete: boolean;
+  salesUntrustedZero?: boolean;
   useSampleDesk?: boolean;
 };
 
 export function CashVerdict(props: CashVerdictProps) {
   const verdict = resolveCashVerdict(props);
   return <CashVerdictView verdict={verdict} facts={props} />;
+}
+
+function salesTilesUntrusted(facts: CashVerdictProps): boolean {
+  return cashVerdictSalesUntrusted(facts) && !(facts.sales > 0);
 }
 
 function CashVerdictView({
@@ -36,8 +45,7 @@ function CashVerdictView({
         <div>
           <dt>{PRODUCT_NOUN.totalRoas}</dt>
           <dd>
-            {verdict.tone === "blocked" ||
-            (facts.salesFactsIncomplete && !(facts.sales > 0))
+            {verdict.tone === "blocked" || salesTilesUntrusted(facts)
               ? "—"
               : facts.mer != null && Number.isFinite(facts.mer)
                 ? `${formatMer(facts.mer)}×`
@@ -47,7 +55,7 @@ function CashVerdictView({
         <div>
           <dt>Sales</dt>
           <dd>
-            {facts.salesFactsIncomplete && !(facts.sales > 0)
+            {salesTilesUntrusted(facts)
               ? "—"
               : formatCurrency(facts.sales)}
           </dd>

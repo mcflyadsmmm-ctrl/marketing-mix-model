@@ -20,6 +20,13 @@ export type CashVerdict = {
  * Does not hide untrusted 0.00 (that is the activation PR) — it only
  * states whether the merchant can act on the multiple this morning.
  */
+export function cashVerdictSalesUntrusted(input: {
+  salesFactsIncomplete: boolean;
+  salesUntrustedZero?: boolean;
+}): boolean {
+  return input.salesFactsIncomplete || Boolean(input.salesUntrustedZero);
+}
+
 export function resolveCashVerdict(input: {
   mer: number | null;
   sales: number;
@@ -27,6 +34,8 @@ export function resolveCashVerdict(input: {
   breakEvenMer: number | null;
   spendIncomplete: boolean;
   salesFactsIncomplete: boolean;
+  /** Defense in depth — Overview must pass this even if incomplete is wrongly false. */
+  salesUntrustedZero?: boolean;
   useSampleDesk?: boolean;
 }): CashVerdict {
   if (input.useSampleDesk) {
@@ -49,7 +58,7 @@ export function resolveCashVerdict(input: {
     };
   }
 
-  if (input.salesFactsIncomplete && !(input.sales > 0)) {
+  if (cashVerdictSalesUntrusted(input) && !(input.sales > 0)) {
     return {
       tone: "blocked",
       headline: "Sales facts still loading — not a trusted multiple",
