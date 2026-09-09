@@ -147,7 +147,7 @@ Source: [`VISUAL_CRAFT_SHOPIFY_APP.md`](./VISUAL_CRAFT_SHOPIFY_APP.md) §5 + §7
 
 | Wave | Outcome | Status |
 | --- | --- | --- |
-| **Love-V1** | Banner budget on Overview/CashTrustBanners — chips for info; ≤1 critical above fold | **DONE** ·  · [Love-V1](2dcfa5a2-c194-49e2-853e-de092ec2a929) · push/Fly pending |
+| **Love-V1** | Banner budget on Overview/CashTrustBanners — chips for info; ≤1 critical above fold | **DONE** · `da303a9` · [Love-V1](2dcfa5a2-c194-49e2-853e-de092ec2a929) |
 | **Love-V2** | Hero actions: one primary (Update spend); demote Share/ledger | Queued |
 | **Love-V3** | Spend teach: one calm surface above day form (cap banner stack) | Queued after Spend free |
 
