@@ -5,10 +5,10 @@
 **ICP primary:** DTC operators ($1–20M) who already close ad spend against Shopify sales in Sheets / Notion / Airtable.  
 **ICP secondary:** Agency strategists who run weekly MER closes for clients and reconcile Ads Manager vs till.
 
-**Duration:** 25–40 minutes (screening 3–5 min · core 18–28 min · close 4–7 min).  
+**Duration:** 25–40 minutes (screening 3–5 min · core 23–36 min · close 4–7 min).  
 **Format:** Zoom / phone / async Loom reply. One interviewer. Record only with consent.
 
-**Sources absorbed:** [`DEEP_RESEARCH_BACKLOG.md`](../DEEP_RESEARCH_BACKLOG.md) · [`VALUE_THESIS.md`](../VALUE_THESIS.md) · [`ops/money/OUTBOUND_MER_OPERATORS.md`](../ops/money/OUTBOUND_MER_OPERATORS.md) · [`APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) (skim).
+**Sources absorbed:** [`DEEP_RESEARCH_BACKLOG.md`](../DEEP_RESEARCH_BACKLOG.md) · [`VALUE_THESIS.md`](../VALUE_THESIS.md) · [`NICHE_PAIN_BANK.md`](./NICHE_PAIN_BANK.md) · [`ops/money/OUTBOUND_MER_OPERATORS.md`](../ops/money/OUTBOUND_MER_OPERATORS.md) · [`APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) (skim).
 
 **Listing (for context only — do not cite install/review counts):** https://apps.shopify.com/mcfly-analytics-public · $39/store/mo · 7-day trial · **Reviews: 0**.
 
@@ -27,7 +27,7 @@ If no consent to record: take handwritten notes; mark capture sheet **Recording:
 ### Interviewer prep
 
 - Have a blank [capture sheet](#capture-sheet-fields) open (Notion row, Sheet row, or paper).
-- Do **not** lead with Mcfly features until the **refuse / fit** block (~minute 22+).
+- Do **not** lead with Mcfly features until the **refuse / fit** block (~minute 31+).
 - Do **not** invent quotes, review counts, customer logos, or results claims.
 - If they haven't installed Mcfly: skip live TTFV; ask hypothetical TTFV only.
 - Tag each note: `[OPERATOR]` or `[AGENCY]` + revenue band if known.
@@ -51,7 +51,7 @@ If no consent to record: take handwritten notes; mark capture sheet **Recording:
 
 ---
 
-## Core interview (~18–28 min)
+## Core interview (~23–36 min)
 
 Read questions conversationally. Follow the thread; don't rush the list.
 
@@ -70,7 +70,37 @@ Read questions conversationally. Follow the thread; don't rush the list.
 
 **Probes:** "Show me that tab if you're on screen share." · "What's the formula in plain English?" · "Who do you not trust in that chain?"
 
-### B. Suite anxiety (6–8 min)
+### B. Top-12 niche pressure (5–8 min)
+
+**Goal:** Pressure-test ranked pains from [`NICHE_PAIN_BANK.md`](./NICHE_PAIN_BANK.md) **P01–P12**. Do not read pain IDs aloud. Capture **their** words only — **never invent quotes.**
+
+Skip any row they already covered deeply in Monday ritual. Force at least **six** of the twelve before moving on.
+
+| ID | Force question | Rich signal |
+| --- | --- | --- |
+| **P01** | When **Ads Manager ROAS** and **Shopify till** disagree, which number do you **act on** for spend? What would have to change for you to trust till-side math in under 10 minutes? | Till, bank, or sheet wins — not platform ROAS alone |
+| **P02** | Walk me through the **Monday tax** on your sheet or CSV: exports, VLOOKUP, missing days, currencies, timezones. What breaks most often? | Rebuild steps named — not "it's automatic" |
+| **P03** | Does spend in Ads Manager ever feel **higher or fresher** than what attribution suites show? Which number do you paste into MER? | Lag / "true spend" anxiety between platform and suite |
+| **P04** | Gut check: analytics priced on **GMV** — do you feel **punished for growing**, or is it fine? What would **flat $39/mo** change in your stack? | GMV-tax resentment or explicit pricing story |
+| **P05** | Do you know your **break-even ROAS / MER** (contribution-margin math)? Where does it live — doc, sheet tab, founder's head? | Documented hurdle vs vague gut feel |
+| **P06** | For MER, which **Shopify sales basis** — total, net, demand? Do **January returns** or **tax** ever make you rewrite the week? | Basis choice + seasonal or returns rewrite |
+| **P07** | What **offline / influencer / agency / retainer** spend is in blended MER but **not** in ad platforms? | Named non-platform spend lines |
+| **P08** | If a till desk only took **CSV/paste** spend — dealbreaker, relief, or "I'll paste Monday"? What makes CSV feel like a **broken app**? | Auto-sync expectation vs honest manual |
+| **P09** | Day one after install: **coverage holes** before a full week of spend — acceptable or punished? | TTFV / empty-state tolerance |
+| **P10** | Would you **pay $39** before you trusted Total ROAS, or does trial length matter more? | Trust clock vs price |
+| **P11** | Do you need Monday MER on **phone** — widget, screenshot, Slack — or Admin-on-desktop is enough? | Mobile ritual signal |
+| **P12** | **[AGENCY]** Multi-client weekly close — same template, snowflake, or export pack per client? | Multi-store ritual |
+
+**Five-star till desk at $39 — force last (even if block E repeats):**
+
+1. Complete: "I'd leave **five stars** for a till desk if it ______." (Probe: honest Monday close, flat price, no GMV tax.)
+2. Complete: "I'd **one-star or uninstall** if it ______." (Probe: fake auto-sync promise, wrong sales basis, attribution theater.)
+
+**Probes (prompt vocabulary — not quotes to attribute):** platforms claim the same sale · phantom purchases · VLOOKUP hell · missing days · why won't it connect Meta · don't MER on total sales in January · billboards · retainers · punished for growing
+
+Tag validated IDs on the capture sheet (`niche_pain_ids`).
+
+### C. Suite anxiety (6–8 min)
 
 **Goal:** Where attribution suites create clarity vs theater (per DEEP_RESEARCH_BACKLOG P0).
 
@@ -84,7 +114,7 @@ Read questions conversationally. Follow the thread; don't rush the list.
 
 **Probes:** "I don't trust ROAS anymore" — have you said or heard that? · DNS / pixel install — did that delay value?
 
-### C. Time to first trusted number — TTFV (5–7 min)
+### D. Time to first trusted number — TTFV (5–7 min)
 
 **Goal:** Benchmark Mcfly's "<10 min to trusted Total ROAS" claim against their real onboarding memory.
 
@@ -97,7 +127,7 @@ Read questions conversationally. Follow the thread; don't rush the list.
 
 **Probes:** SAMPLE/demo data — helpful or annoying? · Freshness / "last updated" — do you need it?
 
-### D. Spend entry pain (5–7 min)
+### E. Spend entry pain (5–7 min)
 
 **Goal:** Validate CSV/paste wedge vs OAuth / connector zoo (VALUE_THESIS §2).
 
@@ -110,9 +140,9 @@ Read questions conversationally. Follow the thread; don't rush the list.
 
 **Probes:** TikTok / Microsoft / Pinterest — included or "Other"? · Combined export vs per-platform?
 
-### E. Five-star review bar (4–5 min)
+### F. Five-star review bar (4–5 min)
 
-**Goal:** Honest App Store review criteria — **do not ask them to review.** Learn what would earn *their* five stars.
+**Goal:** Honest App Store review criteria — **do not ask them to review.** Learn what would earn *their* five stars. If P09/P10 and five-star lines were captured in block B, shorten here.
 
 1. Think about the last Shopify app you **loved**. What did it do in week one?
 2. What would make you leave a **public** App Store review for a cash desk app — vs just churn quietly?
@@ -123,7 +153,7 @@ Read questions conversationally. Follow the thread; don't rush the list.
 
 **Reminder to interviewer:** Never write their review for them. Never promise incentives for reviews.
 
-### F. Refuse list / fit check (3–5 min)
+### G. Refuse list / fit check (3–5 min)
 
 **Goal:** Confirm Mcfly religion aligns with their job — or learn mismatch early.
 
@@ -140,16 +170,17 @@ Read calmly:
 
 ## Agency variant prompt pack
 
-Use when `[AGENCY]` tagged at screening. Swap or add these prompts in blocks B–F.
+Use when `[AGENCY]` tagged at screening. Swap or add these prompts in blocks C–G.
 
 | Block | Agency prompt |
 | --- | --- |
 | Open | "How many Shopify DTC clients run a **MER sheet** you touch vs platform-only reporting?" |
-| B | "When the client's suite says one thing and Shopify says another, **what do you put in the slide**?" |
-| C | "Client onboarding — hours to first **client-trusted** MER close?" |
-| D | "Do you maintain a **master spend template** or per-client exports?" |
-| E | "Would you white-label or co-brand a cash desk, or only point founders to install?" |
-| F | "Does 'no pixels' help you sell **speed**, or hurt vs suite partners?" |
+| B | Force **P12** row; add: "Same MER template across clients, or snowflake every time?" |
+| C | "When the client's suite says one thing and Shopify says another, **what do you put in the slide**?" |
+| D | "Client onboarding — hours to first **client-trusted** MER close?" |
+| E | "Do you maintain a **master spend template** or per-client exports?" |
+| F | "Would you white-label or co-brand a cash desk, or only point founders to install?" |
+| G | "Does 'no pixels' help you sell **speed**, or hurt vs suite partners?" |
 
 ---
 
@@ -198,6 +229,7 @@ Copy one row per interview. Store in `docs/research/interviews/` or ops tracker 
 | `follow_up_ok` | `Y` \| `N` |
 | `referral` | Name/handle if given |
 | `hypothesis_tags` | See [`MERCHANT_LOVE_JTBD.md`](./MERCHANT_LOVE_JTBD.md) IDs to validate |
+| `niche_pain_ids` | [`NICHE_PAIN_BANK.md`](./NICHE_PAIN_BANK.md) P01–P12 validated (e.g. `P01,P06,P08`) |
 | `interviewer_notes` | Freeform |
 
 ---
@@ -208,12 +240,13 @@ Copy one row per interview. Store in `docs/research/interviews/` or ops tracker 
 | --- | --- | --- |
 | Consent + screening | 3–5 | 5 |
 | Monday ritual | 8–10 | 15 |
-| Suite anxiety | 6–8 | 23 |
-| TTFV | 5–7 | 30 |
-| Spend entry pain | 5–7 | 37 |
-| Five-star bar + refuse | 7–10 | 47* |
+| Top-12 niche pressure | 5–8 | 23 |
+| Suite anxiety | 6–8 | 31 |
+| TTFV | 5–7 | 38 |
+| Spend entry pain | 5–7 | 45 |
+| Five-star bar + refuse | 7–10 | 55* |
 
-\*Target **25–40 min** by shortening probes in suite + spend blocks; full run is ~45 min with demo.
+\*Target **25–40 min** by shortening probes in niche + suite + spend blocks; full run is ~45 min with demo.
 
 ---
 
@@ -221,7 +254,7 @@ Copy one row per interview. Store in `docs/research/interviews/` or ops tracker 
 
 1. Fill capture sheet within 24h while memory is fresh.
 2. Pull 1–3 `[QUOTE]` lines **only** if `consent_public_quote=Y`.
-3. Map insights to hypothesis IDs in [`MERCHANT_LOVE_JTBD.md`](./MERCHANT_LOVE_JTBD.md).
+3. Map insights to hypothesis IDs in [`MERCHANT_LOVE_JTBD.md`](./MERCHANT_LOVE_JTBD.md) and pain IDs in [`NICHE_PAIN_BANK.md`](./NICHE_PAIN_BANK.md).
 4. **Do not** paste interview lines into App Store listing, site, or ads as social proof.
 5. Reviews stay **0** until real merchants leave honest App Store reviews.
 

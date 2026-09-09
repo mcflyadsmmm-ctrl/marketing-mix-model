@@ -86,8 +86,38 @@ Pixel accuracy · MTA · campaign bid tools · connector zoo inside Mcfly · inv
 1. **Love-6** — first-day coverage tone (P09)  
 2. **Love-trial** — trial vs trust clock copy (P10)  
 3. **Listing/outbound** — steal P01/P04/P07 phrases; keep Automate → pipe  
-4. **Interviews** — force P06 sales-basis and P08 sync expectation questions  
+4. **Interviews** — force P06 sales-basis and P08 sync expectation questions (script block B)  
 5. **Do not** build Keel-style Meta OAuth to “win” mobile ROAS widgets
+
+---
+
+## Desk autopsy crosswalk (2026-09-09 mine)
+
+Internal unresolved hypotheses mapped onto the bank. Source: FRICTION_AUTOPSY · CAPABILITY_MAP · UNINSTALL_RISKS · COMMUNITY_SIGNALS.
+
+| Hyp | Maps to | Status |
+| --- | --- | --- |
+| Monday sheet still the close | P02 | open — pipe + TTFV |
+| Platform ROAS ≠ till | P01 | sell harder |
+| Standing manual spend labor | P02 / P08 | open — copy + pipe; no OAuth |
+| Sheet abandoned week 3 | P02 | retention — interviews |
+| Auto-sync expectation | P08 | Love-5 shipped; risk remains |
+| Overview cold bounce | — | **Love-2 shipped** (`stay=1`) |
+| First-day red coverage | P09 | **Love-6 in flight** |
+| Trial vs trust clock | P10 | Love-trial queued |
+| Unconfirmed 3.00× explorer | P25 | **Love-3 shipped** |
+| Goals page unconfirmed target | P25 sister | queue after Love-6 |
+| Ledger blocked by missing day | P24 | keep gate; entry UX |
+| Automate → pipe link | — | **Love-5 shipped** |
+| Allocation advice not rendered | — | Love-8 queued |
+| `declare-recon` no form | — | Love-7 queued |
+| LTV / deep-history before trust | — | defer; ordering/copy only |
+| SAMPLE CTA → demo | — | **Love-1 shipped** |
+| Ephemeral real-mode checklist | — | verify on smoke |
+| Goals/LTV before trusted MER | — | nav discipline P2 |
+| ReviewAsk compound never fires | — | fix ordering after smoke; don’t loosen |
+| Offline / agency spend | P07 | undersold |
+| GMV-tax resentment | P04 | listing kill shot |
 
 ---
 

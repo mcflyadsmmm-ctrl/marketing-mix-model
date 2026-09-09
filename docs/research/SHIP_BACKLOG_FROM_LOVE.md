@@ -82,13 +82,17 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Exclusive files** | `app._index.tsx` primary action Form shape; optional `firstSessionPrimaryAction` POST variant |
 | **Note** | Love-1 left two-tap by design (data-mode is POST-only) — [Love-1](eb51c9ec-599c-45ff-a85e-eaf429ed9a2d) caveat |
 | **Status** | Queued |
-## Wave Love-6 — First-day coverage tone (P0 · L14)
+
+---
+
+## Wave Love-6 — First-day coverage tone (P0 · L14 · P09)
 
 | | |
 | --- | --- |
 | **Outcome** | First typed spend day does not greet with a critical red “27-hole” banner; incomplete coverage is honest but not hostile |
 | **Exclusive files** | Spend coverage UI path in `app.spend.tsx` (+ tests) — **after Love-1** lands (same file exclusive) |
 | **DoD** | New merchant path documented; no SAMPLE counted as live |
+| **Status** | **In flight** · [Love-6](2b5f6345-997b-4ffc-a823-e009d4914262) |
 
 ---
 
@@ -99,6 +103,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Outcome** | Merchant can set/clear declared Ads Manager spend for ±5% recon, **or** Overview/Advanced/Allocation stop reading unreachable state |
 | **Exclusive files** | Settings or Spend recon form + `declare-recon` action wire; or remove dead banners |
 | **DoD** | No orphan action; religion intact |
+| **Status** | Queued |
 
 ---
 
@@ -109,6 +114,19 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 | **Outcome** | Hold/reduce/step-test advice already computed is shown, or empty copy no longer promises it |
 | **Exclusive files** | `app.allocation.tsx` (+ related lib already computing actions) |
 | **DoD** | Copy matches UI |
+| **Status** | Queued |
+
+---
+
+## Wave Love-trial — Trial vs trust clock (P0 · L15 · P10)
+
+| | |
+| --- | --- |
+| **Outcome** | Desk states clearly that a trusted Total ROAS needs closed days of entered spend — trial alone is not “done” |
+| **Exclusive files** | Overview / empty-state / billing-adjacent copy only |
+| **Must not** | Change billing plan length without founder; no OAuth |
+| **DoD** | Merchant sees trust clock next to trial; SCORECARD L15 closed |
+| **Status** | Queued after Love-6 |
 
 ---
 
@@ -118,7 +136,7 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 - L8 CSV/Apps Script craft pack (`docs/` + templates only first)  
 - L9 site MER literacy from COMMUNITY_SIGNALS  
 - L10 habit prompts after first trusted ROAS  
-- L15 trial clock vs trust clock desk copy  
+- Goals page unconfirmed-target sister of Love-3  
 
 ## Refuse forever (unless MASTER_PLAN amended by founder)
 
