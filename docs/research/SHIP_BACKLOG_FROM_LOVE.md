@@ -15,14 +15,15 @@ Exclusive-file Desk waves derived from [LOVE_SCORECARD.md](./LOVE_SCORECARD.md).
 
 ---
 
-## Wave Love-1 — SAMPLE honesty (P0 · L2)
+## Wave Love-1 — SAMPLE CTA honesty (P0 · L2 · Hostile #5 only)
 
 | | |
 | --- | --- |
-| **Outcome** | Live coverage never counts SAMPLE days; SAMPLE primary CTA drives use-real, not demo toy |
-| **Exclusive files** | `app/app/routes/app.spend.tsx` (coverage), `app/app/lib/first-session-path.ts` (and tests), possibly `SampleDeskBanner` |
-| **Must not** | Touch Settings target-mer; no OAuth |
-| **DoD** | Hostile #1 + #5 closed; unit tests; ship gate |
+| **Outcome** | SAMPLE primary CTA drives use-real / Real mode, not `/app/demo` toy admin |
+| **Exclusive files** | `app/app/lib/first-session-path.ts` (+ tests), `SampleDeskBanner` / Overview SAMPLE CTA as needed |
+| **Must not** | Touch Settings target-mer; no OAuth; do not re-litigate Hostile #1 |
+| **DoD** | Hostile #5 closed; unit tests; ship gate |
+| **Note** | Hostile #1 (SAMPLE in live coverage) stamped **CLOSED** in FRICTION_AUTOPSY §3 with file evidence — Love-1 does not re-open coverage |
 
 ---
 

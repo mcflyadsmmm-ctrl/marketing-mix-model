@@ -19,7 +19,7 @@ Pain · Uninstall/trial kill · Differentiator · Religion fit · Ship ease.
 
 | ID | Problem | Pain | Kill | Diff | Religion | Ship | Total | Tier |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| L2 | SAMPLE honesty (coverage + CTA → demo) | 4 | 5 | 5 | 5 | 4 | **23** | **P0** |
+| L2 | SAMPLE CTA → `/app/demo` (Hostile #5); coverage Hostile #1 CLOSED | 4 | 5 | 5 | 5 | 5 | **24** | **P0** |
 | L1 | Spend entry / first trusted ROAS harder than sheet | 5 | 5 | 4 | 5 | 3 | **22** | **P0** |
 | L3 | Overview cold empty unreachable / bounce | 4 | 5 | 3 | 5 | 4 | **21** | **P0** |
 | L14 | First typed spend day → red “27-hole” critical banner | 4 | 5 | 3 | 5 | 4 | **21** | **P0** |
