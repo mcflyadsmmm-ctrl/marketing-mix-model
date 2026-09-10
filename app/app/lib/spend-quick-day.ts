@@ -10,6 +10,7 @@
 
 import type { SpendChannel } from "@mcfly/mer-engine";
 import { SPEND_CHANNELS, SPEND_CHANNEL_LABELS } from "@mcfly/mer-engine";
+import { missingDaysCashSentence } from "./cash-desk-copy";
 import type { PeriodPreset } from "./periods";
 import { PRODUCT_NOUN } from "./product-labels";
 import { parseSpendAmount, parseSpendDate } from "./spend-csv";
@@ -294,7 +295,7 @@ export function quickSpendSavedCopy(input: {
   const note =
     input.salesFloorWarning?.trim() ||
     (missing > 0
-      ? `${missing} closed day${missing === 1 ? "" : "s"} in the last 28 still have $0 spend. Those days count sales with no spend, so Total ROAS reads higher than cash until you fill them.`
+      ? `${missingDaysCashSentence(missing)} Each one you fill pulls the multiple toward the till.`
       : null);
 
   if (input.firstLiveSpend) {

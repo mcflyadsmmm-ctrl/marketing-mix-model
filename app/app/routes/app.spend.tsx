@@ -1377,6 +1377,13 @@ export default function SpendEntryPage() {
 
   const showCoverageBanner =
     !isEmpty && !shotMode && !daySavedCopy && coverageNotice.showBanner;
+  /**
+   * The hole count is honest once per screen, not three times. The saved
+   * banner's note already carries it right after a save, which is exactly the
+   * moment a repeat reads as scolding.
+   */
+  const coverageBodyAlreadySaid =
+    showCoverageBanner || Boolean(daySavedCopy?.note);
   const showCsvErrorBanner = Boolean(
     actionData &&
       !actionData.success &&
@@ -2206,7 +2213,7 @@ export default function SpendEntryPage() {
               </details>
             ) : null}
             <p className="mcfly-spend-lean__status-foot">
-              {showCoverageBanner ? null : `${coverageNotice.body} `}
+              {coverageBodyAlreadySaid ? null : `${coverageNotice.body} `}
               Backdate to {spendHistoryFloorKey} ({spendHistoryYearsBack} years)
               — same window as Shopify sales.
             </p>

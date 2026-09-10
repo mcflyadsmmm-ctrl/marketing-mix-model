@@ -328,6 +328,13 @@ describe("app.spend.tsx wires the tone lib", () => {
     expect(spendRoute).toMatch(/missingDatesDisclosure === "on_request"/);
   });
 
+  it("says the hole count once per screen, not under every banner", () => {
+    expect(spendRoute).toContain("coverageBodyAlreadySaid");
+    expect(spendRoute).toMatch(
+      /showCoverageBanner \|\| Boolean\(daySavedCopy\?\.note\)/,
+    );
+  });
+
   it("keeps the SAMPLE import block and the ledger export gate intact", () => {
     expect(spendRoute).toContain("SAMPLE_DESK_IMPORT_BLOCK");
     expect(spendRoute).toContain("resolvePeriodLedgerControl");

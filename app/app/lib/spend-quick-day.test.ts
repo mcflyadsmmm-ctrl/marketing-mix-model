@@ -234,7 +234,7 @@ describe("quickSpendSavedCopy", () => {
       /1 closed day .* \$0 spend/i,
     );
     expect(quickSpendSavedCopy({ ...base, missingDays: 4 }).note).toMatch(
-      /reads higher than cash/i,
+      /look better than cash/i,
     );
   });
 
