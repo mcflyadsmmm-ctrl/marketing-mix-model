@@ -143,6 +143,31 @@ describe("resolveBillSpreadCoverage", () => {
     expect(coverage.ratioAfter).toBe(1);
   });
 
+  it("says which filled days a spread would rewrite before it happens", () => {
+    const plan = planLumpSpread({
+      totalAmount: 1200,
+      periodType: "month",
+      anchor: "2026-08",
+      channel: "meta",
+    });
+    expect(plan.ok).toBe(true);
+    if (!plan.ok) return;
+
+    const coverage = resolveBillSpreadCoverage({
+      closedDays: coverageWindow(["2026-08-20", "2026-08-21", "2026-09-02"]),
+      planStartDateYmd: plan.plan.startDateYmd,
+      planEndDateYmd: plan.plan.endDateYmd,
+      todayKey: "2026-09-10",
+    });
+
+    // Two typed August days sit inside the bill; the September one does not.
+    expect(coverage.replacedDays).toBe(2);
+    expect(coverage.addedDays).toBe(17);
+    expect(coverage.filledAfter).toBe(20);
+    expect(coverage.note).toMatch(/2 days in this window already carry spend/);
+    expect(coverage.note).toMatch(/replaces those rows/);
+  });
+
   it("survives an empty coverage window without inventing trust", () => {
     const coverage = resolveBillSpreadCoverage({
       closedDays: [],

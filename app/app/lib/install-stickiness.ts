@@ -137,7 +137,7 @@ export function spendEmptyTeach(options?: {
   const billHref = options?.billHref ?? "#mcfly-spend-bill";
   const tertiaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
   const shared = {
-    primaryLabel: "Divide a monthly bill into days",
+    primaryLabel: "Spread a bill across its days",
     primaryHref: billHref,
     secondaryLabel: "Type one day",
     secondaryHref: typeHref,
@@ -146,9 +146,9 @@ export function spendEmptyTeach(options?: {
     return {
       ...shared,
       heading: "Real store is on — get coverage on the desk",
-      body: `Divide a Meta/Google invoice into equal daily rows so Total ROAS is not waiting on 14 hand-typed days — or type one day below to see the multiple now. ${PRODUCT_NOUN.definition}.`,
+      body: `Spread a Meta/Google invoice across its days so Total ROAS is not waiting on 14 hand-typed rows — or type one day below to see the multiple now. ${PRODUCT_NOUN.definition}.`,
       steps: [
-        "Fastest coverage: Divide a monthly bill → download daily rows → import.",
+        "Fastest coverage: spread a monthly bill across its days — saved in one step.",
         "Or type day + amount + channel, then Save this day.",
         `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
       ],
@@ -156,10 +156,10 @@ export function spendEmptyTeach(options?: {
   }
   return {
     ...shared,
-    heading: "Get spend coverage — divide a bill or type one day",
-    body: `Operators making real budget calls need coverage inside the trial week, not a 27-hole wall. Divide a monthly/quarterly invoice into daily rows so the multiple is honest — or type one day to see Total ROAS now. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    heading: "Get spend coverage — spread a bill or type one day",
+    body: `Operators making real budget calls need coverage inside the trial week, not a 27-hole wall. Spread a monthly or quarterly invoice across its days so the multiple is honest — or type one day to see Total ROAS now. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     steps: [
-      "Have an invoice? Divide a bill into daily rows (below) — then import.",
+      "Have an invoice? Spread a bill across its days (below) — one save, no file.",
       "Have one number? Type day + amount + channel, then Save this day.",
       "Backfilling months? Paste rows or CSV — blank template if you need a shape.",
       `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,

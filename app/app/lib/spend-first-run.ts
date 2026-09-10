@@ -64,6 +64,8 @@ export type BillSpreadCoverage = {
   filledAfter: number;
   /** Closed window days this spread would newly cover. */
   addedDays: number;
+  /** Closed window days that already carry spend and would be rewritten. */
+  replacedDays: number;
   /** Days in the bill that have not closed yet — Total ROAS ignores them. */
   futureDays: number;
   ratioAfter: number;
@@ -105,6 +107,12 @@ export function resolveBillSpreadCoverage(input: {
       d.dateKey <= input.planEndDateYmd,
   );
   const addedDays = covered.length;
+  const replacedDays = input.closedDays.filter(
+    (d) =>
+      d.filled &&
+      d.dateKey >= input.planStartDateYmd &&
+      d.dateKey <= input.planEndDateYmd,
+  ).length;
   const filledAfter = Math.min(windowDays, filledBefore + addedDays);
   const ratioAfter = windowDays > 0 ? filledAfter / windowDays : 0;
   const trustedAfter =
@@ -121,6 +129,11 @@ export function resolveBillSpreadCoverage(input: {
       : `Coverage after saving: ${filledAfter} of ${windowDays} closed ${dayWord(windowDays)}`;
 
   const notes: string[] = [];
+  if (replacedDays > 0) {
+    notes.push(
+      `${replacedDays} ${dayWord(replacedDays)} in this window already carry spend — saving replaces those rows on this channel.`,
+    );
+  }
   if (windowDays > 0) {
     notes.push(
       trustedAfter
@@ -139,6 +152,7 @@ export function resolveBillSpreadCoverage(input: {
     filledBefore,
     filledAfter,
     addedDays,
+    replacedDays,
     futureDays,
     ratioAfter,
     trustedAfter,
