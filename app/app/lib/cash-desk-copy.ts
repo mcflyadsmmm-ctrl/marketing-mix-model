@@ -71,6 +71,20 @@ export type SpendCoverageImpact = {
 };
 
 /**
+ * The one sentence coverage holes are said in, everywhere. Holes are a cash
+ * problem (“the multiple flatters you”), never a plumbing problem — nothing on
+ * this desk syncs, so “sync broken” would be a lie as well as a scare.
+ */
+export const MISSING_DAYS_CASH_LINE = `Missing days make ${PRODUCT_NOUN.totalRoas} look better than cash`;
+
+/** The cash line with the exact hole count behind it — softer tone, same math. */
+export function missingDaysCashSentence(missingDays: number): string {
+  const missing = Math.max(0, Math.floor(missingDays));
+  const dayWord = missing === 1 ? "day" : "days";
+  return `${MISSING_DAYS_CASH_LINE}: ${missing} closed ${dayWord} still count Shopify sales against $0 spend.`;
+}
+
+/**
  * “26 missing days” → plain-English Total ROAS impact + next action.
  */
 export function formatMissingDaysRoasImpact(input: {
@@ -101,7 +115,7 @@ export function formatMissingDaysRoasImpact(input: {
   const dayWord = missing === 1 ? "day" : "days";
   return {
     heading: `${missing} ${dayWord} missing — Total ROAS looks better than cash`,
-    body: `${missing} of ${window} closed days in ${where} have $0 spend. Those days still count sales, so Total ROAS is inflated. Download blanks for the missing days, fill, import.`,
+    body: `${missing} of ${window} closed days in ${where} have $0 spend. ${MISSING_DAYS_CASH_LINE} — those days still count Shopify sales, so the multiple reads above the till. Download blanks for the missing days, fill, import.`,
     nextLabel: "Download blanks for missing days",
   };
 }
@@ -130,7 +144,7 @@ export function ltvEmptyCashCopy(kind: LtvEmptyCashKind): LtvEmptyCashCopy {
     case "no_timezone":
       return {
         heading: "Shop timezone needed",
-        body: "Shopify has not shared the local timezone needed to place first orders into cohorts. Acquisition above can still teach from sales and order facts; Mcfly never uses email CRM.",
+        body: "Shopify has not shared the local timezone needed to place first orders into cohorts. Acquisition above can still teach from sales and order facts; Mcfly uses no email CRM.",
         nextHref: "/app",
         nextLabel: "Open Overview",
       };
