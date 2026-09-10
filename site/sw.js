@@ -2,7 +2,7 @@ const CACHE = "mcfly-site-20260728d";
 // Precache shell only — CSS/JS use ?v= query busts on pages; do not pin unversioned assets.
 const ASSETS = [
   "/",
-  "/download",
+  "/demo",
   "/favicon.png",
   "/manifest.webmanifest",
 ];
