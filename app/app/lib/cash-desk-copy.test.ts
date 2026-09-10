@@ -65,7 +65,8 @@ describe("resolveFirstTrustedRoasGate", () => {
     expect(gate.heading).toBe(FIRST_TRUSTED_ROAS_GATE.heading);
     expect(gate.primaryHref).toBe("/app/spend");
     expect(gate.primaryLabel).toMatch(/spend/i);
-    expect(gate.body).toMatch(/template/i);
+    expect(gate.body).toMatch(/Shopify orders/i);
+    expect(gate.body).toMatch(/Cash CAC/i);
     expect(gate.body).not.toMatch(/upgrade|\$39/i);
   });
 });

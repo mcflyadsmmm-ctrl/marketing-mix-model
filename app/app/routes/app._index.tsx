@@ -1105,7 +1105,7 @@ export default function Dashboard() {
             ) : null}
 
             {/* Acquisition glance — aMER + new vs returning, same period figures as LTV */}
-            {!shotMode && scoreboardReady && metrics.cashActionReady ? (
+            {!shotMode && scoreboardReady ? (
               <div
                 className="mcfly-tab-snaps mcfly-tab-snaps--solo"
                 aria-label="Acquisition glance"
@@ -1133,7 +1133,7 @@ export default function Dashboard() {
             ) : null}
 
             {/* LTV snapshot — depth after first trusted ROAS, not Monday chrome */}
-            {!shotMode && scoreboardReady && metrics.cashActionReady ? (
+            {!shotMode && scoreboardReady ? (
               <div className="mcfly-tab-snaps mcfly-tab-snaps--solo" aria-label="Tab snapshots">
                 <LtvSnapSection
                   tillLtv={metrics.tillLtv}

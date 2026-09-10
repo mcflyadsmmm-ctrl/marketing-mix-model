@@ -16,7 +16,7 @@ export const CASH_PAGE_WHY = {
     "A sales target tells you whether this period’s ads bought enough till cash — next to Total ROAS, not instead of it.",
   allocation:
     "After you trust Total ROAS, this page shows hold / reduce / step-test advice so break-even is protected — sales ÷ spend, not channel attribution.",
-  ltv: "Shows whether new customers pay back the spend you logged — depth next to that spend, not a science project.",
+  ltv: "Order cohorts and payback from Shopify orders — Cash CAC only after you log spend. Depth next to the till, not a science project.",
   advanced:
     "Extra formulas after you trust Total ROAS. Skip this until sales ÷ spend is on the desk.",
 } as const;
@@ -24,9 +24,9 @@ export const CASH_PAGE_WHY = {
 export type CashPageId = keyof typeof CASH_PAGE_WHY;
 
 export const FIRST_TRUSTED_ROAS_GATE = {
-  heading: "First get Total ROAS",
-  body: "This page pays off after Shopify sales sit next to spend you added. Paste one daily row or download the blank template, fill, import — then come back.",
-  primaryLabel: "Add spend first",
+  heading: "Cohorts work on sales — Total ROAS needs spend",
+  body: "You can already read new vs returning and cohort payback from Shopify orders. Add one day of spend when you want Cash CAC and sales ÷ spend next to these cohorts.",
+  primaryLabel: "Add spend for Cash CAC",
   primaryHref: "/app/spend",
   secondaryLabel: PRODUCT_NOUN.openTotalRoas,
   secondaryHref: "/app",

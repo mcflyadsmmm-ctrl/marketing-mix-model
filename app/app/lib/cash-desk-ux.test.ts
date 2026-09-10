@@ -91,9 +91,16 @@ describe("Overview Monday desk", () => {
     );
   });
 
-  it("demotes explorer and LTV snap until the multiple is trusted", () => {
+  it("shows acquisition/LTV snaps after any live spend; explorer stays later", () => {
     expect(overview).toContain("mcfly-me-spine--later");
-    expect(overview).toMatch(/scoreboardReady && metrics\.cashActionReady/);
+    // Sales-side snaps unlock with scoreboardReady (any live spend).
+    // Allocation/BE advice still hard-gates on cashActionReady elsewhere.
+    expect(overview).toMatch(
+      /\{!shotMode && scoreboardReady \? \([\s\S]*AcquisitionGlance/,
+    );
+    expect(overview).toMatch(
+      /\{!shotMode && scoreboardReady \? \([\s\S]*LtvSnapSection/,
+    );
   });
 
   it("Love-UX1: Overview cold empty owns dismissible Setup Guide (not DataModeBar)", () => {
