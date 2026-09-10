@@ -849,9 +849,6 @@ export default function Dashboard() {
             >
               {freshLabel}
             </span>
-            {!shotMode && scoreboardReady ? (
-
-            ) : null}
             {trustedHero.kind === "pick_covered_period" ? (
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
                 Period not covered
