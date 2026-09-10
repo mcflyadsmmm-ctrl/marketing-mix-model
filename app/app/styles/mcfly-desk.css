@@ -10673,6 +10673,16 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   gap: 0.85rem;
 }
 
+/* The religion line under the context bar reads as a sentence, not a stamp —
+   a 60-character definition in all-caps is the least legible line on Overview. */
+.mcfly-topbar__def--solo {
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-transform: none;
+}
+
 .mcfly-desk > .mcfly-cash-verdict,
 .mcfly-desk > .mcfly-hero-compact,
 .mcfly-desk > .mcfly-order-econ,
@@ -10742,11 +10752,12 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-roas-gauge__dial {
-  max-width: 11rem;
+  max-width: 10.5rem;
 }
 
+/* Biggest number on the desk — the till answer, then sales and spend. */
 .mcfly-roas-gauge__value {
-  font-size: 1.85rem;
+  font-size: 1.8rem;
 }
 
 .mcfly-roas-gauge__delta {
@@ -10876,4 +10887,18 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-hero-compact__dive {
   margin: 0.45rem 0 0;
   font-size: 0.74rem;
+}
+
+/* Narrow Admin (mobile embed): the till stacks — dial, then sales, then spend.
+   Restated after the wide grid above so the three-up never traps a phone. */
+@media (max-width: 900px) {
+  .mcfly-hero-compact.mcfly-hero-compact--v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .mcfly-hero-compact--v2 .mcfly-hero-compact__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
