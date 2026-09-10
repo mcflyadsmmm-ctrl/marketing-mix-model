@@ -1,34 +1,65 @@
-# Partner paste — sales-first (review-ready)
+# Partner paste — sales-first
 
-**Reviews: 0 — do not invent.** Agents do not Partner-Submit.
+Canonical copy: [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md). Full
+Partner click order: [`LISTING_LIVE_PASTE.md`](./LISTING_LIVE_PASTE.md).
 
-## App name
+Do not add reviews, ratings, customer quotes, or install counts.
+
+## Title
+
+```text
 Mcfly Analytics
+```
 
-## Tagline (≤80)
-Deeper Shopify numbers Analytics does not show
+## Subtitle
 
-## Short description
-Typical order, weekends, and repeat buyers from your orders. Add spend later for sales ÷ spend. 7-day trial, then $39/store/mo. No pixels.
+```text
+Deeper Shopify sales numbers beyond standard Analytics
+```
 
-## Plan name
-Mcfly Analytics
+## App introduction
 
-## Price
-$39 USD / 30 days · 7-day trial · one plan (rename Pro → Mcfly Analytics; delete Free if present)
+```text
+See Shopify sales, customer mix, goals, and LTV first. Add spend only when you want Total ROAS.
+```
+
+## Description
+
+```text
+Mcfly starts with deeper Shopify order numbers: Total Sales after returns, orders, AOV, new vs returning sales, goals, and cohort LTV. Explore sales without entering spend. To calculate Total ROAS, type spend or import a daily CSV: Shopify Total Sales ÷ spend for the same period. Optional margin adds break-even. Harbor Home Co SAMPLE: $82,068 sales ÷ $23,414 spend = 3.51×; sample data is not your store. No pixels, MTA, or path credit. 7-day free trial, then $39/month.
+```
 
 ## Feature bullets
-- See typical order, weekend mix, and returning sales Shopify Analytics skips
-- LTV from orders (30 / 90 / 365) — not email lists
-- Optional spend: type a day or paste Ads Manager CSV for sales ÷ spend
-- Total ROAS vs break-even from your margin — no path credit
-- Flat $39/store/mo after trial — uninstall stops the charge
 
-## Refuse / honesty
-No pixels. No multi-touch attribution. No “true ROAS.” Empty or loading sales never hero 0.00× / Below break-even.
+```text
+Explore Shopify Total Sales after returns, orders, and AOV
+Compare new vs returning sales, goals, period pace, and cohort LTV
+Add spend only when needed: type it or import a daily CSV
+Total ROAS = Shopify Total Sales ÷ spend for the same period
+Optional margin adds break-even — 7-day trial, then $39/month
+```
 
-## App Store URL
-https://apps.shopify.com/mcfly-analytics-public
+## Category notes
 
-## App URL
-https://mcfly-analytics.fly.dev
+Select:
+
+```text
+Marketing and conversion → Marketing analytics
+```
+
+Rationale:
+
+```text
+Sales-first Shopify order analytics with optional merchant-entered or CSV spend. Total ROAS is blended Shopify Total Sales ÷ spend; Mcfly does not provide attribution, pixels, MTA, ad delivery, or ad-platform OAuth.
+```
+
+## Plan
+
+```text
+Plan name: Mcfly Analytics
+Trial: 7 days
+Price: $39 USD every 30 days
+External charges: No
+```
+
+Use one plan only. Do not use Free or Pro as a plan name.
