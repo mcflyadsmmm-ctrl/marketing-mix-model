@@ -24,8 +24,7 @@ export type DeskNavItem = {
 };
 
 export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
-  // stay=1: Overview tab must reach cold empty / scoreboard without the
-  // activation bounce that firstOpenRedirect applies to bare /app.
+  // stay=1 kept for deep links; Overview no longer bounces cold merchants to Spend.
   { id: "overview", href: "/app?stay=1", label: "Overview", later: false },
   { id: "spend", href: "/app/spend", label: "Spend", later: false },
   { id: "settings", href: "/app/settings", label: "Settings", later: false },

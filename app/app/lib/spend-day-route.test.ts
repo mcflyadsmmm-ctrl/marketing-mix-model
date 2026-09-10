@@ -215,9 +215,11 @@ describe("first-spend hand-off to Total ROAS", () => {
 });
 
 describe("Wave 4 guarantees still hold", () => {
-  it("keeps the spend-first first-session bounce on Overview", () => {
+  it("keeps sales-first Overview (no spend bounce) with order economics", () => {
     expect(overview).toContain("firstOpenRedirect");
     expect(overview).toContain("resolveFirstSessionPath");
+    expect(overview).toContain("OrderEconomicsPanel");
+    expect(overview).toContain("resolveOrderEconomics");
     expect(spend).toContain("isActivationQuery");
   });
 

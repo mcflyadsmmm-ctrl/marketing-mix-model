@@ -57,7 +57,7 @@ describe("resolveActivationStep", () => {
 });
 
 describe("firstOpenRedirect", () => {
-  it("bounces Overview to Spend for cold merchants, then stays for trusted desk", () => {
+  it("never bounces Overview to Spend — sales-first cold desk stays put", () => {
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -65,7 +65,7 @@ describe("firstOpenRedirect", () => {
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("/app/spend?activate=1");
+    ).toBeNull();
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -73,7 +73,7 @@ describe("firstOpenRedirect", () => {
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("/app/spend?activate=1");
+    ).toBeNull();
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -121,7 +121,7 @@ describe("firstOpenRedirect", () => {
     ).toBeNull();
   });
 
-  it("keeps period query when activating", () => {
+  it("does not bounce Overview even when a period query is present", () => {
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -130,7 +130,7 @@ describe("firstOpenRedirect", () => {
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("/app/spend?period=mtd&activate=1");
+    ).toBeNull();
   });
 
   it("offers a Spend skip that does not return to Settings", () => {

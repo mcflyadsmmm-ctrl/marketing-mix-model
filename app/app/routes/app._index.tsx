@@ -31,11 +31,13 @@ import {
   marginIsConfirmed,
 } from "../lib/mer-dashboard.server";
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
+import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
 import { HabitNudge } from "../components/HabitNudge";
 import {
   firstSessionPrimaryAction,
   resolveFirstSessionPath,
 } from "../lib/first-session-path";
+import { resolveOrderEconomics } from "../lib/order-economics";
 import { decideHabitNudgeEligible } from "../lib/habit-nudge";
 import {
   decideReviewAsk,
@@ -458,8 +460,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     closedDays: salesFactsCoverageForBanner?.expectedClosedDays ?? 0,
   });
 
+  const orderEconomics = resolveOrderEconomics({
+    sales: metrics.sales,
+    orderCount: metrics.orderCount,
+    salesByDay,
+    newCustomerSales: metrics.newCustomerNetSales,
+    returningCustomerSales: metrics.returningCustomerNetSales,
+  });
+
+
   return {
     metrics,
+    orderEconomics,
     salesError,
     todaySalesUnavailable,
     todaySalesTruncated,
@@ -521,6 +533,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Dashboard() {
   const {
     metrics,
+    orderEconomics,
     preset,
     salesError,
     todaySalesUnavailable,
@@ -583,7 +596,9 @@ export default function Dashboard() {
   });
   const coldEmpty = firstSession.showColdEmpty;
   // Cash MER paints once any live spend exists — margin only unlocks break-even.
-  const scoreboardReady = !coldEmpty && !salesError;
+  const salesDeskReady = !salesError;
+  // Total ROAS scoreboard still needs spend; sales desk does not.
+  const scoreboardReady = !coldEmpty && salesDeskReady;
   const periodUncovered =
     Boolean(salesFactsCoverage?.periodExceedsFactWindow) ||
     (!hasReadAllOrders && periodWiderThanRecentWindow);
@@ -888,7 +903,16 @@ export default function Dashboard() {
           <PeriodTrustNote trust={periodTrust} />
         ) : null}
 
-        {/* Love-UX1: dismissible Setup Guide on cold Overview Home (Judge.me). */}
+        {/* Sales-first: order economics before spend ritual. */}
+        {coldEmpty && !shotMode && salesDeskReady ? (
+          <OrderEconomicsPanel
+            economics={orderEconomics}
+            periodLabel={metrics.period.label}
+            showSpendUnlock
+          />
+        ) : null}
+
+        {/* Love-UX1: dismissible Setup Guide — secondary to order economics. */}
         {coldEmpty ? <FirstSessionGuide path={firstSession} /> : null}
 
         {!coldEmpty ? (

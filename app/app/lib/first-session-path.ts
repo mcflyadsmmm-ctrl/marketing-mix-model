@@ -183,10 +183,10 @@ function emptyCopy(
   "heading" | "body" | "primaryHref" | "primaryLabel" | "footerLinks"
 > {
   return {
-    heading: `Trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes`,
+    heading: "See your Shopify orders — then unlock Total ROAS",
     body: marginConfirmed
-      ? `Margin is set. Type one day of ad spend — day + amount + channel — then ${PRODUCT_NOUN.definition}. No file, no ad-network login.`
-      : `Type one day of ad spend: day + amount + channel, no file. ${PRODUCT_NOUN.definition}. Margin is optional — it unlocks break-even.`,
+      ? `Typical order, weekend vs weekday, and new vs returning sales are already on this desk. Margin is set — type one day of ad spend (day + amount + channel) to unlock ${PRODUCT_NOUN.definition}. No file, no ad-network login.`
+      : `Typical order, weekend vs weekday, and new vs returning sales are already on this desk — numbers Shopify Analytics does not lead with. Type one day of ad spend when you want ${PRODUCT_NOUN.definition}. Margin is optional for break-even.`,
     primaryHref: withSearch("/app/spend", search),
     primaryLabel: PRODUCT_NOUN.setupAddSpend,
     footerLinks: [

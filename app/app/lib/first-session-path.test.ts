@@ -65,9 +65,10 @@ describe("resolveFirstSessionPath", () => {
     });
     expect(path.primaryHref).toBe("/app/spend");
     expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
-    expect(path.heading).toMatch(new RegExp(String(FIRST_SESSION_MINUTES)));
+    expect(path.heading).toMatch(/Shopify orders/i);
+    expect(path.heading).toMatch(/Total ROAS/i);
     expect(path.body).toMatch(/Type one day/i);
-    expect(path.body).toMatch(/no file/i);
+    expect(path.body).toMatch(/weekend vs weekday/i);
     expect(path.body).toMatch(/optional/i);
     expect(path.body).toMatch(/break-even/i);
     expect(path.steps[0].hint).toMatch(/type one day/i);

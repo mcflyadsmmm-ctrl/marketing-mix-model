@@ -102,26 +102,14 @@ export function resolveActivationStep(input: {
 }
 
 /**
- * First Overview load sends a cold live merchant to Spend (paste / CSV).
- * SAMPLE / shot / `?stay=1` never bounce. Once live spend exists, stay on the desk.
+ * Sales-first: Overview never bounces cold merchants to Spend.
+ * Shopify order economics paint first; spend is a secondary unlock for Total ROAS.
+ * `resolveActivationStep` still teaches Spend as the next action inside the guide.
+ * SAMPLE / shot / non-Overview paths stay no-ops (legacy `?stay=1` ignored).
  */
 export function firstOpenRedirect(input: FirstOpenRedirectInput): string | null {
-  if (input.shotMode || input.useSampleDesk) return null;
-  if (input.pathname !== "/app") return null;
-  const params = searchParams(input.search);
-  if (params.get("stay") === "1") return null;
-
-  const step = resolveActivationStep(input);
-  switch (step) {
-    case "spend":
-      return withParams("/app/spend", input.search, { activate: "1" });
-    case "desk":
-      return null;
-    default: {
-      const _exhaustive: never = step;
-      return _exhaustive;
-    }
-  }
+  void input;
+  return null;
 }
 
 export function isActivationQuery(search?: string): boolean {

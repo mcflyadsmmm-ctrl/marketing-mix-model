@@ -22,8 +22,9 @@ describe("Overview / LTV tillLabel honesty", () => {
   });
 
   it("Overview scoreboardReady refuses salesError zeros", () => {
+    expect(overview).toMatch(/salesDeskReady\s*=\s*!salesError/);
     expect(overview).toMatch(
-      /scoreboardReady\s*=\s*[\s\S]*!salesError/,
+      /scoreboardReady\s*=\s*!coldEmpty\s*&&\s*salesDeskReady/,
     );
   });
 

@@ -10369,3 +10369,83 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   font-weight: 650;
   color: var(--mcfly-mute);
 }
+
+
+/* Sales-first cold Overview — order economics Shopify Analytics does not lead with */
+.mcfly-order-econ {
+  margin: 0 0 1.25rem;
+  padding: 1.1rem 1.15rem 1.2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(28, 45, 38, 0.12);
+  background:
+    linear-gradient(165deg, rgba(244, 248, 245, 0.95), rgba(255, 255, 255, 0.92)),
+    #f7faf8;
+}
+.mcfly-order-econ__kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6b63;
+}
+.mcfly-order-econ__title {
+  margin: 0 0 0.4rem;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  color: #14231c;
+}
+.mcfly-order-econ__lede {
+  margin: 0 0 1rem;
+  max-width: 48ch;
+  color: #3d4f46;
+  font-size: 0.95rem;
+}
+.mcfly-order-econ__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.mcfly-order-econ__tile {
+  padding: 0.75rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(28, 45, 38, 0.08);
+}
+.mcfly-order-econ__label {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #5b6b63;
+}
+.mcfly-order-econ__value {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 650;
+  color: #14231c;
+}
+.mcfly-order-econ__hint {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: #5b6b63;
+}
+.mcfly-order-econ__unlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(28, 45, 38, 0.1);
+}
+.mcfly-order-econ__unlock-copy {
+  margin: 0;
+  flex: 1 1 16rem;
+  font-size: 0.9rem;
+  color: #3d4f46;
+}
+@media (max-width: 720px) {
+  .mcfly-order-econ__grid {
+    grid-template-columns: 1fr;
+  }
+}
