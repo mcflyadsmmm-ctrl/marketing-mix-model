@@ -83,6 +83,23 @@ describe("resolveFirstSessionPath", () => {
     });
   });
 
+  it("teaches the bill spread first — a trial week cannot absorb 14 typed days", () => {
+    const path = cold({
+      marginConfirmed: false,
+      hasLiveSpend: false,
+      useSampleDesk: false,
+    });
+    // Blocker #1: the taught path has to be the one that reaches coverage.
+    expect(path.steps[0].hint).toMatch(/one bill covers a month of days/i);
+    expect(path.body).toMatch(/spread one ad invoice across its days/i);
+    expect(path.body.indexOf("Spread one ad invoice")).toBeLessThan(
+      path.body.indexOf("type one day"),
+    );
+    // Still no ad-network identity anywhere in the taught path.
+    const blob = [path.body, ...path.steps.map((s) => s.hint)].join("\n");
+    expect(blob).not.toMatch(/oauth|connect meta|connect google|pixel/i);
+  });
+
   it("after margin confirm, empty still owns Spend — not a second Settings wall", () => {
     const path = cold({
       marginConfirmed: true,

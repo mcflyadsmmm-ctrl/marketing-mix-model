@@ -7,7 +7,7 @@ Do not invent reviews/installs. Religion unchanged: Total ROAS = Shopify sales �
 
 ## Top blockers (uninstall risk order)
 
-1. **Activation mismatch** — taught path is “type one day”; trust needs ~70% coverage (~14 days mid-month). Trial is 7 days. Promote lump-spread (“enter month total → daily rows”) as first-run primary (`app.spend.tsx`, `install-stickiness.ts` / `first-session-path.ts`).
+1. ~~**Activation mismatch**~~ — **closed.** Taught path was “type one day”; trust wants ~70% coverage (~14 days mid-month) and the trial is 7. First-run Spend now leads with the bill spread: a bill → daily rows card at the top of the stack posting `intent=bill-daily` straight to the ledger (no download / re-import), a live preview that names coverage after saving in closed days (`spend-first-run.ts`, `SPEND_TRUSTED_COVERAGE_RATIO = 0.7`), and one primary button — the typed day and CSV import step down to secondary while the desk is cold. Setup Guide and empty-teach copy lead with the bill too (`first-session-path.ts`, `install-stickiness.ts`).
 2. **Order economics self-destructs** — panel gated on `coldEmpty` (`app._index.tsx`); AOV + returning share duplicate free Analytics. Keep panel after spend; swap tiles for spend-per-order / weekend vs weekday Total ROAS.
 3. **Overview loader serial GraphQL** — `runSalesFactsBackfill` up to 14 days sync (`sales-facts.server.ts`). Cap sync fill; queue the rest; cooldown quiet stores.
 4. **Order-economics math windows mixed** — period sales vs 14-day `salesByDay`; total vs net cohort bases. Reconcile + Vitest.
@@ -28,7 +28,7 @@ Total ROAS vs break-even · spend-coverage honesty · Cash CAC / LTV:CAC · clos
 
 ## Friendly-merchant bar vs App Store bar
 
-- **Friendly first installs:** blockers **1, 3, 4** + decide **5** and **9**.
+- **Friendly first installs:** blockers **3, 4** + decide **5** and **9**. (**1** closed — bill-first first run.)
 - **App Store submit:** also **2, 6, 7, 8, 10** + green suite + fresh screenshots + human Partner gates (Distribution, PCD, emergency, real-store smoke).
 
 ## Note on this branch tip

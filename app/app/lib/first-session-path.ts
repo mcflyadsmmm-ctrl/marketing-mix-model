@@ -2,8 +2,12 @@
  * First-session path for a cold merchant on the Total ROAS desk.
  *
  * Preferred ritual (under 10 minutes):
- *   typed one-day spend → Total ROAS desk → (optional) margin for break-even →
- *   (optional) pipe templates → (optional) deep history
+ *   spend on the desk (one bill spread across its days, or a typed day) →
+ *   Total ROAS desk → (optional) margin for break-even → (optional) pipe
+ *   templates → (optional) deep history
+ *
+ * The bill spread leads because a multiple worth acting on wants most closed
+ * days covered, and the trial is seven days long (see `spend-first-run.ts`).
  *
  * Cash religion: Total ROAS = Shopify sales ÷ ad spend. Margin only unlocks
  * break-even — it does not gate the scoreboard. Primary CTA is always Spend.
@@ -134,7 +138,7 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
       label: PRODUCT_NOUN.setupAddSpend,
       hint: spendDone
         ? " — done"
-        : " — type one day, no file, no ad-network login",
+        : " — one bill covers a month of days, or type one day; no ad-network login",
       status: stepStatus({ done: spendDone, current: spendCurrent }),
       optional: false,
     },
@@ -185,8 +189,8 @@ function emptyCopy(
   return {
     heading: "See your Shopify orders — then unlock Total ROAS",
     body: marginConfirmed
-      ? `Typical order, weekend vs weekday, and new vs returning sales are already on this desk. Margin is set — type one day of ad spend (day + amount + channel) to unlock ${PRODUCT_NOUN.definition}. No file, no ad-network login.`
-      : `Typical order, weekend vs weekday, and new vs returning sales are already on this desk — numbers Shopify Analytics does not lead with. Type one day of ad spend when you want ${PRODUCT_NOUN.definition}. Margin is optional for break-even.`,
+      ? `Typical order, weekend vs weekday, and new vs returning sales are already on this desk. Margin is set — spread one ad invoice across its days, or type one day, to unlock ${PRODUCT_NOUN.definition}. No file, no ad-network login.`
+      : `Typical order, weekend vs weekday, and new vs returning sales are already on this desk — numbers Shopify Analytics does not lead with. Spread one ad invoice across its days, or type one day, when you want ${PRODUCT_NOUN.definition}. Margin is optional for break-even.`,
     primaryHref: withSearch("/app/spend", search),
     primaryLabel: PRODUCT_NOUN.setupAddSpend,
     footerLinks: [
