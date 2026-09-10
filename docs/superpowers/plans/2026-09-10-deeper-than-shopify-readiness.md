@@ -154,7 +154,7 @@ Frontier fleet default: **one track = one implementer + one critic**, religion f
 4. **Refuse** Meta/Google OAuth; improve export recipes only.
 
 **Acceptance:**
-- [ ] First typed day does not greet with critical 27-missing wall
+- [x] First typed day does not greet with critical 27-missing wall — `spend-coverage-tone.ts` stages (`first_day` success on Spend, `info` on Overview, `warning` only once the ledger is established) with the hole list behind an opt-in audit
 - [ ] SAMPLE blocks live writes with one clear exit
 - [ ] Merchant can land trusted MTD Total ROAS with ≤10 minutes of spend work
 
