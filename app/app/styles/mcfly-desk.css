@@ -9282,7 +9282,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   display: none !important;
 }
 
-/* Global Sample | Real store bar (every app page) */
+/* SAMPLE warning chrome (only when practice desk is on; live desk stays quiet) */
 .mcfly-data-mode {
   margin: 0 0 0.85rem;
   padding: 0.65rem 0.85rem;

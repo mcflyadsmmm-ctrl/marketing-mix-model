@@ -307,4 +307,12 @@ describe("SAMPLE money stamp", () => {
     expect(sampleBanner).not.toMatch(/return null/);
     expect(dataMode).toMatch(/not your live Shopify money/i);
   });
+
+  it("keeps live desk quiet — no Sample | Real dual toggle", () => {
+    expect(dataMode).not.toMatch(/>\s*Sample\s*</);
+    expect(dataMode).not.toContain('value="use-sample"');
+    expect(dataMode).toContain('value="use-real"');
+    expect(dataMode).toContain("return null");
+    expect(dataMode).toMatch(/no Sample \| Real dual chrome/i);
+  });
 });
