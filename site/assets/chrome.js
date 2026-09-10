@@ -1,4 +1,4 @@
-/* launch-v4-20260908 · Shopify cash desk chrome. Enterprise/custom is footer-only. */
+/* launch-v15-20260910 · sales-first chrome for legacy site.css pages. Links only to 200 paths. */
 (function () {
   const cta = window.MCFLY_CTA;
   const shopifyPrimary =
@@ -7,7 +7,7 @@
       href: "https://apps.shopify.com/mcfly-analytics-public",
     };
   const shopifySecondary =
-    (cta && cta.secondary()) || { label: "See SAMPLE desk", href: "/product#desk" };
+    (cta && cta.secondary()) || { label: "Try the demo", href: "/demo" };
 
   const chrome = document.querySelector("[data-chrome]");
   if (chrome) {

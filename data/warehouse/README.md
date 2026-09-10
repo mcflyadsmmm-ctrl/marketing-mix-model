@@ -27,8 +27,8 @@ site/
 
 | Folder | Shop | Domain | History | Margin | Target MER |
 | --- | --- | --- | --- | --- | --- |
-| `demo-dtc/` | Northline Supply | `northline-supply.myshopify.com` | 90 days | 35% | 3.5 |
-| `demo-agency/` | Harbor Home Co | `harbor-home-co.myshopify.com` | 30 days | 40% | 3.0 |
+| `demo-dtc/` | Harbor Home Co | `harbor-home-co.myshopify.com` | 90 days | 35% | 3.5 |
+| `demo-agency/` | Harbor Home Co · Store 2 | `harbor-home-co-2.myshopify.com` | 30 days | 40% | 3.0 |
 
 ## Schema
 

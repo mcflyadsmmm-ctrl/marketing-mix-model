@@ -1,8 +1,8 @@
 [
   {
     "shop_id": "shop_demo_dtc",
-    "domain": "northline-supply.myshopify.com",
-    "name": "Northline Supply",
+    "domain": "harbor-home-co.myshopify.com",
+    "name": "Harbor Home Co",
     "currency": "USD",
     "margin_pct": 0.35,
     "target_mer": 3.5,
