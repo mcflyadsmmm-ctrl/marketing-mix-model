@@ -142,7 +142,7 @@ export function resolveAllocationPlan(
     return {
       kind: "keep",
       headline: `Keep all ${formatCurrency(totalSpend)} of this period’s spend — no cut this step.`,
-      keepLine: `${PRODUCT_NOUN.totalRoas} ${formatMer(allocation.overallMer)}× is at or above break-even ${formatMer(allocation.breakEvenMer)}× on this period's averages. Re-read it when the next closed day lands.`,
+      keepLine: `${PRODUCT_NOUN.totalRoas} ${formatMer(allocation.overallMer)}× is at or above break-even ${formatMer(allocation.breakEvenMer)}× on this period’s averages. Re-read it when the next closed day lands.`,
       redeployLine: null,
       cutAmount: null,
       keepAmount: round2(totalSpend),
