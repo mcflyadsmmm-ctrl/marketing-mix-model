@@ -37,15 +37,18 @@
       'Mcfly <span class="nav__brand-sub">Analytics</span>' +
       "</a>" +
       '<nav class="nav__links" aria-label="Primary">' +
+      '<a href="/product"' +
+      active("/product") +
+      ">Product</a>" +
       '<a href="/demo"' +
       active("/demo") +
       ">Demo</a>" +
       '<a href="/pricing"' +
       active("/pricing") +
       ">Pricing</a>" +
-      '<a href="/about"' +
-      active("/about") +
-      ">About</a>" +
+      '<a href="/faq"' +
+      active("/faq") +
+      ">FAQ</a>" +
       '<a class="nav__cta" href="' +
       primary.href +
       '"' +
@@ -59,8 +62,11 @@
       "</button>" +
       "</div>" +
       '<div class="nav__panel" id="nav-panel">' +
+      '<a href="/product">Product</a>' +
       '<a href="/demo">Demo</a>' +
       '<a href="/pricing">Pricing</a>' +
+      '<a href="/faq">FAQ</a>' +
+      '<a href="/support">Support</a>' +
       '<a href="/about">About</a>' +
       '<a href="' +
       primary.href +

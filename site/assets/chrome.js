@@ -19,9 +19,9 @@
     </a>
     <nav class="nav" aria-label="Primary">
       <a href="/product" data-nav="product">Product</a>
+      <a href="/demo" data-nav="demo">Demo</a>
       <a href="/pricing" data-nav="pricing">Pricing</a>
       <a href="/faq" data-nav="faq">FAQ</a>
-      <a href="/support" data-nav="support">Support</a>
       <a class="nav-cta" data-mcfly-cta="primary" rel="noopener" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
@@ -30,9 +30,11 @@
   </header>
   <div id="mobile-nav" class="mobile-nav" hidden>
     <a href="/product">Product</a>
+    <a href="/demo">Demo</a>
     <a href="/pricing">Pricing</a>
     <a href="/faq">FAQ</a>
     <a href="/support">Support</a>
+    <a href="/about">About</a>
     <a class="mobile-nav__cta" data-mcfly-cta="primary" rel="noopener" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     <a data-mcfly-cta="demo" href="${shopifySecondary.href}">${shopifySecondary.label}</a>
   </div>`;
