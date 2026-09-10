@@ -21,10 +21,7 @@
   var foot = document.querySelector("[data-footer]");
 
   function active(href) {
-    if (href === "/demo" && (path === "/demo" || path === "/product")) return ' aria-current="page"';
-    if (href === "/pricing" && path === "/pricing") return ' aria-current="page"';
-    if (href === "/about" && path === "/about") return ' aria-current="page"';
-    return "";
+    return href === path ? ' aria-current="page"' : "";
   }
 
   var ctaRel = /^https?:\/\//.test(primary.href)
@@ -101,14 +98,16 @@
       "<span>Mcfly Ads</span>" +
       "</div>" +
       '<nav aria-label="Footer">' +
+      '<a href="/product">Product</a>' +
       '<a href="/demo">Demo</a>' +
       '<a href="/pricing">Pricing</a>' +
+      '<a href="/faq">FAQ</a>' +
       '<a href="/about">About</a>' +
-      '<a href="/privacy">Privacy</a>' +
       '<a href="/support">Support</a>' +
+      '<a href="/privacy">Privacy</a>' +
       '<a href="/terms">Terms</a>' +
       "</nav>" +
-      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — spend next to Shopify sales. 7-day trial, then $39/store/mo.</p>' +
+      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — deeper Shopify numbers, spend optional. 7-day trial, then $39/store/mo.</p>' +
       "</div>" +
       "</footer>";
     foot.querySelectorAll("[data-year]").forEach(function (el) {

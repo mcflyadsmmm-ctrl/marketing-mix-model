@@ -77,8 +77,7 @@
 /break-even /break-even-roas-calculator 301
 /calculator /mer-calculator 301
 
-# Stale social / fiction cockpit files
-/assets/brand/og-cash-mer.jpg /assets/brand/og-overview.jpg 301
+# Fiction cockpit files (og-cash-mer.jpg now ships as a real asset — no redirect)
 /assets/product-cockpit.jpg /assets/desk/overview-hero.jpg 301
 /assets/product-cockpit.webp /assets/desk/overview-hero.webp 301
 
