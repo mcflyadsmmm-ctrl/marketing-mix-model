@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
 } from "react";
@@ -81,6 +82,14 @@ import {
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { isActivationQuery, spendEmptyTeach } from "../lib/install-stickiness";
+import {
+  SPEND_BILL_ANCHOR,
+  SPEND_FIRST_RUN_COPY,
+  billSpreadPreviewLine,
+  billSpreadPrimaryLabel,
+  billSpreadSavedCopy,
+  resolveBillSpreadCoverage,
+} from "../lib/spend-first-run";
 import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
 import {
   CASH_PAGE_WHY,
@@ -387,6 +396,19 @@ export type SpendDaySaved = {
   savedAt: string;
 };
 
+/** A bill landed as one row per day — the first-run path to trusted coverage. */
+export type SpendBillSpread = {
+  dayCount: number;
+  dailyAmount: number;
+  totalAmount: number;
+  startDateYmd: string;
+  endDateYmd: string;
+  channelLabel: string;
+  salesWindowWarning: string | null;
+  /** Write stamp — keeps the hand-off banner tied to this save. */
+  savedAt: string;
+};
+
 export interface SpendActionData {
   error: string | null;
   success: boolean;
@@ -396,6 +418,9 @@ export interface SpendActionData {
   dayField?: QuickSpendField;
   /** Rejected typed values, echoed back so a fix does not mean a retype. */
   dayForm?: { date: string; amount: string };
+  bill?: SpendBillSpread;
+  /** Blame the bill panel — a bill error is not a CSV error. */
+  billField?: boolean;
 }
 
 function emptyCsvSummary(
@@ -767,16 +792,25 @@ async function handleBillDaily(
     return {
       error: "Pick a period: month, quarter, bi-annual, or year.",
       success: false,
+      billField: true,
     };
   }
   if (!isSpendChannel(channelRaw)) {
-    return { error: "Pick a valid spend channel.", success: false };
+    return {
+      error: "Pick a valid spend channel.",
+      success: false,
+      billField: true,
+    };
   }
   if (!canUseChannel(entitlements, channelRaw)) {
-    return { error: PRO_UPSELL.channels, success: false };
+    return { error: PRO_UPSELL.channels, success: false, billField: true };
   }
   if (channelRaw === "other" && !customName) {
-    return { error: CUSTOM_CHANNEL_NAME_ERROR, success: false };
+    return {
+      error: CUSTOM_CHANNEL_NAME_ERROR,
+      success: false,
+      billField: true,
+    };
   }
 
   const planned = planLumpSpread({
@@ -786,13 +820,13 @@ async function handleBillDaily(
     channel: channelRaw,
   });
   if (!planned.ok) {
-    return { error: planned.error, success: false };
+    return { error: planned.error, success: false, billField: true };
   }
 
   const { plan } = planned;
   const channel = channelRaw; // narrowed by isSpendChannel
   const repository = createSpendRepository();
-  const result = await repository.upsertSpendDays(
+  await repository.upsertSpendDays(
     shopId,
     plan.days.map((day) => ({
       date: day.date,
@@ -821,20 +855,20 @@ async function handleBillDaily(
   return {
     error: null,
     success: true,
-    csv: {
-      written: result.written,
-      skipped: result.skipped,
-      created: result.created,
-      updated: result.updated,
-      days: plan.dayCount,
-      channels: [channel],
-      dateRange: { start: plan.startDateYmd, end: plan.endDateYmd },
+    bill: {
+      dayCount: plan.dayCount,
+      dailyAmount: plan.dailyAmount,
       totalAmount: plan.totalAllocated,
-      errors: [],
-      totalDataRows: plan.dayCount,
+      startDateYmd: plan.startDateYmd,
+      endDateYmd: plan.endDateYmd,
+      channelLabel:
+        channel === "other" && customName
+          ? `Other · ${customName}`
+          : SPEND_CHANNEL_LABELS[channel],
       salesWindowWarning: salesWindowWarningForDates(
         plan.days.map((d) => d.date),
       ),
+      savedAt: new Date().toISOString(),
     },
   };
 }
@@ -1062,7 +1096,10 @@ export default function SpendEntryPage() {
   const csvSaved = Boolean(actionData?.success && csv);
   const csvNeedsConfirm = Boolean(csv?.needsConfirm);
   const daySaved = actionData?.success ? (actionData.day ?? null) : null;
-  const manualSaved = Boolean(actionData?.success && !csv && !actionData.day);
+  const billSaved = actionData?.success ? (actionData.bill ?? null) : null;
+  const manualSaved = Boolean(
+    actionData?.success && !csv && !actionData.day && !actionData.bill,
+  );
   const todayKey = useMemo(() => {
     const n = new Date();
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
@@ -1130,10 +1167,15 @@ export default function SpendEntryPage() {
     actionData && !actionData.success && actionData.dayField
       ? actionData.error
       : null;
+  /** Bill errors answer inside the bill panel — a bill is not a CSV. */
+  const billActionError =
+    actionData && !actionData.success && actionData.billField
+      ? actionData.error
+      : null;
   /** Persistent field-level CSV error — stays until next action (not toast-only). */
   const csvFieldError = (() => {
     if (!actionData || actionData.success || !actionData.error) return null;
-    if (actionData.dayField) return null;
+    if (actionData.dayField || actionData.billField) return null;
     if (csv) return actionData.error;
     if (
       /csv|file|paste|import|combine|platform|upload|template|row/i.test(
@@ -1232,6 +1274,26 @@ export default function SpendEntryPage() {
     }
   }, [csvSaved]);
 
+  /**
+   * Deep link from Overview (`/app/spend#mcfly-spend-bill`) must land on an
+   * open bill panel with the cursor in the amount field — on an established
+   * desk the panel is collapsed, and a browser will not expand it for us.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openFromHash = () => {
+      if (window.location.hash !== `#${SPEND_BILL_ANCHOR}`) return;
+      const details = billDetailsRef.current;
+      if (details && !details.open) details.open = true;
+      const section = document.getElementById(SPEND_BILL_ANCHOR);
+      section?.scrollIntoView({ block: "start", behavior: "auto" });
+      billAmountRef.current?.focus();
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, [isEmpty]);
+
   const billPreview = useMemo(() => {
     const amount = parseFloat(billAmount);
     if (!Number.isFinite(amount) || amount <= 0) return null;
@@ -1243,6 +1305,38 @@ export default function SpendEntryPage() {
     });
     return result.ok ? result.plan : null;
   }, [billAmount, billPeriodType, billAnchor, billChannel]);
+
+  /**
+   * The operator's question before saving — "does this bill get me a number I
+   * can use?" — answered in closed-day counts, never in a promised multiple.
+   */
+  const billCoverage = useMemo(() => {
+    if (!billPreview) return null;
+    return resolveBillSpreadCoverage({
+      closedDays: closedCoverageDays,
+      planStartDateYmd: billPreview.startDateYmd,
+      planEndDateYmd: billPreview.endDateYmd,
+      todayKey: storeTodayKey,
+    });
+  }, [billPreview, closedCoverageDays, storeTodayKey]);
+
+  const billPrimaryLabel = billSpreadPrimaryLabel(billPreview, {
+    blocked: importBlockedBySample,
+  });
+
+  /** Honest hand-off after the rows land — day count and rate, no multiple. */
+  const billSavedCopy = billSaved
+    ? billSpreadSavedCopy({
+        dayCount: billSaved.dayCount,
+        dailyAmount: billSaved.dailyAmount,
+        totalAmount: billSaved.totalAmount,
+        startDateYmd: billSaved.startDateYmd,
+        endDateYmd: billSaved.endDateYmd,
+        channelLabel: billSaved.channelLabel,
+        missingDays: holeCount,
+        salesWindowWarning: billSaved.salesWindowWarning,
+      })
+    : null;
 
   function downloadBillDailyCsv() {
     const amount = parseFloat(billAmount);
@@ -1341,7 +1435,7 @@ export default function SpendEntryPage() {
   const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1`;
   const emptyTeach = spendEmptyTeach({
     templateHref: selectedBlankTemplateHref,
-    billHref: "#mcfly-spend-bill",
+    billHref: `#${SPEND_BILL_ANCHOR}`,
     justSwitchedReal: justSwitchedReal && !sampleOn,
   });
 
@@ -1353,10 +1447,16 @@ export default function SpendEntryPage() {
   const activating =
     isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled;
   const showEmptyTeach = isEmpty && !shotMode && !importBlockedBySample;
+  /**
+   * Blocker #1 — first run leads with the bill spread, because 14 hand-typed
+   * days do not fit in a 7-day trial. The bill card owns the only primary
+   * button; the typed day and CSV stay reachable but visually quiet.
+   */
+  const firstRun = showEmptyTeach;
   const showActivationBanner = activating && !showEmptyTeach;
   const emptyTeachHeading =
     activating && showEmptyTeach
-      ? "Step 1 of 2 — type one day"
+      ? "Step 1 of 2 — put spend on the desk"
       : emptyTeach.heading;
   /** Love-UX3: activate owns the teach body; otherwise keep emptyTeach.body. */
   const emptyTeachBody =
@@ -1377,19 +1477,26 @@ export default function SpendEntryPage() {
     : null;
 
   const showCoverageBanner =
-    !isEmpty && !shotMode && !daySavedCopy && coverageNotice.showBanner;
+    !isEmpty &&
+    !shotMode &&
+    !daySavedCopy &&
+    !billSavedCopy &&
+    coverageNotice.showBanner;
   /**
    * The hole count is honest once per screen, not three times. The saved
    * banner's note already carries it right after a save, which is exactly the
    * moment a repeat reads as scolding.
    */
   const coverageBodyAlreadySaid =
-    showCoverageBanner || Boolean(daySavedCopy?.note);
+    showCoverageBanner ||
+    Boolean(daySavedCopy?.note) ||
+    Boolean(billSavedCopy?.note);
   const showCsvErrorBanner = Boolean(
     actionData &&
       !actionData.success &&
       actionData.error &&
       !actionData.dayField &&
+      !actionData.billField &&
       !csvNeedsConfirm,
   );
   /** Why-line competes with teach/status — park it when a surface is up. */
@@ -1398,6 +1505,7 @@ export default function SpendEntryPage() {
     !sampleDesk.enabled &&
     !showEmptyTeach &&
     !daySavedCopy &&
+    !billSavedCopy &&
     !showCoverageBanner &&
     !csvNeedsConfirm &&
     !csvSaved &&

@@ -182,17 +182,15 @@ describe("CashVerdict tiles while sales facts load", () => {
     ).toBe(false);
   });
 
-  it("renders an em dash rather than $0.00 for untrusted sales", () => {
+  it("keeps the cash verdict as copy only — no duplicate metric tiles", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const component = readFileSync(
       join(here, "../components/CashVerdict.tsx"),
       "utf8",
     );
-    expect(component).toContain(
-      "cashVerdictSalesUntrusted(facts) && !(facts.sales > 0)",
-    );
-    expect(component).toMatch(
-      /salesTilesUntrusted\(facts\)\s*\?\s*"—"\s*:\s*formatCurrency\(facts\.sales\)/,
-    );
+    expect(component).not.toContain("mcfly-cash-verdict__tiles");
+    expect(component).not.toContain("formatCurrency");
+    expect(component).toContain("mcfly-cash-verdict__headline");
+    expect(component).toContain("resolveCashVerdict");
   });
 });

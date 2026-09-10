@@ -9604,7 +9604,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-roas-gauge__dial {
   position: relative;
   width: 100%;
-  max-width: 11.5rem;
+  max-width: 15rem;
 }
 
 .mcfly-roas-gauge__svg {
@@ -9642,13 +9642,14 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   top: 62%;
   transform: translate(-50%, -50%);
   margin: 0;
-  font-size: 1.55rem;
+  font-size: clamp(2.75rem, 5vw, 3.5rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
   line-height: 1;
   color: var(--mcfly-ink, #1a2330);
   pointer-events: none;
+  font-family: var(--mcfly-display, "Fraunces", "Iowan Old Style", Georgia, serif);
 }
 
 .mcfly-hero-compact__status--gauge .mcfly-hero-compact__actions {

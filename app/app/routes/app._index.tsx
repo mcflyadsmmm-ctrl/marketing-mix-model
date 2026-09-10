@@ -520,6 +520,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
     shopDomain: session.shop,
     periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
+    installedAt: shop.createdAt.toISOString(),
     reviewAskEligible: decideReviewAsk({
       useSampleDesk,
       trustedMer: isTrustedMer({
@@ -578,6 +579,7 @@ export default function Dashboard() {
     hasLiveSpend,
     hasReadAllOrders,
     shopDomain,
+    installedAt,
     periodWiderThanRecentWindow,
     reviewAskEligible,
   } = useLoaderData<typeof loader>();
@@ -655,6 +657,9 @@ export default function Dashboard() {
     closedDaysWithSpend: metrics.spendCoverage?.daysWithSpend ?? 0,
     closedDaysInPeriod: metrics.spendCoverage?.daysInPeriod ?? 0,
     hasLiveSpend,
+    scoreboardReady,
+    installedAt,
+    now: new Date(),
   });
   // L10: calm Monday habit after first trusted Total ROAS (not critical budget).
   const habitNudgeEligible = decideHabitNudgeEligible({
@@ -720,8 +725,6 @@ export default function Dashboard() {
   });
 
   /** Love-V1: split above/below so budgeted banners are not double-mounted. */
-  const showTrustAbove =
-    coldEmpty || (!scoreboardReady && !useSampleDesk);
   const showTrustBelow = !coldEmpty;
   const trustBannerProps = {
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
@@ -770,6 +773,13 @@ export default function Dashboard() {
     shopDomain,
     hasReadAllOrders,
   };
+
+  // Critical honesty (below break-even / mock-as-live) must sit ABOVE the dial.
+  const showTrustAbove =
+    coldEmpty ||
+    (!scoreboardReady && !useSampleDesk) ||
+    Boolean(trustBannerProps.blockedMockAsLive) ||
+    Boolean(trustBannerProps.belowBreakEven);
 
   return (
     <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
@@ -913,7 +923,7 @@ export default function Dashboard() {
               className="mcfly-decision__actions"
               style={{ marginTop: "0.65rem" }}
             >
-              <s-button href="/app/spend" variant="primary">
+              <s-button href="/app/spend" variant="secondary">
                 {hasLiveSpend ? "Fill spend gaps" : PRODUCT_NOUN.setupAddSpend}
               </s-button>
             </div>
