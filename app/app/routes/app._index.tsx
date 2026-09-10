@@ -1022,14 +1022,17 @@ export default function Dashboard() {
                       deltaLine={merDeltaLine}
                     />
                   )}
-                  {/* Love-V2 / VISUAL P0.3: one primary in this cluster — Update spend. */}
+                  {/* Love-V2 / VISUAL P0.3: one primary in this cluster — Update spend.
+                      Untrusted zero hands that one primary to the banner above. */}
                   <div className="mcfly-hero-compact__actions">
-                    <s-button
-                      href="/app/spend#mcfly-spend-uploads"
-                      variant="primary"
-                    >
-                      Update spend
-                    </s-button>
+                    {trustedHero.hideUntrustedZero ? null : (
+                      <s-button
+                        href="/app/spend#mcfly-spend-uploads"
+                        variant="primary"
+                      >
+                        Update spend
+                      </s-button>
+                    )}
                     {metrics.cashActionReady ? (
                       <s-button href="/app/goals" variant="secondary">
                         {PRODUCT_NOUN.setupSetGoals}

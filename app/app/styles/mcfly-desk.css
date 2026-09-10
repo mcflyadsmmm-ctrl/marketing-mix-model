@@ -10721,6 +10721,15 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   border: 1px solid color-mix(in srgb, var(--mcfly-accent) 12%, transparent);
 }
 
+/* Untrusted zero swaps the dial for a warning banner — drop the tint so the
+   banner is not a card inside a card. Older engines keep the tinted tile. */
+.mcfly-hero-compact--v2
+  .mcfly-hero-compact__status--gauge:not(:has(.mcfly-roas-gauge)) {
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
+}
+
 .mcfly-hero-compact__tile--sales {
   border-color: color-mix(in srgb, var(--mcfly-truth) 14%, transparent);
 }
