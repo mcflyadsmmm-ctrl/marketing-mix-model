@@ -29,8 +29,10 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("factsIncomplete");
   });
 
-  it("suppresses allocation suggestion when salesError", () => {
-    expect(source).toContain("salesError ? null : metrics.allocation");
+  it("suppresses allocation suggestion when salesError or untrusted $0 sales", () => {
+    expect(source).toContain(
+      "salesError || salesUntrustedForAdvice ? null : metrics.allocation",
+    );
   });
 
   it("keeps SAMPLE path distinct from live sales", () => {

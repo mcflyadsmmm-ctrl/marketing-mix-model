@@ -43,6 +43,8 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
 import type { SalesResult } from "../lib/shopify-sales.server";
 import { salesFactsIncompleteForDesk } from "../lib/sales-facts-honesty";
+import { cashVerdictSalesUntrusted } from "../lib/cash-verdict";
+import { UNTRUSTED_ZERO_ROAS_COPY } from "../lib/trusted-roas-hero";
 import {
   getSalesFactsByDay,
   loadDeskSalesForPeriod,
@@ -190,6 +192,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   /*
+   * Same untrusted-$0 gate as Overview's trusted hero. Spend-side coverage can be
+   * complete while the sales numerator is still filling — sales ÷ spend then
+   * resolves to 0.00× and suggestAllocation calls a ~50% "below break-even" cut
+   * on a numerator nobody trusts. Pass salesUntrustedZero next to the coverage
+   * flag so a wrongly-false incomplete cannot leak that advice through.
+   */
+  const salesUntrustedForAdvice =
+    !useSampleDesk &&
+    metrics.totalSpend > 0 &&
+    !(metrics.sales > 0) &&
+    cashVerdictSalesUntrusted({
+      salesFactsIncomplete: factsIncomplete,
+      salesUntrustedZero: deskSalesUntrustedZero,
+    });
+
+  /*
    * Portfolio history (~L12M / 365 closed days): top quarters by Total ROAS,
    * rolling 7/14/28 vs prior window. Facts / sample only — no unbounded Shopify.
    */
@@ -218,7 +236,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       toHistoryDays(dailyRows),
       HISTORY_QUARTER_DAYS_CAP,
     );
-    const allocationForHist = salesError ? null : metrics.allocation;
+    const allocationForHist =
+      salesError || salesUntrustedForAdvice ? null : metrics.allocation;
     const nowChannelSpend =
       allocationForHist?.inputs.channelEfficiencies.map((c) => ({
         channel: c.name,
@@ -249,6 +268,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesTruncated,
     salesFactsIncomplete,
     factsIncomplete,
+    salesUntrustedForAdvice,
     shopifyOrderWindowLimited,
     hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
     shopDomain: session.shop,
@@ -268,6 +288,7 @@ export default function AllocationPage() {
     todaySalesTruncated,
     salesFactsIncomplete,
     factsIncomplete,
+    salesUntrustedForAdvice,
     shopifyOrderWindowLimited,
     hasReadAllOrders,
     shopDomain,
@@ -275,8 +296,10 @@ export default function AllocationPage() {
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
-  // Never build Monday advice from emptySales zeros after a sales load failure.
-  const allocation = salesError ? null : metrics.allocation;
+  // Never build Monday advice from emptySales zeros after a sales load failure,
+  // nor from an untrusted $0 numerator (0.00× is not "below break-even").
+  const allocation =
+    salesError || salesUntrustedForAdvice ? null : metrics.allocation;
 
   const tillLabel = formatListingTillLabel({
     periodLabel: metrics.period.label,
@@ -308,6 +331,13 @@ export default function AllocationPage() {
     : null;
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
+  // One blocking answer at a time — spend trust and margin stay the earlier asks.
+  const salesUntrustedState =
+    salesUntrustedForAdvice &&
+    !salesError &&
+    !shotMode &&
+    !cashLocked &&
+    !zeroMargin;
   const channelRows = allocation
     ? buildPeriodChannelRows(allocation.inputs.channelEfficiencies)
     : [];
@@ -373,6 +403,28 @@ export default function AllocationPage() {
               <s-button href={`/app/allocation?period=${preset}`} variant="primary">
                 Retry
               </s-button>
+            </div>
+          </section>
+        ) : null}
+
+        {salesUntrustedState ? (
+          <section
+            className="mcfly-state mcfly-state--warn"
+            aria-label="Sales facts still loading"
+          >
+            <p className="mcfly-state__copy">
+              {UNTRUSTED_ZERO_ROAS_COPY.heading}. Your spend is on the desk, so{" "}
+              {PRODUCT_NOUN.spendAllocation} stays locked until the sales side
+              of sales ÷ spend lands — hold / reduce / step-test off a blank
+              numerator is not a break-even call.
+            </p>
+            <div className="mcfly-state__cta">
+              <s-button href={`/app/allocation?period=${preset}`} variant="primary">
+                Refresh {PRODUCT_NOUN.spendAllocation}
+              </s-button>
+              <s-link href="/app/allocation?period=mtd">
+                {UNTRUSTED_ZERO_ROAS_COPY.mtdLabel}
+              </s-link>
             </div>
           </section>
         ) : null}
@@ -465,7 +517,7 @@ export default function AllocationPage() {
         {/* 4. Rolling improvement: 7 · 14 · 28 vs prior window */}
         <RollingWindowsSection tiles={rollingWindows} />
 
-        {!allocation && !zeroMargin && !cashLocked ? (
+        {!allocation && !zeroMargin && !cashLocked && !salesUntrustedState ? (
           <section
             className="mcfly-state mcfly-state--empty"
             aria-label="Allocation unavailable"

@@ -1,4 +1,4 @@
-/* McFly chrome v14 — listing live. Product mark Mcfly Analytics. Firm Mcfly Ads in footer. */
+/* McFly chrome v15 — sales-first. Product mark Mcfly Analytics. Firm Mcfly Ads in footer. */
 (function () {
   function ensureMeta(name, content) {
     if (document.querySelector('meta[name="' + name + '"]')) return;
@@ -7,8 +7,8 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v14");
-  ensureMeta("mcfly-build", "listing-live");
+  ensureMeta("mcfly-version", "v15");
+  ensureMeta("mcfly-build", "sales-first");
 
   var LISTING = "https://apps.shopify.com/mcfly-analytics-public";
   var primary =
