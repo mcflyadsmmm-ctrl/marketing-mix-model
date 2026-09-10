@@ -43,8 +43,14 @@ export function OrderEconomicsPanel({
         className="mcfly-order-econ"
         aria-label="Shopify order economics"
       >
-        <p className="mcfly-order-econ__kicker">From your Shopify orders</p>
-        <h2 className="mcfly-order-econ__title">Waiting on the first orders</h2>
+        <div className="mcfly-order-econ__head">
+          <div className="mcfly-order-econ__headline">
+            <p className="mcfly-order-econ__kicker">From your Shopify orders</p>
+            <h2 className="mcfly-order-econ__title">
+              Waiting on the first orders
+            </h2>
+          </div>
+        </div>
         <p className="mcfly-order-econ__lede">
           When sales land, this desk shows typical order value, weekend vs
           weekday till share, and new vs returning sales — then add spend for
@@ -63,17 +69,21 @@ export function OrderEconomicsPanel({
 
   return (
     <section className="mcfly-order-econ" aria-label="Shopify order economics">
-      <p className="mcfly-order-econ__kicker">
-        Till read · {periodLabel}
-      </p>
-      <h2 className="mcfly-order-econ__title">{title}</h2>
+      <div className="mcfly-order-econ__head">
+        <div className="mcfly-order-econ__headline">
+          <p className="mcfly-order-econ__kicker">Till read · {periodLabel}</p>
+          <h2 className="mcfly-order-econ__title">{title}</h2>
+        </div>
+        <p className="mcfly-order-econ__facts">
+          {economics.orderCount.toLocaleString()} orders ·{" "}
+          {money(economics.sales)} sales
+          {economics.aov != null && economics.spendPerOrder != null
+            ? ` · AOV ${moneyExact(economics.aov)}`
+            : ""}
+        </p>
+      </div>
       <p className="mcfly-order-econ__lede">
-        {economics.orderCount.toLocaleString()} orders · {money(economics.sales)}{" "}
-        sales
-        {economics.aov != null && economics.spendPerOrder != null
-          ? ` · AOV ${moneyExact(economics.aov)}`
-          : ""}
-        . Built to sit next to the spend you enter — not a second Analytics.
+        Built to sit next to the spend you enter — not a second Analytics.
       </p>
 
       <div className="mcfly-order-econ__grid">
@@ -131,12 +141,14 @@ export function OrderEconomicsPanel({
             the trial week — or type one day — then Total ROAS is Shopify sales
             ÷ the spend you enter for the same period.
           </p>
-          <s-button href="/app/spend#mcfly-spend-bill" variant="primary">
-            Divide a monthly bill
-          </s-button>
-          <s-button href="/app/spend" variant="secondary">
-            Or type one day
-          </s-button>
+          <div className="mcfly-order-econ__unlock-actions">
+            <s-button href="/app/spend#mcfly-spend-bill" variant="primary">
+              Divide a monthly bill
+            </s-button>
+            <s-button href="/app/spend" variant="secondary">
+              Or type one day
+            </s-button>
+          </div>
         </div>
       ) : null}
     </section>

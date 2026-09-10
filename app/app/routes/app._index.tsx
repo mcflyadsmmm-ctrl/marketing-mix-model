@@ -774,6 +774,21 @@ export default function Dashboard() {
     hasReadAllOrders,
   };
 
+  /*
+   * VISUAL §2.3 — one primary per visible context. The desk body already owns
+   * the spend primary in the first viewport (hero cluster when the scoreboard
+   * paints, the till unlock when cold, Retry when sales failed), so the page
+   * slot keeps the action reachable at Admin level without a second dark CTA.
+   * SAMPLE → Real is a mode switch, not a duplicate — it stays primary.
+   */
+  const bodyOwnsPrimary =
+    !shotMode &&
+    (Boolean(salesError) || (coldEmpty ? salesDeskReady : scoreboardReady));
+  const pageActionVariant =
+    bodyOwnsPrimary && primaryAction.postIntent !== "use-real"
+      ? "secondary"
+      : "primary";
+
   // Critical honesty (below break-even / mock-as-live) must sit ABOVE the dial.
   const showTrustAbove =
     coldEmpty ||
@@ -805,7 +820,7 @@ export default function Dashboard() {
       ) : !shotMode ? (
         <s-button
           slot="primary-action"
-          variant="primary"
+          variant={pageActionVariant}
           href={primaryAction.href}
           aria-label={primaryAction.label}
         >
@@ -1065,9 +1080,36 @@ export default function Dashboard() {
                           ? "Sales facts still loading for this period"
                           : PRODUCT_NOUN.totalSalesHeroHint}
                     </p>
-                    {trustedHero.hideUntrustedZero ? null : (
-                      <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
-                    )}
+                    {!trustedHero.hideUntrustedZero && deltas ? (
+                      <p className="mcfly-hero-compact__meta mcfly-hero-compact__delta">
+                        {salesDeltaLine}
+                      </p>
+                    ) : null}
+                    {/* Till rows keep the sales card as dense as the spend card. */}
+                    {!trustedHero.hideUntrustedZero &&
+                    metrics.orderCount > 0 ? (
+                      <ul
+                        className="mcfly-kpi-facts"
+                        aria-label={`Order facts · ${metrics.period.label}`}
+                      >
+                        <li className="mcfly-kpi-facts__row">
+                          <span className="mcfly-kpi-facts__name">Orders</span>
+                          <span className="mcfly-kpi-facts__amt">
+                            {metrics.orderCount.toLocaleString()}
+                          </span>
+                        </li>
+                        <li className="mcfly-kpi-facts__row">
+                          <span className="mcfly-kpi-facts__name">
+                            Avg order value
+                          </span>
+                          <span className="mcfly-kpi-facts__amt">
+                            {formatCurrency(
+                              totalSalesDisplay / metrics.orderCount,
+                            )}
+                          </span>
+                        </li>
+                      </ul>
+                    ) : null}
                   </div>
                   <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
                     <p className="mcfly-hero-compact__label">Total Spend</p>
@@ -1078,7 +1120,9 @@ export default function Dashboard() {
                       {metrics.period.label} · Logged via CSV
                     </p>
                     {spendDeltaLine ? (
-                      <p className="mcfly-hero-compact__meta">{spendDeltaLine}</p>
+                      <p className="mcfly-hero-compact__meta mcfly-hero-compact__delta">
+                        {spendDeltaLine}
+                      </p>
                     ) : null}
                     {periodChannels.length > 0 ? (
                       <ul
