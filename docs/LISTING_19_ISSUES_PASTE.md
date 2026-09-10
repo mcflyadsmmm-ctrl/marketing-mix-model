@@ -1,162 +1,73 @@
-# Fix 19 listing issues — paste sheet (Mcfly Analytics Public)
+# Partner listing completion sheet — Mcfly Analytics
 
-App: https://dev.shopify.com/dashboard/227535001/apps/403721814017  
-Work top → bottom. Save after each section.
+This compatibility filename now uses the sales-first listing. The complete
+click-order pack is [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md);
+the copy source of truth is [`APP_STORE_LISTING.md`](./APP_STORE_LISTING.md).
 
----
+## Public listing fields
 
-## 1. Basic app information
+### Title
 
-| Field | Paste / select |
-| --- | --- |
-| **App name** | `Mcfly Analytics` |
-| **App category** | Marketing → **Marketing analytics** (or Advertising if analytics missing) |
-| **Languages** | English only |
-
----
-
-## 2. App store listing content
-
-### App introduction (short description ≤~150)
 ```text
-Advanced Marketing Data Science for Shopify: Total ROAS (net sales ÷ spend), break-even, Monday cash close. Free. No pixels.
+Mcfly Analytics
 ```
 
-### App details (long description)
-Paste from `docs/APP_STORE_LISTING.md` → **Long description (paste)** block (full text starting “Every Monday…”).
+### Subtitle
 
-### Features (5 bullets, in order)
 ```text
-Total ROAS (action) = net Shopify sales ÷ ad spend (MTD / QTD / YTD); gross order totals as Ads Manager–comparable secondary
-Free spend = Meta + Google CSV (+ Connections when ready) · Optional SyncWith-class → Mcfly pipe template (you pay the pipe tool) · Pro unlocks all channels
-Break-even Total ROAS from your profit margin %
-Monday Close ritual + one rules-based affordability call on Free; lock / finance CSV + advanced Goals on Pro
-GDPR webhooks + clean uninstall — no customer CRM · no pixels / MTA
+Deeper Shopify sales numbers beyond standard Analytics
 ```
 
-### Feature media / Screenshots
-Upload from `docs/listing-assets/shots/` **in order**:
+### App introduction
 
-| # | File | Caption |
-| --- | --- | --- |
-| 1 | `01-total-roas-vs-breakeven.png` | Total ROAS vs break-even — one glance |
-| 2 | `02-explorer-sales-div-spend.png` | Channel mix vs Total ROAS — sales ÷ spend |
-| 3 | `03-margin-breakeven.png` | Lock break-even from your margin % |
-| 4 | `04-free-pro-pricing.png` | Free Meta + Google · Pro unlocks channels + LTV |
-| 5 | **Still need** Admin `/app/spend?shot=1` | Select platforms → export daily → combine |
-
-**Do not upload** `05-HOLD-marketing-site-do-not-upload.png`  
-Icon (already uploaded): `docs/listing-assets/mcfly-app-icon-1200.png`
-
-### Support
-| Field | Value |
-| --- | --- |
-| Support URL | `https://mcflyads.com/support` |
-| Support email | `mcflyadsmmm@gmail.com` |
-
-### Resources
-| Field | Value |
-| --- | --- |
-| Website | `https://mcflyads.com` |
-| Privacy | `https://mcflyads.com/privacy` |
-| Terms | `https://mcflyads.com/terms` |
-| App URL (app setup, not marketing) | `https://mcfly-analytics.fly.dev` |
-
----
-
-## 3. Pricing details
-
-| Field | Value |
-| --- | --- |
-| **Pricing plans** | **Free** |
-| Paid plans / Billing | **Off** — do not enable |
-| External charges | **No** |
-| Works with / Sales channel requirements | **None / blank** — not a sales channel |
-
----
-
-## 4. App discovery content
-
-### App card subtitle (tagline ≤80)
 ```text
-Advanced Marketing Data Science — Total ROAS (net sales ÷ spend), break-even
+See Shopify sales, customer mix, goals, and LTV first. Add spend only when you want Total ROAS.
 ```
 
-### App store search terms
+### Description
+
 ```text
-Total ROAS, marketing efficiency ratio, Break-even Total ROAS, Shopify ad spend
-```
-Ban: attribution, pixel, true ROAS, MTA.
-
----
-
-## 5. Install requirements
-
-| Field | Value |
-| --- | --- |
-| **Sales Channel requirements** | **None** / not applicable — Mcfly is an **embedded Admin app**, not a sales channel |
-| Capabilities | **Embedded** only (already guided) |
-
----
-
-## 6. Contact information
-
-| Field | Value |
-| --- | --- |
-| **Merchant review email** | `mcflyadsmmm@gmail.com` |
-| **App submission email** | `mcflyadsmmm@gmail.com` |
-
----
-
-## 7. App testing information
-
-### Test account
-```text
-Store: devmcflyads.myshopify.com
-Account: mcflyadsmmm@gmail.com
-```
-(Add password only in Partner private test credentials field — never in public listing.)
-
-### Screencast URL
-Record a short Loom: install → Settings margin → Spend CSV import → Total ROAS desk.  
-Paste the Loom/unlisted YouTube URL here.  
-If you don’t have one yet: record 2–3 min, then paste.
-
-### Testing instructions (paste)
-```text
-Test store: devmcflyads.myshopify.com
-Test account: mcflyadsmmm@gmail.com
-
-PRICING
-Free listing (Partner Pricing = Free). No Shopify Billing API charges until announced.
-Honest freemium: Free = Meta + Google spend; Pro soft/hard gates may lock other channels,
-Customer LTV, and advanced Goals / Monday Close — that is not a Billing charge yet.
-No external charges.
-
-CRITICAL — SAMPLE DESK MUST BE OFF FOR LIVE SMOKE
-Open Demo → Turn sample desk OFF before judging Total ROAS / Allocation.
-(?shot=1 hides the SAMPLE banner for screenshots only — numbers stay sample until OFF.)
-
-SMOKE TEST (CSV-first Free path = Meta + Google)
-1. Install Mcfly Analytics (App Store or Partner test install) — embedded Admin
-2. Settings → profit margin 35% → save → Break-even Total ROAS locks
-3. Spend → Meta + Google (default Free template) → export / paste daily CSV → Import
-4. Total ROAS desk → Total ROAS (action) = net Shopify sales ÷ ad spend for the period
-   Confirm orders / new / returning / AOV (opaque customer id + numberOfOrders only)
-5. Monday Close → ritual view on Free; Allocation → one affordability recommendation when Meta/Google spend > 0
-
-TECHNICAL
-App URL: https://mcfly-analytics.fly.dev (not mcflyads.com)
-Embedded in Admin. No public “type your .myshopify.com” install form.
-Compliance: https://mcfly-analytics.fly.dev/webhooks/compliance
-Support: https://mcflyads.com/support
-Privacy: https://mcflyads.com/privacy
-
-PROTECTED CUSTOMER DATA (Level 1 only)
-- read_orders / read_customers (opaque id + numberOfOrders) / no name email phone address
+Mcfly starts with deeper Shopify order numbers: Total Sales after returns, orders, AOV, new vs returning sales, goals, and cohort LTV. Explore sales without entering spend. To calculate Total ROAS, type spend or import a daily CSV: Shopify Total Sales ÷ spend for the same period. Optional margin adds break-even. Harbor Home Co SAMPLE: $82,068 sales ÷ $23,414 spend = 3.51×; sample data is not your store. No pixels, MTA, or path credit. 7-day free trial, then $39/month.
 ```
 
----
+### Features
 
-## After save
-Reply: `listing filled` + anything still red (especially screencast / shot 5 / sales channel).
+```text
+Explore Shopify Total Sales after returns, orders, and AOV
+Compare new vs returning sales, goals, period pace, and cohort LTV
+Add spend only when needed: type it or import a daily CSV
+Total ROAS = Shopify Total Sales ÷ spend for the same period
+Optional margin adds break-even — 7-day trial, then $39/month
+```
+
+## Category
+
+```text
+Marketing and conversion → Marketing analytics
+```
+
+```text
+Sales-first Shopify order analytics with optional merchant-entered or CSV spend. Total ROAS is blended Shopify Total Sales ÷ spend; Mcfly does not provide attribution, pixels, MTA, ad delivery, or ad-platform OAuth.
+```
+
+## Pricing
+
+```text
+Plan name: Mcfly Analytics
+Trial: 7 days
+Price: $39 USD every 30 days
+External charges: No
+```
+
+Use one plan only. Do not use Free or Pro as a plan name.
+
+## Completion checks
+
+- Works with: leave blank.
+- Demo store: leave blank.
+- Harbor media: **SAMPLE preview · not your store**;
+  **$82,068 ÷ $23,414 = 3.51×**.
+- App URL: `https://mcfly-analytics.fly.dev`.
+- Public trust URLs: `https://mcflyads.com` and its `/privacy`, `/support`,
+  `/faq`, and `/terms` pages.
+- Do not add reviews, ratings, quotes, or install counts.
