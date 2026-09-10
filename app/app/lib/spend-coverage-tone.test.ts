@@ -330,8 +330,9 @@ describe("app.spend.tsx wires the tone lib", () => {
 
   it("says the hole count once per screen, not under every banner", () => {
     expect(spendRoute).toContain("coverageBodyAlreadySaid");
+    // A bill spread is a save too — its note carries the count that screen.
     expect(spendRoute).toMatch(
-      /showCoverageBanner \|\| Boolean\(daySavedCopy\?\.note\)/,
+      /showCoverageBanner \|\|\s*Boolean\(daySavedCopy\?\.note\) \|\|\s*Boolean\(billSavedCopy\?\.note\)/,
     );
   });
 

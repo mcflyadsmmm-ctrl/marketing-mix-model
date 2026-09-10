@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { SPEND_BILL_ANCHOR } from "./spend-first-run";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
@@ -44,10 +45,11 @@ describe("typed one-day spend form", () => {
     );
   });
 
-  it("offers typing before downloading on an empty desk", () => {
-    expect(spend).toContain("{emptyTeach.primaryHref}");
+  it("stays reachable from the cold desk as the second path, not a download", () => {
+    // The typed row keeps its own quiet link under the bill card.
     expect(spend).toContain("{emptyTeach.secondaryHref}");
-    // No page-level action competes with Save this day, and no download is asked for.
+    expect(spend).toContain("SPEND_FIRST_RUN_COPY.dayLede");
+    // No page-level action competes, and no download is asked for.
     expect(spend).not.toContain('aria-label="Download blank template"');
     expect(spend).not.toMatch(/slot="primary-action"[\s\S]{0,200}template/);
   });
@@ -110,7 +112,9 @@ describe("first-spend hand-off to Total ROAS", () => {
   });
 
   it("shows the coverage nag once — inside the saved note, not twice", () => {
-    expect(spend).toContain("!daySavedCopy && coverageNotice.showBanner");
+    expect(spend).toContain("!daySavedCopy &&");
+    expect(spend).toContain("!billSavedCopy &&");
+    expect(spend).toContain("coverageNotice.showBanner");
     expect(spend).toContain("showCoverageBanner");
     // showBanner is false at full coverage, so a covered desk still gets no nag.
     expect(spend).toContain("resolveSpendCoverageNotice");
@@ -122,7 +126,7 @@ describe("first-spend hand-off to Total ROAS", () => {
     expect(spend).toContain("showEmptyTeach");
     expect(spend).toContain("showActivationBanner = activating && !showEmptyTeach");
     expect(spend).toContain("emptyTeachHeading");
-    expect(spend).toContain("Step 1 of 2 — type one day");
+    expect(spend).toContain("Step 1 of 2 — put spend on the desk");
     expect(spend).toContain("{showEmptyTeach ? (");
     expect(spend).toContain("{showActivationBanner ? (");
     expect(spend).toContain("{showDeskWhy ? (");
@@ -152,21 +156,27 @@ describe("first-spend hand-off to Total ROAS", () => {
     expect(activateLine!).toMatch(/no ad login/i);
   });
 
-  it("Love-UX2: Automate fill — optional loud inside teach with long/wide downloads", () => {
-    const teachStart = spend.indexOf('className="mcfly-spend-teach"');
+  it("Love-UX2: Automate fill — optional keeps its verbs, now in its own fold", () => {
+    // Blocker #1: the pipe grid used to sit inside the cold-empty teach, which
+    // made four download CTAs equal to the one path that reaches coverage.
+    const teachStart = spend.indexOf('className="mcfly-spend-teach mcfly-spend-teach--lede"');
     const teachEnd = spend.indexOf("</section>", teachStart);
     expect(teachStart).toBeGreaterThan(-1);
     const teach = spend.slice(teachStart, teachEnd);
-    expect(teach).toContain("SPEND_PIPE_FRONT_DOOR.heading");
+    expect(teach).not.toContain("PIPE_TEMPLATE_OPTIONS.map");
+    expect(teach).not.toContain("<s-banner");
+    expect(teach).not.toContain("<s-button");
+
+    const pipeStart = spend.indexOf("className=\"mcfly-spend-lean__pipe\"");
+    const pipe = spend.slice(pipeStart, spend.indexOf("</details>", pipeStart));
+    expect(pipe).toContain("SPEND_PIPE_FRONT_DOOR.heading");
+    expect(pipe).toContain("SPEND_PIPE_FRONT_DOOR.body");
+    expect(pipe).toContain("PIPE_TEMPLATE_OPTIONS.map");
+    expect(pipe).toContain("option.exampleHref");
+    expect(pipe).toContain("option.blankHref");
     expect(spend).toContain('"Automate fill — optional"');
     expect(spend).toContain("PIPE_TOOL_NAMES");
     expect(spend).toMatch(/SyncWith|PIPE_TOOL_NAMES\.join/);
-    expect(teach).toContain("PIPE_TEMPLATE_OPTIONS.map");
-    expect(teach).toContain("option.exampleHref");
-    expect(teach).toContain("option.blankHref");
-    expect(teach).toContain("PIPE_TEMPLATE_HREF");
-    // Still one teach surface — pipe is a subsection, not an s-banner.
-    expect(teach).not.toContain("<s-banner");
     expect(spend).toContain("you pay those tools");
   });
 
@@ -174,8 +184,8 @@ describe("first-spend hand-off to Total ROAS", () => {
     // Before/after: daySavedCopy success only — coverage suppressed via
     // showCoverageBanner requiring !daySavedCopy.
     expect(spend).toContain("showCoverageBanner =");
-    expect(spend).toContain(
-      "!isEmpty && !shotMode && !daySavedCopy && coverageNotice.showBanner",
+    expect(spend).toMatch(
+      /showCoverageBanner =\s*!isEmpty &&\s*!shotMode &&\s*!daySavedCopy &&\s*!billSavedCopy &&\s*coverageNotice\.showBanner/,
     );
     expect(spend).toContain("{daySavedCopy ? (");
     expect(spend).toContain("{showCoverageBanner ? (");
@@ -211,6 +221,95 @@ describe("first-spend hand-off to Total ROAS", () => {
     expect(spend).toContain("quickSpendDefaultDate");
     expect(spend).toContain("todayKey: storeTodayKey");
     expect(spend).toContain("missingDatesKey.split(\",\")");
+  });
+});
+
+/**
+ * HOSTILE_SHIP_CRITIQUE blocker #1 — a trusted Total ROAS needs most closed
+ * days covered and the trial is 7 days, so first-run Spend must lead with the
+ * bill spread instead of teaching fourteen hand-typed rows.
+ */
+describe("first-run Spend leads with bill → daily rows", () => {
+  /** The bill form itself — built above the return, rendered by the section. */
+  const billPanel = (() => {
+    const start = spend.indexOf("const billPanelBody = (");
+    expect(start).toBeGreaterThan(-1);
+    return spend.slice(start, spend.indexOf("const csvUploadForm = (", start));
+  })();
+
+  it("puts the bill card above the typed day and the CSV block", () => {
+    const bill = spend.indexOf("id={SPEND_BILL_ANCHOR}");
+    expect(bill).toBeLessThan(spend.indexOf('id="mcfly-spend-day"'));
+    expect(bill).toBeLessThan(spend.indexOf('id="mcfly-spend-uploads"'));
+  });
+
+  it("writes the days from the panel — no download / re-import round trip", () => {
+    expect(spend).toContain('name="intent" value="bill-daily"');
+    expect(spend).toContain('name="periodType"');
+    expect(spend).toContain('name="anchor"');
+    expect(spend).toContain("billSpreadPrimaryLabel");
+    expect(spend).toContain("handleBillDaily");
+    // The CSV escape hatch survives, but it is not the ask.
+    expect(spend).toContain("downloadBillDailyCsv");
+    expect(spend).toContain("SPEND_FIRST_RUN_COPY.downloadLabel");
+  });
+
+  it("keeps exactly one primary button on a cold desk", () => {
+    // Bill submit is the primary; typed day and CSV import step down.
+    expect(billPanel).toMatch(/variant="primary"[\s\S]{0,220}billPrimaryLabel/);
+    expect(spend).toContain('variant={firstRun ? "secondary" : "primary"}');
+    expect(
+      spend.match(/variant=\{firstRun \? "secondary" : "primary"\}/g)?.length,
+    ).toBe(2);
+    expect(spend).toContain('variant="tertiary"');
+  });
+
+  it("answers the trust question in closed days before the click", () => {
+    expect(billPanel).toContain("billCoverage.headline");
+    expect(billPanel).toContain("billCoverage.note");
+    expect(spend).toContain("resolveBillSpreadCoverage");
+    expect(spend).toContain("closedDays: closedCoverageDays");
+    expect(spend).toContain("todayKey: storeTodayKey");
+    // No multiple is ever painted on the Spend desk.
+    expect(billPanel).not.toMatch(/formatMer|metrics\.mer|toFixed/);
+  });
+
+  it("folds the CSV supporting cast so the first viewport is one decision", () => {
+    expect(spend).not.toContain("open={channelsOpen || isEmpty}");
+    expect(spend).not.toContain("open={isEmpty && !importBlockedBySample}");
+    expect(spend).toContain("{firstRun ? null : (");
+    expect(spend).toContain("uploadsExpanded");
+    expect(spend).toContain("SPEND_FIRST_RUN_COPY.backfillLede");
+  });
+
+  it("hands a bill error back to the bill panel, never to the CSV banner", () => {
+    expect(spend).toContain("billField: true");
+    expect(spend).toContain("billActionError");
+    expect(spend).toContain("!actionData.billField");
+    expect(billPanel).toContain('className="mcfly-spend-bill__error"');
+  });
+
+  it("keeps the bill save honest — day count and rate, no ROAS figure", () => {
+    expect(spend).toContain("billSpreadSavedCopy");
+    const banner = spend.slice(
+      spend.indexOf("{billSavedCopy ? ("),
+      spend.indexOf("Coverage nag is already inside"),
+    );
+    expect(banner).toContain("billSavedCopy.body");
+    expect(banner).toContain("billSavedCopy.note");
+    expect(banner).not.toMatch(/formatMer|toFixed/);
+  });
+
+  it("keeps the Overview deep link landing on an open bill panel", () => {
+    const panel = readFileSync(
+      join(here, "../components/OrderEconomicsPanel.tsx"),
+      "utf8",
+    );
+    expect(panel).toContain(`/app/spend#${SPEND_BILL_ANCHOR}`);
+    expect(spend).toContain("SPEND_BILL_ANCHOR");
+    expect(spend).toContain('window.addEventListener("hashchange"');
+    expect(spend).toContain("billDetailsRef");
+    expect(spend).toContain("billAmountRef.current?.focus()");
   });
 });
 

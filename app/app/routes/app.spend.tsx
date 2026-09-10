@@ -1193,10 +1193,15 @@ export default function SpendEntryPage() {
   const [platformsHydrated, setPlatformsHydrated] = useState(false);
   /** Survives confirm_replace re-submit after file input clears. */
   const [csvPayload, setCsvPayload] = useState("");
+  /** First-run only — the folded backfill path opens on demand or on error. */
+  const [uploadsOpen, setUploadsOpen] = useState(false);
   const [forceChannel, setForceChannel] = useState<"" | "meta" | "google">("");
   const [confirmReplace, setConfirmReplace] = useState(false);
-  /** Default open so channel pick is obvious; still collapsible. */
-  const [channelsOpen, setChannelsOpen] = useState(true);
+  /**
+   * Open on a warm desk so the channel pick is obvious; folded on first run,
+   * where the bill card asks for the channel itself.
+   */
+  const [channelsOpen, setChannelsOpen] = useState(() => entries.length > 0);
   const [billAmount, setBillAmount] = useState("");
   const [billPeriodType, setBillPeriodType] =
     useState<PeriodWindowType>("month");
@@ -1506,6 +1511,13 @@ export default function SpendEntryPage() {
       !actionData.billField &&
       !csvNeedsConfirm,
   );
+  /** A folded backfill path must never hide the answer to its own import. */
+  const uploadsExpanded =
+    uploadsOpen ||
+    Boolean(csv) ||
+    csvNeedsConfirm ||
+    Boolean(csvFieldError) ||
+    showCsvErrorBanner;
   /** Why-line competes with teach/status — park it when a surface is up. */
   const showDeskWhy =
     !shotMode &&
@@ -1690,6 +1702,79 @@ export default function SpendEntryPage() {
       <p className="mcfly-spend-bill__note">
         {SPEND_FIRST_RUN_COPY.equalSplitNote}
       </p>
+    </Form>
+  );
+
+  const csvUploadForm = (
+    <Form method="post" encType="multipart/form-data">
+      <input type="hidden" name="intent" value="csv" />
+      <input type="hidden" name="forceChannel" value={forceChannel} />
+      <input
+        type="hidden"
+        name="confirm_replace"
+        value={confirmReplace ? "1" : "0"}
+      />
+      <label
+        id="mcfly-spend-paste"
+        className="mcfly-spend-lean__paste mcfly-spend-flow__paste-box"
+      >
+        <span className="mcfly-spend-lean__drop-title">
+          Paste one row (or more)
+        </span>
+        <span className="mcfly-spend-lean__drop-hint">
+          Keep the header row · one row = one day
+        </span>
+        <textarea
+          className="mcfly-field mcfly-field--wide"
+          name="csv"
+          rows={4}
+          value={csvPayload}
+          onChange={(e) => setCsvPayload(e.target.value)}
+          placeholder={pastePlaceholder}
+          disabled={
+            importBlockedBySample ||
+            (isSubmitting && submittingIntent === "csv")
+          }
+          spellCheck={false}
+          aria-label="Paste spend CSV"
+        />
+      </label>
+      <label className="mcfly-spend-lean__drop">
+        <span className="mcfly-spend-lean__drop-title">Or upload .csv</span>
+        <span className="mcfly-spend-lean__drop-hint">
+          Proper Day + channel format only
+        </span>
+        <input
+          type="file"
+          name="file"
+          accept=".csv,text/csv"
+          className="mcfly-spend-lean__file"
+          onChange={onSpendFileSelected}
+          disabled={
+            importBlockedBySample ||
+            (isSubmitting && submittingIntent === "csv")
+          }
+          aria-label="Upload spend CSV"
+        />
+      </label>
+      {csvFieldError && !csvNeedsConfirm ? (
+        <p className="mcfly-spend-lean__upload-error" role="alert">
+          {csvFieldError}
+        </p>
+      ) : null}
+      <s-button
+        id="mcfly-spend-csv-submit"
+        type="submit"
+        variant={firstRun ? "secondary" : "primary"}
+        {...(importBlockedBySample ? { disabled: true } : {})}
+        {...(isSubmitting && submittingIntent === "csv"
+          ? { loading: true }
+          : {})}
+      >
+        {importBlockedBySample
+          ? "Import locked — turn Real store on"
+          : "Import spend"}
+      </s-button>
     </Form>
   );
 
@@ -2131,13 +2216,14 @@ export default function SpendEntryPage() {
             </p>
           </section>
 
-          {/* Empty desk: channels + template + paste stay in the first viewport. */}
+          {/* 2 · Channel picker, template shape, playbook, pipe — the CSV
+              path's supporting cast. Folded on a cold desk so the bill card
+              stays the one decision in the first viewport. */}
           <>
-          {/* 1 · Advertising channels — compact dropdown */}
           <details
             id="mcfly-spend-platforms"
             className="mcfly-spend-lean__channels"
-            open={channelsOpen || isEmpty}
+            open={channelsOpen}
             onToggle={(e) => {
               setChannelsOpen(e.currentTarget.open);
             }}
@@ -2180,7 +2266,9 @@ export default function SpendEntryPage() {
             </div>
           </details>
 
-          {/* 2 · Tiny template preview */}
+          {/* Template shape — only once a desk has spend to compare against.
+              A cold merchant does not need a blank CSV to see Total ROAS. */}
+          {firstRun ? null : (
           <div id="mcfly-spend-template" className="mcfly-spend-lean__template">
             <div className="mcfly-spend-lean__template-row">
               <s-button href={selectedBlankTemplateHref} variant="secondary">
@@ -2222,125 +2310,12 @@ export default function SpendEntryPage() {
                 Select a channel above for a tailored template.
               </s-text>
             )}
-
-            <details
-              id="mcfly-spend-bill"
-              className="mcfly-spend-lean__bill"
-              open={isEmpty ? true : undefined}
-            >
-              <summary>Divide a monthly bill into daily rows</summary>
-              <div className="mcfly-spend-lean__bill-body">
-                <p className="mcfly-spend-lean__bill-hint">
-                  Monthly / quarterly / bi-annual / annual invoice → equal daily
-                  amounts for the template
-                </p>
-                <div className="mcfly-spend-lean__bill-grid">
-                  <label className="mcfly-spend-lean__bill-field">
-                    <span>Amount</span>
-                    <input
-                      className="mcfly-field"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      inputMode="decimal"
-                      placeholder="1200"
-                      value={billAmount}
-                      onChange={(e) => {
-                        setBillAmount(e.target.value);
-                        setBillError(null);
-                      }}
-                    />
-                  </label>
-                  <label className="mcfly-spend-lean__bill-field">
-                    <span>Period</span>
-                    <select
-                      className="mcfly-field"
-                      value={billPeriodType}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        if (isPeriodWindowType(v)) setBillPeriodType(v);
-                        setBillError(null);
-                      }}
-                    >
-                      <option value="month">Monthly</option>
-                      <option value="quarter">Quarterly</option>
-                      <option value="half_year">Bi-annual</option>
-                      <option value="year">Annual</option>
-                    </select>
-                  </label>
-                  <label className="mcfly-spend-lean__bill-field">
-                    <span>Starting month</span>
-                    <input
-                      className="mcfly-field"
-                      type="month"
-                      value={billAnchor}
-                      onChange={(e) => {
-                        setBillAnchor(e.target.value);
-                        setBillError(null);
-                      }}
-                    />
-                  </label>
-                  <label className="mcfly-spend-lean__bill-field">
-                    <span>Channel</span>
-                    <select
-                      className="mcfly-field"
-                      value={billChannel}
-                      onChange={(e) => {
-                        setBillChannel(e.target.value as SpendChannel);
-                        setBillError(null);
-                      }}
-                    >
-                      {addSpendChannels.map(({ value, label, disabled }) => (
-                        <option key={value} value={value} disabled={disabled}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {billChannel === "other" ? (
-                    <label className="mcfly-spend-lean__bill-field mcfly-spend-lean__bill-field--wide">
-                      <span>Name</span>
-                      <input
-                        className="mcfly-field"
-                        type="text"
-                        maxLength={80}
-                        placeholder="e.g. Agency, Retainer"
-                        value={billCustomName}
-                        onChange={(e) => {
-                          setBillCustomName(e.target.value);
-                          setBillError(null);
-                        }}
-                      />
-                    </label>
-                  ) : null}
-                </div>
-                {billPreview ? (
-                  <p className="mcfly-spend-lean__bill-preview">
-                    {formatCurrency(billPreview.dailyAmount)} / day ·{" "}
-                    {billPreview.dayCount} days ·{" "}
-                    {billPreview.startDateYmd} → {billPreview.endDateYmd}
-                  </p>
-                ) : null}
-                {billError ? (
-                  <p className="mcfly-spend-lean__bill-error" role="alert">
-                    {billError}
-                  </p>
-                ) : null}
-                <s-button
-                  type="button"
-                  variant="secondary"
-                  onClick={downloadBillDailyCsv}
-                >
-                  Download daily CSV
-                </s-button>
-              </div>
-            </details>
           </div>
+          )}
 
           <details
             id="mcfly-spend-playbook"
             className="mcfly-spend-lean__playbook"
-            open={isEmpty && !importBlockedBySample}
           >
             <summary>Platform playbook — export daily cost</summary>
             <div className="mcfly-spend-lean__playbook-body">
@@ -2375,10 +2350,13 @@ export default function SpendEntryPage() {
             id={PIPE_TEMPLATE_ANCHOR}
             className="mcfly-spend-lean__pipe"
           >
-            <summary>{PIPE_TEMPLATE_COPY.summary}</summary>
+            <summary>{SPEND_PIPE_FRONT_DOOR.heading}</summary>
             <div className="mcfly-spend-lean__pipe-body">
               <p className="mcfly-spend-lean__pipe-hint">
-                {PIPE_TEMPLATE_COPY.hint}
+                {SPEND_PIPE_FRONT_DOOR.body}
+              </p>
+              <p className="mcfly-spend-lean__pipe-hint">
+                {PIPE_TEMPLATE_COPY.summary} — {PIPE_TEMPLATE_COPY.hint}
               </p>
               <ol className="mcfly-spend-lean__pipe-steps">
                 {PIPE_TEMPLATE_COPY.steps.map((step) => (
@@ -2411,85 +2389,30 @@ export default function SpendEntryPage() {
           </details>
           </>
 
-          {/* 3 · Paste + upload CSV */}
+          {/* 3 · Paste + upload CSV — backfill, folded on a cold desk so it
+              never competes with the bill card for the primary button. */}
           <div
             id="mcfly-spend-uploads"
-            className="mcfly-spend-lean__upload"
+            className={[
+              "mcfly-spend-lean__upload",
+              firstRun ? "mcfly-spend-lean__upload--fold" : null,
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
-            <Form method="post" encType="multipart/form-data">
-              <input type="hidden" name="intent" value="csv" />
-              <input type="hidden" name="forceChannel" value={forceChannel} />
-              <input
-                type="hidden"
-                name="confirm_replace"
-                value={confirmReplace ? "1" : "0"}
-              />
-              <label
-                id="mcfly-spend-paste"
-                className="mcfly-spend-lean__paste mcfly-spend-flow__paste-box"
+            {firstRun ? (
+              <details
+                open={uploadsExpanded}
+                onToggle={(e) => setUploadsOpen(e.currentTarget.open)}
               >
-                <span className="mcfly-spend-lean__drop-title">
-                  Paste one row (or more)
-                </span>
-                <span className="mcfly-spend-lean__drop-hint">
-                  Keep the header row · one row = one day
-                </span>
-                <textarea
-                  className="mcfly-field mcfly-field--wide"
-                  name="csv"
-                  rows={isEmpty ? 5 : 4}
-                  value={csvPayload}
-                  onChange={(e) => setCsvPayload(e.target.value)}
-                  placeholder={pastePlaceholder}
-                  disabled={
-                    importBlockedBySample ||
-                    (isSubmitting && submittingIntent === "csv")
-                  }
-                  spellCheck={false}
-                  aria-label="Paste spend CSV"
-                />
-              </label>
-              <label className="mcfly-spend-lean__drop">
-                <span className="mcfly-spend-lean__drop-title">
-                  Or upload .csv
-                </span>
-                <span className="mcfly-spend-lean__drop-hint">
-                  Proper Day + channel format only
-                </span>
-                <input
-                  type="file"
-                  name="file"
-                  accept=".csv,text/csv"
-                  className="mcfly-spend-lean__file"
-                  onChange={onSpendFileSelected}
-                  disabled={
-                    importBlockedBySample ||
-                    (isSubmitting && submittingIntent === "csv")
-                  }
-                  aria-label="Upload spend CSV"
-                />
-              </label>
-              {csvFieldError && !csvNeedsConfirm ? (
-                <p className="mcfly-spend-lean__upload-error" role="alert">
-                  {csvFieldError}
-                </p>
-              ) : null}
-              <s-button
-                id="mcfly-spend-csv-submit"
-                type="submit"
-                variant="primary"
-                {...(importBlockedBySample
-                  ? { disabled: true }
-                  : {})}
-                {...(isSubmitting && submittingIntent === "csv"
-                  ? { loading: true }
-                  : {})}
-              >
-                {importBlockedBySample
-                  ? "Import locked — turn Real store on"
-                  : "Import spend"}
-              </s-button>
-            </Form>
+                <summary>{SPEND_FIRST_RUN_COPY.backfillLede}</summary>
+                <div className="mcfly-spend-lean__upload-body">
+                  {csvUploadForm}
+                </div>
+              </details>
+            ) : (
+              csvUploadForm
+            )}
           </div>
 
           {/* 4 · Status line — empty desk already taught the path above */}
