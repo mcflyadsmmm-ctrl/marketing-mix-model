@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { calculateMer } from "@mcfly/mer-core";
 import { SAMPLE_MONEY_MARK } from "./cash-desk-copy";
-import { resolveCashVerdict } from "./cash-verdict";
+import { cashVerdictSalesUntrusted, resolveCashVerdict } from "./cash-verdict";
 
 describe("resolveCashVerdict", () => {
   it("says yes when Total ROAS clears break-even", () => {
@@ -132,5 +136,63 @@ describe("resolveCashVerdict", () => {
     expect(v.headline).toContain(SAMPLE_MONEY_MARK);
     expect(v.body).toMatch(/Real store/i);
     expect(v.headline).not.toMatch(/^Yes/);
+  });
+
+  it("empty spend asks for spend instead of heroing 0.00× or below break-even", () => {
+    // No spend means no denominator — the multiple must not exist at all.
+    expect(calculateMer(0, 0)).toBeNull();
+    expect(calculateMer(12000, 0)).toBeNull();
+
+    const v = resolveCashVerdict({
+      mer: calculateMer(0, 0),
+      sales: 0,
+      spend: 0,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: false,
+    });
+    expect(v.tone).toBe("blocked");
+    expect(v.headline).not.toMatch(/below break-even/i);
+    expect(v.headline).not.toMatch(/0\.00/);
+    expect(v.headline).toMatch(/needs spend/i);
+  });
+});
+
+describe("CashVerdict tiles while sales facts load", () => {
+  const untrustedTiles = (facts: {
+    sales: number;
+    salesFactsIncomplete: boolean;
+    salesUntrustedZero?: boolean;
+  }) => cashVerdictSalesUntrusted(facts) && !(facts.sales > 0);
+
+  it("marks loading sales as unknown, never as a real $0", () => {
+    expect(
+      untrustedTiles({ sales: 0, salesFactsIncomplete: true }),
+    ).toBe(true);
+    expect(
+      untrustedTiles({
+        sales: 0,
+        salesFactsIncomplete: false,
+        salesUntrustedZero: true,
+      }),
+    ).toBe(true);
+    // Trusted quiet period keeps its real $0.
+    expect(
+      untrustedTiles({ sales: 0, salesFactsIncomplete: false }),
+    ).toBe(false);
+  });
+
+  it("renders an em dash rather than $0.00 for untrusted sales", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const component = readFileSync(
+      join(here, "../components/CashVerdict.tsx"),
+      "utf8",
+    );
+    expect(component).toContain(
+      "cashVerdictSalesUntrusted(facts) && !(facts.sales > 0)",
+    );
+    expect(component).toMatch(
+      /salesTilesUntrusted\(facts\)\s*\?\s*"—"\s*:\s*formatCurrency\(facts\.sales\)/,
+    );
   });
 });
