@@ -10536,3 +10536,98 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Order economics — till cards (operator density, Admin-native) */
+.mcfly-order-econ {
+  margin: 0 0 1.35rem;
+  padding: 1.25rem 1.35rem 1.35rem;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 35, 28, 0.1);
+  background:
+    linear-gradient(160deg, #f4f8f5 0%, #ffffff 55%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+.mcfly-order-econ__kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5a6b62;
+}
+.mcfly-order-econ__title {
+  margin: 0 0 0.45rem;
+  font-family: "Fraunces", "Iowan Old Style", Georgia, serif;
+  font-size: clamp(1.45rem, 2.2vw, 1.85rem);
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #122019;
+}
+.mcfly-order-econ__lede {
+  margin: 0 0 1.1rem;
+  max-width: 52ch;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #3d4f46;
+}
+.mcfly-order-econ__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.mcfly-order-econ__tile {
+  padding: 0.9rem 0.95rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(20, 35, 28, 0.08);
+}
+.mcfly-order-econ__tile--accent {
+  background: linear-gradient(165deg, #e8f2ec, #ffffff);
+  border-color: rgba(26, 92, 58, 0.18);
+}
+.mcfly-order-econ__label {
+  margin: 0 0 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5a6b62;
+}
+.mcfly-order-econ__value {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #122019;
+  font-variant-numeric: tabular-nums;
+}
+.mcfly-order-econ__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #5a6b62;
+}
+.mcfly-order-econ__unlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 0.85rem;
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(20, 35, 28, 0.1);
+}
+.mcfly-order-econ__unlock-copy {
+  margin: 0;
+  flex: 1 1 100%;
+  font-size: 0.9rem;
+  color: #3d4f46;
+}
+.mcfly-spend-lean__bill[open] {
+  border-color: rgba(26, 92, 58, 0.22);
+  background: #f7fbf8;
+}
+@media (max-width: 720px) {
+  .mcfly-order-econ__grid { grid-template-columns: 1fr; }
+}

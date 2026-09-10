@@ -11,6 +11,11 @@ export type OrderEconomicsInput = {
   salesByDay: Map<string, number> | Record<string, number>;
   newCustomerSales: number;
   returningCustomerSales: number;
+  /**
+   * Optional period ad spend the merchant entered. When set with orders,
+   * unlocks spend-per-order — a till join Analytics cannot do.
+   */
+  totalSpend?: number;
 };
 
 export type OrderEconomics = {
@@ -18,6 +23,11 @@ export type OrderEconomics = {
   orderCount: number;
   /** Null when no orders. */
   aov: number | null;
+  /**
+   * Ad spend ÷ orders for the same period. Null without spend or orders.
+   * This is the Analytics-plus join — sales AOV alone is free elsewhere.
+   */
+  spendPerOrder: number | null;
   weekdaySales: number;
   weekendSales: number;
   /** Weekend share of weekday+weekend sales; null when both are 0. */
@@ -78,11 +88,16 @@ export function resolveOrderEconomics(
 
   const weekTotal = weekdaySales + weekendSales;
   const cohortTotal = newCustomerSales + returningCustomerSales;
+  const totalSpend = Number.isFinite(input.totalSpend)
+    ? Math.max(0, input.totalSpend as number)
+    : 0;
 
   return {
     sales,
     orderCount,
     aov: orderCount > 0 ? sales / orderCount : null,
+    spendPerOrder:
+      orderCount > 0 && totalSpend > 0 ? totalSpend / orderCount : null,
     weekdaySales,
     weekendSales,
     weekendShare: weekTotal > 0 ? weekendSales / weekTotal : null,

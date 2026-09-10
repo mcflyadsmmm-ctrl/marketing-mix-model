@@ -466,6 +466,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesByDay,
     newCustomerSales: metrics.newCustomerNetSales,
     returningCustomerSales: metrics.returningCustomerNetSales,
+    totalSpend: metrics.totalSpend,
   });
 
 
@@ -849,7 +850,7 @@ export default function Dashboard() {
               {freshLabel}
             </span>
             {!shotMode && scoreboardReady ? (
-              <s-link href="/app/spend#mcfly-spend-uploads">Update spend</s-link>
+
             ) : null}
             {trustedHero.kind === "pick_covered_period" ? (
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
@@ -903,7 +904,7 @@ export default function Dashboard() {
           <PeriodTrustNote trust={periodTrust} />
         ) : null}
 
-        {/* Sales-first: order economics before spend ritual. */}
+        {/* Sales-first: order economics before spend ritual (cold desk). */}
         {coldEmpty && !shotMode && salesDeskReady ? (
           <OrderEconomicsPanel
             economics={orderEconomics}
@@ -1081,12 +1082,7 @@ export default function Dashboard() {
                         No channel spend in this period
                       </p>
                     )}
-                    <p className="mcfly-hero-compact__dive">
-                      <s-link href="/app/spend#mcfly-spend-uploads">
-                        Update spend
-                      </s-link>
-                      {" · "}
-                      <s-link href={`/app/allocation?period=${preset}`}>
+                    <p className="mcfly-hero-compact__dive"><s-link href={`/app/allocation?period=${preset}`}>
                         {PRODUCT_NOUN.spendAllocation}
                       </s-link>
                     </p>
@@ -1102,6 +1098,15 @@ export default function Dashboard() {
 
             {!shotMode && scoreboardReady && !useSampleDesk ? (
               <ReviewAsk eligible={reviewAskEligible} />
+            ) : null}
+
+            {/* Operator till read — stays after spend; spend/order is the Analytics join. */}
+            {!shotMode && salesDeskReady ? (
+              <OrderEconomicsPanel
+                economics={orderEconomics}
+                periodLabel={metrics.period.label}
+                showSpendUnlock={false}
+              />
             ) : null}
 
             {/* Acquisition glance — aMER + new vs returning, same period figures as LTV */}

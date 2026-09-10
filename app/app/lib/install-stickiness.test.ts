@@ -141,22 +141,20 @@ describe("firstOpenRedirect", () => {
 });
 
 describe("spendEmptyTeach", () => {
-  it("asks for a typed day first and keeps the template as the fallback", () => {
+  it("offers typed day plus bill-split coverage — not a template-first wall", () => {
     const teach = spendEmptyTeach({
       templateHref: "/app/spend/template?platforms=meta%2Cgoogle&blank=1",
+      billHref: "#mcfly-spend-bill",
     });
     expect(teach.primaryLabel).toMatch(/type one day/i);
     expect(teach.primaryHref).toBe("#mcfly-spend-day");
-    expect(teach.secondaryLabel).toMatch(/template/i);
-    expect(teach.secondaryHref).toContain("/app/spend/template");
-    expect(teach.heading).toMatch(/no file needed/i);
-    expect(teach.body).toMatch(/no download/i);
+    expect(teach.secondaryLabel).toMatch(/bill|daily/i);
+    expect(teach.secondaryHref).toContain("mcfly-spend-bill");
+    expect(teach.heading).toMatch(/one day|bill/i);
+    expect(teach.body).toMatch(/invoice|coverage|honest/i);
     expect(teach.body).toContain(PRODUCT_NOUN.definition);
-    expect(teach.steps[0]).toMatch(/type day \+ amount \+ channel/i);
-    expect(teach.steps.some((s) => /paste rows or import a csv/i.test(s))).toBe(
-      true,
-    );
-    expect(teach.steps.some((s) => /playbook/i.test(s))).toBe(true);
+    expect(teach.steps.some((s) => /invoice|bill/i.test(s))).toBe(true);
+    expect(teach.steps.some((s) => /type day|one number/i.test(s))).toBe(true);
     const blob = [
       teach.heading,
       teach.body,
@@ -175,12 +173,12 @@ describe("spendEmptyTeach", () => {
     );
   });
 
-  it("after Sample → Real, empty is two sentences to a typed day", () => {
+  it("after Sample → Real, empty teaches coverage without a 14-day wall", () => {
     const teach = spendEmptyTeach({ justSwitchedReal: true });
     expect(teach.heading).toMatch(/Real store is on/i);
-    expect(teach.body).toMatch(/type the day/i);
+    expect(teach.body).toMatch(/type one day|invoice|daily rows/i);
     expect(teach.primaryLabel).toMatch(/type one day/i);
-    expect(teach.body.split(/[.!?]/).filter(Boolean).length).toBeLessThanOrEqual(3);
+    expect(teach.secondaryLabel).toMatch(/bill|daily/i);
   });
 });
 

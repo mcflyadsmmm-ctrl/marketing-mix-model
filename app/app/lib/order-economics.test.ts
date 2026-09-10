@@ -74,11 +74,26 @@ describe("resolveOrderEconomics", () => {
         "returningCustomerSales",
         "returningShare",
         "sales",
+        "spendPerOrder",
         "weekdaySales",
         "weekendSales",
         "weekendShare",
       ].sort(),
     );
+    expect(econ.spendPerOrder).toBeNull();
+  });
+
+  it("joins entered spend into spend-per-order", () => {
+    const econ = resolveOrderEconomics({
+      sales: 1000,
+      orderCount: 10,
+      salesByDay: { "2026-09-10": 1000 },
+      newCustomerSales: 1000,
+      returningCustomerSales: 0,
+      totalSpend: 250,
+    });
+    expect(econ.spendPerOrder).toBe(25);
+    expect(econ.aov).toBe(100);
   });
 });
 

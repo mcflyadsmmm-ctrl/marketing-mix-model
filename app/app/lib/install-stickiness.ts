@@ -128,37 +128,40 @@ export function spendEmptyTeach(options?: {
   /** Anchor / route for the typed date + amount + channel row. */
   typeHref?: string;
   templateHref?: string;
+  /** Jump to bill → daily rows (fastest path to trusted coverage). */
+  billHref?: string;
   /** After Sample → Real with no live spend yet. */
   justSwitchedReal?: boolean;
 }): SpendEmptyTeach {
   const primaryHref = options?.typeHref ?? "#mcfly-spend-day";
-  const secondaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
+  const secondaryHref = options?.billHref ?? "#mcfly-spend-bill";
+  const tertiaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
   const shared = {
     primaryLabel: "Type one day",
     primaryHref,
-    secondaryLabel: "Download blank template",
+    secondaryLabel: "Divide a monthly bill into days",
     secondaryHref,
   };
   if (options?.justSwitchedReal) {
     return {
       ...shared,
-      heading: "Real store is on — type one day next",
-      body: `Type the day, the amount, and the channel below — no file. ${PRODUCT_NOUN.definition}.`,
+      heading: "Real store is on — get coverage on the desk",
+      body: `Type one day below, or divide a Meta/Google invoice into equal daily rows so Total ROAS is not waiting on 14 hand-typed days. ${PRODUCT_NOUN.definition}.`,
       steps: [
-        "Type day + amount + channel, then Save this day.",
-        "Same day + channel replaces — it never doubles.",
+        "Fastest coverage: Divide a monthly bill → download daily rows → import.",
+        "Or type day + amount + channel, then Save this day.",
         `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
       ],
     };
   }
   return {
     ...shared,
-    heading: "Type one day — no file needed",
-    body: `Fastest path to ${PRODUCT_NOUN.totalRoas}: type one day's spend below (day + amount + channel). ${PRODUCT_NOUN.definition}. No download, no ad-network login.`,
+    heading: "Get spend on the desk — one day or a whole bill",
+    body: `Operators making real budget calls need coverage, not a 27-hole wall. Type one day to see Total ROAS now, or divide a monthly/quarterly invoice into daily rows so the multiple is honest. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     steps: [
-      "Type day + amount + channel, then Save this day.",
-      "Backfilling months? Paste rows or import a CSV below — or use the blank template.",
-      "Need Ads Manager exports? Open the platform playbook for Meta / Google daily cost.",
+      "Have an invoice? Divide a bill into daily rows (below) — then import.",
+      "Have one number? Type day + amount + channel, then Save this day.",
+      "Backfilling months? Paste rows or CSV — blank template if you need a shape.",
       `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
     ],
   };

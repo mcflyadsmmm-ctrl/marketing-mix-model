@@ -1341,6 +1341,7 @@ export default function SpendEntryPage() {
   const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1`;
   const emptyTeach = spendEmptyTeach({
     templateHref: selectedBlankTemplateHref,
+    billHref: "#mcfly-spend-bill",
     justSwitchedReal: justSwitchedReal && !sampleOn,
   });
 
@@ -1919,8 +1920,12 @@ export default function SpendEntryPage() {
               </s-text>
             )}
 
-            <details className="mcfly-spend-lean__bill">
-              <summary>Divide a bill into daily rows</summary>
+            <details
+              id="mcfly-spend-bill"
+              className="mcfly-spend-lean__bill"
+              open={isEmpty ? true : undefined}
+            >
+              <summary>Divide a monthly bill into daily rows</summary>
               <div className="mcfly-spend-lean__bill-body">
                 <p className="mcfly-spend-lean__bill-hint">
                   Monthly / quarterly / bi-annual / annual invoice → equal daily
