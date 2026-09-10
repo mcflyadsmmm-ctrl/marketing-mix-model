@@ -119,7 +119,7 @@ export function OrderEconomicsPanel({
           </p>
           <p className="mcfly-order-econ__hint">
             {money(economics.returningCustomerSales)} returning ·{" "}
-            {money(economics.newCustomerSales)} new
+            {money(economics.newCustomerSales)} new (net sales)
           </p>
         </div>
       </div>
@@ -127,14 +127,15 @@ export function OrderEconomicsPanel({
       {showSpendUnlock ? (
         <div className="mcfly-order-econ__unlock">
           <p className="mcfly-order-econ__unlock-copy">
-            Add ad spend to unlock Total ROAS vs break-even and spend per
-            order — Shopify sales ÷ the spend you enter for the same period.
+            Divide a monthly bill into daily rows for trusted coverage inside
+            the trial week — or type one day — then Total ROAS is Shopify sales
+            ÷ the spend you enter for the same period.
           </p>
-          <s-button href="/app/spend" variant="primary">
-            Add spend for Total ROAS
+          <s-button href="/app/spend#mcfly-spend-bill" variant="primary">
+            Divide a monthly bill
           </s-button>
-          <s-button href="/app/spend#mcfly-spend-bill" variant="secondary">
-            Or divide a monthly bill
+          <s-button href="/app/spend" variant="secondary">
+            Or type one day
           </s-button>
         </div>
       ) : null}

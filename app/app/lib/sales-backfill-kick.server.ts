@@ -11,8 +11,12 @@ export const SALES_FACTS_BACKFILL_JOB = DEEP_HISTORY_BACKFILL_JOB;
 
 export const SALES_FACTS_BACKFILL_DEDUPE_KEY = "sales_facts";
 
-/** First Overview paint — fill recent selected-period days before the hero. */
-export const FIRST_PAINT_SALES_BACKFILL_DAYS = 14;
+/**
+ * First Overview paint — fill recent selected-period days before the hero.
+ * Cap stays low so MTD paint cannot serial-crawl a fortnight of GraphQL;
+ * `enqueueSalesFactsBackfill` resumes the rest on the job tick.
+ */
+export const FIRST_PAINT_SALES_BACKFILL_DAYS = 7;
 
 export async function enqueueSalesFactsBackfill(args: {
   shopId: string;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   dayOfWeekFromKey,
+  filterSalesByDayToPeriod,
   isWeekendDayKey,
   resolveOrderEconomics,
   salesByDayToRecord,
@@ -94,6 +95,46 @@ describe("resolveOrderEconomics", () => {
     });
     expect(econ.spendPerOrder).toBe(25);
     expect(econ.aov).toBe(100);
+  });
+
+  it("ignores explorer days outside the Overview period for weekend share", () => {
+    const econ = resolveOrderEconomics({
+      sales: 700,
+      orderCount: 7,
+      // Explorer window includes prior weekends that must not skew MTD share.
+      salesByDay: {
+        "2026-08-30": 5000, // Sun — outside Sep MTD
+        "2026-09-10": 400, // Thu
+        "2026-09-11": 200, // Fri
+        "2026-09-12": 100, // Sat
+      },
+      periodStartKey: "2026-09-01",
+      periodEndKey: "2026-09-12",
+      newCustomerSales: 400,
+      returningCustomerSales: 300,
+    });
+    expect(econ.weekdaySales).toBe(600);
+    expect(econ.weekendSales).toBe(100);
+    expect(econ.weekendShare).toBeCloseTo(100 / 700);
+  });
+});
+
+describe("filterSalesByDayToPeriod", () => {
+  it("drops days outside inclusive bounds", () => {
+    expect(
+      Object.fromEntries(
+        filterSalesByDayToPeriod(
+          {
+            "2026-08-31": 10,
+            "2026-09-01": 20,
+            "2026-09-15": 30,
+            "2026-09-16": 40,
+          },
+          "2026-09-01",
+          "2026-09-15",
+        ),
+      ),
+    ).toEqual({ "2026-09-01": 20, "2026-09-15": 30 });
   });
 });
 

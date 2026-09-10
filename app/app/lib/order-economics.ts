@@ -7,8 +7,18 @@
 export type OrderEconomicsInput = {
   sales: number;
   orderCount: number;
-  /** Calendar keys `YYYY-MM-DD` → sales that day (shop-local when facts use IANA). */
+  /**
+   * Calendar keys `YYYY-MM-DD` → sales that day (shop-local when facts use IANA).
+   * Must cover the **same period** as `sales` / `orderCount` — never the explorer
+   * window alone, or weekend share lies next to period AOV.
+   */
   salesByDay: Map<string, number> | Record<string, number>;
+  /**
+   * Inclusive `YYYY-MM-DD` bounds. When set, days outside the period are ignored
+   * so a wider explorer map cannot pollute weekend / weekday share.
+   */
+  periodStartKey?: string;
+  periodEndKey?: string;
   newCustomerSales: number;
   returningCustomerSales: number;
   /**
@@ -47,6 +57,24 @@ function asDayMap(
   return Object.entries(salesByDay);
 }
 
+/** Keep only days inside an inclusive `YYYY-MM-DD` period (lexicographic). */
+export function filterSalesByDayToPeriod(
+  salesByDay: Map<string, number> | Record<string, number>,
+  periodStartKey: string,
+  periodEndKey: string,
+): Map<string, number> {
+  const start = periodStartKey.trim();
+  const end = periodEndKey.trim();
+  const out = new Map<string, number>();
+  if (!start || !end || start > end) return out;
+  for (const [key, amount] of asDayMap(salesByDay)) {
+    if (key < start || key > end) continue;
+    if (!Number.isFinite(amount) || amount === 0) continue;
+    out.set(key, (out.get(key) ?? 0) + amount);
+  }
+  return out;
+}
+
 /** Sunday=0 … Saturday=6 from a `YYYY-MM-DD` calendar key (UTC noon). */
 export function dayOfWeekFromKey(dayKey: string): number {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey.trim());
@@ -77,9 +105,18 @@ export function resolveOrderEconomics(
     ? Math.max(0, input.returningCustomerSales)
     : 0;
 
+  const daySource =
+    input.periodStartKey && input.periodEndKey
+      ? filterSalesByDayToPeriod(
+          input.salesByDay,
+          input.periodStartKey,
+          input.periodEndKey,
+        )
+      : input.salesByDay;
+
   let weekdaySales = 0;
   let weekendSales = 0;
-  for (const [key, amount] of asDayMap(input.salesByDay)) {
+  for (const [key, amount] of asDayMap(daySource)) {
     if (!Number.isFinite(amount) || amount <= 0) continue;
     if (dayOfWeekFromKey(key) < 0) continue;
     if (isWeekendDayKey(key)) weekendSales += amount;

@@ -146,11 +146,11 @@ describe("spendEmptyTeach", () => {
       templateHref: "/app/spend/template?platforms=meta%2Cgoogle&blank=1",
       billHref: "#mcfly-spend-bill",
     });
-    expect(teach.primaryLabel).toMatch(/type one day/i);
-    expect(teach.primaryHref).toBe("#mcfly-spend-day");
-    expect(teach.secondaryLabel).toMatch(/bill|daily/i);
-    expect(teach.secondaryHref).toContain("mcfly-spend-bill");
-    expect(teach.heading).toMatch(/one day|bill/i);
+    expect(teach.primaryLabel).toMatch(/bill|daily/i);
+    expect(teach.primaryHref).toContain("mcfly-spend-bill");
+    expect(teach.secondaryLabel).toMatch(/type one day/i);
+    expect(teach.secondaryHref).toBe("#mcfly-spend-day");
+    expect(teach.heading).toMatch(/one day|bill|coverage/i);
     expect(teach.body).toMatch(/invoice|coverage|honest/i);
     expect(teach.body).toContain(PRODUCT_NOUN.definition);
     expect(teach.steps.some((s) => /invoice|bill/i.test(s))).toBe(true);
@@ -167,8 +167,8 @@ describe("spendEmptyTeach", () => {
     expect(blob).not.toMatch(/syncwith|oauth/i);
   });
 
-  it("honors a custom typed-row href", () => {
-    expect(spendEmptyTeach({ typeHref: "/app/spend#day" }).primaryHref).toBe(
+  it("honors a custom typed-row href on the secondary action", () => {
+    expect(spendEmptyTeach({ typeHref: "/app/spend#day" }).secondaryHref).toBe(
       "/app/spend#day",
     );
   });
@@ -177,8 +177,8 @@ describe("spendEmptyTeach", () => {
     const teach = spendEmptyTeach({ justSwitchedReal: true });
     expect(teach.heading).toMatch(/Real store is on/i);
     expect(teach.body).toMatch(/type one day|invoice|daily rows/i);
-    expect(teach.primaryLabel).toMatch(/type one day/i);
-    expect(teach.secondaryLabel).toMatch(/bill|daily/i);
+    expect(teach.primaryLabel).toMatch(/bill|daily/i);
+    expect(teach.secondaryLabel).toMatch(/type one day/i);
   });
 });
 

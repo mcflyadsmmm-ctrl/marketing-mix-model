@@ -121,8 +121,8 @@ export function spendSkipHref(search?: string): string {
 }
 
 /**
- * Teaching Spend empty — the typed one-day row first, CSV/template second.
- * Nothing here needs a download. Never a Pro wall.
+ * Teaching Spend empty — bill → daily rows is primary (trial-week coverage).
+ * Typed one-day is secondary; CSV/template is tertiary. Never a Pro wall.
  */
 export function spendEmptyTeach(options?: {
   /** Anchor / route for the typed date + amount + channel row. */
@@ -133,20 +133,20 @@ export function spendEmptyTeach(options?: {
   /** After Sample → Real with no live spend yet. */
   justSwitchedReal?: boolean;
 }): SpendEmptyTeach {
-  const primaryHref = options?.typeHref ?? "#mcfly-spend-day";
-  const secondaryHref = options?.billHref ?? "#mcfly-spend-bill";
+  const typeHref = options?.typeHref ?? "#mcfly-spend-day";
+  const billHref = options?.billHref ?? "#mcfly-spend-bill";
   const tertiaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
   const shared = {
-    primaryLabel: "Type one day",
-    primaryHref,
-    secondaryLabel: "Divide a monthly bill into days",
-    secondaryHref,
+    primaryLabel: "Divide a monthly bill into days",
+    primaryHref: billHref,
+    secondaryLabel: "Type one day",
+    secondaryHref: typeHref,
   };
   if (options?.justSwitchedReal) {
     return {
       ...shared,
       heading: "Real store is on — get coverage on the desk",
-      body: `Type one day below, or divide a Meta/Google invoice into equal daily rows so Total ROAS is not waiting on 14 hand-typed days. ${PRODUCT_NOUN.definition}.`,
+      body: `Divide a Meta/Google invoice into equal daily rows so Total ROAS is not waiting on 14 hand-typed days — or type one day below to see the multiple now. ${PRODUCT_NOUN.definition}.`,
       steps: [
         "Fastest coverage: Divide a monthly bill → download daily rows → import.",
         "Or type day + amount + channel, then Save this day.",
@@ -156,8 +156,8 @@ export function spendEmptyTeach(options?: {
   }
   return {
     ...shared,
-    heading: "Get spend on the desk — one day or a whole bill",
-    body: `Operators making real budget calls need coverage, not a 27-hole wall. Type one day to see Total ROAS now, or divide a monthly/quarterly invoice into daily rows so the multiple is honest. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    heading: "Get spend coverage — divide a bill or type one day",
+    body: `Operators making real budget calls need coverage inside the trial week, not a 27-hole wall. Divide a monthly/quarterly invoice into daily rows so the multiple is honest — or type one day to see Total ROAS now. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     steps: [
       "Have an invoice? Divide a bill into daily rows (below) — then import.",
       "Have one number? Type day + amount + channel, then Save this day.",

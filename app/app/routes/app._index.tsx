@@ -193,6 +193,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let todaySalesUnavailable = false;
   let todaySalesTruncated = false;
   let salesByDay = new Map<string, number>();
+  /** Period-scoped day sales for order economics — never the explorer window alone. */
+  let periodSalesByDay = new Map<string, number>();
   let explorerCustomers = {
     newCustomers: 0,
     returningCustomers: 0,
@@ -231,7 +233,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ]);
     sales = sampleSales;
     priorSales = { totalSales: samplePrior.totalSales };
-    salesByDay = await fetchSampleSalesByDay(shop.id, dayFetchRange);
+    const [sampleExplorerDays, samplePeriodDays] = await Promise.all([
+      fetchSampleSalesByDay(shop.id, dayFetchRange),
+      fetchSampleSalesByDay(shop.id, range),
+    ]);
+    salesByDay = sampleExplorerDays;
+    periodSalesByDay = samplePeriodDays;
     explorerCustomers = {
       newCustomers: sampleExplorer.newCustomers,
       returningCustomers: sampleExplorer.returningCustomers,
@@ -371,9 +378,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     try {
-      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange, ianaTimezone);
+      const [explorerDays, periodDays] = await Promise.all([
+        getSalesFactsByDay(shop.id, dayFetchRange, ianaTimezone),
+        getSalesFactsByDay(shop.id, range, ianaTimezone),
+      ]);
+      salesByDay = explorerDays;
+      periodSalesByDay = periodDays;
     } catch {
       salesByDay = new Map();
+      periodSalesByDay = new Map();
     }
     // Explorer new/returning needs a unique cross-day crawl — refused on paint.
     explorerCustomers = {
@@ -460,10 +473,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     closedDays: salesFactsCoverageForBanner?.expectedClosedDays ?? 0,
   });
 
+  const periodTz = useSampleDesk ? null : ianaTimezone;
+  const periodStartKey = periodTz
+    ? shopLocalDayKey(range.start, periodTz)
+    : dateKeyFromLocal(range.start);
+  const periodEndKey = periodTz
+    ? shopLocalDayKey(range.end, periodTz)
+    : dateKeyFromLocal(range.end);
+
   const orderEconomics = resolveOrderEconomics({
     sales: metrics.sales,
     orderCount: metrics.orderCount,
-    salesByDay,
+    salesByDay: periodSalesByDay,
+    periodStartKey,
+    periodEndKey,
     newCustomerSales: metrics.newCustomerNetSales,
     returningCustomerSales: metrics.returningCustomerNetSales,
     totalSpend: metrics.totalSpend,
