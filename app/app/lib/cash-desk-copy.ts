@@ -16,7 +16,7 @@ export const CASH_PAGE_WHY = {
     "A sales target tells you whether this period’s ads bought enough till cash — next to Total ROAS, not instead of it.",
   allocation:
     "After you trust Total ROAS, this page shows hold / reduce / step-test advice so break-even is protected — sales ÷ spend, not channel attribution.",
-  ltv: "Order cohorts and payback from Shopify orders — Cash CAC only after you log spend. Depth next to the till, not a science project.",
+  ltv: "Shopify order cohorts show repeat revenue and buyer mix. Add spend only when you want Cash CAC and payback — opaque customer ids, no email CRM.",
   advanced:
     "Extra formulas after you trust Total ROAS. Skip this until sales ÷ spend is on the desk.",
 } as const;
@@ -111,7 +111,6 @@ export type LtvEmptyCashKind =
   | "history_limited"
   | "backfilling"
   | "pro_required"
-  | "no_spend"
   | "unknown";
 
 export type LtvEmptyCashCopy = {
@@ -121,50 +120,47 @@ export type LtvEmptyCashCopy = {
   nextLabel: string;
 };
 
-/** Empty / backfill that does not read as a broken LTV desk. */
+/**
+ * Empty / backfill that explains what is arriving while preserving the value
+ * already visible in Acquisition. Spend is deliberately not an empty reason:
+ * cohorts can teach before the merchant logs any.
+ */
 export function ltvEmptyCashCopy(kind: LtvEmptyCashKind): LtvEmptyCashCopy {
   switch (kind) {
     case "no_timezone":
       return {
         heading: "Shop timezone needed",
-        body: "Customer cohorts bucket by local day. Refresh after Shopify shares the shop timezone — not broken.",
-        nextHref: "/app/settings",
-        nextLabel: "Open Settings",
+        body: "Shopify has not shared the local timezone needed to place first orders into cohorts. Acquisition above can still teach from sales and order facts; Mcfly never uses email CRM.",
+        nextHref: "/app",
+        nextLabel: "Open Overview",
       };
     case "history_limited":
       return {
         heading: "Recent order window only",
-        body: "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions. Total ROAS on a short period still works.",
+        body: "Shopify has shared the recent ~60-day order window. Acquisition above is useful now; grant deeper order access when you want older first-order cohorts. Mcfly uses opaque customer ids and order amounts only.",
         nextHref: "/app",
-        nextLabel: PRODUCT_NOUN.openTotalRoas,
+        nextLabel: "Open Overview",
       };
     case "backfilling":
       return {
         heading: "Cohorts are filling",
-        body: "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken. Total ROAS does not wait on LTV.",
-        nextHref: "/app",
-        nextLabel: PRODUCT_NOUN.openTotalRoas,
+        body: "Shopify orders are being grouped by each buyer’s first order. Use Acquisition above for new vs returning sales and AOV now; 30d, 90d, and 365d cohort revenue appears as order facts land. Spend can wait.",
+        nextHref: "/app/ltv",
+        nextLabel: "Refresh LTV",
       };
     case "pro_required":
       return {
         heading: "LTV is on the $39 desk",
-        body: "Customer LTV is included with the 7-day trial and $39 desk. Open Overview for sales ÷ spend while cohorts fill. SAMPLE is preview data only.",
+        body: "Customer LTV is included with the 7-day trial and $39 desk. Overview still gives you Shopify sales and order economics while cohort access is unavailable. SAMPLE is preview data only.",
         nextHref: "/app",
-        nextLabel: PRODUCT_NOUN.openTotalRoas,
-      };
-    case "no_spend":
-      return {
-        heading: "Add spend before LTV pays off",
-        body: "Cash CAC is period spend ÷ new customers. Without spend, this page has nothing to compare to Shopify sales.",
-        nextHref: "/app/spend",
-        nextLabel: "Add spend first",
+        nextLabel: "Open Overview",
       };
     case "unknown":
       return {
         heading: "LTV is filling",
-        body: "Open Overview for sales ÷ spend. This page is depth next to that spend — not required for the first trusted Total ROAS.",
+        body: "Acquisition above can still teach from Shopify sales and order facts. Cohort revenue appears after first-order facts are ready; adding spend is optional until you want Cash CAC.",
         nextHref: "/app",
-        nextLabel: PRODUCT_NOUN.openTotalRoas,
+        nextLabel: "Open Overview",
       };
     default: {
       const _exhaustive: never = kind;
@@ -173,13 +169,26 @@ export function ltvEmptyCashCopy(kind: LtvEmptyCashKind): LtvEmptyCashCopy {
   }
 }
 
+/** Explain a withheld Cash CAC without making spend a prerequisite for LTV. */
+export function ltvCashCacTeaching(input: {
+  hasPeriodSpend: boolean;
+  hasNewBuyerCount: boolean;
+}): string {
+  if (!input.hasPeriodSpend) {
+    return "Add period spend to calculate Cash CAC and LTV:CAC.";
+  }
+  if (!input.hasNewBuyerCount) {
+    return "Spend is logged; a new-buyer count is still needed for Cash CAC.";
+  }
+  return "Blended till · not platform CAC";
+}
+
 export function parseLtvEmptyKind(raw: string | null | undefined): LtvEmptyCashKind {
   switch (raw) {
     case "no_timezone":
     case "history_limited":
     case "backfilling":
     case "pro_required":
-    case "no_spend":
       return raw;
     default:
       return "unknown";

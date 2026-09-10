@@ -80,12 +80,18 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).not.toMatch(/Order history is limited — open/);
   });
 
-  it("offers a Partner-safe /auth grant CTA and does not call LTV permanently dead", () => {
+  it("offers a Partner-safe /auth grant CTA and gives LTV a sales-first teaching state", () => {
     expect(overview).toContain("DeepHistoryBanner");
     expect(ltv).toContain("DeepHistoryBanner");
     expect(overview).toContain("CASH_NOT_ATTRIBUTION");
-    expect(ltv).toMatch(/not permanently dead/);
-    expect(ltv).toMatch(/filling, not broken/);
+    expect(ltv).toContain('aria-label="Lifetime value teaching state"');
+    expect(ltv).toContain("ltvEmpty.heading");
+    expect(ltv).toContain("ltvEmpty.body");
+    expect(ltv).not.toContain("FirstTrustedRoasGate");
+    expect(ltv).toContain("ltvCashCacTeaching");
+    expect(ltv).not.toMatch(
+      /!metrics\.onboarding\.hasSpend[\s\S]{0,120}"no_spend"/,
+    );
   });
 
   it("does not render the leftover Overview brochure guide", () => {

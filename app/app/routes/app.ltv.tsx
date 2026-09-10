@@ -4,8 +4,11 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { DeskPageWhy } from "../components/DeskPageWhy";
-import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
-import { ltvEmptyCashCopy, parseLtvEmptyKind } from "../lib/cash-desk-copy";
+import {
+  ltvCashCacTeaching,
+  ltvEmptyCashCopy,
+  parseLtvEmptyKind,
+} from "../lib/cash-desk-copy";
 import {
   formatListingTillLabel,
   listingCaptureFromRequest,
@@ -170,6 +173,7 @@ export default function LtvPage() {
 
   const aov =
     metrics.orderCount > 0 ? metrics.sales / metrics.orderCount : null;
+  const hasPeriodSpend = metrics.totalSpend > 0;
 
   const cashCac =
     metrics.tillLtv.available && metrics.tillLtv.cashCac != null
@@ -179,6 +183,18 @@ export default function LtvPage() {
         : metrics.tillLtv.newBuyers > 0 && metrics.totalSpend > 0
           ? metrics.totalSpend / metrics.tillLtv.newBuyers
           : null;
+  const acquisitionCashCacTeaching = ltvCashCacTeaching({
+    hasPeriodSpend,
+    hasNewBuyerCount: cashCac != null,
+  });
+  const cohortCashCacTeaching = ltvCashCacTeaching({
+    hasPeriodSpend,
+    hasNewBuyerCount: metrics.tillLtv.newBuyers > 0,
+  });
+  const spendPerKnownBuyer =
+    hasPeriodSpend && knownBuyers > 0
+      ? metrics.totalSpend / knownBuyers
+      : null;
 
   const contrib90 = contributionAdjustedLtv(
     metrics.tillLtv.avgRevenueD90,
@@ -197,9 +213,7 @@ export default function LtvPage() {
     metrics.tillLtv.cashCac,
   );
   const ltvEmpty = ltvEmptyCashCopy(
-    !metrics.onboarding.hasSpend && !useSampleDesk
-      ? "no_spend"
-      : parseLtvEmptyKind(metrics.tillLtv.emptyReason),
+    parseLtvEmptyKind(metrics.tillLtv.emptyReason),
   );
 
   return (
@@ -224,11 +238,6 @@ export default function LtvPage() {
         ) : null}
 
         <DeskPageWhy page="ltv" />
-        <FirstTrustedRoasGate
-          hasLiveSpend={metrics.onboarding.hasSpend}
-          useSampleDesk={useSampleDesk}
-          shotMode={shotMode}
-        />
 
         {!shotMode && !useSampleDesk && deepHistory.kind !== "hidden" ? (
           <DeepHistoryBanner kind={deepHistory.kind} shopDomain={shopDomain} />
@@ -324,10 +333,21 @@ export default function LtvPage() {
           </div>
 
           {!hasSalesSplit && !custOk ? (
-            <p className="mcfly-acq-band__empty">
-              Acquisition lights up once sales facts land for this period. Mcfly
-              uses order flags and opaque customer ids only — no email CRM.
-            </p>
+            <section
+              className="mcfly-state mcfly-state--empty"
+              aria-label="Acquisition teaching state"
+            >
+              <div className="mcfly-state__content">
+                <h3 className="mcfly-state__heading">
+                  Acquisition is getting ready
+                </h3>
+                <p className="mcfly-state__copy">
+                  {salesError
+                    ? "Retry the Shopify sales pull above. Until it returns, Mcfly leaves buyer splits blank instead of guessing."
+                    : "Shopify order facts are still arriving for this period. New vs returning sales and AOV appear here without ad spend, email CRM, or path credit."}
+                </p>
+              </div>
+            </section>
           ) : (
             <>
               {custOk ? (
@@ -442,9 +462,7 @@ export default function LtvPage() {
                     {PRODUCT_NOUN.cashCacDef}
                   </p>
                   <p className="mcfly-acq-tile__hint">
-                    {cashCac == null
-                      ? "Needs new-buyer count (cohorts or live flags)"
-                      : "Blended till · not platform CAC"}
+                    {acquisitionCashCacTeaching}
                   </p>
                 </div>
                 <div className="mcfly-acq-tile mcfly-acq-tile--mint">
@@ -534,7 +552,9 @@ export default function LtvPage() {
                     {PRODUCT_NOUN.cashCacDef}
                   </p>
                   <p className="mcfly-ltv-summary__delta">
-                    {metrics.tillLtv.newBuyers > 0
+                    {!hasPeriodSpend
+                      ? "Add period spend for Cash CAC"
+                      : metrics.tillLtv.newBuyers > 0
                       ? `${metrics.tillLtv.newBuyers.toLocaleString()} new`
                       : "No new buyers"}
                   </p>
@@ -566,20 +586,20 @@ export default function LtvPage() {
               </div>
             </div>
           ) : (
-            <>
-              <p className="mcfly-state__copy">
-                {metrics.tillLtv.emptyReason === "no_timezone"
-                  ? "Shop timezone needed before customer cohorts can bucket by local day."
-                  : metrics.tillLtv.emptyReason === "history_limited"
-                    ? "Order history covers the recent ~60-day window until you grant deeper access. LTV is not permanently dead — Shopify will prompt to update permissions."
-                    : "Backfilling customer cohorts — LTV lights up as facts land. Deeper history is filling, not broken."}
-              </p>
+            <section
+              className="mcfly-state mcfly-state--empty"
+              aria-label="Lifetime value teaching state"
+            >
+              <div className="mcfly-state__content">
+                <h3 className="mcfly-state__heading">{ltvEmpty.heading}</h3>
+                <p className="mcfly-state__copy">{ltvEmpty.body}</p>
+              </div>
               <div className="mcfly-state__cta">
                 <s-button href={ltvEmpty.nextHref} variant="secondary">
                   {ltvEmpty.nextLabel}
                 </s-button>
               </div>
-            </>
+            </section>
           )}
         </section>
 
@@ -630,14 +650,16 @@ export default function LtvPage() {
                 </div>
               ) : (
                 <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
-                  <p className="mcfly-ltv-summary__k">Spend ÷ buyers</p>
+                  <p className="mcfly-ltv-summary__k">Spend context</p>
                   <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
-                    {knownBuyers > 0
-                      ? formatCurrency(metrics.totalSpend / knownBuyers)
+                    {spendPerKnownBuyer != null
+                      ? formatCurrency(spendPerKnownBuyer)
                       : "—"}
                   </p>
                   <p className="mcfly-ltv-summary__def">
-                    Period spend ÷ new + returning (not Cash CAC)
+                    {hasPeriodSpend
+                      ? "Period spend ÷ new + returning (not Cash CAC)"
+                      : cohortCashCacTeaching}
                   </p>
                 </div>
               )}

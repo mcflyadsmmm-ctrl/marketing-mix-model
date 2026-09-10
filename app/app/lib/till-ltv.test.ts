@@ -81,6 +81,33 @@ describe("summarizeTillLtvFromCohorts", () => {
     expect(summary.newBuyers).toBe(25);
     expect(summary.cashCac).toBeCloseTo(40, 5);
   });
+
+  it("keeps cohort LTV available but withholds Cash CAC without period spend", () => {
+    const summary = summarizeTillLtvFromCohorts(
+      [
+        {
+          cohortMonth: "2026-06",
+          customers: 10,
+          revenueD30: 1_000,
+          revenueD90: 2_000,
+          revenueD365: 4_000,
+          ordersD30: 12,
+          ordersD90: 16,
+          ordersD365: 24,
+        },
+      ],
+      {
+        totalSpend: 0,
+        newCustomers: 10,
+        useSampleDesk: true,
+      },
+    );
+
+    expect(summary.available).toBe(true);
+    expect(summary.avgRevenueD90).toBe(200);
+    expect(summary.cashCac).toBeNull();
+    expect(summary.ltvCacRatio).toBeNull();
+  });
 });
 
 describe("summarizeTillLtvFromCohorts empty reasons", () => {
