@@ -12,8 +12,10 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { suggestAllocation } from "@mcfly/mer-core";
+import { resolveAllocationLock } from "./allocation-lock";
 import { cashVerdictSalesUntrusted } from "./cash-verdict";
 import { salesFactsIncompleteForDesk } from "./sales-facts-honesty";
+import { UNTRUSTED_ZERO_ROAS_COPY } from "./trusted-roas-hero";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const source = readFileSync(join(here, "../routes/app.allocation.tsx"), "utf8");
@@ -23,6 +25,14 @@ const COMPLETE_COVERAGE = {
   factDays: 8,
   complete: true,
   periodExceedsFactWindow: false,
+};
+
+/** Spend side is trusted — only the sales numerator is missing. */
+const TRUSTED_SPEND_COVERAGE = {
+  daysWithSpend: 8,
+  daysInPeriod: 8,
+  coveragePct: 100,
+  incomplete: false,
 };
 
 describe("Allocation untrusted $0 advice gate", () => {
@@ -111,10 +121,29 @@ describe("Allocation untrusted $0 advice gate", () => {
   });
 
   it("explains the block instead of falling back to add-spend copy", () => {
-    expect(source).toContain("UNTRUSTED_ZERO_ROAS_COPY.heading");
-    expect(source).toContain("salesUntrustedState");
-    expect(source).toContain(
-      "!allocation && !zeroMargin && !cashLocked && !salesUntrustedState",
-    );
+    // Lock copy now lives in resolveAllocationLock — the route renders it.
+    expect(source).toContain("resolveAllocationLock({");
+    expect(source).toContain("salesUntrustedForAdvice,");
+    expect(source).toContain("<AllocationLockSection lock={lock} />");
+
+    const lock = resolveAllocationLock({
+      shotMode: false,
+      salesError: false,
+      salesUntrustedForAdvice: true,
+      breakEvenMer: 3,
+      cashActionReady: true,
+      spendCoverage: TRUSTED_SPEND_COVERAGE,
+      totalSpend: 1000,
+      periodLabel: "Last 7 days",
+      periodPreset: "l7d",
+    });
+
+    expect(lock?.reason).toBe("sales_untrusted_zero");
+    expect(lock?.headline).toBe(UNTRUSTED_ZERO_ROAS_COPY.heading);
+    expect(lock?.body).toMatch(/not a below-break-even call/i);
+    expect(lock?.secondaryCta?.label).toBe(UNTRUSTED_ZERO_ROAS_COPY.mtdLabel);
+    // Never the generic add-spend ask — the spend is already on the desk.
+    expect(lock?.primaryCta.href).toBe("/app/allocation?period=l7d");
+    expect(lock?.body).not.toMatch(/add spend/i);
   });
 });

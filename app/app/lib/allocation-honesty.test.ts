@@ -50,6 +50,27 @@ describe("Allocation desk sales honesty", () => {
     expect(source).not.toMatch(/which channels to cut or keep/);
   });
 
+  it("states the dollarized cut/keep call when trusted", () => {
+    expect(source).toContain("resolveAllocationPlan");
+    expect(source).toContain(
+      "const plan = lock ? null : resolveAllocationPlan(allocation)",
+    );
+    expect(source).toMatch(/allocation && plan \? \(\s*<AllocationVerdictSection/);
+    expect(source).toContain("plan={plan}");
+    expect(source).toContain("{plan.headline}");
+    expect(source).toContain("{plan.keepLine}");
+  });
+
+  it("hard-locks with one resolved reason instead of ad-hoc lock copy", () => {
+    expect(source).toContain("resolveAllocationLock({");
+    expect(source.match(/<AllocationLockSection/g)?.length).toBe(1);
+    expect(source).toContain("aria-label={lock.label}");
+    // Copy and CTAs now come from the resolver — no route-local lock strings.
+    expect(source).not.toContain("lockCopy");
+    expect(source).not.toMatch(/Spend coverage is under 70%/);
+    expect(source).not.toMatch(/Allocation is locked until spend trust/);
+  });
+
   it("does not lock copy on unreachable Ads Manager declare-recon", () => {
     expect(source).not.toMatch(/declared Ads Manager/i);
     expect(source).not.toMatch(/fix recon before allocation/i);

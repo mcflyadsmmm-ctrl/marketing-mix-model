@@ -33,7 +33,8 @@ export interface HonestSalesResult<T extends { source: "shopify" | "mock" }> {
   blockedMockAsLive: boolean;
 }
 
-const INCOMPLETE_BELOW_PCT = 70;
+/** Below this share of period days with spend, coverage is called incomplete. */
+export const INCOMPLETE_BELOW_PCT = 70;
 const MIN_DAYS_FOR_INCOMPLETE_FLAG = 5;
 
 function startOfLocalDay(d: Date): Date {
