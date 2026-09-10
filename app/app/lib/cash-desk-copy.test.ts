@@ -80,7 +80,7 @@ describe("formatMissingDaysRoasImpact", () => {
       periodLabel: "the last 28 days",
     });
     expect(copy.heading).toMatch(/26 days missing/i);
-    expect(copy.body).toMatch(/looks better than cash/i);
+    expect(copy.body).toMatch(/make Total ROAS look better than cash/i);
     expect(copy.body).toMatch(/\$0 spend/i);
     expect(copy.body).toMatch(/Download blanks/i);
     expect(copy.nextLabel).toMatch(/missing/i);
