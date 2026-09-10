@@ -10221,6 +10221,27 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   line-height: 1.35;
 }
 
+.mcfly-spend-lean__audit > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-spend-lean__audit > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcfly-spend-lean__audit > summary::before {
+  content: "▸ ";
+  font-size: 0.7rem;
+}
+
+.mcfly-spend-lean__audit[open] > summary::before {
+  content: "▾ ";
+}
+
 .mcfly-spend-lean__linkish {
   appearance: none;
   border: 0;

@@ -1089,8 +1089,15 @@ export default function SpendEntryPage() {
   const coverageNotice = resolveSpendCoverageNotice({
     closedDays: closedCoverageDays,
     impact: coverageImpact,
+    surface: "spend_desk",
   });
   const missingDatesPreview = missingDates.slice(0, 5);
+  const showMissingDatesInline =
+    missingDatesPreview.length > 0 &&
+    coverageNotice.missingDatesDisclosure === "inline";
+  const showMissingDatesAudit =
+    missingDatesPreview.length > 0 &&
+    coverageNotice.missingDatesDisclosure === "on_request";
   const blankTemplateHref = entitlements.canUseAllChannels
     ? "/app/spend/template?blank=1"
     : `/app/spend/template?platforms=${encodeURIComponent(entitlements.allowedChannels.join(","))}&blank=1`;
@@ -2175,7 +2182,7 @@ export default function SpendEntryPage() {
           <div className="mcfly-spend-lean__status" role="status">
             <p className="mcfly-spend-lean__status-line">
               {coverageNotice.statusLine}
-              {missingDatesPreview.length > 0 ? (
+              {showMissingDatesInline ? (
                 <>
                   {": "}
                   {missingDatesPreview.join(", ")}
@@ -2185,9 +2192,23 @@ export default function SpendEntryPage() {
                 </>
               ) : null}
             </p>
+            {/* Young ledger: the count is in the line above, the hole list is a
+                click away. Same dates, same math — opted into, not walled. */}
+            {showMissingDatesAudit && coverageNotice.missingDatesLabel ? (
+              <details className="mcfly-spend-lean__audit">
+                <summary>{coverageNotice.missingDatesLabel}</summary>
+                <p className="mcfly-spend-lean__status-foot">
+                  {missingDatesPreview.join(", ")}
+                  {missingDates.length > missingDatesPreview.length ? ", …" : ""}
+                  {" · "}
+                  <s-link href={missingDatesHref}>download blanks</s-link>
+                </p>
+              </details>
+            ) : null}
             <p className="mcfly-spend-lean__status-foot">
-              {coverageNotice.body} Backdate to {spendHistoryFloorKey} (
-              {spendHistoryYearsBack} years) — same window as Shopify sales.
+              {showCoverageBanner ? null : `${coverageNotice.body} `}
+              Backdate to {spendHistoryFloorKey} ({spendHistoryYearsBack} years)
+              — same window as Shopify sales.
             </p>
           </div>
           ) : null}

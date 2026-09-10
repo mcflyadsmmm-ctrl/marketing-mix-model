@@ -81,7 +81,8 @@ export const MISSING_DAYS_CASH_LINE = `Missing days make ${PRODUCT_NOUN.totalRoa
 export function missingDaysCashSentence(missingDays: number): string {
   const missing = Math.max(0, Math.floor(missingDays));
   const dayWord = missing === 1 ? "day" : "days";
-  return `${MISSING_DAYS_CASH_LINE}: ${missing} closed ${dayWord} still count Shopify sales against $0 spend.`;
+  const verb = missing === 1 ? "counts" : "count";
+  return `${MISSING_DAYS_CASH_LINE}: ${missing} closed ${dayWord} still ${verb} Shopify sales against $0 spend.`;
 }
 
 /**

@@ -66,6 +66,15 @@ describe("CashTrustBanners Love-V1 banner budget + Love-6 coverage", () => {
     );
   });
 
+  it("declares the Overview surface so a young ledger never paints green here", () => {
+    expect(source).toMatch(/surface: "overview"/);
+  });
+
+  it("sends the coverage CTA to the typed row, not always to uploads", () => {
+    expect(source).toContain("spendCoverageHref(coverageNotice.primary.target)");
+    expect(source).toContain('case "type_day":\n      return "/app/spend#mcfly-spend-day"');
+  });
+
   it("uses overview banner budget helper and budgetRole split on Overview", () => {
     expect(source).toContain("budgetOverviewBanners");
     expect(source).toContain("budgetRole");
@@ -100,8 +109,10 @@ describe("CashTrustBanners Love-V1 banner budget + Love-6 coverage", () => {
 
     // Before Love-V1 this case painted ~3 full banners (coverage critical +
     // sales facts info + margin stale). After: 1 banner + chips.
+    // First typed day: celebrated on the Spend desk, `info` here because a
+    // Total ROAS figure shares the viewport.
     expect(coverageNotice?.tone).toBe("info");
-    expect(coverageNotice?.stage).toBe("first_days");
+    expect(coverageNotice?.stage).toBe("first_day");
     expect(countPrimaryCritical(decisions)).toBe(0);
     expect(countPrimaryBanners(decisions)).toBe(1);
     expect(decisions.find((d) => d.id === "spend_coverage")?.placement).toBe(
