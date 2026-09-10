@@ -49,15 +49,12 @@
       </div>
       <nav aria-label="Footer">
         <a href="/product">Product</a>
-        <a href="/app">What’s in the desk</a>
-        <a href="/product#spend">Add spend</a>
-        <a href="/pricing">Pricing</a>
-        <a href="/about">About</a>
-        <a href="/faq">FAQ</a>
         <a href="/demo">Demo</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/faq">FAQ</a>
+        <a href="/about">About</a>
         <a href="/mer-calculator">ROAS calculator</a>
         <a href="/break-even-roas-calculator">Break-even calculator</a>
-        <a href="/mds-made-easy/">MDS Made Easy</a>
         <a href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener">Install on Shopify</a>
         <a href="/support">Support</a>
         <a href="/privacy">Privacy</a>
@@ -66,7 +63,7 @@
         <a href="/security">Security</a>
         <a href="/dpa">DPA</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Analytics. Shopify sales next to spend you added. Total ROAS = sales ÷ spend. $39/mo · 7-day trial. Firm: Mcfly Ads.</p>
+      <p class="fine">© <span data-year></span> Mcfly Analytics. Deeper Shopify numbers Analytics does not show — spend optional. $39/store/mo · 7-day trial. Firm: Mcfly Ads.</p>
     </div>
   </footer>`;
   }
