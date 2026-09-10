@@ -25,6 +25,11 @@ describe("CashTrustBanners today honesty", () => {
     expect(source).not.toMatch(/not Platform ROAS/i);
   });
 
+  it("discloses the ~60-day Shopify order window, not five years", () => {
+    expect(source).toMatch(/~60-day Shopify order window/i);
+    expect(source).not.toMatch(/five years/i);
+  });
+
   it("treats a day with no spend row as $0, not a missing-invoice panic", () => {
     expect(source).toContain("Days with no spend row are $0");
     expect(source).not.toContain("Empty days are not $0");

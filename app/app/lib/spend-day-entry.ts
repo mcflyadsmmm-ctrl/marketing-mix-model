@@ -7,7 +7,8 @@ import { shopLocalDayRange } from "./shop-local-day";
 
 const YMD = /^\d{4}-\d{2}-\d{2}$/;
 
-export function isSpendYmd(value: string): boolean {
+export function isSpendYmd(value: string | null | undefined): boolean {
+  if (typeof value !== "string") return false;
   return YMD.test(value.trim());
 }
 

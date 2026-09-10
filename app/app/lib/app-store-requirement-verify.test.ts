@@ -2,7 +2,7 @@
  * Deterministic source checks for Shopify App Store requirements that can be
  * evidenced without Partner Dashboard access or an authenticated Admin session.
  */
-import { readFileSync, readdirSync, type Dirent } from "node:fs";
+import { existsSync, readFileSync, readdirSync, type Dirent } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -124,6 +124,26 @@ describe("Shopify App Store source verification", () => {
     }
   });
 
+  it("1.3.1 ReviewAsk only after live spend and a week, never 5-star or incentive copy", () => {
+    const ask = readRepo("app/app/components/ReviewAsk.tsx");
+    const shell = readRepo("app/app/routes/app.tsx");
+    const ltv = readRepo("app/app/routes/app.ltv.tsx");
+    expect(ask).not.toContain("reviews?.request");
+    expect(ask).toContain("reviewAskEligible");
+    expect(ask).toContain("REVIEW_ASK_MIN_INSTALL_DAYS");
+    expect(ask).toContain("hasLiveSpend");
+    expect(ask).toContain("useSampleDesk");
+    expect(ask).toContain("shotMode");
+    expect(ask).toContain("installedAt");
+    expect(ask).not.toMatch(/5-star/i);
+    expect(ask).not.toMatch(/\bpositive\b/i);
+    expect(ask).not.toMatch(/discount|unlock|in exchange/i);
+    expect(shell).not.toContain("<ReviewAsk");
+    expect(ltv).toContain("<ReviewAsk");
+    expect(ltv).toContain("hasLiveSpend={hasLiveSpend}");
+    expect(ltv).toContain("installedAt={installedAt}");
+  });
+
   it("1.3.1 runtime app source has no review-for-reward incentive", () => {
     const reviewRequest = String.raw`(?:leave|write|post|give|submit)\s+(?:us\s+)?a\s+(?:positive\s+)?review`;
     const incentive = String.raw`(?:extra\s+days?|discount|unlock(?:ed|s|ing)?|free\s+(?:days?|months?))`;
@@ -190,7 +210,9 @@ describe("Shopify App Store source verification", () => {
    */
   it("3.2.1 deploy configs request the same scopes as the public TOML", () => {
     for (const path of ["railway.toml", "fly.toml", "app/.env.example"]) {
-      const src = readRepo(path);
+      const abs = join(repoRoot, path);
+      if (!existsSync(abs)) continue;
+      const src = readFileSync(abs, "utf8");
       const declared = [
         ...src.matchAll(/^\s*SCOPES\s*=\s*"?([^"\n#]+)"?/gm),
       ].map((m) =>
@@ -248,6 +270,29 @@ describe("Shopify App Store source verification", () => {
     for (const block of customerBlocks) {
       expect(block).toMatch(/\bid\b/);
       expect(block).toMatch(/\bnumberOfOrders\b/);
+    }
+  });
+
+  it("OrderFact GraphQL stays id-only on customer and never selects SKU/title/email", () => {
+    const factsSource = readRepo("app/app/lib/order-facts.server.ts");
+    const documents = graphqlDocuments(factsSource);
+    const documentSurface = documents.join("\n");
+    const customerBlocks = [
+      ...documentSurface.matchAll(/\bcustomer\s*\{([^}]*)\}/g),
+    ].map((match) => match[1] ?? "");
+
+    expect(documents.length).toBeGreaterThan(0);
+    expect(documentSurface).toContain("currentTotalDiscountsSet");
+    expect(documentSurface).toContain("sourceName");
+    expect(documentSurface).toContain("currentSubtotalLineItemsQuantity");
+    expect(documentSurface).not.toMatch(
+      /\b(?:email|phone|firstName|lastName|addresses?|sku|title|vendor|lineItems)\b/,
+    );
+    expect(customerBlocks.length).toBeGreaterThan(0);
+    for (const block of customerBlocks) {
+      expect(block).toMatch(/\bid\b/);
+      expect(block).not.toMatch(/\bnumberOfOrders\b/);
+      expect(block.trim()).toMatch(/^id\s*$/);
     }
   });
 });

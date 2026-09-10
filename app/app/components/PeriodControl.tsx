@@ -92,7 +92,9 @@ export function PeriodControl({
           );
         })}
       </div>
-      <p className="mcfly-period__history">{deskHistoryCaption()}</p>
+      <p className="mcfly-period__history">
+        {deskHistoryCaption(undefined, language === "spend" ? "spend" : "sales")}
+      </p>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   buildThreeYearSampleDesk,
+  SAMPLE_ACTIVE_CHANNELS,
+  SAMPLE_BOOK_DAYS,
   SAMPLE_MIN_NEW_CUSTOMERS,
   sampleSpendBounds,
   sampleSpendUsesNoonStamp,
@@ -10,7 +12,7 @@ import { customerWeightedAvgRevenue } from "./till-ltv.server";
 describe("buildThreeYearSampleDesk", () => {
   it("never shows 0 new customers or $0 new-customer sales", () => {
     const rows = buildThreeYearSampleDesk({
-      now: new Date("2026-07-31T12:00:00Z"),
+      now: new Date("2026-09-10T18:00:00Z"),
       years: 1,
     });
     expect(rows.length).toBeGreaterThan(300);
@@ -23,22 +25,42 @@ describe("buildThreeYearSampleDesk", () => {
     }
   });
 
-  it("lands Total ROAS-ish spend near target MER (impressive desk)", () => {
-    const targetMer = 4.4;
+  it("includes today UTC so MTD is not a stale cutoff", () => {
+    const now = new Date("2026-09-10T18:00:00Z");
+    const rows = buildThreeYearSampleDesk({ now });
+    expect(rows.length).toBe(SAMPLE_BOOK_DAYS);
+    const last = rows[rows.length - 1]!;
+    expect(last.day.toISOString().slice(0, 10)).toBe("2026-09-10");
+  });
+
+  it("lands Total ROAS near 3.5× with only a few paid channels", () => {
+    const targetMer = 3.5;
     const rows = buildThreeYearSampleDesk({
-      now: new Date("2026-07-31T12:00:00Z"),
+      now: new Date("2026-09-10T18:00:00Z"),
       years: 1,
       targetMer,
     });
     let sales = 0;
     let spend = 0;
+    const used = new Set<string>();
     for (const r of rows) {
       sales += r.sales;
-      for (const amt of Object.values(r.spendByChannel)) spend += amt;
+      for (const [ch, amt] of Object.entries(r.spendByChannel)) {
+        if (amt > 0) {
+          spend += amt;
+          used.add(ch);
+        }
+      }
     }
     const mer = sales / spend;
-    expect(mer).toBeGreaterThan(3.8);
-    expect(mer).toBeLessThan(5.2);
+    expect(mer).toBeGreaterThan(3.1);
+    expect(mer).toBeLessThan(4.0);
+    for (const ch of used) {
+      expect(SAMPLE_ACTIVE_CHANNELS).toContain(ch);
+    }
+    expect(used.has("meta")).toBe(true);
+    expect(used.has("google")).toBe(true);
+    expect(used.has("tiktok")).toBe(false);
   });
 });
 

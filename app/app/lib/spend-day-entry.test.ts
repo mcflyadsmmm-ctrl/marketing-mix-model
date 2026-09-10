@@ -9,11 +9,10 @@ const spendSource = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
 
 describe("Spend one-bill helper", () => {
   it("keeps the one-day helper available after the template workflow", () => {
-    expect(spendSource).toContain("resolveManualSpendRange");
     expect(spendSource).toContain('id="mcfly-spend-add"');
     expect(spendSource).toContain('name="spendDate"');
     expect(spendSource).toContain("Billboard, radio, agency…");
-    expect(spendSource).toContain("mcfly-spend-csv");
+    expect(spendSource).toContain("/app/spend/import");
     expect(spendSource).not.toContain("ProUpsellBlock");
     const formStart = spendSource.indexOf(
       '<Form method="post" className="mcfly-spend-add__form"',
@@ -35,6 +34,8 @@ describe("isSpendYmd", () => {
     expect(isSpendYmd("")).toBe(false);
     expect(isSpendYmd("08/25/2026")).toBe(false);
     expect(isSpendYmd("2026-8-25")).toBe(false);
+    expect(isSpendYmd(null)).toBe(false);
+    expect(isSpendYmd(undefined)).toBe(false);
   });
 });
 

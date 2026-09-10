@@ -38,6 +38,9 @@ const launchLies: Array<{ name: string; pattern: RegExp }> = [
   { name: "when Billing is announced", pattern: /when Billing is announced/i },
   { name: "Pro $39 when Billing", pattern: /Pro \$39 when Billing/i },
   { name: "listing is in review", pattern: /listing is in review/i },
+  { name: "listing is pending", pattern: /listing is pending/i },
+  { name: "until listing is live", pattern: /until listing is live/i },
+  { name: "listing pending", pattern: /listing pending/i },
   { name: "notify at launch", pattern: /notify at launch/i },
   {
     name: "leave email until install",
@@ -78,6 +81,12 @@ const launchLies: Array<{ name: string; pattern: RegExp }> = [
     name: "Listing Pricing stays Free until",
     pattern: /Listing Pricing stays Free until/i,
   },
+  { name: "while we launch", pattern: /while we launch/i },
+  { name: "$79/store app SKU", pattern: /\$79\/store/i },
+  {
+    name: "History back to January 2021 as a sales promise",
+    pattern: /History back to January 2021/i,
+  },
 ];
 
 describe("mcflyads.com go-live copy (1.1.4)", () => {
@@ -102,6 +111,9 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     expect(support).toMatch(/no.{0,40}shop-domain form/i);
     expect(pricing).toMatch(/every platform/i);
     expect(pricing).toMatch(/\$39/);
+    expect(pricing).toMatch(/7-day/);
+    expect(pricing).toMatch(/~60 days/);
+    expect(pricing).not.toMatch(/\$79/);
     expect(privacy).toMatch(/numberOfOrders/);
     expect(privacy).toMatch(/read_customers/);
   });

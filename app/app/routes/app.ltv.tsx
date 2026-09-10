@@ -2,6 +2,7 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
+import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { buildDashboardMetrics, ensureShop, getOrCreateSettings, marginIsConfirmed } from "../lib/mer-dashboard.server";
 import { parseSalesBasis } from "../lib/sales-basis";
@@ -17,6 +18,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
 
 /** CohortFact stores window totals — desk LTV is per new customer. */
 function perCustomerRevenue(
@@ -81,6 +83,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     : await getOrderBackfillProgress(shop.id, {
         ianaTimezone: shop.ianaTimezone,
       });
+  const liveSpendCount = await prisma.spendEntry.count({
+    where: { shopId: shop.id, NOT: { source: "sample" } },
+  });
   return {
     metrics,
     preset,
@@ -91,6 +96,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesUnavailable,
     marginConfirmed: marginIsConfirmed(settings),
     orderBackfillProgress,
+    hasLiveSpend: liveSpendCount > 0,
+    installedAt: shop.createdAt.toISOString(),
   };
 };
 
@@ -105,6 +112,8 @@ export default function LtvPage() {
     todaySalesUnavailable,
     marginConfirmed,
     orderBackfillProgress,
+    hasLiveSpend,
+    installedAt,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -138,6 +147,7 @@ export default function LtvPage() {
 
   const aov =
     metrics.orderCount > 0 ? metrics.sales / metrics.orderCount : null;
+  const hasSpend = metrics.totalSpend > 0;
 
   const cashCac =
     metrics.tillLtv.available && metrics.tillLtv.cashCac != null
@@ -385,6 +395,8 @@ export default function LtvPage() {
                   </p>
                   <p className="mcfly-acq-tile__def">Sales ÷ orders</p>
                 </div>
+                {hasSpend ? (
+                  <>
                 <div className="mcfly-acq-tile mcfly-acq-tile--mint">
                   <p className="mcfly-acq-tile__k">Cash CAC</p>
                   <p className="mcfly-acq-tile__v">
@@ -395,7 +407,9 @@ export default function LtvPage() {
                   </p>
                   <p className="mcfly-acq-tile__hint">
                     {cashCac == null
-                      ? "Needs new-buyer count (cohorts or live flags)"
+                      ? metrics.totalSpend <= 0
+                        ? PRODUCT_NOUN.cashCacNeedsSpend
+                        : "Needs new-buyer count (cohorts or live flags)"
                       : "Blended till · not platform CAC"}
                   </p>
                 </div>
@@ -410,6 +424,8 @@ export default function LtvPage() {
                     not which ad to scale.
                   </p>
                 </div>
+                  </>
+                ) : null}
               </div>
 
               <p className="mcfly-acq-band__hedge">
@@ -491,6 +507,8 @@ export default function LtvPage() {
                         {contrib365 != null ? formatCurrency(contrib365) : "—"}
                       </p>
                     </div>
+                    {hasSpend ? (
+                      <>
                     <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--cac">
                       <p className="mcfly-ltv-summary__k">Cash CAC</p>
                       <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
@@ -533,21 +551,25 @@ export default function LtvPage() {
                             : "Average, not causal"}
                       </p>
                     </div>
+                      </>
+                    ) : null}
                   </div>
                 </div>
               ) : null}
 
               {metrics.tillLtv.available ? (
                 <p className="mcfly-panel__note">
-                  {metrics.tillLtv.paybackDays != null
+                  {hasSpend && metrics.tillLtv.paybackDays != null
                     ? `Cash CAC recovered in ~${metrics.tillLtv.paybackDays} days on average`
-                    : metrics.tillLtv.cashCac != null
+                    : hasSpend && metrics.tillLtv.cashCac != null
                       ? "Not recovered by 365d on average"
-                      : "Payback needs Cash CAC — upload spend and new-buyer counts"}
-                  {metrics.tillLtv.ltvCacRatio != null
+                      : hasSpend
+                        ? "Payback needs Cash CAC — upload spend and new-buyer counts"
+                        : "30 / 90 / 365-day value from orders. Cash CAC and payback wait on Marketing."}
+                  {hasSpend && metrics.tillLtv.ltvCacRatio != null
                     ? ` · LTV:CAC 90d ${metrics.tillLtv.ltvCacRatio.toFixed(2)}×`
                     : ""}
-                  {" · average cohort, not causal"}
+                  {hasSpend ? " · average cohort, not causal" : ""}
                 </p>
               ) : (
                 <p className="mcfly-state__copy">
@@ -570,9 +592,10 @@ export default function LtvPage() {
                 <div className="mcfly-panel__head mcfly-panel__head--tight">
                   <h2>Cohort deep dive</h2>
                   <p className="mcfly-panel__muted">
-                    Monthly first-order cohorts · cumulative revenue windows ·
-                    Cash CAC below uses this period’s spend (not the cohort
-                    window)
+                    Monthly first-order cohorts · cumulative revenue windows
+                    {hasSpend
+                      ? " · Cash CAC below uses this period’s spend (not the cohort window)"
+                      : " · order history only — Cash CAC waits on Marketing"}
                   </p>
                 </div>
 
@@ -588,7 +611,7 @@ export default function LtvPage() {
                       Extra orders beyond first · cohort average
                     </p>
                   </div>
-                  {metrics.tillLtv.cashCac != null ? (
+                  {hasSpend && metrics.tillLtv.cashCac != null ? (
                     <div className="mcfly-ltv-dive__cost-tile">
                       <p className="mcfly-ltv-summary__k">Cash payback</p>
                       <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
@@ -601,7 +624,7 @@ export default function LtvPage() {
                         Cash CAC · average cohort, not causal
                       </p>
                     </div>
-                  ) : (
+                  ) : hasSpend ? (
                     <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
                       <p className="mcfly-ltv-summary__k">Spend ÷ buyers</p>
                       <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
@@ -613,7 +636,7 @@ export default function LtvPage() {
                         Period spend ÷ new + returning (not Cash CAC)
                       </p>
                     </div>
-                  )}
+                  ) : null}
                   <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
                     <p className="mcfly-ltv-summary__k">Orders · 90d</p>
                     <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
@@ -688,6 +711,13 @@ export default function LtvPage() {
                 ) : null}
               </section>
             ) : null}
+
+        <ReviewAsk
+          hasLiveSpend={hasLiveSpend}
+          useSampleDesk={useSampleDesk}
+          shotMode={shotMode}
+          installedAt={installedAt}
+        />
       </div>
     </s-page>
   );

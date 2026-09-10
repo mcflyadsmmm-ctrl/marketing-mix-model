@@ -58,6 +58,7 @@ model Shop {
   cohortFacts        CohortFact[]
   orderBackfillState OrderBackfillState?
   jobs               Job[]
+  recurringSpend     RecurringSpend[]
 }
 
 model Settings {
@@ -117,11 +118,14 @@ model SpendEntry {
   shopId      String
   shop        Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
   channel     SpendChannel
-  amount      Float
+  /// Cents-safe shop money. Always round with roundMoney() at the write boundary.
+  amount      Decimal      @db.Decimal(12, 2)
+  /// ISO 4217 of `amount` — copied from Shop.currencyCode at write time.
+  currency    String       @default("USD") @db.Char(3)
   periodStart DateTime
   periodEnd   DateTime
   note        String?
-  /// manual | csv | sample
+  /// manual | csv | sample | recurring | meta | google
   source      String       @default("manual")
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -131,10 +135,32 @@ model SpendEntry {
   customKey   String       @default("")
 
   /// One entry per channel + customKey per period-start — writers upsert on this key
-  /// (latest write wins on amount/periodEnd/note/source; never sum duplicates).
+  /// (latest write wins on amount/periodEnd/note/source/currency; never sum duplicates).
   @@unique([shopId, channel, customKey, periodStart])
   @@index([shopId, periodStart, periodEnd])
   @@index([shopId, source])
+}
+
+/// Fill-forward daily amount until the merchant changes or stops it.
+/// Typed / CSV rows on the same shop+channel+customKey+day win (correction).
+model RecurringSpend {
+  id          String       @id @default(cuid())
+  shopId      String
+  shop        Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  channel     SpendChannel
+  customKey   String       @default("")
+  amount      Decimal      @db.Decimal(12, 2)
+  currency    String       @db.Char(3)
+  /// Inclusive UTC-midnight day the fill starts.
+  startDate   DateTime
+  /// Inclusive UTC-midnight last day. Null = still active.
+  endDate     DateTime?
+  note        String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([shopId, channel, customKey])
+  @@index([shopId, endDate])
 }
 
 /// Daily Shopify sales fact (real store, not sample) — one row per shop/local-day.
@@ -313,6 +339,12 @@ model OrderFact {
   shopLocalDate  DateTime  @db.Date
   amount         Float
   currency       String?
+  /// currentTotalDiscountsSet shop amount. 0 = none; null = not crawled yet.
+  discountAmount Float?
+  /// Shopify sourceName (web / pos / shop). Not ad attribution.
+  sourceName     String?
+  /// currentSubtotalLineItemsQuantity — units only, never SKU/title.
+  unitCount      Int?
   asOf           DateTime?
   /// shopify_order_v1 | sample
   source         String    @default("shopify_order_v1")

@@ -13,10 +13,11 @@ export const SPEND_TEMPLATE_WINDOW_YEARS_BACK = DESK_HISTORY_YEARS_BACK;
 /** Cap for `?dates=` hole lists. Prefer `from`/`to` or `span` for long ranges. */
 export const SPEND_TEMPLATE_DATES_QUERY_CAP = 366;
 
-export type SpendTemplateSpan = "30d" | "90d" | "ytd" | "12m";
+export type SpendTemplateSpan = "30d" | "60d" | "90d" | "ytd" | "12m";
 
 export const SPEND_TEMPLATE_SPANS: readonly SpendTemplateSpan[] = [
   "30d",
+  "60d",
   "90d",
   "ytd",
   "12m",
@@ -97,6 +98,8 @@ function spanFromKey(span: SpendTemplateSpan, yesterdayKey: string): string {
   switch (span) {
     case "30d":
       return addDaysToKey(yesterdayKey, -29);
+    case "60d":
+      return addDaysToKey(yesterdayKey, -59);
     case "90d":
       return addDaysToKey(yesterdayKey, -89);
     case "ytd": {

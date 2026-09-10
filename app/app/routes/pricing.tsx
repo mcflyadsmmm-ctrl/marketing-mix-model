@@ -25,14 +25,19 @@ export default function PricingPage() {
         <h2>What you get</h2>
         <ul>
           <li>
-            Spend from every platform including billboards, beside Shopify Total
-            Sales
+            Typical order, weekend mix, repeat buyers, and 30/90/365-day value
+            from Shopify orders — no spend required
+          </li>
+          <li>
+            Optional spend from every platform including billboards, beside
+            Shopify Total Sales
           </li>
           <li>Total ROAS = Shopify Total Sales ÷ spend you added</li>
           <li>Break-even from optional profit margin</li>
           <li>Allocation mix, period filters, Email Overview</li>
-          <li>Customer LTV and Cash CAC payback</li>
+          <li>Customer LTV from orders; Cash CAC payback when you add spend</li>
           <li>Full-year Goals board</li>
+          <li>Shopify sales on Overview cover the last ~60 days of orders</li>
           <li>Sample data to click around before you switch to Live data</li>
         </ul>
 

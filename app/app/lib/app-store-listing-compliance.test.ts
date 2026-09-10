@@ -44,7 +44,8 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     }
   });
 
-  it("repositioned paste leads with all-platform spend including billboards", () => {
+  it("sales-first paste still names billboards and refuses platform ROAS", () => {
+    expect(short).toMatch(/typical order/i);
     expect(short).toMatch(/billboard/i);
     expect(features).toMatch(/billboard/i);
     expect(long).toMatch(/billboard/i);

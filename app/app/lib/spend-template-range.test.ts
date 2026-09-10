@@ -15,8 +15,9 @@ import {
 
 describe("parseSpendTemplateSpan", () => {
   it("accepts the range enum case-insensitively", () => {
-    expect(SPEND_TEMPLATE_SPANS).toEqual(["30d", "90d", "ytd", "12m"]);
+    expect(SPEND_TEMPLATE_SPANS).toEqual(["30d", "60d", "90d", "ytd", "12m"]);
     expect(parseSpendTemplateSpan("30d")).toBe("30d");
+    expect(parseSpendTemplateSpan("60d")).toBe("60d");
     expect(parseSpendTemplateSpan("90D")).toBe("90d");
     expect(parseSpendTemplateSpan("YTD")).toBe("ytd");
     expect(parseSpendTemplateSpan(" 12M ")).toBe("12m");
@@ -42,6 +43,13 @@ describe("spendTemplateDateRange", () => {
     expect(range.dates).toHaveLength(30);
     expect(range.dates[0]).toBe(range.fromKey);
     expect(range.dates[range.dates.length - 1]).toBe(range.toKey);
+  });
+
+  it("enumerates 60d as 60 closed days through yesterday", () => {
+    const range = spendTemplateDateRange({ span: "60d", now });
+    expect(range.toKey).toBe(yesterday);
+    expect(range.dates).toHaveLength(60);
+    expect(range.fromKey).toBe(addDaysToKey(yesterday, -59));
   });
 
   it("enumerates 90d as 90 closed days through yesterday", () => {

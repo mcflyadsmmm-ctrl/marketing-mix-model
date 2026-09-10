@@ -83,7 +83,7 @@ const SCALED_MIX_NOTE =
 const PAD_L = 56;
 const PAD_R = 48;
 const PAD_T = 16;
-const PAD_B = 28;
+const PAD_B = 40;
 const PLOT_H = 270;
 
 function channelLabel(
@@ -211,7 +211,13 @@ function bucketTitle(bucket: ExplorerPlotBucket, mode: ExplorerMode): string {
   return `${bucket.label}: ${bucketMerPhrase(bucket)}${modeBit}${scaleBit}`;
 }
 
-function explorerEmptyCopy(variant: SpendExplorerVariant): string {
+function explorerEmptyCopy(
+  variant: SpendExplorerVariant,
+  salesLead: boolean,
+): string {
+  if (salesLead) {
+    return "Shopify sales in this window plot here from orders. Add spend in Marketing when you want sales ÷ spend on the same chart.";
+  }
   switch (variant) {
     case "spend":
       return "Paste daily rows in Fill history, or add one day’s invoice. Day / week / month comparison fills once spend lands.";
@@ -232,7 +238,9 @@ function explorerEmptySearch(searchParams: URLSearchParams): string {
 function explorerEmptyActions(
   variant: SpendExplorerVariant,
   searchParams: URLSearchParams,
+  salesLead: boolean,
 ) {
+  if (salesLead) return null;
   const search = explorerEmptySearch(searchParams);
   switch (variant) {
     case "spend":
@@ -242,7 +250,7 @@ function explorerEmptyActions(
             className="mcfly-explorer__cta"
             preventScrollReset
             to={{
-              pathname: "/app/spend",
+              pathname: "/app/spend/import",
               search,
               hash: "mcfly-spend-csv",
             }}
@@ -401,12 +409,18 @@ export function SpendExplorer({
 
   const leftCeil = explorerMoneyCeil(visibleBuckets, mode, showSales && !isShare);
   const merCeil = explorerMerCeil(visibleBuckets, targetMer, breakEvenMer);
-  const hasBars = allBuckets.some((b) => b.bars.length > 0 || b.spend > 0);
+  const hasBars = allBuckets.some(
+    (b) => b.bars.length > 0 || b.spend > 0 || b.sales > 0,
+  );
+  const salesLead = series.summary.totalSpend <= 0;
+  const explorerTitle = salesLead
+    ? PRODUCT_NOUN.salesExplorer
+    : PRODUCT_NOUN.explorer;
 
   const defaultKey =
     [...visibleBuckets]
       .reverse()
-      .find((b) => b.spend > 0 || b.bars.length > 0)?.key ??
+      .find((b) => b.spend > 0 || b.sales > 0 || b.bars.length > 0)?.key ??
     visibleBuckets[visibleBuckets.length - 1]?.key ??
     null;
 
@@ -643,10 +657,10 @@ export function SpendExplorer({
   return (
     <section
       className={`mcfly-panel mcfly-explorer mcfly-explorer--lean${explorerVariantClass(variant)}`}
-      aria-label={PRODUCT_NOUN.explorer}
+      aria-label={explorerTitle}
     >
       <div className="mcfly-panel__head mcfly-explorer__head mcfly-explorer__head--lean">
-        <h2>{PRODUCT_NOUN.explorer}</h2>
+        <h2>{explorerTitle}</h2>
       </div>
 
       {!shotMode ? (
@@ -799,7 +813,7 @@ export function SpendExplorer({
               <div
                 className="mcfly-explorer__plot-area"
                 role="listbox"
-                aria-label={`${PRODUCT_NOUN.explorer} columns`}
+                aria-label={`${explorerTitle} columns`}
                 aria-activedescendant={
                   selected ? `explorer-col-${selected.key}` : undefined
                 }
@@ -814,7 +828,11 @@ export function SpendExplorer({
                   width={vbW}
                   height={vbH}
                   role="img"
-                  aria-label={`Channel spend mix and ${PRODUCT_NOUN.totalRoas}`}
+                  aria-label={
+                    salesLead
+                      ? `Shopify sales over ${series.windowLabel}`
+                      : `Channel spend mix and ${PRODUCT_NOUN.totalRoas}`
+                  }
                 >
                   {/* 1. Grid + dual axis ticks */}
                   {gridFracs.map((frac) => {
@@ -839,15 +857,17 @@ export function SpendExplorer({
                         >
                           {axisMoneyLabel(leftVal, isShare)}
                         </text>
-                        <text
-                          className="mcfly-explorer__tick mcfly-explorer__tick--right"
-                          x={vbW - PAD_R + 6}
-                          y={y}
-                          dy="0.32em"
-                          textAnchor="start"
-                        >
-                          {formatMer(rightVal)}×
-                        </text>
+                        {salesLead ? null : (
+                          <text
+                            className="mcfly-explorer__tick mcfly-explorer__tick--right"
+                            x={vbW - PAD_R + 6}
+                            y={y}
+                            dy="0.32em"
+                            textAnchor="start"
+                          >
+                            {formatMer(rightVal)}×
+                          </text>
+                        )}
                       </g>
                     );
                   })}
@@ -857,20 +877,28 @@ export function SpendExplorer({
                     y={PAD_T - 4}
                     aria-hidden="true"
                   >
-                    {isShare ? "Share %" : showSales ? "$ (shared)" : "Spend $"}
+                    {isShare
+                      ? "Share %"
+                      : salesLead
+                        ? "Sales $"
+                        : showSales
+                          ? "$ (shared)"
+                          : "Spend $"}
                   </text>
-                  <text
-                    className="mcfly-explorer__axis-title mcfly-explorer__axis-title--right"
-                    x={vbW - 4}
-                    y={PAD_T - 4}
-                    textAnchor="end"
-                    aria-hidden="true"
-                  >
-                    {PRODUCT_NOUN.totalRoas} ×
-                  </text>
+                  {salesLead ? null : (
+                    <text
+                      className="mcfly-explorer__axis-title mcfly-explorer__axis-title--right"
+                      x={vbW - 4}
+                      y={PAD_T - 4}
+                      textAnchor="end"
+                      aria-hidden="true"
+                    >
+                      {PRODUCT_NOUN.totalRoas} ×
+                    </text>
+                  )}
 
                   {/* 2. Target + BE rails (ROAS axis) */}
-                  {targetMer > 0 && merCeil > 0 ? (
+                  {!salesLead && targetMer > 0 && merCeil > 0 ? (
                     <g className="mcfly-explorer__rail-g" aria-hidden="true">
                       <line
                         className="mcfly-explorer__rail-line mcfly-explorer__rail-line--target"
@@ -889,7 +917,7 @@ export function SpendExplorer({
                       </text>
                     </g>
                   ) : null}
-                  {breakEvenMer != null && breakEvenMer > 0 && merCeil > 0 ? (
+                  {!salesLead && breakEvenMer != null && breakEvenMer > 0 && merCeil > 0 ? (
                     <g className="mcfly-explorer__rail-g" aria-hidden="true">
                       <line
                         className="mcfly-explorer__rail-line mcfly-explorer__rail-line--be"
@@ -1015,7 +1043,7 @@ export function SpendExplorer({
                   ) : null}
 
                   {/* 5. Total ROAS polyline + interactive dots */}
-                  {merLine ? (
+                  {!salesLead && merLine ? (
                     <>
                       <polyline
                         className="mcfly-explorer__mer-line mcfly-explorer__mer-line--under"
@@ -1031,7 +1059,9 @@ export function SpendExplorer({
                       />
                     </>
                   ) : null}
-                  {merPoints.map((p) =>
+                  {salesLead
+                    ? null
+                    : merPoints.map((p) =>
                     p.y != null ? (
                       <g key={`dot-${p.key}`}>
                         {/* Larger invisible hit for the ROAS mark */}
@@ -1264,13 +1294,15 @@ export function SpendExplorer({
       ) : (
         <div className="mcfly-guide-empty">
           <p className="mcfly-guide-empty__title">
-            No spend in {series.windowLabel.toLowerCase()}
+            {salesLead
+              ? `No sales in ${series.windowLabel.toLowerCase()}`
+              : `No spend in ${series.windowLabel.toLowerCase()}`}
           </p>
           <p className="mcfly-guide-empty__copy">
-            {explorerEmptyCopy(variant)}
+            {explorerEmptyCopy(variant, salesLead)}
           </p>
           <p className="mcfly-guide-empty__actions">
-            {explorerEmptyActions(variant, searchParams)}
+            {explorerEmptyActions(variant, searchParams, salesLead)}
           </p>
         </div>
       )}

@@ -7,6 +7,7 @@ import {
 } from "./entitlements.server";
 import { utcMidnightFromDayKey } from "./shop-local-day";
 import { slugCustomChannelName } from "./spend-custom-channel";
+import { moneyEquals, roundMoney, shopCurrencyCode } from "./spend-money";
 
 /**
  * Rows per interactive transaction. With createMany + parallel updates and a
@@ -41,6 +42,7 @@ export type SpendUpsertGate = {
 type PreparedSpendRow = {
   channel: SpendChannel;
   amount: number;
+  currency: string;
   periodStart: Date;
   periodEnd: Date;
   source: string;
@@ -93,6 +95,7 @@ export function normalizeSpendEntrySource(source: SpendSource | string): string 
   if (raw === "sample") return "sample";
   if (raw === "csv" || raw.startsWith("csv")) return "csv";
   if (raw === "manual") return "manual";
+  if (raw === "recurring") return "recurring";
   if (raw === "meta") return "meta";
   if (raw === "google") return "google";
   return "csv";
@@ -157,7 +160,10 @@ export async function assertSpendWriteAllowed(
   if (err) throw new SpendChannelEntitlementError(err);
 }
 
-function prepareSpendRows(rows: SpendDay[]): PreparedSpendRow[] {
+function prepareSpendRows(
+  rows: SpendDay[],
+  currency: string,
+): PreparedSpendRow[] {
   // Last write wins within the batch for the same shop/channel/customKey/day key.
   const byKey = new Map<string, PreparedSpendRow>();
   for (const row of rows) {
@@ -171,10 +177,13 @@ function prepareSpendRows(rows: SpendDay[]): PreparedSpendRow[] {
     const note =
       channel === "other" && customKey
         ? row.note?.trim() || customKey
-        : `sync:${source}`;
+        : source === "recurring"
+          ? row.note?.trim() || `sync:${source}`
+          : `sync:${source}`;
     byKey.set(entryKey(channel, customKey, start), {
       channel,
-      amount: row.amount,
+      amount: roundMoney(row.amount),
+      currency: shopCurrencyCode(currency),
       periodStart: start,
       periodEnd: end,
       source,
@@ -201,8 +210,9 @@ function entryKey(
 async function upsertSpendDaysBatch(
   shopId: string,
   rows: SpendDay[],
+  currency: string,
 ): Promise<SpendWriteResult> {
-  const prepared = prepareSpendRows(rows);
+  const prepared = prepareSpendRows(rows, currency);
   if (prepared.length === 0) {
     return { written: 0, skipped: 0, created: 0, updated: 0 };
   }
@@ -222,6 +232,7 @@ async function upsertSpendDaysBatch(
         },
         select: {
           amount: true,
+          currency: true,
           source: true,
           channel: true,
           customKey: true,
@@ -240,11 +251,12 @@ async function upsertSpendDaysBatch(
       for (const row of prepared) {
         const key = entryKey(row.channel, row.customKey, row.periodStart);
         const prior = existingMap.get(key);
-        // Skip only when amount AND source already match — otherwise a sample
-        // row with the same dollars would stay sample after a CSV re-import.
+        // Skip only when amount, currency, AND source already match — otherwise a
+        // sample row with the same dollars would stay sample after a CSV re-import.
         if (
           prior &&
-          prior.amount === row.amount &&
+          moneyEquals(prior.amount, row.amount) &&
+          shopCurrencyCode(prior.currency) === row.currency &&
           prior.source === row.source
         ) {
           skipped += 1;
@@ -264,6 +276,7 @@ async function upsertSpendDaysBatch(
             channel: row.channel,
             customKey: row.customKey,
             amount: row.amount,
+            currency: row.currency,
             periodStart: row.periodStart,
             periodEnd: row.periodEnd,
             note: row.note,
@@ -286,6 +299,7 @@ async function upsertSpendDaysBatch(
               },
               data: {
                 amount: row.amount,
+                currency: row.currency,
                 periodEnd: row.periodEnd,
                 note: row.note,
                 source: row.source,
@@ -337,6 +351,12 @@ export function createSpendRepository(): SpendRepository & {
 
       await assertSpendWriteAllowed(shopId, rows, gate);
 
+      const shop = await prisma.shop.findUnique({
+        where: { id: shopId },
+        select: { currencyCode: true },
+      });
+      const currency = shopCurrencyCode(shop?.currencyCode);
+
       let written = 0;
       let skipped = 0;
       let created = 0;
@@ -344,7 +364,7 @@ export function createSpendRepository(): SpendRepository & {
 
       for (let i = 0; i < rows.length; i += SPEND_UPSERT_BATCH_SIZE) {
         const chunk = rows.slice(i, i + SPEND_UPSERT_BATCH_SIZE);
-        const result = await upsertSpendDaysBatch(shopId, chunk);
+        const result = await upsertSpendDaysBatch(shopId, chunk, currency);
         written += result.written;
         skipped += result.skipped;
         created += result.created;
@@ -368,7 +388,11 @@ export async function previewSpendUpsert(
     return { written: 0, skipped: 0, created: 0, updated: 0 };
   }
 
-  const prepared = prepareSpendRows(rows);
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { currencyCode: true },
+  });
+  const prepared = prepareSpendRows(rows, shopCurrencyCode(shop?.currencyCode));
   if (prepared.length === 0) {
     return { written: 0, skipped: 0, created: 0, updated: 0 };
   }
@@ -386,6 +410,7 @@ export async function previewSpendUpsert(
     },
     select: {
       amount: true,
+      currency: true,
       source: true,
       channel: true,
       customKey: true,
@@ -406,7 +431,8 @@ export async function previewSpendUpsert(
     const prior = existingMap.get(key);
     if (
       prior &&
-      prior.amount === row.amount &&
+      moneyEquals(prior.amount, row.amount) &&
+      shopCurrencyCode(prior.currency) === row.currency &&
       prior.source === row.source
     ) {
       skipped += 1;

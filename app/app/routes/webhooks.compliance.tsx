@@ -50,7 +50,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   try {
     if (normalized === "SHOP_REDACT") {
       // Shop.deleteMany cascades OrderFact / CohortFact / OrderBackfillState /
-      // SalesDayFact / SpendEntry / Settings / MerSnapshot / Job / etc. (onDelete: Cascade).
+      // SalesDayFact / SpendEntry / RecurringSpend / Settings / MerSnapshot / Job / etc. (onDelete: Cascade).
       // ComplianceDataExport and WebhookDelivery have no Shop FK — delete by domain.
       await db.session.deleteMany({ where: { shop } });
       await db.complianceDataExport.deleteMany({ where: { shopDomain: shop } });

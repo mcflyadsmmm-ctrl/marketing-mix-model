@@ -7,15 +7,42 @@
  * query strings and would paint the marketing landing inside the iframe.
  */
 
-export function isShopifyAppPath(pathname) {
+/** React Router data requests use `/app.data` — same route as `/app`. */
+export function appRoutePath(pathname) {
   const p = (pathname.split("?")[0] || "/").replaceAll("\\", "/");
+  return p.replace(/\.data$/, "");
+}
+
+export function isShopifyAppPath(pathname) {
+  const p = appRoutePath(pathname);
   if (p === "/health" || p.startsWith("/health/")) return true;
-  if (p === "/app" || p.startsWith("/app/")) return true;
+  if (p === "/app" || p.startsWith("/app/") || p.startsWith("/app.")) return true;
   if (p === "/auth" || p.startsWith("/auth")) return true;
   if (p === "/api" || p.startsWith("/api/")) return true;
   if (p === "/v1" || p.startsWith("/v1/")) return true;
   if (p === "/webhooks" || p.startsWith("/webhooks")) return true;
   return false;
+}
+
+/**
+ * True when Shopify Admin / App Bridge already supplied a session.
+ * Missing this, `authenticate.admin` returns 410 and the client router
+ * throws "Unable to decode turbo-stream response" on `/app.data`.
+ */
+export function isEmbeddedAdminRequest(request) {
+  if (!request) return false;
+  const url = new URL(request.url, "https://mcfly-analytics.fly.dev");
+  if (url.searchParams.get("embedded") === "1") return true;
+  if (url.searchParams.get("host")?.trim()) return true;
+  return false;
+}
+
+export function hasShopifySessionContext(request) {
+  if (!request) return false;
+  const url = new URL(request.url, "https://mcfly-analytics.fly.dev");
+  if (isShopifyEmbeddedSearch(url.searchParams)) return true;
+  const auth = String(request.headers?.get?.("authorization") ?? "").trim();
+  return auth.toLowerCase().startsWith("bearer ");
 }
 
 function queryValue(query, key) {

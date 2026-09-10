@@ -91,6 +91,20 @@ export function dateKeyFromYmd(y: number, m: number, d: number): string {
 }
 
 /**
+ * Shop-local hour 0–23 for an instant (hourCycle h23).
+ */
+export function shopLocalHour(instant: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "numeric",
+    hourCycle: "h23",
+  }).formatToParts(instant);
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+  if (!Number.isFinite(hour)) return 0;
+  return Math.min(23, Math.max(0, hour));
+}
+
+/**
  * Shop-local Y/M/D parts for an instant. Prefer this over `Date#getFullYear`
  * when bucketing or resolving period edges for a merchant store.
  */

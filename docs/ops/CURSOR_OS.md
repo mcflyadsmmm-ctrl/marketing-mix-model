@@ -2,15 +2,16 @@
 
 **Effective:** 2026-08-28 · **Always read with** [`../LIVING_BOARD.md`](../LIVING_BOARD.md) first.
 
-**Prime objective:** Make money selling **custom data science they keep**. Shopify app ($39) is a wedge until listed.
+**Prime objective:** Make money selling **Mcfly Analytics** (Shopify app · 7-day then $39). Custom Data Solutions is parked (301 home).
 
 ## Authority
 
 | Role | May | Must not |
 | --- | --- | --- |
-| **Conductor** (one Cursor chat) | `site/**`, PRs, lock scripts, Pages when granted, money drafts | Grok fleets; `app/**`; Wrangler `--branch` |
-| **Founder** | Merge, send mail, Partner, MX, secrets | Babysit every 5 min if Conductor healthy |
-| **Grok** | Optional research / paste packs only | Own site; deploy; money voice |
+| **Conductor** (one Cursor chat) | Spawn ≤4 Task lanes, merge, canvas, lock scripts, Pages/Fly **after** workers, money drafts | Grok fleets; Wrangler `--branch`; fifth overlapping product lane |
+| **Task lanes** | Site / Listing / Desk / Ops only — exclusive files in [`CONDUCTOR_LANES.md`](./CONDUCTOR_LANES.md) | `fly deploy`; Partner Submit; inventing reviews |
+| **Founder** | Merge, send mail, Partner, MX, secrets, ads budget | Babysit every 5 min if Conductor healthy |
+| **Grok** | Optional research / paste packs only | Own site; deploy; money voice; org-chart fleets |
 
 ## Accounts
 
@@ -26,7 +27,7 @@ Production Direct Upload. **Deploy from a temp copy of `site/` (no `.git`)** —
 npx wrangler@3 pages deploy site --project-name=mcflyads --commit-dirty=true
 ```
 
-Never `--branch` for production. Hostile 90s on `/lab` before claim. Never redirect `/lab` away. Update `LIVING_BOARD.md` after every live ship.
+Never `--branch` for production. Probe `/` + `/demo` + `/pricing` before claim. Custom/`lab` 301 home (v12). Update `LIVING_BOARD.md` after every live ship.
 
 ## Money
 

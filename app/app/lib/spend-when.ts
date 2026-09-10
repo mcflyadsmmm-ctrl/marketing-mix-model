@@ -12,6 +12,7 @@ export type SpendWhenId =
 export type SpendTemplateRangeId =
   | "all"
   | "30d"
+  | "60d"
   | "90d"
   | "ytd"
   | "12m"
@@ -42,6 +43,7 @@ export const SPEND_TEMPLATE_RANGE_OPTIONS: readonly {
 }[] = [
   { id: "all", label: "All history" },
   { id: "30d", label: "Last 30 days" },
+  { id: "60d", label: "Last 60 days" },
   { id: "90d", label: "Last 90 days" },
   { id: "ytd", label: "Year to date" },
   { id: "12m", label: "Last 12 months" },

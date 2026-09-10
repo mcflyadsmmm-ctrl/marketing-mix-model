@@ -206,6 +206,8 @@ export function resolveHonestSales<
     orderCount: number;
     grossSales?: number;
     netSales?: number;
+    grossSalesKnown?: boolean;
+    netSalesKnown?: boolean;
     newCustomers?: number;
     returningCustomers?: number;
     newCustomerNetSales?: number;

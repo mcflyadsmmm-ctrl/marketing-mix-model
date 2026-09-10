@@ -131,16 +131,53 @@ describe("buildAdvancedSections", () => {
     expect(payback?.value).toBe("—");
   });
 
-  it("hides acquisition tiles when LTV is not resolvable yet, without a plan gate", () => {
+  it("still paints Shopify order stats when cohort LTV is not resolvable, without a plan gate", () => {
     const sections = buildAdvancedSections(baseMetrics(), {
       canUseLtv: false,
       periodLabel: "Last 30 days",
     });
     const acq = sections.find((s) => s.id === "acquisition");
-    // Founder lock: whole desk on trial and paid — never "upgrade to Pro" copy.
-    expect(acq?.lockedReason).toMatch(/whole desk/i);
-    expect(acq?.lockedReason).not.toMatch(/\bPro\b/);
-    expect(acq?.tiles).toHaveLength(0);
+    expect(acq?.lockedReason).toBeUndefined();
+    expect(acq?.tiles.find((t) => t.id === "new-vs-ret")?.value).toMatch(/200 new/);
+    expect(acq?.tiles.find((t) => t.id === "aov")).toBeTruthy();
+    expect(acq?.tiles.find((t) => t.id === "ltv-90")).toBeUndefined();
+    expect(JSON.stringify(acq)).not.toMatch(/\bPro\b/);
+  });
+
+  it("keeps order LTV tiles at $0 spend and locks Total ROAS sections", () => {
+    const sections = buildAdvancedSections(
+      baseMetrics({
+        totalSpend: 0,
+        mer: null,
+        amer: null,
+        tillLtv: {
+          available: true,
+          emptyReason: null,
+          historyLimited: false,
+          avgRevenueD30: 80,
+          avgRevenueD90: 120,
+          avgRevenueD365: 200,
+          cashCac: null,
+          newBuyers: 200,
+          ltvCacRatio: null,
+          repeatRate: 0.2,
+          avgOrdersD90: 1.4,
+          paybackDays: null,
+        },
+      }),
+      { canUseLtv: true, periodLabel: "Last 30 days" },
+    );
+    const acq = sections.find((s) => s.id === "acquisition");
+    expect(acq?.tiles.find((t) => t.id === "ltv-90")?.value).toMatch(/\$120/);
+    expect(acq?.tiles.find((t) => t.id === "cash-cac")).toBeUndefined();
+    expect(acq?.tiles.find((t) => t.id === "ltv-cac")).toBeUndefined();
+    expect(acq?.tiles.find((t) => t.id === "payback-days")).toBeUndefined();
+    expect(sections.find((s) => s.id === "portfolio")?.lockedReason).toMatch(
+      /Add spend on Marketing/i,
+    );
+    expect(sections.find((s) => s.id === "affordability")?.lockedReason).toBeTruthy();
+    expect(sections.find((s) => s.id === "spend")?.lockedReason).toBeTruthy();
+    expect(sections.find((s) => s.id === "allocation")?.lockedReason).toBeTruthy();
   });
 
   it("surfaces allocation portfolio facts", () => {

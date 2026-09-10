@@ -106,9 +106,10 @@ export function CashTrustBanners({
       {shopifyOrderWindowLimited ? (
         <s-banner tone="info" heading="Sales history limited for this period">
           <s-paragraph>
-            {periodLabel} reaches before stored daily sales (back to January of
-            five years ago). Prefer a shorter period, wait for backfill, or
-            switch to Sample data at the top for a multi-year walkthrough.
+            {periodLabel} is longer than the ~60-day Shopify order window on
+            this install. Sales before that window are not $0. Prefer a shorter
+            period, or switch to Sample data at the top for a multi-year
+            walkthrough.
           </s-paragraph>
         </s-banner>
       ) : null}
@@ -170,7 +171,7 @@ export function CashTrustBanners({
             {formatSpendCoverageLine(spendCoverage, periodLabel)}.{" "}
             Days with no spend row are $0 next to that day’s sales. Add more
             invoices when you have them — last month is enough to start.{" "}
-            <s-link href="/app/spend#mcfly-spend-csv">Add more days</s-link>
+            <s-link href="/app/spend/import#mcfly-spend-csv">Add more days</s-link>
           </s-paragraph>
         </s-banner>
       ) : null}

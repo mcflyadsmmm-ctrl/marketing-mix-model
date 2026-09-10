@@ -1,8 +1,18 @@
+import { shopCurrencyCode } from "./spend-money";
+
 export function formatCurrency(amount: number, currency = "USD"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency,
+    currency: shopCurrencyCode(currency),
     maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+/** Spend desk amounts — shop currency, cents when the ISO code uses them. */
+export function formatSpendAmount(amount: number, currency = "USD"): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: shopCurrencyCode(currency),
   }).format(amount);
 }
 

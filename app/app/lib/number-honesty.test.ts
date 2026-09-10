@@ -90,6 +90,11 @@ describe("NUMBER_HONESTY copy contracts", () => {
     expect(NUMBER_HONESTY.empty).toMatch(/not 0×/i);
     expect(NUMBER_HONESTY.invoiceHint).toMatch(/invoice/i);
     expect(NUMBER_HONESTY.invoiceHint).toMatch(/retainer/i);
+    expect(NUMBER_HONESTY.csvHint).toMatch(/type/i);
+    expect(NUMBER_HONESTY.csvHint).toMatch(/CSV/i);
+    expect(NUMBER_HONESTY.orderWindow).toMatch(/60 days/i);
+    expect(NUMBER_HONESTY.orderWindow).toMatch(/not \$0/i);
+    expect(NUMBER_HONESTY.orderWindow).not.toMatch(/five years/i);
     expect(NUMBER_HONESTY.salesPending).toMatch(/still loading/i);
     expect(NUMBER_HONESTY.salesPending).toMatch(/not \$0/i);
   });
@@ -105,7 +110,7 @@ describe("NUMBER_HONESTY copy contracts", () => {
 
   it("keeps spend-add as the primary deep link", () => {
     expect(SPEND_ADD_HREF).toBe("/app/spend#mcfly-spend-add");
-    expect(SPEND_CSV_HREF).toBe("/app/spend#mcfly-spend-csv");
+    expect(SPEND_CSV_HREF).toBe("/app/spend/import#mcfly-spend-csv");
   });
 });
 
@@ -122,9 +127,24 @@ describe("BILLING_HONESTY", () => {
 describe("Overview wires the formula panel and spend-add CTA", () => {
   it("imports NumberHonestyPanel and spend-add href", () => {
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
-    expect(overview).toContain("NumberHonestyPanel");
+    const marketing = readFileSync(
+      join(here, "../components/MarketingSnapSection.tsx"),
+      "utf8",
+    );
+    expect(marketing).toContain("NumberHonestyPanel");
     expect(overview).toContain("spendAddHref");
     expect(overview).not.toContain("Logged via CSV");
-    expect(overview).toContain("NUMBER_HONESTY.empty");
+    expect(overview).not.toContain("NUMBER_HONESTY.empty");
+    expect(marketing).toContain("NUMBER_HONESTY.empty");
+    expect(marketing).toContain("NUMBER_HONESTY.csvHint");
+    expect(overview).not.toContain("NUMBER_HONESTY.orderWindow");
+    expect(marketing).toContain("NUMBER_HONESTY.orderWindow");
+    expect(overview).toContain("periodMayExceedShopifyOrderWindow(metrics.period)");
+    expect(overview).toMatch(
+      /shopifyOrderWindowLimited=\{\s*!useSampleDesk &&/,
+    );
+    expect(overview).not.toMatch(
+      /shopifyOrderWindowLimited=\{\s*!useSampleDesk &&\s*metrics\.onboarding\.hasSpend &&/,
+    );
   });
 });

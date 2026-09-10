@@ -584,7 +584,7 @@ export default function AllocationPage() {
                 Fill spend holes
               </s-button>
               <s-link href={`/app?period=${preset}`}>
-                View {PRODUCT_NOUN.deskTitle}
+                View {PRODUCT_NOUN.overviewTitle}
               </s-link>
             </div>
           </section>

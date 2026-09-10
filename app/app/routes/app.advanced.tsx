@@ -3,7 +3,6 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
-import { UseSampleCta } from "../components/UseSampleCta";
 import { buildAdvancedSections } from "../lib/advanced-metrics";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import {
@@ -134,8 +133,7 @@ export default function AdvancedMetricsPage() {
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">
-              Sales didn’t load — Advanced Metrics needs{" "}
-              {PRODUCT_NOUN.totalRoas} from sales ÷ spend.
+              Sales didn’t load — Advanced Metrics needs Shopify order sales.
             </p>
             <div className="mcfly-state__cta">
               <s-button
@@ -175,9 +173,10 @@ export default function AdvancedMetricsPage() {
         </div>
 
         <p className="mcfly-advanced__lede">
-          Optional. Add spend on Upload Spend first — this page is extra math, not a
-          second scoreboard. Overview stays simple. Every tile is average /
-          portfolio math from Shopify sales and Logged Spend via CSV.
+          Shopify order stats (orders, AOV, new vs returning, till LTV) paint
+          from Admin API with no spend upload. Spend tiles need typed or CSV
+          spend. Overview stays the simple scoreboard. Averages, not causal
+          channel ROAS.
         </p>
 
         <div className="mcfly-advanced__nav">
@@ -187,7 +186,7 @@ export default function AdvancedMetricsPage() {
           <s-link href={`/app/ltv?period=${preset}`}>
             {PRODUCT_NOUN.nextCustomerPayback}
           </s-link>
-          <s-link href={`/app?period=${preset}`}>
+          <s-link href={`/app/spend?period=${preset}`}>
             {PRODUCT_NOUN.openTotalRoas}
           </s-link>
         </div>
@@ -208,7 +207,13 @@ export default function AdvancedMetricsPage() {
               >
                 <p className="mcfly-state__copy">{section.lockedReason}</p>
                 <div className="mcfly-state__cta">
-                  <UseSampleCta />
+                  <s-button
+                    href={`/app/spend?period=${preset}`}
+                    variant="primary"
+                    aria-label={PRODUCT_NOUN.setupAddSpend}
+                  >
+                    {PRODUCT_NOUN.setupAddSpend}
+                  </s-button>
                 </div>
               </section>
             ) : (

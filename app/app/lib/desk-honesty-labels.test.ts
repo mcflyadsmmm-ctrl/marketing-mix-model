@@ -5,6 +5,10 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
+const ltvSnap = readFileSync(
+  join(here, "../components/LtvSnapSection.tsx"),
+  "utf8",
+);
 const ltv = readFileSync(join(here, "../routes/app.ltv.tsx"), "utf8");
 const connections = readFileSync(
   join(here, "../routes/app.connections.tsx"),
@@ -32,9 +36,9 @@ describe("Overview / LTV tillLabel honesty", () => {
   });
 
   it("CAC delta uses tillLtv.newBuyers not facts newCustomers", () => {
-    // Overview passes metrics.tillLtv into LtvSnapSection (local prop tillLtv).
-    expect(overview).toMatch(/tillLtv=\{metrics\.tillLtv\}|metrics\.tillLtv\.newBuyers/);
-    expect(overview).toContain("tillLtv.newBuyers");
+    const buyers = readFileSync(join(here, "../routes/app.buyers.tsx"), "utf8");
+    expect(buyers).toMatch(/tillLtv=\{metrics\.tillLtv\}/);
+    expect(ltvSnap).toContain("tillLtv.newBuyers");
     expect(ltv).toContain("metrics.tillLtv.newBuyers");
     expect(overview).not.toMatch(
       /cashCac[\s\S]{0,200}metrics\.newCustomers\s*>\s*0/,
@@ -60,12 +64,11 @@ describe("Close redirect (Monday Close UI retired)", () => {
 });
 
 describe("Primary nav always visible (Real store)", () => {
-  it("does not gate Goals/Allocation/LTV/Advanced on cashReady", () => {
+  it("does not gate Goals on cashReady — sales tabs always show", () => {
     const appShell = readFileSync(join(here, "../routes/app.tsx"), "utf8");
-    expect(appShell).toContain('deskNavHrefFromSearch("/app/goals"');
-    expect(appShell).toContain('deskNavHrefFromSearch("/app/allocation"');
-    expect(appShell).toContain('deskNavHrefFromSearch("/app/ltv"');
-    expect(appShell).toContain('deskNavHrefFromSearch("/app/advanced"');
+    expect(appShell).toContain("DESK_PRIMARY_NAV");
     expect(appShell).not.toContain("cashReady");
+    expect(appShell).not.toContain('deskNavHrefFromSearch("/app/allocation"');
+    expect(appShell).not.toContain('deskNavHrefFromSearch("/app/advanced"');
   });
 });

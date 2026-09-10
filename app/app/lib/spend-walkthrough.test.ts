@@ -34,12 +34,11 @@ describe("spend walkthrough examples", () => {
     expect(CSV_CLEANUP_HINT).toMatch(/Total row/i);
   });
 
-  it("keeps the Ads Manager door on Spend without a separate walkthrough drawer", () => {
-    const spend = read("../routes/app.spend.tsx");
-    // Founder lock: Spend is three doors on one screen, no export drawer.
-    expect(spend).toContain("<h2>Upload an Ads Manager CSV</h2>");
-    expect(spend).toContain("Drop an Ads Manager CSV");
-    expect(spend).not.toContain("SpendExportWalkthrough");
-    expect(spend).not.toContain("Combine & import");
+  it("keeps the Ads Manager door on Import without a separate walkthrough drawer", () => {
+    const spendImport = read("../routes/app.spend.import.tsx");
+    expect(spendImport).toContain("<h2>Upload an Ads Manager CSV</h2>");
+    expect(spendImport).toContain("Drop an Ads Manager CSV");
+    expect(spendImport).not.toContain("SpendExportWalkthrough");
+    expect(spendImport).not.toContain("Combine & import");
   });
 });

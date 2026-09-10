@@ -48,7 +48,11 @@ import {
   buildTillLtvSummary,
   type TillLtvSummary,
 } from "./till-ltv.server";
-import { countNewBuyersInRange } from "./order-facts.server";
+import { countNewBuyersInRange, loadOrderDepthRows, ORDER_FACT_SOURCE } from "./order-facts.server";
+import {
+  shopifyDepthStats,
+  type ShopifyDepthStats,
+} from "./shopify-depth-stats";
 import {
   filterToAllowedChannels,
   getShopEntitlements,
@@ -58,6 +62,7 @@ import {
   parseSalesBasis,
 } from "./sales-basis";
 import { spendBucketKey, spendChannelLabel } from "./spend-channel-label";
+import { toMoneyNumber } from "./spend-money";
 import {
   resolveSalesReadiness,
   type SalesCoverageSlice,
@@ -220,6 +225,12 @@ export interface DashboardMetrics {
   deltas: PeriodDeltas | null;
   /** Till LTV — opaque cohorts (Level 1), not email CRM. */
   tillLtv: TillLtvSummary;
+  /**
+   * Product contract: order-book stats Shopify Analytics Overview does not show
+   * (typical order, weekend mix, hour, discount/source/units). Empty until facts land.
+   * Total ROAS is not this field — it lives on Marketing when spend exists.
+   */
+  shopifyDepth: ShopifyDepthStats;
 }
 
 export async function ensureShop(domain: string) {
@@ -234,7 +245,9 @@ export async function getOrCreateSettings(shopId: string) {
   // find-then-create leaves marginConfirmedAt null until Settings save
   const existing = await prisma.settings.findUnique({ where: { shopId } });
   if (existing) return existing;
-  return prisma.settings.create({ data: { shopId } });
+  return prisma.settings.create({
+    data: { shopId, useSampleDesk: false },
+  });
 }
 
 /** True after the merchant confirmed margin via Settings save (not just defaults). */
@@ -335,7 +348,7 @@ export async function getSpendPeriodCoverage(
   const now = options?.now ?? new Date();
   const timeZone = options?.timeZone ?? null;
   const entries =
-    options?.entries?.filter((e) => e.amount > 0) ??
+    options?.entries?.filter((e) => toMoneyNumber(e.amount) > 0) ??
     (
       await prisma.spendEntry.findMany({
         where: {
@@ -351,7 +364,7 @@ export async function getSpendPeriodCoverage(
         },
         select: { periodStart: true, periodEnd: true, amount: true },
       })
-    );
+    ).map((row) => ({ ...row, amount: toMoneyNumber(row.amount) }));
 
   const filled = collectFilledSpendDayKeys(
     entries,
@@ -426,7 +439,7 @@ async function loadSpendEntries(
   range: DateRange,
   options?: { sampleOnly?: boolean; excludeSample?: boolean },
 ): Promise<SpendEntrySlice[]> {
-  return prisma.spendEntry.findMany({
+  const rows = await prisma.spendEntry.findMany({
     where: {
       shopId,
       periodStart: { lte: range.end },
@@ -446,6 +459,10 @@ async function loadSpendEntries(
       note: true,
     },
   });
+  return rows.map((row) => ({
+    ...row,
+    amount: toMoneyNumber(row.amount),
+  }));
 }
 
 export async function getSpendByChannel(
@@ -620,25 +637,30 @@ export async function buildDailyRowsForWindow(
 
   const entries =
     options.spendEntries ??
-    (await prisma.spendEntry.findMany({
-      where: {
-        shopId,
-        periodStart: { lte: endOfUtcDay(windowEnd) },
-        periodEnd: { gte: windowStart },
-        ...(options.sampleOnly
-          ? { source: "sample" }
-          : options.excludeSample
-            ? { NOT: { source: "sample" } }
-            : {}),
-      },
-      select: {
-        channel: true,
-        amount: true,
-        periodStart: true,
-        periodEnd: true,
-        customKey: true,
-        note: true,
-      },
+    (
+      await prisma.spendEntry.findMany({
+        where: {
+          shopId,
+          periodStart: { lte: endOfUtcDay(windowEnd) },
+          periodEnd: { gte: windowStart },
+          ...(options.sampleOnly
+            ? { source: "sample" }
+            : options.excludeSample
+              ? { NOT: { source: "sample" } }
+              : {}),
+        },
+        select: {
+          channel: true,
+          amount: true,
+          periodStart: true,
+          periodEnd: true,
+          customKey: true,
+          note: true,
+        },
+      })
+    ).map((row) => ({
+      ...row,
+      amount: toMoneyNumber(row.amount),
     }));
 
   /*
@@ -1242,6 +1264,22 @@ export async function buildDashboardMetrics(
     ianaTimezone: deskTz,
   });
 
+  const depthRows = await loadOrderDepthRows(
+    shop.id,
+    range,
+    useSampleDesk ? "sample" : ORDER_FACT_SOURCE,
+  );
+  const shopifyDepth = shopifyDepthStats({
+    orders: depthRows,
+    totalSales: totalSalesAmount,
+    netSales: netSalesAmount,
+    netSalesKnown,
+    grossSales: honestSales.grossSales ?? 0,
+    grossSalesKnown: honestSales.grossSalesKnown !== false,
+    timeZone: deskTz,
+    windowEnd: range.end,
+  });
+
   const spendRecon = spendReconMatchesPeriod(
     settings.declaredAdsSpendPeriodStart,
     settings.declaredAdsSpendPeriodEnd,
@@ -1380,6 +1418,7 @@ export async function buildDashboardMetrics(
     control,
     deltas,
     tillLtv,
+    shopifyDepth,
   };
 }
 

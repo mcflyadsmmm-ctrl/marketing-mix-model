@@ -5,7 +5,7 @@ import {
   shopLocalDayKeyFromIso,
   shopLocalDayRange,
 } from "./shopify-sales.server";
-import { shopLocalDayKey as shopLocalDayKeyDirect } from "./shop-local-day";
+import { shopLocalDayKey as shopLocalDayKeyDirect, shopLocalHour } from "./shop-local-day";
 
 describe("shopLocalDayKeyFromIso — midnight America/Denver vs UTC", () => {
   it("buckets an order just after UTC midnight into the prior Denver day", () => {
@@ -40,6 +40,14 @@ describe("shopLocalDayKey re-export parity", () => {
     expect(shopLocalDayKey(instant, "America/Denver")).toBe(
       shopLocalDayKeyDirect(instant, "America/Denver"),
     );
+  });
+});
+
+describe("shopLocalHour", () => {
+  it("returns Denver-local hour for a UTC instant", () => {
+    const noonUtc = new Date("2026-09-01T18:00:00.000Z");
+    expect(shopLocalHour(noonUtc, "America/Denver")).toBe(12);
+    expect(shopLocalHour(noonUtc, "UTC")).toBe(18);
   });
 });
 

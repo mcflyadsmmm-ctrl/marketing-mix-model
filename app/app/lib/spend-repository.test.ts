@@ -59,6 +59,7 @@ describe("normalizeSpendEntrySource", () => {
     expect(normalizeSpendEntrySource("meta")).toBe("meta");
     expect(normalizeSpendEntrySource("google")).toBe("google");
     expect(normalizeSpendEntrySource("sample")).toBe("sample");
+    expect(normalizeSpendEntrySource("recurring")).toBe("recurring");
   });
 });
 
@@ -162,6 +163,7 @@ describe("createSpendRepository().upsertSpendDays", () => {
       shopId: "shop_1",
       channel: "meta",
       amount: 100,
+      currency: "USD",
       periodStart: utcMidnightFromDayKey("2026-07-01"),
       source: "csv",
       customKey: "",
@@ -169,6 +171,25 @@ describe("createSpendRepository().upsertSpendDays", () => {
     expect(transaction.mock.calls[0][1]).toEqual({
       timeout: 60_000,
       maxWait: 10_000,
+    });
+  });
+
+  it("persists Shop.currencyCode on create (not a hardcoded USD)", async () => {
+    findMany.mockResolvedValue([]);
+    shopFindUnique.mockResolvedValue({
+      domain: "maple.myshopify.com",
+      proBillingActive: false,
+      currencyCode: "CAD",
+    });
+
+    const repo = createSpendRepository();
+    await repo.upsertSpendDays("shop_1", [
+      { date: "2026-07-01", channel: "meta", amount: 40.1, currency: "USD", source: "csv" },
+    ]);
+
+    expect(createMany.mock.calls[0][0].data[0]).toMatchObject({
+      amount: 40.1,
+      currency: "CAD",
     });
   });
 

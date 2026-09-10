@@ -10,6 +10,7 @@ import {
   shopLocalDayRange,
   shopLocalYmd,
 } from "./shop-local-day";
+import { toMoneyNumber } from "./spend-money";
 
 export { impliedSpendCeiling } from "./implied-spend-ceiling";
 
@@ -297,8 +298,9 @@ export async function spendByMonthMap(
     const m = entry.periodStart.getUTCMonth() + 1;
     if (y !== year || m < 1 || m > 12) continue;
     if (m > maxMonth) continue;
-    if (!Number.isFinite(entry.amount) || entry.amount <= 0) continue;
-    months.set(m, (months.get(m) ?? 0) + entry.amount);
+    const amount = toMoneyNumber(entry.amount);
+    if (!(amount > 0)) continue;
+    months.set(m, (months.get(m) ?? 0) + amount);
   }
 
   return months;

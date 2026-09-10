@@ -18,12 +18,18 @@ export const PUBLIC_ORIGIN_PATHS = [
  * Embedded Shopify surfaces that may load App Bridge.
  * Everything else on this origin is a public marketing / trust page.
  */
+function routePath(pathname: string): string {
+  const p = (pathname.split("?")[0] || "/").replaceAll("\\", "/");
+  return p.replace(/\.data$/, "");
+}
+
 export function isShopifyEmbeddedPath(pathname: string): boolean {
-  if (pathname === "/app" || pathname.startsWith("/app/")) return true;
-  if (pathname === "/auth" || pathname.startsWith("/auth")) return true;
-  if (pathname === "/api" || pathname.startsWith("/api/")) return true;
-  if (pathname === "/v1" || pathname.startsWith("/v1/")) return true;
-  if (pathname === "/webhooks" || pathname.startsWith("/webhooks")) return true;
+  const p = routePath(pathname);
+  if (p === "/app" || p.startsWith("/app/") || p.startsWith("/app.")) return true;
+  if (p === "/auth" || p.startsWith("/auth")) return true;
+  if (p === "/api" || p.startsWith("/api/")) return true;
+  if (p === "/v1" || p.startsWith("/v1/")) return true;
+  if (p === "/webhooks" || p.startsWith("/webhooks")) return true;
   return false;
 }
 

@@ -792,12 +792,9 @@
   border-radius: var(--mcfly-radius);
   background: #fff;
   box-shadow: 0 1px 2px rgba(32, 34, 35, 0.04);
-  /* Mobile cut-off fix:
-   * Allow vertical overflow (chart rail labels / negative-margins) to remain visible,
-   * while still preventing any accidental horizontal overflow from breaking layout.
-   */
-  overflow-x: hidden;
-  overflow-y: visible;
+  /* Do not clip the explorer: mixed overflow-x/hidden with overflow-y/visible
+   * computes as overflow-y auto and crops bars, axis labels, and rails. */
+  overflow: visible;
 }
 
 .mcfly-me-spine > .mcfly-eq,
@@ -1849,7 +1846,7 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 22rem;
+  max-height: none;
   overflow: visible;
 }
 
@@ -2651,14 +2648,14 @@
   overflow-x: auto;
   overflow-y: visible;
   margin: 0 -0.15rem;
-  padding: 0 0.15rem 1rem;
+  padding: 0.35rem 0.15rem 1.25rem;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
 }
 
 .mcfly-explorer__chart {
   position: relative;
-  min-height: 320px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -2709,38 +2706,18 @@
 
 .mcfly-explorer__plot-area {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 260px;
-  height: 280px;
-  max-height: 320px;
-  padding: 0.15rem 1.85rem 0.1rem;
+  flex: 0 0 auto;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  padding: 0.15rem 0.15rem 0.1rem;
   border-bottom: 1px solid var(--mcfly-line);
   background:
     linear-gradient(180deg, rgba(248, 250, 252, 0.9) 0%, #fff 42%);
   overflow: visible;
 }
 
-@media (max-width: 900px) {
-  .mcfly-explorer__chart {
-    min-height: 280px;
-  }
-
-  .mcfly-explorer__plot-area {
-    min-height: 220px;
-    height: 240px;
-  }
-}
-
 @media (max-width: 640px) {
-  .mcfly-explorer__chart {
-    min-height: 250px;
-  }
-
-  .mcfly-explorer__plot-area {
-    min-height: 200px;
-    height: 210px;
-  }
-
   .mcfly-panel {
     padding: 0.85rem 0.95rem;
   }
@@ -3201,12 +3178,12 @@
 }
 
 .mcfly-desk--shot .mcfly-explorer__chart {
-  min-height: 300px;
+  min-height: 0;
 }
 
 .mcfly-desk--shot .mcfly-explorer__plot-area,
 .mcfly-desk--shot .mcfly-explorer__cols {
-  min-height: 220px;
+  min-height: 0;
 }
 
 @media (max-width: 720px) {
@@ -5390,20 +5367,17 @@
     align-items: stretch;
   }
 
-  .mcfly-tab-snaps--solo {
-    grid-template-columns: 1fr;
+  /* Overview: doors are full-width above; Goals + Marketing stack below. */
+  .mcfly-tab-snaps--below {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 
 .mcfly-tab-snap {
-  padding: 0.95rem 1.05rem 1.05rem;
+  padding: 1.25rem 1.35rem 1.35rem;
   border: 1px solid var(--mcfly-line-soft);
-  border-radius: 14px;
-  background: linear-gradient(
-    165deg,
-    #fff 0%,
-    var(--mcfly-tint-sky) 100%
-  );
+  border-radius: 8px;
+  background: var(--mcfly-paper, #fff);
 }
 
 .mcfly-tab-snap__head {
@@ -5412,7 +5386,7 @@
 
 .mcfly-tab-snap__head h2 {
   margin: 0;
-  font-family: var(--mcfly-display, Georgia, serif);
+  font-family: inherit;
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -5434,10 +5408,11 @@
 }
 
 .mcfly-tab-snap__quarter {
-  padding: 0.55rem 0.65rem;
-  border-radius: 12px;
-  border: 1px solid var(--mcfly-line-soft);
-  background: #fff;
+  padding: 0.7rem 0;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+  border-radius: 0;
+  background: transparent;
 }
 
 .mcfly-tab-snap__q-top {
@@ -5533,18 +5508,19 @@
 
 .mcfly-tab-snap__roll {
   margin-top: 0.55rem;
-  padding: 0.5rem 0.65rem;
-  border-radius: 10px;
-  border: 1px solid var(--mcfly-line-soft);
-  background: #fff;
+  padding: 0.65rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+  border-radius: 0;
+  background: transparent;
 }
 
 .mcfly-tab-snap__roll--up {
-  border-color: color-mix(in srgb, var(--mcfly-good, #15803d) 35%, var(--mcfly-line-soft));
+  border-color: var(--mcfly-line-soft);
 }
 
 .mcfly-tab-snap__roll--down {
-  border-color: color-mix(in srgb, var(--mcfly-bad, #b91c1c) 35%, var(--mcfly-line-soft));
+  border-color: var(--mcfly-line-soft);
 }
 
 .mcfly-tab-snap__roll-label {
@@ -5592,11 +5568,36 @@
   }
 }
 
+.mcfly-tab-snap__tiles--shopify {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mcfly-tab-snap__group {
+  margin: 0.85rem 0 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-ink-soft);
+}
+
+.mcfly-tab-snap__head + .mcfly-tab-snap__group {
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 480px) {
+  .mcfly-tab-snap__tiles--shopify {
+    grid-template-columns: 1fr;
+  }
+}
+
 .mcfly-tab-snap__tile {
-  padding: 0.45rem 0.55rem;
-  border-radius: 10px;
-  border: 1px solid var(--mcfly-line-soft);
-  background: #fff;
+  min-width: 0;
+  padding: 0.6rem 0;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+  border-radius: 0;
+  background: transparent;
 }
 
 .mcfly-tab-snap__tile-k {
@@ -5610,11 +5611,20 @@
 
 .mcfly-tab-snap__tile-v {
   margin: 0.15rem 0 0;
-  font-family: var(--mcfly-display, Georgia, serif);
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
   color: var(--mcfly-ink);
+}
+
+/* Overview doors are report links, not a second scoreboard. */
+.mcfly-tab-snap--doors .mcfly-tab-snap__tile-v {
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--mcfly-ink-soft, #334155);
 }
 
 .mcfly-tab-snap__tile-v--good {
@@ -6732,8 +6742,18 @@
   border-style: dashed;
 }
 
+.mcfly-spend-cal__day--empty {
+  text-decoration: none;
+  color: inherit;
+}
+
+.mcfly-spend-cal__day--empty:hover .mcfly-spend-cal__tick,
+.mcfly-spend-cal__day--empty:focus-visible .mcfly-spend-cal__tick {
+  border-color: var(--mcfly-accent-ink);
+}
+
 .mcfly-spend-cal__label {
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   line-height: 1;
   color: var(--mcfly-mute);
   font-variant-numeric: tabular-nums;
@@ -6751,6 +6771,37 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+.mcfly-spend-reveal > .mcfly-spend-reveal__summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-bottom: 0.35rem;
+}
+
+.mcfly-spend-reveal > .mcfly-spend-reveal__summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcfly-spend-reveal__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.mcfly-spend-reveal__hint {
+  font-size: 0.82rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-hero-empty-spend {
+  margin: 0.65rem 0 0;
+  max-width: 42rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--mcfly-ink);
 }
 
 .mcfly-spend-cal__day--swatch {
@@ -7931,7 +7982,7 @@
 /* P2 #8 — Mobile density: KPI pair + lead, period wrap, channel bars stack */
 @media (max-width: 520px) {
   .mcfly-desk {
-    overflow-x: clip;
+    overflow: visible;
   }
 
   .mcfly-topbar {
@@ -8382,6 +8433,90 @@
   box-shadow: var(--mcfly-shadow);
 }
 
+/* Sales-first Overview — no empty spend column in the hero. */
+.mcfly-hero-compact--live-lead {
+  grid-template-columns: 1fr;
+}
+
+.mcfly-hero-compact--live-lead .mcfly-hero-compact__pair {
+  grid-template-columns: 1fr;
+}
+
+/* First viewport under Total Sales — four quiet cards, not a second scoreboard. */
+.mcfly-first-view {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0 0.9rem;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  border-radius: 0;
+  background: transparent;
+}
+
+.mcfly-first-view__tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem 1.25rem;
+}
+
+@media (min-width: 720px) {
+  .mcfly-first-view__tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.mcfly-first-view__tile {
+  min-width: 0;
+}
+
+.mcfly-first-view__k {
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--mcfly-ink-muted, #5c6b7a);
+}
+
+.mcfly-first-view__v {
+  margin: 0.12rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-first-view__def {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-first-view__notice {
+  margin: 0.75rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-first-view__spend {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--mcfly-mute, #5c6b7a);
+}
+
+.mcfly-hero-compact__unlock {
+  grid-column: 1 / -1;
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--mcfly-ink-soft, #334155);
+}
+
 .mcfly-hero-compact--v2 .mcfly-hero-compact__pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -8615,6 +8750,7 @@
 }
 
 .mcfly-hero-compact__tile--lead .mcfly-hero-compact__value {
+  font-family: var(--mcfly-display, Georgia, serif);
   color: var(--mcfly-accent, #0284c7);
 }
 
@@ -9181,10 +9317,10 @@
 }
 .mcfly-desk--shot .mcfly-explorer__plot-area,
 .mcfly-desk--shot .mcfly-explorer__cols {
-  min-height: 230px;
+  min-height: 0;
 }
 .mcfly-explorer__cols {
-  min-height: 220px;
+  min-height: 0;
 }
 .mcfly-explorer__col {
   align-items: stretch;
@@ -9633,6 +9769,45 @@
   font-size: 0.86rem;
   color: var(--mcfly-ink-muted, #5c6b7a);
   flex: 1 1 12rem;
+}
+
+.mcfly-review-ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.85rem;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-review-ask__dismiss {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: inherit;
+  color: var(--mcfly-mute);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+  cursor: pointer;
+}
+
+.mcfly-review-ask__dismiss:hover {
+  color: var(--mcfly-ink);
+}
+
+.mcfly-ltv .mcfly-review-ask {
+  margin: 1.35rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-desk--shot .mcfly-review-ask {
+  display: none;
 }
 
 .mcfly-data-mode__steps {
@@ -10762,10 +10937,18 @@
   font-weight: 650;
 }
 
-.mcfly-spend-lean__recent-range {
-  color: var(--mcfly-mute, #64748b);
-  font-variant-numeric: tabular-nums;
+.mcfly-spend-lean__recent-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   flex-shrink: 0;
+}
+
+.mcfly-spend-lean__recent-actions .mcfly-btn {
+  min-height: 2rem;
+  min-width: 0;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
 }
 
 .mcfly-spend-howto {
@@ -10880,4 +11063,301 @@
 .mcfly-spend-lean__bill-save {
   display: inline-flex;
   margin-left: 0.4rem;
+}
+
+/* Orders / Buyers book — report hierarchy without a SaaS card cage. */
+.mcfly-book {
+  width: min(100%, 74rem);
+  margin-inline: auto;
+  padding: 0 0 2rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--mcfly-paper, #fff);
+  box-shadow: none;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-book__lede {
+  max-width: 54rem;
+  margin: 0.35rem 0 1.5rem;
+  color: var(--mcfly-mute);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.mcfly-book__hero {
+  padding: 2rem 0 2.25rem;
+}
+
+.mcfly-book__hero-k {
+  margin: 0 0 0.55rem;
+  color: var(--mcfly-mute);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.075em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.mcfly-book__hero-v {
+  margin: 0;
+  color: var(--mcfly-ink);
+  font-family: var(--mcfly-display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.mcfly-book__hero-def {
+  max-width: 46rem;
+  margin: 0.7rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.mcfly-book__clock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  margin: 0 0 1.75rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+  border-bottom: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-book__clock > * {
+  min-width: 0;
+  margin: 0;
+  padding: 0 1rem;
+  border-left: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-book__clock > :first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.mcfly-book__clock > :last-child {
+  padding-right: 0;
+}
+
+.mcfly-book__clock-k,
+.mcfly-book__clock dt {
+  margin: 0 0 0.25rem;
+  color: var(--mcfly-mute);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  line-height: 1.3;
+}
+
+.mcfly-book__clock-v,
+.mcfly-book__clock dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--mcfly-ink);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
+.mcfly-book__glance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 0 0 1.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-book__glance > * {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mcfly-book__glance-k {
+  margin: 0 0 0.25rem;
+  color: var(--mcfly-mute);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.mcfly-book__glance-v {
+  margin: 0;
+  color: var(--mcfly-ink);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.mcfly-book__rows {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-book__row,
+.mcfly-book__row details {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mcfly-book__row-sum {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.5rem;
+  margin: 0;
+  padding: 1rem 2rem 1rem 0;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.mcfly-book__row-sum::-webkit-details-marker {
+  display: none;
+}
+
+.mcfly-book__row-sum::marker {
+  content: "";
+}
+
+.mcfly-book__row-sum::after {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-right: 1.5px solid var(--mcfly-mute);
+  border-bottom: 1.5px solid var(--mcfly-mute);
+  content: "";
+  transform: translateY(-65%) rotate(45deg);
+  transition: transform 140ms ease;
+}
+
+.mcfly-book__row-sum:hover {
+  background: color-mix(in srgb, var(--mcfly-tint-sky, #eef8fc) 35%, transparent);
+}
+
+.mcfly-book__row-sum:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+}
+
+.mcfly-book__row[open] > .mcfly-book__row-sum::after,
+.mcfly-book__row details[open] > .mcfly-book__row-sum::after,
+details.mcfly-book__row[open] > .mcfly-book__row-sum::after {
+  transform: translateY(-35%) rotate(225deg);
+}
+
+.mcfly-book__row-k {
+  min-width: 0;
+  color: var(--mcfly-ink-soft);
+  font-size: 0.8125rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-transform: none;
+}
+
+.mcfly-book__row-v {
+  flex: 1 1 8rem;
+  min-width: 0;
+  color: var(--mcfly-ink);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  text-align: right;
+  overflow-wrap: break-word;
+}
+
+.mcfly-book__row-d {
+  max-width: 52rem;
+  margin: 0;
+  padding: 0 2rem 1.2rem 0;
+  color: var(--mcfly-mute);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.mcfly-book__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-book__link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-book__link-d {
+  color: var(--mcfly-mute);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.mcfly-book__cta {
+  margin: 1.1rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.mcfly-tab-snaps--below > .mcfly-book {
+  width: 100%;
+  margin-inline: 0;
+  padding-bottom: 0.5rem;
+}
+
+@media (max-width: 560px) {
+  .mcfly-book__hero {
+    padding-block: 1.5rem 1.75rem;
+  }
+
+  .mcfly-book__clock {
+    grid-template-columns: 1fr;
+    padding-block: 0;
+  }
+
+  .mcfly-book__clock > * {
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--mcfly-line-soft);
+    border-left: 0;
+  }
+
+  .mcfly-book__clock > :first-child {
+    border-top: 0;
+  }
+
+  .mcfly-book__row-sum {
+    align-items: flex-start;
+  }
 }

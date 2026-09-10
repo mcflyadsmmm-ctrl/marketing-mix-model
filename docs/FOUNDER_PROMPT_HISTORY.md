@@ -7,6 +7,20 @@
 
 ---
 
+## Latest founder override (2026-09-10 · favorite analytics)
+
+Skeleton is locked: Overview · Orders · Buyers · Timing · Goals · Marketing. Polish until merchants stop exporting CSVs into ChatGPT. Cover every common order-book question Shopify Analytics does not put on one screen. Marketing = guided daily spend upload + mix + Total ROAS — that’s it. Conductor prompt: [`plans/2026-09-10-favorite-analytics-conductor.md`](./plans/2026-09-10-favorite-analytics-conductor.md). No Grok fleets. Fly deploy after desk ticks.
+
+## Prior founder override (2026-09-10)
+
+Mcfly Analytics is **deeper Shopify analytics** than Analytics Overview. Marketing (spend / Total ROAS) is a section, optional. Evolve **this Fly app** — do not greenfield. Listing + site H1 stay frozen until Overview on Fly matches. Plan: [`plans/2026-09-10-mcfly-analytics-rebuild.md`](./plans/2026-09-10-mcfly-analytics-rebuild.md). Voice: shop-owner English, calm desk, save the CSV→ChatGPT loop. No pixels / MTA / “true ROAS.”
+
+## Prior founder override (2026-08-29)
+
+Clear mcflyads.com. Match the Shopify app. **One system:** SEO, favicons, titles, headlines = **Mcfly Analytics**. Custom/lab landers 301 home.
+
+---
+
 ## North star (distilled from all prompts)
 
 > **Make money from the computer with Cursor as the force multiplier.**  
@@ -101,7 +115,7 @@
 | They keep the system / files | Lock-in SaaS theater as the close |
 | Hostile craft / anti-slop | Brochure above the fold |
 | Cap-3 / founder-paced outbound | Spray Apollo / Instantly |
-| App freeze while in review | Casual Fly / `app/**` edits |
+| App freeze lifted 2026-08-29 (approval) | Casual Fly / `app/**` edits that break review |
 
 ---
 
@@ -125,7 +139,7 @@ After the full Grok ask trail: **Marty owns the close path; Cursor owns craft + 
 4. MX for `support@` when ready.  
 5. Partner resubmit only if Shopify fails (paste rejection).
 
-Cursor: site, SAMPLE lock, research, drafts, deploy on `go site`. Never app until `shopify app unfreeze`. Never Grok fleet as builder.
+Cursor: site, SAMPLE lock, research, drafts, deploy on `go site`. Fly + `app/**` unfrozen 2026-08-29 for App Store approval. Never Grok fleet as builder.
 
 ---
 

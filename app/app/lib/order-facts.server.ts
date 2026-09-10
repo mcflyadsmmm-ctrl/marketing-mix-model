@@ -59,6 +59,37 @@ export async function clearOrderFactDayCompleteSeal(
 }
 
 /**
+ * OrderFact v2 recrawl: if live rows still lack unitCount, drop `__day_complete__`
+ * seals so `runOrderFactsBackfill` re-fetches discount/source/units.
+ */
+export async function unsealOrderFactsMissingV2(
+  shopId: string,
+): Promise<number> {
+  if (!shopId) return 0;
+  const stale = await prisma.orderFact.count({
+    where: {
+      shopId,
+      source: ORDER_FACT_SOURCE,
+      unitCount: null,
+      NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
+    },
+  });
+  if (stale === 0) return 0;
+  const result = await prisma.orderFact.deleteMany({
+    where: {
+      shopId,
+      source: ORDER_FACT_SOURCE,
+      shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX },
+    },
+  });
+  await prisma.orderBackfillState.updateMany({
+    where: { shopId },
+    data: { cursor: null },
+  });
+  return result.count;
+}
+
+/**
  * OrderFact.amount prefers currentTotalPriceSet (net after returns/refunds /
  * edits) so till LTV aligns with action Total ROAS. totalPriceSet is still
  * queried as a fallback when current totals are missing.
@@ -74,6 +105,14 @@ const ORDERS_FOR_FACTS_QUERY = `#graphql
         node {
           id
           createdAt
+          sourceName
+          currentSubtotalLineItemsQuantity
+          currentTotalDiscountsSet {
+            shopMoney {
+              amount
+              currencyCode
+            }
+          }
           totalPriceSet {
             shopMoney {
               amount
@@ -103,6 +142,11 @@ type OrdersForFactsJson = {
         node?: {
           id?: string;
           createdAt?: string;
+          sourceName?: string | null;
+          currentSubtotalLineItemsQuantity?: number | null;
+          currentTotalDiscountsSet?: {
+            shopMoney?: { amount?: string; currencyCode?: string };
+          };
           totalPriceSet?: {
             shopMoney?: { amount?: string; currencyCode?: string };
           };
@@ -125,6 +169,9 @@ export interface OrderFactRow {
   shopLocalDate: Date;
   amount: number;
   currency: string | null;
+  discountAmount: number | null;
+  sourceName: string | null;
+  unitCount: number | null;
 }
 
 export interface CohortRollup {
@@ -163,6 +210,17 @@ function cohortMonthFromDate(d: Date): string {
 
 function msDays(n: number): number {
   return n * 86_400_000;
+}
+
+function parseMoneyAmount(raw: string | undefined): number {
+  if (raw == null || raw === "") return 0;
+  const n = Number.parseFloat(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+function parseUnitCount(raw: number | null | undefined): number | null {
+  if (raw == null || !Number.isFinite(raw) || raw < 0) return null;
+  return Math.trunc(raw);
 }
 
 function isHistoryWindowError(
@@ -281,6 +339,9 @@ async function upsertOrderFact(
     shopLocalDate: row.shopLocalDate,
     amount: row.amount,
     currency: row.currency,
+    discountAmount: row.discountAmount,
+    sourceName: row.sourceName,
+    unitCount: row.unitCount,
     asOf,
     source,
   };
@@ -448,6 +509,11 @@ async function fetchOrdersForDay(
           node.currentTotalPriceSet?.shopMoney?.currencyCode ??
           node.totalPriceSet?.shopMoney?.currencyCode ??
           null,
+        discountAmount: parseMoneyAmount(
+          node.currentTotalDiscountsSet?.shopMoney?.amount,
+        ),
+        sourceName: node.sourceName?.trim() || null,
+        unitCount: parseUnitCount(node.currentSubtotalLineItemsQuantity),
       });
     }
 
@@ -504,6 +570,7 @@ export async function runOrderFactsBackfill(
     : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
 
   const timeZone = metadata.ianaTimezone;
+  await unsealOrderFactsMissingV2(shopId);
   const windowDayKeys = listRecentClosedShopLocalDays(timeZone, windowDays, now);
 
   // Prefer oldest missing days first. A day is covered only when the
@@ -572,6 +639,9 @@ export async function runOrderFactsBackfill(
             shopLocalDate: dayKeyToUtcDate(dayKey),
             amount: 0,
             currency: metadata.currencyCode,
+            discountAmount: 0,
+            sourceName: null,
+            unitCount: null,
           },
           now,
           ORDER_FACT_SOURCE,
@@ -723,6 +793,45 @@ export async function getOrderBackfillProgress(
 }
 
 /**
+ * Period order rows for depth stats (median AOV, repeat $, concentration).
+ * Excludes day-complete seals. Capped so a backfill never blows the loader.
+ */
+export async function loadOrderDepthRows(
+  shopId: string,
+  range: { start: Date; end: Date },
+  source: string,
+): Promise<
+  Array<{
+    customerKey: string;
+    amount: number;
+    orderedAt: Date;
+    shopLocalDate: Date;
+    discountAmount: number | null;
+    sourceName: string | null;
+    unitCount: number | null;
+  }>
+> {
+  return prisma.orderFact.findMany({
+    where: {
+      shopId,
+      source,
+      orderedAt: { gte: range.start, lte: range.end },
+      NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
+    },
+    select: {
+      customerKey: true,
+      amount: true,
+      orderedAt: true,
+      shopLocalDate: true,
+      discountAmount: true,
+      sourceName: true,
+      unitCount: true,
+    },
+    take: 20_000,
+  });
+}
+
+/**
  * Unique buyers whose first OrderFact falls inside `range` (till new-buyer count).
  * Returns null when no live OrderFacts exist yet.
  */
@@ -846,3 +955,113 @@ export async function clearSampleCohortFacts(shopId: string): Promise<number> {
   });
   return result.count;
 }
+
+/** SAMPLE order-book window — enough for median/weekday/hour without 400-day bloat. */
+export const SAMPLE_ORDER_FACT_WINDOW_DAYS = 90;
+
+export async function clearSampleOrderFacts(shopId: string): Promise<number> {
+  const result = await prisma.orderFact.deleteMany({
+    where: { shopId, source: "sample" },
+  });
+  return result.count;
+}
+
+function splitSalesAcrossOrders(total: number, n: number): number[] {
+  if (n <= 0) return [];
+  const cents = Math.round(total * 100);
+  const base = Math.floor(cents / n);
+  const out = Array.from({ length: n }, () => base / 100);
+  const drift = (cents - base * n) / 100;
+  out[n - 1] = Math.round((out[n - 1]! + drift) * 100) / 100;
+  return out;
+}
+
+/**
+ * Sales-first SAMPLE OrderFacts so Overview Sample is a shop book.
+ * Harbor spend / Total ROAS stays on SpendEntry + Marketing.
+ */
+export async function seedSampleOrderFacts(
+  shopId: string,
+  options?: { now?: Date },
+): Promise<number> {
+  const now = options?.now ?? new Date();
+  await clearSampleOrderFacts(shopId);
+  const cutoff = new Date(
+    now.getTime() - SAMPLE_ORDER_FACT_WINDOW_DAYS * 86_400_000,
+  );
+  const days = await prisma.sampleSalesDay.findMany({
+    where: { shopId, day: { gte: cutoff } },
+    orderBy: { day: "asc" },
+    select: { day: true, sales: true, orderCount: true },
+  });
+
+  const rows: Array<{
+    shopId: string;
+    shopifyOrderId: string;
+    customerKey: string;
+    orderedAt: Date;
+    shopLocalDate: Date;
+    amount: number;
+    currency: string;
+    discountAmount: number;
+    sourceName: string;
+    unitCount: number;
+    asOf: Date;
+    source: string;
+  }> = [];
+
+  let buyerSeq = 0;
+  for (const d of days) {
+    const n = Math.max(0, Math.min(12, Math.trunc(d.orderCount)));
+    if (n === 0 || !(d.sales > 0)) continue;
+    const day = new Date(d.day);
+    const dayKey = day.toISOString().slice(0, 10);
+    const amounts = splitSalesAcrossOrders(d.sales, n);
+    for (let i = 0; i < n; i += 1) {
+      const isGuest = n >= 5 && i === n - 1;
+      const isRepeat = !isGuest && buyerSeq > 6 && i % 3 === 0;
+      const customerKey = isGuest
+        ? ORDER_FACT_GUEST_KEY
+        : `sample:c${isRepeat ? (buyerSeq - 4 + 40) % 40 : buyerSeq % 40}`;
+      if (!isGuest && !isRepeat) buyerSeq += 1;
+      const hour = 10 + (i % 8);
+      const orderedAt = new Date(
+        Date.UTC(
+          day.getUTCFullYear(),
+          day.getUTCMonth(),
+          day.getUTCDate(),
+          hour,
+          12 + (i % 20),
+          0,
+        ),
+      );
+      const amount = amounts[i] ?? 0;
+      const sourceName = i % 7 === 0 ? "pos" : i % 11 === 0 ? "shop" : "web";
+      const discountAmount =
+        i % 5 === 0 ? Math.round(amount * 0.12 * 100) / 100 : 0;
+      rows.push({
+        shopId,
+        shopifyOrderId: `sample-order:${dayKey}:${i}`,
+        customerKey,
+        orderedAt,
+        shopLocalDate: day,
+        amount,
+        currency: "USD",
+        discountAmount,
+        sourceName,
+        unitCount: 1 + (i % 4),
+        asOf: now,
+        source: "sample",
+      });
+    }
+  }
+
+  for (let i = 0; i < rows.length; i += 200) {
+    await prisma.orderFact.createMany({
+      data: rows.slice(i, i + 200),
+      skipDuplicates: true,
+    });
+  }
+  return rows.length;
+}
+

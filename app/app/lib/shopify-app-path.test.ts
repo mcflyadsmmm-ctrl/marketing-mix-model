@@ -1,6 +1,10 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   embeddedAppRedirectLocation,
+  hasShopifySessionContext,
   isShopifyAppPath,
   isShopifyEmbeddedSearch,
   shouldSkipMarketingSite,
@@ -14,6 +18,9 @@ describe("Shopify embedded entry vs marketing site", () => {
     expect(isShopifyAppPath("/app")).toBe(true);
     expect(isShopifyAppPath("/app/spend")).toBe(true);
     expect(isShopifyAppPath("/auth/login")).toBe(true);
+    expect(isShopifyAppPath("/app.data")).toBe(true);
+    expect(isShopifyAppPath("/app/spend.data")).toBe(true);
+    expect(isShopifyAppPath("/app._index.data")).toBe(true);
   });
 
   it("detects Open app / install / billing-return query", () => {
@@ -63,6 +70,30 @@ describe("Shopify embedded entry vs marketing site", () => {
     ).toBe(false);
   });
 
+  it("treats session-token Authorization as Shopify context", () => {
+    expect(
+      hasShopifySessionContext({
+        url: "https://mcfly-analytics.fly.dev/app",
+        headers: { get: () => null },
+      }),
+    ).toBe(false);
+    expect(
+      hasShopifySessionContext({
+        url: "https://mcfly-analytics.fly.dev/app?shop=devmcflyads.myshopify.com",
+        headers: { get: () => null },
+      }),
+    ).toBe(true);
+    expect(
+      hasShopifySessionContext({
+        url: "https://mcfly-analytics.fly.dev/app",
+        headers: {
+          get: (name: string) =>
+            name.toLowerCase() === "authorization" ? "Bearer tok" : null,
+        },
+      }),
+    ).toBe(true);
+  });
+
   it("lets /app fall through instead of redirecting", () => {
     const req = {
       path: "/app",
@@ -71,5 +102,27 @@ describe("Shopify embedded entry vs marketing site", () => {
     };
     expect(isShopifyAppPath(req.path)).toBe(true);
     expect(shouldSkipMarketingSite(req)).toBe(true);
+    expect(
+      shouldSkipMarketingSite({
+        path: "/app.data",
+        query: {},
+        originalUrl: "/app.data",
+      }),
+    ).toBe(true);
+  });
+
+  it("starts OAuth from /auth/login instead of bouncing a 410 /app", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const login = readFileSync(
+      join(here, "../routes/auth.login/route.tsx"),
+      "utf8",
+    );
+    const appShell = readFileSync(join(here, "../routes/app.tsx"), "utf8");
+    expect(login).toContain("await login(request)");
+    expect(login).not.toMatch(/<input\b/i);
+    expect(appShell).toContain("hasShopifySessionContext");
+    expect(appShell).toContain("PUBLIC_APP");
+    expect(appShell).toContain('kind: "public"');
+    expect(appShell).not.toContain('throw redirect("/")');
   });
 });

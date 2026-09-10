@@ -1,18 +1,22 @@
 import prisma from "../db.server";
 import {
+  addUtcDays,
   buildThreeYearSampleDesk,
   sampleSpendBounds,
   sampleSpendUsesNoonStamp,
+  startOfUtcDay,
 } from "./demo-sample-desk.server";
 import type { SalesResult } from "./shopify-sales.server";
 import type { DateRange } from "./periods";
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
-import { seedSampleCohortFacts, clearSampleCohortFacts } from "./order-facts.server";
+import { seedSampleCohortFacts, clearSampleCohortFacts, seedSampleOrderFacts, clearSampleOrderFacts } from "./order-facts.server";
 
 export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
   const settings = await prisma.settings.findUnique({ where: { shopId } });
   // Settings can hide Sample entirely — always serve real store.
   if (settings?.samplePreviewAllowed === false) return false;
+  // Read-only. Seeding here ran inside every Admin loader and took Postgres down.
+  // Compact SAMPLE is written only when the merchant toggles Sample on.
   return Boolean(settings?.useSampleDesk);
 }
 
@@ -55,84 +59,197 @@ export async function clearSampleDesk(shopId: string) {
   ]);
   // Demo CohortFacts use source=sample — delete without touching live till LTV.
   await clearSampleCohortFacts(shopId);
+  await clearSampleOrderFacts(shopId);
 }
 
-/** Impressive SAMPLE desk default — Total ROAS lands above 4×. */
-export const SAMPLE_DESK_TARGET_MER = 4.4;
+/** Harbor-like SAMPLE Total ROAS — impressive, not 4.4× theater. */
+export const SAMPLE_DESK_TARGET_MER = 3.5;
 /** SAMPLE break-even economics (~35% → BE ≈ 2.86). Applied at read time only. */
 export const SAMPLE_DESK_MARGIN_PCT = 0.35;
+
+const sampleSeedInFlight = new Map<string, Promise<unknown>>();
+
+export function sampleUtcToday(now = new Date()): Date {
+  return startOfUtcDay(now);
+}
+
+/**
+ * Keep SAMPLE through today UTC so MTD never looks a week behind.
+ * Compact rewrite if empty / midnight stamps / a long gap. Never a 5-year
+ * 14-channel transaction inside an Admin request.
+ */
+export async function ensureSampleBookThroughToday(
+  shopId: string,
+): Promise<void> {
+  const pending = sampleSeedInFlight.get(shopId);
+  if (pending) {
+    await pending;
+    return;
+  }
+  const run = ensureSampleBookThroughTodayOnce(shopId);
+  sampleSeedInFlight.set(shopId, run);
+  try {
+    await run;
+  } finally {
+    sampleSeedInFlight.delete(shopId);
+  }
+}
+
+async function ensureSampleBookThroughTodayOnce(
+  shopId: string,
+): Promise<void> {
+  const today = sampleUtcToday();
+  const last = await prisma.sampleSalesDay.findFirst({
+    where: { shopId },
+    orderBy: { day: "desc" },
+    select: { day: true },
+  });
+
+  if (await sampleDeskNeedsSeed(shopId)) {
+    await seedThreeYearSampleDeskOnce(shopId, SAMPLE_DESK_TARGET_MER);
+    return;
+  }
+
+  if (!last) {
+    await seedThreeYearSampleDeskOnce(shopId, SAMPLE_DESK_TARGET_MER);
+    return;
+  }
+
+  const lastDay = startOfUtcDay(last.day);
+  if (lastDay >= today) {
+    const sampleOrders = await prisma.orderFact.count({
+      where: { shopId, source: "sample" },
+    });
+    if (sampleOrders === 0) await seedSampleOrderFacts(shopId);
+    return;
+  }
+
+  const gapDays = Math.round(
+    (today.getTime() - lastDay.getTime()) / (24 * 60 * 60 * 1000),
+  );
+  if (gapDays > 14) {
+    await seedThreeYearSampleDeskOnce(shopId, SAMPLE_DESK_TARGET_MER);
+    return;
+  }
+
+  const rows = buildThreeYearSampleDesk({
+    from: addUtcDays(lastDay, 1),
+    now: today,
+    targetMer: SAMPLE_DESK_TARGET_MER,
+  });
+  if (rows.length === 0) {
+    const sampleOrders = await prisma.orderFact.count({
+      where: { shopId, source: "sample" },
+    });
+    if (sampleOrders === 0) await seedSampleOrderFacts(shopId);
+    return;
+  }
+  await insertSampleRows(shopId, rows);
+  await seedSampleOrderFacts(shopId);
+}
 
 export async function seedThreeYearSampleDesk(
   shopId: string,
   targetMer = SAMPLE_DESK_TARGET_MER,
+  _options?: { years?: number },
+) {
+  const pending = sampleSeedInFlight.get(shopId);
+  if (pending) {
+    await pending;
+    return {
+      days: 0,
+      start: null,
+      end: null,
+      totalSales: 0,
+      totalSpend: 0,
+    };
+  }
+
+  const run = seedThreeYearSampleDeskOnce(shopId, targetMer);
+  sampleSeedInFlight.set(shopId, run);
+  try {
+    return await run;
+  } finally {
+    sampleSeedInFlight.delete(shopId);
+  }
+}
+
+async function insertSampleRows(
+  shopId: string,
+  rows: ReturnType<typeof buildThreeYearSampleDesk>,
+) {
+  const salesData = rows.map((r) => ({
+    shopId,
+    day: r.day,
+    sales: r.sales,
+    orderCount: r.orderCount,
+    newCustomers: r.newCustomers,
+    returningCustomers: r.returningCustomers,
+    newCustomerNetSales: r.newCustomerNetSales,
+  }));
+  for (let i = 0; i < salesData.length; i += 200) {
+    await prisma.sampleSalesDay.createMany({
+      data: salesData.slice(i, i + 200),
+      skipDuplicates: true,
+    });
+  }
+
+  const spendData: Array<{
+    shopId: string;
+    channel: SpendChannel;
+    amount: number;
+    currency: string;
+    periodStart: Date;
+    periodEnd: Date;
+    note: string;
+    source: string;
+  }> = [];
+  for (const r of rows) {
+    const { start, end } = sampleSpendBounds(r.day);
+    for (const [channel, amount] of Object.entries(r.spendByChannel) as Array<
+      [SpendChannel, number]
+    >) {
+      if (!amount || amount <= 0) continue;
+      spendData.push({
+        shopId,
+        channel,
+        amount,
+        currency: "USD",
+        periodStart: start,
+        periodEnd: end,
+        note: "sample",
+        source: "sample",
+      });
+    }
+  }
+  for (let i = 0; i < spendData.length; i += 200) {
+    await prisma.spendEntry.createMany({
+      data: spendData.slice(i, i + 200),
+      skipDuplicates: true,
+    });
+  }
+}
+
+async function seedThreeYearSampleDeskOnce(
+  shopId: string,
+  targetMer: number,
 ) {
   const rows = buildThreeYearSampleDesk({ targetMer });
 
-  await prisma.$transaction(async (tx) => {
-    await tx.sampleSalesDay.deleteMany({ where: { shopId } });
-    await tx.spendEntry.deleteMany({ where: { shopId, source: "sample" } });
+  await prisma.sampleSalesDay.deleteMany({ where: { shopId } });
+  await prisma.spendEntry.deleteMany({ where: { shopId, source: "sample" } });
+  await insertSampleRows(shopId, rows);
 
-    // Batch create in chunks
-    const salesData = rows.map((r) => ({
-      shopId,
-      day: r.day,
-      sales: r.sales,
-      orderCount: r.orderCount,
-      newCustomers: r.newCustomers,
-      returningCustomers: r.returningCustomers,
-      newCustomerNetSales: r.newCustomerNetSales,
-    }));
-    for (let i = 0; i < salesData.length; i += 200) {
-      await tx.sampleSalesDay.createMany({ data: salesData.slice(i, i + 200) });
-    }
+  const settings = await prisma.settings.findUnique({ where: { shopId } });
+  if (settings?.samplePreviewAllowed !== false) {
+    await prisma.settings.update({
+      where: { shopId },
+      data: { useSampleDesk: true },
+    });
+  }
 
-    const spendData: Array<{
-      shopId: string;
-      channel: SpendChannel;
-      amount: number;
-      periodStart: Date;
-      periodEnd: Date;
-      note: string;
-      source: string;
-    }> = [];
-    for (const r of rows) {
-      const { start, end } = sampleSpendBounds(r.day);
-      for (const channel of SPEND_CHANNELS) {
-        const amount = r.spendByChannel[channel];
-        if (!amount || amount <= 0) continue;
-        spendData.push({
-          shopId,
-          channel,
-          amount,
-          periodStart: start,
-          periodEnd: end,
-          note: "sample:3y",
-          source: "sample",
-        });
-      }
-    }
-    // skipDuplicates guards the (shopId, channel, periodStart) unique index in the rare
-    // case a real (non-sample) entry already occupies that day/channel — sample rows lose.
-    for (let i = 0; i < spendData.length; i += 200) {
-      await tx.spendEntry.createMany({
-        data: spendData.slice(i, i + 200),
-        skipDuplicates: true,
-      });
-    }
-
-    // Toggle SAMPLE only when preview is still allowed — never clobber margin.
-    // Desk math applies SAMPLE_DESK_* at read time while useSampleDesk is true.
-    const settings = await tx.settings.findUnique({ where: { shopId } });
-    if (settings?.samplePreviewAllowed !== false) {
-      await tx.settings.update({
-        where: { shopId },
-        data: { useSampleDesk: true },
-      });
-    }
-  });
-
-  // Sample CohortFacts for Till LTV panel (clearly demo — not live Shopify).
   await seedSampleCohortFacts(shopId);
+  await seedSampleOrderFacts(shopId);
 
   return {
     days: rows.length,

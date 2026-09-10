@@ -1,14 +1,14 @@
 # McFly Master Directive
 
 **Authority:** Outranks chat. Read with [`LIVING_BOARD.md`](./LIVING_BOARD.md) every turn.  
-**Updated:** 2026-08-28 · America/Denver  
+**Updated:** 2026-09-10 · America/Denver  
 **Purpose:** Survive context expiry. This is how McFly makes real money from real companies.
 
 ---
 
 ## One sentence
 
-Sell **Mcfly Analytics** — spend beside Shopify sales, 7-day then $39/store/mo. Custom Data Solutions is parked until the founder unshelves it.
+Sell **Mcfly Analytics** — deeper Shopify analytics than Analytics Overview; marketing (spend / Total ROAS) optional. 7-day then $39/store/mo. Custom Data Solutions is parked until the founder unshelves it.
 
 ---
 
@@ -16,14 +16,14 @@ Sell **Mcfly Analytics** — spend beside Shopify sales, 7-day then $39/store/mo
 
 | Layer | Name | Role |
 | --- | --- | --- |
-| Firm | **Mcfly Ads** | Domain, legal, chrome, footer, schema |
-| Line | **Advanced data science, displayed simply** | Category claim under the mark |
-| Money now | **Mcfly Analytics** | Shopify app · 7-day then $39 |
-| Parked | **Custom Data Solutions** | Later add-on — not the public sell |
+| Chrome / titles / OG | **Mcfly Analytics** | What visitors see — matches the Shopify app |
+| Firm | **Mcfly Ads** | Domain, legal, footer, Organization schema |
+| Line | **Deeper Shopify numbers Analytics does not show.** | Home H1 job |
+| Parked | **Custom Data Solutions** | 301 to `/` on mcflyads.com — not the public sell |
 
-**Refuse:** Ads↔Analytics chrome toggle · dual-site mode bar · inventing App Store URLs · selling Custom on home/nav · parallel `dist/` · new SEO landers · composition “coherence” patches without a version + plan.
+**Refuse:** Ads↔Analytics chrome toggle · dual-site mode bar · inventing a fake App Store URL (live listing is `mcfly-analytics-public` only) · selling Custom on home/nav · parallel `dist/` · new SEO landers · composition “coherence” patches without a version + plan.
 
-**One-liner for agents:** Firm = Mcfly Ads. Sell the Shopify app. CTA = `/demo` until listing is live. Custom is parked. No `app/**` / Fly edits until `shopify app unfreeze`.
+**One-liner for agents:** Public mark = Mcfly Analytics. Firm = Mcfly Ads (footer). Sell the Shopify app. CTA = **Install** → https://apps.shopify.com/mcfly-analytics-public. Demo still `/demo`. Partner Website = mcflyads.com; App URL stays Fly. Custom URLs 301 home. Fly + `app/**` unfrozen.
 
 ---
 
@@ -31,11 +31,11 @@ Sell **Mcfly Analytics** — spend beside Shopify sales, 7-day then $39/store/mo
 
 | Rank | What | Why |
 | --- | --- | --- |
-| 1 | **Mcfly Analytics** Shopify app · 7-day then **$39**/store/mo | Founder priority — spend beside sales |
-| 2 | App Store listing (when live) | Install path; until then CTA = Try the demo |
+| 1 | **Mcfly Analytics** Shopify app · 7-day then **$39**/store/mo | Founder priority — order intelligence; spend optional |
+| 2 | App Store listing **live** — Install → https://apps.shopify.com/mcfly-analytics-public | Merchant install path. Partner **Website** = mcflyads.com. **App URL** stays Fly. |
 | — | Custom packages | **Parked** — do not sell on `/` or nav |
 
-**Do not invent `apps.shopify.com`.** Listing pending → `/demo` + `/pricing`. **Do not revive Custom as home hero.**
+**Do not invent a fake `apps.shopify.com` handle.** The real listing is `mcfly-analytics-public`. Ghost `/demo` stays on home. **Do not revive Custom as home hero.**
 
 ---
 
@@ -104,7 +104,7 @@ Until these pass, polish is theater:
 
 ## App ↔ Custom connection (keep)
 
-Mcfly Analytics solves a real Shopify problem and is how big store owners discover Custom Data Solutions. Site must say that out loud. App freeze (no `app/**` / Fly edits) stays until `shopify app unfreeze`.
+Mcfly Analytics solves a real Shopify problem and is how big store owners discover Custom Data Solutions. Site must say that out loud. **App freeze lifted 2026-08-29** — Fly + `app/**` are open so the listing can pass review.
 ## Craft religion
 
 - Hostile CFO + senior DE are the reviewers — not Instagram  
@@ -119,27 +119,26 @@ Mcfly Analytics solves a real Shopify problem and is how big store owners discov
 
 - Home sells the app in one viewport: spend beside sales · demo · $39  
 - Merchants reach `/demo` without Custom noise  
-- App code / Fly listing stay frozen until `shopify app unfreeze`  
+- App code / Fly host unfrozen for App Store approval (OAuth, `/app`, trust URLs)  
 
 ---
 
-## Site IA freeze (v11 app-first)
+## Site IA freeze (v12 one brand)
 
 **One sentence:** Mcfly Analytics — spend next to Shopify sales. 7-day then $39.
 
 | Tier | URLs | Action |
 | --- | --- | --- |
-| **A — rewrite** | `/` · `/about` · chrome | App-first |
-| **B — lock** | `/demo` · `/pricing` · `/product` · `/privacy` · `/support` · `/terms` | Fly listing — do not rewrite this pass |
-| **C — freeze** | SEO hire/recon long-tail | `noindex,follow` |
-| **Parked** | `/lab` · `/custom-analytics` · packages | Off nav · not the sell |
-| **D — lock** | `app/**` + Fly listing copy | Until `shopify app unfreeze` |
+| **A — public** | `/` · `/demo` · `/pricing` · `/about` · `/product` · chrome | One name, one favicon, one title pattern |
+| **B — trust** | `/privacy` · `/support` · `/terms` · `/cookies` · `/security` · `/dpa` | Keep 200 · heads unified to mcflyads.com |
+| **C — 301 home** | Custom packages, `/lab`, suite landers, `/cash-mer`, `/monday-close` | Cleared off the public origin |
+| **D — app** | `app/**` + Fly | Unfrozen 2026-08-29 — approval functional |
 
-**Nav:** Demo · Pricing · About · Try the demo  
+**Nav:** Demo · Pricing · About · Install  
 
-**Money spine:** `/` → `/demo` → `/pricing`
+**Money spine:** `/` → Install (App Store) · `/demo` on nav and home ghost
 
-**Ship discipline:** one version = one job. Fail spine probe (app hero · demo CTA · no Custom packages on home) = no deploy.
+**Ship discipline:** one version = one job. Fail spine probe (Analytics mark · Install CTA · Harbor SAMPLE · no Custom on home) = no deploy.
 
 ---
 

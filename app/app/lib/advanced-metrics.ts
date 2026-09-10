@@ -95,7 +95,7 @@ export type AdvancedSection = {
   title: string;
   open?: boolean;
   tiles: AdvancedTile[];
-  /** When set, section shows Pro upsell instead of tiles. */
+  /** When set, Advanced UI hides tiles. Do not use for spend-empty Shopify stats. */
   lockedReason?: string;
 };
 
@@ -119,8 +119,8 @@ function pctOrDash(n: number | null | undefined, digits = 0): string {
  * Build Advanced Metrics sections from desk metrics.
  *
  * `canUseLtv` is NOT a plan gate — the whole desk is one plan. It is false only
- * when cohort facts are not resolvable yet, and the section then explains that
- * rather than offering an upgrade.
+ * when cohort facts are not resolvable yet. New vs returning / AOV still
+ * paint from orders with no spend upload.
  */
 export function buildAdvancedSections(
   metrics: AdvancedMetricsInput,
@@ -264,56 +264,48 @@ export function buildAdvancedSections(
     ],
   };
 
-  let acquisition: AdvancedSection;
-  if (!canUseLtv) {
-    acquisition = {
-      id: "acquisition",
-      title: "Acquisition & payback",
-      open: true,
-      tiles: [],
-      lockedReason:
-        "Customer LTV and payback are on the whole desk. Add spend, then open LTV.",
-    };
-  } else {
-    const ltv = metrics.tillLtv;
-    acquisition = {
-      id: "acquisition",
-      title: "Acquisition & payback",
-      open: true,
-      tiles: [
-        {
-          id: "new-vs-ret",
-          label: "New vs returning",
-          value: metrics.customerMetricsAvailable
-            ? `${metrics.newCustomers.toLocaleString()} new · ${metrics.returningCustomers.toLocaleString()} returning`
-            : "—",
-          formula: "Shopify order customer flags (Level 1)",
-          caveat: metrics.customerMetricsAvailable
-            ? `${metrics.guestOrders.toLocaleString()} guest orders`
-            : "Needs read_customers — reinstall if missing.",
-        },
-        {
-          id: "aov",
-          label: "AOV",
-          value: moneyOrDash(aov),
-          formula: "Action sales ÷ orders",
-          caveat: `${metrics.orderCount.toLocaleString()} orders · ${periodLabel}`,
-        },
-        {
-          id: "new-cust-sales",
-          label: "New-customer sales",
-          value: moneyOrDash(metrics.newCustomerNetSales),
-          formula: "aMER numerator (new-customer sales $)",
-          caveat: "Additive period sales — not unique CRM revenue.",
-        },
+  const shopifyAcqTiles: AdvancedTile[] = [
+    {
+      id: "new-vs-ret",
+      label: "New vs returning",
+      value: metrics.customerMetricsAvailable
+        ? `${metrics.newCustomers.toLocaleString()} new · ${metrics.returningCustomers.toLocaleString()} returning`
+        : "—",
+      formula: "Shopify order customer flags (Level 1)",
+      caveat: metrics.customerMetricsAvailable
+        ? `${metrics.guestOrders.toLocaleString()} guest orders · no spend upload`
+        : "Needs read_customers — reinstall if missing.",
+    },
+    {
+      id: "aov",
+      label: "AOV",
+      value: moneyOrDash(aov),
+      formula: "Action sales ÷ orders",
+      caveat: `${metrics.orderCount.toLocaleString()} orders · ${periodLabel}`,
+    },
+    {
+      id: "new-cust-sales",
+      label: "New-customer sales",
+      value: moneyOrDash(metrics.newCustomerNetSales),
+      formula: "New-customer sales $ (Shopify order flags)",
+      caveat: "Additive period sales — not unique CRM revenue. No spend needed.",
+    },
+  ];
+
+  const ltv = metrics.tillLtv;
+  const cohortTiles: AdvancedTile[] = canUseLtv
+    ? [
         {
           id: "cash-cac",
           label: "Cash CAC",
           value: moneyOrDash(ltv.available ? ltv.cashCac : null),
           formula: "Period spend ÷ new buyers",
-          caveat: ltv.available
-            ? `${ltv.newBuyers.toLocaleString()} new buyers · blended, not platform CAC`
-            : (ltv.emptyReason ?? "Cohorts unavailable"),
+          caveat:
+            ltv.available && ltv.cashCac != null
+              ? `${ltv.newBuyers.toLocaleString()} new buyers · blended, not platform CAC`
+              : spend <= 0
+                ? PRODUCT_NOUN.cashCacNeedsSpend
+                : (ltv.emptyReason ?? "Cohorts unavailable"),
         },
         {
           id: "ltv-30",
@@ -327,7 +319,7 @@ export function buildAdvancedSections(
           label: "LTV · 90d",
           value: moneyOrDash(ltv.available ? ltv.avgRevenueD90 : null),
           formula: "Cohort avg revenue · 90d window",
-          caveat: "Average cohort payback — not causal.",
+          caveat: "Average cohort revenue — not causal. No spend needed.",
         },
         {
           id: "ltv-365",
@@ -347,9 +339,11 @@ export function buildAdvancedSections(
               : "—",
           formula: "90d LTV ÷ cash CAC",
           caveat:
-            ltv.repeatRate != null
-              ? `Repeat rate ${(ltv.repeatRate * 100).toFixed(0)}% · average, not causal`
-              : "Average portfolio payback ratio.",
+            spend <= 0
+              ? PRODUCT_NOUN.cashCacNeedsSpend
+              : ltv.repeatRate != null
+                ? `Repeat rate ${(ltv.repeatRate * 100).toFixed(0)}% · average, not causal`
+                : "Average portfolio payback ratio.",
         },
         {
           id: "payback-days",
@@ -361,7 +355,10 @@ export function buildAdvancedSections(
                 ? "Not recovered by 365d"
                 : "—",
           formula: "Interpolated days for cohort revenue to recover cash CAC",
-          caveat: "Average cohort, not causal.",
+          caveat:
+            spend <= 0
+              ? PRODUCT_NOUN.cashCacNeedsSpend
+              : "Average cohort, not causal.",
         },
         {
           id: "avg-orders-90",
@@ -371,11 +368,28 @@ export function buildAdvancedSections(
               ? ltv.avgOrdersD90.toFixed(2)
               : "—",
           formula: "Cohort avg orders per customer · 90d window",
-          caveat: "Customer-weighted average — not causal.",
+          caveat: "Customer-weighted average — not causal. No spend needed.",
         },
-      ],
-    };
-  }
+      ]
+    : [];
+
+  const spendOn = spend > 0;
+
+  const orderCohortTiles = spendOn
+    ? cohortTiles
+    : cohortTiles.filter(
+        (tile) =>
+          tile.id !== "cash-cac" &&
+          tile.id !== "ltv-cac" &&
+          tile.id !== "payback-days",
+      );
+
+  const acquisition: AdvancedSection = {
+    id: "acquisition",
+    title: "Acquisition & payback",
+    open: true,
+    tiles: [...shopifyAcqTiles, ...orderCohortTiles],
+  };
 
   const mixTiles: AdvancedTile[] = metrics.channelMix
     .filter((c) => c.amount > 0)
@@ -462,23 +476,27 @@ export function buildAdvancedSections(
             formula: `vs ${deltas.priorLabel}`,
             caveat: `Prior sales ${formatCurrency(deltas.priorSales)}`,
           },
-          {
-            id: "spend-delta",
-            label: "Spend Δ",
-            value: pctOrDash(deltas.spendPct),
-            formula: `vs ${deltas.priorLabel}`,
-            caveat: `Prior spend ${formatCurrency(deltas.priorSpend)}`,
-          },
-          {
-            id: "mer-delta",
-            label: `${PRODUCT_NOUN.totalRoas} Δ`,
-            value:
-              deltas.merAbs == null
-                ? "—"
-                : `${deltas.merAbs >= 0 ? "+" : ""}${deltas.merAbs.toFixed(2)}×`,
-            formula: `vs ${deltas.priorLabel} (${merOrDash(deltas.priorMer)})`,
-            caveat: "Absolute change in × units — average, not causal.",
-          },
+          ...(spendOn
+            ? [
+                {
+                  id: "spend-delta",
+                  label: "Spend Δ",
+                  value: pctOrDash(deltas.spendPct),
+                  formula: `vs ${deltas.priorLabel}`,
+                  caveat: `Prior spend ${formatCurrency(deltas.priorSpend)}`,
+                },
+                {
+                  id: "mer-delta",
+                  label: `${PRODUCT_NOUN.totalRoas} Δ`,
+                  value:
+                    deltas.merAbs == null
+                      ? "—"
+                      : `${deltas.merAbs >= 0 ? "+" : ""}${deltas.merAbs.toFixed(2)}×`,
+                  formula: `vs ${deltas.priorLabel} (${merOrDash(deltas.priorMer)})`,
+                  caveat: "Absolute change in × units — average, not causal.",
+                },
+              ]
+            : []),
         ]
       : [
           {
@@ -490,6 +508,15 @@ export function buildAdvancedSections(
           },
         ],
   };
+
+  if (!spendOn) {
+    const spendInvite =
+      "Add spend on Marketing to see Total ROAS, mix, and payback. Order stats on this page do not need it.";
+    portfolio.lockedReason = spendInvite;
+    affordability.lockedReason = spendInvite;
+    spendStructure.lockedReason = spendInvite;
+    allocationSnap.lockedReason = spendInvite;
+  }
 
   return [
     portfolio,

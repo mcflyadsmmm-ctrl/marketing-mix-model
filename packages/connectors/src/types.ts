@@ -1,4 +1,4 @@
-export type SpendSource = "meta" | "google" | "manual" | "csv";
+export type SpendSource = "meta" | "google" | "manual" | "csv" | "recurring";
 
 export type SpendDay = {
   date: string;

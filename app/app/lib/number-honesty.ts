@@ -14,14 +14,30 @@ export function spendAddHref(opts: DeskNavOpts = {}): string {
   return deskNavHref("/app/spend", { ...opts, hash: "mcfly-spend-add" });
 }
 
+/** Empty coverage cell → typed-day form with that date filled. */
+export function spendFillDayHref(
+  dateKey: string,
+  opts: DeskNavOpts = {},
+): string {
+  return deskNavHref("/app/spend", {
+    ...opts,
+    extra: { ...opts.extra, date: dateKey },
+    hash: "mcfly-spend-add",
+  });
+}
+
 /** CSV / Ads Manager export drawer (coverage holes, many days). */
-export const SPEND_CSV_HREF = "/app/spend#mcfly-spend-csv";
+export const SPEND_CSV_HREF = "/app/spend/import#mcfly-spend-csv";
 
 export const NUMBER_HONESTY = {
   panelLabel: "How this number is built",
   formula: "Shopify Total Sales ÷ spend you added",
   empty:
     "Add spend to see sales ÷ spend. Empty spend is not 0× Total ROAS.",
+  csvHint:
+    "Type one day’s amount or paste an Ads Manager CSV.",
+  orderWindow:
+    "Shopify sales on this install cover about the last 60 days (read_orders). Older years are outside that window — not $0.",
   /** Spend is in, closed sales days have not landed yet. Unknown ≠ zero. */
   salesPending:
     "Your spend is saved. Shopify sales for these dates are still loading — unknown is not $0, so Total ROAS waits instead of showing 0×.",

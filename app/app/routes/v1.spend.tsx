@@ -8,6 +8,7 @@ import {
 } from "../lib/entitlements.server";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import { utcMidnightFromDayKey } from "../lib/shop-local-day";
+import { shopCurrencyCode } from "../lib/spend-money";
 
 /** UTC day bounds for a YYYY-MM-DD key — matches SalesDayFact / spine day stamps. */
 function dayBounds(date: string): { start: Date; end: Date } {
@@ -65,6 +66,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   const shop = await ensureShop(auth.shopDomain);
+  const currency = shopCurrencyCode(shop.currencyCode);
   const entries = parsed.data.entries;
   const entitlements = getShopEntitlements(auth.shopDomain);
   const channelGate = assertChannelsAllowed(
@@ -98,6 +100,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           channel,
           customKey: "",
           amount: entry.amount,
+          currency,
           periodStart: start,
           periodEnd: end,
           note: `api:${entry.currency}`,
@@ -105,6 +108,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         },
         update: {
           amount: entry.amount,
+          currency,
           periodEnd: end,
           note: `api:${entry.currency}`,
           source: "csv",

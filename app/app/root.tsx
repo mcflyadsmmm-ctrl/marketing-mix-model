@@ -17,7 +17,7 @@ import { isPublicOriginPath } from "./lib/public-origin";
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
-  const path = url.pathname;
+  const path = url.pathname.replace(/\.data$/, "");
   const loadAppBridge =
     !isPublicOriginPath(path) &&
     (path === "/app" ||

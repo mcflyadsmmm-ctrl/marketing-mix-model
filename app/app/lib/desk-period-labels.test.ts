@@ -31,6 +31,14 @@ describe("Desk period labels and Overview clocks", () => {
     expect(overview).not.toMatch(/if \(entitlements\.canUse\w+\)/);
   });
 
+  it("prints calendar dates under Shopify Total Sales, not only “this period”", () => {
+    expect(overview).toContain("formatPeriodDaySpan");
+    expect(overview).toContain("aria-label=\"Shopify sales this period\"");
+    expect(overview).toMatch(
+      /formatPeriodDaySpan\(\s*sharePeriodStartDay,\s*sharePeriodEndDay/,
+    );
+  });
+
   it("keeps Spend on the same date slicer after the first save", () => {
     const spend = read("../routes/app.spend.tsx");
     expect(spend).toContain("explorerQueryMatchingScoreboard");

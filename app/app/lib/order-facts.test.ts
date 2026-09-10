@@ -12,11 +12,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { orderNetAmount } from "./shopify-sales.server";
 
 const deleteManyOrderFact = vi.fn();
+const countOrderFact = vi.fn();
+const updateManyBackfill = vi.fn();
 
 vi.mock("../db.server", () => ({
   default: {
     orderFact: {
       deleteMany: (...args: unknown[]) => deleteManyOrderFact(...args),
+      count: (...args: unknown[]) => countOrderFact(...args),
+    },
+    orderBackfillState: {
+      updateMany: (...args: unknown[]) => updateManyBackfill(...args),
     },
   },
 }));
@@ -26,6 +32,7 @@ import {
   ORDER_FACT_SOURCE,
   clearOrderFactDayCompleteSeal,
   orderFactDayCompleteMarkerId,
+  unsealOrderFactsMissingV2,
 } from "./order-facts.server";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -111,5 +118,48 @@ describe("clearOrderFactDayCompleteSeal", () => {
     deleteManyOrderFact.mockResolvedValue({ count: 0 });
     expect(await clearOrderFactDayCompleteSeal("shop_1", "2026-07-20")).toBe(0);
     expect(deleteManyOrderFact).toHaveBeenCalledOnce();
+  });
+});
+
+describe("OrderFact v2 crawl", () => {
+  it("selects discount, sourceName, and unit quantity without SKUs", () => {
+    expect(orderFactsSource).toContain("currentTotalDiscountsSet");
+    expect(orderFactsSource).toContain("sourceName");
+    expect(orderFactsSource).toContain("currentSubtotalLineItemsQuantity");
+    expect(orderFactsSource).not.toMatch(/\b(?:sku|vendor|lineItems)\b/);
+    expect(orderFactsSource).toContain("unsealOrderFactsMissingV2");
+    expect(orderFactsSource).toContain("seedSampleOrderFacts");
+  });
+});
+
+describe("unsealOrderFactsMissingV2", () => {
+  beforeEach(() => {
+    deleteManyOrderFact.mockReset();
+    countOrderFact.mockReset();
+    updateManyBackfill.mockReset();
+    updateManyBackfill.mockResolvedValue({ count: 1 });
+  });
+
+  it("does not drop seals when every live row already has unitCount", async () => {
+    countOrderFact.mockResolvedValue(0);
+    expect(await unsealOrderFactsMissingV2("shop_1")).toBe(0);
+    expect(deleteManyOrderFact).not.toHaveBeenCalled();
+  });
+
+  it("drops day-complete seals when live rows still lack unitCount", async () => {
+    countOrderFact.mockResolvedValue(12);
+    deleteManyOrderFact.mockResolvedValue({ count: 7 });
+    expect(await unsealOrderFactsMissingV2("shop_1")).toBe(7);
+    expect(deleteManyOrderFact).toHaveBeenCalledWith({
+      where: {
+        shopId: "shop_1",
+        source: ORDER_FACT_SOURCE,
+        shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX },
+      },
+    });
+    expect(updateManyBackfill).toHaveBeenCalledWith({
+      where: { shopId: "shop_1" },
+      data: { cursor: null },
+    });
   });
 });

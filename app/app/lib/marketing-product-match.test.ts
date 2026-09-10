@@ -16,7 +16,9 @@ describe("Marketing matches the Shopify app (one product)", () => {
   const advanced = read("app/app/routes/app.advanced.tsx");
 
   it("leads with the locked hero and never sells a Free vs Pro split", () => {
-    expect(index).toContain("<h1>See ad spend next to sales, day by day.</h1>");
+    expect(index).toContain(
+      '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
+    );
     expect(index).not.toMatch(/Email Overview \(Free\)/);
     expect(index).not.toMatch(/Goals \+ LTV \(Pro\)/);
     expect(index).not.toMatch(/Free \+ Pro|Free vs Pro/i);
@@ -24,7 +26,7 @@ describe("Marketing matches the Shopify app (one product)", () => {
   });
 
   it("names the Shopify chrome Mcfly Analytics and offers the Sample desk demo", () => {
-    expect(chrome).toContain('aria-label="Mcfly Analytics home"');
+    expect(chrome).toContain('aria-label="Mcfly Analytics"');
     expect(chrome).toContain("brand-name-sub\">Analytics");
     expect(chrome).not.toContain("brand-name-sub\">Ads");
     // Desk modes are Sample data | Live data — Practice is retired.
@@ -39,7 +41,7 @@ describe("Marketing matches the Shopify app (one product)", () => {
     expect(invites).toBeGreaterThan(gmail);
   });
 
-  it("tells first-session merchants Advanced is optional after spend", () => {
-    expect(advanced).toContain("Optional. Add spend on Upload Spend first");
+  it("tells first-session merchants Shopify stats paint without spend", () => {
+    expect(advanced).toContain("no spend upload");
   });
 });

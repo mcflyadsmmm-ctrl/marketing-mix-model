@@ -474,6 +474,8 @@ export default function GoalsPage() {
       : "";
 
   const goalsKey = `${board.year}:${board.rows.map((r) => r.salesGoal).join("|")}`;
+  const periodHasSpend = periodMetrics.totalSpend > 0;
+  const yearHasSpend = board.rows.some((row) => row.spend > 0);
   const priorYearSales = priorYearMonthly.reduce((a, b) => a + b, 0);
   const previewTenPct = goalsAtYoyGrowth(priorYearMonthly, 10).reduce(
     (a, b) => a + b,
@@ -573,8 +575,9 @@ export default function GoalsPage() {
           <header className="mcfly-topbar mcfly-goals__top">
             <div>
               <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-                Set the year. Mcfly tracks sales, spend, and{" "}
-                {PRODUCT_NOUN.totalRoas} against it.
+                {yearHasSpend
+                  ? `Set the year. Mcfly tracks sales, spend, and ${PRODUCT_NOUN.totalRoas} against it.`
+                  : "Set the year. Mcfly tracks sales vs the calendar. Spend is optional on Marketing."}
               </p>
             </div>
             <PeriodControl preset={preset} shotMode={shotMode} />
@@ -582,12 +585,8 @@ export default function GoalsPage() {
 
           <div className="mcfly-ctx mcfly-goals__ctx" aria-live="polite">
             <div className="mcfly-ctx__main">
-              <span className="mcfly-ctx__brand">Goals</span>
-              <span className="mcfly-ctx__sep" aria-hidden="true">
-                ·
-              </span>
               <span className="mcfly-ctx__asof">{tillLabel}</span>
-              {!shotMode ? (
+              {!shotMode && yearHasSpend ? (
                 <>
                   <span className="mcfly-ctx__sep" aria-hidden="true">
                     ·
@@ -641,11 +640,21 @@ export default function GoalsPage() {
           </div>
           {!shotMode ? (
             <p className="mcfly-goals__lede">
-              Same sales ÷ spend as Overview for {periodMetrics.period.label}.{" "}
-              Type the sales you want this year — the board shows the most you
-              can spend each month and still hit your Total ROAS target.{" "}
-              {PRODUCT_NOUN.totalRoas} target lives in{" "}
-              <s-link href="/app/settings">Settings</s-link>.
+              {yearHasSpend ? (
+                <>
+                  Same sales ÷ spend as Marketing for{" "}
+                  {periodMetrics.period.label}. Type the sales you want this year
+                  — the board shows the most you can spend each month and still
+                  hit your Total ROAS target. {PRODUCT_NOUN.totalRoas} target
+                  lives in <s-link href="/app/settings">Settings</s-link>.
+                </>
+              ) : (
+                <>
+                  Sales vs the calendar for {periodMetrics.period.label}. No
+                  spend required. Add spend on Marketing if you want{" "}
+                  {PRODUCT_NOUN.totalRoas} and a monthly spend ceiling.
+                </>
+              )}
             </p>
           ) : null}
         </div>
@@ -684,8 +693,9 @@ export default function GoalsPage() {
             <div className="mcfly-panel__head mcfly-panel__head--tight">
               <h2>This period · {periodMetrics.period.label}</h2>
               <p className="mcfly-panel__muted">
-                Same Shopify sales ÷ spend you added as Overview · vs{" "}
-                {PRODUCT_NOUN.totalRoasGoal} {formatMer(targetMer)}×
+                {periodHasSpend
+                  ? `Shopify sales ÷ spend you added · vs ${PRODUCT_NOUN.totalRoasGoal} ${formatMer(targetMer)}×`
+                  : "Shopify sales vs your plan. Spend and Total ROAS wait on Marketing."}
               </p>
             </div>
             <div className="mcfly-acq-grid mcfly-goals-period__grid">
@@ -696,53 +706,61 @@ export default function GoalsPage() {
                 </p>
                 <p className="mcfly-acq-tile__def">{PRODUCT_NOUN.salesBasisShort}</p>
               </div>
-              <div className="mcfly-acq-tile mcfly-acq-tile--cream">
-                <p className="mcfly-acq-tile__k">Spend</p>
-                <p className="mcfly-acq-tile__v">
-                  {formatCurrency(periodMetrics.totalSpend)}
-                </p>
-                <p className="mcfly-acq-tile__def">Uploaded ad spend · this period</p>
-              </div>
-              <div className="mcfly-acq-tile mcfly-acq-tile--mint">
-                <p className="mcfly-acq-tile__k">{PRODUCT_NOUN.totalRoas}</p>
-                <p className="mcfly-acq-tile__v">
-                  {periodMetrics.mer != null
-                    ? formatMer(periodMetrics.mer)
-                    : "—"}
-                </p>
-                <p className="mcfly-acq-tile__def">
-                  <span
-                    className={`mcfly-goals-pace mcfly-goals-pace--${periodMerRails.tone}`}
-                  >
-                    {periodMerRails.label !== "—"
-                      ? periodMerRails.label
-                      : periodVsTarget != null
-                        ? `${periodVsTarget >= 0 ? "+" : ""}${periodVsTarget.toFixed(2)}× vs target`
-                        : "Sales ÷ spend"}
-                  </span>
-                </p>
-              </div>
-              <div className="mcfly-acq-tile mcfly-acq-tile--sky">
-                <p className="mcfly-acq-tile__k">Spend ceiling</p>
-                <p className="mcfly-acq-tile__v">
-                  {periodSpendCeiling != null
-                    ? formatCurrency(periodSpendCeiling)
-                    : "—"}
-                </p>
-                <p className="mcfly-acq-tile__def">
-                  {impliedSpendCeilingCaption(
-                    "period_sales",
-                    targetMer,
-                  )}
-                </p>
-              </div>
+              {periodHasSpend ? (
+                <>
+                  <div className="mcfly-acq-tile mcfly-acq-tile--cream">
+                    <p className="mcfly-acq-tile__k">Spend</p>
+                    <p className="mcfly-acq-tile__v">
+                      {formatCurrency(periodMetrics.totalSpend)}
+                    </p>
+                    <p className="mcfly-acq-tile__def">Uploaded ad spend · this period</p>
+                  </div>
+                  <div className="mcfly-acq-tile mcfly-acq-tile--mint">
+                    <p className="mcfly-acq-tile__k">{PRODUCT_NOUN.totalRoas}</p>
+                    <p className="mcfly-acq-tile__v">
+                      {periodMetrics.mer != null
+                        ? formatMer(periodMetrics.mer)
+                        : "—"}
+                    </p>
+                    <p className="mcfly-acq-tile__def">
+                      <span
+                        className={`mcfly-goals-pace mcfly-goals-pace--${periodMerRails.tone}`}
+                      >
+                        {periodMerRails.label !== "—"
+                          ? periodMerRails.label
+                          : periodVsTarget != null
+                            ? `${periodVsTarget >= 0 ? "+" : ""}${periodVsTarget.toFixed(2)}× vs target`
+                            : "Sales ÷ spend"}
+                      </span>
+                    </p>
+                  </div>
+                  <div className="mcfly-acq-tile mcfly-acq-tile--sky">
+                    <p className="mcfly-acq-tile__k">Spend ceiling</p>
+                    <p className="mcfly-acq-tile__v">
+                      {periodSpendCeiling != null
+                        ? formatCurrency(periodSpendCeiling)
+                        : "—"}
+                    </p>
+                    <p className="mcfly-acq-tile__def">
+                      {impliedSpendCeilingCaption(
+                        "period_sales",
+                        targetMer,
+                      )}
+                    </p>
+                  </div>
+                </>
+              ) : null}
             </div>
           </section>
 
           <SalesGoalGauges
             periods={periods}
             heading="MTD · QTD · YTD"
-            muted={`Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} · calendar tick = period elapsed`}
+            muted={
+              yearHasSpend
+                ? `Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} · calendar tick = period elapsed`
+                : "Sales vs plan · calendar tick = period elapsed. Spend optional."
+            }
             targetMer={board.targetMer}
             breakEvenMer={board.breakEvenMer}
           />
@@ -913,9 +931,13 @@ export default function GoalsPage() {
                             <th scope="col">Month</th>
                             <th scope="col">Goal</th>
                             <th scope="col">Actual</th>
-                            <th scope="col">Spend</th>
-                            <th scope="col">Ceiling</th>
-                            <th scope="col">MER</th>
+                            {yearHasSpend ? (
+                              <>
+                                <th scope="col">Spend</th>
+                                <th scope="col">Ceiling</th>
+                                <th scope="col">MER</th>
+                              </>
+                            ) : null}
                             <th scope="col">Prior</th>
                             <th scope="col">YoY</th>
                             <th scope="col">Pace</th>
@@ -930,6 +952,7 @@ export default function GoalsPage() {
                               inputId={`${formId}-g${row.month}`}
                               defaultValue={formatGoalInput(row.salesGoal)}
                               showGoalInput
+                              showSpend={yearHasSpend}
                               targetMer={board.targetMer}
                             />
                           ))}
@@ -937,12 +960,14 @@ export default function GoalsPage() {
                       </table>
                     </div>
                     <p className="mcfly-goals-form__hint">
-                      {impliedSpendCeilingCaption(
-                        "sales_goal",
-                        board.targetMer,
-                      )}{" "}
+                      {yearHasSpend
+                        ? `${impliedSpendCeilingCaption(
+                            "sales_goal",
+                            board.targetMer,
+                          )} `
+                        : ""}
                       Dirty fields open the Admin save bar.{" "}
-                      <s-link href="/app">{PRODUCT_NOUN.deskTitle}</s-link>
+                      <s-link href="/app">{PRODUCT_NOUN.overviewTitle}</s-link>
                     </p>
                   </Form>
                 </section>
@@ -964,8 +989,12 @@ export default function GoalsPage() {
                       <tr>
                         <th scope="col">Month</th>
                         <th scope="col">Actual</th>
-                        <th scope="col">Spend</th>
-                        <th scope="col">MER</th>
+                        {yearHasSpend ? (
+                          <>
+                            <th scope="col">Spend</th>
+                            <th scope="col">MER</th>
+                          </>
+                        ) : null}
                         <th scope="col">Prior</th>
                         <th scope="col">YoY</th>
                       </tr>
@@ -993,12 +1022,16 @@ export default function GoalsPage() {
                               ) : null}
                             </th>
                             <td>{formatCurrency(row.actual)}</td>
-                            <SpendCell spend={row.spend} />
-                            <MerCell
-                              mer={row.mer}
-                              spend={row.spend}
-                              merRails={row.merRails}
-                            />
+                            {yearHasSpend ? (
+                              <>
+                                <SpendCell spend={row.spend} />
+                                <MerCell
+                                  mer={row.mer}
+                                  spend={row.spend}
+                                  merRails={row.merRails}
+                                />
+                              </>
+                            ) : null}
                             <td>{formatCurrency(prior)}</td>
                             <td>{formatYoyPct(pct)}</td>
                           </tr>
@@ -1081,6 +1114,7 @@ function GoalRow({
   inputId,
   defaultValue,
   showGoalInput,
+  showSpend,
   targetMer,
 }: {
   row: GoalMonthRow;
@@ -1088,6 +1122,7 @@ function GoalRow({
   inputId: string;
   defaultValue: string;
   showGoalInput: boolean;
+  showSpend: boolean;
   targetMer: number;
 }) {
   const hasGoal = row.salesGoal > 0;
@@ -1145,11 +1180,15 @@ function GoalRow({
         </td>
       ) : null}
       <td>{formatCurrency(row.actual)}</td>
-      <SpendCell spend={row.spend} />
-      <td>
-        {spendCeiling != null ? formatCurrency(spendCeiling) : "—"}
-      </td>
-      <MerCell mer={row.mer} spend={row.spend} merRails={row.merRails} />
+      {showSpend ? (
+        <>
+          <SpendCell spend={row.spend} />
+          <td>
+            {spendCeiling != null ? formatCurrency(spendCeiling) : "—"}
+          </td>
+          <MerCell mer={row.mer} spend={row.spend} merRails={row.merRails} />
+        </>
+      ) : null}
       <td>{formatCurrency(priorActual)}</td>
       <td>{formatYoyPct(pct)}</td>
       {showGoalInput ? (

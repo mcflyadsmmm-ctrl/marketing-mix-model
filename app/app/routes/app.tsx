@@ -5,9 +5,12 @@ import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
 import { authenticate } from "../shopify.server";
 import {
+  hasShopifySessionContext,
+  isEmbeddedAdminRequest,
+} from "../../scripts/shopify-app-path.mjs";
+import {
   ensureShop,
   getOrCreateSettings,
-  marginIsConfirmed,
 } from "../lib/mer-dashboard.server";
 import {
   getSampleDeskEnabled,
@@ -17,10 +20,27 @@ import { DataModeBar } from "../components/DataModeBar";
 import { BillingExitProvider } from "../lib/billing-exit-context";
 import { isBillingEnabled } from "../lib/billing-flag.server";
 import { buildManagedPricingPlansUrl } from "../lib/billing.server";
-import { deskNavHrefFromSearch } from "../lib/desk-nav";
-import { PRODUCT_NOUN } from "../lib/product-labels";
-import prisma from "../db.server";
+import { deskNavHrefFromSearch, DESK_PRIMARY_NAV } from "../lib/desk-nav";
+import { OriginShell } from "./_index/OriginShell";
+import originStyles from "./_index/styles.module.css";
 import deskStyles from "../styles/mcfly-desk.css?url";
+
+const PUBLIC_APP = {
+  kind: "public" as const,
+  apiKey: "",
+  useSampleDesk: false,
+  samplePreviewAllowed: false,
+  shotMode: false,
+  plansUrl: null as string | null,
+};
+
+function isGoneResponse(error: unknown): boolean {
+  if (error instanceof Response) return error.status === 410;
+  if (typeof error === "object" && error && "status" in error) {
+    return Number((error as { status: unknown }).status) === 410;
+  }
+  return false;
+}
 
 /** Desk craft CSS only inside the embedded app — not on the bare Fly landing. */
 export const links: LinksFunction = () => [
@@ -28,22 +48,28 @@ export const links: LinksFunction = () => [
 ];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  // Public tab / curl: never 410. 410 hydrates React Router, fetches /app.data,
+  // and throws "Unable to decode turbo-stream response".
+  if (!hasShopifySessionContext(request)) {
+    return PUBLIC_APP;
+  }
+  let session;
+  try {
+    ({ session } = await authenticate.admin(request));
+  } catch (error) {
+    if (isGoneResponse(error) && !isEmbeddedAdminRequest(request)) {
+      return PUBLIC_APP;
+    }
+    throw error;
+  }
   const shop = await ensureShop(session.shop);
-  const settings = await getOrCreateSettings(shop.id);
+  await getOrCreateSettings(shop.id);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
-  const [useSampleDesk, samplePreviewAllowed, liveSpendCount] =
-    await Promise.all([
-      getSampleDeskEnabled(shop.id),
-      getSamplePreviewAllowed(shop.id),
-      prisma.spendEntry.count({
-        where: { shopId: shop.id, NOT: { source: "sample" } },
-      }),
-    ]);
-
-  const marginConfirmed = marginIsConfirmed(settings);
-  const hasLiveSpend = liveSpendCount > 0;
+  const [useSampleDesk, samplePreviewAllowed] = await Promise.all([
+    getSampleDeskEnabled(shop.id),
+    getSamplePreviewAllowed(shop.id),
+  ]);
 
   let plansUrl: string | null = null;
   if (isBillingEnabled()) {
@@ -56,27 +82,50 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // eslint-disable-next-line no-undef
   return {
+    kind: "desk" as const,
     apiKey: process.env.SHOPIFY_API_KEY || "",
     useSampleDesk,
     samplePreviewAllowed,
-    marginConfirmed,
-    hasLiveSpend,
     shotMode,
     plansUrl,
   };
 };
 
 export default function App() {
+  const data = useLoaderData<typeof loader>();
+  const [searchParams] = useSearchParams();
+
+  if (data.kind === "public") {
+    return (
+      <OriginShell>
+        <main id="main" className={originStyles.article}>
+          <h1>Mcfly Analytics</h1>
+          <p className={originStyles.lede}>
+            This is the app host. Open Mcfly Analytics from Shopify Admin after
+            install. We never ask you to type a store domain here.
+          </p>
+          <p>
+            7-day trial, then $39/store/mo via Shopify App Pricing. Trust pages:{" "}
+            <a href="/privacy">Privacy</a>
+            {" · "}
+            <a href="/support">Support</a>
+            {" · "}
+            <a href="/terms">Terms</a>
+            {" · "}
+            <a href="/pricing">Pricing</a>
+          </p>
+        </main>
+      </OriginShell>
+    );
+  }
+
   const {
     apiKey,
     useSampleDesk,
     samplePreviewAllowed,
-    marginConfirmed,
-    hasLiveSpend,
     shotMode,
     plansUrl,
-  } = useLoaderData<typeof loader>();
-  const [searchParams] = useSearchParams();
+  } = data;
 
   return (
     <AppProvider embedded apiKey={apiKey}>
@@ -85,33 +134,18 @@ export default function App() {
             Do not hide tabs when Your store (Sample off); that felt broken.
             period + shot stay on every tab so the date slicer matches. */}
         <s-app-nav>
-          <s-link href={deskNavHrefFromSearch("/app", searchParams)}>
-            Overview
-          </s-link>
-          <s-link href={deskNavHrefFromSearch("/app/spend", searchParams)}>
-            {PRODUCT_NOUN.uploadSpend}
-          </s-link>
-          <s-link href={deskNavHrefFromSearch("/app/goals", searchParams)}>
-            Goals
-          </s-link>
-          <s-link href={deskNavHrefFromSearch("/app/allocation", searchParams)}>
-            {PRODUCT_NOUN.spendAllocation}
-          </s-link>
-          <s-link href={deskNavHrefFromSearch("/app/ltv", searchParams)}>
-            LTV / Acquisition
-          </s-link>
-          <s-link href={deskNavHrefFromSearch("/app/advanced", searchParams)}>
-            Advanced
-          </s-link>
-          <s-link href={deskNavHrefFromSearch("/app/settings", searchParams)}>
-            Settings
-          </s-link>
+          {DESK_PRIMARY_NAV.map((item) => (
+            <s-link
+              key={item.path}
+              href={deskNavHrefFromSearch(item.path, searchParams)}
+            >
+              {item.label}
+            </s-link>
+          ))}
         </s-app-nav>
         <DataModeBar
           useSampleDesk={useSampleDesk}
           samplePreviewAllowed={samplePreviewAllowed}
-          marginConfirmed={marginConfirmed}
-          hasLiveSpend={hasLiveSpend}
           shotMode={shotMode}
         />
         <Outlet />

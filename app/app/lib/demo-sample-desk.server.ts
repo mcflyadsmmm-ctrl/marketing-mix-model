@@ -1,15 +1,13 @@
 /**
- * Deterministic 3-year sample till + matching multi-channel spend.
+ * Deterministic SAMPLE till + matching spend.
  * Clearly labeled SAMPLE — never presented as live Shopify.
  *
- * Invariants (listing / Demo must look impressive):
- * - Every day: newCustomers ≥ floor, never 0
- * - newCustomerNetSales > 0 whenever sales > 0 (AMER / LTV page not blank)
- * - Scale matches strong DTC desk (~$5–8k/day, Total ROAS ~4.4×)
+ * Impressive but realistic DTC: Meta + Google, some email, a little other.
+ * ~$2.5–4k sales/day, Total ROAS near 3.5× (Harbor-like, not 4.4× theater).
+ * Window is a rolling ~13 months through **today UTC** so MTD is never stale.
  */
 
 import type { SpendChannel } from "@prisma/client";
-import { DESK_HISTORY_YEARS_BACK, deskHistoryFloorYear } from "./desk-history";
 
 export interface SampleDayRow {
   day: Date;
@@ -22,29 +20,21 @@ export interface SampleDayRow {
   spendByChannel: Record<SpendChannel, number>;
 }
 
+/** Rolling book length — covers L12M without a 5-year 14-channel write. */
+export const SAMPLE_BOOK_DAYS = 400;
+
+/** Paid mix a real shop actually runs — not every named channel every day. */
+export const SAMPLE_ACTIVE_CHANNELS = [
+  "meta",
+  "google",
+  "email",
+  "other",
+] as const satisfies readonly SpendChannel[];
+
 /** Minimum new buyers per SAMPLE day — never show 0s on the desk. */
-export const SAMPLE_MIN_NEW_CUSTOMERS = 14;
+export const SAMPLE_MIN_NEW_CUSTOMERS = 3;
 
-function mulberry32(seed: number) {
-  return function rng() {
-    let t = (seed += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function startOfUtcDay(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-}
-
-function addUtcDays(d: Date, n: number): Date {
-  const x = new Date(d);
-  x.setUTCDate(x.getUTCDate() + n);
-  return startOfUtcDay(x);
-}
-
-const CHANNELS: SpendChannel[] = [
+const ALL_CHANNELS: SpendChannel[] = [
   "meta",
   "google",
   "microsoft",
@@ -61,98 +51,117 @@ const CHANNELS: SpendChannel[] = [
   "other",
 ];
 
-/** Mix shares — sum ≈ 1 (new named channels keep small %) */
-const MIX: Record<SpendChannel, number> = {
-  meta: 0.33,
-  google: 0.24,
-  microsoft: 0.04,
-  tiktok: 0.07,
-  pinterest: 0.035,
-  snapchat: 0.025,
-  reddit: 0.015,
-  x: 0.02,
-  linkedin: 0.015,
-  amazon: 0.03,
-  apple_search: 0.015,
-  affiliate: 0.055,
-  email: 0.06,
-  other: 0.04,
+/** Mix shares for active channels — sum = 1. */
+const MIX: Record<(typeof SAMPLE_ACTIVE_CHANNELS)[number], number> = {
+  meta: 0.5,
+  google: 0.32,
+  email: 0.08,
+  other: 0.1,
 };
+
+function mulberry32(seed: number) {
+  return function rng() {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function startOfUtcDay(d: Date): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
+export function addUtcDays(d: Date, n: number): Date {
+  const x = new Date(d);
+  x.setUTCDate(x.getUTCDate() + n);
+  return startOfUtcDay(x);
+}
+
+function dayRng(day: Date): () => number {
+  const key =
+    day.getUTCFullYear() * 10000 +
+    (day.getUTCMonth() + 1) * 100 +
+    day.getUTCDate();
+  return mulberry32(0x4d43464e ^ key);
+}
+
+function emptySpend(): Record<SpendChannel, number> {
+  const spend = {} as Record<SpendChannel, number>;
+  for (const channel of ALL_CHANNELS) spend[channel] = 0;
+  return spend;
+}
 
 /**
  * Build daily sales + spend targeting ~cash MER near `targetMer`.
- * Default window: January 1 of (UTC year − 5) through today.
- * Pass `years` for a rolling window (tests).
+ * Default: last SAMPLE_BOOK_DAYS through today UTC (always includes today).
+ * Pass `from` to append a tail without rewriting history.
  */
 export function buildThreeYearSampleDesk(options?: {
   now?: Date;
   years?: number;
+  from?: Date;
   targetMer?: number;
   seed?: number;
 }): SampleDayRow[] {
   const now = options?.now ?? new Date();
-  const targetMer = options?.targetMer ?? 4.4;
-  // Bumped seed (…4e) so re-seed replaces the older weaker series.
-  const rng = mulberry32(options?.seed ?? 0x4d43464e);
-
+  const targetMer = options?.targetMer ?? 3.5;
   const end = startOfUtcDay(now);
-  const start =
-    options?.years != null
+  const start = options?.from
+    ? startOfUtcDay(options.from)
+    : options?.years != null
       ? addUtcDays(end, -Math.round(365.25 * options.years) + 1)
-      : new Date(Date.UTC(deskHistoryFloorYear(now), 0, 1));
-  const years = options?.years ?? DESK_HISTORY_YEARS_BACK;
+      : addUtcDays(end, -SAMPLE_BOOK_DAYS + 1);
   const rows: SampleDayRow[] = [];
 
   for (let d = new Date(start); d <= end; d = addUtcDays(d, 1)) {
-    const dow = d.getUTCDay(); // 0 Sun
+    const rng = dayRng(d);
+    const dow = d.getUTCDay();
     const month = d.getUTCMonth();
-    // Strong YoY growth so Goals / deltas read positive.
-    const yearFactor =
-      1 + (d.getUTCFullYear() - end.getUTCFullYear() + years) * 0.14;
+    const weekend = dow === 0 || dow === 6;
     const season =
       month === 10 || month === 11
-        ? 1.55 // Nov–Dec peak
+        ? 1.35
         : month === 0
-          ? 0.88 // soft Jan, not a ghost month
+          ? 0.86
           : month >= 5 && month <= 7
-            ? 1.18
+            ? 1.12
             : 1;
-    const weekend = dow === 0 || dow === 6 ? 0.9 : 1;
-    const noise = 0.94 + rng() * 0.16;
-    const baseSales = 5800 * yearFactor * season * weekend * noise;
-    const sales = Math.round(baseSales * 100) / 100;
+    const dayFactor = weekend ? 0.78 : 1;
+    const noise = 0.93 + rng() * 0.14;
+    const sales = Math.round(2750 * season * dayFactor * noise * 100) / 100;
 
-    const aov = 98 + rng() * 42; // ~$98–140
+    const aov = 88 + rng() * 28;
     const orderCount = Math.max(
-      SAMPLE_MIN_NEW_CUSTOMERS + 8,
+      SAMPLE_MIN_NEW_CUSTOMERS + 6,
       Math.round(sales / aov),
     );
-    // Healthy acquisition mix — floor so daily new never rounds to 0.
-    const newShare = 0.34 + rng() * 0.12;
+    const newShare = 0.28 + rng() * 0.1;
     const newCustomers = Math.max(
       SAMPLE_MIN_NEW_CUSTOMERS,
       Math.round(orderCount * newShare),
     );
     const returningCustomers = Math.max(0, orderCount - newCustomers);
-    // New-buyer dollars ≈ share of till (AMER / LTV page never $0).
     const newCustomerNetSales =
       Math.round(sales * (newCustomers / orderCount) * 100) / 100;
 
-    // Bias spend slightly under target → MER often lands ~4.2–4.7.
     const totalSpend =
-      Math.round((sales / targetMer) * (0.88 + rng() * 0.14) * 100) / 100;
-    const spendByChannel = {} as Record<SpendChannel, number>;
+      Math.round((sales / targetMer) * (0.92 + rng() * 0.12) * 100) / 100;
+    const spendByChannel = emptySpend();
     let allocated = 0;
-    for (let i = 0; i < CHANNELS.length; i++) {
-      const ch = CHANNELS[i];
-      if (i === CHANNELS.length - 1) {
+    const live: SpendChannel[] = ["meta", "google"];
+    if (!weekend && rng() > 0.15) live.push("email");
+    if (rng() > 0.35) live.push("other");
+    for (let i = 0; i < live.length; i++) {
+      const ch = live[i]!;
+      const share = (MIX as Partial<Record<SpendChannel, number>>)[ch] ?? 0.1;
+      if (i === live.length - 1) {
         spendByChannel[ch] = Math.max(
           0,
           Math.round((totalSpend - allocated) * 100) / 100,
         );
       } else {
-        const wobble = 0.8 + rng() * 0.4;
-        const amt = Math.round(totalSpend * MIX[ch] * wobble * 100) / 100;
+        const amt = Math.round(totalSpend * share * (0.9 + rng() * 0.2) * 100) / 100;
         spendByChannel[ch] = amt;
         allocated += amt;
       }
