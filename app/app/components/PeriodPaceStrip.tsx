@@ -11,7 +11,6 @@ type Props = {
 /**
  * Lean period pace — calendar vs sales, density, optional headroom.
  * Surfaces ControlPace already computed for Overview (was unused on the page).
- * Not the old MonthlyPacing gauge panel.
  */
 export function PeriodPaceStrip({
   control,
@@ -22,6 +21,8 @@ export function PeriodPaceStrip({
 
   const salesPct = Math.round(control.salesProgressPct);
   const calendarPct = Math.round(control.calendarProgressPct);
+  const salesWidth = Math.min(100, Math.max(0, salesPct));
+  const calendarWidth = Math.min(100, Math.max(0, calendarPct));
 
   return (
     <section
@@ -39,7 +40,7 @@ export function PeriodPaceStrip({
           <p className="mcfly-pace-strip__value">{control.densityLabel}</p>
         </div>
         <div>
-          <p className="mcfly-pace-strip__label">Sales vs target path</p>
+          <p className="mcfly-pace-strip__label">Sales progress</p>
           <p className="mcfly-pace-strip__value">{salesPct}%</p>
         </div>
         <div>
@@ -56,22 +57,42 @@ export function PeriodPaceStrip({
         ) : null}
       </div>
 
-      <div className="mcfly-pace-strip__bars" aria-hidden="true">
+      <div className="mcfly-pace-strip__bars">
         <div className="mcfly-pace-strip__bar">
-          <span className="mcfly-pace-strip__bar-label">Sales</span>
-          <span className="mcfly-pace-strip__track">
+          <span className="mcfly-pace-strip__bar-label" id="mcfly-pace-sales">
+            Sales
+          </span>
+          <span
+            className="mcfly-pace-strip__track"
+            role="progressbar"
+            aria-labelledby="mcfly-pace-sales"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={salesWidth}
+            aria-valuetext={`${salesPct}% of target-path sales`}
+          >
             <span
               className="mcfly-pace-strip__fill mcfly-pace-strip__fill--sales"
-              style={{ width: `${Math.min(100, Math.max(0, salesPct))}%` }}
+              style={{ width: `${salesWidth}%` }}
             />
           </span>
         </div>
         <div className="mcfly-pace-strip__bar">
-          <span className="mcfly-pace-strip__bar-label">Days</span>
-          <span className="mcfly-pace-strip__track">
+          <span className="mcfly-pace-strip__bar-label" id="mcfly-pace-cal">
+            Days
+          </span>
+          <span
+            className="mcfly-pace-strip__track"
+            role="progressbar"
+            aria-labelledby="mcfly-pace-cal"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={calendarWidth}
+            aria-valuetext={`${calendarPct}% of period elapsed`}
+          >
             <span
               className="mcfly-pace-strip__fill mcfly-pace-strip__fill--cal"
-              style={{ width: `${Math.min(100, Math.max(0, calendarPct))}%` }}
+              style={{ width: `${calendarWidth}%` }}
             />
           </span>
         </div>
@@ -81,8 +102,14 @@ export function PeriodPaceStrip({
         <p className="mcfly-pace-strip__hint">
           {control.remainingDays} day
           {control.remainingDays === 1 ? "" : "s"} left ·{" "}
-          {formatCurrency(control.dailySalesNeeded)} sales/day keeps the
-          period on the target rail at current spend pace.
+          {formatCurrency(control.dailySalesNeeded)} sales/day holds the
+          period on plan at the current spend pace.
+        </p>
+      ) : control.remainingDays > 0 ? (
+        <p className="mcfly-pace-strip__hint">
+          {control.remainingDays} day
+          {control.remainingDays === 1 ? "" : "s"} left in {periodLabel}.
+          Confirm a target MER in Settings to unlock safe-spend headroom.
         </p>
       ) : null}
     </section>

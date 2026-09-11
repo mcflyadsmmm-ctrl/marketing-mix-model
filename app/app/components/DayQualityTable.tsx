@@ -27,11 +27,33 @@ function formatRoas(n: number): string {
 function bandLabel(band: "above" | "near" | "below"): string {
   switch (band) {
     case "above":
-      return "Above BE";
+      return "Above";
     case "near":
-      return "Near BE";
+      return "Near";
     case "below":
-      return "Below BE";
+      return "Below";
+    default: {
+      const _exhaustive: never = band;
+      return _exhaustive;
+    }
+  }
+}
+
+function bandTitle(
+  band: "above" | "near" | "below",
+  breakEvenMer: number | null,
+): string {
+  const be =
+    breakEvenMer != null && Number.isFinite(breakEvenMer)
+      ? ` break-even (${breakEvenMer.toFixed(2)}×)`
+      : " break-even";
+  switch (band) {
+    case "above":
+      return `Above${be}`;
+    case "near":
+      return `Near${be}`;
+    case "below":
+      return `Below${be}`;
     default: {
       const _exhaustive: never = band;
       return _exhaustive;
@@ -48,7 +70,9 @@ function downloadDayQualityCsv(table: DayQualityTable, periodLabel: string) {
   const safe = periodLabel.replace(/[^\w.-]+/g, "-").replace(/^-|-$/g, "");
   a.href = url;
   a.download = `mcfly-day-board-${safe || "period"}.csv`;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
   URL.revokeObjectURL(url);
 }
 
@@ -80,9 +104,8 @@ export function DayQualityTablePanel({
           <h2 className="mcfly-day-quality__title">No day facts yet</h2>
         </div>
         <p className="mcfly-day-quality__lede">
-          Once orders land for this period, each day shows orders, AOV,
-          new-buyer sales share, and spend ROAS against break-even —
-          the export merchants keep rebuilding in Sheets.
+          When orders land, each day shows orders, AOV, new-buyer share, and
+          spend ROAS against break-even — one board instead of a Sheets rebuild.
         </p>
       </section>
     );
@@ -96,6 +119,8 @@ export function DayQualityTablePanel({
           : " · no spend logged yet")
       : `${table.coverage.factDays} days with sales`;
 
+  const unit = table.granularity === "week" ? "week" : "day";
+
   return (
     <section className="mcfly-day-quality" aria-label="Day quality">
       <div className="mcfly-day-quality__head">
@@ -105,8 +130,7 @@ export function DayQualityTablePanel({
             {table.granularity === "week" ? " · weekly" : ""}
           </p>
           <h2 className="mcfly-day-quality__title">
-            Orders, AOV, and spend by{" "}
-            {table.granularity === "week" ? "week" : "day"}
+            Orders, AOV, and spend by {unit}
           </h2>
         </div>
         <p className="mcfly-day-quality__meta">{coverageLine}</p>
@@ -122,9 +146,7 @@ export function DayQualityTablePanel({
           </caption>
           <thead>
             <tr>
-              <th scope="col">
-                {table.granularity === "week" ? "Week" : "Day"}
-              </th>
+              <th scope="col">{table.granularity === "week" ? "Week" : "Day"}</th>
               <th scope="col" className="mcfly-day-quality__num">
                 Orders
               </th>
@@ -196,6 +218,7 @@ export function DayQualityTablePanel({
                   ) : (
                     <span
                       className={`mcfly-day-quality__band mcfly-day-quality__band--${row.band}`}
+                      title={bandTitle(row.band, breakEvenMer)}
                     >
                       {bandLabel(row.band)}
                     </span>
@@ -255,7 +278,7 @@ export function DayQualityTablePanel({
             : "New-buyer split fills as order history backfills."}
           {breakEvenMer == null
             ? " Confirm margin in Settings to score days vs break-even."
-            : ""}
+            : ` Days score against ${breakEvenMer.toFixed(2)}× break-even.`}
         </p>
         <button
           type="button"
