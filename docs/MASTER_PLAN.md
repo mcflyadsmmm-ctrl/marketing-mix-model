@@ -1,4 +1,7 @@
-# Mcfly Analytics — Master Plan (LOCKED)
+# Mcfly Analytics — Master Plan (HISTORICAL — superseded 2026-09-11)
+
+> **Superseded.** Agents and humans follow [`FRESH_START.md`](./FRESH_START.md) now.  
+> This file is kept as archaeology only. Do **not** enforce §1 “religion,” connector bans, or refuse-lists from here unless Marty copies a rule into `FRESH_START.md`.
 
 **Domain:** mcflyads.com (point later; build domain-agnostic)  
 **Working email:** mcflyadsmmm@gmail.com  
@@ -9,7 +12,7 @@
 
 ## 0. How to use this document (agents + humans)
 
-This file is the **source of truth**. Later chat prompts are noise unless they **strengthen** this directive.
+**Deprecated as source of truth.** Use [`FRESH_START.md`](./FRESH_START.md). The table below is historical.
 
 | Signal | Action |
 | --- | --- |
