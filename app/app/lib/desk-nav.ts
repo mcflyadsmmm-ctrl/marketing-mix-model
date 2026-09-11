@@ -1,7 +1,7 @@
 /**
- * App nav — every item earns its place.
- * Core: Overview · Customers · Spend · Settings. Later pages stay
- * visible (hiding tabs felt broken) but are labeled as depth.
+ * App nav — Shopify Analytics calm: few primary tabs, depth via pages.
+ * Core: Overview · Customers & LTV · Spend · Settings.
+ * Goals / Allocation / Advanced stay deep-linked from Overview + Settings.
  */
 
 import { PRODUCT_NOUN } from "./product-labels";
@@ -19,7 +19,7 @@ export type DeskNavItem = {
   id: DeskNavId;
   href: string;
   label: string;
-  /** Depth / secondary tools — still deep-linkable. */
+  /** Secondary tools — not in the top nav chrome. */
   later: boolean;
 };
 
@@ -51,9 +51,16 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
 ] as const;
 
 /**
- * Full nav. Later items stay listed so the app does not feel broken.
+ * Top nav only — core tabs. Matches Shopify Analytics calm (few destinations).
  */
 export function deskNavItems(): DeskNavItem[] {
+  return DESK_NAV_ITEMS.filter((item) => !item.later).map((item) => ({
+    ...item,
+  }));
+}
+
+/** Full catalog including later depth pages (for footers / settings links). */
+export function deskNavAllItems(): DeskNavItem[] {
   return DESK_NAV_ITEMS.map((item) => ({ ...item }));
 }
 
@@ -63,4 +70,10 @@ export function deskNavCoreIds(): DeskNavId[] {
 
 export function deskNavLaterIds(): DeskNavId[] {
   return DESK_NAV_ITEMS.filter((item) => item.later).map((item) => item.id);
+}
+
+export function deskNavLaterItems(): DeskNavItem[] {
+  return DESK_NAV_ITEMS.filter((item) => item.later).map((item) => ({
+    ...item,
+  }));
 }

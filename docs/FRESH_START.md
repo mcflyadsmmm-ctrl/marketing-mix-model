@@ -10,8 +10,8 @@ Companion failure record: [`research/EPIC_FAILURE_POSTMORTEM_2026-09-11.md`](./r
 
 Build the **best advanced Shopify analytics app** a world-class Cursor user would start from a blank slate.
 
-- Shopify Analytics is free and shallow for operators who live in ads + LTV + spend truth.
-- We go **deeper** than native Analytics: connections and pipelines so merchants stop burning **time, tokens, and CSV dumps**.
+- Shopify Analytics is already smooth and strong — we match that calm, then go **deeper** on orders, customers, and spend truth.
+- Connections and pipelines so merchants stop burning **time, money, AI tokens, and CSV dumps**.
 - Save hours of export → Sheets → guesswork.
 
 **Wide open:** metrics, connectors, IA, copy, and depth are inventable. No product “religion.” No frozen wedge. No ban list pretending to be strategy.

@@ -117,7 +117,8 @@ describe("Overview desk (fresh start)", () => {
     expect(overview).toContain("openCustomerInsights");
     expect(actions).toContain("heroPrimary");
     expect(actions).toMatch(/Update spend/);
-    expect(actions).toMatch(/href="\/app\/goals"\s+variant="secondary"/);
+    // Goals lives in More tools — not a second hero CTA (Shopify Analytics calm).
+    expect(actions).not.toMatch(/href="\/app\/goals"/);
     expect(actions).toContain("ShareOverviewButton");
     expect(actions).toMatch(/variant="tertiary"/);
     const shareBtn = readFileSync(

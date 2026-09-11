@@ -831,7 +831,52 @@ export default function Dashboard() {
 
         {!coldEmpty ? (
           <>
-            {/* Listing SoT: three-card hero → LTV. Verdict / trust sit under. */}
+            {/* Shopify Analytics calm: orders + customers first, then ROAS depth. */}
+            {!shotMode && salesDeskReady ? (
+              <OrderEconomicsPanel
+                economics={orderEconomics}
+                periodLabel={metrics.period.label}
+                showSpendUnlock={false}
+              />
+            ) : null}
+
+            {showHero ? (
+              <div
+                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
+                aria-label="Customer insights"
+              >
+                <LtvSnapSection tillLtv={metrics.tillLtv} preset={preset} />
+              </div>
+            ) : null}
+
+            {!shotMode && scoreboardReady ? (
+              <div
+                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
+                aria-label="New vs returning"
+              >
+                <AcquisitionGlance
+                  preset={preset}
+                  amer={metrics.amer}
+                  newCustomerSales={metrics.newCustomerNetSales}
+                  returningCustomerSales={metrics.returningCustomerNetSales}
+                  periodSales={metrics.sales}
+                  totalSpend={metrics.totalSpend}
+                  periodLabel={metrics.period.label}
+                  cashActionReady={metrics.cashActionReady}
+                  spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
+                  salesFactsIncomplete={
+                    factsIncompleteForTrust || trustedHero.hideUntrustedZero
+                  }
+                  periodUncovered={periodUncovered}
+                  newBuyers={
+                    metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null
+                  }
+                  useSampleDesk={useSampleDesk}
+                />
+              </div>
+            ) : null}
+
+            {/* Listing SoT three-card strip — after customer/order depth. */}
             {showHero ? (
               <section
                 className="mcfly-hero-compact mcfly-hero-compact--v2"
@@ -872,7 +917,7 @@ export default function Dashboard() {
                       deltaLine={merDeltaLine}
                     />
                   )}
-                  {/* Customer insights lead; Update spend is secondary when sales exist. */}
+                  {/* Sparse actions — Shopify Analytics calm (one primary). */}
                   <div className="mcfly-hero-compact__actions">
                     {trustedHero.hideUntrustedZero ? null : (
                       <s-button href={heroPrimary.href} variant="primary">
@@ -885,11 +930,6 @@ export default function Dashboard() {
                         variant="secondary"
                       >
                         Update spend
-                      </s-button>
-                    ) : null}
-                    {metrics.cashActionReady ? (
-                      <s-button href="/app/goals" variant="secondary">
-                        {PRODUCT_NOUN.setupSetGoals}
                       </s-button>
                     ) : null}
                     <ShareOverviewButton
@@ -1022,51 +1062,6 @@ export default function Dashboard() {
               </section>
             ) : null}
 
-            {/* Customer + order depth before spend-explorer chrome. */}
-            {!shotMode && salesDeskReady ? (
-              <OrderEconomicsPanel
-                economics={orderEconomics}
-                periodLabel={metrics.period.label}
-                showSpendUnlock={false}
-              />
-            ) : null}
-
-            {showHero ? (
-              <div
-                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
-                aria-label="Customer insights"
-              >
-                <LtvSnapSection tillLtv={metrics.tillLtv} preset={preset} />
-              </div>
-            ) : null}
-
-            {!shotMode && scoreboardReady ? (
-              <div
-                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
-                aria-label="Acquisition glance"
-              >
-                <AcquisitionGlance
-                  preset={preset}
-                  amer={metrics.amer}
-                  newCustomerSales={metrics.newCustomerNetSales}
-                  returningCustomerSales={metrics.returningCustomerNetSales}
-                  periodSales={metrics.sales}
-                  totalSpend={metrics.totalSpend}
-                  periodLabel={metrics.period.label}
-                  cashActionReady={metrics.cashActionReady}
-                  spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
-                  salesFactsIncomplete={
-                    factsIncompleteForTrust || trustedHero.hideUntrustedZero
-                  }
-                  periodUncovered={periodUncovered}
-                  newBuyers={
-                    metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null
-                  }
-                  useSampleDesk={useSampleDesk}
-                />
-              </div>
-            ) : null}
-
             <details className="mcfly-me-spine mcfly-me-spine--later">
               <summary className="mcfly-me-spine__summary">
                 Daily spend vs sales — optional
@@ -1089,6 +1084,10 @@ export default function Dashboard() {
                 </s-link>
                 {" · "}
                 <s-link href="/app/goals">Goals</s-link>
+                {" · "}
+                <s-link href="/app/advanced">
+                  {PRODUCT_NOUN.advancedMetrics}
+                </s-link>
                 {" · "}
                 <s-link href="/app/settings">Settings</s-link>
               </p>

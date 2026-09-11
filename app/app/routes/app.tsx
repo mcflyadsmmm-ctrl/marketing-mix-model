@@ -79,8 +79,7 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      {/* Always show desk nav — empty states / Pro gates live on pages.
-          Do not hide tabs when Real store (SAMPLE off); that felt broken. */}
+      {/* Core tabs only — Shopify Analytics calm. Depth pages link from Overview. */}
       <s-app-nav>
         {deskNavItems().map((item) => (
           <s-link key={item.id} href={listingCaptureHref(item.href, shotMode)}>

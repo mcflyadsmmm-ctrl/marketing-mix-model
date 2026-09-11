@@ -55,8 +55,9 @@ export const PRODUCT_NOUN = {
   shareOverviewEmail: "Email",
   shareOverviewEmailDef:
     "Opens your email app with this period’s Total ROAS cards — Mcfly does not send mail.",
-  /** Page / nav titles */
-  deskTitle: "Total ROAS",
+  /** Page / nav titles — Overview is the home surface; Total ROAS is a metric */
+  deskTitle: "Overview",
+  totalRoasTitle: "Total ROAS",
   /** Spend mix / quarterly / rolling — route /app/allocation */
   spendAllocation: "Spend Allocation",
   /** Acquisition + cohort LTV deep-dive (route /app/ltv) */

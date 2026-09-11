@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  deskNavAllItems,
   deskNavCoreIds,
   deskNavItems,
   deskNavLaterIds,
@@ -11,14 +12,14 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe("deskNavItems", () => {
-  it("keeps core first: Overview · Customers · Spend · Settings", () => {
+  it("top nav is core only: Overview · Customers · Spend · Settings", () => {
     expect(deskNavCoreIds()).toEqual([
       "overview",
       "ltv",
       "spend",
       "settings",
     ]);
-    expect(deskNavItems().slice(0, 4).map((i) => i.href)).toEqual([
+    expect(deskNavItems().map((i) => i.href)).toEqual([
       "/app?stay=1",
       "/app/ltv",
       "/app/spend",
@@ -27,6 +28,10 @@ describe("deskNavItems", () => {
     expect(deskNavItems().find((i) => i.id === "ltv")?.label).toMatch(
       /Customers/i,
     );
+    // Later tools are not top-nav chrome (Shopify Analytics calm).
+    expect(deskNavItems().map((i) => i.id)).not.toContain("goals");
+    expect(deskNavItems().map((i) => i.id)).not.toContain("allocation");
+    expect(deskNavItems().map((i) => i.id)).not.toContain("advanced");
   });
 
   it("Overview nav uses stay=1 so cold desk is reachable", () => {
@@ -34,9 +39,9 @@ describe("deskNavItems", () => {
     expect(overview?.href).toBe("/app?stay=1");
   });
 
-  it("keeps later pages listed — no maze, no hidden tabs", () => {
+  it("later pages stay deep-linkable — not deleted, just off the top nav", () => {
     expect(deskNavLaterIds()).toEqual(["goals", "allocation", "advanced"]);
-    const hrefs = deskNavItems().map((i) => i.href);
+    const hrefs = deskNavAllItems().map((i) => i.href);
     expect(hrefs).toContain("/app/goals");
     expect(hrefs).toContain("/app/allocation");
     expect(hrefs).toContain("/app/ltv");
