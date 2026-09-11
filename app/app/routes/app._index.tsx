@@ -94,7 +94,10 @@ import {
   FIRST_PAINT_SALES_BACKFILL_DAYS,
   enqueueSalesFactsBackfill,
 } from "../lib/sales-backfill-kick.server";
-import { resolveTrustedRoasHero } from "../lib/trusted-roas-hero";
+import {
+  resolveTrustedRoasHero,
+  shouldHeroNumericRoas,
+} from "../lib/trusted-roas-hero";
 import {
   parsePeriodPreset,
   periodMayExceedShopifyOrderWindow,
@@ -638,6 +641,12 @@ export default function Dashboard() {
     useSampleDesk,
     periodPreset: preset,
   });
+  const heroNumericRoas = shouldHeroNumericRoas({
+    hideUntrustedZero: trustedHero.hideUntrustedZero,
+    periodSpend: metrics.totalSpend,
+    useSampleDesk,
+    shotMode,
+  });
   const factsIncompleteForTrust = factsIncompleteForHonesty;
   const periodTrust = resolvePeriodTrust({
     preset,
@@ -1019,7 +1028,7 @@ export default function Dashboard() {
                         </s-button>
                       </div>
                     </s-banner>
-                  ) : (
+                  ) : heroNumericRoas ? (
                     <TotalRoasGauge
                       mer={trustedHero.mer}
                       targetMer={
@@ -1028,6 +1037,17 @@ export default function Dashboard() {
                       periodTrusted={periodTrust.trusted}
                       deltaLine={merDeltaLine}
                     />
+                  ) : (
+                    <s-banner
+                      tone="info"
+                      heading={`${PRODUCT_NOUN.totalRoas} needs spend next to sales`}
+                    >
+                      <s-paragraph>
+                        Shopify sales are on this desk. {PRODUCT_NOUN.totalRoas}{" "}
+                        is sales ÷ spend — without a period denominator there is
+                        no multiple, not 0.00×.
+                      </s-paragraph>
+                    </s-banner>
                   )}
                   {/* Love-V2 / VISUAL P0.3: one primary in this cluster — Update spend.
                       Untrusted zero hands that one primary to the banner above. */}

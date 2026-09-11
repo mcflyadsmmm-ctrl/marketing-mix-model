@@ -105,7 +105,14 @@ describe("Overview Monday desk", () => {
 
   it("Love-UX1: Overview cold empty owns dismissible Setup Guide (not DataModeBar)", () => {
     expect(overview).toContain("FirstSessionGuide");
-    expect(overview).toMatch(/coldEmpty \? <FirstSessionGuide path=\{firstSession\}/);
+    // Sales-ready cold desk: OrderEconomicsPanel owns the spend unlock so the
+    // first viewport has one primary. Guide stays for the no-orders path.
+    expect(overview).toMatch(
+      /coldEmpty && !\(salesDeskReady && !shotMode\) \? \(\s*<FirstSessionGuide path=\{firstSession\}/,
+    );
+    expect(overview).toMatch(
+      /coldEmpty && !shotMode && salesDeskReady \? \(\s*<OrderEconomicsPanel/,
+    );
     expect(overview).toMatch(/hasReadAllOrders/);
     expect(overview).toMatch(/shopDomain/);
     const guide = readFileSync(

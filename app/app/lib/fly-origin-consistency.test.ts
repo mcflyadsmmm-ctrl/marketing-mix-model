@@ -76,7 +76,9 @@ describe("Docs SoT — listing is not Free; success price $39", () => {
     }
 
     expect(listing).toMatch(/7-day trial/);
-    expect(listing).toMatch(/read_all_orders.*live in scopes/i);
+    // Public listing paste is sales-first; the live-scope fact lives on the
+    // billing SoT, not the Partner description block.
+    expect(billing).toMatch(/read_all_orders.*in scopes/i);
     expect(listing).not.toMatch(/\*\*Pricing\*\* \| \*\*Free\*\*/);
     expect(billing).toMatch(/Not\** a Free App Store plan/i);
     expect(thesis).toMatch(/Success price is \*\*\$39\*\*, not ~\$79/);

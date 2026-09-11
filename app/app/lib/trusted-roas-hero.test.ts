@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   merLooksLikeZero,
   resolveTrustedRoasHero,
+  shouldHeroNumericRoas,
   UNTRUSTED_ZERO_ROAS_COPY,
 } from "./trusted-roas-hero";
 
@@ -101,5 +102,45 @@ describe("resolveTrustedRoasHero", () => {
     expect(hero.hideUntrustedZero).toBe(false);
     expect(hero.mer).toBe(0);
     expect(hero.kind).toBe("trusted");
+  });
+});
+
+describe("shouldHeroNumericRoas", () => {
+  it("refuses a live hero when spend is empty or the zero is untrusted", () => {
+    expect(
+      shouldHeroNumericRoas({
+        hideUntrustedZero: false,
+        periodSpend: 0,
+      }),
+    ).toBe(false);
+    expect(
+      shouldHeroNumericRoas({
+        hideUntrustedZero: true,
+        periodSpend: 650,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps a trusted live multiple and SAMPLE / listing practice numbers", () => {
+    expect(
+      shouldHeroNumericRoas({
+        hideUntrustedZero: false,
+        periodSpend: 650,
+      }),
+    ).toBe(true);
+    expect(
+      shouldHeroNumericRoas({
+        hideUntrustedZero: false,
+        periodSpend: 0,
+        useSampleDesk: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldHeroNumericRoas({
+        hideUntrustedZero: false,
+        periodSpend: 0,
+        shotMode: true,
+      }),
+    ).toBe(true);
   });
 });

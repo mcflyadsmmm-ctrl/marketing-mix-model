@@ -337,6 +337,10 @@ export default function AllocationPage() {
   });
   // Concrete dollars from the percent mer-core already sized and floored.
   const plan = lock ? null : resolveAllocationPlan(allocation);
+  const suppressAllocationPush =
+    lock?.reason === "no_spend" ||
+    lock?.reason === "sales_untrusted_zero" ||
+    lock?.reason === "sales_error";
   const channelRows = allocation
     ? buildPeriodChannelRows(allocation.inputs.channelEfficiencies)
     : [];
@@ -361,11 +365,13 @@ export default function AllocationPage() {
         ) : null}
 
         <DeskPageWhy page="allocation" />
-        <FirstTrustedRoasGate
-          hasLiveSpend={metrics.onboarding.hasSpend}
-          useSampleDesk={useSampleDesk}
-          shotMode={shotMode}
-        />
+        {lock?.reason === "no_spend" ? null : (
+          <FirstTrustedRoasGate
+            hasLiveSpend={metrics.onboarding.hasSpend}
+            useSampleDesk={useSampleDesk}
+            shotMode={shotMode}
+          />
+        )}
 
         {!useSampleDesk && !shotMode ? (
           <CashTrustBanners
@@ -432,10 +438,12 @@ export default function AllocationPage() {
         ) : null}
 
         {/* 2. Top 3 quarterly allocations (all-time in facts window) */}
-        <TopQuartersSection quarters={topQuarters} />
+        {suppressAllocationPush ? null : (
+          <TopQuartersSection quarters={topQuarters} />
+        )}
 
         {/* 3. ONE mix view: pie (% allocation) + channel list for selected period */}
-        {allocation ? (
+        {allocation && !lock ? (
           <PeriodMixSection
             rows={channelRows}
             totalSpend={allocation.inputs.totalSpend}
@@ -445,7 +453,9 @@ export default function AllocationPage() {
         ) : null}
 
         {/* 4. Rolling improvement: 7 · 14 · 28 vs prior window */}
-        <RollingWindowsSection tiles={rollingWindows} />
+        {suppressAllocationPush ? null : (
+          <RollingWindowsSection tiles={rollingWindows} />
+        )}
 
         {!lock && !allocation ? (
           <section

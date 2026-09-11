@@ -71,6 +71,23 @@ describe("Allocation desk sales honesty", () => {
     expect(source).not.toMatch(/Allocation is locked until spend trust/);
   });
 
+  it("does not push mix or history while spend is empty, loading-untrusted, or sales-error", () => {
+    expect(source).toContain("const suppressAllocationPush =");
+    expect(source).toContain('lock?.reason === "no_spend"');
+    expect(source).toContain('lock?.reason === "sales_untrusted_zero"');
+    expect(source).toContain('lock?.reason === "sales_error"');
+    expect(source).toMatch(/allocation && !lock \? \(\s*<PeriodMixSection/);
+    expect(source).toMatch(
+      /suppressAllocationPush \? null : \(\s*<TopQuartersSection/,
+    );
+    expect(source).toMatch(
+      /suppressAllocationPush \? null : \(\s*<RollingWindowsSection/,
+    );
+    expect(source).toMatch(
+      /lock\?\.reason === "no_spend" \? null : \(\s*<FirstTrustedRoasGate/,
+    );
+  });
+
   it("does not lock copy on unreachable Ads Manager declare-recon", () => {
     expect(source).not.toMatch(/declared Ads Manager/i);
     expect(source).not.toMatch(/fix recon before allocation/i);

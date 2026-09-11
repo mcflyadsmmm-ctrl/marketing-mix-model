@@ -123,6 +123,15 @@ describe("LTV copy after Partner-approved deep history", () => {
     );
   });
 
+  it("never heros a numeric Total ROAS when live period spend is empty", () => {
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    expect(client).toContain("shouldHeroNumericRoas");
+    expect(client).toContain("heroNumericRoas");
+    expect(client).toMatch(/heroNumericRoas \? \(\s*<TotalRoasGauge/);
+    expect(client).toMatch(/needs spend next to sales/);
+    expect(client).toMatch(/not 0\.00×/);
+  });
+
   it("passes spend and shopOrdersSeen into salesFactsIncompleteForDesk", () => {
     expect(overview).toMatch(/spend:\s*metrics\.totalSpend/);
     expect(overview).toMatch(/shopOrdersSeen/);
