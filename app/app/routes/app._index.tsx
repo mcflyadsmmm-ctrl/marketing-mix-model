@@ -211,6 +211,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     label: explorerWindow.label,
   };
 
+  /** Kept for empty-period prior order board (SAMPLE). */
+  let samplePriorSales: Awaited<ReturnType<typeof fetchSampleSales>> | null =
+    null;
+  let priorPeriodSalesByDay = new Map<string, number>();
+  /** Live prior totals for empty-period board (orders + cohort sales). */
+  let priorFactsForBoard: {
+    totalSales: number;
+    orderCount: number;
+    newCustomerNetSalesSum: number;
+  } | null = null;
+
   if (useSampleDesk) {
     const [sampleSales, samplePrior, sampleExplorer] = await Promise.all([
       fetchSampleSales(shop.id, range),
@@ -222,13 +233,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }),
     ]);
     sales = sampleSales;
+    samplePriorSales = samplePrior;
     priorSales = { totalSales: samplePrior.totalSales };
-    const [sampleExplorerDays, samplePeriodDays] = await Promise.all([
-      fetchSampleSalesByDay(shop.id, dayFetchRange),
-      fetchSampleSalesByDay(shop.id, range),
-    ]);
+    const [sampleExplorerDays, samplePeriodDays, samplePriorDays] =
+      await Promise.all([
+        fetchSampleSalesByDay(shop.id, dayFetchRange),
+        fetchSampleSalesByDay(shop.id, range),
+        fetchSampleSalesByDay(shop.id, priorRange),
+      ]);
     salesByDay = sampleExplorerDays;
     periodSalesByDay = samplePeriodDays;
+    priorPeriodSalesByDay = samplePriorDays;
     explorerCustomers = {
       newCustomers: sampleExplorer.newCustomers,
       returningCustomers: sampleExplorer.returningCustomers,
@@ -363,17 +378,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         priorFacts.rangeClampedToFactWindow || !priorCoverage.complete
           ? null
           : { totalSales: priorFacts.totalSales };
+      if (
+        !priorFacts.rangeClampedToFactWindow &&
+        priorCoverage.complete &&
+        (priorFacts.totalSales > 0 || priorFacts.orderCount > 0)
+      ) {
+        priorFactsForBoard = {
+          totalSales: priorFacts.totalSales,
+          orderCount: priorFacts.orderCount,
+          newCustomerNetSalesSum: priorFacts.newCustomerNetSalesSum,
+        };
+      }
     } catch {
       priorSales = null;
+      priorFactsForBoard = null;
     }
 
     try {
-      const [explorerDays, periodDays] = await Promise.all([
+      const [explorerDays, periodDays, priorDays] = await Promise.all([
         getSalesFactsByDay(shop.id, dayFetchRange, ianaTimezone),
         getSalesFactsByDay(shop.id, range, ianaTimezone),
+        getSalesFactsByDay(shop.id, priorRange, ianaTimezone),
       ]);
       salesByDay = explorerDays;
       periodSalesByDay = periodDays;
+      priorPeriodSalesByDay = priorDays;
     } catch {
       salesByDay = new Map();
       periodSalesByDay = new Map();
@@ -482,10 +511,67 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     totalSpend: metrics.totalSpend,
   });
 
+  const priorStartKey = periodTz
+    ? shopLocalDayKey(priorRange.start, periodTz)
+    : dateKeyFromLocal(priorRange.start);
+  const priorEndKey = periodTz
+    ? shopLocalDayKey(priorRange.end, periodTz)
+    : dateKeyFromLocal(priorRange.end);
+
+  let priorPeriodBoard: {
+    economics: typeof orderEconomics;
+    label: string;
+    href: string;
+  } | null = null;
+
+  if (!orderEconomics.hasSignal) {
+    if (samplePriorSales && samplePriorSales.orderCount > 0) {
+      const priorEcon = resolveOrderEconomics({
+        sales: samplePriorSales.totalSales,
+        orderCount: samplePriorSales.orderCount,
+        salesByDay: priorPeriodSalesByDay,
+        periodStartKey: priorStartKey,
+        periodEndKey: priorEndKey,
+        newCustomerSales: samplePriorSales.newCustomerNetSales,
+        returningCustomerSales: samplePriorSales.returningCustomerNetSales,
+        totalSpend: 0,
+      });
+      if (priorEcon.hasSignal) {
+        priorPeriodBoard = {
+          economics: priorEcon,
+          label: priorRange.label,
+          href: `/app?period=${preset === "mtd" ? "lm" : "l12m"}&stay=1`,
+        };
+      }
+    } else if (priorFactsForBoard) {
+      const priorEcon = resolveOrderEconomics({
+        sales: priorFactsForBoard.totalSales,
+        orderCount: priorFactsForBoard.orderCount,
+        salesByDay: priorPeriodSalesByDay,
+        periodStartKey: priorStartKey,
+        periodEndKey: priorEndKey,
+        newCustomerSales: priorFactsForBoard.newCustomerNetSalesSum,
+        returningCustomerSales: Math.max(
+          0,
+          priorFactsForBoard.totalSales -
+            priorFactsForBoard.newCustomerNetSalesSum,
+        ),
+        totalSpend: 0,
+      });
+      if (priorEcon.hasSignal) {
+        priorPeriodBoard = {
+          economics: priorEcon,
+          label: priorRange.label,
+          href: `/app?period=${preset === "mtd" ? "lm" : "l12m"}&stay=1`,
+        };
+      }
+    }
+  }
 
   return {
     metrics,
     orderEconomics,
+    priorPeriodBoard,
     salesError,
     todaySalesUnavailable,
     todaySalesTruncated,
@@ -524,6 +610,7 @@ export default function Dashboard() {
   const {
     metrics,
     orderEconomics,
+    priorPeriodBoard,
     preset,
     salesError,
     todaySalesUnavailable,
@@ -834,6 +921,15 @@ export default function Dashboard() {
             periodLabel={metrics.period.label}
             showSpendUnlock
             emptyPeriodHrefs={emptyPeriodHrefs}
+            priorPeriod={
+              priorPeriodBoard
+                ? {
+                    economics: priorPeriodBoard.economics,
+                    label: priorPeriodBoard.label,
+                    href: priorPeriodBoard.href,
+                  }
+                : null
+            }
           />
         ) : null}
 
@@ -855,6 +951,15 @@ export default function Dashboard() {
                 periodLabel={metrics.period.label}
                 showSpendUnlock={false}
                 emptyPeriodHrefs={emptyPeriodHrefs}
+                priorPeriod={
+                  priorPeriodBoard
+                    ? {
+                        economics: priorPeriodBoard.economics,
+                        label: priorPeriodBoard.label,
+                        href: priorPeriodBoard.href,
+                      }
+                    : null
+                }
               />
             ) : null}
 

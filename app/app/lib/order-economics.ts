@@ -155,3 +155,64 @@ export function salesByDayToRecord(
   }
   return out;
 }
+
+function moneyShort(n: number): string {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+/**
+ * One merchant-facing insight Shopify Analytics does not put next to AOV.
+ * Returns null when there is nothing useful to say.
+ */
+export function summarizeOrderEconomics(econ: OrderEconomics): string | null {
+  if (!econ.hasSignal) return null;
+
+  const parts: string[] = [];
+
+  if (econ.weekendShare != null && econ.weekendShare >= 0.35) {
+    parts.push(
+      `Weekend drove ${Math.round(econ.weekendShare * 100)}% of sales (${moneyShort(econ.weekendSales)} Sat–Sun vs ${moneyShort(econ.weekdaySales)} weekdays).`,
+    );
+  } else if (econ.weekendShare != null && econ.weekendShare <= 0.18) {
+    parts.push(
+      `Weekdays carry this period — weekend is only ${Math.round(econ.weekendShare * 100)}% of sales.`,
+    );
+  }
+
+  if (econ.returningShare != null && econ.returningShare >= 0.4) {
+    parts.push(
+      `Returning buyers put up ${Math.round(econ.returningShare * 100)}% of attributed sales.`,
+    );
+  } else if (
+    econ.returningShare != null &&
+    econ.returningShare <= 0.15 &&
+    econ.newCustomerSales > 0
+  ) {
+    parts.push(
+      `Almost all attributed sales are first-time buyers (${Math.round((1 - econ.returningShare) * 100)}% new).`,
+    );
+  }
+
+  if (
+    econ.spendPerOrder != null &&
+    econ.aov != null &&
+    econ.spendPerOrder > 0
+  ) {
+    const ratio = econ.aov / econ.spendPerOrder;
+    parts.push(
+      `Spend averaged ${moneyShort(econ.spendPerOrder)} per order against ${moneyShort(econ.aov)} AOV (${ratio.toFixed(1)}×).`,
+    );
+  }
+
+  if (parts.length === 0 && econ.aov != null) {
+    parts.push(
+      `${econ.orderCount.toLocaleString()} orders · ${moneyShort(econ.aov)} AOV — open Customers & LTV for cohort depth.`,
+    );
+  }
+
+  return parts.length > 0 ? parts.join(" ") : null;
+}

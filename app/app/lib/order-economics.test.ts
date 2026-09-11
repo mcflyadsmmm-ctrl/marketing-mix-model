@@ -5,6 +5,7 @@ import {
   isWeekendDayKey,
   resolveOrderEconomics,
   salesByDayToRecord,
+  summarizeOrderEconomics,
 } from "./order-economics";
 
 describe("dayOfWeekFromKey", () => {
@@ -148,5 +149,37 @@ describe("salesByDayToRecord", () => {
         ]),
       ),
     ).toEqual({ "2026-09-10": 10 });
+  });
+});
+
+
+describe("summarizeOrderEconomics", () => {
+  it("calls out heavy weekend share", () => {
+    const econ = resolveOrderEconomics({
+      sales: 1000,
+      orderCount: 10,
+      salesByDay: {
+        "2026-09-10": 200,
+        "2026-09-11": 200,
+        "2026-09-12": 300,
+        "2026-09-13": 300,
+      },
+      newCustomerSales: 400,
+      returningCustomerSales: 600,
+    });
+    const line = summarizeOrderEconomics(econ);
+    expect(line).toMatch(/Weekend/i);
+    expect(line).toMatch(/Returning/i);
+  });
+
+  it("returns null when there is no signal", () => {
+    const econ = resolveOrderEconomics({
+      sales: 0,
+      orderCount: 0,
+      salesByDay: {},
+      newCustomerSales: 0,
+      returningCustomerSales: 0,
+    });
+    expect(summarizeOrderEconomics(econ)).toBeNull();
   });
 });
