@@ -1,6 +1,6 @@
 /**
- * Cash-desk nav — every item earns its place.
- * Core ritual stays Overview · Spend · Settings. Later pages stay
+ * App nav — every item earns its place.
+ * Core: Overview · Customers · Spend · Settings. Later pages stay
  * visible (hiding tabs felt broken) but are labeled as depth.
  */
 
@@ -19,13 +19,20 @@ export type DeskNavItem = {
   id: DeskNavId;
   href: string;
   label: string;
-  /** Depth after first trusted Total ROAS — still deep-linkable. */
+  /** Depth / secondary tools — still deep-linkable. */
   later: boolean;
 };
 
 export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
   // stay=1 kept for deep links; Overview no longer bounces cold merchants to Spend.
   { id: "overview", href: "/app?stay=1", label: "Overview", later: false },
+  // Customer + order depth is core mission — not buried behind spend tools.
+  {
+    id: "ltv",
+    href: "/app/ltv",
+    label: PRODUCT_NOUN.ltvTitle,
+    later: false,
+  },
   { id: "spend", href: "/app/spend", label: "Spend", later: false },
   { id: "settings", href: "/app/settings", label: "Settings", later: false },
   { id: "goals", href: "/app/goals", label: "Goals", later: true },
@@ -35,7 +42,6 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
     label: PRODUCT_NOUN.spendAllocation,
     later: true,
   },
-  { id: "ltv", href: "/app/ltv", label: "LTV", later: true },
   {
     id: "advanced",
     href: "/app/advanced",
@@ -45,8 +51,7 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
 ] as const;
 
 /**
- * Full nav for a cash desk. Later items stay listed so the app does not
- * feel broken; pages soft-gate with “first get Total ROAS.”
+ * Full nav. Later items stay listed so the app does not feel broken.
  */
 export function deskNavItems(): DeskNavItem[] {
   return DESK_NAV_ITEMS.map((item) => ({ ...item }));

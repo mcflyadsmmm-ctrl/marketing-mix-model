@@ -105,7 +105,7 @@ describe("Overview desk (fresh start)", () => {
     expect(dataMode).toContain("showMarginNudge");
   });
 
-  it("Love-V2: hero actions keep one primary (Update spend); Goals/Share/ledger demoted", () => {
+  it("Love-V2: hero keeps one primary — customer insights when sales exist", () => {
     const actions =
       overview.match(
         /mcfly-hero-compact__actions">([\s\S]*?)<\/div>/,
@@ -113,13 +113,11 @@ describe("Overview desk (fresh start)", () => {
     expect(actions.length).toBeGreaterThan(40);
     const primaries = actions.match(/variant="primary"/g) ?? [];
     expect(primaries).toHaveLength(1);
-    expect(actions).toMatch(
-      /variant="primary"[\s\S]{0,80}Update spend/,
-    );
-    // Goals stays secondary when cashActionReady; Share is tertiary in component.
-    expect(actions).toMatch(
-      /href="\/app\/goals"\s+variant="secondary"/,
-    );
+    // Fresh mission: customer insights lead via heroPrimary; Update spend secondary.
+    expect(overview).toContain("openCustomerInsights");
+    expect(actions).toContain("heroPrimary");
+    expect(actions).toMatch(/Update spend/);
+    expect(actions).toMatch(/href="\/app\/goals"\s+variant="secondary"/);
     expect(actions).toContain("ShareOverviewButton");
     expect(actions).toMatch(/variant="tertiary"/);
     const shareBtn = readFileSync(

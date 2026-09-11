@@ -5456,6 +5456,11 @@
   color: var(--mcfly-mute);
 }
 
+.mcfly-tab-snap__tile--accent {
+  border-color: color-mix(in srgb, var(--mcfly-accent, #0284c7) 28%, transparent);
+  background: color-mix(in srgb, var(--mcfly-tint-sky, #e0f2fe) 55%, #fff);
+}
+
 .mcfly-tab-snap__sentence {
   margin: 0.55rem 0 0;
   font-size: 0.84rem;
@@ -10618,7 +10623,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 .mcfly-order-econ__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
   gap: 0.5rem;
 }
 .mcfly-order-econ__tile {

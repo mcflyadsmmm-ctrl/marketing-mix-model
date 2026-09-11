@@ -195,8 +195,8 @@ export function resolveAcquisitionGlance(
 
 /** Tile definition text — kept next to the resolver so copy stays reviewable. */
 export const ACQUISITION_GLANCE_COPY = {
-  title: "Acquisition efficiency",
-  kicker: `${PRODUCT_NOUN.amer} · new vs returning sales`,
+  title: "New vs returning customers",
+  kicker: `Sales split · ${PRODUCT_NOUN.amer} when spend is in`,
   amerLabel: PRODUCT_NOUN.amer,
   amerDef: PRODUCT_NOUN.amerDef,
   newLabel: "New-customer sales",

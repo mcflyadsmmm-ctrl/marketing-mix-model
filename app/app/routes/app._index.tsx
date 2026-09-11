@@ -692,8 +692,21 @@ export default function Dashboard() {
   // Shot + live scoreboard both paint the three-card hero (listing SoT).
   const showHero = scoreboardReady || shotMode;
 
+  // One primary CTA: customer insights when sales exist; otherwise Update spend.
+  const heroPrimary = salesDeskReady
+    ? {
+        href: `/app/ltv?period=${preset}`,
+        label: PRODUCT_NOUN.openCustomerInsights,
+      }
+    : {
+        href: "/app/spend#mcfly-spend-uploads",
+        label: "Update spend",
+      };
+  const showSpendSecondary =
+    salesDeskReady && !trustedHero.hideUntrustedZero;
+
   return (
-    <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
+    <s-page heading="Overview" inlineSize="large">
       {!shotMode &&
       primaryAction.postIntent === "use-real" &&
       primaryAction.postAction ? (
@@ -859,17 +872,21 @@ export default function Dashboard() {
                       deltaLine={merDeltaLine}
                     />
                   )}
-                  {/* One primary in this cluster — Update spend.
-                      Untrusted zero hands that one primary to the banner above. */}
+                  {/* Customer insights lead; Update spend is secondary when sales exist. */}
                   <div className="mcfly-hero-compact__actions">
                     {trustedHero.hideUntrustedZero ? null : (
+                      <s-button href={heroPrimary.href} variant="primary">
+                        {heroPrimary.label}
+                      </s-button>
+                    )}
+                    {showSpendSecondary ? (
                       <s-button
                         href="/app/spend#mcfly-spend-uploads"
-                        variant="primary"
+                        variant="secondary"
                       >
                         Update spend
                       </s-button>
-                    )}
+                    ) : null}
                     {metrics.cashActionReady ? (
                       <s-button href="/app/goals" variant="secondary">
                         {PRODUCT_NOUN.setupSetGoals}
@@ -1005,25 +1022,22 @@ export default function Dashboard() {
               </section>
             ) : null}
 
-            {showHero ? (
-              <div
-                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
-                aria-label="Tab snapshots"
-              >
-                <LtvSnapSection tillLtv={metrics.tillLtv} preset={preset} />
-              </div>
-            ) : null}
-
-
-
-
-
+            {/* Customer + order depth before spend-explorer chrome. */}
             {!shotMode && salesDeskReady ? (
               <OrderEconomicsPanel
                 economics={orderEconomics}
                 periodLabel={metrics.period.label}
                 showSpendUnlock={false}
               />
+            ) : null}
+
+            {showHero ? (
+              <div
+                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
+                aria-label="Customer insights"
+              >
+                <LtvSnapSection tillLtv={metrics.tillLtv} preset={preset} />
+              </div>
             ) : null}
 
             {!shotMode && scoreboardReady ? (
@@ -1066,6 +1080,10 @@ export default function Dashboard() {
 
             {!shotMode && metrics.cashActionReady ? (
               <p className="mcfly-overview-more" aria-label="More tools">
+                <s-link href={`/app/ltv?period=${preset}`}>
+                  {PRODUCT_NOUN.openCustomerInsights}
+                </s-link>
+                {" · "}
                 <s-link href={`/app/allocation?period=${preset}`}>
                   {PRODUCT_NOUN.spendAllocation}
                 </s-link>
@@ -1094,9 +1112,12 @@ function LtvSnapSection({
     avgRevenueD90: number | null;
     ltvCacRatio: number | null;
     newBuyers: number;
+    repeatRate: number | null;
   };
   preset: PeriodPreset;
 }) {
+  const showCac = tillLtv.cashCac != null;
+
   return (
     <section
       className="mcfly-tab-snap mcfly-tab-snap--ltv"
@@ -1105,22 +1126,22 @@ function LtvSnapSection({
       <div className="mcfly-tab-snap__head">
         <h2>{PRODUCT_NOUN.ltvTitle}</h2>
         <p className="mcfly-tab-snap__muted">
-          Cash CAC · LTV · LTV:CAC
+          New buyers · LTV · repeat · cash CAC when spend is in
         </p>
       </div>
 
       {tillLtv.available ? (
         <>
           <div className="mcfly-tab-snap__tiles">
-            <div className="mcfly-tab-snap__tile">
-              <p className="mcfly-tab-snap__tile-k">Cash CAC</p>
+            <div className="mcfly-tab-snap__tile mcfly-tab-snap__tile--accent">
+              <p className="mcfly-tab-snap__tile-k">New buyers</p>
               <p className="mcfly-tab-snap__tile-v">
-                {tillLtv.cashCac != null
-                  ? formatCurrency(tillLtv.cashCac)
+                {tillLtv.newBuyers > 0
+                  ? tillLtv.newBuyers.toLocaleString()
                   : "—"}
               </p>
               <p className="mcfly-tab-snap__tile-def">
-                {PRODUCT_NOUN.cashCacDef}
+                First-time customers in this period’s cohorts
               </p>
             </div>
             <div className="mcfly-tab-snap__tile">
@@ -1135,33 +1156,39 @@ function LtvSnapSection({
               </p>
             </div>
             <div className="mcfly-tab-snap__tile">
-              <p className="mcfly-tab-snap__tile-k">LTV : CAC</p>
-              <p
-                className={`mcfly-tab-snap__tile-v${
-                  tillLtv.ltvCacRatio != null && tillLtv.ltvCacRatio >= 1
-                    ? " mcfly-tab-snap__tile-v--good"
-                    : tillLtv.ltvCacRatio != null
-                      ? " mcfly-tab-snap__tile-v--bad"
-                      : ""
-                }`}
-              >
-                {tillLtv.ltvCacRatio != null
-                  ? `${tillLtv.ltvCacRatio.toFixed(2)}×`
+              <p className="mcfly-tab-snap__tile-k">Repeat rate</p>
+              <p className="mcfly-tab-snap__tile-v">
+                {tillLtv.repeatRate != null
+                  ? `${Math.round(tillLtv.repeatRate * 100)}%`
                   : "—"}
               </p>
               <p className="mcfly-tab-snap__tile-def">
-                {PRODUCT_NOUN.ltvCacDef}
+                Extra orders beyond the first, per new buyer
               </p>
             </div>
+            {showCac ? (
+              <div className="mcfly-tab-snap__tile">
+                <p className="mcfly-tab-snap__tile-k">Cash CAC</p>
+                <p className="mcfly-tab-snap__tile-v">
+                  {formatCurrency(tillLtv.cashCac!)}
+                </p>
+                <p className="mcfly-tab-snap__tile-def">
+                  {PRODUCT_NOUN.cashCacDef}
+                  {tillLtv.ltvCacRatio != null
+                    ? ` · LTV:CAC ${tillLtv.ltvCacRatio.toFixed(2)}×`
+                    : ""}
+                </p>
+              </div>
+            ) : null}
           </div>
           <p className="mcfly-tab-snap__sentence">
-            {tillLtv.cashCac != null &&
-            tillLtv.avgRevenueD90 != null &&
-            tillLtv.cashCac > 0
-              ? `At 90d, new customers return ${formatCurrency(tillLtv.avgRevenueD90)} per ${formatCurrency(tillLtv.cashCac)} Cash CAC.`
+            {tillLtv.avgRevenueD90 != null && tillLtv.newBuyers > 0
+              ? showCac && tillLtv.cashCac != null && tillLtv.cashCac > 0
+                ? `New buyers return ${formatCurrency(tillLtv.avgRevenueD90)} by day 90 against ${formatCurrency(tillLtv.cashCac)} Cash CAC.`
+                : `${tillLtv.newBuyers.toLocaleString()} new buyers · ${formatCurrency(tillLtv.avgRevenueD90)} LTV at 90 days — add spend to unlock Cash CAC.`
               : tillLtv.newBuyers > 0
-                ? `${tillLtv.newBuyers.toLocaleString()} new customers · open for cohorts`
-                : "Open for cohort windows and history coverage."}
+                ? `${tillLtv.newBuyers.toLocaleString()} new customers · open cohorts for full LTV`
+                : "Open cohorts for buyer LTV and repeat behavior."}
           </p>
           {tillLtv.avgRevenueD30 != null ? (
             <p className="mcfly-tab-snap__muted">
@@ -1176,14 +1203,14 @@ function LtvSnapSection({
             : tillLtv.emptyReason === "history_limited"
               ? `Recent ~60-day window — grant deeper order access so LTV can fill. Not permanently empty.`
               : tillLtv.emptyReason === "pro_required"
-                ? "Customer LTV is on the $39 desk (7-day trial). Open for cohorts while facts fill — SAMPLE is preview only."
+                ? "Customer LTV is on the $39 plan (7-day trial). Open for cohorts while facts fill — SAMPLE is preview only."
                 : `Backfilling cohorts — open ${PRODUCT_NOUN.ltvTitle} for progress. Not broken.`}
         </p>
       )}
 
       <div className="mcfly-tab-snap__cta">
-        <s-button href={`/app/ltv?period=${preset}`} variant="primary">
-          {PRODUCT_NOUN.openLtv}
+        <s-button href={`/app/ltv?period=${preset}`} variant="secondary">
+          {PRODUCT_NOUN.openCustomerInsights}
         </s-button>
       </div>
     </section>

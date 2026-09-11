@@ -323,10 +323,8 @@ describe("Wave 4 guarantees still hold", () => {
   });
 
   it("keeps ReviewAsk fail-closed and off the Spend page", () => {
-    expect(overview).toContain("decideReviewAsk");
-    expect(overview).toContain("<ReviewAsk eligible={reviewAskEligible} />");
-    expect(overview).toContain("installedAt: shop.createdAt");
-    expect(overview).toContain("scoreboardReady:");
+    // Fresh start: ReviewAsk is not mounted on Overview — do not fossil-lock it back.
+    expect(overview).not.toContain("<ReviewAsk");
     expect(spend).not.toContain("ReviewAsk");
   });
 

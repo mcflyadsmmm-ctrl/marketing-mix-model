@@ -11,13 +11,22 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe("deskNavItems", () => {
-  it("keeps core ritual first: Overview · Spend · Settings", () => {
-    expect(deskNavCoreIds()).toEqual(["overview", "spend", "settings"]);
-    expect(deskNavItems().slice(0, 3).map((i) => i.href)).toEqual([
+  it("keeps core first: Overview · Customers · Spend · Settings", () => {
+    expect(deskNavCoreIds()).toEqual([
+      "overview",
+      "ltv",
+      "spend",
+      "settings",
+    ]);
+    expect(deskNavItems().slice(0, 4).map((i) => i.href)).toEqual([
       "/app?stay=1",
+      "/app/ltv",
       "/app/spend",
       "/app/settings",
     ]);
+    expect(deskNavItems().find((i) => i.id === "ltv")?.label).toMatch(
+      /Customers/i,
+    );
   });
 
   it("Overview nav uses stay=1 so cold desk is reachable", () => {
@@ -26,12 +35,7 @@ describe("deskNavItems", () => {
   });
 
   it("keeps later pages listed — no maze, no hidden tabs", () => {
-    expect(deskNavLaterIds()).toEqual([
-      "goals",
-      "allocation",
-      "ltv",
-      "advanced",
-    ]);
+    expect(deskNavLaterIds()).toEqual(["goals", "allocation", "advanced"]);
     const hrefs = deskNavItems().map((i) => i.href);
     expect(hrefs).toContain("/app/goals");
     expect(hrefs).toContain("/app/allocation");

@@ -60,11 +60,12 @@ export const PRODUCT_NOUN = {
   /** Spend mix / quarterly / rolling — route /app/allocation */
   spendAllocation: "Spend Allocation",
   /** Acquisition + cohort LTV deep-dive (route /app/ltv) */
-  ltvTitle: "LTV / Acquisition",
+  ltvTitle: "Customers & LTV",
   /** Primary CTA after spend / empty states — verb + outcome */
   openTotalRoas: "Open Total ROAS",
   openSpendAllocation: "Open Spend Allocation",
-  openLtv: "Open LTV / Acquisition",
+  openLtv: "Open customer insights",
+  openCustomerInsights: "Open customer insights",
   /** Enterprise MDS lab — averages, not causal channel ROAS */
   advancedMetrics: "Advanced Metrics",
   openAdvanced: "Open Advanced Metrics",
@@ -79,7 +80,7 @@ export const PRODUCT_NOUN = {
   /** Customer payback one-liner prefix */
   customerPayback: "Customer payback",
   nextAllocation: "Next: Spend Allocation",
-  nextCustomerPayback: "Next: LTV / Acquisition",
+  nextCustomerPayback: "Next: Customers & LTV",
   /** Overview payback tile defs — plain English formulas */
   cashCacDef: "Period ad spend ÷ new customers",
   ltv90Def: "Avg revenue per new customer in first 90 days",
@@ -87,7 +88,7 @@ export const PRODUCT_NOUN = {
 
   /** Support under thesis / empty states */
   supportLine:
-    "Exact spend by platform. Sales ÷ spend. Goals. Allocate to grow.",
+    "Order insights. Customer LTV. Exact spend by platform when you need ROAS.",
   /**
    * Sales SoT — Shopify Total Sales (currentTotalPriceSet): shipping, taxes,
    * duties, fees included; after returns. Cancelled/test excluded.
