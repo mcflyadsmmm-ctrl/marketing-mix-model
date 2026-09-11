@@ -17,7 +17,7 @@ export type CashVerdictProps = {
 
 /**
  * One-line cash verdict above the dial — no metric tiles.
- * Total ROAS / Sales / Spend / Break-even already live on the hero.
+ * When the multiple is not trusted or is below break-even, one next step.
  */
 export function CashVerdict(props: CashVerdictProps) {
   const verdict = resolveCashVerdict(props);
@@ -35,6 +35,13 @@ function CashVerdictView({ verdict }: { verdict: CashVerdict }) {
       </p>
       <p className="mcfly-cash-verdict__headline">{verdict.headline}</p>
       <p className="mcfly-cash-verdict__body">{verdict.body}</p>
+      {verdict.nextAction ? (
+        <div className="mcfly-cash-verdict__action">
+          <s-button href={verdict.nextAction.href} variant="secondary">
+            {verdict.nextAction.label}
+          </s-button>
+        </div>
+      ) : null}
     </section>
   );
 }

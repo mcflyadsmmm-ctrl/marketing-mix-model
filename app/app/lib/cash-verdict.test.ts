@@ -158,6 +158,44 @@ describe("resolveCashVerdict", () => {
   });
 });
 
+
+  it("points a CEO at bill-spread when spend is missing", () => {
+    const v = resolveCashVerdict({
+      mer: null,
+      sales: 8000,
+      spend: 0,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: false,
+    });
+    expect(v.nextAction?.href).toContain("mcfly-spend-bill");
+    expect(v.nextAction?.label).toMatch(/bill/i);
+  });
+
+  it("points below break-even at Spend Allocation", () => {
+    const v = resolveCashVerdict({
+      mer: 1.1,
+      sales: 1100,
+      spend: 1000,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: false,
+    });
+    expect(v.nextAction?.href).toBe("/app/allocation");
+  });
+
+  it("stays quiet on nextAction when ads cleared break-even", () => {
+    const v = resolveCashVerdict({
+      mer: 2.4,
+      sales: 12000,
+      spend: 5000,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: false,
+    });
+    expect(v.nextAction).toBeNull();
+  });
+
 describe("CashVerdict tiles while sales facts load", () => {
   const untrustedTiles = (facts: {
     sales: number;

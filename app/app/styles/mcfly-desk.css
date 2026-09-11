@@ -10480,6 +10480,16 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   color: var(--mcfly-ink-soft);
 }
 
+.mcfly-cash-verdict__action {
+  margin-top: 0.75rem;
+}
+
+.mcfly-cash-verdict__action s-button,
+.mcfly-cash-verdict__action .mcfly-cash-verdict__action-btn {
+  /* Polaris s-button owns chrome; keep spacing only */
+}
+
+
 .mcfly-cash-verdict__tiles {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -17,6 +17,7 @@
 
 import { deepHistoryGrantHref } from "./deep-history-honesty";
 import { PRODUCT_NOUN } from "./product-labels";
+import { SPEND_BILL_ANCHOR } from "./spend-first-run";
 import { PIPE_TEMPLATE_ANCHOR, PIPE_TEMPLATE_COPY } from "./spend-pipe-templates";
 
 export const FIRST_SESSION_MINUTES = 10;
@@ -134,8 +135,8 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
   return [
     {
       id: "spend",
-      href: withSearch("/app/spend", q),
-      label: PRODUCT_NOUN.setupAddSpend,
+      href: withSearch(`/app/spend#${SPEND_BILL_ANCHOR}`, q),
+      label: PRODUCT_NOUN.setupSpreadBill,
       hint: spendDone
         ? " — done"
         : " — one bill covers a month of days, or type one day; no ad-network login",
@@ -191,8 +192,8 @@ function emptyCopy(
     body: marginConfirmed
       ? `Typical order, weekend vs weekday, and new vs returning sales are already on this desk. Margin is set — spread one ad invoice across its days, or type one day, to unlock ${PRODUCT_NOUN.definition}. No file, no ad-network login.`
       : `Typical order, weekend vs weekday, and new vs returning sales are already on this desk — numbers Shopify Analytics does not lead with. Spread one ad invoice across its days, or type one day, when you want ${PRODUCT_NOUN.definition}. Margin is optional for break-even.`,
-    primaryHref: withSearch("/app/spend", search),
-    primaryLabel: PRODUCT_NOUN.setupAddSpend,
+    primaryHref: withSearch(`/app/spend#${SPEND_BILL_ANCHOR}`, search),
+    primaryLabel: PRODUCT_NOUN.setupSpreadBill,
     footerLinks: [
       {
         href: withSearch("/app/settings", search),

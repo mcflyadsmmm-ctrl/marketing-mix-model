@@ -55,6 +55,7 @@ import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { SPEND_BILL_ANCHOR } from "../lib/spend-first-run";
 import { OVERVIEW_TOTAL_ROAS_DEFINITION } from "../lib/overview-roas-definition";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
@@ -938,8 +939,8 @@ export default function Dashboard() {
               className="mcfly-decision__actions"
               style={{ marginTop: "0.65rem" }}
             >
-              <s-button href="/app/spend" variant="secondary">
-                {hasLiveSpend ? "Fill spend gaps" : PRODUCT_NOUN.setupAddSpend}
+              <s-button href={`/app/spend#${SPEND_BILL_ANCHOR}`} variant="secondary">
+                {hasLiveSpend ? "Fill spend gaps" : PRODUCT_NOUN.setupSpreadBill}
               </s-button>
             </div>
           </s-banner>
@@ -950,7 +951,7 @@ export default function Dashboard() {
         ) : null}
 
         {/* Sales-first: order economics before spend ritual (cold desk). */}
-        {coldEmpty && !shotMode && salesDeskReady ? (
+                {coldEmpty && !shotMode && salesDeskReady ? (
           <OrderEconomicsPanel
             economics={orderEconomics}
             periodLabel={metrics.period.label}
@@ -958,8 +959,14 @@ export default function Dashboard() {
           />
         ) : null}
 
-        {/* Love-UX1: dismissible Setup Guide — secondary to order economics. */}
-        {coldEmpty ? <FirstSessionGuide path={firstSession} /> : null}
+        {/*
+          CEO desk: when order economics already owns the spend unlock primary,
+          skip the Setup Guide so the first viewport has one button — not two.
+          Guide stays for the no-orders cold path.
+        */}
+        {coldEmpty && !(salesDeskReady && !shotMode) ? (
+          <FirstSessionGuide path={firstSession} />
+        ) : null}
 
         {!coldEmpty ? (
           <>

@@ -119,6 +119,8 @@ export const PRODUCT_NOUN = {
     "Live Shopify sales. Log spend on Spend anytime. Practice again from Demo or Settings → More (Sample stays off the live desk chrome).",
   /** Founder-locked setup path labels (banner + empty-state CTAs) */
   setupAddSpend: "Add Spend",
+  /** CEO cold path — one invoice → daily rows (trial-week coverage). */
+  setupSpreadBill: "Spread a monthly bill",
   setupSetGoals: "Set Goals",
   setupAdjustMargin: "Adjust Profit Margin",
   /** Spend job — three steps */

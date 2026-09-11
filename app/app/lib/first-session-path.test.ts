@@ -43,7 +43,7 @@ describe("resolveFirstSessionPath", () => {
     ]);
     expect(path.steps[0]).toMatchObject({
       status: "current",
-      href: "/app/spend",
+      href: "/app/spend#mcfly-spend-bill",
       optional: false,
     });
     expect(path.steps[1]).toMatchObject({
@@ -63,8 +63,8 @@ describe("resolveFirstSessionPath", () => {
       status: "todo",
       optional: true,
     });
-    expect(path.primaryHref).toBe("/app/spend");
-    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
+    expect(path.primaryHref).toBe("/app/spend#mcfly-spend-bill");
+    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupSpreadBill);
     expect(path.heading).toMatch(/Shopify orders/i);
     expect(path.heading).toMatch(/Total ROAS/i);
     expect(path.body).toMatch(/Type one day/i);
@@ -78,8 +78,8 @@ describe("resolveFirstSessionPath", () => {
       `/app/spend#${PIPE_TEMPLATE_ANCHOR}`,
     ]);
     expect(firstSessionPrimaryAction(path)).toEqual({
-      href: "/app/spend",
-      label: PRODUCT_NOUN.setupAddSpend,
+      href: "/app/spend#mcfly-spend-bill",
+      label: PRODUCT_NOUN.setupSpreadBill,
     });
   });
 
@@ -112,8 +112,8 @@ describe("resolveFirstSessionPath", () => {
     expect(path.steps[0].status).toBe("current");
     expect(path.steps[1].status).toBe("done");
     expect(path.stepsCompleted).toBe(1);
-    expect(path.primaryHref).toBe("/app/spend");
-    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
+    expect(path.primaryHref).toBe("/app/spend#mcfly-spend-bill");
+    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupSpreadBill);
     expect(path.body).toMatch(/Margin is set/);
     expect(path.body).toContain(PRODUCT_NOUN.definition);
   });
@@ -255,8 +255,8 @@ describe("resolveFirstSessionPath", () => {
 
   it("preserves query strings on ritual hrefs — hash after query for pipe", () => {
     const path = cold({ search: "?period=mtd" });
-    expect(path.primaryHref).toBe("/app/spend?period=mtd");
-    expect(path.steps[0].href).toBe("/app/spend?period=mtd");
+    expect(path.primaryHref).toBe("/app/spend?period=mtd#mcfly-spend-bill");
+    expect(path.steps[0].href).toBe("/app/spend?period=mtd#mcfly-spend-bill");
     expect(path.steps[1].href).toBe("/app/settings?period=mtd");
     expect(path.steps[3].href).toBe(
       `/app/spend?period=mtd#${PIPE_TEMPLATE_ANCHOR}`,

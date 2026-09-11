@@ -137,13 +137,13 @@ export function OrderEconomicsPanel({
       {showSpendUnlock ? (
         <div className="mcfly-order-econ__unlock">
           <p className="mcfly-order-econ__unlock-copy">
-            Divide a monthly bill into daily rows for trusted coverage inside
+            Spread a monthly bill into daily rows for trusted coverage inside
             the trial week — or type one day — then Total ROAS is Shopify sales
             ÷ the spend you enter for the same period.
           </p>
           <div className="mcfly-order-econ__unlock-actions">
             <s-button href="/app/spend#mcfly-spend-bill" variant="primary">
-              Divide a monthly bill
+              Spread a monthly bill
             </s-button>
             <s-button href="/app/spend" variant="secondary">
               Or type one day
