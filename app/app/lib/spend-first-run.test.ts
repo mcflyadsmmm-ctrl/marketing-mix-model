@@ -229,7 +229,7 @@ describe("billSpreadSavedCopy", () => {
   });
 
   it("reports what was written and hands off to Total ROAS", () => {
-    expect(saved.heading).toBe("31 days of spend are on the desk");
+    expect(saved.heading).toBe("31 days of spend saved");
     expect(saved.body).toContain("Meta Ads");
     expect(saved.body).toContain("$1,200");
     expect(saved.body).toContain("$38.71 a day");

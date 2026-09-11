@@ -23,13 +23,13 @@ function pct(share: number): string {
 type Props = {
   economics: OrderEconomics;
   periodLabel: string;
-  /** Cold desk only: optional path to add spend after order insights. */
+  /** Cold desk only: quiet path to add spend after order insights. */
   showSpendUnlock: boolean;
 };
 
 /**
- * Order + customer grain Shopify Analytics will not put on one screen.
- * Leads with AOV, weekend mix, and returning share — spend-per-order is optional depth.
+ * Order grain Shopify Analytics will not put on one screen.
+ * Leads with AOV + weekend mix — returning split lives on AcquisitionGlance.
  */
 export function OrderEconomicsPanel({
   economics,
@@ -40,51 +40,38 @@ export function OrderEconomicsPanel({
     return (
       <section
         className="mcfly-order-econ"
-        aria-label="Order and customer insights"
+        aria-label="Order insights"
       >
         <div className="mcfly-order-econ__head">
           <div className="mcfly-order-econ__headline">
-            <p className="mcfly-order-econ__kicker">Orders & customers</p>
-            <h2 className="mcfly-order-econ__title">
-              Waiting on the first orders
-            </h2>
+            <p className="mcfly-order-econ__kicker">Orders · {periodLabel}</p>
+            <h2 className="mcfly-order-econ__title">Waiting on the first orders</h2>
           </div>
         </div>
-        <p className="mcfly-order-econ__lede">
-          Typical order value, weekend mix, and new vs returning — deeper than
-          free Analytics, without a CSV export.
-        </p>
       </section>
     );
   }
 
   const title =
     economics.aov != null
-      ? `Typical order ${moneyExact(economics.aov)}`
-      : `${economics.orderCount.toLocaleString()} orders this period`;
+      ? `AOV ${moneyExact(economics.aov)}`
+      : `${economics.orderCount.toLocaleString()} orders`;
 
   return (
     <section
       className="mcfly-order-econ"
-      aria-label="Order and customer insights"
+      aria-label="Order insights"
     >
       <div className="mcfly-order-econ__head">
         <div className="mcfly-order-econ__headline">
-          <p className="mcfly-order-econ__kicker">
-            Orders & customers · {periodLabel}
-          </p>
+          <p className="mcfly-order-econ__kicker">Orders · {periodLabel}</p>
           <h2 className="mcfly-order-econ__title">{title}</h2>
         </div>
         <p className="mcfly-order-econ__facts">
           {economics.orderCount.toLocaleString()} orders · {money(economics.sales)}{" "}
           sales
-          {economics.aov != null ? ` · AOV ${moneyExact(economics.aov)}` : ""}
         </p>
       </div>
-      <p className="mcfly-order-econ__lede">
-        Order mix and customer split from Shopify orders — the depth native
-        Analytics leaves on the table.
-      </p>
 
       <div className="mcfly-order-econ__grid">
         <div className="mcfly-order-econ__tile mcfly-order-econ__tile--accent">
@@ -93,8 +80,7 @@ export function OrderEconomicsPanel({
             {economics.aov != null ? moneyExact(economics.aov) : "—"}
           </p>
           <p className="mcfly-order-econ__hint">
-            {economics.orderCount.toLocaleString()} orders ·{" "}
-            {money(economics.sales)} sales
+            {economics.orderCount.toLocaleString()} orders this period
           </p>
         </div>
         <div className="mcfly-order-econ__tile">
@@ -109,36 +95,12 @@ export function OrderEconomicsPanel({
             {money(economics.weekdaySales)} weekday
           </p>
         </div>
-        <div className="mcfly-order-econ__tile">
-          <p className="mcfly-order-econ__label">Returning customer sales</p>
-          <p className="mcfly-order-econ__value">
-            {economics.returningShare != null
-              ? pct(economics.returningShare)
-              : "—"}
-          </p>
-          <p className="mcfly-order-econ__hint">
-            {money(economics.returningCustomerSales)} returning ·{" "}
-            {money(economics.newCustomerSales)} new
-          </p>
-        </div>
-        {economics.spendPerOrder != null ? (
-          <div className="mcfly-order-econ__tile">
-            <p className="mcfly-order-econ__label">Ad spend per order</p>
-            <p className="mcfly-order-econ__value">
-              {moneyExact(economics.spendPerOrder)}
-            </p>
-            <p className="mcfly-order-econ__hint">
-              Entered spend ÷ {economics.orderCount.toLocaleString()} orders
-            </p>
-          </div>
-        ) : null}
       </div>
 
       {showSpendUnlock ? (
         <div className="mcfly-order-econ__unlock">
           <p className="mcfly-order-econ__unlock-copy">
-            Optional next: add ad spend to pair ROAS and cash CAC with these
-            order insights.
+            Add spend when you want ROAS next to these order numbers.
           </p>
           <div className="mcfly-order-econ__unlock-actions">
             <s-button href="/app/spend#mcfly-spend-bill" variant="secondary">

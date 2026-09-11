@@ -179,7 +179,7 @@ export function resolveSpendCoverageNotice(input: {
       // no multiple is on screen to be blessed by it.
       tone: surface === "spend_desk" ? "success" : "info",
       showBanner: true,
-      heading: "First spend day is on the desk",
+      heading: "First spend day saved",
       body: `One closed day now carries spend, so ${PRODUCT_NOUN.totalRoas} has something to divide. ${missingDaysCashSentence(missing)} ${PROGRESS_TAIL}`,
       note: SPEND_LEDGER_STANDING_ASK,
       statusLine: `Ledger started — 1 of ${total} closed ${dayWord(total)} filled`,
@@ -197,7 +197,7 @@ export function resolveSpendCoverageNotice(input: {
       tone: "info",
       showBanner: true,
       heading: `Ledger growing — ${filled} of ${total} closed ${dayWord(total)} filled`,
-      body: `${filled} ${dayWord(filled)} of spend are on the desk. ${missingDaysCashSentence(missing)} ${PROGRESS_TAIL}`,
+      body: `${filled} ${dayWord(filled)} of spend saved. ${missingDaysCashSentence(missing)} ${PROGRESS_TAIL}`,
       note: SPEND_LEDGER_STANDING_ASK,
       statusLine: `Ledger growing — ${filled} of ${total} closed ${dayWord(total)} filled`,
       primary: { label: "Type the next day", target: "type_day" },

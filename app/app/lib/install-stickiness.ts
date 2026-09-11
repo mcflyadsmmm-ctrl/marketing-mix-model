@@ -145,8 +145,8 @@ export function spendEmptyTeach(options?: {
   if (options?.justSwitchedReal) {
     return {
       ...shared,
-      heading: "Real store is on — get coverage on the desk",
-      body: `Spread a Meta/Google invoice across its days so Total ROAS is not waiting on 14 hand-typed rows — or type one day below to see the multiple now. ${PRODUCT_NOUN.definition}.`,
+      heading: "Real store is on — add spend for Total ROAS",
+      body: `Spread a Meta or Google invoice across its days, or type one day below. ${PRODUCT_NOUN.definition}.`,
       steps: [
         "Fastest coverage: spread a monthly bill across its days — saved in one step.",
         "Or type day + amount + channel, then Save this day.",
@@ -156,8 +156,8 @@ export function spendEmptyTeach(options?: {
   }
   return {
     ...shared,
-    heading: "Get spend coverage — spread a bill or type one day",
-    body: `Operators making real budget calls need coverage inside the trial week, not a 27-hole wall. Spread a monthly or quarterly invoice across its days so the multiple is honest — or type one day to see Total ROAS now. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    heading: "Add spend for Total ROAS depth",
+    body: `Optional tool — sales are already from Shopify. Spread a monthly invoice across its days, or type one day. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     steps: [
       "Have an invoice? Spread a bill across its days (below) — one save, no file.",
       "Have one number? Type day + amount + channel, then Save this day.",

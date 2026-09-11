@@ -6909,9 +6909,9 @@
   }
 }
 
-/* Bill → daily rows. First run leads with this card: one invoice total in,
-   one row per day out, and the only primary button on the screen. Folded to a
-   one-line summary once the desk has spend. */
+/* Bill → daily rows. First run leads with this form: one invoice total in,
+   one row per day out, and the only primary button on the screen. Flat paper
+   once spend exists — fold to a one-line summary. */
 .mcfly-spend-bill {
   display: flex;
   flex-direction: column;
@@ -6920,12 +6920,12 @@
 }
 
 .mcfly-spend-bill--first-run {
-  padding: 1.05rem 1.15rem 1rem;
-  border: 1px solid var(--mcfly-line-soft, #d8e0e8);
-  border-left: 3px solid var(--mcfly-accent, #0284c7);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: var(--mcfly-shadow);
+  padding: 0.35rem 0 0.85rem;
+  border: 0;
+  border-bottom: 1px solid var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .mcfly-spend-bill--quiet {
@@ -6939,9 +6939,10 @@
 }
 
 .mcfly-spend-bill__fold {
-  border: 1px solid var(--mcfly-line-soft, #e2e8f0);
-  border-radius: 8px;
-  background: #fff;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  background: transparent;
 }
 
 .mcfly-spend-bill__fold > summary {
@@ -7022,10 +7023,11 @@
 
 /* What the save writes — daily rate, then coverage in closed days. */
 .mcfly-spend-bill__preview {
-  padding: 0.7rem 0.8rem;
-  border-radius: 8px;
-  border: 1px solid var(--mcfly-line-soft);
-  background: var(--mcfly-accent-soft, #e8f2fa);
+  padding: 0.55rem 0;
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+  background: transparent;
 }
 
 .mcfly-spend-bill__preview-title {
@@ -9557,10 +9559,10 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 .mcfly-spend-teach {
   margin: 0 0 1rem;
-  padding: 1rem 1.1rem;
-  border: 1px solid var(--mcfly-line-soft, #d8e0e8);
-  border-radius: 12px;
-  background: #f7faf8;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .mcfly-spend-teach__steps {
@@ -9843,15 +9845,16 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   margin-top: 0.5rem;
 }
 
-/* Typed one-day spend — first viewport, no file needed. */
+/* Typed one-day spend — warm desk primary surface, flat paper. */
 .mcfly-spend-day {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  padding: 0.9rem 1rem 0.8rem;
-  border: 1.5px solid var(--mcfly-accent, #0284c7);
-  border-radius: 10px;
-  background: #fff;
+  padding: 0.65rem 0 0.85rem;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  background: transparent;
 }
 
 .mcfly-spend-day__head {
@@ -9923,9 +9926,10 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-spend-lean__channels {
-  border: 1px solid var(--mcfly-line-soft, #e2e8f0);
-  border-radius: 8px;
-  background: #fff;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  background: transparent;
   padding: 0;
 }
 
@@ -10014,8 +10018,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   gap: 0.4rem;
 }
 
-/* First run: the bill card is the only paper with an accent edge, so the
-   frame above it and the paths below it read as secondary at a glance. */
+/* First run: bill owns the primary; day + CSV stay visually quiet. */
 .mcfly-spend-lean__stack--first-run {
   gap: 1rem;
 }
@@ -10035,14 +10038,15 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-spend-day--quiet {
-  border: 1px solid var(--mcfly-line-soft, #d8e0e8);
-  background: #fcfdfe;
+  border-top-color: transparent;
+  opacity: 0.92;
 }
 
 .mcfly-spend-lean__upload--fold > details {
-  border: 1px solid var(--mcfly-line-soft, #e2e8f0);
-  border-radius: 8px;
-  background: #fff;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  background: transparent;
 }
 
 .mcfly-spend-lean__upload--fold > details > summary {
@@ -10132,10 +10136,11 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   flex-direction: column;
   gap: 0.25rem;
   align-items: stretch;
-  padding: 0.85rem 1rem;
-  border: 1.5px solid var(--mcfly-line-soft, #cbd5e1);
-  border-radius: 8px;
-  background: #fff;
+  padding: 0.55rem 0;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  background: transparent;
 }
 
 .mcfly-spend-lean__paste textarea {
@@ -10148,10 +10153,11 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-spend-lean__playbook {
-  border: 1px solid var(--mcfly-line-soft, #cbd5e1);
-  border-radius: 8px;
-  padding: 0.35rem 0.75rem 0.65rem;
-  background: #f8fafc;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  padding: 0.15rem 0 0.45rem;
+  background: transparent;
 }
 
 .mcfly-spend-lean__playbook > summary {
@@ -10214,10 +10220,11 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-spend-lean__pipe {
-  border: 1px solid var(--mcfly-line-soft, #cbd5e1);
-  border-radius: 8px;
-  padding: 0.35rem 0.75rem 0.65rem;
-  background: #f8fafc;
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  padding: 0.15rem 0 0.45rem;
+  background: transparent;
   scroll-margin-top: 1rem;
 }
 
@@ -10309,16 +10316,17 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   flex-direction: column;
   gap: 0.25rem;
   align-items: flex-start;
-  padding: 0.85rem 1rem;
-  border: 1.5px dashed var(--mcfly-line-soft, #cbd5e1);
-  border-radius: 8px;
-  background: #fafbfc;
+  padding: 0.55rem 0;
+  border: 0;
+  border-top: 1px dashed var(--mcfly-line-soft, #e8eef4);
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
 }
 
 .mcfly-spend-lean__drop:hover {
   border-color: var(--mcfly-accent, #0284c7);
-  background: #f8fafc;
+  background: transparent;
 }
 
 .mcfly-spend-lean__drop-title {
@@ -10348,6 +10356,8 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--mcfly-line-soft, #e8eef4);
 }
 
 .mcfly-spend-lean__status-line {
@@ -11175,3 +11185,38 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-overview-more { margin: 0.35rem 0 0; padding-top: 0.85rem; border-top: 1px solid var(--mcfly-line-soft); font-size: 0.8125rem; color: var(--mcfly-mute); }
 .mcfly-me-spine { border: 1px solid var(--mcfly-line-soft); border-radius: var(--mcfly-radius); background: var(--mcfly-paper); padding: 0.15rem 0.85rem; }
 .mcfly-me-spine__summary { font-size: 0.8125rem; font-weight: 600; color: var(--mcfly-ink); padding: 0.65rem 0; }
+
+/* Enterprise density — tiles as report cells, not nested cards */
+.mcfly-order-econ__tile,
+.mcfly-tab-snap__tile,
+.mcfly-hero-compact__tile {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0.35rem 0.15rem 0.45rem !important;
+}
+
+.mcfly-order-econ__grid,
+.mcfly-tab-snap__tiles {
+  gap: 0.75rem 1.25rem !important;
+  border-top: 1px solid var(--mcfly-line-soft);
+  padding-top: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.mcfly-order-econ__tile--accent .mcfly-order-econ__value,
+.mcfly-tab-snap__tile--accent .mcfly-tab-snap__tile-v {
+  color: var(--mcfly-ink);
+}
+
+.mcfly-hero-compact__pair {
+  border-top: 1px solid var(--mcfly-line-soft);
+  padding-top: 0.75rem;
+}
+
+.mcfly-tab-snaps:not(.mcfly-tab-snaps--solo) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.85rem;
+}

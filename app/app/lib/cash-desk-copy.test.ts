@@ -15,7 +15,7 @@ const THEATER =
   /web pixel|multi-touch|mta|markov|shapley|meridian|robyn|true roas|view-through|path credit/i;
 
 describe("CASH_PAGE_WHY", () => {
-  it("ties every later page to till cash in one line", () => {
+  it("ties every later page to Total ROAS in one line", () => {
     expect(CASH_PAGE_WHY.spend).toMatch(/Total ROAS/i);
     expect(CASH_PAGE_WHY.spend).toMatch(/\$0/i);
     expect(CASH_PAGE_WHY.goals).toMatch(/sales cash|Total ROAS/i);

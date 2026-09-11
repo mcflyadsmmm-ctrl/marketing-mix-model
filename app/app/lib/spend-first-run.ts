@@ -32,8 +32,8 @@ export const SPEND_TRUSTED_COVERAGE_RATIO = 0.7;
 export const SPEND_FIRST_RUN_COPY = {
   billHeading: "Spread one bill across its days",
   billHint:
-    "Enter what a channel billed you for the whole period — Mcfly writes one row per day.",
-  billBody: `A monthly invoice covers a month of days in one save, so ${PRODUCT_NOUN.totalRoas} is not waiting on fourteen hand-typed rows. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    "Enter a period total for one channel — Mcfly writes one row per day.",
+  billBody: `A monthly invoice covers a month of days in one save, so ${PRODUCT_NOUN.totalRoas} is ready sooner. ${PRODUCT_NOUN.definition}. No ad-network login.`,
   amountLabel: "Bill amount",
   periodLabel: "Bill covers",
   anchorLabel: "Starting month",
@@ -47,9 +47,9 @@ export const SPEND_FIRST_RUN_COPY = {
   equalSplitNote:
     "Equal daily split. Typing a real number over any day replaces that row — spend never doubles.",
   /** Quiet second path under the bill card. */
-  dayLede: "Only have one day in front of you?",
+  dayLede: "Prefer one day at a time?",
   /** Third path, collapsed — a file is never the first ask. */
-  backfillLede: "Backfilling months from a platform export?",
+  backfillLede: "Import a platform CSV instead?",
 } as const;
 
 export type BillSpreadCoverageDay = {
@@ -239,7 +239,7 @@ export function billSpreadSavedCopy(input: {
       : "Every closed day in the last four weeks now carries spend.";
 
   return {
-    heading: `${input.dayCount} ${dayWord(input.dayCount)} of spend are on the desk`,
+    heading: `${input.dayCount} ${dayWord(input.dayCount)} of spend saved`,
     body: `${input.channelLabel} · ${total} spread as ${daily} a day, ${formatSpendDayLabel(input.startDateYmd)} → ${formatSpendDayLabel(input.endDateYmd)}. ${PRODUCT_NOUN.definition} — every one of those days now has spend to divide.`,
     note: warning || `${tail} ${SPEND_FIRST_RUN_COPY.equalSplitNote}`,
     primaryLabel: PRODUCT_NOUN.openTotalRoas,

@@ -56,7 +56,7 @@ describe("resolveSpendCoverageNotice — F2 first typed day", () => {
     expect(notice.stage).toBe("first_day");
     expect(notice.tone).toBe("success");
     expect(notice.showBanner).toBe(true);
-    expect(notice.heading).toMatch(/first spend day is on the desk/i);
+    expect(notice.heading).toMatch(/first spend day saved/i);
     // The hostile heading is gone.
     expect(notice.heading).not.toMatch(/missing/i);
     expect(notice.heading).not.toMatch(/looks better than cash/i);

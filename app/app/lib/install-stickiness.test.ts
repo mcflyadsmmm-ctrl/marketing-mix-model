@@ -150,8 +150,8 @@ describe("spendEmptyTeach", () => {
     expect(teach.primaryHref).toContain("mcfly-spend-bill");
     expect(teach.secondaryLabel).toMatch(/type one day/i);
     expect(teach.secondaryHref).toBe("#mcfly-spend-day");
-    expect(teach.heading).toMatch(/one day|bill|coverage/i);
-    expect(teach.body).toMatch(/invoice|coverage|honest/i);
+    expect(teach.heading).toMatch(/spend|ROAS|bill|one day/i);
+    expect(teach.body).toMatch(/invoice|optional|sales/i);
     expect(teach.body).toContain(PRODUCT_NOUN.definition);
     expect(teach.steps.some((s) => /invoice|bill/i.test(s))).toBe(true);
     expect(teach.steps.some((s) => /type day|one number/i.test(s))).toBe(true);

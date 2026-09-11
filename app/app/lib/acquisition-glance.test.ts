@@ -18,7 +18,7 @@ const component = readFileSync(
   "utf8",
 );
 
-/** Trusted period: complete spend, complete facts, covered history, real split. */
+/** Honest period: complete sales facts, covered history, real split. */
 function ready(
   overrides: Partial<AcquisitionGlanceInput> = {},
 ): AcquisitionGlanceInput {
@@ -70,8 +70,7 @@ describe("resolveAcquisitionGlance — trusted period", () => {
     if (!glance.available) throw new Error("expected available");
     expect(glance.headline).toContain("$2.50 of new-customer sales");
     expect(glance.caveat).toContain("Average acquisition efficiency");
-    expect(glance.caveat).toContain("not channel true ROAS");
-    expect(glance.caveat).not.toMatch(/attribut|causal|incremental/i);
+    expect(glance.caveat).toContain("not channel ROAS");
   });
 
   it("reuses the LTV new-buyer count instead of inventing one", () => {
@@ -79,7 +78,6 @@ describe("resolveAcquisitionGlance — trusted period", () => {
     if (!glance.available) throw new Error("expected available");
     expect(glance.newBuyers).toBe(320);
     expect(glance.caveat).toContain("320 new buyers");
-    expect(glance.caveat).toContain("Cash CAC");
   });
 
   it("drops the buyer line when cohorts aren't ready", () => {
@@ -95,34 +93,54 @@ describe("resolveAcquisitionGlance — trusted period", () => {
     expect(glance.unattributedSales).toBe(10_000);
     expect(glance.coverageLine).toContain("$40,000");
     expect(glance.coverageLine).toContain("$50,000");
-    expect(glance.coverageLine).toContain("guest checkout");
   });
 
-  it("says so plainly when the split covers every dollar", () => {
+  it("omits coverage line when the split covers every dollar", () => {
     const glance = resolveAcquisitionGlance(ready());
     if (!glance.available) throw new Error("expected available");
     expect(glance.unattributedSales).toBe(0);
-    expect(glance.coverageLine).toContain("covers all");
+    expect(glance.coverageLine).toBeNull();
   });
 });
 
-describe("resolveAcquisitionGlance — fail closed", () => {
-  it("refuses when spend days are missing", () => {
+describe("resolveAcquisitionGlance — spend secondary, split first", () => {
+  it("still shows new vs returning when spend days are missing", () => {
     const glance = resolveAcquisitionGlance(ready({ spendIncomplete: true }));
-    expect(glance.available).toBe(false);
-    if (glance.available) return;
-    expect(glance.reason).toBe("spend_incomplete");
-    expect(glance.copy).toContain("Spend days are missing");
+    expect(glance.available).toBe(true);
+    if (!glance.available) return;
+    expect(glance.amer).toBeNull();
+    expect(glance.newCustomerSales).toBe(25_000);
   });
 
-  it("refuses when spend trust hasn't cleared", () => {
+  it("still shows the split when spend trust hasn't cleared", () => {
     const glance = resolveAcquisitionGlance(ready({ cashActionReady: false }));
-    if (glance.available) throw new Error("expected blocked");
-    expect(glance.reason).toBe("spend_untrusted");
-    expect(glance.copy).toMatch(/isn.?t trusted yet/i);
-    expect(glance.copy).not.toMatch(/what you declared/i);
+    expect(glance.available).toBe(true);
+    if (!glance.available) return;
+    expect(glance.amer).toBeNull();
+    expect(glance.headline).toMatch(/new|returning/i);
   });
 
+  it("still shows the split without spend — aMER waits", () => {
+    const glance = resolveAcquisitionGlance(
+      ready({ totalSpend: 0, amer: null }),
+    );
+    expect(glance.available).toBe(true);
+    if (!glance.available) return;
+    expect(glance.amer).toBeNull();
+    expect(glance.amerLabel).toBeNull();
+  });
+
+  it("omits aMER for a non-finite multiple without blanking the split", () => {
+    const glance = resolveAcquisitionGlance(
+      ready({ amer: Number.POSITIVE_INFINITY }),
+    );
+    expect(glance.available).toBe(true);
+    if (!glance.available) return;
+    expect(glance.amer).toBeNull();
+  });
+});
+
+describe("resolveAcquisitionGlance — fail closed on sales honesty", () => {
   it("refuses while Shopify sales facts are backfilling", () => {
     const glance = resolveAcquisitionGlance(
       ready({ salesFactsIncomplete: true }),
@@ -139,22 +157,6 @@ describe("resolveAcquisitionGlance — fail closed", () => {
     expect(glance.copy).toContain("not permanently empty");
   });
 
-  it("refuses without spend — aMER has no denominator", () => {
-    const glance = resolveAcquisitionGlance(
-      ready({ totalSpend: 0, amer: null }),
-    );
-    if (glance.available) throw new Error("expected blocked");
-    expect(glance.reason).toBe("no_spend");
-  });
-
-  it("refuses a non-finite aMER", () => {
-    const glance = resolveAcquisitionGlance(
-      ready({ amer: Number.POSITIVE_INFINITY }),
-    );
-    if (glance.available) throw new Error("expected blocked");
-    expect(glance.reason).toBe("no_spend");
-  });
-
   it("refuses when the customer split hasn't landed at all", () => {
     const glance = resolveAcquisitionGlance(
       ready({ newCustomerSales: 0, returningCustomerSales: 0, amer: 0 }),
@@ -163,7 +165,7 @@ describe("resolveAcquisitionGlance — fail closed", () => {
     expect(glance.reason).toBe("split_missing");
   });
 
-  it("refuses a thin split rather than understating aMER", () => {
+  it("refuses a thin split rather than publishing a weak split", () => {
     const glance = resolveAcquisitionGlance(
       ready({
         newCustomerSales: 3_000,
@@ -187,31 +189,21 @@ describe("resolveAcquisitionGlance — fail closed", () => {
     expect(glance.available).toBe(true);
   });
 
-  it("checks spend trust before sales facts, facts before history", () => {
+  it("checks sales facts before history", () => {
     const everythingWrong = ready({
-      spendIncomplete: true,
-      cashActionReady: false,
       salesFactsIncomplete: true,
       periodUncovered: true,
     });
     const first = resolveAcquisitionGlance(everythingWrong);
     if (first.available) throw new Error("expected blocked");
-    expect(first.reason).toBe("spend_incomplete");
+    expect(first.reason).toBe("backfilling");
 
     const second = resolveAcquisitionGlance({
       ...everythingWrong,
-      spendIncomplete: false,
+      salesFactsIncomplete: false,
     });
     if (second.available) throw new Error("expected blocked");
-    expect(second.reason).toBe("spend_untrusted");
-
-    const third = resolveAcquisitionGlance({
-      ...everythingWrong,
-      spendIncomplete: false,
-      cashActionReady: true,
-    });
-    if (third.available) throw new Error("expected blocked");
-    expect(third.reason).toBe("backfilling");
+    expect(second.reason).toBe("history_limited");
   });
 });
 
@@ -221,7 +213,6 @@ describe("resolveAcquisitionGlance — SAMPLE", () => {
     if (!glance.available) throw new Error("expected available");
     expect(glance.useSampleDesk).toBe(true);
     expect(glance.sampleNote).toContain("SAMPLE");
-    expect(glance.sampleNote).toContain("not live money");
   });
 
   it("leaves live desks unmarked", () => {
@@ -232,20 +223,24 @@ describe("resolveAcquisitionGlance — SAMPLE", () => {
 });
 
 describe("Overview wiring", () => {
-  it("renders the glance only when the scoreboard and spend trust are ready", () => {
+  it("renders the glance with sales desk ready — not spend-gated", () => {
     const mount = overview.indexOf("<AcquisitionGlance");
     expect(mount).toBeGreaterThan(0);
-    const gate = overview.slice(Math.max(0, mount - 400), mount);
-    expect(gate).toContain("!shotMode && scoreboardReady && metrics.cashActionReady");
+    const gate = overview.slice(Math.max(0, mount - 500), mount);
+    expect(gate).toContain("salesDeskReady");
+    expect(gate).not.toContain("metrics.cashActionReady");
   });
 
-  it("lands after the trusted Total ROAS hero, before the LTV snapshot", () => {
-    const heroAt = overview.indexOf("TotalRoasGauge");
-    const glanceAt = overview.indexOf("<AcquisitionGlance");
-    const ltvAt = overview.indexOf("<LtvSnapSection");
-    expect(heroAt).toBeGreaterThan(0);
-    expect(glanceAt).toBeGreaterThan(heroAt);
-    expect(ltvAt).toBeGreaterThan(glanceAt);
+  it("lands with customer depth before the Total ROAS hero", () => {
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    const orderAt = client.indexOf("<OrderEconomicsPanel");
+    const glanceAt = client.indexOf("<AcquisitionGlance");
+    const ltvAt = client.indexOf("<LtvSnapSection");
+    const heroAt = client.indexOf("<TotalRoasGauge");
+    expect(orderAt).toBeGreaterThan(0);
+    expect(ltvAt).toBeGreaterThan(orderAt);
+    expect(glanceAt).toBeGreaterThan(0);
+    expect(heroAt).toBeGreaterThan(glanceAt);
   });
 
   it("passes the honesty flags the resolver fails closed on", () => {
@@ -257,7 +252,6 @@ describe("Overview wiring", () => {
     expect(props).toContain("cashActionReady={metrics.cashActionReady}");
     expect(props).toContain("periodUncovered={periodUncovered}");
     expect(props).toContain("useSampleDesk={useSampleDesk}");
-    expect(props).toContain("factsIncompleteForTrust || trustedHero.hideUntrustedZero");
   });
 
   it("reuses desk metrics instead of recomputing till math", () => {

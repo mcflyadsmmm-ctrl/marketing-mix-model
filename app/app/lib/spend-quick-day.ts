@@ -52,7 +52,7 @@ export type QuickSpendDayInput = {
 
 export const QUICK_SPEND_COPY = {
   heading: "Add one day of spend",
-  hint: "Date + amount + channel. No file, no template, no ad-network login.",
+  hint: "Date, amount, and channel — no file needed.",
   dateLabel: "Day",
   amountLabel: "Amount spent",
   channelLabel: "Channel",
@@ -300,7 +300,7 @@ export function quickSpendSavedCopy(input: {
 
   if (input.firstLiveSpend) {
     return {
-      heading: "First spend day is on the desk",
+      heading: "First spend day saved",
       body: `${line} ${PRODUCT_NOUN.totalRoas} is ${PRODUCT_NOUN.definition} — open Overview to see it for the period holding ${day}.`,
       primaryLabel: PRODUCT_NOUN.openTotalRoas,
       primaryHref: roasHrefForDay(input.dateKey, input.todayKey),

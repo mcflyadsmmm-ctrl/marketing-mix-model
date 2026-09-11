@@ -11,7 +11,7 @@ export const SAMPLE_MONEY_MARK =
 
 export const CASH_PAGE_WHY = {
   spend:
-    "Total ROAS is Shopify sales ÷ the spend you add here. Missing days treat spend as $0, so the multiple looks better than cash.",
+    "Optional — add ad spend here when you want Total ROAS depth (Shopify sales ÷ what you spent). Days without spend count as $0.",
   goals:
     "A sales target tells you whether this period’s ads bought enough sales cash — next to Total ROAS, not instead of it.",
   allocation:

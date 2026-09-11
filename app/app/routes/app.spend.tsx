@@ -122,7 +122,7 @@ const SAMPLE_DESK_IMPORT_BLOCK =
  * Folds into the single Love-V3 teach / activate surface (never a second banner).
  */
 const SPEND_ACTIVATE_COPY =
-  `Shopify sales are already here. ${PRODUCT_NOUN.totalRoas} unlocks when spend is entered — no ad login.`;
+  `Shopify sales are already here. Add spend when you want Total ROAS — no ad login.`;
 /**
  * Love-UX2 — Matrixify-loud pipe front-door inside that one teach surface.
  * Tools are nominative + merchant-paid; Mcfly never claims OAuth or partnership.
@@ -165,7 +165,7 @@ function addSpendSelectOptions(entitlements: ShopEntitlements) {
       value,
       label: ok
         ? SPEND_CHANNEL_LABELS[value]
-        : `${SPEND_CHANNEL_LABELS[value]} — $39 desk`,
+        : `${SPEND_CHANNEL_LABELS[value]} — $39/mo`,
       disabled: !ok,
     });
   }
@@ -1468,7 +1468,7 @@ export default function SpendEntryPage() {
   const showActivationBanner = activating && !showEmptyTeach;
   const emptyTeachHeading =
     activating && showEmptyTeach
-      ? "Step 1 of 2 — put spend on the desk"
+      ? "Step 1 of 2 — add spend"
       : emptyTeach.heading;
   /** Love-UX3: activate owns the teach body; otherwise keep emptyTeach.body. */
   const emptyTeachBody =
@@ -1765,7 +1765,7 @@ export default function SpendEntryPage() {
       <s-button
         id="mcfly-spend-csv-submit"
         type="submit"
-        variant={firstRun ? "secondary" : "primary"}
+        variant="secondary"
         {...(importBlockedBySample ? { disabled: true } : {})}
         {...(isSubmitting && submittingIntent === "csv"
           ? { loading: true }
@@ -1923,7 +1923,7 @@ export default function SpendEntryPage() {
         ) : null}
 
         {csvNeedsConfirm && csv ? (
-          <s-banner tone="warning" heading="Same days already on the desk">
+          <s-banner tone="warning" heading="Same days already entered">
             <s-paragraph>
               Will <strong>replace {csv.updated}</strong> overlapping day
               {csv.updated === 1 ? "" : "s"} · <strong>add {csv.created}</strong>{" "}

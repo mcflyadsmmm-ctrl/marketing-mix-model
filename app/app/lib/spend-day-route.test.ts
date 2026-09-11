@@ -126,7 +126,7 @@ describe("first-spend hand-off to Total ROAS", () => {
     expect(spend).toContain("showEmptyTeach");
     expect(spend).toContain("showActivationBanner = activating && !showEmptyTeach");
     expect(spend).toContain("emptyTeachHeading");
-    expect(spend).toContain("Step 1 of 2 — put spend on the desk");
+    expect(spend).toContain("Step 1 of 2 — add spend");
     expect(spend).toContain("{showEmptyTeach ? (");
     expect(spend).toContain("{showActivationBanner ? (");
     expect(spend).toContain("{showDeskWhy ? (");
@@ -139,8 +139,7 @@ describe("first-spend hand-off to Total ROAS", () => {
   it("Love-UX3: cold activate copy is religion-safe (sales already here, no ad login)", () => {
     expect(spend).toContain("SPEND_ACTIVATE_COPY");
     expect(spend).toContain("Shopify sales are already here");
-    expect(spend).toMatch(/unlocks when spend is entered — no ad login/);
-    expect(spend).toContain("PRODUCT_NOUN.totalRoas");
+    expect(spend).toMatch(/Add spend when you want Total ROAS — no ad login/);
     // Folds into empty teach body when cold; same line on activation-alone banner.
     expect(spend).toContain("emptyTeachBody");
     expect(spend).toContain(
@@ -255,12 +254,16 @@ describe("first-run Spend leads with bill → daily rows", () => {
   });
 
   it("keeps exactly one primary button on a cold desk", () => {
-    // Bill submit is the primary; typed day and CSV import step down.
+    // Bill submit is the primary; typed day steps down on first run.
+    // CSV import stays secondary always so a warm desk has one primary (Save this day).
     expect(billPanel).toMatch(/variant="primary"[\s\S]{0,220}billPrimaryLabel/);
     expect(spend).toContain('variant={firstRun ? "secondary" : "primary"}');
     expect(
       spend.match(/variant=\{firstRun \? "secondary" : "primary"\}/g)?.length,
-    ).toBe(2);
+    ).toBe(1);
+    expect(spend).toMatch(
+      /id="mcfly-spend-csv-submit"[\s\S]{0,200}variant="secondary"/,
+    );
     expect(spend).toContain('variant="tertiary"');
   });
 

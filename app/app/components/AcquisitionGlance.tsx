@@ -29,16 +29,18 @@ export function AcquisitionGlance({ preset, ...input }: AcquisitionGlanceProps) 
       {glance.available ? (
         <>
           <div className="mcfly-tab-snap__tiles">
-            <div className="mcfly-tab-snap__tile">
-              <p className="mcfly-tab-snap__tile-k">
-                {ACQUISITION_GLANCE_COPY.amerLabel}
-              </p>
-              <p className="mcfly-tab-snap__tile-v">{glance.amerLabel}</p>
-              <p className="mcfly-tab-snap__tile-def">
-                {ACQUISITION_GLANCE_COPY.amerDef}
-              </p>
-            </div>
-            <div className="mcfly-tab-snap__tile">
+            {glance.amerLabel != null ? (
+              <div className="mcfly-tab-snap__tile">
+                <p className="mcfly-tab-snap__tile-k">
+                  {ACQUISITION_GLANCE_COPY.amerLabel}
+                </p>
+                <p className="mcfly-tab-snap__tile-v">{glance.amerLabel}</p>
+                <p className="mcfly-tab-snap__tile-def">
+                  {ACQUISITION_GLANCE_COPY.amerDef}
+                </p>
+              </div>
+            ) : null}
+            <div className="mcfly-tab-snap__tile mcfly-tab-snap__tile--accent">
               <p className="mcfly-tab-snap__tile-k">
                 {ACQUISITION_GLANCE_COPY.newLabel}
               </p>
@@ -64,8 +66,12 @@ export function AcquisitionGlance({ preset, ...input }: AcquisitionGlanceProps) 
             </div>
           </div>
           <p className="mcfly-tab-snap__sentence">{glance.headline}</p>
-          <p className="mcfly-tab-snap__muted">{glance.caveat}</p>
-          <p className="mcfly-tab-snap__muted">{glance.coverageLine}</p>
+          {glance.caveat ? (
+            <p className="mcfly-tab-snap__muted">{glance.caveat}</p>
+          ) : null}
+          {glance.coverageLine ? (
+            <p className="mcfly-tab-snap__muted">{glance.coverageLine}</p>
+          ) : null}
           {glance.sampleNote ? (
             <p className="mcfly-tab-snap__muted">{glance.sampleNote}</p>
           ) : null}
@@ -76,7 +82,7 @@ export function AcquisitionGlance({ preset, ...input }: AcquisitionGlanceProps) 
 
       <div className="mcfly-tab-snap__cta">
         <s-link href={`/app/ltv?period=${preset}`}>
-          {PRODUCT_NOUN.openLtv}
+          {PRODUCT_NOUN.openCustomerInsights}
         </s-link>
       </div>
     </section>

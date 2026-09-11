@@ -49,7 +49,6 @@ import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import { SPEND_BILL_ANCHOR } from "../lib/spend-first-run";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
   formatListingTillLabel,
@@ -614,9 +613,15 @@ export default function Dashboard() {
     useSampleDesk,
     shotMode,
   });
+  // Page chrome: customer insights when sales exist; spend only when they don't.
   const primaryAction = trustedHero.hideUntrustedZero
     ? { href: trustedHero.primaryHref, label: trustedHero.primaryLabel }
-    : firstSessionPrimaryAction(firstSession);
+    : salesDeskReady
+      ? {
+          href: `/app/ltv?period=${preset}`,
+          label: PRODUCT_NOUN.openCustomerInsights,
+        }
+      : firstSessionPrimaryAction(firstSession);
 
   const deltas = metrics.deltas;
   const priorLabel = deltas?.priorLabel;
@@ -784,10 +789,6 @@ export default function Dashboard() {
 
         <div className="mcfly-ctx" aria-live="polite">
           <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">{PRODUCT_NOUN.deskTitle}</span>
-            <span className="mcfly-ctx__sep" aria-hidden="true">
-              ·
-            </span>
             <span className="mcfly-ctx__asof">{periodAsOfLabel}</span>
             <PeriodControl preset={preset} shotMode={shotMode} />
           </div>
@@ -840,20 +841,14 @@ export default function Dashboard() {
               />
             ) : null}
 
-            {showHero ? (
+            {!shotMode && salesDeskReady ? (
               <div
-                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
+                className="mcfly-tab-snaps"
                 aria-label="Customer insights"
               >
-                <LtvSnapSection tillLtv={metrics.tillLtv} preset={preset} />
-              </div>
-            ) : null}
-
-            {!shotMode && scoreboardReady ? (
-              <div
-                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
-                aria-label="New vs returning"
-              >
+                {showHero ? (
+                  <LtvSnapSection tillLtv={metrics.tillLtv} preset={preset} />
+                ) : null}
                 <AcquisitionGlance
                   preset={preset}
                   amer={metrics.amer}
@@ -1075,21 +1070,11 @@ export default function Dashboard() {
 
             {!shotMode && metrics.cashActionReady ? (
               <p className="mcfly-overview-more" aria-label="More tools">
-                <s-link href={`/app/ltv?period=${preset}`}>
-                  {PRODUCT_NOUN.openCustomerInsights}
-                </s-link>
-                {" · "}
-                <s-link href={`/app/allocation?period=${preset}`}>
-                  {PRODUCT_NOUN.spendAllocation}
-                </s-link>
-                {" · "}
                 <s-link href="/app/goals">Goals</s-link>
                 {" · "}
                 <s-link href="/app/advanced">
                   {PRODUCT_NOUN.advancedMetrics}
                 </s-link>
-                {" · "}
-                <s-link href="/app/settings">Settings</s-link>
               </p>
             ) : null}
           </>
@@ -1184,7 +1169,7 @@ function LtvSnapSection({
             {tillLtv.avgRevenueD90 != null && tillLtv.newBuyers > 0
               ? showCac && tillLtv.cashCac != null && tillLtv.cashCac > 0
                 ? `New buyers return ${formatCurrency(tillLtv.avgRevenueD90)} by day 90 against ${formatCurrency(tillLtv.cashCac)} Cash CAC.`
-                : `${tillLtv.newBuyers.toLocaleString()} new buyers · ${formatCurrency(tillLtv.avgRevenueD90)} LTV at 90 days — add spend to unlock Cash CAC.`
+                : `${tillLtv.newBuyers.toLocaleString()} new buyers · ${formatCurrency(tillLtv.avgRevenueD90)} LTV at 90 days.`
               : tillLtv.newBuyers > 0
                 ? `${tillLtv.newBuyers.toLocaleString()} new customers · open cohorts for full LTV`
                 : "Open cohorts for buyer LTV and repeat behavior."}
@@ -1208,9 +1193,9 @@ function LtvSnapSection({
       )}
 
       <div className="mcfly-tab-snap__cta">
-        <s-button href={`/app/ltv?period=${preset}`} variant="secondary">
+        <s-link href={`/app/ltv?period=${preset}`}>
           {PRODUCT_NOUN.openCustomerInsights}
-        </s-button>
+        </s-link>
       </div>
     </section>
   );
