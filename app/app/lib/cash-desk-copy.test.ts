@@ -18,7 +18,7 @@ describe("CASH_PAGE_WHY", () => {
   it("ties every later page to till cash in one line", () => {
     expect(CASH_PAGE_WHY.spend).toMatch(/Total ROAS/i);
     expect(CASH_PAGE_WHY.spend).toMatch(/\$0/i);
-    expect(CASH_PAGE_WHY.goals).toMatch(/till cash|Total ROAS/i);
+    expect(CASH_PAGE_WHY.goals).toMatch(/sales cash|Total ROAS/i);
     expect(CASH_PAGE_WHY.allocation).toMatch(/break-even/i);
     expect(CASH_PAGE_WHY.allocation).toMatch(/hold|reduce|step-test/i);
     expect(CASH_PAGE_WHY.allocation).not.toMatch(/which channels to cut or keep/i);
