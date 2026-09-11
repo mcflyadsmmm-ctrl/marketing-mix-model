@@ -80,16 +80,18 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).not.toMatch(/Order history is limited — open/);
   });
 
-  it("offers a Partner-safe /auth grant CTA and gives LTV a sales-first teaching state", () => {
+  it("offers a Partner-safe /auth grant CTA and keeps LTV empty states honest", () => {
     expect(overview).toContain("DeepHistoryBanner");
     expect(ltv).toContain("DeepHistoryBanner");
     // Fresh start: Overview no longer mounts a cash-religion attribution strip.
     expect(overview).not.toContain("CASH_NOT_ATTRIBUTION");
-    expect(ltv).toContain('aria-label="Lifetime value teaching state"');
+    expect(ltv).toContain('aria-label="Lifetime value empty"');
     expect(ltv).toContain("ltvEmpty.heading");
     expect(ltv).toContain("ltvEmpty.body");
     expect(ltv).not.toContain("FirstTrustedRoasGate");
-    expect(ltv).toContain("ltvCashCacTeaching");
+    expect(ltv).not.toContain("DeskPageWhy");
+    expect(ltv).toContain("openCohorts");
+    expect(ltv).toContain("hasPeriodSpend");
     expect(ltv).not.toMatch(
       /!metrics\.onboarding\.hasSpend[\s\S]{0,120}"no_spend"/,
     );

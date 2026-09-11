@@ -67,6 +67,8 @@ export const PRODUCT_NOUN = {
   openSpendAllocation: "Open Spend Allocation",
   openLtv: "Open customer insights",
   openCustomerInsights: "Open customer insights",
+  /** Customers & LTV page — jump to cohort table */
+  openCohorts: "Open cohorts",
   /** Enterprise MDS lab — averages, not causal channel ROAS */
   advancedMetrics: "Advanced Metrics",
   openAdvanced: "Open Advanced Metrics",
@@ -130,7 +132,7 @@ export const PRODUCT_NOUN = {
     "Select channels → download template → fill daily spend → upload. Same days replace.",
   /** LTV / Acquisition differentiator — view Shopify Admin lacks */
   ltvNotInShopify:
-    "Shopify Admin doesn’t show this next to your ad spend — Mcfly uses order cohorts and opaque customer ids only (no email CRM).",
+    "Order cohorts and repeat revenue — deeper than Admin’s customer reports.",
 } as const;
 
 export type SalesBasisPreference = "total" | "net";

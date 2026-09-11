@@ -108,7 +108,7 @@ describe("formatMissingDaysRoasImpact", () => {
 });
 
 describe("ltvEmptyCashCopy", () => {
-  it("teaches the useful sales-first next step without calling LTV broken", () => {
+  it("keeps empty states short without calling LTV broken", () => {
     for (const kind of [
       "no_timezone",
       "history_limited",
@@ -119,11 +119,13 @@ describe("ltvEmptyCashCopy", () => {
       const copy = ltvEmptyCashCopy(kind);
       expect(copy.body).not.toMatch(/permanently (dead|broken|empty)/i);
       expect(copy.body).not.toMatch(THEATER);
+      expect(copy.body.length).toBeLessThan(160);
     }
-    expect(ltvEmptyCashCopy("history_limited").body).toMatch(/Acquisition above is useful now/i);
-    expect(ltvEmptyCashCopy("backfilling").body).toMatch(/new vs returning sales and AOV now/i);
-    expect(ltvEmptyCashCopy("backfilling").body).toMatch(/Spend can wait/i);
-    expect(ltvEmptyCashCopy("no_timezone").body).toMatch(/no email CRM/i);
+    expect(ltvEmptyCashCopy("history_limited").body).toMatch(/60-day/i);
+    expect(ltvEmptyCashCopy("backfilling").body).toMatch(/first order/i);
+    expect(ltvEmptyCashCopy("backfilling").nextLabel).toMatch(/Refresh/i);
+    expect(ltvEmptyCashCopy("pro_required").body).toMatch(/\$39/i);
+    expect(ltvEmptyCashCopy("no_timezone").body).toMatch(/timezone/i);
   });
 
   it("parses known empty reasons", () => {
@@ -145,9 +147,9 @@ describe("ltvCashCacTeaching", () => {
   });
 
   it("keeps cohorts useful when spend is absent and explains a missing denominator honestly", () => {
-    expect(CASH_PAGE_WHY.ltv).toMatch(/Shopify order cohorts/i);
-    expect(CASH_PAGE_WHY.ltv).toMatch(/Add spend only/i);
-    expect(CASH_PAGE_WHY.ltv).toMatch(/no email CRM/i);
+    expect(CASH_PAGE_WHY.ltv).toMatch(/Order cohorts/i);
+    expect(CASH_PAGE_WHY.ltv).toMatch(/Cash CAC/i);
+    expect(CASH_PAGE_WHY.ltv).toMatch(/spend/i);
     expect(
       ltvCashCacTeaching({
         hasPeriodSpend: true,

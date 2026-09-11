@@ -16,7 +16,7 @@ export const CASH_PAGE_WHY = {
     "A sales target tells you whether this period’s ads bought enough sales cash — next to Total ROAS, not instead of it.",
   allocation:
     "After you trust Total ROAS, this page shows hold / reduce / step-test advice so break-even is protected — sales ÷ spend, not channel attribution.",
-  ltv: "Shopify order cohorts show repeat revenue and buyer mix. Add spend only when you want Cash CAC and payback — opaque customer ids, no email CRM.",
+  ltv: "Order cohorts show repeat revenue and buyer mix. Cash CAC appears when period spend is logged.",
   advanced:
     "Extra formulas after you trust Total ROAS. Skip this until sales ÷ spend is on the desk.",
 } as const;
@@ -145,35 +145,35 @@ export function ltvEmptyCashCopy(kind: LtvEmptyCashKind): LtvEmptyCashCopy {
     case "no_timezone":
       return {
         heading: "Shop timezone needed",
-        body: "Shopify has not shared the local timezone needed to place first orders into cohorts. Acquisition above can still teach from sales and order facts; Mcfly uses no email CRM.",
+        body: "Shopify hasn’t shared the local timezone needed to bucket first orders into cohorts.",
         nextHref: "/app",
         nextLabel: "Open Overview",
       };
     case "history_limited":
       return {
         heading: "Recent order window only",
-        body: "Shopify has shared the recent ~60-day order window. Acquisition above is useful now; grant deeper order access when you want older first-order cohorts. Mcfly uses opaque customer ids and order amounts only.",
+        body: "Showing the recent ~60-day window. Grant deeper order access for older cohorts.",
         nextHref: "/app",
         nextLabel: "Open Overview",
       };
     case "backfilling":
       return {
         heading: "Cohorts are filling",
-        body: "Shopify orders are being grouped by each buyer’s first order. Use Acquisition above for new vs returning sales and AOV now; 30d, 90d, and 365d cohort revenue appears as order facts land. Spend can wait.",
+        body: "Grouping buyers by first order. New vs returning sales below update as facts land.",
         nextHref: "/app/ltv",
-        nextLabel: "Refresh LTV",
+        nextLabel: "Refresh",
       };
     case "pro_required":
       return {
-        heading: "LTV is on the $39 desk",
-        body: "Customer LTV is included with the 7-day trial and $39 desk. Overview still gives you Shopify sales and order economics while cohort access is unavailable. SAMPLE is preview data only.",
+        heading: "Included on trial + $39",
+        body: "Customer LTV ships with the 7-day trial and $39/month plan. SAMPLE is preview only.",
         nextHref: "/app",
         nextLabel: "Open Overview",
       };
     case "unknown":
       return {
-        heading: "LTV is filling",
-        body: "Acquisition above can still teach from Shopify sales and order facts. Cohort revenue appears after first-order facts are ready; adding spend is optional until you want Cash CAC.",
+        heading: "Cohorts are filling",
+        body: "Cohort revenue appears once first-order facts are ready.",
         nextHref: "/app",
         nextLabel: "Open Overview",
       };

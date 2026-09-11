@@ -11220,3 +11220,108 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
   gap: 0.85rem;
 }
+
+/* Customers & LTV — same flat paper as Overview (no gradient card stack) */
+.mcfly-ltv.mcfly-desk {
+  gap: 0.85rem;
+}
+
+.mcfly-ltv .mcfly-acq-band,
+.mcfly-ltv .mcfly-ltv-summary,
+.mcfly-ltv .mcfly-ltv-dive {
+  margin: 0;
+  padding: 1rem 1.05rem 1.05rem;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: var(--mcfly-radius);
+  border-left: 1px solid var(--mcfly-line-soft);
+  background: var(--mcfly-paper);
+  background-image: none;
+  box-shadow: none;
+}
+
+.mcfly-ltv .mcfly-ltv-summary__hero,
+.mcfly-ltv .mcfly-ltv-summary__tile,
+.mcfly-ltv .mcfly-ltv-dive__cost-tile,
+.mcfly-ltv .mcfly-acq-tile {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0.35rem 0.15rem 0.45rem;
+}
+
+.mcfly-ltv .mcfly-ltv-summary__grid,
+.mcfly-ltv .mcfly-acq-grid,
+.mcfly-ltv .mcfly-acq-split__counts,
+.mcfly-ltv .mcfly-ltv-dive__cost {
+  gap: 0.75rem 1.25rem;
+  border-top: 1px solid var(--mcfly-line-soft);
+  padding-top: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.mcfly-ltv .mcfly-ltv-summary__k,
+.mcfly-ltv .mcfly-acq-tile__k {
+  font-family: var(--mcfly-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d7175;
+}
+
+.mcfly-ltv .mcfly-ltv-summary__v,
+.mcfly-ltv .mcfly-acq-tile__v {
+  font-family: var(--mcfly-num);
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-ltv .mcfly-ltv-summary__v--sm {
+  font-size: 1.125rem;
+}
+
+.mcfly-ltv .mcfly-panel__head h2 {
+  font-family: var(--mcfly-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.mcfly-ltv .mcfly-panel__muted,
+.mcfly-ltv .mcfly-ltv-summary__def,
+.mcfly-ltv .mcfly-ltv-summary__hint,
+.mcfly-ltv .mcfly-ltv-summary__delta,
+.mcfly-ltv .mcfly-acq-tile__def,
+.mcfly-ltv .mcfly-acq-tile__hint {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #6d7175;
+}
+
+.mcfly-ltv .mcfly-acq-share {
+  height: 0.4rem;
+  border-radius: 2px;
+  border: 0;
+  background: #eef1f3;
+}
+
+.mcfly-ltv .mcfly-ltv-dive__table-wrap {
+  border: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+  border-radius: 0;
+  background: transparent;
+  margin-top: 0.65rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mcfly-ltv .mcfly-acq-band,
+  .mcfly-ltv .mcfly-ltv-summary,
+  .mcfly-ltv .mcfly-ltv-dive {
+    animation: mcfly-fade 180ms var(--mcfly-ease) both;
+  }
+}

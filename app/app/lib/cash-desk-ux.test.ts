@@ -149,12 +149,13 @@ describe("Spend ritual", () => {
 });
 
 describe("Later pages have a cash why + soft gate", () => {
-  it("wires DeskPageWhy and FirstTrustedRoasGate", () => {
+  it("wires DeskPageWhy and FirstTrustedRoasGate where spend depth still needs a soft gate", () => {
     expect(goals).toContain("DeskPageWhy");
     expect(goals).toContain('page="goals"');
     expect(goals).toContain("FirstTrustedRoasGate");
-    expect(ltv).toContain('page="ltv"');
     expect(ltv).toContain("ltvEmptyCashCopy");
+    expect(ltv).toContain("openCohorts");
+    expect(ltv).not.toContain("DeskPageWhy");
     expect(allocation).toContain('page="allocation"');
     expect(advanced).toContain('page="advanced"');
     expect(advanced).toContain("FirstTrustedRoasGate");
