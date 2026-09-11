@@ -19,13 +19,20 @@ Build the best **advanced Shopify analytics** app possible: deeper than free Sho
 
 Everything else is open.
 
-## Refuse (process — not product religion)
+## Research
 
-- Reintroducing jargon: till, religion-as-UI, CEO desk, scoreboard, cash desk  
-- First-viewport banner / verdict walls “for trust”  
-- Source-grep tests that freeze dead chrome back into the tree  
-- Softening CSS on a burned Overview instead of replacing the surface  
-- Invented social proof  
+Use `docs/research/**` as **learnings** (pain, competitors, craft). Not as locks.  
+If a research file says “religion” or “refuse,” treat that as outdated context — follow Fresh Start.
+
+## Don’t repeat the last failure (process only)
+
+These are failure-mode guards, **not** product strategy:
+
+- Don’t bring back agent jargon in UI/updates (till, CEO desk, etc.)  
+- Don’t rebuild first-screen lecture walls  
+- Don’t add source-grep tests that freeze dead chrome  
+- Don’t CSS-soften a burned Overview — replace the surface  
+- Don’t invent reviews / installs  
 
 ## Before claiming done
 
