@@ -21,12 +21,14 @@
   --mcfly-lie-soft: #fef2f2;
   --mcfly-warn: #b45309;
   --mcfly-cyan: #5ee7f0;
-  --mcfly-radius: 12px;
-  --mcfly-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.04);
+  --mcfly-radius: 10px;
+  --mcfly-shadow: 0 1px 0 rgba(26, 26, 26, 0.05);
   --mcfly-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --mcfly-motion: 160ms;
-  --mcfly-font: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
-  --mcfly-display: "Fraunces", Georgia, serif;
+  --mcfly-motion: 140ms;
+  /* Match Shopify Admin (Inter from cdn.shopify.com) — enterprise calm, not marketing serif. */
+  --mcfly-font: Inter, -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mcfly-display: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mcfly-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --mcfly-meta: #7dd3e8;
   --mcfly-google: #e8a090;
   --mcfly-microsoft: #c4d4a8;
@@ -85,13 +87,15 @@
 
 .mcfly-desk {
   display: grid;
-  gap: 1rem;
+  gap: 0.85rem;
   font-family: var(--mcfly-font);
   color: var(--mcfly-ink);
-  background: var(--mcfly-bg);
-  border-radius: var(--mcfly-radius);
-  padding: 0.35rem 0.15rem 0.5rem;
+  background: transparent;
+  border-radius: 0;
+  padding: 0.15rem 0 0.75rem;
   animation: mcfly-fade var(--mcfly-motion) ease both;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /**
@@ -140,7 +144,7 @@
 
 .mcfly-context__def strong {
   color: var(--mcfly-ink);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-chip {
@@ -150,7 +154,7 @@
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.01em;
   background: var(--mcfly-accent-soft);
   color: var(--mcfly-accent-ink);
@@ -196,7 +200,7 @@
   color: var(--mcfly-mute);
   font-family: var(--mcfly-font);
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
   transition:
@@ -339,7 +343,7 @@
 }
 .mcfly-metric--success .mcfly-metric__hint {
   color: var(--mcfly-truth);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-metric--critical {
@@ -348,7 +352,7 @@
 }
 .mcfly-metric--critical .mcfly-metric__hint {
   color: var(--mcfly-lie);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-channel {
@@ -371,7 +375,7 @@
   gap: 0.35rem;
   min-width: 0;
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -626,7 +630,7 @@
   background: var(--mcfly-accent-soft);
   border: 1px solid #cfe6f5;
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-accent-ink);
   line-height: 1.4;
   word-break: break-word;
@@ -669,7 +673,7 @@
 .mcfly-details summary {
   cursor: pointer;
   font-size: 0.85rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-accent-ink);
 }
 
@@ -821,7 +825,7 @@
   margin: 0 0 0.55rem;
   font-family: var(--mcfly-font);
   font-size: 0.72rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--mcfly-mute);
   line-height: 1.35;
@@ -852,7 +856,7 @@
   margin: 0.65rem 0 0;
   font-family: var(--mcfly-font);
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.015em;
   color: var(--mcfly-ink);
   line-height: 1.3;
@@ -1039,7 +1043,7 @@
 .mcfly-ctx-chip--fresh {
   max-width: min(36rem, 100%);
   line-height: 1.35;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink-soft, #334155);
 }
 
@@ -1103,7 +1107,7 @@
   padding: 0.55rem 0.95rem;
   font: inherit;
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   cursor: pointer;
   line-height: 1.2;
 }
@@ -2055,7 +2059,7 @@
 .mcfly-explorer .mcfly-panel__head h2,
 .mcfly-explorer__head h2 {
   font-family: var(--mcfly-font);
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.02em;
   font-size: 1.05rem;
 }
@@ -2092,7 +2096,7 @@
   color: var(--mcfly-ink);
   font: inherit;
   font-size: 0.72rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
   transition:
@@ -2178,7 +2182,7 @@
   background: transparent;
   color: var(--mcfly-mute);
   font-size: 0.68rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
@@ -2460,7 +2464,7 @@
   color: var(--mcfly-ink);
   font-family: var(--mcfly-font);
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
   padding: 0.38rem 0.55rem;
@@ -2485,7 +2489,7 @@
   color: var(--mcfly-mute);
   font-family: var(--mcfly-font);
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   text-decoration: none;
   line-height: 1.2;
   cursor: pointer;
@@ -2577,7 +2581,7 @@
   color: var(--mcfly-mute);
   font-family: var(--mcfly-font);
   font-size: 0.74rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.01em;
   padding: 0.34rem 0.55rem;
   text-decoration: none;
@@ -3077,7 +3081,7 @@
 
 .mcfly-explorer__tip-note {
   color: var(--mcfly-explorer-cyan);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-explorer__label {
@@ -3305,7 +3309,7 @@
 .mcfly-panel--secondary .mcfly-panel__head h2 {
   font-family: var(--mcfly-font);
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-panel--secondary .mcfly-panel__next {
@@ -3440,7 +3444,7 @@
 .mcfly-ltv-callout__copy {
   margin: 0;
   font-size: 0.9rem;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.4;
   color: var(--mcfly-ink);
   letter-spacing: -0.01em;
@@ -3859,7 +3863,7 @@
 
 .mcfly-ltv-dive__table tbody th {
   text-align: left;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -3941,7 +3945,7 @@
 .mcfly-breakdown-row--eq {
   border-bottom: 0;
   padding-top: 0.65rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-breakdown-row--eq strong {
@@ -4124,7 +4128,7 @@
 .mcfly-guide__step-state {
   margin: 0;
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-truth);
   font-variant-numeric: tabular-nums;
 }
@@ -4323,7 +4327,7 @@
 .mcfly-alloc-inputs__item dt {
   margin: 0;
   font-size: 0.65rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.055em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
@@ -4584,7 +4588,7 @@
   align-items: center;
   gap: 0.4rem;
   font-size: 0.9rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -4702,7 +4706,7 @@
 
 .mcfly-alloc-hist__table th {
   font-size: 0.72rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
@@ -4734,7 +4738,7 @@
   justify-content: space-between;
   gap: 0.5rem;
   font-size: 0.86rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -4906,7 +4910,7 @@
   margin: 0;
   font-family: var(--mcfly-display, Georgia, serif);
   font-size: 1.02rem;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.35;
   letter-spacing: -0.01em;
   color: var(--mcfly-ink);
@@ -4931,7 +4935,7 @@
 .mcfly-alloc-v2__sub {
   margin: 0.6rem 0 0.4rem;
   font-size: 0.82rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink-soft);
 }
 
@@ -4994,7 +4998,7 @@
 
 .mcfly-alloc-v2__q-label {
   font-size: 0.92rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -5120,7 +5124,7 @@
 }
 
 .mcfly-alloc-v2__chan-pct {
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   min-width: 2.6rem;
   text-align: right;
@@ -5180,7 +5184,7 @@
 .mcfly-alloc-v2__roll-delta {
   margin: 0.25rem 0 0;
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--mcfly-ink-soft);
 }
@@ -5286,7 +5290,7 @@
 
 .mcfly-tab-snap__q-label {
   font-size: 0.92rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -5349,7 +5353,7 @@
 }
 
 .mcfly-tab-snap__chan-pct {
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   min-width: 2.6rem;
   text-align: right;
@@ -5426,7 +5430,7 @@
 .mcfly-tab-snap__tile-k {
   margin: 0;
   font-size: 0.7rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
@@ -5634,7 +5638,7 @@
 .mcfly-settings-template__heading {
   margin: 0;
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.35;
   color: var(--mcfly-ink);
@@ -5693,7 +5697,7 @@
 
 .mcfly-settings-field__label {
   font-size: 0.82rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -5739,7 +5743,7 @@
 
 .mcfly-settings-advanced > summary {
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   cursor: pointer;
 }
@@ -5758,7 +5762,7 @@
   align-items: center;
   gap: 0.45rem;
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   cursor: pointer;
 }
@@ -5860,7 +5864,7 @@
 .mcfly-demo-off-warning__status {
   margin: 0.85rem 0 0;
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   color: #027a48;
 }
 
@@ -6054,7 +6058,7 @@
   flex: 0 0 auto;
   min-width: 6rem;
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -6375,7 +6379,7 @@
   position: sticky;
   left: 0;
   background: #fff;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-spend-preview__table thead th {
@@ -6447,7 +6451,7 @@
 .mcfly-spend-recon-details > summary,
 .mcfly-goals-plan-details > summary {
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 600;
   font-size: 0.92rem;
   color: var(--mcfly-ink);
 }
@@ -6879,7 +6883,7 @@
   display: block;
   margin-bottom: 0.25rem;
   font-size: 0.72rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
@@ -6894,7 +6898,7 @@
 .mcfly-spend-combine__name {
   margin: 0;
   font-size: 0.92rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   line-height: 1.3;
 }
@@ -6945,7 +6949,7 @@
   list-style: none;
   padding: 0.5rem 0.75rem;
   font-size: 0.85rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -6995,7 +6999,7 @@
   margin: 0;
   min-width: 0;
   font-size: 0.68rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-mute, #64748b);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -7046,7 +7050,7 @@
 .mcfly-spend-bill__coverage {
   margin: 0.3rem 0 0;
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   font-variant-numeric: tabular-nums;
 }
@@ -7103,7 +7107,7 @@
   margin: 0;
   font-family: var(--mcfly-display);
   font-size: clamp(1.35rem, 2.6vw, 1.75rem);
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--mcfly-ink);
   line-height: 1.15;
@@ -7112,7 +7116,7 @@
 .mcfly-goals-mer-card__subtitle {
   margin: 0.2rem 0 0.65rem;
   font-size: 0.9rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink-soft, #2a4660);
 }
 
@@ -7162,7 +7166,7 @@
   max-width: 100%;
   font: inherit;
   font-size: 1.15rem;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: right;
   padding: 0.45rem 0.6rem;
@@ -7393,7 +7397,7 @@
 
 .mcfly-goals-year__label {
   font-size: 0.75rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
@@ -7403,7 +7407,7 @@
   appearance: none;
   font: inherit;
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   background: #fff;
   border: 1px solid var(--mcfly-line);
@@ -7458,7 +7462,7 @@
 .mcfly-goals-hero__value {
   font-family: var(--mcfly-display);
   font-size: clamp(1.25rem, 2.4vw, 1.65rem);
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--mcfly-ink);
   line-height: 1.15;
@@ -7482,7 +7486,7 @@
   gap: 0.35rem 0.85rem;
   margin-bottom: 0.4rem;
   font-size: 0.74rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -7533,7 +7537,7 @@
 .mcfly-goals-forecast__takeaway {
   margin: 0 0 0.75rem;
   font-size: 1.05rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink-soft);
   line-height: 1.35;
 }
@@ -7552,7 +7556,7 @@
 .mcfly-goals-forecast__stats dt {
   margin: 0;
   font-size: 0.72rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
@@ -7561,7 +7565,7 @@
 .mcfly-goals-forecast__stats dd {
   margin: 0.15rem 0 0;
   font-size: 0.98rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -7617,7 +7621,7 @@
 
 .mcfly-goals-table tbody th {
   text-align: left;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -7712,17 +7716,17 @@
 
 .mcfly-goals-delta--up {
   color: var(--mcfly-truth);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-goals-delta--down {
   color: var(--mcfly-lie);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-goals-delta--flat {
   color: var(--mcfly-mute);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-goals-pace {
@@ -7766,7 +7770,7 @@
 
 .mcfly-goals-toggle-bar__label {
   font-size: 0.86rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink, #0f2740);
 }
 
@@ -7784,7 +7788,7 @@
   color: var(--mcfly-mute, #5a7290);
   font: inherit;
   font-size: 0.8rem;
-  font-weight: 650;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -7935,7 +7939,7 @@
 .mcfly-close-hero__kicker {
   margin: 0;
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   line-height: 1.4;
 }
@@ -7972,7 +7976,7 @@
 .mcfly-close-ritual__flow {
   margin: 0;
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   letter-spacing: -0.01em;
 }
@@ -8002,7 +8006,7 @@
   content: "→";
   flex: 0 0 auto;
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-mute);
   opacity: 0.75;
 }
@@ -8032,7 +8036,7 @@
   border-color: var(--mcfly-accent, #0284c7);
   background: color-mix(in srgb, var(--mcfly-accent, #0284c7) 8%, #fff);
   color: var(--mcfly-ink);
-  font-weight: 650;
+  font-weight: 600;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--mcfly-accent, #0284c7) 35%, transparent);
 }
 
@@ -8078,7 +8082,7 @@
   border-left: 3px solid var(--mcfly-accent, #0284c7);
   background: color-mix(in srgb, var(--mcfly-accent, #0284c7) 6%, #fff);
   font-size: 0.86rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
   line-height: 1.35;
 }
@@ -8413,7 +8417,7 @@
 .mcfly-roas-gauge__formula {
   margin: 0;
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.35;
   color: var(--mcfly-ink);
 }
@@ -8472,7 +8476,7 @@
 
 .mcfly-hero-compact__badge {
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.35;
   color: var(--mcfly-ink);
   margin: 0;
@@ -8713,7 +8717,7 @@
 
 .mcfly-close-decision__label {
   font-size: 0.92rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -9485,7 +9489,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-data-mode__label {
   margin: 0;
   font-size: 0.78rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--mcfly-ink-muted, #5c6b7a);
@@ -9789,7 +9793,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-alloc-mix__name {
-  font-weight: 650;
+  font-weight: 600;
   font-size: 0.88rem;
 }
 
@@ -9879,7 +9883,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   gap: 0.15rem;
   min-width: 0;
   font-size: 0.68rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-mute, #64748b);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -9958,7 +9962,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-spend-lean__channels-label {
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink, #0f172a);
   flex-shrink: 0;
 }
@@ -10046,7 +10050,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   list-style: none;
   padding: 0.5rem 0.75rem;
   font-size: 0.85rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-ink);
 }
 
@@ -10103,7 +10107,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 .mcfly-spend-lean__example th {
   background: #f8fafc;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-spend-lean__ellipsis-row td {
@@ -10152,7 +10156,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 .mcfly-spend-lean__playbook > summary {
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 600;
   font-size: 0.9rem;
   color: var(--mcfly-ink, #0f172a);
   padding: 0.35rem 0;
@@ -10188,7 +10192,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 .mcfly-spend-lean__playbook-title {
   margin: 0;
-  font-weight: 650;
+  font-weight: 600;
   font-size: 0.88rem;
 }
 
@@ -10219,7 +10223,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 .mcfly-spend-lean__pipe > summary {
   cursor: pointer;
-  font-weight: 650;
+  font-weight: 600;
   font-size: 0.9rem;
   color: var(--mcfly-ink, #0f172a);
   padding: 0.35rem 0;
@@ -10281,7 +10285,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   flex-wrap: wrap;
   gap: 0.45rem;
   margin: 0;
-  font-weight: 650;
+  font-weight: 600;
   font-size: 0.88rem;
 }
 
@@ -10318,7 +10322,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-spend-lean__drop-title {
-  font-weight: 650;
+  font-weight: 600;
   font-size: 0.9rem;
   color: var(--mcfly-ink, #0f172a);
 }
@@ -10364,7 +10368,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   cursor: pointer;
   list-style: none;
   font-size: 0.75rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-mute, #64748b);
 }
 
@@ -10421,7 +10425,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-spend-lean__recent-amount {
   margin-left: auto;
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-spend-lean__recent-range {
@@ -10449,7 +10453,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-cash-verdict--quiet .mcfly-cash-verdict__headline {
   margin: 0;
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-cash-verdict--quiet .mcfly-cash-verdict__kicker {
@@ -10475,7 +10479,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-cash-verdict__kicker {
   margin: 0 0 0.2rem;
   font-size: 0.7rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
@@ -10516,7 +10520,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-cash-verdict__tiles dt {
   margin: 0;
   font-size: 0.7rem;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
@@ -10561,7 +10565,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-me-spine__summary {
   cursor: pointer;
   font-size: 0.88rem;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--mcfly-mute);
 }
 
@@ -10877,7 +10881,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 .mcfly-kpi-channels__amt {
   font-size: 0.735rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .mcfly-kpi-channels__share {
@@ -10913,7 +10917,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 .mcfly-kpi-facts__amt {
   font-size: 0.735rem;
-  font-weight: 650;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--mcfly-ink);
   flex-shrink: 0;
@@ -10937,3 +10941,237 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* =========================================================================
+   Enterprise craft pass (2026-09-11)
+   Shopify Analytics calm: one report surface, hairline borders, tabular nums.
+   No new chrome species — flatten stacked gradient cards into Polaris paper.
+   ========================================================================= */
+
+.mcfly-desk {
+  --mcfly-tint-ltv: #f7fafc;
+  --mcfly-tint-sky: #f7fafc;
+  --mcfly-tint-sales: #f6faf8;
+  --mcfly-tint-spend: #fafafa;
+  --mcfly-tint-cac: #f7fafc;
+  --mcfly-shadow: none;
+}
+
+.mcfly-ctx {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0 0 0.15rem;
+  padding: 0.15rem 0 0.65rem;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  background: transparent;
+  box-shadow: none;
+}
+
+.mcfly-ctx__brand {
+  font-family: var(--mcfly-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-ctx__asof,
+.mcfly-ctx-chip {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-ctx-chip {
+  border: 1px solid var(--mcfly-line-soft);
+  background: var(--mcfly-paper);
+  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+  box-shadow: none;
+}
+
+.mcfly-ctx-chip::before {
+  display: none;
+}
+
+/* Flatten Overview bands into one report */
+.mcfly-order-econ,
+.mcfly-tab-snap,
+.mcfly-hero-compact {
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: var(--mcfly-radius);
+  background: var(--mcfly-paper);
+  box-shadow: none;
+  background-image: none;
+}
+
+.mcfly-order-econ {
+  padding: 1rem 1.05rem 1.05rem;
+}
+
+.mcfly-order-econ__kicker,
+.mcfly-tab-snap__tile-k,
+.mcfly-hero-compact__label,
+.mcfly-order-econ__label {
+  font-family: var(--mcfly-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d7175;
+}
+
+.mcfly-order-econ__title,
+.mcfly-tab-snap__head h2 {
+  font-family: var(--mcfly-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-order-econ__lede,
+.mcfly-tab-snap__muted,
+.mcfly-tab-snap__sentence {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+  max-width: 62ch;
+}
+
+.mcfly-order-econ__grid {
+  gap: 0.55rem;
+}
+
+.mcfly-order-econ__tile,
+.mcfly-tab-snap__tile,
+.mcfly-hero-compact__tile {
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 8px;
+  background: #fafbfc;
+  box-shadow: none;
+}
+
+.mcfly-order-econ__tile--accent,
+.mcfly-tab-snap__tile--accent {
+  background: #f6faf8;
+  border-color: color-mix(in srgb, var(--mcfly-truth) 14%, var(--mcfly-line-soft));
+}
+
+.mcfly-order-econ__value,
+.mcfly-tab-snap__tile-v,
+.mcfly-hero-compact__value {
+  font-family: var(--mcfly-num);
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-order-econ__hint,
+.mcfly-tab-snap__tile-def,
+.mcfly-hero-compact__meta {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #6d7175;
+}
+
+.mcfly-tab-snaps {
+  gap: 0.75rem;
+  margin: 0.15rem 0;
+}
+
+.mcfly-tab-snap {
+  padding: 1rem 1.05rem 1.05rem;
+}
+
+.mcfly-tab-snap__tiles {
+  gap: 0.55rem;
+}
+
+.mcfly-hero-compact {
+  margin: 0.15rem 0 0;
+  padding: 1rem;
+  gap: 0.75rem;
+  background: var(--mcfly-paper);
+}
+
+.mcfly-hero-compact__tile--sales,
+.mcfly-hero-compact__tile--spend {
+  background: #fafbfc;
+  border: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-hero-compact__actions {
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+}
+
+.mcfly-overview-more {
+  margin: 0.35rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--mcfly-line-soft);
+  font-size: 0.8125rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-me-spine {
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: var(--mcfly-radius);
+  background: var(--mcfly-paper);
+  padding: 0.15rem 0.85rem;
+}
+
+.mcfly-me-spine__summary {
+  font-family: var(--mcfly-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--mcfly-ink);
+  padding: 0.65rem 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mcfly-me-spine__summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Spend page — same calm paper as Overview */
+.mcfly-desk--chrome .mcfly-panel,
+.mcfly-spend-lean,
+.mcfly-spend-day {
+  border-radius: var(--mcfly-radius);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mcfly-order-econ,
+  .mcfly-tab-snap,
+  .mcfly-hero-compact {
+    animation: mcfly-fade 180ms var(--mcfly-ease) both;
+  }
+}
+
+
+/* BEM aliases — craft layer must hit real Overview class names */
+.mcfly-ctx__brand { font-family: var(--mcfly-font); font-size: 0.8125rem; font-weight: 600; letter-spacing: -0.01em; }
+.mcfly-order-econ__kicker { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6d7175; }
+.mcfly-order-econ__lede { font-size: 0.8125rem; line-height: 1.45; color: var(--mcfly-mute); max-width: 62ch; }
+.mcfly-order-econ__tile--accent { background: #f6faf8 !important; border-color: color-mix(in srgb, var(--mcfly-truth) 14%, var(--mcfly-line-soft)) !important; }
+.mcfly-tab-snap__tile-k { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6d7175; }
+.mcfly-tab-snap__tile-v { font-family: var(--mcfly-num); font-size: 1.375rem; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.mcfly-tab-snap__tile-def { font-size: 0.75rem; line-height: 1.4; color: #6d7175; }
+.mcfly-tab-snap__tiles { gap: 0.55rem; }
+.mcfly-tab-snap__tile { border: 1px solid var(--mcfly-line-soft); border-radius: 8px; background: #fafbfc; box-shadow: none; }
+.mcfly-tab-snap__tile--accent { background: #f6faf8; border-color: color-mix(in srgb, var(--mcfly-truth) 14%, var(--mcfly-line-soft)); }
+.mcfly-hero-compact__label { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6d7175; }
+.mcfly-hero-compact__value { font-family: var(--mcfly-num); font-size: 1.375rem; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.mcfly-hero-compact__meta { font-size: 0.75rem; line-height: 1.4; color: #6d7175; }
+.mcfly-overview-more { margin: 0.35rem 0 0; padding-top: 0.85rem; border-top: 1px solid var(--mcfly-line-soft); font-size: 0.8125rem; color: var(--mcfly-mute); }
+.mcfly-me-spine { border: 1px solid var(--mcfly-line-soft); border-radius: var(--mcfly-radius); background: var(--mcfly-paper); padding: 0.15rem 0.85rem; }
+.mcfly-me-spine__summary { font-size: 0.8125rem; font-weight: 600; color: var(--mcfly-ink); padding: 0.65rem 0; }

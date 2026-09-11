@@ -51,9 +51,8 @@ export function OrderEconomicsPanel({
           </div>
         </div>
         <p className="mcfly-order-econ__lede">
-          When Shopify orders land, Mcfly shows typical order value, weekend vs
-          weekday sales, and new vs returning customers — deeper than free
-          Analytics, without exporting CSVs.
+          Typical order value, weekend mix, and new vs returning — deeper than
+          free Analytics, without a CSV export.
         </p>
       </section>
     );
@@ -83,8 +82,8 @@ export function OrderEconomicsPanel({
         </p>
       </div>
       <p className="mcfly-order-econ__lede">
-        Order mix and customer split from your Shopify orders — not a second
-        Analytics dashboard, and not a CSV dump.
+        Order mix and customer split from Shopify orders — the depth native
+        Analytics leaves on the table.
       </p>
 
       <div className="mcfly-order-econ__grid">

@@ -1125,7 +1125,7 @@ function LtvSnapSection({
       <div className="mcfly-tab-snap__head">
         <h2>{PRODUCT_NOUN.ltvTitle}</h2>
         <p className="mcfly-tab-snap__muted">
-          New buyers · LTV · repeat · cash CAC when spend is in
+          New buyers, LTV, and repeat — Cash CAC when spend is logged
         </p>
       </div>
 

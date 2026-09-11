@@ -101,3 +101,4 @@ A change is done when:
 | Date | Change |
 | --- | --- |
 | 2026-09-11 | Fresh start adopted. Religion / hard product constraints revoked. Only trial+$39 commercial lock kept. |
+| 2026-09-11 | Craft bar: match Shopify Analytics calm (Inter, flat paper, orders/customers first). Depth without lecture chrome. |
