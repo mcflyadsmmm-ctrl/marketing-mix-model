@@ -1,6 +1,6 @@
 /**
  * Cold-merchant cash-desk copy — why each page matters, what to do next.
- * Religion: Total ROAS = Shopify sales ÷ spend the merchant added.
+ * Total ROAS = Shopify sales ÷ spend the merchant added.
  * No pixels / MTA / brochure fog.
  */
 
