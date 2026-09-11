@@ -10892,6 +10892,109 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   margin-top: 0.35rem;
 }
 
+/* Period pace — lean strip under the day board (ControlPace already computed). */
+.mcfly-pace-strip {
+  margin: 0;
+  padding: 0.85rem 0.95rem 0.9rem;
+  border-radius: var(--mcfly-radius);
+  border: 1px solid var(--mcfly-line-soft);
+  background: var(--mcfly-paper);
+}
+.mcfly-pace-strip__head {
+  margin-bottom: 0.55rem;
+}
+.mcfly-pace-strip__kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d7175;
+}
+.mcfly-pace-strip__title {
+  margin: 0.12rem 0 0;
+  font-family: var(--mcfly-display, Georgia, serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--mcfly-ink);
+}
+.mcfly-pace-strip__facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.55rem 1.1rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+.mcfly-pace-strip__label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d7175;
+}
+.mcfly-pace-strip__value {
+  margin: 0.15rem 0 0;
+  font-family: var(--mcfly-num, ui-monospace, monospace);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--mcfly-ink);
+}
+.mcfly-pace-strip__bars {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+}
+.mcfly-pace-strip__bar {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr;
+  align-items: center;
+  gap: 0.45rem;
+}
+.mcfly-pace-strip__bar-label {
+  font-size: 0.75rem;
+  color: var(--mcfly-mute);
+}
+.mcfly-pace-strip__track {
+  display: block;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line-soft) 80%, #fff);
+  overflow: hidden;
+}
+.mcfly-pace-strip__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+.mcfly-pace-strip__fill--sales {
+  background: var(--mcfly-truth, #1a7a4c);
+}
+.mcfly-pace-strip__fill--cal {
+  background: color-mix(in srgb, var(--mcfly-ink) 35%, transparent);
+}
+.mcfly-pace-strip--warn .mcfly-pace-strip__fill--sales {
+  background: var(--mcfly-warn, #b45309);
+}
+.mcfly-pace-strip--bad .mcfly-pace-strip__fill--sales {
+  background: var(--mcfly-warn, #b45309);
+}
+.mcfly-pace-strip__hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+}
+.mcfly-desk > .mcfly-pace-strip {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+
 /* The band is a quiet frame; the three tiles carry the tint. */
 .mcfly-hero-compact.mcfly-hero-compact--v2 {
   grid-template-columns: minmax(17rem, 1fr) minmax(0, 1.7fr);
@@ -11322,6 +11425,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 @media (prefers-reduced-motion: no-preference) {
   .mcfly-order-econ,
   .mcfly-day-quality,
+  .mcfly-pace-strip,
   .mcfly-tab-snap,
   .mcfly-hero-compact {
     animation: mcfly-fade 180ms var(--mcfly-ease) both;

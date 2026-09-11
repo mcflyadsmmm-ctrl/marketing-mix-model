@@ -32,6 +32,7 @@ import {
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
 import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
 import { DayQualityTablePanel } from "../components/DayQualityTable";
+import { PeriodPaceStrip } from "../components/PeriodPaceStrip";
 import { buildDayQuality } from "../lib/day-quality";
 import { buildDailyRowsForWindow } from "../lib/mer-dashboard.server";
 import {
@@ -1076,6 +1077,16 @@ export default function Dashboard() {
                 table={dayQuality}
                 periodLabel={metrics.period.label}
                 breakEvenMer={metrics.breakEvenMer}
+              />
+            ) : null}
+
+            {!shotMode && salesDeskReady && metrics.control.daysInPeriod > 0 ? (
+              <PeriodPaceStrip
+                control={metrics.control}
+                periodLabel={metrics.period.label}
+                showHeadroom={
+                  Boolean(metrics.cashActionReady && metrics.targetMerConfirmed)
+                }
               />
             ) : null}
 
