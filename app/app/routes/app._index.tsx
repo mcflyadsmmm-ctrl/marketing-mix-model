@@ -623,6 +623,21 @@ export default function Dashboard() {
         }
       : firstSessionPrimaryAction(firstSession);
 
+  /** Empty-period escapes — keep Overview useful when MTD (etc.) has no orders. */
+  const emptyPeriodHrefs = (
+    [
+      { value: "lm" as const, label: "Last month" },
+      { value: "l12m" as const, label: "Last 12 months" },
+      { value: "ytd" as const, label: "Year to date" },
+    ] as const
+  )
+    .filter((p) => p.value !== preset)
+    .slice(0, 2)
+    .map((p) => ({
+      label: p.label,
+      href: `/app?period=${p.value}&stay=1`,
+    }));
+
   const deltas = metrics.deltas;
   const priorLabel = deltas?.priorLabel;
   const salesDeltaLine = deltas
@@ -818,6 +833,7 @@ export default function Dashboard() {
             economics={orderEconomics}
             periodLabel={metrics.period.label}
             showSpendUnlock
+            emptyPeriodHrefs={emptyPeriodHrefs}
           />
         ) : null}
 
@@ -838,6 +854,7 @@ export default function Dashboard() {
                 economics={orderEconomics}
                 periodLabel={metrics.period.label}
                 showSpendUnlock={false}
+                emptyPeriodHrefs={emptyPeriodHrefs}
               />
             ) : null}
 
@@ -847,7 +864,11 @@ export default function Dashboard() {
                 aria-label="Customer insights"
               >
                 {showHero ? (
-                  <LtvSnapSection tillLtv={metrics.tillLtv} preset={preset} />
+                  <LtvSnapSection
+                    tillLtv={metrics.tillLtv}
+                    preset={preset}
+                    emptyPeriodHrefs={emptyPeriodHrefs}
+                  />
                 ) : null}
                 <AcquisitionGlance
                   preset={preset}
@@ -1087,6 +1108,7 @@ export default function Dashboard() {
 function LtvSnapSection({
   tillLtv,
   preset,
+  emptyPeriodHrefs = [],
 }: {
   tillLtv: {
     available: boolean;
@@ -1099,8 +1121,12 @@ function LtvSnapSection({
     repeatRate: number | null;
   };
   preset: PeriodPreset;
+  emptyPeriodHrefs?: { label: string; href: string }[];
 }) {
-  const showCac = tillLtv.cashCac != null;
+  const showCac = tillLtv.cashCac != null && tillLtv.newBuyers > 0;
+  const hasPeriodBuyers = tillLtv.newBuyers > 0;
+  /** Cohort averages without period buyers — do not present as this-period KPIs. */
+  const priorCohortsOnly = tillLtv.available && !hasPeriodBuyers;
 
   return (
     <section
@@ -1110,7 +1136,9 @@ function LtvSnapSection({
       <div className="mcfly-tab-snap__head">
         <h2>{PRODUCT_NOUN.ltvTitle}</h2>
         <p className="mcfly-tab-snap__muted">
-          New buyers, LTV, and repeat — Cash CAC when spend is logged
+          {priorCohortsOnly
+            ? "No new buyers in this period — prior cohort averages below"
+            : "New buyers, LTV, and repeat — Cash CAC when spend is logged"}
         </p>
       </div>
 
@@ -1120,36 +1148,40 @@ function LtvSnapSection({
             <div className="mcfly-tab-snap__tile mcfly-tab-snap__tile--accent">
               <p className="mcfly-tab-snap__tile-k">New buyers</p>
               <p className="mcfly-tab-snap__tile-v">
-                {tillLtv.newBuyers > 0
-                  ? tillLtv.newBuyers.toLocaleString()
-                  : "—"}
+                {tillLtv.newBuyers.toLocaleString()}
               </p>
               <p className="mcfly-tab-snap__tile-def">
-                First-time customers in this period’s cohorts
+                First-time customers in this period
               </p>
             </div>
             <div className="mcfly-tab-snap__tile">
-              <p className="mcfly-tab-snap__tile-k">LTV · 90d</p>
+              <p className="mcfly-tab-snap__tile-k">
+                {priorCohortsOnly ? "Prior LTV · 90d" : "LTV · 90d"}
+              </p>
               <p className="mcfly-tab-snap__tile-v">
                 {tillLtv.avgRevenueD90 != null
                   ? formatCurrency(tillLtv.avgRevenueD90)
                   : "—"}
               </p>
               <p className="mcfly-tab-snap__tile-def">
-                {PRODUCT_NOUN.ltv90Def}
+                {priorCohortsOnly
+                  ? "Historical cohort average — not this period’s buyers"
+                  : PRODUCT_NOUN.ltv90Def}
               </p>
             </div>
-            <div className="mcfly-tab-snap__tile">
-              <p className="mcfly-tab-snap__tile-k">Repeat rate</p>
-              <p className="mcfly-tab-snap__tile-v">
-                {tillLtv.repeatRate != null
-                  ? `${Math.round(tillLtv.repeatRate * 100)}%`
-                  : "—"}
-              </p>
-              <p className="mcfly-tab-snap__tile-def">
-                Extra orders beyond the first, per new buyer
-              </p>
-            </div>
+            {hasPeriodBuyers ? (
+              <div className="mcfly-tab-snap__tile">
+                <p className="mcfly-tab-snap__tile-k">Repeat rate</p>
+                <p className="mcfly-tab-snap__tile-v">
+                  {tillLtv.repeatRate != null
+                    ? `${Math.round(tillLtv.repeatRate * 100)}%`
+                    : "—"}
+                </p>
+                <p className="mcfly-tab-snap__tile-def">
+                  Extra orders beyond the first, per new buyer
+                </p>
+              </div>
+            ) : null}
             {showCac ? (
               <div className="mcfly-tab-snap__tile">
                 <p className="mcfly-tab-snap__tile-k">Cash CAC</p>
@@ -1166,15 +1198,27 @@ function LtvSnapSection({
             ) : null}
           </div>
           <p className="mcfly-tab-snap__sentence">
-            {tillLtv.avgRevenueD90 != null && tillLtv.newBuyers > 0
-              ? showCac && tillLtv.cashCac != null && tillLtv.cashCac > 0
-                ? `New buyers return ${formatCurrency(tillLtv.avgRevenueD90)} by day 90 against ${formatCurrency(tillLtv.cashCac)} Cash CAC.`
-                : `${tillLtv.newBuyers.toLocaleString()} new buyers · ${formatCurrency(tillLtv.avgRevenueD90)} LTV at 90 days.`
-              : tillLtv.newBuyers > 0
-                ? `${tillLtv.newBuyers.toLocaleString()} new customers · open cohorts for full LTV`
-                : "Open cohorts for buyer LTV and repeat behavior."}
+            {priorCohortsOnly
+              ? tillLtv.avgRevenueD90 != null
+                ? `Prior cohorts average ${formatCurrency(tillLtv.avgRevenueD90)} LTV at 90 days. Switch period for new-buyer LTV, or open full cohorts.`
+                : "No new buyers in this period — switch period or open cohorts."
+              : tillLtv.avgRevenueD90 != null
+                ? showCac && tillLtv.cashCac != null && tillLtv.cashCac > 0
+                  ? `New buyers return ${formatCurrency(tillLtv.avgRevenueD90)} by day 90 against ${formatCurrency(tillLtv.cashCac)} Cash CAC.`
+                  : `${tillLtv.newBuyers.toLocaleString()} new buyers · ${formatCurrency(tillLtv.avgRevenueD90)} LTV at 90 days.`
+                : `${tillLtv.newBuyers.toLocaleString()} new customers · open cohorts for full LTV`}
           </p>
-          {tillLtv.avgRevenueD30 != null ? (
+          {priorCohortsOnly && emptyPeriodHrefs.length > 0 ? (
+            <p className="mcfly-tab-snap__muted">
+              Try{" "}
+              {emptyPeriodHrefs.map((link, i) => (
+                <span key={link.href}>
+                  {i > 0 ? " · " : null}
+                  <s-link href={link.href}>{link.label}</s-link>
+                </span>
+              ))}
+            </p>
+          ) : tillLtv.avgRevenueD30 != null && hasPeriodBuyers ? (
             <p className="mcfly-tab-snap__muted">
               LTV · 30d {formatCurrency(tillLtv.avgRevenueD30)}
             </p>

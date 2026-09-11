@@ -12,13 +12,13 @@ type PeriodControlProps = {
 
 type DeskPeriodPreset = "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3";
 
-/** Desk UI: MTD / LM / QTD / YTD / L12M; shot mode adds 3 yr for listing captures. */
+/** Desk UI: clearer period labels (not cryptic chips); shot mode adds 3 yr. */
 const DESK_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
-  { value: "mtd", label: "MTD" },
-  { value: "lm", label: "LM" },
-  { value: "qtd", label: "QTD" },
-  { value: "ytd", label: "YTD" },
-  { value: "l12m", label: "L12M" },
+  { value: "mtd", label: "Month" },
+  { value: "lm", label: "Last mo" },
+  { value: "qtd", label: "Quarter" },
+  { value: "ytd", label: "Year" },
+  { value: "l12m", label: "12 mo" },
 ];
 
 const SHOT_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [

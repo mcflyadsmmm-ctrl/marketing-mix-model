@@ -25,6 +25,8 @@ type Props = {
   periodLabel: string;
   /** Cold desk only: quiet path to add spend after order insights. */
   showSpendUnlock: boolean;
+  /** Suggested wider periods when this period has no orders. */
+  emptyPeriodHrefs?: { label: string; href: string }[];
 };
 
 /**
@@ -35,6 +37,7 @@ export function OrderEconomicsPanel({
   economics,
   periodLabel,
   showSpendUnlock,
+  emptyPeriodHrefs = [],
 }: Props) {
   if (!economics.hasSignal) {
     return (
@@ -45,9 +48,32 @@ export function OrderEconomicsPanel({
         <div className="mcfly-order-econ__head">
           <div className="mcfly-order-econ__headline">
             <p className="mcfly-order-econ__kicker">Orders · {periodLabel}</p>
-            <h2 className="mcfly-order-econ__title">Waiting on the first orders</h2>
+            <h2 className="mcfly-order-econ__title">
+              No orders in this period
+            </h2>
           </div>
         </div>
+        <p className="mcfly-order-econ__lede">
+          Switch period to see AOV and weekend mix for a window that has
+          orders — or wait for the next paid order this month.
+        </p>
+        {emptyPeriodHrefs.length > 0 ? (
+          <p className="mcfly-order-econ__empty-actions">
+            Try{" "}
+            {emptyPeriodHrefs.map((link, i) => (
+              <span key={link.href}>
+                {i > 0 ? " · " : null}
+                <s-link href={link.href}>{link.label}</s-link>
+              </span>
+            ))}
+            {" · "}
+            <s-link href="/app/ltv">Customers &amp; LTV</s-link>
+          </p>
+        ) : (
+          <p className="mcfly-order-econ__empty-actions">
+            <s-link href="/app/ltv">Customers &amp; LTV</s-link>
+          </p>
+        )}
       </section>
     );
   }
@@ -103,8 +129,8 @@ export function OrderEconomicsPanel({
             Add spend when you want ROAS next to these order numbers.
           </p>
           <div className="mcfly-order-econ__unlock-actions">
-            <s-button href="/app/spend#mcfly-spend-bill" variant="secondary">
-              Add spend
+            <s-button href="/app/spend#mcfly-spend-uploads" variant="secondary">
+              Update spend
             </s-button>
           </div>
         </div>

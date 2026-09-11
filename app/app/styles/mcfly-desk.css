@@ -11325,3 +11325,41 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
     animation: mcfly-fade 180ms var(--mcfly-ease) both;
   }
 }
+
+/* === useful desk pass 2026-09-11c — thicker period tabs + empty actions === */
+.mcfly-period__group {
+  border-width: 1.5px;
+  border-radius: 10px;
+}
+.mcfly-period__btn {
+  padding: 0.48rem 0.85rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.01em;
+  color: #5c5f62;
+  line-height: 1.25;
+}
+.mcfly-period__btn--on,
+.mcfly-period__btn[aria-pressed="true"] {
+  color: var(--mcfly-ink) !important;
+  font-weight: 700 !important;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 88%, #fff) !important;
+  box-shadow: inset 0 -2.5px 0 var(--mcfly-accent);
+}
+.mcfly-order-econ__empty-actions,
+.mcfly-tab-snap__muted s-link,
+.mcfly-tab-snap__muted .mcfly-period-escape {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.mcfly-order-econ__lede {
+  margin: 0.35rem 0 0.55rem;
+}
+.mcfly-order-econ__empty-actions {
+  margin: 0;
+}
+.mcfly-tab-snap__tile-v {
+  font-size: 1.5rem !important;
+  font-weight: 650 !important;
+}

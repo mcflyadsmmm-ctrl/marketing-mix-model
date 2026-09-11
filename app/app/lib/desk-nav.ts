@@ -1,7 +1,7 @@
 /**
  * App nav — Shopify Analytics calm: few primary tabs, depth via pages.
- * Core: Overview · Customers & LTV · Spend · Settings.
- * Goals / Allocation / Advanced stay deep-linked from Overview + Settings.
+ * Core: Overview · Customers & LTV · Spend · Goals · Settings.
+ * Allocation / Advanced stay deep-linked from Overview + Settings.
  */
 
 import { PRODUCT_NOUN } from "./product-labels";
@@ -34,8 +34,9 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
     later: false,
   },
   { id: "spend", href: "/app/spend", label: "Spend", later: false },
+  // Target MER / break-even — merchants need this without hunting Settings.
+  { id: "goals", href: "/app/goals", label: "Goals", later: false },
   { id: "settings", href: "/app/settings", label: "Settings", later: false },
-  { id: "goals", href: "/app/goals", label: "Goals", later: true },
   {
     id: "allocation",
     href: "/app/allocation",
