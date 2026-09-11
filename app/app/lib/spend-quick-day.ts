@@ -295,7 +295,7 @@ export function quickSpendSavedCopy(input: {
   const note =
     input.salesFloorWarning?.trim() ||
     (missing > 0
-      ? `${missingDaysCashSentence(missing)} Each one you fill pulls the multiple toward the till.`
+      ? `${missingDaysCashSentence(missing)} Each one you fill pulls the multiple toward real spend.`
       : null);
 
   if (input.firstLiveSpend) {

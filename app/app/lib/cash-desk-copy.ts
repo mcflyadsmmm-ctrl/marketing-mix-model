@@ -13,7 +13,7 @@ export const CASH_PAGE_WHY = {
   spend:
     "Total ROAS is Shopify sales ÷ the spend you add here. Missing days treat spend as $0, so the multiple looks better than cash.",
   goals:
-    "A sales target tells you whether this period’s ads bought enough till cash — next to Total ROAS, not instead of it.",
+    "A sales target tells you whether this period’s ads bought enough sales cash — next to Total ROAS, not instead of it.",
   allocation:
     "After you trust Total ROAS, this page shows hold / reduce / step-test advice so break-even is protected — sales ÷ spend, not channel attribution.",
   ltv: "Shopify order cohorts show repeat revenue and buyer mix. Add spend only when you want Cash CAC and payback — opaque customer ids, no email CRM.",
@@ -116,7 +116,7 @@ export function formatMissingDaysRoasImpact(input: {
   const dayWord = missing === 1 ? "day" : "days";
   return {
     heading: `${missing} ${dayWord} missing — Total ROAS looks better than cash`,
-    body: `${missing} of ${window} closed days in ${where} have $0 spend. ${MISSING_DAYS_CASH_LINE} — those days still count Shopify sales, so the multiple reads above the till. Download blanks for the missing days, fill, import.`,
+    body: `${missing} of ${window} closed days in ${where} have $0 spend. ${MISSING_DAYS_CASH_LINE} — those days still count Shopify sales, so the multiple reads above real spend. Download blanks for the missing days, fill, import.`,
     nextLabel: "Download blanks for missing days",
   };
 }
@@ -195,7 +195,7 @@ export function ltvCashCacTeaching(input: {
   if (!input.hasNewBuyerCount) {
     return "Spend is logged; a new-buyer count is still needed for Cash CAC.";
   }
-  return "Blended till · not platform CAC";
+  return "Blended · not platform CAC";
 }
 
 export function parseLtvEmptyKind(raw: string | null | undefined): LtvEmptyCashKind {

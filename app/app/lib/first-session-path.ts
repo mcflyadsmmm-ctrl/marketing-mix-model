@@ -9,7 +9,7 @@
  * The bill spread leads because a multiple worth acting on wants most closed
  * days covered, and the trial is seven days long (see `spend-first-run.ts`).
  *
- * Cash religion: Total ROAS = Shopify sales ÷ ad spend. Margin only unlocks
+ * Total ROAS = Shopify sales ÷ ad spend. Margin only unlocks
  * break-even — it does not gate the scoreboard. Primary CTA is always Spend.
  *
  * SAMPLE stays labeled practice. No pixels / MTA / path credit.
@@ -223,7 +223,7 @@ export function resolveFirstSessionPath(
   const stepsTotal = steps.length;
   const viewing: "sample" | "live" = input.useSampleDesk ? "sample" : "live";
   const viewingHint = input.useSampleDesk
-    ? "SAMPLE practice — not live money, not your live Shopify till."
+    ? "SAMPLE practice — not live money, not your live Shopify money."
     : "Live Shopify sales ÷ your spend.";
 
   const cashMerReady = input.useSampleDesk || input.hasLiveSpend;

@@ -11,8 +11,8 @@ const connections = readFileSync(
   "utf8",
 );
 
-describe("Overview / LTV tillLabel honesty", () => {
-  it("Overview tillLabel is sales unavailable when salesError", () => {
+describe("Overview / LTV period-label honesty", () => {
+  it("Overview period label is sales unavailable when salesError", () => {
     expect(overview).toContain("formatListingTillLabel");
     expect(overview).toMatch(/salesError:\s*Boolean\(salesError\)/);
     expect(overview).toContain("factsIncomplete");
@@ -28,7 +28,7 @@ describe("Overview / LTV tillLabel honesty", () => {
     );
   });
 
-  it("LTV tillLabel refuses live when salesError", () => {
+  it("LTV period label refuses live when salesError", () => {
     expect(ltv).toContain("formatListingTillLabel");
     expect(ltv).toMatch(/salesError:\s*Boolean\(salesError\)/);
   });
@@ -83,7 +83,8 @@ describe("LTV copy after Partner-approved deep history", () => {
   it("offers a Partner-safe /auth grant CTA and gives LTV a sales-first teaching state", () => {
     expect(overview).toContain("DeepHistoryBanner");
     expect(ltv).toContain("DeepHistoryBanner");
-    expect(overview).toContain("CASH_NOT_ATTRIBUTION");
+    // Fresh start: Overview no longer mounts a cash-religion attribution strip.
+    expect(overview).not.toContain("CASH_NOT_ATTRIBUTION");
     expect(ltv).toContain('aria-label="Lifetime value teaching state"');
     expect(ltv).toContain("ltvEmpty.heading");
     expect(ltv).toContain("ltvEmpty.body");
@@ -115,12 +116,11 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).toContain("refreshExisting");
   });
 
-  it("passes salesUntrustedZero into CashVerdict so a broken incomplete flag cannot hero Below BE", () => {
+  it("keeps untrusted-zero honesty on the hero without CashVerdict chrome", () => {
     const client = overview.split("export default function Dashboard")[1] ?? "";
-    expect(client).toMatch(/<CashVerdict[\s\S]*salesUntrustedZero=\{salesUntrustedZero\}/);
-    expect(client).toMatch(
-      /salesFactsIncomplete=\{\s*factsIncompleteForTrust\s*\|\|\s*trustedHero\.hideUntrustedZero\s*\}/,
-    );
+    expect(client).toContain("hideUntrustedZero");
+    expect(client).toContain("salesUntrustedZero");
+    expect(client).not.toContain("<CashVerdict");
   });
 
   it("passes spend and shopOrdersSeen into salesFactsIncompleteForDesk", () => {

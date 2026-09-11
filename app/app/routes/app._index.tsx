@@ -16,7 +16,6 @@ import {
 } from "@mcfly/mer-engine";
 import { authenticate } from "../shopify.server";
 import { AcquisitionGlance } from "../components/AcquisitionGlance";
-import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import {
@@ -32,22 +31,17 @@ import {
 } from "../lib/mer-dashboard.server";
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
 import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
-import { HabitNudge } from "../components/HabitNudge";
 import {
   firstSessionPrimaryAction,
   resolveFirstSessionPath,
 } from "../lib/first-session-path";
 import { resolveOrderEconomics } from "../lib/order-economics";
-import { decideHabitNudgeEligible } from "../lib/habit-nudge";
 import {
-  decideReviewAsk,
   firstOpenRedirect,
   isTrustedMer,
 } from "../lib/install-stickiness";
-import { ReviewAsk } from "../components/ReviewAsk";
 import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
 import {
-  CASH_NOT_ATTRIBUTION,
   resolveDeepHistoryHonesty,
   scopesIncludeReadAllOrders,
 } from "../lib/deep-history-honesty";
@@ -56,7 +50,6 @@ import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SPEND_BILL_ANCHOR } from "../lib/spend-first-run";
-import { OVERVIEW_TOTAL_ROAS_DEFINITION } from "../lib/overview-roas-definition";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
   formatListingTillLabel,
@@ -68,10 +61,7 @@ import {
 } from "../lib/cash-close";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { TotalRoasGauge } from "../components/TotalRoasGauge";
-import { CashVerdict } from "../components/CashVerdict";
-import { PeriodTrustNote } from "../components/PeriodTrustNote";
 import { resolvePeriodTrust } from "../lib/period-trust";
-import { resolveTrialTrustClock } from "../lib/trial-trust-clock";
 import {
   emptySales,
   type SalesResult,
@@ -522,31 +512,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shopDomain: session.shop,
     periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
     installedAt: shop.createdAt.toISOString(),
-    reviewAskEligible: decideReviewAsk({
-      useSampleDesk,
-      trustedMer: isTrustedMer({
-        useSampleDesk,
-        hasLiveSpend,
-        mer: metrics.mer,
-        blockedMockAsLive: metrics.blockedMockAsLive,
-        salesError,
-      }),
-      installedAt: shop.createdAt,
-      now,
-      shotMode,
-      scoreboardReady:
-        !salesError &&
-        hasLiveSpend &&
-        metrics.mer != null &&
-        !metrics.blockedMockAsLive &&
-        !useSampleDesk,
-      historyLimited:
-        !useSampleDesk &&
-        (Boolean(salesFactsCoverageForBanner?.periodExceedsFactWindow) ||
-          (!scopesIncludeReadAllOrders(session.scope) &&
-            periodMayExceedShopifyOrderWindow(range))),
-      factsIncomplete: factsIncompleteForHonesty,
-    }).ask,
   };
 };
 
@@ -582,13 +547,12 @@ export default function Dashboard() {
     shopDomain,
     installedAt,
     periodWiderThanRecentWindow,
-    reviewAskEligible,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
   // Listing-capture: period only (no SAMPLE banner/ctx, no live lie).
   // Merchant mode keeps SAMPLE / facts / live honesty unchanged.
-  const tillLabel = formatListingTillLabel({
+  const periodAsOfLabel = formatListingTillLabel({
     periodLabel: metrics.period.label,
     useSampleDesk,
     listingCapture: shotMode,
@@ -650,26 +614,6 @@ export default function Dashboard() {
     useSampleDesk,
     shotMode,
   });
-  // F3 / L15: trial calendar ≠ closed-day trust — copy only, no billing API.
-  const trialTrustClock = resolveTrialTrustClock({
-    useSampleDesk,
-    shotMode,
-    periodTrusted: periodTrust.trusted,
-    closedDaysWithSpend: metrics.spendCoverage?.daysWithSpend ?? 0,
-    closedDaysInPeriod: metrics.spendCoverage?.daysInPeriod ?? 0,
-    hasLiveSpend,
-    scoreboardReady,
-    installedAt,
-    now: new Date(),
-  });
-  // L10: calm Monday habit after first trusted Total ROAS (not critical budget).
-  const habitNudgeEligible = decideHabitNudgeEligible({
-    cashActionReady: metrics.cashActionReady,
-    periodTrusted: periodTrust.trusted,
-    useSampleDesk,
-    shotMode,
-    scoreboardReady,
-  });
   const primaryAction = trustedHero.hideUntrustedZero
     ? { href: trustedHero.primaryHref, label: trustedHero.primaryLabel }
     : firstSessionPrimaryAction(firstSession);
@@ -726,59 +670,11 @@ export default function Dashboard() {
   });
 
   /** Love-V1: split above/below so budgeted banners are not double-mounted. */
-  const showTrustBelow = !coldEmpty;
-  const trustBannerProps = {
-    blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
-    spendCoverage:
-      !useSampleDesk && metrics.onboarding.hasSpend
-        ? metrics.spendCoverage
-        : null,
-    periodLabel: metrics.period.label,
-    shopifyOrderWindowLimited:
-      !useSampleDesk && Boolean(salesFactsCoverage?.periodExceedsFactWindow),
-    salesFactsIncomplete:
-      !useSampleDesk &&
-      !trustedHero.hideUntrustedZero &&
-      salesFactsCoverage != null &&
-      !salesFactsCoverage.complete &&
-      !salesFactsCoverage.periodExceedsFactWindow
-        ? {
-            factDays: salesFactsCoverage.factDays,
-            expectedClosedDays: salesFactsCoverage.expectedClosedDays,
-          }
-        : null,
-    todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
-    todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
-    shotMode,
-    cashActionReady: metrics.cashActionReady,
-    belowBreakEven:
-      !trustedHero.hideUntrustedZero &&
-      metrics.cashActionReady &&
-      metrics.breakEvenMer != null &&
-      metrics.aboveBreakEven === false
-        ? {
-            mer: metrics.mer,
-            breakEvenMer: metrics.breakEvenMer,
-            totalSpend: metrics.totalSpend,
-          }
-        : null,
-    marginStale: !useSampleDesk && Boolean(metrics.marginStale),
-    onboarding:
-      !useSampleDesk && !shotMode && !coldEmpty
-        ? {
-            settingsSaved: metrics.onboarding.settingsSaved,
-            hasSpend: metrics.onboarding.hasSpend,
-          }
-        : null,
-    deepHistoryKind: "hidden" as const,
-    shopDomain,
-    hasReadAllOrders,
-  };
 
   /*
    * VISUAL §2.3 — one primary per visible context. The desk body already owns
    * the spend primary in the first viewport (hero cluster when the scoreboard
-   * paints, the till unlock when cold, Retry when sales failed), so the page
+   * paints, the unlock when cold, Retry when sales failed), so the page
    * slot keeps the action reachable at Admin level without a second dark CTA.
    * SAMPLE → Real is a mode switch, not a duplicate — it stays primary.
    */
@@ -790,15 +686,11 @@ export default function Dashboard() {
       ? "secondary"
       : "primary";
 
-  // Listing-gold first viewport: till first. Only mock-as-live / cold / empty
+  // Listing-gold first viewport: hero first. Only mock-as-live / cold / empty
   // honesty sits above the dial — break-even and spend gaps live under it.
-  const showTrustAbove =
-    coldEmpty ||
-    (!scoreboardReady && !useSampleDesk) ||
-    Boolean(trustBannerProps.blockedMockAsLive);
 
-  // Shot + live scoreboard both paint the three-card till (listing SoT).
-  const showTill = scoreboardReady || shotMode;
+  // Shot + live scoreboard both paint the three-card hero (listing SoT).
+  const showHero = scoreboardReady || shotMode;
 
   return (
     <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
@@ -850,18 +742,10 @@ export default function Dashboard() {
           <DeepHistoryBanner
             kind={deepHistory.kind}
             shopDomain={shopDomain}
-            showCashReligion
             showMtdCta={deepHistory.kind === "missing_scope_wide"}
           />
         ) : null}
 
-        {/* Cold path: trust above empty. Love-V1 budgetRole splits when both mount. */}
-        {showTrustAbove ? (
-          <CashTrustBanners
-            {...trustBannerProps}
-            budgetRole={showTrustBelow ? "above" : "all"}
-          />
-        ) : null}
 
         {isLoading && !shotMode ? (
           <section className="mcfly-state mcfly-state--loading" aria-live="polite">
@@ -891,7 +775,7 @@ export default function Dashboard() {
             <span className="mcfly-ctx__sep" aria-hidden="true">
               ·
             </span>
-            <span className="mcfly-ctx__asof">{tillLabel}</span>
+            <span className="mcfly-ctx__asof">{periodAsOfLabel}</span>
             <PeriodControl preset={preset} shotMode={shotMode} />
           </div>
           <div className="mcfly-ctx__chips">
@@ -902,52 +786,17 @@ export default function Dashboard() {
               {freshLabel}
             </span>
             {trustedHero.kind === "pick_covered_period" ? (
-              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
-                Period not covered
+              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+                Pick a shorter period
               </span>
             ) : trustedHero.hideUntrustedZero ? (
-              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
-                Sales facts loading
-              </span>
-            ) : !periodTrust.trusted &&
-              !shotMode &&
-              !useSampleDesk &&
-              scoreboardReady ? (
-              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
-                Period not trusted
-              </span>
-            ) : !metrics.cashActionReady &&
-              !shotMode &&
-              !useSampleDesk &&
-              scoreboardReady ? (
-              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
-                Finish spend trust
+              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+                Sales still loading
               </span>
             ) : null}
           </div>
         </div>
-        {!shotMode ? (
-          <p
-            className="mcfly-topbar__def mcfly-topbar__def--solo"
-            title={CASH_NOT_ATTRIBUTION}
-          >
-            {OVERVIEW_TOTAL_ROAS_DEFINITION}
-          </p>
-        ) : null}
 
-        {trialTrustClock.show ? (
-          <s-banner tone={trialTrustClock.tone} heading={trialTrustClock.heading}>
-            <s-paragraph>{trialTrustClock.body}</s-paragraph>
-            <div
-              className="mcfly-decision__actions"
-              style={{ marginTop: "0.65rem" }}
-            >
-              <s-button href={`/app/spend#${SPEND_BILL_ANCHOR}`} variant="secondary">
-                {hasLiveSpend ? "Fill spend gaps" : PRODUCT_NOUN.setupSpreadBill}
-              </s-button>
-            </div>
-          </s-banner>
-        ) : null}
 
         {/* Sales-first: order economics before spend ritual (cold desk). */}
         {coldEmpty && !shotMode && salesDeskReady ? (
@@ -969,8 +818,8 @@ export default function Dashboard() {
 
         {!coldEmpty ? (
           <>
-            {/* Listing SoT: three-card till → LTV. Verdict / trust sit under. */}
-            {showTill ? (
+            {/* Listing SoT: three-card hero → LTV. Verdict / trust sit under. */}
+            {showHero ? (
               <section
                 className="mcfly-hero-compact mcfly-hero-compact--v2"
                 aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
@@ -1156,7 +1005,7 @@ export default function Dashboard() {
               </section>
             ) : null}
 
-            {showTill ? (
+            {showHero ? (
               <div
                 className="mcfly-tab-snaps mcfly-tab-snaps--solo"
                 aria-label="Tab snapshots"
@@ -1165,39 +1014,9 @@ export default function Dashboard() {
               </div>
             ) : null}
 
-            {!shotMode && scoreboardReady && !useSampleDesk ? (
-              <CashVerdict
-                mer={trustedHero.mer}
-                sales={
-                  trustedHero.hideUntrustedZero ? 0 : totalSalesDisplay
-                }
-                spend={metrics.totalSpend}
-                breakEvenMer={
-                  trustedHero.hideUntrustedZero ? null : metrics.breakEvenMer
-                }
-                spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
-                salesFactsIncomplete={
-                  factsIncompleteForTrust || trustedHero.hideUntrustedZero
-                }
-                salesUntrustedZero={salesUntrustedZero}
-                useSampleDesk={useSampleDesk}
-              />
-            ) : null}
 
-            {!shotMode && scoreboardReady ? (
-              <PeriodTrustNote trust={periodTrust} />
-            ) : null}
 
-            {!shotMode && habitNudgeEligible.eligible ? (
-              <HabitNudge
-                eligible={habitNudgeEligible.eligible}
-                periodPreset={preset}
-              />
-            ) : null}
 
-            {!shotMode && scoreboardReady && !useSampleDesk ? (
-              <ReviewAsk eligible={reviewAskEligible} />
-            ) : null}
 
             {!shotMode && salesDeskReady ? (
               <OrderEconomicsPanel
@@ -1244,13 +1063,6 @@ export default function Dashboard() {
                 shotMode={shotMode}
               />
             </details>
-
-            {showTrustBelow ? (
-              <CashTrustBanners
-                {...trustBannerProps}
-                budgetRole={showTrustAbove ? "deferred" : "all"}
-              />
-            ) : null}
 
             {!shotMode && metrics.cashActionReady ? (
               <p className="mcfly-overview-more" aria-label="More tools">

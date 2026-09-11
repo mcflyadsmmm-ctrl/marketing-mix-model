@@ -126,9 +126,9 @@ export const PRODUCT_NOUN = {
   /** Spend job — three steps */
   spendJob:
     "Select channels → download template → fill daily spend → upload. Same days replace.",
-  /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
+  /** LTV / Acquisition differentiator — view Shopify Admin lacks */
   ltvNotInShopify:
-    "Shopify Admin lacks this till view — Mcfly uses order cohorts and opaque customer ids only (no email CRM).",
+    "Shopify Admin doesn’t show this next to your ad spend — Mcfly uses order cohorts and opaque customer ids only (no email CRM).",
 } as const;
 
 export type SalesBasisPreference = "total" | "net";

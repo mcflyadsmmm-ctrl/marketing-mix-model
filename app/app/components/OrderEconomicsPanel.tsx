@@ -28,9 +28,9 @@ type Props = {
 };
 
 /**
- * Till economics Shopify Analytics will not put next to ad spend.
+ * Order economics Shopify Analytics will not put next to ad spend.
  * Stays on the desk after spend lands — spend-per-order is the join
- * only Mcfly can show. Never sessions / conversion / path credit.
+ * only Mcfly can show.
  */
 export function OrderEconomicsPanel({
   economics,
@@ -53,7 +53,7 @@ export function OrderEconomicsPanel({
         </div>
         <p className="mcfly-order-econ__lede">
           When sales land, this desk shows typical order value, weekend vs
-          weekday till share, and new vs returning sales — then add spend for
+          weekday sales share, and new vs returning sales — then add spend for
           Total ROAS vs break-even and spend per order.
         </p>
       </section>
@@ -71,7 +71,7 @@ export function OrderEconomicsPanel({
     <section className="mcfly-order-econ" aria-label="Shopify order economics">
       <div className="mcfly-order-econ__head">
         <div className="mcfly-order-econ__headline">
-          <p className="mcfly-order-econ__kicker">Till read · {periodLabel}</p>
+          <p className="mcfly-order-econ__kicker">From your Shopify orders · {periodLabel}</p>
           <h2 className="mcfly-order-econ__title">{title}</h2>
         </div>
         <p className="mcfly-order-econ__facts">
@@ -104,7 +104,7 @@ export function OrderEconomicsPanel({
               {economics.orderCount.toLocaleString()}
             </p>
             <p className="mcfly-order-econ__hint">
-              Till sales {money(economics.sales)}
+              Order sales {money(economics.sales)}
             </p>
           </div>
         )}

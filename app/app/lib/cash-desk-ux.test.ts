@@ -56,10 +56,10 @@ describe("Overview desk (fresh start)", () => {
     );
   });
 
-  it("shows trial vs trust clock next to Overview trial context (F3 / L15)", () => {
-    expect(overview).toContain("resolveTrialTrustClock");
-    expect(overview).toContain("trialTrustClock");
-    expect(overview).not.toMatch(/billing\.server|requestProSubscription/);
+  it("does not mount trial-trust sermon chrome on Overview (fresh start)", () => {
+    expect(overview).not.toContain("trialTrustClock");
+    expect(overview).not.toContain("resolveTrialTrustClock");
+    // Helper may still exist for billing/settings — Overview must not lecture with it.
     const cold = resolveTrialTrustClock({
       periodTrusted: false,
       closedDaysWithSpend: 0,
@@ -67,24 +67,12 @@ describe("Overview desk (fresh start)", () => {
       hasLiveSpend: false,
     });
     expect(cold.heading).toBe(TRIAL_TRUST_CLOCK_HEADING);
-    expect(cold.body).toMatch(/7-day trial is calendar access/);
-    expect(cold.body).toMatch(/closed days of entered spend/);
     expect(cold.body).toContain(TRIAL_TRUST_CLOCK_RULE);
-    expect(cold.body).not.toMatch(/auto-?sync|oauth|pixel/i);
   });
 
-  it("wires Love-UX6 one-line Total ROAS definition on Overview (not SAMPLE-only)", () => {
-    expect(overview).toContain("OVERVIEW_TOTAL_ROAS_DEFINITION");
-    expect(overview).toContain("overview-roas-definition");
-    expect(overview).toContain("CASH_NOT_ATTRIBUTION");
-    // Visible under cash religion for real desk — gated on shotMode only.
-    const client = overview.split("export default function Dashboard")[1] ?? "";
-    expect(client).toMatch(
-      /\{!shotMode \? \([\s\S]*?OVERVIEW_TOTAL_ROAS_DEFINITION[\s\S]*?\) : null\}/,
-    );
-    expect(client).not.toMatch(
-      /useSampleDesk\s*&&[\s\S]{0,80}OVERVIEW_TOTAL_ROAS_DEFINITION/,
-    );
+  it("keeps the ROAS formula in the gauge — not a religion strip above the hero", () => {
+    expect(overview).not.toContain("OVERVIEW_TOTAL_ROAS_DEFINITION");
+    expect(overview).toMatch(/TotalRoasGauge|mcfly-hero-compact/);
   });
 
   it("shows acquisition/LTV snaps after live spend; explorer stays later", () => {

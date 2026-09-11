@@ -190,7 +190,7 @@ describe("resolveFirstSessionPath", () => {
       useSampleDesk: true,
     });
     expect(path.viewing).toBe("sample");
-    expect(path.viewingHint).toMatch(/not your live Shopify till/i);
+    expect(path.viewingHint).toMatch(/not your live Shopify money/i);
     expect(path.showColdEmpty).toBe(false);
     expect(path.showFullGuide).toBe(false);
     expect(path.showMarginNudge).toBe(false);
