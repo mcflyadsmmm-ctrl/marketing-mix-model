@@ -16,6 +16,12 @@ Build the **best advanced Shopify analytics app** a world-class Cursor user woul
 
 **Wide open:** metrics, connectors, IA, copy, and depth are inventable. No product “religion.” No frozen wedge. No ban list pretending to be strategy.
 
+### Research = fuel, not law
+
+`docs/research/**` is **what we learned** (pain, competitors, friction, what looked good). Use it to build smarter.
+
+It is **not** a rulebook. Old headers that say “Religion: …” or “Refuse: …” inside research files are historical notes — they do **not** constrain the product anymore. Steal the insights; ignore the locks.
+
 ---
 
 ## The only commercial lock

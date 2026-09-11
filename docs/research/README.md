@@ -1,42 +1,40 @@
-# Mcfly love research mission (2026-09-09)
+# Mcfly research library (learnings — not law)
 
-**Purpose:** Map the full desk, learn what Shopify operators love, kill competitors on cash-desk failure modes — then ship a ranked backlog. Not a Triple Whale clone roadmap.
+**Purpose:** What we learned about operators, competitors, friction, and craft — so the next build is smarter.
 
-**Religion:** Total ROAS = Shopify Total Sales ÷ entered ad spend. No pixels / MTA / SyncWith zoo. Flat **$39**/store/mo after 7-day trial. Reviews stay **0** until honest. Ads stay **NO** until four gates.
+**Status (2026-09-11):** These docs are **evidence and memory**, not product constraints.  
+Product direction lives in [`../FRESH_START.md`](../FRESH_START.md) only.
 
-**ICP lock:** Primary = lean DTC MER spreadsheet operators. Secondary = agencies. Mid-market suite refugees = third (rank before big build).
+| Still binding | Not binding |
+| --- | --- |
+| 7-day trial → $39/store/mo (approved) | “Religion” formulas as the only allowed product |
+| Don’t invent reviews / install counts | Connector bans, pixel bans, “refuse” lists |
+| | ICP locks that block exploring deeper analytics |
+| | Backlogs that force old chrome / banner stacks |
+
+**How to use:** Read for pain, kill-shots, UX lessons, and depth ideas. Ship whatever best serves: deeper than free Shopify Analytics, less CSV/token waste. If a research file contradicts `FRESH_START.md`, follow Fresh Start.
+
+Failure record: [`EPIC_FAILURE_POSTMORTEM_2026-09-11.md`](./EPIC_FAILURE_POSTMORTEM_2026-09-11.md)
 
 ## Artifacts (this folder)
 
-| File | Mission | Status |
-| --- | --- | --- |
-| [CAPABILITY_MAP.md](./CAPABILITY_MAP.md) | R0 — full desk inventory + trust grades | Done |
-| [FRICTION_AUTOPSY.md](./FRICTION_AUTOPSY.md) | R3 — uninstall / TTFV / honesty killers | Done |
-| [INTERVIEW_SCRIPT_MER_OPERATORS.md](./INTERVIEW_SCRIPT_MER_OPERATORS.md) | R1 — 25–40 min interview kit | Done |
-| [MERCHANT_LOVE_JTBD.md](./MERCHANT_LOVE_JTBD.md) | R1 — JTBD template + hypotheses | Done |
-| [KILL_SHOT_MATRIX_2026-09.md](./KILL_SHOT_MATRIX_2026-09.md) | R2 — competitor refresh | Done |
-| [COMMUNITY_SIGNALS_2026-09.md](./COMMUNITY_SIGNALS_2026-09.md) | Public language scrape (not interviews) | Done |
-| [LOVE_SCORECARD.md](./LOVE_SCORECARD.md) | Synthesis → ranked P0–P2 backlog | Done |
-| [NICHE_PAIN_BANK.md](./NICHE_PAIN_BANK.md) | Harder niche mining — Top 12 real pains | Living |
-| [MCFLY_NAV_AUDIT.md](./MCFLY_NAV_AUDIT.md) | Primary nav + cold-path IA audit | Done |
-| [BEST_SHOPIFY_APP_UX.md](./BEST_SHOPIFY_APP_UX.md) | Shopify-blessed App Home / nav patterns | Done |
-| [PEER_APP_IA_SKETCHES.md](./PEER_APP_IA_SKETCHES.md) | Peer tab/onboarding IA sketches | Done |
-| [VISUAL_CRAFT_SHOPIFY_APP.md](./VISUAL_CRAFT_SHOPIFY_APP.md) | Admin visual polish + comprehension craft | Done |
-| [EPIC_FAILURE_POSTMORTEM_2026-09-11.md](./EPIC_FAILURE_POSTMORTEM_2026-09-11.md) | Agent chrome buried listing-gold Overview — burn list + clean-start rules | Done |
-| [LISTING_KILL_SHOTS.md](./LISTING_KILL_SHOTS.md) | P01/P04/P07 Partner + outbound steal lines | Done |
-| [SPEND_INGEST_LADDER.md](./SPEND_INGEST_LADDER.md) | Manual / SyncWith Sheet / concierge / DEFER OAuth | Done |
+| File | What it’s good for |
+| --- | --- |
+| [CAPABILITY_MAP.md](./CAPABILITY_MAP.md) | What the desk already has vs gaps |
+| [FRICTION_AUTOPSY.md](./FRICTION_AUTOPSY.md) | Uninstall / time-to-value killers |
+| [INTERVIEW_SCRIPT_MER_OPERATORS.md](./INTERVIEW_SCRIPT_MER_OPERATORS.md) | Talking to operators |
+| [MERCHANT_LOVE_JTBD.md](./MERCHANT_LOVE_JTBD.md) | Jobs-to-be-done hypotheses |
+| [KILL_SHOT_MATRIX_2026-09.md](./KILL_SHOT_MATRIX_2026-09.md) | Competitor angles |
+| [COMMUNITY_SIGNALS_2026-09.md](./COMMUNITY_SIGNALS_2026-09.md) | Public language (not interviews) |
+| [LOVE_SCORECARD.md](./LOVE_SCORECARD.md) | Ranked ideas from synthesis |
+| [NICHE_PAIN_BANK.md](./NICHE_PAIN_BANK.md) | Niche pains |
+| [MCFLY_NAV_AUDIT.md](./MCFLY_NAV_AUDIT.md) | Nav / cold-path lessons |
+| [BEST_SHOPIFY_APP_UX.md](./BEST_SHOPIFY_APP_UX.md) | Shopify-native UX patterns |
+| [PEER_APP_IA_SKETCHES.md](./PEER_APP_IA_SKETCHES.md) | Peer IA sketches |
+| [VISUAL_CRAFT_SHOPIFY_APP.md](./VISUAL_CRAFT_SHOPIFY_APP.md) | What looked Admin-native |
+| [LISTING_KILL_SHOTS.md](./LISTING_KILL_SHOTS.md) | Listing / outbound lines |
+| [SPEND_INGEST_LADDER.md](./SPEND_INGEST_LADDER.md) | Spend ingest options (manual → sheet → etc.) |
+| [HOSTILE_SHIP_CRITIQUE_2026-09-10.md](./HOSTILE_SHIP_CRITIQUE_2026-09-10.md) | Hostile readiness critique |
+| [EPIC_FAILURE_POSTMORTEM_2026-09-11.md](./EPIC_FAILURE_POSTMORTEM_2026-09-11.md) | Why agent chrome buried the product |
 
-**Canvas:** `canvases/mcfly-love-research.canvas.tsx` (open beside chat).
-
-## Parallel money (do not pause)
-
-- Admin smoke: `docs/ops/money/SMOKE_APP_STORE_ADS.md` (Fly v200+)
-- Outbound ×20: `docs/ops/money/OUTBOUND_MER_OPERATORS.md`
-- FUNNEL: `docs/ops/money/FUNNEL_WEEKLY.md`
-- Listing: live plan **Mcfly Analytics**, clean bullets (Partner Save done 2026-09-09)
-
-## How to use
-
-1. Marty runs interviews from the script; paste notes into JTBD tables.
-2. Conductor ships only **P0** Desk lanes from `SHIP_BACKLOG_FROM_LOVE.md` under religion.
-3. Amend `MASTER_PLAN.md` only when scorecard evidence beats locked waves.
+When you find a useful lesson, build with it. Do not re-encode it as sacred law.
