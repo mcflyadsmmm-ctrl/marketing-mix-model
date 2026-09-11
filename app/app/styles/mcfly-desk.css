@@ -10726,10 +10726,170 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-desk > .mcfly-cash-verdict,
 .mcfly-desk > .mcfly-hero-compact,
 .mcfly-desk > .mcfly-order-econ,
+.mcfly-desk > .mcfly-day-quality,
 .mcfly-desk > .mcfly-tab-snaps,
 .mcfly-desk > .mcfly-me-spine--later {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+/* Day-quality period board — Sheets replacement under order economics. */
+.mcfly-day-quality {
+  margin: 0;
+  padding: 0.85rem 0.95rem 0.9rem;
+  border-radius: var(--mcfly-radius);
+  border: 1px solid var(--mcfly-line-soft);
+  background: var(--mcfly-paper);
+  box-shadow: none;
+}
+.mcfly-day-quality__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.55rem;
+}
+.mcfly-day-quality__kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d7175;
+}
+.mcfly-day-quality__title {
+  margin: 0.12rem 0 0;
+  font-family: var(--mcfly-display, Georgia, serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  color: var(--mcfly-ink);
+}
+.mcfly-day-quality__meta,
+.mcfly-day-quality__lede,
+.mcfly-day-quality__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+}
+.mcfly-day-quality__lede {
+  max-width: 62ch;
+}
+.mcfly-day-quality__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -0.15rem;
+  padding: 0 0.15rem;
+}
+.mcfly-day-quality__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.mcfly-day-quality__caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.mcfly-day-quality__table th,
+.mcfly-day-quality__table td {
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+.mcfly-day-quality__table thead th {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d7175;
+  border-bottom-color: color-mix(in srgb, var(--mcfly-line-soft) 85%, #000);
+}
+.mcfly-day-quality__num {
+  text-align: right !important;
+}
+.mcfly-day-quality__table tbody th {
+  font-weight: 550;
+  color: var(--mcfly-ink);
+}
+.mcfly-day-quality__row--partial th,
+.mcfly-day-quality__partial {
+  color: var(--mcfly-mute);
+  font-weight: 500;
+}
+.mcfly-day-quality__share {
+  color: var(--mcfly-mute);
+  font-size: 0.75rem;
+}
+.mcfly-day-quality__band {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.mcfly-day-quality__band--above {
+  color: var(--mcfly-truth, #1a7a4c);
+}
+.mcfly-day-quality__band--near {
+  color: var(--mcfly-ink);
+}
+.mcfly-day-quality__band--below {
+  color: var(--mcfly-warn, #b45309);
+}
+.mcfly-day-quality__table tfoot th,
+.mcfly-day-quality__table tfoot td {
+  border-bottom: 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+  font-weight: 600;
+  padding-top: 0.55rem;
+}
+.mcfly-day-quality__prior {
+  font-weight: 500;
+  color: var(--mcfly-mute);
+  font-size: 0.75rem;
+  white-space: normal;
+}
+.mcfly-day-quality__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+.mcfly-day-quality__csv {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--mcfly-accent, #2c6ecb);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.mcfly-day-quality__csv:hover {
+  color: var(--mcfly-ink);
+}
+.mcfly-day-quality--empty .mcfly-day-quality__lede {
+  margin-top: 0.35rem;
 }
 
 /* The band is a quiet frame; the three tiles carry the tint. */
@@ -11161,6 +11321,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 @media (prefers-reduced-motion: no-preference) {
   .mcfly-order-econ,
+  .mcfly-day-quality,
   .mcfly-tab-snap,
   .mcfly-hero-compact {
     animation: mcfly-fade 180ms var(--mcfly-ease) both;

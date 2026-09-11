@@ -31,6 +31,9 @@ import {
 } from "../lib/mer-dashboard.server";
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
 import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
+import { DayQualityTablePanel } from "../components/DayQualityTable";
+import { buildDayQuality } from "../lib/day-quality";
+import { buildDailyRowsForWindow } from "../lib/mer-dashboard.server";
 import {
   firstSessionPrimaryAction,
   resolveFirstSessionPath,
@@ -70,6 +73,7 @@ import {
   getSalesFactsCoverage,
   getSalesFactsTotals,
   getSalesFactsByDay,
+  getSalesFactRowsByDay,
   loadDeskSalesForPeriod,
 } from "../lib/sales-facts.server";
 import {
@@ -95,6 +99,7 @@ import { resolvePeriodLedgerControl } from "../lib/period-ledger";
 import {
   fetchSampleSales,
   fetchSampleSalesByDay,
+  fetchSampleSalesRowsByDay,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
 import { shopLocalDayKey } from "../lib/shop-local-day";
@@ -568,10 +573,112 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
+
+  // Period day board — orders/AOV/new-share/spend/ROAS (Sheets replacement).
+  const todayKey = periodTz
+    ? shopLocalDayKey(new Date(), periodTz)
+    : dateKeyFromLocal(new Date());
+
+  let periodFactRows = new Map<
+    string,
+    {
+      sales: number;
+      orderCount: number;
+      newCustomerNetSales: number;
+      returningCustomerNetSales: number;
+    }
+  >();
+  let priorFactRows = new Map<
+    string,
+    {
+      sales: number;
+      orderCount: number;
+      newCustomerNetSales: number;
+      returningCustomerNetSales: number;
+    }
+  >();
+
+  try {
+    if (useSampleDesk) {
+      const [periodRows, priorRows] = await Promise.all([
+        fetchSampleSalesRowsByDay(shop.id, range),
+        fetchSampleSalesRowsByDay(shop.id, priorRange),
+      ]);
+      periodFactRows = periodRows;
+      priorFactRows = priorRows;
+    } else {
+      const [periodRows, priorRows] = await Promise.all([
+        getSalesFactRowsByDay(shop.id, range, ianaTimezone),
+        getSalesFactRowsByDay(shop.id, priorRange, ianaTimezone),
+      ]);
+      periodFactRows = periodRows;
+      priorFactRows = priorRows;
+    }
+  } catch {
+    periodFactRows = new Map();
+    priorFactRows = new Map();
+  }
+
+  const salesOnly = new Map<string, number>();
+  for (const [k, row] of periodFactRows) salesOnly.set(k, row.sales);
+
+  let spendByDay = new Map<string, number>();
+  try {
+    const dailyRows = await buildDailyRowsForWindow(shop.id, {
+      sampleOnly: useSampleDesk,
+      excludeSample: !useSampleDesk,
+      salesByDay: salesOnly,
+      windowStart: range.start,
+      windowEnd: range.end,
+      timeZone: periodTz,
+    });
+    for (const row of dailyRows) {
+      spendByDay.set(row.dateKey, row.spend);
+    }
+  } catch {
+    spendByDay = new Map();
+  }
+
+  let priorSpendByDay = new Map<string, number>();
+  try {
+    const priorSalesOnly = new Map<string, number>();
+    for (const [k, row] of priorFactRows) priorSalesOnly.set(k, row.sales);
+    const priorDaily = await buildDailyRowsForWindow(shop.id, {
+      sampleOnly: useSampleDesk,
+      excludeSample: !useSampleDesk,
+      salesByDay: priorSalesOnly,
+      windowStart: priorRange.start,
+      windowEnd: priorRange.end,
+      timeZone: periodTz,
+    });
+    for (const row of priorDaily) {
+      priorSpendByDay.set(row.dateKey, row.spend);
+    }
+  } catch {
+    priorSpendByDay = new Map();
+  }
+
+  const dayQuality =
+    periodFactRows.size > 0
+      ? buildDayQuality({
+          factRows: periodFactRows,
+          spendByDay,
+          periodStartKey,
+          periodEndKey,
+          todayKey,
+          breakEvenMer: metrics.breakEvenMer,
+          priorFactRows,
+          priorSpendByDay,
+          priorStartKey,
+          priorEndKey,
+        })
+      : null;
+
   return {
     metrics,
     orderEconomics,
     priorPeriodBoard,
+    dayQuality,
     salesError,
     todaySalesUnavailable,
     todaySalesTruncated,
@@ -611,6 +718,7 @@ export default function Dashboard() {
     metrics,
     orderEconomics,
     priorPeriodBoard,
+    dayQuality,
     preset,
     salesError,
     todaySalesUnavailable,
@@ -960,6 +1068,14 @@ export default function Dashboard() {
                       }
                     : null
                 }
+              />
+            ) : null}
+
+            {!shotMode && salesDeskReady && dayQuality ? (
+              <DayQualityTablePanel
+                table={dayQuality}
+                periodLabel={metrics.period.label}
+                breakEvenMer={metrics.breakEvenMer}
               />
             ) : null}
 

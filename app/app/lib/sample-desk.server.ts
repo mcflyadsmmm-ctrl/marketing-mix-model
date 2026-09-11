@@ -188,22 +188,66 @@ export async function fetchSampleSales(
   };
 }
 
-/** Calendar day key → till sales for daily spine (sample desk stores UTC-midnight days). */
-export async function fetchSampleSalesByDay(
+/** Full sample day row for Overview day-quality. */
+export type SampleSalesDayRow = {
+  sales: number;
+  orderCount: number;
+  newCustomerNetSales: number;
+  returningCustomerNetSales: number;
+};
+
+/**
+ * Calendar day key → full sample sales row (sample desk stores UTC-midnight days).
+ */
+export async function fetchSampleSalesRowsByDay(
   shopId: string,
   range: { start: Date; end: Date },
-): Promise<Map<string, number>> {
+): Promise<Map<string, SampleSalesDayRow>> {
   const days = await prisma.sampleSalesDay.findMany({
     where: {
       shopId,
       day: { gte: range.start, lte: range.end },
     },
-    select: { day: true, sales: true },
+    select: {
+      day: true,
+      sales: true,
+      orderCount: true,
+      newCustomerNetSales: true,
+    },
   });
-  const map = new Map<string, number>();
+  const map = new Map<string, SampleSalesDayRow>();
   for (const d of days) {
     const key = utcDayKey(d.day);
-    map.set(key, (map.get(key) ?? 0) + d.sales);
+    const returning = Math.max(0, d.sales - d.newCustomerNetSales);
+    const prev = map.get(key);
+    if (prev) {
+      map.set(key, {
+        sales: prev.sales + d.sales,
+        orderCount: prev.orderCount + d.orderCount,
+        newCustomerNetSales: prev.newCustomerNetSales + d.newCustomerNetSales,
+        returningCustomerNetSales: prev.returningCustomerNetSales + returning,
+      });
+    } else {
+      map.set(key, {
+        sales: d.sales,
+        orderCount: d.orderCount,
+        newCustomerNetSales: d.newCustomerNetSales,
+        returningCustomerNetSales: returning,
+      });
+    }
+  }
+  return map;
+}
+
+/** Calendar day key → till sales for daily spine (sample desk stores UTC-midnight days). */
+export async function fetchSampleSalesByDay(
+  shopId: string,
+  range: { start: Date; end: Date },
+): Promise<Map<string, number>> {
+  const rows = await fetchSampleSalesRowsByDay(shopId, range);
+  const map = new Map<string, number>();
+  for (const [key, row] of rows) {
+    map.set(key, row.sales);
   }
   return map;
 }

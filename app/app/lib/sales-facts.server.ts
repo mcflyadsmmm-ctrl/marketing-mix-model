@@ -899,28 +899,72 @@ export async function loadDeskSalesForPeriod(args: {
   }
 }
 
+/** Full day fact row for Overview day-quality (orders + cohort sales). */
+export type SalesDayFactRow = {
+  sales: number;
+  orderCount: number;
+  newCustomerNetSales: number;
+  returningCustomerNetSales: number;
+};
+
 /**
- * SalesDayFact sales keyed by the same "YYYY-MM-DD" string shape the desk's other
+ * SalesDayFact rows keyed by the same "YYYY-MM-DD" string shape the desk's other
  * daily-sales maps use (see `sample-desk.server.ts`'s `utcDayKey` for the matching
  * SampleSalesDay convention) — safe to merge straight into `buildDailySpine` /
  * `buildDailyRowsForWindow`'s `salesByDay` without a timezone-shift bug, since both
  * read the stored UTC-midnight day back through UTC getters rather than local ones.
  */
+export async function getSalesFactRowsByDay(
+  shopId: string,
+  range: { start: Date; end: Date },
+  timeZone?: string | null,
+): Promise<Map<string, SalesDayFactRow>> {
+  const dayFilter = salesFactsDayFilter(range, timeZone);
+  const rows = await prisma.salesDayFact.findMany({
+    where: { shopId, day: { gte: dayFilter.gte, lte: dayFilter.lte } },
+    select: {
+      day: true,
+      sales: true,
+      orderCount: true,
+      newCustomerNetSales: true,
+      returningCustomerNetSales: true,
+    },
+  });
+
+  const map = new Map<string, SalesDayFactRow>();
+  for (const row of rows) {
+    const key = utcDayKeyFromDate(row.day);
+    const prev = map.get(key);
+    if (prev) {
+      map.set(key, {
+        sales: prev.sales + row.sales,
+        orderCount: prev.orderCount + row.orderCount,
+        newCustomerNetSales: prev.newCustomerNetSales + row.newCustomerNetSales,
+        returningCustomerNetSales:
+          prev.returningCustomerNetSales + row.returningCustomerNetSales,
+      });
+    } else {
+      map.set(key, {
+        sales: row.sales,
+        orderCount: row.orderCount,
+        newCustomerNetSales: row.newCustomerNetSales,
+        returningCustomerNetSales: row.returningCustomerNetSales,
+      });
+    }
+  }
+  return map;
+}
+
+/** Sales-only map — thin wrapper over {@link getSalesFactRowsByDay}. */
 export async function getSalesFactsByDay(
   shopId: string,
   range: { start: Date; end: Date },
   timeZone?: string | null,
 ): Promise<Map<string, number>> {
-  const dayFilter = salesFactsDayFilter(range, timeZone);
-  const rows = await prisma.salesDayFact.findMany({
-    where: { shopId, day: { gte: dayFilter.gte, lte: dayFilter.lte } },
-    select: { day: true, sales: true },
-  });
-
+  const rows = await getSalesFactRowsByDay(shopId, range, timeZone);
   const map = new Map<string, number>();
-  for (const row of rows) {
-    const key = utcDayKeyFromDate(row.day);
-    map.set(key, (map.get(key) ?? 0) + row.sales);
+  for (const [key, row] of rows) {
+    map.set(key, row.sales);
   }
   return map;
 }
