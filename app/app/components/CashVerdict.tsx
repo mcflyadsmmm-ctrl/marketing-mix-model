@@ -16,7 +16,7 @@ export type CashVerdictProps = {
 };
 
 /**
- * One-line cash verdict above the dial — no metric tiles.
+ * Plain-English cash call under the till — no metric tiles.
  * When the multiple is not trusted or is below break-even, one next step.
  */
 export function CashVerdict(props: CashVerdictProps) {
@@ -25,16 +25,25 @@ export function CashVerdict(props: CashVerdictProps) {
 }
 
 function CashVerdictView({ verdict }: { verdict: CashVerdict }) {
+  const quiet = verdict.tone === "ok";
   return (
     <section
-      className={`mcfly-cash-verdict mcfly-cash-verdict--${verdict.tone}`}
+      className={[
+        "mcfly-cash-verdict",
+        `mcfly-cash-verdict--${verdict.tone}`,
+        quiet ? "mcfly-cash-verdict--quiet" : null,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       aria-label={`${PRODUCT_NOUN.totalRoas} this period`}
     >
       <p className="mcfly-cash-verdict__kicker">
         This period — am I making money on ads?
       </p>
       <p className="mcfly-cash-verdict__headline">{verdict.headline}</p>
-      <p className="mcfly-cash-verdict__body">{verdict.body}</p>
+      {quiet ? null : (
+        <p className="mcfly-cash-verdict__body">{verdict.body}</p>
+      )}
       {verdict.nextAction ? (
         <div className="mcfly-cash-verdict__action">
           <s-button href={verdict.nextAction.href} variant="secondary">

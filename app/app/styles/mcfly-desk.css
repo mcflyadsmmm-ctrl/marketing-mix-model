@@ -10425,19 +10425,30 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   flex-shrink: 0;
 }
 
-/* Monday-morning cash verdict — Total ROAS / sales / spend / break-even */
+/* Cash call under the till — slim strip, not a wall above the dial */
 .mcfly-cash-verdict {
   margin: 0 0 0.85rem;
-  padding: 0.9rem 1.05rem 1rem;
+  padding: 0.65rem 0.85rem 0.75rem;
   border-radius: var(--mcfly-radius);
-  border: 1px solid var(--mcfly-line);
+  border: 1px solid var(--mcfly-line-soft);
   background: #fff;
-  box-shadow: var(--mcfly-shadow);
+  box-shadow: none;
 }
 
-.mcfly-cash-verdict--ok {
-  border-color: #86efac;
-  background: var(--mcfly-truth-soft);
+.mcfly-cash-verdict--ok,
+.mcfly-cash-verdict--quiet {
+  border-color: color-mix(in srgb, var(--mcfly-truth) 22%, transparent);
+  background: color-mix(in srgb, var(--mcfly-truth-soft) 55%, #fff);
+}
+
+.mcfly-cash-verdict--quiet .mcfly-cash-verdict__headline {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.mcfly-cash-verdict--quiet .mcfly-cash-verdict__kicker {
+  margin-bottom: 0.1rem;
 }
 
 .mcfly-cash-verdict--bad {
@@ -10452,31 +10463,31 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-cash-verdict--sample {
-  border: 2px solid #f59e0b;
+  border: 1px solid #f59e0b;
   background: #fff7ed;
 }
 
 .mcfly-cash-verdict__kicker {
-  margin: 0 0 0.25rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  margin: 0 0 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
 }
 
 .mcfly-cash-verdict__headline {
-  margin: 0 0 0.35rem;
-  font-size: 1.15rem;
-  font-weight: 750;
+  margin: 0 0 0.25rem;
+  font-size: 1.02rem;
+  font-weight: 700;
   line-height: 1.3;
   color: var(--mcfly-ink);
 }
 
 .mcfly-cash-verdict__body {
-  margin: 0 0 0.75rem;
-  font-size: 0.92rem;
-  line-height: 1.45;
+  margin: 0 0 0.55rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
   color: var(--mcfly-ink-soft);
 }
 

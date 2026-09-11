@@ -33,11 +33,20 @@ const merDashboard = readFileSync(join(here, "./mer-dashboard.server.ts"), "utf8
 const schema = readFileSync(join(here, "../../prisma/schema.prisma"), "utf8");
 
 describe("Overview Monday desk", () => {
-  it("leads with a cash verdict and warns untrusted periods", () => {
+  it("keeps a cash verdict under the till and warns untrusted periods", () => {
     expect(overview).toContain("CashVerdict");
     expect(overview).toContain("PeriodTrustNote");
     expect(overview).toContain("resolvePeriodTrust");
+    expect(overview).toContain("showTill");
     expect(overview).not.toContain("mcfly-explorer-csv-bar");
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    // Listing SoT: till paints before CashVerdict / PeriodTrustNote.
+    const tillAt = client.indexOf("mcfly-hero-compact");
+    const verdictAt = client.indexOf("<CashVerdict");
+    const trustAt = client.indexOf("<PeriodTrustNote");
+    expect(tillAt).toBeGreaterThan(0);
+    expect(verdictAt).toBeGreaterThan(tillAt);
+    expect(trustAt).toBeGreaterThan(tillAt);
     const verdict = readFileSync(
       join(here, "../components/CashVerdict.tsx"),
       "utf8",
@@ -93,19 +102,21 @@ describe("Overview Monday desk", () => {
 
   it("shows acquisition/LTV snaps after any live spend; explorer stays later", () => {
     expect(overview).toContain("mcfly-me-spine--later");
-    // Sales-side snaps unlock with scoreboardReady (any live spend).
+    // LTV rides showTill (live scoreboard + listing shot). Acquisition stays live-only.
     // Allocation/BE advice still hard-gates on cashActionReady elsewhere.
     expect(overview).toMatch(
       /\{!shotMode && scoreboardReady \? \([\s\S]*AcquisitionGlance/,
     );
     expect(overview).toMatch(
-      /\{!shotMode && scoreboardReady \? \([\s\S]*LtvSnapSection/,
+      /\{showTill \? \([\s\S]*LtvSnapSection/,
     );
   });
 
   it("Love-UX1: Overview cold empty owns dismissible Setup Guide (not DataModeBar)", () => {
     expect(overview).toContain("FirstSessionGuide");
-    expect(overview).toMatch(/coldEmpty \? <FirstSessionGuide path=\{firstSession\}/);
+    expect(overview).toMatch(
+      /coldEmpty && !\(salesDeskReady && !shotMode\) \? \(\s*<FirstSessionGuide path=\{firstSession\}/,
+    );
     expect(overview).toMatch(/hasReadAllOrders/);
     expect(overview).toMatch(/shopDomain/);
     const guide = readFileSync(

@@ -790,12 +790,15 @@ export default function Dashboard() {
       ? "secondary"
       : "primary";
 
-  // Critical honesty (below break-even / mock-as-live) must sit ABOVE the dial.
+  // Listing-gold first viewport: till first. Only mock-as-live / cold / empty
+  // honesty sits above the dial — break-even and spend gaps live under it.
   const showTrustAbove =
     coldEmpty ||
     (!scoreboardReady && !useSampleDesk) ||
-    Boolean(trustBannerProps.blockedMockAsLive) ||
-    Boolean(trustBannerProps.belowBreakEven);
+    Boolean(trustBannerProps.blockedMockAsLive);
+
+  // Shot + live scoreboard both paint the three-card till (listing SoT).
+  const showTill = scoreboardReady || shotMode;
 
   return (
     <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
@@ -946,12 +949,8 @@ export default function Dashboard() {
           </s-banner>
         ) : null}
 
-        {!shotMode && scoreboardReady ? (
-          <PeriodTrustNote trust={periodTrust} />
-        ) : null}
-
         {/* Sales-first: order economics before spend ritual (cold desk). */}
-                {coldEmpty && !shotMode && salesDeskReady ? (
+        {coldEmpty && !shotMode && salesDeskReady ? (
           <OrderEconomicsPanel
             economics={orderEconomics}
             periodLabel={metrics.period.label}
@@ -960,7 +959,7 @@ export default function Dashboard() {
         ) : null}
 
         {/*
-          CEO desk: when order economics already owns the spend unlock primary,
+          When order economics already owns the spend unlock primary,
           skip the Setup Guide so the first viewport has one button — not two.
           Guide stays for the no-orders cold path.
         */}
@@ -970,26 +969,8 @@ export default function Dashboard() {
 
         {!coldEmpty ? (
           <>
-            {!shotMode && scoreboardReady ? (
-              <CashVerdict
-                mer={trustedHero.mer}
-                sales={
-                  trustedHero.hideUntrustedZero ? 0 : totalSalesDisplay
-                }
-                spend={metrics.totalSpend}
-                breakEvenMer={
-                  trustedHero.hideUntrustedZero ? null : metrics.breakEvenMer
-                }
-                spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
-                salesFactsIncomplete={
-                  factsIncompleteForTrust || trustedHero.hideUntrustedZero
-                }
-                salesUntrustedZero={salesUntrustedZero}
-                useSampleDesk={useSampleDesk}
-              />
-            ) : null}
-
-            {!shotMode && scoreboardReady ? (
+            {/* Listing SoT: three-card till → LTV. Verdict / trust sit under. */}
+            {showTill ? (
               <section
                 className="mcfly-hero-compact mcfly-hero-compact--v2"
                 aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
@@ -1029,7 +1010,7 @@ export default function Dashboard() {
                       deltaLine={merDeltaLine}
                     />
                   )}
-                  {/* Love-V2 / VISUAL P0.3: one primary in this cluster — Update spend.
+                  {/* One primary in this cluster — Update spend.
                       Untrusted zero hands that one primary to the banner above. */}
                   <div className="mcfly-hero-compact__actions">
                     {trustedHero.hideUntrustedZero ? null : (
@@ -1095,7 +1076,6 @@ export default function Dashboard() {
                         {salesDeltaLine}
                       </p>
                     ) : null}
-                    {/* Till rows keep the sales card as dense as the spend card. */}
                     {!trustedHero.hideUntrustedZero &&
                     metrics.orderCount > 0 ? (
                       <ul
@@ -1166,7 +1146,8 @@ export default function Dashboard() {
                         No channel spend in this period
                       </p>
                     )}
-                    <p className="mcfly-hero-compact__dive"><s-link href={`/app/allocation?period=${preset}`}>
+                    <p className="mcfly-hero-compact__dive">
+                      <s-link href={`/app/allocation?period=${preset}`}>
                         {PRODUCT_NOUN.spendAllocation}
                       </s-link>
                     </p>
@@ -1175,16 +1156,49 @@ export default function Dashboard() {
               </section>
             ) : null}
 
-            {/* L10: Monday habit after trusted seat — info only, dismissible / once-per-session. */}
+            {showTill ? (
+              <div
+                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
+                aria-label="Tab snapshots"
+              >
+                <LtvSnapSection tillLtv={metrics.tillLtv} preset={preset} />
+              </div>
+            ) : null}
+
+            {!shotMode && scoreboardReady && !useSampleDesk ? (
+              <CashVerdict
+                mer={trustedHero.mer}
+                sales={
+                  trustedHero.hideUntrustedZero ? 0 : totalSalesDisplay
+                }
+                spend={metrics.totalSpend}
+                breakEvenMer={
+                  trustedHero.hideUntrustedZero ? null : metrics.breakEvenMer
+                }
+                spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
+                salesFactsIncomplete={
+                  factsIncompleteForTrust || trustedHero.hideUntrustedZero
+                }
+                salesUntrustedZero={salesUntrustedZero}
+                useSampleDesk={useSampleDesk}
+              />
+            ) : null}
+
+            {!shotMode && scoreboardReady ? (
+              <PeriodTrustNote trust={periodTrust} />
+            ) : null}
+
             {!shotMode && habitNudgeEligible.eligible ? (
-              <HabitNudge eligible={habitNudgeEligible.eligible} periodPreset={preset} />
+              <HabitNudge
+                eligible={habitNudgeEligible.eligible}
+                periodPreset={preset}
+              />
             ) : null}
 
             {!shotMode && scoreboardReady && !useSampleDesk ? (
               <ReviewAsk eligible={reviewAskEligible} />
             ) : null}
 
-            {/* Operator till read — stays after spend; spend/order is the Analytics join. */}
             {!shotMode && salesDeskReady ? (
               <OrderEconomicsPanel
                 economics={orderEconomics}
@@ -1193,7 +1207,6 @@ export default function Dashboard() {
               />
             ) : null}
 
-            {/* Acquisition glance — aMER + new vs returning, same period figures as LTV */}
             {!shotMode && scoreboardReady ? (
               <div
                 className="mcfly-tab-snaps mcfly-tab-snaps--solo"
@@ -1217,16 +1230,6 @@ export default function Dashboard() {
                     metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null
                   }
                   useSampleDesk={useSampleDesk}
-                />
-              </div>
-            ) : null}
-
-            {/* LTV snapshot — depth after first trusted ROAS, not Monday chrome */}
-            {!shotMode && scoreboardReady ? (
-              <div className="mcfly-tab-snaps mcfly-tab-snaps--solo" aria-label="Tab snapshots">
-                <LtvSnapSection
-                  tillLtv={metrics.tillLtv}
-                  preset={preset}
                 />
               </div>
             ) : null}
