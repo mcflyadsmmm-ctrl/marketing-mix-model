@@ -22,8 +22,9 @@ describe("Overview / LTV tillLabel honesty", () => {
   });
 
   it("Overview scoreboardReady refuses salesError zeros", () => {
+    expect(overview).toMatch(/salesDeskReady\s*=\s*!salesError/);
     expect(overview).toMatch(
-      /scoreboardReady\s*=\s*[\s\S]*!salesError/,
+      /scoreboardReady\s*=\s*!coldEmpty\s*&&\s*salesDeskReady/,
     );
   });
 
@@ -79,12 +80,18 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(overview).not.toMatch(/Order history is limited — open/);
   });
 
-  it("offers a Partner-safe /auth grant CTA and does not call LTV permanently dead", () => {
+  it("offers a Partner-safe /auth grant CTA and gives LTV a sales-first teaching state", () => {
     expect(overview).toContain("DeepHistoryBanner");
     expect(ltv).toContain("DeepHistoryBanner");
     expect(overview).toContain("CASH_NOT_ATTRIBUTION");
-    expect(ltv).toMatch(/not permanently dead/);
-    expect(ltv).toMatch(/filling, not broken/);
+    expect(ltv).toContain('aria-label="Lifetime value teaching state"');
+    expect(ltv).toContain("ltvEmpty.heading");
+    expect(ltv).toContain("ltvEmpty.body");
+    expect(ltv).not.toContain("FirstTrustedRoasGate");
+    expect(ltv).toContain("ltvCashCacTeaching");
+    expect(ltv).not.toMatch(
+      /!metrics\.onboarding\.hasSpend[\s\S]{0,120}"no_spend"/,
+    );
   });
 
   it("does not render the leftover Overview brochure guide", () => {
@@ -114,6 +121,15 @@ describe("LTV copy after Partner-approved deep history", () => {
     expect(client).toMatch(
       /salesFactsIncomplete=\{\s*factsIncompleteForTrust\s*\|\|\s*trustedHero\.hideUntrustedZero\s*\}/,
     );
+  });
+
+  it("never heros a numeric Total ROAS when live period spend is empty", () => {
+    const client = overview.split("export default function Dashboard")[1] ?? "";
+    expect(client).toContain("shouldHeroNumericRoas");
+    expect(client).toContain("heroNumericRoas");
+    expect(client).toMatch(/heroNumericRoas \? \(\s*<TotalRoasGauge/);
+    expect(client).toMatch(/needs spend next to sales/);
+    expect(client).toMatch(/not 0\.00×/);
   });
 
   it("passes spend and shopOrdersSeen into salesFactsIncompleteForDesk", () => {

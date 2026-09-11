@@ -1,4 +1,4 @@
-# Mcfly Analytics — robots.txt (origin) · rev 2026-09-08
+# Mcfly Analytics — robots.txt (origin) · rev 2026-09-10
 # Cloudflare prepends Managed Content (training Disallows + Content Signals Policy).
 # This file APPENDS after that block. Do not duplicate GPTBot/ClaudeBot/CCBot Disallows.
 #
@@ -53,5 +53,9 @@ Allow: /
 # Training-only agents (GPTBot, ClaudeBot, Google-Extended, CCBot, Bytespider,
 # Applebot-Extended, meta-externalagent, Amazonbot) stay Disallow via
 # Cloudflare Managed Content — do not duplicate those lines here.
+
+# DRAFT course — remove this Disallow when founder says: MDS Made Easy go live
+User-agent: *
+Disallow: /mds-made-easy/
 
 Sitemap: https://mcflyads.com/sitemap.xml

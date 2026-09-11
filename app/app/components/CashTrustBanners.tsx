@@ -19,6 +19,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatMissingDaysRoasImpact } from "../lib/cash-desk-copy";
 import {
   resolveSpendCoverageNotice,
+  type SpendCoverageCtaTarget,
   type SpendCoverageDay,
 } from "../lib/spend-coverage-tone";
 import {
@@ -98,6 +99,26 @@ export function syntheticCoverageDays(
   }));
 }
 
+/**
+ * Overview cannot enumerate the empty dates (it holds period counts, not the
+ * day ledger), so each coverage CTA lands on the Spend section that owns it —
+ * typed row first, uploads for a backfill.
+ */
+function spendCoverageHref(target: SpendCoverageCtaTarget): string {
+  switch (target) {
+    case "type_day":
+      return "/app/spend#mcfly-spend-day";
+    case "blanks":
+      return "/app/spend#mcfly-spend-uploads";
+    case "total_roas":
+      return "/app?stay=1";
+    default: {
+      const _exhaustive: never = target;
+      return _exhaustive;
+    }
+  }
+}
+
 export function buildCashTrustBannerCandidates(input: {
   blockedMockAsLive: boolean;
   spendCoverage: SpendPeriodCoverage | null;
@@ -151,6 +172,9 @@ export function buildCashTrustBannerCandidates(input: {
       ? resolveSpendCoverageNotice({
           closedDays: syntheticCoverageDays(input.spendCoverage),
           impact: spendGapImpact,
+          // A Total ROAS figure sits beside this banner, so a young ledger stays
+          // `info` here even where the Spend desk celebrates in green.
+          surface: "overview",
         })
       : null;
 
@@ -516,7 +540,9 @@ export function CashTrustBanners({
           <s-paragraph>
             {formatSpendCoverageLine(spendCoverage, periodLabel)}.{" "}
             {coverageNotice.body}{" "}
-            <s-link href="/app/spend#mcfly-spend-uploads">Fill spend gaps</s-link>
+            <s-link href={spendCoverageHref(coverageNotice.primary.target)}>
+              {coverageNotice.primary.label}
+            </s-link>
           </s-paragraph>
           {coverageNotice.note ? (
             <s-paragraph>{coverageNotice.note}</s-paragraph>

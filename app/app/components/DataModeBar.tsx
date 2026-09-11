@@ -15,9 +15,9 @@ export type DataModeBarProps = {
 };
 
 /**
- * Global Sample | Real store control — one place, every desk page.
- * Love-UX1: first-session Setup Guide lives on Overview Home empty,
- * not as a chrome banner here.
+ * Live desk stays quiet: no Sample | Real dual chrome on every page.
+ * When SAMPLE is on, show a warning + exit CTA. Practice toggles live on
+ * Demo and Settings only.
  */
 export function DataModeBar({
   useSampleDesk,
@@ -35,82 +35,43 @@ export function DataModeBar({
     search: location.search,
   });
 
-  if (!samplePreviewAllowed) {
+  // Real store + Sample hidden: no chrome (Settings owns re-enable).
+  if (!samplePreviewAllowed && !useSampleDesk) {
+    if (!path.showMarginNudge) return null;
     return (
-      <div className="mcfly-data-mode mcfly-data-mode--real-only" role="status">
-        <p className="mcfly-data-mode__status">
-          <strong>Real store</strong>
-          <span aria-hidden="true"> · </span>
-          Sample preview is off in Settings
-        </p>
-        {path.showMarginNudge ? <MarginNudge path={path} /> : null}
+      <div className="mcfly-data-mode mcfly-data-mode--real-only">
+        <MarginNudge path={path} />
       </div>
     );
   }
 
-  return (
-    <div
-      className={[
-        "mcfly-data-mode",
-        useSampleDesk ? "mcfly-data-mode--sample" : "mcfly-data-mode--real",
-      ].join(" ")}
-    >
-      <div className="mcfly-data-mode__row">
-        <p className="mcfly-data-mode__label" id="mcfly-data-mode-label">
-          Viewing
-        </p>
-        <div
-          className="mcfly-data-mode__toggle"
-          role="group"
-          aria-labelledby="mcfly-data-mode-label"
-        >
-          <Form method="post" action={action} className="mcfly-data-mode__form">
-            <input type="hidden" name="intent" value="use-sample" />
-            <input type="hidden" name="returnTo" value={returnTo} />
-            <button
-              type="submit"
-              className={[
-                "mcfly-data-mode__btn",
-                useSampleDesk ? "mcfly-data-mode__btn--active" : null,
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              aria-pressed={useSampleDesk}
-            >
-              Sample
-            </button>
-          </Form>
-          <Form method="post" action={action} className="mcfly-data-mode__form">
-            <input type="hidden" name="intent" value="use-real" />
-            <input type="hidden" name="returnTo" value={returnTo} />
-            <button
-              type="submit"
-              className={[
-                "mcfly-data-mode__btn",
-                !useSampleDesk ? "mcfly-data-mode__btn--active" : null,
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              aria-pressed={!useSampleDesk}
-            >
-              Real store
-            </button>
-          </Form>
-        </div>
-        <p className="mcfly-data-mode__hint">{path.viewingHint}</p>
+  // Real store viewing: no Sample | Real toggle — only margin nudge if needed.
+  if (!useSampleDesk) {
+    if (!path.showMarginNudge) return null;
+    return (
+      <div className="mcfly-data-mode mcfly-data-mode--real">
+        <MarginNudge path={path} />
       </div>
+    );
+  }
 
-      {useSampleDesk ? (
-        <s-banner tone="warning" heading={PRODUCT_NOUN.samplePreviewOn}>
-          <s-paragraph>
-            These numbers are practice — not your live Shopify money. Tap{" "}
-            <strong>Real store</strong> before you trust Total ROAS or import
-            spend.
-          </s-paragraph>
-        </s-banner>
-      ) : null}
-
-      {path.showMarginNudge ? <MarginNudge path={path} /> : null}
+  // SAMPLE on: warn loudly + one exit CTA (no dual-mode toggle).
+  return (
+    <div className="mcfly-data-mode mcfly-data-mode--sample">
+      <s-banner tone="warning" heading={PRODUCT_NOUN.samplePreviewOn}>
+        <s-paragraph>
+          These numbers are practice — not your live Shopify money. Tap{" "}
+          <strong>{PRODUCT_NOUN.samplePreviewOffCta}</strong> before you trust
+          Total ROAS or import spend. Practice again from Demo or Settings.
+        </s-paragraph>
+        <Form method="post" action={action} className="mcfly-data-mode__form">
+          <input type="hidden" name="intent" value="use-real" />
+          <input type="hidden" name="returnTo" value={returnTo} />
+          <s-button type="submit" variant="primary">
+            {PRODUCT_NOUN.samplePreviewOffCta}
+          </s-button>
+        </Form>
+      </s-banner>
     </div>
   );
 }

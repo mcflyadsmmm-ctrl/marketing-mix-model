@@ -31,7 +31,7 @@ function withGuideParam(path: string, guide: string | null): string {
 }
 
 /**
- * POST-only data-mode switcher for the global Sample | Real toggle.
+ * POST-only data-mode switcher (Demo / Settings / SAMPLE exit CTA).
  * Intents: use-sample | use-real | allow-sample-preview | hide-sample-preview
  */
 export const action = async ({ request }: ActionFunctionArgs) => {

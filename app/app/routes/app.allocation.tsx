@@ -1,10 +1,6 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import {
-  SPEND_CHANNEL_LABELS,
-  type SpendChannel,
-} from "@mcfly/mer-engine";
 import type { AllocationAction } from "@mcfly/mer-core";
 import { authenticate } from "../shopify.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
@@ -32,6 +28,15 @@ import {
   formatAllocationPercentChange,
 } from "../lib/allocation-verdict";
 import {
+  resolveAllocationLock,
+  type AllocationLock,
+} from "../lib/allocation-lock";
+import {
+  allocationChannelLabel,
+  resolveAllocationPlan,
+  type AllocationPlan,
+} from "../lib/allocation-recommendation";
+import {
   buildDailyRowsForWindow,
   buildDashboardMetrics,
   ensureShop,
@@ -43,6 +48,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
 import type { SalesResult } from "../lib/shopify-sales.server";
 import { salesFactsIncompleteForDesk } from "../lib/sales-facts-honesty";
+import { cashVerdictSalesUntrusted } from "../lib/cash-verdict";
 import {
   getSalesFactsByDay,
   loadDeskSalesForPeriod,
@@ -64,10 +70,6 @@ import {
   localDayKey,
 } from "../lib/sample-desk.server";
 
-function historyChannelLabel(channel: string): string {
-  return SPEND_CHANNEL_LABELS[channel as SpendChannel] ?? channel;
-}
-
 function toHistoryDays(
   rows: Array<{
     dateKey: string;
@@ -81,7 +83,7 @@ function toHistoryDays(
     sales: r.sales,
     spend: r.spend,
     channels: r.channels.map((c) => ({
-      channel: historyChannelLabel(c.channel),
+      channel: allocationChannelLabel(c.channel),
       amount: c.amount,
     })),
   }));
@@ -190,6 +192,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   /*
+   * Same untrusted-$0 gate as Overview's trusted hero. Spend-side coverage can be
+   * complete while the sales numerator is still filling — sales ÷ spend then
+   * resolves to 0.00× and suggestAllocation calls a ~50% "below break-even" cut
+   * on a numerator nobody trusts. Pass salesUntrustedZero next to the coverage
+   * flag so a wrongly-false incomplete cannot leak that advice through.
+   */
+  const salesUntrustedForAdvice =
+    !useSampleDesk &&
+    metrics.totalSpend > 0 &&
+    !(metrics.sales > 0) &&
+    cashVerdictSalesUntrusted({
+      salesFactsIncomplete: factsIncomplete,
+      salesUntrustedZero: deskSalesUntrustedZero,
+    });
+
+  /*
    * Portfolio history (~L12M / 365 closed days): top quarters by Total ROAS,
    * rolling 7/14/28 vs prior window. Facts / sample only — no unbounded Shopify.
    */
@@ -218,7 +236,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       toHistoryDays(dailyRows),
       HISTORY_QUARTER_DAYS_CAP,
     );
-    const allocationForHist = salesError ? null : metrics.allocation;
+    const allocationForHist =
+      salesError || salesUntrustedForAdvice ? null : metrics.allocation;
     const nowChannelSpend =
       allocationForHist?.inputs.channelEfficiencies.map((c) => ({
         channel: c.name,
@@ -249,6 +268,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesTruncated,
     salesFactsIncomplete,
     factsIncomplete,
+    salesUntrustedForAdvice,
     shopifyOrderWindowLimited,
     hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
     shopDomain: session.shop,
@@ -268,6 +288,7 @@ export default function AllocationPage() {
     todaySalesTruncated,
     salesFactsIncomplete,
     factsIncomplete,
+    salesUntrustedForAdvice,
     shopifyOrderWindowLimited,
     hasReadAllOrders,
     shopDomain,
@@ -275,8 +296,10 @@ export default function AllocationPage() {
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
-  // Never build Monday advice from emptySales zeros after a sales load failure.
-  const allocation = salesError ? null : metrics.allocation;
+  // Never build Monday advice from emptySales zeros after a sales load failure,
+  // nor from an untrusted $0 numerator (0.00× is not "below break-even").
+  const allocation =
+    salesError || salesUntrustedForAdvice ? null : metrics.allocation;
 
   const tillLabel = formatListingTillLabel({
     periodLabel: metrics.period.label,
@@ -296,18 +319,28 @@ export default function AllocationPage() {
     periodWiderThanRecentWindow,
   });
 
-  const cashLocked =
-    !allocation &&
-    metrics.breakEvenMer != null &&
-    !metrics.cashActionReady &&
-    !shotMode;
-  const lockCopy = cashLocked
-    ? metrics.spendCoverage.incomplete
-      ? `Spend coverage is under 70% — fill empty days before allocation. ${PRODUCT_NOUN.mondayCall}.`
-      : `Allocation is locked until spend trust is ready. ${PRODUCT_NOUN.mondayCall}.`
-    : null;
-
-  const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
+  /*
+   * One blocking answer at a time, with the reason named: spend, then margin,
+   * then coverage, then the sales numerator. A lock hides the cut/keep call —
+   * it never renders a softer version of it.
+   */
+  const lock = resolveAllocationLock({
+    shotMode: Boolean(shotMode),
+    salesError: Boolean(salesError),
+    salesUntrustedForAdvice,
+    breakEvenMer: metrics.breakEvenMer,
+    cashActionReady: metrics.cashActionReady,
+    spendCoverage: metrics.spendCoverage,
+    totalSpend: metrics.totalSpend,
+    periodLabel: metrics.period.label,
+    periodPreset: preset,
+  });
+  // Concrete dollars from the percent mer-core already sized and floored.
+  const plan = lock ? null : resolveAllocationPlan(allocation);
+  const suppressAllocationPush =
+    lock?.reason === "no_spend" ||
+    lock?.reason === "sales_untrusted_zero" ||
+    lock?.reason === "sales_error";
   const channelRows = allocation
     ? buildPeriodChannelRows(allocation.inputs.channelEfficiencies)
     : [];
@@ -332,11 +365,13 @@ export default function AllocationPage() {
         ) : null}
 
         <DeskPageWhy page="allocation" />
-        <FirstTrustedRoasGate
-          hasLiveSpend={metrics.onboarding.hasSpend}
-          useSampleDesk={useSampleDesk}
-          shotMode={shotMode}
-        />
+        {lock?.reason === "no_spend" ? null : (
+          <FirstTrustedRoasGate
+            hasLiveSpend={metrics.onboarding.hasSpend}
+            useSampleDesk={useSampleDesk}
+            shotMode={shotMode}
+          />
+        )}
 
         {!useSampleDesk && !shotMode ? (
           <CashTrustBanners
@@ -361,55 +396,7 @@ export default function AllocationPage() {
           </section>
         ) : null}
 
-        {salesError && !shotMode ? (
-          <section
-            className="mcfly-state mcfly-state--critical"
-            aria-label="Sales load error"
-          >
-            <p className="mcfly-state__copy">
-              Sales didn’t load — {PRODUCT_NOUN.spendAllocation} needs {PRODUCT_NOUN.totalRoas} from sales ÷ spend.
-            </p>
-            <div className="mcfly-state__cta">
-              <s-button href={`/app/allocation?period=${preset}`} variant="primary">
-                Retry
-              </s-button>
-            </div>
-          </section>
-        ) : null}
-
-        {zeroMargin ? (
-          <section
-            className="mcfly-state mcfly-state--warn"
-            aria-label="Break-even margin required"
-          >
-            <p className="mcfly-state__copy">
-              Set profit margin so {PRODUCT_NOUN.breakEvenTotalRoas} can lock.{" "}
-              {PRODUCT_NOUN.mondayCall}.
-            </p>
-            <div className="mcfly-state__cta">
-              <s-button href="/app/settings" variant="primary">
-                Open Settings
-              </s-button>
-            </div>
-          </section>
-        ) : null}
-
-        {cashLocked && lockCopy ? (
-          <section
-            className="mcfly-state mcfly-state--warn"
-            aria-label="Allocation locked until spend trust"
-          >
-            <p className="mcfly-state__copy">{lockCopy}</p>
-            <div className="mcfly-state__cta">
-              <s-button href="/app/spend" variant="primary">
-                Fill spend holes
-              </s-button>
-              <s-link href={`/app?period=${preset}`}>
-                View {PRODUCT_NOUN.deskTitle}
-              </s-link>
-            </div>
-          </section>
-        ) : null}
+        {lock ? <AllocationLockSection lock={lock} /> : null}
 
         <header className="mcfly-topbar">
           <div>
@@ -438,9 +425,10 @@ export default function AllocationPage() {
           </div>
         </div>
 
-        {/* 1. Hold / reduce / step-test already computed — show it */}
-        {allocation ? (
+        {/* 1. The cut/keep call in dollars, then the computed action list */}
+        {allocation && plan ? (
           <AllocationVerdictSection
+            plan={plan}
             why={allocation.why}
             actions={allocation.actions}
             suggestedTestDays={allocation.suggestedTestDays}
@@ -450,10 +438,12 @@ export default function AllocationPage() {
         ) : null}
 
         {/* 2. Top 3 quarterly allocations (all-time in facts window) */}
-        <TopQuartersSection quarters={topQuarters} />
+        {suppressAllocationPush ? null : (
+          <TopQuartersSection quarters={topQuarters} />
+        )}
 
         {/* 3. ONE mix view: pie (% allocation) + channel list for selected period */}
-        {allocation ? (
+        {allocation && !lock ? (
           <PeriodMixSection
             rows={channelRows}
             totalSpend={allocation.inputs.totalSpend}
@@ -463,9 +453,11 @@ export default function AllocationPage() {
         ) : null}
 
         {/* 4. Rolling improvement: 7 · 14 · 28 vs prior window */}
-        <RollingWindowsSection tiles={rollingWindows} />
+        {suppressAllocationPush ? null : (
+          <RollingWindowsSection tiles={rollingWindows} />
+        )}
 
-        {!allocation && !zeroMargin && !cashLocked ? (
+        {!lock && !allocation ? (
           <section
             className="mcfly-state mcfly-state--empty"
             aria-label="Allocation unavailable"
@@ -488,13 +480,39 @@ export default function AllocationPage() {
   );
 }
 
+function AllocationLockSection({ lock }: { lock: AllocationLock }) {
+  return (
+    <section
+      className={`mcfly-state mcfly-state--${lock.tone}`}
+      aria-label={lock.label}
+    >
+      <div className="mcfly-state__content">
+        <h3 className="mcfly-state__heading">{lock.headline}</h3>
+        <p className="mcfly-state__copy">{lock.body}</p>
+      </div>
+      <div className="mcfly-state__cta">
+        <s-button href={lock.primaryCta.href} variant="primary">
+          {lock.primaryCta.label}
+        </s-button>
+        {lock.secondaryCta ? (
+          <s-link href={lock.secondaryCta.href}>
+            {lock.secondaryCta.label}
+          </s-link>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 function AllocationVerdictSection({
+  plan,
   why,
   actions,
   suggestedTestDays,
   overallMer,
   breakEvenMer,
 }: {
+  plan: AllocationPlan;
   why: string;
   actions: AllocationAction[];
   suggestedTestDays: number;
@@ -504,10 +522,10 @@ function AllocationVerdictSection({
   return (
     <section
       className="mcfly-alloc-v2__mix"
-      aria-label="Hold, reduce, or step-test advice"
+      aria-label="Cut or keep call for this period"
     >
       <div className="mcfly-alloc-v2__head">
-        <h2>Advice · hold / reduce / step-test</h2>
+        <h2>This period’s call · cut or keep</h2>
         <p className="mcfly-alloc-v2__muted">
           Portfolio {PRODUCT_NOUN.totalRoas}{" "}
           {overallMer == null ? "—" : formatMer(overallMer)} vs break-even{" "}
@@ -517,7 +535,17 @@ function AllocationVerdictSection({
             : null}
         </p>
       </div>
+      <div
+        className={`mcfly-alloc-v2__call mcfly-alloc-v2__call--${plan.kind}`}
+      >
+        <p className="mcfly-alloc-v2__call-head">{plan.headline}</p>
+        <p className="mcfly-alloc-v2__call-keep">{plan.keepLine}</p>
+        {plan.redeployLine ? (
+          <p className="mcfly-alloc-v2__call-meta">{plan.redeployLine}</p>
+        ) : null}
+      </div>
       <p className="mcfly-alloc-v2__muted">{why}</p>
+      <h3 className="mcfly-alloc-v2__sub">Steps · hold / reduce / step-test</h3>
       {actions.length === 0 ? (
         <p className="mcfly-alloc-v2__empty">
           No action list for this period — check spend and margin.
@@ -531,7 +559,7 @@ function AllocationVerdictSection({
                 ? null
                 : action.channel === "portfolio"
                   ? "Portfolio"
-                  : historyChannelLabel(action.channel);
+                  : allocationChannelLabel(action.channel);
             return (
               <li
                 className="mcfly-alloc-v2__q-card"

@@ -236,7 +236,12 @@ describe("Overview wiring", () => {
     const mount = overview.indexOf("<AcquisitionGlance");
     expect(mount).toBeGreaterThan(0);
     const gate = overview.slice(Math.max(0, mount - 400), mount);
-    expect(gate).toContain("!shotMode && scoreboardReady && metrics.cashActionReady");
+    // Glance mounts with the scoreboard; spend trust is a resolver input
+    // (blocked copy), not an outer hide that would swallow the honesty empty.
+    expect(gate).toContain("!shotMode && scoreboardReady");
+    expect(gate).not.toMatch(
+      /!shotMode && scoreboardReady && metrics\.cashActionReady/,
+    );
   });
 
   it("lands after the trusted Total ROAS hero, before the LTV snapshot", () => {

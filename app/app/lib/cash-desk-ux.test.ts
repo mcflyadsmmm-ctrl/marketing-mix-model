@@ -91,14 +91,28 @@ describe("Overview Monday desk", () => {
     );
   });
 
-  it("demotes explorer and LTV snap until the multiple is trusted", () => {
+  it("shows acquisition/LTV snaps after any live spend; explorer stays later", () => {
     expect(overview).toContain("mcfly-me-spine--later");
-    expect(overview).toMatch(/scoreboardReady && metrics\.cashActionReady/);
+    // Sales-side snaps unlock with scoreboardReady (any live spend).
+    // Allocation/BE advice still hard-gates on cashActionReady elsewhere.
+    expect(overview).toMatch(
+      /\{!shotMode && scoreboardReady \? \([\s\S]*AcquisitionGlance/,
+    );
+    expect(overview).toMatch(
+      /\{!shotMode && scoreboardReady \? \([\s\S]*LtvSnapSection/,
+    );
   });
 
   it("Love-UX1: Overview cold empty owns dismissible Setup Guide (not DataModeBar)", () => {
     expect(overview).toContain("FirstSessionGuide");
-    expect(overview).toMatch(/coldEmpty \? <FirstSessionGuide path=\{firstSession\}/);
+    // Sales-ready cold desk: OrderEconomicsPanel owns the spend unlock so the
+    // first viewport has one primary. Guide stays for the no-orders path.
+    expect(overview).toMatch(
+      /coldEmpty && !\(salesDeskReady && !shotMode\) \? \(\s*<FirstSessionGuide path=\{firstSession\}/,
+    );
+    expect(overview).toMatch(
+      /coldEmpty && !shotMode && salesDeskReady \? \(\s*<OrderEconomicsPanel/,
+    );
     expect(overview).toMatch(/hasReadAllOrders/);
     expect(overview).toMatch(/shopDomain/);
     const guide = readFileSync(
@@ -306,5 +320,13 @@ describe("SAMPLE money stamp", () => {
     expect(sampleBanner).toContain("SAMPLE_MONEY_MARK");
     expect(sampleBanner).not.toMatch(/return null/);
     expect(dataMode).toMatch(/not your live Shopify money/i);
+  });
+
+  it("keeps live desk quiet — no Sample | Real dual toggle", () => {
+    expect(dataMode).not.toMatch(/>\s*Sample\s*</);
+    expect(dataMode).not.toContain('value="use-sample"');
+    expect(dataMode).toContain('value="use-real"');
+    expect(dataMode).toContain("return null");
+    expect(dataMode).toMatch(/no Sample \| Real dual chrome/i);
   });
 });

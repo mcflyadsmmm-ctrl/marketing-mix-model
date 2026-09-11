@@ -1,24 +1,35 @@
 /**
  * Monday-morning cash verdict — am I making money on ads this period?
  * Total ROAS, sales, spend, break-even. SAMPLE never reads as live money.
+ * Blocked / warn / bad tones carry one next step a CEO can take.
  */
 
 import { formatCurrency, formatMer } from "./mer-format";
 import { PRODUCT_NOUN } from "./product-labels";
 import { SAMPLE_MONEY_MARK } from "./cash-desk-copy";
+import { SPEND_BILL_ANCHOR } from "./spend-first-run";
 
 export type CashVerdictTone = "ok" | "warn" | "bad" | "blocked" | "sample";
+
+export type CashVerdictAction = {
+  label: string;
+  href: string;
+};
 
 export type CashVerdict = {
   tone: CashVerdictTone;
   headline: string;
   body: string;
+  /** One next step when the desk is blocked, incomplete, or below break-even. */
+  nextAction: CashVerdictAction | null;
 };
+
+const BILL_HREF = `/app/spend#${SPEND_BILL_ANCHOR}`;
 
 /**
  * Instant answer for Overview when spend exists.
- * Does not hide untrusted 0.00 (that is the activation PR) — it only
- * states whether the merchant can act on the multiple this morning.
+ * Does not hide untrusted 0.00 — it only states whether the merchant can
+ * act on the multiple this morning.
  */
 export function cashVerdictSalesUntrusted(input: {
   salesFactsIncomplete: boolean;
@@ -47,6 +58,7 @@ export function resolveCashVerdict(input: {
       tone: "sample",
       headline: `${SAMPLE_MONEY_MARK} · ${merLabel}`,
       body: `${PRODUCT_NOUN.totalRoas} here is practice. Tap Real store before you treat sales, spend, or break-even as live cash.`,
+      nextAction: { label: "Open Settings", href: "/app/settings" },
     };
   }
 
@@ -54,7 +66,11 @@ export function resolveCashVerdict(input: {
     return {
       tone: "blocked",
       headline: `${PRODUCT_NOUN.totalRoas} needs spend next to sales`,
-      body: `Shopify sales are ${formatCurrency(input.sales)}. Add daily spend so sales ÷ spend can run.`,
+      body: `Shopify sales are ${formatCurrency(input.sales)}. Spread one ad invoice across its days so sales ÷ spend can run.`,
+      nextAction: {
+        label: PRODUCT_NOUN.setupSpreadBill,
+        href: BILL_HREF,
+      },
     };
   }
 
@@ -63,6 +79,7 @@ export function resolveCashVerdict(input: {
       tone: "blocked",
       headline: "Sales facts still loading — not a trusted multiple",
       body: `Spend is ${formatCurrency(input.spend)}. Wait for Shopify sales to finish filling, or pick a shorter period. A blank numerator is not a trusted multiple.`,
+      nextAction: { label: "Try MTD", href: "/app?period=mtd" },
     };
   }
 
@@ -75,6 +92,10 @@ export function resolveCashVerdict(input: {
       tone: "warn",
       headline: `${merLabel} looks high — spend days are missing`,
       body: `Sales ${formatCurrency(input.sales)} ÷ spend ${formatCurrency(input.spend)}. Empty days count as $0 spend, so ${PRODUCT_NOUN.totalRoas} is inflated. Fill gaps before a budget move.`,
+      nextAction: {
+        label: PRODUCT_NOUN.setupSpreadBill,
+        href: BILL_HREF,
+      },
     };
   }
 
@@ -83,6 +104,7 @@ export function resolveCashVerdict(input: {
       tone: "blocked",
       headline: `${PRODUCT_NOUN.totalRoas} is not ready`,
       body: `Sales ${formatCurrency(input.sales)} · spend ${formatCurrency(input.spend)}. Refresh Overview after facts land.`,
+      nextAction: null,
     };
   }
 
@@ -96,12 +118,17 @@ export function resolveCashVerdict(input: {
         tone: "ok",
         headline: `Yes — ads cleared break-even (${merLabel} vs ${be})`,
         body: `${pair}. ${PRODUCT_NOUN.totalRoas} is above break-even this period.`,
+        nextAction: null,
       };
     }
     return {
       tone: "bad",
       headline: `No — below break-even (${merLabel} vs ${be})`,
       body: `${pair}. Cut or shift spend before you scale. ${PRODUCT_NOUN.mondayCall}.`,
+      nextAction: {
+        label: `Open ${PRODUCT_NOUN.spendAllocation}`,
+        href: "/app/allocation",
+      },
     };
   }
 
@@ -109,5 +136,9 @@ export function resolveCashVerdict(input: {
     tone: "warn",
     headline: `${merLabel} this period — confirm margin for break-even`,
     body: `${pair}. ${PRODUCT_NOUN.totalRoas} is live. Set profit margin in Settings so you can see if ads made money after contribution.`,
+    nextAction: {
+      label: PRODUCT_NOUN.setupAdjustMargin,
+      href: "/app/settings",
+    },
   };
 }

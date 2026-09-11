@@ -120,3 +120,19 @@ export function resolveTrustedRoasHero(input: {
     mer: input.mer,
   };
 }
+
+/**
+ * When the numeric Total ROAS hero may paint. Empty period spend, loading
+ * zeros, and untrusted $0 must not hero `0.00×` — SAMPLE / listing shots
+ * keep Harbor practice numbers so the stamp stays the honesty layer.
+ */
+export function shouldHeroNumericRoas(input: {
+  hideUntrustedZero: boolean;
+  periodSpend: number;
+  useSampleDesk?: boolean;
+  shotMode?: boolean;
+}): boolean {
+  if (input.hideUntrustedZero) return false;
+  if (input.useSampleDesk || input.shotMode) return true;
+  return input.periodSpend > 0;
+}

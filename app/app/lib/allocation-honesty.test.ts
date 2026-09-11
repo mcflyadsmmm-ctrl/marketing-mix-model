@@ -29,8 +29,10 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("factsIncomplete");
   });
 
-  it("suppresses allocation suggestion when salesError", () => {
-    expect(source).toContain("salesError ? null : metrics.allocation");
+  it("suppresses allocation suggestion when salesError or untrusted $0 sales", () => {
+    expect(source).toContain(
+      "salesError || salesUntrustedForAdvice ? null : metrics.allocation",
+    );
   });
 
   it("keeps SAMPLE path distinct from live sales", () => {
@@ -46,6 +48,44 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("allocationActionLabel");
     expect(source).toMatch(/hold \/ reduce \/[\s\S]*step-test advice/);
     expect(source).not.toMatch(/which channels to cut or keep/);
+  });
+
+  it("states the dollarized cut/keep call when trusted", () => {
+    expect(source).toContain("resolveAllocationPlan");
+    expect(source).toContain(
+      "const plan = lock ? null : resolveAllocationPlan(allocation)",
+    );
+    expect(source).toMatch(/allocation && plan \? \(\s*<AllocationVerdictSection/);
+    expect(source).toContain("plan={plan}");
+    expect(source).toContain("{plan.headline}");
+    expect(source).toContain("{plan.keepLine}");
+  });
+
+  it("hard-locks with one resolved reason instead of ad-hoc lock copy", () => {
+    expect(source).toContain("resolveAllocationLock({");
+    expect(source.match(/<AllocationLockSection/g)?.length).toBe(1);
+    expect(source).toContain("aria-label={lock.label}");
+    // Copy and CTAs now come from the resolver — no route-local lock strings.
+    expect(source).not.toContain("lockCopy");
+    expect(source).not.toMatch(/Spend coverage is under 70%/);
+    expect(source).not.toMatch(/Allocation is locked until spend trust/);
+  });
+
+  it("does not push mix or history while spend is empty, loading-untrusted, or sales-error", () => {
+    expect(source).toContain("const suppressAllocationPush =");
+    expect(source).toContain('lock?.reason === "no_spend"');
+    expect(source).toContain('lock?.reason === "sales_untrusted_zero"');
+    expect(source).toContain('lock?.reason === "sales_error"');
+    expect(source).toMatch(/allocation && !lock \? \(\s*<PeriodMixSection/);
+    expect(source).toMatch(
+      /suppressAllocationPush \? null : \(\s*<TopQuartersSection/,
+    );
+    expect(source).toMatch(
+      /suppressAllocationPush \? null : \(\s*<RollingWindowsSection/,
+    );
+    expect(source).toMatch(
+      /lock\?\.reason === "no_spend" \? null : \(\s*<FirstTrustedRoasGate/,
+    );
   });
 
   it("does not lock copy on unreachable Ads Manager declare-recon", () => {

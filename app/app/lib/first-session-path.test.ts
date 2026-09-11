@@ -43,7 +43,7 @@ describe("resolveFirstSessionPath", () => {
     ]);
     expect(path.steps[0]).toMatchObject({
       status: "current",
-      href: "/app/spend",
+      href: "/app/spend#mcfly-spend-bill",
       optional: false,
     });
     expect(path.steps[1]).toMatchObject({
@@ -63,11 +63,12 @@ describe("resolveFirstSessionPath", () => {
       status: "todo",
       optional: true,
     });
-    expect(path.primaryHref).toBe("/app/spend");
-    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
-    expect(path.heading).toMatch(new RegExp(String(FIRST_SESSION_MINUTES)));
+    expect(path.primaryHref).toBe("/app/spend#mcfly-spend-bill");
+    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupSpreadBill);
+    expect(path.heading).toMatch(/Shopify orders/i);
+    expect(path.heading).toMatch(/Total ROAS/i);
     expect(path.body).toMatch(/Type one day/i);
-    expect(path.body).toMatch(/no file/i);
+    expect(path.body).toMatch(/weekend vs weekday/i);
     expect(path.body).toMatch(/optional/i);
     expect(path.body).toMatch(/break-even/i);
     expect(path.steps[0].hint).toMatch(/type one day/i);
@@ -77,9 +78,26 @@ describe("resolveFirstSessionPath", () => {
       `/app/spend#${PIPE_TEMPLATE_ANCHOR}`,
     ]);
     expect(firstSessionPrimaryAction(path)).toEqual({
-      href: "/app/spend",
-      label: PRODUCT_NOUN.setupAddSpend,
+      href: "/app/spend#mcfly-spend-bill",
+      label: PRODUCT_NOUN.setupSpreadBill,
     });
+  });
+
+  it("teaches the bill spread first — a trial week cannot absorb 14 typed days", () => {
+    const path = cold({
+      marginConfirmed: false,
+      hasLiveSpend: false,
+      useSampleDesk: false,
+    });
+    // Blocker #1: the taught path has to be the one that reaches coverage.
+    expect(path.steps[0].hint).toMatch(/one bill covers a month of days/i);
+    expect(path.body).toMatch(/spread one ad invoice across its days/i);
+    expect(path.body.indexOf("Spread one ad invoice")).toBeLessThan(
+      path.body.indexOf("type one day"),
+    );
+    // Still no ad-network identity anywhere in the taught path.
+    const blob = [path.body, ...path.steps.map((s) => s.hint)].join("\n");
+    expect(blob).not.toMatch(/oauth|connect meta|connect google|pixel/i);
   });
 
   it("after margin confirm, empty still owns Spend — not a second Settings wall", () => {
@@ -94,8 +112,8 @@ describe("resolveFirstSessionPath", () => {
     expect(path.steps[0].status).toBe("current");
     expect(path.steps[1].status).toBe("done");
     expect(path.stepsCompleted).toBe(1);
-    expect(path.primaryHref).toBe("/app/spend");
-    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupAddSpend);
+    expect(path.primaryHref).toBe("/app/spend#mcfly-spend-bill");
+    expect(path.primaryLabel).toBe(PRODUCT_NOUN.setupSpreadBill);
     expect(path.body).toMatch(/Margin is set/);
     expect(path.body).toContain(PRODUCT_NOUN.definition);
   });
@@ -237,8 +255,8 @@ describe("resolveFirstSessionPath", () => {
 
   it("preserves query strings on ritual hrefs — hash after query for pipe", () => {
     const path = cold({ search: "?period=mtd" });
-    expect(path.primaryHref).toBe("/app/spend?period=mtd");
-    expect(path.steps[0].href).toBe("/app/spend?period=mtd");
+    expect(path.primaryHref).toBe("/app/spend?period=mtd#mcfly-spend-bill");
+    expect(path.steps[0].href).toBe("/app/spend?period=mtd#mcfly-spend-bill");
     expect(path.steps[1].href).toBe("/app/settings?period=mtd");
     expect(path.steps[3].href).toBe(
       `/app/spend?period=mtd#${PIPE_TEMPLATE_ANCHOR}`,

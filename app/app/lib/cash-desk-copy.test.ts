@@ -5,6 +5,7 @@ import {
   FIRST_TRUSTED_ROAS_GATE,
   SAMPLE_MONEY_MARK,
   formatMissingDaysRoasImpact,
+  ltvCashCacTeaching,
   ltvEmptyCashCopy,
   parseLtvEmptyKind,
   resolveFirstTrustedRoasGate,
@@ -65,7 +66,8 @@ describe("resolveFirstTrustedRoasGate", () => {
     expect(gate.heading).toBe(FIRST_TRUSTED_ROAS_GATE.heading);
     expect(gate.primaryHref).toBe("/app/spend");
     expect(gate.primaryLabel).toMatch(/spend/i);
-    expect(gate.body).toMatch(/template/i);
+    expect(gate.body).toMatch(/Shopify orders/i);
+    expect(gate.body).toMatch(/Cash CAC/i);
     expect(gate.body).not.toMatch(/upgrade|\$39/i);
   });
 });
@@ -78,7 +80,7 @@ describe("formatMissingDaysRoasImpact", () => {
       periodLabel: "the last 28 days",
     });
     expect(copy.heading).toMatch(/26 days missing/i);
-    expect(copy.body).toMatch(/inflated/i);
+    expect(copy.body).toMatch(/make Total ROAS look better than cash/i);
     expect(copy.body).toMatch(/\$0 spend/i);
     expect(copy.body).toMatch(/Download blanks/i);
     expect(copy.nextLabel).toMatch(/missing/i);
@@ -106,29 +108,52 @@ describe("formatMissingDaysRoasImpact", () => {
 });
 
 describe("ltvEmptyCashCopy", () => {
-  it("never calls LTV permanently dead", () => {
+  it("teaches the useful sales-first next step without calling LTV broken", () => {
     for (const kind of [
       "no_timezone",
       "history_limited",
       "backfilling",
       "pro_required",
-      "no_spend",
       "unknown",
     ] as const) {
       const copy = ltvEmptyCashCopy(kind);
-      expect(
-        copy.body.replace(/not permanently (dead|empty)/gi, ""),
-      ).not.toMatch(/permanently (dead|broken|empty)/i);
+      expect(copy.body).not.toMatch(/permanently (dead|broken|empty)/i);
       expect(copy.body).not.toMatch(THEATER);
     }
-    expect(ltvEmptyCashCopy("history_limited").body).toMatch(/not permanently dead/i);
-    expect(ltvEmptyCashCopy("backfilling").body).toMatch(/filling, not broken/i);
+    expect(ltvEmptyCashCopy("history_limited").body).toMatch(/Acquisition above is useful now/i);
+    expect(ltvEmptyCashCopy("backfilling").body).toMatch(/new vs returning sales and AOV now/i);
+    expect(ltvEmptyCashCopy("backfilling").body).toMatch(/Spend can wait/i);
+    expect(ltvEmptyCashCopy("no_timezone").body).toMatch(/no email CRM/i);
   });
 
   it("parses known empty reasons", () => {
     expect(parseLtvEmptyKind("history_limited")).toBe("history_limited");
+    expect(parseLtvEmptyKind("no_spend")).toBe("unknown");
     expect(parseLtvEmptyKind("nope")).toBe("unknown");
     expect(parseLtvEmptyKind(null)).toBe("unknown");
+  });
+});
+
+describe("ltvCashCacTeaching", () => {
+  it("withholds Cash CAC until the selected period has spend", () => {
+    expect(
+      ltvCashCacTeaching({
+        hasPeriodSpend: false,
+        hasNewBuyerCount: true,
+      }),
+    ).toMatch(/Add period spend to calculate Cash CAC/i);
+  });
+
+  it("keeps cohorts useful when spend is absent and explains a missing denominator honestly", () => {
+    expect(CASH_PAGE_WHY.ltv).toMatch(/Shopify order cohorts/i);
+    expect(CASH_PAGE_WHY.ltv).toMatch(/Add spend only/i);
+    expect(CASH_PAGE_WHY.ltv).toMatch(/no email CRM/i);
+    expect(
+      ltvCashCacTeaching({
+        hasPeriodSpend: true,
+        hasNewBuyerCount: false,
+      }),
+    ).toMatch(/new-buyer count is still needed/i);
   });
 });
 

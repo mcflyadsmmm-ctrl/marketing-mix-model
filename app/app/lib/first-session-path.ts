@@ -2,8 +2,12 @@
  * First-session path for a cold merchant on the Total ROAS desk.
  *
  * Preferred ritual (under 10 minutes):
- *   typed one-day spend → Total ROAS desk → (optional) margin for break-even →
- *   (optional) pipe templates → (optional) deep history
+ *   spend on the desk (one bill spread across its days, or a typed day) →
+ *   Total ROAS desk → (optional) margin for break-even → (optional) pipe
+ *   templates → (optional) deep history
+ *
+ * The bill spread leads because a multiple worth acting on wants most closed
+ * days covered, and the trial is seven days long (see `spend-first-run.ts`).
  *
  * Cash religion: Total ROAS = Shopify sales ÷ ad spend. Margin only unlocks
  * break-even — it does not gate the scoreboard. Primary CTA is always Spend.
@@ -13,6 +17,7 @@
 
 import { deepHistoryGrantHref } from "./deep-history-honesty";
 import { PRODUCT_NOUN } from "./product-labels";
+import { SPEND_BILL_ANCHOR } from "./spend-first-run";
 import { PIPE_TEMPLATE_ANCHOR, PIPE_TEMPLATE_COPY } from "./spend-pipe-templates";
 
 export const FIRST_SESSION_MINUTES = 10;
@@ -130,11 +135,11 @@ function buildSteps(input: FirstSessionPathInput): FirstSessionStep[] {
   return [
     {
       id: "spend",
-      href: withSearch("/app/spend", q),
-      label: PRODUCT_NOUN.setupAddSpend,
+      href: withSearch(`/app/spend#${SPEND_BILL_ANCHOR}`, q),
+      label: PRODUCT_NOUN.setupSpreadBill,
       hint: spendDone
         ? " — done"
-        : " — type one day, no file, no ad-network login",
+        : " — one bill covers a month of days, or type one day; no ad-network login",
       status: stepStatus({ done: spendDone, current: spendCurrent }),
       optional: false,
     },
@@ -183,12 +188,12 @@ function emptyCopy(
   "heading" | "body" | "primaryHref" | "primaryLabel" | "footerLinks"
 > {
   return {
-    heading: `Trusted ${PRODUCT_NOUN.totalRoas} in under ${FIRST_SESSION_MINUTES} minutes`,
+    heading: "See your Shopify orders — then unlock Total ROAS",
     body: marginConfirmed
-      ? `Margin is set. Type one day of ad spend — day + amount + channel — then ${PRODUCT_NOUN.definition}. No file, no ad-network login.`
-      : `Type one day of ad spend: day + amount + channel, no file. ${PRODUCT_NOUN.definition}. Margin is optional — it unlocks break-even.`,
-    primaryHref: withSearch("/app/spend", search),
-    primaryLabel: PRODUCT_NOUN.setupAddSpend,
+      ? `Typical order, weekend vs weekday, and new vs returning sales are already on this desk. Margin is set — spread one ad invoice across its days, or type one day, to unlock ${PRODUCT_NOUN.definition}. No file, no ad-network login.`
+      : `Typical order, weekend vs weekday, and new vs returning sales are already on this desk — numbers Shopify Analytics does not lead with. Spread one ad invoice across its days, or type one day, when you want ${PRODUCT_NOUN.definition}. Margin is optional for break-even.`,
+    primaryHref: withSearch(`/app/spend#${SPEND_BILL_ANCHOR}`, search),
+    primaryLabel: PRODUCT_NOUN.setupSpreadBill,
     footerLinks: [
       {
         href: withSearch("/app/settings", search),

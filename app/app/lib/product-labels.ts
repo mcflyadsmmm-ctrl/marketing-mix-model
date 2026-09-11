@@ -113,12 +113,14 @@ export const PRODUCT_NOUN = {
   samplePreviewOffReviewKicker: "Before App Store review",
   samplePreviewOffReviewTitle: "Turn SAMPLE preview OFF",
   samplePreviewOffReviewBody:
-    "Use the Sample | Real store switch at the top of any page — or hide Sample for good in Settings. Reviewers must see live Shopify sales ÷ your spend.",
+    "Turn SAMPLE off with the button below, or hide Sample for good in Settings → More. Reviewers must see live Shopify sales ÷ your spend.",
   samplePreviewLiveStore: "Using your real store",
   samplePreviewLiveStoreBody:
-    "Live Shopify sales. Log spend on Spend anytime. Use the top Sample | Real switch to practice again, or hide Sample in Settings.",
+    "Live Shopify sales. Log spend on Spend anytime. Practice again from Demo or Settings → More (Sample stays off the live desk chrome).",
   /** Founder-locked setup path labels (banner + empty-state CTAs) */
   setupAddSpend: "Add Spend",
+  /** CEO cold path — one invoice → daily rows (trial-week coverage). */
+  setupSpreadBill: "Spread a monthly bill",
   setupSetGoals: "Set Goals",
   setupAdjustMargin: "Adjust Profit Margin",
   /** Spend job — three steps */

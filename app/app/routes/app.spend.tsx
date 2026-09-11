@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
 } from "react";
@@ -81,6 +82,14 @@ import {
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { isActivationQuery, spendEmptyTeach } from "../lib/install-stickiness";
+import {
+  SPEND_BILL_ANCHOR,
+  SPEND_FIRST_RUN_COPY,
+  billSpreadPreviewLine,
+  billSpreadPrimaryLabel,
+  billSpreadSavedCopy,
+  resolveBillSpreadCoverage,
+} from "../lib/spend-first-run";
 import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
 import {
   CASH_PAGE_WHY,
@@ -387,6 +396,19 @@ export type SpendDaySaved = {
   savedAt: string;
 };
 
+/** A bill landed as one row per day — the first-run path to trusted coverage. */
+export type SpendBillSpread = {
+  dayCount: number;
+  dailyAmount: number;
+  totalAmount: number;
+  startDateYmd: string;
+  endDateYmd: string;
+  channelLabel: string;
+  salesWindowWarning: string | null;
+  /** Write stamp — keeps the hand-off banner tied to this save. */
+  savedAt: string;
+};
+
 export interface SpendActionData {
   error: string | null;
   success: boolean;
@@ -396,6 +418,9 @@ export interface SpendActionData {
   dayField?: QuickSpendField;
   /** Rejected typed values, echoed back so a fix does not mean a retype. */
   dayForm?: { date: string; amount: string };
+  bill?: SpendBillSpread;
+  /** Blame the bill panel — a bill error is not a CSV error. */
+  billField?: boolean;
 }
 
 function emptyCsvSummary(
@@ -767,16 +792,25 @@ async function handleBillDaily(
     return {
       error: "Pick a period: month, quarter, bi-annual, or year.",
       success: false,
+      billField: true,
     };
   }
   if (!isSpendChannel(channelRaw)) {
-    return { error: "Pick a valid spend channel.", success: false };
+    return {
+      error: "Pick a valid spend channel.",
+      success: false,
+      billField: true,
+    };
   }
   if (!canUseChannel(entitlements, channelRaw)) {
-    return { error: PRO_UPSELL.channels, success: false };
+    return { error: PRO_UPSELL.channels, success: false, billField: true };
   }
   if (channelRaw === "other" && !customName) {
-    return { error: CUSTOM_CHANNEL_NAME_ERROR, success: false };
+    return {
+      error: CUSTOM_CHANNEL_NAME_ERROR,
+      success: false,
+      billField: true,
+    };
   }
 
   const planned = planLumpSpread({
@@ -786,13 +820,13 @@ async function handleBillDaily(
     channel: channelRaw,
   });
   if (!planned.ok) {
-    return { error: planned.error, success: false };
+    return { error: planned.error, success: false, billField: true };
   }
 
   const { plan } = planned;
   const channel = channelRaw; // narrowed by isSpendChannel
   const repository = createSpendRepository();
-  const result = await repository.upsertSpendDays(
+  await repository.upsertSpendDays(
     shopId,
     plan.days.map((day) => ({
       date: day.date,
@@ -821,20 +855,20 @@ async function handleBillDaily(
   return {
     error: null,
     success: true,
-    csv: {
-      written: result.written,
-      skipped: result.skipped,
-      created: result.created,
-      updated: result.updated,
-      days: plan.dayCount,
-      channels: [channel],
-      dateRange: { start: plan.startDateYmd, end: plan.endDateYmd },
+    bill: {
+      dayCount: plan.dayCount,
+      dailyAmount: plan.dailyAmount,
       totalAmount: plan.totalAllocated,
-      errors: [],
-      totalDataRows: plan.dayCount,
+      startDateYmd: plan.startDateYmd,
+      endDateYmd: plan.endDateYmd,
+      channelLabel:
+        channel === "other" && customName
+          ? `Other · ${customName}`
+          : SPEND_CHANNEL_LABELS[channel],
       salesWindowWarning: salesWindowWarningForDates(
         plan.days.map((d) => d.date),
       ),
+      savedAt: new Date().toISOString(),
     },
   };
 }
@@ -1062,7 +1096,10 @@ export default function SpendEntryPage() {
   const csvSaved = Boolean(actionData?.success && csv);
   const csvNeedsConfirm = Boolean(csv?.needsConfirm);
   const daySaved = actionData?.success ? (actionData.day ?? null) : null;
-  const manualSaved = Boolean(actionData?.success && !csv && !actionData.day);
+  const billSaved = actionData?.success ? (actionData.bill ?? null) : null;
+  const manualSaved = Boolean(
+    actionData?.success && !csv && !actionData.day && !actionData.bill,
+  );
   const todayKey = useMemo(() => {
     const n = new Date();
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
@@ -1089,8 +1126,15 @@ export default function SpendEntryPage() {
   const coverageNotice = resolveSpendCoverageNotice({
     closedDays: closedCoverageDays,
     impact: coverageImpact,
+    surface: "spend_desk",
   });
   const missingDatesPreview = missingDates.slice(0, 5);
+  const showMissingDatesInline =
+    missingDatesPreview.length > 0 &&
+    coverageNotice.missingDatesDisclosure === "inline";
+  const showMissingDatesAudit =
+    missingDatesPreview.length > 0 &&
+    coverageNotice.missingDatesDisclosure === "on_request";
   const blankTemplateHref = entitlements.canUseAllChannels
     ? "/app/spend/template?blank=1"
     : `/app/spend/template?platforms=${encodeURIComponent(entitlements.allowedChannels.join(","))}&blank=1`;
@@ -1123,10 +1167,15 @@ export default function SpendEntryPage() {
     actionData && !actionData.success && actionData.dayField
       ? actionData.error
       : null;
+  /** Bill errors answer inside the bill panel — a bill is not a CSV. */
+  const billActionError =
+    actionData && !actionData.success && actionData.billField
+      ? actionData.error
+      : null;
   /** Persistent field-level CSV error — stays until next action (not toast-only). */
   const csvFieldError = (() => {
     if (!actionData || actionData.success || !actionData.error) return null;
-    if (actionData.dayField) return null;
+    if (actionData.dayField || actionData.billField) return null;
     if (csv) return actionData.error;
     if (
       /csv|file|paste|import|combine|platform|upload|template|row/i.test(
@@ -1144,17 +1193,29 @@ export default function SpendEntryPage() {
   const [platformsHydrated, setPlatformsHydrated] = useState(false);
   /** Survives confirm_replace re-submit after file input clears. */
   const [csvPayload, setCsvPayload] = useState("");
+  /** First-run only — the folded backfill path opens on demand or on error. */
+  const [uploadsOpen, setUploadsOpen] = useState(false);
   const [forceChannel, setForceChannel] = useState<"" | "meta" | "google">("");
   const [confirmReplace, setConfirmReplace] = useState(false);
-  /** Default open so channel pick is obvious; still collapsible. */
-  const [channelsOpen, setChannelsOpen] = useState(true);
+  /**
+   * Open on a warm desk so the channel pick is obvious; folded on first run,
+   * where the bill card asks for the channel itself.
+   */
+  const [channelsOpen, setChannelsOpen] = useState(() => entries.length > 0);
   const [billAmount, setBillAmount] = useState("");
   const [billPeriodType, setBillPeriodType] =
     useState<PeriodWindowType>("month");
   const [billAnchor, setBillAnchor] = useState(() => currentYearMonth());
-  const [billChannel, setBillChannel] = useState<SpendChannel>("other");
+  /** Meta/Google invoices are the common first bill — no naming step needed. */
+  const [billChannel, setBillChannel] = useState<SpendChannel>(() =>
+    entitlements.allowedChannels.includes("meta")
+      ? "meta"
+      : ((entitlements.allowedChannels[0] ?? "other") as SpendChannel),
+  );
   const [billCustomName, setBillCustomName] = useState("");
   const [billError, setBillError] = useState<string | null>(null);
+  const billDetailsRef = useRef<HTMLDetailsElement | null>(null);
+  const billAmountRef = useRef<HTMLInputElement | null>(null);
 
   /**
    * Typed one-day row. Pre-filled with the newest closed day still at $0 so a
@@ -1225,6 +1286,26 @@ export default function SpendEntryPage() {
     }
   }, [csvSaved]);
 
+  /**
+   * Deep link from Overview (`/app/spend#mcfly-spend-bill`) must land on an
+   * open bill panel with the cursor in the amount field — on an established
+   * desk the panel is collapsed, and a browser will not expand it for us.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openFromHash = () => {
+      if (window.location.hash !== `#${SPEND_BILL_ANCHOR}`) return;
+      const details = billDetailsRef.current;
+      if (details && !details.open) details.open = true;
+      const section = document.getElementById(SPEND_BILL_ANCHOR);
+      section?.scrollIntoView({ block: "start", behavior: "auto" });
+      billAmountRef.current?.focus();
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, [isEmpty]);
+
   const billPreview = useMemo(() => {
     const amount = parseFloat(billAmount);
     if (!Number.isFinite(amount) || amount <= 0) return null;
@@ -1236,6 +1317,38 @@ export default function SpendEntryPage() {
     });
     return result.ok ? result.plan : null;
   }, [billAmount, billPeriodType, billAnchor, billChannel]);
+
+  /**
+   * The operator's question before saving — "does this bill get me a number I
+   * can use?" — answered in closed-day counts, never in a promised multiple.
+   */
+  const billCoverage = useMemo(() => {
+    if (!billPreview) return null;
+    return resolveBillSpreadCoverage({
+      closedDays: closedCoverageDays,
+      planStartDateYmd: billPreview.startDateYmd,
+      planEndDateYmd: billPreview.endDateYmd,
+      todayKey: storeTodayKey,
+    });
+  }, [billPreview, closedCoverageDays, storeTodayKey]);
+
+  const billPrimaryLabel = billSpreadPrimaryLabel(billPreview, {
+    blocked: importBlockedBySample,
+  });
+
+  /** Honest hand-off after the rows land — day count and rate, no multiple. */
+  const billSavedCopy = billSaved
+    ? billSpreadSavedCopy({
+        dayCount: billSaved.dayCount,
+        dailyAmount: billSaved.dailyAmount,
+        totalAmount: billSaved.totalAmount,
+        startDateYmd: billSaved.startDateYmd,
+        endDateYmd: billSaved.endDateYmd,
+        channelLabel: billSaved.channelLabel,
+        missingDays: holeCount,
+        salesWindowWarning: billSaved.salesWindowWarning,
+      })
+    : null;
 
   function downloadBillDailyCsv() {
     const amount = parseFloat(billAmount);
@@ -1334,6 +1447,7 @@ export default function SpendEntryPage() {
   const selectedBlankTemplateHref = `/app/spend/template?platforms=${encodeURIComponent(selectedPlatformsQuery)}&blank=1`;
   const emptyTeach = spendEmptyTeach({
     templateHref: selectedBlankTemplateHref,
+    billHref: `#${SPEND_BILL_ANCHOR}`,
     justSwitchedReal: justSwitchedReal && !sampleOn,
   });
 
@@ -1345,10 +1459,16 @@ export default function SpendEntryPage() {
   const activating =
     isActivationQuery(location.search) && !shotMode && !sampleDesk.enabled;
   const showEmptyTeach = isEmpty && !shotMode && !importBlockedBySample;
+  /**
+   * Blocker #1 — first run leads with the bill spread, because 14 hand-typed
+   * days do not fit in a 7-day trial. The bill card owns the only primary
+   * button; the typed day and CSV stay reachable but visually quiet.
+   */
+  const firstRun = showEmptyTeach;
   const showActivationBanner = activating && !showEmptyTeach;
   const emptyTeachHeading =
     activating && showEmptyTeach
-      ? "Step 1 of 2 — type one day"
+      ? "Step 1 of 2 — put spend on the desk"
       : emptyTeach.heading;
   /** Love-UX3: activate owns the teach body; otherwise keep emptyTeach.body. */
   const emptyTeachBody =
@@ -1369,20 +1489,42 @@ export default function SpendEntryPage() {
     : null;
 
   const showCoverageBanner =
-    !isEmpty && !shotMode && !daySavedCopy && coverageNotice.showBanner;
+    !isEmpty &&
+    !shotMode &&
+    !daySavedCopy &&
+    !billSavedCopy &&
+    coverageNotice.showBanner;
+  /**
+   * The hole count is honest once per screen, not three times. The saved
+   * banner's note already carries it right after a save, which is exactly the
+   * moment a repeat reads as scolding.
+   */
+  const coverageBodyAlreadySaid =
+    showCoverageBanner ||
+    Boolean(daySavedCopy?.note) ||
+    Boolean(billSavedCopy?.note);
   const showCsvErrorBanner = Boolean(
     actionData &&
       !actionData.success &&
       actionData.error &&
       !actionData.dayField &&
+      !actionData.billField &&
       !csvNeedsConfirm,
   );
+  /** A folded backfill path must never hide the answer to its own import. */
+  const uploadsExpanded =
+    uploadsOpen ||
+    Boolean(csv) ||
+    csvNeedsConfirm ||
+    Boolean(csvFieldError) ||
+    showCsvErrorBanner;
   /** Why-line competes with teach/status — park it when a surface is up. */
   const showDeskWhy =
     !shotMode &&
     !sampleDesk.enabled &&
     !showEmptyTeach &&
     !daySavedCopy &&
+    !billSavedCopy &&
     !showCoverageBanner &&
     !csvNeedsConfirm &&
     !csvSaved &&
@@ -1409,6 +1551,232 @@ export default function SpendEntryPage() {
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   }
+
+  /**
+   * Bill → daily rows. One period total in, one row per day out, written by
+   * `intent=bill-daily` — no download / re-import round trip. Same panel on a
+   * warm desk, just folded behind its summary.
+   */
+  const billPanelBody = (
+    <Form method="post" className="mcfly-spend-bill__form">
+      <input type="hidden" name="intent" value="bill-daily" />
+      <div className="mcfly-spend-bill__grid">
+        <label className="mcfly-spend-bill__field">
+          <span>{SPEND_FIRST_RUN_COPY.amountLabel}</span>
+          <input
+            ref={billAmountRef}
+            className="mcfly-field"
+            type="number"
+            name="amount"
+            min="0"
+            step="0.01"
+            inputMode="decimal"
+            placeholder="1200"
+            value={billAmount}
+            onChange={(e) => {
+              setBillAmount(e.target.value);
+              setBillError(null);
+            }}
+            disabled={importBlockedBySample}
+            required
+          />
+        </label>
+        <label className="mcfly-spend-bill__field">
+          <span>{SPEND_FIRST_RUN_COPY.periodLabel}</span>
+          <select
+            className="mcfly-field"
+            name="periodType"
+            value={billPeriodType}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (isPeriodWindowType(v)) setBillPeriodType(v);
+              setBillError(null);
+            }}
+            disabled={importBlockedBySample}
+          >
+            <option value="month">One month</option>
+            <option value="quarter">A quarter</option>
+            <option value="half_year">Six months</option>
+            <option value="year">A year</option>
+          </select>
+        </label>
+        <label className="mcfly-spend-bill__field">
+          <span>{SPEND_FIRST_RUN_COPY.anchorLabel}</span>
+          <input
+            className="mcfly-field"
+            type="month"
+            name="anchor"
+            value={billAnchor}
+            onChange={(e) => {
+              setBillAnchor(e.target.value);
+              setBillError(null);
+            }}
+            disabled={importBlockedBySample}
+            required
+          />
+        </label>
+        <label className="mcfly-spend-bill__field">
+          <span>{SPEND_FIRST_RUN_COPY.channelLabel}</span>
+          <select
+            className="mcfly-field"
+            name="channel"
+            value={billChannel}
+            onChange={(e) => {
+              setBillChannel(e.target.value as SpendChannel);
+              setBillError(null);
+            }}
+            disabled={importBlockedBySample}
+          >
+            {addSpendChannels.map(({ value, label, disabled }) => (
+              <option key={value} value={value} disabled={disabled}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {billChannel === "other" ? (
+          <label className="mcfly-spend-bill__field mcfly-spend-bill__field--wide">
+            <span>{SPEND_FIRST_RUN_COPY.customNameLabel}</span>
+            <input
+              className="mcfly-field"
+              type="text"
+              name="customName"
+              maxLength={80}
+              placeholder={SPEND_FIRST_RUN_COPY.customNamePlaceholder}
+              value={billCustomName}
+              onChange={(e) => {
+                setBillCustomName(e.target.value);
+                setBillError(null);
+              }}
+              disabled={importBlockedBySample}
+            />
+          </label>
+        ) : null}
+      </div>
+
+      {/* What the save does, in closed days — the trust question answered
+          before the click, never as a promised multiple. */}
+      {billPreview && billCoverage ? (
+        <div className="mcfly-spend-bill__preview" role="status">
+          <p className="mcfly-spend-bill__preview-title">
+            {SPEND_FIRST_RUN_COPY.previewTitle}
+          </p>
+          <p className="mcfly-spend-bill__period">
+            {billSpreadPreviewLine(billPreview)}
+          </p>
+          <p className="mcfly-spend-bill__coverage">{billCoverage.headline}</p>
+          {billCoverage.note ? (
+            <p className="mcfly-spend-bill__coverage-note">
+              {billCoverage.note}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      {billError || billActionError ? (
+        <p className="mcfly-spend-bill__error" role="alert">
+          {billError ?? billActionError}
+        </p>
+      ) : null}
+
+      <div className="mcfly-spend-bill__actions">
+        <s-button
+          type="submit"
+          variant="primary"
+          {...(importBlockedBySample ? { disabled: true } : {})}
+          {...(isSubmitting && submittingIntent === "bill-daily"
+            ? { loading: true }
+            : {})}
+        >
+          {billPrimaryLabel}
+        </s-button>
+        <s-button
+          type="button"
+          variant="tertiary"
+          onClick={downloadBillDailyCsv}
+          {...(importBlockedBySample ? { disabled: true } : {})}
+        >
+          {SPEND_FIRST_RUN_COPY.downloadLabel}
+        </s-button>
+      </div>
+      <p className="mcfly-spend-bill__note">
+        {SPEND_FIRST_RUN_COPY.equalSplitNote}
+      </p>
+    </Form>
+  );
+
+  const csvUploadForm = (
+    <Form method="post" encType="multipart/form-data">
+      <input type="hidden" name="intent" value="csv" />
+      <input type="hidden" name="forceChannel" value={forceChannel} />
+      <input
+        type="hidden"
+        name="confirm_replace"
+        value={confirmReplace ? "1" : "0"}
+      />
+      <label
+        id="mcfly-spend-paste"
+        className="mcfly-spend-lean__paste mcfly-spend-flow__paste-box"
+      >
+        <span className="mcfly-spend-lean__drop-title">
+          Paste one row (or more)
+        </span>
+        <span className="mcfly-spend-lean__drop-hint">
+          Keep the header row · one row = one day
+        </span>
+        <textarea
+          className="mcfly-field mcfly-field--wide"
+          name="csv"
+          rows={4}
+          value={csvPayload}
+          onChange={(e) => setCsvPayload(e.target.value)}
+          placeholder={pastePlaceholder}
+          disabled={
+            importBlockedBySample ||
+            (isSubmitting && submittingIntent === "csv")
+          }
+          spellCheck={false}
+          aria-label="Paste spend CSV"
+        />
+      </label>
+      <label className="mcfly-spend-lean__drop">
+        <span className="mcfly-spend-lean__drop-title">Or upload .csv</span>
+        <span className="mcfly-spend-lean__drop-hint">
+          Proper Day + channel format only
+        </span>
+        <input
+          type="file"
+          name="file"
+          accept=".csv,text/csv"
+          className="mcfly-spend-lean__file"
+          onChange={onSpendFileSelected}
+          disabled={
+            importBlockedBySample ||
+            (isSubmitting && submittingIntent === "csv")
+          }
+          aria-label="Upload spend CSV"
+        />
+      </label>
+      {csvFieldError && !csvNeedsConfirm ? (
+        <p className="mcfly-spend-lean__upload-error" role="alert">
+          {csvFieldError}
+        </p>
+      ) : null}
+      <s-button
+        id="mcfly-spend-csv-submit"
+        type="submit"
+        variant={firstRun ? "secondary" : "primary"}
+        {...(importBlockedBySample ? { disabled: true } : {})}
+        {...(isSubmitting && submittingIntent === "csv"
+          ? { loading: true }
+          : {})}
+      >
+        {importBlockedBySample
+          ? "Import locked — turn Real store on"
+          : "Import spend"}
+      </s-button>
+    </Form>
+  );
 
   return (
     <s-page heading="Spend" inlineSize="large">
@@ -1485,9 +1853,9 @@ export default function SpendEntryPage() {
           <s-banner tone="info" heading="Step 1 of 2 — add spend">
             <s-paragraph>{SPEND_ACTIVATE_COPY}</s-paragraph>
             <s-paragraph>
-              Type one day below: day + amount + channel, then Save this day —
-              no file. Step 2: open {PRODUCT_NOUN.totalRoas}. Margin is optional
-              for break-even.
+              Spread one bill across its days below, or type a single day — no
+              file either way. Step 2: open {PRODUCT_NOUN.totalRoas}. Margin is
+              optional for break-even.
             </s-paragraph>
           </s-banner>
         ) : null}
@@ -1504,6 +1872,23 @@ export default function SpendEntryPage() {
               </s-button>
               <s-link href="#mcfly-spend-day">
                 {daySavedCopy.secondaryLabel}
+              </s-link>
+            </div>
+          </s-banner>
+        ) : null}
+
+        {/* A bill landed as N daily rows — the trial-week coverage moment.
+            Same honesty as a typed day: counts and rate, never a multiple. */}
+        {billSavedCopy ? (
+          <s-banner tone="success" heading={billSavedCopy.heading}>
+            <s-paragraph>{billSavedCopy.body}</s-paragraph>
+            <s-paragraph>{billSavedCopy.note}</s-paragraph>
+            <div className="mcfly-spend-lean__banner-actions">
+              <s-button href={billSavedCopy.primaryHref} variant="primary">
+                {billSavedCopy.primaryLabel}
+              </s-button>
+              <s-link href={billSavedCopy.secondaryHref}>
+                {billSavedCopy.secondaryLabel}
               </s-link>
             </div>
           </s-banner>
@@ -1656,66 +2041,82 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
+        {/* First run frames the composition in two lines, then gets out of the
+            way: the bill card below is the primary path, not a link row. The
+            pipe / playbook / template verbs live in their own disclosures so
+            the first viewport is one decision, not a CTA zoo. */}
         {showEmptyTeach ? (
           <section
-            className="mcfly-spend-teach"
-            aria-label="Empty state — type one day, or paste / import spend"
+            className="mcfly-spend-teach mcfly-spend-teach--lede"
+            aria-label="Empty state — spread a bill, or type one day"
           >
             <s-heading>{emptyTeachHeading}</s-heading>
             <s-paragraph>{emptyTeachBody}</s-paragraph>
-            <ol className="mcfly-spend-teach__steps">
-              {emptyTeach.steps.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-            <div className="mcfly-decision__actions">
-              <s-link href={emptyTeach.primaryHref}>
-                {emptyTeach.primaryLabel}
-              </s-link>
-              <s-link href={emptyTeach.secondaryHref}>
-                {emptyTeach.secondaryLabel}
-              </s-link>
-              <s-link href="#mcfly-spend-paste">Paste one row</s-link>
-              <s-link href="#mcfly-spend-playbook">Platform playbook</s-link>
-            </div>
-            {/* Love-UX2: pipe verbs loud inside this one teach surface — no second banner. */}
-            <div
-              className="mcfly-spend-teach__pipe"
-              aria-label={SPEND_PIPE_FRONT_DOOR.heading}
-            >
-              <s-heading>{SPEND_PIPE_FRONT_DOOR.heading}</s-heading>
-              <s-paragraph>{SPEND_PIPE_FRONT_DOOR.body}</s-paragraph>
-              <div className="mcfly-decision__actions">
-                {PIPE_TEMPLATE_OPTIONS.map((option) => (
-                  <s-button
-                    key={`${option.shape}-example`}
-                    href={option.exampleHref}
-                    variant="secondary"
-                  >
-                    {option.title}
-                  </s-button>
-                ))}
-                {PIPE_TEMPLATE_OPTIONS.map((option) => (
-                  <s-link
-                    key={`${option.shape}-blank`}
-                    href={option.blankHref}
-                  >
-                    {PIPE_TEMPLATE_COPY.blankLabel} ({option.shape})
-                  </s-link>
-                ))}
-                <s-link href={PIPE_TEMPLATE_HREF}>
-                  {PIPE_TEMPLATE_COPY.linkLabel}
-                </s-link>
-              </div>
-            </div>
           </section>
         ) : null}
 
-        <div className="mcfly-spend-lean__stack">
-          {/* 0 · Typed one day — first viewport, no file, no download. */}
+        <div
+          className={[
+            "mcfly-spend-lean__stack",
+            firstRun ? "mcfly-spend-lean__stack--first-run" : null,
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {/* 0 · Bill → daily rows. Blocker #1: this is the only path that
+              reaches trusted coverage inside a 7-day trial, so on a cold desk
+              it is the first card and owns the single primary button. */}
+          <section
+            id={SPEND_BILL_ANCHOR}
+            className={[
+              "mcfly-spend-bill",
+              firstRun
+                ? "mcfly-spend-bill--first-run"
+                : "mcfly-spend-bill--quiet",
+            ].join(" ")}
+            aria-label={SPEND_FIRST_RUN_COPY.billHeading}
+          >
+            {firstRun ? (
+              <>
+                <div className="mcfly-spend-bill__head">
+                  <s-heading>{SPEND_FIRST_RUN_COPY.billHeading}</s-heading>
+                  <s-text tone="neutral">
+                    {SPEND_FIRST_RUN_COPY.billHint}
+                  </s-text>
+                </div>
+                {billPanelBody}
+              </>
+            ) : (
+              <details ref={billDetailsRef} className="mcfly-spend-bill__fold">
+                <summary>{SPEND_FIRST_RUN_COPY.billHeading}</summary>
+                <div className="mcfly-spend-bill__fold-body">
+                  <p className="mcfly-spend-bill__hint">
+                    {SPEND_FIRST_RUN_COPY.billHint}
+                  </p>
+                  {billPanelBody}
+                </div>
+              </details>
+            )}
+          </section>
+
+          {/* 1 · Typed one day — primary on a warm desk, the quiet second
+              path on a cold one (one number is not a week of coverage). */}
+          {firstRun ? (
+            <p className="mcfly-spend-lean__handoff">
+              {SPEND_FIRST_RUN_COPY.dayLede}{" "}
+              <s-link href={emptyTeach.secondaryHref}>
+                {emptyTeach.secondaryLabel}
+              </s-link>
+            </p>
+          ) : null}
           <section
             id="mcfly-spend-day"
-            className="mcfly-spend-day"
+            className={[
+              "mcfly-spend-day",
+              firstRun ? "mcfly-spend-day--quiet" : null,
+            ]
+              .filter(Boolean)
+              .join(" ")}
             aria-label="Add one day of spend"
           >
             <div className="mcfly-spend-day__head">
@@ -1790,9 +2191,11 @@ export default function SpendEntryPage() {
                 </p>
               ) : null}
               <div className="mcfly-spend-day__actions">
+                {/* One primary per screen: the bill card holds it on a cold
+                    desk, this row holds it once spend exists. */}
                 <s-button
                   type="submit"
-                  variant="primary"
+                  variant={firstRun ? "secondary" : "primary"}
                   {...(importBlockedBySample ? { disabled: true } : {})}
                   {...(isSubmitting && submittingIntent === "spend-day"
                     ? { loading: true }
@@ -1813,13 +2216,14 @@ export default function SpendEntryPage() {
             </p>
           </section>
 
-          {/* Empty desk: channels + template + paste stay in the first viewport. */}
+          {/* 2 · Channel picker, template shape, playbook, pipe — the CSV
+              path's supporting cast. Folded on a cold desk so the bill card
+              stays the one decision in the first viewport. */}
           <>
-          {/* 1 · Advertising channels — compact dropdown */}
           <details
             id="mcfly-spend-platforms"
             className="mcfly-spend-lean__channels"
-            open={channelsOpen || isEmpty}
+            open={channelsOpen}
             onToggle={(e) => {
               setChannelsOpen(e.currentTarget.open);
             }}
@@ -1862,7 +2266,9 @@ export default function SpendEntryPage() {
             </div>
           </details>
 
-          {/* 2 · Tiny template preview */}
+          {/* Template shape — only once a desk has spend to compare against.
+              A cold merchant does not need a blank CSV to see Total ROAS. */}
+          {firstRun ? null : (
           <div id="mcfly-spend-template" className="mcfly-spend-lean__template">
             <div className="mcfly-spend-lean__template-row">
               <s-button href={selectedBlankTemplateHref} variant="secondary">
@@ -1904,121 +2310,12 @@ export default function SpendEntryPage() {
                 Select a channel above for a tailored template.
               </s-text>
             )}
-
-            <details className="mcfly-spend-lean__bill">
-              <summary>Divide a bill into daily rows</summary>
-              <div className="mcfly-spend-lean__bill-body">
-                <p className="mcfly-spend-lean__bill-hint">
-                  Monthly / quarterly / bi-annual / annual invoice → equal daily
-                  amounts for the template
-                </p>
-                <div className="mcfly-spend-lean__bill-grid">
-                  <label className="mcfly-spend-lean__bill-field">
-                    <span>Amount</span>
-                    <input
-                      className="mcfly-field"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      inputMode="decimal"
-                      placeholder="1200"
-                      value={billAmount}
-                      onChange={(e) => {
-                        setBillAmount(e.target.value);
-                        setBillError(null);
-                      }}
-                    />
-                  </label>
-                  <label className="mcfly-spend-lean__bill-field">
-                    <span>Period</span>
-                    <select
-                      className="mcfly-field"
-                      value={billPeriodType}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        if (isPeriodWindowType(v)) setBillPeriodType(v);
-                        setBillError(null);
-                      }}
-                    >
-                      <option value="month">Monthly</option>
-                      <option value="quarter">Quarterly</option>
-                      <option value="half_year">Bi-annual</option>
-                      <option value="year">Annual</option>
-                    </select>
-                  </label>
-                  <label className="mcfly-spend-lean__bill-field">
-                    <span>Starting month</span>
-                    <input
-                      className="mcfly-field"
-                      type="month"
-                      value={billAnchor}
-                      onChange={(e) => {
-                        setBillAnchor(e.target.value);
-                        setBillError(null);
-                      }}
-                    />
-                  </label>
-                  <label className="mcfly-spend-lean__bill-field">
-                    <span>Channel</span>
-                    <select
-                      className="mcfly-field"
-                      value={billChannel}
-                      onChange={(e) => {
-                        setBillChannel(e.target.value as SpendChannel);
-                        setBillError(null);
-                      }}
-                    >
-                      {addSpendChannels.map(({ value, label, disabled }) => (
-                        <option key={value} value={value} disabled={disabled}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {billChannel === "other" ? (
-                    <label className="mcfly-spend-lean__bill-field mcfly-spend-lean__bill-field--wide">
-                      <span>Name</span>
-                      <input
-                        className="mcfly-field"
-                        type="text"
-                        maxLength={80}
-                        placeholder="e.g. Agency, Retainer"
-                        value={billCustomName}
-                        onChange={(e) => {
-                          setBillCustomName(e.target.value);
-                          setBillError(null);
-                        }}
-                      />
-                    </label>
-                  ) : null}
-                </div>
-                {billPreview ? (
-                  <p className="mcfly-spend-lean__bill-preview">
-                    {formatCurrency(billPreview.dailyAmount)} / day ·{" "}
-                    {billPreview.dayCount} days ·{" "}
-                    {billPreview.startDateYmd} → {billPreview.endDateYmd}
-                  </p>
-                ) : null}
-                {billError ? (
-                  <p className="mcfly-spend-lean__bill-error" role="alert">
-                    {billError}
-                  </p>
-                ) : null}
-                <s-button
-                  type="button"
-                  variant="secondary"
-                  onClick={downloadBillDailyCsv}
-                >
-                  Download daily CSV
-                </s-button>
-              </div>
-            </details>
           </div>
+          )}
 
           <details
             id="mcfly-spend-playbook"
             className="mcfly-spend-lean__playbook"
-            open={isEmpty && !importBlockedBySample}
           >
             <summary>Platform playbook — export daily cost</summary>
             <div className="mcfly-spend-lean__playbook-body">
@@ -2053,10 +2350,13 @@ export default function SpendEntryPage() {
             id={PIPE_TEMPLATE_ANCHOR}
             className="mcfly-spend-lean__pipe"
           >
-            <summary>{PIPE_TEMPLATE_COPY.summary}</summary>
+            <summary>{SPEND_PIPE_FRONT_DOOR.heading}</summary>
             <div className="mcfly-spend-lean__pipe-body">
               <p className="mcfly-spend-lean__pipe-hint">
-                {PIPE_TEMPLATE_COPY.hint}
+                {SPEND_PIPE_FRONT_DOOR.body}
+              </p>
+              <p className="mcfly-spend-lean__pipe-hint">
+                {PIPE_TEMPLATE_COPY.summary} — {PIPE_TEMPLATE_COPY.hint}
               </p>
               <ol className="mcfly-spend-lean__pipe-steps">
                 {PIPE_TEMPLATE_COPY.steps.map((step) => (
@@ -2089,85 +2389,30 @@ export default function SpendEntryPage() {
           </details>
           </>
 
-          {/* 3 · Paste + upload CSV */}
+          {/* 3 · Paste + upload CSV — backfill, folded on a cold desk so it
+              never competes with the bill card for the primary button. */}
           <div
             id="mcfly-spend-uploads"
-            className="mcfly-spend-lean__upload"
+            className={[
+              "mcfly-spend-lean__upload",
+              firstRun ? "mcfly-spend-lean__upload--fold" : null,
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
-            <Form method="post" encType="multipart/form-data">
-              <input type="hidden" name="intent" value="csv" />
-              <input type="hidden" name="forceChannel" value={forceChannel} />
-              <input
-                type="hidden"
-                name="confirm_replace"
-                value={confirmReplace ? "1" : "0"}
-              />
-              <label
-                id="mcfly-spend-paste"
-                className="mcfly-spend-lean__paste mcfly-spend-flow__paste-box"
+            {firstRun ? (
+              <details
+                open={uploadsExpanded}
+                onToggle={(e) => setUploadsOpen(e.currentTarget.open)}
               >
-                <span className="mcfly-spend-lean__drop-title">
-                  Paste one row (or more)
-                </span>
-                <span className="mcfly-spend-lean__drop-hint">
-                  Keep the header row · one row = one day
-                </span>
-                <textarea
-                  className="mcfly-field mcfly-field--wide"
-                  name="csv"
-                  rows={isEmpty ? 5 : 4}
-                  value={csvPayload}
-                  onChange={(e) => setCsvPayload(e.target.value)}
-                  placeholder={pastePlaceholder}
-                  disabled={
-                    importBlockedBySample ||
-                    (isSubmitting && submittingIntent === "csv")
-                  }
-                  spellCheck={false}
-                  aria-label="Paste spend CSV"
-                />
-              </label>
-              <label className="mcfly-spend-lean__drop">
-                <span className="mcfly-spend-lean__drop-title">
-                  Or upload .csv
-                </span>
-                <span className="mcfly-spend-lean__drop-hint">
-                  Proper Day + channel format only
-                </span>
-                <input
-                  type="file"
-                  name="file"
-                  accept=".csv,text/csv"
-                  className="mcfly-spend-lean__file"
-                  onChange={onSpendFileSelected}
-                  disabled={
-                    importBlockedBySample ||
-                    (isSubmitting && submittingIntent === "csv")
-                  }
-                  aria-label="Upload spend CSV"
-                />
-              </label>
-              {csvFieldError && !csvNeedsConfirm ? (
-                <p className="mcfly-spend-lean__upload-error" role="alert">
-                  {csvFieldError}
-                </p>
-              ) : null}
-              <s-button
-                id="mcfly-spend-csv-submit"
-                type="submit"
-                variant="primary"
-                {...(importBlockedBySample
-                  ? { disabled: true }
-                  : {})}
-                {...(isSubmitting && submittingIntent === "csv"
-                  ? { loading: true }
-                  : {})}
-              >
-                {importBlockedBySample
-                  ? "Import locked — turn Real store on"
-                  : "Import spend"}
-              </s-button>
-            </Form>
+                <summary>{SPEND_FIRST_RUN_COPY.backfillLede}</summary>
+                <div className="mcfly-spend-lean__upload-body">
+                  {csvUploadForm}
+                </div>
+              </details>
+            ) : (
+              csvUploadForm
+            )}
           </div>
 
           {/* 4 · Status line — empty desk already taught the path above */}
@@ -2175,7 +2420,7 @@ export default function SpendEntryPage() {
           <div className="mcfly-spend-lean__status" role="status">
             <p className="mcfly-spend-lean__status-line">
               {coverageNotice.statusLine}
-              {missingDatesPreview.length > 0 ? (
+              {showMissingDatesInline ? (
                 <>
                   {": "}
                   {missingDatesPreview.join(", ")}
@@ -2185,9 +2430,23 @@ export default function SpendEntryPage() {
                 </>
               ) : null}
             </p>
+            {/* Young ledger: the count is in the line above, the hole list is a
+                click away. Same dates, same math — opted into, not walled. */}
+            {showMissingDatesAudit && coverageNotice.missingDatesLabel ? (
+              <details className="mcfly-spend-lean__audit">
+                <summary>{coverageNotice.missingDatesLabel}</summary>
+                <p className="mcfly-spend-lean__status-foot">
+                  {missingDatesPreview.join(", ")}
+                  {missingDates.length > missingDatesPreview.length ? ", …" : ""}
+                  {" · "}
+                  <s-link href={missingDatesHref}>download blanks</s-link>
+                </p>
+              </details>
+            ) : null}
             <p className="mcfly-spend-lean__status-foot">
-              {coverageNotice.body} Backdate to {spendHistoryFloorKey} (
-              {spendHistoryYearsBack} years) — same window as Shopify sales.
+              {coverageBodyAlreadySaid ? null : `${coverageNotice.body} `}
+              Backdate to {spendHistoryFloorKey} ({spendHistoryYearsBack} years)
+              — same window as Shopify sales.
             </p>
           </div>
           ) : null}

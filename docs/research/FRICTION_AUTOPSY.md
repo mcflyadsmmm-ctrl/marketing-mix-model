@@ -275,7 +275,7 @@ Preserved from the prior draft, with the friction column re-checked against code
 | Source row | Status | Evidence |
 | --- | --- | --- |
 | Hostile #1 — spend coverage counts SAMPLE days as live "up to date" | **CLOSED** | `app.spend.tsx` 263 `loadSpendDayCoverage(shop.id, false)`; `includesSample ? {} : { source: { not: "sample" } }` (194–210); `getSpendPeriodCoverage(..., { excludeSample: true })` (273) |
-| **F2** — first typed day `critical` 27-hole coverage banner | **CLOSED** | Love-6 `621faa0` · `spend-coverage-tone.ts` — young ledger `info` progress; never `critical` for coverage-only; holes still enumerated |
+| **F2** — first typed day `critical` 27-hole coverage banner | **CLOSED** | Love-6 `621faa0` + Track C · `spend-coverage-tone.ts` — first filled closed day is a `success` celebration on Spend (`info` on Overview, where a multiple is on screen), 2–3 days stay `info`, only an established ledger reaches `warning`; holes stay exact but the date list is opt-in (`See the N empty days`) until the ledger is past its first days |
 | **F3** — trial calendar vs trust closed-day clock | **CLOSED** | Love-trial · `trial-trust-clock.ts` — Overview info banner; hidden when period trusted / SAMPLE / shot |
 | Hostile #3 — ReviewAsk samples App Bridge `reviews` once | **CLOSED** | `ReviewAsk.tsx` 90–102 polls to `2 × REVIEW_MIN_SESSION_MS` |
 | Hostile #4 — ReviewAsk not gated on `periodExceedsFactWindow` | **CLOSED** | `app._index.tsx` 495–500 |

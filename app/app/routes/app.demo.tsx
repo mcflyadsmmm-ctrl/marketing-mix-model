@@ -165,8 +165,9 @@ export default function DemoPage() {
               </Form>
             </div>
             <p className="mcfly-demo-off-warning__status" style={{ color: "#92400e" }}>
-              Status: Sample on — use the Sample | Real store switch at the top
-              of any page (or the button above) before live review.
+              Status: Sample on — use the button above (or Settings → More)
+              before live review. The live desk does not show a Sample | Real
+              toggle.
             </p>
           </div>
         ) : (

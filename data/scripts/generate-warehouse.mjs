@@ -357,8 +357,8 @@ function writeSiteFeed(dtcSnapshots) {
 
 const dtc = generateBrand({
   id: "shop_demo_dtc",
-  domain: "northline-supply.myshopify.com",
-  name: "Northline Supply",
+  domain: "harbor-home-co.myshopify.com",
+  name: "Harbor Home Co",
   margin_pct: 0.35,
   target_mer: 3.5,
   base_daily_gross: 11200,
@@ -370,8 +370,8 @@ const dtc = generateBrand({
 
 const agency = generateBrand({
   id: "shop_demo_agency",
-  domain: "harbor-home-co.myshopify.com",
-  name: "Harbor Home Co",
+  domain: "harbor-home-co-2.myshopify.com",
+  name: "Harbor Home Co · Store 2",
   margin_pct: 0.4,
   target_mer: 3.0,
   base_daily_gross: 4200,

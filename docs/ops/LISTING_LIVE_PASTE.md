@@ -1,338 +1,123 @@
-# Listing live paste pack — Mcfly Analytics (Wave 6)
+# Partner Dashboard live paste — Mcfly Analytics
 
-## Marty: 60-second Save script
+Canonical copy: [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md).
 
-**0:00–0:10** — Open [Mcfly Analytics Public](https://dev.shopify.com/dashboard/227535001/apps/403721814017) → **Distribution** → **Shopify App Store listing** → **Manage listing / Edit listing**. Confirm app ID `403721814017` (not Custom app `400772497409`).
+Use these blocks for app `403721814017`. Save each section after pasting. Do
+not invent reviews, quotes, ratings, or install counts.
 
-**0:10–0:25** — Open **Pricing details**. In the **Plan name** field, replace `Pro` with:
+## 1. Title / app name
 
 ```text
 Mcfly Analytics
 ```
 
-Keep **$39 USD / 30 days** and **7-day free trial**. Delete any Free plan. Confirm **one plan only**.
-
-**0:25–0:50** — Open **Feature bullets**. Replace bullets 1–5 with these **exact five lines in this order, one line per field**:
+## 2. Subtitle
 
 ```text
-Total ROAS = Shopify sales ÷ spend — not Ads Manager phantom purchases
-Break-even Total ROAS from your profit margin %
-Spend CSV: Meta, Google, TikTok, retainers, billboards, Other · mix in $/%
-Spend Allocation (7/14/28) + Goals — flat $39, not punished for growing
-LTV/Acquisition (Cash CAC · LTV:CAC) · mailto · no pixels / MTA
+Deeper Shopify sales numbers beyond standard Analytics
 ```
 
-**0:50–1:00** — Scan all five fields against the exact banned strings in §5; there must be **zero hits**. Click **Save**. Stop. **Do not click Submit.**
+## 3. App introduction
 
-> Live remains wrong until Marty saves: plan **Pro**, feature bullets **(paid)**, reviews **0**. Cursor does not Submit.
+```text
+See Shopify sales, customer mix, goals, and LTV first. Add spend only when you want Total ROAS.
+```
 
-**Human clicks only.** Cursor drafts this pack. **Cursor does not Submit.**  
-**App:** Mcfly Analytics Public · ID `403721814017` · handle `mcfly-analytics-public`  
-**Live:** https://apps.shopify.com/mcfly-analytics-public  
-**Price:** 7-day trial, then **$39**/store/month. **Plan name must be:** **Mcfly Analytics** (live still shows **Pro**). **Reviews: 0** (do not invent).  
-**SoT copy:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) · URLs [`PARTNER_LISTING_URLS.md`](./PARTNER_LISTING_URLS.md) · shots [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md)
+## 4. Description
 
-**Hostile-audit locks:** No Free listing body. No Free/Pro freemium paste. No **(paid)** on feature bullets. Trust URLs → **mcflyads.com**. App URL → **Fly**. Hero = **formula** — not CUSTOM DATA SCIENCE / **4.41×** / **4.42×**. SAMPLE / Harbor lock = **$82,068 ÷ $23,414 = 3.51×**. **Religion:** Total ROAS = Shopify Total Sales ÷ ad spend — no attribution bait. **Reviews: 0** (do not invent).
+```text
+Mcfly starts with deeper Shopify order numbers: Total Sales after returns, orders, AOV, new vs returning sales, goals, and cohort LTV. Explore sales without entering spend. To calculate Total ROAS, type spend or import a daily CSV: Shopify Total Sales ÷ spend for the same period. Optional margin adds break-even. Harbor Home Co SAMPLE: $82,068 sales ÷ $23,414 spend = 3.51×; sample data is not your store. No pixels, MTA, or path credit. 7-day free trial, then $39/month.
+```
 
----
+## 5. Feature bullets
 
-## Live residue (2026-09-08 browser) — still wrong until Marty clicks
+Replace every existing feature field. Paste one line per field:
 
-| Live today | Must become |
+```text
+Explore Shopify Total Sales after returns, orders, and AOV
+Compare new vs returning sales, goals, period pace, and cohort LTV
+Add spend only when needed: type it or import a daily CSV
+Total ROAS = Shopify Total Sales ÷ spend for the same period
+Optional margin adds break-even — 7-day trial, then $39/month
+```
+
+## 6. Category
+
+Select:
+
+```text
+Marketing and conversion → Marketing analytics
+```
+
+Category rationale:
+
+```text
+Sales-first Shopify order analytics with optional merchant-entered or CSV spend. Total ROAS is blended Shopify Total Sales ÷ spend; Mcfly does not provide attribution, pixels, MTA, ad delivery, or ad-platform OAuth.
+```
+
+If the exact taxonomy is unavailable, choose the closest **Marketing
+analytics** category. Do not select Advertising, Attribution, Store design, or
+a sales-channel category.
+
+## 7. Pricing
+
+Set exactly one plan:
+
+```text
+Plan name: Mcfly Analytics
+Trial: 7 days
+Price: $39 USD every 30 days
+External charges: No
+```
+
+Delete any Free plan. Rename any plan labeled Pro to **Mcfly Analytics**.
+
+## 8. Search terms
+
+```text
+Shopify sales analytics
+customer sales
+cohort LTV
+Total ROAS
+break-even ROAS
+```
+
+## 9. URLs and support
+
+| Partner field | Value |
 | --- | --- |
-| Plan name **Pro** @ $39 + 7-day trial | Plan name **Mcfly Analytics** · $39 · 7-day trial · **one plan only** · delete Free if any |
-| Feature bullets with **(paid)** on LTV / Goals | Clean bullets in §5 — **zero** `(paid)` / Free / Pro freemium residue |
-| Reviews **0** | Stay **0** until honest merchants review — do not invent |
+| Website | `https://mcflyads.com` |
+| Privacy | `https://mcflyads.com/privacy` |
+| Support | `https://mcflyads.com/support` |
+| FAQ | `https://mcflyads.com/faq` |
+| Terms | `https://mcflyads.com/terms` |
+| App URL | `https://mcfly-analytics.fly.dev` |
+| Support email | `mcflyadsmmm@gmail.com` |
+| Works with | Leave blank |
+| Demo store | Leave blank |
 
-This paste pack is the Wave 6 fix for those three. Pricing rename + strip `(paid)` are the conversion blockers Cursor cannot click.
+The App URL is the Fly URL, not the marketing site.
 
----
+## 10. Media check
 
-## 0. Wave 6 human click order (impossible to miss)
-
-Open: [Mcfly Analytics Public](https://dev.shopify.com/dashboard/227535001/apps/403721814017)
-
-Confirm you are **not** on Custom app `400772497409`.
-
-**Do these three first. Save after each. Do not Submit from Cursor.**
-
-| Step | Where | Exact action |
-| --- | --- | --- |
-| **A** | Listing → **Pricing details** | In the **Plan name** field, replace **Pro** with exact paste value `Mcfly Analytics`. Keep **$39 USD / 30 days** + **7-day free trial**. **Delete Free** if present. Confirm **exactly one** plan. (§7) |
-| **B** | Listing → **Feature bullets** | Delete any bullet text that says **(paid)**. Paste the five clean lines in §5 in order. |
-| **C** | Listing → **URLs** | Website / Privacy / Support / FAQ / Terms → **mcflyads.com…**. **App URL** → `https://mcfly-analytics.fly.dev` only. ([`PARTNER_LISTING_URLS.md`](./PARTNER_LISTING_URLS.md)) |
-
-Then finish the rest of §1 (tagline → short → long → keywords → icon / media). **Save.** Marty alone decides Submit.
-
----
-
-## 1. Full Partner click order (Dashboard app 403721814017)
-
-Work top → bottom after §0 A–C. **Save each section.** Do **not** click Submit unless you intend a human re-review.
-
-1. **Apps** → **Mcfly Analytics Public** (`403721814017`).
-2. **Distribution** → Shopify App Store listing → **Manage listing** / **Edit listing**.
-3. **Pricing details** (**§0-A / §7**): one plan named **Mcfly Analytics**, **$39 USD / 30 days**, **7-day free trial**. Rename **Pro** → **Mcfly Analytics**. **Delete any Free plan.** Confirm the picker shows **one** plan only.
-4. **Feature bullets** (**§0-B / §5**): **strip every `(paid)`**. Paste clean §5 bullets in order.
-5. **Listing basics:** App name `Mcfly Analytics` · language English · category Marketing → Marketing analytics (or Advertising). **Works with = blank.**
-6. **Tagline** → paste §2.
-7. **Short description** → paste §3.
-8. **Long description** → paste §4.
-9. **Search keywords** → paste §6. Ban attribution / pixel / true ROAS / MTA.
-10. **URLs** (**§0-C** — full table: [`PARTNER_LISTING_URLS.md`](./PARTNER_LISTING_URLS.md))
-
-    | Field | URL |
-    | --- | --- |
-    | **Website** | `https://mcflyads.com` |
-    | **Privacy** | `https://mcflyads.com/privacy` |
-    | **Support** | `https://mcflyads.com/support` |
-    | **FAQ** | `https://mcflyads.com/faq` |
-    | **Terms** | `https://mcflyads.com/terms` |
-    | **App URL** | `https://mcfly-analytics.fly.dev` |
-
-    **Never** App URL = mcflyads.com.
-11. **Support email:** `mcflyadsmmm@gmail.com`.
-12. **App icon:** `docs/listing-assets/mcfly-app-icon-1200.png` (1200×1200, **M-only**).
-13. **Feature / header media + screenshots** → §8–§9.
-14. **Save.** Cursor does not Submit.
-
----
-
-## 2. Tagline (≤80)
+Harbor sample media must show:
 
 ```text
-Advanced Marketing Data Science Made Easy
+Harbor Home Co · SAMPLE preview · not your store
+$82,068 Shopify sales ÷ $23,414 entered spend = 3.51× Total ROAS
 ```
 
----
-
-## 3. Short description (~150 chars)
-
-```text
-Platforms claim the same sale — Total ROAS = Shopify sales ÷ spend. Flat $39 · 7-day trial. No pixels.
-```
-
-**Steal (P01):** “platforms claim the same sale.” Flat $39 + trial facts only — no reviews / install counts / Meta auto-sync.
-
----
-
-## 3b. Kill-shot phrases (Partner-safe — use in long / outbound; do not invent proof)
-
-From [`../research/NICHE_PAIN_BANK.md`](../research/NICHE_PAIN_BANK.md) P01 / P04 / P07 · pack [`../research/LISTING_KILL_SHOTS.md`](../research/LISTING_KILL_SHOTS.md):
-
-```text
-platforms claim the same sale
-phantom purchases
-punished for growing
-billboards
-retainers
-```
-
----
-
-## 4. Long description
-
-Trust footer uses **mcflyads.com** for Privacy / Support. **App URL stays Fly.**
-
-**No Automate tab.** Optional automation lives on **Spend → “Pipe templates — automate the fill (optional)”** (`/app/spend/template?pipe=long` · `?pipe=wide`). Never paste listing, reviewer, or support copy that tells a human to click an Automate tab — that control does not exist, and a reviewer clicking for it is a rejection risk.
-
-```text
-Shopify Analytics shows sales. It does not show Total ROAS = Shopify Total Sales ÷ your ad spend for any period — with break-even, channel mix, Goals, and Allocation in one Admin desk.
-
-Mcfly Analytics is Advanced Marketing Data Science Made Easy: marketing cash close / spend affordability control. Money out on ads versus money in on the till. Coexists with attribution suites — we do not rip-and-replace path decks. Platforms claim the same sale; Ads Manager phantom purchases do not equal the till. Multi-touch “truth” is mostly theater.
-
-WHAT SHOPIFY ANALYTICS DOES NOT GIVE YOU
-• Total ROAS = Shopify Total Sales ÷ ad spend (MTD / QTD / YTD / custom — any period you choose)
-• Break-even Total ROAS from your profit margin %
-• Spend by channel via CSV — Meta, Google, TikTok, retainers, billboards, agency / offline / Other — mix in $ and %
-• Spend Allocation — quarters, pie, rolling 7 / 14 / 28
-• Goals — MTD / QTD / YTD pace + full-year board + YoY
-• LTV / Acquisition — Cash CAC, cohort LTV, LTV:CAC
-• Email Overview — opens your mail app with this period’s cards (mailto; Mcfly never sends mail)
-
-THE DESK
-• Shopify Total Sales in (Admin API — action basis; Net Sales optional view)
-• Ad spend out — every named platform (Meta, Google, TikTok, Microsoft, Amazon, Pinterest, Email, Affiliate, custom Other) via CSV paste / export combine — including retainers, billboards, and offline you type yourself
-  Optional automation: SyncWith / Coupler / Supermetrics / Coefficient (you pay them) → Mcfly pipe template on Spend → CSV import — not a “Works with” partnership · not Meta/Google OAuth auto-sync
-  Per-platform export guides in-app (sales columns ignored — Shopify is the till)
-• Total ROAS (action) = Shopify Total Sales ÷ ad spend
-• Break-even Total ROAS from your profit margin %
-• Channel mix + rules-based Spend Allocation — portfolio affordability, not fake channel ROAS
-• Freshness chip (“Last refreshed”) + Update spend throughout Overview
-• Orders / new / returning / AOV for the same period (opaque customer id + numberOfOrders only — no CRM)
-• Embedded in Shopify Admin — no second login, no public “type your .myshopify.com” form
-
-WHAT WE DO NOT SHIP
-• Path attribution / MTA / view-through credit
-• Pixels or “true ROAS”
-• Fake “driven revenue” that doesn’t match the till
-• Spend-share allocation theater or fake channel ROAS
-• Suite sprawl dressed as proprietary science
-• Auto-sync Meta / Google OAuth
-
-WHO IT’S FOR
-Shopify brands that want a trusted Total ROAS in under ten minutes and a Monday cash-close ritual that stays honest when platforms claim the same sale and Ads Manager disagrees with the bank — including spend that “ad” tools miss (retainers, billboards, offline). Alongside (not instead of) attribution suites.
-
-PRICING
-$39/store/mo flat · 7-day trial. One plan named Mcfly Analytics: all named channels (including TikTok CSV), Customer LTV / Acquisition, and the full Goals board. SAMPLE is preview data only. Not a GMV-scaled suite tax — you are not punished for growing. Not a Free listing. Not a Pro upsell tier. Not forever-free marketing.
-
-Learn more: https://mcflyads.com
-Privacy: https://mcflyads.com/privacy · Support: https://mcflyads.com/support
-App URL: https://mcfly-analytics.fly.dev
-```
-
-**BAN in this body:** Free Meta+Google · Pro unlocks · freemium matrix · `(paid)` feature gates · inventing reviews.
-
----
-
-## 5. Feature bullets — strip `(paid)` then paste (Wave 6 critical)
-
-**Live problem:** listing still shows feature bullets with **(paid)** on LTV / Goals (freemium residue). That contradicts one-plan $39.
-
-**Do this:**
-1. Open Feature bullets in Partner.
-2. Replace bullets 1–5 rather than editing suffixes one by one.
-3. Paste the five clean lines below **in order, one line per field** (no suffixes).
-
-```text
-Total ROAS = Shopify sales ÷ spend — not Ads Manager phantom purchases
-Break-even Total ROAS from your profit margin %
-Spend CSV: Meta, Google, TikTok, retainers, billboards, Other · mix in $/%
-Spend Allocation (7/14/28) + Goals — flat $39, not punished for growing
-LTV/Acquisition (Cash CAC · LTV:CAC) · mailto · no pixels / MTA
-```
-
-**Steal map:** P01 phantom / same sale → bullet 1 · P07 retainers/billboards → bullet 3 · P04 punished for growing → bullet 4. Never claim auto-sync Meta.
-
-**Exact ban list for all five feature fields (case-insensitive; zero hits):**
-
-```text
-(paid)
-paid only
-free plan
-free:
-pro unlocks
-pro only
-upgrade to pro
-premium tier
-```
-
-Do not append any parenthetical price or tier marker. Goals and LTV are included in the one $39 desk.
-
----
-
-## 6. Keywords
-
-```text
-Total ROAS, marketing efficiency ratio, Break-even Total ROAS, Shopify ad spend
-```
-
-**BAN:** attribution · pixel · true ROAS · MTA · “the first / best / only.”
-
----
-
-## 7. Plan rename in Partner — **Pro** → **Mcfly Analytics** (Wave 6 critical)
-
-**Live problem (2026-09-08):** plan name still **Pro** @ $39 + 7-day trial.
-
-**One plan. $39 + 7-day trial. No Free plan.**
-
-Click path: Partner → app `403721814017` → Shopify App Store listing → **Pricing details** (Shopify App Pricing / managed plans).
-
-1. Click the **Plan name** field, select all, and paste:
-
-   ```text
-   Mcfly Analytics
-   ```
-
-2. **$39 USD** · every **30 days** · **7-day free trial**.
-3. **Delete the Free plan** if it is still there.
-4. Confirm the merchant plan picker shows **exactly one** plan. Name **Pro** implies a Free tier — that contradicts the desk (nothing is feature-gated).
-
-Agents cannot see Partner Pricing from git. Marty must verify **no Free plan** and plan label **Mcfly Analytics**.
-
-In-app Start 7-day trial / Manage plan must match this one plan. No External charges.
-
----
-
-## 8. Hero / feature media (kill CUSTOM DATA SCIENCE / 4.41× / 4.42×)
-
-**Target:** formula-only Total ROAS desk — sales next to spend, break-even context. **Harbor SAMPLE lock: $82,068 ÷ $23,414 = 3.51×.** **No `4.41×` / `4.42×`.** **No “CUSTOM DATA SCIENCE”** (Custom is parked; public mark is Mcfly Analytics).
-
-**Do not re-upload** a local `feature-media-1600x900.png` (or any hero PNG) that still shows **CUSTOM DATA SCIENCE** and/or **4.41× / 4.42×** unless you **recapture** Overview first (Harbor **3.51×**) and overwrite that file.
-
-Recapture on `devmcflyads` (embedded Admin — not mcflyads.com):
-
-```text
-Store:  https://admin.shopify.com/store/devmcflyads/apps
-App:    Mcfly Analytics (stay in Admin iframe — not mcflyads.com)
-
-1. /app/demo → Load sample desk if needed → Turn sample desk ON for capture
-2. Overview: /app?period=mtd&shot=1
-   shot=1 hides the SAMPLE banner; metrics stay sample
-3. Crop ~1600×900 of the APP BODY only
-   Frame: Total ROAS + sales/spend + break-even (formula story)
-   Exclude: Admin left nav, OS menubar, URL bar, CUSTOM DATA SCIENCE chrome, 4.41×/4.42× callouts
-   Confirm: SAMPLE Total ROAS ≈ **3.51×** ($82,068 / $23,414) — not 4.41×
-4. Overwrite (do not invent a new filename for Partner):
-   docs/listing-assets/feature-media-1600x900.png
-5. /app/demo → Turn sample desk OFF before any reviewer smoke
-6. Upload that PNG as listing feature / header media
-```
-
-Full capture script: [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md).  
-Icon: `docs/listing-assets/mcfly-app-icon-1200.png`.
-
----
-
-## 9. Screenshots — upload / do not upload
-
-**Do not upload**
-
-| File | Why |
-| --- | --- |
-| `docs/listing-assets/shots/04-free-pro-pricing.png` | Free vs Pro — freemium poison |
-| `docs/listing-assets/shots/05-spend-csv.png` if it still says platforms are on **Pro** | Freemium / gated-channel lie |
-| `docs/listing-assets/shots/05-HOLD-marketing-site-do-not-upload.png` | Marketing site — not embedded Admin |
-| Any hero still labeled **CUSTOM DATA SCIENCE / 4.41× / 4.42×** | Recapture Harbor **3.51×** first (§8) |
-
-**Prefer (Admin UI, unique captions — no Free/Pro/(paid), no inventing reviews):**
-
-| # | File (or recapture target) | Caption (≤80) |
-| --- | --- | --- |
-| 1 | `01-total-roas-vs-breakeven.png` | Total ROAS = Total Sales ÷ spend |
-| 2 | `02-explorer-sales-div-spend.png` | Channel mix $/% Shopify Analytics lacks |
-| 3 | `03-margin-breakeven.png` | Spend Allocation — quarters · pie · rolling |
-| 4 | Recapture LTV → replace free-pro shot | LTV / Acquisition next to the same spend |
-| 5 | Recapture Goals or honest Spend CSV | Goals pace + full-year board |
-
-Captions must **not** say Free / Pro / (paid) / forever-free.
-
----
-
-## 10. What Marty must click (Wave 6 checklist)
-
-- [ ] Partner → Mcfly Analytics Public (`403721814017`) → Edit listing
-- [ ] **§0-A Pricing:** rename **Pro** → **Mcfly Analytics** · $39 · 7-day trial · **delete Free** · one plan only
-- [ ] **§0-B Features:** strip every **(paid)** · paste clean §5 bullets
-- [ ] Paste tagline / short / long / keywords (§2–§4, §6) if not already current
-- [ ] **§0-C URLs:** Website / Privacy / Support / FAQ / Terms → **mcflyads.com…** ([`PARTNER_LISTING_URLS.md`](./PARTNER_LISTING_URLS.md))
-- [ ] Set **App URL** → `https://mcfly-analytics.fly.dev` (never mcflyads.com)
-- [ ] Replace hero if live still shows CUSTOM DATA SCIENCE / 4.41× / 4.42× — **only after Harbor 3.51× recapture**
-- [ ] Do **not** upload `04-free-pro-pricing.png`
-- [ ] **Save.** Do **not** Partner Submit from Cursor (Marty decides Submit / re-review)
-- [ ] Public listing re-check: plan name **Mcfly Analytics**, no `(paid)` on bullets, Reviews still **0** until real ones land
-
----
-
-## Quarantined freemium (never paste)
-
-| Poison | Action |
-| --- | --- |
-| Free Meta + Google · Pro unlocks channels / LTV | **Dead.** Full desk on trial + paid. |
-| Plan name **Pro** | Rename to **Mcfly Analytics**. |
-| Feature bullets with **(paid)** on LTV / Goals | **Strip.** Paste clean §5. |
-| Free App Store plan | Delete. |
-| Historical freemium drafts (`LISTING_19_ISSUES_PASTE.md`, old Free+Pro ops notes) | Not SoT for this pack. |
-
-`$39` and trial live in **Pricing details** + long description PRICING block (SoT [`APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)). Never invent reviews or a second App Store URL.
+Reject stale 4.41×, 4.42×, or 4.45× images and all Free/Pro pricing images.
+
+## Final scan
+
+Before saving, confirm:
+
+- Sales and order insights come before spend.
+- Copy says spend is optional and can be typed or imported by CSV.
+- Every Total ROAS claim uses Shopify Total Sales ÷ spend.
+- Harbor is labeled SAMPLE and not the merchant's store.
+- Pricing says 7-day trial, then $39/month.
+- The only plan name is Mcfly Analytics.
+- No pixels, MTA, path credit, ad-platform OAuth, reviews, or install counts are
+  claimed.

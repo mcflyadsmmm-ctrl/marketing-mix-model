@@ -1,9 +1,7 @@
 import {
-  cashVerdictSalesUntrusted,
   resolveCashVerdict,
   type CashVerdict,
 } from "../lib/cash-verdict";
-import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 
 export type CashVerdictProps = {
@@ -17,62 +15,33 @@ export type CashVerdictProps = {
   useSampleDesk?: boolean;
 };
 
+/**
+ * One-line cash verdict above the dial — no metric tiles.
+ * When the multiple is not trusted or is below break-even, one next step.
+ */
 export function CashVerdict(props: CashVerdictProps) {
   const verdict = resolveCashVerdict(props);
-  return <CashVerdictView verdict={verdict} facts={props} />;
+  return <CashVerdictView verdict={verdict} />;
 }
 
-function salesTilesUntrusted(facts: CashVerdictProps): boolean {
-  return cashVerdictSalesUntrusted(facts) && !(facts.sales > 0);
-}
-
-function CashVerdictView({
-  verdict,
-  facts,
-}: {
-  verdict: CashVerdict;
-  facts: CashVerdictProps;
-}) {
+function CashVerdictView({ verdict }: { verdict: CashVerdict }) {
   return (
     <section
       className={`mcfly-cash-verdict mcfly-cash-verdict--${verdict.tone}`}
       aria-label={`${PRODUCT_NOUN.totalRoas} this period`}
     >
-      <p className="mcfly-cash-verdict__kicker">This period — am I making money on ads?</p>
+      <p className="mcfly-cash-verdict__kicker">
+        This period — am I making money on ads?
+      </p>
       <p className="mcfly-cash-verdict__headline">{verdict.headline}</p>
       <p className="mcfly-cash-verdict__body">{verdict.body}</p>
-      <dl className="mcfly-cash-verdict__tiles">
-        <div>
-          <dt>{PRODUCT_NOUN.totalRoas}</dt>
-          <dd>
-            {verdict.tone === "blocked" || salesTilesUntrusted(facts)
-              ? "—"
-              : facts.mer != null && Number.isFinite(facts.mer)
-                ? `${formatMer(facts.mer)}×`
-                : "—"}
-          </dd>
+      {verdict.nextAction ? (
+        <div className="mcfly-cash-verdict__action">
+          <s-button href={verdict.nextAction.href} variant="secondary">
+            {verdict.nextAction.label}
+          </s-button>
         </div>
-        <div>
-          <dt>Sales</dt>
-          <dd>
-            {salesTilesUntrusted(facts)
-              ? "—"
-              : formatCurrency(facts.sales)}
-          </dd>
-        </div>
-        <div>
-          <dt>Spend</dt>
-          <dd>{formatCurrency(facts.spend)}</dd>
-        </div>
-        <div>
-          <dt>{PRODUCT_NOUN.breakEvenShort}</dt>
-          <dd>
-            {facts.breakEvenMer != null && Number.isFinite(facts.breakEvenMer)
-              ? `${formatMer(facts.breakEvenMer)}×`
-              : "Set margin"}
-          </dd>
-        </div>
-      </dl>
+      ) : null}
     </section>
   );
 }

@@ -42,9 +42,9 @@ Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md)
 
 ## Product + SAMPLE lock
 
-App: spend beside Shopify sales · sales after returns ÷ spend · not path credit · not pixels.  
-**Harbor SAMPLE (home):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · **SAMPLE preview · not your store** (Real store blank until spend).  
-Demo widget still uses the Northline SAMPLE book (listing desk numbers) — do not put Northline **$98,500** / **4.19×** on `/`.  
+App: deeper Shopify order numbers first · spend optional · sales after returns ÷ spend · not path credit · not pixels.  
+**Harbor SAMPLE (home + listing):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · **SAMPLE preview · not your store** (Real store blank until spend).  
+`/demo` widget runs a second SAMPLE book under the same sample shop name (**$98,500** / **4.19×** / BE 2.86× @ 35%, period-toggled). Never put the `/demo` book on `/` or in listing shots — home and listing stay on the Harbor lock.  
 **Banned on home:** clean-tree 4.45× / $10,592,770 universe · Custom as home sell.  
 Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → https://apps.shopify.com/mcfly-analytics-public.
 

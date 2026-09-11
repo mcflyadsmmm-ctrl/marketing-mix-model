@@ -57,7 +57,7 @@ describe("resolveActivationStep", () => {
 });
 
 describe("firstOpenRedirect", () => {
-  it("bounces Overview to Spend for cold merchants, then stays for trusted desk", () => {
+  it("never bounces Overview to Spend — sales-first cold desk stays put", () => {
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -65,7 +65,7 @@ describe("firstOpenRedirect", () => {
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("/app/spend?activate=1");
+    ).toBeNull();
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -73,7 +73,7 @@ describe("firstOpenRedirect", () => {
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("/app/spend?activate=1");
+    ).toBeNull();
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -121,7 +121,7 @@ describe("firstOpenRedirect", () => {
     ).toBeNull();
   });
 
-  it("keeps period query when activating", () => {
+  it("does not bounce Overview even when a period query is present", () => {
     expect(
       firstOpenRedirect({
         pathname: "/app",
@@ -130,7 +130,7 @@ describe("firstOpenRedirect", () => {
         hasLiveSpend: false,
         useSampleDesk: false,
       }),
-    ).toBe("/app/spend?period=mtd&activate=1");
+    ).toBeNull();
   });
 
   it("offers a Spend skip that does not return to Settings", () => {
@@ -141,22 +141,20 @@ describe("firstOpenRedirect", () => {
 });
 
 describe("spendEmptyTeach", () => {
-  it("asks for a typed day first and keeps the template as the fallback", () => {
+  it("offers typed day plus bill-split coverage — not a template-first wall", () => {
     const teach = spendEmptyTeach({
       templateHref: "/app/spend/template?platforms=meta%2Cgoogle&blank=1",
+      billHref: "#mcfly-spend-bill",
     });
-    expect(teach.primaryLabel).toMatch(/type one day/i);
-    expect(teach.primaryHref).toBe("#mcfly-spend-day");
-    expect(teach.secondaryLabel).toMatch(/template/i);
-    expect(teach.secondaryHref).toContain("/app/spend/template");
-    expect(teach.heading).toMatch(/no file needed/i);
-    expect(teach.body).toMatch(/no download/i);
+    expect(teach.primaryLabel).toMatch(/bill|daily/i);
+    expect(teach.primaryHref).toContain("mcfly-spend-bill");
+    expect(teach.secondaryLabel).toMatch(/type one day/i);
+    expect(teach.secondaryHref).toBe("#mcfly-spend-day");
+    expect(teach.heading).toMatch(/one day|bill|coverage/i);
+    expect(teach.body).toMatch(/invoice|coverage|honest/i);
     expect(teach.body).toContain(PRODUCT_NOUN.definition);
-    expect(teach.steps[0]).toMatch(/type day \+ amount \+ channel/i);
-    expect(teach.steps.some((s) => /paste rows or import a csv/i.test(s))).toBe(
-      true,
-    );
-    expect(teach.steps.some((s) => /playbook/i.test(s))).toBe(true);
+    expect(teach.steps.some((s) => /invoice|bill/i.test(s))).toBe(true);
+    expect(teach.steps.some((s) => /type day|one number/i.test(s))).toBe(true);
     const blob = [
       teach.heading,
       teach.body,
@@ -169,18 +167,18 @@ describe("spendEmptyTeach", () => {
     expect(blob).not.toMatch(/syncwith|oauth/i);
   });
 
-  it("honors a custom typed-row href", () => {
-    expect(spendEmptyTeach({ typeHref: "/app/spend#day" }).primaryHref).toBe(
+  it("honors a custom typed-row href on the secondary action", () => {
+    expect(spendEmptyTeach({ typeHref: "/app/spend#day" }).secondaryHref).toBe(
       "/app/spend#day",
     );
   });
 
-  it("after Sample → Real, empty is two sentences to a typed day", () => {
+  it("after Sample → Real, empty teaches coverage without a 14-day wall", () => {
     const teach = spendEmptyTeach({ justSwitchedReal: true });
     expect(teach.heading).toMatch(/Real store is on/i);
-    expect(teach.body).toMatch(/type the day/i);
-    expect(teach.primaryLabel).toMatch(/type one day/i);
-    expect(teach.body.split(/[.!?]/).filter(Boolean).length).toBeLessThanOrEqual(3);
+    expect(teach.body).toMatch(/type one day|invoice|daily rows/i);
+    expect(teach.primaryLabel).toMatch(/bill|daily/i);
+    expect(teach.secondaryLabel).toMatch(/type one day/i);
   });
 });
 

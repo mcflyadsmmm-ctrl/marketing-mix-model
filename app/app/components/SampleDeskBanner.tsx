@@ -1,7 +1,7 @@
 /**
  * Compact SAMPLE money stamp on every desk page that still imports this.
- * DataModeBar owns the Sample | Real switch — this stamp makes numbers
- * impossible to mistake for live cash (the switch banner is easy to skip).
+ * When SAMPLE is on, DataModeBar warns + offers exit; this stamp makes
+ * numbers impossible to mistake for live cash.
  */
 
 import { SAMPLE_MONEY_MARK } from "../lib/cash-desk-copy";

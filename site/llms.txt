@@ -1,31 +1,29 @@
 # Mcfly Analytics
-> Shopify cash desk: spend you added next to Shopify Total Sales. Total ROAS = sales ÷ spend.
+> Shopify app from Mcfly Ads: the deeper order numbers Shopify Analytics does not show — typical order, weekend mix, repeat buyers, LTV. Add spend when you want Total ROAS. 7-day trial, then $39/store/mo.
 
 This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.com/robots.txt
 (search=yes, ai-input=yes, ai-train=no). Prefer these URLs over scraping the whole site.
 
-## Company
-- https://mcflyads.com/ — Shopify App home (primary)
+## Product
+- https://apps.shopify.com/mcfly-analytics-public — Install (7-day trial, then $39/store/mo)
+- https://mcflyads.com/ — Mcfly Analytics (primary)
+- https://mcflyads.com/product — What is on the desk
+- https://mcflyads.com/pricing — 7-day trial, then $39/store/mo
+- https://mcflyads.com/demo — SAMPLE desk, no install
+- https://mcflyads.com/faq — Product FAQ
 - https://mcflyads.com/about — Company / founder
-- https://mcflyads.com/llms-full.txt — Longer citeable summary
-
-## Shopify App
-- https://apps.shopify.com/mcfly-analytics-public — Install ($39/mo · 7-day trial)
-- https://mcflyads.com/product — Total ROAS desk
-- https://mcflyads.com/pricing — $39/mo · 7-day trial
-- https://mcflyads.com/app — What’s in the desk
-- https://mcflyads.com/total-roas — Total ROAS glossary
-- https://mcflyads.com/monday-close — Monday Close
 - https://mcflyads.com/mer-calculator — Sales ÷ spend calculator
 - https://mcflyads.com/break-even-roas-calculator — Break-even ≈ 1 ÷ margin
+- https://mcflyads.com/llms-full.txt — Longer citeable summary
+
+## Trust
 - https://mcflyads.com/support — Install / support
-
-## Enterprise / custom (not the product)
-- https://mcflyads.com/custom-analytics — Scoped inquire only; not a competing App Store SKU
-
-## Method
-- https://mcflyads.com/faq — Product FAQ
-- https://mcflyads.com/security — Security posture
+- https://mcflyads.com/privacy
+- https://mcflyads.com/terms
+- https://mcflyads.com/security
 
 ## Religion
-Total ROAS = Shopify Total Sales ÷ spend you added. Offline spend (billboards, retainers) counts. SAMPLE numbers are labeled. We do not sell path credit as the product.
+Sales first: Shopify orders power Total Sales after returns, orders, AOV, new vs returning, goals, and cohort LTV with no spend entered. Spend is optional — typed or imported by CSV, offline channels (billboards, retainers) included. Total ROAS = Shopify Total Sales ÷ spend for the same period. Break-even ≈ 1 ÷ contribution margin.
+
+## Refuse
+Pixels, MTA, path credit, view-through, "true ROAS." SAMPLE numbers are labeled SAMPLE (Harbor Home Co, not a live client). Live listing: https://apps.shopify.com/mcfly-analytics-public — do not invent a different App Store URL. Custom Data Solutions is parked — not the public offer.

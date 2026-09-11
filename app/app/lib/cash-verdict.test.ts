@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { calculateMer } from "@mcfly/mer-core";
 import { SAMPLE_MONEY_MARK } from "./cash-desk-copy";
-import { resolveCashVerdict } from "./cash-verdict";
+import { cashVerdictSalesUntrusted, resolveCashVerdict } from "./cash-verdict";
 
 describe("resolveCashVerdict", () => {
   it("says yes when Total ROAS clears break-even", () => {
@@ -132,5 +136,99 @@ describe("resolveCashVerdict", () => {
     expect(v.headline).toContain(SAMPLE_MONEY_MARK);
     expect(v.body).toMatch(/Real store/i);
     expect(v.headline).not.toMatch(/^Yes/);
+  });
+
+  it("empty spend asks for spend instead of heroing 0.00× or below break-even", () => {
+    // No spend means no denominator — the multiple must not exist at all.
+    expect(calculateMer(0, 0)).toBeNull();
+    expect(calculateMer(12000, 0)).toBeNull();
+
+    const v = resolveCashVerdict({
+      mer: calculateMer(0, 0),
+      sales: 0,
+      spend: 0,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: false,
+    });
+    expect(v.tone).toBe("blocked");
+    expect(v.headline).not.toMatch(/below break-even/i);
+    expect(v.headline).not.toMatch(/0\.00/);
+    expect(v.headline).toMatch(/needs spend/i);
+  });
+});
+
+
+  it("points a CEO at bill-spread when spend is missing", () => {
+    const v = resolveCashVerdict({
+      mer: null,
+      sales: 8000,
+      spend: 0,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: false,
+    });
+    expect(v.nextAction?.href).toContain("mcfly-spend-bill");
+    expect(v.nextAction?.label).toMatch(/bill/i);
+  });
+
+  it("points below break-even at Spend Allocation", () => {
+    const v = resolveCashVerdict({
+      mer: 1.1,
+      sales: 1100,
+      spend: 1000,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: false,
+    });
+    expect(v.nextAction?.href).toBe("/app/allocation");
+  });
+
+  it("stays quiet on nextAction when ads cleared break-even", () => {
+    const v = resolveCashVerdict({
+      mer: 2.4,
+      sales: 12000,
+      spend: 5000,
+      breakEvenMer: 1.8,
+      spendIncomplete: false,
+      salesFactsIncomplete: false,
+    });
+    expect(v.nextAction).toBeNull();
+  });
+
+describe("CashVerdict tiles while sales facts load", () => {
+  const untrustedTiles = (facts: {
+    sales: number;
+    salesFactsIncomplete: boolean;
+    salesUntrustedZero?: boolean;
+  }) => cashVerdictSalesUntrusted(facts) && !(facts.sales > 0);
+
+  it("marks loading sales as unknown, never as a real $0", () => {
+    expect(
+      untrustedTiles({ sales: 0, salesFactsIncomplete: true }),
+    ).toBe(true);
+    expect(
+      untrustedTiles({
+        sales: 0,
+        salesFactsIncomplete: false,
+        salesUntrustedZero: true,
+      }),
+    ).toBe(true);
+    // Trusted quiet period keeps its real $0.
+    expect(
+      untrustedTiles({ sales: 0, salesFactsIncomplete: false }),
+    ).toBe(false);
+  });
+
+  it("keeps the cash verdict as copy only — no duplicate metric tiles", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const component = readFileSync(
+      join(here, "../components/CashVerdict.tsx"),
+      "utf8",
+    );
+    expect(component).not.toContain("mcfly-cash-verdict__tiles");
+    expect(component).not.toContain("formatCurrency");
+    expect(component).toContain("mcfly-cash-verdict__headline");
+    expect(component).toContain("resolveCashVerdict");
   });
 });

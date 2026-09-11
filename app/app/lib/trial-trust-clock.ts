@@ -12,6 +12,9 @@
 
 import { PRODUCT_NOUN } from "./product-labels";
 
+/** App Store trial window — after this, stop saying “trial” forever. */
+export const TRIAL_TRUST_CLOCK_MS = 7 * 24 * 60 * 60 * 1000;
+
 export type TrialTrustClockInput = {
   useSampleDesk?: boolean;
   shotMode?: boolean;
@@ -23,6 +26,14 @@ export type TrialTrustClockInput = {
   closedDaysInPeriod: number;
   /** Shop has any live (non-sample) spend row. */
   hasLiveSpend: boolean;
+  /**
+   * When the desk already shows the scoreboard, period trust + chips own the
+   * coverage story — do not stack a second “trial” banner above the dial.
+   */
+  scoreboardReady?: boolean;
+  /** Shop install time — past {@link TRIAL_TRUST_CLOCK_MS}, the banner stays off. */
+  installedAt?: Date | string | number | null;
+  now?: Date | string | number;
 };
 
 export type TrialTrustClockNotice = {
@@ -52,20 +63,41 @@ function clampNonNeg(n: number): number {
   return Math.floor(n);
 }
 
+function toEpochMs(value: Date | string | number | null | undefined): number | null {
+  if (value == null) return null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  const ms = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
 /**
  * Info banner for Overview cold empty / trial-adjacent chrome.
- * Hidden on SAMPLE, listing capture, and once the selected period is trusted.
+ * Hidden on SAMPLE, listing capture, trusted periods, ready scoreboards
+ * (period note owns coverage), and after the 7-day trial window.
  */
 export function resolveTrialTrustClock(
   input: TrialTrustClockInput,
 ): TrialTrustClockNotice {
+  const hidden = {
+    show: false,
+    tone: "info" as const,
+    heading: TRIAL_TRUST_CLOCK_HEADING,
+    body: "",
+  };
+
   if (input.useSampleDesk || input.shotMode || input.periodTrusted) {
-    return {
-      show: false,
-      tone: "info",
-      heading: TRIAL_TRUST_CLOCK_HEADING,
-      body: "",
-    };
+    return hidden;
+  }
+  if (input.scoreboardReady) {
+    return hidden;
+  }
+
+  const installedMs = toEpochMs(input.installedAt);
+  const nowMs = toEpochMs(input.now) ?? Date.now();
+  if (installedMs != null && nowMs - installedMs >= TRIAL_TRUST_CLOCK_MS) {
+    return hidden;
   }
 
   const withSpend = clampNonNeg(input.closedDaysWithSpend);

@@ -1,4 +1,4 @@
-/* launch-v4-20260908 · Shopify cash desk chrome. Enterprise/custom is footer-only. */
+/* launch-v15-20260910 · sales-first chrome for legacy site.css pages. Links only to 200 paths. */
 (function () {
   const cta = window.MCFLY_CTA;
   const shopifyPrimary =
@@ -7,7 +7,7 @@
       href: "https://apps.shopify.com/mcfly-analytics-public",
     };
   const shopifySecondary =
-    (cta && cta.secondary()) || { label: "See SAMPLE desk", href: "/product#desk" };
+    (cta && cta.secondary()) || { label: "Try the demo", href: "/demo" };
 
   const chrome = document.querySelector("[data-chrome]");
   if (chrome) {
@@ -19,9 +19,9 @@
     </a>
     <nav class="nav" aria-label="Primary">
       <a href="/product" data-nav="product">Product</a>
+      <a href="/demo" data-nav="demo">Demo</a>
       <a href="/pricing" data-nav="pricing">Pricing</a>
       <a href="/faq" data-nav="faq">FAQ</a>
-      <a href="/support" data-nav="support">Support</a>
       <a class="nav-cta" data-mcfly-cta="primary" rel="noopener" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     </nav>
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
@@ -30,9 +30,11 @@
   </header>
   <div id="mobile-nav" class="mobile-nav" hidden>
     <a href="/product">Product</a>
+    <a href="/demo">Demo</a>
     <a href="/pricing">Pricing</a>
     <a href="/faq">FAQ</a>
     <a href="/support">Support</a>
+    <a href="/about">About</a>
     <a class="mobile-nav__cta" data-mcfly-cta="primary" rel="noopener" href="${shopifyPrimary.href}">${shopifyPrimary.label}</a>
     <a data-mcfly-cta="demo" href="${shopifySecondary.href}">${shopifySecondary.label}</a>
   </div>`;
@@ -49,15 +51,12 @@
       </div>
       <nav aria-label="Footer">
         <a href="/product">Product</a>
-        <a href="/app">What’s in the desk</a>
-        <a href="/product#spend">Add spend</a>
-        <a href="/pricing">Pricing</a>
-        <a href="/about">About</a>
-        <a href="/faq">FAQ</a>
         <a href="/demo">Demo</a>
+        <a href="/pricing">Pricing</a>
+        <a href="/faq">FAQ</a>
+        <a href="/about">About</a>
         <a href="/mer-calculator">ROAS calculator</a>
         <a href="/break-even-roas-calculator">Break-even calculator</a>
-        <a href="/mds-made-easy/">MDS Made Easy</a>
         <a href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener">Install on Shopify</a>
         <a href="/support">Support</a>
         <a href="/privacy">Privacy</a>
@@ -66,7 +65,7 @@
         <a href="/security">Security</a>
         <a href="/dpa">DPA</a>
       </nav>
-      <p class="fine">© <span data-year></span> Mcfly Analytics. Shopify sales next to spend you added. Total ROAS = sales ÷ spend. $39/mo · 7-day trial. Firm: Mcfly Ads.</p>
+      <p class="fine">© <span data-year></span> Mcfly Analytics. Deeper Shopify numbers Analytics does not show — spend optional. $39/store/mo · 7-day trial. Firm: Mcfly Ads.</p>
     </div>
   </footer>`;
   }

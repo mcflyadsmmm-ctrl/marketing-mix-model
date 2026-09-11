@@ -34,7 +34,7 @@ export interface TillLtvSummary {
   avgRevenueD30: number | null;
   avgRevenueD90: number | null;
   avgRevenueD365: number | null;
-  /** Cash CAC = totalSpend / newBuyers when newBuyers > 0. */
+  /** Cash CAC = totalSpend / newBuyers only when period spend is positive. */
   cashCac: number | null;
   /**
    * New-buyer count used for cashCac (OrderFact uniques on live; sample day-sum).
@@ -109,7 +109,9 @@ export function summarizeTillLtvFromCohorts(
 
   const newBuyers = Math.max(0, Math.floor(options.newCustomers));
   const cashCac =
-    newBuyers > 0 && Number.isFinite(options.totalSpend)
+    newBuyers > 0 &&
+    Number.isFinite(options.totalSpend) &&
+    options.totalSpend > 0
       ? options.totalSpend / newBuyers
       : null;
 

@@ -14,6 +14,7 @@
  */
 
 import type { SpendCoverageImpact } from "./cash-desk-copy";
+import { missingDaysCashSentence } from "./cash-desk-copy";
 import { PRODUCT_NOUN } from "./product-labels";
 
 /** One closed day in the coverage strip. Today is never in this list. */
@@ -27,6 +28,8 @@ export type SpendCoverageStage =
   | "complete"
   /** Spend exists, but no *closed* day carries it yet (typed today only). */
   | "no_closed_day"
+  /** Exactly one closed day — the moment worth celebrating. */
+  | "first_day"
   /** The whole ledger is a few days old — holes are history, not neglect. */
   | "first_days"
   /** An established ledger with gaps. */
@@ -40,6 +43,21 @@ export type SpendCoverageStage =
  * ledger as one who typed yesterday.
  */
 export const SPEND_LEDGER_FIRST_DAYS_MAX = 3;
+
+/**
+ * At or below this many holes, typing them is fewer keystrokes than a
+ * download → fill → import round trip, so the typed row stays the primary CTA
+ * even on an established ledger (Track C: typed path primary, CSV second).
+ */
+export const SPEND_TYPED_CATCHUP_MAX = 3;
+
+/**
+ * Where the notice renders. Tone is not free: on Overview a Total ROAS figure
+ * is on screen next to the banner, and `success` there would read as "that
+ * multiple is trustworthy". The Spend desk shows no multiple, so a first day
+ * can be greeted in green without blessing a number.
+ */
+export type SpendCoverageSurface = "spend_desk" | "overview";
 
 export type SpendCoverageCtaTarget = "type_day" | "blanks" | "total_roas";
 
@@ -62,6 +80,14 @@ export type SpendCoverageNotice = {
   statusLine: string;
   primary: SpendCoverageCta;
   secondary: SpendCoverageCta | null;
+  /**
+   * Whether the empty dates belong on screen unasked. A young ledger keeps the
+   * count in the status line and hides the date list behind `missingDatesLabel`
+   * — the full-strip audit is one click away, not a 27-hole wall on arrival.
+   */
+  missingDatesDisclosure: "inline" | "on_request";
+  /** Summary for the collapsed audit. Null when there is nothing to list. */
+  missingDatesLabel: string | null;
   closedDays: number;
   filledDays: number;
   missingDays: number;
@@ -81,6 +107,15 @@ function dayWord(n: number): string {
   return n === 1 ? "day" : "days";
 }
 
+function auditLabel(missing: number): string | null {
+  if (missing <= 0) return null;
+  return missing === 1 ? "See the empty day" : `See the ${missing} empty days`;
+}
+
+/** Each filled day pulls the multiple down toward the till — say that, not "fix". */
+const PROGRESS_TAIL =
+  "Nothing is broken — each day you add pulls the multiple toward cash.";
+
 /**
  * Pick tone + copy for the Spend coverage surfaces.
  *
@@ -88,12 +123,15 @@ function dayWord(n: number): string {
  * @param impact Honest steady-state copy from `formatMissingDaysRoasImpact` —
  *   authoritative for an established ledger, so the numbers in the harsh case
  *   keep exactly one source.
+ * @param surface Which desk is rendering — gates `success` only.
  */
 export function resolveSpendCoverageNotice(input: {
   closedDays: readonly SpendCoverageDay[];
   impact: SpendCoverageImpact;
+  surface?: SpendCoverageSurface;
 }): SpendCoverageNotice {
   const closedDays = input.closedDays;
+  const surface = input.surface ?? "spend_desk";
   const total = closedDays.length;
   const filled = closedDays.filter((d) => d.filled).length;
   const missing = total - filled;
@@ -110,6 +148,8 @@ export function resolveSpendCoverageNotice(input: {
       statusLine: UP_TO_DATE_STATUS,
       primary: { label: PRODUCT_NOUN.openTotalRoas, target: "total_roas" },
       secondary: null,
+      missingDatesDisclosure: "inline",
+      missingDatesLabel: null,
       ...counts,
     };
   }
@@ -124,8 +164,29 @@ export function resolveSpendCoverageNotice(input: {
       note: SPEND_LEDGER_STANDING_ASK,
       statusLine:
         "No finished day has spend yet — Total ROAS needs one closed day",
-      primary: { label: "Add yesterday’s spend", target: "type_day" },
-      secondary: { label: "Download blanks for the empty days", target: "blanks" },
+      primary: { label: "Type yesterday’s spend", target: "type_day" },
+      secondary: { label: "Or download blanks for the empty days", target: "blanks" },
+      missingDatesDisclosure: "on_request",
+      missingDatesLabel: auditLabel(missing),
+      ...counts,
+    };
+  }
+
+  if (filled === 1) {
+    return {
+      stage: "first_day",
+      // Green belongs to the moment the merchant did the ask — and only where
+      // no multiple is on screen to be blessed by it.
+      tone: surface === "spend_desk" ? "success" : "info",
+      showBanner: true,
+      heading: "First spend day is on the desk",
+      body: `One closed day now carries spend, so ${PRODUCT_NOUN.totalRoas} has something to divide. ${missingDaysCashSentence(missing)} ${PROGRESS_TAIL}`,
+      note: SPEND_LEDGER_STANDING_ASK,
+      statusLine: `Ledger started — 1 of ${total} closed ${dayWord(total)} filled`,
+      primary: { label: "Type the next day", target: "type_day" },
+      secondary: { label: "Or download blanks for the empty days", target: "blanks" },
+      missingDatesDisclosure: "on_request",
+      missingDatesLabel: auditLabel(missing),
       ...counts,
     };
   }
@@ -135,15 +196,27 @@ export function resolveSpendCoverageNotice(input: {
       stage: "first_days",
       tone: "info",
       showBanner: true,
-      heading: `Ledger started — ${filled} of ${total} closed ${dayWord(total)} filled`,
-      body: `${filled} ${dayWord(filled)} of spend ${filled === 1 ? "is" : "are"} on the desk. The other ${missing} closed ${dayWord(missing)} still count Shopify sales at $0 spend, so a multiple across all ${total} days reads higher than cash until they are filled. Nothing is broken — each day you add makes the number more honest.`,
+      heading: `Ledger growing — ${filled} of ${total} closed ${dayWord(total)} filled`,
+      body: `${filled} ${dayWord(filled)} of spend are on the desk. ${missingDaysCashSentence(missing)} ${PROGRESS_TAIL}`,
       note: SPEND_LEDGER_STANDING_ASK,
-      statusLine: `Ledger started — ${filled} of ${total} closed ${dayWord(total)} filled`,
-      primary: { label: "Add the next day", target: "type_day" },
-      secondary: { label: "Download blanks for the empty days", target: "blanks" },
+      statusLine: `Ledger growing — ${filled} of ${total} closed ${dayWord(total)} filled`,
+      primary: { label: "Type the next day", target: "type_day" },
+      secondary: { label: "Or download blanks for the empty days", target: "blanks" },
+      missingDatesDisclosure: "on_request",
+      missingDatesLabel: auditLabel(missing),
       ...counts,
     };
   }
+
+  const blanksCta: SpendCoverageCta = {
+    label: input.impact.nextLabel,
+    target: "blanks",
+  };
+  const typedCta: SpendCoverageCta = {
+    label: `Type the missing ${dayWord(missing)}`,
+    target: "type_day",
+  };
+  const typedIsCheaper = missing <= SPEND_TYPED_CATCHUP_MAX;
 
   return {
     stage: "steady",
@@ -154,8 +227,12 @@ export function resolveSpendCoverageNotice(input: {
     body: input.impact.body,
     note: null,
     statusLine: input.impact.heading,
-    primary: { label: input.impact.nextLabel, target: "blanks" },
-    secondary: null,
+    primary: typedIsCheaper ? typedCta : blanksCta,
+    secondary: typedIsCheaper
+      ? blanksCta
+      : { label: "Or type one day now", target: "type_day" },
+    missingDatesDisclosure: "inline",
+    missingDatesLabel: auditLabel(missing),
     ...counts,
   };
 }

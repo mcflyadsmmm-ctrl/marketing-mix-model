@@ -78,4 +78,37 @@ describe("resolveTrialTrustClock", () => {
     expect(notice.body).not.toMatch(/\d+(\.\d+)?\s*×/);
     expect(notice.body).not.toMatch(/3\.00/);
   });
+
+  it("hides once the scoreboard is ready (period note owns coverage)", () => {
+    expect(
+      resolveTrialTrustClock({ ...base, scoreboardReady: true }).show,
+    ).toBe(false);
+  });
+
+  it("hides after the 7-day trial window even with spend gaps", () => {
+    const installedAt = new Date("2026-07-01T12:00:00.000Z");
+    const now = new Date("2026-09-01T12:00:00.000Z");
+    expect(
+      resolveTrialTrustClock({
+        ...base,
+        hasLiveSpend: true,
+        closedDaysWithSpend: 2,
+        closedDaysInPeriod: 7,
+        installedAt,
+        now,
+      }).show,
+    ).toBe(false);
+  });
+
+  it("still teaches inside the trial week on a cold desk", () => {
+    const installedAt = new Date("2026-09-08T12:00:00.000Z");
+    const now = new Date("2026-09-10T12:00:00.000Z");
+    expect(
+      resolveTrialTrustClock({
+        ...base,
+        installedAt,
+        now,
+      }).show,
+    ).toBe(true);
+  });
 });

@@ -102,26 +102,14 @@ export function resolveActivationStep(input: {
 }
 
 /**
- * First Overview load sends a cold live merchant to Spend (paste / CSV).
- * SAMPLE / shot / `?stay=1` never bounce. Once live spend exists, stay on the desk.
+ * Sales-first: Overview never bounces cold merchants to Spend.
+ * Shopify order economics paint first; spend is a secondary unlock for Total ROAS.
+ * `resolveActivationStep` still teaches Spend as the next action inside the guide.
+ * SAMPLE / shot / non-Overview paths stay no-ops (legacy `?stay=1` ignored).
  */
 export function firstOpenRedirect(input: FirstOpenRedirectInput): string | null {
-  if (input.shotMode || input.useSampleDesk) return null;
-  if (input.pathname !== "/app") return null;
-  const params = searchParams(input.search);
-  if (params.get("stay") === "1") return null;
-
-  const step = resolveActivationStep(input);
-  switch (step) {
-    case "spend":
-      return withParams("/app/spend", input.search, { activate: "1" });
-    case "desk":
-      return null;
-    default: {
-      const _exhaustive: never = step;
-      return _exhaustive;
-    }
-  }
+  void input;
+  return null;
 }
 
 export function isActivationQuery(search?: string): boolean {
@@ -133,44 +121,47 @@ export function spendSkipHref(search?: string): string {
 }
 
 /**
- * Teaching Spend empty — the typed one-day row first, CSV/template second.
- * Nothing here needs a download. Never a Pro wall.
+ * Teaching Spend empty — bill → daily rows is primary (trial-week coverage).
+ * Typed one-day is secondary; CSV/template is tertiary. Never a Pro wall.
  */
 export function spendEmptyTeach(options?: {
   /** Anchor / route for the typed date + amount + channel row. */
   typeHref?: string;
   templateHref?: string;
+  /** Jump to bill → daily rows (fastest path to trusted coverage). */
+  billHref?: string;
   /** After Sample → Real with no live spend yet. */
   justSwitchedReal?: boolean;
 }): SpendEmptyTeach {
-  const primaryHref = options?.typeHref ?? "#mcfly-spend-day";
-  const secondaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
+  const typeHref = options?.typeHref ?? "#mcfly-spend-day";
+  const billHref = options?.billHref ?? "#mcfly-spend-bill";
+  const tertiaryHref = options?.templateHref ?? "/app/spend/template?blank=1";
   const shared = {
-    primaryLabel: "Type one day",
-    primaryHref,
-    secondaryLabel: "Download blank template",
-    secondaryHref,
+    primaryLabel: "Spread a bill across its days",
+    primaryHref: billHref,
+    secondaryLabel: "Type one day",
+    secondaryHref: typeHref,
   };
   if (options?.justSwitchedReal) {
     return {
       ...shared,
-      heading: "Real store is on — type one day next",
-      body: `Type the day, the amount, and the channel below — no file. ${PRODUCT_NOUN.definition}.`,
+      heading: "Real store is on — get coverage on the desk",
+      body: `Spread a Meta/Google invoice across its days so Total ROAS is not waiting on 14 hand-typed rows — or type one day below to see the multiple now. ${PRODUCT_NOUN.definition}.`,
       steps: [
-        "Type day + amount + channel, then Save this day.",
-        "Same day + channel replaces — it never doubles.",
+        "Fastest coverage: spread a monthly bill across its days — saved in one step.",
+        "Or type day + amount + channel, then Save this day.",
         `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
       ],
     };
   }
   return {
     ...shared,
-    heading: "Type one day — no file needed",
-    body: `Fastest path to ${PRODUCT_NOUN.totalRoas}: type one day's spend below (day + amount + channel). ${PRODUCT_NOUN.definition}. No download, no ad-network login.`,
+    heading: "Get spend coverage — spread a bill or type one day",
+    body: `Operators making real budget calls need coverage inside the trial week, not a 27-hole wall. Spread a monthly or quarterly invoice across its days so the multiple is honest — or type one day to see Total ROAS now. ${PRODUCT_NOUN.definition}. No ad-network login.`,
     steps: [
-      "Type day + amount + channel, then Save this day.",
-      "Backfilling months? Paste rows or import a CSV below — or use the blank template.",
-      "Need Ads Manager exports? Open the platform playbook for Meta / Google daily cost.",
+      "Have an invoice? Spread a bill across its days (below) — one save, no file.",
+      "Have one number? Type day + amount + channel, then Save this day.",
+      "Backfilling months? Paste rows or CSV — blank template if you need a shape.",
       `Open ${PRODUCT_NOUN.totalRoas} — Shopify sales ÷ that spend.`,
     ],
   };

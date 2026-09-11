@@ -1326,6 +1326,20 @@
   max-width: 42em;
 }
 
+.mcfly-state__content {
+  flex: 1 1 16rem;
+}
+
+.mcfly-state__heading {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.mcfly-state__content .mcfly-state__copy {
+  max-width: none;
+}
+
 .mcfly-state__cta {
   flex: 0 0 auto;
 }
@@ -4869,6 +4883,58 @@
   color: var(--mcfly-mute);
 }
 
+/* The cut/keep call — dollars first, floor next to it */
+.mcfly-alloc-v2__call {
+  margin: 0.15rem 0 0.65rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--mcfly-line-soft);
+  background: #fff;
+}
+
+.mcfly-alloc-v2__call--cut {
+  border-color: #fde7c4;
+  background: #fffbeb;
+}
+
+.mcfly-alloc-v2__call--keep {
+  border-color: #cfe8d6;
+  background: #f4fbf6;
+}
+
+.mcfly-alloc-v2__call-head {
+  margin: 0;
+  font-family: var(--mcfly-display, Georgia, serif);
+  font-size: 1.02rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-alloc-v2__call-keep {
+  margin: 0.3rem 0 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-alloc-v2__call-meta {
+  margin: 0.3rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-alloc-v2__sub {
+  margin: 0.6rem 0 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--mcfly-ink-soft);
+}
+
 .mcfly-alloc-v2__quarters,
 .mcfly-alloc-v2__mix,
 .mcfly-alloc-v2__rolling {
@@ -6834,33 +6900,100 @@
   }
 }
 
-/* Bill → daily (invoice spread onto cash-desk days) */
+/* Bill → daily rows. First run leads with this card: one invoice total in,
+   one row per day out, and the only primary button on the screen. Folded to a
+   one-line summary once the desk has spend. */
 .mcfly-spend-bill {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   scroll-margin-top: 1rem;
-  margin-bottom: 0.75rem;
 }
 
-.mcfly-spend-bill__panel {
-  border-color: var(--mcfly-line-soft);
-  box-shadow: none;
+.mcfly-spend-bill--first-run {
+  padding: 1.05rem 1.15rem 1rem;
+  border: 1px solid var(--mcfly-line-soft, #d8e0e8);
+  border-left: 3px solid var(--mcfly-accent, #0284c7);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--mcfly-shadow);
+}
+
+.mcfly-spend-bill--quiet {
+  gap: 0;
+}
+
+.mcfly-spend-bill__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mcfly-spend-bill__fold {
+  border: 1px solid var(--mcfly-line-soft, #e2e8f0);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.mcfly-spend-bill__fold > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-spend-bill__fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcfly-spend-bill__fold > summary::before {
+  content: "▸ ";
+  color: var(--mcfly-mute);
+  font-size: 0.72rem;
+}
+
+.mcfly-spend-bill__fold[open] > summary::before {
+  content: "▾ ";
+}
+
+.mcfly-spend-bill__fold-body {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+.mcfly-spend-bill__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--mcfly-mute);
+  line-height: 1.4;
+}
+
+.mcfly-spend-bill__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .mcfly-spend-bill__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 0.75rem 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.5rem 0.6rem;
   align-items: end;
 }
 
 .mcfly-spend-bill__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+  display: grid;
+  gap: 0.15rem;
   margin: 0;
   min-width: 0;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--mcfly-mute, #64748b);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .mcfly-spend-bill__field--wide {
@@ -6871,17 +7004,23 @@
 .mcfly-spend-bill__field .mcfly-field {
   width: 100%;
   max-width: none;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--mcfly-ink, #0f172a);
 }
 
+/* What the save writes — daily rate, then coverage in closed days. */
 .mcfly-spend-bill__preview {
-  padding: 0.75rem 0.85rem;
+  padding: 0.7rem 0.8rem;
   border-radius: 8px;
   border: 1px solid var(--mcfly-line-soft);
   background: var(--mcfly-accent-soft, #e8f2fa);
 }
 
 .mcfly-spend-bill__preview-title {
-  margin: 0 0 0.45rem;
+  margin: 0 0 0.35rem;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -6889,13 +7028,36 @@
   color: var(--mcfly-mute);
 }
 
-.mcfly-spend-bill__metrics {
+.mcfly-spend-bill__period {
   margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
 }
 
-.mcfly-spend-bill__period {
-  font-size: 1.05rem !important;
-  letter-spacing: -0.01em;
+.mcfly-spend-bill__coverage {
+  margin: 0.3rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-spend-bill__coverage-note {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--mcfly-mute);
+  line-height: 1.4;
+}
+
+.mcfly-spend-bill__error {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mcfly-lie, #b42318);
 }
 
 .mcfly-spend-bill__actions {
@@ -6903,6 +7065,13 @@
   flex-wrap: wrap;
   gap: 0.55rem;
   align-items: center;
+}
+
+.mcfly-spend-bill__note {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--mcfly-mute, #64748b);
+  line-height: 1.35;
 }
 
 /* —— Goals tab (sales $ vs till + Total ROAS) —— */
@@ -9282,7 +9451,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   display: none !important;
 }
 
-/* Global Sample | Real store bar (every app page) */
+/* SAMPLE warning chrome (only when practice desk is on; live desk stays quiet) */
 .mcfly-data-mode {
   margin: 0 0 0.85rem;
   padding: 0.65rem 0.85rem;
@@ -9538,7 +9707,7 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-roas-gauge__dial {
   position: relative;
   width: 100%;
-  max-width: 11.5rem;
+  max-width: 15rem;
 }
 
 .mcfly-roas-gauge__svg {
@@ -9576,13 +9745,14 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   top: 62%;
   transform: translate(-50%, -50%);
   margin: 0;
-  font-size: 1.55rem;
+  font-size: clamp(2.75rem, 5vw, 3.5rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
   line-height: 1;
   color: var(--mcfly-ink, #1a2330);
   pointer-events: none;
+  font-family: var(--mcfly-display, "Fraunces", "Iowan Old Style", Georgia, serif);
 }
 
 .mcfly-hero-compact__status--gauge .mcfly-hero-compact__actions {
@@ -9835,96 +10005,74 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   gap: 0.4rem;
 }
 
-.mcfly-spend-lean__bill {
-  margin: 0.15rem 0 0;
-  border-top: 1px dashed var(--mcfly-line-soft);
-  padding-top: 0.45rem;
+/* First run: the bill card is the only paper with an accent edge, so the
+   frame above it and the paths below it read as secondary at a glance. */
+.mcfly-spend-lean__stack--first-run {
+  gap: 1rem;
 }
 
-.mcfly-spend-lean__bill > summary {
+.mcfly-spend-teach--lede {
+  margin: 0 0 0.35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.mcfly-spend-lean__handoff {
+  margin: 0.15rem 0 -0.35rem;
+  font-size: 0.85rem;
+  color: var(--mcfly-mute, #64748b);
+  line-height: 1.4;
+}
+
+.mcfly-spend-day--quiet {
+  border: 1px solid var(--mcfly-line-soft, #d8e0e8);
+  background: #fcfdfe;
+}
+
+.mcfly-spend-lean__upload--fold > details {
+  border: 1px solid var(--mcfly-line-soft, #e2e8f0);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.mcfly-spend-lean__upload--fold > details > summary {
   cursor: pointer;
   list-style: none;
-  font-size: 0.78rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
   font-weight: 650;
   color: var(--mcfly-ink);
 }
 
-.mcfly-spend-lean__bill > summary::-webkit-details-marker {
+.mcfly-spend-lean__upload--fold > details > summary::-webkit-details-marker {
   display: none;
 }
 
-.mcfly-spend-lean__bill > summary::before {
+.mcfly-spend-lean__upload--fold > details > summary::before {
   content: "▸ ";
   color: var(--mcfly-mute);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
 }
 
-.mcfly-spend-lean__bill[open] > summary::before {
+.mcfly-spend-lean__upload--fold > details[open] > summary::before {
   content: "▾ ";
 }
 
-.mcfly-spend-lean__bill-body {
-  display: grid;
-  gap: 0.45rem;
-  margin-top: 0.45rem;
+.mcfly-spend-lean__upload-body {
+  padding: 0 0.75rem 0.75rem;
 }
 
-.mcfly-spend-lean__bill-hint {
-  margin: 0;
-  font-size: 0.7rem;
-  color: var(--mcfly-mute);
-  line-height: 1.35;
-}
 
-.mcfly-spend-lean__bill-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem 0.55rem;
-}
 
-@media (max-width: 520px) {
-  .mcfly-spend-lean__bill-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
-.mcfly-spend-lean__bill-field {
-  display: grid;
-  gap: 0.15rem;
-  min-width: 0;
-  font-size: 0.68rem;
-  font-weight: 650;
-  color: var(--mcfly-mute);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
 
-.mcfly-spend-lean__bill-field--wide {
-  grid-column: 1 / -1;
-}
 
-.mcfly-spend-lean__bill-field .mcfly-field {
-  text-transform: none;
-  letter-spacing: 0;
-  font-weight: 500;
-  font-size: 0.85rem;
-  color: var(--mcfly-ink);
-}
 
-.mcfly-spend-lean__bill-preview {
-  margin: 0;
-  font-size: 0.78rem;
-  font-weight: 650;
-  color: var(--mcfly-ink);
-  font-variant-numeric: tabular-nums;
-}
 
-.mcfly-spend-lean__bill-error {
-  margin: 0;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--mcfly-lie, #b42318);
-}
+
+
+
 
 .mcfly-spend-lean__template-row {
   display: flex;
@@ -10207,6 +10355,27 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   line-height: 1.35;
 }
 
+.mcfly-spend-lean__audit > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-spend-lean__audit > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcfly-spend-lean__audit > summary::before {
+  content: "▸ ";
+  font-size: 0.7rem;
+}
+
+.mcfly-spend-lean__audit[open] > summary::before {
+  content: "▾ ";
+}
+
 .mcfly-spend-lean__linkish {
   appearance: none;
   border: 0;
@@ -10311,6 +10480,16 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   color: var(--mcfly-ink-soft);
 }
 
+.mcfly-cash-verdict__action {
+  margin-top: 0.75rem;
+}
+
+.mcfly-cash-verdict__action s-button,
+.mcfly-cash-verdict__action .mcfly-cash-verdict__action-btn {
+  /* Polaris s-button owns chrome; keep spacing only */
+}
+
+
 .mcfly-cash-verdict__tiles {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -10368,4 +10547,377 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   font-size: 0.88rem;
   font-weight: 650;
   color: var(--mcfly-mute);
+}
+
+
+
+/* Order economics — till band under the scoreboard (metrics composition).
+   Same paper, hairlines, tints and type ramp as the dial band above and the
+   LTV band below, so Overview reads as one till instead of stacked cards.
+   Desk ink tokens only — no second green palette. */
+.mcfly-order-econ {
+  margin: 0;
+  padding: 0.8rem 0.9rem 0.85rem;
+  border-radius: 14px;
+  border: 1px solid var(--mcfly-line-soft);
+  background: linear-gradient(165deg, #fff 0%, var(--mcfly-tint-sales) 100%);
+  box-shadow: var(--mcfly-shadow);
+}
+.mcfly-order-econ__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.15rem 1rem;
+}
+.mcfly-order-econ__headline {
+  min-width: 0;
+}
+.mcfly-order-econ__kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+/* Band scale, not hero scale — the dial keeps the biggest number on Overview. */
+.mcfly-order-econ__title {
+  margin: 0.12rem 0 0;
+  font-family: var(--mcfly-display, Georgia, serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--mcfly-ink);
+}
+.mcfly-order-econ__facts {
+  margin: 0;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-mute);
+  white-space: nowrap;
+}
+.mcfly-order-econ__lede {
+  margin: 0.3rem 0 0.65rem;
+  max-width: 60ch;
+  font-size: 0.79rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+}
+.mcfly-order-econ__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.mcfly-order-econ__tile {
+  padding: 0.6rem 0.7rem 0.65rem;
+  border-radius: 10px;
+  background: var(--mcfly-paper);
+  border: 1px solid var(--mcfly-line-soft);
+}
+/* Spend-side metric keeps the spend tint it has on the scoreboard above. */
+.mcfly-order-econ__tile--accent {
+  background: var(--mcfly-tint-spend);
+  border-color: color-mix(in srgb, var(--mcfly-warn) 16%, transparent);
+}
+.mcfly-order-econ__label {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+.mcfly-order-econ__value {
+  margin: 0.12rem 0 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+.mcfly-order-econ__hint {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+.mcfly-order-econ__unlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+.mcfly-order-econ__unlock-copy {
+  margin: 0;
+  flex: 1 1 24rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--mcfly-ink-soft);
+}
+.mcfly-order-econ__unlock-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+@media (max-width: 720px) {
+  .mcfly-order-econ__grid { grid-template-columns: 1fr; }
+  .mcfly-order-econ__facts { white-space: normal; }
+}
+
+
+/* === Overview scoreboard craft 2026-09-10 ===
+   Listing parity: docs/listing-assets/shots/01-total-roas-vs-breakeven.png.
+   Three-up till (dial · Shopify Total Sales · Total Spend), one type ramp,
+   one band rhythm, one primary. Polaris paper + soft sales/spend tints. */
+
+/* Band rhythm — the desk grid owns vertical gaps; bands stop adding their own. */
+.mcfly-desk {
+  gap: 0.85rem;
+}
+
+/* The religion line under the context bar reads as a sentence, not a stamp —
+   a 60-character definition in all-caps is the least legible line on Overview. */
+.mcfly-topbar__def--solo {
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-transform: none;
+}
+
+.mcfly-desk > .mcfly-cash-verdict,
+.mcfly-desk > .mcfly-hero-compact,
+.mcfly-desk > .mcfly-order-econ,
+.mcfly-desk > .mcfly-tab-snaps,
+.mcfly-desk > .mcfly-me-spine--later {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* The band is a quiet frame; the three tiles carry the tint. */
+.mcfly-hero-compact.mcfly-hero-compact--v2 {
+  grid-template-columns: minmax(17rem, 1fr) minmax(0, 1.7fr);
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-color: var(--mcfly-line-soft);
+  background: var(--mcfly-paper);
+}
+
+.mcfly-hero-compact--v2 .mcfly-hero-compact__pair {
+  gap: 0.5rem;
+}
+
+.mcfly-hero-compact--v2 .mcfly-hero-compact__status--gauge,
+.mcfly-hero-compact--v2 .mcfly-hero-compact__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  padding: 0.7rem 0.75rem 0.65rem;
+  border-radius: 10px;
+  min-width: 0;
+}
+
+.mcfly-hero-compact--v2 .mcfly-hero-compact__status--gauge {
+  gap: 0.35rem;
+  background: var(--mcfly-tint-sky);
+  border: 1px solid color-mix(in srgb, var(--mcfly-accent) 12%, transparent);
+}
+
+/* Untrusted zero swaps the dial for a warning banner — drop the tint so the
+   banner is not a card inside a card. Older engines keep the tinted tile. */
+.mcfly-hero-compact--v2
+  .mcfly-hero-compact__status--gauge:not(:has(.mcfly-roas-gauge)) {
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
+}
+
+.mcfly-hero-compact__tile--sales {
+  border-color: color-mix(in srgb, var(--mcfly-truth) 14%, transparent);
+}
+
+.mcfly-hero-compact__tile--spend {
+  border-color: color-mix(in srgb, var(--mcfly-warn) 16%, transparent);
+}
+
+/* Dial column: definition under the arc (no card-in-card sliver that wraps
+   every three words), actions pinned to the card floor. */
+.mcfly-hero-compact__status--gauge .mcfly-roas-gauge--with-def {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem;
+}
+
+.mcfly-hero-compact__status--gauge .mcfly-roas-gauge__aside {
+  padding: 0.45rem 0 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-accent) 16%, transparent);
+  border-radius: 0;
+  background: transparent;
+  gap: 0.15rem;
+  text-align: left;
+}
+
+.mcfly-roas-gauge__kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.mcfly-roas-gauge__dial {
+  max-width: 10.5rem;
+}
+
+/* Biggest number on the desk — the till answer, then sales and spend. */
+.mcfly-roas-gauge__value {
+  font-size: 1.8rem;
+}
+
+.mcfly-roas-gauge__delta {
+  font-size: 0.74rem;
+  color: var(--mcfly-ink-soft);
+}
+
+.mcfly-roas-gauge__delta + .mcfly-roas-gauge__delta {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-roas-gauge__formula {
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.mcfly-roas-gauge__aside-meta {
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.mcfly-hero-compact__status--gauge .mcfly-hero-compact__actions {
+  justify-content: flex-start;
+  gap: 0.35rem;
+  margin-top: auto;
+  padding-top: 0.55rem;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-accent) 16%, transparent);
+}
+
+/* Type ramp: dial value → tile values → labels → meta → deltas. */
+.mcfly-hero-compact__kicker,
+.mcfly-hero-compact__label {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.mcfly-hero-compact__value {
+  margin: 0.1rem 0 0.1rem;
+  font-size: clamp(1.4rem, 2.2vw, 1.7rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+.mcfly-hero-compact__meta,
+.mcfly-hero-compact__def {
+  font-size: 0.73rem;
+  line-height: 1.4;
+}
+
+.mcfly-hero-compact__delta {
+  margin-top: 0.08rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink-soft);
+}
+
+/* Both tiles bottom out on a list, so the pair reads as a till receipt
+   instead of one dense card next to an empty tinted panel. */
+.mcfly-hero-compact__tile .mcfly-kpi-channels,
+.mcfly-hero-compact__tile .mcfly-kpi-facts {
+  margin-top: auto;
+  padding-top: 0.45rem;
+}
+
+.mcfly-hero-compact__tile--spend .mcfly-kpi-channels {
+  gap: 0.26rem;
+  border-top-color: color-mix(in srgb, var(--mcfly-warn) 22%, transparent);
+}
+
+.mcfly-hero-compact__tile--sales .mcfly-kpi-facts {
+  border-top-color: color-mix(in srgb, var(--mcfly-truth) 20%, transparent);
+}
+
+.mcfly-kpi-channels--scroll {
+  max-height: 8.6rem;
+}
+
+.mcfly-kpi-channels__name {
+  font-size: 0.735rem;
+  color: var(--mcfly-ink-soft);
+}
+
+.mcfly-kpi-channels__amt {
+  font-size: 0.735rem;
+  font-weight: 650;
+}
+
+.mcfly-kpi-channels__share {
+  font-size: 0.7rem;
+}
+
+/* Sales-side till rows — same row grammar as the channel list. */
+.mcfly-kpi-facts {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.45rem 0 0;
+  padding: 0.45rem 0 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-kpi-facts__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mcfly-kpi-facts__name {
+  font-size: 0.735rem;
+  color: var(--mcfly-ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mcfly-kpi-facts__amt {
+  font-size: 0.735rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+  flex-shrink: 0;
+}
+
+.mcfly-hero-compact__dive {
+  margin: 0.45rem 0 0;
+  font-size: 0.74rem;
+}
+
+/* Narrow Admin (mobile embed): the till stacks — dial, then sales, then spend.
+   Restated after the wide grid above so the three-up never traps a phone. */
+@media (max-width: 900px) {
+  .mcfly-hero-compact.mcfly-hero-compact--v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .mcfly-hero-compact--v2 .mcfly-hero-compact__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

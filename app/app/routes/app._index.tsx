@@ -31,11 +31,13 @@ import {
   marginIsConfirmed,
 } from "../lib/mer-dashboard.server";
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
+import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
 import { HabitNudge } from "../components/HabitNudge";
 import {
   firstSessionPrimaryAction,
   resolveFirstSessionPath,
 } from "../lib/first-session-path";
+import { resolveOrderEconomics } from "../lib/order-economics";
 import { decideHabitNudgeEligible } from "../lib/habit-nudge";
 import {
   decideReviewAsk,
@@ -53,6 +55,7 @@ import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { SPEND_BILL_ANCHOR } from "../lib/spend-first-run";
 import { OVERVIEW_TOTAL_ROAS_DEFINITION } from "../lib/overview-roas-definition";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
@@ -91,7 +94,10 @@ import {
   FIRST_PAINT_SALES_BACKFILL_DAYS,
   enqueueSalesFactsBackfill,
 } from "../lib/sales-backfill-kick.server";
-import { resolveTrustedRoasHero } from "../lib/trusted-roas-hero";
+import {
+  resolveTrustedRoasHero,
+  shouldHeroNumericRoas,
+} from "../lib/trusted-roas-hero";
 import {
   parsePeriodPreset,
   periodMayExceedShopifyOrderWindow,
@@ -191,6 +197,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let todaySalesUnavailable = false;
   let todaySalesTruncated = false;
   let salesByDay = new Map<string, number>();
+  /** Period-scoped day sales for order economics — never the explorer window alone. */
+  let periodSalesByDay = new Map<string, number>();
   let explorerCustomers = {
     newCustomers: 0,
     returningCustomers: 0,
@@ -229,7 +237,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ]);
     sales = sampleSales;
     priorSales = { totalSales: samplePrior.totalSales };
-    salesByDay = await fetchSampleSalesByDay(shop.id, dayFetchRange);
+    const [sampleExplorerDays, samplePeriodDays] = await Promise.all([
+      fetchSampleSalesByDay(shop.id, dayFetchRange),
+      fetchSampleSalesByDay(shop.id, range),
+    ]);
+    salesByDay = sampleExplorerDays;
+    periodSalesByDay = samplePeriodDays;
     explorerCustomers = {
       newCustomers: sampleExplorer.newCustomers,
       returningCustomers: sampleExplorer.returningCustomers,
@@ -369,9 +382,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     try {
-      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange, ianaTimezone);
+      const [explorerDays, periodDays] = await Promise.all([
+        getSalesFactsByDay(shop.id, dayFetchRange, ianaTimezone),
+        getSalesFactsByDay(shop.id, range, ianaTimezone),
+      ]);
+      salesByDay = explorerDays;
+      periodSalesByDay = periodDays;
     } catch {
       salesByDay = new Map();
+      periodSalesByDay = new Map();
     }
     // Explorer new/returning needs a unique cross-day crawl — refused on paint.
     explorerCustomers = {
@@ -458,8 +477,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     closedDays: salesFactsCoverageForBanner?.expectedClosedDays ?? 0,
   });
 
+  const periodTz = useSampleDesk ? null : ianaTimezone;
+  const periodStartKey = periodTz
+    ? shopLocalDayKey(range.start, periodTz)
+    : dateKeyFromLocal(range.start);
+  const periodEndKey = periodTz
+    ? shopLocalDayKey(range.end, periodTz)
+    : dateKeyFromLocal(range.end);
+
+  const orderEconomics = resolveOrderEconomics({
+    sales: metrics.sales,
+    orderCount: metrics.orderCount,
+    salesByDay: periodSalesByDay,
+    periodStartKey,
+    periodEndKey,
+    newCustomerSales: metrics.newCustomerNetSales,
+    returningCustomerSales: metrics.returningCustomerNetSales,
+    totalSpend: metrics.totalSpend,
+  });
+
+
   return {
     metrics,
+    orderEconomics,
     salesError,
     todaySalesUnavailable,
     todaySalesTruncated,
@@ -484,6 +524,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
     shopDomain: session.shop,
     periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
+    installedAt: shop.createdAt.toISOString(),
     reviewAskEligible: decideReviewAsk({
       useSampleDesk,
       trustedMer: isTrustedMer({
@@ -521,6 +562,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Dashboard() {
   const {
     metrics,
+    orderEconomics,
     preset,
     salesError,
     todaySalesUnavailable,
@@ -541,6 +583,7 @@ export default function Dashboard() {
     hasLiveSpend,
     hasReadAllOrders,
     shopDomain,
+    installedAt,
     periodWiderThanRecentWindow,
     reviewAskEligible,
   } = useLoaderData<typeof loader>();
@@ -583,7 +626,9 @@ export default function Dashboard() {
   });
   const coldEmpty = firstSession.showColdEmpty;
   // Cash MER paints once any live spend exists — margin only unlocks break-even.
-  const scoreboardReady = !coldEmpty && !salesError;
+  const salesDeskReady = !salesError;
+  // Total ROAS scoreboard still needs spend; sales desk does not.
+  const scoreboardReady = !coldEmpty && salesDeskReady;
   const periodUncovered =
     Boolean(salesFactsCoverage?.periodExceedsFactWindow) ||
     (!hasReadAllOrders && periodWiderThanRecentWindow);
@@ -595,6 +640,12 @@ export default function Dashboard() {
     periodUncovered,
     useSampleDesk,
     periodPreset: preset,
+  });
+  const heroNumericRoas = shouldHeroNumericRoas({
+    hideUntrustedZero: trustedHero.hideUntrustedZero,
+    periodSpend: metrics.totalSpend,
+    useSampleDesk,
+    shotMode,
   });
   const factsIncompleteForTrust = factsIncompleteForHonesty;
   const periodTrust = resolvePeriodTrust({
@@ -616,6 +667,9 @@ export default function Dashboard() {
     closedDaysWithSpend: metrics.spendCoverage?.daysWithSpend ?? 0,
     closedDaysInPeriod: metrics.spendCoverage?.daysInPeriod ?? 0,
     hasLiveSpend,
+    scoreboardReady,
+    installedAt,
+    now: new Date(),
   });
   // L10: calm Monday habit after first trusted Total ROAS (not critical budget).
   const habitNudgeEligible = decideHabitNudgeEligible({
@@ -681,8 +735,6 @@ export default function Dashboard() {
   });
 
   /** Love-V1: split above/below so budgeted banners are not double-mounted. */
-  const showTrustAbove =
-    coldEmpty || (!scoreboardReady && !useSampleDesk);
   const showTrustBelow = !coldEmpty;
   const trustBannerProps = {
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
@@ -732,6 +784,28 @@ export default function Dashboard() {
     hasReadAllOrders,
   };
 
+  /*
+   * VISUAL §2.3 — one primary per visible context. The desk body already owns
+   * the spend primary in the first viewport (hero cluster when the scoreboard
+   * paints, the till unlock when cold, Retry when sales failed), so the page
+   * slot keeps the action reachable at Admin level without a second dark CTA.
+   * SAMPLE → Real is a mode switch, not a duplicate — it stays primary.
+   */
+  const bodyOwnsPrimary =
+    !shotMode &&
+    (Boolean(salesError) || (coldEmpty ? salesDeskReady : scoreboardReady));
+  const pageActionVariant =
+    bodyOwnsPrimary && primaryAction.postIntent !== "use-real"
+      ? "secondary"
+      : "primary";
+
+  // Critical honesty (below break-even / mock-as-live) must sit ABOVE the dial.
+  const showTrustAbove =
+    coldEmpty ||
+    (!scoreboardReady && !useSampleDesk) ||
+    Boolean(trustBannerProps.blockedMockAsLive) ||
+    Boolean(trustBannerProps.belowBreakEven);
+
   return (
     <s-page heading={PRODUCT_NOUN.deskTitle} inlineSize="large">
       {!shotMode &&
@@ -756,7 +830,7 @@ export default function Dashboard() {
       ) : !shotMode ? (
         <s-button
           slot="primary-action"
-          variant="primary"
+          variant={pageActionVariant}
           href={primaryAction.href}
           aria-label={primaryAction.label}
         >
@@ -833,9 +907,6 @@ export default function Dashboard() {
             >
               {freshLabel}
             </span>
-            {!shotMode && scoreboardReady ? (
-              <s-link href="/app/spend#mcfly-spend-uploads">Update spend</s-link>
-            ) : null}
             {trustedHero.kind === "pick_covered_period" ? (
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-eq__meta--trust">
                 Period not covered
@@ -877,8 +948,8 @@ export default function Dashboard() {
               className="mcfly-decision__actions"
               style={{ marginTop: "0.65rem" }}
             >
-              <s-button href="/app/spend" variant="primary">
-                {hasLiveSpend ? "Fill spend gaps" : PRODUCT_NOUN.setupAddSpend}
+              <s-button href={`/app/spend#${SPEND_BILL_ANCHOR}`} variant="secondary">
+                {hasLiveSpend ? "Fill spend gaps" : PRODUCT_NOUN.setupSpreadBill}
               </s-button>
             </div>
           </s-banner>
@@ -888,8 +959,23 @@ export default function Dashboard() {
           <PeriodTrustNote trust={periodTrust} />
         ) : null}
 
-        {/* Love-UX1: dismissible Setup Guide on cold Overview Home (Judge.me). */}
-        {coldEmpty ? <FirstSessionGuide path={firstSession} /> : null}
+        {/* Sales-first: order economics before spend ritual (cold desk). */}
+                {coldEmpty && !shotMode && salesDeskReady ? (
+          <OrderEconomicsPanel
+            economics={orderEconomics}
+            periodLabel={metrics.period.label}
+            showSpendUnlock
+          />
+        ) : null}
+
+        {/*
+          CEO desk: when order economics already owns the spend unlock primary,
+          skip the Setup Guide so the first viewport has one button — not two.
+          Guide stays for the no-orders cold path.
+        */}
+        {coldEmpty && !(salesDeskReady && !shotMode) ? (
+          <FirstSessionGuide path={firstSession} />
+        ) : null}
 
         {!coldEmpty ? (
           <>
@@ -942,7 +1028,7 @@ export default function Dashboard() {
                         </s-button>
                       </div>
                     </s-banner>
-                  ) : (
+                  ) : heroNumericRoas ? (
                     <TotalRoasGauge
                       mer={trustedHero.mer}
                       targetMer={
@@ -951,15 +1037,29 @@ export default function Dashboard() {
                       periodTrusted={periodTrust.trusted}
                       deltaLine={merDeltaLine}
                     />
-                  )}
-                  {/* Love-V2 / VISUAL P0.3: one primary in this cluster — Update spend. */}
-                  <div className="mcfly-hero-compact__actions">
-                    <s-button
-                      href="/app/spend#mcfly-spend-uploads"
-                      variant="primary"
+                  ) : (
+                    <s-banner
+                      tone="info"
+                      heading={`${PRODUCT_NOUN.totalRoas} needs spend next to sales`}
                     >
-                      Update spend
-                    </s-button>
+                      <s-paragraph>
+                        Shopify sales are on this desk. {PRODUCT_NOUN.totalRoas}{" "}
+                        is sales ÷ spend — without a period denominator there is
+                        no multiple, not 0.00×.
+                      </s-paragraph>
+                    </s-banner>
+                  )}
+                  {/* Love-V2 / VISUAL P0.3: one primary in this cluster — Update spend.
+                      Untrusted zero hands that one primary to the banner above. */}
+                  <div className="mcfly-hero-compact__actions">
+                    {trustedHero.hideUntrustedZero ? null : (
+                      <s-button
+                        href="/app/spend#mcfly-spend-uploads"
+                        variant="primary"
+                      >
+                        Update spend
+                      </s-button>
+                    )}
                     {metrics.cashActionReady ? (
                       <s-button href="/app/goals" variant="secondary">
                         {PRODUCT_NOUN.setupSetGoals}
@@ -1010,9 +1110,36 @@ export default function Dashboard() {
                           ? "Sales facts still loading for this period"
                           : PRODUCT_NOUN.totalSalesHeroHint}
                     </p>
-                    {trustedHero.hideUntrustedZero ? null : (
-                      <p className="mcfly-hero-compact__meta">{salesDeltaLine}</p>
-                    )}
+                    {!trustedHero.hideUntrustedZero && deltas ? (
+                      <p className="mcfly-hero-compact__meta mcfly-hero-compact__delta">
+                        {salesDeltaLine}
+                      </p>
+                    ) : null}
+                    {/* Till rows keep the sales card as dense as the spend card. */}
+                    {!trustedHero.hideUntrustedZero &&
+                    metrics.orderCount > 0 ? (
+                      <ul
+                        className="mcfly-kpi-facts"
+                        aria-label={`Order facts · ${metrics.period.label}`}
+                      >
+                        <li className="mcfly-kpi-facts__row">
+                          <span className="mcfly-kpi-facts__name">Orders</span>
+                          <span className="mcfly-kpi-facts__amt">
+                            {metrics.orderCount.toLocaleString()}
+                          </span>
+                        </li>
+                        <li className="mcfly-kpi-facts__row">
+                          <span className="mcfly-kpi-facts__name">
+                            Avg order value
+                          </span>
+                          <span className="mcfly-kpi-facts__amt">
+                            {formatCurrency(
+                              totalSalesDisplay / metrics.orderCount,
+                            )}
+                          </span>
+                        </li>
+                      </ul>
+                    ) : null}
                   </div>
                   <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
                     <p className="mcfly-hero-compact__label">Total Spend</p>
@@ -1023,7 +1150,9 @@ export default function Dashboard() {
                       {metrics.period.label} · Logged via CSV
                     </p>
                     {spendDeltaLine ? (
-                      <p className="mcfly-hero-compact__meta">{spendDeltaLine}</p>
+                      <p className="mcfly-hero-compact__meta mcfly-hero-compact__delta">
+                        {spendDeltaLine}
+                      </p>
                     ) : null}
                     {periodChannels.length > 0 ? (
                       <ul
@@ -1057,12 +1186,7 @@ export default function Dashboard() {
                         No channel spend in this period
                       </p>
                     )}
-                    <p className="mcfly-hero-compact__dive">
-                      <s-link href="/app/spend#mcfly-spend-uploads">
-                        Update spend
-                      </s-link>
-                      {" · "}
-                      <s-link href={`/app/allocation?period=${preset}`}>
+                    <p className="mcfly-hero-compact__dive"><s-link href={`/app/allocation?period=${preset}`}>
                         {PRODUCT_NOUN.spendAllocation}
                       </s-link>
                     </p>
@@ -1080,8 +1204,17 @@ export default function Dashboard() {
               <ReviewAsk eligible={reviewAskEligible} />
             ) : null}
 
+            {/* Operator till read — stays after spend; spend/order is the Analytics join. */}
+            {!shotMode && salesDeskReady ? (
+              <OrderEconomicsPanel
+                economics={orderEconomics}
+                periodLabel={metrics.period.label}
+                showSpendUnlock={false}
+              />
+            ) : null}
+
             {/* Acquisition glance — aMER + new vs returning, same period figures as LTV */}
-            {!shotMode && scoreboardReady && metrics.cashActionReady ? (
+            {!shotMode && scoreboardReady ? (
               <div
                 className="mcfly-tab-snaps mcfly-tab-snaps--solo"
                 aria-label="Acquisition glance"
@@ -1109,7 +1242,7 @@ export default function Dashboard() {
             ) : null}
 
             {/* LTV snapshot — depth after first trusted ROAS, not Monday chrome */}
-            {!shotMode && scoreboardReady && metrics.cashActionReady ? (
+            {!shotMode && scoreboardReady ? (
               <div className="mcfly-tab-snaps mcfly-tab-snaps--solo" aria-label="Tab snapshots">
                 <LtvSnapSection
                   tillLtv={metrics.tillLtv}

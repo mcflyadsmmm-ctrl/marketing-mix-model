@@ -2,12 +2,17 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { formatMissingDaysRoasImpact } from "./cash-desk-copy";
+import {
+  MISSING_DAYS_CASH_LINE,
+  formatMissingDaysRoasImpact,
+} from "./cash-desk-copy";
 import {
   SPEND_LEDGER_FIRST_DAYS_MAX,
   SPEND_LEDGER_STANDING_ASK,
+  SPEND_TYPED_CATCHUP_MAX,
   resolveSpendCoverageNotice,
   type SpendCoverageDay,
+  type SpendCoverageSurface,
 } from "./spend-coverage-tone";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -29,10 +34,14 @@ function strip(filledFromEnd: number, total = 27): SpendCoverageDay[] {
   }));
 }
 
-function noticeFor(closedDays: SpendCoverageDay[]) {
+function noticeFor(
+  closedDays: SpendCoverageDay[],
+  surface: SpendCoverageSurface = "spend_desk",
+) {
   const missingDays = closedDays.filter((d) => !d.filled).length;
   return resolveSpendCoverageNotice({
     closedDays,
+    surface,
     impact: formatMissingDaysRoasImpact({
       missingDays,
       windowDays: closedDays.length,
@@ -42,16 +51,16 @@ function noticeFor(closedDays: SpendCoverageDay[]) {
 }
 
 describe("resolveSpendCoverageNotice — F2 first typed day", () => {
-  it("greets one typed closed day as progress, not a critical alarm", () => {
+  it("celebrates one typed closed day instead of alarming about 26", () => {
     const notice = noticeFor(strip(1));
-    expect(notice.stage).toBe("first_days");
-    expect(notice.tone).toBe("info");
+    expect(notice.stage).toBe("first_day");
+    expect(notice.tone).toBe("success");
     expect(notice.showBanner).toBe(true);
-    expect(notice.heading).toMatch(/ledger started/i);
-    expect(notice.heading).toContain("1 of 27");
+    expect(notice.heading).toMatch(/first spend day is on the desk/i);
     // The hostile heading is gone.
     expect(notice.heading).not.toMatch(/missing/i);
     expect(notice.heading).not.toMatch(/looks better than cash/i);
+    expect(notice.statusLine).toContain("1 of 27");
   });
 
   it("keeps the hole count exact and the inflation honest", () => {
@@ -61,26 +70,18 @@ describe("resolveSpendCoverageNotice — F2 first typed day", () => {
     expect(notice.closedDays).toBe(27);
     expect(notice.body).toContain("26 closed days");
     expect(notice.body).toMatch(/\$0 spend/);
-    expect(notice.body).toMatch(/reads higher than cash/i);
+    expect(notice.body).toContain(MISSING_DAYS_CASH_LINE);
   });
 
   it("teaches instead of punishing, and states the standing ask once", () => {
     const notice = noticeFor(strip(2));
     expect(notice.body).toMatch(/nothing is broken/i);
-    expect(notice.body).toMatch(/more honest/i);
+    expect(notice.body).toMatch(/toward cash/i);
     expect(notice.note).toBe(SPEND_LEDGER_STANDING_ASK);
     expect(notice.note).toMatch(/sales arrive on their own/i);
     expect(notice.primary.target).toBe("type_day");
-    expect(notice.primary.label).toMatch(/add the next day/i);
+    expect(notice.primary.label).toMatch(/type the next day/i);
     expect(notice.secondary?.target).toBe("blanks");
-  });
-
-  it("stays in first_days for a young ledger, then hardens to steady", () => {
-    for (let filled = 1; filled <= SPEND_LEDGER_FIRST_DAYS_MAX; filled++) {
-      expect(noticeFor(strip(filled)).stage).toBe("first_days");
-    }
-    const older = noticeFor(strip(SPEND_LEDGER_FIRST_DAYS_MAX + 1));
-    expect(older.stage).toBe("steady");
   });
 
   it("treats a backdated first day as a new ledger, not neglect", () => {
@@ -88,19 +89,120 @@ describe("resolveSpendCoverageNotice — F2 first typed day", () => {
     const backdated = strip(0);
     backdated[0].filled = true;
     const notice = noticeFor(backdated);
-    expect(notice.stage).toBe("first_days");
-    expect(notice.tone).toBe("info");
+    expect(notice.stage).toBe("first_day");
+    expect(notice.tone).toBe("success");
     expect(notice.filledDays).toBe(1);
   });
 });
 
-describe("resolveSpendCoverageNotice — other stages", () => {
-  it("never raises a critical tone on any stage", () => {
-    for (let filled = 0; filled <= 27; filled++) {
-      expect(noticeFor(strip(filled)).tone).not.toBe("critical");
+describe("resolveSpendCoverageNotice — tone thresholds", () => {
+  it("ramps tone by filled closed days, never past warning", () => {
+    const table = [
+      { filled: 0, stage: "no_closed_day", tone: "info" },
+      { filled: 1, stage: "first_day", tone: "success" },
+      { filled: 2, stage: "first_days", tone: "info" },
+      { filled: SPEND_LEDGER_FIRST_DAYS_MAX, stage: "first_days", tone: "info" },
+      {
+        filled: SPEND_LEDGER_FIRST_DAYS_MAX + 1,
+        stage: "steady",
+        tone: "warning",
+      },
+      { filled: 27, stage: "complete", tone: "success" },
+    ] as const;
+    for (const row of table) {
+      const notice = noticeFor(strip(row.filled));
+      expect(notice.stage, `filled=${row.filled}`).toBe(row.stage);
+      expect(notice.tone, `filled=${row.filled}`).toBe(row.tone);
     }
   });
 
+  it("never raises a critical tone on any fill level or surface", () => {
+    for (const surface of ["spend_desk", "overview"] as const) {
+      for (let filled = 0; filled <= 27; filled++) {
+        expect(noticeFor(strip(filled), surface).tone).not.toBe("critical");
+      }
+    }
+  });
+
+  it("keeps Overview at info on a first day — green there would bless a multiple", () => {
+    const overview = noticeFor(strip(1), "overview");
+    expect(overview.stage).toBe("first_day");
+    expect(overview.tone).toBe("info");
+    // Same words, same counts — only the colour differs by surface.
+    expect(overview.heading).toBe(noticeFor(strip(1)).heading);
+    expect(overview.body).toBe(noticeFor(strip(1)).body);
+  });
+
+  it("banners every incomplete stage and stays silent when covered", () => {
+    for (let filled = 0; filled < 27; filled++) {
+      expect(noticeFor(strip(filled)).showBanner, `filled=${filled}`).toBe(true);
+    }
+    expect(noticeFor(strip(27)).showBanner).toBe(false);
+  });
+});
+
+describe("resolveSpendCoverageNotice — the typed row stays the primary path", () => {
+  it("points a young ledger at the typed row, blanks second", () => {
+    for (let filled = 0; filled <= SPEND_LEDGER_FIRST_DAYS_MAX; filled++) {
+      const notice = noticeFor(strip(filled));
+      expect(notice.primary.target, `filled=${filled}`).toBe("type_day");
+      expect(notice.secondary?.target, `filled=${filled}`).toBe("blanks");
+    }
+  });
+
+  it("keeps typing primary when only a few holes are left", () => {
+    const notice = noticeFor(strip(27 - SPEND_TYPED_CATCHUP_MAX));
+    expect(notice.stage).toBe("steady");
+    expect(notice.missingDays).toBe(SPEND_TYPED_CATCHUP_MAX);
+    expect(notice.primary.target).toBe("type_day");
+    expect(notice.primary.label).toMatch(/type the missing days/i);
+    expect(notice.secondary?.target).toBe("blanks");
+  });
+
+  it("hands a real backfill to blanks, with the typed row still offered", () => {
+    const notice = noticeFor(strip(20));
+    expect(notice.missingDays).toBe(7);
+    expect(notice.primary.target).toBe("blanks");
+    expect(notice.secondary?.target).toBe("type_day");
+  });
+
+  it("offers a typed or blanks path on every incomplete stage", () => {
+    for (let filled = 0; filled < 27; filled++) {
+      const targets = [
+        noticeFor(strip(filled)).primary.target,
+        noticeFor(strip(filled)).secondary?.target,
+      ];
+      expect(targets, `filled=${filled}`).toContain("type_day");
+      expect(targets, `filled=${filled}`).toContain("blanks");
+    }
+  });
+});
+
+describe("resolveSpendCoverageNotice — full-strip audit is opted into", () => {
+  it("hides the hole list behind a summary while the ledger is young", () => {
+    for (let filled = 0; filled <= SPEND_LEDGER_FIRST_DAYS_MAX; filled++) {
+      const notice = noticeFor(strip(filled));
+      expect(notice.missingDatesDisclosure, `filled=${filled}`).toBe(
+        "on_request",
+      );
+      expect(notice.missingDatesLabel).toBe(
+        `See the ${notice.missingDays} empty days`,
+      );
+    }
+  });
+
+  it("enumerates holes inline on an established ledger", () => {
+    const notice = noticeFor(strip(20));
+    expect(notice.missingDatesDisclosure).toBe("inline");
+    expect(notice.missingDatesLabel).toBe("See the 7 empty days");
+  });
+
+  it("has nothing to list once coverage is whole", () => {
+    expect(noticeFor(strip(27)).missingDatesLabel).toBeNull();
+  });
+});
+
+describe("resolveSpendCoverageNotice — other stages", () => {
   it("says a spend-today-only ledger has no closed day yet", () => {
     const notice = noticeFor(strip(0));
     expect(notice.stage).toBe("no_closed_day");
@@ -108,8 +210,9 @@ describe("resolveSpendCoverageNotice — other stages", () => {
     expect(notice.body).toMatch(/today can still move/i);
     expect(notice.primary.target).toBe("type_day");
     expect(notice.note).toBe(SPEND_LEDGER_STANDING_ASK);
-    // Honest: it does not claim a multiple can run.
+    // Honest: it does not claim a multiple can run, so it cannot flatter one.
     expect(notice.statusLine).toMatch(/needs one closed day/i);
+    expect(notice.body).not.toContain(MISSING_DAYS_CASH_LINE);
   });
 
   it("keeps the established-ledger copy authoritative, only warmer in tone", () => {
@@ -148,9 +251,10 @@ describe("resolveSpendCoverageNotice — other stages", () => {
     const oneClosedDay = noticeFor(strip(0, 1));
     expect(oneClosedDay.stage).toBe("no_closed_day");
     const twoDayWindow = noticeFor(strip(1, 2));
-    expect(twoDayWindow.heading).toContain("1 of 2 closed days");
-    expect(twoDayWindow.body).toContain("1 day");
-    expect(twoDayWindow.body).not.toContain("1 days");
+    expect(twoDayWindow.statusLine).toContain("1 of 2 closed days");
+    expect(twoDayWindow.body).toContain("1 closed day still counts");
+    expect(twoDayWindow.body).not.toContain("1 closed days");
+    expect(twoDayWindow.missingDatesLabel).toBe("See the empty day");
   });
 });
 
@@ -163,6 +267,7 @@ describe("coverage copy stays religion-safe", () => {
         notice.body,
         notice.note ?? "",
         notice.statusLine,
+        notice.missingDatesLabel ?? "",
         notice.primary.label,
         notice.secondary?.label ?? "",
       ].join("\n");
@@ -172,9 +277,20 @@ describe("coverage copy stays religion-safe", () => {
     }
   });
 
+  it("says holes in cash, never in plumbing", () => {
+    for (let filled = 1; filled < 27; filled++) {
+      const notice = noticeFor(strip(filled));
+      expect(notice.body, `filled=${filled}`).toMatch(
+        /better than cash|above the till/i,
+      );
+      expect(notice.body).not.toMatch(/sync|broken sync|not working/i);
+    }
+  });
+
   it("keeps the young-ledger greeting free of blame language", () => {
     const blob = [
       noticeFor(strip(1)),
+      noticeFor(strip(2)),
       noticeFor(strip(0)),
     ]
       .flatMap((n) => [n.heading, n.body, n.note ?? "", n.statusLine])
@@ -189,6 +305,7 @@ describe("app.spend.tsx wires the tone lib", () => {
     expect(spendRoute).toContain("resolveSpendCoverageNotice");
     expect(spendRoute).toContain("coverageNotice.showBanner");
     expect(spendRoute).toMatch(/tone=\{coverageNotice\.tone\}/);
+    expect(spendRoute).toMatch(/surface: "spend_desk"/);
     expect(spendRoute).not.toMatch(
       /tone="critical" heading=\{coverageImpact\.heading\}/,
     );
@@ -201,6 +318,22 @@ describe("app.spend.tsx wires the tone lib", () => {
     expect(spendRoute).toContain("missingDatesPreview");
     expect(spendRoute).toContain("missingDatesHref");
     expect(spendRoute).toMatch(/dayCoverage\.days\.filter\(\(d\) => d\.dateKey !== todayKey\)/);
+  });
+
+  it("gates the hole list on the notice's disclosure instead of always listing", () => {
+    expect(spendRoute).toContain("showMissingDatesInline");
+    expect(spendRoute).toContain("showMissingDatesAudit");
+    expect(spendRoute).toContain("coverageNotice.missingDatesLabel");
+    expect(spendRoute).toMatch(/missingDatesDisclosure === "inline"/);
+    expect(spendRoute).toMatch(/missingDatesDisclosure === "on_request"/);
+  });
+
+  it("says the hole count once per screen, not under every banner", () => {
+    expect(spendRoute).toContain("coverageBodyAlreadySaid");
+    // A bill spread is a save too — its note carries the count that screen.
+    expect(spendRoute).toMatch(
+      /showCoverageBanner \|\|\s*Boolean\(daySavedCopy\?\.note\) \|\|\s*Boolean\(billSavedCopy\?\.note\)/,
+    );
   });
 
   it("keeps the SAMPLE import block and the ledger export gate intact", () => {

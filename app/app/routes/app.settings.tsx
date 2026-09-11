@@ -590,16 +590,16 @@ export default function SettingsPage() {
               <section
                 className="mcfly-panel"
                 style={{ marginTop: "0.75rem" }}
-                aria-label="Sample vs real store"
+                aria-label="Practice desk (SAMPLE)"
               >
                 <h2 className="mcfly-settings-template__heading">
-                  Sample vs real store
+                  Practice desk (SAMPLE)
                 </h2>
                 <p className="mcfly-panel__muted">
-                  SAMPLE is preview data only — not a feature unlock. The Sample
-                  | Real store switch sits at the top of every page. When you
-                  are done practicing, turn Sample off here so the desk only
-                  shows your live Shopify numbers.
+                  SAMPLE is preview data only — not a feature unlock. Practice
+                  from Demo or here; the live desk does not show a Sample | Real
+                  toggle. When you are done practicing, hide Sample so the desk
+                  only shows your live Shopify numbers.
                 </p>
                 <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
                   Right now:{" "}
