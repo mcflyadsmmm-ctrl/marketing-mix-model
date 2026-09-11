@@ -22,6 +22,7 @@
 | [BEST_SHOPIFY_APP_UX.md](./BEST_SHOPIFY_APP_UX.md) | Shopify-blessed App Home / nav patterns | Done |
 | [PEER_APP_IA_SKETCHES.md](./PEER_APP_IA_SKETCHES.md) | Peer tab/onboarding IA sketches | Done |
 | [VISUAL_CRAFT_SHOPIFY_APP.md](./VISUAL_CRAFT_SHOPIFY_APP.md) | Admin visual polish + comprehension craft | Done |
+| [EPIC_FAILURE_POSTMORTEM_2026-09-11.md](./EPIC_FAILURE_POSTMORTEM_2026-09-11.md) | Agent chrome buried listing-gold Overview — burn list + clean-start rules | Done |
 | [LISTING_KILL_SHOTS.md](./LISTING_KILL_SHOTS.md) | P01/P04/P07 Partner + outbound steal lines | Done |
 | [SPEND_INGEST_LADDER.md](./SPEND_INGEST_LADDER.md) | Manual / SyncWith Sheet / concierge / DEFER OAuth | Done |
 
