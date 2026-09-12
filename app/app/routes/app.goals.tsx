@@ -39,12 +39,14 @@ import { PRO_UPSELL } from "../lib/entitlements";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { DeskPageWhy } from "../components/DeskPageWhy";
+import { DepthChartCard } from "../components/DepthChartCard";
 import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
 import {
   applyListingCaptureParam,
   formatListingTillLabel,
   listingCaptureFromRequest,
 } from "../lib/listing-capture";
+import { buildDepthChartsForTab } from "../lib/shopify-depth-metrics";
 
 type ShopifyToast = {
   show?: (message: string, options?: { duration?: number; isError?: boolean }) => void;
@@ -194,9 +196,39 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     new Set([thisYear - 1, thisYear, thisYear + 1, year]),
   ).sort((a, b) => a - b);
 
+  const priorYearTotal = priorYearMonthly.reduce((a, b) => a + b, 0);
+  const depthCharts = buildDepthChartsForTab({
+    tab: "goals",
+    dayFacts: [],
+    goals: {
+      year,
+      periods: [periods.mtd, periods.qtd, periods.ytd].map((p) => ({
+        key: p.key,
+        label: p.label,
+        actual: p.actual,
+        goal: p.goal,
+        progressPct: p.progressPct,
+        paceLabel: p.pace.label,
+      })),
+      months: board.rows.map((r, i) => ({
+        month: r.month,
+        label: r.monthShort,
+        actual: r.actual,
+        goal: r.salesGoal,
+        prior: priorYearMonthly[i] ?? 0,
+      })),
+      priorYearTotal,
+      yoyGrow10Total: goalsAtYoyGrowth(priorYearMonthly, 10).reduce(
+        (a, b) => a + b,
+        0,
+      ),
+    },
+  });
+
   return {
     board,
     periods,
+    depthCharts,
     year,
     yearOptions,
     shotMode,
@@ -418,6 +450,7 @@ export default function GoalsPage() {
   const {
     board,
     periods,
+    depthCharts,
     year,
     yearOptions,
     shotMode,
@@ -633,6 +666,12 @@ export default function GoalsPage() {
         ) : null}
 
         <div className="mcfly-goals__main">
+          <div className="mcfly-depth-chart-grid" aria-label="Goals depth catalog">
+            {depthCharts.map((model) => (
+              <DepthChartCard key={model.id} model={model} />
+            ))}
+          </div>
+
           <SalesGoalGauges
             periods={periods}
             heading="MTD · QTD · YTD"

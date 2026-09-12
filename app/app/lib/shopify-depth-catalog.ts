@@ -55,7 +55,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     id: "day_of_month",
     tab: "sales",
     title: "Day-of-month pattern",
-    blurb: "Which calendar dates in the month carry the till.",
+    blurb: "Which calendar dates in the month carry the most sales.",
     chart: "bars",
     needs: "day_facts",
   },

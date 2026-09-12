@@ -65,6 +65,29 @@ export type DepthChartModel = {
   emptyReason?: string;
 };
 
+/** Optional Goals-tab snapshot — keeps metrics pure (no Prisma). */
+export type GoalsDepthSnapshot = {
+  year: number;
+  periods: Array<{
+    key: string;
+    label: string;
+    actual: number;
+    goal: number;
+    progressPct: number | null;
+    paceLabel?: string;
+  }>;
+  months: Array<{
+    month: number;
+    label: string;
+    actual: number;
+    goal: number;
+    prior: number;
+  }>;
+  priorYearTotal: number;
+  /** Example plan total if merchant applies +10% YoY. */
+  yoyGrow10Total: number;
+};
+
 export type BuildDepthChartsInput = {
   tab: DepthTab;
   dayFacts: DayFactInput[];
@@ -72,6 +95,7 @@ export type BuildDepthChartsInput = {
   baselineDayFacts?: DayFactInput[];
   orderFacts?: OrderFactInput[];
   timeZone?: string | null;
+  goals?: GoalsDepthSnapshot | null;
 };
 
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
@@ -1056,14 +1080,66 @@ function buildOne(
         ],
       };
     }
-    case "sales_goal_mtd":
-    case "sales_goal_board":
-    case "yoy_grow":
+    case "sales_goal_mtd": {
+      const goals = input.goals;
+      if (!goals?.periods?.length) {
+        return empty(
+          feature,
+          "Set monthly sales goals below — MTD / QTD / YTD pace unlocks once a plan exists.",
+        );
+      }
       return {
         ...shell(feature),
-        callout:
-          "Open the Goals tab to set monthly sales targets and YoY grow. No margin or ROAS goal here.",
+        kpis: goals.periods.map((p) => ({
+          label: p.label,
+          value:
+            p.progressPct == null
+              ? "—"
+              : `${Math.round(p.progressPct)}% of goal`,
+          hint: `${money(p.actual)} / ${money(p.goal)}${
+            p.paceLabel ? ` · ${p.paceLabel}` : ""
+          }`,
+        })),
       };
+    }
+    case "sales_goal_board": {
+      const goals = input.goals;
+      if (!goals?.months?.length) {
+        return empty(feature, "Monthly goal board fills once the year plan loads.");
+      }
+      return {
+        ...shell(feature),
+        headers: ["Month", "Actual", "Goal", "Prior year"],
+        rows: goals.months.map((m) => ({
+          cells: [
+            m.label,
+            money(m.actual),
+            money(m.goal),
+            money(m.prior),
+          ],
+        })),
+      };
+    }
+    case "yoy_grow": {
+      const goals = input.goals;
+      if (!goals) {
+        return {
+          ...shell(feature),
+          callout:
+            "Use +5% / +10% / +15% / +20% YoY presets below to fill all 12 months from prior-year sales. Sales goals only — no margin or ROAS goal here.",
+        };
+      }
+      if (!(goals.priorYearTotal > 0)) {
+        return empty(
+          feature,
+          `Need ${goals.year - 1} sales on file before YoY grow can fill months.`,
+        );
+      }
+      return {
+        ...shell(feature),
+        callout: `${goals.year - 1} actual ${money(goals.priorYearTotal)} → +10% plan ${money(goals.yoyGrow10Total)}. Presets +5% / +10% / +15% / +20% sit below — sales targets only.`,
+      };
+    }
     default:
       return empty(feature, "Chart not wired yet.");
   }
