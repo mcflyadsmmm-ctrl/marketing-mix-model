@@ -107,6 +107,17 @@ A change is done when:
 
 ---
 
+## Core desk first (small stores)
+
+Most merchants will never live in every advanced chart. **Perfect the front of the desk:**
+
+1. Sales pace, weekday rhythm, strongest/softest day, new vs returning — from Shopify day facts.
+2. Customer repeat basics when order history exists; don’t wall empty advanced shells.
+3. Goals that read against real sales.
+4. Marketing Spend later.
+
+Advanced depth is a bonus behind “Show more depth.” SAMPLE desk is optional preview for listing/demo — not the product. Rip-out: [`SAMPLE_DESK_RIP_OUT.md`](./SAMPLE_DESK_RIP_OUT.md).
+
 ## Amend log
 
 | Date | Change |
@@ -121,3 +132,4 @@ A change is done when:
 | 2026-09-12 | BC full operator-desk revamp: sticky brand rail, decision strip with tone/actions, sales-mix pastel bars, dense 4-up KPIs, LTV craft shell — Shopify depth first, spend still optional later. |
 | 2026-09-12 | BC scoreboard parity pass: sky paper desk, decision banner, 3 tinted hero cards (Shopify sales + customer depth), till-read strip, insight tiles — Overview first viewport rebuilt to Black Clover density. |
 | 2026-09-12 | IA restructure: kill Overview; core tabs = Sales · Customers · Goals · Marketing Spend · Settings. Spend-free catalog charts on Sales/Customers; ROAS/spend under Marketing Spend; margin UI paused. See `docs/IA_SHOPIFY_DEPTH.md`. |
+| 2026-09-12 | **Core desk first:** small stores see day-fact charts that work with thin history; advanced depth is opt-in. SAMPLE desk is temporary preview only — kill switch + rip-out doc in `docs/SAMPLE_DESK_RIP_OUT.md` / `app/app/lib/sample-desk-feature.ts`. |

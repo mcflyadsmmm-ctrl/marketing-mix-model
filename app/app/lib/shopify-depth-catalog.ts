@@ -77,7 +77,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "When orders land in shop time — Analytics buries this.",
     chart: "bars",
     needs: "order_facts",
-    tier: "core",
+    tier: "more",
   },
   {
     id: "sales_volatility",
@@ -177,7 +177,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Needs line-item / discount allocations on orders.",
     chart: "kpi_row",
     needs: "line_items",
-    tier: "core",
+    tier: "more",
   },
   {
     id: "shipping_share",

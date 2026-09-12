@@ -6,6 +6,7 @@ import {
 import type { SalesResult } from "./shopify-sales.server";
 import type { DateRange } from "./periods";
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
+import { sampleDeskFeatureEnabled } from "./sample-desk-feature";
 import {
   seedSampleCohortFacts,
   clearSampleCohortFacts,
@@ -14,6 +15,7 @@ import {
 } from "./order-facts.server";
 
 export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
+  if (!sampleDeskFeatureEnabled()) return false;
   const settings = await prisma.settings.findUnique({ where: { shopId } });
   // Settings can hide Sample entirely — always serve real store.
   if (settings?.samplePreviewAllowed === false) return false;
@@ -21,6 +23,7 @@ export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
 }
 
 export async function getSamplePreviewAllowed(shopId: string): Promise<boolean> {
+  if (!sampleDeskFeatureEnabled()) return false;
   const settings = await prisma.settings.findUnique({ where: { shopId } });
   // Default true when row missing (pre-migration / fresh shop).
   return settings?.samplePreviewAllowed !== false;
@@ -71,6 +74,10 @@ export async function seedThreeYearSampleDesk(
   shopId: string,
   targetMer = SAMPLE_DESK_TARGET_MER,
 ) {
+  if (!sampleDeskFeatureEnabled()) {
+    throw new Error("SAMPLE desk feature is disabled (sample-desk-feature.ts).");
+  }
+
   const rows = buildThreeYearSampleDesk({ targetMer, years: 3 });
 
   await prisma.$transaction(async (tx) => {

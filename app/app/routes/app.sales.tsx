@@ -172,13 +172,13 @@ export default function SalesDepthPage() {
       <div className="mcfly-desk mcfly-desk--bc" aria-busy={isLoading || undefined}>
         <header className="mcfly-depth-page__head">
           <p className="mcfly-panel__muted">
-            Shopify order and calendar depth for {periodLabel} — no ad spend on
-            this tab.
+            The charts that matter first for {periodLabel} — pace, rhythm, and
+            day quality from Shopify sales. No ad spend on this tab.
           </p>
           {!shotMode ? <PeriodControl preset={preset} /> : null}
           {!shotMode && depthDensity === "core" ? (
             <p className="mcfly-panel__muted">
-              Showing core charts for a calmer desk. 
+              Core desk — works even when order history is still young.{" "}
               <s-link href={`/app/sales?period=${encodeURIComponent(preset)}&depth=all`}>
                 Show more depth
               </s-link>

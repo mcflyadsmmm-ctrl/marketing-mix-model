@@ -16,6 +16,7 @@ import { authenticate } from "../shopify.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { sampleDeskFeatureEnabled } from "../lib/sample-desk-feature";
 import {
   clearSampleDesk,
   getSampleDeskStats,
@@ -36,14 +37,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
+  if (!sampleDeskFeatureEnabled()) {
+    return { stats: null, featureDisabled: true as const };
+  }
   const stats = await getSampleDeskStats(shop.id);
-  return { stats };
+  return { stats, featureDisabled: false as const };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
+  if (!sampleDeskFeatureEnabled()) {
+    return {
+      ok: false as const,
+      message: "SAMPLE desk is disabled in this build.",
+    };
+  }
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "");
 
@@ -121,13 +131,26 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function DemoPage() {
-  const { stats } = useLoaderData<typeof loader>();
+  const { stats, featureDisabled } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const location = useLocation();
   const busy = navigation.state === "submitting";
   const intent = navigation.formData?.get("intent")?.toString();
   const demoAction = `${location.pathname}${location.search}`;
+
+  if (featureDisabled) {
+    return (
+      <s-page heading="Demo" inlineSize="large">
+        <s-banner tone="info" heading="SAMPLE preview is off in this build">
+          <s-paragraph>
+            The temporary SAMPLE desk is disabled via sample-desk-feature.ts.
+            Live Shopify sales power the core desk instead.
+          </s-paragraph>
+        </s-banner>
+      </s-page>
+    );
+  }
 
   return (
     <s-page heading={PRODUCT_NOUN.samplePreview} inlineSize="base">

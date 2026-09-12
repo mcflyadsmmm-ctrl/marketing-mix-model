@@ -166,13 +166,11 @@ export default function CustomersDepthPage() {
       <div className="mcfly-desk mcfly-desk--bc" aria-busy={isLoading || undefined}>
         <header className="mcfly-depth-page__head">
           <p className="mcfly-panel__muted">
-            Repeat, cohort, and concentration depth for {periodLabel} — no ad
-            spend on this tab.
-          </p>
+            The customer reads that matter first for {periodLabel} — repeat and concentration. Advanced cohort depth is optional.</p>
           {!shotMode ? <PeriodControl preset={preset} /> : null}
           {!shotMode && depthDensity === "core" ? (
             <p className="mcfly-panel__muted">
-              Showing core charts for a calmer desk. 
+              Core desk — repeat basics that still read when history is thin. 
               <s-link href={`/app/customers?period=${encodeURIComponent(preset)}&depth=all`}>
                 Show more depth
               </s-link>
