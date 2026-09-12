@@ -72,6 +72,10 @@ function baseMetrics(
       newBuyers: 200,
       ltvCacRatio: 0.96,
       repeatRate: 0.2,
+      buyerRepeat: {
+        secondWithin90: 0.35,
+        medianDaysToSecond: 24,
+      },
     },
     ...overrides,
   };

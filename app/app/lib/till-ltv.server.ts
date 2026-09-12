@@ -1,7 +1,14 @@
 import {
   getCohortFacts,
   getOrderBackfillHistoryLimited,
+  listBuyerOrderFacts,
 } from "./order-facts.server";
+import {
+  periodFirstVsRepeatRevenue,
+  summarizeBuyerRepeat,
+  type BuyerRepeatSummary,
+  type PeriodOrderMix,
+} from "./cohort-buyer-metrics";
 
 export interface TillLtvCohortRow {
   cohortMonth: string;
@@ -21,6 +28,53 @@ export type TillLtvEmptyReason =
   | "backfilling"
   | "pro_required"
   | null;
+
+/** Demo-desk buyer depth when SAMPLE has CohortFacts but no OrderFact rows. */
+export const SAMPLE_BUYER_REPEAT: BuyerRepeatSummary = {
+  buyers: 4200,
+  secondWithin30: 0.18,
+  secondWithin60: 0.31,
+  secondWithin90: 0.42,
+  medianDaysToSecond: 27,
+  firstOrderRevenue: 1_850_000,
+  subsequentRevenue: 1_420_000,
+  firstOrderRevenueShare: 1_850_000 / (1_850_000 + 1_420_000),
+  subsequentRevenueShare: 1_420_000 / (1_850_000 + 1_420_000),
+};
+
+export const SAMPLE_PERIOD_ORDER_MIX: PeriodOrderMix = {
+  firstOrderRevenue: 62_000,
+  subsequentRevenue: 48_000,
+  firstOrderRevenueShare: 62_000 / 110_000,
+  subsequentRevenueShare: 48_000 / 110_000,
+  firstOrderCount: 410,
+  subsequentOrderCount: 290,
+};
+
+export function emptyBuyerRepeat(): BuyerRepeatSummary {
+  return {
+    buyers: 0,
+    secondWithin30: null,
+    secondWithin60: null,
+    secondWithin90: null,
+    medianDaysToSecond: null,
+    firstOrderRevenue: 0,
+    subsequentRevenue: 0,
+    firstOrderRevenueShare: null,
+    subsequentRevenueShare: null,
+  };
+}
+
+export function emptyPeriodOrderMix(): PeriodOrderMix {
+  return {
+    firstOrderRevenue: 0,
+    subsequentRevenue: 0,
+    firstOrderRevenueShare: null,
+    subsequentRevenueShare: null,
+    firstOrderCount: 0,
+    subsequentOrderCount: 0,
+  };
+}
 
 export interface TillLtvSummary {
   available: boolean;
@@ -44,8 +98,15 @@ export interface TillLtvSummary {
   /** avgRevenueD90 / cashCac when both defined. */
   ltvCacRatio: number | null;
   cohorts: TillLtvCohortRow[];
-  /** Share of cohort orders beyond the first (ordersD90 − customers) / customers. */
+  /**
+   * Extra orders per buyer @ D90: (ordersD90 − customers) / customers.
+   * Not “% who bought twice” — see buyerRepeat.secondWithin90.
+   */
   repeatRate: number | null;
+  /** Maturity-gated 2nd-purchase + first/subsequent revenue (order-fact depth). */
+  buyerRepeat: BuyerRepeatSummary;
+  /** Period sales mix by lifetime rank (1st vs 2nd+), when period facts exist. */
+  periodOrderMix: PeriodOrderMix;
   periodLabel: string | null;
 }
 
@@ -79,6 +140,8 @@ export function summarizeTillLtvFromCohorts(
     historyLimited?: boolean;
     useSampleDesk?: boolean;
     ianaTimezone?: string | null;
+    buyerRepeat?: BuyerRepeatSummary;
+    periodOrderMix?: PeriodOrderMix;
   },
 ): TillLtvSummary {
   const withCustomers = allCohorts.filter((c) => c.customers > 0);
@@ -144,6 +207,17 @@ export function summarizeTillLtvFromCohorts(
     }
   }
 
+  const buyerRepeat =
+    options.buyerRepeat ??
+    (options.useSampleDesk && available
+      ? SAMPLE_BUYER_REPEAT
+      : emptyBuyerRepeat());
+  const periodOrderMix =
+    options.periodOrderMix ??
+    (options.useSampleDesk && available
+      ? SAMPLE_PERIOD_ORDER_MIX
+      : emptyPeriodOrderMix());
+
   return {
     available,
     historyLimited,
@@ -157,6 +231,8 @@ export function summarizeTillLtvFromCohorts(
     ltvCacRatio,
     cohorts,
     repeatRate,
+    buyerRepeat,
+    periodOrderMix,
     periodLabel: options.periodLabel ?? null,
   };
 }
@@ -175,17 +251,43 @@ export async function buildTillLtvSummary(
     useSampleDesk?: boolean;
     /** Shop IANA timezone — till ingest needs local-day boundaries. */
     ianaTimezone?: string | null;
+    /** Period window for first-vs-subsequent revenue mix. */
+    periodRange?: { start: Date; end: Date };
   },
 ): Promise<TillLtvSummary> {
-  const [allCohorts, historyLimited] = await Promise.all([
-    getCohortFacts(shopId, {
-      limit: 24,
-      sample: Boolean(options.useSampleDesk),
-    }),
-    options.useSampleDesk
-      ? Promise.resolve(false)
-      : getOrderBackfillHistoryLimited(shopId),
-  ]);
+  const sample = Boolean(options.useSampleDesk);
+  const [allCohorts, historyLimited, allBuyerOrders, periodBuyerOrders] =
+    await Promise.all([
+      getCohortFacts(shopId, {
+        limit: 24,
+        sample,
+      }),
+      sample
+        ? Promise.resolve(false)
+        : getOrderBackfillHistoryLimited(shopId),
+      listBuyerOrderFacts(shopId, { sample }),
+      options.periodRange
+        ? listBuyerOrderFacts(shopId, {
+            sample,
+            range: options.periodRange,
+          })
+        : Promise.resolve([]),
+    ]);
+
+  let buyerRepeat =
+    allBuyerOrders.length > 0
+      ? summarizeBuyerRepeat(allBuyerOrders)
+      : undefined;
+  let periodOrderMix =
+    periodBuyerOrders.length > 0
+      ? periodFirstVsRepeatRevenue(periodBuyerOrders)
+      : undefined;
+
+  // Sample desk: CohortFacts without OrderFacts → polished demo buyer depth.
+  if (sample && !buyerRepeat) buyerRepeat = SAMPLE_BUYER_REPEAT;
+  if (sample && !periodOrderMix && options.periodRange) {
+    periodOrderMix = SAMPLE_PERIOD_ORDER_MIX;
+  }
 
   return summarizeTillLtvFromCohorts(
     allCohorts.map((c) => ({
@@ -205,6 +307,8 @@ export async function buildTillLtvSummary(
       historyLimited,
       useSampleDesk: options.useSampleDesk,
       ianaTimezone: options.ianaTimezone,
+      buyerRepeat,
+      periodOrderMix,
     },
   );
 }

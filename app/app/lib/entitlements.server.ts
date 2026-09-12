@@ -163,6 +163,25 @@ export function proRequiredLtvSummary(periodLabel: string | null = null) {
     ltvCacRatio: null,
     cohorts: [],
     repeatRate: null,
+    buyerRepeat: {
+      buyers: 0,
+      secondWithin30: null,
+      secondWithin60: null,
+      secondWithin90: null,
+      medianDaysToSecond: null,
+      firstOrderRevenue: 0,
+      subsequentRevenue: 0,
+      firstOrderRevenueShare: null,
+      subsequentRevenueShare: null,
+    },
+    periodOrderMix: {
+      firstOrderRevenue: 0,
+      subsequentRevenue: 0,
+      firstOrderRevenueShare: null,
+      subsequentRevenueShare: null,
+      firstOrderCount: 0,
+      subsequentOrderCount: 0,
+    },
     periodLabel,
   };
 }

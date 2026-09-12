@@ -103,3 +103,4 @@ A change is done when:
 | 2026-09-11 | Fresh start adopted. Religion / hard product constraints revoked. Only trial+$39 commercial lock kept. |
 | 2026-09-11 | Craft bar: match Shopify Analytics calm (Inter, flat paper, orders/customers first). Depth without lecture chrome. |
 | 2026-09-12 | Product sequence: blow them away with Shopify API order/customer depth first. Spend upload is later depth for Total ROAS — not the opening ritual or a core top-nav tab. |
+| 2026-09-12 | Customers & LTV depth: maturity-gated 2nd-order % (30/60/90), median days-to-2nd, first vs subsequent $ — Overview + LTV, no spend gate. |

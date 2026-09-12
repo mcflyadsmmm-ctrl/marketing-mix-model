@@ -798,6 +798,112 @@ async function loadGrantedScopesForShopId(
 }
 
 /**
+ * OrderFact rows with lifetime order rank (1 = first non-guest order).
+ * Used for maturity-gated 2nd-purchase / first-vs-subsequent revenue depth.
+ * Excludes day-complete markers and guests from ranking (guests omitted).
+ */
+export async function listBuyerOrderFacts(
+  shopId: string,
+  options?: {
+    sample?: boolean;
+    /** When set, only orders whose orderedAt falls in [start, end]. */
+    range?: { start: Date; end: Date };
+  },
+): Promise<
+  Array<{
+    buyerKey: string;
+    orderAt: Date;
+    netSales: number;
+    lifetimeOrderRank: number;
+  }>
+> {
+  const source = options?.sample ? "sample" : ORDER_FACT_SOURCE;
+  const orders = await prisma.orderFact.findMany({
+    where: {
+      shopId,
+      source,
+      customerKey: { not: ORDER_FACT_GUEST_KEY },
+      NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
+      ...(options?.range
+        ? {
+            orderedAt: {
+              gte: options.range.start,
+              lte: options.range.end,
+            },
+          }
+        : {}),
+    },
+    select: {
+      shopifyOrderId: true,
+      customerKey: true,
+      orderedAt: true,
+      amount: true,
+    },
+    orderBy: [{ customerKey: "asc" }, { orderedAt: "asc" }],
+  });
+
+  // Lifetime rank needs full history per buyer — when ranged, load all for those buyers.
+  if (options?.range && orders.length > 0) {
+    const keys = [...new Set(orders.map((o) => o.customerKey))];
+    const full = await prisma.orderFact.findMany({
+      where: {
+        shopId,
+        source,
+        customerKey: { in: keys },
+        NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
+      },
+      select: {
+        shopifyOrderId: true,
+        customerKey: true,
+        orderedAt: true,
+        amount: true,
+      },
+      orderBy: [{ customerKey: "asc" }, { orderedAt: "asc" }],
+    });
+    const rankByOrderId = new Map<string, number>();
+    let prevKey = "";
+    let rank = 0;
+    for (const o of full) {
+      if (o.customerKey !== prevKey) {
+        prevKey = o.customerKey;
+        rank = 0;
+      }
+      rank += 1;
+      rankByOrderId.set(o.shopifyOrderId, rank);
+    }
+    return orders.map((o) => ({
+      buyerKey: o.customerKey,
+      orderAt: o.orderedAt,
+      netSales: o.amount,
+      lifetimeOrderRank: rankByOrderId.get(o.shopifyOrderId) ?? 1,
+    }));
+  }
+
+  const out: Array<{
+    buyerKey: string;
+    orderAt: Date;
+    netSales: number;
+    lifetimeOrderRank: number;
+  }> = [];
+  let prevKey = "";
+  let rank = 0;
+  for (const o of orders) {
+    if (o.customerKey !== prevKey) {
+      prevKey = o.customerKey;
+      rank = 0;
+    }
+    rank += 1;
+    out.push({
+      buyerKey: o.customerKey,
+      orderAt: o.orderedAt,
+      netSales: o.amount,
+      lifetimeOrderRank: rank,
+    });
+  }
+  return out;
+}
+
+/**
  * Unique buyers whose first OrderFact falls inside `range` (till new-buyer count).
  * Returns null when no live OrderFacts exist yet.
  */

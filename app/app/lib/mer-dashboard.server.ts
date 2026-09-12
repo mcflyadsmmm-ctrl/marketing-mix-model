@@ -1170,6 +1170,7 @@ export async function buildDashboardMetrics(
       periodLabel: range.label,
       useSampleDesk,
       ianaTimezone: shop.ianaTimezone,
+      periodRange: { start: range.start, end: range.end },
     });
   }
 

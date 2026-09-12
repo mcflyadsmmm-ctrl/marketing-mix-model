@@ -18,6 +18,10 @@ import {
   contributionAdjustedLtv,
   contributionLtvCacRatio,
 } from "../lib/contrib-ltv";
+import {
+  formatMedianDays,
+  formatSecondOrderRate,
+} from "../lib/cohort-buyer-metrics";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -362,6 +366,33 @@ export default function LtvPage() {
               </div>
               <div className="mcfly-ltv-summary__side">
                 <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
+                  <p className="mcfly-ltv-summary__k">2nd order · 90d</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    {formatSecondOrderRate(
+                      metrics.tillLtv.buyerRepeat.secondWithin90,
+                    )}
+                  </p>
+                  <p className="mcfly-ltv-summary__def">
+                    Mature buyers with a 2nd purchase within 90 days
+                  </p>
+                  <p className="mcfly-ltv-summary__delta">
+                    {metrics.tillLtv.buyerRepeat.secondWithin30 != null
+                      ? `30d ${formatSecondOrderRate(metrics.tillLtv.buyerRepeat.secondWithin30)} · 60d ${formatSecondOrderRate(metrics.tillLtv.buyerRepeat.secondWithin60)}`
+                      : "Shopify Analytics does not gate this"}
+                  </p>
+                </div>
+                <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
+                  <p className="mcfly-ltv-summary__k">Median to 2nd</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    {formatMedianDays(
+                      metrics.tillLtv.buyerRepeat.medianDaysToSecond,
+                    )}
+                  </p>
+                  <p className="mcfly-ltv-summary__def">
+                    Days from first order to second · buyers who repeat
+                  </p>
+                </div>
+                <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
                   <p className="mcfly-ltv-summary__k">30d contrib.</p>
                   <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
                     {contrib30 != null ? formatCurrency(contrib30) : "—"}
@@ -417,19 +448,34 @@ export default function LtvPage() {
                       Contrib LTV · 90d ÷ Cash CAC
                     </p>
                     <p className="mcfly-ltv-summary__delta">
-                      {metrics.tillLtv.repeatRate != null
-                        ? `Repeat ${(metrics.tillLtv.repeatRate * 100).toFixed(0)}%`
+                      {metrics.tillLtv.buyerRepeat.secondWithin90 != null
+                        ? `2nd·90d ${formatSecondOrderRate(metrics.tillLtv.buyerRepeat.secondWithin90)}`
                         : "Average, not causal"}
+                    </p>
+                  </div>
+                ) : metrics.tillLtv.periodOrderMix.firstOrderRevenueShare !=
+                  null ? (
+                  <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
+                    <p className="mcfly-ltv-summary__k">1st vs later $</p>
+                    <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                      {formatPercent(
+                        metrics.tillLtv.periodOrderMix.firstOrderRevenueShare,
+                      )}{" "}
+                      first
+                    </p>
+                    <p className="mcfly-ltv-summary__def">
+                      Period revenue by lifetime order rank — not Shopify’s
+                      returning flag
                     </p>
                   </div>
                 ) : metrics.tillLtv.repeatRate != null ? (
                   <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
-                    <p className="mcfly-ltv-summary__k">Repeat rate</p>
+                    <p className="mcfly-ltv-summary__k">Extra orders / buyer</p>
                     <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
                       {(metrics.tillLtv.repeatRate * 100).toFixed(0)}%
                     </p>
                     <p className="mcfly-ltv-summary__def">
-                      Extra orders beyond first · cohort average
+                      Orders beyond first @ 90d · cohort average
                     </p>
                   </div>
                 ) : null}
@@ -619,14 +665,36 @@ export default function LtvPage() {
 
             <div className="mcfly-ltv-dive__cost">
               <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
-                <p className="mcfly-ltv-summary__k">Repeat rate</p>
+                <p className="mcfly-ltv-summary__k">2nd order · 90d</p>
+                <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                  {formatSecondOrderRate(
+                    metrics.tillLtv.buyerRepeat.secondWithin90,
+                  )}
+                </p>
+                <p className="mcfly-ltv-summary__def">
+                  Mature buyers · 2nd purchase within 90 days
+                </p>
+              </div>
+              <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
+                <p className="mcfly-ltv-summary__k">Median to 2nd</p>
+                <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                  {formatMedianDays(
+                    metrics.tillLtv.buyerRepeat.medianDaysToSecond,
+                  )}
+                </p>
+                <p className="mcfly-ltv-summary__def">
+                  Among buyers who place a second order
+                </p>
+              </div>
+              <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
+                <p className="mcfly-ltv-summary__k">Extra orders / buyer</p>
                 <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
                   {metrics.tillLtv.repeatRate != null
                     ? `${(metrics.tillLtv.repeatRate * 100).toFixed(0)}%`
                     : "—"}
                 </p>
                 <p className="mcfly-ltv-summary__def">
-                  Extra orders beyond first · cohort average
+                  Orders beyond first @ 90d · not the same as 2nd-order %
                 </p>
               </div>
               {hasPeriodSpend &&
@@ -658,6 +726,19 @@ export default function LtvPage() {
                   </p>
                   <p className="mcfly-ltv-summary__def">
                     Period spend ÷ new + returning
+                  </p>
+                </div>
+              ) : metrics.tillLtv.periodOrderMix
+                  .subsequentRevenueShare != null ? (
+                <div className="mcfly-ltv-dive__cost-tile mcfly-ltv-dive__cost-tile--soft">
+                  <p className="mcfly-ltv-summary__k">Subsequent $ share</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    {formatPercent(
+                      metrics.tillLtv.periodOrderMix.subsequentRevenueShare,
+                    )}
+                  </p>
+                  <p className="mcfly-ltv-summary__def">
+                    Period revenue from 2nd+ lifetime orders
                   </p>
                 </div>
               ) : (

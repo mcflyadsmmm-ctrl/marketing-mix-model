@@ -74,6 +74,10 @@ export type AdvancedMetricsInput = {
     newBuyers: number;
     ltvCacRatio: number | null;
     repeatRate: number | null;
+    buyerRepeat?: {
+      secondWithin90: number | null;
+      medianDaysToSecond: number | null;
+    };
   };
 };
 
@@ -339,9 +343,24 @@ export function buildAdvancedSections(
               : "—",
           formula: "90d LTV ÷ cash CAC",
           caveat:
-            ltv.repeatRate != null
-              ? `Repeat rate ${(ltv.repeatRate * 100).toFixed(0)}% · average, not causal`
-              : "Average portfolio payback ratio.",
+            ltv.buyerRepeat?.secondWithin90 != null
+              ? `${(ltv.buyerRepeat.secondWithin90 * 100).toFixed(0)}% buy again within 90d · average, not causal`
+              : ltv.repeatRate != null
+                ? `Extra orders/buyer ${(ltv.repeatRate * 100).toFixed(0)}% · average, not causal`
+                : "Average portfolio payback ratio.",
+        },
+        {
+          id: "ltv-second-90",
+          label: "2nd order · 90d",
+          value:
+            ltv.available && ltv.buyerRepeat?.secondWithin90 != null
+              ? `${(ltv.buyerRepeat.secondWithin90 * 100).toFixed(0)}%`
+              : "—",
+          formula: "Mature buyers with a 2nd order within 90 days",
+          caveat:
+            ltv.buyerRepeat?.medianDaysToSecond != null
+              ? `Median ${Math.round(ltv.buyerRepeat.medianDaysToSecond)} days to 2nd order`
+              : "Needs mature cohorts — Shopify Analytics lacks this gate.",
         },
       ],
     };

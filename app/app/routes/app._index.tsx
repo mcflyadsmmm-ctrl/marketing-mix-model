@@ -52,6 +52,10 @@ import {
 import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
+import {
+  formatMedianDays,
+  formatSecondOrderRate,
+} from "../lib/cohort-buyer-metrics";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
@@ -1387,6 +1391,10 @@ function LtvSnapSection({
     ltvCacRatio: number | null;
     newBuyers: number;
     repeatRate: number | null;
+    buyerRepeat: {
+      secondWithin90: number | null;
+      medianDaysToSecond: number | null;
+    };
   };
   preset: PeriodPreset;
   emptyPeriodHrefs?: { label: string; href: string }[];
@@ -1406,7 +1414,7 @@ function LtvSnapSection({
         <p className="mcfly-tab-snap__muted">
           {priorCohortsOnly
             ? "No new buyers in this period — prior cohort averages below"
-            : "New buyers, LTV, and repeat — Cash CAC when spend is logged"}
+            : "New buyers, LTV, and 2nd-order depth — Cash CAC when spend is logged"}
         </p>
       </div>
 
@@ -1437,16 +1445,28 @@ function LtvSnapSection({
                   : PRODUCT_NOUN.ltv90Def}
               </p>
             </div>
-            {hasPeriodBuyers ? (
+            {hasPeriodBuyers || tillLtv.buyerRepeat.secondWithin90 != null ? (
               <div className="mcfly-tab-snap__tile">
-                <p className="mcfly-tab-snap__tile-k">Repeat rate</p>
+                <p className="mcfly-tab-snap__tile-k">2nd order · 90d</p>
+                <p className="mcfly-tab-snap__tile-v">
+                  {formatSecondOrderRate(tillLtv.buyerRepeat.secondWithin90)}
+                </p>
+                <p className="mcfly-tab-snap__tile-def">
+                  {tillLtv.buyerRepeat.medianDaysToSecond != null
+                    ? `Median ${formatMedianDays(tillLtv.buyerRepeat.medianDaysToSecond)} to 2nd · mature buyers`
+                    : "Mature buyers with a 2nd purchase within 90 days"}
+                </p>
+              </div>
+            ) : hasPeriodBuyers ? (
+              <div className="mcfly-tab-snap__tile">
+                <p className="mcfly-tab-snap__tile-k">Extra orders / buyer</p>
                 <p className="mcfly-tab-snap__tile-v">
                   {tillLtv.repeatRate != null
                     ? `${Math.round(tillLtv.repeatRate * 100)}%`
                     : "—"}
                 </p>
                 <p className="mcfly-tab-snap__tile-def">
-                  Extra orders beyond the first, per new buyer
+                  Orders beyond first @ 90d · not 2nd-order %
                 </p>
               </div>
             ) : null}

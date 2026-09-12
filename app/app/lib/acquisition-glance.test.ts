@@ -226,9 +226,13 @@ describe("Overview wiring", () => {
   it("renders the glance with sales desk ready — not spend-gated", () => {
     const mount = overview.indexOf("<AcquisitionGlance");
     expect(mount).toBeGreaterThan(0);
-    const gate = overview.slice(Math.max(0, mount - 500), mount);
-    expect(gate).toContain("salesDeskReady");
-    expect(gate).not.toContain("metrics.cashActionReady");
+    // Gate can sit well above LtvSnapSection + pace strip; search the enclosing desk block.
+    const deskOpen = overview.lastIndexOf("salesDeskReady && !shotMode", mount);
+    expect(deskOpen).toBeGreaterThan(0);
+    expect(deskOpen).toBeLessThan(mount);
+    const between = overview.slice(deskOpen, mount);
+    expect(between).not.toContain("metrics.cashActionReady ?");
+    // Glance itself may receive cashActionReady as an honesty prop — that is not the mount gate.
   });
 
   it("lands with customer depth before the Total ROAS hero", () => {
