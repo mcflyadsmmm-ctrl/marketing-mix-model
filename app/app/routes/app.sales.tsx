@@ -114,6 +114,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           periodPreset: preset,
           economics,
           accuracy,
+          dayFacts: depth.dayFacts,
         });
 
   return {

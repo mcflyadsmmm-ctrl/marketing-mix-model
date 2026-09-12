@@ -237,6 +237,17 @@ function coverageHonesty(missingDayKeys: string[] | undefined): string | undefin
   return `${n} closed day${n === 1 ? "" : "s"} still filling — read this as partial, not final.`;
 }
 
+function lineFieldCoverageCallout(
+  withFields: number,
+  orderCount: number,
+  fieldLabel: string,
+): string | undefined {
+  if (orderCount <= 0 || withFields <= 0) return undefined;
+  if (withFields >= orderCount) return undefined;
+  return `Based on ${withFields.toLocaleString()} of ${orderCount.toLocaleString()} orders with ${fieldLabel} fields — re-crawl still filling the rest.`;
+}
+
+
 
 function aovBuckets(orders: OrderFactInput[]): DepthBar[] {
   const edges = [0, 25, 50, 75, 100, 150, 200, 300, 500, Infinity];
@@ -554,6 +565,7 @@ function buildOne(
             hint: `${withDisc.length.toLocaleString()} orders with discount fields`,
           },
         ],
+        callout: lineFieldCoverageCallout(withDisc.length, orders.length, "discount"),
       };
     }
     case "shipping_share": {
@@ -574,6 +586,7 @@ function buildOne(
             value: sales > 0 ? pct(shipping / sales) : "—",
           },
         ],
+        callout: lineFieldCoverageCallout(withShip.length, orders.length, "shipping"),
       };
     }
     case "tax_duty_share": {
@@ -594,6 +607,7 @@ function buildOne(
             value: sales > 0 ? pct(tax / sales) : "—",
           },
         ],
+        callout: lineFieldCoverageCallout(withTax.length, orders.length, "tax"),
       };
     }
     case "units_per_order": {
@@ -614,6 +628,7 @@ function buildOne(
             value: (Math.round(avgUnits * 100) / 100).toLocaleString(),
           },
         ],
+        callout: lineFieldCoverageCallout(withUnits.length, orders.length, "unit"),
       };
     }
     case "guest_vs_logged_in": {

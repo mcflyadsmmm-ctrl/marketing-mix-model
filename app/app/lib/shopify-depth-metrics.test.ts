@@ -298,4 +298,18 @@ describe("partial day coverage honesty", () => {
     const chart = charts.find((c) => c.id === "pace_vs_prior");
     expect(chart?.callout).toMatch(/partial|still filling/i);
   });
+
+  it("discount_dependency callout when only some orders have discount fields", () => {
+    const orders = sampleOrders().map((o, i) =>
+      i < 5 ? { ...o, discountTotal: 4 + i } : o,
+    );
+    const charts = buildDepthChartsForTab({
+      tab: "sales",
+      dayFacts: sampleDayFacts(),
+      orderFacts: orders,
+    });
+    const chart = charts.find((c) => c.id === "discount_dependency");
+    expect(chart?.emptyReason).toBeUndefined();
+    expect(chart?.callout).toMatch(/5 of 20 orders with discount fields/i);
+  });
 });
