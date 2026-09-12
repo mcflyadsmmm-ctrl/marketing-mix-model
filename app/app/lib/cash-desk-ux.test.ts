@@ -84,8 +84,9 @@ describe("Overview desk (fresh start)", () => {
 
   it("Love-UX1: Overview cold empty owns dismissible Setup Guide (not DataModeBar)", () => {
     expect(overview).toContain("FirstSessionGuide");
+    // Guide only when there are no sales yet — sales depth must not wait on spend.
     expect(overview).toMatch(
-      /coldEmpty && !\(salesDeskReady && !shotMode\) \? \(\s*<FirstSessionGuide path=\{firstSession\}/,
+      /coldEmpty && !salesDeskReady && !shotMode \? \(\s*<FirstSessionGuide path=\{firstSession\}/,
     );
     expect(overview).toMatch(/hasReadAllOrders/);
     expect(overview).toMatch(/shopDomain/);
@@ -103,6 +104,14 @@ describe("Overview desk (fresh start)", () => {
     expect(dataMode).not.toMatch(/<FirstSessionGuide/);
     expect(dataMode).not.toContain("showFullGuide");
     expect(dataMode).toContain("showMarginNudge");
+  });
+
+  it("API-first: day board and customer snaps paint without live spend", () => {
+    expect(overview).toContain("DayQualityTablePanel");
+    expect(overview).toContain("summarizeDayQuality");
+    expect(overview).toMatch(/salesDeskReady && !shotMode/);
+    expect(overview).toContain("showRoasHero");
+    expect(overview).toMatch(/Add spend later|Want Total ROAS next/);
   });
 
   it("Love-V2: hero keeps one primary — customer insights when sales exist", () => {

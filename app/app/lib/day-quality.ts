@@ -470,3 +470,45 @@ export function formatDayQualityCsv(table: DayQualityTable): string {
   );
   return `${lines.join("\n")}\n`;
 }
+
+export type DayQualityInsight = {
+  /** Best closed day/week by sales (skips partial today). */
+  best: { label: string; sales: number; orders: number } | null;
+  /** Softest closed day/week by sales among rows with orders. */
+  softest: { label: string; sales: number; orders: number } | null;
+  /** AOV change vs prior totals when both exist. */
+  aovDeltaPct: number | null;
+};
+
+/**
+ * One-line merchant answers from the day board — no spend required.
+ * Skips partial “today” so open days do not win best/worst.
+ */
+export function summarizeDayQuality(table: DayQualityTable): DayQualityInsight {
+  const closed = table.rows.filter((row) => !row.partial && row.orders > 0);
+  let best: DayQualityInsight["best"] = null;
+  let softest: DayQualityInsight["softest"] = null;
+  for (const row of closed) {
+    if (!best || row.sales > best.sales) {
+      best = { label: row.label, sales: row.sales, orders: row.orders };
+    }
+    if (!softest || row.sales < softest.sales) {
+      softest = { label: row.label, sales: row.sales, orders: row.orders };
+    }
+  }
+  if (best && softest && best.label === softest.label) {
+    softest = null;
+  }
+
+  let aovDeltaPct: number | null = null;
+  if (
+    table.totals.aov != null &&
+    table.prior?.aov != null &&
+    table.prior.aov > 0
+  ) {
+    aovDeltaPct = ((table.totals.aov - table.prior.aov) / table.prior.aov) * 100;
+  }
+
+  return { best, softest, aovDeltaPct };
+}
+

@@ -305,5 +305,8 @@ export function firstSessionPrimaryAction(
       label: PRODUCT_NOUN.setupAdjustMargin,
     };
   }
-  return { href: "/app/spend", label: "Update spend" };
+  return {
+    href: "/app/ltv",
+    label: PRODUCT_NOUN.openCustomerInsights,
+  };
 }

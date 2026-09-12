@@ -1,7 +1,7 @@
 /**
  * App nav — Shopify Analytics calm: few primary tabs, depth via pages.
- * Core: Overview · Customers & LTV · Spend · Goals · Settings.
- * Allocation / Advanced stay deep-linked from Overview + Settings.
+ * Core: Overview · Customers & LTV · Goals · Settings.
+ * Spend / Allocation / Advanced are later depth (API order/customer value first).
  */
 
 import { PRODUCT_NOUN } from "./product-labels";
@@ -33,10 +33,11 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
     label: PRODUCT_NOUN.ltvTitle,
     later: false,
   },
-  { id: "spend", href: "/app/spend", label: "Spend", later: false },
   // Target MER / break-even — merchants need this without hunting Settings.
   { id: "goals", href: "/app/goals", label: "Goals", later: false },
   { id: "settings", href: "/app/settings", label: "Settings", later: false },
+  // Spend unlocks Total ROAS depth — after Shopify order/customer value lands.
+  { id: "spend", href: "/app/spend", label: "Spend", later: true },
   {
     id: "allocation",
     href: "/app/allocation",

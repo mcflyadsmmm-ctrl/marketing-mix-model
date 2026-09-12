@@ -178,8 +178,8 @@ describe("resolveFirstSessionPath", () => {
     ]);
     expect(path.steps[4].href).toBe("/auth?shop=acme.myshopify.com");
     expect(firstSessionPrimaryAction(path)).toEqual({
-      href: "/app/spend",
-      label: "Update spend",
+      href: "/app/ltv",
+      label: PRODUCT_NOUN.openCustomerInsights,
     });
   });
 

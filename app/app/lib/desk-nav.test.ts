@@ -12,25 +12,24 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe("deskNavItems", () => {
-  it("top nav is core only: Overview · Customers · Spend · Goals · Settings", () => {
+  it("top nav is API-first: Overview · Customers · Goals · Settings (Spend later)", () => {
     expect(deskNavCoreIds()).toEqual([
       "overview",
       "ltv",
-      "spend",
       "goals",
       "settings",
     ]);
     expect(deskNavItems().map((i) => i.href)).toEqual([
       "/app?stay=1",
       "/app/ltv",
-      "/app/spend",
       "/app/goals",
       "/app/settings",
     ]);
     expect(deskNavItems().find((i) => i.id === "ltv")?.label).toMatch(
       /Customers/i,
     );
-    // Later tools are not top-nav chrome (Shopify Analytics calm).
+    // Spend is later depth — not the first chrome merchants hit.
+    expect(deskNavItems().map((i) => i.id)).not.toContain("spend");
     expect(deskNavItems().map((i) => i.id)).not.toContain("allocation");
     expect(deskNavItems().map((i) => i.id)).not.toContain("advanced");
   });
@@ -41,9 +40,10 @@ describe("deskNavItems", () => {
   });
 
   it("later pages stay deep-linkable — not deleted, just off the top nav", () => {
-    expect(deskNavLaterIds()).toEqual(["allocation", "advanced"]);
+    expect(deskNavLaterIds()).toEqual(["spend", "allocation", "advanced"]);
     const hrefs = deskNavAllItems().map((i) => i.href);
     expect(hrefs).toContain("/app/goals");
+    expect(hrefs).toContain("/app/spend");
     expect(hrefs).toContain("/app/allocation");
     expect(hrefs).toContain("/app/ltv");
     expect(hrefs).toContain("/app/advanced");

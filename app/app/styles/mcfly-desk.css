@@ -11731,3 +11731,29 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   font-size: 0.875rem;
   font-weight: 600;
 }
+
+
+/* API-first Overview — period day callout + quiet spend invite */
+.mcfly-day-insight {
+  margin: 0;
+  padding: 0.35rem 0.15rem 0.15rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums;
+}
+.mcfly-spend-later {
+  margin: 0.15rem 0 0;
+  padding: 0.65rem 0.85rem;
+  border: 1px dashed var(--mcfly-line-soft);
+  border-radius: var(--mcfly-radius);
+  background: transparent;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+  max-width: 62ch;
+}
+.mcfly-spend-later s-link,
+.mcfly-spend-later a {
+  font-weight: 600;
+}

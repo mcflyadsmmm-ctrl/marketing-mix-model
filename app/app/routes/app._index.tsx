@@ -33,7 +33,7 @@ import { FirstSessionGuide } from "../components/FirstSessionGuide";
 import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
 import { DayQualityTablePanel } from "../components/DayQualityTable";
 import { PeriodPaceStrip } from "../components/PeriodPaceStrip";
-import { buildDayQuality } from "../lib/day-quality";
+import { buildDayQuality, summarizeDayQuality } from "../lib/day-quality";
 import { buildDailyRowsForWindow } from "../lib/mer-dashboard.server";
 import {
   firstSessionPrimaryAction,
@@ -906,20 +906,28 @@ export default function Dashboard() {
   // honesty sits above the dial — break-even and spend gaps live under it.
 
   // Shot + live scoreboard both paint the three-card hero (listing SoT).
-  const showHero = scoreboardReady || shotMode;
+  // ROAS hero only after spend (or SAMPLE/shot). Order/customer depth never waits on CSV.
+  const showRoasHero =
+    shotMode ||
+    (salesDeskReady && (hasLiveSpend || useSampleDesk));
+  // Customer snaps + day board paint whenever Shopify sales are ready.
+  const showCustomerDepth = salesDeskReady || shotMode;
+  const dayQualityInsight =
+    dayQuality && dayQuality.rows.length > 0
+      ? summarizeDayQuality(dayQuality)
+      : null;
 
-  // One primary CTA: customer insights when sales exist; otherwise Update spend.
+  // One primary CTA: customer insights when sales exist; spend is later depth.
   const heroPrimary = salesDeskReady
     ? {
         href: `/app/ltv?period=${preset}`,
         label: PRODUCT_NOUN.openCustomerInsights,
       }
     : {
-        href: "/app/spend#mcfly-spend-uploads",
-        label: "Update spend",
+        href: "/app/ltv",
+        label: PRODUCT_NOUN.openCustomerInsights,
       };
-  const showSpendSecondary =
-    salesDeskReady && !trustedHero.hideUntrustedZero;
+  const showSpendSecondary = showRoasHero && !trustedHero.hideUntrustedZero;
 
   return (
     <s-page heading="Overview" inlineSize="large">
@@ -1023,56 +1031,29 @@ export default function Dashboard() {
         </div>
 
 
-        {/* Sales-first: order economics before spend ritual (cold desk). */}
-        {coldEmpty && !shotMode && salesDeskReady ? (
-          <OrderEconomicsPanel
-            economics={orderEconomics}
-            periodLabel={metrics.period.label}
-            showSpendUnlock
-            emptyPeriodHrefs={emptyPeriodHrefs}
-            priorPeriod={
-              priorPeriodBoard
-                ? {
-                    economics: priorPeriodBoard.economics,
-                    label: priorPeriodBoard.label,
-                    href: priorPeriodBoard.href,
-                  }
-                : null
-            }
-          />
-        ) : null}
-
         {/*
-          When order economics already owns the spend unlock primary,
-          skip the Setup Guide so the first viewport has one button — not two.
-          Guide stays for the no-orders cold path.
+          API-first desk: Shopify order/customer depth paints whenever sales
+          exist — spend CSV is later ROAS depth, not the cold wall.
         */}
-        {coldEmpty && !(salesDeskReady && !shotMode) ? (
-          <FirstSessionGuide path={firstSession} />
-        ) : null}
-
-        {!coldEmpty ? (
+        {salesDeskReady && !shotMode ? (
           <>
-            {/* Shopify Analytics calm: orders + customers first, then ROAS depth. */}
-            {!shotMode && salesDeskReady ? (
-              <OrderEconomicsPanel
-                economics={orderEconomics}
-                periodLabel={metrics.period.label}
-                showSpendUnlock={false}
-                emptyPeriodHrefs={emptyPeriodHrefs}
-                priorPeriod={
-                  priorPeriodBoard
-                    ? {
-                        economics: priorPeriodBoard.economics,
-                        label: priorPeriodBoard.label,
-                        href: priorPeriodBoard.href,
-                      }
-                    : null
-                }
-              />
-            ) : null}
+            <OrderEconomicsPanel
+              economics={orderEconomics}
+              periodLabel={metrics.period.label}
+              showSpendUnlock={false}
+              emptyPeriodHrefs={emptyPeriodHrefs}
+              priorPeriod={
+                priorPeriodBoard
+                  ? {
+                      economics: priorPeriodBoard.economics,
+                      label: priorPeriodBoard.label,
+                      href: priorPeriodBoard.href,
+                    }
+                  : null
+              }
+            />
 
-            {!shotMode && salesDeskReady && dayQuality ? (
+            {dayQuality ? (
               <DayQualityTablePanel
                 table={dayQuality}
                 periodLabel={metrics.period.label}
@@ -1080,235 +1061,277 @@ export default function Dashboard() {
               />
             ) : null}
 
-            {!shotMode && salesDeskReady && metrics.control.daysInPeriod > 0 ? (
+            {dayQualityInsight &&
+            (dayQualityInsight.best ||
+              dayQualityInsight.softest ||
+              dayQualityInsight.aovDeltaPct != null) ? (
+              <p className="mcfly-day-insight" aria-label="Period day insight">
+                {dayQualityInsight.best ? (
+                  <>
+                    Strongest day {dayQualityInsight.best.label}
+                    {" · "}
+                    {formatCurrency(dayQualityInsight.best.sales)}
+                    {" · "}
+                    {dayQualityInsight.best.orders.toLocaleString()} orders
+                  </>
+                ) : null}
+                {dayQualityInsight.best && dayQualityInsight.softest
+                  ? " · "
+                  : null}
+                {dayQualityInsight.softest ? (
+                  <>
+                    Softest {dayQualityInsight.softest.label}
+                    {" · "}
+                    {formatCurrency(dayQualityInsight.softest.sales)}
+                  </>
+                ) : null}
+                {dayQualityInsight.aovDeltaPct != null ? (
+                  <>
+                    {(dayQualityInsight.best || dayQualityInsight.softest)
+                      ? " · "
+                      : null}
+                    AOV{" "}
+                    {dayQualityInsight.aovDeltaPct >= 0 ? "+" : ""}
+                    {dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior
+                  </>
+                ) : null}
+              </p>
+            ) : null}
+
+            {metrics.control.daysInPeriod > 0 ? (
               <PeriodPaceStrip
                 control={metrics.control}
                 periodLabel={metrics.period.label}
                 showHeadroom={
-                  Boolean(metrics.cashActionReady && metrics.targetMerConfirmed)
+                  Boolean(
+                    metrics.cashActionReady && metrics.targetMerConfirmed,
+                  )
                 }
               />
             ) : null}
 
-            {!shotMode && salesDeskReady ? (
-              <div
-                className="mcfly-tab-snaps"
-                aria-label="Customer insights"
-              >
-                {showHero ? (
-                  <LtvSnapSection
-                    tillLtv={metrics.tillLtv}
-                    preset={preset}
-                    emptyPeriodHrefs={emptyPeriodHrefs}
-                  />
-                ) : null}
-                <AcquisitionGlance
-                  preset={preset}
-                  amer={metrics.amer}
-                  newCustomerSales={metrics.newCustomerNetSales}
-                  returningCustomerSales={metrics.returningCustomerNetSales}
-                  periodSales={metrics.sales}
-                  totalSpend={metrics.totalSpend}
-                  periodLabel={metrics.period.label}
-                  cashActionReady={metrics.cashActionReady}
-                  spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
-                  salesFactsIncomplete={
-                    factsIncompleteForTrust || trustedHero.hideUntrustedZero
-                  }
-                  periodUncovered={periodUncovered}
-                  newBuyers={
-                    metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null
-                  }
-                  useSampleDesk={useSampleDesk}
-                />
-              </div>
-            ) : null}
+            <div className="mcfly-tab-snaps" aria-label="Customer insights">
+              <LtvSnapSection
+                tillLtv={metrics.tillLtv}
+                preset={preset}
+                emptyPeriodHrefs={emptyPeriodHrefs}
+              />
+              <AcquisitionGlance
+                preset={preset}
+                amer={metrics.amer}
+                newCustomerSales={metrics.newCustomerNetSales}
+                returningCustomerSales={metrics.returningCustomerNetSales}
+                periodSales={metrics.sales}
+                totalSpend={metrics.totalSpend}
+                periodLabel={metrics.period.label}
+                cashActionReady={metrics.cashActionReady}
+                spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
+                salesFactsIncomplete={
+                  factsIncompleteForTrust || trustedHero.hideUntrustedZero
+                }
+                periodUncovered={periodUncovered}
+                newBuyers={
+                  metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null
+                }
+                useSampleDesk={useSampleDesk}
+              />
+            </div>
 
-            {/* Listing SoT three-card strip — after customer/order depth. */}
-            {showHero ? (
-              <section
-                className="mcfly-hero-compact mcfly-hero-compact--v2"
-                aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
-              >
-                <div className="mcfly-hero-compact__status mcfly-hero-compact__status--gauge">
-                  {trustedHero.hideUntrustedZero ? (
-                    <s-banner
-                      tone="warning"
-                      heading={trustedHero.heading}
+            {!hasLiveSpend && !useSampleDesk ? (
+              <p className="mcfly-spend-later" aria-label="Spend later">
+                Want Total ROAS next?{" "}
+                <s-link href="/app/spend">Add ad spend</s-link>
+                {" — optional. Order and customer depth above already runs on Shopify alone."}
+              </p>
+            ) : null}
+          </>
+        ) : null}
+
+        {/* No sales yet — quiet first-session path (not a spend sermon wall). */}
+        {coldEmpty && !salesDeskReady && !shotMode ? (
+          <FirstSessionGuide path={firstSession} />
+        ) : null}
+
+        {/* Total ROAS strip — only once spend (or SAMPLE/shot) exists. */}
+        {showRoasHero ? (
+          <>
+            <section
+              className="mcfly-hero-compact mcfly-hero-compact--v2"
+              aria-label={`${PRODUCT_NOUN.totalRoas} snapshot`}
+            >
+              <div className="mcfly-hero-compact__status mcfly-hero-compact__status--gauge">
+                {trustedHero.hideUntrustedZero ? (
+                  <s-banner tone="warning" heading={trustedHero.heading}>
+                    <s-paragraph>{trustedHero.body}</s-paragraph>
+                    <div
+                      className="mcfly-decision__actions"
+                      style={{ marginTop: "0.65rem" }}
                     >
-                      <s-paragraph>{trustedHero.body}</s-paragraph>
-                      <div
-                        className="mcfly-decision__actions"
-                        style={{ marginTop: "0.65rem" }}
-                      >
-                        <s-button
-                          href={trustedHero.primaryHref}
-                          variant="primary"
-                        >
-                          {trustedHero.primaryLabel}
-                        </s-button>
-                        <s-button
-                          href={trustedHero.secondaryHref}
-                          variant="secondary"
-                        >
-                          {trustedHero.secondaryLabel}
-                        </s-button>
-                      </div>
-                    </s-banner>
-                  ) : (
-                    <TotalRoasGauge
-                      mer={trustedHero.mer}
-                      targetMer={
-                        metrics.targetMerConfirmed ? metrics.targetMer : null
-                      }
-                      periodTrusted={periodTrust.trusted}
-                      deltaLine={merDeltaLine}
-                    />
-                  )}
-                  {/* Sparse actions — Shopify Analytics calm (one primary). */}
-                  <div className="mcfly-hero-compact__actions">
-                    {trustedHero.hideUntrustedZero ? null : (
-                      <s-button href={heroPrimary.href} variant="primary">
-                        {heroPrimary.label}
-                      </s-button>
-                    )}
-                    {showSpendSecondary ? (
                       <s-button
-                        href="/app/spend#mcfly-spend-uploads"
+                        href={trustedHero.primaryHref}
+                        variant="primary"
+                      >
+                        {trustedHero.primaryLabel}
+                      </s-button>
+                      <s-button
+                        href={trustedHero.secondaryHref}
                         variant="secondary"
                       >
-                        Update spend
+                        {trustedHero.secondaryLabel}
                       </s-button>
-                    ) : null}
-                    <ShareOverviewButton
-                      subject={shareSubject}
-                      body={shareText}
-                      enabled={!shotMode && scoreboardReady}
-                      compact
-                    />
-                    <s-button
-                      variant="tertiary"
-                      aria-label={periodLedger.label}
-                      {...(periodLedger.ready
-                        ? { href: periodLedger.href }
-                        : {
-                            disabled: true,
-                            "aria-describedby": "mcfly-period-ledger-help",
-                          })}
-                    >
-                      {periodLedger.label}
+                    </div>
+                  </s-banner>
+                ) : (
+                  <TotalRoasGauge
+                    mer={trustedHero.mer}
+                    targetMer={
+                      metrics.targetMerConfirmed ? metrics.targetMer : null
+                    }
+                    periodTrusted={periodTrust.trusted}
+                    deltaLine={merDeltaLine}
+                  />
+                )}
+                <div className="mcfly-hero-compact__actions">
+                  {trustedHero.hideUntrustedZero ? null : (
+                    <s-button href={heroPrimary.href} variant="primary">
+                      {heroPrimary.label}
                     </s-button>
-                  </div>
-                  {periodLedger.blockedCopy ? (
-                    <p
-                      className="mcfly-hero-compact__meta"
-                      id="mcfly-period-ledger-help"
+                  )}
+                  {showSpendSecondary ? (
+                    <s-button
+                      href="/app/spend#mcfly-spend-uploads"
+                      variant="secondary"
                     >
-                      {periodLedger.blockedCopy}
+                      Update spend
+                    </s-button>
+                  ) : null}
+                  <ShareOverviewButton
+                    subject={shareSubject}
+                    body={shareText}
+                    enabled={!shotMode && scoreboardReady}
+                    compact
+                  />
+                  <s-button
+                    variant="tertiary"
+                    aria-label={periodLedger.label}
+                    {...(periodLedger.ready
+                      ? { href: periodLedger.href }
+                      : {
+                          disabled: true,
+                          "aria-describedby": "mcfly-period-ledger-help",
+                        })}
+                  >
+                    {periodLedger.label}
+                  </s-button>
+                </div>
+                {periodLedger.blockedCopy ? (
+                  <p
+                    className="mcfly-hero-compact__meta"
+                    id="mcfly-period-ledger-help"
+                  >
+                    {periodLedger.blockedCopy}
+                  </p>
+                ) : null}
+              </div>
+              <div className="mcfly-hero-compact__pair">
+                <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--sales">
+                  <p className="mcfly-hero-compact__label">
+                    Shopify Total Sales
+                  </p>
+                  <p className="mcfly-hero-compact__value">
+                    {trustedHero.hideUntrustedZero
+                      ? "—"
+                      : formatCurrency(totalSalesDisplay)}
+                  </p>
+                  <p className="mcfly-hero-compact__meta">
+                    {trustedHero.kind === "pick_covered_period"
+                      ? "This period is wider than loaded sales history"
+                      : trustedHero.hideUntrustedZero
+                        ? "Sales facts still loading for this period"
+                        : PRODUCT_NOUN.totalSalesHeroHint}
+                  </p>
+                  {!trustedHero.hideUntrustedZero && deltas ? (
+                    <p className="mcfly-hero-compact__meta mcfly-hero-compact__delta">
+                      {salesDeltaLine}
                     </p>
                   ) : null}
+                  {!trustedHero.hideUntrustedZero && metrics.orderCount > 0 ? (
+                    <ul
+                      className="mcfly-kpi-facts"
+                      aria-label={`Order facts · ${metrics.period.label}`}
+                    >
+                      <li className="mcfly-kpi-facts__row">
+                        <span className="mcfly-kpi-facts__name">Orders</span>
+                        <span className="mcfly-kpi-facts__amt">
+                          {metrics.orderCount.toLocaleString()}
+                        </span>
+                      </li>
+                      <li className="mcfly-kpi-facts__row">
+                        <span className="mcfly-kpi-facts__name">
+                          Avg order value
+                        </span>
+                        <span className="mcfly-kpi-facts__amt">
+                          {formatCurrency(
+                            totalSalesDisplay / metrics.orderCount,
+                          )}
+                        </span>
+                      </li>
+                    </ul>
+                  ) : null}
                 </div>
-                <div className="mcfly-hero-compact__pair">
-                  <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--sales">
-                    <p className="mcfly-hero-compact__label">
-                      Shopify Total Sales
+                <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
+                  <p className="mcfly-hero-compact__label">Total Spend</p>
+                  <p className="mcfly-hero-compact__value">
+                    {formatCurrency(metrics.totalSpend)}
+                  </p>
+                  <p className="mcfly-hero-compact__meta">
+                    {metrics.period.label} · Logged via CSV
+                  </p>
+                  {spendDeltaLine ? (
+                    <p className="mcfly-hero-compact__meta mcfly-hero-compact__delta">
+                      {spendDeltaLine}
                     </p>
-                    <p className="mcfly-hero-compact__value">
-                      {trustedHero.hideUntrustedZero
-                        ? "—"
-                        : formatCurrency(totalSalesDisplay)}
-                    </p>
-                    <p className="mcfly-hero-compact__meta">
-                      {trustedHero.kind === "pick_covered_period"
-                        ? "This period is wider than loaded sales history"
-                        : trustedHero.hideUntrustedZero
-                          ? "Sales facts still loading for this period"
-                          : PRODUCT_NOUN.totalSalesHeroHint}
-                    </p>
-                    {!trustedHero.hideUntrustedZero && deltas ? (
-                      <p className="mcfly-hero-compact__meta mcfly-hero-compact__delta">
-                        {salesDeltaLine}
-                      </p>
-                    ) : null}
-                    {!trustedHero.hideUntrustedZero &&
-                    metrics.orderCount > 0 ? (
-                      <ul
-                        className="mcfly-kpi-facts"
-                        aria-label={`Order facts · ${metrics.period.label}`}
-                      >
-                        <li className="mcfly-kpi-facts__row">
-                          <span className="mcfly-kpi-facts__name">Orders</span>
-                          <span className="mcfly-kpi-facts__amt">
-                            {metrics.orderCount.toLocaleString()}
+                  ) : null}
+                  {periodChannels.length > 0 ? (
+                    <ul
+                      className="mcfly-kpi-channels mcfly-kpi-channels--scroll"
+                      aria-label={`Spend allocation · ${metrics.period.label}`}
+                    >
+                      {periodChannels.map((entry) => (
+                        <li
+                          className="mcfly-kpi-channels__row"
+                          key={entry.name}
+                        >
+                          <span
+                            className={`mcfly-spend-dot mcfly-spend-dot--${entry.fill}`}
+                            aria-hidden="true"
+                          />
+                          <span className="mcfly-kpi-channels__name">
+                            {entry.name}
+                          </span>
+                          <span className="mcfly-kpi-channels__amt">
+                            {formatCurrency(entry.amount)}
+                            <span className="mcfly-kpi-channels__share">
+                              {" "}
+                              · {formatPercent(entry.share)}
+                            </span>
                           </span>
                         </li>
-                        <li className="mcfly-kpi-facts__row">
-                          <span className="mcfly-kpi-facts__name">
-                            Avg order value
-                          </span>
-                          <span className="mcfly-kpi-facts__amt">
-                            {formatCurrency(
-                              totalSalesDisplay / metrics.orderCount,
-                            )}
-                          </span>
-                        </li>
-                      </ul>
-                    ) : null}
-                  </div>
-                  <div className="mcfly-hero-compact__tile mcfly-hero-compact__tile--spend">
-                    <p className="mcfly-hero-compact__label">Total Spend</p>
-                    <p className="mcfly-hero-compact__value">
-                      {formatCurrency(metrics.totalSpend)}
-                    </p>
+                      ))}
+                    </ul>
+                  ) : (
                     <p className="mcfly-hero-compact__meta">
-                      {metrics.period.label} · Logged via CSV
+                      No channel spend in this period
                     </p>
-                    {spendDeltaLine ? (
-                      <p className="mcfly-hero-compact__meta mcfly-hero-compact__delta">
-                        {spendDeltaLine}
-                      </p>
-                    ) : null}
-                    {periodChannels.length > 0 ? (
-                      <ul
-                        className="mcfly-kpi-channels mcfly-kpi-channels--scroll"
-                        aria-label={`Spend allocation · ${metrics.period.label}`}
-                      >
-                        {periodChannels.map((entry) => (
-                          <li
-                            className="mcfly-kpi-channels__row"
-                            key={entry.name}
-                          >
-                            <span
-                              className={`mcfly-spend-dot mcfly-spend-dot--${entry.fill}`}
-                              aria-hidden="true"
-                            />
-                            <span className="mcfly-kpi-channels__name">
-                              {entry.name}
-                            </span>
-                            <span className="mcfly-kpi-channels__amt">
-                              {formatCurrency(entry.amount)}
-                              <span className="mcfly-kpi-channels__share">
-                                {" "}
-                                · {formatPercent(entry.share)}
-                              </span>
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mcfly-hero-compact__meta">
-                        No channel spend in this period
-                      </p>
-                    )}
-                    <p className="mcfly-hero-compact__dive">
-                      <s-link href={`/app/allocation?period=${preset}`}>
-                        {PRODUCT_NOUN.spendAllocation}
-                      </s-link>
-                    </p>
-                  </div>
+                  )}
+                  <p className="mcfly-hero-compact__dive">
+                    <s-link href={`/app/allocation?period=${preset}`}>
+                      {PRODUCT_NOUN.spendAllocation}
+                    </s-link>
+                  </p>
                 </div>
-              </section>
-            ) : null}
+              </div>
+            </section>
 
             <details className="mcfly-me-spine mcfly-me-spine--later">
               <summary className="mcfly-me-spine__summary">
@@ -1320,17 +1343,30 @@ export default function Dashboard() {
                 shotMode={shotMode}
               />
             </details>
+          </>
+        ) : null}
 
-            {!shotMode && metrics.cashActionReady ? (
-              <p className="mcfly-overview-more" aria-label="More tools">
-                <s-link href="/app/goals">Goals</s-link>
+        {!shotMode && salesDeskReady ? (
+          <p className="mcfly-overview-more" aria-label="More tools">
+            <s-link href="/app/ltv">Customers & LTV</s-link>
+            {" · "}
+            <s-link href="/app/goals">Goals</s-link>
+            {hasLiveSpend || useSampleDesk ? (
+              <>
+                {" · "}
+                <s-link href="/app/spend">Spend</s-link>
                 {" · "}
                 <s-link href="/app/advanced">
                   {PRODUCT_NOUN.advancedMetrics}
                 </s-link>
-              </p>
-            ) : null}
-          </>
+              </>
+            ) : (
+              <>
+                {" · "}
+                <s-link href="/app/spend">Add spend later</s-link>
+              </>
+            )}
+          </p>
         ) : null}
       </div>
     </s-page>

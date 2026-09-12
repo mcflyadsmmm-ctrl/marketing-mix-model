@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildDayQuality,
+  summarizeDayQuality,
   formatDayQualityCsv,
   formatDayQualityLabel,
   inclusiveDayCount,
@@ -693,5 +694,34 @@ describe("formatDayQualityCsv", () => {
       granularity: "week",
     });
     expect(csv).toContain('"Sep 7, 2026–Sep 13, 2026"');
+  });
+});
+
+
+describe("summarizeDayQuality", () => {
+  it("picks best and softest closed days and AOV delta vs prior", () => {
+    const table = buildDayQuality({
+      factRows: {
+        "2026-09-08": { sales: 800, orderCount: 8 },
+        "2026-09-09": { sales: 1200, orderCount: 10 },
+        "2026-09-10": { sales: 400, orderCount: 4 },
+      },
+      spendByDay: {},
+      periodStartKey: "2026-09-08",
+      periodEndKey: "2026-09-10",
+      todayKey: "2026-09-10",
+      breakEvenMer: null,
+      priorFactRows: {
+        "2026-08-09": { sales: 500, orderCount: 5 },
+      },
+      priorSpendByDay: {},
+      priorStartKey: "2026-08-09",
+      priorEndKey: "2026-08-09",
+    });
+    const insight = summarizeDayQuality(table);
+    expect(insight.best?.label).toMatch(/9/);
+    expect(insight.softest?.label).toMatch(/8/);
+    // today (10) is partial — not in best/softest contest as winner of soft if filtered
+    expect(insight.aovDeltaPct).not.toBeNull();
   });
 });
