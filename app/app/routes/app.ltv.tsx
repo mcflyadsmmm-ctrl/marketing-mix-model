@@ -240,7 +240,7 @@ export default function LtvPage() {
       <div
         className={[
           "mcfly-desk",
-          "mcfly-ltv",
+          "mcfly-ltv mcfly-ltv--bc",
           "mcfly-acq",
           shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,

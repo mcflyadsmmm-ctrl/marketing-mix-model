@@ -32,6 +32,7 @@ import {
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
 import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
 import { OpsDeskIsland } from "../components/OpsDeskIsland";
+import { SalesMixPanel } from "../components/SalesMixPanel";
 import { DayQualityTablePanel } from "../components/DayQualityTable";
 import { PeriodPaceStrip } from "../components/PeriodPaceStrip";
 import { buildDayQuality, summarizeDayQuality } from "../lib/day-quality";
@@ -42,6 +43,7 @@ import {
 } from "../lib/first-session-path";
 import { resolveOrderEconomics } from "../lib/order-economics";
 import { buildOpsDeskIsland } from "../lib/ops-desk-island";
+import { buildSalesMix } from "../lib/sales-mix";
 import {
   firstOpenRedirect,
   isTrustedMer,
@@ -922,40 +924,46 @@ export default function Dashboard() {
     dayQuality && dayQuality.rows.length > 0
       ? summarizeDayQuality(dayQuality)
       : null;
-  const opsDeskIsland =
-    orderEconomics.hasSignal
-      ? buildOpsDeskIsland({
-          periodLabel: metrics.period.label,
-          economics: orderEconomics,
-          buyerRepeat: metrics.tillLtv.available
-            ? metrics.tillLtv.buyerRepeat
-            : null,
-          avgRevenueD90: metrics.tillLtv.available
-            ? metrics.tillLtv.avgRevenueD90
-            : null,
-          newBuyers: metrics.tillLtv.available
-            ? metrics.tillLtv.newBuyers
-            : null,
-          top10BuyerShare: metrics.tillLtv.available
-            ? metrics.tillLtv.buyerConcentration.top10Share
-            : null,
-          dayInsight: dayQualityInsight
-            ? [
-                dayQualityInsight.best
-                  ? `Strongest day ${dayQualityInsight.best.label} · ${dayQualityInsight.best.orders.toLocaleString()} orders`
-                  : null,
-                dayQualityInsight.softest
-                  ? `Softest ${dayQualityInsight.softest.label}`
-                  : null,
-                dayQualityInsight.aovDeltaPct != null
-                  ? `AOV ${dayQualityInsight.aovDeltaPct >= 0 ? "+" : ""}${dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ") || null
-            : null,
-        })
-      : null;
+  const opsDeskIsland = orderEconomics.hasSignal
+    ? buildOpsDeskIsland({
+        periodLabel: metrics.period.label,
+        periodPreset: preset,
+        economics: orderEconomics,
+        buyerRepeat: metrics.tillLtv.available
+          ? {
+              secondWithin90: metrics.tillLtv.buyerRepeat.secondWithin90,
+              medianDaysToSecond:
+                metrics.tillLtv.buyerRepeat.medianDaysToSecond,
+            }
+          : null,
+        avgRevenueD90: metrics.tillLtv.available
+          ? metrics.tillLtv.avgRevenueD90
+          : null,
+        newBuyers: metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null,
+        top10BuyerShare: metrics.tillLtv.available
+          ? metrics.tillLtv.buyerConcentration.top10Share
+          : null,
+        dayInsight: dayQualityInsight
+          ? [
+              dayQualityInsight.best
+                ? `Strongest day ${dayQualityInsight.best.label} · ${dayQualityInsight.best.orders.toLocaleString()} orders`
+                : null,
+              dayQualityInsight.softest
+                ? `Softest ${dayQualityInsight.softest.label}`
+                : null,
+              dayQualityInsight.aovDeltaPct != null
+                ? `AOV ${dayQualityInsight.aovDeltaPct >= 0 ? "+" : ""}${dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ") || null
+          : null,
+        hasLiveSpend,
+      })
+    : null;
+  const salesMix = orderEconomics.hasSignal
+    ? buildSalesMix(orderEconomics, metrics.period.label)
+    : null;
 
   // One primary CTA: customer insights when sales exist; spend is later depth.
   const heroPrimary = salesDeskReady
@@ -1003,6 +1011,7 @@ export default function Dashboard() {
       <div
         className={[
           "mcfly-desk",
+          "mcfly-desk--bc",
           shotMode ? "mcfly-desk--shot mcfly-desk--listing" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
           scoreboardReady && !useSampleDesk ? "mcfly-desk--live-ready" : null,
@@ -1046,8 +1055,15 @@ export default function Dashboard() {
           </section>
         ) : null}
 
-        <div className="mcfly-ctx" aria-live="polite">
+        <div className="mcfly-ctx mcfly-ctx--bc" aria-live="polite">
           <div className="mcfly-ctx__main">
+            <span className="mcfly-ctx__brand">Mcfly</span>
+            <span className="mcfly-ctx__sep" aria-hidden="true">
+              ·
+            </span>
+            <span className="mcfly-ctx__def">
+              Shopify sales · orders · customers — spend optional
+            </span>
             <span className="mcfly-ctx__asof">{periodAsOfLabel}</span>
             <PeriodControl preset={preset} shotMode={shotMode} />
           </div>
@@ -1066,6 +1082,10 @@ export default function Dashboard() {
               <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
                 Sales still loading
               </span>
+            ) : orderEconomics.hasSignal ? (
+              <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+                {orderEconomics.orderCount.toLocaleString()} orders
+              </span>
             ) : null}
           </div>
         </div>
@@ -1078,28 +1098,34 @@ export default function Dashboard() {
         {salesDeskReady && !shotMode ? (
           <>
             {opsDeskIsland ? <OpsDeskIsland model={opsDeskIsland} /> : null}
-            <OrderEconomicsPanel
-              economics={orderEconomics}
-              periodLabel={metrics.period.label}
-              showSpendUnlock={false}
-              emptyPeriodHrefs={emptyPeriodHrefs}
-              priorPeriod={
-                priorPeriodBoard
-                  ? {
-                      economics: priorPeriodBoard.economics,
-                      label: priorPeriodBoard.label,
-                      href: priorPeriodBoard.href,
-                    }
-                  : null
-              }
-            />
+
+            <div className="mcfly-desk-grid mcfly-desk-grid--bc">
+              {salesMix ? <SalesMixPanel model={salesMix} /> : null}
+              <OrderEconomicsPanel
+                economics={orderEconomics}
+                periodLabel={metrics.period.label}
+                showSpendUnlock={false}
+                emptyPeriodHrefs={emptyPeriodHrefs}
+                priorPeriod={
+                  priorPeriodBoard
+                    ? {
+                        economics: priorPeriodBoard.economics,
+                        label: priorPeriodBoard.label,
+                        href: priorPeriodBoard.href,
+                      }
+                    : null
+                }
+              />
+            </div>
 
             {dayQuality ? (
-              <DayQualityTablePanel
-                table={dayQuality}
-                periodLabel={metrics.period.label}
-                breakEvenMer={metrics.breakEvenMer}
-              />
+              <div id="mcfly-day-quality">
+                <DayQualityTablePanel
+                  table={dayQuality}
+                  periodLabel={metrics.period.label}
+                  breakEvenMer={metrics.breakEvenMer}
+                />
+              </div>
             ) : null}
 
             {dayQualityInsight &&

@@ -1,10 +1,20 @@
 /**
- * Black Clover–style operator island: one takeaway + dense 4-up KPI rail.
- * Pure — Overview paints this before the deeper panels.
+ * Black Clover–grade operator desk model (Shopify-first).
+ * Decision takeaway + tone + actions + dense 4-up KPI rail.
+ * Pure — Overview paints this before deeper panels.
  */
 
 import type { OrderEconomics } from "./order-economics";
 import { summarizeOrderEconomics } from "./order-economics";
+
+export type OpsDeskTone = "strong" | "steady" | "watch";
+
+export type OpsDeskAction = {
+  id: string;
+  label: string;
+  href: string;
+  primary?: boolean;
+};
 
 export type OpsDeskKpi = {
   id: string;
@@ -12,11 +22,16 @@ export type OpsDeskKpi = {
   value: string;
   hint: string;
   accent?: boolean;
+  delta?: string | null;
 };
 
 export type OpsDeskIslandModel = {
   kicker: string;
   takeaway: string;
+  /** Supporting why-line under the Fraunces takeaway. */
+  why: string;
+  tone: OpsDeskTone;
+  actions: OpsDeskAction[];
   kpis: OpsDeskKpi[];
 };
 
@@ -40,7 +55,9 @@ function medianDays(days: number): string {
 
 export type OpsDeskIslandInput = {
   periodLabel: string;
+  periodPreset: string;
   economics: OrderEconomics;
+  /** Matches BuyerRepeatSummary field names from till LTV. */
   buyerRepeat?: {
     secondWithin90: number | null;
     medianDaysToSecond: number | null;
@@ -50,10 +67,81 @@ export type OpsDeskIslandInput = {
   dayInsight?: string | null;
   /** Heaviest-buyer revenue share (Shopify-only depth). */
   top10BuyerShare?: number | null;
+  /** When false, offer a quiet later path to Spend — never the primary. */
+  hasLiveSpend?: boolean;
 };
 
+function resolveTone(input: OpsDeskIslandInput): OpsDeskTone {
+  const { economics } = input;
+  const second90 = input.buyerRepeat?.secondWithin90 ?? null;
+  if (
+    (economics.returningShare != null && economics.returningShare >= 0.42) ||
+    (second90 != null && second90 >= 0.35)
+  ) {
+    return "strong";
+  }
+  if (
+    (economics.returningShare != null &&
+      economics.returningShare <= 0.15 &&
+      economics.orderCount >= 20) ||
+    (economics.weekendShare != null && economics.weekendShare >= 0.55)
+  ) {
+    return "watch";
+  }
+  return "steady";
+}
+
+function buildWhy(input: OpsDeskIslandInput, tone: OpsDeskTone): string {
+  const { economics } = input;
+  const bits: string[] = [];
+  if (economics.orderCount > 0) {
+    bits.push(
+      `${economics.orderCount.toLocaleString()} orders · ${money(economics.sales)} Shopify sales`,
+    );
+  }
+  if (input.top10BuyerShare != null) {
+    bits.push(
+      `Top 10% buyers carry ${pct(input.top10BuyerShare)} of lifetime revenue`,
+    );
+  } else if (economics.returningShare != null) {
+    bits.push(
+      `${pct(economics.returningShare)} of attributed sales from returning buyers`,
+    );
+  }
+  if (tone === "watch" && economics.weekendShare != null) {
+    bits.push(
+      `Weekend ${pct(economics.weekendShare)} of sales — check day pacing`,
+    );
+  }
+  return bits.slice(0, 2).join(" · ");
+}
+
+function buildActions(input: OpsDeskIslandInput): OpsDeskAction[] {
+  const actions: OpsDeskAction[] = [
+    {
+      id: "ltv",
+      label: "Customers & LTV",
+      href: `/app/ltv?period=${encodeURIComponent(input.periodPreset)}`,
+      primary: true,
+    },
+    {
+      id: "days",
+      label: "Day quality",
+      href: "#mcfly-day-quality",
+    },
+  ];
+  if (!input.hasLiveSpend) {
+    actions.push({
+      id: "spend-later",
+      label: "Add spend later",
+      href: "/app/spend",
+    });
+  }
+  return actions;
+}
+
 /**
- * Build the BC-smooth first viewport: decision sentence + up to 4 KPIs.
+ * Build the BC-smooth first viewport: decision strip + up to 4 KPIs.
  * Prefers order + customer depth Shopify will not put on one screen.
  */
 export function buildOpsDeskIsland(
@@ -121,10 +209,7 @@ export function buildOpsDeskIsland(
       value: pct(economics.weekendShare),
       hint: `${money(economics.weekendSales)} Sat–Sun · ${money(economics.weekdaySales)} weekdays`,
     });
-  } else if (
-    economics.spendPerOrder != null &&
-    kpis.length < 4
-  ) {
+  } else if (economics.spendPerOrder != null && kpis.length < 4) {
     kpis.push({
       id: "spo",
       label: "Spend / order",
@@ -135,6 +220,7 @@ export function buildOpsDeskIsland(
 
   if (kpis.length === 0) return null;
 
+  const tone = resolveTone(input);
   const orderTake = summarizeOrderEconomics(economics);
   const takeaway =
     (input.dayInsight && input.dayInsight.trim()) ||
@@ -144,6 +230,9 @@ export function buildOpsDeskIsland(
   return {
     kicker: `Operator desk · ${input.periodLabel}`,
     takeaway,
+    why: buildWhy(input, tone),
+    tone,
+    actions: buildActions(input),
     kpis: kpis.slice(0, 4),
   };
 }
