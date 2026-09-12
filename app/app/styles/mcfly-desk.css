@@ -12512,3 +12512,16 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   background: color-mix(in srgb, var(--mcfly-bc-accent) 12%, #fff);
   font-weight: 600;
 }
+
+/* Progressive depth charts — fast first paint, heavy follow-up */
+.mcfly-depth-progressive__status {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--mcfly-muted, #5c5f62);
+}
+.mcfly-depth-chart-slot--pending {
+  opacity: 0.72;
+}
+.mcfly-depth-chart-slot--pending .mcfly-depth-chart {
+  border-style: dashed;
+}

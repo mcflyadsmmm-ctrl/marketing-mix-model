@@ -3,7 +3,7 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
-import { DepthChartCard } from "../components/DepthChartCard";
+import { DepthProgressiveGrid } from "../components/DepthProgressiveGrid";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import {
@@ -14,7 +14,10 @@ import {
 } from "../lib/periods";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { loadShopifyDepthData } from "../lib/shopify-depth-loader.server";
-import { buildDepthChartsForTab } from "../lib/shopify-depth-metrics";
+import {
+  buildDepthChartPlaceholdersForTab,
+  buildDepthChartsForTab,
+} from "../lib/shopify-depth-metrics";
 import { authenticate } from "../shopify.server";
 import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
 import {
@@ -48,19 +51,33 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     admin: useSampleDesk ? undefined : admin,
     grantedScopes: session.scope,
     allOrderHistory: true,
+    mode: shotMode ? "full" : "fast",
   });
 
-  const charts = buildDepthChartsForTab({
-    tab: "customers",
+    const chartInput = {
+    tab: "customers" as const,
     dayFacts: depth.dayFacts,
     priorDayFacts: depth.priorDayFacts,
     baselineDayFacts: depth.baselineDayFacts,
     orderFacts: depth.orderFacts,
     timeZone: shop.ianaTimezone,
-  });
+  };
+
+  const charts = buildDepthChartsForTab(
+    chartInput,
+    shotMode ? "full" : "fast",
+  );
+  const placeholders = shotMode
+    ? []
+    : buildDepthChartPlaceholdersForTab("customers");
+  const heavyHref = shotMode
+    ? null
+    : `/app/customers/heavy?period=${encodeURIComponent(preset)}`;
 
   return {
     charts,
+    placeholders,
+    heavyHref,
     preset,
     shotMode,
     useSampleDesk,
@@ -74,6 +91,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function CustomersDepthPage() {
   const {
     charts,
+    placeholders,
+    heavyHref,
     preset,
     shotMode,
     useSampleDesk,
@@ -105,11 +124,12 @@ export default function CustomersDepthPage() {
           </p>
           {!shotMode ? <PeriodControl preset={preset} /> : null}
         </header>
-        <div className="mcfly-depth-chart-grid">
-          {charts.map((model) => (
-            <DepthChartCard key={model.id} model={model} />
-          ))}
-        </div>
+        <DepthProgressiveGrid
+          fastCharts={charts}
+          placeholders={placeholders}
+          heavyHref={heavyHref}
+          deferHeavy={!shotMode}
+        />
       </div>
     </s-page>
   );

@@ -4,6 +4,7 @@ import {
   depthFeaturesForTab,
 } from "./shopify-depth-catalog";
 import {
+  buildDepthChartPlaceholdersForTab,
   buildDepthChartsForTab,
   depthCatalogCount,
   type DayFactInput,
@@ -195,5 +196,33 @@ describe("buildDepthChartsForTab", () => {
       const chart = charts.find((c) => c.id === id);
       expect(chart?.emptyReason).toMatch(/line ingest/i);
     }
+  });
+});
+
+
+describe("progressive depth paint", () => {
+  it("fast phase skips order_facts; slow phase is only order_facts", () => {
+    const dayFacts = sampleDayFacts();
+    const orderFacts = sampleOrders();
+    const fast = buildDepthChartsForTab(
+      { tab: "sales", dayFacts, orderFacts },
+      "fast",
+    );
+    const slow = buildDepthChartsForTab(
+      { tab: "sales", dayFacts, orderFacts },
+      "slow",
+    );
+    const placeholders = buildDepthChartPlaceholdersForTab("sales");
+    expect(fast.length).toBeGreaterThan(0);
+    expect(slow.length).toBeGreaterThan(0);
+    expect(fast.every((c) => !placeholders.some((p) => p.id === c.id))).toBe(
+      true,
+    );
+    expect(slow.map((c) => c.id).sort()).toEqual(
+      placeholders.map((p) => p.id).sort(),
+    );
+    expect(placeholders.every((p) => p.emptyReason?.includes("Loading"))).toBe(
+      true,
+    );
   });
 });

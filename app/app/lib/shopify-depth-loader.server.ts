@@ -5,7 +5,6 @@ import {
 import {
   listBuyerOrderFacts,
   listPeriodOrderFactsForDepth,
-  runOrderFactsBackfill,
 } from "./order-facts.server";
 import {
   dayFactsFromSalesDayRows,
@@ -13,16 +12,17 @@ import {
   type OrderFactInput,
 } from "./shopify-depth-metrics";
 import { fetchSampleSalesRowsByDay } from "./sample-desk.server";
-import { runSalesFactsBackfill } from "./sales-facts.server";
-import {
-  FIRST_PAINT_SALES_BACKFILL_DAYS,
-  enqueueSalesFactsBackfill,
-} from "./sales-backfill-kick.server";
+import { enqueueSalesFactsBackfill } from "./sales-backfill-kick.server";
 
-/** Minimal admin client — avoids AdminApiContext shape drift across Shopify packages. */
+/** Minimal admin client — unused for sync work; kept for call-site compatibility. */
 type DepthAdminClient = {
-  graphql: (query: string, options?: { variables?: Record<string, unknown> }) => Promise<Response>;
+  graphql: (
+    query: string,
+    options?: { variables?: Record<string, unknown> },
+  ) => Promise<Response>;
 };
+
+export type ShopifyDepthLoadMode = "fast" | "full";
 
 export type ShopifyDepthLoaderData = {
   dayFacts: DayFactInput[];
@@ -31,6 +31,9 @@ export type ShopifyDepthLoaderData = {
   orderFacts: OrderFactInput[];
   periodLabel: string;
 };
+
+/** Cap unbounded Customers history so heavy pass cannot load a decade at once. */
+export const DEPTH_BUYER_HISTORY_LOOKBACK_DAYS = 365 * 4;
 
 function sampleRowsToSalesMap(
   rows: Map<
@@ -63,6 +66,20 @@ function baselineRangeBefore(
   return { start, end };
 }
 
+function buyerHistoryRange(now = new Date()): { start: Date; end: Date } {
+  const end = now;
+  const start = new Date(
+    end.getTime() - DEPTH_BUYER_HISTORY_LOOKBACK_DAYS * 86400000,
+  );
+  return { start, end };
+}
+
+/**
+ * Depth tab data.
+ * - `fast`: day facts only (first paint). Skips order-fact queries.
+ * - `full`: day + order facts (heavy follow-up / shot captures).
+ * Never runs sync Shopify backfill on this request — enqueue only.
+ */
 export async function loadShopifyDepthData(args: {
   shopId: string;
   range: { start: Date; end: Date; label: string };
@@ -73,6 +90,8 @@ export async function loadShopifyDepthData(args: {
   grantedScopes?: string | null;
   /** When true, order facts are shop-wide (Customers tab). */
   allOrderHistory?: boolean;
+  /** Default `full` for callers that have not opted into progressive paint. */
+  mode?: ShopifyDepthLoadMode;
 }): Promise<ShopifyDepthLoaderData> {
   const {
     shopId,
@@ -80,22 +99,13 @@ export async function loadShopifyDepthData(args: {
     priorRange,
     ianaTimezone,
     useSampleDesk,
-    admin,
     grantedScopes,
     allOrderHistory = false,
+    mode = "full",
   } = args;
 
-  if (!useSampleDesk && admin) {
-    void runOrderFactsBackfill(admin, shopId, {
-      maxDays: 7,
-      grantedScopes: grantedScopes ?? undefined,
-    }).catch(() => {});
-    void runSalesFactsBackfill(admin, shopId, {
-      maxDays: FIRST_PAINT_SALES_BACKFILL_DAYS,
-      grantedScopes: grantedScopes ?? undefined,
-      newestFirst: true,
-      priorityRange: range,
-    }).catch(() => {});
+  // Kick deep fill off the critical path — job tick owns GraphQL crawl.
+  if (!useSampleDesk) {
     void enqueueSalesFactsBackfill({
       shopId,
       grantedScopes: grantedScopes ?? undefined,
@@ -104,53 +114,66 @@ export async function loadShopifyDepthData(args: {
   }
 
   const baselineRange = baselineRangeBefore(range, 56);
-  let periodRows: Map<string, SalesDayFactRow>;
-  let priorRows: Map<string, SalesDayFactRow>;
-  let baselineRows: Map<string, SalesDayFactRow>;
 
-  if (useSampleDesk) {
-    const [period, prior, baseline] = await Promise.all([
-      fetchSampleSalesRowsByDay(shopId, range),
-      fetchSampleSalesRowsByDay(shopId, priorRange),
-      fetchSampleSalesRowsByDay(shopId, baselineRange),
-    ]);
-    periodRows = sampleRowsToSalesMap(period);
-    priorRows = sampleRowsToSalesMap(prior);
-    baselineRows = sampleRowsToSalesMap(baseline);
-  } else {
-    [periodRows, priorRows, baselineRows] = await Promise.all([
+  const dayPromise = (async (): Promise<{
+    periodRows: Map<string, SalesDayFactRow>;
+    priorRows: Map<string, SalesDayFactRow>;
+    baselineRows: Map<string, SalesDayFactRow>;
+  }> => {
+    if (useSampleDesk) {
+      const [period, prior, baseline] = await Promise.all([
+        fetchSampleSalesRowsByDay(shopId, range),
+        fetchSampleSalesRowsByDay(shopId, priorRange),
+        fetchSampleSalesRowsByDay(shopId, baselineRange),
+      ]);
+      return {
+        periodRows: sampleRowsToSalesMap(period),
+        priorRows: sampleRowsToSalesMap(prior),
+        baselineRows: sampleRowsToSalesMap(baseline),
+      };
+    }
+    const [periodRows, priorRows, baselineRows] = await Promise.all([
       getSalesFactRowsByDay(shopId, range, ianaTimezone),
       getSalesFactRowsByDay(shopId, priorRange, ianaTimezone),
       getSalesFactRowsByDay(shopId, baselineRange, ianaTimezone),
     ]);
-  }
+    return { periodRows, priorRows, baselineRows };
+  })();
 
-  let orderFacts: OrderFactInput[] = [];
-  if (allOrderHistory) {
-    const rows = await listBuyerOrderFacts(shopId, { sample: useSampleDesk });
-    orderFacts = rows.map((o) => ({
-      buyerKey: o.buyerKey,
-      orderAt: o.orderAt,
-      netSales: o.netSales,
-      lifetimeOrderRank: o.lifetimeOrderRank,
-      hasCustomer: true,
-    }));
-  } else {
-    const rows = await listPeriodOrderFactsForDepth(shopId, range, {
-      sample: useSampleDesk,
-    });
-    orderFacts = rows.map((o) => ({
-      buyerKey: o.buyerKey,
-      orderAt: o.orderAt,
-      netSales: o.netSales,
-      hasCustomer: o.hasCustomer,
-    }));
-  }
+  const orderPromise =
+    mode === "fast"
+      ? Promise.resolve([] as OrderFactInput[])
+      : (async (): Promise<OrderFactInput[]> => {
+          if (allOrderHistory) {
+            const rows = await listBuyerOrderFacts(shopId, {
+              sample: useSampleDesk,
+              range: buyerHistoryRange(),
+            });
+            return rows.map((o) => ({
+              buyerKey: o.buyerKey,
+              orderAt: o.orderAt,
+              netSales: o.netSales,
+              lifetimeOrderRank: o.lifetimeOrderRank,
+              hasCustomer: true,
+            }));
+          }
+          const rows = await listPeriodOrderFactsForDepth(shopId, range, {
+            sample: useSampleDesk,
+          });
+          return rows.map((o) => ({
+            buyerKey: o.buyerKey,
+            orderAt: o.orderAt,
+            netSales: o.netSales,
+            hasCustomer: o.hasCustomer,
+          }));
+        })();
+
+  const [days, orderFacts] = await Promise.all([dayPromise, orderPromise]);
 
   return {
-    dayFacts: dayFactsFromSalesDayRows(periodRows),
-    priorDayFacts: dayFactsFromSalesDayRows(priorRows),
-    baselineDayFacts: dayFactsFromSalesDayRows(baselineRows),
+    dayFacts: dayFactsFromSalesDayRows(days.periodRows),
+    priorDayFacts: dayFactsFromSalesDayRows(days.priorRows),
+    baselineDayFacts: dayFactsFromSalesDayRows(days.baselineRows),
     orderFacts,
     periodLabel: range.label,
   };

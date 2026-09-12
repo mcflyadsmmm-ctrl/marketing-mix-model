@@ -1145,12 +1145,38 @@ function buildOne(
   }
 }
 
+export type DepthChartPhase = "fast" | "slow" | "full";
+
+/** Order-fact charts wait for the heavy pass; everything else can first-paint. */
+export function depthFeatureIsFastPaint(needs: string): boolean {
+  return needs !== "order_facts";
+}
+
 export function buildDepthChartsForTab(
   input: BuildDepthChartsInput,
+  phase: DepthChartPhase = "full",
 ): DepthChartModel[] {
-  return SHOPIFY_DEPTH_CATALOG.filter((f) => f.tab === input.tab).map((f) =>
-    buildOne(f, input),
-  );
+  return SHOPIFY_DEPTH_CATALOG.filter((f) => {
+    if (f.tab !== input.tab) return false;
+    if (phase === "full") return true;
+    const fast = depthFeatureIsFastPaint(f.needs);
+    return phase === "fast" ? fast : !fast;
+  }).map((f) => buildOne(f, input));
+}
+
+/** Placeholder shells so the grid keeps catalog order while heavy charts load. */
+export function buildDepthChartPlaceholdersForTab(
+  tab: BuildDepthChartsInput["tab"],
+): DepthChartModel[] {
+  return SHOPIFY_DEPTH_CATALOG.filter(
+    (f) => f.tab === tab && !depthFeatureIsFastPaint(f.needs),
+  ).map((f) => ({
+    id: f.id,
+    title: f.title,
+    blurb: f.blurb,
+    chart: f.chart,
+    emptyReason: "Loading order history…",
+  }));
 }
 
 export function depthCatalogCount(): number {
