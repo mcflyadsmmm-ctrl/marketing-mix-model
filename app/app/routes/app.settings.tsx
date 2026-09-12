@@ -422,7 +422,7 @@ export default function SettingsPage() {
           </s-banner>
         ) : null}
 
-        {marginStale && !shotMode ? (
+        {false && marginStale && !shotMode ? (
           <s-banner tone="warning" heading="Reconfirm profit margin">
             <s-paragraph>
               Margin was last confirmed more than 90 days ago. Typical DTC
@@ -446,7 +446,7 @@ export default function SettingsPage() {
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               {hasLiveSpend ? (
-                <s-button href="/app" variant="primary">
+                <s-button href="/app/sales" variant="primary">
                   {PRODUCT_NOUN.openTotalRoas}
                 </s-button>
               ) : (

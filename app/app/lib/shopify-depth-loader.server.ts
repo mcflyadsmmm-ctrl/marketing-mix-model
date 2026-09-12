@@ -1,4 +1,3 @@
-import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
 import {
   getSalesFactRowsByDay,
   type SalesDayFactRow,
@@ -19,6 +18,11 @@ import {
   FIRST_PAINT_SALES_BACKFILL_DAYS,
   enqueueSalesFactsBackfill,
 } from "./sales-backfill-kick.server";
+
+/** Minimal admin client — avoids AdminApiContext shape drift across Shopify packages. */
+type DepthAdminClient = {
+  graphql: (query: string, options?: { variables?: Record<string, unknown> }) => Promise<Response>;
+};
 
 export type ShopifyDepthLoaderData = {
   dayFacts: DayFactInput[];
@@ -65,7 +69,7 @@ export async function loadShopifyDepthData(args: {
   priorRange: { start: Date; end: Date };
   ianaTimezone: string | null;
   useSampleDesk: boolean;
-  admin?: AdminApiContext["admin"];
+  admin?: DepthAdminClient;
   grantedScopes?: string | null;
   /** When true, order facts are shop-wide (Customers tab). */
   allOrderHistory?: boolean;

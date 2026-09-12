@@ -153,7 +153,7 @@ function weekdayBars(facts: DayFactInput[]): DepthBar[] {
   for (const f of facts) {
     const dow = dayOfWeekFromKey(f.dayKey);
     if (dow < 0) continue;
-    sales[dow] += f.sales;
+    sales[dow]! += f.sales;
   }
   const total = sum(sales);
   return DOW_ORDER.map((dow) => ({
@@ -193,6 +193,37 @@ function needsLines(feature: DepthFeature): DepthChartModel {
     feature,
     "Needs richer order line ingest (discounts / shipping / tax / units). Chart shell is ready.",
   );
+}
+
+function aovBuckets(orders: OrderFactInput[]): DepthBar[] {
+  const edges = [0, 25, 50, 75, 100, 150, 200, 300, 500, Infinity];
+  const labels = [
+    "<$25",
+    "$25–50",
+    "$50–75",
+    "$75–100",
+    "$100–150",
+    "$150–200",
+    "$200–300",
+    "$300–500",
+    "$500+",
+  ];
+  const counts = new Array(labels.length).fill(0) as number[];
+  for (const o of orders) {
+    let i = edges.findIndex(
+      (e, idx) => idx < edges.length - 1 && o.netSales < edges[idx + 1]!,
+    );
+    if (i < 0) i = labels.length - 1;
+    counts[i]! += 1;
+  }
+  const total = sum(counts);
+  return labels.map((label, i) => ({
+    id: `aov-${i}`,
+    label,
+    value: counts[i]!,
+    share: shareOf(counts[i]!, total),
+    tone: "new",
+  }));
 }
 
 function buildOne(
@@ -316,13 +347,27 @@ function buildOne(
       const aov = orderTotal > 0 ? salesTotal / orderTotal : null;
       const priorAov = priorOrders > 0 ? priorSales / priorOrders : null;
       const delta = (now: number, p: number) =>
-        p > 0 ? `${now >= p ? "+" : ""}${(((now - p) / p) * 100).toFixed(0)}% vs prior` : "No prior window";
+        p > 0
+          ? `${now >= p ? "+" : ""}${(((now - p) / p) * 100).toFixed(0)}% vs prior`
+          : "No prior window";
       return {
         ...shell(feature),
         kpis: [
-          { label: "Sales", value: money(salesTotal), hint: prior.length ? delta(salesTotal, priorSales) : "No prior window" },
-          { label: "Orders", value: orderTotal.toLocaleString(), hint: prior.length ? delta(orderTotal, priorOrders) : undefined },
-          { label: "AOV", value: aov != null ? money(aov) : "—", hint: priorAov != null && aov != null ? delta(aov, priorAov) : undefined },
+          {
+            label: "Sales",
+            value: money(salesTotal),
+            hint: prior.length ? delta(salesTotal, priorSales) : "No prior window",
+          },
+          {
+            label: "Orders",
+            value: orderTotal.toLocaleString(),
+            hint: prior.length ? delta(orderTotal, priorOrders) : undefined,
+          },
+          {
+            label: "AOV",
+            value: aov != null ? money(aov) : "—",
+            hint: priorAov != null && aov != null ? delta(aov, priorAov) : undefined,
+          },
         ],
       };
     }
@@ -335,21 +380,27 @@ function buildOne(
         ...shell(feature),
         kpis: [
           { label: "Closed days", value: String(closed) },
-          { label: "Open / today", value: String(open), hint: "Today stays partial until midnight shop-local" },
+          {
+            label: "Open / today",
+            value: String(open),
+            hint: "Today stays partial until midnight shop-local",
+          },
           { label: "Fact days", value: String(dayFacts.length) },
         ],
       };
     }
     case "seasonality_dow": {
       if (!dayFacts.length) return empty(feature, "No sales days in this period yet.");
-      if (baseline.length < 14) return empty(feature, "Need ~8 weeks of history for a weekday baseline.");
+      if (baseline.length < 14) {
+        return empty(feature, "Need ~8 weeks of history for a weekday baseline.");
+      }
       const period = weekdayBars(dayFacts);
       const baseBars = weekdayBars(baseline);
       return {
         ...shell(feature),
-        bars: period.map((p, i) => ({
-          ...p,
-          tone: p.share >= (baseBars[i]?.share ?? 0) ? "returning" : "new",
+        bars: period.map((b, i) => ({
+          ...b,
+          tone: b.share >= (baseBars[i]?.share ?? 0) ? "returning" : "new",
         })),
         callout: "Green tint = above baseline share · blue = below.",
       };
@@ -368,33 +419,21 @@ function buildOne(
     case "aov_distribution":
     case "order_size_histogram": {
       if (!orders.length) {
-        return empty(feature, "Order history still filling — distribution unlocks with OrderFact.");
+        return empty(
+          feature,
+          "Order history still filling — distribution unlocks with OrderFact.",
+        );
       }
-      const edges = [0, 25, 50, 75, 100, 150, 200, 300, 500, Infinity];
-      const labels = ["<$25", "$25–50", "$50–75", "$75–100", "$100–150", "$150–200", "$200–300", "$300–500", "$500+"];
-      const counts = new Array(labels.length).fill(0) as number[];
-      for (const o of orders) {
-        let i = edges.findIndex((e, idx) => idx < edges.length - 1 && o.netSales < edges[idx + 1]!);
-        if (i < 0) i = labels.length - 1;
-        counts[i]! += 1;
-      }
-      const total = sum(counts);
-      return {
-        ...shell(feature),
-        buckets: labels.map((label, i) => ({
-          id: `aov-${i}`,
-          label,
-          value: counts[i]!,
-          share: shareOf(counts[i]!, total),
-          tone: "new",
-        })),
-      };
+      return { ...shell(feature), buckets: aovBuckets(orders) };
     }
     case "sales_basis_compare": {
       const net = sum(dayFacts.map((d) => d.netSales ?? 0));
       const gross = sum(dayFacts.map((d) => d.grossSales ?? 0));
       if (net <= 0 && gross <= 0) {
-        return empty(feature, "Net/gross columns not on these day facts yet — re-sync to unlock.");
+        return empty(
+          feature,
+          "Net/gross columns not on these day facts yet — re-sync to unlock.",
+        );
       }
       const total = Math.max(salesTotal, gross, net, 1);
       return {
@@ -407,11 +446,17 @@ function buildOne(
       };
     }
     case "refund_haircut": {
-      const nets = dayFacts.map((d) => d.netSales).filter((n): n is number => n != null && Number.isFinite(n));
-      const grosses = dayFacts.map((d) => d.grossSales).filter((n): n is number => n != null && Number.isFinite(n));
+      const nets = dayFacts
+        .map((d) => d.netSales)
+        .filter((n): n is number => n != null && Number.isFinite(n));
+      const grosses = dayFacts
+        .map((d) => d.grossSales)
+        .filter((n): n is number => n != null && Number.isFinite(n));
       const net = sum(nets);
       const gross = sum(grosses);
-      if (!(gross > 0)) return empty(feature, "Need gross vs net on day facts to read the return haircut.");
+      if (!(gross > 0)) {
+        return empty(feature, "Need gross vs net on day facts to read the return haircut.");
+      }
       const haircut = Math.max(0, gross - net);
       return {
         ...shell(feature),
@@ -434,7 +479,8 @@ function buildOne(
       let guestSales = 0;
       let knownSales = 0;
       for (const o of orders) {
-        const isGuest = !o.buyerKey || o.buyerKey === "guest" || o.hasCustomer === false;
+        const isGuest =
+          !o.buyerKey || o.buyerKey === "guest" || o.hasCustomer === false;
         if (isGuest) {
           guest += 1;
           guestSales += o.netSales;
@@ -514,7 +560,9 @@ function buildOne(
     case "returning_sales_share": {
       const neu = sum(dayFacts.map((d) => d.newCustomerSales ?? 0));
       const ret = sum(dayFacts.map((d) => d.returningCustomerSales ?? 0));
-      if (neu + ret <= 0) return empty(feature, "New/returning sales split not on these day facts yet.");
+      if (neu + ret <= 0) {
+        return empty(feature, "New/returning sales split not on these day facts yet.");
+      }
       const total = neu + ret;
       return {
         ...shell(feature),
@@ -525,7 +573,9 @@ function buildOne(
       };
     }
     case "wow_mom_yoy": {
-      if (!prior.length) return empty(feature, "No comparable prior window loaded for this period.");
+      if (!prior.length) {
+        return empty(feature, "No comparable prior window loaded for this period.");
+      }
       const priorSales = sum(prior.map((d) => d.sales));
       const dlt = priorSales > 0 ? ((salesTotal - priorSales) / priorSales) * 100 : null;
       return {
@@ -533,7 +583,10 @@ function buildOne(
         kpis: [
           { label: "This period", value: money(salesTotal) },
           { label: "Prior window", value: money(priorSales) },
-          { label: "Delta", value: dlt == null ? "—" : `${dlt >= 0 ? "+" : ""}${dlt.toFixed(0)}%` },
+          {
+            label: "Delta",
+            value: dlt == null ? "—" : `${dlt >= 0 ? "+" : ""}${dlt.toFixed(0)}%`,
+          },
         ],
       };
     }
@@ -542,16 +595,25 @@ function buildOne(
       const bits: string[] = [];
       const neu = sum(dayFacts.map((d) => d.newCustomerSales ?? 0));
       const ret = sum(dayFacts.map((d) => d.returningCustomerSales ?? 0));
-      if (neu + ret > 0) bits.push(`Returning buyers drove ${pct(ret / (neu + ret))} of attributed sales.`);
+      if (neu + ret > 0) {
+        bits.push(`Returning buyers drove ${pct(ret / (neu + ret))} of attributed sales.`);
+      }
       const rhythm = weekdayBars(dayFacts);
       const peak = [...rhythm].sort((a, b) => b.value - a.value)[0];
-      if (peak && peak.value > 0) bits.push(`${peak.label} is the strongest weekday (${money(peak.value)}).`);
+      if (peak && peak.value > 0) {
+        bits.push(`${peak.label} is the strongest weekday (${money(peak.value)}).`);
+      }
       const priorSales = sum(prior.map((d) => d.sales));
       if (priorSales > 0) {
         const dlt = ((salesTotal - priorSales) / priorSales) * 100;
-        bits.push(`Sales are ${dlt >= 0 ? "up" : "down"} ${Math.abs(dlt).toFixed(0)}% vs the prior window.`);
+        bits.push(
+          `Sales are ${dlt >= 0 ? "up" : "down"} ${Math.abs(dlt).toFixed(0)}% vs the prior window.`,
+        );
       }
-      return { ...shell(feature), callout: bits.join(" ") || "Not enough mix signal for a read yet." };
+      return {
+        ...shell(feature),
+        callout: bits.join(" ") || "Not enough mix signal for a read yet.",
+      };
     }
     case "sales_export":
       return {
@@ -579,7 +641,10 @@ function buildOne(
         kpis: [
           {
             label: "Median days to 2nd",
-            value: summary.medianDaysToSecond != null ? `${Math.round(summary.medianDaysToSecond)}d` : "—",
+            value:
+              summary.medianDaysToSecond != null
+                ? `${Math.round(summary.medianDaysToSecond)}d`
+                : "—",
           },
           { label: "Buyers", value: summary.buyers.toLocaleString() },
         ],
@@ -598,8 +663,12 @@ function buildOne(
         byBuyer.set(o.buyerKey, row);
       }
       const asOf = Date.now();
-      const mature = [...byBuyer.values()].filter((b) => (asOf - b.first) / 86400000 >= 90);
-      if (!mature.length) return empty(feature, "Need buyers at least 90 days old to gate this rate.");
+      const mature = [...byBuyer.values()].filter(
+        (b) => (asOf - b.first) / 86400000 >= 90,
+      );
+      if (!mature.length) {
+        return empty(feature, "Need buyers at least 90 days old to gate this rate.");
+      }
       const third = mature.filter((b) => b.count >= 3).length;
       const one = mature.filter((b) => b.count === 1).length;
       if (feature.id === "third_plus_rate") {
@@ -762,10 +831,16 @@ function buildOne(
       const asOf = Date.now();
       const horizons = [30, 90, 365];
       const avgs = horizons.map((h) => {
-        const mature = [...byBuyer.values()].filter((b) => (asOf - b.first) / 86400000 >= h);
+        const mature = [...byBuyer.values()].filter(
+          (b) => (asOf - b.first) / 86400000 >= h,
+        );
         if (!mature.length) return null;
         const rev = mature.map((b) =>
-          sum(b.orders.filter((o) => (o.t - b.first) / 86400000 <= h).map((o) => o.amt)),
+          sum(
+            b.orders
+              .filter((o) => (o.t - b.first) / 86400000 <= h)
+              .map((o) => o.amt),
+          ),
         );
         return avg(rev);
       });
@@ -836,7 +911,10 @@ function buildOne(
         ],
         kpis: [
           { label: "Buyers", value: conc.buyers.toLocaleString() },
-          { label: "Top buyer", value: conc.topBuyerShare != null ? pct(conc.topBuyerShare) : "—" },
+          {
+            label: "Top buyer",
+            value: conc.topBuyerShare != null ? pct(conc.topBuyerShare) : "—",
+          },
         ],
       };
     }
@@ -870,16 +948,15 @@ function buildOne(
     }
     case "rfm_lite": {
       if (!orders.length) return empty(feature, "Order history still filling.");
-      const byBuyer = new Map<string, { last: number; count: number; sales: number }>();
+      const byBuyer = new Map<string, { last: number; count: number }>();
       let maxT = 0;
       for (const o of orders) {
         if (!o.buyerKey || o.buyerKey === "guest") continue;
         const t = o.orderAt.getTime();
         maxT = Math.max(maxT, t);
-        const row = byBuyer.get(o.buyerKey) ?? { last: 0, count: 0, sales: 0 };
+        const row = byBuyer.get(o.buyerKey) ?? { last: 0, count: 0 };
         row.last = Math.max(row.last, t);
         row.count += 1;
-        row.sales += o.netSales;
         byBuyer.set(o.buyerKey, row);
       }
       const bands = { champions: 0, loyal: 0, promising: 0, at_risk: 0, hibernating: 0 };
@@ -926,7 +1003,9 @@ function buildOne(
         } else {
           const last = times[times.length - 1]!;
           const prev = times[times.length - 2]!;
-          if (last >= windowStart && prev < windowStart - 60 * 86400000) reactivated += 1;
+          if (last >= windowStart && prev < windowStart - 60 * 86400000) {
+            reactivated += 1;
+          }
         }
       }
       const buyers = byBuyer.size || 1;
@@ -985,42 +1064,9 @@ function buildOne(
         callout:
           "Open the Goals tab to set monthly sales targets and YoY grow. No margin or ROAS goal here.",
       };
-    default: {
-      const _exhaustive: never = feature.id;
-      return empty(feature, `Chart not wired yet (${String(_exhaustive)}).`);
-    }
+    default:
+      return empty(feature, "Chart not wired yet.");
   }
-}
-
-/** Map stored day rows into depth chart inputs (shop-local day keys). */
-export function dayFactsFromSalesDayRows(
-  rows: Map<
-    string,
-    {
-      sales: number;
-      orderCount: number;
-      newCustomerNetSales?: number;
-      returningCustomerNetSales?: number;
-      newCustomerSales?: number;
-      returningCustomerSales?: number;
-      netSales?: number | null;
-      grossSales?: number | null;
-    }
-  >,
-): DayFactInput[] {
-  return [...rows.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([dayKey, row]) => ({
-      dayKey,
-      sales: row.sales,
-      orderCount: row.orderCount,
-      newCustomerSales:
-        row.newCustomerSales ?? row.newCustomerNetSales ?? undefined,
-      returningCustomerSales:
-        row.returningCustomerSales ?? row.returningCustomerNetSales ?? undefined,
-      netSales: row.netSales,
-      grossSales: row.grossSales,
-    }));
 }
 
 export function buildDepthChartsForTab(
@@ -1033,4 +1079,31 @@ export function buildDepthChartsForTab(
 
 export function depthCatalogCount(): number {
   return SHOPIFY_DEPTH_CATALOG.length;
+}
+
+/** Map persisted SalesDayFact rows → depth day inputs. */
+export function dayFactsFromSalesDayRows(
+  rows: Map<
+    string,
+    {
+      sales: number;
+      orderCount: number;
+      newCustomerNetSales?: number;
+      returningCustomerNetSales?: number;
+      netSales?: number | null;
+      grossSales?: number | null;
+    }
+  >,
+): DayFactInput[] {
+  return [...rows.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([dayKey, row]) => ({
+      dayKey,
+      sales: row.sales,
+      orderCount: row.orderCount,
+      newCustomerSales: row.newCustomerNetSales,
+      returningCustomerSales: row.returningCustomerNetSales,
+      netSales: row.netSales ?? null,
+      grossSales: row.grossSales ?? null,
+    }));
 }
