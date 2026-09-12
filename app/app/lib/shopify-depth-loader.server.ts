@@ -29,6 +29,7 @@ export type ShopifyDepthLoaderData = {
   priorDayFacts: DayFactInput[];
   baselineDayFacts: DayFactInput[];
   orderFacts: OrderFactInput[];
+  priorOrderFacts: OrderFactInput[];
   periodLabel: string;
 };
 
@@ -140,9 +141,11 @@ export async function loadShopifyDepthData(args: {
     return { periodRows, priorRows, baselineRows };
   })();
 
+  const emptyOrders = Promise.resolve([] as OrderFactInput[]);
+
   const orderPromise =
     mode === "fast"
-      ? Promise.resolve([] as OrderFactInput[])
+      ? emptyOrders
       : (async (): Promise<OrderFactInput[]> => {
           if (allOrderHistory) {
             const rows = await listBuyerOrderFacts(shopId, {
@@ -165,16 +168,60 @@ export async function loadShopifyDepthData(args: {
             orderAt: o.orderAt,
             netSales: o.netSales,
             hasCustomer: o.hasCustomer,
+            discountTotal: o.discountTotal,
+            shippingTotal: o.shippingTotal,
+            taxTotal: o.taxTotal,
+            unitCount: o.unitCount,
           }));
         })();
 
-  const [days, orderFacts] = await Promise.all([dayPromise, orderPromise]);
+  const priorOrderPromise =
+    mode === "fast"
+      ? emptyOrders
+      : (async (): Promise<OrderFactInput[]> => {
+          // Customers all-history path: prior window from the same lifetime pull.
+          if (allOrderHistory) {
+            const rows = await listPeriodOrderFactsForDepth(shopId, priorRange, {
+              sample: useSampleDesk,
+            });
+            return rows.map((o) => ({
+              buyerKey: o.buyerKey,
+              orderAt: o.orderAt,
+              netSales: o.netSales,
+              hasCustomer: o.hasCustomer,
+              discountTotal: o.discountTotal,
+              shippingTotal: o.shippingTotal,
+              taxTotal: o.taxTotal,
+              unitCount: o.unitCount,
+            }));
+          }
+          const rows = await listPeriodOrderFactsForDepth(shopId, priorRange, {
+            sample: useSampleDesk,
+          });
+          return rows.map((o) => ({
+            buyerKey: o.buyerKey,
+            orderAt: o.orderAt,
+            netSales: o.netSales,
+            hasCustomer: o.hasCustomer,
+            discountTotal: o.discountTotal,
+            shippingTotal: o.shippingTotal,
+            taxTotal: o.taxTotal,
+            unitCount: o.unitCount,
+          }));
+        })();
+
+  const [days, orderFacts, priorOrderFacts] = await Promise.all([
+    dayPromise,
+    orderPromise,
+    priorOrderPromise,
+  ]);
 
   return {
     dayFacts: dayFactsFromSalesDayRows(days.periodRows),
     priorDayFacts: dayFactsFromSalesDayRows(days.priorRows),
     baselineDayFacts: dayFactsFromSalesDayRows(days.baselineRows),
     orderFacts,
+    priorOrderFacts,
     periodLabel: range.label,
   };
 }

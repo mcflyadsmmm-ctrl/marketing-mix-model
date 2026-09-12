@@ -14,6 +14,7 @@ import {
 } from "./shopify-depth-metrics";
 import { authenticate } from "../shopify.server";
 import type { DepthTab } from "./shopify-depth-catalog";
+import { loadSalesDayAccuracy } from "./sales-day-accuracy.server";
 
 export async function loadDepthHeavyCharts(
   args: LoaderFunctionArgs,
@@ -42,6 +43,18 @@ export async function loadDepthHeavyCharts(
     mode: "full",
   });
 
+  const accuracy =
+    tab === "sales"
+      ? await loadSalesDayAccuracy({
+          shopId: shop.id,
+          range,
+          ianaTimezone: shop.ianaTimezone,
+          enqueueRepair: false,
+          grantedScopes: session.scope,
+          useSampleDesk,
+        })
+      : null;
+
   const charts = buildDepthChartsForTab(
     {
       tab,
@@ -49,6 +62,8 @@ export async function loadDepthHeavyCharts(
       priorDayFacts: depth.priorDayFacts,
       baselineDayFacts: depth.baselineDayFacts,
       orderFacts: depth.orderFacts,
+      priorOrderFacts: depth.priorOrderFacts,
+      missingDayKeys: accuracy?.missingDayKeys,
       timeZone: shop.ianaTimezone,
     },
     "slow",

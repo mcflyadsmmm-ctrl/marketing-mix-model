@@ -12525,3 +12525,13 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-depth-chart-slot--pending .mcfly-depth-chart {
   border-style: dashed;
 }
+
+
+/* Sales day-accuracy honesty — quiet, not a banner wall */
+.mcfly-day-accuracy {
+  margin: 0 0 0.85rem;
+}
+.mcfly-day-accuracy--catching_up s-banner,
+.mcfly-day-accuracy--partial_history s-banner {
+  /* Polaris banner owns tone; keep spacing only */
+}

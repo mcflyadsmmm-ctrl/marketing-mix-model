@@ -339,7 +339,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     title: "Concentration trend",
     blurb: "Whether whale share is rising vs an earlier window.",
     chart: "kpi_row",
-    needs: "history",
+    needs: "order_facts",
   },
   {
     id: "whale_board",

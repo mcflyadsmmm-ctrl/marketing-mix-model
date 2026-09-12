@@ -35,6 +35,14 @@ export type OrderFactInput = {
   netSales: number;
   hasCustomer?: boolean;
   lifetimeOrderRank?: number;
+  /** Order-level discount total when ingested. */
+  discountTotal?: number | null;
+  /** Order-level shipping total when ingested. */
+  shippingTotal?: number | null;
+  /** Order-level tax / duty total when ingested. */
+  taxTotal?: number | null;
+  /** Units on the order when ingested. */
+  unitCount?: number | null;
 };
 
 export type DepthBar = {
@@ -94,6 +102,10 @@ export type BuildDepthChartsInput = {
   priorDayFacts?: DayFactInput[];
   baselineDayFacts?: DayFactInput[];
   orderFacts?: OrderFactInput[];
+  /** Prior-window orders for concentration trend (Customers heavy). */
+  priorOrderFacts?: OrderFactInput[];
+  /** Closed day keys expected but missing from dayFacts — never paint as $0. */
+  missingDayKeys?: string[];
   timeZone?: string | null;
   goals?: GoalsDepthSnapshot | null;
 };
@@ -396,21 +408,33 @@ function buildOne(
       };
     }
     case "closed_day_honesty": {
-      if (!dayFacts.length) return empty(feature, "No sales days in this period yet.");
+      const missing = input.missingDayKeys ?? [];
       const todayKey = dayKeyInTz(new Date(), tz);
-      const closed = dayFacts.filter((d) => d.dayKey < todayKey).length;
+      const closedPresent = dayFacts.filter((d) => d.dayKey < todayKey).length;
       const open = dayFacts.filter((d) => d.dayKey >= todayKey).length;
+      if (!dayFacts.length && !missing.length) {
+        return empty(feature, "No sales days in this period yet.");
+      }
       return {
         ...shell(feature),
         kpis: [
-          { label: "Closed days", value: String(closed) },
+          { label: "Closed days filled", value: String(closedPresent) },
+          {
+            label: "Missing closed days",
+            value: String(missing.length),
+            hint: missing.length
+              ? "Holes are not $0 — backfill still running"
+              : "Every closed day has a fact",
+          },
           {
             label: "Open / today",
             value: String(open),
             hint: "Today stays partial until midnight shop-local",
           },
-          { label: "Fact days", value: String(dayFacts.length) },
         ],
+        callout: missing.length
+          ? `Missing ${missing.slice(0, 3).join(", ")}${missing.length > 3 ? ` (+${missing.length - 3} more)` : ""}. Charts skip holes instead of inventing $0.`
+          : undefined,
       };
     }
     case "seasonality_dow": {
@@ -491,11 +515,88 @@ function buildOne(
         ],
       };
     }
-    case "discount_dependency":
-    case "shipping_share":
-    case "tax_duty_share":
-    case "units_per_order":
-      return needsLines(feature);
+    case "discount_dependency": {
+      if (!orders.length) return empty(feature, "Order history still filling.");
+      const withDisc = orders.filter(
+        (o) => o.discountTotal != null && Number.isFinite(o.discountTotal),
+      );
+      if (!withDisc.length) return needsLines(feature);
+      const sales = sum(withDisc.map((o) => o.netSales));
+      const discounts = sum(withDisc.map((o) => o.discountTotal ?? 0));
+      const base = sales + discounts;
+      return {
+        ...shell(feature),
+        kpis: [
+          { label: "Discounts", value: money(discounts) },
+          { label: "Net sales", value: money(sales) },
+          {
+            label: "Discount rate",
+            value: base > 0 ? pct(discounts / base) : "—",
+            hint: `${withDisc.length.toLocaleString()} orders with discount fields`,
+          },
+        ],
+      };
+    }
+    case "shipping_share": {
+      if (!orders.length) return empty(feature, "Order history still filling.");
+      const withShip = orders.filter(
+        (o) => o.shippingTotal != null && Number.isFinite(o.shippingTotal),
+      );
+      if (!withShip.length) return needsLines(feature);
+      const sales = sum(withShip.map((o) => o.netSales));
+      const shipping = sum(withShip.map((o) => o.shippingTotal ?? 0));
+      return {
+        ...shell(feature),
+        kpis: [
+          { label: "Shipping", value: money(shipping) },
+          { label: "Net sales", value: money(sales) },
+          {
+            label: "Shipping share",
+            value: sales > 0 ? pct(shipping / sales) : "—",
+          },
+        ],
+      };
+    }
+    case "tax_duty_share": {
+      if (!orders.length) return empty(feature, "Order history still filling.");
+      const withTax = orders.filter(
+        (o) => o.taxTotal != null && Number.isFinite(o.taxTotal),
+      );
+      if (!withTax.length) return needsLines(feature);
+      const sales = sum(withTax.map((o) => o.netSales));
+      const tax = sum(withTax.map((o) => o.taxTotal ?? 0));
+      return {
+        ...shell(feature),
+        kpis: [
+          { label: "Tax / duty", value: money(tax) },
+          { label: "Net sales", value: money(sales) },
+          {
+            label: "Tax share",
+            value: sales > 0 ? pct(tax / sales) : "—",
+          },
+        ],
+      };
+    }
+    case "units_per_order": {
+      if (!orders.length) return empty(feature, "Order history still filling.");
+      const withUnits = orders.filter(
+        (o) => o.unitCount != null && Number.isFinite(o.unitCount) && (o.unitCount as number) > 0,
+      );
+      if (!withUnits.length) return needsLines(feature);
+      const units = sum(withUnits.map((o) => o.unitCount ?? 0));
+      const avgUnits = units / withUnits.length;
+      return {
+        ...shell(feature),
+        kpis: [
+          { label: "Units", value: units.toLocaleString() },
+          { label: "Orders", value: withUnits.length.toLocaleString() },
+          {
+            label: "Units / order",
+            value: (Math.round(avgUnits * 100) / 100).toLocaleString(),
+          },
+        ],
+      };
+    }
     case "guest_vs_logged_in": {
       if (!orders.length) return empty(feature, "Order history still filling.");
       let guest = 0;
@@ -548,13 +649,25 @@ function buildOne(
       };
     }
     case "day_board": {
-      if (!dayFacts.length) return empty(feature, "No sales days in this period yet.");
+      const missing = input.missingDayKeys ?? [];
+      if (!dayFacts.length && !missing.length) {
+        return empty(feature, "No sales days in this period yet.");
+      }
+      const byKey = new Map(dayFacts.map((d) => [d.dayKey, d]));
+      const keys = [...new Set([...byKey.keys(), ...missing])].sort((a, b) =>
+        b.localeCompare(a),
+      );
       return {
         ...shell(feature),
         headers: ["Day", "Sales", "Orders", "AOV", "New $", "Returning $"],
-        rows: [...dayFacts]
-          .sort((a, b) => b.dayKey.localeCompare(a.dayKey))
-          .map((d) => ({
+        rows: keys.map((key) => {
+          const d = byKey.get(key);
+          if (!d) {
+            return {
+              cells: [key, "—", "—", "—", "—", "Missing fact"],
+            };
+          }
+          return {
             cells: [
               d.dayKey,
               money(d.sales),
@@ -563,7 +676,11 @@ function buildOne(
               money(d.newCustomerSales ?? 0),
               money(d.returningCustomerSales ?? 0),
             ],
-          })),
+          };
+        }),
+        callout: missing.length
+          ? `${missing.length} closed day${missing.length === 1 ? "" : "s"} still filling — shown as Missing, not $0.`
+          : undefined,
       };
     }
     case "strongest_softest_day": {
@@ -942,11 +1059,62 @@ function buildOne(
         ],
       };
     }
-    case "concentration_trend":
-      return empty(
-        feature,
-        "Concentration trend needs a stored prior snapshot — next pass wires period-over-period whale share.",
-      );
+    case "concentration_trend": {
+      if (!orders.length) {
+        return empty(feature, "Order history still filling.");
+      }
+      const priorOrders = input.priorOrderFacts ?? [];
+      if (!priorOrders.length) {
+        return empty(
+          feature,
+          "Need the prior period’s orders to trend whale share.",
+        );
+      }
+      const currentFacts: BuyerRevenueFactLike[] = orders
+        .filter((o) => o.buyerKey && o.buyerKey !== "guest")
+        .map((o) => ({ buyerKey: o.buyerKey, netSales: o.netSales }));
+      const priorFacts: BuyerRevenueFactLike[] = priorOrders
+        .filter((o) => o.buyerKey && o.buyerKey !== "guest")
+        .map((o) => ({ buyerKey: o.buyerKey, netSales: o.netSales }));
+      const current = computeBuyerConcentration(currentFacts);
+      const prior = computeBuyerConcentration(priorFacts);
+      if (current.top10Share == null || prior.top10Share == null) {
+        return empty(
+          feature,
+          "Need enough identified buyers in both windows for a top-10% trend.",
+        );
+      }
+      const delta = current.top10Share - prior.top10Share;
+      const deltaLabel =
+        delta === 0
+          ? "Flat vs prior"
+          : `${delta > 0 ? "+" : ""}${pct(delta)} vs prior`;
+      return {
+        ...shell(feature),
+        kpis: [
+          {
+            label: "Top 10% now",
+            value: pct(current.top10Share),
+            hint: `${current.buyers.toLocaleString()} buyers this window`,
+          },
+          {
+            label: "Top 10% prior",
+            value: pct(prior.top10Share),
+            hint: `${prior.buyers.toLocaleString()} buyers prior window`,
+          },
+          {
+            label: "Change",
+            value: deltaLabel,
+            hint: delta > 0.02
+              ? "Concentration rising — whales carry more"
+              : delta < -0.02
+                ? "Concentration easing — revenue spreading"
+                : "Whale share roughly steady",
+          },
+        ],
+      };
+    }
+
     case "whale_board": {
       if (!orders.length) return empty(feature, "Order history still filling.");
       const byBuyer = new Map<string, { sales: number; count: number }>();
@@ -1149,7 +1317,8 @@ export type DepthChartPhase = "fast" | "slow" | "full";
 
 /** Order-fact charts wait for the heavy pass; everything else can first-paint. */
 export function depthFeatureIsFastPaint(needs: string): boolean {
-  return needs !== "order_facts";
+  // Day facts (+ history baselines) paint first. Order + line-item charts wait.
+  return needs === "day_facts" || needs === "history" || needs === "goals";
 }
 
 export function buildDepthChartsForTab(

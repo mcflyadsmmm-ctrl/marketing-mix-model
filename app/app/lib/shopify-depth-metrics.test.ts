@@ -226,3 +226,51 @@ describe("progressive depth paint", () => {
     );
   });
 });
+
+
+describe("day accuracy honesty in charts", () => {
+  it("day_board shows Missing — not $0 — for absent closed days", () => {
+    const charts = buildDepthChartsForTab({
+      tab: "sales",
+      dayFacts: sampleDayFacts().slice(0, 2),
+      missingDayKeys: ["2026-03-03", "2026-03-04"],
+    });
+    const board = charts.find((c) => c.id === "day_board");
+    expect(board?.emptyReason).toBeUndefined();
+    const missingRow = board?.rows?.find((r) => r.cells[0] === "2026-03-03");
+    expect(missingRow?.cells.join(" ")).toMatch(/Missing fact/i);
+    expect(missingRow?.cells.join(" ")).not.toMatch(/^\$0$/);
+  });
+
+  it("closed_day_honesty counts missing closed days", () => {
+    const charts = buildDepthChartsForTab({
+      tab: "sales",
+      dayFacts: sampleDayFacts().slice(0, 2),
+      missingDayKeys: ["2026-03-10"],
+    });
+    const honesty = charts.find((c) => c.id === "closed_day_honesty");
+    const missingKpi = honesty?.kpis?.find((k) =>
+      /missing/i.test(k.label),
+    );
+    expect(missingKpi?.value).toBe("1");
+  });
+
+  it("concentration_trend compares current vs prior whale share", () => {
+    const mk = (scale: number) =>
+      Array.from({ length: 20 }, (_, i) => ({
+        buyerKey: `buyer-${i}`,
+        orderAt: new Date(`2026-03-${String((i % 14) + 1).padStart(2, "0")}T12:00:00Z`),
+        netSales: (20 - i) * 10 * scale,
+        hasCustomer: true,
+      }));
+    const charts = buildDepthChartsForTab({
+      tab: "customers",
+      dayFacts: sampleDayFacts(),
+      orderFacts: mk(1),
+      priorOrderFacts: mk(0.5),
+    });
+    const trend = charts.find((c) => c.id === "concentration_trend");
+    expect(trend?.emptyReason).toBeUndefined();
+    expect(trend?.kpis?.length).toBeGreaterThanOrEqual(2);
+  });
+});

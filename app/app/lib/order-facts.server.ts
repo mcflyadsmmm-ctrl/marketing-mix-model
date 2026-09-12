@@ -35,6 +35,15 @@ export const ORDER_FACT_MAX_PAGES_PER_RUN = 25;
 
 const DAY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+function parseShopMoney(
+  money: { amount?: string; currencyCode?: string } | null | undefined,
+): number | null {
+  if (!money?.amount) return null;
+  const n = Number.parseFloat(money.amount);
+  return Number.isFinite(n) ? n : null;
+}
+
+
 /** Marker id written when a shop-local day crawl finishes (not page-capped). */
 export function orderFactDayCompleteMarkerId(dayKey: string): string {
   return `${ORDER_FACT_DAY_COMPLETE_PREFIX}${dayKey}`;
@@ -92,6 +101,25 @@ const ORDERS_FOR_FACTS_QUERY = `#graphql
               currencyCode
             }
           }
+          currentTotalDiscountsSet {
+            shopMoney {
+              amount
+              currencyCode
+            }
+          }
+          totalShippingPriceSet {
+            shopMoney {
+              amount
+              currencyCode
+            }
+          }
+          currentTotalTaxSet {
+            shopMoney {
+              amount
+              currencyCode
+            }
+          }
+          currentSubtotalLineItemsQuantity
           customer {
             id
           }
@@ -116,6 +144,16 @@ type OrdersForFactsJson = {
           currentTotalPriceSet?: {
             shopMoney?: { amount?: string; currencyCode?: string };
           };
+          currentTotalDiscountsSet?: {
+            shopMoney?: { amount?: string; currencyCode?: string };
+          };
+          totalShippingPriceSet?: {
+            shopMoney?: { amount?: string; currencyCode?: string };
+          };
+          currentTotalTaxSet?: {
+            shopMoney?: { amount?: string; currencyCode?: string };
+          };
+          currentSubtotalLineItemsQuantity?: number | null;
           customer?: { id?: string } | null;
         };
       }>;
@@ -131,6 +169,10 @@ export interface OrderFactRow {
   orderedAt: Date;
   shopLocalDate: Date;
   amount: number;
+  discountTotal: number | null;
+  shippingTotal: number | null;
+  taxTotal: number | null;
+  unitCount: number | null;
   currency: string | null;
 }
 
@@ -314,6 +356,10 @@ async function upsertOrderFact(
     orderedAt: row.orderedAt,
     shopLocalDate: row.shopLocalDate,
     amount: row.amount,
+    discountTotal: row.discountTotal,
+    shippingTotal: row.shippingTotal,
+    taxTotal: row.taxTotal,
+    unitCount: row.unitCount,
     currency: row.currency,
     asOf,
     source,
@@ -479,6 +525,13 @@ async function fetchOrdersForDay(
         orderedAt,
         shopLocalDate: dayKeyToUtcDate(localKey),
         amount,
+        discountTotal: parseShopMoney(node.currentTotalDiscountsSet?.shopMoney),
+        shippingTotal: parseShopMoney(node.totalShippingPriceSet?.shopMoney),
+        taxTotal: parseShopMoney(node.currentTotalTaxSet?.shopMoney),
+        unitCount:
+          typeof node.currentSubtotalLineItemsQuantity === "number"
+            ? node.currentSubtotalLineItemsQuantity
+            : null,
         currency:
           node.currentTotalPriceSet?.shopMoney?.currencyCode ??
           node.totalPriceSet?.shopMoney?.currencyCode ??
@@ -660,6 +713,10 @@ export async function runOrderFactsBackfill(
             orderedAt: shopLocalDayRange(dayKey, timeZone).start,
             shopLocalDate: dayKeyToUtcDate(dayKey),
             amount: 0,
+            discountTotal: null,
+            shippingTotal: null,
+            taxTotal: null,
+            unitCount: null,
             currency: metadata.currencyCode,
           },
           now,
@@ -914,6 +971,10 @@ export async function listPeriodOrderFactsForDepth(
     orderAt: Date;
     netSales: number;
     hasCustomer: boolean;
+    discountTotal: number | null;
+    shippingTotal: number | null;
+    taxTotal: number | null;
+    unitCount: number | null;
   }>
 > {
   const source = options?.sample ? "sample" : ORDER_FACT_SOURCE;
@@ -928,6 +989,10 @@ export async function listPeriodOrderFactsForDepth(
       customerKey: true,
       orderedAt: true,
       amount: true,
+      discountTotal: true,
+      shippingTotal: true,
+      taxTotal: true,
+      unitCount: true,
     },
     orderBy: { orderedAt: "asc" },
   });
@@ -936,6 +1001,10 @@ export async function listPeriodOrderFactsForDepth(
     orderAt: o.orderedAt,
     netSales: o.amount,
     hasCustomer: o.customerKey !== ORDER_FACT_GUEST_KEY,
+    discountTotal: o.discountTotal,
+    shippingTotal: o.shippingTotal,
+    taxTotal: o.taxTotal,
+    unitCount: o.unitCount,
   }));
 }
 

@@ -312,6 +312,14 @@ model OrderFact {
   orderedAt      DateTime
   shopLocalDate  DateTime  @db.Date
   amount         Float
+  /// Order-level current total discounts (null until re-ingest).
+  discountTotal  Float?
+  /// Order-level shipping price (null until re-ingest).
+  shippingTotal  Float?
+  /// Order-level tax / duty total (null until re-ingest).
+  taxTotal       Float?
+  /// Line-item unit count (null until re-ingest).
+  unitCount      Int?
   currency       String?
   asOf           DateTime?
   /// shopify_order_v1 | sample
