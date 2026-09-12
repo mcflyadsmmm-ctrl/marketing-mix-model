@@ -9,4 +9,4 @@ The square icon in Shopify Admin (top-left of the embedded app) comes from the *
 2. Upload `mcfly-app-icon-1200.png`.
 3. Save. Hard-refresh Admin (or re-open the app) — CDN can lag a few minutes.
 
-In-app brand mark (`app/public/brand/mcfly-m-64.png`) is separate and already refreshed. Admin chrome will keep showing the old M$ until Partner upload.
+In-app brand mark is the fluid blue→teal ribbon **M** (`app/public/brand/mcfly-m-64.png` and listing `mcfly-app-icon-1200.png`). Admin chrome still shows the old square M$ until you upload the Partner icon above.

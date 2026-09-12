@@ -1102,7 +1102,16 @@ export default function Dashboard() {
 
         <div className="mcfly-ctx mcfly-ctx--bc" aria-live="polite">
           <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">Mcfly</span>
+            <span className="mcfly-ctx__brand">
+              <img
+                className="mcfly-ctx__mark"
+                src="/brand/mcfly-m-64.png"
+                width={22}
+                height={22}
+                alt=""
+              />
+              Mcfly
+            </span>
             <span className="mcfly-ctx__sep" aria-hidden="true">
               ·
             </span>

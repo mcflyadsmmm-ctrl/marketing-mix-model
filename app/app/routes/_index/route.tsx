@@ -35,7 +35,7 @@ export default function AppLanding() {
         <header className={styles.brand}>
           <img
             className={styles.mark}
-            src="/brand/mcfly-m-64.png"
+            src="/brand/mcfly-m-128.png"
             width={40}
             height={40}
             alt=""

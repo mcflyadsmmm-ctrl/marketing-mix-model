@@ -11876,11 +11876,22 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 }
 
 .mcfly-ctx__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-family: var(--mcfly-display);
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--mcfly-bc-ink);
   letter-spacing: -0.02em;
+}
+
+.mcfly-ctx__mark {
+  display: block;
+  width: 1.35rem;
+  height: 1.35rem;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .mcfly-ctx__sep {
