@@ -46,6 +46,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const range = resolvePeriod(preset, now, shop.ianaTimezone);
   const priorRange = resolvePriorPeriod(preset, now, shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const depthParam = url.searchParams.get("depth");
+  const depthDensity =
+    shotMode || useSampleDesk || depthParam === "all" ? "all" : "core";
 
   const [depth, accuracy] = await Promise.all([
     loadShopifyDepthData({
@@ -83,13 +86,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const charts = buildDepthChartsForTab(
     chartInput,
     shotMode ? "full" : "fast",
+    depthDensity,
   );
   const placeholders = shotMode
     ? []
-    : buildDepthChartPlaceholdersForTab("sales");
+    : buildDepthChartPlaceholdersForTab("sales", depthDensity);
   const heavyHref = shotMode
     ? null
-    : `/app/sales/heavy?period=${encodeURIComponent(preset)}`;
+    : `/app/sales/heavy?period=${encodeURIComponent(preset)}&depth=${encodeURIComponent(depthDensity)}`;
 
   const salesByDay: Record<string, number> = {};
   for (const d of depth.dayFacts) salesByDay[d.dayKey] = d.sales;
@@ -118,6 +122,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         });
 
   return {
+    depthDensity,
     charts,
     placeholders,
     heavyHref,
@@ -135,6 +140,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function SalesDepthPage() {
   const {
+    depthDensity,
     charts,
     placeholders,
     heavyHref,
@@ -170,6 +176,21 @@ export default function SalesDepthPage() {
             this tab.
           </p>
           {!shotMode ? <PeriodControl preset={preset} /> : null}
+          {!shotMode && depthDensity === "core" ? (
+            <p className="mcfly-panel__muted">
+              Showing core charts for a calmer desk. 
+              <s-link href={`/app/sales?period=${encodeURIComponent(preset)}&depth=all`}>
+                Show more depth
+              </s-link>
+            </p>
+          ) : null}
+          {!shotMode && depthDensity === "all" && !useSampleDesk ? (
+            <p className="mcfly-panel__muted">
+              <s-link href={`/app/sales?period=${encodeURIComponent(preset)}`}>
+                Back to core charts
+              </s-link>
+            </p>
+          ) : null}
         </header>
         {!shotMode ? <SalesDayAccuracyStrip accuracy={accuracy} /> : null}
         {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}

@@ -23,6 +23,9 @@ export type DepthDataNeed =
   | "history"
   | "goals";
 
+/** core = first viewport; more = advanced (expand when history can fill it). */
+export type DepthDensity = "core" | "more";
+
 export type DepthFeature = {
   id: string;
   tab: DepthTab;
@@ -30,6 +33,11 @@ export type DepthFeature = {
   blurb: string;
   chart: DepthChartKind;
   needs: DepthDataNeed;
+  /**
+   * core = always on first viewport for small stores / calm demo.
+   * more = advanced depth — expand when history (or SAMPLE) can fill it.
+   */
+  tier: DepthDensity;
 };
 
 /** Full spend-free list — Sales / Customers / Goals only. */
@@ -42,6 +50,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Mon–Sun sales share — where the week actually earns.",
     chart: "bars",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "weekend_vs_weekday",
@@ -50,6 +59,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Sat–Sun vs Mon–Fri sales mix for the period.",
     chart: "share",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "day_of_month",
@@ -58,6 +68,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Which calendar dates in the month carry the most sales.",
     chart: "bars",
     needs: "day_facts",
+    tier: "more",
   },
   {
     id: "hour_of_day",
@@ -66,6 +77,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "When orders land in shop time — Analytics buries this.",
     chart: "bars",
     needs: "order_facts",
+    tier: "core",
   },
   {
     id: "sales_volatility",
@@ -74,6 +86,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "How feast-or-famine daily sales are in this period.",
     chart: "kpi_row",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "sales_streaks",
@@ -82,6 +95,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Longest runs above and below the period’s daily average.",
     chart: "callout",
     needs: "day_facts",
+    tier: "more",
   },
   {
     id: "pace_vs_prior",
@@ -90,6 +104,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Sales, orders, and AOV versus the matched prior window.",
     chart: "kpi_row",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "closed_day_honesty",
@@ -98,6 +113,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "How many shop-local days are closed facts vs still open.",
     chart: "kpi_row",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "seasonality_dow",
@@ -106,6 +122,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "This period’s weekday mix vs an 8-week baseline when history exists.",
     chart: "bars",
     needs: "history",
+    tier: "more",
   },
   // —— Sales: order shape ——
   {
@@ -115,6 +132,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Mean AOV for the period — next to the distribution below.",
     chart: "kpi_row",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "aov_distribution",
@@ -123,6 +141,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Order-size buckets (p50 context) — not just the average.",
     chart: "histogram",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "order_size_histogram",
@@ -131,6 +150,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Count of orders by dollar band.",
     chart: "histogram",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "sales_basis_compare",
@@ -139,6 +159,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Sales basis haircut when Shopify facts expose the split.",
     chart: "share",
     needs: "day_facts",
+    tier: "more",
   },
   {
     id: "refund_haircut",
@@ -147,6 +168,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Returns pressure on the period when net vs gross is known.",
     chart: "kpi_row",
     needs: "day_facts",
+    tier: "more",
   },
   {
     id: "discount_dependency",
@@ -155,6 +177,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Needs line-item / discount allocations on orders.",
     chart: "kpi_row",
     needs: "line_items",
+    tier: "core",
   },
   {
     id: "shipping_share",
@@ -163,6 +186,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Needs shipping lines on order ingest.",
     chart: "kpi_row",
     needs: "line_items",
+    tier: "more",
   },
   {
     id: "tax_duty_share",
@@ -171,6 +195,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Needs tax lines on order ingest.",
     chart: "kpi_row",
     needs: "line_items",
+    tier: "more",
   },
   {
     id: "guest_vs_logged_in",
@@ -179,6 +204,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Guest checkout share of orders and sales.",
     chart: "share",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "same_day_multi",
@@ -187,6 +213,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Buyers who placed more than one order on the same shop day.",
     chart: "kpi_row",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "units_per_order",
@@ -195,6 +222,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Needs line items on order ingest.",
     chart: "kpi_row",
     needs: "line_items",
+    tier: "more",
   },
   {
     id: "day_board",
@@ -203,6 +231,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Every day: sales, orders, AOV, new-buyer share.",
     chart: "table",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "strongest_softest_day",
@@ -211,6 +240,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Peak and trough shop-local days in the period.",
     chart: "callout",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "new_vs_returning_sales",
@@ -219,6 +249,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Attributed sales split — not just order counts.",
     chart: "share",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "wow_mom_yoy",
@@ -227,6 +258,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Period deltas when a comparable prior window exists.",
     chart: "kpi_row",
     needs: "history",
+    tier: "more",
   },
   {
     id: "what_changed",
@@ -235,6 +267,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Plain-English movers from the biggest period deltas.",
     chart: "callout",
     needs: "day_facts",
+    tier: "core",
   },
   {
     id: "sales_export",
@@ -243,6 +276,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "CSV of the day board — Sheets replacement.",
     chart: "callout",
     needs: "day_facts",
+    tier: "more",
   },
   // —— Customers ——
   {
@@ -252,6 +286,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Maturity-gated repeat — only buyers old enough to count.",
     chart: "bars",
     needs: "order_facts",
+    tier: "core",
   },
   {
     id: "median_days_to_second",
@@ -260,6 +295,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "How long a typical repeater takes.",
     chart: "kpi_row",
     needs: "order_facts",
+    tier: "core",
   },
   {
     id: "third_plus_rate",
@@ -268,6 +304,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Share of buyers who reach a third purchase (mature cohorts).",
     chart: "kpi_row",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "one_and_done",
@@ -276,6 +313,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Mature buyers still on a single order.",
     chart: "kpi_row",
     needs: "order_facts",
+    tier: "core",
   },
   {
     id: "first_vs_subsequent",
@@ -284,6 +322,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Revenue from first orders vs all later orders.",
     chart: "share",
     needs: "order_facts",
+    tier: "core",
   },
   {
     id: "time_between_orders",
@@ -292,6 +331,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Gap distribution between consecutive purchases.",
     chart: "histogram",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "first_aov_vs_returning",
@@ -300,6 +340,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Ticket size on first purchase vs later ones.",
     chart: "bars",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "repeat_lag_curve",
@@ -308,6 +349,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Cumulative repeat $ by days since first order.",
     chart: "curve",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "cohort_ltv_30_90_365",
@@ -316,6 +358,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Average revenue per new buyer at classic horizons.",
     chart: "bars",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "cohort_quality_rank",
@@ -324,6 +367,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Which first-order months aged into the most revenue.",
     chart: "ranked",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "buyer_concentration",
@@ -332,6 +376,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Top 10% / 20% lifetime revenue share.",
     chart: "bars",
     needs: "order_facts",
+    tier: "core",
   },
   {
     id: "concentration_trend",
@@ -340,6 +385,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Whether whale share is rising vs an earlier window.",
     chart: "kpi_row",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "whale_board",
@@ -348,6 +394,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Top buyers by lifetime $ (opaque ids — no CRM).",
     chart: "ranked",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "rfm_lite",
@@ -356,6 +403,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Recency · frequency · monetary bands from order facts only.",
     chart: "share",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "lapsing_risk",
@@ -364,6 +412,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Once-buyers quiet past the typical repurchase window.",
     chart: "kpi_row",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "reactivation_share",
@@ -372,6 +421,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Lapsed buyers who ordered again in this period.",
     chart: "kpi_row",
     needs: "order_facts",
+    tier: "more",
   },
   {
     id: "new_buyer_quality",
@@ -380,6 +430,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "New buyers vs their sales contribution this period.",
     chart: "kpi_row",
     needs: "order_facts",
+    tier: "core",
   },
   {
     id: "returning_sales_share",
@@ -388,6 +439,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Period sales from returning buyers.",
     chart: "share",
     needs: "day_facts",
+    tier: "core",
   },
   // —— Goals (sales only; no margin / ROAS) ——
   {
@@ -397,6 +449,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "MTD / QTD / YTD against the sales goal you set.",
     chart: "kpi_row",
     needs: "goals",
+    tier: "core",
   },
   {
     id: "sales_goal_board",
@@ -405,6 +458,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Actual vs goal vs prior year by month.",
     chart: "table",
     needs: "goals",
+    tier: "core",
   },
   {
     id: "yoy_grow",
@@ -413,11 +467,20 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Set monthly goals from prior-year actuals.",
     chart: "callout",
     needs: "goals",
+    tier: "core",
   },
-] as const;
+];
 
-export function depthFeaturesForTab(tab: DepthTab): DepthFeature[] {
-  return SHOPIFY_DEPTH_CATALOG.filter((f) => f.tab === tab);
+export function depthFeaturesForTab(
+  tab: DepthTab,
+  density: DepthDensity | "all" = "all",
+): DepthFeature[] {
+  return SHOPIFY_DEPTH_CATALOG.filter((f) => {
+    if (f.tab !== tab) return false;
+    if (density === "all") return true;
+    if (density === "core") return f.tier === "core";
+    return f.tier === "more";
+  });
 }
 
 export function depthFeatureById(

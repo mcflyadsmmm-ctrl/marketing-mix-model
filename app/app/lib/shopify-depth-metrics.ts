@@ -5,6 +5,7 @@
 
 import {
   SHOPIFY_DEPTH_CATALOG,
+  type DepthDensity,
   type DepthChartKind,
   type DepthFeature,
   type DepthTab,
@@ -1362,9 +1363,12 @@ export function depthFeatureIsFastPaint(needs: string): boolean {
 export function buildDepthChartsForTab(
   input: BuildDepthChartsInput,
   phase: DepthChartPhase = "full",
+  density: DepthDensity | "all" = "all",
 ): DepthChartModel[] {
   return SHOPIFY_DEPTH_CATALOG.filter((f) => {
     if (f.tab !== input.tab) return false;
+    if (density === "core" && f.tier !== "core") return false;
+    if (density === "more" && f.tier !== "more") return false;
     if (phase === "full") return true;
     const fast = depthFeatureIsFastPaint(f.needs);
     return phase === "fast" ? fast : !fast;
@@ -1374,10 +1378,14 @@ export function buildDepthChartsForTab(
 /** Placeholder shells so the grid keeps catalog order while heavy charts load. */
 export function buildDepthChartPlaceholdersForTab(
   tab: BuildDepthChartsInput["tab"],
+  density: DepthDensity | "all" = "all",
 ): DepthChartModel[] {
-  return SHOPIFY_DEPTH_CATALOG.filter(
-    (f) => f.tab === tab && !depthFeatureIsFastPaint(f.needs),
-  ).map((f) => ({
+  return SHOPIFY_DEPTH_CATALOG.filter((f) => {
+    if (f.tab !== tab) return false;
+    if (density === "core" && f.tier !== "core") return false;
+    if (density === "more" && f.tier !== "more") return false;
+    return !depthFeatureIsFastPaint(f.needs);
+  }).map((f) => ({
     id: f.id,
     title: f.title,
     blurb: f.blurb,

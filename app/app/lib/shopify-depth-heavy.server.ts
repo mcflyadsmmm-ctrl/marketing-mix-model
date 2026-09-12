@@ -30,6 +30,9 @@ export async function loadDepthHeavyCharts(
   const range = resolvePeriod(preset, now, shop.ianaTimezone);
   const priorRange = resolvePriorPeriod(preset, now, shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const depthParam = url.searchParams.get("depth");
+  const depthDensity =
+    useSampleDesk || depthParam === "all" ? "all" : "core";
 
   const depth = await loadShopifyDepthData({
     shopId: shop.id,
@@ -67,6 +70,7 @@ export async function loadDepthHeavyCharts(
       timeZone: shop.ianaTimezone,
     },
     "slow",
+    depthDensity,
   );
 
   return { charts };

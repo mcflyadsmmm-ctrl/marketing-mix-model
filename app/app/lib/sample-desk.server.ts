@@ -6,7 +6,12 @@ import {
 import type { SalesResult } from "./shopify-sales.server";
 import type { DateRange } from "./periods";
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
-import { seedSampleCohortFacts, clearSampleCohortFacts } from "./order-facts.server";
+import {
+  seedSampleCohortFacts,
+  clearSampleCohortFacts,
+  seedSampleOrderFacts,
+  clearSampleOrderFacts,
+} from "./order-facts.server";
 
 export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
   const settings = await prisma.settings.findUnique({ where: { shopId } });
@@ -53,6 +58,7 @@ export async function clearSampleDesk(shopId: string) {
     }),
   ]);
   // Demo CohortFacts use source=sample — delete without touching live till LTV.
+  await clearSampleOrderFacts(shopId);
   await clearSampleCohortFacts(shopId);
 }
 
@@ -130,7 +136,16 @@ export async function seedThreeYearSampleDesk(
     }
   });
 
-  // Sample CohortFacts for Till LTV panel (clearly demo — not live Shopify).
+  // Sample OrderFacts + CohortFacts so Sales/Customers depth charts fill for demo/listing.
+  await seedSampleOrderFacts(
+    shopId,
+    rows.map((r) => ({
+      day: r.day,
+      sales: r.sales,
+      orderCount: r.orderCount,
+      newCustomers: r.newCustomers,
+    })),
+  );
   await seedSampleCohortFacts(shopId);
 
   return {

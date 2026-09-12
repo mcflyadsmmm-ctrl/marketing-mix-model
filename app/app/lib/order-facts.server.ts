@@ -15,6 +15,7 @@ import {
   allowsDeepOrderHistory,
   resolveOrderHistoryWindowDays,
 } from "./shopify-scopes";
+import { buildSampleOrderFactRows } from "./demo-sample-desk.server";
 
 /** OrderFact.source for live Shopify ingest — never write sample from this lane. */
 export const ORDER_FACT_SOURCE = "shopify_order_v1";
@@ -1052,6 +1053,56 @@ export async function countNewBuyersInRange(
  * Tuned vs SAMPLE cash CAC (~$70–90): 30d / 90d / 365d LTV read ~$145 / $380 / $820
  * so LTV:CAC lands ~4–6× (impressive, not 1×).
  */
+
+/**
+ * Expand SAMPLE day rows into OrderFact (`source = sample`) so Sales/Customers
+ * depth charts fill for listing + demo. Never touches live shopify_order_v1 rows.
+ */
+export async function seedSampleOrderFacts(
+  shopId: string,
+  days: Array<{
+    day: Date;
+    sales: number;
+    orderCount: number;
+    newCustomers: number;
+  }>,
+): Promise<number> {
+  await prisma.orderFact.deleteMany({ where: { shopId, source: "sample" } });
+  // Cap at ~24 months so re-seed stays snappy; day facts still cover 3y.
+  const capped = [...days].sort((a, b) => a.day.getTime() - b.day.getTime()).slice(-730);
+  const rows = buildSampleOrderFactRows(capped);
+  const asOf = new Date();
+  let written = 0;
+  for (let i = 0; i < rows.length; i += 250) {
+    const chunk = rows.slice(i, i + 250).map((r) => ({
+      shopId,
+      shopifyOrderId: r.shopifyOrderId,
+      customerKey: r.customerKey === "guest" ? ORDER_FACT_GUEST_KEY : r.customerKey,
+      orderedAt: r.orderedAt,
+      shopLocalDate: r.shopLocalDate,
+      amount: r.amount,
+      discountTotal: r.discountTotal,
+      shippingTotal: r.shippingTotal,
+      taxTotal: r.taxTotal,
+      unitCount: r.unitCount,
+      currency: r.currency,
+      asOf,
+      source: "sample",
+    }));
+    const res = await prisma.orderFact.createMany({ data: chunk, skipDuplicates: true });
+    written += res.count;
+  }
+  return written;
+}
+
+/** Delete demo OrderFact rows only (`source = sample`). */
+export async function clearSampleOrderFacts(shopId: string): Promise<number> {
+  const result = await prisma.orderFact.deleteMany({
+    where: { shopId, source: "sample" },
+  });
+  return result.count;
+}
+
 export async function seedSampleCohortFacts(
   shopId: string,
   options?: { now?: Date },
