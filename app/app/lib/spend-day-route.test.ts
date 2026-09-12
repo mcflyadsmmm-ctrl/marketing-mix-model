@@ -155,7 +155,7 @@ describe("first-spend hand-off to Total ROAS", () => {
     expect(activateLine!).toMatch(/no ad login/i);
   });
 
-  it("Love-UX2: Automate fill — optional keeps its verbs, now in its own fold", () => {
+  it("Love-UX2: Sheet/pipe fold stays optional — not the cold teach primary", () => {
     // Blocker #1: the pipe grid used to sit inside the cold-empty teach, which
     // made four download CTAs equal to the one path that reaches coverage.
     const teachStart = spend.indexOf('className="mcfly-spend-teach mcfly-spend-teach--lede"');
@@ -173,10 +173,11 @@ describe("first-spend hand-off to Total ROAS", () => {
     expect(pipe).toContain("PIPE_TEMPLATE_OPTIONS.map");
     expect(pipe).toContain("option.exampleHref");
     expect(pipe).toContain("option.blankHref");
-    expect(spend).toContain('"Automate fill — optional"');
+    expect(spend).toContain('"Google Sheet once — not daily typing"');
     expect(spend).toContain("PIPE_TOOL_NAMES");
     expect(spend).toMatch(/SyncWith|PIPE_TOOL_NAMES\.join/);
-    expect(spend).toContain("you pay those tools");
+    expect(spend).toMatch(/[Yy]ou pay those tools/);
+    expect(spend).toMatch(/no daily grind|not a daily/i);
   });
 
   it("Love-V3: first day saved keeps one status banner (coverage stays in the note)", () => {

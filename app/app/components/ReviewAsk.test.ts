@@ -33,24 +33,22 @@ describe("ReviewAsk wiring", () => {
     expect(reviewAsk).toContain("API_POLL_MAX_MS = 2 * REVIEW_MIN_SESSION_MS");
   });
 
-  it("Overview asks only after the live Total ROAS hero, never SAMPLE/empty/shot", () => {
-    const heroAt = overview.indexOf("TotalRoasGauge");
-    const askAt = overview.indexOf("<ReviewAsk");
-    expect(heroAt).toBeGreaterThan(0);
-    expect(askAt).toBeGreaterThan(heroAt);
-    expect(overview).toMatch(
-      /scoreboardReady && !useSampleDesk \? \(\s*<ReviewAsk eligible=\{reviewAskEligible\} \/>/,
-    );
-    expect(overview).toMatch(/scoreboardReady:/);
-    expect(overview).toMatch(/!useSampleDesk/);
-    expect(overview).toMatch(/salesError/);
-    expect(overview).toMatch(/historyLimited:/);
-    expect(overview).toMatch(/factsIncomplete:/);
+  it("Overview does not mount ReviewAsk — Shopify depth first (FRESH_START)", () => {
+    // Fresh start removed review chrome from Overview so the first job stays
+    // operator craft (orders / LTV), not App Store ask. Component stays ready.
+    expect(overview).not.toContain("<ReviewAsk");
+    expect(overview).not.toContain("decideReviewAsk");
+    expect(overview).toContain("buildOpsDeskIsland");
   });
 
-  it("Overview does not ask over a period the fact window cannot cover", () => {
-    const askCall = overview.match(/decideReviewAsk\(\{[\s\S]*?\}\)\.ask/)?.[0];
-    expect(askCall).toBeTruthy();
-    expect(askCall).toContain("periodExceedsFactWindow");
+  it("ReviewAsk still fail-closes on incomplete / history-capped desks", () => {
+    expect(reviewAsk).toContain("decideReviewAskReveal");
+    const stickiness = readFileSync(
+      join(here, "../lib/install-stickiness.ts"),
+      "utf8",
+    );
+    expect(stickiness).toContain("export function decideReviewAsk");
+    expect(stickiness).toContain("historyLimited");
+    expect(stickiness).toContain("factsIncomplete");
   });
 });

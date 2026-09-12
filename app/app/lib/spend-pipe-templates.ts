@@ -73,11 +73,11 @@ export const PIPE_TEMPLATE_COPY = {
   /** Carries both words a merchant might scan for: pipe and automate. */
   summary: "Pipe templates — automate the fill (optional)",
   linkLabel: "Automate the fill with a pipe tool",
-  hint: `Hands-off daily spend without an ad-network login here: point a spreadsheet pipe tool (${PIPE_TOOL_NAMES.join(", ")}) at one of these headers, then import the sheet as CSV.`,
+  hint: `Keep a Google Sheet (via ${PIPE_TOOL_NAMES.join(", ")}) that lands spend on these headers — paste CSV when you want Total ROAS. No ad login here, no daily typing ritual.`,
   steps: [
     `Subscribe to a spreadsheet pipe tool you already trust — ${PIPE_TOOL_NAMES.join(", ")}. It owns the ad-platform login; Mcfly never asks for one.`,
     "Download a template below and use its header row as the target sheet shape.",
-    "Point the pipe at those exact headers — daily ad spend only. Sales stay in Shopify.",
+    "Point the pipe at those exact headers — ad spend by day. Sales stay in Shopify.",
     "Export the sheet as CSV and paste or import it below. Same day + channel replaces, never doubles.",
   ],
   honesty:

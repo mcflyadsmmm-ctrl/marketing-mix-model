@@ -3,6 +3,7 @@ import {
   getOrderBackfillHistoryLimited,
   listBuyerOrderFacts,
 } from "./order-facts.server";
+import { computeBuyerConcentration, type BuyerConcentration } from "./buyer-concentration";
 import {
   periodFirstVsRepeatRevenue,
   summarizeBuyerRepeat,
@@ -49,6 +50,28 @@ export const SAMPLE_PERIOD_ORDER_MIX: PeriodOrderMix = {
   subsequentRevenueShare: 48_000 / 110_000,
   firstOrderCount: 410,
   subsequentOrderCount: 290,
+};
+
+
+export function emptyBuyerConcentration(): BuyerConcentration {
+  return {
+    buyers: 0,
+    totalRevenue: 0,
+    top10Share: null,
+    top20Share: null,
+    topBuyerShare: null,
+    topBuyerRevenue: 0,
+  };
+}
+
+
+const SAMPLE_BUYER_CONCENTRATION: BuyerConcentration = {
+  buyers: 4200,
+  totalRevenue: 3_270_000,
+  top10Share: 0.48,
+  top20Share: 0.67,
+  topBuyerShare: 0.012,
+  topBuyerRevenue: 39_240,
 };
 
 export function emptyBuyerRepeat(): BuyerRepeatSummary {
@@ -105,6 +128,8 @@ export interface TillLtvSummary {
   repeatRate: number | null;
   /** Maturity-gated 2nd-purchase + first/subsequent revenue (order-fact depth). */
   buyerRepeat: BuyerRepeatSummary;
+  /** Revenue share from heaviest buyers — Shopify Analytics underplays this. */
+  buyerConcentration: BuyerConcentration;
   /** Period sales mix by lifetime rank (1st vs 2nd+), when period facts exist. */
   periodOrderMix: PeriodOrderMix;
   periodLabel: string | null;
@@ -141,6 +166,7 @@ export function summarizeTillLtvFromCohorts(
     useSampleDesk?: boolean;
     ianaTimezone?: string | null;
     buyerRepeat?: BuyerRepeatSummary;
+    buyerConcentration?: BuyerConcentration;
     periodOrderMix?: PeriodOrderMix;
   },
 ): TillLtvSummary {
@@ -232,6 +258,11 @@ export function summarizeTillLtvFromCohorts(
     cohorts,
     repeatRate,
     buyerRepeat,
+    buyerConcentration:
+      options.buyerConcentration ??
+      (options.useSampleDesk && available
+        ? SAMPLE_BUYER_CONCENTRATION
+        : emptyBuyerConcentration()),
     periodOrderMix,
     periodLabel: options.periodLabel ?? null,
   };
@@ -278,6 +309,15 @@ export async function buildTillLtvSummary(
     allBuyerOrders.length > 0
       ? summarizeBuyerRepeat(allBuyerOrders)
       : undefined;
+  let buyerConcentration =
+    allBuyerOrders.length > 0
+      ? computeBuyerConcentration(
+          allBuyerOrders.map((o) => ({
+            buyerKey: o.buyerKey,
+            netSales: o.netSales,
+          })),
+        )
+      : undefined;
   let periodOrderMix =
     periodBuyerOrders.length > 0
       ? periodFirstVsRepeatRevenue(periodBuyerOrders)
@@ -285,6 +325,7 @@ export async function buildTillLtvSummary(
 
   // Sample desk: CohortFacts without OrderFacts → polished demo buyer depth.
   if (sample && !buyerRepeat) buyerRepeat = SAMPLE_BUYER_REPEAT;
+  if (sample && !buyerConcentration) buyerConcentration = SAMPLE_BUYER_CONCENTRATION;
   if (sample && !periodOrderMix && options.periodRange) {
     periodOrderMix = SAMPLE_PERIOD_ORDER_MIX;
   }
@@ -308,6 +349,7 @@ export async function buildTillLtvSummary(
       useSampleDesk: options.useSampleDesk,
       ianaTimezone: options.ianaTimezone,
       buyerRepeat,
+      buyerConcentration,
       periodOrderMix,
     },
   );

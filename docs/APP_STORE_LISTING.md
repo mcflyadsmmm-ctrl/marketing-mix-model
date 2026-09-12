@@ -12,6 +12,7 @@ exactly as written.
 - Harbor Home Co is clearly labeled **SAMPLE** data:
   **$82,068 sales ÷ $23,414 spend = 3.51×**.
 - One plan only: **Mcfly Analytics**. **7-day free trial, then $39/month.**
+- `read_all_orders` is live in scopes (with `read_orders` + `read_customers`) so multi-year order history can backfill once Partner-approved tokens grant it.
 - Do not add reviews, ratings, customer quotes, or install counts.
 
 ## Partner Dashboard paste blocks

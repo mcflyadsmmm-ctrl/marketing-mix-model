@@ -30,10 +30,10 @@ export const SPEND_DAY_ANCHOR = "mcfly-spend-day";
 export const SPEND_TRUSTED_COVERAGE_RATIO = 0.7;
 
 export const SPEND_FIRST_RUN_COPY = {
-  billHeading: "Spread one bill across its days",
+  billHeading: "One bill → a month of days (no daily grind)",
   billHint:
-    "Enter a period total for one channel — Mcfly writes one row per day.",
-  billBody: `A monthly invoice covers a month of days in one save, so ${PRODUCT_NOUN.totalRoas} is ready sooner. ${PRODUCT_NOUN.definition}. No ad-network login.`,
+    "Paste a period total for one channel — Mcfly writes one row per day. Prefer this over typing every morning.",
+  billBody: `A monthly invoice covers a month of days in one save, so ${PRODUCT_NOUN.totalRoas} is ready sooner — without logging into Meta/Google here. ${PRODUCT_NOUN.definition}. Sheet/pipe tools stay optional for hands-off fills.`,
   amountLabel: "Bill amount",
   periodLabel: "Bill covers",
   anchorLabel: "Starting month",

@@ -22,6 +22,7 @@ import {
   formatMedianDays,
   formatSecondOrderRate,
 } from "../lib/cohort-buyer-metrics";
+import { formatConcentrationShare } from "../lib/buyer-concentration";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -390,6 +391,23 @@ export default function LtvPage() {
                   </p>
                   <p className="mcfly-ltv-summary__def">
                     Days from first order to second · buyers who repeat
+                  </p>
+                </div>
+
+                <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">
+                  <p className="mcfly-ltv-summary__k">Top 10% buyers</p>
+                  <p className="mcfly-ltv-summary__v mcfly-ltv-summary__v--sm">
+                    {formatConcentrationShare(
+                      metrics.tillLtv.buyerConcentration.top10Share,
+                    )}
+                  </p>
+                  <p className="mcfly-ltv-summary__def">
+                    Share of lifetime revenue from your heaviest 10% of buyers
+                  </p>
+                  <p className="mcfly-ltv-summary__delta">
+                    {metrics.tillLtv.buyerConcentration.top20Share != null
+                      ? `Top 20% · ${formatConcentrationShare(metrics.tillLtv.buyerConcentration.top20Share)}`
+                      : "Needs ≥10 known buyers"}
                   </p>
                 </div>
                 <div className="mcfly-ltv-summary__tile mcfly-ltv-summary__tile--soft">

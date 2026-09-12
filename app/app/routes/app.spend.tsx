@@ -128,8 +128,8 @@ const SPEND_ACTIVATE_COPY =
  * Tools are nominative + merchant-paid; Mcfly never claims OAuth or partnership.
  */
 const SPEND_PIPE_FRONT_DOOR = {
-  heading: "Automate fill — optional",
-  body: `Long and wide CSV for ${PIPE_TOOL_NAMES.join(", ")} — you pay those tools; Mcfly never asks for an ad login.`,
+  heading: "Google Sheet once — not daily typing",
+  body: `Point ${PIPE_TOOL_NAMES.join(", ")} (or any Sheet you already use) at our headers, then paste CSV when you want Total ROAS. You pay those tools; Mcfly never asks for an ad login. Or spread one monthly bill below — still no daily grind.`,
 } as const;
 /** localStorage key — JSON array of SpendAdvertisePlatformId */
 const PLATFORM_STORAGE_KEY = "mcfly-spend-platforms";

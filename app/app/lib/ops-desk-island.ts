@@ -48,6 +48,8 @@ export type OpsDeskIslandInput = {
   avgRevenueD90?: number | null;
   newBuyers?: number | null;
   dayInsight?: string | null;
+  /** Heaviest-buyer revenue share (Shopify-only depth). */
+  top10BuyerShare?: number | null;
 };
 
 /**
@@ -105,7 +107,14 @@ export function buildOpsDeskIsland(
     });
   }
 
-  if (economics.weekendShare != null && kpis.length < 4) {
+  if (input.top10BuyerShare != null && kpis.length < 4) {
+    kpis.push({
+      id: "top10",
+      label: "Top 10% buyers",
+      value: pct(input.top10BuyerShare),
+      hint: "Lifetime revenue from your heaviest tenth of buyers",
+    });
+  } else if (economics.weekendShare != null && kpis.length < 4) {
     kpis.push({
       id: "weekend",
       label: "Weekend share",

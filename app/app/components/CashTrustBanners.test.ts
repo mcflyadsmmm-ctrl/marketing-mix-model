@@ -75,13 +75,13 @@ describe("CashTrustBanners Love-V1 banner budget + Love-6 coverage", () => {
     expect(source).toContain('case "type_day":\n      return "/app/spend#mcfly-spend-day"');
   });
 
-  it("uses overview banner budget helper and budgetRole split on Overview", () => {
+  it("keeps banner budget helpers on CashTrust; Overview no longer splits roles", () => {
+    // FRESH_START: Overview leads with ops island / Shopify depth — CashTrust
+    // budgetRole split was lecture chrome and is not remounted there.
     expect(source).toContain("budgetOverviewBanners");
     expect(source).toContain("budgetRole");
-    expect(indexSource).toContain('budgetRole={showTrustBelow ? "above" : "all"}');
-    expect(indexSource).toContain(
-      'budgetRole={showTrustAbove ? "deferred" : "all"}',
-    );
+    expect(indexSource).not.toContain("budgetRole=");
+    expect(indexSource).not.toContain("CashTrustBanners");
   });
 
   it("cold+partial: ≤1 primary banner, 0 critical, sales facts as chip", () => {

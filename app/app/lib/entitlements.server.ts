@@ -174,6 +174,15 @@ export function proRequiredLtvSummary(periodLabel: string | null = null) {
       firstOrderRevenueShare: null,
       subsequentRevenueShare: null,
     },
+    buyerConcentration: {
+      buyers: 0,
+      totalRevenue: 0,
+      top10Share: null,
+      top20Share: null,
+      topBuyerShare: null,
+      topBuyerRevenue: 0,
+    },
+    
     periodOrderMix: {
       firstOrderRevenue: 0,
       subsequentRevenue: 0,

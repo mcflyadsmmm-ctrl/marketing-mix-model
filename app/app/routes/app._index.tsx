@@ -936,6 +936,9 @@ export default function Dashboard() {
           newBuyers: metrics.tillLtv.available
             ? metrics.tillLtv.newBuyers
             : null,
+          top10BuyerShare: metrics.tillLtv.available
+            ? metrics.tillLtv.buyerConcentration.top10Share
+            : null,
           dayInsight: dayQualityInsight
             ? [
                 dayQualityInsight.best
@@ -1177,9 +1180,10 @@ export default function Dashboard() {
 
             {!hasLiveSpend && !useSampleDesk ? (
               <p className="mcfly-spend-later" aria-label="Spend later">
-                Want Total ROAS next?{" "}
-                <s-link href="/app/spend">Add ad spend</s-link>
-                {" — optional. Order and customer depth above already runs on Shopify alone."}
+                Order and customer depth above already runs on Shopify alone.{" "}
+                When you want Total ROAS,{" "}
+                <s-link href="/app/spend">add spend later</s-link>
+                {" — one monthly bill or a Google Sheet, not a daily chore."}
               </p>
             ) : null}
           </>

@@ -84,6 +84,17 @@ Prefer prompts that ask: *What deeper data does this unlock, and what CSV dump d
 
 ---
 
+## Product sequence (Marty · 2026-09-12)
+
+This is the dream path. Do not invert it.
+
+1. **Shopify data perfect first.** Full order history, customer lifetime, cohort depth, day quality — everything the Admin API can tell, displayed with Black Clover–level craft. Merchants should love Mcfly **before** they touch spend.
+2. **Spend is later beauty, not a main tab.** Daily ad-spend typing is not intriguing. Prefer: monthly bill → spread days, Google Sheet + pipe tool (SyncWith / Coupler / etc.), or occasional CSV. Never make Spend a cold-start wall or core top-nav destination.
+3. **Why not ad-network APIs as the spine.** Platform APIs are messy, often wrong, and become a support sink (Triple Whale–class pain). Mcfly wins by making Shopify truth deep and gorgeous; spend upload becomes worth it because the rest of the desk already feels inevitable.
+4. **Craft ceiling.** Black Clover MER Dashboard smoothness is the bar. Replicable. Not optional polish.
+
+---
+
 ## Definition of done (fresh lane)
 
 A change is done when:
@@ -105,3 +116,5 @@ A change is done when:
 | 2026-09-12 | Product sequence: blow them away with Shopify API order/customer depth first. Spend upload is later depth for Total ROAS — not the opening ritual or a core top-nav tab. |
 | 2026-09-12 | Customers & LTV depth: maturity-gated 2nd-order % (30/60/90), median days-to-2nd, first vs subsequent $ — Overview + LTV, no spend gate. |
 | 2026-09-12 | Craft ceiling: Black Clover MER Dashboard is the operator-desk smoothness bar (decision strip + dense KPI rail + Fraunces values). Replicable — not optional polish. |
+| 2026-09-12 | Product sequence locked: Shopify API depth first (orders/customers/LTV). Spend = optional later beauty (Sheet/pipe/bill-spread — not daily grind, not core nav). Avoid ad-API spine. |
+| 2026-09-12 | Buyer concentration (top 10%/20% lifetime revenue share) on Customers & LTV + Overview ops island — Shopify-only depth, no spend. |

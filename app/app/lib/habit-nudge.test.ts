@@ -119,13 +119,11 @@ describe("HABIT_NUDGE_COPY religion + habit", () => {
 });
 
 describe("HabitNudge Overview wiring (L10 / Love-V1)", () => {
-  it("mounts dismissible info HabitNudge only on Overview trusted seat", () => {
-    expect(overview).toContain('from "../components/HabitNudge"');
-    expect(overview).toContain("decideHabitNudgeEligible");
-    expect(overview).toContain("<HabitNudge");
-    expect(overview).toMatch(
-      /habitNudgeEligible\.eligible[\s\S]{0,120}<HabitNudge/,
-    );
+  it("keeps HabitNudge off Overview — Shopify depth owns the seat (FRESH_START)", () => {
+    // Fresh start stripped Monday-habit chrome from Overview so order/LTV
+    // craft stays the first job. Component + pure gates remain for Spend later.
+    expect(overview).not.toContain('from "../components/HabitNudge"');
+    expect(overview).not.toContain("<HabitNudge");
     expect(nudge).toContain('tone="info"');
     expect(nudge).toContain("dismissible");
     expect(nudge).toContain("HABIT_NUDGE_DISMISS_KEY");
@@ -133,9 +131,7 @@ describe("HabitNudge Overview wiring (L10 / Love-V1)", () => {
     expect(nudge).toContain("decideHabitNudgeReveal");
     expect(HABIT_NUDGE_DISMISS_KEY).toBe("mcfly-habit-nudge");
     expect(HABIT_NUDGE_SESSION_KEY).toBe("mcfly-habit-nudge-session");
-    // Love-V2: never steal hero primary.
     expect(nudge).not.toMatch(/variant="primary"/);
-    // Love-V1: habit is not a CashTrust critical budget id.
     expect(bannerBudget).not.toMatch(/habit_nudge|"habit"/);
   });
 });
