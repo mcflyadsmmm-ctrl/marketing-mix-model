@@ -32,6 +32,7 @@ import {
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
 import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
 import { OpsDeskIsland } from "../components/OpsDeskIsland";
+import { ScoreboardHero } from "../components/ScoreboardHero";
 import { SalesMixPanel } from "../components/SalesMixPanel";
 import { DayQualityTablePanel } from "../components/DayQualityTable";
 import { PeriodPaceStrip } from "../components/PeriodPaceStrip";
@@ -43,6 +44,7 @@ import {
 } from "../lib/first-session-path";
 import { resolveOrderEconomics } from "../lib/order-economics";
 import { buildOpsDeskIsland } from "../lib/ops-desk-island";
+import { buildScoreboardHero } from "../lib/scoreboard-hero";
 import { buildSalesMix } from "../lib/sales-mix";
 import {
   firstOpenRedirect,
@@ -961,6 +963,49 @@ export default function Dashboard() {
         hasLiveSpend,
       })
     : null;
+
+  const scoreboardHero = orderEconomics.hasSignal
+    ? buildScoreboardHero({
+        periodLabel: metrics.period.label,
+        periodPreset: preset,
+        economics: orderEconomics,
+        salesDeltaPct: deltas?.salesPct ?? null,
+        priorLabel: deltas?.priorLabel ?? null,
+        buyerRepeat: metrics.tillLtv.available
+          ? {
+              secondWithin90: metrics.tillLtv.buyerRepeat.secondWithin90,
+              medianDaysToSecond:
+                metrics.tillLtv.buyerRepeat.medianDaysToSecond,
+            }
+          : null,
+        avgRevenueD90: metrics.tillLtv.available
+          ? metrics.tillLtv.avgRevenueD90
+          : null,
+        newBuyers: metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null,
+        top10BuyerShare: metrics.tillLtv.available
+          ? metrics.tillLtv.buyerConcentration.top10Share
+          : null,
+        dayInsight: dayQualityInsight
+          ? [
+              dayQualityInsight.best
+                ? `Strongest day ${dayQualityInsight.best.label} · ${dayQualityInsight.best.orders.toLocaleString()} orders`
+                : null,
+              dayQualityInsight.softest
+                ? `Softest ${dayQualityInsight.softest.label}`
+                : null,
+              dayQualityInsight.aovDeltaPct != null
+                ? `AOV ${dayQualityInsight.aovDeltaPct >= 0 ? "+" : ""}${dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ") || null
+          : null,
+        hasLiveSpend,
+        mer: metrics.mer,
+        spend: metrics.totalSpend,
+        spendDeltaPct: deltas?.spendPct ?? null,
+      })
+    : null;
   const salesMix = orderEconomics.hasSignal
     ? buildSalesMix(orderEconomics, metrics.period.label)
     : null;
@@ -1097,7 +1142,11 @@ export default function Dashboard() {
         */}
         {salesDeskReady && !shotMode ? (
           <>
-            {opsDeskIsland ? <OpsDeskIsland model={opsDeskIsland} /> : null}
+            {scoreboardHero ? (
+              <ScoreboardHero model={scoreboardHero} />
+            ) : opsDeskIsland ? (
+              <OpsDeskIsland model={opsDeskIsland} />
+            ) : null}
 
             <div className="mcfly-desk-grid mcfly-desk-grid--bc">
               {salesMix ? <SalesMixPanel model={salesMix} /> : null}

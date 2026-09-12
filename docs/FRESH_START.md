@@ -119,3 +119,4 @@ A change is done when:
 | 2026-09-12 | Product sequence locked: Shopify API depth first (orders/customers/LTV). Spend = optional later beauty (Sheet/pipe/bill-spread — not daily grind, not core nav). Avoid ad-API spine. |
 | 2026-09-12 | Buyer concentration (top 10%/20% lifetime revenue share) on Customers & LTV + Overview ops island — Shopify-only depth, no spend. |
 | 2026-09-12 | BC full operator-desk revamp: sticky brand rail, decision strip with tone/actions, sales-mix pastel bars, dense 4-up KPIs, LTV craft shell — Shopify depth first, spend still optional later. |
+| 2026-09-12 | BC scoreboard parity pass: sky paper desk, decision banner, 3 tinted hero cards (Shopify sales + customer depth), till-read strip, insight tiles — Overview first viewport rebuilt to Black Clover density. |
