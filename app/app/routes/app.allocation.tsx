@@ -6,6 +6,7 @@ import { authenticate } from "../shopify.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { MarketingSpendNav } from "../components/MarketingSpendNav";
 import { DeskPageWhy } from "../components/DeskPageWhy";
 import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
 import {
@@ -345,6 +346,7 @@ export default function AllocationPage() {
 
   return (
     <s-page heading={shotMode ? undefined : PRODUCT_NOUN.spendAllocation} inlineSize="large">
+      {!shotMode ? <MarketingSpendNav /> : null}
       <div
         className={[
           "mcfly-desk",

@@ -12,41 +12,40 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe("deskNavItems", () => {
-  it("top nav is API-first: Overview · Customers · Goals · Settings (Spend later)", () => {
+  it("top nav is Sales · Customers · Goals · Marketing Spend · Settings", () => {
     expect(deskNavCoreIds()).toEqual([
-      "overview",
-      "ltv",
+      "sales",
+      "customers",
       "goals",
+      "spend",
       "settings",
     ]);
     expect(deskNavItems().map((i) => i.href)).toEqual([
-      "/app?stay=1",
-      "/app/ltv",
+      "/app/sales",
+      "/app/customers",
       "/app/goals",
+      "/app/spend",
       "/app/settings",
     ]);
-    expect(deskNavItems().find((i) => i.id === "ltv")?.label).toMatch(
-      /Customers/i,
+    expect(deskNavItems().find((i) => i.id === "customers")?.label).toBe(
+      "Customers",
     );
-    // Spend is later depth — not the first chrome merchants hit.
-    expect(deskNavItems().map((i) => i.id)).not.toContain("spend");
+    expect(deskNavItems().find((i) => i.id === "spend")?.label).toBe(
+      "Marketing Spend",
+    );
     expect(deskNavItems().map((i) => i.id)).not.toContain("allocation");
     expect(deskNavItems().map((i) => i.id)).not.toContain("advanced");
   });
 
-  it("Overview nav uses stay=1 so cold desk is reachable", () => {
-    const overview = deskNavItems().find((i) => i.id === "overview");
-    expect(overview?.href).toBe("/app?stay=1");
-  });
-
   it("later pages stay deep-linkable — not deleted, just off the top nav", () => {
-    expect(deskNavLaterIds()).toEqual(["spend", "allocation", "advanced"]);
+    expect(deskNavLaterIds()).toEqual(["allocation", "advanced"]);
     const hrefs = deskNavAllItems().map((i) => i.href);
     expect(hrefs).toContain("/app/goals");
     expect(hrefs).toContain("/app/spend");
     expect(hrefs).toContain("/app/allocation");
-    expect(hrefs).toContain("/app/ltv");
+    expect(hrefs).toContain("/app/customers");
     expect(hrefs).toContain("/app/advanced");
+    expect(hrefs).toContain("/app/sales");
   });
 });
 

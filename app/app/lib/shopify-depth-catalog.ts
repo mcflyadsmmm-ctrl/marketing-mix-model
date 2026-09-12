@@ -1,0 +1,427 @@
+/**
+ * Spend-free Shopify depth catalog — every Overview-replacement insight
+ * with a tab home and chart kind. Marketing Spend is excluded here.
+ */
+
+export type DepthTab = "sales" | "customers" | "goals";
+
+export type DepthChartKind =
+  | "kpi_row"
+  | "bars"
+  | "share"
+  | "histogram"
+  | "ranked"
+  | "curve"
+  | "heatmap"
+  | "table"
+  | "callout";
+
+export type DepthDataNeed =
+  | "day_facts"
+  | "order_facts"
+  | "line_items"
+  | "history"
+  | "goals";
+
+export type DepthFeature = {
+  id: string;
+  tab: DepthTab;
+  title: string;
+  blurb: string;
+  chart: DepthChartKind;
+  needs: DepthDataNeed;
+};
+
+/** Full spend-free list — Sales / Customers / Goals only. */
+export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
+  // —— Sales: calendar & pace ——
+  {
+    id: "weekday_rhythm",
+    tab: "sales",
+    title: "Weekday rhythm",
+    blurb: "Mon–Sun sales share — where the week actually earns.",
+    chart: "bars",
+    needs: "day_facts",
+  },
+  {
+    id: "weekend_vs_weekday",
+    tab: "sales",
+    title: "Weekend vs weekday",
+    blurb: "Sat–Sun vs Mon–Fri sales mix for the period.",
+    chart: "share",
+    needs: "day_facts",
+  },
+  {
+    id: "day_of_month",
+    tab: "sales",
+    title: "Day-of-month pattern",
+    blurb: "Which calendar dates in the month carry the till.",
+    chart: "bars",
+    needs: "day_facts",
+  },
+  {
+    id: "hour_of_day",
+    tab: "sales",
+    title: "Hour-of-day orders",
+    blurb: "When orders land in shop time — Analytics buries this.",
+    chart: "bars",
+    needs: "order_facts",
+  },
+  {
+    id: "sales_volatility",
+    tab: "sales",
+    title: "Day-to-day volatility",
+    blurb: "How feast-or-famine daily sales are in this period.",
+    chart: "kpi_row",
+    needs: "day_facts",
+  },
+  {
+    id: "sales_streaks",
+    tab: "sales",
+    title: "Above / below average streaks",
+    blurb: "Longest runs above and below the period’s daily average.",
+    chart: "callout",
+    needs: "day_facts",
+  },
+  {
+    id: "pace_vs_prior",
+    tab: "sales",
+    title: "Pace vs prior period",
+    blurb: "Sales, orders, and AOV versus the matched prior window.",
+    chart: "kpi_row",
+    needs: "day_facts",
+  },
+  {
+    id: "closed_day_honesty",
+    tab: "sales",
+    title: "Closed days vs today",
+    blurb: "How many shop-local days are closed facts vs still open.",
+    chart: "kpi_row",
+    needs: "day_facts",
+  },
+  {
+    id: "seasonality_dow",
+    tab: "sales",
+    title: "Seasonality vs baseline",
+    blurb: "This period’s weekday mix vs an 8-week baseline when history exists.",
+    chart: "bars",
+    needs: "history",
+  },
+  // —— Sales: order shape ——
+  {
+    id: "aov_mean",
+    tab: "sales",
+    title: "Average order value",
+    blurb: "Mean AOV for the period — next to the distribution below.",
+    chart: "kpi_row",
+    needs: "day_facts",
+  },
+  {
+    id: "aov_distribution",
+    tab: "sales",
+    title: "AOV distribution",
+    blurb: "Order-size buckets (p50 context) — not just the average.",
+    chart: "histogram",
+    needs: "order_facts",
+  },
+  {
+    id: "order_size_histogram",
+    tab: "sales",
+    title: "Order size histogram",
+    blurb: "Count of orders by dollar band.",
+    chart: "histogram",
+    needs: "order_facts",
+  },
+  {
+    id: "sales_basis_compare",
+    tab: "sales",
+    title: "Gross vs net vs total",
+    blurb: "Sales basis haircut when Shopify facts expose the split.",
+    chart: "share",
+    needs: "day_facts",
+  },
+  {
+    id: "refund_haircut",
+    tab: "sales",
+    title: "Refund / return haircut",
+    blurb: "Returns pressure on the period when net vs gross is known.",
+    chart: "kpi_row",
+    needs: "day_facts",
+  },
+  {
+    id: "discount_dependency",
+    tab: "sales",
+    title: "Discount dependency",
+    blurb: "Needs line-item / discount allocations on orders.",
+    chart: "kpi_row",
+    needs: "line_items",
+  },
+  {
+    id: "shipping_share",
+    tab: "sales",
+    title: "Shipping share of order",
+    blurb: "Needs shipping lines on order ingest.",
+    chart: "kpi_row",
+    needs: "line_items",
+  },
+  {
+    id: "tax_duty_share",
+    tab: "sales",
+    title: "Tax / duty share",
+    blurb: "Needs tax lines on order ingest.",
+    chart: "kpi_row",
+    needs: "line_items",
+  },
+  {
+    id: "guest_vs_logged_in",
+    tab: "sales",
+    title: "Guest vs logged-in",
+    blurb: "Guest checkout share of orders and sales.",
+    chart: "share",
+    needs: "order_facts",
+  },
+  {
+    id: "same_day_multi",
+    tab: "sales",
+    title: "Same-day multi-order buyers",
+    blurb: "Buyers who placed more than one order on the same shop day.",
+    chart: "kpi_row",
+    needs: "order_facts",
+  },
+  {
+    id: "units_per_order",
+    tab: "sales",
+    title: "Units / lines per order",
+    blurb: "Needs line items on order ingest.",
+    chart: "kpi_row",
+    needs: "line_items",
+  },
+  {
+    id: "day_board",
+    tab: "sales",
+    title: "Day board",
+    blurb: "Every day: sales, orders, AOV, new-buyer share.",
+    chart: "table",
+    needs: "day_facts",
+  },
+  {
+    id: "strongest_softest_day",
+    tab: "sales",
+    title: "Strongest & softest day",
+    blurb: "Peak and trough shop-local days in the period.",
+    chart: "callout",
+    needs: "day_facts",
+  },
+  {
+    id: "new_vs_returning_sales",
+    tab: "sales",
+    title: "New vs returning sales",
+    blurb: "Attributed sales split — not just order counts.",
+    chart: "share",
+    needs: "day_facts",
+  },
+  {
+    id: "wow_mom_yoy",
+    tab: "sales",
+    title: "WoW / MoM / YoY movers",
+    blurb: "Period deltas when a comparable prior window exists.",
+    chart: "kpi_row",
+    needs: "history",
+  },
+  {
+    id: "what_changed",
+    tab: "sales",
+    title: "What changed",
+    blurb: "Plain-English movers from the biggest period deltas.",
+    chart: "callout",
+    needs: "day_facts",
+  },
+  {
+    id: "sales_export",
+    tab: "sales",
+    title: "Day board export",
+    blurb: "CSV of the day board — Sheets replacement.",
+    chart: "callout",
+    needs: "day_facts",
+  },
+  // —— Customers ——
+  {
+    id: "second_order_30_60_90",
+    tab: "customers",
+    title: "2nd-order rate (30 / 60 / 90)",
+    blurb: "Maturity-gated repeat — only buyers old enough to count.",
+    chart: "bars",
+    needs: "order_facts",
+  },
+  {
+    id: "median_days_to_second",
+    tab: "customers",
+    title: "Median days to 2nd order",
+    blurb: "How long a typical repeater takes.",
+    chart: "kpi_row",
+    needs: "order_facts",
+  },
+  {
+    id: "third_plus_rate",
+    tab: "customers",
+    title: "3rd+ order rate",
+    blurb: "Share of buyers who reach a third purchase (mature cohorts).",
+    chart: "kpi_row",
+    needs: "order_facts",
+  },
+  {
+    id: "one_and_done",
+    tab: "customers",
+    title: "One-and-done rate",
+    blurb: "Mature buyers still on a single order.",
+    chart: "kpi_row",
+    needs: "order_facts",
+  },
+  {
+    id: "first_vs_subsequent",
+    tab: "customers",
+    title: "First vs subsequent $",
+    blurb: "Revenue from first orders vs all later orders.",
+    chart: "share",
+    needs: "order_facts",
+  },
+  {
+    id: "time_between_orders",
+    tab: "customers",
+    title: "Time between orders",
+    blurb: "Gap distribution between consecutive purchases.",
+    chart: "histogram",
+    needs: "order_facts",
+  },
+  {
+    id: "first_aov_vs_returning",
+    tab: "customers",
+    title: "First AOV vs returning AOV",
+    blurb: "Ticket size on first purchase vs later ones.",
+    chart: "bars",
+    needs: "order_facts",
+  },
+  {
+    id: "repeat_lag_curve",
+    tab: "customers",
+    title: "Repeat revenue lag curve",
+    blurb: "Cumulative repeat $ by days since first order.",
+    chart: "curve",
+    needs: "order_facts",
+  },
+  {
+    id: "cohort_ltv_30_90_365",
+    tab: "customers",
+    title: "Cohort LTV 30 / 90 / 365",
+    blurb: "Average revenue per new buyer at classic horizons.",
+    chart: "bars",
+    needs: "order_facts",
+  },
+  {
+    id: "cohort_quality_rank",
+    tab: "customers",
+    title: "Cohort month quality",
+    blurb: "Which first-order months aged into the most revenue.",
+    chart: "ranked",
+    needs: "order_facts",
+  },
+  {
+    id: "buyer_concentration",
+    tab: "customers",
+    title: "Buyer concentration",
+    blurb: "Top 10% / 20% lifetime revenue share.",
+    chart: "bars",
+    needs: "order_facts",
+  },
+  {
+    id: "concentration_trend",
+    tab: "customers",
+    title: "Concentration trend",
+    blurb: "Whether whale share is rising vs an earlier window.",
+    chart: "kpi_row",
+    needs: "history",
+  },
+  {
+    id: "whale_board",
+    tab: "customers",
+    title: "Whale board",
+    blurb: "Top buyers by lifetime $ (opaque ids — no CRM).",
+    chart: "ranked",
+    needs: "order_facts",
+  },
+  {
+    id: "rfm_lite",
+    tab: "customers",
+    title: "RFM-lite segments",
+    blurb: "Recency · frequency · monetary bands from order facts only.",
+    chart: "share",
+    needs: "order_facts",
+  },
+  {
+    id: "lapsing_risk",
+    tab: "customers",
+    title: "Lapsing risk",
+    blurb: "Once-buyers quiet past the typical repurchase window.",
+    chart: "kpi_row",
+    needs: "order_facts",
+  },
+  {
+    id: "reactivation_share",
+    tab: "customers",
+    title: "Reactivation share",
+    blurb: "Lapsed buyers who ordered again in this period.",
+    chart: "kpi_row",
+    needs: "order_facts",
+  },
+  {
+    id: "new_buyer_quality",
+    tab: "customers",
+    title: "New-buyer quality",
+    blurb: "New buyers vs their sales contribution this period.",
+    chart: "kpi_row",
+    needs: "order_facts",
+  },
+  {
+    id: "returning_sales_share",
+    tab: "customers",
+    title: "Returning sales share",
+    blurb: "Period sales from returning buyers.",
+    chart: "share",
+    needs: "day_facts",
+  },
+  // —— Goals (sales only; no margin / ROAS) ——
+  {
+    id: "sales_goal_mtd",
+    tab: "goals",
+    title: "Sales goal pace",
+    blurb: "MTD / QTD / YTD against the sales goal you set.",
+    chart: "kpi_row",
+    needs: "goals",
+  },
+  {
+    id: "sales_goal_board",
+    tab: "goals",
+    title: "Monthly goal board",
+    blurb: "Actual vs goal vs prior year by month.",
+    chart: "table",
+    needs: "goals",
+  },
+  {
+    id: "yoy_grow",
+    tab: "goals",
+    title: "YoY grow presets",
+    blurb: "Set monthly goals from prior-year actuals.",
+    chart: "callout",
+    needs: "goals",
+  },
+] as const;
+
+export function depthFeaturesForTab(tab: DepthTab): DepthFeature[] {
+  return SHOPIFY_DEPTH_CATALOG.filter((f) => f.tab === tab);
+}
+
+export function depthFeatureById(
+  id: string,
+): DepthFeature | undefined {
+  return SHOPIFY_DEPTH_CATALOG.find((f) => f.id === id);
+}

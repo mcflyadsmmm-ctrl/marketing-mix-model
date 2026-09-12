@@ -13,6 +13,7 @@ import type {
 import { Form, useActionData, useLoaderData, useLocation, useNavigation, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { MarketingSpendNav } from "../components/MarketingSpendNav";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getSpendPeriodCoverage } from "../lib/mer-dashboard.server";
@@ -1779,7 +1780,8 @@ export default function SpendEntryPage() {
   );
 
   return (
-    <s-page heading="Spend" inlineSize="large">
+    <s-page heading="Marketing Spend" inlineSize="large">
+      {!shotMode ? <MarketingSpendNav /> : null}
       {sampleDesk.enabled && !shotMode ? (
         <Form method="post" action={dataModeAction}>
           <input type="hidden" name="intent" value="use-real" />

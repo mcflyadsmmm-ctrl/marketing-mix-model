@@ -905,6 +905,8 @@ export type SalesDayFactRow = {
   orderCount: number;
   newCustomerNetSales: number;
   returningCustomerNetSales: number;
+  netSales: number | null;
+  grossSales: number | null;
 };
 
 /**
@@ -928,6 +930,8 @@ export async function getSalesFactRowsByDay(
       orderCount: true,
       newCustomerNetSales: true,
       returningCustomerNetSales: true,
+      netSales: true,
+      grossSales: true,
     },
   });
 
@@ -942,6 +946,14 @@ export async function getSalesFactRowsByDay(
         newCustomerNetSales: prev.newCustomerNetSales + row.newCustomerNetSales,
         returningCustomerNetSales:
           prev.returningCustomerNetSales + row.returningCustomerNetSales,
+        netSales:
+          prev.netSales != null && row.netSales != null
+            ? prev.netSales + row.netSales
+            : prev.netSales ?? row.netSales,
+        grossSales:
+          prev.grossSales != null && row.grossSales != null
+            ? prev.grossSales + row.grossSales
+            : prev.grossSales ?? row.grossSales,
       });
     } else {
       map.set(key, {
@@ -949,6 +961,8 @@ export async function getSalesFactRowsByDay(
         orderCount: row.orderCount,
         newCustomerNetSales: row.newCustomerNetSales,
         returningCustomerNetSales: row.returningCustomerNetSales,
+        netSales: row.netSales,
+        grossSales: row.grossSales,
       });
     }
   }

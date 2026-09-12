@@ -146,8 +146,11 @@ function formatPctDelta(pct: number | null, priorLabel?: string): string {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
+  const q = url.searchParams.toString();
+  throw redirect(q ? `/app/sales?${q}` : "/app/sales");
+
+  const { admin, session } = await authenticate.admin(request);
   const shotMode = listingCaptureFromRequest(request);
   const rawPeriod = url.searchParams.get("period");
   const preset = parsePeriodPreset(rawPeriod);

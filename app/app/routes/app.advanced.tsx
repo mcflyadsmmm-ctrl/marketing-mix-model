@@ -3,6 +3,7 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { MarketingSpendNav } from "../components/MarketingSpendNav";
 import { DeskPageWhy } from "../components/DeskPageWhy";
 import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
 import {
@@ -109,6 +110,7 @@ export default function AdvancedMetricsPage() {
       heading={shotMode ? undefined : PRODUCT_NOUN.advancedMetrics}
       inlineSize="large"
     >
+      {!shotMode ? <MarketingSpendNav /> : null}
       <div
         className={[
           "mcfly-desk",

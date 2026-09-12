@@ -1,10 +1,5 @@
 import { Form, useLocation } from "react-router";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import {
-  resolveFirstSessionPath,
-  type FirstSessionPath,
-} from "../lib/first-session-path";
-
 export type DataModeBarProps = {
   useSampleDesk: boolean;
   samplePreviewAllowed: boolean;
@@ -22,37 +17,23 @@ export type DataModeBarProps = {
 export function DataModeBar({
   useSampleDesk,
   samplePreviewAllowed,
-  marginConfirmed,
-  hasLiveSpend,
+  marginConfirmed: _marginConfirmed,
+  hasLiveSpend: _hasLiveSpend,
 }: DataModeBarProps) {
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}`;
   const action = `/app/data-mode${location.search}`;
-  const path = resolveFirstSessionPath({
-    marginConfirmed,
-    hasLiveSpend,
-    useSampleDesk,
-    search: location.search,
-  });
+  void _marginConfirmed;
+  void _hasLiveSpend;
 
   // Real store + Sample hidden: no chrome (Settings owns re-enable).
   if (!samplePreviewAllowed && !useSampleDesk) {
-    if (!path.showMarginNudge) return null;
-    return (
-      <div className="mcfly-data-mode mcfly-data-mode--real-only">
-        <MarginNudge path={path} />
-      </div>
-    );
+    return null;
   }
 
-  // Real store viewing: no Sample | Real toggle — only margin nudge if needed.
+  // Real store viewing: no Sample | Real toggle.
   if (!useSampleDesk) {
-    if (!path.showMarginNudge) return null;
-    return (
-      <div className="mcfly-data-mode mcfly-data-mode--real">
-        <MarginNudge path={path} />
-      </div>
-    );
+    return null;
   }
 
   // SAMPLE on: warn loudly + one exit CTA (no dual-mode toggle).
@@ -76,13 +57,3 @@ export function DataModeBar({
   );
 }
 
-function MarginNudge({ path }: { path: FirstSessionPath }) {
-  const marginStep =
-    path.steps.find((step) => step.id === "margin") ?? path.steps[0];
-  return (
-    <s-banner tone="info" heading={path.marginNudgeHeading}>
-      <s-paragraph>{path.marginNudgeBody}</s-paragraph>
-      <s-link href={marginStep.href}>{marginStep.label}</s-link>
-    </s-banner>
-  );
-}

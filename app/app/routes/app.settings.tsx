@@ -496,7 +496,7 @@ export default function SettingsPage() {
                 }
               >
                 <legend className="mcfly-settings-fields__legend">
-                  Optional target {PRODUCT_NOUN.totalRoas} and optional margin
+                  Optional target {PRODUCT_NOUN.totalRoas}
                 </legend>
 
                 <div className="mcfly-settings-field">
@@ -532,42 +532,10 @@ export default function SettingsPage() {
                   </span>
                 </div>
 
-                <div className="mcfly-settings-field">
-                  <label
-                    className="mcfly-settings-field__label"
-                    htmlFor={marginFieldId}
-                  >
-                    Profit margin average{" "}
-                    <span className="mcfly-settings-field__optional">
-                      (optional)
-                    </span>
-                  </label>
-                  <input
-                    id={marginFieldId}
-                    className="mcfly-field mcfly-settings-field__input"
-                    name="marginPct"
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    max="100"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    aria-describedby={marginHintId}
-                    placeholder="e.g. 35"
-                    value={marginInput}
-                    onChange={(event) =>
-                      setMarginInput(event.currentTarget.value)
-                    }
-                  />
-                  <span id={marginHintId} className="mcfly-settings-field__hint">
-                    Completely optional. Contribution margin after product cost
-                    — roughly (AOV − average COGS) ÷ AOV. Typical DTC 25–45%.
-                    Leave blank to skip break-even.
-                    {previewBreakEven != null
-                      ? ` Break-even preview: ${formatMer(previewBreakEven)}.`
-                      : ""}
-                  </span>
-                </div>
+                <p className="mcfly-panel__muted">
+                  Margin / break-even controls are coming back in a later
+                  release — Total ROAS target above still saves normally.
+                </p>
 
                 {actionData?.error ? (
                   <p

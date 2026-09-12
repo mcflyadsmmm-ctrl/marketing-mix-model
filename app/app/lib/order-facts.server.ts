@@ -903,6 +903,42 @@ export async function listBuyerOrderFacts(
   return out;
 }
 
+/** Period order rows for Sales depth charts (includes guest checkout). */
+export async function listPeriodOrderFactsForDepth(
+  shopId: string,
+  range: { start: Date; end: Date },
+  options?: { sample?: boolean },
+): Promise<
+  Array<{
+    buyerKey: string;
+    orderAt: Date;
+    netSales: number;
+    hasCustomer: boolean;
+  }>
+> {
+  const source = options?.sample ? "sample" : ORDER_FACT_SOURCE;
+  const orders = await prisma.orderFact.findMany({
+    where: {
+      shopId,
+      source,
+      orderedAt: { gte: range.start, lte: range.end },
+      NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
+    },
+    select: {
+      customerKey: true,
+      orderedAt: true,
+      amount: true,
+    },
+    orderBy: { orderedAt: "asc" },
+  });
+  return orders.map((o) => ({
+    buyerKey: o.customerKey,
+    orderAt: o.orderedAt,
+    netSales: o.amount,
+    hasCustomer: o.customerKey !== ORDER_FACT_GUEST_KEY,
+  }));
+}
+
 /**
  * Unique buyers whose first OrderFact falls inside `range` (till new-buyer count).
  * Returns null when no live OrderFacts exist yet.

@@ -1,17 +1,15 @@
 /**
- * App nav — Shopify Analytics calm: few primary tabs, depth via pages.
- * Core: Overview · Customers & LTV · Goals · Settings.
- * Spend / Allocation / Advanced are later depth (API order/customer value first).
+ * App nav — Shopify depth first, Marketing Spend as its own wing.
+ * Core: Sales · Customers · Goals · Marketing Spend · Settings.
+ * Allocation / Advanced live under Marketing Spend subnav (later: true).
  */
 
-import { PRODUCT_NOUN } from "./product-labels";
-
 export type DeskNavId =
-  | "overview"
-  | "spend"
+  | "sales"
+  | "customers"
   | "goals"
+  | "spend"
   | "allocation"
-  | "ltv"
   | "advanced"
   | "settings";
 
@@ -24,24 +22,20 @@ export type DeskNavItem = {
 };
 
 export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
-  // stay=1 kept for deep links; Overview no longer bounces cold merchants to Spend.
-  { id: "overview", href: "/app?stay=1", label: "Overview", later: false },
-  // Customer + order depth is core mission — not buried behind spend tools.
+  { id: "sales", href: "/app/sales", label: "Sales", later: false },
+  { id: "customers", href: "/app/customers", label: "Customers", later: false },
+  { id: "goals", href: "/app/goals", label: "Goals", later: false },
   {
-    id: "ltv",
-    href: "/app/ltv",
-    label: PRODUCT_NOUN.ltvTitle,
+    id: "spend",
+    href: "/app/spend",
+    label: "Marketing Spend",
     later: false,
   },
-  // Target MER / break-even — merchants need this without hunting Settings.
-  { id: "goals", href: "/app/goals", label: "Goals", later: false },
   { id: "settings", href: "/app/settings", label: "Settings", later: false },
-  // Spend unlocks Total ROAS depth — after Shopify order/customer value lands.
-  { id: "spend", href: "/app/spend", label: "Spend", later: true },
   {
     id: "allocation",
     href: "/app/allocation",
-    label: PRODUCT_NOUN.spendAllocation,
+    label: "Allocation",
     later: true,
   },
   {
@@ -52,16 +46,14 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
   },
 ] as const;
 
-/**
- * Top nav only — core tabs. Matches Shopify Analytics calm (few destinations).
- */
+/** Top nav only — core tabs. */
 export function deskNavItems(): DeskNavItem[] {
   return DESK_NAV_ITEMS.filter((item) => !item.later).map((item) => ({
     ...item,
   }));
 }
 
-/** Full catalog including later depth pages (for footers / settings links). */
+/** Full catalog including later depth pages. */
 export function deskNavAllItems(): DeskNavItem[] {
   return DESK_NAV_ITEMS.map((item) => ({ ...item }));
 }
