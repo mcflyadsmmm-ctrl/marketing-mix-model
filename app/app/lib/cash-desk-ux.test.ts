@@ -12,6 +12,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
 const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
 const ltv = readFileSync(join(here, "../routes/app.ltv.tsx"), "utf8");
+const customers = readFileSync(
+  join(here, "../routes/app.customers.tsx"),
+  "utf8",
+);
 const goals = readFileSync(join(here, "../routes/app.goals.tsx"), "utf8");
 const allocation = readFileSync(join(here, "../routes/app.allocation.tsx"), "utf8");
 const advanced = readFileSync(join(here, "../routes/app.advanced.tsx"), "utf8");
@@ -99,11 +103,12 @@ describe("Overview desk (fresh start)", () => {
     expect(guide).toContain("Dismiss Setup Guide");
     expect(guide).toContain("guideProgressLabel");
     expect(guide).toContain("s-checkbox");
-    // Elevated off chrome — Sample|Real bar keeps margin nudge only.
+    // Elevated off chrome — Sample|Real bar; margin nudge paused with Settings margin UI.
     expect(dataMode).not.toMatch(/from ["'].*FirstSessionGuide/);
     expect(dataMode).not.toMatch(/<FirstSessionGuide/);
     expect(dataMode).not.toContain("showFullGuide");
-    expect(dataMode).toContain("showMarginNudge");
+    expect(dataMode).not.toContain("showMarginNudge");
+    expect(dataMode).toContain("marginConfirmed");
   });
 
   it("API-first: day board and customer snaps paint without live spend", () => {
@@ -162,9 +167,11 @@ describe("Later pages have a cash why + soft gate", () => {
     expect(goals).toContain("DeskPageWhy");
     expect(goals).toContain('page="goals"');
     expect(goals).toContain("FirstTrustedRoasGate");
-    expect(ltv).toContain("ltvEmptyCashCopy");
-    expect(ltv).toContain("openCohorts");
-    expect(ltv).not.toContain("DeskPageWhy");
+    // Legacy LTV route redirects into Customers depth (spend-free catalog).
+    expect(ltv).toContain("redirect");
+    expect(ltv).toContain("/app/customers");
+    expect(customers).toContain("DepthChartCard");
+    expect(customers).toContain('tab: "customers"');
     expect(allocation).toContain('page="allocation"');
     expect(advanced).toContain('page="advanced"');
     expect(advanced).toContain("FirstTrustedRoasGate");
