@@ -25,9 +25,9 @@
   --mcfly-shadow: 0 1px 0 rgba(26, 26, 26, 0.05);
   --mcfly-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --mcfly-motion: 140ms;
-  /* Match Shopify Admin (Inter from cdn.shopify.com) — enterprise calm, not marketing serif. */
-  --mcfly-font: Inter, -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  --mcfly-display: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* BC MER craft: Source Sans 3 body + Fraunces display (KPI values / takeaways). */
+  --mcfly-font: "Source Sans 3", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mcfly-display: Fraunces, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --mcfly-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --mcfly-meta: #7dd3e8;
   --mcfly-google: #e8a090;
@@ -11756,4 +11756,91 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-spend-later s-link,
 .mcfly-spend-later a {
   font-weight: 600;
+}
+
+/* ── Operator island (Black Clover MER craft: decision + dense 4-up) ── */
+.mcfly-ops-island {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem 1.05rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: calc(var(--mcfly-radius) + 2px);
+  background:
+    linear-gradient(180deg, #f3f9fd 0%, var(--mcfly-paper) 42%);
+  box-shadow: var(--mcfly-shadow);
+  animation: mcfly-fade var(--mcfly-motion) var(--mcfly-ease) both;
+}
+.mcfly-ops-island__decision {
+  border-left: 3px solid var(--mcfly-accent);
+  padding: 0.15rem 0 0.15rem 0.85rem;
+}
+.mcfly-ops-island__kicker {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+.mcfly-ops-island__takeaway {
+  margin: 0.35rem 0 0;
+  max-width: 62ch;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mcfly-ink);
+  font-optical-sizing: auto;
+}
+.mcfly-ops-island__kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+@media (max-width: 900px) {
+  .mcfly-ops-island__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .mcfly-ops-island__kpis {
+    grid-template-columns: 1fr;
+  }
+}
+.mcfly-ops-island__kpi {
+  padding: 0.7rem 0.75rem 0.75rem;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: var(--mcfly-radius);
+  background: var(--mcfly-paper);
+}
+.mcfly-ops-island__kpi--accent {
+  background: var(--mcfly-tint-sky);
+  border-color: color-mix(in srgb, var(--mcfly-accent) 22%, var(--mcfly-line-soft));
+}
+.mcfly-ops-island__kpi-k {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+.mcfly-ops-island__kpi-v {
+  margin: 0.28rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+  font-optical-sizing: auto;
+}
+.mcfly-ops-island__kpi-h {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+}
+.mcfly-desk > .mcfly-ops-island {
+  margin-inline: 0;
 }

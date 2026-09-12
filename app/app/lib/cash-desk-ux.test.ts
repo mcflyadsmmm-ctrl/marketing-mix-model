@@ -313,3 +313,14 @@ describe("SAMPLE money stamp", () => {
     expect(dataMode).toMatch(/no Sample \| Real dual chrome/i);
   });
 });
+
+describe("Overview operator island", () => {
+  it("mounts the BC-style OpsDeskIsland on the sales-ready desk", () => {
+    const overview = readFileSync(
+      join(here, "../routes/app._index.tsx"),
+      "utf8",
+    );
+    expect(overview).toMatch(/OpsDeskIsland/);
+    expect(overview).toMatch(/buildOpsDeskIsland/);
+  });
+});

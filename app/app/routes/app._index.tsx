@@ -31,6 +31,7 @@ import {
 } from "../lib/mer-dashboard.server";
 import { FirstSessionGuide } from "../components/FirstSessionGuide";
 import { OrderEconomicsPanel } from "../components/OrderEconomicsPanel";
+import { OpsDeskIsland } from "../components/OpsDeskIsland";
 import { DayQualityTablePanel } from "../components/DayQualityTable";
 import { PeriodPaceStrip } from "../components/PeriodPaceStrip";
 import { buildDayQuality, summarizeDayQuality } from "../lib/day-quality";
@@ -40,6 +41,7 @@ import {
   resolveFirstSessionPath,
 } from "../lib/first-session-path";
 import { resolveOrderEconomics } from "../lib/order-economics";
+import { buildOpsDeskIsland } from "../lib/ops-desk-island";
 import {
   firstOpenRedirect,
   isTrustedMer,
@@ -920,6 +922,37 @@ export default function Dashboard() {
     dayQuality && dayQuality.rows.length > 0
       ? summarizeDayQuality(dayQuality)
       : null;
+  const opsDeskIsland =
+    orderEconomics.hasSignal
+      ? buildOpsDeskIsland({
+          periodLabel: metrics.period.label,
+          economics: orderEconomics,
+          buyerRepeat: metrics.tillLtv.available
+            ? metrics.tillLtv.buyerRepeat
+            : null,
+          avgRevenueD90: metrics.tillLtv.available
+            ? metrics.tillLtv.avgRevenueD90
+            : null,
+          newBuyers: metrics.tillLtv.available
+            ? metrics.tillLtv.newBuyers
+            : null,
+          dayInsight: dayQualityInsight
+            ? [
+                dayQualityInsight.best
+                  ? `Strongest day ${dayQualityInsight.best.label} · ${dayQualityInsight.best.orders.toLocaleString()} orders`
+                  : null,
+                dayQualityInsight.softest
+                  ? `Softest ${dayQualityInsight.softest.label}`
+                  : null,
+                dayQualityInsight.aovDeltaPct != null
+                  ? `AOV ${dayQualityInsight.aovDeltaPct >= 0 ? "+" : ""}${dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || null
+            : null,
+        })
+      : null;
 
   // One primary CTA: customer insights when sales exist; spend is later depth.
   const heroPrimary = salesDeskReady
@@ -1041,6 +1074,7 @@ export default function Dashboard() {
         */}
         {salesDeskReady && !shotMode ? (
           <>
+            {opsDeskIsland ? <OpsDeskIsland model={opsDeskIsland} /> : null}
             <OrderEconomicsPanel
               economics={orderEconomics}
               periodLabel={metrics.period.label}
