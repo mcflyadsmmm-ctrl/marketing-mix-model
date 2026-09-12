@@ -24,6 +24,8 @@ import {
   resolveDeepHistoryHonesty,
   scopesIncludeReadAllOrders,
 } from "../lib/deep-history-honesty";
+import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
+import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -42,24 +44,37 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const priorRange = resolvePriorPeriod(preset, now, shop.ianaTimezone);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
 
-  const depth = await loadShopifyDepthData({
-    shopId: shop.id,
-    range,
-    priorRange,
-    ianaTimezone: shop.ianaTimezone,
-    useSampleDesk,
-    admin: useSampleDesk ? undefined : admin,
-    grantedScopes: session.scope,
-    allOrderHistory: true,
-    mode: shotMode ? "full" : "fast",
-  });
+  const [depth, accuracy] = await Promise.all([
+    loadShopifyDepthData({
+      shopId: shop.id,
+      range,
+      priorRange,
+      ianaTimezone: shop.ianaTimezone,
+      useSampleDesk,
+      admin: useSampleDesk ? undefined : admin,
+      grantedScopes: session.scope,
+      allOrderHistory: true,
+      mode: shotMode ? "full" : "fast",
+    }),
+    loadSalesDayAccuracy({
+      shopId: shop.id,
+      range,
+      ianaTimezone: shop.ianaTimezone,
+      now,
+      enqueueRepair: !useSampleDesk && !shotMode,
+      grantedScopes: session.scope,
+      useSampleDesk,
+    }),
+  ]);
 
-    const chartInput = {
+  const chartInput = {
     tab: "customers" as const,
     dayFacts: depth.dayFacts,
     priorDayFacts: depth.priorDayFacts,
     baselineDayFacts: depth.baselineDayFacts,
     orderFacts: depth.orderFacts,
+    priorOrderFacts: depth.priorOrderFacts,
+    missingDayKeys: accuracy.missingDayKeys,
     timeZone: shop.ianaTimezone,
   };
 
@@ -85,6 +100,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
     periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
     shopDomain: session.shop,
+    accuracy,
   };
 };
 
@@ -100,6 +116,7 @@ export default function CustomersDepthPage() {
     hasReadAllOrders,
     periodWiderThanRecentWindow,
     shopDomain,
+    accuracy,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -124,6 +141,7 @@ export default function CustomersDepthPage() {
           </p>
           {!shotMode ? <PeriodControl preset={preset} /> : null}
         </header>
+        {!shotMode ? <SalesDayAccuracyStrip accuracy={accuracy} /> : null}
         <DepthProgressiveGrid
           fastCharts={charts}
           placeholders={placeholders}

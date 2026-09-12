@@ -274,3 +274,28 @@ describe("day accuracy honesty in charts", () => {
     expect(trend?.kpis?.length).toBeGreaterThanOrEqual(2);
   });
 });
+
+
+describe("partial day coverage honesty", () => {
+  it("strongest_softest_day notes missing closed days", () => {
+    const charts = buildDepthChartsForTab({
+      tab: "sales",
+      dayFacts: sampleDayFacts().slice(0, 5),
+      missingDayKeys: ["2026-03-10", "2026-03-11"],
+    });
+    const chart = charts.find((c) => c.id === "strongest_softest_day");
+    expect(chart?.callout).toMatch(/still filling/i);
+  });
+
+  it("pace_vs_prior notes missing closed days", () => {
+    const dayFacts = sampleDayFacts();
+    const charts = buildDepthChartsForTab({
+      tab: "sales",
+      dayFacts,
+      priorDayFacts: dayFacts.map((d) => ({ ...d, sales: d.sales * 0.9 })),
+      missingDayKeys: ["2026-03-12"],
+    });
+    const chart = charts.find((c) => c.id === "pace_vs_prior");
+    expect(chart?.callout).toMatch(/partial|still filling/i);
+  });
+});

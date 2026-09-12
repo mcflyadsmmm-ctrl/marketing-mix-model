@@ -231,6 +231,13 @@ function needsLines(feature: DepthFeature): DepthChartModel {
   );
 }
 
+function coverageHonesty(missingDayKeys: string[] | undefined): string | undefined {
+  const n = missingDayKeys?.length ?? 0;
+  if (n <= 0) return undefined;
+  return `${n} closed day${n === 1 ? "" : "s"} still filling — read this as partial, not final.`;
+}
+
+
 function aovBuckets(orders: OrderFactInput[]): DepthBar[] {
   const edges = [0, 25, 50, 75, 100, 150, 200, 300, 500, Infinity];
   const labels = [
@@ -350,6 +357,7 @@ function buildOne(
           { label: "Std dev", value: money(s) },
           { label: "Volatility (CV)", value: pct(cv), hint: cv > 0.45 ? "Feast / famine" : "Fairly steady" },
         ],
+        callout: coverageHonesty(input.missingDayKeys),
       };
     }
     case "sales_streaks": {
@@ -373,7 +381,7 @@ function buildOne(
       }
       return {
         ...shell(feature),
-        callout: `Longest above-average run: ${bestAbove}d. Longest below-average run: ${bestBelow}d. Daily average ${money(m)}.`,
+        callout: [`Longest above-average run: ${bestAbove}d. Longest below-average run: ${bestBelow}d. Daily average ${money(m)}.`, coverageHonesty(input.missingDayKeys)].filter(Boolean).join(" ") || undefined,
       };
     }
     case "pace_vs_prior": {
@@ -405,6 +413,7 @@ function buildOne(
             hint: priorAov != null && aov != null ? delta(aov, priorAov) : undefined,
           },
         ],
+        callout: coverageHonesty(input.missingDayKeys),
       };
     }
     case "closed_day_honesty": {
@@ -690,7 +699,7 @@ function buildOne(
       const soft = sorted[sorted.length - 1]!;
       return {
         ...shell(feature),
-        callout: `Strongest ${best.dayKey}: ${money(best.sales)} · ${best.orderCount} orders. Softest ${soft.dayKey}: ${money(soft.sales)} · ${soft.orderCount} orders.`,
+        callout: [`Strongest ${best.dayKey}: ${money(best.sales)} · ${best.orderCount} orders. Softest ${soft.dayKey}: ${money(soft.sales)} · ${soft.orderCount} orders.`, coverageHonesty(input.missingDayKeys)].filter(Boolean).join(" ") || undefined,
         kpis: [
           { label: "Strongest", value: money(best.sales), hint: best.dayKey },
           { label: "Softest", value: money(soft.sales), hint: soft.dayKey },

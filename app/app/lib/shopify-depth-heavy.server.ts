@@ -44,7 +44,7 @@ export async function loadDepthHeavyCharts(
   });
 
   const accuracy =
-    tab === "sales"
+    tab === "sales" || tab === "customers"
       ? await loadSalesDayAccuracy({
           shopId: shop.id,
           range,
