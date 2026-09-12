@@ -723,5 +723,23 @@ describe("summarizeDayQuality", () => {
     expect(insight.softest?.label).toMatch(/8/);
     // today (10) is partial — not in best/softest contest as winner of soft if filtered
     expect(insight.aovDeltaPct).not.toBeNull();
+    expect(insight.amongFilledDays).toBe(false);
+  });
+
+  it("flags amongFilledDays when closed-day coverage is thin", () => {
+    const table = buildDayQuality({
+      factRows: {
+        "2026-09-01": { sales: 500, orderCount: 5 },
+        "2026-09-03": { sales: 900, orderCount: 9 },
+      },
+      spendByDay: {},
+      periodStartKey: "2026-09-01",
+      periodEndKey: "2026-09-04",
+      todayKey: "2026-09-05",
+      breakEvenMer: null,
+    });
+    const insight = summarizeDayQuality(table);
+    expect(insight.amongFilledDays).toBe(true);
+    expect(insight.best?.label).toMatch(/3/);
   });
 });

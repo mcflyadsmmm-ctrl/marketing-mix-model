@@ -1,15 +1,14 @@
-import type { SalesDayAccuracySnapshot } from "../lib/sales-day-accuracy";
+import type { OrderHistoryAccuracySnapshot } from "../lib/order-history-accuracy";
 
 /**
- * Quiet day-accuracy honesty.
- * Missing / catching-up / partial history must be visible — never silent $0.
- * `when="problems"` hides the green complete state (Overview first paint).
+ * Quiet order-history honesty for Customers depth.
+ * `when="problems"` hides the green complete state (keeps first paint calm).
  */
-export function SalesDayAccuracyStrip({
+export function OrderHistoryAccuracyStrip({
   accuracy,
   when = "always",
 }: {
-  accuracy: SalesDayAccuracySnapshot;
+  accuracy: OrderHistoryAccuracySnapshot;
   when?: "always" | "problems";
 }) {
   if (accuracy.status === "no_closed_days") return null;
@@ -24,7 +23,7 @@ export function SalesDayAccuracyStrip({
 
   return (
     <div
-      className={`mcfly-day-accuracy mcfly-day-accuracy--${accuracy.status}`}
+      className={`mcfly-day-accuracy mcfly-order-history-accuracy mcfly-day-accuracy--${accuracy.status}`}
       role="status"
       data-status={accuracy.status}
     >

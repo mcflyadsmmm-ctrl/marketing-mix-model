@@ -47,6 +47,8 @@ import {
   listingCaptureFromRequest,
 } from "../lib/listing-capture";
 import { buildDepthChartsForTab } from "../lib/shopify-depth-metrics";
+import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
+import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 
 type ShopifyToast = {
   show?: (message: string, options?: { duration?: number; isError?: boolean }) => void;
@@ -147,7 +149,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const priorRange = yearDateRange(priorYear, shop.ianaTimezone);
 
   const thisYear = new Date().getFullYear();
-  const [currentSales, priorSales] = await Promise.all([
+  const [currentSales, priorSales, dayAccuracy] = await Promise.all([
     loadSalesByDayForGoalsRange(shop.id, shop.ianaTimezone, range, useSampleDesk),
     loadSalesByDayForGoalsRange(
       shop.id,
@@ -155,6 +157,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       priorRange,
       useSampleDesk,
     ),
+    loadSalesDayAccuracy({
+      shopId: shop.id,
+      range,
+      ianaTimezone: shop.ianaTimezone,
+      enqueueRepair: !useSampleDesk && !shotMode,
+      grantedScopes: session.scope,
+      useSampleDesk,
+    }),
   ]);
 
   const salesByDay = currentSales.salesByDay;
@@ -226,6 +236,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 
   return {
+    dayAccuracy,
     board,
     periods,
     depthCharts,
@@ -448,6 +459,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function GoalsPage() {
   const {
+    dayAccuracy,
     board,
     periods,
     depthCharts,
@@ -648,6 +660,10 @@ export default function GoalsPage() {
 
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner note="Goals below use SAMPLE sales." />
+        ) : null}
+
+        {!shotMode && dayAccuracy ? (
+          <SalesDayAccuracyStrip accuracy={dayAccuracy} when="problems" />
         ) : null}
 
         {salesError && !shotMode ? (

@@ -478,6 +478,11 @@ export type DayQualityInsight = {
   softest: { label: string; sales: number; orders: number } | null;
   /** AOV change vs prior totals when both exist. */
   aovDeltaPct: number | null;
+  /**
+   * True when strongest/softest are only among loaded fact days — not the
+   * full closed period. Merchants must not read that as a final ranking.
+   */
+  amongFilledDays: boolean;
 };
 
 /**
@@ -509,6 +514,10 @@ export function summarizeDayQuality(table: DayQualityTable): DayQualityInsight {
     aovDeltaPct = ((table.totals.aov - table.prior.aov) / table.prior.aov) * 100;
   }
 
-  return { best, softest, aovDeltaPct };
+  const amongFilledDays =
+    table.coverage.expectedClosedDays > 0 &&
+    table.coverage.factDays < table.coverage.expectedClosedDays;
+
+  return { best, softest, aovDeltaPct, amongFilledDays };
 }
 

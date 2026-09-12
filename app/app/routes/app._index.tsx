@@ -51,10 +51,12 @@ import {
   isTrustedMer,
 } from "../lib/install-stickiness";
 import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
+import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import {
   resolveDeepHistoryHonesty,
   scopesIncludeReadAllOrders,
 } from "../lib/deep-history-honesty";
+import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 import prisma from "../db.server";
 import { channelFillKey } from "../lib/channel-fill";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
@@ -482,6 +484,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       ? shopLocalDayKey(instant, shareTz)
       : instant.toISOString().slice(0, 10);
 
+  const dayAccuracy =
+    useSampleDesk || shotMode
+      ? null
+      : await loadSalesDayAccuracy({
+          shopId: shop.id,
+          range,
+          ianaTimezone,
+          now,
+          enqueueRepair: true,
+          grantedScopes: session.scope,
+          useSampleDesk: false,
+        });
+
   const factsIncompleteForHonesty =
     !useSampleDesk &&
     salesFactsIncompleteForDesk(salesFactsCoverageForBanner, {
@@ -705,6 +720,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesUntrustedZero,
     liveConfirmedZero,
     factsIncompleteForHonesty,
+    dayAccuracy,
     shareSubject: formatOverviewShareSubject({
       periodLabel: metrics.period.label,
       useSampleDesk,
@@ -745,6 +761,7 @@ export default function Dashboard() {
     salesUntrustedZero,
     liveConfirmedZero,
     factsIncompleteForHonesty,
+    dayAccuracy,
     shareSubject,
     sharePeriodStartDay,
     sharePeriodEndDay,
@@ -929,6 +946,27 @@ export default function Dashboard() {
     dayQuality && dayQuality.rows.length > 0
       ? summarizeDayQuality(dayQuality)
       : null;
+  const dayInsightPartial =
+    Boolean(dayQualityInsight?.amongFilledDays) ||
+    (dayAccuracy != null &&
+      (dayAccuracy.status === "catching_up" ||
+        dayAccuracy.status === "partial_history"));
+  const formatDayInsightLine = (): string | null => {
+    if (!dayQualityInsight) return null;
+    const parts = [
+      dayQualityInsight.best
+        ? `Strongest day ${dayQualityInsight.best.label} · ${dayQualityInsight.best.orders.toLocaleString()} orders`
+        : null,
+      dayQualityInsight.softest
+        ? `Softest ${dayQualityInsight.softest.label}`
+        : null,
+      dayQualityInsight.aovDeltaPct != null
+        ? `AOV ${dayQualityInsight.aovDeltaPct >= 0 ? "+" : ""}${dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior`
+        : null,
+      dayInsightPartial ? "among filled days" : null,
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(" · ") : null;
+  };
   const opsDeskIsland = orderEconomics.hasSignal
     ? buildOpsDeskIsland({
         periodLabel: metrics.period.label,
@@ -948,21 +986,7 @@ export default function Dashboard() {
         top10BuyerShare: metrics.tillLtv.available
           ? metrics.tillLtv.buyerConcentration.top10Share
           : null,
-        dayInsight: dayQualityInsight
-          ? [
-              dayQualityInsight.best
-                ? `Strongest day ${dayQualityInsight.best.label} · ${dayQualityInsight.best.orders.toLocaleString()} orders`
-                : null,
-              dayQualityInsight.softest
-                ? `Softest ${dayQualityInsight.softest.label}`
-                : null,
-              dayQualityInsight.aovDeltaPct != null
-                ? `AOV ${dayQualityInsight.aovDeltaPct >= 0 ? "+" : ""}${dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ") || null
-          : null,
+        dayInsight: formatDayInsightLine(),
         hasLiveSpend,
       })
     : null;
@@ -988,21 +1012,7 @@ export default function Dashboard() {
         top10BuyerShare: metrics.tillLtv.available
           ? metrics.tillLtv.buyerConcentration.top10Share
           : null,
-        dayInsight: dayQualityInsight
-          ? [
-              dayQualityInsight.best
-                ? `Strongest day ${dayQualityInsight.best.label} · ${dayQualityInsight.best.orders.toLocaleString()} orders`
-                : null,
-              dayQualityInsight.softest
-                ? `Softest ${dayQualityInsight.softest.label}`
-                : null,
-              dayQualityInsight.aovDeltaPct != null
-                ? `AOV ${dayQualityInsight.aovDeltaPct >= 0 ? "+" : ""}${dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ") || null
-          : null,
+        dayInsight: formatDayInsightLine(),
         hasLiveSpend,
         mer: metrics.mer,
         spend: metrics.totalSpend,
@@ -1160,6 +1170,10 @@ export default function Dashboard() {
               <OpsDeskIsland model={opsDeskIsland} />
             ) : null}
 
+            {dayAccuracy ? (
+              <SalesDayAccuracyStrip accuracy={dayAccuracy} when="problems" />
+            ) : null}
+
             <div className="mcfly-desk-grid mcfly-desk-grid--bc">
               {salesMix ? <SalesMixPanel model={salesMix} /> : null}
               <OrderEconomicsPanel
@@ -1223,6 +1237,7 @@ export default function Dashboard() {
                     {dayQualityInsight.aovDeltaPct.toFixed(0)}% vs prior
                   </>
                 ) : null}
+                {dayInsightPartial ? " · among filled days" : null}
               </p>
             ) : null}
 
