@@ -284,7 +284,11 @@ function buildOne(
   switch (feature.id) {
     case "weekday_rhythm": {
       if (!dayFacts.length) return empty(feature, "No sales days in this period yet.");
-      return { ...shell(feature), bars: weekdayBars(dayFacts) };
+      return {
+        ...shell(feature),
+        bars: weekdayBars(dayFacts),
+        callout: coverageHonesty(input.missingDayKeys),
+      };
     }
     case "weekend_vs_weekday": {
       if (!dayFacts.length) return empty(feature, "No sales days in this period yet.");
@@ -302,6 +306,7 @@ function buildOne(
           { id: "weekday", label: "Weekday", value: weekday, share: shareOf(weekday, total), tone: "weekday" },
           { id: "weekend", label: "Weekend", value: weekend, share: shareOf(weekend, total), tone: "weekend" },
         ],
+        callout: coverageHonesty(input.missingDayKeys),
       };
     }
     case "day_of_month": {
@@ -324,6 +329,7 @@ function buildOne(
             share: shareOf(value, total),
             tone: "weekday",
           })),
+        callout: coverageHonesty(input.missingDayKeys),
       };
     }
     case "hour_of_day": {
@@ -459,7 +465,9 @@ function buildOne(
           ...b,
           tone: b.share >= (baseBars[i]?.share ?? 0) ? "returning" : "new",
         })),
-        callout: "Green tint = above baseline share · blue = below.",
+        callout: ["Green tint = above baseline share · blue = below.", coverageHonesty(input.missingDayKeys)]
+          .filter(Boolean)
+          .join(" ") || undefined,
       };
     }
     case "aov_mean": {
@@ -500,6 +508,7 @@ function buildOne(
           { id: "gross", label: "Gross", value: gross, share: shareOf(gross, total), tone: "new" },
           { id: "net", label: "Net", value: net, share: shareOf(net, total), tone: "returning" },
         ],
+        callout: coverageHonesty(input.missingDayKeys),
       };
     }
     case "refund_haircut": {
@@ -522,6 +531,7 @@ function buildOne(
           { label: "Net", value: money(net) },
           { label: "Haircut", value: money(haircut), hint: `${pct(haircut / gross)} of gross` },
         ],
+        callout: coverageHonesty(input.missingDayKeys),
       };
     }
     case "discount_dependency": {
@@ -720,6 +730,7 @@ function buildOne(
           { id: "returning", label: "Returning", value: ret, share: shareOf(ret, total), tone: "returning" },
           { id: "new", label: "New", value: neu, share: shareOf(neu, total), tone: "new" },
         ],
+        callout: coverageHonesty(input.missingDayKeys),
       };
     }
     case "wow_mom_yoy": {
@@ -762,7 +773,9 @@ function buildOne(
       }
       return {
         ...shell(feature),
-        callout: bits.join(" ") || "Not enough mix signal for a read yet.",
+        callout: [bits.join(" ") || "Not enough mix signal for a read yet.", coverageHonesty(input.missingDayKeys)]
+          .filter(Boolean)
+          .join(" ") || undefined,
       };
     }
     case "sales_export":
@@ -1255,6 +1268,7 @@ function buildOne(
           { label: "Their first-order $", value: money(newSales) },
           { label: "First AOV", value: newBuyers > 0 ? money(newSales / newBuyers) : "—" },
         ],
+        callout: coverageHonesty(input.missingDayKeys),
       };
     }
     case "sales_goal_mtd": {
