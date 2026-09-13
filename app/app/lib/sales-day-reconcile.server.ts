@@ -5,6 +5,7 @@
 
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
 import { enqueueJob } from "./job-queue.server";
+import { clearOrderFactDayCompleteSeal } from "./order-facts.server";
 import { RECONCILE_SALES_DAY_JOB } from "./order-webhook";
 import { enqueueSalesFactsBackfill } from "./sales-backfill-kick.server";
 import { getSalesFactRowsByDay } from "./sales-facts.server";
@@ -111,6 +112,12 @@ export async function enqueueSalesDayReconcileRepairs(args: {
   }
   const wantBackfill = args.refreshExistingBackfill !== false;
   if (unique.length > 0 && wantBackfill) {
+    // Spot-check caught Admin drift (refund/edit). SalesDayFact will rewrite via
+    // reconcile + refreshExisting — but OrderFact day seals would otherwise keep
+    // stale nets until a webhook. Clear seals so the order crawl re-opens.
+    for (const dayKey of unique) {
+      await clearOrderFactDayCompleteSeal(args.shopId, dayKey);
+    }
     await enqueueSalesFactsBackfill({
       shopId: args.shopId,
       grantedScopes: args.grantedScopes ?? undefined,
