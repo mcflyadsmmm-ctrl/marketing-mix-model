@@ -1,8 +1,18 @@
 # Mcfly desk IA skeleton (expanded)
 
-**Status:** working draft for Marty — v2 after “we’re barely scratching Shopify.”  
-**Craft bar:** Black Clover smoothness = *how* pages are composed, **not** how few insights we ship.  
-**Ambition bar:** Everything Level-1 Shopify order/customer economics can tell — then line items / products.
+**Status:** working draft for Marty — v3 after “do everything Black Clover does as the base.”  
+**Craft bar:** Black Clover smoothness = *how* pages are composed.  
+**Base bar:** Port BC Overview + Spend + Allocation craft/math first (`docs/BC_BASE_PARITY.md`).  
+**Ambition bar:** Then beat BC with Shopify-native ledgers (Days / Orders / Customers / Cohorts / Products).
+
+---
+
+## Sequence (locked)
+
+1. **Black Clover base** — Overview home restored; Spend + Allocation craft.  
+2. **Shopify depth desks** — Sales story + Days/Orders/Customers/Cohorts **tables**.  
+3. **Products** — after line-item ingest.  
+4. **Craft polish** — scorecard ≥ 4.0 on a desk that’s already deep.
 
 ---
 

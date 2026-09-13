@@ -33,9 +33,8 @@ describe("ReviewAsk wiring", () => {
     expect(reviewAsk).toContain("API_POLL_MAX_MS = 2 * REVIEW_MIN_SESSION_MS");
   });
 
-  it("Overview does not mount ReviewAsk — Shopify depth first (FRESH_START)", () => {
-    // Fresh start removed review chrome from Overview so the first job stays
-    // operator craft (orders / LTV), not App Store ask. Component stays ready.
+  it("Overview does not mount ReviewAsk — BC scoreboard stays operator-first", () => {
+    // Review chrome stays off Overview so home is decision + KPIs, not App Store ask.
     expect(overview).not.toContain("<ReviewAsk");
     expect(overview).not.toContain("decideReviewAsk");
     expect(overview).toContain("buildOpsDeskIsland");

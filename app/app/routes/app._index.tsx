@@ -148,10 +148,9 @@ function formatPctDelta(pct: number | null, priorLabel?: string): string {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  // Black Clover base: Overview is the home scoreboard again (not a redirect to Sales).
+  // Sales / Customers / Goals are Shopify-depth desks that improve on BC — they don't replace home.
   const url = new URL(request.url);
-  const q = url.searchParams.toString();
-  throw redirect(q ? `/app/sales?${q}` : "/app/sales");
-
   const { admin, session } = await authenticate.admin(request);
   const shotMode = listingCaptureFromRequest(request);
   const rawPeriod = url.searchParams.get("period");

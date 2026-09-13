@@ -1,27 +1,30 @@
-# App IA — Shopify depth first, Marketing Spend second
+# App IA — Black Clover base + Shopify depth
 
-**Status:** active · 2026-09-12  
-**Companion:** `app/app/lib/shopify-depth-catalog.ts` (47 spend-free features)
+**Status:** active · 2026-09-13  
+**Companions:** `docs/BC_BASE_PARITY.md`, `docs/DESK_IA_SKELETON.md`, `app/app/lib/shopify-depth-catalog.ts`
 
 ## Top nav (core)
 
-| Tab | Route | Contains |
+| Tab | Route | Job |
 | --- | --- | --- |
-| **Sales** | `/app/sales` | Calendar, pace, order shape, day board — every `tab: "sales"` catalog chart |
-| **Customers** | `/app/customers` | Repeat, cohorts, concentration, whales — every `tab: "customers"` chart |
-| **Goals** | `/app/goals` | Sales targets only (no margin / no ROAS goal) |
-| **Marketing Spend** | `/app/spend` | Spend entry + Total ROAS desk; subnav → Allocation, Advanced |
-| **Settings** | `/app/settings` | Plan, SAMPLE, privacy — **margin UI hidden for now** |
+| **Overview** | `/app` | **Black Clover scoreboard** — decision · KPIs · till-read · insights (home) |
+| **Sales** | `/app/sales` | Shopify period story — rhythm, mix, change charts |
+| **Customers** | `/app/customers` | Repeat, concentration, buyer depth |
+| **Goals** | `/app/goals` | Sales pace board |
+| **Marketing Spend** | `/app/spend` | BC spend desk + Total ROAS; subnav → Allocation, Advanced |
+| **Settings** | `/app/settings` | Margin, target MER, SAMPLE, privacy, exports |
 
-**Removed:** Overview tab. `/app` redirects to `/app/sales`.
+**Next wave (when ledgers ship):** Days · Orders · Cohorts  
+**Under Spend:** Allocation · Advanced
 
 ## Rules
 
-1. Sales + Customers never require spend.
-2. Line-item charts (discount / shipping / tax / units) may show an honest empty state until ingest lands — still listed on the page.
-3. Margin / break-even UI stays out until Marty brings it back.
-4. Merchant copy: Overview, Sales, Customers, Goals, Marketing Spend — no till / scoreboard jargon.
+1. Overview is the BC home — never redirect `/app` away to Sales.  
+2. Sales + Customers never require spend.  
+3. Spend empty states stay honest (no fake 0× MER).  
+4. Line-item charts may show empty until ingest — still listed.  
+5. Mcfly **improves on** BC with Shopify ledgers; it does not delete the scoreboard.
 
 ## Catalog coverage
 
-Every id in `SHOPIFY_DEPTH_CATALOG` must render a `DepthChartCard` on its tab (live data or emptyReason).
+Every id in `SHOPIFY_DEPTH_CATALOG` must render on its tab (live or emptyReason).

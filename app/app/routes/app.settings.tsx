@@ -446,7 +446,7 @@ export default function SettingsPage() {
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               {hasLiveSpend ? (
-                <s-button href="/app/sales" variant="primary">
+                <s-button href="/app" variant="primary">
                   {PRODUCT_NOUN.openTotalRoas}
                 </s-button>
               ) : (

@@ -12,8 +12,9 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe("deskNavItems", () => {
-  it("top nav is Sales · Customers · Goals · Marketing Spend · Settings", () => {
+  it("top nav is Overview · Sales · Customers · Goals · Marketing Spend · Settings", () => {
     expect(deskNavCoreIds()).toEqual([
+      "overview",
       "sales",
       "customers",
       "goals",
@@ -21,12 +22,16 @@ describe("deskNavItems", () => {
       "settings",
     ]);
     expect(deskNavItems().map((i) => i.href)).toEqual([
+      "/app",
       "/app/sales",
       "/app/customers",
       "/app/goals",
       "/app/spend",
       "/app/settings",
     ]);
+    expect(deskNavItems().find((i) => i.id === "overview")?.label).toBe(
+      "Overview",
+    );
     expect(deskNavItems().find((i) => i.id === "customers")?.label).toBe(
       "Customers",
     );
@@ -40,6 +45,7 @@ describe("deskNavItems", () => {
   it("later pages stay deep-linkable — not deleted, just off the top nav", () => {
     expect(deskNavLaterIds()).toEqual(["allocation", "advanced"]);
     const hrefs = deskNavAllItems().map((i) => i.href);
+    expect(hrefs).toContain("/app");
     expect(hrefs).toContain("/app/goals");
     expect(hrefs).toContain("/app/spend");
     expect(hrefs).toContain("/app/allocation");

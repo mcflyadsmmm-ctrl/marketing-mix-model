@@ -1,10 +1,12 @@
 /**
- * App nav — Shopify depth first, Marketing Spend as its own wing.
- * Core: Sales · Customers · Goals · Marketing Spend · Settings.
+ * App nav — Black Clover Overview first, then Shopify depth, then Spend.
+ * Core: Overview · Sales · Customers · Goals · Marketing Spend · Settings.
  * Allocation / Advanced live under Marketing Spend subnav (later: true).
+ * Days / Orders / Cohorts join core when their ledgers ship.
  */
 
 export type DeskNavId =
+  | "overview"
   | "sales"
   | "customers"
   | "goals"
@@ -22,6 +24,7 @@ export type DeskNavItem = {
 };
 
 export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
+  { id: "overview", href: "/app", label: "Overview", later: false },
   { id: "sales", href: "/app/sales", label: "Sales", later: false },
   { id: "customers", href: "/app/customers", label: "Customers", later: false },
   { id: "goals", href: "/app/goals", label: "Goals", later: false },
