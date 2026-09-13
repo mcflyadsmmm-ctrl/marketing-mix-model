@@ -110,4 +110,25 @@ describe("assessSalesDayReconcile", () => {
     expect(result.headline).toMatch(/disagree/i);
     expect(result.detail).toMatch(/2026-09-10/);
   });
+
+  it("skips when a live probe is missing (QL omitted day ≠ live $0)", () => {
+    const result = assessSalesDayReconcile({
+      facts: [
+        { dayKey: "2026-09-10", sales: 200, orderCount: 4 },
+        { dayKey: "2026-09-11", sales: 3100, orderCount: 12 },
+      ],
+      live: [{ dayKey: "2026-09-10", sales: 200, orderCount: 4 }],
+    });
+    expect(result.status).toBe("matched");
+    expect(result.checkedDayKeys).toEqual(["2026-09-10"]);
+    expect(result.mismatches).toHaveLength(0);
+  });
+
+  it("returns skipped when no overlapping day keys", () => {
+    const result = assessSalesDayReconcile({
+      facts: [{ dayKey: "2026-09-10", sales: 200, orderCount: 4 }],
+      live: [],
+    });
+    expect(result.status).toBe("skipped");
+  });
 });

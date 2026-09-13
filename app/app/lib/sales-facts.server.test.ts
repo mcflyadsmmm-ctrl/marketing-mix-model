@@ -511,6 +511,31 @@ describe("salesFactsClosedDayFilter", () => {
     expect(filter.gte.toISOString()).toBe("2026-08-01T00:00:00.000Z");
     expect(filter.lte.toISOString()).toBe("2026-08-30T00:00:00.000Z");
   });
+
+  it("excludes open day for Pacific/Kiritimati (+14) where UTC-noon yesterday fails", () => {
+    // 2026-09-09T20:00Z is already 2026-09-10 local in +14.
+    const filter = salesFactsClosedDayFilter(
+      {
+        start: new Date("2026-09-01T00:00:00.000Z"),
+        end: new Date("2026-09-10T12:00:00.000Z"),
+      },
+      new Date("2026-09-09T20:00:00.000Z"),
+      "Pacific/Kiritimati",
+    );
+    expect(filter.lte.toISOString()).toBe("2026-09-09T00:00:00.000Z");
+  });
+
+  it("does not cut with the host clock when shop timezone is unknown", () => {
+    const filter = salesFactsClosedDayFilter(
+      {
+        start: new Date("2026-09-01T00:00:00.000Z"),
+        end: new Date("2026-09-09T20:00:00.000Z"),
+      },
+      new Date("2026-09-09T20:00:00.000Z"),
+      null,
+    );
+    expect(filter.lte.toISOString()).toBe("2026-09-09T20:00:00.000Z");
+  });
 });
 
 describe("salesFactsIncompleteForDesk", () => {

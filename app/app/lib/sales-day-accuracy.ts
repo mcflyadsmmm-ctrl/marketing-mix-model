@@ -128,7 +128,9 @@ function accuracyDetail(
 
   switch (status) {
     case "complete":
-      return `Closed days track Shopify Analytics Total Sales (not Net) in this shop timezone — refunds land on the refund day.${synced}${openNote}`;
+      // Do not claim Analytics grain until read_reports + live QL verification.
+      // ShopifyQL stays dark without that scope (PCD Level 2 founder gate).
+      return `Closed days use Shopify order history in this shop timezone; today stays open until shop midnight.${synced}${openNote}`;
     case "catching_up": {
       const sample = args.missingDayKeys.slice(0, 3).join(", ");
       const more =

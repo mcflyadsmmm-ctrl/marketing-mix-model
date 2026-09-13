@@ -45,6 +45,20 @@ Reviewer script: [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md)
 
 ---
 
+## 6a. ShopifyQL / Analytics parity (founder decision — PCD Level 2)
+
+`shopifyqlQuery` needs **`read_reports`**, which Shopify ties to **Protected Customer Data Level 2**.
+This app is Level 1 only today. Until you deliberately add `read_reports` + PCD L2:
+
+- Desk copy must **not** claim "tracks Shopify Analytics"
+- Day facts stay on the order-crawl basis (still shop-local + closed-day honest)
+
+If you approve L2: add `read_reports` to all tomls + Fly `SCOPES`, `shopify app deploy`, merchant re-auth, then flip honesty copy behind a live QL capability flag.
+
+Reply: **`pcd l2 approved for read_reports`** or **`stay level 1 — crawl basis ok`**
+
+---
+
 ## 6. Register `refunds/create` webhook (acquisition money gate)
 
 Toml already lists `refunds/create` on `/webhooks/orders`. Partner must register it:

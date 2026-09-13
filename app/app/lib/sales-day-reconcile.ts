@@ -119,21 +119,14 @@ export function assessSalesDayReconcile(args: {
   }
 
   const mismatches: SalesDayMismatch[] = [];
+  const comparedDayKeys: string[] = [];
   for (const dayKey of checkedDayKeys) {
     const fact = factByKey.get(dayKey);
     const live = liveByKey.get(dayKey);
-    if (!fact || !live) {
-      mismatches.push({
-        dayKey,
-        factSales: fact?.sales ?? 0,
-        liveSales: live?.sales ?? 0,
-        factOrders: fact?.orderCount ?? 0,
-        liveOrders: live?.orderCount ?? 0,
-        salesDelta: (live?.sales ?? 0) - (fact?.sales ?? 0),
-        orderDelta: (live?.orderCount ?? 0) - (fact?.orderCount ?? 0),
-      });
-      continue;
-    }
+    // Missing live (QL omitted the day) is not a $0 disagreement — skip.
+    // Missing fact with a live probe is also not a stored-vs-live mismatch.
+    if (!fact || !live) continue;
+    comparedDayKeys.push(dayKey);
     if (!salesDayProbeMatches(fact, live)) {
       mismatches.push({
         dayKey,
@@ -147,10 +140,20 @@ export function assessSalesDayReconcile(args: {
     }
   }
 
+  if (comparedDayKeys.length === 0) {
+    return {
+      status: "skipped",
+      checkedDayKeys: [],
+      mismatches: [],
+      headline: null,
+      detail: null,
+    };
+  }
+
   if (mismatches.length === 0) {
     return {
       status: "matched",
-      checkedDayKeys,
+      checkedDayKeys: comparedDayKeys,
       mismatches: [],
       headline: null,
       detail: null,
@@ -166,7 +169,7 @@ export function assessSalesDayReconcile(args: {
 
   return {
     status: "mismatch",
-    checkedDayKeys,
+    checkedDayKeys: comparedDayKeys,
     mismatches,
     headline: `Shopify totals disagree on ${mismatches.length} checked day${mismatches.length === 1 ? "" : "s"}`,
     detail: `Shopify Analytics day totals disagree on ${sample}${more}. Re-syncing those closed days now — Mcfly will not quietly keep the wrong number.`,

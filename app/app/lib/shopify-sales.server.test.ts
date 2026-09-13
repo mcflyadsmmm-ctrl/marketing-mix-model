@@ -77,4 +77,11 @@ describe("listRecentClosedShopLocalDays", () => {
     const utcDays = listRecentClosedShopLocalDays("UTC", 3, now);
     expect(sydneyDays).not.toEqual(utcDays);
   });
+
+  it("returns true calendar yesterday for Pacific/Kiritimati (+14)", () => {
+    // 2026-09-09T20:00Z → local 2026-09-10 in +14; closed days end 2026-09-09.
+    const now = new Date("2026-09-09T20:00:00.000Z");
+    const days = listRecentClosedShopLocalDays("Pacific/Kiritimati", 1, now);
+    expect(days).toEqual(["2026-09-09"]);
+  });
 });

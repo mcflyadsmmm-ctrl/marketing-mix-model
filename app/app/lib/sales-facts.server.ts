@@ -7,6 +7,7 @@ import {
   shopLocalDayKey,
   shopLocalDayRange,
   listRecentClosedShopLocalDays,
+  latestClosedShopLocalDayKey,
   type SalesResult,
 } from "./shopify-sales.server";
 import {
@@ -162,34 +163,20 @@ export function salesFactsClosedDayFilter(
   timeZone?: string | null,
 ): { gte: Date; lte: Date } {
   const base = salesFactsDayFilter(range, timeZone);
-  if (timeZone) {
-    const todayKey = shopLocalDayKey(now, timeZone);
-    const endKey = shopLocalDayKey(range.end, timeZone);
-    if (endKey < todayKey) return base;
-    const [y, m, d] = todayKey.split("-").map(Number);
-    const yesterdayKey = shopLocalDayKey(
-      new Date(Date.UTC(y, m - 1, d - 1, 12, 0, 0)),
-      timeZone,
-    );
-    const lte = dayKeyToUtcDate(yesterdayKey);
-    if (lte < base.gte) {
-      // No closed days in range — empty window (gte > lte).
-      return { gte: base.gte, lte: new Date(base.gte.getTime() - 1) };
-    }
-    return { gte: base.gte, lte };
-  }
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-  let end = new Date(range.end);
-  end.setHours(0, 0, 0, 0);
-  if (end >= todayStart) {
-    end = new Date(todayStart);
-    end.setDate(end.getDate() - 1);
-  }
-  if (end < base.gte) {
+  // Without a shop timezone we cannot know the open day — do not cut with the
+  // host clock (that silently drops a real day, and which day depends on Fly TZ).
+  if (!timeZone) return base;
+  const todayKey = shopLocalDayKey(now, timeZone);
+  const endKey = shopLocalDayKey(range.end, timeZone);
+  if (endKey < todayKey) return base;
+  // Pure YMD yesterday — UTC-noon tricks fail for Pacific/Kiritimati (+14).
+  const yesterdayKey = latestClosedShopLocalDayKey(timeZone, now);
+  const lte = dayKeyToUtcDate(yesterdayKey);
+  if (lte < base.gte) {
+    // No closed days in range — empty window (gte > lte).
     return { gte: base.gte, lte: new Date(base.gte.getTime() - 1) };
   }
-  return { gte: base.gte, lte: end };
+  return { gte: base.gte, lte };
 }
 
 /** $0 stored facts on a short period — probe live Admin orders instead of heros. */

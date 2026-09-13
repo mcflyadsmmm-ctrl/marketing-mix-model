@@ -17,6 +17,8 @@ export {
   shopLocalDayKey,
   shopLocalDayRange,
   listRecentClosedShopLocalDays,
+  latestClosedShopLocalDayKey,
+  shiftDayKey,
 } from "./shop-local-day";
 
 export interface SalesResult {

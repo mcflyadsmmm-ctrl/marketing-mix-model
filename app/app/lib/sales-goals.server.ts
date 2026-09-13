@@ -7,6 +7,7 @@ import { getSalesFactsByDay, getSalesFactsCoverage } from "./sales-facts.server"
 import { fetchSampleSalesByDay } from "./sample-desk.server";
 import {
   dateKeyFromYmd,
+  latestClosedShopLocalDayKey,
   shopLocalDayKey,
   shopLocalDayRange,
   shopLocalYmd,
@@ -251,10 +252,8 @@ export async function spendByMonthMap(
     }
     if (nowY === year) {
       // Closed days only — same open-day cut as salesByMonthFromDayMap.
-      const yesterdayKey = shopLocalDayKey(
-        new Date(Date.UTC(nowY, nowM - 1, nowD - 1, 12, 0, 0)),
-        tz,
-      );
+      // Pure YMD yesterday (UTC-noon math fails for Pacific/Kiritimati +14).
+      const yesterdayKey = latestClosedShopLocalDayKey(tz, now);
       yearEnd = shopLocalDayRange(yesterdayKey, tz).end;
       const { m: endMonth } = shopLocalYmd(
         shopLocalDayRange(yesterdayKey, tz).start,

@@ -59,6 +59,38 @@ export function shopLocalDayRange(
   return { start, end, label: dateKey };
 }
 
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** Calendar YYYY-MM-DD from Y/M/D (1-indexed month). */
+export function dateKeyFromYmd(y: number, m: number, d: number): string {
+  return `${y}-${pad2(m)}-${pad2(d)}`;
+}
+
+/**
+ * Shift a YYYY-MM-DD key by whole calendar days (pure YMD math — no TZ convert).
+ * Use this for "yesterday" relative to a shop-local today key; UTC-noon tricks
+ * break for Pacific/Kiritimati (+14) and Pacific/Apia (+13).
+ */
+export function shiftDayKey(dayKey: string, deltaDays: number): string {
+  const [y, m, d] = dayKey.split("-").map(Number);
+  const cursor = new Date(Date.UTC(y, m - 1, d + deltaDays, 12, 0, 0));
+  return dateKeyFromYmd(
+    cursor.getUTCFullYear(),
+    cursor.getUTCMonth() + 1,
+    cursor.getUTCDate(),
+  );
+}
+
+/** Most recent closed shop-local day key (yesterday relative to shop "today"). */
+export function latestClosedShopLocalDayKey(
+  timeZone: string,
+  now: Date = new Date(),
+): string {
+  return shiftDayKey(shopLocalDayKey(now, timeZone), -1);
+}
+
 /**
  * Last `count` CLOSED shop-local calendar days (excludes the in-progress local
  * "today"), oldest first. Never uses server-local time — always resolves "today"
@@ -70,24 +102,11 @@ export function listRecentClosedShopLocalDays(
   now: Date = new Date(),
 ): string[] {
   const todayKey = shopLocalDayKey(now, timeZone);
-  const [ty, tm, td] = todayKey.split("-").map(Number);
   const days: string[] = [];
   for (let i = count; i >= 1; i--) {
-    // Noon anchor avoids landing on a DST-skipped/repeated local hour when we
-    // subtract whole days in UTC before re-deriving the local day key.
-    const cursor = new Date(Date.UTC(ty, tm - 1, td - i, 12, 0, 0));
-    days.push(shopLocalDayKey(cursor, timeZone));
+    days.push(shiftDayKey(todayKey, -i));
   }
   return days;
-}
-
-function pad2(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-/** Calendar YYYY-MM-DD from Y/M/D (1-indexed month). */
-export function dateKeyFromYmd(y: number, m: number, d: number): string {
-  return `${y}-${pad2(m)}-${pad2(d)}`;
 }
 
 /**
@@ -103,11 +122,9 @@ export function shopLocalYmd(
   return { y, m, d };
 }
 
-/** Next shop-local calendar day key after `dateKey` (noon-anchor arithmetic). */
-export function nextShopLocalDayKey(dateKey: string, timeZone: string): string {
-  const [y, m, d] = dateKey.split("-").map(Number);
-  const cursor = new Date(Date.UTC(y, m - 1, d + 1, 12, 0, 0));
-  return shopLocalDayKey(cursor, timeZone);
+/** Next shop-local calendar day key after `dateKey` (pure YMD math). */
+export function nextShopLocalDayKey(dateKey: string, _timeZone?: string): string {
+  return shiftDayKey(dateKey, 1);
 }
 
 /** UTC midnight Date for a YYYY-MM-DD calendar key (SalesDayFact / CSV day stamp). */

@@ -13,7 +13,9 @@ This is an engineering readiness checklist for diligence. It does **not** invent
 
 | Gate | Status | Notes |
 |------|--------|-------|
-| Day totals prefer ShopifyQL Analytics (`total_sales` / orders / net / gross) | Shipped | Overlay on crawl in reconcile + backfill batch |
+| Day totals prefer ShopifyQL Analytics (`total_sales` / orders / net / gross) | **Blocked** | Needs `read_reports` + PCD Level 2 (founder gate). Code path exists; scope absent → crawl basis. Honesty copy no longer claims Analytics. |
+| Spot-check missing live row is skip (not fake $0 mismatch) | Shipped | `assessSalesDayReconcile` compares intersection only |
+| Closed-day cut safe for UTC+13/+14 | Shipped | Pure YMD yesterday via `latestClosedShopLocalDayKey` |
 | Refunds dated on refund event day (not only order day) | Shipped | `extractOrderDirtyDayKeys` + multi-day webhook enqueue |
 | `refunds/create` subscribed in app toml | Code ready | **Partner gate:** run `shopify app deploy` so Partner registers the topic |
 | Refund-only payload does not clear wrong OrderFact day seal | Shipped | Seal clear skipped for refund resource; waits for `orders/updated` |

@@ -52,10 +52,22 @@ export async function fetchShopifyQlSalesByDay(
       SHOPIFYQL_SALES_DAYS_QUERY,
       { query: ql },
     );
-    if (json.errors?.length) return null;
+    if (json.errors?.length) {
+      console.warn(
+        "[shopifyql] GraphQL errors:",
+        json.errors.map((e) => e.message ?? "unknown").join("; "),
+      );
+      return null;
+    }
     const payload = json.data?.shopifyqlQuery;
     if (!payload) return null;
-    if (payload.parseErrors?.length) return null;
+    if (payload.parseErrors?.length) {
+      console.warn(
+        "[shopifyql] parseErrors:",
+        payload.parseErrors.join("; "),
+      );
+      return null;
+    }
     const rows = payload.tableData?.rows;
     // Empty rows are not "every day is $0" — TIMESERIES often omits days.
     // Treat as unavailable so callers keep crawl / skip spot-check probes.
