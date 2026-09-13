@@ -60,8 +60,11 @@ export function salesFactsAllowZeroUpsert(args: {
   orderCount: number;
   usedRecentScan: boolean;
   shopOrdersSeen: number;
+  /** ShopifyQL Analytics day total — trusted even when $0 / 0 orders. */
+  analyticsTrusted?: boolean;
 }): boolean {
   if (args.totalSales > 0 || args.orderCount > 0) return true;
+  if (args.analyticsTrusted) return true;
   return args.usedRecentScan && args.shopOrdersSeen > 0;
 }
 

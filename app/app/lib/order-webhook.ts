@@ -1,11 +1,11 @@
 import { shopLocalDayKey } from "./shop-local-day";
 
 /**
- * Pure extraction helpers for `orders/create|updated|cancelled` webhooks.
+ * Pure extraction helpers for sales-dirty webhooks:
+ * `orders/create|updated|cancelled` and `refunds/create`.
  *
- * Level 1 only: we read the order's id and its timestamp. We deliberately never
- * touch `customer`, `email`, `phone`, `billing_address`, `shipping_address`, or
- * `line_items` — the cash desk needs a dirty-day signal, not a CRM.
+ * Level 1 only: id + timestamps. We deliberately never touch customer PII or
+ * line economics here — the desk needs a dirty-day signal, not a CRM.
  */
 
 /** Job type for "this shop-local day's SalesDayFact is stale, recompute it." */
@@ -21,7 +21,20 @@ export const ORDER_WEBHOOK_TOPICS = [
   "ORDERS_CANCELLED",
 ] as const;
 
+/**
+ * Refund topic — payload is a Refund resource (order_id + refund timestamps),
+ * not a full Order. Still dirties SalesDayFact for Analytics event days.
+ */
+export const REFUND_WEBHOOK_TOPICS = ["REFUNDS_CREATE"] as const;
+
+/** Topics that enqueue reconcile_sales_day (orders + refunds). */
+export const SALES_DIRTY_WEBHOOK_TOPICS = [
+  ...ORDER_WEBHOOK_TOPICS,
+  ...REFUND_WEBHOOK_TOPICS,
+] as const;
+
 export type OrderWebhookTopic = (typeof ORDER_WEBHOOK_TOPICS)[number];
+export type SalesDirtyWebhookTopic = (typeof SALES_DIRTY_WEBHOOK_TOPICS)[number];
 
 /**
  * Normalize a webhook topic to the `ORDERS_CREATE` shape. Shopify and the app
@@ -39,6 +52,42 @@ export function isOrderWebhookTopic(topic: unknown): topic is OrderWebhookTopic 
   return (ORDER_WEBHOOK_TOPICS as readonly string[]).includes(
     normalizeWebhookTopic(topic),
   );
+}
+
+export function isSalesDirtyWebhookTopic(
+  topic: unknown,
+): topic is SalesDirtyWebhookTopic {
+  return (SALES_DIRTY_WEBHOOK_TOPICS as readonly string[]).includes(
+    normalizeWebhookTopic(topic),
+  );
+}
+
+/**
+ * True when the payload is a Refund resource (refunds/create), not an Order.
+ * Refund payloads lack the order's created_at — do not clear OrderFact day seals
+ * from refund-only timestamps (that would target the wrong order-created day).
+ */
+export function isRefundResourcePayload(payload: unknown): boolean {
+  if (!payload || typeof payload !== "object") return false;
+  const record = payload as Record<string, unknown>;
+  if (Array.isArray(record.refund_line_items)) return true;
+  if (record.order_id != null && record.line_items == null && record.refunds == null) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Shop-local days whose OrderFact `__day_complete__` seals may be cleared.
+ * Order payloads: all dirty days. Refund-only payloads: none (wait for
+ * orders/updated, which carries order created_at + refunds[]).
+ */
+export function extractOrderFactSealClearDayKeys(
+  payload: unknown,
+  timeZone: string | null | undefined,
+): string[] {
+  if (isRefundResourcePayload(payload)) return [];
+  return extractOrderDirtyDayKeys(payload, timeZone);
 }
 
 /**
@@ -60,40 +109,84 @@ export function extractOrderId(payload: unknown): string | null {
 
 const DATE_PREFIX = /^(\d{4}-\d{2}-\d{2})/;
 
-function timestampCandidates(payload: unknown): string[] {
-  if (!payload || typeof payload !== "object") return [];
-  const record = payload as Record<string, unknown>;
-  // created_at is the day the sale lands on. A cancel or refund arriving today
-  // dirties the ORIGINAL order day, not today.
-  return ["created_at", "processed_at"]
-    .map((key) => record[key])
-    .filter((value): value is string => typeof value === "string" && value.length > 0);
+function dayKeyFromTimestamp(
+  raw: string,
+  timeZone: string | null | undefined,
+): string | null {
+  if (timeZone) {
+    const instant = new Date(raw);
+    if (!Number.isNaN(instant.getTime())) {
+      return shopLocalDayKey(instant, timeZone);
+    }
+  }
+  const prefix = DATE_PREFIX.exec(raw);
+  return prefix?.[1] ?? null;
+}
+
+function pushTimestampDay(
+  into: Set<string>,
+  raw: unknown,
+  timeZone: string | null | undefined,
+): void {
+  if (typeof raw !== "string" || !raw.trim()) return;
+  const key = dayKeyFromTimestamp(raw.trim(), timeZone);
+  if (key) into.add(key);
 }
 
 /**
- * Shop-local calendar day (YYYY-MM-DD) whose SalesDayFact this order affects.
+ * All shop-local days this order webhook can move under Analytics grain.
  *
- * When the shop's IANA timezone is known we derive the key the same way the ingest
- * lane does, so webhook-dirtied days match backfilled days exactly. When it is not
- * known we fall back to the date prefix of Shopify's timestamp, which already
- * carries the shop's UTC offset (e.g. `2026-07-27T23:40:00-05:00` → `2026-07-27`).
+ * - Order `created_at` / `processed_at`: sale day
+ * - `cancelled_at`: cancel event day (Shopify Analytics is event-dated)
+ * - Each `refunds[].processed_at` / `created_at`: refund event day
  *
- * Returns null when no usable timestamp is present — the caller should ACK and log
- * rather than enqueue a job against a guessed day.
+ * Matching Admin Analytics means a refund must reseal the refund day, not only
+ * rewrite the original order day.
+ */
+export function extractOrderDirtyDayKeys(
+  payload: unknown,
+  timeZone: string | null | undefined,
+): string[] {
+  if (!payload || typeof payload !== "object") return [];
+  const record = payload as Record<string, unknown>;
+  const days = new Set<string>();
+
+  pushTimestampDay(days, record.created_at, timeZone);
+  pushTimestampDay(days, record.processed_at, timeZone);
+  pushTimestampDay(days, record.cancelled_at, timeZone);
+
+  const refunds = record.refunds;
+  if (Array.isArray(refunds)) {
+    for (const refund of refunds) {
+      if (!refund || typeof refund !== "object") continue;
+      const row = refund as Record<string, unknown>;
+      pushTimestampDay(days, row.processed_at, timeZone);
+      pushTimestampDay(days, row.created_at, timeZone);
+    }
+  }
+
+  return [...days].sort();
+}
+
+/**
+ * Primary dirty day (order created/processed) — kept for callers that need one key.
+ * Prefer {@link extractOrderDirtyDayKeys} so refund/cancel event days also reseal.
  */
 export function extractOrderDirtyDayKey(
   payload: unknown,
   timeZone: string | null | undefined,
 ): string | null {
-  for (const raw of timestampCandidates(payload)) {
-    if (timeZone) {
-      const instant = new Date(raw);
-      if (!Number.isNaN(instant.getTime())) {
-        return shopLocalDayKey(instant, timeZone);
-      }
+  const keys = extractOrderDirtyDayKeys(payload, timeZone);
+  if (keys.length === 0) return null;
+  // Prefer created_at day when present — first key after sort is not always that.
+  if (!payload || typeof payload !== "object") return keys[0] ?? null;
+  const record = payload as Record<string, unknown>;
+  for (const field of ["created_at", "processed_at"] as const) {
+    const raw = record[field];
+    if (typeof raw === "string" && raw.trim()) {
+      const key = dayKeyFromTimestamp(raw.trim(), timeZone);
+      if (key) return key;
     }
-    const prefix = DATE_PREFIX.exec(raw);
-    if (prefix) return prefix[1];
   }
-  return null;
+  return keys[0] ?? null;
 }

@@ -554,6 +554,15 @@ describe("salesFactsIncompleteForDesk", () => {
         shopOrdersSeen: 7,
       }),
     ).toBe(true);
+    expect(
+      salesFactsAllowZeroUpsert({
+        totalSales: 0,
+        orderCount: 0,
+        usedRecentScan: false,
+        shopOrdersSeen: 0,
+        analyticsTrusted: true,
+      }),
+    ).toBe(true);
   });
 
   it("keeps a real multiple trusted even while coverage is still filling", () => {

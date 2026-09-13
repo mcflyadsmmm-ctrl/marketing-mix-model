@@ -9,7 +9,11 @@ import {
   listRecentClosedShopLocalDays,
   type SalesResult,
 } from "./shopify-sales.server";
-import { fetchShopifyQlSalesDay } from "./shopifyql-sales.server";
+import {
+  fetchShopifyQlSalesByDay,
+  fetchShopifyQlSalesDay,
+} from "./shopifyql-sales.server";
+import { applyShopifyQlDayToSalesResult } from "./shopifyql-sales";
 import { ensureShopMetadata } from "./shop-metadata.server";
 import { countClosedDaysInPeriod } from "./mer-trust";
 import {
@@ -334,23 +338,37 @@ export async function runSalesFactsBackfill(
 
   let written = 0;
   const failed: string[] = [];
+  // One Analytics query for the batch — same grain as Shopify Admin charts.
+  const batchNewest = batch.length ? [...batch].sort((a, b) => b.localeCompare(a))[0]! : null;
+  const batchOldest = batch.length ? [...batch].sort((a, b) => a.localeCompare(b))[0]! : null;
+  const qlDays =
+    batchOldest && batchNewest
+      ? await fetchShopifyQlSalesByDay(admin, {
+          sinceDayKey: batchOldest,
+          untilDayKey: batchNewest,
+        })
+      : null;
+
   for (const dayKey of batch) {
     try {
       const range = shopLocalDayRange(dayKey, timeZone);
       const usedRecentScan = Boolean(options?.refreshExisting);
-      const sales = await fetchShopifySales(
+      const crawled = await fetchShopifySales(
         admin,
         range,
         usedRecentScan
           ? { mode: "recent_scan", maxPages: LIVE_PERIOD_PROBE_MAX_PAGES }
           : undefined,
       );
+      const ql = qlDays?.get(dayKey);
+      const sales = ql ? applyShopifyQlDayToSalesResult(crawled, ql) : crawled;
       if (
         !salesFactsAllowZeroUpsert({
           totalSales: sales.totalSales,
           orderCount: sales.orderCount,
           usedRecentScan,
           shopOrdersSeen: sales.shopOrdersSeen ?? 0,
+          analyticsTrusted: Boolean(ql),
         })
       ) {
         // Leave missing — a search $0 must not become a trusted complete day.
@@ -442,18 +460,7 @@ export async function reconcileSalesDayFact(
   // Fall back to order crawl when ShopifyQL is unavailable.
   const ql = await fetchShopifyQlSalesDay(admin, dayKey);
   const crawled = await fetchShopifySales(admin, range);
-  const sales = ql
-    ? {
-        ...crawled,
-        totalSales: ql.totalSales,
-        orderCount: ql.orderCount,
-        netSales: ql.netSales ?? crawled.netSales,
-        netSalesKnown: ql.netSales != null ? true : crawled.netSalesKnown,
-        grossSales: ql.grossSales ?? crawled.grossSales,
-        grossSalesKnown: ql.grossSales != null ? true : crawled.grossSalesKnown,
-        source: "shopify" as const,
-      }
-    : crawled;
+  const sales = ql ? applyShopifyQlDayToSalesResult(crawled, ql) : crawled;
   await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
   return { shopId, dayKey, written: true, skippedReason: null };
 }

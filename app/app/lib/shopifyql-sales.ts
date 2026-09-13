@@ -94,3 +94,28 @@ export function parseShopifyQlSalesDayRows(
   }
   return map;
 }
+
+
+/** Overlay Analytics day totals onto a crawled SalesResult-shaped object. */
+export function applyShopifyQlDayToSalesResult<
+  T extends {
+    totalSales: number;
+    orderCount: number;
+    netSales: number;
+    netSalesKnown?: boolean;
+    grossSales: number;
+    grossSalesKnown?: boolean;
+    source: string;
+  },
+>(crawled: T, ql: ShopifyQlSalesDayRow): T {
+  return {
+    ...crawled,
+    totalSales: ql.totalSales,
+    orderCount: ql.orderCount,
+    netSales: ql.netSales ?? crawled.netSales,
+    netSalesKnown: ql.netSales != null ? true : crawled.netSalesKnown,
+    grossSales: ql.grossSales ?? crawled.grossSales,
+    grossSalesKnown: ql.grossSales != null ? true : crawled.grossSalesKnown,
+    source: "shopify",
+  };
+}

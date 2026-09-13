@@ -4,9 +4,10 @@ import prisma from "../db.server";
 import { enqueueJob } from "../lib/job-queue.server";
 import { clearOrderFactDayCompleteSeal } from "../lib/order-facts.server";
 import {
-  extractOrderDirtyDayKey,
+  extractOrderDirtyDayKeys,
+  extractOrderFactSealClearDayKeys,
   extractOrderId,
-  isOrderWebhookTopic,
+  isSalesDirtyWebhookTopic,
   normalizeWebhookTopic,
   RECONCILE_SALES_DAY_JOB,
 } from "../lib/order-webhook";
@@ -16,15 +17,19 @@ import {
 } from "../lib/webhook-delivery.server";
 
 /**
- * Order webhooks: `orders/create`, `orders/updated`, `orders/cancelled`.
+ * Sales-dirty webhooks: `orders/create|updated|cancelled` and `refunds/create`.
  *
  * This handler does NOT compute sales. It marks the affected shop-local day dirty
  * and ACKs, so Shopify's 5s budget is never spent on GraphQL pagination. The queue
- * worker recomputes the day's SalesDayFact. When shop IANA is known it also clears
- * the OrderFact `__day_complete__` seal so the next LTV backfill re-crawls nets
- * (refunds/cancels) — no second queue type.
+ * worker recomputes the day's SalesDayFact. When shop IANA is known and the payload
+ * is a full Order, it also clears the OrderFact `__day_complete__` seal so the next
+ * LTV backfill re-crawls nets (refunds/cancels) — no second queue type.
  *
- * Level 1 only: order id and timestamp. `customer`, `email`, `phone`, addresses,
+ * `refunds/create` payloads are Refund resources (no order created_at). They still
+ * enqueue SalesDayFact reconcile for the refund event day; OrderFact seals wait for
+ * the companion `orders/updated` delivery.
+ *
+ * Level 1 only: id and timestamps. `customer`, `email`, `phone`, addresses,
  * and line items are never read, logged, or persisted — the desk needs a dirty-day
  * signal, not a customer record. No pixels, no attribution.
  *
@@ -36,7 +41,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await authenticate.webhook(request);
   const normalizedTopic = normalizeWebhookTopic(topic);
 
-  if (!isOrderWebhookTopic(normalizedTopic)) {
+  if (!isSalesDirtyWebhookTopic(normalizedTopic)) {
     console.log(`Order webhook ignored unexpected topic=${normalizedTopic} shop=${shop}`);
     return new Response();
   }
@@ -76,8 +81,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       select: { id: true, ianaTimezone: true },
     });
 
-    const dayKey = extractOrderDirtyDayKey(payload, shopRow.ianaTimezone);
-    if (!dayKey) {
+    // Refunds/cancels can move money on a different shop-local day than the
+    // order was created — dirty every affected day so Analytics + crawl reseal.
+    const dirtyDayKeys = extractOrderDirtyDayKeys(
+      payload,
+      shopRow.ianaTimezone,
+    );
+    if (dirtyDayKeys.length === 0) {
       // Never guess a day from server-local time — that would dirty the wrong fact.
       console.log(
         `Order webhook topic=${normalizedTopic} shop=${shop} has no usable timestamp — acked without enqueue`,
@@ -88,7 +98,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // OrderFact seals require IANA shop-local days (same keys as backfill).
     // Without timezone, fail closed: still reconcile SalesDayFact, but do not
     // clear a seal against a date-prefix guess that may not match the marker.
-    if (shopRow.ianaTimezone) {
+    // Refund-only payloads skip seal clear (no order created_at on the resource).
+    const sealClearDays = shopRow.ianaTimezone
+      ? extractOrderFactSealClearDayKeys(payload, shopRow.ianaTimezone)
+      : [];
+    for (const dayKey of sealClearDays) {
       const cleared = await clearOrderFactDayCompleteSeal(shopRow.id, dayKey);
       if (cleared > 0) {
         console.log(
@@ -97,15 +111,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
     }
 
-    const job = await enqueueJob({
-      shopId: shopRow.id,
-      type: RECONCILE_SALES_DAY_JOB,
-      dedupeKey: dayKey,
-      payload: { day: dayKey, reason: normalizedTopic },
-    });
+    const jobIds: string[] = [];
+    for (const dayKey of dirtyDayKeys) {
+      const job = await enqueueJob({
+        shopId: shopRow.id,
+        type: RECONCILE_SALES_DAY_JOB,
+        dedupeKey: dayKey,
+        payload: { day: dayKey, reason: normalizedTopic },
+      });
+      jobIds.push(job.jobId);
+    }
 
     console.log(
-      `Order webhook topic=${normalizedTopic} shop=${shop} dirtyDay=${dayKey} jobId=${job.jobId}`,
+      `Order webhook topic=${normalizedTopic} shop=${shop} dirtyDays=${dirtyDayKeys.join(",")} jobs=${jobIds.join(",")}`,
     );
 
     return new Response();

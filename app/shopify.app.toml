@@ -32,7 +32,7 @@ api_version = "2025-10"
   # Dirty-day signal for SalesDayFact — handler enqueues and ACKs only.
   [[webhooks.subscriptions]]
   uri = "/webhooks/orders"
-  topics = ["orders/create", "orders/updated", "orders/cancelled"]
+  topics = ["orders/create", "orders/updated", "orders/cancelled", "refunds/create"]
 
   [[webhooks.subscriptions]]
   uri = "/webhooks/app_subscriptions/update"

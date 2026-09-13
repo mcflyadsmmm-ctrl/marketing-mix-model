@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyShopifyQlDayToSalesResult,
   buildShopifyQlSalesDaysQuery,
   parseShopifyQlDayKey,
   parseShopifyQlMoney,
@@ -63,5 +64,33 @@ describe("parsers", () => {
     expect(parseShopifyQlDayKey("2026-09-13")).toBe("2026-09-13");
     expect(parseShopifyQlMoney("99.9")).toBe(99.9);
     expect(parseShopifyQlOrderCount(3.2)).toBe(3);
+  });
+});
+
+describe("applyShopifyQlDayToSalesResult", () => {
+  it("overlays Analytics totals onto crawl while keeping crawl-only fields", () => {
+    const crawled = {
+      totalSales: 100,
+      orderCount: 2,
+      netSales: 90,
+      netSalesKnown: true,
+      grossSales: 110,
+      grossSalesKnown: true,
+      source: "crawl",
+      shopOrdersSeen: 7,
+    };
+    const next = applyShopifyQlDayToSalesResult(crawled, {
+      dayKey: "2026-09-10",
+      totalSales: 1234.5,
+      orderCount: 12,
+      netSales: 1100,
+      grossSales: 1300,
+    });
+    expect(next.totalSales).toBe(1234.5);
+    expect(next.orderCount).toBe(12);
+    expect(next.netSales).toBe(1100);
+    expect(next.grossSales).toBe(1300);
+    expect(next.source).toBe("shopify");
+    expect(next.shopOrdersSeen).toBe(7);
   });
 });
