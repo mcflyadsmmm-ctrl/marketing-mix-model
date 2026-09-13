@@ -199,7 +199,8 @@ export default function CustomersDepthPage() {
       <div className="mcfly-desk mcfly-desk--bc" aria-busy={isLoading || undefined}>
         <header className="mcfly-depth-page__head">
           <p className="mcfly-panel__muted">
-            The customer reads that matter first for {periodLabel} — repeat and concentration. Advanced cohort depth is optional.</p>
+            Repeat and concentration for {periodLabel}.
+          </p>
           {!shotMode ? <PeriodControl preset={preset} /> : null}
           {!shotMode && depthDensity === "core" ? (
             <p className="mcfly-panel__muted">

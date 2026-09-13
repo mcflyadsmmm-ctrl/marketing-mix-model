@@ -176,8 +176,7 @@ export default function SalesDepthPage() {
       <div className="mcfly-desk mcfly-desk--bc" aria-busy={isLoading || undefined}>
         <header className="mcfly-depth-page__head">
           <p className="mcfly-panel__muted">
-            The charts that matter first for {periodLabel} — pace, rhythm, and
-            day quality from Shopify sales. No ad spend on this tab.
+            Shopify sales for {periodLabel} — pace, rhythm, day quality.
           </p>
           {!shotMode ? <PeriodControl preset={preset} /> : null}
           {!shotMode && depthDensity === "core" ? (
