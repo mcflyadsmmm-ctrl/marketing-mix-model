@@ -53,10 +53,14 @@ describe("buildOpsDeskIsland", () => {
     expect(island!.tone).toBe("strong");
     expect(island!.actions[0]?.id).toBe("ltv");
     expect(island!.actions.some((a) => a.id === "spend-later")).toBe(true);
-    expect(island!.kpis[0]?.id).toBe("aov");
+    expect(island!.kpis[0]?.id).toBe("sales");
+    expect(island!.kpis.map((k) => k.id).slice(0, 3)).toEqual([
+      "sales",
+      "orders",
+      "aov",
+    ]);
     expect(island!.kpis.some((k) => k.id === "second90")).toBe(true);
-    expect(island!.kpis.length).toBeGreaterThanOrEqual(3);
-    expect(island!.kpis.length).toBeLessThanOrEqual(4);
+    expect(island!.kpis.length).toBe(4);
   });
 
   it("falls back to LTV · 90d when 2nd-order is not mature yet", () => {
@@ -74,7 +78,15 @@ describe("buildOpsDeskIsland", () => {
       newBuyers: 40,
       hasLiveSpend: true,
     });
-    expect(island!.kpis.some((k) => k.id === "ltv90")).toBe(true);
+    // Sales/Orders/AOV lead; 4th slot prefers returning $ from day facts before LTV.
+    expect(island!.kpis.map((k) => k.id).slice(0, 3)).toEqual([
+      "sales",
+      "orders",
+      "aov",
+    ]);
+    expect(island!.kpis.some((k) => k.id === "returning" || k.id === "ltv90")).toBe(
+      true,
+    );
     expect(island!.actions.some((a) => a.id === "spend-later")).toBe(false);
     expect(island!.tone).toBe("steady");
   });

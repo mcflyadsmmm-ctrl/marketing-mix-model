@@ -25,6 +25,12 @@ function money(n: number): string {
   }).format(n);
 }
 
+function priorDelta(now: number, prior: number): string | null {
+  if (!(prior > 0) || !Number.isFinite(now)) return null;
+  const d = ((now - prior) / prior) * 100;
+  return `${d >= 0 ? "+" : ""}${d.toFixed(0)}% vs prior`;
+}
+
 /**
  * Strongest / softest among filled closed days only.
  * Skips the open shop-local day so today never wins the contest.
@@ -67,6 +73,8 @@ export function buildSalesDepthDecision(args: {
   accuracy: SalesDayAccuracySnapshot;
   /** Filled day facts only — holes must not be invented as $0. */
   dayFacts?: SalesDepthDayFact[];
+  /** Matched prior window — unlocks KPI deltas when present. */
+  priorDayFacts?: SalesDepthDayFact[];
 }): OpsDeskIslandModel | null {
   const incomplete =
     args.accuracy.status === "catching_up" ||
@@ -90,12 +98,26 @@ export function buildSalesDepthDecision(args: {
   const dayInsight =
     [accuracyInsight, dayPairLine].filter(Boolean).join(" ") || null;
 
+  const prior = args.priorDayFacts ?? [];
+  const priorSales = prior.reduce((s, d) => s + d.sales, 0);
+  const priorOrders = prior.reduce((s, d) => s + d.orderCount, 0);
+  const priorAov = priorOrders > 0 ? priorSales / priorOrders : null;
+  const aov = args.economics.aov;
+
   const model = buildOpsDeskIsland({
     periodLabel: args.periodLabel,
     periodPreset: args.periodPreset,
     economics: args.economics,
     dayInsight,
     hasLiveSpend: false,
+    salesDelta: prior.length ? priorDelta(args.economics.sales, priorSales) : null,
+    ordersDelta: prior.length
+      ? priorDelta(args.economics.orderCount, priorOrders)
+      : null,
+    aovDelta:
+      prior.length && aov != null && priorAov != null
+        ? priorDelta(aov, priorAov)
+        : null,
   });
   if (!model) return null;
 

@@ -69,6 +69,10 @@ export type OpsDeskIslandInput = {
   top10BuyerShare?: number | null;
   /** When false, offer a quiet later path to Spend — never the primary. */
   hasLiveSpend?: boolean;
+  /** Prior-window deltas for the KPI rail (e.g. "+12% vs prior"). */
+  salesDelta?: string | null;
+  ordersDelta?: string | null;
+  aovDelta?: string | null;
 };
 
 function resolveTone(input: OpsDeskIslandInput): OpsDeskTone {
@@ -142,7 +146,8 @@ function buildActions(input: OpsDeskIslandInput): OpsDeskAction[] {
 
 /**
  * Build the BC-smooth first viewport: decision strip + up to 4 KPIs.
- * Prefers order + customer depth Shopify will not put on one screen.
+ * Always leads with Sales / Orders / AOV so young stores still get a dense
+ * rail when returning / LTV fields are missing.
  */
 export function buildOpsDeskIsland(
   input: OpsDeskIslandInput,
@@ -150,30 +155,40 @@ export function buildOpsDeskIsland(
   const { economics } = input;
   if (!economics.hasSignal) return null;
 
-  const kpis: OpsDeskKpi[] = [];
+  const kpis: OpsDeskKpi[] = [
+    {
+      id: "sales",
+      label: "Sales",
+      value: money(economics.sales),
+      hint: input.periodLabel,
+      accent: true,
+      delta: input.salesDelta ?? null,
+    },
+    {
+      id: "orders",
+      label: "Orders",
+      value: economics.orderCount.toLocaleString(),
+      hint:
+        economics.aov != null
+          ? `AOV ${money(economics.aov)}`
+          : "Shopify orders in period",
+      delta: input.ordersDelta ?? null,
+    },
+  ];
 
   if (economics.aov != null) {
     kpis.push({
       id: "aov",
       label: "AOV",
       value: money(economics.aov),
-      hint: `${economics.orderCount.toLocaleString()} orders · ${money(economics.sales)} sales`,
-      accent: true,
-    });
-  }
-
-  if (economics.returningShare != null) {
-    kpis.push({
-      id: "returning",
-      label: "Returning $",
-      value: pct(economics.returningShare),
-      hint: `${money(economics.returningCustomerSales)} returning · ${money(economics.newCustomerSales)} new`,
+      hint: `${economics.orderCount.toLocaleString()} orders`,
+      delta: input.aovDelta ?? null,
     });
   }
 
   const second90 = input.buyerRepeat?.secondWithin90 ?? null;
   const median = input.buyerRepeat?.medianDaysToSecond ?? null;
-  if (second90 != null) {
+  if (second90 != null && kpis.length < 4) {
     kpis.push({
       id: "second90",
       label: "2nd order · 90d",
@@ -183,7 +198,14 @@ export function buildOpsDeskIsland(
           ? `Median ${medianDays(median)} to 2nd · mature buyers`
           : "Mature buyers with a 2nd purchase in 90 days",
     });
-  } else if (input.avgRevenueD90 != null) {
+  } else if (economics.returningShare != null && kpis.length < 4) {
+    kpis.push({
+      id: "returning",
+      label: "Returning $",
+      value: pct(economics.returningShare),
+      hint: `${money(economics.returningCustomerSales)} returning · ${money(economics.newCustomerSales)} new`,
+    });
+  } else if (input.avgRevenueD90 != null && kpis.length < 4) {
     kpis.push({
       id: "ltv90",
       label: "LTV · 90d",
@@ -193,9 +215,7 @@ export function buildOpsDeskIsland(
           ? `${input.newBuyers.toLocaleString()} new buyers this period`
           : "Cohort average revenue at 90 days",
     });
-  }
-
-  if (input.top10BuyerShare != null && kpis.length < 4) {
+  } else if (input.top10BuyerShare != null && kpis.length < 4) {
     kpis.push({
       id: "top10",
       label: "Top 10% buyers",

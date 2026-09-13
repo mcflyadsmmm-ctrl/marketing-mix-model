@@ -10,6 +10,7 @@ import { getSampleDeskEnabled } from "./sample-desk.server";
 import { loadShopifyDepthData } from "./shopify-depth-loader.server";
 import {
   buildDepthChartsForTab,
+  preferFilledDepthCharts,
   type DepthChartModel,
 } from "./shopify-depth-metrics";
 import { authenticate } from "../shopify.server";
@@ -58,19 +59,21 @@ export async function loadDepthHeavyCharts(
         })
       : null;
 
-  const charts = buildDepthChartsForTab(
-    {
-      tab,
-      dayFacts: depth.dayFacts,
-      priorDayFacts: depth.priorDayFacts,
-      baselineDayFacts: depth.baselineDayFacts,
-      orderFacts: depth.orderFacts,
-      priorOrderFacts: depth.priorOrderFacts,
-      missingDayKeys: accuracy?.missingDayKeys,
-      timeZone: shop.ianaTimezone,
-    },
-    "slow",
-    depthDensity,
+  const charts = preferFilledDepthCharts(
+    buildDepthChartsForTab(
+      {
+        tab,
+        dayFacts: depth.dayFacts,
+        priorDayFacts: depth.priorDayFacts,
+        baselineDayFacts: depth.baselineDayFacts,
+        orderFacts: depth.orderFacts,
+        priorOrderFacts: depth.priorOrderFacts,
+        missingDayKeys: accuracy?.missingDayKeys,
+        timeZone: shop.ianaTimezone,
+      },
+      "slow",
+      depthDensity,
+    ),
   );
 
   return { charts };

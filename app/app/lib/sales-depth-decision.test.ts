@@ -61,3 +61,31 @@ describe("buildSalesDepthDecision", () => {
     expect(blob).toMatch(/Strongest 2026-09-02/i);
   });
 });
+
+describe("buildSalesDepthDecision prior deltas", () => {
+  it("surfaces prior-window deltas on the KPI rail", () => {
+    const accuracy = assessSalesDayAccuracy({
+      expectedClosedDayKeys: ["2026-09-01", "2026-09-02"],
+      presentDayKeys: ["2026-09-01", "2026-09-02"],
+      openDayKey: "2026-09-03",
+    });
+    const model = buildSalesDepthDecision({
+      periodLabel: "Last 30 days",
+      periodPreset: "last_30",
+      economics,
+      accuracy,
+      dayFacts: [
+        { dayKey: "2026-09-01", sales: 200, orderCount: 2 },
+        { dayKey: "2026-09-02", sales: 800, orderCount: 8 },
+      ],
+      priorDayFacts: [
+        { dayKey: "2026-08-01", sales: 500, orderCount: 5 },
+        { dayKey: "2026-08-02", sales: 500, orderCount: 5 },
+      ],
+    });
+    expect(model).not.toBeNull();
+    const salesKpi = model!.kpis.find((k) => k.id === "sales");
+    expect(salesKpi?.delta).toMatch(/vs prior/i);
+    expect(model!.kpis[0]?.id).toBe("sales");
+  });
+});

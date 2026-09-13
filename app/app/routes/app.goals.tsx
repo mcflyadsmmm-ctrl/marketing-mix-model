@@ -46,7 +46,10 @@ import {
   formatListingTillLabel,
   listingCaptureFromRequest,
 } from "../lib/listing-capture";
-import { buildDepthChartsForTab } from "../lib/shopify-depth-metrics";
+import {
+  buildDepthChartsForTab,
+  preferFilledDepthCharts,
+} from "../lib/shopify-depth-metrics";
 import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 
@@ -207,33 +210,35 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   ).sort((a, b) => a - b);
 
   const priorYearTotal = priorYearMonthly.reduce((a, b) => a + b, 0);
-  const depthCharts = buildDepthChartsForTab({
-    tab: "goals",
-    dayFacts: [],
-    goals: {
-      year,
-      periods: [periods.mtd, periods.qtd, periods.ytd].map((p) => ({
-        key: p.key,
-        label: p.label,
-        actual: p.actual,
-        goal: p.goal,
-        progressPct: p.progressPct,
-        paceLabel: p.pace.label,
-      })),
-      months: board.rows.map((r, i) => ({
-        month: r.month,
-        label: r.monthShort,
-        actual: r.actual,
-        goal: r.salesGoal,
-        prior: priorYearMonthly[i] ?? 0,
-      })),
-      priorYearTotal,
-      yoyGrow10Total: goalsAtYoyGrowth(priorYearMonthly, 10).reduce(
-        (a, b) => a + b,
-        0,
-      ),
-    },
-  });
+  const depthCharts = preferFilledDepthCharts(
+    buildDepthChartsForTab({
+      tab: "goals",
+      dayFacts: [],
+      goals: {
+        year,
+        periods: [periods.mtd, periods.qtd, periods.ytd].map((p) => ({
+          key: p.key,
+          label: p.label,
+          actual: p.actual,
+          goal: p.goal,
+          progressPct: p.progressPct,
+          paceLabel: p.pace.label,
+        })),
+        months: board.rows.map((r, i) => ({
+          month: r.month,
+          label: r.monthShort,
+          actual: r.actual,
+          goal: r.salesGoal,
+          prior: priorYearMonthly[i] ?? 0,
+        })),
+        priorYearTotal,
+        yoyGrow10Total: goalsAtYoyGrowth(priorYearMonthly, 10).reduce(
+          (a, b) => a + b,
+          0,
+        ),
+      },
+    }),
+  );
 
   return {
     dayAccuracy,

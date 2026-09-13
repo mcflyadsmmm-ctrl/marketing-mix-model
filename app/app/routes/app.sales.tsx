@@ -17,6 +17,7 @@ import { loadShopifyDepthData } from "../lib/shopify-depth-loader.server";
 import {
   buildDepthChartPlaceholdersForTab,
   buildDepthChartsForTab,
+  preferFilledDepthCharts,
 } from "../lib/shopify-depth-metrics";
 import { authenticate } from "../shopify.server";
 import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
@@ -83,10 +84,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     timeZone: shop.ianaTimezone,
   };
 
-  const charts = buildDepthChartsForTab(
-    chartInput,
-    shotMode ? "full" : "fast",
-    depthDensity,
+  const charts = preferFilledDepthCharts(
+    buildDepthChartsForTab(
+      chartInput,
+      shotMode ? "full" : "fast",
+      depthDensity,
+    ),
   );
   const placeholders = shotMode
     ? []
@@ -119,6 +122,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           economics,
           accuracy,
           dayFacts: depth.dayFacts,
+          priorDayFacts: depth.priorDayFacts,
         });
 
   return {

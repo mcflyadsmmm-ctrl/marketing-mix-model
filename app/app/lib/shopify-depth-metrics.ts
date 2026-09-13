@@ -19,6 +19,7 @@ import {
   summarizeBuyerRepeat,
   type BuyerOrderFactLike,
 } from "./cohort-buyer-metrics";
+import { strongestSoftestAmongFilled } from "./sales-depth-decision";
 
 export type DayFactInput = {
   dayKey: string;
@@ -720,12 +721,26 @@ function buildOne(
     }
     case "strongest_softest_day": {
       if (!dayFacts.length) return empty(feature, "No sales days in this period yet.");
-      const sorted = [...dayFacts].sort((a, b) => b.sales - a.sales);
-      const best = sorted[0]!;
-      const soft = sorted[sorted.length - 1]!;
+      const openDayKey = dayKeyInTz(new Date(), tz);
+      const pair = strongestSoftestAmongFilled(dayFacts, openDayKey);
+      if (!pair) {
+        return empty(
+          feature,
+          "Need at least one closed day with orders for strongest / softest.",
+        );
+      }
+      const { strongest: best, softest: soft } = pair;
+      const among =
+        (input.missingDayKeys?.length ?? 0) > 0 ? " · among filled days" : "";
       return {
         ...shell(feature),
-        callout: [`Strongest ${best.dayKey}: ${money(best.sales)} · ${best.orderCount} orders. Softest ${soft.dayKey}: ${money(soft.sales)} · ${soft.orderCount} orders.`, coverageHonesty(input.missingDayKeys)].filter(Boolean).join(" ") || undefined,
+        callout:
+          [
+            `Strongest ${best.dayKey}: ${money(best.sales)} · ${best.orderCount} orders. Softest ${soft.dayKey}: ${money(soft.sales)} · ${soft.orderCount} orders.${among}`,
+            coverageHonesty(input.missingDayKeys),
+          ]
+            .filter(Boolean)
+            .join(" ") || undefined,
         kpis: [
           { label: "Strongest", value: money(best.sales), hint: best.dayKey },
           { label: "Softest", value: money(soft.sales), hint: soft.dayKey },
@@ -1373,6 +1388,21 @@ export function buildDepthChartsForTab(
     const fast = depthFeatureIsFastPaint(f.needs);
     return phase === "fast" ? fast : !fast;
   }).map((f) => buildOne(f, input));
+}
+
+/**
+ * Drop empty chart shells so thin / young stores don't see a wall of
+ * "not enough data" cards. Loading placeholders stay when keepLoading.
+ */
+export function preferFilledDepthCharts(
+  charts: DepthChartModel[],
+  opts?: { keepLoading?: boolean },
+): DepthChartModel[] {
+  return charts.filter((c) => {
+    if (!c.emptyReason) return true;
+    if (opts?.keepLoading && /loading/i.test(c.emptyReason)) return true;
+    return false;
+  });
 }
 
 /** Placeholder shells so the grid keeps catalog order while heavy charts load. */

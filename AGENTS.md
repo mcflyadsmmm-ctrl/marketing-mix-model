@@ -28,6 +28,9 @@ If a research file says “religion” or “refuse,” treat that as outdated c
 
 These are failure-mode guards, **not** product strategy:
 
+- Prefer **core desk first** (day-fact charts that work for young stores). Advanced depth is opt-in.
+- SAMPLE desk is temporary listing/demo preview — kill switch in `app/app/lib/sample-desk-feature.ts`, rip-out steps in [`docs/SAMPLE_DESK_RIP_OUT.md`](./docs/SAMPLE_DESK_RIP_OUT.md).
+
 - Don’t bring back agent jargon in UI/updates (till, CEO desk, etc.)  
 - Don’t rebuild first-screen lecture walls  
 - Don’t add source-grep tests that freeze dead chrome  

@@ -295,7 +295,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "How long a typical repeater takes.",
     chart: "kpi_row",
     needs: "order_facts",
-    tier: "core",
+    tier: "more",
   },
   {
     id: "third_plus_rate",
@@ -313,7 +313,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Mature buyers still on a single order.",
     chart: "kpi_row",
     needs: "order_facts",
-    tier: "core",
+    tier: "more",
   },
   {
     id: "first_vs_subsequent",
@@ -322,7 +322,7 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "Revenue from first orders vs all later orders.",
     chart: "share",
     needs: "order_facts",
-    tier: "core",
+    tier: "more",
   },
   {
     id: "time_between_orders",
@@ -430,13 +430,13 @@ export const SHOPIFY_DEPTH_CATALOG: readonly DepthFeature[] = [
     blurb: "New buyers vs their sales contribution this period.",
     chart: "kpi_row",
     needs: "order_facts",
-    tier: "core",
+    tier: "more",
   },
   {
     id: "returning_sales_share",
     tab: "customers",
     title: "Returning sales share",
-    blurb: "Period sales from returning buyers.",
+    blurb: "Period sales from returning buyers — works from day facts alone.",
     chart: "share",
     needs: "day_facts",
     tier: "core",

@@ -7,6 +7,7 @@ import {
   buildDepthChartPlaceholdersForTab,
   buildDepthChartsForTab,
   depthCatalogCount,
+  preferFilledDepthCharts,
   type DayFactInput,
   type OrderFactInput,
 } from "./shopify-depth-metrics";
@@ -311,5 +312,32 @@ describe("partial day coverage honesty", () => {
     const chart = charts.find((c) => c.id === "discount_dependency");
     expect(chart?.emptyReason).toBeUndefined();
     expect(chart?.callout).toMatch(/5 of 20 orders with discount fields/i);
+  });
+});
+
+describe("preferFilledDepthCharts", () => {
+  it("drops empty shells and keeps filled charts", () => {
+    const charts = buildDepthChartsForTab(
+      {
+        tab: "customers",
+        dayFacts: [
+          {
+            dayKey: "2026-03-01",
+            sales: 100,
+            orderCount: 2,
+            newCustomerSales: 40,
+            returningCustomerSales: 60,
+          },
+        ],
+        orderFacts: [],
+      },
+      "fast",
+      "core",
+    );
+    const filled = preferFilledDepthCharts(charts);
+    expect(filled.every((c) => !c.emptyReason)).toBe(true);
+    expect(filled.some((c) => c.id === "returning_sales_share")).toBe(true);
+    // Order-fact core charts stay empty without history — filtered out.
+    expect(filled.some((c) => c.id === "second_order_30_60_90")).toBe(false);
   });
 });
