@@ -32,6 +32,19 @@ Reply: **`public install works`**
 
 ---
 
+## 5. PCD + emergency + listing Submit (Public app only)
+
+Same as before on **403721814017**:
+- PCD Level 1 → **`pcd done`**
+- Emergency contact → **`emergency contact done`**
+- Trust pages → **`pages live`**
+- Listing Free + shots → **`assets uploaded`** → **`submitted`**
+
+Copy: [`APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)  
+Reviewer script: [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md)
+
+---
+
 ## 6. Register `refunds/create` webhook (acquisition money gate)
 
 Toml already lists `refunds/create` on `/webhooks/orders`. Partner must register it:
@@ -47,14 +60,8 @@ Reply: **`refunds webhook registered`**
 Without this, refund-day Analytics reseal still depends on `orders/updated` only.
 
 ---
-- Listing Free + shots → **`assets uploaded`** → **`submitted`**
 
-Copy: [`APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)  
-Reviewer script: [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md)
-
----
-
-## 6. Billing = Shopify App Pricing (Free + Pro $39)
+## 7. Billing = Shopify App Pricing (Free + Pro $39)
 
 Your Public app uses **Shopify App Pricing** (not Billing API create-charge).
 
@@ -70,7 +77,7 @@ Reply: **`plans set`** then **`billing works`**
 ## Webhooks (after secret on Fly)
 
 ```bash
-cd /Users/martysmithson/marketing-mix-model/app && npx shopify app deploy --allow-updates
+cd app && npx shopify app deploy --allow-updates
 ```
 
 Reply: **`webhooks registered`**

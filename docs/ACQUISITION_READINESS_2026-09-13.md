@@ -19,6 +19,11 @@ This is an engineering readiness checklist for diligence. It does **not** invent
 | Refund-only payload does not clear wrong OrderFact day seal | Shipped | Seal clear skipped for refund resource; waits for `orders/updated` |
 | Open shop-local day excluded from closed aggregates / Goals pace | Shipped | Sales/Customers/Goals + fact coverage/totals closed-day filter |
 | Goals day-1 (0 closed days) does not show Miss | Shipped | `paceStatus` → Starting when `expectedPct === 0` |
+| Goals MTD uses shop IANA (not host TZ) for open-day cut | Shipped | `app.goals` passes `now` + `ianaTimezone` into month/pace helpers |
+| Goals spend capped to closed days (same cut as sales) | Shipped | `spendByMonthMap` ends at yesterday shop-local |
+| ShopifyQL omitted day must not seal $0 | Shipped | `fetchShopifyQlSalesDay` returns null; empty TIMESERIES → null |
+| Spot-check missing QL row ≠ live $0 | Shipped | Skip absent targets; do not invent mismatch |
+| `refreshExisting` must not recent_scan-wipe history | Shipped | Day search only; refuse page-capped $0 upserts |
 | Desk live “today” top-up cannot double-count a stored open-day fact | Shipped | `salesFactsClosedDayFilter` on coverage + period totals |
 | Admin spot-check reseals on mismatch | Shipped | Newest/oldest/mid closed days; clears OrderFact seals on mismatch |
 | Analytics $0 days allowed to upsert when QL trusted | Shipped | `analyticsTrusted` on zero upsert gate |

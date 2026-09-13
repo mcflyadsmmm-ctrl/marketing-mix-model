@@ -28,6 +28,13 @@ vi.mock("./shopify-sales.server", async (importOriginal) => {
   };
 });
 
+const fetchShopifyQlSalesByDay = vi.fn();
+const fetchShopifyQlSalesDay = vi.fn();
+vi.mock("./shopifyql-sales.server", () => ({
+  fetchShopifyQlSalesByDay: (...args: unknown[]) => fetchShopifyQlSalesByDay(...args),
+  fetchShopifyQlSalesDay: (...args: unknown[]) => fetchShopifyQlSalesDay(...args),
+}));
+
 import {
   runSalesFactsBackfill,
   getSalesFactsCoverage,
@@ -116,6 +123,10 @@ describe("runSalesFactsBackfill", () => {
     count.mockReset();
     ensureShopMetadata.mockReset();
     fetchShopifySales.mockReset();
+    fetchShopifyQlSalesByDay.mockReset();
+    fetchShopifyQlSalesDay.mockReset();
+    fetchShopifyQlSalesByDay.mockResolvedValue(null);
+    fetchShopifyQlSalesDay.mockResolvedValue(null);
   });
 
   it("skips ingest entirely (honest) when ianaTimezone is unknown even after a sync attempt", async () => {
@@ -144,10 +155,27 @@ describe("runSalesFactsBackfill", () => {
     expect(firstRange.label).toBe("2026-07-14");
   });
 
-  it("upserts one SalesDayFact per closed day on the shopId_day unique key, including zero-sales days", async () => {
+  it("upserts one SalesDayFact per closed day on the shopId_day unique key, including Analytics-trusted zero days", async () => {
     ensureShopMetadata.mockResolvedValue({ ianaTimezone: "UTC", currencyCode: "USD" });
     findMany.mockResolvedValue([]); // nothing ingested yet
     fetchShopifySales.mockResolvedValue(fakeSales(0, 0, 1)); // quiet day, shop has orders
+    // Explicit QL $0 rows (not omitted days) — trusted quiet days.
+    fetchShopifyQlSalesByDay.mockImplementation(async (_admin, args: { sinceDayKey: string; untilDayKey: string }) => {
+      const map = new Map();
+      // backfill newest-first: 2026-07-14, 13, 12
+      for (const dayKey of ["2026-07-14", "2026-07-13", "2026-07-12"]) {
+        if (dayKey >= args.sinceDayKey && dayKey <= args.untilDayKey) {
+          map.set(dayKey, {
+            dayKey,
+            totalSales: 0,
+            orderCount: 0,
+            netSales: 0,
+            grossSales: 0,
+          });
+        }
+      }
+      return map;
+    });
 
     const now = new Date("2026-07-15T12:00:00.000Z");
     const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
@@ -593,6 +621,15 @@ describe("salesFactsIncompleteForDesk", () => {
         analyticsTrusted: true,
       }),
     ).toBe(true);
+    expect(
+      salesFactsAllowZeroUpsert({
+        totalSales: 0,
+        orderCount: 0,
+        usedRecentScan: true,
+        shopOrdersSeen: 7,
+        truncatedByPageCap: true,
+      }),
+    ).toBe(false);
   });
 
   it("keeps a real multiple trusted even while coverage is still filling", () => {
@@ -739,6 +776,10 @@ describe("runSalesFactsBackfill refreshExisting", () => {
     count.mockReset();
     ensureShopMetadata.mockReset();
     fetchShopifySales.mockReset();
+    fetchShopifyQlSalesByDay.mockReset();
+    fetchShopifyQlSalesDay.mockReset();
+    fetchShopifyQlSalesByDay.mockResolvedValue(null);
+    fetchShopifyQlSalesDay.mockResolvedValue(null);
   });
 
   it("re-fetches existing newest days so poisoned $0 facts can be overwritten", async () => {

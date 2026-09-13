@@ -705,7 +705,23 @@ export async function runOrderFactsBackfill(
         wroteAnyOrders = true;
       }
       // Only mark the day complete when the crawl finished (not page-capped).
+      // Drop cancelled/deleted orders that are no longer in the crawl — otherwise
+      // LTV / concentration keep counting stale pre-cancel rows forever.
       if (result.complete) {
+        const seenIds = result.rows.map((row) => row.shopifyOrderId);
+        await prisma.orderFact.deleteMany({
+          where: {
+            shopId,
+            source: ORDER_FACT_SOURCE,
+            shopLocalDate: dayKeyToUtcDate(dayKey),
+            shopifyOrderId: {
+              notIn: [
+                ...seenIds,
+                orderFactDayCompleteMarkerId(dayKey),
+              ],
+            },
+          },
+        });
         await upsertOrderFact(
           shopId,
           {

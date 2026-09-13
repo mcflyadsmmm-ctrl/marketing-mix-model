@@ -396,23 +396,19 @@ export async function runSalesFactsBackfill(
   for (const dayKey of batch) {
     try {
       const range = shopLocalDayRange(dayKey, timeZone);
-      const usedRecentScan = Boolean(options?.refreshExisting);
-      const crawled = await fetchShopifySales(
-        admin,
-        range,
-        usedRecentScan
-          ? { mode: "recent_scan", maxPages: LIVE_PERIOD_PROBE_MAX_PAGES }
-          : undefined,
-      );
+      // Never recent_scan a historical day — page-capped newest-N wipes quiet days
+      // that simply sit behind today's volume. Day search + ShopifyQL are the SoT.
+      const crawled = await fetchShopifySales(admin, range);
       const ql = qlDays?.get(dayKey);
       const sales = ql ? applyShopifyQlDayToSalesResult(crawled, ql) : crawled;
       if (
         !salesFactsAllowZeroUpsert({
           totalSales: sales.totalSales,
           orderCount: sales.orderCount,
-          usedRecentScan,
+          usedRecentScan: false,
           shopOrdersSeen: sales.shopOrdersSeen ?? 0,
           analyticsTrusted: Boolean(ql),
+          truncatedByPageCap: Boolean(sales.truncatedByPageCap),
         })
       ) {
         // Leave missing — a search $0 must not become a trusted complete day.
@@ -505,6 +501,19 @@ export async function reconcileSalesDayFact(
   const ql = await fetchShopifyQlSalesDay(admin, dayKey);
   const crawled = await fetchShopifySales(admin, range);
   const sales = ql ? applyShopifyQlDayToSalesResult(crawled, ql) : crawled;
+  if (
+    !salesFactsAllowZeroUpsert({
+      totalSales: sales.totalSales,
+      orderCount: sales.orderCount,
+      usedRecentScan: false,
+      shopOrdersSeen: crawled.shopOrdersSeen ?? 0,
+      analyticsTrusted: Boolean(ql),
+      truncatedByPageCap: Boolean(crawled.truncatedByPageCap),
+    })
+  ) {
+    // Do not seal a search-mode $0 over a previously good day.
+    return { shopId, dayKey, written: false, skippedReason: null };
+  }
   await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
   return { shopId, dayKey, written: true, skippedReason: null };
 }

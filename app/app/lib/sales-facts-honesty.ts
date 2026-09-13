@@ -62,9 +62,15 @@ export function salesFactsAllowZeroUpsert(args: {
   shopOrdersSeen: number;
   /** ShopifyQL Analytics day total — trusted even when $0 / 0 orders. */
   analyticsTrusted?: boolean;
+  /**
+   * recent_scan hit the page cap — it never reached this day, so $0 is not proof
+   * the day was quiet. Refuse to seal.
+   */
+  truncatedByPageCap?: boolean;
 }): boolean {
   if (args.totalSales > 0 || args.orderCount > 0) return true;
   if (args.analyticsTrusted) return true;
+  if (args.truncatedByPageCap) return false;
   return args.usedRecentScan && args.shopOrdersSeen > 0;
 }
 

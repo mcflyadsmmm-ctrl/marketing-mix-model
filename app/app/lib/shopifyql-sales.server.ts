@@ -57,14 +57,21 @@ export async function fetchShopifyQlSalesByDay(
     if (!payload) return null;
     if (payload.parseErrors?.length) return null;
     const rows = payload.tableData?.rows;
-    if (!rows) return null;
-    return parseShopifyQlSalesDayRows(rows);
+    // Empty rows are not "every day is $0" — TIMESERIES often omits days.
+    // Treat as unavailable so callers keep crawl / skip spot-check probes.
+    if (!rows || rows.length === 0) return null;
+    const map = parseShopifyQlSalesDayRows(rows);
+    if (map.size === 0) return null;
+    return map;
   } catch {
     return null;
   }
 }
 
-/** One closed day via ShopifyQL, or null when unavailable. */
+/**
+ * One closed day via ShopifyQL, or null when unavailable / omitted.
+ * Absence must NOT become a synthetic $0 — that seals real revenue as quiet.
+ */
 export async function fetchShopifyQlSalesDay(
   admin: AdminApiContext,
   dayKey: string,
@@ -74,13 +81,5 @@ export async function fetchShopifyQlSalesDay(
     untilDayKey: dayKey,
   });
   if (!map) return null;
-  return (
-    map.get(dayKey) ?? {
-      dayKey,
-      totalSales: 0,
-      orderCount: 0,
-      netSales: 0,
-      grossSales: 0,
-    }
-  );
+  return map.get(dayKey) ?? null;
 }

@@ -7,6 +7,7 @@ import { getSalesFactsByDay, getSalesFactsCoverage } from "./sales-facts.server"
 import { fetchSampleSalesByDay } from "./sample-desk.server";
 import {
   dateKeyFromYmd,
+  shopLocalDayKey,
   shopLocalDayRange,
   shopLocalYmd,
 } from "./shop-local-day";
@@ -249,8 +250,17 @@ export async function spendByMonthMap(
       return months;
     }
     if (nowY === year) {
-      yearEnd = shopLocalDayRange(dateKeyFromYmd(nowY, nowM, nowD), tz).end;
-      maxMonth = nowM;
+      // Closed days only — same open-day cut as salesByMonthFromDayMap.
+      const yesterdayKey = shopLocalDayKey(
+        new Date(Date.UTC(nowY, nowM - 1, nowD - 1, 12, 0, 0)),
+        tz,
+      );
+      yearEnd = shopLocalDayRange(yesterdayKey, tz).end;
+      const { m: endMonth } = shopLocalYmd(
+        shopLocalDayRange(yesterdayKey, tz).start,
+        tz,
+      );
+      maxMonth = endMonth;
     } else {
       yearEnd = shopLocalDayRange(dateKeyFromYmd(year, 12, 31), tz).end;
       maxMonth = 12;

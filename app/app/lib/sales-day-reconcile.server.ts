@@ -75,10 +75,12 @@ export async function spotCheckSalesDayFacts(args: {
   if (qlDays) {
     for (const dayKey of targets) {
       const row = qlDays.get(dayKey);
+      // Missing QL row ≠ live $0 — inventing zeros falsely trips mismatch + reseal.
+      if (!row) continue;
       live.push({
         dayKey,
-        sales: row?.totalSales ?? 0,
-        orderCount: row?.orderCount ?? 0,
+        sales: row.totalSales,
+        orderCount: row.orderCount,
       });
     }
   } else {

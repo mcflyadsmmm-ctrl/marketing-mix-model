@@ -170,19 +170,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }),
   ]);
 
+  const now = new Date();
   const salesByDay = currentSales.salesByDay;
   const salesError = currentSales.salesError;
-  const salesByMonth = salesByMonthFromDayMap(year, salesByDay);
+  // Shop IANA — never host TZ — for open-day exclusion + MTD pace.
+  const salesByMonth = salesByMonthFromDayMap(
+    year,
+    salesByDay,
+    now,
+    shop.ianaTimezone,
+  );
   const priorSalesByMonth = salesByMonthFromDayMap(
     priorYear,
     priorSales.salesByDay,
+    now,
+    shop.ianaTimezone,
   );
   const priorYearMonthly = monthMapToArray(priorSalesByMonth);
 
   const spendOpts = useSampleDesk
     ? { sampleOnly: true as const, ianaTimezone: shop.ianaTimezone }
     : { excludeSample: true as const, ianaTimezone: shop.ianaTimezone };
-  const spendByMonth = await spendByMonthMap(shop.id, year, spendOpts);
+  const spendByMonth = await spendByMonthMap(shop.id, year, spendOpts, now);
 
   // Love-Goals3 / Love-3: SAMPLE ships a locked demo goal; live desks need
   // targetMerConfirmedAt. Never present the DB default 3.0× as the merchant's.
@@ -196,6 +205,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesByMonth,
     spendByMonth,
     targetMer,
+    now,
+    shop.ianaTimezone,
   );
 
   const periods = buildSalesGoalPeriods({
@@ -203,6 +214,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     goals: board.rows.map((r) => r.salesGoal),
     salesByMonth,
     priorYearMonthly,
+    now,
+    ianaTimezone: shop.ianaTimezone,
   });
 
   const yearOptions = Array.from(
@@ -372,7 +385,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         yoyPct: growthPct,
       };
     }
-    const priorSalesByMonth = salesByMonthFromDayMap(priorYear, salesByDay);
+    const priorSalesByMonth = salesByMonthFromDayMap(priorYear, salesByDay, new Date(), shop.ianaTimezone);
     const monthly = goalsAtYoyGrowth(
       monthMapToArray(priorSalesByMonth),
       growthPct,
