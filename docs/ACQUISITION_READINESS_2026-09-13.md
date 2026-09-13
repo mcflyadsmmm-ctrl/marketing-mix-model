@@ -18,6 +18,7 @@ This is an engineering readiness checklist for diligence. It does **not** invent
 | `refunds/create` subscribed in app toml | Code ready | **Partner gate:** run `shopify app deploy` so Partner registers the topic |
 | Refund-only payload does not clear wrong OrderFact day seal | Shipped | Seal clear skipped for refund resource; waits for `orders/updated` |
 | Open shop-local day excluded from closed aggregates / Goals pace | Shipped | Sales/Customers/Goals + fact coverage/totals closed-day filter |
+| Goals day-1 (0 closed days) does not show Miss | Shipped | `paceStatus` → Starting when `expectedPct === 0` |
 | Desk live “today” top-up cannot double-count a stored open-day fact | Shipped | `salesFactsClosedDayFilter` on coverage + period totals |
 | Admin spot-check reseals on mismatch | Shipped | Newest/oldest/mid closed days; clears OrderFact seals on mismatch |
 | Analytics $0 days allowed to upsert when QL trusted | Shipped | `analyticsTrusted` on zero upsert gate |
