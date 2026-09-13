@@ -149,6 +149,20 @@ function formatAsOf(iso: string): string {
   }).format(d);
 }
 
+
+/**
+ * Drop the shop-local open day from period aggregates.
+ * Today is still moving — including it understates closed-period totals
+ * and poisons prior-window comparisons.
+ */
+export function excludeOpenDayFacts<T extends { dayKey: string }>(
+  dayFacts: readonly T[],
+  openDayKey: string | null | undefined,
+): T[] {
+  if (!openDayKey) return [...dayFacts];
+  return dayFacts.filter((d) => d.dayKey !== openDayKey);
+}
+
 /** Whether Sales should ask the job queue to refresh recent closed days. */
 export function salesDayAccuracyNeedsRefresh(snapshot: SalesDayAccuracySnapshot): boolean {
   if (snapshot.status === "catching_up") return true;

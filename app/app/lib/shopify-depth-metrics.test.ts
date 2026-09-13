@@ -341,3 +341,50 @@ describe("preferFilledDepthCharts", () => {
     expect(filled.some((c) => c.id === "second_order_30_60_90")).toBe(false);
   });
 });
+
+describe("open-day accuracy in period aggregates", () => {
+  it("excludes the open day from pace_vs_prior sales total", () => {
+    const charts = buildDepthChartsForTab(
+      {
+        tab: "sales",
+        dayFacts: [
+          { dayKey: "2026-09-10", sales: 100, orderCount: 2 },
+          { dayKey: "2026-09-11", sales: 100, orderCount: 2 },
+          { dayKey: "2026-09-12", sales: 5000, orderCount: 50 },
+        ],
+        priorDayFacts: [
+          { dayKey: "2026-09-03", sales: 100, orderCount: 2 },
+          { dayKey: "2026-09-04", sales: 100, orderCount: 2 },
+        ],
+        openDayKey: "2026-09-12",
+      },
+      "fast",
+      "core",
+    );
+    const pace = charts.find((c) => c.id === "pace_vs_prior");
+    expect(pace?.emptyReason).toBeUndefined();
+    const salesKpi = pace?.kpis?.find((k) => /sales/i.test(k.label));
+    // $200 closed — not $5200 with open day
+    expect(salesKpi?.value.replace(/[^0-9.]/g, "")).toMatch(/^200(\.0+)?$/);
+  });
+
+  it("still lists the open day on day_board with an open mark", () => {
+    const charts = buildDepthChartsForTab(
+      {
+        tab: "sales",
+        dayFacts: [
+          { dayKey: "2026-09-11", sales: 80, orderCount: 1 },
+          { dayKey: "2026-09-12", sales: 10, orderCount: 1 },
+        ],
+        openDayKey: "2026-09-12",
+      },
+      "fast",
+      "core",
+    );
+    const board = charts.find((c) => c.id === "day_board");
+    const openRow = board?.rows?.find((r) =>
+      String(r.cells[0]).includes("2026-09-12"),
+    );
+    expect(openRow?.cells[0]).toMatch(/open/i);
+  });
+});

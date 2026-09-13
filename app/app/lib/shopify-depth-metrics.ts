@@ -20,6 +20,7 @@ import {
   type BuyerOrderFactLike,
 } from "./cohort-buyer-metrics";
 import { strongestSoftestAmongFilled } from "./sales-depth-decision";
+import { excludeOpenDayFacts } from "./sales-day-accuracy";
 
 export type DayFactInput = {
   dayKey: string;
@@ -108,6 +109,8 @@ export type BuildDepthChartsInput = {
   priorOrderFacts?: OrderFactInput[];
   /** Closed day keys expected but missing from dayFacts — never paint as $0. */
   missingDayKeys?: string[];
+  /** Shop-local open day — excluded from period aggregates (still shown on day board). */
+  openDayKey?: string | null;
   timeZone?: string | null;
   goals?: GoalsDepthSnapshot | null;
 };
@@ -233,10 +236,23 @@ function needsLines(feature: DepthFeature): DepthChartModel {
   );
 }
 
-function coverageHonesty(missingDayKeys: string[] | undefined): string | undefined {
+function coverageHonesty(
+  missingDayKeys: string[] | undefined,
+  openDayKey?: string | null,
+): string | undefined {
+  const bits: string[] = [];
   const n = missingDayKeys?.length ?? 0;
-  if (n <= 0) return undefined;
-  return `${n} closed day${n === 1 ? "" : "s"} still filling — read this as partial, not final.`;
+  if (n > 0) {
+    bits.push(
+      `${n} closed day${n === 1 ? "" : "s"} still filling — read this as partial, not final.`,
+    );
+  }
+  if (openDayKey) {
+    bits.push(
+      `Open day ${openDayKey} excluded from period totals until shop midnight.`,
+    );
+  }
+  return bits.length ? bits.join(" ") : undefined;
 }
 
 function lineFieldCoverageCallout(
@@ -286,8 +302,13 @@ function buildOne(
   feature: DepthFeature,
   input: BuildDepthChartsInput,
 ): DepthChartModel {
-  const dayFacts = input.dayFacts;
-  const prior = input.priorDayFacts ?? [];
+  const allDayFacts = input.dayFacts;
+  const openDayKey =
+    input.openDayKey ??
+    (input.timeZone ? dayKeyInTz(new Date(), input.timeZone) : null);
+  // Period aggregates skip the open shop-local day — it is not final.
+  const dayFacts = excludeOpenDayFacts(allDayFacts, openDayKey);
+  const prior = excludeOpenDayFacts(input.priorDayFacts ?? [], openDayKey);
   const baseline = input.baselineDayFacts ?? [];
   const orders = input.orderFacts ?? [];
   const tz = input.timeZone;
@@ -300,7 +321,7 @@ function buildOne(
       return {
         ...shell(feature),
         bars: weekdayBars(dayFacts),
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "weekend_vs_weekday": {
@@ -319,7 +340,7 @@ function buildOne(
           { id: "weekday", label: "Weekday", value: weekday, share: shareOf(weekday, total), tone: "weekday" },
           { id: "weekend", label: "Weekend", value: weekend, share: shareOf(weekend, total), tone: "weekend" },
         ],
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "day_of_month": {
@@ -342,7 +363,7 @@ function buildOne(
             share: shareOf(value, total),
             tone: "weekday",
           })),
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "hour_of_day": {
@@ -376,7 +397,7 @@ function buildOne(
           { label: "Std dev", value: money(s) },
           { label: "Volatility (CV)", value: pct(cv), hint: cv > 0.45 ? "Feast / famine" : "Fairly steady" },
         ],
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "sales_streaks": {
@@ -400,7 +421,7 @@ function buildOne(
       }
       return {
         ...shell(feature),
-        callout: [`Longest above-average run: ${bestAbove}d. Longest below-average run: ${bestBelow}d. Daily average ${money(m)}.`, coverageHonesty(input.missingDayKeys)].filter(Boolean).join(" ") || undefined,
+        callout: [`Longest above-average run: ${bestAbove}d. Longest below-average run: ${bestBelow}d. Daily average ${money(m)}.`, coverageHonesty(input.missingDayKeys, openDayKey)].filter(Boolean).join(" ") || undefined,
       };
     }
     case "pace_vs_prior": {
@@ -432,7 +453,7 @@ function buildOne(
             hint: priorAov != null && aov != null ? delta(aov, priorAov) : undefined,
           },
         ],
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "closed_day_honesty": {
@@ -478,7 +499,7 @@ function buildOne(
           ...b,
           tone: b.share >= (baseBars[i]?.share ?? 0) ? "returning" : "new",
         })),
-        callout: ["Green tint = above baseline share · blue = below.", coverageHonesty(input.missingDayKeys)]
+        callout: ["Green tint = above baseline share · blue = below.", coverageHonesty(input.missingDayKeys, openDayKey)]
           .filter(Boolean)
           .join(" ") || undefined,
       };
@@ -521,7 +542,7 @@ function buildOne(
           { id: "gross", label: "Gross", value: gross, share: shareOf(gross, total), tone: "new" },
           { id: "net", label: "Net", value: net, share: shareOf(net, total), tone: "returning" },
         ],
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "refund_haircut": {
@@ -544,7 +565,7 @@ function buildOne(
           { label: "Net", value: money(net) },
           { label: "Haircut", value: money(haircut), hint: `${pct(haircut / gross)} of gross` },
         ],
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "discount_dependency": {
@@ -686,10 +707,10 @@ function buildOne(
     }
     case "day_board": {
       const missing = input.missingDayKeys ?? [];
-      if (!dayFacts.length && !missing.length) {
+      if (!allDayFacts.length && !missing.length) {
         return empty(feature, "No sales days in this period yet.");
       }
-      const byKey = new Map(dayFacts.map((d) => [d.dayKey, d]));
+      const byKey = new Map(allDayFacts.map((d) => [d.dayKey, d]));
       const keys = [...new Set([...byKey.keys(), ...missing])].sort((a, b) =>
         b.localeCompare(a),
       );
@@ -698,14 +719,16 @@ function buildOne(
         headers: ["Day", "Sales", "Orders", "AOV", "New $", "Returning $"],
         rows: keys.map((key) => {
           const d = byKey.get(key);
+          const openMark =
+            openDayKey && key === openDayKey ? " · open" : "";
           if (!d) {
             return {
-              cells: [key, "—", "—", "—", "—", "Missing fact"],
+              cells: [`${key}${openMark}`, "—", "—", "—", "—", "Missing fact"],
             };
           }
           return {
             cells: [
-              d.dayKey,
+              `${d.dayKey}${openMark}`,
               money(d.sales),
               String(d.orderCount),
               d.orderCount > 0 ? money(d.sales / d.orderCount) : "—",
@@ -714,9 +737,16 @@ function buildOne(
             ],
           };
         }),
-        callout: missing.length
-          ? `${missing.length} closed day${missing.length === 1 ? "" : "s"} still filling — shown as Missing, not $0.`
-          : undefined,
+        callout: [
+          missing.length
+            ? `${missing.length} closed day${missing.length === 1 ? "" : "s"} still filling — shown as Missing, not $0.`
+            : null,
+          openDayKey && byKey.has(openDayKey)
+            ? `Today (${openDayKey}) is open until shop midnight — not final, and excluded from period totals above.`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" ") || undefined,
       };
     }
     case "strongest_softest_day": {
@@ -737,7 +767,7 @@ function buildOne(
         callout:
           [
             `Strongest ${best.dayKey}: ${money(best.sales)} · ${best.orderCount} orders. Softest ${soft.dayKey}: ${money(soft.sales)} · ${soft.orderCount} orders.${among}`,
-            coverageHonesty(input.missingDayKeys),
+            coverageHonesty(input.missingDayKeys, openDayKey),
           ]
             .filter(Boolean)
             .join(" ") || undefined,
@@ -761,7 +791,7 @@ function buildOne(
           { id: "returning", label: "Returning", value: ret, share: shareOf(ret, total), tone: "returning" },
           { id: "new", label: "New", value: neu, share: shareOf(neu, total), tone: "new" },
         ],
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "wow_mom_yoy": {
@@ -804,7 +834,7 @@ function buildOne(
       }
       return {
         ...shell(feature),
-        callout: [bits.join(" ") || "Not enough mix signal for a read yet.", coverageHonesty(input.missingDayKeys)]
+        callout: [bits.join(" ") || "Not enough mix signal for a read yet.", coverageHonesty(input.missingDayKeys, openDayKey)]
           .filter(Boolean)
           .join(" ") || undefined,
       };
@@ -1299,7 +1329,7 @@ function buildOne(
           { label: "Their first-order $", value: money(newSales) },
           { label: "First AOV", value: newBuyers > 0 ? money(newSales / newBuyers) : "—" },
         ],
-        callout: coverageHonesty(input.missingDayKeys),
+        callout: coverageHonesty(input.missingDayKeys, openDayKey),
       };
     }
     case "sales_goal_mtd": {

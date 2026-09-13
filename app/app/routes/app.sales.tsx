@@ -28,6 +28,7 @@ import {
 import { OpsDeskIsland } from "../components/OpsDeskIsland";
 import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
+import { excludeOpenDayFacts } from "../lib/sales-day-accuracy";
 import { buildSalesDepthDecision } from "../lib/sales-depth-decision";
 import { resolveOrderEconomics } from "../lib/order-economics";
 
@@ -81,6 +82,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     baselineDayFacts: depth.baselineDayFacts,
     orderFacts: depth.orderFacts,
     missingDayKeys: accuracy.missingDayKeys,
+    openDayKey: accuracy.openDayKey,
     timeZone: shop.ianaTimezone,
   };
 
@@ -98,17 +100,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ? null
     : `/app/sales/heavy?period=${encodeURIComponent(preset)}&depth=${encodeURIComponent(depthDensity)}`;
 
+  const closedDayFacts = excludeOpenDayFacts(
+    depth.dayFacts,
+    accuracy.openDayKey,
+  );
   const salesByDay: Record<string, number> = {};
-  for (const d of depth.dayFacts) salesByDay[d.dayKey] = d.sales;
+  for (const d of closedDayFacts) salesByDay[d.dayKey] = d.sales;
   const economics = resolveOrderEconomics({
-    sales: depth.dayFacts.reduce((s, d) => s + d.sales, 0),
-    orderCount: depth.dayFacts.reduce((s, d) => s + d.orderCount, 0),
+    sales: closedDayFacts.reduce((s, d) => s + d.sales, 0),
+    orderCount: closedDayFacts.reduce((s, d) => s + d.orderCount, 0),
     salesByDay,
-    newCustomerSales: depth.dayFacts.reduce(
+    newCustomerSales: closedDayFacts.reduce(
       (s, d) => s + (d.newCustomerSales ?? 0),
       0,
     ),
-    returningCustomerSales: depth.dayFacts.reduce(
+    returningCustomerSales: closedDayFacts.reduce(
       (s, d) => s + (d.returningCustomerSales ?? 0),
       0,
     ),

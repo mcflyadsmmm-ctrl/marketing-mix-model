@@ -69,6 +69,7 @@ export async function loadDepthHeavyCharts(
         orderFacts: depth.orderFacts,
         priorOrderFacts: depth.priorOrderFacts,
         missingDayKeys: accuracy?.missingDayKeys,
+        openDayKey: accuracy?.openDayKey,
         timeZone: shop.ianaTimezone,
       },
       "slow",

@@ -95,8 +95,15 @@ export function buildSalesDepthDecision(args: {
           ? `${args.economics.orderCount.toLocaleString()} orders · ${money(args.economics.sales)} across ${args.accuracy.factDays} closed days.`
           : null;
 
+  const openDayNote =
+    args.accuracy.openDayKey &&
+    args.dayFacts?.some((d) => d.dayKey === args.accuracy.openDayKey)
+      ? `Desk totals use closed days only — ${args.accuracy.openDayKey} is still open.`
+      : null;
+
   const dayInsight =
-    [accuracyInsight, dayPairLine].filter(Boolean).join(" ") || null;
+    [accuracyInsight, dayPairLine, openDayNote].filter(Boolean).join(" ") ||
+    null;
 
   const prior = args.priorDayFacts ?? [];
   const priorSales = prior.reduce((s, d) => s + d.sales, 0);

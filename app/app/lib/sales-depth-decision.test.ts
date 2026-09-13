@@ -89,3 +89,27 @@ describe("buildSalesDepthDecision prior deltas", () => {
     expect(model!.kpis[0]?.id).toBe("sales");
   });
 });
+
+describe("buildSalesDepthDecision open-day honesty", () => {
+  it("states desk totals skip the open shop-local day", () => {
+    const accuracy = assessSalesDayAccuracy({
+      expectedClosedDayKeys: ["2026-09-10", "2026-09-11"],
+      presentDayKeys: ["2026-09-10", "2026-09-11"],
+      openDayKey: "2026-09-12",
+    });
+    const model = buildSalesDepthDecision({
+      periodLabel: "Last 30 days",
+      periodPreset: "last_30",
+      economics,
+      accuracy,
+      dayFacts: [
+        { dayKey: "2026-09-10", sales: 200, orderCount: 2 },
+        { dayKey: "2026-09-11", sales: 300, orderCount: 3 },
+        { dayKey: "2026-09-12", sales: 9999, orderCount: 9 },
+      ],
+    });
+    expect(model).not.toBeNull();
+    expect(`${model!.takeaway} ${model!.why}`).toMatch(/closed days only/i);
+    expect(`${model!.takeaway} ${model!.why}`).toMatch(/2026-09-12/);
+  });
+});
