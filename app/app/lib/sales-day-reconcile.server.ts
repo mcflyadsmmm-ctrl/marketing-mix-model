@@ -9,7 +9,10 @@ import { clearOrderFactDayCompleteSeal } from "./order-facts.server";
 import { RECONCILE_SALES_DAY_JOB } from "./order-webhook";
 import { enqueueSalesFactsBackfill } from "./sales-backfill-kick.server";
 import { getSalesFactRowsByDay } from "./sales-facts.server";
-import { fetchShopifySales } from "./shopify-sales.server";
+import {
+  fetchShopifySales,
+  LIVE_TODAY_MAX_PAGES,
+} from "./shopify-sales.server";
 import { fetchShopifyQlSalesByDay } from "./shopifyql-sales.server";
 import { shopLocalDayRange } from "./shop-local-day";
 import {
@@ -20,6 +23,12 @@ import {
 
 /** Keep Sales paint snappy — 3 newest closed days with facts. */
 export const SALES_DAY_RECONCILE_SPOT_CHECK_LIMIT = 3;
+
+/**
+ * Cap order crawls on page load when ShopifyQL is unavailable.
+ * Same budget as the desk today top-up — uncapped probes starve reconcile jobs.
+ */
+export const SALES_DAY_SPOT_CHECK_MAX_PAGES = LIVE_TODAY_MAX_PAGES;
 
 export async function spotCheckSalesDayFacts(args: {
   shopId: string;
@@ -87,7 +96,11 @@ export async function spotCheckSalesDayFacts(args: {
     for (const dayKey of targets) {
       const dayRange = shopLocalDayRange(dayKey, args.timeZone);
       try {
-        const sales = await fetchShopifySales(args.admin, dayRange);
+        const sales = await fetchShopifySales(args.admin, dayRange, {
+          maxPages: SALES_DAY_SPOT_CHECK_MAX_PAGES,
+        });
+        // Page-capped probe is incomplete — skip the day rather than mismatch.
+        if (sales.truncatedByPageCap) continue;
         live.push({
           dayKey,
           sales: sales.totalSales,

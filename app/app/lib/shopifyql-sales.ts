@@ -106,6 +106,12 @@ export function applyShopifyQlDayToSalesResult<
     grossSales: number;
     grossSalesKnown?: boolean;
     source: string;
+    newCustomers?: number;
+    returningCustomers?: number;
+    newCustomerNetSales?: number;
+    returningCustomerNetSales?: number;
+    guestOrders?: number;
+    customerMetricsAvailable?: boolean;
   },
 >(crawled: T, ql: ShopifyQlSalesDayRow): T {
   return {
@@ -116,6 +122,14 @@ export function applyShopifyQlDayToSalesResult<
     netSalesKnown: ql.netSales != null ? true : crawled.netSalesKnown,
     grossSales: ql.grossSales ?? crawled.grossSales,
     grossSalesKnown: ql.grossSales != null ? true : crawled.grossSalesKnown,
+    // QL totals are event-dated; crawl cohort split is created_at + current
+    // totals. Keeping both on one row makes newCustomerNetSales ∤ netSales.
+    newCustomers: 0,
+    returningCustomers: 0,
+    newCustomerNetSales: 0,
+    returningCustomerNetSales: 0,
+    guestOrders: 0,
+    customerMetricsAvailable: false,
     source: "shopify",
   };
 }

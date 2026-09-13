@@ -40,7 +40,14 @@ export {
 };
 
 /** SalesDayFact.source for rows written by this ingest lane. */
+/** Order-created crawl with current totals (pre-Analytics overlay). */
 export const SALES_DAY_FACT_SOURCE = "shopify_order_current_total_v1";
+/** ShopifyQL day totals (Admin Analytics Total Sales grain). */
+export const SALES_DAY_FACT_SOURCE_ANALYTICS = "shopify_analytics_total_sales_v2";
+const ALLOWED_SALES_DAY_FACT_SOURCES = new Set<string>([
+  SALES_DAY_FACT_SOURCE,
+  SALES_DAY_FACT_SOURCE_ANALYTICS,
+]);
 
 /**
  * Serving + backfill horizon: closed days back to **Jan 1 of (UTC year − N)**.
@@ -217,8 +224,12 @@ async function upsertSalesDayFact(
   sales: SalesResult,
   currencyCode: string | null,
   asOf: Date,
+  options?: { analyticsOverlay?: boolean },
 ): Promise<void> {
   const day = dayKeyToUtcDate(dayKey);
+  const source = options?.analyticsOverlay
+    ? SALES_DAY_FACT_SOURCE_ANALYTICS
+    : SALES_DAY_FACT_SOURCE;
   const data = {
     sales: sales.totalSales,
     netSales: sales.netSales,
@@ -232,14 +243,16 @@ async function upsertSalesDayFact(
     customerMetricsAvailable: sales.customerMetricsAvailable,
     currency: currencyCode,
     asOf,
-    source: SALES_DAY_FACT_SOURCE,
+    source,
   };
 
   // Upsert only after the full per-day pagination above has succeeded — a zero-sales
   // day is a legitimate fact (written as sales: 0), a failed fetch is not (left missing).
   // Never write demo/sample into SalesDayFact — sample till stays on SampleSalesDay.
-  if (data.source !== SALES_DAY_FACT_SOURCE) {
-    throw new Error(`SalesDayFact source must be ${SALES_DAY_FACT_SOURCE}`);
+  if (!ALLOWED_SALES_DAY_FACT_SOURCES.has(data.source)) {
+    throw new Error(
+      `SalesDayFact source must be one of ${[...ALLOWED_SALES_DAY_FACT_SOURCES].join(", ")}`,
+    );
   }
   await prisma.salesDayFact.upsert({
     where: { shopId_day: { shopId, day } },
@@ -402,7 +415,9 @@ export async function runSalesFactsBackfill(
         failed.push(dayKey);
         continue;
       }
-      await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
+      await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now, {
+        analyticsOverlay: Boolean(ql),
+      });
       written += 1;
     } catch {
       // Leave this day missing — the next call's missing-dates scan retries it.
@@ -501,7 +516,9 @@ export async function reconcileSalesDayFact(
     // Do not seal a search-mode $0 over a previously good day.
     return { shopId, dayKey, written: false, skippedReason: null };
   }
-  await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
+  await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now, {
+    analyticsOverlay: Boolean(ql),
+  });
   return { shopId, dayKey, written: true, skippedReason: null };
 }
 

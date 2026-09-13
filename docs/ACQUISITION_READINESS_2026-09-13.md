@@ -29,6 +29,10 @@ This is an engineering readiness checklist for diligence. It does **not** invent
 | Desk live “today” top-up cannot double-count a stored open-day fact | Shipped | `salesFactsClosedDayFilter` on coverage + period totals |
 | Admin spot-check reseals on mismatch | Shipped | Newest/oldest/mid closed days; clears OrderFact seals on mismatch |
 | Analytics $0 days allowed to upsert when QL trusted | Shipped | `analyticsTrusted` on zero upsert gate |
+| QL overlay does not keep crawl cohort columns | Shipped | Cohort fields zeroed; `customerMetricsAvailable: false` |
+| QL vs crawl provenance on SalesDayFact.source | Shipped | `shopify_analytics_total_sales_v2` vs `shopify_order_current_total_v1` |
+| Spot-check crawl capped on page load | Shipped | `SALES_DAY_SPOT_CHECK_MAX_PAGES`; truncated probe → skip |
+| Unknown shop TZ does not cut facts with host clock | Shipped | `salesFactsClosedDayFilter` leaves filter untouched when TZ null |
 
 ## Product / ops honesty
 

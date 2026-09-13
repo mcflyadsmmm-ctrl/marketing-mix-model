@@ -68,7 +68,7 @@ describe("parsers", () => {
 });
 
 describe("applyShopifyQlDayToSalesResult", () => {
-  it("overlays Analytics totals onto crawl while keeping crawl-only fields", () => {
+  it("overlays Analytics totals and clears crawl cohort columns", () => {
     const crawled = {
       totalSales: 100,
       orderCount: 2,
@@ -78,6 +78,12 @@ describe("applyShopifyQlDayToSalesResult", () => {
       grossSalesKnown: true,
       source: "crawl",
       shopOrdersSeen: 7,
+      newCustomers: 5,
+      returningCustomers: 3,
+      newCustomerNetSales: 40,
+      returningCustomerNetSales: 50,
+      guestOrders: 1,
+      customerMetricsAvailable: true,
     };
     const next = applyShopifyQlDayToSalesResult(crawled, {
       dayKey: "2026-09-10",
@@ -92,5 +98,11 @@ describe("applyShopifyQlDayToSalesResult", () => {
     expect(next.grossSales).toBe(1300);
     expect(next.source).toBe("shopify");
     expect(next.shopOrdersSeen).toBe(7);
+    expect(next.newCustomers).toBe(0);
+    expect(next.returningCustomers).toBe(0);
+    expect(next.newCustomerNetSales).toBe(0);
+    expect(next.returningCustomerNetSales).toBe(0);
+    expect(next.guestOrders).toBe(0);
+    expect(next.customerMetricsAvailable).toBe(false);
   });
 });

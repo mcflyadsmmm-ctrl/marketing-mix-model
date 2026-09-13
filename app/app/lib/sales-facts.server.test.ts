@@ -48,6 +48,7 @@ import {
   salesFactsClosedDayFilter,
   shouldProbeLivePeriodSales,
   SALES_DAY_FACT_SOURCE,
+  SALES_DAY_FACT_SOURCE_ANALYTICS,
 } from "./sales-facts.server";
 import {
   salesFactsAllowZeroUpsert,
@@ -194,7 +195,9 @@ describe("runSalesFactsBackfill", () => {
     expect(call.where).toHaveProperty("shopId_day");
     expect(call.where.shopId_day.shopId).toBe("shop_1");
     expect(call.create.sales).toBe(0);
-    expect(call.create.source).toBe(SALES_DAY_FACT_SOURCE);
+    expect(call.create.source).toBe(SALES_DAY_FACT_SOURCE_ANALYTICS);
+    expect(call.create.customerMetricsAvailable).toBe(false);
+    expect(call.create.newCustomerNetSales).toBe(0);
   });
 
   it("upsert is idempotent — re-running the same day writes the same where clause, not a duplicate row", async () => {
