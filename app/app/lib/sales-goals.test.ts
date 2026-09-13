@@ -110,6 +110,14 @@ describe("paceStatus", () => {
   it("labels future empty months upcoming", () => {
     expect(paceStatus(0, 100, { isFuture: true }).kind).toBe("upcoming");
   });
+
+  it("labels day-1 (zero closed days) as Starting, not Miss", () => {
+    expect(paceStatus(0, 50_000, { expectedPct: 0 })).toEqual({
+      kind: "on_track",
+      label: "Starting",
+      tone: "flat",
+    });
+  });
 });
 
 describe("calendarDaysElapsedInMonth", () => {

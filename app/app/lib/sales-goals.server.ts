@@ -351,6 +351,14 @@ export function paceStatus(
   }
 
   const expectedPct = opts?.expectedPct;
+  // Day 1 of the shop-local month: no closed days yet — not a Miss.
+  if (
+    expectedPct != null &&
+    Number.isFinite(expectedPct) &&
+    expectedPct === 0
+  ) {
+    return { kind: "on_track", label: "Starting", tone: "flat" };
+  }
   if (
     expectedPct != null &&
     Number.isFinite(expectedPct) &&
