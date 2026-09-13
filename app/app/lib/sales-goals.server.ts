@@ -212,7 +212,8 @@ export function salesByMonthFromDayMap(
     if (!key.startsWith(prefix) || !Number.isFinite(sales)) continue;
     const month = Number.parseInt(key.slice(5, 7), 10);
     if (month < 1 || month > 12) continue;
-    if (todayKey && month === currentMonth && key > todayKey) continue;
+    // Exclude the open shop-local day — MTD pace is closed days only.
+    if (todayKey && month === currentMonth && key >= todayKey) continue;
     months.set(month, (months.get(month) ?? 0) + sales);
   }
   return months;
@@ -320,16 +321,18 @@ export function calendarDaysElapsedInMonth(
       remainingDays: daysInMonth - daysElapsed,
     };
   }
-  const daysElapsed = Math.min(Math.max(nowD, 1), daysInMonth);
+  // Today is open (partial sales). Pace uses closed days only so merchants
+  // are not judged against a full day's goal before midnight.
+  const closedElapsed = Math.min(Math.max(nowD - 1, 0), daysInMonth);
   return {
-    daysElapsed,
+    daysElapsed: closedElapsed,
     daysInMonth,
-    remainingDays: Math.max(0, daysInMonth - daysElapsed),
+    remainingDays: Math.max(0, daysInMonth - closedElapsed),
   };
 }
 
 /**
- * Pace vs sales goal. In-progress months scale the goal by calendar days elapsed.
+ * Pace vs sales goal. In-progress months scale the goal by closed calendar days elapsed (open day excluded).
  * Closed months: Met / Close / Miss. Future empty: Upcoming.
  */
 export function paceStatus(
@@ -736,7 +739,8 @@ function calendarPctInMonthSpan(
     if (nowY > year || (nowY === year && nowM > m)) {
       elapsed += dim;
     } else if (nowY === year && nowM === m) {
-      elapsed += Math.min(Math.max(nowD, 0), dim);
+      // Closed days only — open shop-local day is not a full elapsed day.
+      elapsed += Math.min(Math.max(nowD - 1, 0), dim);
     }
   }
   if (totalDays <= 0) return 0;

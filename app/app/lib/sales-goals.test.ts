@@ -65,19 +65,31 @@ describe("buildYearBoard target rail", () => {
   });
 });
 
+
+  it("excludes open shop-local day from MTD month bucket", () => {
+    const salesByDay = new Map<string, number>([
+      ["2026-07-21", 100],
+      ["2026-07-22", 100],
+      ["2026-07-23", 999],
+    ]);
+    const now = new Date(2026, 6, 23, 15, 0, 0);
+    const months = salesByMonthFromDayMap(2026, salesByDay, now);
+    expect(months.get(7)).toBe(200);
+  });
+
 describe("salesByMonthFromDayMap", () => {
-  it("buckets day keys into months and caps current month at today", () => {
-    const now = new Date(2026, 6, 15); // Jul 15
+  it("buckets day keys into months and caps current month to closed days", () => {
+    const now = new Date(2026, 6, 15); // Jul 15 open
     const sales = new Map<string, number>([
       ["2026-01-10", 1000],
       ["2026-07-01", 200],
-      ["2026-07-15", 50],
+      ["2026-07-15", 50], // open day — excluded
       ["2026-07-20", 999], // future day in month — excluded
       ["2025-12-31", 50],
     ]);
     const months = salesByMonthFromDayMap(2026, sales, now);
     expect(months.get(1)).toBe(1000);
-    expect(months.get(7)).toBe(250);
+    expect(months.get(7)).toBe(200);
     expect(months.get(12)).toBe(0);
   });
 });
@@ -101,24 +113,25 @@ describe("paceStatus", () => {
 });
 
 describe("calendarDaysElapsedInMonth", () => {
-  it("counts MTD days in the current month", () => {
+  it("counts closed MTD days in the current month (open day excluded)", () => {
     const now = new Date(2026, 6, 23);
     const { daysElapsed, daysInMonth, remainingDays } =
       calendarDaysElapsedInMonth(2026, 7, now);
-    expect(daysElapsed).toBe(23);
+    // Jul 23 open → 22 closed days; today + 8 future remain.
+    expect(daysElapsed).toBe(22);
     expect(daysInMonth).toBe(31);
-    expect(remainingDays).toBe(8);
+    expect(remainingDays).toBe(9);
   });
 
   it("uses shop IANA day-of-month, not host-local getDate()", () => {
     // 2026-07-15 02:00 UTC = Jul 15 in Asia/Tokyo, still Jul 14 evening in LA.
     const now = new Date("2026-07-15T02:00:00.000Z");
     expect(calendarDaysElapsedInMonth(2026, 7, now, "Asia/Tokyo").daysElapsed).toBe(
-      15,
+      14,
     );
     expect(
       calendarDaysElapsedInMonth(2026, 7, now, "America/Los_Angeles").daysElapsed,
-    ).toBe(14);
+    ).toBe(13);
   });
 });
 
@@ -141,10 +154,11 @@ describe("Goals shop IANA under process TZ=Asia/Tokyo", () => {
 
     const tokyo = salesByMonthFromDayMap(2026, sales, now, "Asia/Tokyo");
     expect(tokyo.get(7)).toBe(100);
-    expect(tokyo.get(8)).toBe(50); // Aug 1 only; Aug 2 capped out
+    expect(tokyo.get(8)).toBe(0); // Aug 1 is open — excluded; Aug 2 future
 
     const denver = salesByMonthFromDayMap(2026, sales, now, "America/Denver");
-    expect(denver.get(7)).toBe(100);
+    // Jul 31 is open in Denver — excluded from closed MTD.
+    expect(denver.get(7)).toBe(0);
     // Aug days are not the current Denver month — still summed (no MTD cap).
     expect(denver.get(8)).toBe(50 + 999);
   });
@@ -192,7 +206,7 @@ describe("Goals shop IANA under process TZ=Asia/Tokyo", () => {
       now,
       ianaTimezone: "Asia/Tokyo",
     });
-    expect(periods.mtd.calendarPct).toBeCloseTo((15 / 31) * 100, 5);
+    expect(periods.mtd.calendarPct).toBeCloseTo((14 / 31) * 100, 5);
     expect(periods.mtd.periodHint).toBe("Jul 2026");
   });
 });
@@ -275,8 +289,8 @@ describe("buildSalesGoalPeriods", () => {
     expect(periods.mtd.actual).toBe(52_000);
     expect(periods.mtd.goal).toBe(100_000);
     expect(periods.mtd.progressPct).toBe(52);
-    expect(periods.mtd.calendarPct).toBeCloseTo((15 / 31) * 100, 5);
-    expect(periods.mtd.pace.kind).toBe("ahead"); // 52k vs 100k×(15/31)≈48.4k
+    expect(periods.mtd.calendarPct).toBeCloseTo((14 / 31) * 100, 5);
+    expect(periods.mtd.pace.kind).toBe("ahead"); // 52k vs 100k×(14/31)≈45.2k
     expect(periods.mtd.yoy.priorActual).toBe(80_000);
     expect(periods.mtd.yoy.pct).toBeCloseTo(((52_000 - 80_000) / 80_000) * 100, 5);
     expect(periods.mtd.yoy.tone).toBe("down");
@@ -314,5 +328,18 @@ describe("buildSalesGoalPeriods", () => {
     expect(periods.mtd.pace.kind).toBe("none");
     expect(periods.qtd.progressPct).toBeNull();
     expect(periods.ytd.progressPct).toBeNull();
+  });
+});
+
+describe("salesByMonthFromDayMap open-day accuracy", () => {
+  it("excludes open shop-local day from MTD month bucket", () => {
+    const salesByDay = new Map<string, number>([
+      ["2026-07-21", 100],
+      ["2026-07-22", 100],
+      ["2026-07-23", 999],
+    ]);
+    const now = new Date(2026, 6, 23, 15, 0, 0);
+    const months = salesByMonthFromDayMap(2026, salesByDay, now);
+    expect(months.get(7)).toBe(200);
   });
 });
