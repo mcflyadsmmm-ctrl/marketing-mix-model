@@ -32,12 +32,21 @@ Reply: **`public install works`**
 
 ---
 
-## 5. PCD + emergency + listing Submit (Public app only)
+## 6. Register `refunds/create` webhook (acquisition money gate)
 
-Same as before on **403721814017**:
-- PCD Level 1 → **`pcd done`**
-- Emergency contact → **`emergency contact done`**
-- Trust pages → **`pages live`**
+Toml already lists `refunds/create` on `/webhooks/orders`. Partner must register it:
+
+```bash
+cd app && shopify app deploy
+```
+
+Confirm in Partner → Mcfly Analytics Public → Versions/Webhooks that **refunds/create** is live.
+
+Reply: **`refunds webhook registered`**
+
+Without this, refund-day Analytics reseal still depends on `orders/updated` only.
+
+---
 - Listing Free + shots → **`assets uploaded`** → **`submitted`**
 
 Copy: [`APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)  

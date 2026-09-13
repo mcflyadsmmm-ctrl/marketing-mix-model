@@ -128,7 +128,7 @@ function accuracyDetail(
 
   switch (status) {
     case "complete":
-      return `Closed days track Shopify Analytics day totals in this shop timezone (refunds land on the refund day).${synced}${openNote}`;
+      return `Closed days track Shopify Analytics Total Sales (not Net) in this shop timezone — refunds land on the refund day.${synced}${openNote}`;
     case "catching_up": {
       const sample = args.missingDayKeys.slice(0, 3).join(", ");
       const more =
