@@ -31,6 +31,9 @@ import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 import { loadOrderHistoryAccuracy } from "../lib/order-history-accuracy.server";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
 import { orderHistoryAccuracyNeedsRefresh } from "../lib/order-history-accuracy";
+import { buildCustomersDepthDecision } from "../lib/customers-depth-decision";
+import { resolveOrderEconomics } from "../lib/order-economics";
+import { OpsDeskIsland } from "../components/OpsDeskIsland";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -118,6 +121,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     ? null
     : `/app/customers/heavy?period=${encodeURIComponent(preset)}&depth=${encodeURIComponent(depthDensity)}`;
 
+  const salesByDay: Record<string, number> = {};
+  for (const d of depth.dayFacts) salesByDay[d.dayKey] = d.sales;
+  const economics = resolveOrderEconomics({
+    sales: depth.dayFacts.reduce((s, d) => s + d.sales, 0),
+    orderCount: depth.dayFacts.reduce((s, d) => s + d.orderCount, 0),
+    salesByDay,
+    newCustomerSales: depth.dayFacts.reduce(
+      (s, d) => s + (d.newCustomerSales ?? 0),
+      0,
+    ),
+    returningCustomerSales: depth.dayFacts.reduce(
+      (s, d) => s + (d.returningCustomerSales ?? 0),
+      0,
+    ),
+  });
+  const decision = shotMode
+    ? null
+    : buildCustomersDepthDecision({
+        periodLabel: depth.periodLabel,
+        periodPreset: preset,
+        economics,
+        dayAccuracy: accuracy,
+        orderHistoryAccuracy,
+      });
+
   return {
     depthDensity,
     charts,
@@ -132,6 +160,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shopDomain: session.shop,
     accuracy,
     orderHistoryAccuracy,
+    decision,
   };
 };
 
@@ -150,6 +179,7 @@ export default function CustomersDepthPage() {
     shopDomain,
     accuracy,
     orderHistoryAccuracy,
+    decision,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -194,6 +224,7 @@ export default function CustomersDepthPage() {
             when="problems"
           />
         ) : null}
+        {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
         <DepthProgressiveGrid
           fastCharts={charts}
           placeholders={placeholders}
