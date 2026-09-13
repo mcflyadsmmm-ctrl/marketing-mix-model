@@ -9,6 +9,7 @@ import {
   listRecentClosedShopLocalDays,
   type SalesResult,
 } from "./shopify-sales.server";
+import { fetchShopifyQlSalesDay } from "./shopifyql-sales.server";
 import { ensureShopMetadata } from "./shop-metadata.server";
 import { countClosedDaysInPeriod } from "./mer-trust";
 import {
@@ -437,7 +438,22 @@ export async function reconcileSalesDayFact(
     return { shopId, dayKey, written: false, skippedReason: "day_outside_window" };
   }
 
-  const sales = await fetchShopifySales(admin, range);
+  // Analytics-first: ShopifyQL day totals match Admin charts (event-dated refunds).
+  // Fall back to order crawl when ShopifyQL is unavailable.
+  const ql = await fetchShopifyQlSalesDay(admin, dayKey);
+  const crawled = await fetchShopifySales(admin, range);
+  const sales = ql
+    ? {
+        ...crawled,
+        totalSales: ql.totalSales,
+        orderCount: ql.orderCount,
+        netSales: ql.netSales ?? crawled.netSales,
+        netSalesKnown: ql.netSales != null ? true : crawled.netSalesKnown,
+        grossSales: ql.grossSales ?? crawled.grossSales,
+        grossSalesKnown: ql.grossSales != null ? true : crawled.grossSalesKnown,
+        source: "shopify" as const,
+      }
+    : crawled;
   await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
   return { shopId, dayKey, written: true, skippedReason: null };
 }

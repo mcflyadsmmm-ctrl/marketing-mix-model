@@ -169,6 +169,6 @@ export function assessSalesDayReconcile(args: {
     checkedDayKeys,
     mismatches,
     headline: `Shopify totals disagree on ${mismatches.length} checked day${mismatches.length === 1 ? "" : "s"}`,
-    detail: `Live Admin check found drift on ${sample}${more}. Re-syncing those closed days now — Mcfly will not quietly keep the wrong number.`,
+    detail: `Shopify Analytics day totals disagree on ${sample}${more}. Re-syncing those closed days now — Mcfly will not quietly keep the wrong number.`,
   };
 }

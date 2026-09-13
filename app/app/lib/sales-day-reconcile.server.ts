@@ -10,6 +10,7 @@ import { RECONCILE_SALES_DAY_JOB } from "./order-webhook";
 import { enqueueSalesFactsBackfill } from "./sales-backfill-kick.server";
 import { getSalesFactRowsByDay } from "./sales-facts.server";
 import { fetchShopifySales } from "./shopify-sales.server";
+import { fetchShopifyQlSalesByDay } from "./shopifyql-sales.server";
 import { shopLocalDayRange } from "./shop-local-day";
 import {
   assessSalesDayReconcile,
@@ -62,20 +63,39 @@ export async function spotCheckSalesDayFacts(args: {
     ];
   });
 
+  // Prefer ShopifyQL (Admin Analytics grain) so refunds/edits match what
+  // merchants see in Shopify — order-created crawls rewrite history the wrong way.
   const live: Array<{ dayKey: string; sales: number; orderCount: number }> = [];
-  for (const dayKey of targets) {
-    const dayRange = shopLocalDayRange(dayKey, args.timeZone);
-    try {
-      const sales = await fetchShopifySales(args.admin, dayRange);
+  const newest = targets[0]!;
+  const oldest = targets[targets.length - 1]!;
+  const qlDays = await fetchShopifyQlSalesByDay(args.admin, {
+    sinceDayKey: oldest,
+    untilDayKey: newest,
+  });
+  if (qlDays) {
+    for (const dayKey of targets) {
+      const row = qlDays.get(dayKey);
       live.push({
         dayKey,
-        sales: sales.totalSales,
-        orderCount: sales.orderCount,
+        sales: row?.totalSales ?? 0,
+        orderCount: row?.orderCount ?? 0,
       });
-    } catch {
-      // Fail open on transient Shopify errors — coverage strip still owns holes.
-      // Do not invent a mismatch from a failed probe.
-      return assessSalesDayReconcile({ facts: [], live: [] });
+    }
+  } else {
+    for (const dayKey of targets) {
+      const dayRange = shopLocalDayRange(dayKey, args.timeZone);
+      try {
+        const sales = await fetchShopifySales(args.admin, dayRange);
+        live.push({
+          dayKey,
+          sales: sales.totalSales,
+          orderCount: sales.orderCount,
+        });
+      } catch {
+        // Fail open on transient Shopify errors — coverage strip still owns holes.
+        // Do not invent a mismatch from a failed probe.
+        return assessSalesDayReconcile({ facts: [], live: [] });
+      }
     }
   }
 
