@@ -56,7 +56,11 @@ export function buildCustomersDepthDecision(args: {
     bits.push("Order history sealed for this window — repeat depth is ready.");
   }
 
-  if (args.dayAccuracy.status === "catching_up") {
+  if (args.dayAccuracy.reconcileStatus === "mismatch") {
+    bits.unshift(
+      `${args.dayAccuracy.headline} ${args.dayAccuracy.detail}`.trim(),
+    );
+  } else if (args.dayAccuracy.status === "catching_up") {
     bits.push("Sales day facts still filling — missing days are not $0.");
   }
 
@@ -72,12 +76,14 @@ export function buildCustomersDepthDecision(args: {
   if (!model) return null;
 
   const why =
-    args.orderHistoryAccuracy.status === "complete" &&
-    args.dayAccuracy.status === "complete"
-      ? model.why || summarizeOrderEconomics(args.economics) || ""
-      : [args.orderHistoryAccuracy.detail, args.dayAccuracy.detail]
-          .filter(Boolean)
-          .join(" ");
+    args.dayAccuracy.reconcileStatus === "mismatch"
+      ? args.dayAccuracy.detail
+      : args.orderHistoryAccuracy.status === "complete" &&
+          args.dayAccuracy.status === "complete"
+        ? model.why || summarizeOrderEconomics(args.economics) || ""
+        : [args.orderHistoryAccuracy.detail, args.dayAccuracy.detail]
+            .filter(Boolean)
+            .join(" ");
 
   return {
     ...model,
