@@ -38,6 +38,7 @@ import {
   salesDayFactWindowDayCount,
   selectSalesFactsBackfillDays,
   salesFactsDayFilter,
+  salesFactsClosedDayFilter,
   shouldProbeLivePeriodSales,
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
@@ -452,6 +453,35 @@ describe("salesFactsDayFilter (shop-local vs UTC-midnight facts)", () => {
       "Australia/Sydney",
     );
     expect(filter.gte.toISOString()).toBe("2026-01-01T00:00:00.000Z");
+  });
+});
+
+describe("salesFactsClosedDayFilter", () => {
+  it("drops the open shop-local day so live today top-up cannot double-count", () => {
+    const filter = salesFactsClosedDayFilter(
+      {
+        start: new Date("2026-09-01T06:00:00.000Z"),
+        end: new Date("2026-09-10T05:59:59.999Z"),
+      },
+      new Date("2026-09-09T18:00:00.000Z"),
+      "America/Denver",
+    );
+    expect(filter.gte.toISOString()).toBe("2026-09-01T00:00:00.000Z");
+    // Shop-local today in Denver is 2026-09-09 → last closed is 2026-09-08.
+    expect(filter.lte.toISOString()).toBe("2026-09-08T00:00:00.000Z");
+  });
+
+  it("leaves historical closed ranges unchanged", () => {
+    const filter = salesFactsClosedDayFilter(
+      {
+        start: new Date("2026-08-01T06:00:00.000Z"),
+        end: new Date("2026-08-31T05:59:59.999Z"),
+      },
+      new Date("2026-09-09T18:00:00.000Z"),
+      "America/Denver",
+    );
+    expect(filter.gte.toISOString()).toBe("2026-08-01T00:00:00.000Z");
+    expect(filter.lte.toISOString()).toBe("2026-08-30T00:00:00.000Z");
   });
 });
 

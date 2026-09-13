@@ -148,6 +148,50 @@ export function salesFactsDayFilter(
   return { gte: range.start, lte: range.end };
 }
 
+/**
+ * Same as {@link salesFactsDayFilter}, but caps at the last closed shop-local day.
+ *
+ * Desk period totals add a live "today" top-up. If a SalesDayFact row for the open
+ * day ever exists (legacy write, clock skew, future ingest change), including it
+ * here would double-count against that top-up and inflate coverage vs
+ * {@link countClosedDaysInPeriod}.
+ */
+export function salesFactsClosedDayFilter(
+  range: { start: Date; end: Date },
+  now: Date,
+  timeZone?: string | null,
+): { gte: Date; lte: Date } {
+  const base = salesFactsDayFilter(range, timeZone);
+  if (timeZone) {
+    const todayKey = shopLocalDayKey(now, timeZone);
+    const endKey = shopLocalDayKey(range.end, timeZone);
+    if (endKey < todayKey) return base;
+    const [y, m, d] = todayKey.split("-").map(Number);
+    const yesterdayKey = shopLocalDayKey(
+      new Date(Date.UTC(y, m - 1, d - 1, 12, 0, 0)),
+      timeZone,
+    );
+    const lte = dayKeyToUtcDate(yesterdayKey);
+    if (lte < base.gte) {
+      // No closed days in range — empty window (gte > lte).
+      return { gte: base.gte, lte: new Date(base.gte.getTime() - 1) };
+    }
+    return { gte: base.gte, lte };
+  }
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  let end = new Date(range.end);
+  end.setHours(0, 0, 0, 0);
+  if (end >= todayStart) {
+    end = new Date(todayStart);
+    end.setDate(end.getDate() - 1);
+  }
+  if (end < base.gte) {
+    return { gte: base.gte, lte: new Date(base.gte.getTime() - 1) };
+  }
+  return { gte: base.gte, lte: end };
+}
+
 /** $0 stored facts on a short period — probe live Admin orders instead of heros. */
 export function shouldProbeLivePeriodSales(args: {
   factSales: number;
@@ -508,7 +552,7 @@ export async function getSalesFactsCoverage(
 
   if (periodExceedsFactWindow) {
     const windowRange = { start: windowStart, end: range.end };
-    const dayFilter = salesFactsDayFilter(windowRange, timeZone);
+    const dayFilter = salesFactsClosedDayFilter(windowRange, now, timeZone);
     const factDays = await prisma.salesDayFact.count({
       where: { shopId, day: { gte: dayFilter.gte, lte: dayFilter.lte } },
     });
@@ -541,7 +585,7 @@ export async function getSalesFactsCoverage(
     };
   }
 
-  const dayFilter = salesFactsDayFilter(range, timeZone);
+  const dayFilter = salesFactsClosedDayFilter(range, now, timeZone);
   const factDays = await prisma.salesDayFact.count({
     where: { shopId, day: { gte: dayFilter.gte, lte: dayFilter.lte } },
   });
@@ -670,8 +714,10 @@ export async function getSalesFactsTotals(
   const windowStart = salesDayFactWindowStartUtc(now);
   const rangeClampedToFactWindow = range.start < windowStart;
   const clampedStart = rangeClampedToFactWindow ? windowStart : range.start;
-  const dayFilter = salesFactsDayFilter(
+  // Closed days only — open day is live-topped in loadDeskSalesForPeriod.
+  const dayFilter = salesFactsClosedDayFilter(
     { start: clampedStart, end: range.end },
+    now,
     timeZone,
   );
 
