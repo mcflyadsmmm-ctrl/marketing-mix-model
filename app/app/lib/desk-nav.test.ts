@@ -12,13 +12,14 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe("deskNavItems", () => {
-  it("top nav is Overview · Sales · Customers · Goals · Marketing Spend · Settings", () => {
+  it("top nav is Overview · Sales · Customers · Goals · Upload Spend · Allocation · Settings", () => {
     expect(deskNavCoreIds()).toEqual([
       "overview",
       "sales",
       "customers",
       "goals",
       "spend",
+      "allocation",
       "settings",
     ]);
     expect(deskNavItems().map((i) => i.href)).toEqual([
@@ -27,6 +28,7 @@ describe("deskNavItems", () => {
       "/app/customers",
       "/app/goals",
       "/app/spend",
+      "/app/allocation",
       "/app/settings",
     ]);
     expect(deskNavItems().find((i) => i.id === "overview")?.label).toBe(
@@ -36,14 +38,16 @@ describe("deskNavItems", () => {
       "Customers",
     );
     expect(deskNavItems().find((i) => i.id === "spend")?.label).toBe(
-      "Marketing Spend",
+      "Upload Spend",
     );
-    expect(deskNavItems().map((i) => i.id)).not.toContain("allocation");
+    expect(deskNavItems().find((i) => i.id === "allocation")?.label).toBe(
+      "Allocation",
+    );
     expect(deskNavItems().map((i) => i.id)).not.toContain("advanced");
   });
 
   it("later pages stay deep-linkable — not deleted, just off the top nav", () => {
-    expect(deskNavLaterIds()).toEqual(["allocation", "advanced"]);
+    expect(deskNavLaterIds()).toEqual(["advanced"]);
     const hrefs = deskNavAllItems().map((i) => i.href);
     expect(hrefs).toContain("/app");
     expect(hrefs).toContain("/app/goals");

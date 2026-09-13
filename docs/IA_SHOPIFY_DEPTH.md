@@ -11,11 +11,12 @@
 | **Sales** | `/app/sales` | Shopify period story — rhythm, mix, change charts |
 | **Customers** | `/app/customers` | Repeat, concentration, buyer depth |
 | **Goals** | `/app/goals` | Sales pace board |
-| **Marketing Spend** | `/app/spend` | BC spend desk + Total ROAS; subnav → Allocation, Advanced |
+| **Upload Spend** | `/app/spend` | **Entry only** — day / bill / CSV |
+| **Allocation** | `/app/allocation` | BC cut / hold / shift (needs spend) |
 | **Settings** | `/app/settings` | Margin, target MER, SAMPLE, privacy, exports |
 
-**Next wave (when ledgers ship):** Days · Orders · Cohorts  
-**Under Spend:** Allocation · Advanced
+**Spend subnav:** Upload Spend · Allocation · Spend insights (`/app/advanced`)  
+**Next wave:** Days · Orders · Cohorts
 
 ## Rules
 

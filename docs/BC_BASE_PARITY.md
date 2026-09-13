@@ -55,19 +55,32 @@ Cash MER operator desk:
 
 ---
 
-## Top nav (BC base + Mcfly depth)
+## Top nav (BC base + clear spend split)
 
 | Order | Tab | Role |
 | --- | --- | --- |
-| 1 | **Overview** | Black Clover scoreboard (home) |
+| 1 | **Overview** | Black Clover scoreboard (home) — MER when spend exists |
 | 2 | **Sales** | Shopify period story |
 | 3 | **Customers** | Buyers + repeat |
 | 4 | **Goals** | Pace board |
-| 5 | **Marketing Spend** | BC spend desk |
-| 6 | **Settings** | Margin, target MER, sample, exports |
+| 5 | **Upload Spend** | **Only** get spend in (day / bill / CSV) |
+| 6 | **Allocation** | BC cut / hold / shift once spend exists |
+| 7 | **Settings** | Margin, target MER, sample, exports |
 
-**Next wave (add when ledgers ship):** Days · Orders · Cohorts  
-**Under Spend:** Allocation · Advanced
+**Spend subnav** (on Upload / Allocation / Insights pages): Upload Spend · Allocation · Spend insights  
+
+**Next wave:** Days · Orders · Cohorts  
+**Still under subnav (not top):** Spend insights (`/app/advanced`)
+
+### Why Upload ≠ Marketing Spend mega-tab
+
+Spend was the trickiest surface because entry + MER + allocation competed on one desk.  
+Black Clover separates the ritual (get spend in) from the readouts (scoreboard / allocation / explorer). Mcfly mirrors that:
+
+1. **Upload Spend** — operator work surface  
+2. **Overview** — MER / decision when coverage exists  
+3. **Allocation** — portfolio call  
+4. **Spend insights** — advanced formulas (subnav)
 
 ---
 

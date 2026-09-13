@@ -1,16 +1,20 @@
 import { Link, useLocation } from "react-router";
 
+/**
+ * Spend wing subnav — entry vs analysis stay separate.
+ * Upload = get spend in. Allocation / Insights = Black Clover desks that need spend.
+ */
 const LINKS = [
-  { href: "/app/spend", label: "Desk" },
+  { href: "/app/spend", label: "Upload Spend" },
   { href: "/app/allocation", label: "Allocation" },
-  { href: "/app/advanced", label: "Advanced" },
+  { href: "/app/advanced", label: "Spend insights" },
 ] as const;
 
 export function MarketingSpendNav() {
   const { pathname } = useLocation();
 
   return (
-    <nav className="mcfly-depth-subnav" aria-label="Marketing spend sections">
+    <nav className="mcfly-depth-subnav" aria-label="Spend sections">
       <ul className="mcfly-depth-subnav__list">
         {LINKS.map((link) => {
           const active =

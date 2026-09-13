@@ -59,19 +59,19 @@ export const PRODUCT_NOUN = {
   deskTitle: "Overview",
   totalRoasTitle: "Total ROAS",
   /** Spend mix / quarterly / rolling — route /app/allocation */
-  spendAllocation: "Spend Allocation",
+  spendAllocation: "Allocation",
   /** Acquisition + cohort LTV deep-dive (route /app/ltv) */
   ltvTitle: "Customers & LTV",
   /** Primary CTA after spend / empty states — verb + outcome */
   openTotalRoas: "Open Total ROAS",
-  openSpendAllocation: "Open Spend Allocation",
+  openSpendAllocation: "Open Allocation",
   openLtv: "Open customer insights",
   openCustomerInsights: "Open customer insights",
   /** Customers & LTV page — jump to cohort table */
   openCohorts: "Open cohorts",
-  /** Enterprise MDS lab — averages, not causal channel ROAS */
-  advancedMetrics: "Advanced Metrics",
-  openAdvanced: "Open Advanced Metrics",
+  /** Spend-needed depth (BC explorer / recon) — route /app/advanced */
+  advancedMetrics: "Spend insights",
+  openAdvanced: "Open Spend insights",
   advancedKicker:
     "Enterprise formulas · averages, not causal channel ROAS",
   /** Spend Allocation snapshot labels (facts, not AI advice) */
@@ -82,7 +82,7 @@ export const PRODUCT_NOUN = {
     "Spend mix in top Total ROAS quarters — portfolio co-occurrence",
   /** Customer payback one-liner prefix */
   customerPayback: "Customer payback",
-  nextAllocation: "Next: Spend Allocation",
+  nextAllocation: "Next: Allocation",
   nextCustomerPayback: "Next: Customers & LTV",
   /** Overview payback tile defs — plain English formulas */
   cashCacDef: "Period ad spend ÷ new customers",

@@ -1780,8 +1780,16 @@ export default function SpendEntryPage() {
   );
 
   return (
-    <s-page heading="Marketing Spend" inlineSize="large">
+    <s-page heading="Upload Spend" inlineSize="large">
       {!shotMode ? <MarketingSpendNav /> : null}
+      {!shotMode ? (
+        <s-box paddingBlockEnd="base">
+          <s-paragraph>
+            This tab is only for getting spend in (day entry, bill spread, or CSV).
+            Total ROAS lives on Overview. Cut / hold / shift lives on Allocation.
+          </s-paragraph>
+        </s-box>
+      ) : null}
       {sampleDesk.enabled && !shotMode ? (
         <Form method="post" action={dataModeAction}>
           <input type="hidden" name="intent" value="use-real" />

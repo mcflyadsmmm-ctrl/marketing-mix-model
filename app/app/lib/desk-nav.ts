@@ -1,7 +1,12 @@
 /**
- * App nav — Black Clover Overview first, then Shopify depth, then Spend.
- * Core: Overview · Sales · Customers · Goals · Marketing Spend · Settings.
- * Allocation / Advanced live under Marketing Spend subnav (later: true).
+ * App nav — Black Clover Overview first, then Shopify depth, then spend wing.
+ *
+ * Spend is split on purpose (Marty 2026-09-13):
+ * - Upload Spend = get dollars in (CSV / paste / bill) — one clear job
+ * - Allocation = BC cut/hold/shift once spend exists — its own top tab
+ * - Insights (Advanced) = spend-needed depth (explorer / recon) — subnav for now
+ *
+ * Core: Overview · Sales · Customers · Goals · Upload Spend · Allocation · Settings.
  * Days / Orders / Cohorts join core when their ledgers ship.
  */
 
@@ -31,20 +36,20 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
   {
     id: "spend",
     href: "/app/spend",
-    label: "Marketing Spend",
+    label: "Upload Spend",
     later: false,
   },
-  { id: "settings", href: "/app/settings", label: "Settings", later: false },
   {
     id: "allocation",
     href: "/app/allocation",
     label: "Allocation",
-    later: true,
+    later: false,
   },
+  { id: "settings", href: "/app/settings", label: "Settings", later: false },
   {
     id: "advanced",
     href: "/app/advanced",
-    label: "Advanced",
+    label: "Spend insights",
     later: true,
   },
 ] as const;

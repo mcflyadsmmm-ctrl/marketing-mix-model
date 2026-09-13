@@ -79,7 +79,7 @@ export default function App() {
 
   return (
     <AppProvider embedded apiKey={apiKey}>
-      {/* Core: Overview (BC scoreboard) · Sales · Customers · Goals · Spend · Settings */}
+      {/* Core: Overview · Sales · Customers · Goals · Upload Spend · Allocation · Settings */}
       <s-app-nav>
         {deskNavItems().map((item) => (
           <s-link key={item.id} href={listingCaptureHref(item.href, shotMode)}>
