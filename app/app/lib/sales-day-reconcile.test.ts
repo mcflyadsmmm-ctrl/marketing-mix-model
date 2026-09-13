@@ -42,7 +42,34 @@ describe("selectSalesDayReconcileTargets", () => {
       openDayKey: "2026-09-12",
       limit: 2,
     });
-    expect(keys).toEqual(["2026-09-11", "2026-09-10"]);
+    // Newest + oldest present (spread) — not two newest only.
+    expect(keys).toEqual(["2026-09-11", "2026-09-08"]);
+  });
+
+  it("spreads newest, oldest, and mid across a long closed window", () => {
+    const keys = selectSalesDayReconcileTargets({
+      expectedClosedDayKeys: [
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04",
+        "2026-09-05",
+        "2026-09-06",
+        "2026-09-07",
+      ],
+      presentDayKeys: [
+        "2026-09-01",
+        "2026-09-02",
+        "2026-09-03",
+        "2026-09-04",
+        "2026-09-05",
+        "2026-09-06",
+        "2026-09-07",
+      ],
+      openDayKey: "2026-09-08",
+      limit: 3,
+    });
+    expect(keys).toEqual(["2026-09-07", "2026-09-04", "2026-09-01"]);
   });
 
   it("returns empty when no present closed days yet", () => {

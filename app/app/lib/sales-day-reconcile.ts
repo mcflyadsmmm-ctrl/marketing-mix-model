@@ -61,7 +61,8 @@ export function salesDayProbeMatches(
 
 /**
  * Pick closed days inside the selected period for a live spot-check.
- * Prefer newest closed days that already have facts (catch amount drift).
+ * Newest first (catch fresh refunds), then oldest + mid when the window is
+ * long — so an edit on day 4 of MTD cannot hide behind three recent matches.
  * Cap keeps Sales paint fast.
  */
 export function selectSalesDayReconcileTargets(args: {
@@ -74,10 +75,29 @@ export function selectSalesDayReconcileTargets(args: {
   const present = new Set(args.presentDayKeys);
   const open = args.openDayKey ?? null;
   const limit = Math.max(1, args.limit ?? 3);
-  const closed = args.expectedClosedDayKeys
+  const newestFirst = args.expectedClosedDayKeys
     .filter((k) => k !== open && present.has(k))
     .sort((a, b) => b.localeCompare(a));
-  return closed.slice(0, limit);
+  if (newestFirst.length <= limit) return newestFirst;
+
+  const picked = new Set<string>();
+  const push = (key: string | undefined) => {
+    if (key) picked.add(key);
+  };
+  // Newest closed day — refunds/edits land here most often.
+  push(newestFirst[0]);
+  // Oldest present closed day in the period — catches stale deep history.
+  if (picked.size < limit) push(newestFirst[newestFirst.length - 1]);
+  // Mid window — spreads coverage across MTD/QTD without a full crawl.
+  if (picked.size < limit) {
+    push(newestFirst[Math.floor(newestFirst.length / 2)]);
+  }
+  // Fill remaining slots with next-newest not already chosen.
+  for (const key of newestFirst) {
+    if (picked.size >= limit) break;
+    picked.add(key);
+  }
+  return [...picked].sort((a, b) => b.localeCompare(a));
 }
 
 export function assessSalesDayReconcile(args: {

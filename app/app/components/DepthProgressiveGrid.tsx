@@ -72,6 +72,9 @@ export function DepthProgressiveGrid({
     placeholders.length > 0 &&
     (loadingHeavy || Boolean(fetcher.data));
 
+  const emptyDesk =
+    merged.length === 0 && !loadingHeavy && !(deferHeavy && !fetcher.data);
+
   return (
     <div className="mcfly-depth-progressive">
       {showStatus ? (
@@ -81,6 +84,12 @@ export function DepthProgressiveGrid({
               ? "Order-history charts ready."
               : "Order history loaded — deeper charts need more buyer history."
             : "Loading order-history charts…"}
+        </p>
+      ) : null}
+      {emptyDesk ? (
+        <p className="mcfly-depth-progressive__empty" role="status">
+          Charts show up once closed days have sales — we hide empty shells so a
+          young store is not a wall of “not enough data.”
         </p>
       ) : null}
       <div className="mcfly-depth-chart-grid">
