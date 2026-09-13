@@ -40,7 +40,6 @@ import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { DeskPageWhy } from "../components/DeskPageWhy";
 import { DepthChartCard } from "../components/DepthChartCard";
-import { FirstTrustedRoasGate } from "../components/FirstTrustedRoasGate";
 import {
   applyListingCaptureParam,
   formatListingTillLabel,
@@ -258,11 +257,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       sampleDesk: useSampleDesk,
       paidPro: shop.proBillingActive,
     }),
-    hasLiveSpend:
-      !useSampleDesk &&
-      (await prisma.spendEntry.count({
-        where: { shopId: shop.id, NOT: { source: "sample" } },
-      })) > 0,
   };
 };
 
@@ -477,7 +471,6 @@ export default function GoalsPage() {
     targetMer,
     priorYear,
     priorYearMonthly,
-    hasLiveSpend,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -551,7 +544,7 @@ export default function GoalsPage() {
 
   const ytdTone = deltaTone(board.ytd.delta, board.ytd.goal);
   const forecast = board.forecast;
-  const tillLabel = formatListingTillLabel({
+  const periodAsOfLabel = formatListingTillLabel({
     periodLabel: String(year),
     useSampleDesk,
     listingCapture: shotMode,
@@ -580,19 +573,14 @@ export default function GoalsPage() {
           .join(" ")}
       >
         <DeskPageWhy page="goals" />
-        <FirstTrustedRoasGate
-          hasLiveSpend={hasLiveSpend}
-          useSampleDesk={useSampleDesk}
-          shotMode={shotMode}
-        />
         {noGoalsYet && !shotMode ? (
           <section
             className="mcfly-state mcfly-state--empty"
             aria-label="Goals empty"
           >
             <p className="mcfly-state__copy">
-              No monthly sales goals yet — not broken. Set a target so you can
-              see if ads bought enough till cash next to Total ROAS.
+              No monthly sales goals yet. Set a target so Mcfly can pace
+              actual Shopify sales against the plan — MTD, QTD, and YTD.
             </p>
           </section>
         ) : null}
@@ -603,7 +591,7 @@ export default function GoalsPage() {
               <span className="mcfly-ctx__sep" aria-hidden="true">
                 ·
               </span>
-              <span className="mcfly-ctx__asof">{tillLabel}</span>
+              <span className="mcfly-ctx__asof">{periodAsOfLabel}</span>
               {!shotMode && targetMer != null ? (
                 <>
                   <span className="mcfly-ctx__sep" aria-hidden="true">
@@ -656,9 +644,9 @@ export default function GoalsPage() {
           </div>
           {!shotMode ? (
             <p className="mcfly-goals__lede">
-              Set the plan once — Grow YoY fills all months.{" "}
-              {PRODUCT_NOUN.totalRoas} stays on Overview ·{" "}
-              <s-link href="/app/settings">edit target</s-link>
+              Set the plan once — Grow YoY fills months from last year&apos;s
+              sales. Pace is sales-only here; spend stays optional later.{" "}
+              <s-link href="/app/settings">edit target MER</s-link>
             </p>
           ) : null}
         </div>
