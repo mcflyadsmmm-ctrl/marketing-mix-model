@@ -113,3 +113,30 @@ describe("buildSalesDepthDecision open-day honesty", () => {
     expect(`${model!.takeaway} ${model!.why}`).toMatch(/2026-09-12/);
   });
 });
+
+describe("buildSalesDepthDecision Admin mismatch", () => {
+  it("puts live Admin drift in the takeaway ahead of complete copy", () => {
+    const accuracy = {
+      ...assessSalesDayAccuracy({
+        expectedClosedDayKeys: ["2026-09-10"],
+        presentDayKeys: ["2026-09-10"],
+        openDayKey: "2026-09-11",
+      }),
+      reconcileStatus: "mismatch" as const,
+      reconcileCheckedDays: 1,
+      reconcileMismatchDays: ["2026-09-10"],
+      headline: "Shopify totals disagree on 1 checked day",
+      detail: "Live Admin check found drift on 2026-09-10. Re-syncing now.",
+    };
+    const model = buildSalesDepthDecision({
+      periodLabel: "Last 30 days",
+      periodPreset: "last_30",
+      economics,
+      accuracy,
+      dayFacts: [{ dayKey: "2026-09-10", sales: 200, orderCount: 2 }],
+    });
+    expect(model).not.toBeNull();
+    expect(model!.takeaway).toMatch(/disagree/i);
+    expect(model!.why).toMatch(/2026-09-10/);
+  });
+});

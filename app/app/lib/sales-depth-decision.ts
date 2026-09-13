@@ -87,13 +87,15 @@ export function buildSalesDepthDecision(args: {
   const dayPairLine = pair ? formatDayPair(pair, incomplete) : null;
 
   const accuracyInsight =
-    args.accuracy.status === "catching_up"
-      ? `${args.accuracy.headline}. Filled days only — missing days are not $0.`
-      : args.accuracy.status === "partial_history"
-        ? args.accuracy.headline
-        : args.accuracy.status === "complete" && args.economics.orderCount > 0
-          ? `${args.economics.orderCount.toLocaleString()} orders · ${money(args.economics.sales)} across ${args.accuracy.factDays} closed days.`
-          : null;
+    args.accuracy.reconcileStatus === "mismatch"
+      ? `${args.accuracy.headline}. ${args.accuracy.detail}`
+      : args.accuracy.status === "catching_up"
+        ? `${args.accuracy.headline}. Filled days only — missing days are not $0.`
+        : args.accuracy.status === "partial_history"
+          ? args.accuracy.headline
+          : args.accuracy.status === "complete" && args.economics.orderCount > 0
+            ? `${args.economics.orderCount.toLocaleString()} orders · ${money(args.economics.sales)} across ${args.accuracy.factDays} closed days.`
+            : null;
 
   const openDayNote =
     args.accuracy.openDayKey &&
@@ -132,9 +134,11 @@ export function buildSalesDepthDecision(args: {
     ...model,
     kicker: `Sales · ${args.periodLabel}`,
     why:
-      args.accuracy.status === "complete"
-        ? model.why || summarizeOrderEconomics(args.economics) || ""
-        : args.accuracy.detail,
+      args.accuracy.reconcileStatus === "mismatch"
+        ? args.accuracy.detail
+        : args.accuracy.status === "complete"
+          ? model.why || summarizeOrderEconomics(args.economics) || ""
+          : args.accuracy.detail,
     actions: [
       {
         id: "customers",
