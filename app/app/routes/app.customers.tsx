@@ -151,6 +151,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         economics,
         dayAccuracy: accuracy,
         orderHistoryAccuracy,
+        currencyCode: shop.currencyCode,
       });
 
   return {

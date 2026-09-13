@@ -374,11 +374,27 @@ type SpendEntrySlice = {
   periodEnd: Date;
 };
 
-function channelSpendFromEntries(entries: SpendEntrySlice[]): ChannelSpend[] {
+/**
+ * Sum channel spend for a viewed window. Multi-day rows are prorated into the
+ * overlap (same policy as the daily spine) so a month invoice never lands in
+ * full against a 7-day desk range.
+ */
+function channelSpendFromEntries(
+  entries: SpendEntrySlice[],
+  range: DateRange,
+): ChannelSpend[] {
   const totals = emptyChannelTotals();
   for (const entry of entries) {
     const ch = entry.channel as SpendChannel;
-    if (ch in totals) totals[ch] += entry.amount;
+    if (!(ch in totals)) continue;
+    const slices = attributeSpendAcrossDays(
+      entry.periodStart,
+      entry.periodEnd,
+      entry.amount,
+      range.start,
+      range.end,
+    );
+    for (const slice of slices) totals[ch] += slice.amount;
   }
   return SPEND_CHANNELS.map((channel) => ({
     channel,
@@ -417,7 +433,7 @@ export async function getSpendByChannel(
   options?: { sampleOnly?: boolean; excludeSample?: boolean },
 ): Promise<ChannelSpend[]> {
   const entries = await loadSpendEntries(shopId, range, options);
-  return channelSpendFromEntries(entries);
+  return channelSpendFromEntries(entries, range);
 }
 
 export function buildAllocationSuggestion(
@@ -1070,7 +1086,7 @@ export async function buildDashboardMetrics(
   const rangeEntries = spendEntries.filter(
     (e) => e.periodStart <= range.end && e.periodEnd >= range.start,
   );
-  const spends = channelSpendFromEntries(rangeEntries);
+  const spends = channelSpendFromEntries(rangeEntries, range);
   const spendCoverage = await getSpendPeriodCoverage(shop.id, range, {
     ...spendOpts,
     entries: rangeEntries,

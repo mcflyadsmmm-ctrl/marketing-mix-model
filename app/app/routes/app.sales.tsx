@@ -130,6 +130,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           accuracy,
           dayFacts: depth.dayFacts,
           priorDayFacts: depth.priorDayFacts,
+          currencyCode: shop.currencyCode,
         });
 
   return {

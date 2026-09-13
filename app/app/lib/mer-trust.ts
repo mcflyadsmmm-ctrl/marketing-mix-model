@@ -19,6 +19,14 @@ function utcDayKey(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+/**
+ * Coverage only counts day-grain rows. A month invoice overlapping a 7-day
+ * window must not report 100% filled — that unlocks cash actions on fiction.
+ */
+function isDayGrainSpendEntry(periodStart: Date, periodEnd: Date): boolean {
+  return utcDayKey(periodStart) === utcDayKey(periodEnd);
+}
+
 export interface SpendPeriodCoverage {
   daysWithSpend: number;
   daysInPeriod: number;
@@ -129,6 +137,7 @@ export function collectFilledSpendDayKeys(
 
     for (const entry of entries) {
       if (!(entry.amount > 0)) continue;
+      if (!isDayGrainSpendEntry(entry.periodStart, entry.periodEnd)) continue;
       // Spend rows are UTC-midnight of the CSV calendar day (utcMidnightFromDayKey).
       // shopLocalDayKey(…, America/Denver) on 2026-07-01T00:00Z → 2026-06-30 — false holes.
       let cursorKey = utcDayKey(entry.periodStart);
@@ -158,6 +167,7 @@ export function collectFilledSpendDayKeys(
 
   for (const entry of entries) {
     if (!(entry.amount > 0)) continue;
+    if (!isDayGrainSpendEntry(entry.periodStart, entry.periodEnd)) continue;
     let cursor = startOfLocalDay(
       entry.periodStart < windowStart ? windowStart : entry.periodStart,
     );

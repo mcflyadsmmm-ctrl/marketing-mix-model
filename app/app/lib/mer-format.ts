@@ -1,8 +1,30 @@
+/** ISO 4217 from Shop.currencyCode; fall back to USD only when unset. */
+export function resolveShopCurrency(currencyCode?: string | null): string {
+  const code = currencyCode?.trim().toUpperCase();
+  if (code && /^[A-Z]{3}$/.test(code)) return code;
+  return "USD";
+}
+
 export function formatCurrency(amount: number, currency = "USD"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency,
+    currency: resolveShopCurrency(currency),
     maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+/** Desk money with shop currency — prefer this over hardcoding USD. */
+export function formatShopMoney(
+  amount: number,
+  currencyCode?: string | null,
+  opts?: { maximumFractionDigits?: number },
+): string {
+  const max =
+    opts?.maximumFractionDigits ?? (Math.abs(amount) >= 100 ? 0 : 2);
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: resolveShopCurrency(currencyCode),
+    maximumFractionDigits: max,
   }).format(amount);
 }
 

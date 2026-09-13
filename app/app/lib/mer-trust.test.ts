@@ -45,17 +45,18 @@ describe("collectFilledSpendDayKeys + computeSpendPeriodCoverage", () => {
       },
     ];
     const filled = collectFilledSpendDayKeys(entries, start, end, now);
-    // Jul 1,2,3,10 = 4 days
-    expect(filled.size).toBe(4);
+    // Multi-day Jul 1–3 invoice does not count as filled days — only day-grain Jul 10.
+    expect(filled.size).toBe(1);
+    expect(filled.has("2026-07-10")).toBe(true);
 
     const coverage = computeSpendPeriodCoverage({
       daysWithSpend: filled.size,
       daysInPeriod: countClosedDaysInPeriod(start, end, now),
     });
     expect(coverage.daysInPeriod).toBe(22);
-    expect(coverage.daysWithSpend).toBe(4);
+    expect(coverage.daysWithSpend).toBe(1);
     expect(coverage.incomplete).toBe(true);
-    expect(coverage.coveragePct).toBe(18);
+    expect(coverage.coveragePct).toBe(5);
   });
 
   it("does not flag incomplete when coverage is dense", () => {
@@ -334,8 +335,9 @@ describe("shop IANA closed-day coverage", () => {
       now,
       "America/Los_Angeles",
     );
-    expect(filled.size).toBe(4);
-    expect(filled.has("2026-07-01")).toBe(true);
+    // Month/multi-day lumps are not coverage; only the day-grain Jul 10 row counts.
+    expect(filled.size).toBe(1);
+    expect(filled.has("2026-07-01")).toBe(false);
     expect(filled.has("2026-07-10")).toBe(true);
   });
 

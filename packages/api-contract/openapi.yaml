@@ -98,6 +98,9 @@ components:
         effectiveMer:
           type: number
           nullable: true
+          description: >
+            Measured channel MER only. Always null when the API only knows
+            spend-share — spend-share × portfolio MER is not channel efficiency.
         spendShare:
           type: number
           minimum: 0

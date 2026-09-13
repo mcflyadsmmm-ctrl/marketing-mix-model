@@ -94,7 +94,8 @@ export async function buildMerResponse(
     name: CHANNEL_LABELS[entry.channel],
     spend: entry.amount,
     spendShare: entry.share,
-    effectiveMer: entry.amount > 0 ? computeMer(sales * entry.share, entry.amount) : null,
+    // Spend-share × portfolio MER is not measured channel efficiency — never fabricate it.
+    effectiveMer: null,
   }));
 
   return {

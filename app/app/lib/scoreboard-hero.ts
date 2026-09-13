@@ -7,6 +7,7 @@
 import type { OrderEconomics } from "./order-economics";
 import { summarizeOrderEconomics } from "./order-economics";
 import type { OpsDeskTone } from "./ops-desk-island";
+import { formatShopMoney } from "./mer-format";
 
 export type ScoreboardCardTone = "decision" | "sales" | "customers" | "spend";
 
@@ -45,12 +46,8 @@ export type ScoreboardHeroModel = {
   secondaryLabel: string;
 };
 
-function money(n: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: n >= 100 ? 0 : 2,
-  }).format(n);
+function money(n: number, currencyCode?: string | null): string {
+  return formatShopMoney(n, currencyCode);
 }
 
 function pct(rate: number): string {

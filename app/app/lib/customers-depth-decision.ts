@@ -11,17 +11,14 @@ import {
   buildOpsDeskIsland,
   type OpsDeskIslandModel,
 } from "./ops-desk-island";
+import { formatShopMoney } from "./mer-format";
 
 function pct(rate: number): string {
   return `${Math.round(rate * 1000) / 10}%`;
 }
 
-function money(n: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: n >= 100 ? 0 : 2,
-  }).format(n);
+function money(n: number, currencyCode?: string | null): string {
+  return formatShopMoney(n, currencyCode);
 }
 
 export function buildCustomersDepthDecision(args: {
@@ -30,12 +27,14 @@ export function buildCustomersDepthDecision(args: {
   economics: OrderEconomics;
   dayAccuracy: SalesDayAccuracySnapshot;
   orderHistoryAccuracy: OrderHistoryAccuracySnapshot;
+  currencyCode?: string | null;
 }): OpsDeskIslandModel | null {
+  const currency = args.currencyCode;
   const bits: string[] = [];
 
   if (args.economics.returningShare != null) {
     bits.push(
-      `Returning buyers drove ${pct(args.economics.returningShare)} of attributed sales (${money(args.economics.returningCustomerSales)} returning · ${money(args.economics.newCustomerSales)} new).`,
+      `Returning buyers drove ${pct(args.economics.returningShare)} of attributed sales (${money(args.economics.returningCustomerSales, currency)} returning · ${money(args.economics.newCustomerSales, currency)} new).`,
     );
   } else if (args.economics.hasSignal) {
     bits.push(
@@ -70,6 +69,7 @@ export function buildCustomersDepthDecision(args: {
     periodLabel: args.periodLabel,
     periodPreset: args.periodPreset,
     economics: args.economics,
+    currencyCode: currency,
     dayInsight,
     hasLiveSpend: false,
   });

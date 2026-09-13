@@ -31,6 +31,10 @@ This is an engineering readiness checklist for diligence. It does **not** invent
 | Analytics $0 days allowed to upsert when QL trusted | Shipped | `analyticsTrusted` on zero upsert gate |
 | QL overlay does not keep crawl cohort columns | Shipped | Cohort fields zeroed; `customerMetricsAvailable: false` |
 | QL vs crawl provenance on SalesDayFact.source | Shipped | `shopify_analytics_total_sales_v2` vs `shopify_order_current_total_v1` |
+| Multi-day spend prorated into viewed window | Shipped | `channelSpendFromEntries` uses same day attribution as spine |
+| Spend coverage counts day-grain rows only | Shipped | Month invoices no longer fake 100% filled |
+| Public API channel MER not fabricated | Shipped | `effectiveMer` always null without measured splits |
+| Desk money uses Shop.currencyCode | Shipped | `formatShopMoney` on Sales/Customers decision strips |
 | Spot-check crawl capped on page load | Shipped | `SALES_DAY_SPOT_CHECK_MAX_PAGES`; truncated probe → skip |
 | Unknown shop TZ does not cut facts with host clock | Shipped | `salesFactsClosedDayFilter` leaves filter untouched when TZ null |
 

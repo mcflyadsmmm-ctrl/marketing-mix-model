@@ -21,6 +21,7 @@ import {
 } from "./cohort-buyer-metrics";
 import { strongestSoftestAmongFilled } from "./sales-depth-decision";
 import { excludeOpenDayFacts } from "./sales-day-accuracy";
+import { formatShopMoney } from "./mer-format";
 
 export type DayFactInput = {
   dayKey: string;
@@ -118,12 +119,8 @@ export type BuildDepthChartsInput = {
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
 
-function money(n: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: n >= 100 ? 0 : 2,
-  }).format(n);
+function money(n: number, currencyCode?: string | null): string {
+  return formatShopMoney(n, currencyCode);
 }
 
 function pct(n: number): string {

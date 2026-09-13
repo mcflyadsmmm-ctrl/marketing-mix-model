@@ -1,3 +1,4 @@
+import { formatShopMoney } from "./mer-format";
 /**
  * Order economics Shopify Analytics buries — typical order, weekend vs
  * weekday till share, new vs returning sales. No sessions, no conversion
@@ -156,12 +157,8 @@ export function salesByDayToRecord(
   return out;
 }
 
-function moneyShort(n: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(n);
+function moneyShort(n: number, currencyCode?: string | null): string {
+  return formatShopMoney(n, currencyCode, { maximumFractionDigits: 0 });
 }
 
 /**

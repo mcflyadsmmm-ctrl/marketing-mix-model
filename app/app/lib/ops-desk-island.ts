@@ -6,6 +6,7 @@
 
 import type { OrderEconomics } from "./order-economics";
 import { summarizeOrderEconomics } from "./order-economics";
+import { formatShopMoney } from "./mer-format";
 
 export type OpsDeskTone = "strong" | "steady" | "watch";
 
@@ -35,12 +36,8 @@ export type OpsDeskIslandModel = {
   kpis: OpsDeskKpi[];
 };
 
-function money(n: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: n >= 100 ? 0 : 2,
-  }).format(n);
+function money(n: number, currencyCode?: string | null): string {
+  return formatShopMoney(n, currencyCode);
 }
 
 function pct(rate: number): string {
@@ -57,6 +54,7 @@ export type OpsDeskIslandInput = {
   periodLabel: string;
   periodPreset: string;
   economics: OrderEconomics;
+  currencyCode?: string | null;
   /** Matches BuyerRepeatSummary field names from till LTV. */
   buyerRepeat?: {
     secondWithin90: number | null;
@@ -100,7 +98,7 @@ function buildWhy(input: OpsDeskIslandInput, tone: OpsDeskTone): string {
   const bits: string[] = [];
   if (economics.orderCount > 0) {
     bits.push(
-      `${economics.orderCount.toLocaleString()} orders · ${money(economics.sales)} Shopify sales`,
+      `${economics.orderCount.toLocaleString()} orders · ${money(economics.sales, input.currencyCode)} Shopify sales`,
     );
   }
   if (input.top10BuyerShare != null) {
@@ -154,12 +152,13 @@ export function buildOpsDeskIsland(
 ): OpsDeskIslandModel | null {
   const { economics } = input;
   if (!economics.hasSignal) return null;
+  const currency = input.currencyCode;
 
   const kpis: OpsDeskKpi[] = [
     {
       id: "sales",
       label: "Sales",
-      value: money(economics.sales),
+      value: money(economics.sales, currency),
       hint: input.periodLabel,
       accent: true,
       delta: input.salesDelta ?? null,
@@ -170,7 +169,7 @@ export function buildOpsDeskIsland(
       value: economics.orderCount.toLocaleString(),
       hint:
         economics.aov != null
-          ? `AOV ${money(economics.aov)}`
+          ? `AOV ${money(economics.aov, currency)}`
           : "Shopify orders in period",
       delta: input.ordersDelta ?? null,
     },
@@ -180,7 +179,7 @@ export function buildOpsDeskIsland(
     kpis.push({
       id: "aov",
       label: "AOV",
-      value: money(economics.aov),
+      value: money(economics.aov, currency),
       hint: `${economics.orderCount.toLocaleString()} orders`,
       delta: input.aovDelta ?? null,
     });
@@ -203,13 +202,13 @@ export function buildOpsDeskIsland(
       id: "returning",
       label: "Returning $",
       value: pct(economics.returningShare),
-      hint: `${money(economics.returningCustomerSales)} returning · ${money(economics.newCustomerSales)} new`,
+      hint: `${money(economics.returningCustomerSales, currency)} returning · ${money(economics.newCustomerSales, currency)} new`,
     });
   } else if (input.avgRevenueD90 != null && kpis.length < 4) {
     kpis.push({
       id: "ltv90",
       label: "LTV · 90d",
-      value: money(input.avgRevenueD90),
+      value: money(input.avgRevenueD90, currency),
       hint:
         input.newBuyers != null && input.newBuyers > 0
           ? `${input.newBuyers.toLocaleString()} new buyers this period`
@@ -227,13 +226,13 @@ export function buildOpsDeskIsland(
       id: "weekend",
       label: "Weekend share",
       value: pct(economics.weekendShare),
-      hint: `${money(economics.weekendSales)} Sat–Sun · ${money(economics.weekdaySales)} weekdays`,
+      hint: `${money(economics.weekendSales, currency)} Sat–Sun · ${money(economics.weekdaySales, currency)} weekdays`,
     });
   } else if (economics.spendPerOrder != null && kpis.length < 4) {
     kpis.push({
       id: "spo",
       label: "Spend / order",
-      value: money(economics.spendPerOrder),
+      value: money(economics.spendPerOrder, currency),
       hint: "Ad spend ÷ orders — join Shopify cannot do alone",
     });
   }

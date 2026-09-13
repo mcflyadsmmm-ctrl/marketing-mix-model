@@ -10,6 +10,7 @@ import {
   buildOpsDeskIsland,
   type OpsDeskIslandModel,
 } from "./ops-desk-island";
+import { formatShopMoney } from "./mer-format";
 
 export type SalesDepthDayFact = {
   dayKey: string;
@@ -17,12 +18,8 @@ export type SalesDepthDayFact = {
   orderCount: number;
 };
 
-function money(n: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: n >= 100 ? 0 : 2,
-  }).format(n);
+function money(n: number, currencyCode?: string | null): string {
+  return formatShopMoney(n, currencyCode);
 }
 
 function priorDelta(now: number, prior: number): string | null {
@@ -58,11 +55,12 @@ export function strongestSoftestAmongFilled(
 function formatDayPair(
   pair: { strongest: SalesDepthDayFact; softest: SalesDepthDayFact },
   amongFilled: boolean,
+  currencyCode?: string | null,
 ): string {
   const base =
     pair.strongest.dayKey === pair.softest.dayKey
-      ? `Strongest ${pair.strongest.dayKey} · ${money(pair.strongest.sales)} · ${pair.strongest.orderCount.toLocaleString()} orders`
-      : `Strongest ${pair.strongest.dayKey} · ${money(pair.strongest.sales)} · Softest ${pair.softest.dayKey} · ${money(pair.softest.sales)}`;
+      ? `Strongest ${pair.strongest.dayKey} · ${money(pair.strongest.sales, currencyCode)} · ${pair.strongest.orderCount.toLocaleString()} orders`
+      : `Strongest ${pair.strongest.dayKey} · ${money(pair.strongest.sales, currencyCode)} · Softest ${pair.softest.dayKey} · ${money(pair.softest.sales, currencyCode)}`;
   return amongFilled ? `${base} · among filled days` : base;
 }
 
@@ -75,7 +73,10 @@ export function buildSalesDepthDecision(args: {
   dayFacts?: SalesDepthDayFact[];
   /** Matched prior window — unlocks KPI deltas when present. */
   priorDayFacts?: SalesDepthDayFact[];
+  /** Shop ISO 4217 — never hardcode USD for a GBP till. */
+  currencyCode?: string | null;
 }): OpsDeskIslandModel | null {
+  const currency = args.currencyCode;
   const incomplete =
     args.accuracy.status === "catching_up" ||
     args.accuracy.status === "partial_history";
@@ -84,7 +85,7 @@ export function buildSalesDepthDecision(args: {
     args.dayFacts && args.dayFacts.length > 0
       ? strongestSoftestAmongFilled(args.dayFacts, args.accuracy.openDayKey)
       : null;
-  const dayPairLine = pair ? formatDayPair(pair, incomplete) : null;
+  const dayPairLine = pair ? formatDayPair(pair, incomplete, currency) : null;
 
   const accuracyInsight =
     args.accuracy.reconcileStatus === "mismatch"
@@ -94,7 +95,7 @@ export function buildSalesDepthDecision(args: {
         : args.accuracy.status === "partial_history"
           ? args.accuracy.headline
           : args.accuracy.status === "complete" && args.economics.orderCount > 0
-            ? `${args.economics.orderCount.toLocaleString()} orders · ${money(args.economics.sales)} across ${args.accuracy.factDays} closed days.`
+            ? `${args.economics.orderCount.toLocaleString()} orders · ${money(args.economics.sales, currency)} across ${args.accuracy.factDays} closed days.`
             : null;
 
   const openDayNote =
@@ -117,6 +118,7 @@ export function buildSalesDepthDecision(args: {
     periodLabel: args.periodLabel,
     periodPreset: args.periodPreset,
     economics: args.economics,
+    currencyCode: currency,
     dayInsight,
     hasLiveSpend: false,
     salesDelta: prior.length ? priorDelta(args.economics.sales, priorSales) : null,
