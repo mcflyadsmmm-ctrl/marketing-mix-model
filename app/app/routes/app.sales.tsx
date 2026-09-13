@@ -72,6 +72,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       enqueueRepair: !useSampleDesk && !shotMode,
       grantedScopes: session.scope,
       useSampleDesk,
+      admin: useSampleDesk || shotMode ? undefined : admin,
     }),
   ]);
 
@@ -201,7 +202,9 @@ export default function SalesDepthPage() {
             </p>
           ) : null}
         </header>
-        {!shotMode ? <SalesDayAccuracyStrip accuracy={accuracy} /> : null}
+        {!shotMode ? (
+          <SalesDayAccuracyStrip accuracy={accuracy} when="problems" />
+        ) : null}
         {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
         <DepthProgressiveGrid
           fastCharts={charts}

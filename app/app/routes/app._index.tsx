@@ -495,6 +495,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           enqueueRepair: true,
           grantedScopes: session.scope,
           useSampleDesk: false,
+          admin,
         });
 
   const factsIncompleteForHonesty =

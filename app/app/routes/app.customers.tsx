@@ -76,6 +76,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       enqueueRepair: !useSampleDesk && !shotMode,
       grantedScopes: session.scope,
       useSampleDesk,
+      admin: useSampleDesk || shotMode ? undefined : admin,
     }),
     loadOrderHistoryAccuracy({
       shopId: shop.id,
@@ -224,7 +225,9 @@ export default function CustomersDepthPage() {
             </p>
           ) : null}
         </header>
-        {!shotMode ? <SalesDayAccuracyStrip accuracy={accuracy} /> : null}
+        {!shotMode ? (
+          <SalesDayAccuracyStrip accuracy={accuracy} when="problems" />
+        ) : null}
         {!shotMode ? (
           <OrderHistoryAccuracyStrip
             accuracy={orderHistoryAccuracy}

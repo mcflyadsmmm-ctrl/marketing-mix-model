@@ -56,6 +56,22 @@ describe("salesDayAccuracyNeedsRefresh", () => {
     });
     expect(salesDayAccuracyNeedsRefresh(snap)).toBe(true);
   });
+
+  it("refreshes when live Admin spot-check reported a mismatch", () => {
+    const snap = assessSalesDayAccuracy({
+      expectedClosedDayKeys: ["2026-09-01"],
+      presentDayKeys: ["2026-09-01"],
+      freshestAsOf: new Date(),
+    });
+    expect(
+      salesDayAccuracyNeedsRefresh({
+        ...snap,
+        reconcileStatus: "mismatch",
+        reconcileCheckedDays: 1,
+        reconcileMismatchDays: ["2026-09-01"],
+      }),
+    ).toBe(true);
+  });
 });
 
 describe("excludeOpenDayFacts", () => {

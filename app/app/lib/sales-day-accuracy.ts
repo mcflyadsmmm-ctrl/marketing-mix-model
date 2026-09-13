@@ -27,6 +27,13 @@ export type SalesDayAccuracySnapshot = {
   headline: string;
   /** One supporting sentence. */
   detail: string;
+  /**
+   * Live Shopify spot-check of recent closed days.
+   * `mismatch` means Admin totals disagree with SalesDayFact — repair enqueued.
+   */
+  reconcileStatus: "matched" | "mismatch" | "skipped" | "not_run";
+  reconcileCheckedDays: number;
+  reconcileMismatchDays: string[];
 };
 
 export function assessSalesDayAccuracy(args: {
@@ -78,6 +85,9 @@ export function assessSalesDayAccuracy(args: {
     periodExceedsFactWindow,
     headline,
     detail,
+    reconcileStatus: "not_run",
+    reconcileCheckedDays: 0,
+    reconcileMismatchDays: [],
   };
 }
 
@@ -165,6 +175,7 @@ export function excludeOpenDayFacts<T extends { dayKey: string }>(
 
 /** Whether Sales should ask the job queue to refresh recent closed days. */
 export function salesDayAccuracyNeedsRefresh(snapshot: SalesDayAccuracySnapshot): boolean {
+  if (snapshot.reconcileStatus === "mismatch") return true;
   if (snapshot.status === "catching_up") return true;
   if (snapshot.status === "partial_history") return true;
   if (!snapshot.freshestAsOfIso) return snapshot.expectedClosedDays > 0;

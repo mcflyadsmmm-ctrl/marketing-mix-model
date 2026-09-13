@@ -1,3 +1,4 @@
+import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
 import {
   getSalesFactRowsByDay,
   getSalesFactsCoverage,
@@ -13,12 +14,17 @@ import {
   type SalesDayAccuracySnapshot,
 } from "./sales-day-accuracy";
 import { enqueueSalesFactsBackfill } from "./sales-backfill-kick.server";
+import {
+  enqueueNewestClosedDaySeal,
+  spotCheckSalesDayFacts,
+} from "./sales-day-reconcile.server";
 import prisma from "../db.server";
 
 /**
  * Accuracy snapshot for the selected Sales period.
  * Optionally enqueues a priority backfill / refresh so missing closed days
- * do not stay quietly wrong.
+ * do not stay quietly wrong — and spot-checks live Shopify totals on recent
+ * closed days so refunds/edits cannot leave Mcfly silently wrong.
  */
 export async function loadSalesDayAccuracy(args: {
   shopId: string;
@@ -28,6 +34,8 @@ export async function loadSalesDayAccuracy(args: {
   enqueueRepair?: boolean;
   grantedScopes?: string | null;
   useSampleDesk?: boolean;
+  /** Required for live Admin spot-check (skip when SAMPLE / shot). */
+  admin?: AdminApiContext;
 }): Promise<SalesDayAccuracySnapshot> {
   const now = args.now ?? new Date();
   const timeZone = args.ianaTimezone?.trim() || null;
@@ -66,7 +74,7 @@ export async function loadSalesDayAccuracy(args: {
     expectedClosedDayKeys,
   );
 
-  const snapshot = assessSalesDayAccuracy({
+  let snapshot = assessSalesDayAccuracy({
     expectedClosedDayKeys,
     presentDayKeys: [...rows.keys()],
     openDayKey: shopLocalDayKey(now, timeZone),
@@ -79,10 +87,67 @@ export async function loadSalesDayAccuracy(args: {
       shopId: args.shopId,
       grantedScopes: args.grantedScopes ?? undefined,
       reason: "sales_day_accuracy",
-      // Stale-but-complete → overwrite recent closed days (refunds/edits).
-      // Catching up → missing-only fill (default).
       refreshExisting: snapshot.status === "complete",
     }).catch(() => {});
+  }
+
+  // Seal the newest closed day on every repair paint — midnight totals must
+  // converge without waiting for a refund webhook or a mismatch strip.
+  if (
+    args.enqueueRepair &&
+    snapshot.expectedClosedDays > 0 &&
+    snapshot.status !== "no_closed_days"
+  ) {
+    void enqueueNewestClosedDaySeal({
+      shopId: args.shopId,
+      expectedClosedDayKeys,
+      openDayKey: snapshot.openDayKey,
+      grantedScopes: args.grantedScopes,
+    }).catch(() => {});
+  }
+
+  // Live Admin spot-check when we have closed facts and an admin client.
+  // Skip while still catching up with zero facts — coverage strip owns that.
+  if (
+    args.admin &&
+    args.enqueueRepair &&
+    snapshot.factDays > 0 &&
+    snapshot.status !== "no_closed_days"
+  ) {
+    try {
+      const reconcile = await spotCheckSalesDayFacts({
+        shopId: args.shopId,
+        admin: args.admin,
+        timeZone,
+        expectedClosedDayKeys,
+        presentDayKeys: [...rows.keys()],
+        openDayKey: snapshot.openDayKey,
+        range: args.range,
+        grantedScopes: args.grantedScopes,
+        enqueueRepair: true,
+      });
+      snapshot = {
+        ...snapshot,
+        reconcileStatus: reconcile.status,
+        reconcileCheckedDays: reconcile.checkedDayKeys.length,
+        reconcileMismatchDays: reconcile.mismatches.map((m) => m.dayKey),
+      };
+      if (reconcile.status === "mismatch" && reconcile.headline && reconcile.detail) {
+        snapshot = {
+          ...snapshot,
+          headline: reconcile.headline,
+          detail: reconcile.detail,
+        };
+      }
+    } catch {
+      // Spot-check must never break Sales paint.
+      snapshot = {
+        ...snapshot,
+        reconcileStatus: "skipped",
+        reconcileCheckedDays: 0,
+        reconcileMismatchDays: [],
+      };
+    }
   }
 
   return snapshot;

@@ -13,20 +13,27 @@ export function SalesDayAccuracyStrip({
   when?: "always" | "problems";
 }) {
   if (accuracy.status === "no_closed_days") return null;
-  if (when === "problems" && accuracy.status === "complete") return null;
+  const hasMismatch = accuracy.reconcileStatus === "mismatch";
+  if (
+    when === "problems" &&
+    accuracy.status === "complete" &&
+    !hasMismatch
+  ) {
+    return null;
+  }
 
   const tone =
-    accuracy.status === "complete"
-      ? "success"
-      : accuracy.status === "catching_up"
-        ? "warning"
+    hasMismatch || accuracy.status === "catching_up"
+      ? "warning"
+      : accuracy.status === "complete"
+        ? "success"
         : "info";
 
   return (
     <div
       className={`mcfly-day-accuracy mcfly-day-accuracy--${accuracy.status}`}
       role="status"
-      data-status={accuracy.status}
+      data-status={hasMismatch ? "mismatch" : accuracy.status}
     >
       <s-banner tone={tone} heading={accuracy.headline}>
         <s-paragraph>{accuracy.detail}</s-paragraph>

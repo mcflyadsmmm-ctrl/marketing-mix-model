@@ -139,7 +139,7 @@ function formatYoyPct(pct: number | null): string {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const url = new URL(request.url);
   const shotMode = listingCaptureFromRequest(request);
   const year = parseGoalsYear(url.searchParams.get("year"));
@@ -166,6 +166,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       enqueueRepair: !useSampleDesk && !shotMode,
       grantedScopes: session.scope,
       useSampleDesk,
+      admin: useSampleDesk || shotMode ? undefined : admin,
     }),
   ]);
 
