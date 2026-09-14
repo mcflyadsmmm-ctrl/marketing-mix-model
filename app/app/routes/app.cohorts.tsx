@@ -2,6 +2,7 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { CustomersDepthNav } from "../components/CustomersDepthNav";
 import { DeskSection } from "../components/DeskSection";
 import { DeskLedgerTable } from "../components/DeskLedgerTable";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
@@ -47,6 +48,7 @@ export default function CohortsLedgerPage() {
 
   return (
     <s-page heading="Cohorts" inlineSize="large">
+      {!shotMode ? <CustomersDepthNav /> : null}
       {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
       <div
         className="mcfly-desk mcfly-desk--bc"

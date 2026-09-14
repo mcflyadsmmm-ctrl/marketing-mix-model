@@ -53,7 +53,7 @@ So the problem isn’t “too many tabs.” It’s:
 
 If 10 top tabs feels heavy in Admin, **group** as:
 
-- **Shopify:** Today · Sales · Days · Orders · Customers · Cohorts · Products  
+- **Shopify:** Sales (Days · Orders subnav) · Customers (Cohorts subnav) · Products later  
 - **Plan:** Goals  
 - **Money in:** Spend  
 - **Settings**
@@ -350,7 +350,7 @@ Once you mark those, we lock this file and implement **Days + Orders ledgers** b
 
 ## Ship notes (2026-09-14)
 
-- Top nav: Overview · Sales · Days · Orders · Customers · Cohorts · Goals · Upload Spend · Allocation · Settings.
+- Top nav (BC-tight): Overview · Sales · Customers · Goals · Upload Spend · Allocation · Settings. Days/Orders under Sales; Cohorts under Customers.
 - Sales/Customers use `DepthSectionedGrid` (named sections, not flat chart dump).
 - Days/Orders/Cohorts are table-first ledgers from existing facts.
 - Upload Spend remains entry-only; Allocation stays its own tab.

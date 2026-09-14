@@ -1,13 +1,12 @@
 /**
- * App nav — Black Clover Overview first, then Shopify depth ledgers, then spend wing.
+ * App nav — Black Clover top bar (tight), Shopify depth under subnav.
  *
- * Spend is split on purpose (Marty 2026-09-13):
- * - Upload Spend = get dollars in (CSV / paste / bill) — one clear job
- * - Allocation = BC cut/hold/shift once spend exists — its own top tab
- * - Insights (Advanced) = spend-needed depth (explorer / recon) — subnav for now
+ * Top (BC shape): Overview · Sales · Customers · Goals · Upload Spend ·
+ * Allocation · Settings.
  *
- * Core: Overview · Sales · Days · Orders · Customers · Cohorts · Goals ·
- * Upload Spend · Allocation · Settings.
+ * Under Sales: Days · Orders (ledgers).
+ * Under Customers: Cohorts.
+ * Under Spend wing: Upload · Allocation · Spend insights.
  */
 
 export type DeskNavId =
@@ -27,17 +26,14 @@ export type DeskNavItem = {
   id: DeskNavId;
   href: string;
   label: string;
-  /** Secondary tools — not in the top nav chrome. */
+  /** Secondary — not in the top nav chrome (reachable via subnav / deep link). */
   later: boolean;
 };
 
 export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
   { id: "overview", href: "/app", label: "Overview", later: false },
   { id: "sales", href: "/app/sales", label: "Sales", later: false },
-  { id: "days", href: "/app/days", label: "Days", later: false },
-  { id: "orders", href: "/app/orders", label: "Orders", later: false },
   { id: "customers", href: "/app/customers", label: "Customers", later: false },
-  { id: "cohorts", href: "/app/cohorts", label: "Cohorts", later: false },
   { id: "goals", href: "/app/goals", label: "Goals", later: false },
   {
     id: "spend",
@@ -52,6 +48,10 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
     later: false,
   },
   { id: "settings", href: "/app/settings", label: "Settings", later: false },
+  // Shopify depth — subnav under Sales / Customers, not top tabs
+  { id: "days", href: "/app/days", label: "Days", later: true },
+  { id: "orders", href: "/app/orders", label: "Orders", later: true },
+  { id: "cohorts", href: "/app/cohorts", label: "Cohorts", later: true },
   {
     id: "advanced",
     href: "/app/advanced",
@@ -60,14 +60,14 @@ export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
   },
 ] as const;
 
-/** Top nav only — core tabs. */
+/** Top nav only — BC-tight core tabs. */
 export function deskNavItems(): DeskNavItem[] {
   return DESK_NAV_ITEMS.filter((item) => !item.later).map((item) => ({
     ...item,
   }));
 }
 
-/** Full catalog including later depth pages. */
+/** Full catalog including depth pages. */
 export function deskNavAllItems(): DeskNavItem[] {
   return DESK_NAV_ITEMS.map((item) => ({ ...item }));
 }
@@ -85,3 +85,16 @@ export function deskNavLaterItems(): DeskNavItem[] {
     ...item,
   }));
 }
+
+/** Sales wing subnav links (Sales · Days · Orders). */
+export const SALES_DEPTH_LINKS = [
+  { href: "/app/sales", label: "Sales" },
+  { href: "/app/days", label: "Days" },
+  { href: "/app/orders", label: "Orders" },
+] as const;
+
+/** Customers wing subnav links (Customers · Cohorts). */
+export const CUSTOMERS_DEPTH_LINKS = [
+  { href: "/app/customers", label: "Customers" },
+  { href: "/app/cohorts", label: "Cohorts" },
+] as const;

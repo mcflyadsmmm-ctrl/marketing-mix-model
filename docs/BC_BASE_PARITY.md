@@ -69,10 +69,12 @@ Cash MER operator desk:
 
 **Spend subnav** (on Upload / Allocation / Insights pages): Upload Spend · Allocation · Spend insights  
 
-**Shipped wave:** Days · Orders · Cohorts (ledgers in top nav)
+**Depth under wings (not top tabs):**  
+- Sales subnav: Sales · Days · Orders  
+- Customers subnav: Customers · Cohorts  
+- Spend subnav: Upload Spend · Allocation · Spend insights  
 
-**Next wave:** Products (after line-item ingest)  
-**Still under subnav (not top):** Spend insights (`/app/advanced`)
+**Next wave:** Products (after line-item ingest)
 
 ### Why Upload ≠ Marketing Spend mega-tab
 

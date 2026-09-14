@@ -3,6 +3,7 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { SalesDepthNav } from "../components/SalesDepthNav";
 import { DeskSection } from "../components/DeskSection";
 import { DeskLedgerTable } from "../components/DeskLedgerTable";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
@@ -113,6 +114,7 @@ export default function DaysLedgerPage() {
 
   return (
     <s-page heading="Days" inlineSize="large">
+      {!shotMode ? <SalesDepthNav /> : null}
       {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
       {!shotMode && deepHistory.kind !== "hidden" ? (
         <DeepHistoryBanner kind={deepHistory.kind} shopDomain={shopDomain} />

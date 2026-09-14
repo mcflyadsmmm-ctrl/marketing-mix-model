@@ -3,6 +3,7 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { SalesDepthNav } from "../components/SalesDepthNav";
 import { DepthSectionedGrid } from "../components/DepthSectionedGrid";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
 import { ensureShop } from "../lib/mer-dashboard.server";
@@ -182,6 +183,7 @@ export default function SalesDepthPage() {
 
   return (
     <s-page heading="Sales" inlineSize="large">
+      {!shotMode ? <SalesDepthNav /> : null}
       {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
       {!shotMode && deepHistory.kind !== "hidden" ? (
         <DeepHistoryBanner kind={deepHistory.kind} shopDomain={shopDomain} />
