@@ -80,6 +80,10 @@ export interface GoalMonthRow {
 export interface GoalsYtd {
   goal: number;
   actual: number;
+  /** YTD logged spend through the current month (closed + MTD). */
+  spend: number;
+  /** Cash MER = YTD sales ÷ YTD spend. Null when spend is 0. */
+  mer: number | null;
   pct: number | null;
   delta: number;
 }
@@ -521,7 +525,11 @@ export async function buildYearBoard(
 ): Promise<GoalsYearBoard> {
   const settings = await getOrCreateSettings(shopId);
   const goals = await listSalesGoals(shopId, year);
-  const breakEvenMer = calculateBreakEvenMer(settings.marginPct);
+  // Break-even is preview-only until margin is confirmed — never a fake floor.
+  const breakEvenMer =
+    settings.marginConfirmedAt != null
+      ? calculateBreakEvenMer(settings.marginPct)
+      : null;
   const rail =
     targetMer != null && Number.isFinite(targetMer) && targetMer > 0
       ? targetMer
@@ -586,9 +594,11 @@ export async function buildYearBoard(
 
   let ytdGoal = 0;
   let ytdActual = 0;
+  let ytdSpend = 0;
   for (let m = 1; m <= throughMonth; m++) {
     ytdGoal += goals[m - 1] ?? 0;
     ytdActual += mapGetMonth(salesByMonth, m);
+    ytdSpend += mapGetMonth(spendByMonth, m);
   }
 
   const yearGoal = goals.reduce((a, b) => a + b, 0);
@@ -613,6 +623,8 @@ export async function buildYearBoard(
     ytd: {
       goal: ytdGoal,
       actual: ytdActual,
+      spend: ytdSpend,
+      mer: calculateMer(ytdActual, ytdSpend),
       pct: ytdGoal > 0 ? (ytdActual / ytdGoal) * 100 : null,
       delta: ytdActual - ytdGoal,
     },

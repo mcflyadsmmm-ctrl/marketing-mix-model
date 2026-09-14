@@ -12,6 +12,11 @@ type Props = {
   muted?: string;
   /** Inline under Total Sales KPI — tiny bars, no panel chrome. */
   variant?: "panel" | "inline";
+  /**
+   * Year sales facts are not trusted (loader salesError).
+   * Fail closed: do not paint 0% / Behind as a live miss.
+   */
+  untrusted?: boolean;
 };
 
 const DEFAULT_HEADING = "Goal progress";
@@ -140,6 +145,7 @@ export function SalesGoalGauges({
   heading = DEFAULT_HEADING,
   muted = DEFAULT_MUTED,
   variant = "panel",
+  untrusted = false,
 }: Props) {
   const noGoalsSet =
     !(periods.mtd.goal > 0) &&
@@ -147,7 +153,15 @@ export function SalesGoalGauges({
     !(periods.ytd.goal > 0);
   const compact = variant === "inline";
 
-  const rows = (
+  const emptyUntrusted = (
+    <p className="mcfly-sales-gauges__foot">
+      Sales vs plan waits until year facts are trusted — not 0% of goal.
+    </p>
+  );
+
+  const rows = untrusted ? (
+    emptyUntrusted
+  ) : (
     <div className="mcfly-goal-rows">
       <GoalRow period={periods.mtd} compact={compact} />
       <GoalRow period={periods.qtd} compact={compact} />
@@ -159,7 +173,7 @@ export function SalesGoalGauges({
     return (
       <div className="mcfly-goal-inline" aria-label={heading}>
         {rows}
-        {noGoalsSet ? (
+        {noGoalsSet && !untrusted ? (
           <p className="mcfly-goal-inline__foot">
             <s-link href="/app/goals">Set goals</s-link>
           </p>
@@ -178,7 +192,7 @@ export function SalesGoalGauges({
         <p className="mcfly-panel__muted">{muted}</p>
       </div>
       {rows}
-      {noGoalsSet ? (
+      {noGoalsSet && !untrusted ? (
         <p className="mcfly-sales-gauges__foot">
           <s-link href="/app/goals">Grow 10% YoY · set goals</s-link>
         </p>

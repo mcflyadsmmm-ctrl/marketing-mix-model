@@ -77,14 +77,14 @@ describe("Overview Monday desk", () => {
     expect(cold.body).not.toMatch(/auto-?sync|oauth|pixel/i);
   });
 
-  it("wires Love-UX6 one-line Total ROAS definition on Overview (not SAMPLE-only)", () => {
+  it("wires Love-UX6 one-line Total ROAS definition when the till is not the hero", () => {
     expect(overview).toContain("OVERVIEW_TOTAL_ROAS_DEFINITION");
     expect(overview).toContain("overview-roas-definition");
     expect(overview).toContain("CASH_NOT_ATTRIBUTION");
-    // Visible under cash religion for real desk — gated on shotMode only.
+    // Essay stays for cold / untrusted zeros; live till is the formula.
     const client = overview.split("export default function Dashboard")[1] ?? "";
     expect(client).toMatch(
-      /\{!shotMode \? \([\s\S]*?OVERVIEW_TOTAL_ROAS_DEFINITION[\s\S]*?\) : null\}/,
+      /\{!shotMode &&\s*\(!scoreboardReady \|\| trustedHero\.hideUntrustedZero\) \? \([\s\S]*?OVERVIEW_TOTAL_ROAS_DEFINITION[\s\S]*?\) : null\}/,
     );
     expect(client).not.toMatch(
       /useSampleDesk\s*&&[\s\S]{0,80}OVERVIEW_TOTAL_ROAS_DEFINITION/,
@@ -129,6 +129,19 @@ describe("Overview Monday desk", () => {
     expect(dataMode).not.toMatch(/<FirstSessionGuide/);
     expect(dataMode).not.toContain("showFullGuide");
     expect(dataMode).toContain("showMarginNudge");
+  });
+
+  it("drops the nav-duplicating Overview link farm", () => {
+    expect(overview).not.toContain("mcfly-overview-more");
+  });
+
+  it("keeps acquisition / LTV behind the till (later details)", () => {
+    const heroAt = overview.indexOf("TotalRoasGauge");
+    const laterAt = overview.indexOf("Daily mix · acquisition · LTV");
+    const glanceAt = overview.indexOf("<AcquisitionGlance");
+    expect(heroAt).toBeGreaterThan(0);
+    expect(laterAt).toBeGreaterThan(heroAt);
+    expect(glanceAt).toBeGreaterThan(laterAt);
   });
 
   it("Love-V2: hero actions keep one primary (Update spend); Goals/Share/ledger demoted", () => {
@@ -185,6 +198,22 @@ describe("Later pages have a cash why + soft gate", () => {
     expect(allocation).toContain('page="allocation"');
     expect(advanced).toContain('page="advanced"');
     expect(advanced).toContain("FirstTrustedRoasGate");
+  });
+
+  it("Goals cash scoreboard is a break-even desk, fail-closed on untrusted actuals", () => {
+    expect(goals).toContain("GoalsCashScoreboardView");
+    expect(goals).toContain("resolveGoalsCashScoreboard");
+    expect(goals).toContain("untrusted={!actualsTrusted}");
+    expect(goals).toContain("SAMPLE_DESK_MARGIN_PCT");
+    expect(goals).toContain("marginIsConfirmed");
+    expect(goals).toMatch(/actualsTrusted=\{actualsTrusted\}/);
+    const csb = readFileSync(
+      join(here, "../components/GoalsCashScoreboard.tsx"),
+      "utf8",
+    );
+    expect(csb).toContain("assertNever");
+    expect(csb).toContain("untrusted_sales");
+    expect(csb).toContain("needs_spend");
   });
 });
 

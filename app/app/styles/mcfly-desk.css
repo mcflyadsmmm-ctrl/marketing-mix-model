@@ -7464,6 +7464,67 @@
   color: var(--mcfly-mute);
 }
 
+.mcfly-goals-csb {
+  margin: 0;
+}
+
+.mcfly-goals-csb__headline {
+  margin: 0 0 0.75rem;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--mcfly-ink);
+  line-height: 1.2;
+}
+
+.mcfly-goals-csb__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mcfly-goals-csb__body {
+  margin: 0.75rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-goals-csb__action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.mcfly-goals-csb__edit {
+  margin: 0.65rem 0 0;
+  font-size: 0.84rem;
+}
+
+.mcfly-goals-csb--sample {
+  border-color: #f59e0b;
+  border-left-color: #f59e0b;
+}
+
+.mcfly-goals-csb__value--up {
+  color: var(--mcfly-truth, #047857);
+}
+
+.mcfly-goals-csb__value--down {
+  color: var(--mcfly-lie, #b91c1c);
+}
+
+.mcfly-goals-csb__value--flat {
+  color: var(--mcfly-ink);
+}
+
+@media (max-width: 720px) {
+  .mcfly-goals-csb__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .mcfly-goals-progress {
   margin-top: 0.85rem;
   padding-top: 0.75rem;
@@ -10440,6 +10501,15 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   background: var(--mcfly-truth-soft);
 }
 
+/* Viewport diet: trusted till already has the formula — keep the yes/no line. */
+.mcfly-cash-verdict--ok .mcfly-cash-verdict__body {
+  display: none;
+}
+
+.mcfly-cash-verdict--ok .mcfly-cash-verdict__headline {
+  margin-bottom: 0;
+}
+
 .mcfly-cash-verdict--bad {
   border-color: #fecaca;
   background: var(--mcfly-lie-soft);
@@ -10547,6 +10617,10 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
   font-size: 0.88rem;
   font-weight: 650;
   color: var(--mcfly-mute);
+}
+
+.mcfly-me-spine--later .mcfly-tab-snaps {
+  margin-top: 0.85rem;
 }
 
 

@@ -12,13 +12,16 @@ import {
   useSearchParams,
 } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { calculateBreakEvenMer } from "@mcfly/mer-core";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
+import { ensureShop, getOrCreateSettings, marginIsConfirmed } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { resolveGoalsCashScoreboard } from "../lib/goals-cash-scoreboard";
 import {
   getSampleDeskEnabled,
+  SAMPLE_DESK_MARGIN_PCT,
   SAMPLE_DESK_TARGET_MER,
 } from "../lib/sample-desk.server";
 import { confirmedTargetMer, parseTargetMerInput } from "../lib/target-mer";
@@ -36,6 +39,7 @@ import {
 } from "../lib/sales-goals.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
+import { GoalsCashScoreboardView } from "../components/GoalsCashScoreboard";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { DeskPageWhy } from "../components/DeskPageWhy";
@@ -182,6 +186,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     spendByMonth,
     targetMer,
   );
+  const breakEvenMer = useSampleDesk
+    ? calculateBreakEvenMer(SAMPLE_DESK_MARGIN_PCT)
+    : marginIsConfirmed(settings)
+      ? board.breakEvenMer
+      : null;
 
   const periods = buildSalesGoalPeriods({
     year,
@@ -204,6 +213,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError,
     goalsEnabled: Boolean(settings.goalsEnabled),
     targetMer,
+    breakEvenMer,
     priorYear,
     priorYearMonthly,
     entitlements: getShopEntitlements(session.shop, {
@@ -425,6 +435,7 @@ export default function GoalsPage() {
     salesError,
     goalsEnabled,
     targetMer,
+    breakEvenMer,
     priorYear,
     priorYearMonthly,
     hasLiveSpend,
@@ -450,6 +461,17 @@ export default function GoalsPage() {
   );
   const monthsWithPrior = priorYearMonthly.filter((v) => v > 0).length;
   const noGoalsYet = board.rows.every((r) => !(r.salesGoal > 0));
+  const actualsTrusted = !salesError;
+  const cashBoard = resolveGoalsCashScoreboard({
+    ytdSales: board.ytd.actual,
+    ytdSpend: board.ytd.spend,
+    ytdMer: board.ytd.mer,
+    targetMer,
+    breakEvenMer,
+    salesError,
+    hasLiveSpend,
+    useSampleDesk,
+  });
 
   useEffect(() => {
     if (!actionData) return;
@@ -530,21 +552,12 @@ export default function GoalsPage() {
           .join(" ")}
       >
         <DeskPageWhy page="goals" />
-        <FirstTrustedRoasGate
-          hasLiveSpend={hasLiveSpend}
-          useSampleDesk={useSampleDesk}
-          shotMode={shotMode}
-        />
-        {noGoalsYet && !shotMode ? (
-          <section
-            className="mcfly-state mcfly-state--empty"
-            aria-label="Goals empty"
-          >
-            <p className="mcfly-state__copy">
-              No monthly sales goals yet — not broken. Set a target so you can
-              see if ads bought enough till cash next to Total ROAS.
-            </p>
-          </section>
+        {cashBoard.kind !== "needs_spend" ? (
+          <FirstTrustedRoasGate
+            hasLiveSpend={hasLiveSpend}
+            useSampleDesk={useSampleDesk}
+            shotMode={shotMode}
+          />
         ) : null}
         <div className="mcfly-goals__rail">
           <div className="mcfly-ctx mcfly-goals__ctx" aria-live="polite">
@@ -575,6 +588,10 @@ export default function GoalsPage() {
                 <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
                   Goals hidden · YoY only
                 </span>
+              ) : !actualsTrusted ? (
+                <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
+                  Sales not trusted
+                </span>
               ) : (
                 <span className={`mcfly-ctx-chip mcfly-ctx-chip--${ytdTone}`}>
                   YTD{" "}
@@ -604,7 +621,9 @@ export default function GoalsPage() {
               </div>
             </div>
           </div>
-          {!shotMode ? (
+          {!shotMode &&
+          cashBoard.kind !== "ready" &&
+          cashBoard.kind !== "sample" ? (
             <p className="mcfly-goals__lede">
               Set the plan once — Grow YoY fills all months.{" "}
               {PRODUCT_NOUN.totalRoas} stays on Overview ·{" "}
@@ -612,6 +631,8 @@ export default function GoalsPage() {
             </p>
           ) : null}
         </div>
+
+        {!shotMode ? <GoalsCashScoreboardView board={cashBoard} /> : null}
 
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner note="Goals below use SAMPLE sales." />
@@ -636,7 +657,12 @@ export default function GoalsPage() {
           <SalesGoalGauges
             periods={periods}
             heading="MTD · QTD · YTD"
-            muted="Sales vs plan · calendar tick = period elapsed"
+            muted={
+              actualsTrusted
+                ? "Sales vs plan · calendar tick = period elapsed"
+                : "Sales vs plan withheld until year facts are trusted"
+            }
+            untrusted={!actualsTrusted}
           />
 
           {!shotMode ? (
@@ -747,7 +773,7 @@ export default function GoalsPage() {
 
             {goalsEnabled ? (
               <>
-                {forecast && forecast.monthGoal > 0 ? (
+                {actualsTrusted && forecast && forecast.monthGoal > 0 ? (
                   <section
                     className="mcfly-goals-forecast mcfly-goals-forecast--inline"
                     aria-label="Current month forecast"
@@ -810,6 +836,7 @@ export default function GoalsPage() {
                               inputId={`${formId}-g${row.month}`}
                               defaultValue={formatGoalInput(row.salesGoal)}
                               showGoalInput
+                              actualsTrusted={actualsTrusted}
                             />
                           ))}
                         </tbody>
@@ -865,9 +892,15 @@ export default function GoalsPage() {
                                 </span>
                               ) : null}
                             </th>
-                            <td>{formatCurrency(row.actual)}</td>
+                            <td>
+                              {actualsTrusted
+                                ? formatCurrency(row.actual)
+                                : "—"}
+                            </td>
                             <td>{formatCurrency(prior)}</td>
-                            <td>{formatYoyPct(pct)}</td>
+                            <td>
+                              {actualsTrusted ? formatYoyPct(pct) : "—"}
+                            </td>
                           </tr>
                         );
                       })}
@@ -889,29 +922,30 @@ function GoalRow({
   inputId,
   defaultValue,
   showGoalInput,
+  actualsTrusted,
 }: {
   row: GoalMonthRow;
   priorActual: number;
   inputId: string;
   defaultValue: string;
   showGoalInput: boolean;
+  actualsTrusted: boolean;
 }) {
   const hasGoal = row.salesGoal > 0;
+  const showPace = actualsTrusted && hasGoal && !row.isFuture;
   const barPct =
-    hasGoal && row.pct != null && Number.isFinite(row.pct)
+    showPace && row.pct != null && Number.isFinite(row.pct)
       ? Math.min(100, Math.max(0, row.pct))
       : null;
   const rowClass = [
     "mcfly-goals-table__row",
     row.isCurrent ? "mcfly-goals-table__row--current" : "",
     row.isFuture ? "mcfly-goals-table__row--future" : "",
-    hasGoal && !row.isFuture
-      ? `mcfly-goals-table__row--${row.pace.tone}`
-      : "",
+    showPace ? `mcfly-goals-table__row--${row.pace.tone}` : "",
   ]
     .filter(Boolean)
     .join(" ");
-  const pct = yoyPct(row.actual, priorActual);
+  const pct = actualsTrusted ? yoyPct(row.actual, priorActual) : null;
 
   return (
     <tr className={rowClass}>
@@ -920,7 +954,7 @@ function GoalRow({
         {row.isCurrent ? (
           <span className="mcfly-goals-table__now"> MTD</span>
         ) : null}
-        {barPct != null && !row.isFuture ? (
+        {barPct != null ? (
           <div
             className="mcfly-goals-month-bar"
             role="progressbar"
@@ -949,13 +983,15 @@ function GoalRow({
           />
         </td>
       ) : null}
-      <td>{formatCurrency(row.actual)}</td>
+      <td>{actualsTrusted ? formatCurrency(row.actual) : "—"}</td>
       <td>{formatCurrency(priorActual)}</td>
       <td>{formatYoyPct(pct)}</td>
       {showGoalInput ? (
         <td>
-          <span className={`mcfly-goals-pace mcfly-goals-pace--${row.pace.tone}`}>
-            {row.pace.label}
+          <span
+            className={`mcfly-goals-pace mcfly-goals-pace--${showPace ? row.pace.tone : "flat"}`}
+          >
+            {showPace ? row.pace.label : "—"}
           </span>
         </td>
       ) : null}
