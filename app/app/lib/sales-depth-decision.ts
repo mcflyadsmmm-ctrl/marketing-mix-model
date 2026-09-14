@@ -143,20 +143,20 @@ export function buildSalesDepthDecision(args: {
           : args.accuracy.detail,
     actions: [
       {
-        id: "customers",
-        label: "Customers",
-        href: `/app/customers?period=${encodeURIComponent(args.periodPreset)}`,
+        id: "days",
+        label: "Day ledger",
+        href: `/app/days?period=${encodeURIComponent(args.periodPreset)}`,
         primary: true,
       },
       {
-        id: "day-board",
-        label: "Day board",
-        href: "#depth-day_board",
+        id: "orders",
+        label: "Orders",
+        href: `/app/orders?period=${encodeURIComponent(args.periodPreset)}`,
       },
       {
-        id: "spend-later",
-        label: "Add spend later",
-        href: "/app/spend",
+        id: "customers",
+        label: "Buyers",
+        href: `/app/customers?period=${encodeURIComponent(args.periodPreset)}`,
       },
     ],
   };

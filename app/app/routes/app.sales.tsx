@@ -26,6 +26,8 @@ import {
   scopesIncludeReadAllOrders,
 } from "../lib/deep-history-honesty";
 import { OpsDeskIsland } from "../components/OpsDeskIsland";
+import { SalesMixPanel } from "../components/SalesMixPanel";
+import { buildSalesMix } from "../lib/sales-mix";
 import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 import { excludeOpenDayFacts } from "../lib/sales-day-accuracy";
@@ -120,6 +122,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       0,
     ),
   });
+    const salesMix = shotMode ? null : buildSalesMix(economics, depth.periodLabel);
+
   const decision =
     shotMode
       ? null
@@ -147,6 +151,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shopDomain: session.shop,
     accuracy,
     decision,
+    salesMix,
   };
 };
 
@@ -165,6 +170,7 @@ export default function SalesDepthPage() {
     shopDomain,
     accuracy,
     decision,
+    salesMix,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -207,6 +213,7 @@ export default function SalesDepthPage() {
           <SalesDayAccuracyStrip accuracy={accuracy} when="problems" />
         ) : null}
         {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
+        {!shotMode && salesMix ? <SalesMixPanel model={salesMix} /> : null}
         <DepthSectionedGrid
           tab="sales"
           fastCharts={charts}

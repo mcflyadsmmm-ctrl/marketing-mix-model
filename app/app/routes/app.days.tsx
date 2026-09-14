@@ -22,6 +22,8 @@ import {
 import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 import { loadDayLedger } from "../lib/desk-ledgers.server";
+import { buildDayLedgerPulse } from "../lib/desk-ledger-pulse";
+import { OpsDeskIsland } from "../components/OpsDeskIsland";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -60,6 +62,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     missingDayKeys: accuracy.missingDayKeys,
   });
 
+  const pulse = shotMode
+    ? null
+    : buildDayLedgerPulse({
+        periodLabel: range.label,
+        periodPreset: preset,
+        rows: ledger.inputs,
+        currencyCode: shop.currencyCode,
+      });
+
   return {
     preset,
     shotMode,
@@ -71,6 +82,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     currencyCode: shop.currencyCode,
     accuracy,
     ledger,
+    pulse,
   };
 };
 
@@ -86,6 +98,7 @@ export default function DaysLedgerPage() {
     currencyCode,
     accuracy,
     ledger,
+    pulse,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -119,6 +132,7 @@ export default function DaysLedgerPage() {
         {!shotMode ? (
           <SalesDayAccuracyStrip accuracy={accuracy} when="problems" />
         ) : null}
+        {!shotMode && pulse ? <OpsDeskIsland model={pulse} /> : null}
 
         <DeskSection
           id="day-ledger"

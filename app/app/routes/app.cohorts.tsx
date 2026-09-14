@@ -9,6 +9,8 @@ import { ensureShop } from "../lib/mer-dashboard.server";
 import { getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { authenticate } from "../shopify.server";
 import { loadCohortLedger } from "../lib/desk-ledgers.server";
+import { buildCohortLedgerPulse } from "../lib/desk-ledger-pulse";
+import { OpsDeskIsland } from "../components/OpsDeskIsland";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -21,17 +23,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     currencyCode: shop.currencyCode,
     useSampleDesk,
   });
+  const pulse = shotMode
+    ? null
+    : buildCohortLedgerPulse({
+        rows: ledger.inputs,
+        currencyCode: shop.currencyCode,
+      });
 
   return {
     shotMode,
     useSampleDesk,
     currencyCode: shop.currencyCode,
     ledger,
+    pulse,
   };
 };
 
 export default function CohortsLedgerPage() {
-  const { shotMode, useSampleDesk, currencyCode, ledger } =
+  const { shotMode, useSampleDesk, currencyCode, ledger, pulse } =
     useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -50,11 +59,18 @@ export default function CohortsLedgerPage() {
           </p>
         </header>
 
+        {!shotMode && pulse ? <OpsDeskIsland model={pulse} /> : null}
+
         <DeskSection
           id="cohort-ledger"
           title="Cohort ledger"
           blurb="Each row is a first-order month. Charts that explain these rows stay on Customers."
           hero
+          actions={
+            !shotMode ? (
+              <s-link href="/app/cohort-ledger.csv">Export CSV</s-link>
+            ) : null
+          }
         >
           <p className="mcfly-desk-section__note">
             Repeat health charts live on{" "}

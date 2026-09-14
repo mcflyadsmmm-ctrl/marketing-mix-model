@@ -91,20 +91,20 @@ export function buildCustomersDepthDecision(args: {
     why,
     actions: [
       {
-        id: "returning-share",
-        label: "Returning share",
-        href: "#depth-returning_sales_share",
+        id: "buyer-ledger",
+        label: "Buyer ledger",
+        href: "#desk-section-buyer-ledger",
         primary: true,
       },
       {
-        id: "sales",
-        label: "Sales",
-        href: `/app/sales?period=${encodeURIComponent(args.periodPreset)}`,
+        id: "cohorts",
+        label: "Cohorts",
+        href: "/app/cohorts",
       },
       {
-        id: "goals",
-        label: "Goals",
-        href: "/app/goals",
+        id: "orders",
+        label: "Orders",
+        href: `/app/orders?period=${encodeURIComponent(args.periodPreset)}`,
       },
     ],
   };

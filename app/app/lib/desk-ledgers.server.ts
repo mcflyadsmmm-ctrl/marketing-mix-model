@@ -19,9 +19,11 @@ import {
   type BuyerLedgerRow,
   type BuyerLedgerRowInput,
   type CohortLedgerRow,
+  type CohortLedgerRowInput,
   type DayLedgerRow,
   type DayLedgerRowInput,
   type OrderLedgerRow,
+  type OrderLedgerRowInput,
 } from "./desk-ledgers";
 
 function eachDayKey(startKey: string, endKey: string): string[] {
@@ -50,6 +52,7 @@ export async function loadDayLedger(args: {
   missingDayKeys?: string[];
 }): Promise<{
   rows: DayLedgerRow[];
+  inputs: DayLedgerRowInput[];
   strongest: string | null;
   softest: string | null;
   rawCount: number;
@@ -158,6 +161,7 @@ export async function loadDayLedger(args: {
   const { strongest, softest } = strongestSoftestDayKeys(inputs);
   return {
     rows: buildDayLedgerRows(inputs, args.currencyCode),
+    inputs,
     strongest,
     softest,
     rawCount: byKey.size,
@@ -172,8 +176,13 @@ export async function loadOrderLedger(args: {
   guestOnly?: boolean;
   returningOnly?: boolean;
   discountedOnly?: boolean;
+  highAovOnly?: boolean;
   limit?: number;
-}): Promise<{ rows: OrderLedgerRow[]; totalMatched: number }> {
+}): Promise<{
+  rows: OrderLedgerRow[];
+  inputs: OrderLedgerRowInput[];
+  totalMatched: number;
+}> {
   const source = args.useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
   const limit = Math.min(Math.max(args.limit ?? 250, 1), 500);
 
@@ -251,25 +260,33 @@ export async function loadOrderLedger(args: {
     seenInPeriod.set(o.customerKey, seen + 1);
   }
 
+    const orderInputs = orders.map((o) => ({
+    shopifyOrderId: o.shopifyOrderId,
+    dayKey: dayKeyFromUtcDate(o.shopLocalDate),
+    orderedAtIso: o.orderedAt.toISOString(),
+    amount: o.amount,
+    discountTotal: o.discountTotal,
+    shippingTotal: o.shippingTotal,
+    taxTotal: o.taxTotal,
+    unitCount: o.unitCount,
+    customerKey: o.customerKey,
+    currency: o.currency,
+    isGuest: o.customerKey === ORDER_FACT_GUEST_KEY,
+    lifetimeOrderRank: rankByOrderId.get(o.shopifyOrderId) ?? null,
+  }));
+
+  let filtered = orderInputs;
+  if (args.highAovOnly && orderInputs.length > 0) {
+    const amounts = [...orderInputs.map((o) => o.amount)].sort((a, b) => a - b);
+    const median = amounts[Math.floor(amounts.length / 2)]!;
+    const floor = median * 1.5;
+    filtered = orderInputs.filter((o) => o.amount >= floor);
+  }
+
   return {
-    rows: buildOrderLedgerRows(
-      orders.map((o) => ({
-        shopifyOrderId: o.shopifyOrderId,
-        dayKey: dayKeyFromUtcDate(o.shopLocalDate),
-        orderedAtIso: o.orderedAt.toISOString(),
-        amount: o.amount,
-        discountTotal: o.discountTotal,
-        shippingTotal: o.shippingTotal,
-        taxTotal: o.taxTotal,
-        unitCount: o.unitCount,
-        customerKey: o.customerKey,
-        currency: o.currency,
-        isGuest: o.customerKey === ORDER_FACT_GUEST_KEY,
-        lifetimeOrderRank: rankByOrderId.get(o.shopifyOrderId) ?? null,
-      })),
-      args.currencyCode,
-    ),
-    totalMatched,
+    rows: buildOrderLedgerRows(filtered, args.currencyCode),
+    inputs: filtered,
+    totalMatched: args.highAovOnly ? filtered.length : totalMatched,
   };
 }
 
@@ -279,7 +296,7 @@ export async function loadBuyerLedger(args: {
   currencyCode: string | null;
   useSampleDesk: boolean;
   limit?: number;
-}): Promise<{ rows: BuyerLedgerRow[]; totalBuyers: number }> {
+}): Promise<{ rows: BuyerLedgerRow[]; inputs: BuyerLedgerRowInput[]; totalBuyers: number }> {
   const source = args.useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
   const limit = Math.min(Math.max(args.limit ?? 100, 1), 300);
 
@@ -301,7 +318,7 @@ export async function loadBuyerLedger(args: {
   });
 
   const periodKeys = [...new Set(periodOrders.map((o) => o.customerKey))];
-  if (periodKeys.length === 0) return { rows: [], totalBuyers: 0 };
+  if (periodKeys.length === 0) return { rows: [], inputs: [], totalBuyers: 0 };
 
   const lifetimeOrders = await prisma.orderFact.findMany({
     where: {
@@ -378,8 +395,10 @@ export async function loadBuyerLedger(args: {
 
   inputs.sort((a, b) => b.periodSales - a.periodSales);
 
+  const shown = inputs.slice(0, limit);
   return {
-    rows: buildBuyerLedgerRows(inputs.slice(0, limit), args.currencyCode),
+    rows: buildBuyerLedgerRows(shown, args.currencyCode),
+    inputs: shown,
     totalBuyers: inputs.length,
   };
 }
@@ -389,7 +408,7 @@ export async function loadCohortLedger(args: {
   currencyCode: string | null;
   useSampleDesk: boolean;
   limit?: number;
-}): Promise<{ rows: CohortLedgerRow[] }> {
+}): Promise<{ rows: CohortLedgerRow[]; inputs: CohortLedgerRowInput[] }> {
   const source = args.useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
   const limit = Math.min(Math.max(args.limit ?? 36, 1), 60);
   const facts = await prisma.cohortFact.findMany({
@@ -398,19 +417,18 @@ export async function loadCohortLedger(args: {
     take: limit,
   });
 
+  const inputs = facts.map((f) => ({
+    cohortMonth: f.cohortMonth,
+    customers: f.customers,
+    revenueD30: f.revenueD30,
+    revenueD90: f.revenueD90,
+    revenueD365: f.revenueD365,
+    ordersD30: f.ordersD30,
+    ordersD90: f.ordersD90,
+    ordersD365: f.ordersD365,
+  }));
   return {
-    rows: buildCohortLedgerRows(
-      facts.map((f) => ({
-        cohortMonth: f.cohortMonth,
-        customers: f.customers,
-        revenueD30: f.revenueD30,
-        revenueD90: f.revenueD90,
-        revenueD365: f.revenueD365,
-        ordersD30: f.ordersD30,
-        ordersD90: f.ordersD90,
-        ordersD365: f.ordersD365,
-      })),
-      args.currencyCode,
-    ),
+    rows: buildCohortLedgerRows(inputs, args.currencyCode),
+    inputs,
   };
 }

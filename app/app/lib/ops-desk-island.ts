@@ -121,15 +121,20 @@ function buildWhy(input: OpsDeskIslandInput, tone: OpsDeskTone): string {
 function buildActions(input: OpsDeskIslandInput): OpsDeskAction[] {
   const actions: OpsDeskAction[] = [
     {
-      id: "ltv",
-      label: "Customers & LTV",
-      href: `/app/ltv?period=${encodeURIComponent(input.periodPreset)}`,
+      id: "customers",
+      label: "Buyer ledger",
+      href: `/app/customers?period=${encodeURIComponent(input.periodPreset)}`,
       primary: true,
     },
     {
       id: "days",
-      label: "Day quality",
-      href: "#mcfly-day-quality",
+      label: "Day ledger",
+      href: `/app/days?period=${encodeURIComponent(input.periodPreset)}`,
+    },
+    {
+      id: "orders",
+      label: "Orders",
+      href: `/app/orders?period=${encodeURIComponent(input.periodPreset)}`,
     },
   ];
   if (!input.hasLiveSpend) {

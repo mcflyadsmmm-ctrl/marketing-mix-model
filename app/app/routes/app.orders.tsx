@@ -20,6 +20,8 @@ import {
   scopesIncludeReadAllOrders,
 } from "../lib/deep-history-honesty";
 import { loadOrderLedger } from "../lib/desk-ledgers.server";
+import { buildOrderLedgerPulse } from "../lib/desk-ledger-pulse";
+import { OpsDeskIsland } from "../components/OpsDeskIsland";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -40,6 +42,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const guestOnly = url.searchParams.get("guest") === "1";
   const returningOnly = url.searchParams.get("returning") === "1";
   const discountedOnly = url.searchParams.get("discounted") === "1";
+  const highAovOnly = url.searchParams.get("highAov") === "1";
 
   const ledger = await loadOrderLedger({
     shopId: shop.id,
@@ -49,7 +52,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     guestOnly,
     returningOnly,
     discountedOnly,
+    highAovOnly,
   });
+
+  const pulse = shotMode
+    ? null
+    : buildOrderLedgerPulse({
+        periodLabel: range.label,
+        periodPreset: preset,
+        rows: ledger.inputs,
+        totalMatched: ledger.totalMatched,
+        currencyCode: shop.currencyCode,
+      });
 
   return {
     preset,
@@ -63,7 +77,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     guestOnly,
     returningOnly,
     discountedOnly,
+    highAovOnly,
     ledger,
+    pulse,
   };
 };
 
@@ -80,7 +96,9 @@ export default function OrdersLedgerPage() {
     guestOnly,
     returningOnly,
     discountedOnly,
+    highAovOnly,
     ledger,
+    pulse,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -139,17 +157,37 @@ export default function OrdersLedgerPage() {
               />{" "}
               Discounted only
             </label>
+            <label className="mcfly-desk-filters__item">
+              <input
+                type="checkbox"
+                name="highAov"
+                value="1"
+                defaultChecked={highAovOnly}
+              />{" "}
+              High AOV only
+            </label>
             <button type="submit" className="mcfly-desk-filters__submit">
               Apply
             </button>
           </Form>
         ) : null}
 
+        {!shotMode && pulse ? <OpsDeskIsland model={pulse} /> : null}
+
         <DeskSection
           id="order-ledger"
           title="Order ledger"
           blurb={`Showing ${ledger.rows.length} of ${ledger.totalMatched} orders in this period.`}
           hero
+          actions={
+            !shotMode ? (
+              <s-link
+                href={`/app/order-ledger.csv?period=${encodeURIComponent(preset)}${guestOnly ? "&guest=1" : ""}${returningOnly ? "&returning=1" : ""}${discountedOnly ? "&discounted=1" : ""}${highAovOnly ? "&highAov=1" : ""}`}
+              >
+                Export CSV
+              </s-link>
+            ) : null
+          }
         >
           <p className="mcfly-desk-section__note">
             Day board is on{" "}

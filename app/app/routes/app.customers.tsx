@@ -35,6 +35,10 @@ import { buildCustomersDepthDecision } from "../lib/customers-depth-decision";
 import { resolveOrderEconomics } from "../lib/order-economics";
 import { excludeOpenDayFacts } from "../lib/sales-day-accuracy";
 import { OpsDeskIsland } from "../components/OpsDeskIsland";
+import { DeskSection } from "../components/DeskSection";
+import { DeskLedgerTable } from "../components/DeskLedgerTable";
+import { loadBuyerLedger } from "../lib/desk-ledgers.server";
+import { buildBuyerLedgerPulse } from "../lib/desk-ledger-pulse";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -154,6 +158,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         currencyCode: shop.currencyCode,
       });
 
+  const buyerLedger = await loadBuyerLedger({
+    shopId: shop.id,
+    range,
+    currencyCode: shop.currencyCode,
+    useSampleDesk,
+  });
+  const buyerPulse = shotMode
+    ? null
+    : buildBuyerLedgerPulse({
+        periodLabel: depth.periodLabel,
+        periodPreset: preset,
+        rows: buyerLedger.inputs,
+        totalBuyers: buyerLedger.totalBuyers,
+        currencyCode: shop.currencyCode,
+      });
+  // Prefer buyer-ledger pulse when it has signal; else keep depth decision.
+  const deskPulse = buyerPulse ?? decision;
+
   return {
     depthDensity,
     charts,
@@ -168,7 +190,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shopDomain: session.shop,
     accuracy,
     orderHistoryAccuracy,
-    decision,
+    decision: deskPulse,
+    buyerLedger,
   };
 };
 
@@ -188,6 +211,7 @@ export default function CustomersDepthPage() {
     accuracy,
     orderHistoryAccuracy,
     decision,
+    buyerLedger,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -236,6 +260,51 @@ export default function CustomersDepthPage() {
           />
         ) : null}
         {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
+
+        <DeskSection
+          id="buyer-ledger"
+          title="Buyer ledger"
+          blurb={`Top ${buyerLedger.rows.length} of ${buyerLedger.totalBuyers} identified buyers in this period — opaque keys only.`}
+          hero
+          actions={
+            !shotMode ? (
+              <s-link
+                href={`/app/buyer-ledger.csv?period=${encodeURIComponent(preset)}`}
+              >
+                Export CSV
+              </s-link>
+            ) : null
+          }
+        >
+          <p className="mcfly-desk-section__note">
+            Cohort LTV table lives on{" "}
+            <s-link href={`/app/cohorts?period=${encodeURIComponent(preset)}`}>
+              Cohorts
+            </s-link>
+            . Order economics live on{" "}
+            <s-link href={`/app/orders?period=${encodeURIComponent(preset)}`}>
+              Orders
+            </s-link>
+            .
+          </p>
+          <DeskLedgerTable
+            caption={`Buyer ledger · ${periodLabel}`}
+            emptyMessage="No identified buyers in this period yet — order history backfill fills this desk."
+            columns={[
+              { key: "buyer", label: "Buyer" },
+              { key: "firstDay", label: "First day" },
+              { key: "lastDay", label: "Last day" },
+              { key: "orders", label: "Orders", align: "right" },
+              { key: "lifetimeSales", label: "Lifetime $", align: "right" },
+              { key: "periodSales", label: "Period $", align: "right" },
+              { key: "aov", label: "AOV", align: "right" },
+              { key: "daysToSecond", label: "Days to 2nd", align: "right" },
+              { key: "segment", label: "Segment" },
+            ]}
+            rows={buyerLedger.rows}
+          />
+        </DeskSection>
+
         <DepthSectionedGrid
           tab="customers"
           fastCharts={charts}

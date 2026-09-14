@@ -12668,3 +12668,25 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 
 .mcfly-desk-section__titles { min-width: 0; }
 .mcfly-desk-section__body { min-width: 0; }
+
+
+/* Paid-grade ledger cross-links on Overview */
+.mcfly-ledger-nav {
+  margin: 0.75rem 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--mcfly-ink, #1b2a3a) 12%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--mcfly-ink, #1b2a3a) 12%, transparent);
+}
+.mcfly-ledger-nav__kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--mcfly-ink, #1b2a3a) 55%, transparent);
+}
+.mcfly-ledger-nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+}

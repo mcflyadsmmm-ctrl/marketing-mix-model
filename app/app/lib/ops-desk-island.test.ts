@@ -51,7 +51,7 @@ describe("buildOpsDeskIsland", () => {
     expect(island!.takeaway.length).toBeGreaterThan(20);
     expect(island!.why.length).toBeGreaterThan(10);
     expect(island!.tone).toBe("strong");
-    expect(island!.actions[0]?.id).toBe("ltv");
+    expect(island!.actions[0]?.id).toBe("customers");
     expect(island!.actions.some((a) => a.id === "spend-later")).toBe(true);
     expect(island!.kpis[0]?.id).toBe("sales");
     expect(island!.kpis.map((k) => k.id).slice(0, 3)).toEqual([

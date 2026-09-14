@@ -354,3 +354,14 @@ Once you mark those, we lock this file and implement **Days + Orders ledgers** b
 - Sales/Customers use `DepthSectionedGrid` (named sections, not flat chart dump).
 - Days/Orders/Cohorts are table-first ledgers from existing facts.
 - Upload Spend remains entry-only; Allocation stays its own tab.
+
+
+## Density add-on (paid floor)
+
+Ship gate for "people would pay for this":
+
+- Days / Orders / Cohorts: OpsDeskIsland pulse (decision + KPI rail) above the ledger
+- Customers: buyer ledger hero table + export (not charts-only)
+- Orders: high-AOV filter + CSV export
+- Sales: buyer/calendar mix panel under the decision strip
+- Overview: Shopify ledger cross-links (Days / Orders / Buyers / Cohorts)

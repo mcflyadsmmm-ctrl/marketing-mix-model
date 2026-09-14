@@ -1175,6 +1175,15 @@ export default function Dashboard() {
             ) : null}
 
             <div className="mcfly-desk-grid mcfly-desk-grid--bc">
+              <nav className="mcfly-ledger-nav" aria-label="Shopify ledgers">
+                <p className="mcfly-ledger-nav__kicker">Shopify ledgers</p>
+                <div className="mcfly-ledger-nav__links">
+                  <s-link href={`/app/days?period=${encodeURIComponent(preset)}`}>Days</s-link>
+                  <s-link href={`/app/orders?period=${encodeURIComponent(preset)}`}>Orders</s-link>
+                  <s-link href={`/app/customers?period=${encodeURIComponent(preset)}`}>Buyers</s-link>
+                  <s-link href="/app/cohorts">Cohorts</s-link>
+                </div>
+              </nav>
               {salesMix ? <SalesMixPanel model={salesMix} /> : null}
               <OrderEconomicsPanel
                 economics={orderEconomics}
