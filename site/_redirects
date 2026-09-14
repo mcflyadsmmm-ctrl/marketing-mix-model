@@ -45,11 +45,60 @@
 
 # Custom Data Solutions + calculator aliases (Cloudflare Pages / apex only).
 # Do not apply these on Fly — listing-trust paths must stay 200.
-/custom /custom-analytics 301
-/custom/ /custom-analytics 301
+/custom / 301
+/custom/ / 301
 /calculator /mer-calculator 301
 /why-pixels /why-pixels-fail 301
 /glossary /cash-mer 301
-/lab/ /lab 301
+
+
+# Custom Data Solutions retired from mcflyads.com (Shopify app only).
+# Pages remain in repo for a future separate site; apex redirects home.
+/custom-analytics / 301
+/custom-analytics/ / 301
+/custom-analytics-engagement / 301
+/custom-analytics-engagement/ / 301
+/lab / 301
+/lab/ / 301
+/advanced-mds / 301
+/advanced-mds/ / 301
+/spend-sales-audit / 301
+/spend-sales-audit/ / 301
+/lead-gen-desk / 301
+/lead-gen-desk/ / 301
+/hire-marketing-data-scientist / 301
+/hire-marketing-data-scientist/ / 301
+/hire-shopify-ads-reconciliation / 301
+/hire-shopify-ads-reconciliation/ / 301
+/meta-invoice-vs-ads-manager /product 301
+/meta-invoice-vs-ads-manager/ /product 301
+/shopify-ga4-meta-reconciliation /product 301
+/shopify-ga4-meta-reconciliation/ /product 301
+/shopify-payout-vs-ad-spend /product 301
+/shopify-payout-vs-ad-spend/ /product 301
+/crm-qualified-vs-ad-spend /product 301
+/crm-qualified-vs-ad-spend/ /product 301
+/linkedin-ads-cpql /product 301
+/linkedin-ads-cpql/ /product 301
+/multi-entity-ad-spend-desk /product 301
+/multi-entity-ad-spend-desk/ /product 301
+/marketing-metric-contracts /product 301
+/marketing-metric-contracts/ /product 301
+/month-end-paid-media-close /monday-close 301
+/month-end-paid-media-close/ /monday-close 301
+/google-ads-vs-shopify-sales /product 301
+/google-ads-vs-shopify-sales/ /product 301
+/tiktok-ads-vs-shopify-sales /product 301
+/tiktok-ads-vs-shopify-sales/ /product 301
+/hubspot-ads-vs-pipeline /product 301
+/hubspot-ads-vs-pipeline/ /product 301
+/salesforce-google-ads-cost-per-sql /product 301
+/salesforce-google-ads-cost-per-sql/ /product 301
+/agency-reporting-offboarding /product 301
+/agency-reporting-offboarding/ /product 301
+/shopify-ads-decision-desk /product 301
+/shopify-ads-decision-desk/ /product 301
+/replace-marketing-dashboard /product 301
+/replace-marketing-dashboard/ /product 301
 
 /* /404.html 404

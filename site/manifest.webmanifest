@@ -1,7 +1,7 @@
 {
-  "name": "Mcfly Advertising & Analytics",
+  "name": "Mcfly Ads",
   "short_name": "Mcfly",
-  "description": "Two products · one company: Shopify Monday cash desk (Total ROAS = sales ÷ spend) and fixed-fee Custom Data Solutions.",
+  "description": "See ad spend next to Shopify sales, day by day. 7-day trial then $39/store/mo.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
