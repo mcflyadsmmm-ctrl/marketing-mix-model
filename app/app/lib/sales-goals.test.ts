@@ -63,6 +63,46 @@ describe("buildYearBoard target rail", () => {
     );
     expect(board.targetMer).toBe(4.5);
   });
+
+  it("withholds break-even until margin is confirmed", async () => {
+    vi.mocked(getOrCreateSettings).mockResolvedValue({
+      targetMer: 3,
+      marginPct: 0.4,
+      marginConfirmedAt: null,
+    } as Awaited<ReturnType<typeof getOrCreateSettings>>);
+    vi.mocked(prisma.salesGoal.findMany).mockResolvedValue([]);
+
+    const board = await buildYearBoard(
+      "shop_1",
+      2026,
+      new Map([[7, 9_000]]),
+      new Map([[7, 3_000]]),
+      3,
+      new Date(2026, 6, 15),
+    );
+    expect(board.breakEvenMer).toBeNull();
+    expect(board.ytd.spend).toBe(3_000);
+    expect(board.ytd.mer).toBe(3);
+  });
+
+  it("locks break-even after margin confirm", async () => {
+    vi.mocked(getOrCreateSettings).mockResolvedValue({
+      targetMer: 3,
+      marginPct: 0.4,
+      marginConfirmedAt: new Date("2026-07-01"),
+    } as Awaited<ReturnType<typeof getOrCreateSettings>>);
+    vi.mocked(prisma.salesGoal.findMany).mockResolvedValue([]);
+
+    const board = await buildYearBoard(
+      "shop_1",
+      2026,
+      new Map(),
+      new Map(),
+      3,
+      new Date(2026, 6, 15),
+    );
+    expect(board.breakEvenMer).toBe(2.5);
+  });
 });
 
 describe("salesByMonthFromDayMap", () => {

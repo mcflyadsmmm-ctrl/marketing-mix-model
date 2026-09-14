@@ -932,7 +932,8 @@ export default function Dashboard() {
             ) : null}
           </div>
         </div>
-        {!shotMode ? (
+        {!shotMode &&
+        (!scoreboardReady || trustedHero.hideUntrustedZero) ? (
           <p
             className="mcfly-topbar__def mcfly-topbar__def--solo"
             title={CASH_NOT_ATTRIBUTION}
@@ -1213,53 +1214,52 @@ export default function Dashboard() {
               />
             ) : null}
 
-            {/* Acquisition glance — aMER + new vs returning, same period figures as LTV */}
-            {!shotMode && scoreboardReady ? (
-              <div
-                className="mcfly-tab-snaps mcfly-tab-snaps--solo"
-                aria-label="Acquisition glance"
-              >
-                <AcquisitionGlance
-                  preset={preset}
-                  amer={metrics.amer}
-                  newCustomerSales={metrics.newCustomerNetSales}
-                  returningCustomerSales={metrics.returningCustomerNetSales}
-                  periodSales={metrics.sales}
-                  totalSpend={metrics.totalSpend}
-                  periodLabel={metrics.period.label}
-                  cashActionReady={metrics.cashActionReady}
-                  spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
-                  salesFactsIncomplete={
-                    factsIncompleteForTrust || trustedHero.hideUntrustedZero
-                  }
-                  periodUncovered={periodUncovered}
-                  newBuyers={
-                    metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null
-                  }
-                  useSampleDesk={useSampleDesk}
-                />
-              </div>
-            ) : null}
-
-            {/* LTV snapshot — depth after first trusted ROAS, not Monday chrome */}
-            {!shotMode && scoreboardReady ? (
-              <div className="mcfly-tab-snaps mcfly-tab-snaps--solo" aria-label="Tab snapshots">
-                <LtvSnapSection
-                  tillLtv={metrics.tillLtv}
-                  preset={preset}
-                />
-              </div>
-            ) : null}
-
             <details className="mcfly-me-spine mcfly-me-spine--later">
               <summary className="mcfly-me-spine__summary">
-                Daily spend vs sales — optional
+                Daily mix · acquisition · LTV — optional
               </summary>
               <SpendExplorer
                 series={explorer}
                 period={preset}
                 shotMode={shotMode}
               />
+              {!shotMode && scoreboardReady ? (
+                <div
+                  className="mcfly-tab-snaps mcfly-tab-snaps--solo"
+                  aria-label="Acquisition glance"
+                >
+                  <AcquisitionGlance
+                    preset={preset}
+                    amer={metrics.amer}
+                    newCustomerSales={metrics.newCustomerNetSales}
+                    returningCustomerSales={metrics.returningCustomerNetSales}
+                    periodSales={metrics.sales}
+                    totalSpend={metrics.totalSpend}
+                    periodLabel={metrics.period.label}
+                    cashActionReady={metrics.cashActionReady}
+                    spendIncomplete={Boolean(metrics.spendCoverage?.incomplete)}
+                    salesFactsIncomplete={
+                      factsIncompleteForTrust || trustedHero.hideUntrustedZero
+                    }
+                    periodUncovered={periodUncovered}
+                    newBuyers={
+                      metrics.tillLtv.available ? metrics.tillLtv.newBuyers : null
+                    }
+                    useSampleDesk={useSampleDesk}
+                  />
+                </div>
+              ) : null}
+              {!shotMode && scoreboardReady ? (
+                <div
+                  className="mcfly-tab-snaps mcfly-tab-snaps--solo"
+                  aria-label="Tab snapshots"
+                >
+                  <LtvSnapSection
+                    tillLtv={metrics.tillLtv}
+                    preset={preset}
+                  />
+                </div>
+              ) : null}
             </details>
 
             {showTrustBelow ? (
@@ -1267,18 +1267,6 @@ export default function Dashboard() {
                 {...trustBannerProps}
                 budgetRole={showTrustAbove ? "deferred" : "all"}
               />
-            ) : null}
-
-            {!shotMode && metrics.cashActionReady ? (
-              <p className="mcfly-overview-more" aria-label="More tools">
-                <s-link href={`/app/allocation?period=${preset}`}>
-                  {PRODUCT_NOUN.spendAllocation}
-                </s-link>
-                {" · "}
-                <s-link href="/app/goals">Goals</s-link>
-                {" · "}
-                <s-link href="/app/settings">Settings</s-link>
-              </p>
             ) : null}
           </>
         ) : null}
