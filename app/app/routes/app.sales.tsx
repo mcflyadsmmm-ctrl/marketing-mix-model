@@ -28,7 +28,6 @@ import {
 import { OpsDeskIsland } from "../components/OpsDeskIsland";
 import { SalesMixPanel } from "../components/SalesMixPanel";
 import { buildSalesMix } from "../lib/sales-mix";
-import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 import { excludeOpenDayFacts } from "../lib/sales-day-accuracy";
 import { buildSalesDepthDecision } from "../lib/sales-depth-decision";
@@ -209,10 +208,7 @@ export default function SalesDepthPage() {
             </p>
           ) : null}
         </header>
-        {!shotMode ? (
-          <SalesDayAccuracyStrip accuracy={accuracy} when="problems" />
-        ) : null}
-        {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
+{!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
         {!shotMode && salesMix ? <SalesMixPanel model={salesMix} /> : null}
         <DepthSectionedGrid
           tab="sales"

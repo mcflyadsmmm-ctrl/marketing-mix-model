@@ -19,7 +19,6 @@ import {
   resolveDeepHistoryHonesty,
   scopesIncludeReadAllOrders,
 } from "../lib/deep-history-honesty";
-import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 import { loadDayLedger } from "../lib/desk-ledgers.server";
 import { buildDayLedgerPulse } from "../lib/desk-ledger-pulse";
@@ -129,10 +128,7 @@ export default function DaysLedgerPage() {
           </p>
           {!shotMode ? <PeriodControl preset={preset} /> : null}
         </header>
-        {!shotMode ? (
-          <SalesDayAccuracyStrip accuracy={accuracy} when="problems" />
-        ) : null}
-        {!shotMode && pulse ? <OpsDeskIsland model={pulse} /> : null}
+{!shotMode && pulse ? <OpsDeskIsland model={pulse} /> : null}
 
         <DeskSection
           id="day-ledger"

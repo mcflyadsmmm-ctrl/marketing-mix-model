@@ -49,7 +49,6 @@ import {
   buildDepthChartsForTab,
   preferFilledDepthCharts,
 } from "../lib/shopify-depth-metrics";
-import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 
 type ShopifyToast = {
@@ -668,12 +667,7 @@ export default function GoalsPage() {
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner note="Goals below use SAMPLE sales." />
         ) : null}
-
-        {!shotMode && dayAccuracy ? (
-          <SalesDayAccuracyStrip accuracy={dayAccuracy} when="problems" />
-        ) : null}
-
-        {salesError && !shotMode ? (
+{salesError && !shotMode ? (
           <s-banner tone="critical" heading="Sales didn’t load">
             <s-paragraph>
               {salesError} — goals still save; actuals stay $0 until the sales pull

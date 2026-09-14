@@ -91,6 +91,8 @@ import {
   billSpreadSavedCopy,
   resolveBillSpreadCoverage,
 } from "../lib/spend-first-run";
+import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
+import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import { enqueueSalesFactsBackfill } from "../lib/sales-backfill-kick.server";
 import {
   CASH_PAGE_WHY,
@@ -277,7 +279,7 @@ async function loadSpendDayCoverage(
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
   const url = new URL(request.url);
   const shotMode = listingCaptureFromRequest(request);
@@ -360,10 +362,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     closedDays: salesFactsCoverage?.expectedClosedDays ?? 0,
   });
 
+
+  const salesDayAccuracy = shotMode
+    ? null
+    : await loadSalesDayAccuracy({
+        shopId: shop.id,
+        range,
+        ianaTimezone: shop.ianaTimezone,
+        now: new Date(),
+        enqueueRepair: !sampleDesk.enabled && !shotMode,
+        grantedScopes: session.scope,
+        useSampleDesk: sampleDesk.enabled,
+        admin: sampleDesk.enabled || shotMode ? undefined : admin,
+      });
+
   return {
     entries,
     sampleDesk,
     shotMode,
+    salesDayAccuracy,
     dayCoverage,
     periodCoverage,
     periodLedger,
@@ -892,7 +909,7 @@ function readStoredPlatforms(): SpendAdvertisePlatformId[] {
 }
 
 export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActionData> => {
-  const { session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "manual");
@@ -1069,6 +1086,7 @@ export default function SpendEntryPage() {
     entries,
     sampleDesk,
     shotMode,
+    salesDayAccuracy,
     dayCoverage,
     entitlements,
     addSpendChannels,
@@ -2514,6 +2532,18 @@ export default function SpendEntryPage() {
                 </li>
               ))}
             </ul>
+          ) : null}
+
+          {/* Quiet data-sync honesty — parked here so Overview/Sales stay clean */}
+          {!shotMode && salesDayAccuracy ? (
+            <details className="mcfly-spend-sync-foot">
+              <summary>Sales day sync</summary>
+              <p className="mcfly-spend-lean__status-foot">
+                Shopify day facts power Overview, Sales, Days, and Goals. Gaps
+                stay visible here — desks never invent $0 for a missing day.
+              </p>
+              <SalesDayAccuracyStrip accuracy={salesDayAccuracy} when="problems" />
+            </details>
           ) : null}
 
         </div>

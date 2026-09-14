@@ -51,7 +51,6 @@ import {
   isTrustedMer,
 } from "../lib/install-stickiness";
 import { DeepHistoryBanner } from "../components/DeepHistoryBanner";
-import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
 import {
   resolveDeepHistoryHonesty,
   scopesIncludeReadAllOrders,
@@ -1168,10 +1167,6 @@ export default function Dashboard() {
               <ScoreboardHero model={scoreboardHero} />
             ) : opsDeskIsland ? (
               <OpsDeskIsland model={opsDeskIsland} />
-            ) : null}
-
-            {dayAccuracy ? (
-              <SalesDayAccuracyStrip accuracy={dayAccuracy} when="problems" />
             ) : null}
 
             <div className="mcfly-desk-grid mcfly-desk-grid--bc">

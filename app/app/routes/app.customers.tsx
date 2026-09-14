@@ -25,8 +25,6 @@ import {
   resolveDeepHistoryHonesty,
   scopesIncludeReadAllOrders,
 } from "../lib/deep-history-honesty";
-import { SalesDayAccuracyStrip } from "../components/SalesDayAccuracyStrip";
-import { OrderHistoryAccuracyStrip } from "../components/OrderHistoryAccuracyStrip";
 import { loadSalesDayAccuracy } from "../lib/sales-day-accuracy.server";
 import { loadOrderHistoryAccuracy } from "../lib/order-history-accuracy.server";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
@@ -250,16 +248,7 @@ export default function CustomersDepthPage() {
             </p>
           ) : null}
         </header>
-        {!shotMode ? (
-          <SalesDayAccuracyStrip accuracy={accuracy} when="problems" />
-        ) : null}
-        {!shotMode ? (
-          <OrderHistoryAccuracyStrip
-            accuracy={orderHistoryAccuracy}
-            when="problems"
-          />
-        ) : null}
-        {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
+{!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
 
         <DeskSection
           id="buyer-ledger"
