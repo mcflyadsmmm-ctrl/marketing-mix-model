@@ -3,7 +3,7 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
-import { DepthProgressiveGrid } from "../components/DepthProgressiveGrid";
+import { DepthSectionedGrid } from "../components/DepthSectionedGrid";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import {
@@ -236,11 +236,20 @@ export default function CustomersDepthPage() {
           />
         ) : null}
         {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
-        <DepthProgressiveGrid
+        <DepthSectionedGrid
+          tab="customers"
           fastCharts={charts}
           placeholders={placeholders}
           heavyHref={heavyHref}
           deferHeavy={!shotMode}
+          ledgerNote={
+            <>
+              Cohort LTV table lives on{" "}
+              <s-link href={`/app/cohorts?period=${encodeURIComponent(preset)}`}>Cohorts</s-link>
+              . Order-level economics live on{" "}
+              <s-link href={`/app/orders?period=${encodeURIComponent(preset)}`}>Orders</s-link>.
+            </>
+          }
         />
       </div>
     </s-page>

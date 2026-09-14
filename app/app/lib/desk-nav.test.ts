@@ -12,11 +12,14 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 
 describe("deskNavItems", () => {
-  it("top nav is Overview · Sales · Customers · Goals · Upload Spend · Allocation · Settings", () => {
+  it("top nav is Overview · Sales · Days · Orders · Customers · Cohorts · Goals · Upload Spend · Allocation · Settings", () => {
     expect(deskNavCoreIds()).toEqual([
       "overview",
       "sales",
+      "days",
+      "orders",
       "customers",
+      "cohorts",
       "goals",
       "spend",
       "allocation",
@@ -25,7 +28,10 @@ describe("deskNavItems", () => {
     expect(deskNavItems().map((i) => i.href)).toEqual([
       "/app",
       "/app/sales",
+      "/app/days",
+      "/app/orders",
       "/app/customers",
+      "/app/cohorts",
       "/app/goals",
       "/app/spend",
       "/app/allocation",
@@ -34,8 +40,12 @@ describe("deskNavItems", () => {
     expect(deskNavItems().find((i) => i.id === "overview")?.label).toBe(
       "Overview",
     );
-    expect(deskNavItems().find((i) => i.id === "customers")?.label).toBe(
-      "Customers",
+    expect(deskNavItems().find((i) => i.id === "days")?.label).toBe("Days");
+    expect(deskNavItems().find((i) => i.id === "orders")?.label).toBe(
+      "Orders",
+    );
+    expect(deskNavItems().find((i) => i.id === "cohorts")?.label).toBe(
+      "Cohorts",
     );
     expect(deskNavItems().find((i) => i.id === "spend")?.label).toBe(
       "Upload Spend",
@@ -50,6 +60,9 @@ describe("deskNavItems", () => {
     expect(deskNavLaterIds()).toEqual(["advanced"]);
     const hrefs = deskNavAllItems().map((i) => i.href);
     expect(hrefs).toContain("/app");
+    expect(hrefs).toContain("/app/days");
+    expect(hrefs).toContain("/app/orders");
+    expect(hrefs).toContain("/app/cohorts");
     expect(hrefs).toContain("/app/goals");
     expect(hrefs).toContain("/app/spend");
     expect(hrefs).toContain("/app/allocation");

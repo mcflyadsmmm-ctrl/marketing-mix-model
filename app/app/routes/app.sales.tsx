@@ -3,7 +3,7 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
-import { DepthProgressiveGrid } from "../components/DepthProgressiveGrid";
+import { DepthSectionedGrid } from "../components/DepthSectionedGrid";
 import { listingCaptureFromRequest } from "../lib/listing-capture";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import {
@@ -207,11 +207,20 @@ export default function SalesDepthPage() {
           <SalesDayAccuracyStrip accuracy={accuracy} when="problems" />
         ) : null}
         {!shotMode && decision ? <OpsDeskIsland model={decision} /> : null}
-        <DepthProgressiveGrid
+        <DepthSectionedGrid
+          tab="sales"
           fastCharts={charts}
           placeholders={placeholders}
           heavyHref={heavyHref}
           deferHeavy={!shotMode}
+          ledgerNote={
+            <>
+              Full day rows live on{" "}
+              <s-link href={`/app/days?period=${encodeURIComponent(preset)}`}>Days</s-link>
+              . Order economics live on{" "}
+              <s-link href={`/app/orders?period=${encodeURIComponent(preset)}`}>Orders</s-link>.
+            </>
+          }
         />
       </div>
     </s-page>

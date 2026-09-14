@@ -12542,3 +12542,129 @@ html.mcfly-listing-capture .mcfly-demo-off-warning,
 .mcfly-day-accuracy--partial_history s-banner {
   /* Polaris banner owns tone; keep spacing only */
 }
+
+
+/* —— Desk sections + ledgers (skeleton IA) —— */
+.mcfly-desk-section {
+  margin: 1.25rem 0 1.75rem;
+}
+.mcfly-desk-section--hero {
+  margin-top: 0.75rem;
+}
+.mcfly-desk-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.65rem;
+}
+.mcfly-desk-section__title {
+  margin: 0;
+  font-family: var(--mcfly-display, Fraunces, Georgia, serif);
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--mcfly-ink, #142033);
+}
+.mcfly-desk-section__blurb,
+.mcfly-desk-section__note {
+  margin: 0.2rem 0 0;
+  max-width: 42rem;
+  color: var(--mcfly-mute, #5a6f85);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.mcfly-desk-section__note {
+  margin-bottom: 0.65rem;
+}
+.mcfly-desk-section__actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.mcfly-desk-section__hero-chart {
+  margin-bottom: 0.85rem;
+}
+.mcfly-depth-sectioned {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.mcfly-desk-ledger {
+  margin-top: 0.35rem;
+}
+.mcfly-desk-ledger__scroll {
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--mcfly-bc-accent, #4a7a9b) 16%, #d8e4ee);
+  border-radius: 8px;
+  background: #fff;
+}
+.mcfly-desk-ledger__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+.mcfly-desk-ledger__caption {
+  caption-side: top;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--mcfly-ink, #142033);
+}
+.mcfly-desk-ledger__th,
+.mcfly-desk-ledger__td {
+  padding: 0.4rem 0.65rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--mcfly-bc-accent, #4a7a9b) 10%, #e8eef4);
+  white-space: nowrap;
+}
+.mcfly-desk-ledger__th {
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mcfly-mute, #5a6f85);
+  background: color-mix(in srgb, var(--mcfly-bc-accent, #4a7a9b) 6%, #f7fafc);
+}
+.mcfly-desk-ledger__th--right,
+.mcfly-desk-ledger__td--right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.mcfly-desk-ledger__count {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  color: var(--mcfly-mute, #5a6f85);
+}
+.mcfly-desk-ledger__empty {
+  margin: 0.5rem 0;
+  color: var(--mcfly-mute, #5a6f85);
+  font-size: 0.9rem;
+}
+.mcfly-desk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  align-items: center;
+  margin: 0 0 0.85rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--mcfly-bc-accent, #4a7a9b) 5%, #f7fafc);
+  border: 1px solid color-mix(in srgb, var(--mcfly-bc-accent, #4a7a9b) 12%, #d8e4ee);
+}
+.mcfly-desk-filters__item {
+  font-size: 0.86rem;
+  color: var(--mcfly-ink, #142033);
+}
+.mcfly-desk-filters__submit {
+  margin-left: auto;
+  font-size: 0.86rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--mcfly-bc-accent, #4a7a9b) 28%, #c5d5e2);
+  background: #fff;
+  cursor: pointer;
+}
+
+.mcfly-desk-section__titles { min-width: 0; }
+.mcfly-desk-section__body { min-width: 0; }

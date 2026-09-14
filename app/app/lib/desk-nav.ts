@@ -1,19 +1,22 @@
 /**
- * App nav — Black Clover Overview first, then Shopify depth, then spend wing.
+ * App nav — Black Clover Overview first, then Shopify depth ledgers, then spend wing.
  *
  * Spend is split on purpose (Marty 2026-09-13):
  * - Upload Spend = get dollars in (CSV / paste / bill) — one clear job
  * - Allocation = BC cut/hold/shift once spend exists — its own top tab
  * - Insights (Advanced) = spend-needed depth (explorer / recon) — subnav for now
  *
- * Core: Overview · Sales · Customers · Goals · Upload Spend · Allocation · Settings.
- * Days / Orders / Cohorts join core when their ledgers ship.
+ * Core: Overview · Sales · Days · Orders · Customers · Cohorts · Goals ·
+ * Upload Spend · Allocation · Settings.
  */
 
 export type DeskNavId =
   | "overview"
   | "sales"
+  | "days"
+  | "orders"
   | "customers"
+  | "cohorts"
   | "goals"
   | "spend"
   | "allocation"
@@ -31,7 +34,10 @@ export type DeskNavItem = {
 export const DESK_NAV_ITEMS: readonly DeskNavItem[] = [
   { id: "overview", href: "/app", label: "Overview", later: false },
   { id: "sales", href: "/app/sales", label: "Sales", later: false },
+  { id: "days", href: "/app/days", label: "Days", later: false },
+  { id: "orders", href: "/app/orders", label: "Orders", later: false },
   { id: "customers", href: "/app/customers", label: "Customers", later: false },
+  { id: "cohorts", href: "/app/cohorts", label: "Cohorts", later: false },
   { id: "goals", href: "/app/goals", label: "Goals", later: false },
   {
     id: "spend",

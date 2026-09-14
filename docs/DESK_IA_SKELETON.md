@@ -1,6 +1,6 @@
 # Mcfly desk IA skeleton (expanded)
 
-**Status:** working draft for Marty — v3 after “do everything Black Clover does as the base.”  
+**Status:** implementing — v4 skeleton shipping (section chrome + Days/Orders/Cohorts ledgers in nav).  
 **Craft bar:** Black Clover smoothness = *how* pages are composed.  
 **Base bar:** Port BC Overview + Spend + Allocation craft/math first (`docs/BC_BASE_PARITY.md`).  
 **Ambition bar:** Then beat BC with Shopify-native ledgers (Days / Orders / Customers / Cohorts / Products).
@@ -346,3 +346,11 @@ More tabs ≠ more chaos.
 6. Any table columns you care about most on **Days** and **Orders**?
 
 Once you mark those, we lock this file and implement **Days + Orders ledgers** before another chart-grid polish pass.
+
+
+## Ship notes (2026-09-14)
+
+- Top nav: Overview · Sales · Days · Orders · Customers · Cohorts · Goals · Upload Spend · Allocation · Settings.
+- Sales/Customers use `DepthSectionedGrid` (named sections, not flat chart dump).
+- Days/Orders/Cohorts are table-first ledgers from existing facts.
+- Upload Spend remains entry-only; Allocation stays its own tab.
