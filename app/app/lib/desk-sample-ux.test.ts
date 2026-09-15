@@ -122,9 +122,6 @@ describe("Sample data | Live data UX", () => {
     const overview = read("../routes/app._index.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
     const book = read("../components/ShopifyBookSection.tsx");
-    const orders = read("../routes/app.orders.tsx");
-    const buyers = read("../routes/app.buyers.tsx");
-    const timing = read("../routes/app.timing.tsx");
     const ltvSnap = read("../components/LtvSnapSection.tsx");
     const labels = read("./product-labels.ts");
     expect(overview).toContain("<OverviewFirstViewport");
@@ -132,12 +129,6 @@ describe("Sample data | Live data UX", () => {
     expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
     expect(firstView).toContain("Returning sales");
     expect(overview).toContain("shopifyNativePeriodStats");
-    expect(orders).toContain('groups={["period"]}');
-    expect(buyers).toContain('groups={["buyers"]}');
-    expect(timing).toContain('groups={["timing"]}');
-    expect(orders).toContain("loadDeskSalesPage");
-    expect(buyers).toContain("loadDeskSalesPage");
-    expect(timing).toContain("loadDeskSalesPage");
     expect(book).toContain("PRODUCT_NOUN.bookTypicalOrder");
     expect(book).toContain("PRODUCT_NOUN.bookGuestCheckouts");
     expect(book).toContain("PRODUCT_NOUN.bookMostOrders");
@@ -171,6 +162,26 @@ describe("Sample data | Live data UX", () => {
     expect(explorerAt).toBeGreaterThan(firstAt);
     expect(overview).toContain("<SpendExplorer");
     expect(overview).toContain("<DeskOverviewTabs");
+  });
+
+  it("Pass A book routes exist and old URLs redirect", () => {
+    const customers = read("../routes/app.customers.tsx");
+    const growth = read("../routes/app.growth.tsx");
+    const orders = read("../routes/app.orders.tsx");
+    const buyers = read("../routes/app.buyers.tsx");
+    const timing = read("../routes/app.timing.tsx");
+    expect(customers).toContain("loadDeskSalesPage");
+    expect(customers).toContain('groups={["buyers"]}');
+    expect(customers).not.toContain("LtvSnapSection");
+    expect(customers).not.toContain("cashCostPerCustomer");
+    expect(growth).toContain("loadDeskSalesPage");
+    expect(growth).toContain('groups={["growth"]}');
+    expect(growth).toContain("tillLtv.repeatRate");
+    expect(growth).toContain("/app/ltv");
+    expect(growth).not.toContain("cashCac");
+    expect(orders).toContain('groups={["period", "timing"]}');
+    expect(buyers).toContain('throw redirect(`/app/customers');
+    expect(timing).toContain('throw redirect(`/app/orders');
   });
 
   it("Tick A Overview chrome is sales-first at $0 spend", () => {

@@ -4,22 +4,17 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { ShopifyBookSection } from "../components/ShopifyBookSection";
 import { deskPeriodTillLabel } from "../lib/desk-history";
+import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
-import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return loadDeskSalesPage(request, "/app/orders");
+  return loadDeskSalesPage(request, "/app/customers");
 };
 
-export default function OrdersPage() {
-  const {
-    metrics,
-    preset,
-    shotMode,
-    useSampleDesk,
-    salesError,
-  } = useLoaderData<typeof loader>();
+export default function CustomersPage() {
+  const { metrics, preset, shotMode, useSampleDesk, salesError } =
+    useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
   const tillLabel = deskPeriodTillLabel({
@@ -46,7 +41,7 @@ export default function OrdersPage() {
 
   return (
     <DeskBookPage
-      heading={PRODUCT_NOUN.ordersTitle}
+      heading={PRODUCT_NOUN.buyersTitle}
       tillLabel={tillLabel}
       preset={preset}
       shotMode={shotMode}
@@ -68,9 +63,9 @@ export default function OrdersPage() {
             net: metrics.netSales,
             netKnown: metrics.netSalesKnown,
           }}
-          groups={["period", "timing"]}
-          title={PRODUCT_NOUN.ordersTitle}
-          muted={PRODUCT_NOUN.ordersMuted}
+          groups={["buyers"]}
+          title={PRODUCT_NOUN.buyersTitle}
+          muted={PRODUCT_NOUN.buyersMuted}
         />
       )}
     </DeskBookPage>
