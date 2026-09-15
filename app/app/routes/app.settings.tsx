@@ -322,8 +322,9 @@ export default function SettingsPage() {
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              {PRODUCT_NOUN.definition}. Set your target. Profit margin is
-              optional — only if you want break-even.
+              This page is your target {PRODUCT_NOUN.totalRoas}, Sample vs
+              Live, and billing — not reports. Profit margin is optional —
+              only if you want break-even.
             </p>
           </div>
         </header>
@@ -363,7 +364,7 @@ export default function SettingsPage() {
                 : `Target ${PRODUCT_NOUN.totalRoas} updated. Profit margin stays optional — add it anytime for break-even.`}
               {hasLiveSpend
                 ? ` Open ${PRODUCT_NOUN.totalRoas} when ready.`
-                : " Next: upload daily spend on Upload Spend."}
+                : " Next: add daily spend on Spend Upload."}
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               {hasLiveSpend ? (
