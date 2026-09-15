@@ -48,6 +48,8 @@ export function resolvePeriodTrust(input: {
   spendIncomplete: boolean;
   salesFactsIncomplete: boolean;
   periodExceedsFactWindow: boolean;
+  /** Wider than Shopify's ~60-day live order window (facts-first desk). */
+  beyondLiveShopifyWindow?: boolean;
   useSampleDesk?: boolean;
   shotMode?: boolean;
 }): PeriodTrust {
@@ -74,10 +76,13 @@ export function resolvePeriodTrust(input: {
   }
 
   if (input.salesFactsIncomplete) {
+    const storedWide = input.beyondLiveShopifyWindow
+      ? ` ${PRODUCT_NOUN.totalRoas} is stored facts only — not a full live year — until coverage is complete.`
+      : ` ${PRODUCT_NOUN.totalRoas} is not a trusted multiple until coverage is complete.`;
     return {
       kind: "sales_incomplete",
       trusted: false,
-      warning: `Shopify sales facts for this period are still filling. ${PRODUCT_NOUN.totalRoas} is not a trusted multiple until coverage is complete.`,
+      warning: `Shopify sales facts for this period are still filling.${storedWide}`,
       suggestPreset: shorter?.preset ?? null,
       suggestLabel: shorter?.label ?? null,
     };

@@ -32,6 +32,35 @@ const explorer = readFileSync(
 const merDashboard = readFileSync(join(here, "./mer-dashboard.server.ts"), "utf8");
 const schema = readFileSync(join(here, "../../prisma/schema.prisma"), "utf8");
 
+describe("Period honesty (L12M / stored facts)", () => {
+  it("Overview till and Explorer disclose stored-facts windows", () => {
+    expect(overview).toContain("periodWiderThanLiveWindow");
+    expect(overview).toContain("formatPeriodHonestyChip");
+    expect(overview).toContain("honestyLabel");
+    expect(overview).toContain("beyondLiveShopifyWindow");
+    expect(explorer).toContain("honestyLabel");
+    expect(explorer).toContain("mcfly-explorer__honesty");
+  });
+
+  it("Goals year till is not a silent live year", () => {
+    expect(goals).toContain("periodWiderThanLiveWindow");
+    expect(goals).toContain("factsCoverage");
+    expect(goals).toContain("periodExceedsFactWindow");
+    expect(advanced).toContain("periodWiderThanLiveWindow");
+    expect(ltv).toContain("periodWiderThanLiveWindow");
+    expect(allocation).toContain("periodWiderThanLiveWindow");
+  });
+
+  it("PeriodControl titles L12M / 3yr as stored facts, not a live year", () => {
+    const periodControl = readFileSync(
+      join(here, "../components/PeriodControl.tsx"),
+      "utf8",
+    );
+    expect(periodControl).toContain("periodHonestyWidePresetTitle");
+    expect(periodControl).toContain("title={honestyTitle}");
+  });
+});
+
 describe("Overview Monday desk", () => {
   it("leads with a cash verdict and warns untrusted periods", () => {
     expect(overview).toContain("CashVerdict");

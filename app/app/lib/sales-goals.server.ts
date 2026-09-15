@@ -4,6 +4,7 @@ import prisma from "../db.server";
 import { getOrCreateSettings } from "./mer-dashboard.server";
 import type { DateRange } from "./periods";
 import { getSalesFactsByDay, getSalesFactsCoverage } from "./sales-facts.server";
+import type { SalesFactsCoverage } from "./sales-facts-honesty";
 import { fetchSampleSalesByDay } from "./sample-desk.server";
 import {
   dateKeyFromYmd,
@@ -936,11 +937,16 @@ export async function loadSalesByDayForGoalsRange(
   ianaTimezone: string | null | undefined,
   range: DateRange,
   useSampleDesk: boolean,
-): Promise<{ salesByDay: Map<string, number>; salesError: string | null }> {
+): Promise<{
+  salesByDay: Map<string, number>;
+  salesError: string | null;
+  factsCoverage: SalesFactsCoverage | null;
+}> {
   if (useSampleDesk) {
     return {
       salesByDay: await fetchSampleSalesByDay(shopId, range),
       salesError: null,
+      factsCoverage: null,
     };
   }
   try {
@@ -958,17 +964,20 @@ export async function loadSalesByDayForGoalsRange(
       return {
         salesByDay: new Map(),
         salesError: `Sales day facts incomplete (${coverage.factDays}/${coverage.expectedClosedDays} days) — YoY baselines withheld`,
+        factsCoverage: coverage,
       };
     }
     return {
       salesByDay: await getSalesFactsByDay(shopId, range, ianaTimezone),
       salesError: null,
+      factsCoverage: coverage,
     };
   } catch (err) {
     return {
       salesByDay: new Map(),
       salesError:
         err instanceof Error ? err.message : "Failed to load sales facts",
+      factsCoverage: null,
     };
   }
 }

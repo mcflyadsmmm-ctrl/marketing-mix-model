@@ -369,9 +369,20 @@ export function periodSpanDays(range: DateRange): number {
   return Math.max(0, Math.ceil(ms / 86_400_000));
 }
 
-/** True when the selected range is wider than the default live order window. */
-export function periodMayExceedShopifyOrderWindow(range: DateRange): boolean {
-  return periodSpanDays(range) > SHOPIFY_READ_ORDERS_WINDOW_DAYS;
+/**
+ * True when the selected range (capped at `now`) is wider than Shopify's
+ * default live `read_orders` window. Future calendar tails (Goals Dec 31)
+ * do not count — only elapsed time can overclaim a live year.
+ */
+export function periodMayExceedShopifyOrderWindow(
+  range: DateRange,
+  now: Date = new Date(),
+): boolean {
+  const cappedEnd = range.end.getTime() > now.getTime() ? now : range.end;
+  return (
+    periodSpanDays({ start: range.start, end: cappedEnd, label: range.label }) >
+    SHOPIFY_READ_ORDERS_WINDOW_DAYS
+  );
 }
 
 /** Parse URL `period` query; unknown/missing → MTD. */

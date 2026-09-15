@@ -27,6 +27,7 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("formatListingTillLabel");
     expect(source).toMatch(/salesError:\s*Boolean\(salesError\)/);
     expect(source).toContain("factsIncomplete");
+    expect(source).toContain("periodWiderThanLiveWindow");
   });
 
   it("suppresses allocation suggestion when salesError or untrusted $0 sales", () => {

@@ -55,6 +55,21 @@ describe("resolvePeriodTrust", () => {
     expect(trust.warning).toMatch(/not a trusted multiple/i);
   });
 
+  it("says stored-facts-only — not a live year — when L12M facts are still filling", () => {
+    const trust = resolvePeriodTrust({
+      preset: "l12m",
+      hasSpend: true,
+      spendIncomplete: false,
+      salesFactsIncomplete: true,
+      periodExceedsFactWindow: false,
+      beyondLiveShopifyWindow: true,
+    });
+    expect(trust.kind).toBe("sales_incomplete");
+    expect(trust.warning).toMatch(/stored facts only/i);
+    expect(trust.warning).toMatch(/not a full live year/i);
+    expect(trust.suggestPreset).toBe("mtd");
+  });
+
   it("never treats SAMPLE as an untrusted live period", () => {
     const trust = resolvePeriodTrust({
       preset: "l12m",

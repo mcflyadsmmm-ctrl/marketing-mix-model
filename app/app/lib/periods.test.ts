@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   formatPeriodQuery,
+  periodMayExceedShopifyOrderWindow,
   resolvePeriod,
   resolvePriorPeriod,
+  SHOPIFY_READ_ORDERS_WINDOW_DAYS,
 } from "./periods";
 import { shopLocalDayKey, shopLocalDayRange } from "./shop-local-day";
 import { resolveExplorerWindow } from "./spend-explorer";
@@ -146,5 +148,40 @@ describe("explorer day keys vs shopLocalDayKey (east-of-UTC)", () => {
     const win = resolveExplorerWindow("YTD", now, { timeZone: tz });
     expect(shopLocalDayKey(win.start, tz)).toBe("2026-01-01");
     expect(win.start.toISOString().slice(0, 10)).toBe("2025-12-31");
+  });
+});
+
+describe("periodMayExceedShopifyOrderWindow", () => {
+  it("treats L12M as past the live Shopify order window", () => {
+    const now = new Date("2026-09-15T18:00:00.000Z");
+    const range = resolvePeriod("l12m", now, "UTC");
+    expect(periodMayExceedShopifyOrderWindow(range, now)).toBe(true);
+    expect(SHOPIFY_READ_ORDERS_WINDOW_DAYS).toBe(60);
+  });
+
+  it("does not treat mid-month MTD as a live-year overclaim", () => {
+    const now = new Date("2026-09-15T18:00:00.000Z");
+    const range = resolvePeriod("mtd", now, "UTC");
+    expect(periodMayExceedShopifyOrderWindow(range, now)).toBe(false);
+  });
+
+  it("ignores the future tail of a Goals calendar year in January", () => {
+    const now = new Date("2026-01-15T18:00:00.000Z");
+    const yearRange = {
+      start: new Date("2026-01-01T00:00:00.000Z"),
+      end: new Date("2026-12-31T23:59:59.999Z"),
+      label: "2026",
+    };
+    expect(periodMayExceedShopifyOrderWindow(yearRange, now)).toBe(false);
+  });
+
+  it("flags a Goals calendar year by September as past the live window", () => {
+    const now = new Date("2026-09-15T18:00:00.000Z");
+    const yearRange = {
+      start: new Date("2026-01-01T00:00:00.000Z"),
+      end: new Date("2026-12-31T23:59:59.999Z"),
+      label: "2026",
+    };
+    expect(periodMayExceedShopifyOrderWindow(yearRange, now)).toBe(true);
   });
 });

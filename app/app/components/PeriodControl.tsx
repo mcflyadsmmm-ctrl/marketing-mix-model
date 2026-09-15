@@ -1,5 +1,6 @@
 import { useSearchParams } from "react-router";
 import { applyListingCaptureParam } from "../lib/listing-capture";
+import { periodHonestyWidePresetTitle } from "../lib/period-honesty";
 import type { PeriodPreset } from "../lib/periods";
 
 type PeriodControlProps = {
@@ -63,12 +64,14 @@ export function PeriodControl({
       >
         {periodOptions.map(({ value, label }) => {
           const pressed = activeValue === value;
+          const honestyTitle = periodHonestyWidePresetTitle(value);
           return (
             <button
               key={value}
               type="button"
               className={`mcfly-period__btn${pressed ? " mcfly-period__btn--on" : ""}`}
               aria-pressed={pressed}
+              title={honestyTitle}
               onClick={() => setPeriod(value)}
             >
               {label}

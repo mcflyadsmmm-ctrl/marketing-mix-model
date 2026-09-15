@@ -49,6 +49,7 @@ import {
   formatListingTillLabel,
   listingCaptureFromRequest,
 } from "../lib/listing-capture";
+import { periodMayExceedShopifyOrderWindow } from "../lib/periods";
 
 type ShopifyToast = {
   show?: (message: string, options?: { duration?: number; isError?: boolean }) => void;
@@ -225,6 +226,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       (await prisma.spendEntry.count({
         where: { shopId: shop.id, NOT: { source: "sample" } },
       })) > 0,
+    factsCoverage: currentSales.factsCoverage,
+    periodWiderThanLiveWindow: periodMayExceedShopifyOrderWindow(range),
   };
 };
 
@@ -439,6 +442,8 @@ export default function GoalsPage() {
     priorYear,
     priorYearMonthly,
     hasLiveSpend,
+    factsCoverage,
+    periodWiderThanLiveWindow,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -527,6 +532,12 @@ export default function GoalsPage() {
     periodLabel: String(year),
     useSampleDesk,
     listingCapture: shotMode,
+    salesError: Boolean(salesError) && factsCoverage == null,
+    factsIncomplete:
+      Boolean(salesError) ||
+      (factsCoverage != null && !factsCoverage.complete),
+    periodExceedsFactWindow: Boolean(factsCoverage?.periodExceedsFactWindow),
+    periodWiderThanLiveWindow,
   });
 
   const onYearChange = (next: string) => {
