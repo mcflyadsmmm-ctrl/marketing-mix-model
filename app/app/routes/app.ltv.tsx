@@ -350,7 +350,10 @@ export default function LtvPage() {
       ) : null}
 
       <section className="mcfly-book" aria-label="What new customers spend">
-        <p className="mcfly-book__lede">{PRODUCT_NOUN.ltvNotInShopify}</p>
+        <p className="mcfly-book__lede">
+          Shopify Analytics LTV reports, if any, are not this order-history
+          first 90 days. {PRODUCT_NOUN.ltvNotInShopify}
+        </p>
 
         {ltv.available && isNum(ltv.avgRevenueD90) ? (
           <div className="mcfly-book__hero">
@@ -388,6 +391,14 @@ export default function LtvPage() {
           <BookRows rows={monthRows} />
         </section>
       ) : null}
+
+      <footer className="mcfly-book__links">
+        {hasSpend ? (
+          <s-link href="/app/cpa">CPA</s-link>
+        ) : (
+          <s-link href="/app/spend">Spend Upload</s-link>
+        )}
+      </footer>
 
       <ReviewAsk
         hasLiveSpend={hasLiveSpend}

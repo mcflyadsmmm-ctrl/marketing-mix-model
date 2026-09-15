@@ -65,6 +65,53 @@ describe("LTV sales spine (HARD-STOP)", () => {
   });
 });
 
+describe("LTV tab vs Shopify Analytics", () => {
+  it("contrasts Shopify Analytics LTV reports with order-history 90-day value", () => {
+    expect(
+      ltvSource.includes("Shopify Analytics") ||
+        ltvSource.includes("PRODUCT_NOUN.ltvNotInShopify"),
+    ).toBe(true);
+    expect(ltvSource).toMatch(/LTV reports/i);
+    expect(ltvSource).toMatch(/order-history|order history/i);
+  });
+
+  it("names avg orders in first 90 days", () => {
+    expect(ltvSource).toContain("avgOrdersD90");
+    expect(ltvSource).toMatch(/Orders in first 90 days/);
+  });
+
+  it("gates Cash CAC on hasSpend", () => {
+    expect(ltvSource).toMatch(/hasSpend && cashCac != null/);
+    expect(ltvSource).toContain("Cash CAC");
+  });
+
+  it("links /app/cpa only when hasSpend", () => {
+    const cpaHref = ltvSource.indexOf('href="/app/cpa"');
+    expect(cpaHref).toBeGreaterThan(-1);
+    const around = ltvSource.slice(Math.max(0, cpaHref - 280), cpaHref + 24);
+    expect(around).toMatch(/hasSpend/);
+  });
+
+  it("links Spend Upload when spend is missing instead of implying $0 CAC", () => {
+    expect(ltvSource).toContain('href="/app/spend"');
+    expect(ltvSource).toContain("Spend Upload");
+    expect(ltvSource).not.toMatch(/\$0 CAC/);
+    const spendHref = ltvSource.indexOf('href="/app/spend"');
+    expect(spendHref).toBeGreaterThan(-1);
+    const around = ltvSource.slice(Math.max(0, spendHref - 400), spendHref + 40);
+    expect(around).toMatch(/hasSpend/);
+  });
+
+  it("pending and empty order history is not $0 LTV", () => {
+    expect(ltvSource).toContain("not $0 LTV");
+    expect(ltvSource).toContain("Orders still syncing — not $0");
+  });
+
+  it("does not mount SpendExplorer", () => {
+    expect(ltvSource).not.toContain("SpendExplorer");
+  });
+});
+
 describe("ltvWindowCaption", () => {
   it("names cohort max days, period label, and Cash CAC period spend", () => {
     const caption = ltvWindowCaption({
