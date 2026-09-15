@@ -8,6 +8,9 @@ import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
+const GROWTH_LEDE =
+  "Shopify Analytics Overview shows returning-customer rate. This page shows days to a second order and who came back within 30 days — from order history.";
+
 function pct(share: number): string {
   return `${Math.round(share * 100)}%`;
 }
@@ -70,7 +73,7 @@ export default function GrowthPage() {
             }}
             groups={["growth"]}
             title={PRODUCT_NOUN.growthTitle}
-            muted={PRODUCT_NOUN.growthMuted}
+            muted={GROWTH_LEDE}
           />
 
           {metrics.tillLtv.repeatRate != null ? (
