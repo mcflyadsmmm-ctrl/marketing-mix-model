@@ -63,7 +63,7 @@ import { spendFillDayHref } from "../lib/number-honesty";
 const CUSTOM_CHANNEL_NAME_ERROR = "Name this channel (e.g. Influencers).";
 
 const SPEND_UPLOAD_CONTRAST =
-  "Shopify Analytics has no spend ledger. This page is typed or CSV spend, not Ads Manager login.";
+  "Shopify Analytics shows sales, not a spend ledger. This page shows typed or CSV spend — not Ads Manager login.";
 
 const SHORT_MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",

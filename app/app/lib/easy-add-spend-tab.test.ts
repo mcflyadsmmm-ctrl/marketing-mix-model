@@ -32,8 +32,9 @@ describe("Spend day card", () => {
     expect(spend).toContain('heading="Spend Upload"');
     expect(spend).toContain("/app/roas");
     expect(spend).toContain("Same numbers on Total ROAS");
-    expect(spend).toContain("Shopify Analytics");
-    expect(spend).toMatch(/Ads Manager login/i);
+    expect(spend).toContain(
+      "Shopify Analytics shows sales, not a spend ledger. This page shows typed or CSV spend — not Ads Manager login.",
+    );
     expect(spend).toContain("Days with no row are $0");
     expect(spend).not.toContain("<SpendExplorer");
     expect(spend).not.toContain("<DualCloseLine");
