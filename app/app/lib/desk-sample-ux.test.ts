@@ -12,6 +12,17 @@ function read(rel: string) {
   return readFileSync(join(here, rel), "utf8");
 }
 
+/**
+ * Merchant chrome only. Comments may name a banned glossary word to explain
+ * why the desk refuses it; a merchant never reads a comment.
+ */
+function chrome(rel: string) {
+  return read(rel)
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+}
+
 describe("Sample data | Live data UX", () => {
   it("shot mode still labels Sample data (App Store 1.1.4)", () => {
     const bar = read("../components/DataModeBar.tsx");
@@ -93,12 +104,14 @@ describe("Sample data | Live data UX", () => {
     const marketing = read("../components/MarketingSnapSection.tsx");
     expect(overview).not.toContain('href="/app/demo"');
     expect(overview).not.toContain("Switch to Sample data at the top");
-    expect(marketing).toContain("NUMBER_HONESTY.csvHint");
-    expect(marketing).toContain("NUMBER_HONESTY.orderWindow");
-    expect(overview).toContain("<MarketingSnapSection");
+    expect(marketing).toContain("NUMBER_HONESTY.empty");
+    expect(marketing).not.toMatch(/\{NUMBER_HONESTY\.csvHint\}/);
+    expect(marketing).not.toMatch(/\{NUMBER_HONESTY\.orderWindow\}/);
+    expect(overview).not.toContain("<MarketingSnapSection");
     expect(overview).not.toContain("$0 · add spend");
-    expect(overview).toContain("spendOnlyEmpty");
-    expect(overview).toContain("mcfly-hero-compact--live-lead");
+    expect(overview).not.toContain("spendOnlyEmpty");
+    // One hero, inside the book — no second scoreboard band.
+    expect(overview).not.toContain("mcfly-hero-compact");
     expect(overview).toContain('aria-label="Shopify sales this period"');
     expect(overview).not.toContain("Add spend to see Total ROAS");
     expect(overview).not.toContain("NUMBER_HONESTY.empty");
@@ -115,14 +128,16 @@ describe("Sample data | Live data UX", () => {
     const ltvSnap = read("../components/LtvSnapSection.tsx");
     const labels = read("./product-labels.ts");
     expect(overview).toContain("<OverviewFirstViewport");
-    expect(overview).toContain("<OverviewSectionIndex");
-    expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
-    expect(firstView).toContain("Sales from returning customers");
     expect(overview).not.toContain("<ShopifyBookSection");
+    expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).toContain("Returning sales");
     expect(overview).toContain("shopifyNativePeriodStats");
     expect(orders).toContain('groups={["period"]}');
     expect(buyers).toContain('groups={["buyers"]}');
     expect(timing).toContain('groups={["timing"]}');
+    expect(orders).toContain("loadDeskSalesPage");
+    expect(buyers).toContain("loadDeskSalesPage");
+    expect(timing).toContain("loadDeskSalesPage");
     expect(book).toContain("PRODUCT_NOUN.bookTypicalOrder");
     expect(book).toContain("PRODUCT_NOUN.bookGuestCheckouts");
     expect(book).toContain("PRODUCT_NOUN.bookMostOrders");
@@ -147,22 +162,20 @@ describe("Sample data | Live data UX", () => {
     expect(ltvSnap).toContain("Cash CPA");
     expect(ltvSnap).toContain("First year");
     expect(ltvSnap).toContain("Repeat rate");
-    expect(overview).toContain("loadOverviewGoalPeriods");
-    expect(overview).toContain("<GoalsSnapSection");
+    expect(overview).not.toContain("loadOverviewGoalPeriods");
+    expect(overview).not.toContain("<GoalsSnapSection");
     expect(overview).not.toContain("See spend mix");
     const firstAt = overview.indexOf("<OverviewFirstViewport");
-    const doorsAt = overview.indexOf("<OverviewSectionIndex");
     const explorerAt = overview.indexOf("<SpendExplorer");
     expect(firstAt).toBeGreaterThan(-1);
-    expect(doorsAt).toBeGreaterThan(firstAt);
-    expect(explorerAt).toBeGreaterThan(doorsAt);
+    expect(explorerAt).toBeGreaterThan(firstAt);
     expect(overview).toContain("<SpendExplorer");
+    expect(overview).toContain("<DeskOverviewTabs");
   });
 
   it("Tick A Overview chrome is sales-first at $0 spend", () => {
     const overview = read("../routes/app._index.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
-    const doors = read("../components/OverviewSectionIndex.tsx");
     const goals = read("../components/GoalsSnapSection.tsx");
     const ltvSnap = read("../components/LtvSnapSection.tsx");
     const explorer = read("../components/SpendExplorer.tsx");
@@ -171,37 +184,23 @@ describe("Sample data | Live data UX", () => {
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
     expect(firstView).not.toContain("spendHref");
-    expect(firstView).not.toMatch(/0×/);
+    expect(firstView).not.toContain("0.00×");
 
     expect(overview).not.toContain('slot="primary-action"');
     expect(overview).not.toContain("Update spend");
     expect(overview).not.toContain("Add more days of spend");
     expect(overview).not.toContain("See spend mix");
     expect(overview).not.toContain("PRODUCT_NOUN.setupAddSpend");
-    expect(overview).toContain("<MarketingSnapSection");
+    expect(overview).not.toContain("<MarketingSnapSection");
     expect(overview).toContain("<OverviewFirstViewport");
-    expect(overview).toContain("<OverviewSectionIndex");
+    expect(overview).not.toContain("<ShopifyBookSection");
+    expect(overview).toContain("deskStageFromHash");
+    expect(overview).toContain("<DeskOverviewTabs");
     const firstAt = overview.indexOf("<OverviewFirstViewport");
-    const doorsAt = overview.indexOf("<OverviewSectionIndex");
-    expect(doorsAt).toBeGreaterThan(firstAt);
+    const explorerAt = overview.indexOf("<SpendExplorer");
+    expect(explorerAt).toBeGreaterThan(firstAt);
 
-    const moreStart = overview.indexOf('className="mcfly-overview-more"');
-    const moreEnd = overview.indexOf("</p>", moreStart);
-    expect(moreStart).toBeGreaterThan(-1);
-    const more = overview.slice(moreStart, moreEnd);
-    expect(more).toContain("PRODUCT_NOUN.ordersTitle");
-    expect(more).toContain("PRODUCT_NOUN.buyersTitle");
-    expect(more).toContain("PRODUCT_NOUN.timingTitle");
-    expect(more).toContain("PRODUCT_NOUN.marketingSection");
-    expect(more).toContain("/app/goals");
-    expect(more).toContain("/app/settings");
-    expect(more).not.toContain("PRODUCT_NOUN.spendAllocation");
-    expect(more).not.toContain("PRODUCT_NOUN.advancedMetrics");
-    expect(more).not.toContain("openAdvanced");
-    expect(more).not.toContain("PRODUCT_NOUN.ltvTitle");
-    expect(more).not.toContain("/app/ltv");
-    expect(more).not.toContain("/app/allocation");
-    expect(more).not.toContain("/app/advanced");
+    expect(overview).not.toContain('className="mcfly-overview-more"');
 
     const salesErrorStart = overview.indexOf('aria-label="Sales load error"');
     const salesErrorEnd = overview.indexOf("</section>", salesErrorStart);
@@ -216,22 +215,12 @@ describe("Sample data | Live data UX", () => {
     expect(overview).toContain("`Shopify sales — ${metrics.period.label}`");
     expect(overview).toContain("`Total ROAS — ${metrics.period.label}`");
 
-    expect(doors).toContain("Orders, buyers, and timing");
-    expect(doors).not.toContain("Deeper than Analytics");
-    expect(doors).not.toContain("shopifyBookTitle");
-    expect(doors).not.toContain("Open ${PRODUCT_NOUN.ordersTitle}");
-    expect(doors).not.toContain("None of these need spend");
-    expect(doors).toContain("Same window as Total Sales");
-    expect(doors).toContain('deskNavHref("/app/orders"');
-    expect(doors).toContain('deskNavHref("/app/buyers"');
-    expect(doors).toContain('deskNavHref("/app/timing"');
-
-    expect(overview).not.toContain("mcfly-tab-snaps--solo");
-    expect(overview).toContain("mcfly-tab-snaps--below");
-    const doorsMount = overview.indexOf("<OverviewSectionIndex");
-    const belowAt = overview.indexOf("mcfly-tab-snaps--below");
-    expect(doorsMount).toBeGreaterThan(-1);
-    expect(belowAt).toBeGreaterThan(doorsMount);
+    expect(overview).not.toContain("DESK_SECTION.orders");
+    expect(overview).not.toContain("<LtvSnapSection");
+    expect(overview).not.toContain("<GoalsSnapSection");
+    expect(overview).not.toContain("mcfly-tab-snaps");
+    expect(overview).not.toContain("SHOPIFY LEDGERS");
+    expect(overview).not.toContain("Cohorts");
 
     expect(goals).toContain("Open Goals");
     expect(goals).not.toContain('variant="primary"');
@@ -250,13 +239,12 @@ describe("Sample data | Live data UX", () => {
     const book = read("../components/ShopifyBookSection.tsx");
     const deskPage = read("../components/DeskBookPage.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
-    const doors = read("../components/OverviewSectionIndex.tsx");
     const goals = read("../components/GoalsSnapSection.tsx");
     const marketing = read("../components/MarketingSnapSection.tsx");
     const ltvSnap = read("../components/LtvSnapSection.tsx");
 
-    for (const file of [book, firstView, doors, goals, marketing, ltvSnap]) {
-      expect(file).toContain('className="mcfly-book"');
+    for (const file of [book, firstView, goals, marketing, ltvSnap]) {
+      expect(file).toContain("mcfly-book");
       expect(file).not.toContain("mcfly-tab-snap");
     }
     expect(book).not.toContain("mcfly-tab-snap__tile");
@@ -274,6 +262,8 @@ describe("Sample data | Live data UX", () => {
     expect(book).toContain('<details className="mcfly-book__row"');
     expect(book).toContain('className="mcfly-book__row-sum"');
     expect(book).toContain('className="mcfly-book__row-d"');
+    expect(book).toContain("mcfly-book__row-s");
+    expect(book).toContain("mcfly-book__hero-sub");
 
     expect(book).toContain('className="mcfly-book__clock"');
     expect(book).toContain('className="mcfly-book__clock-k"');
@@ -292,13 +282,14 @@ describe("Sample data | Live data UX", () => {
 
     expect(deskPage).not.toContain("mcfly-ctx__brand");
     expect(deskPage).toContain("mcfly-ctx__asof");
+    expect(deskPage).toContain("shotMode ? (");
     expect(deskPage).toContain("<PeriodControl");
 
-    expect(firstView).toContain('className="mcfly-book__glance"');
+    expect(firstView).toContain("mcfly-book__glance");
+    expect(firstView).toContain("mcfly-book__kpi");
     expect(firstView).not.toContain("mcfly-first-view");
     expect(firstView).not.toContain('value={salesPending ? "—"');
 
-    expect(doors).toContain('className="mcfly-book__links"');
     expect(ltvSnap).toContain("First 90 days");
     expect(ltvSnap).not.toContain("mcfly-tab-snap__tiles");
 
@@ -307,12 +298,150 @@ describe("Sample data | Live data UX", () => {
     expect(css).toContain(".mcfly-book__links");
     expect(css).toContain(".mcfly-book__cta");
     expect(css).toContain(".mcfly-book__row-sum::after");
+    expect(css).toContain(".mcfly-book__kpi-v");
+    expect(css).toContain(".mcfly-book__pair");
+    expect(css).toContain(".mcfly-book__rows--kpis");
+    expect(css).toContain(".mcfly-book__row-s");
+    expect(css).toContain(".mcfly-book__hero-sub");
 
     const overview = read("../routes/app._index.tsx");
     expect(overview).not.toContain("mcfly-ctx__brand");
     expect(read("../routes/app.orders.tsx")).not.toContain("mcfly-tab-snap__empty");
     expect(read("../routes/app.buyers.tsx")).not.toContain("mcfly-tab-snap__empty");
     expect(read("../routes/app.timing.tsx")).not.toContain("mcfly-tab-snap__empty");
+  });
+
+  it("every tab has one title — live chrome is tabs or as-of, not a period rail", () => {
+    for (const rel of [
+      "../routes/app._index.tsx",
+      "../routes/app.orders.tsx",
+      "../routes/app.buyers.tsx",
+      "../routes/app.timing.tsx",
+      "../routes/app.goals.tsx",
+      "../routes/app.spend.tsx",
+      "../routes/app.ltv.tsx",
+    ]) {
+      expect(chrome(rel), rel).not.toContain("mcfly-ctx__brand");
+      expect(chrome(rel), rel).not.toContain("mcfly-topbar__def");
+    }
+    // Marketing keeps the nav tab's own name. Chart range lives on the chart.
+    const spend = read("../routes/app.spend.tsx");
+    expect(spend).toContain("heading={PRODUCT_NOUN.marketingSection}");
+    expect(spend).not.toContain("Same dates as Overview");
+    // Import is the same paper — no second Total ROAS brand in the rail.
+    expect(chrome("../routes/app.spend.import.tsx")).not.toContain(
+      "mcfly-ctx__brand",
+    );
+  });
+
+  it("Goals and LTV speak the same book language as Orders", () => {
+    const goals = read("../routes/app.goals.tsx");
+    const ltv = read("../routes/app.ltv.tsx");
+    const gauges = read("../components/SalesGoalGauges.tsx");
+
+    expect(goals).toContain('className="mcfly-book"');
+    expect(goals).toContain('className="mcfly-book__hero-v"');
+    expect(goals).toContain('variant="book"');
+    expect(goals).not.toContain("mcfly-acq-tile");
+    expect(goals).not.toContain("mcfly-goals-declare");
+    expect(goals).not.toContain("mcfly-panel mcfly-goals-declare");
+    expect(gauges).toContain('variant === "book"');
+    expect(gauges).not.toMatch(/cash \$\{PRODUCT_NOUN\.totalRoas\}/);
+    expect(gauges).not.toContain("cash Total ROAS");
+
+    expect(ltv).toContain("<DeskBookPage");
+    expect(ltv).toContain('className="mcfly-book"');
+    expect(ltv).toContain('<details className="mcfly-book__row"');
+    expect(ltv).not.toContain("mcfly-acq-tile");
+    expect(ltv).not.toContain("mcfly-ltv-summary");
+    expect(ltv).not.toContain("mcfly-ltv-dive");
+  });
+
+  it("LTV chrome drops cohort / till / ARPU / aMER glossary", () => {
+    // Stored field names (tillLtv.cohorts) are data, never merchant words.
+    const ltv = chrome("../routes/app.ltv.tsx").replace(
+      /cohortMonth|cohorts/g,
+      "",
+    );
+    const ltvSnap = chrome("../components/LtvSnapSection.tsx");
+    const labels = read("./product-labels.ts");
+    for (const source of [ltv, ltvSnap]) {
+      expect(source).not.toMatch(/cohort/i);
+      expect(source).not.toMatch(/\bARPU\b/i);
+      expect(source).not.toMatch(/aMER/);
+      expect(source).not.toMatch(/\btill\b/i);
+    }
+    expect(labels).not.toMatch(/ltvNotInShopify:[\s\S]{0,240}till/);
+    expect(labels).not.toContain("Total ROAS cards");
+    expect(ltv).not.toMatch(/Ingested/i);
+    expect(ltv).not.toMatch(/broader order access/i);
+    expect(ltv).not.toContain("New vs returning this window");
+  });
+
+  it("never prints a 0.0% or a boxed dash — unknown rows are omitted", () => {
+    const book = read("../components/ShopifyBookSection.tsx");
+    const ltv = read("../routes/app.ltv.tsx");
+    for (const source of [
+      book,
+      chrome("../routes/app.ltv.tsx"),
+      read("../components/OverviewFirstViewport.tsx"),
+      read("../components/MarketingSnapSection.tsx"),
+      read("../components/LtvSnapSection.tsx"),
+    ]) {
+      expect(source).not.toContain("toFixed(1)}%");
+      expect(source).not.toContain("formatPercent(");
+    }
+    // A share that rounds to 0% is dropped, not printed next to real numbers.
+    expect(book).toContain("function hasShare");
+    expect(book).toContain("Math.round(share * 100) > 0");
+    expect(book).toContain("hasShare(book.guestShare)");
+    expect(book).toContain("hasShare(depth.discountedOrderShare)");
+    expect(book).toContain("book.returnsDrag > 0");
+    expect(book).toContain("depth.shippingTaxFees > 0");
+    expect(book).toContain('row.v !== "—"');
+    expect(ltv).toContain('row.v !== "—"');
+  });
+
+  it("adds depth inside native details drills, not more cards", () => {
+    const book = read("../components/ShopifyBookSection.tsx");
+    const ltv = read("../routes/app.ltv.tsx");
+    expect(book).toContain("x?: string[]");
+    expect(book).toContain("s?: string");
+    expect(book).toContain("function weekdayBreakdown");
+    expect(book).toContain("function hourBreakdown");
+    expect(book).toContain("depth.eligibleFirstTimers");
+    expect(book).toContain("depth.guestAov");
+    expect(ltv).toContain("x?: string[]");
+    expect(ltv).toContain("First orders · ");
+  });
+
+  it("Overview explorer sits under the window rail and stays sales-only at $0 spend", () => {
+    const overview = read("../routes/app._index.tsx");
+    const explorer = read("../components/SpendExplorer.tsx");
+    const rail = read("../components/DeskWindowRail.tsx");
+    const firstAt = overview.indexOf("<OverviewFirstViewport");
+    const explorerAt = overview.indexOf("<SpendExplorer");
+    const railAt = overview.indexOf("<DeskWindowRail");
+    const closeAt = overview.indexOf("<DualCloseLine");
+    expect(railAt).toBeGreaterThan(firstAt);
+    expect(closeAt).toBeGreaterThan(railAt);
+    expect(explorerAt).toBeGreaterThan(closeAt);
+    expect(overview).not.toContain("<CashControlBoard");
+    expect(overview).not.toContain("<MarketingSnapSection");
+    expect(overview).toContain("quiet");
+    expect(overview).not.toContain("<details");
+    expect(overview).toContain('aria-label={explorerRowLabel}');
+    expect(explorer).toContain("quiet?: boolean");
+    expect(explorer).toContain("quiet ? null : (");
+    expect(explorer).toContain("!shotMode && !quiet");
+    expect(explorer).toContain("quiet && salesLead ? null : (");
+    expect(rail).not.toContain("0.00×");
+    expect(rail).toContain('chip.spend > 0 && chip.mer != null');
+    expect(rail).toContain("vs last year");
+    expect(rail).toContain("vs goal");
+    expect(rail).toContain("vsTarget");
+    expect(rail).not.toMatch(/\bYoY\b/);
+    expect(rail).not.toMatch(/\bMTD\b/);
   });
 
   it("Goals and Advanced preview Sample in place, not /app/demo", () => {
@@ -327,6 +456,9 @@ describe("Sample data | Live data UX", () => {
     expect(settings).toContain("More — Sample data and privacy");
     expect(settings).toContain("ProUpgradeButton");
     expect(settings).not.toContain("Practice desk");
+    expect(settings).toContain("add daily spend on Marketing");
+    expect(settings).toContain("PRODUCT_NOUN.openOverview");
+    expect(settings).not.toContain("on Upload Spend");
   });
 
   it("SAMPLE book covers through today with a compact window", () => {
@@ -357,5 +489,38 @@ describe("Sample data | Live data UX", () => {
     const plotStart = css.indexOf(".mcfly-explorer__plot-area {");
     const plotEnd = css.indexOf("}", plotStart);
     expect(css.slice(plotStart, plotEnd + 1)).toContain("max-height: none");
+  });
+
+  it("Customers book is returning dollars; Growth owns who came back; Orders owns ticket skew", () => {
+    const book = read("../components/ShopifyBookSection.tsx");
+    const buyersFn = book.slice(
+      book.indexOf("function buyersRows"),
+      book.indexOf("function growthRows"),
+    );
+    const growthFn = book.slice(
+      book.indexOf("function growthRows"),
+      book.indexOf("function timingRows"),
+    );
+    const periodFn = book.slice(
+      book.indexOf("function periodRows"),
+      book.indexOf("function buyersRows"),
+    );
+    expect(buyersFn).toContain("New vs returning dollars");
+    expect(buyersFn).toContain("PRODUCT_NOUN.bookSalesPerBuyer");
+    expect(buyersFn).toContain("PRODUCT_NOUN.bookGuestCheckouts");
+    expect(buyersFn).toContain("PRODUCT_NOUN.bookOneOrderBuyers");
+    expect(buyersFn).toContain("Top 10% of customers");
+    expect(buyersFn).toContain("PRODUCT_NOUN.bookOrdersPerBuyer");
+    expect(buyersFn).toContain("Repeat sales");
+    expect(buyersFn).not.toContain("PRODUCT_NOUN.bookSecondWithin30");
+    expect(buyersFn).not.toContain("PRODUCT_NOUN.bookSecondVsThird");
+    expect(buyersFn).not.toContain("PRODUCT_NOUN.bookSecondVsFirst");
+    expect(buyersFn).not.toContain("Days to a second order");
+    expect(buyersFn).not.toContain("Biggest orders");
+    expect(growthFn).toContain("PRODUCT_NOUN.bookSecondWithin30");
+    expect(growthFn).toContain("PRODUCT_NOUN.bookSecondVsThird");
+    expect(growthFn).toContain("Days to a second order");
+    expect(periodFn).toContain("Biggest orders");
+    expect(periodFn).toContain("topDecileSalesShare");
   });
 });
