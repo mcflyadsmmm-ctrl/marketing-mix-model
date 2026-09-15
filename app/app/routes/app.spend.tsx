@@ -6,52 +6,34 @@ import type {
 } from "react-router";
 import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { calculateBreakEvenMer } from "@mcfly/mer-core";
 import {
   SPEND_CHANNELS,
   SPEND_CHANNEL_LABELS,
   type SpendChannel,
 } from "@mcfly/mer-engine";
 import { PeriodControl } from "../components/PeriodControl";
-import {
-  SpendExplorer,
-  type SpendExplorerSeriesView,
-} from "../components/SpendExplorer";
 import { authenticate } from "../shopify.server";
 import {
-  buildSpendExplorerSeries,
   ensureShop,
 } from "../lib/mer-dashboard.server";
-import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod } from "../lib/periods";
-import { deskNavHref } from "../lib/desk-nav";
 import {
-  dateKeyFromLocal,
-  explorerQueryMatchingScoreboard,
-  parseExplorerDateParam,
-  parseExplorerGranularity,
-  parseExplorerMode,
-  parseExplorerRange,
-  parseExplorerShowSales,
-  resolveExplorerWindow,
-} from "../lib/spend-explorer";
+  deskPeriodTimeZone,
+  parsePeriodPreset,
+} from "../lib/periods";
+import { deskNavHref } from "../lib/desk-nav";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import { isSpendYmd } from "../lib/spend-day-entry";
 import { slugCustomChannelName } from "../lib/spend-custom-channel";
 import { isSpendChannel } from "../lib/spend-billing";
 import { createSpendRepository } from "../lib/spend-repository.server";
 import {
-  getSalesFactsByDay,
-  runSalesFactsBackfill,
   salesDayFactWindowStartUtc,
   SALES_DAY_FACT_WINDOW_YEARS_BACK,
 } from "../lib/sales-facts.server";
 import {
-  fetchSampleSalesByDay,
   getSampleDeskEnabled,
   getSampleDeskStats,
   localDayKey,
-  SAMPLE_DESK_MARGIN_PCT,
-  SAMPLE_DESK_TARGET_MER,
   setSampleDeskEnabled,
   utcDayKey,
 } from "../lib/sample-desk.server";
@@ -168,11 +150,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const now = new Date();
   const timeZone = deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone);
   const currencyCode = shopCurrencyCode(shop.currencyCode);
-  const settings = await prisma.settings.findUnique({ where: { shopId: shop.id } });
   const spendSourceWhere = sampleDesk.enabled
     ? { source: "sample" as const }
     : { source: { not: "sample" } };
-  const periodRange = resolvePeriod(preset, now, timeZone);
   const todayKey = sampleDesk.enabled
     ? utcDayKey(now)
     : timeZone
@@ -188,9 +168,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sampleOn: sampleDesk.enabled,
   });
 
-  const exGran = parseExplorerGranularity(url.searchParams.get("exGran"));
-  const exMode = parseExplorerMode(url.searchParams.get("exMode"));
-  const exSales = parseExplorerShowSales(url.searchParams.get("exSales"));
   const [entryRows, dayCoverage, recurring] = await Promise.all([
     prisma.spendEntry.findMany({
       where: { shopId: shop.id, ...spendSourceWhere, amount: { gt: 0 } },
@@ -230,99 +207,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
-  const explicitExRange = url.searchParams.get("exRange");
-  const historyFirstEmpty =
-    entries.length === 0 && !sampleDesk.enabled && !shotMode;
-  const tiedExplorer =
-    explicitExRange || historyFirstEmpty
-      ? null
-      : explorerQueryMatchingScoreboard(preset, periodRange, timeZone);
-  const exRange = explicitExRange
-    ? parseExplorerRange(explicitExRange)
-    : historyFirstEmpty
-      ? parseExplorerRange("90d")
-      : (tiedExplorer?.range ?? "custom");
-  const exFrom = explicitExRange
-    ? parseExplorerDateParam(url.searchParams.get("exFrom"))
-    : (tiedExplorer?.from ?? null);
-  const exTo = explicitExRange
-    ? parseExplorerDateParam(url.searchParams.get("exTo"))
-    : (tiedExplorer?.to ?? null);
-  const explorerWindow = resolveExplorerWindow(exRange, now, {
-    from: exFrom,
-    to: exTo,
-    timeZone,
-  });
-  const dayFetchRange = {
-    start: explorerWindow.start,
-    end: explorerWindow.end,
-    label: explorerWindow.label,
-  };
-
   const entitlements = getShopEntitlements(session.shop, {
     sampleDesk: sampleDesk.enabled,
     paidPro: shop.proBillingActive,
   });
-
-  let salesByDay = new Map<string, number>();
-  if (sampleDesk.enabled) {
-    try {
-      salesByDay = await fetchSampleSalesByDay(shop.id, dayFetchRange);
-    } catch {
-      salesByDay = new Map();
-    }
-  } else {
-    void runSalesFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {});
-    try {
-      salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange);
-    } catch {
-      salesByDay = new Map();
-    }
-  }
-
-  const targetMer = sampleDesk.enabled
-    ? SAMPLE_DESK_TARGET_MER
-    : (settings?.targetMer ?? 3);
-  const marginPct = sampleDesk.enabled
-    ? SAMPLE_DESK_MARGIN_PCT
-    : (settings?.marginPct ?? null);
-  const breakEvenMer =
-    marginPct != null ? calculateBreakEvenMer(marginPct) : null;
-
-  const explorerSeries = await buildSpendExplorerSeries(shop.id, {
-    sampleOnly: sampleDesk.enabled,
-    excludeSample: !sampleDesk.enabled,
-    salesByDay,
-    window: explorerWindow,
-    granularity: exGran,
-    mode: exMode,
-    targetMer,
-    newCustomers: 0,
-    returningCustomers: 0,
-    customerMetricsAvailable: false,
-    timeZone,
-  });
-
-  const explorerDayKey = (instant: Date) =>
-    timeZone
-      ? shopLocalDayKey(instant, timeZone)
-      : dateKeyFromLocal(instant);
-
-  const explorer: SpendExplorerSeriesView = {
-    buckets: explorerSeries.buckets,
-    summary: explorerSeries.summary,
-    mode: explorerSeries.mode,
-    granularity: explorerSeries.granularity,
-    range: explorerWindow.range,
-    windowLabel: explorerWindow.label,
-    targetMer: explorerSeries.targetMer,
-    breakEvenMer,
-    showSales: exSales,
-    fromKey: explorerDayKey(explorerWindow.start),
-    toKey: explorerDayKey(explorerWindow.end),
-    asOfKey: explorerDayKey(explorerWindow.end),
-    channelLabels: explorerSeries.channelLabels,
-  };
 
   const requestedDate = url.searchParams.get("date");
   const fillDateKey =
@@ -347,7 +235,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todayKey,
     yesterdayKey,
     currencyCode,
-    explorer,
     fillDateKey,
   };
 };
@@ -473,7 +360,6 @@ export default function SpendEntryPage() {
     fillDateKey,
     currencyCode,
     preset,
-    explorer,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -481,6 +367,12 @@ export default function SpendEntryPage() {
   const submittingIntent =
     navigation.formData?.get("intent")?.toString() ?? null;
   const isEmpty = entries.length === 0;
+  /**
+   * Stranger on Live data with nothing typed yet: the page is the three doors
+   * and one honesty sentence. Coverage, chart, and status only earn room once
+   * a day of spend exists.
+   */
+  const strangerEmpty = isEmpty && !sampleDesk.enabled && !shotMode;
   const overviewHref = deskNavHref("/app", {
     period: preset,
     shot: shotMode,
@@ -490,6 +382,11 @@ export default function SpendEntryPage() {
     shot: shotMode,
   });
   const money = (n: number) => formatSpendAmount(n, currencyCode);
+  /** Route doors keep the date slicer; in-page doors stay plain anchors. */
+  const doorHref = (href: string) =>
+    href.startsWith("#")
+      ? href
+      : deskNavHref(href, { period: preset, shot: shotMode });
   const coverageThroughYesterday = useMemo(() => {
     const days = dayCoverage.days.filter((d) => d.dateKey !== todayKey);
     const missing = days.filter((d) => !d.filled).map((d) => d.dateKey);
@@ -508,15 +405,15 @@ export default function SpendEntryPage() {
   const manualSaved = Boolean(actionData?.success && !actionData.csv);
 
   return (
-    <s-page heading={PRODUCT_NOUN.uploadSpend} inlineSize="large">
+    <s-page heading={PRODUCT_NOUN.marketingSection} inlineSize="large">
       {isEmpty && !shotMode ? (
         <s-button
           slot="primary-action"
           variant="primary"
-          href="#mcfly-spend-add"
-          aria-label={PRODUCT_NOUN.setupAddSpend}
+          href={SPEND_DOORS[0].href}
+          aria-label={SPEND_DOORS[0].title}
         >
-          {PRODUCT_NOUN.setupAddSpend}
+          {SPEND_DOORS[0].title}
         </s-button>
       ) : null}
       <div
@@ -530,25 +427,24 @@ export default function SpendEntryPage() {
           .filter(Boolean)
           .join(" ")}
       >
-        <div className="mcfly-ctx" aria-live="polite">
-          <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">{PRODUCT_NOUN.deskTitle}</span>
-            <span className="mcfly-ctx__sep" aria-hidden="true">
-              ·
-            </span>
-            <span className="mcfly-ctx__asof">Same dates as Overview</span>
-            <PeriodControl
-              preset={preset}
-              shotMode={shotMode}
-              language="spend"
-            />
+        {shotMode ? (
+          <div className="mcfly-ctx" aria-live="polite">
+            <div className="mcfly-ctx__main">
+              <PeriodControl
+                preset={preset}
+                shotMode={shotMode}
+                language="spend"
+              />
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {manualSaved ? (
           <s-banner tone="success" heading="Spend saved">
             <s-paragraph>
-              <s-link href={overviewHref}>{PRODUCT_NOUN.openTotalRoas}</s-link>
+              Your saved spend is ready for {PRODUCT_NOUN.totalRoas}.
+              {" · "}
+              <s-link href={overviewHref}>Same numbers on Overview</s-link>
               {" · "}or add another day below.
             </s-paragraph>
           </s-banner>
@@ -561,34 +457,25 @@ export default function SpendEntryPage() {
         ) : null}
 
         <div className="mcfly-spend-lean__stack">
-          <nav className="mcfly-spend-doors" aria-label="Three ways to add spend">
-            <p className="mcfly-spend-doors__kicker">
-              Three ways to add spend — pick one
-            </p>
-            <ul className="mcfly-spend-doors__list">
-              {SPEND_DOORS.map((door, i) => (
-                <li key={door.href} className="mcfly-spend-doors__item">
-                  <a className="mcfly-spend-doors__link" href={door.href}>
-                    <span className="mcfly-spend-doors__num" aria-hidden="true">
-                      {i + 1}
-                    </span>
-                    <span className="mcfly-spend-doors__body">
-                      <span className="mcfly-spend-doors__title">
-                        {door.title}
-                      </span>
-                      <span className="mcfly-spend-doors__hint">
-                        {door.hint}
-                      </span>
-                    </span>
-                  </a>
+          <section className="mcfly-book" aria-label="Three ways to add spend">
+            {!strangerEmpty ? (
+              <p className="mcfly-book__lede">
+                Three ways to add spend — pick one.
+              </p>
+            ) : null}
+            <ul className="mcfly-book__links">
+              {SPEND_DOORS.map((door) => (
+                <li key={door.href} className="mcfly-book__link">
+                  <s-link href={doorHref(door.href)}>{door.title}</s-link>
+                  <span className="mcfly-book__link-d">{door.hint}</span>
                 </li>
               ))}
             </ul>
-          </nav>
+          </section>
           <p className="mcfly-spend-helper">
-            Shopify sales are already here. Empty spend is $0
+            Shopify sales are already here. Empty spend is $0, never 0×
             {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
-            {isEmpty && !sampleDesk.enabled
+            {strangerEmpty
               ? ". No ad-account login — type yesterday, set a daily amount, or import a CSV."
               : "."}
           </p>
@@ -794,149 +681,121 @@ export default function SpendEntryPage() {
             ) : null}
           </HashDetails>
 
-          <p>
-            <s-link href={importHref}>Import or backfill</s-link>
-            {" — template, Ads Manager CSV, or spread one bill across days."}
-          </p>
-
-          <section
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-cal"
-            aria-label="Days with spend"
-          >
-            <div className="mcfly-spend-cal__meta">
-              <h2>Coverage</h2>
-              <p className="mcfly-panel__muted">
-                Last {stripDays.length} closed days
-                {coverageFromKey && coverageToKey
-                  ? ` · ${formatSpendYmd(coverageFromKey)} → ${formatSpendYmd(coverageToKey)}`
-                  : ""}
-                {" · "}
-                {dayCoverage.total}-day window. Empty cells open Add a day. Days
-                with no row are $0.
-              </p>
-            </div>
-            <div className="mcfly-spend-cal__strip" role="list">
-              {stripDays.map((day) =>
-                day.filled ? (
-                  <div
-                    key={day.dateKey}
-                    className="mcfly-spend-cal__day mcfly-spend-cal__day--filled"
-                    role="listitem"
-                    title={`${day.dateKey} has spend`}
-                  >
-                    <span className="mcfly-spend-cal__tick" />
-                    <span className="mcfly-spend-cal__label">{day.label}</span>
-                  </div>
-                ) : (
-                  <Link
-                    key={day.dateKey}
-                    className="mcfly-spend-cal__day mcfly-spend-cal__day--empty"
-                    role="listitem"
-                    to={spendFillDayHref(day.dateKey, {
-                      period: preset,
-                      shot: shotMode,
-                    })}
-                    title={`${day.dateKey} empty ($0) — add spend`}
-                  >
-                    <span className="mcfly-spend-cal__tick" />
-                    <span className="mcfly-spend-cal__label">{day.label}</span>
-                  </Link>
-                ),
-              )}
-            </div>
-            <div className="mcfly-spend-cal__legend">
-              <span className="mcfly-spend-cal__legend-item">
-                <span className="mcfly-spend-cal__day mcfly-spend-cal__day--filled mcfly-spend-cal__day--swatch">
-                  <span className="mcfly-spend-cal__tick" />
-                </span>
-                Has spend
-              </span>
-              <span className="mcfly-spend-cal__legend-item">
-                <span className="mcfly-spend-cal__day mcfly-spend-cal__day--empty mcfly-spend-cal__day--swatch">
-                  <span className="mcfly-spend-cal__tick" />
-                </span>
-                Empty = $0
-              </span>
-            </div>
-          </section>
-
-          <HashDetails
-            id="mcfly-spend-explorer"
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-explorer mcfly-spend-reveal"
-            defaultOpen={false}
-            summary={
-              <>
-                <span className="mcfly-spend-reveal__title">
-                  Daily spend by channel
-                </span>
-                <span className="mcfly-spend-reveal__hint">
-                  {isEmpty
-                    ? "Chart of closed days — optional"
-                    : "Same dates as Overview"}
-                </span>
-              </>
-            }
-          >
-            <p className="mcfly-panel__muted">
-              {isEmpty
-                ? "Ninety closed days so you can see where history is missing. Same date buttons as Overview."
-                : "Spend you added next to Shopify sales for this period — same dates as Overview."}
-            </p>
-            <SpendExplorer
-              series={explorer}
-              period={preset}
-              shotMode={shotMode}
-              basePath="/app/spend"
-              compare
-              variant="spend"
-            />
-          </HashDetails>
-
-          <div className="mcfly-spend-lean__status" role="status">
-            {sampleDesk.enabled ? (
-              <>
-                <p className="mcfly-spend-lean__status-line">
-                  Sample data is loaded
-                  {entries.length > 0
-                    ? ` · ${entries.length.toLocaleString()} recent rows shown`
-                    : ""}
-                  . Saving spend switches you to Live data.
-                </p>
-                <p className="mcfly-spend-lean__status-foot">
-                  Live data is this shop’s Shopify sales plus the spend you add.
-                </p>
-              </>
-            ) : coverageThroughYesterday.upToDate ? (
-              <p className="mcfly-spend-lean__status-line">
-                ✓ Up to date through yesterday
-              </p>
-            ) : entries.length === 0 ? (
-              <p className="mcfly-spend-lean__status-line">
-                No spend on Live data yet. Add yesterday’s Meta and a billboard
-                — Empty spend is $0.
-              </p>
-            ) : (
-              <p className="mcfly-spend-lean__status-line">
-                Your spend is on the desk. Days with no row are $0 — last month
-                is enough to start
-                {coverageThroughYesterday.missing.length > 0 ? (
-                  <>
+          {strangerEmpty ? null : (
+            <>
+              <section
+                className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-cal"
+                aria-label="Days with spend"
+              >
+                <div className="mcfly-spend-cal__meta">
+                  <h2>Coverage</h2>
+                  <p className="mcfly-panel__muted">
+                    Last {stripDays.length} closed days
+                    {coverageFromKey && coverageToKey
+                      ? ` · ${formatSpendYmd(coverageFromKey)} → ${formatSpendYmd(coverageToKey)}`
+                      : ""}
                     {" · "}
-                    <s-link href={`${importHref}#mcfly-spend-platforms`}>
-                      import missing days
-                    </s-link>
+                    {dayCoverage.total}-day window. Empty cells open Add a day.
+                    Days with no row are $0.
+                  </p>
+                </div>
+                <div className="mcfly-spend-cal__strip" role="list">
+                  {stripDays.map((day) =>
+                    day.filled ? (
+                      <div
+                        key={day.dateKey}
+                        className="mcfly-spend-cal__day mcfly-spend-cal__day--filled"
+                        role="listitem"
+                        title={`${day.dateKey} has spend`}
+                      >
+                        <span className="mcfly-spend-cal__tick" />
+                        <span className="mcfly-spend-cal__label">
+                          {day.label}
+                        </span>
+                      </div>
+                    ) : (
+                      <Link
+                        key={day.dateKey}
+                        className="mcfly-spend-cal__day mcfly-spend-cal__day--empty"
+                        role="listitem"
+                        to={spendFillDayHref(day.dateKey, {
+                          period: preset,
+                          shot: shotMode,
+                        })}
+                        title={`${day.dateKey} empty ($0) — add spend`}
+                      >
+                        <span className="mcfly-spend-cal__tick" />
+                        <span className="mcfly-spend-cal__label">
+                          {day.label}
+                        </span>
+                      </Link>
+                    ),
+                  )}
+                </div>
+                <div className="mcfly-spend-cal__legend">
+                  <span className="mcfly-spend-cal__legend-item">
+                    <span className="mcfly-spend-cal__day mcfly-spend-cal__day--filled mcfly-spend-cal__day--swatch">
+                      <span className="mcfly-spend-cal__tick" />
+                    </span>
+                    Has spend
+                  </span>
+                  <span className="mcfly-spend-cal__legend-item">
+                    <span className="mcfly-spend-cal__day mcfly-spend-cal__day--empty mcfly-spend-cal__day--swatch">
+                      <span className="mcfly-spend-cal__tick" />
+                    </span>
+                    Empty = $0
+                  </span>
+                </div>
+              </section>
+
+              <div className="mcfly-spend-lean__status" role="status">
+                {sampleDesk.enabled ? (
+                  <>
+                    <p className="mcfly-spend-lean__status-line">
+                      Sample data is loaded
+                      {entries.length > 0
+                        ? ` · ${entries.length.toLocaleString()} recent rows shown`
+                        : ""}
+                      . Saving spend switches you to Live data.
+                    </p>
+                    <p className="mcfly-spend-lean__status-foot">
+                      Live data is this shop’s Shopify sales plus the spend you
+                      add.
+                    </p>
                   </>
-                ) : null}
-              </p>
-            )}
-            {sampleDesk.enabled ? null : (
-              <p className="mcfly-spend-lean__status-foot">
-                Backdate to {spendHistoryFloorKey} ({spendHistoryYearsBack} years) —
-                same window as Shopify sales. Same day + channel or named extra
-                replaces.
-              </p>
-            )}
-          </div>
+                ) : coverageThroughYesterday.upToDate ? (
+                  <p className="mcfly-spend-lean__status-line">
+                    ✓ Up to date through yesterday
+                  </p>
+                ) : entries.length === 0 ? (
+                  <p className="mcfly-spend-lean__status-line">
+                    No spend on Live data yet. Add yesterday’s Meta and a
+                    billboard — Empty spend is $0.
+                  </p>
+                ) : (
+                  <p className="mcfly-spend-lean__status-line">
+                    Your spend is on the desk. Days with no row are $0 — last
+                    month is enough to start
+                    {coverageThroughYesterday.missing.length > 0 ? (
+                      <>
+                        {" · "}
+                        <s-link href={`${importHref}#mcfly-spend-platforms`}>
+                          import missing days
+                        </s-link>
+                      </>
+                    ) : null}
+                  </p>
+                )}
+                {sampleDesk.enabled ? null : (
+                  <p className="mcfly-spend-lean__status-foot">
+                    Backdate to {spendHistoryFloorKey} (
+                    {spendHistoryYearsBack} years) — same window as Shopify
+                    sales. Same day + channel or named extra replaces.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
 
           {entries.length > 0 ? (
             <ul className="mcfly-spend-lean__recent" aria-label="Recent spend entries">
@@ -986,15 +845,19 @@ export default function SpendEntryPage() {
           ) : null}
         </div>
       </div>
-      <p className="mcfly-overview-more" aria-label="Marketing tools">
-        <s-link href={`/app/allocation?period=${preset}`}>
-          {PRODUCT_NOUN.spendAllocation}
-        </s-link>
-        {" · "}
-        <s-link href={`/app/advanced?period=${preset}`}>
-          {PRODUCT_NOUN.advancedMetrics}
-        </s-link>
-      </p>
+      {entries.length > 0 ? (
+        <p className="mcfly-overview-more" aria-label="Marketing tools">
+          <s-link href="/app/roas">{PRODUCT_NOUN.totalRoas}</s-link>
+          {" · "}
+          <s-link href={`/app/allocation?period=${preset}`}>
+            {PRODUCT_NOUN.spendAllocation}
+          </s-link>
+          {" · "}
+          <s-link href={`/app/advanced?period=${preset}`}>
+            {PRODUCT_NOUN.advancedMetrics}
+          </s-link>
+        </p>
+      ) : null}
     </s-page>
   );
 }

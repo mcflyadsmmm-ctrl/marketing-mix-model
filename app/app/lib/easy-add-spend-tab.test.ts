@@ -41,18 +41,15 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("SpendExportWalkthrough");
   });
 
-  it("covers closed days as a visual strip and embeds the explorer", () => {
+  it("keeps Spend Upload input-only while retaining the coverage strip", () => {
     expect(spend).toContain("dayCoverage.total");
-    expect(spend).toContain("explorerQueryMatchingScoreboard");
     expect(spend).toContain("shotMode ? (");
     expect(spend).toContain("<PeriodControl");
     expect(spend).toContain("Your spend is on the desk");
     expect(spend).toContain("Days with no row are $0");
-    expect(spend).toContain("<SpendExplorer");
-    expect(spend).toContain('basePath="/app/spend"');
-    expect(spend).toContain("compare");
-    expect(spend).toContain('variant="spend"');
-    expect(spend).toContain("Daily spend by channel");
+    expect(spend).not.toContain("<SpendExplorer");
+    expect(spend).not.toContain("<MarketingSpendRoom");
+    expect(spend).not.toContain("<DualCloseLine");
   });
 
   it("keeps explorer drill-down on Spend when embedded", () => {
@@ -114,12 +111,10 @@ describe("Spend day card", () => {
     expect(doorsAt).toBeLessThan(helperAt);
   });
 
-  it("holds coverage, chart, spend room, and status back until a day of spend exists", () => {
+  it("holds coverage and status back until a day of spend exists", () => {
     expect(spend).toContain("const strangerEmpty =");
     const gated = spend.split("{strangerEmpty ? null : (")[1] ?? "";
     expect(gated).toContain("mcfly-spend-cal");
-    expect(gated).toContain("<SpendExplorer");
-    expect(gated).toContain("<MarketingSpendRoom");
     expect(gated).toContain("mcfly-spend-lean__status");
   });
 
@@ -129,17 +124,16 @@ describe("Spend day card", () => {
     expect(spend.slice(Math.max(0, footerAt - 80), footerAt)).toMatch(
       /entries\.length > 0/,
     );
+    expect(spend).toContain('<s-link href="/app/roas">');
     expect(spend).toContain("PRODUCT_NOUN.spendAllocation");
     expect(spend).toContain("PRODUCT_NOUN.advancedMetrics");
   });
 
-  it("shows period mix and Total ROAS once spend is on the desk", () => {
-    expect(spend).toContain("periodSpendTotal > 0");
-    expect(spend).toContain("channelMix(periodSpends)");
-    expect(spend).toContain("computeMer(periodSales, periodSpendTotal)");
-    // Unknown sales withhold the ratio instead of printing 0×.
-    expect(spend).toContain("NUMBER_HONESTY.salesPending");
-    expect(spend).toContain("Math.round(row.share * 100)");
+  it("keeps the input route free of period ROAS analysis", () => {
+    expect(spend).not.toContain("periodSpendTotal > 0");
+    expect(spend).not.toContain("<SpendExplorer");
+    expect(spend).not.toContain("<MarketingSpendRoom");
+    expect(spend).not.toContain("<DualCloseLine");
   });
 
   it("says no ad login once, not as a manifesto", () => {
