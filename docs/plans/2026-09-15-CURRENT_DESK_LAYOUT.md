@@ -1,6 +1,6 @@
 # Current desk layout — inventory only
 
-**Superseded 2026-09-15.** Live desk is Fly **310** Pass B. Spec: [`2026-09-15-TAB_LOCK.md`](./2026-09-15-TAB_LOCK.md). Ship plan: [`2026-09-15-desk-ia-live.md`](./2026-09-15-desk-ia-live.md). The inventory below is the **pre-IA** Fly 307 million-store desk (Buyers / Timing / Marketing). Do not implement from this file.
+**Superseded 2026-09-15.** Live desk is Fly **311** Pass B. Spec: [`2026-09-15-TAB_LOCK.md`](./2026-09-15-TAB_LOCK.md). Ship plan: [`2026-09-15-desk-ia-live.md`](./2026-09-15-desk-ia-live.md). The inventory below is the **pre-IA** Fly 307 million-store desk (Buyers / Timing / Marketing). Do not implement from this file.
 
 **Date:** 2026-09-15  
 **Source:** `marketing-mix-model/` working tree (the Fly **307** million-store desk).  
