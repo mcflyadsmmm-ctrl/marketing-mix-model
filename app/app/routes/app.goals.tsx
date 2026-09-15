@@ -69,6 +69,9 @@ type GoalsActionIntent =
   | "set_goals_enabled"
   | "save_target_mer";
 
+const GOALS_ANALYTICS_LEDE =
+  "Shopify Analytics shows this period's sales. This page shows plan vs actual for MTD/QTD/YTD.";
+
 function showAdminToast(
   message: string,
   options?: { duration?: number; isError?: boolean },
@@ -481,7 +484,6 @@ export default function GoalsPage() {
     (a, b) => a + b,
     0,
   );
-  const monthsWithPrior = priorYearMonthly.filter((v) => v > 0).length;
   const noGoalsYet = board.rows.every((r) => !(r.salesGoal > 0));
 
   useEffect(() => {
@@ -512,7 +514,7 @@ export default function GoalsPage() {
         showAdminToast(
           actionData.goalsEnabled
             ? "Sales goals shown"
-            : "Sales goals hidden · YoY only",
+            : "Sales goals hidden",
           { duration: 4000 },
         );
         return;
@@ -571,30 +573,13 @@ export default function GoalsPage() {
           .filter(Boolean)
           .join(" ")}
       >
+        {/* As-of + plan year. Gauges are this month / quarter / year — no slicer. */}
         <div className="mcfly-goals__rail">
-          <header className="mcfly-topbar mcfly-goals__top">
-            <div>
-              <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-                {yearHasSpend
-                  ? `Set the year. Mcfly tracks sales, spend, and ${PRODUCT_NOUN.totalRoas} against it.`
-                  : "Set the year. Mcfly tracks sales vs the calendar. Spend is optional on Marketing."}
-              </p>
-            </div>
-            <PeriodControl preset={preset} shotMode={shotMode} />
-          </header>
-
           <div className="mcfly-ctx mcfly-goals__ctx" aria-live="polite">
             <div className="mcfly-ctx__main">
               <span className="mcfly-ctx__asof">{tillLabel}</span>
-              {!shotMode && yearHasSpend ? (
-                <>
-                  <span className="mcfly-ctx__sep" aria-hidden="true">
-                    ·
-                  </span>
-                  <span className="mcfly-ctx__asof">
-                    {PRODUCT_NOUN.totalRoasGoal} {formatMer(targetMer)}×
-                  </span>
-                </>
+              {shotMode ? (
+                <PeriodControl preset={preset} shotMode={shotMode} />
               ) : null}
             </div>
             <div className="mcfly-ctx__chips">
@@ -603,19 +588,11 @@ export default function GoalsPage() {
                   {PRODUCT_NOUN.samplePreview}
                 </span>
               ) : null}
-              {!goalsEnabled ? (
-                <span className="mcfly-ctx-chip mcfly-ctx-chip--flat">
-                  Goals hidden · YoY only
-                </span>
-              ) : (
+              {goalsEnabled && board.ytd.pct != null ? (
                 <span className={`mcfly-ctx-chip mcfly-ctx-chip--${ytdTone}`}>
-                  YTD{" "}
-                  {board.ytd.pct == null
-                    ? "—"
-                    : `${board.ytd.pct.toFixed(0)}%`}{" "}
-                  of goal
+                  YTD {board.ytd.pct.toFixed(0)}% of goal
                 </span>
-              )}
+              ) : null}
               <div className="mcfly-goals-year" aria-label="Plan year">
                   <label
                     className="mcfly-goals-year__label"
@@ -638,25 +615,6 @@ export default function GoalsPage() {
               </div>
             </div>
           </div>
-          {!shotMode ? (
-            <p className="mcfly-goals__lede">
-              {yearHasSpend ? (
-                <>
-                  Same sales ÷ spend as Marketing for{" "}
-                  {periodMetrics.period.label}. Type the sales you want this year
-                  — the board shows the most you can spend each month and still
-                  hit your Total ROAS target. {PRODUCT_NOUN.totalRoas} target
-                  lives in <s-link href="/app/settings">Settings</s-link>.
-                </>
-              ) : (
-                <>
-                  Sales vs the calendar for {periodMetrics.period.label}. No
-                  spend required. Add spend on Marketing if you want{" "}
-                  {PRODUCT_NOUN.totalRoas} and a monthly spend ceiling.
-                </>
-              )}
-            </p>
-          ) : null}
         </div>
 
         {!shotMode && entitlements.showStartTrial ? (
@@ -686,103 +644,119 @@ export default function GoalsPage() {
         ) : null}
 
         <div className="mcfly-goals__main">
+          {/* One hero, drill rows — same book language as Orders and Buyers. */}
           <section
-            className="mcfly-panel mcfly-goals-period"
-            aria-label={`This period · ${periodMetrics.period.label}`}
+            className="mcfly-book"
+            aria-label={`Sales · ${periodMetrics.period.label}`}
           >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>This period · {periodMetrics.period.label}</h2>
-              <p className="mcfly-panel__muted">
-                {periodHasSpend
-                  ? `Shopify sales ÷ spend you added · vs ${PRODUCT_NOUN.totalRoasGoal} ${formatMer(targetMer)}×`
-                  : "Shopify sales vs your plan. Spend and Total ROAS wait on Marketing."}
-              </p>
-            </div>
-            <div className="mcfly-acq-grid mcfly-goals-period__grid">
-              <div className="mcfly-acq-tile mcfly-acq-tile--cream">
-                <p className="mcfly-acq-tile__k">Sales</p>
-                <p className="mcfly-acq-tile__v">
-                  {formatCurrency(periodMetrics.sales)}
-                </p>
-                <p className="mcfly-acq-tile__def">{PRODUCT_NOUN.salesBasisShort}</p>
-              </div>
-              {periodHasSpend ? (
+            <p className="mcfly-book__lede">
+              {GOALS_ANALYTICS_LEDE}{" "}
+              {targetMer > 0 ? (
                 <>
-                  <div className="mcfly-acq-tile mcfly-acq-tile--cream">
-                    <p className="mcfly-acq-tile__k">Spend</p>
-                    <p className="mcfly-acq-tile__v">
-                      {formatCurrency(periodMetrics.totalSpend)}
-                    </p>
-                    <p className="mcfly-acq-tile__def">Uploaded ad spend · this period</p>
-                  </div>
-                  <div className="mcfly-acq-tile mcfly-acq-tile--mint">
-                    <p className="mcfly-acq-tile__k">{PRODUCT_NOUN.totalRoas}</p>
-                    <p className="mcfly-acq-tile__v">
-                      {periodMetrics.mer != null
-                        ? formatMer(periodMetrics.mer)
-                        : "—"}
-                    </p>
-                    <p className="mcfly-acq-tile__def">
-                      <span
-                        className={`mcfly-goals-pace mcfly-goals-pace--${periodMerRails.tone}`}
-                      >
-                        {periodMerRails.label !== "—"
-                          ? periodMerRails.label
-                          : periodVsTarget != null
-                            ? `${periodVsTarget >= 0 ? "+" : ""}${periodVsTarget.toFixed(2)}× vs target`
-                            : "Sales ÷ spend"}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="mcfly-acq-tile mcfly-acq-tile--sky">
-                    <p className="mcfly-acq-tile__k">Spend ceiling</p>
-                    <p className="mcfly-acq-tile__v">
-                      {periodSpendCeiling != null
-                        ? formatCurrency(periodSpendCeiling)
-                        : "—"}
-                    </p>
-                    <p className="mcfly-acq-tile__def">
-                      {impliedSpendCeilingCaption(
-                        "period_sales",
-                        targetMer,
-                      )}
-                    </p>
-                  </div>
+                  Target {PRODUCT_NOUN.totalRoas} is {formatMer(targetMer)}×
+                  from <s-link href="/app/settings">Settings</s-link>.
+                </>
+              ) : (
+                <>
+                  Set target {PRODUCT_NOUN.totalRoas} in{" "}
+                  <s-link href="/app/settings">Settings</s-link>.
+                </>
+              )}
+              {!periodHasSpend ? (
+                <>
+                  {" "}
+                  Add spend on{" "}
+                  <s-link href="/app/spend">Spend Upload</s-link> for{" "}
+                  {PRODUCT_NOUN.totalRoas} and a monthly spend ceiling.
                 </>
               ) : null}
+            </p>
+            <div className="mcfly-book__hero">
+              <p className="mcfly-book__hero-k">
+                {PRODUCT_NOUN.salesBasisShort}
+              </p>
+              <p className="mcfly-book__hero-v">
+                {formatCurrency(periodMetrics.sales)}
+              </p>
+              <p className="mcfly-book__hero-def">
+                {PRODUCT_NOUN.totalSalesHeroHint} · {periodMetrics.period.label}
+              </p>
             </div>
+            {periodHasSpend ? (
+              <div className="mcfly-book__rows">
+                <details className="mcfly-book__row">
+                  <summary className="mcfly-book__row-sum">
+                    <span className="mcfly-book__row-k">Spend</span>
+                    <span className="mcfly-book__row-v">
+                      {formatCurrency(periodMetrics.totalSpend)}
+                    </span>
+                  </summary>
+                  <p className="mcfly-book__row-d">
+                    Ad spend you entered for {periodMetrics.period.label}.
+                  </p>
+                </details>
+                {periodMetrics.mer != null ? (
+                  <details className="mcfly-book__row">
+                    <summary className="mcfly-book__row-sum">
+                      <span className="mcfly-book__row-k">
+                        {PRODUCT_NOUN.totalRoas}
+                      </span>
+                      <span className="mcfly-book__row-v">
+                        {formatMer(periodMetrics.mer)}×
+                      </span>
+                    </summary>
+                    <p className="mcfly-book__row-d">
+                      {PRODUCT_NOUN.definition}.{" "}
+                      {periodMerRails.label !== "—"
+                        ? periodMerRails.label
+                        : periodVsTarget != null
+                          ? `${periodVsTarget >= 0 ? "+" : ""}${periodVsTarget.toFixed(2)}× vs target`
+                          : ""}
+                    </p>
+                  </details>
+                ) : null}
+                {periodSpendCeiling != null ? (
+                  <details className="mcfly-book__row">
+                    <summary className="mcfly-book__row-sum">
+                      <span className="mcfly-book__row-k">Spend ceiling</span>
+                      <span className="mcfly-book__row-v">
+                        {formatCurrency(periodSpendCeiling)}
+                      </span>
+                    </summary>
+                    <p className="mcfly-book__row-d">
+                      {impliedSpendCeilingCaption("period_sales", targetMer)}
+                    </p>
+                  </details>
+                ) : null}
+              </div>
+            ) : null}
           </section>
 
           <SalesGoalGauges
             periods={periods}
+            variant="book"
             heading="MTD · QTD · YTD"
             muted={
               yearHasSpend
-                ? `Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} · calendar tick = period elapsed`
-                : "Sales vs plan · calendar tick = period elapsed. Spend optional."
+                ? `Sales vs plan plus ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort}. The calendar tick is how much of the period has elapsed.`
+                : "Sales vs plan. The calendar tick is how much of the period has elapsed. Spend optional."
             }
             targetMer={board.targetMer}
             breakEvenMer={board.breakEvenMer}
           />
 
           {!shotMode ? (
-            <section
-              className="mcfly-panel mcfly-goals-declare mcfly-goals-declare--compact"
-              aria-label="Declare sales goals"
-            >
-              <div className="mcfly-panel__head mcfly-panel__head--tight">
-                <h2>
-                  {noGoalsYet ? "One-click plan" : "Reset from YoY"}
-                </h2>
-                <p className="mcfly-panel__muted">
-                  {priorYearSales > 0
-                    ? `${priorYear} ${formatCurrency(priorYearSales)} → +10% ${formatCurrency(previewTenPct)} · ${monthsWithPrior} mo`
-                    : `Need ${priorYear} sales on file to fill months.`}
-                </p>
-              </div>
-
-              <div className="mcfly-goals-declare__row">
-                <Form method="post" className="mcfly-goals-declare__primary">
+            <section className="mcfly-book" aria-label="Year plan">
+              <p className="mcfly-book__lede">
+                {noGoalsYet
+                  ? "Set a year plan from last year’s sales."
+                  : "Reset this year’s plan from last year’s sales."}
+                {priorYearSales > 0
+                  ? ` ${priorYear} was ${formatCurrency(priorYearSales)} — Grow 10% is ${formatCurrency(previewTenPct)}.`
+                  : ` Need ${priorYear} sales on file to fill months.`}
+              </p>
+              <div className="mcfly-decision__actions">
+                <Form method="post">
                   <input type="hidden" name="year" value={year} />
                   <input type="hidden" name="intent" value="apply_yoy_grow" />
                   <input type="hidden" name="yoyPct" value="10" />
@@ -797,29 +771,24 @@ export default function GoalsPage() {
                     Grow 10% YoY
                   </s-button>
                 </Form>
-                <div
-                  className="mcfly-goals-declare__presets"
-                  aria-label="Other growth rates"
-                >
-                  {YOY_GROWTH_PRESETS.filter((p) => p !== 10).map((pct) => (
-                    <Form method="post" key={pct}>
-                      <input type="hidden" name="year" value={year} />
-                      <input
-                        type="hidden"
-                        name="intent"
-                        value="apply_yoy_grow"
-                      />
-                      <input type="hidden" name="yoyPct" value={pct} />
-                      <button
-                        type="submit"
-                        className="mcfly-goals-yoy-btn"
-                        disabled={isSaving}
-                      >
-                        +{pct}%
-                      </button>
-                    </Form>
-                  ))}
-                </div>
+                {YOY_GROWTH_PRESETS.filter((p) => p !== 10).map((pct) => (
+                  <Form method="post" key={pct}>
+                    <input type="hidden" name="year" value={year} />
+                    <input
+                      type="hidden"
+                      name="intent"
+                      value="apply_yoy_grow"
+                    />
+                    <input type="hidden" name="yoyPct" value={pct} />
+                    <button
+                      type="submit"
+                      className="mcfly-goals-yoy-btn"
+                      disabled={isSaving}
+                    >
+                      +{pct}%
+                    </button>
+                  </Form>
+                ))}
               </div>
             </section>
           ) : null}
