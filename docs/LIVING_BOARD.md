@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-15 · America/Denver · Fly **309** Pass A Shopify five |
+| **Updated** | 2026-09-15 · America/Denver · Fly **310** Pass B 11-tab desk |
 | **Live** | https://mcflyads.com · `mcfly-version` **v15** (Pages `c705a2ff`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **Fly** | https://mcfly-analytics.fly.dev · version **309** · image `deployment-01M2JB51T5NEZ4WX0W6SV6YEKX` · `/health` db up · `/app` 200 · Pass A: Overview YoY cards · Customers · Growth · Orders · LTV · Spend Upload · Settings |
+| **Fly** | https://mcfly-analytics.fly.dev · version **310** · image `deployment-01M2JG57GHKR8HZ0R6X7SAJZV3` · `/health` db up · `/app` 200 · Pass B: Overview · Customers · Growth · Orders · LTV · Spend Upload · Total ROAS · Channel Allocation · YoY · CPA · Goals · Settings |
 | **North star** | Sell **Mcfly Analytics** Shopify app — 7-day trial then **$39**/store/mo. Public mark, titles, favicons, OG = one name. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -45,7 +45,7 @@ Restraint. Paper/sky. Original ribbon M. Phone = brand + hamburger.
 
 ## Product + SAMPLE lock
 
-App: deeper Shopify order analytics than Analytics Overview. Marketing (spend / Total ROAS) is a section, optional. Not pixels.  
+App: deeper Shopify order analytics than Analytics Overview. Spend tools are their own pages after the Shopify five. Not pixels.  
 **Rebuild SoT:** [`plans/2026-09-10-save-the-desk.md`](./plans/2026-09-10-save-the-desk.md) — one building plan. Paste: [`plans/2026-09-10-save-the-desk-PROMPT.md`](./plans/2026-09-10-save-the-desk-PROMPT.md). Older punch/omit docs are retired as craft law. Desk is the product. Site H1 is sales-first (P7 live). Listing paste for Marty: [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md). Cursor does not Submit.  
 **Harbor SAMPLE (home, below the fold):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · not a live client.  
 Demo widget still uses the Northline SAMPLE book (listing desk numbers) — do not put Northline **$98,500** / **4.19×** on `/`.  
@@ -80,7 +80,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 
 ## Open gates (human)
 
-- [x] **Fly deploy** — `/app` `/auth/login` `/health` **200** · **v307** 2026-09-14 (million-store desk) · journal [`ops/journal/STATUS_20260914_fly307.md`](./ops/journal/STATUS_20260914_fly307.md)
+- [x] **Fly deploy** — `/app` `/auth/login` `/health` **200** · **v310** 2026-09-15 (Pass B 11-tab desk; Pass A was v309) · image `deployment-01M2JG57GHKR8HZ0R6X7SAJZV3`
 - [x] App Store listing live → `MCFLY_APP_STORE_LIVE=true` · https://apps.shopify.com/mcfly-analytics-public
 - [ ] **Site v16 Pages** — copy is in `site/` (demo/pricing/product match the desk). Direct Upload needs founder approve. Home H1 already sales-first (v15).
 - [ ] **Partner listing paste** — sales-first pack in [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md). Marty Submits. Reviews: **0**
@@ -93,7 +93,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v15 live** — sales-first H1 · Pages `c705a2ff` · journal [`ops/journal/STATUS_20260910_v15.md`](./ops/journal/STATUS_20260910_v15.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Overnight ticks 1–3 are on Fly **307**. Human: **Admin smoke** (Sample + Live). Listing paste. Reviews: **0**. Ads off. Journal: [`ops/journal/OVERNIGHT_20260914.md`](./ops/journal/OVERNIGHT_20260914.md).
+**Next:** Human: **Admin smoke on Fly 310** — type one spend day → Total ROAS paints; empty CPA is not $0; Allocation has no explorer; YoY missing last year is honest. Partner paste from `docs/PARTNER_TESTING_INSTRUCTIONS.md`. Recapture listing shots (Buyers/Timing stale). Reviews: **0**. Ads off.
 
 ---
 
