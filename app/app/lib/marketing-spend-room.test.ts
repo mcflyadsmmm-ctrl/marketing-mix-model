@@ -89,11 +89,15 @@ describe("Total ROAS page", () => {
   const roas = read("../routes/app.roas.tsx");
 
   it("contrasts Shopify Analytics vs sales÷typed spend, not platform ROAS", () => {
-    expect(roas).toMatch(/Shopify Analytics/);
-    expect(roas).toMatch(/Total Sales/);
-    expect(roas).toMatch(/typed spend|PRODUCT_NOUN\.definition/);
+    expect(roas).toContain("Shopify Analytics shows sales");
+    expect(roas).toContain("This page shows");
     expect(roas).toMatch(/not platform ROAS/i);
     expect(roas).toContain("PRODUCT_NOUN.definition");
+  });
+
+  it("pending sales KPI is an em dash, never a painted $0", () => {
+    expect(roas).toContain("metrics.salesPending ? \"—\"");
+    expect(roas).toContain("Still loading — not $0");
   });
 
   it("owns the explorer, dual-close, and spend-only pacing", () => {
