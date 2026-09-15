@@ -17,9 +17,14 @@ import {
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
-import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
+import {
+  parsePeriodPreset,
+  periodMayExceedShopifyOrderWindow,
+  resolvePeriod,
+} from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
+import type { SalesFactsCoverage } from "../lib/sales-facts-honesty";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import {
   fetchSampleSales,
@@ -43,6 +48,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let salesError: string | null = null;
   let todaySalesTruncated = false;
   let todaySalesUnavailable = false;
+  let factsCoverage: SalesFactsCoverage | null = null;
   let sales;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
@@ -57,6 +63,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError = desk.salesError;
     todaySalesTruncated = desk.todaySalesTruncated;
     todaySalesUnavailable = desk.todaySalesUnavailable;
+    factsCoverage = desk.factsCoverage;
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
@@ -75,6 +82,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesTruncated,
     todaySalesUnavailable,
     entitlements,
+    factsCoverage,
+    periodWiderThanLiveWindow: periodMayExceedShopifyOrderWindow(range),
   };
 };
 
@@ -86,6 +95,8 @@ export default function AdvancedMetricsPage() {
     useSampleDesk,
     salesError,
     entitlements,
+    factsCoverage,
+    periodWiderThanLiveWindow,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -97,6 +108,11 @@ export default function AdvancedMetricsPage() {
     salesError: Boolean(salesError),
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
+    factsIncomplete:
+      !useSampleDesk &&
+      (factsCoverage == null || !factsCoverage.complete),
+    periodExceedsFactWindow: Boolean(factsCoverage?.periodExceedsFactWindow),
+    periodWiderThanLiveWindow,
   });
 
   const sections = buildAdvancedSections(metrics, {

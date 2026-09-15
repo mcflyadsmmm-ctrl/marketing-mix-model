@@ -44,6 +44,11 @@ export type SpendExplorerSeriesView = {
   toKey: string;
   /** Closed-day as-of key for subtitle. */
   asOfKey: string;
+  /**
+   * Explorer range honesty — 90d / 1y / All / custom past the live Shopify
+   * window, or thin SalesDayFact coverage. Null when SAMPLE, listing, or live.
+   */
+  honestyLabel?: string | null;
 };
 
 type SpendExplorerProps = {
@@ -477,6 +482,9 @@ export function SpendExplorer({
     >
       <div className="mcfly-panel__head mcfly-explorer__head mcfly-explorer__head--lean">
         <h2>{PRODUCT_NOUN.explorer}</h2>
+        {series.honestyLabel && !shotMode ? (
+          <p className="mcfly-explorer__honesty">{series.honestyLabel}</p>
+        ) : null}
       </div>
 
       {!shotMode ? (

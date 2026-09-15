@@ -15,13 +15,18 @@ import {
 } from "../lib/listing-capture";
 import { buildDashboardMetrics, ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import { parseSalesBasis } from "../lib/sales-basis";
+import type { SalesFactsCoverage } from "../lib/sales-facts-honesty";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
 import {
   contributionAdjustedLtv,
   contributionLtvCacRatio,
 } from "../lib/contrib-ltv";
 import { runOrderFactsBackfill } from "../lib/order-facts.server";
-import { parsePeriodPreset, resolvePeriod } from "../lib/periods";
+import {
+  parsePeriodPreset,
+  periodMayExceedShopifyOrderWindow,
+  resolvePeriod,
+} from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 import {
@@ -38,7 +43,6 @@ import {
   resolveDeepHistoryHonesty,
   scopesIncludeReadAllOrders,
 } from "../lib/deep-history-honesty";
-import { periodMayExceedShopifyOrderWindow } from "../lib/periods";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -59,6 +63,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let salesError: string | null = null;
   let todaySalesTruncated = false;
   let todaySalesUnavailable = false;
+  let factsCoverage: SalesFactsCoverage | null = null;
   let sales;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
@@ -97,6 +102,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError = desk.salesError;
     todaySalesTruncated = desk.todaySalesTruncated;
     todaySalesUnavailable = desk.todaySalesUnavailable;
+    factsCoverage = desk.factsCoverage;
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
@@ -116,6 +122,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     hasReadAllOrders: scopesIncludeReadAllOrders(session.scope),
     shopDomain: session.shop,
     periodWiderThanRecentWindow: periodMayExceedShopifyOrderWindow(range),
+    factsCoverage,
   };
 };
 
@@ -131,6 +138,7 @@ export default function LtvPage() {
     hasReadAllOrders,
     shopDomain,
     periodWiderThanRecentWindow,
+    factsCoverage,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -142,7 +150,11 @@ export default function LtvPage() {
     salesError: Boolean(salesError),
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
-    recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
+    factsIncomplete:
+      !useSampleDesk &&
+      (factsCoverage == null || !factsCoverage.complete),
+    periodExceedsFactWindow: Boolean(factsCoverage?.periodExceedsFactWindow),
+    periodWiderThanLiveWindow: periodWiderThanRecentWindow,
   });
   const deepHistory = resolveDeepHistoryHonesty({
     hasReadAllOrders,

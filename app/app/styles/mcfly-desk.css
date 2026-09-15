@@ -2072,6 +2072,14 @@
   margin-bottom: 0;
 }
 
+.mcfly-explorer__honesty {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+  letter-spacing: 0.01em;
+}
+
 .mcfly-explorer__channel-toggles {
   display: flex;
   flex-wrap: wrap;

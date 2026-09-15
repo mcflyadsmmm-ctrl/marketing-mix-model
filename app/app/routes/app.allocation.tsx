@@ -309,7 +309,8 @@ export default function AllocationPage() {
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
     factsIncomplete,
-    recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
+    periodExceedsFactWindow: Boolean(shopifyOrderWindowLimited),
+    periodWiderThanLiveWindow: periodWiderThanRecentWindow,
   });
   const deepHistory = resolveDeepHistoryHonesty({
     hasReadAllOrders,

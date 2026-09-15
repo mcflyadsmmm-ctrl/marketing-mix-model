@@ -1,3 +1,8 @@
+import {
+  formatPeriodHonestyTillLabel,
+  type PeriodHonestyInput,
+} from "./period-honesty";
+
 /**
  * App Store listing-capture mode.
  *
@@ -97,41 +102,14 @@ export function listingCaptureHref(path: string, enabled: boolean): string {
 }
 
 /**
- * Period ctx label. Listing-capture never says SAMPLE or "live sales" —
- * period only — so shots crop clean without demo chrome or a live lie.
- * Merchant mode (listingCapture=false) keeps SAMPLE honesty unchanged.
+ * Period ctx label next to Total ROAS.
+ * Listing-capture: period only. Merchant mode: SAMPLE | incomplete/stored-facts |
+ * live — never a silent full-year live claim on L12M / 3yr / thin SalesDayFact.
  */
-export function formatListingTillLabel(input: {
-  periodLabel: string;
-  useSampleDesk: boolean;
-  listingCapture: boolean;
-  salesError?: boolean;
-  blockedMockAsLive?: boolean;
-  salesSource?: string | null;
-  factsIncomplete?: boolean;
-  /** Token lacks read_all_orders — recent Shopify window, not a dead desk. */
-  recentWindowOnly?: boolean;
-}): string {
-  if (input.listingCapture) {
-    return input.periodLabel;
-  }
-  if (input.useSampleDesk) {
-    return `${input.periodLabel} · SAMPLE`;
-  }
-  if (
-    input.salesError ||
-    input.blockedMockAsLive ||
-    input.salesSource === "mock"
-  ) {
-    return `${input.periodLabel} · sales unavailable`;
-  }
-  if (input.recentWindowOnly) {
-    return `${input.periodLabel} · recent ~60 days`;
-  }
-  if (input.factsIncomplete) {
-    return `${input.periodLabel} · facts incomplete`;
-  }
-  return `${input.periodLabel} · live sales`;
+export function formatListingTillLabel(
+  input: PeriodHonestyInput & { periodLabel: string; listingCapture: boolean },
+): string {
+  return formatPeriodHonestyTillLabel(input.periodLabel, input);
 }
 
 /** Inline boot: persist capture mode + hide chrome before first paint. */

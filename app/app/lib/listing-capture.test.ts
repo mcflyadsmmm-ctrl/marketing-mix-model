@@ -116,16 +116,28 @@ describe("formatListingTillLabel", () => {
     ).toBe("YTD · live sales");
   });
 
-  it("labels a missing deep-history token as a recent window, not a dead desk", () => {
+  it("labels a wide incomplete period as stored facts, not a live year", () => {
     expect(
       formatListingTillLabel({
         periodLabel: "L12M",
         useSampleDesk: false,
         listingCapture: false,
         factsIncomplete: true,
-        recentWindowOnly: true,
+        periodWiderThanLiveWindow: true,
       }),
-    ).toBe("L12M · recent ~60 days");
+    ).toBe("L12M · incomplete · stored facts only");
+  });
+
+  it("labels a complete L12M as stored facts only — not live sales", () => {
+    expect(
+      formatListingTillLabel({
+        periodLabel: "L12M",
+        useSampleDesk: false,
+        listingCapture: false,
+        factsIncomplete: false,
+        periodWiderThanLiveWindow: true,
+      }),
+    ).toBe("L12M · stored facts only");
   });
 });
 

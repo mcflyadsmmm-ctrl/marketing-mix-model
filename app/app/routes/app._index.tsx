@@ -62,6 +62,7 @@ import {
   formatListingTillLabel,
   listingCaptureFromRequest,
 } from "../lib/listing-capture";
+import { formatPeriodHonestyChip } from "../lib/period-honesty";
 import {
   formatOverviewShareSubject,
   formatOverviewShareText,
@@ -204,6 +205,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     returningCustomers: 0,
     customerMetricsAvailable: false,
   };
+  let explorerFactsCoverage: SalesFactsCoverage | null = null;
   let salesFactsCoverageForBanner: SalesFactsCoverage | null = null;
   /** Facts said $0 and live Admin probe failed — never a trusted 0.00. */
   let salesUntrustedZero = false;
@@ -280,6 +282,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     } catch {
       // Coverage read failed — still facts-only below (never unbounded live crawl).
     }
+    explorerFactsCoverage = dayCoverage;
 
     // First paint: fill the selected period HERE. scopes_update only enqueues
     // deep_history_backfill — Fly workers are often stopped, so a complete
@@ -440,6 +443,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     fromKey: explorerDayKey(explorerWindow.start),
     toKey: explorerDayKey(explorerWindow.end),
     asOfKey: explorerDayKey(explorerWindow.end),
+    honestyLabel: formatPeriodHonestyChip({
+      useSampleDesk,
+      listingCapture: shotMode,
+      factsIncomplete:
+        !useSampleDesk &&
+        (explorerFactsCoverage == null || !explorerFactsCoverage.complete),
+      periodExceedsFactWindow: Boolean(
+        explorerFactsCoverage?.periodExceedsFactWindow,
+      ),
+      periodWiderThanLiveWindow: periodMayExceedShopifyOrderWindow(
+        dayFetchRange,
+        now,
+      ),
+    }),
   };
 
   const shareTz = useSampleDesk ? null : ianaTimezone;
@@ -599,7 +616,10 @@ export default function Dashboard() {
     blockedMockAsLive: Boolean(metrics.blockedMockAsLive),
     salesSource: metrics.salesSource,
     factsIncomplete: factsIncompleteForHonesty,
-    recentWindowOnly: !useSampleDesk && !hasReadAllOrders,
+    periodExceedsFactWindow: Boolean(
+      salesFactsCoverage?.periodExceedsFactWindow,
+    ),
+    periodWiderThanLiveWindow: periodWiderThanRecentWindow,
   });
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk,
@@ -656,6 +676,7 @@ export default function Dashboard() {
     periodExceedsFactWindow: Boolean(
       salesFactsCoverage?.periodExceedsFactWindow,
     ),
+    beyondLiveShopifyWindow: periodWiderThanRecentWindow,
     useSampleDesk,
     shotMode,
   });

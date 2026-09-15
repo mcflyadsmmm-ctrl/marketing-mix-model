@@ -16,6 +16,7 @@ describe("Overview / LTV tillLabel honesty", () => {
     expect(overview).toContain("formatListingTillLabel");
     expect(overview).toMatch(/salesError:\s*Boolean\(salesError\)/);
     expect(overview).toContain("factsIncomplete");
+    expect(overview).toContain("periodWiderThanLiveWindow");
     expect(overview).toContain("salesFactsIncompleteForDesk");
     expect(overview).toContain("salesFactsNeedSyncFill");
     expect(overview).toContain("sales-facts-honesty");
