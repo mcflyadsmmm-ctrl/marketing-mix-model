@@ -1,5 +1,6 @@
 import { formatCurrency } from "../lib/mer-format";
 import {
+  OVERVIEW_YOY_ANALYTICS_LEDE,
   OVERVIEW_YOY_MISSING,
   type OverviewYoyCard,
 } from "../lib/overview-yoy";
@@ -44,6 +45,7 @@ export function OverviewYoyCards({
 
   return (
     <section className="mcfly-yoy" aria-label="Sales versus last year">
+      <p className="mcfly-book__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <p className="mcfly-book__lede">{OVERVIEW_COVERAGE_LINE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {

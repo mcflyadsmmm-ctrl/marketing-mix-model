@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { buildOverviewYoyCards, OVERVIEW_YOY_MISSING } from "./overview-yoy";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import {
+  buildOverviewYoyCards,
+  OVERVIEW_YOY_ANALYTICS_LEDE,
+  OVERVIEW_YOY_MISSING,
+} from "./overview-yoy";
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 describe("buildOverviewYoyCards", () => {
   it("keeps This month / quarter / year only, with last-year dollars", () => {
@@ -67,5 +76,24 @@ describe("buildOverviewYoyCards", () => {
     expect(month?.delta).toBeNull();
     expect(OVERVIEW_YOY_MISSING).toMatch(/60 days/);
     expect(OVERVIEW_YOY_MISSING).not.toMatch(/\$0 last year/);
+  });
+});
+
+describe("Overview vs Shopify Analytics", () => {
+  it("names Shopify Analytics vs last-year cards, with pending still not $0", () => {
+    const yoy = readFileSync(join(here, "./overview-yoy.ts"), "utf8");
+    const cards = readFileSync(
+      join(here, "../components/OverviewYoyCards.tsx"),
+      "utf8",
+    );
+    const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
+
+    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/Shopify Analytics/);
+    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/last year/i);
+    expect(yoy).toMatch(/Shopify Analytics/);
+    expect(cards).toContain("OVERVIEW_YOY_ANALYTICS_LEDE");
+    expect(cards).toContain("Sales for closed days are still loading — not $0.");
+    expect(overview).not.toContain("<SpendExplorer");
+    expect(overview).not.toContain("<DualCloseLine");
   });
 });

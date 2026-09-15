@@ -8,6 +8,10 @@ export type OverviewYoyId = (typeof OVERVIEW_YOY_IDS)[number];
 export const OVERVIEW_YOY_MISSING =
   "Same days last year not on file yet. Shopify orders on this install cover about 60 days — not $0.";
 
+/** Shopify Analytics Overview is this period only; these cards add last year. */
+export const OVERVIEW_YOY_ANALYTICS_LEDE =
+  "Shopify Analytics Overview shows this period's sales and average order. These cards compare that to last year.";
+
 export type OverviewYoyChip = {
   id: CashChipId | string;
   label: string;
