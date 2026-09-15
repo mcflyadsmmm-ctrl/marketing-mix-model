@@ -129,7 +129,8 @@ export function LtvSnapSection({
 
   return (
     <section
-      className="mcfly-book"
+      className="mcfly-book mcfly-desk-anchor"
+      id="mcfly-ltv"
       aria-label={`${PRODUCT_NOUN.ltvTitle} snapshot`}
     >
       <p className="mcfly-book__lede">

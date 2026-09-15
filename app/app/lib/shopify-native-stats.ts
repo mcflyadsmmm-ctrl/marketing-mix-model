@@ -42,6 +42,10 @@ export type ShopifyNativePeriodStats = {
   newBuyerShare: number | null;
   newSalesShare: number | null;
   returningSalesShare: number | null;
+  /** Window sales $ from first-time buyers. Null when the split is unknown. */
+  newSales: number | null;
+  /** Window sales $ from returning buyers. Null when the split is unknown. */
+  returningSales: number | null;
   /**
    * Gross (`totalPriceSet`) minus Total (`currentTotalPriceSet`).
    * Positive when returns/edits pulled current totals below original order totals.
@@ -124,6 +128,8 @@ export function shopifyNativePeriodStats(
     newBuyerShare,
     newSalesShare,
     returningSalesShare,
+    newSales: hasSalesSplit ? newSales : null,
+    returningSales: hasSalesSplit ? returningSales : null,
     returnsDrag,
     returnsDragPct,
     customerMetricsAvailable,

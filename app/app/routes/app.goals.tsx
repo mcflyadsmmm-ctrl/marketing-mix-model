@@ -676,10 +676,14 @@ export default function GoalsPage() {
                 {PRODUCT_NOUN.salesBasisShort}
               </p>
               <p className="mcfly-book__hero-v">
-                {formatCurrency(periodMetrics.sales)}
+                {periodMetrics.salesPending
+                  ? "—"
+                  : formatCurrency(periodMetrics.sales)}
               </p>
               <p className="mcfly-book__hero-def">
-                {PRODUCT_NOUN.totalSalesHeroHint} · {periodMetrics.period.label}
+                {periodMetrics.salesPending
+                  ? "Still loading — not $0"
+                  : `${PRODUCT_NOUN.totalSalesHeroHint} · ${periodMetrics.period.label}`}
               </p>
             </div>
             {periodHasSpend ? (

@@ -16,7 +16,7 @@ export const PRODUCT_NOUN = {
   /** Short form in dense UI */
   totalRoasShort: "ROAS",
   /** Acquisition MER — new-customer sales ÷ spend (average, not causal) */
-  amer: "aMER",
+  amer: "New sales ÷ spend",
   amerDef: "New-customer sales ÷ spend",
   /** Goal / target label */
   totalRoasGoal: "Total ROAS Goal",
@@ -41,35 +41,40 @@ export const PRODUCT_NOUN = {
   /** Decision — any day of the week */
   mondayCall: "Total ROAS vs break-even — any day",
   /**
-   * Share Overview — merchant emails/forwards Total ROAS themselves (no Mcfly email).
+   * Share Overview — merchant emails/forwards the period themselves (no Mcfly email).
    * Monday Close UI is retired (`docs/RETIRED_SURFACES.md`); `/app/close` redirects home.
+   * Sales-first when spend is empty; Total ROAS only once spend is on file.
    */
   shareOverview: "Share Overview",
   shareOverviewDef:
-    "Share Total ROAS vs break-even for the period you picked — email or copy it yourself.",
+    "Share this period’s Shopify Total Sales — and Total ROAS once you’ve added spend. Email or copy it yourself.",
   shareOverviewEmail: "Email",
   shareOverviewEmailDef:
-    "Opens your email app with this period’s Total ROAS cards — Mcfly does not send mail.",
+    "Opens your email app with this period’s sales (and Total ROAS if spend is on file) — Mcfly does not send mail.",
   /** Page / nav titles */
   deskTitle: "Total ROAS",
   overviewTitle: "Overview",
   ordersTitle: "Orders",
   ordersMuted:
-    "Typical order, discounts, returns, items — not Shopify’s average.",
-  buyersTitle: "Buyers",
+    "Typical order, discounts, returns, items, weekends, Online vs POS — not Shopify’s average.",
+  buyersTitle: "Customers",
   buyersMuted:
-    "New vs returning dollars, guests, days to a second order. No spend.",
+    "Returning dollars, guests, who spends more. No spend. LTV is its own tab.",
+  growthTitle: "Growth",
+  growthMuted:
+    "New customers and who came back. Not an email list, not ads.",
   timingTitle: "Timing",
   timingMuted: "Weekends, busiest hour, Online vs POS. Shop-local, not ads.",
   marketingSection: "Marketing",
   uploadSpend: "Upload Spend",
   /** Spend mix / quarterly / rolling — route /app/allocation */
-  spendAllocation: "Spend Allocation",
+  spendAllocation: "Channel Allocation",
   /** Acquisition + cohort LTV deep-dive (route /app/ltv) */
   ltvTitle: "LTV",
   /** Primary CTA after spend / empty states — verb + outcome */
   openTotalRoas: "Open Total ROAS",
-  openSpendAllocation: "Open Spend Allocation",
+  openOverview: "Open Overview",
+  openSpendAllocation: "Open Channel Allocation",
   openLtv: "Open LTV",
   /** Enterprise MDS lab — averages, not causal channel ROAS */
   advancedMetrics: "Advanced Metrics",
@@ -84,7 +89,7 @@ export const PRODUCT_NOUN = {
     "Spend mix in top Total ROAS windows — portfolio co-occurrence",
   /** Customer payback one-liner prefix */
   customerPayback: "Customer payback",
-  nextAllocation: "Next: Spend Allocation",
+  nextAllocation: "Next: Channel Allocation",
   nextCustomerPayback: "Next: LTV",
   /** Overview payback tile defs — plain English formulas */
   cashCacDef: "Period ad spend ÷ new customers",
@@ -144,7 +149,7 @@ export const PRODUCT_NOUN = {
   ltvSnapMutedWithSpend:
     "What new buyers spend in 30 / 90 / 365 days · spend ÷ new customers when spend exists.",
   goalsSnapTitle: "Goals vs calendar",
-  goalsSnapMuted: "MTD / QTD / YTD vs days elapsed. Spend optional.",
+  goalsSnapMuted: "This month, this quarter, and this year vs days elapsed. Spend optional.",
   ltvCacDef: "LTV · 90d ÷ Cash CAC (average, not causal)",
 
   /** Support under thesis / empty states */
@@ -186,7 +191,7 @@ export const PRODUCT_NOUN = {
     "Use Sample data | Live data at the top of any page to switch. Live data shows this shop’s Shopify sales and the ad spend you add. Hide Sample data in Settings if you never want the example set.",
   samplePreviewLiveStore: "You are viewing Live data",
   samplePreviewLiveStoreBody:
-    "This shop’s Shopify sales. Add daily spend on Upload Spend. Switch to Sample data at the top anytime to try example numbers.",
+    "This shop’s Shopify sales. Add daily spend on Marketing. Switch to Sample data at the top anytime to try example numbers.",
   /** Founder-locked setup path labels (banner + empty-state CTAs) */
   setupAddSpend: "Upload Spend",
   setupSetGoals: "Set Goals",
@@ -197,7 +202,21 @@ export const PRODUCT_NOUN = {
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
   factsIncompleteSuffix: " · still loading sales days",
   ltvNotInShopify:
-    "Shopify Analytics does not show first-order-month till LTV (30/90/365d) on this sales basis. Mcfly uses order history only — not email lists. Cash CAC needs spend.",
+    "What a new customer spends in their first 30, 90, and 365 days — Shopify Analytics does not put this on one screen. Order history only, never email lists. Spend is optional.",
+  controlAsOf: "Through",
+  monthClose: "Finish the month",
+  mtdFlatClose: "If this month stays even",
+  l7Close: "If the last 7 days continue",
+  spendLeftAtGoal: "Spend left at your goal",
+  salesStillNeeded: "Sales still needed",
+  spendRoom: "Spend you can still add",
+  spendOverGoal: "Spend over goal",
+  vsLastMonth: "This month vs last month",
+  vsLastYearMonth: "This month vs last year",
+  emailStays: "Email stays as-is",
+  hitGoal: "Hit goal",
+  missedGoal: "Below goal",
+  holdSalesCut: "Cut one channel · sales held flat",
 } as const;
 
 export type SalesBasisPreference = "total" | "net";

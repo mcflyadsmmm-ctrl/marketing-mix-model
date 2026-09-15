@@ -231,7 +231,7 @@ describe("buildSalesGoalPeriods", () => {
       now,
     });
 
-    expect(periods.mtd.label).toBe("MTD");
+    expect(periods.mtd.label).toBe("This month");
     expect(periods.mtd.periodHint).toBe("Jul 2026");
     expect(periods.mtd.actual).toBe(52_000);
     expect(periods.mtd.goal).toBe(100_000);
@@ -243,14 +243,14 @@ describe("buildSalesGoalPeriods", () => {
     expect(periods.mtd.yoy.tone).toBe("down");
 
     // Q3 = Jul only so far
-    expect(periods.qtd.label).toBe("QTD");
+    expect(periods.qtd.label).toBe("This quarter");
     expect(periods.qtd.periodHint).toBe("Q3 2026");
     expect(periods.qtd.actual).toBe(52_000);
     expect(periods.qtd.goal).toBe(100_000);
     expect(periods.qtd.yoy.priorActual).toBe(80_000);
 
     // YTD Jan–Jul
-    expect(periods.ytd.label).toBe("YTD");
+    expect(periods.ytd.label).toBe("This year");
     expect(periods.ytd.actual).toBe(
       110_000 + 95_000 + 100_000 + 105_000 + 98_000 + 102_000 + 52_000,
     );

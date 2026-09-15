@@ -8,22 +8,22 @@ import {
   useLoaderData,
 } from "react-router";
 
+import { hasShopifySessionContext } from "../scripts/shopify-app-path.mjs";
 import { isPublicOriginPath } from "./lib/public-origin";
 
 /**
- * App Bridge + api-key meta only for embedded / auth surfaces.
- * Public Fly origin (marketing site, trust URLs, health) must NOT load App
- * Bridge — it breaks listing Website / Support / Privacy clicks outside Admin.
+ * App Bridge + api-key meta only when Shopify already supplied a session
+ * (Admin Open app / install / billing return) or on /auth for OAuth.
+ * A public curl of the App URL `/app` must NOT load App Bridge — the script
+ * 410s outside an Admin iframe and the listing host looks broken.
  */
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\.data$/, "");
+  const isAuth = path === "/auth" || path.startsWith("/auth");
   const loadAppBridge =
     !isPublicOriginPath(path) &&
-    (path === "/app" ||
-      path.startsWith("/app/") ||
-      path.startsWith("/auth") ||
-      Boolean(url.searchParams.get("shop") || url.searchParams.get("host")));
+    (hasShopifySessionContext(request) || isAuth);
 
   return {
     apiKey: process.env.SHOPIFY_API_KEY || "",

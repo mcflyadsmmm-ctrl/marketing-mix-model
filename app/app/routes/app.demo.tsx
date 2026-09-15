@@ -56,7 +56,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       await setSampleDeskEnabled(shop.id, true);
       return {
         ok: true as const,
-        message: `Sample data ready — ${result.days.toLocaleString()} days. Open Total ROAS to explore.`,
+        message: `Sample data ready — ${result.days.toLocaleString()} days. Open Overview to explore.`,
         result,
       };
     }
@@ -147,7 +147,7 @@ export default function DemoPage() {
             </s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               <s-button href="/app" variant="primary">
-                {PRODUCT_NOUN.openTotalRoas}
+                {PRODUCT_NOUN.openOverview}
               </s-button>
               <Form method="post" action={demoAction}>
                 <input type="hidden" name="intent" value="disable" />
@@ -167,10 +167,10 @@ export default function DemoPage() {
             <s-paragraph>{PRODUCT_NOUN.samplePreviewLiveStoreBody}</s-paragraph>
             <div className="mcfly-decision__actions" style={{ marginTop: "0.65rem" }}>
               <s-button href="/app" variant="primary">
-                {PRODUCT_NOUN.openTotalRoas}
+                {PRODUCT_NOUN.openOverview}
               </s-button>
               <s-button href="/app/spend" variant="secondary">
-                Go to Upload Spend
+                Go to Marketing
               </s-button>
             </div>
           </s-banner>
@@ -188,12 +188,12 @@ export default function DemoPage() {
         {stats.enabled ? (
           <s-section heading="Sample data">
             <s-paragraph>
-              Sample data stays labeled on Total ROAS, Goals, and Spend. Switch to
+              Sample data stays labeled on Overview, Goals, and Marketing. Switch to
               Live data at the top when you want this shop’s Shopify numbers.
             </s-paragraph>
             <div className="mcfly-decision__actions">
               <s-button href="/app" variant="secondary">
-                {PRODUCT_NOUN.openTotalRoas}
+                {PRODUCT_NOUN.openOverview}
               </s-button>
               <Form method="post" action={demoAction}>
                 <input type="hidden" name="intent" value="prepare" />
@@ -277,13 +277,10 @@ export default function DemoPage() {
               {PRODUCT_NOUN.setupAdjustMargin}
             </s-button>
             <s-button href="/app/spend" variant="primary">
-              Go to Upload Spend
+              Go to Marketing
             </s-button>
             <s-button href="/app" variant="secondary">
-              {PRODUCT_NOUN.openTotalRoas}
-            </s-button>
-            <s-button href="/app" variant="tertiary">
-              Open Overview
+              {PRODUCT_NOUN.openOverview}
             </s-button>
           </div>
         </s-section>
@@ -302,7 +299,7 @@ export default function DemoPage() {
               <s-link href="/app?period=mtd&shot=1">Overview MTD shot</s-link>
             </li>
             <li>
-              <s-link href="/app/spend?shot=1">Upload Spend shot</s-link>
+              <s-link href="/app/spend?shot=1">Marketing shot</s-link>
             </li>
             <li>
               <s-link href="/app/goals?shot=1">Goals shot</s-link>

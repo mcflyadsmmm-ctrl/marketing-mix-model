@@ -152,7 +152,9 @@ export default function AdvancedMetricsPage() {
               {PRODUCT_NOUN.advancedKicker}
             </p>
           </div>
-          <PeriodControl preset={preset} shotMode={shotMode} />
+          {shotMode ? (
+            <PeriodControl preset={preset} shotMode={shotMode} />
+          ) : null}
         </header>
 
         <div className="mcfly-ctx" aria-live="polite">
@@ -173,10 +175,10 @@ export default function AdvancedMetricsPage() {
         </div>
 
         <p className="mcfly-advanced__lede">
-          Shopify order stats (orders, AOV, new vs returning, till LTV) paint
-          from Admin API with no spend upload. Spend tiles need typed or CSV
-          spend. Overview stays the simple scoreboard. Averages, not causal
-          channel ROAS.
+          Shopify order stats (orders, typical order, new vs returning,
+          30/90/365-day LTV) show from this shop’s orders with no spend upload.
+          Spend tiles need typed or CSV spend. Overview stays the simple
+          scoreboard. Averages, not which ad caused the sale.
         </p>
 
         <div className="mcfly-advanced__nav">
@@ -187,7 +189,7 @@ export default function AdvancedMetricsPage() {
             {PRODUCT_NOUN.nextCustomerPayback}
           </s-link>
           <s-link href={`/app/spend?period=${preset}`}>
-            {PRODUCT_NOUN.openTotalRoas}
+            {PRODUCT_NOUN.setupAddSpend}
           </s-link>
         </div>
 

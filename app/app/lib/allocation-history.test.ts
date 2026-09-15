@@ -403,7 +403,7 @@ describe("historyGroundingLine + buildAllocationHistoryView", () => {
     const line = historyGroundingLine(view.bestMix, view.bands, {
       channel: "meta",
     });
-    expect(line).toContain("when the till looked best");
+    expect(line).toContain("when sales looked best");
   });
 
   it("returns empty-history view without inventing bands", () => {

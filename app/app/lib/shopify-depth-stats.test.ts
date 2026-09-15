@@ -4,6 +4,10 @@ import {
   classifyOrderSource,
   formatHourRangeLabel,
   HOUR_STATS_MIN_ORDERS,
+  MULTI_UNIT_MIN_ORDERS,
+  PRICE_SPLIT_MIN_EACH,
+  SOURCE_AOV_MIN_ORDERS,
+  TOP_CUSTOMER_MIN_BUYERS,
   medianOf,
   shopifyDepthStats,
   type OrderDepthRow,
@@ -419,5 +423,154 @@ describe("shopifyDepthStats", () => {
     expect(depth.sourceSalesShare?.pos).toBeCloseTo(0.2);
     expect(depth.sourceSalesShare?.shop).toBeCloseTo(0.1);
     expect(depth.sourceSalesShare?.online).toBeCloseTo(0.7);
+  });
+
+  it("withholds 2+ unit share, price-split AOV, top-customer share, and source AOV when observations are short", () => {
+    const orders: OrderDepthRow[] = Array.from(
+      { length: TOP_CUSTOMER_MIN_BUYERS - 1 },
+      (_, i) => ({
+        ...row(`c${i}`, 50, "2026-09-01"),
+        unitCount: i < MULTI_UNIT_MIN_ORDERS - 1 ? 2 : null,
+        discountAmount: i < PRICE_SPLIT_MIN_EACH - 1 ? 8 : i < 8 ? 0 : null,
+        sourceName: i < SOURCE_AOV_MIN_ORDERS - 1 ? "web" : i < 8 ? "pos" : "",
+      }),
+    );
+    const depth = shopifyDepthStats({
+      orders,
+      totalSales: 50 * (TOP_CUSTOMER_MIN_BUYERS - 1),
+      netSales: 50 * (TOP_CUSTOMER_MIN_BUYERS - 1),
+      netSalesKnown: true,
+      grossSales: 50 * (TOP_CUSTOMER_MIN_BUYERS - 1),
+      grossSalesKnown: true,
+    });
+    expect(depth.identifiedBuyers).toBe(TOP_CUSTOMER_MIN_BUYERS - 1);
+    expect(depth.multiUnitOrderShare).toBeNull();
+    expect(depth.fullPriceMedianAov).toBeNull();
+    expect(depth.discountedMedianAov).toBeNull();
+    expect(depth.topCustomerSalesShare).toBeNull();
+    expect(depth.sourceMedianAov.online).toBeNull();
+    expect(depth.sourceMedianAov.pos).toBeNull();
+    expect(depth.sourceMedianAov.shop).toBeNull();
+  });
+
+  it("measures 2+ unit share among crawled unit counts once the gate is met", () => {
+    const orders: OrderDepthRow[] = Array.from(
+      { length: MULTI_UNIT_MIN_ORDERS },
+      (_, i) => ({
+        ...row(`c${i}`, 40, "2026-09-01"),
+        unitCount: i < 3 ? 2 : 1,
+      }),
+    );
+    const depth = shopifyDepthStats({
+      orders,
+      totalSales: 320,
+      netSales: 320,
+      netSalesKnown: true,
+      grossSales: 320,
+      grossSalesKnown: true,
+    });
+    expect(depth.meanUnitCount).toBeCloseTo(11 / 8);
+    expect(depth.multiUnitOrderShare).toBeCloseTo(3 / 8);
+  });
+
+  it("compares typical full-price AOV to discounted AOV only when both sides have enough orders", () => {
+    const oneSided: OrderDepthRow[] = [
+      ...Array.from({ length: 6 }, (_, i) => ({
+        ...row(`f${i}`, 80, "2026-09-01"),
+        discountAmount: 0,
+      })),
+      ...Array.from({ length: 4 }, (_, i) => ({
+        ...row(`d${i}`, 40, "2026-09-02"),
+        discountAmount: 12,
+      })),
+    ];
+    const short = shopifyDepthStats({
+      orders: oneSided,
+      totalSales: 640,
+      netSales: 640,
+      netSalesKnown: true,
+      grossSales: 640,
+      grossSalesKnown: true,
+    });
+    expect(short.fullPriceMedianAov).toBeNull();
+    expect(short.discountedMedianAov).toBeNull();
+    expect(short.discountedOrderShare).toBeCloseTo(0.4);
+
+    const orders: OrderDepthRow[] = [
+      ...[40, 50, 60, 70, 80].map((amount, i) => ({
+        ...row(`f${i}`, amount, "2026-09-01"),
+        discountAmount: 0,
+      })),
+      ...[10, 20, 30, 40, 100].map((amount, i) => ({
+        ...row(`d${i}`, amount, "2026-09-02"),
+        discountAmount: 12,
+      })),
+    ];
+    const depth = shopifyDepthStats({
+      orders,
+      totalSales: 500,
+      netSales: 500,
+      netSalesKnown: true,
+      grossSales: 500,
+      grossSalesKnown: true,
+    });
+    expect(depth.fullPriceMedianAov).toBe(60);
+    expect(depth.discountedMedianAov).toBe(30);
+    expect(depth.discountedOrderShare).toBeCloseTo(0.5);
+  });
+
+  it("measures typical Online / POS / Shop AOV only for sources with enough crawled orders", () => {
+    const orders: OrderDepthRow[] = [
+      ...[10, 20, 30, 40, 100].map((amount, i) => ({
+        ...row(`o${i}`, amount, "2026-09-01"),
+        sourceName: "web",
+      })),
+      ...[50, 50, 50, 50, 50].map((amount, i) => ({
+        ...row(`p${i}`, amount, "2026-09-02"),
+        sourceName: "pos",
+      })),
+      ...[80, 90, 100].map((amount, i) => ({
+        ...row(`s${i}`, amount, "2026-09-03"),
+        sourceName: "shop",
+      })),
+    ];
+    const depth = shopifyDepthStats({
+      orders,
+      totalSales: 670,
+      netSales: 670,
+      netSalesKnown: true,
+      grossSales: 670,
+      grossSalesKnown: true,
+    });
+    expect(depth.sourceMedianAov.online).toBe(30);
+    expect(depth.sourceMedianAov.pos).toBe(50);
+    expect(depth.sourceMedianAov.shop).toBeNull();
+  });
+
+  it("measures top-customer sales share separately from the biggest-order decile", () => {
+    const orders: OrderDepthRow[] = [
+      ...Array.from({ length: 8 }, () => row("whale", 20, "2026-09-01")),
+      row("big", 200, "2026-09-02"),
+      ...Array.from({ length: 18 }, (_, i) => row(`s${i}`, 10, "2026-09-03")),
+      ...Array.from({ length: 5 }, (_, i) =>
+        row(DEPTH_GUEST_KEY, 1000, "2026-09-04", 10 + i),
+      ),
+    ];
+    const depth = shopifyDepthStats({
+      orders,
+      totalSales: 5540,
+      netSales: 5540,
+      netSalesKnown: true,
+      grossSales: 5540,
+      grossSalesKnown: true,
+    });
+    expect(depth.identifiedBuyers).toBe(20);
+    // Whale $160 + one $200 order vs 18 × $10. Top 2 buyers = $360 / $540.
+    expect(depth.topCustomerSalesShare).toBeCloseTo(360 / 540);
+    // 32 orders; top 10% = 3 orders, all guest $1,000s — not the whale's $20s.
+    expect(depth.topDecileSalesShare).toBeCloseTo(3000 / 5540);
+    expect(depth.topCustomerSalesShare).not.toBeCloseTo(
+      depth.topDecileSalesShare ?? NaN,
+    );
   });
 });

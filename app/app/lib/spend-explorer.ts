@@ -113,11 +113,11 @@ const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export const EXPLORER_RANGE_OPTIONS: { value: ExplorerRange; label: string }[] =
   [
-    { value: "14d", label: "14d" },
-    { value: "30d", label: "30d" },
-    { value: "90d", label: "90d" },
-    { value: "YTD", label: "YTD" },
-    { value: "1y", label: "1y" },
+    { value: "14d", label: "14 days" },
+    { value: "30d", label: "30 days" },
+    { value: "90d", label: "90 days" },
+    { value: "YTD", label: "This year" },
+    { value: "1y", label: "1 year" },
     { value: "All", label: "All" },
   ];
 
@@ -209,8 +209,9 @@ export function parseExplorerRange(raw: string | null): ExplorerRange {
 }
 
 /**
- * When Overview has no `exRange` query, the chart follows the scoreboard
- * period instead of a separate 14-day window.
+ * When Overview has no `exRange` query, the route defaults to last 14 closed
+ * days (Day grain). Spend / Allocation still call this to follow the
+ * scoreboard period.
  */
 export function explorerQueryMatchingScoreboard(
   preset: PeriodPreset,
@@ -653,6 +654,76 @@ export function priorExplorerBucketKey(
       throw new Error(`Unknown granularity: ${_exhaustive}`);
     }
   }
+}
+
+/**
+ * Calendar span for one explorer column. Week keys are Monday–Sunday.
+ * Callers should clamp `toKey` to the feed as-of day so today stays out.
+ */
+export function explorerBucketDateRange(
+  key: string,
+  granularity: ExplorerGranularity,
+): { fromKey: string; toKey: string } | null {
+  switch (granularity) {
+    case "Day": {
+      if (!DATE_KEY_RE.test(key)) return null;
+      return { fromKey: key, toKey: key };
+    }
+    case "Week": {
+      if (!key.startsWith("w:")) return null;
+      const fromKey = key.slice(2);
+      const mon = parseDateKey(fromKey);
+      if (!mon) return null;
+      return {
+        fromKey,
+        toKey: dateKeyFromLocal(addLocalDays(mon, 6)),
+      };
+    }
+    case "Month": {
+      const m = /^m:(\d{4})-(\d{2})$/.exec(key);
+      if (!m) return null;
+      const y = Number(m[1]);
+      const month = Number(m[2]);
+      if (month < 1 || month > 12) return null;
+      const last = new Date(y, month, 0).getDate();
+      return {
+        fromKey: `${m[1]}-${m[2]}-01`,
+        toKey: `${m[1]}-${m[2]}-${pad2(last)}`,
+      };
+    }
+    case "Quarter": {
+      const m = /^q:(\d{4})-Q([1-4])$/.exec(key);
+      if (!m) return null;
+      const y = Number(m[1]);
+      const q = Number(m[2]);
+      const startMonth = (q - 1) * 3;
+      const endMonth = startMonth + 2;
+      const last = new Date(y, endMonth + 1, 0).getDate();
+      return {
+        fromKey: `${m[1]}-${pad2(startMonth + 1)}-01`,
+        toKey: `${m[1]}-${pad2(endMonth + 1)}-${pad2(last)}`,
+      };
+    }
+    default: {
+      const _exhaustive: never = granularity;
+      throw new Error(`Unknown granularity: ${_exhaustive}`);
+    }
+  }
+}
+
+/** Drop a range that starts after as-of; cap the end at as-of. */
+export function clampExplorerRangeToAsOf(
+  range: { fromKey: string; toKey: string },
+  asOfKey: string,
+): { fromKey: string; toKey: string } | null {
+  if (!(DATE_KEY_RE.test(asOfKey) && DATE_KEY_RE.test(range.fromKey))) {
+    return range;
+  }
+  if (range.fromKey > asOfKey) return null;
+  return {
+    fromKey: range.fromKey,
+    toKey: range.toKey > asOfKey ? asOfKey : range.toKey,
+  };
 }
 
 /**

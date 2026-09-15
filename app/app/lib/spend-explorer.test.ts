@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   applyExplorerMode,
   bucketExplorerRows,
+  clampExplorerRangeToAsOf,
   closedDayEnd,
   compareExplorerBuckets,
+  explorerBucketDateRange,
   priorExplorerBucketKey,
   explorerMoneyCeil,
   explorerSalesCeil,
@@ -65,6 +67,42 @@ describe("parseExplorer*", () => {
     expect(parseExplorerShowSales("0")).toBe(false);
     expect(parseExplorerDateParam("07/01/2026")).toBeNull();
     expect(parseExplorerDateParam("2026-13-40")).toBeNull();
+  });
+});
+
+describe("explorerBucketDateRange", () => {
+  it("maps day / week / month / quarter keys to calendar spans", () => {
+    expect(explorerBucketDateRange("2026-09-10", "Day")).toEqual({
+      fromKey: "2026-09-10",
+      toKey: "2026-09-10",
+    });
+    expect(explorerBucketDateRange("w:2026-09-07", "Week")).toEqual({
+      fromKey: "2026-09-07",
+      toKey: "2026-09-13",
+    });
+    expect(explorerBucketDateRange("m:2026-09", "Month")).toEqual({
+      fromKey: "2026-09-01",
+      toKey: "2026-09-30",
+    });
+    expect(explorerBucketDateRange("q:2026-Q3", "Quarter")).toEqual({
+      fromKey: "2026-07-01",
+      toKey: "2026-09-30",
+    });
+  });
+
+  it("clamps the end to as-of and drops ranges that start after as-of", () => {
+    expect(
+      clampExplorerRangeToAsOf(
+        { fromKey: "2026-09-01", toKey: "2026-09-30" },
+        "2026-09-15",
+      ),
+    ).toEqual({ fromKey: "2026-09-01", toKey: "2026-09-15" });
+    expect(
+      clampExplorerRangeToAsOf(
+        { fromKey: "2026-09-16", toKey: "2026-09-30" },
+        "2026-09-15",
+      ),
+    ).toBeNull();
   });
 });
 

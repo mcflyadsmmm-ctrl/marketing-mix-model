@@ -52,6 +52,33 @@ function queryValue(query, key) {
   return String(raw ?? "").trim();
 }
 
+function headerValue(req, name) {
+  if (!req) return "";
+  const want = String(name).toLowerCase();
+  const headers = req.headers;
+  if (headers && typeof headers.get === "function") {
+    return String(headers.get(name) ?? headers.get(want) ?? "").trim();
+  }
+  if (typeof req.get === "function") {
+    return String(req.get(name) || req.get(want) || "").trim();
+  }
+  if (headers && typeof headers === "object") {
+    const raw = headers[want] ?? headers[name];
+    if (Array.isArray(raw)) return String(raw[0] ?? "").trim();
+    return String(raw ?? "").trim();
+  }
+  return "";
+}
+
+/**
+ * Shopify Admin paints the App URL in an iframe. App Bridge can arrive
+ * before `shop` / `host` are on the query — static `site/index.html` must
+ * not win that first paint (Install / mcflyads.com slogan).
+ */
+export function isShopifyAdminFrame(req) {
+  return headerValue(req, "sec-fetch-dest").toLowerCase() === "iframe";
+}
+
 /**
  * Shopify Admin session query — present on install, Open app, and billing return.
  * @param {string | Record<string, unknown> | URLSearchParams | null | undefined} queryOrSearch
@@ -93,6 +120,7 @@ export function shouldSkipMarketingSite(req) {
   if (isShopifyAppPath(path)) return true;
   if (isShopifyEmbeddedSearch(req?.query)) return true;
   if (isShopifyEmbeddedSearch(requestSearch(req))) return true;
+  if (isShopifyAdminFrame(req)) return true;
   return false;
 }
 

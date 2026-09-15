@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   embeddedAppRedirectLocation,
   hasShopifySessionContext,
+  isShopifyAdminFrame,
   isShopifyAppPath,
   isShopifyEmbeddedSearch,
   shouldSkipMarketingSite,
@@ -68,6 +69,37 @@ describe("Shopify embedded entry vs marketing site", () => {
         originalUrl: "/support",
       }),
     ).toBe(false);
+    expect(
+      shouldSkipMarketingSite({
+        path: "/",
+        query: {},
+        originalUrl: "/",
+        headers: { "sec-fetch-dest": "document" },
+      }),
+    ).toBe(false);
+  });
+
+  it("never paints marketing HTML inside a Shopify Admin iframe", () => {
+    const iframeHome = {
+      path: "/",
+      query: {},
+      originalUrl: "/",
+      headers: { "sec-fetch-dest": "iframe" },
+    };
+    expect(isShopifyAdminFrame(iframeHome)).toBe(true);
+    expect(shouldSkipMarketingSite(iframeHome)).toBe(true);
+    expect(embeddedAppRedirectLocation(iframeHome)).toBe("/app");
+  });
+
+  it("does not load App Bridge on a public /app host hit", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const root = readFileSync(join(here, "../root.tsx"), "utf8");
+    expect(root).toContain("hasShopifySessionContext(request)");
+    expect(root).toContain("isAuth");
+    expect(hasShopifySessionContext({
+      url: "https://mcfly-analytics.fly.dev/app",
+      headers: { get: () => null },
+    })).toBe(false);
   });
 
   it("treats session-token Authorization as Shopify context", () => {
@@ -92,6 +124,14 @@ describe("Shopify embedded entry vs marketing site", () => {
         },
       }),
     ).toBe(true);
+  });
+
+  it("Fly home HTML bounces Admin iframes to /app, not mcflyads.com", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const html = readFileSync(join(here, "../../../site/index.html"), "utf8");
+    expect(html).toContain("mcfly-analytics.fly.dev");
+    expect(html).toContain('location.replace("/app"');
+    expect(html).toContain("window.top === window.self");
   });
 
   it("lets /app fall through instead of redirecting", () => {

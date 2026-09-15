@@ -14,26 +14,18 @@ type PeriodControlProps = {
 
 type DeskPeriodPreset = "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3";
 
-/** Desk UI: MTD / Last month / QTD / YTD / Last 12 months; shot mode adds 3 yr for listing captures. */
+/** Desk UI: This month / Last month / This quarter / This year / Last 12 months. */
 const DESK_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
-  { value: "mtd", label: "MTD" },
+  { value: "mtd", label: "This month" },
   { value: "lm", label: "Last month" },
-  { value: "qtd", label: "QTD" },
-  { value: "ytd", label: "YTD" },
+  { value: "qtd", label: "This quarter" },
+  { value: "ytd", label: "This year" },
   { value: "l12m", label: "Last 12 months" },
 ];
 
 const SHOT_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
   ...DESK_PERIOD_OPTIONS,
   { value: "y3", label: "3 yr" },
-];
-
-const SPEND_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
-  { value: "mtd", label: "This month" },
-  { value: "lm", label: "Last month" },
-  { value: "qtd", label: "This quarter" },
-  { value: "ytd", label: "This year" },
-  { value: "l12m", label: "Last 12 months" },
 ];
 
 /**
@@ -47,11 +39,7 @@ export function PeriodControl({
   language = "desk",
 }: PeriodControlProps) {
   const [, setSearchParams] = useSearchParams();
-  const periodOptions = shotMode
-    ? SHOT_PERIOD_OPTIONS
-    : language === "spend"
-      ? SPEND_PERIOD_OPTIONS
-      : DESK_PERIOD_OPTIONS;
+  const periodOptions = shotMode ? SHOT_PERIOD_OPTIONS : DESK_PERIOD_OPTIONS;
   const activeValue = periodOptions.some((p) => p.value === preset)
     ? preset
     : "mtd";

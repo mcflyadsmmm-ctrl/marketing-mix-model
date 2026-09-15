@@ -910,7 +910,7 @@ export function buildSalesGoalPeriods(params: {
 
   const mtd: SalesGoalPeriod = {
     key: "mtd",
-    label: "MTD",
+    label: "This month",
     periodHint: `${MONTH_SHORT[refMonth - 1]} ${year}`,
     actual: mtdActual,
     goal: mtdGoal,
@@ -951,7 +951,7 @@ export function buildSalesGoalPeriods(params: {
   const qtdMer = calculateMer(qtdSum.actual, qtdSum.spend);
   const qtd: SalesGoalPeriod = {
     key: "qtd",
-    label: "QTD",
+    label: "This quarter",
     periodHint: `Q${quarter} ${year}`,
     actual: qtdSum.actual,
     goal: qtdSum.goal,
@@ -989,7 +989,7 @@ export function buildSalesGoalPeriods(params: {
   const ytdMer = calculateMer(ytdSum.actual, ytdSum.spend);
   const ytd: SalesGoalPeriod = {
     key: "ytd",
-    label: "YTD",
+    label: "This year",
     periodHint: String(year),
     actual: ytdSum.actual,
     goal: ytdSum.goal,

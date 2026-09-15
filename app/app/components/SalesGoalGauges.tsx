@@ -10,14 +10,18 @@ type Props = {
   periods: SalesGoalPeriods;
   heading?: string;
   muted?: string;
-  /** Inline under Total Sales KPI — tiny bars, no panel chrome. */
-  variant?: "panel" | "inline";
+  /**
+   * `inline` — tiny bars under a hero, no chrome.
+   * `book` — full bars inside the report book: one lede, no card, no second h2.
+   * `panel` — legacy card.
+   */
+  variant?: "panel" | "inline" | "book";
   targetMer?: number | null;
   breakEvenMer?: number | null;
 };
 
 const DEFAULT_HEADING = "Goal progress";
-const DEFAULT_MUTED = `Sales vs plan plus cash ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} — Shopify sales goals do not overlay ad spend`;
+const DEFAULT_MUTED = `Sales vs plan plus ${PRODUCT_NOUN.totalRoas} vs ${PRODUCT_NOUN.breakEvenShort} — Shopify sales goals do not overlay ad spend`;
 
 function formatCashMerLine(
   period: SalesGoalPeriod,
@@ -42,17 +46,15 @@ function formatCashMerLine(
   };
 }
 
-function formatYoyShort(period: SalesGoalPeriod): {
-  text: string;
-  tone: GoalPaceTone;
-} {
+/** Null when last year has no comparable sales — the desk omits the row. */
+function formatYoyShort(
+  period: SalesGoalPeriod,
+): { text: string; tone: GoalPaceTone } | null {
   const { yoy } = period;
-  if (yoy.pct == null) {
-    return { text: "YoY —", tone: "flat" };
-  }
+  if (yoy.pct == null) return null;
   const sign = yoy.pct > 0 ? "+" : "";
   return {
-    text: `YoY ${sign}${yoy.pct.toFixed(0)}%`,
+    text: `vs last year ${sign}${yoy.pct.toFixed(0)}%`,
     tone: yoy.tone,
   };
 }
@@ -76,7 +78,7 @@ function GoalRow({
   const yoy = formatYoyShort(period);
   const pctLabel = hasGoal
     ? `${Math.round(period.progressPct ?? 0)}%`
-    : "—";
+    : "no goal set";
   const calPct = Number.isFinite(period.calendarPct)
     ? Math.min(100, Math.max(0, period.calendarPct))
     : null;
@@ -111,9 +113,11 @@ function GoalRow({
     >
       <div className="mcfly-goal-row__head">
         <span className="mcfly-goal-row__label">{period.label}</span>
-        <span className={`mcfly-goal-row__pct mcfly-goal-row__pct--${tone}`}>
-          {pctLabel}
-        </span>
+        {hasGoal ? (
+          <span className={`mcfly-goal-row__pct mcfly-goal-row__pct--${tone}`}>
+            {pctLabel}
+          </span>
+        ) : null}
       </div>
       <div
         className="mcfly-goal-row__track"
@@ -121,7 +125,9 @@ function GoalRow({
         aria-valuenow={hasGoal ? Math.round(progressPct) : undefined}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`${period.label} ${pctLabel} of goal`}
+        aria-label={
+          hasGoal ? `${period.label} ${pctLabel} of goal` : `${period.label} — ${pctLabel}`
+        }
       >
         <div
           className={`mcfly-goal-row__fill mcfly-goal-row__fill--${tone}`}
@@ -140,14 +146,16 @@ function GoalRow({
         <div className="mcfly-goal-row__meta">
           <span className="mcfly-goal-row__meta-amt">
             {formatCurrency(period.actual)}
-            {hasGoal ? ` / ${formatCurrency(period.goal)}` : " / —"}
+            {hasGoal ? ` / ${formatCurrency(period.goal)}` : ""}
             {period.periodHint ? ` · ${period.periodHint}` : ""}
           </span>
-          <span
-            className={`mcfly-goal-row__yoy mcfly-goal-row__yoy--${yoy.tone}`}
-          >
-            {yoy.text}
-          </span>
+          {yoy ? (
+            <span
+              className={`mcfly-goal-row__yoy mcfly-goal-row__yoy--${yoy.tone}`}
+            >
+              {yoy.text}
+            </span>
+          ) : null}
           {paceBit ? (
             <span
               className={`mcfly-goal-row__pace mcfly-goals-pace mcfly-goals-pace--${period.pace.tone}`}
@@ -175,7 +183,7 @@ function GoalRow({
 }
 
 /**
- * MTD / QTD / YTD sales-vs-plan rows plus cash MER vs break-even when spend is on file.
+ * MTD / QTD / YTD sales-vs-plan rows plus Total ROAS vs break-even when spend is on file.
  * `inline` = tuck under Total Sales KPI; `panel` = Goals / full section.
  */
 export function SalesGoalGauges({
@@ -215,6 +223,22 @@ export function SalesGoalGauges({
     </div>
   );
 
+  if (variant === "book") {
+    return (
+      <section className="mcfly-book" aria-label={heading}>
+        <p className="mcfly-book__lede">
+          {heading} — {muted}
+        </p>
+        {rows}
+        {noGoalsSet ? (
+          <p className="mcfly-book__cta">
+            <s-link href="/app/goals">Grow 10% vs last year · set goals</s-link>
+          </p>
+        ) : null}
+      </section>
+    );
+  }
+
   if (variant === "inline") {
     return (
       <div className="mcfly-goal-inline" aria-label={heading}>
@@ -240,7 +264,7 @@ export function SalesGoalGauges({
       {rows}
       {noGoalsSet ? (
         <p className="mcfly-sales-gauges__foot">
-          <s-link href="/app/goals">Grow 10% YoY · set goals</s-link>
+          <s-link href="/app/goals">Grow 10% vs last year · set goals</s-link>
         </p>
       ) : null}
     </section>

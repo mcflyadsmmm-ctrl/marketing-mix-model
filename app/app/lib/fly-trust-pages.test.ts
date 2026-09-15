@@ -94,6 +94,8 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     const root = readRepo("app/app/root.tsx");
     expect(root).toContain("isPublicOriginPath(path)");
     expect(root).toContain("!isPublicOriginPath(path)");
+    expect(root).toContain("hasShopifySessionContext(request)");
+    expect(root).toContain("hasShopifySessionContext(request) || isAuth");
   });
 
   it("Partner + TOML support URLs are the live Fly origin, not stale Pages", () => {
@@ -124,6 +126,7 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(serve).toContain("embeddedAppRedirectLocation");
     expect(serve).toContain('res.redirect(302, embeddedAppRedirectLocation(req))');
     expect(paths).toContain("isShopifyEmbeddedSearch");
+    expect(paths).toContain("isShopifyAdminFrame");
     expect(docker).toContain("COPY site /repo/site");
     expect(docker).toContain("MCFLY_SITE_ROOT=/repo/site");
     const dockerignore = readRepo(".dockerignore");

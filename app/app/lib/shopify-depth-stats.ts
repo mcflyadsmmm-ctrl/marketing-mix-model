@@ -27,6 +27,14 @@ export const REPEAT_DEPTH_MIN_REPEATERS = 5;
 export const SECOND_VS_FIRST_MIN_REPEATERS = 5;
 /** Closed days with sales before a typical-day median is shown. */
 export const MEDIAN_DAY_MIN_DAYS = 5;
+/** Crawled unit counts before 2+ item share is shown. */
+export const MULTI_UNIT_MIN_ORDERS = 8;
+/** Full-price and discounted orders each, before typical AOV split. */
+export const PRICE_SPLIT_MIN_EACH = 5;
+/** Identified buyers before top-customer concentration is shown. */
+export const TOP_CUSTOMER_MIN_BUYERS = 20;
+/** Crawled orders per source before typical source AOV is shown. */
+export const SOURCE_AOV_MIN_ORDERS = 5;
 
 export type OrderSourceKind = "online" | "pos" | "shop" | "other";
 
@@ -84,6 +92,11 @@ export type ShopifyDepthStats = {
   medianDailySales: number | null;
   /** Top 10% of orders (by $) as a share of sales. */
   topDecileSalesShare: number | null;
+  /**
+   * Share of identified sales from the highest-spending 10% of buyers.
+   * Different from topDecileSalesShare (largest 10% of orders).
+   */
+  topCustomerSalesShare: number | null;
   guestAov: number | null;
   identifiedAov: number | null;
   /**
@@ -122,8 +135,23 @@ export type ShopifyDepthStats = {
   meanDiscountAmount: number | null;
   /** Mean units per order. Null until enough crawled unit counts. */
   meanUnitCount: number | null;
+  /**
+   * Share of crawled orders with 2+ units. Null until enough unit counts.
+   * Mean items per order can hide a one-item shop.
+   */
+  multiUnitOrderShare: number | null;
+  /** Median order $ among crawled full-price (no discount) orders. */
+  fullPriceMedianAov: number | null;
+  /** Median order $ among crawled discounted orders. */
+  discountedMedianAov: number | null;
   /** Sales share by Online / POS / Shop / other. Null until enough sources. */
   sourceSalesShare: OrderSourceMix | null;
+  /** Typical order $ by Online / POS / Shop. Null per source until enough. */
+  sourceMedianAov: {
+    online: number | null;
+    pos: number | null;
+    shop: number | null;
+  };
 };
 
 function finiteAmount(n: number): number {
@@ -334,6 +362,22 @@ export function shopifyDepthStats(input: {
     topDecileSalesShare = top / denomSales;
   }
 
+  let topCustomerSalesShare: number | null = null;
+  if (identifiedBuyers >= TOP_CUSTOMER_MIN_BUYERS) {
+    const identifiedSales = identified.reduce((s, o) => s + amountOf(o), 0);
+    if (identifiedSales > 0) {
+      const buyerTotals = [...byCustomer.values()].map((rows) =>
+        rows.reduce((s, r) => s + amountOf(r), 0),
+      );
+      buyerTotals.sort((a, b) => b - a);
+      const nTop = Math.max(1, Math.floor(identifiedBuyers * 0.1));
+      const topCustomers = buyerTotals
+        .slice(0, nTop)
+        .reduce((s, amt) => s + amt, 0);
+      topCustomerSalesShare = topCustomers / identifiedSales;
+    }
+  }
+
   const totalSales = finiteAmount(input.totalSales);
   const net = finiteAmount(input.netSales);
   const shippingTaxFees =
@@ -426,12 +470,33 @@ export function shopifyDepthStats(input: {
         : 0;
   }
 
+  const fullPriceAmounts = crawledDiscounts
+    .filter((o) => finiteAmount(o.discountAmount ?? 0) === 0)
+    .map((o) => finiteAmount(o.amount));
+  const discountedAmounts = crawledDiscounts
+    .filter((o) => finiteAmount(o.discountAmount ?? 0) > 0)
+    .map((o) => finiteAmount(o.amount));
+  let fullPriceMedianAov: number | null = null;
+  let discountedMedianAov: number | null = null;
+  if (
+    fullPriceAmounts.length >= PRICE_SPLIT_MIN_EACH &&
+    discountedAmounts.length >= PRICE_SPLIT_MIN_EACH
+  ) {
+    fullPriceMedianAov = medianOf(fullPriceAmounts);
+    discountedMedianAov = medianOf(discountedAmounts);
+  }
+
   const crawledUnits = orders.filter(
     (o) => o.unitCount != null && Number.isFinite(o.unitCount) && o.unitCount >= 0,
   );
   const meanUnitCount =
     crawledUnits.length >= 5
       ? crawledUnits.reduce((s, o) => s + (o.unitCount ?? 0), 0) /
+        crawledUnits.length
+      : null;
+  const multiUnitOrderShare =
+    crawledUnits.length >= MULTI_UNIT_MIN_ORDERS
+      ? crawledUnits.filter((o) => (o.unitCount ?? 0) >= 2).length /
         crawledUnits.length
       : null;
 
@@ -458,6 +523,31 @@ export function shopifyDepthStats(input: {
     }
   }
 
+  const sourceAmounts: { online: number[]; pos: number[]; shop: number[] } = {
+    online: [],
+    pos: [],
+    shop: [],
+  };
+  for (const o of crawledSources) {
+    const kind = classifyOrderSource(o.sourceName);
+    if (kind === "other") continue;
+    sourceAmounts[kind].push(finiteAmount(o.amount));
+  }
+  const sourceMedianAov = {
+    online:
+      sourceAmounts.online.length >= SOURCE_AOV_MIN_ORDERS
+        ? medianOf(sourceAmounts.online)
+        : null,
+    pos:
+      sourceAmounts.pos.length >= SOURCE_AOV_MIN_ORDERS
+        ? medianOf(sourceAmounts.pos)
+        : null,
+    shop:
+      sourceAmounts.shop.length >= SOURCE_AOV_MIN_ORDERS
+        ? medianOf(sourceAmounts.shop)
+        : null,
+  };
+
   return {
     orderCount,
     meanAov,
@@ -477,6 +567,7 @@ export function shopifyDepthStats(input: {
     medianSecondOrder,
     medianDailySales,
     topDecileSalesShare,
+    topCustomerSalesShare,
     guestAov,
     identifiedAov,
     shippingTaxFees,
@@ -494,7 +585,11 @@ export function shopifyDepthStats(input: {
     discountedOrderShare,
     meanDiscountAmount,
     meanUnitCount,
+    multiUnitOrderShare,
+    fullPriceMedianAov,
+    discountedMedianAov,
     sourceSalesShare,
+    sourceMedianAov,
   };
 }
 

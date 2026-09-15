@@ -477,6 +477,13 @@ export type OverviewShareInput = {
   channels?: Array<{ name: string; amount: number; share: number }>;
   salesDeltaLine?: string | null;
   spendDeltaLine?: string | null;
+  /**
+   * Optional order-book lines so a forwarded card is worth reading before any
+   * spend is entered. Shares are 0–1; omitted when null / not passed.
+   */
+  typicalOrder?: number | null;
+  returningSalesShare?: number | null;
+  weekendSalesShare?: number | null;
 };
 
 export function formatOverviewShareText(input: OverviewShareInput): string {
@@ -488,34 +495,57 @@ export function formatOverviewShareText(input: OverviewShareInput): string {
     }).format(n);
   const mer = (v: number | null) =>
     v == null || !Number.isFinite(v) ? "—" : `${v.toFixed(2)}×`;
+  const share = (v: number) => `${Math.round(v * 100)}%`;
+  const isShare = (v: number | null | undefined): v is number =>
+    v != null && Number.isFinite(v) && Math.round(v * 100) > 0;
+
+  /**
+   * Sales-first: the card leads with Shopify Total Sales and only wears the
+   * Total ROAS title once real spend exists. Empty spend is not 0×, so a
+   * forwarded $0-spend card must never headline a ratio it cannot compute.
+   */
+  const hasSpend = Number.isFinite(input.totalSpend) && input.totalSpend > 0;
+  const title = hasSpend ? PRODUCT_NOUN.totalRoas : PRODUCT_NOUN.salesBasisShort;
 
   const lines: string[] = [
-    input.shopLabel?.trim()
-      ? `Total ROAS — ${input.shopLabel.trim()}`
-      : "Total ROAS",
+    input.shopLabel?.trim() ? `${title} — ${input.shopLabel.trim()}` : title,
     input.periodLabel,
     `${input.periodStartDay} → ${input.periodEndDay}`,
     "",
-    `Total ROAS: ${mer(input.mer)}`,
-  ];
-
-  if (input.breakEvenMer != null && Number.isFinite(input.breakEvenMer)) {
-    lines.push(`Break-even: ${mer(input.breakEvenMer)}`);
-  }
-
-  lines.push(
-    "",
     input.salesPending
-      ? "Shopify Total Sales: still loading (not $0)"
-      : `Shopify Total Sales: ${money(input.totalSales)}`,
-  );
+      ? `${PRODUCT_NOUN.salesBasisShort}: still loading (not $0)`
+      : `${PRODUCT_NOUN.salesBasisShort}: ${money(input.totalSales)}`,
+  ];
   if (!input.salesPending && input.salesDeltaLine?.trim()) {
     lines.push(`  ${input.salesDeltaLine.trim()}`);
   }
 
-  lines.push("", `Total Spend: ${money(input.totalSpend)}`);
-  if (input.spendDeltaLine?.trim()) {
-    lines.push(`  ${input.spendDeltaLine.trim()}`);
+  if (!input.salesPending) {
+    const book = [
+      input.typicalOrder != null &&
+      Number.isFinite(input.typicalOrder) &&
+      input.typicalOrder > 0
+        ? `  ${PRODUCT_NOUN.bookTypicalOrder}: ${money(input.typicalOrder)}`
+        : null,
+      isShare(input.returningSalesShare)
+        ? `  Sales from returning customers: ${share(input.returningSalesShare)}`
+        : null,
+      isShare(input.weekendSalesShare)
+        ? `  ${PRODUCT_NOUN.bookWeekendSales}: ${share(input.weekendSalesShare)}`
+        : null,
+    ].filter((line): line is string => line != null);
+    lines.push(...book);
+  }
+
+  if (hasSpend) {
+    lines.push("", `Total Spend: ${money(input.totalSpend)}`);
+    if (input.spendDeltaLine?.trim()) {
+      lines.push(`  ${input.spendDeltaLine.trim()}`);
+    }
+    lines.push("", `${PRODUCT_NOUN.totalRoas}: ${mer(input.mer)}`);
+    if (input.breakEvenMer != null && Number.isFinite(input.breakEvenMer)) {
+      lines.push(`${PRODUCT_NOUN.breakEvenShort}: ${mer(input.breakEvenMer)}`);
+    }
   }
 
   const channels = (input.channels ?? [])
@@ -535,7 +565,12 @@ export function formatOverviewShareText(input: OverviewShareInput): string {
     lines.push("", "Note: spend coverage incomplete for this period.");
   }
 
-  lines.push("", "Total ROAS = Shopify Total Sales ÷ ad spend");
+  lines.push(
+    "",
+    hasSpend
+      ? `${PRODUCT_NOUN.totalRoas} = ${PRODUCT_NOUN.definition}`
+      : "Spend is optional — add it on Marketing if you want sales ÷ spend.",
+  );
 
   return `${lines.join("\n")}\n`;
 }

@@ -804,7 +804,7 @@ export function historyGroundingLine(
       (s) => s.channel.toLowerCase() === focus.channel.toLowerCase(),
     )?.share ?? 0;
   const name = prettyChannel(focus.channel);
-  return `In your top Total ROAS weeks (when the till looked best), ${name} averaged ${(topShare * 100).toFixed(0)}% of spend; now ${(nowShare * 100).toFixed(0)}%. Portfolio co-occurrence — not channel causal ROAS.`;
+  return `In your top Total ROAS weeks (when sales looked best), ${name} averaged ${(topShare * 100).toFixed(0)}% of spend; now ${(nowShare * 100).toFixed(0)}%. Portfolio co-occurrence — not channel causal ROAS.`;
 }
 
 /** Pure view builder — loader supplies days + now mix + break-even. */

@@ -277,7 +277,8 @@ describe("formatCashCloseCsv + parseExceptionsJson", () => {
     const withAmer = formatCashCloseMemo(closeRow, null, {
       newCustomerNetSales: 50_000,
     });
-    expect(withAmer).toContain("aMER");
+    expect(withAmer).toContain("New sales ÷ spend");
+    expect(withAmer).not.toContain("aMER");
     expect(withAmer).toContain("New-customer net");
     expect(withAmer).toContain("average, not causal");
     expect(withAmer).toContain("2.00×"); // 50000/25000
@@ -343,6 +344,73 @@ describe("formatCashCloseCsv + parseExceptionsJson", () => {
     expect(text).toContain("4.00×");
     expect(text).toContain("Meta Ads");
     expect(text).toContain("60%");
+    // Spend exists, so the card may wear the Total ROAS title — but the first
+    // number a reader meets is still Shopify Total Sales.
+    expect(text.split("\n")[0]).toBe("Total ROAS — demo.myshopify.com");
+    const salesAt = text.indexOf("Shopify Total Sales: $100,000");
+    const roasAt = text.indexOf("Total ROAS: 4.00×");
+    expect(salesAt).toBeGreaterThan(-1);
+    expect(roasAt).toBeGreaterThan(salesAt);
+  });
+
+  /*
+   * A stranger with orders but no spend still forwards a card worth reading.
+   * Titling that card "Total ROAS" is the failure: the ratio does not exist.
+   */
+  it("leads a $0-spend card with Shopify Total Sales, never Total ROAS", () => {
+    const text = formatOverviewShareText({
+      periodLabel: "Last 30 days",
+      periodStartDay: "2026-08-01",
+      periodEndDay: "2026-08-30",
+      totalSales: 82_068,
+      totalSpend: 0,
+      mer: null,
+      breakEvenMer: null,
+      marginPct: null,
+      shopLabel: "demo.myshopify.com",
+      salesDeltaLine: "+11% vs prior",
+      typicalOrder: 84,
+      returningSalesShare: 0.38,
+      weekendSalesShare: 0.31,
+    });
+    const lines = text.split("\n");
+    expect(lines[0]).toBe("Shopify Total Sales — demo.myshopify.com");
+    expect(lines[1]).toBe("Last 30 days");
+    expect(lines[2]).toBe("2026-08-01 → 2026-08-30");
+    expect(lines[0]).not.toContain("Total ROAS");
+    expect(text).toContain("Shopify Total Sales: $82,068");
+    // Order-book lines carry the card when there is no ratio to show.
+    expect(text).toContain("Typical order: $84");
+    expect(text).toContain("Sales from returning customers: 38%");
+    expect(text).toContain("Weekend sales: 31%");
+    // Empty spend is an invitation, never a $0 spend story or a zero ratio.
+    expect(text).toMatch(/Spend is optional/i);
+    expect(text).toMatch(/Marketing/);
+    expect(text).not.toContain("Total Spend: $0");
+    expect(text).not.toContain("0.00×");
+    expect(text).not.toMatch(/Total ROAS:/);
+    expect(text).not.toContain("Break-even");
+    expect(text).not.toContain("Total ROAS = ");
+  });
+
+  it("omits optional book lines that are unknown or round to zero", () => {
+    const text = formatOverviewShareText({
+      periodLabel: "Last 30 days",
+      periodStartDay: "2026-08-01",
+      periodEndDay: "2026-08-30",
+      totalSales: 82_068,
+      totalSpend: 0,
+      mer: null,
+      breakEvenMer: null,
+      marginPct: null,
+      typicalOrder: null,
+      returningSalesShare: 0.001,
+      weekendSalesShare: null,
+    });
+    expect(text).not.toContain("Typical order");
+    expect(text).not.toContain("returning customers");
+    expect(text).not.toContain("Weekend sales");
+    expect(text).not.toContain("0%");
   });
 
   /*
@@ -371,6 +439,9 @@ describe("formatCashCloseCsv + parseExceptionsJson", () => {
     expect(text).not.toContain("0.00×");
     // A prior-period delta against unknown sales would be meaningless.
     expect(text).not.toContain("+11% vs prior");
+    // Sales still lead the card even when the number is not in yet.
+    const salesAt = text.indexOf("Shopify Total Sales: still loading");
+    expect(text.indexOf("Total ROAS: —")).toBeGreaterThan(salesAt);
   });
 
   it("parses exceptions JSON safely", () => {

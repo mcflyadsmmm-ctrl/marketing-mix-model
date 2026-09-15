@@ -22,6 +22,11 @@ describe("Goals page", () => {
     expect(goals).not.toContain("SpendExplorer");
   });
 
+  it("pending sales hero is an em dash, never a painted $0", () => {
+    expect(goals).toContain("periodMetrics.salesPending");
+    expect(goals).toContain("Still loading — not $0");
+  });
+
   it("points spend CTAs at Spend Upload, not Marketing, and Settings for target ROAS", () => {
     expect(goals).toContain('href="/app/settings"');
     expect(goals).not.toMatch(/add spend on Marketing/i);

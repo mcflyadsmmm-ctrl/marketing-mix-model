@@ -20,6 +20,8 @@ describe("shopifyNativePeriodStats", () => {
     expect(book.newBuyerShare).toBeCloseTo(0.4);
     expect(book.newSalesShare).toBeCloseTo(0.375);
     expect(book.returningSalesShare).toBeCloseTo(0.625);
+    expect(book.returningSales).toBe(5000);
+    expect(book.newSales).toBe(3000);
     expect(book.returnsDrag).toBe(800);
     expect(book.returnsDragPct).toBeCloseTo(800 / 8800);
     expect(book.newBuyerArpu).toBe(250);

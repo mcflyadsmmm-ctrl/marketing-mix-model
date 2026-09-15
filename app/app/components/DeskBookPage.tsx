@@ -43,7 +43,9 @@ export function DeskBookPage({
         <div className="mcfly-ctx" aria-live="polite">
           <div className="mcfly-ctx__main">
             <span className="mcfly-ctx__asof">{tillLabel}</span>
-            <PeriodControl preset={preset} shotMode={shotMode} />
+            {shotMode ? (
+              <PeriodControl preset={preset} shotMode={shotMode} />
+            ) : null}
           </div>
         </div>
 
