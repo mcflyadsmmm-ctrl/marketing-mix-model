@@ -51,11 +51,17 @@ describe("LTV sales spine (HARD-STOP)", () => {
 
   it("labels cohort windows vs period Cash CAC (never silently mix)", () => {
     expect(ltvSource).toContain("ltvWindowCaption");
-    expect(ltvSource).toContain("Orders still syncing — not $0 LTV");
+    expect(ltvSource).toContain("Orders still syncing — not $0");
+    expect(ltvSource).toContain("not $0 LTV");
     expect(ltvSource).not.toContain("Free shows the available window");
     expect(ltvSource).toContain("getOrderBackfillProgress");
     expect(ltvSource).toContain("ORDER_FACT_MAX_DAYS_PER_RUN");
     expect(ltvSource).toContain("until you confirm in Settings");
+  });
+
+  it("LTV page shows avg orders in 90 days from order history", () => {
+    expect(ltvSource).toContain("avgOrdersD90");
+    expect(ltvSource).toMatch(/Orders in first 90 days/);
   });
 });
 
