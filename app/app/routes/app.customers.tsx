@@ -8,6 +8,9 @@ import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
+const CUSTOMERS_CONTRAST =
+  "Shopify Analytics returning-customer rate is headcount. This page is returning dollars, guests, and the top 10% of customers.";
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadDeskSalesPage(request, "/app/customers");
 };
@@ -53,20 +56,32 @@ export default function CustomersPage() {
           Sales for closed days are still loading — not $0.
         </p>
       ) : (
-        <ShopifyBookSection
-          book={book}
-          depth={metrics.shopifyDepth}
-          clocks={{
-            gross: metrics.grossSales,
-            grossKnown: metrics.grossSalesKnown,
-            total: totalSalesDisplay,
-            net: metrics.netSales,
-            netKnown: metrics.netSalesKnown,
-          }}
-          groups={["buyers"]}
-          title={PRODUCT_NOUN.buyersTitle}
-          muted={PRODUCT_NOUN.buyersMuted}
-        />
+        <>
+          {!metrics.customerMetricsAvailable ? (
+            <p className="mcfly-book__lede">
+              Returning dollars need identified buyers in this window — not $0.
+            </p>
+          ) : (
+            <ShopifyBookSection
+              book={book}
+              depth={metrics.shopifyDepth}
+              clocks={{
+                gross: metrics.grossSales,
+                grossKnown: metrics.grossSalesKnown,
+                total: totalSalesDisplay,
+                net: metrics.netSales,
+                netKnown: metrics.netSalesKnown,
+              }}
+              groups={["buyers"]}
+              title={PRODUCT_NOUN.buyersTitle}
+              muted={CUSTOMERS_CONTRAST}
+            />
+          )}
+          <footer className="mcfly-book__links">
+            <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>
+            <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
+          </footer>
+        </>
       )}
     </DeskBookPage>
   );
