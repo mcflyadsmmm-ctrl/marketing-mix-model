@@ -118,7 +118,7 @@ describe("Spend day card", () => {
     expect(gated).toContain("mcfly-spend-lean__status");
   });
 
-  it("hides Allocation and Advanced until a day of spend exists", () => {
+  it("hides spend-tool footer links until a day of spend exists", () => {
     const footerAt = spend.lastIndexOf('aria-label="Marketing tools"');
     expect(footerAt).toBeGreaterThan(-1);
     expect(spend.slice(Math.max(0, footerAt - 80), footerAt)).toMatch(
@@ -126,7 +126,7 @@ describe("Spend day card", () => {
     );
     expect(spend).toContain('<s-link href="/app/roas">');
     expect(spend).toContain("PRODUCT_NOUN.spendAllocation");
-    expect(spend).toContain("PRODUCT_NOUN.advancedMetrics");
+    expect(spend).not.toContain("/app/advanced");
   });
 
   it("keeps the input route free of period ROAS analysis", () => {

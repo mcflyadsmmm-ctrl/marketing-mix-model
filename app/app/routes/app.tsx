@@ -130,14 +130,12 @@ export default function App() {
   return (
     <AppProvider embedded apiKey={apiKey}>
       <BillingExitProvider plansUrl={plansUrl}>
-        {/* Always show desk nav — empty states live on pages.
-            Do not hide tabs when Your store (Sample off); that felt broken.
-            period + shot stay on every tab so the date slicer matches. */}
+        {/* Admin nav: twelve analysis + Settings items. period + shot stay on every href. */}
         <s-app-nav>
           {DESK_PRIMARY_NAV.map((item) => (
             <s-link
-              key={item.path}
-              href={deskNavHrefFromSearch(item.path, searchParams)}
+              key={`${item.path}#${item.hash ?? ""}`}
+              href={deskNavHrefFromSearch(item.path, searchParams, item.hash)}
             >
               {item.label}
             </s-link>

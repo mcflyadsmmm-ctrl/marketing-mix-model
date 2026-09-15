@@ -852,10 +852,6 @@ export default function SpendEntryPage() {
           <s-link href={`/app/allocation?period=${preset}`}>
             {PRODUCT_NOUN.spendAllocation}
           </s-link>
-          {" · "}
-          <s-link href={`/app/advanced?period=${preset}`}>
-            {PRODUCT_NOUN.advancedMetrics}
-          </s-link>
         </p>
       ) : null}
     </s-page>

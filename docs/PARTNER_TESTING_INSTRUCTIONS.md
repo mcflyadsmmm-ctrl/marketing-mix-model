@@ -48,9 +48,9 @@ session is the only login. There is no Mcfly signup, no Google SSO, no second
 password, and no in-app account to create.
 
 How to reach the complete feature set (4.5.5)
-- One plan, whole desk: Overview, Customers, Growth, Orders, LTV,
-  Spend Upload, Settings. Goals remains at /app/goals. Nothing is
-  feature-gated.
+- One plan, whole desk — eleven analysis tabs plus Settings: Overview,
+  Customers, Growth, Orders, LTV, Spend Upload, Total ROAS, Channel
+  Allocation, YoY, CPA, Goals, Settings. Nothing is feature-gated.
 - 7-day full-access trial, then $39/store/mo. Settings → Start 7-day trial.
   Shopify App Pricing opens in the TOP Admin frame (development stores: $0 test
   charge is OK). Approve → return to the app.
@@ -89,20 +89,23 @@ SMOKE (matches the 2026-08-24 review path)
    PASS if the Shopify-hosted plan picker opens.
 4. Approve (dev stores: $0 test charge is OK) → return to the app. The whole
    desk was already available during the trial; nothing unlocks or locks.
-5. Open Marketing. Three ways to add spend: (a) Download Template and Upload —
+5. Open Spend Upload. Three ways to add spend: (a) Download Template and Upload —
    choose channels, default All history (Jan 1 of year−5 through yesterday),
    download, fill daily spend, and upload the same file; (b) upload an existing
    Ads Manager CSV; (c) Add one bill — choose channel, amount, and When, preview
    the daily amount, then click an action such as “Save Billboard $400 for Aug 26.”
-   After a spend day exists, Marketing shows spend mix, vs last month, remaining-
-   month plan, and an Every day table. Overview still shows the order-intelligence
-   cards, and Total ROAS = Shopify Total Sales ÷ the spend you entered (closed
-   days only). Hashes such as #mcfly-mix still open Overview without throwing.
+   After one typed spend day exists, open Total ROAS — Sales | Spend | Total ROAS
+   (Shopify Total Sales ÷ entered spend, closed days only), chart range on the
+   page, pacing, and last-7 / last-28 intel. Channel Allocation, YoY, CPA, and
+   Goals are separate tabs. Overview still shows the YoY three sales cards only
+   (no Compare, Ledger, Channels, or Plan subtabs). Hashes such as #mcfly-mix
+   still open Overview without throwing.
 6. First-session check: Overview is useful with $0 spend. Then enter yesterday’s
-   Meta spend and a $400 billboard for the same date, then compare against
-   yesterday’s Shopify sales. Days with no spend row read $0 on Marketing.
+   Meta spend and a $400 billboard for the same date on Spend Upload, open Total
+   ROAS, and compare against yesterday’s Shopify sales. Days with no spend row
+   read $0 on Spend Upload.
 
-SAMPLE SPEND CSV (paste into Marketing → import)
+SAMPLE SPEND CSV (paste into Spend Upload → import)
 date,channel,amount
 2026-08-20,Meta Ads,110
 2026-08-20,Google Ads,80
