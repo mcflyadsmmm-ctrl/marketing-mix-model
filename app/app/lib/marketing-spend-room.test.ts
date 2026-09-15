@@ -84,3 +84,49 @@ describe("Marketing spend room", () => {
     expect(room).toContain("intelOnly = false");
   });
 });
+
+describe("Total ROAS page", () => {
+  const roas = read("../routes/app.roas.tsx");
+
+  it("contrasts Shopify Analytics vs sales÷typed spend, not platform ROAS", () => {
+    expect(roas).toMatch(/Shopify Analytics/);
+    expect(roas).toMatch(/Total Sales/);
+    expect(roas).toMatch(/typed spend|PRODUCT_NOUN\.definition/);
+    expect(roas).toMatch(/not platform ROAS/i);
+    expect(roas).toContain("PRODUCT_NOUN.definition");
+  });
+
+  it("owns the explorer, dual-close, and spend-only pacing", () => {
+    expect(roas).toContain("<SpendExplorer");
+    expect(roas).toContain('basePath="/app/roas"');
+    expect(roas).toContain("<DualCloseLine");
+    expect(roas).toContain("<MonthlyPacing");
+    expect(roas).toMatch(/monthPace && cashControl && hasSpend/);
+  });
+
+  it("keeps L7/L28 intelOnly and does not remount compare or ledger", () => {
+    expect(roas).toContain("<MarketingSpendRoom");
+    expect(roas).toContain("intelOnly");
+    expect(roas).not.toContain("intelOnly={false}");
+    expect(roas).not.toContain("mcfly-spend-room__compare");
+    expect(roas).not.toContain("mcfly-spend-room__ledger");
+  });
+
+  it("empty Total ROAS is an em dash, never 0.00×, with a Spend Upload link", () => {
+    expect(roas).toContain('? `${formatMer(metrics.mer)}×`');
+    expect(roas).toContain(': "—"');
+    expect(roas).not.toContain("0.00×");
+    expect(roas).toContain('href="/app/spend"');
+  });
+
+  it("does not mount mix pie, a CSV form, or 12-month goals", () => {
+    expect(roas).not.toContain("SpendSharePie");
+    expect(roas).not.toContain("<SpendMixPlan");
+    expect(roas).not.toContain("mcfly-alloc-v2__pie");
+    expect(roas).not.toContain('type="file"');
+    expect(roas).not.toContain("mcfly-spend-add");
+    expect(roas).not.toContain("export const action");
+    expect(roas).not.toContain("SalesGoalGauges");
+    expect(roas).not.toContain("12-month");
+  });
+});

@@ -280,7 +280,10 @@ export default function TotalRoasPage() {
         ) : null}
 
         <section className="mcfly-book" aria-label="Sales, spend, and Total ROAS">
-          <p className="mcfly-book__lede">{PRODUCT_NOUN.definition}</p>
+          <p className="mcfly-book__lede">
+            Shopify Analytics has no {PRODUCT_NOUN.totalRoas}. This page is{" "}
+            {PRODUCT_NOUN.definition} — not platform ROAS.
+          </p>
           <div className="mcfly-book__glance mcfly-book__glance--kpis">
             <div className="mcfly-book__kpi">
               <p className="mcfly-book__kpi-k">Sales</p>
