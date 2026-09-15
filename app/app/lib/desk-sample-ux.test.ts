@@ -435,7 +435,7 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<CashControlBoard");
     expect(overview).not.toContain("<MarketingSnapSection");
-    expect(spend).toContain("<SpendExplorer");
+    expect(spend).not.toContain("<SpendExplorer");
     expect(explorer).toContain("quiet?: boolean");
     expect(explorer).toContain("quiet ? null : (");
     expect(explorer).toContain("!shotMode && !quiet");
