@@ -78,33 +78,49 @@ describe("overview first viewport", () => {
     expect(OVERVIEW_SPEND_EMPTY_LINE).not.toMatch(/0x/i);
   });
 
-  it("Overview mounts the first viewport above section doors", () => {
+  it("Overview home is three YoY sales cards", () => {
     const overview = readFileSync(
       join(here, "../routes/app._index.tsx"),
       "utf8",
     );
-    expect(overview).toContain("<OverviewFirstViewport");
-    expect(overview).toContain("<MarketingSnapSection");
-    expect(overview).not.toContain("mcfly-tab-snaps--solo");
-    expect(overview).toContain("mcfly-tab-snaps--below");
-    const firstAt = overview.indexOf("<OverviewFirstViewport");
-    const doorsAt = overview.indexOf("<OverviewSectionIndex");
-    const belowAt = overview.indexOf("mcfly-tab-snaps--below");
-    expect(firstAt).toBeGreaterThan(-1);
-    expect(doorsAt).toBeGreaterThan(firstAt);
-    expect(belowAt).toBeGreaterThan(doorsAt);
+    expect(overview).toContain("<OverviewYoyCards");
+    expect(overview).toContain("buildOverviewYoyCards");
+    expect(overview).toContain("<DeskOverviewTabs");
+    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).not.toContain("<DeskWindowRail");
+    expect(overview).not.toContain("<SpendExplorer");
+    expect(overview).not.toContain("<DualCloseLine");
+    expect(overview).not.toContain("<MonthlyPacing");
+    expect(overview).not.toContain("<ShopifyBookSection");
+    expect(overview).not.toContain("<MarketingSnapSection");
+    expect(overview).toContain("deskStageFromHash");
+    expect(overview).toContain("stage={stage}");
+    expect(overview).toContain("scoreboardReady && onHome ? (");
+    expect(overview).not.toContain("hideHero");
+    expect(overview).not.toContain("<GoalsSnapSection");
+    expect(overview).not.toContain("mcfly-tab-snaps");
   });
 
-  it("first viewport has no spend CTA", () => {
+  it("first viewport is one book section: hero, glance, one sentence", () => {
     const firstView = readFileSync(
       join(here, "../components/OverviewFirstViewport.tsx"),
       "utf8",
     );
     expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).toContain(OVERVIEW_COVERAGE_LINE.slice(0, 8));
+    expect(firstView).toContain('className="mcfly-book__hero-v"');
+    expect(firstView).toContain("mcfly-book__glance");
+    expect(firstView).toContain("mcfly-book__kpi");
+    expect(firstView).toContain("mcfly-book__pair");
+    expect(firstView).toContain("weekendSalesShare");
+    expect(firstView).toContain("Share of dollars, not headcount");
+    // Pending sales never render a giant dash where the total belongs.
+    expect(firstView).toContain("salesPending ? null : roasValue ? (");
+    expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
     expect(firstView).not.toContain("spendHref");
     expect(firstView).not.toContain("<s-link");
-    expect(firstView).not.toMatch(/0×/);
+    expect(firstView).not.toContain("0.00×");
   });
 });

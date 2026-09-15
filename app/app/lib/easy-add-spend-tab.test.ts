@@ -16,13 +16,17 @@ describe("Spend day card", () => {
   const explorer = read("../components/SpendExplorer.tsx");
   const css = read("../styles/mcfly-desk.css");
 
-  it("names the spend route Upload Spend and the nav tab Marketing", () => {
+  it("keeps the Spend route Marketing under the Spend Upload nav tab", () => {
     expect(labels).toContain('uploadSpend: "Upload Spend"');
     expect(labels).toContain('setupAddSpend: "Upload Spend"');
     expect(labels).toContain('marketingSection: "Marketing"');
     expect(appShell).toContain("DESK_PRIMARY_NAV");
-    expect(read("./desk-nav.ts")).toContain('label: "Marketing"');
-    expect(spend).toContain("heading={PRODUCT_NOUN.uploadSpend}");
+    expect(read("./desk-nav.ts")).toContain('label: "Spend Upload"');
+    // The route uses its own Marketing heading; the nav retains Spend Upload.
+    expect(spend).toContain("heading={PRODUCT_NOUN.marketingSection}");
+    expect(spend).not.toContain("heading={PRODUCT_NOUN.uploadSpend}");
+    expect(spend).not.toContain("PRODUCT_NOUN.openTotalRoas");
+    expect(spend).toContain("Same numbers on Overview");
   });
 
   it("keeps typed-day, recurring, and import on the main Spend surface", () => {
@@ -40,6 +44,7 @@ describe("Spend day card", () => {
   it("covers closed days as a visual strip and embeds the explorer", () => {
     expect(spend).toContain("dayCoverage.total");
     expect(spend).toContain("explorerQueryMatchingScoreboard");
+    expect(spend).toContain("shotMode ? (");
     expect(spend).toContain("<PeriodControl");
     expect(spend).toContain("Your spend is on the desk");
     expect(spend).toContain("Days with no row are $0");
@@ -99,12 +104,42 @@ describe("Spend day card", () => {
     expect(css).toMatch(/\.mcfly-btn \{[^}]*min-height:\s*2\.75rem/);
   });
 
-  it("names the three doors up front so no tutorial is needed", () => {
-    expect(spend).toContain("mcfly-spend-doors");
-    const doorsAt = spend.indexOf('className="mcfly-spend-doors"');
+  it("names the three doors up front as a quiet list, not a card zoo", () => {
+    expect(spend).toContain('className="mcfly-book__links"');
+    expect(spend).toContain('className="mcfly-book__link-d"');
+    expect(spend).not.toContain("mcfly-spend-doors");
+    const doorsAt = spend.indexOf('className="mcfly-book__links"');
     const helperAt = spend.indexOf('className="mcfly-spend-helper"');
     expect(doorsAt).toBeGreaterThan(-1);
     expect(doorsAt).toBeLessThan(helperAt);
+  });
+
+  it("holds coverage, chart, spend room, and status back until a day of spend exists", () => {
+    expect(spend).toContain("const strangerEmpty =");
+    const gated = spend.split("{strangerEmpty ? null : (")[1] ?? "";
+    expect(gated).toContain("mcfly-spend-cal");
+    expect(gated).toContain("<SpendExplorer");
+    expect(gated).toContain("<MarketingSpendRoom");
+    expect(gated).toContain("mcfly-spend-lean__status");
+  });
+
+  it("hides Allocation and Advanced until a day of spend exists", () => {
+    const footerAt = spend.lastIndexOf('aria-label="Marketing tools"');
+    expect(footerAt).toBeGreaterThan(-1);
+    expect(spend.slice(Math.max(0, footerAt - 80), footerAt)).toMatch(
+      /entries\.length > 0/,
+    );
+    expect(spend).toContain("PRODUCT_NOUN.spendAllocation");
+    expect(spend).toContain("PRODUCT_NOUN.advancedMetrics");
+  });
+
+  it("shows period mix and Total ROAS once spend is on the desk", () => {
+    expect(spend).toContain("periodSpendTotal > 0");
+    expect(spend).toContain("channelMix(periodSpends)");
+    expect(spend).toContain("computeMer(periodSales, periodSpendTotal)");
+    // Unknown sales withhold the ratio instead of printing 0×.
+    expect(spend).toContain("NUMBER_HONESTY.salesPending");
+    expect(spend).toContain("Math.round(row.share * 100)");
   });
 
   it("says no ad login once, not as a manifesto", () => {
@@ -120,6 +155,11 @@ describe("Spend day card", () => {
 
 describe("Import or backfill", () => {
   const spendImport = read("../routes/app.spend.import.tsx");
+
+  it("does not send merchants to Open Total ROAS after import", () => {
+    expect(spendImport).not.toContain("PRODUCT_NOUN.openTotalRoas");
+    expect(spendImport).toContain("Open {PRODUCT_NOUN.marketingSection}");
+  });
 
   it("puts the five-year template first, then CSV and one-bill helpers", () => {
     const pickAt = spendImport.indexOf('id="mcfly-spend-platforms"');

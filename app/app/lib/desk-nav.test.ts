@@ -79,7 +79,7 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(DESK_OVERVIEW_TABS).toEqual([]);
   });
 
-  it("Overview live chrome is as-of + share — windows live on the rail", () => {
+  it("Overview live chrome is as-of + share above YoY sales cards", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
     const tabs = readFileSync(
@@ -88,7 +88,9 @@ describe("DESK_PRIMARY_NAV", () => {
     );
     expect(tabs).toContain("mcfly-desk-chrome");
     expect(overview).toContain("<DeskOverviewTabs");
-    expect(overview).toContain("<DeskWindowRail");
+    expect(overview).toContain("<OverviewYoyCards");
+    expect(overview).not.toContain("<DeskWindowRail");
+    expect(overview).not.toContain("<SpendExplorer");
     expect(overview).toContain('preset = shotMode ? requested : "mtd"');
     expect(overview).not.toContain("hideHero");
     expect(overview).not.toContain("<CashControlBoard");

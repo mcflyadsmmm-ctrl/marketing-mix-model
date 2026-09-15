@@ -110,24 +110,29 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("<MarketingSnapSection");
     expect(overview).not.toContain("$0 · add spend");
     expect(overview).not.toContain("spendOnlyEmpty");
-    // One hero, inside the book — no second scoreboard band.
+    // Overview is cards only; explorer remains on the Marketing page.
     expect(overview).not.toContain("mcfly-hero-compact");
-    expect(overview).toContain('aria-label="Shopify sales this period"');
+    expect(overview).toContain("<OverviewYoyCards");
+    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("Add spend to see Total ROAS");
     expect(overview).not.toContain("NUMBER_HONESTY.empty");
     expect(marketing).toContain("NUMBER_HONESTY.empty");
   });
 
-  it("Overview paints Shopify-only stats even with $0 spend", () => {
+  it("Overview paints YoY sales cards without Total ROAS", () => {
     const overview = read("../routes/app._index.tsx");
-    const firstView = read("../components/OverviewFirstViewport.tsx");
+    const yoyCards = read("../components/OverviewYoyCards.tsx");
     const book = read("../components/ShopifyBookSection.tsx");
     const ltvSnap = read("../components/LtvSnapSection.tsx");
     const labels = read("./product-labels.ts");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewYoyCards");
+    expect(overview).toContain("buildOverviewYoyCards");
+    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<ShopifyBookSection");
-    expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
-    expect(firstView).toContain("Returning sales");
+    expect(yoyCards).toContain("OVERVIEW_YOY_MISSING");
+    expect(yoyCards).not.toContain("Total ROAS");
     expect(overview).toContain("shopifyNativePeriodStats");
     expect(book).toContain("PRODUCT_NOUN.bookTypicalOrder");
     expect(book).toContain("PRODUCT_NOUN.bookGuestCheckouts");
@@ -145,8 +150,8 @@ describe("Sample data | Live data UX", () => {
     expect(book).toContain("PRODUCT_NOUN.bookSecondWithin30");
     expect(book).toContain("PRODUCT_NOUN.bookSecondVsThird");
     expect(book).toContain("PRODUCT_NOUN.bookSecondVsFirst");
-    expect(firstView).not.toContain("bookSecondWithin30");
-    expect(firstView).not.toContain("medianDailySales");
+    expect(yoyCards).not.toContain("bookSecondWithin30");
+    expect(yoyCards).not.toContain("medianDailySales");
     expect(labels).toContain('bookTypicalOrder: "Typical order"');
     expect(labels).toContain('bookWeekendSales: "Weekend sales"');
     expect(book).toContain("New vs returning dollars");
@@ -156,11 +161,6 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("loadOverviewGoalPeriods");
     expect(overview).not.toContain("<GoalsSnapSection");
     expect(overview).not.toContain("See spend mix");
-    const firstAt = overview.indexOf("<OverviewFirstViewport");
-    const explorerAt = overview.indexOf("<SpendExplorer");
-    expect(firstAt).toBeGreaterThan(-1);
-    expect(explorerAt).toBeGreaterThan(firstAt);
-    expect(overview).toContain("<SpendExplorer");
     expect(overview).toContain("<DeskOverviewTabs");
   });
 
@@ -203,14 +203,12 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("See spend mix");
     expect(overview).not.toContain("PRODUCT_NOUN.setupAddSpend");
     expect(overview).not.toContain("<MarketingSnapSection");
-    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewYoyCards");
+    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<ShopifyBookSection");
     expect(overview).toContain("deskStageFromHash");
     expect(overview).toContain("<DeskOverviewTabs");
-    const firstAt = overview.indexOf("<OverviewFirstViewport");
-    const explorerAt = overview.indexOf("<SpendExplorer");
-    expect(explorerAt).toBeGreaterThan(firstAt);
-
     expect(overview).not.toContain('className="mcfly-overview-more"');
 
     const salesErrorStart = overview.indexOf('aria-label="Sales load error"');
@@ -426,33 +424,22 @@ describe("Sample data | Live data UX", () => {
     expect(ltv).toContain("First orders · ");
   });
 
-  it("Overview explorer sits under the window rail and stays sales-only at $0 spend", () => {
+  it("Overview keeps three YoY cards while explorer stays on Marketing", () => {
     const overview = read("../routes/app._index.tsx");
     const explorer = read("../components/SpendExplorer.tsx");
-    const rail = read("../components/DeskWindowRail.tsx");
-    const firstAt = overview.indexOf("<OverviewFirstViewport");
-    const explorerAt = overview.indexOf("<SpendExplorer");
-    const railAt = overview.indexOf("<DeskWindowRail");
-    const closeAt = overview.indexOf("<DualCloseLine");
-    expect(railAt).toBeGreaterThan(firstAt);
-    expect(closeAt).toBeGreaterThan(railAt);
-    expect(explorerAt).toBeGreaterThan(closeAt);
+    const spend = read("../routes/app.spend.tsx");
+    expect(overview).toContain("<OverviewYoyCards");
+    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).not.toContain("<DeskWindowRail");
+    expect(overview).not.toContain("<DualCloseLine");
+    expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<CashControlBoard");
     expect(overview).not.toContain("<MarketingSnapSection");
-    expect(overview).toContain("quiet");
-    expect(overview).not.toContain("<details");
-    expect(overview).toContain('aria-label={explorerRowLabel}');
+    expect(spend).toContain("<SpendExplorer");
     expect(explorer).toContain("quiet?: boolean");
     expect(explorer).toContain("quiet ? null : (");
     expect(explorer).toContain("!shotMode && !quiet");
     expect(explorer).toContain("quiet && salesLead ? null : (");
-    expect(rail).not.toContain("0.00×");
-    expect(rail).toContain('chip.spend > 0 && chip.mer != null');
-    expect(rail).toContain("vs last year");
-    expect(rail).toContain("vs goal");
-    expect(rail).toContain("vsTarget");
-    expect(rail).not.toMatch(/\bYoY\b/);
-    expect(rail).not.toMatch(/\bMTD\b/);
   });
 
   it("Goals and Advanced preview Sample in place, not /app/demo", () => {
