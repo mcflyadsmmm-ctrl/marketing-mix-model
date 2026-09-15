@@ -1,5 +1,18 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { deskNavHref, deskNavHrefFromSearch, DESK_PRIMARY_NAV } from "./desk-nav";
+import {
+  DESK_OVERVIEW_TABS,
+  DESK_PRIMARY_NAV,
+  DESK_SECTION,
+  deskNavHref,
+  deskNavHrefFromSearch,
+  deskStageFromHash,
+  deskStageHeading,
+  isOverviewHomeStage,
+  overviewSectionLocation,
+} from "./desk-nav";
 import { spendAddHref, SPEND_ADD_HREF } from "./number-honesty";
 
 describe("deskNavHref", () => {
@@ -35,28 +48,72 @@ describe("deskNavHref", () => {
 });
 
 describe("DESK_PRIMARY_NAV", () => {
-  it("is sales-first: Orders, Buyers, Timing before Marketing", () => {
-    const labels = DESK_PRIMARY_NAV.map((item) => item.label);
-    expect(labels).toEqual([
+  it("is Shopify five, then Spend Upload, then Settings", () => {
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).toEqual([
       "Overview",
+      "Customers",
+      "Growth",
       "Orders",
-      "Buyers",
-      "Timing",
-      "Goals",
-      "Marketing",
+      "LTV",
+      "Spend Upload",
       "Settings",
     ]);
     expect(DESK_PRIMARY_NAV.map((item) => item.path)).toEqual([
       "/app",
+      "/app/customers",
+      "/app/growth",
       "/app/orders",
-      "/app/buyers",
-      "/app/timing",
-      "/app/goals",
+      "/app/ltv",
       "/app/spend",
       "/app/settings",
     ]);
-    expect(labels).not.toContain("Advanced");
-    expect(labels).not.toContain("Spend Allocation");
-    expect(labels).not.toContain("LTV / Acquisition");
+    expect(DESK_PRIMARY_NAV.every((item) => !item.hash)).toBe(true);
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain("Buyers");
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain("Timing");
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain(
+      "Marketing",
+    );
+  });
+
+  it("puts spend tools on Marketing, not an Overview hash sitemap", () => {
+    expect(DESK_OVERVIEW_TABS).toEqual([]);
+  });
+
+  it("Overview live chrome is as-of + share — windows live on the rail", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
+    const tabs = readFileSync(
+      join(here, "../components/DeskOverviewTabs.tsx"),
+      "utf8",
+    );
+    expect(tabs).toContain("mcfly-desk-chrome");
+    expect(overview).toContain("<DeskOverviewTabs");
+    expect(overview).toContain("<DeskWindowRail");
+    expect(overview).toContain('preset = shotMode ? requested : "mtd"');
+    expect(overview).not.toContain("hideHero");
+    expect(overview).not.toContain("<CashControlBoard");
+    expect(overview).not.toContain("Same dates as Overview");
+  });
+
+  it("retired tool hashes land on Overview home", () => {
+    expect(deskStageFromHash("")).toBe(DESK_SECTION.overview);
+    expect(deskStageFromHash("#mcfly-ledger")).toBe(DESK_SECTION.overview);
+    expect(deskStageFromHash("#mcfly-compare")).toBe(DESK_SECTION.overview);
+    expect(deskStageFromHash("#mcfly-mix")).toBe(DESK_SECTION.overview);
+    expect(deskStageFromHash("#mcfly-plan")).toBe(DESK_SECTION.overview);
+    expect(deskStageFromHash("mcfly-orders")).toBe(DESK_SECTION.overview);
+    expect(deskStageFromHash("#nope")).toBe(DESK_SECTION.overview);
+    expect(isOverviewHomeStage(DESK_SECTION.overview)).toBe(true);
+    expect(isOverviewHomeStage(DESK_SECTION.chart)).toBe(true);
+    expect(isOverviewHomeStage(DESK_SECTION.ledger)).toBe(false);
+    expect(deskStageHeading(DESK_SECTION.mix)).toBe("Overview");
+    expect(deskStageHeading(DESK_SECTION.overview)).toBe("Overview");
+  });
+
+  it("keeps a helper for Overview section hashes", () => {
+    const req = new Request("https://mcfly-analytics.fly.dev/app/orders?period=mtd");
+    expect(overviewSectionLocation(req, DESK_SECTION.orders)).toBe(
+      "/app?period=mtd#mcfly-orders",
+    );
   });
 });
