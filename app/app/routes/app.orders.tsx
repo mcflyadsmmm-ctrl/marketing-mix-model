@@ -70,7 +70,7 @@ export default function OrdersPage() {
           }}
           groups={["period", "timing"]}
           title={PRODUCT_NOUN.ordersTitle}
-          muted={PRODUCT_NOUN.ordersMuted}
+          muted="Shopify Analytics shows the average order. This page shows the typical order (median), then discounts, the biggest 10% of orders, then weekend, hour, and Online vs POS."
         />
       )}
     </DeskBookPage>
