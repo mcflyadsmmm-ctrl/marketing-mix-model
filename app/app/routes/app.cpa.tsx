@@ -8,6 +8,9 @@ import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { cashCostPerCustomer } from "../lib/shopify-native-stats";
 
+const CPA_CONTRAST =
+  "Shopify Analytics shows ads-manager / platform CPA if any. This page shows typed spend ÷ Shopify buyers.";
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadDeskSalesPage(request, "/app/cpa");
 };
@@ -43,10 +46,7 @@ export default function CpaPage() {
       isLoading={isLoading}
     >
       <section className="mcfly-book" aria-label="Customer acquisition cost">
-        <p className="mcfly-book__lede">
-          Entered spend beside identified Shopify buyers. Blended period
-          averages, not platform attribution.
-        </p>
+        <p className="mcfly-book__lede">{CPA_CONTRAST}</p>
 
         {!hasSpend ? (
           <p className="mcfly-book__lede">
@@ -59,23 +59,29 @@ export default function CpaPage() {
           <div className="mcfly-book__kpi">
             <p className="mcfly-book__kpi-k">Cash CPA</p>
             <p className="mcfly-book__kpi-v">
-              {cashCpa != null ? formatCurrency(cashCpa) : "—"}
+              {hasSpend && cashCpa != null ? formatCurrency(cashCpa) : "—"}
             </p>
-            <p className="mcfly-book__kpi-hint">Spend ÷ identified buyers</p>
+            <p className="mcfly-book__kpi-hint">
+              Spend ÷ identified buyers · {metrics.period.label}
+            </p>
           </div>
           <div className="mcfly-book__kpi">
             <p className="mcfly-book__kpi-k">Cash CAC</p>
             <p className="mcfly-book__kpi-v">
-              {cashCac != null ? formatCurrency(cashCac) : "—"}
+              {hasSpend && cashCac != null ? formatCurrency(cashCac) : "—"}
             </p>
-            <p className="mcfly-book__kpi-hint">{PRODUCT_NOUN.cashCacDef}</p>
+            <p className="mcfly-book__kpi-hint">
+              {PRODUCT_NOUN.cashCacDef} · {metrics.period.label}
+            </p>
           </div>
           <div className="mcfly-book__kpi">
             <p className="mcfly-book__kpi-k">{PRODUCT_NOUN.amer}</p>
             <p className="mcfly-book__kpi-v">
               {amer != null && amer > 0 ? `${formatMer(amer)}×` : "—"}
             </p>
-            <p className="mcfly-book__kpi-hint">{PRODUCT_NOUN.amerDef}</p>
+            <p className="mcfly-book__kpi-hint">
+              {PRODUCT_NOUN.amerDef} · {metrics.period.label}
+            </p>
           </div>
         </div>
 
