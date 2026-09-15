@@ -18,10 +18,7 @@ import {
   type SpendChannel,
 } from "@mcfly/mer-engine";
 import { PeriodControl } from "../components/PeriodControl";
-import {
-  SpendExplorer,
-  type SpendExplorerSeriesView,
-} from "../components/SpendExplorer";
+import type { SpendExplorerSeriesView } from "../components/SpendExplorer";
 import { authenticate } from "../shopify.server";
 import {
   buildSpendExplorerSeries,
@@ -513,7 +510,6 @@ export default function SpendEntryPage() {
     todayKey,
     currencyCode,
     preset,
-    explorer,
   } = useLoaderData<typeof loader>();
   const money = (n: number) => formatSpendAmount(n, currencyCode);
   const actionData = useActionData<typeof action>();
@@ -522,7 +518,11 @@ export default function SpendEntryPage() {
   const submittingIntent =
     navigation.formData?.get("intent")?.toString() ?? null;
   const isEmpty = entries.length === 0;
-  const overviewHref = deskNavHref("/app", {
+  const marketingHref = deskNavHref("/app/spend", {
+    period: preset,
+    shot: shotMode,
+  });
+  const roasHref = deskNavHref("/app/roas", {
     period: preset,
     shot: shotMode,
   });
@@ -980,24 +980,19 @@ export default function SpendEntryPage() {
           .filter(Boolean)
           .join(" ")}
       >
-        <div className="mcfly-ctx" aria-live="polite">
-          <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">{PRODUCT_NOUN.deskTitle}</span>
-            <span className="mcfly-ctx__sep" aria-hidden="true">
-              ·
-            </span>
-            <span className="mcfly-ctx__asof">Same dates as Overview</span>
-            <PeriodControl
-              preset={preset}
-              shotMode={shotMode}
-              language="spend"
-            />
+        {shotMode ? (
+          <div className="mcfly-ctx" aria-live="polite">
+            <div className="mcfly-ctx__main">
+              <PeriodControl
+                preset={preset}
+                shotMode={shotMode}
+                language="spend"
+              />
+            </div>
           </div>
-        </div>
+        ) : null}
         <p>
-          <s-link href={deskNavHref("/app/spend", { period: preset, shot: shotMode })}>
-            ← Spend
-          </s-link>
+          <s-link href={marketingHref}>← Spend Upload</s-link>
           {" · amounts are "}
           {currencyCode}
         </p>
@@ -1062,12 +1057,12 @@ export default function SpendEntryPage() {
                   >
                     Download blank for missing days
                   </s-button>
-                  <s-button href={overviewHref} variant="tertiary">
-                    View {PRODUCT_NOUN.totalRoas}
+                  <s-button href={roasHref} variant="tertiary">
+                    {PRODUCT_NOUN.openTotalRoas}
                   </s-button>
                 </>
               ) : (
-                <s-button href={overviewHref} variant="primary">
+                <s-button href={roasHref} variant="primary">
                   {PRODUCT_NOUN.openTotalRoas}
                 </s-button>
               )}
@@ -1079,8 +1074,11 @@ export default function SpendEntryPage() {
         {manualSaved ? (
           <s-banner tone="success" heading="Spend saved">
             <s-paragraph>
-              <s-link href={overviewHref}>{PRODUCT_NOUN.openTotalRoas}</s-link>
-              {" · "}or add another day below.
+              Charts are on {PRODUCT_NOUN.totalRoas}.
+              {" · "}
+              <s-link href={roasHref}>{PRODUCT_NOUN.openTotalRoas}</s-link>
+              {" · "}
+              <s-link href={marketingHref}>Add another day</s-link>
             </s-paragraph>
           </s-banner>
         ) : null}
@@ -1159,30 +1157,19 @@ export default function SpendEntryPage() {
            * Name the three doors before the explanation. First session should
            * not need a tutorial to find out that typing one bill is an option.
            */}
-          <nav className="mcfly-spend-doors" aria-label="Three ways to add spend">
-            <p className="mcfly-spend-doors__kicker">
-              Three ways to add spend — pick one
+          <section className="mcfly-book" aria-label="Three ways to add spend">
+            <p className="mcfly-book__lede">
+              Three ways to add spend — pick one.
             </p>
-            <ul className="mcfly-spend-doors__list">
-              {SPEND_IMPORT_DOORS.map((door, i) => (
-                <li key={door.href} className="mcfly-spend-doors__item">
-                  <a className="mcfly-spend-doors__link" href={door.href}>
-                    <span className="mcfly-spend-doors__num" aria-hidden="true">
-                      {i + 1}
-                    </span>
-                    <span className="mcfly-spend-doors__body">
-                      <span className="mcfly-spend-doors__title">
-                        {door.title}
-                      </span>
-                      <span className="mcfly-spend-doors__hint">
-                        {door.hint}
-                      </span>
-                    </span>
-                  </a>
+            <ul className="mcfly-book__links">
+              {SPEND_IMPORT_DOORS.map((door) => (
+                <li key={door.href} className="mcfly-book__link">
+                  <s-link href={door.href}>{door.title}</s-link>
+                  <span className="mcfly-book__link-d">{door.hint}</span>
                 </li>
               ))}
             </ul>
-          </nav>
+          </section>
           <p className="mcfly-spend-helper">
             Shopify sales are already here. Download the blank, fill daily spend,
             and upload it; empty spend is $0.
@@ -1889,25 +1876,19 @@ export default function SpendEntryPage() {
           </details>
 
           <section
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-explorer"
-            aria-label="Day week month spend"
+            className="mcfly-panel mcfly-panel--eq-compact"
+            aria-label="Where charts live"
           >
             <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Daily spend by channel</h2>
+              <h2>Charts live on Total ROAS</h2>
               <p className="mcfly-panel__muted">
-                {isEmpty
-                  ? "Ninety closed days so you can see where history is missing. Same date buttons as Overview."
-                  : "Spend you added next to Shopify sales for this period — same dates as Overview."}
+                This page is for CSV and one-bill entry. After a save, open Total
+                ROAS for Sales, Spend, and Total ROAS.
               </p>
             </div>
-            <SpendExplorer
-              series={explorer}
-              period={preset}
-              shotMode={shotMode}
-              basePath="/app/spend"
-              compare
-              variant="spend"
-            />
+            <p>
+              <s-link href={roasHref}>{PRODUCT_NOUN.openTotalRoas}</s-link>
+            </p>
           </section>
 
           <div className="mcfly-spend-lean__status" role="status">

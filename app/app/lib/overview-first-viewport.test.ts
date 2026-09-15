@@ -101,6 +101,15 @@ describe("overview first viewport", () => {
     expect(overview).not.toContain("mcfly-tab-snaps");
   });
 
+  it("Overview YoY cards say pending sales are not $0", () => {
+    const cards = readFileSync(
+      join(here, "../components/OverviewYoyCards.tsx"),
+      "utf8",
+    );
+    expect(cards).toContain("Sales for closed days are still loading — not $0.");
+    expect(cards).not.toMatch(/if \(salesPending\) return null/);
+  });
+
   it("first viewport is one book section: hero, glance, one sentence", () => {
     const firstView = readFileSync(
       join(here, "../components/OverviewFirstViewport.tsx"),

@@ -59,4 +59,15 @@ describe("last7VsPrior7", () => {
     expect(comparison.priorSpend).toBeNull();
     expect(comparison.priorMer).toBeNull();
   });
+
+  it("keeps last-7 sales null when no certified days exist", () => {
+    expect(last7VsPrior7([])).toMatchObject({
+      sales: null,
+      spend: null,
+      mer: null,
+      priorSales: null,
+      priorSpend: null,
+      priorMer: null,
+    });
+  });
 });

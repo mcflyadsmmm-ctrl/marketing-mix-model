@@ -65,10 +65,11 @@ export default function YoyWorkspacePage() {
   const byId = new Map(monthRows.map((row) => [row.id, row]));
   const hasSpend =
     monthRows.some((row) => row.spend > 0) ||
-    last7.spend > 0 ||
+    (last7.spend ?? 0) > 0 ||
     (last7.priorSpend ?? 0) > 0;
 
   return (
+    <s-page heading="YoY" inlineSize="large">
     <main className="mcfly-page" aria-busy={navigation.state === "loading"}>
       <header className="mcfly-page__head">
         <div>
@@ -142,8 +143,10 @@ export default function YoyWorkspacePage() {
             <tbody>
               <tr>
                 <th scope="row">Last 7</th>
-                <td>{formatCurrency(last7.sales)}</td>
-                {hasSpend ? <td>{formatCurrency(last7.spend)}</td> : null}
+                <td>{displayValue(last7.sales, formatCurrency)}</td>
+                {hasSpend ? (
+                  <td>{displayValue(last7.spend, formatCurrency)}</td>
+                ) : null}
                 {hasSpend ? <td>{displayValue(last7.mer, formatMer)}</td> : null}
               </tr>
               <tr>
@@ -161,6 +164,7 @@ export default function YoyWorkspacePage() {
         </div>
       </section>
     </main>
+    </s-page>
   );
 }
 

@@ -511,7 +511,7 @@ export function buildAdvancedSections(
 
   if (!spendOn) {
     const spendInvite =
-      "Add spend on Marketing to see Total ROAS, mix, and payback. Order stats on this page do not need it.";
+      "Add spend on Spend Upload to see Total ROAS, mix, and payback. Order stats on this page do not need it.";
     portfolio.lockedReason = spendInvite;
     affordability.lockedReason = spendInvite;
     spendStructure.lockedReason = spendInvite;

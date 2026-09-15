@@ -248,7 +248,8 @@ describe("mer-control mix + ledger", () => {
     expect(board.intel?.alerts.some((a) => a.code === "three_day_target_miss")).toBe(
       true,
     );
-    expect(board.compareScores).toEqual([]);
+    expect(board.compareScores).toHaveLength(1);
+    expect(board.compareScores[0]?.id).toBe("thisMonth");
     expect(() => JSON.stringify(board)).not.toThrow();
   });
 

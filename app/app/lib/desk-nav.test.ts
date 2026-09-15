@@ -85,7 +85,7 @@ describe("DESK_PRIMARY_NAV", () => {
     );
   });
 
-  it("puts spend tools on Marketing, not an Overview hash sitemap", () => {
+  it("puts spend tools on their own pages, not an Overview hash sitemap", () => {
     expect(DESK_OVERVIEW_TABS).toEqual([]);
   });
 

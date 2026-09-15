@@ -7,9 +7,9 @@ import {
 
 export type YoyCompareRow = {
   label: string;
-  sales: number;
+  sales: number | null;
   priorSales: number | null;
-  spend: number;
+  spend: number | null;
   priorSpend: number | null;
   mer: number | null;
   priorMer: number | null;
@@ -25,13 +25,15 @@ export function last7VsPrior7(days: CertifiedDay[]): YoyCompareRow {
   const current = computeTotals(currentRows);
   const prior = priorRows.length > 0 ? computeTotals(priorRows) : null;
 
+  const hasCurrent = currentRows.length > 0;
+
   return {
     label: "Last 7 vs prior 7",
-    sales: current.sales,
+    sales: hasCurrent ? current.sales : null,
     priorSales: prior?.sales ?? null,
-    spend: current.spend,
+    spend: hasCurrent ? current.spend : null,
     priorSpend: prior?.spend ?? null,
-    mer: current.mer,
+    mer: hasCurrent ? current.mer : null,
     priorMer: prior?.mer ?? null,
   };
 }

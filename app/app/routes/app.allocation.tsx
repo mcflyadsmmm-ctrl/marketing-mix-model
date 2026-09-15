@@ -393,8 +393,8 @@ export default function AllocationPage() {
     ? metrics.spendCoverage.incomplete
       ? "Spend mix waits until most days this period have spend, so empty Sundays don’t fake a high Total ROAS. Add more days when you have invoices — last month is enough to start."
       : metrics.spendRecon?.status === "drift"
-        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or declared total on Marketing before mix advice."
-        : "Add spend on Marketing, then come back for mix."
+        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or declared total on Spend Upload before mix advice."
+        : "Add spend on Spend Upload, then come back for mix."
     : null;
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;

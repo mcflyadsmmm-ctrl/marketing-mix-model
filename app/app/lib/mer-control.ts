@@ -813,7 +813,7 @@ export function buildCompareScores(days: CertifiedDay[]): CompareScoreRow[] {
     "This month last year",
     alignedSiblingWindowDays(days, "sameMonthLastYear"),
   );
-  return rows.length > 1 ? rows : [];
+  return rows;
 }
 
 export function compareMix(

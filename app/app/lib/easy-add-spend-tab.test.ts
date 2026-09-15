@@ -16,17 +16,16 @@ describe("Spend day card", () => {
   const explorer = read("../components/SpendExplorer.tsx");
   const css = read("../styles/mcfly-desk.css");
 
-  it("keeps the Spend route Marketing under the Spend Upload nav tab", () => {
+  it("keeps the Spend route titled Spend Upload under that nav tab", () => {
     expect(labels).toContain('uploadSpend: "Upload Spend"');
     expect(labels).toContain('setupAddSpend: "Upload Spend"');
-    expect(labels).toContain('marketingSection: "Marketing"');
     expect(appShell).toContain("DESK_PRIMARY_NAV");
     expect(read("./desk-nav.ts")).toContain('label: "Spend Upload"');
-    // The route uses its own Marketing heading; the nav retains Spend Upload.
-    expect(spend).toContain("heading={PRODUCT_NOUN.marketingSection}");
-    expect(spend).not.toContain("heading={PRODUCT_NOUN.uploadSpend}");
-    expect(spend).not.toContain("PRODUCT_NOUN.openTotalRoas");
-    expect(spend).toContain("Same numbers on Overview");
+    expect(spend).toContain('heading="Spend Upload"');
+    expect(spend).not.toContain("heading={PRODUCT_NOUN.marketingSection}");
+    expect(spend).toContain("/app/roas");
+    expect(spend).toContain("Same numbers on Total ROAS");
+    expect(spend).not.toContain("Same numbers on Overview");
   });
 
   it("keeps typed-day, recurring, and import on the main Spend surface", () => {
@@ -150,9 +149,11 @@ describe("Spend day card", () => {
 describe("Import or backfill", () => {
   const spendImport = read("../routes/app.spend.import.tsx");
 
-  it("does not send merchants to Open Total ROAS after import", () => {
-    expect(spendImport).not.toContain("PRODUCT_NOUN.openTotalRoas");
-    expect(spendImport).toContain("Open {PRODUCT_NOUN.marketingSection}");
+  it("sends merchants to Total ROAS after import, without remounting the explorer", () => {
+    expect(spendImport).toContain("PRODUCT_NOUN.openTotalRoas");
+    expect(spendImport).not.toContain("Open {PRODUCT_NOUN.marketingSection}");
+    expect(spendImport).not.toContain("<SpendExplorer");
+    expect(spendImport).toContain("Charts live on Total ROAS");
   });
 
   it("puts the five-year template first, then CSV and one-bill helpers", () => {

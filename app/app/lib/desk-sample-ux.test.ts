@@ -333,9 +333,9 @@ describe("Sample data | Live data UX", () => {
       expect(chrome(rel), rel).not.toContain("mcfly-ctx__brand");
       expect(chrome(rel), rel).not.toContain("mcfly-topbar__def");
     }
-    // Marketing keeps the nav tab's own name. Chart range lives on the chart.
+    // Spend Upload keeps the nav tab's own name. Chart range lives on Total ROAS.
     const spend = read("../routes/app.spend.tsx");
-    expect(spend).toContain("heading={PRODUCT_NOUN.marketingSection}");
+    expect(spend).toContain('heading="Spend Upload"');
     expect(spend).not.toContain("Same dates as Overview");
     // Import is the same paper — no second Total ROAS brand in the rail.
     expect(chrome("../routes/app.spend.import.tsx")).not.toContain(

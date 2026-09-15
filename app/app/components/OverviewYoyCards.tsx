@@ -33,7 +33,13 @@ export function OverviewYoyCards({
   cards: OverviewYoyCard[];
   salesPending: boolean;
 }) {
-  if (salesPending) return null;
+  if (salesPending) {
+    return (
+      <p className="mcfly-book__lede">
+        Sales for closed days are still loading — not $0.
+      </p>
+    );
+  }
   if (cards.length === 0) return null;
 
   return (

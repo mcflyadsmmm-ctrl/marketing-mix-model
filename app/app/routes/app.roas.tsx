@@ -322,7 +322,7 @@ export default function TotalRoasPage() {
           />
         ) : null}
 
-        {monthPace && cashControl ? (
+        {monthPace && cashControl && hasSpend ? (
           <MonthlyPacing
             sales={cashControl.dualClose?.mtd.sales ?? 0}
             spend={cashControl.dualClose?.mtd.spend ?? 0}
@@ -338,6 +338,7 @@ export default function TotalRoasPage() {
           <MarketingSpendRoom
             board={cashControl}
             channelLabels={explorer.channelLabels}
+            intelOnly
           />
         ) : null}
       </div>

@@ -130,7 +130,7 @@ export default function App() {
   return (
     <AppProvider embedded apiKey={apiKey}>
       <BillingExitProvider plansUrl={plansUrl}>
-        {/* Admin nav: twelve analysis + Settings items. period + shot stay on every href. */}
+        {/* Admin nav: 11 analysis tabs + Settings. period + shot stay on every href. */}
         <s-app-nav>
           {DESK_PRIMARY_NAV.map((item) => (
             <s-link

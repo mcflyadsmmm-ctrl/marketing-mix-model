@@ -2,8 +2,8 @@
  * Desk links keep the scoreboard clock (`period`) and listing-shot flag (`shot`).
  * Shopify App Bridge already owns `shop` / `host`.
  *
- * Admin nav is seven real pages. Overview is one scoreboard — no in-page
- * Compare / Ledger / Channels / Plan strip. Those hashes land on home.
+ * Admin nav is eleven analysis pages plus Settings. Time windows live on
+ * cards, not as nav items. Retired hashes land on Overview home.
  */
 
 export type DeskNavOpts = {

@@ -81,13 +81,16 @@ function baseMetrics(
 }
 
 describe("buildAdvancedSections", () => {
-  it("includes aMER and gross MER in portfolio when gross known", () => {
+  it("includes new-sales÷spend tile (id amer) and gross MER in portfolio when gross known", () => {
     const sections = buildAdvancedSections(baseMetrics(), {
       canUseLtv: true,
       periodLabel: "Last 30 days",
     });
     const portfolio = sections.find((s) => s.id === "portfolio");
-    expect(portfolio?.tiles.some((t) => t.id === "amer")).toBe(true);
+    const amerTile = portfolio?.tiles.find((t) => t.id === "amer");
+    expect(amerTile?.id).toBe("amer");
+    expect(amerTile?.label).toBe("New sales ÷ spend");
+    expect(amerTile?.label).not.toMatch(/\baMER\b/);
     expect(portfolio?.tiles.some((t) => t.id === "gross-mer")).toBe(true);
     const gross = portfolio?.tiles.find((t) => t.id === "gross-mer");
     expect(gross?.value).toMatch(/4\.40/);
@@ -173,7 +176,7 @@ describe("buildAdvancedSections", () => {
     expect(acq?.tiles.find((t) => t.id === "ltv-cac")).toBeUndefined();
     expect(acq?.tiles.find((t) => t.id === "payback-days")).toBeUndefined();
     expect(sections.find((s) => s.id === "portfolio")?.lockedReason).toMatch(
-      /Add spend on Marketing/i,
+      /Add spend on Spend Upload/i,
     );
     expect(sections.find((s) => s.id === "affordability")?.lockedReason).toBeTruthy();
     expect(sections.find((s) => s.id === "spend")?.lockedReason).toBeTruthy();

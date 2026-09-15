@@ -99,9 +99,11 @@ function downloadLedgerCsv(
 export function MarketingSpendRoom({
   board,
   channelLabels,
+  intelOnly = false,
 }: {
   board: CashControlBoardData;
   channelLabels?: Record<string, string>;
+  intelOnly?: boolean;
 }) {
   const [ledgerGrain, setLedgerGrain] = useState<LedgerGrain>("day");
   const [openLedgerKey, setOpenLedgerKey] = useState<string | null>(null);
@@ -129,7 +131,11 @@ export function MarketingSpendRoom({
   return (
     <section
       className="mcfly-book mcfly-spend-room"
-      aria-label="Spend mix, plan, and every day"
+      aria-label={
+        intelOnly
+          ? "Last 7 and 28 day Total ROAS"
+          : "Spend mix, plan, and every day"
+      }
     >
       {intel ? (
         <div className="mcfly-spend-room__intel">
@@ -190,7 +196,7 @@ export function MarketingSpendRoom({
         </div>
       ) : null}
 
-      {board.compareScores.length > 0 ? (
+      {!intelOnly && board.compareScores.length > 0 ? (
         <div className="mcfly-spend-room__compare">
           <table className="mcfly-control__table">
             <caption>
@@ -221,7 +227,7 @@ export function MarketingSpendRoom({
         </div>
       ) : null}
 
-      {ledgerRows.length > 0 ? (
+      {!intelOnly && ledgerRows.length > 0 ? (
         <details className="mcfly-spend-room__ledger">
           <summary className="mcfly-spend-room__ledger-sum">Every day</summary>
           <div

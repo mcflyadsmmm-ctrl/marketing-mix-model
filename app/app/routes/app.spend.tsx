@@ -373,7 +373,7 @@ export default function SpendEntryPage() {
    * a day of spend exists.
    */
   const strangerEmpty = isEmpty && !sampleDesk.enabled && !shotMode;
-  const overviewHref = deskNavHref("/app", {
+  const roasHref = deskNavHref("/app/roas", {
     period: preset,
     shot: shotMode,
   });
@@ -405,7 +405,7 @@ export default function SpendEntryPage() {
   const manualSaved = Boolean(actionData?.success && !actionData.csv);
 
   return (
-    <s-page heading={PRODUCT_NOUN.marketingSection} inlineSize="large">
+    <s-page heading="Spend Upload" inlineSize="large">
       {isEmpty && !shotMode ? (
         <s-button
           slot="primary-action"
@@ -444,7 +444,7 @@ export default function SpendEntryPage() {
             <s-paragraph>
               Your saved spend is ready for {PRODUCT_NOUN.totalRoas}.
               {" · "}
-              <s-link href={overviewHref}>Same numbers on Overview</s-link>
+              <s-link href={roasHref}>Same numbers on Total ROAS</s-link>
               {" · "}or add another day below.
             </s-paragraph>
           </s-banner>
