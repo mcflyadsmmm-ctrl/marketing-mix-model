@@ -1,6 +1,18 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { CertifiedDay } from "./mer-control";
-import { last7VsPrior7 } from "./yoy-workspace";
+import { OVERVIEW_YOY_MISSING } from "./overview-yoy";
+import {
+  last7VsPrior7,
+  operatingMonthRows,
+  YOY_ANALYTICS_LEDE,
+  yoyDisplayValue,
+} from "./yoy-workspace";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const yoyRoute = readFileSync(join(here, "../routes/app.yoy.tsx"), "utf8");
 
 function certifiedDay(
   dateKey: string,
@@ -22,6 +34,58 @@ function certifiedDay(
     unpaired: false,
   };
 }
+
+describe("YoY vs Shopify Analytics", () => {
+  it("contrasts this period’s sales with this month / last month / last year plus last 7", () => {
+    expect(YOY_ANALYTICS_LEDE).toContain("Shopify Analytics shows");
+    expect(YOY_ANALYTICS_LEDE).toContain("This page shows");
+    expect(YOY_ANALYTICS_LEDE).toMatch(/this period['’]s sales/i);
+    expect(YOY_ANALYTICS_LEDE).toMatch(
+      /this month vs last month vs last year plus last 7/i,
+    );
+    expect(yoyRoute).toContain("YOY_ANALYTICS_LEDE");
+  });
+
+  it("does not remount SpendExplorer or Overview’s three YoY cards", () => {
+    expect(yoyRoute).not.toContain("SpendExplorer");
+    expect(yoyRoute).not.toContain("OverviewYoyCards");
+  });
+});
+
+describe("operatingMonthRows", () => {
+  it("still paints thisMonth when last year is missing, with last-year sales null", () => {
+    const rows = operatingMonthRows([
+      { id: "thisMonth", sales: 12_000, spend: 0, mer: null },
+    ]);
+    expect(rows.map((row) => row.id)).toEqual([
+      "thisMonth",
+      "lastMonth",
+      "lastYear",
+    ]);
+    expect(rows[0]?.sales).toBe(12_000);
+    expect(rows.find((row) => row.id === "lastYear")?.sales).toBeNull();
+  });
+});
+
+describe("YoY last-year honesty", () => {
+  it("uses OVERVIEW_YOY_MISSING when last-year sales are null, not only a missing row id", () => {
+    expect(yoyRoute).toContain("OVERVIEW_YOY_MISSING");
+    expect(yoyRoute).not.toContain('byId.has("lastYear")');
+    expect(yoyRoute).toMatch(/id === "lastYear"/);
+    expect(yoyRoute).toMatch(/sales == null/);
+    expect(OVERVIEW_YOY_MISSING).toMatch(/60 days/);
+  });
+});
+
+describe("last7 empty display", () => {
+  it("empty last-7 is an em dash, not $0", () => {
+    expect(last7VsPrior7([]).sales).toBeNull();
+    expect(yoyDisplayValue(null, (n) => `$${n}`)).toBe("—");
+    expect(yoyDisplayValue(undefined, (n) => `$${n}`)).toBe("—");
+    expect(yoyRoute).toContain("yoyDisplayValue(last7.sales");
+    expect(yoyRoute).not.toContain("formatCurrency(last7.sales");
+  });
+});
 
 describe("last7VsPrior7", () => {
   it("compares the latest seven certified days with the preceding seven", () => {
