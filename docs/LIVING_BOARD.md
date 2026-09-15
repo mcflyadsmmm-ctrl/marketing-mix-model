@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-15 · America/Denver · Fly **313** · site **v16** |
+| **Updated** | 2026-09-15 · America/Denver · Fly **314** · site **v16** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v16** (Pages `241ebffc`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **Fly** | https://mcfly-analytics.fly.dev · version **313** · image `deployment-01M2JKG8GDDNDWX81S9XMVXRKD` · `/health` db up · `/app` 200 · tab-final-draft · Overview · Customers · Growth · Orders · LTV · Spend Upload · Total ROAS · Channel Allocation · YoY · CPA · Goals · Settings |
+| **Fly** | https://mcfly-analytics.fly.dev · version **314** · image `deployment-01M2JM0P9ZQ4707YFWMFVQA6G7` · `/health` db up · `/app` 200 · tab-final-draft + shared libs committed · Goals pending hero is — not $0 · Overview · Customers · Growth · Orders · LTV · Spend Upload · Total ROAS · Channel Allocation · YoY · CPA · Goals · Settings |
 | **North star** | Sell **Mcfly Analytics** Shopify app — 7-day trial then **$39**/store/mo. Public mark, titles, favicons, OG = one name. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -80,7 +80,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 
 ## Open gates (human)
 
-- [x] **Fly deploy** — `/app` `/auth/login` `/health` **200** · **v313** 2026-09-15 (tab-final-draft) · image `deployment-01M2JKG8GDDNDWX81S9XMVXRKD`
+- [x] **Fly deploy** — `/app` `/auth/login` `/health` **200** · **v314** 2026-09-15 (tab-final-draft + committed shared libs) · image `deployment-01M2JM0P9ZQ4707YFWMFVQA6G7`
 - [x] App Store listing live → `MCFLY_APP_STORE_LIVE=true` · https://apps.shopify.com/mcfly-analytics-public
 - [x] **Site v16 Pages** — 11-tab copy · Install CTA · Harbor SAMPLE · Pages `241ebffc` · journal [`ops/journal/STATUS_20260915_v16.md`](./ops/journal/STATUS_20260915_v16.md)
 - [ ] **Partner listing paste** — sales-first pack in [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md). Marty Submits. Reviews: **0**
