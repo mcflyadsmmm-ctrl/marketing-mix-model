@@ -102,8 +102,7 @@ export function deskStageHeading(stage: DeskSectionId): string {
 }
 
 /**
- * Shopify Admin left nav — sales intelligence first, then existing Marketing.
- * Spend explorer / mix / plan stay on Marketing until the next lock.
+ * Shopify Admin left nav — sales intelligence first, then spend tools, then Goals.
  */
 export const DESK_PRIMARY_NAV: readonly DeskNavItem[] = [
   { path: "/app", label: "Overview" },
@@ -112,6 +111,11 @@ export const DESK_PRIMARY_NAV: readonly DeskNavItem[] = [
   { path: "/app/orders", label: "Orders" },
   { path: "/app/ltv", label: "LTV" },
   { path: "/app/spend", label: "Spend Upload" },
+  { path: "/app/roas", label: "Total ROAS" },
+  { path: "/app/allocation", label: "Channel Allocation" },
+  { path: "/app/yoy", label: "YoY" },
+  { path: "/app/cpa", label: "CPA" },
+  { path: "/app/goals", label: "Goals" },
   { path: "/app/settings", label: "Settings" },
 ];
 

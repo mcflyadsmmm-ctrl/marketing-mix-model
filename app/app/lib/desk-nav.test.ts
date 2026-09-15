@@ -48,7 +48,7 @@ describe("deskNavHref", () => {
 });
 
 describe("DESK_PRIMARY_NAV", () => {
-  it("is Shopify five, then Spend Upload, then Settings", () => {
+  it("Shopify five, then spend tools, then Goals and Settings", () => {
     expect(DESK_PRIMARY_NAV.map((item) => item.label)).toEqual([
       "Overview",
       "Customers",
@@ -56,6 +56,11 @@ describe("DESK_PRIMARY_NAV", () => {
       "Orders",
       "LTV",
       "Spend Upload",
+      "Total ROAS",
+      "Channel Allocation",
+      "YoY",
+      "CPA",
+      "Goals",
       "Settings",
     ]);
     expect(DESK_PRIMARY_NAV.map((item) => item.path)).toEqual([
@@ -65,6 +70,11 @@ describe("DESK_PRIMARY_NAV", () => {
       "/app/orders",
       "/app/ltv",
       "/app/spend",
+      "/app/roas",
+      "/app/allocation",
+      "/app/yoy",
+      "/app/cpa",
+      "/app/goals",
       "/app/settings",
     ]);
     expect(DESK_PRIMARY_NAV.every((item) => !item.hash)).toBe(true);
