@@ -2,18 +2,12 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useEffect, useState } from "react";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import {
-  SPEND_CHANNEL_LABELS,
-  type SpendChannel,
-} from "@mcfly/mer-engine";
+import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
 import { authenticate } from "../shopify.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
-import {
-  SpendExplorer,
-  type SpendExplorerSeriesView,
-} from "../components/SpendExplorer";
+import { SpendMixPlan } from "../components/SpendMixPlan";
 import {
   buildAllocationHistoryView,
   buildWindowSets,
@@ -39,10 +33,10 @@ import {
 import {
   buildDailyRowsForWindow,
   buildDashboardMetrics,
-  buildSpendExplorerSeries,
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
+import { buildCashControlBoard } from "../lib/mer-control";
 import { channelCssVar, channelFillKey } from "../lib/channel-fill";
 import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
@@ -61,17 +55,6 @@ import {
 } from "../lib/periods";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import {
-  dateKeyFromLocal,
-  explorerQueryMatchingScoreboard,
-  parseExplorerDateParam,
-  parseExplorerGranularity,
-  parseExplorerMode,
-  parseExplorerRange,
-  parseExplorerShowSales,
-  resolveExplorerWindow,
-} from "../lib/spend-explorer";
-import {
-  SAMPLE_DESK_TARGET_MER,
   fetchSampleSales,
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
@@ -240,82 +223,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const settings = await getOrCreateSettings(shop.id);
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
-    salesBasis: parseSalesBasis(
-      settings.salesBasis,
-      "total",
-    ),
+    salesBasis: parseSalesBasis(settings.salesBasis, "total"),
   });
-
-  const explicitExplorerRange = url.searchParams.get("exRange");
-  const tiedExplorer = explicitExplorerRange
-    ? null
-    : explorerQueryMatchingScoreboard(preset, range, deskTz);
-  const explorerRange = explicitExplorerRange
-    ? parseExplorerRange(explicitExplorerRange)
-    : (tiedExplorer?.range ?? "custom");
-  const explorerFrom = explicitExplorerRange
-    ? parseExplorerDateParam(url.searchParams.get("exFrom"))
-    : (tiedExplorer?.from ?? null);
-  const explorerTo = explicitExplorerRange
-    ? parseExplorerDateParam(url.searchParams.get("exTo"))
-    : (tiedExplorer?.to ?? null);
-  const explorerWindow = resolveExplorerWindow(explorerRange, now, {
-    from: explorerFrom,
-    to: explorerTo,
-    timeZone: deskTz,
-  });
-  const explorerGranularity = parseExplorerGranularity(
-    url.searchParams.get("exGran"),
-  );
-  const explorerMode = parseExplorerMode(url.searchParams.get("exMode"));
-  const explorerShowSales = parseExplorerShowSales(
-    url.searchParams.get("exSales"),
-  );
-  const explorerDayKey = (instant: Date) =>
-    deskTz
-      ? shopLocalDayKey(instant, deskTz)
-      : dateKeyFromLocal(instant);
-
-  // Start the chart read now; allocation-history I/O below runs in parallel.
-  const explorerPromise: Promise<SpendExplorerSeriesView | null> = (async () => {
-    try {
-      const explorerSalesByDay = useSampleDesk
-        ? await fetchSampleSalesByDay(shop.id, explorerWindow)
-        : await getSalesFactsByDay(shop.id, explorerWindow);
-      const series = await buildSpendExplorerSeries(shop.id, {
-        sampleOnly: useSampleDesk,
-        excludeSample: !useSampleDesk,
-        salesByDay: explorerSalesByDay,
-        window: explorerWindow,
-        granularity: explorerGranularity,
-        mode: explorerMode,
-        targetMer: useSampleDesk
-          ? SAMPLE_DESK_TARGET_MER
-          : (settings.targetMer ?? 3),
-        newCustomers: 0,
-        returningCustomers: 0,
-        customerMetricsAvailable: false,
-        timeZone: deskTz,
-      });
-      return {
-        buckets: series.buckets,
-        summary: series.summary,
-        mode: series.mode,
-        granularity: series.granularity,
-        range: explorerWindow.range,
-        windowLabel: explorerWindow.label,
-        targetMer: series.targetMer,
-        breakEvenMer: metrics.breakEvenMer,
-        showSales: explorerShowSales,
-        fromKey: explorerDayKey(explorerWindow.start),
-        toKey: explorerDayKey(explorerWindow.end),
-        asOfKey: explorerDayKey(explorerWindow.end),
-        channelLabels: series.channelLabels,
-      };
-    } catch {
-      return null;
-    }
-  })();
 
   /*
    * Portfolio history (~L12M / 365 closed days): best week/month/quarter/year
@@ -324,9 +233,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const histTz = deskTz;
   const l12m = resolvePeriod("l12m", now, histTz);
   const histWindow = resolveHistoryWindow(l12m, HISTORY_QUARTER_DAYS_CAP);
-  const todayKey = histTz
-    ? shopLocalDayKey(now, histTz)
-    : localDayKey(now);
+  const todayKey = histTz ? shopLocalDayKey(now, histTz) : localDayKey(now);
   const asOfDateKey = shiftDateKey(todayKey, -1);
 
   let history: AllocationHistoryView | null = null;
@@ -393,11 +300,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } catch {
     history = null;
   }
-  const explorer = await explorerPromise;
+  let cashControl: ReturnType<typeof buildCashControlBoard> | null = null;
+  if (!metrics.salesPending) {
+    try {
+      const controlSalesByDay = useSampleDesk
+        ? await fetchSampleSalesByDay(shop.id, histWindow)
+        : await getSalesFactsByDay(shop.id, histWindow);
+      const { rows: controlRows } = await buildDailyRowsForWindow(shop.id, {
+        sampleOnly: useSampleDesk,
+        excludeSample: !useSampleDesk,
+        salesByDay: controlSalesByDay,
+        windowStart: histWindow.start,
+        windowEnd: histWindow.end,
+        timeZone: deskTz,
+      });
+      cashControl = buildCashControlBoard(controlRows, metrics.targetMer);
+    } catch {
+      cashControl = null;
+    }
+  }
 
   return {
     metrics,
-    explorer,
+    cashControl,
     history,
     windowSets,
     preset,
@@ -415,7 +340,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function AllocationPage() {
   const {
     metrics,
-    explorer,
+    cashControl,
     history,
     windowSets,
     preset,
@@ -468,8 +393,8 @@ export default function AllocationPage() {
     ? metrics.spendCoverage.incomplete
       ? "Spend mix waits until most days this period have spend, so empty Sundays don’t fake a high Total ROAS. Add more days when you have invoices — last month is enough to start."
       : metrics.spendRecon?.status === "drift"
-        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or declared total on Upload Spend before mix advice."
-        : "Upload spend on Upload Spend, then come back for mix."
+        ? "Desk spend vs the Ads Manager total you declared is outside ±5%. Fix the CSV or declared total on Marketing before mix advice."
+        : "Add spend on Marketing, then come back for mix."
     : null;
 
   const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
@@ -504,7 +429,10 @@ export default function AllocationPage() {
       });
 
   return (
-    <s-page heading={shotMode ? undefined : PRODUCT_NOUN.spendAllocation} inlineSize="large">
+    <s-page
+      heading={shotMode ? undefined : PRODUCT_NOUN.spendAllocation}
+      inlineSize="large"
+    >
       <div
         className={[
           "mcfly-desk",
@@ -517,7 +445,9 @@ export default function AllocationPage() {
           .join(" ")}
       >
         {useSampleDesk && !shotMode ? (
-          <SampleDeskBanner note={`${PRODUCT_NOUN.spendAllocation} uses SAMPLE numbers — not your live store.`} />
+          <SampleDeskBanner
+            note={`${PRODUCT_NOUN.spendAllocation} uses SAMPLE numbers — not your live store.`}
+          />
         ) : null}
 
         {!useSampleDesk && !shotMode ? (
@@ -535,8 +465,13 @@ export default function AllocationPage() {
         ) : null}
 
         {isLoading && !shotMode ? (
-          <section className="mcfly-state mcfly-state--loading" aria-live="polite">
-            <p className="mcfly-state__copy">Refreshing allocation for this period…</p>
+          <section
+            className="mcfly-state mcfly-state--loading"
+            aria-live="polite"
+          >
+            <p className="mcfly-state__copy">
+              Refreshing allocation for this period…
+            </p>
           </section>
         ) : null}
 
@@ -546,10 +481,14 @@ export default function AllocationPage() {
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">
-              Sales didn’t load — {PRODUCT_NOUN.spendAllocation} needs {PRODUCT_NOUN.totalRoas} from sales ÷ spend.
+              Sales didn’t load — {PRODUCT_NOUN.spendAllocation} needs{" "}
+              {PRODUCT_NOUN.totalRoas} from sales ÷ spend.
             </p>
             <div className="mcfly-state__cta">
-              <s-button href={`/app/allocation?period=${preset}`} variant="primary">
+              <s-button
+                href={`/app/allocation?period=${preset}`}
+                variant="primary"
+              >
                 Retry
               </s-button>
             </div>
@@ -597,12 +536,16 @@ export default function AllocationPage() {
               sales ÷ spend
             </p>
           </div>
-          <PeriodControl preset={preset} shotMode={shotMode} />
+          {shotMode ? (
+            <PeriodControl preset={preset} shotMode={shotMode} />
+          ) : null}
         </header>
 
         <div className="mcfly-ctx" aria-live="polite">
           <div className="mcfly-ctx__main">
-            <span className="mcfly-ctx__brand">{PRODUCT_NOUN.spendAllocation}</span>
+            <span className="mcfly-ctx__brand">
+              {PRODUCT_NOUN.spendAllocation}
+            </span>
             <span className="mcfly-ctx__sep" aria-hidden="true">
               ·
             </span>
@@ -644,28 +587,8 @@ export default function AllocationPage() {
           }
         />
 
-        {explorer ? (
-          <section
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-explorer mcfly-allocation-explorer"
-            aria-label="Spend and sales drill-down"
-          >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>Spend and sales drill-down</h2>
-              <p className="mcfly-panel__muted">
-                The daily evidence behind this allocation—zoom the dates, group
-                by day, week, month, or quarter, and inspect every channel.
-              </p>
-            </div>
-            <SpendExplorer
-              series={explorer}
-              period={preset}
-              shotMode={shotMode}
-              basePath="/app/allocation"
-              compare
-              variant="spend"
-            />
-          </section>
-        ) : null}
+        {/* SpendMixPlan offers This month, Last 7 days, and This quarter. */}
+        {cashControl ? <SpendMixPlan board={cashControl} /> : null}
 
         <BestWindowsSection
           grain={grain}
@@ -703,7 +626,9 @@ export default function AllocationPage() {
               <s-button href="/app/spend" variant="primary">
                 {PRODUCT_NOUN.setupAddSpend}
               </s-button>
-              <s-link href="/app/settings">{PRODUCT_NOUN.setupAdjustMargin}</s-link>
+              <s-link href="/app/settings">
+                {PRODUCT_NOUN.setupAdjustMargin}
+              </s-link>
             </div>
           </section>
         ) : null}
@@ -736,7 +661,10 @@ function periodTakeaway(input: {
   return `${input.periodLabel}: ${formatMer(input.mer)}× Total ROAS. ${vs} ${mixBit}`;
 }
 
-function vsBreakEvenLine(mer: number | null, breakEvenMer: number | null): string {
+function vsBreakEvenLine(
+  mer: number | null,
+  breakEvenMer: number | null,
+): string {
   if (mer == null) return "Sales ÷ spend";
   if (breakEvenMer == null) return "Sales ÷ spend · set margin for break-even";
   const gap = mer - breakEvenMer;
@@ -772,8 +700,12 @@ function PeriodSnapshotSection({
   topChannel: PeriodChannelRow | null;
 }) {
   const priorLabel = deltas?.priorLabel;
-  const salesDelta = deltas ? formatPctDelta(deltas.salesPct, priorLabel) : null;
-  const spendDelta = deltas ? formatPctDelta(deltas.spendPct, priorLabel) : null;
+  const salesDelta = deltas
+    ? formatPctDelta(deltas.salesPct, priorLabel)
+    : null;
+  const spendDelta = deltas
+    ? formatPctDelta(deltas.spendPct, priorLabel)
+    : null;
   const merDelta =
     deltas?.merAbs != null
       ? `${deltas.merAbs >= 0 ? "+" : ""}${deltas.merAbs.toFixed(2)} vs ${deltaVsLabel(priorLabel)}`
@@ -920,7 +852,9 @@ function BestWindowsSection({
                   </div>
                   <div className="mcfly-alloc-v2__q-body">
                     <div className="mcfly-alloc-v2__q-top">
-                      <span className="mcfly-alloc-v2__q-label">{row.label}</span>
+                      <span className="mcfly-alloc-v2__q-label">
+                        {row.label}
+                      </span>
                       <span className="mcfly-alloc-v2__q-mer">
                         {row.mer == null ? "—" : `${formatMer(row.mer)}×`}
                       </span>
@@ -1024,15 +958,15 @@ function PeriodMixSection({
       <div className="mcfly-alloc-v2__head">
         <h2>Where the money went · {periodLabel}</h2>
         <p className="mcfly-alloc-v2__muted">
-          Click a channel · spend share, not channel ROAS · till{" "}
+          Click a channel · spend share, not channel ROAS ·{" "}
           {PRODUCT_NOUN.totalRoas}{" "}
           {totalRoas == null ? "—" : `${formatMer(totalRoas)}×`}
         </p>
       </div>
       {rows.length === 0 ? (
         <p className="mcfly-alloc-v2__empty">
-          No channel spend for {periodLabel} — log Meta, Google, and the rest
-          on Upload Spend.
+          No channel spend for {periodLabel} — log Meta, Google, and the rest on
+          Marketing.
         </p>
       ) : (
         <>
@@ -1058,7 +992,9 @@ function PeriodMixSection({
                         className={`mcfly-spend-dot mcfly-spend-dot--${row.fill}`}
                         aria-hidden="true"
                       />
-                      <span className="mcfly-alloc-v2__chan-name">{row.name}</span>
+                      <span className="mcfly-alloc-v2__chan-name">
+                        {row.name}
+                      </span>
                       <span className="mcfly-alloc-v2__chan-amt">
                         {formatCurrency(row.spend)}
                       </span>
@@ -1133,8 +1069,7 @@ function SpendSharePie({
         aria-label="Channel spend share pie"
       >
         {slices.map(({ row, large, x1, y1, x2, y2, isFull }) => {
-          const dim =
-            selectedChannel != null && selectedChannel !== row.name;
+          const dim = selectedChannel != null && selectedChannel !== row.name;
           const sliceClass = dim
             ? "mcfly-alloc-v2__pie-slice mcfly-alloc-v2__pie-slice--dim"
             : "mcfly-alloc-v2__pie-slice";
@@ -1177,12 +1112,7 @@ function SpendSharePie({
             />
           );
         })}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={36}
-          className="mcfly-alloc-v2__pie-hole"
-        />
+        <circle cx={cx} cy={cy} r={36} className="mcfly-alloc-v2__pie-hole" />
         <text
           x={cx}
           y={cy - 4}
@@ -1206,10 +1136,7 @@ function SpendSharePie({
 
 function RollingWindowsSection({ tiles }: { tiles: RollingWindowTile[] }) {
   return (
-    <section
-      className="mcfly-alloc-v2__rolling"
-      aria-label="Recent pace"
-    >
+    <section className="mcfly-alloc-v2__rolling" aria-label="Recent pace">
       <div className="mcfly-alloc-v2__head">
         <h2>Recent pace · last 7 / 14 / 28 days</h2>
         <p className="mcfly-alloc-v2__muted">

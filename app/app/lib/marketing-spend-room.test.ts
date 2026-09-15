@@ -26,22 +26,25 @@ describe("Marketing spend room", () => {
   });
 
   it("shows mix vs last month, a plan, a collapsed Every day ledger, and operating intel", () => {
-    expect(room).toContain("vs last month");
+    const mixPlan = read("../components/SpendMixPlan.tsx");
+
+    expect(room).not.toContain("MIX_WINDOWS");
     expect(room).toContain("Every day");
-    expect(room).toContain("Spend left at goal");
-    expect(room).toContain("Daily spend cap");
     expect(room).toContain("<details");
-    expect(room).toContain("className=\"mcfly-spend-room__ledger\"");
-    expect(room).toContain("This month");
-    expect(room).toContain("Last 7 days");
-    expect(room).toContain("This quarter");
+    expect(room).toContain('className="mcfly-spend-room__ledger"');
     expect(room).toContain("mcfly-spend-room__intel");
     expect(room).toContain("Last 28 days");
     expect(room).toContain("vs prior window");
     expect(room).toContain("mcfly-spend-room__compare");
     expect(room).toContain("Same calendar days so far");
     expect(room).toContain("Sales vs this month");
-    expect(room).toContain("full last month");
+    expect(mixPlan).toContain("vs last month");
+    expect(mixPlan).toContain("Spend left at goal");
+    expect(mixPlan).toContain("Daily spend cap");
+    expect(mixPlan).toContain("This month");
+    expect(mixPlan).toContain("Last 7 days");
+    expect(mixPlan).toContain("This quarter");
+    expect(mixPlan).toContain("full last month");
   });
 
   it("bans glossary labels on the spend room", () => {

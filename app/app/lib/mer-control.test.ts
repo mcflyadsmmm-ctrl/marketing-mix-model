@@ -457,6 +457,10 @@ describe("mer-control chrome", () => {
     join(here, "../components/MarketingSpendRoom.tsx"),
     "utf8",
   );
+  const mixPlan = readFileSync(
+    join(here, "../components/SpendMixPlan.tsx"),
+    "utf8",
+  );
   const dualClose = readFileSync(
     join(here, "../components/DualCloseLine.tsx"),
     "utf8",
@@ -477,12 +481,13 @@ describe("mer-control chrome", () => {
     expect(source).not.toMatch(/\bpixel\b/i);
   });
 
-  it("Marketing spend room has mix table, spend left at goal, and Every day details", () => {
-    expect(source).toContain("mcfly-spend-room__mix");
-    expect(source).toContain('className="mcfly-control__table"');
-    expect(source).toContain("<th>Channel</th>");
-    expect(source).toContain("vs last month");
-    expect(source).toContain("Spend left at goal");
+  it("Channel Allocation owns the mix table and spend plan", () => {
+    expect(source).not.toContain("MIX_WINDOWS");
+    expect(mixPlan).toContain("mcfly-spend-room__mix");
+    expect(mixPlan).toContain('className="mcfly-control__table"');
+    expect(mixPlan).toContain("<th>Channel</th>");
+    expect(mixPlan).toContain("vs last month");
+    expect(mixPlan).toContain("Spend left at goal");
     expect(source).toContain("<details");
     expect(source).toContain("mcfly-spend-room__ledger");
     expect(source).toContain(">Every day</summary>");

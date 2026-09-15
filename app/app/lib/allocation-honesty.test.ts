@@ -4,10 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const source = readFileSync(
-  join(here, "../routes/app.allocation.tsx"),
-  "utf8",
-);
+const source = readFileSync(join(here, "../routes/app.allocation.tsx"), "utf8");
 
 describe("Allocation desk sales honesty", () => {
   it("wires facts coverage into CashTrustBanners like Overview (server-side)", () => {
@@ -51,11 +48,26 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("spend share, not channel ROAS");
   });
 
-  it("reuses the Upload Spend explorer for allocation drill-downs", () => {
-    expect(source).toContain("buildSpendExplorerSeries");
-    expect(source).toContain("<SpendExplorer");
-    expect(source).toContain('basePath="/app/allocation"');
-    expect(source).toContain("Spend and sales drill-down");
-    expect(source).toContain("parseExplorerRange");
+  it("keeps Channel Allocation focused on mix and caps", () => {
+    expect(source).not.toContain("<SpendExplorer");
+    expect(source).toContain("<SpendMixPlan");
+    expect(source).toContain("This month");
+    expect(source).toContain("Last 7 days");
+    expect(source).toContain("This quarter");
+  });
+
+  it("moves the Marketing mix controls into the allocation plan", () => {
+    const marketingSpendRoom = readFileSync(
+      join(here, "../components/MarketingSpendRoom.tsx"),
+      "utf8",
+    );
+    const spendMixPlan = readFileSync(
+      join(here, "../components/SpendMixPlan.tsx"),
+      "utf8",
+    );
+
+    expect(marketingSpendRoom).not.toContain("MIX_WINDOWS");
+    expect(spendMixPlan).toContain("MIX_WINDOWS");
+    expect(spendMixPlan).toContain("Daily spend cap for remaining days");
   });
 });
