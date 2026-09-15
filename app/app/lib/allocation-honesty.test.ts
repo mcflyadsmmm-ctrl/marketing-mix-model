@@ -49,11 +49,35 @@ describe("Allocation desk sales honesty", () => {
   });
 
   it("keeps Channel Allocation focused on mix and caps", () => {
-    expect(source).not.toContain("<SpendExplorer");
+    expect(source).not.toContain("SpendExplorer");
     expect(source).toContain("<SpendMixPlan");
     expect(source).toContain("This month");
     expect(source).toContain("Last 7 days");
     expect(source).toContain("This quarter");
+  });
+
+  it("contrasts typed spend mix with Shopify Analytics attribution", () => {
+    expect(source).toMatch(/Shopify Analytics/);
+    expect(source).toMatch(/attribution/i);
+    expect(source).toMatch(/typed spend mix/i);
+    expect(source).toMatch(/daily cap/i);
+  });
+
+  it("keeps lock copy on Spend Upload, not Marketing", () => {
+    const lockStart = source.indexOf("const lockCopy");
+    const lockEnd = source.indexOf("const zeroMargin");
+    expect(lockStart).toBeGreaterThan(-1);
+    expect(lockEnd).toBeGreaterThan(lockStart);
+    const lockCopy = source.slice(lockStart, lockEnd);
+    expect(lockCopy).toContain("Spend Upload");
+    expect(lockCopy).not.toMatch(/\bMarketing\b/);
+  });
+
+  it("empty spend points to Spend Upload and never fakes a mix", () => {
+    expect(source).toContain("No channel spend");
+    expect(source).toMatch(/Add .*Spend Upload/i);
+    expect(source).not.toMatch(/\bMarketing\b/);
+    expect(source).not.toMatch(/0×/);
   });
 
   it("moves the Marketing mix controls into the allocation plan", () => {

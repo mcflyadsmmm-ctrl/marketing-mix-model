@@ -61,6 +61,10 @@ import {
   localDayKey,
 } from "../lib/sample-desk.server";
 
+const ALLOCATION_HEADING = "Channel Allocation";
+const ALLOCATION_CONTRAST =
+  "Shopify Analytics channel reports are sessions and attribution. This page is typed spend mix and the daily cap.";
+
 /**
  * Daily rows key named extras as `other:<slug>`. History stores display names,
  * so resolve here — a merchant must never read a raw slug like
@@ -430,7 +434,7 @@ export default function AllocationPage() {
 
   return (
     <s-page
-      heading={shotMode ? undefined : PRODUCT_NOUN.spendAllocation}
+      heading={shotMode ? undefined : ALLOCATION_HEADING}
       inlineSize="large"
     >
       <div
@@ -446,7 +450,7 @@ export default function AllocationPage() {
       >
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner
-            note={`${PRODUCT_NOUN.spendAllocation} uses SAMPLE numbers — not your live store.`}
+            note={`${ALLOCATION_HEADING} uses SAMPLE numbers — not your live store.`}
           />
         ) : null}
 
@@ -481,7 +485,7 @@ export default function AllocationPage() {
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">
-              Sales didn’t load — {PRODUCT_NOUN.spendAllocation} needs{" "}
+              Sales didn’t load — {ALLOCATION_HEADING} needs{" "}
               {PRODUCT_NOUN.totalRoas} from sales ÷ spend.
             </p>
             <div className="mcfly-state__cta">
@@ -532,8 +536,7 @@ export default function AllocationPage() {
         <header className="mcfly-topbar">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              Where the budget went this period · {PRODUCT_NOUN.totalRoas} =
-              sales ÷ spend
+              {ALLOCATION_CONTRAST}
             </p>
           </div>
           {shotMode ? (
@@ -544,7 +547,7 @@ export default function AllocationPage() {
         <div className="mcfly-ctx" aria-live="polite">
           <div className="mcfly-ctx__main">
             <span className="mcfly-ctx__brand">
-              {PRODUCT_NOUN.spendAllocation}
+              {ALLOCATION_HEADING}
             </span>
             <span className="mcfly-ctx__sep" aria-hidden="true">
               ·
@@ -619,8 +622,8 @@ export default function AllocationPage() {
             aria-label="Allocation unavailable"
           >
             <p className="mcfly-state__copy">
-              Add daily spend to see mix, best windows, and recent pace for this
-              period.
+              Add spend on Spend Upload to see mix, best windows, and the daily
+              cap. Empty spend is not a made-up mix.
             </p>
             <div className="mcfly-state__cta">
               <s-button href="/app/spend" variant="primary">
@@ -965,8 +968,8 @@ function PeriodMixSection({
       </div>
       {rows.length === 0 ? (
         <p className="mcfly-alloc-v2__empty">
-          No channel spend for {periodLabel} — log Meta, Google, and the rest on
-          Marketing.
+          No channel spend for {periodLabel}. Add it on Spend Upload — this page
+          will not fake a mix.
         </p>
       ) : (
         <>
