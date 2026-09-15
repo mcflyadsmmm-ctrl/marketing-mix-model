@@ -125,14 +125,17 @@ describe("BILLING_HONESTY", () => {
 });
 
 describe("Overview wires the formula panel and spend-add CTA", () => {
-  it("imports NumberHonestyPanel and spend-add href", () => {
+  it("keeps the formula panel off Overview; spend-add is the Spend Upload tab", () => {
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
     const marketing = readFileSync(
       join(here, "../components/MarketingSnapSection.tsx"),
       "utf8",
     );
+    const nav = readFileSync(join(here, "./desk-nav.ts"), "utf8");
     expect(marketing).toContain("NumberHonestyPanel");
-    expect(overview).toContain("spendAddHref");
+    expect(overview).not.toContain("spendAddHref");
+    expect(overview).not.toContain("<MarketingSnapSection");
+    expect(nav).toContain('label: "Spend Upload"');
     expect(overview).not.toContain("Logged via CSV");
     expect(overview).not.toContain("NUMBER_HONESTY.empty");
     expect(marketing).toContain("NUMBER_HONESTY.empty");

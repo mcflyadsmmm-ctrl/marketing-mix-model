@@ -16,13 +16,20 @@ describe("Desk period labels and Overview clocks", () => {
   it("spells out Last month and Last 12 months instead of LM / L12M", () => {
     expect(periodControl).toContain('label: "Last month"');
     expect(periodControl).toContain('label: "Last 12 months"');
+    expect(periodControl).toContain('label: "This month"');
+    expect(periodControl).toContain('label: "This quarter"');
+    expect(periodControl).toContain('label: "This year"');
     expect(periodControl).not.toContain('label: "LM"');
     expect(periodControl).not.toContain('label: "L12M"');
+    expect(periodControl).not.toContain('label: "MTD"');
+    expect(periodControl).not.toContain('label: "QTD"');
+    expect(periodControl).not.toContain('label: "YTD"');
   });
 
-  it("ties Overview explorer to the scoreboard when exRange is unset", () => {
-    expect(overview).toContain("explorerQueryMatchingScoreboard");
-    expect(overview).not.toContain('exRange") || "14d"');
+  it("keeps Overview to its three year-over-year cards", () => {
+    expect(overview).toContain("<OverviewYoyCards");
+    expect(overview).toContain("buildOverviewYoyCards");
+    expect(overview).not.toContain("SpendExplorer");
   });
 
   it("ingests LTV cohorts for every shop — LTV is not a plan gate", () => {
@@ -31,19 +38,19 @@ describe("Desk period labels and Overview clocks", () => {
     expect(overview).not.toMatch(/if \(entitlements\.canUse\w+\)/);
   });
 
-  it("prints calendar dates under Shopify Total Sales, not only “this period”", () => {
+  it("uses calendar dates for the overview share period", () => {
     expect(overview).toContain("formatPeriodDaySpan");
-    expect(overview).toContain("aria-label=\"Shopify sales this period\"");
     expect(overview).toMatch(
       /formatPeriodDaySpan\(\s*sharePeriodStartDay,\s*sharePeriodEndDay/,
     );
   });
 
-  it("keeps Spend on the same date slicer after the first save", () => {
+  it("keeps Spend chart range on the chart, not a global slicer", () => {
     const spend = read("../routes/app.spend.tsx");
     expect(spend).toContain("explorerQueryMatchingScoreboard");
+    expect(spend).toContain("shotMode ? (");
     expect(spend).toContain("<PeriodControl");
-    expect(spend).toContain("Same dates as Overview");
+    expect(spend).not.toContain("Same dates as Overview");
     expect(spend).not.toContain("Overview stays 14d");
   });
 });

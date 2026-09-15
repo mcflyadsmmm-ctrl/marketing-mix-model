@@ -5,10 +5,6 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
-const ltvSnap = readFileSync(
-  join(here, "../components/LtvSnapSection.tsx"),
-  "utf8",
-);
 const ltv = readFileSync(join(here, "../routes/app.ltv.tsx"), "utf8");
 const connections = readFileSync(
   join(here, "../routes/app.connections.tsx"),
@@ -35,10 +31,8 @@ describe("Overview / LTV tillLabel honesty", () => {
     expect(ltv).toMatch(/salesError[\s\S]*sales unavailable[\s\S]*live sales/);
   });
 
-  it("CAC delta uses tillLtv.newBuyers not facts newCustomers", () => {
-    const buyers = readFileSync(join(here, "../routes/app.buyers.tsx"), "utf8");
-    expect(buyers).toMatch(/tillLtv=\{metrics\.tillLtv\}/);
-    expect(ltvSnap).toContain("tillLtv.newBuyers");
+  it("LTV route uses tillLtv.newBuyers rather than facts newCustomers", () => {
+    expect(ltv).toContain("const ltv = metrics.tillLtv");
     expect(ltv).toContain("metrics.tillLtv.newBuyers");
     expect(overview).not.toMatch(
       /cashCac[\s\S]{0,200}metrics\.newCustomers\s*>\s*0/,
