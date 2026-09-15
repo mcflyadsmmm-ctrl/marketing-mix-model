@@ -351,8 +351,7 @@ export default function LtvPage() {
 
       <section className="mcfly-book" aria-label="What new customers spend">
         <p className="mcfly-book__lede">
-          Shopify Analytics LTV reports, if any, are not this order-history
-          first 90 days. {PRODUCT_NOUN.ltvNotInShopify}
+          Shopify Analytics shows LTV reports, if any. This page shows order-history first 90 days. {PRODUCT_NOUN.ltvNotInShopify}
         </p>
 
         {ltv.available && isNum(ltv.avgRevenueD90) ? (
