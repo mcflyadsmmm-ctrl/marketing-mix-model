@@ -73,4 +73,9 @@ describe("Marketing spend room", () => {
     expect(room).not.toContain("CashControlBoard.tsx");
   });
 
+  it("mounts the spend room on Total ROAS, not Spend Upload", () => {
+    const roas = read("../routes/app.roas.tsx");
+    expect(roas).toContain("<MarketingSpendRoom");
+    expect(roas).toContain('from "../components/MarketingSpendRoom"');
+  });
 });

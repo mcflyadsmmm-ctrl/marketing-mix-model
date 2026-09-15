@@ -6,6 +6,8 @@ import {
   EXPLORER_RANGE_OPTIONS,
   compareExplorerBuckets,
   dateKeyFromLocal,
+  explorerBucketDateRange,
+  clampExplorerRangeToAsOf,
   explorerLegendChannels,
   explorerMerCeil,
   explorerMoneyCeil,
@@ -55,9 +57,9 @@ type SpendExplorerProps = {
   shotMode?: boolean;
   /**
    * Where range / granularity clicks stay. Overview defaults to `/app`.
-   * Upload Spend and Spend Allocation keep drill-downs on their own route.
+   * Total ROAS, Upload Spend, and Spend Allocation keep drill-downs on-route.
    */
-  basePath?: "/app" | "/app/spend" | "/app/allocation";
+  basePath?: "/app" | "/app/spend" | "/app/allocation" | "/app/roas";
   /**
    * This-period-vs-prior comparison (day vs previous day, week vs previous
    * week, …) in the ROAS tip + a summary row. Default off — Overview
@@ -66,6 +68,11 @@ type SpendExplorerProps = {
   compare?: boolean;
   /** Layout — "spend" trims chrome for the Spend tab embed. */
   variant?: SpendExplorerVariant;
+  /**
+   * Embedded under a scoreboard that already names the window: drop the heading
+   * and the range / grain rail. Chip clicks still set custom dates via the URL.
+   */
+  quiet?: boolean;
 };
 
 /** "overview" = full chrome (default); "spend" = compact embed. */
@@ -139,13 +146,13 @@ function explorerVariantClass(variant: SpendExplorerVariant): string {
 function granCompareNoun(granularity: ExplorerGranularity): string {
   switch (granularity) {
     case "Day":
-      return "day";
+      return "the day before";
     case "Week":
-      return "week";
+      return "last week";
     case "Month":
-      return "month";
+      return "last month";
     case "Quarter":
-      return "quarter";
+      return "last quarter";
     default: {
       const _exhaustive: never = granularity;
       return _exhaustive;
@@ -372,6 +379,7 @@ export function SpendExplorer({
   basePath = "/app",
   compare = false,
   variant = "overview",
+  quiet = false,
 }: SpendExplorerProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -415,7 +423,9 @@ export function SpendExplorer({
   const salesLead = series.summary.totalSpend <= 0;
   const explorerTitle = salesLead
     ? PRODUCT_NOUN.salesExplorer
-    : PRODUCT_NOUN.explorer;
+    : series.range === "14d" && series.granularity === "Day"
+      ? "Daily spend by channel vs Total ROAS · last 14 closed days"
+      : PRODUCT_NOUN.explorer;
 
   const defaultKey =
     [...visibleBuckets]
@@ -577,16 +587,25 @@ export function SpendExplorer({
     };
   }
 
-  function goCustomDates(from: string, to: string) {
+  function goCustomDates(from: string, to: string, gran?: ExplorerGranularity) {
     if (!from || !to) return;
     navigate(
       toExplorer({
         range: "custom",
+        gran: gran ?? series.granularity,
         from,
         to,
       }),
       { preventScrollReset: true },
     );
+  }
+
+  function openBucketDays(bucketKey: string) {
+    const span = explorerBucketDateRange(bucketKey, series.granularity);
+    if (!span) return;
+    const clamped = clampExplorerRangeToAsOf(span, series.asOfKey || series.toKey);
+    if (!clamped) return;
+    goCustomDates(clamped.fromKey, clamped.toKey, "Day");
   }
 
   function onDateSubmit(e: FormEvent) {
@@ -656,14 +675,17 @@ export function SpendExplorer({
 
   return (
     <section
+      id="mcfly-chart"
       className={`mcfly-panel mcfly-explorer mcfly-explorer--lean${explorerVariantClass(variant)}`}
       aria-label={explorerTitle}
     >
-      <div className="mcfly-panel__head mcfly-explorer__head mcfly-explorer__head--lean">
-        <h2>{explorerTitle}</h2>
-      </div>
+      {quiet ? null : (
+        <div className="mcfly-panel__head mcfly-explorer__head mcfly-explorer__head--lean">
+          <h2>{explorerTitle}</h2>
+        </div>
+      )}
 
-      {!shotMode ? (
+      {!shotMode && !quiet ? (
         <div className="mcfly-explorer__controls">
           <div
             className="mcfly-explorer__segmented"
@@ -692,7 +714,7 @@ export function SpendExplorer({
             onSubmit={onDateSubmit}
           >
             <label className="mcfly-explorer__date">
-              FROM
+              From
               <input
                 type="date"
                 name="exFrom"
@@ -702,7 +724,7 @@ export function SpendExplorer({
               />
             </label>
             <label className="mcfly-explorer__date">
-              TO
+              To
               <input
                 type="date"
                 name="exTo"
@@ -749,6 +771,7 @@ export function SpendExplorer({
             })}
           </div>
 
+          {quiet && salesLead ? null : (
           <div
             className="mcfly-explorer__segmented"
             role="group"
@@ -774,7 +797,9 @@ export function SpendExplorer({
               );
             })}
           </div>
+          )}
 
+          {quiet && salesLead ? null : (
           <button
             type="button"
             className={`mcfly-explorer__sales-toggle${showSales ? " mcfly-explorer__sales-toggle--on" : ""}${isShare ? " mcfly-explorer__sales-toggle--disabled" : ""}`}
@@ -800,6 +825,7 @@ export function SpendExplorer({
           >
             Sales
           </button>
+          )}
         </div>
       ) : null}
 
@@ -932,7 +958,7 @@ export function SpendExplorer({
                         y={yMer(breakEvenMer) - 4}
                         textAnchor="start"
                       >
-                        BE {formatMer(breakEvenMer)}×
+                        Break-even {formatMer(breakEvenMer)}×
                       </text>
                     </g>
                   ) : null}
@@ -985,6 +1011,10 @@ export function SpendExplorer({
                           height={PLOT_H}
                           onPointerDown={(e) => {
                             if (e.button !== 0) return;
+                            if (isOn && series.granularity !== "Day") {
+                              openBucketDays(bucket.key);
+                              return;
+                            }
                             setSelectedKey(bucket.key);
                           }}
                         />
@@ -1018,6 +1048,10 @@ export function SpendExplorer({
                               onPointerDown={(e) => {
                                 if (e.button !== 0) return;
                                 e.stopPropagation();
+                                if (isOn && series.granularity !== "Day") {
+                                  openBucketDays(bucket.key);
+                                  return;
+                                }
                                 setSelectedKey(bucket.key);
                                 setHover({
                                   kind: "seg",
@@ -1156,7 +1190,7 @@ export function SpendExplorer({
                         </span>
                         {tipCmp?.hasPrior ? (
                           <span className="mcfly-explorer__tip-prior">
-                            Prior {compareNoun} ({tipCmp.priorLabel}): spend{" "}
+                            vs {compareNoun} ({tipCmp.priorLabel}): spend{" "}
                             {formatCurrency(tipCmp.priorSpend ?? 0)} ·{" "}
                             {PRODUCT_NOUN.totalRoas}{" "}
                             {formatMer(tipCmp.priorMer)}
@@ -1195,6 +1229,29 @@ export function SpendExplorer({
             </div>
           </div>
 
+          {selected && !shotMode ? (
+            <div className="mcfly-explorer__picked">
+              <p>
+                <strong>{selected.label}</strong>
+                {" · "}
+                {bucketMerPhrase(selected)}
+              </p>
+              {series.granularity !== "Day" ? (
+                <button
+                  type="button"
+                  className="mcfly-explorer__btn"
+                  onClick={() => openBucketDays(selected.key)}
+                >
+                  Open these days
+                </button>
+              ) : (
+                <span className="mcfly-explorer__picked-hint">
+                  Click another column to compare.
+                </span>
+              )}
+            </div>
+          ) : null}
+
           {compare && selectedCmp && !shotMode ? (
             <p className="mcfly-explorer__compare" aria-live="polite">
               {selectedCmp.hasPrior ? (
@@ -1202,7 +1259,7 @@ export function SpendExplorer({
                   <strong>{selectedCmp.label}</strong>
                   <span className="mcfly-explorer__compare-vs">
                     {" "}
-                    vs prior {compareNoun} ({selectedCmp.priorLabel})
+                    vs {compareNoun} ({selectedCmp.priorLabel})
                   </span>
                   {" · spend "}
                   {formatCurrency(selectedCmp.spend)}{" "}
@@ -1242,7 +1299,7 @@ export function SpendExplorer({
                   <strong>{selectedCmp.label}</strong>
                   <span className="mcfly-explorer__compare-vs">
                     {" "}
-                    — no prior {compareNoun} in this window
+                    — no {compareNoun} in this window
                   </span>
                 </>
               )}

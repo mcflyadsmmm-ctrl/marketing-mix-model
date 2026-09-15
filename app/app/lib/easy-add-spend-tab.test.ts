@@ -54,7 +54,7 @@ describe("Spend day card", () => {
 
   it("keeps explorer drill-down on Spend when embedded", () => {
     expect(explorer).toContain(
-      'basePath?: "/app" | "/app/spend" | "/app/allocation"',
+      'basePath?: "/app" | "/app/spend" | "/app/allocation" | "/app/roas"',
     );
     expect(explorer).toContain("pathname: basePath");
     expect(explorer).toContain("compareExplorerBuckets");
@@ -244,5 +244,20 @@ describe("Import or backfill", () => {
 
   it("does not repeat the no-login manifesto — that lives once on Spend", () => {
     expect(spendImport).not.toContain("Why no ad-account connection?");
+  });
+});
+
+describe("Total ROAS page", () => {
+  it("owns the explorer and formula, not spend entry", () => {
+    const roas = read("../routes/app.roas.tsx");
+    expect(roas).toContain("<SpendExplorer");
+    expect(roas).toContain("<DualCloseLine");
+    expect(roas).toContain("<MonthlyPacing");
+    expect(roas).toContain("PRODUCT_NOUN.definition");
+    expect(roas).toContain("quiet={false}");
+    expect(roas).toContain('href="/app/spend"');
+    expect(roas).not.toContain("mcfly-spend-add");
+    expect(roas).not.toContain("0.00×");
+    expect(roas).not.toContain("export const action");
   });
 });
