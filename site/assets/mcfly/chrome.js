@@ -1,4 +1,4 @@
-/* McFly chrome v11 — app-first. Demo · Pricing · About. Custom parked. */
+/* McFly chrome v14 — listing live. Product mark Mcfly Analytics. Firm Mcfly Ads in footer. */
 (function () {
   function ensureMeta(name, content) {
     if (document.querySelector('meta[name="' + name + '"]')) return;
@@ -7,8 +7,14 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v11");
-  ensureMeta("mcfly-build", "app-first");
+  ensureMeta("mcfly-version", "v16");
+  ensureMeta("mcfly-build", "fly311-desk");
+
+  var LISTING = "https://apps.shopify.com/mcfly-analytics-public";
+  var primary =
+    window.MCFLY_CTA && typeof window.MCFLY_CTA.primary === "function"
+      ? window.MCFLY_CTA.primary()
+      : { label: "Install", href: LISTING };
 
   var path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
   var mount = document.querySelector("[data-chrome]");
@@ -21,13 +27,17 @@
     return "";
   }
 
+  var ctaRel = /^https?:\/\//.test(primary.href)
+    ? ' rel="noopener noreferrer"'
+    : "";
+
   if (mount) {
     mount.innerHTML =
       '<header class="nav" id="nav">' +
       '<div class="nav__inner">' +
-      '<a class="nav__brand" href="/" aria-label="Mcfly Ads">' +
-      '<img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />' +
-      'Mcfly <span class="nav__brand-sub">Ads</span>' +
+      '<a class="nav__brand" href="/" aria-label="Mcfly Analytics">' +
+      '<img src="/assets/brand/mcfly-m.png" width="32" height="32" alt="" />' +
+      'Mcfly <span class="nav__brand-sub">Analytics</span>' +
       "</a>" +
       '<nav class="nav__links" aria-label="Primary">' +
       '<a href="/demo"' +
@@ -39,7 +49,13 @@
       '<a href="/about"' +
       active("/about") +
       ">About</a>" +
-      '<a class="nav__cta" href="/demo">Try the demo</a>' +
+      '<a class="nav__cta" href="' +
+      primary.href +
+      '"' +
+      ctaRel +
+      ">" +
+      primary.label +
+      "</a>" +
       "</nav>" +
       '<button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-panel" aria-label="Open menu">' +
       "<span></span><span></span>" +
@@ -49,7 +65,13 @@
       '<a href="/demo">Demo</a>' +
       '<a href="/pricing">Pricing</a>' +
       '<a href="/about">About</a>' +
-      '<a href="/demo">Try the demo</a>' +
+      '<a href="' +
+      primary.href +
+      '"' +
+      ctaRel +
+      ">" +
+      primary.label +
+      "</a>" +
       "</div>" +
       "</header>";
 
@@ -75,7 +97,7 @@
       '<footer class="foot">' +
       '<div class="container foot__grid">' +
       '<div class="foot__brand">' +
-      '<img src="/assets/brand/mcfly-m.svg" width="24" height="24" alt="" />' +
+      '<img src="/assets/brand/mcfly-m.png" width="28" height="28" alt="" />' +
       "<span>Mcfly Ads</span>" +
       "</div>" +
       '<nav aria-label="Footer">' +

@@ -1,4 +1,4 @@
-/* McFly chrome v11 — Fly/legacy pages still load this file. App-first nav. Same studio markup. */
+/* McFly chrome v12 — Fly/legacy pages. Same product mark as mcfly/chrome.js. */
 (function () {
   function ensureMeta(name, content) {
     if (document.querySelector('meta[name="' + name + '"]')) return;
@@ -7,8 +7,17 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v11");
-  ensureMeta("mcfly-build", "app-first");
+  ensureMeta("mcfly-version", "v16");
+  ensureMeta("mcfly-build", "fly311-desk");
+
+  var LISTING = "https://apps.shopify.com/mcfly-analytics-public";
+  var primary =
+    window.MCFLY_CTA && typeof window.MCFLY_CTA.primary === "function"
+      ? window.MCFLY_CTA.primary()
+      : { label: "Install", href: LISTING };
+  var ctaRel = /^https?:\/\//.test(primary.href)
+    ? ' rel="noopener noreferrer"'
+    : "";
 
   var path = (location.pathname.replace(/\/$/, "") || "/").toLowerCase();
   var chrome = document.querySelector("[data-chrome]");
@@ -24,9 +33,9 @@
   if (chrome) {
     chrome.innerHTML =
       '<header class="top top--studio" data-top>' +
-      '<a class="brand" href="/" aria-label="Mcfly Ads">' +
-      '<img class="brand-mark-img" src="/assets/brand/mcfly-m.svg" width="32" height="32" alt="" />' +
-      '<span class="brand-name">Mcfly <span class="brand-name-sub">Ads</span></span>' +
+      '<a class="brand" href="/" aria-label="Mcfly Analytics">' +
+      '<img class="brand-mark-img" src="/assets/brand/mcfly-m.png" width="32" height="32" alt="" />' +
+      '<span class="brand-name">Mcfly <span class="brand-name-sub">Analytics</span></span>' +
       "</a>" +
       '<nav class="nav nav--studio" aria-label="Primary">' +
       '<a href="/demo"' +
@@ -38,7 +47,13 @@
       '<a href="/about"' +
       navActive("/about") +
       ">About</a>" +
-      '<a class="nav-cta" href="/demo">Try the demo</a>' +
+      '<a class="nav-cta" href="' +
+      primary.href +
+      '"' +
+      ctaRel +
+      ">" +
+      primary.label +
+      "</a>" +
       "</nav>" +
       '<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">' +
       "<span></span><span></span>" +
@@ -48,7 +63,13 @@
       '<a href="/demo">Demo</a>' +
       '<a href="/pricing">Pricing</a>' +
       '<a href="/about">About</a>' +
-      '<a href="/demo">Try the demo</a>' +
+      '<a href="' +
+      primary.href +
+      '"' +
+      ctaRel +
+      ">" +
+      primary.label +
+      "</a>" +
       "</div>";
   }
 
@@ -57,7 +78,7 @@
       '<footer class="foot foot--studio">' +
       '<div class="wrap foot-grid">' +
       '<div class="foot-brand">' +
-      '<img src="/assets/brand/mcfly-m.svg" width="28" height="28" alt="" />' +
+      '<img src="/assets/brand/mcfly-m.png" width="28" height="28" alt="" />' +
       "<span>Mcfly Ads</span>" +
       "</div>" +
       '<nav aria-label="Footer">' +

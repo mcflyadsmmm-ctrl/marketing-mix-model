@@ -3,39 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sample desk — Mcfly</title>
-  <meta name="description" content="Click around a sample Total ROAS desk: Shopify sales after returns ÷ ad spend, break-even from margin, Export memo preview. SAMPLE data only — no install." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
   <link rel="icon" href="/favicon-192.png" type="image/png" sizes="192x192" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#0a1221" />
-  <link rel="canonical" href="https://mcfly-analytics.fly.dev/demo" />
-  <meta property="og:site_name" content="Mcfly Ads" />
+  <meta name="theme-color" content="#f2f5f8" />
+  <title>Demo — Shopify order desk | Mcfly Analytics</title>
+  <meta name="description" content="Walk the SAMPLE Overview: year-over-year sales, typical order, returning buyers. Add spend on Spend Upload when you want sales ÷ spend. No install." />
+  <link rel="canonical" href="https://mcflyads.com/demo" />
+  <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://mcfly-analytics.fly.dev/demo" />
-  <meta property="og:title" content="Sample desk — Mcfly" />
-  <meta property="og:description" content="Toggle MTD / QTD / YTD on a Sample desk. Sales ÷ spend vs break-even. No path credit." />
-  <meta property="og:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
+  <meta property="og:url" content="https://mcflyads.com/demo" />
+  <meta property="og:title" content="Demo — Shopify order desk | Mcfly Analytics" />
+  <meta property="og:description" content="Toggle periods on SAMPLE data. Overview first; Total ROAS only after spend. No path credit." />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Sample desk — Mcfly" />
-  <meta name="twitter:description" content="Sample desk — sales after returns ÷ spend, break-even, Export memo. No install required." />
-  <meta name="twitter:image" content="https://mcfly-analytics.fly.dev/assets/brand/og-cash-mer.jpg" />
+  <meta name="twitter:title" content="Demo — Shopify order desk | Mcfly Analytics" />
+  <meta name="twitter:description" content="Same Overview as the Shopify app. SAMPLE data — no install required." />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
-  <link rel="stylesheet" href="/assets/site.css?v=20260825live" />
+  <link rel="stylesheet" href="/assets/site.css?v=20260829v13" />
   <link rel="stylesheet" href="/assets/demo-desk.css?v=20260825live" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "Sample desk — Mcfly Analytics",
-    "url": "https://mcfly-analytics.fly.dev/demo",
-    "description": "Interactive sample Total ROAS desk using demo data only. Shopify sales after returns ÷ ad spend. No pixels.",
+    "name": "Demo — Shopify order desk | Mcfly Analytics",
+    "url": "https://mcflyads.com/demo",
+    "description": "Interactive SAMPLE Overview using demo data. Shopify order stats first; Total ROAS after spend. No pixels.",
     "isPartOf": {
       "@type": "WebSite",
-      "name": "Mcfly Ads",
-      "url": "https://mcfly-analytics.fly.dev/"
+      "name": "Mcfly Analytics",
+      "url": "https://mcflyads.com/"
     }
   }
   </script>
@@ -44,8 +45,8 @@
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcfly-analytics.fly.dev/" },
-      { "@type": "ListItem", "position": 2, "name": "Sample desk", "item": "https://mcfly-analytics.fly.dev/demo" }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mcflyads.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Demo", "item": "https://mcflyads.com/demo" }
     ]
   }
   </script>
@@ -56,25 +57,23 @@
 
   <main id="main">
     <header class="page-hero">
-      <p class="brand-kicker">Mcfly <span class="ads">Ads</span></p>
-      <h1>Sample desk</h1>
-      <p>Play a fake store without installing. Same trusted math: sales ÷ spend vs break-even. SAMPLE data only.</p>
+      <p class="brand-kicker">Mcfly <span class="ads">Analytics</span></p>
+      <h1>See the same Overview as the Shopify app.</h1>
+      <p>Typical order, weekends, returning sales — SAMPLE data. Add spend on Spend Upload when you want sales ÷ spend. No install.</p>
       <div class="demo-hero-meta">
-        <span class="demo-sample-badge"><i aria-hidden="true"></i> SAMPLE · Northline Supply</span>
+        <span class="demo-sample-badge"><i aria-hidden="true"></i> SAMPLE · not a live client</span>
       </div>
       <div class="cta-row demo-hero-actions">
-        <a class="btn primary solid" href="#dd-desk">Try the Sample desk</a>
-        <a class="btn ghost" href="/mer-calculator">Your numbers in 60s →</a>
-        <a class="btn ghost" href="/monday-close">Monday Close memo</a>
-        <a class="btn ghost" data-mcfly-cta="primary" href="/demo">Try the demo</a>
+        <a class="btn primary solid" href="#dd-desk">Open the desk</a>
+        <a class="btn ghost" href="/pricing">Pricing — $39/mo</a>
       </div>
-      <p class="fine-line" style="margin-top:0.75rem">Sample data shows the whole desk (Spend, Overview, LTV, Goals). Live data = this shop’s Shopify sales + uploaded spend. Pricing: <a href="/pricing">7-day trial then $39/store/mo</a>. Want <strong>your</strong> numbers? <a href="/mer-calculator">ROAS calculator</a> — no account.</p>
+      <p class="fine-line" style="margin-top:0.75rem">Sample data shows Overview, Orders-class stats, Goals, and optional Marketing. Live data = this shop’s Shopify sales + spend you add. One plan: <a href="/pricing">7-day trial then $39/store/mo</a>.</p>
     </header>
 
     <aside class="demo-howto" aria-label="How to use this demo">
       <p class="demo-howto__kicker">How to use this demo</p>
       <ul class="demo-howto__list">
-        <li>Walk the tabs: <strong>Overview → Spend → Goals → Mix → Explorer → Close → Settings</strong></li>
+        <li>Walk the tabs: <strong>Overview → Spend Upload → Goals → Settings</strong></li>
         <li>Toggle <strong>Last 7d / MTD / QTD / YTD</strong> — same sales ÷ spend math, new window</li>
         <li>Click a <strong>KPI</strong> or <strong>channel row</strong> for the formula and next move</li>
         <li>When it clicks, see <a href="/pricing">pricing</a> (7-day trial then $39) — SAMPLE numbers stay SAMPLE</li>
@@ -92,8 +91,8 @@
 
         <div class="dd-topbar">
           <div>
-            <h2 class="dd-topbar__title">Total ROAS</h2>
-            <p class="dd-topbar__def">Sales after returns ÷ ad spend · not platform ROAS</p>
+            <h2 class="dd-topbar__title">Overview</h2>
+            <p class="dd-topbar__def">Shopify Total Sales and order stats · spend optional</p>
           </div>
           <p class="dd-topbar__shop">
             Northline Supply
@@ -103,11 +102,8 @@
 
         <nav class="dd-nav" aria-label="Desk sections">
           <button type="button" class="dd-nav__btn" data-dd-nav="overview" aria-current="true">Overview</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="spend">Spend</button>
+          <button type="button" class="dd-nav__btn" data-dd-nav="spend">Spend Upload</button>
           <button type="button" class="dd-nav__btn" data-dd-nav="goals">Goals</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="mix">Mix</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="explorer">Explorer</button>
-          <button type="button" class="dd-nav__btn" data-dd-nav="close">Close</button>
           <button type="button" class="dd-nav__btn" data-dd-nav="settings">Settings</button>
         </nav>
 
@@ -134,66 +130,28 @@
 
         <div id="dd-sec-overview" class="dd-sec" data-dd-section="overview">
           <section class="dd-decision" aria-labelledby="dd-decision-takeaway">
-            <p class="dd-decision__kicker">Budget call</p>
-            <p class="dd-decision__takeaway" id="dd-decision-takeaway">Above target on sales after returns ÷ spend.</p>
-            <p class="dd-decision__why" id="dd-decision-why">MTD Total ROAS clears the 4.00× target and break-even.</p>
+            <p class="dd-decision__kicker">What to notice</p>
+            <p class="dd-decision__takeaway" id="dd-decision-takeaway">Typical order and returning buyers — spend is optional.</p>
+            <p class="dd-decision__why" id="dd-decision-why">MTD SAMPLE: Shopify sales first. Add spend on Spend Upload when you want Total ROAS.</p>
             <div class="dd-decision__actions">
-              <a class="dd-decision__verb" data-mcfly-cta="primary" href="/demo">Try the demo</a>
+              <a class="dd-decision__verb" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">Install</a>
               <a class="dd-decision__link" href="/product">Product →</a>
             </div>
           </section>
 
-          <aside class="dd-claim" id="dd-claim" aria-label="Claimed versus cash Total ROAS">
-            <div class="dd-claim__col dd-claim__col--lie">
-              <p class="dd-claim__kicker">Platforms claim</p>
-              <p class="dd-claim__value" id="dd-claim-lie">~4.8×</p>
-              <p class="dd-claim__note">Path credit · SAMPLE</p>
-            </div>
-            <div class="dd-claim__vs" aria-hidden="true">vs</div>
-            <div class="dd-claim__col dd-claim__col--truth">
-              <p class="dd-claim__kicker">Cash Total ROAS</p>
-              <p class="dd-claim__value" id="dd-claim-truth">4.19×</p>
-              <p class="dd-claim__note">sales after returns ÷ spend</p>
-            </div>
-            <p class="dd-claim__foot">Same spend. Total Sales ≠ path credit.</p>
-            <button
-              type="button"
-              class="dd-claim__toggle"
-              id="dd-claim-toggle"
-              aria-expanded="false"
-              aria-controls="dd-claim-why"
-            >
-              <span class="dd-claim__toggle-label">Why platforms disagree with Total Sales</span>
-              <span class="dd-claim__chev" aria-hidden="true"></span>
-            </button>
-            <div class="dd-claim__why" id="dd-claim-why" hidden>
-              <div class="dd-claim__why-inner">
-                <p>
-                  Ads Managers count path credit, view-through, and overlapping clicks.
-                  Mcfly counts <strong>Total Sales ÷ ad spend</strong> for the same window —
-                  one cash number finance and media can both defend.
-                </p>
-                <p>
-                  When platforms claim ~4.8× and cash shows lower, believe Total Sales.
-                  No pixels. No path graph. The left number is sample path credit — not something we ship.
-                </p>
-              </div>
-            </div>
-          </aside>
-
           <div class="dd-kpi-grid">
-            <button type="button" class="dd-kpi dd-kpi--lead dd-kpi--drill" data-dd-kpi="mer" aria-haspopup="dialog">
-              <span class="dd-kpi__label">Total ROAS</span>
-              <span class="dd-kpi__value" id="dd-kpi-mer">4.19×</span>
-              <span class="dd-kpi__formula">sales after returns ÷ ad spend</span>
-              <span class="dd-kpi__delta" id="dd-kpi-mer-delta">+0.28× vs prior · +1.33× vs BE</span>
-              <span class="dd-kpi__hint">Click for detail</span>
-            </button>
-            <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="sales" aria-haspopup="dialog">
+            <button type="button" class="dd-kpi dd-kpi--lead dd-kpi--drill" data-dd-kpi="sales" aria-haspopup="dialog">
               <span class="dd-kpi__label">Total Sales</span>
               <span class="dd-kpi__value" id="dd-kpi-sales">$412,400</span>
               <span class="dd-kpi__sub" id="dd-kpi-sales-sub">Order totals $468,200 · Ads Manager–comparable</span>
               <span class="dd-kpi__delta" id="dd-kpi-sales-delta">+$34,200 vs prior</span>
+              <span class="dd-kpi__hint">Click for detail</span>
+            </button>
+            <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="mer" aria-haspopup="dialog">
+              <span class="dd-kpi__label">Total ROAS</span>
+              <span class="dd-kpi__value" id="dd-kpi-mer">4.19×</span>
+              <span class="dd-kpi__formula">sales after returns ÷ ad spend</span>
+              <span class="dd-kpi__delta" id="dd-kpi-mer-delta">+0.28× vs prior · +1.33× vs BE</span>
               <span class="dd-kpi__hint">Click for detail</span>
             </button>
             <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="spend" aria-haspopup="dialog">
@@ -336,6 +294,43 @@
         </div>
 
         <div id="dd-sec-spend" class="dd-sec" data-dd-section="spend" hidden>
+          <aside class="dd-claim" id="dd-claim" aria-label="Claimed versus cash Total ROAS">
+            <div class="dd-claim__col dd-claim__col--lie">
+              <p class="dd-claim__kicker">Platforms claim</p>
+              <p class="dd-claim__value" id="dd-claim-lie">~4.8×</p>
+              <p class="dd-claim__note">Path credit · SAMPLE</p>
+            </div>
+            <div class="dd-claim__vs" aria-hidden="true">vs</div>
+            <div class="dd-claim__col dd-claim__col--truth">
+              <p class="dd-claim__kicker">Cash Total ROAS</p>
+              <p class="dd-claim__value" id="dd-claim-truth">4.19×</p>
+              <p class="dd-claim__note">sales after returns ÷ spend</p>
+            </div>
+            <p class="dd-claim__foot">Same spend. Total Sales ≠ path credit.</p>
+            <button
+              type="button"
+              class="dd-claim__toggle"
+              id="dd-claim-toggle"
+              aria-expanded="false"
+              aria-controls="dd-claim-why"
+            >
+              <span class="dd-claim__toggle-label">Why platforms disagree with Total Sales</span>
+              <span class="dd-claim__chev" aria-hidden="true"></span>
+            </button>
+            <div class="dd-claim__why" id="dd-claim-why" hidden>
+              <div class="dd-claim__why-inner">
+                <p>
+                  Ads Managers count path credit, view-through, and overlapping clicks.
+                  Mcfly counts <strong>Total Sales ÷ ad spend</strong> for the same window —
+                  one cash number finance and media can both defend.
+                </p>
+                <p>
+                  When platforms claim ~4.8× and cash shows lower, believe Total Sales.
+                  No pixels. No path graph. The left number is sample path credit — not something we ship.
+                </p>
+              </div>
+            </div>
+          </aside>
           <section class="dd-panel dd-spend" aria-labelledby="dd-spend-title">
             <div class="dd-panel__head">
               <h2 id="dd-spend-title">Daily spend by platform</h2>
@@ -584,8 +579,8 @@
 
         <section id="dd-sec-close" class="dd-close dd-sec" data-dd-section="close" hidden aria-labelledby="dd-close-title">
           <div class="dd-close__head">
-            <h2 class="dd-close__title" id="dd-close-title">Export memo · preview</h2>
-            <p class="dd-close__sub">Read-only Monday Close ritual · SAMPLE</p>
+            <h2 class="dd-close__title" id="dd-close-title">Share Overview · preview</h2>
+            <p class="dd-close__sub">Forward the period yourself · SAMPLE</p>
           </div>
           <ol class="dd-close-ritual" aria-label="Close ritual steps">
             <li class="dd-close-ritual__step dd-close-ritual__step--done">
@@ -608,17 +603,17 @@
           <div class="dd-close__panel">
             <h3>Decision</h3>
             <p id="dd-close-decision">
-              Decision preview: Hold Meta · step-test −10% Google. Save and export this Monday Close memo after exceptions are clear — illustrative only.
+              Decision preview: Hold Meta · step-test −10% Google. Share Overview after exceptions are clear — illustrative only.
             </p>
             <p>
               Average channel Total ROAS <strong>≠</strong> marginal. No pixels. No path credit.
             </p>
             <p class="dd-close__app-note">
-              In app: save + CSV export of the week. This page is preview only.
+              In app: share Overview yourself. This page is preview only.
             </p>
             <p class="dd-close__sub" style="margin-top:0.75rem">
-              <a href="/monday-close">Forwardable Monday Close memo →</a>
-              · <a href="/platform-variance">Platform variance sample →</a>
+              <a href="/product">What’s in the desk →</a>
+              · <a href="/pricing">Pricing — $39/mo →</a>
             </p>
           </div>
         </section>
@@ -702,12 +697,12 @@
       <h2 id="seeing-title" class="display">Three truths.<br />No path credit.</h2>
       <ul class="demo-seeing__grid">
         <li>
-          <h3>Transparent ROAS</h3>
-          <p>Total Sales ÷ ad spend for the same window — with profit margin, goals, and allocate-to-grow. Order totals are secondary for Ads Manager comparison only.</p>
+          <h3>Order intelligence first</h3>
+          <p>Total Sales, typical order, returning buyers, weekends — from Shopify orders. Spend is optional.</p>
         </li>
         <li>
-          <h3>Daily spend by platform</h3>
-          <p>Pick platforms → blank template → Sheets Import → paste on Spend. SyncWith / Coupler / Supermetrics optional — you pay them; we don’t claim “Works with.”</p>
+          <h3>Spend Upload when you want it</h3>
+          <p>Type a day or paste Ads Manager CSV. Total ROAS = Shopify Total Sales ÷ the spend you added. Not platform ROAS.</p>
         </li>
         <li>
           <h3>No pixels</h3>
@@ -718,10 +713,10 @@
   </main>
 
   <div data-footer></div>
-  <script src="/assets/cta-config.js?v=20260825live"></script>
-  <script src="/assets/chrome.js?v=20260825live"></script>
+  <script src="/assets/cta-config.js?v=20260910v16"></script>
+  <script src="/assets/chrome.js?v=20260910v16"></script>
   <script src="/assets/app.js?v=20260825live"></script>
-  <script src="/assets/demo-desk.js?v=20260825live"></script>
+  <script src="/assets/demo-desk.js?v=20260910v16"></script>
   <script src="/assets/spend-explorer-demo.js?v=20260825live"></script>
 </body>
 </html>

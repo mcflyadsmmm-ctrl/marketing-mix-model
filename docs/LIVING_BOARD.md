@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-15 · America/Denver · Fly **311** Pass B 11-tab desk |
-| **Live** | https://mcflyads.com · `mcfly-version` **v15** (Pages `c705a2ff`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **Fly** | https://mcfly-analytics.fly.dev · version **311** · image `deployment-01M2JGZGY5F1GXV1FY44DRVY95` · `/health` db up · `/app` 200 · Pass B: Overview · Customers · Growth · Orders · LTV · Spend Upload · Total ROAS · Channel Allocation · YoY · CPA · Goals · Settings |
+| **Updated** | 2026-09-15 · America/Denver · Fly **312** · site **v16** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v16** (Pages `241ebffc`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
+| **Fly** | https://mcfly-analytics.fly.dev · version **312** · image `deployment-01M2JJ0WQX67BAY2VXTPTBCNVC` · `/health` db up · `/app` 200 · Pass B + Shopify-gap ledes · Overview · Customers · Growth · Orders · LTV · Spend Upload · Total ROAS · Channel Allocation · YoY · CPA · Goals · Settings |
 | **North star** | Sell **Mcfly Analytics** Shopify app — 7-day trial then **$39**/store/mo. Public mark, titles, favicons, OG = one name. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -80,9 +80,9 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 
 ## Open gates (human)
 
-- [x] **Fly deploy** — `/app` `/auth/login` `/health` **200** · **v311** 2026-09-15 (Pass B 11-tab desk + honesty fix; Pass A was v309) · image `deployment-01M2JGZGY5F1GXV1FY44DRVY95`
+- [x] **Fly deploy** — `/app` `/auth/login` `/health` **200** · **v312** 2026-09-15 (Pass B + Shopify-gap ledes) · image `deployment-01M2JJ0WQX67BAY2VXTPTBCNVC`
 - [x] App Store listing live → `MCFLY_APP_STORE_LIVE=true` · https://apps.shopify.com/mcfly-analytics-public
-- [ ] **Site v16 Pages** — copy is in `site/` (demo/pricing/product match the desk). Direct Upload needs founder approve. Home H1 already sales-first (v15).
+- [x] **Site v16 Pages** — 11-tab copy · Install CTA · Harbor SAMPLE · Pages `241ebffc` · journal [`ops/journal/STATUS_20260915_v16.md`](./ops/journal/STATUS_20260915_v16.md)
 - [ ] **Partner listing paste** — sales-first pack in [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md). Marty Submits. Reviews: **0**
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
@@ -91,9 +91,10 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v13 live** — original ribbon M + paper/sky · Pages `89d97ad4` · journal [`ops/journal/STATUS_20260829_v13.md`](./ops/journal/STATUS_20260829_v13.md)
 - [x] **v14 live** — listing CTA Install · Pages `7efa4ed2` · journal [`ops/journal/STATUS_20260908_v14.md`](./ops/journal/STATUS_20260908_v14.md)
 - [x] **v15 live** — sales-first H1 · Pages `c705a2ff` · journal [`ops/journal/STATUS_20260910_v15.md`](./ops/journal/STATUS_20260910_v15.md)
+- [x] **v16 live** — 11-tab desk copy · Pages `241ebffc` · journal [`ops/journal/STATUS_20260915_v16.md`](./ops/journal/STATUS_20260915_v16.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Human: **Admin smoke on Fly 311** — type one spend day → Total ROAS paints; empty CPA is not $0; Allocation has no explorer; YoY missing last year is honest; Spend Upload heading matches nav. Partner paste from `docs/PARTNER_TESTING_INSTRUCTIONS.md`. Recapture listing shots (Buyers/Timing stale). Reviews: **0**. Ads off.
+**Next:** Human: **Admin smoke on Fly 312** — type one spend day → Total ROAS; empty CPA is not $0; Allocation has no explorer; YoY missing last year is honest. Partner paste from `docs/PARTNER_TESTING_INSTRUCTIONS.md`. Recapture listing shots (Buyers/Timing stale). Reviews: **0**. Ads off.
 
 ---
 
@@ -118,3 +119,4 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 | v13 | `89d97ad4` | Original ribbon M + paper/sky light craft |
 | v14 | `7efa4ed2` | Listing live · nav CTA Install → `mcfly-analytics-public` |
 | v15 | `c705a2ff` | Sales-first H1 · spend optional · Harbor SAMPLE below the fold |
+| v16 | `241ebffc` | 11-tab desk copy · Spend Upload · Fly 312 Shopify-gap ledes |

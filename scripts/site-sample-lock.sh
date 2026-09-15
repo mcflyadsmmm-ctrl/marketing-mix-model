@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SAMPLE / product-lock gate for site/** — must pass before Pages deploy.
-# v11: home sells the Shopify app (Harbor SAMPLE). Custom pages may still hold Northline.
+# v12: one public brand (Mcfly Analytics). Home sells the Shopify app (Harbor SAMPLE).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -92,25 +92,67 @@ if [[ -d site/assets/fonts ]]; then
   fi
 fi
 
-if grep -q 'Try the demo' site/assets/mcfly/chrome.js && grep -q 'href="/demo"' site/assets/mcfly/chrome.js; then
-  ok "chrome CTA is Try the demo"
+if grep -q 'Install' site/assets/mcfly/chrome.js && grep -q 'apps.shopify.com/mcfly-analytics-public' site/assets/mcfly/chrome.js; then
+  ok "chrome CTA is Install to App Store listing"
 else
-  bad "chrome missing Try the demo /demo"
+  bad "chrome missing Install / apps.shopify.com/mcfly-analytics-public"
+fi
+if grep -q 'href="/demo"' site/assets/mcfly/chrome.js; then
+  ok "chrome nav Demo still href=/demo"
+else
+  bad "chrome missing nav Demo href=/demo"
+fi
+if grep -q 'nav__brand-sub">Ads' site/assets/mcfly/chrome.js; then
+  bad "chrome still uses Ads as the product mark — public mark is Analytics"
+else
+  ok "chrome does not use Ads as product mark"
 fi
 if grep -q '>Custom</a>' site/assets/mcfly/chrome.js || grep -q 'custom-analytics#inquire' site/assets/mcfly/chrome.js; then
   bad "chrome still promotes Custom / inquire"
 else
   ok "chrome does not promote Custom"
 fi
-if grep -q 'Mcfly Ads' site/assets/mcfly/chrome.js && grep -q 'nav__brand-sub">Ads' site/assets/mcfly/chrome.js; then
-  ok "chrome firm mark is Mcfly Ads"
+if grep -q 'nav__brand-sub">Analytics' site/assets/mcfly/chrome.js && grep -q 'aria-label="Mcfly Analytics"' site/assets/mcfly/chrome.js; then
+  ok "chrome product mark is Mcfly Analytics"
 else
-  bad "chrome missing Mcfly Ads firm mark"
+  bad "chrome missing Mcfly Analytics product mark"
+fi
+if grep -q 'Mcfly Ads' site/assets/mcfly/chrome.js && grep -q '7-day trial' site/assets/mcfly/chrome.js; then
+  ok "chrome footer still names Mcfly Ads (legal)"
+else
+  bad "chrome footer missing Mcfly Ads legal line"
 fi
 if grep -qiE 'site-mode-bar|brand-toggle|Ads ↔' site/assets/mcfly/chrome.js; then
   bad "chrome revived dual-site toggle"
 else
   ok "chrome has no dual-site toggle"
+fi
+
+if grep -Fq 'Deeper Shopify numbers Analytics does not show. | Mcfly Analytics' site/index.html; then
+  ok "home title is Mcfly Analytics"
+else
+  bad "home title must be Deeper Shopify numbers Analytics does not show. | Mcfly Analytics"
+fi
+if grep -q 'rel="canonical".*fly.dev' site/index.html || grep -q 'og:url" content="https://mcfly-analytics.fly.dev' site/index.html; then
+  bad "home canonical/OG still points at fly.dev"
+else
+  ok "home canonical origin is mcflyads.com"
+fi
+if grep -q '/custom-analytics / 301' site/_redirects && grep -q '/lab / 301' site/_redirects; then
+  ok "Custom and /lab 301 home"
+else
+  bad "_redirects must 301 /custom-analytics and /lab to /"
+fi
+
+if grep -q 'mcfly-m.png' site/assets/mcfly/chrome.js && grep -q 'mcfly-m.png' site/assets/chrome.js; then
+  ok "chrome uses original ribbon M (png)"
+else
+  bad "chrome must use /assets/brand/mcfly-m.png not the geometric SVG"
+fi
+if grep -q 'mcfly-m.svg' site/assets/mcfly/chrome.js; then
+  bad "mcfly chrome still points at geometric SVG mark"
+else
+  ok "mcfly chrome has no geometric SVG mark"
 fi
 
 echo ""

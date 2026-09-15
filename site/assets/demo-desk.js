@@ -48,9 +48,9 @@
       alloc: "Protect Meta · step-test −10% Google",
       allocWhy:
         "Illustrative only — average channel Total ROAS ≠ marginal. A small Google cut tests whether cash holds while Meta carries the week.",
-      decisionLead: "Above break-even; short of target.",
+      decisionLead: "Typical order around $92. Returning buyers carry the rest.",
       decisionWhy:
-        "Last 7 days cleared break-even with room to protect Meta. Step-test Google before chasing the target rail.",
+        "Last 7 days SAMPLE: Shopify sales first. Add spend on Spend Upload when you want Total ROAS vs break-even.",
       shiftProtect: "Meta",
       shiftProtectWhy: "Carry the week while cash clears break-even.",
       shiftHold: "Microsoft · Email",
@@ -88,9 +88,9 @@
       alloc: "Protect Meta · step-test −10% Google",
       allocWhy:
         "Illustrative recommendation from cash efficiency vs break-even — not path credit. Average ≠ marginal. Allocate to grow.",
-      decisionLead: "Above target on sales after returns ÷ spend.",
+      decisionLead: "Typical order around $92. Returning buyers carry about a third of sales.",
       decisionWhy:
-        "MTD Total ROAS clears the target rail and break-even. Protect Meta; step-test a −10% Google cut to learn marginal response.",
+        "MTD SAMPLE: 4,480 orders and $412,400 sales. Add spend on Spend Upload when you want sales ÷ spend.",
       shiftProtect: "Meta",
       shiftProtectWhy: "Carry the month while cash clears target.",
       shiftHold: "Microsoft · Email",
@@ -128,9 +128,9 @@
       alloc: "Protect Meta · step-test −10% Google",
       allocWhy:
         "Quarter mix shows Google softer vs cash break-even. Illustrative step-test — average channel Total ROAS is not marginal.",
-      decisionLead: "Above break-even; below target.",
+      decisionLead: "Returning buyers and order count — spend is optional.",
       decisionWhy:
-        "QTD clears break-even with headroom, but sits under the target rail. Protect Meta; step-test Google before a larger reallocation.",
+        "QTD SAMPLE: Shopify sales and mix of new vs returning. Add spend on Spend Upload for Total ROAS vs break-even.",
       shiftProtect: "Meta",
       shiftProtectWhy: "Protect the cash-efficient line into quarter close.",
       shiftHold: "Microsoft · Email",
@@ -168,9 +168,9 @@
       alloc: "Protect Meta · step-test −10% Google",
       allocWhy:
         "Year-to-date cash picture favors protecting Meta. Any Google cut is a learning step-test — not attributed path credit.",
-      decisionLead: "Near target on year-to-date cash.",
+      decisionLead: "Year-to-date sales first. Spend is the second chapter.",
       decisionWhy:
-        "YTD Total ROAS sits near the target rail while clearing break-even. Keep Meta protected; step-test Google.",
+        "YTD SAMPLE: Shopify Total Sales across the year. Add spend on Spend Upload when you want Total ROAS vs break-even.",
       shiftProtect: "Meta",
       shiftProtectWhy: "YTD cash favors protecting this line.",
       shiftHold: "Microsoft · Email",
@@ -329,7 +329,7 @@
       return "Above target. Protect the mix; only scale inside safe-spend headroom.";
     }
     if (key === "sales") {
-      return "Use Total Sales for Total ROAS. Order totals are only for Ads Manager comparison — never for the Monday call.";
+      return "Use Total Sales for Total ROAS. Order totals are only for Ads Manager comparison — never as platform ROAS.";
     }
     if (key === "spend") {
       return "In product: pick platforms → download a blank template → Sheets Import → paste on Spend. Free CSV always works.";
@@ -1144,7 +1144,7 @@
       "#dd-close-decision",
       "Decision preview: " +
         period.alloc +
-        ". Save and export this Monday Close memo after exceptions are clear — illustrative only.",
+        ". Save and share this Overview after exceptions are clear — illustrative only.",
     );
 
     renderPace(period, mer);
