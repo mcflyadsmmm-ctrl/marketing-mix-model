@@ -454,8 +454,9 @@ describe("Sample data | Live data UX", () => {
     expect(settings).toContain("More — Sample data and privacy");
     expect(settings).toContain("ProUpgradeButton");
     expect(settings).not.toContain("Practice desk");
-    expect(settings).toContain("add daily spend on Marketing");
-    expect(settings).toContain("PRODUCT_NOUN.openOverview");
+    expect(settings).toContain("add daily spend on Spend Upload");
+    expect(settings).toContain("PRODUCT_NOUN.openTotalRoas");
+    expect(settings).toContain('href="/app/roas"');
     expect(settings).not.toContain("on Upload Spend");
   });
 

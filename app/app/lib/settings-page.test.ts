@@ -17,6 +17,7 @@ describe("Settings page", () => {
     expect(settings).toContain("Spend Upload");
     expect(settings).not.toContain("Marketing");
     expect(settings).toContain('href="/app/spend"');
+    expect(settings).toContain('href="/app/roas"');
   });
 
   it("makes Sample vs Live and target Total ROAS obvious", () => {
