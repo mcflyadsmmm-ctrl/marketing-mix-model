@@ -23,9 +23,10 @@ describe("Customers page", () => {
     ).toBe(true);
   });
 
-  it("empty customer mix is one honest sentence, not $0", () => {
+  it("empty customer mix is honest, and the buyers book still paints", () => {
     expect(customers).toContain("!metrics.customerMetricsAvailable");
     expect(customers).toContain("not $0");
+    expect(customers).toContain("<ShopifyBookSection");
   });
 
   it("does not paint cash CAC, spend explorer, or CPA", () => {
