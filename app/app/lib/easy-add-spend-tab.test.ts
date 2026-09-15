@@ -28,6 +28,18 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Same numbers on Overview");
   });
 
+  it("contrasts Shopify Analytics with typed or CSV spend, not Ads Manager login", () => {
+    expect(spend).toContain('heading="Spend Upload"');
+    expect(spend).toContain("/app/roas");
+    expect(spend).toContain("Same numbers on Total ROAS");
+    expect(spend).toContain("Shopify Analytics");
+    expect(spend).toMatch(/Ads Manager login/i);
+    expect(spend).toContain("Days with no row are $0");
+    expect(spend).not.toContain("<SpendExplorer");
+    expect(spend).not.toContain("<DualCloseLine");
+    expect(spend).not.toContain("<MarketingSpendRoom");
+  });
+
   it("keeps typed-day, recurring, and import on the main Spend surface", () => {
     expect(spend).toContain('id="mcfly-spend-add"');
     expect(spend).toContain('id="mcfly-spend-recurring"');

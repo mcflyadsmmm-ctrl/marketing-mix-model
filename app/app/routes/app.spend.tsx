@@ -62,6 +62,9 @@ import { spendFillDayHref } from "../lib/number-honesty";
 
 const CUSTOM_CHANNEL_NAME_ERROR = "Name this channel (e.g. Influencers).";
 
+const SPEND_UPLOAD_CONTRAST =
+  "Shopify Analytics has no spend ledger. This page is typed or CSV spend, not Ads Manager login.";
+
 const SHORT_MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -458,6 +461,7 @@ export default function SpendEntryPage() {
 
         <div className="mcfly-spend-lean__stack">
           <section className="mcfly-book" aria-label="Three ways to add spend">
+            <p className="mcfly-book__lede">{SPEND_UPLOAD_CONTRAST}</p>
             {!strangerEmpty ? (
               <p className="mcfly-book__lede">
                 Three ways to add spend — pick one.
