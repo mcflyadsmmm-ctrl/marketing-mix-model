@@ -47,13 +47,13 @@ describe("Admin desk phone / narrow iframe", () => {
     );
   });
 
-  it("makes the 11-tab rail a one-line scroll per group, not page overflow", () => {
+  it("makes the 11-tab rail one sideways scroll, not page overflow", () => {
     expect(phone).toMatch(/@media \(max-width: 640px\)/);
     expect(phone).toContain(".mcfly-desk-tabs");
-    expect(phone).toContain("flex-direction: column");
-    expect(phone).toContain(".mcfly-desk-tabs__pills");
+    expect(phone).toContain("flex-direction: row");
     expect(phone).toContain("overflow-x: auto");
     expect(phone).toContain("flex-wrap: nowrap");
+    expect(phone).toContain("white-space: nowrap");
     expect(phone).toContain("min-height: 2.75rem");
   });
 
