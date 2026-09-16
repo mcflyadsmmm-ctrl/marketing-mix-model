@@ -56,10 +56,10 @@ describe("Allocation desk sales honesty", () => {
     expect(source).toContain("This quarter");
   });
 
-  it("contrasts typed spend mix with Shopify Analytics attribution", () => {
+  it("contrasts entered spend mix with Shopify Analytics attribution", () => {
     expect(source).toMatch(/Shopify Analytics/);
     expect(source).toMatch(/attribution/i);
-    expect(source).toMatch(/typed spend mix/i);
+    expect(source).toMatch(/entered spend mix/i);
     expect(source).toMatch(/daily cap/i);
   });
 

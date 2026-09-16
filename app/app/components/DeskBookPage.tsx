@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { PeriodControl } from "./PeriodControl";
+import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
 import type { PeriodPreset } from "../lib/periods";
 
@@ -16,6 +17,9 @@ export function DeskBookPage({
   todaySalesUnavailable = false,
   shopifyOrderWindowLimited = false,
   periodLabel = "",
+  salesError = false,
+  salesErrorBody = "Sales didn’t load. Retry to see this shop’s orders.",
+  retryHref,
   children,
 }: {
   heading: string;
@@ -35,6 +39,9 @@ export function DeskBookPage({
   /** Period wider than ~60-day `read_orders` — YTD / Last 12 months are not a year. */
   shopifyOrderWindowLimited?: boolean;
   periodLabel?: string;
+  salesError?: boolean;
+  salesErrorBody?: string;
+  retryHref?: string;
   children: ReactNode;
 }) {
   const notices = shotMode
@@ -92,6 +99,10 @@ export function DeskBookPage({
             dollars, and LTV are not $0. Shopify shares about 60 days of orders
             on this install. Refresh in a few minutes.
           </p>
+        ) : null}
+
+        {salesError && !shotMode && retryHref ? (
+          <SalesLoadError body={salesErrorBody} retryHref={retryHref} />
         ) : null}
 
         {children}

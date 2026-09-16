@@ -1172,7 +1172,8 @@ export default function SpendEntryPage() {
           </section>
           <p className="mcfly-spend-helper">
             Shopify sales are already here. Download the blank, fill daily spend,
-            and upload it; empty spend is $0.
+            and upload it; empty spend is $0. Uploaded days replace the same day
+            + channel. An active daily rate will not overwrite those days.
           </p>
 
           <section

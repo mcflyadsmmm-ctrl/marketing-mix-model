@@ -63,7 +63,7 @@ import {
 
 const ALLOCATION_HEADING = PRODUCT_NOUN.spendAllocation;
 const ALLOCATION_CONTRAST =
-  "Shopify Analytics channel reports are sessions and attribution. This page is typed spend mix and the daily cap.";
+  "Shopify Analytics channel reports are sessions and attribution. This page is entered spend mix and the daily cap.";
 
 /**
  * Daily rows key named extras as `other:<slug>`. History stores display names,

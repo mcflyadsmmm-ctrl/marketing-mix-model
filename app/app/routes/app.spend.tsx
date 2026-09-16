@@ -59,11 +59,12 @@ import {
 } from "../lib/spend-recurring.server";
 import { roundMoney, shopCurrencyCode, toMoneyNumber } from "../lib/spend-money";
 import { spendFillDayHref } from "../lib/number-honesty";
+import { spendEntrySourceLabel } from "../lib/spend-source-label";
 
 const CUSTOM_CHANNEL_NAME_ERROR = "Name this channel (e.g. Influencers).";
 
 const SPEND_UPLOAD_CONTRAST =
-  "Shopify Analytics shows sales, not a spend ledger. This page shows typed or CSV spend — not Ads Manager login.";
+  "Shopify Analytics shows sales, not a spend ledger. This page records typed, uploaded, or daily-rate spend — not Ads Manager login.";
 
 const SHORT_MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -589,14 +590,15 @@ export default function SpendEntryPage() {
                   Daily amount until I change it
                 </span>
                 <span className="mcfly-spend-reveal__hint">
-                  Meta {money(40)}/day from a date. Typed days are corrections.
+                  Example: {money(40)}/day from a date. Fills empty days through
+                  yesterday. Typed or uploaded days stay.
                 </span>
               </>
             }
           >
             <p className="mcfly-panel__muted">
-              Example: Meta, {money(40)} a day from a date. Typed days are
-              corrections. No ad login.
+              A daily rate from the first day through yesterday. Typed or
+              uploaded days stay as written. No ad login.
             </p>
             <Form method="post" className="mcfly-spend-add__form">
               <input type="hidden" name="intent" value="recurring" />
@@ -823,6 +825,9 @@ export default function SpendEntryPage() {
                     </span>
                     <span className="mcfly-spend-lean__recent-range">
                       {formatSpendYmd(entry.dateKey)}
+                    </span>
+                    <span className="mcfly-spend-lean__recent-source">
+                      {spendEntrySourceLabel(entry.source)}
                     </span>
                     <span className="mcfly-spend-lean__recent-actions">
                       <Link className="mcfly-btn mcfly-btn--secondary" to={editUrl}>

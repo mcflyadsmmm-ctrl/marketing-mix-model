@@ -2,6 +2,8 @@ import type { HeadersFunction, LinksFunction, LoaderFunctionArgs } from "react-r
 import { Outlet, useLoaderData, useRouteError, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
+import { MerchantErrorRecovery } from "../components/MerchantErrorRecovery";
+import { shouldDelegateShopifyBoundary } from "../lib/merchant-error-recovery";
 
 import { authenticate } from "../shopify.server";
 import {
@@ -157,9 +159,15 @@ export default function App() {
   );
 }
 
-// Shopify needs React Router to catch some thrown responses, so that their headers are included in the response.
+// Shopify headers still go out via `headers`. 401 / reauth stay on Shopify's
+// iframe-exit path. 410 and other failures get a merchant recovery, not
+// "Handling response".
 export function ErrorBoundary() {
-  return boundary.error(useRouteError());
+  const error = useRouteError();
+  if (shouldDelegateShopifyBoundary(error)) {
+    return boundary.error(error);
+  }
+  return <MerchantErrorRecovery error={error} retryHref="/app" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

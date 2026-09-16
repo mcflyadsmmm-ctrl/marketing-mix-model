@@ -632,8 +632,8 @@ export default function GoalsPage() {
         {salesError && !shotMode ? (
           <s-banner tone="critical" heading="Sales didn’t load">
             <s-paragraph>
-              {salesError} — goals still save; actuals stay $0 until the sales pull
-              works.
+              Your plan still saves. Actuals stay — until you refresh. Nothing
+              was written as $0.
             </s-paragraph>
           </s-banner>
         ) : null}

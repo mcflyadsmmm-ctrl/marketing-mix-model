@@ -1,6 +1,7 @@
 import { useLocation, useSearchParams } from "react-router";
 
 import {
+  DESK_COMPARE_NAV,
   DESK_SHOPIFY_NAV,
   DESK_SPEND_NAV,
   deskNavHrefFromSearch,
@@ -63,6 +64,12 @@ export function DeskTopTabs({ shotMode = false }: { shotMode?: boolean }) {
       <TabGroup
         label="Spend"
         items={DESK_SPEND_NAV}
+        pathname={location.pathname}
+        search={searchParams}
+      />
+      <TabGroup
+        label="Compare"
+        items={DESK_COMPARE_NAV}
         pathname={location.pathname}
         search={searchParams}
       />

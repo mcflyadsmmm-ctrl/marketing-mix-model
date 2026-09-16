@@ -7,11 +7,11 @@ const here = dirname(fileURLToPath(import.meta.url));
 const cpa = readFileSync(join(here, "../routes/app.cpa.tsx"), "utf8");
 
 describe("CPA page", () => {
-  it("contrasts Shopify Analytics ads-manager CPA with typed spend ÷ Shopify buyers", () => {
+  it("contrasts Shopify Analytics ads-manager CPA with entered spend ÷ Shopify buyers", () => {
     expect(cpa).toContain("Shopify Analytics shows");
     expect(cpa).toContain("This page shows");
     expect(cpa).toMatch(/ads-manager|platform CPA/i);
-    expect(cpa).toContain("typed spend");
+    expect(cpa).toContain("entered spend");
     expect(cpa).toContain("Shopify buyers");
   });
 

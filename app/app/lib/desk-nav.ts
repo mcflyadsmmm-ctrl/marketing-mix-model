@@ -125,7 +125,10 @@ export const DESK_TOP_NAV: readonly DeskNavItem[] = DESK_PRIMARY_NAV.filter(
 );
 
 export const DESK_SHOPIFY_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(0, 5);
-export const DESK_SPEND_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(5);
+/** Spend Upload · Total ROAS · Channel Allocation — need entered spend. */
+export const DESK_SPEND_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(5, 8);
+/** YoY · CPA · Goals — sales compare / plan; spend optional. */
+export const DESK_COMPARE_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(8);
 
 export function isDeskNavActive(path: string, pathname: string): boolean {
   const current = pathname.replace(/\/$/, "") || "/";

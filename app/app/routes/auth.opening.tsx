@@ -36,6 +36,10 @@ export default function AuthOpening() {
       <s-page>
         <s-section heading="Opening Mcfly Analytics">
           <s-paragraph>Loading the desk…</s-paragraph>
+          <s-paragraph>
+            If this stays here, refresh or reopen the app from Shopify Admin.{" "}
+            <s-link href="/support">Support</s-link>
+          </s-paragraph>
         </s-section>
       </s-page>
     </AppProvider>

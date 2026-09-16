@@ -27,6 +27,8 @@ describe("Customers page", () => {
     expect(customers).toContain("!metrics.customerMetricsAvailable");
     expect(customers).toContain("not $0");
     expect(customers).toContain("<ShopifyBookSection");
+    expect(customers).toContain("salesError={Boolean(salesError)");
+    expect(customers).toContain("Retry to see returning dollars");
   });
 
   it("does not paint cash CAC, spend explorer, or CPA", () => {
