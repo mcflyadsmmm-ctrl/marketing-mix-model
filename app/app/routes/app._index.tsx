@@ -140,7 +140,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   let sales: SalesResult = emptySales("shopify");
   /** Null when prior facts are outside the window / failed — skip deltas (never fake 0). */
-  let priorSales: { totalSales: number } | null = null;
+  let priorSales: {
+    totalSales: number;
+    netSales?: number | null;
+    netSalesKnown?: boolean;
+  } | null = null;
   let salesError: string | null = null;
   let todaySalesUnavailable = false;
   let todaySalesTruncated = false;
