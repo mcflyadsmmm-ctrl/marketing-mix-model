@@ -3,6 +3,7 @@ import type { LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigate } from "react-router";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
+import { MerchantErrorRecovery } from "../components/MerchantErrorRecovery";
 import { appRoutePath } from "../../scripts/shopify-app-path.mjs";
 
 function safeNextPath(raw: string | null): string {
@@ -20,11 +21,12 @@ export const loader = ({ request }: LoaderFunctionArgs) => {
   return {
     href: qs ? `${next}?${qs}` : next,
     apiKey: process.env.SHOPIFY_API_KEY || "",
+    shop: url.searchParams.get("shop"),
   };
 };
 
 export default function AuthOpening() {
-  const { href, apiKey } = useLoaderData<typeof loader>();
+  const { href, apiKey, shop } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,11 +38,12 @@ export default function AuthOpening() {
       <s-page>
         <s-section heading="Opening Mcfly Analytics">
           <s-paragraph>Loading the desk…</s-paragraph>
-          <s-paragraph>
-            If this stays here, refresh or reopen the app from Shopify Admin.{" "}
-            <s-link href="/support">Support</s-link>
-          </s-paragraph>
         </s-section>
+        <MerchantErrorRecovery
+          error={{ status: 410 }}
+          retryHref={href}
+          shop={shop}
+        />
       </s-page>
     </AppProvider>
   );

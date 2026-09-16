@@ -7,7 +7,7 @@ describe("SPEND_DOORS", () => {
     expect(SPEND_DOORS.map((d) => d.title)).toEqual([
       "Add a day",
       "Daily amount until I change it",
-      "Import or backfill",
+      "Backfill",
     ]);
   });
 

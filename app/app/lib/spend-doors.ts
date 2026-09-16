@@ -23,10 +23,12 @@ export const SPEND_DOORS: readonly SpendDoor[] = [
   },
   {
     href: "/app/spend/import",
-    title: "Import or backfill",
+    title: "Backfill",
     hint: "Template, Ads Manager CSV, or spread one bill across days.",
   },
 ] as const;
+
+export const SPEND_BACKFILL_DOOR = SPEND_DOORS[2];
 
 export const SPEND_IMPORT_DOORS: readonly SpendDoor[] = [
   {
