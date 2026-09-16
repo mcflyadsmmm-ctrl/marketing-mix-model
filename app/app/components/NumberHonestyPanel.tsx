@@ -1,4 +1,5 @@
 import { useSearchParams } from "react-router";
+import { useDeskCurrency } from "../lib/desk-currency";
 import {
   NUMBER_HONESTY,
   formatTotalRoasEquation,
@@ -26,7 +27,14 @@ export function NumberHonestyPanel({
   salesPending = false,
 }: NumberHonestyPanelProps) {
   const [searchParams] = useSearchParams();
-  const equation = formatTotalRoasEquation({ sales, spend, mer, salesPending });
+  const currency = useDeskCurrency();
+  const equation = formatTotalRoasEquation({
+    sales,
+    spend,
+    mer,
+    salesPending,
+    currency,
+  });
   const addSpendHref = spendAddHref({
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",

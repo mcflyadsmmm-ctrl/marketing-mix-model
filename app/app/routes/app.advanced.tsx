@@ -19,6 +19,7 @@ import {
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
 import { authenticate } from "../shopify.server";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -83,6 +84,7 @@ export default function AdvancedMetricsPage() {
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
+  const currency = useDeskCurrency();
 
   const tillLabel = useSampleDesk
     ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
@@ -96,6 +98,7 @@ export default function AdvancedMetricsPage() {
     // Not a plan gate — LTV is on the one desk. See advanced-metrics.ts.
     canUseLtv: true,
     periodLabel: metrics.period.label,
+    currency,
   });
 
   return (

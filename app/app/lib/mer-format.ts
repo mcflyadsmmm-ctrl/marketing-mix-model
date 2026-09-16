@@ -1,6 +1,6 @@
 import { shopCurrencyCode } from "./spend-money";
 
-export function formatCurrency(amount: number, currency = "USD"): string {
+export function formatCurrency(amount: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: shopCurrencyCode(currency),
@@ -8,8 +8,23 @@ export function formatCurrency(amount: number, currency = "USD"): string {
   }).format(amount);
 }
 
+export function createMoneyFormatter(
+  currency: string | null | undefined,
+): (amount: number) => string {
+  const code = shopCurrencyCode(currency);
+  return (amount: number) => formatCurrency(amount, code);
+}
+
+export function formatMoneyOrDash(
+  amount: number | null | undefined,
+  currency: string,
+): string {
+  if (amount == null || !Number.isFinite(amount)) return "—";
+  return formatCurrency(amount, currency);
+}
+
 /** Spend desk amounts — shop currency, cents when the ISO code uses them. */
-export function formatSpendAmount(amount: number, currency = "USD"): string {
+export function formatSpendAmount(amount: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: shopCurrencyCode(currency),

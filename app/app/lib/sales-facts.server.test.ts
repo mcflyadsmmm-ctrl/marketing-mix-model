@@ -69,6 +69,7 @@ describe("runSalesFactsBackfill", () => {
     expect(result.skippedReason).toBe("no_timezone");
     expect(result.attempted).toBe(0);
     expect(result.written).toBe(0);
+    expect(result.unseen).toEqual([]);
     expect(fetchShopifySales).not.toHaveBeenCalled();
     expect(upsert).not.toHaveBeenCalled();
   });
@@ -85,6 +86,7 @@ describe("runSalesFactsBackfill", () => {
     expect(result.attempted).toBe(3);
     expect(result.written).toBe(3);
     expect(result.failed).toEqual([]);
+    expect(result.unseen).toEqual([]);
     expect(upsert).toHaveBeenCalledTimes(3);
 
     const call = upsert.mock.calls[0][0];
@@ -154,14 +156,35 @@ describe("runSalesFactsBackfill", () => {
     const now = new Date("2026-07-15T12:00:00.000Z");
     const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", { now, maxDays: 10 });
 
-    // Jan-1 × 5yr window (not a fixed 60d) — 10 attempted this call leaves the rest.
+    // Default ingest is the ~60-day read_orders window — 10 attempted leaves the rest.
     expect(result.attempted).toBe(10);
-    expect(result.remainingMissingDays).toBeGreaterThan(50);
+    expect(result.remainingMissingDays).toBeGreaterThan(40);
+    expect(result.remainingMissingDays).toBeLessThan(60);
+  });
+
+  it("does not upsert a successful $0 fetch outside the Shopify order window", async () => {
+    ensureShopMetadata.mockResolvedValue({ ianaTimezone: "UTC", currencyCode: "USD" });
+    findMany.mockResolvedValue([]);
+    fetchShopifySales.mockResolvedValue(fakeSales(0));
+
+    const now = new Date("2026-09-16T18:00:00.000Z");
+    const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
+      now,
+      maxDays: 1,
+      windowDays: 200,
+      scopesAllowDeep: false,
+    });
+
+    expect(result.attempted).toBe(1);
+    expect(result.written).toBe(0);
+    expect(result.unseen).toHaveLength(1);
+    expect(upsert).not.toHaveBeenCalled();
   });
 });
 
 describe("getSalesFactsCoverage", () => {
   beforeEach(() => {
+    findMany.mockReset();
     count.mockReset();
   });
 
@@ -169,7 +192,12 @@ describe("getSalesFactsCoverage", () => {
     // MTD range for a "now" of the 15th -> 14 closed days (1st through 14th).
     const now = new Date(2026, 6, 15, 9, 0, 0);
     const range = { start: new Date(2026, 6, 1), end: new Date(2026, 6, 15, 23, 59, 59, 999), label: "MTD" };
-    count.mockResolvedValue(14);
+    findMany.mockResolvedValue(
+      Array.from({ length: 14 }, (_, i) => ({
+        day: new Date(2026, 6, i + 1),
+        sales: i === 0 ? 0 : 10,
+      })),
+    );
 
     const coverage = await getSalesFactsCoverage("shop_1", range, now);
 
@@ -182,7 +210,12 @@ describe("getSalesFactsCoverage", () => {
   it("is incomplete when fewer fact rows exist than expected closed days", async () => {
     const now = new Date(2026, 6, 15, 9, 0, 0);
     const range = { start: new Date(2026, 6, 1), end: new Date(2026, 6, 15, 23, 59, 59, 999), label: "MTD" };
-    count.mockResolvedValue(9);
+    findMany.mockResolvedValue(
+      Array.from({ length: 9 }, (_, i) => ({
+        day: new Date(2026, 6, i + 1),
+        sales: 10,
+      })),
+    );
 
     const coverage = await getSalesFactsCoverage("shop_1", range, now);
 
@@ -200,11 +233,35 @@ describe("getSalesFactsCoverage", () => {
       end: new Date(2026, 6, 15, 23, 59, 59, 999),
       label: "custom deep",
     };
-    count.mockResolvedValue(60);
+    findMany.mockResolvedValue(
+      Array.from({ length: 60 }, (_, i) => ({
+        day: new Date(2026, 4, i + 1),
+        sales: 10,
+      })),
+    );
 
     const coverage = await getSalesFactsCoverage("shop_1", range, now);
 
     expect(coverage.periodExceedsFactWindow).toBe(true);
+    expect(coverage.complete).toBe(false);
+  });
+
+  it("does not count stored $0 days outside the Shopify order window as facts", async () => {
+    const now = new Date("2026-09-16T18:00:00.000Z");
+    const range = {
+      start: new Date("2026-01-01T00:00:00.000Z"),
+      end: new Date("2026-09-16T23:59:59.999Z"),
+      label: "YTD",
+    };
+    findMany.mockResolvedValue([
+      { day: new Date("2026-01-15T00:00:00.000Z"), sales: 0 },
+      { day: new Date("2026-09-01T00:00:00.000Z"), sales: 0 },
+      { day: new Date("2026-09-02T00:00:00.000Z"), sales: 400 },
+    ]);
+
+    const coverage = await getSalesFactsCoverage("shop_1", range, now);
+
+    expect(coverage.factDays).toBe(2);
     expect(coverage.complete).toBe(false);
   });
 
@@ -217,7 +274,7 @@ describe("getSalesFactsCoverage", () => {
     expect(coverage.expectedClosedDays).toBe(0);
     expect(coverage.complete).toBe(false);
     expect(coverage.periodExceedsFactWindow).toBe(false);
-    expect(count).not.toHaveBeenCalled();
+    expect(findMany).not.toHaveBeenCalled();
   });
 });
 
@@ -228,15 +285,33 @@ describe("getSalesFactsTotals", () => {
 
   it("sums sales/orders and labels new/returning as day-sums, not unique counts", async () => {
     findMany.mockResolvedValue([
-      { sales: 100, orderCount: 2, newCustomers: 1, returningCustomers: 1, guestOrders: 0 },
-      { sales: 200, orderCount: 3, newCustomers: 2, returningCustomers: 0, guestOrders: 1 },
+      {
+        day: new Date("2026-07-01T00:00:00.000Z"),
+        sales: 100,
+        orderCount: 2,
+        newCustomers: 1,
+        returningCustomers: 1,
+        guestOrders: 0,
+      },
+      {
+        day: new Date("2026-07-02T00:00:00.000Z"),
+        sales: 200,
+        orderCount: 3,
+        newCustomers: 2,
+        returningCustomers: 0,
+        guestOrders: 1,
+      },
     ]);
 
-    const totals = await getSalesFactsTotals("shop_1", {
-      start: new Date("2026-07-01T00:00:00.000Z"),
-      end: new Date("2026-07-02T23:59:59.999Z"),
-      label: "range",
-    });
+    const totals = await getSalesFactsTotals(
+      "shop_1",
+      {
+        start: new Date("2026-07-01T00:00:00.000Z"),
+        end: new Date("2026-07-02T23:59:59.999Z"),
+        label: "range",
+      },
+      new Date("2026-07-15T12:00:00.000Z"),
+    );
 
     expect(totals.totalSales).toBe(300);
     expect(totals.orderCount).toBe(5);
@@ -258,6 +333,26 @@ describe("getSalesFactsTotals", () => {
     expect(totals.totalSales).toBe(0);
     expect(totals.dayCount).toBe(0);
   });
+
+  it("does not sum stored $0 days outside the Shopify order window", async () => {
+    findMany.mockResolvedValue([
+      { day: new Date("2026-01-15T00:00:00.000Z"), sales: 0, orderCount: 0, newCustomers: 0, returningCustomers: 0, guestOrders: 0 },
+      { day: new Date("2026-09-01T00:00:00.000Z"), sales: 250, orderCount: 2, newCustomers: 0, returningCustomers: 0, guestOrders: 0 },
+    ]);
+
+    const totals = await getSalesFactsTotals(
+      "shop_1",
+      {
+        start: new Date("2026-01-01T00:00:00.000Z"),
+        end: new Date("2026-09-16T23:59:59.999Z"),
+        label: "YTD",
+      },
+      new Date("2026-09-16T18:00:00.000Z"),
+    );
+
+    expect(totals.totalSales).toBe(250);
+    expect(totals.dayCount).toBe(1);
+  });
 });
 
 describe("getSalesFactsByDay", () => {
@@ -271,10 +366,14 @@ describe("getSalesFactsByDay", () => {
       { day: new Date("2026-07-15T00:00:00.000Z"), sales: 250 },
     ]);
 
-    const map = await getSalesFactsByDay("shop_1", {
-      start: new Date("2026-07-01T00:00:00.000Z"),
-      end: new Date("2026-07-15T23:59:59.999Z"),
-    });
+    const map = await getSalesFactsByDay(
+      "shop_1",
+      {
+        start: new Date("2026-07-01T00:00:00.000Z"),
+        end: new Date("2026-07-15T23:59:59.999Z"),
+      },
+      { now: new Date("2026-07-20T12:00:00.000Z") },
+    );
 
     expect(map.get("2026-07-14")).toBe(100);
     expect(map.get("2026-07-15")).toBe(250);
@@ -287,11 +386,35 @@ describe("getSalesFactsByDay", () => {
       { day: new Date("2026-07-14T00:00:00.000Z"), sales: 50 },
     ]);
 
-    const map = await getSalesFactsByDay("shop_1", {
-      start: new Date("2026-07-01T00:00:00.000Z"),
-      end: new Date("2026-07-15T23:59:59.999Z"),
-    });
+    const map = await getSalesFactsByDay(
+      "shop_1",
+      {
+        start: new Date("2026-07-01T00:00:00.000Z"),
+        end: new Date("2026-07-15T23:59:59.999Z"),
+      },
+      { now: new Date("2026-07-20T12:00:00.000Z") },
+    );
 
     expect(map.get("2026-07-14")).toBe(150);
+  });
+
+  it("omits stored $0 days outside the Shopify order window", async () => {
+    findMany.mockResolvedValue([
+      { day: new Date("2026-01-15T00:00:00.000Z"), sales: 0 },
+      { day: new Date("2026-09-01T00:00:00.000Z"), sales: 80 },
+    ]);
+
+    const map = await getSalesFactsByDay(
+      "shop_1",
+      {
+        start: new Date("2026-01-01T00:00:00.000Z"),
+        end: new Date("2026-09-16T23:59:59.999Z"),
+      },
+      { now: new Date("2026-09-16T18:00:00.000Z") },
+    );
+
+    expect(map.has("2026-01-15")).toBe(false);
+    expect(map.get("2026-09-01")).toBe(80);
+    expect(map.size).toBe(1);
   });
 });

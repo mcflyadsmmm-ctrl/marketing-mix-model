@@ -11,7 +11,8 @@ import {
   ensureShop,
 } from "../lib/mer-dashboard.server";
 import { buildCashControlBoard } from "../lib/mer-control";
-import { formatCurrency, formatMer } from "../lib/mer-format";
+import { formatMer } from "../lib/mer-format";
+import { useMoney } from "../lib/desk-currency";
 import { OVERVIEW_YOY_MISSING } from "../lib/overview-yoy";
 import {
   deskPeriodTimeZone,
@@ -87,6 +88,7 @@ export default function YoyWorkspacePage() {
     ? `This month · last month · last year${PRODUCT_NOUN.samplePeriodSuffix}`
     : "This month · last month · last year · live sales";
   const drill = useDeskDrill();
+  const money = useMoney();
 
   return (
     <DeskBookPage
@@ -102,8 +104,8 @@ export default function YoyWorkspacePage() {
         <p className="mcfly-yoy__lede">{YOY_ANALYTICS_LEDE}</p>
         <div className="mcfly-yoy__grid">
           {monthRows.map((row) => {
-            const sales = yoyDisplayValue(row.sales, formatCurrency);
-            const spend = yoyDisplayValue(row.spend, formatCurrency);
+            const sales = yoyDisplayValue(row.sales, money);
+            const spend = yoyDisplayValue(row.spend, money);
             const mer =
               row.mer == null ? "—" : `${formatMer(row.mer)}×`;
             return (
@@ -163,24 +165,24 @@ export default function YoyWorkspacePage() {
           facts={[
             {
               k: "Last 7 sales",
-              v: yoyDisplayValue(last7.sales, formatCurrency),
+              v: yoyDisplayValue(last7.sales, money),
               d: "Certified closed days. Empty is — not $0.",
             },
             {
               k: "Prior 7 sales",
-              v: yoyDisplayValue(last7.priorSales, formatCurrency),
+              v: yoyDisplayValue(last7.priorSales, money),
               d: "The seven certified days before last 7.",
             },
             ...(hasSpend
               ? [
                   {
                     k: "Last 7 spend",
-                    v: yoyDisplayValue(last7.spend, formatCurrency),
+                    v: yoyDisplayValue(last7.spend, money),
                     d: "Typed spend on those same last 7 days.",
                   },
                   {
                     k: "Prior 7 spend",
-                    v: yoyDisplayValue(last7.priorSpend, formatCurrency),
+                    v: yoyDisplayValue(last7.priorSpend, money),
                     d: "Typed spend on the prior 7 days.",
                   },
                   {

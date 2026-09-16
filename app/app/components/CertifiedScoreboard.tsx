@@ -6,6 +6,7 @@ import {
   type MonthClosePlan,
 } from "../lib/mer-control";
 import { useDeskDrill } from "./DeskDrill";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 function merLabel(chip: CashChip): string {
   if (!(chip.spend > 0) || chip.mer == null) return "—";
@@ -48,6 +49,7 @@ export function CertifiedScoreboard({
   targetMer: number;
   plan: MonthClosePlan | null;
 }) {
+  const currency = useDeskCurrency();
   const drill = useDeskDrill();
   if (chips.length === 0) return null;
 
@@ -78,13 +80,13 @@ export function CertifiedScoreboard({
                     { k: "What this is", v: PRODUCT_NOUN.definition },
                     {
                       k: "Sales",
-                      v: formatCurrency(chip.sales),
+                      v: formatCurrency(chip.sales, currency),
                     },
                     {
                       k: "Spend",
                       v:
                         chip.spend > 0
-                          ? formatCurrency(chip.spend)
+                          ? formatCurrency(chip.spend, currency)
                           : "Empty spend is not a ratio",
                     },
                     yoy ? { k: "Last year", v: yoy } : null,
@@ -113,8 +115,8 @@ export function CertifiedScoreboard({
               </span>
               <span className="mcfly-scoreboard__sub">
                 {chip.spend > 0
-                  ? `${formatCurrency(chip.sales)} sales · ${formatCurrency(chip.spend)} spend`
-                  : `${formatCurrency(chip.sales)} sales · no spend`}
+                  ? `${formatCurrency(chip.sales, currency)} sales · ${formatCurrency(chip.spend, currency)} spend`
+                  : `${formatCurrency(chip.sales, currency)} sales · no spend`}
               </span>
               {yoy ? (
                 <span
@@ -136,7 +138,7 @@ export function CertifiedScoreboard({
         <p className="mcfly-scoreboard__plan">
           {plan.cannotHit
             ? "Spend left at goal is already used. Freeze paid. Email stays as-is."
-            : `Spend left at goal ${formatCurrency(Math.max(0, plan.maxRem))} if last 7 days' sales hold. Email stays as-is.`}
+            : `Spend left at goal ${formatCurrency(Math.max(0, plan.maxRem), currency)} if last 7 days' sales hold. Email stays as-is.`}
         </p>
       ) : null}
     </section>

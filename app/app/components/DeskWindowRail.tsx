@@ -1,6 +1,7 @@
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import type { CashChip } from "../lib/mer-control";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 function yoyLabel(pct: number | null): string {
   if (pct == null || !Number.isFinite(pct)) return "—";
@@ -27,6 +28,7 @@ function vsGoalLabel(
  * at least one row has entered spend. Empty spend is never 0×.
  */
 export function DeskWindowRail({ chips }: { chips: CashChip[] }) {
+  const currency = useDeskCurrency();
   if (chips.length === 0) return null;
   const hasSpend = chips.some((chip) => chip.spend > 0);
 
@@ -51,9 +53,9 @@ export function DeskWindowRail({ chips }: { chips: CashChip[] }) {
             return (
               <tr key={chip.id}>
                 <th scope="row">{chip.label}</th>
-                <td>{formatCurrency(chip.sales)}</td>
+                <td>{formatCurrency(chip.sales, currency)}</td>
                 {hasSpend ? (
-                  <td>{chip.spend > 0 ? formatCurrency(chip.spend) : "—"}</td>
+                  <td>{chip.spend > 0 ? formatCurrency(chip.spend, currency) : "—"}</td>
                 ) : null}
                 {hasSpend ? (
                   <td>

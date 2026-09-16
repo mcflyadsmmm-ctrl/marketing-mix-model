@@ -85,6 +85,7 @@ describe("buildAdvancedSections", () => {
     const sections = buildAdvancedSections(baseMetrics(), {
       canUseLtv: true,
       periodLabel: "Last 30 days",
+      currency: "USD",
     });
     const portfolio = sections.find((s) => s.id === "portfolio");
     const amerTile = portfolio?.tiles.find((t) => t.id === "amer");
@@ -100,6 +101,7 @@ describe("buildAdvancedSections", () => {
     const sections = buildAdvancedSections(baseMetrics(), {
       canUseLtv: true,
       periodLabel: "Last 30 days",
+      currency: "USD",
     });
     const acq = sections.find((s) => s.id === "acquisition");
     const payback = acq?.tiles.find((t) => t.id === "payback-days");
@@ -126,7 +128,7 @@ describe("buildAdvancedSections", () => {
           paybackDays: null,
         },
       }),
-      { canUseLtv: true, periodLabel: "Last 30 days" },
+      { canUseLtv: true, periodLabel: "Last 30 days", currency: "USD" },
     );
     const payback = sections
       .find((s) => s.id === "acquisition")
@@ -138,6 +140,7 @@ describe("buildAdvancedSections", () => {
     const sections = buildAdvancedSections(baseMetrics(), {
       canUseLtv: false,
       periodLabel: "Last 30 days",
+      currency: "USD",
     });
     const acq = sections.find((s) => s.id === "acquisition");
     expect(acq?.lockedReason).toBeUndefined();
@@ -168,7 +171,7 @@ describe("buildAdvancedSections", () => {
           paybackDays: null,
         },
       }),
-      { canUseLtv: true, periodLabel: "Last 30 days" },
+      { canUseLtv: true, periodLabel: "Last 30 days", currency: "USD" },
     );
     const acq = sections.find((s) => s.id === "acquisition");
     expect(acq?.tiles.find((t) => t.id === "ltv-90")?.value).toMatch(/\$120/);
@@ -187,6 +190,7 @@ describe("buildAdvancedSections", () => {
     const sections = buildAdvancedSections(baseMetrics(), {
       canUseLtv: true,
       periodLabel: "Last 30 days",
+      currency: "USD",
     });
     const alloc = sections.find((s) => s.id === "allocation");
     const mer = alloc?.tiles.find((t) => t.id === "alloc-portfolio-mer");

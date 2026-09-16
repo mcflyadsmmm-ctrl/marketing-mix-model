@@ -756,7 +756,7 @@ export default function SpendEntryPage() {
                 </span>
                 <span className="mcfly-spend-reveal__hint">
                   Example: {money(40)}/day from a date. Fills empty days through
-                  yesterday. Typed or uploaded days stay.
+                  yesterday. Typed, uploaded, or already-filled days stay.
                 </span>
               </>
             }
@@ -1033,8 +1033,8 @@ export default function SpendEntryPage() {
           ) : null}
           {entries.length > 0 ? (
             <p className="mcfly-panel__muted">
-              Edit overwrites that day. Delete removes the row — an active daily
-              amount will fill it again. Save $0 on a day to keep it empty.
+              Edit overwrites that day. Delete keeps the day empty — an active
+              daily rate will not put it back.
             </p>
           ) : null}
         </div>

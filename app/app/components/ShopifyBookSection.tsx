@@ -8,6 +8,7 @@ import {
   type ShopifyDepthStats,
 } from "../lib/shopify-depth-stats";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 export type ShopifyBookGroup = "period" | "buyers" | "timing" | "growth";
 
@@ -94,6 +95,7 @@ function groupIcon(group: ShopifyBookGroup): DeskIconName {
 }
 
 export function BookFactGrid({ facts }: { facts: BookFact[] }) {
+  const currency = useDeskCurrency();
   const drill = useDeskDrill();
   const shown = facts;
   if (shown.length === 0) return null;
@@ -202,25 +204,26 @@ function sourceMixLine(mix: ShopifyDepthStats["sourceSalesShare"]): string {
 /** Typical order $ behind Online · POS · Shop mix — drill, not a second hero. */
 function sourceTypicalAovLine(
   aov: ShopifyDepthStats["sourceMedianAov"],
+  currency: string,
 ): string[] {
   const parts = [
-    isNum(aov.online) ? `Online ${formatCurrency(aov.online)}` : null,
-    isNum(aov.pos) ? `POS ${formatCurrency(aov.pos)}` : null,
-    isNum(aov.shop) ? `Shop ${formatCurrency(aov.shop)}` : null,
+    isNum(aov.online) ? `Online ${formatCurrency(aov.online, currency)}` : null,
+    isNum(aov.pos) ? `POS ${formatCurrency(aov.pos, currency)}` : null,
+    isNum(aov.shop) ? `Shop ${formatCurrency(aov.shop, currency)}` : null,
   ].filter((part): part is string => part != null);
   return parts.length > 0 ? [`Typical ${parts.join(" · ")}`] : [];
 }
 
-function periodHero(depth: ShopifyDepthStats): BookHero {
+function periodHero(depth: ShopifyDepthStats, currency: string): BookHero {
   const middle = isNum(depth.medianAov) ? depth.medianAov : null;
   const value = middle ?? (isNum(depth.meanAov) ? depth.meanAov : null);
   const meanSub =
     middle != null && isNum(depth.meanAov)
-      ? `Average order ${formatCurrency(depth.meanAov)} — Shopify Analytics uses the average.`
+      ? `Average order ${formatCurrency(depth.meanAov, currency)} — Shopify Analytics uses the average.`
       : undefined;
   return {
     k: PRODUCT_NOUN.bookTypicalOrder,
-    v: value != null ? formatCurrency(value) : "—",
+    v: value != null ? formatCurrency(value, currency) : "—",
     sub: meanSub,
     def:
       value != null
@@ -232,11 +235,12 @@ function periodHero(depth: ShopifyDepthStats): BookHero {
 function buyersHero(
   book: ShopifyNativePeriodStats,
   depth: ShopifyDepthStats,
+  currency: string,
 ): BookHero {
   if (isNum(book.returningSales) && book.returningSales > 0) {
     return {
       k: "Sales from returning customers",
-      v: formatCurrency(book.returningSales),
+      v: formatCurrency(book.returningSales, currency),
       sub: hasShare(book.returningSalesShare)
         ? `${pct(book.returningSalesShare)} of sales — dollars, not headcount`
         : hasShare(book.newSalesShare)
@@ -286,11 +290,12 @@ function buyersHero(
 function growthHero(
   book: ShopifyNativePeriodStats,
   depth: ShopifyDepthStats,
+  currency: string,
 ): BookHero {
   if (isNum(book.newSales) && book.newSales > 0) {
     return {
       k: "Sales from first-time buyers",
-      v: formatCurrency(book.newSales),
+      v: formatCurrency(book.newSales, currency),
       sub: hasShare(book.newSalesShare)
         ? `${pct(book.newSalesShare)} of sales — dollars, not headcount`
         : depth.identifiedBuyers > 0
@@ -349,13 +354,14 @@ function timingHero(depth: ShopifyDepthStats): BookHero {
 function periodRows(
   book: ShopifyNativePeriodStats,
   depth: ShopifyDepthStats,
+  currency: string,
 ): BookFact[] {
   return [
     {
       k: PRODUCT_NOUN.bookMostOrders,
       v:
         isNum(depth.aovP25) && isNum(depth.aovP75)
-          ? `${formatCurrency(depth.aovP25)}–${formatCurrency(depth.aovP75)}`
+          ? `${formatCurrency(depth.aovP25, currency)}–${formatCurrency(depth.aovP75, currency)}`
           : "—",
       d: PRODUCT_NOUN.bookMostOrdersDef,
       keepDash: true,
@@ -363,7 +369,7 @@ function periodRows(
     {
       k: PRODUCT_NOUN.bookTypicalDay,
       v: isNum(depth.medianDailySales)
-        ? formatCurrency(depth.medianDailySales)
+        ? formatCurrency(depth.medianDailySales, currency)
         : "—",
       s:
         depth.dayCountWithSales > 0
@@ -379,7 +385,7 @@ function periodRows(
         : "—",
       s:
         isNum(depth.meanDiscountAmount) && depth.meanDiscountAmount > 0
-          ? `Typical ${formatCurrency(depth.meanDiscountAmount)} off`
+          ? `Typical ${formatCurrency(depth.meanDiscountAmount, currency)} off`
           : undefined,
       d: PRODUCT_NOUN.bookDiscountedOrdersDef,
       keepDash: true,
@@ -388,7 +394,7 @@ function periodRows(
       k: "Typical · full price vs discounted",
       v:
         isNum(depth.fullPriceMedianAov) && isNum(depth.discountedMedianAov)
-          ? `${formatCurrency(depth.fullPriceMedianAov)} vs ${formatCurrency(depth.discountedMedianAov)}`
+          ? `${formatCurrency(depth.fullPriceMedianAov, currency)} vs ${formatCurrency(depth.discountedMedianAov, currency)}`
           : "—",
       d: "Middle order with no discount vs with a discount. Average order value hides this.",
       keepDash: true,
@@ -411,7 +417,7 @@ function periodRows(
       k: PRODUCT_NOUN.bookReturnsEdits,
       v:
         isNum(book.returnsDrag) && book.returnsDrag > 0
-          ? formatCurrency(book.returnsDrag)
+          ? formatCurrency(book.returnsDrag, currency)
           : "—",
       s: hasShare(book.returnsDragPct)
         ? `${pct(book.returnsDragPct)} of the original checkout total`
@@ -423,7 +429,7 @@ function periodRows(
       k: "Shipping + tax",
       v:
         isNum(depth.shippingTaxFees) && depth.shippingTaxFees > 0
-          ? formatCurrency(depth.shippingTaxFees)
+          ? formatCurrency(depth.shippingTaxFees, currency)
           : "—",
       s: hasShare(depth.shippingTaxFeesPct)
         ? `${pct(depth.shippingTaxFeesPct)} of Total Sales`
@@ -445,12 +451,13 @@ function periodRows(
 function buyersRows(
   book: ShopifyNativePeriodStats,
   depth: ShopifyDepthStats,
+  currency: string,
 ): BookFact[] {
   const perBuyer =
     isNum(book.newBuyerArpu) && isNum(book.returningBuyerArpu)
-      ? `New ${formatCurrency(book.newBuyerArpu)} · returning ${formatCurrency(book.returningBuyerArpu)}`
+      ? `New ${formatCurrency(book.newBuyerArpu, currency)} · returning ${formatCurrency(book.returningBuyerArpu, currency)}`
       : isNum(book.newBuyerArpu)
-        ? `New ${formatCurrency(book.newBuyerArpu)}`
+        ? `New ${formatCurrency(book.newBuyerArpu, currency)}`
         : "—";
   return [
     {
@@ -475,7 +482,7 @@ function buyersRows(
         : "—",
       s:
         isNum(depth.guestAov) && isNum(depth.identifiedAov)
-          ? `Typical guest ${formatCurrency(depth.guestAov)} vs ${formatCurrency(depth.identifiedAov)} with an account`
+          ? `Typical guest ${formatCurrency(depth.guestAov, currency)} vs ${formatCurrency(depth.identifiedAov, currency)} with an account`
           : book.guestOrders > 0
             ? `${book.guestOrders.toLocaleString()} orders without an account`
             : undefined,
@@ -523,6 +530,7 @@ function buyersRows(
 function growthRows(
   book: ShopifyNativePeriodStats,
   depth: ShopifyDepthStats,
+  currency: string,
 ): BookFact[] {
   return [
     {
@@ -569,7 +577,7 @@ function growthRows(
       k: PRODUCT_NOUN.bookSecondVsFirst,
       v:
         isNum(depth.medianSecondOrder) && isNum(depth.medianFirstOrder)
-          ? `${formatCurrency(depth.medianSecondOrder)} vs ${formatCurrency(depth.medianFirstOrder)}`
+          ? `${formatCurrency(depth.medianSecondOrder, currency)} vs ${formatCurrency(depth.medianFirstOrder, currency)}`
           : "—",
       d: PRODUCT_NOUN.bookSecondVsFirstDef,
       keepDash: true,
@@ -577,13 +585,13 @@ function growthRows(
   ];
 }
 
-function timingRows(depth: ShopifyDepthStats): BookFact[] {
+function timingRows(depth: ShopifyDepthStats, currency: string): BookFact[] {
   const peakShare =
     depth.peakWeekday != null
       ? depth.weekdaySalesShare?.[depth.peakWeekday]
       : null;
   const mix = sourceMixLine(depth.sourceSalesShare);
-  const typical = sourceTypicalAovLine(depth.sourceMedianAov);
+  const typical = sourceTypicalAovLine(depth.sourceMedianAov, currency);
   return [
     {
       k: PRODUCT_NOUN.bookWeekendSales,
@@ -636,17 +644,17 @@ function timingRows(depth: ShopifyDepthStats): BookFact[] {
   ];
 }
 
-function clockItems(clocks: SalesClocks): ClockItem[] {
+function clockItems(clocks: SalesClocks, currency: string): ClockItem[] {
   return [
     clocks.grossKnown
-      ? { k: "Original", v: formatCurrency(clocks.gross) }
+      ? { k: "Original", v: formatCurrency(clocks.gross, currency) }
       : null,
     {
       k: clocks.grossKnown ? "After returns" : "Total Sales",
-      v: formatCurrency(clocks.total),
+      v: formatCurrency(clocks.total, currency),
     },
     clocks.netKnown
-      ? { k: "Product only", v: formatCurrency(clocks.net) }
+      ? { k: "Product only", v: formatCurrency(clocks.net, currency) }
       : null,
   ].filter((item): item is ClockItem => item !== null);
 }
@@ -668,27 +676,28 @@ export function ShopifyBookSection({
   muted?: string;
   id?: string;
 }) {
+  const currency = useDeskCurrency();
   const lead = groups[0] ?? "period";
   const hero =
     lead === "buyers"
-      ? buyersHero(book, depth)
+      ? buyersHero(book, depth, currency)
       : lead === "timing"
         ? timingHero(depth)
         : lead === "growth"
-          ? growthHero(book, depth)
-          : periodHero(depth);
+          ? growthHero(book, depth, currency)
+          : periodHero(depth, currency);
   const rows = groups
     .flatMap((group) =>
       group === "buyers"
-        ? buyersRows(book, depth)
+        ? buyersRows(book, depth, currency)
         : group === "timing"
-          ? timingRows(depth)
+          ? timingRows(depth, currency)
           : group === "growth"
-            ? growthRows(book, depth)
-            : periodRows(book, depth),
+            ? growthRows(book, depth, currency)
+            : periodRows(book, depth, currency),
     )
     .filter((row) => row.k !== hero.k);
-  const clock = groups.includes("period") ? clockItems(clocks) : [];
+  const clock = groups.includes("period") ? clockItems(clocks, currency) : [];
 
   return (
     <section

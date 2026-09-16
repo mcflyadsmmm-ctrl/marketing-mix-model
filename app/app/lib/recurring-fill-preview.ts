@@ -67,15 +67,15 @@ export function recurringFillPreviewCopy(opts: {
     return {
       dayCount,
       needsConfirm: false,
-      body: `Fills 1 empty day through yesterday${money}. Typed or uploaded days stay.`,
+      body: `Fills 1 empty day through yesterday${money}. Typed, uploaded, or already-filled days stay. Deleted days stay empty.`,
     };
   }
   return {
     dayCount,
     needsConfirm,
     body: needsConfirm
-      ? `Fills empty days from ${opts.fromYmd} through yesterday — ${dayCount} days${money}. Confirm below to write that many days. Typed or uploaded days stay.`
-      : `Fills ${dayCount} empty days through yesterday${money}. Typed or uploaded days stay.`,
+      ? `Fills empty days from ${opts.fromYmd} through yesterday — ${dayCount} days${money}. Confirm below to write that many days. Typed, uploaded, or already-filled days stay. Deleted days stay empty.`
+      : `Fills ${dayCount} empty days through yesterday${money}. Typed, uploaded, or already-filled days stay. Deleted days stay empty.`,
   };
 }
 
@@ -84,5 +84,5 @@ export function recurringFillConfirmRequiredError(
   fromYmd: string,
   throughYmd: string,
 ): string {
-  return `That daily rate would write ${dayCount} days (${fromYmd} → ${throughYmd}). Check the box to confirm a fill that long. Typed or uploaded days stay.`;
+  return `That daily rate would write ${dayCount} days (${fromYmd} → ${throughYmd}). Check the box to confirm a fill that long. Typed, uploaded, or already-filled days stay. Deleted days stay empty.`;
 }

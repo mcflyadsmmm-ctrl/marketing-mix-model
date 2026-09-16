@@ -92,12 +92,17 @@ export function shopifyNativePeriodStats(
   const returningSales = Number.isFinite(input.returningCustomerNetSales)
     ? input.returningCustomerNetSales
     : 0;
-  const hasSalesSplit =
-    orderCount > 0 && (newSales > 0 || returningSales > 0 || sales > 0);
-  const newSalesShare =
-    hasSalesSplit && sales > 0 ? newSales / sales : null;
-  const returningSalesShare =
-    hasSalesSplit && sales > 0 ? returningSales / sales : null;
+  /*
+   * Split dollars use the same Total Sales amounts as the hero (`sales`).
+   * Do not emit a 0% bar when customer flags are missing, or when only
+   * guests remain (remainder is guest, not a fake new/returning 0%).
+   */
+  const splitDollars = newSales + returningSales;
+  const hasSalesSplit = customerMetricsAvailable && splitDollars > 0;
+  const newSalesShare = hasSalesSplit ? newSales / splitDollars : null;
+  const returningSalesShare = hasSalesSplit
+    ? returningSales / splitDollars
+    : null;
 
   const gross = input.grossSalesKnown && Number.isFinite(input.grossSales)
     ? input.grossSales

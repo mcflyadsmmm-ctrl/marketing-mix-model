@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { spendChannelShortLabel } from "../lib/spend-channel-label";
+import { useDeskCurrency } from "../lib/desk-currency";
 import {
   channelDayRows,
   compareMix,
@@ -48,6 +49,7 @@ function MixDayList({
   channel: string;
   days: CertifiedDay[];
 }) {
+  const currency = useDeskCurrency();
   const rows = channelDayRows(days, channel);
   if (!rows.length) return <p>No days in this window.</p>;
 
@@ -58,7 +60,7 @@ function MixDayList({
           day.channels.find((item) => item.channel === channel)?.amount ?? 0;
         return (
           <li key={day.dateKey}>
-            {day.dateKey} {formatCurrency(amount)}
+            {day.dateKey} {formatCurrency(amount, currency)}
           </li>
         );
       })}
@@ -103,6 +105,7 @@ export function SpendMixPlan({
   board: CashControlBoard;
   channelLabels?: Record<string, string>;
 }) {
+  const currency = useDeskCurrency();
   const [mixWindow, setMixWindow] = useState<MixWindowId>("mtd");
   const [openChannel, setOpenChannel] = useState<string | null>(null);
   const mixDays = useMemo(
@@ -198,7 +201,7 @@ export function SpendMixPlan({
                           {row.locked ? " · stays" : ""}
                         </button>
                       </td>
-                      <td>{formatCurrency(row.spend)}</td>
+                      <td>{formatCurrency(row.spend, currency)}</td>
                       <td>{Math.round(row.share * 100)}%</td>
                       <td>{row.activeDays}</td>
                       <td>
@@ -216,7 +219,7 @@ export function SpendMixPlan({
                         <td colSpan={mixColSpan}>
                           <div className="mcfly-control__drawer">
                             <p>
-                              {formatCurrency(row.spend)} on {row.activeDays}{" "}
+                              {formatCurrency(row.spend, currency)} on {row.activeDays}{" "}
                               day{row.activeDays === 1 ? "" : "s"}
                               {row.note ? ` · ${row.note}` : ""}. Not which ad
                               caused a sale.
@@ -250,9 +253,9 @@ export function SpendMixPlan({
             Spend left at goal{" "}
             {plan.cannotHit
               ? "is already used. Freeze paid. Email stays as-is."
-              : `${formatCurrency(Math.max(0, plan.maxRem))} left if last 7 days' sales hold. Email stays as-is.`}
+              : `${formatCurrency(Math.max(0, plan.maxRem), currency)} left if last 7 days' sales hold. Email stays as-is.`}
             {close
-              ? ` ${close.remainingDays} days left · paid ${formatCurrency(plan.paidDailyCap)} / day.`
+              ? ` ${close.remainingDays} days left · paid ${formatCurrency(plan.paidDailyCap, currency)} / day.`
               : null}
           </p>
           {plan.daily.length > 0 ? (
@@ -272,8 +275,8 @@ export function SpendMixPlan({
                       {channelName(row.channel, channelLabels)}
                       {row.locked ? " · stays" : ""}
                     </td>
-                    <td>{formatCurrency(row.l7Daily)}</td>
-                    <td>{formatCurrency(row.planDaily)}</td>
+                    <td>{formatCurrency(row.l7Daily, currency)}</td>
+                    <td>{formatCurrency(row.planDaily, currency)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -3,6 +3,7 @@ import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { NUMBER_HONESTY } from "../lib/number-honesty";
 import type { PeriodPreset } from "../lib/periods";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 /** Whole percents in merchant chrome — 25%, never 25.0%. */
 function pct(share: number): string {
@@ -47,6 +48,7 @@ export function MarketingSnapSection({
     fill: string;
   }>;
 }) {
+  const currency = useDeskCurrency();
   const merValue =
     mer != null && Number.isFinite(mer) ? `${formatMer(mer)}×` : null;
   const targetLine =
@@ -86,7 +88,7 @@ export function MarketingSnapSection({
               <summary className="mcfly-book__row-sum">
                 <span className="mcfly-book__row-k">Total Spend</span>
                 <span className="mcfly-book__row-v">
-                  {formatCurrency(totalSpend)}
+                  {formatCurrency(totalSpend, currency)}
                 </span>
               </summary>
               <p className="mcfly-book__row-d">
@@ -99,7 +101,7 @@ export function MarketingSnapSection({
                 <summary className="mcfly-book__row-sum">
                   <span className="mcfly-book__row-k">{entry.name}</span>
                   <span className="mcfly-book__row-v">
-                    {formatCurrency(entry.amount)}
+                    {formatCurrency(entry.amount, currency)}
                   </span>
                 </summary>
                 <p className="mcfly-book__row-d">

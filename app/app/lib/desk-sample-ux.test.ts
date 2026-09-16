@@ -467,7 +467,7 @@ describe("Sample data | Live data UX", () => {
     expect(book).toContain("depth.guestAov");
     expect(book).toContain("function BookFactGrid");
     expect(ltv).toContain("<BookFactGrid");
-    expect(ltv).toContain("First orders · ");
+    expect(ltv).toContain("First on file · ");
   });
 
   it("Overview keeps YoY cards plus scoreboard while explorer stays on Total ROAS", () => {

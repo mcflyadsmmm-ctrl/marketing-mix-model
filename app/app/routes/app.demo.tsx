@@ -16,6 +16,7 @@ import { authenticate } from "../shopify.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { useDeskCurrency } from "../lib/desk-currency";
 import {
   clearSampleDesk,
   getSampleDeskStats,
@@ -121,6 +122,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function DemoPage() {
+  const currency = useDeskCurrency();
   const { stats } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -216,8 +218,8 @@ export default function DemoPage() {
             </div>
             {actionData && "result" in actionData && actionData.result ? (
               <p className="mcfly-breakdown-note">
-                Sample sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
-                {formatCurrency(actionData.result.totalSpend)} ·{" "}
+                Sample sales {formatCurrency(actionData.result.totalSales, currency)} · spend{" "}
+                {formatCurrency(actionData.result.totalSpend, currency)} ·{" "}
                 {PRODUCT_NOUN.totalRoas} ≈{" "}
                 {formatMer(
                   actionData.result.totalSpend > 0
@@ -254,8 +256,8 @@ export default function DemoPage() {
             </div>
             {actionData && "result" in actionData && actionData.result ? (
               <p className="mcfly-breakdown-note">
-                Sample sales {formatCurrency(actionData.result.totalSales)} · spend{" "}
-                {formatCurrency(actionData.result.totalSpend)} ·{" "}
+                Sample sales {formatCurrency(actionData.result.totalSales, currency)} · spend{" "}
+                {formatCurrency(actionData.result.totalSpend, currency)} ·{" "}
                 {PRODUCT_NOUN.totalRoas} ≈{" "}
                 {formatMer(
                   actionData.result.totalSpend > 0

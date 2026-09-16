@@ -44,7 +44,7 @@ describe("Spend day card", () => {
   it("labels recent rows as typed, uploaded, or daily-rate", () => {
     expect(spend).toContain("spendEntrySourceLabel");
     expect(spend).toContain("Fills empty days through");
-    expect(spend).toContain("Typed or uploaded days stay");
+    expect(spend).toContain("Typed, uploaded, or already-filled days stay");
     expect(spend).not.toContain("Typed days are corrections");
   });
 

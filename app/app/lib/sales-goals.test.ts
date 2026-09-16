@@ -39,7 +39,13 @@ describe("salesByMonthFromDayMap", () => {
     const months = salesByMonthFromDayMap(2026, sales, now);
     expect(months.get(1)).toBe(1000);
     expect(months.get(7)).toBe(250);
-    expect(months.get(12)).toBe(0);
+    expect(months.has(12)).toBe(false);
+  });
+
+  it("leaves months with no certified days absent — not $0", () => {
+    const months = salesByMonthFromDayMap(2026, new Map(), new Date(2026, 8, 16));
+    expect(months.size).toBe(0);
+    expect(months.get(1)).toBeUndefined();
   });
 });
 
@@ -251,14 +257,11 @@ describe("buildSalesGoalPeriods", () => {
 
     // YTD Jan–Jul
     expect(periods.ytd.label).toBe("This year");
-    expect(periods.ytd.actual).toBe(
-      110_000 + 95_000 + 100_000 + 105_000 + 98_000 + 102_000 + 52_000,
-    );
+    const ytdActual =
+      110_000 + 95_000 + 100_000 + 105_000 + 98_000 + 102_000 + 52_000;
+    expect(periods.ytd.actual).toBe(ytdActual);
     expect(periods.ytd.goal).toBe(700_000);
-    expect(periods.ytd.progressPct).toBeCloseTo(
-      (periods.ytd.actual / 700_000) * 100,
-      5,
-    );
+    expect(periods.ytd.progressPct).toBeCloseTo((ytdActual / 700_000) * 100, 5);
     expect(periods.ytd.yoy.priorActual).toBe(90_000 * 6 + 80_000);
     expect(periods.ytd.yoy.tone).toBe("up");
     expect(periods.mtd.spend).toBe(0);
@@ -296,8 +299,9 @@ describe("buildSalesGoalPeriods", () => {
     expect(periods.qtd.spend).toBe(20_000);
     expect(periods.qtd.mer).toBeCloseTo(52_000 / 20_000, 5);
     expect(periods.ytd.spend).toBe(40_000 + 40_000 + 34_000 + 20_000);
-    expect(periods.ytd.actual).toBe(110_000 + 95_000 + 102_000 + 52_000);
-    expect(periods.ytd.mer).toBeCloseTo(periods.ytd.actual / periods.ytd.spend, 5);
+    const ytdActual = 110_000 + 95_000 + 102_000 + 52_000;
+    expect(periods.ytd.actual).toBe(ytdActual);
+    expect(periods.ytd.mer).toBeCloseTo(ytdActual / periods.ytd.spend, 5);
 
     const withRails = buildSalesGoalPeriods({
       year: 2026,
@@ -312,6 +316,28 @@ describe("buildSalesGoalPeriods", () => {
     expect(withRails.mtd.merRails.tone).toBe("up");
     expect(withRails.mtd.merRails.label).toBe("Above break-even");
     expect(withRails.mtd.mer).toBeCloseTo(2.6, 5);
+  });
+
+  it("does not treat missing months as $0 Actual / YTD %", () => {
+    const goals = Array.from({ length: 12 }, () => 100_000);
+    const salesByMonth = new Map<number, number>([[7, 52_000]]);
+    const priorYearMonthly = Array.from({ length: 12 }, () => null);
+
+    const periods = buildSalesGoalPeriods({
+      year: 2026,
+      goals,
+      salesByMonth,
+      priorYearMonthly,
+      now,
+    });
+
+    expect(periods.mtd.actual).toBe(52_000);
+    expect(periods.qtd.actual).toBe(52_000);
+    expect(periods.ytd.actual).toBeNull();
+    expect(periods.ytd.progressPct).toBeNull();
+    expect(periods.ytd.yoy.priorActual).toBeNull();
+    expect(periods.ytd.yoy.pct).toBeNull();
+    expect(periods.mtd.yoy.pct).toBeNull();
   });
 
   it("returns null progress and none pace when goals are empty", () => {

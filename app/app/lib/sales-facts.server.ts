@@ -13,6 +13,13 @@ import { ensureShopMetadata } from "./shop-metadata.server";
 import { DESK_HISTORY_YEARS_BACK } from "./desk-history";
 import { countClosedDaysInPeriod } from "./mer-trust";
 import type { DateRange } from "./periods";
+import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
+import {
+  isCertifiedSalesDayFact,
+  isShopifyHistoryWindowError,
+  isUnseenShopifySalesDay,
+  shopifyReadOrdersScopesAllowDeep,
+} from "./shopify-order-window";
 
 /** SalesDayFact.source for rows written by this ingest lane. */
 export const SALES_DAY_FACT_SOURCE = "shopify_order_current_total_v1";
@@ -65,6 +72,11 @@ export interface SalesFactBackfillResult {
   written: number;
   /** Days whose Shopify fetch failed this call — left missing for the next run to retry. */
   failed: string[];
+  /**
+   * Days Shopify did not share (history window / empty fetch outside ~60 days).
+   * Left missing — never stored as $0.
+   */
+  unseen: string[];
   /** Set when ianaTimezone was (and remains) unknown; ingest was skipped entirely. */
   skippedReason: "no_timezone" | null;
   /** Missing days within the window not yet attempted this call (still to resume). */
@@ -152,7 +164,13 @@ async function upsertSalesDayFact(
 export async function runSalesFactsBackfill(
   admin: AdminApiContext,
   shopId: string,
-  options?: { now?: Date; maxDays?: number },
+  options?: {
+    now?: Date;
+    maxDays?: number;
+    /** Override ingest width — tests / ops. Default is 60d or the Jan-1 window. */
+    windowDays?: number;
+    scopesAllowDeep?: boolean;
+  },
 ): Promise<SalesFactBackfillResult> {
   const now = options?.now ?? new Date();
   const maxDays = options?.maxDays ?? SALES_DAY_FACT_MAX_DAYS_PER_RUN;
@@ -166,15 +184,23 @@ export async function runSalesFactsBackfill(
       attempted: 0,
       written: 0,
       failed: [],
+      unseen: [],
       skippedReason: "no_timezone",
       remainingMissingDays: 0,
     };
   }
 
   const timeZone = metadata.ianaTimezone;
+  const scopesAllowDeep =
+    options?.scopesAllowDeep ?? shopifyReadOrdersScopesAllowDeep();
+  const ingestDayCount =
+    options?.windowDays ??
+    (scopesAllowDeep
+      ? salesDayFactWindowDayCount(now)
+      : SHOPIFY_READ_ORDERS_WINDOW_DAYS);
   const windowDayKeys = listRecentClosedShopLocalDays(
     timeZone,
-    salesDayFactWindowDayCount(now),
+    ingestDayCount,
     now,
   );
   const existing = await existingFactDayKeys(shopId, windowDayKeys);
@@ -183,13 +209,31 @@ export async function runSalesFactsBackfill(
 
   let written = 0;
   const failed: string[] = [];
+  const unseen: string[] = [];
   for (const dayKey of batch) {
     try {
       const range = shopLocalDayRange(dayKey, timeZone);
       const sales = await fetchShopifySales(admin, range);
+      if (
+        isUnseenShopifySalesDay({
+          day: dayKeyToUtcDate(dayKey),
+          orderCount: sales.orderCount,
+          totalSales: sales.totalSales,
+          now,
+          scopesAllowDeep,
+        })
+      ) {
+        unseen.push(dayKey);
+        continue;
+      }
       await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
       written += 1;
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (isShopifyHistoryWindowError(undefined, msg)) {
+        unseen.push(dayKey);
+        continue;
+      }
       // Leave this day missing — the next call's missing-dates scan retries it.
       failed.push(dayKey);
     }
@@ -201,6 +245,7 @@ export async function runSalesFactsBackfill(
     attempted: batch.length,
     written,
     failed,
+    unseen,
     skippedReason: null,
     remainingMissingDays: Math.max(0, missing.length - batch.length),
   };
@@ -266,6 +311,16 @@ export async function reconcileSalesDayFact(
   }
 
   const sales = await fetchShopifySales(admin, range);
+  if (
+    isUnseenShopifySalesDay({
+      day: dayKeyToUtcDate(dayKey),
+      orderCount: sales.orderCount,
+      totalSales: sales.totalSales,
+      now,
+    })
+  ) {
+    return { shopId, dayKey, written: false, skippedReason: "day_outside_window" };
+  }
   await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
   return { shopId, dayKey, written: true, skippedReason: null };
 }
@@ -326,9 +381,12 @@ export async function getSalesFactsCoverage(
   const periodExceedsFactWindow = range.start < windowStart;
 
   if (periodExceedsFactWindow) {
-    const factDays = await prisma.salesDayFact.count({
-      where: { shopId, day: { gte: windowStart, lte: range.end } },
-    });
+    const factDays = await countCertifiedSalesFactDays(
+      shopId,
+      windowStart,
+      range.end,
+      now,
+    );
     return {
       expectedClosedDays: countClosedDaysInPeriod(
         windowStart,
@@ -358,9 +416,12 @@ export async function getSalesFactsCoverage(
     };
   }
 
-  const factDays = await prisma.salesDayFact.count({
-    where: { shopId, day: { gte: range.start, lte: range.end } },
-  });
+  const factDays = await countCertifiedSalesFactDays(
+    shopId,
+    range.start,
+    range.end,
+    now,
+  );
 
   return {
     expectedClosedDays,
@@ -368,6 +429,27 @@ export async function getSalesFactsCoverage(
     complete: factDays >= expectedClosedDays,
     periodExceedsFactWindow: false,
   };
+}
+
+async function countCertifiedSalesFactDays(
+  shopId: string,
+  start: Date,
+  end: Date,
+  now: Date,
+): Promise<number> {
+  const rows = await prisma.salesDayFact.findMany({
+    where: { shopId, day: { gte: start, lte: end } },
+    select: { day: true, sales: true },
+  });
+  const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
+  return rows.filter((row) =>
+    isCertifiedSalesDayFact({
+      day: row.day,
+      sales: row.sales,
+      now,
+      scopesAllowDeep,
+    }),
+  ).length;
 }
 
 export interface SalesFactsTotals {
@@ -489,6 +571,7 @@ export async function getSalesFactsTotals(
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: clampedStart, lte: range.end } },
     select: {
+      day: true,
       sales: true,
       netSales: true,
       grossSales: true,
@@ -500,6 +583,15 @@ export async function getSalesFactsTotals(
       guestOrders: true,
     },
   });
+  const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
+  const certified = rows.filter((row) =>
+    isCertifiedSalesDayFact({
+      day: row.day,
+      sales: row.sales,
+      now,
+      scopesAllowDeep,
+    }),
+  );
 
   let totalSales = 0;
   let netSalesSum = 0;
@@ -512,7 +604,7 @@ export async function getSalesFactsTotals(
   let newCustomerNetSalesSum = 0;
   let returningCustomerNetSalesSum = 0;
   let guestOrdersSum = 0;
-  for (const row of rows) {
+  for (const row of certified) {
     totalSales += row.sales;
     if (row.netSales != null && Number.isFinite(row.netSales)) {
       netSalesSum += row.netSales;
@@ -533,16 +625,17 @@ export async function getSalesFactsTotals(
   return {
     totalSales,
     netSalesSum,
-    netSalesComplete: rows.length === 0 || netKnownDays === rows.length,
+    netSalesComplete: certified.length === 0 || netKnownDays === certified.length,
     grossSalesSum,
-    grossSalesComplete: rows.length === 0 || grossKnownDays === rows.length,
+    grossSalesComplete:
+      certified.length === 0 || grossKnownDays === certified.length,
     orderCount,
     newCustomersSum,
     returningCustomersSum,
     newCustomerNetSalesSum,
     returningCustomerNetSalesSum,
     guestOrdersSum,
-    dayCount: rows.length,
+    dayCount: certified.length,
     rangeClampedToFactWindow,
   };
 }
@@ -643,14 +736,27 @@ export async function loadDeskSalesForPeriod(args: {
 export async function getSalesFactsByDay(
   shopId: string,
   range: { start: Date; end: Date },
+  options?: { now?: Date },
 ): Promise<Map<string, number>> {
+  const now = options?.now ?? new Date();
   const rows = await prisma.salesDayFact.findMany({
     where: { shopId, day: { gte: range.start, lte: range.end } },
     select: { day: true, sales: true },
   });
 
+  const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
   const map = new Map<string, number>();
   for (const row of rows) {
+    if (
+      !isCertifiedSalesDayFact({
+        day: row.day,
+        sales: row.sales,
+        now,
+        scopesAllowDeep,
+      })
+    ) {
+      continue;
+    }
     const key = utcDayKeyFromDate(row.day);
     map.set(key, (map.get(key) ?? 0) + row.sales);
   }

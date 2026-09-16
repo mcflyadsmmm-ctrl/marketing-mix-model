@@ -56,13 +56,23 @@ export function resolveSalesReadiness(
     !coverage.complete &&
     !coverage.periodExceedsFactWindow;
 
+  const noCertifiedFacts = coverage != null && coverage.factDays <= 0;
+  const beyondWindowUnknown =
+    !useSampleDesk &&
+    Boolean(coverage?.periodExceedsFactWindow) &&
+    noCertifiedFacts &&
+    sales <= 0;
+
   return {
     /*
      * Requires BOTH zero stored days and zero resolved sales. A shop that
      * genuinely made $0 with complete coverage keeps its honest 0.00×, and a
      * partially loaded period keeps the real ratio it can support.
+     * A period past the fact window with no certified days is unknown, not $0.
      */
-    salesPending: stillLoading && coverage!.factDays <= 0 && sales <= 0,
-    salesCoverageIncomplete: stillLoading,
+    salesPending:
+      (stillLoading && coverage!.factDays <= 0 && sales <= 0) ||
+      beyondWindowUnknown,
+    salesCoverageIncomplete: stillLoading || beyondWindowUnknown,
   };
 }

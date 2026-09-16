@@ -21,6 +21,8 @@ import {
   getSampleDeskEnabled,
   getSamplePreviewAllowed,
 } from "../lib/sample-desk.server";
+import { DeskCurrencyContext } from "../lib/desk-currency";
+import { shopCurrencyCode } from "../lib/spend-money";
 import { DeskDrillProvider } from "../components/DeskDrill";
 import { DeskTopTabs } from "../components/DeskTopTabs";
 import { DataModeBar } from "../components/DataModeBar";
@@ -40,6 +42,7 @@ const PUBLIC_APP = {
   shotMode: false,
   plansUrl: null as string | null,
   shop: null as string | null,
+  currencyCode: "USD",
 };
 
 function isGoneResponse(error: unknown): boolean {
@@ -96,6 +99,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     samplePreviewAllowed,
     shotMode,
     plansUrl,
+    currencyCode: shopCurrencyCode(shop.currencyCode),
   };
 };
 
@@ -123,10 +127,12 @@ export default function App() {
     samplePreviewAllowed,
     shotMode,
     plansUrl,
+    currencyCode,
   } = data;
 
   return (
     <AppProvider embedded apiKey={apiKey}>
+      <DeskCurrencyContext.Provider value={currencyCode}>
       <BillingExitProvider plansUrl={plansUrl}>
         {/* Admin nav: 11 analysis tabs + Settings. period + shot stay on every href. */}
         <s-app-nav>
@@ -149,6 +155,7 @@ export default function App() {
           <Outlet />
         </DeskDrillProvider>
       </BillingExitProvider>
+      </DeskCurrencyContext.Provider>
     </AppProvider>
   );
 }

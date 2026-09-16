@@ -71,6 +71,7 @@ import {
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
 import { shopLocalDayKey } from "../lib/shop-local-day";
+import { useDeskCurrency } from "../lib/desk-currency";
 import {
   isLiveHandoffGuide,
   LIVE_HANDOFF_BODY,
@@ -325,6 +326,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function Dashboard() {
+  const currency = useDeskCurrency();
   const data = useLoaderData<typeof loader>();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -396,7 +398,7 @@ export default function Dashboard() {
   const salesDeltaLine = deltas
     ? formatPctDelta(deltas.salesPct, priorLabel)
     : metrics.orderCount > 0
-      ? `${metrics.orderCount.toLocaleString()} orders · AOV ${formatCurrency(metrics.sales / metrics.orderCount)}`
+      ? `${metrics.orderCount.toLocaleString()} orders · AOV ${formatCurrency(metrics.sales / metrics.orderCount, currency)}`
       : `${metrics.orderCount.toLocaleString()} orders`;
   const spendDeltaLine = deltas
     ? formatPctDelta(deltas.spendPct, priorLabel)

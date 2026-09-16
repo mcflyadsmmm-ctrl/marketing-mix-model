@@ -5,6 +5,7 @@
 import { SPEND_FLOOR_PCT } from "@mcfly/mer-core";
 import { formatCurrency, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 export type AllocMixRow = {
   name: string;
@@ -69,6 +70,7 @@ export function buildRecommendedMix(input: {
 }
 
 export function AllocMixChart({ rows, totalSpend }: AllocMixChartProps) {
+  const currency = useDeskCurrency();
   const maxBar = Math.max(
     ...rows.flatMap((r) => [r.current, r.recommended]),
     1,
@@ -88,9 +90,9 @@ export function AllocMixChart({ rows, totalSpend }: AllocMixChartProps) {
         </p>
       </div>
       <p className="mcfly-alloc-mix__floor">
-        Spend floor: keep ≥ {formatCurrency(floorKeep)} (
-        {100 - SPEND_FLOOR_PCT}% of {formatCurrency(totalSpend)}) · recommended
-        total {formatCurrency(recommendedTotal)}
+        Spend floor: keep ≥ {formatCurrency(floorKeep, currency)} (
+        {100 - SPEND_FLOOR_PCT}% of {formatCurrency(totalSpend, currency)}) · recommended
+        total {formatCurrency(recommendedTotal, currency)}
       </p>
       <ul className="mcfly-alloc-mix__list">
         {rows.map((row) => {
@@ -102,7 +104,7 @@ export function AllocMixChart({ rows, totalSpend }: AllocMixChartProps) {
               <div className="mcfly-alloc-mix__head">
                 <span className="mcfly-alloc-mix__name">{row.name}</span>
                 <span className="mcfly-alloc-mix__meta">
-                  {formatCurrency(row.current)} → {formatCurrency(row.recommended)}{" "}
+                  {formatCurrency(row.current, currency)} → {formatCurrency(row.recommended, currency)}{" "}
                   · {formatPercent(curPct)} → {formatPercent(recPct)}
                 </span>
               </div>

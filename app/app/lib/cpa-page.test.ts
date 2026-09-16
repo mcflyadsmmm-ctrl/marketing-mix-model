@@ -20,8 +20,12 @@ describe("CPA page", () => {
     expect(cpa).toContain("tillLtv.cashCac");
     expect(cpa).toMatch(/hasSpend && cashCpa != null/);
     expect(cpa).toMatch(/hasSpend && cashCac != null/);
-    expect(cpa).toContain('hasSpend && cashCpa != null ? formatCurrency(cashCpa) : "—"');
-    expect(cpa).toContain('hasSpend && cashCac != null ? formatCurrency(cashCac) : "—"');
+    expect(cpa).toContain(
+      'hasSpend && cashCpa != null ? formatCurrency(cashCpa, currency) : "—"',
+    );
+    expect(cpa).toContain(
+      'hasSpend && cashCac != null ? formatCurrency(cashCac, currency) : "—"',
+    );
     expect(cpa).toContain("Spend Upload");
     expect(cpa).not.toContain("0.00");
   });

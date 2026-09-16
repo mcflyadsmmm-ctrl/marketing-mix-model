@@ -1,4 +1,5 @@
 import { formatCurrency } from "../lib/mer-format";
+import { useDeskCurrency } from "../lib/desk-currency";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import {
@@ -9,18 +10,18 @@ import {
   type OverviewYoyCard,
 } from "../lib/overview-yoy";
 
-function deltaLine(card: OverviewYoyCard): string | null {
+function deltaLine(card: OverviewYoyCard, currency: string): string | null {
   if (card.missingPrior || card.delta == null || card.priorSales == null) {
     return null;
   }
   const sign = card.delta > 0 ? "+" : card.delta < 0 ? "−" : "";
-  const dollars = formatCurrency(Math.abs(card.delta));
+  const dollars = formatCurrency(Math.abs(card.delta), currency);
   const pct =
     card.yoySalesPct == null
       ? null
       : `${card.yoySalesPct > 0 ? "+" : ""}${Math.round(card.yoySalesPct)}%`;
   if (card.delta === 0) {
-    return `Even with last year ${formatCurrency(card.priorSales)}`;
+    return `Even with last year ${formatCurrency(card.priorSales, currency)}`;
   }
   return pct
     ? `${sign}${dollars} · ${pct}`
@@ -39,6 +40,7 @@ export function OverviewYoyCards({
   salesPending: boolean;
   yoyHref?: string;
 }) {
+  const currency = useDeskCurrency();
   const drill = useDeskDrill();
   if (salesPending) {
     return (
@@ -57,10 +59,10 @@ export function OverviewYoyCards({
       <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {
-          const vs = deltaLine(card);
+          const vs = deltaLine(card, currency);
           const priorLabel = card.missingPrior
             ? "—"
-            : formatCurrency(card.priorSales ?? 0);
+            : formatCurrency(card.priorSales ?? 0, currency);
           return (
             <button
               type="button"
@@ -69,10 +71,10 @@ export function OverviewYoyCards({
               onClick={() =>
                 drill?.openDrill({
                   title: card.label,
-                  value: formatCurrency(card.sales),
+                  value: formatCurrency(card.sales, currency),
                   kicker: "Same days last year",
                   blocks: [
-                    { k: "This year", v: formatCurrency(card.sales) },
+                    { k: "This year", v: formatCurrency(card.sales, currency) },
                     { k: "Last year", v: priorLabel },
                     vs ? { k: "Change", v: vs } : null,
                     {
@@ -93,7 +95,7 @@ export function OverviewYoyCards({
                 <DeskIcon name="yoy" />
                 {card.label}
               </p>
-              <p className="mcfly-yoy__v">{formatCurrency(card.sales)}</p>
+              <p className="mcfly-yoy__v">{formatCurrency(card.sales, currency)}</p>
               <p className="mcfly-yoy__prior">
                 <span>Last year</span>
                 <span>{priorLabel}</span>

@@ -1,6 +1,7 @@
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import type { PeriodPreset } from "../lib/periods";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 export type LtvSnapTill = {
   available: boolean;
@@ -26,26 +27,26 @@ function isNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
 }
 
-function ltvWindows(tillLtv: LtvSnapTill): LtvRow[] {
+function ltvWindows(tillLtv: LtvSnapTill, currency: string): LtvRow[] {
   const windows: Array<LtvRow | null> = [
     isNum(tillLtv.avgRevenueD90)
       ? {
           k: "First 90 days",
-          v: formatCurrency(tillLtv.avgRevenueD90),
+          v: formatCurrency(tillLtv.avgRevenueD90, currency),
           d: PRODUCT_NOUN.ltv90Def,
         }
       : null,
     isNum(tillLtv.avgRevenueD30)
       ? {
           k: "First 30 days",
-          v: formatCurrency(tillLtv.avgRevenueD30),
+          v: formatCurrency(tillLtv.avgRevenueD30, currency),
           d: PRODUCT_NOUN.ltv30Def,
         }
       : null,
     isNum(tillLtv.avgRevenueD365)
       ? {
           k: "First year",
-          v: formatCurrency(tillLtv.avgRevenueD365),
+          v: formatCurrency(tillLtv.avgRevenueD365, currency),
           d: PRODUCT_NOUN.ltv365Def,
         }
       : null,
@@ -57,6 +58,7 @@ function spendRows(
   tillLtv: LtvSnapTill,
   hasSpend: boolean,
   cashCpa: number | null,
+  currency: string,
 ): LtvRow[] {
   if (!hasSpend) return [];
   const rows: LtvRow[] = [];
@@ -67,14 +69,14 @@ function spendRows(
         : "";
     rows.push({
       k: "Cash CAC",
-      v: formatCurrency(tillLtv.cashCac),
+      v: formatCurrency(tillLtv.cashCac, currency),
       d: `${PRODUCT_NOUN.cashCacDef}.${payback}`,
     });
   }
   if (isNum(cashCpa)) {
     rows.push({
       k: "Cash CPA",
-      v: formatCurrency(cashCpa),
+      v: formatCurrency(cashCpa, currency),
       d: "Spend ÷ identified buyers in this window. Shopify Analytics has no spend.",
     });
   }
@@ -109,7 +111,8 @@ export function LtvSnapSection({
   hasSpend: boolean;
   cashCpa: number | null;
 }) {
-  const windows = ltvWindows(tillLtv);
+  const currency = useDeskCurrency();
+  const windows = ltvWindows(tillLtv, currency);
   const hero = tillLtv.available ? windows[0] : undefined;
   const rows = hero
     ? [
@@ -123,7 +126,7 @@ export function LtvSnapSection({
               },
             ]
           : []),
-        ...spendRows(tillLtv, hasSpend, cashCpa),
+        ...spendRows(tillLtv, hasSpend, cashCpa, currency),
       ]
     : [];
 
