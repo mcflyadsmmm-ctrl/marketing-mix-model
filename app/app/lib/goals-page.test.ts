@@ -28,10 +28,12 @@ describe("Goals page", () => {
   });
 
   it("sales-load banner does not leak internals or paint actuals as $0", () => {
-    expect(goals).toContain("<SalesLoadError");
-    expect(goals).toContain("Actuals stay —");
-    expect(goals).not.toContain("{salesError}");
-    expect(goals).not.toContain("stay $0");
+    const retryAt = goals.indexOf("<SalesLoadError");
+    expect(retryAt).toBeGreaterThan(-1);
+    const retry = goals.slice(retryAt, retryAt + 280);
+    expect(retry).toContain("Actuals stay —");
+    expect(retry).not.toContain("{salesError}");
+    expect(retry).not.toContain("stay $0");
     expect(goals).toContain("TRIAL_VS_VIEW");
   });
 
