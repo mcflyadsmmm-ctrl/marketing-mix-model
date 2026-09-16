@@ -14,12 +14,13 @@ import {
   contributionLtvCacRatio,
 } from "../lib/contrib-ltv";
 import { deskPeriodTillLabel } from "../lib/desk-history";
-import { runOrderFactsBackfill, getOrderBackfillProgress, ORDER_FACT_MAX_DAYS_PER_RUN } from "../lib/order-facts.server";
+import { getOrderBackfillProgress } from "../lib/order-facts.server";
 import { deskPeriodTimeZone, parsePeriodPreset, periodMayExceedShopifyOrderWindow, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
-import { authenticate } from "../shopify.server";
+import { requireAdmin } from "../lib/public-app-gate.server";
+import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
 import prisma from "../db.server";
 import { useDeskCurrency } from "../lib/desk-currency";
 
@@ -47,7 +48,7 @@ function isNum(n: number | null | undefined): n is number {
 type LtvRow = BookFact;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, session } = await requireAdmin(request);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
@@ -72,11 +73,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sales = await fetchSampleSales(shop.id, range);
   } else {
     // First-order-month OrderFact backfill — chunked so paint stays fast.
-    void runOrderFactsBackfill(admin, shop.id, {
-      maxDays: ORDER_FACT_MAX_DAYS_PER_RUN,
-    }).catch(() => {
-      // ignore — page shows honest empty/backfill states until facts land
-    });
+    void scheduleFirstSessionShopifyWindow(admin, shop.id);
     /*
      * HARD-STOP: same as Home / Close / Allocation — never unbounded
      * fetchShopifySales for a multi-day period. Facts + capped today only.

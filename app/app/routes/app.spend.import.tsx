@@ -18,8 +18,10 @@ import {
   type SpendChannel,
 } from "@mcfly/mer-engine";
 import { PeriodControl } from "../components/PeriodControl";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import type { SpendExplorerSeriesView } from "../components/SpendExplorer";
 import { requireAdmin } from "../lib/public-app-gate.server";
+import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
 import {
   buildSpendExplorerSeries,
   ensureShop,
@@ -93,7 +95,6 @@ import { shopCurrencyCode } from "../lib/spend-money";
 import { loadSpendDayCoverage } from "../lib/spend-coverage.server";
 import {
   getSalesFactsByDay,
-  runSalesFactsBackfill,
   salesDayFactWindowStartUtc,
   SALES_DAY_FACT_WINDOW_YEARS_BACK,
 } from "../lib/sales-facts.server";
@@ -288,9 +289,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       salesByDay = new Map();
     }
   } else {
-    void runSalesFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-      // ignore — explorer uses stored facts; Overview banners disclose holes
-    });
+    void scheduleFirstSessionShopifyWindow(admin, shop.id);
     try {
       salesByDay = await getSalesFactsByDay(shop.id, dayFetchRange);
     } catch {
@@ -1043,7 +1042,7 @@ export default function SpendEntryPage() {
               {" · "}
               {money(csv.totalAmount)}
               {holeCount > 0
-                ? " · those days are in. Days with no row are $0 — last month is enough"
+                ? " · those days are in. Days with no row have no spend entered — last month is enough"
                 : ""}
             </s-paragraph>
             {csv.salesWindowWarning ? (
@@ -1160,7 +1159,9 @@ export default function SpendEntryPage() {
            */}
           <section className="mcfly-book" aria-label="Three ways to add spend">
             <p className="mcfly-book__lede">
-              Three ways to add spend — pick one.
+              <s-link href="/app/spend#mcfly-spend-add">Type yesterday</s-link>
+              {" "}on Spend Upload first. This page is backfill after that
+              amount is on the desk — not the first-session start.
             </p>
             <ul className="mcfly-book__links">
               {SPEND_IMPORT_DOORS.map((door) => (
@@ -1173,8 +1174,9 @@ export default function SpendEntryPage() {
           </section>
           <p className="mcfly-spend-helper">
             Shopify sales are already here. Download the blank, fill daily spend,
-            and upload it; empty spend is $0. Uploaded days replace the same day
-            + channel. An active daily rate will not overwrite those days.
+            and upload it after yesterday is typed. Days with no row have no
+            spend entered — a deleted day stays $0. Uploaded days replace the
+            same day + channel. An active daily rate will not overwrite those days.
           </p>
 
           <section
@@ -1914,12 +1916,12 @@ export default function SpendEntryPage() {
             ) : entries.length === 0 ? (
               <p className="mcfly-spend-lean__status-line">
                 No spend on Live data yet. Add yesterday’s Meta and a billboard
-                — Empty spend is $0.
+                — no spend entered, not a certified $0.
               </p>
             ) : (
               <p className="mcfly-spend-lean__status-line">
-                Your spend is on the desk. Days with no row are $0 — last month
-                is enough to start
+                Your spend is on the desk. Days with no row have no spend
+                entered — a deleted day stays $0. Last month is enough to start
                 {missingDatesPreview.length > 0 ? (
                   <>
                     {" · "}
@@ -1978,6 +1980,10 @@ export default function SpendEntryPage() {
       </div>
     </s-page>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/spend/import" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

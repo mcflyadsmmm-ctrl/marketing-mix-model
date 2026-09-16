@@ -22,7 +22,7 @@ import {
   getSamplePreviewAllowed,
 } from "../lib/sample-desk.server";
 import { DeskCurrencyContext } from "../lib/desk-currency";
-import { shopCurrencyCode } from "../lib/spend-money";
+import { parseShopCurrencyCode } from "../lib/spend-money";
 import { DeskDrillProvider } from "../components/DeskDrill";
 import { DeskTopTabs } from "../components/DeskTopTabs";
 import { DataModeBar } from "../components/DataModeBar";
@@ -99,7 +99,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     samplePreviewAllowed,
     shotMode,
     plansUrl,
-    currencyCode: shopCurrencyCode(shop.currencyCode),
+    currencyCode: parseShopCurrencyCode(shop.currencyCode) ?? "",
   };
 };
 

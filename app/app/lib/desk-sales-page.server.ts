@@ -24,11 +24,9 @@ import {
   fetchSampleSales,
   getSampleDeskEnabled,
 } from "./sample-desk.server";
-import {
-  getOrderBackfillProgress,
-  runOrderFactsBackfill,
-} from "./order-facts.server";
+import { getOrderBackfillProgress } from "./order-facts.server";
 import { requireAdmin } from "./public-app-gate.server";
+import { scheduleFirstSessionShopifyWindow } from "./first-session-shopify-window.server";
 
 export async function loadDeskSalesPage(
   request: Request,
@@ -59,9 +57,7 @@ export async function loadDeskSalesPage(
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
-    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-      // ignore — tiles stay honest until facts land
-    });
+    void scheduleFirstSessionShopifyWindow(admin, shop.id);
     const desk = await loadDeskSalesForPeriod({
       admin,
       shopId: shop.id,

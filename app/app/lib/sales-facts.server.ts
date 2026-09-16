@@ -63,6 +63,9 @@ export const SALES_DAY_FACT_WINDOW_DAYS = 5 * 365 + 1;
  */
 export const SALES_DAY_FACT_MAX_DAYS_PER_RUN = 20;
 
+/** Queue type: resume SalesDayFact until the public-app window is filled. */
+export const BACKFILL_SALES_DAY_FACTS_JOB = "backfill_sales_day_facts";
+
 export interface SalesFactBackfillResult {
   shopId: string;
   ranAt: string;

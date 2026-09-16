@@ -24,4 +24,13 @@ describe("formatCurrency", () => {
     expect(formatMoneyOrDash(Number.NaN, "USD")).toBe("—");
     expect(formatMoneyOrDash(80, "USD")).toBe("$80");
   });
+
+  it("unknown shop currency is not a silent USD $", () => {
+    expect(formatCurrency(1200, "")).toBe("—");
+    expect(formatCurrency(1200, "US")).toBe("—");
+    expect(formatCurrency(1200, "usd1")).toBe("—");
+    expect(formatCurrency(1200, "")).not.toBe("$1,200");
+    expect(createMoneyFormatter(null)(40)).toBe("—");
+    expect(createMoneyFormatter("bogus")(40)).toBe("—");
+  });
 });

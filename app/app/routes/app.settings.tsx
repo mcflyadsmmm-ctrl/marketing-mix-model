@@ -15,7 +15,8 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import {
   calculateBreakEvenMer,
 } from "@mcfly/mer-core";
-import { authenticate } from "../shopify.server";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { requireAdmin } from "../lib/public-app-gate.server";
 import {
   ensureShop,
   getOrCreateSettings,
@@ -62,7 +63,7 @@ function showAdminToast(
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, session } = await requireAdmin(request);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const shop = await ensureShop(session.shop);
@@ -111,7 +112,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "save_margin");
@@ -761,6 +762,10 @@ export default function SettingsPage() {
       </div>
     </s-page>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/settings" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

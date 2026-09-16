@@ -34,7 +34,7 @@ export const SPEND_IMPORT_DOORS: readonly SpendDoor[] = [
   {
     href: "#mcfly-spend-platforms",
     title: "Download Template and Upload",
-    hint: "Fill daily spend back to the history floor. Start here.",
+    hint: "Backfill daily rows after yesterday’s amount is on the desk.",
   },
   {
     href: "#mcfly-spend-csv",

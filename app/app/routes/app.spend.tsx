@@ -547,7 +547,8 @@ export default function SpendEntryPage() {
           ) : null}
           <p className="mcfly-spend-helper">
             {SPEND_UPLOAD_CONTRAST} Shopify sales are already here. Empty spend
-            is $0, never 0×
+            is not a certified $0 — add a day. A deleted day stays $0. Empty
+            spend is never 0×
             {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
             {strangerEmpty
               ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
@@ -887,7 +888,8 @@ export default function SpendEntryPage() {
                       : ""}
                     {" · "}
                     {dayCoverage.total}-day window. Empty cells open Add a day.
-                    Days with no row are $0.
+                    Days with no row have no spend entered. A deleted day stays
+                    $0.
                   </p>
                 </div>
                 <div className="mcfly-spend-cal__strip" role="list">
@@ -913,7 +915,7 @@ export default function SpendEntryPage() {
                           period: preset,
                           shot: shotMode,
                         })}
-                        title={`${day.dateKey} empty ($0) — add spend`}
+                        title={`${day.dateKey} — no spend entered`}
                       >
                         <span className="mcfly-spend-cal__tick" />
                         <span className="mcfly-spend-cal__label">
@@ -934,7 +936,7 @@ export default function SpendEntryPage() {
                     <span className="mcfly-spend-cal__day mcfly-spend-cal__day--empty mcfly-spend-cal__day--swatch">
                       <span className="mcfly-spend-cal__tick" />
                     </span>
-                    Empty = $0
+                    No row = none entered
                   </span>
                 </div>
               </section>
@@ -961,12 +963,13 @@ export default function SpendEntryPage() {
                 ) : entries.length === 0 ? (
                   <p className="mcfly-spend-lean__status-line">
                     No spend on Live data yet. Add yesterday’s Meta and a
-                    billboard — Empty spend is $0.
+                    billboard — no spend entered, not a certified $0.
                   </p>
                 ) : (
                   <p className="mcfly-spend-lean__status-line">
-                    Your spend is on the desk. Days with no row are $0 — last
-                    month is enough to start
+                    Your spend is on the desk. Days with no row have no spend
+                    entered — a deleted day stays $0. Last month is enough to
+                    start
                     {coverageThroughYesterday.missing.length > 0 ? (
                       <>
                         {" · "}

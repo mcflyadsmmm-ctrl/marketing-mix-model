@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  isShopCurrencyCode,
   moneyEquals,
+  parseShopCurrencyCode,
   roundMoney,
   shopCurrencyCode,
   toMoneyNumber,
@@ -12,11 +14,16 @@ describe("shopCurrencyCode", () => {
     expect(shopCurrencyCode("GBP")).toBe("GBP");
   });
 
-  it("falls back to USD", () => {
+  it("falls back to USD only for persistence, not as a paint argument", () => {
     expect(shopCurrencyCode(null)).toBe("USD");
     expect(shopCurrencyCode("")).toBe("USD");
     expect(shopCurrencyCode("US")).toBe("USD");
     expect(shopCurrencyCode("usd1")).toBe("USD");
+    expect(parseShopCurrencyCode(null)).toBeNull();
+    expect(parseShopCurrencyCode("US")).toBeNull();
+    expect(parseShopCurrencyCode("cad")).toBe("CAD");
+    expect(isShopCurrencyCode("")).toBe(false);
+    expect(isShopCurrencyCode("USD")).toBe(true);
   });
 });
 

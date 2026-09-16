@@ -35,7 +35,7 @@ describe("Spend day card", () => {
     expect(spend).toContain(
       "Shopify Analytics shows sales, not a spend ledger. This page records typed, uploaded, or daily-rate spend — not Ads Manager login.",
     );
-    expect(spend).toContain("Days with no row are $0");
+    expect(spend).toContain("Days with no row have no spend entered");
     expect(spend).not.toContain("<SpendExplorer");
     expect(spend).not.toContain("<DualCloseLine");
     expect(spend).not.toContain("<MarketingSpendRoom");
@@ -70,7 +70,7 @@ describe("Spend day card", () => {
     expect(spend).toContain("shotMode ? (");
     expect(spend).toContain("<PeriodControl");
     expect(spend).toContain("Your spend is on the desk");
-    expect(spend).toContain("Days with no row are $0");
+    expect(spend).toContain("Days with no row have no spend entered");
     expect(spend).not.toContain("<SpendExplorer");
     expect(spend).not.toContain("<MarketingSpendRoom");
     expect(spend).not.toContain("<DualCloseLine");
@@ -171,7 +171,9 @@ describe("Spend day card", () => {
     expect(spend).toContain("Empty spend");
     expect(spend).toContain("$0");
     expect(spend).toContain("No ad-account login");
+    expect(spend).toContain("deleted day stays $0");
     expect(spend).not.toContain("Empty days are not $0");
+    expect(spend).not.toContain("Empty spend is $0");
     expect(spend).not.toContain("Ad-platform logins often fail");
     expect(spend).not.toContain("Why no ad-account connection?");
   });

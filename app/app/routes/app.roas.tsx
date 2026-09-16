@@ -19,15 +19,18 @@ import {
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
 import { buildCashControlBoard } from "../lib/mer-control";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { formatSpendOnFile, spendOnFileHint } from "../lib/spend-on-file";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
 import type { SalesResult } from "../lib/shopify-sales.server";
 import {
   getSalesFactsByDay,
   loadDeskSalesForPeriod,
-  runSalesFactsBackfill,
 } from "../lib/sales-facts.server";
+import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
+import { requireAdmin } from "../lib/public-app-gate.server";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -51,11 +54,10 @@ import {
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
-import { authenticate } from "../shopify.server";
 import { useDeskCurrency } from "../lib/desk-currency";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, session } = await requireAdmin(request);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
@@ -83,7 +85,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
-    void runSalesFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {});
+    void scheduleFirstSessionShopifyWindow(admin, shop.id);
     const desk = await loadDeskSalesForPeriod({
       admin,
       shopId: shop.id,
@@ -301,9 +303,11 @@ export default function TotalRoasPage() {
             <div className="mcfly-book__kpi">
               <p className="mcfly-book__kpi-k">Spend</p>
               <p className="mcfly-book__kpi-v">
-                {formatCurrency(metrics.totalSpend, currency)}
+                {formatSpendOnFile(metrics.totalSpend, currency)}
               </p>
-              <p className="mcfly-book__kpi-hint">Entered ad spend</p>
+              <p className="mcfly-book__kpi-hint">
+                {spendOnFileHint(metrics.totalSpend)}
+              </p>
             </div>
             <div className="mcfly-book__kpi">
               <p className="mcfly-book__kpi-k">{PRODUCT_NOUN.totalRoas}</p>
@@ -362,6 +366,10 @@ export default function TotalRoasPage() {
       </div>
     </s-page>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/roas" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

@@ -21,7 +21,9 @@ import { reconcileSalesDayFact } from "./sales-facts.server";
 import { recomputeCohortFacts } from "./order-facts.server";
 import {
   BACKFILL_ORDER_FACTS_JOB,
+  BACKFILL_SALES_DAY_FACTS_JOB,
   handleBackfillOrderFacts,
+  handleBackfillSalesDayFacts,
 } from "./job-worker.server";
 import { purgeExpiredWebhookDeliveries } from "./webhook-delivery.server";
 import { purgeExpiredComplianceDataExports } from "./compliance-export-retrieve.server";
@@ -91,6 +93,7 @@ export const JOB_HANDLERS: Record<string, JobHandler> = {
   [RECONCILE_SALES_DAY_JOB]: handleReconcileSalesDay,
   [RECOMPUTE_COHORT_FACTS_JOB]: handleRecomputeCohortFacts,
   [BACKFILL_ORDER_FACTS_JOB]: handleBackfillOrderFacts,
+  [BACKFILL_SALES_DAY_FACTS_JOB]: handleBackfillSalesDayFacts,
 };
 
 export interface QueueTickResult extends JobWorkerTickResult {
