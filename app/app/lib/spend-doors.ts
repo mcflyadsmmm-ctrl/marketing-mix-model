@@ -19,7 +19,7 @@ export const SPEND_DOORS: readonly SpendDoor[] = [
   {
     href: "#mcfly-spend-recurring",
     title: "Daily amount until I change it",
-    hint: "Meta $40 a day from this date until you stop it.",
+    hint: "A daily rate from a date. Typed or uploaded days stay as written.",
   },
   {
     href: "/app/spend/import",

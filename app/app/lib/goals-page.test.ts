@@ -27,6 +27,15 @@ describe("Goals page", () => {
     expect(goals).toContain("Still loading — not $0");
   });
 
+  it("sales-load banner does not leak internals or paint actuals as $0", () => {
+    const bannerAt = goals.indexOf('heading="Sales didn’t load"');
+    expect(bannerAt).toBeGreaterThan(-1);
+    const banner = goals.slice(bannerAt, bannerAt + 400);
+    expect(banner).toContain("Actuals stay —");
+    expect(banner).not.toContain("{salesError}");
+    expect(banner).not.toContain("stay $0");
+  });
+
   it("points spend CTAs at Spend Upload, not Marketing, and Settings for target ROAS", () => {
     expect(goals).toContain('href="/app/settings"');
     expect(goals).not.toMatch(/add spend on Marketing/i);

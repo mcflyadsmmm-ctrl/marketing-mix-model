@@ -1304,6 +1304,17 @@
   box-shadow: none;
 }
 
+.mcfly-error-recovery {
+  margin: 1.25rem auto;
+  max-width: 40rem;
+}
+
+.mcfly-error-recovery .mcfly-state__cta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .mcfly-desk--loading .mcfly-kpi-grid,
 .mcfly-desk--loading .mcfly-kpi-board,
 .mcfly-desk--loading .mcfly-alloc-score,
@@ -10201,6 +10212,13 @@
   margin-left: auto;
   font-variant-numeric: tabular-nums;
   font-weight: 650;
+}
+
+.mcfly-spend-lean__recent-source {
+  color: var(--mcfly-mute);
+  font-size: 0.72rem;
+  font-weight: 550;
+  flex-shrink: 0;
 }
 
 .mcfly-spend-lean__recent-actions {

@@ -7,6 +7,7 @@ import {
   DESK_PRIMARY_NAV,
   DESK_SECTION,
   DESK_SHOPIFY_NAV,
+  DESK_COMPARE_NAV,
   DESK_SPEND_NAV,
   DESK_TOP_NAV,
   deskNavHref,
@@ -99,6 +100,8 @@ describe("DESK_PRIMARY_NAV", () => {
       "Spend Upload",
       "Total ROAS",
       "Channel Allocation",
+    ]);
+    expect(DESK_COMPARE_NAV.map((item) => item.label)).toEqual([
       "YoY",
       "CPA",
       "Goals",
@@ -112,6 +115,14 @@ describe("DESK_PRIMARY_NAV", () => {
     );
     expect(shell).toContain("<s-app-nav>");
     expect(shell).toContain("<DeskTopTabs");
+    const tabs = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../components/DeskTopTabs.tsx"),
+      "utf8",
+    );
+    expect(tabs).toContain('label="Shopify"');
+    expect(tabs).toContain('label="Spend"');
+    expect(tabs).toContain('label="Compare"');
+    expect(tabs).toContain("DESK_COMPARE_NAV");
   });
 
   it("puts spend tools on their own pages, not an Overview hash sitemap", () => {

@@ -28,17 +28,24 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Same numbers on Overview");
   });
 
-  it("contrasts Shopify Analytics with typed or CSV spend, not Ads Manager login", () => {
+  it("contrasts Shopify Analytics with typed, uploaded, or daily-rate spend, not Ads Manager login", () => {
     expect(spend).toContain('heading="Spend Upload"');
     expect(spend).toContain("/app/roas");
     expect(spend).toContain("Same numbers on Total ROAS");
     expect(spend).toContain(
-      "Shopify Analytics shows sales, not a spend ledger. This page shows typed or CSV spend — not Ads Manager login.",
+      "Shopify Analytics shows sales, not a spend ledger. This page records typed, uploaded, or daily-rate spend — not Ads Manager login.",
     );
     expect(spend).toContain("Days with no row are $0");
     expect(spend).not.toContain("<SpendExplorer");
     expect(spend).not.toContain("<DualCloseLine");
     expect(spend).not.toContain("<MarketingSpendRoom");
+  });
+
+  it("labels recent rows as typed, uploaded, or daily-rate", () => {
+    expect(spend).toContain("spendEntrySourceLabel");
+    expect(spend).toContain("Fills empty days through");
+    expect(spend).toContain("Typed or uploaded days stay");
+    expect(spend).not.toContain("Typed days are corrections");
   });
 
   it("keeps typed-day, recurring, and import on the main Spend surface", () => {
@@ -167,6 +174,7 @@ describe("Import or backfill", () => {
     expect(spendImport).not.toContain("Open {PRODUCT_NOUN.marketingSection}");
     expect(spendImport).not.toContain("<SpendExplorer");
     expect(spendImport).toContain("Charts live on Total ROAS");
+    expect(spendImport).toContain("An active daily rate will not overwrite those days");
   });
 
   it("puts the five-year template first, then CSV and one-bill helpers", () => {

@@ -81,6 +81,9 @@ export default function GrowthPage() {
       shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}
       periodLabel={metrics.period.label}
       showPeriod={false}
+      salesError={Boolean(salesError) && !shotMode}
+      salesErrorBody="Sales didn’t load. Retry to see who came back."
+      retryHref={`/app/growth?period=${preset}`}
     >
       {metrics.salesPending ? (
         <p className="mcfly-book__lede">

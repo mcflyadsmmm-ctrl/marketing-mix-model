@@ -333,6 +333,8 @@ describe("Sample data | Live data UX", () => {
     expect(deskPage).toContain("mcfly-ctx__asof");
     expect(deskPage).toContain("shotMode ? (");
     expect(deskPage).toContain("<PeriodControl");
+    expect(deskPage).toContain("<SalesLoadError");
+    expect(deskPage).toContain("salesError && !shotMode && retryHref");
 
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-compact");

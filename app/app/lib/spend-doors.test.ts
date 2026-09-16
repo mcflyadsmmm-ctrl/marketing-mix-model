@@ -22,6 +22,12 @@ describe("SPEND_DOORS", () => {
     expect(corpus).not.toContain("oauth");
     expect(corpus).not.toContain("pixel");
   });
+
+  it("says daily-rate truth without claiming it overwrites uploads", () => {
+    expect(SPEND_DOORS[1].hint).toMatch(/daily rate/i);
+    expect(SPEND_DOORS[1].hint).toMatch(/stay as written/i);
+    expect(SPEND_DOORS[1].hint).not.toMatch(/until you stop it/i);
+  });
 });
 
 describe("SPEND_IMPORT_DOORS", () => {

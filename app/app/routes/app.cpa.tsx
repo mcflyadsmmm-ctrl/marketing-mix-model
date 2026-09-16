@@ -10,7 +10,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { cashCostPerCustomer } from "../lib/shopify-native-stats";
 
 const CPA_CONTRAST =
-  "Shopify Analytics shows ads-manager / platform CPA if any. This page shows typed spend ÷ Shopify buyers.";
+  "Shopify Analytics shows ads-manager / platform CPA if any. This page shows entered spend ÷ Shopify buyers.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadDeskSalesPage(request, "/app/cpa");
@@ -49,6 +49,9 @@ export default function CpaPage() {
       shotMode={shotMode}
       useSampleDesk={useSampleDesk}
       isLoading={isLoading}
+      salesError={Boolean(salesError) && !shotMode}
+      salesErrorBody="Sales didn’t load. Retry to see cash CPA from entered spend."
+      retryHref={`/app/cpa?period=${preset}`}
     >
       <section className="mcfly-book" aria-label="Customer acquisition cost">
         <p className="mcfly-book__lede">{CPA_CONTRAST}</p>

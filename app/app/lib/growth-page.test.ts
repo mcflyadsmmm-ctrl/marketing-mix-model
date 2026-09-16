@@ -17,6 +17,7 @@ describe("Growth page", () => {
     expect(growth).toContain("/app/ltv");
     expect(growth).toContain("not $0");
     expect(growth).toContain('groups={["growth"]}');
+    expect(growth).toContain("Retry to see who came back");
   });
 
   it("keeps first-order months and repeat rate from order history", () => {

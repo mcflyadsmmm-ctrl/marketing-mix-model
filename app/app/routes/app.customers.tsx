@@ -75,6 +75,9 @@ export default function CustomersPage() {
       shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}
       periodLabel={metrics.period.label}
       showPeriod={false}
+      salesError={Boolean(salesError) && !shotMode}
+      salesErrorBody="Sales didn’t load. Retry to see returning dollars."
+      retryHref={`/app/customers?period=${preset}`}
     >
       {metrics.salesPending ? (
         <p className="mcfly-book__lede">
