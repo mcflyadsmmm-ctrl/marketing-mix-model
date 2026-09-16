@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
-import { authenticate } from "../shopify.server";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { requireAdmin } from "../lib/public-app-gate.server";
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -40,6 +41,7 @@ import { buildCashControlBoard } from "../lib/mer-control";
 import { channelCssVar, channelFillKey } from "../lib/channel-fill";
 import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency, formatMer, formatPercent } from "../lib/mer-format";
+import { formatSpendOnFile, hasSpendOnFile, NO_SPEND_ENTERED } from "../lib/spend-on-file";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
 import type { SalesResult } from "../lib/shopify-sales.server";
@@ -174,7 +176,7 @@ function deltaTone(pct: number | null): "up" | "down" | "flat" {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, session } = await requireAdmin(request);
   const url = new URL(request.url);
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   const shotMode = url.searchParams.get("shot") === "1";
@@ -750,9 +752,13 @@ function PeriodSnapshotSection({
         </article>
         <article className="mcfly-alloc-v2__snap">
           <p className="mcfly-alloc-v2__snap-label">Spend</p>
-          <p className="mcfly-alloc-v2__snap-value">{formatCurrency(spend, currency)}</p>
-          <p className="mcfly-alloc-v2__snap-meta">Ad spend this period</p>
-          {spendDelta ? (
+          <p className="mcfly-alloc-v2__snap-value">
+            {formatSpendOnFile(spend, currency)}
+          </p>
+          <p className="mcfly-alloc-v2__snap-meta">
+            {hasSpendOnFile(spend) ? "Ad spend this period" : NO_SPEND_ENTERED}
+          </p>
+          {hasSpendOnFile(spend) && spendDelta ? (
             <p className="mcfly-alloc-v2__snap-delta">{spendDelta}</p>
           ) : null}
         </article>
@@ -1195,6 +1201,10 @@ function RollingWindowsSection({ tiles }: { tiles: RollingWindowTile[] }) {
       )}
     </section>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/allocation" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

@@ -271,6 +271,8 @@ export interface OrderFactBackfillResult {
   /** True when a closed day hit the page cap — not sealed, next tick retries. */
   truncated: boolean;
   truncatedDay: string | null;
+  /** Closed days still missing after this chunk (window resume, not a 2-day book). */
+  remainingMissingDays: number;
 }
 
 function dayKeyToUtcDate(dayKey: string): Date {
@@ -679,6 +681,7 @@ export async function runOrderFactsBackfill(
       touchedMonths: [],
       truncated: false,
       truncatedDay: null,
+      remainingMissingDays: 0,
     };
   }
 
@@ -840,6 +843,7 @@ export async function runOrderFactsBackfill(
     touchedMonths,
     truncated: truncatedDay != null,
     truncatedDay,
+    remainingMissingDays: Math.max(0, missing.length - batch.length),
   };
 }
 

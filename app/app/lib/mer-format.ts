@@ -1,9 +1,12 @@
-import { shopCurrencyCode } from "./spend-money";
+import { parseShopCurrencyCode } from "./spend-money";
 
+/** Painted dollars. Missing/invalid shop currency is —, never silent USD. */
 export function formatCurrency(amount: number, currency: string): string {
+  const code = parseShopCurrencyCode(currency);
+  if (!code) return "—";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: shopCurrencyCode(currency),
+    currency: code,
     maximumFractionDigits: 0,
   }).format(amount);
 }
@@ -11,7 +14,7 @@ export function formatCurrency(amount: number, currency: string): string {
 export function createMoneyFormatter(
   currency: string | null | undefined,
 ): (amount: number) => string {
-  const code = shopCurrencyCode(currency);
+  const code = parseShopCurrencyCode(currency) ?? "";
   return (amount: number) => formatCurrency(amount, code);
 }
 
@@ -25,9 +28,11 @@ export function formatMoneyOrDash(
 
 /** Spend desk amounts — shop currency, cents when the ISO code uses them. */
 export function formatSpendAmount(amount: number, currency: string): string {
+  const code = parseShopCurrencyCode(currency);
+  if (!code) return "—";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: shopCurrencyCode(currency),
+    currency: code,
   }).format(amount);
 }
 

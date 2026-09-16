@@ -2,10 +2,22 @@
 
 const ISO_4217 = /^[A-Z]{3}$/;
 
+export function parseShopCurrencyCode(
+  code: string | null | undefined,
+): string | null {
+  const normalized = (code ?? "").trim().toUpperCase();
+  return ISO_4217.test(normalized) ? normalized : null;
+}
+
+export function isShopCurrencyCode(
+  code: string | null | undefined,
+): boolean {
+  return parseShopCurrencyCode(code) != null;
+}
+
 /** Persistable ISO code. Unknown / empty → USD (legacy rows and SAMPLE). */
 export function shopCurrencyCode(code: string | null | undefined): string {
-  const normalized = (code ?? "").trim().toUpperCase();
-  return ISO_4217.test(normalized) ? normalized : "USD";
+  return parseShopCurrencyCode(code) ?? "USD";
 }
 
 /** Round to cents so Float/Decimal writes don't drift (0.1 + 0.2). */

@@ -37,7 +37,7 @@ describe("Desk period labels and Overview clocks", () => {
   });
 
   it("ingests LTV cohorts for every shop — LTV is not a plan gate", () => {
-    expect(overview).toContain("runOrderFactsBackfill");
+    expect(overview).toContain("scheduleFirstSessionShopifyWindow");
     // No plan branch may wrap the cohort ingest; the desk is one plan.
     expect(overview).not.toMatch(/if \(entitlements\.canUse\w+\)/);
   });

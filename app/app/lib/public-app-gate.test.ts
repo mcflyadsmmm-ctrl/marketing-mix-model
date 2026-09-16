@@ -18,6 +18,26 @@ describe("public app gate on Spend", () => {
     expect(spend).toContain('retryHref="/app/spend"');
     expect(spendImport).toContain("requireAdmin");
     expect(spendImport).not.toContain("authenticate.admin");
+    expect(spendImport).toContain('retryHref="/app/spend/import"');
+  });
+
+  it("spend-handoff pages use requireAdmin and page-level Retry", () => {
+    for (const [rel, retry] of [
+      ["../routes/app.roas.tsx", "/app/roas"],
+      ["../routes/app.allocation.tsx", "/app/allocation"],
+      ["../routes/app.settings.tsx", "/app/settings"],
+    ] as const) {
+      const src = readFileSync(join(here, rel), "utf8");
+      expect(src, rel).toContain("requireAdmin");
+      expect(src, rel).not.toContain("authenticate.admin");
+      expect(src, rel).toContain("DeskRouteErrorBoundary");
+      expect(src, rel).toContain(`retryHref="${retry}"`);
+    }
+    const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
+    expect(overview).toContain("DeskRouteErrorBoundary");
+    expect(overview).toContain('retryHref="/app"');
+    expect(overview).toContain("PUBLIC_APP_STUB");
+    expect(overview).toContain("isGoneResponse");
   });
 
   it("rewrites data-request 410s so turbo-stream never paints Handling response", () => {

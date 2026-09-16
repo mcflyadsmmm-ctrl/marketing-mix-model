@@ -38,4 +38,10 @@ describe("SPEND_IMPORT_DOORS", () => {
       "#mcfly-spend-add",
     ]);
   });
+
+  it("does not call the template the first-session start", () => {
+    const corpus = JSON.stringify(SPEND_IMPORT_DOORS).toLowerCase();
+    expect(corpus).not.toContain("start here");
+    expect(SPEND_IMPORT_DOORS[0].hint).toMatch(/after yesterday/i);
+  });
 });

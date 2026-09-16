@@ -6,7 +6,9 @@ import type {
 import { useLoaderData, useLocation, useNavigation, useSearchParams, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { PUBLIC_APP_STUB, isGoneResponse } from "../lib/public-app-gate.server";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { PUBLIC_APP_STUB, isGoneResponse, requireAdmin } from "../lib/public-app-gate.server";
+import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
 import {
   hasShopifySessionContext,
   isEmbeddedAdminRequest,
@@ -45,17 +47,13 @@ import {
   type SalesResult,
 } from "../lib/shopify-sales.server";
 import {
-  runSalesFactsBackfill,
   getSalesFactsCoverage,
   getSalesFactsTotals,
   getSalesFactsByDay,
   loadDeskSalesForPeriod,
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
-import {
-  getOrderBackfillProgress,
-  runOrderFactsBackfill,
-} from "../lib/order-facts.server";
+import { getOrderBackfillProgress } from "../lib/order-facts.server";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -142,7 +140,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   let sales: SalesResult = emptySales("shopify");
   /** Null when prior facts are outside the window / failed — skip deltas (never fake 0). */
-  let priorSales: { totalSales: number } | null = null;
+  let priorSales: {
+    totalSales: number;
+    netSales?: number | null;
+    netSalesKnown?: boolean;
+  } | null = null;
   let salesError: string | null = null;
   let todaySalesUnavailable = false;
   let todaySalesTruncated = false;
@@ -159,7 +161,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       fetchSampleSales(shop.id, priorRange),
     ]);
     sales = sampleSales;
-    priorSales = { totalSales: samplePrior.totalSales };
+    priorSales = {
+      totalSales: samplePrior.totalSales,
+      netSales: samplePrior.netSales,
+      netSalesKnown: samplePrior.netSalesKnown,
+    };
     salesByDay = await fetchSampleSalesByDay(shop.id, dayFetchRange);
     salesPulledAt = new Date().toISOString();
   } else {
@@ -170,7 +176,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
      *
      * Always serve stored SalesDayFact (+ honesty banners when incomplete /
      * periodExceedsFactWindow). Live GraphQL is only the capped "today" top-up
-     * (LIVE_TODAY_MAX_PAGES). Fire-and-forget backfill stays chunked (maxDays: 2).
+     * (LIVE_TODAY_MAX_PAGES). Window resume is fire-and-forget + job ticks.
      */
     let mainCoverage: SalesFactsCoverage = {
       expectedClosedDays: 0,
@@ -193,16 +199,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // Coverage read failed — still facts-only below (never unbounded live crawl).
     }
 
-    // Chunked resume only — never full history inside this request.
-    if (!mainCoverage.complete || !dayCoverage.complete) {
-      void runSalesFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-        // ignore — banners disclose incomplete facts
-      });
-    }
-    // LTV cohort ingest — part of the one desk, chunked so paint stays fast.
-    void runOrderFactsBackfill(admin, shop.id, { maxDays: 2 }).catch(() => {
-      // ignore — panel shows empty/backfilling until cohorts land
-    });
+    // Window resume + default burst — never a timid 2-day sealed book.
+    void scheduleFirstSessionShopifyWindow(admin, shop.id);
 
     const desk = await loadDeskSalesForPeriod({
       admin,
@@ -231,7 +229,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       priorSales =
         priorFacts.rangeClampedToFactWindow || !priorCoverage.complete
           ? null
-          : { totalSales: priorFacts.totalSales };
+          : {
+              totalSales: priorFacts.totalSales,
+              netSales: priorFacts.netSalesComplete
+                ? priorFacts.netSalesSum
+                : null,
+              netSalesKnown: priorFacts.netSalesComplete,
+            };
     } catch {
       priorSales = null;
     }
@@ -321,7 +325,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   // Overview locks to Shopify Total Sales — sales basis is Settings-only.
-  await authenticate.admin(request);
+  await requireAdmin(request);
   return null;
 };
 
@@ -710,6 +714,10 @@ export default function Dashboard() {
   );
 }
 
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app" />;
+}
 
 export const headers: HeadersFunction = (headersArgs) => {
   return boundary.headers(headersArgs);

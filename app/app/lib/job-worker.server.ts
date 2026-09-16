@@ -8,9 +8,17 @@ import {
   BACKFILL_ORDER_FACTS_JOB,
   runOrderFactsBackfill,
 } from "./order-facts.server";
+import {
+  BACKFILL_SALES_DAY_FACTS_JOB,
+  runSalesFactsBackfill,
+} from "./sales-facts.server";
+import {
+  orderFactsWindowShouldResume,
+  salesDayFactsWindowShouldResume,
+} from "./first-session-shopify-window.server";
 import { NonRetryableJobError, type ClaimedJob } from "./job-worker";
 
-export { BACKFILL_ORDER_FACTS_JOB };
+export { BACKFILL_ORDER_FACTS_JOB, BACKFILL_SALES_DAY_FACTS_JOB };
 
 export async function handleBackfillOrderFacts(
   job: ClaimedJob,
@@ -28,7 +36,31 @@ export async function handleBackfillOrderFacts(
     enqueueRetry: false,
   });
 
-  if (result.truncated && job.attempts < job.maxAttempts) {
+  if (
+    orderFactsWindowShouldResume(result) &&
+    job.attempts < job.maxAttempts
+  ) {
+    return { incomplete: true };
+  }
+}
+
+export async function handleBackfillSalesDayFacts(
+  job: ClaimedJob,
+): Promise<{ incomplete: true } | void> {
+  const shop = await prisma.shop.findUnique({
+    where: { id: job.shopId },
+    select: { domain: true },
+  });
+  if (!shop) {
+    throw new NonRetryableJobError(`Shop ${job.shopId} no longer exists`);
+  }
+
+  const { admin } = await unauthenticated.admin(shop.domain);
+  const result = await runSalesFactsBackfill(admin, job.shopId);
+  if (
+    salesDayFactsWindowShouldResume(result) &&
+    job.attempts < job.maxAttempts
+  ) {
     return { incomplete: true };
   }
 }

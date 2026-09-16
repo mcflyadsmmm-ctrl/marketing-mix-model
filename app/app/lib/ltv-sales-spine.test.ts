@@ -56,7 +56,7 @@ describe("LTV sales spine (HARD-STOP)", () => {
     expect(ltvSource).not.toContain("Free shows the available window");
     expect(ltvSource).toContain("getOrderBackfillProgress");
     expect(ltvSource).toContain("orderFactsTruncated");
-    expect(ltvSource).toContain("ORDER_FACT_MAX_DAYS_PER_RUN");
+    expect(ltvSource).toContain("scheduleFirstSessionShopifyWindow");
     expect(ltvSource).toContain("until you confirm in Settings");
   });
 

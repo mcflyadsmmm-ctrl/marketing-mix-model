@@ -13,7 +13,7 @@ import {
   useSearchParams,
 } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { authenticate } from "../shopify.server";
+import { requireAdmin } from "../lib/public-app-gate.server";
 import prisma from "../db.server";
 import { PeriodControl } from "../components/PeriodControl";
 import {
@@ -180,7 +180,7 @@ function formatYoyPct(pct: number | null): string {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, session } = await requireAdmin(request);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
@@ -306,7 +306,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const form = await request.formData();
   const year = parseGoalsYear(String(form.get("year") ?? ""));

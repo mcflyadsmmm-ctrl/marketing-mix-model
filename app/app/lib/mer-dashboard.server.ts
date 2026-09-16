@@ -61,6 +61,10 @@ import {
   actionSalesForBasis,
   parseSalesBasis,
 } from "./sales-basis";
+import {
+  periodDeltasForBasis,
+  type PeriodDeltas,
+} from "./period-deltas";
 import { spendBucketKey, spendChannelLabel } from "./spend-channel-label";
 import { toMoneyNumber } from "./spend-money";
 import {
@@ -131,16 +135,7 @@ export interface ControlPace {
 }
 
 /** Prior-window deltas for Sales / Spend / MER KPI lines. */
-export interface PeriodDeltas {
-  priorLabel: string;
-  priorSales: number;
-  priorSpend: number;
-  priorMer: number | null;
-  salesPct: number | null;
-  spendPct: number | null;
-  /** Absolute MER change (current − prior), in × units. */
-  merAbs: number | null;
-}
+export type { PeriodDeltas } from "./period-deltas";
 
 export interface DashboardMetrics {
   period: DateRange;
@@ -1035,11 +1030,6 @@ export function buildControlPace(input: {
   };
 }
 
-function pctChange(current: number, prior: number): number | null {
-  if (prior === 0) return current === 0 ? 0 : null;
-  return ((current - prior) / Math.abs(prior)) * 100;
-}
-
 export async function buildDashboardMetrics(
   shopDomain: string,
   range: DateRange,
@@ -1066,7 +1056,11 @@ export async function buildDashboardMetrics(
   },
   options?: {
     salesByDay?: Map<string, number>;
-    priorSales?: { totalSales: number };
+    priorSales?: {
+      totalSales: number;
+      netSales?: number | null;
+      netSalesKnown?: boolean;
+    };
     priorRange?: DateRange;
     /** ISO timestamp when sales were pulled for this render. */
     salesPulledAt?: string | null;
@@ -1233,19 +1227,17 @@ export async function buildDashboardMetrics(
   let deltas: PeriodDeltas | null = null;
   if (priorRange && options?.priorSales && priorSpends) {
     const priorSpend = sumSpend(priorSpends);
-    const priorMer = computeMer(options.priorSales.totalSales, priorSpend);
-    deltas = {
-      priorLabel: priorRange.label,
-      priorSales: options.priorSales.totalSales,
+    deltas = periodDeltasForBasis({
+      basis: salesBasis,
+      currentSales: action.sales,
+      currentMer: mer,
+      currentSpend: totalSpend,
+      priorTotalSales: options.priorSales.totalSales,
+      priorNetSales: options.priorSales.netSales,
+      priorNetSalesKnown: options.priorSales.netSalesKnown,
       priorSpend,
-      priorMer,
-      salesPct: pctChange(action.sales, options.priorSales.totalSales),
-      spendPct: pctChange(totalSpend, priorSpend),
-      merAbs:
-        mer !== null && priorMer !== null
-          ? Math.round((mer - priorMer) * 100) / 100
-          : null,
-    };
+      priorLabel: priorRange.label,
+    });
   }
 
   // LTV is part of the one desk — no plan branch. Trial and paid both compute it.

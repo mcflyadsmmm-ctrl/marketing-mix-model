@@ -109,6 +109,10 @@ describe("desk ErrorBoundary craft", () => {
       "../routes/app.cpa.tsx",
       "../routes/app.goals.tsx",
       "../routes/app.spend.tsx",
+      "../routes/app.roas.tsx",
+      "../routes/app.allocation.tsx",
+      "../routes/app.settings.tsx",
+      "../routes/app._index.tsx",
     ]) {
       const src = readFileSync(join(here, rel), "utf8");
       expect(src, rel).toContain("DeskRouteErrorBoundary");

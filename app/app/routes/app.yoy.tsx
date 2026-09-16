@@ -26,7 +26,7 @@ import {
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
-import { authenticate } from "../shopify.server";
+import { requireAdmin } from "../lib/public-app-gate.server";
 import {
   last7VsPrior7,
   operatingMonthRows,
@@ -35,7 +35,7 @@ import {
 } from "../lib/yoy-workspace";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const url = new URL(request.url);
