@@ -10,6 +10,9 @@ import type { SalesResult } from "./shopify-sales.server";
 import type { DateRange } from "./periods";
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
 import { seedSampleCohortFacts, clearSampleCohortFacts, seedSampleOrderFacts, clearSampleOrderFacts } from "./order-facts.server";
+import { sampleBookIsPaintable } from "./sample-book-ready";
+
+export { sampleBookIsPaintable } from "./sample-book-ready";
 
 export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
   const settings = await prisma.settings.findUnique({ where: { shopId } });
@@ -75,6 +78,16 @@ export async function applySampleDeskIntent(
     case "use-sample":
       await setSamplePreviewAllowed(shopId, true);
       await ensureSampleBookThroughToday(shopId);
+      let stats = await getSampleDeskStats(shopId);
+      if (!sampleBookIsPaintable(stats)) {
+        await seedThreeYearSampleDesk(shopId, SAMPLE_DESK_TARGET_MER);
+        stats = await getSampleDeskStats(shopId);
+      }
+      if (!sampleBookIsPaintable(stats)) {
+        throw new Error(
+          "SAMPLE book failed to seed — desk stays Live until sales and spend exist",
+        );
+      }
       await setSampleDeskEnabled(shopId, true);
       return;
     case "use-real":
@@ -284,14 +297,6 @@ async function seedThreeYearSampleDeskOnce(
   await prisma.sampleSalesDay.deleteMany({ where: { shopId } });
   await prisma.spendEntry.deleteMany({ where: { shopId, source: "sample" } });
   await insertSampleRows(shopId, rows);
-
-  const settings = await prisma.settings.findUnique({ where: { shopId } });
-  if (settings?.samplePreviewAllowed !== false) {
-    await prisma.settings.update({
-      where: { shopId },
-      data: { useSampleDesk: true },
-    });
-  }
 
   await seedSampleCohortFacts(shopId);
   await seedSampleOrderFacts(shopId);
