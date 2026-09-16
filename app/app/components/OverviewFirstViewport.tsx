@@ -12,6 +12,7 @@ import {
   overviewReturningCompactDollars,
 } from "../lib/overview-first-viewport";
 import { SAMPLE_SPEND_NOT_LIVE } from "../lib/sample-live-handoff";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 function pct(share: number): string {
   return `${Math.round(share * 100)}%`;
@@ -198,6 +199,7 @@ export function OverviewFirstViewport({
   useSampleDesk?: boolean;
   share?: ReactNode;
 }) {
+  const currency = useDeskCurrency();
   const notice = overviewNoticeSentence({
     orderCount,
     returningSalesShare,
@@ -213,7 +215,7 @@ export function OverviewFirstViewport({
       ? meanAov
       : null;
   const typical =
-    typicalValue != null ? formatCurrency(typicalValue) : null;
+    typicalValue != null ? formatCurrency(typicalValue, currency) : null;
   const takeaway = overviewDecisionTakeaway({
     typicalOrderLabel: typical,
     returningSalesShare,
@@ -229,15 +231,15 @@ export function OverviewFirstViewport({
       : (typical ?? "—");
   const returningDollars = overviewReturningCompactDollars(returningSales);
   const returningValue =
-    returningDollars != null ? formatCurrency(returningDollars) : "—";
+    returningDollars != null ? formatCurrency(returningDollars, currency) : "—";
   const salesSub =
     grossSalesKnown && grossSales != null && Number.isFinite(grossSales)
-      ? `Original ${formatCurrency(grossSales)} · Ads Manager–comparable`
+      ? `Original ${formatCurrency(grossSales, currency)} · Ads Manager–comparable`
       : OVERVIEW_COVERAGE_LINE;
   const why = salesPending
     ? notice
     : [
-        `${periodLabel}: ${orderCount.toLocaleString()} orders and ${formatCurrency(totalSales)} sales.`,
+        `${periodLabel}: ${orderCount.toLocaleString()} orders and ${formatCurrency(totalSales, currency)} sales.`,
         useSampleDesk
           ? SAMPLE_SPEND_NOT_LIVE
           : spendEmpty
@@ -298,7 +300,7 @@ export function OverviewFirstViewport({
           lead
           icon="sales"
           label="Total Sales"
-          value={formatCurrency(totalSales)}
+          value={formatCurrency(totalSales, currency)}
           sub={salesSub}
           delta={salesDelta}
           foot="Returns already accounted for — not ignored."

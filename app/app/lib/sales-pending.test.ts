@@ -66,10 +66,24 @@ describe("resolveSalesReadiness", () => {
     expect(r.salesPending).toBe(false);
   });
 
-  it("treats a period reaching past the fact window as capped, not loading", () => {
+  it("does not treat a period past the fact window with $0 sales as a real $0", () => {
     const r = resolveSalesReadiness({
       coverage: beyondWindow,
       sales: 0,
+      useSampleDesk: false,
+    });
+    expect(r.salesPending).toBe(true);
+    expect(r.salesCoverageIncomplete).toBe(true);
+  });
+
+  it("still shows a capped number when the fact window has certified days", () => {
+    const r = resolveSalesReadiness({
+      coverage: {
+        complete: false,
+        factDays: 12,
+        periodExceedsFactWindow: true,
+      },
+      sales: 8_400,
       useSampleDesk: false,
     });
     expect(r.salesPending).toBe(false);

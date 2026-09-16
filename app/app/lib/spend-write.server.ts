@@ -340,6 +340,10 @@ export async function deleteSpendEntry(opts: {
   if (!entry) {
     return { error: "That spend row is gone.", success: false };
   }
-  await prisma.spendEntry.delete({ where: { id: entry.id } });
+  // Keep a $0 manual correction so an open daily rate cannot refill the day.
+  await prisma.spendEntry.update({
+    where: { id: entry.id },
+    data: { amount: 0, source: "manual" },
+  });
   return { error: null, success: true };
 }

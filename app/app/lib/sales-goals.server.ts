@@ -75,8 +75,8 @@ export interface GoalMonthRow {
   monthLong: string;
   /** Monthly sales goal ($) */
   salesGoal: number;
-  /** Till actual / MTD ($) */
-  actual: number;
+  /** Till actual / MTD ($). Null when the month has no certified facts — not $0. */
+  actual: number | null;
   spend: number;
   /** Cash MER = sales ÷ spend */
   mer: number | null;
@@ -90,9 +90,10 @@ export interface GoalMonthRow {
 
 export interface GoalsYtd {
   goal: number;
-  actual: number;
+  /** Null when any YTD month is missing certified facts — not a $0 year. */
+  actual: number | null;
   pct: number | null;
-  delta: number;
+  delta: number | null;
 }
 
 export interface MonthCloseForecast {
@@ -120,7 +121,7 @@ export interface GoalsYearBoard {
   rows: GoalMonthRow[];
   ytd: GoalsYtd;
   yearGoal: number;
-  yearActual: number;
+  yearActual: number | null;
   forecast: MonthCloseForecast | null;
   targetMer: number;
   breakEvenMer: number | null;
@@ -194,7 +195,7 @@ export function yearDateRange(
   };
 }
 
-/** Aggregate YYYY-MM-DD sales map → month (1–12) → dollars. */
+/** Aggregate YYYY-MM-DD sales map → month (1–12) → dollars. Months with no days are absent. */
 export function salesByMonthFromDayMap(
   year: number,
   salesByDay: Map<string, number>,
@@ -202,7 +203,6 @@ export function salesByMonthFromDayMap(
   ianaTimezone?: string | null,
 ): Map<number, number> {
   const months = new Map<number, number>();
-  for (let m = 1; m <= 12; m++) months.set(m, 0);
 
   const prefix = `${year}-`;
   const tz = ianaTimezone?.trim() || null;
@@ -344,13 +344,19 @@ export function calendarDaysElapsedInMonth(
  * Closed months: Met / Close / Miss. Future empty: Upcoming.
  */
 export function paceStatus(
-  actual: number,
+  actual: number | null,
   goal: number,
   opts?: {
     expectedPct?: number | null;
     isFuture?: boolean;
   },
 ): GoalPace {
+  if (actual == null || !Number.isFinite(actual)) {
+    if (opts?.isFuture) {
+      return { kind: "upcoming", label: "Upcoming", tone: "flat" };
+    }
+    return { kind: "none", label: "—", tone: "flat" };
+  }
   if (!Number.isFinite(goal) || goal <= 0) {
     return { kind: "none", label: "—", tone: "flat" };
   }
@@ -456,9 +462,9 @@ export async function upsertYearSalesGoals(
   );
 }
 
-function mapGetMonth(map: Map<number, number>, month: number): number {
+function mapGetMonth(map: Map<number, number>, month: number): number | null {
   const v = map.get(month);
-  return Number.isFinite(v) ? (v as number) : 0;
+  return Number.isFinite(v) ? (v as number) : null;
 }
 
 function buildMonthCloseForecast(params: {
@@ -484,7 +490,8 @@ function buildMonthCloseForecast(params: {
   const month = nowM;
   const monthGoal = goals[month - 1] ?? 0;
   const mtdSales = mapGetMonth(salesByMonth, month);
-  const mtdSpend = mapGetMonth(spendByMonth, month);
+  if (mtdSales == null) return null;
+  const mtdSpend = mapGetMonth(spendByMonth, month) ?? 0;
   const mtdMer = calculateMer(mtdSales, mtdSpend);
   const { daysElapsed, daysInMonth, remainingDays } =
     calendarDaysElapsedInMonth(year, month, now, tz);
@@ -547,10 +554,11 @@ export async function buildYearBoard(
     const month = i + 1;
     const salesGoal = goals[i] ?? 0;
     const actual = mapGetMonth(salesByMonth, month);
-    const spend = mapGetMonth(spendByMonth, month);
-    const mer = calculateMer(actual, spend);
-    const delta = actual - salesGoal;
-    const pct = salesGoal > 0 ? (actual / salesGoal) * 100 : null;
+    const spend = mapGetMonth(spendByMonth, month) ?? 0;
+    const mer = actual == null ? null : calculateMer(actual, spend);
+    const delta = actual == null ? 0 : actual - salesGoal;
+    const pct =
+      actual == null || !(salesGoal > 0) ? null : (actual / salesGoal) * 100;
 
     const isCurrent = currentYear === year && currentMonth === month;
     const isFuture =
@@ -597,16 +605,27 @@ export async function buildYearBoard(
         : 0;
 
   let ytdGoal = 0;
-  let ytdActual = 0;
+  let ytdActual: number | null = 0;
   for (let m = 1; m <= throughMonth; m++) {
     ytdGoal += goals[m - 1] ?? 0;
-    ytdActual += mapGetMonth(salesByMonth, m);
+    const monthActual = mapGetMonth(salesByMonth, m);
+    if (monthActual == null) {
+      ytdActual = null;
+    } else if (ytdActual != null) {
+      ytdActual += monthActual;
+    }
   }
 
   const yearGoal = goals.reduce((a, b) => a + b, 0);
-  let yearActual = 0;
+  let yearActual: number | null = 0;
   for (let m = 1; m <= 12; m++) {
-    yearActual += mapGetMonth(salesByMonth, m);
+    if (currentYear === year && m > currentMonth) break;
+    const monthActual = mapGetMonth(salesByMonth, m);
+    if (monthActual == null) {
+      yearActual = null;
+      break;
+    }
+    yearActual += monthActual;
   }
 
   const forecast = buildMonthCloseForecast({
@@ -626,8 +645,9 @@ export async function buildYearBoard(
     ytd: {
       goal: ytdGoal,
       actual: ytdActual,
-      pct: ytdGoal > 0 ? (ytdActual / ytdGoal) * 100 : null,
-      delta: ytdActual - ytdGoal,
+      pct:
+        ytdActual != null && ytdGoal > 0 ? (ytdActual / ytdGoal) * 100 : null,
+      delta: ytdActual != null ? ytdActual - ytdGoal : null,
     },
     yearGoal,
     yearActual,
@@ -654,7 +674,7 @@ export function parseGoalsYear(
 export type SalesGoalPeriodKey = "mtd" | "qtd" | "ytd";
 
 export interface SalesGoalPeriodYoy {
-  priorActual: number;
+  priorActual: number | null;
   pct: number | null;
   tone: GoalPaceTone;
 }
@@ -664,7 +684,8 @@ export interface SalesGoalPeriod {
   key: SalesGoalPeriodKey;
   label: string;
   periodHint: string;
-  actual: number;
+  /** Null when the window has a month with no certified facts — not $0. */
+  actual: number | null;
   goal: number;
   /** Uploaded ad spend summed over the same months as `actual`. */
   spend: number;
@@ -759,30 +780,45 @@ function sumMonths(
   goals: number[],
   salesByMonth: Map<number, number>,
   spendByMonth: Map<number, number>,
-): { actual: number; goal: number; spend: number } {
-  let actual = 0;
+): { actual: number | null; goal: number; spend: number } {
+  let actual: number | null = 0;
   let goal = 0;
   let spend = 0;
   for (const m of months) {
-    actual += mapGetMonth(salesByMonth, m);
+    const monthActual = mapGetMonth(salesByMonth, m);
+    if (monthActual == null) {
+      actual = null;
+    } else if (actual != null) {
+      actual += monthActual;
+    }
     goal += goals[m - 1] ?? 0;
-    spend += mapGetMonth(spendByMonth, m);
+    spend += mapGetMonth(spendByMonth, m) ?? 0;
   }
   return { actual, goal, spend };
 }
 
-function sumPriorMonths(months: number[], priorYearMonthly: number[]): number {
+function sumPriorMonths(
+  months: number[],
+  priorYearMonthly: Array<number | null>,
+): number | null {
   let total = 0;
   for (const m of months) {
     const v = priorYearMonthly[m - 1];
-    total += Number.isFinite(v) ? (v as number) : 0;
+    if (v == null || !Number.isFinite(v)) return null;
+    total += v;
   }
   return total;
 }
 
-function yoyFrom(actual: number, priorActual: number): SalesGoalPeriodYoy {
+function yoyFrom(
+  actual: number | null,
+  priorActual: number | null,
+): SalesGoalPeriodYoy {
   const pct =
-    priorActual > 0 && Number.isFinite(actual)
+    actual != null &&
+    priorActual != null &&
+    priorActual > 0 &&
+    Number.isFinite(actual)
       ? ((actual - priorActual) / priorActual) * 100
       : null;
   let tone: GoalPaceTone = "flat";
@@ -834,7 +870,7 @@ export function buildSalesGoalPeriods(params: {
   goals: number[];
   salesByMonth: Map<number, number>;
   spendByMonth?: Map<number, number>;
-  priorYearMonthly: number[];
+  priorYearMonthly: Array<number | null>;
   now?: Date;
   ianaTimezone?: string | null;
   targetMer?: number | null;
@@ -848,7 +884,7 @@ export function buildSalesGoalPeriods(params: {
   const prior =
     params.priorYearMonthly.length >= 12
       ? params.priorYearMonthly
-      : Array.from({ length: 12 }, (_, i) => params.priorYearMonthly[i] ?? 0);
+      : Array.from({ length: 12 }, (_, i) => params.priorYearMonthly[i] ?? null);
 
   const { year, salesByMonth } = params;
   const spendByMonth = params.spendByMonth ?? new Map<number, number>();
@@ -884,10 +920,10 @@ export function buildSalesGoalPeriods(params: {
 
   // --- MTD ---
   const mtdActual =
-    throughMonth > 0 ? mapGetMonth(salesByMonth, throughMonth) : 0;
+    throughMonth > 0 ? mapGetMonth(salesByMonth, throughMonth) : null;
   const mtdSpend =
-    throughMonth > 0 ? mapGetMonth(spendByMonth, throughMonth) : 0;
-  const mtdMer = calculateMer(mtdActual, mtdSpend);
+    throughMonth > 0 ? (mapGetMonth(spendByMonth, throughMonth) ?? 0) : 0;
+  const mtdMer = mtdActual == null ? null : calculateMer(mtdActual, mtdSpend);
   const mtdGoal = throughMonth > 0 ? (goals[throughMonth - 1] ?? 0) : 0;
   let mtdCalendarPct = 0;
   let mtdExpected: number | null = null;
@@ -917,7 +953,8 @@ export function buildSalesGoalPeriods(params: {
     spend: mtdSpend,
     mer: mtdMer,
     merRails: merVsRails(mtdMer, targetMer, breakEvenMer),
-    progressPct: mtdGoal > 0 ? (mtdActual / mtdGoal) * 100 : null,
+    progressPct:
+      mtdActual != null && mtdGoal > 0 ? (mtdActual / mtdGoal) * 100 : null,
     calendarPct: mtdCalendarPct,
     pace: paceStatus(mtdActual, mtdGoal, {
       expectedPct: mtdExpected,
@@ -925,7 +962,7 @@ export function buildSalesGoalPeriods(params: {
     }),
     yoy: yoyFrom(
       mtdActual,
-      throughMonth > 0 ? (prior[throughMonth - 1] ?? 0) : 0,
+      throughMonth > 0 ? (prior[throughMonth - 1] ?? null) : null,
     ),
   };
 
@@ -948,7 +985,8 @@ export function buildSalesGoalPeriods(params: {
     qtdCalendarPct = 0;
   }
 
-  const qtdMer = calculateMer(qtdSum.actual, qtdSum.spend);
+  const qtdMer =
+    qtdSum.actual == null ? null : calculateMer(qtdSum.actual, qtdSum.spend);
   const qtd: SalesGoalPeriod = {
     key: "qtd",
     label: "This quarter",
@@ -958,7 +996,10 @@ export function buildSalesGoalPeriods(params: {
     spend: qtdSum.spend,
     mer: qtdMer,
     merRails: merVsRails(qtdMer, targetMer, breakEvenMer),
-    progressPct: qtdSum.goal > 0 ? (qtdSum.actual / qtdSum.goal) * 100 : null,
+    progressPct:
+      qtdSum.actual != null && qtdSum.goal > 0
+        ? (qtdSum.actual / qtdSum.goal) * 100
+        : null,
     calendarPct: qtdCalendarPct,
     pace: paceStatus(qtdSum.actual, qtdSum.goal, {
       expectedPct: qtdExpected,
@@ -986,7 +1027,8 @@ export function buildSalesGoalPeriods(params: {
     ytdCalendarPct = 0;
   }
 
-  const ytdMer = calculateMer(ytdSum.actual, ytdSum.spend);
+  const ytdMer =
+    ytdSum.actual == null ? null : calculateMer(ytdSum.actual, ytdSum.spend);
   const ytd: SalesGoalPeriod = {
     key: "ytd",
     label: "This year",
@@ -996,7 +1038,10 @@ export function buildSalesGoalPeriods(params: {
     spend: ytdSum.spend,
     mer: ytdMer,
     merRails: merVsRails(ytdMer, targetMer, breakEvenMer),
-    progressPct: ytdSum.goal > 0 ? (ytdSum.actual / ytdSum.goal) * 100 : null,
+    progressPct:
+      ytdSum.actual != null && ytdSum.goal > 0
+        ? (ytdSum.actual / ytdSum.goal) * 100
+        : null,
     calendarPct: ytdCalendarPct,
     pace: paceStatus(ytdSum.actual, ytdSum.goal, {
       expectedPct: ytdExpected,
@@ -1008,10 +1053,10 @@ export function buildSalesGoalPeriods(params: {
   return { mtd, qtd, ytd };
 }
 
-function monthMapToArray(map: Map<number, number>): number[] {
+function monthMapToArray(map: Map<number, number>): Array<number | null> {
   return Array.from({ length: 12 }, (_, i) => {
     const v = map.get(i + 1);
-    return Number.isFinite(v) ? (v as number) : 0;
+    return Number.isFinite(v) ? (v as number) : null;
   });
 }
 
@@ -1039,18 +1084,19 @@ export async function loadSalesByDayForGoalsRange(
       new Date(),
       ianaTimezone,
     );
+    const salesByDay = await getSalesFactsByDay(shopId, range);
     if (
       !coverage.periodExceedsFactWindow &&
       coverage.expectedClosedDays > 0 &&
       !coverage.complete
     ) {
       return {
-        salesByDay: new Map(),
-        salesError: `Sales day facts incomplete (${coverage.factDays}/${coverage.expectedClosedDays} days) — YoY baselines withheld`,
+        salesByDay,
+        salesError: `Sales day facts incomplete (${coverage.factDays}/${coverage.expectedClosedDays} days) — missing months stay — not $0`,
       };
     }
     return {
-      salesByDay: await getSalesFactsByDay(shopId, range),
+      salesByDay,
       salesError: null,
     };
   } catch (err) {

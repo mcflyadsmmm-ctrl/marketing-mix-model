@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { formatCurrency } from "../lib/mer-format";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 export type SalesDayPoint = { dateKey: string; sales: number };
 
@@ -41,6 +42,7 @@ export function OverviewSalesChart({
   days: SalesDayPoint[];
   ordersHref?: string;
 }) {
+  const currency = useDeskCurrency();
   const drill = useDeskDrill();
   const [grain, setGrain] = useState<"day" | "week">("day");
   const [hover, setHover] = useState<SalesDayPoint | null>(null);
@@ -65,7 +67,7 @@ export function OverviewSalesChart({
         </p>
         {hover ? (
           <p className="mcfly-chart__hover" role="status">
-            {hover.dateKey} · {formatCurrency(hover.sales)}
+            {hover.dateKey} · {formatCurrency(hover.sales, currency)}
           </p>
         ) : (
           <p className="mcfly-chart__hover mcfly-chart__hover--idle" aria-hidden="true">
@@ -99,7 +101,7 @@ export function OverviewSalesChart({
           const openBar = () =>
             drill?.openDrill({
               title: grain === "week" ? "Week sales" : "Day sales",
-              value: formatCurrency(point.sales),
+              value: formatCurrency(point.sales, currency),
               kicker: point.dateKey,
               blocks: [
                 {
@@ -122,7 +124,7 @@ export function OverviewSalesChart({
               rx="2"
               tabIndex={0}
               role="button"
-              aria-label={`${point.dateKey} ${formatCurrency(point.sales)}`}
+              aria-label={`${point.dateKey} ${formatCurrency(point.sales, currency)}`}
               onClick={openBar}
               onMouseEnter={() => setHover(point)}
               onMouseLeave={() => setHover(null)}

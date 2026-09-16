@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState } from "react";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { spendChannelShortLabel } from "../lib/spend-channel-label";
+import { useDeskCurrency } from "../lib/desk-currency";
 import {
   ledgerForGrain,
   type CashControlBoard as CashControlBoardData,
@@ -105,6 +106,7 @@ export function MarketingSpendRoom({
   channelLabels?: Record<string, string>;
   intelOnly?: boolean;
 }) {
+  const currency = useDeskCurrency();
   const [ledgerGrain, setLedgerGrain] = useState<LedgerGrain>("day");
   const [openLedgerKey, setOpenLedgerKey] = useState<string | null>(null);
   const [ledgerFilter, setLedgerFilter] = useState<"all" | "hit" | "miss">(
@@ -167,9 +169,9 @@ export function MarketingSpendRoom({
                   <td>{label}</td>
                   <td>{merCell(window.mer, window.spend)}</td>
                   <td>{vsPriorCell(window)}</td>
-                  <td>{formatCurrency(window.sales)}</td>
+                  <td>{formatCurrency(window.sales, currency)}</td>
                   <td>
-                    {window.spend > 0 ? formatCurrency(window.spend) : "—"}
+                    {window.spend > 0 ? formatCurrency(window.spend, currency) : "—"}
                   </td>
                 </tr>
               ))}
@@ -216,9 +218,9 @@ export function MarketingSpendRoom({
               {board.compareScores.map((row) => (
                 <tr key={row.id}>
                   <td>{row.label}</td>
-                  <td>{formatCurrency(row.sales)}</td>
+                  <td>{formatCurrency(row.sales, currency)}</td>
                   <td>{vsThisMonthCell(row.salesChangePct)}</td>
-                  <td>{row.spend > 0 ? formatCurrency(row.spend) : "—"}</td>
+                  <td>{row.spend > 0 ? formatCurrency(row.spend, currency) : "—"}</td>
                   <td>{merCell(row.mer, row.spend)}</td>
                 </tr>
               ))}
@@ -323,8 +325,8 @@ export function MarketingSpendRoom({
                             {row.label}
                           </button>
                         </td>
-                        <td>{formatCurrency(row.sales)}</td>
-                        <td>{formatCurrency(row.spend)}</td>
+                        <td>{formatCurrency(row.sales, currency)}</td>
+                        <td>{formatCurrency(row.spend, currency)}</td>
                         <td>{merCell(row.mer, row.spend)}</td>
                         <td>
                           {row.hit === true
@@ -343,7 +345,7 @@ export function MarketingSpendRoom({
                                   {row.channels.map((ch) => (
                                     <li key={ch.channel}>
                                       {channelName(ch.channel, channelLabels)}{" "}
-                                      {formatCurrency(ch.amount)}
+                                      {formatCurrency(ch.amount, currency)}
                                     </li>
                                   ))}
                                 </ul>

@@ -45,6 +45,10 @@ describe("shopifyNativePeriodStats", () => {
     expect(book.newBuyerShare).toBeNull();
     expect(book.newBuyerArpu).toBeNull();
     expect(book.returningBuyerArpu).toBeNull();
+    expect(book.newSalesShare).toBeNull();
+    expect(book.returningSalesShare).toBeNull();
+    expect(book.newSales).toBeNull();
+    expect(book.returningSales).toBeNull();
     expect(book.guestShare).toBeCloseTo(0.25);
     expect(book.aov).toBe(125);
     expect(book.returnsDrag).toBeNull();
@@ -64,6 +68,8 @@ describe("shopifyNativePeriodStats", () => {
       grossSalesKnown: true,
     });
     expect(book.newBuyerShare).toBeNull();
+    expect(book.newSalesShare).toBeNull();
+    expect(book.returningSalesShare).toBeNull();
     expect(book.guestShare).toBe(1);
     expect(book.aov).toBe(100);
   });
@@ -84,6 +90,28 @@ describe("shopifyNativePeriodStats", () => {
     expect(book.aov).toBeNull();
     expect(book.guestShare).toBeNull();
     expect(book.returnsDrag).toBeNull();
+  });
+
+  it("does not divide net-only split fields by a different Total Sales basis", () => {
+    const book = shopifyNativePeriodStats({
+      sales: 10_000,
+      orderCount: 20,
+      newCustomers: 4,
+      returningCustomers: 6,
+      guestOrders: 2,
+      customerMetricsAvailable: true,
+      newCustomerNetSales: 2_000,
+      returningCustomerNetSales: 3_000,
+      grossSales: 10_000,
+      grossSalesKnown: true,
+    });
+    expect(book.newSales).toBe(2_000);
+    expect(book.returningSales).toBe(3_000);
+    expect(book.newSalesShare).toBeCloseTo(0.4);
+    expect(book.returningSalesShare).toBeCloseTo(0.6);
+    expect((book.newSalesShare ?? 0) + (book.returningSalesShare ?? 0)).toBeCloseTo(
+      1,
+    );
   });
 });
 

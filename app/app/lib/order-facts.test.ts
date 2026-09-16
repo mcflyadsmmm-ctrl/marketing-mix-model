@@ -84,6 +84,7 @@ import {
   ORDER_FACT_PAGE_CURSOR_PREFIX,
   ORDER_FACT_SOURCE,
   clearOrderFactDayCompleteSeal,
+  computeCohortRollups,
   getOrderBackfillProgress,
   orderFactDayCompleteMarkerId,
   orderFactPageCursorMarker,
@@ -199,6 +200,7 @@ describe("OrderFact v2 crawl", () => {
     expect(orderFactsSource).toContain("currentTotalDiscountsSet");
     expect(orderFactsSource).toContain("sourceName");
     expect(orderFactsSource).toContain("currentSubtotalLineItemsQuantity");
+    expect(orderFactsSource).toContain("numberOfOrders");
     expect(orderFactsSource).not.toMatch(/\b(?:sku|vendor|lineItems)\b/);
     expect(orderFactsSource).toContain("unsealOrderFactsMissingV2");
     expect(orderFactsSource).toContain("seedSampleOrderFacts");
@@ -502,6 +504,34 @@ describe("truncated busy-day crawl", () => {
     expect(progress!.truncatedDay).toBe("2026-07-14");
     expect(progress!.remainingDays).toBeGreaterThan(0);
     expect(progress!.completeDays).toBe(0);
+  });
+});
+
+describe("computeCohortRollups", () => {
+  it("does not treat a returning buyer as a new 90-day cohort", () => {
+    const rollups = computeCohortRollups([
+      {
+        customerKey: "gid://shopify/Customer/1",
+        orderedAt: new Date("2026-09-01T12:00:00.000Z"),
+        amount: 80,
+        lifetimeOrders: 5,
+      },
+    ]);
+    expect(rollups).toEqual([]);
+  });
+
+  it("keeps a true first-time buyer whose lifetime count matches in-window orders", () => {
+    const rollups = computeCohortRollups([
+      {
+        customerKey: "gid://shopify/Customer/2",
+        orderedAt: new Date("2026-09-01T12:00:00.000Z"),
+        amount: 80,
+        lifetimeOrders: 1,
+      },
+    ]);
+    expect(rollups).toHaveLength(1);
+    expect(rollups[0]?.customers).toBe(1);
+    expect(rollups[0]?.revenueD90).toBe(80);
   });
 });
 

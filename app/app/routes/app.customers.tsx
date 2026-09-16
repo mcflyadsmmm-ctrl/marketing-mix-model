@@ -10,6 +10,7 @@ import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { formatCurrency } from "../lib/mer-format";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 const CUSTOMERS_CONTRAST =
   "Shopify Analytics returning-customer rate is headcount. This page is returning dollars, guests, and the top 10% of customers.";
@@ -19,6 +20,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function CustomersPage() {
+  const currency = useDeskCurrency();
   const {
     metrics,
     preset,
@@ -111,9 +113,9 @@ export default function CustomersPage() {
                 label: "Returning",
                 value:
                   book.returningSales != null && book.returningSales > 0
-                    ? formatCurrency(book.returningSales)
+                    ? formatCurrency(book.returningSales, currency)
                     : "—",
-                share: book.returningSalesShare ?? 0,
+                share: book.returningSalesShare,
                 detail:
                   "Sales from buyers who had ordered before. Shopify Analytics Overview uses a returning-customer rate (headcount).",
               },
@@ -121,9 +123,9 @@ export default function CustomersPage() {
                 label: "New",
                 value:
                   book.newSales != null && book.newSales > 0
-                    ? formatCurrency(book.newSales)
+                    ? formatCurrency(book.newSales, currency)
                     : "—",
-                share: book.newSalesShare ?? 0,
+                share: book.newSalesShare,
                 detail:
                   "Sales from first-time buyers in this window. Growth covers days to a second order.",
               },

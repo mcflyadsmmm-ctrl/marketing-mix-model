@@ -13,6 +13,7 @@ import {
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { salesFactsIncompleteMessage } from "../lib/cash-trust-copy";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 type Props = {
   blockedMockAsLive: boolean;
@@ -77,6 +78,7 @@ export function CashTrustBanners({
   marginStale = false,
   onboarding = null,
 }: Props) {
+  const currency = useDeskCurrency();
   if (shotMode) return null;
 
   const showBelowBe =
@@ -198,8 +200,8 @@ export function CashTrustBanners({
         <s-banner tone="warning" heading="Spend doesn’t match Ads Manager">
           <s-paragraph>
             {formatSpendReconLine(spendRecon)}. Desk{" "}
-            {formatCurrency(spendRecon.csvTotal)} vs declared{" "}
-            {formatCurrency(spendRecon.declared)}. Fix the CSV or the declared
+            {formatCurrency(spendRecon.csvTotal, currency)} vs declared{" "}
+            {formatCurrency(spendRecon.declared, currency)}. Fix the CSV or the declared
             total on <s-link href="/app/spend">Marketing</s-link> before you act.
           </s-paragraph>
         </s-banner>

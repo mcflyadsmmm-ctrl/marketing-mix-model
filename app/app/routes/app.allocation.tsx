@@ -54,6 +54,7 @@ import {
   resolvePeriod,
 } from "../lib/periods";
 import { shopLocalDayKey } from "../lib/shop-local-day";
+import { useDeskCurrency } from "../lib/desk-currency";
 import {
   fetchSampleSales,
   fetchSampleSalesByDay,
@@ -342,6 +343,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function AllocationPage() {
+  const currency = useDeskCurrency();
   const {
     metrics,
     cashControl,
@@ -720,6 +722,7 @@ function PeriodSnapshotSection({
         ? "up"
         : "down";
   const roasVsBe = vsBreakEvenLine(mer, breakEvenMer);
+  const currency = useDeskCurrency();
 
   return (
     <section
@@ -735,7 +738,7 @@ function PeriodSnapshotSection({
       <div className="mcfly-alloc-v2__snap-grid">
         <article className="mcfly-alloc-v2__snap">
           <p className="mcfly-alloc-v2__snap-label">Sales</p>
-          <p className="mcfly-alloc-v2__snap-value">{formatCurrency(sales)}</p>
+          <p className="mcfly-alloc-v2__snap-value">{formatCurrency(sales, currency)}</p>
           <p className="mcfly-alloc-v2__snap-meta">Shopify Total Sales</p>
           {salesDelta ? (
             <p
@@ -747,7 +750,7 @@ function PeriodSnapshotSection({
         </article>
         <article className="mcfly-alloc-v2__snap">
           <p className="mcfly-alloc-v2__snap-label">Spend</p>
-          <p className="mcfly-alloc-v2__snap-value">{formatCurrency(spend)}</p>
+          <p className="mcfly-alloc-v2__snap-value">{formatCurrency(spend, currency)}</p>
           <p className="mcfly-alloc-v2__snap-meta">Ad spend this period</p>
           {spendDelta ? (
             <p className="mcfly-alloc-v2__snap-delta">{spendDelta}</p>
@@ -774,7 +777,7 @@ function PeriodSnapshotSection({
           </p>
           <p className="mcfly-alloc-v2__snap-meta">
             {topChannel
-              ? `${topChannel.name} · ${formatCurrency(topChannel.spend)}`
+              ? `${topChannel.name} · ${formatCurrency(topChannel.spend, currency)}`
               : "No channel spend yet"}
           </p>
         </article>
@@ -804,6 +807,7 @@ function BestWindowsSection({
   selectedWindow: TopWindowAllocation | null;
   mixDiffs: SpendShareDiff[];
 }) {
+  const currency = useDeskCurrency();
   return (
     <section className="mcfly-alloc-v2__quarters" aria-label="Best windows">
       <div className="mcfly-alloc-v2__head">
@@ -863,8 +867,8 @@ function BestWindowsSection({
                       </span>
                     </div>
                     <p className="mcfly-alloc-v2__q-meta">
-                      {PRODUCT_NOUN.totalRoas} · {formatCurrency(row.sales)} ÷{" "}
-                      {formatCurrency(row.spend)}
+                      {PRODUCT_NOUN.totalRoas} · {formatCurrency(row.sales, currency)} ÷{" "}
+                      {formatCurrency(row.spend, currency)}
                     </p>
                     <div
                       className="mcfly-alloc-v2__q-bar"
@@ -952,6 +956,7 @@ function PeriodMixSection({
   selectedChannel: string | null;
   onSelectChannel: (name: string) => void;
 }) {
+  const currency = useDeskCurrency();
   const selected = rows.find((row) => row.name === selectedChannel) ?? null;
   return (
     <section
@@ -999,7 +1004,7 @@ function PeriodMixSection({
                         {row.name}
                       </span>
                       <span className="mcfly-alloc-v2__chan-amt">
-                        {formatCurrency(row.spend)}
+                        {formatCurrency(row.spend, currency)}
                       </span>
                       <span className="mcfly-alloc-v2__chan-pct">
                         {formatPercent(row.share)}
@@ -1013,7 +1018,7 @@ function PeriodMixSection({
           {selected ? (
             <p className="mcfly-alloc-v2__chan-callout">
               {selected.name} is {formatPercent(selected.share)} of this
-              period’s ad spend ({formatCurrency(selected.spend)}).
+              period’s ad spend ({formatCurrency(selected.spend, currency)}).
             </p>
           ) : (
             <p className="mcfly-alloc-v2__hedge">

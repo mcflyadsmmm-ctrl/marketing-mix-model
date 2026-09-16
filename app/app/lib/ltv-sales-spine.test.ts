@@ -62,21 +62,21 @@ describe("LTV sales spine (HARD-STOP)", () => {
 
   it("LTV page shows avg orders in 90 days from order history", () => {
     expect(ltvSource).toContain("avgOrdersD90");
-    expect(ltvSource).toMatch(/Orders in first 90 days/);
+    expect(ltvSource).toMatch(/Orders in first 90 days on file/);
   });
 });
 
 describe("LTV tab vs Shopify Analytics", () => {
   it("contrasts Shopify Analytics LTV reports with order-history 90-day value", () => {
     expect(ltvSource).toContain(
-      "Shopify Analytics shows LTV reports, if any. This page shows order-history first 90 days.",
+      "This page shows first 90 days after the first order on file",
     );
     expect(ltvSource).toContain("PRODUCT_NOUN.ltvNotInShopify");
   });
 
   it("names avg orders in first 90 days", () => {
     expect(ltvSource).toContain("avgOrdersD90");
-    expect(ltvSource).toMatch(/Orders in first 90 days/);
+    expect(ltvSource).toMatch(/Orders in first 90 days on file/);
   });
 
   it("gates Cash CAC on hasSpend", () => {

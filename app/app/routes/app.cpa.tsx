@@ -9,6 +9,7 @@ import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { cashCostPerCustomer } from "../lib/shopify-native-stats";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 const CPA_CONTRAST =
   "Shopify Analytics shows ads-manager / platform CPA if any. This page shows entered spend ÷ Shopify buyers.";
@@ -18,6 +19,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function CpaPage() {
+  const currency = useDeskCurrency();
   const { metrics, preset, shotMode, useSampleDesk, salesError } =
     useLoaderData<typeof loader>();
   const navigation = useNavigation();
@@ -69,14 +71,14 @@ export default function CpaPage() {
             {
               k: "Cash CPA",
               v:
-                hasSpend && cashCpa != null ? formatCurrency(cashCpa) : "—",
+                hasSpend && cashCpa != null ? formatCurrency(cashCpa, currency) : "—",
               d: `Spend ÷ identified buyers · ${metrics.period.label}`,
               keepDash: true,
             },
             {
               k: "Cash CAC",
               v:
-                hasSpend && cashCac != null ? formatCurrency(cashCac) : "—",
+                hasSpend && cashCac != null ? formatCurrency(cashCac, currency) : "—",
               d: `${PRODUCT_NOUN.cashCacDef} · ${metrics.period.label}`,
               keepDash: true,
             },
@@ -104,7 +106,7 @@ export default function CpaPage() {
               hasSpend
                 ? {
                     k: "Spend this period",
-                    v: formatCurrency(metrics.totalSpend),
+                    v: formatCurrency(metrics.totalSpend, currency),
                     d: `Typed spend in ${metrics.period.label}. Shopify Analytics has no spend ledger.`,
                   }
                 : null,
@@ -119,7 +121,7 @@ export default function CpaPage() {
               hasSpend && spendPerNew != null
                 ? {
                     k: "Spend per new customer",
-                    v: formatCurrency(spendPerNew),
+                    v: formatCurrency(spendPerNew, currency),
                     d: "Typed spend ÷ first-time buyers in this window. An average, not a platform CPA.",
                   }
                 : null,

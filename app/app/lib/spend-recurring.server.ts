@@ -1,24 +1,12 @@
 import type { SpendChannel } from "@prisma/client";
 import prisma from "../db.server";
-import {
-  createSpendRepository,
-  normalizeSpendEntrySource,
-} from "./spend-repository.server";
+import { createSpendRepository } from "./spend-repository.server";
 import { utcMidnightFromDayKey, shopLocalDayKey } from "./shop-local-day";
 import { localDayKey } from "./sample-desk.server";
 import { roundMoney, shopCurrencyCode } from "./spend-money";
 import { salesDayFactWindowStartUtc } from "./sales-facts.server";
 
 const MAX_FILL_DAYS = 2000;
-
-/** Sources a merchant (or CSV) wrote — recurring fill must not overwrite these. */
-const CORRECTION_SOURCES = new Set([
-  "manual",
-  "csv",
-  "meta",
-  "google",
-  "sample",
-]);
 
 export type RecurringSpendRuleView = {
   id: string;
@@ -172,8 +160,9 @@ export async function stopRecurringSpend(opts: {
 
 /**
  * Write recurring days through `throughYmd` (typically yesterday).
- * Existing manual/csv/meta/google/sample rows are corrections — left alone.
- * Missing days and existing `recurring` rows are filled/updated from the rule.
+ * Fill empty days only — any existing row (manual / csv / recurring / deleted
+ * $0 correction) is left alone. Changing the daily rate does not rewrite
+ * past recurring amounts.
  */
 export async function materializeRecurringSpend(opts: {
   shopId: string;
@@ -216,10 +205,7 @@ export async function materializeRecurringSpend(opts: {
     });
     const blocked = new Set<string>();
     for (const row of existing) {
-      const source = normalizeSpendEntrySource(row.source);
-      if (CORRECTION_SOURCES.has(source)) {
-        blocked.add(ymdKey(row.periodStart));
-      }
+      blocked.add(ymdKey(row.periodStart));
     }
 
     const toWrite = days

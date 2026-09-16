@@ -21,6 +21,7 @@ import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.serve
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 /** Stored month totals — desk LTV is per new customer. */
 function perCustomerRevenue(
@@ -123,6 +124,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function LtvPage() {
+  const currency = useDeskCurrency();
   const {
     metrics,
     preset,
@@ -187,15 +189,15 @@ export default function LtvPage() {
   if (isNum(ltv.avgRevenueD30)) {
     valueRows.push({
       k: "First 30 days",
-      v: formatCurrency(ltv.avgRevenueD30),
+      v: formatCurrency(ltv.avgRevenueD30, currency),
       d: PRODUCT_NOUN.ltv30Def,
     });
   }
   if (isNum(ltv.avgOrdersD90)) {
     valueRows.push({
-      k: "Orders in first 90 days",
+      k: "Orders in first 90 days on file",
       v: ltv.avgOrdersD90.toFixed(1),
-      d: "Average orders per new buyer in the first 90 days, from Shopify orders — not an email list.",
+      d: "Average orders per new-on-file buyer in the first 90 days after their first visible order. A buyer with earlier Shopify orders is not counted as new.",
     });
   }
   if (ltv.historyLimited) {
@@ -208,17 +210,17 @@ export default function LtvPage() {
   } else if (isNum(ltv.avgRevenueD365)) {
     valueRows.push({
       k: "First year",
-      v: formatCurrency(ltv.avgRevenueD365),
+      v: formatCurrency(ltv.avgRevenueD365, currency),
       d: PRODUCT_NOUN.ltv365Def,
       ...(contrib365 != null
-        ? { x: [`${formatCurrency(contrib365)} kept. ${marginNote}`] }
+        ? { x: [`${formatCurrency(contrib365, currency)} kept. ${marginNote}`] }
         : {}),
     });
   }
   if (contrib90 != null) {
     valueRows.push({
       k: "Kept after margin",
-      v: formatCurrency(contrib90),
+      v: formatCurrency(contrib90, currency),
       d: `First 90 days of revenue times your margin. ${marginNote}`,
     });
   }
@@ -232,7 +234,7 @@ export default function LtvPage() {
   if (hasSpend && cashCac != null) {
     valueRows.push({
       k: "Cash CAC",
-      v: formatCurrency(cashCac),
+      v: formatCurrency(cashCac, currency),
       d: `${PRODUCT_NOUN.cashCacDef}. Blended — not platform CAC, not per ad.`,
       x: [
         ltv.paybackDays != null
@@ -259,7 +261,7 @@ export default function LtvPage() {
   if (hasSpend && knownBuyers > 0) {
     valueRows.push({
       k: "Spend per buyer",
-      v: formatCurrency(metrics.totalSpend / knownBuyers),
+      v: formatCurrency(metrics.totalSpend / knownBuyers, currency),
       d: "Spend you entered ÷ identified buyers in this window. Shopify Analytics has no spend.",
     });
   }
@@ -277,14 +279,14 @@ export default function LtvPage() {
     const d30 = perCustomerRevenue(row.revenueD30, row.customers);
     const d365 = perCustomerRevenue(row.revenueD365, row.customers);
     return {
-      k: `First orders · ${row.cohortMonth}`,
-      v: d90 != null ? formatCurrency(d90) : "—",
-      d: `${row.customers.toLocaleString()} customers placed a first order that month. Value shown is their first 90 days.`,
+      k: `First on file · ${row.cohortMonth}`,
+      v: d90 != null ? formatCurrency(d90, currency) : "—",
+      d: `${row.customers.toLocaleString()} customers had a first visible order that month. Value is 90 days after that order — not lifetime first if they bought before this window.`,
       x: [
         [
-          d30 != null ? `30 days ${formatCurrency(d30)}` : null,
+          d30 != null ? `30 days ${formatCurrency(d30, currency)}` : null,
           d365 != null && !ltv.historyLimited
-            ? `First year ${formatCurrency(d365)}`
+            ? `First year ${formatCurrency(d365, currency)}`
             : null,
         ]
           .filter(Boolean)
@@ -338,14 +340,14 @@ export default function LtvPage() {
 
       <section className="mcfly-book" aria-label="What new customers spend">
         <p className="mcfly-book__lede">
-          Shopify Analytics shows LTV reports, if any. This page shows order-history first 90 days. {PRODUCT_NOUN.ltvNotInShopify}
+          Shopify Analytics shows LTV reports, if any. This page shows first 90 days after the first order on file — not lifetime first when Shopify only shared ~60 days. {PRODUCT_NOUN.ltvNotInShopify}
         </p>
 
         {ltv.available && isNum(ltv.avgRevenueD90) ? (
           <div className="mcfly-book__hero">
-            <p className="mcfly-book__hero-k">First 90 days</p>
+            <p className="mcfly-book__hero-k">First 90 days on file</p>
             <p className="mcfly-book__hero-v">
-              {formatCurrency(ltv.avgRevenueD90)}
+              {formatCurrency(ltv.avgRevenueD90, currency)}
             </p>
             <p className="mcfly-book__hero-def">
               {PRODUCT_NOUN.ltv90Def}

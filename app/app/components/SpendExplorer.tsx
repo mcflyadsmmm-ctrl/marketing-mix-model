@@ -23,6 +23,7 @@ import { formatCurrency, formatMer, merToneBand } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
 import type { PeriodPreset } from "../lib/periods";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 export type SpendExplorerSeriesView = {
   buckets: ExplorerPlotBucket[];
@@ -118,12 +119,15 @@ function channelSegClass(channel: string): string {
 }
 
 /** One phrase: "Total ROAS Z× · X sales ÷ Y spend" for tip / title / readout. */
-function bucketMerPhrase(bucket: {
-  sales: number;
-  spend: number;
-  mer: number | null;
-}): string {
-  const base = `${formatCurrency(bucket.sales)} sales ÷ ${formatCurrency(bucket.spend)} spend`;
+function bucketMerPhrase(
+  bucket: {
+    sales: number;
+    spend: number;
+    mer: number | null;
+  },
+  currency: string,
+): string {
+  const base = `${formatCurrency(bucket.sales, currency)} sales ÷ ${formatCurrency(bucket.spend, currency)} spend`;
   return bucket.mer != null
     ? `${PRODUCT_NOUN.totalRoas} ${formatMer(bucket.mer)} · ${base}`
     : base;
@@ -160,9 +164,9 @@ function granCompareNoun(granularity: ExplorerGranularity): string {
   }
 }
 
-function signedCurrency(delta: number): string {
+function signedCurrency(delta: number, currency: string): string {
   const sign = delta < 0 ? "−" : "+";
-  return `${sign}${formatCurrency(Math.abs(delta))}`;
+  return `${sign}${formatCurrency(Math.abs(delta), currency)}`;
 }
 
 function signedMer(delta: number): string {
@@ -211,11 +215,15 @@ function explorerSearch(
   return q ? `?${q}` : "";
 }
 
-function bucketTitle(bucket: ExplorerPlotBucket, mode: ExplorerMode): string {
+function bucketTitle(
+  bucket: ExplorerPlotBucket,
+  mode: ExplorerMode,
+  currency: string,
+): string {
   const scaleBit = bucket.scaledToCash ? ` · ${SCALED_MIX_NOTE}` : "";
   const modeBit =
     mode === "share" ? " · 100% share" : mode === "total" ? " · total" : "";
-  return `${bucket.label}: ${bucketMerPhrase(bucket)}${modeBit}${scaleBit}`;
+  return `${bucket.label}: ${bucketMerPhrase(bucket, currency)}${modeBit}${scaleBit}`;
 }
 
 function explorerEmptyCopy(
@@ -359,9 +367,9 @@ function colMinPxFor(
   return 52;
 }
 
-function axisMoneyLabel(n: number, isShare: boolean): string {
+function axisMoneyLabel(n: number, isShare: boolean, currency: string): string {
   if (isShare) return `${Math.round(n)}%`;
-  return formatCurrency(n).replace(/\.00$/, "");
+  return formatCurrency(n, currency).replace(/\.00$/, "");
 }
 
 function clamp(n: number, lo: number, hi: number): number {
@@ -381,6 +389,7 @@ export function SpendExplorer({
   variant = "overview",
   quiet = false,
 }: SpendExplorerProps) {
+  const currency = useDeskCurrency();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { buckets: allBuckets, mode, targetMer, breakEvenMer, showSales } =
@@ -881,7 +890,7 @@ export function SpendExplorer({
                           dy="0.32em"
                           textAnchor="end"
                         >
-                          {axisMoneyLabel(leftVal, isShare)}
+                          {axisMoneyLabel(leftVal, isShare, currency)}
                         </text>
                         {salesLead ? null : (
                           <text
@@ -1003,7 +1012,7 @@ export function SpendExplorer({
                           id={`explorer-col-${bucket.key}`}
                           className={`mcfly-explorer__col-wash${isOn ? " mcfly-explorer__col-wash--on" : ""}`}
                           role="option"
-                          aria-label={bucketTitle(bucket, mode)}
+                          aria-label={bucketTitle(bucket, mode, currency)}
                           aria-selected={isOn}
                           x={PAD_L + i * slotW}
                           y={PAD_T}
@@ -1183,15 +1192,15 @@ export function SpendExplorer({
                             : "—"}
                         </span>
                         <span>
-                          Spend {formatCurrency(tipBucket.spend)}
+                          Spend {formatCurrency(tipBucket.spend, currency)}
                         </span>
                         <span>
-                          Sales {formatCurrency(tipBucket.sales)}
+                          Sales {formatCurrency(tipBucket.sales, currency)}
                         </span>
                         {tipCmp?.hasPrior ? (
                           <span className="mcfly-explorer__tip-prior">
                             vs {compareNoun} ({tipCmp.priorLabel}): spend{" "}
-                            {formatCurrency(tipCmp.priorSpend ?? 0)} ·{" "}
+                            {formatCurrency(tipCmp.priorSpend ?? 0, currency)} ·{" "}
                             {PRODUCT_NOUN.totalRoas}{" "}
                             {formatMer(tipCmp.priorMer)}
                           </span>
@@ -1209,7 +1218,7 @@ export function SpendExplorer({
                         <span className="mcfly-explorer__tip-lead">
                           {mode === "share"
                             ? `${hoverSeg.amount.toFixed(1)}%`
-                            : formatCurrency(hoverSeg.amount)}
+                            : formatCurrency(hoverSeg.amount, currency)}
                           {mode !== "share" ? (
                             <span className="mcfly-explorer__tip-share">
                               {" "}
@@ -1234,7 +1243,7 @@ export function SpendExplorer({
               <p>
                 <strong>{selected.label}</strong>
                 {" · "}
-                {bucketMerPhrase(selected)}
+                {bucketMerPhrase(selected, currency)}
               </p>
               {series.granularity !== "Day" ? (
                 <button
@@ -1262,14 +1271,14 @@ export function SpendExplorer({
                     vs {compareNoun} ({selectedCmp.priorLabel})
                   </span>
                   {" · spend "}
-                  {formatCurrency(selectedCmp.spend)}{" "}
+                  {formatCurrency(selectedCmp.spend, currency)}{" "}
                   <span className="mcfly-explorer__compare-delta">
-                    ({signedCurrency(selectedCmp.spendDelta ?? 0)})
+                    ({signedCurrency(selectedCmp.spendDelta ?? 0, currency)})
                   </span>
                   {" · sales "}
-                  {formatCurrency(selectedCmp.sales)}{" "}
+                  {formatCurrency(selectedCmp.sales, currency)}{" "}
                   <span className="mcfly-explorer__compare-delta">
-                    ({signedCurrency(selectedCmp.salesDelta ?? 0)})
+                    ({signedCurrency(selectedCmp.salesDelta ?? 0, currency)})
                   </span>
                   {" · "}
                   {PRODUCT_NOUN.totalRoas} {formatMer(selectedCmp.mer)}{" "}

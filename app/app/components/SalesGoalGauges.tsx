@@ -1,4 +1,5 @@
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { useDeskCurrency } from "../lib/desk-currency";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import type {
   GoalPaceTone,
@@ -70,6 +71,7 @@ function GoalRow({
   targetMer?: number | null;
   breakEvenMer?: number | null;
 }) {
+  const currency = useDeskCurrency();
   const hasGoal = period.goal > 0 && Number.isFinite(period.goal);
   const progressPct = hasGoal
     ? Math.min(100, Math.max(0, period.progressPct ?? 0))
@@ -105,7 +107,7 @@ function GoalRow({
       aria-label={`${period.label} sales vs goal`}
       title={
         hasGoal
-          ? `${formatCurrency(period.actual)} / ${formatCurrency(period.goal)}${
+          ? `${period.actual == null ? "—" : formatCurrency(period.actual, currency)} / ${formatCurrency(period.goal, currency)}${
               paceBit ? ` · ${paceBit}` : ""
             }`
           : undefined
@@ -145,8 +147,8 @@ function GoalRow({
       {!compact ? (
         <div className="mcfly-goal-row__meta">
           <span className="mcfly-goal-row__meta-amt">
-            {formatCurrency(period.actual)}
-            {hasGoal ? ` / ${formatCurrency(period.goal)}` : ""}
+            {period.actual == null ? "—" : formatCurrency(period.actual, currency)}
+            {hasGoal ? ` / ${formatCurrency(period.goal, currency)}` : ""}
             {period.periodHint ? ` · ${period.periodHint}` : ""}
           </span>
           {yoy ? (

@@ -27,6 +27,14 @@ describe("Goals page", () => {
     expect(goals).toContain("Still loading — not $0");
   });
 
+  it("year-board Actual / Prior use a dash helper, not raw $0 for missing months", () => {
+    expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
+    expect(goals).toContain("formatSalesOrDash(priorActual, currency)");
+    expect(goals).toContain("formatSalesOrDash(prior, currency)");
+    expect(goals).toContain("Missing months are not $0");
+    expect(goals).not.toContain("formatCurrency(row.actual)");
+  });
+
   it("sales-load banner does not leak internals or paint actuals as $0", () => {
     const retryAt = goals.indexOf("<SalesLoadError");
     expect(retryAt).toBeGreaterThan(-1);

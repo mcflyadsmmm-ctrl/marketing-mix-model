@@ -104,9 +104,11 @@ function merOrDash(n: number | null | undefined): string {
   return formatMer(roundMer(n));
 }
 
-function moneyOrDash(n: number | null | undefined): string {
-  if (n == null || !Number.isFinite(n)) return "—";
-  return formatCurrency(roundMoney(n));
+function moneyOrDashFor(currency: string) {
+  return (n: number | null | undefined): string => {
+    if (n == null || !Number.isFinite(n)) return "—";
+    return formatCurrency(roundMoney(n), currency);
+  };
 }
 
 function pctOrDash(n: number | null | undefined, digits = 0): string {
@@ -124,9 +126,10 @@ function pctOrDash(n: number | null | undefined, digits = 0): string {
  */
 export function buildAdvancedSections(
   metrics: AdvancedMetricsInput,
-  options: { canUseLtv: boolean; periodLabel: string },
+  options: { canUseLtv: boolean; periodLabel: string; currency: string },
 ): AdvancedSection[] {
-  const { canUseLtv, periodLabel } = options;
+  const { canUseLtv, periodLabel, currency } = options;
+  const moneyOrDash = moneyOrDashFor(currency);
   const spend = metrics.totalSpend;
   const grossMer =
     metrics.grossSalesKnown && spend > 0
@@ -398,7 +401,7 @@ export function buildAdvancedSections(
     .map((c) => ({
       id: `mix-${c.channel}`,
       label: c.channel,
-      value: `${formatCurrency(c.amount)} · ${Math.round(c.share * 100)}%`,
+      value: `${formatCurrency(c.amount, currency)} · ${Math.round(c.share * 100)}%`,
       formula: "Logged CSV spend share",
       caveat: "Spend structure only — not channel ROAS.",
     }));
@@ -474,7 +477,7 @@ export function buildAdvancedSections(
             label: "Sales Δ",
             value: pctOrDash(deltas.salesPct),
             formula: `vs ${deltas.priorLabel}`,
-            caveat: `Prior sales ${formatCurrency(deltas.priorSales)}`,
+            caveat: `Prior sales ${formatCurrency(deltas.priorSales, currency)}`,
           },
           ...(spendOn
             ? [
@@ -483,7 +486,7 @@ export function buildAdvancedSections(
                   label: "Spend Δ",
                   value: pctOrDash(deltas.spendPct),
                   formula: `vs ${deltas.priorLabel}`,
-                  caveat: `Prior spend ${formatCurrency(deltas.priorSpend)}`,
+                  caveat: `Prior spend ${formatCurrency(deltas.priorSpend, currency)}`,
                 },
                 {
                   id: "mer-delta",

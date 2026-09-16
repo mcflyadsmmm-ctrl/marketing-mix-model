@@ -273,7 +273,7 @@ describe("Shopify App Store source verification", () => {
     }
   });
 
-  it("OrderFact GraphQL stays id-only on customer and never selects SKU/title/email", () => {
+  it("OrderFact GraphQL selects only customer id and numberOfOrders — never SKU/title/email", () => {
     const factsSource = readRepo("app/app/lib/order-facts.server.ts");
     const documents = graphqlDocuments(factsSource);
     const documentSurface = documents.join("\n");
@@ -291,8 +291,8 @@ describe("Shopify App Store source verification", () => {
     expect(customerBlocks.length).toBeGreaterThan(0);
     for (const block of customerBlocks) {
       expect(block).toMatch(/\bid\b/);
-      expect(block).not.toMatch(/\bnumberOfOrders\b/);
-      expect(block.trim()).toMatch(/^id\s*$/);
+      expect(block).toMatch(/\bnumberOfOrders\b/);
+      expect(block.trim()).toMatch(/^id\s+numberOfOrders\s*$/);
     }
   });
 });

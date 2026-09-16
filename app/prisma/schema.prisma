@@ -345,6 +345,8 @@ model OrderFact {
   sourceName     String?
   /// currentSubtotalLineItemsQuantity — units only, never SKU/title.
   unitCount      Int?
+  /// Shopify customer.numberOfOrders at fetch time. Null on legacy / guest rows.
+  lifetimeOrders Int?
   asOf           DateTime?
   /// shopify_order_v1 | sample
   source         String    @default("shopify_order_v1")

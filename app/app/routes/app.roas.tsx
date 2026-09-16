@@ -52,6 +52,7 @@ import {
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
 import { authenticate } from "../shopify.server";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -220,6 +221,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function TotalRoasPage() {
+  const currency = useDeskCurrency();
   const {
     metrics,
     explorer,
@@ -288,7 +290,7 @@ export default function TotalRoasPage() {
             <div className="mcfly-book__kpi">
               <p className="mcfly-book__kpi-k">Sales</p>
               <p className="mcfly-book__kpi-v">
-                {metrics.salesPending ? "—" : formatCurrency(metrics.sales)}
+                {metrics.salesPending ? "—" : formatCurrency(metrics.sales, currency)}
               </p>
               <p className="mcfly-book__kpi-hint">
                 {metrics.salesPending
@@ -299,7 +301,7 @@ export default function TotalRoasPage() {
             <div className="mcfly-book__kpi">
               <p className="mcfly-book__kpi-k">Spend</p>
               <p className="mcfly-book__kpi-v">
-                {formatCurrency(metrics.totalSpend)}
+                {formatCurrency(metrics.totalSpend, currency)}
               </p>
               <p className="mcfly-book__kpi-hint">Entered ad spend</p>
             </div>

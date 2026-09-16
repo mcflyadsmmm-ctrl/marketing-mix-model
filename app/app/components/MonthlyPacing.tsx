@@ -1,6 +1,7 @@
 import type { ControlPace } from "../lib/mer-dashboard.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 type Props = {
   sales: number;
@@ -32,6 +33,7 @@ export function MonthlyPacing({
   periodLabel,
   control,
 }: Props) {
+  const currency = useDeskCurrency();
   const mtdMer = mer ?? 0;
   const stroke = gaugeTone(mer);
   const maxMer = Math.max(
@@ -122,11 +124,11 @@ export function MonthlyPacing({
           <div className="mcfly-pacing__stats">
             <div className="mcfly-pacing__stat">
               <p className="mcfly-pacing__k">Sales</p>
-              <p className="mcfly-pacing__v">{formatCurrency(sales)}</p>
+              <p className="mcfly-pacing__v">{formatCurrency(sales, currency)}</p>
             </div>
             <div className="mcfly-pacing__stat">
               <p className="mcfly-pacing__k">Spend</p>
-              <p className="mcfly-pacing__v">{formatCurrency(spend)}</p>
+              <p className="mcfly-pacing__v">{formatCurrency(spend, currency)}</p>
             </div>
             <div className="mcfly-pacing__stat">
               <p className="mcfly-pacing__k">Days elapsed</p>
@@ -135,20 +137,20 @@ export function MonthlyPacing({
             <div className="mcfly-pacing__stat">
               <p className="mcfly-pacing__k">Avg daily sales</p>
               <p className="mcfly-pacing__v">
-                {formatCurrency(avgDailySales)}
+                {formatCurrency(avgDailySales, currency)}
               </p>
             </div>
             <div className="mcfly-pacing__stat">
               <p className="mcfly-pacing__k">Projected period spend</p>
               <p className="mcfly-pacing__v">
-                {formatCurrency(control.projSpend)}
+                {formatCurrency(control.projSpend, currency)}
               </p>
             </div>
             <div className="mcfly-pacing__stat">
               <p className="mcfly-pacing__k">Daily sales needed</p>
               <p className="mcfly-pacing__v">
                 {control.remainingDays > 0
-                  ? formatCurrency(control.dailySalesNeeded)
+                  ? formatCurrency(control.dailySalesNeeded, currency)
                   : "—"}
               </p>
             </div>

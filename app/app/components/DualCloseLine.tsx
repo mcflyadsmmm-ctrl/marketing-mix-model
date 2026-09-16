@@ -1,4 +1,5 @@
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { useDeskCurrency } from "../lib/desk-currency";
 import {
   dualCloseLineModel,
   type DualClose,
@@ -43,6 +44,7 @@ export function DualCloseLine({
   close: DualClose | null;
   targetMer: number;
 }) {
+  const currency = useDeskCurrency();
   const model = dualCloseLineModel(close, targetMer);
   if (!model) return null;
   const daysLeft =
@@ -57,9 +59,9 @@ export function DualCloseLine({
   return (
     <p className="mcfly-dual-close">
       {daysLeft} If the rest of this month matches this month so far:{" "}
-      {formatCurrency(model.monthRateSales)} sales at{" "}
+      {formatCurrency(model.monthRateSales, currency)} sales at{" "}
       {merLabel(model.monthRateMer, model.monthRateSpend)}. {recentHold}:{" "}
-      {formatCurrency(model.last7RateSales)} at{" "}
+      {formatCurrency(model.last7RateSales, currency)} at{" "}
       {merLabel(model.last7RateMer, model.last7RateSpend)}. {closeStatus(model)}
     </p>
   );

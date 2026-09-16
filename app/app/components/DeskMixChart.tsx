@@ -4,7 +4,7 @@ import { useDeskDrill } from "./DeskDrill";
 export type ShareBarItem = {
   label: string;
   value: string;
-  share: number;
+  share: number | null;
   detail: string;
 };
 
@@ -26,10 +26,11 @@ export function ShareBarsChart({
 }) {
   const drill = useDeskDrill();
   const usable = items.filter(
-    (item) => Number.isFinite(item.share) && item.share > 0,
+    (item): item is ShareBarItem & { share: number } =>
+      item.share != null && Number.isFinite(item.share) && item.share > 0,
   );
-  const rows = usable.length >= 2 ? usable : items;
-  if (rows.length === 0) return null;
+  if (usable.length === 0) return null;
+  const rows = usable;
   const max = Math.max(...rows.map((item) => item.share), 0.01);
 
   return (

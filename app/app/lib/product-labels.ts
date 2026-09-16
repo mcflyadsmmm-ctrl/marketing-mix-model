@@ -94,9 +94,12 @@ export const PRODUCT_NOUN = {
   /** Overview payback tile defs — plain English formulas */
   cashCacDef: "Period ad spend ÷ new customers",
   cashCacNeedsSpend: "Add spend — Cash CAC is spend ÷ new customers",
-  ltv90Def: "Avg revenue per new customer in first 90 days",
-  ltv30Def: "Avg revenue per new customer in first 30 days",
-  ltv365Def: "Avg revenue per new customer in first 365 days",
+  ltv90Def:
+    "Avg revenue per new-on-file buyer in the first 90 days after their first order in this Shopify window — not lifetime first if they bought before this crawl",
+  ltv30Def:
+    "Avg revenue per new-on-file buyer in the first 30 days after their first order in this Shopify window",
+  ltv365Def:
+    "Avg revenue per new-on-file buyer in the first 365 days after their first order in this Shopify window",
   shopifyBookTitle: "Deeper than Analytics",
   shopifyBookMuted:
     "From this shop’s orders. Stats Overview skips. Last ~60 days. Spend optional.",

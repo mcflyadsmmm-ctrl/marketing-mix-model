@@ -208,6 +208,68 @@ describe("materializeRecurringSpend", () => {
     expect(rows.every((row) => row.amount === 40)).toBe(true);
   });
 
+  it("does not rewrite an existing recurring $40 when the rule is now $55", async () => {
+    findManyRules.mockResolvedValue([
+      {
+        id: "rule_1",
+        channel: "meta",
+        customKey: "",
+        amount: 55,
+        currency: "USD",
+        startDate: utcMidnightFromDayKey("2026-01-01"),
+        endDate: null,
+        note: null,
+      },
+    ]);
+    findManyEntries.mockResolvedValue([
+      {
+        periodStart: utcMidnightFromDayKey("2026-01-01"),
+        source: "recurring",
+      },
+    ]);
+
+    const result = await materializeRecurringSpend({
+      shopId: "shop_1",
+      currency: "USD",
+      throughYmd: "2026-01-01",
+      floorYmd: "2026-01-01",
+    });
+
+    expect(result.written).toBe(0);
+    expect(upsertSpendDays).not.toHaveBeenCalled();
+  });
+
+  it("does not refill a deleted day kept as a $0 manual correction", async () => {
+    findManyRules.mockResolvedValue([
+      {
+        id: "rule_1",
+        channel: "meta",
+        customKey: "",
+        amount: 40,
+        currency: "USD",
+        startDate: utcMidnightFromDayKey("2026-01-01"),
+        endDate: null,
+        note: null,
+      },
+    ]);
+    findManyEntries.mockResolvedValue([
+      {
+        periodStart: utcMidnightFromDayKey("2026-01-01"),
+        source: "manual",
+      },
+    ]);
+
+    const result = await materializeRecurringSpend({
+      shopId: "shop_1",
+      currency: "USD",
+      throughYmd: "2026-01-01",
+      floorYmd: "2026-01-01",
+    });
+
+    expect(result.written).toBe(0);
+    expect(upsertSpendDays).not.toHaveBeenCalled();
+  });
+
   it("does not overwrite an existing recurring row's channel when a $0 manual day is present", async () => {
     findManyRules.mockResolvedValue([
       {

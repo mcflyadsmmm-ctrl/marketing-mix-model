@@ -19,7 +19,7 @@ export const SPEND_DOORS: readonly SpendDoor[] = [
   {
     href: "#mcfly-spend-recurring",
     title: "Daily amount until I change it",
-    hint: "A daily rate from a date. Typed or uploaded days stay as written.",
+    hint: "A daily rate from a date. Typed, uploaded, or already-filled days stay.",
   },
   {
     href: "/app/spend/import",

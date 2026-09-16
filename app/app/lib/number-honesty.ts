@@ -62,14 +62,15 @@ export function formatTotalRoasEquation(opts: {
   spend: number;
   mer: number | null;
   salesPending?: boolean;
+  currency: string;
 }): string | null {
-  const { sales, spend, mer, salesPending = false } = opts;
+  const { sales, spend, mer, salesPending = false, currency } = opts;
   if (!(spend > 0) || !Number.isFinite(spend)) return null;
   if (salesPending) {
-    return `${formatCurrency(spend)} spend saved · sales still loading`;
+    return `${formatCurrency(spend, currency)} spend saved · sales still loading`;
   }
   if (!Number.isFinite(sales)) return null;
-  const left = `${formatCurrency(sales)} sales ÷ ${formatCurrency(spend)} spend`;
+  const left = `${formatCurrency(sales, currency)} sales ÷ ${formatCurrency(spend, currency)} spend`;
   if (mer == null || !Number.isFinite(mer)) return left;
   return `${left} = ${formatMer(mer)}×`;
 }

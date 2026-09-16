@@ -61,6 +61,7 @@ import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { SalesLoadError } from "../components/SalesLoadError";
 import { TRIAL_VS_VIEW } from "../lib/sample-live-handoff";
+import { useDeskCurrency } from "../lib/desk-currency";
 
 type ShopifyToast = {
   show?: (message: string, options?: { duration?: number; isError?: boolean }) => void;
@@ -86,8 +87,8 @@ function showAdminToast(
   bridge?.toast?.show?.(message, options);
 }
 
-function deltaTone(delta: number, goal: number): GoalPaceTone {
-  if (!(goal > 0)) return "flat";
+function deltaTone(delta: number | null, goal: number): GoalPaceTone {
+  if (delta == null || !(goal > 0)) return "flat";
   if (delta >= 0) return "up";
   if (delta / goal >= -0.05) return "flat";
   return "down";
@@ -117,10 +118,10 @@ function parseTargetMerInput(raw: FormDataEntryValue | null): number {
   return n;
 }
 
-function monthMapToArray(map: Map<number, number>): number[] {
+function monthMapToArray(map: Map<number, number>): Array<number | null> {
   return Array.from({ length: 12 }, (_, i) => {
     const v = map.get(i + 1);
-    return Number.isFinite(v) ? (v as number) : 0;
+    return Number.isFinite(v) ? (v as number) : null;
   });
 }
 
@@ -137,21 +138,39 @@ function parseYoyGrowthPct(raw: FormDataEntryValue | null): number {
   return Math.min(50, Math.max(0, Math.round(n)));
 }
 
-/** Prior-year actual × (1 + pct/100), whole dollars; zero prior → zero goal. */
+/** Prior-year actual × (1 + pct/100), whole dollars; missing/zero prior → no goal. */
 function goalsAtYoyGrowth(
-  priorYearMonthly: number[],
+  priorYearMonthly: Array<number | null>,
   growthPct: number,
 ): number[] {
   const factor = 1 + growthPct / 100;
   return priorYearMonthly.map((prior) => {
-    if (!(prior > 0)) return 0;
+    if (prior == null || !(prior > 0)) return 0;
     return Math.round(prior * factor);
   });
 }
 
-function yoyPct(actual: number, prior: number): number | null {
-  if (!(prior > 0) || !Number.isFinite(actual)) return null;
+function yoyPct(
+  actual: number | null,
+  prior: number | null,
+): number | null {
+  if (
+    actual == null ||
+    prior == null ||
+    !(prior > 0) ||
+    !Number.isFinite(actual)
+  ) {
+    return null;
+  }
   return ((actual - prior) / prior) * 100;
+}
+
+function formatSalesOrDash(
+  amount: number | null | undefined,
+  currency: string,
+): string {
+  if (amount == null || !Number.isFinite(amount)) return "—";
+  return formatCurrency(amount, currency);
 }
 
 function formatYoyPct(pct: number | null): string {
@@ -449,6 +468,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function GoalsPage() {
+  const currency = useDeskCurrency();
   const {
     board,
     periods,
@@ -483,11 +503,15 @@ export default function GoalsPage() {
   const goalsKey = `${board.year}:${board.rows.map((r) => r.salesGoal).join("|")}`;
   const periodHasSpend = periodMetrics.totalSpend > 0;
   const yearHasSpend = board.rows.some((row) => row.spend > 0);
-  const priorYearSales = priorYearMonthly.reduce((a, b) => a + b, 0);
+  const knownPriorMonths = priorYearMonthly.filter(
+    (v): v is number => v != null && Number.isFinite(v) && v > 0,
+  );
+  const priorYearSales = knownPriorMonths.reduce((a, b) => a + b, 0);
   const previewTenPct = goalsAtYoyGrowth(priorYearMonthly, 10).reduce(
     (a, b) => a + b,
     0,
   );
+  const canGrowFromPrior = knownPriorMonths.length > 0;
   const noGoalsYet = board.rows.every((r) => !(r.salesGoal > 0));
 
   useEffect(() => {
@@ -680,7 +704,7 @@ export default function GoalsPage() {
               <p className="mcfly-book__hero-v">
                 {periodMetrics.salesPending
                   ? "—"
-                  : formatCurrency(periodMetrics.sales)}
+                  : formatCurrency(periodMetrics.sales, currency)}
               </p>
               <p className="mcfly-book__hero-def">
                 {periodMetrics.salesPending
@@ -693,7 +717,7 @@ export default function GoalsPage() {
                 facts={[
                   {
                     k: "Spend",
-                    v: formatCurrency(periodMetrics.totalSpend),
+                    v: formatCurrency(periodMetrics.totalSpend, currency),
                     d: `Ad spend you entered for ${periodMetrics.period.label}.`,
                   },
                   periodMetrics.mer != null
@@ -715,7 +739,7 @@ export default function GoalsPage() {
                   periodSpendCeiling != null
                     ? {
                         k: "Spend ceiling",
-                        v: formatCurrency(periodSpendCeiling),
+                        v: formatCurrency(periodSpendCeiling, currency),
                         d: impliedSpendCeilingCaption("period_sales", targetMer),
                       }
                     : null,
@@ -743,9 +767,9 @@ export default function GoalsPage() {
                 {noGoalsYet
                   ? "Set a year plan from last year’s sales."
                   : "Reset this year’s plan from last year’s sales."}
-                {priorYearSales > 0
-                  ? ` ${priorYear} was ${formatCurrency(priorYearSales)} — Grow 10% is ${formatCurrency(previewTenPct)}.`
-                  : ` Need ${priorYear} sales on file to fill months.`}
+                {canGrowFromPrior
+                  ? ` ${priorYear} months on file total ${formatCurrency(priorYearSales, currency)} — Grow 10% fills those months (${formatCurrency(previewTenPct, currency)}). Missing months stay blank.`
+                  : ` Need ${priorYear} sales on file to fill months. Missing months are not $0.`}
               </p>
               <div className="mcfly-decision__actions">
                 <Form method="post">
@@ -755,6 +779,7 @@ export default function GoalsPage() {
                   <s-button
                     type="submit"
                     variant="primary"
+                    {...(!canGrowFromPrior ? { disabled: true } : {})}
                     {...(savingIntent === "apply_yoy_grow" ||
                     savingIntent === "apply_yoy_10"
                       ? { loading: true }
@@ -775,7 +800,7 @@ export default function GoalsPage() {
                     <button
                       type="submit"
                       className="mcfly-goals-yoy-btn"
-                      disabled={isSaving}
+                      disabled={isSaving || !canGrowFromPrior}
                     >
                       +{pct}%
                     </button>
@@ -845,8 +870,8 @@ export default function GoalsPage() {
                         {forecast.monthLong} close
                       </span>
                       {" · "}
-                      Projected {formatCurrency(forecast.projSales)} vs{" "}
-                      {formatCurrency(forecast.monthGoal)}
+                      Projected {formatCurrency(forecast.projSales, currency)} vs{" "}
+                      {formatCurrency(forecast.monthGoal, currency)}
                       {" · "}
                       <span
                         className={`mcfly-goals-pace mcfly-goals-pace--${forecast.pace.tone}`}
@@ -909,7 +934,7 @@ export default function GoalsPage() {
                             <GoalRow
                               key={row.month}
                               row={row}
-                              priorActual={priorYearMonthly[row.month - 1] ?? 0}
+                              priorActual={priorYearMonthly[row.month - 1] ?? null}
                               inputId={`${formId}-g${row.month}`}
                               defaultValue={formatGoalInput(row.salesGoal)}
                               showGoalInput
@@ -962,7 +987,7 @@ export default function GoalsPage() {
                     </thead>
                     <tbody>
                       {board.rows.map((row) => {
-                        const prior = priorYearMonthly[row.month - 1] ?? 0;
+                        const prior = priorYearMonthly[row.month - 1] ?? null;
                         const pct = yoyPct(row.actual, prior);
                         const rowClass = [
                           "mcfly-goals-table__row",
@@ -982,7 +1007,7 @@ export default function GoalsPage() {
                                 </span>
                               ) : null}
                             </th>
-                            <td>{formatCurrency(row.actual)}</td>
+                            <td>{formatSalesOrDash(row.actual, currency)}</td>
                             {yearHasSpend ? (
                               <>
                                 <SpendCell spend={row.spend} />
@@ -993,7 +1018,7 @@ export default function GoalsPage() {
                                 />
                               </>
                             ) : null}
-                            <td>{formatCurrency(prior)}</td>
+                            <td>{formatSalesOrDash(prior, currency)}</td>
                             <td>{formatYoyPct(pct)}</td>
                           </tr>
                         );
@@ -1011,7 +1036,8 @@ export default function GoalsPage() {
 }
 
 function SpendCell({ spend }: { spend: number }) {
-  return <td>{spend > 0 ? formatCurrency(spend) : "—"}</td>;
+  const currency = useDeskCurrency();
+  return <td>{spend > 0 ? formatCurrency(spend, currency) : "—"}</td>;
 }
 
 function MerCell({
@@ -1079,13 +1105,14 @@ function GoalRow({
   targetMer,
 }: {
   row: GoalMonthRow;
-  priorActual: number;
+  priorActual: number | null;
   inputId: string;
   defaultValue: string;
   showGoalInput: boolean;
   showSpend: boolean;
   targetMer: number;
 }) {
+  const currency = useDeskCurrency();
   const hasGoal = row.salesGoal > 0;
   const spendCeiling = impliedSpendCeiling(row.salesGoal, targetMer);
   const barPct =
@@ -1140,17 +1167,17 @@ function GoalRow({
           />
         </td>
       ) : null}
-      <td>{formatCurrency(row.actual)}</td>
+      <td>{formatSalesOrDash(row.actual, currency)}</td>
       {showSpend ? (
         <>
           <SpendCell spend={row.spend} />
           <td>
-            {spendCeiling != null ? formatCurrency(spendCeiling) : "—"}
+            {spendCeiling != null ? formatCurrency(spendCeiling, currency) : "—"}
           </td>
           <MerCell mer={row.mer} spend={row.spend} merRails={row.merRails} />
         </>
       ) : null}
-      <td>{formatCurrency(priorActual)}</td>
+      <td>{formatSalesOrDash(priorActual, currency)}</td>
       <td>{formatYoyPct(pct)}</td>
       {showGoalInput ? (
         <td>

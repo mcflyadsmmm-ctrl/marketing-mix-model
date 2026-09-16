@@ -16,29 +16,54 @@ function honestyCorpus(): string {
   return [
     JSON.stringify(NUMBER_HONESTY),
     JSON.stringify(BILLING_HONESTY),
-    formatTotalRoasEquation({ sales: 12400, spend: 3100, mer: 4 }) ?? "",
+    formatTotalRoasEquation({
+      sales: 12400,
+      spend: 3100,
+      mer: 4,
+      currency: "USD",
+    }) ?? "",
   ].join("\n");
 }
 
 describe("formatTotalRoasEquation", () => {
   it("shows sales ÷ spend = Total ROAS when spend exists", () => {
     expect(
-      formatTotalRoasEquation({ sales: 12_400, spend: 3_100, mer: 4 }),
+      formatTotalRoasEquation({
+        sales: 12_400,
+        spend: 3_100,
+        mer: 4,
+        currency: "USD",
+      }),
     ).toBe("$12,400 sales ÷ $3,100 spend = 4.00×");
   });
 
   it("omits the ratio when mer is null", () => {
     expect(
-      formatTotalRoasEquation({ sales: 100, spend: 25, mer: null }),
+      formatTotalRoasEquation({
+        sales: 100,
+        spend: 25,
+        mer: null,
+        currency: "USD",
+      }),
     ).toBe("$100 sales ÷ $25 spend");
   });
 
   it("returns null when spend is missing so empty is not 0×", () => {
     expect(
-      formatTotalRoasEquation({ sales: 12_400, spend: 0, mer: 0 }),
+      formatTotalRoasEquation({
+        sales: 12_400,
+        spend: 0,
+        mer: 0,
+        currency: "USD",
+      }),
     ).toBeNull();
     expect(
-      formatTotalRoasEquation({ sales: 12_400, spend: -1, mer: 4 }),
+      formatTotalRoasEquation({
+        sales: 12_400,
+        spend: -1,
+        mer: 4,
+        currency: "USD",
+      }),
     ).toBeNull();
   });
 
@@ -52,6 +77,7 @@ describe("formatTotalRoasEquation", () => {
       spend: 650,
       mer: 0,
       salesPending: true,
+      currency: "USD",
     });
     expect(line).toBe("$650 spend saved · sales still loading");
     expect(line).not.toMatch(/0\.00×/);
@@ -65,6 +91,7 @@ describe("formatTotalRoasEquation", () => {
         spend: 1_250.5,
         mer: null,
         salesPending: true,
+        currency: "USD",
       }),
     ).toContain("$1,251");
   });
@@ -76,6 +103,7 @@ describe("formatTotalRoasEquation", () => {
         spend: 650,
         mer: 0,
         salesPending: false,
+        currency: "USD",
       }),
     ).toBe("$0 sales ÷ $650 spend = 0.00×");
   });
