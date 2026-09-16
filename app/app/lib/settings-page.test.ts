@@ -25,4 +25,12 @@ describe("Settings page", () => {
     expect(settings).toContain("PRODUCT_NOUN.totalRoas");
     expect(settings).not.toMatch(/\baMER\b/);
   });
+
+  it("Switch to Sample data posts on Settings with a native submit", () => {
+    expect(settings).toContain("applySampleDeskIntent");
+    expect(settings).toContain('name="intent" value="use-sample"');
+    expect(settings).toContain('className="mcfly-btn mcfly-btn--primary"');
+    expect(settings).toContain("Switch to Sample data now");
+    expect(settings).not.toContain("dataModeAction");
+  });
 });

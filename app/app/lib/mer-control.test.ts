@@ -29,6 +29,7 @@ import {
   dualCloseLineModel,
   alignedSiblingWindowDays,
   buildCompareScores,
+  chipZone,
 } from "./mer-control";
 
 function day(
@@ -200,6 +201,18 @@ describe("mer-control mix + ledger", () => {
     const ledger = aggregateLedger(lastNCertifiedRows(days, 2), "day", 3);
     expect(ledger).toHaveLength(2);
     expect(ledger.every((row) => row.hit === false)).toBe(true);
+  });
+
+  it("chipZone is empty without spend, ok at or above goal, below when short", () => {
+    expect(chipZone({ mer: null, spend: 0, vsTarget: null })).toBe("empty");
+    expect(chipZone({ mer: 4, spend: 100, vsTarget: 0 })).toBe("ok");
+    expect(chipZone({ mer: 4.2, spend: 100, vsTarget: 0.2 })).toBe("ok");
+    expect(chipZone({ mer: 2, spend: 100, vsTarget: -2 })).toBe("below");
+    const { days } = certifyDailyRows(septDeterioration());
+    const chips = buildCashChips(days, 4);
+    const yesterday = chips.find((c) => c.id === "yesterday");
+    expect(yesterday).toBeDefined();
+    expect(chipZone(yesterday!)).toBe("below");
   });
 
   it("chips skip empty windows and never average daily MER", () => {
@@ -466,6 +479,10 @@ describe("mer-control chrome", () => {
     join(here, "../components/DualCloseLine.tsx"),
     "utf8",
   );
+  const scoreboard = readFileSync(
+    join(here, "../components/CertifiedScoreboard.tsx"),
+    "utf8",
+  );
 
   it("merchant copy stays shop-owner English", () => {
     expect(source).not.toMatch(/\baMER\b/);
@@ -489,6 +506,8 @@ describe("mer-control chrome", () => {
     expect(mixPlan).toContain("<th>Channel</th>");
     expect(mixPlan).toContain("vs last month");
     expect(mixPlan).toContain("Spend left at goal");
+    expect(mixPlan).toContain("ChannelCutNote");
+    expect(mixPlan).toContain("20% lighter this month");
     expect(source).toContain("<details");
     expect(source).toContain("mcfly-spend-room__ledger");
     expect(source).toContain(">Every day</summary>");
@@ -522,5 +541,17 @@ describe("mer-control chrome", () => {
     expect(dualClose).not.toMatch(/\bL7\b/);
     expect(dualClose).not.toMatch(/\bYoY\b/);
     expect(dualClose).not.toContain("0.00×");
+  });
+
+  it("certified scoreboard paints shop-owner windows, never 0.00×", () => {
+    expect(scoreboard).toContain("chip.label");
+    expect(scoreboard).toContain("Click for detail");
+    expect(scoreboard).toContain("Spend left at goal");
+    expect(scoreboard).not.toMatch(/\bMTD\b/);
+    expect(scoreboard).not.toMatch(/\bQTD\b/);
+    expect(scoreboard).not.toMatch(/\bYTD\b/);
+    expect(scoreboard).not.toMatch(/\bL7\b/);
+    expect(scoreboard).not.toContain("0.00×");
+    expect(scoreboard).not.toMatch(/\bklaviyo\b/i);
   });
 });

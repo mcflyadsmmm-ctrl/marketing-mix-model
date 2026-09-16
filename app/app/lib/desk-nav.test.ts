@@ -6,10 +6,14 @@ import {
   DESK_OVERVIEW_TABS,
   DESK_PRIMARY_NAV,
   DESK_SECTION,
+  DESK_SHOPIFY_NAV,
+  DESK_SPEND_NAV,
+  DESK_TOP_NAV,
   deskNavHref,
   deskNavHrefFromSearch,
   deskStageFromHash,
   deskStageHeading,
+  isDeskNavActive,
   isOverviewHomeStage,
   overviewSectionLocation,
 } from "./desk-nav";
@@ -83,25 +87,52 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain(
       "Marketing",
     );
+    expect(DESK_TOP_NAV.map((item) => item.label)).not.toContain("Settings");
+    expect(DESK_SHOPIFY_NAV.map((item) => item.label)).toEqual([
+      "Overview",
+      "Customers",
+      "Growth",
+      "Orders",
+      "LTV",
+    ]);
+    expect(DESK_SPEND_NAV.map((item) => item.label)).toEqual([
+      "Spend Upload",
+      "Total ROAS",
+      "Channel Allocation",
+      "YoY",
+      "CPA",
+      "Goals",
+    ]);
+    expect(isDeskNavActive("/app", "/app")).toBe(true);
+    expect(isDeskNavActive("/app", "/app/customers")).toBe(false);
+    expect(isDeskNavActive("/app/customers", "/app/customers")).toBe(true);
+    const shell = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../routes/app.tsx"),
+      "utf8",
+    );
+    expect(shell).toContain("<s-app-nav>");
+    expect(shell).toContain("<DeskTopTabs");
   });
 
   it("puts spend tools on their own pages, not an Overview hash sitemap", () => {
     expect(DESK_OVERVIEW_TABS).toEqual([]);
   });
 
-  it("Overview live chrome is as-of + share above YoY sales cards", () => {
+  it("Overview live chrome is shop, trust chips, YoY cards, then scoreboard + chart", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
-    const tabs = readFileSync(
-      join(here, "../components/DeskOverviewTabs.tsx"),
-      "utf8",
-    );
-    expect(tabs).toContain("mcfly-desk-chrome");
-    expect(overview).toContain("<DeskOverviewTabs");
+    expect(overview).toContain("mcfly-ctx__brand");
+    expect(overview).not.toContain("<PeriodControl");
     expect(overview).toContain("<OverviewYoyCards");
+    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewSalesChart");
+    expect(overview.indexOf("<OverviewYoyCards")).toBeLessThan(
+      overview.indexOf("<OverviewFirstViewport"),
+    );
+    expect(overview).not.toContain("<DeskOverviewTabs");
     expect(overview).not.toContain("<DeskWindowRail");
     expect(overview).not.toContain("<SpendExplorer");
-    expect(overview).toContain('preset = shotMode ? requested : "mtd"');
+    expect(overview).toContain("const preset = requested");
     expect(overview).not.toContain("hideHero");
     expect(overview).not.toContain("<CashControlBoard");
     expect(overview).not.toContain("Same dates as Overview");

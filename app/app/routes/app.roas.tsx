@@ -1,6 +1,7 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { CertifiedScoreboard } from "../components/CertifiedScoreboard";
 import { DualCloseLine } from "../components/DualCloseLine";
 import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
 import { MonthlyPacing } from "../components/MonthlyPacing";
@@ -314,6 +315,14 @@ export default function TotalRoasPage() {
           </div>
         </section>
 
+        {cashControl && cashControl.chips.length > 0 ? (
+          <CertifiedScoreboard
+            chips={cashControl.chips}
+            targetMer={cashControl.targetMer}
+            plan={cashControl.plan}
+          />
+        ) : null}
+
         <SpendExplorer
           series={explorer}
           period={preset}
@@ -346,7 +355,6 @@ export default function TotalRoasPage() {
           <MarketingSpendRoom
             board={cashControl}
             channelLabels={explorer.channelLabels}
-            intelOnly
           />
         ) : null}
       </div>

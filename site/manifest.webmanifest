@@ -1,12 +1,12 @@
 {
-  "name": "Mcfly Ads",
+  "name": "Mcfly Analytics",
   "short_name": "Mcfly",
-  "description": "Two doors · one firm: Mcfly Analytics Shopify desk and fixed-fee Custom Data Solutions they keep.",
+  "description": "See ad spend beside Shopify sales, day by day. 7-day trial, then $39/store/mo.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0a1221",
-  "theme_color": "#0a1221",
+  "background_color": "#f2f5f8",
+  "theme_color": "#f2f5f8",
   "icons": [
     {
       "src": "/favicon-32.png",

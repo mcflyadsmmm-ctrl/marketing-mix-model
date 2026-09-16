@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-15 · America/Denver · Fly **314** · site **v16** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v16** (Pages `241ebffc`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **Fly** | https://mcfly-analytics.fly.dev · version **314** · image `deployment-01M2JM0P9ZQ4707YFWMFVQA6G7` · `/health` db up · `/app` 200 · tab-final-draft + shared libs committed · Goals pending hero is — not $0 · Overview · Customers · Growth · Orders · LTV · Spend Upload · Total ROAS · Channel Allocation · YoY · CPA · Goals · Settings |
-| **North star** | Sell **Mcfly Analytics** Shopify app — 7-day trial then **$39**/store/mo. Public mark, titles, favicons, OG = one name. Custom is **301 to home**. |
+| **Updated** | 2026-09-16 · America/Denver · Fly **322** · SAMPLE Result **PASS** · site **v17** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v17** (Pages `2f6ca3d0`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
+| **Fly** | https://mcfly-analytics.fly.dev · version **322** · in-iframe Shopify / Spend page toggles · side `s-app-nav` stays shortcuts · document 410 → `/auth/opening` |
+| **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
@@ -70,19 +70,21 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 
 | Say | Effect |
 | --- | --- |
-| `status` | Board + live probes |
-| `go site` | One ship → PR → Pages |
-| `go money` | Cap-3 drafts |
-| `stop fleet` | Idle |
+| `status` | Board + live probes. **No new agents. No Fly.** |
+| `go money` | Listing / FUNNEL leftovers only. Cap 3. No Desk unless founder asks. Do not ship Fly 321 for craft. |
+| `Result:` + PASS/FAIL block | **Received 2026-09-15.** SAMPLE greeting PASS. Live spend + trial still skipped. |
+| `go site` | One ship → PR → Pages (not while Fly 320 freeze unless you override) |
+| `stop fleet` | Idle. Occupancy 0. |
 | `shopify app unfreeze` | **Granted 2026-08-29** — Fly + `app/**` for approval |
 
 ---
 
 ## Open gates (human)
 
-- [x] **Fly deploy** — `/app` `/auth/login` `/health` **200** · **v314** 2026-09-15 (tab-final-draft + committed shared libs) · image `deployment-01M2JM0P9ZQ4707YFWMFVQA6G7`
+- [x] **Fly deploy** — `/app` `/auth/login` `/health` **200** · **v320** 2026-09-15 (Overview YoY-first at $0 spend; book 60-day honesty; LTV First year —) · image `deployment-01M2M9P7T9FRRVNKNCSREG0YDK` · journal [`ops/journal/STATUS_20260915_fly320.md`](./ops/journal/STATUS_20260915_fly320.md)
+- [x] **Admin SAMPLE Result** — 2026-09-15 Harbor: Overview **PASS** · blank ROAS/Ad spend first **NO** · Shopify five at $0 **PASS** · LTV First year — **PASS**. Live spend day **skipped**. Trial CTA **skipped**. Journal [`ops/journal/STATUS_20260915_fly320_result.md`](./ops/journal/STATUS_20260915_fly320_result.md)
 - [x] App Store listing live → `MCFLY_APP_STORE_LIVE=true` · https://apps.shopify.com/mcfly-analytics-public
-- [x] **Site v16 Pages** — 11-tab copy · Install CTA · Harbor SAMPLE · Pages `241ebffc` · journal [`ops/journal/STATUS_20260915_v16.md`](./ops/journal/STATUS_20260915_v16.md)
+- [x] **Site v17 Pages** — Fly 318 spine · Overview YoY glance · Shopify five at $0 spend · Harbor SAMPLE · Pages `2f6ca3d0` · journal [`ops/journal/STATUS_20260915_v17.md`](./ops/journal/STATUS_20260915_v17.md)
 - [ ] **Partner listing paste** — sales-first pack in [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md). Marty Submits. Reviews: **0**
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
@@ -92,9 +94,29 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v14 live** — listing CTA Install · Pages `7efa4ed2` · journal [`ops/journal/STATUS_20260908_v14.md`](./ops/journal/STATUS_20260908_v14.md)
 - [x] **v15 live** — sales-first H1 · Pages `c705a2ff` · journal [`ops/journal/STATUS_20260910_v15.md`](./ops/journal/STATUS_20260910_v15.md)
 - [x] **v16 live** — 11-tab desk copy · Pages `241ebffc` · journal [`ops/journal/STATUS_20260915_v16.md`](./ops/journal/STATUS_20260915_v16.md)
+- [x] **v17 live** — Fly 318 spine · Pages `2f6ca3d0` · journal [`ops/journal/STATUS_20260915_v17.md`](./ops/journal/STATUS_20260915_v17.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Human: **Admin smoke on Fly 312** — type one spend day → Total ROAS; empty CPA is not $0; Allocation has no explorer; YoY missing last year is honest. Partner paste from `docs/PARTNER_TESTING_INSTRUCTIONS.md`. Recapture listing shots (Buyers/Timing stale). Reviews: **0**. Ads off.
+**Next:** Fly **322 live.** Hard-refresh Admin — Shopify / Spend toggles at the top of the iframe; left Admin nav stays shortcuts. Human: Partner **Save** listing (still spend-led). Reviews: **0**. Ads off. Occupancy **0/4**.
+
+---
+
+## Finish law (why Conductor “stops”)
+
+App + site are already live (Fly **320**, site **v17**). SAMPLE smoke **PASSed**. Finalize is **not** another Desk lane. It is listing Save → FUNNEL. Conductor idles on purpose when those are Marty-only. “Keep going / make it world class / steal Black Clover again” restarts Desk and **abandons** listing.
+
+**Same chat.** Do not open a new Composer for “finalize the app.” If context dies, open this workspace and send `status` as the first message.
+
+| You want | You send (whole message) |
+| --- | --- |
+| Is it still on the money path? | `status` |
+| Close leftovers Conductor can draft | `go money` |
+| Unfreeze Fly after Admin SAMPLE | Filled `Result:` PASS/FAIL block — not the blank form |
+| Stop all lanes | `stop fleet` |
+
+**Banned keep-alives:** “keep going”, “finish everything”, “make it world class”, “run subagents”, “copy Black Clover again”. Those spawn Desk and look like progress.
+
+**Your close tonight (Conductor cannot click):** (1) Partner **Save** [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) — live page still spend-led. (2) Confirm **no Free plan**. (3) Recapture Live-data shots. Cursor does not Submit.
 
 ---
 
@@ -104,6 +126,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 2. One version = one job.
 3. SAMPLE lock before deploy; phone+desktop probe after.
 4. Stamp Pages id + journal after every prod ship.
+5. If a new chat starts, read this board first. Occupancy 0/4 + listing Save is the job — not Fly 321.
 
 ---
 
@@ -120,3 +143,4 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 | v14 | `7efa4ed2` | Listing live · nav CTA Install → `mcfly-analytics-public` |
 | v15 | `c705a2ff` | Sales-first H1 · spend optional · Harbor SAMPLE below the fold |
 | v16 | `241ebffc` | 11-tab desk copy · Spend Upload · Fly 312 Shopify-gap ledes |
+| v17 | `2f6ca3d0` | Fly 318 spine · Overview YoY · Shopify five at $0 spend · Harbor SAMPLE |

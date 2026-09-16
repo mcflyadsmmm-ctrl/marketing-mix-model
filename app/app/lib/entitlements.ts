@@ -54,7 +54,7 @@ export const BILLING_HONESTY = {
 
 /** One plan, one list. There is no second tier to compare against. */
 export const DESK_FEATURE_BULLETS = [
-  "Whole desk: Spend, Overview, Spend Allocation, LTV, Goals",
+  "Whole desk: Spend, Overview, Channel Allocation, LTV, Goals",
   "Every named platform plus extras like billboard",
   "Total ROAS = Shopify sales ÷ the spend you add",
   "Break-even from optional profit margin",

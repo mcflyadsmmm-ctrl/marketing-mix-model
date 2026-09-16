@@ -16,6 +16,8 @@ import {
   getSampleDeskEnabled,
   getSamplePreviewAllowed,
 } from "../lib/sample-desk.server";
+import { DeskDrillProvider } from "../components/DeskDrill";
+import { DeskTopTabs } from "../components/DeskTopTabs";
 import { DataModeBar } from "../components/DataModeBar";
 import { BillingExitProvider } from "../lib/billing-exit-context";
 import { isBillingEnabled } from "../lib/billing-flag.server";
@@ -146,7 +148,10 @@ export default function App() {
           samplePreviewAllowed={samplePreviewAllowed}
           shotMode={shotMode}
         />
-        <Outlet />
+        <DeskTopTabs shotMode={shotMode} />
+        <DeskDrillProvider>
+          <Outlet />
+        </DeskDrillProvider>
       </BillingExitProvider>
     </AppProvider>
   );

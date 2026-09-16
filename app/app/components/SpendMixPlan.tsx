@@ -1,11 +1,13 @@
 import { Fragment, useMemo, useState } from "react";
-import { formatCurrency } from "../lib/mer-format";
+import { formatCurrency, formatMer } from "../lib/mer-format";
 import { spendChannelShortLabel } from "../lib/spend-channel-label";
 import {
   channelDayRows,
   compareMix,
+  lastNCertifiedRows,
   mixRowsFromDays,
   mixWindowDays,
+  projectCloseAfterCut,
   siblingWindowDays,
   type CashControlBoard,
   type CertifiedDay,
@@ -61,6 +63,36 @@ function MixDayList({
         );
       })}
     </ul>
+  );
+}
+
+function ChannelCutNote({
+  board,
+  channel,
+}: {
+  board: CashControlBoard;
+  channel: string;
+}) {
+  const close = board.dualClose;
+  if (!close || close.remainingDays <= 0) return null;
+  const cut = projectCloseAfterCut(
+    board.mtdDays,
+    lastNCertifiedRows(board.drillDays, 7),
+    close.remainingDays,
+    channel,
+    0.2,
+  );
+  if (!cut || cut.windowMer == null) return null;
+  const monthClose =
+    cut.closeMer != null
+      ? ` Month close would be ${formatMer(cut.closeMer)}× if last 7 days continue.`
+      : "";
+  return (
+    <p>
+      If this channel is 20% lighter this month and sales stay put, this month
+      so far would be {formatMer(cut.windowMer)}×.{monthClose} Not a forecast —
+      a cut of typed spend.
+    </p>
   );
 }
 
@@ -189,6 +221,12 @@ export function SpendMixPlan({
                               {row.note ? ` · ${row.note}` : ""}. Not which ad
                               caused a sale.
                             </p>
+                            {row.locked ? null : (
+                              <ChannelCutNote
+                                board={board}
+                                channel={row.channel}
+                              />
+                            )}
                             <MixDayList channel={row.channel} days={mixDays} />
                           </div>
                         </td>

@@ -214,6 +214,32 @@ describe("summarizeTillLtvFromCohorts", () => {
     });
     expect(summary.emptyReason).toBe("history_limited");
   });
+
+  it("does not paint First year dollars when historyLimited", () => {
+    const cohorts: TillLtvCohortRow[] = [
+      {
+        cohortMonth: "2026-06",
+        customers: 180,
+        revenueD30: 180 * 125,
+        revenueD90: 180 * 255,
+        revenueD365: 180 * 545,
+        ordersD30: 220,
+        ordersD90: 310,
+        ordersD365: 450,
+      },
+    ];
+    const summary = summarizeTillLtvFromCohorts(cohorts, {
+      totalSpend: 36_000,
+      newCustomers: 450,
+      historyLimited: true,
+      ianaTimezone: "America/Denver",
+    });
+    expect(summary.available).toBe(true);
+    expect(summary.historyLimited).toBe(true);
+    expect(summary.avgRevenueD30).toBeCloseTo(125, 5);
+    expect(summary.avgRevenueD90).toBeCloseTo(255, 5);
+    expect(summary.avgRevenueD365).toBeNull();
+  });
 });
 
 describe("computeCohortRollups", () => {

@@ -10,7 +10,11 @@ export const OVERVIEW_YOY_MISSING =
 
 /** Shopify Analytics Overview is this period only; these cards add last year. */
 export const OVERVIEW_YOY_ANALYTICS_LEDE =
-  "Shopify Analytics Overview shows this period's sales and average order. These cards compare that to last year.";
+  "Shopify Analytics shows this period’s sales. This page shows last year next to it.";
+
+/** When MTD/QTD/YTD collapse to the same ~60-day pull. */
+export const OVERVIEW_YOY_SAME_WINDOW =
+  "Month, quarter, and year are the same dollars until Shopify shares more than ~60 days of orders.";
 
 export type OverviewYoyChip = {
   id: CashChipId | string;
@@ -61,4 +65,12 @@ export function buildOverviewYoyCards(
     });
   }
   return cards;
+}
+
+/** True when the three windows are the same pull (typical ~60-day install). */
+export function overviewWindowsCollapsed(cards: OverviewYoyCard[]): boolean {
+  if (cards.length < 2) return false;
+  const first = Math.round(cards[0]?.sales ?? NaN);
+  if (!Number.isFinite(first)) return false;
+  return cards.every((card) => Math.round(card.sales) === first);
 }

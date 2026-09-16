@@ -6,6 +6,8 @@ import {
   buildOverviewYoyCards,
   OVERVIEW_YOY_ANALYTICS_LEDE,
   OVERVIEW_YOY_MISSING,
+  OVERVIEW_YOY_SAME_WINDOW,
+  overviewWindowsCollapsed,
 } from "./overview-yoy";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -77,6 +79,40 @@ describe("buildOverviewYoyCards", () => {
     expect(OVERVIEW_YOY_MISSING).toMatch(/60 days/);
     expect(OVERVIEW_YOY_MISSING).not.toMatch(/\$0 last year/);
   });
+
+  it("flags three windows that collapsed to the same dollars", () => {
+    const cards = buildOverviewYoyCards([
+      {
+        id: "mtd",
+        label: "This month",
+        sales: 9943,
+        priorSales: null,
+        yoySalesPct: null,
+        fromKey: null,
+        toKey: null,
+      },
+      {
+        id: "qtd",
+        label: "This quarter",
+        sales: 9943,
+        priorSales: null,
+        yoySalesPct: null,
+        fromKey: null,
+        toKey: null,
+      },
+      {
+        id: "ytd",
+        label: "This year",
+        sales: 9943,
+        priorSales: null,
+        yoySalesPct: null,
+        fromKey: null,
+        toKey: null,
+      },
+    ]);
+    expect(overviewWindowsCollapsed(cards)).toBe(true);
+    expect(OVERVIEW_YOY_SAME_WINDOW).toMatch(/60 days/);
+  });
 });
 
 describe("Overview vs Shopify Analytics", () => {
@@ -89,11 +125,18 @@ describe("Overview vs Shopify Analytics", () => {
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
 
     expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/Shopify Analytics/);
-    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/last year/i);
+    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/This page shows/);
     expect(yoy).toMatch(/Shopify Analytics/);
     expect(cards).toContain("OVERVIEW_YOY_ANALYTICS_LEDE");
+    expect(cards).toContain("OVERVIEW_YOY_SAME_WINDOW");
+    expect(cards).toContain("Last year");
+    expect(cards).not.toContain("OVERVIEW_COVERAGE_LINE");
     expect(cards).toContain("Sales for closed days are still loading — not $0.");
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<DualCloseLine");
+    expect(overview.indexOf("<OverviewYoyCards")).toBeGreaterThan(-1);
+    expect(overview.indexOf("<OverviewYoyCards")).toBeLessThan(
+      overview.indexOf("<OverviewFirstViewport"),
+    );
   });
 });

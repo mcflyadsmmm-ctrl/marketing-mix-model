@@ -5,6 +5,30 @@
  * pagination that drains the cost bucket.
  */
 
+/** Shopify Admin default cost bucket (non-Plus). */
+export const GRAPHQL_COST_BUCKET_DEFAULT = 1000;
+
+/**
+ * Conservative requestedQueryCost ceiling for `orders(first: 100)` with
+ * money + opaque customer id fields (OrderFact crawl). Real cost is typically
+ * lower; this is the budget we refuse to exceed unbounded.
+ */
+export const GRAPHQL_ORDERS_PAGE_COST_CEILING = 50;
+
+/**
+ * Hard cap on OrderFact `orders(first: 100)` pages per kick.
+ * 80 pages × 100 orders = 8k orders; 80 × 50 cost ≤ 2× default bucket.
+ * Throttle retry lives in {@link adminGraphqlJson} — never unbounded pagination.
+ */
+export const ORDER_FACT_PAGES_COST_SAFE_CAP = 80;
+
+/** True when `pages` is a finite, bounded OrderFact kick — not an unbounded crawl. */
+export function graphqlOrderPagesFitCostBucket(pages: number): boolean {
+  if (!Number.isFinite(pages) || pages <= 0) return false;
+  if (pages > ORDER_FACT_PAGES_COST_SAFE_CAP) return false;
+  return pages * GRAPHQL_ORDERS_PAGE_COST_CEILING <= GRAPHQL_COST_BUCKET_DEFAULT * 2;
+}
+
 export type GraphqlCostThrottleStatus = {
   maximumAvailable?: number;
   currentlyAvailable?: number;

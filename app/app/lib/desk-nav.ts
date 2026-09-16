@@ -119,6 +119,21 @@ export const DESK_PRIMARY_NAV: readonly DeskNavItem[] = [
   { path: "/app/settings", label: "Settings" },
 ];
 
+/** In-iframe top toggles — 11 analysis pages. Settings stays a side shortcut. */
+export const DESK_TOP_NAV: readonly DeskNavItem[] = DESK_PRIMARY_NAV.filter(
+  (item) => item.path !== "/app/settings",
+);
+
+export const DESK_SHOPIFY_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(0, 5);
+export const DESK_SPEND_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(5);
+
+export function isDeskNavActive(path: string, pathname: string): boolean {
+  const current = pathname.replace(/\/$/, "") || "/";
+  const target = path.replace(/\/$/, "") || "/";
+  if (target === "/app") return current === "/app";
+  return current === target || current.startsWith(`${target}/`);
+}
+
 /** Overview chrome has no second sitemap. Retired hashes still resolve home. */
 export const DESK_OVERVIEW_TABS: readonly DeskNavItem[] = [];
 

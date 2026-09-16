@@ -17,9 +17,9 @@ alwaysApply: true
 
 ## Authority
 
-- This Cursor chat = Conductor for `site/**` + money drafts.
+- This Cursor chat = Conductor for `site/**` + `app/**` + Fly (unfrozen 2026-08-29) + money drafts.
 - No Grok multi-bot fleets. No parallel `dist/` sites.
-- App **frozen**: no `app/**`, no Fly, no listing copy edits until `shopify app unfreeze`.
+- App **unfrozen** for App Store approval. Do not invent `apps.shopify.com`.
 
 ## Product lock (summary)
 

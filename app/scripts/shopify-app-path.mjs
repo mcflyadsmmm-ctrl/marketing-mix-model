@@ -127,3 +127,35 @@ export function shouldSkipMarketingSite(req) {
 export function embeddedAppRedirectLocation(req) {
   return `/app${requestSearch(req)}`;
 }
+
+/** React Router client navigations hit `/app.data` — App Bridge may 410 those. */
+export function isReactRouterDataRequest(request) {
+  if (!request?.url) return false;
+  const url = new URL(request.url, "https://mcfly-analytics.fly.dev");
+  return url.pathname.includes(".data");
+}
+
+function safeAppNextPath(pathname) {
+  const path = appRoutePath(String(pathname || "/app"));
+  if (path === "/app" || path.startsWith("/app/")) return path;
+  return "/app";
+}
+
+/**
+ * First Admin HTML paint cannot send a session-token header. A thrown 410
+ * becomes the document (“410 Gone”) and App Bridge never hydrates. Bounce
+ * to `/auth/opening` (200 + App Bridge), then client-navigate to /app.
+ */
+export function documentGoneRedirectLocation(request) {
+  if (!request?.url) return "/auth/opening?next=%2Fapp";
+  const url = new URL(request.url, "https://mcfly-analytics.fly.dev");
+  const path = appRoutePath(url.pathname);
+  if (path === "/auth/opening") return null;
+  const opening = new URL("https://mcfly-analytics.fly.dev/auth/opening");
+  for (const [key, value] of url.searchParams.entries()) {
+    if (key === "next") continue;
+    opening.searchParams.append(key, value);
+  }
+  opening.searchParams.set("next", safeAppNextPath(path));
+  return `${opening.pathname}?${opening.searchParams.toString()}`;
+}

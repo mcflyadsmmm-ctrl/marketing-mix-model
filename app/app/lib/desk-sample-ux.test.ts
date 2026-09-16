@@ -27,9 +27,10 @@ describe("Sample data | Live data UX", () => {
   it("shot mode still labels Sample data (App Store 1.1.4)", () => {
     const bar = read("../components/DataModeBar.tsx");
     expect(bar).toContain("shotMode");
-    expect(bar).toMatch(/if \(shotMode\)/);
+    expect(bar).toContain('shotMode ? "mcfly-data-mode--shot"');
     expect(bar).toContain("mcfly-data-mode--shot");
     expect(bar).toContain("sampleHint");
+    expect(bar).toContain("if (!useSampleDesk) return null");
     const shell = read("../routes/app.tsx");
     expect(shell).toContain("shotMode={shotMode}");
     expect(shell).not.toMatch(/\{!shotMode \? \(/);
@@ -38,12 +39,15 @@ describe("Sample data | Live data UX", () => {
     expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
   });
 
-  it("top toggle labels Sample data vs Live data", () => {
+  it("Sample | Live switching lives in Settings, not a leftover Viewing toggle", () => {
     const bar = read("../components/DataModeBar.tsx");
-    expect(bar).toContain("liveData");
     expect(bar).toContain("sampleData");
     expect(bar).toContain("sampleHint");
-    expect(bar).toContain("liveDataHint");
+    expect(bar).toContain("Switch in Settings");
+    expect(bar).toContain("if (!useSampleDesk) return null");
+    expect(bar).not.toContain("<Form");
+    expect(bar).not.toContain('id="mcfly-data-mode-label"');
+    expect(bar).not.toContain("liveDataHint");
     expect(bar).not.toMatch(/Turn SAMPLE preview OFF/);
     expect(bar).not.toContain("Before App Store review");
     expect(bar).not.toContain("s-banner");
@@ -51,6 +55,7 @@ describe("Sample data | Live data UX", () => {
     const labels = read("../lib/product-labels.ts");
     expect(labels).toContain('sampleData: "Sample data"');
     expect(labels).toContain('liveData: "Live data"');
+    expect(labels).toContain("Switch to Sample data in Settings");
   });
 
   it("Sample data preview uses the data-mode POST, not /app/demo", () => {
@@ -58,6 +63,9 @@ describe("Sample data | Live data UX", () => {
     expect(cta).toContain('name="intent" value="use-sample"');
     expect(cta).toContain('action={`/app/data-mode${location.search}`}');
     expect(cta).toContain("reloadDocument");
+    expect(cta).toContain("mcfly-btn");
+    expect(cta).toContain('type="submit"');
+    expect(cta).not.toContain("s-button");
     expect(cta).not.toContain('href="/app/demo"');
   });
 
@@ -72,23 +80,33 @@ describe("Sample data | Live data UX", () => {
 
   it("data-mode keeps SAMPLE through today without a 5-year rewrite", () => {
     const dataMode = read("../routes/app.data-mode.tsx");
-    expect(dataMode).toContain("ensureSampleBookThroughToday");
+    expect(dataMode).toContain("applySampleDeskIntent");
     expect(dataMode).not.toContain("seedThreeYearSampleDesk");
     const sampleDesk = read("sample-desk.server.ts");
     expect(sampleDesk).toContain("ensureSampleBookThroughToday");
+    expect(sampleDesk).toContain("applySampleDeskIntent");
     expect(sampleDesk).not.toContain("SAMPLE_SEED_TX");
     expect(sampleDesk).not.toContain("timeout: 120_000");
     expect(sampleDesk).toContain("sampleSeedInFlight");
     expect(dataMode).toContain("export default function DataModeRoute");
+    expect(dataMode).toContain('redirect(`/app/settings${url.search}`)');
   });
 
-  it("Sample | Live posts as a document request so Admin never decodes a raw 302 as turbo-stream", () => {
+  it("Settings Sample switch posts to Settings with a native submit, not a blank data-mode GET", () => {
     const bar = read("../components/DataModeBar.tsx");
     const settings = read("../routes/app.settings.tsx");
-    expect(bar).toMatch(/reloadDocument/);
-    expect(bar).toContain('name="intent" value="use-real"');
-    expect(bar).toContain('name="intent" value="use-sample"');
-    expect(settings).toMatch(/action=\{dataModeAction\} reloadDocument/);
+    expect(bar).not.toMatch(/reloadDocument/);
+    expect(bar).not.toContain('name="intent" value="use-real"');
+    expect(settings).toContain("applySampleDeskIntent");
+    expect(settings).toContain('name="intent" value="use-real"');
+    expect(settings).toContain('name="intent" value="use-sample"');
+    expect(settings).toContain('className="mcfly-btn mcfly-btn--primary"');
+    expect(settings).toContain('type="submit"');
+    expect(settings).toContain('url.pathname = "/app"');
+    expect(settings).toContain("<Form method=\"post\" reloadDocument>");
+    expect(settings).not.toMatch(/action=\{dataModeAction\} reloadDocument/);
+    expect(settings).not.toContain("dataModeAction");
+    expect(settings).not.toMatch(/window\.location\.(href|assign|replace)/);
     const serve = read("../../scripts/serve-with-site.mjs");
     expect(serve).toContain('app.set("trust proxy", true)');
     expect(serve).toContain("admin.shopify.com");
@@ -110,12 +128,12 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("<MarketingSnapSection");
     expect(overview).not.toContain("$0 · add spend");
     expect(overview).not.toContain("spendOnlyEmpty");
-    // Overview is cards only; explorer remains on the Marketing page.
+    // Overview is cards + chart; explorer remains on Total ROAS.
     expect(overview).not.toContain("mcfly-hero-compact");
     expect(overview).toContain("<OverviewYoyCards");
-    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewSalesChart");
     expect(overview).not.toContain("<SpendExplorer");
-    expect(overview).not.toContain("Add spend to see Total ROAS");
     expect(overview).not.toContain("NUMBER_HONESTY.empty");
     expect(marketing).toContain("NUMBER_HONESTY.empty");
   });
@@ -128,7 +146,8 @@ describe("Sample data | Live data UX", () => {
     const labels = read("./product-labels.ts");
     expect(overview).toContain("<OverviewYoyCards");
     expect(overview).toContain("buildOverviewYoyCards");
-    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewSalesChart");
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<ShopifyBookSection");
     expect(yoyCards).toContain("OVERVIEW_YOY_MISSING");
@@ -161,7 +180,7 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("loadOverviewGoalPeriods");
     expect(overview).not.toContain("<GoalsSnapSection");
     expect(overview).not.toContain("See spend mix");
-    expect(overview).toContain("<DeskOverviewTabs");
+    expect(overview).not.toContain("<DeskOverviewTabs");
   });
 
   it("Pass A book routes exist and old URLs redirect", () => {
@@ -180,6 +199,15 @@ describe("Sample data | Live data UX", () => {
     expect(growth).toContain("/app/ltv");
     expect(growth).not.toContain("cashCac");
     expect(orders).toContain('groups={["period", "timing"]}');
+    expect(orders).toContain("<WeekdaySalesChart");
+    expect(customers).toContain("orderFactsTruncated");
+    expect(growth).toContain("orderFactsTruncated");
+    expect(orders).toContain("orderFactsTruncated");
+    const deskPage = read("../lib/desk-sales-page.server.ts");
+    expect(deskPage).toContain("getOrderBackfillProgress");
+    const bookPage = read("../components/DeskBookPage.tsx");
+    expect(bookPage).toContain("orderFactsTruncated");
+    expect(bookPage).toMatch(/incomplete typical order[\s\S]*not \$0/);
     expect(buyers).toContain('throw redirect(`/app/customers');
     expect(timing).toContain('throw redirect(`/app/orders');
   });
@@ -194,8 +222,13 @@ describe("Sample data | Live data UX", () => {
     expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
-    expect(firstView).not.toContain("spendHref");
+    expect(firstView).not.toContain("Spend Upload →");
+    expect(firstView).not.toContain("Add spend to see Total ROAS");
+    expect(firstView).not.toContain('label="Ad spend"');
+    expect(firstView).not.toContain("returningCustomers.toLocaleString()");
+    expect(firstView).toContain("spendHref");
     expect(firstView).not.toContain("0.00×");
+    expect(firstView).toContain("{hasSpend ? (");
 
     expect(overview).not.toContain('slot="primary-action"');
     expect(overview).not.toContain("Update spend");
@@ -203,12 +236,17 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("See spend mix");
     expect(overview).not.toContain("PRODUCT_NOUN.setupAddSpend");
     expect(overview).not.toContain("<MarketingSnapSection");
+    expect(overview).not.toContain("<PeriodControl");
     expect(overview).toContain("<OverviewYoyCards");
-    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewSalesChart");
+    expect(overview.indexOf("<OverviewYoyCards")).toBeLessThan(
+      overview.indexOf("<OverviewFirstViewport"),
+    );
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<ShopifyBookSection");
     expect(overview).toContain("deskStageFromHash");
-    expect(overview).toContain("<DeskOverviewTabs");
+    expect(overview).not.toContain("<DeskOverviewTabs");
     expect(overview).not.toContain('className="mcfly-overview-more"');
 
     const salesErrorStart = overview.indexOf('aria-label="Sales load error"');
@@ -268,10 +306,10 @@ describe("Sample data | Live data UX", () => {
     expect(book).toContain("PRODUCT_NOUN.bookWeekendSales");
     expect(book).toContain('className="mcfly-book__hero-v"');
 
-    expect(book).toContain('<details className="mcfly-book__row"');
-    expect(book).toContain('className="mcfly-book__row-sum"');
-    expect(book).toContain('className="mcfly-book__row-d"');
-    expect(book).toContain("mcfly-book__row-s");
+    expect(book).toContain("function BookFactGrid");
+    expect(book).toContain('className="mcfly-book__kpi"');
+    expect(book).toContain("mcfly-book__kpi-hint");
+    expect(book).not.toContain("<details");
     expect(book).toContain("mcfly-book__hero-sub");
 
     expect(book).toContain('className="mcfly-book__clock"');
@@ -284,8 +322,10 @@ describe("Sample data | Live data UX", () => {
       expect(file).not.toContain("formatPercent");
     }
 
-    expect(book).toContain("book.guestOrders > 0");
-    expect(book).toContain("depth.oneAndDoneShare > 0");
+    expect(book).toContain("Top 10% of customers");
+    expect(book).toContain("keepDash: true");
+    expect(book).toContain("PRODUCT_NOUN.bookGuestCheckouts");
+    expect(book).toContain("PRODUCT_NOUN.bookOneOrderBuyers");
     expect(book).toContain("isNum(depth.shippingTaxFees)");
     expect(book).toContain("isNum(book.returnsDrag)");
 
@@ -294,8 +334,8 @@ describe("Sample data | Live data UX", () => {
     expect(deskPage).toContain("shotMode ? (");
     expect(deskPage).toContain("<PeriodControl");
 
-    expect(firstView).toContain("mcfly-book__glance");
-    expect(firstView).toContain("mcfly-book__kpi");
+    expect(firstView).toContain("mcfly-kpi-grid");
+    expect(firstView).toContain("mcfly-compact");
     expect(firstView).not.toContain("mcfly-first-view");
     expect(firstView).not.toContain('value={salesPending ? "—"');
 
@@ -312,17 +352,19 @@ describe("Sample data | Live data UX", () => {
     expect(css).toContain(".mcfly-book__rows--kpis");
     expect(css).toContain(".mcfly-book__row-s");
     expect(css).toContain(".mcfly-book__hero-sub");
+    expect(css).toContain(".mcfly-drill");
+    expect(css).toContain(".mcfly-chart");
+    expect(css).toContain(".mcfly-icon");
 
     const overview = read("../routes/app._index.tsx");
-    expect(overview).not.toContain("mcfly-ctx__brand");
+    expect(overview).toContain("mcfly-ctx__brand");
     expect(read("../routes/app.orders.tsx")).not.toContain("mcfly-tab-snap__empty");
     expect(read("../routes/app.buyers.tsx")).not.toContain("mcfly-tab-snap__empty");
     expect(read("../routes/app.timing.tsx")).not.toContain("mcfly-tab-snap__empty");
   });
 
-  it("every tab has one title — live chrome is tabs or as-of, not a period rail", () => {
+  it("every tab has one title — live chrome is as-of and period, not a second brand rail", () => {
     for (const rel of [
-      "../routes/app._index.tsx",
       "../routes/app.orders.tsx",
       "../routes/app.buyers.tsx",
       "../routes/app.timing.tsx",
@@ -354,13 +396,14 @@ describe("Sample data | Live data UX", () => {
     expect(goals).not.toContain("mcfly-acq-tile");
     expect(goals).not.toContain("mcfly-goals-declare");
     expect(goals).not.toContain("mcfly-panel mcfly-goals-declare");
-    expect(gauges).toContain('variant === "book"');
+    expect(gauges).toContain('case "book"');
     expect(gauges).not.toMatch(/cash \$\{PRODUCT_NOUN\.totalRoas\}/);
     expect(gauges).not.toContain("cash Total ROAS");
 
     expect(ltv).toContain("<DeskBookPage");
     expect(ltv).toContain('className="mcfly-book"');
-    expect(ltv).toContain('<details className="mcfly-book__row"');
+    expect(ltv).toContain("<BookFactGrid");
+    expect(ltv).not.toContain("<details");
     expect(ltv).not.toContain("mcfly-acq-tile");
     expect(ltv).not.toContain("mcfly-ltv-summary");
     expect(ltv).not.toContain("mcfly-ltv-dive");
@@ -387,7 +430,7 @@ describe("Sample data | Live data UX", () => {
     expect(ltv).not.toContain("New vs returning this window");
   });
 
-  it("never prints a 0.0% or a boxed dash — unknown rows are omitted", () => {
+  it("never prints a 0.0% — unknown shares stay a dash on the locked grid", () => {
     const book = read("../components/ShopifyBookSection.tsx");
     const ltv = read("../routes/app.ltv.tsx");
     for (const source of [
@@ -407,11 +450,11 @@ describe("Sample data | Live data UX", () => {
     expect(book).toContain("hasShare(depth.discountedOrderShare)");
     expect(book).toContain("book.returnsDrag > 0");
     expect(book).toContain("depth.shippingTaxFees > 0");
-    expect(book).toContain('row.v !== "—"');
+    expect(book).toContain("keepDash: true");
     expect(ltv).toContain('row.v !== "—"');
   });
 
-  it("adds depth inside native details drills, not more cards", () => {
+  it("adds depth as visible KPI cards, not collapsed drills", () => {
     const book = read("../components/ShopifyBookSection.tsx");
     const ltv = read("../routes/app.ltv.tsx");
     expect(book).toContain("x?: string[]");
@@ -420,16 +463,18 @@ describe("Sample data | Live data UX", () => {
     expect(book).toContain("function hourBreakdown");
     expect(book).toContain("depth.eligibleFirstTimers");
     expect(book).toContain("depth.guestAov");
-    expect(ltv).toContain("x?: string[]");
+    expect(book).toContain("function BookFactGrid");
+    expect(ltv).toContain("<BookFactGrid");
     expect(ltv).toContain("First orders · ");
   });
 
-  it("Overview keeps three YoY cards while explorer stays on Marketing", () => {
+  it("Overview keeps YoY cards plus scoreboard while explorer stays on Total ROAS", () => {
     const overview = read("../routes/app._index.tsx");
     const explorer = read("../components/SpendExplorer.tsx");
     const spend = read("../routes/app.spend.tsx");
     expect(overview).toContain("<OverviewYoyCards");
-    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewFirstViewport");
+    expect(overview).toContain("<OverviewSalesChart");
     expect(overview).not.toContain("<DeskWindowRail");
     expect(overview).not.toContain("<DualCloseLine");
     expect(overview).not.toContain("<SpendExplorer");
@@ -447,11 +492,12 @@ describe("Sample data | Live data UX", () => {
     expect(read("../routes/app.advanced.tsx")).not.toContain('href="/app/demo"');
   });
 
-  it("Settings puts Your plan on the main page and Sample data in More", () => {
+  it("Settings puts Your plan and Sample data on the main page", () => {
     const settings = read("../routes/app.settings.tsx");
     expect(settings).toContain("Your plan");
     expect(settings).toContain("Sample data");
-    expect(settings).toContain("More — Sample data and privacy");
+    expect(settings).toContain("More — privacy");
+    expect(settings).toContain("Switch to Sample data now");
     expect(settings).toContain("ProUpgradeButton");
     expect(settings).not.toContain("Practice desk");
     expect(settings).toContain("add daily spend on Spend Upload");
@@ -510,12 +556,12 @@ describe("Sample data | Live data UX", () => {
     expect(buyersFn).toContain("PRODUCT_NOUN.bookOneOrderBuyers");
     expect(buyersFn).toContain("Top 10% of customers");
     expect(buyersFn).toContain("PRODUCT_NOUN.bookOrdersPerBuyer");
-    expect(buyersFn).toContain("Repeat sales");
+    expect(buyersFn).toContain("Biggest orders");
+    expect(buyersFn).not.toContain("Repeat sales");
     expect(buyersFn).not.toContain("PRODUCT_NOUN.bookSecondWithin30");
     expect(buyersFn).not.toContain("PRODUCT_NOUN.bookSecondVsThird");
     expect(buyersFn).not.toContain("PRODUCT_NOUN.bookSecondVsFirst");
     expect(buyersFn).not.toContain("Days to a second order");
-    expect(buyersFn).not.toContain("Biggest orders");
     expect(growthFn).toContain("PRODUCT_NOUN.bookSecondWithin30");
     expect(growthFn).toContain("PRODUCT_NOUN.bookSecondVsThird");
     expect(growthFn).toContain("Days to a second order");

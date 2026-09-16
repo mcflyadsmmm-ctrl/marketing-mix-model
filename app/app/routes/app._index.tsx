@@ -3,7 +3,7 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { useLoaderData, useLocation, useNavigation, redirect } from "react-router";
+import { useLoaderData, useLocation, useNavigation, useSearchParams, redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { PUBLIC_APP_STUB, isGoneResponse } from "../lib/public-app-gate.server";
@@ -12,10 +12,10 @@ import {
   isEmbeddedAdminRequest,
 } from "../../scripts/shopify-app-path.mjs";
 import { CashTrustBanners } from "../components/CashTrustBanners";
-import { PeriodControl } from "../components/PeriodControl";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
-import { DeskOverviewTabs } from "../components/DeskOverviewTabs";
+import { OverviewFirstViewport } from "../components/OverviewFirstViewport";
+import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { useDeskHashScroll } from "../components/useDeskHashScroll";
 import {
@@ -33,13 +33,13 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import {
   DESK_SECTION,
+  deskNavHrefFromSearch,
   deskStageFromHash,
   deskStageHeading,
   isOverviewHomeStage,
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import { formatOverviewShareText } from "../lib/cash-close";
-import { formatPeriodDaySpan } from "../lib/desk-history";
 import {
   emptySales,
   type SalesResult,
@@ -52,7 +52,10 @@ import {
   loadDeskSalesForPeriod,
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
-import { runOrderFactsBackfill } from "../lib/order-facts.server";
+import {
+  getOrderBackfillProgress,
+  runOrderFactsBackfill,
+} from "../lib/order-facts.server";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -114,7 +117,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     next.set("period", "ytd");
     throw redirect(`/app?${next.toString()}`);
   }
-  const preset = shotMode ? requested : "mtd";
+  const preset = requested;
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
   const salesBasis = "total" as const;
@@ -234,6 +237,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
+  const orderBackfillProgress = useSampleDesk
+    ? null
+    : await getOrderBackfillProgress(shop.id, {
+        ianaTimezone: shop.ianaTimezone,
+        now,
+      });
+
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesByDay,
     ...(priorSales != null ? { priorSales, priorRange } : {}),
@@ -289,6 +299,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     shotMode,
     cashControl,
     salesFactsCoverage: salesFactsCoverageForBanner,
+    orderBackfillProgress,
     shareSubject:
       !metrics.onboarding.hasSpend && !useSampleDesk
         ? `Shopify sales — ${metrics.period.label}`
@@ -296,6 +307,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
+    salesDays: [...salesByDay.entries()]
+      .map(([dateKey, sales]) => ({ dateKey, sales }))
+      .sort((a, b) => a.dateKey.localeCompare(b.dateKey)),
   };
 };
 
@@ -308,6 +322,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Dashboard() {
   const data = useLoaderData<typeof loader>();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   useDeskHashScroll();
   if (!("metrics" in data)) {
     return null;
@@ -322,10 +337,12 @@ export default function Dashboard() {
     shotMode,
     cashControl = null,
     salesFactsCoverage,
+    orderBackfillProgress,
     shareSubject,
     sharePeriodStartDay,
     sharePeriodEndDay,
     shopLabel,
+    salesDays = [],
   } = data;
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -345,7 +362,8 @@ export default function Dashboard() {
         ? `${metrics.period.label} · sales unavailable`
         : salesFactsCoverage != null &&
             !salesFactsCoverage.complete &&
-            !salesFactsCoverage.periodExceedsFactWindow
+            !salesFactsCoverage.periodExceedsFactWindow &&
+            !(metrics.sales > 0)
           ? `${metrics.period.label}${PRODUCT_NOUN.factsIncompleteSuffix}`
           : `${metrics.period.label} · live sales`;
   const freshLabel = formatCashFreshnessChip({
@@ -379,10 +397,6 @@ export default function Dashboard() {
     ? formatPctDelta(deltas.spendPct, priorLabel)
     : null;
   const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
-  const periodDaySpan = formatPeriodDaySpan(
-    sharePeriodStartDay,
-    sharePeriodEndDay,
-  );
   const shopBook = shopifyNativePeriodStats({
     sales: metrics.sales,
     orderCount: metrics.orderCount,
@@ -459,6 +473,9 @@ export default function Dashboard() {
       }
       todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
       todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
+      orderFactsTruncated={
+        !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
+      }
       shotMode={shotMode}
       cashActionReady={metrics.cashActionReady}
       spendRecon={
@@ -501,6 +518,19 @@ export default function Dashboard() {
         compact
       />
     ) : null;
+
+  const shopBrand = shopLabel.replace(/\.myshopify\.com$/i, "");
+  const ordersHref = deskNavHrefFromSearch("/app/orders", searchParams);
+  const spendHref = deskNavHrefFromSearch("/app/spend", searchParams);
+  const roasHref = deskNavHrefFromSearch("/app/roas", searchParams);
+  const goalsHref = deskNavHrefFromSearch("/app/goals", searchParams);
+  const yoyHref = deskNavHrefFromSearch("/app/yoy", searchParams);
+  const eomMer =
+    cashControl?.dualClose?.l7Close.projMer ??
+    cashControl?.dualClose?.mtdFlat.projMer ??
+    null;
+  const coveragePct = metrics.spendCoverage?.coveragePct;
+  const recon = metrics.spendRecon;
 
   return (
     <s-page heading={deskStageHeading(stage)} inlineSize="large">
@@ -548,31 +578,39 @@ export default function Dashboard() {
           </section>
         ) : null}
 
-        {shotMode ? (
-          <div className="mcfly-ctx" aria-live="polite">
-            <div className="mcfly-ctx__main">
-              <span className="mcfly-ctx__asof">{tillLabel}</span>
-              <PeriodControl preset={preset} shotMode={shotMode} />
-            </div>
+        <div className="mcfly-ctx" aria-live="polite">
+          <div className="mcfly-ctx__main">
+            <span className="mcfly-ctx__brand">{shopBrand}</span>
+            <span className="mcfly-ctx__sep" aria-hidden="true">
+              ·
+            </span>
+            <span className="mcfly-ctx__asof">{tillLabel}</span>
           </div>
-        ) : (
-          <DeskOverviewTabs
-            stage={stage}
-            shotMode={shotMode}
-            end={
-              <>
-                <span>{tillLabel}</span>
-                <span
-                  className="mcfly-ctx-chip mcfly-ctx-chip--flat mcfly-ctx-chip--fresh"
-                  title={freshLabel}
-                >
-                  {freshLabel}
-                </span>
-                {shareButton}
-              </>
-            }
-          />
-        )}
+          <div className="mcfly-trust" aria-label="Trust and freshness">
+            {coveragePct != null && metrics.totalSpend > 0 ? (
+              <span className="mcfly-trust__chip mcfly-trust__chip--ok">
+                Coverage {Math.round(coveragePct)}%
+              </span>
+            ) : null}
+            {recon?.status === "ok" && recon.deltaPct != null ? (
+              <span className="mcfly-trust__chip mcfly-trust__chip--ok">
+                Recon ±{Math.abs(recon.deltaPct * 100).toFixed(1)}%
+              </span>
+            ) : null}
+            {metrics.marginPct > 0 ? (
+              <span className="mcfly-trust__chip mcfly-trust__chip--ok">
+                Margin {Math.round(metrics.marginPct * 100)}%
+              </span>
+            ) : null}
+            {useSampleDesk ? (
+              <span className="mcfly-trust__chip mcfly-trust__chip--sample">
+                SAMPLE
+              </span>
+            ) : null}
+            <span className="mcfly-trust__chip">{freshLabel}</span>
+            {shareButton}
+          </div>
+        </div>
 
         {!marginBlocked ? (
           <>
@@ -584,7 +622,60 @@ export default function Dashboard() {
                 <OverviewYoyCards
                   cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
                   salesPending={metrics.salesPending}
+                  yoyHref={yoyHref}
                 />
+                <OverviewFirstViewport
+                  totalSales={totalSalesDisplay}
+                  periodLabel={metrics.period.label}
+                  orderCount={metrics.orderCount}
+                  typicalOrder={metrics.shopifyDepth.medianAov}
+                  meanAov={
+                    metrics.orderCount > 0
+                      ? metrics.sales / metrics.orderCount
+                      : null
+                  }
+                  returningSalesShare={shopBook.returningSalesShare}
+                  returningSales={shopBook.returningSales}
+                  newCustomers={metrics.newCustomers}
+                  medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
+                  discountedOrderShare={
+                    metrics.shopifyDepth.discountedOrderShare
+                  }
+                  weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                  salesPending={metrics.salesPending}
+                  spendEmpty={!metrics.onboarding.hasSpend && !useSampleDesk}
+                  totalSpend={metrics.totalSpend}
+                  mer={metrics.mer}
+                  breakEvenMer={metrics.breakEvenMer}
+                  targetMer={metrics.targetMer}
+                  eomMer={eomMer}
+                  salesDelta={salesDeltaLine}
+                  spendDelta={spendDeltaLine}
+                  grossSales={metrics.grossSales}
+                  grossSalesKnown={metrics.grossSalesKnown}
+                  ordersHref={ordersHref}
+                  spendHref={spendHref}
+                  roasHref={roasHref}
+                  goalsHref={goalsHref}
+                  share={shareButton}
+                />
+                <OverviewSalesChart days={salesDays} ordersHref={ordersHref} />
+                {!metrics.salesPending ? (
+                  <footer className="mcfly-book__links">
+                    <s-link href={deskNavHrefFromSearch("/app/customers", searchParams)}>
+                      {PRODUCT_NOUN.buyersTitle}
+                    </s-link>
+                    <s-link href={deskNavHrefFromSearch("/app/growth", searchParams)}>
+                      {PRODUCT_NOUN.growthTitle}
+                    </s-link>
+                    <s-link href={ordersHref}>
+                      {PRODUCT_NOUN.ordersTitle}
+                    </s-link>
+                    <s-link href={deskNavHrefFromSearch("/app/ltv", searchParams)}>
+                      {PRODUCT_NOUN.openLtv}
+                    </s-link>
+                  </footer>
+                ) : null}
               </div>
             ) : null}
 

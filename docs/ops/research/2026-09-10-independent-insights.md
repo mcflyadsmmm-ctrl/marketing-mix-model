@@ -30,11 +30,11 @@ From the 22-row table (download file) plus overlapping rows from the other two b
 | 2 | Visible data-coverage sentence (what window, returns included) | **Partial.** Period rail + 60-day banners exist. Hero now prints calendar dates (repo). Fly `/pricing` still said January 2021 for sales — **fixed in repo, not live until deploy.** |
 | 3 | Return / refund share | **Shipped** — Returns & edits $ + % of original checkout. |
 | 4 / 11 | Discounted orders + discount $ | **Shipped** — share + typical $ off. |
-| 5 | Second order within 30 days (% of eligible first-timers) | **Not shipped.** We have median days to second. The % checkpoint is the next retention tile if a real shop has enough repeats. |
-| 6 | Top 10% of **customers** (sales concentration) | **Not shipped.** We have top 10% of **orders**. Different question. Opaque ids are enough. Later, small-store suppress. |
-| 7 | Second-order value vs first-order value | **Not shipped.** Fits lock. Needs eligible-cohort rules. |
-| 8 | Repeat-depth mix: 2nd vs 3rd+ | **Partial.** Repeat sales + buyers with one order. No 3+ split. |
-| 9 | Typical sales **day** (median daily Total Sales) | **Not shipped.** We have typical **order**. Different. |
+| 5 | Second order within 30 days (% of eligible first-timers) | **Shipped on Buyers** (`secondOrderWithin30Share`). Visible on the card, not only inside `<details>`. |
+| 6 | Top 10% of **customers** (sales concentration) | **Shipped on Buyers** (`topCustomerSalesShare`). Separate from top 10% of **orders**. |
+| 7 | Second-order value vs first-order value | **Shipped on Buyers** (`medianSecondOrder` vs `medianFirstOrder`). |
+| 8 | Repeat-depth mix: 2nd vs 3rd+ | **Shipped on Buyers** (`secondOrderBuyerShare` / `thirdPlusBuyerShare`). |
+| 9 | Typical sales **day** (median daily Total Sales) | **Shipped on Orders** (`medianDailySales`). |
 | 10 | Fees + tax + shipping as % of Total Sales | **Shipped.** |
 | 12 | Source AOV as drill-in, not hero | **Mix shipped; AOV by source not.** Keep as drill-in only. |
 | 13 | One “what to notice” sentence from order facts | **Not shipped.** Highest craft gap after first-viewport compression. Not an AI analyst. |

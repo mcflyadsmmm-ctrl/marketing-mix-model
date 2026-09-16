@@ -8,7 +8,8 @@ type UseSampleCtaProps = {
 };
 
 /**
- * One-click Sample data preview — POSTs the same data-mode switch as the top toggle.
+ * One-click Sample data preview — POSTs the same data-mode switch as Settings.
+ * Native submit: Polaris web submit does not POST this form in Admin (blank 200).
  * Never send merchants to /app/demo for this.
  */
 export function UseSampleCta({
@@ -28,9 +29,9 @@ export function UseSampleCta({
     >
       <input type="hidden" name="intent" value="use-sample" />
       <input type="hidden" name="returnTo" value={dest} />
-      <s-button type="submit" variant={variant}>
+      <button type="submit" className={`mcfly-btn mcfly-btn--${variant}`}>
         {label}
-      </s-button>
+      </button>
     </Form>
   );
 }

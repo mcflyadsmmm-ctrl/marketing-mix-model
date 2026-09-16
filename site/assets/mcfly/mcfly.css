@@ -1,25 +1,25 @@
 /* =================================================================
-   MCFLY — editorial craft v10
-   Restraint over effects. Imagery + type do the work.
-   Quality bar: terafab.ai clarity — not Domo collage.
+   MCFLY — editorial craft v13
+   Original mark + paper/sky. Light first.
    Tier A only. Never stack onto site.css.
    ================================================================= */
 
 :root {
-  --bg: #05070b;
-  --bg-2: #0a0e14;
-  --bg-rgb: 5, 7, 11;
-  --paper: #f2f4f6;
-  --paper-2: #e8ebef;
-  --ink: #0a0e14;
-  --text: #ededee;
-  --text-2: rgba(237, 237, 238, 0.62);
-  --text-3: rgba(237, 237, 238, 0.4);
-  --line: rgba(255, 255, 255, 0.12);
-  --line-ink: rgba(10, 14, 20, 0.12);
-  --cyan: #5ee7f0;
+  --bg: #f2f5f8;
+  --bg-2: #e8eef4;
+  --bg-rgb: 242, 245, 248;
+  --paper: #ffffff;
+  --paper-2: #f2f5f8;
+  --ink: #0a1221;
+  --text: #0a1221;
+  --text-2: #5f6b78;
+  --text-3: #8a94a0;
+  --line: rgba(10, 18, 33, 0.1);
+  --line-ink: rgba(10, 18, 33, 0.1);
+  --cyan: #1ab8c4;
+  --cyan-bright: #5ee7f0;
   --cyan-deep: #1ab8c4;
-  --mute-ink: #5a6570;
+  --mute-ink: #5f6b78;
   --sans: "Figtree", system-ui, -apple-system, sans-serif;
   --display: "Bricolage Grotesque", var(--sans);
   --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -60,7 +60,7 @@ body {
 }
 
 body.is-light {
-  background: var(--paper);
+  background: var(--bg);
   color: var(--ink);
 }
 
@@ -126,7 +126,7 @@ a {
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--cyan);
+  color: var(--cyan-deep);
 }
 
 .is-light .kicker {
@@ -140,7 +140,7 @@ a {
   font-size: clamp(2rem, 6.5vw, 3.75rem);
   line-height: 1.05;
   letter-spacing: -0.04em;
-  color: #fff;
+  color: var(--ink);
   text-wrap: balance;
   max-width: 14ch;
 }
@@ -158,7 +158,7 @@ a {
   font-size: clamp(1.45rem, 3.2vw, 2.15rem);
   line-height: 1.12;
   letter-spacing: -0.03em;
-  color: #fff;
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -210,7 +210,7 @@ a {
   font-size: 0.92rem;
   font-weight: 500;
   letter-spacing: 0.01em;
-  color: var(--text-2);
+  color: var(--mute-ink);
   text-decoration: none;
   border: 0;
   background: transparent;
@@ -219,34 +219,34 @@ a {
 }
 
 .link-cta:hover {
-  color: #fff;
+  color: var(--ink);
 }
 
 .link-cta--fill {
   padding: 0.65rem 1.15rem;
-  color: #0a0e14;
-  background: #ededee;
-  border: 1px solid #ededee;
+  color: #fff;
+  background: var(--ink);
+  border: 1px solid var(--ink);
   border-radius: var(--radius);
 }
 
 .link-cta--fill:hover {
-  color: #0a0e14;
-  background: #fff;
-  border-color: #fff;
+  color: #fff;
+  background: #000;
+  border-color: #000;
 }
 
 .link-cta--ghost {
   padding: 0.65rem 1.05rem;
-  color: #fff;
-  border: 1px solid var(--line);
+  color: var(--ink);
+  border: 1px solid var(--line-ink);
   border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.25);
+  background: transparent;
 }
 
 .link-cta--ghost:hover {
-  border-color: rgba(255, 255, 255, 0.35);
-  color: #fff;
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .is-light .link-cta--fill {
@@ -305,6 +305,9 @@ a {
   z-index: 900;
   height: var(--nav-h);
   pointer-events: none;
+  background: rgba(242, 245, 248, 0.92);
+  border-bottom: 1px solid var(--line-ink);
+  backdrop-filter: blur(14px);
 }
 
 .nav__inner {
@@ -324,7 +327,7 @@ a {
   align-items: center;
   gap: 0.55rem;
   text-decoration: none;
-  color: #fff;
+  color: var(--ink);
   font-family: var(--display);
   font-weight: 700;
   font-size: 1.05rem;
@@ -333,12 +336,14 @@ a {
 }
 
 .nav__brand img {
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  object-fit: cover;
 }
 
 .nav__brand-sub {
-  color: var(--cyan);
+  color: var(--cyan-deep);
   font-weight: 600;
 }
 
@@ -360,12 +365,12 @@ a {
 
 .nav__links a:hover,
 .nav__links a[aria-current="page"] {
-  color: #fff;
+  color: var(--ink);
 }
 
 .nav__links a.nav__cta {
-  color: #0a0e14;
-  background: #ededee;
+  color: #fff;
+  background: var(--ink);
   padding: 0.4rem 0.75rem;
   border-radius: var(--radius);
 }
@@ -389,7 +394,7 @@ a {
   width: 1.25rem;
   height: 1.5px;
   margin-inline: auto;
-  background: #fff;
+  background: var(--ink);
 }
 
 .nav__panel {
@@ -402,8 +407,8 @@ a {
   flex-direction: column;
   gap: 0;
   padding: 0.5rem var(--pad) 1.25rem;
-  background: rgba(5, 7, 11, 0.97);
-  border-bottom: 1px solid var(--line);
+  background: rgba(242, 245, 248, 0.98);
+  border-bottom: 1px solid var(--line-ink);
   backdrop-filter: blur(16px);
 }
 
@@ -418,13 +423,13 @@ a {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--text);
-  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  border-bottom: 1px solid var(--line-ink);
 }
 
 .nav__panel a:last-child {
   border-bottom: 0;
-  color: var(--cyan);
+  color: var(--cyan-deep);
 }
 
 @media (min-width: 860px) {
@@ -480,41 +485,24 @@ body.is-light .nav__panel a:last-child {
   color: var(--cyan-deep);
 }
 
-/* ---------- hero ---------- */
+/* ---------- hero (paper / sky) ---------- */
 .hero {
   position: relative;
   isolation: isolate;
-  min-height: 100svh;
+  min-height: auto;
   display: flex;
-  align-items: flex-end;
-  padding: calc(var(--nav-h) + 2.5rem) 0 3.5rem;
+  align-items: flex-start;
+  padding: calc(var(--nav-h) + 3rem) 0 3.25rem;
   overflow: hidden;
-  background: var(--bg);
-}
-
-.hero__media {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.hero__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  opacity: 0.55;
-}
-
-.hero__fade {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(5, 7, 11, 0.35) 0%, rgba(5, 7, 11, 0.55) 42%, rgba(5, 7, 11, 0.96) 100%),
-    linear-gradient(90deg, rgba(5, 7, 11, 0.72) 0%, rgba(5, 7, 11, 0.2) 55%, transparent 100%);
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(94, 231, 240, 0.22), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(26, 163, 122, 0.08), transparent 50%),
+    var(--paper-2);
+}
+
+.hero__media,
+.hero__fade {
+  display: none;
 }
 
 .hero__content {
@@ -527,7 +515,7 @@ body.is-light .nav__panel a:last-child {
   font-family: var(--mono);
   font-size: 0.72rem;
   letter-spacing: 0.02em;
-  color: var(--text-3);
+  color: var(--text-2);
   overflow-wrap: anywhere;
 }
 
@@ -547,6 +535,7 @@ body.is-light .nav__panel a:last-child {
 
 .section--ink {
   background: var(--bg-2);
+  color: var(--ink);
 }
 
 .doors {
@@ -568,15 +557,15 @@ body.is-light .nav__panel a:last-child {
   gap: 0.4rem;
   min-width: 0;
   padding: 1rem 1.05rem 1.15rem;
-  border: 1px solid var(--line);
-  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--line-ink);
+  background: #fff;
   text-decoration: none;
   color: inherit;
   transition: border-color 0.2s var(--ease);
 }
 
 .door:hover {
-  border-color: rgba(94, 231, 240, 0.45);
+  border-color: rgba(26, 184, 196, 0.55);
 }
 
 .door strong {
@@ -584,13 +573,13 @@ body.is-light .nav__panel a:last-child {
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--ink);
 }
 
 .door span {
   font-size: 0.9rem;
   line-height: 1.45;
-  color: var(--text-2);
+  color: var(--mute-ink);
   overflow-wrap: anywhere;
 }
 
@@ -610,12 +599,12 @@ body.is-light .nav__panel a:last-child {
 .chip {
   display: inline-block;
   padding: 0.12rem 0.4rem;
-  border: 1px solid rgba(94, 231, 240, 0.4);
+  border: 1px solid rgba(26, 184, 196, 0.4);
   font-family: var(--mono);
   font-size: 0.64rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--cyan);
+  color: var(--cyan-deep);
 }
 
 /* ---------- custom / inquire ---------- */
@@ -990,13 +979,13 @@ body.lab .lab-rail.lab-siderail {
 
 /* ---------- footer ---------- */
 .foot {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-ink);
   padding: 1.75rem 0 2.25rem;
-  background: #030508;
+  background: var(--paper);
 }
 
 .is-light .foot {
-  background: var(--paper-2);
+  background: var(--paper);
   border-top-color: var(--line-ink);
 }
 
@@ -1017,8 +1006,10 @@ body.lab .lab-rail.lab-siderail {
 }
 
 .foot__brand img {
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 5px;
+  object-fit: cover;
 }
 
 .foot nav {
@@ -1029,12 +1020,12 @@ body.lab .lab-rail.lab-siderail {
 
 .foot nav a {
   font-size: 0.88rem;
-  color: var(--text-2);
+  color: var(--mute-ink);
   text-decoration: none;
 }
 
 .foot nav a:hover {
-  color: #fff;
+  color: var(--ink);
 }
 
 .is-light .foot nav a:hover {

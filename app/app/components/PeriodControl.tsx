@@ -10,6 +10,8 @@ type PeriodControlProps = {
   onChange?: (value: PeriodPreset) => void;
   /** Spend uses plain calendar words so its entry, template, and chart agree. */
   language?: "desk" | "spend";
+  /** Demo-desk chips: MTD / QTD / YTD / Last mo. No history caption. */
+  compact?: boolean;
 };
 
 type DeskPeriodPreset = "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3";
@@ -23,9 +25,11 @@ const DESK_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
   { value: "l12m", label: "Last 12 months" },
 ];
 
-const SHOT_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
-  ...DESK_PERIOD_OPTIONS,
-  { value: "y3", label: "3 yr" },
+const COMPACT_PERIOD_OPTIONS: { value: DeskPeriodPreset; label: string }[] = [
+  { value: "mtd", label: "MTD" },
+  { value: "qtd", label: "QTD" },
+  { value: "ytd", label: "YTD" },
+  { value: "lm", label: "Last mo" },
 ];
 
 /**
@@ -37,9 +41,14 @@ export function PeriodControl({
   shotMode = false,
   onChange,
   language = "desk",
+  compact = false,
 }: PeriodControlProps) {
   const [, setSearchParams] = useSearchParams();
-  const periodOptions = shotMode ? SHOT_PERIOD_OPTIONS : DESK_PERIOD_OPTIONS;
+  const periodOptions = compact
+    ? COMPACT_PERIOD_OPTIONS
+    : shotMode
+      ? [...DESK_PERIOD_OPTIONS, { value: "y3" as const, label: "3 yr" }]
+      : DESK_PERIOD_OPTIONS;
   const activeValue = periodOptions.some((p) => p.value === preset)
     ? preset
     : "mtd";
@@ -80,9 +89,11 @@ export function PeriodControl({
           );
         })}
       </div>
-      <p className="mcfly-period__history">
-        {deskHistoryCaption(undefined, language === "spend" ? "spend" : "sales")}
-      </p>
+      {compact ? null : (
+        <p className="mcfly-period__history">
+          {deskHistoryCaption(undefined, language === "spend" ? "spend" : "sales")}
+        </p>
+      )}
     </div>
   );
 }

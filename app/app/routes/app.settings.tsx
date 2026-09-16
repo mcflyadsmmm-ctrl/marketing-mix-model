@@ -6,9 +6,9 @@ import type {
 } from "react-router";
 import {
   Form,
+  redirect,
   useActionData,
   useLoaderData,
-  useLocation,
   useNavigation,
 } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -25,7 +25,12 @@ import {
 import { formatMer, formatPercent } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
-import { getSampleDeskEnabled, getSamplePreviewAllowed } from "../lib/sample-desk.server";
+import {
+  applySampleDeskIntent,
+  getSampleDeskEnabled,
+  getSamplePreviewAllowed,
+  isSampleDeskIntent,
+} from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import {
@@ -111,6 +116,24 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const intent = String(form.get("intent") ?? "save_margin");
 
   // Pro upgrade lives on /app/billing (top-frame confirmation). Keep Settings clean.
+
+  if (isSampleDeskIntent(intent)) {
+    await getOrCreateSettings(shop.id);
+    await applySampleDeskIntent(shop.id, intent);
+    if (intent === "use-sample" || intent === "use-real") {
+      const url = new URL(request.url);
+      url.pathname = "/app";
+      if (intent === "use-real") url.searchParams.set("guide", "real");
+      else url.searchParams.delete("guide");
+      return redirect(`${url.pathname}${url.search}`);
+    }
+    return {
+      error: null,
+      success: true as const,
+      breakEvenMer: null as number | null,
+      marginPct: null as number | null,
+    };
+  }
 
   if (intent === "download_compliance_export") {
     const exportId = String(form.get("exportId") ?? "");
@@ -220,9 +243,6 @@ export default function SettingsPage() {
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const location = useLocation();
-  const dataModeAction = `/app/data-mode${location.search}`;
-  const returnTo = `${location.pathname}${location.search}`;
   const fieldIds = useId();
   const marginFieldId = `${fieldIds}-margin`;
   const targetFieldId = `${fieldIds}-target`;
@@ -232,6 +252,13 @@ export default function SettingsPage() {
   const isSaving = navigation.state === "submitting";
   const isRevalidating =
     navigation.state === "loading" && navigation.formMethod != null;
+  const sampleIntent = String(navigation.formData?.get("intent") ?? "");
+  const sampleBusy =
+    (isSaving || isRevalidating) &&
+    (sampleIntent === "use-sample" ||
+      sampleIntent === "use-real" ||
+      sampleIntent === "allow-sample-preview" ||
+      sampleIntent === "hide-sample-preview");
 
   const marginConfirmed = settings.marginConfirmedAt != null;
   const [marginInput, setMarginInput] = useState(() =>
@@ -336,13 +363,21 @@ export default function SettingsPage() {
         ) : null}
 
         {isSaving || isRevalidating ? (
-          <s-banner tone="info" heading="Saving">
+          <s-banner tone="info" heading={sampleBusy ? "Sample data" : "Saving"}>
             <s-stack direction="inline" gap="small" alignItems="center">
               <s-spinner
                 size="base"
-                accessibilityLabel="Saving settings"
+                accessibilityLabel={
+                  sampleBusy ? "Loading Sample data" : "Saving settings"
+                }
               ></s-spinner>
-              <s-paragraph>Saving target and optional margin…</s-paragraph>
+              <s-paragraph>
+                {sampleIntent === "use-sample"
+                  ? "Loading Sample data through today…"
+                  : sampleBusy
+                    ? "Switching Sample data | Live data…"
+                    : "Saving target and optional margin…"}
+              </s-paragraph>
             </s-stack>
           </s-banner>
         ) : null}
@@ -578,83 +613,94 @@ export default function SettingsPage() {
         ) : null}
 
         {!shotMode ? (
-          <details className="mcfly-details mcfly-settings-more">
-            <summary>More — Sample data and privacy</summary>
-            <div className="mcfly-settings-more__body">
-              <section
-                className="mcfly-panel"
-                style={{ marginTop: "0.75rem" }}
-                aria-label="Sample data"
-              >
-                <h2 className="mcfly-settings-template__heading">
-                  Sample data
-                </h2>
-                <p className="mcfly-panel__muted">
-                  Sample data | Live data sits at the top of every page.
-                  Sample data is example numbers so you can click around. Live
-                  data is this shop’s Shopify sales and the spend you add.
-                </p>
-                <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
-                  Right now:{" "}
-                  <strong>
-                    {useSampleDesk
-                      ? PRODUCT_NOUN.sampleData
-                      : PRODUCT_NOUN.liveData}
-                  </strong>
-                  {samplePreviewAllowed
-                    ? " · Sample data option is available"
-                    : " · Sample data option is hidden"}
-                </p>
-                <div
-                  className="mcfly-decision__actions"
-                  style={{ marginTop: "0.85rem" }}
-                >
-                  {samplePreviewAllowed ? (
-                    <Form method="post" action={dataModeAction} reloadDocument>
-                      <input
-                        type="hidden"
-                        name="intent"
-                        value="hide-sample-preview"
-                      />
-                      <input type="hidden" name="returnTo" value={returnTo} />
-                      <s-button type="submit" variant="primary">
-                        Live data only — hide Sample data
-                      </s-button>
-                    </Form>
-                  ) : (
-                    <Form method="post" action={dataModeAction} reloadDocument>
-                      <input
-                        type="hidden"
-                        name="intent"
-                        value="allow-sample-preview"
-                      />
-                      <input type="hidden" name="returnTo" value={returnTo} />
-                      <s-button type="submit" variant="secondary">
-                        Show Sample data option again
-                      </s-button>
-                    </Form>
-                  )}
-                  {samplePreviewAllowed && !useSampleDesk ? (
-                    <Form method="post" action={dataModeAction} reloadDocument>
-                      <input type="hidden" name="intent" value="use-sample" />
-                      <input type="hidden" name="returnTo" value={returnTo} />
-                      <s-button type="submit" variant="tertiary">
-                        Switch to Sample data now
-                      </s-button>
-                    </Form>
-                  ) : null}
-                  {samplePreviewAllowed && useSampleDesk ? (
-                    <Form method="post" action={dataModeAction} reloadDocument>
-                      <input type="hidden" name="intent" value="use-real" />
-                      <input type="hidden" name="returnTo" value={returnTo} />
-                      <s-button type="submit" variant="tertiary">
-                        Switch to Live data now
-                      </s-button>
-                    </Form>
-                  ) : null}
-                </div>
-              </section>
+          <section
+            className="mcfly-panel"
+            style={{ marginTop: "1.25rem" }}
+            aria-label="Sample data"
+          >
+            <h2 className="mcfly-settings-template__heading">Sample data</h2>
+            <p className="mcfly-panel__muted">
+              Switch Sample data | Live data here. Sample data is Harbor example
+              numbers through today so you can smoke every tab. Live data is
+              this shop’s Shopify sales and the spend you add.
+            </p>
+            <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
+              Right now:{" "}
+              <strong>
+                {useSampleDesk
+                  ? PRODUCT_NOUN.sampleData
+                  : PRODUCT_NOUN.liveData}
+              </strong>
+              {samplePreviewAllowed
+                ? " · Sample data option is available"
+                : " · Sample data option is hidden"}
+            </p>
+            <div
+              className="mcfly-decision__actions"
+              style={{ marginTop: "0.85rem" }}
+            >
+              {!useSampleDesk ? (
+                <Form method="post" reloadDocument>
+                  <input type="hidden" name="intent" value="use-sample" />
+                  <button
+                    type="submit"
+                    className="mcfly-btn mcfly-btn--primary"
+                    disabled={sampleBusy || undefined}
+                  >
+                    Switch to Sample data now
+                  </button>
+                </Form>
+              ) : (
+                <Form method="post" reloadDocument>
+                  <input type="hidden" name="intent" value="use-real" />
+                  <button
+                    type="submit"
+                    className="mcfly-btn mcfly-btn--secondary"
+                    disabled={sampleBusy || undefined}
+                  >
+                    Switch to Live data now
+                  </button>
+                </Form>
+              )}
+              {samplePreviewAllowed ? (
+                <Form method="post">
+                  <input
+                    type="hidden"
+                    name="intent"
+                    value="hide-sample-preview"
+                  />
+                  <button
+                    type="submit"
+                    className="mcfly-btn mcfly-btn--tertiary"
+                    disabled={sampleBusy || undefined}
+                  >
+                    Live data only — hide Sample data
+                  </button>
+                </Form>
+              ) : (
+                <Form method="post">
+                  <input
+                    type="hidden"
+                    name="intent"
+                    value="allow-sample-preview"
+                  />
+                  <button
+                    type="submit"
+                    className="mcfly-btn mcfly-btn--tertiary"
+                    disabled={sampleBusy || undefined}
+                  >
+                    Show Sample data option again
+                  </button>
+                </Form>
+              )}
+            </div>
+          </section>
+        ) : null}
 
+        {!shotMode ? (
+          <details className="mcfly-details mcfly-settings-more">
+            <summary>More — privacy</summary>
+            <div className="mcfly-settings-more__body">
               <section
                 className="mcfly-panel"
                 style={{ marginTop: "1rem" }}

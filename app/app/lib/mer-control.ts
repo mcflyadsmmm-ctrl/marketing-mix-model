@@ -55,6 +55,17 @@ export type CashChip = {
   priorToKey: string | null;
 };
 
+/** Zone on a certified chip vs the merchant target. Empty spend is never 0×. */
+export type ChipZone = "ok" | "below" | "empty";
+
+export function chipZone(
+  chip: Pick<CashChip, "mer" | "spend" | "vsTarget">,
+): ChipZone {
+  if (!(chip.spend > 0) || chip.mer == null) return "empty";
+  if (chip.vsTarget != null && chip.vsTarget >= -1e-6) return "ok";
+  return "below";
+}
+
 export type DualClose = {
   daysElapsed: number;
   daysInMonth: number;

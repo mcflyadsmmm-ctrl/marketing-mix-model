@@ -37,3 +37,24 @@ Listing → install on Fly → type/CSV spend → day-7 $39 → compliant review
 - Hero still: replace CUSTOM DATA SCIENCE / 4.42x in Partner
 - Namecheap MX → Cloudflare for `support@`
 - Handle request (`mcfly-analytics` / `mcfly` / `mcfly-spend`)
+- Admin SAMPLE **Result** — **PASSed 2026-09-15** (greeting). Live spend day + trial CTA still skipped.
+- Partner **Save** of [`LISTING_LIVE_PASTE.md`](./LISTING_LIVE_PASTE.md). Cursor does not Submit.
+
+## Founder keep-alive (same chat)
+
+Conductor “stops” when (a) the leftover is a Partner/Admin click, or (b) a new chat forgets the board and starts Desk again.
+
+**Keep it finishing:**
+
+1. One Conductor chat in this workspace. Do not start “finalize / world class / Black Clover” in a fresh Composer.
+2. First message after any break: `status`.
+3. When you want drafts: `go money` (listing / FUNNEL only). No Desk unless asked. Do not ship Fly 321 for craft.
+4. SAMPLE Result PASSed 2026-09-15. Optional leftover: one live spend day + trial top-frame.
+5. Never send “keep going.” That is how 318 → 319 → 320 shipped while the live listing stayed spend-led.
+
+If this chat dies, new chat first line:
+
+```text
+Read docs/LIVING_BOARD.md. Occupancy 0/4. Fly 320 unfrozen after SAMPLE PASS. Do not spawn Desk. Listing Save is the job.
+status
+```

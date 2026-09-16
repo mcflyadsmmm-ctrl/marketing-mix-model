@@ -10,26 +10,22 @@
 
 Premium analytics listings win when:
 
-1. **Shot 1 = outcome** — Shopify sales next to the spend you added
-2. **Shot 2 = definition** — sales ÷ spend labeled so merchants “get it” in 2 seconds
-3. **Shot 3 = how data gets in** — **Add spend** one field (billboard / typed extra), not a CSV sermon
-4. **Shot 4 = LTV** — payback Shopify Analytics does not compute
-5. **Shot 5 = Goals** — year board worth the paid plan
+1. **Shot 1 = Overview YoY** — this month / quarter / year vs last year, typical order, chart
+2. **Shot 2 = Customers** — returning dollars and guest checkouts at $0 spend
+3. **Shot 3 = Orders** — weekend share, busiest weekday, order range (Shopify-depth)
+4. **Shot 4 = LTV** — 30 / 90 / 365-day new-buyer value
+5. **Shot 5 = Total ROAS chips** — Yesterday / last N / this month / quarter / year; empty spend is an em dash
 6. **Polaris-native**, clean KPI density — never dashboard soup
 7. **3–6 unique** ~1600×900 shots; no browser chrome; no near-duplicates (4.4.4 / 4.4.5)
-8. **Realistic data** — empty states kill installs
+8. **Live evidence** — **Marty recapture** from Fly 318 with Live data selected. Shots were **not** recaptured yet.
 
 Refuse for shots: marketing-site captures, pixel/ROAS theater UI, TW-clone clutter.
 
 ---
 
-## Demo data for shots (built in)
+## Data mode for shots
 
-1. Open app → **Demo** tab  
-2. Click **Load 3-year sample desk** (matched sales + spend)  
-3. Click **Turn sample desk ON**  
-4. Capture with shot mode (hides sample banner): add `shot=1` to the URL  
-5. **After uploads:** Demo → **Turn sample desk OFF** (required before live smoke / reviewer)
+**Marty recapture:** hard-refresh the embedded app on Fly **318**, open **Settings → Sample data**, click **Switch to Live data now**, and recapture all five shots. There is no top Sample | Live toggle. Do not use Harbor Sample data for the listing. The listing must show the product a merchant opens, including Total ROAS chips with empty spend as an em dash (not 0×).
 
 ---
 
@@ -46,58 +42,47 @@ A. OPEN
    1. https://admin.shopify.com/store/devmcflyads/apps
    2. Open Mcfly Analytics (stay inside Admin iframe — not mcflyads.com)
 
-B. SAMPLE DESK ON (required for filled shots)
-   3. Address bar → paste app path /app/demo  (Demo is NOT in primary nav — intentional)
-      Full: https://admin.shopify.com/store/devmcflyads/apps/<app-handle>/app/demo
-      Or from Cash MER empty foot: “Load the sample desk”
-   4. Click Load 3-year sample desk
-   5. Click Turn sample desk ON
-   6. Confirm yellow SAMPLE banner appears on Cash MER (proof sample is live)
+B. LIVE DATA (required)
+   3. Settings → Sample data → Switch to Live data now.
+   4. Confirm the page says Live data. No SAMPLE DATA watermark.
 
-C. SHOT MODE + CAPTURE (hide SAMPLE banner; metrics stay sample)
+C. SHOT MODE + CAPTURE
    Tooling: macOS Screenshot → Capture Selected Portion, or CleanShot.
    Crop ~1600×900 of the APP BODY only (no Admin left nav, no OS menubar, no URL bar).
 
-   Shot 1 — outcome
-     Navigate: /app?period=y3&shot=1
-     Frame: decision strip + 4-up KPI grid; period “3 yr” visible; sales next to spend
-     Exclude: equation panel
-     Save: docs/listing-assets/shots/01-cash-mer-vs-breakeven.png
-     Caption: Shopify sales next to the spend you added
-
-   Shot 2 — definition (MUST look unlike shot 1 — 4.4.4)
+   Shot 1 — Overview YoY
      Navigate: /app?period=mtd&shot=1
-     Frame: ONLY mcfly-panel--eq (Sales ÷ spend rows)
-     Exclude: hero MER tile + decision strip
-     Period tab must show MTD (not 3 yr)
-     Save: docs/listing-assets/shots/02-sales-div-spend.png
-     Caption: Sales ÷ spend — the formula this desk uses
-     QA: side-by-side vs shot 1 — if same big MER position, re-crop
+     Frame: this month / quarter / year vs last year + typical-order KPIs + sales chart
+     Exclude: Total ROAS chips (those are shot 5)
+     Save: docs/listing-assets/shots/01-total-roas-vs-breakeven.png
+     Caption: See this month, quarter, and year vs last year plus typical order
 
-   Shot 3 — Add spend (billboard / typed extra)
-     Navigate: /app/spend?shot=1
-     Frame: **Add spend** card (`#mcfly-spend-add`) — amount + date + channel; Billboards chip on
-     Exclude: collapsed CSV details if they crowd the crop
-     Save: docs/listing-assets/shots/03-spend-csv.png
-     Caption: Add a billboard or any platform in one field
+   Shot 2 — Customers
+     Navigate: /app/customers?period=mtd&shot=1
+     Frame: returning dollars + guest checkouts + repeat depth
+     Save: docs/listing-assets/shots/02-explorer-sales-div-spend.png
+     Caption: Follow returning dollars and guest checkouts with no spend required
+
+   Shot 3 — Orders
+     Navigate: /app/orders?period=mtd&shot=1
+     Frame: weekend share + busiest weekday + most-orders range
+     Save: docs/listing-assets/shots/03-margin-breakeven.png
+     Caption: See weekend share, busiest weekday, and the range most orders land
 
    Shot 4 — LTV
      Navigate: /app/ltv?period=mtd&shot=1
-     Frame: cohort LTV tiles + caption that 30/90/365d ≠ period Cash CAC
+     Frame: 30 / 90 / 365-day new-buyer value
      Save: docs/listing-assets/shots/04-allocation-call.png
-     Caption: LTV and payback Shopify Analytics does not show
+     Caption: Follow new-buyer value at 30, 90, and 365 days from Shopify orders
 
-   Shot 5 — Goals
-     Navigate: /app/goals?period=mtd&shot=1
-     Frame: PeriodControl + this period vs goal + year board (Practice ON is OK for filled board)
+   Shot 5 — Total ROAS chips
+     Navigate: /app/roas?shot=1
+     Frame: certified windows Yesterday / last N / this month / quarter / year
+     Empty spend: em dash, never 0×. At goal / Below goal vs Settings target.
      Save: docs/listing-assets/shots/05-margin-breakeven.png
-     Caption: Full-year Goals board next to this period
+     Caption: Certified Total ROAS chips—At goal vs target; empty spend is an em dash
 
-D. SAMPLE OFF (mandatory before smoke / reviewer)
-   7. /app/demo → Turn sample desk OFF
-   8. Cash MER should no longer show SAMPLE banner
-
-E. ICON
+D. ICON
    Partner App icon: docs/listing-assets/mcfly-app-icon-1200.png
    (1200×1200, M-only ribbon — not the Mcfly Ads wordmark)
 ```
@@ -106,11 +91,11 @@ E. ICON
 
 | # | App path + query | Save as |
 | --- | --- | --- |
-| 1 | `/app?period=y3&shot=1` | `docs/listing-assets/shots/01-cash-mer-vs-breakeven.png` |
-| 2 | `/app?period=mtd&shot=1` | `docs/listing-assets/shots/02-sales-div-spend.png` |
-| 3 | `/app/spend?shot=1` | `docs/listing-assets/shots/03-spend-csv.png` |
+| 1 | `/app?period=mtd&shot=1` | `docs/listing-assets/shots/01-total-roas-vs-breakeven.png` |
+| 2 | `/app/customers?period=mtd&shot=1` | `docs/listing-assets/shots/02-explorer-sales-div-spend.png` |
+| 3 | `/app/orders?period=mtd&shot=1` | `docs/listing-assets/shots/03-margin-breakeven.png` |
 | 4 | `/app/ltv?period=mtd&shot=1` | `docs/listing-assets/shots/04-allocation-call.png` |
-| 5 | `/app/goals?period=mtd&shot=1` | `docs/listing-assets/shots/05-margin-breakeven.png` |
+| 5 | `/app/roas?shot=1` | `docs/listing-assets/shots/05-margin-breakeven.png` |
 
 ---
 
@@ -120,18 +105,18 @@ E. ICON
 | --- | --- |
 | `docs/listing-assets/mcfly-app-icon-1200.png` | Partner **App icon** — ribbon **M** only (not the Mcfly Ads wordmark) |
 | `docs/listing-assets/mcfly-ads-lockup-source.png` | Full lockup source (M + Mcfly Ads) — marketing only |
-| `docs/listing-assets/shots/` | Listing screenshot PNGs — **founder pack 2026-07-28** (see `shots/CAPTIONS.md`) |
+| `docs/listing-assets/shots/` | Listing screenshot PNGs — **founder pack 2026-07-28**; **Marty recapture** for Fly 318 (see `shots/CAPTIONS.md`) |
 | Brand mark sizes | `site/assets/brand/mcfly-m.png` (+ 32/64/128/256) |
 
-### Founder pack status (2026-07-28)
+### Founder pack status (2026-07-28) — still stale vs Fly 318
 
 | # | File | Status |
 | --- | --- | --- |
-| 1 | `01-total-roas-vs-breakeven.png` | **Ready** — KPI board (Sales / Spend / Total ROAS) |
-| 2 | `02-explorer-sales-div-spend.png` | **Ready** — Explorer (sales ÷ spend + channel mix) |
-| 3 | `03-margin-breakeven.png` | **Ready** — Break-even lock from margin |
-| 4 | `04-free-pro-pricing.png` | **DO NOT UPLOAD** — plan prices in the image violate 4.2.2. Use Allocation / Spend UI instead. |
-| 5 | `05-spend-csv.png` | **DO NOT UPLOAD** until recaptured — July mock still says other platforms are on Pro (1.1.4). Recapture Goals or Add spend from live Admin. |
+| 1 | `01-total-roas-vs-breakeven.png` | **Marty recapture** — replace Total ROAS / Fly 238 Overview with Fly 318 Live-data Overview YoY |
+| 2 | `02-explorer-sales-div-spend.png` | **Marty recapture** — replace formula / Explorer / Buyers with Customers |
+| 3 | `03-margin-breakeven.png` | **Marty recapture** — replace break-even / Timing with Orders |
+| 4 | `04-free-pro-pricing.png` | **DO NOT UPLOAD** — plan prices in the image violate 4.2.2. Upload overwritten `04-allocation-call.png` (LTV) instead. |
+| 5 | `05-spend-csv.png` | **DO NOT UPLOAD** — July mock says other platforms are on Pro (1.1.4). Upload overwritten `05-margin-breakeven.png` (Total ROAS chips) instead. |
 
 Captions + upload order: [`listing-assets/shots/CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md).
 
@@ -143,33 +128,23 @@ Capture from **embedded Admin** iframe only. Crop to ~**1600×900**. No browser 
 
 | # | Caption (paste under shot) | URL path | Show this |
 | --- | --- | --- | --- |
-| 1 | Shopify sales next to the spend you added | `/app?period=y3&shot=1` | **Outcome frame:** KPI tiles (sales, spend, Total ROAS). Period **3 yr** visible in shot mode. |
-| 2 | Sales ÷ spend — the formula this desk uses | `/app?period=mtd&shot=1` | **Definition frame:** `Sales ÷ spend` rows. Period **MTD**. Must look unlike shot 1 for 4.4.4. |
-| 3 | Add a billboard or any platform in one field | `/app/spend?shot=1` | **Add spend** card: amount + date + channel / Billboards chip |
-| 4 | LTV and payback Shopify Analytics does not show | `/app/ltv?period=mtd&shot=1` | Cohort LTV + caption that windows ≠ period Cash CAC |
-| 5 | Full-year Goals board next to this period | `/app/goals?period=mtd&shot=1` | PeriodControl + year board |
+| 1 | See this month, quarter, and year vs last year plus typical order | `/app?period=mtd&shot=1` | **Overview YoY:** this month / quarter / year vs last year, typical order, chart |
+| 2 | Follow returning dollars and guest checkouts with no spend required | `/app/customers?period=mtd&shot=1` | **Customers:** returning dollars, guest checkouts (works at $0 spend) |
+| 3 | See weekend share, busiest weekday, and the range most orders land | `/app/orders?period=mtd&shot=1` | **Orders:** weekend mix, busiest weekday, most-orders range |
+| 4 | Follow new-buyer value at 30, 90, and 365 days from Shopify orders | `/app/ltv?period=mtd&shot=1` | **LTV:** 30 / 90 / 365-day new-buyer value |
+| 5 | Certified Total ROAS chips—At goal vs target; empty spend is an em dash | `/app/roas?shot=1` | **Total ROAS chips:** certified windows; em dash when spend is empty |
 
-**Why this order converts:** outcome → trust the math → prove billboard/offline in one field → LTV is why they pay → Goals board is why they pay. Recapture live Admin; existing founder-pack PNGs may still show the old CSV/allocation story until retaken.
+**Why this order converts:** Shopify Analytics depth first → inspect customers → inspect orders → LTV → optional Total ROAS chips. Every capture must come from Fly 318 with Live data selected. **Marty recapture** — not yet done.
 
-### Shot 1 vs shot 2 — 4.4.4 uniqueness (mandatory)
+### Screenshot uniqueness (mandatory)
 
-Shopify rejects **near-duplicate** screenshots. These are **different compositions**, not a period swap on the same crop.
+Shopify rejects **near-duplicate** screenshots. Each shot uses a different Fly 318 report and merchant question. Side-by-side all five before upload; if two crops could be mistaken for the same screen, reframe around that report’s hero and drill rows.
 
-| | Shot 1 | Shot 2 |
-| --- | --- | --- |
-| **Merchant question** | “Am I above break-even?” | “What is cash MER, exactly?” |
-| **DOM focus** | Decision strip + 4-up KPI grid | Equation panel (`Sales ÷ spend` rows: total sales, ÷ spend, = MER) |
-| **Period tab** | **3 yr** | **MTD** (proves period control without cloning shot 1) |
-| **Must NOT appear** | — | Hero MER tile dominating frame; same crop as shot 1 |
-| **Caption proves** | Break-even vs MER at a glance | Formula honesty — sales ÷ spend, not platform ROAS |
-
-After capture, side-by-side the PNGs: if both show the big MER number in the same position, re-crop shot 2 to the equation panel only.
-
-**Upload runbook:** icon + filenames + sample OFF → [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) §D.
+**Upload runbook:** icon + filenames + Live data on → [`SUBMIT_NOW.md`](./SUBMIT_NOW.md) §D.
 
 ### Caption hygiene
 
-- Lead with the merchant win (“Cash MER vs break-even”), not the screen name  
+- Lead with the merchant win, not only the screen name
 - Never say attribution, pixel, or “true revenue”
 - Never put plan prices ($ / mo) in captions or in the PNG (4.2.2)
 - Never use “the first”, “the best”, or “the only” (4.3.3 / 4.3.4)
@@ -181,6 +156,6 @@ After capture, side-by-side the PNGs: if both show the big MER number in the sam
 
 1. Distribution → Shopify App Store  
 2. PCD questionnaire  
-3. Install smoke with sample **OFF**  
-4. Upload icon + 5 shots · Pricing **Free** · paste reviewer notes  
+3. Hard-refresh Fly 318, Settings → **Switch to Live data now**, then install smoke
+4. Upload icon + 5 shots · Pricing **one plan $39 + 7-day trial (no Free)** · paste reviewer notes
 5. Publish Pages trust URLs · Submit  

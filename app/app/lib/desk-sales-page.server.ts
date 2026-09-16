@@ -9,14 +9,25 @@ import {
   ensureShop,
   getOrCreateSettings,
 } from "./mer-dashboard.server";
-import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod } from "./periods";
+import {
+  deskPeriodTimeZone,
+  parsePeriodPreset,
+  periodMayExceedShopifyOrderWindow,
+  resolvePeriod,
+} from "./periods";
 import { parseSalesBasis } from "./sales-basis";
-import { loadDeskSalesForPeriod } from "./sales-facts.server";
+import {
+  loadDeskSalesForPeriod,
+  salesFactsBlockLock,
+} from "./sales-facts.server";
 import {
   fetchSampleSales,
   getSampleDeskEnabled,
 } from "./sample-desk.server";
-import { runOrderFactsBackfill } from "./order-facts.server";
+import {
+  getOrderBackfillProgress,
+  runOrderFactsBackfill,
+} from "./order-facts.server";
 import { requireAdmin } from "./public-app-gate.server";
 
 export async function loadDeskSalesPage(
@@ -42,6 +53,8 @@ export async function loadDeskSalesPage(
   let salesError: string | null = null;
   let todaySalesTruncated = false;
   let todaySalesUnavailable = false;
+  let shopifyOrderWindowLimited = false;
+  let factsIncomplete = false;
   let sales;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
@@ -59,11 +72,20 @@ export async function loadDeskSalesPage(
     salesError = desk.salesError;
     todaySalesTruncated = desk.todaySalesTruncated;
     todaySalesUnavailable = desk.todaySalesUnavailable;
+    shopifyOrderWindowLimited =
+      Boolean(desk.factsCoverage?.periodExceedsFactWindow) ||
+      periodMayExceedShopifyOrderWindow(range);
+    factsIncomplete = salesFactsBlockLock(desk.factsCoverage);
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesBasis: parseSalesBasis(settings.salesBasis, "total"),
   });
+  const orderBackfillProgress = useSampleDesk
+    ? null
+    : await getOrderBackfillProgress(shop.id, {
+        ianaTimezone: shop.ianaTimezone,
+      });
 
   return {
     metrics,
@@ -73,5 +95,8 @@ export async function loadDeskSalesPage(
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
+    shopifyOrderWindowLimited,
+    factsIncomplete,
+    orderBackfillProgress,
   };
 }

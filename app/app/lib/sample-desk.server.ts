@@ -48,6 +48,51 @@ export async function setSampleDeskEnabled(shopId: string, enabled: boolean) {
   });
 }
 
+export type SampleDeskIntent =
+  | "use-sample"
+  | "use-real"
+  | "allow-sample-preview"
+  | "hide-sample-preview";
+
+export function isSampleDeskIntent(value: string): value is SampleDeskIntent {
+  return (
+    value === "use-sample" ||
+    value === "use-real" ||
+    value === "allow-sample-preview" ||
+    value === "hide-sample-preview"
+  );
+}
+
+/**
+ * Merchant Sample | Live switch. Seed the compact Harbor book before turning
+ * SAMPLE on so Overview is never an empty 200 after the click.
+ */
+export async function applySampleDeskIntent(
+  shopId: string,
+  intent: SampleDeskIntent,
+): Promise<void> {
+  switch (intent) {
+    case "use-sample":
+      await setSamplePreviewAllowed(shopId, true);
+      await ensureSampleBookThroughToday(shopId);
+      await setSampleDeskEnabled(shopId, true);
+      return;
+    case "use-real":
+      await setSampleDeskEnabled(shopId, false);
+      return;
+    case "allow-sample-preview":
+      await setSamplePreviewAllowed(shopId, true);
+      return;
+    case "hide-sample-preview":
+      await setSamplePreviewAllowed(shopId, false);
+      return;
+    default: {
+      const _exhaustive: never = intent;
+      throw new Error(`Unhandled sample intent: ${_exhaustive}`);
+    }
+  }
+}
+
 export async function clearSampleDesk(shopId: string) {
   await prisma.$transaction([
     prisma.sampleSalesDay.deleteMany({ where: { shopId } }),

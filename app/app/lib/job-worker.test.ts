@@ -182,4 +182,53 @@ describe("runJobWorkerTick", () => {
     await runJobWorkerTick("worker_xyz", d);
     expect(d.claim).toHaveBeenCalledWith("worker_xyz");
   });
+
+  it("requeues a truncated handler instead of marking the job succeeded", async () => {
+    const handler = vi
+      .fn()
+      .mockResolvedValueOnce({ incomplete: true })
+      .mockResolvedValueOnce(undefined);
+    const requeue = vi.fn(async () => true);
+    const d = deps(
+      [
+        job({ id: "a", type: "backfill_order_facts" }),
+        job({ id: "b", type: "backfill_order_facts", dedupeKey: "shop_1" }),
+      ],
+      { backfill_order_facts: handler },
+      { requeue },
+    );
+
+    const result = await runJobWorkerTick("worker_a", d);
+
+    expect(result.incomplete).toBe(1);
+    expect(result.succeeded).toBe(1);
+    expect(result.failed).toBe(0);
+    expect(requeue).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "a" }),
+      "worker_a",
+    );
+    expect(d.complete).toHaveBeenCalledTimes(1);
+    expect(d.complete).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "b" }),
+      "worker_a",
+    );
+  });
+
+  it("falls back to retryable fail when requeue is not wired", async () => {
+    const d = deps([job({ type: "backfill_order_facts" })], {
+      backfill_order_facts: vi.fn(async () => ({ incomplete: true })),
+    });
+
+    const result = await runJobWorkerTick("worker_a", d);
+
+    expect(result.incomplete).toBe(1);
+    expect(result.succeeded).toBe(0);
+    expect(d.complete).not.toHaveBeenCalled();
+    expect(d.fail).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "backfill_order_facts" }),
+      "worker_a",
+      expect.any(Error),
+      { retryable: true },
+    );
+  });
 });

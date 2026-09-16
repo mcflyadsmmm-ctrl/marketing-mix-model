@@ -1,7 +1,6 @@
 /**
- * Legacy sample strip — superseded by global DataModeBar on every app page.
- * Kept as a no-op so older route imports do not double-banner.
- * Prefer DataModeBar (app layout) for Sample data | Live data.
+ * Legacy sample strip — no-op. SAMPLE honesty lives on DataModeBar (status
+ * only when sample is on). Sample | Live switching is Settings only.
  */
 export function SampleDeskBanner(_props: { note?: string }) {
   return null;

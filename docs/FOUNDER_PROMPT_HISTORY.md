@@ -7,7 +7,11 @@
 
 ---
 
-## Latest founder override (2026-09-10 · favorite analytics)
+## Latest founder override (2026-09-10 · save the desk)
+
+Research is done. The failure was too many cooks and “omit until Polar-quiet.” **One plan:** [`plans/2026-09-10-save-the-desk.md`](./plans/2026-09-10-save-the-desk.md). Paste: [`plans/2026-09-10-save-the-desk-PROMPT.md`](./plans/2026-09-10-save-the-desk-PROMPT.md). Formula locked. Craft unlocked: KPI cards, Sales | Total ROAS when spend exists, chart open. Do not spawn a four-lane omit fleet.
+
+## Prior founder override (2026-09-10 · favorite analytics)
 
 Skeleton is locked: Overview · Orders · Buyers · Timing · Goals · Marketing. Polish until merchants stop exporting CSVs into ChatGPT. Cover every common order-book question Shopify Analytics does not put on one screen. Marketing = guided daily spend upload + mix + Total ROAS — that’s it. Conductor prompt: [`plans/2026-09-10-favorite-analytics-conductor.md`](./plans/2026-09-10-favorite-analytics-conductor.md). No Grok fleets. Fly deploy after desk ticks.
 

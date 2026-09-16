@@ -8,7 +8,7 @@
 
 ## Mission
 
-Sell **custom data science they keep**. App ($39) is a wedge while frozen in review. Site: mcflyads.com.
+Sell **Mcfly Analytics** Shopify app — 7-day then $39. Site: mcflyads.com. Fly app unfrozen for App Store approval.
 
 ## Tone
 

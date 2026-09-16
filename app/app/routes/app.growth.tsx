@@ -2,8 +2,12 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
-import { ShopifyBookSection } from "../components/ShopifyBookSection";
-import { deskPeriodTillLabel } from "../lib/desk-history";
+import { CountBarsChart } from "../components/DeskMixChart";
+import {
+  BookFactGrid,
+  ShopifyBookSection,
+} from "../components/ShopifyBookSection";
+import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
@@ -20,8 +24,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function GrowthPage() {
-  const { metrics, preset, shotMode, useSampleDesk, salesError } =
-    useLoaderData<typeof loader>();
+  const {
+    metrics,
+    preset,
+    shotMode,
+    useSampleDesk,
+    salesError,
+    todaySalesTruncated,
+    todaySalesUnavailable,
+    shopifyOrderWindowLimited,
+    factsIncomplete,
+    orderBackfillProgress,
+  } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
   const tillLabel = deskPeriodTillLabel({
@@ -31,6 +45,11 @@ export default function GrowthPage() {
     salesError,
     blockedMockAsLive: metrics.blockedMockAsLive,
     salesSource: metrics.salesSource,
+    factsIncomplete: !useSampleDesk && factsIncomplete,
+    todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
+    todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
+    shopifyOrderWindowLimited: !useSampleDesk && shopifyOrderWindowLimited,
+    includeShopifyOrderWindow: true,
   });
   const book = shopifyNativePeriodStats({
     sales: metrics.sales,
@@ -54,13 +73,20 @@ export default function GrowthPage() {
       shotMode={shotMode}
       useSampleDesk={useSampleDesk}
       isLoading={isLoading}
+      orderFactsTruncated={
+        !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
+      }
+      todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
+      todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
+      shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}
+      periodLabel={metrics.period.label}
+      showPeriod={false}
     >
       {metrics.salesPending ? (
         <p className="mcfly-book__lede">
           Sales for closed days are still loading — not $0.
         </p>
-      ) : (
-        <>
+      ) : null}
           <ShopifyBookSection
             book={book}
             depth={metrics.shopifyDepth}
@@ -73,54 +99,42 @@ export default function GrowthPage() {
             }}
             groups={["growth"]}
             title={PRODUCT_NOUN.growthTitle}
-            muted={GROWTH_LEDE}
+            muted={deskBookLede(GROWTH_LEDE)}
           />
 
-          {metrics.tillLtv.repeatRate != null ? (
-            <section className="mcfly-book" aria-label="Repeat rate">
-              <details className="mcfly-book__row">
-                <summary className="mcfly-book__row-sum">
-                  <span className="mcfly-book__row-k">Repeat rate</span>
-                  <span className="mcfly-book__row-v">
-                    {pct(metrics.tillLtv.repeatRate)}
-                  </span>
-                </summary>
-                <p className="mcfly-book__row-d">
-                  Extra orders beyond the first in the first 90 days. Order
-                  history, not email.
-                </p>
-              </details>
-            </section>
-          ) : null}
+          <section className="mcfly-book" aria-label="Repeat rate">
+            <BookFactGrid
+              facts={[
+                {
+                  k: "Repeat rate",
+                  v:
+                    metrics.tillLtv.repeatRate != null
+                      ? pct(metrics.tillLtv.repeatRate)
+                      : "—",
+                  d: "Extra orders beyond the first in the first 90 days. Order history, not email.",
+                  keepDash: true,
+                },
+              ]}
+            />
+          </section>
 
           {metrics.tillLtv.cohorts.length > 0 ? (
             <section className="mcfly-book" aria-label="First orders by month">
               <p className="mcfly-book__lede">First orders by month</p>
-              <div className="mcfly-book__rows">
-                {metrics.tillLtv.cohorts.map((row) => (
-                  <details className="mcfly-book__row" key={row.cohortMonth}>
-                    <summary className="mcfly-book__row-sum">
-                      <span className="mcfly-book__row-k">
-                        {row.cohortMonth}
-                      </span>
-                      <span className="mcfly-book__row-v">
-                        {row.customers.toLocaleString()}
-                      </span>
-                    </summary>
-                    <p className="mcfly-book__row-d">
-                      Customers who placed a first order that month.
-                    </p>
-                  </details>
-                ))}
-              </div>
+              <CountBarsChart
+                title="First orders by month"
+                items={metrics.tillLtv.cohorts.map((row) => ({
+                  label: row.cohortMonth,
+                  count: row.customers,
+                  detail: "Customers who placed a first order that month.",
+                }))}
+              />
             </section>
           ) : null}
 
           <footer className="mcfly-book__links">
             <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
           </footer>
-        </>
-      )}
     </DeskBookPage>
   );
 }

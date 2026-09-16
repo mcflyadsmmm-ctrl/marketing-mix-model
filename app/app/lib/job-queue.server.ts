@@ -240,6 +240,29 @@ export async function failJob(
   return { applied: result.count === 1, status };
 }
 
+/**
+ * Re-arm a claimed job that finished a truncated (not failed) unit of work.
+ * Does not burn dead-letter: the next tick retries immediately.
+ */
+export async function requeueIncompleteJob(
+  job: ClaimedJob,
+  workerId: string,
+  now: Date = new Date(),
+): Promise<boolean> {
+  const result = await prisma.job.updateMany({
+    where: { id: job.id, lockedBy: workerId, status: "running" },
+    data: {
+      status: "pending",
+      lockedBy: null,
+      lockedAt: null,
+      finishedAt: null,
+      runAfter: now,
+      lastError: "Incomplete — truncated crawl, retry next tick",
+    },
+  });
+  return result.count === 1;
+}
+
 export interface QueueDepth {
   pending: number;
   running: number;

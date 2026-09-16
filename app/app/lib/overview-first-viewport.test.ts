@@ -6,6 +6,7 @@ import {
   OVERVIEW_COVERAGE_LINE,
   OVERVIEW_SPEND_EMPTY_LINE,
   overviewNoticeSentence,
+  overviewReturningCompactDollars,
 } from "./overview-first-viewport";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -78,15 +79,20 @@ describe("overview first viewport", () => {
     expect(OVERVIEW_SPEND_EMPTY_LINE).not.toMatch(/0x/i);
   });
 
-  it("Overview home is three YoY sales cards", () => {
+  it("Overview home is YoY cards, then scoreboard, then sales chart", () => {
     const overview = readFileSync(
       join(here, "../routes/app._index.tsx"),
       "utf8",
     );
-    expect(overview).toContain("<OverviewYoyCards");
+    const yoyAt = overview.indexOf("<OverviewYoyCards");
+    const viewportAt = overview.indexOf("<OverviewFirstViewport");
+    const chartAt = overview.indexOf("<OverviewSalesChart");
+    expect(yoyAt).toBeGreaterThan(-1);
+    expect(viewportAt).toBeGreaterThan(yoyAt);
+    expect(chartAt).toBeGreaterThan(viewportAt);
     expect(overview).toContain("buildOverviewYoyCards");
-    expect(overview).toContain("<DeskOverviewTabs");
-    expect(overview).not.toContain("<OverviewFirstViewport");
+    expect(overview).not.toContain("<PeriodControl");
+    expect(overview).not.toContain("<DeskOverviewTabs");
     expect(overview).not.toContain("<DeskWindowRail");
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<DualCloseLine");
@@ -94,8 +100,9 @@ describe("overview first viewport", () => {
     expect(overview).not.toContain("<ShopifyBookSection");
     expect(overview).not.toContain("<MarketingSnapSection");
     expect(overview).toContain("deskStageFromHash");
-    expect(overview).toContain("stage={stage}");
-    expect(overview).toContain("scoreboardReady && onHome ? (");
+    expect(overview).toContain("getOrderBackfillProgress");
+    expect(overview).toContain("orderFactsTruncated");
+    expect(overview).toContain("orderBackfillProgress?.truncated");
     expect(overview).not.toContain("hideHero");
     expect(overview).not.toContain("<GoalsSnapSection");
     expect(overview).not.toContain("mcfly-tab-snaps");
@@ -110,26 +117,44 @@ describe("overview first viewport", () => {
     expect(cards).not.toMatch(/if \(salesPending\) return null/);
   });
 
-  it("first viewport is one book section: hero, glance, one sentence", () => {
+  it("first viewport is notice, sales KPIs, compact row, click for detail", () => {
     const firstView = readFileSync(
       join(here, "../components/OverviewFirstViewport.tsx"),
       "utf8",
     );
     expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
     expect(firstView).toContain(OVERVIEW_COVERAGE_LINE.slice(0, 8));
-    expect(firstView).toContain('className="mcfly-book__hero-v"');
-    expect(firstView).toContain("mcfly-book__glance");
-    expect(firstView).toContain("mcfly-book__kpi");
-    expect(firstView).toContain("mcfly-book__pair");
+    expect(firstView).toContain("mcfly-decision");
+    expect(firstView).toContain("mcfly-kpi-grid");
+    expect(firstView).toContain("mcfly-compact");
+    expect(firstView).toContain("DeskIcon");
+    expect(firstView).toContain("Click for detail");
     expect(firstView).toContain("weekendSalesShare");
-    expect(firstView).toContain("Share of dollars, not headcount");
-    // Pending sales never render a giant dash where the total belongs.
-    expect(firstView).toContain("salesPending ? null : roasValue ? (");
+    expect(firstView).toContain("spendHref");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
-    expect(firstView).not.toContain("spendHref");
     expect(firstView).not.toContain("<s-link");
     expect(firstView).not.toContain("0.00×");
+  });
+
+  it("at $0 spend does not paint Ad spend or Total ROAS as a 2×2 wall", () => {
+    const firstView = readFileSync(
+      join(here, "../components/OverviewFirstViewport.tsx"),
+      "utf8",
+    );
+    expect(firstView).not.toContain("Add spend to see Total ROAS");
+    expect(firstView).not.toContain('label="Ad spend"');
+    expect(firstView).not.toContain("Spend Upload →");
+    expect(firstView).toContain("{hasSpend ? (");
+    expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).not.toContain("returningCustomers.toLocaleString()");
+  });
+
+  it("returning compact is dollars or an em dash, never headcount", () => {
+    expect(overviewReturningCompactDollars(4200)).toBe(4200);
+    expect(overviewReturningCompactDollars(0)).toBeNull();
+    expect(overviewReturningCompactDollars(null)).toBeNull();
+    expect(overviewReturningCompactDollars(undefined)).toBeNull();
   });
 });

@@ -35,6 +35,12 @@ type Props = {
   todaySalesTruncated?: boolean;
   /** Open-day live top-up failed — closed-day facts may still be shown. */
   todaySalesUnavailable?: boolean;
+  /**
+   * Closed-day OrderFact crawl hit the GraphQL page cap (busy shop). Typical
+   * order / LTV stay on still-loading until the next tick finishes the day —
+   * incomplete order history is not $0.
+   */
+  orderFactsTruncated?: boolean;
   shotMode?: boolean;
   /** When false, finish setup before acting on budget advice. */
   cashActionReady?: boolean;
@@ -63,6 +69,7 @@ export function CashTrustBanners({
   salesFactsIncomplete = null,
   todaySalesTruncated = false,
   todaySalesUnavailable = false,
+  orderFactsTruncated = false,
   shotMode = false,
   cashActionReady = true,
   spendRecon = null,
@@ -98,7 +105,7 @@ export function CashTrustBanners({
           <s-paragraph>
             Fabricated sales were refused — {PRODUCT_NOUN.totalRoas} never treats
             mock numbers as live Shopify when the sample desk is off. Retry the
-            sales pull, or switch to Sample data at the top for a labeled walkthrough.
+            sales pull, or switch to Sample data in Settings for a labeled walkthrough.
           </s-paragraph>
         </s-banner>
       ) : null}
@@ -108,7 +115,7 @@ export function CashTrustBanners({
           <s-paragraph>
             {periodLabel} is longer than the ~60-day Shopify order window on
             this install. Sales before that window are not $0. Prefer a shorter
-            period, or switch to Sample data at the top for a multi-year
+            period, or switch to Sample data in Settings for a multi-year
             walkthrough.
           </s-paragraph>
         </s-banner>
@@ -126,6 +133,17 @@ export function CashTrustBanners({
             Live today is capped at ~100 orders for a fast desk load. High-volume
             shops can undercount today until the day closes into stored sales
             facts. Closed days in {periodLabel} are unaffected.
+          </s-paragraph>
+        </s-banner>
+      ) : null}
+
+      {orderFactsTruncated && !shopifyOrderWindowLimited ? (
+        <s-banner tone="info" heading="Order history still loading">
+          <s-paragraph>
+            A busy closed day has more orders than one crawl can fetch. Typical
+            order, returning dollars, and LTV wait — incomplete sales are not
+            $0. Shopify shares about 60 days of orders on this install. Refresh
+            in a few minutes.
           </s-paragraph>
         </s-banner>
       ) : null}

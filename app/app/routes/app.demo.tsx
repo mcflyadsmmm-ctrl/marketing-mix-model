@@ -188,8 +188,8 @@ export default function DemoPage() {
         {stats.enabled ? (
           <s-section heading="Sample data">
             <s-paragraph>
-              Sample data stays labeled on Overview, Goals, and Marketing. Switch to
-              Live data at the top when you want this shop’s Shopify numbers.
+              Sample data stays labeled while it is on. Switch to Live data in
+              Settings when you want this shop’s Shopify numbers.
             </s-paragraph>
             <div className="mcfly-decision__actions">
               <s-button href="/app" variant="secondary">
@@ -230,9 +230,9 @@ export default function DemoPage() {
         ) : (
           <s-section heading="Sample data (optional)">
             <s-paragraph>
-              Prefer Sample data | Live data at the top of any page. This page can
-              also load matched example sales and spend. Numbers are labeled
-              Sample data and never pretend to be this shop.
+              Switch Sample data | Live data in Settings. This page can also
+              load matched example sales and spend. Numbers are labeled Sample
+              data and never pretend to be this shop.
             </s-paragraph>
             <Form method="post" action={demoAction}>
               <input type="hidden" name="intent" value="prepare" />

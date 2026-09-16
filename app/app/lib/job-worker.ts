@@ -18,7 +18,9 @@ export interface ClaimedJob {
   lockedBy: string;
 }
 
-export type JobHandler = (job: ClaimedJob) => Promise<void>;
+export type JobHandlerOutcome = void | { incomplete?: boolean };
+
+export type JobHandler = (job: ClaimedJob) => Promise<JobHandlerOutcome>;
 
 /**
  * Thrown by a handler for a failure retrying cannot fix (malformed payload, shop
@@ -41,6 +43,11 @@ export interface JobWorkerDeps {
     error: unknown,
     options?: { retryable?: boolean },
   ) => Promise<unknown>;
+  /**
+   * Re-arm truncated work so the next tick retries without dead-letter.
+   * Optional so existing ticks keep working; falls back to retryable fail.
+   */
+  requeue?: (job: ClaimedJob, workerId: string) => Promise<boolean>;
   handlers: Record<string, JobHandler>;
   log?: (message: string) => void;
 }
@@ -56,6 +63,8 @@ export interface JobWorkerTickResult {
   succeeded: number;
   /** Handler threw; job was returned to the queue with backoff or dead-lettered. */
   failed: number;
+  /** Handler finished a truncated crawl — job requeued, not sealed succeeded. */
+  incomplete: number;
   /** Handler succeeded but the job had been re-armed by a newer webhook. */
   superseded: number;
   /** Claimed jobs whose `type` has no registered handler (dead-lettered, no retry). */
@@ -82,6 +91,7 @@ export async function runJobWorkerTick(
     claimed: 0,
     succeeded: 0,
     failed: 0,
+    incomplete: 0,
     superseded: 0,
     unhandled: [],
   };
@@ -106,7 +116,24 @@ export async function runJobWorkerTick(
     }
 
     try {
-      await handler(job);
+      const outcome = await handler(job);
+      if (outcome && outcome.incomplete) {
+        result.incomplete += 1;
+        log(
+          `job type=${job.type} id=${job.id} shopId=${job.shopId} incomplete — retry next tick`,
+        );
+        if (deps.requeue) {
+          await deps.requeue(job, workerId);
+        } else {
+          await deps.fail(
+            job,
+            workerId,
+            new Error("Incomplete work — retry next tick"),
+            { retryable: true },
+          );
+        }
+        continue;
+      }
     } catch (error) {
       result.failed += 1;
       log(

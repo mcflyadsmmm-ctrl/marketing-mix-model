@@ -160,6 +160,8 @@ export function summarizeTillLtvFromCohorts(
     ordersD365: c.ordersD365,
   }));
 
+  const historyLimited = Boolean(options.historyLimited);
+
   // CohortFact.revenueD* are shop-currency **totals** (dollars). Divide once.
   const avgRevenueD30 = customerWeightedAvgRevenue(
     withCustomers,
@@ -169,10 +171,10 @@ export function summarizeTillLtvFromCohorts(
     withCustomers,
     (r) => r.revenueD90,
   );
-  const avgRevenueD365 = customerWeightedAvgRevenue(
-    withCustomers,
-    (r) => r.revenueD365,
-  );
+  // ~60-day `read_orders` is not a calendar year — never seal 365 as a dollar.
+  const avgRevenueD365 = historyLimited
+    ? null
+    : customerWeightedAvgRevenue(withCustomers, (r) => r.revenueD365);
   const avgOrdersD90 = customerWeightedAvgRevenue(
     withCustomers,
     (r) => r.ordersD90,
@@ -208,7 +210,6 @@ export function summarizeTillLtvFromCohorts(
   );
 
   const available = withCustomers.length > 0;
-  const historyLimited = Boolean(options.historyLimited);
   let emptyReason: TillLtvEmptyReason = null;
   if (!available) {
     if (!options.useSampleDesk && !options.ianaTimezone) {

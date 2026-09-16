@@ -1,6 +1,7 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { BookFactGrid, type BookFact } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -11,8 +12,9 @@ import {
   contributionAdjustedLtv,
   contributionLtvCacRatio,
 } from "../lib/contrib-ltv";
+import { deskPeriodTillLabel } from "../lib/desk-history";
 import { runOrderFactsBackfill, getOrderBackfillProgress, ORDER_FACT_MAX_DAYS_PER_RUN } from "../lib/order-facts.server";
-import { deskPeriodTimeZone, parsePeriodPreset, resolvePeriod } from "../lib/periods";
+import { deskPeriodTimeZone, parsePeriodPreset, periodMayExceedShopifyOrderWindow, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
@@ -40,31 +42,7 @@ function isNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
 }
 
-/** Drill-down line: summary always visible, detail on open. */
-type LtvRow = { k: string; v: string; d: string; x?: string[] };
-
-function BookRows({ rows }: { rows: LtvRow[] }) {
-  const shown = rows.filter((row) => row.v !== "—");
-  if (shown.length === 0) return null;
-  return (
-    <div className="mcfly-book__rows">
-      {shown.map((row) => (
-        <details className="mcfly-book__row" key={row.k}>
-          <summary className="mcfly-book__row-sum">
-            <span className="mcfly-book__row-k">{row.k}</span>
-            <span className="mcfly-book__row-v">{row.v}</span>
-          </summary>
-          <p className="mcfly-book__row-d">{row.d}</p>
-          {(row.x ?? []).map((line) => (
-            <p className="mcfly-book__row-d" key={line}>
-              {line}
-            </p>
-          ))}
-        </details>
-      ))}
-    </div>
-  );
-}
+type LtvRow = BookFact;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await authenticate.admin(request);
@@ -86,6 +64,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let salesError: string | null = null;
   let todaySalesTruncated = false;
   let todaySalesUnavailable = false;
+  let shopifyOrderWindowLimited = false;
   let sales;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
@@ -110,6 +89,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError = desk.salesError;
     todaySalesTruncated = desk.todaySalesTruncated;
     todaySalesUnavailable = desk.todaySalesUnavailable;
+    shopifyOrderWindowLimited =
+      Boolean(desk.factsCoverage?.periodExceedsFactWindow) ||
+      periodMayExceedShopifyOrderWindow(range);
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
@@ -131,6 +113,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
+    shopifyOrderWindowLimited,
     marginConfirmed: marginIsConfirmed(settings),
     orderBackfillProgress,
     hasLiveSpend: liveSpendCount > 0,
@@ -147,6 +130,7 @@ export default function LtvPage() {
     salesError,
     todaySalesTruncated,
     todaySalesUnavailable,
+    shopifyOrderWindowLimited,
     marginConfirmed,
     orderBackfillProgress,
     hasLiveSpend,
@@ -155,15 +139,19 @@ export default function LtvPage() {
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
 
-  const tillLabel = useSampleDesk
-    ? `${metrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
-    : shotMode
-      ? metrics.period.label
-      : salesError ||
-          metrics.blockedMockAsLive ||
-          metrics.salesSource === "mock"
-        ? `${metrics.period.label} · sales unavailable`
-        : `${metrics.period.label} · live sales`;
+  // salesError / mock → sales unavailable; otherwise live sales (deskPeriodTillLabel)
+  const tillLabel = deskPeriodTillLabel({
+    periodLabel: metrics.period.label,
+    useSampleDesk,
+    shotMode,
+    salesError,
+    blockedMockAsLive: metrics.blockedMockAsLive,
+    salesSource: metrics.salesSource,
+    todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
+    todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
+    shopifyOrderWindowLimited: !useSampleDesk && shopifyOrderWindowLimited,
+    includeShopifyOrderWindow: true,
+  });
 
   const ltv = metrics.tillLtv;
   const custOk = metrics.customerMetricsAvailable;
@@ -191,7 +179,8 @@ export default function LtvPage() {
 
   /*
    * Value rows. Unknown windows are omitted — the desk never prints a boxed
-   * dash next to real dollars.
+   * dash next to real dollars. First year is the exception when history is
+   * limited: — means not on file, not $0 LTV.
    */
   const valueRows: LtvRow[] = [];
   if (isNum(ltv.avgRevenueD30)) {
@@ -208,7 +197,14 @@ export default function LtvPage() {
       d: "Average orders per new buyer in the first 90 days, from Shopify orders — not an email list.",
     });
   }
-  if (isNum(ltv.avgRevenueD365)) {
+  if (ltv.historyLimited) {
+    valueRows.push({
+      k: "First year",
+      v: "—",
+      d: "Shopify shares about 60 days of orders on this shop, so first-year value is not on file yet — not $0 LTV.",
+      keepDash: true,
+    });
+  } else if (isNum(ltv.avgRevenueD365)) {
     valueRows.push({
       k: "First year",
       v: formatCurrency(ltv.avgRevenueD365),
@@ -240,7 +236,9 @@ export default function LtvPage() {
       x: [
         ltv.paybackDays != null
           ? `Recovered in about ${ltv.paybackDays} days on average.`
-          : "Not recovered inside the first year on average.",
+          : ltv.historyLimited
+            ? "Payback past 90 days needs a full year of orders — not on file yet."
+            : "Not recovered inside the first year on average.",
         ...(ltv.newBuyers > 0
           ? [`${ltv.newBuyers.toLocaleString()} new customers in this window.`]
           : []),
@@ -284,7 +282,9 @@ export default function LtvPage() {
       x: [
         [
           d30 != null ? `30 days ${formatCurrency(d30)}` : null,
-          d365 != null ? `First year ${formatCurrency(d365)}` : null,
+          d365 != null && !ltv.historyLimited
+            ? `First year ${formatCurrency(d365)}`
+            : null,
         ]
           .filter(Boolean)
           .join(" · "),
@@ -309,6 +309,14 @@ export default function LtvPage() {
       shotMode={shotMode}
       useSampleDesk={useSampleDesk}
       isLoading={isLoading}
+      orderFactsTruncated={
+        !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
+      }
+      todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
+      todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
+      shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}
+      periodLabel={metrics.period.label}
+      showPeriod={false}
     >
       {useSampleDesk && !shotMode ? (
         <SampleDeskBanner note="LTV below uses SAMPLE sales — not this shop’s Shopify orders." />
@@ -325,28 +333,6 @@ export default function LtvPage() {
             </s-button>
           </div>
         </section>
-      ) : null}
-
-      {!useSampleDesk && !shotMode && !salesError && todaySalesTruncated ? (
-        <s-banner tone="warning" heading="Today’s sales may be incomplete">
-          <s-paragraph>
-            Today’s top-up hit the page cap — closed days are still included.
-            Refresh later for a fuller total.
-          </s-paragraph>
-        </s-banner>
-      ) : null}
-
-      {!useSampleDesk &&
-      !shotMode &&
-      !salesError &&
-      todaySalesUnavailable &&
-      !todaySalesTruncated ? (
-        <s-banner tone="warning" heading="Today’s live sales unavailable">
-          <s-paragraph>
-            Showing closed-day sales only — today’s Shopify pull did not
-            complete.
-          </s-paragraph>
-        </s-banner>
       ) : null}
 
       <section className="mcfly-book" aria-label="What new customers spend">
@@ -371,7 +357,7 @@ export default function LtvPage() {
           <p className="mcfly-book__lede">{emptyLine}</p>
         )}
 
-        <BookRows rows={valueRows} />
+        <BookFactGrid facts={valueRows} />
 
         {ltv.historyLimited ? (
           <p className="mcfly-book__lede">
@@ -384,10 +370,10 @@ export default function LtvPage() {
       {monthRows.length > 0 ? (
         <section className="mcfly-book" aria-label="First orders by month">
           <p className="mcfly-book__lede">
-            First orders by month — open a month to see what those customers
-            spent later. Averages from order history, not a forecast.
+            First orders by month — each month shows what those customers spent
+            later. Averages from order history, not a forecast.
           </p>
-          <BookRows rows={monthRows} />
+          <BookFactGrid facts={monthRows} />
         </section>
       ) : null}
 

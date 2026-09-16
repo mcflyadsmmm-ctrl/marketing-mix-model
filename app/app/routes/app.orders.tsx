@@ -3,7 +3,8 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { ShopifyBookSection } from "../components/ShopifyBookSection";
-import { deskPeriodTillLabel } from "../lib/desk-history";
+import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
+import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
@@ -19,6 +20,11 @@ export default function OrdersPage() {
     shotMode,
     useSampleDesk,
     salesError,
+    todaySalesTruncated,
+    todaySalesUnavailable,
+    shopifyOrderWindowLimited,
+    factsIncomplete,
+    orderBackfillProgress,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -29,6 +35,11 @@ export default function OrdersPage() {
     salesError,
     blockedMockAsLive: metrics.blockedMockAsLive,
     salesSource: metrics.salesSource,
+    factsIncomplete: !useSampleDesk && factsIncomplete,
+    todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
+    todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
+    shopifyOrderWindowLimited: !useSampleDesk && shopifyOrderWindowLimited,
+    includeShopifyOrderWindow: true,
   });
   const book = shopifyNativePeriodStats({
     sales: metrics.sales,
@@ -52,27 +63,37 @@ export default function OrdersPage() {
       shotMode={shotMode}
       useSampleDesk={useSampleDesk}
       isLoading={isLoading}
+      orderFactsTruncated={
+        !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
+      }
+      todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
+      todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
+      shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}
+      periodLabel={metrics.period.label}
+      showPeriod={false}
     >
       {metrics.salesPending ? (
         <p className="mcfly-book__lede">
           Sales for closed days are still loading — not $0.
         </p>
-      ) : (
-        <ShopifyBookSection
-          book={book}
-          depth={metrics.shopifyDepth}
-          clocks={{
-            gross: metrics.grossSales,
-            grossKnown: metrics.grossSalesKnown,
-            total: totalSalesDisplay,
-            net: metrics.netSales,
-            netKnown: metrics.netSalesKnown,
-          }}
-          groups={["period", "timing"]}
-          title={PRODUCT_NOUN.ordersTitle}
-          muted="Shopify Analytics shows the average order. This page shows the typical order (median), then discounts, the biggest 10% of orders, then weekend, hour, and Online vs POS."
-        />
-      )}
+      ) : null}
+          <ShopifyBookSection
+            book={book}
+            depth={metrics.shopifyDepth}
+            clocks={{
+              gross: metrics.grossSales,
+              grossKnown: metrics.grossSalesKnown,
+              total: totalSalesDisplay,
+              net: metrics.netSales,
+              netKnown: metrics.netSalesKnown,
+            }}
+            groups={["period", "timing"]}
+            title={PRODUCT_NOUN.ordersTitle}
+            muted={deskBookLede(
+              "Shopify Analytics shows the average order. This page shows the typical order (median), then discounts, the biggest 10% of orders, then weekend, hour, and Online vs POS. Click a weekday bar.",
+            )}
+          />
+          <WeekdaySalesChart shares={metrics.shopifyDepth.weekdaySalesShare} />
     </DeskBookPage>
   );
 }

@@ -27,6 +27,7 @@ import {
   enqueueJob,
   failJob,
   reclaimStaleJobs,
+  requeueIncompleteJob,
 } from "./job-queue.server";
 import type { ClaimedJob } from "./job-worker";
 
@@ -152,6 +153,26 @@ describe("enqueueJob", () => {
     expect(upsert).toHaveBeenCalledTimes(3);
     const keys = upsert.mock.calls.map((c) => c[0].where.shopId_type_dedupeKey);
     expect(new Set(keys.map((k) => JSON.stringify(k))).size).toBe(1);
+  });
+
+  it("coalesces truncated OrderFact backfill onto one row per shop", async () => {
+    await enqueueJob(
+      {
+        shopId: "shop_1",
+        type: "backfill_order_facts",
+        dedupeKey: "shop_1",
+        payload: { reason: "truncated_page_cap", day: "2026-07-14" },
+        maxAttempts: 40,
+      },
+      NOW,
+    );
+    const call = upsert.mock.calls[0][0];
+    expect(call.where.shopId_type_dedupeKey).toEqual({
+      shopId: "shop_1",
+      type: "backfill_order_facts",
+      dedupeKey: "shop_1",
+    });
+    expect(call.create.maxAttempts).toBe(40);
   });
 });
 
@@ -339,5 +360,31 @@ describe("reclaimStaleJobs", () => {
       lockedBy: null,
       runAfter: NOW,
     });
+  });
+});
+
+describe("requeueIncompleteJob", () => {
+  beforeEach(() => {
+    updateMany.mockReset();
+    updateMany.mockResolvedValue({ count: 1 });
+  });
+
+  it("re-arms a truncated crawl to pending now without dead-lettering", async () => {
+    const applied = await requeueIncompleteJob(claimed(), "worker_a", NOW);
+
+    expect(applied).toBe(true);
+    expect(updateMany.mock.calls[0][0].where).toEqual({
+      id: "job_1",
+      lockedBy: "worker_a",
+      status: "running",
+    });
+    expect(updateMany.mock.calls[0][0].data).toMatchObject({
+      status: "pending",
+      finishedAt: null,
+      runAfter: NOW,
+    });
+    expect(updateMany.mock.calls[0][0].data.lastError).toMatch(/truncated/i);
+    expect(updateMany.mock.calls[0][0].data.status).not.toBe("succeeded");
+    expect(updateMany.mock.calls[0][0].data.status).not.toBe("dead");
   });
 });

@@ -1,5 +1,7 @@
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { DeskIcon, type DeskIconName } from "./DeskIcon";
+import { useDeskDrill } from "./DeskDrill";
 import {
   WEEKDAY_SHORT,
   formatHourRangeLabel,
@@ -27,8 +29,122 @@ type SalesClocks = {
 /** One impressive number per page. */
 type BookHero = { k: string; v: string; def: string; sub?: string };
 
-/** Drill-down line: summary always visible, definition + extras on open. */
-type BookRow = { k: string; v: string; d: string; s?: string; x?: string[] };
+/** Visible KPI card — definition stays on the card, never behind a click. */
+export type BookFact = {
+  k: string;
+  v: string;
+  d?: string;
+  s?: string;
+  x?: string[];
+  href?: string;
+  next?: string;
+  keepDash?: boolean;
+};
+
+function factIcon(k: string): DeskIconName {
+  const title = k.toLowerCase();
+  if (title.includes("weekend") || title.includes("weekday")) return "weekend";
+  if (
+    title.includes("hour") ||
+    title.includes("busiest") ||
+    title.includes("clock") ||
+    title.includes("day")
+  ) {
+    return "clock";
+  }
+  if (
+    title.includes("customer") ||
+    title.includes("buyer") ||
+    title.includes("returning") ||
+    title.includes("guest") ||
+    title.includes("new") ||
+    title.includes("repeat")
+  ) {
+    return "customers";
+  }
+  if (
+    title.includes("order") ||
+    title.includes("typical") ||
+    title.includes("discount") ||
+    title.includes("item") ||
+    title.includes("aov")
+  ) {
+    return "orders";
+  }
+  if (title.includes("spend")) return "spend";
+  if (title.includes("roas")) return "roas";
+  return "sales";
+}
+
+function groupIcon(group: ShopifyBookGroup): DeskIconName {
+  switch (group) {
+    case "buyers":
+      return "customers";
+    case "timing":
+      return "clock";
+    case "growth":
+      return "chart";
+    case "period":
+      return "orders";
+    default: {
+      const _exhaustive: never = group;
+      return _exhaustive;
+    }
+  }
+}
+
+export function BookFactGrid({ facts }: { facts: BookFact[] }) {
+  const drill = useDeskDrill();
+  const shown = facts;
+  if (shown.length === 0) return null;
+  return (
+    <div className="mcfly-book__glance mcfly-book__glance--kpis">
+      {shown.map((row) => {
+        const open = () =>
+          drill?.openDrill({
+            title: row.k,
+            value: row.v,
+            blocks: [
+              row.d ? { k: "What this is", v: row.d } : null,
+              row.s ? { k: "Also", v: row.s } : null,
+              ...(row.x ?? []).map((line) => ({ k: "Detail", v: line })),
+            ].filter((block): block is { k: string; v: string } => block != null),
+            next:
+              row.next ??
+              "This number is from Shopify orders in this window — not a platform pixel.",
+            nextHref: row.href,
+            nextLabel: row.href ? "Open tab" : undefined,
+          });
+        return drill ? (
+          <button
+            type="button"
+            className="mcfly-book__kpi mcfly-book__kpi--drill"
+            key={row.k}
+            onClick={open}
+          >
+            <p className="mcfly-book__kpi-k">
+              <DeskIcon name={factIcon(row.k)} />
+              {row.k}
+            </p>
+            <p className="mcfly-book__kpi-v">{row.v}</p>
+            {row.s ? <p className="mcfly-book__kpi-hint">{row.s}</p> : null}
+            <p className="mcfly-book__kpi-hint">Click for detail</p>
+          </button>
+        ) : (
+          <div className="mcfly-book__kpi" key={row.k}>
+            <p className="mcfly-book__kpi-k">
+              <DeskIcon name={factIcon(row.k)} />
+              {row.k}
+            </p>
+            <p className="mcfly-book__kpi-v">{row.v}</p>
+            {row.s ? <p className="mcfly-book__kpi-hint">{row.s}</p> : null}
+            {row.d ? <p className="mcfly-book__kpi-hint">{row.d}</p> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 type ClockItem = { k: string; v: string };
 
@@ -233,265 +349,291 @@ function timingHero(depth: ShopifyDepthStats): BookHero {
 function periodRows(
   book: ShopifyNativePeriodStats,
   depth: ShopifyDepthStats,
-): BookRow[] {
-  const rows: BookRow[] = [];
-  if (isNum(depth.aovP25) && isNum(depth.aovP75)) {
-    rows.push({
+): BookFact[] {
+  return [
+    {
       k: PRODUCT_NOUN.bookMostOrders,
-      v: `${formatCurrency(depth.aovP25)}–${formatCurrency(depth.aovP75)}`,
+      v:
+        isNum(depth.aovP25) && isNum(depth.aovP75)
+          ? `${formatCurrency(depth.aovP25)}–${formatCurrency(depth.aovP75)}`
+          : "—",
       d: PRODUCT_NOUN.bookMostOrdersDef,
-    });
-  }
-  if (isNum(depth.medianDailySales)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookTypicalDay,
-      v: formatCurrency(depth.medianDailySales),
+      v: isNum(depth.medianDailySales)
+        ? formatCurrency(depth.medianDailySales)
+        : "—",
       s:
         depth.dayCountWithSales > 0
           ? `${depth.dayCountWithSales} days had sales`
           : undefined,
       d: PRODUCT_NOUN.bookTypicalDayDef,
-    });
-  }
-  if (hasShare(depth.discountedOrderShare)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookDiscountedOrders,
-      v: pct(depth.discountedOrderShare),
+      v: hasShare(depth.discountedOrderShare)
+        ? pct(depth.discountedOrderShare)
+        : "—",
       s:
         isNum(depth.meanDiscountAmount) && depth.meanDiscountAmount > 0
           ? `Typical ${formatCurrency(depth.meanDiscountAmount)} off`
           : undefined,
       d: PRODUCT_NOUN.bookDiscountedOrdersDef,
-    });
-  }
-  if (isNum(depth.fullPriceMedianAov) && isNum(depth.discountedMedianAov)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: "Typical · full price vs discounted",
-      v: `${formatCurrency(depth.fullPriceMedianAov)} vs ${formatCurrency(depth.discountedMedianAov)}`,
+      v:
+        isNum(depth.fullPriceMedianAov) && isNum(depth.discountedMedianAov)
+          ? `${formatCurrency(depth.fullPriceMedianAov)} vs ${formatCurrency(depth.discountedMedianAov)}`
+          : "—",
       d: "Middle order with no discount vs with a discount. Average order value hides this.",
-    });
-  }
-  if (isNum(depth.meanUnitCount)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookItemsPerOrder,
-      v: depth.meanUnitCount.toFixed(1),
+      v: isNum(depth.meanUnitCount) ? depth.meanUnitCount.toFixed(1) : "—",
       d: PRODUCT_NOUN.bookItemsPerOrderDef,
-    });
-  }
-  if (hasShare(depth.multiUnitOrderShare)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: "Orders with 2+ items",
-      v: pct(depth.multiUnitOrderShare),
+      v: hasShare(depth.multiUnitOrderShare)
+        ? pct(depth.multiUnitOrderShare)
+        : "—",
       d: "Share of orders with two or more units. Average items can hide a one-item shop.",
-    });
-  }
-  // $0 of returns / fees is not a finding — omit rather than print a boxed $0.
-  if (isNum(book.returnsDrag) && book.returnsDrag > 0) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookReturnsEdits,
-      v: formatCurrency(book.returnsDrag),
+      v:
+        isNum(book.returnsDrag) && book.returnsDrag > 0
+          ? formatCurrency(book.returnsDrag)
+          : "—",
       s: hasShare(book.returnsDragPct)
         ? `${pct(book.returnsDragPct)} of the original checkout total`
         : undefined,
       d: "Original checkout total minus what stands today — returns and edits.",
-    });
-  }
-  if (isNum(depth.shippingTaxFees) && depth.shippingTaxFees > 0) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: "Shipping + tax",
-      v: formatCurrency(depth.shippingTaxFees),
+      v:
+        isNum(depth.shippingTaxFees) && depth.shippingTaxFees > 0
+          ? formatCurrency(depth.shippingTaxFees)
+          : "—",
       s: hasShare(depth.shippingTaxFeesPct)
         ? `${pct(depth.shippingTaxFeesPct)} of Total Sales`
         : undefined,
       d: "Shipping, tax, duties and fees sitting above the product subtotal.",
-    });
-  }
-  if (hasShare(depth.topDecileSalesShare)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: "Biggest orders",
-      v: pct(depth.topDecileSalesShare),
+      v: hasShare(depth.topDecileSalesShare)
+        ? pct(depth.topDecileSalesShare)
+        : "—",
       d: "Share of sales from the largest 10% of orders in this window.",
-    });
-  }
-  return rows;
+      keepDash: true,
+    },
+  ];
 }
 
 function buyersRows(
   book: ShopifyNativePeriodStats,
   depth: ShopifyDepthStats,
-): BookRow[] {
-  const rows: BookRow[] = [];
-  if (hasShare(book.newSalesShare) && hasShare(book.returningSalesShare)) {
-    rows.push({
+): BookFact[] {
+  const perBuyer =
+    isNum(book.newBuyerArpu) && isNum(book.returningBuyerArpu)
+      ? `New ${formatCurrency(book.newBuyerArpu)} · returning ${formatCurrency(book.returningBuyerArpu)}`
+      : isNum(book.newBuyerArpu)
+        ? `New ${formatCurrency(book.newBuyerArpu)}`
+        : "—";
+  return [
+    {
       k: "New vs returning dollars",
-      v: `${pct(book.newSalesShare)} new · ${pct(book.returningSalesShare)} returning`,
+      v:
+        hasShare(book.newSalesShare) && hasShare(book.returningSalesShare)
+          ? `${pct(book.newSalesShare)} new · ${pct(book.returningSalesShare)} returning`
+          : "—",
       d: "Sales from first-time buyers vs buyers who had ordered before, in this window.",
-    });
-  }
-  if (isNum(book.newBuyerArpu) && isNum(book.returningBuyerArpu)) {
-    const newSide = formatCurrency(book.newBuyerArpu);
-    const returningSide = formatCurrency(book.returningBuyerArpu);
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookSalesPerBuyer,
-      v: `New ${newSide} · returning ${returningSide}`,
-      d:
-        newSide === returningSide
-          ? `New and returning buyers each spent about ${newSide} per person this window.`
-          : "Dollars per person in this window, not a rate.",
-    });
-  } else if (isNum(book.newBuyerArpu)) {
-    rows.push({
-      k: PRODUCT_NOUN.bookSalesPerBuyer,
-      v: `New ${formatCurrency(book.newBuyerArpu)}`,
-      d: "Dollars per first-time buyer. Returning buyers need a second window of orders.",
-    });
-  }
-  if (hasShare(depth.repeatSalesShare)) {
-    rows.push({
-      k: "Repeat sales",
-      v: pct(depth.repeatSalesShare),
-      d: "Sales from buyers with two or more orders in this window.",
-    });
-  }
-  if (book.guestOrders > 0 && hasShare(book.guestShare)) {
-    rows.push({
+      v: perBuyer,
+      d: "Dollars per person in this window, not a rate.",
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookGuestCheckouts,
-      v: pct(book.guestShare),
+      v: book.guestOrders > 0 && hasShare(book.guestShare)
+        ? pct(book.guestShare)
+        : "—",
       s:
         isNum(depth.guestAov) && isNum(depth.identifiedAov)
           ? `Typical guest ${formatCurrency(depth.guestAov)} vs ${formatCurrency(depth.identifiedAov)} with an account`
-          : `${book.guestOrders.toLocaleString()} orders without an account`,
-      d: `${book.guestOrders.toLocaleString()} orders placed without a customer account.`,
-    });
-  }
-  if (isNum(depth.oneAndDoneShare) && depth.oneAndDoneShare > 0) {
-    rows.push({
+          : book.guestOrders > 0
+            ? `${book.guestOrders.toLocaleString()} orders without an account`
+            : undefined,
+      d: "Orders placed without a customer account.",
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookOneOrderBuyers,
-      v: pct(depth.oneAndDoneShare),
+      v:
+        isNum(depth.oneAndDoneShare) && depth.oneAndDoneShare > 0
+          ? pct(depth.oneAndDoneShare)
+          : "—",
       d: PRODUCT_NOUN.bookOneOrderBuyersDef,
-    });
-  }
-  if (hasShare(depth.topCustomerSalesShare)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: "Top 10% of customers",
-      v: pct(depth.topCustomerSalesShare),
+      v: hasShare(depth.topCustomerSalesShare)
+        ? pct(depth.topCustomerSalesShare)
+        : "—",
       d: "Share of sales from the highest-spending 10% of identified buyers this window. Not the largest orders.",
-    });
-  }
-  if (isNum(depth.ordersPerBuyer)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookOrdersPerBuyer,
-      v: depth.ordersPerBuyer.toFixed(1),
-      s: `${depth.identifiedBuyers.toLocaleString()} identified buyers in this window`,
+      v: isNum(depth.ordersPerBuyer) ? depth.ordersPerBuyer.toFixed(1) : "—",
+      s:
+        depth.identifiedBuyers > 0
+          ? `${depth.identifiedBuyers.toLocaleString()} identified buyers in this window`
+          : undefined,
       d: "Identified orders divided by identified buyers in this window.",
-    });
-  }
-  return rows;
+      keepDash: true,
+    },
+    {
+      k: "Biggest orders",
+      v: hasShare(depth.topDecileSalesShare)
+        ? pct(depth.topDecileSalesShare)
+        : "—",
+      d: "Share of sales from the largest 10% of orders in this window.",
+      keepDash: true,
+    },
+  ];
 }
 
 function growthRows(
   book: ShopifyNativePeriodStats,
   depth: ShopifyDepthStats,
-): BookRow[] {
-  const rows: BookRow[] = [];
-  if (book.newCustomers > 0) {
-    rows.push({
+): BookFact[] {
+  return [
+    {
       k: "New customers",
-      v: book.newCustomers.toLocaleString(),
+      v: book.newCustomers > 0 ? book.newCustomers.toLocaleString() : "—",
       d: "Buyers whose first Shopify order is in this window.",
-    });
-  }
-  if (isNum(depth.medianDaysToSecond)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: "Days to a second order",
-      v: `${Math.round(depth.medianDaysToSecond)}d`,
+      v: isNum(depth.medianDaysToSecond)
+        ? `${Math.round(depth.medianDaysToSecond)}d`
+        : "—",
       s:
         depth.repeatBuyers > 0
           ? `${depth.repeatBuyers.toLocaleString()} buyers came back`
           : undefined,
       d: "Middle wait between a first and second order.",
-    });
-  }
-  if (hasShare(depth.secondOrderWithin30Share)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookSecondWithin30,
-      v: pct(depth.secondOrderWithin30Share),
+      v: hasShare(depth.secondOrderWithin30Share)
+        ? pct(depth.secondOrderWithin30Share)
+        : "—",
       s:
         depth.eligibleFirstTimers > 0
           ? `${depth.eligibleFirstTimers.toLocaleString()} first-time buyers had a full 30 days to come back`
           : undefined,
       d: PRODUCT_NOUN.bookSecondWithin30Def,
-    });
-  }
-  if (
-    hasShare(depth.secondOrderBuyerShare) &&
-    isNum(depth.thirdPlusBuyerShare)
-  ) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookSecondVsThird,
-      v: `2nd ${pct(depth.secondOrderBuyerShare)} · 3rd+ ${pct(depth.thirdPlusBuyerShare)}`,
+      v:
+        hasShare(depth.secondOrderBuyerShare) &&
+        isNum(depth.thirdPlusBuyerShare)
+          ? `2nd ${pct(depth.secondOrderBuyerShare)} · 3rd+ ${pct(depth.thirdPlusBuyerShare)}`
+          : "—",
       d: PRODUCT_NOUN.bookSecondVsThirdDef,
-    });
-  }
-  if (isNum(depth.medianSecondOrder) && isNum(depth.medianFirstOrder)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookSecondVsFirst,
-      v: `${formatCurrency(depth.medianSecondOrder)} vs ${formatCurrency(depth.medianFirstOrder)}`,
+      v:
+        isNum(depth.medianSecondOrder) && isNum(depth.medianFirstOrder)
+          ? `${formatCurrency(depth.medianSecondOrder)} vs ${formatCurrency(depth.medianFirstOrder)}`
+          : "—",
       d: PRODUCT_NOUN.bookSecondVsFirstDef,
-    });
-  }
-  return rows;
+      keepDash: true,
+    },
+  ];
 }
 
-function timingRows(depth: ShopifyDepthStats): BookRow[] {
-  const rows: BookRow[] = [];
-  if (hasShare(depth.weekendSalesShare)) {
-    rows.push({
+function timingRows(depth: ShopifyDepthStats): BookFact[] {
+  const peakShare =
+    depth.peakWeekday != null
+      ? depth.weekdaySalesShare?.[depth.peakWeekday]
+      : null;
+  const mix = sourceMixLine(depth.sourceSalesShare);
+  const typical = sourceTypicalAovLine(depth.sourceMedianAov);
+  return [
+    {
       k: PRODUCT_NOUN.bookWeekendSales,
-      v: pct(depth.weekendSalesShare),
+      v: hasShare(depth.weekendSalesShare)
+        ? pct(depth.weekendSalesShare)
+        : "—",
       d: "Saturday + Sunday share of sales, shop-local.",
-    });
-  }
-  if (depth.peakWeekday != null) {
-    const share = depth.weekdaySalesShare?.[depth.peakWeekday];
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookBusiestWeekday,
-      v: WEEKDAY_SHORT[depth.peakWeekday]!,
-      s: hasShare(share) ? `${pct(share)} of this window` : undefined,
+      v:
+        depth.peakWeekday != null
+          ? WEEKDAY_SHORT[depth.peakWeekday]!
+          : "—",
+      s: hasShare(peakShare) ? `${pct(peakShare)} of this window` : undefined,
       d: "Weekday with the most sales, shop-local.",
       x: weekdayBreakdown(depth.weekdaySalesShare),
-    });
-  }
-  if (depth.peakHour != null) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookBusiestHour,
-      v: formatHourRangeLabel(depth.peakHour),
+      v:
+        depth.peakHour != null
+          ? formatHourRangeLabel(depth.peakHour)
+          : "—",
       d: PRODUCT_NOUN.bookBusiestHourDef,
       x: hourBreakdown(depth.hourlySalesShare),
-    });
-  }
-  if (hasShare(depth.bestThreeDayShare)) {
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: "Biggest three days",
-      v: pct(depth.bestThreeDayShare),
+      v: hasShare(depth.bestThreeDayShare)
+        ? pct(depth.bestThreeDayShare)
+        : "—",
       s:
         depth.dayCountWithSales > 0
           ? `${depth.dayCountWithSales} days had sales`
           : undefined,
       d: "Share of sales from the three busiest days in this window.",
-    });
-  }
-  const mix = sourceMixLine(depth.sourceSalesShare);
-  if (mix) {
-    const typical = sourceTypicalAovLine(depth.sourceMedianAov);
-    rows.push({
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookChannelMix,
-      v: mix,
+      v: mix || "—",
       s: typical[0],
       d: PRODUCT_NOUN.bookChannelMixDef,
-    });
-  }
-  return rows;
+      keepDash: true,
+    },
+  ];
 }
 
 function clockItems(clocks: SalesClocks): ClockItem[] {
@@ -545,8 +687,7 @@ export function ShopifyBookSection({
             ? growthRows(book, depth)
             : periodRows(book, depth),
     )
-    // One title per fact, and never a row whose only content is a dash.
-    .filter((row) => row.k !== hero.k && row.v !== "—");
+    .filter((row) => row.k !== hero.k);
   const clock = groups.includes("period") ? clockItems(clocks) : [];
 
   return (
@@ -559,18 +700,16 @@ export function ShopifyBookSection({
         {muted ?? PRODUCT_NOUN.shopifyBookMuted}
       </p>
 
-      {hero.v !== "—" ? (
-        <div className="mcfly-book__hero">
-          <p className="mcfly-book__hero-k">{hero.k}</p>
-          <p className="mcfly-book__hero-v">{hero.v}</p>
-          {hero.sub ? (
-            <p className="mcfly-book__hero-sub">{hero.sub}</p>
-          ) : null}
-          <p className="mcfly-book__hero-def">{hero.def}</p>
-        </div>
-      ) : (
-        <p className="mcfly-book__lede">{hero.def}</p>
-      )}
+      <div className="mcfly-book__hero">
+        <p className="mcfly-book__hero-k">
+          <DeskIcon name={groupIcon(lead)} />
+          {hero.k}
+        </p>
+        <p className="mcfly-book__hero-v">{hero.v}</p>
+        {hero.sub ? <p className="mcfly-book__hero-sub">{hero.sub}</p> : null}
+        <p className="mcfly-book__hero-def">{hero.def}</p>
+        <p className="mcfly-book__kpi-hint">Click a card below for detail</p>
+      </div>
 
       {clock.length > 0 ? (
         <div className="mcfly-book__clock" aria-label={PRODUCT_NOUN.bookSalesClock}>
@@ -583,27 +722,7 @@ export function ShopifyBookSection({
         </div>
       ) : null}
 
-      {rows.length > 0 ? (
-        <div className="mcfly-book__rows mcfly-book__rows--kpis">
-          {rows.map((row) => (
-            <details className="mcfly-book__row" key={row.k}>
-              <summary className="mcfly-book__row-sum">
-                <span className="mcfly-book__row-k">{row.k}</span>
-                <span className="mcfly-book__row-v">{row.v}</span>
-                {row.s ? (
-                  <span className="mcfly-book__row-s">{row.s}</span>
-                ) : null}
-              </summary>
-              <p className="mcfly-book__row-d">{row.d}</p>
-              {(row.x ?? []).map((line) => (
-                <p className="mcfly-book__row-d" key={line}>
-                  {line}
-                </p>
-              ))}
-            </details>
-          ))}
-        </div>
-      ) : null}
+      <BookFactGrid facts={rows} />
     </section>
   );
 }

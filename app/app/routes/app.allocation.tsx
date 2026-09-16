@@ -61,7 +61,7 @@ import {
   localDayKey,
 } from "../lib/sample-desk.server";
 
-const ALLOCATION_HEADING = "Channel Allocation";
+const ALLOCATION_HEADING = PRODUCT_NOUN.spendAllocation;
 const ALLOCATION_CONTRAST =
   "Shopify Analytics channel reports are sessions and attribution. This page is typed spend mix and the daily cap.";
 

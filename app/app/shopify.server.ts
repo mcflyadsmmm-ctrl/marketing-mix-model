@@ -5,6 +5,12 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
+import { redirect } from "react-router";
+
+import {
+  documentGoneRedirectLocation,
+  isReactRouterDataRequest,
+} from "../scripts/shopify-app-path.mjs";
 import prisma from "./db.server";
 
 const shopify = shopifyApp({
@@ -33,7 +39,33 @@ const shopify = shopifyApp({
 export default shopify;
 export const apiVersion = ApiVersion.October25;
 export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
-export const authenticate = shopify.authenticate;
+
+function isGoneResponse(error: unknown): boolean {
+  if (error instanceof Response) return error.status === 410;
+  if (typeof error === "object" && error && "status" in error) {
+    return Number((error as { status: unknown }).status) === 410;
+  }
+  return false;
+}
+
+const authenticateAdmin = shopify.authenticate.admin.bind(shopify.authenticate);
+
+async function authenticateAdminWithoutDocumentGone(request: Request) {
+  try {
+    return await authenticateAdmin(request);
+  } catch (error) {
+    if (isGoneResponse(error) && !isReactRouterDataRequest(request)) {
+      const location = documentGoneRedirectLocation(request);
+      if (location) throw redirect(location);
+    }
+    throw error;
+  }
+}
+
+export const authenticate = {
+  ...shopify.authenticate,
+  admin: authenticateAdminWithoutDocumentGone,
+};
 export const unauthenticated = shopify.unauthenticated;
 export const login = shopify.login;
 export const registerWebhooks = shopify.registerWebhooks;

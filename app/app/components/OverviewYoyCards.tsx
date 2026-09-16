@@ -1,10 +1,13 @@
 import { formatCurrency } from "../lib/mer-format";
+import { DeskIcon } from "./DeskIcon";
+import { useDeskDrill } from "./DeskDrill";
 import {
   OVERVIEW_YOY_ANALYTICS_LEDE,
   OVERVIEW_YOY_MISSING,
+  OVERVIEW_YOY_SAME_WINDOW,
+  overviewWindowsCollapsed,
   type OverviewYoyCard,
 } from "../lib/overview-yoy";
-import { OVERVIEW_COVERAGE_LINE } from "../lib/overview-first-viewport";
 
 function deltaLine(card: OverviewYoyCard): string | null {
   if (card.missingPrior || card.delta == null || card.priorSales == null) {
@@ -20,8 +23,8 @@ function deltaLine(card: OverviewYoyCard): string | null {
     return `Even with last year ${formatCurrency(card.priorSales)}`;
   }
   return pct
-    ? `${sign}${dollars} · ${pct} vs last year ${formatCurrency(card.priorSales)}`
-    : `${sign}${dollars} vs last year ${formatCurrency(card.priorSales)}`;
+    ? `${sign}${dollars} · ${pct}`
+    : `${sign}${dollars} vs last year`;
 }
 
 /**
@@ -30,10 +33,13 @@ function deltaLine(card: OverviewYoyCard): string | null {
 export function OverviewYoyCards({
   cards,
   salesPending,
+  yoyHref = "/app/yoy",
 }: {
   cards: OverviewYoyCard[];
   salesPending: boolean;
+  yoyHref?: string;
 }) {
+  const drill = useDeskDrill();
   if (salesPending) {
     return (
       <p className="mcfly-book__lede">
@@ -43,26 +49,66 @@ export function OverviewYoyCards({
   }
   if (cards.length === 0) return null;
 
+  const allMissingPrior = cards.every((card) => card.missingPrior);
+  const sameWindow = overviewWindowsCollapsed(cards);
+
   return (
     <section className="mcfly-yoy" aria-label="Sales versus last year">
-      <p className="mcfly-book__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
-      <p className="mcfly-book__lede">{OVERVIEW_COVERAGE_LINE}</p>
+      <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {
           const vs = deltaLine(card);
+          const priorLabel = card.missingPrior
+            ? "—"
+            : formatCurrency(card.priorSales ?? 0);
           return (
-            <article className="mcfly-yoy__card" key={card.id}>
-              <p className="mcfly-yoy__k">{card.label}</p>
+            <button
+              type="button"
+              className="mcfly-yoy__card mcfly-yoy__card--drill"
+              key={card.id}
+              onClick={() =>
+                drill?.openDrill({
+                  title: card.label,
+                  value: formatCurrency(card.sales),
+                  kicker: "Same days last year",
+                  blocks: [
+                    { k: "This year", v: formatCurrency(card.sales) },
+                    { k: "Last year", v: priorLabel },
+                    vs ? { k: "Change", v: vs } : null,
+                    {
+                      k: "What this is",
+                      v: "Shopify Total Sales for this window next to the same calendar days last year. Shopify Analytics Overview is this period only.",
+                    },
+                  ].filter(
+                    (block): block is { k: string; v: string } => block != null,
+                  ),
+                  next: "Open YoY for this month vs last month vs last year plus last 7.",
+                  nextHref: yoyHref,
+                  nextLabel: "Open YoY",
+                  foot: card.missingPrior ? OVERVIEW_YOY_MISSING : undefined,
+                })
+              }
+            >
+              <p className="mcfly-yoy__k">
+                <DeskIcon name="yoy" />
+                {card.label}
+              </p>
               <p className="mcfly-yoy__v">{formatCurrency(card.sales)}</p>
-              {card.missingPrior ? (
-                <p className="mcfly-yoy__miss">{OVERVIEW_YOY_MISSING}</p>
-              ) : (
-                <p className="mcfly-yoy__vs">{vs}</p>
-              )}
-            </article>
+              <p className="mcfly-yoy__prior">
+                <span>Last year</span>
+                <span>{priorLabel}</span>
+              </p>
+              {vs ? <p className="mcfly-yoy__vs">{vs}</p> : null}
+              <p className="mcfly-kpi__hint">Click for detail</p>
+            </button>
           );
         })}
       </div>
+      {sameWindow ? (
+        <p className="mcfly-yoy__note">{OVERVIEW_YOY_SAME_WINDOW}</p>
+      ) : allMissingPrior ? (
+        <p className="mcfly-yoy__note">{OVERVIEW_YOY_MISSING}</p>
+      ) : null}
     </section>
   );
 }

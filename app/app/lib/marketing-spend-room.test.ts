@@ -76,11 +76,12 @@ describe("Marketing spend room", () => {
     expect(room).not.toContain("CashControlBoard.tsx");
   });
 
-  it("mounts intel-only spend room on Total ROAS, not Spend Upload", () => {
+  it("mounts full spend room on Total ROAS, not Spend Upload", () => {
     const roas = read("../routes/app.roas.tsx");
     expect(roas).toContain("<MarketingSpendRoom");
     expect(roas).toContain('from "../components/MarketingSpendRoom"');
-    expect(roas).toContain("intelOnly");
+    expect(roas).toContain("<CertifiedScoreboard");
+    expect(roas).not.toContain("intelOnly");
     expect(room).toContain("intelOnly = false");
   });
 });
@@ -100,20 +101,19 @@ describe("Total ROAS page", () => {
     expect(roas).toContain("Still loading — not $0");
   });
 
-  it("owns the explorer, dual-close, and spend-only pacing", () => {
+  it("owns the explorer, dual-close, certified chips, and spend-only pacing", () => {
     expect(roas).toContain("<SpendExplorer");
     expect(roas).toContain('basePath="/app/roas"');
     expect(roas).toContain("<DualCloseLine");
+    expect(roas).toContain("<CertifiedScoreboard");
     expect(roas).toContain("<MonthlyPacing");
     expect(roas).toMatch(/monthPace && cashControl && hasSpend/);
   });
 
-  it("keeps L7/L28 intelOnly and does not remount compare or ledger", () => {
+  it("mounts compare and ledger on Total ROAS without a mix pie", () => {
     expect(roas).toContain("<MarketingSpendRoom");
-    expect(roas).toContain("intelOnly");
-    expect(roas).not.toContain("intelOnly={false}");
-    expect(roas).not.toContain("mcfly-spend-room__compare");
-    expect(roas).not.toContain("mcfly-spend-room__ledger");
+    expect(roas).not.toContain("intelOnly");
+    expect(roas).not.toContain("<SpendMixPlan");
   });
 
   it("empty Total ROAS is an em dash, never 0.00×, with a Spend Upload link", () => {

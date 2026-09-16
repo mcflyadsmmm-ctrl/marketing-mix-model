@@ -184,14 +184,14 @@ export const PRODUCT_NOUN = {
   samplePreview: "Sample data",
   samplePreviewOn: "Sample data is on — example numbers, not this shop",
   samplePreviewOffCta: "Switch to Live data",
-  /** Demo page copy when Sample is on — defer to the top toggle */
+  /** Demo page copy when Sample is on — switch lives in Settings */
   samplePreviewOffReviewKicker: "You are viewing Sample data",
   samplePreviewOffReviewTitle: "These are example numbers",
   samplePreviewOffReviewBody:
-    "Use Sample data | Live data at the top of any page to switch. Live data shows this shop’s Shopify sales and the ad spend you add. Hide Sample data in Settings if you never want the example set.",
+    "Switch Sample data | Live data in Settings. Live data shows this shop’s Shopify sales and the ad spend you add. Hide Sample data in Settings if you never want the example set.",
   samplePreviewLiveStore: "You are viewing Live data",
   samplePreviewLiveStoreBody:
-    "This shop’s Shopify sales. Add daily spend on Marketing. Switch to Sample data at the top anytime to try example numbers.",
+    "This shop’s Shopify sales. Add daily spend on Spend Upload. Switch to Sample data in Settings to try example numbers.",
   /** Founder-locked setup path labels (banner + empty-state CTAs) */
   setupAddSpend: "Upload Spend",
   setupSetGoals: "Set Goals",

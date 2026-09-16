@@ -1169,7 +1169,7 @@ export function SpendExplorer({
 
                 {tipBucket && hover ? (
                   <div
-                    className="mcfly-explorer__tip mcfly-explorer__tip--float mcfly-explorer__tip--on mcfly-explorer__tip--compact"
+                    className="mcfly-explorer__tip mcfly-explorer__tip--float mcfly-explorer__tip--on mcfly-explorer__tip--compact mcfly-explorer__tip--scoreboard"
                     role="tooltip"
                     style={{ left: `${tipLeftPct}%`, top: `${tipTopPct}%` }}
                   >

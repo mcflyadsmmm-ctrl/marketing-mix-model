@@ -7,6 +7,9 @@
 **/.react-router
 **/.cache
 **/.turbo
+**/.next
+suite
+course-pack
 agent-logs
 # `site/` is copied into the Fly image and served on public listing URLs.
 docs

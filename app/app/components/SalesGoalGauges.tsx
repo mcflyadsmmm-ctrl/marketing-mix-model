@@ -223,50 +223,53 @@ export function SalesGoalGauges({
     </div>
   );
 
-  if (variant === "book") {
-    return (
-      <section className="mcfly-book" aria-label={heading}>
-        <p className="mcfly-book__lede">
-          {heading} — {muted}
-        </p>
-        {rows}
-        {noGoalsSet ? (
-          <p className="mcfly-book__cta">
-            <s-link href="/app/goals">Grow 10% vs last year · set goals</s-link>
+  switch (variant) {
+    case "book":
+      return (
+        <section className="mcfly-book" aria-label={heading}>
+          <p className="mcfly-book__lede">
+            {heading} — {muted}
           </p>
-        ) : null}
-      </section>
-    );
+          {rows}
+          {noGoalsSet ? (
+            <p className="mcfly-book__cta">
+              <s-link href="/app/goals">Grow 10% vs last year · set goals</s-link>
+            </p>
+          ) : null}
+        </section>
+      );
+    case "inline":
+      return (
+        <div className="mcfly-goal-inline" aria-label={heading}>
+          {rows}
+          {noGoalsSet ? (
+            <p className="mcfly-goal-inline__foot">
+              <s-link href="/app/goals">Set goals</s-link>
+            </p>
+          ) : null}
+        </div>
+      );
+    case "panel":
+      return (
+        <section
+          className="mcfly-panel mcfly-sales-gauges mcfly-sales-gauges--rows"
+          aria-label={heading}
+        >
+          <div className="mcfly-panel__head mcfly-panel__head--tight">
+            <h2>{heading}</h2>
+            <p className="mcfly-panel__muted">{muted}</p>
+          </div>
+          {rows}
+          {noGoalsSet ? (
+            <p className="mcfly-sales-gauges__foot">
+              <s-link href="/app/goals">Grow 10% vs last year · set goals</s-link>
+            </p>
+          ) : null}
+        </section>
+      );
+    default: {
+      const _exhaustive: never = variant;
+      return _exhaustive;
+    }
   }
-
-  if (variant === "inline") {
-    return (
-      <div className="mcfly-goal-inline" aria-label={heading}>
-        {rows}
-        {noGoalsSet ? (
-          <p className="mcfly-goal-inline__foot">
-            <s-link href="/app/goals">Set goals</s-link>
-          </p>
-        ) : null}
-      </div>
-    );
-  }
-
-  return (
-    <section
-      className="mcfly-panel mcfly-sales-gauges mcfly-sales-gauges--rows"
-      aria-label={heading}
-    >
-      <div className="mcfly-panel__head mcfly-panel__head--tight">
-        <h2>{heading}</h2>
-        <p className="mcfly-panel__muted">{muted}</p>
-      </div>
-      {rows}
-      {noGoalsSet ? (
-        <p className="mcfly-sales-gauges__foot">
-          <s-link href="/app/goals">Grow 10% vs last year · set goals</s-link>
-        </p>
-      ) : null}
-    </section>
-  );
 }

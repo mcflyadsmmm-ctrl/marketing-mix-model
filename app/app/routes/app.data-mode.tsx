@@ -1,12 +1,15 @@
-import type { ActionFunctionArgs, HeadersFunction } from "react-router";
+import type {
+  ActionFunctionArgs,
+  HeadersFunction,
+  LoaderFunctionArgs,
+} from "react-router";
 import { redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import {
-  ensureSampleBookThroughToday,
-  setSampleDeskEnabled,
-  setSamplePreviewAllowed,
+  applySampleDeskIntent,
+  isSampleDeskIntent,
 } from "../lib/sample-desk.server";
 
 /** Only allow in-app return paths (embedded Admin). */
@@ -29,8 +32,9 @@ function withGuideParam(path: string, guide: string | null): string {
 }
 
 /**
- * Data-mode switcher for the global Sample | Live toggle.
- * Intents: use-sample | use-real | allow-sample-preview | hide-sample-preview
+ * Data-mode switcher for empty-state CTAs (UseSampleCta).
+ * Settings posts the same intents on /app/settings so Admin never GETs this
+ * blank route (that 200 is a dead page, not a seeded SAMPLE desk).
  *
  * Default export makes this a UI route so a SPA Form POST is encoded as
  * turbo-stream. Callers also use `reloadDocument` so Admin iframe toggles
@@ -40,6 +44,11 @@ export default function DataModeRoute() {
   return null;
 }
 
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  return redirect(`/app/settings${url.search}`);
+};
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const shop = await ensureShop(session.shop);
@@ -48,25 +57,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const intent = String(form.get("intent") ?? "");
   const returnTo = safeAppReturnTo(form.get("returnTo"));
 
-  if (intent === "use-sample") {
-    await ensureSampleBookThroughToday(shop.id);
-    await setSampleDeskEnabled(shop.id, true);
+  if (isSampleDeskIntent(intent)) {
+    await applySampleDeskIntent(shop.id, intent);
+    if (intent === "use-sample") {
+      return redirect(withGuideParam(returnTo, null));
+    }
+    if (intent === "use-real" || intent === "hide-sample-preview") {
+      return redirect(withGuideParam(returnTo, "real"));
+    }
     return redirect(withGuideParam(returnTo, null));
-  }
-
-  if (intent === "use-real") {
-    await setSampleDeskEnabled(shop.id, false);
-    return redirect(withGuideParam(returnTo, "real"));
-  }
-
-  if (intent === "allow-sample-preview") {
-    await setSamplePreviewAllowed(shop.id, true);
-    return redirect(withGuideParam(returnTo, null));
-  }
-
-  if (intent === "hide-sample-preview") {
-    await setSamplePreviewAllowed(shop.id, false);
-    return redirect(withGuideParam(returnTo, "real"));
   }
 
   return redirect(returnTo);

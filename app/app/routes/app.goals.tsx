@@ -56,6 +56,7 @@ import type {
 } from "../lib/sales-goals.server";
 import { getShopEntitlements } from "../lib/entitlements.server";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
+import { BookFactGrid } from "../components/ShopifyBookSection";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 
 type ShopifyToast = {
@@ -687,52 +688,38 @@ export default function GoalsPage() {
               </p>
             </div>
             {periodHasSpend ? (
-              <div className="mcfly-book__rows">
-                <details className="mcfly-book__row">
-                  <summary className="mcfly-book__row-sum">
-                    <span className="mcfly-book__row-k">Spend</span>
-                    <span className="mcfly-book__row-v">
-                      {formatCurrency(periodMetrics.totalSpend)}
-                    </span>
-                  </summary>
-                  <p className="mcfly-book__row-d">
-                    Ad spend you entered for {periodMetrics.period.label}.
-                  </p>
-                </details>
-                {periodMetrics.mer != null ? (
-                  <details className="mcfly-book__row">
-                    <summary className="mcfly-book__row-sum">
-                      <span className="mcfly-book__row-k">
-                        {PRODUCT_NOUN.totalRoas}
-                      </span>
-                      <span className="mcfly-book__row-v">
-                        {formatMer(periodMetrics.mer)}×
-                      </span>
-                    </summary>
-                    <p className="mcfly-book__row-d">
-                      {PRODUCT_NOUN.definition}.{" "}
-                      {periodMerRails.label !== "—"
-                        ? periodMerRails.label
-                        : periodVsTarget != null
-                          ? `${periodVsTarget >= 0 ? "+" : ""}${periodVsTarget.toFixed(2)}× vs target`
-                          : ""}
-                    </p>
-                  </details>
-                ) : null}
-                {periodSpendCeiling != null ? (
-                  <details className="mcfly-book__row">
-                    <summary className="mcfly-book__row-sum">
-                      <span className="mcfly-book__row-k">Spend ceiling</span>
-                      <span className="mcfly-book__row-v">
-                        {formatCurrency(periodSpendCeiling)}
-                      </span>
-                    </summary>
-                    <p className="mcfly-book__row-d">
-                      {impliedSpendCeilingCaption("period_sales", targetMer)}
-                    </p>
-                  </details>
-                ) : null}
-              </div>
+              <BookFactGrid
+                facts={[
+                  {
+                    k: "Spend",
+                    v: formatCurrency(periodMetrics.totalSpend),
+                    d: `Ad spend you entered for ${periodMetrics.period.label}.`,
+                  },
+                  periodMetrics.mer != null
+                    ? {
+                        k: PRODUCT_NOUN.totalRoas,
+                        v: `${formatMer(periodMetrics.mer)}×`,
+                        d: [
+                          PRODUCT_NOUN.definition,
+                          periodMerRails.label !== "—"
+                            ? periodMerRails.label
+                            : periodVsTarget != null
+                              ? `${periodVsTarget >= 0 ? "+" : ""}${periodVsTarget.toFixed(2)}× vs target`
+                              : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" "),
+                      }
+                    : null,
+                  periodSpendCeiling != null
+                    ? {
+                        k: "Spend ceiling",
+                        v: formatCurrency(periodSpendCeiling),
+                        d: impliedSpendCeilingCaption("period_sales", targetMer),
+                      }
+                    : null,
+                ].filter((row): row is NonNullable<typeof row> => row != null)}
+              />
             ) : null}
           </section>
 

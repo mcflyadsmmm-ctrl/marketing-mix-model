@@ -1,36 +1,26 @@
-# Mcfly Ads
-> Two doors · one firm: Mcfly Analytics Shopify desk (sales ÷ spend) + fixed-fee Custom Data Solutions they keep.
+# Mcfly Analytics
+> Shopify app from Mcfly Ads: see ad spend beside Shopify sales, day by day. 7-day trial, then $39/store/mo.
 
 This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.com/robots.txt
-(search=yes, ai-input=yes, ai-train=no). Prefer these URLs over scraping the whole site.
+(search=yes, ai-input=yes, ai-train=no). Prefer these URLs.
 
-## Company
-- https://mcflyads.com/ — Custom-first home · app wedge below
-- https://mcflyads.com/#app-wedge — Shopify app path into custom
+## Product
+- https://mcflyads.com/ — Mcfly Analytics
+- https://mcflyads.com/demo — SAMPLE Overview (spend optional)
+- https://mcflyads.com/pricing — 7-day trial, then $39/store/mo
+- https://mcflyads.com/product — What’s in the desk
+- https://mcflyads.com/mer-calculator — Sales ÷ spend calculator
+- https://mcflyads.com/break-even-roas-calculator — Break-even ≈ 1 ÷ margin
+- https://mcflyads.com/faq — Product FAQ
 - https://mcflyads.com/about — Company / founder
 - https://mcflyads.com/llms-full.txt — Longer citeable summary
 
-## Shopify App
-- https://mcflyads.com/product — Total ROAS desk
-- https://mcflyads.com/monday-close — Monday Close / Export memo
-- https://mcflyads.com/mer-calculator — Free MER calculator (sales ÷ spend)
-- https://mcflyads.com/break-even-roas-calculator — Break-even ≈ 1 ÷ margin
-- https://mcflyads.com/pricing — Free (every platform) · Pro $39/store/mo for LTV + Goals
-- https://mcflyads.com/demo — Sample desk
-- https://mcflyads.com/support — Install / support
-- https://mcflyads.com/triple-whale-alternative — Coexist frame (not a pixel clone)
-
-## Custom Data Solutions
-- https://mcflyads.com/custom-analytics — Fixed-fee $5–25K desks
-- https://mcflyads.com/custom-analytics-engagement — SOW specimen
-- https://mcflyads.com/custom-analytics#inquire — Proposal inquire
-
-## Method
-- https://mcflyads.com/why-pixels-fail — Why we refuse pixels / MTA
-- https://mcflyads.com/cash-mer — MER / Total ROAS glossary
-- https://mcflyads.com/faq — Product + Custom FAQ
-- https://mcflyads.com/platform-variance — Claimed vs banked
-- https://mcflyads.com/security — Security posture
+## Trust
+- https://mcflyads.com/support
+- https://mcflyads.com/privacy
+- https://mcflyads.com/terms
+- https://mcflyads.com/security
 
 ## Refuse
-Pixels, MTA, path credit, view-through, "true ROAS", attribution-suite clones.
+Pixels, MTA, path credit, view-through, “true ROAS.” Live listing: https://apps.shopify.com/mcfly-analytics-public — do not invent a different App Store URL.
+Custom Data Solutions is parked — not the public offer.

@@ -6,6 +6,7 @@ import {
   failJob,
   getQueueDepth,
   reclaimStaleJobs,
+  requeueIncompleteJob,
   type QueueDepth,
 } from "./job-queue.server";
 import {
@@ -18,6 +19,10 @@ import {
 import { RECONCILE_SALES_DAY_JOB, RECOMPUTE_COHORT_FACTS_JOB } from "./order-webhook";
 import { reconcileSalesDayFact } from "./sales-facts.server";
 import { recomputeCohortFacts } from "./order-facts.server";
+import {
+  BACKFILL_ORDER_FACTS_JOB,
+  handleBackfillOrderFacts,
+} from "./job-worker.server";
 import { purgeExpiredWebhookDeliveries } from "./webhook-delivery.server";
 import { purgeExpiredComplianceDataExports } from "./compliance-export-retrieve.server";
 
@@ -85,6 +90,7 @@ async function handleRecomputeCohortFacts(job: ClaimedJob): Promise<void> {
 export const JOB_HANDLERS: Record<string, JobHandler> = {
   [RECONCILE_SALES_DAY_JOB]: handleReconcileSalesDay,
   [RECOMPUTE_COHORT_FACTS_JOB]: handleRecomputeCohortFacts,
+  [BACKFILL_ORDER_FACTS_JOB]: handleBackfillOrderFacts,
 };
 
 export interface QueueTickResult extends JobWorkerTickResult {
@@ -151,6 +157,7 @@ export async function runQueueTick(
       claim: (id) => claimNextJob(id),
       complete: (job, id) => completeJob(job, id),
       fail: (job, id, error, failOptions) => failJob(job, id, error, failOptions),
+      requeue: (job, id) => requeueIncompleteJob(job, id),
       handlers: JOB_HANDLERS,
       log: (message) => console.log(`[queue] ${message}`),
     },

@@ -8,8 +8,13 @@ import {
 } from "./shop-local-day";
 import { formatPeriodQuery, SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
-import { adminGraphqlJson, type GraphqlCost } from "./shopify-graphql-cost.server";
+import {
+  adminGraphqlJson,
+  ORDER_FACT_PAGES_COST_SAFE_CAP,
+  type GraphqlCost,
+} from "./shopify-graphql-cost.server";
 import { orderNetAmount } from "./shopify-sales.server";
+import { enqueueJob } from "./job-queue.server";
 
 /** OrderFact.source for live Shopify ingest — never write sample from this lane. */
 export const ORDER_FACT_SOURCE = "shopify_order_v1";
@@ -25,14 +30,67 @@ export const ORDER_FACT_DAY_COMPLETE_PREFIX = "__day_complete__:";
 /** Max closed shop-local days ingested per `runOrderFactsBackfill` kick. */
 export const ORDER_FACT_MAX_DAYS_PER_RUN = 7;
 
-/** Soft page cap per kick (in addition to day-window chunk). */
-export const ORDER_FACT_MAX_PAGES_PER_RUN = 25;
+/**
+ * Soft page cap per kick (in addition to day-window chunk).
+ * Raised from 25 so a busy closed day (~4k orders) can finish in one kick;
+ * still clamped by {@link ORDER_FACT_PAGES_COST_SAFE_CAP} (never unbounded).
+ */
+export const ORDER_FACT_MAX_PAGES_PER_RUN = 40;
+
+/** Queue type: resume a truncated OrderFact crawl on the next worker tick. */
+export const BACKFILL_ORDER_FACTS_JOB = "backfill_order_facts";
+
+/**
+ * Sentinel `OrderBackfillState.cursor` prefix: GraphQL page resume for a
+ * shop-local day that hit the page cap. Distinct from a completed-day key.
+ */
+export const ORDER_FACT_PAGE_CURSOR_PREFIX = "__page__:";
 
 const DAY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Marker id written when a shop-local day crawl finishes (not page-capped). */
 export function orderFactDayCompleteMarkerId(dayKey: string): string {
   return `${ORDER_FACT_DAY_COMPLETE_PREFIX}${dayKey}`;
+}
+
+/** Persist GraphQL pagination so the next kick continues a truncated day. */
+export function orderFactPageCursorMarker(
+  dayKey: string,
+  graphqlCursor: string,
+): string {
+  return `${ORDER_FACT_PAGE_CURSOR_PREFIX}${dayKey}:${graphqlCursor}`;
+}
+
+/** Parse a `__page__:YYYY-MM-DD:<graphqlCursor>` resume token. */
+export function parseOrderFactPageCursor(
+  raw: string | null | undefined,
+): { dayKey: string; graphqlCursor: string } | null {
+  if (!raw || !raw.startsWith(ORDER_FACT_PAGE_CURSOR_PREFIX)) return null;
+  const rest = raw.slice(ORDER_FACT_PAGE_CURSOR_PREFIX.length);
+  const match = /^(\d{4}-\d{2}-\d{2}):(.+)$/.exec(rest);
+  const dayKey = match?.[1];
+  const graphqlCursor = match?.[2];
+  if (!dayKey || !graphqlCursor) return null;
+  return { dayKey, graphqlCursor };
+}
+
+/**
+ * A day is sealed complete only when the crawl finished every GraphQL page.
+ * Page-capped or history-denied days stay unsealed so the next kick retries.
+ */
+export function shouldSealOrderFactDay(flags: {
+  truncated: boolean;
+  historyLimited: boolean;
+  hasMorePages: boolean;
+}): boolean {
+  return !flags.truncated && !flags.historyLimited && !flags.hasMorePages;
+}
+
+/** Clamp a kick's page budget — never unbounded, never above the cost-safe cap. */
+export function resolveOrderFactMaxPages(raw?: number): number {
+  const n = raw ?? ORDER_FACT_MAX_PAGES_PER_RUN;
+  if (!Number.isFinite(n) || n <= 0) return ORDER_FACT_MAX_PAGES_PER_RUN;
+  return Math.min(Math.floor(n), ORDER_FACT_PAGES_COST_SAFE_CAP);
 }
 
 /**
@@ -55,6 +113,18 @@ export async function clearOrderFactDayCompleteSeal(
       shopifyOrderId: orderFactDayCompleteMarkerId(dayKey),
     },
   });
+  // Refunds during a truncated crawl must restart the day, not resume mid-page.
+  const state = await prisma.orderBackfillState.findUnique({
+    where: { shopId },
+    select: { cursor: true },
+  });
+  const resume = parseOrderFactPageCursor(state?.cursor);
+  if (resume?.dayKey === dayKey) {
+    await prisma.orderBackfillState.updateMany({
+      where: { shopId },
+      data: { cursor: null },
+    });
+  }
   return result.count;
 }
 
@@ -195,6 +265,9 @@ export interface OrderFactBackfillResult {
   skippedReason: "no_timezone" | null;
   lastError: string | null;
   touchedMonths: string[];
+  /** True when a closed day hit the page cap — not sealed, next tick retries. */
+  truncated: boolean;
+  truncatedDay: string | null;
 }
 
 function dayKeyToUtcDate(dayKey: string): Date {
@@ -365,6 +438,24 @@ async function ensureBackfillState(shopId: string) {
   });
 }
 
+/** Coalesce one OrderFact backfill job per shop so the next tick resumes. */
+async function enqueueTruncatedOrderFactsRetry(
+  shopId: string,
+  truncatedDay: string,
+): Promise<void> {
+  try {
+    await enqueueJob({
+      shopId,
+      type: BACKFILL_ORDER_FACTS_JOB,
+      dedupeKey: shopId,
+      payload: { reason: "truncated_page_cap", day: truncatedDay },
+      maxAttempts: 40,
+    });
+  } catch {
+    // Queue is best-effort — page-load kicks still resume via `__page__` cursor.
+  }
+}
+
 /**
  * Recompute CohortFact rows for the given months (or all months present in OrderFact
  * when `months` is empty) from stored OrderFacts for this shop.
@@ -438,6 +529,7 @@ async function fetchOrdersForDay(
   dayKey: string,
   timeZone: string,
   maxPages: number,
+  afterCursor: string | null = null,
 ): Promise<{
   rows: OrderFactRow[];
   pages: number;
@@ -445,6 +537,9 @@ async function fetchOrdersForDay(
   error: string | null;
   /** False when page-capped mid-day — do not mark the day complete. */
   complete: boolean;
+  truncated: boolean;
+  /** GraphQL `after` cursor for the next kick; null when there is nothing to resume. */
+  resumeCursor: string | null;
 }> {
   const range = shopLocalDayRange(dayKey, timeZone);
   const query = formatPeriodQuery({
@@ -453,7 +548,7 @@ async function fetchOrdersForDay(
     label: dayKey,
   });
   const rows: OrderFactRow[] = [];
-  let cursor: string | null = null;
+  let cursor: string | null = afterCursor;
   let pages = 0;
   let historyLimited = false;
   let error: string | null = null;
@@ -517,9 +612,15 @@ async function fetchOrdersForDay(
       });
     }
 
-    cursor = orders.pageInfo?.hasNextPage
-      ? (orders.pageInfo.endCursor ?? null)
-      : null;
+    const hasNext = Boolean(orders.pageInfo?.hasNextPage);
+    const endCursor = orders.pageInfo?.endCursor ?? null;
+    if (hasNext && !endCursor) {
+      // Cannot resume and must not seal an incomplete day as $0/complete.
+      truncated = true;
+      cursor = null;
+      break;
+    }
+    cursor = hasNext ? endCursor : null;
   } while (cursor);
 
   return {
@@ -527,7 +628,13 @@ async function fetchOrdersForDay(
     pages,
     historyLimited,
     error,
-    complete: !truncated && !historyLimited && cursor == null,
+    truncated,
+    resumeCursor: truncated && cursor ? cursor : null,
+    complete: shouldSealOrderFactDay({
+      truncated,
+      historyLimited,
+      hasMorePages: cursor != null,
+    }),
   };
 }
 
@@ -539,10 +646,11 @@ async function fetchOrdersForDay(
 export async function runOrderFactsBackfill(
   admin: AdminApiContext,
   shopId: string,
-  options?: { maxDays?: number; now?: Date },
+  options?: { maxDays?: number; now?: Date; maxPages?: number; enqueueRetry?: boolean },
 ): Promise<OrderFactBackfillResult> {
   const now = options?.now ?? new Date();
   const maxDays = options?.maxDays ?? ORDER_FACT_MAX_DAYS_PER_RUN;
+  const maxPages = resolveOrderFactMaxPages(options?.maxPages);
   const ranAt = now.toISOString();
 
   const metadata = await ensureShopMetadata(admin, shopId);
@@ -557,6 +665,8 @@ export async function runOrderFactsBackfill(
       skippedReason: "no_timezone",
       lastError: null,
       touchedMonths: [],
+      truncated: false,
+      truncatedDay: null,
     };
   }
 
@@ -591,7 +701,13 @@ export async function runOrderFactsBackfill(
     ),
   );
   const missing = windowDayKeys.filter((k) => !existingKeys.has(k));
-  const batch = missing.slice(0, maxDays);
+  const resume = parseOrderFactPageCursor(state.cursor);
+  const resumeDay =
+    resume && missing.includes(resume.dayKey) ? resume.dayKey : null;
+  const orderedMissing = resumeDay
+    ? [resumeDay, ...missing.filter((k) => k !== resumeDay)]
+    : missing;
+  const batch = orderedMissing.slice(0, maxDays);
 
   await prisma.orderBackfillState.update({
     where: { shopId },
@@ -609,13 +725,27 @@ export async function runOrderFactsBackfill(
   let pages = 0;
   let lastError: string | null = null;
   let lastCompletedDay: string | null = state.cursor;
-  let pagesLeft = ORDER_FACT_MAX_PAGES_PER_RUN;
+  let pagesLeft = maxPages;
   let wroteAnyOrders = false;
+  let truncatedDay: string | null = null;
+  let pageCursorToStore: string | null = null;
 
   for (const dayKey of batch) {
     if (pagesLeft <= 0) break;
+    const afterCursor =
+      resumeDay === dayKey &&
+      resume?.graphqlCursor &&
+      resume.graphqlCursor !== "retry"
+        ? resume.graphqlCursor
+        : null;
     try {
-      const result = await fetchOrdersForDay(admin, dayKey, timeZone, pagesLeft);
+      const result = await fetchOrdersForDay(
+        admin,
+        dayKey,
+        timeZone,
+        pagesLeft,
+        afterCursor,
+      );
       pages += result.pages;
       pagesLeft -= result.pages;
       if (result.historyLimited) {
@@ -647,6 +777,12 @@ export async function runOrderFactsBackfill(
           ORDER_FACT_SOURCE,
         );
         lastCompletedDay = dayKey;
+      } else if (result.truncated) {
+        truncatedDay = dayKey;
+        pageCursorToStore = result.resumeCursor
+          ? orderFactPageCursorMarker(dayKey, result.resumeCursor)
+          : orderFactPageCursorMarker(dayKey, "retry");
+        break;
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -671,10 +807,14 @@ export async function runOrderFactsBackfill(
       status: "idle",
       historyLimited,
       lastError,
-      cursor: lastCompletedDay,
+      cursor: pageCursorToStore ?? lastCompletedDay,
       updatedAt: now,
     },
   });
+
+  if (truncatedDay && options?.enqueueRetry !== false) {
+    await enqueueTruncatedOrderFactsRetry(shopId, truncatedDay);
+  }
 
   return {
     shopId,
@@ -686,6 +826,8 @@ export async function runOrderFactsBackfill(
     skippedReason: null,
     lastError,
     touchedMonths,
+    truncated: truncatedDay != null,
+    truncatedDay,
   };
 }
 
@@ -742,6 +884,9 @@ export type OrderBackfillProgress = {
   remainingDays: number;
   historyLimited: boolean;
   status: string;
+  /** Closed-day OrderFact crawl hit the page cap — not sealed, not $0. */
+  truncated: boolean;
+  truncatedDay: string | null;
 };
 
 /**
@@ -757,7 +902,7 @@ export async function getOrderBackfillProgress(
   const now = options.now ?? new Date();
   const state = await prisma.orderBackfillState.findUnique({
     where: { shopId },
-    select: { historyLimited: true, status: true },
+    select: { historyLimited: true, status: true, cursor: true },
   });
   const historyLimited = state?.historyLimited ?? false;
   const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
@@ -783,12 +928,15 @@ export async function getOrderBackfillProgress(
   });
   const completeDays = completeMarkers.length;
   const windowDays = windowDayKeys.length;
+  const resume = parseOrderFactPageCursor(state?.cursor);
   return {
     completeDays,
     windowDays,
     remainingDays: Math.max(0, windowDays - completeDays),
     historyLimited,
     status: state?.status ?? "idle",
+    truncated: resume != null,
+    truncatedDay: resume?.dayKey ?? null,
   };
 }
 

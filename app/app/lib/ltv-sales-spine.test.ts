@@ -55,6 +55,7 @@ describe("LTV sales spine (HARD-STOP)", () => {
     expect(ltvSource).toContain("not $0 LTV");
     expect(ltvSource).not.toContain("Free shows the available window");
     expect(ltvSource).toContain("getOrderBackfillProgress");
+    expect(ltvSource).toContain("orderFactsTruncated");
     expect(ltvSource).toContain("ORDER_FACT_MAX_DAYS_PER_RUN");
     expect(ltvSource).toContain("until you confirm in Settings");
   });
@@ -103,6 +104,28 @@ describe("LTV tab vs Shopify Analytics", () => {
   it("pending and empty order history is not $0 LTV", () => {
     expect(ltvSource).toContain("not $0 LTV");
     expect(ltvSource).toContain("Orders still syncing — not $0");
+  });
+
+  it("does not paint First year as a complete dollar when historyLimited", () => {
+    expect(ltvSource).toMatch(
+      /if \(ltv\.historyLimited\) \{[\s\S]*k: "First year"[\s\S]*v: "—"[\s\S]*keepDash: true/,
+    );
+    expect(ltvSource).toMatch(/else if \(isNum\(ltv\.avgRevenueD365\)\)/);
+    expect(ltvSource).toContain("d365 != null && !ltv.historyLimited");
+  });
+
+  it("passes truncated today and the ~60-day order window into DeskBookPage", () => {
+    expect(ltvSource).toContain(
+      "todaySalesTruncated={!useSampleDesk && todaySalesTruncated}",
+    );
+    expect(ltvSource).toContain(
+      "todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}",
+    );
+    expect(ltvSource).toContain(
+      "shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}",
+    );
+    expect(ltvSource).toContain("periodMayExceedShopifyOrderWindow(range)");
+    expect(ltvSource).toContain("includeShopifyOrderWindow: true");
   });
 
   it("does not mount SpendExplorer", () => {

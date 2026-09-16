@@ -27,7 +27,7 @@ Hosted Fly URL only (`https://mcfly-analytics.fly.dev`). Never App URL = marketi
 
 ## Pricing honesty
 
-Listing + in-app + site must match **Shopify App Pricing: Free + Pro $39/store/mo**. Never claim Free-only while Upgrade charges. Upgrade must exit the embed (`open(_, "_top")` / GET `/app/billing` HTML bounce) — never load `admin.shopify.com` inside the app iframe (2.1.1). Testing credentials: check “My app doesn't require an account to use it” — see `docs/PARTNER_TESTING_INSTRUCTIONS.md`.
+Listing + in-app + site must match **Shopify App Pricing: one plan $39 + 7-day trial, no Free plan**. Never claim a Free plan exists. Never claim Free-only while the trial converts to $39. Partner plan name is **Mcfly Analytics**, not Pro. Upgrade / Start trial must exit the embed (`open(_, "_top")` / GET `/app/billing` HTML bounce) — never load `admin.shopify.com` inside the app iframe (2.1.1). Testing credentials: check “My app doesn't require an account to use it” — see `docs/PARTNER_TESTING_INSTRUCTIONS.md`.
 
 ## Webhooks
 

@@ -1,6 +1,7 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
+import { BookFactGrid } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
@@ -35,6 +36,10 @@ export default function CpaPage() {
   const cashCpa = cashCostPerCustomer(metrics.totalSpend, identifiedBuyers);
   const cashCac = metrics.tillLtv.cashCac;
   const amer = metrics.amer;
+  const spendPerNew = cashCostPerCustomer(
+    metrics.totalSpend,
+    metrics.newCustomers,
+  );
 
   return (
     <DeskBookPage
@@ -55,35 +60,30 @@ export default function CpaPage() {
           </p>
         ) : null}
 
-        <div className="mcfly-book__glance mcfly-book__glance--kpis">
-          <div className="mcfly-book__kpi">
-            <p className="mcfly-book__kpi-k">Cash CPA</p>
-            <p className="mcfly-book__kpi-v">
-              {hasSpend && cashCpa != null ? formatCurrency(cashCpa) : "—"}
-            </p>
-            <p className="mcfly-book__kpi-hint">
-              Spend ÷ identified buyers · {metrics.period.label}
-            </p>
-          </div>
-          <div className="mcfly-book__kpi">
-            <p className="mcfly-book__kpi-k">Cash CAC</p>
-            <p className="mcfly-book__kpi-v">
-              {hasSpend && cashCac != null ? formatCurrency(cashCac) : "—"}
-            </p>
-            <p className="mcfly-book__kpi-hint">
-              {PRODUCT_NOUN.cashCacDef} · {metrics.period.label}
-            </p>
-          </div>
-          <div className="mcfly-book__kpi">
-            <p className="mcfly-book__kpi-k">{PRODUCT_NOUN.amer}</p>
-            <p className="mcfly-book__kpi-v">
-              {amer != null && amer > 0 ? `${formatMer(amer)}×` : "—"}
-            </p>
-            <p className="mcfly-book__kpi-hint">
-              {PRODUCT_NOUN.amerDef} · {metrics.period.label}
-            </p>
-          </div>
-        </div>
+        <BookFactGrid
+          facts={[
+            {
+              k: "Cash CPA",
+              v:
+                hasSpend && cashCpa != null ? formatCurrency(cashCpa) : "—",
+              d: `Spend ÷ identified buyers · ${metrics.period.label}`,
+              keepDash: true,
+            },
+            {
+              k: "Cash CAC",
+              v:
+                hasSpend && cashCac != null ? formatCurrency(cashCac) : "—",
+              d: `${PRODUCT_NOUN.cashCacDef} · ${metrics.period.label}`,
+              keepDash: true,
+            },
+            {
+              k: PRODUCT_NOUN.amer,
+              v: amer != null && amer > 0 ? `${formatMer(amer)}×` : "—",
+              d: `${PRODUCT_NOUN.amerDef} · ${metrics.period.label}`,
+              keepDash: true,
+            },
+          ]}
+        />
 
         {hasSpend && identifiedBuyers === 0 ? (
           <p className="mcfly-book__lede">
@@ -92,11 +92,42 @@ export default function CpaPage() {
           </p>
         ) : null}
 
-        {metrics.tillLtv.paybackDays != null ? (
-          <p className="mcfly-book__lede">
-            Customer payback: recovered in about {metrics.tillLtv.paybackDays}{" "}
-            days on average.
-          </p>
+        {(hasSpend ||
+          identifiedBuyers > 0 ||
+          metrics.tillLtv.paybackDays != null) ? (
+          <BookFactGrid
+            facts={[
+              hasSpend
+                ? {
+                    k: "Spend this period",
+                    v: formatCurrency(metrics.totalSpend),
+                    d: `Typed spend in ${metrics.period.label}. Shopify Analytics has no spend ledger.`,
+                  }
+                : null,
+              identifiedBuyers > 0
+                ? {
+                    k: "Identified buyers",
+                    v: identifiedBuyers.toLocaleString(),
+                    s: `New ${metrics.newCustomers.toLocaleString()} · returning ${metrics.returningCustomers.toLocaleString()}`,
+                    d: "Identified new + returning buyers in this window.",
+                  }
+                : null,
+              hasSpend && spendPerNew != null
+                ? {
+                    k: "Spend per new customer",
+                    v: formatCurrency(spendPerNew),
+                    d: "Typed spend ÷ first-time buyers in this window. An average, not a platform CPA.",
+                  }
+                : null,
+              metrics.tillLtv.paybackDays != null
+                ? {
+                    k: "Customer payback",
+                    v: `${metrics.tillLtv.paybackDays}d`,
+                    d: `Recovered in about ${metrics.tillLtv.paybackDays} days on average from order history.`,
+                  }
+                : null,
+            ].filter((row): row is NonNullable<typeof row> => row != null)}
+          />
         ) : null}
       </section>
 
