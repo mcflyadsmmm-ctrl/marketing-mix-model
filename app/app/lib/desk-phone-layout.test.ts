@@ -1,0 +1,93 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const here = dirname(fileURLToPath(import.meta.url));
+
+function read(rel: string) {
+  return readFileSync(join(here, rel), "utf8");
+}
+
+const PHONE_MARK = "P0 phone / Admin-iframe narrow";
+
+function lastBlock(css: string, mark: string): string {
+  const start = css.lastIndexOf(mark);
+  expect(start).toBeGreaterThan(-1);
+  return css.slice(start);
+}
+
+describe("Admin desk phone / narrow iframe", () => {
+  const css = read("../styles/mcfly-desk.css");
+  const phone = lastBlock(css, PHONE_MARK);
+
+  it("keeps 11 analysis tabs + Settings and does not invent a 12th tab", () => {
+    const nav = read("./desk-nav.ts");
+    const tabs = read("../components/DeskTopTabs.tsx");
+    expect(nav).toContain("DESK_PRIMARY_NAV");
+    expect(tabs).toContain("DESK_SHOPIFY_NAV");
+    expect(tabs).toContain("DESK_SPEND_NAV");
+    expect(tabs).toContain("DESK_COMPARE_NAV");
+    expect(tabs).not.toContain("label: \"Reviews\"");
+    expect(tabs).not.toContain("label=\"Ads\"");
+  });
+
+  it("stacks primary KPIs and YoY at 430px so $82,068 cannot sit in a 3-up crush", () => {
+    expect(phone).toMatch(/@media \(max-width: 430px\)/);
+    expect(phone).toContain(".mcfly-kpi-grid");
+    expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
+    expect(phone).toContain(".mcfly-yoy__grid");
+    expect(phone).toMatch(
+      /\.mcfly-kpi-grid[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+    );
+    expect(css).toContain("grid-template-columns: repeat(3, minmax(0, 1fr))");
+    expect(css).toContain("@media (max-width: 430px)");
+    expect(css).not.toMatch(
+      /@media \(max-width: 420px\) \{\s*\n\s*\.mcfly-kpi-board/,
+    );
+  });
+
+  it("makes the 11-tab rail a one-line scroll per group, not page overflow", () => {
+    expect(phone).toMatch(/@media \(max-width: 640px\)/);
+    expect(phone).toContain(".mcfly-desk-tabs");
+    expect(phone).toContain("flex-direction: column");
+    expect(phone).toContain(".mcfly-desk-tabs__pills");
+    expect(phone).toContain("overflow-x: auto");
+    expect(phone).toContain("flex-wrap: nowrap");
+    expect(phone).toContain("min-height: 2.75rem");
+  });
+
+  it("sizes Spend day, Sample, Retry, and primary CTAs for a finger", () => {
+    expect(phone).toContain(".mcfly-spend-row");
+    expect(phone).toContain(".mcfly-data-mode__btn");
+    expect(phone).toContain(".mcfly-state__cta");
+    expect(phone).toContain(".mcfly-decision__verb");
+    expect(phone).toContain(".mcfly-btn");
+    const spend = phone.slice(phone.indexOf(".mcfly-spend-row"));
+    expect(spend).toContain("min-height: 2.75rem");
+  });
+
+  it("ships a 390px fixture with Harbor SAMPLE dollars and the 11-tab rail", () => {
+    const fixture = read("./desk-phone-fixture.html");
+    expect(fixture).toContain("$82,068");
+    expect(fixture).toContain("3.51×");
+    expect(fixture).toContain("Overview");
+    expect(fixture).toContain("Channel Allocation");
+    expect(fixture).toContain("Spend Upload");
+    expect(fixture).toContain("Retry");
+    expect(fixture).toContain("Switch to Live data now");
+    expect(fixture).not.toContain("$98,500");
+    expect(fixture).not.toMatch(/>—</);
+  });
+
+  it("keeps chart/table horizontal scroll inside those regions", () => {
+    expect(phone).toContain(".mcfly-chart");
+    expect(phone).toContain(".mcfly-goals-table-wrap");
+    expect(phone).toContain(".mcfly-ltv-dive__table-wrap");
+    expect(phone).toContain("-webkit-overflow-scrolling: touch");
+    const spineStart = css.indexOf(".mcfly-me-spine {");
+    const spineEnd = css.indexOf("}", spineStart);
+    expect(css.slice(spineStart, spineEnd + 1)).toContain("overflow: visible");
+    expect(css.slice(spineStart, spineEnd + 1)).not.toContain("overflow-x:");
+  });
+});

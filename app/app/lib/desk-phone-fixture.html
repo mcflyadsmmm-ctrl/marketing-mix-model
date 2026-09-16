@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Desk phone fixture — Mcfly Analytics</title>
+  <link rel="stylesheet" href="../styles/mcfly-desk.css" />
+  <style>
+    body { margin: 0; background: #f6f6f7; font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif; }
+    .fixture-note { margin: 0; padding: 0.5rem 0.75rem; font-size: 0.75rem; color: #5a6f85; }
+  </style>
+</head>
+<body>
+  <p class="fixture-note">Static Admin-desk fixture for 390×844 / 430px. SAMPLE Harbor dollars.</p>
+
+  <div class="mcfly-data-mode mcfly-data-mode--sample" role="status">
+    <p class="mcfly-data-mode__status">
+      <strong>SAMPLE data</strong>
+      <span aria-hidden="true"> · </span>
+      Harbor example numbers — not this shop.
+      <span aria-hidden="true"> · </span>
+      <a href="#settings">Switch in Settings</a>
+    </p>
+  </div>
+
+  <nav class="mcfly-desk-tabs" aria-label="Desk pages">
+    <div class="mcfly-desk-tabs__group">
+      <p class="mcfly-desk-tabs__k">Shopify</p>
+      <div class="mcfly-desk-tabs__pills" role="tablist" aria-label="Shopify">
+        <a class="mcfly-desk-tabs__pill mcfly-desk-tabs__pill--on" role="tab" aria-selected="true" href="#overview">Overview</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#customers">Customers</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#growth">Growth</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#orders">Orders</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#ltv">LTV</a>
+      </div>
+    </div>
+    <div class="mcfly-desk-tabs__group">
+      <p class="mcfly-desk-tabs__k">Spend</p>
+      <div class="mcfly-desk-tabs__pills" role="tablist" aria-label="Spend">
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#spend">Spend Upload</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#roas">Total ROAS</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#alloc">Channel Allocation</a>
+      </div>
+    </div>
+    <div class="mcfly-desk-tabs__group">
+      <p class="mcfly-desk-tabs__k">Compare</p>
+      <div class="mcfly-desk-tabs__pills" role="tablist" aria-label="Compare">
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#yoy">YoY</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#cpa">CPA</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#goals">Goals</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mcfly-desk">
+    <div class="mcfly-ctx">
+      <div class="mcfly-ctx__main">
+        <span class="mcfly-ctx__brand">Harbor Home Co</span>
+        <span class="mcfly-ctx__sep" aria-hidden="true">·</span>
+        <span class="mcfly-ctx__asof">Sep 1–16, 2026</span>
+      </div>
+      <div class="mcfly-ctx__chips">
+        <span class="mcfly-ctx-chip mcfly-ctx-chip--fresh">SAMPLE</span>
+      </div>
+    </div>
+
+    <section class="mcfly-yoy" aria-label="Sales versus last year">
+      <p class="mcfly-yoy__lede">Shopify Analytics shows this period’s sales. This page shows last year next to it.</p>
+      <div class="mcfly-yoy__grid">
+        <article class="mcfly-yoy__card">
+          <p class="mcfly-yoy__k">This month</p>
+          <p class="mcfly-yoy__v">$82,068</p>
+          <p class="mcfly-yoy__prior"><span>Last year</span><span>$73,410</span></p>
+          <p class="mcfly-yoy__vs">+$8,658 · +12%</p>
+        </article>
+        <article class="mcfly-yoy__card">
+          <p class="mcfly-yoy__k">This quarter</p>
+          <p class="mcfly-yoy__v">$246,210</p>
+          <p class="mcfly-yoy__prior"><span>Last year</span><span>$221,040</span></p>
+          <p class="mcfly-yoy__vs">+$25,170 · +11%</p>
+        </article>
+        <article class="mcfly-yoy__card">
+          <p class="mcfly-yoy__k">This year</p>
+          <p class="mcfly-yoy__v">$718,420</p>
+          <p class="mcfly-yoy__prior"><span>Last year</span><span>$649,810</span></p>
+          <p class="mcfly-yoy__vs">+$68,610 · +11%</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="mcfly-score" aria-label="Shopify sales this period">
+      <section class="mcfly-decision">
+        <p class="mcfly-decision__kicker">What to notice</p>
+        <p class="mcfly-decision__takeaway">Typical order around $92. Returning buyers carry 35% of sales.</p>
+        <p class="mcfly-decision__why">This month SAMPLE: 892 orders and $82,068 sales. Spend is optional.</p>
+        <div class="mcfly-decision__actions">
+          <a class="mcfly-decision__verb" href="#orders">Open Orders</a>
+          <a class="mcfly-decision__link" href="#settings">Example spend · switch to Live</a>
+        </div>
+      </section>
+
+      <div class="mcfly-kpi-grid mcfly-kpi-grid--with-roas">
+        <button type="button" class="mcfly-kpi mcfly-kpi--lead mcfly-kpi--drill">
+          <span class="mcfly-kpi__label">Total Sales</span>
+          <span class="mcfly-kpi__value">$82,068</span>
+          <span class="mcfly-kpi__sub">Shopify orders · returns included</span>
+          <span class="mcfly-kpi__delta">+$8,658 vs last year</span>
+          <span class="mcfly-kpi__hint">Click for detail</span>
+        </button>
+        <button type="button" class="mcfly-kpi mcfly-kpi--ok mcfly-kpi--drill">
+          <span class="mcfly-kpi__label">Total ROAS</span>
+          <span class="mcfly-kpi__value">3.51×</span>
+          <span class="mcfly-kpi__formula">Sales ÷ entered spend</span>
+          <span class="mcfly-kpi__hint">Click for detail</span>
+        </button>
+        <button type="button" class="mcfly-kpi mcfly-kpi--drill">
+          <span class="mcfly-kpi__label">Typical order</span>
+          <span class="mcfly-kpi__value">$92</span>
+          <span class="mcfly-kpi__sub">Median. Shopify Analytics uses the average.</span>
+          <span class="mcfly-kpi__hint">Click for detail</span>
+        </button>
+      </div>
+
+      <div class="mcfly-compact">
+        <article class="mcfly-compact__cell"><p class="mcfly-compact__label">Orders</p><p class="mcfly-compact__value">892</p></article>
+        <article class="mcfly-compact__cell"><p class="mcfly-compact__label">New customers</p><p class="mcfly-compact__value">312</p></article>
+        <article class="mcfly-compact__cell"><p class="mcfly-compact__label">Returning</p><p class="mcfly-compact__value">$28,724</p></article>
+        <article class="mcfly-compact__cell"><p class="mcfly-compact__label">Typical order</p><p class="mcfly-compact__value">$92</p></article>
+      </div>
+    </section>
+
+    <section class="mcfly-chart" aria-label="Sales by weekday">
+      <div class="mcfly-chart__head">
+        <p class="mcfly-chart__title">Sales by weekday</p>
+      </div>
+      <div class="mcfly-chart__days">
+        <button type="button" class="mcfly-chart__day"><span class="mcfly-chart__day-bar" style="height:40%"></span><span class="mcfly-chart__day-k">Mon</span><span class="mcfly-chart__day-v">$9,210</span></button>
+        <button type="button" class="mcfly-chart__day"><span class="mcfly-chart__day-bar" style="height:55%"></span><span class="mcfly-chart__day-k">Tue</span><span class="mcfly-chart__day-v">$11,040</span></button>
+        <button type="button" class="mcfly-chart__day"><span class="mcfly-chart__day-bar" style="height:70%"></span><span class="mcfly-chart__day-k">Wed</span><span class="mcfly-chart__day-v">$13,880</span></button>
+        <button type="button" class="mcfly-chart__day"><span class="mcfly-chart__day-bar" style="height:48%"></span><span class="mcfly-chart__day-k">Thu</span><span class="mcfly-chart__day-v">$10,120</span></button>
+        <button type="button" class="mcfly-chart__day"><span class="mcfly-chart__day-bar" style="height:90%"></span><span class="mcfly-chart__day-k">Fri</span><span class="mcfly-chart__day-v">$16,410</span></button>
+        <button type="button" class="mcfly-chart__day"><span class="mcfly-chart__day-bar" style="height:62%"></span><span class="mcfly-chart__day-k">Sat</span><span class="mcfly-chart__day-v">$12,208</span></button>
+        <button type="button" class="mcfly-chart__day"><span class="mcfly-chart__day-bar" style="height:38%"></span><span class="mcfly-chart__day-k">Sun</span><span class="mcfly-chart__day-v">$9,200</span></button>
+      </div>
+    </section>
+
+    <section class="mcfly-panel" aria-label="Spend day">
+      <h2>Spend day</h2>
+      <div class="mcfly-spend-row">
+        <span class="mcfly-spend-dot mcfly-spend-dot--meta"></span>
+        <span class="mcfly-spend-row__channel">Meta</span>
+        <span class="mcfly-spend-row__amount">$420</span>
+        <span class="mcfly-spend-row__range">Sep 15</span>
+        <span class="mcfly-spend-badge">day</span>
+      </div>
+    </section>
+
+    <section class="mcfly-state mcfly-state--critical" aria-label="Sales load error">
+      <p class="mcfly-state__copy">Sales didn’t load. Retry to see this shop’s orders.</p>
+      <div class="mcfly-state__cta">
+        <a class="mcfly-btn mcfly-btn--primary" href="#retry">Retry</a>
+      </div>
+    </section>
+
+    <section class="mcfly-panel" id="settings" aria-label="Sample data">
+      <h2>Sample data</h2>
+      <div class="mcfly-decision__actions">
+        <button type="button" class="mcfly-btn mcfly-btn--secondary">Switch to Live data now</button>
+        <button type="button" class="mcfly-btn mcfly-btn--tertiary">Live data only — hide Sample data</button>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
