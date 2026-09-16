@@ -24,6 +24,16 @@ function chrome(rel: string) {
 }
 
 describe("Sample data | Live data UX", () => {
+  it("desk paint uses SAMPLE USD when Sample is on so Harbor dollars are not —", () => {
+    const shell = read("../routes/app.tsx");
+    expect(shell).toContain("deskPaintCurrency");
+    expect(shell).toContain("sampleOn: useSampleDesk");
+    expect(shell).not.toContain('parseShopCurrencyCode(shop.currencyCode) ?? ""');
+    const money = read("spend-money.ts");
+    expect(money).toContain("SAMPLE_DESK_CURRENCY = \"USD\"");
+    expect(money).toContain("if (opts.sampleOn) return SAMPLE_DESK_CURRENCY");
+  });
+
   it("shot mode still labels Sample data (App Store 1.1.4)", () => {
     const bar = read("../components/DataModeBar.tsx");
     expect(bar).toContain("shotMode");
@@ -85,6 +95,7 @@ describe("Sample data | Live data UX", () => {
     const sampleDesk = read("sample-desk.server.ts");
     expect(sampleDesk).toContain("ensureSampleBookThroughToday");
     expect(sampleDesk).toContain("applySampleDeskIntent");
+    expect(sampleDesk).toContain("sampleBookIsPaintable");
     expect(sampleDesk).not.toContain("SAMPLE_SEED_TX");
     expect(sampleDesk).not.toContain("timeout: 120_000");
     expect(sampleDesk).toContain("sampleSeedInFlight");

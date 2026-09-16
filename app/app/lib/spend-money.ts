@@ -20,6 +20,21 @@ export function shopCurrencyCode(code: string | null | undefined): string {
   return parseShopCurrencyCode(code) ?? "USD";
 }
 
+/** SAMPLE book is USD. Live paint never invents this when the shop ISO is missing. */
+export const SAMPLE_DESK_CURRENCY = "USD";
+
+/**
+ * Desk paint code. SAMPLE always uses the Harbor book ISO so dollars cannot
+ * collapse to —. Live keeps Wave 4 honesty: missing/invalid shop ISO → "".
+ */
+export function deskPaintCurrency(
+  shopCode: string | null | undefined,
+  opts: { sampleOn: boolean },
+): string {
+  if (opts.sampleOn) return SAMPLE_DESK_CURRENCY;
+  return parseShopCurrencyCode(shopCode) ?? "";
+}
+
 /** Round to cents so Float/Decimal writes don't drift (0.1 + 0.2). */
 export function roundMoney(amount: number): number {
   if (!Number.isFinite(amount)) return 0;

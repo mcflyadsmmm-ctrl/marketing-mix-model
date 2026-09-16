@@ -2348,3 +2348,80 @@ body.dd-drawer-open {
     padding-right: 0.25rem;
   }
 }
+
+/* Harbor Overview YoY glance — Shopify-five first */
+.dd-yoy {
+  margin: 0 0 1rem;
+}
+
+.dd-yoy__lede {
+  margin: 0 0 0.7rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--dd-ink-soft);
+}
+
+.dd-yoy__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.dd-yoy__card {
+  margin: 0;
+  padding: 0.75rem 0.85rem 0.8rem;
+  background: var(--dd-paper);
+  border: 1px solid var(--dd-line-soft);
+  border-radius: var(--dd-radius);
+}
+
+.dd-yoy__k {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dd-mute);
+}
+
+.dd-yoy__v {
+  margin: 0;
+  font-family: var(--dd-display);
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  color: var(--dd-ink);
+}
+
+.dd-yoy__prior {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
+  color: var(--dd-mute);
+}
+
+.dd-yoy__vs {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--dd-truth);
+}
+
+.dd-spend-optional {
+  margin-top: 1rem;
+}
+
+.dd-spend-optional__lede {
+  margin: 0 0 0.75rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--dd-ink-soft);
+}
+
+@media (max-width: 720px) {
+  .dd-yoy__grid {
+    grid-template-columns: 1fr;
+  }
+}

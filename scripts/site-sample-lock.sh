@@ -38,6 +38,23 @@ if grep -qE '\$39' "$HOME" && grep -q '/demo' "$HOME"; then
 else
   bad "$HOME missing \$39 or /demo"
 fi
+
+DEMO=site/demo.html
+DEMO_JS=site/assets/demo-desk.js
+if [[ -f "$DEMO" && -f "$DEMO_JS" ]]; then
+  if grep -qE '\$98,?500' "$DEMO" "$DEMO_JS" || grep -q 'Northline Supply' "$DEMO" "$DEMO_JS"; then
+    bad "/demo still has Northline \$98,500 spend cockpit"
+  else
+    ok "/demo has no Northline \$98,500"
+  fi
+  if grep -q 'Harbor Home Co' "$DEMO" && grep -qE '\$23,?414' "$DEMO" && grep -qE '\$82,?068' "$DEMO" && grep -qE '3\.51' "$DEMO"; then
+    ok "/demo Harbor SAMPLE \$23,414 / \$82,068 / 3.51×"
+  else
+    bad "/demo missing Harbor SAMPLE (\$23,414 / \$82,068 / 3.51×)"
+  fi
+else
+  bad "missing site/demo.html or site/assets/demo-desk.js"
+fi
 if grep -qiE 'Close Memo|Hired System|Pipeline Desk' "$HOME"; then
   bad "$HOME still sells Custom packages"
 else
