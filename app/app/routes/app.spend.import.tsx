@@ -109,6 +109,7 @@ import {
 } from "../lib/sample-desk.server";
 import { formatSpendAmount } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { SAMPLE_LEDGER_HANDOFF } from "../lib/sample-live-handoff";
 import prisma from "../db.server";
 import {
   getShopEntitlements,
@@ -1900,7 +1901,7 @@ export default function SpendEntryPage() {
                   {entries.length > 0
                     ? ` · ${entries.length.toLocaleString()} recent rows shown`
                     : ""}
-                  . Saving spend switches you to Live data.
+                  . {SAMPLE_LEDGER_HANDOFF}
                 </p>
                 <p className="mcfly-spend-lean__status-foot">
                   Live data is this shop’s Shopify sales plus the spend you add.

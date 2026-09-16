@@ -32,6 +32,7 @@ import {
   isSampleDeskIntent,
 } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { TRIAL_VS_VIEW } from "../lib/sample-live-handoff";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import {
   getComplianceDataExportPackage,
@@ -561,7 +562,7 @@ export default function SettingsPage() {
               ))}
             </ul>
             <p className="mcfly-panel__muted" style={{ marginTop: "0.75rem" }}>
-              {BILLING_HONESTY.flat} {BILLING_HONESTY.cancel}
+              {BILLING_HONESTY.flat} {BILLING_HONESTY.cancel} {TRIAL_VS_VIEW}
             </p>
             {!billing.entitlements.isPro ? (
               billing.enabled ? (
@@ -622,7 +623,7 @@ export default function SettingsPage() {
             <p className="mcfly-panel__muted">
               Switch Sample data | Live data here. Sample data is Harbor example
               numbers through today so you can smoke every tab. Live data is
-              this shop’s Shopify sales and the spend you add.
+              this shop’s Shopify sales and the spend you add. SAMPLE dollars do not transfer — add a day on Spend Upload for live Total ROAS.
             </p>
             <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
               Right now:{" "}

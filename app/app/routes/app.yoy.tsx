@@ -3,6 +3,7 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { BookFactGrid } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { DeskIcon } from "../components/DeskIcon";
 import { useDeskDrill } from "../components/DeskDrill";
 import {
@@ -204,6 +205,10 @@ export default function YoyWorkspacePage() {
       </footer>
     </DeskBookPage>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/yoy" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) =>

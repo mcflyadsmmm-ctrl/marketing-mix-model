@@ -3,6 +3,7 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { BookFactGrid } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { formatCurrency, formatMer } from "../lib/mer-format";
@@ -140,6 +141,10 @@ export default function CpaPage() {
       </footer>
     </DeskBookPage>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/cpa" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

@@ -28,12 +28,11 @@ describe("Goals page", () => {
   });
 
   it("sales-load banner does not leak internals or paint actuals as $0", () => {
-    const bannerAt = goals.indexOf('heading="Sales didn’t load"');
-    expect(bannerAt).toBeGreaterThan(-1);
-    const banner = goals.slice(bannerAt, bannerAt + 400);
-    expect(banner).toContain("Actuals stay —");
-    expect(banner).not.toContain("{salesError}");
-    expect(banner).not.toContain("stay $0");
+    expect(goals).toContain("<SalesLoadError");
+    expect(goals).toContain("Actuals stay —");
+    expect(goals).not.toContain("{salesError}");
+    expect(goals).not.toContain("stay $0");
+    expect(goals).toContain("TRIAL_VS_VIEW");
   });
 
   it("points spend CTAs at Spend Upload, not Marketing, and Settings for target ROAS", () => {

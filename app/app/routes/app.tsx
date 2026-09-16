@@ -3,7 +3,10 @@ import { Outlet, useLoaderData, useRouteError, useSearchParams } from "react-rou
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { MerchantErrorRecovery } from "../components/MerchantErrorRecovery";
-import { shouldDelegateShopifyBoundary } from "../lib/merchant-error-recovery";
+import {
+  decorateShopifyBoundaryError,
+  shouldDelegateShopifyBoundary,
+} from "../lib/merchant-error-recovery";
 
 import { authenticate } from "../shopify.server";
 import {
@@ -165,7 +168,7 @@ export default function App() {
 export function ErrorBoundary() {
   const error = useRouteError();
   if (shouldDelegateShopifyBoundary(error)) {
-    return boundary.error(error);
+    return boundary.error(decorateShopifyBoundaryError(error));
   }
   return <MerchantErrorRecovery error={error} retryHref="/app" />;
 }

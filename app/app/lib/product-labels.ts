@@ -177,7 +177,7 @@ export const PRODUCT_NOUN = {
   liveData: "Live data",
   samplePeriodSuffix: " · Sample data",
   sampleHint:
-    "Example numbers so you can click around. Not this shop’s Shopify sales.",
+    "Example sales and spend so you can click around. Not this shop’s Shopify sales, and not spend you typed.",
   liveDataHint:
     "This shop’s Shopify sales and the ad spend you add.",
   sampleHiddenStatus: "Sample data is hidden in Settings",

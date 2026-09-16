@@ -3,8 +3,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  decorateShopifyBoundaryError,
   merchantRouteErrorCopy,
   routeErrorStatus,
+  shopifyErrorResponseLooksEmpty,
   shouldDelegateShopifyBoundary,
 } from "./merchant-error-recovery";
 
@@ -35,6 +37,27 @@ describe("merchant route error copy", () => {
     expect(shouldDelegateShopifyBoundary(new Error("boom"))).toBe(false);
     expect(routeErrorStatus({ status: 410 })).toBe(410);
   });
+
+  it("treats empty ErrorResponse data as Handling response leakage", () => {
+    expect(shopifyErrorResponseLooksEmpty({ status: 401 })).toBe(true);
+    expect(shopifyErrorResponseLooksEmpty({ status: 401, data: "" })).toBe(true);
+    expect(
+      shopifyErrorResponseLooksEmpty({ status: 401, data: "Handling response" }),
+    ).toBe(true);
+    expect(shopifyErrorResponseLooksEmpty({ status: 401, data: {} })).toBe(true);
+    expect(
+      shopifyErrorResponseLooksEmpty({
+        status: 401,
+        data: "Open Mcfly Analytics from Shopify Admin",
+      }),
+    ).toBe(false);
+    const decorated = decorateShopifyBoundaryError({
+      status: 401,
+      data: "Handling response",
+    }) as { data: string };
+    expect(decorated.data).not.toMatch(/Handling response/i);
+    expect(decorated.data).toMatch(/Shopify Admin/i);
+  });
 });
 
 describe("desk ErrorBoundary craft", () => {
@@ -42,9 +65,32 @@ describe("desk ErrorBoundary craft", () => {
     const shell = readFileSync(join(here, "../routes/app.tsx"), "utf8");
     expect(shell).toContain("MerchantErrorRecovery");
     expect(shell).toContain("shouldDelegateShopifyBoundary");
+    expect(shell).toContain("decorateShopifyBoundaryError");
     expect(shell).not.toMatch(
       /export function ErrorBoundary\(\) \{\s*return boundary\.error\(useRouteError\(\)\);/,
     );
+  });
+
+  it("book pages keep chrome with a page-level recovery", () => {
+    const book = readFileSync(
+      join(here, "../components/DeskRouteErrorBoundary.tsx"),
+      "utf8",
+    );
+    expect(book).toContain("decorateShopifyBoundaryError");
+    expect(book).toContain("MerchantErrorRecovery");
+    for (const rel of [
+      "../routes/app.customers.tsx",
+      "../routes/app.growth.tsx",
+      "../routes/app.orders.tsx",
+      "../routes/app.ltv.tsx",
+      "../routes/app.yoy.tsx",
+      "../routes/app.cpa.tsx",
+      "../routes/app.goals.tsx",
+    ]) {
+      const src = readFileSync(join(here, rel), "utf8");
+      expect(src, rel).toContain("DeskRouteErrorBoundary");
+      expect(src, rel).toContain("export function ErrorBoundary");
+    }
   });
 
   it("root recovery never leaks Handling response", () => {

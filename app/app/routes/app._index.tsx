@@ -71,6 +71,11 @@ import {
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
 import { shopLocalDayKey } from "../lib/shop-local-day";
+import {
+  isLiveHandoffGuide,
+  LIVE_HANDOFF_BODY,
+  LIVE_HANDOFF_HEADING,
+} from "../lib/sample-live-handoff";
 
 /** Same resolver the Spend page uses — Billboard must not read "Other" here. */
 const channelDisplayLabel = spendChannelLabel;
@@ -524,7 +529,10 @@ export default function Dashboard() {
   const spendHref = deskNavHrefFromSearch("/app/spend", searchParams);
   const roasHref = deskNavHrefFromSearch("/app/roas", searchParams);
   const goalsHref = deskNavHrefFromSearch("/app/goals", searchParams);
+  const settingsHref = deskNavHrefFromSearch("/app/settings", searchParams);
   const yoyHref = deskNavHrefFromSearch("/app/yoy", searchParams);
+  const showLiveHandoff =
+    !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
   const eomMer =
     cashControl?.dualClose?.l7Close.projMer ??
     cashControl?.dualClose?.mtdFlat.projMer ??
@@ -550,6 +558,17 @@ export default function Dashboard() {
       >
         {/* SAMPLE chrome only when ON — never competes with live KPI story. */}
         {useSampleDesk && !shotMode ? <SampleDeskBanner /> : null}
+
+        {showLiveHandoff ? (
+          <s-banner tone="info" heading={LIVE_HANDOFF_HEADING}>
+            <s-paragraph>
+              {LIVE_HANDOFF_BODY}{" "}
+              <s-link href={spendHref}>Add a day on Spend Upload</s-link>
+              {" · "}
+              <s-link href={settingsHref}>Start 7-day trial in Settings</s-link>
+            </s-paragraph>
+          </s-banner>
+        ) : null}
 
         {/* Cold path: trust can sit above the one empty. Live ready: defer below KPIs. */}
         {coldEmpty || (!scoreboardReady && !useSampleDesk)
@@ -657,6 +676,8 @@ export default function Dashboard() {
                   spendHref={spendHref}
                   roasHref={roasHref}
                   goalsHref={goalsHref}
+                  settingsHref={settingsHref}
+                  useSampleDesk={useSampleDesk}
                   share={shareButton}
                 />
                 <OverviewSalesChart days={salesDays} ordersHref={ordersHref} />
