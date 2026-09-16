@@ -19,7 +19,7 @@ import {
 } from "@mcfly/mer-engine";
 import { PeriodControl } from "../components/PeriodControl";
 import type { SpendExplorerSeriesView } from "../components/SpendExplorer";
-import { authenticate } from "../shopify.server";
+import { requireAdmin } from "../lib/public-app-gate.server";
 import {
   buildSpendExplorerSeries,
   ensureShop,
@@ -109,6 +109,7 @@ import {
 } from "../lib/sample-desk.server";
 import { formatSpendAmount } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { SAMPLE_LEDGER_HANDOFF } from "../lib/sample-live-handoff";
 import prisma from "../db.server";
 import {
   getShopEntitlements,
@@ -213,7 +214,7 @@ function formatSpendYmd(value: string): string {
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
@@ -393,7 +394,7 @@ function readStoredCustomChannels(): string[] {
 }
 
 export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActionData> => {
-  const { session } = await authenticate.admin(request);
+  const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "manual");
@@ -1900,7 +1901,7 @@ export default function SpendEntryPage() {
                   {entries.length > 0
                     ? ` · ${entries.length.toLocaleString()} recent rows shown`
                     : ""}
-                  . Saving spend switches you to Live data.
+                  . {SAMPLE_LEDGER_HANDOFF}
                 </p>
                 <p className="mcfly-spend-lean__status-foot">
                   Live data is this shop’s Shopify sales plus the spend you add.

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type {
   ActionFunctionArgs,
   HeadersFunction,
@@ -12,10 +12,11 @@ import {
   type SpendChannel,
 } from "@mcfly/mer-engine";
 import { PeriodControl } from "../components/PeriodControl";
-import { authenticate } from "../shopify.server";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import {
   ensureShop,
 } from "../lib/mer-dashboard.server";
+import { requireAdmin } from "../lib/public-app-gate.server";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -47,7 +48,11 @@ import {
 } from "../lib/entitlements.server";
 import { PRO_UPSELL } from "../lib/entitlements";
 import { spendChannelLabel } from "../lib/spend-channel-label";
-import { SPEND_DOORS } from "../lib/spend-doors";
+import { SPEND_BACKFILL_DOOR } from "../lib/spend-doors";
+import {
+  continueDailyCheckedDefault,
+  shouldContinueDailyAmount,
+} from "../lib/spend-continue-daily";
 import { loadSpendDayCoverage } from "../lib/spend-coverage.server";
 import { deleteSpendEntry, type SpendActionData } from "../lib/spend-write.server";
 import {
@@ -60,6 +65,13 @@ import {
 import { roundMoney, shopCurrencyCode, toMoneyNumber } from "../lib/spend-money";
 import { spendFillDayHref } from "../lib/number-honesty";
 import { spendEntrySourceLabel } from "../lib/spend-source-label";
+import {
+  recurringFillConfirmRequiredError,
+  recurringFillDayCount,
+  recurringFillNeedsConfirm,
+  recurringFillPreviewCopy,
+} from "../lib/recurring-fill-preview";
+import { SAMPLE_LEDGER_HANDOFF } from "../lib/sample-live-handoff";
 
 const CUSTOM_CHANNEL_NAME_ERROR = "Name this channel (e.g. Influencers).";
 
@@ -145,7 +157,7 @@ function HashDetails({
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
@@ -244,7 +256,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActionData> => {
-  const { session } = await authenticate.admin(request);
+  const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const form = await request.formData();
   const intent = String(form.get("intent") ?? "manual");
@@ -311,6 +323,20 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
     if (!spendDate) {
       return { error: "Pick the first day for this daily amount.", success: false };
     }
+    const todayKey = shop.ianaTimezone
+      ? shopLocalDayKey(new Date(), shop.ianaTimezone)
+      : localDayKey(new Date());
+    const throughYmd = previousSpendYmd(todayKey);
+    const dayCount = recurringFillDayCount(spendDate, throughYmd);
+    if (
+      recurringFillNeedsConfirm(dayCount) &&
+      String(form.get("confirm_long_fill") ?? "") !== "1"
+    ) {
+      return {
+        error: recurringFillConfirmRequiredError(dayCount, spendDate, throughYmd),
+        success: false,
+      };
+    }
     await startRecurringSpend({
       shopId: shop.id,
       channel: channel as SpendChannel,
@@ -332,6 +358,29 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
   if (!isSpendYmd(spendDate)) {
     return { error: "Pick the day this spend happened.", success: false };
   }
+  const continueDaily = String(form.get("continueDaily") ?? "") === "1";
+  const editingRow = String(form.get("editing") ?? "") === "1";
+  const startDaily = shouldContinueDailyAmount({
+    continueDaily,
+    editing: editingRow,
+    amount,
+  });
+  if (startDaily) {
+    const todayKey = shop.ianaTimezone
+      ? shopLocalDayKey(new Date(), shop.ianaTimezone)
+      : localDayKey(new Date());
+    const throughYmd = previousSpendYmd(todayKey);
+    const dayCount = recurringFillDayCount(spendDate, throughYmd);
+    if (
+      recurringFillNeedsConfirm(dayCount) &&
+      String(form.get("confirm_long_fill") ?? "") !== "1"
+    ) {
+      return {
+        error: recurringFillConfirmRequiredError(dayCount, spendDate, throughYmd),
+        success: false,
+      };
+    }
+  }
   const repository = createSpendRepository();
   await repository.upsertSpendDays(shop.id, [
     {
@@ -344,6 +393,24 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
       note: note ?? undefined,
     },
   ]);
+
+  if (startDaily) {
+    await startRecurringSpend({
+      shopId: shop.id,
+      channel: channel as SpendChannel,
+      customKey,
+      amount,
+      currency,
+      startDateKey: spendDate,
+      note,
+    });
+    await materializeRecurringSpendForShop({
+      shopId: shop.id,
+      currencyCode: shop.currencyCode,
+      ianaTimezone: shop.ianaTimezone,
+      sampleOn: false,
+    });
+  }
 
   return { error: null, success: true };
 };
@@ -386,6 +453,14 @@ export default function SpendEntryPage() {
     shot: shotMode,
   });
   const money = (n: number) => formatSpendAmount(n, currencyCode);
+  const [recurringStart, setRecurringStart] = useState(yesterdayKey);
+  const [recurringAmount, setRecurringAmount] = useState("");
+  const recurringPreview = recurringFillPreviewCopy({
+    fromYmd: recurringStart,
+    throughYmd: yesterdayKey,
+    amount: Number.parseFloat(recurringAmount),
+    currency: currencyCode,
+  });
   /** Route doors keep the date slicer; in-page doors stay plain anchors. */
   const doorHref = (href: string) =>
     href.startsWith("#")
@@ -414,10 +489,10 @@ export default function SpendEntryPage() {
         <s-button
           slot="primary-action"
           variant="primary"
-          href={SPEND_DOORS[0].href}
-          aria-label={SPEND_DOORS[0].title}
+          href="#mcfly-spend-add"
+          aria-label="Add yesterday’s spend"
         >
-          {SPEND_DOORS[0].title}
+          Add yesterday
         </s-button>
       ) : null}
       <div
@@ -461,39 +536,117 @@ export default function SpendEntryPage() {
         ) : null}
 
         <div className="mcfly-spend-lean__stack">
-          <section className="mcfly-book" aria-label="Three ways to add spend">
-            <p className="mcfly-book__lede">{SPEND_UPLOAD_CONTRAST}</p>
-            {!strangerEmpty ? (
-              <p className="mcfly-book__lede">
-                Three ways to add spend — pick one.
-              </p>
-            ) : null}
-            <ul className="mcfly-book__links">
-              {SPEND_DOORS.map((door) => (
-                <li key={door.href} className="mcfly-book__link">
-                  <s-link href={doorHref(door.href)}>{door.title}</s-link>
-                  <span className="mcfly-book__link-d">{door.hint}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {sampleDesk.enabled && !shotMode ? (
+            <s-banner tone="info" heading="Example spend is on">
+              <s-paragraph>
+                {SAMPLE_LEDGER_HANDOFF}{" "}
+                <s-link href="/app/settings">Switch to Live in Settings</s-link>
+                {" "}without typing a day if you only want this shop’s sales.
+              </s-paragraph>
+            </s-banner>
+          ) : null}
           <p className="mcfly-spend-helper">
-            Shopify sales are already here. Empty spend is $0, never 0×
+            {SPEND_UPLOAD_CONTRAST} Shopify sales are already here. Empty spend
+            is $0, never 0×
             {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
             {strangerEmpty
-              ? ". No ad-account login — type yesterday, set a daily amount, or import a CSV."
+              ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
               : "."}
           </p>
+
+          {recurring.length > 0 ? (
+            <section
+              className="mcfly-panel mcfly-panel--eq-compact"
+              aria-label="Daily amount until I change it"
+            >
+              <div className="mcfly-panel__head mcfly-panel__head--tight">
+                <h2>Daily amount</h2>
+                <p className="mcfly-panel__muted">
+                  Continues every day until you change or stop it. Typed or
+                  uploaded days stay as written.
+                </p>
+              </div>
+              <ul className="mcfly-spend-lean__recent" aria-label="Active daily amounts">
+                {recurring.map((rule) => (
+                  <li className="mcfly-spend-lean__recent-row" key={rule.id}>
+                    <span className="mcfly-spend-lean__recent-channel">
+                      {formatSpendEntryChannelLabel(rule.channel, rule.note)}
+                    </span>
+                    <Form
+                      method="post"
+                      className="mcfly-spend-lean__recent-actions mcfly-spend-rate-edit"
+                    >
+                      <input type="hidden" name="intent" value="recurring" />
+                      <input type="hidden" name="channel" value={rule.channel} />
+                      <input
+                        type="hidden"
+                        name="spendDate"
+                        value={rule.startDateKey}
+                      />
+                      {rule.channel === "other" && rule.note ? (
+                        <input type="hidden" name="customName" value={rule.note} />
+                      ) : null}
+                      <label className="mcfly-spend-rate-edit__amount">
+                        <span className="visually-hidden">
+                          Daily amount ({currencyCode})
+                        </span>
+                        <input
+                          className="mcfly-field"
+                          type="number"
+                          name="amount"
+                          min="0.01"
+                          step="0.01"
+                          inputMode="decimal"
+                          defaultValue={String(rule.amount)}
+                          required
+                          aria-label={`Daily amount in ${currencyCode}`}
+                        />
+                      </label>
+                      <span className="mcfly-spend-lean__recent-range">
+                        /day from {formatSpendYmd(rule.startDateKey)}
+                      </span>
+                      <button
+                        type="submit"
+                        className="mcfly-btn mcfly-btn--secondary"
+                        disabled={isSubmitting && submittingIntent === "recurring"}
+                      >
+                        Save
+                      </button>
+                    </Form>
+                    <Form method="post" className="mcfly-spend-lean__recent-actions">
+                      <input type="hidden" name="intent" value="stop-recurring" />
+                      <input type="hidden" name="ruleId" value={rule.id} />
+                      <button type="submit" className="mcfly-btn mcfly-btn--secondary">
+                        Stop
+                      </button>
+                    </Form>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <section
             id="mcfly-spend-add"
             className="mcfly-panel mcfly-panel--eq-compact"
-            aria-label="Add a day of spend"
+            aria-label={
+              editing
+                ? "Edit this day of spend"
+                : "Yesterday’s spend — one bill"
+            }
           >
             <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>{editing ? "Edit this day" : "Add a day"}</h2>
+              <h2>
+                {editing
+                  ? "Edit this day"
+                  : fillDateKey === yesterdayKey
+                    ? "Yesterday"
+                    : "Add a day"}
+              </h2>
               <p className="mcfly-panel__muted">
-                One channel, one date, one amount. Same day + channel replaces.
+                {editing
+                  ? "One channel, one date, one amount. Same day + channel replaces."
+                  : `One bill for ${formatSpendYmd(fillDateKey)}. Continues at that $X/day until you change it.`}
               </p>
             </div>
             <Form
@@ -502,6 +655,7 @@ export default function SpendEntryPage() {
               key={editing?.id ?? "new-day"}
             >
               <input type="hidden" name="intent" value="manual" />
+              {editing ? <input type="hidden" name="editing" value="1" /> : null}
               <div className="mcfly-spend-add__grid">
                 <label className="mcfly-spend-add__field">
                   <span>Date</span>
@@ -563,6 +717,17 @@ export default function SpendEntryPage() {
                   />
                 </label>
               </div>
+              {!editing ? (
+                <label className="mcfly-spend-add__continue">
+                  <input
+                    type="checkbox"
+                    name="continueDaily"
+                    value="1"
+                    defaultChecked={continueDailyCheckedDefault(Boolean(editing))}
+                  />{" "}
+                  Continue this $X/day until I change it
+                </label>
+              ) : null}
               <div className="mcfly-spend-add__actions">
                 <button
                   type="submit"
@@ -574,7 +739,7 @@ export default function SpendEntryPage() {
                     ? "Saving…"
                     : editing
                       ? "Save change"
-                      : "Save day"}
+                      : "Save $X/day"}
                 </button>
               </div>
             </Form>
@@ -583,11 +748,11 @@ export default function SpendEntryPage() {
           <HashDetails
             id="mcfly-spend-recurring"
             className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal"
-            defaultOpen={recurring.length > 0}
+            defaultOpen={false}
             summary={
               <>
                 <span className="mcfly-spend-reveal__title">
-                  Daily amount until I change it
+                  Change the daily amount from another first day
                 </span>
                 <span className="mcfly-spend-reveal__hint">
                   Example: {money(40)}/day from a date. Fills empty days through
@@ -597,8 +762,8 @@ export default function SpendEntryPage() {
             }
           >
             <p className="mcfly-panel__muted">
-              A daily rate from the first day through yesterday. Typed or
-              uploaded days stay as written. No ad login.
+              Use this only if the first day is not yesterday. A far-back first
+              day writes every empty day in that span.
             </p>
             <Form method="post" className="mcfly-spend-add__form">
               <input type="hidden" name="intent" value="recurring" />
@@ -609,10 +774,11 @@ export default function SpendEntryPage() {
                     className="mcfly-field"
                     type="date"
                     name="spendDate"
-                    defaultValue={yesterdayKey}
+                    value={recurringStart}
                     min={spendHistoryFloorKey}
                     max={todayKey}
                     required
+                    onChange={(event) => setRecurringStart(event.target.value)}
                   />
                 </label>
                 <label className="mcfly-spend-add__field">
@@ -635,6 +801,8 @@ export default function SpendEntryPage() {
                     step="0.01"
                     inputMode="decimal"
                     required
+                    value={recurringAmount}
+                    onChange={(event) => setRecurringAmount(event.target.value)}
                     aria-label={`Daily spend amount in ${currencyCode}`}
                   />
                 </label>
@@ -648,6 +816,21 @@ export default function SpendEntryPage() {
                   />
                 </label>
               </div>
+              <p className="mcfly-panel__muted" role="status">
+                {recurringPreview.body}
+              </p>
+              {recurringPreview.needsConfirm ? (
+                <label className="mcfly-spend-add__field">
+                  <input
+                    type="checkbox"
+                    name="confirm_long_fill"
+                    value="1"
+                    required
+                  />{" "}
+                  Write {recurringPreview.dayCount} days from {recurringStart}{" "}
+                  through yesterday
+                </label>
+              ) : null}
               <div className="mcfly-spend-add__actions">
                 <button
                   type="submit"
@@ -661,30 +844,32 @@ export default function SpendEntryPage() {
                 </button>
               </div>
             </Form>
-            {recurring.length > 0 ? (
-              <ul className="mcfly-spend-lean__recent" aria-label="Active daily amounts">
-                {recurring.map((rule) => (
-                  <li className="mcfly-spend-lean__recent-row" key={rule.id}>
-                    <span className="mcfly-spend-lean__recent-channel">
-                      {formatSpendEntryChannelLabel(rule.channel, rule.note)}
-                    </span>
-                    <span className="mcfly-spend-lean__recent-amount">
-                      {money(rule.amount)}/day
-                    </span>
-                    <span className="mcfly-spend-lean__recent-range">
-                      from {formatSpendYmd(rule.startDateKey)}
-                    </span>
-                    <Form method="post" className="mcfly-spend-lean__recent-actions">
-                      <input type="hidden" name="intent" value="stop-recurring" />
-                      <input type="hidden" name="ruleId" value={rule.id} />
-                      <button type="submit" className="mcfly-btn mcfly-btn--secondary">
-                        Stop
-                      </button>
-                    </Form>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+          </HashDetails>
+
+          <HashDetails
+            id="mcfly-spend-backfill"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal"
+            defaultOpen={false}
+            summary={
+              <>
+                <span className="mcfly-spend-reveal__title">
+                  {SPEND_BACKFILL_DOOR.title}
+                </span>
+                <span className="mcfly-spend-reveal__hint">
+                  {SPEND_BACKFILL_DOOR.hint}
+                </span>
+              </>
+            }
+          >
+            <p className="mcfly-panel__muted">
+              Template, Ads Manager CSV, or spread one bill across days. Use
+              this after yesterday’s amount is on the desk.
+            </p>
+            <p>
+              <s-link href={doorHref(SPEND_BACKFILL_DOOR.href)}>
+                Open {SPEND_BACKFILL_DOOR.title}
+              </s-link>
+            </p>
           </HashDetails>
 
           {strangerEmpty ? null : (
@@ -762,7 +947,7 @@ export default function SpendEntryPage() {
                       {entries.length > 0
                         ? ` · ${entries.length.toLocaleString()} recent rows shown`
                         : ""}
-                      . Saving spend switches you to Live data.
+                      . {SAMPLE_LEDGER_HANDOFF}
                     </p>
                     <p className="mcfly-spend-lean__status-foot">
                       Live data is this shop’s Shopify sales plus the spend you
@@ -865,6 +1050,10 @@ export default function SpendEntryPage() {
       ) : null}
     </s-page>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/spend" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

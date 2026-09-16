@@ -2,6 +2,7 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { CountBarsChart } from "../components/DeskMixChart";
 import {
   BookFactGrid,
@@ -140,6 +141,10 @@ export default function GrowthPage() {
           </footer>
     </DeskBookPage>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/growth" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

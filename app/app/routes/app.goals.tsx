@@ -58,6 +58,9 @@ import { getShopEntitlements } from "../lib/entitlements.server";
 import { SalesGoalGauges } from "../components/SalesGoalGauges";
 import { BookFactGrid } from "../components/ShopifyBookSection";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { SalesLoadError } from "../components/SalesLoadError";
+import { TRIAL_VS_VIEW } from "../lib/sample-live-handoff";
 
 type ShopifyToast = {
   show?: (message: string, options?: { duration?: number; isError?: boolean }) => void;
@@ -620,7 +623,7 @@ export default function GoalsPage() {
 
         {!shotMode && entitlements.showStartTrial ? (
           <p className="mcfly-panel__muted">
-            The whole desk is included. Start the 7-day trial in{" "}
+            {TRIAL_VS_VIEW}{" "}
             <s-link href="/app/settings">Settings</s-link>.
           </p>
         ) : null}
@@ -630,12 +633,10 @@ export default function GoalsPage() {
         ) : null}
 
         {salesError && !shotMode ? (
-          <s-banner tone="critical" heading="Sales didn’t load">
-            <s-paragraph>
-              Your plan still saves. Actuals stay — until you refresh. Nothing
-              was written as $0.
-            </s-paragraph>
-          </s-banner>
+          <SalesLoadError
+            body="Your plan still saves. Actuals stay — until you refresh. Nothing was written as $0."
+            retryHref={`/app/goals?period=${preset}`}
+          />
         ) : null}
 
         {isSaving || isRevalidating ? (
@@ -1160,6 +1161,10 @@ function GoalRow({
       ) : null}
     </tr>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/goals" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

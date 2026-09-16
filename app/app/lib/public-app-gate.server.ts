@@ -26,13 +26,17 @@ export function isPublicAppRequest(request: Request): boolean {
  */
 export async function requireAdmin(request: Request) {
   if (isPublicAppRequest(request)) {
-    throw redirect("/app");
+    const url = new URL(request.url);
+    const qs = url.searchParams.toString();
+    throw redirect(qs ? `/app?${qs}` : "/app");
   }
   try {
     return await authenticate.admin(request);
   } catch (error) {
     if (isGoneResponse(error) && !isEmbeddedAdminRequest(request)) {
-      throw redirect("/app");
+      const url = new URL(request.url);
+      const qs = url.searchParams.toString();
+      throw redirect(qs ? `/app?${qs}` : "/app");
     }
     throw error;
   }

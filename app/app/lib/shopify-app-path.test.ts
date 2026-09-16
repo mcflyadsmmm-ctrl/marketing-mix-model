@@ -218,7 +218,7 @@ describe("Shopify embedded entry vs marketing site", () => {
     );
     expect(opening).toContain("useNavigate");
     expect(opening).toContain("/app");
-    expect(opening).toContain("/support");
-    expect(opening).toMatch(/reopen the app from Shopify Admin/i);
+    expect(opening).toContain("MerchantErrorRecovery");
+    expect(opening).toMatch(/Opening Mcfly Analytics/);
   });
 });

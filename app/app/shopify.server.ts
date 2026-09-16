@@ -5,12 +5,13 @@ import {
   shopifyApp,
 } from "@shopify/shopify-app-react-router/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
-import { redirect } from "react-router";
+import { data, redirect } from "react-router";
 
 import {
   documentGoneRedirectLocation,
   isReactRouterDataRequest,
 } from "../scripts/shopify-app-path.mjs";
+import { SESSION_RECOVERY_DATA } from "./lib/merchant-error-recovery";
 import prisma from "./db.server";
 
 const shopify = shopifyApp({
@@ -54,11 +55,14 @@ async function authenticateAdminWithoutDocumentGone(request: Request) {
   try {
     return await authenticateAdmin(request);
   } catch (error) {
-    if (isGoneResponse(error) && !isReactRouterDataRequest(request)) {
+    if (!isGoneResponse(error)) throw error;
+    if (!isReactRouterDataRequest(request)) {
       const location = documentGoneRedirectLocation(request);
       if (location) throw redirect(location);
     }
-    throw error;
+    // Data-request 410s are not valid turbo-stream. Rewrite so ErrorBoundary
+    // can paint Retry / Open Shopify Admin instead of "Handling response".
+    throw data(SESSION_RECOVERY_DATA, { status: 403 });
   }
 }
 

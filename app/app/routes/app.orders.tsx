@@ -2,6 +2,7 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ShopifyBookSection } from "../components/ShopifyBookSection";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
@@ -99,6 +100,10 @@ export default function OrdersPage() {
           <WeekdaySalesChart shares={metrics.shopifyDepth.weekdaySalesShare} />
     </DeskBookPage>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/orders" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

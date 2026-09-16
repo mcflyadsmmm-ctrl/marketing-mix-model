@@ -11,6 +11,7 @@ import {
   overviewNoticeSentence,
   overviewReturningCompactDollars,
 } from "../lib/overview-first-viewport";
+import { SAMPLE_SPEND_NOT_LIVE } from "../lib/sample-live-handoff";
 
 function pct(share: number): string {
   return `${Math.round(share * 100)}%`;
@@ -161,6 +162,8 @@ export function OverviewFirstViewport({
   spendHref,
   roasHref,
   goalsHref,
+  settingsHref = "/app/settings",
+  useSampleDesk = false,
   share,
 }: {
   "aria-label"?: string;
@@ -191,6 +194,8 @@ export function OverviewFirstViewport({
   spendHref: string;
   roasHref: string;
   goalsHref: string;
+  settingsHref?: string;
+  useSampleDesk?: boolean;
   share?: ReactNode;
 }) {
   const notice = overviewNoticeSentence({
@@ -233,7 +238,11 @@ export function OverviewFirstViewport({
     ? notice
     : [
         `${periodLabel}: ${orderCount.toLocaleString()} orders and ${formatCurrency(totalSales)} sales.`,
-        spendEmpty ? OVERVIEW_SPEND_EMPTY_LINE : null,
+        useSampleDesk
+          ? SAMPLE_SPEND_NOT_LIVE
+          : spendEmpty
+            ? OVERVIEW_SPEND_EMPTY_LINE
+            : null,
       ]
         .filter(Boolean)
         .join(" ");
@@ -261,7 +270,11 @@ export function OverviewFirstViewport({
           <Link className="mcfly-decision__verb" to={ordersHref}>
             Open {PRODUCT_NOUN.ordersTitle}
           </Link>
-          {hasSpend ? (
+          {useSampleDesk ? (
+            <Link className="mcfly-decision__link" to={settingsHref}>
+              Example spend · switch to Live
+            </Link>
+          ) : hasSpend ? (
             <Link className="mcfly-decision__link" to={spendHref}>
               Edit spend →
             </Link>

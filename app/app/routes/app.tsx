@@ -3,7 +3,10 @@ import { Outlet, useLoaderData, useRouteError, useSearchParams } from "react-rou
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 import { MerchantErrorRecovery } from "../components/MerchantErrorRecovery";
-import { shouldDelegateShopifyBoundary } from "../lib/merchant-error-recovery";
+import {
+  decorateShopifyBoundaryError,
+  shouldDelegateShopifyBoundary,
+} from "../lib/merchant-error-recovery";
 
 import { authenticate } from "../shopify.server";
 import {
@@ -36,6 +39,7 @@ const PUBLIC_APP = {
   samplePreviewAllowed: false,
   shotMode: false,
   plansUrl: null as string | null,
+  shop: null as string | null,
 };
 
 function isGoneResponse(error: unknown): boolean {
@@ -54,21 +58,21 @@ export const links: LinksFunction = () => [
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Public tab / curl: never 410. 410 hydrates React Router, fetches /app.data,
   // and throws "Unable to decode turbo-stream response".
+  const url = new URL(request.url);
   if (!hasShopifySessionContext(request)) {
-    return PUBLIC_APP;
+    return { ...PUBLIC_APP, shop: url.searchParams.get("shop") };
   }
   let session;
   try {
     ({ session } = await authenticate.admin(request));
   } catch (error) {
     if (isGoneResponse(error) && !isEmbeddedAdminRequest(request)) {
-      return PUBLIC_APP;
+      return { ...PUBLIC_APP, shop: url.searchParams.get("shop") };
     }
     throw error;
   }
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
-  const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const [useSampleDesk, samplePreviewAllowed] = await Promise.all([
     getSampleDeskEnabled(shop.id),
@@ -103,21 +107,11 @@ export default function App() {
     return (
       <OriginShell>
         <main id="main" className={originStyles.article}>
-          <h1>Mcfly Analytics</h1>
-          <p className={originStyles.lede}>
-            This is the app host. Open Mcfly Analytics from Shopify Admin after
-            install. We never ask you to type a store domain here.
-          </p>
-          <p>
-            7-day trial, then $39/store/mo via Shopify App Pricing. Trust pages:{" "}
-            <a href="/privacy">Privacy</a>
-            {" · "}
-            <a href="/support">Support</a>
-            {" · "}
-            <a href="/terms">Terms</a>
-            {" · "}
-            <a href="/pricing">Pricing</a>
-          </p>
+          <MerchantErrorRecovery
+            error={{ status: 410 }}
+            retryHref="/app"
+            shop={data.shop}
+          />
         </main>
       </OriginShell>
     );
@@ -165,7 +159,7 @@ export default function App() {
 export function ErrorBoundary() {
   const error = useRouteError();
   if (shouldDelegateShopifyBoundary(error)) {
-    return boundary.error(error);
+    return boundary.error(decorateShopifyBoundaryError(error));
   }
   return <MerchantErrorRecovery error={error} retryHref="/app" />;
 }

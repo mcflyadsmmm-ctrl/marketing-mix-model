@@ -2,6 +2,7 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
+import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ShopifyBookSection } from "../components/ShopifyBookSection";
 import { ShareBarsChart } from "../components/DeskMixChart";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
@@ -134,6 +135,10 @@ export default function CustomersPage() {
           </footer>
     </DeskBookPage>
   );
+}
+
+export function ErrorBoundary() {
+  return <DeskRouteErrorBoundary retryHref="/app/customers" />;
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

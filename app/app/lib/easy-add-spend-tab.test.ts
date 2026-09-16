@@ -48,16 +48,21 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Typed days are corrections");
   });
 
-  it("keeps typed-day, recurring, and import on the main Spend surface", () => {
+  it("leads with yesterday’s day card and keeps Backfill off the first fold", () => {
     expect(spend).toContain('id="mcfly-spend-add"');
-    expect(spend).toContain('id="mcfly-spend-recurring"');
+    expect(spend).toContain('id="mcfly-spend-backfill"');
     expect(spend).toContain("/app/spend/import");
-    expect(spend).toContain("SPEND_DOORS");
-    expect(spend).toContain("Three ways to add spend");
+    expect(spend).toContain("SPEND_BACKFILL_DOOR");
+    expect(spend).toContain("Yesterday");
     expect(spend).toContain("name=\"spendDate\"");
     expect(spend).toContain("Billboard, radio, agency…");
+    expect(spend).not.toContain("Three ways to add spend");
     expect(spend).not.toContain("<h2>Period spend</h2>");
     expect(spend).not.toContain("SpendExportWalkthrough");
+    const addAt = spend.indexOf('id="mcfly-spend-add"');
+    const backfillAt = spend.indexOf('id="mcfly-spend-backfill"');
+    expect(addAt).toBeGreaterThan(-1);
+    expect(backfillAt).toBeGreaterThan(addAt);
   });
 
   it("keeps Spend Upload input-only while retaining the coverage strip", () => {
@@ -120,14 +125,20 @@ describe("Spend day card", () => {
     expect(css).toMatch(/\.mcfly-btn \{[^}]*min-height:\s*2\.75rem/);
   });
 
-  it("names the three doors up front as a quiet list, not a card zoo", () => {
-    expect(spend).toContain('className="mcfly-book__links"');
-    expect(spend).toContain('className="mcfly-book__link-d"');
-    expect(spend).not.toContain("mcfly-spend-doors");
-    const doorsAt = spend.indexOf('className="mcfly-book__links"');
+  it("defaults the yesterday card to continue $X/day and keeps Edit + Delete on recent rows", () => {
+    expect(spend).toContain('name="continueDaily"');
+    expect(spend).toContain("Continue this $X/day until I change it");
+    expect(spend).toContain("shouldContinueDailyAmount");
+    expect(spend).toContain("continueDailyCheckedDefault");
+    expect(spend).toMatch(/>\s*Edit\s*</);
+    expect(spend).toContain('name="intent" value="delete-entry"');
+    expect(spend).toContain("Delete");
     const helperAt = spend.indexOf('className="mcfly-spend-helper"');
-    expect(doorsAt).toBeGreaterThan(-1);
-    expect(doorsAt).toBeLessThan(helperAt);
+    const addAt = spend.indexOf('id="mcfly-spend-add"');
+    const backfillAt = spend.indexOf('id="mcfly-spend-backfill"');
+    expect(helperAt).toBeGreaterThan(-1);
+    expect(addAt).toBeGreaterThan(helperAt);
+    expect(backfillAt).toBeGreaterThan(addAt);
   });
 
   it("holds coverage and status back until a day of spend exists", () => {

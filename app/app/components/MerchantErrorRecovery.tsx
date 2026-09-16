@@ -1,4 +1,16 @@
-import { merchantRouteErrorCopy } from "../lib/merchant-error-recovery";
+import {
+  merchantRouteErrorCopy,
+  shopifyAdminHref,
+} from "../lib/merchant-error-recovery";
+
+function shopFromWindow(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return new URL(window.location.href).searchParams.get("shop");
+  } catch {
+    return null;
+  }
+}
 
 const panelStyle = {
   fontFamily: "system-ui, sans-serif",
@@ -40,11 +52,14 @@ const secondaryStyle = {
 export function MerchantErrorRecovery({
   error,
   retryHref = ".",
+  shop = null,
 }: {
   error: unknown;
   retryHref?: string;
+  shop?: string | null;
 }) {
   const copy = merchantRouteErrorCopy(error);
+  const adminHref = shopifyAdminHref(shop ?? shopFromWindow());
   return (
     <section
       className="mcfly-state mcfly-state--critical mcfly-error-recovery"
@@ -65,10 +80,12 @@ export function MerchantErrorRecovery({
         </a>
         <a
           className="mcfly-btn mcfly-btn--secondary"
-          href={copy.supportHref}
+          href={adminHref}
+          target="_top"
+          rel="noopener noreferrer"
           style={secondaryStyle}
         >
-          Support
+          {copy.adminLabel}
         </a>
       </div>
     </section>
