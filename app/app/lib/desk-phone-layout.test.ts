@@ -224,6 +224,10 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(pass).toContain(".mcfly-chart__controls");
     expect(pass).toContain("flex-wrap: wrap");
     expect(pass).toContain(".mcfly-chart--dual");
+    expect(phone).toContain(".mcfly-chart--dual .mcfly-chart__svg");
+    expect(phone).toMatch(
+      /\.mcfly-chart--dual \.mcfly-chart__svg[\s\S]{0,400}max-width:\s*100%/,
+    );
     expect(pass).toContain(".mcfly-orders-ledger__lh");
     expect(pass).toContain(".mcfly-yoy-board__table tbody th");
     expect(pass).toContain("position: sticky");

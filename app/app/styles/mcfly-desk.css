@@ -12789,6 +12789,47 @@ button.mcfly-chart__month {
     -webkit-overflow-scrolling: touch;
   }
 
+  /* SVG viewBoxes (640 / 720) must not inflate the Admin iframe. */
+  .mcfly-desk,
+  .mcfly-desk-anchor,
+  .mcfly-score,
+  .mcfly-yoy,
+  .mcfly-orders-intel,
+  .mcfly-chart,
+  .mcfly-chart__plot,
+  .mcfly-explorer,
+  .mcfly-explorer__scroll,
+  .mcfly-explorer__chart {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .mcfly-chart__svg,
+  .mcfly-chart--dual .mcfly-chart__svg,
+  .mcfly-chart--weekdays .mcfly-chart__svg,
+  .mcfly-chart--yoy .mcfly-chart__svg,
+  .mcfly-cust-mix .mcfly-chart__svg,
+  .mcfly-growth-ex .mcfly-chart__svg {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+  }
+
+  .mcfly-explorer__controls,
+  .mcfly-explorer__dates,
+  .mcfly-chart__controls,
+  .mcfly-chart__dates {
+    flex-wrap: wrap;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .mcfly-explorer__date input[type="date"],
+  .mcfly-chart__date input {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .mcfly-chart__days {
     min-width: 18rem;
   }
@@ -13564,12 +13605,13 @@ button.mcfly-chart__month {
 
   .mcfly-yoy--glance .mcfly-yoy__k {
     margin: 0;
-    font-size: 0.52rem;
-    letter-spacing: 0.03em;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
   }
 
   .mcfly-yoy--glance .mcfly-yoy__v {
-    font-size: clamp(0.98rem, 4.5vw, 1.2rem);
+    font-size: clamp(1.02rem, 4.6vw, 1.18rem);
     margin: 0.18rem 0 0;
   }
 
