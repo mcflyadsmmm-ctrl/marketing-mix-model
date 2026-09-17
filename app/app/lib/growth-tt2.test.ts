@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { TT2_GUEST_KEY } from "./growth-tt2";
 import {
   buildGrowthTt2,
   emptyGrowthTt2,
   growthTt2EmptyState,
   growthTt2HistoryLine,
   growthTt2Read,
+  TT2_GUEST_KEY,
   TT2_MIN_BUYERS,
   TT2_MIN_FOLLOW_DAYS,
   TT2_MIN_GAPS,
