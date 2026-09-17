@@ -17561,6 +17561,112 @@ button.mcfly-depth-legend__chip:focus-visible {
   }
 }
 
+/* —— CPA desk (Scoreboard sibling of Overview) —— */
+.mcfly-cpa {
+  display: grid;
+  gap: 1.15rem;
+}
+
+.mcfly-cpa__window-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mcfly-cpa__card {
+  text-align: left;
+}
+
+.mcfly-cpa__card--on {
+  outline: 2px solid var(--mcfly-ink);
+  outline-offset: 1px;
+}
+
+.mcfly-cpa__card-def {
+  margin: 0.35rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.mcfly-cpa__payback {
+  padding: 1.1rem 1.15rem 1.2rem;
+  background: var(--mcfly-paper);
+  border: 1px solid var(--mcfly-line);
+  border-radius: var(--mcfly-radius);
+  box-shadow: var(--mcfly-shadow);
+}
+
+.mcfly-cpa__payback-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin: 0.85rem 0 1rem;
+}
+
+.mcfly-cpa__payback-k {
+  margin: 0 0 0.25rem;
+  color: var(--mcfly-mute);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mcfly-cpa__payback-v {
+  margin: 0;
+  color: var(--mcfly-ink);
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.55rem, 2.4vw, 2.1rem);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.mcfly-cpa__payback-d {
+  margin: 0.4rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.mcfly-cpa__payback-track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--mcfly-line-soft, rgba(15, 23, 42, 0.08));
+  overflow: hidden;
+}
+
+.mcfly-cpa__payback-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--mcfly-truth, #0f766e);
+}
+
+.mcfly-cpa__payback-fill--empty {
+  width: 0;
+  background: transparent;
+}
+
+.mcfly-cpa__payback-note {
+  margin: 0.55rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.mcfly-cpa__payback-stats {
+  margin-top: 0.85rem;
+}
+
+.mcfly-cpa__chart {
+  margin: 0;
+}
+
+@media (max-width: 36rem) {
+  .mcfly-cpa__window-grid,
+  .mcfly-cpa__payback-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
 /* =========================================================================
  * Growth explorer — who came back. Reuses the Customers-marquee scaffold
  * (board / HTML overlays / dark tip / grain wash) with a first-time-$ hero
