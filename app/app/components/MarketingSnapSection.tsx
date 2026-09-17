@@ -13,9 +13,11 @@ function pct(share: number): string {
 
 /**
  * Sales | Spend | Total ROAS + mix glance. TAB_LOCK §6: do not mount on
- * Spend Upload (`/app/spend`) — that tab is input-only. Overview empty:
- * NUMBER_HONESTY.empty only — this section does not mount on Overview.
- * Empty spend is an invitation, never a painted empty ratio.
+ * Spend Upload (`/app/spend`) — that tab is input-only. Empty spend is an
+ * invitation, never a painted empty ratio. NUMBER_HONESTY.csvHint and
+ * NUMBER_HONESTY.orderWindow belong on the Spend helper, not stacked here.
+ * Overview empty: NUMBER_HONESTY.empty only — this section does not mount
+ * on Overview.
  */
 export function MarketingSnapSection({
   spendOnlyEmpty,
