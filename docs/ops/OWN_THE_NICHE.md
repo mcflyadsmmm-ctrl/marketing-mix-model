@@ -16,9 +16,9 @@ Push the LTV concept toward **~10** on the score below. Compete features only if
 | 4 | **$39-alone** — this tab would keep the install with no other page |
 | 5 | **Zero-spend** — no upload, no ads, no pixels, no COGS |
 
-## This LTV PR only
+## This Product→LTV PR only
 
-30/90/365 come-back + revenue · whales/path clarity · transparent predictive LTV (formula shown) · refunds honesty. Soft dense Black Clover. Useful + easy + deep.
+First-product → LTV / path drivers from titled first-line items · 30/90/365 among those starters · written-out formula · typical next product. Soft dense Black Clover after the flagship. Useful + easy + deep.
 
 ## Refuse
 
@@ -26,7 +26,7 @@ TW attribution · COGS P&L · kitchen-sink · other tabs (RFM, Overview forecast
 
 Pills, charts, densify, ActionCards stay. Add only.
 
-## SCORECARD — LTV flagship (this PR)
+## SCORECARD — LTV flagship (#93)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |
@@ -37,3 +37,15 @@ Pills, charts, densify, ActionCards stay. Add only.
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS on this tab |
 
 Full-history Live year is in scope (`read_all_orders` approved). Thin shops use first-win empties, never a fake 365.
+
+## SCORECARD — Product→LTV (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Easier | PASS | After the flagship: one “highest first product” — worth, lift, typical next — not a Lifetimely product-report hunt |
+| Deeper LTV | PASS | First-product 30/90/365 + path driver + lift vs shop; year when full history has matured those starters |
+| Habit-trust | PASS | Same written-out formula among starters; observed vs estimate; untitled live rows stay an honest empty |
+| $39-alone | PASS | Answers “which first product is worth more?” on the LTV tab with zero spend |
+| Zero-spend | PASS | Order-history line items only — no upload, ads, pixels, or COGS |
+
+Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the dense canvas.

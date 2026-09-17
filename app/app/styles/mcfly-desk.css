@@ -18818,6 +18818,19 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
   line-height: 1.3;
 }
 
+.mcfly-depth-product__next {
+  display: block;
+  margin: 0.1rem 0 0;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.7rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.mcfly-depth-product .mcfly-kpi__label {
+  overflow-wrap: anywhere;
+}
+
 .mcfly-depth-flag__read {
   display: block;
   width: 100%;

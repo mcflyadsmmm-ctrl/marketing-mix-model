@@ -10,6 +10,7 @@ import { LtvTierTables } from "../components/LtvTierTables";
 import { LtvPathTable } from "../components/LtvPathTable";
 import { LtvWhaleRecency } from "../components/LtvWhaleRecency";
 import { LtvFlagshipBoard } from "../components/LtvFlagshipBoard";
+import { LtvProductBoard } from "../components/LtvProductBoard";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -370,6 +371,8 @@ export default function LtvPage() {
       depth.windows ||
       depth.predictive ||
       depth.monthWindows.length > 0 ||
+      depth.productLtv.read ||
+      depth.productLtv.empty ||
       (depth.refunds && depth.refunds.orderCount > 0),
   );
 
@@ -467,6 +470,7 @@ export default function LtvPage() {
         refunds={depth.refunds}
         buyers={depth.buyers}
       />
+      <LtvProductBoard product={depth.productLtv} />
       <LtvBuildCurves curves={depth.curves} buyers={depth.buyers} />
       <LtvRetentionHeat heat={depth.retention} buyers={depth.buyers} />
       <LtvTierTables aov={depth.aov} basket={depth.basket} />

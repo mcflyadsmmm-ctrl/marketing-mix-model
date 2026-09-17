@@ -13,6 +13,7 @@ const tiers = read("../components/LtvTierTables.tsx");
 const paths = read("../components/LtvPathTable.tsx");
 const whales = read("../components/LtvWhaleRecency.tsx");
 const flagship = read("../components/LtvFlagshipBoard.tsx");
+const productBoard = read("../components/LtvProductBoard.tsx");
 const depthPage = read("../lib/ltv-depth-page.server.ts");
 
 describe("LTV route mounts the depth pack", () => {
@@ -26,7 +27,7 @@ describe("LTV route mounts the depth pack", () => {
     expect(depthPage).toContain("full stored");
   });
 
-  it("imports and renders all five depth panels plus one flagship board", () => {
+  it("imports and renders all five depth panels plus flagship and product boards", () => {
     for (const tag of [
       "LtvBuildCurves",
       "LtvRetentionHeat",
@@ -34,6 +35,7 @@ describe("LTV route mounts the depth pack", () => {
       "LtvPathTable",
       "LtvWhaleRecency",
       "LtvFlagshipBoard",
+      "LtvProductBoard",
     ]) {
       expect(route).toContain(`import { ${tag} }`);
       expect(route).toContain(`<${tag}`);
@@ -63,7 +65,7 @@ describe("LTV route mounts the depth pack", () => {
 });
 
 describe("depth chrome stays honest and in shop-owner voice", () => {
-  const all = [curves, heat, tiers, paths, whales, flagship];
+  const all = [curves, heat, tiers, paths, whales, flagship, productBoard];
 
   it("keeps the banned glossary words out of merchant chrome", () => {
     // Comments may explain a ban; strip block/line comments before scanning.
@@ -104,6 +106,15 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(flagship).toContain("buyers × 30 days");
     expect(flagship).toContain("empty.verb");
     expect(flagship).not.toMatch(/about 60 days/);
+    expect(productBoard).toContain("not $0");
+    expect(productBoard).toContain("average first order");
+    expect(productBoard).toContain("titled line items");
+    expect(productBoard).toContain("First product → LTV");
+    expect(productBoard).toContain("Highest first product");
+    expect(productBoard).toContain("empty.verb");
+    expect(productBoard).toContain("Floor:");
+    expect(productBoard).toContain("Wait for titled line items");
+    expect(productBoard).not.toMatch(/about 60 days/);
   });
 
   it("is one board — not a month-grid dump or a win-back card", () => {
@@ -148,9 +159,27 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(curvesAt).toBeGreaterThan(boardAt);
   });
 
+  it("mounts Product→LTV after the flagship and before the explorers", () => {
+    const boardAt = route.indexOf("<LtvFlagshipBoard");
+    const productAt = route.indexOf("<LtvProductBoard");
+    const curvesAt = route.indexOf("<LtvBuildCurves");
+    const pathAt = route.indexOf("<LtvPathTable");
+    expect(productAt).toBeGreaterThan(boardAt);
+    expect(curvesAt).toBeGreaterThan(productAt);
+    expect(pathAt).toBeGreaterThan(productAt);
+    expect(route).toContain("product={depth.productLtv}");
+  });
+
   it("product journeys only paint when titles are on file", () => {
     // Live has no product names → the loader passes product: null and this
     // table returns null; the route never fakes a Path LTV table on live.
     expect(paths).toContain("paths.length === 0");
+  });
+
+  it("does not add a Product tab or scramble sales-five IA", () => {
+    expect(route).not.toContain('href="/app/product"');
+    expect(route).not.toContain("Customers RFM");
+    expect(productBoard).not.toContain("from \"../lib/chart-smooth\"");
+    expect(flagship).toContain("What a new buyer is worth");
   });
 });

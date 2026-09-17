@@ -289,6 +289,23 @@ describe("path LTV clarity", () => {
   });
 });
 
+describe("Product→LTV rides the same flagship book", () => {
+  it("keeps live untitled orders as an honest titles empty, not a guessed catalog", () => {
+    const asOf = new Date("2025-01-01");
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 12; i += 1) {
+      rows.push(order(`c${i}`, "2024-01-01", 80));
+      if (i < 6) rows.push(order(`c${i}`, "2024-02-01", 40));
+    }
+    const view = buildLtvFlagship(rows, asOf, { sample: false });
+    expect(view.windows).not.toBeNull();
+    expect(view.productLtv.productsKnown).toBe(false);
+    expect(view.productLtv.rows).toEqual([]);
+    expect(view.productLtv.empty?.kind).toBe("titles");
+    expect(view.productLtv.empty?.copy).toContain("not $0");
+  });
+});
+
 describe("SAMPLE Snowdevil flagship is dense", () => {
   const NOW = new Date("2026-09-17T00:00:00Z");
   const view = buildLtvFlagship(generateSnowdevilDepthOrders(NOW), NOW, {
@@ -320,6 +337,12 @@ describe("SAMPLE Snowdevil flagship is dense", () => {
     expect(windowAddedAfterPrior(view.windows!.points, 365)?.added).toBeGreaterThan(
       0,
     );
+    expect(view.productLtv.empty).toBeNull();
+    expect(view.productLtv.best).not.toBeNull();
+    expect(view.productLtv.best!.day90Ltv).toBeGreaterThan(0);
+    expect(view.productLtv.best!.day365Ltv).toBeGreaterThan(0);
+    expect(view.productLtv.best!.formula90).toContain("average first order");
+    expect(view.productLtv.read?.worthDays).toBe(90);
   });
 
   it("keeps the young first-order month from sealing a fake year", () => {

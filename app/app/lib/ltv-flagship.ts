@@ -19,6 +19,7 @@ import {
   type LtvDepthView,
   type PathLtvRow,
 } from "./ltv-depth";
+import { buildProductLtv, type ProductLtvView } from "./ltv-product";
 
 export const LTV_FLAGSHIP_WINDOWS = [30, 90, 365] as const;
 export type LtvFlagshipWindow = (typeof LTV_FLAGSHIP_WINDOWS)[number];
@@ -690,6 +691,8 @@ export interface LtvFlagshipView extends LtvDepthView {
   predictive: PredictiveLtv | null;
   refunds: RefundHonesty;
   pathClarity: PathClarity | null;
+  /** First-product → LTV / path drivers from titled first-line items. */
+  productLtv: ProductLtvView;
 }
 
 /**
@@ -710,5 +713,6 @@ export function buildLtvFlagship(
     predictive: predictiveLtv(customers, asOf),
     refunds: refundHonesty(orders, options),
     pathClarity: pathClarity(view.paths, customers),
+    productLtv: buildProductLtv(orders, asOf),
   };
 }
