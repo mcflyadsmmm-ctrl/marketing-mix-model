@@ -431,6 +431,11 @@ describe("Orders page craft lock", () => {
     expect(intel).toContain("mcfly-orders-ledger__table");
     expect(intel).toContain("<thead>");
     expect(intel).toContain("vs prior");
+    // AOV tiers — order-value distribution.
+    expect(intel).toContain("mcfly-orders-tiers");
+    expect(intel).toContain("AOV tiers");
+    expect(intel).toContain("buildOrdersIntelKpis");
+    expect(css).toContain(".mcfly-orders-tiers__fill");
     expect(freq).toContain("mcfly-chart__freq");
     expect(freq).toMatch(/Customers/);
     expect(css).toContain(".mcfly-orders-intel");

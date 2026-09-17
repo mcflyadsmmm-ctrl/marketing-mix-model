@@ -172,6 +172,10 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("mcfly-chart__aovline");
     expect(fixture).toContain("mcfly-orders-ledger__table");
     expect(fixture).toContain("Wk of Sep 7");
+    expect(fixture).toContain("mcfly-orders-tiers");
+    expect(fixture).toContain("AOV tiers");
+    expect(fixture).toContain("$550–$600");
+    expect(css).toContain(".mcfly-orders-tiers__fill");
     expect(fixture).toContain("mcfly-chart--frequency");
     expect(fixture).toContain("1 order");
     expect(css).toContain(".mcfly-orders-intel__kpis");

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aggregateOrderRows,
+  buildOrdersAovTiers,
   buildOrdersFrequency,
   buildOrdersIntelDays,
   buildOrdersIntelKpis,
@@ -115,6 +116,36 @@ describe("orders weekly ledger", () => {
     // wk2 orders 1 vs wk1 orders 2 → down
     expect(weeks[1]!.ordersDelta?.dir).toBe("down");
     expect(weeks[1]!.label).toMatch(/Wk of Sep 14/);
+  });
+});
+
+describe("orders AOV tiers", () => {
+  it("is empty below 8 orders", () => {
+    const rows = Array.from({ length: 5 }, (_, i) =>
+      row("2026-09-01", 600 + i, `c${i}`),
+    );
+    expect(buildOrdersAovTiers(rows)).toEqual([]);
+  });
+
+  it("spreads orders across nice-rounded bands that sum to 100%", () => {
+    // Snowdevil-like spread $520–$700.
+    const rows = Array.from({ length: 60 }, (_, i) =>
+      row("2026-09-01", 520 + (i % 19) * 10, `c${i}`),
+    );
+    const tiers = buildOrdersAovTiers(rows);
+    expect(tiers.length).toBe(5);
+    expect(tiers.reduce((s, t) => s + t.orders, 0)).toBe(60);
+    expect(tiers.reduce((s, t) => s + t.orderShare, 0)).toBeCloseTo(1, 5);
+    expect(tiers.reduce((s, t) => s + t.salesShare, 0)).toBeCloseTo(1, 5);
+    // First band opens below, last band opens above; edges strictly increase.
+    expect(tiers[0]!.lo).toBeNull();
+    expect(tiers[tiers.length - 1]!.hi).toBeNull();
+    const edges = tiers.slice(1).map((t) => t.lo!);
+    for (let i = 1; i < edges.length; i += 1) {
+      expect(edges[i]!).toBeGreaterThan(edges[i - 1]!);
+    }
+    // At least three bands carry orders — a real distribution, not one blob.
+    expect(tiers.filter((t) => t.orders > 0).length).toBeGreaterThanOrEqual(3);
   });
 });
 

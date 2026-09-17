@@ -6,6 +6,7 @@ import { formatCurrency } from "../lib/mer-format";
 import {
   buildOrdersIntelKpis,
   ordersIntelDayLabel,
+  type OrdersAovTier,
   type OrdersIntelAgg,
   type OrdersIntelDay,
   type OrdersWeekRow,
@@ -15,6 +16,7 @@ export type OrdersIntel = {
   windowLabel: string;
   days: OrdersIntelDay[];
   weeks: OrdersWeekRow[];
+  tiers: OrdersAovTier[];
   current: OrdersIntelAgg;
   prior: OrdersIntelAgg | null;
 };
@@ -69,8 +71,75 @@ export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
         weeks={intel.weeks}
         currency={currency}
       />
+      <OrdersAovTiers tiers={intel.tiers} currency={currency} />
       <OrdersLedgerTable weeks={intel.weeks} currency={currency} />
     </section>
+  );
+}
+
+function tierLabel(
+  tier: OrdersAovTier,
+  currency: string,
+): string {
+  const money = (n: number) => formatCurrency(n, currency);
+  if (tier.lo == null) return `< ${money(tier.hi ?? 0)}`;
+  if (tier.hi == null) return `${money(tier.lo)}+`;
+  return `${money(tier.lo)}–${money(tier.hi)}`;
+}
+
+/** AOV tiers — where order value lands. One average hides this. */
+function OrdersAovTiers({
+  tiers,
+  currency,
+}: {
+  tiers: OrdersAovTier[];
+  currency: string;
+}) {
+  const drill = useDeskDrill();
+  if (tiers.length < 2) return null;
+  const maxShare = Math.max(...tiers.map((t) => t.orderShare), 0.01);
+  return (
+    <div className="mcfly-orders-tiers">
+      <p className="mcfly-orders-tiers__cap">AOV tiers · where order value lands</p>
+      <div className="mcfly-orders-tiers__rows">
+        {tiers.map((tier) => {
+          const label = tierLabel(tier, currency);
+          const orderPct = Math.round(tier.orderShare * 100);
+          const open = () =>
+            drill?.openDrill({
+              title: `Orders ${label}`,
+              value: `${orderPct}% of orders`,
+              kicker: "AOV tier",
+              blocks: [
+                { k: "Orders", v: tier.orders.toLocaleString() },
+                { k: "Sales", v: formatCurrency(tier.sales, currency) },
+                { k: "Sales share", v: `${Math.round(tier.salesShare * 100)}% of sales` },
+              ],
+              next: "How order value spreads — Shopify Analytics shows one average.",
+            });
+          return (
+            <button
+              type="button"
+              className="mcfly-orders-tiers__row"
+              key={tier.key}
+              onClick={open}
+            >
+              <span className="mcfly-orders-tiers__k">{label}</span>
+              <span className="mcfly-orders-tiers__track" aria-hidden="true">
+                <span
+                  className="mcfly-orders-tiers__fill"
+                  style={{ width: `${(tier.orderShare / maxShare) * 100}%` }}
+                />
+              </span>
+              <span className="mcfly-orders-tiers__v">{orderPct}%</span>
+              <span className="mcfly-orders-tiers__sub">
+                {tier.orders.toLocaleString()} orders · {Math.round(tier.salesShare * 100)}% of sales
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

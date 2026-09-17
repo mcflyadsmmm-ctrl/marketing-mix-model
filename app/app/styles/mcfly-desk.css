@@ -14478,6 +14478,77 @@ button.mcfly-chart__hour {
   background: var(--mcfly-truth);
 }
 
+/* AOV tiers — order-value distribution bars. */
+.mcfly-orders-tiers {
+  margin: 0.85rem 0 0;
+}
+
+.mcfly-orders-tiers__cap {
+  margin: 0 0 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-tiers__rows {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mcfly-orders-tiers__row {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr auto;
+  align-items: center;
+  gap: 0.15rem 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-orders-tiers__row:hover {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 40%, #fff);
+}
+
+.mcfly-orders-tiers__k {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mcfly-orders-tiers__track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-orders-tiers__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-tiers__v {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-tiers__sub {
+  grid-column: 1 / -1;
+  font-size: 0.64rem;
+  color: var(--mcfly-mute);
+}
+
 /* Audit-grade weekly ledger table. */
 .mcfly-orders-ledger {
   margin: 0.85rem 0 0;

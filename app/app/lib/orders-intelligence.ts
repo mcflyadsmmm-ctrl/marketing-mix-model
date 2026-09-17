@@ -5,7 +5,7 @@
  */
 
 import { formatCurrency } from "./mer-format";
-import { DEPTH_GUEST_KEY } from "./shopify-depth-stats";
+import { DEPTH_GUEST_KEY, percentileOf } from "./shopify-depth-stats";
 
 export type OrderIntelRow = {
   customerKey: string;
@@ -49,6 +49,17 @@ export type OrdersFrequencyBucket = {
   key: "1" | "2" | "3" | "4" | "5-9" | "10+";
   label: string;
   customers: number;
+};
+
+/** One order-value tier (band) in the AOV distribution. */
+export type OrdersAovTier = {
+  key: string;
+  lo: number | null;
+  hi: number | null;
+  orders: number;
+  orderShare: number;
+  sales: number;
+  salesShare: number;
 };
 
 /** One audit-grade weekly ledger row. */
@@ -235,6 +246,61 @@ function frequencyKey(count: number): OrdersFrequencyBucket["key"] {
   if (count === 4) return "4";
   if (count <= 9) return "5-9";
   return "10+";
+}
+
+/** Nearest "nice" step (1 · 2 · 2.5 · 5 × 10ⁿ) at or above x. */
+function niceStep(x: number): number {
+  if (!(x > 0)) return 1;
+  const pow = 10 ** Math.floor(Math.log10(x));
+  const base = x / pow;
+  const mult = base <= 1 ? 1 : base <= 2 ? 2 : base <= 2.5 ? 2.5 : base <= 5 ? 5 : 10;
+  return mult * pow;
+}
+
+/**
+ * AOV tiers — how orders spread across value bands. Shopify Analytics shows one
+ * average; this shows the whole distribution. Bands adapt to the shop (nice-
+ * rounded, centered on the p5–p95 spread) so a $40-AOV or $600-AOV shop both
+ * read well. Needs ≥ 8 orders. Order value only — zero spend.
+ */
+export function buildOrdersAovTiers(rows: OrderIntelRow[]): OrdersAovTier[] {
+  const amounts = rows
+    .map((row) => finite(row.amount))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  if (amounts.length < 8) return [];
+  const lo = percentileOf(amounts, 0.05) ?? Math.min(...amounts);
+  const hi = percentileOf(amounts, 0.95) ?? Math.max(...amounts);
+  if (!(hi > lo)) return [];
+  const step = niceStep((hi - lo) / 4);
+  const start = Math.max(0, Math.floor(lo / step) * step);
+  const edges = [start + step, start + 2 * step, start + 3 * step, start + 4 * step];
+  const bounds: Array<{ lo: number | null; hi: number | null }> = [
+    { lo: null, hi: edges[0]! },
+    { lo: edges[0]!, hi: edges[1]! },
+    { lo: edges[1]!, hi: edges[2]! },
+    { lo: edges[2]!, hi: edges[3]! },
+    { lo: edges[3]!, hi: null },
+  ];
+  const buckets = bounds.map((b) => ({ ...b, orders: 0, sales: 0 }));
+  for (const amount of amounts) {
+    let index = buckets.findIndex(
+      (b) => (b.lo == null || amount >= b.lo) && (b.hi == null || amount < b.hi),
+    );
+    if (index < 0) index = buckets.length - 1;
+    buckets[index]!.orders += 1;
+    buckets[index]!.sales += amount;
+  }
+  const totalOrders = amounts.length;
+  const totalSales = amounts.reduce((sum, n) => sum + n, 0);
+  return buckets.map((b, index) => ({
+    key: `t${index}`,
+    lo: b.lo,
+    hi: b.hi,
+    orders: b.orders,
+    orderShare: totalOrders > 0 ? b.orders / totalOrders : 0,
+    sales: b.sales,
+    salesShare: totalSales > 0 ? b.sales / totalSales : 0,
+  }));
 }
 
 /** Monday-start ISO-ish week key for a shop-local day. */

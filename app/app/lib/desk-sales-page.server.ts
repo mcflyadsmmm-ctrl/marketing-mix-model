@@ -31,6 +31,7 @@ import {
 } from "./order-facts.server";
 import {
   aggregateOrderRows,
+  buildOrdersAovTiers,
   buildOrdersFrequency,
   buildOrdersIntelDays,
   buildOrdersWeeklyRows,
@@ -102,6 +103,7 @@ export async function loadDeskSalesPage(
     windowLabel: string;
     days: ReturnType<typeof buildOrdersIntelDays>;
     weeks: ReturnType<typeof buildOrdersWeeklyRows>;
+    tiers: ReturnType<typeof buildOrdersAovTiers>;
     current: ReturnType<typeof aggregateOrderRows>;
     prior: ReturnType<typeof aggregateOrderRows> | null;
   } | null = null;
@@ -126,6 +128,7 @@ export async function loadDeskSalesPage(
           windowLabel: ordersIntelWindowLabel(days),
           days,
           weeks: buildOrdersWeeklyRows(rows),
+          tiers: buildOrdersAovTiers(rows),
           current: aggregateOrderRows(rows),
           prior: priorRows.length > 0 ? aggregateOrderRows(priorRows) : null,
         };
