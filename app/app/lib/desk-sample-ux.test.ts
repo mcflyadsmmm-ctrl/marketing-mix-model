@@ -214,7 +214,8 @@ describe("Sample data | Live data UX", () => {
     expect(customers).not.toContain("LtvSnapSection");
     expect(customers).not.toContain("cashCostPerCustomer");
     expect(growth).toContain("loadDeskSalesPage");
-    expect(growth).toContain('groups={["growth"]}');
+    expect(growth).toContain("<GrowthComebackChart");
+    expect(growth).toContain("<GrowthScoreboard");
     expect(growth).toContain("tillLtv.repeatRate");
     expect(growth).toContain("/app/ltv");
     expect(growth).not.toContain("cashCac");

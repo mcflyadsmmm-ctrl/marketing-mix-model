@@ -70,10 +70,14 @@ describe("Shopify five books are visible cards", () => {
   });
 
   it("Growth keeps days-to-second and 30-day come-back as cards", () => {
-    expect(growth).toContain('groups={["growth"]}');
-    expect(growth).toContain("medianDaysToSecond");
-    expect(growth).toContain("secondOrderWithin30Share");
-    expect(growth).toContain("not on file");
+    const chart = read("../components/GrowthComebackChart.tsx");
+    const board = read("../components/GrowthScoreboard.tsx");
+    expect(growth).toContain("<GrowthComebackChart");
+    expect(growth).toContain("<GrowthScoreboard");
+    expect(growth).not.toContain('groups={["growth"]}');
+    expect(board).toContain("medianDaysToSecond");
+    expect(chart).toContain("secondOrderWithin30Share");
+    expect(chart).toContain("not on file");
     expect(book).toContain("PRODUCT_NOUN.bookSecondWithin30Empty");
   });
 

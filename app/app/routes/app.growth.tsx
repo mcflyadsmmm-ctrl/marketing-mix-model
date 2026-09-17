@@ -3,29 +3,20 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
-import { CountBarsChart } from "../components/DeskMixChart";
 import { GrowthComebackChart } from "../components/GrowthComebackChart";
-import {
-  BookFactGrid,
-  ShopifyBookSection,
-} from "../components/ShopifyBookSection";
-import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
+import { GrowthScoreboard } from "../components/GrowthScoreboard";
+import { deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { loadGrowthComeback } from "../lib/desk-growth-page.server";
 import {
-  growthComebackSentence,
+  growthFirstOrderMonths,
   growthOrderDepthBars,
-  growthWholePct,
 } from "../lib/growth-comeback";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
 const GROWTH_LEDE =
   "Shopify Analytics Overview shows a returning-customer rate. This page shows first-time dollars, days to a second order, and who came back within 30 days — from order history, not an email list.";
-
-function isNum(n: number | null | undefined): n is number {
-  return n != null && Number.isFinite(n);
-}
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const base = await loadDeskSalesPage(request, "/app/growth");
@@ -77,37 +68,13 @@ export default function GrowthPage() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
-  const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
 
   // Come-back stats read the trailing order-history window, not the hidden
   // month slice — a month-to-date window cannot hold a 30-day come-back.
   const depth = comeback.depth;
   const repeatRate = metrics.tillLtv.repeatRate;
   const orderDepthBars = growthOrderDepthBars(depth);
-
-  const comebackKnown =
-    depth.medianDaysToSecond != null ||
-    depth.secondOrderWithin30Share != null ||
-    depth.secondOrderBuyerShare != null;
-
-  const repeatCards = [
-    {
-      k: "Repeat rate",
-      v: isNum(repeatRate) ? growthWholePct(repeatRate) : "—",
-      d: "Extra orders beyond the first in the first 90 days. Order history, not email.",
-      keepDash: true as const,
-    },
-    ...(isNum(metrics.tillLtv.avgOrdersD90) && metrics.tillLtv.avgOrdersD90 > 0
-      ? [
-          {
-            k: "Orders in first 90 days",
-            v: metrics.tillLtv.avgOrdersD90.toFixed(1),
-            d: "Average orders per new customer in their first 90 days. Order history, not a forecast.",
-            keepDash: true as const,
-          },
-        ]
-      : []),
-  ];
+  const firstOrderMonths = growthFirstOrderMonths(metrics.tillLtv.cohorts);
 
   return (
     <DeskBookPage
@@ -142,60 +109,30 @@ export default function GrowthPage() {
         </p>
       ) : null}
 
-      {!metrics.salesPending && !comebackKnown ? (
-        <p className="mcfly-book__lede">
-          Days to a second order and 30-day come-backs are not on file yet —
-          not $0.
-        </p>
-      ) : null}
+      <p className="mcfly-book__lede">{GROWTH_LEDE}</p>
 
-      {!metrics.salesPending && comebackKnown ? (
-        <p className="mcfly-book__lede">
-          {growthComebackSentence(depth, repeatRate)}
-        </p>
-      ) : null}
-
-      <ShopifyBookSection
-        book={book}
-        depth={depth}
-        clocks={{
-          gross: metrics.grossSales,
-          grossKnown: metrics.grossSalesKnown,
-          total: totalSalesDisplay,
-          net: metrics.netSales,
-          netKnown: metrics.netSalesKnown,
-        }}
-        groups={["growth"]}
-        title={PRODUCT_NOUN.growthTitle}
-        muted={deskBookLede(GROWTH_LEDE)}
-      />
-
+      {/* Explorer first — comeback / first-order months at the Customers-marquee
+          craft bar. Soft cards sit under; the book hero + fact grid is gone. */}
       <GrowthComebackChart
-        title="How far past a first order"
-        items={orderDepthBars}
-        hint="Click a bar · share of identified buyers, from order history"
+        depthBars={orderDepthBars}
+        months={firstOrderMonths}
+        depth={depth}
+        repeatRate={repeatRate}
+        firstTimeDollars={book.newSales}
+        salesPending={metrics.salesPending}
         drillNext="Open LTV for what each first order is worth in 30 / 90 / 365 days."
         drillHref="/app/ltv"
         drillLabel={PRODUCT_NOUN.openLtv}
       />
 
-      <section className="mcfly-book" aria-label="Repeat from order history">
-        <BookFactGrid facts={repeatCards} />
-      </section>
-
-      {metrics.tillLtv.cohorts.length > 0 ? (
-        <section className="mcfly-book" aria-label="First orders by month">
-          <p className="mcfly-book__lede">First orders by month</p>
-          <CountBarsChart
-            title="First orders by month"
-            items={metrics.tillLtv.cohorts.map((row) => ({
-              label: row.cohortMonth,
-              count: row.customers,
-              detail: "Customers who placed a first order that month.",
-            }))}
-          />
-        </section>
-      ) : null}
+      <GrowthScoreboard
+        book={book}
+        depth={depth}
+        repeatRate={repeatRate}
+        avgOrdersD90={metrics.tillLtv.avgOrdersD90}
+        salesPending={metrics.salesPending}
+        useSampleDesk={useSampleDesk}
+      />
 
       <footer className="mcfly-book__links">
         <s-link href="/app/customers">{PRODUCT_NOUN.buyersTitle}</s-link>
