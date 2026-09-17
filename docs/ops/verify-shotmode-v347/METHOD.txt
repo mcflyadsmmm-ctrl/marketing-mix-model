@@ -1,0 +1,3 @@
+method=PENDING-MAC-REACT-SHOTMODE
+note=Packet prepared on Grok box; Mac local-exec + gh required to produce true tip React ?shot=1 PNGs and push.
+copied_from=docs/ops/verify-v347 (interim fixture PNGs — NOT yet React shotMode)
