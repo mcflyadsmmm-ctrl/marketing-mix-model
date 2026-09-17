@@ -67,5 +67,6 @@ describe("Desk period labels and Overview clocks", () => {
     expect(read("../routes/app.growth.tsx")).toContain("showPeriod={false}");
     expect(read("../routes/app.orders.tsx")).toContain("showPeriod={false}");
     expect(read("../routes/app.ltv.tsx")).toContain("showPeriod={false}");
+    expect(read("../routes/app.cpa.tsx")).toContain("showPeriod={false}");
   });
 });

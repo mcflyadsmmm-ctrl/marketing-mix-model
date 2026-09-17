@@ -1048,6 +1048,29 @@ export async function countNewBuyersInRange(
 }
 
 /**
+ * Unique identified buyers (not guests) with an OrderFact inside `range`.
+ * Returns null when no live OrderFacts exist yet — never a fake 0 headcount.
+ */
+export async function countIdentifiedBuyersInRange(
+  shopId: string,
+  range: { start: Date; end: Date },
+): Promise<number | null> {
+  const orders = await prisma.orderFact.findMany({
+    where: {
+      shopId,
+      source: ORDER_FACT_SOURCE,
+      customerKey: { not: ORDER_FACT_GUEST_KEY },
+      orderedAt: { gte: range.start, lte: range.end },
+      NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
+    },
+    select: { customerKey: true },
+    take: 20_000,
+  });
+  if (orders.length === 0) return null;
+  return new Set(orders.map((order) => order.customerKey)).size;
+}
+
+/**
  * Deterministic sample CohortFacts for the Demo desk (`source = sample`).
  * Cleared with sample desk wipe — never overwrites live `shopify_order_v1` rows.
  *

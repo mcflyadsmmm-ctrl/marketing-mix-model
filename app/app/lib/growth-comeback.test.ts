@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  growthBucketMonths,
   growthComebackSentence,
+  growthDefaultGrain,
+  growthExplorerHasPlot,
+  growthExtraOrderAvg,
+  growthFirstOrderMonths,
+  growthGrainReady,
+  growthMonthLabel,
   growthOrderDepthBars,
+  growthResolveGrain,
   growthSecondVsFirst,
   growthWholePct,
 } from "./growth-comeback";
@@ -115,6 +123,119 @@ describe("growthSecondVsFirst", () => {
 
   it("is null without a first and second order median", () => {
     expect(growthSecondVsFirst(emptyDepth())).toBeNull();
+  });
+});
+
+describe("growthFirstOrderMonths", () => {
+  it("sorts first-order months and counts extra 90-day orders", () => {
+    const bars = growthFirstOrderMonths([
+      {
+        cohortMonth: "2026-03",
+        customers: 10,
+        revenueD30: 1200,
+        ordersD90: 14,
+      },
+      {
+        cohortMonth: "2026-01",
+        customers: 8,
+        revenueD30: 800,
+        ordersD90: 8,
+      },
+      { cohortMonth: "nope", customers: 4, revenueD30: 100, ordersD90: 5 },
+      { cohortMonth: "2026-02", customers: 0, revenueD30: 0, ordersD90: 0 },
+    ]);
+    expect(bars.map((b) => b.key)).toEqual(["2026-01", "2026-03"]);
+    expect(bars[0]!.label).toBe("Jan '26");
+    expect(bars[0]!.extraOrders90).toBe(0);
+    expect(bars[0]!.extraOrderRate).toBe(0);
+    expect(bars[1]!.extraOrders90).toBe(4);
+    expect(bars[1]!.extraOrderRate).toBe(0.4);
+    expect(bars[1]!.first30Dollars).toBe(1200);
+  });
+});
+
+describe("growthBucketMonths", () => {
+  it("rolls months into calendar quarters", () => {
+    const months = growthFirstOrderMonths([
+      {
+        cohortMonth: "2026-01",
+        customers: 10,
+        revenueD30: 1000,
+        ordersD90: 12,
+      },
+      {
+        cohortMonth: "2026-02",
+        customers: 10,
+        revenueD30: 800,
+        ordersD90: 15,
+      },
+      {
+        cohortMonth: "2026-04",
+        customers: 5,
+        revenueD30: 400,
+        ordersD90: 6,
+      },
+    ]);
+    const quarters = growthBucketMonths(months, "quarter");
+    expect(quarters.map((q) => q.key)).toEqual(["Q:2026-1", "Q:2026-2"]);
+    expect(quarters[0]!.label).toBe("Q1 '26");
+    expect(quarters[0]!.firstTimeBuyers).toBe(20);
+    expect(quarters[0]!.first30Dollars).toBe(1800);
+    expect(quarters[0]!.extraOrders90).toBe(7);
+    expect(quarters[0]!.extraOrderRate).toBe(0.35);
+  });
+});
+
+describe("growth explorer grain", () => {
+  it("labels months and averages extra-order rate", () => {
+    expect(growthMonthLabel("2026-09")).toBe("Sep '26");
+    const months = growthFirstOrderMonths([
+      {
+        cohortMonth: "2026-01",
+        customers: 10,
+        revenueD30: 1000,
+        ordersD90: 12,
+      },
+      {
+        cohortMonth: "2026-02",
+        customers: 20,
+        revenueD30: 2000,
+        ordersD90: 26,
+      },
+    ]);
+    expect(growthExtraOrderAvg(months)).toBeCloseTo(8 / 30);
+  });
+
+  it("needs two columns before a grain is ready", () => {
+    const depthTwo = growthOrderDepthBars(packedComebackDepth());
+    const months = growthFirstOrderMonths([
+      {
+        cohortMonth: "2026-01",
+        customers: 4,
+        revenueD30: 400,
+        ordersD90: 5,
+      },
+      {
+        cohortMonth: "2026-02",
+        customers: 5,
+        revenueD30: 500,
+        ordersD90: 6,
+      },
+    ]);
+    const ready = growthGrainReady({ depthBars: depthTwo, months });
+    expect(ready.depth).toBe(true);
+    expect(ready.month).toBe(true);
+    expect(growthExplorerHasPlot(ready)).toBe(true);
+    expect(growthDefaultGrain(ready)).toBe("month");
+    expect(growthResolveGrain("quarter", ready)).toBe("month");
+    expect(growthGrainReady({ depthBars: [], months: [] })).toEqual({
+      depth: false,
+      month: false,
+      quarter: false,
+    });
+    expect(growthExplorerHasPlot(growthGrainReady({ depthBars: [], months: [] }))).toBe(
+      false,
+    );
   });
 });
 
