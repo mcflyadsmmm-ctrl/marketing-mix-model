@@ -5,20 +5,29 @@ import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ShopifyBookSection } from "../components/ShopifyBookSection";
 import { CustomersScoreboard } from "../components/CustomersScoreboard";
+import { CustomerRetentionBoard } from "../components/CustomerRetentionBoard";
+import { CustomerValueBands } from "../components/CustomerValueBands";
+import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
+import { loadCustomerAnalytics } from "../lib/desk-customers-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
 // Deeper-than-Analytics contrast for the buyers catalog below the scoreboard.
 // Shopify Analytics Overview shows a returning-customer rate (headcount); this
-// tab leads with returning dollars and how concentrated they are.
+// tab leads with returning dollars, when they come back, and who to save.
 const CUSTOMERS_CONTRAST =
   "Shopify Analytics Overview shows a returning-customer rate — headcount. Deeper: returning dollars, sales per buyer, guests, one-order buyers, and top-10% concentration — from this shop's orders.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return loadDeskSalesPage(request, "/app/customers");
+  const base = await loadDeskSalesPage(request, "/app/customers");
+  const analytics = await loadCustomerAnalytics(request, {
+    useSampleDesk: base.useSampleDesk,
+    windowEnd: base.metrics.period.end,
+  });
+  return { ...base, analytics };
 };
 
 export default function CustomersPage() {
@@ -33,6 +42,7 @@ export default function CustomersPage() {
     shopifyOrderWindowLimited,
     factsIncomplete,
     orderBackfillProgress,
+    analytics,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -89,15 +99,32 @@ export default function CustomersPage() {
         </p>
       ) : null}
 
-      {/* Hero = returning dollars, then the dense interactive buyer strip. */}
+      {useSampleDesk && !shotMode ? (
+        <p className="mcfly-book__lede">
+          Customer depth below reads SAMPLE Snowdevil order history — not this
+          shop’s Shopify orders.
+        </p>
+      ) : null}
+
+      {/* Hero = returning dollars, then the deep order-history flow. */}
       <CustomersScoreboard
         book={book}
         depth={metrics.shopifyDepth}
+        periodLabel={metrics.period.label}
         salesPending={metrics.salesPending}
         useSampleDesk={useSampleDesk}
       />
 
-      {/* Where the dollars concentrate — the Analytics gap, made visual. */}
+      {/* When they come back — repurchase clock, funnel, cadence, win-back. */}
+      <CustomerRetentionBoard analytics={analytics} />
+
+      {/* Whales vs minnows — spend bands (dual axis) + order-count long tail. */}
+      <CustomerValueBands analytics={analytics} />
+
+      {/* Best customers by recency — who is slipping. */}
+      <CustomerWhaleTable analytics={analytics} />
+
+      {/* Where the dollars concentrate — Pareto + share ladder. */}
       {!metrics.salesPending ? (
         <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
       ) : null}
