@@ -1,55 +1,15 @@
 import { useLocation, useSearchParams } from "react-router";
 
 import {
-  DESK_RETAIN_NAV,
-  DESK_SCOREBOARD_NAV,
-  DESK_SPEND_NAV,
+  DESK_IFRAME_NAV,
   deskNavHrefFromSearch,
   isDeskNavActive,
-  type DeskNavItem,
 } from "../lib/desk-nav";
 
-function TabGroup({
-  label,
-  items,
-  pathname,
-  search,
-}: {
-  label: string;
-  items: readonly DeskNavItem[];
-  pathname: string;
-  search: URLSearchParams;
-}) {
-  return (
-    <div className="mcfly-desk-tabs__group">
-      <div className="mcfly-desk-tabs__pills" role="tablist" aria-label={label}>
-        {items.map((item) => {
-          const active = isDeskNavActive(item.path, pathname);
-          return (
-            <a
-              key={item.path}
-              role="tab"
-              aria-selected={active}
-              className={
-                active
-                  ? "mcfly-desk-tabs__pill mcfly-desk-tabs__pill--on"
-                  : "mcfly-desk-tabs__pill"
-              }
-              href={deskNavHrefFromSearch(item.path, search, item.hash)}
-            >
-              {item.label}
-            </a>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 /**
- * In-iframe page tabs. Groups keep sales-first order (Overview · CPA, then
- * retain, then spend). Section names are aria-only — they must not sit inline
- * with tab labels (SCOREBOARD / RETAIN word salad at phone width).
+ * One in-iframe tab rail. Sales-first order. No SCOREBOARD / RETAIN / SPEND
+ * PLAN chips — those sat inline with tab names and read as word salad at
+ * phone width (Marty Admin SAMPLE). Active page is the only painted state.
  */
 export function DeskTopTabs({ shotMode = false }: { shotMode?: boolean }) {
   const location = useLocation();
@@ -57,25 +17,26 @@ export function DeskTopTabs({ shotMode = false }: { shotMode?: boolean }) {
   if (shotMode) return null;
 
   return (
-    <nav className="mcfly-desk-tabs" aria-label="Desk pages">
-      <TabGroup
-        label="Scoreboard"
-        items={DESK_SCOREBOARD_NAV}
-        pathname={location.pathname}
-        search={searchParams}
-      />
-      <TabGroup
-        label="Retain"
-        items={DESK_RETAIN_NAV}
-        pathname={location.pathname}
-        search={searchParams}
-      />
-      <TabGroup
-        label="Spend plan"
-        items={DESK_SPEND_NAV}
-        pathname={location.pathname}
-        search={searchParams}
-      />
+    <nav className="mcfly-desk-tabs" aria-label="Desk pages" role="tablist">
+      {DESK_IFRAME_NAV.map((item) => {
+        const active = isDeskNavActive(item.path, location.pathname);
+        return (
+          <a
+            key={item.path}
+            role="tab"
+            aria-selected={active}
+            aria-current={active ? "page" : undefined}
+            className={
+              active
+                ? "mcfly-desk-tabs__pill mcfly-desk-tabs__pill--on"
+                : "mcfly-desk-tabs__pill"
+            }
+            href={deskNavHrefFromSearch(item.path, searchParams, item.hash)}
+          >
+            {item.label}
+          </a>
+        );
+      })}
     </nav>
   );
 }

@@ -25,10 +25,10 @@ describe("Admin desk phone / narrow iframe", () => {
     const nav = read("./desk-nav.ts");
     const tabs = read("../components/DeskTopTabs.tsx");
     expect(nav).toContain("DESK_PRIMARY_NAV");
-    expect(tabs).toContain("DESK_SCOREBOARD_NAV");
-    expect(tabs).toContain("DESK_RETAIN_NAV");
-    expect(tabs).toContain("DESK_SPEND_NAV");
+    expect(tabs).toContain("DESK_IFRAME_NAV");
     expect(tabs).not.toContain("mcfly-desk-tabs__k");
+    expect(tabs).not.toContain('label="Scoreboard"');
+    expect(tabs).not.toContain('label="Retain"');
     expect(tabs).not.toContain("label: \"Reviews\"");
     expect(tabs).not.toContain("label=\"Ads\"");
   });
