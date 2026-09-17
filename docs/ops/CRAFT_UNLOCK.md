@@ -53,3 +53,40 @@ We gated craft so hard the AI could not improve. That ends.
 
 ### Still refuse (short list)
 Pixels · MTA · true ROAS · ad OAuth zoo · invent reviews · Partner Submit as agent · Fly main/PR#19 · present SAMPLE as this shop’s live orders · put spend/ROAS doors back on Overview.
+
+---
+
+## Galaxy day 2 law (2026-09-17 founder — apply always)
+
+Day 2 with Galaxy Master proved the desk dies when we celebrate partial wins. These are **locks**, not vibes.
+
+### 1. Do not stop early
+- SAMPLE depth, one-tab marquees, or “merged + Fly” are **not** done.
+- After any craft ship: **full-tab scorecard** (Overview · Orders · Customers · Growth · LTV · Goals · Spend Upload · Total ROAS · Allocation · YoY · CPA · Settings/empties · uninstall friction) vs multi-million bar.
+- Every **FAIL** gets a same-day cook. No drip “we fixed one card.”
+
+### 2. Proof before Marty eyes
+- Marty does **not** drip craft QA.
+- Ping him for desk review **only** when **our** Admin screenshot SCORECARD (every tab PNG on demcflyads / `devmcflyads`) already says **PASS**.
+- Galaxy escalates Marty once. Premature “final-review packets” without Admin PNGs are **illegal**.
+
+### 3. Surface SoT (never cook the wrong desk)
+- **Craft SoT = Admin tip** on Fly (`mcfly-analytics`, embedded `/app/*`, SAMPLE Snowdevil, Live parked until Marty go).
+- **Non-SoT = marketing `/demo`** (`mcflyads.com/demo` / Fly static `site/` meta v17). Scoring `/demo` must not trigger Overview/tab cooks.
+- Public demo refresh is optional marketing — **not** on the craft critical path.
+
+### 4. Roles (held)
+| Who | Owns |
+| --- | --- |
+| **Mcfly craft owner (this agent)** | Dense tip, SAMPLE hygiene, written accuracy, FAIL cooks, Fly via Mac, Admin screenshot SCORECARD |
+| **Galaxy Master** | Drive gates, scoreboard, escalate Marty once, listing/growth drafts after craft PASS |
+| **Marty** | Partner Submit, Live go/no-go, infra unlock only (e.g. Shopify session verify), final Admin PASS/FAIL |
+| **Cursor cloud** | Code/PRs under craft owner direction |
+
+### 5. Hard gate until proof
+- Tip code ahead of proof is normal; **do not claim craft PASS** and **do not ping Marty for review** until Admin every-tab screenshots land.
+- Shopify session-service / login walls = **infra unlock** (box handoff), not craft QA.
+
+### Still refuse
+Growth campaigns · Partner-paste · Live unpark without Marty · review-asks before accuracy + craft PASS · invent Partner metrics · Meta-ROAS hero · cook from marketing `/demo`.
+
