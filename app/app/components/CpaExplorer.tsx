@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "../lib/mer-format";
+import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import { useChartHover } from "../lib/use-chart-hover";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   CPA_EXPLORER_LABEL,
@@ -99,7 +101,6 @@ export function CpaExplorer({
   const drill = useDeskDrill();
   const [rangeId, setRangeId] = useState<CpaExplorerRange>(selectedWindow);
   const [grain, setGrain] = useState<CpaGrain>("day");
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setRangeId(selectedWindow);
@@ -125,6 +126,21 @@ export function CpaExplorer({
   const points = useMemo(
     () => bucketCpaDays(rangeDays, effectiveGrain),
     [rangeDays, effectiveGrain],
+  );
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    points.length,
+    chartSeriesId([
+      activeRange,
+      grain,
+      range.fromKey,
+      range.toKey,
+      ...points.map((point) => point.key),
+    ]),
   );
 
   if (cpaExplorerActivityDays(days).length < 2) {
@@ -282,7 +298,6 @@ export function CpaExplorer({
               disabled={grainCounts[option] < 2}
               onClick={() => {
                 setGrain(option);
-                setHoverIndex(null);
               }}
             >
               {CPA_GRAIN_LABEL[option]}
@@ -291,7 +306,17 @@ export function CpaExplorer({
         </div>
       </div>
 
-      <div className="mcfly-chart__plot">
+      <div
+        className="mcfly-chart__plot"
+        onPointerMove={(event) =>
+          moveFromEvent(event, {
+            viewWidth: VIEW_W,
+            plotLeft: PLOT_LEFT,
+            plotWidth: PLOT_W,
+          })
+        }
+        onPointerLeave={onPlotPointerLeave}
+      >
         <svg
           className="mcfly-chart__svg"
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -391,9 +416,8 @@ export function CpaExplorer({
                 aria-label={`${point.label} spend ${point.spend > 0 ? formatCurrency(point.spend, currency) : "none"}`}
                 onClick={openBar}
                 onMouseEnter={() => setHoverIndex(index)}
-                onMouseLeave={() => setHoverIndex(null)}
                 onFocus={() => setHoverIndex(index)}
-                onBlur={() => setHoverIndex(null)}
+                onBlur={onPlotPointerLeave}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
@@ -475,7 +499,11 @@ export function CpaExplorer({
 
         {tipOpen && active ? (
           <div
-            className={`mcfly-chart__tip mcfly-chart__tip--${tipEdge}${tipBelow ? " mcfly-chart__tip--below" : ""}`}
+            className={chartTipClassName({
+              open: true,
+              edge: tipEdge,
+              below: tipBelow,
+            })}
             style={{ left: `${xPct(tipCenter)}%`, top: `${yPct(tipTopY)}%` }}
             role="status"
           >

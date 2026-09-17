@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { formatCurrency } from "../lib/mer-format";
+import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import { useChartHover } from "../lib/use-chart-hover";
 import { OVERVIEW_PENDING_LINE } from "../lib/overview-first-viewport";
 import {
   overviewAov,
@@ -132,7 +134,6 @@ export function OverviewSalesChart({
   const [preset, setPreset] = useState<OverviewRangePreset | "custom">(defaultPreset);
   const [custom, setCustom] = useState<{ fromKey: string; toKey: string } | null>(null);
   const [grain, setGrain] = useState<ChartGrain>("day");
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const range = useMemo(() => {
     if (preset !== "custom") {
@@ -163,6 +164,21 @@ export function OverviewSalesChart({
   const points = useMemo(
     () => overviewBucketize(rangeDays, effectiveGrain),
     [rangeDays, effectiveGrain],
+  );
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    points.length,
+    chartSeriesId([
+      preset,
+      grain,
+      range?.fromKey,
+      range?.toKey,
+      ...points.map((point) => point.key),
+    ]),
   );
 
   if (sorted.length < 2) {
@@ -484,7 +500,17 @@ export function OverviewSalesChart({
         </div>
       </div>
 
-      <div className="mcfly-chart__plot">
+      <div
+        className="mcfly-chart__plot"
+        onPointerMove={(event) =>
+          moveFromEvent(event, {
+            viewWidth: VIEW_W,
+            plotLeft: PLOT_LEFT,
+            plotWidth: PLOT_W,
+          })
+        }
+        onPointerLeave={onPlotPointerLeave}
+      >
         <svg
           className="mcfly-chart__svg"
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -588,9 +614,8 @@ export function OverviewSalesChart({
                 aria-label={`${point.label} ${formatCurrency(point.sales, currency)}`}
                 onClick={openBar}
                 onMouseEnter={() => setHoverIndex(index)}
-                onMouseLeave={() => setHoverIndex(null)}
                 onFocus={() => setHoverIndex(index)}
-                onBlur={() => setHoverIndex(null)}
+                onBlur={onPlotPointerLeave}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
@@ -681,7 +706,11 @@ export function OverviewSalesChart({
 
         {tipOpen ? (
           <div
-            className={`mcfly-chart__tip mcfly-chart__tip--${tipEdge}${tipBelow ? " mcfly-chart__tip--below" : ""}`}
+            className={chartTipClassName({
+              open: true,
+              edge: tipEdge,
+              below: tipBelow,
+            })}
             style={{ left: `${xPct(tipCenter)}%`, top: `${yPct(tipTopY)}%` }}
             role="status"
           >

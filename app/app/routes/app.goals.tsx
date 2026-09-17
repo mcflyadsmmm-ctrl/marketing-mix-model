@@ -217,6 +217,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shopId: shop.id,
       range: periodRange,
       ianaTimezone: shop.ianaTimezone,
+      signal: request.signal,
     });
     periodSales = desk.sales;
     periodSalesError = desk.salesError;

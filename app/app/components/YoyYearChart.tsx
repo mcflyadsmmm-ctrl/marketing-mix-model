@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency, formatMer } from "../lib/mer-format";
+import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
   overviewChartAxis,
@@ -68,12 +70,20 @@ export function YoyYearChart({
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
   const [grain, setGrain] = useState<YoyChartGrain>("month");
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const buckets = useMemo(() => yoyChartBuckets(months, grain), [months, grain]);
   const totals = useMemo(() => yoyBoardTotals(months), [months]);
   const paintable = buckets.some(
     (bucket) => bucket.actual != null || bucket.prior != null,
+  );
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    buckets.length,
+    chartSeriesId([year, grain, ...buckets.map((bucket) => bucket.key)]),
   );
 
   if (!paintable) {
@@ -255,7 +265,6 @@ export function YoyYearChart({
             aria-label="Board year"
             onChange={(event) => {
               onYearChange(event.target.value);
-              setHoverIndex(null);
             }}
           >
             {yearOptions.map((option) => (
@@ -274,7 +283,6 @@ export function YoyYearChart({
               aria-pressed={grain === option}
               onClick={() => {
                 setGrain(option);
-                setHoverIndex(null);
               }}
             >
               {grainLabel(option)}
@@ -283,7 +291,17 @@ export function YoyYearChart({
         </div>
       </div>
 
-      <div className="mcfly-chart__plot">
+      <div
+        className="mcfly-chart__plot"
+        onPointerMove={(event) =>
+          moveFromEvent(event, {
+            viewWidth: VIEW_W,
+            plotLeft: PLOT_LEFT,
+            plotWidth: PLOT_W,
+          })
+        }
+        onPointerLeave={onPlotPointerLeave}
+      >
         <svg
           className="mcfly-chart__svg"
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -384,9 +402,8 @@ export function YoyYearChart({
                     aria-label={`${bucket.label} ${money(bucket.actual)} vs ${money(bucket.prior)} last year`}
                     onClick={openBar}
                     onMouseEnter={() => setHoverIndex(index)}
-                    onMouseLeave={() => setHoverIndex(null)}
                     onFocus={() => setHoverIndex(index)}
-                    onBlur={() => setHoverIndex(null)}
+                    onBlur={onPlotPointerLeave}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
@@ -406,9 +423,8 @@ export function YoyYearChart({
                     aria-label={`${bucket.label} ${money(bucket.actual)} vs ${money(bucket.prior)} last year`}
                     onClick={openBar}
                     onMouseEnter={() => setHoverIndex(index)}
-                    onMouseLeave={() => setHoverIndex(null)}
                     onFocus={() => setHoverIndex(index)}
-                    onBlur={() => setHoverIndex(null)}
+                    onBlur={onPlotPointerLeave}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
@@ -489,7 +505,11 @@ export function YoyYearChart({
 
         {tipOpen && active ? (
           <div
-            className={`mcfly-chart__tip mcfly-chart__tip--${tipEdge}${tipBelow ? " mcfly-chart__tip--below" : ""}`}
+            className={chartTipClassName({
+              open: true,
+              edge: tipEdge,
+              below: tipBelow,
+            })}
             style={{ left: `${xPct(tipCenter)}%`, top: `${yPct(tipTopY)}%` }}
             role="status"
           >

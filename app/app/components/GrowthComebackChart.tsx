@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
+import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
   overviewChartAxis,
@@ -177,9 +179,31 @@ export function GrowthComebackChart({
   const [grain, setGrain] = useState<GrowthExplorerGrain>(() =>
     growthDefaultGrain(ready),
   );
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const plotReady = growthExplorerHasPlot(ready);
+  const effectivePreview = growthResolveGrain(grain, ready);
+  const colCount = !plotReady
+    ? 0
+    : effectivePreview === "depth"
+      ? depthBars.filter((item) => Number.isFinite(item.share) && item.share > 0)
+          .length
+      : effectivePreview === "month"
+        ? months.length
+        : quarterBars.length;
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    colCount,
+    chartSeriesId([
+      effectivePreview,
+      ...depthBars.map((item) => item.label),
+      ...months.map((row) => row.key),
+    ]),
+  );
 
-  if (!growthExplorerHasPlot(ready)) {
+  if (!plotReady) {
     return <ComebackEmptyFrame pending={salesPending} />;
   }
 
@@ -354,7 +378,6 @@ export function GrowthComebackChart({
 
   const setWanted = (next: GrowthExplorerGrain) => {
     setGrain(next);
-    setHoverIndex(null);
   };
 
   const grainBtn = (
@@ -414,7 +437,17 @@ export function GrowthComebackChart({
         </div>
       </div>
 
-      <div className="mcfly-chart__plot">
+      <div
+        className="mcfly-chart__plot"
+        onPointerMove={(event) =>
+          moveFromEvent(event, {
+            viewWidth: VIEW_W,
+            plotLeft: PLOT_LEFT,
+            plotWidth: PLOT_W,
+          })
+        }
+        onPointerLeave={onPlotPointerLeave}
+      >
         <svg
           className="mcfly-chart__svg"
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -511,9 +544,8 @@ export function GrowthComebackChart({
               role="button"
               aria-label={`${col.label}: ${col.barText}`}
               onMouseEnter={() => setHoverIndex(i)}
-              onMouseLeave={() => setHoverIndex(null)}
               onFocus={() => setHoverIndex(i)}
-              onBlur={() => setHoverIndex(null)}
+              onBlur={onPlotPointerLeave}
               onClick={() => openCol(col)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -588,7 +620,11 @@ export function GrowthComebackChart({
 
         {tipOpen ? (
           <div
-            className={`mcfly-chart__tip mcfly-chart__tip--${tipEdge}${tipBelow ? " mcfly-chart__tip--below" : ""}`}
+            className={chartTipClassName({
+              open: true,
+              edge: tipEdge,
+              below: tipBelow,
+            })}
             style={{ left: `${xPct(tipCenter)}%`, top: `${yPct(tipTopY)}%` }}
             role="status"
           >

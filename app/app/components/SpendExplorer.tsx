@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useNavigation, useSearchParams } from "react-router";
+import {
+  chartSeriesId,
+  clientPointToViewBox,
+  explorerHoverFromViewPoint,
+} from "../lib/chart-smooth";
+import { useCoalescedCallback, useHeldChartSeries } from "../lib/use-chart-hover";
 import {
   EXPLORER_GRANULARITY_OPTIONS,
   EXPLORER_MODE_OPTIONS,
@@ -12,6 +18,7 @@ import {
   explorerMerCeil,
   explorerMoneyCeil,
   orderBarsByLegend,
+  paintExplorerControls,
   type ExplorerBucketComparison,
   type ExplorerGranularity,
   type ExplorerMode,
@@ -381,7 +388,7 @@ function clamp(n: number, lo: number, hi: number): number {
  * Unified SVG plot (no Chart.js). URL: exRange, exGran, exMode, exSales, exFrom, exTo.
  */
 export function SpendExplorer({
-  series,
+  series: incomingSeries,
   period,
   shotMode = false,
   basePath = "/app",
@@ -391,7 +398,27 @@ export function SpendExplorer({
 }: SpendExplorerProps) {
   const currency = useDeskCurrency();
   const navigate = useNavigate();
+  const navigation = useNavigation();
   const [searchParams] = useSearchParams();
+  const isRefreshing = navigation.state === "loading";
+  const incomingId = chartSeriesId([
+    incomingSeries.range,
+    incomingSeries.granularity,
+    incomingSeries.mode,
+    incomingSeries.fromKey,
+    incomingSeries.toKey,
+    ...incomingSeries.buckets.map((bucket) => bucket.key),
+  ]);
+  const series = useHeldChartSeries(incomingSeries, incomingId, isRefreshing);
+  const paint = paintExplorerControls(
+    {
+      range: series.range,
+      granularity: series.granularity,
+      mode: series.mode,
+      showSales: series.showSales,
+    },
+    isRefreshing && navigation.location ? navigation.location.search : null,
+  );
   const { buckets: allBuckets, mode, targetMer, breakEvenMer, showSales } =
     series;
   const customChannelLabels = series.channelLabels;
@@ -410,7 +437,8 @@ export function SpendExplorer({
   );
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [hover, setHover] = useState<ExplorerHover>(null);
+  const [hover, setHoverState] = useState<ExplorerHover>(null);
+  const setHover = useCoalescedCallback(setHoverState);
   const [hiddenChannels, setHiddenChannels] = useState<Set<string>>(
     () => new Set(),
   );
@@ -444,18 +472,29 @@ export function SpendExplorer({
     null;
 
   useEffect(() => {
-    setSelectedKey(defaultKey);
-    setHover(null);
-  }, [defaultKey, series.range, series.granularity, series.mode]);
+    if (isRefreshing) return;
+    setSelectedKey((prev) =>
+      prev && visibleBuckets.some((bucket) => bucket.key === prev)
+        ? prev
+        : defaultKey,
+    );
+    setHover((prev) =>
+      prev && visibleBuckets.some((bucket) => bucket.key === prev.bucketKey)
+        ? prev
+        : null,
+    );
+  }, [defaultKey, incomingId, isRefreshing, visibleBuckets]);
 
   useEffect(() => {
+    if (isRefreshing) return;
     setFromDraft(series.fromKey);
     setToDraft(series.toKey);
-  }, [series.fromKey, series.toKey]);
+  }, [isRefreshing, series.fromKey, series.toKey]);
 
   useEffect(() => {
+    if (isRefreshing) return;
     setHiddenChannels(new Set());
-  }, [series.mode, series.range, series.granularity]);
+  }, [incomingId, isRefreshing, series.mode, series.range, series.granularity]);
 
   const selected =
     visibleBuckets.find((b) => b.key === selectedKey) ??
@@ -569,9 +608,9 @@ export function SpendExplorer({
   const hrefBase = {
     period,
     shotMode,
-    gran: series.granularity,
-    mode: series.mode,
-    showSales,
+    gran: paint.granularity,
+    mode: paint.mode,
+    showSales: paint.showSales,
   };
 
   function toExplorer(opts: {
@@ -587,9 +626,9 @@ export function SpendExplorer({
       search: explorerSearch(searchParams, {
         ...hrefBase,
         range: opts.range,
-        gran: opts.gran ?? series.granularity,
-        mode: opts.mode ?? series.mode,
-        showSales: opts.showSales ?? showSales,
+        gran: opts.gran ?? paint.granularity,
+        mode: opts.mode ?? paint.mode,
+        showSales: opts.showSales ?? paint.showSales,
         from: opts.from,
         to: opts.to,
       }),
@@ -601,7 +640,7 @@ export function SpendExplorer({
     navigate(
       toExplorer({
         range: "custom",
-        gran: gran ?? series.granularity,
+        gran: gran ?? paint.granularity,
         from,
         to,
       }),
@@ -702,7 +741,7 @@ export function SpendExplorer({
             aria-label="Explorer range"
           >
             {EXPLORER_RANGE_OPTIONS.map(({ value, label }) => {
-              const on = series.range === value;
+              const on = paint.range === value;
               return (
                 <Link
                   key={value}
@@ -760,15 +799,15 @@ export function SpendExplorer({
             aria-label="Bucket size"
           >
             {EXPLORER_GRANULARITY_OPTIONS.map(({ value, label }) => {
-              const on = series.granularity === value;
+              const on = paint.granularity === value;
               return (
                 <Link
                   key={value}
                   to={toExplorer({
-                    range: series.range,
+                    range: paint.range,
                     gran: value,
-                    from: series.range === "custom" ? series.fromKey : null,
-                    to: series.range === "custom" ? series.toKey : null,
+                    from: paint.range === "custom" ? series.fromKey : null,
+                    to: paint.range === "custom" ? series.toKey : null,
                   })}
                   preventScrollReset
                   className={`mcfly-explorer__btn${on ? " mcfly-explorer__btn--on" : ""}`}
@@ -787,15 +826,15 @@ export function SpendExplorer({
             aria-label="Spend breakdown"
           >
             {EXPLORER_MODE_OPTIONS.map(({ value, label }) => {
-              const on = series.mode === value;
+              const on = paint.mode === value;
               return (
                 <Link
                   key={value}
                   to={toExplorer({
-                    range: series.range,
+                    range: paint.range,
                     mode: value,
-                    from: series.range === "custom" ? series.fromKey : null,
-                    to: series.range === "custom" ? series.toKey : null,
+                    from: paint.range === "custom" ? series.fromKey : null,
+                    to: paint.range === "custom" ? series.toKey : null,
                   })}
                   preventScrollReset
                   className={`mcfly-explorer__btn${on ? " mcfly-explorer__btn--on" : ""}`}
@@ -811,8 +850,8 @@ export function SpendExplorer({
           {quiet && salesLead ? null : (
           <button
             type="button"
-            className={`mcfly-explorer__sales-toggle${showSales ? " mcfly-explorer__sales-toggle--on" : ""}${isShare ? " mcfly-explorer__sales-toggle--disabled" : ""}`}
-            aria-pressed={showSales}
+            className={`mcfly-explorer__sales-toggle${paint.showSales ? " mcfly-explorer__sales-toggle--on" : ""}${isShare ? " mcfly-explorer__sales-toggle--disabled" : ""}`}
+            aria-pressed={paint.showSales}
             disabled={isShare}
             title={
               isShare
@@ -823,10 +862,10 @@ export function SpendExplorer({
               if (isShare) return;
               navigate(
                 toExplorer({
-                  range: series.range,
-                  showSales: !showSales,
-                  from: series.range === "custom" ? series.fromKey : null,
-                  to: series.range === "custom" ? series.toKey : null,
+                  range: paint.range,
+                  showSales: !paint.showSales,
+                  from: paint.range === "custom" ? series.fromKey : null,
+                  to: paint.range === "custom" ? series.toKey : null,
                 }),
                 { preventScrollReset: true },
               );
@@ -854,6 +893,35 @@ export function SpendExplorer({
                 }
                 tabIndex={0}
                 onKeyDown={onPlotKeyDown}
+                onPointerMove={(event) => {
+                  if (shotMode) return;
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  const view = clientPointToViewBox(
+                    event.clientX,
+                    event.clientY,
+                    rect,
+                    vbW,
+                    vbH,
+                  );
+                  if (!view) return;
+                  const next = explorerHoverFromViewPoint({
+                    viewX: view.x,
+                    viewY: view.y,
+                    padL: PAD_L,
+                    padR: PAD_R,
+                    padT: PAD_T,
+                    plotH: PLOT_H,
+                    viewW: vbW,
+                    buckets: visibleBuckets.map((bucket) => ({
+                      key: bucket.key,
+                      bars: visibleOrderedBars(bucket),
+                    })),
+                    leftCeil,
+                    merPoints,
+                    salesLead,
+                  });
+                  if (next) setHover(next);
+                }}
                 onPointerLeave={() => setHover(null)}
               >
                 <svg

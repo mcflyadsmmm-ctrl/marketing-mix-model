@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
+import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
   overviewChartAxis,
@@ -122,19 +124,26 @@ export function CustomerMixChart({
   const weeks = analytics.mixWeekly;
 
   const [grain, setGrain] = useState<MixGrain>("week");
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   const weekBuckets = useMemo(() => bucketMixWeeks(weeks, "week"), [weeks]);
   const monthBuckets = useMemo(() => bucketMixWeeks(weeks, "month"), [weeks]);
   const summary = useMemo(() => mixSummary(weekBuckets), [weekBuckets]);
+  const monthReady = monthBuckets.length >= 2;
+  const effectiveGrain: MixGrain = grain === "month" && monthReady ? "month" : "week";
+  const buckets = effectiveGrain === "month" ? monthBuckets : weekBuckets;
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    buckets.length,
+    chartSeriesId([effectiveGrain, ...buckets.map((bucket) => bucket.key)]),
+  );
 
   if (weeks.length < 2) {
     return <MixEmptyFrame pending={salesPending} />;
   }
-
-  const monthReady = monthBuckets.length >= 2;
-  const effectiveGrain: MixGrain = grain === "month" && monthReady ? "month" : "week";
-  const buckets = effectiveGrain === "month" ? monthBuckets : weekBuckets;
   const noun = effectiveGrain === "month" ? "month" : "week";
 
   const maxDollars = Math.max(...buckets.map((b) => b.total), 1);
@@ -264,7 +273,6 @@ export function CustomerMixChart({
             aria-pressed={effectiveGrain === "week"}
             onClick={() => {
               setGrain("week");
-              setHoverIndex(null);
             }}
           >
             Weekly
@@ -276,7 +284,6 @@ export function CustomerMixChart({
             disabled={!monthReady}
             onClick={() => {
               setGrain("month");
-              setHoverIndex(null);
             }}
           >
             Monthly
@@ -284,7 +291,17 @@ export function CustomerMixChart({
         </div>
       </div>
 
-      <div className="mcfly-chart__plot">
+      <div
+        className="mcfly-chart__plot"
+        onPointerMove={(event) =>
+          moveFromEvent(event, {
+            viewWidth: VIEW_W,
+            plotLeft: PLOT_LEFT,
+            plotWidth: PLOT_W,
+          })
+        }
+        onPointerLeave={onPlotPointerLeave}
+      >
         <svg
           className="mcfly-chart__svg"
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
@@ -378,9 +395,8 @@ export function CustomerMixChart({
               role="button"
               aria-label={`${b.label}: returning ${formatCurrency(b.returningDollars, currency)}, first-time ${formatCurrency(b.newDollars, currency)}`}
               onMouseEnter={() => setHoverIndex(i)}
-              onMouseLeave={() => setHoverIndex(null)}
               onFocus={() => setHoverIndex(i)}
-              onBlur={() => setHoverIndex(null)}
+              onBlur={onPlotPointerLeave}
               onClick={() => openBucket(b)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -442,7 +458,11 @@ export function CustomerMixChart({
 
         {tipOpen ? (
         <div
-          className={`mcfly-chart__tip mcfly-chart__tip--${tipEdge}${tipBelow ? " mcfly-chart__tip--below" : ""}`}
+          className={chartTipClassName({
+            open: true,
+            edge: tipEdge,
+            below: tipBelow,
+          })}
           style={{ left: `${xPct(tipCenter)}%`, top: `${yPct(tipTopY)}%` }}
           role="status"
         >

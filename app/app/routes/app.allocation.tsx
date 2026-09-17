@@ -211,6 +211,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shopId: shop.id,
       range,
       ianaTimezone: shop.ianaTimezone,
+      signal: request.signal,
     });
     sales = desk.sales;
     salesError = desk.salesError;

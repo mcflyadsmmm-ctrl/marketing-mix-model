@@ -79,6 +79,7 @@ export async function loadDeskSalesPage(
       shopId: shop.id,
       range,
       ianaTimezone: shop.ianaTimezone,
+      signal: request.signal,
     });
     sales = desk.sales;
     salesError = desk.salesError;

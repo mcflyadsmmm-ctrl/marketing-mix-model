@@ -267,6 +267,49 @@ export function parseExplorerShowSales(raw: string | null): boolean {
   return v === "1" || v === "true" || v === "yes" || v === "on";
 }
 
+export type ExplorerPaintControls = {
+  range: ExplorerRange;
+  granularity: ExplorerGranularity;
+  mode: ExplorerMode;
+  showSales: boolean;
+};
+
+/**
+ * Optimistic range/grain/mode paint while a same-route explorer navigation
+ * is in flight. Missing explorer keys keep the current control so a period
+ * refresh does not snap the chart chrome to defaults.
+ */
+export function paintExplorerControls(
+  current: ExplorerPaintControls,
+  pendingSearch: string | null | undefined,
+): ExplorerPaintControls {
+  if (!pendingSearch) return current;
+  const query = pendingSearch.startsWith("?")
+    ? pendingSearch.slice(1)
+    : pendingSearch;
+  const params = new URLSearchParams(query);
+  const touching =
+    params.has("exRange") ||
+    params.has("exGran") ||
+    params.has("exMode") ||
+    params.has("exSales") ||
+    params.has("exFrom") ||
+    params.has("exTo");
+  if (!touching) return current;
+  return {
+    range: params.has("exRange")
+      ? parseExplorerRange(params.get("exRange"))
+      : current.range,
+    granularity: params.has("exGran")
+      ? parseExplorerGranularity(params.get("exGran"))
+      : current.granularity,
+    mode: params.has("exMode")
+      ? parseExplorerMode(params.get("exMode"))
+      : current.mode,
+    showSales: parseExplorerShowSales(params.get("exSales")),
+  };
+}
+
 /** Parse optional YYYY-MM-DD; returns null when missing/invalid. */
 export function parseExplorerDateParam(raw: string | null): string | null {
   if (!raw) return null;

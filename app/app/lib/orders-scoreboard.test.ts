@@ -384,7 +384,8 @@ describe("Orders page craft lock", () => {
     expect(chart).toContain("mcfly-chart__tip-row");
     expect(chart).toContain("mcfly-chart__plot");
     expect(chart).toMatch(/rank/i);
-    expect(chart).toContain("onMouseLeave");
+    expect(chart).toContain("onPointerLeave");
+    expect(chart).toContain("useChartHover");
     const css = read("../styles/mcfly-desk.css");
     expect(css).toContain(".mcfly-chart__tip");
     expect(css).toContain(".mcfly-chart__plot");

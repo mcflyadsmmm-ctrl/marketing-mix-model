@@ -12,6 +12,10 @@ import {
 import { ensureShopMetadata } from "./shop-metadata.server";
 import { DESK_HISTORY_YEARS_BACK } from "./desk-history";
 import { countClosedDaysInPeriod } from "./mer-trust";
+import {
+  isChartAbortError,
+  throwIfChartRequestAborted,
+} from "./chart-smooth";
 import type { DateRange } from "./periods";
 import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 import {
@@ -670,9 +674,11 @@ export async function loadDeskSalesForPeriod(args: {
   range: DateRange;
   ianaTimezone: string | null | undefined;
   now?: Date;
+  signal?: AbortSignal;
 }): Promise<LoadDeskSalesForPeriodResult> {
   const now = args.now ?? new Date();
-  const { admin, shopId, range, ianaTimezone } = args;
+  const { admin, shopId, range, ianaTimezone, signal } = args;
+  throwIfChartRequestAborted(signal);
 
   let factsCoverage: SalesFactsCoverage | null = null;
   try {
@@ -682,12 +688,16 @@ export async function loadDeskSalesForPeriod(args: {
       now,
       ianaTimezone,
     );
-  } catch {
+    throwIfChartRequestAborted(signal);
+  } catch (err) {
+    if (isChartAbortError(err)) throw err;
     factsCoverage = null;
   }
 
   try {
+    throwIfChartRequestAborted(signal);
     const factsTotals = await getSalesFactsTotals(shopId, range, now);
+    throwIfChartRequestAborted(signal);
     let todaySales: SalesResult | null = null;
     let todaySalesUnavailable = false;
     let todaySalesTruncated = false;
@@ -702,8 +712,10 @@ export async function loadDeskSalesForPeriod(args: {
             todayPartialRange(now, ianaTimezone),
             { maxPages: LIVE_TODAY_MAX_PAGES },
           );
+          throwIfChartRequestAborted(signal);
           todaySalesTruncated = Boolean(todaySales.truncatedByPageCap);
-        } catch {
+        } catch (err) {
+          if (isChartAbortError(err)) throw err;
           todaySales = null;
           todaySalesUnavailable = true;
         }
@@ -718,6 +730,7 @@ export async function loadDeskSalesForPeriod(args: {
       todaySalesTruncated,
     };
   } catch (err) {
+    if (isChartAbortError(err)) throw err;
     return {
       sales: emptySales("shopify"),
       salesError:

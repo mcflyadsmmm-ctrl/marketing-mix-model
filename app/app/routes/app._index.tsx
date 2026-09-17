@@ -213,6 +213,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       range,
       ianaTimezone,
       now,
+      signal: request.signal,
     });
     sales = desk.sales;
     salesError = desk.salesError;
