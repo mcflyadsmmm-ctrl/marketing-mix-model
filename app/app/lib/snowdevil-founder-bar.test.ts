@@ -118,6 +118,31 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(SAMPLE_LEDGER_HANDOFF).not.toMatch(/Saving a day switches you to Live/i);
   });
 
+  it("product lock: SAMPLE spend is on file; Overview/Shopify tabs stay sales-first", () => {
+    const now = new Date("2026-09-16T18:00:00Z");
+    const rows = buildThreeYearSampleDesk({ now, targetMer: 3.5 });
+    expect(rows.length).toBeGreaterThan(0);
+    for (const r of rows) {
+      expect(spendOf(r)).toBeGreaterThan(0);
+    }
+
+    const firstView = chrome("../components/OverviewFirstViewport.tsx");
+    expect(firstView).toContain("if (useSampleDesk)");
+    expect(firstView).toContain("Example spend · Live is parked");
+    expect(firstView).not.toContain("Edit spend");
+    expect(firstView).not.toContain("setupAddSpend");
+    expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
+
+    const shopifyTabs = [
+      chrome("../routes/app.orders.tsx"),
+      chrome("../routes/app.customers.tsx"),
+      chrome("../routes/app.growth.tsx"),
+      chrome("../routes/app.ltv.tsx"),
+    ].join("\n");
+    expect(shopifyTabs).not.toContain("Edit spend");
+    expect(shopifyTabs).not.toContain("Upload Spend");
+  });
+
   it("6+7. SAMPLE chip/watermark and dense Overview lanes stay", () => {
     const fixture = readApp("./desk-phone-fixture.html");
     const css = readApp("../styles/mcfly-desk.css");

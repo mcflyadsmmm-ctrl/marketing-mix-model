@@ -65,12 +65,15 @@ describe("buildThreeYearSampleDesk", () => {
       const month = r.day.getUTCMonth();
       if (month === 10) novSales += r.sales;
       if (month === 4) maySales += r.sales;
+      let daySpend = 0;
       for (const [ch, amt] of Object.entries(r.spendByChannel)) {
         if (amt > 0) {
+          daySpend += amt;
           spend += amt;
           used.add(ch);
         }
       }
+      expect(daySpend, r.day.toISOString().slice(0, 10)).toBeGreaterThan(0);
     }
     expect(novSales).toBeGreaterThan(maySales);
     const mer = sales / spend;
