@@ -13417,3 +13417,162 @@ button.mcfly-chart__month {
     min-height: 11.5rem;
   }
 }
+
+/* =========================================================================
+ * Orchestration law — glance spine + typical-day sales chart.
+ * All three YoY windows stay on a 390px first screen. Bars vs typical.
+ * APPEND ONLY. Zero spend. SAMPLE stays labeled.
+ * ========================================================================= */
+
+.mcfly-yoy--glance .mcfly-yoy__delta {
+  margin: 0.12rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-yoy--glance .mcfly-yoy__delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-yoy--glance .mcfly-yoy__delta--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-yoy--glance .mcfly-yoy__delta--even,
+.mcfly-yoy--glance .mcfly-yoy__delta--empty {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-split__return {
+  display: block;
+  height: 100%;
+  background: var(--mcfly-ink);
+  opacity: 0.72;
+}
+
+.mcfly-chart__typical {
+  stroke: var(--mcfly-ink);
+  stroke-width: 1.35;
+  stroke-dasharray: 5 4;
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.mcfly-chart__bar--hot {
+  fill: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__bar--cool {
+  fill: color-mix(in srgb, var(--mcfly-accent) 52%, #d5e2ee);
+}
+
+.mcfly-chart__bar--weekend.mcfly-chart__bar--hot {
+  fill: color-mix(in srgb, var(--mcfly-accent) 88%, #0c1929);
+}
+
+.mcfly-chart__bar--on {
+  stroke: var(--mcfly-ink);
+  stroke-width: 1.5;
+}
+
+.mcfly-scoreboard--overview .mcfly-chart__hint,
+.mcfly-desk-anchor .mcfly-chart__hint {
+  display: none;
+}
+
+.mcfly-data-mode--sample {
+  padding: 0.32rem 0.7rem;
+}
+
+.mcfly-data-mode--sample .mcfly-data-mode__status {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mcfly-yoy--glance .mcfly-yoy__k .mcfly-icon {
+  display: none;
+}
+
+@media (max-width: 36rem) {
+  .mcfly-yoy--glance .mcfly-yoy__grid,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid,
+  .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: visible;
+    gap: 0.35rem;
+    scroll-snap-type: none;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__card,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card,
+  .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__card {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 0 !important;
+    max-width: calc(33.333% - 0.24rem) !important;
+    padding: 0.48rem 0.42rem 0.42rem;
+    min-height: 0;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__zone,
+  .mcfly-yoy--glance .mcfly-yoy__range,
+  .mcfly-yoy--glance .mcfly-yoy__prior {
+    display: none;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__k {
+    margin: 0;
+    font-size: 0.52rem;
+    letter-spacing: 0.03em;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__v {
+    font-size: clamp(0.98rem, 4.5vw, 1.2rem);
+    margin: 0.18rem 0 0;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__delta {
+    font-size: 0.68rem;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart--sales {
+    padding: 0.55rem 0.6rem 0.5rem;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart__head {
+    margin: 0 0 0.32rem;
+    gap: 0.3rem 0.6rem;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart__hover {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-yoy--glance .mcfly-yoy__grid,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__card,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    max-width: calc(33.333% - 0.24rem) !important;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+    min-height: 10.75rem;
+  }
+}

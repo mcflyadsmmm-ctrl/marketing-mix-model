@@ -32,7 +32,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(tabs).not.toContain("label=\"Ads\"");
   });
 
-  it("keeps YoY as a swipe rail at 430px so $68,457 is not a 3-up crush", () => {
+  it("keeps a swipe rail in the phone block; Overview glance is a 3-up spine", () => {
     expect(phone).toMatch(/@media \(max-width: 430px\)/);
     expect(phone).toContain(".mcfly-kpi-grid");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
@@ -52,6 +52,9 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).not.toMatch(
       /@media \(max-width: 420px\) \{\s*\n\s*\.mcfly-kpi-board/,
     );
+    expect(css).toContain(".mcfly-yoy--glance");
+    expect(css).toContain(".mcfly-chart__typical");
+    expect(css).toContain("max-width: calc(33.333% - 0.24rem) !important");
   });
 
   it("makes the 11-tab rail one sideways scroll, not page overflow", () => {
@@ -101,6 +104,9 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("$4,279");
     expect(fixture).toContain("$13,264");
     expect(fixture).toContain("mcfly-chart__sales-line");
+    expect(fixture).toContain("mcfly-chart__typical");
+    expect(fixture).toContain("mcfly-yoy--glance");
+    expect(fixture).toContain("Sep 16 · $5,184 · +$905 vs typical");
     expect(fixture).toContain("aria-label=\"Sales by day\"");
     expect(fixture).not.toContain("Harbor");
     expect(fixture).not.toContain("$92");

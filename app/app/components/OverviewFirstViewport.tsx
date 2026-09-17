@@ -235,6 +235,24 @@ export function OverviewFirstViewport({
           value={returningValue}
           sub={returningShare}
           foot="Dollars, not headcount."
+          extra={
+            !salesPending &&
+            rest.returningSalesShare != null &&
+            Number.isFinite(rest.returningSalesShare) ? (
+              <span
+                className="mcfly-split"
+                aria-hidden="true"
+                title={returningShare}
+              >
+                <span
+                  className="mcfly-split__return"
+                  style={{
+                    width: `${Math.round(rest.returningSalesShare * 100)}%`,
+                  }}
+                />
+              </span>
+            ) : null
+          }
         />
         <PeekCard
           to={ordersHref}

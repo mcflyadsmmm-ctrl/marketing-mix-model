@@ -11,6 +11,7 @@ import {
   OVERVIEW_YOY_SAME_WINDOW,
   overviewWindowRange,
   overviewWindowsCollapsed,
+  overviewYoyDeltaPct,
   overviewYoyZone,
   overviewYoyZoneLabel,
   type OverviewYoyCard,
@@ -87,7 +88,7 @@ export function OverviewYoyCards({
   const drill = useDeskDrill();
   if (salesPending) {
     return (
-      <section className="mcfly-yoy" aria-label="Sales versus last year">
+      <section className="mcfly-yoy mcfly-yoy--glance" aria-label="Sales versus last year">
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_PENDING}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -100,7 +101,7 @@ export function OverviewYoyCards({
 
   if (cards.length === 0) {
     return (
-      <section className="mcfly-yoy" aria-label="Sales versus last year">
+      <section className="mcfly-yoy mcfly-yoy--glance" aria-label="Sales versus last year">
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -116,13 +117,14 @@ export function OverviewYoyCards({
   const sameWindow = overviewWindowsCollapsed(cards);
 
   return (
-    <section className="mcfly-yoy" aria-label="Sales versus last year">
+    <section className="mcfly-yoy mcfly-yoy--glance" aria-label="Sales versus last year">
       <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {
           const vs = deltaLine(card, currency);
           const zone = overviewYoyZone(card);
           const zoneLabel = overviewYoyZoneLabel(zone);
+          const glancePct = overviewYoyDeltaPct(card);
           const range = overviewWindowRange(card.fromKey, card.toKey);
           const priorLabel = card.missingPrior
             ? "—"
@@ -172,6 +174,11 @@ export function OverviewYoyCards({
               <p className={`mcfly-yoy__v mcfly-yoy__v--${zone}`}>
                 {formatCurrency(card.sales, currency)}
               </p>
+              {glancePct ? (
+                <p className={`mcfly-yoy__delta mcfly-yoy__delta--${zone}`}>
+                  {glancePct}
+                </p>
+              ) : null}
               <p className="mcfly-yoy__prior">
                 <span>LY {priorLabel}</span>
                 {vs ? (

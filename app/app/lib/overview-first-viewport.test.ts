@@ -159,6 +159,9 @@ describe("overview first viewport", () => {
     expect(chart).toContain("OVERVIEW_CHART_EMPTY");
     expect(chart).toContain("No days in this window yet");
     expect(chart).toContain("Tap a bar");
+    expect(chart).toContain("mcfly-chart__typical");
+    expect(chart).toContain("overviewChartDayLabel");
+    expect(chart).not.toContain("mcfly-chart__hint");
     expect(chart).not.toContain("mcfly-chart__spend-line");
     expect(chart).not.toContain("Sales and spend");
   });
@@ -177,6 +180,8 @@ describe("overview first viewport", () => {
     expect(cards).not.toContain("Edit spend");
     expect(cards).toContain("overviewWindowRange");
     expect(cards).toContain("overviewYoyZone");
+    expect(cards).toContain("mcfly-yoy--glance");
+    expect(cards).toContain("overviewYoyDeltaPct");
     expect(cards).not.toContain("Click for detail");
   });
 
@@ -199,6 +204,7 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("bookTypicalDay");
     expect(firstView).toContain("bookBusiestWeekday");
     expect(firstView).toContain("mcfly-split");
+    expect(firstView).toContain("mcfly-split__return");
     expect(firstView).toContain("Returning");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");

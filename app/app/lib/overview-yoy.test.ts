@@ -10,6 +10,7 @@ import {
   OVERVIEW_YOY_SAME_WINDOW,
   overviewWindowRange,
   overviewWindowsCollapsed,
+  overviewYoyDeltaPct,
   overviewYoyZone,
   overviewYoyZoneLabel,
 } from "./overview-yoy";
@@ -133,6 +134,16 @@ describe("buildOverviewYoyCards", () => {
     expect(overviewYoyZoneLabel("down")).toBe("Down");
     expect(overviewYoyZoneLabel("even")).toBe("Even");
     expect(overviewYoyZoneLabel("empty")).toBeNull();
+    expect(overviewYoyDeltaPct({ yoySalesPct: -2.1, missingPrior: false })).toBe(
+      "-2%",
+    );
+    expect(overviewYoyDeltaPct({ yoySalesPct: 0.2, missingPrior: false })).toBe(
+      "Even",
+    );
+    expect(overviewYoyDeltaPct({ yoySalesPct: 14, missingPrior: false })).toBe(
+      "+14%",
+    );
+    expect(overviewYoyDeltaPct({ yoySalesPct: 10, missingPrior: true })).toBeNull();
   });
 });
 

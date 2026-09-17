@@ -129,6 +129,16 @@ export function overviewYoyZoneLabel(zone: OverviewYoyZone): string | null {
   }
 }
 
+/** Compact glance pct for the 3-up spine. Missing last year stays blank — not 0%. */
+export function overviewYoyDeltaPct(
+  card: Pick<OverviewYoyCard, "yoySalesPct" | "missingPrior">,
+): string | null {
+  if (card.missingPrior || card.yoySalesPct == null) return null;
+  const rounded = Math.round(card.yoySalesPct);
+  if (rounded === 0) return "Even";
+  return `${rounded > 0 ? "+" : ""}${rounded}%`;
+}
+
 function isYoyId(id: string): id is OverviewYoyId {
   return id === "mtd" || id === "qtd" || id === "ytd";
 }
