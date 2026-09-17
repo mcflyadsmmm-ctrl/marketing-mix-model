@@ -1,4 +1,3 @@
-import { DeskIcon } from "./DeskIcon";
 import type { RetentionHeat } from "../lib/ltv-depth";
 
 function pct(share: number): string {

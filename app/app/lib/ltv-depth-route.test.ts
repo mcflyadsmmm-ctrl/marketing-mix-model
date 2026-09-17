@@ -1,0 +1,89 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const read = (rel: string) => readFileSync(join(here, rel), "utf8");
+
+const route = read("../routes/app.ltv.tsx");
+const curves = read("../components/LtvBuildCurves.tsx");
+const heat = read("../components/LtvRetentionHeat.tsx");
+const tiers = read("../components/LtvTierTables.tsx");
+const paths = read("../components/LtvPathTable.tsx");
+const whales = read("../components/LtvWhaleRecency.tsx");
+
+describe("LTV route mounts the depth pack", () => {
+  it("loads the depth view in the loader", () => {
+    expect(route).toContain(
+      'import { loadLtvDepth } from "../lib/ltv-depth-page.server"',
+    );
+    expect(route).toContain("loadLtvDepth({ shopId: shop.id, useSampleDesk })");
+    expect(route).toMatch(/return \{[\s\S]*?\bdepth,/);
+  });
+
+  it("imports and renders all five depth panels", () => {
+    for (const tag of [
+      "LtvBuildCurves",
+      "LtvRetentionHeat",
+      "LtvTierTables",
+      "LtvPathTable",
+      "LtvWhaleRecency",
+    ]) {
+      expect(route).toContain(`import { ${tag} }`);
+      expect(route).toContain(`<${tag}`);
+    }
+  });
+
+  it("leads with order history — depth sits after the value build, before spend", () => {
+    const build = route.indexOf("<LtvValueBuild");
+    const firstDepth = route.indexOf("<LtvBuildCurves");
+    const economics = route.indexOf("facts={economicsRows}");
+    expect(build).toBeGreaterThan(-1);
+    expect(firstDepth).toBeGreaterThan(build);
+    expect(economics).toBeGreaterThan(firstDepth);
+  });
+
+  it("drops the old per-month grid once the richer curve paints", () => {
+    expect(route).toContain("monthRows.length > 0 && !depth.curves");
+  });
+
+  it("labels the SAMPLE Snowdevil source", () => {
+    expect(route).toContain("SAMPLE Snowdevil");
+  });
+});
+
+describe("depth chrome stays honest and in shop-owner voice", () => {
+  const all = [curves, heat, tiers, paths, whales];
+
+  it("keeps the banned glossary words out of merchant chrome", () => {
+    // Comments may explain a ban; strip block/line comments before scanning.
+    for (const src of all) {
+      const chrome = src
+        .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/^\s*\/\/.*$/gm, "");
+      expect(chrome).not.toMatch(/\bARPU\b/i);
+      expect(chrome).not.toMatch(/\baMER\b/);
+      expect(chrome).not.toMatch(/\bp25\b|\bp75\b/i);
+    }
+  });
+
+  it("says the honest short-window and no-promise lines", () => {
+    expect(curves).toContain("Younger months stop earlier");
+    expect(heat).toContain("not fully passed");
+    expect(paths).toContain("not a forecast");
+    expect(tiers).toContain("not a promise");
+  });
+
+  it("reuses the shared chart shell instead of bespoke chart CSS", () => {
+    expect(curves).toContain('className="mcfly-chart');
+    expect(whales).toContain("mcfly-chart__hrow");
+  });
+
+  it("product journeys only paint when titles are on file", () => {
+    // Live has no product names → the loader passes product: null and this
+    // table returns null; the route never fakes a Path LTV table on live.
+    expect(paths).toContain("paths.length === 0");
+  });
+});

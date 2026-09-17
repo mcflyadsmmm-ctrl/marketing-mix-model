@@ -4,7 +4,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { BookFactGrid, type BookFact } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { LtvValueBuild, type LtvBuildWindow } from "../components/LtvValueBuild";
-import { LtvCohortCurves } from "../components/LtvCohortCurves";
+import { LtvBuildCurves } from "../components/LtvBuildCurves";
 import { LtvRetentionHeat } from "../components/LtvRetentionHeat";
 import { LtvTierTables } from "../components/LtvTierTables";
 import { LtvPathTable } from "../components/LtvPathTable";
@@ -456,7 +456,7 @@ export default function LtvPage() {
         </p>
       ) : null}
 
-      <LtvCohortCurves curves={depth.curves} />
+      <LtvBuildCurves curves={depth.curves} />
       <LtvRetentionHeat heat={depth.retention} />
       <LtvTierTables aov={depth.aov} basket={depth.basket} />
       <LtvPathTable paths={depth.paths} />

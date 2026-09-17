@@ -29,7 +29,7 @@ const PAD_B = 28;
  * Shopify Analytics never draws — younger months simply stop early (honest
  * short), never a sealed $0 tail. Click a month to read its build.
  */
-export function LtvCohortCurves({ curves }: { curves: CohortCurves | null }) {
+export function LtvBuildCurves({ curves }: { curves: CohortCurves | null }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
   if (!curves || curves.series.length < 2) return null;
