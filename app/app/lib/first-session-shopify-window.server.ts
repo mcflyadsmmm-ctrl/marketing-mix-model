@@ -5,10 +5,19 @@
  * OAuth and first paint must not await the crawl. Enqueue resume jobs, then
  * fire-and-forget the default chunk (20 sales days / 7 order days) — never
  * the timid maxDays: 2 that left a sealed thin book.
+ *
+ * Live unpark: skip enqueue while SAMPLE freeze / stage parked
+ * (`liveUnparkIngestPolicyFromEnv`). Unpaid vs paid-full clamp is the
+ * upcoming sync PR (`LIVE_SYNC_LAW_PR_REF`) — do not crawl paid as a
+ * 90-closed-day book here.
  */
 
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
 import { enqueueJob } from "./job-queue.server";
+import {
+  liveShopifyWindowShouldSchedule,
+  liveUnparkIngestPolicyFromEnv,
+} from "./live-unpark";
 import {
   BACKFILL_ORDER_FACTS_JOB,
   runOrderFactsBackfill,
@@ -70,6 +79,8 @@ export async function scheduleFirstSessionShopifyWindow(
   admin: AdminApiContext,
   shopId: string,
 ): Promise<void> {
+  const policy = liveUnparkIngestPolicyFromEnv();
+  if (!liveShopifyWindowShouldSchedule(policy)) return;
   await enqueueShopifyWindowBackfill(shopId);
   void runSalesFactsBackfill(admin, shopId).catch(() => {
     // Job tick resumes — never fail OAuth / first paint.

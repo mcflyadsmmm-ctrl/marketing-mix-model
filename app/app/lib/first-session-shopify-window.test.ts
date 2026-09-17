@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,6 +45,9 @@ function read(rel: string) {
 }
 
 describe("first-session Shopify window resume", () => {
+  const prevSample = process.env.MCFLY_SAMPLE_ONLY;
+  const prevStage = process.env.MCFLY_LIVE_STAGE;
+
   beforeEach(() => {
     enqueueJob.mockReset();
     runSalesFactsBackfill.mockReset();
@@ -52,6 +55,15 @@ describe("first-session Shopify window resume", () => {
     enqueueJob.mockResolvedValue({ jobId: "job_1", dedupeKey: "shop_1" });
     runSalesFactsBackfill.mockReturnValue(new Promise(() => {}));
     runOrderFactsBackfill.mockReturnValue(new Promise(() => {}));
+    delete process.env.MCFLY_SAMPLE_ONLY;
+    delete process.env.MCFLY_LIVE_STAGE;
+  });
+
+  afterEach(() => {
+    if (prevSample === undefined) delete process.env.MCFLY_SAMPLE_ONLY;
+    else process.env.MCFLY_SAMPLE_ONLY = prevSample;
+    if (prevStage === undefined) delete process.env.MCFLY_LIVE_STAGE;
+    else process.env.MCFLY_LIVE_STAGE = prevStage;
   });
 
   it("resumes SalesDayFact while closed days remain, not after a timezone skip", () => {
@@ -130,6 +142,19 @@ describe("first-session Shopify window resume", () => {
     expect(runSalesFactsBackfill.mock.calls[0][2]?.maxDays).toBeUndefined();
   });
 
+  it("skips enqueue while SAMPLE freeze or stage parked (kill switch)", async () => {
+    const admin = {} as never;
+    process.env.MCFLY_SAMPLE_ONLY = "true";
+    await scheduleFirstSessionShopifyWindow(admin, "shop_1");
+    expect(enqueueJob).not.toHaveBeenCalled();
+    expect(runSalesFactsBackfill).not.toHaveBeenCalled();
+
+    delete process.env.MCFLY_SAMPLE_ONLY;
+    process.env.MCFLY_LIVE_STAGE = "parked";
+    await scheduleFirstSessionShopifyWindow(admin, "shop_1");
+    expect(enqueueJob).not.toHaveBeenCalled();
+  });
+
   it("post-auth and first Overview schedule more than two missing days", () => {
     const auth = read("../routes/auth.$.tsx");
     const overview = read("../routes/app._index.tsx");
@@ -144,6 +169,9 @@ describe("first-session Shopify window resume", () => {
     expect(desk).not.toContain("maxDays: 2");
     expect(roas).toContain("scheduleFirstSessionShopifyWindow");
     expect(roas).not.toContain("maxDays: 2");
+    const window = read("./first-session-shopify-window.server.ts");
+    expect(window).toContain("liveUnparkIngestPolicyFromEnv");
+    expect(window).toContain("LIVE_SYNC_LAW_PR_REF");
     const jobs = read("./job-runner.server.ts");
     expect(jobs).toContain("BACKFILL_SALES_DAY_FACTS_JOB");
     expect(jobs).toContain("handleBackfillSalesDayFacts");

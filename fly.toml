@@ -18,7 +18,11 @@ primary_region = "iad"
   # Worker polls the public app URL (request-driven web dyno). Same image; no Redis.
   MCFLY_APP_URL = "https://mcfly-analytics.fly.dev"
   MCFLY_QUEUE_INTERVAL_MS = "15000"
+  # Kill switch. Do not flip to false in git — Marty unparks on Fly after
+  # docs/ops/LIVE_UNPARK_CHECKLIST.md. SAMPLE book stays forever.
   MCFLY_SAMPLE_ONLY = "true"
+  # Progressive Live: parked | overview_orders | customers | ltv
+  MCFLY_LIVE_STAGE = "parked"
 
 # app = web + prisma migrate on boot. worker = HTTP tick runner only (no migrate, no ports).
 [processes]
