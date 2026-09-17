@@ -9,6 +9,7 @@ type SettingsRow = {
 const state = {
   days: 0,
   spend: 0,
+  hasGuests: true,
   note: "sample:snowdevil-1",
   settings: {
     shopId: "shop_1",
@@ -28,9 +29,16 @@ vi.mock("../db.server", () => ({
       }),
     },
     sampleSalesDay: {
-      findFirst: vi.fn(async () =>
-        state.days > 0 ? { day: new Date("2026-09-16T00:00:00.000Z") } : null,
-      ),
+      findFirst: vi.fn(async (args?: { where?: { guestOrders?: unknown } }) => {
+        if (args?.where && "guestOrders" in args.where) {
+          return state.hasGuests && state.days > 0
+            ? { day: new Date("2026-09-16T00:00:00.000Z") }
+            : null;
+        }
+        return state.days > 0
+          ? { day: new Date("2026-09-16T00:00:00.000Z") }
+          : null;
+      }),
       count: vi.fn(async () => state.days),
       deleteMany: vi.fn(async () => {
         state.days = 0;
@@ -73,6 +81,7 @@ vi.mock("./order-facts.server", () => ({
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { SAMPLE_BOOK_DAYS } from "./demo-sample-desk.server";
 import {
   applySampleDeskIntent,
   hydrateSampleOnlyFreeze,
@@ -92,6 +101,7 @@ describe("applySampleDeskIntent use-sample", () => {
   beforeEach(() => {
     state.days = 0;
     state.spend = 0;
+    state.hasGuests = true;
     state.note = "sample:snowdevil-1";
     state.persistRows = true;
     state.settings.useSampleDesk = false;
@@ -107,12 +117,29 @@ describe("applySampleDeskIntent use-sample", () => {
   });
 
   it("reseeds leftover Harbor rows when the spend note is not Snowdevil", async () => {
-    state.days = 400;
+    state.days = SAMPLE_BOOK_DAYS;
     state.spend = 80;
+    state.hasGuests = true;
     state.note = "sample";
     await expect(sampleDeskNeedsSeed("shop_1")).resolves.toBe(true);
     state.note = SAMPLE_BOOK_NOTE;
     await expect(sampleDeskNeedsSeed("shop_1")).resolves.toBe(false);
+  });
+
+  it("reseeds when the book is shorter than 730 days", async () => {
+    state.days = 400;
+    state.spend = 80;
+    state.hasGuests = true;
+    state.note = SAMPLE_BOOK_NOTE;
+    await expect(sampleDeskNeedsSeed("shop_1")).resolves.toBe(true);
+  });
+
+  it("reseeds when guest checkouts are missing from a full-length book", async () => {
+    state.days = SAMPLE_BOOK_DAYS;
+    state.spend = 80;
+    state.hasGuests = false;
+    state.note = SAMPLE_BOOK_NOTE;
+    await expect(sampleDeskNeedsSeed("shop_1")).resolves.toBe(true);
   });
 
   it("seeds a complete Snowdevil book before useSampleDesk=true", async () => {
@@ -137,6 +164,7 @@ describe("Sample-only freeze", () => {
   beforeEach(() => {
     state.days = 400;
     state.spend = 80;
+    state.hasGuests = true;
     state.note = SAMPLE_BOOK_NOTE;
     state.persistRows = true;
     state.settings.useSampleDesk = true;

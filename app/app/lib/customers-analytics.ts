@@ -329,15 +329,19 @@ export function buildCustomerAnalytics(
     .sort((a, b) => a.start - b.start)
     .map((w) => {
       const monday = new Date(w.start);
-      const total = w.newD + w.retD;
+      // Round the parts first, then sum — independent rounding of `total`
+      // can make "$10 + $10 = $21" on the #73 marquee tooltip/drill.
+      const newDollars = Math.round(w.newD);
+      const returningDollars = Math.round(w.retD);
+      const total = newDollars + returningDollars;
       return {
         key: monday.toISOString().slice(0, 10),
         label: `Wk ${monday.getUTCMonth() + 1}/${monday.getUTCDate()}`,
         weekStart: w.start,
-        newDollars: Math.round(w.newD),
-        returningDollars: Math.round(w.retD),
-        total: Math.round(total),
-        returningShare: total > 0 ? w.retD / total : null,
+        newDollars,
+        returningDollars,
+        total,
+        returningShare: total > 0 ? returningDollars / total : null,
       };
     });
   const mixTotals = mixWeekly.reduce(

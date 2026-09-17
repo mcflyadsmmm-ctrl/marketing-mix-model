@@ -170,6 +170,25 @@ describe("bucketMixWeeks + mixSummary — marquee grain toggle", () => {
     expect(empty.returningShareAvg).toBeNull();
     expect(empty.bestReturning).toBeNull();
   });
+
+  it("conserves rounded cents so first-time + returning = week total", () => {
+    // 10.40 + 10.40 would independently round to $10 + $10 vs $21.
+    const rows: RetentionOrderRow[] = [
+      { customerKey: "a", orderedAt: at(8), amount: 10.4 },
+      { customerKey: "a", orderedAt: at(7), amount: 10.4 },
+    ];
+    const a = buildCustomerAnalytics(rows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+    });
+    expect(a.mixWeekly.length).toBeGreaterThan(0);
+    for (const w of a.mixWeekly) {
+      expect(w.total).toBe(w.newDollars + w.returningDollars);
+    }
+    const s = mixSummary(bucketMixWeeks(a.mixWeekly, "week"));
+    expect(s.total).toBe(s.newDollars + s.returningDollars);
+    expect(s.returningShareAvg).toBeCloseTo(s.returningDollars / s.total, 8);
+  });
 });
 
 describe("whale recency", () => {
