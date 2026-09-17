@@ -267,6 +267,32 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     spendByDay = new Map();
   }
 
+  /*
+   * Sales explorer series — bounded to the last ~13 months of stored daily
+   * sales so the Overview chart can own real range presets (30d/90d/6mo/YTD/1y)
+   * + grain, sales-only. Reads stored SalesDayFact / SampleSalesDay only (never
+   * unbounded live GraphQL). Present days only — no fake $0. Metrics / YoY /
+   * peeks stay on the desk window; this feeds the chart alone.
+   */
+  const explorerRange = {
+    start: new Date(range.end.getTime() - 400 * 24 * 60 * 60 * 1000),
+    end: range.end,
+    label: "Sales explorer",
+  };
+  let explorerSalesByDay = new Map<string, number>();
+  try {
+    explorerSalesByDay = useSampleDesk
+      ? await fetchSampleSalesByDay(shop.id, explorerRange)
+      : await getSalesFactsByDay(shop.id, explorerRange);
+  } catch {
+    explorerSalesByDay = new Map();
+  }
+  if (explorerSalesByDay.size < salesByDay.size) {
+    for (const [dateKey, value] of salesByDay) {
+      if (!explorerSalesByDay.has(dateKey)) explorerSalesByDay.set(dateKey, value);
+    }
+  }
+
   const orderBackfillProgress = useSampleDesk
     ? null
     : await getOrderBackfillProgress(shop.id, {
@@ -341,6 +367,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         sales: salesByDay.get(dateKey) ?? 0,
         spend: spendByDay.get(dateKey) ?? 0,
       })),
+    salesExplorerDays: [...explorerSalesByDay.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dateKey, sales]) => ({ dateKey, sales })),
   };
 };
 
@@ -375,6 +404,7 @@ export default function Dashboard() {
     sharePeriodEndDay,
     shopLabel,
     salesDays = [],
+    salesExplorerDays = [],
   } = data;
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -618,10 +648,10 @@ export default function Dashboard() {
                   useSampleDesk={useSampleDesk}
                 />
                 <OverviewSalesChart
-                  days={salesDays.map(({ dateKey, sales }) => ({
-                    dateKey,
-                    sales,
-                  }))}
+                  days={(salesExplorerDays.length >= 2
+                    ? salesExplorerDays
+                    : salesDays
+                  ).map(({ dateKey, sales }) => ({ dateKey, sales }))}
                   ordersHref={ordersHref}
                   salesPending={greetingPending}
                   typicalDay={metrics.shopifyDepth.medianDailySales}

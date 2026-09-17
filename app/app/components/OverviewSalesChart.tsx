@@ -2,9 +2,22 @@ import { useMemo, useState } from "react";
 import { formatCurrency } from "../lib/mer-format";
 import { OVERVIEW_PENDING_LINE } from "../lib/overview-first-viewport";
 import {
+  overviewBucketize,
+  overviewChartAxis,
   overviewChartDayLabel,
+  overviewChartLabelIndices,
   overviewChartVsCopy,
+  overviewCompactMoney,
+  overviewCumulative,
+  overviewFilterRange,
+  overviewLatestDayKey,
+  overviewMedian,
+  overviewPresetRange,
   overviewVsTypical,
+  overviewVsTypicalPctCopy,
+  type ChartGrain,
+  type OverviewRangePreset,
+  type SalesDayInput,
 } from "../lib/overview-sales-chart";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
@@ -17,43 +30,44 @@ export type SalesDayPoint = {
 
 export const OVERVIEW_CHART_EMPTY = "No days in this window yet";
 
-function weekKey(dateKey: string): string {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  const utc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-  const dayNum = new Date(utc).getUTCDay() || 7;
-  const thursday = new Date(utc);
-  thursday.setUTCDate(thursday.getUTCDate() + 4 - dayNum);
-  const yearStart = Date.UTC(thursday.getUTCFullYear(), 0, 1);
-  const week = Math.ceil(((utc - yearStart) / 86400000 + 1) / 7);
-  return `${thursday.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
-}
+// SVG paints the shapes; crisp HTML overlays paint axis text + tooltip so type
+// never shrinks with the viewBox on a 390–430px phone.
+const VIEW_W = 760;
+const VIEW_H = 300;
+const PAD_L = 52;
+const PAD_R = 50;
+const PAD_T = 20;
+const PAD_B = 36;
+const PLOT_LEFT = PAD_L;
+const PLOT_RIGHT = VIEW_W - PAD_R;
+const PLOT_TOP = PAD_T;
+const PLOT_BOTTOM = VIEW_H - PAD_B;
+const PLOT_W = PLOT_RIGHT - PLOT_LEFT;
+const PLOT_H = PLOT_BOTTOM - PLOT_TOP;
 
-function bucketsForGrain(
-  days: SalesDayPoint[],
-  grain: "day" | "week",
-): SalesDayPoint[] {
-  if (grain === "day") return days;
-  const map = new Map<string, number>();
-  for (const day of days) {
-    const key = weekKey(day.dateKey);
-    map.set(key, (map.get(key) ?? 0) + day.sales);
-  }
-  return [...map.entries()].map(([dateKey, sales]) => ({
-    dateKey,
-    sales,
-  }));
-}
+const xPct = (coord: number) => (coord / VIEW_W) * 100;
+const yPct = (coord: number) => (coord / VIEW_H) * 100;
 
-function isWeekendDateKey(dateKey: string): boolean {
-  if (dateKey.includes("W")) return false;
-  const [year, month, day] = dateKey.split("-").map(Number);
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
-    return false;
-  }
-  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-  return weekday === 0 || weekday === 6;
-}
+const GRAINS: readonly ChartGrain[] = ["day", "week", "month", "quarter"];
+const GRAIN_LABEL: Record<ChartGrain, string> = {
+  day: "Day",
+  week: "Week",
+  month: "Month",
+  quarter: "Quarter",
+};
+const GRAIN_NOUN: Record<ChartGrain, string> = {
+  day: "day",
+  week: "week",
+  month: "month",
+  quarter: "quarter",
+};
+const PRESETS: readonly { key: OverviewRangePreset; label: string; long: string }[] = [
+  { key: "30d", label: "30d", long: "Last 30 days" },
+  { key: "90d", label: "90d", long: "Last 90 days" },
+  { key: "6mo", label: "6mo", long: "Last 6 months" },
+  { key: "ytd", label: "YTD", long: "Year to date" },
+  { key: "1y", label: "1y", long: "Last 12 months" },
+];
 
 function ChartEmptyFrame({ copy }: { copy: string }) {
   return (
@@ -70,8 +84,12 @@ function ChartEmptyFrame({ copy }: { copy: string }) {
 }
 
 /**
- * Sales bars + polyline (including $0 days). Order dollars only —
- * spend never overlays. Grain (day/week) lives on the chart.
+ * Overview sales explorer. Shopify order dollars only — no ad cost, no
+ * efficiency ratios, no spend overlay on this chart. Range presets + FROM/TO +
+ * Day/Week/Month/Quarter grain own the window (not the tab bar). Dual axis:
+ * sales $ bars vs a typical rail (left) and the cumulative sales sweep (right).
+ * A dark readout tooltip carries the day-vs-typical / weekend story with a
+ * plain-English formula.
  */
 export function OverviewSalesChart({
   days,
@@ -86,16 +104,56 @@ export function OverviewSalesChart({
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
-  const [grain, setGrain] = useState<"day" | "week">("day");
-  const points = useMemo(
-    () => bucketsForGrain(days, grain),
-    [days, grain],
+
+  const sorted = useMemo<SalesDayInput[]>(
+    () =>
+      [...days]
+        .map((day) => ({ dateKey: day.dateKey, sales: day.sales }))
+        .sort((a, b) => a.dateKey.localeCompare(b.dateKey)),
+    [days],
   );
-  const [hover, setHover] = useState<SalesDayPoint | null>(
-    () => points[points.length - 1] ?? null,
+  const earliestKey = sorted[0]?.dateKey ?? null;
+  const latestKey = overviewLatestDayKey(sorted);
+
+  const defaultPreset: OverviewRangePreset = "30d";
+  const [preset, setPreset] = useState<OverviewRangePreset | "custom">(defaultPreset);
+  const [custom, setCustom] = useState<{ fromKey: string; toKey: string } | null>(null);
+  const [grain, setGrain] = useState<ChartGrain>("day");
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
+  const range = useMemo(() => {
+    if (preset !== "custom") {
+      return (
+        overviewPresetRange(preset, sorted) ??
+        (earliestKey && latestKey
+          ? { fromKey: earliestKey, toKey: latestKey }
+          : null)
+      );
+    }
+    return custom;
+  }, [preset, custom, sorted, earliestKey, latestKey]);
+
+  const rangeDays = useMemo(
+    () =>
+      range ? overviewFilterRange(sorted, range.fromKey, range.toKey) : sorted,
+    [sorted, range],
   );
 
-  if (points.length < 2) {
+  const grainCounts = useMemo(() => {
+    const counts = {} as Record<ChartGrain, number>;
+    for (const g of GRAINS) counts[g] = overviewBucketize(rangeDays, g).length;
+    return counts;
+  }, [rangeDays]);
+
+  const effectiveGrain: ChartGrain =
+    grainCounts[grain] >= 2 ? grain : "day";
+
+  const points = useMemo(
+    () => overviewBucketize(rangeDays, effectiveGrain),
+    [rangeDays, effectiveGrain],
+  );
+
+  if (sorted.length < 2) {
     return (
       <ChartEmptyFrame
         copy={salesPending ? OVERVIEW_PENDING_LINE : OVERVIEW_CHART_EMPTY}
@@ -103,61 +161,133 @@ export function OverviewSalesChart({
     );
   }
 
-  const typical =
-    typicalDay != null && Number.isFinite(typicalDay) && typicalDay > 0
-      ? typicalDay
-      : null;
-  const max = Math.max(
-    ...points.map((point) => point.sales),
-    typical ?? 0,
-    1,
-  );
-  const width = 640;
-  const height = 240;
-  const gap = 3;
-  const barW = Math.max(4, (width - gap * (points.length + 1)) / points.length);
-  const plotH = height - 28;
-  const baseline = height - 18;
-  const active = hover ?? points[points.length - 1] ?? null;
-  const typicalY =
-    typical != null
-      ? baseline - Math.max(2, (typical / max) * plotH)
-      : null;
-  const linePts = points.map((point, index) => {
-    const x = gap + index * (barW + gap) + barW / 2;
-    const y = baseline - Math.max(2, (point.sales / max) * plotH);
-    return { x, y };
-  });
-  const line = linePts
-    .map((pt, index) => `${index === 0 ? "M" : "L"}${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
+  const noun = GRAIN_NOUN[effectiveGrain];
+  const total = points.reduce((sum, bucket) => sum + bucket.sales, 0);
+  const cumulative = overviewCumulative(points);
+  const typical = points.length > 0 ? overviewMedian(points.map((p) => p.sales)) : null;
+  const typicalRef =
+    typical != null && typical > 0
+      ? typical
+      : typicalDay != null && typicalDay > 0
+        ? typicalDay
+        : null;
+
+  const salesMax = Math.max(...points.map((p) => p.sales), typicalRef ?? 0, 1);
+  const leftAxis = overviewChartAxis(salesMax, 4);
+  const rightAxis = overviewChartAxis(Math.max(total, 1), 4);
+
+  const band = PLOT_W / points.length;
+  const barW = Math.min(42, Math.max(1.2, band * 0.6));
+  const yForSales = (value: number) =>
+    PLOT_BOTTOM - Math.min(1, Math.max(0, value / leftAxis.max)) * PLOT_H;
+  const yForCum = (value: number) =>
+    PLOT_BOTTOM - Math.min(1, Math.max(0, value / rightAxis.max)) * PLOT_H;
+  const centerX = (index: number) => PLOT_LEFT + band * index + band / 2;
+  const barX = (index: number) => PLOT_LEFT + band * index + (band - barW) / 2;
+
+  const railY = typicalRef != null ? yForSales(typicalRef) : null;
+  const labelIndices = new Set(overviewChartLabelIndices(points.length, 6));
+
+  const cumLine = points
+    .map((_, index) => `${index === 0 ? "M" : "L"}${centerX(index).toFixed(1)} ${yForCum(cumulative[index]!).toFixed(1)}`)
     .join(" ");
-  const fill =
-    linePts.length >= 2
-      ? `M${linePts[0]!.x.toFixed(1)} ${baseline} ${linePts
-          .map((pt) => `L${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
-          .join(" ")} L${linePts[linePts.length - 1]!.x.toFixed(1)} ${baseline} Z`
+  const cumFill =
+    points.length >= 2
+      ? `M${centerX(0).toFixed(1)} ${PLOT_BOTTOM} ${points
+          .map((_, index) => `L${centerX(index).toFixed(1)} ${yForCum(cumulative[index]!).toFixed(1)}`)
+          .join(" ")} L${centerX(points.length - 1).toFixed(1)} ${PLOT_BOTTOM} Z`
       : "";
-  const activeVs = active ? overviewVsTypical(active.sales, typical) : null;
+
+  const activeIndex = hoverIndex != null ? hoverIndex : points.length - 1;
+  const active = points[activeIndex] ?? null;
+  const activeVs = active ? overviewVsTypical(active.sales, typicalRef) : null;
   const activeVsCopy =
     activeVs != null
-      ? overviewChartVsCopy(
-          activeVs,
-          formatCurrency(Math.abs(activeVs.delta), currency),
-        )
+      ? overviewChartVsCopy(activeVs, formatCurrency(Math.abs(activeVs.delta), currency))
       : null;
+  const activePctCopy = overviewVsTypicalPctCopy(activeVs, typicalRef);
+
+  const rangeLabel =
+    preset !== "custom"
+      ? PRESETS.find((p) => p.key === preset)?.long ?? "Range"
+      : range
+        ? `${overviewChartDayLabel(range.fromKey)} – ${overviewChartDayLabel(range.toKey)}`
+        : "Range";
+  const ledeParts = [
+    rangeLabel,
+    effectiveGrain !== "day"
+      ? `${points.length} ${points.length === 1 ? noun : `${noun}s`}`
+      : null,
+    `${formatCurrency(total, currency)} total`,
+    typicalRef != null ? `typical ${noun} ${formatCurrency(typicalRef, currency)}` : null,
+  ].filter((part): part is string => part != null);
+
+  const bestBucket = points.reduce(
+    (best, bucket) => (bucket.sales > best.sales ? bucket : best),
+    points[0]!,
+  );
+  const aboveCount = points.filter(
+    (bucket) => overviewVsTypical(bucket.sales, typicalRef)?.kind === "up",
+  ).length;
+  const weekendShare =
+    effectiveGrain === "day" && total > 0
+      ? points
+          .filter((bucket) => bucket.weekend)
+          .reduce((sum, bucket) => sum + bucket.sales, 0) / total
+      : null;
+
+  const statCards: { k: string; v: string; sub: string }[] = [
+    {
+      k: "Range total",
+      v: formatCurrency(total, currency),
+      sub: `${points.length} ${noun}s`,
+    },
+    {
+      k: `Typical ${noun}`,
+      v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
+      sub: "median",
+    },
+    {
+      k: `Best ${noun}`,
+      v: formatCurrency(bestBucket.sales, currency),
+      sub: bestBucket.label,
+    },
+    weekendShare != null
+      ? {
+          k: "Weekend share",
+          v: `${Math.round(weekendShare * 100)}%`,
+          sub: "Sat–Sun of sales",
+        }
+      : {
+          k: "Above typical",
+          v: `${aboveCount}/${points.length}`,
+          sub: `${noun}s beat median`,
+        },
+  ];
+
+  const tipOpen = hoverIndex != null && active != null;
+  const tipCenter = centerX(activeIndex);
+  const tipTopY = active ? yForSales(active.sales) : PLOT_TOP;
+  const tipEdge =
+    xPct(tipCenter) < 26 ? "left" : xPct(tipCenter) > 74 ? "right" : "mid";
+  const tipBelow = tipTopY < PLOT_TOP + 84;
+
+  const clampKey = (value: string): string => {
+    if (earliestKey && value < earliestKey) return earliestKey;
+    if (latestKey && value > latestKey) return latestKey;
+    return value;
+  };
 
   return (
     <section className="mcfly-chart mcfly-chart--sales" aria-label="Sales by day">
       <div className="mcfly-chart__head mcfly-chart__board">
-        <p className="mcfly-chart__title">
+        <p className="mcfly-chart__title mcfly-chart__title--sales">
           <DeskIcon name="chart" />
-          Sales
+          Sales explorer
         </p>
         {active ? (
           <div className="mcfly-chart__readout" role="status">
-            <p className="mcfly-chart__when">
-              {overviewChartDayLabel(active.dateKey)}
-            </p>
+            <p className="mcfly-chart__when">{active.label}</p>
             <p className="mcfly-chart__hero">
               {formatCurrency(active.sales, currency)}
             </p>
@@ -174,137 +304,377 @@ export function OverviewSalesChart({
             Tap a bar
           </p>
         )}
-        <div className="mcfly-period__group" role="group" aria-label="Chart grain">
-          {(["day", "week"] as const).map((value) => (
+      </div>
+
+      {ledeParts.length > 0 ? (
+        <p className="mcfly-chart__lede">{ledeParts.join(" · ")}</p>
+      ) : null}
+
+      <div className="mcfly-chart__controls">
+        <div className="mcfly-period__group" role="group" aria-label="Sales range">
+          {PRESETS.map((option) => (
             <button
-              key={value}
+              key={option.key}
               type="button"
-              className={`mcfly-period__btn${grain === value ? " mcfly-period__btn--on" : ""}`}
-              aria-pressed={grain === value}
+              className={`mcfly-period__btn${preset === option.key ? " mcfly-period__btn--on" : ""}`}
+              aria-pressed={preset === option.key}
               onClick={() => {
-                setGrain(value);
-                setHover(null);
+                setPreset(option.key);
+                setCustom(null);
+                setHoverIndex(null);
               }}
             >
-              {value === "day" ? "Day" : "Week"}
+              {option.label}
+            </button>
+          ))}
+        </div>
+        {earliestKey && latestKey ? (
+          <div className="mcfly-chart__dates">
+            <label className="mcfly-chart__date">
+              <span>From</span>
+              <input
+                type="date"
+                value={range?.fromKey ?? earliestKey}
+                min={earliestKey}
+                max={latestKey}
+                onChange={(event) => {
+                  const fromKey = clampKey(event.target.value || earliestKey);
+                  const toKey = range?.toKey ?? latestKey;
+                  setCustom({ fromKey, toKey: toKey < fromKey ? fromKey : toKey });
+                  setPreset("custom");
+                  setHoverIndex(null);
+                }}
+              />
+            </label>
+            <label className="mcfly-chart__date">
+              <span>To</span>
+              <input
+                type="date"
+                value={range?.toKey ?? latestKey}
+                min={earliestKey}
+                max={latestKey}
+                onChange={(event) => {
+                  const toKey = clampKey(event.target.value || latestKey);
+                  const fromKey = range?.fromKey ?? earliestKey;
+                  setCustom({ toKey, fromKey: fromKey > toKey ? toKey : fromKey });
+                  setPreset("custom");
+                  setHoverIndex(null);
+                }}
+              />
+            </label>
+          </div>
+        ) : null}
+        <div className="mcfly-period__group" role="group" aria-label="Chart grain">
+          {GRAINS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={`mcfly-period__btn${effectiveGrain === option ? " mcfly-period__btn--on" : ""}`}
+              aria-pressed={effectiveGrain === option}
+              disabled={grainCounts[option] < 2}
+              onClick={() => {
+                setGrain(option);
+                setHoverIndex(null);
+              }}
+            >
+              {GRAIN_LABEL[option]}
             </button>
           ))}
         </div>
       </div>
-      <svg
-        className="mcfly-chart__svg"
-        viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-label={`${points.length} ${grain} sales bars`}
-      >
-        {points.map((point, index) => {
-          if (grain !== "day" || !isWeekendDateKey(point.dateKey)) return null;
-          const x = gap + index * (barW + gap);
-          return (
-            <rect
-              key={`wk-${point.dateKey}`}
-              className="mcfly-chart__weekend"
-              x={x - gap / 2}
-              y={8}
-              width={barW + gap}
-              height={plotH}
+
+      <div className="mcfly-chart__plot">
+        <svg
+          className="mcfly-chart__svg"
+          viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+          preserveAspectRatio="none"
+          role="img"
+          aria-label={`${points.length} ${effectiveGrain} sales bars vs typical, with cumulative sales`}
+        >
+          {effectiveGrain === "day"
+            ? points.map((point, index) =>
+                point.weekend ? (
+                  <rect
+                    key={`wk-${point.key}`}
+                    className="mcfly-chart__weekend"
+                    x={PLOT_LEFT + band * index}
+                    y={PLOT_TOP}
+                    width={band}
+                    height={PLOT_H}
+                  />
+                ) : null,
+              )
+            : null}
+
+          {leftAxis.ticks.map((tick) => (
+            <line
+              key={`grid-${tick}`}
+              className="mcfly-chart__grid"
+              x1={PLOT_LEFT}
+              y1={yForSales(tick).toFixed(1)}
+              x2={PLOT_RIGHT}
+              y2={yForSales(tick).toFixed(1)}
+              vectorEffect="non-scaling-stroke"
             />
-          );
-        })}
-        {fill ? <path className="mcfly-chart__sales-fill" d={fill} /> : null}
-        {typicalY != null ? (
-          <>
+          ))}
+
+          {cumFill ? <path className="mcfly-chart__sales-fill" d={cumFill} /> : null}
+
+          {railY != null ? (
             <line
               className="mcfly-chart__typical"
-              x1="0"
-              y1={typicalY.toFixed(1)}
-              x2={width}
-              y2={typicalY.toFixed(1)}
+              x1={PLOT_LEFT}
+              y1={railY.toFixed(1)}
+              x2={PLOT_RIGHT}
+              y2={railY.toFixed(1)}
+              vectorEffect="non-scaling-stroke"
             />
-            <text
-              className="mcfly-chart__typical-k"
-              x={8}
-              y={Math.max(14, typicalY - 6)}
-              textAnchor="start"
+          ) : null}
+
+          {points.map((point, index) => {
+            const barH = Math.max(1.5, PLOT_BOTTOM - yForSales(point.sales));
+            const y = PLOT_BOTTOM - barH;
+            const vs = overviewVsTypical(point.sales, typicalRef);
+            const openBar = () =>
+              drill?.openDrill({
+                title: `${GRAIN_LABEL[effectiveGrain]} sales`,
+                value: formatCurrency(point.sales, currency),
+                kicker: point.label,
+                blocks: [
+                  { k: "Sales", v: formatCurrency(point.sales, currency) },
+                  typicalRef != null
+                    ? { k: `Typical ${noun}`, v: formatCurrency(typicalRef, currency) }
+                    : null,
+                  vs && vs.kind !== "even"
+                    ? {
+                        k: "Vs typical",
+                        v: `${vs.kind === "up" ? "+" : "−"}${formatCurrency(Math.abs(vs.delta), currency)}`,
+                      }
+                    : null,
+                  { k: "Running total", v: formatCurrency(cumulative[index]!, currency) },
+                  point.weekend ? { k: "Day type", v: "Weekend" } : null,
+                  {
+                    k: "What this is",
+                    v: "Shopify Total Sales for this bar next to typical daily sales and the running total. Grain and range live on the chart — never spend.",
+                  },
+                ].filter((block): block is { k: string; v: string } => block != null),
+                next: "Open Orders for typical ticket, discounts, and weekend.",
+                nextHref: ordersHref,
+                nextLabel: "Open Orders",
+              });
+            const barClass = [
+              "mcfly-chart__bar",
+              point.weekend ? "mcfly-chart__bar--weekend" : null,
+              vs?.kind === "up" ? "mcfly-chart__bar--hot" : null,
+              vs?.kind === "down" ? "mcfly-chart__bar--cool" : null,
+              activeIndex === index ? "mcfly-chart__bar--on" : null,
+            ]
+              .filter(Boolean)
+              .join(" ");
+            return (
+              <rect
+                key={point.key}
+                className={barClass}
+                x={barX(index)}
+                y={y}
+                width={barW}
+                height={barH}
+                rx={Math.min(3, barW / 2)}
+                tabIndex={0}
+                role="button"
+                aria-label={`${point.label} ${formatCurrency(point.sales, currency)}`}
+                onClick={openBar}
+                onMouseEnter={() => setHoverIndex(index)}
+                onMouseLeave={() => setHoverIndex(null)}
+                onFocus={() => setHoverIndex(index)}
+                onBlur={() => setHoverIndex(null)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openBar();
+                  }
+                }}
+              />
+            );
+          })}
+
+          {cumLine ? <path className="mcfly-chart__sales-line" d={cumLine} /> : null}
+          {points.length > 0 ? (
+            <circle
+              className="mcfly-chart__cum-cap"
+              cx={centerX(points.length - 1).toFixed(1)}
+              cy={yForCum(cumulative[points.length - 1]!).toFixed(1)}
+              r={3}
+            />
+          ) : null}
+
+          {active ? (
+            <>
+              <line
+                className="mcfly-chart__guide"
+                x1={tipCenter.toFixed(1)}
+                y1={PLOT_TOP}
+                x2={tipCenter.toFixed(1)}
+                y2={PLOT_BOTTOM}
+                vectorEffect="non-scaling-stroke"
+              />
+              <circle
+                className="mcfly-chart__marker"
+                cx={tipCenter.toFixed(1)}
+                cy={yForSales(active.sales).toFixed(1)}
+                r={3.5}
+              />
+            </>
+          ) : null}
+        </svg>
+
+        <div className="mcfly-chart__axis-y" aria-hidden="true">
+          {leftAxis.ticks.map((tick) => (
+            <span
+              key={`yt-${tick}`}
+              className="mcfly-chart__ytick"
+              style={{ top: `${yPct(yForSales(tick))}%`, width: `${xPct(PLOT_LEFT - 8)}%` }}
             >
-              typical
-              {typical != null ? ` ${formatCurrency(typical, currency)}` : ""}
-            </text>
-          </>
+              {overviewCompactMoney(tick, currency)}
+            </span>
+          ))}
+        </div>
+
+        <div className="mcfly-chart__axis-y2" aria-hidden="true">
+          {rightAxis.ticks.map((tick) => (
+            <span
+              key={`y2-${tick}`}
+              className="mcfly-chart__y2tick"
+              style={{ top: `${yPct(yForCum(tick))}%`, right: `${xPct(PAD_R - 8)}%` }}
+            >
+              {overviewCompactMoney(tick, currency)}
+            </span>
+          ))}
+        </div>
+
+        {railY != null ? (
+          <span
+            className="mcfly-chart__rail-k"
+            style={{ top: `${yPct(railY)}%`, left: `${xPct(PLOT_LEFT + 6)}%` }}
+            aria-hidden="true"
+          >
+            typical {noun} {formatCurrency(typicalRef!, currency)}
+          </span>
         ) : null}
-        {points.map((point, index) => {
-          const barH = Math.max(2, (point.sales / max) * plotH);
-          const x = gap + index * (barW + gap);
-          const y = baseline - barH;
-          const vs = overviewVsTypical(point.sales, typical);
-          const openBar = () =>
-            drill?.openDrill({
-              title: grain === "week" ? "Week sales" : "Day sales",
-              value: formatCurrency(point.sales, currency),
-              kicker: overviewChartDayLabel(point.dateKey),
-              blocks: [
-                {
-                  k: "Sales",
-                  v: formatCurrency(point.sales, currency),
-                },
-                typical != null
-                  ? {
-                      k: "Typical day",
-                      v: formatCurrency(typical, currency),
-                    }
-                  : null,
-                vs && vs.kind !== "even"
-                  ? {
-                      k: "Vs typical",
-                      v: `${vs.kind === "up" ? "+" : "−"}${formatCurrency(Math.abs(vs.delta), currency)}`,
-                    }
-                  : null,
-                {
-                  k: "What this is",
-                  v: "Shopify Total Sales for this bar next to typical daily sales. Grain lives on the chart — not in the tab bar.",
-                },
-              ].filter((block): block is { k: string; v: string } => block != null),
-              next: "Open Orders for typical ticket, discounts, and weekend.",
-              nextHref: ordersHref,
-              nextLabel: "Open Orders",
-            });
-          const barClass = [
-            "mcfly-chart__bar",
-            isWeekendDateKey(point.dateKey) ? "mcfly-chart__bar--weekend" : null,
-            vs?.kind === "up" ? "mcfly-chart__bar--hot" : null,
-            vs?.kind === "down" ? "mcfly-chart__bar--cool" : null,
-            active?.dateKey === point.dateKey ? "mcfly-chart__bar--on" : null,
-          ]
-            .filter(Boolean)
-            .join(" ");
-          return (
-            <rect
-              key={point.dateKey}
-              className={barClass}
-              x={x}
-              y={y}
-              width={barW}
-              height={barH}
-              rx="2"
-              tabIndex={0}
-              role="button"
-              aria-label={`${overviewChartDayLabel(point.dateKey)} ${formatCurrency(point.sales, currency)}`}
-              onClick={openBar}
-              onMouseEnter={() => setHover(point)}
-              onMouseLeave={() => setHover(points[points.length - 1] ?? null)}
-              onFocus={() => setHover(point)}
-              onBlur={() => setHover(points[points.length - 1] ?? null)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  openBar();
-                }
-              }}
-            />
-          );
-        })}
-        <path className="mcfly-chart__sales-line" d={line} />
-      </svg>
+
+        <div className="mcfly-chart__axis-x" aria-hidden="true">
+          {points.map((point, index) =>
+            labelIndices.has(index) ? (
+              <span
+                key={`xt-${point.key}`}
+                className="mcfly-chart__xtick"
+                style={{ left: `${xPct(centerX(index))}%`, top: `${yPct(PLOT_BOTTOM + 7)}%` }}
+              >
+                {point.label}
+              </span>
+            ) : null,
+          )}
+        </div>
+
+        {tipOpen ? (
+          <div
+            className={`mcfly-chart__tip mcfly-chart__tip--${tipEdge}${tipBelow ? " mcfly-chart__tip--below" : ""}`}
+            style={{ left: `${xPct(tipCenter)}%`, top: `${yPct(tipTopY)}%` }}
+            role="status"
+          >
+            <p className="mcfly-chart__tip-when">
+              {active.label}
+              {active.weekend ? (
+                <span className="mcfly-chart__tip-tag">Weekend</span>
+              ) : null}
+            </p>
+            <ul className="mcfly-chart__tip-rows">
+              <li className="mcfly-chart__tip-row">
+                <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--sales" />
+                <span className="mcfly-chart__tip-k">Sales</span>
+                <span className="mcfly-chart__tip-v">
+                  {formatCurrency(active.sales, currency)}
+                </span>
+              </li>
+              {typicalRef != null ? (
+                <li className="mcfly-chart__tip-row">
+                  <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--typical" />
+                  <span className="mcfly-chart__tip-k">Typical {noun}</span>
+                  <span className="mcfly-chart__tip-v">
+                    {formatCurrency(typicalRef, currency)}
+                  </span>
+                </li>
+              ) : null}
+              {activeVs && activeVs.kind !== "even" ? (
+                <li className="mcfly-chart__tip-row">
+                  <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--vs" />
+                  <span className="mcfly-chart__tip-k">Vs typical</span>
+                  <span
+                    className={`mcfly-chart__tip-v mcfly-chart__tip-v--${activeVs.kind}`}
+                  >
+                    {activeVs.kind === "up" ? "+" : "−"}
+                    {formatCurrency(Math.abs(activeVs.delta), currency)}
+                    {activePctCopy ? (
+                      <span className="mcfly-chart__tip-pct"> · {activePctCopy}</span>
+                    ) : null}
+                  </span>
+                </li>
+              ) : null}
+              <li className="mcfly-chart__tip-row">
+                <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--cum" />
+                <span className="mcfly-chart__tip-k">Running total</span>
+                <span className="mcfly-chart__tip-v">
+                  {formatCurrency(cumulative[activeIndex]!, currency)}
+                </span>
+              </li>
+            </ul>
+            {typicalRef != null && activeVs ? (
+              <p className="mcfly-chart__tip-foot">
+                {activeVs.kind === "even"
+                  ? `${formatCurrency(active.sales, currency)} · even with typical`
+                  : `${formatCurrency(active.sales, currency)} vs typical ${formatCurrency(typicalRef, currency)} = ${activeVs.kind === "up" ? "+" : "−"}${formatCurrency(Math.abs(activeVs.delta), currency)}${activePctCopy ? ` (${activeVs.kind === "up" ? "+" : "−"}${Math.round((Math.abs(activeVs.delta) / typicalRef) * 100)}%)` : ""}`}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <ul className="mcfly-chart__legend" aria-hidden="true">
+        <li className="mcfly-chart__legend-item">
+          <span className="mcfly-chart__legend-swatch mcfly-chart__legend-swatch--hot" />
+          Above typical
+        </li>
+        <li className="mcfly-chart__legend-item">
+          <span className="mcfly-chart__legend-swatch mcfly-chart__legend-swatch--cool" />
+          Below typical
+        </li>
+        {points.some((point) => point.weekend) ? (
+          <li className="mcfly-chart__legend-item">
+            <span className="mcfly-chart__legend-swatch mcfly-chart__legend-swatch--weekend" />
+            Weekend
+          </li>
+        ) : null}
+        {typicalRef != null ? (
+          <li className="mcfly-chart__legend-item">
+            <span className="mcfly-chart__legend-swatch mcfly-chart__legend-swatch--rail" />
+            Typical {noun}
+          </li>
+        ) : null}
+        <li className="mcfly-chart__legend-item">
+          <span className="mcfly-chart__legend-swatch mcfly-chart__legend-swatch--cum" />
+          Cumulative
+        </li>
+      </ul>
+
+      <ul className="mcfly-chart__stats">
+        {statCards.map((stat) => (
+          <li className="mcfly-chart__stat" key={stat.k}>
+            <span className="mcfly-chart__stat-k">{stat.k}</span>
+            <span className="mcfly-chart__stat-v">{stat.v}</span>
+            <span className="mcfly-chart__stat-sub">{stat.sub}</span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
