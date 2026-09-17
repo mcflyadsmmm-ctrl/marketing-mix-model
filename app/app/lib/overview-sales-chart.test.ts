@@ -58,7 +58,8 @@ describe("overview sales chart labels", () => {
     expect(chart).toContain("overviewChartVsCopy");
     expect(chart).toContain("overviewVsTypical");
     expect(chart).toContain("mcfly-chart__bar--hot");
-    expect(chart).toContain("vs typical");
+    expect(chart).toContain("overviewChartVsCopy");
+    expect(chart).toContain("Vs typical");
     expect(chart).toContain("Tap a bar");
     expect(chart).not.toContain("mcfly-chart__hint");
     expect(chart).not.toContain("mcfly-chart__spend-line");
