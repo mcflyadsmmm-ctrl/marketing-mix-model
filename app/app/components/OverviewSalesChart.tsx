@@ -223,9 +223,9 @@ export function OverviewSalesChart({
             />
             <text
               className="mcfly-chart__typical-k"
-              x={width - 8}
+              x={8}
               y={Math.max(14, typicalY - 6)}
-              textAnchor="end"
+              textAnchor="start"
             >
               typical
               {typical != null ? ` ${formatCurrency(typical, currency)}` : ""}
