@@ -38,7 +38,7 @@ export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
   const kpis = buildOrdersIntelKpis(intel.current, intel.prior, currency);
   return (
     <section
-      className="mcfly-orders-intel mcfly-desk-anchor"
+      className="mcfly-orders-intel mcfly-orders-intel--soft mcfly-desk-anchor"
       aria-label="Order intelligence"
     >
       <div className="mcfly-orders-intel__head">
@@ -51,7 +51,7 @@ export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
       </div>
       <div className="mcfly-orders-intel__kpis">
         {kpis.map((kpi) => (
-          <div className="mcfly-orders-intel__kpi" key={kpi.key}>
+          <div className="mcfly-orders-intel__kpi mcfly-orders-intel__kpi--soft" key={kpi.key}>
             <p className="mcfly-orders-intel__k">{kpi.label}</p>
             <p className="mcfly-orders-intel__v">{kpi.value}</p>
             {kpi.delta ? (
@@ -99,7 +99,7 @@ function OrdersAovTiers({
   if (tiers.length < 2) return null;
   const maxShare = Math.max(...tiers.map((t) => t.orderShare), 0.01);
   return (
-    <div className="mcfly-orders-tiers">
+    <div className="mcfly-orders-tiers mcfly-orders-tiers--soft">
       <p className="mcfly-orders-tiers__cap">AOV tiers · where order value lands</p>
       <div className="mcfly-orders-tiers__rows">
         {tiers.map((tier) => {
@@ -120,7 +120,7 @@ function OrdersAovTiers({
           return (
             <button
               type="button"
-              className="mcfly-orders-tiers__row"
+              className="mcfly-orders-tiers__row mcfly-orders-tiers__row--soft"
               key={tier.key}
               onClick={open}
             >
@@ -218,7 +218,7 @@ function OrdersDualAxisChart({
   const labelEvery = Math.max(1, Math.ceil(days2.length / 8));
 
   return (
-    <div className="mcfly-orders-intel__chart mcfly-chart mcfly-chart--dual">
+    <div className="mcfly-orders-intel__chart mcfly-chart mcfly-chart--dual mcfly-chart--soft">
       <div className="mcfly-chart__head mcfly-chart__board">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />

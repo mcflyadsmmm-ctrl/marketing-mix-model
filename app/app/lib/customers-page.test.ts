@@ -105,8 +105,11 @@ describe("CustomerRetentionBoard — What-to-do retention flow", () => {
     expect(retention).toContain("Fall-off funnel");
     expect(retention).toContain("Win-back play");
     expect(retention).toContain("Save now");
+    expect(retention).toContain("Repurchase");
+    expect(retention).toContain("Win-back");
+    expect(retention).toContain("mcfly-cust-kpi--action");
     expect(retention).toContain("VerticalBars");
-    expect(retention.match(/<Kpi[\s\n]/g)?.length).toBe(3);
+    expect(retention.match(/<ActionCard[\s\n]/g)?.length).toBe(3);
   });
 
   it("never invents a 2nd-order product — honest about Level-1 scope", () => {

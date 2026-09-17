@@ -47,7 +47,7 @@ export const CPA_CHART_EMPTY =
 function ChartEmptyFrame({ copy }: { copy: string }) {
   const ghost = [0.28, 0.46, 0.38, 0.62, 0.5, 0.72, 0.58];
   return (
-    <section className="mcfly-chart mcfly-chart--sales mcfly-cpa__chart mcfly-cpa__chart--empty" aria-label="Cash CPA explorer">
+    <section className="mcfly-chart mcfly-chart--sales mcfly-cpa__chart mcfly-cpa__chart--empty mcfly-chart--soft" aria-label="Cash CPA explorer">
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
@@ -191,7 +191,7 @@ export function CpaExplorer({
   const tipBelow = tipTopY < PLOT_TOP + 84;
 
   return (
-    <section className="mcfly-chart mcfly-chart--sales mcfly-cpa__chart" aria-label="Cash CPA explorer">
+    <section className="mcfly-chart mcfly-chart--sales mcfly-cpa__chart mcfly-chart--soft" aria-label="Cash CPA explorer">
       <div className="mcfly-chart__head mcfly-chart__board">
         <div className="mcfly-chart__masthead">
           <h3 className="mcfly-chart__serif">Cash CPA explorer</h3>
@@ -221,7 +221,7 @@ export function CpaExplorer({
         )}
       </div>
 
-      <ul className="mcfly-chart__stats">
+      <ul className="mcfly-chart__stats mcfly-chart__stats--soft">
         <li className="mcfly-chart__stat">
           <span className="mcfly-chart__stat-k">Typical CPA</span>
           <span className="mcfly-chart__stat-v">

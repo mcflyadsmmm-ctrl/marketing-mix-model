@@ -62,11 +62,11 @@ function Fact({
     </>
   );
   return drill ? (
-    <button type="button" className="mcfly-cust-fact mcfly-cust-fact--drill" onClick={open}>
+    <button type="button" className="mcfly-cust-fact mcfly-cust-fact--drill mcfly-cust-fact--soft" onClick={open}>
       {body}
     </button>
   ) : (
-    <div className="mcfly-cust-fact">{body}</div>
+    <div className="mcfly-cust-fact mcfly-cust-fact--soft">{body}</div>
   );
 }
 
@@ -159,7 +159,7 @@ export function CustomersScoreboard({
 
   return (
     <section
-      className={`mcfly-panel mcfly-cust-card mcfly-desk-anchor${empty ? " mcfly-cust-hero--empty" : ""}`}
+      className={`mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-desk-anchor${empty ? " mcfly-cust-hero--empty" : ""}`}
       aria-label="Returning customers"
     >
       <div className="mcfly-panel__head">

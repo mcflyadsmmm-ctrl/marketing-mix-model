@@ -61,13 +61,13 @@ function Tile({
   return drill ? (
     <button
       type="button"
-      className="mcfly-cust-tile mcfly-cust-tile--drill"
+      className="mcfly-cust-tile mcfly-cust-tile--drill mcfly-cust-tile--soft"
       onClick={open}
     >
       {body}
     </button>
   ) : (
-    <div className="mcfly-cust-tile">{body}</div>
+    <div className="mcfly-cust-tile mcfly-cust-tile--soft">{body}</div>
   );
 }
 
@@ -166,7 +166,7 @@ export function GrowthScoreboard({
 
   return (
     <section
-      className="mcfly-panel mcfly-cust-card mcfly-growth-board mcfly-desk-anchor"
+      className="mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-growth-board mcfly-growth-board--soft mcfly-desk-anchor"
       aria-label="New dollars and who came back"
     >
       <div className="mcfly-panel__head">

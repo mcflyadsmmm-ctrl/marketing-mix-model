@@ -80,7 +80,7 @@ export function OrdersTimingChart({
   if (bars.length === 0 || !bars.some((bar) => bar.share > 0)) {
     return (
       <section
-        className="mcfly-chart mcfly-chart--empty mcfly-chart--orders"
+        className="mcfly-chart mcfly-chart--empty mcfly-chart--orders mcfly-chart--soft"
         aria-label="Sales by weekday or hour"
       >
         <div className="mcfly-chart__head mcfly-chart__board">
@@ -104,7 +104,7 @@ export function OrdersTimingChart({
 
   return (
     <section
-      className={`mcfly-chart mcfly-chart--orders mcfly-chart--${grain}`}
+      className={`mcfly-chart mcfly-chart--orders mcfly-chart--${grain} mcfly-chart--soft`}
       aria-label="Sales by weekday or hour"
     >
       <div className="mcfly-chart__head mcfly-chart__board">
