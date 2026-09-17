@@ -13274,15 +13274,22 @@ button.mcfly-chart__month {
   align-items: stretch;
   gap: 0.45rem;
   margin: 0 0 0.55rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.mcfly-desk .mcfly-score .mcfly-kpi-grid--peeks-lead > *,
-.mcfly-desk .mcfly-score .mcfly-kpi-grid--peeks-depth > *,
-.mcfly-score .mcfly-kpi-grid--peeks-lead > *,
-.mcfly-score .mcfly-kpi-grid--peeks-depth > * {
-  flex: 1 1 0;
-  min-width: 0;
-  width: auto;
+.mcfly-desk .mcfly-score .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+.mcfly-desk .mcfly-score .mcfly-kpi-grid--peeks-depth > .mcfly-kpi,
+.mcfly-score .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+.mcfly-score .mcfly-kpi-grid--peeks-depth > .mcfly-kpi,
+.mcfly-score .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi,
+.mcfly-score .mcfly-kpi-grid--peeks-depth > button.mcfly-kpi {
+  flex: 1 1 0%;
+  min-width: 0 !important;
+  width: 0 !important;
+  max-width: calc(33.333% - 0.32rem) !important;
 }
 
 .mcfly-yoy__v--up {
@@ -13312,10 +13319,27 @@ button.mcfly-chart__month {
 
 .mcfly-yoy {
   margin-bottom: 0.55rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.mcfly-yoy__grid {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .mcfly-desk-anchor .mcfly-chart--sales {
   margin-top: 0;
+}
+
+.mcfly-desk,
+.mcfly-score,
+.mcfly-desk-anchor {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 @media (max-width: 430px) {
