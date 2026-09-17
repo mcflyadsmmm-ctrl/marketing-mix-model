@@ -1148,19 +1148,41 @@ export async function clearSampleOrderFacts(shopId: string): Promise<number> {
   return result.count;
 }
 
-function splitSalesAcrossOrders(total: number, n: number): number[] {
+/** Deterministic RNG so SAMPLE order facts are stable seed-to-seed. */
+function sampleRng(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Vary per-order amounts around the day AOV while preserving the day total. */
+function splitSalesVaried(
+  total: number,
+  n: number,
+  rng: () => number,
+): number[] {
   if (n <= 0) return [];
+  const weights = Array.from({ length: n }, () => 0.55 + rng() * 1.15);
+  const sum = weights.reduce((a, b) => a + b, 0);
   const cents = Math.round(total * 100);
-  const base = Math.floor(cents / n);
-  const out = Array.from({ length: n }, () => base / 100);
-  const drift = (cents - base * n) / 100;
-  out[n - 1] = Math.round((out[n - 1]! + drift) * 100) / 100;
-  return out;
+  const out = weights.map((w) => Math.max(1, Math.round((cents * w) / sum)));
+  const drift = cents - out.reduce((a, b) => a + b, 0);
+  out[n - 1] = Math.max(1, out[n - 1]! + drift);
+  return out.map((c) => c / 100);
 }
 
 /**
- * Sales-first SAMPLE OrderFacts so Overview Sample is a shop book.
- * Snowdevil spend / Total ROAS stays on SpendEntry + Marketing.
+ * Sales-first SAMPLE OrderFacts so Overview Sample is a shop book, now with a
+ * realistic customer base: ~68% of orders are first-time buyers (a long tail of
+ * one-order accounts), the rest are returning buyers picked with a whale bias so
+ * a few accounts carry many orders. That gives the Customers tab a believable
+ * order-frequency long tail, spend bands, and days-to-2nd spread — from order
+ * facts only. Snowdevil spend / Total ROAS stays on SpendEntry + Marketing.
  * Units stay 1–2 (board, or board + wax) — not Harbor multi-item baskets.
  */
 export async function seedSampleOrderFacts(
@@ -1189,59 +1211,61 @@ export async function seedSampleOrderFacts(
     discountAmount: number;
     sourceName: string;
     unitCount: number;
+    lifetimeOrders: number | null;
     asOf: Date;
     source: string;
   }> = [];
 
-  // Deterministic PRNG so the SAMPLE customer base — and its order-frequency
-  // long tail — is stable across reseeds and snapshots.
-  let prngState = 0x9e3779b9 >>> 0;
-  const rand = () => {
-    prngState = (prngState + 0x6d2b79f5) >>> 0;
-    let t = prngState;
-    t = Math.imul(t ^ (t >>> 15), 1 | t);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+  const rng = sampleRng(0x519b2c7d);
+  const pool: string[] = [];
+  const orderCountByKey = new Map<string, number>();
+  let seq = 0;
+  const NEW_SHARE = 0.68;
 
-  // Realistic base: most buyers order once, a shrinking tail repeats — not 40
-  // recycled keys. ~32% of identified orders reuse an earlier customer.
-  let nextCustomer = 0;
-  const REPEAT_RATE = 0.32;
   for (const d of days) {
     const n = Math.max(0, Math.min(12, Math.trunc(d.orderCount)));
     if (n === 0 || !(d.sales > 0)) continue;
     const day = new Date(d.day);
     const dayKey = day.toISOString().slice(0, 10);
-    const amounts = splitSalesAcrossOrders(d.sales, n);
+    const amounts = splitSalesVaried(d.sales, n, rng);
     for (let i = 0; i < n; i += 1) {
-      const isGuest = n >= 5 && i === n - 1;
+      const guest = n >= 6 && i === n - 1 && rng() < 0.5;
       let customerKey: string;
-      if (isGuest) {
+      if (guest) {
         customerKey = ORDER_FACT_GUEST_KEY;
-      } else if (nextCustomer > 12 && rand() < REPEAT_RATE) {
-        // Repeat buyer — bias toward earlier customers so a few become loyal.
-        const pick = Math.floor(rand() ** 1.6 * nextCustomer);
-        customerKey = `sample:c${Math.min(nextCustomer - 1, pick)}`;
+      } else if (pool.length < 8 || rng() < NEW_SHARE) {
+        customerKey = `sample:c${seq}`;
+        seq += 1;
+        pool.push(customerKey);
       } else {
-        customerKey = `sample:c${nextCustomer}`;
-        nextCustomer += 1;
+        // Whale bias — older accounts accumulate the repeat orders.
+        const idx = Math.min(
+          pool.length - 1,
+          Math.floor(pool.length * Math.pow(rng(), 2.3)),
+        );
+        customerKey = pool[idx]!;
       }
-      const hour = 10 + (i % 8);
+      let lifetimeOrders: number | null = null;
+      if (customerKey !== ORDER_FACT_GUEST_KEY) {
+        const next = (orderCountByKey.get(customerKey) ?? 0) + 1;
+        orderCountByKey.set(customerKey, next);
+        lifetimeOrders = next;
+      }
+      const hour = 9 + (i % 11);
       const orderedAt = new Date(
         Date.UTC(
           day.getUTCFullYear(),
           day.getUTCMonth(),
           day.getUTCDate(),
           hour,
-          12 + (i % 20),
+          7 + (i % 47),
           0,
         ),
       );
       const amount = amounts[i] ?? 0;
-      const sourceName = i % 7 === 0 ? "pos" : i % 11 === 0 ? "shop" : "web";
+      const sourceName = i % 7 === 0 ? "pos" : i % 13 === 0 ? "shop" : "web";
       const discountAmount =
-        i % 5 === 0 ? Math.round(amount * 0.12 * 100) / 100 : 0;
+        rng() < 0.22 ? Math.round(amount * 0.12 * 100) / 100 : 0;
       rows.push({
         shopId,
         shopifyOrderId: `sample-order:${dayKey}:${i}`,
@@ -1253,6 +1277,7 @@ export async function seedSampleOrderFacts(
         discountAmount,
         sourceName,
         unitCount: 1 + (i % 2),
+        lifetimeOrders,
         asOf: now,
         source: "sample",
       });
