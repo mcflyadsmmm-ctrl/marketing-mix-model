@@ -11585,7 +11585,9 @@ a.mcfly-control__chip-yoy:focus-visible {
   border-bottom: none;
 }
 
-.mcfly-desk-tabs a {
+/* Legacy underline links only. Pills use a.mcfly-desk-tabs__pill — this
+   rule used to zero horizontal padding and smoosh labels into one string. */
+.mcfly-desk-tabs a:not(.mcfly-desk-tabs__pill) {
   padding: 0.2rem 0 0.55rem;
   color: var(--mcfly-mute);
   font-size: 0.88rem;
@@ -11594,8 +11596,8 @@ a.mcfly-control__chip-yoy:focus-visible {
   text-decoration: none;
 }
 
-.mcfly-desk-tabs a:hover,
-.mcfly-desk-tabs a:focus-visible {
+.mcfly-desk-tabs a:not(.mcfly-desk-tabs__pill):hover,
+.mcfly-desk-tabs a:not(.mcfly-desk-tabs__pill):focus-visible {
   color: var(--mcfly-ink);
 }
 
@@ -12565,17 +12567,23 @@ button.mcfly-chart__month {
   color: var(--mcfly-ink-soft);
 }
 
-/* One in-iframe tab rail. No SCOREBOARD / RETAIN / SPEND PLAN chips — those
-   sat inline with tab names (Marty phone FAIL). Active page = ink + underline.
-   Not period chips; side s-app-nav stays shortcuts. */
-.mcfly-desk-tabs {
+/* Multi-row spaced pills. One pill per tab, clear gaps, ink fill = active.
+   NEVER a single-row scroll strip — that smooshed labels into one string at
+   ~390px after Fly v353 (Marty FAIL). No SCOREBOARD / RETAIN / Meta-ROAS. */
+.mcfly-desk-tabs,
+.mcfly-desk-tabs--pills {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  align-items: stretch;
-  gap: 0.05rem;
+  align-items: center;
+  align-content: flex-start;
+  gap: 0.38rem 0.4rem;
   margin: 0 0 0.75rem;
-  padding: 0.1rem 0 0;
-  border-bottom: 1px solid var(--mcfly-line);
+  padding: 0.12rem 0.2rem 0.08rem;
+  border-bottom: none;
+  max-width: 100%;
+  overflow: visible;
+  overflow-x: visible;
 }
 
 /* Leftover group chrome / kickers never paint. */
@@ -12588,46 +12596,58 @@ button.mcfly-chart__month {
   display: none;
 }
 
+.mcfly-desk-tabs a.mcfly-desk-tabs__pill,
 .mcfly-desk-tabs__pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.5rem 0.72rem 0.42rem;
-  border: none;
-  border-bottom: 3px solid transparent;
-  border-radius: 0;
-  background: transparent;
-  color: var(--mcfly-mute);
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  padding: 0.28rem 0.58rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 999px;
+  background: var(--mcfly-paper);
+  color: var(--mcfly-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0;
   text-decoration: none;
   line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: none;
   transition: color 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
 }
 
+.mcfly-desk-tabs a.mcfly-desk-tabs__pill:hover,
+.mcfly-desk-tabs a.mcfly-desk-tabs__pill:focus-visible,
 .mcfly-desk-tabs__pill:hover,
 .mcfly-desk-tabs__pill:focus-visible {
   color: var(--mcfly-ink);
-  background: transparent;
+  border-color: var(--mcfly-ink);
+  background: var(--mcfly-paper);
 }
 
+.mcfly-desk-tabs a.mcfly-desk-tabs__pill:focus-visible,
 .mcfly-desk-tabs__pill:focus-visible {
   outline: 2px solid var(--mcfly-accent);
   outline-offset: 2px;
 }
 
+.mcfly-desk-tabs a.mcfly-desk-tabs__pill--on,
+.mcfly-desk-tabs a.mcfly-desk-tabs__pill--on:hover,
 .mcfly-desk-tabs__pill--on,
 .mcfly-desk-tabs__pill--on:hover {
-  background: var(--mcfly-paper);
-  border-bottom-color: var(--mcfly-ink);
-  color: var(--mcfly-ink);
+  background: var(--mcfly-ink);
+  border-color: var(--mcfly-ink);
+  color: var(--mcfly-paper);
   box-shadow: none;
   font-weight: 750;
 }
 
 /* === P0 phone / Admin-iframe narrow ===
    Founder reviews on ~390×844 and ~430px. 11 analysis tabs stay 11.
-   Horizontal scroll lives inside nav / chart / table regions, not the page. */
+   Nav wraps as small pills (not a nowrap scroll strip). Chart / table
+   regions still own their own horizontal scroll — not the page. */
 @media (max-width: 640px) {
   .mcfly-desk,
   .mcfly-desk--chrome {
@@ -12635,19 +12655,19 @@ button.mcfly-chart__month {
     min-width: 0;
   }
 
-  .mcfly-desk-tabs {
+  .mcfly-desk-tabs,
+  .mcfly-desk-tabs--pills {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: stretch;
-    gap: 0.05rem;
-    margin: 0 0 0.5rem;
-    padding: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: flex-start;
+    gap: 0.32rem 0.34rem;
+    margin: 0 0 0.55rem;
+    padding: 0.08rem 0.16rem 0.04rem;
     max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
+    overflow: visible;
+    overflow-x: visible;
   }
 
   .mcfly-desk-tabs__k {
@@ -12659,11 +12679,13 @@ button.mcfly-chart__month {
     display: contents;
   }
 
+  .mcfly-desk-tabs a.mcfly-desk-tabs__pill,
   .mcfly-desk-tabs__pill {
     flex: 0 0 auto;
-    min-height: 2.75rem;
-    padding: 0.6rem 0.85rem 0.5rem;
-    font-size: 0.92rem;
+    min-height: 1.85rem;
+    padding: 0.22rem 0.5rem;
+    font-size: 0.74rem;
+    border-radius: 999px;
     white-space: nowrap;
     justify-content: center;
   }

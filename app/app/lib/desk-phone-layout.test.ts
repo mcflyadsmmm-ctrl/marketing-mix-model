@@ -26,6 +26,7 @@ describe("Admin desk phone / narrow iframe", () => {
     const tabs = read("../components/DeskTopTabs.tsx");
     expect(nav).toContain("DESK_PRIMARY_NAV");
     expect(tabs).toContain("DESK_IFRAME_NAV");
+    expect(tabs).toContain("mcfly-desk-tabs--pills");
     expect(tabs).not.toContain("mcfly-desk-tabs__k");
     expect(tabs).not.toContain('label="Scoreboard"');
     expect(tabs).not.toContain('label="Retain"');
@@ -60,18 +61,28 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).toContain("max-width: calc(33.333% - 0.24rem) !important");
   });
 
-  it("makes the 11-tab rail one sideways scroll, not page overflow", () => {
+  it("wraps 11 tabs as small spaced pills — never a smooshed nowrap strip", () => {
     expect(phone).toMatch(/@media \(max-width: 640px\)/);
+    const tabsStart = phone.indexOf(".mcfly-desk-tabs,");
+    expect(tabsStart).toBeGreaterThan(-1);
+    const tabsRule = phone.slice(tabsStart, phone.indexOf("}", tabsStart) + 1);
+    expect(tabsRule).toContain("flex-wrap: wrap");
+    expect(tabsRule).toContain("overflow-x: visible");
+    expect(tabsRule).not.toContain("nowrap");
+    expect(tabsRule).not.toContain("overflow-x: auto");
     expect(phone).toContain(".mcfly-desk-tabs");
     expect(phone).toContain("flex-direction: row");
-    expect(phone).toContain("overflow-x: auto");
-    expect(phone).toContain("flex-wrap: nowrap");
     expect(phone).toContain("white-space: nowrap");
-    expect(phone).toContain("min-height: 2.75rem");
+    expect(phone).toContain("border-radius: 999px");
     expect(phone).toContain(".mcfly-desk-tabs__k");
     expect(phone).toMatch(/\.mcfly-desk-tabs__k[\s\S]{0,80}display:\s*none/);
+    expect(css).toContain(".mcfly-desk-tabs--pills");
+    expect(css).toContain(".mcfly-desk-tabs a.mcfly-desk-tabs__pill");
     expect(css).toContain(".mcfly-desk-tabs__pill--on");
-    expect(css).toContain("border-bottom-color: var(--mcfly-ink)");
+    expect(css).toMatch(
+      /\.mcfly-desk-tabs__pill--on[\s\S]{0,220}background:\s*var\(--mcfly-ink\)/,
+    );
+    expect(css).not.toContain("border-bottom-color: var(--mcfly-ink)");
   });
 
   it("sizes Spend day, Sample, Retry, and primary CTAs for a finger", () => {
@@ -128,6 +139,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("Overview");
     expect(fixture).toContain("Channel Allocation");
     expect(fixture).toContain("Spend Upload");
+    expect(fixture).toContain("mcfly-desk-tabs--pills");
     expect(fixture).not.toContain("mcfly-desk-tabs__k");
     expect(fixture).not.toContain("SCOREBOARD");
     expect(fixture).not.toContain(">Retain<");

@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { Link, useLocation, useSearchParams } from "react-router";
 
 import {
@@ -8,31 +7,28 @@ import {
 } from "../lib/desk-nav";
 
 /**
- * One in-iframe tab rail. Sales-first order. No SCOREBOARD / RETAIN / SPEND
- * PLAN chips — those sat inline with tab names and read as word salad at
- * phone width (Marty Admin SAMPLE). Active page is the only painted state.
+ * Multi-row spaced pills. Sales-first order. No SCOREBOARD / RETAIN chips,
+ * no Meta-ROAS hero, no single-row scroll strip — that smooshed labels into
+ * one string at phone width after Fly v353 (Marty FAIL). Active = ink fill.
  * Link keeps switches inside the desk shell (not a full document reload).
  */
 export function DeskTopTabs({ shotMode = false }: { shotMode?: boolean }) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const activeRef = useRef<HTMLAnchorElement | null>(null);
-
-  useEffect(() => {
-    if (shotMode) return;
-    activeRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [location.pathname, shotMode]);
 
   if (shotMode) return null;
 
   return (
-    <nav className="mcfly-desk-tabs" aria-label="Desk pages" role="tablist">
+    <nav
+      className="mcfly-desk-tabs mcfly-desk-tabs--pills"
+      aria-label="Desk pages"
+      role="tablist"
+    >
       {DESK_IFRAME_NAV.map((item) => {
         const active = isDeskNavActive(item.path, location.pathname);
         return (
           <Link
             key={item.path}
-            ref={active ? activeRef : undefined}
             role="tab"
             aria-selected={active}
             aria-current={active ? "page" : undefined}
