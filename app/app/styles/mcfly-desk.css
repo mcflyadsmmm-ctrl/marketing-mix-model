@@ -17727,3 +17727,243 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
   }
 }
 
+
+
+/* =========================================================================
+ * BC densify Spend Upload — soft dense input ledger UX.
+ * APPEND ONLY. TAB_LOCK §6 / #76: NO MarketingSnapSection, NO ROAS hero,
+ * NO mix/chart/explorer on this tab. Pointers stay on Total ROAS + Allocation.
+ * Soft dense doors · add-day · daily amount · coverage · recent ledger.
+ * Cut uninstall friction vs thin input dump. Optional Goals/Allocation/
+ * Settings soft peeks below — no Overview spend/ROAS.
+ * ========================================================================= */
+
+.mcfly-spend-lean--soft .mcfly-spend-lean__stack--soft {
+  gap: 0.75rem;
+}
+
+.mcfly-spend-helper--soft {
+  margin: 0;
+  padding: 0.85rem 0.95rem;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 22%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-spend-panel--soft,
+.mcfly-spend-cal--soft,
+.mcfly-spend-ledger--soft,
+.mcfly-spend-reveal--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.mcfly-spend-panel--soft .mcfly-panel__head--tight h2,
+.mcfly-spend-cal--soft .mcfly-spend-cal__meta h2,
+.mcfly-spend-ledger--soft .mcfly-panel__head--tight h2 {
+  letter-spacing: -0.02em;
+}
+
+.mcfly-spend-panel--soft .mcfly-spend-add__grid {
+  gap: 0.65rem;
+}
+
+.mcfly-spend-panel--soft .mcfly-spend-add__field,
+.mcfly-spend-panel--soft .mcfly-spend-add__continue {
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  padding: 0.55rem 0.65rem 0.6rem;
+  box-shadow: none;
+}
+
+.mcfly-spend-panel--soft .mcfly-spend-add__field span,
+.mcfly-spend-panel--soft .mcfly-spend-add__continue {
+  font-size: 0.78rem;
+}
+
+.mcfly-spend-panel--soft .mcfly-spend-lean__recent-row {
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+  box-shadow: none;
+}
+
+.mcfly-spend-cal--soft .mcfly-spend-cal__strip {
+  gap: 0.28rem;
+  padding: 0.35rem 0.15rem 0.25rem;
+}
+
+.mcfly-spend-cal--soft .mcfly-spend-cal__day {
+  min-width: 1.35rem;
+  max-width: 2rem;
+  gap: 0.32rem;
+}
+
+.mcfly-spend-cal--soft .mcfly-spend-cal__tick {
+  min-height: 1.55rem;
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.mcfly-spend-cal--soft .mcfly-spend-cal__day--filled .mcfly-spend-cal__tick {
+  background: color-mix(in srgb, var(--mcfly-accent) 78%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-accent-ink) 70%, #fff);
+}
+
+.mcfly-spend-cal--soft .mcfly-spend-cal__day--empty .mcfly-spend-cal__tick {
+  background: color-mix(in srgb, #fff 88%, var(--mcfly-accent-soft));
+  border-style: dashed;
+}
+
+.mcfly-spend-cal--soft .mcfly-spend-cal__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.mcfly-spend-cal--soft .mcfly-spend-cal__legend {
+  gap: 0.75rem;
+  font-size: 0.72rem;
+}
+
+.mcfly-spend-lean__status--soft {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 28%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.mcfly-spend-lean__status--soft .mcfly-spend-lean__status-line {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.mcfly-spend-lean__status--soft .mcfly-spend-lean__status-foot {
+  margin: 0.35rem 0 0;
+}
+
+.mcfly-spend-ledger--soft .mcfly-spend-ledger__rows {
+  gap: 0.4rem;
+  margin: 0.15rem 0 0;
+}
+
+.mcfly-spend-ledger--soft .mcfly-spend-ledger__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.4fr) auto auto auto auto;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+  box-shadow: none;
+  min-height: 2.85rem;
+}
+
+.mcfly-spend-ledger--soft .mcfly-spend-lean__recent-amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.mcfly-spend-ledger--soft .mcfly-spend-lean__recent-source {
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-spend-reveal--soft > .mcfly-spend-reveal__summary {
+  padding: 0.15rem 0 0.45rem;
+}
+
+.mcfly-spend-reveal--soft .mcfly-spend-reveal__title {
+  letter-spacing: -0.02em;
+}
+
+.mcfly-spend-reveal--soft .mcfly-spend-reveal__hint {
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px) {
+  .mcfly-spend-ledger--soft .mcfly-spend-ledger__row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "dot channel amount"
+      "dot range source"
+      "actions actions actions";
+  }
+
+  .mcfly-spend-ledger--soft .mcfly-spend-dot {
+    grid-area: dot;
+  }
+
+  .mcfly-spend-ledger--soft .mcfly-spend-lean__recent-channel {
+    grid-area: channel;
+  }
+
+  .mcfly-spend-ledger--soft .mcfly-spend-lean__recent-amount {
+    grid-area: amount;
+    justify-self: end;
+  }
+
+  .mcfly-spend-ledger--soft .mcfly-spend-lean__recent-range {
+    grid-area: range;
+  }
+
+  .mcfly-spend-ledger--soft .mcfly-spend-lean__recent-source {
+    grid-area: source;
+  }
+
+  .mcfly-spend-ledger--soft .mcfly-spend-lean__recent-actions {
+    grid-area: actions;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-spend-helper--soft,
+  .mcfly-spend-panel--soft,
+  .mcfly-spend-cal--soft,
+  .mcfly-spend-ledger--soft,
+  .mcfly-spend-reveal--soft,
+  .mcfly-spend-lean__status--soft {
+    padding: 0.7rem 0.75rem 0.8rem;
+    border-radius: 14px;
+  }
+
+  .mcfly-spend-cal--soft .mcfly-spend-cal__day {
+    min-width: 1.15rem;
+  }
+}
+
+/* Optional soft peeks — Goals / Allocation / Settings (no scope creep) */
+.mcfly-goals__main .mcfly-book,
+.mcfly-goals-panel--dense {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 14%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.mcfly-alloc-v2 .mcfly-panel,
+.mcfly-alloc-mix {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 14%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.mcfly-settings-template__form,
+.mcfly-settings-template .mcfly-panel {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 14%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+}

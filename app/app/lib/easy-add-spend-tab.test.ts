@@ -138,10 +138,11 @@ describe("Spend day card", () => {
     expect(spend).toMatch(/>\s*Edit\s*</);
     expect(spend).toContain('name="intent" value="delete-entry"');
     expect(spend).toContain("Delete");
-    const helperAt = spend.indexOf('className="mcfly-spend-helper"');
+    const helperAt = spend.indexOf("mcfly-spend-helper");
     const addAt = spend.indexOf('id="mcfly-spend-add"');
     const backfillAt = spend.indexOf('id="mcfly-spend-backfill"');
     expect(helperAt).toBeGreaterThan(-1);
+    expect(spend).toContain("mcfly-spend-helper--soft");
     expect(addAt).toBeGreaterThan(helperAt);
     expect(backfillAt).toBeGreaterThan(addAt);
   });
@@ -186,6 +187,19 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("<SpendExplorer");
     expect(spend).not.toContain("<MarketingSpendRoom");
     expect(spend).not.toContain("<DualCloseLine");
+  });
+
+  it("soft-denses the input ledger without a ROAS scoreboard", () => {
+    expect(spend).toContain("mcfly-spend-lean--soft");
+    expect(spend).toContain("mcfly-spend-panel--soft");
+    expect(spend).toContain("mcfly-spend-cal--soft");
+    expect(spend).toContain("mcfly-spend-ledger--soft");
+    expect(spend).toContain("Recent ledger");
+    expect(spend).toContain('aria-label="Recent spend ledger"');
+    expect(spend).not.toContain("<MarketingSnapSection");
+    expect(css).toContain("BC densify Spend Upload");
+    expect(css).toContain("NO MarketingSnapSection");
+    expect(css).toContain(".mcfly-spend-ledger--soft");
   });
 
   it("says no ad login once, not as a manifesto", () => {
