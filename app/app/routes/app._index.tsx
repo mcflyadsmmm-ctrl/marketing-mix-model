@@ -20,6 +20,7 @@ import {
   OverviewDepthPeeks,
   OverviewFirstViewport,
 } from "../components/OverviewFirstViewport";
+import { OverviewMixForecast } from "../components/OverviewMixForecast";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
@@ -48,6 +49,14 @@ import {
   OVERVIEW_PENDING_ASOF,
   overviewGreetingPending,
 } from "../lib/overview-first-viewport";
+import {
+  buildOverviewMixForecast,
+  emptyOverviewMixForecast,
+  overviewHistoryDays,
+  overviewMixForecastRead,
+  overviewMonthClock,
+  overviewMtdFromDays,
+} from "../lib/overview-mix-forecast";
 import { formatOverviewShareText } from "../lib/cash-close";
 import {
   emptySales,
@@ -77,7 +86,7 @@ import {
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
-import { shopLocalDayKey } from "../lib/shop-local-day";
+import { shopLocalDayKey, shopLocalYmd } from "../lib/shop-local-day";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
   isLiveHandoffGuide,
@@ -348,6 +357,44 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       ? shopLocalDayKey(instant, shareTz)
       : instant.toISOString().slice(0, 10);
 
+  const explorerDays = [...explorerByDay.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([dateKey, value]) => ({
+      dateKey,
+      sales: value.sales,
+      orders: value.orders,
+    }));
+  const ymd = shopLocalYmd(now, deskTz);
+  const monthPrefix = `${ymd.y}-${String(ymd.m).padStart(2, "0")}`;
+  const clock = overviewMonthClock(ymd.y, ymd.m, ymd.d);
+  const mtdFromChip = cashControl?.chips.find((chip) => chip.id === "mtd")?.sales;
+  const mtdSales =
+    mtdFromChip != null && Number.isFinite(mtdFromChip)
+      ? mtdFromChip
+      : overviewMtdFromDays(explorerDays, monthPrefix);
+  const mixForecast = buildOverviewMixForecast({
+    salesPending: Boolean(metrics.salesPending),
+    orderCount: metrics.orderCount,
+    windowNewSales: metrics.customerMetricsAvailable
+      ? metrics.newCustomerNetSales
+      : null,
+    windowReturningSales: metrics.customerMetricsAvailable
+      ? metrics.returningCustomerNetSales
+      : null,
+    mtdSales,
+    dailySales: explorerDays.map((day) => day.sales),
+    daysElapsed: clock.daysElapsed,
+    daysInMonth: clock.daysInMonth,
+    remainingDays: clock.remainingDays,
+    historyLimited: Boolean(
+      !useSampleDesk && orderBackfillProgress?.historyLimited,
+    ),
+    historyDays: overviewHistoryDays(
+      explorerDays[0]?.dateKey ?? null,
+      explorerDays[explorerDays.length - 1]?.dateKey ?? null,
+    ),
+  });
+
   return {
     metrics,
     salesError,
@@ -370,13 +417,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         sales: salesByDay.get(dateKey) ?? 0,
         spend: spendByDay.get(dateKey) ?? 0,
       })),
-    salesExplorerDays: [...explorerByDay.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([dateKey, value]) => ({
-        dateKey,
-        sales: value.sales,
-        orders: value.orders,
-      })),
+    salesExplorerDays: explorerDays,
+    mixForecast,
   };
 };
 
@@ -412,6 +454,7 @@ export default function Dashboard() {
     shopLabel,
     salesDays = [],
     salesExplorerDays = [],
+    mixForecast,
   } = data;
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -477,6 +520,10 @@ export default function Dashboard() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
+  const mixView = greetingPending
+    ? emptyOverviewMixForecast()
+    : (mixForecast ?? emptyOverviewMixForecast());
+  const mixRead = overviewMixForecastRead(mixView);
   const shareText = formatOverviewShareText({
     periodLabel: metrics.period.label,
     periodStartDay: sharePeriodStartDay,
@@ -645,6 +692,8 @@ export default function Dashboard() {
                   typicalDay={metrics.shopifyDepth.medianDailySales}
                   returningSalesShare={shopBook.returningSalesShare}
                   returningSales={shopBook.returningSales}
+                  newSales={shopBook.newSales}
+                  mixGreeting={mixRead?.line}
                   medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
                   weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
                   peakWeekday={metrics.shopifyDepth.peakWeekday}
@@ -653,6 +702,13 @@ export default function Dashboard() {
                   salesPending={greetingPending}
                   ordersHref={ordersHref}
                   useSampleDesk={useSampleDesk}
+                />
+                <OverviewMixForecast
+                  view={mixView}
+                  customersHref={deskNavHrefFromSearch(
+                    "/app/customers",
+                    searchParams,
+                  )}
                 />
                 <OverviewSalesChart
                   days={

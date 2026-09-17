@@ -21,6 +21,9 @@ export type OverviewPeekProps = {
   typicalDay?: number | null;
   returningSalesShare: number | null;
   returningSales?: number | null;
+  newSales?: number | null;
+  /** Order-data greeting from mix + month close — not an AI analyst. */
+  mixGreeting?: string | null;
   medianDaysToSecond?: number | null;
   weekendSalesShare?: number | null;
   peakWeekday?: number | null;
@@ -93,6 +96,7 @@ function useOverviewPeekValues({
   typicalDay,
   returningSalesShare,
   returningSales,
+  newSales,
   weekendSalesShare,
   peakWeekday,
   weekdaySalesShare,
@@ -114,11 +118,17 @@ function useOverviewPeekValues({
     salesPending || returningDollars == null
       ? "—"
       : formatCurrency(returningDollars, currency);
+  const newDollars =
+    !salesPending && newSales != null && Number.isFinite(newSales) && newSales > 0
+      ? formatCurrency(newSales, currency)
+      : null;
   const returningShare =
     !salesPending &&
     returningSalesShare != null &&
     Number.isFinite(returningSalesShare)
-      ? `${Math.round(returningSalesShare * 100)}% of sales`
+      ? newDollars
+        ? `${Math.round(returningSalesShare * 100)}% · new ${newDollars}`
+        : `${Math.round(returningSalesShare * 100)}% of sales`
       : undefined;
   const weekend = salesPending
     ? null
@@ -169,6 +179,7 @@ export function OverviewFirstViewport({
   useSampleDesk = false,
   salesPending,
   orderCount,
+  mixGreeting = null,
   ...rest
 }: OverviewPeekProps) {
   const {
@@ -188,9 +199,11 @@ export function OverviewFirstViewport({
     ? OVERVIEW_PENDING_LINE
     : useSampleDesk
       ? SAMPLE_OVERVIEW_DOOR
-      : orderCount > 0
-        ? OVERVIEW_COVERAGE_LINE
-        : "No orders in this window yet.";
+      : mixGreeting
+        ? mixGreeting
+        : orderCount > 0
+          ? OVERVIEW_COVERAGE_LINE
+          : "No orders in this window yet.";
 
   return (
     <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>

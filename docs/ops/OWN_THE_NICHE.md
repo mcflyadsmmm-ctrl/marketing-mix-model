@@ -16,13 +16,13 @@ Push the LTV concept toward **~10** on the score below. Compete features only if
 | 4 | **$39-alone** — this tab would keep the install with no other page |
 | 5 | **Zero-spend** — no upload, no ads, no pixels, no COGS |
 
-## This Growth TT2 + win-back PR only
+## This Overview mix + month-close PR only
 
-Days-to-second habit clock (fast / typical / slow) + win-back fall-off buckets from the stored order book. Soft dense Black Clover. Useful + easy + deep. Explorer, scoreboard, weekends-if-present, and Customers ActionCards stay.
+New vs returning $ mix (dollars, not Shopify’s returning-customer rate) + a written-out month close: so far + remaining days × typical day. Typical day from the stored book. Soft dense Black Clover. Typical order, weekends, and existing explorers stay.
 
 ## Refuse
 
-TW attribution · COGS P&L · kitchen-sink · other tabs (Overview forecast, Discount, Share, Goals) · ads/pixels · Partner paste · cold push.
+TW attribution · COGS P&L · kitchen-sink · other tabs (Discount, Share, Goals) · ads/pixels · Partner paste · cold push · spend / ROAS / upload on Overview.
 
 Pills, charts, densify, ActionCards stay. Add only.
 
@@ -60,7 +60,7 @@ Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the den
 | $39-alone | PASS | Customers now answers who to save today from order history, with ActionCards kept |
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
 
-## SCORECARD — Growth days-to-second + win-back clock (this PR)
+## SCORECARD — Growth days-to-second + win-back clock (#96)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |
@@ -68,4 +68,14 @@ Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the den
 | Deeper LTV | PASS | Fast / typical / slow first→second + still-waiting buckets from the full stored book; year withheld when history is limited |
 | Habit-trust | PASS | Typical + 15 win-back written out; guests out; empties name the 8 × 30 floor; habit span is slow minus fast |
 | $39-alone | PASS | Growth now answers when first-timers come back and when to re-engage, with explorer + scoreboard kept |
+| Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
+
+## SCORECARD — Overview mix + month close (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Easier | PASS | One “Today’s read” — returning $ share + month close — not a Lifetimely mix/forecast hunt |
+| Deeper LTV | PASS | New vs returning dollars (not headcount) + typical-day close from the stored book; year-of-pace withheld when history is limited |
+| Habit-trust | PASS | Formula written out (so far + remaining × typical day) and plugged in; guests out; empties name the 8-order / 8-day floor |
+| $39-alone | PASS | Overview now answers who carries the dollars and where the month lands, with typical / weekends / explorers kept |
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
