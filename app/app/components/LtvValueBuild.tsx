@@ -74,14 +74,19 @@ export function LtvValueBuild({
 
   return (
     <section
-      className="mcfly-chart"
+      className="mcfly-chart mcfly-chart--soft"
       aria-label="What a new customer spends over time"
     >
-      <div className="mcfly-chart__head">
-        <p className="mcfly-chart__title">
-          <DeskIcon name="chart" />
-          What a new customer spends over time
-        </p>
+      <div className="mcfly-chart__head mcfly-chart__board">
+        <div className="mcfly-chart__masthead">
+          <h3 className="mcfly-chart__serif">
+            <DeskIcon name="chart" />
+            What a new customer spends over time
+          </h3>
+          <p className="mcfly-chart__muted">
+            First 30 → 90 → 365 days · averages from order history
+          </p>
+        </div>
       </div>
       <div className="mcfly-chart__hrows">
         {rows.map((row) => {

@@ -85,7 +85,7 @@ describe("resolveLtvBuild (value-build honesty)", () => {
   });
 
   it("reuses the shared desk chart shell — no bespoke LTV CSS to conflict", () => {
-    expect(build).toContain('className="mcfly-chart"');
+    expect(build).toMatch(/className="mcfly-chart(?: mcfly-chart--soft)?"/);
     expect(build).toContain("mcfly-chart__hrow");
     expect(build).toContain("mcfly-chart__hfill");
     expect(build).not.toContain("mcfly-ltv-");

@@ -1,3 +1,4 @@
+import { useDeskDrill } from "./DeskDrill";
 import type { RetentionHeat } from "../lib/ltv-depth";
 
 function pct(share: number): string {
@@ -9,9 +10,10 @@ function pct(share: number): string {
  * who placed an order in each later month. M0 is 100% (they placed the first
  * order). Cells stay blank (—) until a month has fully passed — the young
  * bottom-right is honestly empty, never a fake 0%. Colour tracks the share so
- * the drop-off reads at a glance without a legend.
+ * the drop-off reads at a glance. Click a cell for the formula.
  */
 export function LtvRetentionHeat({ heat }: { heat: RetentionHeat | null }) {
+  const drill = useDeskDrill();
   if (!heat || heat.rows.length < 2) return null;
 
   // Scale colour to the strongest come-back month (beyond M0) so a healthy
@@ -25,12 +27,14 @@ export function LtvRetentionHeat({ heat }: { heat: RetentionHeat | null }) {
   const scale = maxCell > 0 ? maxCell : 1;
 
   return (
-    <section className="mcfly-book mcfly-depth" aria-label="Who is still ordering by month">
-      <p className="mcfly-book__lede">
-        Who is still ordering — each first-order month, then the share who came
-        back in each later month. Order history, not an email list. Blank means
-        that month has not fully passed yet — not $0.
-      </p>
+    <section className="mcfly-book mcfly-depth mcfly-depth--soft" aria-label="Who is still ordering by month">
+      <div className="mcfly-depth-softhead">
+        <h3 className="mcfly-chart__serif">Who is still ordering</h3>
+        <p className="mcfly-chart__muted">
+          Each first-order month, then the share who came back later. Blank = month
+          not fully passed yet — not $0. Order history, not an email list.
+        </p>
+      </div>
       <div className="mcfly-depth-tablewrap">
         <table className="mcfly-depth-table mcfly-depth-table--heat">
           <thead>
@@ -60,19 +64,38 @@ export function LtvRetentionHeat({ heat }: { heat: RetentionHeat | null }) {
                       </td>
                     );
                   }
-                  const intensity =
-                    k === 0 ? 1 : Math.min(1, cell / scale);
+                  const intensity = k === 0 ? 1 : Math.min(1, cell / scale);
                   const alpha = 0.1 + intensity * 0.78;
                   return (
-                    <td
-                      key={k}
-                      className="mcfly-depth-heat__cell"
-                      style={{
-                        background: `rgba(2, 132, 199, ${alpha.toFixed(3)})`,
-                        color: alpha > 0.5 ? "#fff" : "var(--mcfly-ink)",
-                      }}
-                    >
-                      {pct(cell)}
+                    <td key={k} className="mcfly-depth-heat__cell">
+                      <button
+                        type="button"
+                        className="mcfly-depth-heat__btn"
+                        style={{
+                          background: `rgba(2, 132, 199, ${alpha.toFixed(3)})`,
+                          color: alpha > 0.5 ? "#fff" : "var(--mcfly-ink)",
+                        }}
+                        onClick={() =>
+                          drill?.openDrill({
+                            title: `${row.label} · M${k}`,
+                            value: pct(cell),
+                            kicker: `${row.customers.toLocaleString()} first-order customers`,
+                            blocks: [
+                              {
+                                k: "What this is",
+                                v:
+                                  k === 0
+                                    ? "M0 is always 100% — everyone placed a first order that month."
+                                    : `Share of ${row.label} first-order customers who placed any order in month ${k} after that first order.`,
+                              },
+                            ],
+                            next: "Blank cells mean that month has not fully passed yet — not $0 retention.",
+                            foot: "Order history only — never an email list.",
+                          })
+                        }
+                      >
+                        {pct(cell)}
+                      </button>
                     </td>
                   );
                 })}

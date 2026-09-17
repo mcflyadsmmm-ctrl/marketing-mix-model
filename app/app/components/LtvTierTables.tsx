@@ -1,5 +1,6 @@
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { useDeskDrill } from "./DeskDrill";
 import type { TierRow } from "../lib/ltv-depth";
 
 function pct(share: number): string {
@@ -14,6 +15,7 @@ function TierTable({
   firstHeader: string;
 }) {
   const currency = useDeskCurrency();
+  const drill = useDeskDrill();
   return (
     <div className="mcfly-depth-tablewrap">
       <table className="mcfly-depth-table mcfly-depth-table--tier">
@@ -32,7 +34,39 @@ function TierTable({
         <tbody>
           {rows.map((row) => (
             <tr key={row.key}>
-              <th scope="row">{row.label}</th>
+              <th scope="row">
+                <button
+                  type="button"
+                  className="mcfly-depth-table__drill"
+                  onClick={() =>
+                    drill?.openDrill({
+                      title: row.label,
+                      value: formatCurrency(row.ltv, currency),
+                      kicker: `${row.buyers.toLocaleString()} buyers · ${pct(row.repeatPct)} bought again`,
+                      blocks: [
+                        {
+                          k: "Lifetime LTV",
+                          v: formatCurrency(row.ltv, currency),
+                        },
+                        {
+                          k: "First 90 days",
+                          v:
+                            row.day90N > 0
+                              ? formatCurrency(row.day90Ltv, currency)
+                              : "— (not enough history)",
+                        },
+                        {
+                          k: "What this is",
+                          v: "Grouped by first-order size. LTV and first-90-days are per buyer. Order history, not a promise.",
+                        },
+                      ],
+                      next: "Bigger first orders usually come back more — watch the rate column.",
+                    })
+                  }
+                >
+                  {row.label}
+                </button>
+              </th>
               <td>{row.buyers.toLocaleString()}</td>
               <td>{row.repeat.toLocaleString()}</td>
               <td>{pct(row.repeatPct)}</td>
@@ -68,14 +102,17 @@ export function LtvTierTables({
   if (aov.length === 0 && basket.length === 0) return null;
 
   return (
-    <section className="mcfly-book mcfly-depth" aria-label="First order size to lifetime value">
-      <p className="mcfly-book__lede">
-        What a first order becomes — grouped by its size, then by how many items
-        were in it. Bought again is how many placed a second order (rate beside
-        it); lifetime net is every dollar the group brought, LTV and first-90-days
-        are per buyer. 90-day n is the buyers with a full 90 days behind that
-        average. Order history, not a promise.
-      </p>
+    <section
+      className="mcfly-book mcfly-depth mcfly-depth--soft"
+      aria-label="First order size to lifetime value"
+    >
+      <div className="mcfly-depth-softhead">
+        <h3 className="mcfly-chart__serif">AOV → LTV tiers</h3>
+        <p className="mcfly-chart__muted">
+          What a first order becomes — by size, then by item count. Bought again
+          is a second order; LTV and first-90-days are per buyer. Click a tier.
+        </p>
+      </div>
       {aov.length > 0 ? (
         <>
           <p className="mcfly-depth__caption">First-order size</p>
