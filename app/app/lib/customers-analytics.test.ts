@@ -69,6 +69,8 @@ describe("buildCustomerAnalytics", () => {
     expect(a.repurchaseSlowDays).toBe(40);
     expect(a.winBackDay).toBe(25);
     expect(a.repeaters).toBe(5);
+    // 5 one-order buyers, last order 70d ago, all past the 25d win-back.
+    expect(a.saveNowOneOrder).toBe(5);
   });
 
   it("bins days-to-2nd and withholds buckets past the observed window", () => {

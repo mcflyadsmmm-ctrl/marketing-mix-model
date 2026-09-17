@@ -88,6 +88,7 @@ describe("CustomerRetentionBoard — What-to-do retention flow", () => {
     expect(retention).toContain("Retention cadence");
     expect(retention).toContain("Fall-off funnel");
     expect(retention).toContain("Win-back play");
+    expect(retention).toContain("Save now");
     expect(retention).toContain("VerticalBars");
   });
 

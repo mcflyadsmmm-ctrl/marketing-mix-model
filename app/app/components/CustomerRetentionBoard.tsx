@@ -100,7 +100,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
         <Kpi label="Win-back by" value={day(a.winBackDay)} sub="typical repurchase + 15 days" tone="warn" />
         <Kpi label="Ever a 2nd order" value={pct(a.everRepeatShare)} sub={`${a.everRepeatCount.toLocaleString()} of ${a.identifiedBuyers.toLocaleString()} buyers`} tone="good" />
         <Kpi label="Came back ≤30d" value={pct(a.within30Share)} sub={a.eligible30 > 0 ? `${a.within30Count.toLocaleString()} of ${a.eligible30.toLocaleString()} eligible` : "needs 30 days of follow-up"} />
-        <Kpi label="Came back ≤60d" value={pct(a.within60Share)} sub={a.eligible60 > 0 ? `${a.within60Count.toLocaleString()} of ${a.eligible60.toLocaleString()} eligible` : "needs 60 days of follow-up"} />
+        <Kpi label="Save now" value={a.saveNowOneOrder.toLocaleString()} sub="one-order buyers past win-back" tone="warn" />
         <Kpi label="First-time buyers" value={a.identifiedBuyers.toLocaleString()} sub={`identified, last ~${a.historyDays} days`} />
       </div>
 
@@ -163,7 +163,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
         </p>
         <p className="mcfly-cust-play__body">
           {isNum(a.winBackDay)
-            ? `Reach one-order buyers around ${day(a.winBackDay).toLowerCase()} — just past the typical repurchase, before the slow tail.`
+            ? `Reach the ${a.saveNowOneOrder.toLocaleString()} one-order buyers already past ${day(a.winBackDay).toLowerCase()} — just beyond the typical repurchase, before the slow tail.`
             : "Win-back timing needs more repeat orders on file — not zero."}
         </p>
         <p className="mcfly-cust-play__note">

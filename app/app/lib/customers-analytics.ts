@@ -70,6 +70,8 @@ export type CustomerAnalytics = {
   within60Share: number | null;
   within60Count: number;
   eligible60: number;
+  /** One-order buyers already past the win-back day — reach these now. */
+  saveNowOneOrder: number;
   /** Fall-off funnel counts. */
   repeatBuyers: number;
   thirdPlusBuyers: number;
@@ -336,6 +338,15 @@ export function buildCustomerAnalytics(
   const typical = enoughGaps ? medianOf(gaps) : null;
   const winBackDay = typical != null ? Math.round(typical) + 15 : null;
 
+  let saveNowOneOrder = 0;
+  if (winBackDay != null) {
+    for (const rec of byCustomer.values()) {
+      if (rec.times.length !== 1) continue;
+      const daysSince = (windowEndMs - rec.times[0]!) / DAY_MS;
+      if (daysSince > winBackDay) saveNowOneOrder += 1;
+    }
+  }
+
   const enoughBuyers = identifiedBuyers >= 8;
   const everRepeatShare = enoughBuyers ? repeatBuyers / identifiedBuyers : null;
   const repeatShare = everRepeatShare;
@@ -366,6 +377,7 @@ export function buildCustomerAnalytics(
     within60Share,
     within60Count: within60,
     eligible60,
+    saveNowOneOrder,
     repeatBuyers,
     thirdPlusBuyers,
     repeatShare,
