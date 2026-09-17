@@ -13727,11 +13727,29 @@ button.mcfly-chart__month {
   margin: 0 0 0.15rem;
 }
 
-.mcfly-chart--sales .mcfly-chart__title--sales {
-  display: inline-flex;
+.mcfly-chart__masthead {
   grid-column: 1;
   grid-row: 1;
+  min-width: 0;
+}
+
+.mcfly-chart__serif {
   margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-chart__muted {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .mcfly-chart--sales .mcfly-chart__readout {
@@ -14168,19 +14186,20 @@ button.mcfly-chart__month {
   padding: 0;
 }
 
+/* Soft-inset tiles — Monthly-pacing card language. */
 .mcfly-chart__stat {
   display: flex;
   flex-direction: column;
-  gap: 0.08rem;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--mcfly-line);
-  border-radius: 10px;
-  background: linear-gradient(180deg, #fff, var(--mcfly-tint-sky));
+  gap: 0.12rem;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: var(--mcfly-radius);
+  background: var(--mcfly-surface-muted, #f0f4f8);
   min-width: 0;
 }
 
 .mcfly-chart__stat-k {
-  font-size: 0.56rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -14188,11 +14207,11 @@ button.mcfly-chart__month {
 }
 
 .mcfly-chart__stat-v {
-  font-family: var(--mcfly-display);
-  font-size: clamp(0.98rem, 3.2vw, 1.18rem);
+  font-family: var(--mcfly-font);
+  font-size: clamp(1rem, 3.2vw, 1.22rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.05;
+  line-height: 1.1;
   color: var(--mcfly-ink);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -14201,11 +14220,53 @@ button.mcfly-chart__month {
 }
 
 .mcfly-chart__stat-sub {
-  font-size: 0.56rem;
+  font-size: 0.6rem;
   color: var(--mcfly-mute);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Sales-truthful pace bars — pacing-card language, zero spend. */
+.mcfly-chart__bars {
+  margin: 0.7rem 0 0;
+}
+
+.mcfly-chart__bar-block + .mcfly-chart__bar-block {
+  margin-top: 0.55rem;
+}
+
+.mcfly-chart__bar-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__track {
+  height: 6px;
+  margin-top: 0.4rem;
+  background: var(--mcfly-line-soft, #e2e8f0);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mcfly-chart__fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--mcfly-accent);
+  transition: width var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-chart__fill--up {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__fill--accent {
+  background: var(--mcfly-accent);
 }
 
 /* Weekday mix — intentional bars vs an even-split reference + peak callout. */
@@ -14348,8 +14409,12 @@ button.mcfly-chart__month {
     font-size: 0.68rem;
   }
 
-  .mcfly-chart__lede {
-    font-size: 0.66rem;
+  .mcfly-chart__muted {
+    font-size: 0.72rem;
+  }
+
+  .mcfly-chart__serif {
+    font-size: 1.02rem;
   }
 
   .mcfly-chart__date input {

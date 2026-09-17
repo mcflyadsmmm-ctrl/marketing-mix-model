@@ -226,15 +226,18 @@ export function OverviewSalesChart({
     (best, bucket) => (bucket.sales > best.sales ? bucket : best),
     points[0]!,
   );
+  const avgBucket = points.length > 0 ? total / points.length : 0;
   const aboveCount = points.filter(
     (bucket) => overviewVsTypical(bucket.sales, typicalRef)?.kind === "up",
   ).length;
+  const abovePct = points.length > 0 ? (aboveCount / points.length) * 100 : 0;
   const weekendShare =
     effectiveGrain === "day" && total > 0
       ? points
           .filter((bucket) => bucket.weekend)
           .reduce((sum, bucket) => sum + bucket.sales, 0) / total
       : null;
+  const topShare = total > 0 ? bestBucket.sales / total : 0;
 
   const statCards: { k: string; v: string; sub: string }[] = [
     {
@@ -248,20 +251,36 @@ export function OverviewSalesChart({
       sub: "median",
     },
     {
+      k: `Avg ${noun}`,
+      v: formatCurrency(avgBucket, currency),
+      sub: "mean",
+    },
+    {
       k: `Best ${noun}`,
       v: formatCurrency(bestBucket.sales, currency),
       sub: bestBucket.label,
     },
+  ];
+
+  const paceBars: { k: string; pct: number; value: string; tone: string }[] = [
+    {
+      k: `${noun[0]!.toUpperCase()}${noun.slice(1)}s above typical`,
+      pct: Math.round(abovePct),
+      value: `${aboveCount}/${points.length}`,
+      tone: "up",
+    },
     weekendShare != null
       ? {
-          k: "Weekend share",
-          v: `${Math.round(weekendShare * 100)}%`,
-          sub: "Sat–Sun of sales",
+          k: "Weekend share of sales",
+          pct: Math.round(weekendShare * 100),
+          value: `${Math.round(weekendShare * 100)}%`,
+          tone: "accent",
         }
       : {
-          k: "Above typical",
-          v: `${aboveCount}/${points.length}`,
-          sub: `${noun}s beat median`,
+          k: `Top ${noun} share of range`,
+          pct: Math.round(topShare * 100),
+          value: `${Math.round(topShare * 100)}%`,
+          tone: "accent",
         },
   ];
 
@@ -281,10 +300,12 @@ export function OverviewSalesChart({
   return (
     <section className="mcfly-chart mcfly-chart--sales" aria-label="Sales by day">
       <div className="mcfly-chart__head mcfly-chart__board">
-        <p className="mcfly-chart__title mcfly-chart__title--sales">
-          <DeskIcon name="chart" />
-          Sales explorer
-        </p>
+        <div className="mcfly-chart__masthead">
+          <h3 className="mcfly-chart__serif">Sales explorer</h3>
+          {ledeParts.length > 0 ? (
+            <p className="mcfly-chart__muted">{ledeParts.join(" · ")}</p>
+          ) : null}
+        </div>
         {active ? (
           <div className="mcfly-chart__readout" role="status">
             <p className="mcfly-chart__when">{active.label}</p>
@@ -305,10 +326,6 @@ export function OverviewSalesChart({
           </p>
         )}
       </div>
-
-      {ledeParts.length > 0 ? (
-        <p className="mcfly-chart__lede">{ledeParts.join(" · ")}</p>
-      ) : null}
 
       <div className="mcfly-chart__controls">
         <div className="mcfly-period__group" role="group" aria-label="Sales range">
@@ -675,6 +692,25 @@ export function OverviewSalesChart({
           </li>
         ))}
       </ul>
+
+      {typicalRef != null ? (
+        <div className="mcfly-chart__bars">
+          {paceBars.map((bar) => (
+            <div className="mcfly-chart__bar-block" key={bar.k}>
+              <div className="mcfly-chart__bar-row">
+                <span>{bar.k}</span>
+                <span>{bar.value}</span>
+              </div>
+              <div className="mcfly-chart__track" aria-hidden="true">
+                <div
+                  className={`mcfly-chart__fill mcfly-chart__fill--${bar.tone}`}
+                  style={{ width: `${Math.min(100, Math.max(0, bar.pct))}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }
