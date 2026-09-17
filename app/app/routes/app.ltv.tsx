@@ -3,6 +3,7 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { BookFactGrid, type BookFact } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
+import { LtvValueBuild, type LtvBuildWindow } from "../components/LtvValueBuild";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -178,58 +179,103 @@ export default function LtvPage() {
   const contribRatio = contributionLtvCacRatio(contrib90, ltv.cashCac);
 
   /*
-   * Value rows. Unknown windows are omitted — the desk never prints a boxed
-   * dash next to real dollars. First year is the exception when history is
-   * limited: — means not on file, not $0 LTV.
+   * The signature LTV build — how a new customer's spend grows 30 → 90 → 365.
+   * Order revenue only; the year bar stays a — when Shopify shared ~60 days so
+   * the build never seals a fake complete 365 (— is not on file, not $0 LTV).
    */
-  const valueRows: LtvRow[] = [];
+  const buildWindows: LtvBuildWindow[] = [
+    {
+      key: "d30",
+      label: "First 30 days",
+      value: isNum(ltv.avgRevenueD30) ? ltv.avgRevenueD30 : null,
+      detail: PRODUCT_NOUN.ltv30Def,
+    },
+    {
+      key: "d90",
+      label: "First 90 days",
+      value: isNum(ltv.avgRevenueD90) ? ltv.avgRevenueD90 : null,
+      detail: PRODUCT_NOUN.ltv90Def,
+    },
+    {
+      key: "d365",
+      label: "First year",
+      value:
+        ltv.historyLimited || !isNum(ltv.avgRevenueD365)
+          ? null
+          : ltv.avgRevenueD365,
+      detail: ltv.historyLimited
+        ? "Shopify shares about 60 days of orders on this shop, so first-year value is not on file yet — not $0 LTV."
+        : PRODUCT_NOUN.ltv365Def,
+      pending: ltv.historyLimited,
+    },
+  ];
+  const buildCaption = ltv.historyLimited
+    ? "First year is not on file yet — Shopify shares about 60 days of orders. Not $0."
+    : undefined;
+
+  /*
+   * Value windows lead the page — order revenue first, never spend. Unknown
+   * windows are omitted so the grid never prints a boxed dash next to real
+   * dollars; First year is the exception when history is limited (— means not
+   * on file, not $0 LTV). `ltvWindowCaption` (lib/contrib-ltv) says the window
+   * caveat in glossary words this desk keeps out of merchant chrome — the
+   * per-row sentence and the build chart say it plainly instead.
+   */
+  const orderRows: LtvRow[] = [];
   if (isNum(ltv.avgRevenueD30) && ltv.avgRevenueD30 > 0) {
-    valueRows.push({
+    orderRows.push({
       k: "First 30 days",
       v: formatCurrency(ltv.avgRevenueD30, currency),
       d: PRODUCT_NOUN.ltv30Def,
     });
   }
   if (isNum(ltv.avgOrdersD90) && ltv.avgOrdersD90 > 0) {
-    valueRows.push({
+    orderRows.push({
       k: "Orders in first 90 days on file",
       v: ltv.avgOrdersD90.toFixed(1),
       d: "Average orders per new-on-file buyer in the first 90 days after their first visible order. A buyer with earlier Shopify orders is not counted as new.",
     });
   }
   if (ltv.historyLimited) {
-    valueRows.push({
+    orderRows.push({
       k: "First year",
       v: "—",
       d: "Shopify shares about 60 days of orders on this shop, so first-year value is not on file yet — not $0 LTV.",
       keepDash: true,
     });
   } else if (isNum(ltv.avgRevenueD365)) {
-    valueRows.push({
+    orderRows.push({
       k: "First year",
       v: formatCurrency(ltv.avgRevenueD365, currency),
       d: PRODUCT_NOUN.ltv365Def,
-      ...(contrib365 != null
+      ...(hasSpend && contrib365 != null
         ? { x: [`${formatCurrency(contrib365, currency)} kept. ${marginNote}`] }
         : {}),
     });
   }
-  if (contrib90 != null) {
-    valueRows.push({
-      k: "Kept after margin",
-      v: formatCurrency(contrib90, currency),
-      d: `First 90 days of revenue times your margin. ${marginNote}`,
-    });
-  }
   if (isNum(ltv.repeatRate)) {
-    valueRows.push({
+    orderRows.push({
       k: "Repeat orders",
       v: pct(ltv.repeatRate),
       d: "Extra orders beyond the first in the first 90 days — an average across new customers, not a promise.",
     });
   }
+
+  /*
+   * Cost & margin economics — optional, order-led first. Margin-kept and Cash
+   * CAC only paint once spend is typed. On SAMPLE Snowdevil spend is on file so
+   * these show, but they never lead ahead of the order-revenue windows above.
+   */
+  const economicsRows: LtvRow[] = [];
+  if (contrib90 != null && hasSpend) {
+    economicsRows.push({
+      k: "Kept after margin",
+      v: formatCurrency(contrib90, currency),
+      d: `First 90 days of revenue times your margin. ${marginNote}`,
+    });
+  }
   if (hasSpend && cashCac != null) {
-    valueRows.push({
+    economicsRows.push({
       k: "Cash CAC",
       v: formatCurrency(cashCac, currency),
       d: `${PRODUCT_NOUN.cashCacDef}. Blended — not platform CAC, not per ad.`,
@@ -246,7 +292,7 @@ export default function LtvPage() {
     });
   }
   if (hasSpend && isNum(ltv.ltvCacRatio)) {
-    valueRows.push({
+    economicsRows.push({
       k: "Value vs cost",
       v: `${ltv.ltvCacRatio.toFixed(2)}×`,
       d: "First 90 days of revenue ÷ Cash CAC. An average, not a causal claim.",
@@ -256,7 +302,7 @@ export default function LtvPage() {
     });
   }
   if (hasSpend && knownBuyers > 0) {
-    valueRows.push({
+    economicsRows.push({
       k: "Spend per buyer",
       v: formatCurrency(metrics.totalSpend / knownBuyers, currency),
       d: "Spend you entered ÷ identified buyers in this window. Shopify Analytics has no spend.",
@@ -267,9 +313,6 @@ export default function LtvPage() {
    * First-order months — depth as drill rows, not a wall of table cells.
    * The 30/90/365 windows start at each customer's first order, so they run
    * longer than the selected period; each row says so in shop-owner English.
-   * `ltvWindowCaption` from lib/contrib-ltv says the same thing in glossary
-   * words (cohort windows), which this desk does not put in front of a
-   * merchant — the per-row sentence replaces it.
    */
   const monthRows: LtvRow[] = ltv.cohorts.map((row) => {
     const d90 = perCustomerRevenue(row.revenueD90, row.customers);
@@ -354,7 +397,13 @@ export default function LtvPage() {
           <p className="mcfly-book__lede">{emptyLine}</p>
         )}
 
-        <BookFactGrid facts={valueRows} />
+        <LtvValueBuild
+          windows={buildWindows}
+          newBuyers={metrics.tillLtv.newBuyers}
+          caption={buildCaption}
+        />
+
+        <BookFactGrid facts={orderRows} />
 
         {ltv.historyLimited ? (
           <p className="mcfly-book__lede">
@@ -363,6 +412,16 @@ export default function LtvPage() {
           </p>
         ) : null}
       </section>
+
+      {economicsRows.length > 0 ? (
+        <section className="mcfly-book" aria-label="Cost and margin">
+          <p className="mcfly-book__lede">
+            Spend you entered, next to what a new customer is worth. Averages,
+            not causal — and never ahead of the order value above.
+          </p>
+          <BookFactGrid facts={economicsRows} />
+        </section>
+      ) : null}
 
       {monthRows.length > 0 ? (
         <section className="mcfly-book" aria-label="First orders by month">
