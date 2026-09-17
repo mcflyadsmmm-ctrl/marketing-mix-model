@@ -78,6 +78,7 @@ describe("Shopify five books are visible cards", () => {
     const board = read("../components/GrowthScoreboard.tsx");
     expect(growth).toContain("<GrowthComebackChart");
     expect(growth).toContain("<GrowthScoreboard");
+    expect(growth).toContain("<GrowthTt2Board");
     expect(growth).not.toContain('groups={["growth"]}');
     expect(board).toContain("medianDaysToSecond");
     expect(chart).toContain("secondOrderWithin30Share");

@@ -12,7 +12,10 @@ function read(rel: string): string {
 const growth = read("../routes/app.growth.tsx");
 const chart = read("../components/GrowthComebackChart.tsx");
 const board = read("../components/GrowthScoreboard.tsx");
+const tt2Board = read("../components/GrowthTt2Board.tsx");
 const helpers = read("./growth-comeback.ts");
+const tt2Lib = read("./growth-tt2.ts");
+const loader = read("./desk-growth-page.server.ts");
 
 describe("Growth page", () => {
   it("contrasts Shopify Analytics returning rate with order-history come-back", () => {
@@ -21,12 +24,15 @@ describe("Growth page", () => {
     expect(growth).toMatch(/Order\s+history/);
   });
 
-  it("leads with the come-back explorer above the fold, then soft cards", () => {
-    const order = ["<GrowthComebackChart", "<GrowthScoreboard"].map((tag) =>
-      growth.indexOf(tag),
-    );
+  it("leads with the come-back explorer above the fold, then soft cards, then TT2", () => {
+    const order = [
+      "<GrowthComebackChart",
+      "<GrowthScoreboard",
+      "<GrowthTt2Board",
+    ].map((tag) => growth.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     expect(order[0]!).toBeLessThan(order[1]!);
+    expect(order[1]!).toBeLessThan(order[2]!);
     expect(growth).not.toContain("<ShopifyBookSection");
     expect(growth).not.toContain("<BookFactGrid");
     expect(growth).not.toContain("<CountBarsChart");
@@ -96,5 +102,63 @@ describe("Growth page", () => {
       expect(source).not.toMatch(/Klaviyo/i);
       expect(source).not.toContain("SpendExplorer");
     }
+    for (const source of [tt2Board, tt2Lib, loader]) {
+      expect(source).not.toContain("Total ROAS");
+      expect(source).not.toContain("Spend Upload");
+      expect(source).not.toContain("SpendExplorer");
+      expect(source).not.toContain("cashCac");
+      expect(source).not.toContain("0.00×");
+      expect(source).not.toMatch(/Klaviyo/i);
+    }
+  });
+});
+
+describe("Growth TT2 + win-back clock — habit, not a dump", () => {
+  it("paints typical wait, win-back, reach-now, cadence, and still-waiting", () => {
+    expect(tt2Board).toContain("Days to a second order");
+    expect(tt2Board).toContain("Typical wait");
+    expect(tt2Board).toContain("Win-back by");
+    expect(tt2Board).toContain("Reach now");
+    expect(tt2Board).toContain("Days-to-2nd habit");
+    expect(tt2Board).toContain("Still waiting");
+    expect(tt2Board).toContain("Today’s read");
+    expect(tt2Board).toContain("mcfly-cust-kpi--action");
+    expect(tt2Board.match(/<ActionCard[\s\n]/g)?.length).toBe(3);
+  });
+
+  it("uses an ActionCard-shaped empty with the 8 × 30 floor", () => {
+    expect(tt2Board).toContain("First win");
+    expect(tt2Board).toContain("empty.verb");
+    expect(tt2Board).toContain("Floor:");
+    expect(tt2Board).toContain("buyers × 30 days");
+    expect(tt2Board).toContain("not $0");
+    expect(tt2Board).toContain("mcfly-cust-empty__ghost--bars");
+    expect(tt2Lib).toContain("TT2_MIN_BUYERS = 8");
+    expect(tt2Lib).toContain("TT2_MIN_FOLLOW_DAYS = 30");
+    expect(tt2Lib).toContain("TT2_WINBACK_PAD_DAYS = 15");
+    const css = read("../styles/mcfly-desk.css");
+    expect(css).toContain(".mcfly-growth-tt2__read");
+    expect(css).toContain(".mcfly-growth-tt2__split");
+  });
+
+  it("keeps merchant chrome free of analyst jargon", () => {
+    const chrome = tt2Board
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    expect(chrome).not.toMatch(/\bp25\b|\bp75\b/i);
+    expect(chrome).not.toMatch(/\bARPU\b/i);
+    expect(chrome).not.toMatch(/\bcohort\b/i);
+  });
+});
+
+describe("Growth loader — full stored book for TT2, 90-day come-back kept", () => {
+  it("loads OrderFacts without a start cap, then slices 90 days for the explorer", () => {
+    expect(loader).toContain("{ end }");
+    expect(loader).toContain("buildGrowthTt2");
+    expect(loader).toContain("GROWTH_COMEBACK_WINDOW_DAYS");
+    expect(loader).toContain("getOrderBackfillHistoryLimited");
+    expect(loader).toContain("full stored");
+    expect(growth).toContain("comeback.tt2");
   });
 });

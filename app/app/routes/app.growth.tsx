@@ -5,6 +5,7 @@ import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { GrowthComebackChart } from "../components/GrowthComebackChart";
 import { GrowthScoreboard } from "../components/GrowthScoreboard";
+import { GrowthTt2Board } from "../components/GrowthTt2Board";
 import { deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { loadGrowthComeback } from "../lib/desk-growth-page.server";
@@ -133,6 +134,8 @@ export default function GrowthPage() {
         salesPending={metrics.salesPending}
         useSampleDesk={useSampleDesk}
       />
+
+      <GrowthTt2Board tt2={comeback.tt2} />
 
       <footer className="mcfly-book__links">
         <s-link href="/app/customers">{PRODUCT_NOUN.buyersTitle}</s-link>
