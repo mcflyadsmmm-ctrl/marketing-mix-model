@@ -9,6 +9,7 @@ import {
   DESK_SCOREBOARD_NAV,
   DESK_RETAIN_NAV,
   DESK_SPEND_NAV,
+  DESK_IFRAME_NAV,
   DESK_TOP_NAV,
   deskNavHref,
   deskNavHrefFromSearch,
@@ -111,6 +112,20 @@ describe("DESK_PRIMARY_NAV", () => {
       ...DESK_RETAIN_NAV,
       ...DESK_SPEND_NAV,
     ].map((item) => item.path);
+    expect(DESK_IFRAME_NAV.map((item) => item.path)).toEqual(grouped);
+    expect(DESK_IFRAME_NAV.map((item) => item.label)).toEqual([
+      "Overview",
+      "CPA",
+      "Customers",
+      "Growth",
+      "Orders",
+      "LTV",
+      "Spend Upload",
+      "Total ROAS",
+      "Channel Allocation",
+      "YoY",
+      "Goals",
+    ]);
     expect(new Set(grouped).size).toBe(grouped.length);
     expect(new Set(grouped)).toEqual(
       new Set(DESK_TOP_NAV.map((item) => item.path)),
@@ -128,11 +143,13 @@ describe("DESK_PRIMARY_NAV", () => {
       join(dirname(fileURLToPath(import.meta.url)), "../components/DeskTopTabs.tsx"),
       "utf8",
     );
-    expect(tabs).toContain('label="Scoreboard"');
-    expect(tabs).toContain('label="Retain"');
-    expect(tabs).toContain('label="Spend plan"');
-    expect(tabs).toContain("DESK_SCOREBOARD_NAV");
-    expect(tabs).toContain("DESK_RETAIN_NAV");
+    expect(tabs).toContain("DESK_IFRAME_NAV");
+    expect(tabs).toContain("<Link");
+    expect(tabs).toContain("scrollIntoView");
+    expect(tabs).not.toContain("mcfly-desk-tabs__k");
+    expect(tabs).not.toContain('label="Scoreboard"');
+    expect(tabs).not.toContain('label="Retain"');
+    expect(tabs).toContain('aria-current={active ? "page" : undefined}');
   });
 
   it("puts spend tools on their own pages, not an Overview hash sitemap", () => {

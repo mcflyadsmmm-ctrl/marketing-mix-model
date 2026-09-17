@@ -125,9 +125,10 @@ export const DESK_TOP_NAV: readonly DeskNavItem[] = DESK_PRIMARY_NAV.filter(
 );
 
 /**
- * Black Clover grouped chip rail. Each group is filtered out of DESK_TOP_NAV so
- * the TAB_LOCK order survives inside every group and every analysis tab lands in
- * exactly one group. Groups are the nav chrome; time windows stay on cards.
+ * Sales-first groups used only to build DESK_IFRAME_NAV. Each group is filtered
+ * out of DESK_TOP_NAV so TAB_LOCK order survives inside every group and every
+ * analysis tab lands in exactly one group. Names are never painted. Time
+ * windows stay on cards.
  */
 const SCOREBOARD_PATHS = new Set<string>(["/app", "/app/cpa"]);
 const RETAIN_PATHS = new Set<string>([
@@ -156,6 +157,16 @@ export const DESK_RETAIN_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.filter(
 export const DESK_SPEND_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.filter(
   (item) => SPEND_PLAN_PATHS.has(item.path),
 );
+
+/**
+ * Painted iframe rail. Group names are code-only — never SCOREBOARD / RETAIN
+ * chips. Concatenated sales-first order (not DESK_TOP_NAV, which parks CPA last).
+ */
+export const DESK_IFRAME_NAV: readonly DeskNavItem[] = [
+  ...DESK_SCOREBOARD_NAV,
+  ...DESK_RETAIN_NAV,
+  ...DESK_SPEND_NAV,
+];
 
 export function isDeskNavActive(path: string, pathname: string): boolean {
   const current = pathname.replace(/\/$/, "") || "/";
