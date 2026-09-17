@@ -16,7 +16,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
 const GROWTH_LEDE =
-  "Shopify Analytics Overview shows a returning-customer rate. This page shows first-time dollars, days to a second order, and who came back within 30 days — from order history, not an email list.";
+  "Shopify Analytics Overview shows a returning-customer rate. This page shows first-time dollars, days to a second order, and who came back within 30 days. Order history, not an email list.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const base = await loadDeskSalesPage(request, "/app/growth");
