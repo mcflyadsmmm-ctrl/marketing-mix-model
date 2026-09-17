@@ -504,6 +504,7 @@ export default function SpendEntryPage() {
           "mcfly-desk",
           "mcfly-desk--chrome",
           "mcfly-spend-lean",
+          "mcfly-spend-lean--soft",
           shotMode ? "mcfly-desk--shot" : null,
           sampleDesk.enabled ? "mcfly-desk--sample" : null,
         ]
@@ -539,7 +540,7 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        <div className="mcfly-spend-lean__stack">
+        <div className="mcfly-spend-lean__stack mcfly-spend-lean__stack--soft">
           {sampleDesk.enabled && !shotMode ? (
             <s-banner tone="info" heading="Example spend is on">
               <s-paragraph>
@@ -547,7 +548,7 @@ export default function SpendEntryPage() {
               </s-paragraph>
             </s-banner>
           ) : null}
-          <p className="mcfly-spend-helper">
+          <p className="mcfly-spend-helper mcfly-spend-helper--soft">
             {SPEND_UPLOAD_CONTRAST} Shopify sales are already here. Empty spend
             is not a certified $0 — add a day. A deleted day stays $0. Empty
             spend is never 0×
@@ -569,7 +570,7 @@ export default function SpendEntryPage() {
 
           {recurring.length > 0 ? (
             <section
-              className="mcfly-panel mcfly-panel--eq-compact"
+              className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft"
               aria-label="Daily amount until I change it"
             >
               <div className="mcfly-panel__head mcfly-panel__head--tight">
@@ -641,7 +642,7 @@ export default function SpendEntryPage() {
 
           <section
             id="mcfly-spend-add"
-            className="mcfly-panel mcfly-panel--eq-compact"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft"
             aria-label={
               editing
                 ? "Edit this day of spend"
@@ -760,7 +761,7 @@ export default function SpendEntryPage() {
 
           <HashDetails
             id="mcfly-spend-recurring"
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal mcfly-spend-reveal--soft"
             defaultOpen={false}
             summary={
               <>
@@ -861,7 +862,7 @@ export default function SpendEntryPage() {
 
           <HashDetails
             id="mcfly-spend-backfill"
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal mcfly-spend-reveal--soft"
             defaultOpen={false}
             summary={
               <>
@@ -888,7 +889,7 @@ export default function SpendEntryPage() {
           {strangerEmpty ? null : (
             <>
               <section
-                className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-cal"
+                className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-cal mcfly-spend-cal--soft"
                 aria-label="Days with spend"
               >
                 <div className="mcfly-spend-cal__meta">
@@ -953,7 +954,7 @@ export default function SpendEntryPage() {
                 </div>
               </section>
 
-              <div className="mcfly-spend-lean__status" role="status">
+              <div className="mcfly-spend-lean__status mcfly-spend-lean__status--soft" role="status">
                 {sampleDesk.enabled ? (
                   <>
                     <p className="mcfly-spend-lean__status-line">
@@ -1004,53 +1005,69 @@ export default function SpendEntryPage() {
           )}
 
           {entries.length > 0 ? (
-            <ul className="mcfly-spend-lean__recent" aria-label="Recent spend entries">
-              {entries.map((entry) => {
-                const editHref = deskNavHref("/app/spend", {
-                  period: preset,
-                  shot: shotMode,
-                });
-                const editUrl = `${editHref}${editHref.includes("?") ? "&" : "?"}edit=${encodeURIComponent(entry.id)}#mcfly-spend-add`;
-                return (
-                  <li className="mcfly-spend-lean__recent-row" key={entry.id}>
-                    <span
-                      className={`mcfly-spend-dot mcfly-spend-dot--${entry.channel}`}
-                      aria-hidden="true"
-                    />
-                    <span className="mcfly-spend-lean__recent-channel">
-                      {formatSpendEntryChannelLabel(entry.channel, entry.note)}
-                    </span>
-                    <span className="mcfly-spend-lean__recent-amount">
-                      {money(entry.amount)}
-                    </span>
-                    <span className="mcfly-spend-lean__recent-range">
-                      {formatSpendYmd(entry.dateKey)}
-                    </span>
-                    <span className="mcfly-spend-lean__recent-source">
-                      {spendEntrySourceLabel(entry.source)}
-                    </span>
-                    <span className="mcfly-spend-lean__recent-actions">
-                      <Link className="mcfly-btn mcfly-btn--secondary" to={editUrl}>
-                        Edit
-                      </Link>
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="delete-entry" />
-                        <input type="hidden" name="entryId" value={entry.id} />
-                        <button type="submit" className="mcfly-btn mcfly-btn--secondary">
-                          Delete
-                        </button>
-                      </Form>
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
-          {entries.length > 0 ? (
-            <p className="mcfly-panel__muted">
-              Edit overwrites that day. Delete keeps the day empty — an active
-              daily rate will not put it back.
-            </p>
+            <section
+              className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-ledger mcfly-spend-ledger--soft"
+              aria-label="Recent spend ledger"
+            >
+              <div className="mcfly-panel__head mcfly-panel__head--tight">
+                <h2>Recent ledger</h2>
+                <p className="mcfly-panel__muted">
+                  Typed, uploaded, or daily-rate rows. Edit overwrites that day.
+                  Delete keeps the day empty — an active daily rate will not put
+                  it back.
+                </p>
+              </div>
+              <ul
+                className="mcfly-spend-lean__recent mcfly-spend-ledger__rows"
+                aria-label="Recent spend entries"
+              >
+                {entries.map((entry) => {
+                  const editHref = deskNavHref("/app/spend", {
+                    period: preset,
+                    shot: shotMode,
+                  });
+                  const editUrl = `${editHref}${editHref.includes("?") ? "&" : "?"}edit=${encodeURIComponent(entry.id)}#mcfly-spend-add`;
+                  return (
+                    <li
+                      className="mcfly-spend-lean__recent-row mcfly-spend-ledger__row"
+                      key={entry.id}
+                    >
+                      <span
+                        className={`mcfly-spend-dot mcfly-spend-dot--${entry.channel}`}
+                        aria-hidden="true"
+                      />
+                      <span className="mcfly-spend-lean__recent-channel">
+                        {formatSpendEntryChannelLabel(entry.channel, entry.note)}
+                      </span>
+                      <span className="mcfly-spend-lean__recent-amount">
+                        {money(entry.amount)}
+                      </span>
+                      <span className="mcfly-spend-lean__recent-range">
+                        {formatSpendYmd(entry.dateKey)}
+                      </span>
+                      <span className="mcfly-spend-lean__recent-source">
+                        {spendEntrySourceLabel(entry.source)}
+                      </span>
+                      <span className="mcfly-spend-lean__recent-actions">
+                        <Link className="mcfly-btn mcfly-btn--secondary" to={editUrl}>
+                          Edit
+                        </Link>
+                        <Form method="post">
+                          <input type="hidden" name="intent" value="delete-entry" />
+                          <input type="hidden" name="entryId" value={entry.id} />
+                          <button
+                            type="submit"
+                            className="mcfly-btn mcfly-btn--secondary"
+                          >
+                            Delete
+                          </button>
+                        </Form>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           ) : null}
         </div>
       </div>
