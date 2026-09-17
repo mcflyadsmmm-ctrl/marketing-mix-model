@@ -112,10 +112,9 @@ describe("spendConfirmLine names what the merchant typed", () => {
 describe("every spend-labeling surface shares one resolver", () => {
   const read = (rel: string) => readFileSync(join(here, rel), "utf8");
 
-  it("Overview resolves the split through spendChannelLabel", () => {
+  it("Overview does not label spend channels — mix lives on Spend", () => {
     const overview = read("../routes/app._index.tsx");
-    expect(overview).toContain("spendChannelLabel");
-    // The old local resolver ignored customLabel and printed "Other".
+    expect(overview).not.toContain("spendChannelLabel");
     expect(overview).not.toMatch(
       /SPEND_CHANNEL_LABELS\[channel as SpendChannel\] \?\? channel/,
     );

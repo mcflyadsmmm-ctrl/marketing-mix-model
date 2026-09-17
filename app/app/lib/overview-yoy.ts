@@ -20,7 +20,7 @@ export const OVERVIEW_YOY_PENDING =
 
 /** Shopify Analytics Overview is this period only; these cards add last year. */
 export const OVERVIEW_YOY_ANALYTICS_LEDE =
-  "Shopify Analytics shows this period’s sales. This page shows last year next to it.";
+  "This month, quarter, and year vs the same days last year."
 
 /** When MTD/QTD/YTD collapse to the same ~60-day pull. */
 export const OVERVIEW_YOY_SAME_WINDOW =

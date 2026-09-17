@@ -239,19 +239,21 @@ describe("Sample data | Live data UX", () => {
     const ltvSnap = read("../components/LtvSnapSection.tsx");
     const explorer = read("../components/SpendExplorer.tsx");
 
-    expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).not.toContain("QuietSpendDoor");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
-    expect(firstView).not.toContain("Spend Upload →");
+    expect(firstView).not.toContain("Spend Upload");
     expect(firstView).not.toContain("Add spend to see Total ROAS");
     expect(firstView).not.toContain('label="Ad spend"');
     expect(firstView).not.toContain("returningCustomers.toLocaleString()");
-    expect(firstView).toContain("spendHref");
+    expect(firstView).not.toContain("spendHref");
     expect(firstView).not.toContain("0.00×");
     expect(firstView).not.toContain("Edit spend →");
     expect(firstView).not.toContain("EOM projected");
-    expect(firstView).toContain("{hasSpend && !salesPending ? (");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-4");
 
     expect(overview).not.toContain('slot="primary-action"');
     expect(overview).not.toContain("Update spend");
@@ -283,7 +285,7 @@ describe("Sample data | Live data UX", () => {
     expect(salesError).not.toContain("sales ÷ spend");
 
     expect(overview).toContain("`Shopify sales — ${metrics.period.label}`");
-    expect(overview).toContain("`Total ROAS — ${metrics.period.label}`");
+    expect(overview).not.toContain("`Total ROAS — ${metrics.period.label}`");
 
     expect(overview).not.toContain("DESK_SECTION.orders");
     expect(overview).not.toContain("<LtvSnapSection");

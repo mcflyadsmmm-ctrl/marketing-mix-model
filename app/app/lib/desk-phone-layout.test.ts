@@ -37,6 +37,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(phone).toContain(".mcfly-kpi-grid");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--peeks-2");
+    expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--peeks-4");
     expect(phone).toContain(".mcfly-yoy__grid");
     expect(phone).toMatch(
       /\.mcfly-kpi-grid[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
@@ -89,7 +90,8 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("$631");
     expect(fixture).toContain("Snowdevil");
     expect(fixture).toContain("Typical order");
-    expect(fixture).toContain("Weekend sales");
+    expect(fixture).toContain("Weekend vs weekday");
+    expect(fixture).toContain("aria-label=\"Sales by day\"");
     expect(fixture).not.toContain("Harbor");
     expect(fixture).not.toContain("$92");
     expect(fixture).not.toContain("3.51×");

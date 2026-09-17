@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router";
 import { DeskIcon, type DeskIconName } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
@@ -7,18 +6,12 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   OVERVIEW_COVERAGE_LINE,
   OVERVIEW_PENDING_LINE,
-  OVERVIEW_SPEND_DOOR_LINE,
-  OVERVIEW_SPEND_EMPTY_LINE,
   overviewDecisionTakeaway,
-  overviewPeekThird,
   overviewReturningCompactDollars,
+  overviewWeekendWeekday,
 } from "../lib/overview-first-viewport";
 import { SAMPLE_OVERVIEW_DOOR } from "../lib/sample-live-handoff";
 import { useDeskCurrency } from "../lib/desk-currency";
-
-function pct(share: number): string {
-  return `${Math.round(share * 100)}%`;
-}
 
 function KpiCard({
   to,
@@ -76,39 +69,10 @@ function KpiCard({
   );
 }
 
-function QuietSpendDoor({
-  spendHref,
-  roasHref,
-  useSampleDesk,
-  hasSpend,
-  salesPending,
-}: {
-  spendHref: string;
-  roasHref: string;
-  useSampleDesk: boolean;
-  hasSpend: boolean;
-  salesPending: boolean;
-}) {
-  if (useSampleDesk) {
-    return <p className="mcfly-score__door">{SAMPLE_OVERVIEW_DOOR}</p>;
-  }
-  return (
-    <p className="mcfly-score__door">
-      {OVERVIEW_SPEND_DOOR_LINE}{" "}
-      <Link to={spendHref}>Spend Upload</Link>
-      {hasSpend && !salesPending ? (
-        <>
-          {" · "}
-          <Link to={roasHref}>Open Total ROAS</Link>
-        </>
-      ) : null}
-    </p>
-  );
-}
-
 /**
- * Shopify-depth peeks under the YoY glance. Total ROAS, ad spend, and EOM
- * projected ROAS are not Overview tiles — even when spend is already typed.
+ * Shopify-depth KPI board under the YoY glance.
+ * Order facts only — typical ticket, returning dollars, weekend vs weekday,
+ * order count. Pending paints dashes, never a sealed $0.
  */
 export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Shopify sales this period",
@@ -117,15 +81,9 @@ export function OverviewFirstViewport({
   meanAov,
   returningSalesShare,
   returningSales,
-  medianDaysToSecond,
   weekendSalesShare,
   salesPending,
-  spendEmpty,
-  totalSpend = 0,
   ordersHref,
-  spendHref,
-  roasHref,
-  settingsHref: _settingsHref = "/app/settings",
   useSampleDesk = false,
   share,
 }: {
@@ -135,14 +93,10 @@ export function OverviewFirstViewport({
   meanAov: number | null;
   returningSalesShare: number | null;
   returningSales?: number | null;
-  medianDaysToSecond: number | null;
+  medianDaysToSecond?: number | null;
   weekendSalesShare?: number | null;
   salesPending: boolean;
-  spendEmpty: boolean;
-  totalSpend?: number;
   ordersHref: string;
-  spendHref: string;
-  roasHref: string;
   settingsHref?: string;
   useSampleDesk?: boolean;
   share?: ReactNode;
@@ -163,136 +117,100 @@ export function OverviewFirstViewport({
     salesPending,
     orderCount,
   });
-  const hasSpend = Number.isFinite(totalSpend) && totalSpend > 0;
   const returningDollars = overviewReturningCompactDollars(returningSales);
   const returningValue =
-    returningDollars != null ? formatCurrency(returningDollars, currency) : "—";
-  const third = overviewPeekThird({
-    weekendSalesShare,
-    medianDaysToSecond,
-  });
-  let thirdLabel = "Weekend sales";
-  let thirdValue = "—";
-  let thirdIcon: DeskIconName = "orders";
-  let thirdBlock =
-    "Share of sales on Saturday and Sunday, shop-local. Null until enough days are on file.";
-  let thirdNext = "Open Orders for weekday mix and typical ticket.";
-  switch (third.kind) {
-    case "weekend":
-      thirdLabel = PRODUCT_NOUN.bookWeekendSales;
-      thirdValue = pct(third.share);
-      thirdIcon = "weekend";
-      thirdBlock =
-        "Saturday + Sunday sales share, shop-local. Shopify Analytics Overview does not put this next to typical order.";
-      thirdNext = "Open Orders for the weekday breakdown.";
-      break;
-    case "daysToSecond":
-      thirdLabel = "Days to second order";
-      thirdValue = `${Math.round(third.days)}`;
-      thirdIcon = "customers";
-      thirdBlock =
-        "Typical wait from a first order to a second, from orders already on file.";
-      thirdNext = "Open Growth for who came back.";
-      break;
-    case "empty":
-      break;
-    default: {
-      const _never: never = third;
-      void _never;
-      break;
-    }
-  }
-
-  const door = (
-    <QuietSpendDoor
-      spendHref={spendHref}
-      roasHref={roasHref}
-      useSampleDesk={useSampleDesk}
-      hasSpend={hasSpend}
-      salesPending={salesPending}
-    />
-  );
-  // Loaded empty month still gets the KPI row (honest —). True pending stays above.
-  const showPeeks = !salesPending;
-  const peekGridClass =
-    third.kind === "empty"
-      ? "mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-2"
-      : "mcfly-kpi-grid mcfly-kpi-grid--peeks";
-
-  if (salesPending) {
-    return (
-      <section className="mcfly-score mcfly-book" aria-label={ariaLabel}>
-        <p className="mcfly-book__lede">{OVERVIEW_PENDING_LINE}</p>
-        {share ? <p className="mcfly-book__cta">{share}</p> : null}
-        {door}
-      </section>
-    );
-  }
+    salesPending || returningDollars == null
+      ? "—"
+      : formatCurrency(returningDollars, currency);
+  const returningShare =
+    !salesPending &&
+    returningSalesShare != null &&
+    Number.isFinite(returningSalesShare)
+      ? `${Math.round(returningSalesShare * 100)}% of sales`
+      : undefined;
+  const weekend = salesPending
+    ? null
+    : overviewWeekendWeekday(weekendSalesShare);
+  const typicalCardValue = salesPending ? "—" : (typical ?? "—");
+  const ordersValue = salesPending
+    ? "—"
+    : orderCount > 0
+      ? orderCount.toLocaleString()
+      : "—";
+  const watermark = useSampleDesk ? (
+    <p className="mcfly-score__door">{SAMPLE_OVERVIEW_DOOR}</p>
+  ) : null;
 
   return (
     <section className="mcfly-score mcfly-book" aria-label={ariaLabel}>
       <p className="mcfly-decision__takeaway" id="mcfly-decision-takeaway">
         {takeaway}
       </p>
-      {spendEmpty && !useSampleDesk ? (
-        <p className="mcfly-score__pipe">{OVERVIEW_SPEND_EMPTY_LINE}</p>
-      ) : null}
-      {orderCount > 0 ? (
+      {!salesPending && orderCount > 0 ? (
         <p className="mcfly-score__pipe">{OVERVIEW_COVERAGE_LINE}</p>
       ) : null}
 
-      {showPeeks ? (
-        <div className={peekGridClass}>
-          <KpiCard
-            to={ordersHref}
-            nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-            next="Typical order, discounts, and weekend sit on Orders — Shopify Analytics only shows the average."
-            formulaBlock={
-              typicalIsMedian
-                ? PRODUCT_NOUN.bookTypicalOrderDef
-                : "Average order value when median is not available yet."
-            }
-            icon="orders"
-            label={
-              typicalIsMedian ? PRODUCT_NOUN.bookTypicalOrder : "AOV"
-            }
-            value={typical ?? "—"}
-            sub={
-              typicalIsMedian
+      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-4">
+        <KpiCard
+          to={ordersHref}
+          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
+          next="Typical order, discounts, and weekend sit on Orders — Shopify Analytics only shows the average."
+          formulaBlock={
+            typicalIsMedian
+              ? PRODUCT_NOUN.bookTypicalOrderDef
+              : "Average order value when median is not available yet."
+          }
+          icon="orders"
+          label={typicalIsMedian ? PRODUCT_NOUN.bookTypicalOrder : "AOV"}
+          value={typicalCardValue}
+          sub={
+            salesPending
+              ? OVERVIEW_PENDING_LINE
+              : typicalIsMedian
                 ? "Median. Shopify Analytics uses the average."
                 : undefined
-            }
-          />
-          <KpiCard
-            to="/app/customers"
-            nextLabel={`Open ${PRODUCT_NOUN.buyersTitle}`}
-            next="Open Customers for returning dollars and guest checkouts."
-            formulaBlock="Sales from returning customers in this window. Shopify Analytics Overview is a returning-customer rate."
-            icon="customers"
-            label="Returning"
-            value={returningValue}
-            foot="Dollars, not headcount."
-          />
-          {third.kind === "empty" ? null : (
-            <KpiCard
-              to={third.kind === "daysToSecond" ? "/app/growth" : ordersHref}
-              nextLabel={
-                third.kind === "daysToSecond"
-                  ? `Open ${PRODUCT_NOUN.growthTitle}`
-                  : `Open ${PRODUCT_NOUN.ordersTitle}`
-              }
-              next={thirdNext}
-              formulaBlock={thirdBlock}
-              icon={thirdIcon}
-              label={thirdLabel}
-              value={thirdValue}
-            />
-          )}
-        </div>
-      ) : null}
+          }
+        />
+        <KpiCard
+          to="/app/customers"
+          nextLabel={`Open ${PRODUCT_NOUN.buyersTitle}`}
+          next="Open Customers for returning dollars and guest checkouts."
+          formulaBlock="Sales from returning customers in this window. Shopify Analytics Overview is a returning-customer rate."
+          icon="customers"
+          label="Returning"
+          value={returningValue}
+          sub={returningShare}
+          foot="Dollars, not headcount."
+        />
+        <KpiCard
+          to={ordersHref}
+          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
+          next="Open Orders for the weekday breakdown."
+          formulaBlock="Saturday + Sunday sales share vs weekday, shop-local. Shopify Analytics Overview does not put this next to typical order."
+          icon="weekend"
+          label="Weekend vs weekday"
+          value={weekend ? `${weekend.weekendPct}%` : "—"}
+          sub={
+            weekend
+              ? `Weekday ${weekend.weekdayPct}%`
+              : salesPending
+                ? OVERVIEW_PENDING_LINE
+                : undefined
+          }
+        />
+        <KpiCard
+          to={ordersHref}
+          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
+          next="Open Orders for discounts, items, and Online vs POS."
+          formulaBlock="Shopify orders in this window, after returns. Click through for the typical ticket and mix."
+          icon="sales"
+          label="Orders"
+          value={ordersValue}
+        />
+      </div>
 
       {share ? <p className="mcfly-book__cta">{share}</p> : null}
-      {door}
+      {watermark}
     </section>
   );
 }

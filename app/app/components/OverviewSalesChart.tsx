@@ -8,7 +8,6 @@ import { useDeskCurrency } from "../lib/desk-currency";
 export type SalesDayPoint = {
   dateKey: string;
   sales: number;
-  spend?: number;
 };
 
 export const OVERVIEW_CHART_EMPTY = "No days in this window yet";
@@ -30,18 +29,14 @@ function bucketsForGrain(
   grain: "day" | "week",
 ): SalesDayPoint[] {
   if (grain === "day") return days;
-  const map = new Map<string, { sales: number; spend: number }>();
+  const map = new Map<string, number>();
   for (const day of days) {
     const key = weekKey(day.dateKey);
-    const cur = map.get(key) ?? { sales: 0, spend: 0 };
-    cur.sales += day.sales;
-    cur.spend += day.spend ?? 0;
-    map.set(key, cur);
+    map.set(key, (map.get(key) ?? 0) + day.sales);
   }
-  return [...map.entries()].map(([dateKey, value]) => ({
+  return [...map.entries()].map(([dateKey, sales]) => ({
     dateKey,
-    sales: value.sales,
-    spend: value.spend,
+    sales,
   }));
 }
 
@@ -60,7 +55,7 @@ function ChartEmptyFrame({ copy }: { copy: string }) {
 }
 
 /**
- * Sales bars (including $0 days). Spend overlays when entered spend exists.
+ * Sales bars (including $0 days). Order dollars only — spend never overlays.
  * Grain (day/week) lives on the chart. A loaded desk never silent-nulls.
  */
 export function OverviewSalesChart({
@@ -89,40 +84,23 @@ export function OverviewSalesChart({
     );
   }
 
-  const hasSpend = points.some((point) => (point.spend ?? 0) > 0);
-  const max = Math.max(
-    ...points.map((point) => point.sales),
-    ...points.map((point) => point.spend ?? 0),
-    1,
-  );
+  const max = Math.max(...points.map((point) => point.sales), 1);
   const width = 640;
   const height = 160;
   const gap = 3;
   const barW = Math.max(4, (width - gap * (points.length + 1)) / points.length);
   const plotH = height - 24;
-  const spendLine = hasSpend
-    ? points
-        .map((point, index) => {
-          const x = gap + index * (barW + gap) + barW / 2;
-          const y = height - 16 - ((point.spend ?? 0) / max) * plotH;
-          return `${x},${y}`;
-        })
-        .join(" ")
-    : null;
 
   return (
     <section className="mcfly-chart" aria-label="Sales by day">
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
-          {hasSpend ? "Sales and spend" : "Sales"}
+          Sales
         </p>
         {hover ? (
           <p className="mcfly-chart__hover" role="status">
             {hover.dateKey} · {formatCurrency(hover.sales, currency)}
-            {hasSpend
-              ? ` · spend ${formatCurrency(hover.spend ?? 0, currency)}`
-              : ""}
           </p>
         ) : (
           <p className="mcfly-chart__hover mcfly-chart__hover--idle" aria-hidden="true">
@@ -143,23 +121,11 @@ export function OverviewSalesChart({
           ))}
         </div>
       </div>
-      {hasSpend ? (
-        <p className="mcfly-chart__legend">
-          <span className="mcfly-chart__swatch">Sales</span>
-          <span className="mcfly-chart__swatch mcfly-chart__swatch--spend">
-            Spend
-          </span>
-        </p>
-      ) : null}
       <svg
         className="mcfly-chart__svg"
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label={
-          hasSpend
-            ? `${points.length} ${grain} sales bars with spend overlay`
-            : `${points.length} ${grain} sales bars`
-        }
+        aria-label={`${points.length} ${grain} sales bars`}
       >
         {points.map((point, index) => {
           const barH = Math.max(2, (point.sales / max) * plotH);
@@ -175,21 +141,11 @@ export function OverviewSalesChart({
                   k: "Sales",
                   v: formatCurrency(point.sales, currency),
                 },
-                hasSpend
-                  ? {
-                      k: "Spend",
-                      v: formatCurrency(point.spend ?? 0, currency),
-                    }
-                  : null,
                 {
                   k: "What this is",
-                  v: hasSpend
-                    ? "Shopify Total Sales next to entered spend for this bar. Empty spend is not 0×. Grain lives on the chart — not in the tab bar."
-                    : "Shopify Total Sales for this bar. Grain lives on the chart — not in the tab bar.",
+                  v: "Shopify Total Sales for this bar. Grain lives on the chart — not in the tab bar.",
                 },
-              ].filter(
-                (block): block is { k: string; v: string } => block != null,
-              ),
+              ],
               next: "Open Orders for typical ticket, discounts, and weekend.",
               nextHref: ordersHref,
               nextLabel: "Open Orders",
@@ -205,11 +161,7 @@ export function OverviewSalesChart({
               rx="2"
               tabIndex={0}
               role="button"
-              aria-label={
-                hasSpend
-                  ? `${point.dateKey} ${formatCurrency(point.sales, currency)} sales · ${formatCurrency(point.spend ?? 0, currency)} spend`
-                  : `${point.dateKey} ${formatCurrency(point.sales, currency)}`
-              }
+              aria-label={`${point.dateKey} ${formatCurrency(point.sales, currency)}`}
               onClick={openBar}
               onMouseEnter={() => setHover(point)}
               onMouseLeave={() => setHover(null)}
@@ -224,27 +176,6 @@ export function OverviewSalesChart({
             />
           );
         })}
-        {spendLine ? (
-          <>
-            <polyline
-              className="mcfly-chart__spend-line"
-              points={spendLine}
-            />
-            {points.map((point, index) => {
-              const x = gap + index * (barW + gap) + barW / 2;
-              const y = height - 16 - ((point.spend ?? 0) / max) * plotH;
-              return (
-                <circle
-                  key={`${point.dateKey}-spend`}
-                  className="mcfly-chart__spend-dot"
-                  cx={x}
-                  cy={y}
-                  r="2.5"
-                />
-              );
-            })}
-          </>
-        ) : null}
       </svg>
       <p className="mcfly-chart__hint">Click a bar · Day / Week is on this chart</p>
     </section>

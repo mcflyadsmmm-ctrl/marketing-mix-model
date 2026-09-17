@@ -127,8 +127,8 @@ describe("Overview vs Shopify Analytics", () => {
     );
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
 
-    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/Shopify Analytics/);
-    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/This page shows/);
+    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/same days last year/);
+    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/This month/);
     expect(yoy).toMatch(/Shopify Analytics/);
     expect(cards).toContain("OVERVIEW_YOY_ANALYTICS_LEDE");
     expect(cards).toContain("OVERVIEW_YOY_SAME_WINDOW");

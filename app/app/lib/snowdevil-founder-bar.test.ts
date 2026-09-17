@@ -137,13 +137,15 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect([...used].sort()).toEqual(["email", "google", "meta", "other"]);
 
     const firstView = chrome("../components/OverviewFirstViewport.tsx");
-    expect(firstView).toContain("if (useSampleDesk)");
+    expect(firstView).toContain("useSampleDesk");
     expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
     expect(firstView).not.toContain("SAMPLE_SPEND_NOT_LIVE");
     expect(firstView).not.toContain("Example spend");
     expect(firstView).not.toContain("Edit spend");
     expect(firstView).not.toContain("setupAddSpend");
-    expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).not.toContain("QuietSpendDoor");
     expect(SAMPLE_OVERVIEW_DOOR).not.toMatch(/Total ROAS|upload|Edit spend/i);
 
     const shopifyTabs = [
@@ -170,6 +172,8 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(overview).toContain("<OverviewFirstViewport");
     expect(overview).toContain("<OverviewSalesChart");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-4");
+    expect(fixture).toContain('aria-label="Sales by day"');
   });
 
   it("8+9. Public demo and SAMPLE tests are not Harbor / Northline truth", () => {
