@@ -13,6 +13,7 @@ const tiers = read("../components/LtvTierTables.tsx");
 const paths = read("../components/LtvPathTable.tsx");
 const whales = read("../components/LtvWhaleRecency.tsx");
 const flagship = read("../components/LtvFlagshipBoard.tsx");
+const depthPage = read("../lib/ltv-depth-page.server.ts");
 
 describe("LTV route mounts the depth pack", () => {
   it("loads the depth view in the loader", () => {
@@ -21,6 +22,7 @@ describe("LTV route mounts the depth pack", () => {
     );
     expect(route).toContain("loadLtvDepth({ shopId: shop.id, useSampleDesk })");
     expect(route).toMatch(/return \{[\s\S]*?\bdepth,/);
+    expect(depthPage).toContain("shopifyReadOrdersScopesAllowDeep");
   });
 
   it("imports and renders all five depth panels plus one flagship board", () => {
@@ -37,6 +39,7 @@ describe("LTV route mounts the depth pack", () => {
     }
     expect(route).not.toContain("LtvComeBackWindows");
     expect(route).not.toContain("LtvRefundHonesty");
+    expect(route).toContain("buyers={depth.buyers}");
   });
 
   it("leads with order history — depth sits after the value build, before spend", () => {
@@ -80,7 +83,9 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
 
   it("says the honest short-window and no-promise lines", () => {
     expect(curves).toContain("Younger months stop earlier");
+    expect(curves).toContain("Waiting on a second month");
     expect(heat).toContain("not fully passed");
+    expect(heat).toContain("Waiting on a second month");
     expect(paths).toContain("not a forecast");
     expect(tiers).toContain("not a promise");
     expect(flagship).toContain("not $0");
@@ -91,6 +96,9 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(flagship).toContain("after first 30 days");
     expect(flagship).toContain("First order");
     expect(flagship).toContain("mcfly-depth-formula__parts");
+    expect(flagship).toContain("flagshipEmptyState");
+    expect(flagship).toContain("First win");
+    expect(flagship).not.toMatch(/about 60 days/);
   });
 
   it("is one board — not a month-grid dump or a win-back card", () => {

@@ -18866,6 +18866,42 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
   line-height: 1.4;
 }
 
+.mcfly-depth-flag__empty,
+.mcfly-depth-empty {
+  margin: 0 0 0.75rem;
+  padding: 0.8rem 0.95rem 0.85rem;
+  border: 1px dashed color-mix(in srgb, var(--mcfly-line) 62%, var(--mcfly-accent));
+  border-radius: 14px;
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+}
+
+.mcfly-depth-flag__empty-k,
+.mcfly-depth-empty__k {
+  margin: 0 0 0.15rem;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mcfly-depth-flag__empty-v,
+.mcfly-depth-empty__v {
+  margin: 0 0 0.25rem;
+  font-family: var(--mcfly-serif, "Iowan Old Style", Georgia, serif);
+  font-size: clamp(1.2rem, 2.6vw, 1.5rem);
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.mcfly-depth-flag__empty-line,
+.mcfly-depth-empty__line {
+  margin: 0.15rem 0 0;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .mcfly-depth-formula__card {
   display: block;
   width: 100%;

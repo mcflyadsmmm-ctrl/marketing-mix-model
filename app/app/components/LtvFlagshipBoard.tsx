@@ -4,6 +4,7 @@ import { useDeskDrill } from "./DeskDrill";
 import { DeskIcon } from "./DeskIcon";
 import {
   flagshipDailyRead,
+  flagshipEmptyState,
   windowAddedAfterPrior,
   type FlagshipWindowCurve,
   type PredictiveLtv,
@@ -60,18 +61,21 @@ export function LtvFlagshipBoard({
   windows,
   predictive,
   refunds,
+  buyers = 0,
 }: {
   windows: FlagshipWindowCurve | null;
   predictive: PredictiveLtv | null;
   refunds: RefundHonesty | null;
+  buyers?: number;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
   const daily = flagshipDailyRead(windows, predictive);
+  const empty = flagshipEmptyState(windows, buyers);
   const showWindows = Boolean(windows);
   const showMath = Boolean(predictive && predictive.predicted90 != null);
   const showRefunds = Boolean(refunds && refunds.orderCount > 0);
-  if (!showWindows && !showMath && !showRefunds) return null;
+  if (!showWindows && !showMath && !showRefunds && !empty) return null;
 
   const first = predictive?.firstOrder90 ?? 0;
   const extra = predictive?.extraOrders90 ?? 0;
@@ -101,6 +105,25 @@ export function LtvFlagshipBoard({
           the math. A dash is not $0. No spend required.
         </p>
       </div>
+
+      {empty ? (
+        <div
+          className="mcfly-depth-flag__empty"
+          data-kind={empty.kind}
+        >
+          <p className="mcfly-depth-flag__empty-k">First win</p>
+          <p className="mcfly-depth-flag__empty-v">
+            {empty.kind === "syncing"
+              ? "Waiting on orders"
+              : `${empty.buyers.toLocaleString()} on file`}
+          </p>
+          <p className="mcfly-depth-flag__empty-line">{empty.copy}</p>
+          <p className="mcfly-depth-flag__empty-line">
+            Floor: {empty.need} buyers who have lived 30 days. Then 90 days,
+            then the first year. Same math — no spend required.
+          </p>
+        </div>
+      ) : null}
 
       {daily ? (
         <button
@@ -136,7 +159,7 @@ export function LtvFlagshipBoard({
                 {
                   k: "First year",
                   v: daily.yearPending
-                    ? "Not on file yet — Shopify’s public-app window is about 60 days. Not $0."
+                    ? "Not on file yet — not enough buyers have lived a full year. Not $0."
                     : "On the year card below, among buyers who have lived a full year.",
                 },
               ],
@@ -203,7 +226,7 @@ export function LtvFlagshipBoard({
                         v:
                           point.revenue != null
                             ? `Average net dollars through ${point.label.toLowerCase()} among those buyers.`
-                            : "Not on file yet — Shopify’s public-app window is about 60 days, so a first year stays a dash. Not $0 LTV.",
+                            : "Not on file yet — not enough buyers have lived this window. Not $0 LTV.",
                       },
                       {
                         k: "Came back",

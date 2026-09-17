@@ -4,6 +4,7 @@ import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 import {
   buildLtvFlagship,
   flagshipDailyRead,
+  flagshipEmptyState,
   flagshipMonthRows,
   flagshipWindowCurve,
   pathClarity,
@@ -128,6 +129,33 @@ describe("30 / 90 / 365 come-back + revenue", () => {
     expect(newRow.rev30).toBeNull();
     expect(newRow.retain90).toBeNull();
     expect(newRow.rev365).toBeNull();
+  });
+});
+
+describe("thin-shop empty state", () => {
+  it("is syncing when no identified buyers are on file", () => {
+    const empty = flagshipEmptyState(null, 0)!;
+    expect(empty.kind).toBe("syncing");
+    expect(empty.copy).toContain("not $0");
+  });
+
+  it("is thin when fewer than eight buyers have landed", () => {
+    const empty = flagshipEmptyState(null, 3)!;
+    expect(empty.kind).toBe("thin");
+    expect(empty.need).toBe(8);
+    expect(empty.copy).toContain("3 identified buyers");
+  });
+
+  it("is young when buyers exist but no window has sealed", () => {
+    const empty = flagshipEmptyState(null, 12)!;
+    expect(empty.kind).toBe("young");
+    expect(empty.copy).toContain("lived 30 days");
+  });
+
+  it("stays null once a window curve is on file", () => {
+    const customers = rollUpCustomers(maturedBook());
+    const curve = flagshipWindowCurve(customers, new Date("2025-01-01"));
+    expect(flagshipEmptyState(curve, customers.length)).toBeNull();
   });
 });
 

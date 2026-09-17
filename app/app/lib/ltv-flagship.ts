@@ -189,7 +189,8 @@ function addedAfterPriorAmong(
 
 /**
  * Blended 30 / 90 / 365 come-back + revenue. A point stays null when that
- * horizon has not matured for enough buyers (Live ~60 days cannot seal a year).
+ * horizon has not matured for enough buyers (a thin or young book cannot
+ * seal a year — that is not a 60-day cap when full history is on file).
  */
 export function flagshipWindowCurve(
   customers: CustomerDepth[],
@@ -354,7 +355,8 @@ function formulaLine(
  *
  * Taken only among buyers whose first order is at least 90 days ago.
  * First year uses the same shape among buyers with a full year on file.
- * A missing year stays null (Live ~60 days) — never a invented 365.
+ * A missing year stays null until enough buyers have lived a year —
+ * never an invented 365.
  */
 export function predictiveLtv(
   customers: CustomerDepth[],
@@ -580,6 +582,50 @@ export function windowAddedAfterPrior(
   const point = points.find((p) => p.days === days);
   if (point?.added == null || point.afterDays == null) return null;
   return { added: point.added, afterDays: point.afterDays };
+}
+
+export type FlagshipEmptyKind = "syncing" | "thin" | "young";
+
+export interface FlagshipEmpty {
+  kind: FlagshipEmptyKind;
+  buyers: number;
+  /** How many identified buyers seal a window. */
+  need: number;
+  copy: string;
+}
+
+/**
+ * First-win empty when 30/90/365 has not sealed. Never a blank board.
+ * Syncing / thin / young — not $0 LTV, not a missing chart.
+ */
+export function flagshipEmptyState(
+  windows: FlagshipWindowCurve | null,
+  buyers: number,
+): FlagshipEmpty | null {
+  if (windows) return null;
+  const need = FLAGSHIP_MIN_MATURE;
+  if (buyers <= 0) {
+    return {
+      kind: "syncing",
+      buyers: 0,
+      need,
+      copy: "Orders still syncing — not $0. First 30 days, 90 days, and the first year fill as identified buyers land.",
+    };
+  }
+  if (buyers < need) {
+    return {
+      kind: "thin",
+      buyers,
+      need,
+      copy: `${buyers.toLocaleString()} identified ${buyers === 1 ? "buyer" : "buyers"} on file. Windows seal after ${need} have lived 30 days — not $0.`,
+    };
+  }
+  return {
+    kind: "young",
+    buyers,
+    need,
+    copy: `${buyers.toLocaleString()} buyers on file. First 30 days seals once those buyers have lived 30 days — not $0.`,
+  };
 }
 
 /** One-glance daily job: worth, come-back, estimate — no spend. */

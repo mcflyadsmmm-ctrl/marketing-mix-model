@@ -962,7 +962,7 @@ export async function getOrderBackfillProgress(
  */
 export async function loadOrderDepthRows(
   shopId: string,
-  range: { start: Date; end: Date },
+  range: { start?: Date; end: Date },
   source: string,
 ): Promise<
   Array<{
@@ -979,7 +979,9 @@ export async function loadOrderDepthRows(
     where: {
       shopId,
       source,
-      orderedAt: { gte: range.start, lte: range.end },
+      orderedAt: range.start
+        ? { gte: range.start, lte: range.end }
+        : { lte: range.end },
       NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
     },
     select: {

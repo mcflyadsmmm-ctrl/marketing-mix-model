@@ -35,3 +35,5 @@ Pills, charts, densify, ActionCards stay. Add only.
 | Habit-trust | PASS | Formula as three labeled parts, plugged in, observed vs estimate, refunds never invented |
 | $39-alone | PASS | This board plus the explorers answers “what is a new buyer worth?” with no other tab |
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS on this tab |
+
+Full-history Live year is in scope (`read_all_orders` approved). Thin shops use first-win empties, never a fake 365.

@@ -357,8 +357,8 @@ export default function LtvPage() {
 
   /*
    * The Black Clover depth pack — order history only, no spend. Curves and the
-   * retention grid need more than a single window; on live (Shopify ~60 days)
-   * they collapse to honest empties and product journeys never paint (no
+   * retention grid need more than a single window; on a thin or young live
+   * book they collapse to honest empties and product journeys never paint (no
    * titles on file). On SAMPLE Snowdevil the whole pack is dense.
    */
   const depthHasAny = Boolean(
@@ -410,7 +410,7 @@ export default function LtvPage() {
 
       <section className="mcfly-book" aria-label="What new customers spend">
         <p className="mcfly-book__lede">
-          Shopify Analytics shows LTV reports, if any. This page shows first 90 days after the first order on file — not lifetime first when Shopify only shared ~60 days. {PRODUCT_NOUN.ltvNotInShopify}
+          Shopify Analytics shows LTV reports, if any. This page shows first 90 days after the first order on file — not lifetime first when a year is not on file yet. {PRODUCT_NOUN.ltvNotInShopify}
         </p>
 
         {ltv.available && isNum(ltv.avgRevenueD90) && ltv.avgRevenueD90 > 0 ? (
@@ -451,14 +451,14 @@ export default function LtvPage() {
           <p className="mcfly-book__lede">
             {useSampleDesk
               ? "What a new buyer is worth is from SAMPLE Snowdevil orders. Explorers below stay on that same book. Order history only, no spend."
-              : "What a new buyer is worth, then the order-history explorers. No spend required."}
+              : "What a new buyer is worth, then the order-history explorers. Full history when it is on file. No spend required."}
           </p>
         </section>
       ) : !useSampleDesk ? (
         <p className="mcfly-book__lede">
           Spend-build curves, who kept ordering, product journeys and best-customer
-          recency need more order history than Shopify shares on this shop (~60
-          days) — not $0. They fill in as the order backfill deepens.
+          recency need more than a handful of identified buyers — not $0. They
+          fill as the order book deepens.
         </p>
       ) : null}
 
@@ -466,9 +466,10 @@ export default function LtvPage() {
         windows={depth.windows}
         predictive={depth.predictive}
         refunds={depth.refunds}
+        buyers={depth.buyers}
       />
-      <LtvBuildCurves curves={depth.curves} />
-      <LtvRetentionHeat heat={depth.retention} />
+      <LtvBuildCurves curves={depth.curves} buyers={depth.buyers} />
+      <LtvRetentionHeat heat={depth.retention} buyers={depth.buyers} />
       <LtvTierTables aov={depth.aov} basket={depth.basket} />
       <LtvPathTable paths={depth.paths} clarity={depth.pathClarity} />
       <LtvWhaleRecency whales={depth.whales} />
