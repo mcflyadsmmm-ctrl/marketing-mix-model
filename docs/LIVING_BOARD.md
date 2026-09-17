@@ -51,7 +51,7 @@ App: deeper Shopify order analytics than Analytics Overview. Spend tools are the
 Demo widget still uses the Northline SAMPLE book (listing desk numbers) — do not put Northline **$98,500** / **4.19×** on `/`.  
 Voice bans: Monday / cash desk / beats SaaS / 500-seat theater / aMER / till / cohort / ARPU / p25-p75 in chrome.  
 Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → https://apps.shopify.com/mcfly-analytics-public. Do not invent a different App Store URL.  
-**2026-09-10 23:35 founder override (craft, not formula):** the “omit everything / no tiles / one hero / collapsed chart” rules starved the desk. **Density is the product.** Overview = Sales + Total ROAS (when spend) + KPI cards + open chart. Formula locked: sales ÷ entered spend; empty spend is not 0×; no pixels. See [`ops/CRAFT_UNLOCK.md`](./ops/CRAFT_UNLOCK.md). Cursor does not Partner-paste.
+**2026-09-16 founder override (craft unlock — apply completely):** craft-starving locks are **dead** (omit tiles / one hero / Overview chart-none / banishing typical-order / honesty-micro-wave loop / “don’t steal Black Clover”). **Density + Black Clover scoreboard craft.** Overview = Shopify-order YoY + peeks + open **sales** chart — **zero spend/ROAS on Overview**. Formula locked: sales ÷ entered spend; empty spend is not 0×; no pixels. See [`ops/CRAFT_UNLOCK.md`](./ops/CRAFT_UNLOCK.md). Cursor does not Partner-paste.
 
 ---
 
@@ -114,7 +114,7 @@ App + site are already live (Fly **320**, site **v17**). SAMPLE smoke **PASSed**
 | Unfreeze Fly after Admin SAMPLE | Filled `Result:` PASS/FAIL block — not the blank form |
 | Stop all lanes | `stop fleet` |
 
-**Banned keep-alives:** “keep going”, “finish everything”, “make it world class”, “run subagents”, “copy Black Clover again”. Those spawn Desk and look like progress.
+**Banned keep-alives:** empty “keep going / finish everything” with no craft bar. **Allowed:** Black Clover–grade desk craft when Overview/tabs fail the founder eye. Listing paste still Marty-only after final approval.
 
 **Your close tonight (Conductor cannot click):** (1) Partner **Save** [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) — live page still spend-led. (2) Confirm **no Free plan**. (3) Recapture Live-data shots. Cursor does not Submit.
 
