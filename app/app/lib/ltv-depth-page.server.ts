@@ -5,11 +5,9 @@
  * hidden period slicer, like Growth's come-back window.
  *
  * SAMPLE reads the deterministic Snowdevil order book (products on file). Live
- * reads real OrderFacts (no product titles — journeys quietly drop out). When
- * `read_all_orders` is on the running scopes, the pack uses the full stored
- * book so year / long windows can seal. Without it, the trailing 420-day read
- * stays the honest cap. Thin shops get empty-state craft, never a fake year.
- * Order history only — no spend, no ROAS.
+ * reads the full stored OrderFact book (no product titles — journeys quietly
+ * drop out) so year / long windows can seal. Thin shops get empty-state craft,
+ * never a fake year. Order history only — no spend, no ROAS.
  */
 
 import {
@@ -23,12 +21,9 @@ import {
   type LtvFlagshipView,
 } from "./ltv-flagship";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
-import { shopifyReadOrdersScopesAllowDeep } from "./shopify-order-window";
 
-/** Trailing order-history window when full-history scopes are not on (days). */
+/** Historical name. Live LTV depth is the full stored book, not a 420-day cap. */
 export const LTV_DEPTH_WINDOW_DAYS = 420;
-
-const DAY_MS = 86_400_000;
 
 /**
  * Build the depth view for one shop. `asOf` anchors maturity and recency
@@ -48,13 +43,9 @@ export async function loadLtvDepth(options: {
     return buildLtvFlagship(orders, asOf, { sample: true });
   }
 
-  const deep = shopifyReadOrdersScopesAllowDeep();
-  const start = deep
-    ? undefined
-    : new Date(asOf.getTime() - LTV_DEPTH_WINDOW_DAYS * DAY_MS);
   const rows = await loadOrderDepthRows(
     options.shopId,
-    { start, end: asOf },
+    { end: asOf },
     ORDER_FACT_SOURCE,
   );
   const orders: DepthOrder[] = [];

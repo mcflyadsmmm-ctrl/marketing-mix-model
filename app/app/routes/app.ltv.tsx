@@ -194,9 +194,11 @@ export default function LtvPage() {
 
   /*
    * The signature LTV build — how a new customer's spend grows 30 → 90 → 365.
-   * Order revenue only; the year bar stays a — when Shopify shared ~60 days so
-   * the build never seals a fake complete 365 (— is not on file, not $0 LTV).
+   * Order revenue only; the year bar stays a — until enough buyers have lived
+   * a year (thin / young shop), never a fake complete 365. — is not $0 LTV.
    */
+  const yearOnFile = isNum(ltv.avgRevenueD365);
+  const yearPending = !yearOnFile;
   const buildWindows: LtvBuildWindow[] = [
     {
       key: "d30",
@@ -213,25 +215,22 @@ export default function LtvPage() {
     {
       key: "d365",
       label: "First year",
-      value:
-        ltv.historyLimited || !isNum(ltv.avgRevenueD365)
-          ? null
-          : ltv.avgRevenueD365,
-      detail: ltv.historyLimited
-        ? "Shopify shares about 60 days of orders on this shop, so first-year value is not on file yet — not $0 LTV."
-        : PRODUCT_NOUN.ltv365Def,
-      pending: ltv.historyLimited,
+      value: yearOnFile ? ltv.avgRevenueD365 : null,
+      detail: yearOnFile
+        ? PRODUCT_NOUN.ltv365Def
+        : "Not on file yet — not enough buyers have lived a full year. Not $0 LTV.",
+      pending: yearPending,
     },
   ];
-  const buildCaption = ltv.historyLimited
-    ? "First year is not on file yet — Shopify shares about 60 days of orders. Not $0."
+  const buildCaption = yearPending
+    ? "First year is not on file yet — not enough buyers have lived a year. Not $0."
     : undefined;
 
   /*
    * Value windows lead the page — order revenue first, never spend. Unknown
    * windows are omitted so the grid never prints a boxed dash next to real
-   * dollars; First year is the exception when history is limited (— means not
-   * on file, not $0 LTV). `ltvWindowCaption` (lib/contrib-ltv) says the window
+   * dollars; First year is the exception when the year has not sealed (— means
+   * not on file, not $0 LTV). `ltvWindowCaption` (lib/contrib-ltv) says the window
    * caveat in glossary words this desk keeps out of merchant chrome — the
    * per-row sentence and the build chart say it plainly instead.
    */
@@ -250,14 +249,7 @@ export default function LtvPage() {
       d: "Average orders per new-on-file buyer in the first 90 days after their first visible order. A buyer with earlier Shopify orders is not counted as new.",
     });
   }
-  if (ltv.historyLimited) {
-    orderRows.push({
-      k: "First year",
-      v: "—",
-      d: "Shopify shares about 60 days of orders on this shop, so first-year value is not on file yet — not $0 LTV.",
-      keepDash: true,
-    });
-  } else if (isNum(ltv.avgRevenueD365)) {
+  if (isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0) {
     orderRows.push({
       k: "First year",
       v: formatCurrency(ltv.avgRevenueD365, currency),
@@ -265,6 +257,13 @@ export default function LtvPage() {
       ...(hasSpend && contrib365 != null
         ? { x: [`${formatCurrency(contrib365, currency)} kept. ${marginNote}`] }
         : {}),
+    });
+  } else if (isNum(ltv.avgRevenueD90) || isNum(ltv.avgRevenueD30)) {
+    orderRows.push({
+      k: "First year",
+      v: "—",
+      d: "Not on file yet — not enough buyers have lived a full year. Not $0 LTV.",
+      keepDash: true,
     });
   }
   if (isNum(ltv.repeatRate)) {
@@ -334,7 +333,7 @@ export default function LtvPage() {
     const d365 = perCustomerRevenue(row.revenueD365, row.customers);
     const later = [
       d30 != null && d30 > 0 ? `30 days ${formatCurrency(d30, currency)}` : null,
-      d365 != null && !ltv.historyLimited && d365 > 0
+      d365 != null && d365 > 0
         ? `First year ${formatCurrency(d365, currency)}`
         : null,
     ].filter((part): part is string => part != null);
@@ -350,7 +349,7 @@ export default function LtvPage() {
     ltv.emptyReason === "no_timezone"
       ? "Shop timezone needed before first orders can bucket by local day."
       : ltv.emptyReason === "history_limited"
-        ? "Shopify shares about 60 days of orders on this shop, so first-year value is not on file yet — not $0 LTV."
+        ? "First-year value is not on file yet — not enough buyers have lived a year. Not $0 LTV."
         : orderBackfillProgress
           ? "Orders still syncing — not $0. Refresh this page."
           : "Orders still syncing — not $0.";
@@ -438,10 +437,10 @@ export default function LtvPage() {
 
         <BookFactGrid facts={orderRows} />
 
-        {ltv.historyLimited ? (
+        {yearPending && (isNum(ltv.avgRevenueD90) || isNum(ltv.avgRevenueD30)) ? (
           <p className="mcfly-book__lede">
-            Shopify shares about 60 days of orders on this shop. Older history
-            is outside that window — not $0.
+            First year is not on file yet — not enough buyers have lived a year.
+            Not $0.
           </p>
         ) : null}
       </section>

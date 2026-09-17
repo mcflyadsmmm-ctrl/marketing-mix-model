@@ -106,12 +106,12 @@ describe("LTV tab vs Shopify Analytics", () => {
     expect(ltvSource).toContain("Orders still syncing — not $0");
   });
 
-  it("does not paint First year as a complete dollar when historyLimited", () => {
+  it("does not paint First year as a complete dollar when the year is unsealed", () => {
     expect(ltvSource).toMatch(
-      /if \(ltv\.historyLimited\) \{[\s\S]*k: "First year"[\s\S]*v: "—"[\s\S]*keepDash: true/,
+      /else if \(isNum\(ltv\.avgRevenueD90\) \|\| isNum\(ltv\.avgRevenueD30\)\) \{[\s\S]*k: "First year"[\s\S]*v: "—"[\s\S]*keepDash: true/,
     );
-    expect(ltvSource).toMatch(/else if \(isNum\(ltv\.avgRevenueD365\)\)/);
-    expect(ltvSource).toContain("d365 != null && !ltv.historyLimited");
+    expect(ltvSource).toContain("isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0");
+    expect(ltvSource).toContain("d365 != null && d365 > 0");
   });
 
   it("passes truncated today and the ~60-day order window into DeskBookPage", () => {

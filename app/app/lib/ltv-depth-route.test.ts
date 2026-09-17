@@ -22,7 +22,8 @@ describe("LTV route mounts the depth pack", () => {
     );
     expect(route).toContain("loadLtvDepth({ shopId: shop.id, useSampleDesk })");
     expect(route).toMatch(/return \{[\s\S]*?\bdepth,/);
-    expect(depthPage).toContain("shopifyReadOrdersScopesAllowDeep");
+    expect(depthPage).toContain("{ end: asOf }");
+    expect(depthPage).toContain("full stored");
   });
 
   it("imports and renders all five depth panels plus one flagship board", () => {
@@ -40,6 +41,7 @@ describe("LTV route mounts the depth pack", () => {
     expect(route).not.toContain("LtvComeBackWindows");
     expect(route).not.toContain("LtvRefundHonesty");
     expect(route).toContain("buyers={depth.buyers}");
+    expect(route).not.toMatch(/about 60 days/);
   });
 
   it("leads with order history — depth sits after the value build, before spend", () => {

@@ -28,7 +28,7 @@ Product→LTV · Customers RFM-lite · Growth win-back · Overview forecast · D
 ## Hard locks
 
 - SAMPLE Snowdevil craft canvas; Live pulls parked
-- Scopes: `read_orders` + `read_customers` + approved `read_all_orders` (Live year / long windows in scope). Thin shops stay honest empties, never a fake year.
+- Scopes: `read_orders` + `read_customers` + approved `read_all_orders`. Live LTV is the full stored book — year / 30/90/365+ are in scope. Thin shops stay honest empties, never a fake year.
 - NO COGS, ads/pixels, Partner paste, cold push, Amazon, Recharge MRR, TW attribution / MTA / Meta-ROAS hero
 - Overview stays order-first
 - Spend Upload stays optional after sales-five; no ROAS hero there

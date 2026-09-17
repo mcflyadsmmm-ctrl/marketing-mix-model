@@ -120,9 +120,9 @@ describe("LTV route mounts the Black Clover value build", () => {
     expect(ltv).toContain('label: "First 30 days"');
     expect(ltv).toContain('label: "First 90 days"');
     expect(ltv).toContain('label: "First year"');
-    // The year window is null (not $0) and flagged pending under the ~60d cap.
-    expect(ltv).toMatch(/ltv\.historyLimited[\s\S]*?\?\s*null/);
-    expect(ltv).toContain("pending: ltv.historyLimited");
+    // Year is pending until enough buyers have lived it — not a 60-day cap.
+    expect(ltv).toContain("const yearOnFile = isNum(ltv.avgRevenueD365)");
+    expect(ltv).toContain("pending: yearPending");
   });
 });
 

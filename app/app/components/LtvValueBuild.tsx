@@ -13,8 +13,8 @@ export type LtvBuildWindow = {
   /** Plain-English formula for the drill. */
   detail: string;
   /**
-   * Known-unknown: the window exists but Shopify has not shared enough order
-   * history yet (~60 days). Paints a — bar so the build reads honestly instead
+   * Known-unknown: the window exists but not enough buyers have lived it
+   * yet (thin / young shop). Paints a — bar so the build reads honestly instead
    * of implying $0 or a finished year.
    */
   pending?: boolean;
@@ -28,7 +28,7 @@ export function isRevenue(value: number | null): value is number {
  * Pure build resolver — decides whether the value-build chart is worth drawing
  * and returns the rows plus the bar scale. A single dollar is a KPI, not a
  * build, so at least two rows (one real dollar) are required; a pending window
- * (Shopify only shared ~60 days) counts as a row so the year reads as — rather
+ * (year not on file yet) counts as a row so the year reads as — rather
  * than a sealed 365. Returns null when there is nothing honest to draw.
  */
 export function resolveLtvBuild(windows: LtvBuildWindow[]): {
@@ -49,8 +49,8 @@ export function resolveLtvBuild(windows: LtvBuildWindow[]): {
  * The signature LTV visual: how much a new customer spends as their first
  * 30 → 90 → 365 days build. Horizontal dollar bars, each drillable to its
  * formula. Averages across new customers from order history only — never a
- * forecast, never email lists. The year bar stays a — when Shopify only shared
- * ~60 days, so the build is honest about the window instead of sealing 365.
+ * forecast, never email lists. The year bar stays a — until enough buyers have
+ * lived a year, so the build is honest instead of sealing a fake 365.
  */
 export function LtvValueBuild({
   windows,

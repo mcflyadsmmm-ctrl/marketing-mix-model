@@ -4,6 +4,7 @@ import {
   isShopifyHistoryWindowError,
   isUnseenShopifySalesDay,
   shopifyReadOrdersHorizonUtc,
+  shopifyOrderHistoryIsLimited,
   shopifyReadOrdersScopesAllowDeep,
 } from "./shopify-order-window";
 
@@ -15,6 +16,21 @@ describe("shopifyReadOrdersScopesAllowDeep", () => {
     expect(
       shopifyReadOrdersScopesAllowDeep("read_orders,read_all_orders"),
     ).toBe(true);
+  });
+
+  it("does not keep a stored 60-day cap when full history is approved", () => {
+    expect(
+      shopifyOrderHistoryIsLimited(true, "read_orders,read_customers"),
+    ).toBe(true);
+    expect(
+      shopifyOrderHistoryIsLimited(
+        true,
+        "read_orders,read_customers,read_all_orders",
+      ),
+    ).toBe(false);
+    expect(
+      shopifyOrderHistoryIsLimited(false, "read_orders,read_all_orders"),
+    ).toBe(false);
   });
 });
 
