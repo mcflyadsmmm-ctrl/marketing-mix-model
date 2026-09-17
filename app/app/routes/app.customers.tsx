@@ -9,7 +9,7 @@ import { CustomerRetentionBoard } from "../components/CustomerRetentionBoard";
 import { CustomerValueBands } from "../components/CustomerValueBands";
 import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
-import { deskPeriodTillLabel } from "../lib/desk-history";
+import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { loadCustomerAnalytics } from "../lib/desk-customers-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -104,7 +104,7 @@ export default function CustomersPage() {
         </p>
       ) : null}
 
-      <p className="mcfly-book__lede">{CUSTOMERS_CONTRAST}</p>
+      <p className="mcfly-book__lede">{deskBookLede(CUSTOMERS_CONTRAST)}</p>
 
       {/* 1. Marquee explorer — new vs returning $ dual-axis, above the fold. */}
       <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
