@@ -1,24 +1,27 @@
-# Black Clover depth craft SoT (Passover pack)
+# Black Clover / Passover craft SoT
 
-**Founder lock 2026-09-16.** Order history unlocks insane depth beyond Shopify Analytics — that is the paid product.
+**Founder lock:** this folder is the craft bar for Mcfly desk cooks. Marty needs nothing further — packs + screenshots here are enough. Next Fly only when phone-worthy dense vs this bar.
 
-## Sources on Marty’s Mac (canonical)
-- `~/Downloads/black-clover-ceo-dashboard (8).zip`
-- `~/Downloads/black-clover-—-executive-intelligence.zip`
-- `~/Downloads/BlackClover_MER_CommandCenter.jsx`
-- Chat screenshots (explorer hover, Monthly pacing, What-to-do Customers, Order intelligence, cohort LTV, Path LTV, AOV tiers, whale recency, Cash CPA, **grouped tab chrome**)
+## On tip (committed, no secrets)
+- `tab-chrome-scoreboard.png` — grouped SCOREBOARD | SPEND PLAN | RETAIN rail (the easy/clear nav bar)
+- `BlackClover_MER_CommandCenter.jsx` — MER explorer craft (dark hover, zones, dual series)
+- `ceo-dashboard/` + `ceo-dashboard-App.tsx` / `ceo-dashboard-App-v7.tsx` — dense desk patterns (filters, cards, tables)
+- `executive-intelligence/` — companion AI Studio pack (stub App; ignore empty body)
+- `live-lucky/extracted/` — Live Lucky Apps Script HTML/JS (ops desk reference, not Shopify Admin twin)
 
-## Mcfly mapping (steal craft, not refuse)
-| Black Clover group | Mcfly tabs | Notes |
+## Mac Downloads (canonical originals — do not commit raw CSVs / .env)
+- `black-clover-ceo-dashboard (8).zip` / `(7).zip`
+- `black-clover-—-executive-intelligence.zip`
+- `BlackClover_MER_CommandCenter.jsx`
+- Chat screenshots tonight (explorer hover, Monthly pacing, What-to-do Customers, Order intelligence, cohort/path LTV, AOV tiers, whale recency, Cash CPA, tab chrome)
+
+## Mcfly mapping
+| Group | Tabs | Notes |
 | --- | --- | --- |
-| SCOREBOARD | Overview · (Compare/Ledger fold into YoY/Total ROAS) · CPA | Overview = sales-first, zero spend |
-| RETAIN | Customers · Growth · Orders · LTV | Order-history depth (Orders sits here — Mcfly has no BC Compare/Ledger twin) |
+| SCOREBOARD | Overview · CPA | Sales-first; zero spend on Overview |
+| RETAIN | Customers · Growth · Orders · LTV | Order-history depth |
 | SPEND PLAN | Spend Upload · Total ROAS · Channel Allocation · YoY · Goals | After Shopify five |
-| HONESTY | Trust banners / Returns honesty | Not a fake tab zoo |
-| EMAIL / Klaviyo | **Refuse** | No email scopes / connector zoo |
+| EMAIL / Klaviyo | **Refuse** | No email scopes |
 
-## Nav craft
-Grouped chip rail like SCOREBOARD | RETAIN | SPEND PLAN — easy and clear — not a flat 11-item mush. Time windows stay on cards/charts, not the top bar (TAB_LOCK).
-
-## In this folder
-Copied non-secret source for cooks: `ceo-dashboard-App.tsx`, `BlackClover_MER_CommandCenter.jsx`.
+## Cook law
+Steal craft density/interaction. Never invent pixels/MTA/true ROAS/ad OAuth. SAMPLE labeled. Reject thin PRs. No Fly from cooks.

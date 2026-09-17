@@ -1,0 +1,6 @@
+{
+  "name": "Black Clover CEO Dashboard",
+  "description": "A high-performance executive dashboard for Black Clover and CMC Design sales, partners, and operational analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
