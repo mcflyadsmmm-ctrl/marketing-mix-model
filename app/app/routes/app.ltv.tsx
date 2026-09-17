@@ -390,7 +390,7 @@ export default function LtvPage() {
       ) : null}
 
       {salesError && !shotMode ? (
-        <section className="mcfly-state mcfly-state--critical" aria-label="Sales load error">
+        <section className="mcfly-state mcfly-state--critical mcfly-state--soft" aria-label="Sales load error">
           <p className="mcfly-state__copy">
             Sales didn’t load. Retry to see what new customers spend.
           </p>

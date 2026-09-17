@@ -346,6 +346,8 @@ export default function SettingsPage() {
         className={[
           "mcfly-desk",
           "mcfly-desk--chrome",
+          "mcfly-settings",
+          "mcfly-settings--soft",
           shotMode ? "mcfly-desk--shot" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
         ]
@@ -373,23 +375,19 @@ export default function SettingsPage() {
         ) : null}
 
         {isSaving || isRevalidating ? (
-          <s-banner tone="info" heading={sampleBusy ? "Sample data" : "Saving"}>
-            <s-stack direction="inline" gap="small" alignItems="center">
-              <s-spinner
-                size="base"
-                accessibilityLabel={
-                  sampleBusy ? "Loading Sample data" : "Saving settings"
-                }
-              ></s-spinner>
-              <s-paragraph>
-                {sampleIntent === "use-sample"
-                  ? "Loading Sample data through today…"
-                  : sampleBusy
-                    ? "Switching Sample data | Live data…"
-                    : "Saving target and optional margin…"}
-              </s-paragraph>
-            </s-stack>
-          </s-banner>
+          <section
+            className="mcfly-state mcfly-state--loading mcfly-state--soft"
+            aria-live="polite"
+            aria-label={sampleBusy ? "Sample data" : "Saving"}
+          >
+            <p className="mcfly-state__copy">
+              {sampleIntent === "use-sample"
+                ? "Loading Sample data through today…"
+                : sampleBusy
+                  ? "Switching Sample data | Live data…"
+                  : "Saving target and optional margin…"}
+            </p>
+          </section>
         ) : null}
 
         {marginStale && !shotMode ? (
@@ -427,7 +425,7 @@ export default function SettingsPage() {
 
         {!shotMode ? (
           <section
-            className="mcfly-panel"
+            className="mcfly-panel mcfly-settings-panel--soft"
             style={{ marginTop: "1.25rem" }}
             aria-label="Sample | Live"
           >
@@ -520,7 +518,7 @@ export default function SettingsPage() {
           </section>
         ) : null}
 
-        <div className="mcfly-settings-template">
+        <div className="mcfly-settings-template mcfly-settings-template--soft">
           <aside className="mcfly-settings-template__desc">
             <h2 className="mcfly-settings-template__heading">
               Set your Total ROAS target
@@ -533,7 +531,7 @@ export default function SettingsPage() {
             </p>
           </aside>
 
-          <section className="mcfly-panel mcfly-settings-form mcfly-settings-template__form">
+          <section className="mcfly-panel mcfly-settings-form mcfly-settings-template__form mcfly-settings-panel--soft">
             <div className="mcfly-panel__head">
               <h2>Desk targets</h2>
               <p className="mcfly-panel__muted">
@@ -639,7 +637,7 @@ export default function SettingsPage() {
 
         {!shotMode ? (
           <section
-            className="mcfly-panel"
+            className="mcfly-panel mcfly-settings-panel--soft"
             style={{ marginTop: "1.25rem" }}
             aria-label="Your plan"
           >
@@ -717,11 +715,11 @@ export default function SettingsPage() {
         ) : null}
 
         {!shotMode ? (
-          <details className="mcfly-details mcfly-settings-more">
+          <details className="mcfly-details mcfly-settings-more mcfly-settings-more--soft">
             <summary>More — privacy</summary>
             <div className="mcfly-settings-more__body">
               <section
-                className="mcfly-panel"
+                className="mcfly-panel mcfly-settings-panel--soft"
                 style={{ marginTop: "1rem" }}
                 aria-label="Privacy data exports"
               >

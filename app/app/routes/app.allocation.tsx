@@ -450,6 +450,7 @@ export default function AllocationPage() {
         className={[
           "mcfly-desk",
           "mcfly-alloc-v2",
+          "mcfly-alloc-v2--soft",
           shotMode ? "mcfly-desk--shot" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
           isLoading && !shotMode ? "mcfly-desk--loading" : null,
@@ -479,7 +480,7 @@ export default function AllocationPage() {
 
         {isLoading && !shotMode ? (
           <section
-            className="mcfly-state mcfly-state--loading"
+            className="mcfly-state mcfly-state--loading mcfly-state--soft"
             aria-live="polite"
           >
             <p className="mcfly-state__copy">
@@ -490,7 +491,7 @@ export default function AllocationPage() {
 
         {salesError && !shotMode ? (
           <section
-            className="mcfly-state mcfly-state--critical"
+            className="mcfly-state mcfly-state--critical mcfly-state--soft"
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">
@@ -510,7 +511,7 @@ export default function AllocationPage() {
 
         {zeroMargin ? (
           <section
-            className="mcfly-state mcfly-state--warn"
+            className="mcfly-state mcfly-state--warn mcfly-state--soft"
             aria-label="Break-even margin required"
           >
             <p className="mcfly-state__copy">
@@ -527,7 +528,7 @@ export default function AllocationPage() {
 
         {cashLocked && lockCopy ? (
           <section
-            className="mcfly-state mcfly-state--warn"
+            className="mcfly-state mcfly-state--warn mcfly-state--soft"
             aria-label="Allocation locked until spend trust"
           >
             <p className="mcfly-state__copy">{lockCopy}</p>
@@ -589,51 +590,18 @@ export default function AllocationPage() {
           <p className="mcfly-alloc-v2__takeaway">{takeaway}</p>
         ) : null}
 
-        <PeriodMixSection
-          rows={channelRows}
-          totalSpend={metrics.totalSpend}
-          periodLabel={metrics.period.label}
-          totalRoas={metrics.mer}
-          selectedChannel={selectedChannel}
-          onSelectChannel={(name) =>
-            setSelectedChannel((cur) => (cur === name ? null : name))
-          }
-        />
-
-        {/* SpendMixPlan offers This month, Last 7 days, and This quarter. */}
-        {cashControl ? <SpendMixPlan board={cashControl} /> : null}
-
-        <BestWindowsSection
-          grain={grain}
-          onGrainChange={(next) => {
-            setGrain(next);
-            setSelectedWindowKey(null);
-          }}
-          items={pickedWindows.items}
-          scope={pickedWindows.scope}
-          periodLabel={metrics.period.label}
-          selectedKey={selectedWindowKey}
-          onSelectKey={(key) =>
-            setSelectedWindowKey((cur) => (cur === key ? null : key))
-          }
-          selectedWindow={selectedWindow}
-          mixDiffs={mixDiffs}
-        />
-
-        <RollingWindowsSection tiles={rollingWindows} />
-
         {channelRows.length === 0 &&
         metrics.totalSpend <= 0 &&
         !zeroMargin &&
         !cashLocked &&
         !salesError ? (
           <section
-            className="mcfly-state mcfly-state--empty"
+            className="mcfly-state mcfly-state--empty mcfly-state--soft"
             aria-label="Allocation unavailable"
           >
             <p className="mcfly-state__copy">
               Add spend on Spend Upload to see mix, best windows, and the daily
-              cap. Empty spend is not a made-up mix.
+              cap. Empty spend is not a made-up mix — never painted as $0 share.
             </p>
             <div className="mcfly-state__cta">
               <s-button href="/app/spend" variant="primary">
@@ -644,7 +612,42 @@ export default function AllocationPage() {
               </s-link>
             </div>
           </section>
-        ) : null}
+        ) : (
+          <>
+            <PeriodMixSection
+              rows={channelRows}
+              totalSpend={metrics.totalSpend}
+              periodLabel={metrics.period.label}
+              totalRoas={metrics.mer}
+              selectedChannel={selectedChannel}
+              onSelectChannel={(name) =>
+                setSelectedChannel((cur) => (cur === name ? null : name))
+              }
+            />
+
+            {/* SpendMixPlan offers This month, Last 7 days, and This quarter. */}
+            {cashControl ? <SpendMixPlan board={cashControl} /> : null}
+
+            <BestWindowsSection
+              grain={grain}
+              onGrainChange={(next) => {
+                setGrain(next);
+                setSelectedWindowKey(null);
+              }}
+              items={pickedWindows.items}
+              scope={pickedWindows.scope}
+              periodLabel={metrics.period.label}
+              selectedKey={selectedWindowKey}
+              onSelectKey={(key) =>
+                setSelectedWindowKey((cur) => (cur === key ? null : key))
+              }
+              selectedWindow={selectedWindow}
+              mixDiffs={mixDiffs}
+            />
+
+            <RollingWindowsSection tiles={rollingWindows} />
+          </>
+        )}
       </div>
     </s-page>
   );
@@ -736,7 +739,7 @@ function PeriodSnapshotSection({
 
   return (
     <section
-      className="mcfly-alloc-v2__snaps"
+      className="mcfly-alloc-v2__snaps mcfly-alloc-v2__snaps--soft"
       aria-label={`${periodLabel} snapshot`}
     >
       <div className="mcfly-alloc-v2__head">
@@ -746,7 +749,7 @@ function PeriodSnapshotSection({
         </p>
       </div>
       <div className="mcfly-alloc-v2__snap-grid">
-        <article className="mcfly-alloc-v2__snap">
+        <article className="mcfly-alloc-v2__snap mcfly-alloc-v2__snap--soft">
           <p className="mcfly-alloc-v2__snap-label">Sales</p>
           <p className="mcfly-alloc-v2__snap-value">
             {salesPending ? "—" : formatCurrency(sales, currency)}
@@ -762,7 +765,7 @@ function PeriodSnapshotSection({
             </p>
           ) : null}
         </article>
-        <article className="mcfly-alloc-v2__snap">
+        <article className="mcfly-alloc-v2__snap mcfly-alloc-v2__snap--soft">
           <p className="mcfly-alloc-v2__snap-label">Spend</p>
           <p className="mcfly-alloc-v2__snap-value">
             {formatSpendOnFile(spend, currency)}
@@ -774,7 +777,7 @@ function PeriodSnapshotSection({
             <p className="mcfly-alloc-v2__snap-delta">{spendDelta}</p>
           ) : null}
         </article>
-        <article className="mcfly-alloc-v2__snap mcfly-alloc-v2__snap--lead">
+        <article className="mcfly-alloc-v2__snap mcfly-alloc-v2__snap--lead mcfly-alloc-v2__snap--soft">
           <p className="mcfly-alloc-v2__snap-label">{PRODUCT_NOUN.totalRoas}</p>
           <p className="mcfly-alloc-v2__snap-value">
             {salesPending || mer == null ? "—" : `${formatMer(mer)}×`}
@@ -790,7 +793,7 @@ function PeriodSnapshotSection({
             </p>
           ) : null}
         </article>
-        <article className="mcfly-alloc-v2__snap">
+        <article className="mcfly-alloc-v2__snap mcfly-alloc-v2__snap--soft">
           <p className="mcfly-alloc-v2__snap-label">Top channel</p>
           <p className="mcfly-alloc-v2__snap-value">
             {topChannel ? formatPercent(topChannel.share) : "—"}
@@ -829,7 +832,7 @@ function BestWindowsSection({
 }) {
   const currency = useDeskCurrency();
   return (
-    <section className="mcfly-alloc-v2__quarters" aria-label="Best windows">
+    <section className="mcfly-alloc-v2__quarters mcfly-alloc-v2__quarters--soft" aria-label="Best windows">
       <div className="mcfly-alloc-v2__head">
         <h2>Best windows</h2>
         <p className="mcfly-alloc-v2__muted">
@@ -858,7 +861,7 @@ function BestWindowsSection({
         })}
       </div>
       {items.length === 0 ? (
-        <p className="mcfly-alloc-v2__empty">
+        <p className="mcfly-alloc-v2__empty mcfly-alloc-v2__empty--soft">
           Not enough {windowGrainLabel(grain).toLowerCase()} with spend to rank
           yet.
         </p>
@@ -870,7 +873,7 @@ function BestWindowsSection({
               <li key={row.key}>
                 <button
                   type="button"
-                  className={`mcfly-alloc-v2__q-card${selected ? " mcfly-alloc-v2__q-card--on" : ""}`}
+                  className={`mcfly-alloc-v2__q-card mcfly-alloc-v2__q-card--soft${selected ? " mcfly-alloc-v2__q-card--on" : ""}`}
                   aria-pressed={selected}
                   onClick={() => onSelectKey(row.key)}
                 >
@@ -980,7 +983,7 @@ function PeriodMixSection({
   const selected = rows.find((row) => row.name === selectedChannel) ?? null;
   return (
     <section
-      className="mcfly-alloc-v2__mix"
+      className="mcfly-alloc-v2__mix mcfly-alloc-v2__mix--soft"
       aria-label={`Where the money went · ${periodLabel}`}
     >
       <div className="mcfly-alloc-v2__head">
@@ -992,9 +995,9 @@ function PeriodMixSection({
         </p>
       </div>
       {rows.length === 0 ? (
-        <p className="mcfly-alloc-v2__empty">
+        <p className="mcfly-alloc-v2__empty mcfly-alloc-v2__empty--soft">
           No channel spend for {periodLabel}. Add it on Spend Upload — this page
-          will not fake a mix.
+          will not fake a mix. Empty spend is not a made-up mix.
         </p>
       ) : (
         <>
@@ -1012,7 +1015,7 @@ function PeriodMixSection({
                   <li key={row.name}>
                     <button
                       type="button"
-                      className={`mcfly-alloc-v2__chan${on ? " mcfly-alloc-v2__chan--on" : ""}`}
+                      className={`mcfly-alloc-v2__chan mcfly-alloc-v2__chan--soft${on ? " mcfly-alloc-v2__chan--on" : ""}`}
                       aria-pressed={on}
                       onClick={() => onSelectChannel(row.name)}
                     >
@@ -1164,7 +1167,7 @@ function SpendSharePie({
 
 function RollingWindowsSection({ tiles }: { tiles: RollingWindowTile[] }) {
   return (
-    <section className="mcfly-alloc-v2__rolling" aria-label="Recent pace">
+    <section className="mcfly-alloc-v2__rolling mcfly-alloc-v2__rolling--soft" aria-label="Recent pace">
       <div className="mcfly-alloc-v2__head">
         <h2>Recent pace · last 7 / 14 / 28 days</h2>
         <p className="mcfly-alloc-v2__muted">
@@ -1172,7 +1175,7 @@ function RollingWindowsSection({ tiles }: { tiles: RollingWindowTile[] }) {
         </p>
       </div>
       {tiles.length === 0 ? (
-        <p className="mcfly-alloc-v2__empty">
+        <p className="mcfly-alloc-v2__empty mcfly-alloc-v2__empty--soft">
           Not enough closed-day history for a recent-pace pulse yet.
         </p>
       ) : (
@@ -1188,7 +1191,7 @@ function RollingWindowsSection({ tiles }: { tiles: RollingWindowTile[] }) {
                     : "flat";
             return (
               <article
-                className={`mcfly-alloc-v2__roll mcfly-alloc-v2__roll--${tone}`}
+                className={`mcfly-alloc-v2__roll mcfly-alloc-v2__roll--soft mcfly-alloc-v2__roll--${tone}`}
                 key={tile.days}
               >
                 <p className="mcfly-alloc-v2__roll-label">{tile.label}</p>

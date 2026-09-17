@@ -601,6 +601,7 @@ export default function GoalsPage() {
           "mcfly-desk",
           "mcfly-desk--chrome",
           "mcfly-goals",
+          "mcfly-goals--soft",
           shotMode ? "mcfly-desk--shot" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
         ]
@@ -670,24 +671,32 @@ export default function GoalsPage() {
         ) : null}
 
         {periodMetrics.salesPending && !salesError && !shotMode ? (
-          <s-banner tone="info" heading="Sales still loading">
-            <s-paragraph>
+          <section
+            className="mcfly-state mcfly-state--loading mcfly-state--soft"
+            aria-live="polite"
+            aria-label="Sales still loading"
+          >
+            <p className="mcfly-state__copy">
               Still loading — not $0. Months with certified sales still show
               pace vs your typed plan.
-            </s-paragraph>
-          </s-banner>
+            </p>
+          </section>
         ) : null}
 
         {isSaving || isRevalidating ? (
-          <s-banner tone="info" heading="Updating goals">
-            <s-paragraph>Writing your {year} plan…</s-paragraph>
-          </s-banner>
+          <section
+            className="mcfly-state mcfly-state--loading mcfly-state--soft"
+            aria-live="polite"
+            aria-label="Updating goals"
+          >
+            <p className="mcfly-state__copy">Writing your {year} plan…</p>
+          </section>
         ) : null}
 
         <div className="mcfly-goals__main">
           {/* One hero, drill rows — same book language as Orders and Buyers. */}
           <section
-            className="mcfly-book"
+            className="mcfly-book mcfly-book--soft mcfly-goals-hero--soft"
             aria-label={`Sales · ${periodMetrics.period.label}`}
           >
             <p className="mcfly-book__lede">
@@ -779,7 +788,7 @@ export default function GoalsPage() {
           />
 
           {!shotMode ? (
-            <section className="mcfly-book" aria-label="Year plan">
+            <section className="mcfly-book mcfly-book--soft mcfly-goals-plan--soft" aria-label="Year plan">
               <p className="mcfly-book__lede">
                 {noGoalsYet
                   ? "Set a year plan from last year’s sales."
@@ -830,7 +839,7 @@ export default function GoalsPage() {
         </div>
 
         {!shotMode ? (
-          <details open className="mcfly-details mcfly-goals-plan-details">
+          <details open className="mcfly-details mcfly-goals-plan-details mcfly-goals-plan-details--soft">
             <summary>Monthly board · fine-tune</summary>
 
             <div className="mcfly-goals-toggle-bar" aria-label="Show sales goals">
@@ -879,7 +888,7 @@ export default function GoalsPage() {
               <>
                 {forecast && forecast.monthGoal > 0 ? (
                   <section
-                    className="mcfly-goals-forecast mcfly-goals-forecast--inline"
+                    className="mcfly-goals-forecast mcfly-goals-forecast--inline mcfly-goals-forecast--soft"
                     aria-label="Current month forecast"
                   >
                     <p className="mcfly-goals-forecast__takeaway">
@@ -908,7 +917,7 @@ export default function GoalsPage() {
                 ) : null}
 
                 <section
-                  className="mcfly-panel mcfly-goals-panel mcfly-goals-panel--dense"
+                  className="mcfly-panel mcfly-goals-panel mcfly-goals-panel--dense mcfly-goals-panel--soft"
                   aria-label="Monthly plan"
                 >
                   <Form
@@ -977,7 +986,7 @@ export default function GoalsPage() {
               </>
             ) : (
               <section
-                className="mcfly-panel mcfly-goals-panel mcfly-goals-panel--dense"
+                className="mcfly-panel mcfly-goals-panel mcfly-goals-panel--dense mcfly-goals-panel--soft"
                 aria-label="Year over year board"
               >
                 <div className="mcfly-panel__head mcfly-panel__head--tight">
