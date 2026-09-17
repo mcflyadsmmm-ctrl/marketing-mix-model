@@ -20,6 +20,7 @@ import {
 import {
   getSampleDeskEnabled,
   getSamplePreviewAllowed,
+  hydrateSampleOnlyFreeze,
 } from "../lib/sample-desk.server";
 import { DeskCurrencyContext } from "../lib/desk-currency";
 import { deskPaintCurrency } from "../lib/spend-money";
@@ -76,6 +77,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
+  await hydrateSampleOnlyFreeze(shop.id);
   const shotMode = url.searchParams.get("shot") === "1";
   const [useSampleDesk, samplePreviewAllowed] = await Promise.all([
     getSampleDeskEnabled(shop.id),

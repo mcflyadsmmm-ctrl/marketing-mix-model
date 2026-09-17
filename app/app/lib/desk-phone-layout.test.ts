@@ -32,7 +32,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(tabs).not.toContain("label=\"Ads\"");
   });
 
-  it("stacks primary KPIs and YoY at 430px so $82,068 cannot sit in a 3-up crush", () => {
+  it("stacks primary KPIs and YoY at 430px so $68,457 cannot sit in a 3-up crush", () => {
     expect(phone).toMatch(/@media \(max-width: 430px\)/);
     expect(phone).toContain(".mcfly-kpi-grid");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
@@ -83,11 +83,15 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toContain("Click for detail");
   });
 
-  it("ships a 390px fixture with Harbor SAMPLE dollars and the 11-tab rail", () => {
+  it("ships a 390px fixture with Snowdevil SAMPLE dollars and the 11-tab rail", () => {
     const fixture = read("./desk-phone-fixture.html");
-    expect(fixture).toContain("$82,068");
+    expect(fixture).toContain("$68,457");
+    expect(fixture).toContain("$631");
+    expect(fixture).toContain("Snowdevil");
     expect(fixture).toContain("Typical order");
     expect(fixture).toContain("Weekend sales");
+    expect(fixture).not.toContain("Harbor");
+    expect(fixture).not.toContain("$92");
     expect(fixture).not.toContain("3.51×");
     expect(fixture).not.toContain("0.00×");
     expect(fixture).not.toContain("Edit spend");
@@ -95,7 +99,8 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("Channel Allocation");
     expect(fixture).toContain("Spend Upload");
     expect(fixture).toContain("Retry");
-    expect(fixture).toContain("Switch to Live data now");
+    expect(fixture).toContain("Live is parked until launch");
+    expect(fixture).not.toContain("Switch to Live data now");
     expect(fixture).not.toContain("$98,500");
     expect(fixture).not.toMatch(/>—</);
   });

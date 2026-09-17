@@ -24,7 +24,7 @@ function chrome(rel: string) {
 }
 
 describe("Sample data | Live data UX", () => {
-  it("desk paint uses SAMPLE USD when Sample is on so Harbor dollars are not —", () => {
+  it("desk paint uses SAMPLE USD when Sample is on so Snowdevil dollars are not —", () => {
     const shell = read("../routes/app.tsx");
     expect(shell).toContain("deskPaintCurrency");
     expect(shell).toContain("sampleOn: useSampleDesk");
@@ -66,6 +66,8 @@ describe("Sample data | Live data UX", () => {
     expect(labels).toContain('sampleData: "Sample data"');
     expect(labels).toContain('liveData: "Live data"');
     expect(labels).toContain("Switch to Sample data in Settings");
+    expect(labels).toMatch(/sampleHint:\s*"Snowdevil/);
+    expect(labels).not.toMatch(/sampleHint:[\s\S]{0,200}Harbor/);
   });
 
   it("Sample data preview uses the data-mode POST, not /app/demo", () => {
@@ -101,6 +103,8 @@ describe("Sample data | Live data UX", () => {
     expect(sampleDesk).toContain("sampleSeedInFlight");
     expect(dataMode).toContain("export default function DataModeRoute");
     expect(dataMode).toContain('redirect(`/app/settings${url.search}`)');
+    expect(dataMode).toContain("isSampleOnlyFreeze");
+    expect(dataMode).toContain('intent === "use-real"');
   });
 
   it("Settings Sample switch posts to Settings with a native submit, not a blank data-mode GET", () => {
@@ -514,6 +518,7 @@ describe("Sample data | Live data UX", () => {
     expect(settings).toContain("Sample data");
     expect(settings).toContain("More — privacy");
     expect(settings).toContain("Switch to Sample data now");
+    expect(settings).toContain("Live is parked until launch");
     expect(settings).toContain("ProUpgradeButton");
     expect(settings).not.toContain("Practice desk");
     expect(settings).toContain("add daily spend on Spend Upload");

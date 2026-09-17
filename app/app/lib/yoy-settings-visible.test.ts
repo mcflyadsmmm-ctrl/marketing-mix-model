@@ -59,6 +59,14 @@ describe("Settings Sample | Live", () => {
     expect(settings).toContain('name="intent" value="use-real"');
   });
 
+  it("hides Live CTAs while the Sample-only freeze is on", () => {
+    expect(settings).toContain("Live is parked until launch");
+    expect(settings).toContain("sampleOnlyFreeze");
+    expect(settings).toContain("Snowdevil");
+    expect(settings).toMatch(/!sampleOnlyFreeze/);
+    expect(settings).not.toContain("Harbor");
+  });
+
   it("keeps margin optional and 7-day then $39 billing", () => {
     expect(settings).toMatch(/margin optional/i);
     expect(settings).toMatch(/7-day/);

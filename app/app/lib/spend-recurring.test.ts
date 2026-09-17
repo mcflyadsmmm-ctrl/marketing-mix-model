@@ -303,7 +303,7 @@ describe("materializeRecurringSpend", () => {
 });
 
 describe("materializeRecurringSpendForShop", () => {
-  it("skips SAMPLE desks so Harbor dollars stay the sample book", async () => {
+  it("skips SAMPLE desks so Snowdevil dollars stay the sample book", async () => {
     const result = await materializeRecurringSpendForShop({
       shopId: "shop_1",
       currencyCode: "USD",

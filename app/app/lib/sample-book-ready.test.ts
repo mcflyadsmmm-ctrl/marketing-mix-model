@@ -8,7 +8,7 @@ describe("sampleBookIsPaintable", () => {
     expect(sampleBookIsPaintable({ dayCount: 0, spendCount: 12 })).toBe(false);
   });
 
-  it("a Harbor-style book with days and spend is ready to paint", () => {
+  it("a Snowdevil-style book with days and spend is ready to paint", () => {
     expect(sampleBookIsPaintable({ dayCount: 400, spendCount: 800 })).toBe(true);
   });
 });

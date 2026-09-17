@@ -9,6 +9,16 @@ import {
 } from "./demo-sample-desk.server";
 import { customerWeightedAvgRevenue } from "./till-ltv.server";
 
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length === 0) return 0;
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1]! + sorted[mid]!) / 2;
+  }
+  return sorted[mid]!;
+}
+
 describe("buildThreeYearSampleDesk", () => {
   it("never shows 0 new customers or $0 new-customer sales", () => {
     const rows = buildThreeYearSampleDesk({
@@ -31,6 +41,45 @@ describe("buildThreeYearSampleDesk", () => {
     expect(rows.length).toBe(SAMPLE_BOOK_DAYS);
     const last = rows[rows.length - 1]!;
     expect(last.day.toISOString().slice(0, 10)).toBe("2026-09-10");
+  });
+
+  it("is a Snowdevil book: board AOV, winter peak, Meta+Google only", () => {
+    const now = new Date("2026-09-16T18:00:00Z");
+    const rows = buildThreeYearSampleDesk({ now, targetMer: 3.5 });
+    expect(SAMPLE_MIN_NEW_CUSTOMERS).toBe(1);
+    expect(rows.length).toBe(SAMPLE_BOOK_DAYS);
+    expect(rows[rows.length - 1]!.day.toISOString().slice(0, 10)).toBe(
+      "2026-09-16",
+    );
+
+    const aovs = rows.map((r) => r.sales / r.orderCount);
+    expect(median(aovs)).toBeGreaterThan(400);
+
+    let novSales = 0;
+    let maySales = 0;
+    const used = new Set<string>();
+    let sales = 0;
+    let spend = 0;
+    for (const r of rows) {
+      sales += r.sales;
+      const month = r.day.getUTCMonth();
+      if (month === 10) novSales += r.sales;
+      if (month === 4) maySales += r.sales;
+      for (const [ch, amt] of Object.entries(r.spendByChannel)) {
+        if (amt > 0) {
+          spend += amt;
+          used.add(ch);
+        }
+      }
+    }
+    expect(novSales).toBeGreaterThan(maySales);
+    const mer = sales / spend;
+    expect(mer).toBeGreaterThan(3.1);
+    expect(mer).toBeLessThan(4.0);
+    for (const ch of used) {
+      expect(SAMPLE_ACTIVE_CHANNELS).toContain(ch);
+    }
+    expect([...used].sort()).toEqual(["email", "google", "meta", "other"]);
   });
 
   it("lands Total ROAS near 3.5× with only a few paid channels", () => {

@@ -10,6 +10,7 @@ import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import {
   applySampleDeskIntent,
   isSampleDeskIntent,
+  isSampleOnlyFreeze,
 } from "../lib/sample-desk.server";
 
 /** Only allow in-app return paths (embedded Admin). */
@@ -61,6 +62,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const returnTo = safeAppReturnTo(form.get("returnTo"));
 
   if (isSampleDeskIntent(intent)) {
+    if (
+      isSampleOnlyFreeze() &&
+      (intent === "use-real" || intent === "hide-sample-preview")
+    ) {
+      return redirect(withGuideParam(returnTo, null));
+    }
     await applySampleDeskIntent(shop.id, intent);
     if (intent === "use-sample") {
       return redirect(withGuideParam(returnTo, null));
