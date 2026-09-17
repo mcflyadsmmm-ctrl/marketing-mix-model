@@ -17667,6 +17667,8 @@ button.mcfly-depth-legend__chip:focus-visible {
   .mcfly-cpa__payback-pair {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
 /* =========================================================================
  * Growth explorer — who came back. Reuses the Customers-marquee scaffold
  * (board / HTML overlays / dark tip / grain wash) with a first-time-$ hero
