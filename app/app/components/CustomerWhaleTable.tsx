@@ -13,14 +13,25 @@ export function CustomerWhaleTable({ analytics }: { analytics: CustomerAnalytics
   const a = analytics;
 
   if (!a.available || a.whaleCount === 0) {
+    const ghost = [0.82, 0.58, 0.4, 0.22];
     return (
-      <section className="mcfly-panel mcfly-cust-card" aria-label="Whale recency">
+      <section className="mcfly-panel mcfly-cust-card mcfly-cust-empty" aria-label="Whale recency">
         <div className="mcfly-panel__head">
           <h2>Whale recency</h2>
-          <p className="mcfly-panel__muted">{WHALE_MIN_ORDERS}+ order buyers by days since last order</p>
+          <p className="mcfly-panel__muted">
+            {WHALE_MIN_ORDERS}+ order buyers by days since last order
+          </p>
         </div>
-        <p className="mcfly-cust-note">
-          No {WHALE_MIN_ORDERS}+ order buyers on file in this window yet — not zero. Repeat buyers grow this as orders land.
+        <div className="mcfly-cust-empty__ghost mcfly-cust-empty__ghost--table" aria-hidden="true">
+          {ghost.map((w, i) => (
+            <span key={i} className="mcfly-cust-empty__row">
+              <span className="mcfly-cust-empty__row-bar" style={{ width: `${w * 100}%` }} />
+            </span>
+          ))}
+        </div>
+        <p className="mcfly-cust-empty__copy">
+          No {WHALE_MIN_ORDERS}+ order buyers on file in this window yet — not zero.
+          Repeat buyers grow this as orders land.
         </p>
       </section>
     );
@@ -61,7 +72,7 @@ export function CustomerWhaleTable({ analytics }: { analytics: CustomerAnalytics
                     v: "Your best customers (five or more orders on file) whose most recent order lands in this recency bucket. Older buckets are the ones to win back.",
                   },
                 ],
-                next: "Win-back timing lives in When they come back above.",
+                next: "Win-back timing lives in What to do above.",
               })
             }
           >

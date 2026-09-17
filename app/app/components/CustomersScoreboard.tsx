@@ -17,8 +17,8 @@ function pct(s: number): string {
   return `${wholePercent(s)}%`;
 }
 
-/** Soft, light tile — sentence-case label, big value, quiet note. Interactive. */
-function Tile({
+/** One unique fact — not a six-tile wall. Interactive. */
+function Fact({
   label,
   value,
   note,
@@ -53,20 +53,20 @@ function Tile({
     });
   const body: ReactNode = (
     <>
-      <span className="mcfly-cust-tile__k">
+      <span className="mcfly-cust-fact__k">
         <DeskIcon name={icon} />
         {label}
       </span>
-      <span className="mcfly-cust-tile__v">{value}</span>
-      {note ? <span className="mcfly-cust-tile__sub">{note}</span> : null}
+      <span className="mcfly-cust-fact__v">{value}</span>
+      {note ? <span className="mcfly-cust-fact__sub">{note}</span> : null}
     </>
   );
   return drill ? (
-    <button type="button" className="mcfly-cust-tile mcfly-cust-tile--drill" onClick={open}>
+    <button type="button" className="mcfly-cust-fact mcfly-cust-fact--drill" onClick={open}>
       {body}
     </button>
   ) : (
-    <div className="mcfly-cust-tile">{body}</div>
+    <div className="mcfly-cust-fact">{body}</div>
   );
 }
 
@@ -102,10 +102,10 @@ function Gauge({ share, value, caption }: { share: number | null; value: string;
 }
 
 /**
- * Customers hero — the Monthly-pacing soft-card language on the returning-dollars
- * niche: a returning-share gauge with the returning-dollars hero number, a dense
- * light tile grid (new $, $/buyer, guests, one-order, top 10%, orders/buyer), and
- * mix bars. Period metrics. Zero spend / ROAS on this tab.
+ * Compact returning-dollars hero. The marquee already owns new vs returning $
+ * over time; What-to-do owns repurchase / win-back / save-now. This strip keeps
+ * the period returning-$ number plus three facts the rest of the spine does not
+ * repeat: guests, sales per buyer, biggest orders. Not a six-tile wall.
  */
 export function CustomersScoreboard({
   book,
@@ -135,7 +135,6 @@ export function CustomersScoreboard({
 
   const money = (n: number | null | undefined) => (isNum(n) ? formatCurrency(n, currency) : "—");
 
-  const newDollars = salesPending ? "—" : money(book.newSales);
   const perBuyer = salesPending
     ? "—"
     : isNum(book.returningBuyerArpu)
@@ -151,33 +150,18 @@ export function CustomersScoreboard({
     !salesPending && isNum(depth.guestAov) && isNum(depth.identifiedAov)
       ? `Typical ${money(depth.guestAov)} vs ${money(depth.identifiedAov)} with an account`
       : undefined;
-  const oneOrder = !salesPending && hasShare(depth.oneAndDoneShare) ? pct(depth.oneAndDoneShare) : "—";
-  const top10 = !salesPending && hasShare(depth.topCustomerSalesShare) ? pct(depth.topCustomerSalesShare) : "—";
-  const ordersPerBuyer = !salesPending && isNum(depth.ordersPerBuyer) ? depth.ordersPerBuyer.toFixed(1) : "—";
-
-  const bars = [
-    {
-      k: "Returning dollars",
-      share: returningShare,
-      v: !salesPending && hasShare(book.returningSalesShare) ? pct(book.returningSalesShare) : "—",
-      cls: "return" as const,
-    },
-    {
-      k: "Repeat sales",
-      share: salesPending ? null : depth.repeatSalesShare,
-      v: !salesPending && hasShare(depth.repeatSalesShare) ? pct(depth.repeatSalesShare) : "—",
-      cls: "repeat" as const,
-    },
-    {
-      k: "Top 10% of customers",
-      share: salesPending ? null : depth.topCustomerSalesShare,
-      v: top10,
-      cls: "top" as const,
-    },
-  ];
+  const biggest =
+    !salesPending && hasShare(depth.topDecileSalesShare)
+      ? pct(depth.topDecileSalesShare)
+      : "—";
+  const empty =
+    salesPending || (returning == null && !hasShare(book.returningSalesShare));
 
   return (
-    <section className="mcfly-panel mcfly-cust-card mcfly-desk-anchor" aria-label="Returning customers">
+    <section
+      className={`mcfly-panel mcfly-cust-card mcfly-desk-anchor${empty ? " mcfly-cust-hero--empty" : ""}`}
+      aria-label="Returning customers"
+    >
       <div className="mcfly-panel__head">
         <h2>Returning customers</h2>
         <p className="mcfly-panel__muted">
@@ -188,84 +172,45 @@ export function CustomersScoreboard({
       <div className="mcfly-cust-hero__grid">
         <Gauge share={returningShare} value={returningValue} caption={caption} />
 
-        <div className="mcfly-cust-hero__right">
-          <div className="mcfly-cust-tiles">
-            <Tile
-              label="New dollars"
-              value={newDollars}
-              note="First-time buyers"
-              icon="customers"
-              formula="Sales from buyers on their first order this window. The hero is the returning half."
-              next="Growth covers who came back after a first order."
-              nextHref={growthHref}
-              nextLabel="Open Growth"
-            />
-            <Tile
-              label="Sales per buyer"
-              value={perBuyer}
-              note={perBuyerNote}
-              icon="customers"
-              formula="Window sales dollars per unique buyer — new and returning spend differently."
-              next="LTV tracks what a new buyer is worth over 30 / 90 / 365 days."
-              nextHref={ltvHref}
-              nextLabel="Open LTV"
-            />
-            <Tile
-              label="Guests"
-              value={guests}
-              note={guestNote}
-              icon="customers"
-              formula="Share of orders placed without a customer account — guests can never count as returning."
-              next="Growth covers who came back after a first order."
-              nextHref={growthHref}
-              nextLabel="Open Growth"
-            />
-            <Tile
-              label="One-order buyers"
-              value={oneOrder}
-              note="Bought once this window"
-              icon="customers"
-              formula="Identified buyers with exactly one order. The gap to returning dollars is your repeat opportunity."
-              next="See When they come back below for the win-back timing."
-            />
-            <Tile
-              label="Top 10% of customers"
-              value={top10}
-              note="of sales"
-              icon="customers"
-              formula="Share of sales from the highest-spending 10% of identified buyers. A few accounts can carry the shop."
-              next="LTV shows what those top buyers are worth over time."
-              nextHref={ltvHref}
-              nextLabel="Open LTV"
-            />
-            <Tile
-              label="Orders per buyer"
-              value={ordersPerBuyer}
-              note={depth.identifiedBuyers > 0 ? `${depth.identifiedBuyers.toLocaleString()} identified buyers` : undefined}
-              icon="orders"
-              formula="Identified orders divided by identified buyers this window. Guests are excluded."
-              next="Order frequency below breaks this into 1 / 2 / 3+ orders."
-            />
-          </div>
-
-          <div className="mcfly-cust-bars" aria-label="Dollar mix">
-            {bars.map((bar) => (
-              <div className="mcfly-cust-bar-row" key={bar.k}>
-                <span className="mcfly-cust-bar-row__k">{bar.k}</span>
-                <span className="mcfly-cust-track" aria-hidden="true">
-                  <span
-                    className={`mcfly-cust-fill mcfly-cust-fill--${bar.cls}`}
-                    style={{
-                      width: `${hasShare(bar.share) ? Math.min(100, wholePercent(bar.share)) : 0}%`,
-                    }}
-                  />
-                </span>
-                <span className="mcfly-cust-bar-row__v">{bar.v}</span>
-              </div>
-            ))}
-          </div>
+        <div className="mcfly-cust-facts">
+          <Fact
+            label="Guests"
+            value={guests}
+            note={guestNote}
+            icon="customers"
+            formula="Share of orders placed without a customer account — guests can never count as returning."
+            next="Growth covers who came back after a first order."
+            nextHref={growthHref}
+            nextLabel="Open Growth"
+          />
+          <Fact
+            label="Sales per buyer"
+            value={perBuyer}
+            note={perBuyerNote}
+            icon="customers"
+            formula="Window sales dollars per unique buyer — new and returning spend differently."
+            next="LTV tracks what a new buyer is worth over 30 / 90 / 365 days."
+            nextHref={ltvHref}
+            nextLabel="Open LTV"
+          />
+          <Fact
+            label="Biggest orders"
+            value={biggest}
+            note="Largest 10% of orders"
+            icon="orders"
+            formula="Share of sales from the largest 10% of orders this window — order concentration, not the same as top customers."
+            next="Value & frequency mix below shows who those dollars sit with."
+          />
         </div>
       </div>
+
+      {empty ? (
+        <p className="mcfly-cust-empty__copy">
+          {salesPending
+            ? "Returning dollars are still loading — not $0."
+            : "Returning dollars need identified buyers in this window — not $0."}
+        </p>
+      ) : null}
     </section>
   );
 }

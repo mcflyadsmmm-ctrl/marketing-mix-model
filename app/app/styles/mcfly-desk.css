@@ -14996,6 +14996,8 @@ button.mcfly-chart__hour {
  * analytics: returning gauge + tiles, repurchase cadence, spend bands, whale
  * recency. APPEND ONLY. Customers-scoped (mcfly-cust-*). Zero spend / ROAS.
  * SAMPLE stays labeled. Phone 390–430 stays usable.
+ * FAIL #5: compact returning hero (3 unique facts) + designed empties — not a
+ * six-tile wall + buyers catalog dump.
  * ========================================================================= */
 
 .mcfly-cust-card {
@@ -15006,7 +15008,7 @@ button.mcfly-chart__hour {
   font-family: var(--mcfly-display);
 }
 
-/* Hero — returning gauge + dense tile grid + mix bars. */
+/* Hero — returning gauge + three unique facts (not a six-tile wall). */
 .mcfly-cust-hero__grid {
   display: grid;
   grid-template-columns: 210px 1fr;
@@ -15052,6 +15054,199 @@ button.mcfly-chart__hour {
 
 .mcfly-cust-hero__right {
   min-width: 0;
+}
+
+.mcfly-cust-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .mcfly-cust-facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mcfly-cust-fact {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  background: color-mix(in srgb, #fff 78%, var(--mcfly-tint-sky));
+  border: 1px solid transparent;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  border-radius: 0;
+  padding: 0.2rem 0.15rem 0.45rem;
+}
+
+.mcfly-cust-fact--drill {
+  cursor: pointer;
+}
+
+.mcfly-cust-fact--drill:hover .mcfly-cust-fact__v {
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-fact--drill:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+}
+
+.mcfly-cust-fact__k {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-fact__k .mcfly-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.mcfly-cust-fact__v {
+  display: block;
+  margin: 0.2rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+  line-height: 1.15;
+}
+
+.mcfly-cust-fact__sub {
+  display: block;
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  color: var(--mcfly-mute);
+  line-height: 1.3;
+}
+
+.mcfly-cust-play__meta {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  color: var(--mcfly-ink);
+  line-height: 1.4;
+}
+
+.mcfly-cust-empty__copy {
+  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-empty__ghost {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.85rem;
+  min-height: 5.5rem;
+  margin: 0.35rem 0 0;
+  padding: 0.55rem 0.35rem 0.2rem;
+  opacity: 0.55;
+  filter: saturate(0.4);
+}
+
+.mcfly-cust-empty__clock {
+  position: relative;
+  width: 3.4rem;
+  height: 3.4rem;
+  flex: 0 0 auto;
+}
+
+.mcfly-cust-empty__clock-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 3px solid color-mix(in srgb, var(--mcfly-accent) 28%, #e3ecf4);
+  border-radius: 50%;
+}
+
+.mcfly-cust-empty__clock-hand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2px;
+  height: 1.15rem;
+  background: color-mix(in srgb, var(--mcfly-accent-ink) 45%, #cbd5e1);
+  transform-origin: 50% 0;
+  transform: translate(-50%, 0) rotate(28deg);
+}
+
+.mcfly-cust-empty__funnel {
+  flex: 1;
+  display: grid;
+  gap: 0.4rem;
+  align-content: center;
+}
+
+.mcfly-cust-empty__funnel-bar {
+  display: block;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-accent) 18%, #e3ecf4);
+}
+
+.mcfly-cust-empty__ghost--bars {
+  align-items: stretch;
+  min-height: 6.5rem;
+  gap: 0.45rem;
+}
+
+.mcfly-cust-empty__col {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.18rem;
+}
+
+.mcfly-cust-empty__col-a,
+.mcfly-cust-empty__col-b {
+  display: block;
+  width: 42%;
+  border-radius: 3px 3px 0 0;
+  min-height: 0.6rem;
+}
+
+.mcfly-cust-empty__col-a {
+  background: color-mix(in srgb, var(--mcfly-accent) 22%, #e3ecf4);
+}
+
+.mcfly-cust-empty__col-b {
+  background: color-mix(in srgb, var(--mcfly-ink) 16%, #e3ecf4);
+}
+
+.mcfly-cust-empty__ghost--table {
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+  gap: 0.45rem;
+}
+
+.mcfly-cust-empty__row {
+  display: block;
+  height: 0.7rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--mcfly-line) 55%, #fff);
+}
+
+.mcfly-cust-empty__row-bar {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--mcfly-accent) 20%, #e3ecf4);
 }
 
 .mcfly-cust-tiles {

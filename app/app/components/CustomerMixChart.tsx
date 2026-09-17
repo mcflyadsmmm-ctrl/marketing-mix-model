@@ -188,7 +188,7 @@ export function CustomerMixChart({
           v: "Returning = orders from buyers who had already ordered on file; first-time = their first order (or a guest). Order dollars only — no spend, no pixel.",
         },
       ],
-      next: "When they come back (below) shows the repurchase clock behind this line.",
+      next: "What to do (below) shows the repurchase clock behind this line.",
     });
 
   const stats = [
