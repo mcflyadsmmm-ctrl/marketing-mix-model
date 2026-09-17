@@ -45,6 +45,68 @@ describe("Snowdevil SAMPLE math smoke", () => {
     expect(formatMer(null)).toBe("—");
   });
 
+  it("MTD MER stays 3.1–4.0 for every month-day checkpoint (regression lock)", () => {
+    // The single fixed-date MTD check above cannot catch a seasonal drift a
+    // generator tweak might introduce (e.g. a February MTD leaving the band).
+    // Walk every month across three day-of-month checkpoints and assert the
+    // MTD ratio never paints outside 3.1–4.0 — and never 0.00× / dead spend.
+    const checkpoints: Array<{ month: number; day: number }> = [];
+    for (let month = 0; month < 12; month += 1) {
+      for (const day of [1, 15, 28]) checkpoints.push({ month, day });
+    }
+    for (const { month, day } of checkpoints) {
+      const at = new Date(Date.UTC(2026, month, day, 18, 0, 0));
+      const book = buildThreeYearSampleDesk({ now: at, targetMer: 3.5 });
+      const mtd = book.filter(
+        (r) =>
+          r.day.getUTCFullYear() === 2026 &&
+          r.day.getUTCMonth() === month &&
+          r.day.getUTCDate() >= 1 &&
+          r.day.getUTCDate() <= day,
+      );
+      expect(mtd.length).toBe(day);
+      let sales = 0;
+      let spend = 0;
+      let orders = 0;
+      for (const r of mtd) {
+        sales += r.sales;
+        spend += spendOf(r);
+        orders += r.orderCount;
+      }
+      const label = `2026-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      expect(spend, `${label} spend`).toBeGreaterThan(0);
+      expect(sales, `${label} sales`).toBeGreaterThan(0);
+      const mer = sales / spend;
+      expect(mer, `${label} MTD mer=${mer.toFixed(3)}`).toBeGreaterThan(3.1);
+      expect(mer, `${label} MTD mer=${mer.toFixed(3)}`).toBeLessThan(4.0);
+      // Snowdevil AOV territory — never a Harbor $88 candle or a $0 divide.
+      const aov = sales / orders;
+      expect(aov, `${label} AOV=${aov.toFixed(0)}`).toBeGreaterThan(400);
+      expect(aov, `${label} AOV=${aov.toFixed(0)}`).toBeLessThan(900);
+    }
+  });
+
+  it("no book day is zero-spend or extreme MER (contamination / clamp lock)", () => {
+    // Every generated day must carry paid spend (else Total ROAS would paint
+    // 0.00× on a day with real SAMPLE sales) and stay in a sane band so a
+    // channel-remainder clamp can never silently zero a day's spend.
+    let wholeSales = 0;
+    let wholeSpend = 0;
+    for (const r of rows) {
+      const spend = spendOf(r);
+      expect(spend, `${r.day.toISOString().slice(0, 10)} spend`).toBeGreaterThan(0);
+      expect(r.sales).toBeGreaterThan(0);
+      const mer = r.sales / spend;
+      expect(mer, `${r.day.toISOString().slice(0, 10)} daily mer=${mer.toFixed(3)}`).toBeGreaterThan(3.1);
+      expect(mer, `${r.day.toISOString().slice(0, 10)} daily mer=${mer.toFixed(3)}`).toBeLessThan(4.0);
+      wholeSales += r.sales;
+      wholeSpend += spend;
+    }
+    const wholeMer = wholeSales / wholeSpend;
+    expect(wholeMer).toBeGreaterThan(3.3);
+    expect(wholeMer).toBeLessThan(3.8);
+  });
+
   it("a SAMPLE day stays sales ÷ spend in 3.1–4.0, never 0.00× with spend", () => {
     const day = rows.find((r) => r.day.toISOString().slice(0, 10) === "2026-09-16");
     expect(day).toBeTruthy();
