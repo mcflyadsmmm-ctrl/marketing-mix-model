@@ -132,7 +132,7 @@ export function MarketingSpendRoom({
 
   return (
     <section
-      className="mcfly-book mcfly-spend-room"
+      className="mcfly-book mcfly-spend-room mcfly-spend-room--soft"
       aria-label={
         intelOnly
           ? "Last 7 and 28 day Total ROAS"

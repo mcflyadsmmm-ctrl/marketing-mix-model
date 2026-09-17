@@ -57,7 +57,7 @@ export function DualCloseLine({
       : `If ${lastNLabel(model.paceDays)} hold`;
 
   return (
-    <p className="mcfly-dual-close">
+    <p className="mcfly-dual-close mcfly-dual-close--soft">
       {daysLeft} If the rest of this month matches this month so far:{" "}
       {formatCurrency(model.monthRateSales, currency)} sales at{" "}
       {merLabel(model.monthRateMer, model.monthRateSpend)}. {recentHold}:{" "}

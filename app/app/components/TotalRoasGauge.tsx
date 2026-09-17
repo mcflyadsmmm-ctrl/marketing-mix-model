@@ -107,7 +107,7 @@ export function TotalRoasGauge({
             </text>
           </svg>
           <p className="mcfly-roas-gauge__value">
-            {formatMer(mer)}
+            {mer == null ? "—" : formatMer(mer)}
           </p>
         </div>
         {deltaLine ? (

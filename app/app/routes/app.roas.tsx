@@ -263,6 +263,7 @@ export default function TotalRoasPage() {
       <div
         className={[
           "mcfly-desk",
+          "mcfly-roas--soft",
           shotMode ? "mcfly-desk--shot" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
           isLoading && !shotMode ? "mcfly-desk--loading" : null,
@@ -306,12 +307,12 @@ export default function TotalRoasPage() {
           </div>
         ) : null}
 
-        <section className="mcfly-book" aria-label="Sales, spend, and Total ROAS">
+        <section className="mcfly-book mcfly-book--soft mcfly-roas-book--soft" aria-label="Sales, spend, and Total ROAS">
           <p className="mcfly-book__lede">
             Shopify Analytics shows sales, not {PRODUCT_NOUN.totalRoas}. This page shows {PRODUCT_NOUN.definition} — not platform ROAS.
           </p>
-          <div className="mcfly-book__glance mcfly-book__glance--kpis">
-            <div className="mcfly-book__kpi">
+          <div className="mcfly-book__glance mcfly-book__glance--kpis mcfly-book__glance--soft">
+            <div className="mcfly-book__kpi mcfly-book__kpi--soft">
               <p className="mcfly-book__kpi-k">Sales</p>
               <p className="mcfly-book__kpi-v">
                 {metrics.salesPending ? "—" : formatCurrency(metrics.sales, currency)}
@@ -322,7 +323,7 @@ export default function TotalRoasPage() {
                   : metrics.period.label}
               </p>
             </div>
-            <div className="mcfly-book__kpi">
+            <div className="mcfly-book__kpi mcfly-book__kpi--soft">
               <p className="mcfly-book__kpi-k">Spend</p>
               <p className="mcfly-book__kpi-v">
                 {formatSpendOnFile(metrics.totalSpend, currency)}
@@ -331,7 +332,7 @@ export default function TotalRoasPage() {
                 {spendOnFileHint(metrics.totalSpend)}
               </p>
             </div>
-            <div className="mcfly-book__kpi">
+            <div className="mcfly-book__kpi mcfly-book__kpi--soft mcfly-book__kpi--lead">
               <p className="mcfly-book__kpi-k">{PRODUCT_NOUN.totalRoas}</p>
               <p className="mcfly-book__kpi-v">{roasValue}</p>
               {hasSpend ? (

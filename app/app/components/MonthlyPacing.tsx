@@ -67,7 +67,7 @@ export function MonthlyPacing({
 
   return (
     <section
-      className="mcfly-panel mcfly-pacing"
+      className="mcfly-panel mcfly-pacing mcfly-pacing--soft"
       aria-label={`${heading} pacing`}
     >
       <div className="mcfly-panel__head">
@@ -113,7 +113,7 @@ export function MonthlyPacing({
             ) : null}
           </svg>
           <p className="mcfly-pacing__gauge-value" style={{ color: stroke }}>
-            {mer === null ? "—.——" : formatMer(mer)}
+            {mer === null || !(spend > 0) ? "—" : formatMer(mer)}
           </p>
           <p className="mcfly-pacing__gauge-label">
             {PRODUCT_NOUN.totalRoas}

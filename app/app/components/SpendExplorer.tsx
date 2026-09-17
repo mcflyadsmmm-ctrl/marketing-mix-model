@@ -685,7 +685,7 @@ export function SpendExplorer({
   return (
     <section
       id="mcfly-chart"
-      className={`mcfly-panel mcfly-explorer mcfly-explorer--lean${explorerVariantClass(variant)}`}
+      className={`mcfly-panel mcfly-explorer mcfly-explorer--lean${explorerVariantClass(variant)}${basePath === "/app/roas" ? " mcfly-explorer--soft" : ""}`}
       aria-label={explorerTitle}
     >
       {quiet ? null : (
@@ -1202,7 +1202,7 @@ export function SpendExplorer({
                             vs {compareNoun} ({tipCmp.priorLabel}): spend{" "}
                             {formatCurrency(tipCmp.priorSpend ?? 0, currency)} ·{" "}
                             {PRODUCT_NOUN.totalRoas}{" "}
-                            {formatMer(tipCmp.priorMer)}
+                            {tipCmp.priorMer != null ? formatMer(tipCmp.priorMer) : "—"}
                           </span>
                         ) : null}
                       </>
