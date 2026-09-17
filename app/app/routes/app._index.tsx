@@ -42,7 +42,10 @@ import {
   isOverviewHomeStage,
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
-import { overviewGreetingPending } from "../lib/overview-first-viewport";
+import {
+  OVERVIEW_PENDING_ASOF,
+  overviewGreetingPending,
+} from "../lib/overview-first-viewport";
 import { formatOverviewShareText } from "../lib/cash-close";
 import {
   emptySales,
@@ -363,6 +366,16 @@ export default function Dashboard() {
     ? DESK_SECTION.overview
     : deskStageFromHash(location.hash);
   const onHome = isOverviewHomeStage(stage);
+  const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
+  const greetingPending = overviewGreetingPending({
+    salesPending: metrics.salesPending,
+    sales: totalSalesDisplay,
+    coverageComplete: salesFactsCoverage?.complete ?? null,
+    periodExceedsFactWindow: Boolean(
+      salesFactsCoverage?.periodExceedsFactWindow,
+    ),
+    useSampleDesk,
+  });
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.
   const tillLabel = useSampleDesk
@@ -373,11 +386,8 @@ export default function Dashboard() {
           metrics.blockedMockAsLive ||
           metrics.salesSource === "mock"
         ? `${metrics.period.label} · sales unavailable`
-        : salesFactsCoverage != null &&
-            !salesFactsCoverage.complete &&
-            !salesFactsCoverage.periodExceedsFactWindow &&
-            !(metrics.sales > 0)
-          ? `${metrics.period.label}${PRODUCT_NOUN.factsIncompleteSuffix}`
+        : greetingPending
+          ? `${metrics.period.label}${OVERVIEW_PENDING_ASOF}`
           : `${metrics.period.label} · live sales`;
   const freshLabel = formatCashFreshnessChip({
     useSampleDesk,
@@ -409,7 +419,6 @@ export default function Dashboard() {
   const spendDeltaLine = deltas
     ? formatPctDelta(deltas.spendPct, priorLabel)
     : null;
-  const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
   const shopBook = shopifyNativePeriodStats({
     sales: metrics.sales,
     orderCount: metrics.orderCount,
@@ -448,7 +457,7 @@ export default function Dashboard() {
     breakEvenMer: metrics.breakEvenMer,
     marginPct: metrics.marginPct,
     spendIncomplete: Boolean(metrics.spendCoverage?.incomplete),
-    salesPending: metrics.salesPending,
+    salesPending: greetingPending,
     shopLabel,
     channels: periodChannels,
     salesDeltaLine,
@@ -462,7 +471,9 @@ export default function Dashboard() {
     <CashTrustBanners
       blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
       spendCoverage={
-        !useSampleDesk && metrics.onboarding.hasSpend
+        !greetingPending &&
+        !useSampleDesk &&
+        metrics.onboarding.hasSpend
           ? metrics.spendCoverage
           : null
       }
@@ -492,11 +503,14 @@ export default function Dashboard() {
       shotMode={shotMode}
       cashActionReady={metrics.cashActionReady}
       spendRecon={
-        !useSampleDesk && metrics.onboarding.hasSpend
+        !greetingPending &&
+        !useSampleDesk &&
+        metrics.onboarding.hasSpend
           ? metrics.spendRecon
           : null
       }
       belowBreakEven={
+        !greetingPending &&
         metrics.cashActionReady &&
         metrics.breakEvenMer != null &&
         metrics.aboveBreakEven === false
@@ -509,6 +523,7 @@ export default function Dashboard() {
       }
       marginStale={!useSampleDesk && Boolean(metrics.marginStale)}
       onboarding={
+        !greetingPending &&
         !useSampleDesk &&
         !shotMode &&
         !marginBlocked &&
@@ -540,15 +555,6 @@ export default function Dashboard() {
   const yoyHref = deskNavHrefFromSearch("/app/yoy", searchParams);
   const showLiveHandoff =
     !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
-  const greetingPending = overviewGreetingPending({
-    salesPending: metrics.salesPending,
-    sales: totalSalesDisplay,
-    coverageComplete: salesFactsCoverage?.complete ?? null,
-    periodExceedsFactWindow: Boolean(
-      salesFactsCoverage?.periodExceedsFactWindow,
-    ),
-    useSampleDesk,
-  });
 
   return (
     <s-page heading={deskStageHeading(stage)} inlineSize="large">

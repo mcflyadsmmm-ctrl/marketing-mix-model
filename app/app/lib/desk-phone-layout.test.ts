@@ -36,6 +36,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(phone).toMatch(/@media \(max-width: 430px\)/);
     expect(phone).toContain(".mcfly-kpi-grid");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
+    expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--peeks-2");
     expect(phone).toContain(".mcfly-yoy__grid");
     expect(phone).toMatch(
       /\.mcfly-kpi-grid[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
@@ -65,6 +66,21 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(phone).toContain(".mcfly-btn");
     const spend = phone.slice(phone.indexOf(".mcfly-spend-row"));
     expect(spend).toContain("min-height: 2.75rem");
+  });
+
+  it("pending Live fixture is dashes — not $0 / 0.00× / Edit spend", () => {
+    const fixture = read("./desk-phone-pending-fixture.html");
+    expect(fixture).toContain("still loading — not $0");
+    expect(fixture).toContain("This month");
+    expect(fixture).toContain("This quarter");
+    expect(fixture).toContain("This year");
+    expect(fixture).toContain("Spend Upload");
+    expect(fixture).not.toContain("0.00×");
+    expect(fixture).not.toContain("Edit spend");
+    expect(fixture).not.toContain("Total Sales");
+    expect(fixture).not.toContain("EOM projected");
+    expect(fixture).not.toMatch(/>\$0</);
+    expect(fixture).not.toContain("Click for detail");
   });
 
   it("ships a 390px fixture with Harbor SAMPLE dollars and the 11-tab rail", () => {

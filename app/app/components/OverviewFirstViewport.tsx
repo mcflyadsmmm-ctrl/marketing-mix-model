@@ -82,12 +82,14 @@ function QuietSpendDoor({
   settingsHref,
   useSampleDesk,
   hasSpend,
+  salesPending,
 }: {
   spendHref: string;
   roasHref: string;
   settingsHref: string;
   useSampleDesk: boolean;
   hasSpend: boolean;
+  salesPending: boolean;
 }) {
   if (useSampleDesk) {
     return (
@@ -101,7 +103,7 @@ function QuietSpendDoor({
     <p className="mcfly-score__door">
       {OVERVIEW_SPEND_DOOR_LINE}{" "}
       <Link to={spendHref}>Spend Upload</Link>
-      {hasSpend ? (
+      {hasSpend && !salesPending ? (
         <>
           {" · "}
           <Link to={roasHref}>Open Total ROAS</Link>
@@ -215,8 +217,14 @@ export function OverviewFirstViewport({
       settingsHref={settingsHref}
       useSampleDesk={useSampleDesk}
       hasSpend={hasSpend}
+      salesPending={salesPending}
     />
   );
+  const showPeeks = orderCount > 0;
+  const peekGridClass =
+    third.kind === "empty"
+      ? "mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-2"
+      : "mcfly-kpi-grid mcfly-kpi-grid--peeks";
 
   if (salesPending) {
     return (
@@ -240,51 +248,55 @@ export function OverviewFirstViewport({
         <p className="mcfly-score__pipe">{OVERVIEW_COVERAGE_LINE}</p>
       ) : null}
 
-      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks">
-        <KpiCard
-          to={ordersHref}
-          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-          next="Typical order, discounts, and weekend sit on Orders — Shopify Analytics only shows the average."
-          formulaBlock={
-            typicalIsMedian
-              ? PRODUCT_NOUN.bookTypicalOrderDef
-              : "Average order value when median is not available yet."
-          }
-          icon="orders"
-          label={
-            typicalIsMedian ? PRODUCT_NOUN.bookTypicalOrder : "AOV"
-          }
-          value={typical ?? "—"}
-          sub={
-            typicalIsMedian
-              ? "Median. Shopify Analytics uses the average."
-              : undefined
-          }
-        />
-        <KpiCard
-          to="/app/customers"
-          nextLabel={`Open ${PRODUCT_NOUN.buyersTitle}`}
-          next="Open Customers for returning dollars and guest checkouts."
-          formulaBlock="Sales from returning customers in this window. Shopify Analytics Overview is a returning-customer rate."
-          icon="customers"
-          label="Returning"
-          value={returningValue}
-          foot="Dollars, not headcount."
-        />
-        <KpiCard
-          to={third.kind === "daysToSecond" ? "/app/growth" : ordersHref}
-          nextLabel={
-            third.kind === "daysToSecond"
-              ? `Open ${PRODUCT_NOUN.growthTitle}`
-              : `Open ${PRODUCT_NOUN.ordersTitle}`
-          }
-          next={thirdNext}
-          formulaBlock={thirdBlock}
-          icon={thirdIcon}
-          label={thirdLabel}
-          value={thirdValue}
-        />
-      </div>
+      {showPeeks ? (
+        <div className={peekGridClass}>
+          <KpiCard
+            to={ordersHref}
+            nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
+            next="Typical order, discounts, and weekend sit on Orders — Shopify Analytics only shows the average."
+            formulaBlock={
+              typicalIsMedian
+                ? PRODUCT_NOUN.bookTypicalOrderDef
+                : "Average order value when median is not available yet."
+            }
+            icon="orders"
+            label={
+              typicalIsMedian ? PRODUCT_NOUN.bookTypicalOrder : "AOV"
+            }
+            value={typical ?? "—"}
+            sub={
+              typicalIsMedian
+                ? "Median. Shopify Analytics uses the average."
+                : undefined
+            }
+          />
+          <KpiCard
+            to="/app/customers"
+            nextLabel={`Open ${PRODUCT_NOUN.buyersTitle}`}
+            next="Open Customers for returning dollars and guest checkouts."
+            formulaBlock="Sales from returning customers in this window. Shopify Analytics Overview is a returning-customer rate."
+            icon="customers"
+            label="Returning"
+            value={returningValue}
+            foot="Dollars, not headcount."
+          />
+          {third.kind === "empty" ? null : (
+            <KpiCard
+              to={third.kind === "daysToSecond" ? "/app/growth" : ordersHref}
+              nextLabel={
+                third.kind === "daysToSecond"
+                  ? `Open ${PRODUCT_NOUN.growthTitle}`
+                  : `Open ${PRODUCT_NOUN.ordersTitle}`
+              }
+              next={thirdNext}
+              formulaBlock={thirdBlock}
+              icon={thirdIcon}
+              label={thirdLabel}
+              value={thirdValue}
+            />
+          )}
+        </div>
+      ) : null}
 
       {share ? <p className="mcfly-book__cta">{share}</p> : null}
       {door}
