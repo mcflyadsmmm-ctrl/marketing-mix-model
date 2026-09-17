@@ -40,6 +40,16 @@ function bucketsForGrain(
   }));
 }
 
+function isWeekendDateKey(dateKey: string): boolean {
+  if (dateKey.includes("W")) return false;
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return false;
+  }
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  return weekday === 0 || weekday === 6;
+}
+
 function ChartEmptyFrame({ copy }: { copy: string }) {
   return (
     <section className="mcfly-chart mcfly-chart--empty" aria-label="Sales by day">
@@ -55,25 +65,29 @@ function ChartEmptyFrame({ copy }: { copy: string }) {
 }
 
 /**
- * Sales bars (including $0 days). Order dollars only — spend never overlays.
- * Grain (day/week) lives on the chart. A loaded desk never silent-nulls.
+ * Sales bars + polyline (including $0 days). Order dollars only —
+ * spend never overlays. Grain (day/week) lives on the chart.
  */
 export function OverviewSalesChart({
   days,
   ordersHref = "/app/orders",
   salesPending = false,
+  typicalDay = null,
 }: {
   days: SalesDayPoint[];
   ordersHref?: string;
   salesPending?: boolean;
+  typicalDay?: number | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
   const [grain, setGrain] = useState<"day" | "week">("day");
-  const [hover, setHover] = useState<SalesDayPoint | null>(null);
   const points = useMemo(
     () => bucketsForGrain(days, grain),
     [days, grain],
+  );
+  const [hover, setHover] = useState<SalesDayPoint | null>(
+    () => points[points.length - 1] ?? null,
   );
 
   if (points.length < 2) {
@@ -86,21 +100,32 @@ export function OverviewSalesChart({
 
   const max = Math.max(...points.map((point) => point.sales), 1);
   const width = 640;
-  const height = 200;
+  const height = 240;
   const gap = 3;
   const barW = Math.max(4, (width - gap * (points.length + 1)) / points.length);
-  const plotH = height - 24;
+  const plotH = height - 28;
+  const active = hover ?? points[points.length - 1] ?? null;
+  const line = points
+    .map((point, index) => {
+      const x = gap + index * (barW + gap) + barW / 2;
+      const y = height - 18 - Math.max(2, (point.sales / max) * plotH);
+      return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+    })
+    .join(" ");
 
   return (
-    <section className="mcfly-chart" aria-label="Sales by day">
+    <section className="mcfly-chart mcfly-chart--sales" aria-label="Sales by day">
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
           Sales
         </p>
-        {hover ? (
+        {active ? (
           <p className="mcfly-chart__hover" role="status">
-            {hover.dateKey} · {formatCurrency(hover.sales, currency)}
+            {active.dateKey} · {formatCurrency(active.sales, currency)}
+            {typicalDay != null && Number.isFinite(typicalDay)
+              ? ` · typical ${formatCurrency(typicalDay, currency)}`
+              : ""}
           </p>
         ) : (
           <p className="mcfly-chart__hover mcfly-chart__hover--idle" aria-hidden="true">
@@ -114,7 +139,10 @@ export function OverviewSalesChart({
               type="button"
               className={`mcfly-period__btn${grain === value ? " mcfly-period__btn--on" : ""}`}
               aria-pressed={grain === value}
-              onClick={() => setGrain(value)}
+              onClick={() => {
+                setGrain(value);
+                setHover(null);
+              }}
             >
               {value === "day" ? "Day" : "Week"}
             </button>
@@ -128,9 +156,23 @@ export function OverviewSalesChart({
         aria-label={`${points.length} ${grain} sales bars`}
       >
         {points.map((point, index) => {
+          if (grain !== "day" || !isWeekendDateKey(point.dateKey)) return null;
+          const x = gap + index * (barW + gap);
+          return (
+            <rect
+              key={`wk-${point.dateKey}`}
+              className="mcfly-chart__weekend"
+              x={x - gap / 2}
+              y={8}
+              width={barW + gap}
+              height={plotH}
+            />
+          );
+        })}
+        {points.map((point, index) => {
           const barH = Math.max(2, (point.sales / max) * plotH);
           const x = gap + index * (barW + gap);
-          const y = height - 16 - barH;
+          const y = height - 18 - barH;
           const openBar = () =>
             drill?.openDrill({
               title: grain === "week" ? "Week sales" : "Day sales",
@@ -141,11 +183,17 @@ export function OverviewSalesChart({
                   k: "Sales",
                   v: formatCurrency(point.sales, currency),
                 },
+                typicalDay != null && Number.isFinite(typicalDay)
+                  ? {
+                      k: "Typical day",
+                      v: formatCurrency(typicalDay, currency),
+                    }
+                  : null,
                 {
                   k: "What this is",
                   v: "Shopify Total Sales for this bar. Grain lives on the chart — not in the tab bar.",
                 },
-              ],
+              ].filter((block): block is { k: string; v: string } => block != null),
               next: "Open Orders for typical ticket, discounts, and weekend.",
               nextHref: ordersHref,
               nextLabel: "Open Orders",
@@ -153,7 +201,9 @@ export function OverviewSalesChart({
           return (
             <rect
               key={point.dateKey}
-              className="mcfly-chart__bar"
+              className={`mcfly-chart__bar${
+                isWeekendDateKey(point.dateKey) ? " mcfly-chart__bar--weekend" : ""
+              }`}
               x={x}
               y={y}
               width={barW}
@@ -164,9 +214,9 @@ export function OverviewSalesChart({
               aria-label={`${point.dateKey} ${formatCurrency(point.sales, currency)}`}
               onClick={openBar}
               onMouseEnter={() => setHover(point)}
-              onMouseLeave={() => setHover(null)}
+              onMouseLeave={() => setHover(points[points.length - 1] ?? null)}
               onFocus={() => setHover(point)}
-              onBlur={() => setHover(null)}
+              onBlur={() => setHover(points[points.length - 1] ?? null)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
@@ -176,8 +226,11 @@ export function OverviewSalesChart({
             />
           );
         })}
+        <path className="mcfly-chart__sales-line" d={line} />
       </svg>
-      <p className="mcfly-chart__hint">Click a bar · Day / Week is on this chart</p>
+      <p className="mcfly-chart__hint">
+        Tap a bar · Day / Week is on this chart · Sat–Sun shaded
+      </p>
     </section>
   );
 }

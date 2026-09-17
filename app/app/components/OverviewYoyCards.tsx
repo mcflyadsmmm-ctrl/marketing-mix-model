@@ -12,6 +12,7 @@ import {
   overviewWindowRange,
   overviewWindowsCollapsed,
   overviewYoyZone,
+  overviewYoyZoneLabel,
   type OverviewYoyCard,
   type OverviewYoyId,
   type OverviewYoyZone,
@@ -121,6 +122,7 @@ export function OverviewYoyCards({
         {cards.map((card) => {
           const vs = deltaLine(card, currency);
           const zone = overviewYoyZone(card);
+          const zoneLabel = overviewYoyZoneLabel(zone);
           const range = overviewWindowRange(card.fromKey, card.toKey);
           const priorLabel = card.missingPrior
             ? "—"
@@ -154,8 +156,15 @@ export function OverviewYoyCards({
               }
             >
               <p className="mcfly-yoy__k">
-                <DeskIcon name="yoy" />
-                {card.label}
+                <span className="mcfly-yoy__k-main">
+                  <DeskIcon name="yoy" />
+                  {card.label}
+                </span>
+                {zoneLabel ? (
+                  <span className={`mcfly-yoy__zone mcfly-yoy__zone--${zone}`}>
+                    {zoneLabel}
+                  </span>
+                ) : null}
               </p>
               {range ? <p className="mcfly-yoy__range">{range}</p> : null}
               <p className="mcfly-yoy__v">{formatCurrency(card.sales, currency)}</p>

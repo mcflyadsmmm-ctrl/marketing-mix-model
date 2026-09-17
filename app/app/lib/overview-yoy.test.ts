@@ -11,6 +11,7 @@ import {
   overviewWindowRange,
   overviewWindowsCollapsed,
   overviewYoyZone,
+  overviewYoyZoneLabel,
 } from "./overview-yoy";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -128,6 +129,10 @@ describe("buildOverviewYoyCards", () => {
     expect(overviewYoyZone({ delta: -1434, missingPrior: false })).toBe("down");
     expect(overviewYoyZone({ delta: 283, missingPrior: false })).toBe("up");
     expect(overviewYoyZone({ delta: null, missingPrior: true })).toBe("empty");
+    expect(overviewYoyZoneLabel("up")).toBe("Up");
+    expect(overviewYoyZoneLabel("down")).toBe("Down");
+    expect(overviewYoyZoneLabel("even")).toBe("Even");
+    expect(overviewYoyZoneLabel("empty")).toBeNull();
   });
 });
 

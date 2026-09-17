@@ -586,7 +586,7 @@ export default function Dashboard() {
           <>
             {scoreboardReady && onHome ? (
               <div
-                className="mcfly-desk-anchor"
+                className="mcfly-desk-anchor mcfly-scoreboard--overview"
                 id={DESK_SECTION.overview}
               >
                 <OverviewYoyCards
@@ -602,10 +602,14 @@ export default function Dashboard() {
                       ? metrics.sales / metrics.orderCount
                       : null
                   }
+                  typicalDay={metrics.shopifyDepth.medianDailySales}
                   returningSalesShare={shopBook.returningSalesShare}
                   returningSales={shopBook.returningSales}
                   medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
                   weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                  peakWeekday={metrics.shopifyDepth.peakWeekday}
+                  weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
+                  windowSales={metrics.sales}
                   salesPending={greetingPending}
                   ordersHref={ordersHref}
                   useSampleDesk={useSampleDesk}
@@ -617,10 +621,13 @@ export default function Dashboard() {
                   }))}
                   ordersHref={ordersHref}
                   salesPending={greetingPending}
+                  typicalDay={metrics.shopifyDepth.medianDailySales}
                 />
                 {!greetingPending ? (
                   <WeekdaySalesChart
                     shares={metrics.shopifyDepth.weekdaySalesShare}
+                    windowSales={metrics.sales}
+                    peakWeekday={metrics.shopifyDepth.peakWeekday}
                   />
                 ) : null}
                 {!greetingPending ? (

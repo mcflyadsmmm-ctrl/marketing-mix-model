@@ -111,6 +111,24 @@ export function overviewYoyZone(
   return "even";
 }
 
+/** Certified-window badge — honest Up / Down / Even, never a fake $0. */
+export function overviewYoyZoneLabel(zone: OverviewYoyZone): string | null {
+  switch (zone) {
+    case "up":
+      return "Up";
+    case "down":
+      return "Down";
+    case "even":
+      return "Even";
+    case "empty":
+      return null;
+    default: {
+      const _never: never = zone;
+      return _never;
+    }
+  }
+}
+
 function isYoyId(id: string): id is OverviewYoyId {
   return id === "mtd" || id === "qtd" || id === "ytd";
 }

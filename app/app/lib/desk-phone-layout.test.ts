@@ -92,6 +92,11 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("Snowdevil");
     expect(fixture).toContain("Typical order");
     expect(fixture).toContain("Weekend vs weekday");
+    expect(fixture).toContain("Typical day");
+    expect(fixture).toContain("Busiest weekday");
+    expect(fixture).toContain("$4,279");
+    expect(fixture).toContain("$13,264");
+    expect(fixture).toContain("mcfly-chart__sales-line");
     expect(fixture).toContain("aria-label=\"Sales by day\"");
     expect(fixture).not.toContain("Harbor");
     expect(fixture).not.toContain("$92");

@@ -1,3 +1,4 @@
+import { WEEKDAY_SHORT } from "./shopify-depth-stats";
 import { resolveSalesReadiness } from "./sales-pending";
 
 /**
@@ -55,6 +56,12 @@ export type OverviewPeekThird =
 export type OverviewWeekendWeekday = {
   weekendPct: number;
   weekdayPct: number;
+};
+
+export type OverviewBusiestWeekday = {
+  label: string;
+  dollars: number | null;
+  pct: number;
 };
 
 function wholePercent(share: number): number {
@@ -201,4 +208,30 @@ export function overviewPeekThird(input: {
     return { kind: "daysToSecond", days };
   }
   return { kind: "empty" };
+}
+
+/** Peak weekday dollars for the Overview busiest peek. */
+export function overviewBusiestWeekday(input: {
+  peakWeekday?: number | null;
+  weekdaySalesShare?: number[] | null;
+  windowSales?: number | null;
+}): OverviewBusiestWeekday | null {
+  const peak = input.peakWeekday;
+  if (peak == null || !Number.isInteger(peak) || peak < 0 || peak > 6) {
+    return null;
+  }
+  const share = input.weekdaySalesShare?.[peak];
+  if (share == null || !Number.isFinite(share) || share <= 0) {
+    return null;
+  }
+  const windowSales = input.windowSales;
+  const dollars =
+    windowSales != null && Number.isFinite(windowSales) && windowSales > 0
+      ? windowSales * share
+      : null;
+  return {
+    label: WEEKDAY_SHORT[peak],
+    dollars,
+    pct: wholePercent(share),
+  };
 }

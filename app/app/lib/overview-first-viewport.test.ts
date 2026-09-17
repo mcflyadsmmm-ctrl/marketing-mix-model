@@ -8,6 +8,7 @@ import {
   OVERVIEW_PENDING_ASOF,
   OVERVIEW_PENDING_LINE,
   OVERVIEW_SALES_ONLY_LINE,
+  overviewBusiestWeekday,
   overviewGreetingPending,
   overviewNoticeSentence,
   overviewPeekThird,
@@ -118,6 +119,9 @@ describe("overview first viewport", () => {
     expect(viewportAt).toBeGreaterThan(yoyAt);
     expect(chartAt).toBeGreaterThan(viewportAt);
     expect(weekdayAt).toBeGreaterThan(chartAt);
+    expect(overview).toContain("medianDailySales");
+    expect(overview).toContain("peakWeekday");
+    expect(overview).toContain("windowSales");
     expect(overview).toContain("buildOverviewYoyCards");
     expect(overview).toContain("overviewGreetingPending");
     expect(overview).toContain("greetingPending");
@@ -183,6 +187,9 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("Weekend vs weekday");
     expect(firstView).toContain("OVERVIEW_PENDING_LINE");
     expect(firstView).toContain("bookTypicalOrder");
+    expect(firstView).toContain("bookTypicalDay");
+    expect(firstView).toContain("bookBusiestWeekday");
+    expect(firstView).toContain("mcfly-split");
     expect(firstView).toContain("Returning");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
@@ -235,7 +242,12 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("bookTypicalOrder");
     expect(firstView).toContain("Weekend vs weekday");
     expect(chart).toContain("Sales");
+    expect(chart).toContain("mcfly-chart__sales-line");
+    expect(chart).not.toContain("mcfly-chart__spend-line");
     expect(yoy).toContain("OVERVIEW_YOY_LABELS");
+    expect(yoy).toContain("overviewYoyZoneLabel");
+    expect(firstView).toContain("bookTypicalDay");
+    expect(firstView).toContain("bookBusiestWeekday");
   });
 
   it("returning compact is dollars or an em dash, never headcount", () => {
@@ -351,5 +363,29 @@ describe("overviewWeekendWeekday", () => {
     });
     expect(overviewWeekendWeekday(0)).toBeNull();
     expect(overviewWeekendWeekday(null)).toBeNull();
+  });
+});
+
+describe("overviewBusiestWeekday", () => {
+  it("names the peak weekday in dollars when window sales exist", () => {
+    const shares = [0.11, 0.12, 0.19, 0.2, 0.13, 0.13, 0.12];
+    expect(
+      overviewBusiestWeekday({
+        peakWeekday: 3,
+        weekdaySalesShare: shares,
+        windowSales: 68_457,
+      }),
+    ).toEqual({
+      label: "Wed",
+      dollars: 68_457 * 0.2,
+      pct: 20,
+    });
+    expect(
+      overviewBusiestWeekday({
+        peakWeekday: null,
+        weekdaySalesShare: shares,
+        windowSales: 68_457,
+      }),
+    ).toBeNull();
   });
 });
