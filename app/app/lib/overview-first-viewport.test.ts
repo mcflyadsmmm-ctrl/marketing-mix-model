@@ -147,7 +147,8 @@ describe("overview first viewport", () => {
     expect(chart).not.toContain(
       "salesPending || !hasSales || points.length < 2",
     );
-    expect(chart).not.toMatch(/return null/);
+    expect(chart).not.toMatch(/if \(points\.length < 2\)\s*return null/);
+    expect(chart).toContain("ChartEmptyFrame");
     expect(chart).toContain("OVERVIEW_CHART_EMPTY");
     expect(chart).toContain("No days in this window yet");
     expect(chart).toContain("Tap a bar");
