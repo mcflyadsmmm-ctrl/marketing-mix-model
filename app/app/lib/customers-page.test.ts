@@ -34,11 +34,11 @@ describe("Customers route — deep RETAIN flow, order history only", () => {
     expect(customers).toMatch(/returning/i);
   });
 
-  it("loads trailing-window analytics and leads with the depth cards", () => {
+  it("leads with the marquee explorer above the fold, then the depth cards", () => {
     expect(customers).toContain("loadCustomerAnalytics");
     const order = [
-      "<CustomersScoreboard",
       "<CustomerMixChart",
+      "<CustomersScoreboard",
       "<CustomerRetentionBoard",
       "<CustomerValueBands",
       "<CustomerWhaleTable",
@@ -48,6 +48,15 @@ describe("Customers route — deep RETAIN flow, order history only", () => {
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]).toBeGreaterThan(order[i - 1]!);
     }
+    // The marquee owns the top of the tab, not the scoreboard card.
+    expect(customers.indexOf("<CustomerMixChart")).toBeLessThan(
+      customers.indexOf("<CustomersScoreboard"),
+    );
+    // It handles its own pending / guest-empty frame — never hidden on pending.
+    expect(customers).toContain("salesPending={metrics.salesPending}");
+    expect(customers).not.toContain(
+      "{!metrics.salesPending ? <CustomerMixChart",
+    );
     expect(customers).toContain("<CustomerConcentrationChart");
   });
 
@@ -125,7 +134,7 @@ describe("CustomerCharts — interactive primitives", () => {
   });
 });
 
-describe("CustomerMixChart — marquee dual-axis trend with hover polish", () => {
+describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
   it("stacks new vs returning $ with a returning-share line, rail, and moving readout", () => {
     expect(mix).toContain("mixWeekly");
     expect(mix).toContain("mcfly-cust-mix__line");
@@ -134,6 +143,47 @@ describe("CustomerMixChart — marquee dual-axis trend with hover polish", () =>
     expect(mix).toContain("useState");
     expect(mix).toContain("useDeskDrill");
     expect(mix).toContain("mcfly-chart__readout");
+  });
+
+  it("wears the Overview explorer scaffold — serif masthead, KPI strip, dark tooltip", () => {
+    expect(mix).toContain("mcfly-chart__serif");
+    expect(mix).toContain("mcfly-chart__stats");
+    expect(mix).toContain("mcfly-chart__plot");
+    // Crisp HTML axis overlays, not viewBox-shrinking SVG text.
+    expect(mix).toContain("mcfly-chart__axis-y");
+    expect(mix).toContain("mcfly-chart__axis-y2");
+    expect(mix).toContain("mcfly-chart__xtick");
+    // Dark floating tooltip that rides the hovered column.
+    expect(mix).toContain("mcfly-chart__tip");
+    expect(mix).toContain("mcfly-chart__tip-row");
+    expect(mix).toContain("mcfly-chart__guide");
+    expect(mix).toContain("overviewChartAxis");
+  });
+
+  it("offers a Weekly / Monthly grain toggle powered by pure bucketing", () => {
+    expect(mix).toContain("bucketMixWeeks");
+    expect(mix).toContain("mixSummary");
+    expect(mix).toContain("Weekly");
+    expect(mix).toContain("Monthly");
+    expect(mix).toContain("mcfly-period__btn");
+  });
+
+  it("draws a designed guest-empty ghost, never a bare em dash", () => {
+    expect(mix).toContain("MixEmptyFrame");
+    expect(mix).toContain("mcfly-cust-mix__ghost");
+    expect(mix).toContain("mcfly-cust-mix__empty-copy");
+    expect(mix).toContain("not $0");
+    expect(mix).toContain("salesPending");
+    // The tab passes pending in — the marquee is never hidden.
+    expect(mix).toContain("pending");
+  });
+
+  it("carries the premium grain wash on the marquee", () => {
+    const css = read("../styles/mcfly-desk.css");
+    expect(css).toContain(".mcfly-cust-mix::before");
+    expect(css).toContain("feTurbulence");
+    expect(css).toContain(".mcfly-cust-mix__ghost-bar");
+    expect(css).toContain(".mcfly-cust-mix__empty-copy");
   });
 });
 
