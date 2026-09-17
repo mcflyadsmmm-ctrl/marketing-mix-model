@@ -15,3 +15,7 @@ packages/**/node_modules/
 
 # Proprietary MER Apps Script clasp pull (never commit seeds / sheet IDs)
 vendor/mer-apps-script/
+
+# never commit secrets from research unpacks
+docs/ops/research/**/.env
+docs/ops/research/**/package-lock.json

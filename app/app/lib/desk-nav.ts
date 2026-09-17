@@ -124,11 +124,38 @@ export const DESK_TOP_NAV: readonly DeskNavItem[] = DESK_PRIMARY_NAV.filter(
   (item) => item.path !== "/app/settings",
 );
 
-export const DESK_SHOPIFY_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(0, 5);
-/** Spend Upload · Total ROAS · Channel Allocation — need entered spend. */
-export const DESK_SPEND_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(5, 8);
-/** YoY · CPA · Goals — sales compare / plan; spend optional. */
-export const DESK_COMPARE_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.slice(8);
+/**
+ * Black Clover grouped chip rail. Each group is filtered out of DESK_TOP_NAV so
+ * the TAB_LOCK order survives inside every group and every analysis tab lands in
+ * exactly one group. Groups are the nav chrome; time windows stay on cards.
+ */
+const SCOREBOARD_PATHS = new Set<string>(["/app", "/app/cpa"]);
+const RETAIN_PATHS = new Set<string>([
+  "/app/customers",
+  "/app/growth",
+  "/app/orders",
+  "/app/ltv",
+]);
+const SPEND_PLAN_PATHS = new Set<string>([
+  "/app/spend",
+  "/app/roas",
+  "/app/allocation",
+  "/app/yoy",
+  "/app/goals",
+]);
+
+/** SCOREBOARD — sales-first read: Overview then CPA. Zero-spend safe. */
+export const DESK_SCOREBOARD_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.filter(
+  (item) => SCOREBOARD_PATHS.has(item.path),
+);
+/** RETAIN — order-history depth: Customers · Growth · Orders · LTV. */
+export const DESK_RETAIN_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.filter(
+  (item) => RETAIN_PATHS.has(item.path),
+);
+/** SPEND PLAN — needs entered spend: Spend Upload · Total ROAS · Channel Allocation · YoY · Goals. */
+export const DESK_SPEND_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.filter(
+  (item) => SPEND_PLAN_PATHS.has(item.path),
+);
 
 export function isDeskNavActive(path: string, pathname: string): boolean {
   const current = pathname.replace(/\/$/, "") || "/";

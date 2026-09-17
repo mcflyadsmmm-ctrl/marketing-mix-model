@@ -27,6 +27,7 @@ These are **retired**. Do not re-litigate them into prompts:
 ## Build (Black Clover–grade)
 
 - **Overview:** Shopify-order scoreboard only — YoY cards + dense peeks (typical order, returning $, weekends) + **open sales chart**. **Zero** spend/ROAS/upload copy on this tab.
+- **Orders:** Typical-order hero + sales clock + depth/timing peeks + **open weekday/hour chart**. **Zero** spend/ROAS/upload on this tab.
 - **Shopify five** (Overview → Orders → Customers → Growth → LTV): meaningful, clear, interactive — one tab at a time, deep craft.
 - **Spend six** after merchants love the front.
 - Density: KPI cards + open chart. SAMPLE must look like a screenshot worth keeping.

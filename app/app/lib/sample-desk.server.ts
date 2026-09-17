@@ -11,6 +11,7 @@ import type { DateRange } from "./periods";
 import { SPEND_CHANNELS, type SpendChannel } from "@mcfly/mer-engine";
 import { seedSampleCohortFacts, clearSampleCohortFacts, seedSampleOrderFacts, clearSampleOrderFacts } from "./order-facts.server";
 import { sampleBookIsPaintable } from "./sample-book-ready";
+import { sampleSalesClock } from "./sample-order-clock";
 
 export { sampleBookIsPaintable } from "./sample-book-ready";
 
@@ -370,11 +371,12 @@ export async function fetchSampleSales(
     newCustomerNetSales += d.newCustomerNetSales;
   }
 
+  const clock = sampleSalesClock(totalSales);
   return {
     totalSales,
-    grossSales: totalSales,
+    grossSales: clock.grossSales,
     grossSalesKnown: true,
-    netSales: totalSales,
+    netSales: clock.netSales,
     netSalesKnown: true,
     salesBasisUsed: "total",
     orderCount,

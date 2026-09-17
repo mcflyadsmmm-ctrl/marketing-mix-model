@@ -12565,59 +12565,78 @@ button.mcfly-chart__month {
   color: var(--mcfly-ink-soft);
 }
 
-/* In-iframe page toggles — not period chips. Side s-app-nav stays shortcuts. */
+/* In-iframe grouped chip rail — SCOREBOARD | RETAIN | SPEND PLAN.
+   Inline kicker label + divider per group, raised card on the active chip.
+   Not period chips; side s-app-nav stays shortcuts. */
 .mcfly-desk-tabs {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.75rem 1.35rem;
+  align-items: center;
+  gap: 0.45rem 0;
   margin: 0 0 0.85rem;
   padding: 0.55rem 0 0.7rem;
   border-bottom: 1px solid var(--mcfly-line);
 }
 
 .mcfly-desk-tabs__group {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding-right: 1.1rem;
   min-width: 0;
 }
 
+/* Thin divider between adjacent groups, à la SCOREBOARD | SPEND PLAN. */
+.mcfly-desk-tabs__group + .mcfly-desk-tabs__group {
+  padding-left: 1.1rem;
+  border-left: 1px solid var(--mcfly-line-soft);
+}
+
 .mcfly-desk-tabs__k {
-  margin: 0 0 0.35rem;
+  flex: 0 0 auto;
+  margin: 0;
   font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--mcfly-mute);
+  white-space: nowrap;
 }
 
 .mcfly-desk-tabs__pills {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: 0.2rem;
 }
 
 .mcfly-desk-tabs__pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.32rem 0.62rem;
-  border-radius: 999px;
-  border: 1px solid var(--mcfly-line);
-  background: #fff;
-  color: var(--mcfly-ink);
-  font-size: 0.78rem;
+  padding: 0.34rem 0.66rem;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--mcfly-mute);
+  font-size: 0.82rem;
   font-weight: 650;
   letter-spacing: -0.01em;
   text-decoration: none;
   line-height: 1.2;
+  transition: color 0.12s ease, background-color 0.12s ease;
 }
 
-.mcfly-desk-tabs__pill:hover {
-  border-color: var(--mcfly-ink-soft);
+.mcfly-desk-tabs__pill:hover,
+.mcfly-desk-tabs__pill:focus-visible {
+  color: var(--mcfly-ink);
+  background: var(--mcfly-line-soft);
 }
 
-.mcfly-desk-tabs__pill--on {
-  background: var(--mcfly-ink);
-  border-color: var(--mcfly-ink);
-  color: #fff;
+.mcfly-desk-tabs__pill--on,
+.mcfly-desk-tabs__pill--on:hover {
+  background: var(--mcfly-paper);
+  border-color: var(--mcfly-line);
+  color: var(--mcfly-ink);
+  box-shadow: 0 1px 2px rgba(21, 37, 54, 0.09);
 }
 
 /* === P0 phone / Admin-iframe narrow ===
@@ -12634,8 +12653,8 @@ button.mcfly-chart__month {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    align-items: flex-end;
-    gap: 0.85rem;
+    align-items: center;
+    gap: 0.35rem;
     margin: 0 0 0.65rem;
     padding: 0.2rem 0 0.45rem;
     max-width: 100%;
@@ -12647,7 +12666,14 @@ button.mcfly-chart__month {
 
   .mcfly-desk-tabs__group {
     flex: 0 0 auto;
+    align-items: center;
+    gap: 0.4rem;
+    padding-right: 0.7rem;
     min-width: 0;
+  }
+
+  .mcfly-desk-tabs__group + .mcfly-desk-tabs__group {
+    padding-left: 0.7rem;
   }
 
   .mcfly-desk-tabs__pills {
@@ -13703,6 +13729,2777 @@ button.mcfly-chart__month {
   }
 }
 
+/* =========================================================================
+ * Orders Black Clover scoreboard — typical ticket, sales clock, depth,
+ * timing, weekday/hour chart. APPEND ONLY. Zero spend. SAMPLE canvas.
+ * ========================================================================= */
+
+.mcfly-desk-anchor.mcfly-scoreboard--orders {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mcfly-scoreboard--orders .mcfly-book__lede {
+  margin: 0 0 0.55rem;
+}
+
+.mcfly-orders-hero {
+  margin: 0 0 0.65rem;
+  padding: 0.85rem 0.95rem 0.8rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.mcfly-orders-hero__k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-hero__v {
+  margin: 0.2rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(2.15rem, 8.4vw, 3.15rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-orders-hero__sub,
+.mcfly-orders-hero__def {
+  margin: 0.4rem 0 0;
+  max-width: 42rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-hero__sub {
+  font-weight: 650;
+  color: var(--mcfly-ink);
+}
+
+/* Ticket distribution band — median vs the average, drawn. */
+.mcfly-orders-band {
+  display: block;
+  width: 100%;
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.7rem 0.6rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 45%, #fff);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-orders-band__track {
+  position: relative;
+  display: block;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 55%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-orders-band__box {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--mcfly-accent) 32%, #fff);
+  border-radius: 3px;
+}
+
+.mcfly-orders-band__median,
+.mcfly-orders-band__mean {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  transform: translateX(-1px);
+}
+
+.mcfly-orders-band__median {
+  background: var(--mcfly-ink);
+}
+
+.mcfly-orders-band__mean {
+  background: var(--mcfly-warn);
+  border-radius: 2px;
+  border-left: 1px dashed color-mix(in srgb, var(--mcfly-warn) 70%, #fff);
+}
+
+.mcfly-orders-band__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+.mcfly-orders-band__tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-band__tag-k {
+  position: relative;
+  padding-left: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.mcfly-orders-band__tag-k::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  transform: translateY(-50%);
+  border-radius: 2px;
+}
+
+.mcfly-orders-band__tag--median .mcfly-orders-band__tag-k::before {
+  background: var(--mcfly-ink);
+}
+
+.mcfly-orders-band__tag--mean .mcfly-orders-band__tag-k::before {
+  background: var(--mcfly-warn);
+}
+
+.mcfly-orders-band__tag--box .mcfly-orders-band__tag-k::before {
+  background: color-mix(in srgb, var(--mcfly-accent) 32%, #fff);
+}
+
+.mcfly-orders-band__tag-v {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+/* Checkout-dollar composition + source mix — stacked bars. */
+.mcfly-orders-clockbar,
+.mcfly-orders-sourcebar {
+  display: block;
+  width: 100%;
+  margin: 0.15rem 0 0.65rem;
+  padding: 0.6rem 0.7rem 0.55rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-orders-sourcebar {
+  margin: 0 0 0.7rem;
+}
+
+.mcfly-orders-sourcebar__k {
+  display: block;
+  margin: 0 0 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-clockbar__track,
+.mcfly-orders-sourcebar__track {
+  display: flex;
+  width: 100%;
+  height: 0.95rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--mcfly-line) 55%, #fff);
+}
+
+.mcfly-orders-clockbar__seg,
+.mcfly-orders-sourcebar__seg {
+  height: 100%;
+  min-width: 2px;
+}
+
+.mcfly-orders-clockbar__seg--product {
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-clockbar__seg--shiptax {
+  background: color-mix(in srgb, var(--mcfly-accent) 45%, #fff);
+}
+
+.mcfly-orders-clockbar__seg--returns {
+  background: var(--mcfly-warn);
+}
+
+.mcfly-orders-sourcebar__seg--online {
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-sourcebar__seg--pos {
+  background: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+}
+
+.mcfly-orders-sourcebar__seg--shop {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-orders-sourcebar__seg--other {
+  background: color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+}
+
+.mcfly-orders-clockbar__legend,
+.mcfly-orders-sourcebar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.85rem;
+  margin: 0.45rem 0 0;
+}
+
+.mcfly-orders-clockbar__key,
+.mcfly-orders-sourcebar__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-clockbar__dot,
+.mcfly-orders-sourcebar__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-clockbar__key--shiptax .mcfly-orders-clockbar__dot {
+  background: color-mix(in srgb, var(--mcfly-accent) 45%, #fff);
+}
+
+.mcfly-orders-clockbar__key--returns .mcfly-orders-clockbar__dot {
+  background: var(--mcfly-warn);
+}
+
+.mcfly-orders-sourcebar__key--pos .mcfly-orders-sourcebar__dot {
+  background: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+}
+
+.mcfly-orders-sourcebar__key--shop .mcfly-orders-sourcebar__dot {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-orders-sourcebar__key--other .mcfly-orders-sourcebar__dot {
+  background: color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+}
+
+.mcfly-scoreboard--orders .mcfly-book__clock {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mcfly-scoreboard--orders .mcfly-book__clock > * {
+  min-width: 0;
+  margin: 0;
+  padding: 0.65rem 0.7rem 0.6rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.mcfly-scoreboard--orders .mcfly-book__clock-k {
+  margin: 0 0 0.2rem;
+}
+
+.mcfly-scoreboard--orders .mcfly-book__clock-v {
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.05rem, 4.4vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+  white-space: nowrap;
+}
+
+.mcfly-score .mcfly-kpi-grid--orders-depth,
+.mcfly-score .mcfly-kpi-grid--orders-timing {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 0.7rem;
+  width: 100%;
+}
+
+.mcfly-score--orders-depth,
+.mcfly-score--orders-timing {
+  margin-top: 0.1rem;
+}
+
+.mcfly-chart--orders.mcfly-chart {
+  padding: 0.7rem 0.75rem 0.65rem;
+}
+
+.mcfly-chart__hours {
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  gap: 0.12rem;
+  align-items: end;
+  min-height: 8.25rem;
+}
+
+.mcfly-chart__hour {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.18rem;
+  min-height: 8.25rem;
+  min-width: 0;
+  padding: 0.15rem 0 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.mcfly-chart__hour .mcfly-chart__day-bar {
+  width: 100%;
+  max-width: 0.85rem;
+}
+
+.mcfly-chart__hour .mcfly-chart__day-k {
+  font-size: 0.48rem;
+  letter-spacing: 0;
+}
+
+.mcfly-chart__day--on .mcfly-chart__day-bar,
+.mcfly-chart__hour.mcfly-chart__day--on .mcfly-chart__day-bar {
+  background: var(--mcfly-accent-ink);
+}
+
+button.mcfly-chart__hour {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  width: 100%;
+}
+
+@media (max-width: 720px) {
+  .mcfly-score .mcfly-kpi-grid--orders-depth,
+  .mcfly-score .mcfly-kpi-grid--orders-timing {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-orders-hero {
+    padding: 0.7rem 0.7rem 0.65rem;
+  }
+
+  .mcfly-orders-hero__v {
+    font-size: clamp(1.85rem, 11vw, 2.45rem);
+  }
+
+  .mcfly-orders-hero__sub,
+  .mcfly-orders-hero__def {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+
+  .mcfly-scoreboard--orders .mcfly-book__clock {
+    gap: 0.35rem;
+  }
+
+  .mcfly-scoreboard--orders .mcfly-book__clock > * {
+    padding: 0.5rem 0.4rem 0.45rem;
+  }
+
+  .mcfly-scoreboard--orders .mcfly-book__clock-v {
+    font-size: clamp(0.78rem, 3.6vw, 0.96rem);
+  }
+
+  .mcfly-score .mcfly-kpi-grid--orders-depth,
+  .mcfly-score .mcfly-kpi-grid--orders-timing {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .mcfly-score .mcfly-kpi-grid--orders-depth > .mcfly-kpi:nth-child(4),
+  .mcfly-score .mcfly-kpi-grid--orders-timing > .mcfly-kpi:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  .mcfly-scoreboard--orders .mcfly-kpi--peek {
+    padding: 0.5rem 0.45rem 0.45rem;
+  }
+
+  .mcfly-scoreboard--orders .mcfly-kpi--peek .mcfly-kpi__value {
+    font-size: clamp(0.88rem, 4.1vw, 1.08rem);
+    white-space: nowrap;
+  }
+
+  .mcfly-scoreboard--orders .mcfly-kpi--peek .mcfly-kpi__label {
+    font-size: 0.56rem;
+  }
+
+  .mcfly-scoreboard--orders .mcfly-chart__day-v {
+    white-space: nowrap;
+    font-size: 0.52rem;
+  }
+
+  .mcfly-chart__hours {
+    min-height: 7.25rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.15rem;
+  }
+
+  .mcfly-chart__hour {
+    min-height: 7.25rem;
+  }
+}
+
+/* =========================================================================
+ * Orders Black Clover depth — soft tiles, pace bars, floating chart tooltip,
+ * Order intelligence (KPI strip + Orders×AOV explorer + weekly ledger),
+ * order-frequency. APPEND ONLY. Zero spend. SAMPLE canvas.
+ * ========================================================================= */
+
+/* Soft, flat value tiles on Orders — the pacing-card language. */
+.mcfly-scoreboard--orders .mcfly-kpi--peek {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 40%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  box-shadow: none;
+}
+
+.mcfly-scoreboard--orders .mcfly-kpi--peek::before {
+  display: none;
+}
+
+/* Pace bars — discounted / 2+ items / weekend as share bars. */
+.mcfly-orders-pace {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.mcfly-orders-pace__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.15rem 0.5rem;
+}
+
+.mcfly-orders-pace__k {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-pace__pct {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-pace__bar {
+  grid-column: 1 / -1;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-orders-pace__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-pace__fill--multi {
+  background: color-mix(in srgb, var(--mcfly-accent) 60%, #fff);
+}
+
+.mcfly-orders-pace__fill--weekend {
+  background: var(--mcfly-accent-ink);
+}
+
+/* Floating chart tooltip — explorer-grade hover card. */
+.mcfly-chart__plot {
+  position: relative;
+}
+
+.mcfly-chart__tip {
+  position: absolute;
+  top: 0.25rem;
+  transform: translateX(-50%);
+  z-index: 4;
+  min-width: 8.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: #0f1929;
+  color: #e2e8f0;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.35);
+  pointer-events: none;
+}
+
+.mcfly-chart__tip-h {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+
+.mcfly-chart__tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin: 0.12rem 0 0;
+  font-size: 0.72rem;
+}
+
+.mcfly-chart__tip-k {
+  color: #8899aa;
+}
+
+.mcfly-chart__tip-v {
+  color: #e2e8f0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__tip-foot {
+  margin: 0.35rem 0 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #667788;
+}
+
+/* Order intelligence card. */
+.mcfly-orders-intel {
+  margin: 0 0 0.85rem;
+  padding: 0.9rem 1rem 0.95rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--mcfly-shadow);
+}
+
+.mcfly-orders-intel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  margin: 0 0 0.7rem;
+}
+
+.mcfly-orders-intel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-orders-intel__badge {
+  padding: 0.06rem 0.4rem;
+  border-radius: 999px;
+  background: var(--mcfly-accent-soft);
+  color: var(--mcfly-accent-ink);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.mcfly-orders-intel__window {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-intel__kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.mcfly-orders-intel__kpi {
+  padding: 0.65rem 0.7rem 0.6rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 40%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+}
+
+.mcfly-orders-intel__k {
+  margin: 0 0 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-intel__v {
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.05rem, 3.4vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-intel__delta {
+  margin: 0.28rem 0 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.mcfly-orders-intel__delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-orders-intel__delta--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-orders-intel__delta--flat,
+.mcfly-orders-intel__sub {
+  margin: 0.28rem 0 0;
+  font-size: 0.66rem;
+  color: var(--mcfly-mute);
+  line-height: 1.35;
+}
+
+/* Dual-axis Orders×AOV explorer. */
+.mcfly-chart--dual .mcfly-chart__svg {
+  min-height: 12.5rem;
+}
+
+.mcfly-chart__grid {
+  stroke: color-mix(in srgb, var(--mcfly-line) 70%, #fff);
+  stroke-width: 1;
+}
+
+.mcfly-chart__axis {
+  fill: var(--mcfly-mute);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__obar {
+  fill: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+}
+
+.mcfly-chart__obar--on {
+  fill: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__aovline {
+  fill: none;
+  stroke: var(--mcfly-truth);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.mcfly-chart__aovfill {
+  fill: color-mix(in srgb, var(--mcfly-truth) 12%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart__hit {
+  cursor: pointer;
+}
+
+.mcfly-chart__hit:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: -2px;
+}
+
+.mcfly-chart__legend--dual {
+  display: inline-flex;
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.mcfly-chart__legend-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__legend-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 3px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__legend-k--orders .mcfly-chart__legend-dot {
+  background: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+}
+
+.mcfly-chart__legend-k--aov .mcfly-chart__legend-dot {
+  background: var(--mcfly-truth);
+}
+
+/* AOV tiers — order-value distribution bars. */
+.mcfly-orders-tiers {
+  margin: 0.85rem 0 0;
+}
+
+.mcfly-orders-tiers__cap {
+  margin: 0 0 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-tiers__rows {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mcfly-orders-tiers__row {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr auto;
+  align-items: center;
+  gap: 0.15rem 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-orders-tiers__row:hover {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 40%, #fff);
+}
+
+.mcfly-orders-tiers__k {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mcfly-orders-tiers__track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-orders-tiers__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-tiers__v {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-tiers__sub {
+  grid-column: 1 / -1;
+  font-size: 0.64rem;
+  color: var(--mcfly-mute);
+}
+
+/* Audit-grade weekly ledger table. */
+.mcfly-orders-ledger {
+  margin: 0.85rem 0 0;
+}
+
+.mcfly-orders-ledger__cap {
+  margin: 0 0 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-ledger__wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 10px;
+}
+
+.mcfly-orders-ledger__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-ledger__table th,
+.mcfly-orders-ledger__table td {
+  padding: 0.5rem 0.7rem;
+  text-align: right;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.mcfly-orders-ledger__table th {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 35%, #fff);
+  border-bottom: 1px solid var(--mcfly-line);
+}
+
+.mcfly-orders-ledger__lh {
+  text-align: left !important;
+  color: var(--mcfly-ink);
+  font-weight: 650;
+}
+
+.mcfly-orders-ledger__row {
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--mcfly-line) 55%, #fff);
+}
+
+.mcfly-orders-ledger__row:nth-child(even) {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 18%, #fff);
+}
+
+.mcfly-orders-ledger__row:hover {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 55%, #fff);
+}
+
+.mcfly-orders-ledger__delta {
+  font-weight: 700;
+}
+
+.mcfly-orders-ledger__delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-orders-ledger__delta--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-orders-ledger__delta--flat {
+  color: var(--mcfly-mute);
+}
+
+/* Order frequency distribution. */
+.mcfly-chart--frequency .mcfly-chart__sub {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__freq {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.4rem;
+  align-items: end;
+  min-height: 9rem;
+  margin: 0.6rem 0 0;
+}
+
+.mcfly-chart__freq-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.mcfly-chart__freq-v {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__freq-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 6.75rem;
+}
+
+.mcfly-chart__freq-bar {
+  width: 100%;
+  max-width: 3.2rem;
+  border-radius: 5px 5px 0 0;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__freq-col:hover .mcfly-chart__freq-bar {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__freq-k {
+  font-size: 0.64rem;
+  color: var(--mcfly-mute);
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .mcfly-orders-intel__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-orders-intel {
+    padding: 0.75rem 0.7rem 0.8rem;
+  }
+
+  .mcfly-orders-intel__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .mcfly-orders-intel__v {
+    font-size: clamp(0.98rem, 5vw, 1.2rem);
+  }
+
+  .mcfly-chart--dual .mcfly-chart__svg {
+    min-height: 11rem;
+  }
+
+  .mcfly-chart__freq-bar {
+    max-width: 2.2rem;
+  }
+
+  .mcfly-chart__freq-track {
+    height: 5.5rem;
+  }
+
+  .mcfly-orders-ledger__table th,
+  .mcfly-orders-ledger__table td {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.72rem;
+  }
+}
+/* =========================================================================
+ * Customers tab — returning-dollars scoreboard + concentration.
+ * Black Clover density on the niche Shopify Analytics never puts on one
+ * screen: returning $, who spends more, guests, and how sales concentrate.
+ * APPEND ONLY. Customers-scoped classes (mcfly-cust*) so mcfly-desk shared
+ * classes stay untouched. Zero spend / ROAS on this tab. SAMPLE stays labeled.
+ * ========================================================================= */
+
+.mcfly-cust {
+  gap: 0;
+}
+
+.mcfly-cust__hero {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft)) 0%,
+      #fff 62%
+    );
+  border: 1px solid #bcd6e8;
+  border-radius: var(--mcfly-radius);
+  box-shadow: var(--mcfly-shadow);
+  padding: 1.05rem 1.15rem 0.95rem;
+  margin: 0 0 0.65rem;
+}
+
+.mcfly-cust__hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust__hero--drill {
+  cursor: pointer;
+  transition:
+    border-color var(--mcfly-motion) var(--mcfly-ease),
+    box-shadow var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-cust__hero--drill:hover {
+  border-color: #a8c8de;
+  box-shadow: 0 1px 2px rgba(12, 25, 41, 0.06), 0 10px 28px rgba(2, 132, 199, 0.12);
+}
+
+.mcfly-cust__hero--drill:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+}
+
+.mcfly-cust__hero-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust__hero-v {
+  display: block;
+  margin: 0.35rem 0 0.15rem;
+  font-family: var(--mcfly-display);
+  font-size: clamp(2rem, 6vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust__hero-sub {
+  display: block;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mcfly-accent-ink);
+  line-height: 1.4;
+}
+
+.mcfly-cust__split {
+  height: 0.5rem;
+  margin: 0.65rem 0 0.35rem;
+}
+
+.mcfly-cust__split-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+}
+
+.mcfly-cust__split-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust__split-tag::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+}
+
+.mcfly-cust__split-tag--return {
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust__split-tag--return::before {
+  background: var(--mcfly-ink);
+  opacity: 0.72;
+}
+
+/* Concentration chart — Pareto + share ladder. */
+
+.mcfly-cust-conc__readout {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.mcfly-cust-conc__readout-k {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mcfly-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcfly-cust-conc__readout-v {
+  font-family: var(--mcfly-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-cust-pareto {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0 0 0.8rem;
+  cursor: pointer;
+}
+
+.mcfly-cust-pareto__bar {
+  display: flex;
+  height: 2.2rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--mcfly-line);
+}
+
+.mcfly-cust-pareto__top {
+  display: flex;
+  align-items: center;
+  padding: 0 0.55rem;
+  min-width: 3rem;
+  background: var(--mcfly-accent-ink);
+  color: #fff;
+}
+
+.mcfly-cust-pareto__rest {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0.55rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  background: color-mix(in srgb, var(--mcfly-accent) 12%, #fff);
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-pareto__seg-k {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mcfly-cust-pareto:hover .mcfly-cust-pareto__bar {
+  border-color: #a8c8de;
+}
+
+.mcfly-cust-pareto:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.mcfly-cust-pareto__cap {
+  display: block;
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-conc__hrow--lead .mcfly-chart__hlabel {
+  font-weight: 700;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust-conc__hrow--lead .mcfly-chart__hfill {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-conc__foot {
+  margin: 0.55rem 0 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+  line-height: 1.4;
+}
+
+@media (max-width: 430px) {
+  .mcfly-cust__hero {
+    padding: 0.85rem 0.9rem 0.8rem;
+  }
+
+  .mcfly-cust__hero-v {
+    font-size: clamp(1.7rem, 8.5vw, 2.15rem);
+  }
+
+  .mcfly-cust__hero-sub {
+    font-size: 0.76rem;
+  }
+
+  .mcfly-cust-pareto__bar {
+    height: 2rem;
+  }
+
+  .mcfly-cust-conc__readout-k {
+    max-width: 8.5rem;
+  }
+}
+/* =========================================================================
+ * Customers RETAIN depth — Monthly-pacing soft-card language on order-history
+ * analytics: returning gauge + tiles, repurchase cadence, spend bands, whale
+ * recency. APPEND ONLY. Customers-scoped (mcfly-cust-*). Zero spend / ROAS.
+ * SAMPLE stays labeled. Phone 390–430 stays usable.
+ * ========================================================================= */
+
+.mcfly-cust-card {
+  margin: 0 0 0.85rem;
+}
+
+.mcfly-cust-card .mcfly-panel__head h2 {
+  font-family: var(--mcfly-display);
+}
+
+/* Hero — returning gauge + dense tile grid + mix bars. */
+.mcfly-cust-hero__grid {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 1.25rem;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 700px) {
+  .mcfly-cust-hero__grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+}
+
+.mcfly-cust-gauge {
+  text-align: center;
+}
+
+.mcfly-cust-gauge svg {
+  max-width: 100%;
+  display: block;
+  margin-inline: auto;
+}
+
+.mcfly-cust-gauge__value {
+  margin: -1.7rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.7rem, 4.5vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust-gauge__label {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-hero__right {
+  min-width: 0;
+}
+
+.mcfly-cust-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+@media (max-width: 520px) {
+  .mcfly-cust-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.mcfly-cust-tile {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-tint-sky));
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 10px;
+  padding: 0.6rem 0.7rem;
+}
+
+.mcfly-cust-tile--drill {
+  cursor: pointer;
+  transition:
+    border-color var(--mcfly-motion) var(--mcfly-ease),
+    box-shadow var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-cust-tile--drill:hover {
+  border-color: #a8c8de;
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.1);
+}
+
+.mcfly-cust-tile--drill:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+}
+
+.mcfly-cust-tile__k {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-tile__k .mcfly-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.mcfly-cust-tile__v {
+  display: block;
+  margin: 0.25rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+  line-height: 1.15;
+}
+
+.mcfly-cust-tile__sub {
+  display: block;
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  color: var(--mcfly-mute);
+  line-height: 1.3;
+}
+
+.mcfly-cust-bars {
+  margin-top: 0.85rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.mcfly-cust-bar-row {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr 2.6rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mcfly-cust-bar-row__k {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mcfly-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcfly-cust-track {
+  display: block;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 65%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-cust-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-cust-fill--return {
+  background: var(--mcfly-ink);
+  opacity: 0.75;
+}
+
+.mcfly-cust-fill--repeat {
+  background: var(--mcfly-accent);
+}
+
+.mcfly-cust-fill--top {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-bar-row__v {
+  text-align: right;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+@media (max-width: 430px) {
+  .mcfly-cust-bar-row {
+    grid-template-columns: 6.5rem 1fr 2.4rem;
+  }
+}
+
+/* KPI strip — colored values, sentence-case labels, no ALL-CAPS wall. */
+.mcfly-cust-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0.35rem 0 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .mcfly-cust-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.mcfly-cust-kpi {
+  background: color-mix(in srgb, #fff 74%, var(--mcfly-tint-sky));
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+}
+
+.mcfly-cust-kpi__k {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-kpi__v {
+  margin: 0.25rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust-kpi--good .mcfly-cust-kpi__v {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-cust-kpi--warn .mcfly-cust-kpi__v {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-cust-kpi__sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  color: var(--mcfly-mute);
+  line-height: 1.3;
+}
+
+/* Vertical bars — cadence + order frequency. */
+.mcfly-cust-vbars {
+  margin: 0.4rem 0 0.6rem;
+}
+
+.mcfly-cust-vbars__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.9rem;
+  margin: 0 0 0.5rem;
+}
+
+.mcfly-cust-vbars__title {
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--mcfly-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mcfly-cust-vbars__sub {
+  font-family: var(--mcfly-font);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-vbars__readout {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-vbars__readout strong {
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-cust-vbars__plot {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.mcfly-cust-col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.mcfly-cust-col__track {
+  position: relative;
+  width: 100%;
+  height: 150px;
+}
+
+.mcfly-cust-col__bar {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 64%;
+  max-width: 2.6rem;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--mcfly-accent);
+  transition: height var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-cust-col--on .mcfly-cust-col__bar {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-col:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.mcfly-cust-col__v {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust-col__k {
+  font-size: 0.64rem;
+  color: var(--mcfly-mute);
+  text-align: center;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+/* Dual-axis grouped bars — customers vs revenue. */
+.mcfly-cust-dual__plot {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.mcfly-cust-dual__group {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.mcfly-cust-dual__bars {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+}
+
+.mcfly-cust-dual__bar {
+  width: 40%;
+  max-width: 1.5rem;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+  transition: height var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-cust-dual__bar--a {
+  background: var(--mcfly-accent);
+}
+
+.mcfly-cust-dual__bar--b {
+  background: var(--mcfly-truth);
+}
+
+.mcfly-cust-dual__group--on .mcfly-cust-dual__bars {
+  filter: saturate(1.1);
+}
+
+.mcfly-cust-dual__group:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.mcfly-cust-legend {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 0.55rem;
+}
+
+.mcfly-cust-legend__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-legend__tag::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+}
+
+.mcfly-cust-legend__tag--a::before {
+  background: var(--mcfly-accent);
+}
+
+.mcfly-cust-legend__tag--b::before {
+  background: var(--mcfly-truth);
+}
+
+/* Fall-off funnel. */
+.mcfly-cust-funnel {
+  margin: 0.6rem 0 0.4rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mcfly-cust-funnel__row {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0.2rem 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.mcfly-cust-funnel__row:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.mcfly-cust-funnel__k {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust-funnel__track {
+  height: 0.85rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-cust-funnel__bar {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-funnel__v {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+  white-space: nowrap;
+}
+
+.mcfly-cust-funnel__pct {
+  color: var(--mcfly-mute);
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .mcfly-cust-funnel__row {
+    grid-template-columns: 7rem 1fr auto;
+  }
+}
+
+/* Win-back play note. */
+.mcfly-cust-play {
+  margin: 0.6rem 0 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px dashed var(--mcfly-line);
+  border-radius: 10px;
+  background: color-mix(in srgb, #fff 82%, var(--mcfly-tint-be));
+}
+
+.mcfly-cust-play__k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mcfly-warn);
+}
+
+.mcfly-cust-play__body {
+  margin: 0.3rem 0 0;
+  font-size: 0.85rem;
+  color: var(--mcfly-ink);
+  line-height: 1.45;
+}
+
+.mcfly-cust-play__note {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+  line-height: 1.4;
+}
+
+.mcfly-cust-play__note code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  color: var(--mcfly-ink);
+}
+
+/* Whale recency soft table. */
+.mcfly-cust-table {
+  margin: 0.35rem 0 0;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.mcfly-cust-table__head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-tint-sky));
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-table__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.mcfly-cust-table__row:last-child {
+  border-bottom: 0;
+}
+
+.mcfly-cust-table__row:hover {
+  background: color-mix(in srgb, #fff 60%, var(--mcfly-tint-sky));
+}
+
+.mcfly-cust-table__row:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: -2px;
+}
+
+.mcfly-cust-table__k {
+  position: relative;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mcfly-ink);
+  padding-left: 0.2rem;
+}
+
+.mcfly-cust-table__spark {
+  position: absolute;
+  left: 0;
+  bottom: -0.35rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--mcfly-accent-soft);
+}
+
+.mcfly-cust-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust-table__head .mcfly-cust-table__num {
+  font-weight: 700;
+}
+
+.mcfly-cust-note {
+  margin: 0.55rem 0 0;
+  font-size: 0.75rem;
+  color: var(--mcfly-mute);
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Customers marquee — new vs returning $ dual-axis trend (stacked bars + line). */
+.mcfly-cust-mix__svg {
+  width: 100%;
+  height: auto;
+  min-height: 15rem;
+  display: block;
+}
+
+.mcfly-cust-mix__readsub {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-cust-mix__grid {
+  stroke: var(--mcfly-line-soft);
+  stroke-width: 1;
+}
+
+.mcfly-cust-mix__axis {
+  fill: var(--mcfly-mute);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-cust-mix__axis--right {
+  fill: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-mix__bar--new {
+  fill: color-mix(in srgb, var(--mcfly-accent) 42%, #fff);
+}
+
+.mcfly-cust-mix__bar--ret {
+  fill: var(--mcfly-ink);
+  opacity: 0.82;
+}
+
+.mcfly-cust-mix__col--on .mcfly-cust-mix__bar--ret {
+  opacity: 1;
+}
+
+.mcfly-cust-mix__col--on .mcfly-cust-mix__bar--new {
+  fill: color-mix(in srgb, var(--mcfly-accent) 60%, #fff);
+}
+
+.mcfly-cust-mix__line {
+  fill: none;
+  stroke: var(--mcfly-accent-ink);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.mcfly-cust-mix__dot {
+  fill: var(--mcfly-accent-ink);
+  pointer-events: none;
+}
+
+.mcfly-cust-mix__rail {
+  stroke: var(--mcfly-accent-ink);
+  stroke-width: 1.4;
+  stroke-dasharray: 5 4;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.mcfly-cust-mix__rail-k {
+  fill: var(--mcfly-accent-ink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.mcfly-cust-mix__hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.mcfly-cust-mix__hit:hover,
+.mcfly-cust-mix__hit:focus-visible {
+  fill: color-mix(in srgb, var(--mcfly-accent) 8%, transparent);
+  outline: none;
+}
+
+.mcfly-cust-mix__tag--ret::before {
+  background: var(--mcfly-ink);
+  opacity: 0.82;
+}
+
+.mcfly-cust-mix__tag--new::before {
+  background: color-mix(in srgb, var(--mcfly-accent) 42%, #fff);
+}
+
+.mcfly-cust-mix__tag--line::before {
+  background: var(--mcfly-accent-ink);
+}
+
+/* === LTV order-history depth pack (from PR #68) === */
+/* =========================================================================
+ * Orders Black Clover depth — soft tiles, pace bars, floating chart tooltip,
+ * Order intelligence (KPI strip + Orders×AOV explorer + weekly ledger),
+ * order-frequency. APPEND ONLY. Zero spend. SAMPLE canvas.
+ * ========================================================================= */
+
+/* Soft, flat value tiles on Orders — the pacing-card language. */
+.mcfly-scoreboard--orders .mcfly-kpi--peek {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 40%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  box-shadow: none;
+}
+
+.mcfly-scoreboard--orders .mcfly-kpi--peek::before {
+  display: none;
+}
+
+/* Pace bars — discounted / 2+ items / weekend as share bars. */
+.mcfly-orders-pace {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.mcfly-orders-pace__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.15rem 0.5rem;
+}
+
+.mcfly-orders-pace__k {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-pace__pct {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-pace__bar {
+  grid-column: 1 / -1;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-orders-pace__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-pace__fill--multi {
+  background: color-mix(in srgb, var(--mcfly-accent) 60%, #fff);
+}
+
+.mcfly-orders-pace__fill--weekend {
+  background: var(--mcfly-accent-ink);
+}
+
+/* Floating chart tooltip — explorer-grade hover card. */
+.mcfly-chart__plot {
+  position: relative;
+}
+
+.mcfly-chart__tip {
+  position: absolute;
+  top: 0.25rem;
+  transform: translateX(-50%);
+  z-index: 4;
+  min-width: 8.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: #0f1929;
+  color: #e2e8f0;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.35);
+  pointer-events: none;
+}
+
+.mcfly-chart__tip-h {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+
+.mcfly-chart__tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin: 0.12rem 0 0;
+  font-size: 0.72rem;
+}
+
+.mcfly-chart__tip-k {
+  color: #8899aa;
+}
+
+.mcfly-chart__tip-v {
+  color: #e2e8f0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__tip-foot {
+  margin: 0.35rem 0 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #667788;
+}
+
+/* Order intelligence card. */
+.mcfly-orders-intel {
+  margin: 0 0 0.85rem;
+  padding: 0.9rem 1rem 0.95rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--mcfly-shadow);
+}
+
+.mcfly-orders-intel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  margin: 0 0 0.7rem;
+}
+
+.mcfly-orders-intel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-orders-intel__badge {
+  padding: 0.06rem 0.4rem;
+  border-radius: 999px;
+  background: var(--mcfly-accent-soft);
+  color: var(--mcfly-accent-ink);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.mcfly-orders-intel__window {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-intel__kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.mcfly-orders-intel__kpi {
+  padding: 0.65rem 0.7rem 0.6rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 40%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+}
+
+.mcfly-orders-intel__k {
+  margin: 0 0 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-intel__v {
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.05rem, 3.4vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-intel__delta {
+  margin: 0.28rem 0 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.mcfly-orders-intel__delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-orders-intel__delta--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-orders-intel__delta--flat,
+.mcfly-orders-intel__sub {
+  margin: 0.28rem 0 0;
+  font-size: 0.66rem;
+  color: var(--mcfly-mute);
+  line-height: 1.35;
+}
+
+/* Dual-axis Orders×AOV explorer. */
+.mcfly-chart--dual .mcfly-chart__svg {
+  min-height: 12.5rem;
+}
+
+.mcfly-chart__grid {
+  stroke: color-mix(in srgb, var(--mcfly-line) 70%, #fff);
+  stroke-width: 1;
+}
+
+.mcfly-chart__axis {
+  fill: var(--mcfly-mute);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__obar {
+  fill: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+}
+
+.mcfly-chart__obar--on {
+  fill: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__aovline {
+  fill: none;
+  stroke: var(--mcfly-truth);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.mcfly-chart__aovfill {
+  fill: color-mix(in srgb, var(--mcfly-truth) 12%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart__hit {
+  cursor: pointer;
+}
+
+.mcfly-chart__hit:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: -2px;
+}
+
+.mcfly-chart__legend--dual {
+  display: inline-flex;
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.mcfly-chart__legend-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__legend-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 3px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__legend-k--orders .mcfly-chart__legend-dot {
+  background: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+}
+
+.mcfly-chart__legend-k--aov .mcfly-chart__legend-dot {
+  background: var(--mcfly-truth);
+}
+
+/* AOV tiers — order-value distribution bars. */
+.mcfly-orders-tiers {
+  margin: 0.85rem 0 0;
+}
+
+.mcfly-orders-tiers__cap {
+  margin: 0 0 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-tiers__rows {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.mcfly-orders-tiers__row {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr auto;
+  align-items: center;
+  gap: 0.15rem 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 8px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-orders-tiers__row:hover {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 40%, #fff);
+}
+
+.mcfly-orders-tiers__k {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mcfly-orders-tiers__track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-orders-tiers__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-tiers__v {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-tiers__sub {
+  grid-column: 1 / -1;
+  font-size: 0.64rem;
+  color: var(--mcfly-mute);
+}
+
+/* Audit-grade weekly ledger table. */
+.mcfly-orders-ledger {
+  margin: 0.85rem 0 0;
+}
+
+.mcfly-orders-ledger__cap {
+  margin: 0 0 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-ledger__wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 10px;
+}
+
+.mcfly-orders-ledger__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-ledger__table th,
+.mcfly-orders-ledger__table td {
+  padding: 0.5rem 0.7rem;
+  text-align: right;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.mcfly-orders-ledger__table th {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 35%, #fff);
+  border-bottom: 1px solid var(--mcfly-line);
+}
+
+.mcfly-orders-ledger__lh {
+  text-align: left !important;
+  color: var(--mcfly-ink);
+  font-weight: 650;
+}
+
+.mcfly-orders-ledger__row {
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--mcfly-line) 55%, #fff);
+}
+
+.mcfly-orders-ledger__row:nth-child(even) {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 18%, #fff);
+}
+
+.mcfly-orders-ledger__row:hover {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 55%, #fff);
+}
+
+.mcfly-orders-ledger__delta {
+  font-weight: 700;
+}
+
+.mcfly-orders-ledger__delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-orders-ledger__delta--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-orders-ledger__delta--flat {
+  color: var(--mcfly-mute);
+}
+
+/* Order frequency distribution. */
+.mcfly-chart--frequency .mcfly-chart__sub {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__freq {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.4rem;
+  align-items: end;
+  min-height: 9rem;
+  margin: 0.6rem 0 0;
+}
+
+.mcfly-chart__freq-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.mcfly-chart__freq-v {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__freq-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 6.75rem;
+}
+
+.mcfly-chart__freq-bar {
+  width: 100%;
+  max-width: 3.2rem;
+  border-radius: 5px 5px 0 0;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__freq-col:hover .mcfly-chart__freq-bar {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__freq-k {
+  font-size: 0.64rem;
+  color: var(--mcfly-mute);
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .mcfly-orders-intel__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-orders-intel {
+    padding: 0.75rem 0.7rem 0.8rem;
+  }
+
+  .mcfly-orders-intel__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .mcfly-orders-intel__v {
+    font-size: clamp(0.98rem, 5vw, 1.2rem);
+  }
+
+  .mcfly-chart--dual .mcfly-chart__svg {
+    min-height: 11rem;
+  }
+
+  .mcfly-chart__freq-bar {
+    max-width: 2.2rem;
+  }
+
+  .mcfly-chart__freq-track {
+    height: 5.5rem;
+  }
+
+  .mcfly-orders-ledger__table th,
+  .mcfly-orders-ledger__table td {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.72rem;
+  }
+}
+
+/* —— Black Clover depth pack: curves, retention grid, journeys, tiers, whales —— */
+.mcfly-depth-intro .mcfly-book__lede {
+  margin-bottom: 0.35rem;
+}
+
+.mcfly-depth__caption {
+  margin: 0.9rem 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent-ink);
+}
+
+/* Spend-build curves reuse the .mcfly-chart shell; only the SVG marks are new. */
+.mcfly-depth-curves__grid {
+  stroke: var(--mcfly-line-soft);
+  stroke-width: 1;
+}
+
+.mcfly-depth-curves__axis {
+  fill: var(--mcfly-mute);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-depth-curves__line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.mcfly-depth-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.55rem;
+  margin: 0.7rem 0 0.15rem;
+}
+
+button.mcfly-depth-legend__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  padding: 0.2rem 0.5rem;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--mcfly-ink);
+  background: var(--mcfly-tint-sky);
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+button.mcfly-depth-legend__chip:hover,
+button.mcfly-depth-legend__chip:focus-visible {
+  border-color: var(--mcfly-accent);
+}
+
+.mcfly-depth-legend__swatch {
+  width: 12px;
+  height: 4px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+/* Dense depth tables — same family as the goals / windows tables. */
+.mcfly-depth-tablewrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0.35rem 0 0.5rem;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 10px;
+}
+
+.mcfly-depth-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: 0.82rem;
+}
+
+.mcfly-depth-table th,
+.mcfly-depth-table td {
+  padding: 0.5rem 0.7rem;
+  text-align: right;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  white-space: nowrap;
+}
+
+.mcfly-depth-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--mcfly-paper);
+  color: var(--mcfly-mute);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mcfly-depth-table tbody th[scope="row"] {
+  text-align: left;
+  font-weight: 600;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-depth-table tbody tr:last-child th,
+.mcfly-depth-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.mcfly-depth-table__strong {
+  font-weight: 700;
+  color: var(--mcfly-ink);
+}
+
+/* Sample-size column — present for honesty, dimmed so it never competes. */
+.mcfly-depth-table__muted {
+  color: var(--mcfly-mute);
+  font-size: 0.74rem;
+}
+
+.mcfly-depth-table__second {
+  text-align: left;
+}
+
+.mcfly-depth-table__repeat {
+  color: var(--mcfly-accent-ink);
+  font-weight: 700;
+}
+
+.mcfly-depth-table__month {
+  display: block;
+  font-weight: 650;
+}
+
+.mcfly-depth-table__sub {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-depth-table--path th[scope="row"],
+.mcfly-depth-table--path .mcfly-depth-table__second {
+  white-space: normal;
+  min-width: 8.5rem;
+}
+
+/* Retention heat cells: first column sticky, dollars-blue intensity inline. */
+.mcfly-depth-table--heat th[scope="row"] {
+  position: sticky;
+  left: 0;
+  background: var(--mcfly-paper);
+  z-index: 1;
+}
+
+.mcfly-depth-heat__cell {
+  text-align: center;
+  font-weight: 650;
+  font-size: 0.78rem;
+}
+
+.mcfly-depth-heat__cell--none {
+  color: var(--mcfly-mute);
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 4px,
+    var(--mcfly-line-soft) 4px,
+    var(--mcfly-line-soft) 5px
+  );
+}
+
+.mcfly-depth-recency {
+  margin-top: 0.9rem;
+}
+
+.mcfly-depth-recency__row {
+  cursor: default;
+}
+
+.mcfly-depth-recency__fill--cold {
+  background: var(--mcfly-warn);
+}
+
+@media (max-width: 640px) {
+  .mcfly-depth-table th,
+  .mcfly-depth-table td {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.76rem;
+  }
+
+  .mcfly-depth-heat__cell {
+    font-size: 0.72rem;
+  }
+}
+
+/* === Overview sales explorer (PR #70) === */
 /* =========================================================================
  * Sales explorer craft 2026-09-17 — Overview day-vs-typical scoreboard.
  * Reference bar: Black Clover MER command center (docs/ops/research/

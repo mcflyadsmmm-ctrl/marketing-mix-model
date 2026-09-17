@@ -1,8 +1,8 @@
 import { useLocation, useSearchParams } from "react-router";
 
 import {
-  DESK_COMPARE_NAV,
-  DESK_SHOPIFY_NAV,
+  DESK_RETAIN_NAV,
+  DESK_SCOREBOARD_NAV,
   DESK_SPEND_NAV,
   deskNavHrefFromSearch,
   isDeskNavActive,
@@ -22,7 +22,9 @@ function TabGroup({
 }) {
   return (
     <div className="mcfly-desk-tabs__group">
-      <p className="mcfly-desk-tabs__k">{label}</p>
+      <p className="mcfly-desk-tabs__k" aria-hidden="true">
+        {label}
+      </p>
       <div className="mcfly-desk-tabs__pills" role="tablist" aria-label={label}>
         {items.map((item) => {
           const active = isDeskNavActive(item.path, pathname);
@@ -47,7 +49,10 @@ function TabGroup({
   );
 }
 
-/** Black Clover–style page toggles inside the iframe. Side nav stays shortcuts. */
+/**
+ * Black Clover grouped chip rail inside the iframe: SCOREBOARD | RETAIN | SPEND
+ * PLAN, each with an inline kicker label and a divider. Side nav stays shortcuts.
+ */
 export function DeskTopTabs({ shotMode = false }: { shotMode?: boolean }) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -56,20 +61,20 @@ export function DeskTopTabs({ shotMode = false }: { shotMode?: boolean }) {
   return (
     <nav className="mcfly-desk-tabs" aria-label="Desk pages">
       <TabGroup
-        label="Shopify"
-        items={DESK_SHOPIFY_NAV}
+        label="Scoreboard"
+        items={DESK_SCOREBOARD_NAV}
         pathname={location.pathname}
         search={searchParams}
       />
       <TabGroup
-        label="Spend"
+        label="Retain"
+        items={DESK_RETAIN_NAV}
+        pathname={location.pathname}
+        search={searchParams}
+      />
+      <TabGroup
+        label="Spend plan"
         items={DESK_SPEND_NAV}
-        pathname={location.pathname}
-        search={searchParams}
-      />
-      <TabGroup
-        label="Compare"
-        items={DESK_COMPARE_NAV}
         pathname={location.pathname}
         search={searchParams}
       />
