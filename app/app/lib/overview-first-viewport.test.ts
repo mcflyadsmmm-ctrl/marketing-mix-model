@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   OVERVIEW_COVERAGE_LINE,
+  OVERVIEW_PENDING_ASOF,
   OVERVIEW_PENDING_LINE,
   OVERVIEW_SPEND_DOOR_LINE,
   OVERVIEW_SPEND_EMPTY_LINE,
@@ -87,6 +88,7 @@ describe("overview first viewport", () => {
     expect(OVERVIEW_SPEND_EMPTY_LINE).not.toMatch(/0x/i);
     expect(OVERVIEW_SPEND_DOOR_LINE).toMatch(/optional/i);
     expect(OVERVIEW_SPEND_DOOR_LINE).not.toMatch(/0\.00×|0×|0x/i);
+    expect(OVERVIEW_PENDING_ASOF).toMatch(/not \$0/);
   });
 
   it("Overview home is YoY cards, then Shopify peeks, then sales charts", () => {
@@ -118,9 +120,11 @@ describe("overview first viewport", () => {
     expect(overview).not.toContain("<GoalsSnapSection");
     expect(overview).not.toContain("mcfly-tab-snaps");
     expect(overview).not.toContain("Coverage {Math.round(coveragePct)}%");
+    expect(overview).toContain("!greetingPending &&");
     expect(read("../components/OverviewSalesChart.tsx")).toContain(
       "salesPending || !hasSales || points.length < 2",
     );
+    expect(read("../components/OverviewSalesChart.tsx")).toContain("Tap a bar");
   });
 
   it("Overview YoY cards say pending sales are not $0", () => {
@@ -128,6 +132,7 @@ describe("overview first viewport", () => {
     expect(cards).toContain("OVERVIEW_YOY_PENDING");
     expect(cards).toContain("OVERVIEW_YOY_LABELS");
     expect(cards).not.toMatch(/if \(salesPending\) return null/);
+    expect(cards).toContain("salesPending || cards.length === 0");
     expect(cards).not.toContain("0.00×");
     expect(cards).not.toContain("Total ROAS");
     expect(cards).not.toContain("Edit spend");
@@ -140,6 +145,10 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("mcfly-decision");
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-2");
+    expect(firstView).toContain("showPeeks");
+    expect(firstView).toContain("orderCount > 0");
+    expect(firstView).toContain("{hasSpend && !salesPending ? (");
     expect(firstView).toContain("DeskIcon");
     expect(firstView).toContain("Click for detail");
     expect(firstView).toContain("weekendSalesShare");
@@ -164,7 +173,7 @@ describe("overview first viewport", () => {
     expect(firstView).not.toContain("Add spend to see Total ROAS");
     expect(firstView).not.toContain('label="Ad spend"');
     expect(firstView).not.toContain("Spend Upload →");
-    expect(firstView).toContain("{hasSpend ? (");
+    expect(firstView).toContain("{hasSpend && !salesPending ? (");
     expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
     expect(firstView).not.toContain("returningCustomers.toLocaleString()");
     expect(firstView).not.toContain("mcfly-kpi-grid--with-roas");

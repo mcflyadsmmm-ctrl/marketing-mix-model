@@ -11911,6 +11911,10 @@ a.mcfly-control__chip-yoy:focus-visible {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.mcfly-score .mcfly-kpi-grid--peeks-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 @media (min-width: 901px) {
   .mcfly-score .mcfly-kpi-grid--with-roas {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -12767,7 +12771,8 @@ button.mcfly-chart__month {
 }
 
 @media (max-width: 720px) {
-  .mcfly-score .mcfly-kpi-grid--peeks {
+  .mcfly-score .mcfly-kpi-grid--peeks,
+  .mcfly-score .mcfly-kpi-grid--peeks-2 {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -12777,6 +12782,7 @@ button.mcfly-chart__month {
   .mcfly-score .mcfly-kpi-grid,
   .mcfly-score .mcfly-kpi-grid--with-roas,
   .mcfly-score .mcfly-kpi-grid--peeks,
+  .mcfly-score .mcfly-kpi-grid--peeks-2,
   .mcfly-kpi-board,
   .mcfly-kpi-board__primary,
   .mcfly-yoy__grid,

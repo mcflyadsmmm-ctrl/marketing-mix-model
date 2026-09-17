@@ -63,7 +63,7 @@ export function OverviewYoyCards({
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
-  if (salesPending) {
+  if (salesPending || cards.length === 0) {
     return (
       <section className="mcfly-yoy" aria-label="Sales versus last year">
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_PENDING}</p>
@@ -75,7 +75,6 @@ export function OverviewYoyCards({
       </section>
     );
   }
-  if (cards.length === 0) return null;
 
   const allMissingPrior = cards.every((card) => card.missingPrior);
   const sameWindow = overviewWindowsCollapsed(cards);

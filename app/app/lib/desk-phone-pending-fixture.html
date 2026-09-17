@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Desk phone pending fixture — Mcfly Analytics</title>
+  <link rel="stylesheet" href="../styles/mcfly-desk.css" />
+  <style>
+    body { margin: 0; background: #f6f6f7; font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif; }
+    .fixture-note { margin: 0; padding: 0.5rem 0.75rem; font-size: 0.75rem; color: #5a6f85; }
+  </style>
+</head>
+<body>
+  <p class="fixture-note">Pending Live Overview at 390×844 — dashes, not a sealed $0 year.</p>
+
+  <nav class="mcfly-desk-tabs" aria-label="Desk pages">
+    <div class="mcfly-desk-tabs__group">
+      <p class="mcfly-desk-tabs__k">Shopify</p>
+      <div class="mcfly-desk-tabs__pills" role="tablist" aria-label="Shopify">
+        <a class="mcfly-desk-tabs__pill mcfly-desk-tabs__pill--on" role="tab" aria-selected="true" href="#overview">Overview</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#customers">Customers</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#growth">Growth</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#orders">Orders</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#ltv">LTV</a>
+      </div>
+    </div>
+    <div class="mcfly-desk-tabs__group">
+      <p class="mcfly-desk-tabs__k">Spend</p>
+      <div class="mcfly-desk-tabs__pills" role="tablist" aria-label="Spend">
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#spend">Spend Upload</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#roas">Total ROAS</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#alloc">Channel Allocation</a>
+      </div>
+    </div>
+    <div class="mcfly-desk-tabs__group">
+      <p class="mcfly-desk-tabs__k">Compare</p>
+      <div class="mcfly-desk-tabs__pills" role="tablist" aria-label="Compare">
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#yoy">YoY</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#cpa">CPA</a>
+        <a class="mcfly-desk-tabs__pill" role="tab" href="#goals">Goals</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mcfly-desk">
+    <div class="mcfly-ctx">
+      <div class="mcfly-ctx__main">
+        <span class="mcfly-ctx__brand">demcflyads</span>
+        <span class="mcfly-ctx__sep" aria-hidden="true">·</span>
+        <span class="mcfly-ctx__asof">Month to date · still loading — not $0</span>
+      </div>
+    </div>
+
+    <section class="mcfly-yoy" aria-label="Sales versus last year">
+      <p class="mcfly-yoy__lede">Sales for closed days are still loading — not $0.</p>
+      <div class="mcfly-yoy__grid">
+        <article class="mcfly-yoy__card">
+          <p class="mcfly-yoy__k">This month</p>
+          <p class="mcfly-yoy__v">—</p>
+          <p class="mcfly-yoy__prior"><span>Last year</span><span>—</span></p>
+        </article>
+        <article class="mcfly-yoy__card">
+          <p class="mcfly-yoy__k">This quarter</p>
+          <p class="mcfly-yoy__v">—</p>
+          <p class="mcfly-yoy__prior"><span>Last year</span><span>—</span></p>
+        </article>
+        <article class="mcfly-yoy__card">
+          <p class="mcfly-yoy__k">This year</p>
+          <p class="mcfly-yoy__v">—</p>
+          <p class="mcfly-yoy__prior"><span>Last year</span><span>—</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="mcfly-score mcfly-book" aria-label="Shopify sales this period">
+      <p class="mcfly-book__lede">Sales for closed days are still loading — not $0.</p>
+      <p class="mcfly-score__door">Spend is optional. Total ROAS lives on that tab after you add spend. <a href="#spend">Spend Upload</a></p>
+    </section>
+  </div>
+</body>
+</html>
