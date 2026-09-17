@@ -33,3 +33,14 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Ease | PASS | Pills, mobile, chart-smooth hover preserved; product name + one money number + typical next |
 | Stickiness | PASS | Titles / thin / young empties are ActionCard-shaped (verb + floor) — no blank charts, not $0 |
 | Empty-state | PASS | Floor 8 named starters × 30 days, then 90, then year — on the card. Live without titles stays honest |
+
+## SCORECARD — Customers RFM-lite + whale watchlist (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Accuracy | PASS | R/F/M terciles from stored orders; guests never scored; watchlist is top-decile $ with 2+ orders and last order past 30d; year-scale recency withheld when history is limited; refunds never invented |
+| Quality | PASS | Four segments + three bands + a short watchlist beside What to do — this tab is a $39 order-history desk, not a 5×5 dump |
+| Organization | PASS | ActionCards stay; watchlist sits beside; RFM-lite next; mix / value / existing whale recency stay; sales-five IA untouched |
+| Ease | PASS | Pills, mobile, chart-smooth hover preserved; one reach list, not a customer export |
+| Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young; warm-whale watch empty — no blank charts, not $0 |
+| Empty-state | PASS | Floor 8 buyers × 30 days on RFM and the watchlist. Sparse shops stay amazing |

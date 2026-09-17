@@ -19065,3 +19065,232 @@ button.mcfly-depth-flag__empty:focus-visible {
     padding: 0.32rem 0.35rem 0.38rem;
   }
 }
+
+/* =========================================================================
+ * Customers RFM-lite + whale watchlist — soft dense beside ActionCards.
+ * APPEND ONLY. mcfly-cust-* scoped. Zero spend / ROAS. Preserve pills,
+ * ActionCards, mix, existing whale recency.
+ * ========================================================================= */
+
+.mcfly-cust-action-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(16rem, 0.9fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.mcfly-cust-action-row > .mcfly-cust-card {
+  margin: 0;
+}
+
+.mcfly-cust-rfm,
+.mcfly-cust-watch {
+  min-width: 0;
+}
+
+.mcfly-cust-rfm__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  margin: 0 0 0.65rem;
+  padding: 0.8rem 0.85rem 0.75rem;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 42%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.mcfly-cust-rfm__empty:hover,
+.mcfly-cust-rfm__empty:focus-visible {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 45%, #fff);
+  outline: 2px solid color-mix(in srgb, var(--mcfly-accent) 35%, transparent);
+  outline-offset: 1px;
+}
+
+.mcfly-cust-rfm__empty-k,
+.mcfly-cust-rfm__empty-verb {
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-rfm__empty-v {
+  margin: 0.15rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust-rfm__empty-line {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-rfm__segs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0 0 0.85rem;
+}
+
+.mcfly-cust-rfm__bands {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.mcfly-cust-rfm__band {
+  padding: 0.65rem 0.7rem 0.7rem;
+  background: color-mix(in srgb, #fff 74%, var(--mcfly-tint-sky));
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 12px;
+}
+
+.mcfly-cust-rfm__band-k {
+  margin: 0 0 0.45rem;
+  font-family: var(--mcfly-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mcfly-cust-rfm__band-row {
+  display: grid;
+  grid-template-columns: 3.6rem minmax(0, 1fr) 1.8rem;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.28rem 0 0;
+}
+
+.mcfly-cust-rfm__band-label {
+  font-size: 0.68rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-rfm__band-track {
+  display: block;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 35%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-cust-rfm__band-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-cust-rfm__band-n {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.mcfly-cust-watch__table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.mcfly-cust-watch__head,
+.mcfly-cust-watch__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) 3.1rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mcfly-cust-watch__head {
+  padding: 0 0.55rem 0.2rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-watch__row {
+  width: 100%;
+  margin: 0;
+  padding: 0.55rem 0.6rem;
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 10px;
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.mcfly-cust-watch__row:hover,
+.mcfly-cust-watch__row:focus-visible {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 45%, #fff);
+  outline: 2px solid color-mix(in srgb, var(--mcfly-accent) 35%, transparent);
+  outline-offset: 1px;
+}
+
+.mcfly-cust-watch__who {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05rem;
+  font-weight: 700;
+}
+
+.mcfly-cust-watch__meta {
+  font-weight: 500;
+  color: var(--mcfly-mute);
+  font-size: 0.68rem;
+}
+
+.mcfly-cust-watch__last {
+  color: var(--mcfly-warn);
+  font-weight: 750;
+}
+
+@media (max-width: 860px) {
+  .mcfly-cust-action-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mcfly-cust-rfm__segs,
+  .mcfly-cust-rfm__bands {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-cust-action-row,
+  .mcfly-cust-rfm__segs,
+  .mcfly-cust-rfm__bands {
+    grid-template-columns: 1fr;
+  }
+
+  .mcfly-cust-rfm__empty,
+  .mcfly-cust-watch__row {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .mcfly-cust-watch__head,
+  .mcfly-cust-watch__row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.6rem;
+  }
+}

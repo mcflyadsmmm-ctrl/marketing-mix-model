@@ -31,6 +31,7 @@ import {
   SAMPLE_ORDER_FACT_WINDOW_DAYS,
 } from "./order-facts.server";
 import { buildCustomerAnalytics } from "./customers-analytics";
+import { buildCustomerRfm } from "./customers-rfm";
 import { resolvePeriod, resolvePriorPeriod, type PeriodPreset } from "./periods";
 
 const DAY_MS = 86_400_000;
@@ -231,6 +232,27 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     expect(nonEmptyBuckets.length).toBeGreaterThan(1);
     expect(analytics.everRepeatShare).not.toBeNull();
     expect(analytics.everRepeatShare!).toBeGreaterThan(0);
+  });
+
+  it("feeds Customers RFM-lite: four segments and a whale watchlist", () => {
+    const rfm = buildCustomerRfm(
+      orders.map((o) => ({
+        customerKey: o.customerKey,
+        orderedAt: o.orderedAt,
+        amount: o.amount,
+      })),
+      { windowEnd: now, historyLimited: false },
+    );
+    expect(rfm.available).toBe(true);
+    expect(rfm.empty).toBeNull();
+    expect(rfm.identifiedBuyers).toBeGreaterThan(50);
+    expect(rfm.segments).toHaveLength(4);
+    const buyers = rfm.segments.reduce((s, row) => s + row.buyers, 0);
+    expect(buyers).toBe(rfm.identifiedBuyers);
+    expect(rfm.bands).toHaveLength(3);
+    // SAMPLE has 4+ order whales; at least the slipping list or the designed empty.
+    expect(rfm.watchlist.length > 0 || rfm.watchEmpty != null).toBe(true);
+    expect(rfm.watchlist.every((row) => /^Whale \d+$/.test(row.label))).toBe(true);
   });
 
   it("feeds LTV cohorts: multi-order months with 90d repeat revenue", () => {
