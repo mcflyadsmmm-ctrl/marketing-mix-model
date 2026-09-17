@@ -13359,3 +13359,61 @@ button.mcfly-chart__month {
     display: none;
   }
 }
+
+/* Orchestration law — scoreboard numerals eat chrome, not the reverse. */
+.mcfly-yoy__lede {
+  display: none;
+}
+
+.mcfly-yoy__range {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.mcfly-yoy__v {
+  font-size: clamp(1.7rem, 4vw, 2.35rem);
+  margin: 0.25rem 0 0;
+}
+
+.mcfly-kpi--peek .mcfly-kpi__value {
+  font-size: clamp(1.2rem, 3.2vw, 1.85rem);
+  letter-spacing: -0.03em;
+}
+
+.mcfly-data-mode {
+  padding: 0.4rem 0.75rem;
+}
+
+.mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+  min-height: 12.5rem;
+}
+
+.mcfly-desk-anchor .mcfly-chart__hint {
+  display: none;
+}
+
+@media (max-width: 430px) {
+  .mcfly-yoy__card {
+    padding: 0.65rem 0.75rem 0.6rem;
+  }
+
+  .mcfly-yoy__v {
+    font-size: clamp(1.65rem, 8vw, 2.1rem);
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__value {
+    font-size: clamp(1.05rem, 5vw, 1.28rem);
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__sub {
+    font-size: 0.62rem;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+    min-height: 11.5rem;
+  }
+}

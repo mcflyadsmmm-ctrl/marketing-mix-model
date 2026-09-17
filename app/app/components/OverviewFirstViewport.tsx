@@ -221,7 +221,7 @@ export function OverviewFirstViewport({
             salesPending
               ? undefined
               : typicalIsMedian
-                ? "Median, not the average"
+                ? "Median"
                 : undefined
           }
         />

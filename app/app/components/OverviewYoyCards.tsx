@@ -159,6 +159,9 @@ export function OverviewYoyCards({
                 <span className="mcfly-yoy__k-main">
                   <DeskIcon name="yoy" />
                   {card.label}
+                  {range ? (
+                    <span className="mcfly-yoy__range"> · {range}</span>
+                  ) : null}
                 </span>
                 {zoneLabel ? (
                   <span className={`mcfly-yoy__zone mcfly-yoy__zone--${zone}`}>
@@ -166,12 +169,11 @@ export function OverviewYoyCards({
                   </span>
                 ) : null}
               </p>
-              {range ? <p className="mcfly-yoy__range">{range}</p> : null}
               <p className={`mcfly-yoy__v mcfly-yoy__v--${zone}`}>
                 {formatCurrency(card.sales, currency)}
               </p>
               <p className="mcfly-yoy__prior">
-                <span>Last year {priorLabel}</span>
+                <span>LY {priorLabel}</span>
                 {vs ? (
                   <span className={`mcfly-yoy__vs mcfly-yoy__vs--${zone}`}>{vs}</span>
                 ) : null}
