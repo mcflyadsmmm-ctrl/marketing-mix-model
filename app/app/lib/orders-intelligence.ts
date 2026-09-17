@@ -51,6 +51,17 @@ export type OrdersFrequencyBucket = {
   customers: number;
 };
 
+/** One audit-grade weekly ledger row. */
+export type OrdersWeekRow = {
+  weekKey: string;
+  label: string;
+  orders: number;
+  sales: number;
+  aov: number;
+  discountDepth: number | null;
+  ordersDelta: OrdersIntelDelta | null;
+};
+
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -224,6 +235,52 @@ function frequencyKey(count: number): OrdersFrequencyBucket["key"] {
   if (count === 4) return "4";
   if (count <= 9) return "5-9";
   return "10+";
+}
+
+/** Monday-start ISO-ish week key for a shop-local day. */
+function weekStartKey(date: Date): string {
+  const d = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+  const dow = d.getUTCDay(); // 0 Sun..6 Sat
+  const backToMonday = (dow + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - backToMonday);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Weekly ledger — the audit-grade table Shopify Analytics buries. Each row is
+ * a Monday-start week with orders, sales, AOV, discount depth, and the
+ * orders trend vs the prior week.
+ */
+export function buildOrdersWeeklyRows(rows: OrderIntelRow[]): OrdersWeekRow[] {
+  const byWeek = new Map<
+    string,
+    { orders: number; sales: number; discount: number }
+  >();
+  for (const row of rows) {
+    if (!Number.isFinite(row.amount)) continue;
+    const key = weekStartKey(row.shopLocalDate);
+    const bucket = byWeek.get(key) ?? { orders: 0, sales: 0, discount: 0 };
+    bucket.orders += 1;
+    bucket.sales += finite(row.amount);
+    bucket.discount += Math.abs(finite(row.discountAmount));
+    byWeek.set(key, bucket);
+  }
+  const sorted = [...byWeek.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  return sorted.map(([weekKey, bucket], index) => {
+    const gross = bucket.sales + bucket.discount;
+    const priorOrders = index > 0 ? sorted[index - 1]![1].orders : null;
+    return {
+      weekKey,
+      label: `Wk of ${ordersIntelDayLabel(weekKey)}`,
+      orders: bucket.orders,
+      sales: bucket.sales,
+      aov: bucket.orders > 0 ? bucket.sales / bucket.orders : 0,
+      discountDepth: gross > 0 ? bucket.discount / gross : null,
+      ordersDelta: ordersIntelDelta(bucket.orders, priorOrders),
+    };
+  });
 }
 
 export function buildOrdersFrequency(

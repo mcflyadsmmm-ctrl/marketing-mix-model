@@ -412,6 +412,49 @@ describe("Orders page craft lock", () => {
     }
   });
 
+  it("ships Black Clover order intelligence — KPI strip, dual-axis explorer, audit table, frequency", () => {
+    const intel = read("../components/OrdersIntelligence.tsx");
+    const freq = read("../components/OrdersFrequencyChart.tsx");
+    const css = read("../styles/mcfly-desk.css");
+    expect(orders).toContain("<OrdersIntelligence");
+    expect(orders).toContain("<OrdersFrequencyChart");
+    expect(orders).toContain("includeOrdersIntelligence");
+    expect(intel).toContain("mcfly-orders-intel__kpis");
+    expect(intel).toContain("vs prior");
+    expect(intel).toContain("mcfly-chart--dual");
+    expect(intel).toContain("Orders × AOV");
+    expect(intel).toContain("mcfly-chart__aovline");
+    expect(intel).toContain("mcfly-chart__obar");
+    // Explorer grain lives on the chart.
+    expect(intel).toContain("mcfly-period__btn");
+    // Audit-grade weekly ledger table.
+    expect(intel).toContain("mcfly-orders-ledger__table");
+    expect(intel).toContain("<thead>");
+    expect(intel).toContain("vs prior");
+    expect(freq).toContain("mcfly-chart__freq");
+    expect(freq).toMatch(/Customers/);
+    expect(css).toContain(".mcfly-orders-intel");
+    expect(css).toContain(".mcfly-orders-ledger__table");
+    expect(css).toContain(".mcfly-chart__aovline");
+    expect(css).toContain(".mcfly-chart__freq");
+  });
+
+  it("keeps spend / ROAS off the intelligence, ledger, and frequency", () => {
+    for (const source of [
+      read("../components/OrdersIntelligence.tsx"),
+      read("../components/OrdersFrequencyChart.tsx"),
+      read("./orders-intelligence.ts"),
+    ]) {
+      for (const ban of ORDERS_SPEND_BANS) {
+        expect(source).not.toContain(ban);
+      }
+      expect(source).not.toContain("Total ROAS");
+      expect(source).not.toContain("SpendExplorer");
+      expect(source).not.toContain("Harbor");
+      expect(source).not.toContain("0.00×");
+    }
+  });
+
   it("contrasts typical/median with Shopify Analytics average", () => {
     expect(`${orders}\n${scoreboard}`).toMatch(/Shopify Analytics/);
     expect(`${orders}\n${scoreboard}`).toMatch(/average/i);

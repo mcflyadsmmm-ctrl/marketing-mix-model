@@ -55,11 +55,12 @@ export function OrdersFrequencyChart({
               <span className="mcfly-chart__freq-v">
                 {bucket.customers.toLocaleString()}
               </span>
-              <span
-                className="mcfly-chart__freq-bar"
-                style={{ height: `${Math.max(4, (bucket.customers / max) * 100)}%` }}
-                aria-hidden="true"
-              />
+              <span className="mcfly-chart__freq-track" aria-hidden="true">
+                <span
+                  className="mcfly-chart__freq-bar"
+                  style={{ height: `${Math.max(3, (bucket.customers / max) * 100)}%` }}
+                />
+              </span>
               <span className="mcfly-chart__freq-k">{bucket.label}</span>
             </button>
           );

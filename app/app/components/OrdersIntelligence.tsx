@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DeskIcon } from "./DeskIcon";
+import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency } from "../lib/mer-format";
 import {
@@ -7,14 +8,18 @@ import {
   ordersIntelDayLabel,
   type OrdersIntelAgg,
   type OrdersIntelDay,
+  type OrdersWeekRow,
 } from "../lib/orders-intelligence";
 
 export type OrdersIntel = {
   windowLabel: string;
   days: OrdersIntelDay[];
+  weeks: OrdersWeekRow[];
   current: OrdersIntelAgg;
   prior: OrdersIntelAgg | null;
 };
+
+type IntelGrain = "day" | "week";
 
 function deltaCopy(dir: "up" | "down" | "flat", pct: number): string {
   if (dir === "flat") return "Even vs prior";
@@ -59,7 +64,12 @@ export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
           </div>
         ))}
       </div>
-      <OrdersDualAxisChart days={intel.days} currency={currency} />
+      <OrdersDualAxisChart
+        days={intel.days}
+        weeks={intel.weeks}
+        currency={currency}
+      />
+      <OrdersLedgerTable weeks={intel.weeks} currency={currency} />
     </section>
   );
 }
@@ -72,17 +82,35 @@ function niceMax(value: number): number {
   return step * pow;
 }
 
-/** Orders bars (left axis) + AOV line (right axis). Grain is the day. */
+/** Orders bars (left axis) + AOV line (right axis). Day / Week grain on chart. */
 function OrdersDualAxisChart({
   days,
+  weeks,
   currency,
 }: {
   days: OrdersIntelDay[];
+  weeks: OrdersWeekRow[];
   currency: string;
 }) {
+  const [grain, setGrain] = useState<IntelGrain>("day");
   const [activeKey, setActiveKey] = useState<string | null>(null);
-  if (days.length < 2) return null;
+  const points = useMemo<OrdersIntelDay[]>(
+    () =>
+      grain === "week"
+        ? weeks.map((week) => ({
+            dateKey: week.weekKey,
+            orders: week.orders,
+            sales: week.sales,
+            aov: week.aov,
+          }))
+        : days,
+    [grain, days, weeks],
+  );
+  const labelOf = (key: string) =>
+    grain === "week" ? `Wk of ${ordersIntelDayLabel(key)}` : ordersIntelDayLabel(key);
+  if (points.length < 2) return null;
 
+  const days2 = points;
   const width = 720;
   const height = 260;
   const padL = 42;
@@ -91,17 +119,17 @@ function OrdersDualAxisChart({
   const padB = 34;
   const plotW = width - padL - padR;
   const plotH = height - padT - padB;
-  const ordersMax = niceMax(Math.max(...days.map((d) => d.orders), 1));
-  const aovMax = niceMax(Math.max(...days.map((d) => d.aov), 1));
-  const stepX = plotW / days.length;
-  const barW = Math.max(2, stepX * 0.66);
+  const ordersMax = niceMax(Math.max(...days2.map((d) => d.orders), 1));
+  const aovMax = niceMax(Math.max(...days2.map((d) => d.aov), 1));
+  const stepX = plotW / days2.length;
+  const barW = Math.max(2, stepX * (grain === "week" ? 0.7 : 0.66));
   const baseY = padT + plotH;
   const active =
-    days.find((d) => d.dateKey === activeKey) ?? days[days.length - 1]!;
-  const activeIndex = days.findIndex((d) => d.dateKey === active.dateKey);
+    days2.find((d) => d.dateKey === activeKey) ?? days2[days2.length - 1]!;
+  const activeIndex = days2.findIndex((d) => d.dateKey === active.dateKey);
   const tipLeftPct = ((padL + (activeIndex + 0.5) * stepX) / width) * 100;
 
-  const linePoints = days.map((day, index) => {
+  const linePoints = days2.map((day, index) => {
     const x = padL + (index + 0.5) * stepX;
     const y = padT + plotH - (day.aov / aovMax) * plotH;
     return { x, y };
@@ -109,16 +137,54 @@ function OrdersDualAxisChart({
   const line = linePoints
     .map((pt, index) => `${index === 0 ? "M" : "L"}${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
     .join(" ");
+  const aovFill =
+    linePoints.length >= 2
+      ? `M${linePoints[0]!.x.toFixed(1)} ${baseY} ${linePoints
+          .map((pt) => `L${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
+          .join(" ")} L${linePoints[linePoints.length - 1]!.x.toFixed(1)} ${baseY} Z`
+      : "";
 
   const ordersTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(ordersMax * t));
   const aovTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(aovMax * t));
-  const labelEvery = Math.max(1, Math.ceil(days.length / 8));
+  const labelEvery = Math.max(1, Math.ceil(days2.length / 8));
 
   return (
     <div className="mcfly-orders-intel__chart mcfly-chart mcfly-chart--dual">
+      <div className="mcfly-chart__head mcfly-chart__board">
+        <p className="mcfly-chart__title">
+          <DeskIcon name="chart" />
+          Orders × AOV explorer
+        </p>
+        <div className="mcfly-chart__legend mcfly-chart__legend--dual">
+          <span className="mcfly-chart__legend-k mcfly-chart__legend-k--orders">
+            <span className="mcfly-chart__legend-dot" aria-hidden="true" />
+            Orders
+          </span>
+          <span className="mcfly-chart__legend-k mcfly-chart__legend-k--aov">
+            <span className="mcfly-chart__legend-dot" aria-hidden="true" />
+            AOV
+          </span>
+        </div>
+        <div className="mcfly-period__group" role="group" aria-label="Chart grain">
+          {(["day", "week"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`mcfly-period__btn${grain === value ? " mcfly-period__btn--on" : ""}`}
+              aria-pressed={grain === value}
+              onClick={() => {
+                setGrain(value);
+                setActiveKey(null);
+              }}
+            >
+              {value === "day" ? "Day" : "Week"}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="mcfly-chart__plot">
         <div className="mcfly-chart__tip" role="status" style={{ left: `${Math.min(88, Math.max(12, tipLeftPct))}%` }}>
-          <p className="mcfly-chart__tip-h">{ordersIntelDayLabel(active.dateKey)}</p>
+          <p className="mcfly-chart__tip-h">{labelOf(active.dateKey)}</p>
           <p className="mcfly-chart__tip-row">
             <span className="mcfly-chart__tip-k">Orders</span>
             <span className="mcfly-chart__tip-v">{active.orders.toLocaleString()}</span>
@@ -136,7 +202,7 @@ function OrdersDualAxisChart({
           className="mcfly-chart__svg"
           viewBox={`0 0 ${width} ${height}`}
           role="img"
-          aria-label={`${days.length} days of orders and average order value`}
+          aria-label={`${days2.length} ${grain === "week" ? "weeks" : "days"} of orders and average order value`}
           onMouseLeave={() => setActiveKey(null)}
         >
           {ordersTicks.map((tick, index) => {
@@ -159,7 +225,7 @@ function OrdersDualAxisChart({
               </g>
             );
           })}
-          {days.map((day, index) => {
+          {days2.map((day, index) => {
             const barH = (day.orders / ordersMax) * plotH;
             const x = padL + index * stepX + (stepX - barW) / 2;
             const y = baseY - barH;
@@ -175,8 +241,9 @@ function OrdersDualAxisChart({
               />
             );
           })}
+          {aovFill ? <path className="mcfly-chart__aovfill" d={aovFill} /> : null}
           <path className="mcfly-chart__aovline" d={line} />
-          {days.map((day, index) => {
+          {days2.map((day, index) => {
             if (index % labelEvery !== 0) return null;
             const x = padL + (index + 0.5) * stepX;
             return (
@@ -191,7 +258,7 @@ function OrdersDualAxisChart({
               </text>
             );
           })}
-          {days.map((day, index) => {
+          {days2.map((day, index) => {
             const x = padL + index * stepX;
             return (
               <rect
@@ -206,21 +273,95 @@ function OrdersDualAxisChart({
                 onFocus={() => setActiveKey(day.dateKey)}
                 tabIndex={0}
                 role="button"
-                aria-label={`${ordersIntelDayLabel(day.dateKey)} ${day.orders} orders, AOV ${formatCurrency(day.aov, currency)}`}
+                aria-label={`${labelOf(day.dateKey)} ${day.orders} orders, AOV ${formatCurrency(day.aov, currency)}`}
               />
             );
           })}
         </svg>
       </div>
-      <div className="mcfly-chart__legend mcfly-chart__legend--dual">
-        <span className="mcfly-chart__legend-k mcfly-chart__legend-k--orders">
-          <span className="mcfly-chart__legend-dot" aria-hidden="true" />
-          Orders
-        </span>
-        <span className="mcfly-chart__legend-k mcfly-chart__legend-k--aov">
-          <span className="mcfly-chart__legend-dot" aria-hidden="true" />
-          AOV
-        </span>
+    </div>
+  );
+}
+
+function deltaChipCopy(dir: "up" | "down" | "flat", pct: number): string {
+  if (dir === "flat") return "even";
+  const sign = dir === "up" ? "+" : "−";
+  return `${sign}${Math.abs(Math.round(pct))}%`;
+}
+
+/** Audit-grade weekly ledger — Week · Orders (Δ) · Sales · AOV · Discount. */
+function OrdersLedgerTable({
+  weeks,
+  currency,
+}: {
+  weeks: OrdersWeekRow[];
+  currency: string;
+}) {
+  const drill = useDeskDrill();
+  if (weeks.length < 2) return null;
+  const rows = [...weeks].reverse();
+  return (
+    <div className="mcfly-orders-ledger">
+      <p className="mcfly-orders-ledger__cap">Weekly ledger · Monday-start · this window</p>
+      <div className="mcfly-orders-ledger__wrap">
+        <table className="mcfly-orders-ledger__table">
+          <thead>
+            <tr>
+              <th scope="col" className="mcfly-orders-ledger__lh">Week</th>
+              <th scope="col">Orders</th>
+              <th scope="col">vs prior</th>
+              <th scope="col">Sales</th>
+              <th scope="col">AOV</th>
+              <th scope="col">Discount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((week) => {
+              const open = () =>
+                drill?.openDrill({
+                  title: week.label,
+                  value: `${week.orders.toLocaleString()} orders`,
+                  kicker: "Weekly ledger",
+                  blocks: [
+                    { k: "Sales", v: formatCurrency(week.sales, currency) },
+                    { k: "AOV", v: formatCurrency(week.aov, currency) },
+                    week.discountDepth != null
+                      ? { k: "Discount depth", v: `${Math.round(week.discountDepth * 100)}%` }
+                      : null,
+                  ].filter((b): b is { k: string; v: string } => b != null),
+                  next: "Monday-start week from this shop's orders — not a platform pixel.",
+                });
+              return (
+                <tr
+                  key={week.weekKey}
+                  className="mcfly-orders-ledger__row"
+                  onClick={open}
+                >
+                  <td className="mcfly-orders-ledger__lh">{week.label}</td>
+                  <td>{week.orders.toLocaleString()}</td>
+                  <td>
+                    {week.ordersDelta ? (
+                      <span
+                        className={`mcfly-orders-ledger__delta mcfly-orders-ledger__delta--${week.ordersDelta.dir}`}
+                      >
+                        {deltaChipCopy(week.ordersDelta.dir, week.ordersDelta.pct)}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td>{formatCurrency(week.sales, currency)}</td>
+                  <td>{formatCurrency(week.aov, currency)}</td>
+                  <td>
+                    {week.discountDepth != null
+                      ? `${Math.round(week.discountDepth * 100)}%`
+                      : "—"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -33,6 +33,7 @@ import {
   aggregateOrderRows,
   buildOrdersFrequency,
   buildOrdersIntelDays,
+  buildOrdersWeeklyRows,
   ordersIntelWindowLabel,
   type OrdersFrequencyBucket,
 } from "./orders-intelligence";
@@ -100,6 +101,7 @@ export async function loadDeskSalesPage(
   let ordersIntel: {
     windowLabel: string;
     days: ReturnType<typeof buildOrdersIntelDays>;
+    weeks: ReturnType<typeof buildOrdersWeeklyRows>;
     current: ReturnType<typeof aggregateOrderRows>;
     prior: ReturnType<typeof aggregateOrderRows> | null;
   } | null = null;
@@ -123,6 +125,7 @@ export async function loadDeskSalesPage(
         ordersIntel = {
           windowLabel: ordersIntelWindowLabel(days),
           days,
+          weeks: buildOrdersWeeklyRows(rows),
           current: aggregateOrderRows(rows),
           prior: priorRows.length > 0 ? aggregateOrderRows(priorRows) : null,
         };

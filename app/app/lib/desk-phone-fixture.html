@@ -193,6 +193,88 @@
 
     <div class="mcfly-desk-anchor mcfly-scoreboard--orders" id="orders">
       <p class="mcfly-book__lede">Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS.</p>
+      <section class="mcfly-orders-intel mcfly-desk-anchor" aria-label="Order intelligence">
+        <div class="mcfly-orders-intel__head">
+          <p class="mcfly-orders-intel__title">Order intelligence<span class="mcfly-orders-intel__badge">90d</span></p>
+          <p class="mcfly-orders-intel__window">Jun 18 → Sep 16 · trailing 90 days</p>
+        </div>
+        <div class="mcfly-orders-intel__kpis">
+          <div class="mcfly-orders-intel__kpi"><p class="mcfly-orders-intel__k">Orders</p><p class="mcfly-orders-intel__v">1,284</p><p class="mcfly-orders-intel__delta mcfly-orders-intel__delta--up">+4% vs prior</p></div>
+          <div class="mcfly-orders-intel__kpi"><p class="mcfly-orders-intel__k">Sales</p><p class="mcfly-orders-intel__v">$806,214</p><p class="mcfly-orders-intel__delta mcfly-orders-intel__delta--up">+9% vs prior</p></div>
+          <div class="mcfly-orders-intel__kpi"><p class="mcfly-orders-intel__k">AOV</p><p class="mcfly-orders-intel__v">$628</p><p class="mcfly-orders-intel__delta mcfly-orders-intel__delta--up">+5% vs prior</p></div>
+          <div class="mcfly-orders-intel__kpi"><p class="mcfly-orders-intel__k">New sales share</p><p class="mcfly-orders-intel__v">38%</p><p class="mcfly-orders-intel__sub">486 new · 798 returning orders</p></div>
+          <div class="mcfly-orders-intel__kpi"><p class="mcfly-orders-intel__k">Discount depth</p><p class="mcfly-orders-intel__v">8%</p><p class="mcfly-orders-intel__sub">Σ |discounts| ÷ gross</p></div>
+        </div>
+        <div class="mcfly-orders-intel__chart mcfly-chart mcfly-chart--dual">
+          <div class="mcfly-chart__head mcfly-chart__board">
+            <p class="mcfly-chart__title">Orders × AOV explorer</p>
+            <div class="mcfly-chart__legend mcfly-chart__legend--dual">
+              <span class="mcfly-chart__legend-k mcfly-chart__legend-k--orders"><span class="mcfly-chart__legend-dot"></span>Orders</span>
+              <span class="mcfly-chart__legend-k mcfly-chart__legend-k--aov"><span class="mcfly-chart__legend-dot"></span>AOV</span>
+            </div>
+            <div class="mcfly-period__group" role="group" aria-label="Chart grain">
+              <button type="button" class="mcfly-period__btn mcfly-period__btn--on" aria-pressed="true">Day</button>
+              <button type="button" class="mcfly-period__btn" aria-pressed="false">Week</button>
+            </div>
+          </div>
+          <div class="mcfly-chart__plot">
+            <div class="mcfly-chart__tip" role="status" style="left:82%">
+              <p class="mcfly-chart__tip-h">Sep 6</p>
+              <p class="mcfly-chart__tip-row"><span class="mcfly-chart__tip-k">Orders</span><span class="mcfly-chart__tip-v">21</span></p>
+              <p class="mcfly-chart__tip-row"><span class="mcfly-chart__tip-k">AOV</span><span class="mcfly-chart__tip-v">$641</span></p>
+              <p class="mcfly-chart__tip-row"><span class="mcfly-chart__tip-k">Sales</span><span class="mcfly-chart__tip-v">$13,461</span></p>
+            </div>
+            <svg class="mcfly-chart__svg" viewBox="0 0 720 260" role="img" aria-label="13 weeks of orders and average order value">
+              <line class="mcfly-chart__grid" x1="42" y1="226" x2="668" y2="226"></line>
+              <line class="mcfly-chart__grid" x1="42" y1="173" x2="668" y2="173"></line>
+              <line class="mcfly-chart__grid" x1="42" y1="120" x2="668" y2="120"></line>
+              <line class="mcfly-chart__grid" x1="42" y1="67" x2="668" y2="67"></line>
+              <line class="mcfly-chart__grid" x1="42" y1="14" x2="668" y2="14"></line>
+              <text class="mcfly-chart__axis mcfly-chart__axis--l" x="36" y="229" text-anchor="end">0</text>
+              <text class="mcfly-chart__axis mcfly-chart__axis--l" x="36" y="123" text-anchor="end">60</text>
+              <text class="mcfly-chart__axis mcfly-chart__axis--l" x="36" y="17" text-anchor="end">120</text>
+              <text class="mcfly-chart__axis mcfly-chart__axis--r" x="674" y="229" text-anchor="start">$0</text>
+              <text class="mcfly-chart__axis mcfly-chart__axis--r" x="674" y="123" text-anchor="start">$400</text>
+              <text class="mcfly-chart__axis mcfly-chart__axis--r" x="674" y="17" text-anchor="start">$800</text>
+              <rect class="mcfly-chart__obar" x="48" y="150" width="34" height="76" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="100" y="140" width="34" height="86" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="152" y="120" width="34" height="106" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="204" y="158" width="34" height="68" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="256" y="132" width="34" height="94" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="308" y="110" width="34" height="116" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="360" y="146" width="34" height="80" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="412" y="128" width="34" height="98" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="464" y="104" width="34" height="122" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="516" y="138" width="34" height="88" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar mcfly-chart__obar--on" x="568" y="96" width="34" height="130" rx="1.5"></rect>
+              <rect class="mcfly-chart__obar" x="620" y="150" width="34" height="76" rx="1.5"></rect>
+              <path class="mcfly-chart__aovfill" d="M65 96 L117 100 L169 88 L221 104 L273 92 L325 84 L377 98 L429 90 L481 82 L533 96 L585 86 L637 100 L637 226 L65 226 Z"></path>
+              <path class="mcfly-chart__aovline" d="M65 96 L117 100 L169 88 L221 104 L273 92 L325 84 L377 98 L429 90 L481 82 L533 96 L585 86 L637 100"></path>
+              <text class="mcfly-chart__axis mcfly-chart__axis--x" x="65" y="252" text-anchor="middle">Jun 18</text>
+              <text class="mcfly-chart__axis mcfly-chart__axis--x" x="273" y="252" text-anchor="middle">Jul 16</text>
+              <text class="mcfly-chart__axis mcfly-chart__axis--x" x="481" y="252" text-anchor="middle">Aug 13</text>
+              <text class="mcfly-chart__axis mcfly-chart__axis--x" x="637" y="252" text-anchor="middle">Sep 10</text>
+            </svg>
+          </div>
+        </div>
+        <div class="mcfly-orders-ledger">
+          <p class="mcfly-orders-ledger__cap">Weekly ledger · Monday-start · this window</p>
+          <div class="mcfly-orders-ledger__wrap">
+            <table class="mcfly-orders-ledger__table">
+              <thead>
+                <tr><th class="mcfly-orders-ledger__lh">Week</th><th>Orders</th><th>vs prior</th><th>Sales</th><th>AOV</th><th>Discount</th></tr>
+              </thead>
+              <tbody>
+                <tr class="mcfly-orders-ledger__row"><td class="mcfly-orders-ledger__lh">Wk of Sep 7</td><td>96</td><td><span class="mcfly-orders-ledger__delta mcfly-orders-ledger__delta--up">+7%</span></td><td>$60,352</td><td>$629</td><td>8%</td></tr>
+                <tr class="mcfly-orders-ledger__row"><td class="mcfly-orders-ledger__lh">Wk of Aug 31</td><td>90</td><td><span class="mcfly-orders-ledger__delta mcfly-orders-ledger__delta--down">−4%</span></td><td>$56,140</td><td>$624</td><td>9%</td></tr>
+                <tr class="mcfly-orders-ledger__row"><td class="mcfly-orders-ledger__lh">Wk of Aug 24</td><td>94</td><td><span class="mcfly-orders-ledger__delta mcfly-orders-ledger__delta--up">+6%</span></td><td>$58,090</td><td>$618</td><td>7%</td></tr>
+                <tr class="mcfly-orders-ledger__row"><td class="mcfly-orders-ledger__lh">Wk of Aug 17</td><td>89</td><td><span class="mcfly-orders-ledger__delta mcfly-orders-ledger__delta--up">+3%</span></td><td>$55,180</td><td>$620</td><td>8%</td></tr>
+                <tr class="mcfly-orders-ledger__row"><td class="mcfly-orders-ledger__lh">Wk of Aug 10</td><td>86</td><td><span class="mcfly-orders-ledger__delta mcfly-orders-ledger__delta--flat">even</span></td><td>$53,320</td><td>$620</td><td>9%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
       <section class="mcfly-score mcfly-book mcfly-score--orders-hero" aria-label="Orders">
         <p class="mcfly-scoreboard__kicker mcfly-scoreboard__kicker--sr">Snowdevil example orders — not this shop. Live is parked until launch.</p>
         <article class="mcfly-orders-hero">
@@ -357,6 +439,20 @@
           <button type="button" class="mcfly-chart__day"><span class="mcfly-chart__day-bar" style="height:69%"></span><span class="mcfly-chart__day-k">Fri</span><span class="mcfly-chart__day-v">$9,184</span></button>
           <button type="button" class="mcfly-chart__day mcfly-chart__day--weekend"><span class="mcfly-chart__day-bar" style="height:60%"></span><span class="mcfly-chart__day-k">Sat</span><span class="mcfly-chart__day-v">$8,002</span></button>
         </div>
+      </section>
+      <section class="mcfly-chart mcfly-chart--frequency" aria-label="Order frequency distribution">
+        <div class="mcfly-chart__head">
+          <p class="mcfly-chart__title">Order frequency</p>
+          <p class="mcfly-chart__sub">Customers by orders · this window</p>
+        </div>
+        <div class="mcfly-chart__freq">
+          <button type="button" class="mcfly-chart__freq-col"><span class="mcfly-chart__freq-v">612</span><span class="mcfly-chart__freq-track"><span class="mcfly-chart__freq-bar" style="height:100%"></span></span><span class="mcfly-chart__freq-k">1 order</span></button>
+          <button type="button" class="mcfly-chart__freq-col"><span class="mcfly-chart__freq-v">214</span><span class="mcfly-chart__freq-track"><span class="mcfly-chart__freq-bar" style="height:35%"></span></span><span class="mcfly-chart__freq-k">2 orders</span></button>
+          <button type="button" class="mcfly-chart__freq-col"><span class="mcfly-chart__freq-v">88</span><span class="mcfly-chart__freq-track"><span class="mcfly-chart__freq-bar" style="height:15%"></span></span><span class="mcfly-chart__freq-k">3 orders</span></button>
+          <button type="button" class="mcfly-chart__freq-col"><span class="mcfly-chart__freq-v">37</span><span class="mcfly-chart__freq-track"><span class="mcfly-chart__freq-bar" style="height:7%"></span></span><span class="mcfly-chart__freq-k">4 orders</span></button>
+          <button type="button" class="mcfly-chart__freq-col"><span class="mcfly-chart__freq-v">29</span><span class="mcfly-chart__freq-track"><span class="mcfly-chart__freq-bar" style="height:6%"></span></span><span class="mcfly-chart__freq-k">5–9 orders</span></button>
+        </div>
+        <p class="mcfly-chart__hint">Tap a bar · identified customers · guests excluded</p>
       </section>
     </div>
 

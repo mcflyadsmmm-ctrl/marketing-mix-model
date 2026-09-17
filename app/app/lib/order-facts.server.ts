@@ -1193,7 +1193,21 @@ export async function seedSampleOrderFacts(
     source: string;
   }> = [];
 
-  let buyerSeq = 0;
+  // Deterministic PRNG so the SAMPLE customer base — and its order-frequency
+  // long tail — is stable across reseeds and snapshots.
+  let prngState = 0x9e3779b9 >>> 0;
+  const rand = () => {
+    prngState = (prngState + 0x6d2b79f5) >>> 0;
+    let t = prngState;
+    t = Math.imul(t ^ (t >>> 15), 1 | t);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  // Realistic base: most buyers order once, a shrinking tail repeats — not 40
+  // recycled keys. ~32% of identified orders reuse an earlier customer.
+  let nextCustomer = 0;
+  const REPEAT_RATE = 0.32;
   for (const d of days) {
     const n = Math.max(0, Math.min(12, Math.trunc(d.orderCount)));
     if (n === 0 || !(d.sales > 0)) continue;
@@ -1202,11 +1216,17 @@ export async function seedSampleOrderFacts(
     const amounts = splitSalesAcrossOrders(d.sales, n);
     for (let i = 0; i < n; i += 1) {
       const isGuest = n >= 5 && i === n - 1;
-      const isRepeat = !isGuest && buyerSeq > 6 && i % 3 === 0;
-      const customerKey = isGuest
-        ? ORDER_FACT_GUEST_KEY
-        : `sample:c${isRepeat ? (buyerSeq - 4 + 40) % 40 : buyerSeq % 40}`;
-      if (!isGuest && !isRepeat) buyerSeq += 1;
+      let customerKey: string;
+      if (isGuest) {
+        customerKey = ORDER_FACT_GUEST_KEY;
+      } else if (nextCustomer > 12 && rand() < REPEAT_RATE) {
+        // Repeat buyer — bias toward earlier customers so a few become loyal.
+        const pick = Math.floor(rand() ** 1.6 * nextCustomer);
+        customerKey = `sample:c${Math.min(nextCustomer - 1, pick)}`;
+      } else {
+        customerKey = `sample:c${nextCustomer}`;
+        nextCustomer += 1;
+      }
       const hour = 10 + (i % 8);
       const orderedAt = new Date(
         Date.UTC(

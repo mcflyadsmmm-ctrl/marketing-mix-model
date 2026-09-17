@@ -4,6 +4,7 @@ import {
   buildOrdersFrequency,
   buildOrdersIntelDays,
   buildOrdersIntelKpis,
+  buildOrdersWeeklyRows,
   ordersIntelDelta,
   type OrderIntelRow,
 } from "./orders-intelligence";
@@ -93,6 +94,27 @@ describe("orders intelligence KPIs", () => {
     expect(ordersIntelDelta(90, 100)?.dir).toBe("down");
     expect(ordersIntelDelta(100, 100)?.dir).toBe("flat");
     expect(ordersIntelDelta(100, 0)).toBeNull();
+  });
+});
+
+describe("orders weekly ledger", () => {
+  it("buckets rows into Monday-start weeks with AOV, discount depth, and trend", () => {
+    const rows: OrderIntelRow[] = [
+      // Week of Mon 2026-09-07
+      row("2026-09-07", 600, "a", 0),
+      row("2026-09-08", 800, "b", 200),
+      // Week of Mon 2026-09-14
+      row("2026-09-14", 500, "c", 0),
+    ];
+    const weeks = buildOrdersWeeklyRows(rows);
+    expect(weeks.map((w) => w.weekKey)).toEqual(["2026-09-07", "2026-09-14"]);
+    expect(weeks[0]).toMatchObject({ orders: 2, sales: 1400, aov: 700 });
+    // discount depth wk1 = 200 / (1400 + 200)
+    expect(weeks[0]!.discountDepth).toBeCloseTo(200 / 1600, 5);
+    expect(weeks[0]!.ordersDelta).toBeNull();
+    // wk2 orders 1 vs wk1 orders 2 → down
+    expect(weeks[1]!.ordersDelta?.dir).toBe("down");
+    expect(weeks[1]!.label).toMatch(/Wk of Sep 14/);
   });
 });
 

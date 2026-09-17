@@ -14153,3 +14153,480 @@ button.mcfly-chart__hour {
     min-height: 7.25rem;
   }
 }
+
+/* =========================================================================
+ * Orders Black Clover depth — soft tiles, pace bars, floating chart tooltip,
+ * Order intelligence (KPI strip + Orders×AOV explorer + weekly ledger),
+ * order-frequency. APPEND ONLY. Zero spend. SAMPLE canvas.
+ * ========================================================================= */
+
+/* Soft, flat value tiles on Orders — the pacing-card language. */
+.mcfly-scoreboard--orders .mcfly-kpi--peek {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 40%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  box-shadow: none;
+}
+
+.mcfly-scoreboard--orders .mcfly-kpi--peek::before {
+  display: none;
+}
+
+/* Pace bars — discounted / 2+ items / weekend as share bars. */
+.mcfly-orders-pace {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.mcfly-orders-pace__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.15rem 0.5rem;
+}
+
+.mcfly-orders-pace__k {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-pace__pct {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-pace__bar {
+  grid-column: 1 / -1;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-orders-pace__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-orders-pace__fill--multi {
+  background: color-mix(in srgb, var(--mcfly-accent) 60%, #fff);
+}
+
+.mcfly-orders-pace__fill--weekend {
+  background: var(--mcfly-accent-ink);
+}
+
+/* Floating chart tooltip — explorer-grade hover card. */
+.mcfly-chart__plot {
+  position: relative;
+}
+
+.mcfly-chart__tip {
+  position: absolute;
+  top: 0.25rem;
+  transform: translateX(-50%);
+  z-index: 4;
+  min-width: 8.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  background: #0f1929;
+  color: #e2e8f0;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.35);
+  pointer-events: none;
+}
+
+.mcfly-chart__tip-h {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+
+.mcfly-chart__tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin: 0.12rem 0 0;
+  font-size: 0.72rem;
+}
+
+.mcfly-chart__tip-k {
+  color: #8899aa;
+}
+
+.mcfly-chart__tip-v {
+  color: #e2e8f0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__tip-foot {
+  margin: 0.35rem 0 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #667788;
+}
+
+/* Order intelligence card. */
+.mcfly-orders-intel {
+  margin: 0 0 0.85rem;
+  padding: 0.9rem 1rem 0.95rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--mcfly-shadow);
+}
+
+.mcfly-orders-intel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+  margin: 0 0 0.7rem;
+}
+
+.mcfly-orders-intel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-orders-intel__badge {
+  padding: 0.06rem 0.4rem;
+  border-radius: 999px;
+  background: var(--mcfly-accent-soft);
+  color: var(--mcfly-accent-ink);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.mcfly-orders-intel__window {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-intel__kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.mcfly-orders-intel__kpi {
+  padding: 0.65rem 0.7rem 0.6rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 40%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+}
+
+.mcfly-orders-intel__k {
+  margin: 0 0 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-intel__v {
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.05rem, 3.4vw, 1.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-intel__delta {
+  margin: 0.28rem 0 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.mcfly-orders-intel__delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-orders-intel__delta--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-orders-intel__delta--flat,
+.mcfly-orders-intel__sub {
+  margin: 0.28rem 0 0;
+  font-size: 0.66rem;
+  color: var(--mcfly-mute);
+  line-height: 1.35;
+}
+
+/* Dual-axis Orders×AOV explorer. */
+.mcfly-chart--dual .mcfly-chart__svg {
+  min-height: 12.5rem;
+}
+
+.mcfly-chart__grid {
+  stroke: color-mix(in srgb, var(--mcfly-line) 70%, #fff);
+  stroke-width: 1;
+}
+
+.mcfly-chart__axis {
+  fill: var(--mcfly-mute);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__obar {
+  fill: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+}
+
+.mcfly-chart__obar--on {
+  fill: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__aovline {
+  fill: none;
+  stroke: var(--mcfly-truth);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.mcfly-chart__aovfill {
+  fill: color-mix(in srgb, var(--mcfly-truth) 12%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart__hit {
+  cursor: pointer;
+}
+
+.mcfly-chart__hit:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: -2px;
+}
+
+.mcfly-chart__legend--dual {
+  display: inline-flex;
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.mcfly-chart__legend-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__legend-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 3px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__legend-k--orders .mcfly-chart__legend-dot {
+  background: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+}
+
+.mcfly-chart__legend-k--aov .mcfly-chart__legend-dot {
+  background: var(--mcfly-truth);
+}
+
+/* Audit-grade weekly ledger table. */
+.mcfly-orders-ledger {
+  margin: 0.85rem 0 0;
+}
+
+.mcfly-orders-ledger__cap {
+  margin: 0 0 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-orders-ledger__wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 10px;
+}
+
+.mcfly-orders-ledger__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-orders-ledger__table th,
+.mcfly-orders-ledger__table td {
+  padding: 0.5rem 0.7rem;
+  text-align: right;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.mcfly-orders-ledger__table th {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 35%, #fff);
+  border-bottom: 1px solid var(--mcfly-line);
+}
+
+.mcfly-orders-ledger__lh {
+  text-align: left !important;
+  color: var(--mcfly-ink);
+  font-weight: 650;
+}
+
+.mcfly-orders-ledger__row {
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--mcfly-line) 55%, #fff);
+}
+
+.mcfly-orders-ledger__row:nth-child(even) {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 18%, #fff);
+}
+
+.mcfly-orders-ledger__row:hover {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 55%, #fff);
+}
+
+.mcfly-orders-ledger__delta {
+  font-weight: 700;
+}
+
+.mcfly-orders-ledger__delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-orders-ledger__delta--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-orders-ledger__delta--flat {
+  color: var(--mcfly-mute);
+}
+
+/* Order frequency distribution. */
+.mcfly-chart--frequency .mcfly-chart__sub {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__freq {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.4rem;
+  align-items: end;
+  min-height: 9rem;
+  margin: 0.6rem 0 0;
+}
+
+.mcfly-chart__freq-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.3rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.mcfly-chart__freq-v {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__freq-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 6.75rem;
+}
+
+.mcfly-chart__freq-bar {
+  width: 100%;
+  max-width: 3.2rem;
+  border-radius: 5px 5px 0 0;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__freq-col:hover .mcfly-chart__freq-bar {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__freq-k {
+  font-size: 0.64rem;
+  color: var(--mcfly-mute);
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .mcfly-orders-intel__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-orders-intel {
+    padding: 0.75rem 0.7rem 0.8rem;
+  }
+
+  .mcfly-orders-intel__kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .mcfly-orders-intel__v {
+    font-size: clamp(0.98rem, 5vw, 1.2rem);
+  }
+
+  .mcfly-chart--dual .mcfly-chart__svg {
+    min-height: 11rem;
+  }
+
+  .mcfly-chart__freq-bar {
+    max-width: 2.2rem;
+  }
+
+  .mcfly-chart__freq-track {
+    height: 5.5rem;
+  }
+
+  .mcfly-orders-ledger__table th,
+  .mcfly-orders-ledger__table td {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.72rem;
+  }
+}

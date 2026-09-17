@@ -164,6 +164,20 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).toContain(".mcfly-orders-band__box");
     expect(css).toContain(".mcfly-orders-clockbar__seg--product");
     expect(css).toContain(".mcfly-orders-sourcebar__seg--online");
+    // Order intelligence — KPI strip, dual-axis explorer, audit ledger, frequency.
+    expect(fixture).toContain("mcfly-orders-intel");
+    expect(fixture).toContain("Order intelligence");
+    expect(fixture).toContain("+9% vs prior");
+    expect(fixture).toContain("Orders × AOV explorer");
+    expect(fixture).toContain("mcfly-chart__aovline");
+    expect(fixture).toContain("mcfly-orders-ledger__table");
+    expect(fixture).toContain("Wk of Sep 7");
+    expect(fixture).toContain("mcfly-chart--frequency");
+    expect(fixture).toContain("1 order");
+    expect(css).toContain(".mcfly-orders-intel__kpis");
+    expect(css).toContain(".mcfly-orders-ledger__table");
+    expect(css).toContain(".mcfly-chart__aovline");
+    expect(css).toContain(".mcfly-chart__freq");
   });
 
   it("keeps chart/table horizontal scroll inside those regions", () => {
