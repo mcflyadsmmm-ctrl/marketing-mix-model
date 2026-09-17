@@ -13702,3 +13702,268 @@ button.mcfly-chart__month {
     font-size: clamp(1.02rem, 4.6vw, 1.22rem);
   }
 }
+
+/* =========================================================================
+ * Customers tab — returning-dollars scoreboard + concentration.
+ * Black Clover density on the niche Shopify Analytics never puts on one
+ * screen: returning $, who spends more, guests, and how sales concentrate.
+ * APPEND ONLY. Customers-scoped classes (mcfly-cust*) so mcfly-desk shared
+ * classes stay untouched. Zero spend / ROAS on this tab. SAMPLE stays labeled.
+ * ========================================================================= */
+
+.mcfly-cust {
+  gap: 0;
+}
+
+.mcfly-cust__hero {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft)) 0%,
+      #fff 62%
+    );
+  border: 1px solid #bcd6e8;
+  border-radius: var(--mcfly-radius);
+  box-shadow: var(--mcfly-shadow);
+  padding: 1.05rem 1.15rem 0.95rem;
+  margin: 0 0 0.65rem;
+}
+
+.mcfly-cust__hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust__hero--drill {
+  cursor: pointer;
+  transition:
+    border-color var(--mcfly-motion) var(--mcfly-ease),
+    box-shadow var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-cust__hero--drill:hover {
+  border-color: #a8c8de;
+  box-shadow: 0 1px 2px rgba(12, 25, 41, 0.06), 0 10px 28px rgba(2, 132, 199, 0.12);
+}
+
+.mcfly-cust__hero--drill:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+}
+
+.mcfly-cust__hero-k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust__hero-v {
+  display: block;
+  margin: 0.35rem 0 0.15rem;
+  font-family: var(--mcfly-display);
+  font-size: clamp(2rem, 6vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust__hero-sub {
+  display: block;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mcfly-accent-ink);
+  line-height: 1.4;
+}
+
+.mcfly-cust__split {
+  height: 0.5rem;
+  margin: 0.65rem 0 0.35rem;
+}
+
+.mcfly-cust__split-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+}
+
+.mcfly-cust__split-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust__split-tag::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--mcfly-line) 60%, #fff);
+}
+
+.mcfly-cust__split-tag--return {
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust__split-tag--return::before {
+  background: var(--mcfly-ink);
+  opacity: 0.72;
+}
+
+/* Concentration chart — Pareto + share ladder. */
+
+.mcfly-cust-conc__readout {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.mcfly-cust-conc__readout-k {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mcfly-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcfly-cust-conc__readout-v {
+  font-family: var(--mcfly-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-cust-pareto {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0 0 0.8rem;
+  cursor: pointer;
+}
+
+.mcfly-cust-pareto__bar {
+  display: flex;
+  height: 2.2rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--mcfly-line);
+}
+
+.mcfly-cust-pareto__top {
+  display: flex;
+  align-items: center;
+  padding: 0 0.55rem;
+  min-width: 3rem;
+  background: var(--mcfly-accent-ink);
+  color: #fff;
+}
+
+.mcfly-cust-pareto__rest {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0.55rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  background: color-mix(in srgb, var(--mcfly-accent) 12%, #fff);
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-pareto__seg-k {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mcfly-cust-pareto:hover .mcfly-cust-pareto__bar {
+  border-color: #a8c8de;
+}
+
+.mcfly-cust-pareto:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.mcfly-cust-pareto__cap {
+  display: block;
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-cust-conc__hrow--lead .mcfly-chart__hlabel {
+  font-weight: 700;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-cust-conc__hrow--lead .mcfly-chart__hfill {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-conc__foot {
+  margin: 0.55rem 0 0;
+  font-size: 0.72rem;
+  color: var(--mcfly-mute);
+  line-height: 1.4;
+}
+
+@media (max-width: 430px) {
+  .mcfly-cust__hero {
+    padding: 0.85rem 0.9rem 0.8rem;
+  }
+
+  .mcfly-cust__hero-v {
+    font-size: clamp(1.7rem, 8.5vw, 2.15rem);
+  }
+
+  .mcfly-cust__hero-sub {
+    font-size: 0.76rem;
+  }
+
+  .mcfly-cust-pareto__bar {
+    height: 2rem;
+  }
+
+  .mcfly-cust-conc__readout-k {
+    max-width: 8.5rem;
+  }
+}

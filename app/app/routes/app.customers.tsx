@@ -4,23 +4,24 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ShopifyBookSection } from "../components/ShopifyBookSection";
-import { ShareBarsChart } from "../components/DeskMixChart";
+import { CustomersScoreboard } from "../components/CustomersScoreboard";
+import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
-import { formatCurrency } from "../lib/mer-format";
-import { useDeskCurrency } from "../lib/desk-currency";
 
+// Deeper-than-Analytics contrast for the buyers catalog below the scoreboard.
+// Shopify Analytics Overview shows a returning-customer rate (headcount); this
+// tab leads with returning dollars and how concentrated they are.
 const CUSTOMERS_CONTRAST =
-  "Shopify Analytics returning-customer rate is headcount. This page is returning dollars, guests, and the top 10% of customers.";
+  "Shopify Analytics Overview shows a returning-customer rate — headcount. Deeper: returning dollars, sales per buyer, guests, one-order buyers, and top-10% concentration — from this shop's orders.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return loadDeskSalesPage(request, "/app/customers");
 };
 
 export default function CustomersPage() {
-  const currency = useDeskCurrency();
   const {
     metrics,
     preset,
@@ -87,56 +88,46 @@ export default function CustomersPage() {
           Sales for closed days are still loading — not $0.
         </p>
       ) : null}
+
+      {/* Hero = returning dollars, then the dense interactive buyer strip. */}
+      <CustomersScoreboard
+        book={book}
+        depth={metrics.shopifyDepth}
+        salesPending={metrics.salesPending}
+        useSampleDesk={useSampleDesk}
+      />
+
+      {/* Where the dollars concentrate — the Analytics gap, made visual. */}
+      {!metrics.salesPending ? (
+        <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
+      ) : null}
+
       {!metrics.customerMetricsAvailable ? (
         <p className="mcfly-book__lede">
           Returning dollars need identified buyers in this window — not $0.
         </p>
       ) : null}
-          <ShopifyBookSection
-            book={book}
-            depth={metrics.shopifyDepth}
-            clocks={{
-              gross: metrics.grossSales,
-              grossKnown: metrics.grossSalesKnown,
-              total: totalSalesDisplay,
-              net: metrics.netSales,
-              netKnown: metrics.netSalesKnown,
-            }}
-            groups={["buyers"]}
-            title={PRODUCT_NOUN.buyersTitle}
-            muted={deskBookLede(CUSTOMERS_CONTRAST)}
-          />
-          {book.returningSalesShare != null || book.newSalesShare != null ? (
-          <ShareBarsChart
-            title="New vs returning dollars"
-            items={[
-              {
-                label: "Returning",
-                value:
-                  book.returningSales != null && book.returningSales > 0
-                    ? formatCurrency(book.returningSales, currency)
-                    : "—",
-                share: book.returningSalesShare,
-                detail:
-                  "Sales from buyers who had ordered before. Shopify Analytics Overview uses a returning-customer rate (headcount).",
-              },
-              {
-                label: "New",
-                value:
-                  book.newSales != null && book.newSales > 0
-                    ? formatCurrency(book.newSales, currency)
-                    : "—",
-                share: book.newSalesShare,
-                detail:
-                  "Sales from first-time buyers in this window. Growth covers days to a second order.",
-              },
-            ]}
-          />
-          ) : null}
-          <footer className="mcfly-book__links">
-            <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>
-            <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
-          </footer>
+
+      {/* Deeper catalog — guest AOV, one-order buyers, orders per buyer, etc. */}
+      <ShopifyBookSection
+        book={book}
+        depth={metrics.shopifyDepth}
+        clocks={{
+          gross: metrics.grossSales,
+          grossKnown: metrics.grossSalesKnown,
+          total: totalSalesDisplay,
+          net: metrics.netSales,
+          netKnown: metrics.netSalesKnown,
+        }}
+        groups={["buyers"]}
+        title={PRODUCT_NOUN.buyersTitle}
+        muted={deskBookLede(CUSTOMERS_CONTRAST)}
+      />
+
+      <footer className="mcfly-book__links">
+        <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>
+        <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
+      </footer>
     </DeskBookPage>
   );
 }
