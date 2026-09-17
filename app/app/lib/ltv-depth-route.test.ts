@@ -14,6 +14,7 @@ const paths = read("../components/LtvPathTable.tsx");
 const whales = read("../components/LtvWhaleRecency.tsx");
 const flagship = read("../components/LtvFlagshipBoard.tsx");
 const productBoard = read("../components/LtvProductBoard.tsx");
+const promoBoard = read("../components/LtvPromoBoard.tsx");
 const depthPage = read("../lib/ltv-depth-page.server.ts");
 
 describe("LTV route mounts the depth pack", () => {
@@ -27,7 +28,7 @@ describe("LTV route mounts the depth pack", () => {
     expect(depthPage).toContain("full stored");
   });
 
-  it("imports and renders all five depth panels plus flagship and product boards", () => {
+  it("imports and renders all five depth panels plus flagship, product, and promo boards", () => {
     for (const tag of [
       "LtvBuildCurves",
       "LtvRetentionHeat",
@@ -36,6 +37,7 @@ describe("LTV route mounts the depth pack", () => {
       "LtvWhaleRecency",
       "LtvFlagshipBoard",
       "LtvProductBoard",
+      "LtvPromoBoard",
     ]) {
       expect(route).toContain(`import { ${tag} }`);
       expect(route).toContain(`<${tag}`);
@@ -65,7 +67,7 @@ describe("LTV route mounts the depth pack", () => {
 });
 
 describe("depth chrome stays honest and in shop-owner voice", () => {
-  const all = [curves, heat, tiers, paths, whales, flagship, productBoard];
+  const all = [curves, heat, tiers, paths, whales, flagship, productBoard, promoBoard];
 
   it("keeps the banned glossary words out of merchant chrome", () => {
     // Comments may explain a ban; strip block/line comments before scanning.
@@ -115,6 +117,15 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(productBoard).toContain("Floor:");
     expect(productBoard).toContain("named first-line item");
     expect(productBoard).not.toMatch(/about 60 days/);
+    expect(promoBoard).toContain("not $0");
+    expect(promoBoard).toContain("average first order");
+    expect(promoBoard).toContain("Promo → LTV");
+    expect(promoBoard).toContain("Highest first-order promo");
+    expect(promoBoard).toContain("empty.verb");
+    expect(promoBoard).toContain("Floor:");
+    expect(promoBoard).toContain("full-price first");
+    expect(promoBoard).toContain("we never invent a code");
+    expect(promoBoard).not.toMatch(/about 60 days/);
   });
 
   it("is one board — not a month-grid dump or a win-back card", () => {
@@ -170,6 +181,18 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(route).toContain("product={depth.productLtv}");
   });
 
+  it("mounts Promo→LTV after Product→LTV and before the explorers", () => {
+    const productAt = route.indexOf("<LtvProductBoard");
+    const promoAt = route.indexOf("<LtvPromoBoard");
+    const curvesAt = route.indexOf("<LtvBuildCurves");
+    const pathAt = route.indexOf("<LtvPathTable");
+    expect(promoAt).toBeGreaterThan(productAt);
+    expect(curvesAt).toBeGreaterThan(promoAt);
+    expect(pathAt).toBeGreaterThan(promoAt);
+    expect(route).toContain("promo={depth.promoLtv}");
+    expect(route).toContain("after Product→LTV");
+  });
+
   it("product journeys only paint when titles are on file", () => {
     // Live has no product names → the loader passes product: null and this
     // table returns null; the route never fakes a Path LTV table on live.
@@ -178,8 +201,10 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
 
   it("does not add a Product tab or scramble sales-five IA", () => {
     expect(route).not.toContain('href="/app/product"');
+    expect(route).not.toContain('href="/app/discount"');
     expect(route).not.toContain("Customers RFM");
     expect(productBoard).not.toContain("from \"../lib/chart-smooth\"");
+    expect(promoBoard).not.toContain("from \"../lib/chart-smooth\"");
     expect(flagship).toContain("What a new buyer is worth");
   });
 });

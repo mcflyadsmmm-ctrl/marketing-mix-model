@@ -303,6 +303,11 @@ describe("Product→LTV rides the same flagship book", () => {
     expect(view.productLtv.rows).toEqual([]);
     expect(view.productLtv.empty?.kind).toBe("titles");
     expect(view.productLtv.empty?.copy).toContain("Not $0");
+    expect(view.promoLtv.discountsKnown).toBe(false);
+    expect(view.promoLtv.codesKnown).toBe(false);
+    expect(view.promoLtv.rows).toEqual([]);
+    expect(view.promoLtv.empty?.kind).toBe("discounts");
+    expect(view.promoLtv.empty?.copy).toContain("Not $0");
   });
 });
 
@@ -343,6 +348,13 @@ describe("SAMPLE Snowdevil flagship is dense", () => {
     expect(view.productLtv.best!.day365Ltv).toBeGreaterThan(0);
     expect(view.productLtv.best!.formula90).toContain("average first order");
     expect(view.productLtv.read?.worthDays).toBe(90);
+    expect(view.promoLtv.empty).toBeNull();
+    expect(view.promoLtv.best).not.toBeNull();
+    expect(view.promoLtv.codesKnown).toBe(true);
+    expect(view.promoLtv.best!.day90Ltv).toBeGreaterThan(0);
+    expect(view.promoLtv.best!.day365Ltv).toBeGreaterThan(0);
+    expect(view.promoLtv.best!.formula90).toContain("average first order");
+    expect(view.promoLtv.read?.worthDays).toBe(90);
   });
 
   it("keeps the young first-order month from sealing a fake year", () => {

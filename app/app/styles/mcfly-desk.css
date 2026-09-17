@@ -19481,3 +19481,13 @@ button.mcfly-depth-flag__empty:focus-visible {
     font-size: clamp(1.2rem, 5vw, 1.55rem);
   }
 }
+
+/* =========================================================================
+ * Promo → LTV densify — first-order discount / code vs full-price first.
+ * APPEND ONLY. Reuses flagship / product soft cards. SAMPLE Snowdevil canvas.
+ * Placement: LTV tab, after Product→LTV, before spend-build explorers.
+ * ========================================================================= */
+
+.mcfly-depth-promo .mcfly-kpi__label {
+  overflow-wrap: anywhere;
+}

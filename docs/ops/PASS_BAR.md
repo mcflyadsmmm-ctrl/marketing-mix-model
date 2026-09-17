@@ -56,7 +56,7 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young; clock empty when second orders are missing; fall-off empty when everyone came back — no blank charts, not $0 |
 | Empty-state | PASS | Floor 8 buyers × 30 days on the card, then 5 second orders for the clock. Sparse shops stay amazing |
 
-## SCORECARD — Overview mix + month close (this PR)
+## SCORECARD — Overview mix + month close (#97)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |
@@ -66,3 +66,14 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Ease | PASS | Pills, mobile, chart-smooth hover preserved; one morning mix + written close |
 | Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young; forecast empty when typical day is missing — no blank charts, not $0 |
 | Empty-state | PASS | Floor 8 orders, then 8 days with sales for the typical day — on the card. Sparse shops stay amazing |
+
+## SCORECARD — Promo→LTV (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Accuracy | PASS | First-order promo 30/90/365 from discount $ / real codes; same first+extra×later among those starters; lift vs full-price first; year only when those starters have lived it; codes never guessed from $ |
+| Quality | PASS | One highest-promo read + four soft cards + formula after Product→LTV; worth opening, not a code dump |
+| Organization | PASS | Flagship still leads; Product→LTV next; Promo→LTV sits after it; path table / explorers stay; sales-five IA untouched |
+| Ease | PASS | Pills, mobile, chart-smooth hover preserved; promo name + one money number + lift vs full price |
+| Stickiness | PASS | Discounts / thin / young empties are ActionCard-shaped (verb + floor) — no blank charts, not $0 |
+| Empty-state | PASS | Floor 8 promo-first buyers × 30 days, then 90, then year — on the card. Live without discount $ / codes stays honest |

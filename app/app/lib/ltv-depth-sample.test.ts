@@ -39,6 +39,19 @@ describe("generateSnowdevilDepthOrders", () => {
     expect(orders.every((o) => o.orderedAt <= NOW)).toBe(true);
     expect(orders.every((o) => o.product != null && o.product !== "")).toBe(true);
     expect(orders.every((o) => o.amount >= 12 && o.units >= 1)).toBe(true);
+    expect(orders.some((o) => o.discountCode === "WELCOME10")).toBe(true);
+    expect(orders.some((o) => o.discountCode === "POWDER15")).toBe(true);
+    expect(orders.some((o) => o.discountCode === "BUNDLE")).toBe(true);
+    expect(orders.some((o) => o.discountAmount === 0)).toBe(true);
+    const seen = new Set<string>();
+    for (const order of orders) {
+      const isFirst = !seen.has(order.customerKey);
+      if (isFirst) seen.add(order.customerKey);
+      else {
+        expect(order.discountCode).toBeNull();
+        expect(order.discountAmount).toBe(0);
+      }
+    }
   });
 
   it("spreads first orders across the rolling month window", () => {

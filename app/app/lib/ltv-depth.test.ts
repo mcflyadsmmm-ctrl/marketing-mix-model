@@ -55,6 +55,37 @@ describe("rollUpCustomers", () => {
     expect(c.ordersD90).toBe(3);
     expect(c.ordersD365).toBe(4);
     expect(c.reorderDays).toBe(19);
+    expect(c.firstDiscountAmount).toBeNull();
+    expect(c.firstDiscountCode).toBeNull();
+  });
+
+  it("keeps first-order discount $ and code without inventing a missing title", () => {
+    const [coded] = rollUpCustomers([
+      {
+        customerKey: "c1",
+        orderedAt: new Date("2024-01-01"),
+        amount: 80,
+        units: 1,
+        product: null,
+        discountAmount: 8,
+        discountCode: "BUNDLE",
+      },
+    ]);
+    expect(coded?.firstDiscountAmount).toBe(8);
+    expect(coded?.firstDiscountCode).toBe("BUNDLE");
+
+    const [amountOnly] = rollUpCustomers([
+      {
+        customerKey: "c2",
+        orderedAt: new Date("2024-01-01"),
+        amount: 80,
+        units: 1,
+        product: null,
+        discountAmount: 8,
+      },
+    ]);
+    expect(amountOnly?.firstDiscountAmount).toBe(8);
+    expect(amountOnly?.firstDiscountCode).toBeNull();
   });
 
   it("ignores empty keys and non-finite amounts", () => {
