@@ -154,5 +154,6 @@ export async function loadDeskSalesPage(
     orderBackfillProgress,
     ordersIntel,
     ordersFrequency,
+    shopLabel: session.shop,
   };
 }
