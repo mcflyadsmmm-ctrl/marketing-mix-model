@@ -18,11 +18,29 @@ export interface SampleDayRow {
   returningCustomers: number;
   /** Net sales attributed to first-time buyers that day (shop dollars). */
   newCustomerNetSales: number;
+  /** Guest-checkout orders that day (no account) — subset of orderCount. */
+  guestOrders: number;
+  /** Net sales attributed to guest checkouts that day (shop dollars). */
+  guestNetSales: number;
   spendByChannel: Record<SpendChannel, number>;
 }
 
-/** Rolling book length — covers L12M without a 5-year 14-channel write. */
-export const SAMPLE_BOOK_DAYS = 400;
+/**
+ * Rolling book length — two full years so Overview YoY (MTD / QTD / YTD vs the
+ * same days last year) always has a complete prior-year window to compare, even
+ * at a quarter or year boundary. A 400-day book left QTD/YTD YoY with a partial
+ * prior year (e.g. Jan–Jun last year missing), so enterprise operators judging
+ * the desk saw a broken "same days last year". 730 days × ≤4 paid channels is
+ * still a compact seed, never a 5-year 14-channel write.
+ */
+export const SAMPLE_BOOK_DAYS = 730;
+
+/**
+ * Share of daily orders that are guest checkouts (no account). Real DTC snow
+ * shops run a meaningful guest tail, so the desk's "Guest Checkouts" tile shows
+ * real dollars — never a dash — while identified new/returning stay the hero.
+ */
+export const SAMPLE_GUEST_SHARE = 0.12;
 
 /** Paid mix a real shop actually runs — not every named channel every day. */
 export const SAMPLE_ACTIVE_CHANNELS = [
@@ -146,14 +164,25 @@ export function buildThreeYearSampleDesk(options?: {
       SAMPLE_MIN_NEW_CUSTOMERS,
       Math.round(sales / aov),
     );
+    // Guest checkouts are a subset of the day's orders; identified buyers are
+    // what split into new vs returning. Tiny summer days can carry zero guests.
+    const guestOrders = Math.max(
+      0,
+      Math.min(orderCount - SAMPLE_MIN_NEW_CUSTOMERS, Math.round(orderCount * SAMPLE_GUEST_SHARE)),
+    );
+    const identifiedOrders = Math.max(SAMPLE_MIN_NEW_CUSTOMERS, orderCount - guestOrders);
+    const guestNetSales =
+      Math.round(sales * (guestOrders / orderCount) * 100) / 100;
+    const identifiedNetSales = Math.max(0, sales - guestNetSales);
     const newShare = 0.28 + rng() * 0.1;
     const newCustomers = Math.max(
       SAMPLE_MIN_NEW_CUSTOMERS,
-      Math.round(orderCount * newShare),
+      Math.round(identifiedOrders * newShare),
     );
-    const returningCustomers = Math.max(0, orderCount - newCustomers);
+    const returningCustomers = Math.max(0, identifiedOrders - newCustomers);
+    // New-customer $ excludes guest $ (matches SalesResult.newCustomerNetSales).
     const newCustomerNetSales =
-      Math.round(sales * (newCustomers / orderCount) * 100) / 100;
+      Math.round(identifiedNetSales * (newCustomers / identifiedOrders) * 100) / 100;
 
     const totalSpend =
       Math.round((sales / targetMer) * (0.92 + rng() * 0.12) * 100) / 100;
@@ -184,6 +213,8 @@ export function buildThreeYearSampleDesk(options?: {
       newCustomers,
       returningCustomers,
       newCustomerNetSales,
+      guestOrders,
+      guestNetSales,
       spendByChannel,
     });
   }

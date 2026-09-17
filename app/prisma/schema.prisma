@@ -213,6 +213,10 @@ model SampleSalesDay {
   newCustomers       Int      @default(0)
   returningCustomers Int      @default(0)
   newCustomerNetSales Float   @default(0)
+  /// Guest-checkout orders that day (no account) — subset of orderCount.
+  guestOrders        Int      @default(0)
+  /// Net sales attributed to guest checkouts that day (shop dollars).
+  guestNetSales      Float    @default(0)
   createdAt          DateTime @default(now())
 
   @@unique([shopId, day])

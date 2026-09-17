@@ -543,7 +543,9 @@ describe("Sample data | Live data UX", () => {
   });
 
   it("SAMPLE book covers through today with a compact window", () => {
-    expect(SAMPLE_BOOK_DAYS).toBe(400);
+    // Two years so Overview YoY (MTD / QTD / YTD vs same days last year) always
+    // has a full prior-year window, even at a quarter/year boundary.
+    expect(SAMPLE_BOOK_DAYS).toBe(730);
     const sampleDesk = read("sample-desk.server.ts");
     expect(sampleDesk).toContain("ensureSampleBookThroughToday");
     expect(sampleDesk).toContain("SAMPLE_DESK_TARGET_MER = 3.5");

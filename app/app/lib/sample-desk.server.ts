@@ -277,6 +277,8 @@ async function insertSampleRows(
     newCustomers: r.newCustomers,
     returningCustomers: r.returningCustomers,
     newCustomerNetSales: r.newCustomerNetSales,
+    guestOrders: r.guestOrders,
+    guestNetSales: r.guestNetSales,
   }));
   for (let i = 0; i < salesData.length; i += 200) {
     await prisma.sampleSalesDay.createMany({
@@ -363,12 +365,16 @@ export async function fetchSampleSales(
   let newCustomers = 0;
   let returningCustomers = 0;
   let newCustomerNetSales = 0;
+  let guestOrders = 0;
+  let guestNetSales = 0;
   for (const d of days) {
     totalSales += d.sales;
     orderCount += d.orderCount;
     newCustomers += d.newCustomers;
     returningCustomers += d.returningCustomers;
     newCustomerNetSales += d.newCustomerNetSales;
+    guestOrders += d.guestOrders;
+    guestNetSales += d.guestNetSales;
   }
 
   const clock = sampleSalesClock(totalSales);
@@ -383,8 +389,12 @@ export async function fetchSampleSales(
     newCustomers,
     returningCustomers,
     newCustomerNetSales,
-    returningCustomerNetSales: Math.max(0, totalSales - newCustomerNetSales),
-    guestOrders: 0,
+    // Guest $ stays in totalSales but is excluded from new/returning splits.
+    returningCustomerNetSales: Math.max(
+      0,
+      totalSales - newCustomerNetSales - guestNetSales,
+    ),
+    guestOrders,
     customerMetricsAvailable: true,
     source: "shopify", // treated as till totals for MER math; UI labels sample mode
   };

@@ -1138,7 +1138,7 @@ export async function clearSampleCohortFacts(shopId: string): Promise<number> {
   return result.count;
 }
 
-/** SAMPLE order-book window — enough for median/weekday/hour without 400-day bloat. */
+/** SAMPLE order-book window — enough for median/weekday/hour without two-year bloat. */
 export const SAMPLE_ORDER_FACT_WINDOW_DAYS = 90;
 
 export async function clearSampleOrderFacts(shopId: string): Promise<number> {
@@ -1176,60 +1176,71 @@ function splitSalesVaried(
   return out.map((c) => c / 100);
 }
 
+/** One SAMPLE sales-book day fed into the pure order-fact builder. */
+export interface SampleSalesDayInput {
+  day: Date;
+  sales: number;
+  orderCount: number;
+  /** Guest-checkout orders that day (subset of orderCount). Optional (legacy). */
+  guestOrders?: number | null;
+}
+
+/** A generated SAMPLE OrderFact row (pre-persist — no shopId / asOf / source). */
+export interface SampleOrderFactRow {
+  shopifyOrderId: string;
+  customerKey: string;
+  orderedAt: Date;
+  shopLocalDate: Date;
+  amount: number;
+  currency: string;
+  discountAmount: number;
+  sourceName: string;
+  unitCount: number;
+  lifetimeOrders: number | null;
+}
+
+/** Cap on synthesized orders per SAMPLE day — keeps the seed compact. */
+const SAMPLE_ORDERS_PER_DAY_CAP = 12;
+
 /**
- * Sales-first SAMPLE OrderFacts so Overview Sample is a shop book, now with a
- * realistic customer base: ~68% of orders are first-time buyers (a long tail of
- * one-order accounts), the rest are returning buyers picked with a whale bias so
- * a few accounts carry many orders. That gives the Customers tab a believable
- * order-frequency long tail, spend bands, and days-to-2nd spread — from order
- * facts only. Snowdevil spend / Total ROAS stays on SpendEntry + Marketing.
- * Units stay 1–2 (board, or board + wax) — not Harbor multi-item baskets.
+ * Pure SAMPLE OrderFact generator so the Customers / Orders / LTV depth is
+ * unit-testable without a DB. Realistic customer base: ~68% of *identified*
+ * orders are first-time buyers (a long tail of one-order accounts), the rest
+ * are returning buyers picked with a whale bias so a few accounts carry many
+ * orders. Guest checkouts are carried straight from the sales book's per-day
+ * `guestOrders` so the Guest Checkouts tile and the sales hero agree. That
+ * gives the Customers tab a believable order-frequency long tail, spend bands,
+ * days-to-2nd spread, whales, and a real guest share — from order facts only.
+ * Snowdevil spend / Total ROAS stays on SpendEntry + Marketing. Units stay 1–2
+ * (board, or board + wax) — not Harbor multi-item baskets.
  */
-export async function seedSampleOrderFacts(
-  shopId: string,
-  options?: { now?: Date },
-): Promise<number> {
-  const now = options?.now ?? new Date();
-  await clearSampleOrderFacts(shopId);
-  const cutoff = new Date(
-    now.getTime() - SAMPLE_ORDER_FACT_WINDOW_DAYS * 86_400_000,
-  );
-  const days = await prisma.sampleSalesDay.findMany({
-    where: { shopId, day: { gte: cutoff } },
-    orderBy: { day: "asc" },
-    select: { day: true, sales: true, orderCount: true },
-  });
-
-  const rows: Array<{
-    shopId: string;
-    shopifyOrderId: string;
-    customerKey: string;
-    orderedAt: Date;
-    shopLocalDate: Date;
-    amount: number;
-    currency: string;
-    discountAmount: number;
-    sourceName: string;
-    unitCount: number;
-    lifetimeOrders: number | null;
-    asOf: Date;
-    source: string;
-  }> = [];
-
-  const rng = sampleRng(0x519b2c7d);
+export function buildSampleOrderFactRows(
+  days: SampleSalesDayInput[],
+  options?: { seed?: number },
+): SampleOrderFactRow[] {
+  const rows: SampleOrderFactRow[] = [];
+  const rng = sampleRng(options?.seed ?? 0x519b2c7d);
   const pool: string[] = [];
   const orderCountByKey = new Map<string, number>();
   let seq = 0;
   const NEW_SHARE = 0.68;
 
   for (const d of days) {
-    const n = Math.max(0, Math.min(12, Math.trunc(d.orderCount)));
+    const n = Math.max(0, Math.min(SAMPLE_ORDERS_PER_DAY_CAP, Math.trunc(d.orderCount)));
     if (n === 0 || !(d.sales > 0)) continue;
     const day = new Date(d.day);
     const dayKey = day.toISOString().slice(0, 10);
     const amounts = splitSalesVaried(d.sales, n, rng);
+    // Scale the book's guest count to the (capped) synthesized order count so
+    // the guest tail survives the per-day cap; always leave ≥1 identified buyer.
+    const rawGuests = Math.max(0, Math.trunc(d.guestOrders ?? 0));
+    const guestForDay =
+      d.orderCount > 0
+        ? Math.min(n - 1, Math.round((rawGuests * n) / d.orderCount))
+        : 0;
+    const identifiedForDay = n - guestForDay;
     for (let i = 0; i < n; i += 1) {
-      const guest = n >= 6 && i === n - 1 && rng() < 0.5;
+      const guest = i >= identifiedForDay;
       let customerKey: string;
       if (guest) {
         customerKey = ORDER_FACT_GUEST_KEY;
@@ -1267,7 +1278,6 @@ export async function seedSampleOrderFacts(
       const discountAmount =
         rng() < 0.22 ? Math.round(amount * 0.12 * 100) / 100 : 0;
       rows.push({
-        shopId,
         shopifyOrderId: `sample-order:${dayKey}:${i}`,
         customerKey,
         orderedAt,
@@ -1278,11 +1288,41 @@ export async function seedSampleOrderFacts(
         sourceName,
         unitCount: 1 + (i % 2),
         lifetimeOrders,
-        asOf: now,
-        source: "sample",
       });
     }
   }
+
+  return rows;
+}
+
+/**
+ * Sales-first SAMPLE OrderFacts so Overview Sample is a shop book. Reads the
+ * SampleSalesDay book (last {@link SAMPLE_ORDER_FACT_WINDOW_DAYS} days),
+ * synthesizes order rows via {@link buildSampleOrderFactRows}, and persists them
+ * as `source = "sample"` (never touching live `shopify_order_v1` rows).
+ */
+export async function seedSampleOrderFacts(
+  shopId: string,
+  options?: { now?: Date },
+): Promise<number> {
+  const now = options?.now ?? new Date();
+  await clearSampleOrderFacts(shopId);
+  const cutoff = new Date(
+    now.getTime() - SAMPLE_ORDER_FACT_WINDOW_DAYS * 86_400_000,
+  );
+  const days = await prisma.sampleSalesDay.findMany({
+    where: { shopId, day: { gte: cutoff } },
+    orderBy: { day: "asc" },
+    select: { day: true, sales: true, orderCount: true, guestOrders: true },
+  });
+
+  const built = buildSampleOrderFactRows(days);
+  const rows = built.map((r) => ({
+    ...r,
+    shopId,
+    asOf: now,
+    source: "sample",
+  }));
 
   for (let i = 0; i < rows.length; i += 200) {
     await prisma.orderFact.createMany({
