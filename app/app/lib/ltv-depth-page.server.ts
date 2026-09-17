@@ -1,13 +1,14 @@
 /**
  * LTV-owned loader add-on: the Black Clover depth pack (spend-build curves,
- * retention grid, first→second product journeys, first-order-size tiers, and
- * best-customer recency) over the order-history window — independent of the
- * hidden period slicer, like Growth's come-back window.
+ * retention grid, first→second product journeys, first-product → LTV, first-order
+ * size tiers, and best-customer recency) over the order-history window —
+ * independent of the hidden period slicer, like Growth's come-back window.
  *
  * SAMPLE reads the deterministic Snowdevil order book (products on file). Live
- * reads the full stored OrderFact book (no product titles — journeys quietly
- * drop out) so year / long windows can seal. Thin shops get empty-state craft,
- * never a fake year. Order history only — no spend, no ROAS.
+ * reads the full stored OrderFact book (no product titles — journeys and
+ * first-product LTV stay honest empties) so year / long windows can seal. Thin
+ * shops get empty-state craft, never a fake year. Order history only — no spend,
+ * no ROAS.
  */
 
 import {
