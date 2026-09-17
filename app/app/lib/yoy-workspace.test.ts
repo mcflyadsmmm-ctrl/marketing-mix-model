@@ -5,10 +5,22 @@ import { describe, expect, it } from "vitest";
 import type { CertifiedDay } from "./mer-control";
 import { OVERVIEW_YOY_MISSING } from "./overview-yoy";
 import {
+  buildYoyYearBoard,
+  formatYoyPct,
   last7VsPrior7,
   operatingMonthRows,
+  parseYoyYear,
   YOY_ANALYTICS_LEDE,
+  YOY_CHANNEL_EMPTY,
+  yoyBoardHasSpend,
+  yoyBoardPriorMissing,
+  yoyBoardTotals,
+  yoyChannelVsLy,
+  yoyChartBuckets,
   yoyDisplayValue,
+  yoyPct,
+  yoyYearOptions,
+  yoyYearWindowDays,
 } from "./yoy-workspace";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -18,6 +30,7 @@ function certifiedDay(
   dateKey: string,
   sales: number,
   spend = 0,
+  channels: Array<{ channel: string; amount: number }> = [],
 ): CertifiedDay {
   const [year, monthIndex, day] = dateKey.split("-").map(Number);
   return {
@@ -29,7 +42,7 @@ function certifiedDay(
     sales,
     spend,
     mer: spend > 0 ? sales / spend : null,
-    channels: [],
+    channels,
     residualSpend: 0,
     unpaired: false,
   };
@@ -43,12 +56,22 @@ describe("YoY vs Shopify Analytics", () => {
     expect(YOY_ANALYTICS_LEDE).toMatch(
       /this month vs last month vs last year plus last 7/i,
     );
+    expect(YOY_ANALYTICS_LEDE).toMatch(/12-month board vs last year/i);
+    expect(YOY_ANALYTICS_LEDE).toMatch(/channel spend vs last year/i);
     expect(yoyRoute).toContain("YOY_ANALYTICS_LEDE");
   });
 
   it("does not remount SpendExplorer or Overview’s three YoY cards", () => {
     expect(yoyRoute).not.toContain("SpendExplorer");
     expect(yoyRoute).not.toContain("OverviewYoyCards");
+  });
+
+  it("mounts the year explorer and 12-month board, not a cards-only pamphlet", () => {
+    expect(yoyRoute).toContain("YoyYearChart");
+    expect(yoyRoute).toContain("YoyYearBoard");
+    expect(yoyRoute).toContain("YoyChannelBoard");
+    expect(yoyRoute).toContain("buildYoyYearBoard");
+    expect(yoyRoute).toContain("yoyChannelVsLy");
   });
 });
 
@@ -82,7 +105,8 @@ describe("last7 empty display", () => {
     expect(last7VsPrior7([]).sales).toBeNull();
     expect(yoyDisplayValue(null, (n) => `$${n}`)).toBe("—");
     expect(yoyDisplayValue(undefined, (n) => `$${n}`)).toBe("—");
-    expect(yoyRoute).toContain("yoyDisplayValue(last7.sales");
+    expect(yoyRoute).toContain("yoyDisplayValue");
+    expect(yoyRoute).toContain("last7.sales");
     expect(yoyRoute).not.toContain("formatCurrency(last7.sales");
   });
 });
@@ -133,5 +157,201 @@ describe("last7VsPrior7", () => {
       priorSpend: null,
       priorMer: null,
     });
+  });
+});
+
+describe("buildYoyYearBoard", () => {
+  const asOf = { year: 2026, month: 9, day: 17 };
+
+  it("always returns 12 months and keeps missing last year null, not $0", () => {
+    const days = [
+      certifiedDay("2026-08-01", 8_000),
+      certifiedDay("2026-09-01", 4_000),
+      certifiedDay("2026-09-17", 1_200),
+    ];
+    const rows = buildYoyYearBoard(days, 2026, asOf);
+    expect(rows).toHaveLength(12);
+    expect(rows.map((row) => row.label)).toEqual([
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ]);
+    expect(rows[7]?.actual).toBe(8_000);
+    expect(rows[7]?.prior).toBeNull();
+    expect(rows[7]?.yoyPct).toBeNull();
+    expect(rows[8]?.isCurrent).toBe(true);
+    expect(rows[8]?.actual).toBe(5_200);
+    expect(rows[9]?.isFuture).toBe(true);
+    expect(rows[9]?.actual).toBeNull();
+    expect(yoyBoardPriorMissing(rows)).toBe(true);
+    expect(yoyBoardHasSpend(rows)).toBe(false);
+  });
+
+  it("aligns the current month to the same days last year", () => {
+    const days = [
+      certifiedDay("2025-09-01", 100),
+      certifiedDay("2025-09-17", 50),
+      certifiedDay("2025-09-30", 9_000),
+      certifiedDay("2026-09-01", 200),
+      certifiedDay("2026-09-17", 80),
+    ];
+    const rows = buildYoyYearBoard(days, 2026, asOf);
+    expect(rows[8]?.actual).toBe(280);
+    expect(rows[8]?.prior).toBe(150);
+    expect(rows[8]?.yoyPct).toBeCloseTo((280 - 150) / 150 * 100);
+  });
+
+  it("keeps spend and Total ROAS null until spend is typed", () => {
+    const days = [
+      certifiedDay("2025-08-01", 1_000, 250, [{ channel: "meta", amount: 250 }]),
+      certifiedDay("2026-08-01", 1_200, 200, [{ channel: "meta", amount: 200 }]),
+    ];
+    const withSpend = buildYoyYearBoard(days, 2026, asOf);
+    expect(withSpend[7]?.spend).toBe(200);
+    expect(withSpend[7]?.priorSpend).toBe(250);
+    expect(withSpend[7]?.mer).toBeCloseTo(6);
+    expect(yoyBoardHasSpend(withSpend)).toBe(true);
+
+    const salesOnly = buildYoyYearBoard(
+      [certifiedDay("2026-08-01", 1_200)],
+      2026,
+      asOf,
+    );
+    expect(salesOnly[7]?.spend).toBeNull();
+    expect(salesOnly[7]?.mer).toBeNull();
+    expect(yoyBoardHasSpend(salesOnly)).toBe(false);
+  });
+
+  it("YTD YoY uses only overlapping months so missing last year is not $0", () => {
+    const days = [
+      certifiedDay("2025-08-01", 1_000),
+      certifiedDay("2026-07-01", 400),
+      certifiedDay("2026-08-01", 1_200),
+    ];
+    const totals = yoyBoardTotals(buildYoyYearBoard(days, 2026, asOf));
+    expect(totals.actual).toBe(1_600);
+    expect(totals.prior).toBe(1_000);
+    expect(totals.yoyPct).toBeCloseTo(20);
+  });
+});
+
+describe("yoyChartBuckets", () => {
+  it("rolls months into quarters without inventing $0 last year", () => {
+    const rows = buildYoyYearBoard(
+      [
+        certifiedDay("2026-01-10", 100),
+        certifiedDay("2026-02-10", 200),
+        certifiedDay("2025-04-10", 80),
+        certifiedDay("2026-04-10", 120),
+      ],
+      2026,
+      { year: 2026, month: 9, day: 17 },
+    );
+    const quarters = yoyChartBuckets(rows, "quarter");
+    expect(quarters).toHaveLength(4);
+    expect(quarters[0]?.actual).toBe(300);
+    expect(quarters[0]?.prior).toBeNull();
+    expect(quarters[0]?.yoyPct).toBeNull();
+    expect(quarters[1]?.actual).toBe(120);
+    expect(quarters[1]?.prior).toBe(80);
+    expect(quarters[3]?.isFuture).toBe(true);
+  });
+});
+
+describe("yoyChannelVsLy", () => {
+  it("returns no invented channels when neither year has typed spend", () => {
+    const thisYear = [certifiedDay("2026-09-01", 500)];
+    const lastYear = [certifiedDay("2025-09-01", 400)];
+    expect(yoyChannelVsLy(thisYear, lastYear)).toEqual([]);
+    expect(YOY_CHANNEL_EMPTY).toMatch(/typed spend/);
+  });
+
+  it("keeps last-year spend as — when that channel was not on file", () => {
+    const thisYear = [
+      certifiedDay("2026-03-01", 1_000, 100, [
+        { channel: "meta", amount: 100 },
+      ]),
+    ];
+    const lastYear = [
+      certifiedDay("2025-03-01", 800, 80, [
+        { channel: "google", amount: 80 },
+      ]),
+    ];
+    const rows = yoyChannelVsLy(thisYear, lastYear);
+    expect(rows.map((row) => row.channel).sort()).toEqual(["google", "meta"]);
+    const meta = rows.find((row) => row.channel === "meta");
+    const google = rows.find((row) => row.channel === "google");
+    expect(meta?.spend).toBe(100);
+    expect(meta?.priorSpend).toBeNull();
+    expect(meta?.vsPct).toBeNull();
+    expect(google?.spend).toBeNull();
+    expect(google?.priorSpend).toBe(80);
+    expect(rows.every((row) => row.channel !== "tiktok")).toBe(true);
+  });
+
+  it("compares spend vs last year only for channels on both books", () => {
+    const thisYear = [
+      certifiedDay("2026-03-01", 1_000, 200, [
+        { channel: "meta", amount: 200 },
+      ]),
+    ];
+    const lastYear = [
+      certifiedDay("2025-03-01", 800, 100, [
+        { channel: "meta", amount: 100 },
+      ]),
+    ];
+    const [row] = yoyChannelVsLy(thisYear, lastYear);
+    expect(row?.channel).toBe("meta");
+    expect(row?.spend).toBe(200);
+    expect(row?.priorSpend).toBe(100);
+    expect(row?.vsPct).toBe(100);
+  });
+});
+
+describe("yoy year helpers", () => {
+  it("parses a year and lists years on file through as-of", () => {
+    expect(parseYoyYear("2025", 2026)).toBe(2025);
+    expect(parseYoyYear("nope", 2026)).toBe(2026);
+    expect(yoyYearOptions(2026, 2024)).toEqual([2024, 2025, 2026]);
+  });
+
+  it("caps a current-year window at as-of, and formats missing YoY as —", () => {
+    const days = [
+      certifiedDay("2026-01-02", 10),
+      certifiedDay("2026-09-17", 20),
+      certifiedDay("2026-09-30", 99),
+    ];
+    const window = yoyYearWindowDays(days, 2026, {
+      year: 2026,
+      month: 9,
+      day: 17,
+    });
+    expect(window.map((day) => day.dateKey)).toEqual([
+      "2026-01-02",
+      "2026-09-17",
+    ]);
+    const priorYtd = yoyYearWindowDays(
+      [
+        certifiedDay("2025-09-17", 10),
+        certifiedDay("2025-12-31", 99),
+      ],
+      2025,
+      { year: 2026, month: 9, day: 17 },
+      2026,
+    );
+    expect(priorYtd.map((day) => day.dateKey)).toEqual(["2025-09-17"]);
+    expect(yoyPct(120, 100)).toBe(20);
+    expect(formatYoyPct(null)).toBe("—");
+    expect(formatYoyPct(12.4)).toBe("+12%");
+    expect(formatYoyPct(-8.2)).toBe("-8%");
   });
 });

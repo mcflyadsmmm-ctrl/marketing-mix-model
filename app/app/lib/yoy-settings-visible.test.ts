@@ -47,6 +47,14 @@ describe("YoY is the comparison desk", () => {
     expect(yoy).toContain("mcfly-yoy__grid");
     expect(yoy).not.toMatch(/if \(salesPending\) return null/);
   });
+
+  it("leads with a 12-month board and channel vs last year, not cards only", () => {
+    expect(yoy).toContain("YoyYearChart");
+    expect(yoy).toContain("YoyYearBoard");
+    expect(yoy).toContain("YoyChannelBoard");
+    expect(yoy).toContain("buildYoyYearBoard");
+    expect(yoy.indexOf("YoyYearChart")).toBeLessThan(yoy.indexOf("mcfly-yoy__grid--soft"));
+  });
 });
 
 describe("Settings Sample | Live", () => {

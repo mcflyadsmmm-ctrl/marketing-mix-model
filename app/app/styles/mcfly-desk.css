@@ -17365,3 +17365,180 @@ button.mcfly-depth-legend__chip:focus-visible {
     height: 5.4rem;
   }
 }
+
+/* —— YoY year board + explorer (Overview-grade dual bars, dark tip) —— */
+.mcfly-chart--yoy.mcfly-chart {
+  position: relative;
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 0.95rem 0.95rem;
+  overflow: hidden;
+}
+
+.mcfly-chart--yoy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.46;
+  mix-blend-mode: multiply;
+  background-image: radial-gradient(
+      circle at 16% 10%,
+      color-mix(in srgb, var(--mcfly-accent) 8%, transparent),
+      transparent 44%
+    ),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+.mcfly-chart--yoy > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mcfly-chart--yoy .mcfly-chart__svg,
+.mcfly-desk-anchor .mcfly-chart--yoy .mcfly-chart__svg {
+  min-height: 13.5rem;
+}
+
+.mcfly-chart--yoy .mcfly-chart__bar--prior {
+  fill: color-mix(in srgb, var(--mcfly-mute) 42%, #fff);
+  opacity: 0.72;
+}
+
+.mcfly-chart--yoy .mcfly-chart__bar--prior:hover {
+  opacity: 0.9;
+}
+
+.mcfly-chart__legend-swatch--prior {
+  background: color-mix(in srgb, var(--mcfly-mute) 48%, #fff);
+}
+
+.mcfly-yoy-board,
+.mcfly-yoy-chan {
+  margin: 0 0 1.25rem;
+}
+
+.mcfly-yoy-board__head {
+  margin: 0 0 0.45rem;
+}
+
+.mcfly-yoy-board__title {
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-yoy-board__lede,
+.mcfly-yoy-chan__empty {
+  margin: 0.25rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.mcfly-yoy-board__wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0.4rem 0 0;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 8px;
+}
+
+.mcfly-yoy-board__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 36rem;
+}
+
+.mcfly-yoy-board__table th,
+.mcfly-yoy-board__table td {
+  padding: 0.48rem 0.6rem;
+  text-align: right;
+  border-bottom: 1px solid var(--mcfly-line-soft);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-yoy-board__table thead th {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+  background: var(--mcfly-paper);
+}
+
+.mcfly-yoy-board__table tbody th {
+  text-align: left;
+  font-weight: 650;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-yoy-board__row--current {
+  background: var(--mcfly-accent-soft);
+  box-shadow: inset 3px 0 0 var(--mcfly-accent);
+}
+
+.mcfly-yoy-board__row--up {
+  background: color-mix(in srgb, var(--mcfly-truth-soft) 48%, #fff);
+}
+
+.mcfly-yoy-board__row--down {
+  background: color-mix(in srgb, var(--mcfly-lie-soft) 42%, #fff);
+}
+
+.mcfly-yoy-board__row--flat {
+  background: color-mix(in srgb, var(--mcfly-tint-sky) 60%, #fff);
+}
+
+.mcfly-yoy-board__row--current.mcfly-yoy-board__row--up {
+  background: color-mix(in srgb, var(--mcfly-truth-soft) 68%, var(--mcfly-accent-soft));
+}
+
+.mcfly-yoy-board__row--current.mcfly-yoy-board__row--down {
+  background: color-mix(in srgb, var(--mcfly-lie-soft) 60%, var(--mcfly-accent-soft));
+}
+
+.mcfly-yoy-board__row--future {
+  opacity: 0.72;
+}
+
+.mcfly-yoy-board__now {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-yoy__grid--soft {
+  margin-top: 0.35rem;
+}
+
+.mcfly-yoy__grid--soft .mcfly-yoy__v {
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+}
+
+.mcfly-yoy__grid--soft .mcfly-yoy__card {
+  padding: 0.85rem 0.9rem 0.95rem;
+}
+
+@media (max-width: 36rem) {
+  .mcfly-yoy-board__table {
+    min-width: 28rem;
+    font-size: 0.8rem;
+  }
+
+  .mcfly-yoy-board__table th,
+  .mcfly-yoy-board__table td {
+    padding: 0.38rem 0.45rem;
+  }
+
+  .mcfly-chart--yoy .mcfly-chart__svg,
+  .mcfly-desk-anchor .mcfly-chart--yoy .mcfly-chart__svg {
+    min-height: 11.5rem;
+  }
+}

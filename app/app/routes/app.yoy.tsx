@@ -1,16 +1,21 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useLoaderData, useNavigation } from "react-router";
+import { useLoaderData, useNavigation, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { BookFactGrid } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { DeskIcon } from "../components/DeskIcon";
+import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { useDeskDrill } from "../components/DeskDrill";
+import { YoyChannelBoard, YoyYearBoard } from "../components/YoyYearBoard";
+import { YoyYearChart } from "../components/YoyYearChart";
 import {
   buildDailyRowsForWindow,
   ensureShop,
 } from "../lib/mer-dashboard.server";
-import { buildCashControlBoard } from "../lib/mer-control";
+import {
+  buildCashControlBoard,
+  certifyDailyRows,
+} from "../lib/mer-control";
 import { formatMer } from "../lib/mer-format";
 import { useMoney } from "../lib/desk-currency";
 import {
@@ -20,21 +25,28 @@ import {
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
-  resolvePeriod,
-  resolvePriorPeriod,
 } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { getSalesFactsByDay } from "../lib/sales-facts.server";
+import { yearDateRange } from "../lib/sales-goals.server";
 import {
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
+import { shopLocalYmd } from "../lib/shop-local-day";
 import { requireAdmin } from "../lib/public-app-gate.server";
 import {
+  buildYoyYearBoard,
   last7VsPrior7,
   operatingMonthRows,
+  parseYoyYear,
   YOY_ANALYTICS_LEDE,
+  yoyBoardHasSpend,
+  yoyBoardPriorMissing,
+  yoyChannelVsLy,
   yoyDisplayValue,
+  yoyYearOptions,
+  yoyYearWindowDays,
 } from "../lib/yoy-workspace";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -46,17 +58,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const preset = parsePeriodPreset(url.searchParams.get("period"));
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
   const now = new Date();
-  const mtd = resolvePeriod("mtd", now, deskTz);
-  const priorYtd = resolvePriorPeriod("ytd", now, deskTz);
+  const asOfParts = deskTz
+    ? shopLocalYmd(now, deskTz)
+    : { y: now.getFullYear(), m: now.getMonth() + 1, d: now.getDate() };
+  const asOf = {
+    year: asOfParts.y,
+    month: asOfParts.m,
+    day: asOfParts.d,
+  };
+  const year = parseYoyYear(url.searchParams.get("year"), asOf.year);
+  const startYear = Math.min(year, asOf.year) - 1;
   const controlRange = {
-    start: priorYtd.start,
-    end: mtd.end,
+    start: yearDateRange(startYear, deskTz).start,
+    end: now,
     label: "YoY comparison",
   };
   const salesByDay = useSampleDesk
     ? await fetchSampleSalesByDay(shop.id, controlRange)
     : await getSalesFactsByDay(shop.id, controlRange);
-  const { rows } = await buildDailyRowsForWindow(shop.id, {
+  const { rows, channelLabels } = await buildDailyRowsForWindow(shop.id, {
     sampleOnly: useSampleDesk,
     excludeSample: !useSampleDesk,
     salesByDay,
@@ -65,9 +85,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     timeZone: deskTz,
   });
   const board = buildCashControlBoard(rows, 0);
+  const { days } = certifyDailyRows(rows);
+  const monthRows = buildYoyYearBoard(days, year, asOf);
+  const thisWindow = yoyYearWindowDays(days, year, asOf, year);
+  const lastWindow = yoyYearWindowDays(days, year - 1, asOf, year);
+  const channelRows = yoyChannelVsLy(thisWindow, lastWindow);
+  const earliestYear = days.reduce(
+    (min, day) => Math.min(min, day.year),
+    asOf.year,
+  );
 
   return {
-    monthRows: operatingMonthRows(board.compareScores),
+    year,
+    yearOptions: yoyYearOptions(asOf.year, Math.min(earliestYear, year, startYear)),
+    monthRows,
+    channelRows,
+    channelLabels,
+    lastYearHasSpend: lastWindow.some((day) => day.spend > 0),
+    boardHasSpend: yoyBoardHasSpend(monthRows),
+    boardPriorMissing: yoyBoardPriorMissing(monthRows),
+    monthRowsOperating: operatingMonthRows(board.compareScores),
     last7: last7VsPrior7(board.drillDays),
     useSampleDesk,
     shotMode,
@@ -84,28 +121,45 @@ type CompareCard = {
 };
 
 export default function YoyWorkspacePage() {
-  const { monthRows, last7, useSampleDesk, shotMode, preset } =
-    useLoaderData<typeof loader>();
+  const {
+    year,
+    yearOptions,
+    monthRows,
+    channelRows,
+    channelLabels,
+    lastYearHasSpend,
+    boardHasSpend,
+    boardPriorMissing,
+    monthRowsOperating,
+    last7,
+    useSampleDesk,
+    shotMode,
+    preset,
+  } = useLoaderData<typeof loader>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
   const hasSpend =
-    monthRows.some((row) => (row.spend ?? 0) > 0) ||
+    boardHasSpend ||
+    monthRowsOperating.some((row) => (row.spend ?? 0) > 0) ||
     (last7.spend ?? 0) > 0 ||
     (last7.priorSpend ?? 0) > 0;
   const salesPending =
     !useSampleDesk &&
     last7.sales == null &&
-    monthRows.every((row) => row.sales == null);
+    monthRowsOperating.every((row) => row.sales == null) &&
+    monthRows.every((row) => row.actual == null);
   const lastYearMissing =
     !salesPending &&
-    monthRows.some((row) => row.id === "lastYear" && row.sales == null);
+    (boardPriorMissing ||
+      monthRowsOperating.some((row) => row.id === "lastYear" && row.sales == null));
   const tillLabel = useSampleDesk
-    ? `This month · last month · last year${PRODUCT_NOUN.samplePeriodSuffix}`
-    : "This month · last month · last year · live sales";
+    ? `${year} board · vs last year${PRODUCT_NOUN.samplePeriodSuffix}`
+    : `${year} board · vs last year · live sales`;
   const drill = useDeskDrill();
   const money = useMoney();
   const compareRows: CompareCard[] = [
-    ...monthRows,
+    ...monthRowsOperating,
     {
       id: "last7",
       label: "Last 7",
@@ -127,6 +181,13 @@ export default function YoyWorkspacePage() {
     return "Click for detail";
   };
 
+  const onYearChange = (next: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("year", next);
+    if (shotMode) params.set("shot", "1");
+    setSearchParams(params);
+  };
+
   return (
     <DeskBookPage
       heading="YoY"
@@ -138,194 +199,108 @@ export default function YoyWorkspacePage() {
       showPeriod={false}
     >
       <section className="mcfly-yoy" aria-label="Year over year">
+        {useSampleDesk && !shotMode ? (
+          <SampleDeskBanner note="YoY below uses SAMPLE sales and typed SAMPLE spend." />
+        ) : null}
         <p className="mcfly-yoy__lede">{YOY_ANALYTICS_LEDE}</p>
         {salesPending ? (
           <p className="mcfly-yoy__note" role="status">
             {OVERVIEW_YOY_PENDING}
           </p>
         ) : null}
-        <div className="mcfly-yoy__grid">
+
+        <YoyYearChart
+          months={monthRows}
+          year={year}
+          yearOptions={yearOptions}
+          onYearChange={onYearChange}
+          hasSpend={hasSpend}
+          salesPending={salesPending}
+        />
+
+        <YoyYearBoard months={monthRows} year={year} hasSpend={hasSpend} />
+
+        <YoyChannelBoard
+          rows={channelRows}
+          year={year}
+          lastYearHasSpend={lastYearHasSpend}
+          channelLabels={channelLabels}
+        />
+
+        {lastYearMissing ? (
+          <p className="mcfly-yoy__note">{OVERVIEW_YOY_MISSING}</p>
+        ) : null}
+
+        <div className="mcfly-yoy__grid mcfly-yoy__grid--soft">
           {compareRows.map((row) => {
             const sales = salesLabel(row);
             const spend = spendLabel(row);
             const mer = merLabel(row);
             return (
-            <button
-              type="button"
-              className="mcfly-yoy__card mcfly-yoy__card--drill"
-              key={row.id}
-              onClick={() =>
-                drill?.openDrill({
-                  title: row.label,
-                  value: sales,
-                  kicker: "Operating compare",
-                  blocks: [
-                    {
-                      k: "Sales",
-                      v: salesPending ? "— still loading" : sales,
-                    },
-                    hasSpend ? { k: "Spend", v: spend } : null,
-                    hasSpend ? { k: "Total ROAS", v: mer } : null,
-                  ].filter(
-                    (block): block is { k: string; v: string } => block != null,
-                  ),
-                  next: "Overview keeps MTD / QTD / YTD vs the same days last year.",
-                  nextHref: "/app",
-                  nextLabel: "Open Overview",
-                  foot:
-                    row.id === "lastYear" && row.sales == null && !salesPending
-                      ? OVERVIEW_YOY_MISSING
-                      : salesPending
-                        ? OVERVIEW_YOY_PENDING
-                        : undefined,
-                })
-              }
-            >
-              <p className="mcfly-yoy__k">
-                <DeskIcon name="yoy" />
-                {row.label}
-              </p>
-              <p className="mcfly-yoy__v" aria-label={salesPending ? "still loading" : undefined}>
-                {sales}
-              </p>
-              {hasSpend ? (
-                <p className="mcfly-yoy__prior">
-                  <span>Spend</span>
-                  <span>{spend}</span>
+              <button
+                type="button"
+                className="mcfly-yoy__card mcfly-yoy__card--drill"
+                key={row.id}
+                onClick={() =>
+                  drill?.openDrill({
+                    title: row.label,
+                    value: sales,
+                    kicker: "Operating compare",
+                    blocks: [
+                      {
+                        k: "Sales",
+                        v: salesPending ? "— still loading" : sales,
+                      },
+                      hasSpend ? { k: "Spend", v: spend } : null,
+                      hasSpend ? { k: "Total ROAS", v: mer } : null,
+                    ].filter(
+                      (block): block is { k: string; v: string } =>
+                        block != null,
+                    ),
+                    next: "Overview keeps MTD / QTD / YTD vs the same days last year.",
+                    nextHref: "/app",
+                    nextLabel: "Open Overview",
+                    foot:
+                      row.id === "lastYear" &&
+                      row.sales == null &&
+                      !salesPending
+                        ? OVERVIEW_YOY_MISSING
+                        : salesPending
+                          ? OVERVIEW_YOY_PENDING
+                          : undefined,
+                  })
+                }
+              >
+                <p className="mcfly-yoy__k">
+                  <DeskIcon name="yoy" />
+                  {row.label}
                 </p>
-              ) : null}
-              {hasSpend ? (
-                <p className="mcfly-yoy__vs">Total ROAS {mer}</p>
-              ) : null}
-              <p className="mcfly-kpi__hint">{dashHint(row)}</p>
-            </button>
+                <p
+                  className="mcfly-yoy__v"
+                  aria-label={salesPending ? "still loading" : undefined}
+                >
+                  {sales}
+                </p>
+                {hasSpend ? (
+                  <p className="mcfly-yoy__prior">
+                    <span>Spend</span>
+                    <span>{spend}</span>
+                  </p>
+                ) : null}
+                {hasSpend ? (
+                  <p className="mcfly-yoy__vs">Total ROAS {mer}</p>
+                ) : null}
+                <p className="mcfly-kpi__hint">{dashHint(row)}</p>
+              </button>
             );
           })}
         </div>
-        {lastYearMissing ? (
-          <p className="mcfly-yoy__note">{OVERVIEW_YOY_MISSING}</p>
-        ) : null}
-      </section>
-
-      <section className="mcfly-book" aria-label="This month vs last month vs last year vs last 7">
-        <p className="mcfly-book__lede">
-          This month vs last month vs last year vs last 7
-          {hasSpend
-            ? " — sales still read at $0 spend; spend is extra."
-            : " — sales only until you add spend."}
-        </p>
-        <BookFactGrid
-          facts={[
-            {
-              k: "This month",
-              v: salesPending
-                ? "—"
-                : yoyDisplayValue(
-                    monthRows.find((row) => row.id === "thisMonth")?.sales,
-                    money,
-                  ),
-              d: salesPending
-                ? "still loading"
-                : "Operating month on this install.",
-            },
-            {
-              k: "Last month",
-              v: salesPending
-                ? "—"
-                : yoyDisplayValue(
-                    monthRows.find((row) => row.id === "lastMonth")?.sales,
-                    money,
-                  ),
-              d: salesPending
-                ? "still loading"
-                : "Previous calendar month on this install.",
-            },
-            {
-              k: "Last year",
-              v: salesPending
-                ? "—"
-                : yoyDisplayValue(
-                    monthRows.find((row) => row.id === "lastYear")?.sales,
-                    money,
-                  ),
-              d: salesPending
-                ? "still loading"
-                : lastYearMissing
-                  ? OVERVIEW_YOY_MISSING
-                  : "This month last year — same days, not $0 when missing.",
-            },
-            {
-              k: "Last 7",
-              v: salesPending ? "—" : yoyDisplayValue(last7.sales, money),
-              d: salesPending
-                ? "still loading"
-                : "Certified closed days. Empty is — not $0.",
-            },
-          ]}
-        />
-      </section>
-
-      <section className="mcfly-book" aria-label="Last 7 versus prior 7">
-        <p className="mcfly-book__lede">{last7.label}</p>
-        <BookFactGrid
-          facts={[
-            {
-              k: "Last 7 sales",
-              v: salesPending ? "—" : yoyDisplayValue(last7.sales, money),
-              d: salesPending
-                ? "still loading"
-                : "Certified closed days. Empty is — not $0.",
-            },
-            {
-              k: "Prior 7 sales",
-              v: salesPending ? "—" : yoyDisplayValue(last7.priorSales, money),
-              d: salesPending
-                ? "still loading"
-                : "The seven certified days before last 7.",
-            },
-            ...(hasSpend
-              ? [
-                  {
-                    k: "Last 7 spend",
-                    v: salesPending
-                      ? "—"
-                      : yoyDisplayValue(last7.spend, money),
-                    d: salesPending
-                      ? "still loading"
-                      : "Typed spend on those same last 7 days.",
-                  },
-                  {
-                    k: "Prior 7 spend",
-                    v: salesPending
-                      ? "—"
-                      : yoyDisplayValue(last7.priorSpend, money),
-                    d: salesPending
-                      ? "still loading"
-                      : "Typed spend on the prior 7 days.",
-                  },
-                  {
-                    k: "Last 7 Total ROAS",
-                    v: salesPending
-                      ? "—"
-                      : yoyDisplayValue(last7.mer, formatMer),
-                    d: salesPending ? "still loading" : PRODUCT_NOUN.definition,
-                  },
-                  {
-                    k: "Prior 7 Total ROAS",
-                    v: salesPending
-                      ? "—"
-                      : yoyDisplayValue(last7.priorMer, formatMer),
-                    d: salesPending ? "still loading" : PRODUCT_NOUN.definition,
-                  },
-                ]
-              : []),
-          ]}
-        />
       </section>
 
       <footer className="mcfly-book__links">
         <s-link href="/app">Overview</s-link>
         <s-link href="/app/goals">Goals</s-link>
+        <s-link href="/app/allocation">Channel Allocation</s-link>
       </footer>
     </DeskBookPage>
   );
