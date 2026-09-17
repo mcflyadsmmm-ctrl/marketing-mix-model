@@ -342,10 +342,12 @@ describe("Sample data | Live data UX", () => {
     expect(book).toContain('{ k: "Original"');
     expect(book).toContain('{ k: "Product only"');
 
-    for (const file of [book, firstView, ltvSnap, marketing]) {
+    for (const file of [book, ltvSnap, marketing]) {
       expect(file).toContain("Math.round(share * 100)");
       expect(file).not.toContain("formatPercent");
     }
+    expect(firstView).toContain("Math.round(returningSalesShare * 100)");
+    expect(firstView).not.toContain("formatPercent");
 
     expect(book).toContain("Top 10% of customers");
     expect(book).toContain("keepDash: true");
