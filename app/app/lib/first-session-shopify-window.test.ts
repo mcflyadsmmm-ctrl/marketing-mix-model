@@ -171,8 +171,8 @@ describe("first-session Shopify window resume", () => {
     findUniqueShop.mockResolvedValue({ ianaTimezone: "America/Chicago" });
     getSalesFactsWindowRemainingDays.mockResolvedValue(0);
     getOrderBackfillProgress.mockResolvedValue({
-      completeDays: 60,
-      windowDays: 60,
+      completeDays: 1800,
+      windowDays: 1800,
       remainingDays: 0,
       historyLimited: false,
       status: "idle",
@@ -188,6 +188,24 @@ describe("first-session Shopify window resume", () => {
     expect(enqueueJob).not.toHaveBeenCalled();
     expect(runSalesFactsBackfill).not.toHaveBeenCalled();
     expect(runOrderFactsBackfill).not.toHaveBeenCalled();
+  });
+
+  it("still enqueues while the paid full-history window has remaining days", async () => {
+    findUniqueShop.mockResolvedValue({ ianaTimezone: "America/Chicago" });
+    getSalesFactsWindowRemainingDays.mockResolvedValue(1400);
+    getOrderBackfillProgress.mockResolvedValue({
+      completeDays: 90,
+      windowDays: 1800,
+      remainingDays: 1710,
+      historyLimited: false,
+      status: "idle",
+      truncated: false,
+      truncatedDay: null,
+    });
+
+    const enqueued = await enqueueShopifyWindowBackfill("shop_1");
+    expect(enqueued).toBe(true);
+    expect(enqueueJob).toHaveBeenCalledTimes(2);
   });
 
   it("still enqueues when a sealed-looking shop has a truncated OrderFact day", async () => {
@@ -239,6 +257,17 @@ describe("first-session Shopify window resume", () => {
     const jobs = read("./job-runner.server.ts");
     expect(jobs).toContain("BACKFILL_SALES_DAY_FACTS_JOB");
     expect(jobs).toContain("handleBackfillSalesDayFacts");
+  });
+
+  it("does not implement billing hard-stop or clamp paid Live to 90 days", () => {
+    const gate = read("./first-session-shopify-window.server.ts");
+    const sales = read("./sales-facts.server.ts");
+    expect(gate).not.toMatch(/proBillingActive/);
+    expect(gate).not.toContain("Unlock full history");
+    expect(gate).toContain("Never treat paid as 90d-only");
+    expect(gate).toContain("billing hard-stop is a later PR");
+    expect(sales).toContain("never a 90-day unpaid slice");
+    expect(sales).toContain("salesDayFactWindowDayCount");
   });
 
   it("order webhook enqueues OrderFact backfill after clearing the day seal", () => {

@@ -262,6 +262,10 @@ export async function runSalesFactsBackfill(
  * Closed days still missing from SalesDayFact in the same ingest window
  * `runSalesFactsBackfill` uses. Used by the first-session one-shot gate so a
  * sealed shop does not re-arm window jobs on every Live tab.
+ *
+ * Paid depth lock: when `read_all_orders` / scopesAllowDeep, this is the
+ * Jan-1 × N-year book — never a 90-day unpaid slice. Billing hard-stop
+ * (trial vs paid) is a later PR; do not clamp here.
  */
 export async function getSalesFactsWindowRemainingDays(
   shopId: string,

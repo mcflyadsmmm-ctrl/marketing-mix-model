@@ -194,6 +194,17 @@ describe("runSalesFactsBackfill", () => {
     expect(remaining).toBeGreaterThan(50);
     expect(remaining).toBeLessThan(60);
   });
+
+  it("counts the Jan-1 × N-year book when scopes allow deep (paid full history)", async () => {
+    findMany.mockResolvedValue([]);
+    const remaining = await getSalesFactsWindowRemainingDays("shop_1", {
+      ianaTimezone: "UTC",
+      now: new Date("2026-09-17T12:00:00.000Z"),
+      scopesAllowDeep: true,
+    });
+    // Paid $39 = full history — never a ~90d unpaid slice.
+    expect(remaining).toBeGreaterThan(365 * 4);
+  });
 });
 
 describe("getSalesFactsCoverage", () => {

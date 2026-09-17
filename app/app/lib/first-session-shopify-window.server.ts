@@ -1,14 +1,20 @@
 /**
- * First Admin open: complete the public-app Shopify window (~60 days)
- * from already-granted read_orders / read_customers.
+ * First Admin open: complete the Shopify ingest window already granted.
+ *
+ * Product lock (do not violate in this file — billing hard-stop is a later PR):
+ * - Demo = SAMPLE full wow (this lane is Live ingest, not SAMPLE).
+ * - Trial/unpaid ~90d Live slice is not implemented here.
+ * - Paid $39 = FULL order history LTV. "Sealed" means the same window
+ *   `runSalesFactsBackfill` / `runOrderFactsBackfill` use (Jan-1 × N years
+ *   when `read_all_orders`). Never treat paid as 90d-only.
  *
  * OAuth and first paint must not await the crawl. Enqueue resume jobs, then
  * fire-and-forget the default chunk (20 sales days / 7 order days) — never
  * the timid maxDays: 2 that left a sealed thin book.
  *
- * One-shot after the window seals: Live tabs re-check progress and skip
- * enqueue/burst when remaining work is gone (status complete). OAuth and
- * first-session still kick. Refunds/cancels re-arm OrderFact via webhook.
+ * One-shot after that full window seals: Live tabs skip enqueue/burst.
+ * OAuth / first-session still kick while work remains. Refunds/cancels
+ * re-arm OrderFact via webhook.
  */
 
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
