@@ -29,11 +29,16 @@ import {
 } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
-import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
+import { getSalesFactsTotals, loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import {
   fetchSampleSales,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
+import {
+  buildHabitGoals,
+  parseHabitGoalInput,
+} from "../lib/goals-habit";
+import { OrderHistoryGoalsBoard } from "../components/OrderHistoryGoalsBoard";
 import {
   impliedSpendCeiling,
   impliedSpendCeilingCaption,
@@ -72,7 +77,8 @@ type GoalsActionIntent =
   | "apply_yoy_10"
   | "apply_yoy_grow"
   | "set_goals_enabled"
-  | "save_target_mer";
+  | "save_target_mer"
+  | "save_habit_goals";
 
 const GOALS_ANALYTICS_LEDE =
   "Shopify Analytics shows this period's sales. This page shows plan vs actual for MTD/QTD/YTD.";
@@ -289,6 +295,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     board.targetMer,
   );
 
+  const yearSales = useSampleDesk
+    ? await fetchSampleSales(shop.id, range)
+    : await getSalesFactsTotals(shop.id, range, new Date());
+  const yearReturningSales = useSampleDesk
+    ? yearSales.returningCustomerNetSales
+    : yearSales.returningCustomerNetSalesSum;
+  const yearOrderCount = yearSales.orderCount;
+  const historyLimited = Boolean(
+    !useSampleDesk &&
+      (periodMetrics.tillLtv.historyLimited ||
+        ("rangeClampedToFactWindow" in yearSales &&
+          yearSales.rangeClampedToFactWindow)),
+  );
+
   return {
     board,
     periods,
@@ -309,6 +329,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       sampleDesk: useSampleDesk,
       paidPro: shop.proBillingActive,
     }),
+    habitGoals: buildHabitGoals({
+      salesPending: Boolean(periodMetrics.salesPending),
+      orderCount: yearOrderCount,
+      ltv30: periodMetrics.tillLtv.avgRevenueD30,
+      ltv90: periodMetrics.tillLtv.avgRevenueD90,
+      ltv365: periodMetrics.tillLtv.avgRevenueD365,
+      yearReturningSales: yearReturningSales,
+      typedLtvTarget: settings.ltvTarget,
+      typedReturningTarget: settings.returningSalesTarget,
+      historyLimited,
+      sample: useSampleDesk,
+      year,
+    }),
   };
 };
 
@@ -323,6 +356,39 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     sampleDesk: useSampleDesk,
     paidPro: shop.proBillingActive,
   });
+
+  if (intent === "save_habit_goals") {
+    const ltvTarget = parseHabitGoalInput(form.get("ltvTarget"));
+    const returningSalesTarget = parseHabitGoalInput(
+      form.get("returningSalesTarget"),
+    );
+    if (Number.isNaN(ltvTarget) || Number.isNaN(returningSalesTarget)) {
+      return {
+        success: false as const,
+        intent,
+        error: "Enter non-negative dollar targets — or leave a field blank to unset",
+        year,
+        goalsEnabled: null as boolean | null,
+        targetMer: null as number | null,
+        ltvTarget: null as number | null,
+        returningSalesTarget: null as number | null,
+      };
+    }
+    await prisma.settings.update({
+      where: { shopId: shop.id },
+      data: { ltvTarget, returningSalesTarget },
+    });
+    return {
+      success: true as const,
+      intent,
+      error: null,
+      year,
+      goalsEnabled: null as boolean | null,
+      targetMer: null as number | null,
+      ltvTarget,
+      returningSalesTarget,
+    };
+  }
 
   if (intent === "save_target_mer") {
     const targetMer = parseTargetMerInput(form.get("targetMer"));
@@ -493,6 +559,7 @@ export default function GoalsPage() {
     priorYear,
     priorYearMonthly,
     entitlements,
+    habitGoals,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -524,6 +591,10 @@ export default function GoalsPage() {
   useEffect(() => {
     if (!actionData) return;
     if (actionData.success) {
+      if (actionData.intent === "save_habit_goals") {
+        showAdminToast("Order-history targets saved", { duration: 4000 });
+        return;
+      }
       if (actionData.intent === "save_target_mer") {
         showAdminToast(
           `${PRODUCT_NOUN.totalRoasGoal} saved · ${formatMer(actionData.targetMer)}×`,
@@ -695,6 +766,12 @@ export default function GoalsPage() {
         ) : null}
 
         <div className="mcfly-goals__main">
+          <OrderHistoryGoalsBoard
+            view={habitGoals}
+            year={year}
+            busy={isSaving || isRevalidating}
+          />
+
           {/* One hero, drill rows — same book language as Orders and Buyers. */}
           <section
             className="mcfly-book mcfly-book--soft mcfly-goals-hero--soft"

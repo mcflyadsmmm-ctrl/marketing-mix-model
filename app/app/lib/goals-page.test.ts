@@ -53,4 +53,13 @@ describe("Goals page", () => {
       expect(goals).toContain("Spend Upload");
     }
   });
+
+  it("adds LTV + returning-$ order-history targets above the sales plan", () => {
+    expect(goals).toContain("OrderHistoryGoalsBoard");
+    expect(goals).toContain("buildHabitGoals");
+    expect(goals).toContain("save_habit_goals");
+    expect(goals.indexOf("<OrderHistoryGoalsBoard")).toBeLessThan(
+      goals.indexOf("mcfly-goals-hero--soft"),
+    );
+  });
 });
