@@ -4,6 +4,11 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { BookFactGrid, type BookFact } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { LtvValueBuild, type LtvBuildWindow } from "../components/LtvValueBuild";
+import { LtvBuildCurves } from "../components/LtvBuildCurves";
+import { LtvRetentionHeat } from "../components/LtvRetentionHeat";
+import { LtvTierTables } from "../components/LtvTierTables";
+import { LtvPathTable } from "../components/LtvPathTable";
+import { LtvWhaleRecency } from "../components/LtvWhaleRecency";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -16,6 +21,7 @@ import {
 } from "../lib/contrib-ltv";
 import { deskPeriodTillLabel } from "../lib/desk-history";
 import { getOrderBackfillProgress } from "../lib/order-facts.server";
+import { loadLtvDepth } from "../lib/ltv-depth-page.server";
 import { deskPeriodTimeZone, parsePeriodPreset, periodMayExceedShopifyOrderWindow, resolvePeriod } from "../lib/periods";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.server";
@@ -105,8 +111,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const liveSpendCount = await prisma.spendEntry.count({
     where: { shopId: shop.id, NOT: { source: "sample" } },
   });
+  // Order-history depth pack (spend-build curves, retention grid, product
+  // journeys, first-order-size tiers, best-customer recency) over the trailing
+  // order window — independent of the period slicer, like Growth's come-back.
+  const depth = await loadLtvDepth({ shopId: shop.id, useSampleDesk });
   return {
     metrics,
+    depth,
     preset,
     shotMode,
     useSampleDesk,
@@ -125,6 +136,7 @@ export default function LtvPage() {
   const currency = useDeskCurrency();
   const {
     metrics,
+    depth,
     preset,
     shotMode,
     useSampleDesk,
@@ -341,6 +353,21 @@ export default function LtvPage() {
           ? "Orders still syncing — not $0. Refresh this page."
           : "Orders still syncing — not $0.";
 
+  /*
+   * The Black Clover depth pack — order history only, no spend. Curves and the
+   * retention grid need more than a single window; on live (Shopify ~60 days)
+   * they collapse to honest empties and product journeys never paint (no
+   * titles on file). On SAMPLE Snowdevil the whole pack is dense.
+   */
+  const depthHasAny = Boolean(
+    depth.curves ||
+      depth.retention ||
+      depth.paths.length > 0 ||
+      depth.aov.length > 0 ||
+      depth.basket.length > 0 ||
+      depth.whales,
+  );
+
   return (
     <DeskBookPage
       heading={PRODUCT_NOUN.ltvTitle}
@@ -413,6 +440,28 @@ export default function LtvPage() {
         ) : null}
       </section>
 
+      {depthHasAny ? (
+        <section className="mcfly-book mcfly-depth-intro" aria-label="Order-history depth">
+          <p className="mcfly-book__lede">
+            {useSampleDesk
+              ? "Deeper order-history views below use SAMPLE Snowdevil orders — how spend builds month by month, who keeps ordering, which product journeys pay, what a first order becomes, and who your best customers are. Order history only, no spend."
+              : "Deeper order-history views — how spend builds month by month, who keeps ordering, first-order size vs lifetime value, and your best customers. Order history only, no spend."}
+          </p>
+        </section>
+      ) : !useSampleDesk ? (
+        <p className="mcfly-book__lede">
+          Spend-build curves, who kept ordering, product journeys and best-customer
+          recency need more order history than Shopify shares on this shop (~60
+          days) — not $0. They fill in as the order backfill deepens.
+        </p>
+      ) : null}
+
+      <LtvBuildCurves curves={depth.curves} />
+      <LtvRetentionHeat heat={depth.retention} />
+      <LtvTierTables aov={depth.aov} basket={depth.basket} />
+      <LtvPathTable paths={depth.paths} />
+      <LtvWhaleRecency whales={depth.whales} />
+
       {economicsRows.length > 0 ? (
         <section className="mcfly-book" aria-label="Cost and margin">
           <p className="mcfly-book__lede">
@@ -423,7 +472,7 @@ export default function LtvPage() {
         </section>
       ) : null}
 
-      {monthRows.length > 0 ? (
+      {monthRows.length > 0 && !depth.curves ? (
         <section className="mcfly-book" aria-label="First orders by month">
           <p className="mcfly-book__lede">
             First orders by month — each month shows what those customers spent

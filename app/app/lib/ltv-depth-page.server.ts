@@ -1,0 +1,63 @@
+/**
+ * LTV-owned loader add-on: the Black Clover depth pack (spend-build curves,
+ * retention grid, first→second product journeys, first-order-size tiers, and
+ * best-customer recency) over the order-history window — independent of the
+ * hidden period slicer, like Growth's come-back window.
+ *
+ * SAMPLE reads the deterministic Snowdevil order book (products on file). Live
+ * reads real OrderFacts (no product titles — journeys quietly drop out) over a
+ * trailing window; Shopify's ~60-day share keeps that honestly short until a
+ * deeper backfill lands. Order history only — no spend, no ROAS.
+ */
+
+import {
+  loadOrderDepthRows,
+  ORDER_FACT_GUEST_KEY,
+  ORDER_FACT_SOURCE,
+} from "./order-facts.server";
+import { buildLtvDepth, type DepthOrder, type LtvDepthView } from "./ltv-depth";
+import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
+
+/** Trailing order-history window read for the live depth pack (days). */
+export const LTV_DEPTH_WINDOW_DAYS = 420;
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Build the depth view for one shop. `asOf` anchors maturity and recency
+ * (defaults to now); pass it in tests. On SAMPLE the Snowdevil book is
+ * generated; on live, real OrderFacts are mapped to opaque depth rows with no
+ * product name so product journeys stay empty rather than guessed.
+ */
+export async function loadLtvDepth(options: {
+  shopId: string;
+  useSampleDesk: boolean;
+  asOf?: Date;
+}): Promise<LtvDepthView> {
+  const asOf = options.asOf ?? new Date();
+
+  if (options.useSampleDesk) {
+    const orders = generateSnowdevilDepthOrders(asOf);
+    return buildLtvDepth(orders, asOf, { sample: true });
+  }
+
+  const start = new Date(asOf.getTime() - LTV_DEPTH_WINDOW_DAYS * DAY_MS);
+  const rows = await loadOrderDepthRows(
+    options.shopId,
+    { start, end: asOf },
+    ORDER_FACT_SOURCE,
+  );
+  const orders: DepthOrder[] = [];
+  for (const row of rows) {
+    if (!row.customerKey || row.customerKey === ORDER_FACT_GUEST_KEY) continue;
+    orders.push({
+      customerKey: row.customerKey,
+      orderedAt: row.orderedAt,
+      amount: Number.isFinite(row.amount) ? row.amount : 0,
+      units: row.unitCount != null && row.unitCount > 0 ? row.unitCount : 1,
+      // Live OrderFacts store units only — never SKU or title (Level 1).
+      product: null,
+    });
+  }
+  return buildLtvDepth(orders, asOf, { sample: false });
+}
