@@ -19,8 +19,9 @@ export const OVERVIEW_YOY_PENDING =
   "Sales for closed days are still loading — not $0.";
 
 /** Shopify Analytics Overview is this period only; these cards add last year. */
-export const OVERVIEW_YOY_ANALYTICS_LEDE =
-  "This month, quarter, and year vs the same days last year."
+export const OVERVIEW_YOY_ANALYTICS_LEDE = "Same days last year";
+
+export type OverviewYoyZone = "up" | "down" | "even" | "empty";
 
 /** When MTD/QTD/YTD collapse to the same ~60-day pull. */
 export const OVERVIEW_YOY_SAME_WINDOW =
@@ -48,6 +49,67 @@ export type OverviewYoyCard = {
   toKey: string | null;
   missingPrior: boolean;
 };
+
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+function parseDayKey(
+  key: string,
+): { year: number; month: number; day: number } | null {
+  const [year, month, day] = key.split("-").map(Number);
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day) ||
+    month < 1 ||
+    month > 12
+  ) {
+    return null;
+  }
+  return { year, month, day };
+}
+
+/** Certified window on the card — never a global slicer. */
+export function overviewWindowRange(
+  fromKey: string | null,
+  toKey: string | null,
+): string | null {
+  if (!fromKey || !toKey) return null;
+  const from = parseDayKey(fromKey);
+  const to = parseDayKey(toKey);
+  if (!from || !to) return null;
+  const fromMonth = MONTHS[from.month - 1];
+  const toMonth = MONTHS[to.month - 1];
+  if (!fromMonth || !toMonth) return null;
+  if (from.year === to.year && from.month === to.month) {
+    return `${fromMonth} ${from.day}–${to.day}`;
+  }
+  if (from.year === to.year) {
+    return `${fromMonth} ${from.day} – ${toMonth} ${to.day}`;
+  }
+  return `${fromMonth} ${from.day}, ${from.year} – ${toMonth} ${to.day}, ${to.year}`;
+}
+
+export function overviewYoyZone(
+  card: Pick<OverviewYoyCard, "delta" | "missingPrior">,
+): OverviewYoyZone {
+  if (card.missingPrior || card.delta == null) return "empty";
+  if (card.delta > 0) return "up";
+  if (card.delta < 0) return "down";
+  return "even";
+}
 
 function isYoyId(id: string): id is OverviewYoyId {
   return id === "mtd" || id === "qtd" || id === "ytd";

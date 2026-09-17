@@ -8,7 +8,9 @@ import {
   OVERVIEW_YOY_MISSING,
   OVERVIEW_YOY_PENDING,
   OVERVIEW_YOY_SAME_WINDOW,
+  overviewWindowRange,
   overviewWindowsCollapsed,
+  overviewYoyZone,
 } from "./overview-yoy";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -116,6 +118,17 @@ describe("buildOverviewYoyCards", () => {
     expect(overviewWindowsCollapsed(cards)).toBe(true);
     expect(OVERVIEW_YOY_SAME_WINDOW).toMatch(/60 days/);
   });
+
+  it("labels certified windows and zones honest deltas", () => {
+    expect(overviewWindowRange("2026-09-01", "2026-09-16")).toBe("Sep 1–16");
+    expect(overviewWindowRange("2026-07-01", "2026-09-16")).toBe(
+      "Jul 1 – Sep 16",
+    );
+    expect(overviewWindowRange(null, "2026-09-16")).toBeNull();
+    expect(overviewYoyZone({ delta: -1434, missingPrior: false })).toBe("down");
+    expect(overviewYoyZone({ delta: 283, missingPrior: false })).toBe("up");
+    expect(overviewYoyZone({ delta: null, missingPrior: true })).toBe("empty");
+  });
 });
 
 describe("Overview vs Shopify Analytics", () => {
@@ -127,8 +140,8 @@ describe("Overview vs Shopify Analytics", () => {
     );
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
 
-    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/same days last year/);
-    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/This month/);
+    expect(OVERVIEW_YOY_ANALYTICS_LEDE).toMatch(/same days last year/i);
+    expect(OVERVIEW_YOY_ANALYTICS_LEDE).not.toMatch(/optional|spend|ROAS/i);
     expect(yoy).toMatch(/Shopify Analytics/);
     expect(cards).toContain("OVERVIEW_YOY_ANALYTICS_LEDE");
     expect(cards).toContain("OVERVIEW_YOY_SAME_WINDOW");

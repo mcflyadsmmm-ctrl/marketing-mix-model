@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { DeskIcon, type DeskIconName } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
@@ -6,21 +5,19 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   OVERVIEW_COVERAGE_LINE,
   OVERVIEW_PENDING_LINE,
-  overviewDecisionTakeaway,
   overviewReturningCompactDollars,
   overviewWeekendWeekday,
 } from "../lib/overview-first-viewport";
 import { SAMPLE_OVERVIEW_DOOR } from "../lib/sample-live-handoff";
 import { useDeskCurrency } from "../lib/desk-currency";
 
-function KpiCard({
+function PeekCard({
   to,
   nextLabel,
   next,
   formulaBlock,
   label,
   value,
-  formula,
   sub,
   foot,
   icon,
@@ -31,7 +28,6 @@ function KpiCard({
   formulaBlock: string;
   label: string;
   value: string;
-  formula?: string;
   sub?: string;
   foot?: string;
   icon: DeskIconName;
@@ -40,12 +36,11 @@ function KpiCard({
   return (
     <button
       type="button"
-      className="mcfly-kpi mcfly-kpi--drill"
+      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek"
       onClick={() =>
         drill?.openDrill({
           title: label,
           value,
-          kicker: formula,
           blocks: [
             { k: "What this is", v: formulaBlock },
             sub ? { k: "Also", v: sub } : null,
@@ -62,17 +57,15 @@ function KpiCard({
         <span className="mcfly-kpi__label">{label}</span>
       </span>
       <span className="mcfly-kpi__value">{value}</span>
-      {formula ? <span className="mcfly-kpi__formula">{formula}</span> : null}
       {sub ? <span className="mcfly-kpi__sub">{sub}</span> : null}
-      <span className="mcfly-kpi__hint">Click for detail</span>
     </button>
   );
 }
 
 /**
- * Shopify-depth KPI board under the YoY glance.
- * Order facts only — typical ticket, returning dollars, weekend vs weekday,
- * order count. Pending paints dashes, never a sealed $0.
+ * Shopify-depth peeks under the YoY glance.
+ * Typical ticket, returning dollars, weekend vs weekday — order facts only.
+ * Pending paints dashes, never a sealed $0.
  */
 export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Shopify sales this period",
@@ -85,7 +78,6 @@ export function OverviewFirstViewport({
   salesPending,
   ordersHref,
   useSampleDesk = false,
-  share,
 }: {
   "aria-label"?: string;
   orderCount: number;
@@ -99,7 +91,6 @@ export function OverviewFirstViewport({
   ordersHref: string;
   settingsHref?: string;
   useSampleDesk?: boolean;
-  share?: ReactNode;
 }) {
   const currency = useDeskCurrency();
   const typicalIsMedian =
@@ -111,12 +102,6 @@ export function OverviewFirstViewport({
       : null;
   const typical =
     typicalValue != null ? formatCurrency(typicalValue, currency) : null;
-  const takeaway = overviewDecisionTakeaway({
-    typicalOrderLabel: typical,
-    returningSalesShare,
-    salesPending,
-    orderCount,
-  });
   const returningDollars = overviewReturningCompactDollars(returningSales);
   const returningValue =
     salesPending || returningDollars == null
@@ -132,26 +117,19 @@ export function OverviewFirstViewport({
     ? null
     : overviewWeekendWeekday(weekendSalesShare);
   const typicalCardValue = salesPending ? "—" : (typical ?? "—");
-  const ordersValue = salesPending
-    ? "—"
-    : orderCount > 0
-      ? orderCount.toLocaleString()
-      : "—";
-  const watermark = useSampleDesk ? (
-    <p className="mcfly-score__door">{SAMPLE_OVERVIEW_DOOR}</p>
-  ) : null;
 
   return (
     <section className="mcfly-score mcfly-book" aria-label={ariaLabel}>
-      <p className="mcfly-decision__takeaway" id="mcfly-decision-takeaway">
-        {takeaway}
+      <p className="mcfly-scoreboard__kicker">
+        {salesPending
+          ? OVERVIEW_PENDING_LINE
+          : orderCount > 0
+            ? OVERVIEW_COVERAGE_LINE
+            : "No orders in this window yet."}
       </p>
-      {!salesPending && orderCount > 0 ? (
-        <p className="mcfly-score__pipe">{OVERVIEW_COVERAGE_LINE}</p>
-      ) : null}
 
-      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-4">
-        <KpiCard
+      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks">
+        <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
           next="Typical order, discounts, and weekend sit on Orders — Shopify Analytics only shows the average."
@@ -165,13 +143,13 @@ export function OverviewFirstViewport({
           value={typicalCardValue}
           sub={
             salesPending
-              ? OVERVIEW_PENDING_LINE
+              ? undefined
               : typicalIsMedian
-                ? "Median. Shopify Analytics uses the average."
+                ? "Median, not the average"
                 : undefined
           }
         />
-        <KpiCard
+        <PeekCard
           to="/app/customers"
           nextLabel={`Open ${PRODUCT_NOUN.buyersTitle}`}
           next="Open Customers for returning dollars and guest checkouts."
@@ -182,7 +160,7 @@ export function OverviewFirstViewport({
           sub={returningShare}
           foot="Dollars, not headcount."
         />
-        <KpiCard
+        <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
           next="Open Orders for the weekday breakdown."
@@ -190,27 +168,13 @@ export function OverviewFirstViewport({
           icon="weekend"
           label="Weekend vs weekday"
           value={weekend ? `${weekend.weekendPct}%` : "—"}
-          sub={
-            weekend
-              ? `Weekday ${weekend.weekdayPct}%`
-              : salesPending
-                ? OVERVIEW_PENDING_LINE
-                : undefined
-          }
-        />
-        <KpiCard
-          to={ordersHref}
-          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-          next="Open Orders for discounts, items, and Online vs POS."
-          formulaBlock="Shopify orders in this window, after returns. Click through for the typical ticket and mix."
-          icon="sales"
-          label="Orders"
-          value={ordersValue}
+          sub={weekend ? `Weekday ${weekend.weekdayPct}%` : undefined}
         />
       </div>
 
-      {share ? <p className="mcfly-book__cta">{share}</p> : null}
-      {watermark}
+      {useSampleDesk ? (
+        <p className="mcfly-scoreboard__kicker">{SAMPLE_OVERVIEW_DOOR}</p>
+      ) : null}
     </section>
   );
 }

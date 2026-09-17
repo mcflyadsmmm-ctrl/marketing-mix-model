@@ -32,13 +32,14 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(tabs).not.toContain("label=\"Ads\"");
   });
 
-  it("stacks primary KPIs and YoY at 430px so $68,457 cannot sit in a 3-up crush", () => {
+  it("keeps YoY as a swipe rail at 430px so $68,457 is not a 3-up crush", () => {
     expect(phone).toMatch(/@media \(max-width: 430px\)/);
     expect(phone).toContain(".mcfly-kpi-grid");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--peeks-2");
-    expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--peeks-4");
     expect(phone).toContain(".mcfly-yoy__grid");
+    expect(phone).toContain("scroll-snap-type: x mandatory");
+    expect(phone).toContain("flex-wrap: nowrap");
     expect(phone).toMatch(
       /\.mcfly-kpi-grid[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
     );

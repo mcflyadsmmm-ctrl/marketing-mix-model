@@ -86,7 +86,7 @@ export function OverviewSalesChart({
 
   const max = Math.max(...points.map((point) => point.sales), 1);
   const width = 640;
-  const height = 160;
+  const height = 200;
   const gap = 3;
   const barW = Math.max(4, (width - gap * (points.length + 1)) / points.length);
   const plotH = height - 24;

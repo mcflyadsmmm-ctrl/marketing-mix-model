@@ -163,24 +163,27 @@ describe("overview first viewport", () => {
     expect(cards).not.toContain("0.00×");
     expect(cards).not.toContain("Total ROAS");
     expect(cards).not.toContain("Edit spend");
+    expect(cards).toContain("overviewWindowRange");
+    expect(cards).toContain("overviewYoyZone");
+    expect(cards).not.toContain("Click for detail");
   });
 
   it("first viewport is YoY peeks + order KPIs, never a ROAS hero", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
     expect(firstView).toContain(OVERVIEW_COVERAGE_LINE.slice(0, 8));
-    expect(firstView).toContain("mcfly-decision");
+    expect(firstView).toContain("mcfly-scoreboard__kicker");
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-4");
+    expect(firstView).toContain("mcfly-kpi--peek");
     expect(firstView).toContain("orderCount > 0");
     expect(firstView).toContain("DeskIcon");
-    expect(firstView).toContain("Click for detail");
+    expect(firstView).not.toContain("Click for detail");
+    expect(firstView).not.toContain("mcfly-decision__takeaway");
     expect(firstView).toContain("weekendSalesShare");
     expect(firstView).toContain("Weekend vs weekday");
     expect(firstView).toContain("OVERVIEW_PENDING_LINE");
     expect(firstView).toContain("bookTypicalOrder");
     expect(firstView).toContain("Returning");
-    expect(firstView).toContain("Orders");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");

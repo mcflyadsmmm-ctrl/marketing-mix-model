@@ -12915,3 +12915,168 @@ button.mcfly-chart__month {
   fill: var(--mcfly-ink);
   pointer-events: none;
 }
+
+/* =========================================================================
+ * Overview Black Clover craft — certified windows + dense peeks + open chart
+ * APPEND ONLY. Sales-only. Tight chrome. Phone = swipe YoY, 3-up peeks.
+ * ========================================================================= */
+
+.mcfly-yoy {
+  margin: 0 0 0.85rem;
+}
+
+.mcfly-yoy__lede {
+  max-width: none;
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.mcfly-yoy__grid {
+  gap: 0.65rem;
+}
+
+.mcfly-yoy__card {
+  padding: 0.8rem 0.9rem 0.75rem;
+}
+
+.mcfly-yoy__card--up::before {
+  background: var(--mcfly-truth);
+}
+
+.mcfly-yoy__card--down::before {
+  background: var(--mcfly-warn);
+}
+
+.mcfly-yoy__card--even::before,
+.mcfly-yoy__card--empty::before {
+  background: var(--mcfly-line);
+}
+
+.mcfly-yoy__range {
+  margin: 0 0 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-yoy__v {
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+  font-weight: 700;
+}
+
+.mcfly-yoy__prior {
+  margin: 0.55rem 0 0;
+  padding-top: 0.45rem;
+  font-size: 0.72rem;
+}
+
+.mcfly-yoy__vs {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+}
+
+.mcfly-yoy__vs--down {
+  color: var(--mcfly-lie);
+}
+
+.mcfly-yoy__vs--even,
+.mcfly-yoy__vs--empty {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-yoy__note {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+}
+
+.mcfly-score.mcfly-book {
+  margin: 0 0 0.75rem;
+}
+
+.mcfly-score .mcfly-scoreboard__kicker {
+  margin: 0 0 0.5rem;
+}
+
+.mcfly-score .mcfly-kpi-grid--peeks {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.mcfly-kpi--peek {
+  padding: 0.75rem 0.8rem 0.7rem;
+}
+
+.mcfly-kpi--peek .mcfly-kpi__value {
+  margin: 0.35rem 0 0.1rem;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+}
+
+.mcfly-kpi--peek .mcfly-kpi__sub {
+  font-size: 0.7rem;
+}
+
+.mcfly-desk-anchor .mcfly-chart {
+  margin: 0 0 0.85rem;
+}
+
+.mcfly-desk-anchor .mcfly-chart__svg {
+  min-height: 11rem;
+}
+
+@media (max-width: 36rem) {
+  .mcfly-yoy__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.65rem;
+    padding-bottom: 0.15rem;
+  }
+
+  .mcfly-yoy__card {
+    flex: 0 0 min(78%, 17.5rem);
+    min-width: 15.5rem;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-yoy__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    grid-template-columns: none;
+  }
+
+  .mcfly-yoy__card {
+    flex: 0 0 min(78%, 17.5rem);
+    min-width: 15.5rem;
+    min-height: 2.75rem;
+  }
+
+  .mcfly-score .mcfly-kpi-grid,
+  .mcfly-score .mcfly-kpi-grid--peeks,
+  .mcfly-score .mcfly-kpi-grid--peeks-2,
+  .mcfly-score .mcfly-kpi-grid--peeks-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mcfly-kpi--peek {
+    min-height: 2.75rem;
+    padding: 0.7rem 0.65rem 0.65rem;
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__value {
+    font-size: clamp(1.05rem, 5.4vw, 1.35rem);
+  }
+}

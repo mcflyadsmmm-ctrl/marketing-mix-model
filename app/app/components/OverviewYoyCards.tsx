@@ -9,9 +9,12 @@ import {
   OVERVIEW_YOY_MISSING,
   OVERVIEW_YOY_PENDING,
   OVERVIEW_YOY_SAME_WINDOW,
+  overviewWindowRange,
   overviewWindowsCollapsed,
+  overviewYoyZone,
   type OverviewYoyCard,
   type OverviewYoyId,
+  type OverviewYoyZone,
 } from "../lib/overview-yoy";
 
 function deltaLine(card: OverviewYoyCard, currency: string): string | null {
@@ -32,9 +35,26 @@ function deltaLine(card: OverviewYoyCard, currency: string): string | null {
     : `${sign}${dollars} vs last year`;
 }
 
+function zoneClass(zone: OverviewYoyZone): string {
+  switch (zone) {
+    case "up":
+      return "mcfly-yoy__card--up";
+    case "down":
+      return "mcfly-yoy__card--down";
+    case "even":
+      return "mcfly-yoy__card--even";
+    case "empty":
+      return "mcfly-yoy__card--empty";
+    default: {
+      const _never: never = zone;
+      return _never;
+    }
+  }
+}
+
 function PendingYoyShell({ id }: { id: OverviewYoyId }) {
   return (
-    <article className="mcfly-yoy__card" key={id}>
+    <article className="mcfly-yoy__card mcfly-yoy__card--empty" key={id}>
       <p className="mcfly-yoy__k">
         <DeskIcon name="yoy" />
         {OVERVIEW_YOY_LABELS[id]}
@@ -49,9 +69,9 @@ function PendingYoyShell({ id }: { id: OverviewYoyId }) {
 }
 
 /**
- * Overview = three YoY sales cards. Spend / explorer / glance live elsewhere.
- * Pending shells only when sales are unknown — a $0 month with missing last
- * year uses OVERVIEW_YOY_MISSING, not OVERVIEW_YOY_PENDING.
+ * Overview glance spine — three certified sales windows vs last year.
+ * Spend / explorer live on later tabs. Pending shells only when sales
+ * are unknown — a $0 month with missing last year uses OVERVIEW_YOY_MISSING.
  */
 export function OverviewYoyCards({
   cards,
@@ -100,19 +120,21 @@ export function OverviewYoyCards({
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {
           const vs = deltaLine(card, currency);
+          const zone = overviewYoyZone(card);
+          const range = overviewWindowRange(card.fromKey, card.toKey);
           const priorLabel = card.missingPrior
             ? "—"
             : formatCurrency(card.priorSales ?? 0, currency);
           return (
             <button
               type="button"
-              className="mcfly-yoy__card mcfly-yoy__card--drill"
+              className={`mcfly-yoy__card mcfly-yoy__card--drill ${zoneClass(zone)}`}
               key={card.id}
               onClick={() =>
                 drill?.openDrill({
                   title: card.label,
                   value: formatCurrency(card.sales, currency),
-                  kicker: "Same days last year",
+                  kicker: range ?? "Same days last year",
                   blocks: [
                     { k: "This year", v: formatCurrency(card.sales, currency) },
                     { k: "Last year", v: priorLabel },
@@ -135,13 +157,15 @@ export function OverviewYoyCards({
                 <DeskIcon name="yoy" />
                 {card.label}
               </p>
+              {range ? <p className="mcfly-yoy__range">{range}</p> : null}
               <p className="mcfly-yoy__v">{formatCurrency(card.sales, currency)}</p>
               <p className="mcfly-yoy__prior">
                 <span>Last year</span>
                 <span>{priorLabel}</span>
               </p>
-              {vs ? <p className="mcfly-yoy__vs">{vs}</p> : null}
-              <p className="mcfly-kpi__hint">Click for detail</p>
+              {vs ? (
+                <p className={`mcfly-yoy__vs mcfly-yoy__vs--${zone}`}>{vs}</p>
+              ) : null}
             </button>
           );
         })}

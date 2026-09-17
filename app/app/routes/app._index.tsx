@@ -609,7 +609,6 @@ export default function Dashboard() {
                   salesPending={greetingPending}
                   ordersHref={ordersHref}
                   useSampleDesk={useSampleDesk}
-                  share={shareButton}
                 />
                 <OverviewSalesChart
                   days={salesDays.map(({ dateKey, sales }) => ({
