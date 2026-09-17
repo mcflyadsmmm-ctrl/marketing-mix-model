@@ -12,9 +12,7 @@ const heat = read("../components/LtvRetentionHeat.tsx");
 const tiers = read("../components/LtvTierTables.tsx");
 const paths = read("../components/LtvPathTable.tsx");
 const whales = read("../components/LtvWhaleRecency.tsx");
-const windows = read("../components/LtvComeBackWindows.tsx");
-const predictive = read("../components/LtvPredictive.tsx");
-const refunds = read("../components/LtvRefundHonesty.tsx");
+const flagship = read("../components/LtvFlagshipBoard.tsx");
 
 describe("LTV route mounts the depth pack", () => {
   it("loads the depth view in the loader", () => {
@@ -25,20 +23,20 @@ describe("LTV route mounts the depth pack", () => {
     expect(route).toMatch(/return \{[\s\S]*?\bdepth,/);
   });
 
-  it("imports and renders all five depth panels plus flagship cards", () => {
+  it("imports and renders all five depth panels plus one flagship board", () => {
     for (const tag of [
       "LtvBuildCurves",
       "LtvRetentionHeat",
       "LtvTierTables",
       "LtvPathTable",
       "LtvWhaleRecency",
-      "LtvComeBackWindows",
-      "LtvPredictive",
-      "LtvRefundHonesty",
+      "LtvFlagshipBoard",
     ]) {
       expect(route).toContain(`import { ${tag} }`);
       expect(route).toContain(`<${tag}`);
     }
+    expect(route).not.toContain("LtvComeBackWindows");
+    expect(route).not.toContain("LtvRefundHonesty");
   });
 
   it("leads with order history — depth sits after the value build, before spend", () => {
@@ -60,7 +58,7 @@ describe("LTV route mounts the depth pack", () => {
 });
 
 describe("depth chrome stays honest and in shop-owner voice", () => {
-  const all = [curves, heat, tiers, paths, whales, windows, predictive, refunds];
+  const all = [curves, heat, tiers, paths, whales, flagship];
 
   it("keeps the banned glossary words out of merchant chrome", () => {
     // Comments may explain a ban; strip block/line comments before scanning.
@@ -73,14 +71,11 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
       expect(chrome).not.toMatch(/\baMER\b/);
       expect(chrome).not.toMatch(/\bp25\b|\bp75\b/i);
     }
-    // New flagship cards stay in shop-owner English (first-order month).
-    for (const src of [windows, predictive, refunds]) {
-      const chrome = src
-        .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
-        .replace(/\/\*[\s\S]*?\*\//g, "")
-        .replace(/^\s*\/\/.*$/gm, "");
-      expect(chrome).not.toMatch(/cohort/i);
-    }
+    const chromeFlag = flagship
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    expect(chromeFlag).not.toMatch(/cohort/i);
   });
 
   it("says the honest short-window and no-promise lines", () => {
@@ -88,9 +83,15 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(heat).toContain("not fully passed");
     expect(paths).toContain("not a forecast");
     expect(tiers).toContain("not a promise");
-    expect(windows).toContain("not $0");
-    expect(predictive).toContain("Not a hidden model");
-    expect(refunds).toContain("we do not invent a refund total");
+    expect(flagship).toContain("not $0");
+    expect(flagship).toContain("average first order");
+    expect(flagship).toContain("we do not invent a refund total");
+  });
+
+  it("is one board — not a month-grid dump or a win-back card", () => {
+    expect(flagship).not.toContain("30d back");
+    expect(flagship).not.toContain("Year back");
+    expect(whales).not.toContain("Quiet 180");
   });
 
   it("carries the pack's dense table columns (reject thin)", () => {
@@ -122,15 +123,11 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(curves).toContain("chartTipClassName");
   });
 
-  it("mounts flagship cards before the existing curves, without removing them", () => {
-    const refundsAt = route.indexOf("<LtvRefundHonesty");
-    const windowsAt = route.indexOf("<LtvComeBackWindows");
-    const predictiveAt = route.indexOf("<LtvPredictive");
+  it("mounts the flagship board before the existing curves, without removing them", () => {
+    const boardAt = route.indexOf("<LtvFlagshipBoard");
     const curvesAt = route.indexOf("<LtvBuildCurves");
-    expect(refundsAt).toBeGreaterThan(-1);
-    expect(windowsAt).toBeGreaterThan(refundsAt);
-    expect(predictiveAt).toBeGreaterThan(windowsAt);
-    expect(curvesAt).toBeGreaterThan(predictiveAt);
+    expect(boardAt).toBeGreaterThan(-1);
+    expect(curvesAt).toBeGreaterThan(boardAt);
   });
 
   it("product journeys only paint when titles are on file", () => {

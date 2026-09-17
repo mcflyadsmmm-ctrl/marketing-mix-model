@@ -9,9 +9,7 @@ import { LtvRetentionHeat } from "../components/LtvRetentionHeat";
 import { LtvTierTables } from "../components/LtvTierTables";
 import { LtvPathTable } from "../components/LtvPathTable";
 import { LtvWhaleRecency } from "../components/LtvWhaleRecency";
-import { LtvComeBackWindows } from "../components/LtvComeBackWindows";
-import { LtvPredictive } from "../components/LtvPredictive";
-import { LtvRefundHonesty } from "../components/LtvRefundHonesty";
+import { LtvFlagshipBoard } from "../components/LtvFlagshipBoard";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -452,8 +450,8 @@ export default function LtvPage() {
         <section className="mcfly-book mcfly-depth-intro" aria-label="Order-history depth">
           <p className="mcfly-book__lede">
             {useSampleDesk
-              ? "Deeper order-history views below use SAMPLE Snowdevil orders — 30/90/365 come-back, the written-out estimate, how spend builds month by month, who keeps ordering, which product journeys pay, what a first order becomes, and who your best customers are. Order history only, no spend."
-              : "Deeper order-history views — 30/90/365 come-back, the written-out estimate, how spend builds month by month, who keeps ordering, first-order size vs lifetime value, and your best customers. Order history only, no spend."}
+              ? "What a new buyer is worth is from SAMPLE Snowdevil orders. Explorers below stay on that same book. Order history only, no spend."
+              : "What a new buyer is worth, then the order-history explorers. No spend required."}
           </p>
         </section>
       ) : !useSampleDesk ? (
@@ -464,9 +462,11 @@ export default function LtvPage() {
         </p>
       ) : null}
 
-      <LtvRefundHonesty refunds={depth.refunds} />
-      <LtvComeBackWindows windows={depth.windows} months={depth.monthWindows} />
-      <LtvPredictive predictive={depth.predictive} />
+      <LtvFlagshipBoard
+        windows={depth.windows}
+        predictive={depth.predictive}
+        refunds={depth.refunds}
+      />
       <LtvBuildCurves curves={depth.curves} />
       <LtvRetentionHeat heat={depth.retention} />
       <LtvTierTables aov={depth.aov} basket={depth.basket} />

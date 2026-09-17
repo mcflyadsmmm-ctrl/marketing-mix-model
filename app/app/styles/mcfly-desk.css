@@ -18850,13 +18850,31 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
   line-height: 1.4;
 }
 
-.mcfly-depth-refunds .mcfly-kpi--soft {
-  max-width: 22rem;
+.mcfly-depth-flag .mcfly-kpi-grid--soft {
+  margin: 0 0 0.7rem;
 }
 
-.mcfly-depth-table--windows td,
-.mcfly-depth-table--windows th {
-  font-variant-numeric: tabular-nums;
+.mcfly-depth-flag__refund {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.15rem 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--mcfly-muted, #5a6f85);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--mcfly-accent) 40%, transparent);
+  text-underline-offset: 0.15em;
+}
+
+.mcfly-depth-flag__refund:hover,
+.mcfly-depth-flag__refund:focus-visible {
+  color: var(--mcfly-accent-ink, #0b3b5a);
 }
 
 @media (max-width: 430px) {

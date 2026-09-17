@@ -57,16 +57,6 @@ export function LtvWhaleRecency({ whales }: { whales: WhaleRecency | null }) {
           },
         ]
       : []),
-    ...(whales.coldShare > 0
-      ? [
-          {
-            k: "Quiet 180+ days",
-            v: pct(whales.coldShare),
-            d: "Best customers whose most recent order is over 180 days ago — still on the whale list, not ordering.",
-            icon: "clock" as const,
-          },
-        ]
-      : []),
   ];
 
   const maxBucket = Math.max(1, ...whales.buckets.map((b) => b.count));
