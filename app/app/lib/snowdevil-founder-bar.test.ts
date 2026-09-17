@@ -108,6 +108,11 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(spend).not.toContain("Switch to Live in Settings");
     expect(bar).toContain("Live is parked until launch");
     expect(firstView).toContain("Live is parked");
+    const fixture = readApp("./desk-phone-fixture.html");
+    expect(fixture).toContain("Live is parked until launch");
+    expect(fixture).not.toContain("Switch in Settings");
+    expect(fixture).not.toContain("Switch to Live");
+    expect(readSite("site/assets/demo-desk.js")).not.toContain("0.00×");
     expect(SAMPLE_SPEND_NOT_LIVE).toContain("Live is parked until launch");
     expect(SAMPLE_LEDGER_HANDOFF).toContain("Live is parked until launch");
     expect(SAMPLE_LEDGER_HANDOFF).not.toMatch(/Saving a day switches you to Live/i);
@@ -119,6 +124,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
     const overview = readApp("../routes/app._index.tsx");
     const firstView = readApp("../components/OverviewFirstViewport.tsx");
     expect(fixture).toContain("SAMPLE");
+    expect(fixture).toContain("mcfly-desk--sample");
     expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
     expect(overview).toContain("<OverviewYoyCards");
     expect(overview).toContain("<OverviewFirstViewport");

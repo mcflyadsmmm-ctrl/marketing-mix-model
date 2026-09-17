@@ -26,6 +26,9 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     expect(desk).not.toContain("Northline Supply");
     expect(desk).not.toMatch(/\$98,?500/);
     expect(desk).not.toMatch(/4\.19×/);
+    expect(js).not.toContain("0.00×");
+    expect(js).toContain('return "—"');
+    expect(html).toContain("Live is parked");
   });
 
   it("Overview is YoY / Shopify-five first — spend is optional", () => {

@@ -431,7 +431,9 @@ export default function SettingsPage() {
             style={{ marginTop: "1.25rem" }}
             aria-label="Sample | Live"
           >
-            <h2 className="mcfly-settings-template__heading">Sample | Live</h2>
+            <h2 className="mcfly-settings-template__heading">
+              {sampleOnlyFreeze ? "Sample data" : "Sample | Live"}
+            </h2>
             <p className="mcfly-panel__muted">
               Sample data is Snowdevil example numbers through today so you can
               smoke every tab. SAMPLE dollars do not transfer — add a day on
@@ -455,68 +457,66 @@ export default function SettingsPage() {
                   ? " · Sample data option is available"
                   : " · Sample data option is hidden"}
             </p>
-            <div
-              className="mcfly-decision__actions"
-              style={{ marginTop: "0.85rem" }}
-            >
-              <Form method="post" reloadDocument>
-                <input type="hidden" name="intent" value="use-sample" />
-                <button
-                  type="submit"
-                  className="mcfly-btn mcfly-btn--primary"
-                  disabled={sampleBusy || useSampleDesk || undefined}
-                  aria-pressed={useSampleDesk}
-                >
-                  {useSampleDesk ? "Sample data" : "Switch to Sample data now"}
-                </button>
-              </Form>
-              {!sampleOnlyFreeze ? (
-                <>
-                  <Form method="post" reloadDocument>
-                    <input type="hidden" name="intent" value="use-real" />
+            {!sampleOnlyFreeze ? (
+              <div
+                className="mcfly-decision__actions"
+                style={{ marginTop: "0.85rem" }}
+              >
+                <Form method="post" reloadDocument>
+                  <input type="hidden" name="intent" value="use-sample" />
+                  <button
+                    type="submit"
+                    className="mcfly-btn mcfly-btn--primary"
+                    disabled={sampleBusy || useSampleDesk || undefined}
+                    aria-pressed={useSampleDesk}
+                  >
+                    {useSampleDesk ? "Sample data" : "Switch to Sample data now"}
+                  </button>
+                </Form>
+                <Form method="post" reloadDocument>
+                  <input type="hidden" name="intent" value="use-real" />
+                  <button
+                    type="submit"
+                    className="mcfly-btn mcfly-btn--secondary"
+                    disabled={sampleBusy || !useSampleDesk || undefined}
+                    aria-pressed={!useSampleDesk}
+                  >
+                    {useSampleDesk ? "Switch to Live data now" : "Live data"}
+                  </button>
+                </Form>
+                {samplePreviewAllowed ? (
+                  <Form method="post">
+                    <input
+                      type="hidden"
+                      name="intent"
+                      value="hide-sample-preview"
+                    />
                     <button
                       type="submit"
-                      className="mcfly-btn mcfly-btn--secondary"
-                      disabled={sampleBusy || !useSampleDesk || undefined}
-                      aria-pressed={!useSampleDesk}
+                      className="mcfly-btn mcfly-btn--tertiary"
+                      disabled={sampleBusy || undefined}
                     >
-                      {useSampleDesk ? "Switch to Live data now" : "Live data"}
+                      Live data only — hide Sample data
                     </button>
                   </Form>
-                  {samplePreviewAllowed ? (
-                    <Form method="post">
-                      <input
-                        type="hidden"
-                        name="intent"
-                        value="hide-sample-preview"
-                      />
-                      <button
-                        type="submit"
-                        className="mcfly-btn mcfly-btn--tertiary"
-                        disabled={sampleBusy || undefined}
-                      >
-                        Live data only — hide Sample data
-                      </button>
-                    </Form>
-                  ) : (
-                    <Form method="post">
-                      <input
-                        type="hidden"
-                        name="intent"
-                        value="allow-sample-preview"
-                      />
-                      <button
-                        type="submit"
-                        className="mcfly-btn mcfly-btn--tertiary"
-                        disabled={sampleBusy || undefined}
-                      >
-                        Show Sample data option again
-                      </button>
-                    </Form>
-                  )}
-                </>
-              ) : null}
-            </div>
+                ) : (
+                  <Form method="post">
+                    <input
+                      type="hidden"
+                      name="intent"
+                      value="allow-sample-preview"
+                    />
+                    <button
+                      type="submit"
+                      className="mcfly-btn mcfly-btn--tertiary"
+                      disabled={sampleBusy || undefined}
+                    >
+                      Show Sample data option again
+                    </button>
+                  </Form>
+                )}
+              </div>
+            ) : null}
           </section>
         ) : null}
 

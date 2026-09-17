@@ -64,6 +64,7 @@ describe("Settings Sample | Live", () => {
     expect(settings).toContain("sampleOnlyFreeze");
     expect(settings).toContain("Snowdevil");
     expect(settings).toMatch(/!sampleOnlyFreeze/);
+    expect(settings).toContain('sampleOnlyFreeze ? "Sample data" : "Sample | Live"');
     expect(settings).not.toContain("Harbor");
   });
 

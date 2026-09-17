@@ -100,6 +100,8 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("Spend Upload");
     expect(fixture).toContain("Retry");
     expect(fixture).toContain("Live is parked until launch");
+    expect(fixture).toContain("mcfly-desk--sample");
+    expect(fixture).not.toContain("Switch in Settings");
     expect(fixture).not.toContain("Switch to Live data now");
     expect(fixture).not.toContain("$98,500");
     expect(fixture).not.toMatch(/>—</);

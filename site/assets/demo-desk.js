@@ -94,7 +94,7 @@
   }
 
   function money(n) {
-    if (n == null || !Number.isFinite(n)) return "$0";
+    if (n == null || !Number.isFinite(n)) return "—";
     return n.toLocaleString("en-US", {
       style: "currency",
       currency: "USD",
@@ -103,7 +103,7 @@
   }
 
   function formatMer(n) {
-    if (n == null || !Number.isFinite(n)) return "0.00×";
+    if (n == null || !Number.isFinite(n)) return "—";
     return n.toFixed(2) + "×";
   }
 
@@ -262,7 +262,7 @@
       overview: ["Overview", "This month / quarter / year vs last year · KPI cards · spend optional"],
       spend: ["Spend Upload", "Optional · type a day or paste CSV"],
       goals: ["Goals", "Monthly sales plan · spend optional"],
-      settings: ["Settings", "Sample | Live · $39/mo"],
+      settings: ["Settings", "Sample data · Live is parked · $39/mo"],
     };
     var copy = labels[key] || labels.overview;
     if (title) title.textContent = copy[0];
