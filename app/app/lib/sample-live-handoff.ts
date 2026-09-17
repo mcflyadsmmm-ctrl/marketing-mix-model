@@ -15,6 +15,10 @@ export const LIVE_HANDOFF_BODY =
 export const SAMPLE_OVERVIEW_DOOR =
   "Snowdevil example sales — not this shop. Live is parked until launch.";
 
+/** Orders door — typical ticket and timing. Spend stays off this tab. */
+export const SAMPLE_ORDERS_DOOR =
+  "Snowdevil example orders — not this shop. Live is parked until launch.";
+
 export const SAMPLE_SPEND_NOT_LIVE =
   "Total ROAS here uses Snowdevil example spend — not this shop. Live is parked until launch. SAMPLE dollars do not become yours.";
 

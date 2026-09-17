@@ -129,6 +129,59 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toContain("Switch to Live data now");
     expect(fixture).not.toContain("$98,500");
     expect(fixture).not.toMatch(/>—</);
+    expect(fixture).toContain("mcfly-scoreboard--orders");
+    expect(fixture).toContain("mcfly-orders-hero");
+    expect(fixture).toContain("Average order $634");
+    expect(fixture).toContain("$72,827");
+    expect(fixture).toContain("$60,242");
+    expect(fixture).toContain("$548–$694");
+    expect(fixture).toContain("Orders with 2+ items");
+    expect(fixture).toContain("Shipping + tax");
+    expect(fixture).toContain("$8,215");
+    expect(fixture).toContain("Typical Online order");
+    expect(fixture).toContain("Typical POS order");
+    expect(fixture).toContain("Weekday");
+    expect(fixture).toContain("Hour");
+    expect(css).toContain(".mcfly-scoreboard--orders");
+    expect(css).toContain(".mcfly-kpi-grid--orders-depth");
+    expect(css).toContain(".mcfly-chart__hours");
+    expect(css).toContain(
+      ".mcfly-score .mcfly-kpi-grid--orders-depth > .mcfly-kpi:nth-child(4)",
+    );
+    expect(css).toContain(
+      ".mcfly-scoreboard--orders .mcfly-book__clock-v",
+    );
+    expect(css).toContain(
+      ".mcfly-scoreboard--orders .mcfly-kpi--peek .mcfly-kpi__value",
+    );
+    expect(fixture).toContain("mcfly-orders-band");
+    expect(fixture).toContain("mcfly-orders-band__median");
+    expect(fixture).toContain("mcfly-orders-band__mean");
+    expect(fixture).toContain("mcfly-orders-clockbar");
+    expect(fixture).toContain("mcfly-orders-clockbar__seg--returns");
+    expect(fixture).toContain("mcfly-orders-sourcebar");
+    expect(fixture).toContain("Online 72% · $640");
+    expect(css).toContain(".mcfly-orders-band__box");
+    expect(css).toContain(".mcfly-orders-clockbar__seg--product");
+    expect(css).toContain(".mcfly-orders-sourcebar__seg--online");
+    // Order intelligence — KPI strip, dual-axis explorer, audit ledger, frequency.
+    expect(fixture).toContain("mcfly-orders-intel");
+    expect(fixture).toContain("Order intelligence");
+    expect(fixture).toContain("+9% vs prior");
+    expect(fixture).toContain("Orders × AOV explorer");
+    expect(fixture).toContain("mcfly-chart__aovline");
+    expect(fixture).toContain("mcfly-orders-ledger__table");
+    expect(fixture).toContain("Wk of Sep 7");
+    expect(fixture).toContain("mcfly-orders-tiers");
+    expect(fixture).toContain("AOV tiers");
+    expect(fixture).toContain("$550–$600");
+    expect(css).toContain(".mcfly-orders-tiers__fill");
+    expect(fixture).toContain("mcfly-chart--frequency");
+    expect(fixture).toContain("1 order");
+    expect(css).toContain(".mcfly-orders-intel__kpis");
+    expect(css).toContain(".mcfly-orders-ledger__table");
+    expect(css).toContain(".mcfly-chart__aovline");
+    expect(css).toContain(".mcfly-chart__freq");
   });
 
   it("keeps chart/table horizontal scroll inside those regions", () => {

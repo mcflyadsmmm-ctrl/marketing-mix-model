@@ -41,19 +41,19 @@ describe("Shopify five books are visible cards", () => {
     expect(book).toContain("Sales from returning customers");
   });
 
-  it("Orders still mounts WeekdaySalesChart and period+timing", () => {
-    expect(orders).toContain("<WeekdaySalesChart");
-    expect(orders).toContain('groups={["period", "timing"]}');
-    expect(orders).toContain("<ShopifyBookSection");
+  it("Orders mounts the scoreboard then the weekday/hour chart", () => {
+    expect(orders).toContain("<OrdersScoreboard");
+    expect(orders).toContain("<OrdersTimingChart");
+    expect(orders).toContain("mcfly-scoreboard--orders");
     expect(orders).toMatch(/typical/i);
     expect(orders).toMatch(/median/i);
     expect(orders).toMatch(/Online vs POS/);
   });
 
-  it("pending sales is a banner — the Orders book still mounts", () => {
+  it("pending sales is a banner — the Orders board still mounts", () => {
     const pending = orders.indexOf("metrics.salesPending");
-    const section = orders.indexOf("<ShopifyBookSection");
-    const chart = orders.indexOf("<WeekdaySalesChart");
+    const section = orders.indexOf("<OrdersScoreboard");
+    const chart = orders.indexOf("<OrdersTimingChart");
     expect(pending).toBeGreaterThan(-1);
     expect(section).toBeGreaterThan(pending);
     expect(chart).toBeGreaterThan(section);
