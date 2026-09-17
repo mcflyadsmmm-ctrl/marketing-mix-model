@@ -6,8 +6,11 @@ import {
   ORDERS_SPEND_BANS,
   buildOrdersChartBars,
   buildOrdersClock,
+  buildOrdersClockBar,
   buildOrdersDepthFacts,
   buildOrdersHero,
+  buildOrdersSourceBar,
+  buildOrdersTicketBand,
   buildOrdersTimingFacts,
   ordersHasShare,
   ordersHourBreakdown,
@@ -231,10 +234,81 @@ describe("orders scoreboard helpers", () => {
   });
 });
 
+describe("orders visuals", () => {
+  it("ticket band draws the middle-half box with median inside and the average pulled right", () => {
+    const band = buildOrdersTicketBand(snowdevilDepth(), "USD");
+    expect(band).not.toBeNull();
+    expect(band!.marks.map((m) => m.key)).toEqual(
+      expect.arrayContaining(["p25", "median", "p75", "mean"]),
+    );
+    expect(band!.boxStart).toBeGreaterThanOrEqual(0);
+    expect(band!.boxEnd).toBeLessThanOrEqual(1);
+    expect(band!.boxStart).toBeLessThan(band!.boxEnd);
+    expect(band!.medianPos!).toBeGreaterThanOrEqual(band!.boxStart - 1e-9);
+    expect(band!.medianPos!).toBeLessThanOrEqual(band!.boxEnd + 1e-9);
+    // Snowdevil median $631 < average $634 → average tick sits right of median.
+    expect(band!.meanPos!).toBeGreaterThan(band!.medianPos!);
+    expect(band!.marks.find((m) => m.key === "median")?.value).toBe("$631");
+    expect(band!.marks.find((m) => m.key === "mean")?.value).toBe("$634");
+  });
+
+  it("ticket band is null without the quartiles", () => {
+    const depth = { ...snowdevilDepth(), aovP25: null, aovP75: null };
+    expect(buildOrdersTicketBand(depth, "USD")).toBeNull();
+  });
+
+  it("clock bar splits the original checkout into product, shipping+tax, returns", () => {
+    const bar = buildOrdersClockBar(
+      { gross: 72_827, grossKnown: true, total: 68_457, net: 60_242, netKnown: true },
+      "USD",
+    );
+    expect(bar).not.toBeNull();
+    expect(bar!.map((s) => s.key)).toEqual(["product", "shiptax", "returns"]);
+    expect(bar!.reduce((s, seg) => s + seg.share, 0)).toBeCloseTo(1, 5);
+    expect(bar![0]!.share).toBeGreaterThan(bar![1]!.share);
+    expect(bar![0]!.value).toBe("$60,242");
+    expect(bar![2]!.value).toBe("$4,370");
+  });
+
+  it("clock bar is null when gross or net is unknown", () => {
+    expect(
+      buildOrdersClockBar(
+        { gross: 0, grossKnown: false, total: 68_457, net: 60_242, netKnown: true },
+        "USD",
+      ),
+    ).toBeNull();
+    expect(
+      buildOrdersClockBar(
+        { gross: 72_827, grossKnown: true, total: 68_457, net: 0, netKnown: false },
+        "USD",
+      ),
+    ).toBeNull();
+  });
+
+  it("source bar stacks Online/POS/Shop with typical dollars", () => {
+    const bar = buildOrdersSourceBar(snowdevilDepth(), "USD");
+    expect(bar).not.toBeNull();
+    const keys = bar!.map((s) => s.key);
+    expect(keys).toContain("online");
+    expect(keys).toContain("pos");
+    expect(keys).toContain("shop");
+    const online = bar!.find((s) => s.key === "online")!;
+    expect(online.share).toBeCloseTo(0.72, 2);
+    expect(online.typical).toBe("$640");
+    expect(bar!.reduce((s, seg) => s + seg.share, 0)).toBeCloseTo(1, 2);
+  });
+
+  it("source bar is null without a source mix", () => {
+    const depth = { ...snowdevilDepth(), sourceSalesShare: null };
+    expect(buildOrdersSourceBar(depth, "USD")).toBeNull();
+  });
+});
+
 describe("Orders page craft lock", () => {
   const orders = read("../routes/app.orders.tsx");
   const scoreboard = read("../components/OrdersScoreboard.tsx");
   const chart = read("../components/OrdersTimingChart.tsx");
+  const visuals = read("../components/OrdersVisuals.tsx");
 
   it("is a Black Clover scoreboard — hero, clock, depth, timing, then the open chart", () => {
     const heroAt = orders.indexOf("<OrdersScoreboard");
@@ -260,6 +334,21 @@ describe("Orders page craft lock", () => {
     expect(chart).toContain("buildOrdersChartBars");
   });
 
+  it("draws the signature Orders visuals — ticket band, clock bar, source mix", () => {
+    expect(scoreboard).toContain("<OrdersTicketBand");
+    expect(scoreboard).toContain("<OrdersClockBar");
+    expect(scoreboard).toContain("<OrdersSourceBar");
+    expect(visuals).toContain("mcfly-orders-band");
+    expect(visuals).toContain("mcfly-orders-clockbar");
+    expect(visuals).toContain("mcfly-orders-sourcebar");
+    expect(visuals).toContain("buildOrdersTicketBand");
+    expect(visuals).toContain("buildOrdersClockBar");
+    expect(visuals).toContain("buildOrdersSourceBar");
+    // The band is the median-vs-average contrast Shopify Analytics never draws.
+    expect(visuals).toMatch(/average/i);
+    expect(visuals).toMatch(/typical/i);
+  });
+
   it("paints every TAB_LOCK Orders fact on the scoreboard, not a pamphlet", () => {
     const blob = `${scoreboard}\n${read("./orders-scoreboard.ts")}\n${read("./product-labels.ts")}`;
     for (const phrase of ORDERS_REQUIRED) {
@@ -271,7 +360,7 @@ describe("Orders page craft lock", () => {
   });
 
   it("keeps spend / ROAS / upload / Harbor / QuietSpendDoor off Orders", () => {
-    for (const source of [orders, scoreboard, chart]) {
+    for (const source of [orders, scoreboard, chart, visuals]) {
       for (const ban of ORDERS_SPEND_BANS) {
         expect(source).not.toContain(ban);
       }

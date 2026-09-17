@@ -154,6 +154,16 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).toContain(
       ".mcfly-scoreboard--orders .mcfly-kpi--peek .mcfly-kpi__value",
     );
+    expect(fixture).toContain("mcfly-orders-band");
+    expect(fixture).toContain("mcfly-orders-band__median");
+    expect(fixture).toContain("mcfly-orders-band__mean");
+    expect(fixture).toContain("mcfly-orders-clockbar");
+    expect(fixture).toContain("mcfly-orders-clockbar__seg--returns");
+    expect(fixture).toContain("mcfly-orders-sourcebar");
+    expect(fixture).toContain("Online 72% · $640");
+    expect(css).toContain(".mcfly-orders-band__box");
+    expect(css).toContain(".mcfly-orders-clockbar__seg--product");
+    expect(css).toContain(".mcfly-orders-sourcebar__seg--online");
   });
 
   it("keeps chart/table horizontal scroll inside those regions", () => {

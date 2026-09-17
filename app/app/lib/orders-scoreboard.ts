@@ -58,6 +58,36 @@ export type OrdersChartBar = {
   peak?: boolean;
 };
 
+export type OrdersTicketMark = {
+  key: "p25" | "median" | "p75" | "mean";
+  label: string;
+  value: string;
+  pos: number;
+};
+
+/** Ticket distribution — the middle-half box, median line, and average tick. */
+export type OrdersTicketBand = {
+  boxStart: number;
+  boxEnd: number;
+  medianPos: number | null;
+  meanPos: number | null;
+  marks: OrdersTicketMark[];
+};
+
+export type OrdersClockSegment = {
+  key: "product" | "shiptax" | "returns";
+  label: string;
+  value: string;
+  share: number;
+};
+
+export type OrdersSourceSegment = {
+  key: "online" | "pos" | "shop" | "other";
+  label: string;
+  share: number;
+  typical: string | null;
+};
+
 export function isOrdersNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
 }
@@ -347,6 +377,123 @@ export function buildOrdersTimingFacts(
     },
     ...shopCard,
   ];
+}
+
+/**
+ * Ticket band — where the typical order sits against the middle half.
+ * Domain pads one IQR on each side so the p25–p75 box lands mid-track and a
+ * right-skewed average tick reads clearly. Null until five orders (quartiles).
+ */
+export function buildOrdersTicketBand(
+  depth: ShopifyDepthStats,
+  currency: string,
+): OrdersTicketBand | null {
+  const p25 = isOrdersNum(depth.aovP25) ? depth.aovP25 : null;
+  const p75 = isOrdersNum(depth.aovP75) ? depth.aovP75 : null;
+  const median = isOrdersNum(depth.medianAov) ? depth.medianAov : null;
+  if (p25 == null || p75 == null || median == null || !(p75 > p25)) return null;
+  const mean = isOrdersNum(depth.meanAov) ? depth.meanAov : null;
+  const iqr = p75 - p25;
+  const domainMin = Math.max(0, p25 - iqr);
+  const domainMax = p75 + iqr;
+  const span = domainMax - domainMin;
+  const clampPos = (v: number) =>
+    span > 0 ? Math.min(1, Math.max(0, (v - domainMin) / span)) : 0.5;
+  const marks: OrdersTicketMark[] = [
+    { key: "p25", label: "25%", value: formatCurrency(p25, currency), pos: clampPos(p25) },
+    {
+      key: "median",
+      label: "Typical",
+      value: formatCurrency(median, currency),
+      pos: clampPos(median),
+    },
+    { key: "p75", label: "75%", value: formatCurrency(p75, currency), pos: clampPos(p75) },
+  ];
+  if (mean != null) {
+    marks.push({
+      key: "mean",
+      label: "Average",
+      value: formatCurrency(mean, currency),
+      pos: clampPos(mean),
+    });
+  }
+  return {
+    boxStart: clampPos(p25),
+    boxEnd: clampPos(p75),
+    medianPos: clampPos(median),
+    meanPos: mean != null ? clampPos(mean) : null,
+    marks,
+  };
+}
+
+/**
+ * The original checkout dollar split into product · shipping+tax · returns.
+ * gross = product + shipping/tax + returns, so the three shares sum to 1.
+ * Null unless both gross and net are known — never a fake full bar.
+ */
+export function buildOrdersClockBar(
+  clocks: OrdersSalesClocks,
+  currency: string,
+): OrdersClockSegment[] | null {
+  if (!clocks.grossKnown || !clocks.netKnown) return null;
+  const gross = clocks.gross;
+  const total = clocks.total;
+  const net = clocks.net;
+  if (
+    !(gross > 0) ||
+    !(net >= 0) ||
+    !(total >= 0) ||
+    !(gross >= total) ||
+    !(total >= net)
+  ) {
+    return null;
+  }
+  const product = net;
+  const shiptax = total - net;
+  const returns = gross - total;
+  return [
+    {
+      key: "product",
+      label: "Product only",
+      value: formatCurrency(product, currency),
+      share: product / gross,
+    },
+    {
+      key: "shiptax",
+      label: "Shipping + tax",
+      value: formatCurrency(shiptax, currency),
+      share: shiptax / gross,
+    },
+    {
+      key: "returns",
+      label: "Returns & edits",
+      value: formatCurrency(returns, currency),
+      share: returns / gross,
+    },
+  ];
+}
+
+/** Online / POS / Shop stacked sales mix with typical $ per source. */
+export function buildOrdersSourceBar(
+  depth: ShopifyDepthStats,
+  currency: string,
+): OrdersSourceSegment[] | null {
+  const mix = depth.sourceSalesShare;
+  if (!mix) return null;
+  const rows = [
+    { key: "online" as const, label: "Online", share: mix.online, aov: depth.sourceMedianAov.online },
+    { key: "pos" as const, label: "POS", share: mix.pos, aov: depth.sourceMedianAov.pos },
+    { key: "shop" as const, label: "Shop", share: mix.shop, aov: depth.sourceMedianAov.shop },
+    { key: "other" as const, label: "Other", share: mix.other, aov: null },
+  ]
+    .filter((row) => row.share > 0)
+    .map((row) => ({
+      key: row.key,
+      label: row.label,
+      share: row.share,
+      typical: isOrdersNum(row.aov) ? formatCurrency(row.aov, currency) : null,
+    }));
+  return rows.length > 0 ? rows : null;
 }
 
 export function buildOrdersChartBars(input: {

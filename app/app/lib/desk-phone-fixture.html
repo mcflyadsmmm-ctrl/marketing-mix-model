@@ -200,7 +200,31 @@
           <p class="mcfly-orders-hero__v">$631</p>
           <p class="mcfly-orders-hero__sub">Average order $634 — Shopify Analytics uses the average.</p>
           <p class="mcfly-orders-hero__def">Middle order. 108 orders this window.</p>
+          <button type="button" class="mcfly-orders-band">
+            <span class="mcfly-orders-band__track" aria-hidden="true">
+              <span class="mcfly-orders-band__box" style="left:33.3%;width:33.3%"></span>
+              <span class="mcfly-orders-band__median" style="left:52.3%"></span>
+              <span class="mcfly-orders-band__mean" style="left:53%"></span>
+            </span>
+            <span class="mcfly-orders-band__legend">
+              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--median"><span class="mcfly-orders-band__tag-k">Typical</span><span class="mcfly-orders-band__tag-v">$631</span></span>
+              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--mean"><span class="mcfly-orders-band__tag-k">Average</span><span class="mcfly-orders-band__tag-v">$634</span></span>
+              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--box"><span class="mcfly-orders-band__tag-k">Most orders</span><span class="mcfly-orders-band__tag-v">$548–$694</span></span>
+            </span>
+          </button>
         </article>
+        <button type="button" class="mcfly-orders-clockbar">
+          <span class="mcfly-orders-clockbar__track" aria-hidden="true">
+            <span class="mcfly-orders-clockbar__seg mcfly-orders-clockbar__seg--product" style="width:82.7%"></span>
+            <span class="mcfly-orders-clockbar__seg mcfly-orders-clockbar__seg--shiptax" style="width:11.3%"></span>
+            <span class="mcfly-orders-clockbar__seg mcfly-orders-clockbar__seg--returns" style="width:6%"></span>
+          </span>
+          <span class="mcfly-orders-clockbar__legend">
+            <span class="mcfly-orders-clockbar__key mcfly-orders-clockbar__key--product"><span class="mcfly-orders-clockbar__dot"></span>Product only 83%</span>
+            <span class="mcfly-orders-clockbar__key mcfly-orders-clockbar__key--shiptax"><span class="mcfly-orders-clockbar__dot"></span>Shipping + tax 11%</span>
+            <span class="mcfly-orders-clockbar__key mcfly-orders-clockbar__key--returns"><span class="mcfly-orders-clockbar__dot"></span>Returns &amp; edits 6%</span>
+          </span>
+        </button>
         <div class="mcfly-book__clock" aria-label="Original · after returns · product">
           <div class="mcfly-book__clock-item">
             <p class="mcfly-book__clock-k">Original</p>
@@ -259,6 +283,19 @@
       </section>
       <section class="mcfly-score mcfly-book mcfly-score--orders-timing" aria-label="When and where orders land">
         <p class="mcfly-scoreboard__kicker">Weekend, hour, and Online vs POS — shop-local, not ads</p>
+        <button type="button" class="mcfly-orders-sourcebar">
+          <span class="mcfly-orders-sourcebar__k">Online vs POS vs Shop</span>
+          <span class="mcfly-orders-sourcebar__track" aria-hidden="true">
+            <span class="mcfly-orders-sourcebar__seg mcfly-orders-sourcebar__seg--online" style="width:72%"></span>
+            <span class="mcfly-orders-sourcebar__seg mcfly-orders-sourcebar__seg--pos" style="width:18%"></span>
+            <span class="mcfly-orders-sourcebar__seg mcfly-orders-sourcebar__seg--shop" style="width:10%"></span>
+          </span>
+          <span class="mcfly-orders-sourcebar__legend">
+            <span class="mcfly-orders-sourcebar__key mcfly-orders-sourcebar__key--online"><span class="mcfly-orders-sourcebar__dot"></span>Online 72% · $640</span>
+            <span class="mcfly-orders-sourcebar__key mcfly-orders-sourcebar__key--pos"><span class="mcfly-orders-sourcebar__dot"></span>POS 18% · $598</span>
+            <span class="mcfly-orders-sourcebar__key mcfly-orders-sourcebar__key--shop"><span class="mcfly-orders-sourcebar__dot"></span>Shop 10% · $612</span>
+          </span>
+        </button>
         <div class="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--orders-timing">
           <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
             <span class="mcfly-kpi__label">Weekend sales</span>

@@ -12,6 +12,11 @@ import {
   type OrdersFact,
   type OrdersSalesClocks,
 } from "../lib/orders-scoreboard";
+import {
+  OrdersClockBar,
+  OrdersSourceBar,
+  OrdersTicketBand,
+} from "./OrdersVisuals";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
@@ -143,7 +148,9 @@ export function OrdersScoreboard({
           <p className="mcfly-orders-hero__v">{hero.v}</p>
           {hero.sub ? <p className="mcfly-orders-hero__sub">{hero.sub}</p> : null}
           <p className="mcfly-orders-hero__def">{hero.def}</p>
+          <OrdersTicketBand depth={depth} pending={salesPending} />
         </article>
+        <OrdersClockBar clocks={clocks} pending={salesPending} />
         {clock.length > 0 ? (
           <div className="mcfly-book__clock" aria-label={PRODUCT_NOUN.bookSalesClock}>
             {clock.map((item) => (
@@ -177,6 +184,7 @@ export function OrdersScoreboard({
         <p className="mcfly-scoreboard__kicker">
           Weekend, hour, and Online vs POS — shop-local, not ads
         </p>
+        <OrdersSourceBar depth={depth} pending={salesPending} />
         <FactGrid
           facts={timingFacts}
           className="mcfly-kpi-grid--orders-timing"
