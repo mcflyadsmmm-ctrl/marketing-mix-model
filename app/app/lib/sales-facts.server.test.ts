@@ -33,6 +33,7 @@ import {
   getSalesFactsCoverage,
   getSalesFactsTotals,
   getSalesFactsByDay,
+  getSalesFactsWindowRemainingDays,
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
 
@@ -179,6 +180,19 @@ describe("runSalesFactsBackfill", () => {
     expect(result.written).toBe(0);
     expect(result.unseen).toHaveLength(1);
     expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it("counts remaining closed days without a SalesDayFact in the ingest window", async () => {
+    findMany.mockResolvedValue([
+      { day: new Date(Date.UTC(2026, 6, 14)) },
+    ]);
+    const remaining = await getSalesFactsWindowRemainingDays("shop_1", {
+      ianaTimezone: "UTC",
+      now: new Date("2026-07-15T12:00:00.000Z"),
+      scopesAllowDeep: false,
+    });
+    expect(remaining).toBeGreaterThan(50);
+    expect(remaining).toBeLessThan(60);
   });
 });
 

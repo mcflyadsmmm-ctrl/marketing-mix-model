@@ -259,6 +259,34 @@ export async function runSalesFactsBackfill(
 }
 
 /**
+ * Closed days still missing from SalesDayFact in the same ingest window
+ * `runSalesFactsBackfill` uses. Used by the first-session one-shot gate so a
+ * sealed shop does not re-arm window jobs on every Live tab.
+ */
+export async function getSalesFactsWindowRemainingDays(
+  shopId: string,
+  options: {
+    ianaTimezone: string;
+    now?: Date;
+    scopesAllowDeep?: boolean;
+  },
+): Promise<number> {
+  const now = options.now ?? new Date();
+  const scopesAllowDeep =
+    options.scopesAllowDeep ?? shopifyReadOrdersScopesAllowDeep();
+  const ingestDayCount = scopesAllowDeep
+    ? salesDayFactWindowDayCount(now)
+    : SHOPIFY_READ_ORDERS_WINDOW_DAYS;
+  const windowDayKeys = listRecentClosedShopLocalDays(
+    options.ianaTimezone,
+    ingestDayCount,
+    now,
+  );
+  const existing = await existingFactDayKeys(shopId, windowDayKeys);
+  return windowDayKeys.filter((key) => !existing.has(key)).length;
+}
+
+/**
  * Why a dirty-day reconcile wrote nothing. All three are normal outcomes, not
  * errors — the job succeeds so it is not retried against an impossible day.
  */
