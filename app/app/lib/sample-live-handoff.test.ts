@@ -52,7 +52,7 @@ describe("SAMPLE → Live handoff", () => {
     expect(overview).toContain('searchParams.get("guide")');
     expect(overview).toContain("useSampleDesk={useSampleDesk}");
     expect(firstView).toContain("SAMPLE_SPEND_NOT_LIVE");
-    expect(firstView).toContain("Example spend · switch to Live");
+    expect(firstView).toContain("Example spend · Live is parked");
     expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
     expect(firstView).not.toContain("Edit spend →");
   });

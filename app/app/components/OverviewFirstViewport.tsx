@@ -95,7 +95,7 @@ function QuietSpendDoor({
     return (
       <p className="mcfly-score__door">
         {SAMPLE_SPEND_NOT_LIVE}{" "}
-        <Link to={settingsHref}>Example spend · switch to Live</Link>
+        <Link to={settingsHref}>Example spend · Live is parked</Link>
       </p>
     );
   }

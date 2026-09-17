@@ -68,6 +68,7 @@ export async function setSamplePreviewAllowed(
 }
 
 export async function setSampleDeskEnabled(shopId: string, enabled: boolean) {
+  if (isSampleOnlyFreeze() && !enabled) return;
   const allowed = await getSamplePreviewAllowed(shopId);
   await prisma.settings.update({
     where: { shopId },
@@ -133,6 +134,7 @@ export async function applySampleDeskIntent(
 }
 
 export async function clearSampleDesk(shopId: string) {
+  if (isSampleOnlyFreeze()) return;
   await prisma.$transaction([
     prisma.sampleSalesDay.deleteMany({ where: { shopId } }),
     prisma.spendEntry.deleteMany({ where: { shopId, source: "sample" } }),

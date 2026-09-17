@@ -80,6 +80,7 @@ import {
   SAMPLE_BOOK_NOTE,
   SAMPLE_DESK_SHOP_NAME,
   sampleDeskNeedsSeed,
+  setSampleDeskEnabled,
 } from "./sample-desk.server";
 
 const sampleDeskSource = readFileSync(
@@ -160,6 +161,13 @@ describe("Sample-only freeze", () => {
     expect(state.settings.useSampleDesk).toBe(true);
     await applySampleDeskIntent("shop_1", "hide-sample-preview");
     expect(state.settings.samplePreviewAllowed).toBe(true);
+    expect(state.settings.useSampleDesk).toBe(true);
+  });
+
+  it("setSampleDeskEnabled(false) no-ops while freeze is on", async () => {
+    process.env.MCFLY_SAMPLE_ONLY = "true";
+    state.settings.useSampleDesk = true;
+    await setSampleDeskEnabled("shop_1", false);
     expect(state.settings.useSampleDesk).toBe(true);
   });
 
