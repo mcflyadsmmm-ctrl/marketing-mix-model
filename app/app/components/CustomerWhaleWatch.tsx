@@ -76,7 +76,7 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
           <span className="mcfly-cust-rfm__empty-v">{emptyValue(shown)}</span>
           <span className="mcfly-cust-rfm__empty-line">{shown.copy}</span>
           <span className="mcfly-cust-rfm__empty-line">
-            Floor: 8 buyers × 30 days, then the slipping list. Not $0.
+            Floor: 8 buyers × 30 days, then the slipping list — not $0.
           </span>
         </button>
         <div className="mcfly-cust-empty__ghost mcfly-cust-empty__ghost--table" aria-hidden="true">

@@ -32,7 +32,7 @@ function emptyFloor(kind: RfmEmptyKind, need: number): string {
     case "syncing":
     case "thin":
     case "young":
-      return `Floor: ${need} buyers × 30 days, then RFM-lite bands. Not $0.`;
+      return `Floor: ${need} buyers × 30 days, then RFM-lite bands — not $0.`;
     default: {
       const _exhaustive: never = kind;
       return _exhaustive;

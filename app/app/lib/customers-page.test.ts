@@ -141,7 +141,7 @@ describe("CustomerRetentionBoard — What-to-do retention flow", () => {
 describe("CustomerWhaleWatch — high LTV recency risk beside ActionCards", () => {
   it("is a watchlist of slipping whales, not a named-customer dump", () => {
     expect(watch).toContain("Whale watchlist");
-    expect(watch).toContain("Reach now");
+    expect(watch).toContain("row.verb");
     expect(watch).toContain("mcfly-cust-watch");
     expect(watch).toContain("High LTV");
     expect(watch).not.toMatch(/gid:\/\/shopify\/Customer/);
