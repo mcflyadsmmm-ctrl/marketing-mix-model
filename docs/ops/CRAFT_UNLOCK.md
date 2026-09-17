@@ -33,3 +33,22 @@ These are **retired**. Do not re-litigate them into prompts:
 - Mobile Admin iframe (~390–430px) stays usable.
 
 SoT craft: this file. Tab jobs: [`../plans/2026-09-15-TAB_LOCK.md`](../plans/2026-09-15-TAB_LOCK.md) (Overview craft section superseded by this unlock). Formula unchanged.
+
+---
+
+## Orchestration law (2026-09-16 founder — Grokbot→Galaxy lesson)
+
+We gated craft so hard the AI could not improve. That ends.
+
+**Give Conductor + cloud cooks full power to improve the desk** inside the refuse list below. Do not re-introduce micro-locks (omit tiles, chart-none, “not here” peeks, honesty-wave loops, Harbor nostalgia) via prompts.
+
+### How we work now
+1. **One craft SoT:** this file + updated TAB_LOCK Overview. Older wave prompts are lab history.
+2. **Outcome briefs, not line recipes.** Hand cooks the bar (Black Clover–grade, SAMPLE canvas, zero spend on Overview) and success criteria — let them design.
+3. **Reject thin PRs.** Tests-green ≠ ship. If Overview still feels pathetic, do not merge — go again.
+4. **One cook deep.** Overview → Orders → Customers → Growth → LTV. No parallel honesty fleets.
+5. **Conductor owns merge + Mac Fly** when craft clears the bar; Marty owns Partner / ads / “downloadable?” eyes only.
+6. **Ping Marty only** when phone Admin is worth a hard-refresh — not after every micro-pass.
+
+### Still refuse (short list)
+Pixels · MTA · true ROAS · ad OAuth zoo · invent reviews · Partner Submit as agent · Fly main/PR#19 · present SAMPLE as this shop’s live orders · put spend/ROAS doors back on Overview.
