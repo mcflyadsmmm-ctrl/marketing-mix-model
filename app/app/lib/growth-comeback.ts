@@ -38,6 +38,229 @@ export type GrowthBar = {
   detail: string;
 };
 
+/** Explorer grain — come-back depth, or first-order months rolled to a quarter. */
+export type GrowthExplorerGrain = "depth" | "month" | "quarter";
+
+/** Slim first-order-month row — Prisma-free so the explorer unit-tests. */
+export type GrowthCohortInput = {
+  cohortMonth: string;
+  customers: number;
+  revenueD30: number;
+  ordersD90: number;
+};
+
+/**
+ * One first-order-month (or quarter) column on the Growth explorer.
+ * Bars are first-30-day dollars from that first-order group; the line is extra
+ * orders in the first 90 days per new buyer — who came back, not an email list.
+ */
+export type GrowthMonthBar = {
+  key: string;
+  label: string;
+  year: number;
+  quarter: number;
+  firstTimeBuyers: number;
+  first30Dollars: number;
+  extraOrders90: number;
+  /** Extra first-90-day orders per new buyer. Null when no buyers. */
+  extraOrderRate: number | null;
+};
+
+const MONTH_ABBR = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+/** "2026-09" → "Sep '26" for merchant chrome — never a raw ISO dump. */
+export function growthMonthLabel(monthKey: string): string {
+  const parsed = parseMonthKey(monthKey);
+  if (!parsed) return monthKey;
+  const name = MONTH_ABBR[parsed.month - 1];
+  return name ? `${name} '${String(parsed.year).slice(2)}` : monthKey;
+}
+
+function parseMonthKey(
+  monthKey: string,
+): { year: number; month: number } | null {
+  const match = monthKey.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (!Number.isFinite(year) || month < 1 || month > 12) return null;
+  return { year, month };
+}
+
+function quarterOf(month: number): number {
+  return Math.ceil(month / 3);
+}
+
+function extraOrderRate(
+  extraOrders90: number,
+  firstTimeBuyers: number,
+): number | null {
+  if (!(firstTimeBuyers > 0)) return null;
+  return extraOrders90 / firstTimeBuyers;
+}
+
+/**
+ * First-order months for the explorer — oldest → newest, empty months dropped.
+ * Extra orders = first-90-day orders minus the first order (who came back).
+ */
+export function growthFirstOrderMonths(
+  cohorts: GrowthCohortInput[],
+): GrowthMonthBar[] {
+  const bars: GrowthMonthBar[] = [];
+  for (const row of cohorts) {
+    const parsed = parseMonthKey(row.cohortMonth);
+    if (!parsed) continue;
+    const buyers = Number.isFinite(row.customers)
+      ? Math.max(0, Math.trunc(row.customers))
+      : 0;
+    if (buyers <= 0) continue;
+    const first30 = Number.isFinite(row.revenueD30)
+      ? Math.max(0, row.revenueD30)
+      : 0;
+    const orders90 = Number.isFinite(row.ordersD90)
+      ? Math.max(0, row.ordersD90)
+      : 0;
+    const extra = Math.max(0, orders90 - buyers);
+    bars.push({
+      key: row.cohortMonth,
+      label: growthMonthLabel(row.cohortMonth),
+      year: parsed.year,
+      quarter: quarterOf(parsed.month),
+      firstTimeBuyers: buyers,
+      first30Dollars: first30,
+      extraOrders90: extra,
+      extraOrderRate: extraOrderRate(extra, buyers),
+    });
+  }
+  return bars.sort((a, b) => a.key.localeCompare(b.key));
+}
+
+/**
+ * Roll first-order months to the explorer grain. Quarter groups by calendar
+ * quarter (UTC month key). Pure — the chart formats money.
+ */
+export function growthBucketMonths(
+  months: GrowthMonthBar[],
+  grain: "month" | "quarter",
+): GrowthMonthBar[] {
+  switch (grain) {
+    case "month":
+      return months;
+    case "quarter": {
+      const byQ = new Map<string, GrowthMonthBar>();
+      for (const row of months) {
+        const key = `Q:${row.year}-${row.quarter}`;
+        const existing = byQ.get(key);
+        if (!existing) {
+          byQ.set(key, {
+            key,
+            label: `Q${row.quarter} '${String(row.year).slice(2)}`,
+            year: row.year,
+            quarter: row.quarter,
+            firstTimeBuyers: row.firstTimeBuyers,
+            first30Dollars: row.first30Dollars,
+            extraOrders90: row.extraOrders90,
+            extraOrderRate: null,
+          });
+          continue;
+        }
+        existing.firstTimeBuyers += row.firstTimeBuyers;
+        existing.first30Dollars += row.first30Dollars;
+        existing.extraOrders90 += row.extraOrders90;
+      }
+      return [...byQ.values()]
+        .sort((a, b) => a.year - b.year || a.quarter - b.quarter)
+        .map((row) => ({
+          ...row,
+          extraOrderRate: extraOrderRate(row.extraOrders90, row.firstTimeBuyers),
+        }));
+    }
+    default: {
+      const _never: never = grain;
+      return _never;
+    }
+  }
+}
+
+/** Buyer-weighted extra-order rate across first-order months. */
+export function growthExtraOrderAvg(
+  months: GrowthMonthBar[],
+): number | null {
+  let buyers = 0;
+  let extra = 0;
+  for (const row of months) {
+    buyers += row.firstTimeBuyers;
+    extra += row.extraOrders90;
+  }
+  return extraOrderRate(extra, buyers);
+}
+
+export type GrowthGrainReady = {
+  depth: boolean;
+  month: boolean;
+  quarter: boolean;
+};
+
+/** Two real columns make a plot; one bar is not a funnel or a trend. */
+export function growthGrainReady(input: {
+  depthBars: GrowthBar[];
+  months: GrowthMonthBar[];
+}): GrowthGrainReady {
+  const depth = input.depthBars.filter(
+    (bar) => Number.isFinite(bar.share) && bar.share > 0,
+  ).length >= 2;
+  const month = input.months.length >= 2;
+  const quarter = growthBucketMonths(input.months, "quarter").length >= 2;
+  return { depth, month, quarter };
+}
+
+export function growthExplorerHasPlot(ready: GrowthGrainReady): boolean {
+  return ready.depth || ready.month || ready.quarter;
+}
+
+/** Prefer the time-series (new dollars + who came back) when it has two columns. */
+export function growthDefaultGrain(ready: GrowthGrainReady): GrowthExplorerGrain {
+  if (ready.month) return "month";
+  if (ready.quarter) return "quarter";
+  if (ready.depth) return "depth";
+  return "depth";
+}
+
+export function growthResolveGrain(
+  wanted: GrowthExplorerGrain,
+  ready: GrowthGrainReady,
+): GrowthExplorerGrain {
+  switch (wanted) {
+    case "month":
+      if (ready.month) return "month";
+      break;
+    case "quarter":
+      if (ready.quarter) return "quarter";
+      break;
+    case "depth":
+      if (ready.depth) return "depth";
+      break;
+    default: {
+      const _never: never = wanted;
+      return _never;
+    }
+  }
+  return growthDefaultGrain(ready);
+}
+
 /**
  * Order-depth funnel — how many orders each identified buyer placed in the
  * come-back window, as a share of identified buyers (one denominator).

@@ -17560,3 +17560,42 @@ button.mcfly-depth-legend__chip:focus-visible {
     height: 5.4rem;
   }
 }
+
+/* =========================================================================
+ * Growth explorer — who came back. Reuses the Customers-marquee scaffold
+ * (board / HTML overlays / dark tip / grain wash) with a first-time-$ hero
+ * under the fold. Order history only. Zero spend / ROAS / CPA.
+ * ========================================================================= */
+.mcfly-growth-ex.mcfly-chart {
+  margin-bottom: 0.85rem;
+}
+
+.mcfly-growth-board__hero-k {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-growth-board__hero-v {
+  margin: 0.1rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.55rem, 4vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-growth-board__hero-sub {
+  margin: 0.2rem 0 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-growth-board .mcfly-cust-tiles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
