@@ -17,7 +17,8 @@ export function LtvPathTable({ paths }: { paths: PathLtvRow[] }) {
       <p className="mcfly-book__lede">
         What they buy first, then next — and what that journey is worth. The
         second product is the tell: some first orders are a door, not the
-        ceiling. Order history, not a forecast.
+        ceiling. Lifetime and first-90-days are per buyer; 90-day n is the buyers
+        with a full 90 days behind that average. Order history, not a forecast.
       </p>
       <div className="mcfly-depth-tablewrap">
         <table className="mcfly-depth-table mcfly-depth-table--path">
@@ -28,6 +29,7 @@ export function LtvPathTable({ paths }: { paths: PathLtvRow[] }) {
               <th scope="col">Buyers</th>
               <th scope="col">Lifetime</th>
               <th scope="col">First 90 days</th>
+              <th scope="col">90-day n</th>
             </tr>
           </thead>
           <tbody>
@@ -48,6 +50,9 @@ export function LtvPathTable({ paths }: { paths: PathLtvRow[] }) {
                 </td>
                 <td>
                   {row.day90N > 0 ? formatCurrency(row.day90Ltv, currency) : "—"}
+                </td>
+                <td className="mcfly-depth-table__muted">
+                  {row.day90N > 0 ? row.day90N.toLocaleString() : "—"}
                 </td>
               </tr>
             ))}

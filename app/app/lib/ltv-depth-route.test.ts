@@ -76,6 +76,24 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(tiers).toContain("not a promise");
   });
 
+  it("carries the pack's dense table columns (reject thin)", () => {
+    // AOV & basket tiers match the founder reference: buyers, repeat count,
+    // rate, lifetime net dollars, per-buyer LTV, 90-day value + its sample n.
+    for (const header of [
+      ">Buyers<",
+      ">Bought again<",
+      ">Rate<",
+      ">Lifetime net<",
+      ">LTV<",
+      ">First 90 days<",
+      ">90-day n<",
+    ]) {
+      expect(tiers).toContain(header);
+    }
+    // Path LTV keeps the 90-day sample-size column too.
+    expect(paths).toContain(">90-day n<");
+  });
+
   it("reuses the shared chart shell instead of bespoke chart CSS", () => {
     expect(curves).toContain('className="mcfly-chart');
     expect(whales).toContain("mcfly-chart__hrow");

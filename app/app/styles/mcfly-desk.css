@@ -14847,6 +14847,12 @@ button.mcfly-depth-legend__chip:focus-visible {
   color: var(--mcfly-ink);
 }
 
+/* Sample-size column — present for honesty, dimmed so it never competes. */
+.mcfly-depth-table__muted {
+  color: var(--mcfly-mute);
+  font-size: 0.74rem;
+}
+
 .mcfly-depth-table__second {
   text-align: left;
 }
