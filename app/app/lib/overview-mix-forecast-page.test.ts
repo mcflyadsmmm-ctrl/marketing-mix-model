@@ -21,6 +21,7 @@ describe("Overview mix + month close — habit, not a dump", () => {
       "<OverviewYoyCards",
       "<OverviewFirstViewport",
       "<OverviewMixForecast",
+      "<ShareableInsightCards",
       "<OverviewSalesChart",
       "<OverviewDepthPeeks",
       "<WeekdaySalesChart",

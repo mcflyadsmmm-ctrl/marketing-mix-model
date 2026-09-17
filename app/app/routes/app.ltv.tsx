@@ -12,6 +12,7 @@ import { LtvWhaleRecency } from "../components/LtvWhaleRecency";
 import { LtvFlagshipBoard } from "../components/LtvFlagshipBoard";
 import { LtvProductBoard } from "../components/LtvProductBoard";
 import { LtvPromoBoard } from "../components/LtvPromoBoard";
+import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -33,6 +34,13 @@ import { requireAdmin } from "../lib/public-app-gate.server";
 import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
 import prisma from "../db.server";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { flagshipDailyRead } from "../lib/ltv-flagship";
+import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
+import {
+  buildShareableInsights,
+  emptyShareableInsights,
+  pickShareableLtvPeek,
+} from "../lib/shareable-insights";
 
 /** Stored month totals — desk LTV is per new customer. */
 function perCustomerRevenue(
@@ -133,6 +141,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     orderBackfillProgress,
     hasLiveSpend: liveSpendCount > 0,
     installedAt: shop.createdAt.toISOString(),
+    shopLabel: session.shop,
   };
 };
 
@@ -152,6 +161,7 @@ export default function LtvPage() {
     orderBackfillProgress,
     hasLiveSpend,
     installedAt,
+    shopLabel,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -171,6 +181,51 @@ export default function LtvPage() {
   });
 
   const ltv = metrics.tillLtv;
+  const shopBook = shopifyNativePeriodStats({
+    sales: metrics.sales,
+    orderCount: metrics.orderCount,
+    newCustomers: metrics.newCustomers,
+    returningCustomers: metrics.returningCustomers,
+    guestOrders: metrics.guestOrders,
+    customerMetricsAvailable: metrics.customerMetricsAvailable,
+    newCustomerNetSales: metrics.newCustomerNetSales,
+    returningCustomerNetSales: metrics.returningCustomerNetSales,
+    grossSales: metrics.grossSales,
+    grossSalesKnown: metrics.grossSalesKnown,
+  });
+  const daily = flagshipDailyRead(depth.windows, depth.predictive);
+  const historyLimited = Boolean(
+    !useSampleDesk &&
+      (orderBackfillProgress?.historyLimited || ltv.historyLimited),
+  );
+  const ltvPeek = daily
+    ? { amount: daily.worth, days: daily.worthDays }
+    : pickShareableLtvPeek({
+        revenue30: ltv.avgRevenueD30,
+        revenue90: ltv.avgRevenueD90,
+        revenue365: ltv.avgRevenueD365,
+        historyLimited,
+      });
+  const insightView = metrics.salesPending
+    ? emptyShareableInsights()
+    : buildShareableInsights(
+        {
+          salesPending: Boolean(metrics.salesPending),
+          orderCount: metrics.orderCount,
+          returningSales: shopBook.returningSales,
+          returningShare: shopBook.returningSalesShare,
+          newSales: shopBook.newSales,
+          typicalOrder: metrics.shopifyDepth.medianAov,
+          daysToSecond: metrics.shopifyDepth.medianDaysToSecond,
+          ltvPeek: ltvPeek?.amount ?? null,
+          ltvPeekDays: ltvPeek?.days ?? null,
+          historyLimited,
+          shopLabel,
+          sample: useSampleDesk,
+          periodLabel: metrics.period.label,
+        },
+        (n) => formatCurrency(n, currency),
+      );
   const custOk = metrics.customerMetricsAvailable;
   const newCount = custOk ? metrics.newCustomers : 0;
   const retCount = custOk ? metrics.returningCustomers : 0;
@@ -481,6 +536,7 @@ export default function LtvPage() {
       <LtvTierTables aov={depth.aov} basket={depth.basket} />
       <LtvPathTable paths={depth.paths} clarity={depth.pathClarity} />
       <LtvWhaleRecency whales={depth.whales} />
+      <ShareableInsightCards view={insightView} shotMode={shotMode} />
 
       {economicsRows.length > 0 ? (
         <section className="mcfly-book" aria-label="Cost and margin">

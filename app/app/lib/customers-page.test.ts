@@ -49,6 +49,8 @@ describe("Customers route — one RETAIN spine, order history only", () => {
       "<CustomerRfmBoard",
       "<CustomerValueBands",
       "<CustomerWhaleTable",
+      "<CustomerConcentrationChart",
+      "<ShareableInsightCards",
     ].map((tag) => customers.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {

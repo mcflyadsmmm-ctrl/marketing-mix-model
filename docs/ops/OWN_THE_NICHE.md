@@ -16,13 +16,13 @@ Push the LTV concept toward **~10** on the score below. Compete features only if
 | 4 | **$39-alone** — this tab would keep the install with no other page |
 | 5 | **Zero-spend** — no upload, no ads, no pixels, no COGS |
 
-## This Promo→LTV PR only
+## This shareable-cards PR only
 
-First-order promo / discount → observed LTV and lift vs full-price first. Named codes when they are on the order (SAMPLE Snowdevil). Live uses crawled discount $ and stays an honest empty for missing titles/codes — never invented. Soft dense Black Clover on the LTV tab **after Product→LTV**. Flagship, Product→LTV, explorers, and sales-five IA stay.
+2–4 soft shareable insight cards from truths already on the desk (returning $, typical order, days-to-second, LTV peek). Screenshot-ready poster + copy-the-line + optional PNG. Formula/trust where numbers show. Overview after mix/close; light reuse on LTV and Customers. Thin-shop empties honest. Flagship, Product→LTV, Promo→LTV, explorers, and sales-five IA stay.
 
 ## Refuse
 
-TW attribution · COGS P&L · kitchen-sink · other tabs (Share, Goals) · ads/pixels · Partner paste · cold push · spend / ROAS / upload on Overview.
+TW attribution · COGS P&L · kitchen-sink · Goals · ads/pixels · Partner paste · cold push · spend / ROAS / upload on Overview.
 
 Pills, charts, densify, ActionCards stay. Add only.
 
@@ -80,7 +80,17 @@ Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the den
 | $39-alone | PASS | Overview now answers who carries the dollars and where the month lands, with typical / weekends / explorers kept |
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
 
-## SCORECARD — Promo→LTV (this PR)
+## SCORECARD — Shareable insight cards (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Easier | PASS | One “Share a number” strip — screenshot or copy the line already on the desk, not a Lifetimely export hunt |
+| Deeper LTV | PASS | Returning $ + typical order + days-to-second + new-buyer worth from the stored book; year withheld when history is limited |
+| Habit-trust | PASS | Formula written out on the poster; guests out; observed LTV, not an estimate; empties name the 8-order floor |
+| $39-alone | PASS | Merchants can leave with a true number without leaving Mcfly — stickiness AI cannot replace |
+| Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
+
+## SCORECARD — Promo→LTV (#98)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |

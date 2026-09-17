@@ -21,6 +21,7 @@ import {
   OverviewFirstViewport,
 } from "../components/OverviewFirstViewport";
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
+import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
@@ -57,6 +58,11 @@ import {
   overviewMonthClock,
   overviewMtdFromDays,
 } from "../lib/overview-mix-forecast";
+import {
+  buildShareableInsights,
+  emptyShareableInsights,
+  pickShareableLtvPeek,
+} from "../lib/shareable-insights";
 import { formatOverviewShareText } from "../lib/cash-close";
 import {
   emptySales,
@@ -524,6 +530,39 @@ export default function Dashboard() {
     ? emptyOverviewMixForecast()
     : (mixForecast ?? emptyOverviewMixForecast());
   const mixRead = overviewMixForecastRead(mixView);
+  const ltvPeek = pickShareableLtvPeek({
+    revenue30: metrics.tillLtv.avgRevenueD30,
+    revenue90: metrics.tillLtv.avgRevenueD90,
+    revenue365: metrics.tillLtv.avgRevenueD365,
+    historyLimited: Boolean(
+      !useSampleDesk &&
+        (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
+    ),
+  });
+  const insightView = greetingPending
+    ? emptyShareableInsights()
+    : buildShareableInsights(
+        {
+          salesPending: greetingPending,
+          orderCount: metrics.orderCount,
+          returningSales: shopBook.returningSales,
+          returningShare: shopBook.returningSalesShare,
+          newSales: shopBook.newSales,
+          typicalOrder: metrics.shopifyDepth.medianAov,
+          daysToSecond: metrics.shopifyDepth.medianDaysToSecond,
+          ltvPeek: ltvPeek?.amount ?? null,
+          ltvPeekDays: ltvPeek?.days ?? null,
+          historyLimited: Boolean(
+            !useSampleDesk &&
+              (orderBackfillProgress?.historyLimited ||
+                metrics.tillLtv.historyLimited),
+          ),
+          shopLabel,
+          sample: useSampleDesk,
+          periodLabel: metrics.period.label,
+        },
+        (n) => formatCurrency(n, currency),
+      );
   const shareText = formatOverviewShareText({
     periodLabel: metrics.period.label,
     periodStartDay: sharePeriodStartDay,
@@ -710,6 +749,7 @@ export default function Dashboard() {
                     searchParams,
                   )}
                 />
+                <ShareableInsightCards view={insightView} shotMode={shotMode} />
                 <OverviewSalesChart
                   days={
                     salesExplorerDays.length >= 2
