@@ -7,7 +7,10 @@ import {
   shopLocalDayRange,
 } from "./shop-local-day";
 import { formatPeriodQuery, SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
-import { isShopifyHistoryWindowError } from "./shopify-order-window";
+import {
+  isShopifyHistoryWindowError,
+  shopifyOrderHistoryIsLimited,
+} from "./shopify-order-window";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
 import {
   adminGraphqlJson,
@@ -891,7 +894,7 @@ export async function getOrderBackfillHistoryLimited(
     where: { shopId },
     select: { historyLimited: true },
   });
-  return state?.historyLimited ?? false;
+  return shopifyOrderHistoryIsLimited(state?.historyLimited ?? false);
 }
 
 export type OrderBackfillProgress = {
@@ -962,7 +965,7 @@ export async function getOrderBackfillProgress(
  */
 export async function loadOrderDepthRows(
   shopId: string,
-  range: { start: Date; end: Date },
+  range: { start?: Date; end: Date },
   source: string,
 ): Promise<
   Array<{
@@ -979,7 +982,9 @@ export async function loadOrderDepthRows(
     where: {
       shopId,
       source,
-      orderedAt: { gte: range.start, lte: range.end },
+      orderedAt: range.start
+        ? { gte: range.start, lte: range.end }
+        : { lte: range.end },
       NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
     },
     select: {

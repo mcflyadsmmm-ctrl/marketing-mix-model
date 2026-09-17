@@ -5,9 +5,9 @@
  * hidden period slicer, like Growth's come-back window.
  *
  * SAMPLE reads the deterministic Snowdevil order book (products on file). Live
- * reads real OrderFacts (no product titles — journeys quietly drop out) over a
- * trailing window; Shopify's ~60-day share keeps that honestly short until a
- * deeper backfill lands. Order history only — no spend, no ROAS.
+ * reads the full stored OrderFact book (no product titles — journeys quietly
+ * drop out) so year / long windows can seal. Thin shops get empty-state craft,
+ * never a fake year. Order history only — no spend, no ROAS.
  */
 
 import {
@@ -15,13 +15,15 @@ import {
   ORDER_FACT_GUEST_KEY,
   ORDER_FACT_SOURCE,
 } from "./order-facts.server";
-import { buildLtvDepth, type DepthOrder, type LtvDepthView } from "./ltv-depth";
+import { type DepthOrder } from "./ltv-depth";
+import {
+  buildLtvFlagship,
+  type LtvFlagshipView,
+} from "./ltv-flagship";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 
-/** Trailing order-history window read for the live depth pack (days). */
+/** Historical name. Live LTV depth is the full stored book, not a 420-day cap. */
 export const LTV_DEPTH_WINDOW_DAYS = 420;
-
-const DAY_MS = 86_400_000;
 
 /**
  * Build the depth view for one shop. `asOf` anchors maturity and recency
@@ -33,18 +35,17 @@ export async function loadLtvDepth(options: {
   shopId: string;
   useSampleDesk: boolean;
   asOf?: Date;
-}): Promise<LtvDepthView> {
+}): Promise<LtvFlagshipView> {
   const asOf = options.asOf ?? new Date();
 
   if (options.useSampleDesk) {
     const orders = generateSnowdevilDepthOrders(asOf);
-    return buildLtvDepth(orders, asOf, { sample: true });
+    return buildLtvFlagship(orders, asOf, { sample: true });
   }
 
-  const start = new Date(asOf.getTime() - LTV_DEPTH_WINDOW_DAYS * DAY_MS);
   const rows = await loadOrderDepthRows(
     options.shopId,
-    { start, end: asOf },
+    { end: asOf },
     ORDER_FACT_SOURCE,
   );
   const orders: DepthOrder[] = [];
@@ -59,5 +60,5 @@ export async function loadLtvDepth(options: {
       product: null,
     });
   }
-  return buildLtvDepth(orders, asOf, { sample: false });
+  return buildLtvFlagship(orders, asOf, { sample: false });
 }

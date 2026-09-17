@@ -13,6 +13,18 @@ export function shopifyReadOrdersScopesAllowDeep(
   return (scopes ?? "").includes("read_all_orders");
 }
 
+/**
+ * Stored backfill `historyLimited` is a 60-day-era flag. When
+ * `read_all_orders` is on, Live year / long windows are in scope — do not
+ * keep treating the shop as capped.
+ */
+export function shopifyOrderHistoryIsLimited(
+  storedLimited: boolean,
+  scopes = process.env.SCOPES,
+): boolean {
+  return storedLimited && !shopifyReadOrdersScopesAllowDeep(scopes);
+}
+
 /** UTC midnight of (UTC calendar day − {@link SHOPIFY_READ_ORDERS_WINDOW_DAYS}). */
 export function shopifyReadOrdersHorizonUtc(now: Date): Date {
   return new Date(

@@ -57,10 +57,11 @@ describe("Fly-origin App Store trust pages (1.1.4 live URLs)", () => {
     expect(src).toMatch(/\$39/);
   });
 
-  it("Privacy discloses PCD Level 1 scopes only", () => {
+  it("Privacy discloses order + customer scopes including approved full history", () => {
     const src = pages.privacy;
     expect(src).toContain("read_orders");
     expect(src).toContain("read_customers");
+    expect(src).toContain("read_all_orders");
     expect(src).toContain("numberOfOrders");
     expect(src).toMatch(/No name, email, phone, or address/);
     expect(src).toContain("shop/redact");

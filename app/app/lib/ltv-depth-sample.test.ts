@@ -5,6 +5,7 @@ import {
   SNOWDEVIL_DEPTH_MONTHS,
 } from "./ltv-depth-sample";
 import { buildLtvDepth, rollUpCustomers } from "./ltv-depth";
+import { buildLtvFlagship } from "./ltv-flagship";
 
 const NOW = new Date("2026-09-17T00:00:00Z");
 const DAY = 86_400_000;
@@ -106,5 +107,21 @@ describe("SAMPLE depth is dense (reject thin)", () => {
     // The most recent first-order month has only M0 filled, the rest blank.
     expect(newest.cells[0]).toBe(1);
     expect(newest.cells[newest.cells.length - 1]).toBeNull();
+  });
+});
+
+describe("SAMPLE refund gross is a second pass (net book unchanged)", () => {
+  it("adds a known gross on every order and a real haircut on some", () => {
+    const orders = generateSnowdevilDepthOrders(NOW);
+    expect(orders.every((o) => o.grossAmount != null && o.grossAmount >= o.amount)).toBe(
+      true,
+    );
+    const refunded = orders.filter(
+      (o) => (o.grossAmount ?? 0) > o.amount + 0.005,
+    );
+    expect(refunded.length).toBeGreaterThan(50);
+    const flagship = buildLtvFlagship(orders, NOW, { sample: true });
+    expect(flagship.refunds.brokenOut).toBe(true);
+    expect(flagship.refunds.refundedDollars).toBeGreaterThan(0);
   });
 });

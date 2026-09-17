@@ -32,6 +32,10 @@ export default function PrivacyPage() {
             <code>numberOfOrders</code> only, to classify new vs returning. No
             name, email, phone, or address.
           </li>
+          <li>
+            <code>read_all_orders</code> — older order totals and dates so
+            first-year LTV can seal. Still no name, email, phone, or address.
+          </li>
         </ul>
 
         <h2>What you add</h2>

@@ -192,14 +192,17 @@ describe("Shopify App Store source verification", () => {
     expect(login).not.toMatch(/<input\b/i);
   });
 
-  it("3.2.1 public configs stay at PCD Level 1 without read_all_orders", () => {
+  it("3.2.1 public configs request Partner-approved full order history", () => {
     for (const path of [
       "app/shopify.app.toml",
       "app/shopify.app.public.toml",
     ]) {
       const scopes = publicScopes(readRepo(path));
-      expect(scopes, path).toEqual(["read_orders", "read_customers"]);
-      expect(scopes, path).not.toContain("read_all_orders");
+      expect(scopes, path).toEqual([
+        "read_orders",
+        "read_customers",
+        "read_all_orders",
+      ]);
     }
   });
 
@@ -222,7 +225,11 @@ describe("Shopify App Store source verification", () => {
           .filter(Boolean),
       );
       for (const scopes of declared) {
-        expect(scopes, path).toEqual(["read_orders", "read_customers"]);
+        expect(scopes, path).toEqual([
+          "read_orders",
+          "read_customers",
+          "read_all_orders",
+        ]);
       }
     }
   });

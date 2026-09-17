@@ -14,8 +14,8 @@ embedded = true
 automatically_update_urls_on_dev = false
 
 [access_scopes]
-# read_all_orders needs Partner approval after PCD — omit until approved so CLI can release.
-scopes = "read_orders,read_customers"
+# Partner-approved: full order history so Live year / long LTV can seal.
+scopes = "read_orders,read_customers,read_all_orders"
 
 [webhooks]
 api_version = "2025-10"

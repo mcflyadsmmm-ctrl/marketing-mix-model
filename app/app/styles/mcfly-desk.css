@@ -18794,3 +18794,261 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
     background: var(--mcfly-paper, #fff);
   }
 }
+
+/* =========================================================================
+ * LTV flagship densify — 30/90/365 come-back, written-out estimate, refunds.
+ * APPEND ONLY. Do not restyle existing curves / heat / explorer hover.
+ * Soft dense cards, not a metric dump. SAMPLE Snowdevil canvas.
+ * ========================================================================= */
+
+.mcfly-depth-windows__sub {
+  display: block;
+  margin: 0.2rem 0 0;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.mcfly-depth-windows__add {
+  display: block;
+  margin: 0.12rem 0 0;
+  color: var(--mcfly-accent-ink, #0b3b5a);
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.mcfly-depth-flag__read {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.8rem 0.95rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 14px;
+  background: color-mix(in srgb, #fff 62%, var(--mcfly-accent-soft));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-depth-flag__read:hover,
+.mcfly-depth-flag__read:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 1px;
+}
+
+.mcfly-depth-flag__read-k {
+  display: block;
+  margin: 0 0 0.15rem;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mcfly-depth-flag__read-v {
+  display: block;
+  margin: 0 0 0.2rem;
+  font-family: var(--mcfly-serif, "Iowan Old Style", Georgia, serif);
+  font-size: clamp(1.55rem, 3.4vw, 2rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+.mcfly-depth-flag__read-line {
+  display: block;
+  margin: 0.08rem 0 0;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.mcfly-depth-flag__empty,
+.mcfly-depth-empty {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.8rem 0.95rem 0.85rem;
+  border: 1px dashed color-mix(in srgb, var(--mcfly-line) 62%, var(--mcfly-accent));
+  border-radius: 14px;
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.mcfly-depth-flag__empty {
+  cursor: pointer;
+}
+
+button.mcfly-depth-flag__empty:hover,
+button.mcfly-depth-flag__empty:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 1px;
+}
+
+.mcfly-depth-flag__empty-verb {
+  display: block;
+  margin: 0 0 0.12rem;
+  color: var(--mcfly-accent-ink, #0b3b5a);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.mcfly-depth-flag__empty-k,
+.mcfly-depth-empty__k {
+  margin: 0 0 0.15rem;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mcfly-depth-flag__empty-v,
+.mcfly-depth-empty__v {
+  margin: 0 0 0.25rem;
+  font-family: var(--mcfly-serif, "Iowan Old Style", Georgia, serif);
+  font-size: clamp(1.2rem, 2.6vw, 1.5rem);
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.mcfly-depth-flag__empty-line,
+.mcfly-depth-empty__line {
+  margin: 0.15rem 0 0;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.mcfly-depth-formula__card {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 14px;
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-depth-formula__card:hover,
+.mcfly-depth-formula__card:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 1px;
+}
+
+.mcfly-depth-formula__eq {
+  margin: 0 0 0.45rem;
+  font-family: var(--mcfly-serif, "Iowan Old Style", Georgia, serif);
+  font-size: clamp(0.98rem, 1.8vw, 1.12rem);
+  line-height: 1.4;
+}
+
+.mcfly-depth-formula__parts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin: 0 0 0.55rem;
+}
+
+.mcfly-depth-formula__part {
+  display: block;
+  min-width: 0;
+  padding: 0.4rem 0.5rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 70%, #fff);
+  border-radius: 10px;
+  background: color-mix(in srgb, #fff 78%, var(--mcfly-accent-soft));
+}
+
+.mcfly-depth-formula__part-k {
+  display: block;
+  margin: 0 0 0.12rem;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.mcfly-depth-formula__part-v {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: clamp(0.95rem, 1.8vw, 1.12rem);
+  line-height: 1.2;
+}
+
+.mcfly-depth-formula__plug {
+  margin: 0 0 0.35rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  font-size: clamp(1.05rem, 2vw, 1.22rem);
+}
+
+.mcfly-depth-formula__obs {
+  margin: 0;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.mcfly-depth-flag .mcfly-kpi-grid--soft {
+  margin: 0 0 0.7rem;
+}
+
+.mcfly-depth-flag__refund {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0.15rem 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--mcfly-muted, #5a6f85);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--mcfly-accent) 40%, transparent);
+  text-underline-offset: 0.15em;
+}
+
+.mcfly-depth-flag__refund:hover,
+.mcfly-depth-flag__refund:focus-visible {
+  color: var(--mcfly-accent-ink, #0b3b5a);
+}
+
+@media (max-width: 430px) {
+  .mcfly-depth-formula__card {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .mcfly-depth-formula__plug {
+    font-size: 1.02rem;
+  }
+
+  .mcfly-depth-flag__read {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .mcfly-depth-flag__read-v {
+    font-size: clamp(1.35rem, 7vw, 1.7rem);
+  }
+
+  .mcfly-depth-formula__parts {
+    gap: 0.35rem;
+  }
+
+  .mcfly-depth-formula__part {
+    padding: 0.32rem 0.35rem 0.38rem;
+  }
+}

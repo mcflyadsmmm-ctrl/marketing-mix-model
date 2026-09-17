@@ -176,5 +176,21 @@ export function generateSnowdevilDepthOrders(now: Date = new Date()): DepthOrder
     }
   }
 
-  return orders;
+  return applySampleRefundGross(orders);
+}
+
+/**
+ * Second pass with its own seed — does not shift the book’s amounts, dates,
+ * or products. SAMPLE only: a known gross so refund honesty can show a real
+ * haircut. Net dollars (the LTV numerator) stay exactly as generated.
+ */
+function applySampleRefundGross(orders: DepthOrder[]): DepthOrder[] {
+  const rng = mulberry32(0x7ef11d);
+  return orders.map((order) => {
+    if (rng() < 0.08 && order.amount >= 24) {
+      const refund = Math.round(order.amount * (0.12 + rng() * 0.38));
+      return { ...order, grossAmount: order.amount + refund };
+    }
+    return { ...order, grossAmount: order.amount };
+  });
 }

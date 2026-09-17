@@ -32,7 +32,13 @@ const PAD_B = 28;
  * short), never a sealed $0 tail. Hover a line or click a month chip to read
  * the build.
  */
-export function LtvBuildCurves({ curves }: { curves: CohortCurves | null }) {
+export function LtvBuildCurves({
+  curves,
+  buyers = 0,
+}: {
+  curves: CohortCurves | null;
+  buyers?: number;
+}) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
   const seriesCount = curves?.series.length ?? 0;
@@ -41,7 +47,22 @@ export function LtvBuildCurves({ curves }: { curves: CohortCurves | null }) {
       seriesCount,
       chartSeriesId(curves?.series.map((series) => series.cohortMonth) ?? []),
     );
-  if (!curves || seriesCount < 2) return null;
+  if (!curves || seriesCount < 2) {
+    if (buyers <= 0) return null;
+    return (
+      <section
+        className="mcfly-book mcfly-depth mcfly-depth--soft mcfly-depth-empty"
+        aria-label="Spend-build"
+      >
+        <p className="mcfly-depth-empty__k">Spend-build</p>
+        <p className="mcfly-depth-empty__v">Waiting on a second month</p>
+        <p className="mcfly-depth-empty__line">
+          Needs two first-order months that have lived a month. Not $0 — it
+          fills as the book deepens. No spend required.
+        </p>
+      </section>
+    );
+  }
 
   const maxOffset = Math.max(1, curves.maxOffset);
   const maxValue = Math.max(1, curves.maxValue);

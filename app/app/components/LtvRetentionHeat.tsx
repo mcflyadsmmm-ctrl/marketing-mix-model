@@ -12,9 +12,30 @@ function pct(share: number): string {
  * bottom-right is honestly empty, never a fake 0%. Colour tracks the share so
  * the drop-off reads at a glance. Click a cell for the formula.
  */
-export function LtvRetentionHeat({ heat }: { heat: RetentionHeat | null }) {
+export function LtvRetentionHeat({
+  heat,
+  buyers = 0,
+}: {
+  heat: RetentionHeat | null;
+  buyers?: number;
+}) {
   const drill = useDeskDrill();
-  if (!heat || heat.rows.length < 2) return null;
+  if (!heat || heat.rows.length < 2) {
+    if (buyers <= 0) return null;
+    return (
+      <section
+        className="mcfly-book mcfly-depth mcfly-depth--soft mcfly-depth-empty"
+        aria-label="Who is still ordering"
+      >
+        <p className="mcfly-depth-empty__k">Who is still ordering</p>
+        <p className="mcfly-depth-empty__v">Waiting on a second month</p>
+        <p className="mcfly-depth-empty__line">
+          Needs two first-order months. Blank is not 0% — the grid fills as
+          months pass. Order history only.
+        </p>
+      </section>
+    );
+  }
 
   // Scale colour to the strongest come-back month (beyond M0) so a healthy
   // shop is not washed out by the always-100% first column.

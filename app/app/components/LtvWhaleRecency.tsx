@@ -47,6 +47,16 @@ export function LtvWhaleRecency({ whales }: { whales: WhaleRecency | null }) {
           },
         ]
       : []),
+    ...(whales.ltvMultiple > 0
+      ? [
+          {
+            k: "Vs everyone",
+            v: `${whales.ltvMultiple.toFixed(1)}×`,
+            d: `Best-customer average ${formatCurrency(whales.avgLifetime, currency)} vs ${formatCurrency(whales.everyoneAvg, currency)} for every identified buyer.`,
+            icon: "sales" as const,
+          },
+        ]
+      : []),
   ];
 
   const maxBucket = Math.max(1, ...whales.buckets.map((b) => b.count));

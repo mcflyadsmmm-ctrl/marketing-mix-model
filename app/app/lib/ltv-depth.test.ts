@@ -51,6 +51,10 @@ describe("rollUpCustomers", () => {
     expect(c.day90Spend).toBe(225);
     expect(c.day365Spend).toBe(265);
     expect(c.lifetimeSpend).toBe(265);
+    expect(c.ordersD30).toBe(2);
+    expect(c.ordersD90).toBe(3);
+    expect(c.ordersD365).toBe(4);
+    expect(c.reorderDays).toBe(19);
   });
 
   it("ignores empty keys and non-finite amounts", () => {
@@ -204,6 +208,9 @@ describe("whaleRecency (best customers & when they last ordered)", () => {
     expect(w.salesShare).toBeCloseTo(2000 / 2900, 4);
     expect(w.activeShare).toBe(1);
     expect(w.buckets.find((b) => b.key === "d30")!.count).toBe(2);
+    expect(w.everyoneAvg).toBeCloseTo(2900 / 20, 5);
+    expect(w.ltvMultiple).toBeCloseTo(1000 / (2900 / 20), 4);
+    expect(w.coldShare).toBe(0);
   });
 
   it("stays null below the identified-buyer floor", () => {
