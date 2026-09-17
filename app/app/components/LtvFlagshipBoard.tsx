@@ -107,22 +107,38 @@ export function LtvFlagshipBoard({
       </div>
 
       {empty ? (
-        <div
+        <button
+          type="button"
           className="mcfly-depth-flag__empty"
           data-kind={empty.kind}
+          onClick={() =>
+            drill?.openDrill({
+              title: "First win",
+              value:
+                empty.kind === "syncing"
+                  ? "Waiting on orders"
+                  : `${empty.buyers.toLocaleString()} on file`,
+              kicker: empty.verb,
+              blocks: [
+                { k: "What this is", v: empty.copy },
+                {
+                  k: "What fills next",
+                  v: `Floor: ${empty.need} buyers who have lived 30 days. Then 90 days, then the first year. Same math — no spend required.`,
+                },
+              ],
+              next: "Averages from order history — not a promise, not email.",
+            })
+          }
         >
-          <p className="mcfly-depth-flag__empty-k">First win</p>
-          <p className="mcfly-depth-flag__empty-v">
+          <span className="mcfly-depth-flag__empty-k">First win</span>
+          <span className="mcfly-depth-flag__empty-verb">{empty.verb}</span>
+          <span className="mcfly-depth-flag__empty-v">
             {empty.kind === "syncing"
               ? "Waiting on orders"
               : `${empty.buyers.toLocaleString()} on file`}
-          </p>
-          <p className="mcfly-depth-flag__empty-line">{empty.copy}</p>
-          <p className="mcfly-depth-flag__empty-line">
-            Floor: {empty.need} buyers who have lived 30 days. Then 90 days,
-            then the first year. Same math — no spend required.
-          </p>
-        </div>
+          </span>
+          <span className="mcfly-depth-flag__empty-line">{empty.copy}</span>
+        </button>
       ) : null}
 
       {daily ? (

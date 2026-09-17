@@ -137,6 +137,7 @@ describe("thin-shop empty state", () => {
     const empty = flagshipEmptyState(null, 0)!;
     expect(empty.kind).toBe("syncing");
     expect(empty.copy).toContain("not $0");
+    expect(empty.verb).toBe("Refresh this page");
   });
 
   it("is thin when fewer than eight buyers have landed", () => {
@@ -144,12 +145,14 @@ describe("thin-shop empty state", () => {
     expect(empty.kind).toBe("thin");
     expect(empty.need).toBe(8);
     expect(empty.copy).toContain("3 identified buyers");
+    expect(empty.verb).toBe("Watch first 30 days");
   });
 
   it("is young when buyers exist but no window has sealed", () => {
     const empty = flagshipEmptyState(null, 12)!;
     expect(empty.kind).toBe("young");
     expect(empty.copy).toContain("lived 30 days");
+    expect(empty.verb).toBe("Wait for day 30");
   });
 
   it("stays null once a window curve is on file", () => {

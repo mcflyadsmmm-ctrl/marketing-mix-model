@@ -98,6 +98,7 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(flagship).toContain("mcfly-depth-formula__parts");
     expect(flagship).toContain("flagshipEmptyState");
     expect(flagship).toContain("First win");
+    expect(flagship).toContain("empty.verb");
     expect(flagship).not.toMatch(/about 60 days/);
   });
 

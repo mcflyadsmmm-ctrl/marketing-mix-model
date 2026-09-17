@@ -20,6 +20,6 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Quality | PASS | Today’s read + formula chips + whale/path on one board; this tab alone is the $39 LTV desk |
 | Organization | PASS | Flagship leads; existing explorers stay below; sales-five IA and other tabs untouched |
 | Ease | PASS | Pills, mobile, chart-smooth hover preserved; one morning number, not a Lifetimely dump |
-| Stickiness | PASS | First-win empty (syncing / thin / young) plus spend-build and heat placeholders — no blank charts, not $0 |
+| Stickiness | PASS | First-win empty is ActionCard-shaped (verb + drill): syncing / thin / young; spend-build and heat placeholders — no blank charts, not $0 |
 
 Empty-state row (included in Stickiness): floor is 8 buyers who have lived 30 days; then 90; then the year. Sparse shops stay amazing.

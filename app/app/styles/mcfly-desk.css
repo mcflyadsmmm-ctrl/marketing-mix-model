@@ -18868,11 +18868,35 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
 
 .mcfly-depth-flag__empty,
 .mcfly-depth-empty {
+  display: block;
+  width: 100%;
   margin: 0 0 0.75rem;
   padding: 0.8rem 0.95rem 0.85rem;
   border: 1px dashed color-mix(in srgb, var(--mcfly-line) 62%, var(--mcfly-accent));
   border-radius: 14px;
   background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.mcfly-depth-flag__empty {
+  cursor: pointer;
+}
+
+button.mcfly-depth-flag__empty:hover,
+button.mcfly-depth-flag__empty:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 1px;
+}
+
+.mcfly-depth-flag__empty-verb {
+  display: block;
+  margin: 0 0 0.12rem;
+  color: var(--mcfly-accent-ink, #0b3b5a);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.3;
 }
 
 .mcfly-depth-flag__empty-k,

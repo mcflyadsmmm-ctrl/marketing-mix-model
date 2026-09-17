@@ -592,6 +592,8 @@ export interface FlagshipEmpty {
   /** How many identified buyers seal a window. */
   need: number;
   copy: string;
+  /** One next step — ActionCard-shaped, not a dump. */
+  verb: string;
 }
 
 /**
@@ -610,6 +612,7 @@ export function flagshipEmptyState(
       buyers: 0,
       need,
       copy: "Orders still syncing — not $0. First 30 days, 90 days, and the first year fill as identified buyers land.",
+      verb: "Refresh this page",
     };
   }
   if (buyers < need) {
@@ -618,6 +621,7 @@ export function flagshipEmptyState(
       buyers,
       need,
       copy: `${buyers.toLocaleString()} identified ${buyers === 1 ? "buyer" : "buyers"} on file. Windows seal after ${need} have lived 30 days — not $0.`,
+      verb: "Watch first 30 days",
     };
   }
   return {
@@ -625,6 +629,7 @@ export function flagshipEmptyState(
     buyers,
     need,
     copy: `${buyers.toLocaleString()} buyers on file. First 30 days seals once those buyers have lived 30 days — not $0.`,
+    verb: "Wait for day 30",
   };
 }
 
