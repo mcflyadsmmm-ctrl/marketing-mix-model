@@ -34,7 +34,7 @@ export function YoyYearBoard({
     value == null ? "—" : `${formatMer(value)}×`;
 
   return (
-    <section className="mcfly-yoy-board" aria-label={`${year} monthly board`}>
+    <section className="mcfly-yoy-board mcfly-yoy-board--soft" aria-label={`${year} monthly board`}>
       <div className="mcfly-yoy-board__head">
         <h3 className="mcfly-yoy-board__title">{year} · 12-month board</h3>
         <p className="mcfly-yoy-board__lede">
@@ -107,7 +107,7 @@ export function YoyChannelBoard({
 
   return (
     <section
-      className="mcfly-yoy-chan"
+      className="mcfly-yoy-chan mcfly-yoy-chan--soft"
       aria-label={`Channel spend vs ${year - 1}`}
     >
       <div className="mcfly-yoy-board__head">

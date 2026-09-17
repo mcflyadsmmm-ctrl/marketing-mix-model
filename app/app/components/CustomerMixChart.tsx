@@ -48,7 +48,7 @@ function MixEmptyFrame({ pending }: { pending: boolean }) {
   const ghost = [0.34, 0.52, 0.44, 0.66, 0.58, 0.78, 0.7];
   return (
     <section
-      className="mcfly-chart mcfly-cust-mix mcfly-cust-mix--empty mcfly-desk-anchor"
+      className="mcfly-chart mcfly-cust-mix mcfly-cust-mix--empty mcfly-chart--soft mcfly-desk-anchor"
       aria-label="New vs returning dollars by week"
     >
       <div className="mcfly-chart__board">
@@ -219,7 +219,7 @@ export function CustomerMixChart({
 
   return (
     <section
-      className="mcfly-chart mcfly-cust-mix mcfly-desk-anchor"
+      className="mcfly-chart mcfly-cust-mix mcfly-chart--soft mcfly-desk-anchor"
       aria-label="New vs returning dollars by week"
     >
       <div className="mcfly-chart__board">
@@ -246,7 +246,7 @@ export function CustomerMixChart({
         </div>
       </div>
 
-      <ul className="mcfly-chart__stats">
+      <ul className="mcfly-chart__stats mcfly-chart__stats--soft">
         {stats.map((stat) => (
           <li className="mcfly-chart__stat" key={stat.k}>
             <span className="mcfly-chart__stat-k">{stat.k}</span>

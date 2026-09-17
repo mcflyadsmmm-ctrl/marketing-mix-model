@@ -15,22 +15,52 @@ function day(n: number | null | undefined): string {
 
 type Tone = "good" | "warn" | "plain";
 
-function Kpi({
+function ActionCard({
   label,
   value,
   sub,
   tone = "plain",
+  verb,
+  detail,
 }: {
   label: string;
   value: string;
   sub?: string;
   tone?: Tone;
+  verb: string;
+  detail: string;
 }) {
-  return (
-    <div className={`mcfly-cust-kpi mcfly-cust-kpi--${tone}`}>
+  const drill = useDeskDrill();
+  const open = () =>
+    drill?.openDrill({
+      title: label,
+      value,
+      kicker: verb,
+      blocks: [
+        { k: "What to do", v: detail },
+        sub ? { k: "Also", v: sub } : null,
+      ].filter((b): b is { k: string; v: string } => b != null),
+      next: "Order history only — not email, not spend.",
+    });
+  const body = (
+    <>
+      <p className="mcfly-cust-kpi__verb">{verb}</p>
       <p className="mcfly-cust-kpi__k">{label}</p>
       <p className="mcfly-cust-kpi__v">{value}</p>
       {sub ? <p className="mcfly-cust-kpi__sub">{sub}</p> : null}
+    </>
+  );
+  return drill ? (
+    <button
+      type="button"
+      className={`mcfly-cust-kpi mcfly-cust-kpi--${tone} mcfly-cust-kpi--soft mcfly-cust-kpi--action`}
+      onClick={open}
+    >
+      {body}
+    </button>
+  ) : (
+    <div className={`mcfly-cust-kpi mcfly-cust-kpi--${tone} mcfly-cust-kpi--soft mcfly-cust-kpi--action`}>
+      {body}
     </div>
   );
 }
@@ -39,7 +69,7 @@ function RetentionEmptyFrame() {
   const ghost = [1, 0.64, 0.28];
   return (
     <section
-      className="mcfly-panel mcfly-cust-card mcfly-cust-empty"
+      className="mcfly-panel mcfly-cust-card mcfly-cust-empty mcfly-cust-card--soft"
       aria-label="What to do"
     >
       <div className="mcfly-panel__head">
@@ -122,7 +152,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
       : "Came back ≤30d needs 30 days of follow-up — not zero.";
 
   return (
-    <section className="mcfly-panel mcfly-cust-card mcfly-desk-anchor" aria-label="What to do">
+    <section className="mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-desk-anchor" aria-label="What to do">
       <div className="mcfly-panel__head">
         <h2>What to do</h2>
         <p className="mcfly-panel__muted">
@@ -130,24 +160,30 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
         </p>
       </div>
 
-      <div className="mcfly-cust-kpis">
-        <Kpi
+      <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">
+        <ActionCard
           label="Typical repurchase"
           value={day(a.repurchaseTypicalDays)}
           sub={clockSub}
           tone="good"
+          verb="Repurchase"
+          detail="Time the ask around this day — when identified buyers typically place a second order from this shop's order history."
         />
-        <Kpi
+        <ActionCard
           label="Win-back by"
           value={day(a.winBackDay)}
           sub="typical repurchase + 15 days"
           tone="warn"
+          verb="Win-back"
+          detail="Reach one-order buyers by this day — just past typical repurchase, before the slow tail falls off."
         />
-        <Kpi
+        <ActionCard
           label="Save now"
           value={a.saveNowOneOrder.toLocaleString()}
           sub="one-order buyers past win-back"
           tone="warn"
+          verb="Save now"
+          detail="These one-order buyers are already past the win-back day. Prioritize them first — order history timing, not an email guess."
         />
       </div>
 
@@ -165,7 +201,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
         </p>
       ) : null}
 
-      <div className="mcfly-cust-funnel" aria-label="Fall-off funnel">
+      <div className="mcfly-cust-funnel mcfly-cust-funnel--soft" aria-label="Fall-off funnel">
         <p className="mcfly-cust-vbars__title">
           <DeskIcon name="chart" /> Fall-off funnel
         </p>
@@ -204,7 +240,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
         ))}
       </div>
 
-      <div className="mcfly-cust-play">
+      <div className="mcfly-cust-play mcfly-cust-play--soft">
         <p className="mcfly-cust-play__k">
           <DeskIcon name="clock" /> Win-back play
         </p>

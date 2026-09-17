@@ -26,7 +26,7 @@ export function CpaWindowCards({
   const drill = useDeskDrill();
 
   return (
-    <section className="mcfly-yoy mcfly-yoy--glance mcfly-cpa__windows" aria-label="Cash CPA windows">
+    <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft mcfly-cpa__windows" aria-label="Cash CPA windows">
       <div className="mcfly-yoy__grid mcfly-cpa__window-grid">
         {windows.map((window) => {
           const selected = window.id === selectedId;
@@ -63,7 +63,7 @@ export function CpaWindowCards({
             <button
               type="button"
               key={window.id}
-              className={`mcfly-yoy__card mcfly-yoy__card--drill mcfly-cpa__card mcfly-yoy__card--${zone}${selected ? " mcfly-cpa__card--on" : ""}`}
+              className={`mcfly-yoy__card mcfly-yoy__card--drill mcfly-yoy__card--soft mcfly-cpa__card mcfly-yoy__card--${zone}${selected ? " mcfly-cpa__card--on" : ""}`}
               aria-pressed={selected}
               onClick={() => {
                 onSelect(window.id);

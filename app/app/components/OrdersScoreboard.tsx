@@ -40,7 +40,7 @@ function PeekCard({
   return (
     <button
       type="button"
-      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek"
+      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft"
       onClick={() =>
         drill?.openDrill({
           title: label,
@@ -74,7 +74,7 @@ function FactGrid({
   pending: boolean;
 }) {
   return (
-    <div className={`mcfly-kpi-grid mcfly-kpi-grid--peeks ${className}`}>
+    <div className={`mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--soft ${className}`}>
       {facts.map((row) => (
         <PeekCard
           key={row.k}
@@ -129,7 +129,7 @@ export function OrdersScoreboard({
   return (
     <>
       <section
-        className="mcfly-score mcfly-book mcfly-score--orders-hero"
+        className="mcfly-score mcfly-book mcfly-score--orders-hero mcfly-score--soft"
         aria-label={PRODUCT_NOUN.ordersTitle}
       >
         <p
@@ -141,7 +141,7 @@ export function OrdersScoreboard({
         >
           {kicker}
         </p>
-        <article className="mcfly-orders-hero">
+        <article className="mcfly-orders-hero mcfly-orders-hero--soft">
           <p className="mcfly-orders-hero__k">
             <DeskIcon name="orders" />
             {hero.k}
@@ -168,7 +168,7 @@ export function OrdersScoreboard({
       </section>
 
       <section
-        className="mcfly-score mcfly-book mcfly-score--orders-depth"
+        className="mcfly-score mcfly-book mcfly-score--orders-depth mcfly-score--soft"
         aria-label="Order depth"
       >
         <p className="mcfly-scoreboard__kicker">Ticket · basket · returns</p>
@@ -180,7 +180,7 @@ export function OrdersScoreboard({
       </section>
 
       <section
-        className="mcfly-score mcfly-book mcfly-score--orders-timing"
+        className="mcfly-score mcfly-book mcfly-score--orders-timing mcfly-score--soft"
         aria-label="When and where orders land"
       >
         <p className="mcfly-scoreboard__kicker">

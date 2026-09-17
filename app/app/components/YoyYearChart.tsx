@@ -79,7 +79,7 @@ export function YoyYearChart({
   if (!paintable) {
     return (
       <section
-        className="mcfly-chart mcfly-chart--yoy mcfly-chart--empty mcfly-desk-anchor"
+        className="mcfly-chart mcfly-chart--yoy mcfly-chart--empty mcfly-chart--soft mcfly-desk-anchor"
         aria-label={`${year} vs last year`}
       >
         <div className="mcfly-chart__board">
@@ -191,7 +191,7 @@ export function YoyYearChart({
 
   return (
     <section
-      className="mcfly-chart mcfly-chart--yoy mcfly-desk-anchor"
+      className="mcfly-chart mcfly-chart--yoy mcfly-chart--soft mcfly-desk-anchor"
       aria-label={`${year} vs last year`}
     >
       <div className="mcfly-chart__board">
@@ -236,7 +236,7 @@ export function YoyYearChart({
         )}
       </div>
 
-      <ul className="mcfly-chart__stats">
+      <ul className="mcfly-chart__stats mcfly-chart__stats--soft">
         {stats.map((stat) => (
           <li className="mcfly-chart__stat" key={stat.k}>
             <span className="mcfly-chart__stat-k">{stat.k}</span>

@@ -17501,3 +17501,229 @@ button.mcfly-depth-legend__chip--on {
     border-radius: 14px;
   }
 }
+
+/* =========================================================================
+ * BC densify Orders + Customers + Growth (+ CPA/YoY follow-on).
+ * Soft dense cards, explorer-first, actionable What-to-do.
+ * APPEND ONLY. No Spend Upload / ROAS hero. Zero spend on OCG tabs.
+ * Snowdevil SAMPLE canvas. Cut uninstall friction — no thin KPI dumps.
+ * ========================================================================= */
+
+/* Orders — soft hero + peek grid + intel tiles */
+.mcfly-score--soft.mcfly-score--orders-hero,
+.mcfly-score--soft.mcfly-score--orders-depth,
+.mcfly-score--soft.mcfly-score--orders-timing {
+  gap: 0.55rem;
+}
+
+.mcfly-orders-hero--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 28%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+  padding: 0.95rem 1rem 1rem;
+}
+
+.mcfly-score--soft .mcfly-kpi--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 42%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 0.8rem 0.85rem 0.75rem;
+  min-height: 5.2rem;
+}
+
+.mcfly-score--soft .mcfly-kpi--soft::before {
+  display: none;
+}
+
+.mcfly-score--soft .mcfly-kpi-grid--soft {
+  gap: 0.55rem;
+}
+
+.mcfly-orders-intel--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 18%, #fff);
+  border-radius: 16px;
+  border-color: color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  box-shadow: none;
+}
+
+.mcfly-orders-intel__kpi--soft {
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  min-height: 4.4rem;
+}
+
+.mcfly-orders-tiers--soft .mcfly-orders-tiers__row--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 30%, #fff);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.mcfly-chart--soft .mcfly-chart__stats--soft .mcfly-chart__stat,
+.mcfly-chart--soft .mcfly-chart__stats--soft .mcfly-chart__stat-v {
+  letter-spacing: -0.02em;
+}
+
+.mcfly-chart--soft .mcfly-chart__stats--soft .mcfly-chart__stat,
+ul.mcfly-chart__stats--soft .mcfly-chart__stat {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 36%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  padding: 0.55rem 0.65rem;
+  box-shadow: none;
+}
+
+/* Customers — soft returning hero + actionable What-to-do */
+.mcfly-cust-card--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 20%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.mcfly-cust-fact--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 40%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  min-height: 4.5rem;
+}
+
+.mcfly-cust-kpis--actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0 0 0.85rem;
+}
+
+.mcfly-cust-kpi--soft.mcfly-cust-kpi--action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  margin: 0;
+  padding: 0.8rem 0.85rem 0.75rem;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 42%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  min-height: 6.2rem;
+}
+
+.mcfly-cust-kpi--soft.mcfly-cust-kpi--action:hover,
+.mcfly-cust-kpi--soft.mcfly-cust-kpi--action:focus-visible {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 45%, #fff);
+  outline: 2px solid color-mix(in srgb, var(--mcfly-accent) 35%, transparent);
+  outline-offset: 1px;
+}
+
+.mcfly-cust-kpi__verb {
+  margin: 0 0 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-cust-kpi--good .mcfly-cust-kpi__verb {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-cust-kpi--warn .mcfly-cust-kpi__verb {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-cust-play--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 32%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 0.75rem 0.85rem;
+}
+
+.mcfly-cust-funnel--soft .mcfly-cust-funnel__row {
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+/* Growth — soft board under explorer */
+.mcfly-growth-board--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 20%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.mcfly-cust-tile--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 40%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  min-height: 4.6rem;
+}
+
+.mcfly-cust-tile--soft::before {
+  display: none;
+}
+
+/* CPA + YoY soft densify follow-on (no Spend Upload ROAS hero) */
+.mcfly-yoy--soft .mcfly-yoy__card--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 42%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 0.85rem 0.95rem 0.8rem;
+}
+
+.mcfly-yoy--soft .mcfly-yoy__card--soft::before {
+  display: none;
+}
+
+.mcfly-yoy-board--soft,
+.mcfly-yoy-chan--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+  padding: 0.85rem 0.95rem 1rem;
+}
+
+.mcfly-yoy-board--soft .mcfly-yoy-board__table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.mcfly-yoy-board--soft .mcfly-yoy-board__row--current th,
+.mcfly-yoy-board--soft .mcfly-yoy-board__row--current td {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 35%, #fff);
+}
+
+@media (max-width: 430px) {
+  .mcfly-cust-kpis--actions {
+    grid-template-columns: 1fr;
+  }
+
+  .mcfly-score--soft .mcfly-kpi--soft,
+  .mcfly-cust-kpi--soft.mcfly-cust-kpi--action,
+  .mcfly-cust-tile--soft,
+  .mcfly-yoy--soft .mcfly-yoy__card--soft {
+    min-height: 0;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .mcfly-orders-hero--soft,
+  .mcfly-yoy-board--soft,
+  .mcfly-yoy-chan--soft {
+    padding: 0.7rem 0.75rem 0.85rem;
+    border-radius: 14px;
+  }
+}
+
