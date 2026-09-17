@@ -12,7 +12,7 @@
 | Black Clover group | Mcfly tabs | Notes |
 | --- | --- | --- |
 | SCOREBOARD | Overview · (Compare/Ledger fold into YoY/Total ROAS) · CPA | Overview = sales-first, zero spend |
-| RETAIN | Customers · Growth · LTV | Order-history depth |
+| RETAIN | Customers · Growth · Orders · LTV | Order-history depth (Orders sits here — Mcfly has no BC Compare/Ledger twin) |
 | SPEND PLAN | Spend Upload · Total ROAS · Channel Allocation · YoY · Goals | After Shopify five |
 | HONESTY | Trust banners / Returns honesty | Not a fake tab zoo |
 | EMAIL / Klaviyo | **Refuse** | No email scopes / connector zoo |
