@@ -576,14 +576,14 @@ export default function Dashboard() {
           : null}
 
         {isLoading && !shotMode ? (
-          <section className="mcfly-state mcfly-state--loading" aria-live="polite">
+          <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
             <p className="mcfly-state__copy">Refreshing sales…</p>
           </section>
         ) : null}
 
         {salesError && !shotMode ? (
           <section
-            className="mcfly-state mcfly-state--critical"
+            className="mcfly-state mcfly-state--critical mcfly-state--soft"
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">

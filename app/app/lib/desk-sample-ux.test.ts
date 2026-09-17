@@ -429,9 +429,13 @@ describe("Sample data | Live data UX", () => {
     const ltv = read("../routes/app.ltv.tsx");
     const gauges = read("../components/SalesGoalGauges.tsx");
 
-    expect(goals).toContain('className="mcfly-book"');
+    expect(goals).toContain("mcfly-book");
+    expect(goals).toContain("mcfly-book--soft");
     expect(goals).toContain('className="mcfly-book__hero-v"');
     expect(goals).toContain('variant="book"');
+    expect(goals).toContain("mcfly-goals--soft");
+    expect(gauges).toContain("mcfly-goal-row--soft");
+    expect(gauges).toContain("mcfly-goals-gauges--soft");
     expect(goals).not.toContain("mcfly-acq-tile");
     expect(goals).not.toContain("mcfly-goals-declare");
     expect(goals).not.toContain("mcfly-panel mcfly-goals-declare");

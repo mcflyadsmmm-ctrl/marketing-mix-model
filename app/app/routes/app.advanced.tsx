@@ -133,7 +133,7 @@ export default function AdvancedMetricsPage() {
 
         {isLoading && !shotMode ? (
           <section
-            className="mcfly-state mcfly-state--loading"
+            className="mcfly-state mcfly-state--loading mcfly-state--soft"
             aria-live="polite"
           >
             <p className="mcfly-state__copy">Refreshing advanced metrics…</p>
@@ -142,7 +142,7 @@ export default function AdvancedMetricsPage() {
 
         {salesError && !shotMode ? (
           <section
-            className="mcfly-state mcfly-state--critical"
+            className="mcfly-state mcfly-state--critical mcfly-state--soft"
             aria-label="Sales load error"
           >
             <p className="mcfly-state__copy">
@@ -221,7 +221,7 @@ export default function AdvancedMetricsPage() {
             </summary>
             {section.lockedReason ? (
               <section
-                className="mcfly-state mcfly-state--empty"
+                className="mcfly-state mcfly-state--empty mcfly-state--soft"
                 aria-label={`${section.title} locked`}
               >
                 <p className="mcfly-state__copy">{section.lockedReason}</p>

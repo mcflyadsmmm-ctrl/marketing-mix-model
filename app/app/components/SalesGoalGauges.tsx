@@ -98,6 +98,7 @@ function GoalRow({
     <article
       className={[
         "mcfly-goal-row",
+        "mcfly-goal-row--soft",
         `mcfly-goal-row--${tone}`,
         compact ? "mcfly-goal-row--compact" : null,
         !hasGoal ? "mcfly-goal-row--empty" : null,
@@ -228,13 +229,13 @@ export function SalesGoalGauges({
   switch (variant) {
     case "book":
       return (
-        <section className="mcfly-book" aria-label={heading}>
+        <section className="mcfly-book mcfly-book--soft mcfly-goals-gauges--soft" aria-label={heading}>
           <p className="mcfly-book__lede">
             {heading} — {muted}
           </p>
           {rows}
           {noGoalsSet ? (
-            <p className="mcfly-book__cta">
+            <p className="mcfly-book__cta mcfly-goals-gauges__empty-soft">
               <s-link href="/app/goals">Grow 10% vs last year · set goals</s-link>
             </p>
           ) : null}
@@ -242,10 +243,10 @@ export function SalesGoalGauges({
       );
     case "inline":
       return (
-        <div className="mcfly-goal-inline" aria-label={heading}>
+        <div className="mcfly-goal-inline mcfly-goal-inline--soft" aria-label={heading}>
           {rows}
           {noGoalsSet ? (
-            <p className="mcfly-goal-inline__foot">
+            <p className="mcfly-goal-inline__foot mcfly-goals-gauges__empty-soft">
               <s-link href="/app/goals">Set goals</s-link>
             </p>
           ) : null}
@@ -254,7 +255,7 @@ export function SalesGoalGauges({
     case "panel":
       return (
         <section
-          className="mcfly-panel mcfly-sales-gauges mcfly-sales-gauges--rows"
+          className="mcfly-panel mcfly-sales-gauges mcfly-sales-gauges--rows mcfly-goals-gauges--soft"
           aria-label={heading}
         >
           <div className="mcfly-panel__head mcfly-panel__head--tight">
@@ -263,7 +264,7 @@ export function SalesGoalGauges({
           </div>
           {rows}
           {noGoalsSet ? (
-            <p className="mcfly-sales-gauges__foot">
+            <p className="mcfly-sales-gauges__foot mcfly-goals-gauges__empty-soft">
               <s-link href="/app/goals">Grow 10% vs last year · set goals</s-link>
             </p>
           ) : null}

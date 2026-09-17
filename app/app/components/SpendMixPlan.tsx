@@ -142,7 +142,7 @@ export function SpendMixPlan({
   const close = board.dualClose;
 
   return (
-    <section className="mcfly-spend-room" aria-label="Spend mix and plan">
+    <section className="mcfly-spend-room mcfly-spend-room--soft" aria-label="Spend mix and plan">
       <div className="mcfly-spend-room__mix">
         <div
           className="mcfly-control__segmented"

@@ -17967,3 +17967,293 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
   border-radius: 16px;
   box-shadow: none;
 }
+
+
+/* =========================================================================
+ * BC densify Goals / Allocation / Settings + soft empty/loading desk-wide.
+ * APPEND ONLY. Tip after #85 Spend Upload polish. Soft dense gauges, mix
+ * clarity, Settings panels. Honest empty ≠ zero. Soft states don’t look dead.
+ * Locks: Snowdevil SAMPLE; no Overview spend/ROAS; Spend Upload no ROAS hero;
+ * no Live/growth unlock; trust empty-vs-zero. Do not thin prior densify PRs.
+ * ========================================================================= */
+
+/* --- Soft empty / loading / warn / critical — alive, not dead white --- */
+.mcfly-state--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 26%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+  padding: 0.9rem 1rem;
+}
+
+.mcfly-state--soft.mcfly-state--loading {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 34%, #fff);
+  border-style: solid;
+}
+
+.mcfly-state--soft.mcfly-state--empty {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 18%, #fff);
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--mcfly-line) 70%, var(--mcfly-accent));
+}
+
+.mcfly-state--soft.mcfly-state--warn {
+  background: color-mix(in srgb, #fffbeb 72%, var(--mcfly-accent-soft));
+  border-color: color-mix(in srgb, #fde7c4 70%, var(--mcfly-line));
+}
+
+.mcfly-state--soft.mcfly-state--critical {
+  background: color-mix(in srgb, var(--mcfly-lie-soft) 70%, #fff);
+  border-color: color-mix(in srgb, #fecaca 75%, var(--mcfly-line));
+}
+
+.mcfly-state--soft .mcfly-state__copy {
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+}
+
+/* --- Goals — soft dense gauges + plan --- */
+.mcfly-goals--soft .mcfly-goals__rail {
+  margin-bottom: 0.35rem;
+}
+
+.mcfly-goals-gauges--soft,
+.mcfly-goals-hero--soft,
+.mcfly-goals-plan--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 18%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.mcfly-goals-gauges--soft .mcfly-goal-rows {
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
+.mcfly-goal-row--soft {
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 0.65rem 0.8rem 0.6rem;
+  min-height: 3.4rem;
+}
+
+.mcfly-goal-row--soft.mcfly-goal-row--up {
+  background: color-mix(in srgb, var(--mcfly-truth-soft) 55%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-truth) 28%, var(--mcfly-line-soft));
+}
+
+.mcfly-goal-row--soft.mcfly-goal-row--down {
+  background: color-mix(in srgb, #fff7ed 65%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-warn) 30%, var(--mcfly-line-soft));
+}
+
+.mcfly-goal-row--soft.mcfly-goal-row--flat {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 42%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-accent) 22%, var(--mcfly-line-soft));
+}
+
+.mcfly-goal-row--soft.mcfly-goal-row--empty {
+  opacity: 1;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 22%, #fff);
+  border-style: dashed;
+}
+
+.mcfly-goal-row--soft .mcfly-goal-row__track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 55%, var(--mcfly-accent-soft));
+}
+
+.mcfly-goal-row--soft .mcfly-goal-row__pct {
+  letter-spacing: -0.03em;
+}
+
+.mcfly-goals-gauges__empty-soft {
+  margin: 0.65rem 0 0;
+  padding: 0.55rem 0.7rem;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 30%, #fff);
+  border: 1px dashed color-mix(in srgb, var(--mcfly-line) 72%, var(--mcfly-accent));
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.mcfly-goals-panel--soft,
+.mcfly-goals-forecast--soft,
+.mcfly-goals-plan-details--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 14%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.mcfly-goals-forecast--soft {
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  padding: 0.7rem 0.85rem;
+  margin: 0.55rem 0;
+}
+
+.mcfly-goals-plan-details--soft > summary {
+  letter-spacing: -0.01em;
+}
+
+.mcfly-goal-inline--soft .mcfly-goal-row--soft {
+  min-height: 0;
+  padding: 0.4rem 0.55rem;
+}
+
+/* --- Allocation — soft mix clarity --- */
+.mcfly-alloc-v2--soft .mcfly-alloc-v2__snaps--soft,
+.mcfly-alloc-v2--soft .mcfly-alloc-v2__mix--soft,
+.mcfly-alloc-v2--soft .mcfly-alloc-v2__quarters--soft,
+.mcfly-alloc-v2--soft .mcfly-alloc-v2__rolling--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.mcfly-alloc-v2__snap--soft {
+  background: color-mix(in srgb, #fff 68%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  min-height: 5rem;
+  padding: 0.75rem 0.8rem;
+}
+
+.mcfly-alloc-v2__snap--soft.mcfly-alloc-v2__snap--lead {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 48%, #fff);
+}
+
+.mcfly-alloc-v2__snap--soft .mcfly-alloc-v2__snap-value {
+  letter-spacing: -0.03em;
+}
+
+.mcfly-alloc-v2__chan--soft {
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 0.55rem 0.7rem;
+}
+
+.mcfly-alloc-v2__chan--soft.mcfly-alloc-v2__chan--on {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 55%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-accent) 35%, var(--mcfly-line));
+}
+
+.mcfly-alloc-v2__q-card--soft {
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.mcfly-alloc-v2__q-card--soft.mcfly-alloc-v2__q-card--on {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 50%, #fff);
+}
+
+.mcfly-alloc-v2__roll--soft {
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  min-height: 4.6rem;
+  padding: 0.7rem 0.75rem;
+}
+
+.mcfly-alloc-v2__empty--soft {
+  margin: 0.35rem 0 0;
+  padding: 0.7rem 0.85rem;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 24%, #fff);
+  border: 1px dashed color-mix(in srgb, var(--mcfly-line) 70%, var(--mcfly-accent));
+  border-radius: 12px;
+  box-shadow: none;
+  color: var(--mcfly-ink);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.mcfly-spend-room--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 14%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+  padding: 0.85rem 0.95rem 1rem;
+}
+
+.mcfly-spend-room--soft .mcfly-control__table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mcfly-alloc-v2--soft .mcfly-alloc-v2__takeaway {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 28%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: none;
+}
+
+/* --- Settings — soft clarity --- */
+.mcfly-settings--soft .mcfly-topbar--settings {
+  margin-bottom: 0.35rem;
+}
+
+.mcfly-settings-panel--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+  padding: 0.95rem 1rem 1.05rem;
+}
+
+.mcfly-settings-template--soft .mcfly-settings-template__desc {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 20%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 14px;
+  padding: 0.85rem 0.95rem;
+  box-shadow: none;
+}
+
+.mcfly-settings-panel--soft .mcfly-settings-field,
+.mcfly-settings--soft .mcfly-settings-field {
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  padding: 0.55rem 0.65rem 0.6rem;
+  box-shadow: none;
+}
+
+.mcfly-settings-more--soft .mcfly-settings-more__body {
+  gap: 0.75rem;
+}
+
+.mcfly-settings--soft .mcfly-decision__actions {
+  gap: 0.55rem;
+}
+
+@media (max-width: 430px) {
+  .mcfly-goals-gauges--soft,
+  .mcfly-goals-hero--soft,
+  .mcfly-goals-plan--soft,
+  .mcfly-alloc-v2--soft .mcfly-alloc-v2__snaps--soft,
+  .mcfly-alloc-v2--soft .mcfly-alloc-v2__mix--soft,
+  .mcfly-alloc-v2--soft .mcfly-alloc-v2__quarters--soft,
+  .mcfly-alloc-v2--soft .mcfly-alloc-v2__rolling--soft,
+  .mcfly-settings-panel--soft,
+  .mcfly-state--soft {
+    padding: 0.7rem 0.75rem 0.8rem;
+    border-radius: 14px;
+  }
+
+  .mcfly-goal-row--soft,
+  .mcfly-alloc-v2__snap--soft,
+  .mcfly-alloc-v2__chan--soft {
+    min-height: 0;
+  }
+}
