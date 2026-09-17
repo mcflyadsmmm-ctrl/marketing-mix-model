@@ -157,6 +157,9 @@ function useOverviewPeekValues({
 
 /**
  * Founder glance peeks under YoY — typical order, returning $, weekend.
+ * SAMPLE Snowdevil is the craft canvas: paint the dense board (AOV ~$631,
+ * YoY, returning $, weekend) and never thin this strip to match a live
+ * store with fewer facts. Spend stays off Overview.
  * Depth peeks sit after the open sales chart so the first screen stays a
  * scoreboard, not a pamphlet.
  */
