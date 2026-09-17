@@ -3,15 +3,19 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
-import { ShopifyBookSection } from "../components/ShopifyBookSection";
-import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
+import { OrdersScoreboard } from "../components/OrdersScoreboard";
+import { OrdersTimingChart } from "../components/OrdersTimingChart";
+import { OrdersIntelligence } from "../components/OrdersIntelligence";
+import { OrdersFrequencyChart } from "../components/OrdersFrequencyChart";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return loadDeskSalesPage(request, "/app/orders");
+  return loadDeskSalesPage(request, "/app/orders", {
+    includeOrdersIntelligence: true,
+  });
 };
 
 export default function OrdersPage() {
@@ -26,6 +30,8 @@ export default function OrdersPage() {
     shopifyOrderWindowLimited,
     factsIncomplete,
     orderBackfillProgress,
+    ordersIntel,
+    ordersFrequency,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -81,23 +87,46 @@ export default function OrdersPage() {
           Sales for closed days are still loading — not $0.
         </p>
       ) : null}
-          <ShopifyBookSection
-            book={book}
-            depth={metrics.shopifyDepth}
-            clocks={{
-              gross: metrics.grossSales,
-              grossKnown: metrics.grossSalesKnown,
-              total: totalSalesDisplay,
-              net: metrics.netSales,
-              netKnown: metrics.netSalesKnown,
-            }}
-            groups={["period", "timing"]}
-            title={PRODUCT_NOUN.ordersTitle}
-            muted={deskBookLede(
-              "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS as cards. Pending sales are a banner — the book still paints from orders on file. Click a weekday bar.",
-            )}
-          />
-          <WeekdaySalesChart shares={metrics.shopifyDepth.weekdaySalesShare} />
+      <div className="mcfly-desk-anchor mcfly-scoreboard--orders">
+        <p className="mcfly-book__lede">
+          {deskBookLede(
+            "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS. Pending sales are a banner — the board still paints from orders on file.",
+          )}
+        </p>
+        {ordersIntel && !metrics.salesPending ? (
+          <OrdersIntelligence intel={ordersIntel} />
+        ) : null}
+        <OrdersScoreboard
+          book={book}
+          depth={metrics.shopifyDepth}
+          clocks={{
+            gross: metrics.grossSales,
+            grossKnown: metrics.grossSalesKnown,
+            total: totalSalesDisplay,
+            net: metrics.netSales,
+            netKnown: metrics.netSalesKnown,
+          }}
+          salesPending={Boolean(metrics.salesPending)}
+          useSampleDesk={useSampleDesk}
+        />
+        <OrdersTimingChart
+          weekdayShares={metrics.shopifyDepth.weekdaySalesShare}
+          hourlyShares={metrics.shopifyDepth.hourlySalesShare}
+          windowSales={metrics.sales}
+          peakWeekday={metrics.shopifyDepth.peakWeekday}
+          peakHour={metrics.shopifyDepth.peakHour}
+          salesPending={Boolean(metrics.salesPending)}
+        />
+        {ordersFrequency && ordersFrequency.length > 1 && !metrics.salesPending ? (
+          <OrdersFrequencyChart buckets={ordersFrequency} />
+        ) : null}
+        <footer className="mcfly-book__links">
+          <s-link href="/app">{PRODUCT_NOUN.overviewTitle}</s-link>
+          <s-link href="/app/customers">{PRODUCT_NOUN.buyersTitle}</s-link>
+          <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>
+          <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
+        </footer>
+      </div>
     </DeskBookPage>
   );
 }

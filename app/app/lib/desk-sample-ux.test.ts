@@ -218,8 +218,8 @@ describe("Sample data | Live data UX", () => {
     expect(growth).toContain("tillLtv.repeatRate");
     expect(growth).toContain("/app/ltv");
     expect(growth).not.toContain("cashCac");
-    expect(orders).toContain('groups={["period", "timing"]}');
-    expect(orders).toContain("<WeekdaySalesChart");
+    expect(orders).toContain("<OrdersScoreboard");
+    expect(orders).toContain("<OrdersTimingChart");
     expect(customers).toContain("orderFactsTruncated");
     expect(growth).toContain("orderFactsTruncated");
     expect(orders).toContain("orderFactsTruncated");
