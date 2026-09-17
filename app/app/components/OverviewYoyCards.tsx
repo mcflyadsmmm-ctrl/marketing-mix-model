@@ -4,10 +4,14 @@ import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import {
   OVERVIEW_YOY_ANALYTICS_LEDE,
+  OVERVIEW_YOY_IDS,
+  OVERVIEW_YOY_LABELS,
   OVERVIEW_YOY_MISSING,
+  OVERVIEW_YOY_PENDING,
   OVERVIEW_YOY_SAME_WINDOW,
   overviewWindowsCollapsed,
   type OverviewYoyCard,
+  type OverviewYoyId,
 } from "../lib/overview-yoy";
 
 function deltaLine(card: OverviewYoyCard, currency: string): string | null {
@@ -28,8 +32,25 @@ function deltaLine(card: OverviewYoyCard, currency: string): string | null {
     : `${sign}${dollars} vs last year`;
 }
 
+function PendingYoyShell({ id }: { id: OverviewYoyId }) {
+  return (
+    <article className="mcfly-yoy__card" key={id}>
+      <p className="mcfly-yoy__k">
+        <DeskIcon name="yoy" />
+        {OVERVIEW_YOY_LABELS[id]}
+      </p>
+      <p className="mcfly-yoy__v">—</p>
+      <p className="mcfly-yoy__prior">
+        <span>Last year</span>
+        <span>—</span>
+      </p>
+    </article>
+  );
+}
+
 /**
  * Overview = three YoY sales cards. Spend / explorer / glance live elsewhere.
+ * Pending sales paint — not a finished $0 year.
  */
 export function OverviewYoyCards({
   cards,
@@ -44,9 +65,14 @@ export function OverviewYoyCards({
   const drill = useDeskDrill();
   if (salesPending) {
     return (
-      <p className="mcfly-book__lede">
-        Sales for closed days are still loading — not $0.
-      </p>
+      <section className="mcfly-yoy" aria-label="Sales versus last year">
+        <p className="mcfly-yoy__lede">{OVERVIEW_YOY_PENDING}</p>
+        <div className="mcfly-yoy__grid">
+          {OVERVIEW_YOY_IDS.map((id) => (
+            <PendingYoyShell id={id} key={id} />
+          ))}
+        </div>
+      </section>
     );
   }
   if (cards.length === 0) return null;

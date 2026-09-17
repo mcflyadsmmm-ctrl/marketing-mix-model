@@ -18,6 +18,7 @@ import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
 import { OverviewFirstViewport } from "../components/OverviewFirstViewport";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
+import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { useDeskHashScroll } from "../components/useDeskHashScroll";
 import {
@@ -41,6 +42,7 @@ import {
   isOverviewHomeStage,
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
+import { overviewGreetingPending } from "../lib/overview-first-viewport";
 import { formatOverviewShareText } from "../lib/cash-close";
 import {
   emptySales,
@@ -534,17 +536,19 @@ export default function Dashboard() {
   const ordersHref = deskNavHrefFromSearch("/app/orders", searchParams);
   const spendHref = deskNavHrefFromSearch("/app/spend", searchParams);
   const roasHref = deskNavHrefFromSearch("/app/roas", searchParams);
-  const goalsHref = deskNavHrefFromSearch("/app/goals", searchParams);
   const settingsHref = deskNavHrefFromSearch("/app/settings", searchParams);
   const yoyHref = deskNavHrefFromSearch("/app/yoy", searchParams);
   const showLiveHandoff =
     !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
-  const eomMer =
-    cashControl?.dualClose?.l7Close.projMer ??
-    cashControl?.dualClose?.mtdFlat.projMer ??
-    null;
-  const coveragePct = metrics.spendCoverage?.coveragePct;
-  const recon = metrics.spendRecon;
+  const greetingPending = overviewGreetingPending({
+    salesPending: metrics.salesPending,
+    sales: totalSalesDisplay,
+    coverageComplete: salesFactsCoverage?.complete ?? null,
+    periodExceedsFactWindow: Boolean(
+      salesFactsCoverage?.periodExceedsFactWindow,
+    ),
+    useSampleDesk,
+  });
 
   return (
     <s-page heading={deskStageHeading(stage)} inlineSize="large">
@@ -612,16 +616,6 @@ export default function Dashboard() {
             <span className="mcfly-ctx__asof">{tillLabel}</span>
           </div>
           <div className="mcfly-trust" aria-label="Trust and freshness">
-            {coveragePct != null && metrics.totalSpend > 0 ? (
-              <span className="mcfly-trust__chip mcfly-trust__chip--ok">
-                Coverage {Math.round(coveragePct)}%
-              </span>
-            ) : null}
-            {recon?.status === "ok" && recon.deltaPct != null ? (
-              <span className="mcfly-trust__chip mcfly-trust__chip--ok">
-                Recon ±{Math.abs(recon.deltaPct * 100).toFixed(1)}%
-              </span>
-            ) : null}
             {metrics.marginPct > 0 ? (
               <span className="mcfly-trust__chip mcfly-trust__chip--ok">
                 Margin {Math.round(metrics.marginPct * 100)}%
@@ -646,12 +640,10 @@ export default function Dashboard() {
               >
                 <OverviewYoyCards
                   cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                  salesPending={metrics.salesPending}
+                  salesPending={greetingPending}
                   yoyHref={yoyHref}
                 />
                 <OverviewFirstViewport
-                  totalSales={totalSalesDisplay}
-                  periodLabel={metrics.period.label}
                   orderCount={metrics.orderCount}
                   typicalOrder={metrics.shopifyDepth.medianAov}
                   meanAov={
@@ -661,33 +653,29 @@ export default function Dashboard() {
                   }
                   returningSalesShare={shopBook.returningSalesShare}
                   returningSales={shopBook.returningSales}
-                  newCustomers={metrics.newCustomers}
                   medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
-                  discountedOrderShare={
-                    metrics.shopifyDepth.discountedOrderShare
-                  }
                   weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
-                  salesPending={metrics.salesPending}
+                  salesPending={greetingPending}
                   spendEmpty={!metrics.onboarding.hasSpend && !useSampleDesk}
                   totalSpend={metrics.totalSpend}
-                  mer={metrics.mer}
-                  breakEvenMer={metrics.breakEvenMer}
-                  targetMer={metrics.targetMer}
-                  eomMer={eomMer}
-                  salesDelta={salesDeltaLine}
-                  spendDelta={spendDeltaLine}
-                  grossSales={metrics.grossSales}
-                  grossSalesKnown={metrics.grossSalesKnown}
                   ordersHref={ordersHref}
                   spendHref={spendHref}
                   roasHref={roasHref}
-                  goalsHref={goalsHref}
                   settingsHref={settingsHref}
                   useSampleDesk={useSampleDesk}
                   share={shareButton}
                 />
-                <OverviewSalesChart days={salesDays} ordersHref={ordersHref} />
-                {!metrics.salesPending ? (
+                <OverviewSalesChart
+                  days={salesDays}
+                  ordersHref={ordersHref}
+                  salesPending={greetingPending}
+                />
+                {!greetingPending ? (
+                  <WeekdaySalesChart
+                    shares={metrics.shopifyDepth.weekdaySalesShare}
+                  />
+                ) : null}
+                {!greetingPending ? (
                   <footer className="mcfly-book__links">
                     <s-link href={deskNavHrefFromSearch("/app/customers", searchParams)}>
                       {PRODUCT_NOUN.buyersTitle}

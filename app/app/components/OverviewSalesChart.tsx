@@ -38,9 +38,11 @@ function bucketsForGrain(
 export function OverviewSalesChart({
   days,
   ordersHref = "/app/orders",
+  salesPending = false,
 }: {
   days: SalesDayPoint[];
   ordersHref?: string;
+  salesPending?: boolean;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -50,7 +52,8 @@ export function OverviewSalesChart({
     () => bucketsForGrain(days, grain),
     [days, grain],
   );
-  if (points.length < 2) return null;
+  const hasSales = points.some((point) => point.sales > 0);
+  if (salesPending || !hasSales || points.length < 2) return null;
 
   const max = Math.max(...points.map((point) => point.sales), 1);
   const width = 640;

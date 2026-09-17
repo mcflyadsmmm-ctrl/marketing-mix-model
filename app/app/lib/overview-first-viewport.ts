@@ -1,14 +1,20 @@
 /**
- * Overview first viewport — Total Sales + KPI cards after the YoY glance.
- * Total ROAS only when this window has spend. Ad spend lives on Total ROAS /
- * Spend Upload — never a blank 2×2 tile at $0. Spend stays optional.
+ * Overview first viewport — Shopify-depth peeks after the YoY glance.
+ * Total ROAS / ad spend / EOM projected ROAS never live here. Those sit on
+ * Total ROAS after Spend Upload. Spend stays optional forever on this tab.
  */
 
 export const OVERVIEW_COVERAGE_LINE =
   "Shopify orders · last ~60 days available · returns included";
 
 export const OVERVIEW_SPEND_EMPTY_LINE =
-  "Spend not added. Overview works without it.";
+  "Spend is optional. Overview works without it.";
+
+export const OVERVIEW_PENDING_LINE =
+  "Sales for closed days are still loading — not $0.";
+
+export const OVERVIEW_SPEND_DOOR_LINE =
+  "Spend is optional. Total ROAS lives on that tab after you add spend.";
 
 export type OverviewNoticeInput = {
   orderCount: number;
@@ -25,8 +31,35 @@ export type OverviewTakeawayInput = {
   orderCount: number;
 };
 
+export type OverviewGreetingInput = {
+  salesPending: boolean;
+  sales: number;
+  coverageComplete?: boolean | null;
+  periodExceedsFactWindow?: boolean;
+  useSampleDesk?: boolean;
+};
+
+export type OverviewPeekThird =
+  | { kind: "weekend"; share: number }
+  | { kind: "daysToSecond"; days: number }
+  | { kind: "empty" };
+
 function wholePercent(share: number): number {
   return Math.round(share * 100);
+}
+
+/**
+ * Overview greeting pending — chrome “still loading sales days” must not
+ * become a finished $0 year. Incomplete coverage + $0 sales is unknown,
+ * even when a few empty fact days already exist.
+ */
+export function overviewGreetingPending(input: OverviewGreetingInput): boolean {
+  if (input.useSampleDesk) return false;
+  if (input.salesPending) return true;
+  const sales = Number.isFinite(input.sales) ? input.sales : 0;
+  const incomplete =
+    input.coverageComplete === false && !input.periodExceedsFactWindow;
+  return incomplete && sales <= 0;
 }
 
 /**
@@ -35,7 +68,7 @@ function wholePercent(share: number): number {
  */
 export function overviewNoticeSentence(input: OverviewNoticeInput): string {
   if (input.salesPending) {
-    return "Sales for closed days are still loading — not $0.";
+    return OVERVIEW_PENDING_LINE;
   }
   if (!(input.orderCount > 0)) {
     return "No orders in this window yet.";
@@ -65,7 +98,7 @@ export function overviewNoticeSentence(input: OverviewNoticeInput): string {
 /** Demo-desk takeaway — typical order + returning dollars, never an AI analyst. */
 export function overviewDecisionTakeaway(input: OverviewTakeawayInput): string {
   if (input.salesPending) {
-    return "Sales for closed days are still loading — not $0.";
+    return OVERVIEW_PENDING_LINE;
   }
   if (!(input.orderCount > 0)) {
     return "No orders in this window yet.";
@@ -100,4 +133,24 @@ export function overviewReturningCompactDollars(
     return returningSales;
   }
   return null;
+}
+
+/** Third peek: weekend share, else days-to-second. Never a fake 0%. */
+export function overviewPeekThird(input: {
+  weekendSalesShare?: number | null;
+  medianDaysToSecond?: number | null;
+}): OverviewPeekThird {
+  const weekend = input.weekendSalesShare;
+  if (
+    weekend != null &&
+    Number.isFinite(weekend) &&
+    Math.round(weekend * 100) > 0
+  ) {
+    return { kind: "weekend", share: weekend };
+  }
+  const days = input.medianDaysToSecond;
+  if (days != null && Number.isFinite(days)) {
+    return { kind: "daysToSecond", days };
+  }
+  return { kind: "empty" };
 }

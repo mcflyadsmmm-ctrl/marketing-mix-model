@@ -70,7 +70,11 @@ describe("Admin desk phone / narrow iframe", () => {
   it("ships a 390px fixture with Harbor SAMPLE dollars and the 11-tab rail", () => {
     const fixture = read("./desk-phone-fixture.html");
     expect(fixture).toContain("$82,068");
-    expect(fixture).toContain("3.51×");
+    expect(fixture).toContain("Typical order");
+    expect(fixture).toContain("Weekend sales");
+    expect(fixture).not.toContain("3.51×");
+    expect(fixture).not.toContain("0.00×");
+    expect(fixture).not.toContain("Edit spend");
     expect(fixture).toContain("Overview");
     expect(fixture).toContain("Channel Allocation");
     expect(fixture).toContain("Spend Upload");
