@@ -16498,3 +16498,770 @@ button.mcfly-depth-legend__chip:focus-visible {
     font-size: 0.72rem;
   }
 }
+
+/* === Overview sales explorer (PR #70) === */
+/* =========================================================================
+ * Sales explorer craft 2026-09-17 — Overview day-vs-typical scoreboard.
+ * Reference bar: Black Clover MER command center (docs/ops/research/
+ * black-clover-depth). Range presets + FROM/TO + Day/Week/Month/Quarter grain,
+ * dual axis (sales $ bars vs typical rail · cumulative sweep), dark readout
+ * tooltip with a plain formula, soft dense stat cards. APPEND ONLY. Zero spend
+ * / ROAS / MER on Overview. SAMPLE stays labeled. SVG paints shapes; crisp HTML
+ * overlays paint axis text + tooltip so type never shrinks with the viewBox.
+ * ========================================================================= */
+
+.mcfly-chart--sales.mcfly-chart {
+  padding: 0.85rem 0.95rem 0.85rem;
+}
+
+/* Head: title left, live readout right. */
+.mcfly-chart--sales .mcfly-chart__board {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  column-gap: 0.7rem;
+  row-gap: 0;
+  margin: 0 0 0.15rem;
+}
+
+.mcfly-chart__masthead {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.mcfly-chart__serif {
+  margin: 0;
+  font-family: var(--mcfly-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-chart__muted {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.mcfly-chart--sales .mcfly-chart__readout {
+  grid-column: 2;
+  grid-row: 1;
+  text-align: right;
+  min-width: 0;
+}
+
+.mcfly-chart--sales .mcfly-chart__when {
+  margin: 0;
+}
+
+.mcfly-chart--sales .mcfly-chart__vs {
+  margin: 0.05rem 0 0;
+}
+
+.mcfly-chart__lede {
+  margin: 0.05rem 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Controls — range presets, FROM/TO, grain. Wraps on a phone. */
+.mcfly-chart__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+  margin: 0 0 0.55rem;
+}
+
+.mcfly-chart__controls .mcfly-period__btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.mcfly-chart__dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mcfly-chart__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__date input {
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 0.26rem 0.42rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--mcfly-ink);
+  color-scheme: light;
+}
+
+.mcfly-chart__date input:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 1px;
+}
+
+/* Plot — aspect-boxed so the SVG and HTML overlays share one coordinate map. */
+.mcfly-chart__plot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 760 / 300;
+  margin: 0.1rem 0 0;
+  overflow: visible;
+}
+
+.mcfly-chart--sales .mcfly-chart__svg,
+.mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.mcfly-chart--sales .mcfly-chart__weekend {
+  fill: color-mix(in srgb, var(--mcfly-accent) 9%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart__grid {
+  stroke: var(--mcfly-line-soft);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.mcfly-chart--sales .mcfly-chart__typical {
+  stroke: var(--mcfly-ink-soft);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 4;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.mcfly-chart__rail-k {
+  position: absolute;
+  transform: translateY(-50%);
+  padding: 0.06rem 0.42rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 82%, var(--mcfly-tint-sky));
+  border: 1px solid var(--mcfly-line);
+  color: var(--mcfly-ink);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* Bars — duotone by day vs typical. Above pops navy; below stays sky. */
+.mcfly-chart--sales .mcfly-chart__bar {
+  fill: color-mix(in srgb, var(--mcfly-accent) 60%, #cfe0ee);
+  transition: fill var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-chart--sales .mcfly-chart__bar--cool {
+  fill: color-mix(in srgb, var(--mcfly-accent) 44%, #dbe7f1);
+}
+
+.mcfly-chart--sales .mcfly-chart__bar--hot {
+  fill: var(--mcfly-accent);
+}
+
+.mcfly-chart--sales .mcfly-chart__bar--weekend {
+  fill: color-mix(in srgb, var(--mcfly-accent) 36%, #e0e9f2);
+}
+
+.mcfly-chart--sales .mcfly-chart__bar--weekend.mcfly-chart__bar--hot {
+  fill: color-mix(in srgb, var(--mcfly-accent) 70%, #0c1929);
+}
+
+.mcfly-chart--sales .mcfly-chart__bar:hover {
+  fill: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart--sales .mcfly-chart__bar--on {
+  fill: var(--mcfly-accent-ink);
+}
+
+/* Cumulative sweep on the right axis. */
+.mcfly-chart--sales .mcfly-chart__sales-fill {
+  fill: color-mix(in srgb, var(--mcfly-ink-soft) 9%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart--sales .mcfly-chart__sales-line {
+  fill: none;
+  stroke: var(--mcfly-truth);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.92;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+.mcfly-chart__cum-cap {
+  fill: var(--mcfly-truth);
+  stroke: #fff;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+/* Active guide + marker connect the tapped bar to its dark readout. */
+.mcfly-chart__guide {
+  stroke: var(--mcfly-ink-soft);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.mcfly-chart__marker {
+  fill: #fff;
+  stroke: var(--mcfly-ink-soft);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+/* Left ($) + right (cumulative) axis text, painted crisp as HTML overlays. */
+.mcfly-chart__axis-y,
+.mcfly-chart__axis-y2,
+.mcfly-chart__axis-x {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mcfly-chart__ytick {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  padding-right: 0.4rem;
+  text-align: right;
+  font-size: 0.6rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__y2tick {
+  position: absolute;
+  transform: translateY(-50%);
+  padding-left: 0.36rem;
+  text-align: left;
+  font-size: 0.58rem;
+  font-weight: 650;
+  color: color-mix(in srgb, var(--mcfly-ink-soft) 62%, transparent);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__xtick {
+  position: absolute;
+  transform-origin: 100% 0;
+  transform: translateX(-100%) rotate(-26deg);
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dark readout tooltip — period header, sales rows, formula footer. */
+.mcfly-chart__tip {
+  position: absolute;
+  z-index: 5;
+  min-width: 9.5rem;
+  max-width: 15rem;
+  padding: 0.5rem 0.62rem;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--mcfly-ink-soft) 96%, #000);
+  color: #f4f7fb;
+  box-shadow: 0 12px 34px rgba(2, 12, 27, 0.4);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__tip--mid {
+  transform: translate(-50%, calc(-100% - 12px));
+}
+.mcfly-chart__tip--left {
+  transform: translate(-8%, calc(-100% - 12px));
+}
+.mcfly-chart__tip--right {
+  transform: translate(-92%, calc(-100% - 12px));
+}
+.mcfly-chart__tip--below.mcfly-chart__tip--mid {
+  transform: translate(-50%, 14px);
+}
+.mcfly-chart__tip--below.mcfly-chart__tip--left {
+  transform: translate(-8%, 14px);
+}
+.mcfly-chart__tip--below.mcfly-chart__tip--right {
+  transform: translate(-92%, 14px);
+}
+
+.mcfly-chart__tip-when {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.mcfly-chart__tip-tag {
+  padding: 0.02rem 0.36rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #dbe6f2;
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mcfly-chart__tip-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.mcfly-chart__tip-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.42rem;
+  font-size: 0.72rem;
+}
+
+.mcfly-chart__tip-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 2px;
+}
+
+.mcfly-chart__tip-dot--sales {
+  background: color-mix(in srgb, var(--mcfly-accent) 72%, #fff);
+}
+
+.mcfly-chart__tip-dot--typical {
+  width: 0.62rem;
+  height: 0;
+  border-radius: 0;
+  border-top: 1.5px dashed rgba(255, 255, 255, 0.75);
+}
+
+.mcfly-chart__tip-dot--vs {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.mcfly-chart__tip-dot--orders {
+  background: color-mix(in srgb, var(--mcfly-accent) 40%, #fff);
+  border-radius: 2px;
+}
+
+.mcfly-chart__tip-dot--aov {
+  width: 0.62rem;
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid #6ee7b7;
+}
+
+.mcfly-chart__tip-dot--cum {
+  width: 0.62rem;
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.mcfly-chart__tip-k {
+  color: rgba(233, 240, 248, 0.78);
+}
+
+.mcfly-chart__tip-v {
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.mcfly-chart__tip-v--up {
+  color: #6ee7b7;
+}
+.mcfly-chart__tip-v--down {
+  color: #fbbf6b;
+}
+
+.mcfly-chart__tip-pct {
+  font-weight: 600;
+  color: rgba(233, 240, 248, 0.7);
+}
+
+.mcfly-chart__tip-foot {
+  margin: 0.42rem 0 0;
+  padding-top: 0.36rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #eaf1f8;
+}
+
+/* Legend — sales language only. */
+.mcfly-chart--sales .mcfly-chart__legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.8rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  font-size: 0.6rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.mcfly-chart__legend-swatch {
+  width: 0.7rem;
+  height: 0.55rem;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.mcfly-chart__legend-swatch--hot {
+  background: var(--mcfly-accent-ink);
+}
+.mcfly-chart__legend-swatch--cool {
+  background: color-mix(in srgb, var(--mcfly-accent) 44%, #dbe7f1);
+}
+.mcfly-chart__legend-swatch--weekend {
+  background: color-mix(in srgb, var(--mcfly-accent) 9%, #e0e9f2);
+  box-shadow: inset 0 0 0 1px var(--mcfly-line);
+}
+.mcfly-chart__legend-swatch--rail {
+  height: 0;
+  border-radius: 0;
+  border-top: 2px dashed var(--mcfly-ink-soft);
+  align-self: center;
+}
+.mcfly-chart__legend-swatch--cum {
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid var(--mcfly-truth);
+  align-self: center;
+}
+
+.mcfly-chart__legend-swatch--aov {
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid var(--mcfly-truth);
+  align-self: center;
+}
+
+/* Soft dense stat cards under the chart — not a metric dump. */
+.mcfly-chart__stats {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.55rem 0 0.65rem;
+  padding: 0;
+}
+
+/* Soft-inset tiles — Monthly-pacing card language. */
+.mcfly-chart__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: var(--mcfly-radius);
+  background: var(--mcfly-surface-muted, #f0f4f8);
+  min-width: 0;
+}
+
+.mcfly-chart__stat-k {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__stat-v {
+  font-family: var(--mcfly-font);
+  font-size: clamp(1rem, 3.2vw, 1.22rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--mcfly-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcfly-chart__stat-sub {
+  font-size: 0.6rem;
+  color: var(--mcfly-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcfly-chart__stat-delta {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcfly-chart__stat-delta--up {
+  color: var(--mcfly-truth);
+}
+.mcfly-chart__stat-delta--down {
+  color: var(--mcfly-warn);
+}
+.mcfly-chart__stat-delta--even {
+  color: var(--mcfly-mute);
+}
+
+/* Sales-truthful pace bars — pacing-card language, zero spend. */
+.mcfly-chart__bars {
+  margin: 0.7rem 0 0;
+}
+
+.mcfly-chart__bar-block + .mcfly-chart__bar-block {
+  margin-top: 0.55rem;
+}
+
+.mcfly-chart__bar-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__track {
+  height: 6px;
+  margin-top: 0.4rem;
+  background: var(--mcfly-line-soft, #e2e8f0);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mcfly-chart__fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--mcfly-accent);
+  transition: width var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-chart__fill--up {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__fill--accent {
+  background: var(--mcfly-accent);
+}
+
+/* Weekday mix — intentional bars vs an even-split reference + peak callout. */
+.mcfly-chart--weekdays .mcfly-chart__head {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.12rem;
+}
+
+.mcfly-chart--weekdays .mcfly-chart__days {
+  align-items: stretch;
+  min-height: 0;
+  gap: 0.4rem;
+}
+
+.mcfly-chart--weekdays .mcfly-chart__day {
+  gap: 0.3rem;
+  min-height: 0;
+  justify-content: flex-end;
+}
+
+.mcfly-chart__day-track {
+  position: relative;
+  width: 100%;
+  height: 6.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.mcfly-chart--weekdays .mcfly-chart__day-bar {
+  position: relative;
+  width: 100%;
+  max-width: 2.1rem;
+  min-height: 0.35rem;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mcfly-accent) 74%, #fff) 0%,
+    var(--mcfly-accent) 100%
+  );
+  transition: filter var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-chart--weekdays .mcfly-chart__day--weekend .mcfly-chart__day-bar {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mcfly-accent) 34%, #fff) 0%,
+    color-mix(in srgb, var(--mcfly-accent) 56%, #cfe0ee) 100%
+  );
+}
+
+.mcfly-chart--weekdays .mcfly-chart__day--peak .mcfly-chart__day-bar {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mcfly-accent-ink) 78%, #fff) 0%,
+    var(--mcfly-accent-ink) 100%
+  );
+}
+
+.mcfly-chart--weekdays .mcfly-chart__day:hover .mcfly-chart__day-bar,
+.mcfly-chart--weekdays .mcfly-chart__day:focus-visible .mcfly-chart__day-bar {
+  filter: brightness(0.94);
+}
+
+.mcfly-chart__day-even {
+  position: absolute;
+  left: -0.12rem;
+  right: -0.12rem;
+  height: 0;
+  border-top: 1.5px dashed color-mix(in srgb, var(--mcfly-ink-soft) 52%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart__day-flag {
+  position: absolute;
+  top: 0.22rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.04rem 0.36rem;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--mcfly-accent-ink);
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(12, 25, 41, 0.22);
+  pointer-events: none;
+}
+
+.mcfly-chart--weekdays .mcfly-chart__day--peak .mcfly-chart__day-v {
+  color: var(--mcfly-ink);
+  font-weight: 750;
+}
+
+@media (max-width: 560px) {
+  .mcfly-chart__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-chart--sales .mcfly-chart__board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mcfly-chart--sales .mcfly-chart__readout {
+    grid-column: 1;
+    grid-row: 2;
+    text-align: left;
+  }
+
+  .mcfly-chart__plot {
+    aspect-ratio: 360 / 218;
+  }
+
+  .mcfly-chart__axis-y2 {
+    display: none;
+  }
+
+  .mcfly-chart__ytick {
+    font-size: 0.54rem;
+    padding-right: 0.26rem;
+  }
+
+  .mcfly-chart__xtick {
+    font-size: 0.53rem;
+    transform: translateX(-100%) rotate(-30deg);
+  }
+
+  .mcfly-chart__tip {
+    min-width: 8.4rem;
+    max-width: 12.5rem;
+    padding: 0.42rem 0.5rem;
+  }
+
+  .mcfly-chart__tip-row {
+    font-size: 0.68rem;
+  }
+
+  .mcfly-chart__muted {
+    font-size: 0.72rem;
+  }
+
+  .mcfly-chart__serif {
+    font-size: 1.02rem;
+  }
+
+  .mcfly-chart__date input {
+    font-size: 0.68rem;
+    padding: 0.24rem 0.34rem;
+  }
+
+  .mcfly-chart__day-track {
+    height: 5.4rem;
+  }
+}

@@ -410,6 +410,24 @@ export async function fetchSampleSalesByDay(
   return map;
 }
 
+/** Sample daily sales + order counts — Overview sales-order explorer depth. */
+export async function fetchSampleSalesOrdersByDay(
+  shopId: string,
+  range: { start: Date; end: Date },
+): Promise<Map<string, { sales: number; orders: number }>> {
+  const days = await prisma.sampleSalesDay.findMany({
+    where: { shopId, day: { gte: range.start, lte: range.end } },
+    select: { day: true, sales: true, orderCount: true },
+  });
+  const map = new Map<string, { sales: number; orders: number }>();
+  for (const d of days) {
+    const key = utcDayKey(d.day);
+    const prev = map.get(key) ?? { sales: 0, orders: 0 };
+    map.set(key, { sales: prev.sales + d.sales, orders: prev.orders + d.orderCount });
+  }
+  return map;
+}
+
 /** Local calendar YYYY-MM-DD (spend rows / closed-day window). */
 export function localDayKey(date: Date): string {
   const y = date.getFullYear();
