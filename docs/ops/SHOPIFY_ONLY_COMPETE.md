@@ -10,8 +10,9 @@ Compete features only if they **strengthen that desk** — not a kitchen-sink du
 
 | Surface | What ships |
 | --- | --- |
-| One flagship board | 30 / 90 / 365 come-back + net $ (blended). Honest dashes until a window has matured. |
-| The math | `first order + extra orders × later order` on the same board. Year stays — without a year of orders. |
+| Today’s read | One morning number: worth, come-back, first vs later, math vs observed. Prefers 90 days. |
+| One flagship board | 30 / 90 / 365 come-back + net $. Same-buyer $ after the prior window on 90 / year. Honest dashes until a window has matured. |
+| The math | Three labeled parts (first / extra / later) + the plug-in. Year stays — without a year of orders. |
 | Refunds | One honesty line on that board. SAMPLE may break out a known gross. Live does **not** invent a refund dollar. |
 | Whales / path | Existing recency + journeys, plus lift vs shop, same-product-again, whale vs everyone. |
 | Craft | Soft dense Black Clover board. Existing explorers / hover / pills untouched. |

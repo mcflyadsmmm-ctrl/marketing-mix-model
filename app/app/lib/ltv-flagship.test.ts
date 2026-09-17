@@ -3,11 +3,13 @@ import { rollUpCustomers, type DepthOrder } from "./ltv-depth";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 import {
   buildLtvFlagship,
+  flagshipDailyRead,
   flagshipMonthRows,
   flagshipWindowCurve,
   pathClarity,
   predictiveLtv,
   refundHonesty,
+  windowAddedAfterPrior,
   windowRetention,
   windowRevenue,
 } from "./ltv-flagship";
@@ -28,29 +30,29 @@ function order(
   };
 }
 
+function maturedBook(): DepthOrder[] {
+  const rows: DepthOrder[] = [];
+  for (let i = 0; i < 10; i += 1) {
+    rows.push(order(`c${i}`, "2024-01-01", 100));
+    if (i < 4) rows.push(order(`c${i}`, "2024-01-15", 50)); // +14d
+    if (i < 6) rows.push(order(`c${i}`, "2024-03-01", 40)); // +60d
+    if (i < 7) rows.push(order(`c${i}`, "2024-06-01", 30)); // +152d
+  }
+  return rows;
+}
+
 describe("30 / 90 / 365 come-back + revenue", () => {
   const asOf = new Date("2025-01-01");
 
-  function book(): DepthOrder[] {
-    const rows: DepthOrder[] = [];
-    for (let i = 0; i < 10; i += 1) {
-      rows.push(order(`c${i}`, "2024-01-01", 100));
-      if (i < 4) rows.push(order(`c${i}`, "2024-01-15", 50)); // +14d
-      if (i < 6) rows.push(order(`c${i}`, "2024-03-01", 40)); // +60d
-      if (i < 7) rows.push(order(`c${i}`, "2024-06-01", 30)); // +152d
-    }
-    return rows;
-  }
-
   it("counts a second order inside each window among matured buyers", () => {
-    const customers = rollUpCustomers(book());
+    const customers = rollUpCustomers(maturedBook());
     expect(windowRetention(customers, asOf, 30).rate).toBeCloseTo(0.4, 5);
     expect(windowRetention(customers, asOf, 90).rate).toBeCloseTo(0.6, 5);
     expect(windowRetention(customers, asOf, 365).rate).toBeCloseTo(0.7, 5);
   });
 
   it("averages net dollars through each matured window", () => {
-    const customers = rollUpCustomers(book());
+    const customers = rollUpCustomers(maturedBook());
     // 4 buyers: 100+50+40+30 = 220 through year; 30d is 150 for those 4,
     // 100 for the other 6 → (4*150 + 6*100) / 10 = 120.
     expect(windowRevenue(customers, asOf, 30).revenue).toBeCloseTo(120, 5);
@@ -65,7 +67,7 @@ describe("30 / 90 / 365 come-back + revenue", () => {
   it("leaves un-elapsed windows null instead of a fake 0% / $0", () => {
     // 45 days after first orders — 30d has matured, 90/365 have not.
     const youngAsOf = new Date("2024-02-15");
-    const customers = rollUpCustomers(book());
+    const customers = rollUpCustomers(maturedBook());
     expect(windowRetention(customers, youngAsOf, 90).rate).toBeNull();
     expect(windowRevenue(customers, youngAsOf, 365).revenue).toBeNull();
     const curve = flagshipWindowCurve(customers, youngAsOf);
@@ -73,6 +75,37 @@ describe("30 / 90 / 365 come-back + revenue", () => {
     expect(curve!.points.find((p) => p.days === 30)?.revenue).not.toBeNull();
     expect(curve!.points.find((p) => p.days === 365)?.revenue).toBeNull();
     expect(curve!.points.find((p) => p.days === 365)?.retention).toBeNull();
+  });
+
+  it("adds after the prior window among the same matured buyers", () => {
+    const asOf = new Date("2024-04-15");
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(order(`old${i}`, "2024-01-01", 100));
+      rows.push(order(`old${i}`, "2024-01-20", 50));
+    }
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(order(`mid${i}`, "2024-03-01", 300));
+    }
+    const curve = flagshipWindowCurve(rollUpCustomers(rows), asOf)!;
+    const d30 = curve.points.find((p) => p.days === 30)!;
+    const d90 = curve.points.find((p) => p.days === 90)!;
+    // Blended 30 mixes $150 old + $300 mid. 90-day lift must not subtract that mix.
+    expect(d30.revenue).toBeCloseTo((10 * 150 + 10 * 300) / 20, 5);
+    expect(d90.revenue).toBeCloseTo(150, 5);
+    expect(windowAddedAfterPrior(curve.points, 30)).toBeNull();
+    expect(windowAddedAfterPrior(curve.points, 90)).toEqual({
+      added: 0,
+      afterDays: 30,
+    });
+    expect(d90.added).toBe(0);
+  });
+
+  it("leaves the year lift null when the year window is unsealed", () => {
+    const youngAsOf = new Date("2024-02-15");
+    const curve = flagshipWindowCurve(rollUpCustomers(maturedBook()), youngAsOf)!;
+    expect(windowAddedAfterPrior(curve.points, 365)).toBeNull();
+    expect(curve.points.find((p) => p.days === 365)?.added).toBeNull();
   });
 
   it("dashes later columns on a young first-order month", () => {
@@ -95,6 +128,42 @@ describe("30 / 90 / 365 come-back + revenue", () => {
     expect(newRow.rev30).toBeNull();
     expect(newRow.retain90).toBeNull();
     expect(newRow.rev365).toBeNull();
+  });
+});
+
+describe("today’s LTV read", () => {
+  it("prefers first 90 days and writes first vs later from the same buyers", () => {
+    const asOf = new Date("2024-06-01");
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(order(`c${i}`, "2024-01-01", 100));
+      if (i < 5) rows.push(order(`c${i}`, "2024-02-01", 50));
+    }
+    const customers = rollUpCustomers(rows);
+    const daily = flagshipDailyRead(
+      flagshipWindowCurve(customers, asOf),
+      predictiveLtv(customers, asOf),
+    )!;
+    expect(daily.worthDays).toBe(90);
+    expect(daily.worth).toBeCloseTo(125, 5);
+    expect(daily.firstOrder).toBe(100);
+    expect(daily.laterInWindow).toBeCloseTo(25, 5);
+    expect(daily.estimate).toBeCloseTo(125, 5);
+    expect(daily.observed).toBeCloseTo(125, 5);
+    expect(daily.yearPending).toBe(true);
+  });
+
+  it("falls back to first 30 days when 90 is not on file", () => {
+    const youngAsOf = new Date("2024-02-15");
+    const customers = rollUpCustomers(maturedBook());
+    const daily = flagshipDailyRead(
+      flagshipWindowCurve(customers, youngAsOf),
+      predictiveLtv(customers, youngAsOf),
+    )!;
+    expect(daily.worthDays).toBe(30);
+    expect(daily.estimate).toBeNull();
+    expect(daily.firstOrder).toBeNull();
+    expect(daily.yearPending).toBe(true);
   });
 });
 
@@ -210,6 +279,16 @@ describe("SAMPLE Snowdevil flagship is dense", () => {
     expect(view.pathClarity).not.toBeNull();
     expect(view.pathClarity!.lift).toBeGreaterThan(1);
     expect(view.whales!.ltvMultiple).toBeGreaterThan(1);
+    const daily = flagshipDailyRead(view.windows, view.predictive)!;
+    expect(daily.worthDays).toBe(90);
+    expect(daily.laterInWindow).toBeGreaterThan(0);
+    expect(daily.yearPending).toBe(false);
+    expect(windowAddedAfterPrior(view.windows!.points, 90)?.added).toBeGreaterThan(
+      0,
+    );
+    expect(windowAddedAfterPrior(view.windows!.points, 365)?.added).toBeGreaterThan(
+      0,
+    );
   });
 
   it("keeps the young first-order month from sealing a fake year", () => {

@@ -102,6 +102,12 @@ export interface FlagshipWindowPoint {
   /** Average net dollars per mature buyer through the window. */
   revenue: number | null;
   n: number;
+  /**
+   * Same-buyer dollars this window added after the prior window.
+   * Day 30 has no prior. Null when this window is unsealed.
+   */
+  added: number | null;
+  afterDays: 30 | 90 | null;
 }
 
 export interface FlagshipWindowCurve {
@@ -161,6 +167,27 @@ export function windowRevenue(
 }
 
 /**
+ * Dollars this window added after the previous window, among the same
+ * buyers who have lived the longer window. Never subtracts a larger 30-day
+ * pool from a smaller 90-day pool — that mix is not a lift.
+ */
+function addedAfterPriorAmong(
+  customers: CustomerDepth[],
+  asOf: Date,
+  days: LtvFlagshipWindow,
+  minMature: number,
+): { added: number; afterDays: 30 | 90 } | null {
+  if (days === 30) return null;
+  const afterDays: 30 | 90 = days === 90 ? 30 : 90;
+  const mature = matureForWindow(customers, asOf, days);
+  if (mature.length < minMature) return null;
+  const current = mean(mature.map((c) => windowSpend(c, days)));
+  const prior = mean(mature.map((c) => windowSpend(c, afterDays)));
+  if (current == null || prior == null) return null;
+  return { added: current - prior, afterDays };
+}
+
+/**
  * Blended 30 / 90 / 365 come-back + revenue. A point stays null when that
  * horizon has not matured for enough buyers (Live ~60 days cannot seal a year).
  */
@@ -170,15 +197,22 @@ export function flagshipWindowCurve(
   options?: { minMature?: number },
 ): FlagshipWindowCurve | null {
   if (customers.length === 0) return null;
+  const minMature = options?.minMature ?? FLAGSHIP_MIN_MATURE;
   const points = LTV_FLAGSHIP_WINDOWS.map((days) => {
     const retain = windowRetention(customers, asOf, days, options);
     const rev = windowRevenue(customers, asOf, days, options);
+    const added =
+      rev.revenue != null
+        ? addedAfterPriorAmong(customers, asOf, days, minMature)
+        : null;
     return {
       days,
       label: windowLabel(days),
       retention: retain.rate,
       revenue: rev.revenue,
       n: Math.max(retain.n, rev.n),
+      added: added?.added ?? null,
+      afterDays: added?.afterDays ?? null,
     };
   });
   if (points.every((p) => p.retention == null && p.revenue == null)) return null;
@@ -530,6 +564,71 @@ export function pathClarity(
     lift: bestLifetime.lifetimeLtv / shopLifetime,
     sameProductShare: pathBuyers > 0 ? sameBuyers / pathBuyers : null,
     shopLifetime,
+  };
+}
+
+/**
+ * Same-buyer dollars this window added after the prior window.
+ * Day 30 has no prior — null (the card is the start, not a lift).
+ * Reads the curve’s same-buyer lift; never a mixed-pool subtraction.
+ */
+export function windowAddedAfterPrior(
+  points: FlagshipWindowPoint[],
+  days: LtvFlagshipWindow,
+): { added: number; afterDays: 30 | 90 } | null {
+  if (days === 30) return null;
+  const point = points.find((p) => p.days === days);
+  if (point?.added == null || point.afterDays == null) return null;
+  return { added: point.added, afterDays: point.afterDays };
+}
+
+/** One-glance daily job: worth, come-back, estimate — no spend. */
+export interface FlagshipDailyRead {
+  worth: number;
+  worthDays: LtvFlagshipWindow;
+  comeBack: number | null;
+  buyers: number;
+  estimate: number | null;
+  observed: number | null;
+  firstOrder: number | null;
+  laterInWindow: number | null;
+  yearPending: boolean;
+}
+
+/**
+ * The morning read on LTV. Prefers first 90 days (the desk hero), then 30,
+ * never a sealed year when that window is not on file.
+ */
+export function flagshipDailyRead(
+  windows: FlagshipWindowCurve | null,
+  predictive: PredictiveLtv | null,
+): FlagshipDailyRead | null {
+  if (!windows) return null;
+  const prefer: LtvFlagshipWindow[] = [90, 30, 365];
+  let pick: FlagshipWindowPoint | null = null;
+  for (const days of prefer) {
+    const point = windows.points.find((p) => p.days === days);
+    if (point?.revenue != null) {
+      pick = point;
+      break;
+    }
+  }
+  if (pick?.revenue == null) return null;
+  const year = windows.points.find((p) => p.days === 365);
+  const firstOrder =
+    pick.days === 90 ? (predictive?.firstOrder90 ?? null) : null;
+  const laterInWindow =
+    firstOrder != null ? pick.revenue - firstOrder : null;
+  return {
+    worth: pick.revenue,
+    worthDays: pick.days,
+    comeBack: pick.retention,
+    buyers: pick.n,
+    estimate: pick.days === 90 ? (predictive?.predicted90 ?? null) : null,
+    observed: pick.days === 90 ? (predictive?.observed90 ?? null) : null,
+    firstOrder,
+    laterInWindow,
+    yearPending: year?.revenue == null,
   };
 }
 

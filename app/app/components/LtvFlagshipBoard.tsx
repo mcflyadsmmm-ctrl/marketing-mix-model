@@ -2,11 +2,13 @@ import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskDrill } from "./DeskDrill";
 import { DeskIcon } from "./DeskIcon";
-import type {
-  FlagshipWindowCurve,
-  PredictiveLtv,
-  RefundHonesty,
-  RefundHonestyBasis,
+import {
+  flagshipDailyRead,
+  windowAddedAfterPrior,
+  type FlagshipWindowCurve,
+  type PredictiveLtv,
+  type RefundHonesty,
+  type RefundHonestyBasis,
 } from "../lib/ltv-flagship";
 
 function pct(share: number): string {
@@ -28,10 +30,31 @@ function basisCopy(basis: RefundHonestyBasis): string {
   }
 }
 
+function afterWindowLabel(afterDays: 30 | 90): string {
+  switch (afterDays) {
+    case 30:
+      return "after first 30 days";
+    case 90:
+      return "after first 90 days";
+    default: {
+      const _exhaustive: never = afterDays;
+      return _exhaustive;
+    }
+  }
+}
+
+function moneyDelta(amount: number, currency: string): string {
+  const pretty = formatCurrency(Math.abs(amount), currency);
+  if (amount > 0) return `+${pretty}`;
+  if (amount < 0) return `−${pretty}`;
+  return pretty;
+}
+
 /**
- * One LTV board a merchant would pay $39 for with zero spend: 30/90/365
- * come-back + dollars, the estimate written out, refund honesty on the same
- * card. Not a dump of extra tables. Existing explorers stay below.
+ * One LTV board a merchant would pay $39 for with zero spend: today’s read,
+ * 30/90/365 come-back + dollars + same-buyer lift, the estimate as three
+ * labeled parts, refund honesty on the same card. Not a dump of extra tables.
+ * Existing explorers stay below.
  */
 export function LtvFlagshipBoard({
   windows,
@@ -44,6 +67,7 @@ export function LtvFlagshipBoard({
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
+  const daily = flagshipDailyRead(windows, predictive);
   const showWindows = Boolean(windows);
   const showMath = Boolean(predictive && predictive.predicted90 != null);
   const showRefunds = Boolean(refunds && refunds.orderCount > 0);
@@ -54,6 +78,13 @@ export function LtvFlagshipBoard({
   const later = predictive?.laterOrder90 ?? 0;
   const estimate = predictive?.predicted90;
   const observed = predictive?.observed90;
+
+  const worthLabel =
+    daily?.worthDays === 30
+      ? "First 30 days"
+      : daily?.worthDays === 365
+        ? "First year"
+        : "First 90 days";
 
   return (
     <section
@@ -71,6 +102,74 @@ export function LtvFlagshipBoard({
         </p>
       </div>
 
+      {daily ? (
+        <button
+          type="button"
+          className="mcfly-depth-flag__read"
+          onClick={() =>
+            drill?.openDrill({
+              title: "What a new buyer is worth",
+              value: formatCurrency(daily.worth, currency),
+              kicker: `${daily.buyers.toLocaleString()} buyers who have lived ${worthLabel.toLowerCase()}`,
+              blocks: [
+                {
+                  k: "Came back",
+                  v:
+                    daily.comeBack != null
+                      ? `${pct(daily.comeBack)} placed a second order inside this window.`
+                      : "Come-back share waits until enough buyers have lived the window.",
+                },
+                {
+                  k: "First order vs later",
+                  v:
+                    daily.firstOrder != null && daily.laterInWindow != null
+                      ? `${formatCurrency(daily.firstOrder, currency)} on the first order, then ${formatCurrency(daily.laterInWindow, currency)} more in that window.`
+                      : "Later dollars in the window wait until the 90-day read is on file.",
+                },
+                {
+                  k: "The math vs observed",
+                  v:
+                    daily.estimate != null && daily.observed != null
+                      ? `The written-out formula says ${formatCurrency(daily.estimate, currency)}. Those same buyers spent ${formatCurrency(daily.observed, currency)}.`
+                      : "The 90-day estimate waits until enough buyers have lived 90 days.",
+                },
+                {
+                  k: "First year",
+                  v: daily.yearPending
+                    ? "Not on file yet — Shopify’s public-app window is about 60 days. Not $0."
+                    : "On the year card below, among buyers who have lived a full year.",
+                },
+              ],
+              next: "Averages from order history — not a promise, not email.",
+            })
+          }
+        >
+          <span className="mcfly-depth-flag__read-k">Today’s read</span>
+          <span className="mcfly-depth-flag__read-v">
+            {formatCurrency(daily.worth, currency)}
+          </span>
+          <span className="mcfly-depth-flag__read-line">
+            {worthLabel}
+            {daily.comeBack != null
+              ? ` · ${pct(daily.comeBack)} came back`
+              : " · come-back —"}
+          </span>
+          {daily.firstOrder != null && daily.laterInWindow != null ? (
+            <span className="mcfly-depth-flag__read-line">
+              First order {formatCurrency(daily.firstOrder, currency)} · later{" "}
+              {formatCurrency(daily.laterInWindow, currency)} in that window
+            </span>
+          ) : null}
+          <span className="mcfly-depth-flag__read-line">
+            {daily.estimate != null && daily.observed != null
+              ? `The math says ${formatCurrency(daily.estimate, currency)} — those buyers spent ${formatCurrency(daily.observed, currency)}.`
+              : daily.yearPending
+                ? "First year is not on file yet — not $0."
+                : "Averages from the buyers who have lived this window."}
+          </span>
+        </button>
+      ) : null}
+
       {windows ? (
         <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--soft">
           {windows.points.map((point) => {
@@ -80,6 +179,11 @@ export function LtvFlagshipBoard({
                 : "—";
             const back =
               point.retention != null ? pct(point.retention) : "—";
+            const lift = windowAddedAfterPrior(windows.points, point.days);
+            const liftLine =
+              lift != null
+                ? `${moneyDelta(lift.added, currency)} ${afterWindowLabel(lift.afterDays)}`
+                : null;
             return (
               <button
                 type="button"
@@ -108,6 +212,14 @@ export function LtvFlagshipBoard({
                             ? `${back} placed a second order inside this window.`
                             : "Come-back share waits until enough buyers have lived the window.",
                       },
+                      ...(liftLine
+                        ? [
+                            {
+                              k: "Added",
+                              v: `${liftLine} — same buyers, not a mixed pool.`,
+                            },
+                          ]
+                        : []),
                     ],
                     next: "Averages from order history — not a promise, not email.",
                   })
@@ -121,6 +233,9 @@ export function LtvFlagshipBoard({
                 <span className="mcfly-depth-windows__sub">
                   {point.retention != null ? `${back} came back` : "Come-back —"}
                 </span>
+                {liftLine ? (
+                  <span className="mcfly-depth-windows__add">{liftLine}</span>
+                ) : null}
               </button>
             );
           })}
@@ -167,6 +282,26 @@ export function LtvFlagshipBoard({
             First 90 days ≈ average first order + average extra orders ×
             average later order
           </p>
+          <div className="mcfly-depth-formula__parts">
+            <span className="mcfly-depth-formula__part">
+              <span className="mcfly-depth-formula__part-k">First order</span>
+              <span className="mcfly-depth-formula__part-v">
+                {formatCurrency(first, currency)}
+              </span>
+            </span>
+            <span className="mcfly-depth-formula__part">
+              <span className="mcfly-depth-formula__part-k">Extra orders</span>
+              <span className="mcfly-depth-formula__part-v">
+                {extra.toFixed(1)}
+              </span>
+            </span>
+            <span className="mcfly-depth-formula__part">
+              <span className="mcfly-depth-formula__part-k">Later order</span>
+              <span className="mcfly-depth-formula__part-v">
+                {formatCurrency(later, currency)}
+              </span>
+            </span>
+          </div>
           <p className="mcfly-depth-formula__plug">
             {formatCurrency(first, currency)} + {extra.toFixed(1)} ×{" "}
             {formatCurrency(later, currency)} ={" "}

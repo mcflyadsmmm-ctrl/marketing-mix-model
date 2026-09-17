@@ -86,6 +86,11 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(flagship).toContain("not $0");
     expect(flagship).toContain("average first order");
     expect(flagship).toContain("we do not invent a refund total");
+    expect(flagship).toContain("flagshipDailyRead");
+    expect(flagship).toContain("windowAddedAfterPrior");
+    expect(flagship).toContain("after first 30 days");
+    expect(flagship).toContain("First order");
+    expect(flagship).toContain("mcfly-depth-formula__parts");
   });
 
   it("is one board — not a month-grid dump or a win-back card", () => {
