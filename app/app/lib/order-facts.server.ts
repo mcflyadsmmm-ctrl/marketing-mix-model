@@ -12,6 +12,9 @@ import {
   shopifyOrderHistoryIsLimited,
 } from "./shopify-order-window";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
+import { isBillingEnabled } from "./billing-flag.server";
+import { shopIsProForIngest } from "./live-ingest-depth.server";
+import { resolveLiveIngestWindowDays } from "./live-ingest-depth";
 import {
   adminGraphqlJson,
   ORDER_FACT_PAGES_COST_SAFE_CAP,
@@ -693,9 +696,15 @@ export async function runOrderFactsBackfill(
   const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
   let historyLimited = scopesAllowDeep ? false : state.historyLimited;
   const deepWindowDays = salesDayFactWindowDayCount(now);
-  const windowDays = historyLimited
+  const paidWindowDays = historyLimited
     ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
     : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
+  const billingEnabled = isBillingEnabled();
+  const windowDays = resolveLiveIngestWindowDays({
+    billingEnabled,
+    isPro: billingEnabled ? await shopIsProForIngest(shopId) : false,
+    paidWindowDays,
+  });
 
   const timeZone = metadata.ianaTimezone;
   await unsealOrderFactsMissingV2(shopId);
@@ -926,10 +935,16 @@ export async function getOrderBackfillProgress(
   const historyLimited = state?.historyLimited ?? false;
   const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
   const deepWindowDays = salesDayFactWindowDayCount(now);
-  const windowDaysCount =
+  const paidWindowDays =
     historyLimited && !scopesAllowDeep
       ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
       : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
+  const billingEnabled = isBillingEnabled();
+  const windowDaysCount = resolveLiveIngestWindowDays({
+    billingEnabled,
+    isPro: billingEnabled ? await shopIsProForIngest(shopId) : false,
+    paidWindowDays,
+  });
   const windowDayKeys = listRecentClosedShopLocalDays(
     tz,
     windowDaysCount,

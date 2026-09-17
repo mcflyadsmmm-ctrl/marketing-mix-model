@@ -259,15 +259,16 @@ describe("first-session Shopify window resume", () => {
     expect(jobs).toContain("handleBackfillSalesDayFacts");
   });
 
-  it("does not implement billing hard-stop or clamp paid Live to 90 days", () => {
+  it("keeps paid full-history depth and defers the 90d clamp to live-ingest-depth", () => {
     const gate = read("./first-session-shopify-window.server.ts");
     const sales = read("./sales-facts.server.ts");
-    expect(gate).not.toMatch(/proBillingActive/);
-    expect(gate).not.toContain("Unlock full history");
-    expect(gate).toContain("Never treat paid as 90d-only");
-    expect(gate).toContain("billing hard-stop is a later PR");
-    expect(sales).toContain("never a 90-day unpaid slice");
-    expect(sales).toContain("salesDayFactWindowDayCount");
+    const depth = read("./live-ingest-depth.ts");
+    expect(gate).toContain("never treat paid as 90d-only");
+    expect(gate).toContain("live-ingest-depth");
+    expect(sales).toContain("resolveLiveIngestWindowDays");
+    expect(depth).toContain("TRIAL_LIVE_SLICE_DAYS = 90");
+    expect(depth).toContain("paid_full");
+    expect(depth).toContain("immediately on subscribe");
   });
 
   it("order webhook enqueues OrderFact backfill after clearing the day seal", () => {

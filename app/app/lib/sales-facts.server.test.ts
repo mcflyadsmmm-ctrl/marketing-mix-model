@@ -15,8 +15,12 @@ vi.mock("../db.server", () => ({
 }));
 
 const ensureShopMetadata = vi.fn();
+const shopIsProForIngest = vi.fn();
 vi.mock("./shop-metadata.server", () => ({
   ensureShopMetadata: (...args: unknown[]) => ensureShopMetadata(...args),
+}));
+vi.mock("./live-ingest-depth.server", () => ({
+  shopIsProForIngest: (...args: unknown[]) => shopIsProForIngest(...args),
 }));
 
 const fetchShopifySales = vi.fn();
@@ -58,6 +62,8 @@ describe("runSalesFactsBackfill", () => {
     count.mockReset();
     ensureShopMetadata.mockReset();
     fetchShopifySales.mockReset();
+    shopIsProForIngest.mockReset();
+    shopIsProForIngest.mockResolvedValue(false);
   });
 
   it("skips ingest entirely (honest) when ianaTimezone is unknown even after a sync attempt", async () => {
@@ -202,8 +208,27 @@ describe("runSalesFactsBackfill", () => {
       now: new Date("2026-09-17T12:00:00.000Z"),
       scopesAllowDeep: true,
     });
-    // Paid $39 = full history — never a ~90d unpaid slice.
+    // Host not charging in this file — full granted window, not a 90d clamp.
     expect(remaining).toBeGreaterThan(365 * 4);
+  });
+
+  it("clamps unpaid Live remaining days to ~90 when billing is on", async () => {
+    const prev = process.env.MCFLY_BILLING;
+    process.env.MCFLY_BILLING = "1";
+    shopIsProForIngest.mockResolvedValue(false);
+    findMany.mockResolvedValue([]);
+    try {
+      const remaining = await getSalesFactsWindowRemainingDays("shop_1", {
+        ianaTimezone: "UTC",
+        now: new Date("2026-09-17T12:00:00.000Z"),
+        scopesAllowDeep: true,
+      });
+      expect(remaining).toBeGreaterThan(80);
+      expect(remaining).toBeLessThanOrEqual(90);
+    } finally {
+      if (prev === undefined) delete process.env.MCFLY_BILLING;
+      else process.env.MCFLY_BILLING = prev;
+    }
   });
 });
 

@@ -1,12 +1,11 @@
 /**
  * First Admin open: complete the Shopify ingest window already granted.
  *
- * Product lock (do not violate in this file — billing hard-stop is a later PR):
+ * Product lock:
  * - Demo = SAMPLE full wow (this lane is Live ingest, not SAMPLE).
- * - Trial/unpaid ~90d Live slice is not implemented here.
- * - Paid $39 = FULL order history LTV. "Sealed" means the same window
- *   `runSalesFactsBackfill` / `runOrderFactsBackfill` use (Jan-1 × N years
- *   when `read_all_orders`). Never treat paid as 90d-only.
+ * - Trial/unpaid = ~90d Live slice (billing hard-stop in `live-ingest-depth`).
+ * - Paid $39 = FULL order history immediately on subscribe. "Sealed" means
+ *   that same granted window is filled — never treat paid as 90d-only.
  *
  * OAuth and first paint must not await the crawl. Enqueue resume jobs, then
  * fire-and-forget the default chunk (20 sales days / 7 order days) — never

@@ -24,6 +24,9 @@ import {
   isUnseenShopifySalesDay,
   shopifyReadOrdersScopesAllowDeep,
 } from "./shopify-order-window";
+import { isBillingEnabled } from "./billing-flag.server";
+import { shopIsProForIngest } from "./live-ingest-depth.server";
+import { resolveLiveIngestWindowDays } from "./live-ingest-depth";
 
 /** SalesDayFact.source for rows written by this ingest lane. */
 export const SALES_DAY_FACT_SOURCE = "shopify_order_current_total_v1";
@@ -200,11 +203,17 @@ export async function runSalesFactsBackfill(
   const timeZone = metadata.ianaTimezone;
   const scopesAllowDeep =
     options?.scopesAllowDeep ?? shopifyReadOrdersScopesAllowDeep();
+  const paidWindowDays = scopesAllowDeep
+    ? salesDayFactWindowDayCount(now)
+    : SHOPIFY_READ_ORDERS_WINDOW_DAYS;
+  const billingEnabled = isBillingEnabled();
   const ingestDayCount =
     options?.windowDays ??
-    (scopesAllowDeep
-      ? salesDayFactWindowDayCount(now)
-      : SHOPIFY_READ_ORDERS_WINDOW_DAYS);
+    resolveLiveIngestWindowDays({
+      billingEnabled,
+      isPro: billingEnabled ? await shopIsProForIngest(shopId) : false,
+      paidWindowDays,
+    });
   const windowDayKeys = listRecentClosedShopLocalDays(
     timeZone,
     ingestDayCount,
@@ -263,9 +272,8 @@ export async function runSalesFactsBackfill(
  * `runSalesFactsBackfill` uses. Used by the first-session one-shot gate so a
  * sealed shop does not re-arm window jobs on every Live tab.
  *
- * Paid depth lock: when `read_all_orders` / scopesAllowDeep, this is the
- * Jan-1 × N-year book — never a 90-day unpaid slice. Billing hard-stop
- * (trial vs paid) is a later PR; do not clamp here.
+ * Same window as `runSalesFactsBackfill`, including the billing hard-stop:
+ * unpaid/trial is the ~90d Live slice; paid $39 is the Jan-1 × N-year book.
  */
 export async function getSalesFactsWindowRemainingDays(
   shopId: string,
@@ -278,9 +286,15 @@ export async function getSalesFactsWindowRemainingDays(
   const now = options.now ?? new Date();
   const scopesAllowDeep =
     options.scopesAllowDeep ?? shopifyReadOrdersScopesAllowDeep();
-  const ingestDayCount = scopesAllowDeep
+  const paidWindowDays = scopesAllowDeep
     ? salesDayFactWindowDayCount(now)
     : SHOPIFY_READ_ORDERS_WINDOW_DAYS;
+  const billingEnabled = isBillingEnabled();
+  const ingestDayCount = resolveLiveIngestWindowDays({
+    billingEnabled,
+    isPro: billingEnabled ? await shopIsProForIngest(shopId) : false,
+    paidWindowDays,
+  });
   const windowDayKeys = listRecentClosedShopLocalDays(
     options.ianaTimezone,
     ingestDayCount,

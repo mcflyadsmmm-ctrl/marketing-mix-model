@@ -147,6 +147,7 @@ describe("BILLING_HONESTY", () => {
     expect(BILLING_HONESTY.flat).toMatch(/\$39/);
     expect(BILLING_HONESTY.flat).toMatch(/not a percent of sales/i);
     expect(BILLING_HONESTY.flat).toMatch(/not a per-order/i);
+    expect(BILLING_HONESTY.flat).toMatch(/does not rise with sales/i);
     expect(BILLING_HONESTY.cancel).toMatch(/next 30-day cycle/i);
     expect(BILLING_HONESTY.cancel).toMatch(/current cycle may still charge/i);
   });

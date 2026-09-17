@@ -58,6 +58,8 @@ describe("LTV sales spine (HARD-STOP)", () => {
     expect(ltvSource).toContain("orderFactsTruncated");
     expect(ltvSource).toContain("scheduleFirstSessionShopifyWindow");
     expect(ltvSource).toContain("until you confirm in Settings");
+    expect(ltvSource).toContain("UnlockFullHistoryBanner");
+    expect(ltvSource).toContain("liveHistoryLocked");
   });
 
   it("LTV page shows avg orders in 90 days from order history", () => {

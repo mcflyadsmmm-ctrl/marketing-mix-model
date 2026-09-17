@@ -15,6 +15,7 @@ import { LtvPromoBoard } from "../components/LtvPromoBoard";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
+import { UnlockFullHistoryBanner } from "../components/UnlockFullHistoryBanner";
 import { buildDashboardMetrics, ensureShop, getOrCreateSettings, marginIsConfirmed } from "../lib/mer-dashboard.server";
 import { parseSalesBasis } from "../lib/sales-basis";
 import { formatCurrency } from "../lib/mer-format";
@@ -31,6 +32,8 @@ import { fetchSampleSales, getSampleDeskEnabled } from "../lib/sample-desk.serve
 import { loadDeskSalesForPeriod } from "../lib/sales-facts.server";
 import { requireAdmin } from "../lib/public-app-gate.server";
 import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
+import { isBillingEnabled } from "../lib/billing-flag.server";
+import { resolveShopEntitlements } from "../lib/entitlements.server";
 import prisma from "../db.server";
 import { useDeskCurrency } from "../lib/desk-currency";
 
@@ -115,6 +118,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const liveSpendCount = await prisma.spendEntry.count({
     where: { shopId: shop.id, NOT: { source: "sample" } },
   });
+  const entitlements = await resolveShopEntitlements(session.shop);
+  const liveHistoryLocked =
+    !useSampleDesk && isBillingEnabled() && !entitlements.isPro;
   // Order-history depth pack (spend-build curves, retention grid, product
   // journeys, first-order-size tiers, best-customer recency) over the trailing
   // order window — independent of the period slicer, like Growth's come-back.
@@ -133,6 +139,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     orderBackfillProgress,
     hasLiveSpend: liveSpendCount > 0,
     installedAt: shop.createdAt.toISOString(),
+    liveHistoryLocked,
   };
 };
 
@@ -152,6 +159,7 @@ export default function LtvPage() {
     orderBackfillProgress,
     hasLiveSpend,
     installedAt,
+    liveHistoryLocked,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -449,6 +457,8 @@ export default function LtvPage() {
             Not $0.
           </p>
         ) : null}
+
+        {liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner /> : null}
       </section>
 
       {depthHasAny ? (
