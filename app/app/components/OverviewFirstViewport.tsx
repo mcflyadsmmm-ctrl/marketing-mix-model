@@ -239,9 +239,9 @@ export function OverviewFirstViewport({
           next="Open Orders for the weekday breakdown."
           formulaBlock="Weekend vs weekday sales share, shop-local. Shopify Analytics Overview does not put this next to typical order."
           icon="weekend"
-          label="Weekend vs weekday"
+          label="Weekend"
           value={weekend ? `${weekend.weekendPct}%` : "—"}
-          sub={weekend ? `Weekday ${weekend.weekdayPct}%` : undefined}
+          sub={weekend ? `vs weekday ${weekend.weekdayPct}%` : undefined}
           extra={
             weekend ? (
               <span

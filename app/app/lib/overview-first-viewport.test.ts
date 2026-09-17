@@ -181,6 +181,7 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("mcfly-scoreboard__kicker");
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
     expect(firstView).toContain("mcfly-kpi--peek");
     expect(firstView).toContain("orderCount > 0");
     expect(firstView).toContain("DeskIcon");

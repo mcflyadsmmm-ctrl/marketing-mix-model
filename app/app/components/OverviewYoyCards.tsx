@@ -167,14 +167,15 @@ export function OverviewYoyCards({
                 ) : null}
               </p>
               {range ? <p className="mcfly-yoy__range">{range}</p> : null}
-              <p className="mcfly-yoy__v">{formatCurrency(card.sales, currency)}</p>
-              <p className="mcfly-yoy__prior">
-                <span>Last year</span>
-                <span>{priorLabel}</span>
+              <p className={`mcfly-yoy__v mcfly-yoy__v--${zone}`}>
+                {formatCurrency(card.sales, currency)}
               </p>
-              {vs ? (
-                <p className={`mcfly-yoy__vs mcfly-yoy__vs--${zone}`}>{vs}</p>
-              ) : null}
+              <p className="mcfly-yoy__prior">
+                <span>Last year {priorLabel}</span>
+                {vs ? (
+                  <span className={`mcfly-yoy__vs mcfly-yoy__vs--${zone}`}>{vs}</span>
+                ) : null}
+              </p>
             </button>
           );
         })}

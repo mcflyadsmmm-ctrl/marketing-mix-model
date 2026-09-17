@@ -44,6 +44,8 @@ describe("Admin desk phone / narrow iframe", () => {
       /\.mcfly-kpi-grid[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
     );
     expect(css).toContain("grid-template-columns: repeat(3, minmax(0, 1fr))");
+    expect(css).toContain(".mcfly-kpi-grid--peeks-lead");
+    expect(css).toContain("flex-wrap: nowrap");
     expect(css).toContain("@media (max-width: 430px)");
     expect(css).not.toMatch(
       /@media \(max-width: 420px\) \{\s*\n\s*\.mcfly-kpi-board/,
