@@ -16,13 +16,13 @@ Push the LTV concept toward **~10** on the score below. Compete features only if
 | 4 | **$39-alone** — this tab would keep the install with no other page |
 | 5 | **Zero-spend** — no upload, no ads, no pixels, no COGS |
 
-## This Product→LTV PR only
+## This Customers RFM-lite PR only
 
-First-product → LTV / path drivers from titled first-line items · 30/90/365 among those starters · written-out formula · typical next product. Soft dense Black Clover after the flagship. Useful + easy + deep.
+RFM-lite bands + four segments from the stored order book · whale watchlist (high LTV / recency risk) beside existing ActionCards. Soft dense Black Clover. Useful + easy + deep.
 
 ## Refuse
 
-TW attribution · COGS P&L · kitchen-sink · other tabs (RFM, Overview forecast, Discount, Share, Goals) · ads/pixels · Partner paste · cold push.
+TW attribution · COGS P&L · kitchen-sink · other tabs (Overview forecast, Discount, Share, Goals) · ads/pixels · Partner paste · cold push.
 
 Pills, charts, densify, ActionCards stay. Add only.
 
@@ -38,7 +38,7 @@ Pills, charts, densify, ActionCards stay. Add only.
 
 Full-history Live year is in scope (`read_all_orders` approved). Thin shops use first-win empties, never a fake 365.
 
-## SCORECARD — Product→LTV (this PR)
+## SCORECARD — Product→LTV (#94)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |
@@ -49,3 +49,13 @@ Full-history Live year is in scope (`read_all_orders` approved). Thin shops use 
 | Zero-spend | PASS | Order-history line items only — no upload, ads, pixels, or COGS |
 
 Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the dense canvas.
+
+## SCORECARD — Customers RFM-lite + whale watchlist (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Easier | PASS | Watchlist beside What to do — reach slipping high-LTV buyers without a Shopify RFM report hunt |
+| Deeper LTV | PASS | On-file lifetime $ + recency risk from the full stored book; year withheld when history is limited |
+| Habit-trust | PASS | Terciles and four segments; guests out; opaque keys off the desk; empties name the 8 × 30 floor |
+| $39-alone | PASS | Customers now answers who to save today from order history, with ActionCards kept |
+| Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |

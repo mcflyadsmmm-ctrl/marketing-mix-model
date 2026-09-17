@@ -12,11 +12,14 @@ function read(rel: string): string {
 const customers = read("../routes/app.customers.tsx");
 const scoreboard = read("../components/CustomersScoreboard.tsx");
 const retention = read("../components/CustomerRetentionBoard.tsx");
+const watch = read("../components/CustomerWhaleWatch.tsx");
+const rfmBoard = read("../components/CustomerRfmBoard.tsx");
 const value = read("../components/CustomerValueBands.tsx");
 const whale = read("../components/CustomerWhaleTable.tsx");
 const mix = read("../components/CustomerMixChart.tsx");
 const charts = read("../components/CustomerCharts.tsx");
 const analyticsLib = read("./customers-analytics.ts");
+const rfmLib = read("./customers-rfm.ts");
 const analyticsLoader = read("./desk-customers-page.server.ts");
 const scoreboardLib = read("./customers-scoreboard.ts");
 
@@ -24,8 +27,9 @@ const scoreboardLib = read("./customers-scoreboard.ts");
  * Authority: docs/ops/research/black-clover-depth/ + docs/ops/CRAFT_UNLOCK.md
  * + docs/ops/FULL_TAB_CRAFT_AUDIT_v339.md FAIL #5.
  * Customers is one spine: marquee explorer → compact returning hero →
- * What-to-do / retention → value bands / whales. Not marquee + six-tile wall
- * + duplicate buyers catalog. Update toward one desk, never toward a card stack.
+ * What-to-do / watchlist → RFM-lite → value bands / whales. Not marquee +
+ * six-tile wall + duplicate buyers catalog. Update toward one desk, never
+ * toward a card stack.
  */
 
 describe("Customers route — one RETAIN spine, order history only", () => {
@@ -41,6 +45,8 @@ describe("Customers route — one RETAIN spine, order history only", () => {
       "<CustomerMixChart",
       "<CustomersScoreboard",
       "<CustomerRetentionBoard",
+      "<CustomerWhaleWatch",
+      "<CustomerRfmBoard",
       "<CustomerValueBands",
       "<CustomerWhaleTable",
     ].map((tag) => customers.indexOf(tag));
@@ -55,6 +61,7 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers).not.toContain(
       "{!metrics.salesPending ? <CustomerMixChart",
     );
+    expect(customers).toContain("mcfly-cust-action-row");
     expect(customers).toContain("<CustomerConcentrationChart");
     expect(customers).not.toContain("<ShopifyBookSection");
     expect(customers).not.toContain('groups={["buyers"]}');
@@ -112,6 +119,11 @@ describe("CustomerRetentionBoard — What-to-do retention flow", () => {
     expect(retention.match(/<ActionCard[\s\n]/g)?.length).toBe(3);
   });
 
+  it("does not absorb the whale watchlist — ActionCards stay the three plays", () => {
+    expect(retention).not.toContain("Whale watchlist");
+    expect(retention).not.toContain("RFM-lite");
+  });
+
   it("never invents a 2nd-order product — honest about Level-1 scope", () => {
     expect(retention).toContain("read_orders");
     expect(retention).toMatch(/SKU|line item/i);
@@ -123,6 +135,57 @@ describe("CustomerRetentionBoard — What-to-do retention flow", () => {
     expect(retention).toContain("mcfly-cust-empty");
     expect(retention).toContain("mcfly-cust-empty__ghost");
     expect(retention).toContain("not $0");
+  });
+});
+
+describe("CustomerWhaleWatch — high LTV recency risk beside ActionCards", () => {
+  it("is a watchlist of slipping whales, not a named-customer dump", () => {
+    expect(watch).toContain("Whale watchlist");
+    expect(watch).toContain("row.verb");
+    expect(watch).toContain("mcfly-cust-watch");
+    expect(watch).toContain("High LTV");
+    expect(watch).not.toMatch(/gid:\/\/shopify\/Customer/);
+  });
+
+  it("uses an ActionCard-shaped first-win empty, never a blank table", () => {
+    expect(watch).toContain("mcfly-cust-rfm__empty");
+    expect(watch).toContain("shown.verb");
+    expect(watch).toContain("Floor:");
+    expect(watch).toContain("not $0");
+    expect(watch).toContain("mcfly-cust-empty__ghost--table");
+  });
+});
+
+describe("CustomerRfmBoard — recency / frequency / monetary lite", () => {
+  it("paints four segments and three R/F/M bands, not a 5×5 dump", () => {
+    expect(rfmBoard).toContain("RFM-lite");
+    expect(rfmBoard).toContain("rfm.segments");
+    expect(rfmBoard).toContain("rfm.bands");
+    expect(rfmBoard).toContain("seg.verb");
+    expect(rfmLib).toContain("Champions");
+    expect(rfmBoard).not.toContain("Potential loyalist");
+    expect(rfmBoard).not.toContain("Cannot lose them");
+  });
+
+  it("uses an ActionCard-shaped empty with the 8 × 30 floor", () => {
+    expect(rfmBoard).toContain("First win");
+    expect(rfmBoard).toContain("empty.verb");
+    expect(rfmBoard).toContain("Floor:");
+    expect(rfmBoard).toContain("buyers × 30 days");
+    expect(rfmBoard).toContain("not $0");
+    expect(rfmBoard).toContain("mcfly-cust-empty__ghost--bars");
+  });
+});
+
+describe("Customers loader — full stored book for RFM, 90-day mix kept", () => {
+  it("loads OrderFacts without a start cap, then slices 90 days for mix", () => {
+    expect(analyticsLoader).toContain("{ end }");
+    expect(analyticsLoader).toContain("buildCustomerRfm");
+    expect(analyticsLoader).toContain("CUSTOMERS_ANALYTICS_WINDOW_DAYS");
+    expect(analyticsLoader).toContain("getOrderBackfillHistoryLimited");
+    expect(analyticsLoader).toContain("full stored");
+    expect(rfmLib).toContain("RFM_MIN_BUYERS = 8");
+    expect(rfmLib).toContain("WATCHLIST_COLD_DAYS = 30");
   });
 });
 
@@ -213,6 +276,9 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
     expect(css).toContain(".mcfly-cust-mix__empty-copy");
     expect(css).toContain(".mcfly-cust-facts");
     expect(css).toContain(".mcfly-cust-empty__ghost");
+    expect(css).toContain(".mcfly-cust-action-row");
+    expect(css).toContain(".mcfly-cust-rfm__empty");
+    expect(css).toContain(".mcfly-cust-watch__row");
   });
 });
 
@@ -222,11 +288,14 @@ describe("Zero spend / ROAS / Email on the whole Customers tab", () => {
       customers,
       scoreboard,
       retention,
+      watch,
+      rfmBoard,
       value,
       whale,
       mix,
       charts,
       analyticsLib,
+      rfmLib,
       analyticsLoader,
       scoreboardLib,
     ]) {
