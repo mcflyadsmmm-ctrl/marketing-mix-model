@@ -94,8 +94,26 @@ function groupIcon(group: ShopifyBookGroup): DeskIconName {
   }
 }
 
+function FactBody({ row }: { row: BookFact }) {
+  return (
+    <>
+      <p className="mcfly-book__kpi-k">
+        <DeskIcon name={factIcon(row.k)} />
+        {row.k}
+      </p>
+      <p className="mcfly-book__kpi-v">{row.v}</p>
+      {row.s ? <p className="mcfly-book__kpi-hint">{row.s}</p> : null}
+      {row.d ? <p className="mcfly-book__kpi-hint">{row.d}</p> : null}
+      {(row.x ?? []).map((line) => (
+        <p className="mcfly-book__kpi-hint" key={line}>
+          {line}
+        </p>
+      ))}
+    </>
+  );
+}
+
 export function BookFactGrid({ facts }: { facts: BookFact[] }) {
-  const currency = useDeskCurrency();
   const drill = useDeskDrill();
   const shown = facts;
   if (shown.length === 0) return null;
@@ -124,23 +142,11 @@ export function BookFactGrid({ facts }: { facts: BookFact[] }) {
             key={row.k}
             onClick={open}
           >
-            <p className="mcfly-book__kpi-k">
-              <DeskIcon name={factIcon(row.k)} />
-              {row.k}
-            </p>
-            <p className="mcfly-book__kpi-v">{row.v}</p>
-            {row.s ? <p className="mcfly-book__kpi-hint">{row.s}</p> : null}
-            <p className="mcfly-book__kpi-hint">Click for detail</p>
+            <FactBody row={row} />
           </button>
         ) : (
           <div className="mcfly-book__kpi" key={row.k}>
-            <p className="mcfly-book__kpi-k">
-              <DeskIcon name={factIcon(row.k)} />
-              {row.k}
-            </p>
-            <p className="mcfly-book__kpi-v">{row.v}</p>
-            {row.s ? <p className="mcfly-book__kpi-hint">{row.s}</p> : null}
-            {row.d ? <p className="mcfly-book__kpi-hint">{row.d}</p> : null}
+            <FactBody row={row} />
           </div>
         );
       })}
@@ -298,9 +304,11 @@ function growthHero(
       v: formatCurrency(book.newSales, currency),
       sub: hasShare(book.newSalesShare)
         ? `${pct(book.newSalesShare)} of sales — dollars, not headcount`
-        : depth.identifiedBuyers > 0
-          ? `${book.newCustomers.toLocaleString()} new customers in this window`
-          : undefined,
+        : isNum(depth.medianDaysToSecond)
+          ? `Days to a second order ${Math.round(depth.medianDaysToSecond)}d`
+          : depth.identifiedBuyers > 0
+            ? `${book.newCustomers.toLocaleString()} new customers in this window`
+            : undefined,
       def: "Sales from buyers on their first order. Growth is new dollars and who came back — not ad subscribe counts.",
     };
   }
@@ -358,6 +366,18 @@ function periodRows(
 ): BookFact[] {
   return [
     {
+      k: "Average order",
+      v: isNum(depth.meanAov)
+        ? formatCurrency(depth.meanAov, currency)
+        : "—",
+      s:
+        isNum(depth.medianAov) && isNum(depth.meanAov)
+          ? `Typical (median) ${formatCurrency(depth.medianAov, currency)} — Shopify Analytics uses the average.`
+          : undefined,
+      d: "Mean order value. A few large tickets pull this up; the hero is the middle order.",
+      keepDash: true,
+    },
+    {
       k: PRODUCT_NOUN.bookMostOrders,
       v:
         isNum(depth.aovP25) && isNum(depth.aovP75)
@@ -375,7 +395,9 @@ function periodRows(
         depth.dayCountWithSales > 0
           ? `${depth.dayCountWithSales} days had sales`
           : undefined,
-      d: PRODUCT_NOUN.bookTypicalDayDef,
+      d: isNum(depth.medianDailySales)
+        ? PRODUCT_NOUN.bookTypicalDayDef
+        : PRODUCT_NOUN.bookTypicalDayEmpty,
       keepDash: true,
     },
     {
@@ -466,7 +488,10 @@ function buyersRows(
         hasShare(book.newSalesShare) && hasShare(book.returningSalesShare)
           ? `${pct(book.newSalesShare)} new · ${pct(book.returningSalesShare)} returning`
           : "—",
-      d: "Sales from first-time buyers vs buyers who had ordered before, in this window.",
+      d:
+        hasShare(book.newSalesShare) && hasShare(book.returningSalesShare)
+          ? "Sales from first-time buyers vs buyers who had ordered before, in this window."
+          : "Returning dollars need identified buyers in this window — not $0.",
       keepDash: true,
     },
     {
@@ -486,7 +511,10 @@ function buyersRows(
           : book.guestOrders > 0
             ? `${book.guestOrders.toLocaleString()} orders without an account`
             : undefined,
-      d: "Orders placed without a customer account.",
+      d:
+        book.guestOrders > 0 && hasShare(book.guestShare)
+          ? "Orders placed without a customer account."
+          : "Guest share needs orders without an account in this window — not $0.",
       keepDash: true,
     },
     {
@@ -503,7 +531,9 @@ function buyersRows(
       v: hasShare(depth.topCustomerSalesShare)
         ? pct(depth.topCustomerSalesShare)
         : "—",
-      d: "Share of sales from the highest-spending 10% of identified buyers this window. Not the largest orders.",
+      d: hasShare(depth.topCustomerSalesShare)
+        ? "Share of sales from the highest-spending 10% of identified buyers this window. Not the largest orders."
+        : "Needs more identified buyers in this window — not $0.",
       keepDash: true,
     },
     {
@@ -534,12 +564,6 @@ function growthRows(
 ): BookFact[] {
   return [
     {
-      k: "New customers",
-      v: book.newCustomers > 0 ? book.newCustomers.toLocaleString() : "—",
-      d: "Buyers whose first Shopify order is in this window.",
-      keepDash: true,
-    },
-    {
       k: "Days to a second order",
       v: isNum(depth.medianDaysToSecond)
         ? `${Math.round(depth.medianDaysToSecond)}d`
@@ -548,7 +572,9 @@ function growthRows(
         depth.repeatBuyers > 0
           ? `${depth.repeatBuyers.toLocaleString()} buyers came back`
           : undefined,
-      d: "Middle wait between a first and second order.",
+      d: isNum(depth.medianDaysToSecond)
+        ? "Middle wait between a first and second order."
+        : "Needs buyers with a second order on file — not $0.",
       keepDash: true,
     },
     {
@@ -560,7 +586,15 @@ function growthRows(
         depth.eligibleFirstTimers > 0
           ? `${depth.eligibleFirstTimers.toLocaleString()} first-time buyers had a full 30 days to come back`
           : undefined,
-      d: PRODUCT_NOUN.bookSecondWithin30Def,
+      d: hasShare(depth.secondOrderWithin30Share)
+        ? PRODUCT_NOUN.bookSecondWithin30Def
+        : PRODUCT_NOUN.bookSecondWithin30Empty,
+      keepDash: true,
+    },
+    {
+      k: "New customers",
+      v: book.newCustomers > 0 ? book.newCustomers.toLocaleString() : "—",
+      d: "Buyers whose first Shopify order is in this window.",
       keepDash: true,
     },
     {
@@ -592,6 +626,23 @@ function timingRows(depth: ShopifyDepthStats, currency: string): BookFact[] {
       : null;
   const mix = sourceMixLine(depth.sourceSalesShare);
   const typical = sourceTypicalAovLine(depth.sourceMedianAov, currency);
+  const onlineShare = depth.sourceSalesShare?.online;
+  const posShare = depth.sourceSalesShare?.pos;
+  const shopShare = depth.sourceSalesShare?.shop;
+  const shopCard: BookFact[] =
+    isNum(depth.sourceMedianAov.shop) || hasShare(shopShare)
+      ? [
+          {
+            k: "Typical Shop order",
+            v: isNum(depth.sourceMedianAov.shop)
+              ? formatCurrency(depth.sourceMedianAov.shop, currency)
+              : "—",
+            s: hasShare(shopShare) ? `${pct(shopShare)} of sales` : undefined,
+            d: "Middle Shop app order. Not which ad sent them.",
+            keepDash: true,
+          },
+        ]
+      : [];
   return [
     {
       k: PRODUCT_NOUN.bookWeekendSales,
@@ -641,7 +692,70 @@ function timingRows(depth: ShopifyDepthStats, currency: string): BookFact[] {
       d: PRODUCT_NOUN.bookChannelMixDef,
       keepDash: true,
     },
+    {
+      k: "Typical Online order",
+      v: isNum(depth.sourceMedianAov.online)
+        ? formatCurrency(depth.sourceMedianAov.online, currency)
+        : "—",
+      s: hasShare(onlineShare) ? `${pct(onlineShare)} of sales` : undefined,
+      d: "Middle online-store order. Not which ad sent them.",
+      keepDash: true,
+    },
+    {
+      k: "Typical POS order",
+      v: isNum(depth.sourceMedianAov.pos)
+        ? formatCurrency(depth.sourceMedianAov.pos, currency)
+        : "—",
+      s: hasShare(posShare) ? `${pct(posShare)} of sales` : undefined,
+      d: "Middle point-of-sale order. Online vs POS — not ad attribution.",
+      keepDash: true,
+    },
+    ...shopCard,
   ];
+}
+
+function groupHero(
+  group: ShopifyBookGroup,
+  book: ShopifyNativePeriodStats,
+  depth: ShopifyDepthStats,
+  currency: string,
+): BookHero {
+  switch (group) {
+    case "buyers":
+      return buyersHero(book, depth, currency);
+    case "timing":
+      return timingHero(depth);
+    case "growth":
+      return growthHero(book, depth, currency);
+    case "period":
+      return periodHero(depth, currency);
+    default: {
+      const _exhaustive: never = group;
+      return _exhaustive;
+    }
+  }
+}
+
+function groupRows(
+  group: ShopifyBookGroup,
+  book: ShopifyNativePeriodStats,
+  depth: ShopifyDepthStats,
+  currency: string,
+): BookFact[] {
+  switch (group) {
+    case "buyers":
+      return buyersRows(book, depth, currency);
+    case "timing":
+      return timingRows(depth, currency);
+    case "growth":
+      return growthRows(book, depth, currency);
+    case "period":
+      return periodRows(book, depth, currency);
+    default: {
+      const _exhaustive: never = group;
+      return _exhaustive;
+    }
+  }
 }
 
 function clockItems(clocks: SalesClocks, currency: string): ClockItem[] {
@@ -677,27 +791,6 @@ export function ShopifyBookSection({
   id?: string;
 }) {
   const currency = useDeskCurrency();
-  const lead = groups[0] ?? "period";
-  const hero =
-    lead === "buyers"
-      ? buyersHero(book, depth, currency)
-      : lead === "timing"
-        ? timingHero(depth)
-        : lead === "growth"
-          ? growthHero(book, depth, currency)
-          : periodHero(depth, currency);
-  const rows = groups
-    .flatMap((group) =>
-      group === "buyers"
-        ? buyersRows(book, depth, currency)
-        : group === "timing"
-          ? timingRows(depth, currency)
-          : group === "growth"
-            ? growthRows(book, depth, currency)
-            : periodRows(book, depth, currency),
-    )
-    .filter((row) => row.k !== hero.k);
-  const clock = groups.includes("period") ? clockItems(clocks, currency) : [];
 
   return (
     <section
@@ -709,29 +802,39 @@ export function ShopifyBookSection({
         {muted ?? PRODUCT_NOUN.shopifyBookMuted}
       </p>
 
-      <div className="mcfly-book__hero">
-        <p className="mcfly-book__hero-k">
-          <DeskIcon name={groupIcon(lead)} />
-          {hero.k}
-        </p>
-        <p className="mcfly-book__hero-v">{hero.v}</p>
-        {hero.sub ? <p className="mcfly-book__hero-sub">{hero.sub}</p> : null}
-        <p className="mcfly-book__hero-def">{hero.def}</p>
-        <p className="mcfly-book__kpi-hint">Click a card below for detail</p>
-      </div>
-
-      {clock.length > 0 ? (
-        <div className="mcfly-book__clock" aria-label={PRODUCT_NOUN.bookSalesClock}>
-          {clock.map((item) => (
-            <div className="mcfly-book__clock-item" key={item.k}>
-              <p className="mcfly-book__clock-k">{item.k}</p>
-              <p className="mcfly-book__clock-v">{item.v}</p>
+      {groups.map((group) => {
+        const hero = groupHero(group, book, depth, currency);
+        const rows = groupRows(group, book, depth, currency).filter(
+          (row) => row.k !== hero.k,
+        );
+        const clock = group === "period" ? clockItems(clocks, currency) : [];
+        return (
+          <div key={group}>
+            <div className="mcfly-book__hero">
+              <p className="mcfly-book__hero-k">
+                <DeskIcon name={groupIcon(group)} />
+                {hero.k}
+              </p>
+              <p className="mcfly-book__hero-v">{hero.v}</p>
+              {hero.sub ? <p className="mcfly-book__hero-sub">{hero.sub}</p> : null}
+              <p className="mcfly-book__hero-def">{hero.def}</p>
             </div>
-          ))}
-        </div>
-      ) : null}
 
-      <BookFactGrid facts={rows} />
+            {clock.length > 0 ? (
+              <div className="mcfly-book__clock" aria-label={PRODUCT_NOUN.bookSalesClock}>
+                {clock.map((item) => (
+                  <div className="mcfly-book__clock-item" key={item.k}>
+                    <p className="mcfly-book__clock-k">{item.k}</p>
+                    <p className="mcfly-book__clock-v">{item.v}</p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <BookFactGrid facts={rows} />
+          </div>
+        );
+      })}
     </section>
   );
 }

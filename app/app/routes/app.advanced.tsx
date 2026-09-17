@@ -122,6 +122,15 @@ export default function AdvancedMetricsPage() {
           <SampleDeskBanner note="Advanced Metrics uses SAMPLE numbers — not your live store." />
         ) : null}
 
+        {metrics.salesPending && !shotMode ? (
+          <s-banner tone="info" heading="Sales still loading">
+            <s-paragraph>
+              Sales for closed days are still loading — not $0. Order
+              stats stay on this page.
+            </s-paragraph>
+          </s-banner>
+        ) : null}
+
         {isLoading && !shotMode ? (
           <section
             className="mcfly-state mcfly-state--loading"
@@ -153,7 +162,8 @@ export default function AdvancedMetricsPage() {
         <header className="mcfly-topbar">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              {PRODUCT_NOUN.advancedKicker}
+              Order-depth extras from this shop’s orders. Averages, not
+              which ad caused the sale. No stacked-bar theater.
             </p>
           </div>
           {shotMode ? (
@@ -186,6 +196,9 @@ export default function AdvancedMetricsPage() {
         </p>
 
         <div className="mcfly-advanced__nav">
+          <s-link href={`/app/orders?period=${preset}`}>
+            Typical order and weekends are on Orders
+          </s-link>
           <s-link href={`/app/allocation?period=${preset}`}>
             {PRODUCT_NOUN.nextAllocation}
           </s-link>

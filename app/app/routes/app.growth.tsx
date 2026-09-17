@@ -91,6 +91,14 @@ export default function GrowthPage() {
           Sales for closed days are still loading — not $0.
         </p>
       ) : null}
+      {!metrics.salesPending &&
+      metrics.shopifyDepth.medianDaysToSecond == null &&
+      metrics.shopifyDepth.secondOrderWithin30Share == null ? (
+        <p className="mcfly-book__lede">
+          Days to a second order and who came back in 30 days are not on file
+          yet — not $0.
+        </p>
+      ) : null}
           <ShopifyBookSection
             book={book}
             depth={metrics.shopifyDepth}

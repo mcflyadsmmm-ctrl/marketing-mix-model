@@ -121,18 +121,27 @@ describe("overview first viewport", () => {
     expect(overview).not.toContain("mcfly-tab-snaps");
     expect(overview).not.toContain("Coverage {Math.round(coveragePct)}%");
     expect(overview).toContain("!greetingPending &&");
-    expect(read("../components/OverviewSalesChart.tsx")).toContain(
+    expect(overview).toContain("factDays: salesFactsCoverage?.factDays");
+    const chart = read("../components/OverviewSalesChart.tsx");
+    expect(chart).not.toContain(
       "salesPending || !hasSales || points.length < 2",
     );
-    expect(read("../components/OverviewSalesChart.tsx")).toContain("Tap a bar");
+    expect(chart).not.toMatch(/return null/);
+    expect(chart).toContain("OVERVIEW_CHART_EMPTY");
+    expect(chart).toContain("No days in this window yet");
+    expect(chart).toContain("Tap a bar");
+    expect(chart).toContain("mcfly-chart__spend-line");
   });
 
   it("Overview YoY cards say pending sales are not $0", () => {
     const cards = read("../components/OverviewYoyCards.tsx");
     expect(cards).toContain("OVERVIEW_YOY_PENDING");
     expect(cards).toContain("OVERVIEW_YOY_LABELS");
+    expect(cards).toContain("OVERVIEW_YOY_MISSING");
     expect(cards).not.toMatch(/if \(salesPending\) return null/);
-    expect(cards).toContain("salesPending || cards.length === 0");
+    expect(cards).toContain("if (salesPending)");
+    expect(cards).toContain("if (cards.length === 0)");
+    expect(cards).not.toContain("salesPending || cards.length === 0");
     expect(cards).not.toContain("0.00×");
     expect(cards).not.toContain("Total ROAS");
     expect(cards).not.toContain("Edit spend");
@@ -190,12 +199,26 @@ describe("overview first viewport", () => {
 });
 
 describe("overviewGreetingPending", () => {
-  it("treats incomplete coverage + $0 sales as still loading, not a finished $0 year", () => {
+  it("does not treat incomplete coverage + $0 sales as pending when fact days exist", () => {
     expect(
       overviewGreetingPending({
         salesPending: false,
         sales: 0,
         coverageComplete: false,
+        factDays: 7,
+        periodExceedsFactWindow: false,
+        useSampleDesk: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps unknown loading when no certified facts and $0 sales", () => {
+    expect(
+      overviewGreetingPending({
+        salesPending: false,
+        sales: 0,
+        coverageComplete: false,
+        factDays: 0,
         periodExceedsFactWindow: false,
         useSampleDesk: false,
       }),
@@ -208,6 +231,7 @@ describe("overviewGreetingPending", () => {
         salesPending: false,
         sales: 0,
         coverageComplete: true,
+        factDays: 16,
         periodExceedsFactWindow: false,
         useSampleDesk: false,
       }),
@@ -220,6 +244,7 @@ describe("overviewGreetingPending", () => {
         salesPending: false,
         sales: 18_400,
         coverageComplete: false,
+        factDays: 9,
         periodExceedsFactWindow: false,
         useSampleDesk: false,
       }),
@@ -240,6 +265,16 @@ describe("overviewGreetingPending", () => {
         salesPending: true,
         sales: 0,
         coverageComplete: false,
+        factDays: 0,
+        useSampleDesk: true,
+      }),
+    ).toBe(false);
+    expect(
+      overviewGreetingPending({
+        salesPending: false,
+        sales: 0,
+        coverageComplete: false,
+        factDays: 0,
         useSampleDesk: true,
       }),
     ).toBe(false);

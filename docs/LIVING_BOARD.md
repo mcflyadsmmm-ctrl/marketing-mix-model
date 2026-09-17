@@ -4,15 +4,15 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-16 · America/Denver · Fly **322** · SAMPLE Result **PASS** · site **v17** |
+| **Updated** | 2026-09-16 · America/Denver · Fly **329** live · denser desk **on tree, not Fly** · occupancy **0/4** · Sample freeze |
 | **Live** | https://mcflyads.com · `mcfly-version` **v17** (Pages `2f6ca3d0`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **Fly** | https://mcfly-analytics.fly.dev · version **322** · in-iframe Shopify / Spend page toggles · side `s-app-nav` stays shortcuts · document 410 → `/auth/opening` |
+| **Fly** | https://mcfly-analytics.fly.dev · version **329** live · `/health` 200 · db up · denser Overview/books/spend/YoY still **uncommitted on `cursor/spend-trust-recurring`** |
 | **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
 | **App code** | **UNFROZEN** 2026-08-29 · Fly + `app/**` open for App Store approval |
-| **Conductor** | One Cursor chat · read board + skill every turn |
+| **Conductor** | One Cursor chat · read board + skill every turn · Mac-shell split [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md) |
 
 Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) · skill: [`.cursor/skills/mcfly-site/SKILL.md`](../.cursor/skills/mcfly-site/SKILL.md)
 
@@ -28,7 +28,7 @@ Law: [`MASTER_DIRECTIVE.md`](./MASTER_DIRECTIVE.md) · skill: [`.cursor/skills/m
 | **Money now** | **Mcfly Analytics** | Shopify app · 7-day then $39 |
 | **Parked** | Custom Data Solutions | 301 `/` on mcflyads.com |
 
-**Refuse:** Ads↔Analytics chrome toggle · inventing a fake `apps.shopify.com` handle (live listing is `mcfly-analytics-public` only) · selling Custom on home/nav · parallel `dist/` · Grok fleets · new SEO landers · collage patches on `site.css` for Tier A.
+**Refuse:** Ads↔Analytics chrome toggle · inventing a fake `apps.shopify.com` handle (live listing is `mcfly-analytics-public` only) · selling Custom on home/nav · parallel `dist/` · Grok **org-chart fleets** (Mac-shell `flyctl` is allowed — [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md)) · new SEO landers · collage patches on `site.css` for Tier A.
 
 **Agent one-liner:** Public mark = Mcfly Analytics. CTA = **Install** → https://apps.shopify.com/mcfly-analytics-public. Nav Demo still `/demo`. Custom URLs 301 home. Fly app is unfrozen — make install/OAuth/`/app` work.
 
@@ -46,7 +46,7 @@ Restraint. Paper/sky. Original ribbon M. Phone = brand + hamburger.
 ## Product + SAMPLE lock
 
 App: deeper Shopify order analytics than Analytics Overview. Spend tools are their own pages after the Shopify five. Not pixels.  
-**Rebuild SoT:** [`plans/2026-09-10-save-the-desk.md`](./plans/2026-09-10-save-the-desk.md) — one building plan. Paste: [`plans/2026-09-10-save-the-desk-PROMPT.md`](./plans/2026-09-10-save-the-desk-PROMPT.md). Older punch/omit docs are retired as craft law. Desk is the product. Site H1 is sales-first (P7 live). Listing paste for Marty: [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md). Cursor does not Submit.  
+**Rebuild SoT:** [`plans/2026-09-16-snowdevil-sample-only.md`](./plans/2026-09-16-snowdevil-sample-only.md) (Grok paste: [`plans/2026-09-16-snowdevil-sample-only-PROMPT.md`](./plans/2026-09-16-snowdevil-sample-only-PROMPT.md)). Older save-the-desk plan still explains density. **2026-09-16 founder override:** Live path is **parked** until Marty agrees SAMPLE looks and calculates right. Next book is **Snowdevil**, not Harbor spend. No Live order seed. Grok Bot **may** `fly deploy` from this Mac; Marty remains Admin / Partner gate. Cursor does not Submit. Split: [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md).  
 **Harbor SAMPLE (home, below the fold):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · not a live client.  
 Demo widget still uses the Northline SAMPLE book (listing desk numbers) — do not put Northline **$98,500** / **4.19×** on `/`.  
 Voice bans: Monday / cash desk / beats SaaS / 500-seat theater / aMER / till / cohort / ARPU / p25-p75 in chrome.  
@@ -97,7 +97,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v17 live** — Fly 318 spine · Pages `2f6ca3d0` · journal [`ops/journal/STATUS_20260915_v17.md`](./ops/journal/STATUS_20260915_v17.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Fly **322 live.** Hard-refresh Admin — Shopify / Spend toggles at the top of the iframe; left Admin nav stays shortcuts. Human: Partner **Save** listing (still spend-led). Reviews: **0**. Ads off. Occupancy **0/4**.
+**Next:** Occupancy **0/4**. Four Desk lanes on tree (71 tests), **not** on Fly 329. Sample freeze = **hold** on the standing Mac `fly deploy` order. Human leftover: Partner Save still wait; reviews **0**; ads off. Mac split: [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md).
 
 ---
 

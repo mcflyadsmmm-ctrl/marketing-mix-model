@@ -94,7 +94,7 @@ export default function OrdersPage() {
             groups={["period", "timing"]}
             title={PRODUCT_NOUN.ordersTitle}
             muted={deskBookLede(
-              "Shopify Analytics shows the average order. This page shows the typical order (median), then discounts, the biggest 10% of orders, then weekend, hour, and Online vs POS. Click a weekday bar.",
+              "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS as cards. Pending sales are a banner — the book still paints from orders on file. Click a weekday bar.",
             )}
           />
           <WeekdaySalesChart shares={metrics.shopifyDepth.weekdaySalesShare} />

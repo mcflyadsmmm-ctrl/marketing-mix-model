@@ -1,6 +1,6 @@
 # Cursor OS — McFlyAds (post–Grok autopsy)
 
-**Effective:** 2026-08-28 · **Always read with** [`../LIVING_BOARD.md`](../LIVING_BOARD.md) first.
+**Effective:** 2026-08-28 · **Mac-shell deploy lock 2026-09-16** · Always read [`../LIVING_BOARD.md`](../LIVING_BOARD.md) first · split [`GROKBOT_MAC_SPLIT.md`](./GROKBOT_MAC_SPLIT.md).
 
 **Prime objective:** Make money selling **Mcfly Analytics** (Shopify app · 7-day then $39). Custom Data Solutions is parked (301 home).
 
@@ -8,10 +8,10 @@
 
 | Role | May | Must not |
 | --- | --- | --- |
-| **Conductor** (one Cursor chat) | Spawn ≤4 Task lanes, merge, canvas, lock scripts, Pages/Fly **after** workers, money drafts | Grok fleets; Wrangler `--branch`; fifth overlapping product lane |
+| **Conductor** (one Cursor chat on this Mac) | Spawn ≤4 Task lanes, merge, canvas, lock scripts, **Mac** `flyctl` / `gh` / Pages-from-temp **after** workers (unless Marty said hold) | Org-chart fleets; Wrangler `--branch`; fifth overlapping product lane; invent deploys |
 | **Task lanes** | Site / Listing / Desk / Ops only — exclusive files in [`CONDUCTOR_LANES.md`](./CONDUCTOR_LANES.md) | `fly deploy`; Partner Submit; inventing reviews |
-| **Founder** | Merge, send mail, Partner, MX, secrets, ads budget | Babysit every 5 min if Conductor healthy |
-| **Grok** | Optional research / paste packs only | Own site; deploy; money voice; org-chart fleets |
+| **Founder** | Partner Save/Submit, Admin eyes, MX, ads budget, smoke Result | Babysit every CLI if Mac Shell is connected and hold is clear |
+| **Grok Bot** | Orchestrate PRs; **drive this Mac’s** `gh` / `flyctl` / wrangler when connected | Own Partner/Admin iframe; put Fly secrets in a Grok-only cloud shell; org-chart fleets |
 
 ## Accounts
 
@@ -33,6 +33,7 @@ Never `--branch` for production. Probe `/` + `/demo` + `/pricing` before claim. 
 
 Cap **3** emails/day. Open on their public fact. Close on system they keep. No TW 1-star stalking. Comments help-first, no URL unless asked.
 
-## Autopsy
+## Autopsy vs Mac Shell
 
-[`GROK_BOT_AUTOPSY_20260828.md`](./GROK_BOT_AUTOPSY_20260828.md)
+[`GROK_BOT_AUTOPSY_20260828.md`](./GROK_BOT_AUTOPSY_20260828.md) = no fake company / no invented live.  
+[`GROKBOT_MAC_SPLIT.md`](./GROKBOT_MAC_SPLIT.md) = Grok Bot **may** deploy from `Martys-MacBook-Pro.local`; Marty stays Admin / Partner gate.

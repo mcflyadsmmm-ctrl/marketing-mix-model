@@ -110,8 +110,8 @@ Mcfly Analytics solves a real Shopify problem and is how big store owners discov
 - Hostile CFO + senior DE are the reviewers — not Instagram  
 - Density, type, space, SSR numbers — no $0-then-hydrate  
 - SAMPLE honesty > fake social proof  
-- One Conductor (Cursor) · Living Board · this file — **not** a Grok multi-bot builder fleet  
-- Research/Task agents OK for teardown; they do not merge or deploy  
+- One Conductor (Cursor) · Living Board · this file — **not** a Grok multi-bot org chart  
+- Research/Task agents OK for teardown; they do not merge or `fly deploy`. Grok Bot **may** merge/`flyctl` **on this Mac** — [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md)  
 
 ---
 

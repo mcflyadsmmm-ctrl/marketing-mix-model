@@ -351,9 +351,9 @@ export default function SettingsPage() {
         <header className="mcfly-topbar mcfly-topbar--settings">
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
-              This page is your target {PRODUCT_NOUN.totalRoas}, Sample vs
+              This page is your target {PRODUCT_NOUN.totalRoas}, Sample |
               Live, and billing — not reports. Profit margin is optional —
-              only if you want break-even.
+              only if you want break-even. SAMPLE dollars do not transfer.
             </p>
           </div>
         </header>
@@ -415,6 +415,90 @@ export default function SettingsPage() {
               )}
             </div>
           </s-banner>
+        ) : null}
+
+        {!shotMode ? (
+          <section
+            className="mcfly-panel"
+            style={{ marginTop: "1.25rem" }}
+            aria-label="Sample | Live"
+          >
+            <h2 className="mcfly-settings-template__heading">Sample | Live</h2>
+            <p className="mcfly-panel__muted">
+              Switch Sample data | Live data here. Sample data is Harbor example
+              numbers through today so you can smoke every tab. Live data is
+              this shop’s Shopify sales and the spend you add. SAMPLE dollars do not transfer — add a day on Spend Upload for live Total ROAS.
+            </p>
+            <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
+              Right now:{" "}
+              <strong>
+                {useSampleDesk
+                  ? PRODUCT_NOUN.sampleData
+                  : PRODUCT_NOUN.liveData}
+              </strong>
+              {samplePreviewAllowed
+                ? " · Sample data option is available"
+                : " · Sample data option is hidden"}
+            </p>
+            <div
+              className="mcfly-decision__actions"
+              style={{ marginTop: "0.85rem" }}
+            >
+              <Form method="post" reloadDocument>
+                <input type="hidden" name="intent" value="use-sample" />
+                <button
+                  type="submit"
+                  className="mcfly-btn mcfly-btn--primary"
+                  disabled={sampleBusy || useSampleDesk || undefined}
+                  aria-pressed={useSampleDesk}
+                >
+                  {useSampleDesk ? "Sample data" : "Switch to Sample data now"}
+                </button>
+              </Form>
+              <Form method="post" reloadDocument>
+                <input type="hidden" name="intent" value="use-real" />
+                <button
+                  type="submit"
+                  className="mcfly-btn mcfly-btn--secondary"
+                  disabled={sampleBusy || !useSampleDesk || undefined}
+                  aria-pressed={!useSampleDesk}
+                >
+                  {useSampleDesk ? "Switch to Live data now" : "Live data"}
+                </button>
+              </Form>
+              {samplePreviewAllowed ? (
+                <Form method="post">
+                  <input
+                    type="hidden"
+                    name="intent"
+                    value="hide-sample-preview"
+                  />
+                  <button
+                    type="submit"
+                    className="mcfly-btn mcfly-btn--tertiary"
+                    disabled={sampleBusy || undefined}
+                  >
+                    Live data only — hide Sample data
+                  </button>
+                </Form>
+              ) : (
+                <Form method="post">
+                  <input
+                    type="hidden"
+                    name="intent"
+                    value="allow-sample-preview"
+                  />
+                  <button
+                    type="submit"
+                    className="mcfly-btn mcfly-btn--tertiary"
+                    disabled={sampleBusy || undefined}
+                  >
+                    Show Sample data option again
+                  </button>
+                </Form>
+              )}
+            </div>
+          </section>
         ) : null}
 
         <div className="mcfly-settings-template">
@@ -554,8 +638,7 @@ export default function SettingsPage() {
               </p>
             ) : null}
             <p className="mcfly-control__k" style={{ marginTop: "0.75rem" }}>
-              ${billing.amount}/{billing.currencyCode} per store / month after a
-              7-day full-access trial
+              $39 per store / month after a 7-day full-access trial
             </p>
             <ul className="mcfly-settings-guide">
               {billing.deskBullets.map((line) => (
@@ -611,91 +694,6 @@ export default function SettingsPage() {
                 {String(actionData.proMessage)}
               </p>
             ) : null}
-          </section>
-        ) : null}
-
-        {!shotMode ? (
-          <section
-            className="mcfly-panel"
-            style={{ marginTop: "1.25rem" }}
-            aria-label="Sample data"
-          >
-            <h2 className="mcfly-settings-template__heading">Sample data</h2>
-            <p className="mcfly-panel__muted">
-              Switch Sample data | Live data here. Sample data is Harbor example
-              numbers through today so you can smoke every tab. Live data is
-              this shop’s Shopify sales and the spend you add. SAMPLE dollars do not transfer — add a day on Spend Upload for live Total ROAS.
-            </p>
-            <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
-              Right now:{" "}
-              <strong>
-                {useSampleDesk
-                  ? PRODUCT_NOUN.sampleData
-                  : PRODUCT_NOUN.liveData}
-              </strong>
-              {samplePreviewAllowed
-                ? " · Sample data option is available"
-                : " · Sample data option is hidden"}
-            </p>
-            <div
-              className="mcfly-decision__actions"
-              style={{ marginTop: "0.85rem" }}
-            >
-              {!useSampleDesk ? (
-                <Form method="post" reloadDocument>
-                  <input type="hidden" name="intent" value="use-sample" />
-                  <button
-                    type="submit"
-                    className="mcfly-btn mcfly-btn--primary"
-                    disabled={sampleBusy || undefined}
-                  >
-                    Switch to Sample data now
-                  </button>
-                </Form>
-              ) : (
-                <Form method="post" reloadDocument>
-                  <input type="hidden" name="intent" value="use-real" />
-                  <button
-                    type="submit"
-                    className="mcfly-btn mcfly-btn--secondary"
-                    disabled={sampleBusy || undefined}
-                  >
-                    Switch to Live data now
-                  </button>
-                </Form>
-              )}
-              {samplePreviewAllowed ? (
-                <Form method="post">
-                  <input
-                    type="hidden"
-                    name="intent"
-                    value="hide-sample-preview"
-                  />
-                  <button
-                    type="submit"
-                    className="mcfly-btn mcfly-btn--tertiary"
-                    disabled={sampleBusy || undefined}
-                  >
-                    Live data only — hide Sample data
-                  </button>
-                </Form>
-              ) : (
-                <Form method="post">
-                  <input
-                    type="hidden"
-                    name="intent"
-                    value="allow-sample-preview"
-                  />
-                  <button
-                    type="submit"
-                    className="mcfly-btn mcfly-btn--tertiary"
-                    disabled={sampleBusy || undefined}
-                  >
-                    Show Sample data option again
-                  </button>
-                </Form>
-              )}
-            </div>
           </section>
         ) : null}
 

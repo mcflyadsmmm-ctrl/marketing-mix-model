@@ -252,6 +252,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
+  let spendByDay = new Map<string, number>();
+  try {
+    const { rows: chartRows } = await buildDailyRowsForWindow(shop.id, {
+      sampleOnly: useSampleDesk,
+      excludeSample: !useSampleDesk,
+      salesByDay,
+      windowStart: range.start,
+      windowEnd: range.end,
+      timeZone: deskTz,
+    });
+    for (const row of chartRows) {
+      if (row.spend > 0) spendByDay.set(row.dateKey, row.spend);
+    }
+  } catch {
+    spendByDay = new Map();
+  }
+
   const orderBackfillProgress = useSampleDesk
     ? null
     : await getOrderBackfillProgress(shop.id, {
@@ -322,9 +339,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
-    salesDays: [...salesByDay.entries()]
-      .map(([dateKey, sales]) => ({ dateKey, sales }))
-      .sort((a, b) => a.dateKey.localeCompare(b.dateKey)),
+    salesDays: [...new Set([...salesByDay.keys(), ...spendByDay.keys()])]
+      .sort((a, b) => a.localeCompare(b))
+      .map((dateKey) => ({
+        dateKey,
+        sales: salesByDay.get(dateKey) ?? 0,
+        spend: spendByDay.get(dateKey) ?? 0,
+      })),
   };
 };
 
@@ -375,6 +396,7 @@ export default function Dashboard() {
       salesFactsCoverage?.periodExceedsFactWindow,
     ),
     useSampleDesk,
+    factDays: salesFactsCoverage?.factDays,
   });
   // Never label mock / blocked sales as live Shopify when sample is off.
   // Shot mode may quiet chrome, but never omit SAMPLE when desk is sample.

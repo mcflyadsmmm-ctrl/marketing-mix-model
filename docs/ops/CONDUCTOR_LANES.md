@@ -1,6 +1,8 @@
-# Conductor lanes — Cursor fleet (not Grok)
+# Conductor lanes — Cursor fleet (not a Grok org chart)
 
 **Why this exists:** 2026-08-28 Grok “org chart” shipped past a live site that was still wrong. This is the opposite: **one Conductor chat**, **max four Cursor Task lanes**, exclusive files, live probes beat PRs.
+
+**2026-09-16:** Task workers still do not `fly deploy`. Grok Bot **may** drive **this Mac’s** `flyctl` / `gh` / wrangler. Do not re-read the autopsy as “Fly is impossible for Grok.” Split: [`GROKBOT_MAC_SPLIT.md`](./GROKBOT_MAC_SPLIT.md).
 
 Read [`../LIVING_BOARD.md`](../LIVING_BOARD.md) first. Law: [`../MASTER_DIRECTIVE.md`](../MASTER_DIRECTIVE.md). Autopsy: [`GROK_BOT_AUTOPSY_20260828.md`](./GROK_BOT_AUTOPSY_20260828.md).
 
@@ -8,7 +10,7 @@ Read [`../LIVING_BOARD.md`](../LIVING_BOARD.md) first. Law: [`../MASTER_DIRECTIV
 
 | Role | Who | May | Must not |
 | --- | --- | --- | --- |
-| **Conductor** | One Cursor chat (this workspace) | Spawn ≤4 lanes, merge, update the cash-machine canvas, Pages/Fly **after** workers land, weekly numbers | Grok fleets, job search, trading, Custom as home sell |
+| **Conductor** | One Cursor chat (this workspace / Mac) | Spawn ≤4 lanes, merge, update the cash-machine canvas, Mac `flyctl` + Pages-from-temp **after** workers (unless hold) | Org-chart fleets, job search, trading, Custom as home sell, inventing deploys |
 | **Site** | Task agent | `site/**`, sample lock, board/skill/MASTER/journal v14, **Pages from temp dir** | `app/**` TSX, `wrangler --branch`, Partner Submit |
 | **Listing** | Task agent | Listing paste pack + `APP_STORE_LISTING.md` + compliance skill | Site HTML, Fly secrets, inventing reviews |
 | **Desk** | Task agent | `app/app/**` honesty, empty state, ReviewAsk, tests | `site/**`, Pages, ads |

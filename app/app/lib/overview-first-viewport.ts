@@ -1,3 +1,5 @@
+import { resolveSalesReadiness } from "./sales-pending";
+
 /**
  * Overview first viewport — Shopify-depth peeks after the YoY glance.
  * Total ROAS / ad spend / EOM projected ROAS never live here. Those sit on
@@ -40,6 +42,8 @@ export type OverviewGreetingInput = {
   coverageComplete?: boolean | null;
   periodExceedsFactWindow?: boolean;
   useSampleDesk?: boolean;
+  /** Certified SalesDayFact rows in the selected window. */
+  factDays?: number | null;
 };
 
 export type OverviewPeekThird =
@@ -52,17 +56,34 @@ function wholePercent(share: number): number {
 }
 
 /**
- * Overview greeting pending — chrome “still loading sales days” must not
- * become a finished $0 year. Incomplete coverage + $0 sales is unknown,
- * even when a few empty fact days already exist.
+ * Overview greeting pending — same bar as `resolveSalesReadiness`.
+ * A $0 month with certified fact days is an empty month, not loading.
+ * SAMPLE is never pending.
  */
 export function overviewGreetingPending(input: OverviewGreetingInput): boolean {
   if (input.useSampleDesk) return false;
   if (input.salesPending) return true;
+
   const sales = Number.isFinite(input.sales) ? input.sales : 0;
-  const incomplete =
-    input.coverageComplete === false && !input.periodExceedsFactWindow;
-  return incomplete && sales <= 0;
+  const factDays =
+    input.factDays != null && Number.isFinite(input.factDays)
+      ? Math.max(0, input.factDays)
+      : null;
+  const coverageKnown =
+    input.coverageComplete != null ||
+    factDays != null ||
+    Boolean(input.periodExceedsFactWindow);
+  if (!coverageKnown) return false;
+
+  return resolveSalesReadiness({
+    coverage: {
+      complete: input.coverageComplete === true,
+      factDays: factDays ?? 0,
+      periodExceedsFactWindow: Boolean(input.periodExceedsFactWindow),
+    },
+    sales,
+    useSampleDesk: false,
+  }).salesPending;
 }
 
 /**

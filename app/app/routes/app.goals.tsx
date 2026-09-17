@@ -169,6 +169,7 @@ function formatSalesOrDash(
   amount: number | null | undefined,
   currency: string,
 ): string {
+  // Certified $0 months keep $0. Missing facts stay — — never a pending shell.
   if (amount == null || !Number.isFinite(amount)) return "—";
   return formatCurrency(amount, currency);
 }
@@ -205,6 +206,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Same spend + sales spine as Overview for the selected PeriodControl window.
   let periodSalesError: string | null = null;
   let periodSales;
+  let periodSalesCoverage: Awaited<
+    ReturnType<typeof loadDeskSalesForPeriod>
+  >["factsCoverage"] = null;
   if (useSampleDesk) {
     periodSales = await fetchSampleSales(shop.id, periodRange);
   } else {
@@ -216,6 +220,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
     periodSales = desk.sales;
     periodSalesError = desk.salesError;
+    periodSalesCoverage = desk.factsCoverage;
   }
   const periodMetrics = await buildDashboardMetrics(
     session.shop,
@@ -223,6 +228,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     periodSales,
     {
       salesBasis: parseSalesBasis(settings.salesBasis, "total"),
+      salesCoverage: periodSalesCoverage,
     },
   );
 
@@ -663,6 +669,15 @@ export default function GoalsPage() {
           />
         ) : null}
 
+        {periodMetrics.salesPending && !salesError && !shotMode ? (
+          <s-banner tone="info" heading="Sales still loading">
+            <s-paragraph>
+              Still loading — not $0. Months with certified sales still show
+              pace vs your typed plan.
+            </s-paragraph>
+          </s-banner>
+        ) : null}
+
         {isSaving || isRevalidating ? (
           <s-banner tone="info" heading="Updating goals">
             <s-paragraph>Writing your {year} plan…</s-paragraph>
@@ -709,7 +724,9 @@ export default function GoalsPage() {
               <p className="mcfly-book__hero-def">
                 {periodMetrics.salesPending
                   ? "Still loading — not $0"
-                  : `${PRODUCT_NOUN.totalSalesHeroHint} · ${periodMetrics.period.label}`}
+                  : periodMetrics.sales === 0
+                    ? `Certified $0 · ${periodMetrics.period.label}`
+                    : `${PRODUCT_NOUN.totalSalesHeroHint} · ${periodMetrics.period.label}`}
               </p>
             </div>
             {periodHasSpend ? (

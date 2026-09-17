@@ -23,6 +23,7 @@ import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { formatSpendOnFile, spendOnFileHint } from "../lib/spend-on-file";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { NUMBER_HONESTY, formatTotalRoasEquation } from "../lib/number-honesty";
 import { parseSalesBasis } from "../lib/sales-basis";
 import type { SalesResult } from "../lib/shopify-sales.server";
 import {
@@ -82,6 +83,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   let sales: SalesResult;
   let salesError: string | null = null;
+  let salesCoverage: Awaited<
+    ReturnType<typeof loadDeskSalesForPeriod>
+  >["factsCoverage"] = null;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
@@ -94,10 +98,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
     sales = desk.sales;
     salesError = desk.salesError;
+    salesCoverage = desk.factsCoverage;
   }
 
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesBasis: parseSalesBasis(settings.salesBasis, "total"),
+    salesCoverage,
   });
 
   const explicitExplorerRange = url.searchParams.get("exRange");
@@ -238,9 +244,19 @@ export default function TotalRoasPage() {
   const isLoading = navigation.state === "loading";
   const hasSpend = metrics.totalSpend > 0;
   const roasValue =
-    hasSpend && metrics.mer != null && Number.isFinite(metrics.mer)
+    hasSpend &&
+    !metrics.salesPending &&
+    metrics.mer != null &&
+    Number.isFinite(metrics.mer)
       ? `${formatMer(metrics.mer)}×`
       : "—";
+  const pairEquation = formatTotalRoasEquation({
+    sales: metrics.sales,
+    spend: metrics.totalSpend,
+    mer: metrics.mer,
+    salesPending: metrics.salesPending,
+    currency,
+  });
 
   return (
     <s-page heading={PRODUCT_NOUN.totalRoas} inlineSize="large">
@@ -274,6 +290,12 @@ export default function TotalRoasPage() {
               </s-button>
             </div>
           </section>
+        ) : null}
+
+        {metrics.salesPending && !shotMode ? (
+          <s-banner tone="info" heading="Sales still loading">
+            <s-paragraph>{NUMBER_HONESTY.salesPending}</s-paragraph>
+          </s-banner>
         ) : null}
 
         {shotMode ? (
@@ -312,7 +334,11 @@ export default function TotalRoasPage() {
             <div className="mcfly-book__kpi">
               <p className="mcfly-book__kpi-k">{PRODUCT_NOUN.totalRoas}</p>
               <p className="mcfly-book__kpi-v">{roasValue}</p>
-              {hasSpend ? null : (
+              {hasSpend ? (
+                pairEquation ? (
+                  <p className="mcfly-book__kpi-hint">{pairEquation}</p>
+                ) : null
+              ) : (
                 <p className="mcfly-book__kpi-hint">
                   <s-link href="/app/spend">{PRODUCT_NOUN.uploadSpend}</s-link>
                 </p>

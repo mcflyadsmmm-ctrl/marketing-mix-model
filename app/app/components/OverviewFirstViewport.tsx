@@ -220,7 +220,8 @@ export function OverviewFirstViewport({
       salesPending={salesPending}
     />
   );
-  const showPeeks = orderCount > 0;
+  // Loaded empty month still gets the KPI row (honest —). True pending stays above.
+  const showPeeks = !salesPending;
   const peekGridClass =
     third.kind === "empty"
       ? "mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-2"
@@ -241,7 +242,7 @@ export function OverviewFirstViewport({
       <p className="mcfly-decision__takeaway" id="mcfly-decision-takeaway">
         {takeaway}
       </p>
-      {orderCount > 0 && spendEmpty && !useSampleDesk ? (
+      {spendEmpty && !useSampleDesk ? (
         <p className="mcfly-score__pipe">{OVERVIEW_SPEND_EMPTY_LINE}</p>
       ) : null}
       {orderCount > 0 ? (

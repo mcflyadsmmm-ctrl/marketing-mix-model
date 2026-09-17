@@ -12822,3 +12822,71 @@ button.mcfly-chart__month {
     width: 100%;
   }
 }
+
+/* =========================================================================
+ * Craft unlock — Overview chart comparison (2026-09-16)
+ * APPEND ONLY. Dual sales/spend series + empty-window frame.
+ * A loaded $0 month keeps the chart; never silent-null the desk.
+ * ========================================================================= */
+
+.mcfly-chart--empty {
+  min-height: 4.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.mcfly-chart__empty {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  margin: 0 0 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mcfly-chart__swatch::before {
+  content: "";
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 2px;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__swatch--spend::before {
+  width: 0.85rem;
+  height: 0.2rem;
+  border-radius: 1px;
+  background: var(--mcfly-ink);
+}
+
+.mcfly-chart__spend-line {
+  fill: none;
+  stroke: var(--mcfly-ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.mcfly-chart__spend-dot {
+  fill: var(--mcfly-ink);
+  pointer-events: none;
+}

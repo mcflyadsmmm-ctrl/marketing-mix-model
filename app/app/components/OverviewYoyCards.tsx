@@ -50,7 +50,8 @@ function PendingYoyShell({ id }: { id: OverviewYoyId }) {
 
 /**
  * Overview = three YoY sales cards. Spend / explorer / glance live elsewhere.
- * Pending sales paint — not a finished $0 year.
+ * Pending shells only when sales are unknown — a $0 month with missing last
+ * year uses OVERVIEW_YOY_MISSING, not OVERVIEW_YOY_PENDING.
  */
 export function OverviewYoyCards({
   cards,
@@ -63,7 +64,7 @@ export function OverviewYoyCards({
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
-  if (salesPending || cards.length === 0) {
+  if (salesPending) {
     return (
       <section className="mcfly-yoy" aria-label="Sales versus last year">
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_PENDING}</p>
@@ -72,6 +73,20 @@ export function OverviewYoyCards({
             <PendingYoyShell id={id} key={id} />
           ))}
         </div>
+      </section>
+    );
+  }
+
+  if (cards.length === 0) {
+    return (
+      <section className="mcfly-yoy" aria-label="Sales versus last year">
+        <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
+        <div className="mcfly-yoy__grid">
+          {OVERVIEW_YOY_IDS.map((id) => (
+            <PendingYoyShell id={id} key={id} />
+          ))}
+        </div>
+        <p className="mcfly-yoy__note">{OVERVIEW_YOY_MISSING}</p>
       </section>
     );
   }

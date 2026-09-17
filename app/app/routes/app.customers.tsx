@@ -87,7 +87,7 @@ export default function CustomersPage() {
           Sales for closed days are still loading — not $0.
         </p>
       ) : null}
-      {!metrics.salesPending && !metrics.customerMetricsAvailable ? (
+      {!metrics.customerMetricsAvailable ? (
         <p className="mcfly-book__lede">
           Returning dollars need identified buyers in this window — not $0.
         </p>
@@ -106,6 +106,7 @@ export default function CustomersPage() {
             title={PRODUCT_NOUN.buyersTitle}
             muted={deskBookLede(CUSTOMERS_CONTRAST)}
           />
+          {book.returningSalesShare != null || book.newSalesShare != null ? (
           <ShareBarsChart
             title="New vs returning dollars"
             items={[
@@ -131,6 +132,7 @@ export default function CustomersPage() {
               },
             ]}
           />
+          ) : null}
           <footer className="mcfly-book__links">
             <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>
             <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>

@@ -62,9 +62,15 @@ export default function CpaPage() {
         {!hasSpend ? (
           <p className="mcfly-book__lede">
             Add spend in <s-link href="/app/spend">Spend Upload</s-link> to
-            calculate customer costs for this period.
+            calculate customer costs for this period. Cash CPA and Cash CAC stay
+            — until spend is on file — never a fake $0.
           </p>
-        ) : null}
+        ) : (
+          <p className="mcfly-book__lede">
+            Blended cost from entered spend ÷ Shopify buyers for{" "}
+            {metrics.period.label}.
+          </p>
+        )}
 
         <BookFactGrid
           facts={[

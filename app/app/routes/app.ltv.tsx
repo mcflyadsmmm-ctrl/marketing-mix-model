@@ -183,14 +183,14 @@ export default function LtvPage() {
    * limited: — means not on file, not $0 LTV.
    */
   const valueRows: LtvRow[] = [];
-  if (isNum(ltv.avgRevenueD30)) {
+  if (isNum(ltv.avgRevenueD30) && ltv.avgRevenueD30 > 0) {
     valueRows.push({
       k: "First 30 days",
       v: formatCurrency(ltv.avgRevenueD30, currency),
       d: PRODUCT_NOUN.ltv30Def,
     });
   }
-  if (isNum(ltv.avgOrdersD90)) {
+  if (isNum(ltv.avgOrdersD90) && ltv.avgOrdersD90 > 0) {
     valueRows.push({
       k: "Orders in first 90 days on file",
       v: ltv.avgOrdersD90.toFixed(1),
@@ -275,20 +275,17 @@ export default function LtvPage() {
     const d90 = perCustomerRevenue(row.revenueD90, row.customers);
     const d30 = perCustomerRevenue(row.revenueD30, row.customers);
     const d365 = perCustomerRevenue(row.revenueD365, row.customers);
+    const later = [
+      d30 != null && d30 > 0 ? `30 days ${formatCurrency(d30, currency)}` : null,
+      d365 != null && !ltv.historyLimited && d365 > 0
+        ? `First year ${formatCurrency(d365, currency)}`
+        : null,
+    ].filter((part): part is string => part != null);
     return {
       k: `First on file · ${row.cohortMonth}`,
-      v: d90 != null ? formatCurrency(d90, currency) : "—",
+      v: d90 != null && d90 > 0 ? formatCurrency(d90, currency) : "—",
+      s: later.length > 0 ? later.join(" · ") : undefined,
       d: `${row.customers.toLocaleString()} customers had a first visible order that month. Value is 90 days after that order — not lifetime first if they bought before this window.`,
-      x: [
-        [
-          d30 != null ? `30 days ${formatCurrency(d30, currency)}` : null,
-          d365 != null && !ltv.historyLimited
-            ? `First year ${formatCurrency(d365, currency)}`
-            : null,
-        ]
-          .filter(Boolean)
-          .join(" · "),
-      ].filter(Boolean),
     };
   }).filter((row) => row.v !== "—");
 
@@ -340,7 +337,7 @@ export default function LtvPage() {
           Shopify Analytics shows LTV reports, if any. This page shows first 90 days after the first order on file — not lifetime first when Shopify only shared ~60 days. {PRODUCT_NOUN.ltvNotInShopify}
         </p>
 
-        {ltv.available && isNum(ltv.avgRevenueD90) ? (
+        {ltv.available && isNum(ltv.avgRevenueD90) && ltv.avgRevenueD90 > 0 ? (
           <div className="mcfly-book__hero">
             <p className="mcfly-book__hero-k">First 90 days on file</p>
             <p className="mcfly-book__hero-v">

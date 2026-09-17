@@ -159,11 +159,23 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("/app/advanced");
   });
 
-  it("keeps the input route free of period ROAS analysis", () => {
-    expect(spend).not.toContain("periodSpendTotal > 0");
+  it("paints Total ROAS, mix, and coverage after a typed day — never a 0.00× empty ratio", () => {
+    const snap = read("../components/MarketingSnapSection.tsx");
+    expect(spend).toContain("<MarketingSnapSection");
+    expect(spend).toContain("strangerEmpty || !metrics ? null");
+    expect(spend).toContain("SAMPLE_LEDGER_HANDOFF");
+    expect(spend).toContain("spend is never 0×");
+    expect(spend).not.toContain("0.00×");
     expect(spend).not.toContain("<SpendExplorer");
     expect(spend).not.toContain("<MarketingSpendRoom");
     expect(spend).not.toContain("<DualCloseLine");
+    expect(snap).toContain("PRODUCT_NOUN.totalRoas");
+    expect(snap).toContain('id="mcfly-spend-mix"');
+    expect(snap).toContain("hasSpend &&");
+    expect(snap).toContain("!salesPending");
+    expect(snap).toContain(': "—"');
+    expect(snap).not.toContain("0.00×");
+    expect(snap).not.toMatch(/(?<![.\d])0×/);
   });
 
   it("says no ad login once, not as a manifesto", () => {
@@ -294,5 +306,45 @@ describe("Total ROAS page", () => {
     expect(roas).not.toContain("mcfly-spend-add");
     expect(roas).not.toContain("0.00×");
     expect(roas).not.toContain("export const action");
+  });
+
+  it("dashes pending sales and pairs the equation only when spend is on file", () => {
+    const roas = read("../routes/app.roas.tsx");
+    expect(roas).toContain("salesCoverage");
+    expect(roas).toContain("NUMBER_HONESTY.salesPending");
+    expect(roas).toContain("metrics.salesPending ? \"—\"");
+    expect(roas).toContain("formatTotalRoasEquation");
+    expect(roas).toContain("!metrics.salesPending");
+    expect(roas).not.toContain("0.00×");
+  });
+});
+
+describe("Goals, CPA, and Allocation honesty", () => {
+  it("keeps Goals pace on a certified $0 month instead of a pending shell", () => {
+    const goals = read("../routes/app.goals.tsx");
+    expect(goals).toContain("salesCoverage: periodSalesCoverage");
+    expect(goals).toContain("Still loading — not $0");
+    expect(goals).toContain("pace vs your typed plan");
+    expect(goals).toContain("Certified $0");
+    expect(goals).toContain("<SalesGoalGauges");
+    expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
+  });
+
+  it("keeps CPA/CAC as dashes without spend and cards once spend exists", () => {
+    const cpa = read("../routes/app.cpa.tsx");
+    expect(cpa).toMatch(/hasSpend && cashCpa != null/);
+    expect(cpa).toMatch(/hasSpend && cashCac != null/);
+    expect(cpa).toContain(': "—"');
+    expect(cpa).toContain("<BookFactGrid");
+    expect(cpa).not.toContain("0.00×");
+  });
+
+  it("shows Allocation snapshot cards and dashes sales while pending", () => {
+    const allocation = read("../routes/app.allocation.tsx");
+    expect(allocation).toContain("salesCoverage");
+    expect(allocation).toContain("salesPending={metrics.salesPending}");
+    expect(allocation).toContain("salesPending ? \"—\"");
+    expect(allocation).toContain("mcfly-alloc-v2__snap-grid");
+    expect(allocation).not.toMatch(/0×/);
   });
 });

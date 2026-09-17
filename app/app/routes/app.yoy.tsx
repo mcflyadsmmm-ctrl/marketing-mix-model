@@ -13,7 +13,10 @@ import {
 import { buildCashControlBoard } from "../lib/mer-control";
 import { formatMer } from "../lib/mer-format";
 import { useMoney } from "../lib/desk-currency";
-import { OVERVIEW_YOY_MISSING } from "../lib/overview-yoy";
+import {
+  OVERVIEW_YOY_MISSING,
+  OVERVIEW_YOY_PENDING,
+} from "../lib/overview-yoy";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -72,6 +75,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 };
 
+type CompareCard = {
+  id: string;
+  label: string;
+  sales: number | null;
+  spend: number | null;
+  mer: number | null;
+};
+
 export default function YoyWorkspacePage() {
   const { monthRows, last7, useSampleDesk, shotMode, preset } =
     useLoaderData<typeof loader>();
@@ -81,14 +92,40 @@ export default function YoyWorkspacePage() {
     monthRows.some((row) => (row.spend ?? 0) > 0) ||
     (last7.spend ?? 0) > 0 ||
     (last7.priorSpend ?? 0) > 0;
-  const lastYearMissing = monthRows.some(
-    (row) => row.id === "lastYear" && row.sales == null,
-  );
+  const salesPending =
+    !useSampleDesk &&
+    last7.sales == null &&
+    monthRows.every((row) => row.sales == null);
+  const lastYearMissing =
+    !salesPending &&
+    monthRows.some((row) => row.id === "lastYear" && row.sales == null);
   const tillLabel = useSampleDesk
     ? `This month · last month · last year${PRODUCT_NOUN.samplePeriodSuffix}`
     : "This month · last month · last year · live sales";
   const drill = useDeskDrill();
   const money = useMoney();
+  const compareRows: CompareCard[] = [
+    ...monthRows,
+    {
+      id: "last7",
+      label: "Last 7",
+      sales: last7.sales,
+      spend: last7.spend,
+      mer: last7.mer,
+    },
+  ];
+
+  const salesLabel = (row: CompareCard) =>
+    salesPending ? "—" : yoyDisplayValue(row.sales, money);
+  const spendLabel = (row: CompareCard) =>
+    salesPending ? "—" : yoyDisplayValue(row.spend, money);
+  const merLabel = (row: CompareCard) =>
+    salesPending || row.mer == null ? "—" : `${formatMer(row.mer)}×`;
+  const dashHint = (row: CompareCard) => {
+    if (salesPending) return "still loading";
+    if (row.id === "lastYear" && row.sales == null) return "not $0";
+    return "Click for detail";
+  };
 
   return (
     <DeskBookPage
@@ -102,12 +139,16 @@ export default function YoyWorkspacePage() {
     >
       <section className="mcfly-yoy" aria-label="Year over year">
         <p className="mcfly-yoy__lede">{YOY_ANALYTICS_LEDE}</p>
+        {salesPending ? (
+          <p className="mcfly-yoy__note" role="status">
+            {OVERVIEW_YOY_PENDING}
+          </p>
+        ) : null}
         <div className="mcfly-yoy__grid">
-          {monthRows.map((row) => {
-            const sales = yoyDisplayValue(row.sales, money);
-            const spend = yoyDisplayValue(row.spend, money);
-            const mer =
-              row.mer == null ? "—" : `${formatMer(row.mer)}×`;
+          {compareRows.map((row) => {
+            const sales = salesLabel(row);
+            const spend = spendLabel(row);
+            const mer = merLabel(row);
             return (
             <button
               type="button"
@@ -119,7 +160,10 @@ export default function YoyWorkspacePage() {
                   value: sales,
                   kicker: "Operating compare",
                   blocks: [
-                    { k: "Sales", v: sales },
+                    {
+                      k: "Sales",
+                      v: salesPending ? "— still loading" : sales,
+                    },
                     hasSpend ? { k: "Spend", v: spend } : null,
                     hasSpend ? { k: "Total ROAS", v: mer } : null,
                   ].filter(
@@ -129,9 +173,11 @@ export default function YoyWorkspacePage() {
                   nextHref: "/app",
                   nextLabel: "Open Overview",
                   foot:
-                    row.id === "lastYear" && row.sales == null
+                    row.id === "lastYear" && row.sales == null && !salesPending
                       ? OVERVIEW_YOY_MISSING
-                      : undefined,
+                      : salesPending
+                        ? OVERVIEW_YOY_PENDING
+                        : undefined,
                 })
               }
             >
@@ -139,7 +185,9 @@ export default function YoyWorkspacePage() {
                 <DeskIcon name="yoy" />
                 {row.label}
               </p>
-              <p className="mcfly-yoy__v">{sales}</p>
+              <p className="mcfly-yoy__v" aria-label={salesPending ? "still loading" : undefined}>
+                {sales}
+              </p>
               {hasSpend ? (
                 <p className="mcfly-yoy__prior">
                   <span>Spend</span>
@@ -149,7 +197,7 @@ export default function YoyWorkspacePage() {
               {hasSpend ? (
                 <p className="mcfly-yoy__vs">Total ROAS {mer}</p>
               ) : null}
-              <p className="mcfly-kpi__hint">Click for detail</p>
+              <p className="mcfly-kpi__hint">{dashHint(row)}</p>
             </button>
             );
           })}
@@ -159,41 +207,115 @@ export default function YoyWorkspacePage() {
         ) : null}
       </section>
 
+      <section className="mcfly-book" aria-label="This month vs last month vs last year vs last 7">
+        <p className="mcfly-book__lede">
+          This month vs last month vs last year vs last 7
+          {hasSpend
+            ? " — sales still read at $0 spend; spend is extra."
+            : " — sales only until you add spend."}
+        </p>
+        <BookFactGrid
+          facts={[
+            {
+              k: "This month",
+              v: salesPending
+                ? "—"
+                : yoyDisplayValue(
+                    monthRows.find((row) => row.id === "thisMonth")?.sales,
+                    money,
+                  ),
+              d: salesPending
+                ? "still loading"
+                : "Operating month on this install.",
+            },
+            {
+              k: "Last month",
+              v: salesPending
+                ? "—"
+                : yoyDisplayValue(
+                    monthRows.find((row) => row.id === "lastMonth")?.sales,
+                    money,
+                  ),
+              d: salesPending
+                ? "still loading"
+                : "Previous calendar month on this install.",
+            },
+            {
+              k: "Last year",
+              v: salesPending
+                ? "—"
+                : yoyDisplayValue(
+                    monthRows.find((row) => row.id === "lastYear")?.sales,
+                    money,
+                  ),
+              d: salesPending
+                ? "still loading"
+                : lastYearMissing
+                  ? OVERVIEW_YOY_MISSING
+                  : "This month last year — same days, not $0 when missing.",
+            },
+            {
+              k: "Last 7",
+              v: salesPending ? "—" : yoyDisplayValue(last7.sales, money),
+              d: salesPending
+                ? "still loading"
+                : "Certified closed days. Empty is — not $0.",
+            },
+          ]}
+        />
+      </section>
+
       <section className="mcfly-book" aria-label="Last 7 versus prior 7">
         <p className="mcfly-book__lede">{last7.label}</p>
         <BookFactGrid
           facts={[
             {
               k: "Last 7 sales",
-              v: yoyDisplayValue(last7.sales, money),
-              d: "Certified closed days. Empty is — not $0.",
+              v: salesPending ? "—" : yoyDisplayValue(last7.sales, money),
+              d: salesPending
+                ? "still loading"
+                : "Certified closed days. Empty is — not $0.",
             },
             {
               k: "Prior 7 sales",
-              v: yoyDisplayValue(last7.priorSales, money),
-              d: "The seven certified days before last 7.",
+              v: salesPending ? "—" : yoyDisplayValue(last7.priorSales, money),
+              d: salesPending
+                ? "still loading"
+                : "The seven certified days before last 7.",
             },
             ...(hasSpend
               ? [
                   {
                     k: "Last 7 spend",
-                    v: yoyDisplayValue(last7.spend, money),
-                    d: "Typed spend on those same last 7 days.",
+                    v: salesPending
+                      ? "—"
+                      : yoyDisplayValue(last7.spend, money),
+                    d: salesPending
+                      ? "still loading"
+                      : "Typed spend on those same last 7 days.",
                   },
                   {
                     k: "Prior 7 spend",
-                    v: yoyDisplayValue(last7.priorSpend, money),
-                    d: "Typed spend on the prior 7 days.",
+                    v: salesPending
+                      ? "—"
+                      : yoyDisplayValue(last7.priorSpend, money),
+                    d: salesPending
+                      ? "still loading"
+                      : "Typed spend on the prior 7 days.",
                   },
                   {
                     k: "Last 7 Total ROAS",
-                    v: yoyDisplayValue(last7.mer, formatMer),
-                    d: PRODUCT_NOUN.definition,
+                    v: salesPending
+                      ? "—"
+                      : yoyDisplayValue(last7.mer, formatMer),
+                    d: salesPending ? "still loading" : PRODUCT_NOUN.definition,
                   },
                   {
                     k: "Prior 7 Total ROAS",
-                    v: yoyDisplayValue(last7.priorMer, formatMer),
-                    d: PRODUCT_NOUN.definition,
+                    v: salesPending
+                      ? "—"
+                      : yoyDisplayValue(last7.priorMer, formatMer),
+                    d: salesPending ? "still loading" : PRODUCT_NOUN.definition,
                   },
                 ]
               : []),

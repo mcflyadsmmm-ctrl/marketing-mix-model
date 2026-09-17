@@ -196,6 +196,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } | null = null;
   let factsIncomplete = false;
   let shopifyOrderWindowLimited = false;
+  let salesCoverage: Awaited<
+    ReturnType<typeof loadDeskSalesForPeriod>
+  >["factsCoverage"] = null;
   if (useSampleDesk) {
     sales = await fetchSampleSales(shop.id, range);
   } else {
@@ -214,6 +217,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todaySalesUnavailable = desk.todaySalesUnavailable;
     todaySalesTruncated = desk.todaySalesTruncated;
     const coverage = desk.factsCoverage;
+    salesCoverage = coverage;
     // Fail-closed lock shape — compute on server so .server is not client-bundled.
     factsIncomplete = salesFactsBlockLock(coverage);
     salesFactsIncomplete =
@@ -231,6 +235,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const settings = await getOrCreateSettings(shop.id);
   const metrics = await buildDashboardMetrics(session.shop, range, sales, {
     salesBasis: parseSalesBasis(settings.salesBasis, "total"),
+    salesCoverage,
   });
 
   /*
@@ -576,6 +581,7 @@ export default function AllocationPage() {
             breakEvenMer={metrics.breakEvenMer}
             deltas={metrics.deltas}
             topChannel={channelRows[0] ?? null}
+            salesPending={metrics.salesPending}
           />
         ) : null}
 
@@ -692,6 +698,7 @@ function PeriodSnapshotSection({
   breakEvenMer,
   deltas,
   topChannel,
+  salesPending,
 }: {
   periodLabel: string;
   sales: number;
@@ -705,6 +712,7 @@ function PeriodSnapshotSection({
     merAbs: number | null;
   } | null;
   topChannel: PeriodChannelRow | null;
+  salesPending: boolean;
 }) {
   const priorLabel = deltas?.priorLabel;
   const salesDelta = deltas
@@ -740,9 +748,13 @@ function PeriodSnapshotSection({
       <div className="mcfly-alloc-v2__snap-grid">
         <article className="mcfly-alloc-v2__snap">
           <p className="mcfly-alloc-v2__snap-label">Sales</p>
-          <p className="mcfly-alloc-v2__snap-value">{formatCurrency(sales, currency)}</p>
-          <p className="mcfly-alloc-v2__snap-meta">Shopify Total Sales</p>
-          {salesDelta ? (
+          <p className="mcfly-alloc-v2__snap-value">
+            {salesPending ? "—" : formatCurrency(sales, currency)}
+          </p>
+          <p className="mcfly-alloc-v2__snap-meta">
+            {salesPending ? "Still loading — not $0" : "Shopify Total Sales"}
+          </p>
+          {!salesPending && salesDelta ? (
             <p
               className={`mcfly-alloc-v2__snap-delta mcfly-alloc-v2__snap-delta--${deltaTone(deltas?.salesPct ?? null)}`}
             >
@@ -765,9 +777,11 @@ function PeriodSnapshotSection({
         <article className="mcfly-alloc-v2__snap mcfly-alloc-v2__snap--lead">
           <p className="mcfly-alloc-v2__snap-label">{PRODUCT_NOUN.totalRoas}</p>
           <p className="mcfly-alloc-v2__snap-value">
-            {mer == null ? "—" : `${formatMer(mer)}×`}
+            {salesPending || mer == null ? "—" : `${formatMer(mer)}×`}
           </p>
-          <p className="mcfly-alloc-v2__snap-meta">{roasVsBe}</p>
+          <p className="mcfly-alloc-v2__snap-meta">
+            {salesPending ? "Still loading — not a ratio" : roasVsBe}
+          </p>
           {merDelta ? (
             <p
               className={`mcfly-alloc-v2__snap-delta mcfly-alloc-v2__snap-delta--${merTone}`}

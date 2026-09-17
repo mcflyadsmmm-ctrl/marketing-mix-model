@@ -2,6 +2,8 @@
 
 **One line:** Grok was used as a fake company org chart with broken deploy authority. Cursor owns `site/` + Pages.
 
+**2026-09-16 correction:** this file bans **org-chart fleets** and **invented deploys**. It does **not** ban Mac-shell `flyctl` when Grok Bot drives `Martys-MacBook-Pro.local`. Split: [`GROKBOT_MAC_SPLIT.md`](./GROKBOT_MAC_SPLIT.md).
+
 ## Failures that hurt
 
 1. **Orchestration theater** — 10+ seats, live still wrong; loops shipped past STOP  

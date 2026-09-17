@@ -5,7 +5,7 @@ import type {
 } from "react-router";
 import { redirect } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
-import { authenticate } from "../shopify.server";
+import { requireAdmin } from "../lib/public-app-gate.server";
 import { ensureShop, getOrCreateSettings } from "../lib/mer-dashboard.server";
 import {
   applySampleDeskIntent,
@@ -32,13 +32,16 @@ function withGuideParam(path: string, guide: string | null): string {
 }
 
 /**
- * Data-mode switcher for empty-state CTAs (UseSampleCta).
- * Settings posts the same intents on /app/settings so Admin never GETs this
- * blank route (that 200 is a dead page, not a seeded SAMPLE desk).
+ * Sample | Live UI lives in Settings only (same nouns: Sample data | Live data).
+ * GET redirects there so this is never a second switch. POST stays for
+ * UseSampleCta empty-state forms — same intents Settings posts.
  *
  * Default export makes this a UI route so a SPA Form POST is encoded as
  * turbo-stream. Callers also use `reloadDocument` so Admin iframe toggles
  * never depend on decoding a raw 302 as turbo-stream.
+ *
+ * GET does not authenticate — a bare hit must not 410 /auth/opening. Settings
+ * is the door and uses requireAdmin.
  */
 export default function DataModeRoute() {
   return null;
@@ -50,7 +53,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
   const form = await request.formData();

@@ -3,7 +3,7 @@ import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 
 /**
- * Weekend / weekday mix — range lives on this chart, like Black Clover timing.
+ * Weekend / weekday mix — range lives on this chart.
  */
 export function WeekdaySalesChart({
   shares,
@@ -12,6 +12,8 @@ export function WeekdaySalesChart({
 }) {
   const drill = useDeskDrill();
   if (!shares || shares.length < 7) return null;
+  // Zero shares omit this chart only — not the rest of Overview.
+  if (!shares.some((share) => share > 0)) return null;
   const max = Math.max(...shares, 0.01);
 
   return (
