@@ -16,13 +16,13 @@ Push the LTV concept toward **~10** on the score below. Compete features only if
 | 4 | **$39-alone** — this tab would keep the install with no other page |
 | 5 | **Zero-spend** — no upload, no ads, no pixels, no COGS |
 
-## This Overview mix + month-close PR only
+## This Promo→LTV PR only
 
-New vs returning $ mix (dollars, not Shopify’s returning-customer rate) + a written-out month close: so far + remaining days × typical day. Typical day from the stored book. Soft dense Black Clover. Typical order, weekends, and existing explorers stay.
+First-order promo / discount → observed LTV and lift vs full-price first. Named codes when they are on the order (SAMPLE Snowdevil). Live uses crawled discount $ and stays an honest empty for missing titles/codes — never invented. Soft dense Black Clover on the LTV tab **after Product→LTV**. Flagship, Product→LTV, explorers, and sales-five IA stay.
 
 ## Refuse
 
-TW attribution · COGS P&L · kitchen-sink · other tabs (Discount, Share, Goals) · ads/pixels · Partner paste · cold push · spend / ROAS / upload on Overview.
+TW attribution · COGS P&L · kitchen-sink · other tabs (Share, Goals) · ads/pixels · Partner paste · cold push · spend / ROAS / upload on Overview.
 
 Pills, charts, densify, ActionCards stay. Add only.
 
@@ -70,7 +70,7 @@ Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the den
 | $39-alone | PASS | Growth now answers when first-timers come back and when to re-engage, with explorer + scoreboard kept |
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
 
-## SCORECARD — Overview mix + month close (this PR)
+## SCORECARD — Overview mix + month close (#97)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |
@@ -79,3 +79,15 @@ Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the den
 | Habit-trust | PASS | Formula written out (so far + remaining × typical day) and plugged in; guests out; empties name the 8-order / 8-day floor |
 | $39-alone | PASS | Overview now answers who carries the dollars and where the month lands, with typical / weekends / explorers kept |
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
+
+## SCORECARD — Promo→LTV (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Easier | PASS | After Product→LTV: one “highest first-order promo” — worth, lift vs full price — not a Lifetimely discount-report hunt |
+| Deeper LTV | PASS | First-order promo 30/90/365 + lift vs full-price first; year when those starters have lived it; named codes only when on the order |
+| Habit-trust | PASS | Same written-out formula among promo starters; observed vs estimate; missing titles/codes stay an honest empty |
+| $39-alone | PASS | Answers “which promo starts higher-LTV buyers?” on the LTV tab with zero spend |
+| Zero-spend | PASS | Order-history discount $ / codes only — no upload, ads, pixels, or COGS |
+
+Live without discount $ uses the discounts empty (what’s needed: first-order amounts, then titles/codes). SAMPLE Snowdevil is the dense canvas.

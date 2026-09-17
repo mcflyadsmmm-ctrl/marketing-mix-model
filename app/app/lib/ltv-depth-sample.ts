@@ -6,7 +6,9 @@
  * first→second product journeys, or best-customer recency. This generator
  * produces a stable ~14-month Snowdevil order book (snow-sports shop: wax,
  * beanies, gloves, goggles, jackets, boards) so the SAMPLE desk can show the
- * full depth. Clearly SAMPLE — never presented as this shop's Shopify orders.
+ * full depth. A later pass stamps first-order promo codes (WELCOME10 /
+ * POWDER15 / BUNDLE) without changing dollars. Clearly SAMPLE — never
+ * presented as this shop's Shopify orders.
  *
  * Calibrated so the blended new customer spends ~$145 in the first 30 days,
  * ~$380 in 90 days, and ~$820 in the first year — the same neighborhood as the
@@ -176,7 +178,7 @@ export function generateSnowdevilDepthOrders(now: Date = new Date()): DepthOrder
     }
   }
 
-  return applySampleRefundGross(orders);
+  return applySamplePromos(applySampleRefundGross(orders));
 }
 
 /**
@@ -193,4 +195,49 @@ function applySampleRefundGross(orders: DepthOrder[]): DepthOrder[] {
     }
     return { ...order, grossAmount: order.amount };
   });
+}
+
+/**
+ * Third pass with its own seed — does not shift the book’s amounts, dates,
+ * products, or refund gross. SAMPLE only: first-order discount codes so
+ * Promo→LTV can name WELCOME10 / POWDER15 / BUNDLE. Later orders stay
+ * full-price. Live OrderFacts never get these stamps.
+ */
+function applySamplePromos(orders: DepthOrder[]): DepthOrder[] {
+  const rng = mulberry32(0xd15c0de);
+  const seen = new Set<string>();
+  return orders.map((order) => {
+    const isFirst = !seen.has(order.customerKey);
+    if (isFirst) seen.add(order.customerKey);
+    if (!isFirst) {
+      return { ...order, discountAmount: 0, discountCode: null };
+    }
+    const r = rng();
+    // Low first tickets lean WELCOME10 (lower later LTV). Mid tickets lean
+    // POWDER15. Higher first tickets lean BUNDLE so the high-LTV promo still
+    // has enough year-matured starters on the 14-month book — not a whale-only
+    // sliver that can never seal the year.
+    if (order.amount < 90 && r < 0.68) {
+      return withSamplePromo(order, "WELCOME10", 0.1);
+    }
+    if (order.amount >= 160 && r < 0.58) {
+      return withSamplePromo(order, "BUNDLE", 0.12);
+    }
+    if (order.amount >= 90 && r < 0.52) {
+      return withSamplePromo(order, "POWDER15", 0.15);
+    }
+    return { ...order, discountAmount: 0, discountCode: null };
+  });
+}
+
+function withSamplePromo(
+  order: DepthOrder,
+  code: string,
+  rate: number,
+): DepthOrder {
+  return {
+    ...order,
+    discountCode: code,
+    discountAmount: Math.max(1, Math.round(order.amount * rate)),
+  };
 }

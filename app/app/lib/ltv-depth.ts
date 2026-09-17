@@ -32,6 +32,17 @@ export interface DepthOrder {
    * (`currentTotalPriceSet`) — leave unset rather than invent a gross.
    */
   grossAmount?: number;
+  /**
+   * Discount $ on the order when crawled (`currentTotalDiscountsSet`).
+   * 0 = none; null / omitted = not on file — never invent a code from this.
+   */
+  discountAmount?: number | null;
+  /**
+   * Discount code / title when the order actually carried one. SAMPLE Snowdevil
+   * can stamp first-order codes. Live OrderFacts do not store codes — leave
+   * null rather than guess from discount $.
+   */
+  discountCode?: string | null;
 }
 
 /** Whole-month follow-up windows shown across the retention grid and curves. */
@@ -106,6 +117,10 @@ export interface CustomerDepth {
   firstUnits: number;
   firstProduct: string | null;
   secondProduct: string | null;
+  /** First-order discount $ when crawled. Null when the field was not on file. */
+  firstDiscountAmount: number | null;
+  /** First-order discount code / title when present. Never guessed. */
+  firstDiscountCode: string | null;
   lifetimeSpend: number;
   day30Spend: number;
   day90Spend: number;
@@ -205,6 +220,11 @@ export function rollUpCustomers(orders: DepthOrder[]): CustomerDepth[] {
       firstUnits: first.units > 0 ? Math.trunc(first.units) : 1,
       firstProduct: first.product,
       secondProduct: second?.product ?? null,
+      firstDiscountAmount:
+        first.discountAmount != null && Number.isFinite(first.discountAmount)
+          ? first.discountAmount
+          : null,
+      firstDiscountCode: first.discountCode?.trim() || null,
       lifetimeSpend,
       day30Spend: day30,
       day90Spend: day90,
