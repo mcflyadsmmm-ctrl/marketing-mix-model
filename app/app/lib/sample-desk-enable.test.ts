@@ -14,7 +14,7 @@ const state = {
     shopId: "shop_1",
     useSampleDesk: false,
     samplePreviewAllowed: true,
-  } satisfies SettingsRow,
+  } as SettingsRow,
   persistRows: true,
 };
 
