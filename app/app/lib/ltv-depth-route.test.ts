@@ -108,12 +108,12 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(flagship).not.toMatch(/about 60 days/);
     expect(productBoard).toContain("not $0");
     expect(productBoard).toContain("average first order");
-    expect(productBoard).toContain("titled line items");
+    expect(productBoard).toContain("Titled line items");
     expect(productBoard).toContain("First product → LTV");
     expect(productBoard).toContain("Highest first product");
     expect(productBoard).toContain("empty.verb");
     expect(productBoard).toContain("Floor:");
-    expect(productBoard).toContain("Wait for titled line items");
+    expect(productBoard).toContain("named first-line item");
     expect(productBoard).not.toMatch(/about 60 days/);
   });
 

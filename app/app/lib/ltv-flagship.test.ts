@@ -302,7 +302,7 @@ describe("Product→LTV rides the same flagship book", () => {
     expect(view.productLtv.productsKnown).toBe(false);
     expect(view.productLtv.rows).toEqual([]);
     expect(view.productLtv.empty?.kind).toBe("titles");
-    expect(view.productLtv.empty?.copy).toContain("not $0");
+    expect(view.productLtv.empty?.copy).toContain("Not $0");
   });
 });
 
