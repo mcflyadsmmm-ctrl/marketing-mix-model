@@ -59,7 +59,7 @@ function PeekCard({
   return (
     <button
       type="button"
-      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek"
+      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft"
       onClick={() =>
         drill?.openDrill({
           title: label,
@@ -193,7 +193,7 @@ export function OverviewFirstViewport({
         : "No orders in this window yet.";
 
   return (
-    <section className="mcfly-score mcfly-book" aria-label={ariaLabel}>
+    <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
       <p
         className={
           useSampleDesk && !salesPending
@@ -204,7 +204,7 @@ export function OverviewFirstViewport({
         {kicker}
       </p>
 
-      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead">
+      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
         <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
@@ -300,10 +300,10 @@ export function OverviewDepthPeeks({
 
   return (
     <section
-      className="mcfly-score mcfly-book mcfly-score--depth"
+      className="mcfly-score mcfly-book mcfly-score--depth mcfly-score--soft"
       aria-label="More Shopify order depth"
     >
-      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-depth">
+      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-depth mcfly-kpi-grid--soft">
         <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}

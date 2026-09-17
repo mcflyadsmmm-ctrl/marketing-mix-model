@@ -56,7 +56,7 @@ function zoneClass(zone: OverviewYoyZone): string {
 
 function PendingYoyShell({ id }: { id: OverviewYoyId }) {
   return (
-    <article className="mcfly-yoy__card mcfly-yoy__card--empty" key={id}>
+    <article className="mcfly-yoy__card mcfly-yoy__card--empty mcfly-yoy__card--soft" key={id}>
       <p className="mcfly-yoy__k">
         <DeskIcon name="yoy" />
         {OVERVIEW_YOY_LABELS[id]}
@@ -88,7 +88,7 @@ export function OverviewYoyCards({
   const drill = useDeskDrill();
   if (salesPending) {
     return (
-      <section className="mcfly-yoy mcfly-yoy--glance" aria-label="Sales versus last year">
+      <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_PENDING}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -101,7 +101,7 @@ export function OverviewYoyCards({
 
   if (cards.length === 0) {
     return (
-      <section className="mcfly-yoy mcfly-yoy--glance" aria-label="Sales versus last year">
+      <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -117,7 +117,7 @@ export function OverviewYoyCards({
   const sameWindow = overviewWindowsCollapsed(cards);
 
   return (
-    <section className="mcfly-yoy mcfly-yoy--glance" aria-label="Sales versus last year">
+    <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
       <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {
@@ -132,7 +132,7 @@ export function OverviewYoyCards({
           return (
             <button
               type="button"
-              className={`mcfly-yoy__card mcfly-yoy__card--drill ${zoneClass(zone)}`}
+              className={`mcfly-yoy__card mcfly-yoy__card--drill mcfly-yoy__card--soft ${zoneClass(zone)}`}
               key={card.id}
               onClick={() =>
                 drill?.openDrill({

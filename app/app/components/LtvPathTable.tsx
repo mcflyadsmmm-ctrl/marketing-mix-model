@@ -13,13 +13,15 @@ export function LtvPathTable({ paths }: { paths: PathLtvRow[] }) {
   if (paths.length === 0) return null;
 
   return (
-    <section className="mcfly-book mcfly-depth" aria-label="First to second product journeys">
-      <p className="mcfly-book__lede">
-        What they buy first, then next — and what that journey is worth. The
-        second product is the tell: some first orders are a door, not the
-        ceiling. Lifetime and first-90-days are per buyer; 90-day n is the buyers
-        with a full 90 days behind that average. Order history, not a forecast.
-      </p>
+    <section className="mcfly-book mcfly-depth mcfly-depth--soft" aria-label="First to second product journeys">
+      <div className="mcfly-depth-softhead">
+        <h3 className="mcfly-chart__serif">Path LTV</h3>
+        <p className="mcfly-chart__muted">
+          What they buy first, then next — and what that journey is worth. The
+          second product is the tell. Lifetime and first-90-days are per buyer.
+          Order history, not a forecast.
+        </p>
+      </div>
       <div className="mcfly-depth-tablewrap">
         <table className="mcfly-depth-table mcfly-depth-table--path">
           <thead>

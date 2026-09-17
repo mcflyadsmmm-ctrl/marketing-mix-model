@@ -361,7 +361,7 @@ export function OverviewSalesChart({
   };
 
   return (
-    <section className="mcfly-chart mcfly-chart--sales" aria-label="Sales by day">
+    <section className="mcfly-chart mcfly-chart--sales mcfly-chart--soft" aria-label="Sales by day">
       <div className="mcfly-chart__head mcfly-chart__board">
         <div className="mcfly-chart__masthead">
           <h3 className="mcfly-chart__serif">Sales explorer</h3>
@@ -390,7 +390,7 @@ export function OverviewSalesChart({
         )}
       </div>
 
-      <ul className="mcfly-chart__stats">
+      <ul className="mcfly-chart__stats mcfly-chart__stats--soft">
         {statCards.map((stat) => {
           const deltaCopy = overviewDeltaCopy(stat.delta ?? null);
           return (
