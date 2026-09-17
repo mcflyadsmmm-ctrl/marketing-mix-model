@@ -2,6 +2,7 @@ import prisma from "../db.server";
 import {
   addUtcDays,
   buildThreeYearSampleDesk,
+  SAMPLE_BOOK_DAYS,
   sampleSpendBounds,
   sampleSpendUsesNoonStamp,
   startOfUtcDay,
@@ -460,14 +461,21 @@ export function utcDayKey(date: Date): string {
  * the spend note is not the current Snowdevil book.
  */
 export async function sampleDeskNeedsSeed(shopId: string): Promise<boolean> {
-  const [dayCount, probe] = await Promise.all([
+  const [dayCount, probe, guestProbe] = await Promise.all([
     prisma.sampleSalesDay.count({ where: { shopId } }),
     prisma.spendEntry.findFirst({
       where: { shopId, source: "sample" },
       select: { periodStart: true, note: true },
     }),
+    prisma.sampleSalesDay.findFirst({
+      where: { shopId, guestOrders: { gt: 0 } },
+      select: { day: true },
+    }),
   ]);
   if (dayCount === 0) return true;
+  // Enterprise depth: YoY needs the full 730-day book; guests must be on file.
+  if (dayCount < SAMPLE_BOOK_DAYS) return true;
+  if (!guestProbe) return true;
   if (!probe) return true;
   if (probe.note !== SAMPLE_BOOK_NOTE) return true;
   return !sampleSpendUsesNoonStamp(probe.periodStart);
