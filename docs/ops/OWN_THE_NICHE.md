@@ -16,9 +16,9 @@ Push the LTV concept toward **~10** on the score below. Compete features only if
 | 4 | **$39-alone** — this tab would keep the install with no other page |
 | 5 | **Zero-spend** — no upload, no ads, no pixels, no COGS |
 
-## This Customers RFM-lite PR only
+## This Growth TT2 + win-back PR only
 
-RFM-lite bands + four segments from the stored order book · whale watchlist (high LTV / recency risk) beside existing ActionCards. Soft dense Black Clover. Useful + easy + deep.
+Days-to-second habit clock (fast / typical / slow) + win-back fall-off buckets from the stored order book. Soft dense Black Clover. Useful + easy + deep. Explorer, scoreboard, weekends-if-present, and Customers ActionCards stay.
 
 ## Refuse
 
@@ -50,7 +50,7 @@ Full-history Live year is in scope (`read_all_orders` approved). Thin shops use 
 
 Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the dense canvas.
 
-## SCORECARD — Customers RFM-lite + whale watchlist (this PR)
+## SCORECARD — Customers RFM-lite + whale watchlist (#95)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |
@@ -58,4 +58,14 @@ Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the den
 | Deeper LTV | PASS | On-file lifetime $ + recency risk from the full stored book; year withheld when history is limited |
 | Habit-trust | PASS | Terciles and four segments; guests out; opaque keys off the desk; empties name the 8 × 30 floor |
 | $39-alone | PASS | Customers now answers who to save today from order history, with ActionCards kept |
+| Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |
+
+## SCORECARD — Growth days-to-second + win-back clock (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Easier | PASS | One “Today’s read” — typical wait + who to reach — not a Lifetimely retention-report hunt |
+| Deeper LTV | PASS | Fast / typical / slow first→second + still-waiting buckets from the full stored book; year withheld when history is limited |
+| Habit-trust | PASS | Typical + 15 win-back written out; guests out; empties name the 8 × 30 floor; habit span is slow minus fast |
+| $39-alone | PASS | Growth now answers when first-timers come back and when to re-engage, with explorer + scoreboard kept |
 | Zero-spend | PASS | Order history only — no upload, ads, pixels, or COGS |

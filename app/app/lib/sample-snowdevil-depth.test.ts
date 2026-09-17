@@ -32,6 +32,7 @@ import {
 } from "./order-facts.server";
 import { buildCustomerAnalytics } from "./customers-analytics";
 import { buildCustomerRfm } from "./customers-rfm";
+import { buildGrowthTt2 } from "./growth-tt2";
 import { resolvePeriod, resolvePriorPeriod, type PeriodPreset } from "./periods";
 
 const DAY_MS = 86_400_000;
@@ -253,6 +254,25 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     // SAMPLE has 4+ order whales; at least the slipping list or the designed empty.
     expect(rfm.watchlist.length > 0 || rfm.watchEmpty != null).toBe(true);
     expect(rfm.watchlist.every((row) => /^Whale \d+$/.test(row.label))).toBe(true);
+  });
+
+  it("feeds Growth TT2: habit clock and still-waiting fall-off", () => {
+    const tt2 = buildGrowthTt2(
+      orders.map((o) => ({
+        customerKey: o.customerKey,
+        orderedAt: o.orderedAt,
+        amount: o.amount,
+      })),
+      { windowEnd: now, historyLimited: false },
+    );
+    expect(tt2.available).toBe(true);
+    expect(tt2.empty).toBeNull();
+    expect(tt2.identifiedBuyers).toBeGreaterThan(50);
+    expect(tt2.typicalDays).not.toBeNull();
+    expect(tt2.winBackDay).not.toBeNull();
+    expect(tt2.daysToSecond.some((b) => b.buyers > 0)).toBe(true);
+    expect(tt2.fallOff.length > 0 || tt2.fallEmpty != null).toBe(true);
+    expect(tt2.historyLimited).toBe(false);
   });
 
   it("feeds LTV cohorts: multi-order months with 90d repeat revenue", () => {

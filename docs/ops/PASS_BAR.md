@@ -34,7 +34,7 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Stickiness | PASS | Titles / thin / young empties are ActionCard-shaped (verb + floor) — no blank charts, not $0 |
 | Empty-state | PASS | Floor 8 named starters × 30 days, then 90, then year — on the card. Live without titles stays honest |
 
-## SCORECARD — Customers RFM-lite + whale watchlist (this PR)
+## SCORECARD — Customers RFM-lite + whale watchlist (#95)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |
@@ -44,3 +44,14 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Ease | PASS | Pills, mobile, chart-smooth hover preserved; one reach list, not a customer export |
 | Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young; warm-whale watch empty — no blank charts, not $0 |
 | Empty-state | PASS | Floor 8 buyers × 30 days on RFM and the watchlist. Sparse shops stay amazing |
+
+## SCORECARD — Growth days-to-second + win-back clock (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Accuracy | PASS | Fast / typical / slow from first→second gaps (≥5); win-back = typical+15; reach-now = one-order past win-back; year-scale fall-off withheld when history is limited; guests never counted |
+| Quality | PASS | Today’s read + three ActionCards + habit / still-waiting — this tab is a $39 order-history desk, not a retention dump |
+| Organization | PASS | Explorer still leads; scoreboard stays; TT2 sits next; pills / LTV / Product→LTV / Customers RFM / sales-five IA untouched |
+| Ease | PASS | Pills, mobile, chart-smooth hover preserved; one morning wait + who to reach |
+| Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young; clock empty when second orders are missing; fall-off empty when everyone came back — no blank charts, not $0 |
+| Empty-state | PASS | Floor 8 buyers × 30 days on the card, then 5 second orders for the clock. Sparse shops stay amazing |

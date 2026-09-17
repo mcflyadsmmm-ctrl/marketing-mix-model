@@ -219,6 +219,7 @@ describe("Sample data | Live data UX", () => {
     expect(growth).toContain("loadDeskSalesPage");
     expect(growth).toContain("<GrowthComebackChart");
     expect(growth).toContain("<GrowthScoreboard");
+    expect(growth).toContain("<GrowthTt2Board");
     expect(growth).toContain("tillLtv.repeatRate");
     expect(growth).toContain("/app/ltv");
     expect(growth).not.toContain("cashCac");
