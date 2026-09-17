@@ -16,6 +16,11 @@ import {
   overviewWeekendWeekday,
 } from "./overview-first-viewport";
 
+/**
+ * Authority: docs/ops/CRAFT_UNLOCK.md (2026-09-16) then TAB_LOCK Overview.
+ * Dead locks (chart-none, omit-tiles, one hero, QuietSpendDoor) are not
+ * re-implemented. Update this file toward density, never toward a pamphlet.
+ */
 const OVERVIEW_SPEND_BANS = [
   "Spend Upload",
   "Total ROAS",

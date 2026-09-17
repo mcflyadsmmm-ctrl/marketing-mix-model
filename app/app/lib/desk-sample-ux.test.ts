@@ -232,7 +232,7 @@ describe("Sample data | Live data UX", () => {
     expect(timing).toContain('throw redirect(`/app/orders');
   });
 
-  it("Tick A Overview chrome is sales-first at $0 spend", () => {
+  it("Overview stays Shopify-only — no spend doors, peeks stay dense", () => {
     const overview = read("../routes/app._index.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
     const goals = read("../components/GoalsSnapSection.tsx");
@@ -307,7 +307,7 @@ describe("Sample data | Live data UX", () => {
     expect(explorer).toContain('? "Sales $"');
   });
 
-  it("Every tab reads as one hero plus drill-down rows, not equal boxes", () => {
+  it("Overview is a dense Shopify scoreboard; book tabs keep KPI cards", () => {
     const book = read("../components/ShopifyBookSection.tsx");
     const deskPage = read("../components/DeskBookPage.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
@@ -365,8 +365,14 @@ describe("Sample data | Live data UX", () => {
 
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("OverviewDepthPeeks");
+    expect(firstView).toContain("Weekend vs weekday");
+    expect(firstView).toContain("bookTypicalOrder");
     expect(firstView).not.toContain("mcfly-first-view");
     expect(firstView).not.toContain('value={salesPending ? "—"');
+    expect(read("../routes/app._index.tsx")).toContain("<OverviewSalesChart");
+    expect(read("../routes/app._index.tsx")).toContain("<OverviewYoyCards");
 
     expect(ltvSnap).toContain("First 90 days");
     expect(ltvSnap).not.toContain("mcfly-tab-snap__tiles");
