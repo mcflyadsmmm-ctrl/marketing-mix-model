@@ -118,12 +118,14 @@ describe("overview first viewport", () => {
     const overview = read("../routes/app._index.tsx");
     const yoyAt = overview.indexOf("<OverviewYoyCards");
     const viewportAt = overview.indexOf("<OverviewFirstViewport");
+    const mixAt = overview.indexOf("<OverviewMixForecast");
     const chartAt = overview.indexOf("<OverviewSalesChart");
     const depthAt = overview.indexOf("<OverviewDepthPeeks");
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
     expect(yoyAt).toBeGreaterThan(-1);
     expect(viewportAt).toBeGreaterThan(yoyAt);
-    expect(chartAt).toBeGreaterThan(viewportAt);
+    expect(mixAt).toBeGreaterThan(viewportAt);
+    expect(chartAt).toBeGreaterThan(mixAt);
     expect(depthAt).toBeGreaterThan(chartAt);
     expect(weekdayAt).toBeGreaterThan(depthAt);
     expect(overview).toContain("medianDailySales");
@@ -208,6 +210,8 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("mcfly-split");
     expect(firstView).toContain("mcfly-split__return");
     expect(firstView).toContain("Returning");
+    expect(firstView).toContain("mixGreeting");
+    expect(firstView).toContain("newSales");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
@@ -226,6 +230,8 @@ describe("overview first viewport", () => {
   it("never paints spend, upload, or ROAS copy on Overview", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
     const lib = read("./overview-first-viewport.ts");
+    const mixBoard = read("../components/OverviewMixForecast.tsx");
+    const mixLib = read("./overview-mix-forecast.ts");
     const overview = read("../routes/app._index.tsx");
     const chart = read("../components/OverviewSalesChart.tsx");
     const yoy = read("../components/OverviewYoyCards.tsx");
@@ -240,6 +246,8 @@ describe("overview first viewport", () => {
     const corpus = [
       firstView,
       lib,
+      mixBoard,
+      mixLib,
       overview,
       chart,
       yoy,
