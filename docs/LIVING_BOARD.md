@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-16 · America/Denver · Fly **329** live · denser desk **on tree, not Fly** · occupancy **0/4** · Sample freeze |
+| **Updated** | 2026-09-16 · America/Denver · Fly **330** live · Snowdevil SAMPLE-only (`MCFLY_SAMPLE_ONLY=true`) · denser desk + PR #60 · occupancy **0/4** · Live parked |
 | **Live** | https://mcflyads.com · `mcfly-version` **v17** (Pages `2f6ca3d0`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **Fly** | https://mcfly-analytics.fly.dev · version **329** live · `/health` 200 · db up · denser Overview/books/spend/YoY still **uncommitted on `cursor/spend-trust-recurring`** |
+| **Fly** | https://mcfly-analytics.fly.dev · version **330** live @ `cacb570` (PR #60 Snowdevil) · `/health` 200 · db up · SAMPLE = Snowdevil board AOV (~$605 median; MTD ~$68k / ~$19k spend / **3.60×**) · Live CTAs parked |
 | **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
