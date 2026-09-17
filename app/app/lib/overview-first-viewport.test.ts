@@ -267,6 +267,17 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("bookBusiestWeekday");
   });
 
+  it("feeds the sales chart a sales-only projection — payload spend never reaches a rendered prop", () => {
+    const overview = read("../routes/app._index.tsx");
+    // The Overview loader carries a per-day `spend` field in `salesDays`, but the
+    // chart must only ever receive `{ dateKey, sales }`. If a future edit hands the
+    // raw `salesDays` (with spend) to the chart, spend could leak onto Overview.
+    expect(overview).toContain(
+      "salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))",
+    );
+    expect(overview).not.toContain("days={salesDays}");
+  });
+
   it("returning compact is dollars or an em dash, never headcount", () => {
     expect(overviewReturningCompactDollars(4200)).toBe(4200);
     expect(overviewReturningCompactDollars(0)).toBeNull();
