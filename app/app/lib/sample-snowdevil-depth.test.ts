@@ -141,6 +141,23 @@ describe("Snowdevil SAMPLE — guest share + new vs returning mix", () => {
     expect(returningCustomers).toBeGreaterThan(0);
     expect(newNet).toBeGreaterThan(0);
   });
+
+  it("conserves till dollars: new + returning + guest = sales", () => {
+    for (const r of rows) {
+      const returningNet = Math.max(
+        0,
+        r.sales - r.newCustomerNetSales - r.guestNetSales,
+      );
+      expect(r.newCustomerNetSales + returningNet + r.guestNetSales).toBeCloseTo(
+        r.sales,
+        2,
+      );
+      expect(r.guestNetSales).toBeGreaterThanOrEqual(0);
+      expect(r.newCustomerNetSales + r.guestNetSales).toBeLessThanOrEqual(
+        r.sales + 0.01,
+      );
+    }
+  });
 });
 
 describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () => {
@@ -163,6 +180,18 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
       } else {
         expect(o.lifetimeOrders).toBeGreaterThanOrEqual(1);
       }
+    }
+    // Per-day synthesized amounts conserve the till (splitSalesVaried).
+    const byDay = new Map<string, number>();
+    for (const o of orders) {
+      const key = o.shopLocalDate.toISOString().slice(0, 10);
+      byDay.set(key, (byDay.get(key) ?? 0) + o.amount);
+    }
+    for (const r of windowDays) {
+      const n = Math.max(0, Math.min(12, Math.trunc(r.orderCount)));
+      if (n === 0 || !(r.sales > 0)) continue;
+      const summed = byDay.get(r.day.toISOString().slice(0, 10)) ?? 0;
+      expect(summed).toBeCloseTo(r.sales, 2);
     }
   });
 
