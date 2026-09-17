@@ -61,19 +61,25 @@ describe("Shopify five books are visible cards", () => {
     expect(orders).toContain("not $0");
   });
 
-  it("Customers keeps returning dollars and an honest empty", () => {
-    expect(customers).toContain('groups={["buyers"]}');
+  it("Customers keeps returning dollars and an honest empty — no buyers book dump", () => {
+    expect(customers).toContain("<CustomerMixChart");
+    expect(customers).toContain("<CustomerRetentionBoard");
     expect(customers).toContain("!metrics.customerMetricsAvailable");
     expect(customers).toContain("Returning dollars need identified buyers");
-    expect(customers).toContain("<ShopifyBookSection");
+    expect(customers).not.toContain("<ShopifyBookSection");
+    expect(customers).not.toContain('groups={["buyers"]}');
     expect(customers).not.toContain("0.00×");
   });
 
   it("Growth keeps days-to-second and 30-day come-back as cards", () => {
-    expect(growth).toContain('groups={["growth"]}');
-    expect(growth).toContain("medianDaysToSecond");
-    expect(growth).toContain("secondOrderWithin30Share");
-    expect(growth).toContain("not on file");
+    const chart = read("../components/GrowthComebackChart.tsx");
+    const board = read("../components/GrowthScoreboard.tsx");
+    expect(growth).toContain("<GrowthComebackChart");
+    expect(growth).toContain("<GrowthScoreboard");
+    expect(growth).not.toContain('groups={["growth"]}');
+    expect(board).toContain("medianDaysToSecond");
+    expect(chart).toContain("secondOrderWithin30Share");
+    expect(chart).toContain("not on file");
     expect(book).toContain("PRODUCT_NOUN.bookSecondWithin30Empty");
   });
 

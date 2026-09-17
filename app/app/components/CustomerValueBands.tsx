@@ -25,13 +25,30 @@ export function CustomerValueBands({ analytics }: { analytics: CustomerAnalytics
   const a = analytics;
 
   if (!a.available) {
+    const ghost = [0.42, 0.7, 0.55, 0.88, 0.36];
     return (
-      <section className="mcfly-panel mcfly-cust-card" aria-label="Value and frequency mix">
+      <section
+        className="mcfly-panel mcfly-cust-card mcfly-cust-empty"
+        aria-label="Value and frequency mix"
+      >
         <div className="mcfly-panel__head">
           <h2>Value &amp; frequency mix</h2>
-          <p className="mcfly-panel__muted">Spend bands · order-count distribution · order history</p>
+          <p className="mcfly-panel__muted">
+            Value bands · order-count distribution · order history
+          </p>
         </div>
-        <p className="mcfly-cust-note">
+        <div className="mcfly-cust-empty__ghost mcfly-cust-empty__ghost--bars" aria-hidden="true">
+          {ghost.map((h, i) => (
+            <span key={i} className="mcfly-cust-empty__col">
+              <span className="mcfly-cust-empty__col-a" style={{ height: `${h * 100}%` }} />
+              <span
+                className="mcfly-cust-empty__col-b"
+                style={{ height: `${Math.max(18, (1 - h) * 70)}%` }}
+              />
+            </span>
+          ))}
+        </div>
+        <p className="mcfly-cust-empty__copy">
           Needs identified buyers on file — not $0. Snowdevil SAMPLE fills this in.
         </p>
       </section>
