@@ -33,4 +33,12 @@ describe("Settings page", () => {
     expect(settings).toContain("Switch to Sample data now");
     expect(settings).not.toContain("dataModeAction");
   });
+
+  it("types optional LTV and returning-$ targets for the Goals board", () => {
+    expect(settings).toContain("Order-history targets");
+    expect(settings).toContain('name="intent" value="save_habit_goals"');
+    expect(settings).toContain('name="ltvTarget"');
+    expect(settings).toContain('name="returningSalesTarget"');
+    expect(settings).toContain('href="/app/goals"');
+  });
 });

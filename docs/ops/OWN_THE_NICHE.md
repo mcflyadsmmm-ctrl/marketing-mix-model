@@ -16,13 +16,13 @@ Push the LTV concept toward **~10** on the score below. Compete features only if
 | 4 | **$39-alone** — this tab would keep the install with no other page |
 | 5 | **Zero-spend** — no upload, no ads, no pixels, no COGS |
 
-## This shareable-cards PR only
+## This Goals LTV / returning-$ PR only
 
-2–4 soft shareable insight cards from truths already on the desk (returning $, typical order, days-to-second, LTV peek). Screenshot-ready poster + copy-the-line + optional PNG. Formula/trust where numbers show. Overview after mix/close; light reuse on LTV and Customers. Thin-shop empties honest. Flagship, Product→LTV, Promo→LTV, explorers, and sales-five IA stay.
+Soft Goals board: set/track an LTV target and a year returning-$ target from order-history progress. Light surface on existing `/app/goals` (above the sales plan). Same two fields in Settings. Thin-shop empties honest. No spend / CPA / ROAS goals. Flagship, Product→LTV, Promo→LTV, shareables, explorers, and sales-five IA stay.
 
 ## Refuse
 
-TW attribution · COGS P&L · kitchen-sink · Goals · ads/pixels · Partner paste · cold push · spend / ROAS / upload on Overview.
+TW attribution · COGS P&L · kitchen-sink · ads/pixels · Partner paste · cold push · spend / CPA / ROAS goals · new sales-five tab.
 
 Pills, charts, densify, ActionCards stay. Add only.
 
@@ -101,3 +101,13 @@ Live without titles uses the titles empty (Level 1). SAMPLE Snowdevil is the den
 | Zero-spend | PASS | Order-history discount $ / codes only — no upload, ads, pixels, or COGS |
 
 Live without discount $ uses the discounts empty (what’s needed: first-order amounts, then titles/codes). SAMPLE Snowdevil is the dense canvas.
+
+## SCORECARD — Goals LTV / returning-$ (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Easier | PASS | One “Today’s read” on existing Goals — LTV vs target + returning $ vs target — not a Lifetimely goal-report hunt |
+| Deeper LTV | PASS | Observed first-90 (then 30; year withheld when limited) vs typed target + year returning $ from the stored book |
+| Habit-trust | PASS | Formulas written out and plugged in; guests out; observed vs estimate; empties name the 8-order floor |
+| $39-alone | PASS | Merchants set a worth target and a returning-$ target and come back — stickiness with zero spend |
+| Zero-spend | PASS | Order history only — no upload, ads, pixels, CPA, or COGS |

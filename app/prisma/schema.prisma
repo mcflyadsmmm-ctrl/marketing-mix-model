@@ -83,6 +83,10 @@ model Settings {
   samplePreviewAllowed        Boolean   @default(true)
   /// When false, Goals tab shows YoY sales/spend only (no sales goal plan).
   goalsEnabled                Boolean   @default(true)
+  /// Optional first-window LTV dollar target (90, then 30). Null = unset.
+  ltvTarget                   Float?
+  /// Optional year returning-customer sales dollar target. Null = unset.
+  returningSalesTarget        Float?
   /// Optional Ads Manager total for spend recon (±5% vs desk CSV/manual sum).
   declaredAdsSpend            Float?
   declaredAdsSpendPeriodStart DateTime?

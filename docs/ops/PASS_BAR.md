@@ -88,3 +88,14 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Ease | PASS | Pills, mobile, chart-smooth hover preserved; promo name + one money number + lift vs full price |
 | Stickiness | PASS | Discounts / thin / young empties are ActionCard-shaped (verb + floor) — no blank charts, not $0 |
 | Empty-state | PASS | Floor 8 promo-first buyers × 30 days, then 90, then year — on the card. Live without discount $ / codes stays honest |
+
+## SCORECARD — Goals LTV / returning-$ (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Accuracy | PASS | Observed 90 then 30 (year withheld when limited) vs typed LTV target; year returning $ (guests out) vs typed returning-$ target; refunds never invented; never a fake $0 board |
+| Quality | PASS | Today’s read + two ActionCards + formula chips on existing Goals — habit-worthy, not a kitchen-sink goal suite |
+| Organization | PASS | Light Goals surface on `/app/goals` above the sales plan; Settings types the same two fields; sales-five IA untouched |
+| Ease | PASS | Pills, mobile, chart-smooth hover preserved; one morning vs-target, not a dump |
+| Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young / unset — no blank board, not $0 |
+| Empty-state | PASS | Floor 8 paid orders on the card. Sparse shops stay amazing |
