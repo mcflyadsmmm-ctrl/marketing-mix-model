@@ -4,12 +4,20 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   OVERVIEW_COVERAGE_LINE,
+  OVERVIEW_PENDING_LINE,
+  OVERVIEW_SPEND_DOOR_LINE,
   OVERVIEW_SPEND_EMPTY_LINE,
+  overviewGreetingPending,
   overviewNoticeSentence,
+  overviewPeekThird,
   overviewReturningCompactDollars,
 } from "./overview-first-viewport";
 
 const here = dirname(fileURLToPath(import.meta.url));
+
+function read(rel: string) {
+  return readFileSync(join(here, rel), "utf8");
+}
 
 describe("overview first viewport", () => {
   it("leads with returning-sales share when the split exists", () => {
@@ -47,7 +55,7 @@ describe("overview first viewport", () => {
         medianDaysToSecond: null,
         salesPending: true,
       }),
-    ).toBe("Sales for closed days are still loading — not $0.");
+    ).toBe(OVERVIEW_PENDING_LINE);
   });
 
   it("falls back to days-to-second, then discount share", () => {
@@ -77,20 +85,23 @@ describe("overview first viewport", () => {
     expect(OVERVIEW_SPEND_EMPTY_LINE).toMatch(/works without it/i);
     expect(OVERVIEW_SPEND_EMPTY_LINE).not.toMatch(/0×/);
     expect(OVERVIEW_SPEND_EMPTY_LINE).not.toMatch(/0x/i);
+    expect(OVERVIEW_SPEND_DOOR_LINE).toMatch(/optional/i);
+    expect(OVERVIEW_SPEND_DOOR_LINE).not.toMatch(/0\.00×|0×|0x/i);
   });
 
-  it("Overview home is YoY cards, then scoreboard, then sales chart", () => {
-    const overview = readFileSync(
-      join(here, "../routes/app._index.tsx"),
-      "utf8",
-    );
+  it("Overview home is YoY cards, then Shopify peeks, then sales charts", () => {
+    const overview = read("../routes/app._index.tsx");
     const yoyAt = overview.indexOf("<OverviewYoyCards");
     const viewportAt = overview.indexOf("<OverviewFirstViewport");
     const chartAt = overview.indexOf("<OverviewSalesChart");
+    const weekdayAt = overview.indexOf("<WeekdaySalesChart");
     expect(yoyAt).toBeGreaterThan(-1);
     expect(viewportAt).toBeGreaterThan(yoyAt);
     expect(chartAt).toBeGreaterThan(viewportAt);
+    expect(weekdayAt).toBeGreaterThan(chartAt);
     expect(overview).toContain("buildOverviewYoyCards");
+    expect(overview).toContain("overviewGreetingPending");
+    expect(overview).toContain("greetingPending");
     expect(overview).not.toContain("<PeriodControl");
     expect(overview).not.toContain("<DeskOverviewTabs");
     expect(overview).not.toContain("<DeskWindowRail");
@@ -106,49 +117,59 @@ describe("overview first viewport", () => {
     expect(overview).not.toContain("hideHero");
     expect(overview).not.toContain("<GoalsSnapSection");
     expect(overview).not.toContain("mcfly-tab-snaps");
+    expect(overview).not.toContain("Coverage {Math.round(coveragePct)}%");
+    expect(read("../components/OverviewSalesChart.tsx")).toContain(
+      "salesPending || !hasSales || points.length < 2",
+    );
   });
 
   it("Overview YoY cards say pending sales are not $0", () => {
-    const cards = readFileSync(
-      join(here, "../components/OverviewYoyCards.tsx"),
-      "utf8",
-    );
-    expect(cards).toContain("Sales for closed days are still loading — not $0.");
+    const cards = read("../components/OverviewYoyCards.tsx");
+    expect(cards).toContain("OVERVIEW_YOY_PENDING");
+    expect(cards).toContain("OVERVIEW_YOY_LABELS");
     expect(cards).not.toMatch(/if \(salesPending\) return null/);
+    expect(cards).not.toContain("0.00×");
+    expect(cards).not.toContain("Total ROAS");
+    expect(cards).not.toContain("Edit spend");
   });
 
-  it("first viewport is notice, sales KPIs, compact row, click for detail", () => {
-    const firstView = readFileSync(
-      join(here, "../components/OverviewFirstViewport.tsx"),
-      "utf8",
-    );
+  it("first viewport is YoY peeks + quiet spend door, never a ROAS hero", () => {
+    const firstView = read("../components/OverviewFirstViewport.tsx");
     expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
     expect(firstView).toContain(OVERVIEW_COVERAGE_LINE.slice(0, 8));
     expect(firstView).toContain("mcfly-decision");
     expect(firstView).toContain("mcfly-kpi-grid");
-    expect(firstView).toContain("mcfly-compact");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks");
     expect(firstView).toContain("DeskIcon");
     expect(firstView).toContain("Click for detail");
     expect(firstView).toContain("weekendSalesShare");
     expect(firstView).toContain("spendHref");
+    expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).toContain("OVERVIEW_PENDING_LINE");
+    expect(firstView).toContain("bookTypicalOrder");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
+    expect(firstView).not.toContain("Edit spend →");
     expect(firstView).not.toContain("<s-link");
     expect(firstView).not.toContain("0.00×");
+    expect(firstView).not.toContain("formatMer");
+    expect(firstView).not.toContain("EOM projected");
+    expect(firstView).not.toContain('label="Total Sales"');
+    expect(firstView).not.toContain("totalRoas");
   });
 
-  it("at $0 spend does not paint Ad spend or Total ROAS as a 2×2 wall", () => {
-    const firstView = readFileSync(
-      join(here, "../components/OverviewFirstViewport.tsx"),
-      "utf8",
-    );
+  it("never paints a Total ROAS or Ad spend tile on Overview", () => {
+    const firstView = read("../components/OverviewFirstViewport.tsx");
     expect(firstView).not.toContain("Add spend to see Total ROAS");
     expect(firstView).not.toContain('label="Ad spend"');
     expect(firstView).not.toContain("Spend Upload →");
     expect(firstView).toContain("{hasSpend ? (");
     expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
     expect(firstView).not.toContain("returningCustomers.toLocaleString()");
+    expect(firstView).not.toContain("mcfly-kpi-grid--with-roas");
+    expect(firstView).not.toContain("mcfly-decision__verb");
+    expect(firstView).not.toContain("mcfly-decision__actions");
   });
 
   it("returning compact is dollars or an em dash, never headcount", () => {
@@ -156,5 +177,76 @@ describe("overview first viewport", () => {
     expect(overviewReturningCompactDollars(0)).toBeNull();
     expect(overviewReturningCompactDollars(null)).toBeNull();
     expect(overviewReturningCompactDollars(undefined)).toBeNull();
+  });
+});
+
+describe("overviewGreetingPending", () => {
+  it("treats incomplete coverage + $0 sales as still loading, not a finished $0 year", () => {
+    expect(
+      overviewGreetingPending({
+        salesPending: false,
+        sales: 0,
+        coverageComplete: false,
+        periodExceedsFactWindow: false,
+        useSampleDesk: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("keeps a genuine $0 when coverage is complete", () => {
+    expect(
+      overviewGreetingPending({
+        salesPending: false,
+        sales: 0,
+        coverageComplete: true,
+        periodExceedsFactWindow: false,
+        useSampleDesk: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("does not blank a partial window that already has sales", () => {
+    expect(
+      overviewGreetingPending({
+        salesPending: false,
+        sales: 18_400,
+        coverageComplete: false,
+        periodExceedsFactWindow: false,
+        useSampleDesk: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("follows salesPending and never pending-seals SAMPLE", () => {
+    expect(
+      overviewGreetingPending({
+        salesPending: true,
+        sales: 0,
+        coverageComplete: true,
+        useSampleDesk: false,
+      }),
+    ).toBe(true);
+    expect(
+      overviewGreetingPending({
+        salesPending: true,
+        sales: 0,
+        coverageComplete: false,
+        useSampleDesk: true,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("overviewPeekThird", () => {
+  it("prefers weekend share, then days-to-second, and never a fake 0%", () => {
+    expect(
+      overviewPeekThird({ weekendSalesShare: 0.31, medianDaysToSecond: 18 }),
+    ).toEqual({ kind: "weekend", share: 0.31 });
+    expect(
+      overviewPeekThird({ weekendSalesShare: 0, medianDaysToSecond: 18 }),
+    ).toEqual({ kind: "daysToSecond", days: 18 });
+    expect(
+      overviewPeekThird({ weekendSalesShare: null, medianDaysToSecond: null }),
+    ).toEqual({ kind: "empty" });
   });
 });

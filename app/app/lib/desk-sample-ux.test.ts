@@ -239,7 +239,10 @@ describe("Sample data | Live data UX", () => {
     expect(firstView).not.toContain("returningCustomers.toLocaleString()");
     expect(firstView).toContain("spendHref");
     expect(firstView).not.toContain("0.00×");
+    expect(firstView).not.toContain("Edit spend →");
+    expect(firstView).not.toContain("EOM projected");
     expect(firstView).toContain("{hasSpend ? (");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks");
 
     expect(overview).not.toContain('slot="primary-action"');
     expect(overview).not.toContain("Update spend");
@@ -348,7 +351,7 @@ describe("Sample data | Live data UX", () => {
     expect(deskPage).toContain("salesError && !shotMode && retryHref");
 
     expect(firstView).toContain("mcfly-kpi-grid");
-    expect(firstView).toContain("mcfly-compact");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks");
     expect(firstView).not.toContain("mcfly-first-view");
     expect(firstView).not.toContain('value={salesPending ? "—"');
 

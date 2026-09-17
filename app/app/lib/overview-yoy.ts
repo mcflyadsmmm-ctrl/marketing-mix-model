@@ -4,9 +4,19 @@ export const OVERVIEW_YOY_IDS = ["mtd", "qtd", "ytd"] as const;
 
 export type OverviewYoyId = (typeof OVERVIEW_YOY_IDS)[number];
 
+export const OVERVIEW_YOY_LABELS: Record<OverviewYoyId, string> = {
+  mtd: "This month",
+  qtd: "This quarter",
+  ytd: "This year",
+};
+
 /** Honest empty — never paint missing last year as $0. */
 export const OVERVIEW_YOY_MISSING =
   "Same days last year not on file yet. Shopify orders on this install cover about 60 days — not $0.";
+
+/** Pending sales — never paint this year as a finished $0. */
+export const OVERVIEW_YOY_PENDING =
+  "Sales for closed days are still loading — not $0.";
 
 /** Shopify Analytics Overview is this period only; these cards add last year. */
 export const OVERVIEW_YOY_ANALYTICS_LEDE =

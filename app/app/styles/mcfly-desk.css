@@ -11907,10 +11907,31 @@ a.mcfly-control__chip-yoy:focus-visible {
   margin: 0 0 0.75rem;
 }
 
+.mcfly-score .mcfly-kpi-grid--peeks {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 @media (min-width: 901px) {
   .mcfly-score .mcfly-kpi-grid--with-roas {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+.mcfly-score__door {
+  margin: 0.15rem 0 0;
+  color: var(--mcfly-mute);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.mcfly-score__door a {
+  color: var(--mcfly-accent-ink);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.mcfly-score__door a:hover {
+  text-decoration: underline;
 }
 
 button.mcfly-kpi,
@@ -12745,10 +12766,17 @@ button.mcfly-chart__month {
   }
 }
 
+@media (max-width: 720px) {
+  .mcfly-score .mcfly-kpi-grid--peeks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 430px) {
   .mcfly-kpi-grid,
   .mcfly-score .mcfly-kpi-grid,
   .mcfly-score .mcfly-kpi-grid--with-roas,
+  .mcfly-score .mcfly-kpi-grid--peeks,
   .mcfly-kpi-board,
   .mcfly-kpi-board__primary,
   .mcfly-yoy__grid,

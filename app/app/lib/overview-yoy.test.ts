@@ -6,6 +6,7 @@ import {
   buildOverviewYoyCards,
   OVERVIEW_YOY_ANALYTICS_LEDE,
   OVERVIEW_YOY_MISSING,
+  OVERVIEW_YOY_PENDING,
   OVERVIEW_YOY_SAME_WINDOW,
   overviewWindowsCollapsed,
 } from "./overview-yoy";
@@ -78,6 +79,8 @@ describe("buildOverviewYoyCards", () => {
     expect(month?.delta).toBeNull();
     expect(OVERVIEW_YOY_MISSING).toMatch(/60 days/);
     expect(OVERVIEW_YOY_MISSING).not.toMatch(/\$0 last year/);
+    expect(OVERVIEW_YOY_PENDING).toMatch(/still loading/);
+    expect(OVERVIEW_YOY_PENDING).toMatch(/not \$0/);
   });
 
   it("flags three windows that collapsed to the same dollars", () => {
@@ -131,7 +134,8 @@ describe("Overview vs Shopify Analytics", () => {
     expect(cards).toContain("OVERVIEW_YOY_SAME_WINDOW");
     expect(cards).toContain("Last year");
     expect(cards).not.toContain("OVERVIEW_COVERAGE_LINE");
-    expect(cards).toContain("Sales for closed days are still loading — not $0.");
+    expect(cards).toContain("OVERVIEW_YOY_PENDING");
+    expect(cards).toContain("OVERVIEW_YOY_LABELS");
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<DualCloseLine");
     expect(overview.indexOf("<OverviewYoyCards")).toBeGreaterThan(-1);
