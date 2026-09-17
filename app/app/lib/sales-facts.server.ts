@@ -765,3 +765,45 @@ export async function getSalesFactsByDay(
   }
   return map;
 }
+
+export type DaySalesOrders = { sales: number; orders: number };
+
+/**
+ * Certified daily sales + order counts for the Overview sales-order explorer.
+ * Same certification gate as {@link getSalesFactsByDay} — only trustworthy
+ * closed days — plus the order count so the desk can paint AOV and vs-prior.
+ * Order dollars only; no spend.
+ */
+export async function getSalesOrderFactsByDay(
+  shopId: string,
+  range: { start: Date; end: Date },
+  options?: { now?: Date },
+): Promise<Map<string, DaySalesOrders>> {
+  const now = options?.now ?? new Date();
+  const rows = await prisma.salesDayFact.findMany({
+    where: { shopId, day: { gte: range.start, lte: range.end } },
+    select: { day: true, sales: true, orderCount: true },
+  });
+
+  const scopesAllowDeep = shopifyReadOrdersScopesAllowDeep();
+  const map = new Map<string, DaySalesOrders>();
+  for (const row of rows) {
+    if (
+      !isCertifiedSalesDayFact({
+        day: row.day,
+        sales: row.sales,
+        now,
+        scopesAllowDeep,
+      })
+    ) {
+      continue;
+    }
+    const key = utcDayKeyFromDate(row.day);
+    const prev = map.get(key) ?? { sales: 0, orders: 0 };
+    map.set(key, {
+      sales: prev.sales + row.sales,
+      orders: prev.orders + row.orderCount,
+    });
+  }
+  return map;
+}
