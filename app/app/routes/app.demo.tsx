@@ -20,6 +20,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import {
   clearSampleDesk,
   getSampleDeskStats,
+  isSampleOnlyFreeze,
   seedThreeYearSampleDesk,
   setSampleDeskEnabled,
   SAMPLE_DESK_TARGET_MER,
@@ -38,7 +39,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
   const stats = await getSampleDeskStats(shop.id);
-  return { stats };
+  return { stats, sampleOnlyFreeze: isSampleOnlyFreeze() };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -98,6 +99,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       };
     }
     if (intent === "disable") {
+      if (isSampleOnlyFreeze()) {
+        return {
+          ok: false as const,
+          message: "Live is parked until launch.",
+        };
+      }
       await setSampleDeskEnabled(shop.id, false);
       const returnTo = safeAppReturnTo(form.get("returnTo"));
       if (returnTo) {
@@ -109,6 +116,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       };
     }
     if (intent === "clear") {
+      if (isSampleOnlyFreeze()) {
+        return {
+          ok: false as const,
+          message: "Live is parked until launch. The Snowdevil book stays.",
+        };
+      }
       await clearSampleDesk(shop.id);
       return { ok: true as const, message: "Sample data cleared." };
     }
@@ -123,7 +136,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function DemoPage() {
   const currency = useDeskCurrency();
-  const { stats } = useLoaderData<typeof loader>();
+  const { stats, sampleOnlyFreeze } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const location = useLocation();
@@ -151,6 +164,7 @@ export default function DemoPage() {
               <s-button href="/app" variant="primary">
                 {PRODUCT_NOUN.openOverview}
               </s-button>
+              {sampleOnlyFreeze ? null : (
               <Form method="post" action={demoAction}>
                 <input type="hidden" name="intent" value="disable" />
                 <input type="hidden" name="returnTo" value={`/app${location.search}`} />
@@ -162,6 +176,7 @@ export default function DemoPage() {
                   {PRODUCT_NOUN.samplePreviewOffCta}
                 </s-button>
               </Form>
+              )}
             </div>
           </s-banner>
         ) : (
@@ -190,8 +205,8 @@ export default function DemoPage() {
         {stats.enabled ? (
           <s-section heading="Sample data">
             <s-paragraph>
-              Sample data stays labeled while it is on. Switch to Live data in
-              Settings when you want this shop’s Shopify numbers.
+              Sample data stays labeled while it is on. Live is parked until
+              launch — these are Snowdevil example numbers, not this shop.
             </s-paragraph>
             <div className="mcfly-decision__actions">
               <s-button href="/app" variant="secondary">

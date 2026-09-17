@@ -20,6 +20,8 @@ import {
 import {
   getSampleDeskEnabled,
   getSamplePreviewAllowed,
+  hydrateSampleOnlyFreeze,
+  isSampleOnlyFreeze,
 } from "../lib/sample-desk.server";
 import { DeskCurrencyContext } from "../lib/desk-currency";
 import { deskPaintCurrency } from "../lib/spend-money";
@@ -39,6 +41,7 @@ const PUBLIC_APP = {
   apiKey: "",
   useSampleDesk: false,
   samplePreviewAllowed: false,
+  sampleOnlyFreeze: false,
   shotMode: false,
   plansUrl: null as string | null,
   shop: null as string | null,
@@ -76,6 +79,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
   const shop = await ensureShop(session.shop);
   await getOrCreateSettings(shop.id);
+  await hydrateSampleOnlyFreeze(shop.id);
   const shotMode = url.searchParams.get("shot") === "1";
   const [useSampleDesk, samplePreviewAllowed] = await Promise.all([
     getSampleDeskEnabled(shop.id),
@@ -97,6 +101,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     apiKey: process.env.SHOPIFY_API_KEY || "",
     useSampleDesk,
     samplePreviewAllowed,
+    sampleOnlyFreeze: isSampleOnlyFreeze(),
     shotMode,
     plansUrl,
     currencyCode: deskPaintCurrency(shop.currencyCode, {
@@ -127,6 +132,7 @@ export default function App() {
     apiKey,
     useSampleDesk,
     samplePreviewAllowed,
+    sampleOnlyFreeze,
     shotMode,
     plansUrl,
     currencyCode,
@@ -151,6 +157,7 @@ export default function App() {
           useSampleDesk={useSampleDesk}
           samplePreviewAllowed={samplePreviewAllowed}
           shotMode={shotMode}
+          sampleOnlyFreeze={sampleOnlyFreeze}
         />
         <DeskTopTabs shotMode={shotMode} />
         <DeskDrillProvider>

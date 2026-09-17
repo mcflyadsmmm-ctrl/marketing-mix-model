@@ -9,21 +9,22 @@ function readSite(rel: string) {
   return readFileSync(join(root, rel), "utf8");
 }
 
-describe("public /demo phone Harbor Overview", () => {
+describe("public /demo phone Snowdevil Overview", () => {
   const css = readSite("site/assets/demo-desk.css");
   const html = readSite("site/demo.html");
-  const mark = "P0 phone / Harbor /demo narrow";
+  const mark = "P0 phone / Snowdevil /demo narrow";
 
-  it("ships the phone cache-bust and keeps Harbor SAMPLE dollars", () => {
+  it("ships the phone cache-bust and keeps Snowdevil SAMPLE dollars", () => {
     expect(html).toContain("demo-desk.css?v=20260916phone");
-    expect(html).toContain("$82,068");
-    expect(html).toContain("$23,414");
-    expect(html).toContain("3.51");
+    expect(html).toContain("$68,457");
+    expect(html).toContain("$19,023");
+    expect(html).toContain("3.60");
+    expect(html).toContain("$631");
     expect(html).not.toMatch(/\$98,?500/);
     expect(html).not.toMatch(/>—</);
   });
 
-  it("stacks Harbor KPIs at 430px and keeps nav finger-sized", () => {
+  it("stacks Snowdevil KPIs at 430px and keeps nav finger-sized", () => {
     expect(css.lastIndexOf(mark)).toBeGreaterThan(-1);
     const phone = css.slice(css.lastIndexOf(mark));
     expect(phone).toMatch(/@media \(max-width: 430px\)/);

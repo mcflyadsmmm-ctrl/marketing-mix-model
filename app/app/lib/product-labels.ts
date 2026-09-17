@@ -180,7 +180,7 @@ export const PRODUCT_NOUN = {
   liveData: "Live data",
   samplePeriodSuffix: " · Sample data",
   sampleHint:
-    "Example sales and spend so you can click around. Not this shop’s Shopify sales, and not spend you typed.",
+    "Snowdevil example sales and spend so you can click around. Not this shop’s Shopify sales, and not spend you typed.",
   liveDataHint:
     "This shop’s Shopify sales and the ad spend you add.",
   sampleHiddenStatus: "Sample data is hidden in Settings",
@@ -191,7 +191,7 @@ export const PRODUCT_NOUN = {
   samplePreviewOffReviewKicker: "You are viewing Sample data",
   samplePreviewOffReviewTitle: "These are example numbers",
   samplePreviewOffReviewBody:
-    "Switch Sample data | Live data in Settings. Live data shows this shop’s Shopify sales and the ad spend you add. Hide Sample data in Settings if you never want the example set.",
+    "These are Snowdevil example numbers, not this shop. Live is parked until launch. Hide Sample data stays off until then.",
   samplePreviewLiveStore: "You are viewing Live data",
   samplePreviewLiveStoreBody:
     "This shop’s Shopify sales. Add daily spend on Spend Upload. Switch to Sample data in Settings to try example numbers.",

@@ -102,6 +102,7 @@ import {
   fetchSampleSalesByDay,
   getSampleDeskEnabled,
   getSampleDeskStats,
+  isSampleOnlyFreeze,
   localDayKey,
   SAMPLE_DESK_MARGIN_PCT,
   SAMPLE_DESK_TARGET_MER,
@@ -438,6 +439,13 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
     (intent === "csv" || intent === "bill-daily") &&
     sampleOn
   ) {
+    if (isSampleOnlyFreeze()) {
+      return {
+        error:
+          "Live is parked until launch. SAMPLE spend stays the Snowdevil book.",
+        success: false,
+      };
+    }
     await setSampleDeskEnabled(shop.id, false);
   }
 
@@ -1906,7 +1914,7 @@ export default function SpendEntryPage() {
                   . {SAMPLE_LEDGER_HANDOFF}
                 </p>
                 <p className="mcfly-spend-lean__status-foot">
-                  Live data is this shop’s Shopify sales plus the spend you add.
+                  Live is parked until launch. These rows stay Snowdevil SAMPLE.
                 </p>
               </>
             ) : coverageThroughYesterday.upToDate ? (

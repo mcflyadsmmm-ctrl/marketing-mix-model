@@ -13,7 +13,7 @@ import {
   overviewPeekThird,
   overviewReturningCompactDollars,
 } from "../lib/overview-first-viewport";
-import { SAMPLE_SPEND_NOT_LIVE } from "../lib/sample-live-handoff";
+import { SAMPLE_OVERVIEW_DOOR } from "../lib/sample-live-handoff";
 import { useDeskCurrency } from "../lib/desk-currency";
 
 function pct(share: number): string {
@@ -79,25 +79,18 @@ function KpiCard({
 function QuietSpendDoor({
   spendHref,
   roasHref,
-  settingsHref,
   useSampleDesk,
   hasSpend,
   salesPending,
 }: {
   spendHref: string;
   roasHref: string;
-  settingsHref: string;
   useSampleDesk: boolean;
   hasSpend: boolean;
   salesPending: boolean;
 }) {
   if (useSampleDesk) {
-    return (
-      <p className="mcfly-score__door">
-        {SAMPLE_SPEND_NOT_LIVE}{" "}
-        <Link to={settingsHref}>Example spend · switch to Live</Link>
-      </p>
-    );
+    return <p className="mcfly-score__door">{SAMPLE_OVERVIEW_DOOR}</p>;
   }
   return (
     <p className="mcfly-score__door">
@@ -132,7 +125,7 @@ export function OverviewFirstViewport({
   ordersHref,
   spendHref,
   roasHref,
-  settingsHref = "/app/settings",
+  settingsHref: _settingsHref = "/app/settings",
   useSampleDesk = false,
   share,
 }: {
@@ -214,7 +207,6 @@ export function OverviewFirstViewport({
     <QuietSpendDoor
       spendHref={spendHref}
       roasHref={roasHref}
-      settingsHref={settingsHref}
       useSampleDesk={useSampleDesk}
       hasSpend={hasSpend}
       salesPending={salesPending}

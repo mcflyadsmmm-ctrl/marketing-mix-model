@@ -1,6 +1,7 @@
 /**
- * Mcfly SAMPLE Overview — Harbor Home Co.
- * YoY sales first. Shopify-five peek. Spend optional ($23,414 / $82,068 / 3.51×).
+ * Mcfly SAMPLE Overview — Snowdevil.
+ * YoY sales first. Shopify-five peek. Spend optional ($19,023 / $68,457 / 3.60×).
+ * Recomputed from buildThreeYearSampleDesk({ now: 2026-09-16T18:00:00Z }).
  * Demo data only. Loud SAMPLE labeling. No pixels / MTA / path credit.
  */
 (function () {
@@ -9,12 +10,12 @@
   var DEFAULT_TARGET = 3.5;
   var DEFAULT_MARGIN = 0.4;
   var AS_OF_SHORT = "Sep 16";
-  var SHOP = "Harbor Home Co";
+  var SHOP = "Snowdevil";
 
   var YOY = {
-    mtd: { sales: 82068, prior: 73410 },
-    qtd: { sales: 246210, prior: 221040 },
-    ytd: { sales: 718420, prior: 649810 },
+    mtd: { sales: 68457, prior: 69891 },
+    qtd: { sales: 210622, prior: 210817 },
+    ytd: { sales: 918649, prior: 918365 },
   };
 
   var PERIODS = {
@@ -22,55 +23,55 @@
       id: "mtd",
       label: "This month",
       asOf: "Sep 1–16, 2026",
-      netSales: 82068,
-      spend: 23414,
-      priorSales: 73410,
-      orders: 892,
-      newCustomers: 312,
-      returningSales: 28724,
-      typicalOrder: 92,
-      weekendShare: 0.24,
-      daysToSecond: 19,
-      ltv90: 156,
-      decisionLead: "Typical order around $92. Returning buyers carry 35% of sales.",
+      netSales: 68457,
+      spend: 19023,
+      priorSales: 69891,
+      orders: 110,
+      newCustomers: 37,
+      returningSales: 45409,
+      typicalOrder: 631,
+      weekendShare: 0.23,
+      daysToSecond: 21,
+      ltv90: 890,
+      decisionLead: "Typical order around $631. Returning buyers carry 66% of sales.",
       decisionWhy:
-        "This month SAMPLE: 892 orders and $82,068 sales. Spend is optional.",
+        "This month SAMPLE: 110 orders and $68,457 sales. Spend is optional.",
     },
     qtd: {
       id: "qtd",
       label: "This quarter",
       asOf: "Jul 1–Sep 16, 2026",
-      netSales: 246210,
-      spend: 70140,
-      priorSales: 221040,
-      orders: 2680,
-      newCustomers: 940,
-      returningSales: 86174,
-      typicalOrder: 92,
-      weekendShare: 0.23,
-      daysToSecond: 18,
-      ltv90: 156,
-      decisionLead: "Typical order around $92. Returning buyers carry 35% of sales.",
+      netSales: 210622,
+      spend: 59044,
+      priorSales: 210817,
+      orders: 346,
+      newCustomers: 107,
+      returningSales: 145429,
+      typicalOrder: 612,
+      weekendShare: 0.25,
+      daysToSecond: 21,
+      ltv90: 890,
+      decisionLead: "Typical order around $612. Returning buyers carry 69% of sales.",
       decisionWhy:
-        "This quarter SAMPLE: 2,680 orders and $246,210 sales. Spend is optional.",
+        "This quarter SAMPLE: 346 orders and $210,622 sales. Spend is optional.",
     },
     ytd: {
       id: "ytd",
       label: "This year",
       asOf: "Jan 1–Sep 16, 2026",
-      netSales: 718420,
-      spend: 204680,
-      priorSales: 649810,
-      orders: 7810,
-      newCustomers: 2740,
-      returningSales: 251447,
-      typicalOrder: 92,
-      weekendShare: 0.24,
-      daysToSecond: 19,
-      ltv90: 156,
-      decisionLead: "Typical order around $92. Returning buyers carry 35% of sales.",
+      netSales: 918649,
+      spend: 257014,
+      priorSales: 918365,
+      orders: 1506,
+      newCustomers: 480,
+      returningSales: 625739,
+      typicalOrder: 611,
+      weekendShare: 0.26,
+      daysToSecond: 21,
+      ltv90: 890,
+      decisionLead: "Typical order around $611. Returning buyers carry 68% of sales.",
       decisionWhy:
-        "This year SAMPLE: 7,810 orders and $718,420 sales. Spend is optional.",
+        "This year SAMPLE: 1,506 orders and $918,649 sales. Spend is optional.",
     },
   };
 
@@ -93,7 +94,7 @@
   }
 
   function money(n) {
-    if (n == null || !Number.isFinite(n)) return "$0";
+    if (n == null || !Number.isFinite(n)) return "—";
     return n.toLocaleString("en-US", {
       style: "currency",
       currency: "USD",
@@ -102,7 +103,7 @@
   }
 
   function formatMer(n) {
-    if (n == null || !Number.isFinite(n)) return "0.00×";
+    if (n == null || !Number.isFinite(n)) return "—";
     return n.toFixed(2) + "×";
   }
 
@@ -261,7 +262,7 @@
       overview: ["Overview", "This month / quarter / year vs last year · KPI cards · spend optional"],
       spend: ["Spend Upload", "Optional · type a day or paste CSV"],
       goals: ["Goals", "Monthly sales plan · spend optional"],
-      settings: ["Settings", "Sample | Live · $39/mo"],
+      settings: ["Settings", "Sample data · Live is parked · $39/mo"],
     };
     var copy = labels[key] || labels.overview;
     if (title) title.textContent = copy[0];
@@ -280,7 +281,7 @@
           period.label +
           ". Last year " +
           money(period.priorSales) +
-          ". SAMPLE Harbor Home Co.</p>",
+          ". SAMPLE Snowdevil.</p>",
         trigger,
       );
       return;

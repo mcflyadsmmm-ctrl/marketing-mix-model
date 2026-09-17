@@ -9,22 +9,26 @@ function readSite(rel: string) {
   return readFileSync(join(root, rel), "utf8");
 }
 
-describe("public /demo matches Harbor Overview religion", () => {
-  it("paints Harbor SAMPLE dollars — not Northline $98,500 / 4.19× and not all —", () => {
+describe("public /demo matches Snowdevil Overview religion", () => {
+  it("paints Snowdevil SAMPLE dollars — not Northline $98,500 / 4.19× and not all —", () => {
     const html = readSite("site/demo.html");
     const js = readSite("site/assets/demo-desk.js");
     const desk = html + "\n" + js;
 
-    expect(desk).toContain("Harbor Home Co");
-    expect(desk).toMatch(/\$82,?068/);
-    expect(desk).toMatch(/\$23,?414/);
-    expect(desk).toMatch(/3\.51/);
-    expect(html).toContain("$82,068");
+    expect(desk).toContain("Snowdevil");
+    expect(desk).toMatch(/\$68,?457/);
+    expect(desk).toMatch(/\$19,?023/);
+    expect(desk).toMatch(/3\.60/);
+    expect(html).toContain("$68,457");
     expect(html).not.toMatch(/>—</);
 
+    expect(desk).not.toContain("Harbor Home Co");
     expect(desk).not.toContain("Northline Supply");
     expect(desk).not.toMatch(/\$98,?500/);
     expect(desk).not.toMatch(/4\.19×/);
+    expect(js).not.toContain("0.00×");
+    expect(js).toContain('return "—"');
+    expect(html).toContain("Live is parked");
   });
 
   it("Overview is YoY / Shopify-five first — spend is optional", () => {
@@ -35,7 +39,7 @@ describe("public /demo matches Harbor Overview religion", () => {
     expect(html).toMatch(/Typical order|returning/i);
     expect(html).toMatch(/spend optional|Spend is optional|optional/i);
     const overviewIdx = html.indexOf('data-dd-section="overview"');
-    const spendIdx = html.indexOf("$23,414");
+    const spendIdx = html.indexOf("$19,023");
     const roasLead = html.indexOf("dd-kpi--lead");
     const salesLead = html.indexOf("Total Sales");
     expect(overviewIdx).toBeGreaterThan(0);

@@ -24,7 +24,7 @@ export function shopCurrencyCode(code: string | null | undefined): string {
 export const SAMPLE_DESK_CURRENCY = "USD";
 
 /**
- * Desk paint code. SAMPLE always uses the Harbor book ISO so dollars cannot
+ * Desk paint code. SAMPLE always uses the Snowdevil book ISO so dollars cannot
  * collapse to —. Live keeps Wave 4 honesty: missing/invalid shop ISO → "".
  */
 export function deskPaintCurrency(

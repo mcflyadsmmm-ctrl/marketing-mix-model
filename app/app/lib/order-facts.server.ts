@@ -1160,7 +1160,8 @@ function splitSalesAcrossOrders(total: number, n: number): number[] {
 
 /**
  * Sales-first SAMPLE OrderFacts so Overview Sample is a shop book.
- * Harbor spend / Total ROAS stays on SpendEntry + Marketing.
+ * Snowdevil spend / Total ROAS stays on SpendEntry + Marketing.
+ * Units stay 1–2 (board, or board + wax) — not Harbor multi-item baskets.
  */
 export async function seedSampleOrderFacts(
   shopId: string,
@@ -1231,7 +1232,7 @@ export async function seedSampleOrderFacts(
         currency: "USD",
         discountAmount,
         sourceName,
-        unitCount: 1 + (i % 4),
+        unitCount: 1 + (i % 2),
         asOf: now,
         source: "sample",
       });

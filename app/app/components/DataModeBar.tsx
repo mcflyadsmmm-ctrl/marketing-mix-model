@@ -7,6 +7,7 @@ export type DataModeBarProps = {
    * Listing capture (`?shot=1`). Keep SAMPLE labeled when sample is on (1.1.4).
    */
   shotMode?: boolean;
+  sampleOnlyFreeze?: boolean;
 };
 
 /**
@@ -17,6 +18,7 @@ export function DataModeBar({
   useSampleDesk,
   samplePreviewAllowed: _samplePreviewAllowed,
   shotMode = false,
+  sampleOnlyFreeze = false,
 }: DataModeBarProps) {
   if (!useSampleDesk) return null;
 
@@ -35,10 +37,16 @@ export function DataModeBar({
         <strong>{PRODUCT_NOUN.sampleData}</strong>
         <span aria-hidden="true"> · </span>
         {PRODUCT_NOUN.sampleHint}
-        {!shotMode ? (
+        {!shotMode && !sampleOnlyFreeze ? (
           <>
             <span aria-hidden="true"> · </span>
             <s-link href="/app/settings">Switch in Settings</s-link>
+          </>
+        ) : null}
+        {!shotMode && sampleOnlyFreeze ? (
+          <>
+            <span aria-hidden="true"> · </span>
+            Live is parked until launch
           </>
         ) : null}
       </p>

@@ -8,6 +8,7 @@ import {
   LIVE_HANDOFF_GUIDE,
   LIVE_HANDOFF_HEADING,
   SAMPLE_LEDGER_HANDOFF,
+  SAMPLE_OVERVIEW_DOOR,
   SAMPLE_SPEND_NOT_LIVE,
   TRIAL_VS_VIEW,
 } from "./sample-live-handoff";
@@ -32,6 +33,7 @@ describe("SAMPLE → Live handoff", () => {
     const corpus = [
       LIVE_HANDOFF_HEADING,
       LIVE_HANDOFF_BODY,
+      SAMPLE_OVERVIEW_DOOR,
       SAMPLE_SPEND_NOT_LIVE,
       SAMPLE_LEDGER_HANDOFF,
       TRIAL_VS_VIEW,
@@ -43,7 +45,7 @@ describe("SAMPLE → Live handoff", () => {
     expect(corpus).not.toMatch(/copied|transferred your spend/i);
   });
 
-  it("Overview paints guide=real and labels SAMPLE ROAS as example spend", () => {
+  it("Overview stays sales-first; SAMPLE ROAS honesty lives on Spend", () => {
     const overview = read("../routes/app._index.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
     expect(overview).toContain("isLiveHandoffGuide");
@@ -51,10 +53,13 @@ describe("SAMPLE → Live handoff", () => {
     expect(overview).toContain("LIVE_HANDOFF_BODY");
     expect(overview).toContain('searchParams.get("guide")');
     expect(overview).toContain("useSampleDesk={useSampleDesk}");
-    expect(firstView).toContain("SAMPLE_SPEND_NOT_LIVE");
-    expect(firstView).toContain("Example spend · switch to Live");
+    expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
+    expect(firstView).not.toContain("SAMPLE_SPEND_NOT_LIVE");
+    expect(firstView).not.toContain("Example spend");
     expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
     expect(firstView).not.toContain("Edit spend →");
+    expect(SAMPLE_OVERVIEW_DOOR).toMatch(/example sales/i);
+    expect(SAMPLE_OVERVIEW_DOOR).not.toMatch(/Total ROAS|upload/i);
   });
 
   it("Settings and data-mode still stamp guide=real on the Live switch", () => {

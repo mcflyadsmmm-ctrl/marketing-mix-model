@@ -43,6 +43,7 @@ import {
   fetchSampleSales,
   getSampleDeskEnabled,
   getSampleDeskStats,
+  isSampleOnlyFreeze,
   localDayKey,
   setSampleDeskEnabled,
   utcDayKey,
@@ -314,6 +315,13 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
     (intent === "manual" || intent === "recurring" || intent === "delete-entry") &&
     sampleOn
   ) {
+    if (isSampleOnlyFreeze()) {
+      return {
+        error:
+          "Live is parked until launch. SAMPLE spend stays the Snowdevil book.",
+        success: false,
+      };
+    }
     await setSampleDeskEnabled(shop.id, false);
   }
 
@@ -602,9 +610,7 @@ export default function SpendEntryPage() {
           {sampleDesk.enabled && !shotMode ? (
             <s-banner tone="info" heading="Example spend is on">
               <s-paragraph>
-                {SAMPLE_LEDGER_HANDOFF}{" "}
-                <s-link href="/app/settings">Switch to Live in Settings</s-link>
-                {" "}without typing a day if you only want this shop’s sales.
+                {SAMPLE_LEDGER_HANDOFF}
               </s-paragraph>
             </s-banner>
           ) : null}
@@ -1033,8 +1039,8 @@ export default function SpendEntryPage() {
                       . {SAMPLE_LEDGER_HANDOFF}
                     </p>
                     <p className="mcfly-spend-lean__status-foot">
-                      Live data is this shop’s Shopify sales plus the spend you
-                      add.
+                      Live is parked until launch. These rows stay Snowdevil
+                      SAMPLE.
                     </p>
                   </>
                 ) : coverageThroughYesterday.upToDate ? (

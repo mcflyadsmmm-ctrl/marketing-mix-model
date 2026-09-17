@@ -2,8 +2,9 @@
  * Deterministic SAMPLE till + matching spend.
  * Clearly labeled SAMPLE — never presented as live Shopify.
  *
- * Impressive but realistic DTC: Meta + Google, some email, a little other.
- * ~$2.5–4k sales/day, Total ROAS near 3.5× (Harbor-like, not 4.4× theater).
+ * Snowdevil (Shopify snowboard shop): Complete Snowboard AOV, winter peak,
+ * Meta + Google Shopping, some email, a little other (affiliates/events).
+ * Total ROAS near 3.5× (impressive, not 4.4× theater).
  * Window is a rolling ~13 months through **today UTC** so MTD is never stale.
  */
 
@@ -31,8 +32,8 @@ export const SAMPLE_ACTIVE_CHANNELS = [
   "other",
 ] as const satisfies readonly SpendChannel[];
 
-/** Minimum new buyers per SAMPLE day — never show 0s on the desk. */
-export const SAMPLE_MIN_NEW_CUSTOMERS = 3;
+/** Minimum new buyers per SAMPLE day — summer 2-order days stay honest. */
+export const SAMPLE_MIN_NEW_CUSTOMERS = 1;
 
 const ALL_CHANNELS: SpendChannel[] = [
   "meta",
@@ -51,13 +52,28 @@ const ALL_CHANNELS: SpendChannel[] = [
   "other",
 ];
 
-/** Mix shares for active channels — sum = 1. */
+/** Mix shares for active channels — Meta + Google Shopping heavy. */
 const MIX: Record<(typeof SAMPLE_ACTIVE_CHANNELS)[number], number> = {
-  meta: 0.5,
-  google: 0.32,
-  email: 0.08,
-  other: 0.1,
+  meta: 0.48,
+  google: 0.38,
+  email: 0.06,
+  other: 0.08,
 };
+
+/** Complete Snowboard territory — not Harbor $88 candles. */
+const AOV_MIN = 520;
+const AOV_SPAN = 180;
+
+/** Mid-season weekday GMV before winter peak / off-season / weekend. */
+const BASE_DAILY_SALES = 4100;
+
+function snowdevilSeason(month: number): number {
+  // Nov–Feb peak (boards). May–Aug wax/clearance. Sep–Oct pre-season.
+  if (month === 10 || month === 11 || month === 0 || month === 1) return 1.58;
+  if (month >= 4 && month <= 7) return 0.58;
+  if (month === 8 || month === 9) return 1.08;
+  return 0.82;
+}
 
 function mulberry32(seed: number) {
   return function rng() {
@@ -119,21 +135,15 @@ export function buildThreeYearSampleDesk(options?: {
     const dow = d.getUTCDay();
     const month = d.getUTCMonth();
     const weekend = dow === 0 || dow === 6;
-    const season =
-      month === 10 || month === 11
-        ? 1.35
-        : month === 0
-          ? 0.86
-          : month >= 5 && month <= 7
-            ? 1.12
-            : 1;
-    const dayFactor = weekend ? 0.78 : 1;
+    const season = snowdevilSeason(month);
+    const dayFactor = weekend ? 0.88 : 1;
     const noise = 0.93 + rng() * 0.14;
-    const sales = Math.round(2750 * season * dayFactor * noise * 100) / 100;
+    const sales =
+      Math.round(BASE_DAILY_SALES * season * dayFactor * noise * 100) / 100;
 
-    const aov = 88 + rng() * 28;
+    const aov = AOV_MIN + rng() * AOV_SPAN;
     const orderCount = Math.max(
-      SAMPLE_MIN_NEW_CUSTOMERS + 6,
+      SAMPLE_MIN_NEW_CUSTOMERS,
       Math.round(sales / aov),
     );
     const newShare = 0.28 + rng() * 0.1;

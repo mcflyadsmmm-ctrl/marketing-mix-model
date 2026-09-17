@@ -14,7 +14,13 @@ import { sampleBookIsPaintable } from "./sample-book-ready";
 
 export { sampleBookIsPaintable } from "./sample-book-ready";
 
+export function isSampleOnlyFreeze(): boolean {
+  const value = process.env.MCFLY_SAMPLE_ONLY;
+  return value === "true" || value === "1";
+}
+
 export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
+  if (isSampleOnlyFreeze()) return true;
   const settings = await prisma.settings.findUnique({ where: { shopId } });
   // Settings can hide Sample entirely — always serve real store.
   if (settings?.samplePreviewAllowed === false) return false;
@@ -27,6 +33,24 @@ export async function getSamplePreviewAllowed(shopId: string): Promise<boolean> 
   const settings = await prisma.settings.findUnique({ where: { shopId } });
   // Default true when row missing (pre-migration / fresh shop).
   return settings?.samplePreviewAllowed !== false;
+}
+
+/**
+ * Force Sample on for the parked-Live freeze. Uses the in-flight book map so
+ * a book already through today is not rewritten on every Admin load.
+ */
+export async function hydrateSampleOnlyFreeze(shopId: string): Promise<void> {
+  if (!isSampleOnlyFreeze()) return;
+  await setSamplePreviewAllowed(shopId, true);
+  await ensureSampleBookThroughToday(shopId);
+  let stats = await getSampleDeskStats(shopId);
+  if (!sampleBookIsPaintable(stats)) {
+    await seedThreeYearSampleDesk(shopId, SAMPLE_DESK_TARGET_MER);
+    stats = await getSampleDeskStats(shopId);
+  }
+  if (sampleBookIsPaintable(stats)) {
+    await setSampleDeskEnabled(shopId, true);
+  }
 }
 
 export async function setSamplePreviewAllowed(
@@ -44,6 +68,7 @@ export async function setSamplePreviewAllowed(
 }
 
 export async function setSampleDeskEnabled(shopId: string, enabled: boolean) {
+  if (isSampleOnlyFreeze() && !enabled) return;
   const allowed = await getSamplePreviewAllowed(shopId);
   await prisma.settings.update({
     where: { shopId },
@@ -67,7 +92,7 @@ export function isSampleDeskIntent(value: string): value is SampleDeskIntent {
 }
 
 /**
- * Merchant Sample | Live switch. Seed the compact Harbor book before turning
+ * Merchant Sample | Live switch. Seed the compact Snowdevil book before turning
  * SAMPLE on so Overview is never an empty 200 after the click.
  */
 export async function applySampleDeskIntent(
@@ -91,12 +116,14 @@ export async function applySampleDeskIntent(
       await setSampleDeskEnabled(shopId, true);
       return;
     case "use-real":
+      if (isSampleOnlyFreeze()) return;
       await setSampleDeskEnabled(shopId, false);
       return;
     case "allow-sample-preview":
       await setSamplePreviewAllowed(shopId, true);
       return;
     case "hide-sample-preview":
+      if (isSampleOnlyFreeze()) return;
       await setSamplePreviewAllowed(shopId, false);
       return;
     default: {
@@ -107,6 +134,7 @@ export async function applySampleDeskIntent(
 }
 
 export async function clearSampleDesk(shopId: string) {
+  if (isSampleOnlyFreeze()) return;
   await prisma.$transaction([
     prisma.sampleSalesDay.deleteMany({ where: { shopId } }),
     prisma.spendEntry.deleteMany({ where: { shopId, source: "sample" } }),
@@ -120,10 +148,14 @@ export async function clearSampleDesk(shopId: string) {
   await clearSampleOrderFacts(shopId);
 }
 
-/** Harbor-like SAMPLE Total ROAS — impressive, not 4.4× theater. */
+/** Snowdevil SAMPLE Total ROAS — impressive, not 4.4× theater. */
 export const SAMPLE_DESK_TARGET_MER = 3.5;
 /** SAMPLE break-even economics (~35% → BE ≈ 2.86). Applied at read time only. */
 export const SAMPLE_DESK_MARGIN_PCT = 0.35;
+/** SAMPLE chrome brand — Shopify snowboard generated-data shop. */
+export const SAMPLE_DESK_SHOP_NAME = "Snowdevil";
+/** Spend note that marks the Snowdevil book (rewrites leftover Harbor rows). */
+export const SAMPLE_BOOK_NOTE = "sample:snowdevil-1";
 
 const sampleSeedInFlight = new Map<string, Promise<unknown>>();
 
@@ -275,7 +307,7 @@ async function insertSampleRows(
         currency: "USD",
         periodStart: start,
         periodEnd: end,
-        note: "sample",
+        note: SAMPLE_BOOK_NOTE,
         source: "sample",
       });
     }
@@ -393,19 +425,21 @@ export function utcDayKey(date: Date): string {
 }
 
 /**
- * Re-seed when SAMPLE sales or spend is missing, or when leftover spend still
- * uses UTC midnight (collides with live CSV unique keys → empty Spend page).
+ * Re-seed when SAMPLE sales or spend is missing, leftover spend still uses
+ * UTC midnight (collides with live CSV unique keys → empty Spend page), or
+ * the spend note is not the current Snowdevil book.
  */
 export async function sampleDeskNeedsSeed(shopId: string): Promise<boolean> {
   const [dayCount, probe] = await Promise.all([
     prisma.sampleSalesDay.count({ where: { shopId } }),
     prisma.spendEntry.findFirst({
       where: { shopId, source: "sample" },
-      select: { periodStart: true },
+      select: { periodStart: true, note: true },
     }),
   ]);
   if (dayCount === 0) return true;
   if (!probe) return true;
+  if (probe.note !== SAMPLE_BOOK_NOTE) return true;
   return !sampleSpendUsesNoonStamp(probe.periodStart);
 }
 
