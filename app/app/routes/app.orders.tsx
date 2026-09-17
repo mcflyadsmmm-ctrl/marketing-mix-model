@@ -5,13 +5,17 @@ import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { OrdersScoreboard } from "../components/OrdersScoreboard";
 import { OrdersTimingChart } from "../components/OrdersTimingChart";
+import { OrdersIntelligence } from "../components/OrdersIntelligence";
+import { OrdersFrequencyChart } from "../components/OrdersFrequencyChart";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return loadDeskSalesPage(request, "/app/orders");
+  return loadDeskSalesPage(request, "/app/orders", {
+    includeOrdersIntelligence: true,
+  });
 };
 
 export default function OrdersPage() {
@@ -26,6 +30,8 @@ export default function OrdersPage() {
     shopifyOrderWindowLimited,
     factsIncomplete,
     orderBackfillProgress,
+    ordersIntel,
+    ordersFrequency,
   } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -87,6 +93,9 @@ export default function OrdersPage() {
             "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS. Pending sales are a banner — the board still paints from orders on file.",
           )}
         </p>
+        {ordersIntel && !metrics.salesPending ? (
+          <OrdersIntelligence intel={ordersIntel} />
+        ) : null}
         <OrdersScoreboard
           book={book}
           depth={metrics.shopifyDepth}
@@ -108,6 +117,9 @@ export default function OrdersPage() {
           peakHour={metrics.shopifyDepth.peakHour}
           salesPending={Boolean(metrics.salesPending)}
         />
+        {ordersFrequency && ordersFrequency.length > 1 && !metrics.salesPending ? (
+          <OrdersFrequencyChart buckets={ordersFrequency} />
+        ) : null}
         <footer className="mcfly-book__links">
           <s-link href="/app">{PRODUCT_NOUN.overviewTitle}</s-link>
           <s-link href="/app/customers">{PRODUCT_NOUN.buyersTitle}</s-link>

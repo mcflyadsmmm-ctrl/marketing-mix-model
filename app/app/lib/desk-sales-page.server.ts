@@ -24,13 +24,27 @@ import {
   fetchSampleSales,
   getSampleDeskEnabled,
 } from "./sample-desk.server";
-import { getOrderBackfillProgress } from "./order-facts.server";
+import {
+  ORDER_FACT_SOURCE,
+  getOrderBackfillProgress,
+  loadOrderDepthRows,
+} from "./order-facts.server";
+import {
+  aggregateOrderRows,
+  buildOrdersFrequency,
+  buildOrdersIntelDays,
+  ordersIntelWindowLabel,
+  type OrdersFrequencyBucket,
+} from "./orders-intelligence";
 import { requireAdmin } from "./public-app-gate.server";
 import { scheduleFirstSessionShopifyWindow } from "./first-session-shopify-window.server";
+
+const ORDERS_INTEL_WINDOW_DAYS = 90;
 
 export async function loadDeskSalesPage(
   request: Request,
   redirectPath: string,
+  options?: { includeOrdersIntelligence?: boolean },
 ) {
   const { admin, session } = await requireAdmin(request);
   const url = new URL(request.url);
@@ -83,6 +97,43 @@ export async function loadDeskSalesPage(
         ianaTimezone: shop.ianaTimezone,
       });
 
+  let ordersIntel: {
+    windowLabel: string;
+    days: ReturnType<typeof buildOrdersIntelDays>;
+    current: ReturnType<typeof aggregateOrderRows>;
+    prior: ReturnType<typeof aggregateOrderRows> | null;
+  } | null = null;
+  let ordersFrequency: OrdersFrequencyBucket[] | null = null;
+  if (options?.includeOrdersIntelligence && !salesError) {
+    try {
+      const source = useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
+      const end = new Date();
+      const start = new Date(
+        end.getTime() - ORDERS_INTEL_WINDOW_DAYS * 86_400_000,
+      );
+      const priorStart = new Date(
+        start.getTime() - ORDERS_INTEL_WINDOW_DAYS * 86_400_000,
+      );
+      const [rows, priorRows] = await Promise.all([
+        loadOrderDepthRows(shop.id, { start, end }, source),
+        loadOrderDepthRows(shop.id, { start: priorStart, end: start }, source),
+      ]);
+      if (rows.length > 0) {
+        const days = buildOrdersIntelDays(rows);
+        ordersIntel = {
+          windowLabel: ordersIntelWindowLabel(days),
+          days,
+          current: aggregateOrderRows(rows),
+          prior: priorRows.length > 0 ? aggregateOrderRows(priorRows) : null,
+        };
+        ordersFrequency = buildOrdersFrequency(rows);
+      }
+    } catch {
+      ordersIntel = null;
+      ordersFrequency = null;
+    }
+  }
+
   return {
     metrics,
     preset,
@@ -94,5 +145,7 @@ export async function loadDeskSalesPage(
     shopifyOrderWindowLimited,
     factsIncomplete,
     orderBackfillProgress,
+    ordersIntel,
+    ordersFrequency,
   };
 }

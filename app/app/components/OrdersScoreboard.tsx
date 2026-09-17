@@ -14,6 +14,7 @@ import {
 } from "../lib/orders-scoreboard";
 import {
   OrdersClockBar,
+  OrdersShapeBars,
   OrdersSourceBar,
   OrdersTicketBand,
 } from "./OrdersVisuals";
@@ -149,6 +150,7 @@ export function OrdersScoreboard({
           {hero.sub ? <p className="mcfly-orders-hero__sub">{hero.sub}</p> : null}
           <p className="mcfly-orders-hero__def">{hero.def}</p>
           <OrdersTicketBand depth={depth} pending={salesPending} />
+          <OrdersShapeBars depth={depth} pending={salesPending} />
         </article>
         <OrdersClockBar clocks={clocks} pending={salesPending} />
         {clock.length > 0 ? (

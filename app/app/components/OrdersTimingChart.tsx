@@ -55,6 +55,22 @@ export function OrdersTimingChart({
     liveBars[0] ??
     null;
   const max = Math.max(...bars.map((bar) => bar.share), 0.01);
+  const rankedKeys = [...liveBars]
+    .sort((a, b) => b.share - a.share)
+    .map((bar) => bar.key);
+  const activeIndex = active ? bars.findIndex((bar) => bar.key === active.key) : -1;
+  const activeRank = active ? rankedKeys.indexOf(active.key) + 1 : 0;
+  const tipLeft =
+    activeIndex >= 0 && bars.length > 0
+      ? Math.min(88, Math.max(12, ((activeIndex + 0.5) / bars.length) * 100))
+      : 50;
+  const rankCopy = active?.peak
+    ? grain === "hour"
+      ? "Busiest hour"
+      : "Busiest weekday"
+    : activeRank > 0
+      ? `#${activeRank} of ${liveBars.length}`
+      : "—";
   const emptyCopy = salesPending
     ? "Sales for closed days are still loading — not $0."
     : grain === "hour"
@@ -119,12 +135,48 @@ export function OrdersTimingChart({
           }}
         />
       </div>
-      <div
-        className={
-          grain === "hour" ? "mcfly-chart__hours" : "mcfly-chart__days"
-        }
-      >
-        {bars.map((bar) => {
+      <div className="mcfly-chart__plot">
+        {active ? (
+          <div
+            className="mcfly-chart__tip"
+            role="status"
+            style={{ left: `${tipLeft}%` }}
+          >
+            <p className="mcfly-chart__tip-h">{active.label}</p>
+            {active.dollars != null ? (
+              <p className="mcfly-chart__tip-row">
+                <span className="mcfly-chart__tip-k">Sales</span>
+                <span className="mcfly-chart__tip-v">
+                  {formatCurrency(active.dollars, currency)}
+                </span>
+              </p>
+            ) : null}
+            <p className="mcfly-chart__tip-row">
+              <span className="mcfly-chart__tip-k">Share</span>
+              <span className="mcfly-chart__tip-v">
+                {ordersPct(active.share)} of window
+              </span>
+            </p>
+            <p className="mcfly-chart__tip-row">
+              <span className="mcfly-chart__tip-k">Rank</span>
+              <span className="mcfly-chart__tip-v">{rankCopy}</span>
+            </p>
+            <p className="mcfly-chart__tip-foot">
+              {active.weekend
+                ? "Weekend · shop-local"
+                : grain === "hour"
+                  ? "Shop-local hour"
+                  : "Shop-local weekday"}
+            </p>
+          </div>
+        ) : null}
+        <div
+          className={
+            grain === "hour" ? "mcfly-chart__hours" : "mcfly-chart__days"
+          }
+          onMouseLeave={() => setHoverKey(null)}
+        >
+          {bars.map((bar) => {
           const value =
             bar.dollars != null
               ? formatCurrency(bar.dollars, currency)
@@ -178,8 +230,9 @@ export function OrdersTimingChart({
                 <span className="mcfly-chart__day-v">{value}</span>
               ) : null}
             </button>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );

@@ -88,6 +88,23 @@ export type OrdersSourceSegment = {
   typical: string | null;
 };
 
+/** Order-shape pace bars — discounted / 2+ items / weekend as share bars. */
+export type OrdersShapeBar = {
+  key: "discounted" | "multi" | "weekend";
+  label: string;
+  share: number;
+  pct: number;
+};
+
+export type OrdersChartTip = {
+  label: string;
+  dollars: string | null;
+  sharePct: string;
+  rank: string;
+  weekend: boolean;
+  leftPct: number;
+};
+
 export function isOrdersNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
 }
@@ -494,6 +511,31 @@ export function buildOrdersSourceBar(
       typical: isOrdersNum(row.aov) ? formatCurrency(row.aov, currency) : null,
     }));
   return rows.length > 0 ? rows : null;
+}
+
+/**
+ * Order-shape share bars — the pacing-card language applied to the order
+ * book. Each is a self-explaining share; a share that rounds to 0% is
+ * dropped, never printed as 0%.
+ */
+export function buildOrdersShapeBars(
+  depth: ShopifyDepthStats,
+): OrdersShapeBar[] {
+  const rows: Array<{ key: OrdersShapeBar["key"]; label: string; share: number | null }> = [
+    { key: "discounted", label: "Discounted orders", share: depth.discountedOrderShare },
+    { key: "multi", label: "Orders with 2+ items", share: depth.multiUnitOrderShare },
+    { key: "weekend", label: "Weekend sales", share: depth.weekendSalesShare },
+  ];
+  return rows
+    .filter((row): row is { key: OrdersShapeBar["key"]; label: string; share: number } =>
+      ordersHasShare(row.share),
+    )
+    .map((row) => ({
+      key: row.key,
+      label: row.label,
+      share: row.share,
+      pct: Math.round(row.share * 100),
+    }));
 }
 
 export function buildOrdersChartBars(input: {

@@ -2,6 +2,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskDrill } from "./DeskDrill";
 import {
   buildOrdersClockBar,
+  buildOrdersShapeBars,
   buildOrdersSourceBar,
   buildOrdersTicketBand,
   ordersPct,
@@ -93,6 +94,38 @@ export function OrdersTicketBand({
         </span>
       </span>
     </button>
+  );
+}
+
+/**
+ * Order-shape pace bars — the pacing-card language on the order book.
+ * Discounted / 2+ items / weekend as labelled share bars. Order data only.
+ */
+export function OrdersShapeBars({
+  depth,
+  pending,
+}: {
+  depth: ShopifyDepthStats;
+  pending: boolean;
+}) {
+  if (pending) return null;
+  const bars = buildOrdersShapeBars(depth);
+  if (bars.length === 0) return null;
+  return (
+    <div className="mcfly-orders-pace" aria-label="Order shape">
+      {bars.map((bar) => (
+        <div className="mcfly-orders-pace__row" key={bar.key}>
+          <span className="mcfly-orders-pace__k">{bar.label}</span>
+          <span className="mcfly-orders-pace__pct">{bar.pct}%</span>
+          <span className="mcfly-orders-pace__bar" aria-hidden="true">
+            <span
+              className={`mcfly-orders-pace__fill mcfly-orders-pace__fill--${bar.key}`}
+              style={{ width: `${bar.pct}%` }}
+            />
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }
 

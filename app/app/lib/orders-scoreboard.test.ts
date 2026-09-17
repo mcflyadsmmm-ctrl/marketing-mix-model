@@ -9,6 +9,7 @@ import {
   buildOrdersClockBar,
   buildOrdersDepthFacts,
   buildOrdersHero,
+  buildOrdersShapeBars,
   buildOrdersSourceBar,
   buildOrdersTicketBand,
   buildOrdersTimingFacts,
@@ -302,6 +303,25 @@ describe("orders visuals", () => {
     const depth = { ...snowdevilDepth(), sourceSalesShare: null };
     expect(buildOrdersSourceBar(depth, "USD")).toBeNull();
   });
+
+  it("shape bars echo the pacing card — discounted, 2+ items, weekend", () => {
+    const bars = buildOrdersShapeBars(snowdevilDepth());
+    expect(bars.map((b) => b.key)).toEqual(["discounted", "multi", "weekend"]);
+    expect(bars.find((b) => b.key === "discounted")?.pct).toBe(20);
+    expect(bars.find((b) => b.key === "multi")?.pct).toBe(50);
+    expect(bars.find((b) => b.key === "weekend")?.pct).toBe(23);
+  });
+
+  it("shape bars drop a share that rounds to 0%, never printing a 0% bar", () => {
+    const depth = {
+      ...snowdevilDepth(),
+      discountedOrderShare: 0.004,
+      multiUnitOrderShare: null,
+      weekendSalesShare: 0.23,
+    };
+    const bars = buildOrdersShapeBars(depth);
+    expect(bars.map((b) => b.key)).toEqual(["weekend"]);
+  });
 });
 
 describe("Orders page craft lock", () => {
@@ -347,6 +367,27 @@ describe("Orders page craft lock", () => {
     // The band is the median-vs-average contrast Shopify Analytics never draws.
     expect(visuals).toMatch(/average/i);
     expect(visuals).toMatch(/typical/i);
+  });
+
+  it("uses the pacing-card language — soft hero, tile grid, order-shape pace bars", () => {
+    expect(scoreboard).toContain("<OrdersShapeBars");
+    expect(visuals).toContain("buildOrdersShapeBars");
+    expect(visuals).toContain("mcfly-orders-pace");
+    expect(visuals).toContain("mcfly-orders-pace__fill");
+    const css = read("../styles/mcfly-desk.css");
+    expect(css).toContain(".mcfly-orders-pace__fill");
+    expect(css).toContain(".mcfly-scoreboard--orders .mcfly-kpi--peek");
+  });
+
+  it("gives the weekday/hour chart an explorer-grade floating hover tooltip", () => {
+    expect(chart).toContain("mcfly-chart__tip");
+    expect(chart).toContain("mcfly-chart__tip-row");
+    expect(chart).toContain("mcfly-chart__plot");
+    expect(chart).toMatch(/rank/i);
+    expect(chart).toContain("onMouseLeave");
+    const css = read("../styles/mcfly-desk.css");
+    expect(css).toContain(".mcfly-chart__tip");
+    expect(css).toContain(".mcfly-chart__plot");
   });
 
   it("paints every TAB_LOCK Orders fact on the scoreboard, not a pamphlet", () => {
