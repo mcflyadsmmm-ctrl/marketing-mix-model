@@ -12795,7 +12795,6 @@ button.mcfly-chart__month {
   .mcfly-score .mcfly-kpi-grid--with-roas,
   .mcfly-score .mcfly-kpi-grid--peeks,
   .mcfly-score .mcfly-kpi-grid--peeks-2,
-  .mcfly-score .mcfly-kpi-grid--peeks-4,
   .mcfly-kpi-board,
   .mcfly-kpi-board__primary,
   .mcfly-yoy__grid,
@@ -12833,6 +12832,19 @@ button.mcfly-chart__month {
 
   .mcfly-ctx__chips {
     width: 100%;
+  }
+
+  /* Peek values are typical-order / share — 2-up stays readable. YoY $68k stays stacked. */
+  .mcfly-score .mcfly-kpi-grid--peeks-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mcfly-yoy__card {
+    padding: 0.85rem 0.95rem 0.9rem;
+  }
+
+  .mcfly-yoy__v {
+    font-size: clamp(1.55rem, 8vw, 2rem);
   }
 }
 
