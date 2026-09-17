@@ -11,6 +11,10 @@ export const LIVE_HANDOFF_HEADING = "Live data is on";
 export const LIVE_HANDOFF_BODY =
   "Shopify sales are this shop’s. SAMPLE spend did not transfer — Total ROAS stays — until you add a day on Spend Upload. Start 7-day trial is Shopify billing in Settings, not this switch.";
 
+/** Overview door — sales-first. Spend / Total ROAS honesty lives on those tabs. */
+export const SAMPLE_OVERVIEW_DOOR =
+  "Snowdevil example sales — not this shop. Live is parked until launch.";
+
 export const SAMPLE_SPEND_NOT_LIVE =
   "Total ROAS here uses Snowdevil example spend — not this shop. Live is parked until launch. SAMPLE dollars do not become yours.";
 

@@ -6,6 +6,7 @@ import { buildThreeYearSampleDesk } from "./demo-sample-desk.server";
 import { formatMer } from "./mer-format";
 import {
   SAMPLE_LEDGER_HANDOFF,
+  SAMPLE_OVERVIEW_DOOR,
   SAMPLE_SPEND_NOT_LIVE,
 } from "./sample-live-handoff";
 import { PRODUCT_NOUN } from "./product-labels";
@@ -50,9 +51,12 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(sampleChrome).not.toMatch(/typical order around \$92/i);
     expect(PRODUCT_NOUN.sampleHint).toMatch(/Snowdevil/);
     expect(PRODUCT_NOUN.sampleHint).not.toMatch(/Harbor/);
+    expect(SAMPLE_OVERVIEW_DOOR).toMatch(/Snowdevil/);
     expect(SAMPLE_SPEND_NOT_LIVE).toMatch(/Snowdevil/);
     expect(SAMPLE_LEDGER_HANDOFF).toMatch(/Snowdevil/);
-    expect(SAMPLE_SPEND_NOT_LIVE + SAMPLE_LEDGER_HANDOFF).not.toMatch(/Harbor/);
+    expect(
+      SAMPLE_OVERVIEW_DOOR + SAMPLE_SPEND_NOT_LIVE + SAMPLE_LEDGER_HANDOFF,
+    ).not.toMatch(/Harbor/);
   });
 
   it("2+3. Overview pending/empty never $0 hero, 0.00×, or Edit spend", () => {
@@ -107,7 +111,8 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(spend).toContain("isSampleOnlyFreeze()");
     expect(spend).not.toContain("Switch to Live in Settings");
     expect(bar).toContain("Live is parked until launch");
-    expect(firstView).toContain("Live is parked");
+    expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
+    expect(SAMPLE_OVERVIEW_DOOR).toContain("Live is parked");
     const fixture = readApp("./desk-phone-fixture.html");
     expect(fixture).toContain("Live is parked until launch");
     expect(fixture).not.toContain("Switch in Settings");
@@ -122,16 +127,24 @@ describe("Snowdevil founder leave-for-day bar", () => {
     const now = new Date("2026-09-16T18:00:00Z");
     const rows = buildThreeYearSampleDesk({ now, targetMer: 3.5 });
     expect(rows.length).toBeGreaterThan(0);
+    const used = new Set<string>();
     for (const r of rows) {
       expect(spendOf(r)).toBeGreaterThan(0);
+      for (const [ch, amt] of Object.entries(r.spendByChannel)) {
+        if (amt > 0) used.add(ch);
+      }
     }
+    expect([...used].sort()).toEqual(["email", "google", "meta", "other"]);
 
     const firstView = chrome("../components/OverviewFirstViewport.tsx");
     expect(firstView).toContain("if (useSampleDesk)");
-    expect(firstView).toContain("Example spend · Live is parked");
+    expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
+    expect(firstView).not.toContain("SAMPLE_SPEND_NOT_LIVE");
+    expect(firstView).not.toContain("Example spend");
     expect(firstView).not.toContain("Edit spend");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(SAMPLE_OVERVIEW_DOOR).not.toMatch(/Total ROAS|upload|Edit spend/i);
 
     const shopifyTabs = [
       chrome("../routes/app.orders.tsx"),
@@ -149,6 +162,8 @@ describe("Snowdevil founder leave-for-day bar", () => {
     const overview = readApp("../routes/app._index.tsx");
     const firstView = readApp("../components/OverviewFirstViewport.tsx");
     expect(fixture).toContain("SAMPLE");
+    expect(fixture).toContain("Snowdevil example sales");
+    expect(fixture).not.toContain("Example spend");
     expect(fixture).toContain("mcfly-desk--sample");
     expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
     expect(overview).toContain("<OverviewYoyCards");
