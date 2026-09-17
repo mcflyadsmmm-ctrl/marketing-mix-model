@@ -21,5 +21,4 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Organization | PASS | Flagship leads; existing explorers stay below; sales-five IA and other tabs untouched |
 | Ease | PASS | Pills, mobile, chart-smooth hover preserved; one morning number, not a Lifetimely dump |
 | Stickiness | PASS | First-win empty is ActionCard-shaped (verb + drill): syncing / thin / young; spend-build and heat placeholders — no blank charts, not $0 |
-
-Empty-state row (included in Stickiness): floor is 8 buyers who have lived 30 days; then 90; then the year. Sparse shops stay amazing.
+| Empty-state | PASS | Floor 8 buyers × 30 days, then 90, then year — on the card, not only in the drill. Sparse shops stay amazing |

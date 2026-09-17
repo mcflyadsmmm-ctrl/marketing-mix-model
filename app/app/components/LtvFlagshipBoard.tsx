@@ -138,6 +138,10 @@ export function LtvFlagshipBoard({
               : `${empty.buyers.toLocaleString()} on file`}
           </span>
           <span className="mcfly-depth-flag__empty-line">{empty.copy}</span>
+          <span className="mcfly-depth-flag__empty-line">
+            Floor: {empty.need} buyers × 30 days, then 90, then the first year.
+            Not $0.
+          </span>
         </button>
       ) : null}
 
