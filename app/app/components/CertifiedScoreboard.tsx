@@ -57,7 +57,7 @@ export function CertifiedScoreboard({
     targetMer > 0 ? `${formatMer(targetMer)}× goal` : "Set a goal in Settings";
 
   return (
-    <section className="mcfly-scoreboard" aria-label="Certified Total ROAS">
+    <section className="mcfly-scoreboard mcfly-scoreboard--soft" aria-label="Certified Total ROAS">
       <p className="mcfly-scoreboard__kicker">
         Certified windows · {PRODUCT_NOUN.definition} · {goal}
       </p>
@@ -70,7 +70,7 @@ export function CertifiedScoreboard({
             <button
               key={chip.id}
               type="button"
-              className={`mcfly-scoreboard__chip mcfly-scoreboard__chip--${zone}`}
+              className={`mcfly-scoreboard__chip mcfly-scoreboard__chip--soft mcfly-scoreboard__chip--${zone}`}
               onClick={() =>
                 drill?.openDrill({
                   title: chip.label,

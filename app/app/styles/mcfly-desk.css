@@ -18257,3 +18257,228 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
     min-height: 0;
   }
 }
+
+
+/* =========================================================================
+ * BC densify Total ROAS — soft dense certified chips + explorer + book KPIs.
+ * APPEND ONLY. Tip after #86 Goals/Allocation/Settings densify (7164704).
+ * Soft dense Sales/Spend/ROAS book, certified chips, explorer, dual-close,
+ * pacing, spend room. Empty spend = em dash honesty (never 0.00×).
+ * Multi-million SAMPLE bar. Locks: Snowdevil SAMPLE; Overview order-data-first
+ * (no ROAS hero); Spend Upload no ROAS hero; trust empty-vs-zero.
+ * Do not thin prior densify PRs. Do not put ROAS hero on Overview or Spend Upload.
+ * ========================================================================= */
+
+/* --- Total ROAS desk soft shell --- */
+.mcfly-roas--soft {
+  --mcfly-roas-soft-pad: 0.9rem 1rem 1rem;
+  --mcfly-roas-soft-radius: 16px;
+}
+
+.mcfly-roas--soft > * + * {
+  margin-top: 0.75rem;
+}
+
+/* --- Book KPIs — soft dense multi-million pair --- */
+.mcfly-roas--soft .mcfly-book--soft,
+.mcfly-roas-book--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 18%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: var(--mcfly-roas-soft-radius, 16px);
+  box-shadow: none;
+  padding: var(--mcfly-roas-soft-pad, 0.9rem 1rem 1rem);
+}
+
+.mcfly-roas--soft .mcfly-book__lede {
+  margin: 0 0 0.65rem;
+  letter-spacing: -0.01em;
+}
+
+.mcfly-book__glance--soft {
+  gap: 0.55rem;
+}
+
+.mcfly-book__kpi--soft {
+  background: color-mix(in srgb, #fff 68%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  min-height: 5.2rem;
+  padding: 0.75rem 0.85rem 0.7rem;
+}
+
+.mcfly-book__kpi--soft.mcfly-book__kpi--lead {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 48%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-accent) 28%, var(--mcfly-line));
+}
+
+.mcfly-book__kpi--soft .mcfly-book__kpi-v {
+  letter-spacing: -0.03em;
+  font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  line-height: 1.1;
+}
+
+.mcfly-book__kpi--soft .mcfly-book__kpi-hint {
+  letter-spacing: -0.01em;
+}
+
+/* --- Certified chips — soft dense windows --- */
+.mcfly-scoreboard--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 14%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: var(--mcfly-roas-soft-radius, 16px);
+  box-shadow: none;
+  padding: 0.85rem 0.95rem 1rem;
+}
+
+.mcfly-scoreboard--soft .mcfly-scoreboard__kicker {
+  letter-spacing: -0.01em;
+  margin-bottom: 0.55rem;
+}
+
+.mcfly-scoreboard--soft .mcfly-scoreboard__row {
+  gap: 0.5rem;
+}
+
+.mcfly-scoreboard__chip--soft {
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  min-height: 5.6rem;
+  padding: 0.7rem 0.75rem 0.65rem;
+}
+
+.mcfly-scoreboard__chip--soft.mcfly-scoreboard__chip--ok {
+  background: color-mix(in srgb, var(--mcfly-truth-soft) 55%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-truth) 28%, var(--mcfly-line-soft));
+}
+
+.mcfly-scoreboard__chip--soft.mcfly-scoreboard__chip--below {
+  background: color-mix(in srgb, #fff7ed 65%, #fff);
+  border-color: color-mix(in srgb, var(--mcfly-warn) 30%, var(--mcfly-line-soft));
+}
+
+.mcfly-scoreboard__chip--soft.mcfly-scoreboard__chip--empty {
+  opacity: 1;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 22%, #fff);
+  border-style: dashed;
+}
+
+.mcfly-scoreboard__chip--soft .mcfly-scoreboard__v {
+  letter-spacing: -0.03em;
+  font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+}
+
+.mcfly-scoreboard--soft .mcfly-scoreboard__plan {
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 28%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+/* --- Explorer — soft dense chart island (ROAS tab only) --- */
+.mcfly-explorer--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 12%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: var(--mcfly-roas-soft-radius, 16px);
+  box-shadow: none;
+  padding: 0.85rem 0.95rem 1rem;
+}
+
+.mcfly-explorer--soft .mcfly-explorer__head,
+.mcfly-explorer--soft .mcfly-panel__head {
+  margin-bottom: 0.35rem;
+}
+
+.mcfly-explorer--soft .mcfly-explorer__controls {
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+}
+
+.mcfly-explorer--soft .mcfly-explorer__btn {
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.mcfly-explorer--soft .mcfly-explorer__scroll,
+.mcfly-explorer--soft .mcfly-explorer__chart {
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft));
+  border-radius: 12px;
+}
+
+.mcfly-explorer--soft .mcfly-explorer__tip--scoreboard,
+.mcfly-explorer--soft .mcfly-explorer__tip--compact {
+  background: color-mix(in srgb, #fff 82%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 75%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.mcfly-explorer--soft .mcfly-guide-empty {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 24%, #fff);
+  border: 1px dashed color-mix(in srgb, var(--mcfly-line) 70%, var(--mcfly-accent));
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+/* --- Dual-close + pacing + spend room soft --- */
+.mcfly-dual-close--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 22%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 0.7rem 0.85rem;
+  letter-spacing: -0.01em;
+}
+
+.mcfly-pacing--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: var(--mcfly-roas-soft-radius, 16px);
+  box-shadow: none;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.mcfly-pacing--soft .mcfly-pacing__gauge-value {
+  letter-spacing: -0.03em;
+}
+
+.mcfly-pacing--soft .mcfly-pacing__stat {
+  background: color-mix(in srgb, #fff 70%, var(--mcfly-accent-soft));
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 0.55rem 0.65rem;
+}
+
+.mcfly-roas--soft .mcfly-spend-room--soft {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 14%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: var(--mcfly-roas-soft-radius, 16px);
+  box-shadow: none;
+  padding: 0.85rem 0.95rem 1rem;
+}
+
+.mcfly-roas--soft .mcfly-spend-room--soft .mcfly-control__table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+@media (max-width: 430px) {
+  .mcfly-roas--soft .mcfly-book--soft,
+  .mcfly-scoreboard--soft,
+  .mcfly-explorer--soft,
+  .mcfly-pacing--soft,
+  .mcfly-roas--soft .mcfly-spend-room--soft {
+    padding: 0.7rem 0.75rem 0.8rem;
+    border-radius: 14px;
+  }
+
+  .mcfly-book__kpi--soft,
+  .mcfly-scoreboard__chip--soft {
+    min-height: 0;
+  }
+}
