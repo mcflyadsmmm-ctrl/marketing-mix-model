@@ -231,6 +231,12 @@ export default function YoyWorkspacePage() {
           <p className="mcfly-yoy__note">{OVERVIEW_YOY_MISSING}</p>
         ) : null}
 
+        <p className="mcfly-book__lede">
+          This month vs last month vs last year vs last 7
+          {hasSpend
+            ? " — sales still read at $0 spend; spend is extra."
+            : " — sales only until you add spend."}
+        </p>
         <div className="mcfly-yoy__grid mcfly-yoy__grid--soft">
           {compareRows.map((row) => {
             const sales = salesLabel(row);
