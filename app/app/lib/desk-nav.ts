@@ -125,9 +125,10 @@ export const DESK_TOP_NAV: readonly DeskNavItem[] = DESK_PRIMARY_NAV.filter(
 );
 
 /**
- * Black Clover grouped chip rail. Each group is filtered out of DESK_TOP_NAV so
- * the TAB_LOCK order survives inside every group and every analysis tab lands in
- * exactly one group. Groups are the nav chrome; time windows stay on cards.
+ * Sales-first groups for the in-iframe tab rail. Each group is filtered out of
+ * DESK_TOP_NAV so TAB_LOCK order survives inside every group and every analysis
+ * tab lands in exactly one group. Group names are aria-only, not painted chips.
+ * Time windows stay on cards.
  */
 const SCOREBOARD_PATHS = new Set<string>(["/app", "/app/cpa"]);
 const RETAIN_PATHS = new Set<string>([

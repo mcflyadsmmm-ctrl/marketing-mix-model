@@ -28,6 +28,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(tabs).toContain("DESK_SCOREBOARD_NAV");
     expect(tabs).toContain("DESK_RETAIN_NAV");
     expect(tabs).toContain("DESK_SPEND_NAV");
+    expect(tabs).not.toContain("mcfly-desk-tabs__k");
     expect(tabs).not.toContain("label: \"Reviews\"");
     expect(tabs).not.toContain("label=\"Ads\"");
   });
@@ -67,6 +68,10 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(phone).toContain("flex-wrap: nowrap");
     expect(phone).toContain("white-space: nowrap");
     expect(phone).toContain("min-height: 2.75rem");
+    expect(phone).toContain(".mcfly-desk-tabs__k");
+    expect(phone).toMatch(/\.mcfly-desk-tabs__k[\s\S]{0,80}display:\s*none/);
+    expect(css).toContain(".mcfly-desk-tabs__pill--on");
+    expect(css).toContain("border-bottom-color: var(--mcfly-ink)");
   });
 
   it("sizes Spend day, Sample, Retry, and primary CTAs for a finger", () => {
@@ -86,6 +91,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("This quarter");
     expect(fixture).toContain("This year");
     expect(fixture).toContain("Spend Upload");
+    expect(fixture).not.toContain("mcfly-desk-tabs__k");
     expect(fixture).not.toContain("0.00×");
     expect(fixture).not.toContain("Edit spend");
     expect(fixture).not.toContain("Total Sales");
@@ -122,6 +128,9 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("Overview");
     expect(fixture).toContain("Channel Allocation");
     expect(fixture).toContain("Spend Upload");
+    expect(fixture).not.toContain("mcfly-desk-tabs__k");
+    expect(fixture).not.toContain("SCOREBOARD");
+    expect(fixture).not.toContain(">Retain<");
     expect(fixture).toContain("Retry");
     expect(fixture).toContain("Live is parked until launch");
     expect(fixture).toContain("mcfly-desk--sample");

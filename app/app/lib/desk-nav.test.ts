@@ -133,6 +133,8 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(tabs).toContain('label="Spend plan"');
     expect(tabs).toContain("DESK_SCOREBOARD_NAV");
     expect(tabs).toContain("DESK_RETAIN_NAV");
+    expect(tabs).not.toContain("mcfly-desk-tabs__k");
+    expect(tabs).toContain("aria-label={label}");
   });
 
   it("puts spend tools on their own pages, not an Overview hash sitemap", () => {

@@ -22,9 +22,6 @@ function TabGroup({
 }) {
   return (
     <div className="mcfly-desk-tabs__group">
-      <p className="mcfly-desk-tabs__k" aria-hidden="true">
-        {label}
-      </p>
       <div className="mcfly-desk-tabs__pills" role="tablist" aria-label={label}>
         {items.map((item) => {
           const active = isDeskNavActive(item.path, pathname);
@@ -50,8 +47,9 @@ function TabGroup({
 }
 
 /**
- * Black Clover grouped chip rail inside the iframe: SCOREBOARD | RETAIN | SPEND
- * PLAN, each with an inline kicker label and a divider. Side nav stays shortcuts.
+ * In-iframe page tabs. Groups keep sales-first order (Overview · CPA, then
+ * retain, then spend). Section names are aria-only — they must not sit inline
+ * with tab labels (SCOREBOARD / RETAIN word salad at phone width).
  */
 export function DeskTopTabs({ shotMode = false }: { shotMode?: boolean }) {
   const location = useLocation();
