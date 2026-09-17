@@ -1,0 +1,6 @@
+{
+  "name": "Black Clover — Executive Intelligence",
+  "description": "CEO sales dashboard for Black Clover with BigQuery analytics, Google Sheets/Drive exports, and AI-powered intelligence queries.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

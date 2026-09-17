@@ -6,8 +6,8 @@ import {
   DESK_OVERVIEW_TABS,
   DESK_PRIMARY_NAV,
   DESK_SECTION,
-  DESK_SHOPIFY_NAV,
-  DESK_COMPARE_NAV,
+  DESK_SCOREBOARD_NAV,
+  DESK_RETAIN_NAV,
   DESK_SPEND_NAV,
   DESK_TOP_NAV,
   deskNavHref,
@@ -89,8 +89,11 @@ describe("DESK_PRIMARY_NAV", () => {
       "Marketing",
     );
     expect(DESK_TOP_NAV.map((item) => item.label)).not.toContain("Settings");
-    expect(DESK_SHOPIFY_NAV.map((item) => item.label)).toEqual([
+    expect(DESK_SCOREBOARD_NAV.map((item) => item.label)).toEqual([
       "Overview",
+      "CPA",
+    ]);
+    expect(DESK_RETAIN_NAV.map((item) => item.label)).toEqual([
       "Customers",
       "Growth",
       "Orders",
@@ -100,12 +103,18 @@ describe("DESK_PRIMARY_NAV", () => {
       "Spend Upload",
       "Total ROAS",
       "Channel Allocation",
-    ]);
-    expect(DESK_COMPARE_NAV.map((item) => item.label)).toEqual([
       "YoY",
-      "CPA",
       "Goals",
     ]);
+    const grouped = [
+      ...DESK_SCOREBOARD_NAV,
+      ...DESK_RETAIN_NAV,
+      ...DESK_SPEND_NAV,
+    ].map((item) => item.path);
+    expect(new Set(grouped).size).toBe(grouped.length);
+    expect(new Set(grouped)).toEqual(
+      new Set(DESK_TOP_NAV.map((item) => item.path)),
+    );
     expect(isDeskNavActive("/app", "/app")).toBe(true);
     expect(isDeskNavActive("/app", "/app/customers")).toBe(false);
     expect(isDeskNavActive("/app/customers", "/app/customers")).toBe(true);
@@ -119,10 +128,11 @@ describe("DESK_PRIMARY_NAV", () => {
       join(dirname(fileURLToPath(import.meta.url)), "../components/DeskTopTabs.tsx"),
       "utf8",
     );
-    expect(tabs).toContain('label="Shopify"');
-    expect(tabs).toContain('label="Spend"');
-    expect(tabs).toContain('label="Compare"');
-    expect(tabs).toContain("DESK_COMPARE_NAV");
+    expect(tabs).toContain('label="Scoreboard"');
+    expect(tabs).toContain('label="Retain"');
+    expect(tabs).toContain('label="Spend plan"');
+    expect(tabs).toContain("DESK_SCOREBOARD_NAV");
+    expect(tabs).toContain("DESK_RETAIN_NAV");
   });
 
   it("puts spend tools on their own pages, not an Overview hash sitemap", () => {
