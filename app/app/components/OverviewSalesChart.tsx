@@ -74,7 +74,7 @@ export function OverviewSalesChart({
           </p>
         ) : (
           <p className="mcfly-chart__hover mcfly-chart__hover--idle" aria-hidden="true">
-            Hover a bar
+            Tap a bar
           </p>
         )}
         <div className="mcfly-period__group" role="group" aria-label="Chart grain">

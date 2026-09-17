@@ -241,7 +241,7 @@ describe("Sample data | Live data UX", () => {
     expect(firstView).not.toContain("0.00×");
     expect(firstView).not.toContain("Edit spend →");
     expect(firstView).not.toContain("EOM projected");
-    expect(firstView).toContain("{hasSpend ? (");
+    expect(firstView).toContain("{hasSpend && !salesPending ? (");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
 
     expect(overview).not.toContain('slot="primary-action"');

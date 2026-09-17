@@ -13,6 +13,9 @@ export const OVERVIEW_SPEND_EMPTY_LINE =
 export const OVERVIEW_PENDING_LINE =
   "Sales for closed days are still loading — not $0.";
 
+/** Overview as-of chip — never “still loading sales days” next to a sealed $0. */
+export const OVERVIEW_PENDING_ASOF = " · still loading — not $0";
+
 export const OVERVIEW_SPEND_DOOR_LINE =
   "Spend is optional. Total ROAS lives on that tab after you add spend.";
 
