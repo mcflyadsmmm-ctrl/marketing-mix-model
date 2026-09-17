@@ -145,7 +145,8 @@ describe("DESK_PRIMARY_NAV", () => {
     );
     expect(tabs).toContain("DESK_IFRAME_NAV");
     expect(tabs).toContain("<Link");
-    expect(tabs).toContain("scrollIntoView");
+    expect(tabs).toContain("mcfly-desk-tabs--pills");
+    expect(tabs).not.toContain("scrollIntoView");
     expect(tabs).not.toContain("mcfly-desk-tabs__k");
     expect(tabs).not.toContain('label="Scoreboard"');
     expect(tabs).not.toContain('label="Retain"');
