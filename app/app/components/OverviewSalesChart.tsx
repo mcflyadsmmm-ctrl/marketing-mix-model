@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { formatCurrency } from "../lib/mer-format";
 import { OVERVIEW_PENDING_LINE } from "../lib/overview-first-viewport";
 import {
+  overviewAov,
   overviewBucketize,
   overviewChartAxis,
   overviewChartDayLabel,
@@ -9,13 +10,17 @@ import {
   overviewChartVsCopy,
   overviewCompactMoney,
   overviewCumulative,
+  overviewDeltaCopy,
+  overviewDeltaPct,
   overviewFilterRange,
   overviewLatestDayKey,
   overviewMedian,
   overviewPresetRange,
+  overviewPriorWindow,
   overviewVsTypical,
   overviewVsTypicalPctCopy,
   type ChartGrain,
+  type OverviewDelta,
   type OverviewRangePreset,
   type SalesDayInput,
 } from "../lib/overview-sales-chart";
@@ -26,6 +31,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 export type SalesDayPoint = {
   dateKey: string;
   sales: number;
+  orders?: number;
 };
 
 export const OVERVIEW_CHART_EMPTY = "No days in this window yet";
@@ -47,6 +53,8 @@ const PLOT_H = PLOT_BOTTOM - PLOT_TOP;
 
 const xPct = (coord: number) => (coord / VIEW_W) * 100;
 const yPct = (coord: number) => (coord / VIEW_H) * 100;
+
+const numberFmt = new Intl.NumberFormat("en-US");
 
 const GRAINS: readonly ChartGrain[] = ["day", "week", "month", "quarter"];
 const GRAIN_LABEL: Record<ChartGrain, string> = {
@@ -84,12 +92,13 @@ function ChartEmptyFrame({ copy }: { copy: string }) {
 }
 
 /**
- * Overview sales explorer. Shopify order dollars only — no ad cost, no
- * efficiency ratios, no spend overlay on this chart. Range presets + FROM/TO +
- * Day/Week/Month/Quarter grain own the window (not the tab bar). Dual axis:
- * sales $ bars vs a typical rail (left) and the cumulative sales sweep (right).
- * A dark readout tooltip carries the day-vs-typical / weekend story with a
- * plain-English formula.
+ * Overview sales-order explorer. Shopify order dollars + order counts only —
+ * no ad cost, no efficiency ratios, no spend overlay. This is the depth beyond
+ * Shopify Analytics: range presets + FROM/TO + Day/Week/Month/Quarter grain own
+ * the window on the chart; a dual axis pairs sales $ bars vs a typical rail
+ * (left) with the AOV trend (right, cumulative sweep when orders are unknown);
+ * a soft KPI strip carries vs-prior where honest; a dark tooltip carries the
+ * day-vs-typical / weekend story with a plain formula.
  */
 export function OverviewSalesChart({
   days,
@@ -108,7 +117,11 @@ export function OverviewSalesChart({
   const sorted = useMemo<SalesDayInput[]>(
     () =>
       [...days]
-        .map((day) => ({ dateKey: day.dateKey, sales: day.sales }))
+        .map((day) => ({
+          dateKey: day.dateKey,
+          sales: day.sales,
+          orders: day.orders ?? 0,
+        }))
         .sort((a, b) => a.dateKey.localeCompare(b.dateKey)),
     [days],
   );
@@ -145,8 +158,7 @@ export function OverviewSalesChart({
     return counts;
   }, [rangeDays]);
 
-  const effectiveGrain: ChartGrain =
-    grainCounts[grain] >= 2 ? grain : "day";
+  const effectiveGrain: ChartGrain = grainCounts[grain] >= 2 ? grain : "day";
 
   const points = useMemo(
     () => overviewBucketize(rangeDays, effectiveGrain),
@@ -163,6 +175,8 @@ export function OverviewSalesChart({
 
   const noun = GRAIN_NOUN[effectiveGrain];
   const total = points.reduce((sum, bucket) => sum + bucket.sales, 0);
+  const totalOrders = points.reduce((sum, bucket) => sum + bucket.orders, 0);
+  const hasOrders = points.some((bucket) => bucket.orders > 0);
   const cumulative = overviewCumulative(points);
   const typical = points.length > 0 ? overviewMedian(points.map((p) => p.sales)) : null;
   const typicalRef =
@@ -171,32 +185,59 @@ export function OverviewSalesChart({
       : typicalDay != null && typicalDay > 0
         ? typicalDay
         : null;
+  const avgBucket = points.length > 0 ? total / points.length : 0;
+  const rangeAov = overviewAov(total, totalOrders);
+  const aovValues = points.map((bucket) => overviewAov(bucket.sales, bucket.orders));
 
   const salesMax = Math.max(...points.map((p) => p.sales), typicalRef ?? 0, 1);
   const leftAxis = overviewChartAxis(salesMax, 4);
-  const rightAxis = overviewChartAxis(Math.max(total, 1), 4);
+  const rightRawMax = hasOrders
+    ? Math.max(...aovValues.filter((v): v is number => v != null), 1)
+    : Math.max(total, 1);
+  const rightAxis = overviewChartAxis(rightRawMax, 4);
+  const rightLabel = hasOrders ? "AOV" : "Cumulative";
 
   const band = PLOT_W / points.length;
   const barW = Math.min(42, Math.max(1.2, band * 0.6));
   const yForSales = (value: number) =>
     PLOT_BOTTOM - Math.min(1, Math.max(0, value / leftAxis.max)) * PLOT_H;
-  const yForCum = (value: number) =>
+  const yForRight = (value: number) =>
     PLOT_BOTTOM - Math.min(1, Math.max(0, value / rightAxis.max)) * PLOT_H;
   const centerX = (index: number) => PLOT_LEFT + band * index + band / 2;
   const barX = (index: number) => PLOT_LEFT + band * index + (band - barW) / 2;
 
+  const rightValueAt = (index: number): number | null =>
+    hasOrders ? aovValues[index] ?? null : cumulative[index] ?? null;
+
   const railY = typicalRef != null ? yForSales(typicalRef) : null;
   const labelIndices = new Set(overviewChartLabelIndices(points.length, 6));
 
-  const cumLine = points
-    .map((_, index) => `${index === 0 ? "M" : "L"}${centerX(index).toFixed(1)} ${yForCum(cumulative[index]!).toFixed(1)}`)
-    .join(" ");
+  // Right series line (AOV, or cumulative sweep when orders are unknown).
+  let rightLine = "";
+  let started = false;
+  for (let index = 0; index < points.length; index++) {
+    const value = rightValueAt(index);
+    if (value == null) {
+      started = false;
+      continue;
+    }
+    const cmd = started ? "L" : "M";
+    started = true;
+    rightLine += `${rightLine ? " " : ""}${cmd}${centerX(index).toFixed(1)} ${yForRight(value).toFixed(1)}`;
+  }
   const cumFill =
-    points.length >= 2
+    !hasOrders && points.length >= 2
       ? `M${centerX(0).toFixed(1)} ${PLOT_BOTTOM} ${points
-          .map((_, index) => `L${centerX(index).toFixed(1)} ${yForCum(cumulative[index]!).toFixed(1)}`)
+          .map((_, index) => `L${centerX(index).toFixed(1)} ${yForRight(cumulative[index]!).toFixed(1)}`)
           .join(" ")} L${centerX(points.length - 1).toFixed(1)} ${PLOT_BOTTOM} Z`
       : "";
+  let capIndex = -1;
+  for (let index = points.length - 1; index >= 0; index--) {
+    if (rightValueAt(index) != null) {
+      capIndex = index;
+      break;
+    }
+  }
 
   const activeIndex = hoverIndex != null ? hoverIndex : points.length - 1;
   const active = points[activeIndex] ?? null;
@@ -206,6 +247,24 @@ export function OverviewSalesChart({
       ? overviewChartVsCopy(activeVs, formatCurrency(Math.abs(activeVs.delta), currency))
       : null;
   const activePctCopy = overviewVsTypicalPctCopy(activeVs, typicalRef);
+  const activeAov = active ? overviewAov(active.sales, active.orders) : null;
+
+  // Honest vs-prior — the equal-length window immediately before this range.
+  const priorWin = range ? overviewPriorWindow(range.fromKey, range.toKey) : null;
+  const priorDays = priorWin
+    ? overviewFilterRange(sorted, priorWin.fromKey, priorWin.toKey)
+    : [];
+  const priorHasData = priorDays.length >= Math.max(2, Math.floor(rangeDays.length * 0.6));
+  const priorSales = priorDays.reduce((sum, day) => sum + day.sales, 0);
+  const priorOrders = priorDays.reduce((sum, day) => sum + (day.orders ?? 0), 0);
+  const priorAov = overviewAov(priorSales, priorOrders);
+  const salesDelta = priorHasData ? overviewDeltaPct(total, priorSales) : null;
+  const ordersDelta =
+    priorHasData && hasOrders ? overviewDeltaPct(totalOrders, priorOrders) : null;
+  const aovDelta =
+    priorHasData && hasOrders && rangeAov != null && priorAov != null
+      ? overviewDeltaPct(rangeAov, priorAov)
+      : null;
 
   const rangeLabel =
     preset !== "custom"
@@ -219,14 +278,13 @@ export function OverviewSalesChart({
       ? `${points.length} ${points.length === 1 ? noun : `${noun}s`}`
       : null,
     `${formatCurrency(total, currency)} total`,
-    typicalRef != null ? `typical ${noun} ${formatCurrency(typicalRef, currency)}` : null,
+    hasOrders ? `${numberFmt.format(totalOrders)} orders` : null,
   ].filter((part): part is string => part != null);
 
   const bestBucket = points.reduce(
     (best, bucket) => (bucket.sales > best.sales ? bucket : best),
     points[0]!,
   );
-  const avgBucket = points.length > 0 ? total / points.length : 0;
   const aboveCount = points.filter(
     (bucket) => overviewVsTypical(bucket.sales, typicalRef)?.kind === "up",
   ).length;
@@ -239,28 +297,33 @@ export function OverviewSalesChart({
       : null;
   const topShare = total > 0 ? bestBucket.sales / total : 0;
 
-  const statCards: { k: string; v: string; sub: string }[] = [
-    {
-      k: "Range total",
-      v: formatCurrency(total, currency),
-      sub: `${points.length} ${noun}s`,
-    },
-    {
-      k: `Typical ${noun}`,
-      v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
-      sub: "median",
-    },
-    {
-      k: `Avg ${noun}`,
-      v: formatCurrency(avgBucket, currency),
-      sub: "mean",
-    },
-    {
-      k: `Best ${noun}`,
-      v: formatCurrency(bestBucket.sales, currency),
-      sub: bestBucket.label,
-    },
-  ];
+  type Stat = { k: string; v: string; delta?: OverviewDelta | null; sub: string };
+  const statCards: Stat[] = hasOrders
+    ? [
+        { k: "Sales", v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
+        { k: "Orders", v: numberFmt.format(totalOrders), delta: ordersDelta, sub: "in range" },
+        {
+          k: "AOV",
+          v: rangeAov != null ? formatCurrency(rangeAov, currency) : "—",
+          delta: aovDelta,
+          sub: "per order",
+        },
+        {
+          k: `Typical ${noun}`,
+          v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
+          sub: "median",
+        },
+      ]
+    : [
+        { k: "Sales", v: formatCurrency(total, currency), delta: salesDelta, sub: `${points.length} ${noun}s` },
+        {
+          k: `Typical ${noun}`,
+          v: typicalRef != null ? formatCurrency(typicalRef, currency) : "—",
+          sub: "median",
+        },
+        { k: `Avg ${noun}`, v: formatCurrency(avgBucket, currency), sub: "mean" },
+        { k: `Best ${noun}`, v: formatCurrency(bestBucket.sales, currency), sub: bestBucket.label },
+      ];
 
   const paceBars: { k: string; pct: number; value: string; tone: string }[] = [
     {
@@ -326,6 +389,27 @@ export function OverviewSalesChart({
           </p>
         )}
       </div>
+
+      <ul className="mcfly-chart__stats">
+        {statCards.map((stat) => {
+          const deltaCopy = overviewDeltaCopy(stat.delta ?? null);
+          return (
+            <li className="mcfly-chart__stat" key={stat.k}>
+              <span className="mcfly-chart__stat-k">{stat.k}</span>
+              <span className="mcfly-chart__stat-v">{stat.v}</span>
+              {deltaCopy ? (
+                <span
+                  className={`mcfly-chart__stat-delta mcfly-chart__stat-delta--${stat.delta?.kind ?? "even"}`}
+                >
+                  {deltaCopy}
+                </span>
+              ) : (
+                <span className="mcfly-chart__stat-sub">{stat.sub}</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
 
       <div className="mcfly-chart__controls">
         <div className="mcfly-period__group" role="group" aria-label="Sales range">
@@ -406,7 +490,7 @@ export function OverviewSalesChart({
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
           preserveAspectRatio="none"
           role="img"
-          aria-label={`${points.length} ${effectiveGrain} sales bars vs typical, with cumulative sales`}
+          aria-label={`${points.length} ${effectiveGrain} sales bars vs typical, with the ${rightLabel.toLowerCase()} trend`}
         >
           {effectiveGrain === "day"
             ? points.map((point, index) =>
@@ -452,6 +536,7 @@ export function OverviewSalesChart({
             const barH = Math.max(1.5, PLOT_BOTTOM - yForSales(point.sales));
             const y = PLOT_BOTTOM - barH;
             const vs = overviewVsTypical(point.sales, typicalRef);
+            const aov = overviewAov(point.sales, point.orders);
             const openBar = () =>
               drill?.openDrill({
                 title: `${GRAIN_LABEL[effectiveGrain]} sales`,
@@ -459,6 +544,8 @@ export function OverviewSalesChart({
                 kicker: point.label,
                 blocks: [
                   { k: "Sales", v: formatCurrency(point.sales, currency) },
+                  point.orders > 0 ? { k: "Orders", v: numberFmt.format(point.orders) } : null,
+                  aov != null ? { k: "AOV", v: formatCurrency(aov, currency) } : null,
                   typicalRef != null
                     ? { k: `Typical ${noun}`, v: formatCurrency(typicalRef, currency) }
                     : null,
@@ -468,11 +555,10 @@ export function OverviewSalesChart({
                         v: `${vs.kind === "up" ? "+" : "−"}${formatCurrency(Math.abs(vs.delta), currency)}`,
                       }
                     : null,
-                  { k: "Running total", v: formatCurrency(cumulative[index]!, currency) },
                   point.weekend ? { k: "Day type", v: "Weekend" } : null,
                   {
                     k: "What this is",
-                    v: "Shopify Total Sales for this bar next to typical daily sales and the running total. Grain and range live on the chart — never spend.",
+                    v: "Shopify Total Sales for this bar next to typical daily sales, orders, and AOV. Grain and range live on the chart — never spend.",
                   },
                 ].filter((block): block is { k: string; v: string } => block != null),
                 next: "Open Orders for typical ticket, discounts, and weekend.",
@@ -515,12 +601,12 @@ export function OverviewSalesChart({
             );
           })}
 
-          {cumLine ? <path className="mcfly-chart__sales-line" d={cumLine} /> : null}
-          {points.length > 0 ? (
+          {rightLine ? <path className="mcfly-chart__sales-line" d={rightLine} /> : null}
+          {capIndex >= 0 ? (
             <circle
               className="mcfly-chart__cum-cap"
-              cx={centerX(points.length - 1).toFixed(1)}
-              cy={yForCum(cumulative[points.length - 1]!).toFixed(1)}
+              cx={centerX(capIndex).toFixed(1)}
+              cy={yForRight(rightValueAt(capIndex)!).toFixed(1)}
               r={3}
             />
           ) : null}
@@ -562,7 +648,7 @@ export function OverviewSalesChart({
             <span
               key={`y2-${tick}`}
               className="mcfly-chart__y2tick"
-              style={{ top: `${yPct(yForCum(tick))}%`, right: `${xPct(PAD_R - 8)}%` }}
+              style={{ top: `${yPct(yForRight(tick))}%`, right: `${xPct(PAD_R - 8)}%` }}
             >
               {overviewCompactMoney(tick, currency)}
             </span>
@@ -613,6 +699,24 @@ export function OverviewSalesChart({
                   {formatCurrency(active.sales, currency)}
                 </span>
               </li>
+              {active.orders > 0 ? (
+                <li className="mcfly-chart__tip-row">
+                  <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--orders" />
+                  <span className="mcfly-chart__tip-k">Orders</span>
+                  <span className="mcfly-chart__tip-v">
+                    {numberFmt.format(active.orders)}
+                  </span>
+                </li>
+              ) : null}
+              {activeAov != null ? (
+                <li className="mcfly-chart__tip-row">
+                  <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--aov" />
+                  <span className="mcfly-chart__tip-k">AOV</span>
+                  <span className="mcfly-chart__tip-v">
+                    {formatCurrency(activeAov, currency)}
+                  </span>
+                </li>
+              ) : null}
               {typicalRef != null ? (
                 <li className="mcfly-chart__tip-row">
                   <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--typical" />
@@ -637,13 +741,6 @@ export function OverviewSalesChart({
                   </span>
                 </li>
               ) : null}
-              <li className="mcfly-chart__tip-row">
-                <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--cum" />
-                <span className="mcfly-chart__tip-k">Running total</span>
-                <span className="mcfly-chart__tip-v">
-                  {formatCurrency(cumulative[activeIndex]!, currency)}
-                </span>
-              </li>
             </ul>
             {typicalRef != null && activeVs ? (
               <p className="mcfly-chart__tip-foot">
@@ -678,19 +775,11 @@ export function OverviewSalesChart({
           </li>
         ) : null}
         <li className="mcfly-chart__legend-item">
-          <span className="mcfly-chart__legend-swatch mcfly-chart__legend-swatch--cum" />
-          Cumulative
+          <span
+            className={`mcfly-chart__legend-swatch ${hasOrders ? "mcfly-chart__legend-swatch--aov" : "mcfly-chart__legend-swatch--cum"}`}
+          />
+          {rightLabel}
         </li>
-      </ul>
-
-      <ul className="mcfly-chart__stats">
-        {statCards.map((stat) => (
-          <li className="mcfly-chart__stat" key={stat.k}>
-            <span className="mcfly-chart__stat-k">{stat.k}</span>
-            <span className="mcfly-chart__stat-v">{stat.v}</span>
-            <span className="mcfly-chart__stat-sub">{stat.sub}</span>
-          </li>
-        ))}
       </ul>
 
       {typicalRef != null ? (

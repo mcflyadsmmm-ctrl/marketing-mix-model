@@ -57,6 +57,7 @@ import {
   getSalesFactsCoverage,
   getSalesFactsTotals,
   getSalesFactsByDay,
+  getSalesOrderFactsByDay,
   loadDeskSalesForPeriod,
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
@@ -72,6 +73,7 @@ import {
 import {
   fetchSampleSales,
   fetchSampleSalesByDay,
+  fetchSampleSalesOrdersByDay,
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
@@ -279,17 +281,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     end: range.end,
     label: "Sales explorer",
   };
-  let explorerSalesByDay = new Map<string, number>();
+  let explorerByDay = new Map<string, { sales: number; orders: number }>();
   try {
-    explorerSalesByDay = useSampleDesk
-      ? await fetchSampleSalesByDay(shop.id, explorerRange)
-      : await getSalesFactsByDay(shop.id, explorerRange);
+    explorerByDay = useSampleDesk
+      ? await fetchSampleSalesOrdersByDay(shop.id, explorerRange)
+      : await getSalesOrderFactsByDay(shop.id, explorerRange);
   } catch {
-    explorerSalesByDay = new Map();
+    explorerByDay = new Map();
   }
-  if (explorerSalesByDay.size < salesByDay.size) {
+  if (explorerByDay.size < salesByDay.size) {
     for (const [dateKey, value] of salesByDay) {
-      if (!explorerSalesByDay.has(dateKey)) explorerSalesByDay.set(dateKey, value);
+      if (!explorerByDay.has(dateKey)) explorerByDay.set(dateKey, { sales: value, orders: 0 });
     }
   }
 
@@ -367,9 +369,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         sales: salesByDay.get(dateKey) ?? 0,
         spend: spendByDay.get(dateKey) ?? 0,
       })),
-    salesExplorerDays: [...explorerSalesByDay.entries()]
+    salesExplorerDays: [...explorerByDay.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([dateKey, sales]) => ({ dateKey, sales })),
+      .map(([dateKey, value]) => ({
+        dateKey,
+        sales: value.sales,
+        orders: value.orders,
+      })),
   };
 };
 
@@ -648,10 +654,15 @@ export default function Dashboard() {
                   useSampleDesk={useSampleDesk}
                 />
                 <OverviewSalesChart
-                  days={(salesExplorerDays.length >= 2
-                    ? salesExplorerDays
-                    : salesDays
-                  ).map(({ dateKey, sales }) => ({ dateKey, sales }))}
+                  days={
+                    salesExplorerDays.length >= 2
+                      ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
+                          dateKey,
+                          sales,
+                          orders,
+                        }))
+                      : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
+                  }
                   ordersHref={ordersHref}
                   salesPending={greetingPending}
                   typicalDay={metrics.shopifyDepth.medianDailySales}

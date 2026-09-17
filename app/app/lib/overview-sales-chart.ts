@@ -16,13 +16,16 @@ const MONTHS = [
 ] as const;
 
 export type ChartGrain = "day" | "week" | "month" | "quarter";
-export type SalesDayInput = { dateKey: string; sales: number };
+export type SalesDayInput = { dateKey: string; sales: number; orders?: number };
 export type ChartBucket = {
   key: string;
   label: string;
   sales: number;
+  orders: number;
   weekend: boolean;
 };
+
+export type OverviewDelta = { pct: number; kind: "up" | "down" | "even" };
 
 export type OverviewVsTypical = {
   delta: number;
@@ -116,22 +119,39 @@ export function overviewBucketize(
       key: day.dateKey,
       label: overviewChartDayLabel(day.dateKey),
       sales: day.sales,
+      orders: day.orders ?? 0,
       weekend: overviewIsWeekendKey(day.dateKey),
     }));
   }
-  const map = new Map<string, number>();
+  const map = new Map<string, { sales: number; orders: number }>();
   for (const day of days) {
     const bucketKey = bucketKeyFor(day.dateKey, grain);
-    map.set(bucketKey, (map.get(bucketKey) ?? 0) + day.sales);
+    const prev = map.get(bucketKey) ?? { sales: 0, orders: 0 };
+    map.set(bucketKey, {
+      sales: prev.sales + day.sales,
+      orders: prev.orders + (day.orders ?? 0),
+    });
   }
   return [...map.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, sales]) => ({
+    .map(([key, value]) => ({
       key,
       label: overviewChartDayLabel(key),
-      sales,
+      sales: value.sales,
+      orders: value.orders,
       weekend: false,
     }));
+}
+
+/** Average order value — sales ÷ orders. Null when orders are unknown/zero. */
+export function overviewAov(
+  sales: number,
+  orders: number,
+): number | null {
+  if (!Number.isFinite(sales) || !Number.isFinite(orders) || orders <= 0) {
+    return null;
+  }
+  return sales / orders;
 }
 
 function bucketKeyFor(dateKey: string, grain: ChartGrain): string {
@@ -342,4 +362,48 @@ export function overviewFilterRange(
   const lo = fromKey <= toKey ? fromKey : toKey;
   const hi = fromKey <= toKey ? toKey : fromKey;
   return days.filter((day) => day.dateKey >= lo && day.dateKey <= hi);
+}
+
+/** Whole days spanned by [fromKey, toKey] inclusive. */
+export function overviewDaySpan(fromKey: string, toKey: string): number {
+  const [fy, fm, fd] = fromKey.split("-").map(Number);
+  const [ty, tm, td] = toKey.split("-").map(Number);
+  if ([fy, fm, fd, ty, tm, td].some((n) => !Number.isFinite(n))) return 0;
+  const from = Date.UTC(fy!, fm! - 1, fd!);
+  const to = Date.UTC(ty!, tm! - 1, td!);
+  return Math.round((to - from) / 86400000) + 1;
+}
+
+/** The equal-length window immediately before [fromKey, toKey]. */
+export function overviewPriorWindow(
+  fromKey: string,
+  toKey: string,
+): { fromKey: string; toKey: string } {
+  const span = overviewDaySpan(fromKey, toKey);
+  const priorTo = overviewShiftDayKey(fromKey, -1);
+  const priorFrom = overviewShiftDayKey(priorTo, -(Math.max(1, span) - 1));
+  return { fromKey: priorFrom, toKey: priorTo };
+}
+
+/**
+ * Whole-percent change current vs prior. Null when prior is unknown / zero —
+ * never a fake +∞ or a divide-by-zero. Honest vs-prior only.
+ */
+export function overviewDeltaPct(
+  current: number,
+  prior: number,
+): OverviewDelta | null {
+  if (!Number.isFinite(current) || !Number.isFinite(prior) || prior <= 0) {
+    return null;
+  }
+  const pct = Math.round(((current - prior) / prior) * 100);
+  const kind = pct === 0 ? "even" : pct > 0 ? "up" : "down";
+  return { pct, kind };
+}
+
+/** "+15.9% vs prior" style copy from a delta. */
+export function overviewDeltaCopy(delta: OverviewDelta | null): string | null {
+  if (delta == null) return null;
+  const sign = delta.pct > 0 ? "+" : delta.pct < 0 ? "−" : "±";
+  return `${sign}${Math.abs(delta.pct)}% vs prior`;
 }

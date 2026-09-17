@@ -13919,17 +13919,20 @@ button.mcfly-chart__month {
 
 .mcfly-chart--sales .mcfly-chart__sales-line {
   fill: none;
-  stroke: var(--mcfly-ink-soft);
+  stroke: var(--mcfly-truth);
   stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
-  opacity: 0.82;
+  opacity: 0.92;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 
 .mcfly-chart__cum-cap {
-  fill: var(--mcfly-ink-soft);
+  fill: var(--mcfly-truth);
+  stroke: #fff;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 
@@ -14087,6 +14090,18 @@ button.mcfly-chart__month {
   background: rgba(255, 255, 255, 0.5);
 }
 
+.mcfly-chart__tip-dot--orders {
+  background: color-mix(in srgb, var(--mcfly-accent) 40%, #fff);
+  border-radius: 2px;
+}
+
+.mcfly-chart__tip-dot--aov {
+  width: 0.62rem;
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid #6ee7b7;
+}
+
 .mcfly-chart__tip-dot--cum {
   width: 0.62rem;
   height: 0;
@@ -14172,7 +14187,14 @@ button.mcfly-chart__month {
 .mcfly-chart__legend-swatch--cum {
   height: 0;
   border-radius: 0;
-  border-top: 2px solid var(--mcfly-ink-soft);
+  border-top: 2px solid var(--mcfly-truth);
+  align-self: center;
+}
+
+.mcfly-chart__legend-swatch--aov {
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid var(--mcfly-truth);
   align-self: center;
 }
 
@@ -14182,7 +14204,7 @@ button.mcfly-chart__month {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
-  margin: 0.65rem 0 0;
+  margin: 0.55rem 0 0.65rem;
   padding: 0;
 }
 
@@ -14225,6 +14247,26 @@ button.mcfly-chart__month {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.mcfly-chart__stat-delta {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcfly-chart__stat-delta--up {
+  color: var(--mcfly-truth);
+}
+.mcfly-chart__stat-delta--down {
+  color: var(--mcfly-warn);
+}
+.mcfly-chart__stat-delta--even {
+  color: var(--mcfly-mute);
 }
 
 /* Sales-truthful pace bars — pacing-card language, zero spend. */

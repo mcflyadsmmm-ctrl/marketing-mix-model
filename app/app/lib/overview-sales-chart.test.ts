@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { DeskCurrencyContext } from "./desk-currency";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import {
+  overviewAov,
   overviewBucketize,
   overviewChartAxis,
   overviewChartDayLabel,
@@ -14,12 +15,16 @@ import {
   overviewChartVsCopy,
   overviewCompactMoney,
   overviewCumulative,
+  overviewDaySpan,
+  overviewDeltaCopy,
+  overviewDeltaPct,
   overviewFilterRange,
   overviewIsoWeekStartKey,
   overviewIsWeekendKey,
   overviewLatestDayKey,
   overviewMedian,
   overviewPresetRange,
+  overviewPriorWindow,
   overviewShiftDayKey,
   overviewVsTypical,
   overviewVsTypicalPctCopy,
@@ -27,10 +32,11 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-function daySeries(start: string, count: number, sales: number) {
+function daySeries(start: string, count: number, sales: number, orders?: number) {
   return Array.from({ length: count }, (_, i) => ({
     dateKey: overviewShiftDayKey(start, i),
     sales,
+    ...(orders != null ? { orders } : {}),
   }));
 }
 
@@ -77,13 +83,43 @@ describe("overview sales chart labels + buckets", () => {
 
   it("cumulates buckets and takes an honest median", () => {
     expect(overviewCumulative([
-      { key: "a", label: "a", sales: 10, weekend: false },
-      { key: "b", label: "b", sales: 5, weekend: false },
-      { key: "c", label: "c", sales: 20, weekend: false },
+      { key: "a", label: "a", sales: 10, orders: 1, weekend: false },
+      { key: "b", label: "b", sales: 5, orders: 1, weekend: false },
+      { key: "c", label: "c", sales: 20, orders: 1, weekend: false },
     ])).toEqual([10, 15, 35]);
     expect(overviewMedian([4, 1, 3, 2])).toBe(2.5);
     expect(overviewMedian([5, 1, 3])).toBe(3);
     expect(overviewMedian([])).toBeNull();
+  });
+
+  it("sums orders per bucket and computes AOV honestly", () => {
+    const days = [
+      { dateKey: "2026-09-14", sales: 1000, orders: 10 },
+      { dateKey: "2026-09-15", sales: 1500, orders: 10 },
+      { dateKey: "2026-09-16", sales: 500, orders: 5 },
+    ];
+    const week = overviewBucketize(days, "week");
+    expect(week[0]!.sales).toBe(3000);
+    expect(week[0]!.orders).toBe(25);
+    expect(overviewAov(3000, 25)).toBe(120);
+    expect(overviewAov(1000, 0)).toBeNull();
+    expect(overviewAov(1000, -1)).toBeNull();
+    // Missing orders default to 0 (sales-only series stays honest).
+    expect(overviewBucketize([{ dateKey: "2026-09-16", sales: 500 }], "day")[0]!.orders).toBe(0);
+  });
+
+  it("frames an equal-length prior window + honest vs-prior deltas", () => {
+    expect(overviewDaySpan("2026-09-01", "2026-09-30")).toBe(30);
+    const prior = overviewPriorWindow("2026-09-01", "2026-09-30");
+    expect(prior.toKey).toBe("2026-08-31");
+    expect(prior.fromKey).toBe("2026-08-02");
+    expect(overviewDeltaPct(1160, 1000)).toEqual({ pct: 16, kind: "up" });
+    expect(overviewDeltaPct(900, 1000)).toEqual({ pct: -10, kind: "down" });
+    expect(overviewDeltaPct(1000, 1000)).toEqual({ pct: 0, kind: "even" });
+    expect(overviewDeltaPct(1000, 0)).toBeNull();
+    expect(overviewDeltaCopy({ pct: 16, kind: "up" })).toBe("+16% vs prior");
+    expect(overviewDeltaCopy({ pct: -10, kind: "down" })).toBe("−10% vs prior");
+    expect(overviewDeltaCopy(null)).toBeNull();
   });
 
   it("compares a bucket to typical without inventing $0", () => {
@@ -201,10 +237,11 @@ describe("overview sales chart labels + buckets", () => {
     expect(chart).not.toContain("Spend Upload");
   });
 
-  it("renders the explorer chrome for a real window of days", () => {
-    const days = daySeries("2026-06-01", 100, 4300).map((d, i) => ({
+  it("renders the sales-order explorer chrome with AOV + vs-prior", () => {
+    const days = daySeries("2026-05-01", 130, 4300).map((d, i) => ({
       dateKey: d.dateKey,
       sales: d.sales + (i % 7 === 3 ? 900 : 0) - (i % 7 === 0 ? 800 : 0),
+      orders: 40 + (i % 7 === 3 ? 8 : 0),
     }));
     const html = renderToStaticMarkup(
       createElement(
@@ -213,7 +250,7 @@ describe("overview sales chart labels + buckets", () => {
         createElement(OverviewSalesChart, { days, typicalDay: 4300 }),
       ),
     );
-    // Explorer controls + dual axis + bars + cumulative + cards render.
+    // Explorer controls + dual axis + bars + line + cards render.
     expect(html).toContain("mcfly-chart__controls");
     expect(html).toContain('type="date"');
     expect(html).toContain(">30d<");
@@ -224,10 +261,15 @@ describe("overview sales chart labels + buckets", () => {
     expect(html).toContain("mcfly-chart__sales-line");
     expect(html).toContain("mcfly-chart__axis-y2");
     expect(html).toContain("mcfly-chart__stats");
+    // Sales-order depth + honest vs-prior.
+    expect(html).toContain(">Orders<");
+    expect(html).toContain(">AOV<");
+    expect(html).toContain("vs prior");
     expect(html).toContain("vs typical");
     // Still zero spend on Overview once rendered.
     expect(html).not.toContain("Total ROAS");
     expect(html).not.toContain("Spend Upload");
     expect(html).not.toContain("spend-line");
+    expect(html).not.toContain("MER");
   });
 });
