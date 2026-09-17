@@ -210,7 +210,10 @@ describe("Sample data | Live data UX", () => {
     const buyers = read("../routes/app.buyers.tsx");
     const timing = read("../routes/app.timing.tsx");
     expect(customers).toContain("loadDeskSalesPage");
-    expect(customers).toContain('groups={["buyers"]}');
+    expect(customers).toContain("<CustomerMixChart");
+    expect(customers).toContain("<CustomerRetentionBoard");
+    expect(customers).not.toContain("<ShopifyBookSection");
+    expect(customers).not.toContain('groups={["buyers"]}');
     expect(customers).not.toContain("LtvSnapSection");
     expect(customers).not.toContain("cashCostPerCustomer");
     expect(growth).toContain("loadDeskSalesPage");

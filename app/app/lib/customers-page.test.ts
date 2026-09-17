@@ -21,20 +21,21 @@ const analyticsLoader = read("./desk-customers-page.server.ts");
 const scoreboardLib = read("./customers-scoreboard.ts");
 
 /**
- * Authority: docs/ops/research/black-clover-depth/ + docs/ops/CRAFT_UNLOCK.md.
- * Customers is a deep, chart-forward RETAIN board — returning-dollars hero, a
- * repurchase/retention flow, value & frequency mix, and whale recency — from
- * order history only. Update this file toward depth, never toward a card stack.
+ * Authority: docs/ops/research/black-clover-depth/ + docs/ops/CRAFT_UNLOCK.md
+ * + docs/ops/FULL_TAB_CRAFT_AUDIT_v339.md FAIL #5.
+ * Customers is one spine: marquee explorer → compact returning hero →
+ * What-to-do / retention → value bands / whales. Not marquee + six-tile wall
+ * + duplicate buyers catalog. Update toward one desk, never toward a card stack.
  */
 
-describe("Customers route — deep RETAIN flow, order history only", () => {
+describe("Customers route — one RETAIN spine, order history only", () => {
   it("contrasts Shopify Analytics returning rate with returning dollars", () => {
     expect(customers).toContain("Shopify Analytics");
     expect(customers).toMatch(/dollars/i);
     expect(customers).toMatch(/returning/i);
   });
 
-  it("leads with the marquee explorer above the fold, then the depth cards", () => {
+  it("leads with the marquee explorer, then What-to-do — not a book dump", () => {
     expect(customers).toContain("loadCustomerAnalytics");
     const order = [
       "<CustomerMixChart",
@@ -42,29 +43,26 @@ describe("Customers route — deep RETAIN flow, order history only", () => {
       "<CustomerRetentionBoard",
       "<CustomerValueBands",
       "<CustomerWhaleTable",
-      "<ShopifyBookSection",
     ].map((tag) => customers.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]).toBeGreaterThan(order[i - 1]!);
     }
-    // The marquee owns the top of the tab, not the scoreboard card.
     expect(customers.indexOf("<CustomerMixChart")).toBeLessThan(
       customers.indexOf("<CustomersScoreboard"),
     );
-    // It handles its own pending / guest-empty frame — never hidden on pending.
     expect(customers).toContain("salesPending={metrics.salesPending}");
     expect(customers).not.toContain(
       "{!metrics.salesPending ? <CustomerMixChart",
     );
     expect(customers).toContain("<CustomerConcentrationChart");
+    expect(customers).not.toContain("<ShopifyBookSection");
+    expect(customers).not.toContain('groups={["buyers"]}');
   });
 
-  it("keeps the honest empty, pending, error, and buyers-book locks", () => {
-    expect(customers).toContain('groups={["buyers"]}');
+  it("keeps the honest empty, pending, error, and identified-buyer locks", () => {
     expect(customers).toContain("!metrics.customerMetricsAvailable");
     expect(customers).toContain("Returning dollars need identified buyers");
-    expect(customers).toContain("<ShopifyBookSection");
     expect(customers).toContain("not $0");
     expect(customers).toContain("salesError={Boolean(salesError)");
     expect(customers).toContain("Retry to see returning dollars");
@@ -78,19 +76,28 @@ describe("Customers route — deep RETAIN flow, order history only", () => {
   });
 });
 
-describe("CustomersScoreboard — soft hero card, gauge + tiles + bars", () => {
-  it("is a Monthly-pacing soft card, not identical drill cards", () => {
+describe("CustomersScoreboard — compact returning hero, not a six-tile wall", () => {
+  it("is a returning-$ gauge plus three unique facts", () => {
     expect(scoreboard).toContain("mcfly-panel");
     expect(scoreboard).toContain("mcfly-cust-gauge");
-    expect(scoreboard).toContain("mcfly-cust-tiles");
-    expect(scoreboard).toContain("mcfly-cust-bars");
+    expect(scoreboard).toContain("mcfly-cust-facts");
     expect(scoreboard).toContain("Returning customers");
     expect(scoreboard).toContain("Sample data");
+    expect(scoreboard).toContain("Guests");
+    expect(scoreboard).toContain("Sales per buyer");
+    expect(scoreboard).toContain("Biggest orders");
+    expect(scoreboard.match(/<Fact[\s>]/g)?.length).toBe(3);
+    expect(scoreboard).not.toContain("mcfly-cust-tiles");
+    expect(scoreboard).not.toContain("mcfly-cust-bars");
+    expect(scoreboard).not.toContain("One-order buyers");
+    expect(scoreboard).not.toContain("Orders per buyer");
+    expect(scoreboard).not.toContain("New dollars");
   });
 });
 
 describe("CustomerRetentionBoard — What-to-do retention flow", () => {
   it("paints repurchase clock, cadence, funnel, and an honest win-back play", () => {
+    expect(retention).toContain("What to do");
     expect(retention).toContain("When they come back");
     expect(retention).toContain("Typical repurchase");
     expect(retention).toContain("Win-back");
@@ -99,12 +106,20 @@ describe("CustomerRetentionBoard — What-to-do retention flow", () => {
     expect(retention).toContain("Win-back play");
     expect(retention).toContain("Save now");
     expect(retention).toContain("VerticalBars");
+    expect(retention.match(/<Kpi[\s\n]/g)?.length).toBe(3);
   });
 
   it("never invents a 2nd-order product — honest about Level-1 scope", () => {
     expect(retention).toContain("read_orders");
     expect(retention).toMatch(/SKU|line item/i);
     expect(retention).not.toMatch(/Premium Clover|Live Lucky Club|Mystery Box/);
+  });
+
+  it("uses a designed empty, never a bare note", () => {
+    expect(retention).toContain("RetentionEmptyFrame");
+    expect(retention).toContain("mcfly-cust-empty");
+    expect(retention).toContain("mcfly-cust-empty__ghost");
+    expect(retention).toContain("not $0");
   });
 });
 
@@ -116,6 +131,12 @@ describe("CustomerValueBands — whales vs minnows", () => {
     expect(value).toContain("Customers");
     expect(value).toContain("Revenue");
   });
+
+  it("uses a designed empty when buyers are missing", () => {
+    expect(value).toContain("mcfly-cust-empty");
+    expect(value).toContain("mcfly-cust-empty__ghost--bars");
+    expect(value).toContain("not $0");
+  });
 });
 
 describe("CustomerWhaleTable — best customers by recency", () => {
@@ -123,6 +144,12 @@ describe("CustomerWhaleTable — best customers by recency", () => {
     expect(whale).toContain("Whale recency");
     expect(whale).toContain("WHALE_MIN_ORDERS");
     expect(whale).toContain("mcfly-cust-table");
+  });
+
+  it("uses a designed empty when no whales are on file", () => {
+    expect(whale).toContain("mcfly-cust-empty");
+    expect(whale).toContain("mcfly-cust-empty__ghost--table");
+    expect(whale).toContain("not zero");
   });
 });
 
@@ -149,11 +176,9 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
     expect(mix).toContain("mcfly-chart__serif");
     expect(mix).toContain("mcfly-chart__stats");
     expect(mix).toContain("mcfly-chart__plot");
-    // Crisp HTML axis overlays, not viewBox-shrinking SVG text.
     expect(mix).toContain("mcfly-chart__axis-y");
     expect(mix).toContain("mcfly-chart__axis-y2");
     expect(mix).toContain("mcfly-chart__xtick");
-    // Dark floating tooltip that rides the hovered column.
     expect(mix).toContain("mcfly-chart__tip");
     expect(mix).toContain("mcfly-chart__tip-row");
     expect(mix).toContain("mcfly-chart__guide");
@@ -174,7 +199,6 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
     expect(mix).toContain("mcfly-cust-mix__empty-copy");
     expect(mix).toContain("not $0");
     expect(mix).toContain("salesPending");
-    // The tab passes pending in — the marquee is never hidden.
     expect(mix).toContain("pending");
   });
 
@@ -184,11 +208,13 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
     expect(css).toContain("feTurbulence");
     expect(css).toContain(".mcfly-cust-mix__ghost-bar");
     expect(css).toContain(".mcfly-cust-mix__empty-copy");
+    expect(css).toContain(".mcfly-cust-facts");
+    expect(css).toContain(".mcfly-cust-empty__ghost");
   });
 });
 
-describe("Zero spend / ROAS on the whole Customers tab", () => {
-  it("never paints spend, ROAS, CPA, or a 0.00× on any Customers file", () => {
+describe("Zero spend / ROAS / Email on the whole Customers tab", () => {
+  it("never paints spend, ROAS, CPA, Email product, or a 0.00× on any Customers file", () => {
     for (const source of [
       customers,
       scoreboard,
@@ -209,6 +235,9 @@ describe("Zero spend / ROAS on the whole Customers tab", () => {
       expect(source).not.toContain("/app/spend");
       expect(source).not.toContain("0.00×");
       expect(source).not.toContain("cashCostPerCustomer");
+      expect(source).not.toContain("Klaviyo");
+      expect(source).not.toContain("Email Cost");
+      expect(source).not.toContain("/app/email");
     }
   });
 });

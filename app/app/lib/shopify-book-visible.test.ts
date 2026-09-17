@@ -61,11 +61,13 @@ describe("Shopify five books are visible cards", () => {
     expect(orders).toContain("not $0");
   });
 
-  it("Customers keeps returning dollars and an honest empty", () => {
-    expect(customers).toContain('groups={["buyers"]}');
+  it("Customers keeps returning dollars and an honest empty — no buyers book dump", () => {
+    expect(customers).toContain("<CustomerMixChart");
+    expect(customers).toContain("<CustomerRetentionBoard");
     expect(customers).toContain("!metrics.customerMetricsAvailable");
     expect(customers).toContain("Returning dollars need identified buyers");
-    expect(customers).toContain("<ShopifyBookSection");
+    expect(customers).not.toContain("<ShopifyBookSection");
+    expect(customers).not.toContain('groups={["buyers"]}');
     expect(customers).not.toContain("0.00×");
   });
 

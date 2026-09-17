@@ -3,7 +3,6 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
-import { ShopifyBookSection } from "../components/ShopifyBookSection";
 import { CustomersScoreboard } from "../components/CustomersScoreboard";
 import { CustomerMixChart } from "../components/CustomerMixChart";
 import { CustomerRetentionBoard } from "../components/CustomerRetentionBoard";
@@ -16,11 +15,10 @@ import { loadCustomerAnalytics } from "../lib/desk-customers-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
-// Deeper-than-Analytics contrast for the buyers catalog below the scoreboard.
 // Shopify Analytics Overview shows a returning-customer rate (headcount); this
-// tab leads with returning dollars, when they come back, and who to save.
+// tab is one spine: explorer → What-to-do / retention → value bands / whales.
 const CUSTOMERS_CONTRAST =
-  "Shopify Analytics Overview shows a returning-customer rate — headcount. Deeper: returning dollars, sales per buyer, guests, one-order buyers, and top-10% concentration — from this shop's orders.";
+  "Shopify Analytics Overview shows a returning-customer rate — headcount. Deeper: returning dollars, when they come back, and who to save — from this shop's orders.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const base = await loadDeskSalesPage(request, "/app/customers");
@@ -72,7 +70,6 @@ export default function CustomersPage() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
-  const totalSalesDisplay = metrics.totalSalesAmount ?? metrics.sales;
 
   return (
     <DeskBookPage
@@ -107,12 +104,12 @@ export default function CustomersPage() {
         </p>
       ) : null}
 
-      {/* Marquee explorer — new vs returning $ dual-axis, above the fold. It
-          leads the tab so QA and operators meet the interactive trend first,
-          not a card wall; it handles its own pending / guest-empty frame. */}
+      <p className="mcfly-book__lede">{deskBookLede(CUSTOMERS_CONTRAST)}</p>
+
+      {/* 1. Marquee explorer — new vs returning $ dual-axis, above the fold. */}
       <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
 
-      {/* Returning-dollars hero + dense tiles under the marquee. */}
+      {/* 2. Compact returning hero — gauge + three unique facts, not a tile wall. */}
       <CustomersScoreboard
         book={book}
         depth={metrics.shopifyDepth}
@@ -121,16 +118,13 @@ export default function CustomersPage() {
         useSampleDesk={useSampleDesk}
       />
 
-      {/* When they come back — repurchase clock, funnel, cadence, win-back. */}
+      {/* 3. What to do — repurchase clock, fall-off, win-back, save-now. */}
       <CustomerRetentionBoard analytics={analytics} />
 
-      {/* Whales vs minnows — spend bands (dual axis) + order-count long tail. */}
+      {/* 4. Value bands / whales as needed — who the dollars sit with. */}
       <CustomerValueBands analytics={analytics} />
-
-      {/* Best customers by recency — who is slipping. */}
       <CustomerWhaleTable analytics={analytics} />
 
-      {/* Where the dollars concentrate — Pareto + share ladder. */}
       {!metrics.salesPending ? (
         <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
       ) : null}
@@ -140,22 +134,6 @@ export default function CustomersPage() {
           Returning dollars need identified buyers in this window — not $0.
         </p>
       ) : null}
-
-      {/* Deeper catalog — guest AOV, one-order buyers, orders per buyer, etc. */}
-      <ShopifyBookSection
-        book={book}
-        depth={metrics.shopifyDepth}
-        clocks={{
-          gross: metrics.grossSales,
-          grossKnown: metrics.grossSalesKnown,
-          total: totalSalesDisplay,
-          net: metrics.netSales,
-          netKnown: metrics.netSalesKnown,
-        }}
-        groups={["buyers"]}
-        title={PRODUCT_NOUN.buyersTitle}
-        muted={deskBookLede(CUSTOMERS_CONTRAST)}
-      />
 
       <footer className="mcfly-book__links">
         <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>

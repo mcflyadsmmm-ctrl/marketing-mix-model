@@ -35,30 +35,56 @@ function Kpi({
   );
 }
 
+function RetentionEmptyFrame() {
+  const ghost = [1, 0.64, 0.28];
+  return (
+    <section
+      className="mcfly-panel mcfly-cust-card mcfly-cust-empty"
+      aria-label="What to do"
+    >
+      <div className="mcfly-panel__head">
+        <h2>What to do</h2>
+        <p className="mcfly-panel__muted">
+          When they come back · repurchase clock · fall-off &amp; win-back
+        </p>
+      </div>
+      <div className="mcfly-cust-empty__ghost" aria-hidden="true">
+        <div className="mcfly-cust-empty__clock">
+          <span className="mcfly-cust-empty__clock-face" />
+          <span className="mcfly-cust-empty__clock-hand" />
+        </div>
+        <div className="mcfly-cust-empty__funnel">
+          {ghost.map((width, i) => (
+            <span
+              key={i}
+              className="mcfly-cust-empty__funnel-bar"
+              style={{ width: `${width * 100}%` }}
+            />
+          ))}
+        </div>
+      </div>
+      <p className="mcfly-cust-empty__copy">
+        Repurchase cadence needs identified buyers with a second order on file —
+        not $0. Snowdevil SAMPLE fills this in; a fresh live shop fills in as
+        orders land.
+      </p>
+    </section>
+  );
+}
+
 /**
- * "When they come back" — the actionable retention flow Shopify Analytics never
- * puts on one screen: a repurchase clock, a fall-off funnel, a days-to-2nd
- * cadence histogram, and an honest win-back play. Order history only — no email,
- * no spend. Product-level cross-sell is withheld (no SKU/title in Level-1 facts),
- * never guessed.
+ * What to do — the Black Clover Customers retention flow Shopify Analytics
+ * never puts on one screen: a repurchase clock, a fall-off funnel, a days-to-2nd
+ * cadence histogram, and an honest win-back play. Three action cards, not a
+ * metric dump. Order history only — no email, no spend. Product-level cross-sell
+ * is withheld (no SKU/title in Level-1 facts), never guessed.
  */
 export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnalytics }) {
   const drill = useDeskDrill();
   const a = analytics;
 
   if (!a.available) {
-    return (
-      <section className="mcfly-panel mcfly-cust-card" aria-label="When they come back">
-        <div className="mcfly-panel__head">
-          <h2>When they come back</h2>
-          <p className="mcfly-panel__muted">Repurchase clock · fall-off &amp; win-back · order history</p>
-        </div>
-        <p className="mcfly-cust-note">
-          Repurchase cadence needs identified buyers with a second order on file — not $0.
-          Snowdevil SAMPLE fills this in; a fresh live shop fills in as orders land.
-        </p>
-      </section>
-    );
+    return <RetentionEmptyFrame />;
   }
 
   const cadenceItems = a.daysToSecond.map((b) => ({
@@ -82,26 +108,47 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
     },
   ];
 
+  const clockSub =
+    isNum(a.repurchaseFastDays) && isNum(a.repurchaseSlowDays)
+      ? `fast ${Math.round(a.repurchaseFastDays)}d · slow ${Math.round(a.repurchaseSlowDays)}d`
+      : undefined;
+  const everLine =
+    a.identifiedBuyers > 0
+      ? `${pct(a.everRepeatShare)} ever a 2nd order · ${a.everRepeatCount.toLocaleString()} of ${a.identifiedBuyers.toLocaleString()}`
+      : undefined;
+  const within30Line =
+    a.eligible30 > 0
+      ? `${pct(a.within30Share)} came back ≤30d · ${a.within30Count.toLocaleString()} of ${a.eligible30.toLocaleString()} eligible`
+      : "Came back ≤30d needs 30 days of follow-up — not zero.";
+
   return (
-    <section className="mcfly-panel mcfly-cust-card mcfly-desk-anchor" aria-label="When they come back">
+    <section className="mcfly-panel mcfly-cust-card mcfly-desk-anchor" aria-label="What to do">
       <div className="mcfly-panel__head">
-        <h2>When they come back</h2>
+        <h2>What to do</h2>
         <p className="mcfly-panel__muted">
-          Repurchase clock · fall-off &amp; win-back · who to save · order history, last ~{a.historyDays} days
+          When they come back · repurchase clock · fall-off &amp; win-back · last ~{a.historyDays} days
         </p>
       </div>
 
       <div className="mcfly-cust-kpis">
-        <Kpi label="Typical repurchase" value={day(a.repurchaseTypicalDays)} sub={
-          isNum(a.repurchaseFastDays) && isNum(a.repurchaseSlowDays)
-            ? `fast ${Math.round(a.repurchaseFastDays)}d · slow ${Math.round(a.repurchaseSlowDays)}d`
-            : undefined
-        } tone="good" />
-        <Kpi label="Win-back by" value={day(a.winBackDay)} sub="typical repurchase + 15 days" tone="warn" />
-        <Kpi label="Ever a 2nd order" value={pct(a.everRepeatShare)} sub={`${a.everRepeatCount.toLocaleString()} of ${a.identifiedBuyers.toLocaleString()} buyers`} tone="good" />
-        <Kpi label="Came back ≤30d" value={pct(a.within30Share)} sub={a.eligible30 > 0 ? `${a.within30Count.toLocaleString()} of ${a.eligible30.toLocaleString()} eligible` : "needs 30 days of follow-up"} />
-        <Kpi label="Save now" value={a.saveNowOneOrder.toLocaleString()} sub="one-order buyers past win-back" tone="warn" />
-        <Kpi label="First-time buyers" value={a.identifiedBuyers.toLocaleString()} sub={`identified, last ~${a.historyDays} days`} />
+        <Kpi
+          label="Typical repurchase"
+          value={day(a.repurchaseTypicalDays)}
+          sub={clockSub}
+          tone="good"
+        />
+        <Kpi
+          label="Win-back by"
+          value={day(a.winBackDay)}
+          sub="typical repurchase + 15 days"
+          tone="warn"
+        />
+        <Kpi
+          label="Save now"
+          value={a.saveNowOneOrder.toLocaleString()}
+          sub="one-order buyers past win-back"
+          tone="warn"
+        />
       </div>
 
       <VerticalBars
@@ -166,6 +213,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
             ? `Reach the ${a.saveNowOneOrder.toLocaleString()} one-order buyers already past ${day(a.winBackDay).toLowerCase()} — just beyond the typical repurchase, before the slow tail.`
             : "Win-back timing needs more repeat orders on file — not zero."}
         </p>
+        {everLine ? <p className="mcfly-cust-play__meta">{everLine}. {within30Line}</p> : null}
         <p className="mcfly-cust-play__note">
           Suggesting a specific 2nd-order product needs order line items (SKUs / titles), which
           <code> read_orders</code> Level-1 facts don't include — so Mcfly won't guess one. Timing above is from real order history.
