@@ -11,11 +11,19 @@ import { CustomerRfmBoard } from "../components/CustomerRfmBoard";
 import { CustomerValueBands } from "../components/CustomerValueBands";
 import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
+import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { loadCustomerAnalytics } from "../lib/desk-customers-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
+import { formatCurrency } from "../lib/mer-format";
+import { useDeskCurrency } from "../lib/desk-currency";
+import {
+  buildShareableInsights,
+  emptyShareableInsights,
+  pickShareableLtvPeek,
+} from "../lib/shareable-insights";
 
 // Shopify Analytics Overview shows a returning-customer rate (headcount); this
 // tab is one spine: explorer → What-to-do / watchlist → RFM-lite → value / whales.
@@ -44,7 +52,9 @@ export default function CustomersPage() {
     factsIncomplete,
     orderBackfillProgress,
     analytics,
+    shopLabel,
   } = useLoaderData<typeof loader>();
+  const currency = useDeskCurrency();
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
   const tillLabel = deskPeriodTillLabel({
@@ -72,6 +82,36 @@ export default function CustomersPage() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
+  const historyLimited = Boolean(
+    !useSampleDesk &&
+      (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
+  );
+  const ltvPeek = pickShareableLtvPeek({
+    revenue30: metrics.tillLtv.avgRevenueD30,
+    revenue90: metrics.tillLtv.avgRevenueD90,
+    revenue365: metrics.tillLtv.avgRevenueD365,
+    historyLimited,
+  });
+  const insightView = metrics.salesPending
+    ? emptyShareableInsights()
+    : buildShareableInsights(
+        {
+          salesPending: Boolean(metrics.salesPending),
+          orderCount: metrics.orderCount,
+          returningSales: book.returningSales,
+          returningShare: book.returningSalesShare,
+          newSales: book.newSales,
+          typicalOrder: metrics.shopifyDepth.medianAov,
+          daysToSecond: metrics.shopifyDepth.medianDaysToSecond,
+          ltvPeek: ltvPeek?.amount ?? null,
+          ltvPeekDays: ltvPeek?.days ?? null,
+          historyLimited,
+          shopLabel,
+          sample: useSampleDesk,
+          periodLabel: metrics.period.label,
+        },
+        (n) => formatCurrency(n, currency),
+      );
 
   return (
     <DeskBookPage
@@ -136,6 +176,8 @@ export default function CustomersPage() {
       {!metrics.salesPending ? (
         <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
       ) : null}
+
+      <ShareableInsightCards view={insightView} shotMode={shotMode} />
 
       {!metrics.customerMetricsAvailable ? (
         <p className="mcfly-book__lede">

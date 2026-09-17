@@ -19491,3 +19491,186 @@ button.mcfly-depth-flag__empty:focus-visible {
 .mcfly-depth-promo .mcfly-kpi__label {
   overflow-wrap: anywhere;
 }
+
+/* =========================================================================
+ * Shareable insight cards — habit-desk PNG / copy-ready posters.
+ * APPEND ONLY. Reuses soft panel + first-win empty. SAMPLE Snowdevil canvas.
+ * Placement: Overview after mix/close; light reuse on LTV + Customers.
+ * ========================================================================= */
+
+.mcfly-share-cards {
+  margin: 0.15rem 0 0.75rem;
+}
+
+.mcfly-share-cards__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.mcfly-share-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.4rem;
+}
+
+.mcfly-share-card__poster {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  min-height: 16.5rem;
+  padding: 0.9rem 0.95rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 16px;
+  box-shadow: var(--mcfly-shadow);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: color-mix(in srgb, var(--mcfly-tint-sky) 55%, #fff);
+}
+
+.mcfly-share-card__poster--returning {
+  background: color-mix(in srgb, var(--mcfly-tint-sales) 62%, #fff);
+}
+
+.mcfly-share-card__poster--typicalOrder {
+  background: color-mix(in srgb, var(--mcfly-tint-sky) 70%, #fff);
+}
+
+.mcfly-share-card__poster--daysToSecond {
+  background: color-mix(in srgb, var(--mcfly-tint-cac) 70%, #fff);
+}
+
+.mcfly-share-card__poster--ltvPeek {
+  background: color-mix(in srgb, var(--mcfly-tint-ltv) 55%, #fff);
+}
+
+.mcfly-share-card__poster:hover,
+.mcfly-share-card__poster:focus-visible {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 45%, #fff);
+  outline: 2px solid color-mix(in srgb, var(--mcfly-accent) 35%, transparent);
+  outline-offset: 1px;
+}
+
+.mcfly-share-card__mark {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  margin-bottom: 0.35rem;
+}
+
+.mcfly-share-card__brand {
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-share-card__shop {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-share-card__k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-share-card__v {
+  margin: 0.05rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.45rem, 3.4vw, 1.95rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-share-card__line {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--mcfly-ink-soft);
+}
+
+.mcfly-share-card__formula {
+  margin: 0.35rem 0 0;
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-share-card__trust {
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-share-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mcfly-share-card__btn {
+  padding: 0.28rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--mcfly-ink-soft);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.mcfly-share-card__btn:hover,
+.mcfly-share-card__btn:focus-visible {
+  border-color: color-mix(in srgb, var(--mcfly-accent) 45%, #fff);
+  color: var(--mcfly-accent-ink);
+  outline: 2px solid color-mix(in srgb, var(--mcfly-accent) 30%, transparent);
+  outline-offset: 1px;
+}
+
+.mcfly-share-cards__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.7rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+
+@media (max-width: 720px) {
+  .mcfly-share-cards__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-share-card__poster {
+    min-height: 0;
+    padding: 0.75rem 0.8rem;
+  }
+
+  .mcfly-share-card__v {
+    font-size: clamp(1.25rem, 6vw, 1.6rem);
+  }
+}

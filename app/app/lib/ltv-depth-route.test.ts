@@ -181,6 +181,18 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(route).toContain("product={depth.productLtv}");
   });
 
+  it("reuses shareable insight cards after the explorers, not inside the compete spine", () => {
+    const promoAt = route.indexOf("<LtvPromoBoard");
+    const curvesAt = route.indexOf("<LtvBuildCurves");
+    const whaleAt = route.indexOf("<LtvWhaleRecency");
+    const shareAt = route.indexOf("<ShareableInsightCards");
+    expect(shareAt).toBeGreaterThan(whaleAt);
+    expect(curvesAt).toBeGreaterThan(promoAt);
+    expect(shareAt).toBeGreaterThan(curvesAt);
+    expect(route).toContain("flagshipDailyRead");
+    expect(route).toContain("buildShareableInsights");
+  });
+
   it("mounts Promo→LTV after Product→LTV and before the explorers", () => {
     const productAt = route.indexOf("<LtvProductBoard");
     const promoAt = route.indexOf("<LtvPromoBoard");

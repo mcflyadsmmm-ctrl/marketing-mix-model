@@ -67,7 +67,18 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young; forecast empty when typical day is missing — no blank charts, not $0 |
 | Empty-state | PASS | Floor 8 orders, then 8 days with sales for the typical day — on the card. Sparse shops stay amazing |
 
-## SCORECARD — Promo→LTV (this PR)
+## SCORECARD — Shareable insight cards (this PR)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Accuracy | PASS | Same returning $ / median order / median first→second / observed 30/90 (year withheld when limited); formulas on the card; refunds never invented; never a fake $0 poster |
+| Quality | PASS | 2–4 screenshot-ready cards + copy/PNG — habit-worthy, not a kitchen-sink share suite |
+| Organization | PASS | Overview after mix/close, before the sales chart; light reuse after LTV explorers and Customers concentration; sales-five IA untouched |
+| Ease | PASS | Pills, mobile, chart-smooth hover preserved; one poster + Copy line, not a dump |
+| Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young — no blank cards, not $0 |
+| Empty-state | PASS | Floor 8 paid orders on the card. Sparse shops stay amazing |
+
+## SCORECARD — Promo→LTV (#98)
 
 | Criterion | Verdict | Line |
 | --- | :---: | --- |
