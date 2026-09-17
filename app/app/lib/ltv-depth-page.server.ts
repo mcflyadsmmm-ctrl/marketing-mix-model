@@ -15,7 +15,11 @@ import {
   ORDER_FACT_GUEST_KEY,
   ORDER_FACT_SOURCE,
 } from "./order-facts.server";
-import { buildLtvDepth, type DepthOrder, type LtvDepthView } from "./ltv-depth";
+import { type DepthOrder } from "./ltv-depth";
+import {
+  buildLtvFlagship,
+  type LtvFlagshipView,
+} from "./ltv-flagship";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 
 /** Trailing order-history window read for the live depth pack (days). */
@@ -33,12 +37,12 @@ export async function loadLtvDepth(options: {
   shopId: string;
   useSampleDesk: boolean;
   asOf?: Date;
-}): Promise<LtvDepthView> {
+}): Promise<LtvFlagshipView> {
   const asOf = options.asOf ?? new Date();
 
   if (options.useSampleDesk) {
     const orders = generateSnowdevilDepthOrders(asOf);
-    return buildLtvDepth(orders, asOf, { sample: true });
+    return buildLtvFlagship(orders, asOf, { sample: true });
   }
 
   const start = new Date(asOf.getTime() - LTV_DEPTH_WINDOW_DAYS * DAY_MS);
@@ -59,5 +63,5 @@ export async function loadLtvDepth(options: {
       product: null,
     });
   }
-  return buildLtvDepth(orders, asOf, { sample: false });
+  return buildLtvFlagship(orders, asOf, { sample: false });
 }

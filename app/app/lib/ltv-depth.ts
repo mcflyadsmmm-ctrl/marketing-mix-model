@@ -26,6 +26,12 @@ export interface DepthOrder {
   units: number;
   /** Product name on the first line — SAMPLE only; null when Shopify hid titles. */
   product: string | null;
+  /**
+   * Gross shop dollars before refunds, when known. SAMPLE can carry this so
+   * refund honesty is a real haircut. Live OrderFacts store net only
+   * (`currentTotalPriceSet`) — leave unset rather than invent a gross.
+   */
+  grossAmount?: number;
 }
 
 /** Whole-month follow-up windows shown across the retention grid and curves. */
@@ -104,6 +110,17 @@ export interface CustomerDepth {
   day30Spend: number;
   day90Spend: number;
   day365Spend: number;
+  /** Orders whose day-delta from first falls in each window (first counts). */
+  ordersD30: number;
+  ordersD90: number;
+  ordersD365: number;
+  /** Days from first order to second, or null when they never came back. */
+  reorderDays: number | null;
+  /**
+   * Σ max(0, gross − net) when an order carried a known gross. 0 when every
+   * order omitted gross — do not read that as “$0 refunds.”
+   */
+  refundedSpend: number;
   /** Whole-month offset → dollars in that follow-up window. */
   spendByOffset: Map<number, number>;
   /** Whole-month offsets with at least one order (0 always present). */
@@ -136,21 +153,48 @@ export function rollUpCustomers(orders: DepthOrder[]): CustomerDepth[] {
     let day30 = 0;
     let day90 = 0;
     let day365 = 0;
+    let ordersD30 = 0;
+    let ordersD90 = 0;
+    let ordersD365 = 0;
+    let refundedSpend = 0;
     let last = first.orderedAt;
+    let reorderDays: number | null = null;
     for (const o of list) {
       const amount = Number.isFinite(o.amount) ? Math.max(0, o.amount) : 0;
       const deltaDays = (o.orderedAt.getTime() - firstMs) / 86_400_000;
       if (deltaDays < 0) continue;
       lifetimeSpend += amount;
-      if (deltaDays <= 30) day30 += amount;
-      if (deltaDays <= 90) day90 += amount;
-      if (deltaDays <= 365) day365 += amount;
+      if (deltaDays <= 30) {
+        day30 += amount;
+        ordersD30 += 1;
+      }
+      if (deltaDays <= 90) {
+        day90 += amount;
+        ordersD90 += 1;
+      }
+      if (deltaDays <= 365) {
+        day365 += amount;
+        ordersD365 += 1;
+      }
+      if (
+        o.grossAmount != null &&
+        Number.isFinite(o.grossAmount) &&
+        o.grossAmount > amount
+      ) {
+        refundedSpend += o.grossAmount - amount;
+      }
       const offset = monthsSince(first.orderedAt, o.orderedAt);
       spendByOffset.set(offset, (spendByOffset.get(offset) ?? 0) + amount);
       activeOffsets.add(offset);
       if (o.orderedAt > last) last = o.orderedAt;
     }
     const second = list[1] ?? null;
+    if (second) {
+      reorderDays = Math.max(
+        0,
+        Math.floor((second.orderedAt.getTime() - firstMs) / 86_400_000),
+      );
+    }
     out.push({
       customerKey: first.customerKey,
       cohortMonth: monthKey(first.orderedAt),
@@ -165,6 +209,11 @@ export function rollUpCustomers(orders: DepthOrder[]): CustomerDepth[] {
       day30Spend: day30,
       day90Spend: day90,
       day365Spend: day365,
+      ordersD30,
+      ordersD90,
+      ordersD365,
+      reorderDays,
+      refundedSpend,
       spendByOffset,
       activeOffsets,
     });
@@ -518,6 +567,12 @@ export interface WhaleRecency {
   buckets: WhaleRecencyBucket[];
   /** Most common product among best-customer orders (SAMPLE only). */
   topProduct: string | null;
+  /** Average lifetime dollars across every identified buyer. */
+  everyoneAvg: number;
+  /** Best-customer average ÷ everyone average. */
+  ltvMultiple: number;
+  /** Best customers whose last order is over 180 days ago (0–1). */
+  coldShare: number;
 }
 
 const RECENCY_BUCKETS: Array<{ key: string; label: string; maxDays: number }> = [
@@ -556,6 +611,9 @@ export function whaleRecency(
     const bucket = RECENCY_BUCKETS.find((b) => d <= b.maxDays);
     if (bucket) bucketCounts.set(bucket.key, (bucketCounts.get(bucket.key) ?? 0) + 1);
   }
+  const everyoneAvg = sorted.length > 0 ? totalLifetime / sorted.length : 0;
+  const avgLifetime = whaleCount > 0 ? whaleLifetime / whaleCount : 0;
+  const coldCount = bucketCounts.get("d180plus") ?? 0;
   const productCounts = new Map<string, number>();
   for (const c of whales) {
     if (c.firstProduct) {
@@ -575,9 +633,9 @@ export function whaleRecency(
     whaleCount,
     threshold,
     salesShare: totalLifetime > 0 ? whaleLifetime / totalLifetime : 0,
-    avgLifetime: whaleLifetime / whaleCount,
+    avgLifetime,
     medianLifetime: median(whales.map((c) => c.lifetimeSpend)) ?? 0,
-    activeShare: active90 / whaleCount,
+    activeShare: whaleCount > 0 ? active90 / whaleCount : 0,
     medianDaysSinceLast: median(daysSince),
     buckets: RECENCY_BUCKETS.map((b) => ({
       key: b.key,
@@ -585,6 +643,9 @@ export function whaleRecency(
       count: bucketCounts.get(b.key) ?? 0,
     })),
     topProduct,
+    everyoneAvg,
+    ltvMultiple: everyoneAvg > 0 ? avgLifetime / everyoneAvg : 0,
+    coldShare: whaleCount > 0 ? coldCount / whaleCount : 0,
   };
 }
 

@@ -18794,3 +18794,77 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
     background: var(--mcfly-paper, #fff);
   }
 }
+
+/* =========================================================================
+ * LTV flagship densify — 30/90/365 come-back, written-out estimate, refunds.
+ * APPEND ONLY. Do not restyle existing curves / heat / explorer hover.
+ * Soft dense cards, not a metric dump. SAMPLE Snowdevil canvas.
+ * ========================================================================= */
+
+.mcfly-depth-windows__sub {
+  display: block;
+  margin: 0.2rem 0 0;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.mcfly-depth-formula__card {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 78%, #fff);
+  border-radius: 14px;
+  background: color-mix(in srgb, #fff 72%, var(--mcfly-accent-soft));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-depth-formula__card:hover,
+.mcfly-depth-formula__card:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 1px;
+}
+
+.mcfly-depth-formula__eq {
+  margin: 0 0 0.45rem;
+  font-family: var(--mcfly-serif, "Iowan Old Style", Georgia, serif);
+  font-size: clamp(0.98rem, 1.8vw, 1.12rem);
+  line-height: 1.4;
+}
+
+.mcfly-depth-formula__plug {
+  margin: 0 0 0.35rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  font-size: clamp(1.05rem, 2vw, 1.22rem);
+}
+
+.mcfly-depth-formula__obs {
+  margin: 0;
+  color: var(--mcfly-muted, #5a6f85);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.mcfly-depth-refunds .mcfly-kpi--soft {
+  max-width: 22rem;
+}
+
+.mcfly-depth-table--windows td,
+.mcfly-depth-table--windows th {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 430px) {
+  .mcfly-depth-formula__card {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .mcfly-depth-formula__plug {
+    font-size: 1.02rem;
+  }
+}

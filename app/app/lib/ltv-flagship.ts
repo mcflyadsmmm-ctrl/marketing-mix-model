@@ -1,0 +1,564 @@
+/**
+ * LTV flagship compete math — 30/90/365 come-back + revenue, a written-out
+ * first-year estimate, refund honesty, and path-LTV lift. Order history only.
+ *
+ * Inputs are the same opaque {@link CustomerDepth} / {@link DepthOrder} rows
+ * the depth pack already uses. No spend, no COGS, no pixels. Live refund
+ * dollars stay null unless a known gross is on the order — never invented.
+ *
+ * Merchant chrome says these in shop-owner English (first-order month, come
+ * back, later order). Internal ids may say window / mature / flagship.
+ */
+
+import {
+  buildLtvDepth,
+  monthLabel,
+  rollUpCustomers,
+  type CustomerDepth,
+  type DepthOrder,
+  type LtvDepthView,
+  type PathLtvRow,
+} from "./ltv-depth";
+
+export const LTV_FLAGSHIP_WINDOWS = [30, 90, 365] as const;
+export type LtvFlagshipWindow = (typeof LTV_FLAGSHIP_WINDOWS)[number];
+
+/** Buyers with a fully elapsed window before a rate or estimate is honest. */
+export const FLAGSHIP_MIN_MATURE = 8;
+/** First-order months kept in the 30/90/365 table (most recent). */
+export const FLAGSHIP_MAX_MONTH_ROWS = 14;
+
+const DAY_MS = 86_400_000;
+
+function daysBetween(a: Date, b: Date): number {
+  return Math.floor((b.getTime() - a.getTime()) / DAY_MS);
+}
+
+function mean(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((sum, n) => sum + n, 0) / values.length;
+}
+
+function windowSpend(customer: CustomerDepth, days: LtvFlagshipWindow): number {
+  switch (days) {
+    case 30:
+      return customer.day30Spend;
+    case 90:
+      return customer.day90Spend;
+    case 365:
+      return customer.day365Spend;
+    default: {
+      const _exhaustive: never = days;
+      return _exhaustive;
+    }
+  }
+}
+
+function windowOrders(customer: CustomerDepth, days: LtvFlagshipWindow): number {
+  switch (days) {
+    case 30:
+      return customer.ordersD30;
+    case 90:
+      return customer.ordersD90;
+    case 365:
+      return customer.ordersD365;
+    default: {
+      const _exhaustive: never = days;
+      return _exhaustive;
+    }
+  }
+}
+
+function windowLabel(days: LtvFlagshipWindow): string {
+  switch (days) {
+    case 30:
+      return "First 30 days";
+    case 90:
+      return "First 90 days";
+    case 365:
+      return "First year";
+    default: {
+      const _exhaustive: never = days;
+      return _exhaustive;
+    }
+  }
+}
+
+export function matureForWindow(
+  customers: CustomerDepth[],
+  asOf: Date,
+  days: LtvFlagshipWindow,
+): CustomerDepth[] {
+  return customers.filter((c) => daysBetween(c.firstOrderedAt, asOf) >= days);
+}
+
+// —— 30 / 90 / 365 retention + revenue (blended + first-order months) ————————
+
+export interface FlagshipWindowPoint {
+  days: LtvFlagshipWindow;
+  label: string;
+  /** Share who placed a second order inside the window (mature buyers only). */
+  retention: number | null;
+  /** Average net dollars per mature buyer through the window. */
+  revenue: number | null;
+  n: number;
+}
+
+export interface FlagshipWindowCurve {
+  points: FlagshipWindowPoint[];
+}
+
+export interface FlagshipMonthRow {
+  cohortMonth: string;
+  label: string;
+  customers: number;
+  retain30: number | null;
+  retain90: number | null;
+  retain365: number | null;
+  rev30: number | null;
+  rev90: number | null;
+  rev365: number | null;
+}
+
+/**
+ * Come-back share among buyers whose first order is at least `days` old:
+ * they placed a second order on or before day `days`. Null when too few
+ * buyers have lived the window — never a fake 0%.
+ */
+export function windowRetention(
+  customers: CustomerDepth[],
+  asOf: Date,
+  days: LtvFlagshipWindow,
+  options?: { minMature?: number },
+): { rate: number | null; n: number } {
+  const minMature = options?.minMature ?? FLAGSHIP_MIN_MATURE;
+  const mature = matureForWindow(customers, asOf, days);
+  if (mature.length < minMature) return { rate: null, n: mature.length };
+  let back = 0;
+  for (const c of mature) {
+    if (c.reorderDays != null && c.reorderDays <= days) back += 1;
+  }
+  return { rate: back / mature.length, n: mature.length };
+}
+
+/**
+ * Average net dollars through the window among buyers who have lived it.
+ * Null when too few buyers have lived the window — never $0 LTV.
+ */
+export function windowRevenue(
+  customers: CustomerDepth[],
+  asOf: Date,
+  days: LtvFlagshipWindow,
+  options?: { minMature?: number },
+): { revenue: number | null; n: number } {
+  const minMature = options?.minMature ?? FLAGSHIP_MIN_MATURE;
+  const mature = matureForWindow(customers, asOf, days);
+  if (mature.length < minMature) return { revenue: null, n: mature.length };
+  return {
+    revenue: mean(mature.map((c) => windowSpend(c, days))),
+    n: mature.length,
+  };
+}
+
+/**
+ * Blended 30 / 90 / 365 come-back + revenue. A point stays null when that
+ * horizon has not matured for enough buyers (Live ~60 days cannot seal a year).
+ */
+export function flagshipWindowCurve(
+  customers: CustomerDepth[],
+  asOf: Date,
+  options?: { minMature?: number },
+): FlagshipWindowCurve | null {
+  if (customers.length === 0) return null;
+  const points = LTV_FLAGSHIP_WINDOWS.map((days) => {
+    const retain = windowRetention(customers, asOf, days, options);
+    const rev = windowRevenue(customers, asOf, days, options);
+    return {
+      days,
+      label: windowLabel(days),
+      retention: retain.rate,
+      revenue: rev.revenue,
+      n: Math.max(retain.n, rev.n),
+    };
+  });
+  if (points.every((p) => p.retention == null && p.revenue == null)) return null;
+  return { points };
+}
+
+function monthWindowCell(
+  members: CustomerDepth[],
+  asOf: Date,
+  days: LtvFlagshipWindow,
+): { retain: number | null; revenue: number | null } {
+  const mature = matureForWindow(members, asOf, days);
+  if (mature.length === 0) return { retain: null, revenue: null };
+  let back = 0;
+  for (const c of mature) {
+    if (c.reorderDays != null && c.reorderDays <= days) back += 1;
+  }
+  return {
+    retain: back / mature.length,
+    revenue: mean(mature.map((c) => windowSpend(c, days))),
+  };
+}
+
+/**
+ * Per first-order month: 30 / 90 / 365 come-back share and dollars per buyer.
+ * Young months keep later columns as null (—), never a sealed 0% / $0 year.
+ */
+export function flagshipMonthRows(
+  customers: CustomerDepth[],
+  asOf: Date,
+  options?: { maxRows?: number },
+): FlagshipMonthRow[] {
+  const maxRows = options?.maxRows ?? FLAGSHIP_MAX_MONTH_ROWS;
+  const groups = new Map<string, CustomerDepth[]>();
+  for (const c of customers) {
+    const list = groups.get(c.cohortMonth) ?? [];
+    list.push(c);
+    groups.set(c.cohortMonth, list);
+  }
+  const months = [...groups.keys()].sort();
+  const rows: FlagshipMonthRow[] = [];
+  for (const cohortMonth of months.slice(-maxRows)) {
+    const members = groups.get(cohortMonth) ?? [];
+    if (members.length === 0) continue;
+    const d30 = monthWindowCell(members, asOf, 30);
+    const d90 = monthWindowCell(members, asOf, 90);
+    const d365 = monthWindowCell(members, asOf, 365);
+    rows.push({
+      cohortMonth,
+      label: monthLabel(cohortMonth),
+      customers: members.length,
+      retain30: d30.retain,
+      retain90: d90.retain,
+      retain365: d365.retain,
+      rev30: d30.revenue,
+      rev90: d90.revenue,
+      rev365: d365.revenue,
+    });
+  }
+  return rows;
+}
+
+// —— Transparent predictive LTV (historical analog, written out) ————————————
+
+export interface PredictiveLtv {
+  /** Average first-order dollars among buyers who have lived 90 days. */
+  firstOrder90: number | null;
+  /** Average extra orders in the first 90 days (zeros included). */
+  extraOrders90: number | null;
+  /** Average later-order dollars among 90-day repeaters. */
+  laterOrder90: number | null;
+  /** firstOrder90 + extraOrders90 × laterOrder90 */
+  predicted90: number | null;
+  /** Observed first-90 average among the same mature buyers. */
+  observed90: number | null;
+  nMature90: number;
+  firstOrder365: number | null;
+  extraOrders365: number | null;
+  laterOrder365: number | null;
+  predicted365: number | null;
+  observed365: number | null;
+  nMature365: number;
+  formula90: string;
+  formula365: string | null;
+}
+
+function laterOrderAverage(
+  mature: CustomerDepth[],
+  days: LtvFlagshipWindow,
+): number | null {
+  const later: number[] = [];
+  for (const c of mature) {
+    const extra = Math.max(0, windowOrders(c, days) - 1);
+    if (extra <= 0) continue;
+    const extraDollars = Math.max(0, windowSpend(c, days) - c.firstAmount);
+    later.push(extraDollars / extra);
+  }
+  return mean(later);
+}
+
+function extraOrderAverage(
+  mature: CustomerDepth[],
+  days: LtvFlagshipWindow,
+): number | null {
+  if (mature.length === 0) return null;
+  return mean(mature.map((c) => Math.max(0, windowOrders(c, days) - 1)));
+}
+
+function predictedFromParts(
+  firstOrder: number | null,
+  extraOrders: number | null,
+  laterOrder: number | null,
+): number | null {
+  if (firstOrder == null) return null;
+  return firstOrder + (extraOrders ?? 0) * (laterOrder ?? 0);
+}
+
+function formulaLine(
+  label: string,
+  firstOrder: number,
+  extraOrders: number,
+  laterOrder: number,
+  predicted: number,
+): string {
+  const later = laterOrder > 0 ? laterOrder : 0;
+  return (
+    `${label} ≈ average first order + average extra orders × average later order` +
+    ` → ${firstOrder.toFixed(2)} + ${extraOrders.toFixed(2)} × ${later.toFixed(2)}` +
+    ` = ${predicted.toFixed(2)}`
+  );
+}
+
+/**
+ * Historical-analog estimate written as algebra — not a hidden model.
+ *
+ * First 90 days ≈ average first order
+ *   + average extra orders in those 90 days
+ *   × average later-order dollars
+ *
+ * Taken only among buyers whose first order is at least 90 days ago.
+ * First year uses the same shape among buyers with a full year on file.
+ * A missing year stays null (Live ~60 days) — never a invented 365.
+ */
+export function predictiveLtv(
+  customers: CustomerDepth[],
+  asOf: Date,
+  options?: { minMature?: number },
+): PredictiveLtv | null {
+  const minMature = options?.minMature ?? FLAGSHIP_MIN_MATURE;
+  const mature90 = matureForWindow(customers, asOf, 90);
+  const mature365 = matureForWindow(customers, asOf, 365);
+
+  const firstOrder90 = mean(mature90.map((c) => c.firstAmount));
+  const extraOrders90 = extraOrderAverage(mature90, 90);
+  const laterOrder90 = laterOrderAverage(mature90, 90);
+  const predicted90 =
+    mature90.length >= minMature
+      ? predictedFromParts(firstOrder90, extraOrders90, laterOrder90)
+      : null;
+  const observed90 =
+    mature90.length >= minMature
+      ? mean(mature90.map((c) => c.day90Spend))
+      : null;
+
+  const firstOrder365 = mean(mature365.map((c) => c.firstAmount));
+  const extraOrders365 = extraOrderAverage(mature365, 365);
+  const laterOrder365 = laterOrderAverage(mature365, 365);
+  const predicted365 =
+    mature365.length >= minMature
+      ? predictedFromParts(firstOrder365, extraOrders365, laterOrder365)
+      : null;
+  const observed365 =
+    mature365.length >= minMature
+      ? mean(mature365.map((c) => c.day365Spend))
+      : null;
+
+  if (predicted90 == null && predicted365 == null) return null;
+
+  return {
+    firstOrder90: mature90.length >= minMature ? firstOrder90 : null,
+    extraOrders90: mature90.length >= minMature ? extraOrders90 : null,
+    laterOrder90: mature90.length >= minMature ? laterOrder90 : null,
+    predicted90,
+    observed90,
+    nMature90: mature90.length,
+    firstOrder365: mature365.length >= minMature ? firstOrder365 : null,
+    extraOrders365: mature365.length >= minMature ? extraOrders365 : null,
+    laterOrder365: mature365.length >= minMature ? laterOrder365 : null,
+    predicted365,
+    observed365,
+    nMature365: mature365.length,
+    formula90:
+      predicted90 != null &&
+      firstOrder90 != null &&
+      extraOrders90 != null
+        ? formulaLine(
+            "First 90 days",
+            firstOrder90,
+            extraOrders90,
+            laterOrder90 ?? 0,
+            predicted90,
+          )
+        : "First 90 days ≈ average first order + average extra orders × average later order. Not enough buyers have lived 90 days yet.",
+    formula365:
+      predicted365 != null &&
+      firstOrder365 != null &&
+      extraOrders365 != null
+        ? formulaLine(
+            "First year",
+            firstOrder365,
+            extraOrders365,
+            laterOrder365 ?? 0,
+            predicted365,
+          )
+        : null,
+  };
+}
+
+// —— Refund honesty (net of refunds when gross is on file) ——————————————————
+
+export type RefundHonestyBasis =
+  | "shopify_current_total"
+  | "sample_gross_known"
+  | "unknown";
+
+export interface RefundHonesty {
+  /**
+   * True only when at least one order carried a known gross above net.
+   * False means we do not invent a refund total — not “$0 refunds.”
+   */
+  brokenOut: boolean;
+  /** Net shop dollars (the LTV numerator). */
+  netDollars: number;
+  /** Σ (gross − net) on orders that carried a known gross, else null. */
+  refundedDollars: number | null;
+  /** Refunded ÷ (net + refunded) when refunds are broken out. */
+  refundShare: number | null;
+  orderCount: number;
+  refundedOrderCount: number | null;
+  basis: RefundHonestyBasis;
+}
+
+/**
+ * Refund honesty from order rows. Live facts store Shopify Total Sales
+ * (`currentTotalPriceSet`, already net). SAMPLE may carry `grossAmount` so
+ * the haircut is visible. A missing gross is never filled in.
+ */
+export function refundHonesty(
+  orders: DepthOrder[],
+  options: { sample: boolean },
+): RefundHonesty {
+  let netDollars = 0;
+  let refundedDollars = 0;
+  let knownGross = 0;
+  let refundedOrderCount = 0;
+  let orderCount = 0;
+
+  for (const o of orders) {
+    if (!o.customerKey) continue;
+    if (!Number.isFinite(o.amount)) continue;
+    const net = Math.max(0, o.amount);
+    orderCount += 1;
+    netDollars += net;
+    if (o.grossAmount == null || !Number.isFinite(o.grossAmount)) continue;
+    knownGross += 1;
+    const gross = Math.max(net, o.grossAmount);
+    const refunded = Math.max(0, gross - net);
+    refundedDollars += refunded;
+    if (refunded > 0.005) refundedOrderCount += 1;
+  }
+
+  const brokenOut = knownGross > 0 && refundedDollars > 0;
+  let basis: RefundHonestyBasis;
+  if (brokenOut && options.sample) {
+    basis = "sample_gross_known";
+  } else if (options.sample) {
+    basis = "sample_gross_known";
+  } else if (orderCount > 0) {
+    basis = "shopify_current_total";
+  } else {
+    basis = "unknown";
+  }
+
+  if (!brokenOut) {
+    return {
+      brokenOut: false,
+      netDollars,
+      refundedDollars: null,
+      refundShare: null,
+      orderCount,
+      refundedOrderCount: null,
+      basis,
+    };
+  }
+
+  const gross = netDollars + refundedDollars;
+  return {
+    brokenOut: true,
+    netDollars,
+    refundedDollars,
+    refundShare: gross > 0 ? refundedDollars / gross : null,
+    orderCount,
+    refundedOrderCount,
+    basis,
+  };
+}
+
+// —— Path LTV clarity (best journey vs shop, same-product share) ————————————
+
+export interface PathClarity {
+  bestLifetime: PathLtvRow;
+  best90: PathLtvRow | null;
+  /** Best-journey lifetime ÷ shop average lifetime. */
+  lift: number | null;
+  /** Share of named-journey buyers who bought the same product again. */
+  sameProductShare: number | null;
+  shopLifetime: number;
+}
+
+/**
+ * One-screen read on first→second journeys: the highest-LTV path, its lift
+ * versus the shop average, and how often the second order is the same product.
+ * Null when no named journeys cleared the buyer floor (live titles hidden).
+ */
+export function pathClarity(
+  paths: PathLtvRow[],
+  customers: CustomerDepth[],
+): PathClarity | null {
+  if (paths.length === 0 || customers.length === 0) return null;
+  const shopLifetime = mean(customers.map((c) => c.lifetimeSpend));
+  if (shopLifetime == null || shopLifetime <= 0) return null;
+  const bestLifetime = paths.reduce((lead, row) =>
+    row.lifetimeLtv > lead.lifetimeLtv ? row : lead,
+  );
+  const matured90 = paths.filter((row) => row.day90N > 0);
+  const best90 =
+    matured90.length > 0
+      ? matured90.reduce((lead, row) =>
+          row.day90Ltv > lead.day90Ltv ? row : lead,
+        )
+      : null;
+  const pathBuyers = paths.reduce((sum, row) => sum + row.buyers, 0);
+  const sameBuyers = paths
+    .filter((row) => row.samePath)
+    .reduce((sum, row) => sum + row.buyers, 0);
+  return {
+    bestLifetime,
+    best90,
+    lift: bestLifetime.lifetimeLtv / shopLifetime,
+    sameProductShare: pathBuyers > 0 ? sameBuyers / pathBuyers : null,
+    shopLifetime,
+  };
+}
+
+/** Depth pack plus the flagship 30/90/365 / predictive / refund / path cards. */
+export interface LtvFlagshipView extends LtvDepthView {
+  windows: FlagshipWindowCurve | null;
+  monthWindows: FlagshipMonthRow[];
+  predictive: PredictiveLtv | null;
+  refunds: RefundHonesty;
+  pathClarity: PathClarity | null;
+}
+
+/**
+ * One pass: existing depth pack, then the compete cards. Reuses the same
+ * customer roll-up — no second Shopify crawl.
+ */
+export function buildLtvFlagship(
+  orders: DepthOrder[],
+  asOf: Date,
+  options: { sample: boolean },
+): LtvFlagshipView {
+  const view = buildLtvDepth(orders, asOf, options);
+  const customers = rollUpCustomers(orders);
+  return {
+    ...view,
+    windows: flagshipWindowCurve(customers, asOf),
+    monthWindows: flagshipMonthRows(customers, asOf),
+    predictive: predictiveLtv(customers, asOf),
+    refunds: refundHonesty(orders, options),
+    pathClarity: pathClarity(view.paths, customers),
+  };
+}

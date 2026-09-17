@@ -9,6 +9,9 @@ import { LtvRetentionHeat } from "../components/LtvRetentionHeat";
 import { LtvTierTables } from "../components/LtvTierTables";
 import { LtvPathTable } from "../components/LtvPathTable";
 import { LtvWhaleRecency } from "../components/LtvWhaleRecency";
+import { LtvComeBackWindows } from "../components/LtvComeBackWindows";
+import { LtvPredictive } from "../components/LtvPredictive";
+import { LtvRefundHonesty } from "../components/LtvRefundHonesty";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ReviewAsk } from "../components/ReviewAsk";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
@@ -366,7 +369,11 @@ export default function LtvPage() {
       depth.paths.length > 0 ||
       depth.aov.length > 0 ||
       depth.basket.length > 0 ||
-      depth.whales,
+      depth.whales ||
+      depth.windows ||
+      depth.predictive ||
+      depth.monthWindows.length > 0 ||
+      (depth.refunds && depth.refunds.orderCount > 0),
   );
 
   return (
@@ -445,8 +452,8 @@ export default function LtvPage() {
         <section className="mcfly-book mcfly-depth-intro" aria-label="Order-history depth">
           <p className="mcfly-book__lede">
             {useSampleDesk
-              ? "Deeper order-history views below use SAMPLE Snowdevil orders — how spend builds month by month, who keeps ordering, which product journeys pay, what a first order becomes, and who your best customers are. Order history only, no spend."
-              : "Deeper order-history views — how spend builds month by month, who keeps ordering, first-order size vs lifetime value, and your best customers. Order history only, no spend."}
+              ? "Deeper order-history views below use SAMPLE Snowdevil orders — 30/90/365 come-back, the written-out estimate, how spend builds month by month, who keeps ordering, which product journeys pay, what a first order becomes, and who your best customers are. Order history only, no spend."
+              : "Deeper order-history views — 30/90/365 come-back, the written-out estimate, how spend builds month by month, who keeps ordering, first-order size vs lifetime value, and your best customers. Order history only, no spend."}
           </p>
         </section>
       ) : !useSampleDesk ? (
@@ -457,10 +464,13 @@ export default function LtvPage() {
         </p>
       ) : null}
 
+      <LtvRefundHonesty refunds={depth.refunds} />
+      <LtvComeBackWindows windows={depth.windows} months={depth.monthWindows} />
+      <LtvPredictive predictive={depth.predictive} />
       <LtvBuildCurves curves={depth.curves} />
       <LtvRetentionHeat heat={depth.retention} />
       <LtvTierTables aov={depth.aov} basket={depth.basket} />
-      <LtvPathTable paths={depth.paths} />
+      <LtvPathTable paths={depth.paths} clarity={depth.pathClarity} />
       <LtvWhaleRecency whales={depth.whales} />
 
       {economicsRows.length > 0 ? (
