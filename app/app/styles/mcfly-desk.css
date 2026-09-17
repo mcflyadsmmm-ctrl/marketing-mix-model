@@ -79,7 +79,11 @@
 
   .mcfly-explorer__tip,
   .mcfly-explorer__tip--float,
-  .mcfly-chart__tip {
+  .mcfly-chart__tip,
+  .mcfly-desk-tabs a.mcfly-desk-tabs__pill,
+  .mcfly-desk-tabs__pill,
+  .mcfly-period__btn,
+  .mcfly-explorer__btn {
     transition: none !important;
   }
 }
@@ -12785,6 +12789,47 @@ button.mcfly-chart__month {
     -webkit-overflow-scrolling: touch;
   }
 
+  /* SVG viewBoxes (640 / 720) must not inflate the Admin iframe. */
+  .mcfly-desk,
+  .mcfly-desk-anchor,
+  .mcfly-score,
+  .mcfly-yoy,
+  .mcfly-orders-intel,
+  .mcfly-chart,
+  .mcfly-chart__plot,
+  .mcfly-explorer,
+  .mcfly-explorer__scroll,
+  .mcfly-explorer__chart {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .mcfly-chart__svg,
+  .mcfly-chart--dual .mcfly-chart__svg,
+  .mcfly-chart--weekdays .mcfly-chart__svg,
+  .mcfly-chart--yoy .mcfly-chart__svg,
+  .mcfly-cust-mix .mcfly-chart__svg,
+  .mcfly-growth-ex .mcfly-chart__svg {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+  }
+
+  .mcfly-explorer__controls,
+  .mcfly-explorer__dates,
+  .mcfly-chart__controls,
+  .mcfly-chart__dates {
+    flex-wrap: wrap;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .mcfly-explorer__date input[type="date"],
+  .mcfly-chart__date input {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .mcfly-chart__days {
     min-width: 18rem;
   }
@@ -13560,12 +13605,13 @@ button.mcfly-chart__month {
 
   .mcfly-yoy--glance .mcfly-yoy__k {
     margin: 0;
-    font-size: 0.52rem;
-    letter-spacing: 0.03em;
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
   }
 
   .mcfly-yoy--glance .mcfly-yoy__v {
-    font-size: clamp(0.98rem, 4.5vw, 1.2rem);
+    font-size: clamp(1.02rem, 4.6vw, 1.18rem);
     margin: 0.18rem 0 0;
   }
 
@@ -18503,5 +18549,248 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
   .mcfly-book__kpi--soft,
   .mcfly-scoreboard__chip--soft {
     min-height: 0;
+  }
+}
+
+/* === 390 CSS Admin-iframe compatibility ===
+   Phone-width pass after Fly v355 / chart-smooth #91. Layout + interaction
+   only. Nav stays multi-row pills (#90) — do not rewrite IA. No new metrics
+   or accuracy math. SAMPLE canvas. Page never owns horizontal scroll;
+   charts/tables keep their own. Touch targets 2.75rem where practical. */
+@media (max-width: 430px) {
+  .mcfly-desk,
+  .mcfly-desk--chrome,
+  .mcfly-desk--sample,
+  .mcfly-score,
+  .mcfly-desk-anchor,
+  .mcfly-panel,
+  .mcfly-roas--soft,
+  .mcfly-spend-lean--soft,
+  .mcfly-ctx,
+  .mcfly-data-mode {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .mcfly-desk,
+  .mcfly-desk--chrome {
+    overflow-x: hidden;
+  }
+
+  /* Pills stay wrapped (#90). 44px hit area; labels stay nowrap so they
+     wrap as whole chips instead of smooshing into one string. */
+  .mcfly-desk-tabs,
+  .mcfly-desk-tabs--pills {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    max-width: 100%;
+  }
+
+  .mcfly-desk-tabs a.mcfly-desk-tabs__pill,
+  .mcfly-desk-tabs__pill {
+    min-height: 2.75rem;
+    padding: 0.4rem 0.62rem;
+    font-size: 0.76rem;
+  }
+
+  .mcfly-period,
+  .mcfly-period__group {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mcfly-period__group {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .mcfly-period__btn {
+    flex: 1 1 28%;
+    min-width: 4.75rem;
+    min-height: 2.75rem;
+  }
+
+  /* Dual-axis + explorer charts stay inside the card. */
+  .mcfly-chart,
+  .mcfly-chart--dual,
+  .mcfly-chart--sales,
+  .mcfly-chart--yoy,
+  .mcfly-cust-mix,
+  .mcfly-growth-ex,
+  .mcfly-explorer__scroll,
+  .mcfly-explorer__chart {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .mcfly-chart,
+  .mcfly-chart--dual,
+  .mcfly-chart--sales,
+  .mcfly-chart--yoy,
+  .mcfly-cust-mix,
+  .mcfly-growth-ex {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mcfly-chart__svg,
+  .mcfly-chart--dual .mcfly-chart__svg,
+  .mcfly-chart--sales .mcfly-chart__svg,
+  .mcfly-cust-mix .mcfly-chart__svg,
+  .mcfly-growth-ex .mcfly-chart__svg,
+  .mcfly-chart--yoy .mcfly-chart__svg {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mcfly-chart__plot {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .mcfly-chart__ytick,
+  .mcfly-chart__xtick {
+    font-size: 0.6rem;
+  }
+
+  /* Explorer / chart toolbars wrap; date fields stack instead of forcing
+     a page-wide min-width. */
+  .mcfly-explorer__controls,
+  .mcfly-explorer__dates,
+  .mcfly-explorer__segmented,
+  .mcfly-chart__controls,
+  .mcfly-chart__dates {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .mcfly-explorer__date,
+  .mcfly-chart__date {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .mcfly-explorer__date input[type="date"],
+  .mcfly-chart__date input {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: 2.75rem;
+    box-sizing: border-box;
+  }
+
+  .mcfly-explorer__btn,
+  .mcfly-explorer__sales-toggle,
+  .mcfly-explorer__cta,
+  .mcfly-explorer__btn--apply,
+  .mcfly-chart__controls .mcfly-period__btn {
+    min-height: 2.75rem;
+  }
+
+  .mcfly-explorer__chip {
+    min-width: 0;
+    flex: 1 1 calc(50% - 0.35rem);
+  }
+
+  /* Dense metric grids: stack or 2-up so dollar strings stay readable. */
+  .mcfly-control__chips,
+  .mcfly-spend-bill__grid,
+  .mcfly-cust-kpis,
+  .mcfly-home-till,
+  .mcfly-close-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mcfly-chart__stats,
+  .mcfly-compact,
+  .mcfly-book__glance,
+  .mcfly-orders-intel__kpis,
+  .mcfly-cust-kpis--actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mcfly-orders-tiers__row {
+    grid-template-columns: minmax(0, 5.4rem) minmax(0, 1fr) auto;
+  }
+
+  .mcfly-orders-tiers__k,
+  .mcfly-book__clock-v,
+  .mcfly-book__clock dd,
+  .mcfly-chart__stat-v,
+  .mcfly-chart__stat-sub {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .mcfly-spend-submit {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Glance / peek 3-up stays on the first screen (locked). Un-smoosh type. */
+  .mcfly-yoy--glance .mcfly-yoy__k,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__k {
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__v,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__v {
+    font-size: clamp(1.02rem, 4.6vw, 1.18rem);
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__label {
+    font-size: 0.62rem;
+    line-height: 1.25;
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__value {
+    font-size: clamp(1.02rem, 4.8vw, 1.22rem);
+  }
+
+  /* Tables scroll inside the wrap; first column stays visible. */
+  .mcfly-orders-ledger__wrap,
+  .mcfly-yoy-board__wrap,
+  .mcfly-goals-table-wrap,
+  .mcfly-ltv-dive__table-wrap,
+  .mcfly-depth-tablewrap,
+  .mcfly-spend-room__compare {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mcfly-orders-ledger__table,
+  .mcfly-yoy-board__table,
+  .mcfly-goals-table,
+  .mcfly-goals-table--sales,
+  .mcfly-ltv-dive__table,
+  .mcfly-depth-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .mcfly-orders-ledger__table th:first-child,
+  .mcfly-orders-ledger__table td:first-child,
+  .mcfly-orders-ledger__lh,
+  .mcfly-yoy-board__table th:first-child,
+  .mcfly-yoy-board__table tbody th,
+  .mcfly-goals-table th:first-child,
+  .mcfly-goals-table td:first-child,
+  .mcfly-ltv-dive__table th:first-child,
+  .mcfly-ltv-dive__table tbody th,
+  .mcfly-depth-table th:first-child,
+  .mcfly-depth-table tbody th[scope="row"] {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--mcfly-paper, #fff);
   }
 }

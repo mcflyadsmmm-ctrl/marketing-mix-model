@@ -215,4 +215,33 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css.slice(spineStart, spineEnd + 1)).toContain("overflow: visible");
     expect(css.slice(spineStart, spineEnd + 1)).not.toContain("overflow-x:");
   });
+
+  it("ships a 390 CSS pass: no page overflow, wrap toolbars, sticky table stub", () => {
+    const pass = lastBlock(css, "390 CSS Admin-iframe compatibility");
+    expect(pass).toMatch(/@media \(max-width: 430px\)/);
+    expect(pass).toContain("overflow-x: hidden");
+    expect(pass).toContain(".mcfly-explorer__controls");
+    expect(pass).toContain(".mcfly-chart__controls");
+    expect(pass).toContain("flex-wrap: wrap");
+    expect(pass).toContain(".mcfly-chart--dual");
+    expect(phone).toContain(".mcfly-chart--dual .mcfly-chart__svg");
+    expect(phone).toMatch(
+      /\.mcfly-chart--dual \.mcfly-chart__svg[\s\S]{0,400}max-width:\s*100%/,
+    );
+    expect(pass).toContain(".mcfly-orders-ledger__lh");
+    expect(pass).toContain(".mcfly-yoy-board__table tbody th");
+    expect(pass).toContain("position: sticky");
+    expect(pass).toContain("left: 0");
+    expect(pass).toContain(".mcfly-yoy--glance .mcfly-yoy__k");
+    expect(pass).toContain("font-size: 0.62rem");
+    expect(pass).toContain(".mcfly-desk-tabs a.mcfly-desk-tabs__pill");
+    expect(pass).toContain("min-height: 2.75rem");
+    expect(pass).toContain("overflow-x: auto");
+    expect(css).toMatch(
+      /prefers-reduced-motion: reduce[\s\S]*mcfly-desk-tabs__pill[\s\S]*transition:\s*none/,
+    );
+    expect(pass).not.toContain("SCOREBOARD");
+    expect(pass).not.toContain("read_all_orders");
+    expect(pass).not.toContain("0.00×");
+  });
 });
