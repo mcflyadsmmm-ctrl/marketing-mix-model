@@ -17,7 +17,7 @@
     <p class="mcfly-data-mode__status">
       <strong>SAMPLE data</strong>
       <span aria-hidden="true"> · </span>
-      Snowdevil example sales and spend so you can click around. Not this shop’s Shopify sales, and not spend you typed.
+      Snowdevil example sales so you can click around. Not this shop’s Shopify sales.
       <span aria-hidden="true"> · </span>
       Live is parked until launch
     </p>
@@ -92,9 +92,9 @@
     </section>
 
     <section class="mcfly-score mcfly-book" aria-label="Shopify sales this period">
-      <p class="mcfly-scoreboard__kicker">Snowdevil example sales — not this shop. Live is parked until launch.</p>
+      <p class="mcfly-scoreboard__kicker mcfly-scoreboard__kicker--sr">Snowdevil example sales — not this shop. Live is parked until launch.</p>
 
-      <div class="mcfly-kpi-grid mcfly-kpi-grid--peeks">
+      <div class="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead">
         <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
           <span class="mcfly-kpi__label">Typical order</span>
           <span class="mcfly-kpi__value">$631</span>
@@ -110,21 +110,6 @@
           <span class="mcfly-kpi__value">23%</span>
           <span class="mcfly-kpi__sub">Weekday 77%</span>
           <span class="mcfly-split" aria-hidden="true"><span class="mcfly-split__weekend" style="width:23%"></span></span>
-        </button>
-        <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
-          <span class="mcfly-kpi__label">Typical day</span>
-          <span class="mcfly-kpi__value">$4,279</span>
-          <span class="mcfly-kpi__sub">Median daily sales</span>
-        </button>
-        <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
-          <span class="mcfly-kpi__label">Orders</span>
-          <span class="mcfly-kpi__value">108</span>
-          <span class="mcfly-kpi__sub">This window</span>
-        </button>
-        <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
-          <span class="mcfly-kpi__label">Busiest weekday</span>
-          <span class="mcfly-kpi__value">$13,264</span>
-          <span class="mcfly-kpi__sub">Wed · 19% of sales</span>
         </button>
       </div>
     </section>
@@ -158,6 +143,26 @@
         <path class="mcfly-chart__sales-line" d="M24 114 L62 72 L100 66 L138 111 L176 105 L214 126 L252 135 L290 96 L328 84 L366 78 L404 117 L442 99 L480 108 L518 129 L556 138 L594 90"></path>
       </svg>
       <p class="mcfly-chart__hint">Tap a bar · Day / Week is on this chart · Sat–Sun shaded</p>
+    </section>
+
+    <section class="mcfly-score mcfly-book mcfly-score--depth" aria-label="More Shopify order depth">
+      <div class="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-depth">
+        <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
+          <span class="mcfly-kpi__label">Typical day</span>
+          <span class="mcfly-kpi__value">$4,279</span>
+          <span class="mcfly-kpi__sub">Median daily sales</span>
+        </button>
+        <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
+          <span class="mcfly-kpi__label">Orders</span>
+          <span class="mcfly-kpi__value">108</span>
+          <span class="mcfly-kpi__sub">This window</span>
+        </button>
+        <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
+          <span class="mcfly-kpi__label">Busiest weekday</span>
+          <span class="mcfly-kpi__value">$13,264</span>
+          <span class="mcfly-kpi__sub">Wed · 19% of sales</span>
+        </button>
+      </div>
     </section>
 
     <section class="mcfly-chart mcfly-chart--weekdays" aria-label="Sales by weekday">

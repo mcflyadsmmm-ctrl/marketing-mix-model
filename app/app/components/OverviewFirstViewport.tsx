@@ -13,6 +13,25 @@ import {
 import { SAMPLE_OVERVIEW_DOOR } from "../lib/sample-live-handoff";
 import { useDeskCurrency } from "../lib/desk-currency";
 
+export type OverviewPeekProps = {
+  "aria-label"?: string;
+  orderCount: number;
+  typicalOrder: number | null;
+  meanAov: number | null;
+  typicalDay?: number | null;
+  returningSalesShare: number | null;
+  returningSales?: number | null;
+  medianDaysToSecond?: number | null;
+  weekendSalesShare?: number | null;
+  peakWeekday?: number | null;
+  weekdaySalesShare?: number[] | null;
+  windowSales?: number | null;
+  salesPending: boolean;
+  ordersHref: string;
+  settingsHref?: string;
+  useSampleDesk?: boolean;
+};
+
 function PeekCard({
   to,
   nextLabel,
@@ -67,13 +86,7 @@ function PeekCard({
   );
 }
 
-/**
- * Shopify-depth peeks under the YoY glance.
- * Typical ticket, returning dollars, weekend vs weekday, typical day,
- * order count, busiest weekday — order facts only. Pending paints dashes.
- */
-export function OverviewFirstViewport({
-  "aria-label": ariaLabel = "Shopify sales this period",
+function useOverviewPeekValues({
   orderCount,
   typicalOrder,
   meanAov,
@@ -85,26 +98,7 @@ export function OverviewFirstViewport({
   weekdaySalesShare,
   windowSales,
   salesPending,
-  ordersHref,
-  useSampleDesk = false,
-}: {
-  "aria-label"?: string;
-  orderCount: number;
-  typicalOrder: number | null;
-  meanAov: number | null;
-  typicalDay?: number | null;
-  returningSalesShare: number | null;
-  returningSales?: number | null;
-  medianDaysToSecond?: number | null;
-  weekendSalesShare?: number | null;
-  peakWeekday?: number | null;
-  weekdaySalesShare?: number[] | null;
-  windowSales?: number | null;
-  salesPending: boolean;
-  ordersHref: string;
-  settingsHref?: string;
-  useSampleDesk?: boolean;
-}) {
+}: OverviewPeekProps) {
   const currency = useDeskCurrency();
   const typicalIsMedian =
     typicalOrder != null && Number.isFinite(typicalOrder);
@@ -147,6 +141,46 @@ export function OverviewFirstViewport({
       ? formatCurrency(busiest.dollars, currency)
       : `${busiest.pct}%`
     : "—";
+  return {
+    currency,
+    typicalIsMedian,
+    returningValue,
+    returningShare,
+    weekend,
+    typicalCardValue,
+    typicalDayValue,
+    ordersValue,
+    busiest,
+    busiestValue,
+  };
+}
+
+/**
+ * Founder glance peeks under YoY — typical order, returning $, weekend.
+ * Depth peeks sit after the open sales chart so the first screen stays a
+ * scoreboard, not a pamphlet.
+ */
+export function OverviewFirstViewport({
+  "aria-label": ariaLabel = "Shopify sales this period",
+  ordersHref,
+  useSampleDesk = false,
+  salesPending,
+  orderCount,
+  ...rest
+}: OverviewPeekProps) {
+  const {
+    typicalIsMedian,
+    returningValue,
+    returningShare,
+    weekend,
+    typicalCardValue,
+  } = useOverviewPeekValues({
+    ...rest,
+    orderCount,
+    ordersHref,
+    useSampleDesk,
+    salesPending,
+  });
   const kicker = salesPending
     ? OVERVIEW_PENDING_LINE
     : useSampleDesk
@@ -157,9 +191,17 @@ export function OverviewFirstViewport({
 
   return (
     <section className="mcfly-score mcfly-book" aria-label={ariaLabel}>
-      <p className="mcfly-scoreboard__kicker">{kicker}</p>
+      <p
+        className={
+          useSampleDesk && !salesPending
+            ? "mcfly-scoreboard__kicker mcfly-scoreboard__kicker--sr"
+            : "mcfly-scoreboard__kicker"
+        }
+      >
+        {kicker}
+      </p>
 
-      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks">
+      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead">
         <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
@@ -215,6 +257,32 @@ export function OverviewFirstViewport({
             ) : null
           }
         />
+      </div>
+    </section>
+  );
+}
+
+/** Typical day, orders, busiest weekday — after the open sales chart. */
+export function OverviewDepthPeeks({
+  ordersHref,
+  salesPending,
+  orderCount,
+  ...rest
+}: OverviewPeekProps) {
+  const { typicalDayValue, ordersValue, busiest, busiestValue } =
+    useOverviewPeekValues({
+      ...rest,
+      orderCount,
+      ordersHref,
+      salesPending,
+    });
+
+  return (
+    <section
+      className="mcfly-score mcfly-book mcfly-score--depth"
+      aria-label="More Shopify order depth"
+    >
+      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-depth">
         <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
@@ -238,9 +306,7 @@ export function OverviewFirstViewport({
           label="Orders"
           value={ordersValue}
           sub={
-            salesPending || !(orderCount > 0)
-              ? undefined
-              : "This window"
+            salesPending || !(orderCount > 0) ? undefined : "This window"
           }
         />
         <PeekCard
@@ -252,9 +318,7 @@ export function OverviewFirstViewport({
           label={PRODUCT_NOUN.bookBusiestWeekday}
           value={busiestValue}
           sub={
-            busiest
-              ? `${busiest.label} · ${busiest.pct}% of sales`
-              : undefined
+            busiest ? `${busiest.label} · ${busiest.pct}% of sales` : undefined
           }
         />
       </div>

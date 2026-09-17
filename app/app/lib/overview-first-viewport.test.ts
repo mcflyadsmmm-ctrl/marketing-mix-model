@@ -114,11 +114,13 @@ describe("overview first viewport", () => {
     const yoyAt = overview.indexOf("<OverviewYoyCards");
     const viewportAt = overview.indexOf("<OverviewFirstViewport");
     const chartAt = overview.indexOf("<OverviewSalesChart");
+    const depthAt = overview.indexOf("<OverviewDepthPeeks");
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
     expect(yoyAt).toBeGreaterThan(-1);
     expect(viewportAt).toBeGreaterThan(yoyAt);
     expect(chartAt).toBeGreaterThan(viewportAt);
-    expect(weekdayAt).toBeGreaterThan(chartAt);
+    expect(depthAt).toBeGreaterThan(chartAt);
+    expect(weekdayAt).toBeGreaterThan(depthAt);
     expect(overview).toContain("medianDailySales");
     expect(overview).toContain("peakWeekday");
     expect(overview).toContain("windowSales");

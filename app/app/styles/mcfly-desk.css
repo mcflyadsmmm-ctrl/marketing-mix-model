@@ -13196,24 +13196,66 @@ button.mcfly-chart__month {
   }
 }
 
+.mcfly-scoreboard__kicker--sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mcfly-score .mcfly-kpi-grid--peeks-lead,
+.mcfly-score .mcfly-kpi-grid--peeks-depth {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0 0 0.65rem;
+}
+
+.mcfly-score--depth {
+  margin-top: 0.15rem;
+}
+
+.mcfly-yoy__card {
+  padding: 0.7rem 0.8rem 0.65rem;
+}
+
+.mcfly-yoy__prior {
+  margin: 0.4rem 0 0;
+  padding-top: 0.35rem;
+}
+
+@media (max-width: 720px) {
+  .mcfly-score .mcfly-kpi-grid--peeks-lead,
+  .mcfly-score .mcfly-kpi-grid--peeks-depth {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 430px) {
-  .mcfly-score .mcfly-kpi-grid,
-  .mcfly-score .mcfly-kpi-grid--peeks,
-  .mcfly-score .mcfly-kpi-grid--peeks-2,
-  .mcfly-score .mcfly-kpi-grid--peeks-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.55rem;
+  .mcfly-score .mcfly-kpi-grid--peeks-lead,
+  .mcfly-score .mcfly-kpi-grid--peeks-depth {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
   }
 
   .mcfly-kpi--peek {
-    padding: 0.65rem 0.7rem 0.6rem;
+    padding: 0.55rem 0.5rem 0.5rem;
   }
 
   .mcfly-kpi--peek .mcfly-kpi__value {
-    font-size: clamp(1.12rem, 5.8vw, 1.45rem);
+    font-size: clamp(0.98rem, 4.6vw, 1.2rem);
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__label {
+    font-size: 0.58rem;
   }
 
   .mcfly-chart--sales .mcfly-chart__svg {
-    min-height: 11.5rem;
+    min-height: 10.5rem;
   }
 }

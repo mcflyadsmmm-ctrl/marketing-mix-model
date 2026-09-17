@@ -16,7 +16,10 @@ import {
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
-import { OverviewFirstViewport } from "../components/OverviewFirstViewport";
+import {
+  OverviewDepthPeeks,
+  OverviewFirstViewport,
+} from "../components/OverviewFirstViewport";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
@@ -622,6 +625,25 @@ export default function Dashboard() {
                   ordersHref={ordersHref}
                   salesPending={greetingPending}
                   typicalDay={metrics.shopifyDepth.medianDailySales}
+                />
+                <OverviewDepthPeeks
+                  orderCount={metrics.orderCount}
+                  typicalOrder={metrics.shopifyDepth.medianAov}
+                  meanAov={
+                    metrics.orderCount > 0
+                      ? metrics.sales / metrics.orderCount
+                      : null
+                  }
+                  typicalDay={metrics.shopifyDepth.medianDailySales}
+                  returningSalesShare={shopBook.returningSalesShare}
+                  returningSales={shopBook.returningSales}
+                  weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                  peakWeekday={metrics.shopifyDepth.peakWeekday}
+                  weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
+                  windowSales={metrics.sales}
+                  salesPending={greetingPending}
+                  ordersHref={ordersHref}
+                  useSampleDesk={useSampleDesk}
                 />
                 {!greetingPending ? (
                   <WeekdaySalesChart

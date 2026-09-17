@@ -171,6 +171,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(overview).toContain("<OverviewYoyCards");
     expect(overview).toContain("<OverviewFirstViewport");
     expect(overview).toContain("<OverviewSalesChart");
+    expect(overview).toContain("<OverviewDepthPeeks");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
     expect(firstView).toContain("mcfly-kpi--peek");
     expect(fixture).toContain('aria-label="Sales by day"');

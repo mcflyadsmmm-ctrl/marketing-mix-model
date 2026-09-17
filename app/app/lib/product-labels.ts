@@ -180,7 +180,7 @@ export const PRODUCT_NOUN = {
   liveData: "Live data",
   samplePeriodSuffix: " · Sample data",
   sampleHint:
-    "Snowdevil example sales and spend so you can click around. Not this shop’s Shopify sales, and not spend you typed.",
+    "Snowdevil example sales so you can click around. Not this shop’s Shopify sales.",
   liveDataHint:
     "This shop’s Shopify sales and the ad spend you add.",
   sampleHiddenStatus: "Sample data is hidden in Settings",
