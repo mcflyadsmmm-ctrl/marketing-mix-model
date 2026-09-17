@@ -332,11 +332,12 @@ describe("Goals, CPA, and Allocation honesty", () => {
 
   it("keeps CPA/CAC as dashes without spend and cards once spend exists", () => {
     const cpa = read("../routes/app.cpa.tsx");
-    expect(cpa).toMatch(/hasSpend && cashCpa != null/);
-    expect(cpa).toMatch(/hasSpend && cashCac != null/);
-    expect(cpa).toContain(': "—"');
-    expect(cpa).toContain("<BookFactGrid");
+    expect(cpa).toContain("hasSpend ? (");
+    expect(cpa).toContain("<CpaWindowCards");
+    expect(cpa).toContain("<CpaPaybackDesk");
+    expect(cpa).toContain("CPA_EMPTY_SPEND");
     expect(cpa).not.toContain("0.00×");
+    expect(cpa).not.toContain("<BookFactGrid");
   });
 
   it("shows Allocation snapshot cards and dashes sales while pending", () => {
