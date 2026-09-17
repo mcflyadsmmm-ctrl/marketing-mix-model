@@ -13793,6 +13793,7 @@ button.mcfly-chart__month {
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--mcfly-ink);
+  white-space: nowrap;
 }
 
 .mcfly-score .mcfly-kpi-grid--orders-depth,
@@ -13874,16 +13875,22 @@ button.mcfly-chart__hour {
     font-size: clamp(1.85rem, 11vw, 2.45rem);
   }
 
+  .mcfly-orders-hero__sub,
+  .mcfly-orders-hero__def {
+    font-size: 0.74rem;
+    line-height: 1.35;
+  }
+
   .mcfly-scoreboard--orders .mcfly-book__clock {
     gap: 0.35rem;
   }
 
   .mcfly-scoreboard--orders .mcfly-book__clock > * {
-    padding: 0.5rem 0.45rem 0.45rem;
+    padding: 0.5rem 0.4rem 0.45rem;
   }
 
   .mcfly-scoreboard--orders .mcfly-book__clock-v {
-    font-size: clamp(0.86rem, 4.1vw, 1.05rem);
+    font-size: clamp(0.78rem, 3.6vw, 0.96rem);
   }
 
   .mcfly-score .mcfly-kpi-grid--orders-depth,
@@ -13892,16 +13899,27 @@ button.mcfly-chart__hour {
     gap: 0.4rem;
   }
 
+  .mcfly-score .mcfly-kpi-grid--orders-depth > .mcfly-kpi:nth-child(4),
+  .mcfly-score .mcfly-kpi-grid--orders-timing > .mcfly-kpi:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
   .mcfly-scoreboard--orders .mcfly-kpi--peek {
     padding: 0.5rem 0.45rem 0.45rem;
   }
 
   .mcfly-scoreboard--orders .mcfly-kpi--peek .mcfly-kpi__value {
-    font-size: clamp(0.92rem, 4.4vw, 1.12rem);
+    font-size: clamp(0.88rem, 4.1vw, 1.08rem);
+    white-space: nowrap;
   }
 
   .mcfly-scoreboard--orders .mcfly-kpi--peek .mcfly-kpi__label {
     font-size: 0.56rem;
+  }
+
+  .mcfly-scoreboard--orders .mcfly-chart__day-v {
+    white-space: nowrap;
+    font-size: 0.52rem;
   }
 
   .mcfly-chart__hours {

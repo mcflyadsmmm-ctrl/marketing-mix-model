@@ -145,6 +145,15 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).toContain(".mcfly-scoreboard--orders");
     expect(css).toContain(".mcfly-kpi-grid--orders-depth");
     expect(css).toContain(".mcfly-chart__hours");
+    expect(css).toContain(
+      ".mcfly-score .mcfly-kpi-grid--orders-depth > .mcfly-kpi:nth-child(4)",
+    );
+    expect(css).toContain(
+      ".mcfly-scoreboard--orders .mcfly-book__clock-v",
+    );
+    expect(css).toContain(
+      ".mcfly-scoreboard--orders .mcfly-kpi--peek .mcfly-kpi__value",
+    );
   });
 
   it("keeps chart/table horizontal scroll inside those regions", () => {
