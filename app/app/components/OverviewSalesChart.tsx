@@ -3,6 +3,7 @@ import { formatCurrency } from "../lib/mer-format";
 import { OVERVIEW_PENDING_LINE } from "../lib/overview-first-viewport";
 import {
   overviewChartDayLabel,
+  overviewChartVsCopy,
   overviewVsTypical,
 } from "../lib/overview-sales-chart";
 import { DeskIcon } from "./DeskIcon";
@@ -122,35 +123,52 @@ export function OverviewSalesChart({
     typical != null
       ? baseline - Math.max(2, (typical / max) * plotH)
       : null;
-  const line = points
-    .map((point, index) => {
-      const x = gap + index * (barW + gap) + barW / 2;
-      const y = baseline - Math.max(2, (point.sales / max) * plotH);
-      return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
-    })
+  const linePts = points.map((point, index) => {
+    const x = gap + index * (barW + gap) + barW / 2;
+    const y = baseline - Math.max(2, (point.sales / max) * plotH);
+    return { x, y };
+  });
+  const line = linePts
+    .map((pt, index) => `${index === 0 ? "M" : "L"}${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
     .join(" ");
-  const hoverText = (point: SalesDayPoint): string => {
-    const sales = formatCurrency(point.sales, currency);
-    const vs = overviewVsTypical(point.sales, typical);
-    if (!vs) return `${overviewChartDayLabel(point.dateKey)} · ${sales}`;
-    if (vs.kind === "even") {
-      return `${overviewChartDayLabel(point.dateKey)} · ${sales} · even with typical`;
-    }
-    const signed = `${vs.kind === "up" ? "+" : "−"}${formatCurrency(Math.abs(vs.delta), currency)}`;
-    return `${overviewChartDayLabel(point.dateKey)} · ${sales} · ${signed} vs typical`;
-  };
+  const fill =
+    linePts.length >= 2
+      ? `M${linePts[0]!.x.toFixed(1)} ${baseline} ${linePts
+          .map((pt) => `L${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
+          .join(" ")} L${linePts[linePts.length - 1]!.x.toFixed(1)} ${baseline} Z`
+      : "";
+  const activeVs = active ? overviewVsTypical(active.sales, typical) : null;
+  const activeVsCopy =
+    activeVs != null
+      ? overviewChartVsCopy(
+          activeVs,
+          formatCurrency(Math.abs(activeVs.delta), currency),
+        )
+      : null;
 
   return (
     <section className="mcfly-chart mcfly-chart--sales" aria-label="Sales by day">
-      <div className="mcfly-chart__head">
+      <div className="mcfly-chart__head mcfly-chart__board">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
           Sales
         </p>
         {active ? (
-          <p className="mcfly-chart__hover" role="status">
-            {hoverText(active)}
-          </p>
+          <div className="mcfly-chart__readout" role="status">
+            <p className="mcfly-chart__when">
+              {overviewChartDayLabel(active.dateKey)}
+            </p>
+            <p className="mcfly-chart__hero">
+              {formatCurrency(active.sales, currency)}
+            </p>
+            {activeVsCopy ? (
+              <p
+                className={`mcfly-chart__vs mcfly-chart__vs--${activeVs?.kind ?? "even"}`}
+              >
+                {activeVsCopy}
+              </p>
+            ) : null}
+          </div>
         ) : (
           <p className="mcfly-chart__hover mcfly-chart__hover--idle" aria-hidden="true">
             Tap a bar
@@ -193,14 +211,26 @@ export function OverviewSalesChart({
             />
           );
         })}
+        {fill ? <path className="mcfly-chart__sales-fill" d={fill} /> : null}
         {typicalY != null ? (
-          <line
-            className="mcfly-chart__typical"
-            x1="0"
-            y1={typicalY.toFixed(1)}
-            x2={width}
-            y2={typicalY.toFixed(1)}
-          />
+          <>
+            <line
+              className="mcfly-chart__typical"
+              x1="0"
+              y1={typicalY.toFixed(1)}
+              x2={width}
+              y2={typicalY.toFixed(1)}
+            />
+            <text
+              className="mcfly-chart__typical-k"
+              x={width - 8}
+              y={Math.max(14, typicalY - 6)}
+              textAnchor="end"
+            >
+              typical
+              {typical != null ? ` ${formatCurrency(typical, currency)}` : ""}
+            </text>
+          </>
         ) : null}
         {points.map((point, index) => {
           const barH = Math.max(2, (point.sales / max) * plotH);

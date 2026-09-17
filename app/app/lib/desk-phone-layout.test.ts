@@ -54,6 +54,8 @@ describe("Admin desk phone / narrow iframe", () => {
     );
     expect(css).toContain(".mcfly-yoy--glance");
     expect(css).toContain(".mcfly-chart__typical");
+    expect(css).toContain(".mcfly-chart__hero");
+    expect(css).toContain(".mcfly-chart__sales-fill");
     expect(css).toContain("max-width: calc(33.333% - 0.24rem) !important");
   });
 
@@ -106,7 +108,11 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("mcfly-chart__sales-line");
     expect(fixture).toContain("mcfly-chart__typical");
     expect(fixture).toContain("mcfly-yoy--glance");
-    expect(fixture).toContain("Sep 16 · $5,184 · +$905 vs typical");
+    expect(fixture).toContain("mcfly-chart__hero");
+    expect(fixture).toContain("$5,184");
+    expect(fixture).toContain("+$905 vs typical");
+    expect(fixture).toContain("mcfly-chart__sales-fill");
+    expect(fixture).toContain("typical $4,279");
     expect(fixture).toContain("aria-label=\"Sales by day\"");
     expect(fixture).not.toContain("Harbor");
     expect(fixture).not.toContain("$92");

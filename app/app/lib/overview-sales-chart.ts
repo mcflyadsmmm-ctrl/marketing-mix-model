@@ -56,3 +56,22 @@ export function overviewVsTypical(
   if (Math.abs(delta) < 0.5) return { delta: 0, kind: "even" };
   return { delta, kind: delta > 0 ? "up" : "down" };
 }
+
+/** Chart-board copy. Shopify Analytics Overview has no typical-day compare. */
+export function overviewChartVsCopy(
+  vs: OverviewVsTypical,
+  dollars: string,
+): string {
+  switch (vs.kind) {
+    case "even":
+      return "even with typical";
+    case "up":
+      return `+${dollars} vs typical`;
+    case "down":
+      return `−${dollars} vs typical`;
+    default: {
+      const _never: never = vs.kind;
+      return _never;
+    }
+  }
+}

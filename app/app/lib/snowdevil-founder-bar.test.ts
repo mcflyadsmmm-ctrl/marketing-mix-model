@@ -176,6 +176,9 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(fixture).toContain("Weekend");
     expect(fixture).toContain("mcfly-chart__sales-line");
     expect(fixture).toContain("mcfly-chart__typical");
+    expect(fixture).toContain("mcfly-chart__sales-fill");
+    expect(fixture).toContain("mcfly-chart__hero");
+    expect(fixture).toContain("+$905 vs typical");
     expect(fixture).toContain("mcfly-yoy--glance");
     expect(fixture).not.toContain("0.00×");
     expect(fixture).not.toContain("QuietSpendDoor");

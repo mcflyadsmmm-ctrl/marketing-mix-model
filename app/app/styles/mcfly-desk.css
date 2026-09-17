@@ -13576,3 +13576,129 @@ button.mcfly-chart__month {
     min-height: 10.75rem;
   }
 }
+
+/* =========================================================================
+ * North star — sales board merchants keep open. Day vs typical is the
+ * Analytics gap. APPEND ONLY. Zero spend. SAMPLE stays labeled.
+ * ========================================================================= */
+
+.mcfly-chart--sales.mcfly-chart {
+  padding: 0.7rem 0.75rem 0.65rem;
+}
+
+.mcfly-chart__board {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: start;
+  column-gap: 0.65rem;
+  row-gap: 0.1rem;
+  margin: 0 0 0.35rem;
+}
+
+.mcfly-chart__board .mcfly-chart__title {
+  display: none;
+}
+
+.mcfly-chart__readout {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.mcfly-chart__when {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__hero {
+  margin: 0.05rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.55rem, 5.2vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-chart__vs {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__vs--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-chart__vs--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-chart__vs--even,
+.mcfly-chart__vs--plain {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__board .mcfly-period__group {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+}
+
+.mcfly-chart__sales-fill {
+  fill: color-mix(in srgb, var(--mcfly-accent) 20%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart__typical-k {
+  fill: var(--mcfly-mute);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.mcfly-chart--sales .mcfly-chart__weekend {
+  fill: color-mix(in srgb, var(--mcfly-accent) 16%, transparent);
+}
+
+.mcfly-chart--sales .mcfly-chart__typical {
+  stroke: var(--mcfly-ink);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  opacity: 0.55;
+}
+
+.mcfly-chart--sales .mcfly-chart__sales-line {
+  stroke-width: 2.1;
+}
+
+.mcfly-yoy--glance .mcfly-yoy__v {
+  white-space: nowrap;
+}
+
+.mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+  min-height: 13.25rem;
+}
+
+@media (max-width: 430px) {
+  .mcfly-chart__hero {
+    font-size: clamp(1.45rem, 7.2vw, 1.85rem);
+  }
+
+  .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+    min-height: 12.25rem;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__v {
+    font-size: clamp(1.02rem, 4.6vw, 1.22rem);
+  }
+}

@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   overviewChartDayLabel,
+  overviewChartVsCopy,
   overviewVsTypical,
 } from "./overview-sales-chart";
 
@@ -32,6 +33,15 @@ describe("overview sales chart labels", () => {
     });
     expect(overviewVsTypical(5184, null)).toBeNull();
     expect(overviewVsTypical(5184, 0)).toBeNull();
+    expect(
+      overviewChartVsCopy({ delta: 905, kind: "up" }, "$905"),
+    ).toBe("+$905 vs typical");
+    expect(
+      overviewChartVsCopy({ delta: 279, kind: "down" }, "$279"),
+    ).toBe("−$279 vs typical");
+    expect(
+      overviewChartVsCopy({ delta: 0, kind: "even" }, "$0"),
+    ).toBe("even with typical");
   });
 
   it("Overview chart draws a typical line and never a spend overlay", () => {
@@ -40,7 +50,12 @@ describe("overview sales chart labels", () => {
       "utf8",
     );
     expect(chart).toContain("mcfly-chart__typical");
+    expect(chart).toContain("mcfly-chart__typical-k");
+    expect(chart).toContain("mcfly-chart__sales-fill");
+    expect(chart).toContain("mcfly-chart__board");
+    expect(chart).toContain("mcfly-chart__hero");
     expect(chart).toContain("overviewChartDayLabel");
+    expect(chart).toContain("overviewChartVsCopy");
     expect(chart).toContain("overviewVsTypical");
     expect(chart).toContain("mcfly-chart__bar--hot");
     expect(chart).toContain("vs typical");

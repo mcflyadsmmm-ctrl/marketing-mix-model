@@ -160,6 +160,8 @@ describe("overview first viewport", () => {
     expect(chart).toContain("No days in this window yet");
     expect(chart).toContain("Tap a bar");
     expect(chart).toContain("mcfly-chart__typical");
+    expect(chart).toContain("mcfly-chart__sales-fill");
+    expect(chart).toContain("mcfly-chart__hero");
     expect(chart).toContain("overviewChartDayLabel");
     expect(chart).not.toContain("mcfly-chart__hint");
     expect(chart).not.toContain("mcfly-chart__spend-line");
