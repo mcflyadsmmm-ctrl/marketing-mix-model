@@ -19,8 +19,9 @@ export const OVERVIEW_YOY_PENDING =
   "Sales for closed days are still loading — not $0.";
 
 /** Shopify Analytics Overview is this period only; these cards add last year. */
-export const OVERVIEW_YOY_ANALYTICS_LEDE =
-  "Shopify Analytics shows this period’s sales. This page shows last year next to it.";
+export const OVERVIEW_YOY_ANALYTICS_LEDE = "Same days last year";
+
+export type OverviewYoyZone = "up" | "down" | "even" | "empty";
 
 /** When MTD/QTD/YTD collapse to the same ~60-day pull. */
 export const OVERVIEW_YOY_SAME_WINDOW =
@@ -48,6 +49,95 @@ export type OverviewYoyCard = {
   toKey: string | null;
   missingPrior: boolean;
 };
+
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+function parseDayKey(
+  key: string,
+): { year: number; month: number; day: number } | null {
+  const [year, month, day] = key.split("-").map(Number);
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day) ||
+    month < 1 ||
+    month > 12
+  ) {
+    return null;
+  }
+  return { year, month, day };
+}
+
+/** Certified window on the card — never a global slicer. */
+export function overviewWindowRange(
+  fromKey: string | null,
+  toKey: string | null,
+): string | null {
+  if (!fromKey || !toKey) return null;
+  const from = parseDayKey(fromKey);
+  const to = parseDayKey(toKey);
+  if (!from || !to) return null;
+  const fromMonth = MONTHS[from.month - 1];
+  const toMonth = MONTHS[to.month - 1];
+  if (!fromMonth || !toMonth) return null;
+  if (from.year === to.year && from.month === to.month) {
+    return `${fromMonth} ${from.day}–${to.day}`;
+  }
+  if (from.year === to.year) {
+    return `${fromMonth} ${from.day} – ${toMonth} ${to.day}`;
+  }
+  return `${fromMonth} ${from.day}, ${from.year} – ${toMonth} ${to.day}, ${to.year}`;
+}
+
+export function overviewYoyZone(
+  card: Pick<OverviewYoyCard, "delta" | "missingPrior">,
+): OverviewYoyZone {
+  if (card.missingPrior || card.delta == null) return "empty";
+  if (card.delta > 0) return "up";
+  if (card.delta < 0) return "down";
+  return "even";
+}
+
+/** Certified-window badge — honest Up / Down / Even, never a fake $0. */
+export function overviewYoyZoneLabel(zone: OverviewYoyZone): string | null {
+  switch (zone) {
+    case "up":
+      return "Up";
+    case "down":
+      return "Down";
+    case "even":
+      return "Even";
+    case "empty":
+      return null;
+    default: {
+      const _never: never = zone;
+      return _never;
+    }
+  }
+}
+
+/** Compact glance pct for the 3-up spine. Missing last year stays blank — not 0%. */
+export function overviewYoyDeltaPct(
+  card: Pick<OverviewYoyCard, "yoySalesPct" | "missingPrior">,
+): string | null {
+  if (card.missingPrior || card.yoySalesPct == null) return null;
+  const rounded = Math.round(card.yoySalesPct);
+  if (rounded === 0) return "Even";
+  return `${rounded > 0 ? "+" : ""}${rounded}%`;
+}
 
 function isYoyId(id: string): id is OverviewYoyId {
   return id === "mtd" || id === "qtd" || id === "ytd";

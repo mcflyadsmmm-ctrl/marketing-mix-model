@@ -1,16 +1,14 @@
+import { WEEKDAY_SHORT } from "./shopify-depth-stats";
 import { resolveSalesReadiness } from "./sales-pending";
 
 /**
- * Overview first viewport — Shopify-depth peeks after the YoY glance.
- * Total ROAS / ad spend / EOM projected ROAS never live here. Those sit on
- * Total ROAS after Spend Upload. Spend stays optional forever on this tab.
+ * Overview first viewport — Shopify-order-data only.
+ * Typical order, returning dollars, weekend vs weekday, and an open sales
+ * chart live here. Marketing tabs own entered cash later.
  */
 
 export const OVERVIEW_COVERAGE_LINE =
   "Shopify orders · last ~60 days available · returns included";
-
-export const OVERVIEW_SPEND_EMPTY_LINE =
-  "Spend is optional. Overview works without it.";
 
 export const OVERVIEW_PENDING_LINE =
   "Sales for closed days are still loading — not $0.";
@@ -18,8 +16,12 @@ export const OVERVIEW_PENDING_LINE =
 /** Overview as-of chip — never “still loading sales days” next to a sealed $0. */
 export const OVERVIEW_PENDING_ASOF = " · still loading — not $0";
 
-export const OVERVIEW_SPEND_DOOR_LINE =
-  "Spend is optional. Total ROAS lives on that tab after you add spend.";
+/** Live switch landed on Overview — sales only. Spend honesty lives later. */
+export const OVERVIEW_LIVE_HANDOFF_BODY =
+  "Shopify sales are this shop’s. SAMPLE dollars did not transfer.";
+
+export const OVERVIEW_SALES_ONLY_LINE =
+  "Sales in this window come from your Shopify orders.";
 
 export type OverviewNoticeInput = {
   orderCount: number;
@@ -50,6 +52,17 @@ export type OverviewPeekThird =
   | { kind: "weekend"; share: number }
   | { kind: "daysToSecond"; days: number }
   | { kind: "empty" };
+
+export type OverviewWeekendWeekday = {
+  weekendPct: number;
+  weekdayPct: number;
+};
+
+export type OverviewBusiestWeekday = {
+  label: string;
+  dollars: number | null;
+  pct: number;
+};
 
 function wholePercent(share: number): number {
   return Math.round(share * 100);
@@ -116,7 +129,7 @@ export function overviewNoticeSentence(input: OverviewNoticeInput): string {
   ) {
     return `${wholePercent(input.discountedOrderShare)}% of orders used a discount.`;
   }
-  return "Sales in this window come from your Shopify orders. Spend is optional.";
+  return OVERVIEW_SALES_ONLY_LINE;
 }
 
 /** Demo-desk takeaway — typical order + returning dollars, never an AI analyst. */
@@ -139,7 +152,7 @@ export function overviewDecisionTakeaway(input: OverviewTakeawayInput): string {
     return `Typical order around ${input.typicalOrderLabel}.`;
   }
   if (returning) return returning;
-  return "Sales in this window come from your Shopify orders. Spend is optional.";
+  return OVERVIEW_SALES_ONLY_LINE;
 }
 
 /**
@@ -157,6 +170,24 @@ export function overviewReturningCompactDollars(
     return returningSales;
   }
   return null;
+}
+
+/** Weekend vs weekday percents. Null until a real weekend share exists. */
+export function overviewWeekendWeekday(
+  weekendSalesShare?: number | null,
+): OverviewWeekendWeekday | null {
+  if (
+    weekendSalesShare == null ||
+    !Number.isFinite(weekendSalesShare)
+  ) {
+    return null;
+  }
+  const weekendPct = Math.round(weekendSalesShare * 100);
+  if (weekendPct <= 0) return null;
+  return {
+    weekendPct,
+    weekdayPct: Math.max(0, 100 - weekendPct),
+  };
 }
 
 /** Third peek: weekend share, else days-to-second. Never a fake 0%. */
@@ -177,4 +208,30 @@ export function overviewPeekThird(input: {
     return { kind: "daysToSecond", days };
   }
   return { kind: "empty" };
+}
+
+/** Peak weekday dollars for the Overview busiest peek. */
+export function overviewBusiestWeekday(input: {
+  peakWeekday?: number | null;
+  weekdaySalesShare?: number[] | null;
+  windowSales?: number | null;
+}): OverviewBusiestWeekday | null {
+  const peak = input.peakWeekday;
+  if (peak == null || !Number.isInteger(peak) || peak < 0 || peak > 6) {
+    return null;
+  }
+  const share = input.weekdaySalesShare?.[peak];
+  if (share == null || !Number.isFinite(share) || share <= 0) {
+    return null;
+  }
+  const windowSales = input.windowSales;
+  const dollars =
+    windowSales != null && Number.isFinite(windowSales) && windowSales > 0
+      ? windowSales * share
+      : null;
+  return {
+    label: WEEKDAY_SHORT[peak],
+    dollars,
+    pct: wholePercent(share),
+  };
 }

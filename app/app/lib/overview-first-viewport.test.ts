@@ -4,15 +4,30 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   OVERVIEW_COVERAGE_LINE,
+  OVERVIEW_LIVE_HANDOFF_BODY,
   OVERVIEW_PENDING_ASOF,
   OVERVIEW_PENDING_LINE,
-  OVERVIEW_SPEND_DOOR_LINE,
-  OVERVIEW_SPEND_EMPTY_LINE,
+  OVERVIEW_SALES_ONLY_LINE,
+  overviewBusiestWeekday,
   overviewGreetingPending,
   overviewNoticeSentence,
   overviewPeekThird,
   overviewReturningCompactDollars,
+  overviewWeekendWeekday,
 } from "./overview-first-viewport";
+
+/**
+ * Authority: docs/ops/CRAFT_UNLOCK.md (2026-09-16) then TAB_LOCK Overview.
+ * Dead locks (chart-none, omit-tiles, one hero, QuietSpendDoor) are not
+ * re-implemented. Update this file toward density, never toward a pamphlet.
+ */
+const OVERVIEW_SPEND_BANS = [
+  "Spend Upload",
+  "Total ROAS",
+  "Edit spend",
+  "Spend is optional",
+  "QuietSpendDoor",
+] as const;
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -78,16 +93,24 @@ describe("overview first viewport", () => {
         salesPending: false,
       }),
     ).toBe("40% of orders used a discount.");
+    expect(
+      overviewNoticeSentence({
+        orderCount: 40,
+        returningSalesShare: null,
+        discountedOrderShare: 0.1,
+        medianDaysToSecond: null,
+        salesPending: false,
+      }),
+    ).toBe(OVERVIEW_SALES_ONLY_LINE);
   });
 
   it("coverage line names the 60-day order window and returns", () => {
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/60 days/);
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/returns included/i);
-    expect(OVERVIEW_SPEND_EMPTY_LINE).toMatch(/works without it/i);
-    expect(OVERVIEW_SPEND_EMPTY_LINE).not.toMatch(/0×/);
-    expect(OVERVIEW_SPEND_EMPTY_LINE).not.toMatch(/0x/i);
-    expect(OVERVIEW_SPEND_DOOR_LINE).toMatch(/optional/i);
-    expect(OVERVIEW_SPEND_DOOR_LINE).not.toMatch(/0\.00×|0×|0x/i);
+    expect(OVERVIEW_SALES_ONLY_LINE).toMatch(/Shopify orders/i);
+    expect(OVERVIEW_SALES_ONLY_LINE).not.toMatch(/optional|spend|ROAS/i);
+    expect(OVERVIEW_LIVE_HANDOFF_BODY).toMatch(/Shopify sales/i);
+    expect(OVERVIEW_LIVE_HANDOFF_BODY).not.toMatch(/Spend Upload|Total ROAS|optional/i);
     expect(OVERVIEW_PENDING_ASOF).toMatch(/not \$0/);
   });
 
@@ -96,11 +119,16 @@ describe("overview first viewport", () => {
     const yoyAt = overview.indexOf("<OverviewYoyCards");
     const viewportAt = overview.indexOf("<OverviewFirstViewport");
     const chartAt = overview.indexOf("<OverviewSalesChart");
+    const depthAt = overview.indexOf("<OverviewDepthPeeks");
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
     expect(yoyAt).toBeGreaterThan(-1);
     expect(viewportAt).toBeGreaterThan(yoyAt);
     expect(chartAt).toBeGreaterThan(viewportAt);
-    expect(weekdayAt).toBeGreaterThan(chartAt);
+    expect(depthAt).toBeGreaterThan(chartAt);
+    expect(weekdayAt).toBeGreaterThan(depthAt);
+    expect(overview).toContain("medianDailySales");
+    expect(overview).toContain("peakWeekday");
+    expect(overview).toContain("windowSales");
     expect(overview).toContain("buildOverviewYoyCards");
     expect(overview).toContain("overviewGreetingPending");
     expect(overview).toContain("greetingPending");
@@ -120,17 +148,24 @@ describe("overview first viewport", () => {
     expect(overview).not.toContain("<GoalsSnapSection");
     expect(overview).not.toContain("mcfly-tab-snaps");
     expect(overview).not.toContain("Coverage {Math.round(coveragePct)}%");
-    expect(overview).toContain("!greetingPending &&");
+    expect(overview).toContain("!greetingPending");
     expect(overview).toContain("factDays: salesFactsCoverage?.factDays");
     const chart = read("../components/OverviewSalesChart.tsx");
     expect(chart).not.toContain(
       "salesPending || !hasSales || points.length < 2",
     );
-    expect(chart).not.toMatch(/return null/);
+    expect(chart).not.toMatch(/if \(points\.length < 2\)\s*return null/);
+    expect(chart).toContain("ChartEmptyFrame");
     expect(chart).toContain("OVERVIEW_CHART_EMPTY");
     expect(chart).toContain("No days in this window yet");
     expect(chart).toContain("Tap a bar");
-    expect(chart).toContain("mcfly-chart__spend-line");
+    expect(chart).toContain("mcfly-chart__typical");
+    expect(chart).toContain("mcfly-chart__sales-fill");
+    expect(chart).toContain("mcfly-chart__hero");
+    expect(chart).toContain("overviewChartDayLabel");
+    expect(chart).not.toContain("mcfly-chart__hint");
+    expect(chart).not.toContain("mcfly-chart__spend-line");
+    expect(chart).not.toContain("Sales and spend");
   });
 
   it("Overview YoY cards say pending sales are not $0", () => {
@@ -145,26 +180,34 @@ describe("overview first viewport", () => {
     expect(cards).not.toContain("0.00×");
     expect(cards).not.toContain("Total ROAS");
     expect(cards).not.toContain("Edit spend");
+    expect(cards).toContain("overviewWindowRange");
+    expect(cards).toContain("overviewYoyZone");
+    expect(cards).toContain("mcfly-yoy--glance");
+    expect(cards).toContain("overviewYoyDeltaPct");
+    expect(cards).not.toContain("Click for detail");
   });
 
-  it("first viewport is YoY peeks + quiet spend door, never a ROAS hero", () => {
+  it("first viewport is YoY peeks + order KPIs, never a ROAS hero", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
-    expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
     expect(firstView).toContain(OVERVIEW_COVERAGE_LINE.slice(0, 8));
-    expect(firstView).toContain("mcfly-decision");
+    expect(firstView).toContain("mcfly-scoreboard__kicker");
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
-    expect(firstView).toContain("mcfly-kpi-grid--peeks-2");
-    expect(firstView).toContain("showPeeks");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("mcfly-kpi--peek");
     expect(firstView).toContain("orderCount > 0");
-    expect(firstView).toContain("{hasSpend && !salesPending ? (");
     expect(firstView).toContain("DeskIcon");
-    expect(firstView).toContain("Click for detail");
+    expect(firstView).not.toContain("Click for detail");
+    expect(firstView).not.toContain("mcfly-decision__takeaway");
     expect(firstView).toContain("weekendSalesShare");
-    expect(firstView).toContain("spendHref");
-    expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).toContain("Weekend vs weekday");
     expect(firstView).toContain("OVERVIEW_PENDING_LINE");
     expect(firstView).toContain("bookTypicalOrder");
+    expect(firstView).toContain("bookTypicalDay");
+    expect(firstView).toContain("bookBusiestWeekday");
+    expect(firstView).toContain("mcfly-split");
+    expect(firstView).toContain("mcfly-split__return");
+    expect(firstView).toContain("Returning");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
@@ -175,19 +218,53 @@ describe("overview first viewport", () => {
     expect(firstView).not.toContain("EOM projected");
     expect(firstView).not.toContain('label="Total Sales"');
     expect(firstView).not.toContain("totalRoas");
+    expect(firstView).not.toContain("spendHref");
+    expect(firstView).not.toContain("spendEmpty");
+    expect(firstView).not.toContain("hasSpend");
   });
 
-  it("never paints a Total ROAS or Ad spend tile on Overview", () => {
+  it("never paints spend, upload, or ROAS copy on Overview", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
+    const lib = read("./overview-first-viewport.ts");
+    const overview = read("../routes/app._index.tsx");
+    const chart = read("../components/OverviewSalesChart.tsx");
+    const yoy = read("../components/OverviewYoyCards.tsx");
+    const fixture = read("./desk-phone-fixture.html");
+    const pending = read("./desk-phone-pending-fixture.html");
+    const overviewStart = fixture.indexOf('aria-label="Sales versus last year"');
+    const spendDay = fixture.indexOf('aria-label="Spend day"');
+    const fixtureOverview = fixture.slice(overviewStart, spendDay);
+    const pendingOverview = pending.slice(
+      pending.indexOf('aria-label="Sales versus last year"'),
+    );
+    const corpus = [
+      firstView,
+      lib,
+      overview,
+      chart,
+      yoy,
+      fixtureOverview,
+      pendingOverview,
+    ].join("\n");
+    for (const ban of OVERVIEW_SPEND_BANS) {
+      expect(corpus, ban).not.toContain(ban);
+    }
     expect(firstView).not.toContain("Add spend to see Total ROAS");
     expect(firstView).not.toContain('label="Ad spend"');
     expect(firstView).not.toContain("Spend Upload →");
-    expect(firstView).toContain("{hasSpend && !salesPending ? (");
-    expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
     expect(firstView).not.toContain("returningCustomers.toLocaleString()");
     expect(firstView).not.toContain("mcfly-kpi-grid--with-roas");
     expect(firstView).not.toContain("mcfly-decision__verb");
     expect(firstView).not.toContain("mcfly-decision__actions");
+    expect(firstView).toContain("bookTypicalOrder");
+    expect(firstView).toContain("Weekend vs weekday");
+    expect(chart).toContain("Sales");
+    expect(chart).toContain("mcfly-chart__sales-line");
+    expect(chart).not.toContain("mcfly-chart__spend-line");
+    expect(yoy).toContain("OVERVIEW_YOY_LABELS");
+    expect(yoy).toContain("overviewYoyZoneLabel");
+    expect(firstView).toContain("bookTypicalDay");
+    expect(firstView).toContain("bookBusiestWeekday");
   });
 
   it("returning compact is dollars or an em dash, never headcount", () => {
@@ -292,5 +369,40 @@ describe("overviewPeekThird", () => {
     expect(
       overviewPeekThird({ weekendSalesShare: null, medianDaysToSecond: null }),
     ).toEqual({ kind: "empty" });
+  });
+});
+
+describe("overviewWeekendWeekday", () => {
+  it("splits weekend vs weekday and withholds a fake 0%", () => {
+    expect(overviewWeekendWeekday(0.23)).toEqual({
+      weekendPct: 23,
+      weekdayPct: 77,
+    });
+    expect(overviewWeekendWeekday(0)).toBeNull();
+    expect(overviewWeekendWeekday(null)).toBeNull();
+  });
+});
+
+describe("overviewBusiestWeekday", () => {
+  it("names the peak weekday in dollars when window sales exist", () => {
+    const shares = [0.11, 0.12, 0.19, 0.2, 0.13, 0.13, 0.12];
+    expect(
+      overviewBusiestWeekday({
+        peakWeekday: 3,
+        weekdaySalesShare: shares,
+        windowSales: 68_457,
+      }),
+    ).toEqual({
+      label: "Wed",
+      dollars: 68_457 * 0.2,
+      pct: 20,
+    });
+    expect(
+      overviewBusiestWeekday({
+        peakWeekday: null,
+        weekdaySalesShare: shares,
+        windowSales: 68_457,
+      }),
+    ).toBeNull();
   });
 });

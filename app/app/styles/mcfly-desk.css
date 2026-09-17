@@ -11915,9 +11915,17 @@ a.mcfly-control__chip-yoy:focus-visible {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.mcfly-score .mcfly-kpi-grid--peeks-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 @media (min-width: 901px) {
   .mcfly-score .mcfly-kpi-grid--with-roas {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mcfly-score .mcfly-kpi-grid--peeks-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -12775,6 +12783,10 @@ button.mcfly-chart__month {
   .mcfly-score .mcfly-kpi-grid--peeks-2 {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .mcfly-score .mcfly-kpi-grid--peeks-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 430px) {
@@ -12820,6 +12832,19 @@ button.mcfly-chart__month {
 
   .mcfly-ctx__chips {
     width: 100%;
+  }
+
+  /* Peek values are typical-order / share — 2-up stays readable. YoY $68k stays stacked. */
+  .mcfly-score .mcfly-kpi-grid--peeks-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mcfly-yoy__card {
+    padding: 0.85rem 0.95rem 0.9rem;
+  }
+
+  .mcfly-yoy__v {
+    font-size: clamp(1.55rem, 8vw, 2rem);
   }
 }
 
@@ -12889,4 +12914,791 @@ button.mcfly-chart__month {
 .mcfly-chart__spend-dot {
   fill: var(--mcfly-ink);
   pointer-events: none;
+}
+
+/* =========================================================================
+ * Overview Black Clover craft — certified windows + dense peeks + open chart
+ * APPEND ONLY. Sales-only. Tight chrome. Phone = swipe YoY, 3-up peeks.
+ * ========================================================================= */
+
+.mcfly-yoy {
+  margin: 0 0 0.85rem;
+}
+
+.mcfly-yoy__lede {
+  max-width: none;
+  margin: 0 0 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.mcfly-yoy__grid {
+  gap: 0.65rem;
+}
+
+.mcfly-yoy__card {
+  padding: 0.8rem 0.9rem 0.75rem;
+}
+
+.mcfly-yoy__card--up::before {
+  background: var(--mcfly-truth);
+}
+
+.mcfly-yoy__card--down::before {
+  background: var(--mcfly-warn);
+}
+
+.mcfly-yoy__card--even::before,
+.mcfly-yoy__card--empty::before {
+  background: var(--mcfly-line);
+}
+
+.mcfly-yoy__range {
+  margin: 0 0 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--mcfly-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-yoy__v {
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+  font-weight: 700;
+}
+
+.mcfly-yoy__prior {
+  margin: 0.55rem 0 0;
+  padding-top: 0.45rem;
+  font-size: 0.72rem;
+}
+
+.mcfly-yoy__vs {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+}
+
+.mcfly-yoy__vs--down {
+  color: var(--mcfly-lie);
+}
+
+.mcfly-yoy__vs--even,
+.mcfly-yoy__vs--empty {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-yoy__note {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+}
+
+.mcfly-score.mcfly-book {
+  margin: 0 0 0.75rem;
+}
+
+.mcfly-score .mcfly-scoreboard__kicker {
+  margin: 0 0 0.5rem;
+}
+
+.mcfly-score .mcfly-kpi-grid--peeks {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.mcfly-kpi--peek {
+  padding: 0.75rem 0.8rem 0.7rem;
+}
+
+.mcfly-kpi--peek .mcfly-kpi__value {
+  margin: 0.35rem 0 0.1rem;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+}
+
+.mcfly-kpi--peek .mcfly-kpi__sub {
+  font-size: 0.7rem;
+}
+
+.mcfly-desk-anchor .mcfly-chart {
+  margin: 0 0 0.85rem;
+}
+
+.mcfly-desk-anchor .mcfly-chart__svg {
+  min-height: 11rem;
+}
+
+@media (max-width: 36rem) {
+  .mcfly-yoy__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.65rem;
+    padding-bottom: 0.15rem;
+  }
+
+  .mcfly-yoy__card {
+    flex: 0 0 min(78%, 17.5rem);
+    min-width: 15.5rem;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-yoy__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    grid-template-columns: none;
+  }
+
+  .mcfly-yoy__card {
+    flex: 0 0 min(78%, 17.5rem);
+    min-width: 15.5rem;
+    min-height: 2.75rem;
+  }
+
+  .mcfly-score .mcfly-kpi-grid,
+  .mcfly-score .mcfly-kpi-grid--peeks,
+  .mcfly-score .mcfly-kpi-grid--peeks-2,
+  .mcfly-score .mcfly-kpi-grid--peeks-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mcfly-kpi--peek {
+    min-height: 2.75rem;
+    padding: 0.7rem 0.65rem 0.65rem;
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__value {
+    font-size: clamp(1.05rem, 5.4vw, 1.35rem);
+  }
+}
+
+/* =========================================================================
+ * Overview Black Clover scoreboard — six Shopify peeks + sales polyline
+ * APPEND ONLY. Zero spend. SAMPLE ledger stays off this tab.
+ * ========================================================================= */
+
+.mcfly-desk-anchor.mcfly-scoreboard--overview,
+.mcfly-desk-anchor {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mcfly-yoy__k {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.mcfly-yoy__k-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.mcfly-yoy__zone {
+  flex: 0 0 auto;
+  padding: 0.08rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mcfly-yoy__zone--up {
+  background: var(--mcfly-truth-soft);
+  color: var(--mcfly-truth);
+}
+
+.mcfly-yoy__zone--down {
+  background: #fff7ed;
+  color: var(--mcfly-warn);
+}
+
+.mcfly-yoy__zone--even {
+  background: var(--mcfly-accent-soft);
+  color: var(--mcfly-mute);
+}
+
+.mcfly-split {
+  display: block;
+  margin: 0.45rem 0 0;
+  height: 0.28rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 70%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-split__weekend {
+  display: block;
+  height: 100%;
+  background: var(--mcfly-accent);
+}
+
+.mcfly-chart__weekend {
+  fill: color-mix(in srgb, var(--mcfly-accent) 10%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart__bar--weekend {
+  fill: color-mix(in srgb, var(--mcfly-accent) 78%, #0c1929);
+}
+
+.mcfly-chart__sales-line {
+  fill: none;
+  stroke: var(--mcfly-ink);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.mcfly-chart--sales .mcfly-chart__svg {
+  min-height: 13rem;
+}
+
+.mcfly-chart__day--weekend .mcfly-chart__day-k {
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__day--peak .mcfly-chart__day-bar {
+  background: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__day--peak .mcfly-chart__day-v {
+  color: var(--mcfly-ink);
+  font-weight: 700;
+}
+
+.mcfly-desk-anchor .mcfly-book__links {
+  margin: 0.15rem 0 0.35rem;
+  gap: 0.65rem 1rem;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 720px) {
+  .mcfly-score .mcfly-kpi-grid--peeks,
+  .mcfly-score .mcfly-kpi-grid--peeks-2,
+  .mcfly-score .mcfly-kpi-grid--peeks-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.mcfly-scoreboard__kicker--sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mcfly-score .mcfly-kpi-grid--peeks-lead,
+.mcfly-score .mcfly-kpi-grid--peeks-depth {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0 0 0.65rem;
+}
+
+.mcfly-score--depth {
+  margin-top: 0.15rem;
+}
+
+.mcfly-yoy__card {
+  padding: 0.7rem 0.8rem 0.65rem;
+}
+
+.mcfly-yoy__prior {
+  margin: 0.4rem 0 0;
+  padding-top: 0.35rem;
+}
+
+@media (max-width: 720px) {
+  .mcfly-score .mcfly-kpi-grid--peeks-lead,
+  .mcfly-score .mcfly-kpi-grid--peeks-depth {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-score .mcfly-kpi-grid--peeks-lead,
+  .mcfly-score .mcfly-kpi-grid--peeks-depth {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .mcfly-kpi--peek {
+    padding: 0.55rem 0.5rem 0.5rem;
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__value {
+    font-size: clamp(0.98rem, 4.6vw, 1.2rem);
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__label {
+    font-size: 0.58rem;
+  }
+
+  .mcfly-chart--sales .mcfly-chart__svg {
+    min-height: 10.5rem;
+  }
+}
+
+/* =========================================================================
+ * Founder override 2026-09-16 — force the glance strip. Weekend cannot
+ * wrap off the first screen. Scoreboard chips, not pamphlet stacks.
+ * ========================================================================= */
+
+.mcfly-desk .mcfly-score .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+.mcfly-desk .mcfly-score .mcfly-kpi-grid.mcfly-kpi-grid--peeks-depth,
+.mcfly-score .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+.mcfly-score .mcfly-kpi-grid.mcfly-kpi-grid--peeks-depth {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.45rem;
+  margin: 0 0 0.55rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.mcfly-desk .mcfly-score .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+.mcfly-desk .mcfly-score .mcfly-kpi-grid--peeks-depth > .mcfly-kpi,
+.mcfly-score .mcfly-kpi-grid--peeks-lead > .mcfly-kpi,
+.mcfly-score .mcfly-kpi-grid--peeks-depth > .mcfly-kpi,
+.mcfly-score .mcfly-kpi-grid--peeks-lead > button.mcfly-kpi,
+.mcfly-score .mcfly-kpi-grid--peeks-depth > button.mcfly-kpi {
+  flex: 1 1 0%;
+  min-width: 0 !important;
+  width: 0 !important;
+  max-width: calc(33.333% - 0.32rem) !important;
+}
+
+.mcfly-yoy__v--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-yoy__v--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-yoy__v--even,
+.mcfly-yoy__v--empty {
+  color: var(--mcfly-ink);
+}
+
+.mcfly-yoy__prior {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.mcfly-data-mode__status {
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.mcfly-yoy {
+  margin-bottom: 0.55rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.mcfly-yoy__grid {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.mcfly-desk-anchor .mcfly-chart--sales {
+  margin-top: 0;
+}
+
+.mcfly-desk,
+.mcfly-score,
+.mcfly-desk-anchor {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+@media (max-width: 430px) {
+  .mcfly-desk .mcfly-score .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+  .mcfly-desk .mcfly-score .mcfly-kpi-grid.mcfly-kpi-grid--peeks-depth,
+  .mcfly-score .mcfly-kpi-grid.mcfly-kpi-grid--peeks-lead,
+  .mcfly-score .mcfly-kpi-grid.mcfly-kpi-grid--peeks-depth {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__top {
+    gap: 0.2rem;
+  }
+
+  .mcfly-kpi--peek .mcfly-icon {
+    display: none;
+  }
+}
+
+/* Orchestration law — scoreboard numerals eat chrome, not the reverse. */
+.mcfly-yoy__lede {
+  display: none;
+}
+
+.mcfly-yoy__range {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.mcfly-yoy__v {
+  font-size: clamp(1.7rem, 4vw, 2.35rem);
+  margin: 0.25rem 0 0;
+}
+
+.mcfly-kpi--peek .mcfly-kpi__value {
+  font-size: clamp(1.2rem, 3.2vw, 1.85rem);
+  letter-spacing: -0.03em;
+}
+
+.mcfly-data-mode {
+  padding: 0.4rem 0.75rem;
+}
+
+.mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+  min-height: 12.5rem;
+}
+
+.mcfly-desk-anchor .mcfly-chart__hint {
+  display: none;
+}
+
+@media (max-width: 430px) {
+  .mcfly-yoy__card {
+    padding: 0.65rem 0.75rem 0.6rem;
+  }
+
+  .mcfly-yoy__v {
+    font-size: clamp(1.65rem, 8vw, 2.1rem);
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__value {
+    font-size: clamp(1.05rem, 5vw, 1.28rem);
+  }
+
+  .mcfly-kpi--peek .mcfly-kpi__sub {
+    font-size: 0.62rem;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+    min-height: 11.5rem;
+  }
+}
+
+/* =========================================================================
+ * Orchestration law — glance spine + typical-day sales chart.
+ * All three YoY windows stay on a 390px first screen. Bars vs typical.
+ * APPEND ONLY. Zero spend. SAMPLE stays labeled.
+ * ========================================================================= */
+
+.mcfly-yoy--glance .mcfly-yoy__delta {
+  margin: 0.12rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-yoy--glance .mcfly-yoy__delta--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-yoy--glance .mcfly-yoy__delta--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-yoy--glance .mcfly-yoy__delta--even,
+.mcfly-yoy--glance .mcfly-yoy__delta--empty {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-split__return {
+  display: block;
+  height: 100%;
+  background: var(--mcfly-ink);
+  opacity: 0.72;
+}
+
+.mcfly-chart__typical {
+  stroke: var(--mcfly-ink);
+  stroke-width: 1.35;
+  stroke-dasharray: 5 4;
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.mcfly-chart__bar--hot {
+  fill: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__bar--cool {
+  fill: color-mix(in srgb, var(--mcfly-accent) 52%, #d5e2ee);
+}
+
+.mcfly-chart__bar--weekend.mcfly-chart__bar--hot {
+  fill: color-mix(in srgb, var(--mcfly-accent) 88%, #0c1929);
+}
+
+.mcfly-chart__bar--on {
+  stroke: var(--mcfly-ink);
+  stroke-width: 1.5;
+}
+
+.mcfly-scoreboard--overview .mcfly-chart__hint,
+.mcfly-desk-anchor .mcfly-chart__hint {
+  display: none;
+}
+
+.mcfly-data-mode--sample {
+  padding: 0.32rem 0.7rem;
+}
+
+.mcfly-data-mode--sample .mcfly-data-mode__status {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mcfly-yoy--glance .mcfly-yoy__k .mcfly-icon {
+  display: none;
+}
+
+@media (max-width: 36rem) {
+  .mcfly-yoy--glance .mcfly-yoy__grid,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid,
+  .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: visible;
+    gap: 0.35rem;
+    scroll-snap-type: none;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__card,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card,
+  .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__card {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    width: 0 !important;
+    max-width: calc(33.333% - 0.24rem) !important;
+    padding: 0.48rem 0.42rem 0.42rem;
+    min-height: 0;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__zone,
+  .mcfly-yoy--glance .mcfly-yoy__range,
+  .mcfly-yoy--glance .mcfly-yoy__prior {
+    display: none;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__k {
+    margin: 0;
+    font-size: 0.52rem;
+    letter-spacing: 0.03em;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__v {
+    font-size: clamp(0.98rem, 4.5vw, 1.2rem);
+    margin: 0.18rem 0 0;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__delta {
+    font-size: 0.68rem;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart--sales {
+    padding: 0.55rem 0.6rem 0.5rem;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart__head {
+    margin: 0 0 0.32rem;
+    gap: 0.3rem 0.6rem;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart__hover {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-yoy--glance .mcfly-yoy__grid,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__card,
+  .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    max-width: calc(33.333% - 0.24rem) !important;
+  }
+
+  .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+    min-height: 10.75rem;
+  }
+}
+
+/* =========================================================================
+ * North star — sales board merchants keep open. Day vs typical is the
+ * Analytics gap. APPEND ONLY. Zero spend. SAMPLE stays labeled.
+ * ========================================================================= */
+
+.mcfly-chart--sales.mcfly-chart {
+  padding: 0.7rem 0.75rem 0.65rem;
+}
+
+.mcfly-chart__board {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: start;
+  column-gap: 0.65rem;
+  row-gap: 0.1rem;
+  margin: 0 0 0.35rem;
+}
+
+.mcfly-chart__board .mcfly-chart__title {
+  display: none;
+}
+
+.mcfly-chart__readout {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.mcfly-chart__when {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__hero {
+  margin: 0.05rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(1.55rem, 5.2vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-chart__vs {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-chart__vs--up {
+  color: var(--mcfly-truth);
+}
+
+.mcfly-chart__vs--down {
+  color: var(--mcfly-warn);
+}
+
+.mcfly-chart__vs--even,
+.mcfly-chart__vs--plain {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-chart__board .mcfly-period__group {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+}
+
+.mcfly-chart__sales-fill {
+  fill: color-mix(in srgb, var(--mcfly-accent) 20%, transparent);
+  pointer-events: none;
+}
+
+.mcfly-chart__typical-k {
+  fill: var(--mcfly-mute);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.mcfly-chart--sales .mcfly-chart__weekend {
+  fill: color-mix(in srgb, var(--mcfly-accent) 16%, transparent);
+}
+
+.mcfly-chart--sales .mcfly-chart__typical {
+  stroke: var(--mcfly-ink);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  opacity: 0.55;
+}
+
+.mcfly-chart--sales .mcfly-chart__sales-line {
+  stroke-width: 2.1;
+}
+
+.mcfly-yoy--glance .mcfly-yoy__v {
+  white-space: nowrap;
+}
+
+.mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+  min-height: 13.25rem;
+}
+
+@media (max-width: 430px) {
+  .mcfly-chart__hero {
+    font-size: clamp(1.45rem, 7.2vw, 1.85rem);
+  }
+
+  .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
+    min-height: 12.25rem;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__v {
+    font-size: clamp(1.02rem, 4.6vw, 1.22rem);
+  }
 }

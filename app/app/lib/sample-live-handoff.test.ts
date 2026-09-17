@@ -50,13 +50,16 @@ describe("SAMPLE → Live handoff", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
     expect(overview).toContain("isLiveHandoffGuide");
     expect(overview).toContain("LIVE_HANDOFF_HEADING");
-    expect(overview).toContain("LIVE_HANDOFF_BODY");
+    expect(overview).toContain("OVERVIEW_LIVE_HANDOFF_BODY");
+    expect(overview).not.toMatch(/(?<![A-Z_])LIVE_HANDOFF_BODY/);
     expect(overview).toContain('searchParams.get("guide")');
     expect(overview).toContain("useSampleDesk={useSampleDesk}");
     expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
     expect(firstView).not.toContain("SAMPLE_SPEND_NOT_LIVE");
     expect(firstView).not.toContain("Example spend");
-    expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).not.toContain("QuietSpendDoor");
     expect(firstView).not.toContain("Edit spend →");
     expect(SAMPLE_OVERVIEW_DOOR).toMatch(/example sales/i);
     expect(SAMPLE_OVERVIEW_DOOR).not.toMatch(/Total ROAS|upload/i);

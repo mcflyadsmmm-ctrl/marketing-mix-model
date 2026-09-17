@@ -16,7 +16,10 @@ import {
 import { CashTrustBanners } from "../components/CashTrustBanners";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
-import { OverviewFirstViewport } from "../components/OverviewFirstViewport";
+import {
+  OverviewDepthPeeks,
+  OverviewFirstViewport,
+} from "../components/OverviewFirstViewport";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
@@ -29,8 +32,6 @@ import {
 } from "../lib/mer-dashboard.server";
 import { buildCashControlBoard } from "../lib/mer-control";
 import { buildOverviewYoyCards } from "../lib/overview-yoy";
-import { channelFillKey } from "../lib/channel-fill";
-import { spendChannelLabel } from "../lib/spend-channel-label";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
@@ -43,6 +44,7 @@ import {
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
+  OVERVIEW_LIVE_HANDOFF_BODY,
   OVERVIEW_PENDING_ASOF,
   overviewGreetingPending,
 } from "../lib/overview-first-viewport";
@@ -77,12 +79,8 @@ import { shopLocalDayKey } from "../lib/shop-local-day";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
   isLiveHandoffGuide,
-  LIVE_HANDOFF_BODY,
   LIVE_HANDOFF_HEADING,
 } from "../lib/sample-live-handoff";
-
-/** Same resolver the Spend page uses — Billboard must not read "Other" here. */
-const channelDisplayLabel = spendChannelLabel;
 
 /** Compact prior-period label for KPI deltas. */
 function deltaVsLabel(priorLabel: string | undefined): string {
@@ -332,10 +330,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     cashControl,
     salesFactsCoverage: salesFactsCoverageForBanner,
     orderBackfillProgress,
-    shareSubject:
-      !metrics.onboarding.hasSpend && !useSampleDesk
-        ? `Shopify sales — ${metrics.period.label}`
-        : `Total ROAS — ${metrics.period.label}`,
+    shareSubject: `Shopify sales — ${metrics.period.label}`,
     sharePeriodStartDay: shareDayKey(metrics.period.start),
     sharePeriodEndDay: shareDayKey(metrics.period.end),
     shopLabel: session.shop,
@@ -418,18 +413,13 @@ export default function Dashboard() {
     source: metrics.freshness.source,
     spendUpdatedAt: metrics.freshness.spendUpdatedAt,
   });
-  /** Margin is optional (BE only). Total ROAS never waits on Settings margin. */
   const marginBlocked = false;
-  /** Live install, no spend yet — still paint sales; Total ROAS stays —. */
   const spendBlocked =
     !metrics.onboarding.hasSpend && !useSampleDesk && !shotMode;
   const bothBlockedEmpty = marginBlocked && spendBlocked;
   const marginOnlyEmpty = marginBlocked && !spendBlocked;
   const coldEmpty = marginOnlyEmpty || bothBlockedEmpty;
-  // Never paint Total ROAS scoreboard from emptySales zeros after a load failure.
-  // Missing spend is $0 + — ratio, not a hidden scoreboard.
-  const scoreboardReady =
-    !marginBlocked && !salesError;
+  const scoreboardReady = !marginBlocked && !salesError;
 
   const deltas = metrics.deltas;
   const priorLabel = deltas?.priorLabel;
@@ -438,9 +428,6 @@ export default function Dashboard() {
     : metrics.orderCount > 0
       ? `${metrics.orderCount.toLocaleString()} orders · AOV ${formatCurrency(metrics.sales / metrics.orderCount, currency)}`
       : `${metrics.orderCount.toLocaleString()} orders`;
-  const spendDeltaLine = deltas
-    ? formatPctDelta(deltas.spendPct, priorLabel)
-    : null;
   const shopBook = shopifyNativePeriodStats({
     sales: metrics.sales,
     orderCount: metrics.orderCount,
@@ -453,37 +440,18 @@ export default function Dashboard() {
     grossSales: metrics.grossSales,
     grossSalesKnown: metrics.grossSalesKnown,
   });
-  const periodChannels = [...metrics.channelMix]
-    .filter((entry) => entry.amount > 0)
-    .sort((a, b) => b.amount - a.amount)
-    .map((entry) => {
-      const name = channelDisplayLabel({
-        channel: entry.channel,
-        customLabel: entry.customLabel,
-      });
-      return {
-        name,
-        amount: entry.amount,
-        share: entry.share,
-        fill: channelFillKey(name),
-      };
-    });
-
   const shareText = formatOverviewShareText({
     periodLabel: metrics.period.label,
     periodStartDay: sharePeriodStartDay,
     periodEndDay: sharePeriodEndDay,
     totalSales: totalSalesDisplay,
-    totalSpend: metrics.totalSpend,
-    mer: metrics.mer,
-    breakEvenMer: metrics.breakEvenMer,
-    marginPct: metrics.marginPct,
-    spendIncomplete: Boolean(metrics.spendCoverage?.incomplete),
+    totalSpend: 0,
+    mer: null,
+    breakEvenMer: null,
+    marginPct: null,
     salesPending: greetingPending,
     shopLabel,
-    channels: periodChannels,
     salesDeltaLine,
-    spendDeltaLine,
     typicalOrder: metrics.shopifyDepth.medianAov,
     returningSalesShare: shopBook.returningSalesShare,
     weekendSalesShare: metrics.shopifyDepth.weekendSalesShare,
@@ -492,13 +460,7 @@ export default function Dashboard() {
   const trustBanners = (
     <CashTrustBanners
       blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
-      spendCoverage={
-        !greetingPending &&
-        !useSampleDesk &&
-        metrics.onboarding.hasSpend
-          ? metrics.spendCoverage
-          : null
-      }
+      spendCoverage={null}
       periodLabel={metrics.period.label}
       shopifyOrderWindowLimited={
         !useSampleDesk &&
@@ -524,38 +486,10 @@ export default function Dashboard() {
       }
       shotMode={shotMode}
       cashActionReady={metrics.cashActionReady}
-      spendRecon={
-        !greetingPending &&
-        !useSampleDesk &&
-        metrics.onboarding.hasSpend
-          ? metrics.spendRecon
-          : null
-      }
-      belowBreakEven={
-        !greetingPending &&
-        metrics.cashActionReady &&
-        metrics.breakEvenMer != null &&
-        metrics.aboveBreakEven === false
-          ? {
-              mer: metrics.mer,
-              breakEvenMer: metrics.breakEvenMer,
-              totalSpend: metrics.totalSpend,
-            }
-          : null
-      }
+      spendRecon={null}
+      belowBreakEven={null}
       marginStale={!useSampleDesk && Boolean(metrics.marginStale)}
-      onboarding={
-        !greetingPending &&
-        !useSampleDesk &&
-        !shotMode &&
-        !marginBlocked &&
-        !spendBlocked
-          ? {
-              settingsSaved: metrics.onboarding.settingsSaved,
-              hasSpend: metrics.onboarding.hasSpend,
-            }
-          : null
-      }
+      onboarding={null}
     />
   );
 
@@ -571,9 +505,6 @@ export default function Dashboard() {
 
   const shopBrand = shopLabel.replace(/\.myshopify\.com$/i, "");
   const ordersHref = deskNavHrefFromSearch("/app/orders", searchParams);
-  const spendHref = deskNavHrefFromSearch("/app/spend", searchParams);
-  const roasHref = deskNavHrefFromSearch("/app/roas", searchParams);
-  const settingsHref = deskNavHrefFromSearch("/app/settings", searchParams);
   const yoyHref = deskNavHrefFromSearch("/app/yoy", searchParams);
   const showLiveHandoff =
     !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
@@ -599,12 +530,7 @@ export default function Dashboard() {
 
         {showLiveHandoff ? (
           <s-banner tone="info" heading={LIVE_HANDOFF_HEADING}>
-            <s-paragraph>
-              {LIVE_HANDOFF_BODY}{" "}
-              <s-link href={spendHref}>Add a day on Spend Upload</s-link>
-              {" · "}
-              <s-link href={settingsHref}>Start 7-day trial in Settings</s-link>
-            </s-paragraph>
+            <s-paragraph>{OVERVIEW_LIVE_HANDOFF_BODY}</s-paragraph>
           </s-banner>
         ) : null}
 
@@ -663,7 +589,7 @@ export default function Dashboard() {
           <>
             {scoreboardReady && onHome ? (
               <div
-                className="mcfly-desk-anchor"
+                className="mcfly-desk-anchor mcfly-scoreboard--overview"
                 id={DESK_SECTION.overview}
               >
                 <OverviewYoyCards
@@ -679,28 +605,51 @@ export default function Dashboard() {
                       ? metrics.sales / metrics.orderCount
                       : null
                   }
+                  typicalDay={metrics.shopifyDepth.medianDailySales}
                   returningSalesShare={shopBook.returningSalesShare}
                   returningSales={shopBook.returningSales}
                   medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
                   weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                  peakWeekday={metrics.shopifyDepth.peakWeekday}
+                  weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
+                  windowSales={metrics.sales}
                   salesPending={greetingPending}
-                  spendEmpty={!metrics.onboarding.hasSpend && !useSampleDesk}
-                  totalSpend={metrics.totalSpend}
                   ordersHref={ordersHref}
-                  spendHref={spendHref}
-                  roasHref={roasHref}
-                  settingsHref={settingsHref}
                   useSampleDesk={useSampleDesk}
-                  share={shareButton}
                 />
                 <OverviewSalesChart
-                  days={salesDays}
+                  days={salesDays.map(({ dateKey, sales }) => ({
+                    dateKey,
+                    sales,
+                  }))}
                   ordersHref={ordersHref}
                   salesPending={greetingPending}
+                  typicalDay={metrics.shopifyDepth.medianDailySales}
+                />
+                <OverviewDepthPeeks
+                  orderCount={metrics.orderCount}
+                  typicalOrder={metrics.shopifyDepth.medianAov}
+                  meanAov={
+                    metrics.orderCount > 0
+                      ? metrics.sales / metrics.orderCount
+                      : null
+                  }
+                  typicalDay={metrics.shopifyDepth.medianDailySales}
+                  returningSalesShare={shopBook.returningSalesShare}
+                  returningSales={shopBook.returningSales}
+                  weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                  peakWeekday={metrics.shopifyDepth.peakWeekday}
+                  weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
+                  windowSales={metrics.sales}
+                  salesPending={greetingPending}
+                  ordersHref={ordersHref}
+                  useSampleDesk={useSampleDesk}
                 />
                 {!greetingPending ? (
                   <WeekdaySalesChart
                     shares={metrics.shopifyDepth.weekdaySalesShare}
+                    windowSales={metrics.sales}
+                    peakWeekday={metrics.shopifyDepth.peakWeekday}
                   />
                 ) : null}
                 {!greetingPending ? (

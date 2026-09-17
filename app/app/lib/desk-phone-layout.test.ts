@@ -32,20 +32,31 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(tabs).not.toContain("label=\"Ads\"");
   });
 
-  it("stacks primary KPIs and YoY at 430px so $68,457 cannot sit in a 3-up crush", () => {
+  it("keeps a swipe rail in the phone block; Overview glance is a 3-up spine", () => {
     expect(phone).toMatch(/@media \(max-width: 430px\)/);
     expect(phone).toContain(".mcfly-kpi-grid");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--peeks-2");
     expect(phone).toContain(".mcfly-yoy__grid");
+    expect(phone).toContain("scroll-snap-type: x mandatory");
+    expect(phone).toContain("flex-wrap: nowrap");
     expect(phone).toMatch(
       /\.mcfly-kpi-grid[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)/,
     );
     expect(css).toContain("grid-template-columns: repeat(3, minmax(0, 1fr))");
+    expect(css).toContain(".mcfly-kpi-grid--peeks-lead");
+    expect(css).toContain("flex-wrap: nowrap");
+    expect(css).toContain(".mcfly-kpi-grid--peeks-lead > button.mcfly-kpi");
+    expect(css).toContain("max-width: calc(33.333% - 0.32rem) !important");
     expect(css).toContain("@media (max-width: 430px)");
     expect(css).not.toMatch(
       /@media \(max-width: 420px\) \{\s*\n\s*\.mcfly-kpi-board/,
     );
+    expect(css).toContain(".mcfly-yoy--glance");
+    expect(css).toContain(".mcfly-chart__typical");
+    expect(css).toContain(".mcfly-chart__hero");
+    expect(css).toContain(".mcfly-chart__sales-fill");
+    expect(css).toContain("max-width: calc(33.333% - 0.24rem) !important");
   });
 
   it("makes the 11-tab rail one sideways scroll, not page overflow", () => {
@@ -89,7 +100,20 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("$631");
     expect(fixture).toContain("Snowdevil");
     expect(fixture).toContain("Typical order");
-    expect(fixture).toContain("Weekend sales");
+    expect(fixture).toContain("Weekend vs weekday");
+    expect(fixture).toContain("Typical day");
+    expect(fixture).toContain("Busiest weekday");
+    expect(fixture).toContain("$4,279");
+    expect(fixture).toContain("$13,264");
+    expect(fixture).toContain("mcfly-chart__sales-line");
+    expect(fixture).toContain("mcfly-chart__typical");
+    expect(fixture).toContain("mcfly-yoy--glance");
+    expect(fixture).toContain("mcfly-chart__hero");
+    expect(fixture).toContain("$5,184");
+    expect(fixture).toContain("+$905 vs typical");
+    expect(fixture).toContain("mcfly-chart__sales-fill");
+    expect(fixture).toContain("typical $4,279");
+    expect(fixture).toContain("aria-label=\"Sales by day\"");
     expect(fixture).not.toContain("Harbor");
     expect(fixture).not.toContain("$92");
     expect(fixture).not.toContain("3.51×");

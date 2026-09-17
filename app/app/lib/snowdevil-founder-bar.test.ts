@@ -137,13 +137,15 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect([...used].sort()).toEqual(["email", "google", "meta", "other"]);
 
     const firstView = chrome("../components/OverviewFirstViewport.tsx");
-    expect(firstView).toContain("if (useSampleDesk)");
+    expect(firstView).toContain("useSampleDesk");
     expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
     expect(firstView).not.toContain("SAMPLE_SPEND_NOT_LIVE");
     expect(firstView).not.toContain("Example spend");
     expect(firstView).not.toContain("Edit spend");
     expect(firstView).not.toContain("setupAddSpend");
-    expect(firstView).toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).not.toContain("QuietSpendDoor");
     expect(SAMPLE_OVERVIEW_DOOR).not.toMatch(/Total ROAS|upload|Edit spend/i);
 
     const shopifyTabs = [
@@ -154,6 +156,40 @@ describe("Snowdevil founder leave-for-day bar", () => {
     ].join("\n");
     expect(shopifyTabs).not.toContain("Edit spend");
     expect(shopifyTabs).not.toContain("Upload Spend");
+  });
+
+  it("SAMPLE Snowdevil is the Overview craft canvas — packed book, no spend", () => {
+    const fixture = readApp("./desk-phone-fixture.html");
+    const firstView = chrome("../components/OverviewFirstViewport.tsx");
+    const overview = chrome("../routes/app._index.tsx");
+    const freeze = chrome("./sample-desk.server.ts");
+    expect(fixture).toContain("$68,457");
+    expect(fixture).toContain("$210,622");
+    expect(fixture).toContain("$918,649");
+    expect(fixture).toContain("$631");
+    expect(fixture).toContain("$45,409");
+    expect(fixture).toContain("23%");
+    expect(fixture).toContain("$4,279");
+    expect(fixture).toContain("$13,264");
+    expect(fixture).toContain("Typical order");
+    expect(fixture).toContain("Returning");
+    expect(fixture).toContain("Weekend");
+    expect(fixture).toContain("mcfly-chart__sales-line");
+    expect(fixture).toContain("mcfly-chart__typical");
+    expect(fixture).toContain("mcfly-chart__sales-fill");
+    expect(fixture).toContain("mcfly-chart__hero");
+    expect(fixture).toContain("+$905 vs typical");
+    expect(fixture).toContain("mcfly-yoy--glance");
+    expect(fixture).not.toContain("0.00×");
+    expect(fixture).not.toContain("QuietSpendDoor");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("OverviewDepthPeeks");
+    expect(firstView).not.toContain("orderCount <");
+    expect(firstView).not.toContain("if (!useSampleDesk) return");
+    expect(overview).not.toContain("QuietSpendDoor");
+    expect(overview).toContain("<OverviewSalesChart");
+    expect(freeze).toContain("MCFLY_SAMPLE_ONLY");
+    expect(freeze).toContain("if (isSampleOnlyFreeze()) return true");
   });
 
   it("6+7. SAMPLE chip/watermark and dense Overview lanes stay", () => {
@@ -169,7 +205,10 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(overview).toContain("<OverviewYoyCards");
     expect(overview).toContain("<OverviewFirstViewport");
     expect(overview).toContain("<OverviewSalesChart");
+    expect(overview).toContain("<OverviewDepthPeeks");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
+    expect(firstView).toContain("mcfly-kpi--peek");
+    expect(fixture).toContain('aria-label="Sales by day"');
   });
 
   it("8+9. Public demo and SAMPLE tests are not Harbor / Northline truth", () => {

@@ -232,26 +232,28 @@ describe("Sample data | Live data UX", () => {
     expect(timing).toContain('throw redirect(`/app/orders');
   });
 
-  it("Tick A Overview chrome is sales-first at $0 spend", () => {
+  it("Overview stays Shopify-only — no spend doors, peeks stay dense", () => {
     const overview = read("../routes/app._index.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
     const goals = read("../components/GoalsSnapSection.tsx");
     const ltvSnap = read("../components/LtvSnapSection.tsx");
     const explorer = read("../components/SpendExplorer.tsx");
 
-    expect(firstView).toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_EMPTY_LINE");
+    expect(firstView).not.toContain("OVERVIEW_SPEND_DOOR_LINE");
+    expect(firstView).not.toContain("QuietSpendDoor");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
-    expect(firstView).not.toContain("Spend Upload →");
+    expect(firstView).not.toContain("Spend Upload");
     expect(firstView).not.toContain("Add spend to see Total ROAS");
     expect(firstView).not.toContain('label="Ad spend"');
     expect(firstView).not.toContain("returningCustomers.toLocaleString()");
-    expect(firstView).toContain("spendHref");
+    expect(firstView).not.toContain("spendHref");
     expect(firstView).not.toContain("0.00×");
     expect(firstView).not.toContain("Edit spend →");
     expect(firstView).not.toContain("EOM projected");
-    expect(firstView).toContain("{hasSpend && !salesPending ? (");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
+    expect(firstView).toContain("mcfly-kpi--peek");
 
     expect(overview).not.toContain('slot="primary-action"');
     expect(overview).not.toContain("Update spend");
@@ -283,7 +285,7 @@ describe("Sample data | Live data UX", () => {
     expect(salesError).not.toContain("sales ÷ spend");
 
     expect(overview).toContain("`Shopify sales — ${metrics.period.label}`");
-    expect(overview).toContain("`Total ROAS — ${metrics.period.label}`");
+    expect(overview).not.toContain("`Total ROAS — ${metrics.period.label}`");
 
     expect(overview).not.toContain("DESK_SECTION.orders");
     expect(overview).not.toContain("<LtvSnapSection");
@@ -305,7 +307,7 @@ describe("Sample data | Live data UX", () => {
     expect(explorer).toContain('? "Sales $"');
   });
 
-  it("Every tab reads as one hero plus drill-down rows, not equal boxes", () => {
+  it("Overview is a dense Shopify scoreboard; book tabs keep KPI cards", () => {
     const book = read("../components/ShopifyBookSection.tsx");
     const deskPage = read("../components/DeskBookPage.tsx");
     const firstView = read("../components/OverviewFirstViewport.tsx");
@@ -340,10 +342,12 @@ describe("Sample data | Live data UX", () => {
     expect(book).toContain('{ k: "Original"');
     expect(book).toContain('{ k: "Product only"');
 
-    for (const file of [book, firstView, ltvSnap, marketing]) {
+    for (const file of [book, ltvSnap, marketing]) {
       expect(file).toContain("Math.round(share * 100)");
       expect(file).not.toContain("formatPercent");
     }
+    expect(firstView).toContain("Math.round(returningSalesShare * 100)");
+    expect(firstView).not.toContain("formatPercent");
 
     expect(book).toContain("Top 10% of customers");
     expect(book).toContain("keepDash: true");
@@ -361,8 +365,14 @@ describe("Sample data | Live data UX", () => {
 
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("OverviewDepthPeeks");
+    expect(firstView).toContain("Weekend vs weekday");
+    expect(firstView).toContain("bookTypicalOrder");
     expect(firstView).not.toContain("mcfly-first-view");
     expect(firstView).not.toContain('value={salesPending ? "—"');
+    expect(read("../routes/app._index.tsx")).toContain("<OverviewSalesChart");
+    expect(read("../routes/app._index.tsx")).toContain("<OverviewYoyCards");
 
     expect(ltvSnap).toContain("First 90 days");
     expect(ltvSnap).not.toContain("mcfly-tab-snap__tiles");
