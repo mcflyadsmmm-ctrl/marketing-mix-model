@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
+import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency } from "../lib/mer-format";
 import {
@@ -47,7 +49,17 @@ export function OrdersTimingChart({
       }),
     [grain, weekdayShares, hourlyShares, windowSales, peakWeekday, peakHour],
   );
-  const [hoverKey, setHoverKey] = useState<string | null>(null);
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    bars.length,
+    chartSeriesId([grain, ...bars.map((bar) => bar.key)]),
+  );
+  const hoverKey =
+    hoverIndex != null ? (bars[hoverIndex]?.key ?? null) : null;
   const liveBars = bars.filter((bar) => bar.share > 0);
   const active =
     bars.find((bar) => bar.key === hoverKey) ??
@@ -131,14 +143,13 @@ export function OrdersTimingChart({
           grain={grain}
           onChange={(next) => {
             setGrain(next);
-            setHoverKey(null);
           }}
         />
       </div>
       <div className="mcfly-chart__plot">
-        {active ? (
+        {active && hoverKey ? (
           <div
-            className="mcfly-chart__tip"
+            className={chartTipClassName({ open: true })}
             role="status"
             style={{ left: `${tipLeft}%` }}
           >
@@ -174,9 +185,10 @@ export function OrdersTimingChart({
           className={
             grain === "hour" ? "mcfly-chart__hours" : "mcfly-chart__days"
           }
-          onMouseLeave={() => setHoverKey(null)}
+          onPointerMove={moveFromEvent}
+          onPointerLeave={onPlotPointerLeave}
         >
-          {bars.map((bar) => {
+          {bars.map((bar, index) => {
           const value =
             bar.dollars != null
               ? formatCurrency(bar.dollars, currency)
@@ -216,8 +228,8 @@ export function OrdersTimingChart({
                 .join(" ")}
               key={bar.key}
               onClick={open}
-              onMouseEnter={() => setHoverKey(bar.key)}
-              onFocus={() => setHoverKey(bar.key)}
+              onMouseEnter={() => setHoverIndex(index)}
+              onFocus={() => setHoverIndex(index)}
             >
               <span
                 className="mcfly-chart__day-bar"

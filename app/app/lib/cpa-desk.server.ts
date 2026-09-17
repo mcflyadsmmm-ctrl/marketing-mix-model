@@ -209,6 +209,7 @@ export async function loadCpaDesk(
       shopId: shop.id,
       range: deskWindows.thisMonth,
       ianaTimezone: shop.ianaTimezone,
+      signal: request.signal,
     });
     sales = desk.sales;
     salesError = desk.salesError;

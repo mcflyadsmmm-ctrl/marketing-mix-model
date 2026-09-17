@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { formatCurrency } from "../lib/mer-format";
+import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import { useChartHover } from "../lib/use-chart-hover";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
@@ -34,8 +35,13 @@ const PAD_B = 28;
 export function LtvBuildCurves({ curves }: { curves: CohortCurves | null }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
-  const [hover, setHover] = useState<number | null>(null);
-  if (!curves || curves.series.length < 2) return null;
+  const seriesCount = curves?.series.length ?? 0;
+  const { hoverIndex: hover, setHoverIndex: setHover, onPlotPointerLeave } =
+    useChartHover(
+      seriesCount,
+      chartSeriesId(curves?.series.map((series) => series.cohortMonth) ?? []),
+    );
+  if (!curves || seriesCount < 2) return null;
 
   const maxOffset = Math.max(1, curves.maxOffset);
   const maxValue = Math.max(1, curves.maxValue);
@@ -104,7 +110,7 @@ export function LtvBuildCurves({ curves }: { curves: CohortCurves | null }) {
           </p>
         )}
       </div>
-      <div className="mcfly-chart__plot">
+      <div className="mcfly-chart__plot" onPointerLeave={onPlotPointerLeave}>
         <svg
           className="mcfly-chart__svg"
           viewBox={`0 0 ${W} ${H}`}
@@ -154,9 +160,8 @@ export function LtvBuildCurves({ curves }: { curves: CohortCurves | null }) {
                 key={series.cohortMonth}
                 className={`mcfly-depth-curves__series${dimmed ? " mcfly-depth-curves__series--dim" : ""}${hover === index ? " mcfly-depth-curves__series--on" : ""}`}
                 onMouseEnter={() => setHover(index)}
-                onMouseLeave={() => setHover(null)}
                 onFocus={() => setHover(index)}
-                onBlur={() => setHover(null)}
+                onBlur={onPlotPointerLeave}
                 onClick={() => openSeries(index)}
                 style={{ cursor: "pointer" }}
               >
@@ -178,7 +183,7 @@ export function LtvBuildCurves({ curves }: { curves: CohortCurves | null }) {
         </svg>
         {tip ? (
           <div
-            className="mcfly-chart__tip mcfly-chart__tip--mid"
+            className={chartTipClassName({ open: true, edge: "mid" })}
             style={{ left: "72%", top: "0.35rem" }}
           >
             <p className="mcfly-chart__tip-k">{tip.title}</p>

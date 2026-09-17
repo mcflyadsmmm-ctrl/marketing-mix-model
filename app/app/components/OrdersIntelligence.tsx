@@ -252,7 +252,7 @@ function OrdersDualAxisChart({
         </div>
       </div>
       <div className="mcfly-chart__plot">
-        <div className="mcfly-chart__tip" role="status" style={{ left: `${Math.min(88, Math.max(12, tipLeftPct))}%` }}>
+        <div className="mcfly-chart__tip mcfly-chart__tip--on" role="status" style={{ left: `${Math.min(88, Math.max(12, tipLeftPct))}%` }}>
           <p className="mcfly-chart__tip-h">{labelOf(active.dateKey)}</p>
           <p className="mcfly-chart__tip-row">
             <span className="mcfly-chart__tip-k">Orders</span>

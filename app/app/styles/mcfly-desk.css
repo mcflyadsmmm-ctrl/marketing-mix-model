@@ -78,7 +78,8 @@
   }
 
   .mcfly-explorer__tip,
-  .mcfly-explorer__tip--float {
+  .mcfly-explorer__tip--float,
+  .mcfly-chart__tip {
     transition: none !important;
   }
 }
@@ -1317,10 +1318,15 @@
 
 .mcfly-desk--loading .mcfly-kpi-grid,
 .mcfly-desk--loading .mcfly-kpi-board,
-.mcfly-desk--loading .mcfly-alloc-score,
-.mcfly-desk--loading .mcfly-explorer {
+.mcfly-desk--loading .mcfly-alloc-score {
   opacity: 0.72;
   transition: opacity var(--mcfly-motion) ease;
+}
+
+/* Keep explorers painted while the next period/range loads — no dim flash. */
+.mcfly-desk--loading .mcfly-explorer,
+.mcfly-desk--loading .mcfly-chart {
+  opacity: 1;
 }
 
 /* Monthly pacing — Apps Script gauge + compact KPI tiles */
@@ -14241,6 +14247,15 @@ button.mcfly-chart__hour {
   color: #e2e8f0;
   box-shadow: 0 10px 28px rgba(2, 6, 23, 0.35);
   pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 90ms ease,
+    left var(--mcfly-motion, 160ms) var(--mcfly-ease, ease),
+    top var(--mcfly-motion, 160ms) var(--mcfly-ease, ease);
+}
+
+.mcfly-chart__tip--on {
+  opacity: 1;
 }
 
 .mcfly-chart__tip-h {
@@ -16531,6 +16546,15 @@ button.mcfly-depth-legend__chip:focus-visible {
   box-shadow: 0 12px 34px rgba(2, 12, 27, 0.4);
   pointer-events: none;
   font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition:
+    opacity 90ms ease,
+    left var(--mcfly-motion, 160ms) var(--mcfly-ease, ease),
+    top var(--mcfly-motion, 160ms) var(--mcfly-ease, ease);
+}
+
+.mcfly-chart__tip--on {
+  opacity: 1;
 }
 
 .mcfly-chart__tip--mid {
