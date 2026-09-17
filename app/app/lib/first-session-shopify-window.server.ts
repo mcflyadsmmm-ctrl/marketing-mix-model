@@ -1,20 +1,32 @@
 /**
- * First Admin open: complete the public-app Shopify window (~60 days)
- * from already-granted read_orders / read_customers.
+ * First Admin open: complete the Shopify ingest window already granted.
+ *
+ * Product lock:
+ * - Demo = SAMPLE full wow (this lane is Live ingest, not SAMPLE).
+ * - Trial/unpaid = ~90d Live slice (billing hard-stop in `live-ingest-depth`).
+ * - Paid $39 = FULL order history immediately on subscribe. "Sealed" means
+ *   that same granted window is filled — never treat paid as 90d-only.
  *
  * OAuth and first paint must not await the crawl. Enqueue resume jobs, then
  * fire-and-forget the default chunk (20 sales days / 7 order days) — never
  * the timid maxDays: 2 that left a sealed thin book.
+ *
+ * One-shot after that full window seals: Live tabs skip enqueue/burst.
+ * OAuth / first-session still kick while work remains. Refunds/cancels
+ * re-arm OrderFact via webhook.
  */
 
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
+import prisma from "../db.server";
 import { enqueueJob } from "./job-queue.server";
 import {
   BACKFILL_ORDER_FACTS_JOB,
+  getOrderBackfillProgress,
   runOrderFactsBackfill,
 } from "./order-facts.server";
 import {
   BACKFILL_SALES_DAY_FACTS_JOB,
+  getSalesFactsWindowRemainingDays,
   runSalesFactsBackfill,
 } from "./sales-facts.server";
 
@@ -41,9 +53,75 @@ export function orderFactsWindowShouldResume(result: {
   return result.remainingMissingDays > 0;
 }
 
+export type ShopifyWindowBackfillProgress = {
+  /** Missing sales days, missing OrderFact days, or a truncated OrderFact crawl. */
+  remainingWork: boolean;
+  /** `complete` only when remaining work is gone; otherwise idle/running. */
+  status: string;
+  salesRemainingDays: number;
+  orderRemainingDays: number;
+  truncated: boolean;
+};
+
+/**
+ * Enqueue/burst only when progress still has work, or status is not complete.
+ * A sealed shop (no remaining days, not truncated) must not re-arm from a tab.
+ */
+export function shopifyWindowShouldEnqueue(
+  progress: Pick<ShopifyWindowBackfillProgress, "remainingWork" | "status">,
+): boolean {
+  return progress.remainingWork || progress.status !== "complete";
+}
+
+/**
+ * Read both ingest lanes. No IANA yet → remaining work so OAuth / first
+ * session still kick. Sealed window → status complete.
+ */
+export async function getShopifyWindowBackfillProgress(
+  shopId: string,
+  now: Date = new Date(),
+): Promise<ShopifyWindowBackfillProgress> {
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { ianaTimezone: true },
+  });
+  const tz = shop?.ianaTimezone?.trim() || null;
+  if (!tz) {
+    return {
+      remainingWork: true,
+      status: "idle",
+      salesRemainingDays: 0,
+      orderRemainingDays: 0,
+      truncated: false,
+    };
+  }
+
+  const [orderProgress, salesRemainingDays] = await Promise.all([
+    getOrderBackfillProgress(shopId, { ianaTimezone: tz, now }),
+    getSalesFactsWindowRemainingDays(shopId, { ianaTimezone: tz, now }),
+  ]);
+
+  const orderRemainingDays = orderProgress?.remainingDays ?? 0;
+  const truncated = Boolean(orderProgress?.truncated);
+  const remainingWork =
+    salesRemainingDays > 0 || orderRemainingDays > 0 || truncated;
+
+  return {
+    remainingWork,
+    status: remainingWork ? (orderProgress?.status ?? "idle") : "complete",
+    salesRemainingDays,
+    orderRemainingDays,
+    truncated,
+  };
+}
+
 export async function enqueueShopifyWindowBackfill(
   shopId: string,
-): Promise<void> {
+): Promise<boolean> {
+  const progress = await getShopifyWindowBackfillProgress(shopId);
+  if (!shopifyWindowShouldEnqueue(progress)) {
+    return false;
+  }
   await Promise.all([
     enqueueJob({
       shopId,
@@ -60,21 +138,41 @@ export async function enqueueShopifyWindowBackfill(
       maxAttempts: SHOPIFY_WINDOW_BACKFILL_MAX_ATTEMPTS,
     }),
   ]);
+  return true;
 }
 
 /**
  * Fast: write resume jobs, then kick default-sized bursts without awaiting them.
  * Safe on OAuth and Overview — first paint stays facts-only / pending.
+ * No-ops once the Shopify window is sealed.
  */
 export async function scheduleFirstSessionShopifyWindow(
   admin: AdminApiContext,
   shopId: string,
 ): Promise<void> {
-  await enqueueShopifyWindowBackfill(shopId);
+  const enqueued = await enqueueShopifyWindowBackfill(shopId);
+  if (!enqueued) return;
   void runSalesFactsBackfill(admin, shopId).catch(() => {
     // Job tick resumes — never fail OAuth / first paint.
   });
   void runOrderFactsBackfill(admin, shopId).catch(() => {
     // Job tick resumes.
+  });
+}
+
+/**
+ * Order webhook delta: re-arm the shop-deduped OrderFact crawl after a day
+ * seal is cleared so refunds/cancels do not wait for a Live tab.
+ */
+export async function enqueueOrderFactsWebhookDelta(
+  shopId: string,
+  payload: { reason: string; day: string },
+): Promise<void> {
+  await enqueueJob({
+    shopId,
+    type: BACKFILL_ORDER_FACTS_JOB,
+    dedupeKey: shopId,
+    payload,
+    maxAttempts: SHOPIFY_WINDOW_BACKFILL_MAX_ATTEMPTS,
   });
 }

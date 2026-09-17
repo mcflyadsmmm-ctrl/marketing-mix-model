@@ -80,8 +80,8 @@ describe("desk never claims what the routes do not do", () => {
   });
 
   it("has no 90-day history cap claim (history is Jan 1 of year minus five)", () => {
-    expect(banned(/90[\s-]day (cap|limit|history)/i)).toEqual([]);
-    expect(banned(/only the last 90 days/i)).toEqual([]);
+    expect(claimed(/90[\s-]day (cap|limit|history)/i)).toEqual([]);
+    expect(claimed(/only the last 90 days/i)).toEqual([]);
   });
 
   it("gates no feature behind a plan", () => {

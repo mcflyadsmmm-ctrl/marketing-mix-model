@@ -69,7 +69,6 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
 
     const productPages = [
       "routes/app.spend.tsx",
-      "routes/app.ltv.tsx",
       "routes/app.goals.tsx",
       "routes/app.advanced.tsx",
       "routes/app._index.tsx",
@@ -80,6 +79,14 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
       expect(src).not.toMatch(/href=\{?[`'"]https:\/\/admin\.shopify\.com/);
       expect(src).not.toMatch(/window\.location\.(href|assign|replace)/);
     }
+
+    const ltv = readApp("routes/app.ltv.tsx");
+    expect(ltv).toContain("UnlockFullHistoryBanner");
+    expect(ltv).not.toMatch(/href=\{?[`'"]https:\/\/admin\.shopify\.com/);
+    expect(ltv).not.toMatch(/window\.location\.(href|assign|replace)/);
+    expect(readApp("components/UnlockFullHistoryBanner.tsx")).toContain(
+      "Unlock full history",
+    );
   });
 
   it("root app shell supplies the Managed Pricing URL to billing CTAs", () => {

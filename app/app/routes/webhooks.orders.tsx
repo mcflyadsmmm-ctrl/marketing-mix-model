@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import { enqueueOrderFactsWebhookDelta } from "../lib/first-session-shopify-window.server";
 import { enqueueJob } from "../lib/job-queue.server";
 import { clearOrderFactDayCompleteSeal } from "../lib/order-facts.server";
 import {
@@ -21,8 +22,8 @@ import {
  * This handler does NOT compute sales. It marks the affected shop-local day dirty
  * and ACKs, so Shopify's 5s budget is never spent on GraphQL pagination. The queue
  * worker recomputes the day's SalesDayFact. When shop IANA is known it also clears
- * the OrderFact `__day_complete__` seal so the next LTV backfill re-crawls nets
- * (refunds/cancels) — no second queue type.
+ * the OrderFact `__day_complete__` seal and enqueues `backfill_order_facts`
+ * (shop-deduped) so refunds/cancels re-crawl nets without waiting for a tab.
  *
  * Level 1 only: order id and timestamp. `customer`, `email`, `phone`, addresses,
  * and line items are never read, logged, or persisted — the desk needs a dirty-day
@@ -95,6 +96,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           `Order webhook topic=${normalizedTopic} shop=${shop} clearedOrderFactDaySeal=${dayKey}`,
         );
       }
+      await enqueueOrderFactsWebhookDelta(shopRow.id, {
+        reason: normalizedTopic,
+        day: dayKey,
+      });
     }
 
     const job = await enqueueJob({

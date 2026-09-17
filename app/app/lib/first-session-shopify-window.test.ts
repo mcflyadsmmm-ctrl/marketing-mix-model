@@ -6,9 +6,19 @@ import { fileURLToPath } from "node:url";
 const enqueueJob = vi.fn();
 const runSalesFactsBackfill = vi.fn();
 const runOrderFactsBackfill = vi.fn();
+const getOrderBackfillProgress = vi.fn();
+const getSalesFactsWindowRemainingDays = vi.fn();
+const findUniqueShop = vi.fn();
 
 vi.mock("./job-queue.server", () => ({
   enqueueJob: (...args: unknown[]) => enqueueJob(...args),
+}));
+vi.mock("../db.server", () => ({
+  default: {
+    shop: {
+      findUnique: (...args: unknown[]) => findUniqueShop(...args),
+    },
+  },
 }));
 vi.mock("./sales-facts.server", async () => {
   const actual = await vi.importActual<typeof import("./sales-facts.server")>(
@@ -17,6 +27,8 @@ vi.mock("./sales-facts.server", async () => {
   return {
     ...actual,
     runSalesFactsBackfill: (...args: unknown[]) => runSalesFactsBackfill(...args),
+    getSalesFactsWindowRemainingDays: (...args: unknown[]) =>
+      getSalesFactsWindowRemainingDays(...args),
   };
 });
 vi.mock("./order-facts.server", async () => {
@@ -26,13 +38,18 @@ vi.mock("./order-facts.server", async () => {
   return {
     ...actual,
     runOrderFactsBackfill: (...args: unknown[]) => runOrderFactsBackfill(...args),
+    getOrderBackfillProgress: (...args: unknown[]) =>
+      getOrderBackfillProgress(...args),
   };
 });
 
 import {
+  enqueueOrderFactsWebhookDelta,
+  enqueueShopifyWindowBackfill,
   orderFactsWindowShouldResume,
   salesDayFactsWindowShouldResume,
   scheduleFirstSessionShopifyWindow,
+  shopifyWindowShouldEnqueue,
   SHOPIFY_WINDOW_BACKFILL_MAX_ATTEMPTS,
 } from "./first-session-shopify-window.server";
 import { BACKFILL_SALES_DAY_FACTS_JOB } from "./sales-facts.server";
@@ -49,9 +66,14 @@ describe("first-session Shopify window resume", () => {
     enqueueJob.mockReset();
     runSalesFactsBackfill.mockReset();
     runOrderFactsBackfill.mockReset();
+    getOrderBackfillProgress.mockReset();
+    getSalesFactsWindowRemainingDays.mockReset();
+    findUniqueShop.mockReset();
     enqueueJob.mockResolvedValue({ jobId: "job_1", dedupeKey: "shop_1" });
     runSalesFactsBackfill.mockReturnValue(new Promise(() => {}));
     runOrderFactsBackfill.mockReturnValue(new Promise(() => {}));
+    // First session / no IANA — keep OAuth kick.
+    findUniqueShop.mockResolvedValue({ ianaTimezone: null });
   });
 
   it("resumes SalesDayFact while closed days remain, not after a timezone skip", () => {
@@ -102,6 +124,21 @@ describe("first-session Shopify window resume", () => {
     ).toBe(false);
   });
 
+  it("enqueues only when remaining work exists or status is not complete", () => {
+    expect(
+      shopifyWindowShouldEnqueue({ remainingWork: true, status: "idle" }),
+    ).toBe(true);
+    expect(
+      shopifyWindowShouldEnqueue({ remainingWork: true, status: "complete" }),
+    ).toBe(true);
+    expect(
+      shopifyWindowShouldEnqueue({ remainingWork: false, status: "idle" }),
+    ).toBe(true);
+    expect(
+      shopifyWindowShouldEnqueue({ remainingWork: false, status: "complete" }),
+    ).toBe(false);
+  });
+
   it("enqueues window jobs and does not await the Shopify crawl", async () => {
     const admin = {} as never;
     const done = await Promise.race([
@@ -130,6 +167,79 @@ describe("first-session Shopify window resume", () => {
     expect(runSalesFactsBackfill.mock.calls[0][2]?.maxDays).toBeUndefined();
   });
 
+  it("does not re-enqueue or burst when the sealed shop has no remaining work", async () => {
+    findUniqueShop.mockResolvedValue({ ianaTimezone: "America/Chicago" });
+    getSalesFactsWindowRemainingDays.mockResolvedValue(0);
+    getOrderBackfillProgress.mockResolvedValue({
+      completeDays: 1800,
+      windowDays: 1800,
+      remainingDays: 0,
+      historyLimited: false,
+      status: "idle",
+      truncated: false,
+      truncatedDay: null,
+    });
+
+    const enqueued = await enqueueShopifyWindowBackfill("shop_1");
+    expect(enqueued).toBe(false);
+    expect(enqueueJob).not.toHaveBeenCalled();
+
+    await scheduleFirstSessionShopifyWindow({} as never, "shop_1");
+    expect(enqueueJob).not.toHaveBeenCalled();
+    expect(runSalesFactsBackfill).not.toHaveBeenCalled();
+    expect(runOrderFactsBackfill).not.toHaveBeenCalled();
+  });
+
+  it("still enqueues while the paid full-history window has remaining days", async () => {
+    findUniqueShop.mockResolvedValue({ ianaTimezone: "America/Chicago" });
+    getSalesFactsWindowRemainingDays.mockResolvedValue(1400);
+    getOrderBackfillProgress.mockResolvedValue({
+      completeDays: 90,
+      windowDays: 1800,
+      remainingDays: 1710,
+      historyLimited: false,
+      status: "idle",
+      truncated: false,
+      truncatedDay: null,
+    });
+
+    const enqueued = await enqueueShopifyWindowBackfill("shop_1");
+    expect(enqueued).toBe(true);
+    expect(enqueueJob).toHaveBeenCalledTimes(2);
+  });
+
+  it("still enqueues when a sealed-looking shop has a truncated OrderFact day", async () => {
+    findUniqueShop.mockResolvedValue({ ianaTimezone: "America/Chicago" });
+    getSalesFactsWindowRemainingDays.mockResolvedValue(0);
+    getOrderBackfillProgress.mockResolvedValue({
+      completeDays: 59,
+      windowDays: 60,
+      remainingDays: 0,
+      historyLimited: false,
+      status: "idle",
+      truncated: true,
+      truncatedDay: "2026-07-20",
+    });
+
+    const enqueued = await enqueueShopifyWindowBackfill("shop_1");
+    expect(enqueued).toBe(true);
+    expect(enqueueJob).toHaveBeenCalledTimes(2);
+  });
+
+  it("enqueues shop-deduped backfill_order_facts after an order webhook delta", async () => {
+    await enqueueOrderFactsWebhookDelta("shop_1", {
+      reason: "ORDERS_CANCELLED",
+      day: "2026-07-20",
+    });
+    expect(enqueueJob).toHaveBeenCalledWith({
+      shopId: "shop_1",
+      type: BACKFILL_ORDER_FACTS_JOB,
+      dedupeKey: "shop_1",
+      payload: { reason: "ORDERS_CANCELLED", day: "2026-07-20" },
+      maxAttempts: SHOPIFY_WINDOW_BACKFILL_MAX_ATTEMPTS,
+    });
+  });
+
   it("post-auth and first Overview schedule more than two missing days", () => {
     const auth = read("../routes/auth.$.tsx");
     const overview = read("../routes/app._index.tsx");
@@ -147,5 +257,28 @@ describe("first-session Shopify window resume", () => {
     const jobs = read("./job-runner.server.ts");
     expect(jobs).toContain("BACKFILL_SALES_DAY_FACTS_JOB");
     expect(jobs).toContain("handleBackfillSalesDayFacts");
+  });
+
+  it("keeps paid full-history depth and defers the 90d clamp to live-ingest-depth", () => {
+    const gate = read("./first-session-shopify-window.server.ts");
+    const sales = read("./sales-facts.server.ts");
+    const depth = read("./live-ingest-depth.ts");
+    expect(gate).toContain("never treat paid as 90d-only");
+    expect(gate).toContain("live-ingest-depth");
+    expect(sales).toContain("resolveLiveIngestWindowDays");
+    expect(depth).toContain("TRIAL_LIVE_SLICE_DAYS = 90");
+    expect(depth).toContain("paid_full");
+    expect(depth).toContain("immediately on subscribe");
+  });
+
+  it("order webhook enqueues OrderFact backfill after clearing the day seal", () => {
+    const webhook = read("../routes/webhooks.orders.tsx");
+    expect(webhook).toContain("clearOrderFactDayCompleteSeal");
+    expect(webhook).toContain("enqueueOrderFactsWebhookDelta");
+    expect(webhook).toContain("backfill_order_facts");
+    const sealCall = webhook.lastIndexOf("clearOrderFactDayCompleteSeal");
+    const deltaCall = webhook.lastIndexOf("enqueueOrderFactsWebhookDelta");
+    expect(sealCall).toBeGreaterThan(-1);
+    expect(deltaCall).toBeGreaterThan(sealCall);
   });
 });

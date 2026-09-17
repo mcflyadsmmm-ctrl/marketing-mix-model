@@ -47,7 +47,7 @@ export const PRO_UPSELL = {
 /** In-app only (never listing paste). Contrast GMV ladders and order overages. */
 export const BILLING_HONESTY = {
   flat:
-    "Mcfly Analytics is $39 per store / month after a 7-day full-access trial — not a percent of sales, not a per-order fee.",
+    "Mcfly Analytics is $39 per store / month after a 7-day full-access trial — not a percent of sales, not a per-order fee. The price does not rise with sales.",
   cancel:
     "Shopify bills this app. Uninstall in Admin to stop the next 30-day cycle. The current cycle may still charge.",
 } as const;
