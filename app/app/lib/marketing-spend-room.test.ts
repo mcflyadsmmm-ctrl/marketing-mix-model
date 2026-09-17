@@ -18,6 +18,8 @@ describe("Marketing spend room", () => {
     expect(spend).not.toContain('from "../components/MarketingSpendRoom"');
     expect(spend).not.toContain("<SpendExplorer");
     expect(spend).not.toContain("<DualCloseLine");
+    expect(spend).not.toContain("<MarketingSnapSection");
+    expect(spend).not.toContain('from "../components/MarketingSnapSection"');
   });
 
   it("does not build a spend analysis board on the input route", () => {

@@ -13,26 +13,13 @@ import {
 } from "@mcfly/mer-engine";
 import { PeriodControl } from "../components/PeriodControl";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
-import { MarketingSnapSection } from "../components/MarketingSnapSection";
-import {
-  buildDashboardMetrics,
-  ensureShop,
-  getOrCreateSettings,
-} from "../lib/mer-dashboard.server";
+import { ensureShop } from "../lib/mer-dashboard.server";
 import { requireAdmin } from "../lib/public-app-gate.server";
-import { scheduleFirstSessionShopifyWindow } from "../lib/first-session-shopify-window.server";
-import { channelFillKey } from "../lib/channel-fill";
-import { parseSalesBasis } from "../lib/sales-basis";
 import {
-  loadDeskSalesForPeriod,
   salesDayFactWindowStartUtc,
   SALES_DAY_FACT_WINDOW_YEARS_BACK,
 } from "../lib/sales-facts.server";
-import {
-  deskPeriodTimeZone,
-  parsePeriodPreset,
-  resolvePeriod,
-} from "../lib/periods";
+import { deskPeriodTimeZone, parsePeriodPreset } from "../lib/periods";
 import { deskNavHref } from "../lib/desk-nav";
 import { shopLocalDayKey } from "../lib/shop-local-day";
 import { isSpendYmd } from "../lib/spend-day-entry";
@@ -40,7 +27,6 @@ import { slugCustomChannelName } from "../lib/spend-custom-channel";
 import { isSpendChannel } from "../lib/spend-billing";
 import { createSpendRepository } from "../lib/spend-repository.server";
 import {
-  fetchSampleSales,
   getSampleDeskEnabled,
   getSampleDeskStats,
   isSampleOnlyFreeze,
@@ -167,7 +153,7 @@ function HashDetails({
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, session } = await requireAdmin(request);
+  const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
@@ -247,38 +233,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       ? requestedDate
       : yesterdayKey;
 
-  /**
-   * Empty Live: input only. After one typed day (or SAMPLE / listing shot),
-   * load the same sales÷spend spine so this page can paint Total ROAS + mix.
-   */
-  const strangerEmptyLoader =
-    entries.length === 0 && !sampleDesk.enabled && !shotMode;
-  let metrics: Awaited<ReturnType<typeof buildDashboardMetrics>> | null = null;
-  let salesError: string | null = null;
-  if (!strangerEmptyLoader) {
-    const settings = await getOrCreateSettings(shop.id);
-    const range = resolvePeriod(preset, now, timeZone);
-    if (sampleDesk.enabled) {
-      const sales = await fetchSampleSales(shop.id, range);
-      metrics = await buildDashboardMetrics(session.shop, range, sales, {
-        salesBasis: parseSalesBasis(settings.salesBasis, "total"),
-      });
-    } else {
-      void scheduleFirstSessionShopifyWindow(admin, shop.id);
-      const desk = await loadDeskSalesForPeriod({
-        admin,
-        shopId: shop.id,
-        range,
-        ianaTimezone: shop.ianaTimezone,
-      });
-      salesError = desk.salesError;
-      metrics = await buildDashboardMetrics(session.shop, range, desk.sales, {
-        salesBasis: parseSalesBasis(settings.salesBasis, "total"),
-        salesCoverage: desk.factsCoverage,
-      });
-    }
-  }
-
   return {
     entries,
     editing,
@@ -294,8 +248,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     yesterdayKey,
     currencyCode,
     fillDateKey,
-    metrics,
-    salesError,
   };
 };
 
@@ -482,8 +434,6 @@ export default function SpendEntryPage() {
     fillDateKey,
     currencyCode,
     preset,
-    metrics,
-    salesError,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -493,8 +443,9 @@ export default function SpendEntryPage() {
   const isEmpty = entries.length === 0;
   /**
    * Stranger on Live data with nothing typed yet: the page is the three doors
-   * and one honesty sentence. Coverage, chart, and status only earn room once
-   * a day of spend exists.
+   * and one honesty sentence. Coverage and status only earn room once a day
+   * of spend exists. SAMPLE still skips this lean gate (ledger is on file)
+   * but never mounts a ROAS/mix hero — TAB_LOCK §6 is input-only.
    */
   const strangerEmpty = isEmpty && !sampleDesk.enabled && !shotMode;
   const roasHref = deskNavHref("/app/roas", {
@@ -535,24 +486,6 @@ export default function SpendEntryPage() {
     coverageClosedDays[coverageClosedDays.length - 1]?.dateKey;
   const stripDays = coverageClosedDays;
   const manualSaved = Boolean(actionData?.success && !actionData.csv);
-  const hasPeriodSpend = Boolean(metrics && metrics.totalSpend > 0);
-  const periodChannels = metrics
-    ? [...metrics.channelMix]
-        .filter((entry) => entry.amount > 0)
-        .sort((a, b) => b.amount - a.amount)
-        .map((entry) => {
-          const name = spendChannelLabel({
-            channel: entry.channel,
-            customLabel: entry.customLabel,
-          });
-          return {
-            name,
-            amount: entry.amount,
-            share: entry.share,
-            fill: channelFillKey(name),
-          };
-        })
-    : [];
 
   return (
     <s-page heading="Spend Upload" inlineSize="large">
@@ -621,26 +554,18 @@ export default function SpendEntryPage() {
             {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
             {strangerEmpty
               ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
-              : "."}
+              : (
+                <>
+                  . Sales ÷ spend and mix live on{" "}
+                  <s-link href={roasHref}>{PRODUCT_NOUN.totalRoas}</s-link>
+                  {" and "}
+                  <s-link href={`/app/allocation?period=${preset}`}>
+                    {PRODUCT_NOUN.spendAllocation}
+                  </s-link>
+                  — this page records spend.
+                </>
+              )}
           </p>
-
-          {strangerEmpty || !metrics ? null : (
-            <MarketingSnapSection
-              spendOnlyEmpty={!hasPeriodSpend}
-              spendHref="#mcfly-spend-add"
-              roasHref={roasHref}
-              preset={preset}
-              totalSales={metrics.sales}
-              totalSpend={metrics.totalSpend}
-              mer={metrics.mer}
-              targetMer={metrics.targetMer}
-              periodLabel={metrics.period.label}
-              salesPending={Boolean(metrics.salesPending || salesError)}
-              merDeltaLine={null}
-              spendDeltaLine={null}
-              periodChannels={periodChannels}
-            />
-          )}
 
           {recurring.length > 0 ? (
             <section
