@@ -15646,82 +15646,133 @@ button.mcfly-chart__hour {
   gap: 0.35rem;
 }
 
-/* Customers marquee — new vs returning $ dual-axis trend (stacked bars + line). */
-.mcfly-cust-mix__svg {
-  width: 100%;
-  height: auto;
-  min-height: 15rem;
-  display: block;
+/* =========================================================================
+ * Customers marquee — explorer-first new vs returning $ dual-axis trend.
+ * Reuses the Overview sales-explorer scaffold (board/masthead/readout, stats
+ * strip, aspect-boxed plot with crisp HTML overlays, dark floating tooltip)
+ * and adds the stacked returning/first-time bars + returning-share line, a
+ * premium grain wash, and a designed guest-empty ghost. Order dollars only.
+ * ========================================================================= */
+.mcfly-cust-mix.mcfly-chart {
+  position: relative;
+  padding: 0.85rem 0.95rem 0.85rem;
+  overflow: hidden;
+}
+
+/* Premium grain wash — a faint film over the marquee so the dense chart reads
+   crafted, not flat. Sits behind content, never intercepts pointer events. */
+.mcfly-cust-mix::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: radial-gradient(
+      circle at 18% 12%,
+      color-mix(in srgb, var(--mcfly-accent) 8%, transparent),
+      transparent 42%
+    ),
+    url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+.mcfly-cust-mix > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mcfly-cust-mix .mcfly-chart__board {
+  grid-template-rows: auto;
+  align-items: start;
+}
+
+.mcfly-cust-mix .mcfly-chart__masthead {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.mcfly-cust-mix .mcfly-chart__serif {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mcfly-cust-mix .mcfly-chart__readout {
+  grid-column: 2;
+  grid-row: 1;
+  text-align: right;
+}
+
+.mcfly-cust-mix .mcfly-chart__when {
+  margin: 0;
 }
 
 .mcfly-cust-mix__readsub {
-  margin: 0.2rem 0 0;
-  font-size: 0.75rem;
+  margin: 0.12rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--mcfly-mute);
   font-variant-numeric: tabular-nums;
 }
 
-.mcfly-cust-mix__grid {
-  stroke: var(--mcfly-line-soft);
-  stroke-width: 1;
+/* Aspect-boxed SVG so shapes and HTML axis overlays share one coordinate map. */
+.mcfly-cust-mix .mcfly-chart__svg,
+.mcfly-desk-anchor .mcfly-cust-mix .mcfly-chart__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-.mcfly-cust-mix__axis {
-  fill: var(--mcfly-mute);
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+.mcfly-desk-anchor .mcfly-cust-mix .mcfly-chart__plot {
+  min-height: 13.25rem;
 }
 
-.mcfly-cust-mix__axis--right {
-  fill: var(--mcfly-accent-ink);
+/* First-time (soft) below, returning (navy) stacked on top. */
+.mcfly-cust-mix__bar {
+  transition: fill var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-cust-mix__bar--new {
-  fill: color-mix(in srgb, var(--mcfly-accent) 42%, #fff);
+  fill: color-mix(in srgb, var(--mcfly-accent) 40%, #dbe7f1);
 }
 
 .mcfly-cust-mix__bar--ret {
-  fill: var(--mcfly-ink);
-  opacity: 0.82;
+  fill: var(--mcfly-accent);
 }
 
 .mcfly-cust-mix__col--on .mcfly-cust-mix__bar--ret {
-  opacity: 1;
+  fill: var(--mcfly-accent-ink);
 }
 
 .mcfly-cust-mix__col--on .mcfly-cust-mix__bar--new {
-  fill: color-mix(in srgb, var(--mcfly-accent) 60%, #fff);
+  fill: color-mix(in srgb, var(--mcfly-accent) 58%, #cfe0ee);
 }
 
 .mcfly-cust-mix__line {
   fill: none;
-  stroke: var(--mcfly-accent-ink);
-  stroke-width: 2.4;
+  stroke: var(--mcfly-truth);
+  stroke-width: 2.2;
   stroke-linejoin: round;
   stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 
 .mcfly-cust-mix__dot {
-  fill: var(--mcfly-accent-ink);
+  fill: var(--mcfly-truth);
+  stroke: #fff;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
 
 .mcfly-cust-mix__rail {
-  stroke: var(--mcfly-accent-ink);
-  stroke-width: 1.4;
-  stroke-dasharray: 5 4;
+  stroke: var(--mcfly-ink-soft);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 4;
   opacity: 0.5;
-  pointer-events: none;
-}
-
-.mcfly-cust-mix__rail-k {
-  fill: var(--mcfly-accent-ink);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  opacity: 0.85;
   pointer-events: none;
 }
 
@@ -15732,21 +15783,70 @@ button.mcfly-chart__hour {
 
 .mcfly-cust-mix__hit:hover,
 .mcfly-cust-mix__hit:focus-visible {
-  fill: color-mix(in srgb, var(--mcfly-accent) 8%, transparent);
+  fill: color-mix(in srgb, var(--mcfly-accent) 7%, transparent);
   outline: none;
 }
 
-.mcfly-cust-mix__tag--ret::before {
-  background: var(--mcfly-ink);
-  opacity: 0.82;
+/* Dark tooltip dots — returning navy, first-time soft, share = truth line. */
+.mcfly-chart__tip-dot--ret {
+  background: color-mix(in srgb, var(--mcfly-accent) 72%, #fff);
 }
 
-.mcfly-cust-mix__tag--new::before {
-  background: color-mix(in srgb, var(--mcfly-accent) 42%, #fff);
+.mcfly-chart__tip-dot--new {
+  background: color-mix(in srgb, var(--mcfly-accent) 40%, #fff);
 }
 
-.mcfly-cust-mix__tag--line::before {
-  background: var(--mcfly-accent-ink);
+.mcfly-chart__tip-dot--share {
+  width: 0.62rem;
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid #6ee7b7;
+}
+
+/* Legend swatches. */
+.mcfly-cust-mix__sw--ret {
+  background: var(--mcfly-accent);
+}
+
+.mcfly-cust-mix__sw--new {
+  background: color-mix(in srgb, var(--mcfly-accent) 40%, #dbe7f1);
+}
+
+.mcfly-cust-mix__sw--line {
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid var(--mcfly-truth);
+  align-self: center;
+}
+
+/* Designed guest-empty — a ghosted marquee, never a bare em dash. */
+.mcfly-cust-mix__ghost {
+  opacity: 0.55;
+  filter: saturate(0.4);
+}
+
+.mcfly-cust-mix__ghost .mcfly-chart__svg,
+.mcfly-desk-anchor .mcfly-cust-mix__ghost .mcfly-chart__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mcfly-cust-mix__ghost-bar {
+  fill: color-mix(in srgb, var(--mcfly-accent) 16%, #e3ecf4);
+}
+
+.mcfly-cust-mix--empty .mcfly-chart__plot {
+  min-height: 8.5rem;
+}
+
+.mcfly-cust-mix__empty-copy {
+  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--mcfly-mute);
 }
 
 /* === LTV order-history depth pack (from PR #68) === */

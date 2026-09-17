@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCustomerAnalytics,
+  bucketMixWeeks,
   emptyCustomerAnalytics,
+  mixSummary,
   RETENTION_GUEST_KEY,
   type RetentionOrderRow,
 } from "./customers-analytics";
@@ -117,6 +119,56 @@ describe("new vs returning weekly mix", () => {
 
   it("reports a dollar-weighted returning-share rail", () => {
     expect(a.mixReturningShareAvg).toBeCloseTo(2000 / 7700, 4);
+  });
+});
+
+describe("bucketMixWeeks + mixSummary — marquee grain toggle", () => {
+  const a = buildCustomerAnalytics(buildFixture(), {
+    windowEnd: WINDOW_END,
+    historyWindowDays: 90,
+  });
+
+  it("passes weekly buckets through 1:1 at week grain", () => {
+    const weekly = bucketMixWeeks(a.mixWeekly, "week");
+    expect(weekly.length).toBe(a.mixWeekly.length);
+    expect(weekly.map((b) => b.total)).toEqual(a.mixWeekly.map((w) => w.total));
+    // Dollars are conserved across the grain.
+    const ret = weekly.reduce((s, b) => s + b.returningDollars, 0);
+    expect(ret).toBe(2000);
+  });
+
+  it("rolls weeks up to calendar months, conserving dollars", () => {
+    const monthly = bucketMixWeeks(a.mixWeekly, "month");
+    const weeklyRet = a.mixWeekly.reduce((s, w) => s + w.returningDollars, 0);
+    const weeklyNew = a.mixWeekly.reduce((s, w) => s + w.newDollars, 0);
+    const monthlyRet = monthly.reduce((s, b) => s + b.returningDollars, 0);
+    const monthlyNew = monthly.reduce((s, b) => s + b.newDollars, 0);
+    expect(monthlyRet).toBe(weeklyRet);
+    expect(monthlyNew).toBe(weeklyNew);
+    // Fewer (or equal) columns than weeks, and a month label like "Jul".
+    expect(monthly.length).toBeLessThanOrEqual(a.mixWeekly.length);
+    expect(monthly.every((b) => /^[A-Z][a-z]{2}$/.test(b.label))).toBe(true);
+    for (const b of monthly) {
+      expect(b.total).toBe(b.newDollars + b.returningDollars);
+    }
+  });
+
+  it("summarizes window totals, average share, and the best returning week", () => {
+    const weekly = bucketMixWeeks(a.mixWeekly, "week");
+    const s = mixSummary(weekly);
+    expect(s.returningDollars).toBe(2000);
+    expect(s.newDollars).toBe(5700);
+    expect(s.total).toBe(7700);
+    expect(s.returningShareAvg).toBeCloseTo(2000 / 7700, 4);
+    expect(s.bestReturning).not.toBeNull();
+    expect(s.bestReturning!.returningDollars).toBeGreaterThan(0);
+  });
+
+  it("is honest on empty — no buckets, null summary share", () => {
+    const empty = mixSummary(bucketMixWeeks([], "month"));
+    expect(empty.total).toBe(0);
+    expect(empty.returningShareAvg).toBeNull();
+    expect(empty.bestReturning).toBeNull();
   });
 });
 

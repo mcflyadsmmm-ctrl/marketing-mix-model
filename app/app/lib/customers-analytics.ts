@@ -40,6 +40,29 @@ export type MixWeek = {
   returningShare: number | null;
 };
 
+/** Grain the marquee explorer can roll the weekly mix up to. */
+export type MixGrain = "week" | "month";
+
+/** One plotted column of the new-vs-returning marquee, at either grain. */
+export type MixBucket = {
+  key: string;
+  label: string;
+  start: number;
+  newDollars: number;
+  returningDollars: number;
+  total: number;
+  returningShare: number | null;
+};
+
+/** Window roll-up powering the marquee's KPI strip and its average-share rail. */
+export type MixSummary = {
+  returningDollars: number;
+  newDollars: number;
+  total: number;
+  returningShareAvg: number | null;
+  bestReturning: MixBucket | null;
+};
+
 export type CustomerAnalytics = {
   available: boolean;
   /** Distinct identified (non-guest) buyers in the window. */
@@ -387,6 +410,98 @@ export function buildCustomerAnalytics(
     whaleRecencyTruncatedAt,
     mixWeekly,
     mixReturningShareAvg,
+  };
+}
+
+const MONTH_ABBR = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/**
+ * Roll the weekly new-vs-returning mix up to the requested grain so the marquee
+ * can offer a Weekly / Monthly explorer toggle. Month grain groups weeks by the
+ * calendar month (UTC) of their Monday start. Pure — the chart formats money.
+ */
+export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
+  if (grain === "week") {
+    return weeks.map((w) => ({
+      key: w.key,
+      label: w.label,
+      start: w.weekStart,
+      newDollars: w.newDollars,
+      returningDollars: w.returningDollars,
+      total: w.total,
+      returningShare: w.returningShare,
+    }));
+  }
+  const byMonth = new Map<
+    string,
+    { start: number; newD: number; retD: number; month: number }
+  >();
+  for (const w of weeks) {
+    const d = new Date(w.weekStart);
+    const year = d.getUTCFullYear();
+    const month = d.getUTCMonth();
+    const key = `${year}-${String(month + 1).padStart(2, "0")}`;
+    const rec = byMonth.get(key) ?? {
+      start: Date.UTC(year, month, 1),
+      newD: 0,
+      retD: 0,
+      month,
+    };
+    rec.newD += w.newDollars;
+    rec.retD += w.returningDollars;
+    byMonth.set(key, rec);
+  }
+  return [...byMonth.entries()]
+    .sort((a, b) => a[1].start - b[1].start)
+    .map(([key, rec]) => {
+      const total = rec.newD + rec.retD;
+      return {
+        key,
+        label: MONTH_ABBR[rec.month]!,
+        start: rec.start,
+        newDollars: rec.newD,
+        returningDollars: rec.retD,
+        total,
+        returningShare: total > 0 ? rec.retD / total : null,
+      };
+    });
+}
+
+/** Window totals + a dollar-weighted average returning share for the rail. */
+export function mixSummary(buckets: MixBucket[]): MixSummary {
+  let returningDollars = 0;
+  let newDollars = 0;
+  let bestReturning: MixBucket | null = null;
+  for (const b of buckets) {
+    returningDollars += b.returningDollars;
+    newDollars += b.newDollars;
+    if (
+      b.returningDollars > 0 &&
+      (bestReturning == null || b.returningDollars > bestReturning.returningDollars)
+    ) {
+      bestReturning = b;
+    }
+  }
+  const total = returningDollars + newDollars;
+  return {
+    returningDollars,
+    newDollars,
+    total,
+    returningShareAvg: total > 0 ? returningDollars / total : null,
+    bestReturning,
   };
 }
 

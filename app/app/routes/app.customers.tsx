@@ -107,7 +107,12 @@ export default function CustomersPage() {
         </p>
       ) : null}
 
-      {/* Hero = returning dollars, then the deep order-history flow. */}
+      {/* Marquee explorer — new vs returning $ dual-axis, above the fold. It
+          leads the tab so QA and operators meet the interactive trend first,
+          not a card wall; it handles its own pending / guest-empty frame. */}
+      <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
+
+      {/* Returning-dollars hero + dense tiles under the marquee. */}
       <CustomersScoreboard
         book={book}
         depth={metrics.shopifyDepth}
@@ -115,9 +120,6 @@ export default function CustomersPage() {
         salesPending={metrics.salesPending}
         useSampleDesk={useSampleDesk}
       />
-
-      {/* Marquee interactive chart — new vs returning $ over time, dual axis. */}
-      {!metrics.salesPending ? <CustomerMixChart analytics={analytics} /> : null}
 
       {/* When they come back — repurchase clock, funnel, cadence, win-back. */}
       <CustomerRetentionBoard analytics={analytics} />
