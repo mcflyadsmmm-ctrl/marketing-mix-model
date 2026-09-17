@@ -14,8 +14,12 @@ describe("Orders page", () => {
     expect(orders).toMatch(/median/i);
   });
 
-  it("groups period and timing", () => {
-    expect(orders).toContain('groups={["period", "timing"]}');
+  it("mounts the Orders scoreboard then the weekday/hour chart", () => {
+    expect(orders).toContain("<OrdersScoreboard");
+    expect(orders).toContain("<OrdersTimingChart");
+    expect(orders.indexOf("<OrdersTimingChart")).toBeGreaterThan(
+      orders.indexOf("<OrdersScoreboard"),
+    );
   });
 
   it("pending sales are not $0", () => {

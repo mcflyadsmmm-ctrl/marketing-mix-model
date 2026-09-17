@@ -129,6 +129,22 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toContain("Switch to Live data now");
     expect(fixture).not.toContain("$98,500");
     expect(fixture).not.toMatch(/>—</);
+    expect(fixture).toContain("mcfly-scoreboard--orders");
+    expect(fixture).toContain("mcfly-orders-hero");
+    expect(fixture).toContain("Average order $634");
+    expect(fixture).toContain("$72,827");
+    expect(fixture).toContain("$60,242");
+    expect(fixture).toContain("$548–$694");
+    expect(fixture).toContain("Orders with 2+ items");
+    expect(fixture).toContain("Shipping + tax");
+    expect(fixture).toContain("$8,215");
+    expect(fixture).toContain("Typical Online order");
+    expect(fixture).toContain("Typical POS order");
+    expect(fixture).toContain("Weekday");
+    expect(fixture).toContain("Hour");
+    expect(css).toContain(".mcfly-scoreboard--orders");
+    expect(css).toContain(".mcfly-kpi-grid--orders-depth");
+    expect(css).toContain(".mcfly-chart__hours");
   });
 
   it("keeps chart/table horizontal scroll inside those regions", () => {
