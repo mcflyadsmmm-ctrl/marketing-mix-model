@@ -30,6 +30,15 @@ export type SpendBand = {
 };
 export type DaysBucket = { label: string; min: number; max: number | null; customers: number };
 export type RecencyBucket = { label: string; min: number; max: number | null; buyers: number };
+export type MixWeek = {
+  key: string;
+  label: string;
+  weekStart: number;
+  newDollars: number;
+  returningDollars: number;
+  total: number;
+  returningShare: number | null;
+};
 
 export type CustomerAnalytics = {
   available: boolean;
@@ -70,6 +79,10 @@ export type CustomerAnalytics = {
   whaleCount: number;
   whaleRecency: RecencyBucket[];
   whaleRecencyTruncatedAt: number | null;
+  /** New vs returning dollars by ISO week (Mon start) — a trend, not a snapshot. */
+  mixWeekly: MixWeek[];
+  /** Dollar-weighted returning-share across the window — the trend's rail. */
+  mixReturningShareAvg: number | null;
 };
 
 function finite(n: number): number {
@@ -78,6 +91,14 @@ function finite(n: number): number {
 
 function ms(d: Date): number {
   return d instanceof Date ? d.getTime() : new Date(d).getTime();
+}
+
+/** Monday (UTC) of the week containing `d` — ISO week start for the mix trend. */
+function mondayUtc(d: Date): Date {
+  const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const mondayIndex = (x.getUTCDay() + 6) % 7;
+  x.setUTCDate(x.getUTCDate() - mondayIndex);
+  return x;
 }
 
 const SPEND_BANDS: Array<{ label: string; min: number; max: number | null }> = [
@@ -261,6 +282,45 @@ export function buildCustomerAnalytics(
   const daysToSecondTruncatedAt =
     collectable.length < DAYS_BUCKETS.length ? historyDays : null;
 
+  // New vs returning dollars by week: an order is "returning" when it lands after
+  // the buyer's first order on file; guests can never be returning.
+  const firstByCustomer = new Map<string, number>();
+  for (const [key, rec] of byCustomer) {
+    firstByCustomer.set(key, Math.min(...rec.times));
+  }
+  const weekMap = new Map<string, { start: number; newD: number; retD: number }>();
+  for (const r of clean) {
+    const monday = mondayUtc(r.orderedAt);
+    const key = monday.toISOString().slice(0, 10);
+    const rec = weekMap.get(key) ?? { start: monday.getTime(), newD: 0, retD: 0 };
+    const isReturning =
+      r.customerKey !== RETENTION_GUEST_KEY &&
+      ms(r.orderedAt) > (firstByCustomer.get(r.customerKey) ?? Number.POSITIVE_INFINITY);
+    if (isReturning) rec.retD += finite(r.amount);
+    else rec.newD += finite(r.amount);
+    weekMap.set(key, rec);
+  }
+  const mixWeekly: MixWeek[] = [...weekMap.values()]
+    .sort((a, b) => a.start - b.start)
+    .map((w) => {
+      const monday = new Date(w.start);
+      const total = w.newD + w.retD;
+      return {
+        key: monday.toISOString().slice(0, 10),
+        label: `Wk ${monday.getUTCMonth() + 1}/${monday.getUTCDate()}`,
+        weekStart: w.start,
+        newDollars: Math.round(w.newD),
+        returningDollars: Math.round(w.retD),
+        total: Math.round(total),
+        returningShare: total > 0 ? w.retD / total : null,
+      };
+    });
+  const mixTotals = mixWeekly.reduce(
+    (acc, w) => ({ ret: acc.ret + w.returningDollars, all: acc.all + w.total }),
+    { ret: 0, all: 0 },
+  );
+  const mixReturningShareAvg = mixTotals.all > 0 ? mixTotals.ret / mixTotals.all : null;
+
   const recencyCollectable = RECENCY_BUCKETS.filter((b) => b.min <= historyDays);
   const whaleRecency: RecencyBucket[] = recencyCollectable.map((b, i) => ({
     label: b.label,
@@ -313,6 +373,8 @@ export function buildCustomerAnalytics(
     whaleCount,
     whaleRecency,
     whaleRecencyTruncatedAt,
+    mixWeekly,
+    mixReturningShareAvg,
   };
 }
 

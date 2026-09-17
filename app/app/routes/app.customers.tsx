@@ -5,6 +5,7 @@ import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { ShopifyBookSection } from "../components/ShopifyBookSection";
 import { CustomersScoreboard } from "../components/CustomersScoreboard";
+import { CustomerMixChart } from "../components/CustomerMixChart";
 import { CustomerRetentionBoard } from "../components/CustomerRetentionBoard";
 import { CustomerValueBands } from "../components/CustomerValueBands";
 import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
@@ -114,6 +115,9 @@ export default function CustomersPage() {
         salesPending={metrics.salesPending}
         useSampleDesk={useSampleDesk}
       />
+
+      {/* Marquee interactive chart — new vs returning $ over time, dual axis. */}
+      {!metrics.salesPending ? <CustomerMixChart analytics={analytics} /> : null}
 
       {/* When they come back — repurchase clock, funnel, cadence, win-back. */}
       <CustomerRetentionBoard analytics={analytics} />

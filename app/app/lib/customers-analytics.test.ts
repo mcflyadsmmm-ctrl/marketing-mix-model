@@ -95,6 +95,29 @@ describe("buildCustomerAnalytics", () => {
   });
 });
 
+describe("new vs returning weekly mix", () => {
+  const a = buildCustomerAnalytics(buildFixture(), {
+    windowEnd: WINDOW_END,
+    historyWindowDays: 90,
+  });
+
+  it("splits weekly dollars into first-time vs returning (guests are first-time)", () => {
+    expect(a.mixWeekly.length).toBeGreaterThanOrEqual(2);
+    const newSum = a.mixWeekly.reduce((s, w) => s + w.newDollars, 0);
+    const retSum = a.mixWeekly.reduce((s, w) => s + w.returningDollars, 0);
+    // 5 repeat buyers' second orders ($400 each) are the only returning dollars.
+    expect(retSum).toBe(2000);
+    expect(newSum).toBe(5700);
+    for (const w of a.mixWeekly) {
+      expect(w.total).toBe(w.newDollars + w.returningDollars);
+    }
+  });
+
+  it("reports a dollar-weighted returning-share rail", () => {
+    expect(a.mixReturningShareAvg).toBeCloseTo(2000 / 7700, 4);
+  });
+});
+
 describe("whale recency", () => {
   it("buckets 5+ order buyers by days since last order", () => {
     const rows: RetentionOrderRow[] = [];

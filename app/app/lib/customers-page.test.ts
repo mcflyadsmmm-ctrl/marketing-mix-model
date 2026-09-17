@@ -14,6 +14,7 @@ const scoreboard = read("../components/CustomersScoreboard.tsx");
 const retention = read("../components/CustomerRetentionBoard.tsx");
 const value = read("../components/CustomerValueBands.tsx");
 const whale = read("../components/CustomerWhaleTable.tsx");
+const mix = read("../components/CustomerMixChart.tsx");
 const charts = read("../components/CustomerCharts.tsx");
 const analyticsLib = read("./customers-analytics.ts");
 const analyticsLoader = read("./desk-customers-page.server.ts");
@@ -37,6 +38,7 @@ describe("Customers route — deep RETAIN flow, order history only", () => {
     expect(customers).toContain("loadCustomerAnalytics");
     const order = [
       "<CustomersScoreboard",
+      "<CustomerMixChart",
       "<CustomerRetentionBoard",
       "<CustomerValueBands",
       "<CustomerWhaleTable",
@@ -122,6 +124,18 @@ describe("CustomerCharts — interactive primitives", () => {
   });
 });
 
+describe("CustomerMixChart — marquee dual-axis trend with hover polish", () => {
+  it("stacks new vs returning $ with a returning-share line, rail, and moving readout", () => {
+    expect(mix).toContain("mixWeekly");
+    expect(mix).toContain("mcfly-cust-mix__line");
+    expect(mix).toContain("mcfly-cust-mix__rail");
+    expect(mix).toContain("Returning share");
+    expect(mix).toContain("useState");
+    expect(mix).toContain("useDeskDrill");
+    expect(mix).toContain("mcfly-chart__readout");
+  });
+});
+
 describe("Zero spend / ROAS on the whole Customers tab", () => {
   it("never paints spend, ROAS, CPA, or a 0.00× on any Customers file", () => {
     for (const source of [
@@ -130,6 +144,7 @@ describe("Zero spend / ROAS on the whole Customers tab", () => {
       retention,
       value,
       whale,
+      mix,
       charts,
       analyticsLib,
       analyticsLoader,
