@@ -19,6 +19,10 @@
   --mcfly-truth-soft: #ecfdf5;
   --mcfly-lie: #b91c1c;
   --mcfly-lie-soft: #fef2f2;
+  /* Period / YoY / growth deltas — up affirms green, down is quiet grey (never danger red). */
+  --mcfly-delta-up: var(--mcfly-truth);
+  --mcfly-delta-down: var(--mcfly-mute);
+  --mcfly-delta-flat: var(--mcfly-mute);
   --mcfly-warn: #b45309;
   --mcfly-cyan: #5ee7f0;
   --mcfly-radius: 12px;
@@ -1588,11 +1592,11 @@
 }
 
 .mcfly-sales-gauges__yoy--up {
-  color: var(--mcfly-truth, #059669);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-sales-gauges__yoy--down {
-  color: var(--mcfly-lie, #dc2626);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-sales-gauges__yoy--flat {
@@ -2067,11 +2071,11 @@
 }
 
 .mcfly-explorer__compare-delta--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-explorer__compare-delta--down {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-explorer__tip-prior {
@@ -3285,13 +3289,13 @@
 }
 
 .mcfly-kpi__delta--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 .mcfly-kpi__delta--down {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
 }
 .mcfly-kpi__delta--flat {
-  color: var(--mcfly-mute);
+  color: var(--mcfly-delta-flat);
 }
 
 .mcfly-panel {
@@ -4801,11 +4805,11 @@
 }
 
 .mcfly-alloc-v2__snap-delta--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-alloc-v2__snap-delta--down {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-alloc-v2__snap-delta--flat {
@@ -5144,7 +5148,7 @@
 }
 
 .mcfly-alloc-v2__roll--down {
-  border-left: 3px solid var(--mcfly-lie);
+  border-left: 3px solid var(--mcfly-delta-down);
 }
 
 .mcfly-alloc-v2__roll--flat {
@@ -5180,11 +5184,11 @@
 }
 
 .mcfly-alloc-v2__roll--up .mcfly-alloc-v2__roll-delta {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-alloc-v2__roll--down .mcfly-alloc-v2__roll-delta {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-alloc-v2__roll-prior {
@@ -7357,12 +7361,12 @@
 }
 
 .mcfly-goals-delta--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
   font-weight: 650;
 }
 
 .mcfly-goals-delta--down {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
   font-weight: 650;
 }
 
@@ -8855,11 +8859,11 @@
 }
 
 .mcfly-goal-row__yoy--up {
-  color: var(--mcfly-truth, #059669);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-goal-row__yoy--down {
-  color: var(--mcfly-lie, #dc2626);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-goal-row__yoy--flat {
@@ -12566,8 +12570,12 @@ button.mcfly-chart__month {
   color: var(--mcfly-mute);
 }
 
+.mcfly-scoreboard__delta--up {
+  color: var(--mcfly-delta-up);
+}
+
 .mcfly-scoreboard__delta--down {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-scoreboard__plan {
@@ -13024,7 +13032,7 @@ button.mcfly-chart__month {
 }
 
 .mcfly-yoy__card--down::before {
-  background: var(--mcfly-warn);
+  background: var(--mcfly-delta-down);
 }
 
 .mcfly-yoy__card--even::before,
@@ -13058,7 +13066,7 @@ button.mcfly-chart__month {
 }
 
 .mcfly-yoy__vs--down {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-yoy__vs--even,
@@ -13199,8 +13207,8 @@ button.mcfly-chart__month {
 }
 
 .mcfly-yoy__zone--down {
-  background: #fff7ed;
-  color: var(--mcfly-warn);
+  background: var(--mcfly-line-soft);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-yoy__zone--even {
@@ -13369,11 +13377,11 @@ button.mcfly-chart__month {
 }
 
 .mcfly-yoy__v--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-yoy__v--down {
-  color: var(--mcfly-warn);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-yoy__v--even,
@@ -13509,11 +13517,11 @@ button.mcfly-chart__month {
 }
 
 .mcfly-yoy--glance .mcfly-yoy__delta--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-yoy--glance .mcfly-yoy__delta--down {
-  color: var(--mcfly-warn);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-yoy--glance .mcfly-yoy__delta--even,
@@ -13711,11 +13719,11 @@ button.mcfly-chart__month {
 }
 
 .mcfly-chart__vs--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-chart__vs--down {
-  color: var(--mcfly-warn);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-chart__vs--even,
@@ -14446,11 +14454,11 @@ button.mcfly-chart__hour {
 }
 
 .mcfly-orders-intel__delta--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-orders-intel__delta--down {
-  color: var(--mcfly-warn);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-orders-intel__delta--flat,
@@ -14678,11 +14686,11 @@ button.mcfly-chart__hour {
 }
 
 .mcfly-orders-ledger__delta--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 
 .mcfly-orders-ledger__delta--down {
-  color: var(--mcfly-warn);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-orders-ledger__delta--flat {
@@ -16735,7 +16743,7 @@ button.mcfly-depth-legend__chip:focus-visible {
   color: #6ee7b7;
 }
 .mcfly-chart__tip-v--down {
-  color: #fbbf6b;
+  color: #94a3b8;
 }
 
 .mcfly-chart__tip-pct {
@@ -16872,10 +16880,10 @@ button.mcfly-depth-legend__chip:focus-visible {
 }
 
 .mcfly-chart__stat-delta--up {
-  color: var(--mcfly-truth);
+  color: var(--mcfly-delta-up);
 }
 .mcfly-chart__stat-delta--down {
-  color: var(--mcfly-warn);
+  color: var(--mcfly-delta-down);
 }
 .mcfly-chart__stat-delta--even {
   color: var(--mcfly-mute);
@@ -17349,7 +17357,7 @@ button.mcfly-depth-legend__chip:focus-visible {
 }
 
 .mcfly-yoy-board__row--down {
-  background: color-mix(in srgb, var(--mcfly-lie-soft) 42%, #fff);
+  background: color-mix(in srgb, var(--mcfly-line-soft) 70%, #fff);
 }
 
 .mcfly-yoy-board__row--flat {
@@ -17361,7 +17369,7 @@ button.mcfly-depth-legend__chip:focus-visible {
 }
 
 .mcfly-yoy-board__row--current.mcfly-yoy-board__row--down {
-  background: color-mix(in srgb, var(--mcfly-lie-soft) 60%, var(--mcfly-accent-soft));
+  background: color-mix(in srgb, var(--mcfly-line-soft) 55%, var(--mcfly-accent-soft));
 }
 
 .mcfly-yoy-board__row--future {

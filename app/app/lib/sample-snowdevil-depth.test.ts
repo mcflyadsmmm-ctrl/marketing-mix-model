@@ -22,6 +22,7 @@ import {
   SAMPLE_ACTIVE_CHANNELS,
   SAMPLE_BOOK_DAYS,
   SAMPLE_GUEST_SHARE,
+  SAMPLE_YOY_GROWTH,
   type SampleDayRow,
 } from "./demo-sample-desk.server";
 import {
@@ -292,6 +293,76 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
       expect(r.revenueD90).toBeGreaterThanOrEqual(r.revenueD30);
       expect(r.ordersD90).toBeGreaterThanOrEqual(r.customers);
     }
+  });
+});
+
+describe("Snowdevil SAMPLE — up-and-to-the-right growth story", () => {
+  const now = new Date("2026-09-17T18:00:00Z");
+  const rows = buildThreeYearSampleDesk({ now, targetMer: 3.5 });
+
+  it("YoY MTD / QTD / YTD sales beat the same window last year", () => {
+    expect(SAMPLE_YOY_GROWTH).toBeGreaterThan(0);
+    for (const preset of ["mtd", "qtd", "ytd"] as PeriodPreset[]) {
+      const current = resolvePeriod(preset, now, "UTC");
+      const prior = resolvePriorPeriod(preset, now, "UTC");
+      const here = sumSalesInRange(rows, current);
+      const there = sumSalesInRange(rows, prior);
+      expect(here, `${preset} current`).toBeGreaterThan(there);
+    }
+  });
+
+  it("listing-half MoM sales step up May→September", () => {
+    const monthSales = (year: number, month: number): number => {
+      let sales = 0;
+      for (const r of rows) {
+        if (r.day.getUTCFullYear() === year && r.day.getUTCMonth() === month) {
+          sales += r.sales;
+        }
+      }
+      return sales;
+    };
+    // Complete months on the listing climb (May–Aug 2026). Sep is partial.
+    expect(monthSales(2026, 4)).toBeGreaterThan(0);
+    expect(monthSales(2026, 5)).toBeGreaterThan(monthSales(2026, 4));
+    expect(monthSales(2026, 6)).toBeGreaterThan(monthSales(2026, 5));
+    expect(monthSales(2026, 7)).toBeGreaterThan(monthSales(2026, 6));
+  });
+
+  it("recent returning $ share and order density beat the same days last year", () => {
+    const windowDays = 90;
+    const recentEnd = now.getTime();
+    const recentStart = recentEnd - windowDays * DAY_MS;
+    const priorEnd = recentEnd - 365 * DAY_MS;
+    const priorStart = priorEnd - windowDays * DAY_MS;
+
+    const slice = (start: number, end: number) =>
+      rows.filter((r) => {
+        const t = r.day.getTime();
+        return t >= start && t <= end;
+      });
+
+    const stats = (days: SampleDayRow[]) => {
+      let sales = 0;
+      let returning = 0;
+      let orders = 0;
+      for (const r of days) {
+        sales += r.sales;
+        orders += r.orderCount;
+        returning += Math.max(0, r.sales - r.newCustomerNetSales - r.guestNetSales);
+      }
+      return {
+        returningShare: sales > 0 ? returning / sales : 0,
+        ordersPerDay: days.length > 0 ? orders / days.length : 0,
+      };
+    };
+
+    const recent = stats(slice(recentStart, recentEnd));
+    const prior = stats(slice(priorStart, priorEnd));
+    expect(recent.returningShare).toBeGreaterThan(prior.returningShare);
+    expect(recent.ordersPerDay).toBeGreaterThan(prior.ordersPerDay);
+    // Habit, not a 90% returning cartoon.
+    expect(recent.returningShare).toBeGreaterThan(0.45);
+    expect(recent.returningShare).toBeLessThan(0.82);
   });
 });
 
