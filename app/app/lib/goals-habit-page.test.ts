@@ -37,7 +37,8 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(settings).toContain("save_habit_goals");
     expect(settings).toContain("returningSalesTarget");
     expect(settings).toContain("Order-history targets");
-    expect(settings).toContain("Target Line is");
+    expect(settings).toContain("LTV Target Line is");
+    expect(settings).toContain("observed average");
     expect(settings).toContain('href="/app/goals"');
     expect(settings).not.toContain('name="ltvTarget"');
     expect(nav).toContain('{ path: "/app/goals", label: "Goals" }');
@@ -45,6 +46,9 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(goals).not.toContain('href="/app/habit"');
     expect(goals).not.toContain('name="ltvTarget"');
     expect(board).not.toContain('name="ltvTarget"');
+    expect(board).toContain("Target Line from average");
+    expect(board).toContain("Save returning-$ target");
+    expect(board).not.toContain("First-window LTV target");
   });
 
   it("keeps the sales-plan gauges, year control, and spend-six Goals job", () => {

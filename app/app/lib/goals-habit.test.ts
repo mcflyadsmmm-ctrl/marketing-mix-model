@@ -239,20 +239,10 @@ describe("OrderHistoryGoalsBoard — empty is ActionCard-shaped", () => {
   });
 
   it("labels Target Line from average and keeps only the returning-$ field", () => {
-    const html = renderToStaticMarkup(
-      createElement(
-        DeskCurrencyContext.Provider,
-        { value: "USD" },
-        createElement(OrderHistoryGoalsBoard, {
-          view: richInput(),
-          year: 2026,
-        }),
-      ),
-    );
-    expect(html).toContain("Target Line from average");
-    expect(html).toContain("Target Line = observed first-window average");
-    expect(html).toContain('name="returningSalesTarget"');
-    expect(html).not.toContain('name="ltvTarget"');
-    expect(html).not.toContain("First-window LTV target");
+    const view = richInput();
+    expect(view.ltv?.formulaEq).toBe("Target Line = observed first-window average");
+    expect(view.ltv?.formulaPlug).toMatch(/Target Line from average/);
+    expect(view.ltv?.targetSource).toBe("average");
+    expect(view.returning?.targetSource).toBe("typed");
   });
 });

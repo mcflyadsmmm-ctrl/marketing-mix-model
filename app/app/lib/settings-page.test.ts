@@ -39,7 +39,8 @@ describe("Settings page", () => {
     expect(settings).toContain('name="intent" value="save_habit_goals"');
     expect(settings).not.toContain('name="ltvTarget"');
     expect(settings).toContain('name="returningSalesTarget"');
-    expect(settings).toContain("Target Line is the observed average");
+    expect(settings).toContain("LTV Target Line is");
+    expect(settings).toContain("observed average");
     expect(settings).toContain('href="/app/goals"');
   });
 });
