@@ -152,6 +152,15 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toMatch(/>—</);
     expect(fixture).toContain("mcfly-scoreboard--orders");
     expect(fixture).toContain("mcfly-orders-hero");
+    expect(fixture).toContain("Typical order around $631. Average is $634.");
+    expect(fixture).toContain("Shopify Analytics Orders is the average order.");
+    expect(fixture).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(fixture.indexOf("Typical order around $631")).toBeLessThan(
+      fixture.indexOf("Order intelligence"),
+    );
+    expect(fixture.indexOf("mcfly-orders-hero")).toBeLessThan(
+      fixture.indexOf("Order intelligence"),
+    );
     expect(fixture).toContain("Average order $634");
     expect(fixture).toContain("$72,827");
     expect(fixture).toContain("$60,242");

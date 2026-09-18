@@ -7,7 +7,6 @@ import { SAMPLE_ORDERS_DOOR } from "../lib/sample-live-handoff";
 import {
   buildOrdersClock,
   buildOrdersDepthFacts,
-  buildOrdersHero,
   buildOrdersTimingFacts,
   type OrdersFact,
   type OrdersSalesClocks,
@@ -16,7 +15,6 @@ import {
   OrdersClockBar,
   OrdersShapeBars,
   OrdersSourceBar,
-  OrdersTicketBand,
 } from "./OrdersVisuals";
 import { DeskLane } from "./DeskLane";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
@@ -100,8 +98,8 @@ function FactGrid({
 }
 
 /**
- * Orders scoreboard — typical ticket, sales clock, depth, then timing.
- * Zero spend. SAMPLE Snowdevil is the craft canvas (~$600s AOV).
+ * Orders scoreboard — sales clock, ticket/basket depth, then when/where.
+ * Typical-order first fold lives on OrdersFirstViewport. Zero spend.
  */
 export function OrdersScoreboard({
   book,
@@ -117,7 +115,6 @@ export function OrdersScoreboard({
   useSampleDesk?: boolean;
 }) {
   const currency = useDeskCurrency();
-  const hero = buildOrdersHero(depth, currency, salesPending);
   const clock = buildOrdersClock(clocks, currency);
   const depthFacts = buildOrdersDepthFacts(book, depth, currency);
   const timingFacts = buildOrdersTimingFacts(depth, currency);
@@ -127,6 +124,17 @@ export function OrdersScoreboard({
       ? SAMPLE_ORDERS_DOOR
       : `${depth.orderCount.toLocaleString()} paid orders · Typical order is the median — Shopify Analytics uses the average.`;
 
+  if (salesPending || (!useSampleDesk && !(depth.orderCount > 0))) {
+    return (
+      <section
+        className="mcfly-score mcfly-book mcfly-score--orders-hero mcfly-score--soft"
+        aria-label={PRODUCT_NOUN.ordersTitle}
+      >
+        <p className="mcfly-scoreboard__kicker">{kicker}</p>
+      </section>
+    );
+  }
+
   return (
     <>
       <section
@@ -135,33 +143,21 @@ export function OrdersScoreboard({
       >
         <p
           className={
-            useSampleDesk && !salesPending
+            useSampleDesk
               ? "mcfly-scoreboard__kicker mcfly-scoreboard__kicker--sr"
               : "mcfly-scoreboard__kicker"
           }
         >
           {kicker}
         </p>
-        <article className="mcfly-orders-hero mcfly-orders-hero--soft">
-          <p className="mcfly-orders-hero__k">
-            <DeskIcon name="orders" />
-            {hero.k}
-          </p>
-          <p className="mcfly-orders-hero__v">{hero.v}</p>
-          {hero.sub ? <p className="mcfly-orders-hero__sub">{hero.sub}</p> : null}
-          <p className="mcfly-orders-hero__def">{hero.def}</p>
-          <OrdersTicketBand depth={depth} pending={salesPending} />
-          <OrdersShapeBars depth={depth} pending={salesPending} />
-        </article>
+        <OrdersShapeBars depth={depth} pending={salesPending} />
         <OrdersClockBar clocks={clocks} pending={salesPending} />
         {clock.length > 0 ? (
           <div className="mcfly-book__clock" aria-label={PRODUCT_NOUN.bookSalesClock}>
             {clock.map((item) => (
               <div className="mcfly-book__clock-item" key={item.k}>
                 <p className="mcfly-book__clock-k">{item.k}</p>
-                <p className="mcfly-book__clock-v">
-                  {salesPending ? "—" : item.v}
-                </p>
+                <p className="mcfly-book__clock-v">{item.v}</p>
               </div>
             ))}
           </div>

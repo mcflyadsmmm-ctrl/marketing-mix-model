@@ -13933,6 +13933,10 @@ button.mcfly-chart__month {
   background: #fff;
 }
 
+.mcfly-score--orders-hero .mcfly-kpi-grid--peeks-lead {
+  margin-top: 0.15rem;
+}
+
 .mcfly-orders-hero__k {
   display: inline-flex;
   align-items: center;

@@ -130,11 +130,12 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     }
   });
 
-  it("ranks Orders hero ahead of weekday charts; facts stay painted", () => {
+  it("ranks Orders typical-order first fold ahead of intelligence and weekday charts", () => {
     const order = [
       'rank="first"',
-      "<OrdersIntelligence",
+      "<OrdersFirstViewport",
       "<OrdersScoreboard",
+      "<OrdersIntelligence",
       'rank="next"',
       "<OrdersTimingChart",
       "<OrdersFrequencyChart",
@@ -145,7 +146,6 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     }
     expect(scoreboard).toContain("<DeskLane");
     expect(scoreboard).toContain('rank="more"');
-    expect(scoreboard).toContain("<OrdersTicketBand");
     expect(scoreboard).toContain("<OrdersClockBar");
     expect(scoreboard).not.toContain("<details");
   });

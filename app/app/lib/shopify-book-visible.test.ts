@@ -41,7 +41,8 @@ describe("Shopify five books are visible cards", () => {
     expect(book).toContain("Sales from returning customers");
   });
 
-  it("Orders mounts the scoreboard then the weekday/hour chart", () => {
+  it("Orders mounts the typical-order first fold then the weekday/hour chart", () => {
+    expect(orders).toContain("<OrdersFirstViewport");
     expect(orders).toContain("<OrdersScoreboard");
     expect(orders).toContain("<OrdersTimingChart");
     expect(orders).toContain("mcfly-scoreboard--orders");
