@@ -19930,6 +19930,87 @@ button.mcfly-habit-goals__read:focus-visible {
 }
 
 /* =========================================================================
+ * Spend Upload ease — progressive disclosure, not a ledger dump.
+ * APPEND ONLY. TAB_LOCK §6: input-only. Yesterday hero + ActionCard peeks.
+ * Coverage, daily-rate editor, and recent ledger stay on drill / details.
+ * Import lead shares the same soft chrome. No ROAS hero / explorer here.
+ * ========================================================================= */
+
+.mcfly-spend-add--hero {
+  outline: 1px solid color-mix(in srgb, var(--mcfly-accent) 28%, transparent);
+}
+
+.mcfly-spend-add--hero .mcfly-panel__head--tight h2 {
+  font-size: 1.2rem;
+}
+
+.mcfly-spend-glance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.mcfly-spend-glance--soft > .mcfly-kpi {
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 22%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 14px;
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  min-width: 0;
+}
+
+.mcfly-spend-glance--soft > .mcfly-kpi::before {
+  display: none;
+}
+
+.mcfly-spend-glance--soft .mcfly-kpi__value {
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  letter-spacing: -0.03em;
+}
+
+.mcfly-spend-add__field[hidden] {
+  display: none;
+}
+
+.mcfly-spend-import-lead--soft {
+  padding: 0.85rem 0.95rem 0.95rem;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.mcfly-spend-import-lead--soft .mcfly-spend-helper--soft {
+  margin-top: 0.65rem;
+}
+
+.mcfly-spend-import-doors {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0;
+}
+
+@media (max-width: 720px) {
+  .mcfly-spend-glance {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .mcfly-spend-glance--soft > .mcfly-kpi {
+    padding: 0.65rem 0.7rem 0.6rem;
+  }
+
+  .mcfly-spend-import-lead--soft {
+    padding: 0.7rem 0.75rem 0.8rem;
+    border-radius: 14px;
+  }
+}
+
+
+/* =========================================================================
  * FAIL #3 — lanes: first vs then vs more. Soft dense cards stay;
  * ranks stop equal-weight stacks. Fold is a button, never a native disclosure.
  * ========================================================================= */
@@ -20057,3 +20138,4 @@ button.mcfly-habit-goals__read:focus-visible {
     font-size: 0.98rem;
   }
 }
+

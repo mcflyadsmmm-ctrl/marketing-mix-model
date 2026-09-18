@@ -5,6 +5,8 @@ import type {
   LoaderFunctionArgs,
 } from "react-router";
 import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router";
+import { DeskIcon, type DeskIconName } from "../components/DeskIcon";
+import { useDeskDrill } from "../components/DeskDrill";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import {
   SPEND_CHANNELS,
@@ -115,6 +117,64 @@ function formatSpendEntryChannelLabel(
   note: string | null | undefined,
 ): string {
   return spendChannelLabel({ channel, customLabel: note });
+}
+
+function SpendPeek({
+  label,
+  value,
+  sub,
+  icon,
+  formula,
+  next,
+  nextHref,
+  nextLabel,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  icon: DeskIconName;
+  formula: string;
+  next: string;
+  nextHref: string;
+  nextLabel: string;
+}) {
+  const drill = useDeskDrill();
+  const open = () =>
+    drill?.openDrill({
+      title: label,
+      value,
+      blocks: [
+        { k: "What this is", v: formula },
+        sub ? { k: "Also", v: sub } : null,
+      ].filter((block): block is { k: string; v: string } => block != null),
+      next,
+      nextHref,
+      nextLabel,
+      foot: "This page records spend. Sales ÷ spend lives on Total ROAS.",
+    });
+  const body = (
+    <>
+      <span className="mcfly-kpi__top">
+        <DeskIcon name={icon} />
+        <span className="mcfly-kpi__label">{label}</span>
+      </span>
+      <span className="mcfly-kpi__value">{value}</span>
+      {sub ? <span className="mcfly-kpi__sub">{sub}</span> : null}
+    </>
+  );
+  return drill ? (
+    <button
+      type="button"
+      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft"
+      onClick={open}
+    >
+      {body}
+    </button>
+  ) : (
+    <Link className="mcfly-kpi mcfly-kpi--peek mcfly-kpi--soft" to={nextHref}>
+      {body}
+    </Link>
+  );
 }
 
 function HashDetails({
@@ -459,6 +519,14 @@ export default function SpendEntryPage() {
   const money = (n: number) => formatSpendAmount(n, currencyCode);
   const [recurringStart, setRecurringStart] = useState(yesterdayKey);
   const [recurringAmount, setRecurringAmount] = useState("");
+  const [addChannel, setAddChannel] = useState(
+    editing && isSpendChannel(editing.channel) ? editing.channel : "meta",
+  );
+  useEffect(() => {
+    setAddChannel(
+      editing && isSpendChannel(editing.channel) ? editing.channel : "meta",
+    );
+  }, [editing]);
   const recurringPreview = recurringFillPreviewCopy({
     fromYmd: recurringStart,
     throughYmd: yesterdayKey,
@@ -486,6 +554,49 @@ export default function SpendEntryPage() {
     coverageClosedDays[coverageClosedDays.length - 1]?.dateKey;
   const stripDays = coverageClosedDays;
   const manualSaved = Boolean(actionData?.success && !actionData.csv);
+  const missingCount = coverageThroughYesterday.missing.length;
+  const coveragePeekValue = sampleDesk.enabled
+    ? "Sample on file"
+    : coverageThroughYesterday.upToDate
+      ? "Through yesterday"
+      : missingCount > 0
+        ? `${missingCount} empty`
+        : "Add a day";
+  const coveragePeekSub =
+    coverageFromKey && coverageToKey
+      ? `${formatSpendYmd(coverageFromKey)} → ${formatSpendYmd(coverageToKey)}`
+      : `${dayCoverage.total}-day window`;
+  const dailyPeekValue =
+    recurring.length === 0
+      ? "None running"
+      : recurring.length === 1
+        ? `${money(recurring[0].amount)}/day`
+        : `${recurring.length} rates`;
+  const dailyPeekSub =
+    recurring.length === 0
+      ? "Continues until you change it"
+      : recurring.length === 1
+        ? formatSpendEntryChannelLabel(recurring[0].channel, recurring[0].note)
+        : recurring
+            .map((rule) => formatSpendEntryChannelLabel(rule.channel, rule.note))
+            .join(" · ");
+  const recentPeekValue = `${entries.length.toLocaleString()} rows`;
+  const recentPeekSub = "Typed, uploaded, or daily-rate";
+  const coverageHref = deskNavHref("/app/spend", {
+    period: preset,
+    shot: shotMode,
+    hash: "mcfly-spend-coverage",
+  });
+  const ratesHref = deskNavHref("/app/spend", {
+    period: preset,
+    shot: shotMode,
+    hash: "mcfly-spend-rates",
+  });
+  const ledgerHref = deskNavHref("/app/spend", {
+    period: preset,
+    shot: shotMode,
+    hash: "mcfly-spend-ledger",
+  });
 
   return (
     <s-page heading="Spend Upload" inlineSize="large">
@@ -549,9 +660,8 @@ export default function SpendEntryPage() {
             </s-banner>
           ) : null}
           <p className="mcfly-spend-helper mcfly-spend-helper--soft">
-            {SPEND_UPLOAD_CONTRAST} Shopify sales are already here. Empty spend
-            is not a certified $0 — add a day. A deleted day stays $0. Empty
-            spend is never 0×
+            Shopify sales are already here. Empty spend is not a certified $0 —
+            add a day. A deleted day stays $0. Empty spend is never 0×
             {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
             {strangerEmpty
               ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
@@ -568,18 +678,405 @@ export default function SpendEntryPage() {
               )}
           </p>
 
-          {recurring.length > 0 ? (
-            <section
-              className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft"
-              aria-label="Daily amount until I change it"
+          <section
+            id="mcfly-spend-add"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft mcfly-spend-add--hero"
+            aria-label={
+              editing
+                ? "Edit this day of spend"
+                : "Yesterday’s spend — one bill"
+            }
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>
+                {editing
+                  ? "Edit this day"
+                  : fillDateKey === yesterdayKey
+                    ? "Yesterday"
+                    : "Add a day"}
+              </h2>
+              <p className="mcfly-panel__muted">
+                {editing
+                  ? "One channel, one date, one amount. Same day + channel replaces."
+                  : `One bill for ${formatSpendYmd(fillDateKey)}. Continues at that $X/day until you change it.`}
+              </p>
+            </div>
+            <Form
+              method="post"
+              className="mcfly-spend-add__form"
+              key={editing?.id ?? "new-day"}
             >
-              <div className="mcfly-panel__head mcfly-panel__head--tight">
-                <h2>Daily amount</h2>
-                <p className="mcfly-panel__muted">
-                  Continues every day until you change or stop it. Typed or
-                  uploaded days stay as written.
-                </p>
+              <input type="hidden" name="intent" value="manual" />
+              {editing ? <input type="hidden" name="editing" value="1" /> : null}
+              <div className="mcfly-spend-add__grid">
+                <label className="mcfly-spend-add__field">
+                  <span>Date</span>
+                  <input
+                    className="mcfly-field"
+                    type="date"
+                    name="spendDate"
+                    defaultValue={editing?.dateKey ?? fillDateKey}
+                    min={spendHistoryFloorKey}
+                    max={todayKey}
+                    required
+                    aria-label="Spend date"
+                  />
+                </label>
+                <label className="mcfly-spend-add__field">
+                  <span>Channel</span>
+                  <select
+                    className="mcfly-field"
+                    name="channel"
+                    value={addChannel}
+                    onChange={(event) => setAddChannel(event.target.value)}
+                    aria-label="Spend channel"
+                  >
+                    {addSpendChannels.map((opt) => (
+                      <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="mcfly-spend-add__field">
+                  <span>Amount ({currencyCode})</span>
+                  <input
+                    className="mcfly-field"
+                    type="number"
+                    name="amount"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    defaultValue={editing ? String(editing.amount) : ""}
+                    required
+                    aria-label={`Spend amount in ${currencyCode}`}
+                  />
+                </label>
+                <label
+                  className="mcfly-spend-add__field"
+                  hidden={addChannel !== "other"}
+                >
+                  <span>Name if something else</span>
+                  <input
+                    className="mcfly-field"
+                    name="customName"
+                    defaultValue={
+                      editing?.channel === "other" ? (editing.note ?? "") : ""
+                    }
+                    placeholder="Billboard, radio, agency…"
+                    maxLength={48}
+                    aria-label="Custom channel name"
+                  />
+                </label>
               </div>
+              {!editing ? (
+                <label className="mcfly-spend-add__continue">
+                  <input
+                    type="checkbox"
+                    name="continueDaily"
+                    value="1"
+                    defaultChecked={continueDailyCheckedDefault(Boolean(editing))}
+                  />{" "}
+                  Continue this $X/day until I change it
+                </label>
+              ) : null}
+              <div className="mcfly-spend-add__actions">
+                <button
+                  type="submit"
+                  className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
+                  disabled={isSubmitting && submittingIntent === "manual"}
+                  aria-busy={isSubmitting && submittingIntent === "manual"}
+                >
+                  {isSubmitting && submittingIntent === "manual"
+                    ? "Saving…"
+                    : editing
+                      ? "Save change"
+                      : "Save $X/day"}
+                </button>
+              </div>
+            </Form>
+          </section>
+
+          {strangerEmpty ? null : (
+            <>
+              <div
+                className="mcfly-spend-glance mcfly-spend-glance--soft"
+                aria-label="What’s on file"
+              >
+                <SpendPeek
+                  label="Coverage"
+                  value={coveragePeekValue}
+                  sub={coveragePeekSub}
+                  icon="clock"
+                  formula={`${dayCoverage.total}-day window. Empty cells open Add a day. Days with no row have no spend entered. A deleted day stays $0.`}
+                  next="Open the coverage strip to fill an empty day."
+                  nextHref={coverageHref}
+                  nextLabel="Open coverage"
+                />
+                <SpendPeek
+                  label="Daily amount"
+                  value={dailyPeekValue}
+                  sub={dailyPeekSub}
+                  icon="spend"
+                  formula="A daily rate continues every day until you change or stop it. Typed or uploaded days stay as written."
+                  next={
+                    recurring.length > 0
+                      ? "Change or stop the running daily amount."
+                      : "Start a daily amount from another first day if yesterday is not the start."
+                  }
+                  nextHref={
+                    recurring.length > 0
+                      ? ratesHref
+                      : deskNavHref("/app/spend", {
+                          period: preset,
+                          shot: shotMode,
+                          hash: "mcfly-spend-recurring",
+                        })
+                  }
+                  nextLabel={
+                    recurring.length > 0 ? "Edit daily amount" : "Start daily amount"
+                  }
+                />
+                <SpendPeek
+                  label="Recent ledger"
+                  value={recentPeekValue}
+                  sub={recentPeekSub}
+                  icon="chart"
+                  formula="Typed, uploaded, or daily-rate rows. Edit overwrites that day. Delete keeps the day empty — an active daily rate will not put it back."
+                  next="Open the recent ledger to edit or delete a row."
+                  nextHref={ledgerHref}
+                  nextLabel="Open recent ledger"
+                />
+              </div>
+
+              <HashDetails
+                id="mcfly-spend-coverage"
+                className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal mcfly-spend-reveal--soft mcfly-spend-cal mcfly-spend-cal--soft"
+                defaultOpen={false}
+                summary={
+                  <>
+                    <span className="mcfly-spend-reveal__title">Coverage</span>
+                    <span className="mcfly-spend-reveal__hint">
+                      Last {stripDays.length} closed days
+                      {coverageFromKey && coverageToKey
+                        ? ` · ${formatSpendYmd(coverageFromKey)} → ${formatSpendYmd(coverageToKey)}`
+                        : ""}
+                      {" · "}
+                      {dayCoverage.total}-day window. Empty cells open Add a day.
+                      Days with no row have no spend entered. A deleted day stays
+                      $0.
+                    </span>
+                  </>
+                }
+              >
+                <div className="mcfly-spend-cal__strip" role="list">
+                  {stripDays.map((day) =>
+                    day.filled ? (
+                      <div
+                        key={day.dateKey}
+                        className="mcfly-spend-cal__day mcfly-spend-cal__day--filled"
+                        role="listitem"
+                        title={`${day.dateKey} has spend`}
+                      >
+                        <span className="mcfly-spend-cal__tick" />
+                        <span className="mcfly-spend-cal__label">
+                          {day.label}
+                        </span>
+                      </div>
+                    ) : (
+                      <Link
+                        key={day.dateKey}
+                        className="mcfly-spend-cal__day mcfly-spend-cal__day--empty"
+                        role="listitem"
+                        to={spendFillDayHref(day.dateKey, {
+                          period: preset,
+                          shot: shotMode,
+                        })}
+                        title={`${day.dateKey} — no spend entered`}
+                      >
+                        <span className="mcfly-spend-cal__tick" />
+                        <span className="mcfly-spend-cal__label">
+                          {day.label}
+                        </span>
+                      </Link>
+                    ),
+                  )}
+                </div>
+                <div className="mcfly-spend-cal__legend">
+                  <span className="mcfly-spend-cal__legend-item">
+                    <span className="mcfly-spend-cal__day mcfly-spend-cal__day--filled mcfly-spend-cal__day--swatch">
+                      <span className="mcfly-spend-cal__tick" />
+                    </span>
+                    Has spend
+                  </span>
+                  <span className="mcfly-spend-cal__legend-item">
+                    <span className="mcfly-spend-cal__day mcfly-spend-cal__day--empty mcfly-spend-cal__day--swatch">
+                      <span className="mcfly-spend-cal__tick" />
+                    </span>
+                    No row = none entered
+                  </span>
+                </div>
+                <div className="mcfly-spend-lean__status mcfly-spend-lean__status--soft" role="status">
+                  {sampleDesk.enabled ? (
+                    <>
+                      <p className="mcfly-spend-lean__status-line">
+                        Sample data is loaded
+                        {entries.length > 0
+                          ? ` · ${entries.length.toLocaleString()} recent rows shown`
+                          : ""}
+                        . {SAMPLE_LEDGER_HANDOFF}
+                      </p>
+                      <p className="mcfly-spend-lean__status-foot">
+                        Live is parked until launch. These rows stay Snowdevil
+                        SAMPLE.
+                      </p>
+                    </>
+                  ) : coverageThroughYesterday.upToDate ? (
+                    <p className="mcfly-spend-lean__status-line">
+                      ✓ Up to date through yesterday
+                    </p>
+                  ) : entries.length === 0 ? (
+                    <p className="mcfly-spend-lean__status-line">
+                      No spend on Live data yet. Add yesterday’s Meta and a
+                      billboard — no spend entered, not a certified $0.
+                    </p>
+                  ) : (
+                    <p className="mcfly-spend-lean__status-line">
+                      Your spend is on the desk. Days with no row have no spend
+                      entered — a deleted day stays $0. Last month is enough to
+                      start
+                      {coverageThroughYesterday.missing.length > 0 ? (
+                        <>
+                          {" · "}
+                          <s-link href={`${importHref}#mcfly-spend-platforms`}>
+                            import missing days
+                          </s-link>
+                        </>
+                      ) : null}
+                    </p>
+                  )}
+                  {sampleDesk.enabled ? null : (
+                    <p className="mcfly-spend-lean__status-foot">
+                      Backdate to {spendHistoryFloorKey} (
+                      {spendHistoryYearsBack} years) — same window as Shopify
+                      sales. Same day + channel or named extra replaces.
+                    </p>
+                  )}
+                </div>
+              </HashDetails>
+
+              {entries.length > 0 ? (
+                <HashDetails
+                  id="mcfly-spend-ledger"
+                  className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal mcfly-spend-reveal--soft mcfly-spend-ledger mcfly-spend-ledger--soft"
+                  defaultOpen={Boolean(editing)}
+                  summary={
+                    <>
+                      <span className="mcfly-spend-reveal__title">
+                        Recent ledger
+                      </span>
+                      <span className="mcfly-spend-reveal__hint">
+                        Typed, uploaded, or daily-rate rows. Edit overwrites that
+                        day. Delete keeps the day empty — an active daily rate
+                        will not put it back.
+                      </span>
+                    </>
+                  }
+                >
+                  <ul
+                    className="mcfly-spend-lean__recent mcfly-spend-ledger__rows"
+                    aria-label="Recent spend ledger"
+                  >
+                    {entries.map((entry) => {
+                      const editHref = deskNavHref("/app/spend", {
+                        period: preset,
+                        shot: shotMode,
+                      });
+                      const editUrl = `${editHref}${editHref.includes("?") ? "&" : "?"}edit=${encodeURIComponent(entry.id)}#mcfly-spend-add`;
+                      return (
+                        <li
+                          className="mcfly-spend-lean__recent-row mcfly-spend-ledger__row"
+                          key={entry.id}
+                        >
+                          <span
+                            className={`mcfly-spend-dot mcfly-spend-dot--${entry.channel}`}
+                            aria-hidden="true"
+                          />
+                          <span className="mcfly-spend-lean__recent-channel">
+                            {formatSpendEntryChannelLabel(entry.channel, entry.note)}
+                          </span>
+                          <span className="mcfly-spend-lean__recent-amount">
+                            {money(entry.amount)}
+                          </span>
+                          <span className="mcfly-spend-lean__recent-range">
+                            {formatSpendYmd(entry.dateKey)}
+                          </span>
+                          <span className="mcfly-spend-lean__recent-source">
+                            {spendEntrySourceLabel(entry.source)}
+                          </span>
+                          <span className="mcfly-spend-lean__recent-actions">
+                            <Link className="mcfly-btn mcfly-btn--secondary" to={editUrl}>
+                              Edit
+                            </Link>
+                            <Form method="post">
+                              <input type="hidden" name="intent" value="delete-entry" />
+                              <input type="hidden" name="entryId" value={entry.id} />
+                              <button
+                                type="submit"
+                                className="mcfly-btn mcfly-btn--secondary"
+                              >
+                                Delete
+                              </button>
+                            </Form>
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </HashDetails>
+              ) : null}
+            </>
+          )}
+
+          <HashDetails
+            id="mcfly-spend-how"
+            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal mcfly-spend-reveal--soft"
+            defaultOpen={false}
+            summary={
+              <>
+                <span className="mcfly-spend-reveal__title">
+                  How this page works
+                </span>
+                <span className="mcfly-spend-reveal__hint">
+                  Not Ads Manager login. Shopify already has sales.
+                </span>
+              </>
+            }
+          >
+            <p className="mcfly-panel__muted">{SPEND_UPLOAD_CONTRAST}</p>
+            <p className="mcfly-panel__muted">
+              Empty spend is not a certified $0 — add a day. A deleted day stays
+              $0. Empty spend is never 0×. This page records spend.
+            </p>
+          </HashDetails>
+
+          {recurring.length > 0 ? (
+            <HashDetails
+              id="mcfly-spend-rates"
+              className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-reveal mcfly-spend-reveal--soft mcfly-spend-panel--soft"
+              defaultOpen={false}
+              summary={
+                <>
+                  <span className="mcfly-spend-reveal__title">
+                    Daily amount
+                  </span>
+                  <span className="mcfly-spend-reveal__hint">
+                    Continues every day until you change or stop it. Typed or
+                    uploaded days stay as written.
+                  </span>
+                </>
+              }
+            >
               <ul className="mcfly-spend-lean__recent" aria-label="Active daily amounts">
                 {recurring.map((rule) => (
                   <li className="mcfly-spend-lean__recent-row" key={rule.id}>
@@ -637,127 +1134,8 @@ export default function SpendEntryPage() {
                   </li>
                 ))}
               </ul>
-            </section>
+            </HashDetails>
           ) : null}
-
-          <section
-            id="mcfly-spend-add"
-            className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft"
-            aria-label={
-              editing
-                ? "Edit this day of spend"
-                : "Yesterday’s spend — one bill"
-            }
-          >
-            <div className="mcfly-panel__head mcfly-panel__head--tight">
-              <h2>
-                {editing
-                  ? "Edit this day"
-                  : fillDateKey === yesterdayKey
-                    ? "Yesterday"
-                    : "Add a day"}
-              </h2>
-              <p className="mcfly-panel__muted">
-                {editing
-                  ? "One channel, one date, one amount. Same day + channel replaces."
-                  : `One bill for ${formatSpendYmd(fillDateKey)}. Continues at that $X/day until you change it.`}
-              </p>
-            </div>
-            <Form
-              method="post"
-              className="mcfly-spend-add__form"
-              key={editing?.id ?? "new-day"}
-            >
-              <input type="hidden" name="intent" value="manual" />
-              {editing ? <input type="hidden" name="editing" value="1" /> : null}
-              <div className="mcfly-spend-add__grid">
-                <label className="mcfly-spend-add__field">
-                  <span>Date</span>
-                  <input
-                    className="mcfly-field"
-                    type="date"
-                    name="spendDate"
-                    defaultValue={editing?.dateKey ?? fillDateKey}
-                    min={spendHistoryFloorKey}
-                    max={todayKey}
-                    required
-                    aria-label="Spend date"
-                  />
-                </label>
-                <label className="mcfly-spend-add__field">
-                  <span>Channel</span>
-                  <select
-                    className="mcfly-field"
-                    name="channel"
-                    defaultValue={
-                      editing && isSpendChannel(editing.channel)
-                        ? editing.channel
-                        : "meta"
-                    }
-                    aria-label="Spend channel"
-                  >
-                    {addSpendChannels.map((opt) => (
-                      <option key={opt.value} value={opt.value} disabled={opt.disabled}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="mcfly-spend-add__field">
-                  <span>Amount ({currencyCode})</span>
-                  <input
-                    className="mcfly-field"
-                    type="number"
-                    name="amount"
-                    min="0"
-                    step="0.01"
-                    inputMode="decimal"
-                    defaultValue={editing ? String(editing.amount) : ""}
-                    required
-                    aria-label={`Spend amount in ${currencyCode}`}
-                  />
-                </label>
-                <label className="mcfly-spend-add__field">
-                  <span>Name if something else</span>
-                  <input
-                    className="mcfly-field"
-                    name="customName"
-                    defaultValue={
-                      editing?.channel === "other" ? (editing.note ?? "") : ""
-                    }
-                    placeholder="Billboard, radio, agency…"
-                    maxLength={48}
-                    aria-label="Custom channel name"
-                  />
-                </label>
-              </div>
-              {!editing ? (
-                <label className="mcfly-spend-add__continue">
-                  <input
-                    type="checkbox"
-                    name="continueDaily"
-                    value="1"
-                    defaultChecked={continueDailyCheckedDefault(Boolean(editing))}
-                  />{" "}
-                  Continue this $X/day until I change it
-                </label>
-              ) : null}
-              <div className="mcfly-spend-add__actions">
-                <button
-                  type="submit"
-                  className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
-                  disabled={isSubmitting && submittingIntent === "manual"}
-                  aria-busy={isSubmitting && submittingIntent === "manual"}
-                >
-                  {isSubmitting && submittingIntent === "manual"
-                    ? "Saving…"
-                    : editing
-                      ? "Save change"
-                      : "Save $X/day"}
-                </button>
-              </div>
-            </Form>
-          </section>
 
           <HashDetails
             id="mcfly-spend-recurring"
@@ -885,190 +1263,6 @@ export default function SpendEntryPage() {
               </s-link>
             </p>
           </HashDetails>
-
-          {strangerEmpty ? null : (
-            <>
-              <section
-                className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-cal mcfly-spend-cal--soft"
-                aria-label="Days with spend"
-              >
-                <div className="mcfly-spend-cal__meta">
-                  <h2>Coverage</h2>
-                  <p className="mcfly-panel__muted">
-                    Last {stripDays.length} closed days
-                    {coverageFromKey && coverageToKey
-                      ? ` · ${formatSpendYmd(coverageFromKey)} → ${formatSpendYmd(coverageToKey)}`
-                      : ""}
-                    {" · "}
-                    {dayCoverage.total}-day window. Empty cells open Add a day.
-                    Days with no row have no spend entered. A deleted day stays
-                    $0.
-                  </p>
-                </div>
-                <div className="mcfly-spend-cal__strip" role="list">
-                  {stripDays.map((day) =>
-                    day.filled ? (
-                      <div
-                        key={day.dateKey}
-                        className="mcfly-spend-cal__day mcfly-spend-cal__day--filled"
-                        role="listitem"
-                        title={`${day.dateKey} has spend`}
-                      >
-                        <span className="mcfly-spend-cal__tick" />
-                        <span className="mcfly-spend-cal__label">
-                          {day.label}
-                        </span>
-                      </div>
-                    ) : (
-                      <Link
-                        key={day.dateKey}
-                        className="mcfly-spend-cal__day mcfly-spend-cal__day--empty"
-                        role="listitem"
-                        to={spendFillDayHref(day.dateKey, {
-                          period: preset,
-                          shot: shotMode,
-                        })}
-                        title={`${day.dateKey} — no spend entered`}
-                      >
-                        <span className="mcfly-spend-cal__tick" />
-                        <span className="mcfly-spend-cal__label">
-                          {day.label}
-                        </span>
-                      </Link>
-                    ),
-                  )}
-                </div>
-                <div className="mcfly-spend-cal__legend">
-                  <span className="mcfly-spend-cal__legend-item">
-                    <span className="mcfly-spend-cal__day mcfly-spend-cal__day--filled mcfly-spend-cal__day--swatch">
-                      <span className="mcfly-spend-cal__tick" />
-                    </span>
-                    Has spend
-                  </span>
-                  <span className="mcfly-spend-cal__legend-item">
-                    <span className="mcfly-spend-cal__day mcfly-spend-cal__day--empty mcfly-spend-cal__day--swatch">
-                      <span className="mcfly-spend-cal__tick" />
-                    </span>
-                    No row = none entered
-                  </span>
-                </div>
-              </section>
-
-              <div className="mcfly-spend-lean__status mcfly-spend-lean__status--soft" role="status">
-                {sampleDesk.enabled ? (
-                  <>
-                    <p className="mcfly-spend-lean__status-line">
-                      Sample data is loaded
-                      {entries.length > 0
-                        ? ` · ${entries.length.toLocaleString()} recent rows shown`
-                        : ""}
-                      . {SAMPLE_LEDGER_HANDOFF}
-                    </p>
-                    <p className="mcfly-spend-lean__status-foot">
-                      Live is parked until launch. These rows stay Snowdevil
-                      SAMPLE.
-                    </p>
-                  </>
-                ) : coverageThroughYesterday.upToDate ? (
-                  <p className="mcfly-spend-lean__status-line">
-                    ✓ Up to date through yesterday
-                  </p>
-                ) : entries.length === 0 ? (
-                  <p className="mcfly-spend-lean__status-line">
-                    No spend on Live data yet. Add yesterday’s Meta and a
-                    billboard — no spend entered, not a certified $0.
-                  </p>
-                ) : (
-                  <p className="mcfly-spend-lean__status-line">
-                    Your spend is on the desk. Days with no row have no spend
-                    entered — a deleted day stays $0. Last month is enough to
-                    start
-                    {coverageThroughYesterday.missing.length > 0 ? (
-                      <>
-                        {" · "}
-                        <s-link href={`${importHref}#mcfly-spend-platforms`}>
-                          import missing days
-                        </s-link>
-                      </>
-                    ) : null}
-                  </p>
-                )}
-                {sampleDesk.enabled ? null : (
-                  <p className="mcfly-spend-lean__status-foot">
-                    Backdate to {spendHistoryFloorKey} (
-                    {spendHistoryYearsBack} years) — same window as Shopify
-                    sales. Same day + channel or named extra replaces.
-                  </p>
-                )}
-              </div>
-            </>
-          )}
-
-          {entries.length > 0 ? (
-            <section
-              className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-ledger mcfly-spend-ledger--soft"
-              aria-label="Recent spend ledger"
-            >
-              <div className="mcfly-panel__head mcfly-panel__head--tight">
-                <h2>Recent ledger</h2>
-                <p className="mcfly-panel__muted">
-                  Typed, uploaded, or daily-rate rows. Edit overwrites that day.
-                  Delete keeps the day empty — an active daily rate will not put
-                  it back.
-                </p>
-              </div>
-              <ul
-                className="mcfly-spend-lean__recent mcfly-spend-ledger__rows"
-                aria-label="Recent spend entries"
-              >
-                {entries.map((entry) => {
-                  const editHref = deskNavHref("/app/spend", {
-                    period: preset,
-                    shot: shotMode,
-                  });
-                  const editUrl = `${editHref}${editHref.includes("?") ? "&" : "?"}edit=${encodeURIComponent(entry.id)}#mcfly-spend-add`;
-                  return (
-                    <li
-                      className="mcfly-spend-lean__recent-row mcfly-spend-ledger__row"
-                      key={entry.id}
-                    >
-                      <span
-                        className={`mcfly-spend-dot mcfly-spend-dot--${entry.channel}`}
-                        aria-hidden="true"
-                      />
-                      <span className="mcfly-spend-lean__recent-channel">
-                        {formatSpendEntryChannelLabel(entry.channel, entry.note)}
-                      </span>
-                      <span className="mcfly-spend-lean__recent-amount">
-                        {money(entry.amount)}
-                      </span>
-                      <span className="mcfly-spend-lean__recent-range">
-                        {formatSpendYmd(entry.dateKey)}
-                      </span>
-                      <span className="mcfly-spend-lean__recent-source">
-                        {spendEntrySourceLabel(entry.source)}
-                      </span>
-                      <span className="mcfly-spend-lean__recent-actions">
-                        <Link className="mcfly-btn mcfly-btn--secondary" to={editUrl}>
-                          Edit
-                        </Link>
-                        <Form method="post">
-                          <input type="hidden" name="intent" value="delete-entry" />
-                          <input type="hidden" name="entryId" value={entry.id} />
-                          <button
-                            type="submit"
-                            className="mcfly-btn mcfly-btn--secondary"
-                          >
-                            Delete
-                          </button>
-                        </Form>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ) : null}
         </div>
       </div>
       {entries.length > 0 ? (
