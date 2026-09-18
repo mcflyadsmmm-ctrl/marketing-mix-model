@@ -5,6 +5,7 @@ import {
   clientPointToViewBox,
   explorerHoverFromViewPoint,
 } from "../lib/chart-smooth";
+import { chartBarRadius, chartBarWidth } from "../lib/chart-bar";
 import { useCoalescedCallback, useHeldChartSeries } from "../lib/use-chart-hover";
 import {
   EXPLORER_GRANULARITY_OPTIONS,
@@ -537,7 +538,8 @@ export function SpendExplorer({
   const vbH = PAD_T + PLOT_H + PAD_B;
   const plotW = Math.max(1, vbW - PAD_L - PAD_R);
   const slotW = n > 0 ? plotW / n : plotW;
-  const barW = slotW * 0.62;
+  const barW = chartBarWidth(slotW, n, "stack");
+  const barRx = chartBarRadius(barW);
 
   const yLeft = (val: number) =>
     PAD_T + PLOT_H - (leftCeil > 0 ? (val / leftCeil) * PLOT_H : 0);
@@ -1095,7 +1097,7 @@ export function SpendExplorer({
                             setSelectedKey(bucket.key);
                           }}
                         />
-                        {segs.map((seg) => {
+                        {segs.map((seg, segIndex) => {
                           const segHot =
                             hover?.kind === "seg" &&
                             hover.bucketKey === bucket.key &&
@@ -1106,6 +1108,7 @@ export function SpendExplorer({
                               hover.bucketKey === bucket.key &&
                               hover.channel === seg.channel
                             );
+                          const isTop = segIndex === segs.length - 1;
                           return (
                             <rect
                               key={seg.key}
@@ -1114,6 +1117,7 @@ export function SpendExplorer({
                               y={seg.y}
                               width={seg.w}
                               height={Math.max(seg.h, 0.5)}
+                              rx={isTop ? barRx : 0}
                               onPointerEnter={() => {
                                 if (shotMode) return;
                                 setHover({

@@ -3,6 +3,11 @@ import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
 import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import {
+  chartBarLayout,
+  chartBarPlotClassName,
+  chartXAxisMaxLabels,
+} from "../lib/chart-bar";
 import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
@@ -78,18 +83,21 @@ function MixEmptyFrame({ pending }: { pending: boolean }) {
             y2={PLOT_TOP + PLOT_H * 0.42}
           />
           {ghost.map((h, i) => {
-            const band = PLOT_W / ghost.length;
-            const barW = band * 0.5;
+            const layout = chartBarLayout({
+              plotLeft: PLOT_LEFT,
+              plotWidth: PLOT_W,
+              count: ghost.length,
+            });
             const barH = PLOT_H * h;
             return (
               <rect
                 key={i}
                 className="mcfly-cust-mix__ghost-bar"
-                x={PLOT_LEFT + band * i + (band - barW) / 2}
+                x={layout.barX(i)}
                 y={PLOT_BOTTOM - barH}
-                width={barW}
+                width={layout.barW}
                 height={barH}
-                rx="2"
+                rx={layout.rx}
               />
             );
           })}
@@ -150,16 +158,20 @@ export function CustomerMixChart({
   const leftAxis = overviewChartAxis(maxDollars, 4);
   const avg = summary.returningShareAvg;
 
-  const band = PLOT_W / buckets.length;
-  const barW = Math.min(46, Math.max(3, band * 0.6));
-  const barX = (i: number) => PLOT_LEFT + band * i + (band - barW) / 2;
-  const centerX = (i: number) => PLOT_LEFT + band * i + band / 2;
+  const { band, barW, rx, barX, centerX } = chartBarLayout({
+    plotLeft: PLOT_LEFT,
+    plotWidth: PLOT_W,
+    count: buckets.length,
+    kind: "stack",
+  });
   const yForD = (v: number) =>
     PLOT_BOTTOM - Math.min(1, Math.max(0, v / leftAxis.max)) * PLOT_H;
   const yForS = (s: number) =>
     PLOT_BOTTOM - Math.min(1, Math.max(0, s)) * PLOT_H;
 
-  const labelIndices = new Set(overviewChartLabelIndices(buckets.length, 6));
+  const labelIndices = new Set(
+    overviewChartLabelIndices(buckets.length, chartXAxisMaxLabels(buckets.length)),
+  );
 
   const linePts = buckets
     .map((b, i) => ({ b, i }))
@@ -292,7 +304,7 @@ export function CustomerMixChart({
       </div>
 
       <div
-        className="mcfly-chart__plot"
+        className={chartBarPlotClassName(hoverIndex != null)}
         onPointerMove={(event) =>
           moveFromEvent(event, {
             viewWidth: VIEW_W,
@@ -347,7 +359,7 @@ export function CustomerMixChart({
                   y={PLOT_BOTTOM - newH}
                   width={barW}
                   height={newH}
-                  rx="2"
+                  rx={newH > 0 && retH <= 0 ? rx : 0}
                 />
                 <rect
                   className="mcfly-cust-mix__bar mcfly-cust-mix__bar--ret"
@@ -355,7 +367,7 @@ export function CustomerMixChart({
                   y={PLOT_BOTTOM - newH - retH}
                   width={barW}
                   height={retH}
-                  rx="2"
+                  rx={retH > 0 ? rx : 0}
                 />
               </g>
             );

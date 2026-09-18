@@ -163,7 +163,11 @@ describe("desk explorers wire the smoothness layer", () => {
     "../components/YoyYearChart.tsx",
     "../components/LtvBuildCurves.tsx",
     "../components/OrdersTimingChart.tsx",
+    "../components/OrdersIntelligence.tsx",
     "../components/SpendExplorer.tsx",
+    "../components/WeekdaySalesChart.tsx",
+    "../components/OrdersFrequencyChart.tsx",
+    "../components/CustomerCharts.tsx",
   ];
 
   it("imports useChartHover or held-series helpers on every desk explorer", () => {

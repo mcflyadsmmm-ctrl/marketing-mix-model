@@ -1,5 +1,8 @@
 import { WEEKDAY_SHORT } from "../lib/shopify-depth-stats";
 import { formatCurrency } from "../lib/mer-format";
+import { chartSeriesId } from "../lib/chart-smooth";
+import { chartBarShellClassName } from "../lib/chart-bar";
+import { useChartHover } from "../lib/use-chart-hover";
 import { overviewCompactMoney } from "../lib/overview-sales-chart";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { DeskIcon } from "./DeskIcon";
@@ -21,6 +24,15 @@ export function WeekdaySalesChart({
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    shares?.length ?? 0,
+    chartSeriesId(shares ?? []),
+  );
   if (!shares || shares.length < 7) return null;
   // Zero shares omit this chart only — not the rest of Overview.
   if (!shares.some((share) => share > 0)) return null;
@@ -44,7 +56,10 @@ export function WeekdaySalesChart({
   ].filter((part): part is string => part != null);
 
   return (
-    <section className="mcfly-chart mcfly-chart--weekdays" aria-label="Sales by weekday">
+    <section
+      className={chartBarShellClassName("mcfly-chart mcfly-chart--weekdays", hoverIndex != null)}
+      aria-label="Sales by weekday"
+    >
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="weekend" />
@@ -54,7 +69,11 @@ export function WeekdaySalesChart({
           <p className="mcfly-chart__lede">{ledeParts.join(" · ")}</p>
         ) : null}
       </div>
-      <div className="mcfly-chart__days">
+      <div
+        className="mcfly-chart__days"
+        onPointerMove={moveFromEvent}
+        onPointerLeave={onPlotPointerLeave}
+      >
         {shares.map((share, index) => {
           const pct = Math.round(share * 100);
           const label = WEEKDAY_SHORT[index] ?? `D${index}`;
@@ -76,10 +95,12 @@ export function WeekdaySalesChart({
                 "mcfly-chart__day",
                 weekend ? "mcfly-chart__day--weekend" : null,
                 peak ? "mcfly-chart__day--peak" : null,
+                hoverIndex === index ? "mcfly-chart__day--on" : null,
               ]
                 .filter(Boolean)
                 .join(" ")}
               key={label}
+              onFocus={() => setHoverIndex(index)}
               onClick={() =>
                 drill?.openDrill({
                   title: label,
