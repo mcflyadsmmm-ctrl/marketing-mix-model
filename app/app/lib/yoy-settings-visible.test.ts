@@ -76,8 +76,10 @@ describe("Settings Sample | Live", () => {
     expect(settings).not.toContain("Harbor");
   });
 
-  it("keeps margin optional and 7-day then $39 billing", () => {
-    expect(settings).toMatch(/margin optional/i);
+  it("does not ask for profit margin / COGS and keeps 7-day then $39 billing", () => {
+    expect(settings).not.toMatch(/Profit margin average/i);
+    expect(settings).not.toMatch(/average COGS/i);
+    expect(settings).not.toMatch(/margin optional/i);
     expect(settings).toMatch(/7-day/);
     expect(settings).toMatch(/\$39/);
   });

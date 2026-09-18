@@ -150,11 +150,11 @@ describe("LTV is order-led first; margin & Cash CAC only on spend", () => {
   });
 
   it("gates Kept after margin, Cash CAC and Value vs cost on typed spend", () => {
-    expect(ltv).toContain("contrib90 != null && hasSpend");
+    expect(ltv).toContain("showMarginKept && contrib90 != null && hasSpend");
     expect(ltv).toMatch(/hasSpend && cashCac != null/);
     expect(ltv).toContain("hasSpend && isNum(ltv.ltvCacRatio)");
     // First-year "kept" hint only when spend exists — order value stays clean.
-    expect(ltv).toContain("hasSpend && contrib365 != null");
+    expect(ltv).toContain("hasSpend && showMarginKept && contrib365 != null");
   });
 
   it("order-revenue rows never depend on spend", () => {

@@ -1,0 +1,67 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const here = dirname(fileURLToPath(import.meta.url));
+
+function read(rel: string) {
+  return readFileSync(join(here, rel), "utf8");
+}
+
+function chrome(rel: string) {
+  return read(rel)
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+}
+
+describe("Profit-margin / COGS setup is parked", () => {
+  it("locks the existing NO COGS override — do not ask merchants", () => {
+    const board = read("./mer-dashboard.server.ts");
+    expect(board).toContain("export const MERCHANT_MARGIN_SETUP_ASK = false");
+    expect(board).toContain("const settingsSaved = true");
+  });
+
+  it("hides the Settings profit-margin average field and COGS hint", () => {
+    const settings = chrome("../routes/app.settings.tsx");
+    expect(settings).not.toMatch(/Profit margin average/);
+    expect(settings).not.toMatch(/average COGS/);
+    expect(settings).not.toMatch(/Break-even preview/);
+    expect(settings).not.toMatch(/Reconfirm profit margin/);
+    expect(settings).not.toMatch(/name="marginPct"/);
+    expect(settings).toContain("Order-history targets");
+    expect(settings).toContain("Sample");
+  });
+
+  it("does not wall Allocation on a missing margin", () => {
+    const allocation = chrome("../routes/app.allocation.tsx");
+    expect(allocation).not.toMatch(/Set profit margin/);
+    expect(allocation).not.toMatch(/set margin for break-even/i);
+    expect(allocation).not.toMatch(/Set margin in Settings/);
+    expect(allocation).toContain("Spend Upload");
+  });
+
+  it("does not ask LTV merchants to confirm a default margin", () => {
+    const ltv = chrome("../routes/app.ltv.tsx");
+    expect(ltv).not.toMatch(/until you confirm in Settings/);
+    expect(ltv).toContain("showMarginKept");
+    expect(ltv).toContain("UnlockFullHistoryBanner");
+  });
+
+  it("drops margin % from the Spend import scratch calculator", () => {
+    const spendImport = chrome("../routes/app.spend.import.tsx");
+    expect(spendImport).not.toMatch(/Calculator margin percent/);
+    expect(spendImport).not.toMatch(/<span>Margin %<\/span>/);
+    expect(spendImport).toContain("Calculators · sales ÷ spend");
+    expect(spendImport).not.toContain("sales ÷ spend and break-even");
+  });
+
+  it("does not list optional profit margin as a plan bullet", () => {
+    const entitlements = read("./entitlements.ts");
+    const pricing = read("../routes/pricing.tsx");
+    expect(entitlements).not.toMatch(/Break-even from optional profit margin/);
+    expect(pricing).not.toMatch(/Break-even from optional profit margin/);
+    expect(entitlements).toContain("Customer LTV");
+  });
+});

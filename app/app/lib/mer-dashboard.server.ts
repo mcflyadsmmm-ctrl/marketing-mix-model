@@ -236,6 +236,13 @@ export async function ensureShop(domain: string) {
   });
 }
 
+/**
+ * Marty product lock: hide merchant profit-margin / COGS / break-even setup.
+ * Answer is NO for now. Formula internals stay; BE still paints when a
+ * confirmed or SAMPLE margin exists.
+ */
+export const MERCHANT_MARGIN_SETUP_ASK = false;
+
 export async function getOrCreateSettings(shopId: string) {
   // find-then-create leaves marginConfirmedAt null until Settings save
   const existing = await prisma.settings.findUnique({ where: { shopId } });
@@ -1202,8 +1209,9 @@ export async function buildDashboardMetrics(
     : calculateAmer(newCustomerNetSales, totalSpend);
   const mix = channelMix(spends);
   /**
-   * Margin is optional — Total ROAS unlocks without BE.
-   * Break-even only after an explicit margin confirm (or sample desk).
+   * Marty product lock / existing NO COGS override: do not ask merchants
+   * for profit margin or average COGS. Total ROAS unlocks without BE.
+   * Break-even / contrib formulas still run when margin is confirmed or SAMPLE.
    */
   const settingsSaved = true;
   const breakEvenMerRaw = computeBreakEvenMer(effectiveMarginPct);

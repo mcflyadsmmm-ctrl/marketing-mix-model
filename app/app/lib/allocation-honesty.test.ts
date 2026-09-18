@@ -65,7 +65,7 @@ describe("Allocation desk sales honesty", () => {
 
   it("keeps lock copy on Spend Upload, not Marketing", () => {
     const lockStart = source.indexOf("const lockCopy");
-    const lockEnd = source.indexOf("const zeroMargin");
+    const lockEnd = source.indexOf("const channelRows");
     expect(lockStart).toBeGreaterThan(-1);
     expect(lockEnd).toBeGreaterThan(lockStart);
     const lockCopy = source.slice(lockStart, lockEnd);

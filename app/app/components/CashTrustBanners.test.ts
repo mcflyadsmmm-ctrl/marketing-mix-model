@@ -23,6 +23,7 @@ describe("CashTrustBanners today honesty", () => {
     expect(source).not.toContain("showSalesBasis");
     expect(source).not.toMatch(/Ads Manager often ignores returns/i);
     expect(source).not.toMatch(/not Platform ROAS/i);
+    expect(source).not.toMatch(/Reconfirm profit margin/);
   });
 
   it("discloses the ~60-day Shopify order window, not five years", () => {

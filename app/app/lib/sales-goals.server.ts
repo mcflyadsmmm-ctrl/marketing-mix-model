@@ -1,10 +1,16 @@
 import { calculateBreakEvenMer, calculateMer } from "@mcfly/mer-core";
 
 import prisma from "../db.server";
-import { getOrCreateSettings } from "./mer-dashboard.server";
+import {
+  getOrCreateSettings,
+  marginIsConfirmed,
+} from "./mer-dashboard.server";
 import type { DateRange } from "./periods";
 import { getSalesFactsByDay, getSalesFactsCoverage } from "./sales-facts.server";
-import { fetchSampleSalesByDay } from "./sample-desk.server";
+import {
+  fetchSampleSalesByDay,
+  SAMPLE_DESK_MARGIN_PCT,
+} from "./sample-desk.server";
 import {
   dateKeyFromYmd,
   shopLocalDayRange,
@@ -540,7 +546,12 @@ export async function buildYearBoard(
 ): Promise<GoalsYearBoard> {
   const settings = await getOrCreateSettings(shopId);
   const goals = await listSalesGoals(shopId, year);
-  const breakEvenMer = calculateBreakEvenMer(settings.marginPct);
+  const marginKnown = marginIsConfirmed(settings) || settings.useSampleDesk;
+  const breakEvenMer = marginKnown
+    ? calculateBreakEvenMer(
+        settings.useSampleDesk ? SAMPLE_DESK_MARGIN_PCT : settings.marginPct,
+      )
+    : null;
   const rail = Number.isFinite(targetMer) && targetMer > 0
     ? targetMer
     : settings.targetMer;

@@ -611,7 +611,6 @@ export default function SpendEntryPage() {
   const [templateTo, setTemplateTo] = useState(coverageToKey ?? yesterdayKey);
   const [calcSales, setCalcSales] = useState("");
   const [calcSpend, setCalcSpend] = useState("");
-  const [calcMargin, setCalcMargin] = useState("35");
 
   function isPlatformSelectable(id: SpendAdvertisePlatformId): boolean {
     if (entitlements.canUseAllChannels) return true;
@@ -756,14 +755,6 @@ export default function SpendEntryPage() {
     }
     return Math.round((sales / spend) * 100) / 100;
   }, [calcSales, calcSpend]);
-
-  const calcBreakEven = useMemo(() => {
-    const marginPct = parseFloat(calcMargin);
-    if (!Number.isFinite(marginPct) || marginPct <= 0 || marginPct >= 100) {
-      return null;
-    }
-    return calculateBreakEvenMer(marginPct / 100);
-  }, [calcMargin]);
 
   function submitForcedChannel(channel: CsvChannel) {
     const form = document.getElementById("mcfly-spend-csv-form");
@@ -1838,7 +1829,7 @@ export default function SpendEntryPage() {
             aria-label="Calculators"
           >
             <summary>
-              Calculators · sales ÷ spend and break-even (nothing is saved)
+              Calculators · sales ÷ spend (nothing is saved)
             </summary>
             <div className="mcfly-spend-add__grid">
               <label className="mcfly-spend-add__field">
@@ -1867,27 +1858,10 @@ export default function SpendEntryPage() {
                   aria-label="Calculator spend"
                 />
               </label>
-              <label className="mcfly-spend-add__field">
-                <span>Margin %</span>
-                <input
-                  className="mcfly-field"
-                  type="number"
-                  min="1"
-                  max="99"
-                  step="0.1"
-                  inputMode="decimal"
-                  value={calcMargin}
-                  onChange={(e) => setCalcMargin(e.target.value)}
-                  aria-label="Calculator margin percent"
-                />
-              </label>
             </div>
             <p className="mcfly-panel__muted" style={{ marginTop: "0.65rem" }}>
               Total ROAS{" "}
               {calcRoas == null ? "—" : `${calcRoas.toFixed(2)}×`}
-              {" · "}
-              Break-even{" "}
-              {calcBreakEven == null ? "—" : `${calcBreakEven.toFixed(2)}×`}
             </p>
           </details>
 

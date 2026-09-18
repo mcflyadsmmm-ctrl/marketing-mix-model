@@ -54,4 +54,12 @@ describe("Settings page", () => {
     expect(settings).toContain("observed average");
     expect(settings).toContain('href="/app/goals"');
   });
+
+  it("does not ask merchants for profit margin, COGS, or break-even", () => {
+    expect(settings).not.toContain("Profit margin average");
+    expect(settings).not.toMatch(/average COGS/i);
+    expect(settings).not.toMatch(/Break-even preview/i);
+    expect(settings).not.toMatch(/Reconfirm profit margin/);
+    expect(settings).not.toMatch(/name="marginPct"/);
+  });
 });
