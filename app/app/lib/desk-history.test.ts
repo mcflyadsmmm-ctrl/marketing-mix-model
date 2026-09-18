@@ -140,8 +140,23 @@ describe("Customers / Growth / Orders honesty wiring", () => {
         "shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}",
       );
       expect(src).toContain("includeShopifyOrderWindow: true");
-      expect(src).toContain("deskBookLede");
-      expect(src).toContain("orderBackfillProgress={");
+      if (file !== "app.growth.tsx") {
+        expect(src).toContain("deskBookLede");
+      }
+    }
+  });
+
+  it("wires OrderFact progress into DeskBookPage on the Shopify five", () => {
+    for (const file of [
+      "app.customers.tsx",
+      "app.growth.tsx",
+      "app.orders.tsx",
+      "app.ltv.tsx",
+    ]) {
+      const src = readFileSync(join(here, `../routes/${file}`), "utf8");
+      expect(src, file).toContain("orderBackfillProgress={");
+      expect(src, file).toContain("completeDays:");
+      expect(src, file).toContain("remainingDays:");
     }
   });
 
