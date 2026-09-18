@@ -982,6 +982,7 @@ export default function SpendEntryPage() {
           "mcfly-desk",
           "mcfly-desk--chrome",
           "mcfly-spend-lean",
+          "mcfly-spend-lean--soft",
           shotMode ? "mcfly-desk--shot" : null,
           sampleDesk.enabled ? "mcfly-desk--sample" : null,
         ]
@@ -1160,18 +1161,21 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        <div className="mcfly-spend-lean__stack">
+        <div className="mcfly-spend-lean__stack mcfly-spend-lean__stack--soft">
           {/*
            * Name the three doors before the explanation. First session should
            * not need a tutorial to find out that typing one bill is an option.
            */}
-          <section className="mcfly-book" aria-label="Three ways to add spend">
+          <section
+            className="mcfly-book mcfly-book--soft mcfly-spend-import-lead--soft"
+            aria-label="Three ways to add spend"
+          >
             <p className="mcfly-book__lede">
               <s-link href="/app/spend#mcfly-spend-add">Type yesterday</s-link>
               {" "}on Spend Upload first. This page is backfill after that
               amount is on the desk — not the first-session start.
             </p>
-            <ul className="mcfly-book__links">
+            <ul className="mcfly-book__links mcfly-spend-import-doors">
               {SPEND_IMPORT_DOORS.map((door) => (
                 <li key={door.href} className="mcfly-book__link">
                   <s-link href={door.href}>{door.title}</s-link>
@@ -1179,13 +1183,13 @@ export default function SpendEntryPage() {
                 </li>
               ))}
             </ul>
+            <p className="mcfly-spend-helper mcfly-spend-helper--soft">
+              Shopify sales are already here. Download the blank, fill daily spend,
+              and upload it after yesterday is typed. Days with no row have no
+              spend entered — a deleted day stays $0. Uploaded days replace the
+              same day + channel. An active daily rate will not overwrite those days.
+            </p>
           </section>
-          <p className="mcfly-spend-helper">
-            Shopify sales are already here. Download the blank, fill daily spend,
-            and upload it after yesterday is typed. Days with no row have no
-            spend entered — a deleted day stays $0. Uploaded days replace the
-            same day + channel. An active daily rate will not overwrite those days.
-          </p>
 
           <section
             id="mcfly-spend-platforms"

@@ -213,6 +213,32 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Ad-platform logins often fail");
     expect(spend).not.toContain("Why no ad-account connection?");
   });
+
+  it("keeps yesterday as the hero and puts the ledger behind a drill", () => {
+    expect(spend).toContain("mcfly-spend-add--hero");
+    expect(spend).toContain("mcfly-spend-glance");
+    expect(spend).toContain('id="mcfly-spend-how"');
+    expect(spend).toContain('id="mcfly-spend-coverage"');
+    expect(spend).toContain('id="mcfly-spend-ledger"');
+    expect(spend).toContain("SpendPeek");
+    expect(spend).toContain("useDeskDrill");
+    expect(spend).toContain("How this page works");
+    const addAt = spend.indexOf('id="mcfly-spend-add"');
+    const glanceAt = spend.indexOf("mcfly-spend-glance");
+    const ledgerAt = spend.indexOf('id="mcfly-spend-ledger"');
+    const coverageAt = spend.indexOf('id="mcfly-spend-coverage"');
+    expect(glanceAt).toBeGreaterThan(addAt);
+    expect(coverageAt).toBeGreaterThan(glanceAt);
+    expect(ledgerAt).toBeGreaterThan(coverageAt);
+    expect(spend).toContain("defaultOpen={false}");
+    expect(spend).toContain("defaultOpen={Boolean(editing)}");
+  });
+
+  it("shows the custom-channel name only when Something else is selected", () => {
+    expect(spend).toContain("hidden={addChannel !== \"other\"}");
+    expect(spend).toContain("Billboard, radio, agency…");
+    expect(spend).toContain("setAddChannel");
+  });
 });
 
 describe("Import or backfill", () => {
@@ -315,6 +341,13 @@ describe("Import or backfill", () => {
 
   it("does not repeat the no-login manifesto — that lives once on Spend", () => {
     expect(spendImport).not.toContain("Why no ad-account connection?");
+  });
+
+  it("shares Spend Upload’s soft lead chrome instead of a second manifesto stack", () => {
+    expect(spendImport).toContain("mcfly-spend-lean--soft");
+    expect(spendImport).toContain("mcfly-spend-import-lead--soft");
+    expect(spendImport).toContain("mcfly-spend-helper--soft");
+    expect(spendImport).toContain('aria-label="Three ways to add spend"');
   });
 });
 
