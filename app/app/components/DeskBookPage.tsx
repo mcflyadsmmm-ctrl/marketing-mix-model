@@ -2,6 +2,10 @@ import type { ReactNode } from "react";
 import { PeriodControl } from "./PeriodControl";
 import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
+import {
+  orderHistoryProgressMessage,
+  type OrderHistoryProgressInput,
+} from "../lib/cash-trust-copy";
 import type { PeriodPreset } from "../lib/periods";
 
 export function DeskBookPage({
@@ -13,6 +17,7 @@ export function DeskBookPage({
   isLoading,
   showPeriod = true,
   orderFactsTruncated = false,
+  orderBackfillProgress = null,
   todaySalesTruncated = false,
   todaySalesUnavailable = false,
   shopifyOrderWindowLimited = false,
@@ -32,6 +37,8 @@ export function DeskBookPage({
   showPeriod?: boolean;
   /** Closed-day OrderFact crawl still running — typical order / LTV are not $0. */
   orderFactsTruncated?: boolean;
+  /** Closed-day OrderFact crawl progress — X of Y when days remain. */
+  orderBackfillProgress?: OrderHistoryProgressInput | null;
   /** Open-day live top-up hit the page cap — today is not a finished book. */
   todaySalesTruncated?: boolean;
   /** Open-day live top-up failed — closed days may still show. */
@@ -52,6 +59,10 @@ export function DeskBookPage({
         todaySalesUnavailable,
         shopifyOrderWindowLimited,
       });
+  const orderProgress =
+    !shotMode && !shopifyOrderWindowLimited && orderBackfillProgress
+      ? orderHistoryProgressMessage(orderBackfillProgress)
+      : null;
 
   return (
     <s-page heading={shotMode ? undefined : heading} inlineSize="large">
@@ -93,7 +104,16 @@ export function DeskBookPage({
           </s-banner>
         ))}
 
-        {orderFactsTruncated && !shotMode && !shopifyOrderWindowLimited ? (
+        {orderProgress ? (
+          <s-banner tone="info" heading={orderProgress.heading}>
+            <s-paragraph>{orderProgress.body}</s-paragraph>
+          </s-banner>
+        ) : null}
+
+        {orderFactsTruncated &&
+        !orderProgress &&
+        !shotMode &&
+        !shopifyOrderWindowLimited ? (
           <p className="mcfly-book__lede">
             Order history still loading — incomplete typical order, returning
             dollars, and LTV are not $0. Shopify shares about 60 days of orders

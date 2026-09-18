@@ -24,6 +24,17 @@ describe("Settings page", () => {
     expect(settings).toMatch(/Sample data|Live data/);
     expect(settings).toContain("PRODUCT_NOUN.totalRoas");
     expect(settings).not.toMatch(/\baMER\b/);
+    expect(settings).toContain("Snowdevil example numbers, not this shop");
+    expect(settings).toContain("this shop’s Shopify orders");
+  });
+
+  it("keeps a visible support path next to Sample | Live", () => {
+    expect(settings).toContain('aria-label="Support"');
+    expect(settings).toContain("Need help?");
+    expect(settings).toContain("mcflyadsmmm@gmail.com");
+    expect(settings).toContain("Open Support");
+    expect(settings).toContain("FLY_SUPPORT_URL");
+    expect(settings).not.toContain("Learn more about");
   });
 
   it("Switch to Sample data posts on Settings with a native submit", () => {

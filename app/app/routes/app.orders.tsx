@@ -74,6 +74,15 @@ export default function OrdersPage() {
       orderFactsTruncated={
         !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
       }
+      orderBackfillProgress={
+        !useSampleDesk && orderBackfillProgress
+          ? {
+              completeDays: orderBackfillProgress.completeDays,
+              windowDays: orderBackfillProgress.windowDays,
+              remainingDays: orderBackfillProgress.remainingDays,
+            }
+          : null
+      }
       todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
       todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
       shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}

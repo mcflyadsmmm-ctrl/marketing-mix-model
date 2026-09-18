@@ -11,7 +11,11 @@ import {
   formatSpendReconLine,
 } from "../lib/mer-trust";
 import { formatCurrency, formatMer } from "../lib/mer-format";
-import { salesFactsIncompleteMessage } from "../lib/cash-trust-copy";
+import {
+  orderHistoryProgressMessage,
+  salesFactsIncompleteMessage,
+  type OrderHistoryProgressInput,
+} from "../lib/cash-trust-copy";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { useDeskCurrency } from "../lib/desk-currency";
 
@@ -29,6 +33,10 @@ type Props = {
     factDays: number;
     expectedClosedDays: number;
   } | null;
+  /** Closed-day OrderFact crawl progress — X of Y, not a spinner. */
+  orderBackfillProgress?: OrderHistoryProgressInput | null;
+  /** Spend-tab only — Overview stays sales-first at $0 spend. */
+  hasSpend?: boolean;
   /**
    * Open-day (today) live top-up hit the page cap (≤100 orders) — may undercount
    * today's sales until the day closes into SalesDayFact.
@@ -68,6 +76,8 @@ export function CashTrustBanners({
   periodLabel,
   shopifyOrderWindowLimited = false,
   salesFactsIncomplete = null,
+  orderBackfillProgress = null,
+  hasSpend = false,
   todaySalesTruncated = false,
   todaySalesUnavailable = false,
   orderFactsTruncated = false,
@@ -97,7 +107,13 @@ export function CashTrustBanners({
           factDays: salesFactsIncomplete.factDays,
           expectedClosedDays: salesFactsIncomplete.expectedClosedDays,
           periodLabel,
+          hasSpend,
         })
+      : null;
+
+  const orderProgressCopy =
+    !shopifyOrderWindowLimited && orderBackfillProgress
+      ? orderHistoryProgressMessage(orderBackfillProgress)
       : null;
 
   return (
@@ -139,7 +155,13 @@ export function CashTrustBanners({
         </s-banner>
       ) : null}
 
-      {orderFactsTruncated && !shopifyOrderWindowLimited ? (
+      {orderProgressCopy ? (
+        <s-banner tone="info" heading={orderProgressCopy.heading}>
+          <s-paragraph>{orderProgressCopy.body}</s-paragraph>
+        </s-banner>
+      ) : null}
+
+      {orderFactsTruncated && !orderProgressCopy && !shopifyOrderWindowLimited ? (
         <s-banner tone="info" heading="Order history still loading">
           <s-paragraph>
             A busy closed day has more orders than one crawl can fetch. Typical

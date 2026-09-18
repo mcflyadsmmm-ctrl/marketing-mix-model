@@ -43,5 +43,12 @@ describe("CashTrustBanners today honesty", () => {
     expect(source).toContain("Days with no spend row are $0");
     expect(source).not.toContain("Empty days are not $0");
   });
+
+  it("paints OrderFact progress and keeps Overview sales-first", () => {
+    expect(source).toContain("orderHistoryProgressMessage");
+    expect(source).toContain("orderBackfillProgress");
+    expect(source).toContain("hasSpend");
+    expect(source).toContain("salesFactsIncompleteMessage");
+  });
 });
 
