@@ -196,6 +196,48 @@
 
     <div class="mcfly-desk-anchor mcfly-scoreboard--orders" id="orders">
       <p class="mcfly-book__lede">Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS.</p>
+      <section class="mcfly-lane mcfly-lane--first" aria-label="Typical order vs Shopify’s average">
+        <header class="mcfly-lane__head">
+          <p class="mcfly-lane__hint">Look here first</p>
+          <p class="mcfly-lane__label">Typical order vs Shopify’s average</p>
+        </header>
+      <section class="mcfly-score mcfly-book mcfly-score--orders-hero" aria-label="Orders">
+        <p class="mcfly-score__greeting">Typical order around $631. Average is $634. Shopify Analytics Orders is the average order.</p>
+        <p class="mcfly-score__trust">Snowdevil example orders — not this shop. Live is parked until launch.</p>
+        <article class="mcfly-orders-hero">
+          <p class="mcfly-orders-hero__k">Typical order</p>
+          <p class="mcfly-orders-hero__v">$631</p>
+          <p class="mcfly-orders-hero__sub">Average order $634 — Shopify Analytics uses the average.</p>
+          <p class="mcfly-orders-hero__def">Middle order. 108 orders this window.</p>
+          <button type="button" class="mcfly-orders-band">
+            <span class="mcfly-orders-band__track" aria-hidden="true">
+              <span class="mcfly-orders-band__box" style="left:33.3%;width:33.3%"></span>
+              <span class="mcfly-orders-band__median" style="left:52.3%"></span>
+              <span class="mcfly-orders-band__mean" style="left:53%"></span>
+            </span>
+            <span class="mcfly-orders-band__legend">
+              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--median"><span class="mcfly-orders-band__tag-k">Typical</span><span class="mcfly-orders-band__tag-v">$631</span></span>
+              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--mean"><span class="mcfly-orders-band__tag-k">Average</span><span class="mcfly-orders-band__tag-v">$634</span></span>
+              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--box"><span class="mcfly-orders-band__tag-k">Most orders</span><span class="mcfly-orders-band__tag-v">$548–$694</span></span>
+            </span>
+          </button>
+        </article>
+        <div class="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead">
+          <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
+            <span class="mcfly-kpi__label">Typical · full price vs discounted</span>
+            <span class="mcfly-kpi__value">$640 vs $598</span>
+          </button>
+          <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
+            <span class="mcfly-kpi__label">Orders with 2+ items</span>
+            <span class="mcfly-kpi__value">50%</span>
+          </button>
+          <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
+            <span class="mcfly-kpi__label">Items per order</span>
+            <span class="mcfly-kpi__value">1.5</span>
+          </button>
+        </div>
+      </section>
+      </section>
       <section class="mcfly-orders-intel mcfly-desk-anchor" aria-label="Order intelligence">
         <div class="mcfly-orders-intel__head">
           <p class="mcfly-orders-intel__title">Order intelligence<span class="mcfly-orders-intel__badge">90d</span></p>
@@ -290,24 +332,6 @@
       </section>
       <section class="mcfly-score mcfly-book mcfly-score--orders-hero" aria-label="Orders">
         <p class="mcfly-scoreboard__kicker mcfly-scoreboard__kicker--sr">Snowdevil example orders — not this shop. Live is parked until launch.</p>
-        <article class="mcfly-orders-hero">
-          <p class="mcfly-orders-hero__k">Typical order</p>
-          <p class="mcfly-orders-hero__v">$631</p>
-          <p class="mcfly-orders-hero__sub">Average order $634 — Shopify Analytics uses the average.</p>
-          <p class="mcfly-orders-hero__def">Middle order. 108 orders this window.</p>
-          <button type="button" class="mcfly-orders-band">
-            <span class="mcfly-orders-band__track" aria-hidden="true">
-              <span class="mcfly-orders-band__box" style="left:33.3%;width:33.3%"></span>
-              <span class="mcfly-orders-band__median" style="left:52.3%"></span>
-              <span class="mcfly-orders-band__mean" style="left:53%"></span>
-            </span>
-            <span class="mcfly-orders-band__legend">
-              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--median"><span class="mcfly-orders-band__tag-k">Typical</span><span class="mcfly-orders-band__tag-v">$631</span></span>
-              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--mean"><span class="mcfly-orders-band__tag-k">Average</span><span class="mcfly-orders-band__tag-v">$634</span></span>
-              <span class="mcfly-orders-band__tag mcfly-orders-band__tag--box"><span class="mcfly-orders-band__tag-k">Most orders</span><span class="mcfly-orders-band__tag-v">$548–$694</span></span>
-            </span>
-          </button>
-        </article>
         <button type="button" class="mcfly-orders-clockbar">
           <span class="mcfly-orders-clockbar__track" aria-hidden="true">
             <span class="mcfly-orders-clockbar__seg mcfly-orders-clockbar__seg--product" style="width:82.7%"></span>
@@ -351,18 +375,6 @@
             <span class="mcfly-kpi__label">Discounted orders</span>
             <span class="mcfly-kpi__value">20%</span>
             <span class="mcfly-kpi__sub">Typical $76 off</span>
-          </button>
-          <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
-            <span class="mcfly-kpi__label">Typical · full price vs discounted</span>
-            <span class="mcfly-kpi__value">$640 vs $598</span>
-          </button>
-          <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
-            <span class="mcfly-kpi__label">Items per order</span>
-            <span class="mcfly-kpi__value">1.5</span>
-          </button>
-          <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
-            <span class="mcfly-kpi__label">Orders with 2+ items</span>
-            <span class="mcfly-kpi__value">50%</span>
           </button>
           <button type="button" class="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek">
             <span class="mcfly-kpi__label">Returns &amp; edits</span>

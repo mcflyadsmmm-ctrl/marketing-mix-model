@@ -3,6 +3,7 @@ import { useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { OrdersFirstViewport } from "../components/OrdersFirstViewport";
 import { OrdersScoreboard } from "../components/OrdersScoreboard";
 import { OrdersTimingChart } from "../components/OrdersTimingChart";
 import { OrdersIntelligence } from "../components/OrdersIntelligence";
@@ -10,6 +11,7 @@ import { OrdersFrequencyChart } from "../components/OrdersFrequencyChart";
 import { DeskLane } from "../components/DeskLane";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { ORDERS_FIRST_LANE_LABEL } from "../lib/orders-first-viewport";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 
@@ -103,10 +105,12 @@ export default function OrdersPage() {
             "Shopify Analytics shows the average order. This page shows the typical order (median) vs the average, discounts, 2+ items, then weekend, hour, and Online vs POS. Pending sales are a banner — the board still paints from orders on file.",
           )}
         </p>
-        <DeskLane rank="first" label="Typical order">
-          {ordersIntel && !metrics.salesPending ? (
-            <OrdersIntelligence intel={ordersIntel} />
-          ) : null}
+        <DeskLane rank="first" label={ORDERS_FIRST_LANE_LABEL}>
+          <OrdersFirstViewport
+            depth={metrics.shopifyDepth}
+            salesPending={Boolean(metrics.salesPending)}
+            useSampleDesk={useSampleDesk}
+          />
           <OrdersScoreboard
             book={book}
             depth={metrics.shopifyDepth}
@@ -120,6 +124,9 @@ export default function OrdersPage() {
             salesPending={Boolean(metrics.salesPending)}
             useSampleDesk={useSampleDesk}
           />
+          {ordersIntel && !metrics.salesPending ? (
+            <OrdersIntelligence intel={ordersIntel} />
+          ) : null}
         </DeskLane>
         <DeskLane rank="next" label="Weekday and hour">
           <OrdersTimingChart

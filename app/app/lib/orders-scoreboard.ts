@@ -245,32 +245,6 @@ export function buildOrdersDepthFacts(
       icon: "orders",
     },
     {
-      k: "Typical · full price vs discounted",
-      v:
-        isOrdersNum(depth.fullPriceMedianAov) &&
-        isOrdersNum(depth.discountedMedianAov)
-          ? `${formatCurrency(depth.fullPriceMedianAov, currency)} vs ${formatCurrency(depth.discountedMedianAov, currency)}`
-          : "—",
-      d: "Middle order with no discount vs with a discount. Average order value hides this.",
-      icon: "orders",
-    },
-    {
-      k: PRODUCT_NOUN.bookItemsPerOrder,
-      v: isOrdersNum(depth.meanUnitCount)
-        ? depth.meanUnitCount.toFixed(1)
-        : "—",
-      d: PRODUCT_NOUN.bookItemsPerOrderDef,
-      icon: "orders",
-    },
-    {
-      k: "Orders with 2+ items",
-      v: ordersHasShare(depth.multiUnitOrderShare)
-        ? ordersPct(depth.multiUnitOrderShare)
-        : "—",
-      d: "Share of orders with two or more units. Average items can hide a one-item shop.",
-      icon: "orders",
-    },
-    {
       k: PRODUCT_NOUN.bookReturnsEdits,
       v:
         isOrdersNum(book.returnsDrag) && book.returnsDrag > 0

@@ -14,11 +14,15 @@ describe("Orders page", () => {
     expect(orders).toMatch(/median/i);
   });
 
-  it("mounts the Orders scoreboard then the weekday/hour chart", () => {
+  it("mounts the typical-order first fold, then scoreboard, then weekday/hour chart", () => {
+    expect(orders).toContain("<OrdersFirstViewport");
     expect(orders).toContain("<OrdersScoreboard");
     expect(orders).toContain("<OrdersTimingChart");
-    expect(orders.indexOf("<OrdersTimingChart")).toBeGreaterThan(
+    expect(orders.indexOf("<OrdersFirstViewport")).toBeLessThan(
       orders.indexOf("<OrdersScoreboard"),
+    );
+    expect(orders.indexOf("<OrdersScoreboard")).toBeLessThan(
+      orders.indexOf("<OrdersTimingChart"),
     );
   });
 

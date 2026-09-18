@@ -150,7 +150,7 @@ describe("orders scoreboard helpers", () => {
     expect(clock[2]?.v).toBe("$60,242");
   });
 
-  it("depth rows cover the TAB_LOCK order book", () => {
+  it("depth rows cover ticket, day, discount, returns — basket peeks live on the first fold", () => {
     const rows = buildOrdersDepthFacts(snowdevilBook(), snowdevilDepth(), "USD");
     const blob = rows.map((row) => `${row.k} ${row.v} ${row.s ?? ""}`).join(" · ");
     expect(blob).toMatch(/Most orders/);
@@ -159,12 +159,9 @@ describe("orders scoreboard helpers", () => {
     expect(blob).toMatch(/\$4,279/);
     expect(blob).toMatch(/Discounted/);
     expect(blob).toMatch(/20%/);
-    expect(blob).toMatch(/full price vs discounted/i);
-    expect(blob).toMatch(/\$640 vs \$598/);
-    expect(blob).toMatch(/Items per order/);
-    expect(blob).toMatch(/1\.5/);
-    expect(blob).toMatch(/2\+ items/);
-    expect(blob).toMatch(/50%/);
+    expect(blob).not.toMatch(/full price vs discounted/i);
+    expect(blob).not.toMatch(/Items per order/);
+    expect(blob).not.toMatch(/2\+ items/);
     expect(blob).toMatch(/Returns/);
     expect(blob).toMatch(/\$4,370/);
     expect(blob).toMatch(/Shipping \+ tax/);
@@ -327,23 +324,31 @@ describe("orders visuals", () => {
 describe("Orders page craft lock", () => {
   const orders = read("../routes/app.orders.tsx");
   const scoreboard = read("../components/OrdersScoreboard.tsx");
+  const firstView = read("../components/OrdersFirstViewport.tsx");
   const chart = read("../components/OrdersTimingChart.tsx");
   const visuals = read("../components/OrdersVisuals.tsx");
 
-  it("is a Black Clover scoreboard — hero, clock, depth, timing, then the open chart", () => {
+  it("is a Black Clover scoreboard — first-fold typical, clock, depth, timing, then the open chart", () => {
+    const firstAt = orders.indexOf("<OrdersFirstViewport");
     const heroAt = orders.indexOf("<OrdersScoreboard");
+    const intelAt = orders.indexOf("<OrdersIntelligence");
     const chartAt = orders.indexOf("<OrdersTimingChart");
-    expect(heroAt).toBeGreaterThan(-1);
-    expect(chartAt).toBeGreaterThan(heroAt);
+    expect(firstAt).toBeGreaterThan(-1);
+    expect(heroAt).toBeGreaterThan(firstAt);
+    expect(intelAt).toBeGreaterThan(heroAt);
+    expect(chartAt).toBeGreaterThan(intelAt);
     expect(orders).toContain("mcfly-scoreboard--orders");
+    expect(orders).toContain("ORDERS_FIRST_LANE_LABEL");
     expect(orders).toContain("salesPending");
     expect(orders).toContain("not $0");
     expect(orders).not.toContain("if (metrics.salesPending) return");
-    expect(scoreboard).toContain("mcfly-orders-hero");
+    expect(firstView).toContain("mcfly-orders-hero");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("buildOrdersHero");
+    expect(firstView).toContain("<OrdersTicketBand");
     expect(scoreboard).toContain("mcfly-book__clock");
     expect(scoreboard).toContain("mcfly-kpi-grid--orders-depth");
     expect(scoreboard).toContain("mcfly-kpi-grid--orders-timing");
-    expect(scoreboard).toContain("buildOrdersHero");
     expect(scoreboard).toContain("buildOrdersClock");
     expect(scoreboard).toContain("buildOrdersDepthFacts");
     expect(scoreboard).toContain("buildOrdersTimingFacts");
@@ -354,8 +359,8 @@ describe("Orders page craft lock", () => {
     expect(chart).toContain("buildOrdersChartBars");
   });
 
-  it("draws the signature Orders visuals — ticket band, clock bar, source mix", () => {
-    expect(scoreboard).toContain("<OrdersTicketBand");
+  it("draws the signature Orders visuals — ticket band on the first fold, clock bar, source mix", () => {
+    expect(firstView).toContain("<OrdersTicketBand");
     expect(scoreboard).toContain("<OrdersClockBar");
     expect(scoreboard).toContain("<OrdersSourceBar");
     expect(visuals).toContain("mcfly-orders-band");
@@ -391,18 +396,20 @@ describe("Orders page craft lock", () => {
     expect(css).toContain(".mcfly-chart__plot");
   });
 
-  it("paints every TAB_LOCK Orders fact on the scoreboard, not a pamphlet", () => {
-    const blob = `${scoreboard}\n${read("./orders-scoreboard.ts")}\n${read("./product-labels.ts")}`;
+  it("paints every TAB_LOCK Orders fact on the first fold + scoreboard, not a pamphlet", () => {
+    const blob = `${firstView}\n${scoreboard}\n${read("./orders-scoreboard.ts")}\n${read("./orders-first-viewport.ts")}\n${read("./product-labels.ts")}`;
     for (const phrase of ORDERS_REQUIRED) {
       expect(blob.toLowerCase()).toContain(phrase.toLowerCase());
     }
+    expect(firstView).toContain("mcfly-kpi--peek");
     expect(scoreboard).toContain("mcfly-kpi--peek");
     expect(scoreboard).not.toContain("<details");
     expect(scoreboard).not.toContain("Click a card below for detail");
+    expect(firstView).not.toContain("<details");
   });
 
   it("keeps spend / ROAS / upload / Harbor / QuietSpendDoor off Orders", () => {
-    for (const source of [orders, scoreboard, chart, visuals]) {
+    for (const source of [orders, firstView, scoreboard, chart, visuals]) {
       for (const ban of ORDERS_SPEND_BANS) {
         expect(source).not.toContain(ban);
       }
@@ -462,10 +469,10 @@ describe("Orders page craft lock", () => {
   });
 
   it("contrasts typical/median with Shopify Analytics average", () => {
-    expect(`${orders}\n${scoreboard}`).toMatch(/Shopify Analytics/);
-    expect(`${orders}\n${scoreboard}`).toMatch(/average/i);
-    expect(`${orders}\n${scoreboard}`).toMatch(/typical/i);
-    expect(`${orders}\n${scoreboard}`).toMatch(/median/i);
+    expect(`${orders}\n${firstView}\n${scoreboard}`).toMatch(/Shopify Analytics/);
+    expect(`${orders}\n${firstView}\n${scoreboard}`).toMatch(/average/i);
+    expect(`${orders}\n${firstView}\n${scoreboard}`).toMatch(/typical/i);
+    expect(`${orders}\n${firstView}\n${scoreboard}`).toMatch(/median/i);
     expect(`${orders}\n${scoreboard}`).toMatch(/Online vs POS/);
   });
 });
