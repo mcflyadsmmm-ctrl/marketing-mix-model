@@ -3,6 +3,7 @@ import { redirect, useLoaderData, useNavigation } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { BookFactGrid, type BookFact } from "../components/ShopifyBookSection";
 import { DeskBookPage } from "../components/DeskBookPage";
+import { DeskLane } from "../components/DeskLane";
 import { LtvValueBuild, type LtvBuildWindow } from "../components/LtvValueBuild";
 import { LtvBuildCurves } from "../components/LtvBuildCurves";
 import { LtvRetentionHeat } from "../components/LtvRetentionHeat";
@@ -476,6 +477,7 @@ export default function LtvPage() {
         </section>
       ) : null}
 
+      <DeskLane rank="first" label="What a new buyer is worth">
       <section className="mcfly-book" aria-label="What new customers spend">
         <p className="mcfly-book__lede">
           Shopify Analytics shows LTV reports, if any. This page shows first 90 days after the first order on file — not lifetime first when a year is not on file yet. {PRODUCT_NOUN.ltvNotInShopify}
@@ -515,7 +517,9 @@ export default function LtvPage() {
 
         {liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner /> : null}
       </section>
+      </DeskLane>
 
+      <DeskLane rank="next" label="Order-history explorers">
       {depthHasAny ? (
         <section className="mcfly-book mcfly-depth-intro" aria-label="Order-history depth">
           <p className="mcfly-book__lede">
@@ -547,7 +551,10 @@ export default function LtvPage() {
       <LtvPathTable paths={depth.paths} clarity={depth.pathClarity} />
       <LtvWhaleRecency whales={depth.whales} />
       <ShareableInsightCards view={insightView} shotMode={shotMode} />
+      </DeskLane>
 
+      {economicsRows.length > 0 || (monthRows.length > 0 && !depth.curves) ? (
+      <DeskLane rank="more" label="Spend next to value">
       {economicsRows.length > 0 ? (
         <section className="mcfly-book" aria-label="Cost and margin">
           <p className="mcfly-book__lede">
@@ -566,6 +573,8 @@ export default function LtvPage() {
           </p>
           <BookFactGrid facts={monthRows} />
         </section>
+      ) : null}
+      </DeskLane>
       ) : null}
 
       <footer className="mcfly-book__links">

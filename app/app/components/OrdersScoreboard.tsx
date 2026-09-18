@@ -18,6 +18,7 @@ import {
   OrdersSourceBar,
   OrdersTicketBand,
 } from "./OrdersVisuals";
+import { DeskLane } from "./DeskLane";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
 import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
@@ -167,32 +168,36 @@ export function OrdersScoreboard({
         ) : null}
       </section>
 
-      <section
-        className="mcfly-score mcfly-book mcfly-score--orders-depth mcfly-score--soft"
-        aria-label="Order depth"
-      >
-        <p className="mcfly-scoreboard__kicker">Ticket · basket · returns</p>
-        <FactGrid
-          facts={depthFacts}
-          className="mcfly-kpi-grid--orders-depth"
-          pending={salesPending}
-        />
-      </section>
+      <DeskLane rank="more" label="Ticket, basket, returns">
+        <section
+          className="mcfly-score mcfly-book mcfly-score--orders-depth mcfly-score--soft"
+          aria-label="Order depth"
+        >
+          <p className="mcfly-scoreboard__kicker">Ticket · basket · returns</p>
+          <FactGrid
+            facts={depthFacts}
+            className="mcfly-kpi-grid--orders-depth"
+            pending={salesPending}
+          />
+        </section>
+      </DeskLane>
 
-      <section
-        className="mcfly-score mcfly-book mcfly-score--orders-timing mcfly-score--soft"
-        aria-label="When and where orders land"
-      >
-        <p className="mcfly-scoreboard__kicker">
-          Weekend, hour, and Online vs POS — shop-local, not ads
-        </p>
-        <OrdersSourceBar depth={depth} pending={salesPending} />
-        <FactGrid
-          facts={timingFacts}
-          className="mcfly-kpi-grid--orders-timing"
-          pending={salesPending}
-        />
-      </section>
+      <DeskLane rank="more" label="When and where">
+        <section
+          className="mcfly-score mcfly-book mcfly-score--orders-timing mcfly-score--soft"
+          aria-label="When and where orders land"
+        >
+          <p className="mcfly-scoreboard__kicker">
+            Weekend, hour, and Online vs POS — shop-local, not ads
+          </p>
+          <OrdersSourceBar depth={depth} pending={salesPending} />
+          <FactGrid
+            facts={timingFacts}
+            className="mcfly-kpi-grid--orders-timing"
+            pending={salesPending}
+          />
+        </section>
+      </DeskLane>
     </>
   );
 }

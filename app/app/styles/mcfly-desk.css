@@ -11979,9 +11979,26 @@ button.mcfly-chart__day {
 .mcfly-book__kpi--drill,
 .mcfly-yoy__card--drill,
 .mcfly-compact__cell--drill {
+  position: relative;
   transition:
     border-color var(--mcfly-motion) var(--mcfly-ease),
     box-shadow var(--mcfly-motion) var(--mcfly-ease);
+}
+
+.mcfly-kpi--drill::after,
+.mcfly-book__kpi--drill::after,
+.mcfly-compact__cell--drill::after,
+.mcfly-cust-kpi--action::after,
+.mcfly-cust-fact--drill::after,
+.mcfly-cust-tile--drill::after {
+  content: "›";
+  position: absolute;
+  top: 0.48rem;
+  right: 0.45rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--mcfly-mute);
+  pointer-events: none;
 }
 
 .mcfly-kpi--drill:hover,
@@ -12333,6 +12350,38 @@ button.mcfly-chart__day {
   margin: 0.85rem 0 0;
   font-size: 0.78rem;
   color: var(--mcfly-mute);
+}
+
+.mcfly-drill__more {
+  margin: 0 0 0.85rem;
+}
+
+.mcfly-drill__more-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.55rem;
+  padding: 0.28rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--mcfly-accent-ink);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.mcfly-drill__more-btn::after {
+  content: "›";
+  font-size: 0.85rem;
+}
+
+.mcfly-drill__more-btn[aria-expanded="true"]::after {
+  content: "⌃";
+  font-size: 0.7rem;
 }
 
 @media (max-width: 640px) {
@@ -19825,5 +19874,134 @@ button.mcfly-habit-goals__read:focus-visible {
 
   .mcfly-habit-goals__read-v {
     font-size: clamp(1.2rem, 5vw, 1.55rem);
+  }
+}
+
+/* =========================================================================
+ * FAIL #3 — lanes: first vs then vs more. Soft dense cards stay;
+ * ranks stop equal-weight stacks. Fold is a button, never a native disclosure.
+ * ========================================================================= */
+
+.mcfly-lane {
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.mcfly-lane + .mcfly-lane {
+  margin-top: 0.35rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-lane--first + .mcfly-lane--next {
+  border-top-color: var(--mcfly-line);
+}
+
+.mcfly-lane__head,
+.mcfly-lane__toggle {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.mcfly-lane__hint {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-lane--next .mcfly-lane__hint,
+.mcfly-lane--more .mcfly-lane__hint {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-lane__label {
+  margin: 0;
+  font-family: var(--mcfly-font);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-lane--first > .mcfly-lane__head .mcfly-lane__label {
+  font-size: 1.05rem;
+}
+
+.mcfly-lane__body {
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.mcfly-lane--more .mcfly-lane__body {
+  gap: 0.55rem;
+}
+
+.mcfly-lane--fold .mcfly-lane__toggle {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 10px;
+  background: var(--mcfly-paper);
+  padding: 0.65rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.mcfly-lane--fold .mcfly-lane__toggle:hover,
+.mcfly-lane--fold .mcfly-lane__toggle:focus-visible {
+  border-color: #a8c8de;
+  box-shadow: 0 1px 2px rgba(12, 25, 41, 0.05);
+}
+
+.mcfly-lane--fold .mcfly-lane__toggle:focus-visible {
+  outline: 2px solid var(--mcfly-accent);
+  outline-offset: 2px;
+}
+
+.mcfly-lane__chev {
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-lane--open .mcfly-lane__toggle {
+  border-color: #a8c8de;
+}
+
+.mcfly-lane--first .mcfly-lane--more {
+  margin-top: 0.15rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--mcfly-line-soft);
+}
+
+.mcfly-lane--first .mcfly-lane--more .mcfly-lane__label,
+.mcfly-lane--more .mcfly-scoreboard__kicker {
+  font-size: 0.78rem;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-lane--more .mcfly-panel,
+.mcfly-lane--more .mcfly-score,
+.mcfly-lane--more .mcfly-cust-card {
+  box-shadow: none;
+}
+
+@media (max-width: 430px) {
+  .mcfly-lane__label {
+    font-size: 0.9rem;
+  }
+
+  .mcfly-lane--first > .mcfly-lane__head .mcfly-lane__label {
+    font-size: 0.98rem;
   }
 }

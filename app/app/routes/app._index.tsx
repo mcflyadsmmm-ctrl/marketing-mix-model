@@ -24,6 +24,7 @@ import { OverviewMixForecast } from "../components/OverviewMixForecast";
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
+import { DeskLane } from "../components/DeskLane";
 import { ShareOverviewButton } from "../components/ShareOverviewButton";
 import { useDeskHashScroll } from "../components/useDeskHashScroll";
 import {
@@ -715,81 +716,94 @@ export default function Dashboard() {
                 className="mcfly-desk-anchor mcfly-scoreboard--overview"
                 id={DESK_SECTION.overview}
               >
-                <OverviewYoyCards
-                  cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                  salesPending={greetingPending}
-                  yoyHref={yoyHref}
-                />
-                <OverviewFirstViewport
-                  orderCount={metrics.orderCount}
-                  typicalOrder={metrics.shopifyDepth.medianAov}
-                  meanAov={
-                    metrics.orderCount > 0
-                      ? metrics.sales / metrics.orderCount
-                      : null
-                  }
-                  typicalDay={metrics.shopifyDepth.medianDailySales}
-                  returningSalesShare={shopBook.returningSalesShare}
-                  returningSales={shopBook.returningSales}
-                  newSales={shopBook.newSales}
-                  mixGreeting={mixRead?.line}
-                  medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
-                  weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
-                  peakWeekday={metrics.shopifyDepth.peakWeekday}
-                  weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                  windowSales={metrics.sales}
-                  salesPending={greetingPending}
-                  ordersHref={ordersHref}
-                  useSampleDesk={useSampleDesk}
-                />
-                <OverviewMixForecast
-                  view={mixView}
-                  customersHref={deskNavHrefFromSearch(
-                    "/app/customers",
-                    searchParams,
-                  )}
-                />
-                <ShareableInsightCards view={insightView} shotMode={shotMode} />
-                <OverviewSalesChart
-                  days={
-                    salesExplorerDays.length >= 2
-                      ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
-                          dateKey,
-                          sales,
-                          orders,
-                        }))
-                      : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
-                  }
-                  ordersHref={ordersHref}
-                  salesPending={greetingPending}
-                  typicalDay={metrics.shopifyDepth.medianDailySales}
-                />
-                <OverviewDepthPeeks
-                  orderCount={metrics.orderCount}
-                  typicalOrder={metrics.shopifyDepth.medianAov}
-                  meanAov={
-                    metrics.orderCount > 0
-                      ? metrics.sales / metrics.orderCount
-                      : null
-                  }
-                  typicalDay={metrics.shopifyDepth.medianDailySales}
-                  returningSalesShare={shopBook.returningSalesShare}
-                  returningSales={shopBook.returningSales}
-                  weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
-                  peakWeekday={metrics.shopifyDepth.peakWeekday}
-                  weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                  windowSales={metrics.sales}
-                  salesPending={greetingPending}
-                  ordersHref={ordersHref}
-                  useSampleDesk={useSampleDesk}
-                />
-                {!greetingPending ? (
-                  <WeekdaySalesChart
-                    shares={metrics.shopifyDepth.weekdaySalesShare}
-                    windowSales={metrics.sales}
-                    peakWeekday={metrics.shopifyDepth.peakWeekday}
+                <DeskLane rank="first" label="This month vs last year">
+                  <OverviewYoyCards
+                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
+                    salesPending={greetingPending}
+                    yoyHref={yoyHref}
                   />
-                ) : null}
+                  <OverviewFirstViewport
+                    orderCount={metrics.orderCount}
+                    typicalOrder={metrics.shopifyDepth.medianAov}
+                    meanAov={
+                      metrics.orderCount > 0
+                        ? metrics.sales / metrics.orderCount
+                        : null
+                    }
+                    typicalDay={metrics.shopifyDepth.medianDailySales}
+                    returningSalesShare={shopBook.returningSalesShare}
+                    returningSales={shopBook.returningSales}
+                    newSales={shopBook.newSales}
+                    mixGreeting={mixRead?.line}
+                    medianDaysToSecond={metrics.shopifyDepth.medianDaysToSecond}
+                    weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                    peakWeekday={metrics.shopifyDepth.peakWeekday}
+                    weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
+                    windowSales={metrics.sales}
+                    salesPending={greetingPending}
+                    ordersHref={ordersHref}
+                    useSampleDesk={useSampleDesk}
+                  />
+                </DeskLane>
+                <DeskLane rank="next" label="Mix and month close">
+                  <OverviewMixForecast
+                    view={mixView}
+                    customersHref={deskNavHrefFromSearch(
+                      "/app/customers",
+                      searchParams,
+                    )}
+                  />
+                  <ShareableInsightCards view={insightView} shotMode={shotMode} />
+                </DeskLane>
+                <DeskLane rank="next" label="Sales by day">
+                  <OverviewSalesChart
+                    days={
+                      salesExplorerDays.length >= 2
+                        ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
+                            dateKey,
+                            sales,
+                            orders,
+                          }))
+                        : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
+                    }
+                    ordersHref={ordersHref}
+                    salesPending={greetingPending}
+                    typicalDay={metrics.shopifyDepth.medianDailySales}
+                  />
+                </DeskLane>
+                <DeskLane
+                  rank="more"
+                  label="More order detail"
+                  fold
+                  defaultOpen={shotMode}
+                >
+                  <OverviewDepthPeeks
+                    orderCount={metrics.orderCount}
+                    typicalOrder={metrics.shopifyDepth.medianAov}
+                    meanAov={
+                      metrics.orderCount > 0
+                        ? metrics.sales / metrics.orderCount
+                        : null
+                    }
+                    typicalDay={metrics.shopifyDepth.medianDailySales}
+                    returningSalesShare={shopBook.returningSalesShare}
+                    returningSales={shopBook.returningSales}
+                    weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                    peakWeekday={metrics.shopifyDepth.peakWeekday}
+                    weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
+                    windowSales={metrics.sales}
+                    salesPending={greetingPending}
+                    ordersHref={ordersHref}
+                    useSampleDesk={useSampleDesk}
+                  />
+                  {!greetingPending ? (
+                    <WeekdaySalesChart
+                      shares={metrics.shopifyDepth.weekdaySalesShare}
+                      windowSales={metrics.sales}
+                      peakWeekday={metrics.shopifyDepth.peakWeekday}
+                    />
+                  ) : null}
+                </DeskLane>
                 {!greetingPending ? (
                   <footer className="mcfly-book__links">
                     <s-link href={deskNavHrefFromSearch("/app/customers", searchParams)}>
