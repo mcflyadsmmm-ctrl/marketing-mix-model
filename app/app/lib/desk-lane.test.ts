@@ -95,6 +95,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
   it("ranks Customers without dropping ActionCards or niche boards", () => {
     const order = [
       'rank="first"',
+      "<CustomersFirstViewport",
       "<CustomerMixChart",
       "<CustomersScoreboard",
       'rank="next"',

@@ -13,10 +13,12 @@ import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { DeskLane } from "../components/DeskLane";
+import { CustomersFirstViewport } from "../components/CustomersFirstViewport";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { loadCustomerAnalytics } from "../lib/desk-customers-page.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
@@ -26,10 +28,10 @@ import {
   pickShareableLtvPeek,
 } from "../lib/shareable-insights";
 
-// Shopify Analytics Overview shows a returning-customer rate (headcount); this
-// tab is one spine: explorer → What-to-do / watchlist → RFM-lite → value / whales.
+// Shopify Analytics Customers is a list. First fold is RFM-lite / whales /
+// repurchase / win-back; mix + What-to-do / RFM boards stay below.
 const CUSTOMERS_CONTRAST =
-  "Shopify Analytics Overview shows a returning-customer rate — headcount. Deeper: returning dollars, when they come back, RFM-lite bands, and which whales to save — from this shop's orders.";
+  "Shopify Analytics Customers is a customer list. Deeper: RFM-lite, whale watch, repurchase clock, and win-back — plus returning dollars the list does not put next to names.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const base = await loadDeskSalesPage(request, "/app/customers");
@@ -156,13 +158,22 @@ export default function CustomersPage() {
         </p>
       ) : null}
 
+      <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
       <p className="mcfly-book__lede">{deskBookLede(CUSTOMERS_CONTRAST)}</p>
 
-      <DeskLane rank="first" label="New vs returning $">
-        {/* 1. Marquee explorer — new vs returning $ dual-axis, above the fold. */}
+      <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL}>
+        {/* 1. First fold — RFM-lite / whales / repurchase vs Shopify's list. */}
+        <CustomersFirstViewport
+          analytics={analytics}
+          rfm={analytics.rfm}
+          salesPending={metrics.salesPending}
+          useSampleDesk={useSampleDesk}
+        />
+
+        {/* 2. Marquee explorer — new vs returning $ stays, below the heroes. */}
         <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
 
-        {/* 2. Compact returning hero — gauge + three unique facts, not a tile wall. */}
+        {/* 3. Compact returning hero — gauge + three unique facts, not a tile wall. */}
         <CustomersScoreboard
           book={book}
           depth={metrics.shopifyDepth}
@@ -173,7 +184,7 @@ export default function CustomersPage() {
       </DeskLane>
 
       <DeskLane rank="next" label="What to do">
-        {/* 3. What to do — existing ActionCards stay; watchlist sits beside. */}
+        {/* 4. What to do — existing ActionCards stay; watchlist sits beside. */}
         <div className="mcfly-cust-action-row">
           <CustomerRetentionBoard analytics={analytics} />
           <CustomerWhaleWatch rfm={analytics.rfm} />
@@ -186,10 +197,10 @@ export default function CustomersPage() {
         fold
         defaultOpen={shotMode}
       >
-        {/* 4. RFM-lite — recency / frequency / monetary, not a 5×5 dump. */}
+        {/* 5. RFM-lite — recency / frequency / monetary, not a 5×5 dump. */}
         <CustomerRfmBoard rfm={analytics.rfm} />
 
-        {/* 5. Value bands / whales as needed — who the dollars sit with. */}
+        {/* 6. Value bands / whales as needed — who the dollars sit with. */}
         <CustomerValueBands analytics={analytics} />
         <CustomerWhaleTable analytics={analytics} />
 
@@ -210,6 +221,7 @@ export default function CustomersPage() {
         <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>
         <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
       </footer>
+      </div>
     </DeskBookPage>
   );
 }

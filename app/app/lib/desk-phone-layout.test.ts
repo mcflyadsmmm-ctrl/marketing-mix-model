@@ -161,6 +161,25 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture.indexOf("mcfly-orders-hero")).toBeLessThan(
       fixture.indexOf("Order intelligence"),
     );
+    expect(fixture).toContain("mcfly-scoreboard--customers");
+    expect(fixture).toContain("mcfly-customers-hero");
+    expect(fixture).toContain("RFM-lite, whales, repurchase clock");
+    expect(fixture).toContain("Shopify Analytics Customers is a customer list.");
+    expect(fixture).toContain("Snowdevil example buyers");
+    expect(fixture).toContain("Whale watch");
+    expect(fixture).toContain("Typical repurchase");
+    expect(fixture).toContain("Win-back by");
+    expect(fixture).toContain("Save now");
+    expect(fixture).toContain("Typical repurchase day 24. 8 whales to reach. At risk: 32.");
+    expect(fixture).toContain("RFM-lite · At risk");
+    expect(fixture).toContain("8 to reach");
+    expect(fixture).toContain("Day 24");
+    expect(fixture).toContain("Day 39");
+    expect(fixture.indexOf("mcfly-customers-hero")).toBeLessThan(
+      fixture.indexOf("mcfly-orders-hero"),
+    );
+    expect(css).toContain(".mcfly-customers-hero");
+    expect(css).toContain(".mcfly-customers-rfmband");
     expect(fixture).toContain("Average order $634");
     expect(fixture).toContain("$72,827");
     expect(fixture).toContain("$60,242");
