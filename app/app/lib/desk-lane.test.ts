@@ -116,18 +116,21 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(customers).toContain("defaultOpen={shotMode}");
   });
 
-  it("ranks Growth explorer first, then time-to-second ActionCards", () => {
+  it("ranks Growth days-to-second first fold ahead of come-back explorer and TT2", () => {
     const order = [
       'rank="first"',
+      "<GrowthFirstViewport",
+      'rank="next" label="Who came back"',
       "<GrowthComebackChart",
       "<GrowthScoreboard",
-      'rank="next"',
+      'rank="next" label="Time to a second order"',
       "<GrowthTt2Board",
     ].map((tag) => growth.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]!).toBeGreaterThan(order[i - 1]!);
     }
+    expect(growth).toContain("GROWTH_FIRST_LANE_LABEL");
   });
 
   it("ranks Orders typical-order first fold ahead of intelligence and weekday charts", () => {

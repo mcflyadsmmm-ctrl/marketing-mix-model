@@ -77,6 +77,7 @@ describe("Shopify five books are visible cards", () => {
   it("Growth keeps days-to-second and 30-day come-back as cards", () => {
     const chart = read("../components/GrowthComebackChart.tsx");
     const board = read("../components/GrowthScoreboard.tsx");
+    expect(growth).toContain("<GrowthFirstViewport");
     expect(growth).toContain("<GrowthComebackChart");
     expect(growth).toContain("<GrowthScoreboard");
     expect(growth).toContain("<GrowthTt2Board");

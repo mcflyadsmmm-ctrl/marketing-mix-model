@@ -7,6 +7,7 @@ import {
   LIVE_HANDOFF_BODY,
   LIVE_HANDOFF_GUIDE,
   LIVE_HANDOFF_HEADING,
+  SAMPLE_GROWTH_DOOR,
   SAMPLE_LEDGER_HANDOFF,
   SAMPLE_OVERVIEW_DOOR,
   SAMPLE_SPEND_NOT_LIVE,
@@ -63,6 +64,18 @@ describe("SAMPLE → Live handoff", () => {
     expect(firstView).not.toContain("Edit spend →");
     expect(SAMPLE_OVERVIEW_DOOR).toMatch(/example sales/i);
     expect(SAMPLE_OVERVIEW_DOOR).not.toMatch(/Total ROAS|upload/i);
+  });
+
+  it("Growth stays order-history-first; SAMPLE door never mentions cash", () => {
+    const growth = read("../routes/app.growth.tsx");
+    const firstView = read("../components/GrowthFirstViewport.tsx");
+    expect(growth).toContain("<GrowthFirstViewport");
+    expect(firstView).toContain("SAMPLE_GROWTH_DOOR");
+    expect(firstView).not.toContain("SAMPLE_SPEND_NOT_LIVE");
+    expect(firstView).not.toContain("Edit spend");
+    expect(SAMPLE_GROWTH_DOOR).toMatch(/example order history/i);
+    expect(SAMPLE_GROWTH_DOOR).toMatch(/Live is parked/);
+    expect(SAMPLE_GROWTH_DOOR).not.toMatch(/Total ROAS|upload|Edit spend/i);
   });
 
   it("Settings and data-mode still stamp guide=real on the Live switch", () => {
