@@ -11,6 +11,9 @@
  * fire-and-forget the default chunk (20 sales days / 7 order days) — never
  * the timid maxDays: 2 that left a sealed thin book.
  *
+ * Live unpark: skip enqueue while SAMPLE freeze / stage parked
+ * (`liveUnparkIngestPolicyFromEnv`). Sync law on tip: unpaid/trial ~90d,
+ * paid $39 full history — never crawl paid as 90d-only.
  * One-shot after that full window seals: Live tabs skip enqueue/burst.
  * OAuth / first-session still kick while work remains. Refunds/cancels
  * re-arm OrderFact via webhook.
@@ -19,6 +22,10 @@
 import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
 import prisma from "../db.server";
 import { enqueueJob } from "./job-queue.server";
+import {
+  liveShopifyWindowShouldSchedule,
+  liveUnparkIngestPolicyFromEnv,
+} from "./live-unpark";
 import {
   BACKFILL_ORDER_FACTS_JOB,
   getOrderBackfillProgress,
@@ -150,6 +157,8 @@ export async function scheduleFirstSessionShopifyWindow(
   admin: AdminApiContext,
   shopId: string,
 ): Promise<void> {
+  const policy = liveUnparkIngestPolicyFromEnv();
+  if (!liveShopifyWindowShouldSchedule(policy)) return;
   const enqueued = await enqueueShopifyWindowBackfill(shopId);
   if (!enqueued) return;
   void runSalesFactsBackfill(admin, shopId).catch(() => {
