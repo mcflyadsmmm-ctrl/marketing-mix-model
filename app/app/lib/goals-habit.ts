@@ -1,10 +1,9 @@
 /**
- * Soft order-history Goals — LTV target + returning-$ target.
- * Habit stickiness. Zero spend. No ads / upload.
+ * Soft order-history Goals — LTV Target Line from the observed average +
+ * a typed returning-$ target. Habit stickiness. Zero spend. No ads / upload.
  *
- * Progress is observed order history vs a number the merchant typed:
- *   LTV progress      = observed first-90 $ (then 30; never a fake year)
- *                     ÷ LTV target
+ *   LTV Target Line   = observed first-90 $ (then 30; never a fake year)
+ *                     — the average, not a goal the merchant types
  *   Returning progress = year returning $ (guests out)
  *                     ÷ returning-$ target
  *
@@ -22,15 +21,15 @@ import {
 
 export const HABIT_GOALS_MIN_ORDERS = 8;
 
-/** SAMPLE Snowdevil LTV target — just under the observed ~$380 so the track reads as a win. */
-export const SAMPLE_HABIT_LTV_TARGET = 360;
 /**
  * SAMPLE year returning-$ stretch. Snowdevil’s book is ~$4k/day; a mid-year
  * board should show real progress, not a met-on-day-one or a fake $0.
+ * LTV has no SAMPLE stretch — Target Line is the observed average.
  */
 export const SAMPLE_HABIT_RETURNING_TARGET = 800_000;
 
-export const HABIT_LTV_FORMULA_EQ = "LTV progress = observed first-window $ ÷ your target";
+export const HABIT_LTV_FORMULA_EQ =
+  "Target Line = observed first-window average";
 export const HABIT_RETURNING_FORMULA_EQ =
   "Returning $ progress = year returning $ ÷ your target";
 
@@ -46,13 +45,17 @@ export type HabitGoalEmpty = {
   verb: string;
 };
 
+export type HabitGoalTargetSource = "average" | "typed";
+
 export type HabitGoalTrack = {
   kind: HabitGoalKind;
   label: string;
   actual: number;
   target: number;
+  /** Average Target Line (LTV) vs a number the merchant typed (returning $). */
+  targetSource: HabitGoalTargetSource;
   remaining: number;
-  /** 0–1+; may exceed 1 when they beat the target. */
+  /** 0–1+; may exceed 1 when they beat a typed target. Average line is 1. */
   pct: number;
   met: boolean;
   formulaEq: string;
@@ -69,8 +72,9 @@ export type HabitGoalsView = {
   historyLimited: boolean;
   orderCount: number;
   yearLabel: string;
-  /** Resolved targets (SAMPLE overlay when unset). */
+  /** LTV Target Line — observed average, never a typed goal. */
   ltvTarget: number | null;
+  /** Resolved returning-$ target (SAMPLE overlay when unset). */
   returningTarget: number | null;
 };
 
@@ -87,7 +91,6 @@ export type HabitGoalsInput = {
   ltv90: number | null;
   ltv365: number | null;
   yearReturningSales: number | null;
-  typedLtvTarget: number | null;
   typedReturningTarget: number | null;
   historyLimited: boolean;
   sample: boolean;
@@ -144,22 +147,20 @@ export function habitLtvWindowLabel(days: ShareableLtvPeekDays): string {
 
 function ltvTrack(
   peek: { amount: number; days: ShareableLtvPeekDays },
-  target: number,
   historyLimited: boolean,
 ): HabitGoalTrack {
-  const remaining = Math.max(0, target - peek.amount);
-  const pct = peek.amount / target;
   const window = habitLtvWindowLabel(peek.days);
   return {
     kind: "ltv",
     label: "New-buyer worth",
     actual: peek.amount,
-    target,
-    remaining,
-    pct,
-    met: peek.amount >= target,
+    target: peek.amount,
+    targetSource: "average",
+    remaining: 0,
+    pct: 1,
+    met: true,
     formulaEq: HABIT_LTV_FORMULA_EQ,
-    formulaPlug: `${wholeMoney(peek.amount)} ÷ ${wholeMoney(target)} = ${wholePct(pct)}%.`,
+    formulaPlug: `${wholeMoney(peek.amount)} in the ${window} — Target Line from average, not a goal you set.`,
     windowLabel: window,
     historyLimited: historyLimited && peek.days === 365,
   };
@@ -178,6 +179,7 @@ function returningTrack(
     label: "Returning $",
     actual,
     target,
+    targetSource: "typed",
     remaining,
     pct,
     met: actual >= target,
@@ -206,7 +208,7 @@ export function habitGoalsEmptyState(
       kind: "syncing",
       orders: Math.max(0, orders),
       need,
-      copy: "Orders still syncing — not $0. LTV and returning-$ targets fill as paid orders land.",
+      copy: "Orders still syncing — not $0. LTV Target Line and returning $ fill as paid orders land.",
       verb: "Refresh this page",
     };
   }
@@ -215,7 +217,7 @@ export function habitGoalsEmptyState(
       kind: "thin",
       orders,
       need,
-      copy: `${orders.toLocaleString()} ${orders === 1 ? "order" : "orders"} on file. Order-history targets seal after ${need} paid orders — not $0.`,
+      copy: `${orders.toLocaleString()} ${orders === 1 ? "order" : "orders"} on file. Order-history tracks seal after ${need} paid orders — not $0.`,
       verb: "Watch the next orders",
     };
   }
@@ -224,8 +226,8 @@ export function habitGoalsEmptyState(
       kind: "unset",
       orders,
       need,
-      copy: `${orders.toLocaleString()} orders on file. Type a first-window LTV target and a year returning-$ target — then this board tracks order-history progress. Not $0.`,
-      verb: "Type a target",
+      copy: `${orders.toLocaleString()} orders on file. LTV Target Line is the observed average — no typing. Add a year returning-$ target to track that dollar. Not $0.`,
+      verb: "Type a returning-$ target",
     };
   }
   if (sealed <= 0) {
@@ -251,11 +253,6 @@ export function buildHabitGoals(input: HabitGoalsInput): HabitGoalsView {
     Math.trunc(Number.isFinite(input.orderCount) ? input.orderCount : 0),
   );
   const yearLabel = String(input.year);
-  const ltvTarget = resolveHabitTarget(
-    input.typedLtvTarget,
-    SAMPLE_HABIT_LTV_TARGET,
-    input.sample,
-  );
   const returningTarget = resolveHabitTarget(
     input.typedReturningTarget,
     SAMPLE_HABIT_RETURNING_TARGET,
@@ -267,11 +264,10 @@ export function buildHabitGoals(input: HabitGoalsInput): HabitGoalsView {
     revenue365: input.ltv365,
     historyLimited: input.historyLimited,
   });
+  const ltvTarget = peek?.amount ?? null;
   const yearReturning = finitePositive(input.yearReturningSales);
   const ltv =
-    peek != null && ltvTarget != null
-      ? ltvTrack(peek, ltvTarget, input.historyLimited)
-      : null;
+    peek != null ? ltvTrack(peek, input.historyLimited) : null;
   const returning =
     yearReturning != null && returningTarget != null
       ? returningTrack(
@@ -315,8 +311,8 @@ export function buildHabitGoals(input: HabitGoalsInput): HabitGoalsView {
 }
 
 /**
- * One shop-owner sentence. Leads with LTV vs target, then returning $.
- * Never a promise. Order history only.
+ * One shop-owner sentence. Leads with LTV Target Line (the average), then
+ * returning $. Never a promise. Order history only.
  */
 export function habitGoalsDailyRead(view: HabitGoalsView): HabitGoalsRead | null {
   if (view.empty) return null;
@@ -329,9 +325,7 @@ export function habitGoalsDailyRead(view: HabitGoalsView): HabitGoalsRead | null
   const parts: string[] = [];
   if (view.ltv && ltvPct != null) {
     parts.push(
-      view.ltv.met
-        ? `A new buyer is worth ${wholeMoney(view.ltv.actual)} in the ${view.ltv.windowLabel} — at your ${wholeMoney(view.ltv.target)} target.`
-        : `A new buyer is worth ${wholeMoney(view.ltv.actual)} in the ${view.ltv.windowLabel} — ${wholePct(ltvPct)}% of your ${wholeMoney(view.ltv.target)} target.`,
+      `A new buyer is worth ${wholeMoney(view.ltv.actual)} in the ${view.ltv.windowLabel} — Target Line is that average, not a goal you set.`,
     );
   }
   if (view.returning && returningPct != null) {
@@ -365,7 +359,6 @@ export function emptyHabitGoals(year = new Date().getFullYear()): HabitGoalsView
     ltv90: null,
     ltv365: null,
     yearReturningSales: null,
-    typedLtvTarget: null,
     typedReturningTarget: null,
     historyLimited: false,
     sample: false,

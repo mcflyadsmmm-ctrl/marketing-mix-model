@@ -20,6 +20,17 @@ export type LtvBuildWindow = {
   pending?: boolean;
 };
 
+/** Observed first-window average drawn as the Target Line — not a typed goal. */
+export type LtvTargetLine = {
+  value: number;
+  windowLabel: string;
+};
+
+export function targetLinePct(value: number, max: number): number {
+  if (!(max > 0) || !Number.isFinite(value) || value <= 0) return 0;
+  return Math.min(100, (value / max) * 100);
+}
+
 export function isRevenue(value: number | null): value is number {
   return value != null && Number.isFinite(value) && value > 0;
 }
@@ -56,10 +67,12 @@ export function LtvValueBuild({
   windows,
   newBuyers,
   caption,
+  targetLine = null,
 }: {
   windows: LtvBuildWindow[];
   newBuyers: number;
   caption?: string;
+  targetLine?: LtvTargetLine | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -71,6 +84,12 @@ export function LtvValueBuild({
     newBuyers > 0
       ? `${newBuyers.toLocaleString()} new customers on file`
       : undefined;
+  const linePct =
+    targetLine != null ? targetLinePct(targetLine.value, max) : null;
+  const lineLabel =
+    targetLine != null
+      ? `Target Line · from average · ${targetLine.windowLabel}`
+      : null;
 
   return (
     <section
@@ -107,17 +126,33 @@ export function LtvValueBuild({
                   title: row.label,
                   value: display,
                   ...(buyerKicker ? { kicker: buyerKicker } : {}),
-                  blocks: [{ k: "What this is", v: row.detail }],
+                  blocks: [
+                    { k: "What this is", v: row.detail },
+                    lineLabel
+                      ? {
+                          k: "Target Line",
+                          v: `${lineLabel}. Not a goal you type.`,
+                        }
+                      : null,
+                  ].filter((b): b is { k: string; v: string } => b != null),
                   next: "Order history only — never email lists. Spend is optional.",
                 })
               }
             >
               <span className="mcfly-chart__hlabel">{row.label}</span>
-              <span className="mcfly-chart__htrack">
-                <span
-                  className="mcfly-chart__hfill"
-                  style={{ width: `${width}%` }}
-                />
+              <span className="mcfly-chart__htrack-box">
+                <span className="mcfly-chart__htrack">
+                  <span
+                    className="mcfly-chart__hfill"
+                    style={{ width: `${width}%` }}
+                  />
+                </span>
+                {linePct != null ? (
+                  <span
+                    className="mcfly-chart__target-line"
+                    style={{ left: `${linePct}%` }}
+                  />
+                ) : null}
               </span>
               <span className="mcfly-chart__hvalue">{display}</span>
             </button>
@@ -125,7 +160,11 @@ export function LtvValueBuild({
         })}
       </div>
       <p className="mcfly-chart__hint">
-        {caption ?? "Click a bar · average per new customer, not a promise"}
+        {lineLabel
+          ? caption
+            ? `${lineLabel} · not a goal you set · ${caption}`
+            : `${lineLabel} · not a goal you set`
+          : (caption ?? "Click a bar · average per new customer, not a promise")}
       </p>
     </section>
   );

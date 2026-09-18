@@ -75,7 +75,7 @@ function emptyValue(empty: HabitGoalEmpty): string {
     case "young":
       return `${empty.orders.toLocaleString()} on file`;
     case "unset":
-      return "Type a target";
+      return "Type a returning-$ target";
     default: {
       const _exhaustive: never = empty.kind;
       return _exhaustive;
@@ -88,9 +88,9 @@ function emptyFloor(kind: HabitGoalEmptyKind, need: number): string {
     case "syncing":
     case "thin":
     case "young":
-      return `Floor: ${need} paid orders with identified buyers. Then a first-window LTV target and a year returning-$ target — not $0.`;
+      return `Floor: ${need} paid orders with identified buyers. LTV Target Line is the observed average. A year returning-$ target is optional — not $0.`;
     case "unset":
-      return `Floor: ${need} paid orders are already on file. Type the two targets — not $0.`;
+      return `Floor: ${need} paid orders are already on file. LTV Target Line is the observed average — type a year returning-$ target if you want that track. Not $0.`;
     default: {
       const _exhaustive: never = kind;
       return _exhaustive;
@@ -121,7 +121,8 @@ function trackTone(track: HabitGoalTrack | null): Tone {
 
 /**
  * Soft LTV + returning-$ Goals board. Habit stickiness, zero spend.
- * Today’s read, two ActionCards, formula chips, type-a-target form.
+ * Today’s read, two ActionCards, formula chips. LTV Target Line is the
+ * observed average — no typing. Returning-$ is the only typed field.
  * First-win empties are ActionCard-shaped. Sales-plan / spend gauges stay
  * below on /app/goals. Sales-five IA stays.
  */
@@ -194,14 +195,14 @@ export function OrderHistoryGoalsBoard({
         {empty.kind === "unset" ? (
           <HabitGoalFields
             year={year}
-            ltvTarget={view.ltvTarget}
             returningTarget={view.returningTarget}
             busy={busy}
           />
         ) : null}
         <p className="mcfly-habit-goals__meta">
-          <DeskIcon name="sales" /> Type targets here or in Settings. Sales
-          plan vs actual stays below.
+          <DeskIcon name="sales" /> LTV Target Line is the observed average.
+          Type a returning-$ target here or in Settings. Sales plan vs actual
+          stays below.
         </p>
       </section>
     );
@@ -241,7 +242,7 @@ export function OrderHistoryGoalsBoard({
                 ltv
                   ? {
                       k: "New-buyer worth",
-                      v: `${ltvMoney} in the ${ltv.windowLabel} vs ${formatCurrency(ltv.target, currency)} target. ${ltv.formulaPlug} Observed order history — not an estimate.`,
+                      v: `${ltvMoney} in the ${ltv.windowLabel}. Target Line is that average — not a goal you type. ${ltv.formulaPlug} Observed order history — not an estimate.`,
                     }
                   : null,
                 returning
@@ -269,12 +270,12 @@ export function OrderHistoryGoalsBoard({
           value={ltvMoney}
           sub={
             ltv
-              ? `${pctLabel(ltv.pct)} of ${formatCurrency(ltv.target, currency)} · ${ltv.windowLabel}`
+              ? `Target Line from average · ${ltv.windowLabel}`
               : "Observed first-window LTV still sealing"
           }
-          tone={trackTone(ltv)}
-          verb={ltv?.met ? "Met" : "Toward"}
-          detail="Average dollars per new buyer in the sealed first window (90, then 30; first year only when history is not limited) vs the target you typed. Observed order history — not an estimate. Refunds never invented."
+          tone="plain"
+          verb="Target Line"
+          detail="Average dollars per new buyer in the sealed first window (90, then 30; first year only when history is not limited). That average is the Target Line — not a goal you type. Observed order history — not an estimate. Refunds never invented."
         />
         <ActionCard
           label="Returning $"
@@ -294,16 +295,17 @@ export function OrderHistoryGoalsBoard({
         <div
           className="mcfly-habit-goals__bar"
           aria-hidden="true"
-          title={`LTV ${pctLabel(ltv.pct)} of target`}
+          title={`Target Line from average · ${ltv.windowLabel}`}
         >
-          <span className="mcfly-habit-goals__track">
+          <span className="mcfly-habit-goals__track mcfly-habit-goals__track--target">
             <span
               className="mcfly-habit-goals__bar-fill"
-              style={{ width: `${barWidth(ltv.pct)}%` }}
+              style={{ width: "100%" }}
             />
+            <span className="mcfly-habit-goals__target-line" />
           </span>
           <span className="mcfly-habit-goals__bar-legend">
-            LTV {pctLabel(ltv.pct)} · {ltv.windowLabel}
+            Target Line · from average · {ltv.windowLabel}
           </span>
         </div>
       ) : null}
@@ -339,10 +341,8 @@ export function OrderHistoryGoalsBoard({
                 { k: "Formula", v: ltv.formulaEq },
                 { k: "Plugged in", v: ltv.formulaPlug },
                 {
-                  k: "Still to go",
-                  v: ltv.met
-                    ? "At the target — observed, not a promise."
-                    : `${formatCurrency(ltv.remaining, currency)} to the ${formatCurrency(ltv.target, currency)} target.`,
+                  k: "Target Line",
+                  v: `${formatCurrency(ltv.target, currency)} — from the observed average, not a goal you set.`,
                 },
               ],
               next: "Observed order history — not an estimate.",
@@ -358,16 +358,14 @@ export function OrderHistoryGoalsBoard({
               <span className="mcfly-depth-formula__part-v">{ltvMoney}</span>
             </span>
             <span className="mcfly-depth-formula__part">
-              <span className="mcfly-depth-formula__part-k">Target</span>
+              <span className="mcfly-depth-formula__part-k">Target Line</span>
               <span className="mcfly-depth-formula__part-v">
                 {formatCurrency(ltv.target, currency)}
               </span>
             </span>
             <span className="mcfly-depth-formula__part">
-              <span className="mcfly-depth-formula__part-k">Still to go</span>
-              <span className="mcfly-depth-formula__part-v">
-                {ltv.met ? "Met" : formatCurrency(ltv.remaining, currency)}
-              </span>
+              <span className="mcfly-depth-formula__part-k">Source</span>
+              <span className="mcfly-depth-formula__part-v">Average</span>
             </span>
           </div>
           <p className="mcfly-depth-formula__plug">{ltv.formulaPlug}</p>
@@ -435,14 +433,14 @@ export function OrderHistoryGoalsBoard({
 
       <HabitGoalFields
         year={year}
-        ltvTarget={view.ltvTarget}
         returningTarget={view.returningTarget}
         busy={busy}
       />
 
       <p className="mcfly-habit-goals__meta">
-        <DeskIcon name="sales" /> Order history only. Same targets live in
-        Settings. Sales plan vs actual stays below.
+        <DeskIcon name="sales" /> Order history only. LTV Target Line is the
+        observed average. Returning-$ target lives here and in Settings. Sales
+        plan vs actual stays below.
       </p>
     </section>
   );
@@ -450,12 +448,10 @@ export function OrderHistoryGoalsBoard({
 
 function HabitGoalFields({
   year,
-  ltvTarget,
   returningTarget,
   busy,
 }: {
   year: number;
-  ltvTarget: number | null;
   returningTarget: number | null;
   busy: boolean;
 }) {
@@ -463,19 +459,6 @@ function HabitGoalFields({
     <Form method="post" className="mcfly-habit-goals__form">
       <input type="hidden" name="intent" value="save_habit_goals" />
       <input type="hidden" name="year" value={year} />
-      <label className="mcfly-habit-goals__field">
-        <span className="mcfly-habit-goals__field-k">First-window LTV target</span>
-        <input
-          className="mcfly-field mcfly-habit-goals__input"
-          name="ltvTarget"
-          type="text"
-          inputMode="decimal"
-          autoComplete="off"
-          defaultValue={formatGoalInput(ltvTarget)}
-          placeholder="e.g. 400"
-          aria-label="First-window LTV target"
-        />
-      </label>
       <label className="mcfly-habit-goals__field">
         <span className="mcfly-habit-goals__field-k">Year returning-$ target</span>
         <input
@@ -494,7 +477,7 @@ function HabitGoalFields({
         className="mcfly-btn mcfly-btn--primary mcfly-habit-goals__save"
         disabled={busy || undefined}
       >
-        Save targets
+        Save returning-$ target
       </button>
     </Form>
   );

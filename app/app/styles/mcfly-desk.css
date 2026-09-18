@@ -12451,12 +12451,28 @@ button.mcfly-chart__month {
   color: var(--mcfly-ink);
 }
 
+.mcfly-chart__htrack-box {
+  position: relative;
+  display: block;
+}
+
 .mcfly-chart__htrack {
   display: block;
   height: 10px;
   border-radius: 999px;
   background: var(--mcfly-line-soft);
   overflow: hidden;
+}
+
+.mcfly-chart__target-line {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 0;
+  border-left: 1.5px dashed var(--mcfly-ink);
+  opacity: 0.55;
+  pointer-events: none;
+  transform: translateX(-50%);
 }
 
 .mcfly-chart__hfill {
@@ -16243,6 +16259,23 @@ button.mcfly-chart__hour {
   stroke-linecap: round;
 }
 
+.mcfly-depth-curves__target-line {
+  stroke: var(--mcfly-ink);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 4;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.mcfly-depth-curves__target-k {
+  fill: var(--mcfly-ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
 .mcfly-depth-legend {
   display: flex;
   flex-wrap: wrap;
@@ -19787,8 +19820,9 @@ button.mcfly-depth-flag__empty:focus-visible {
 /* =========================================================================
  * Order-history Goals — LTV + returning-$ targets. Habit stickiness.
  * APPEND ONLY. Reuses soft panel + first-win empty + formula chips.
- * Placement: existing /app/goals above the sales-plan hero. Settings types
- * the same two fields. Sales-five IA untouched. Zero spend.
+ * Placement: existing /app/goals above the sales-plan hero. LTV Target Line
+ * is the observed average — Settings types returning-$ only. Sales-five IA
+ * untouched. Zero spend.
  * ========================================================================= */
 
 .mcfly-habit-goals.mcfly-panel {
@@ -19859,6 +19893,22 @@ button.mcfly-habit-goals__read:focus-visible {
   overflow: hidden;
 }
 
+.mcfly-habit-goals__track--target {
+  position: relative;
+  overflow: visible;
+}
+
+.mcfly-habit-goals__target-line {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  right: 0;
+  width: 0;
+  border-left: 1.5px dashed var(--mcfly-ink);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .mcfly-habit-goals__bar-fill {
   display: block;
   height: 100%;
@@ -19875,7 +19925,7 @@ button.mcfly-habit-goals__read:focus-visible {
 
 .mcfly-habit-goals__form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.65rem 0.75rem;
   align-items: end;
   margin: 0.85rem 0 0;

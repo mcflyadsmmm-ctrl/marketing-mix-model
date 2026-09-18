@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   isRevenue,
   resolveLtvBuild,
+  targetLinePct,
   type LtvBuildWindow,
 } from "../components/LtvValueBuild";
 
@@ -88,11 +89,19 @@ describe("resolveLtvBuild (value-build honesty)", () => {
     expect(build).toMatch(/className="mcfly-chart(?: mcfly-chart--soft)?"/);
     expect(build).toContain("mcfly-chart__hrow");
     expect(build).toContain("mcfly-chart__hfill");
+    expect(build).toContain("mcfly-chart__target-line");
     expect(build).not.toContain("mcfly-ltv-");
     expect(build).not.toContain("mcfly-acq-tile");
     // Drillable like the rest of the Black Clover scoreboard.
     expect(build).toContain("useDeskDrill");
     expect(build).toContain("openDrill");
+  });
+
+  it("places Target Line at the observed average, never past the bar scale", () => {
+    expect(targetLinePct(255, 545)).toBeCloseTo((255 / 545) * 100, 5);
+    expect(targetLinePct(545, 545)).toBe(100);
+    expect(targetLinePct(0, 545)).toBe(0);
+    expect(targetLinePct(900, 545)).toBe(100);
   });
 
   it("value-build chrome never leaks glossary or a fake $0", () => {
@@ -114,6 +123,8 @@ describe("LTV route mounts the Black Clover value build", () => {
     expect(ltv).toContain("<LtvValueBuild");
     expect(ltv).toContain("windows={buildWindows}");
     expect(ltv).toContain("newBuyers={metrics.tillLtv.newBuyers}");
+    expect(ltv).toContain("targetLine={chartTargetLine}");
+    expect(ltv).toContain("chartLtvPeek");
   });
 
   it("builds 30 / 90 / first-year windows, year honest when history-limited", () => {

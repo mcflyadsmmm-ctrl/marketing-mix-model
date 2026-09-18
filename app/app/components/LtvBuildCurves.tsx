@@ -5,6 +5,7 @@ import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
 import type { CohortCurves } from "../lib/ltv-depth";
+import type { LtvTargetLine } from "./LtvValueBuild";
 
 /** Oldest → newest line colours: green (mature) into sky (recent whales). */
 const CURVE_COLORS = [
@@ -35,9 +36,11 @@ const PAD_B = 28;
 export function LtvBuildCurves({
   curves,
   buyers = 0,
+  targetLine = null,
 }: {
   curves: CohortCurves | null;
   buyers?: number;
+  targetLine?: LtvTargetLine | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -65,11 +68,21 @@ export function LtvBuildCurves({
   }
 
   const maxOffset = Math.max(1, curves.maxOffset);
-  const maxValue = Math.max(1, curves.maxValue);
+  const maxValue = Math.max(
+    1,
+    curves.maxValue,
+    targetLine != null && Number.isFinite(targetLine.value)
+      ? targetLine.value
+      : 0,
+  );
   const plotW = W - PAD_L - PAD_R;
   const plotH = H - PAD_T - PAD_B;
   const xFor = (offset: number) => PAD_L + (offset / maxOffset) * plotW;
   const yFor = (value: number) => PAD_T + plotH - (value / maxValue) * plotH;
+  const targetY =
+    targetLine != null && targetLine.value > 0
+      ? yFor(targetLine.value)
+      : null;
 
   const yTicks = [0, maxValue / 2, maxValue];
   const xStep = maxOffset >= 9 ? 3 : maxOffset >= 5 ? 2 : 1;
@@ -99,7 +112,13 @@ export function LtvBuildCurves({
           k: "What this is",
           v: `Average dollars a customer from ${series.label} has spent through month ${last.offset} after their first order — order history, not a forecast.`,
         },
-      ],
+        targetLine
+          ? {
+              k: "Target Line",
+              v: `Target Line · from average · ${targetLine.windowLabel}. Not a goal you type.`,
+            }
+          : null,
+      ].filter((b): b is { k: string; v: string } => b != null),
       next: "Younger months stop earlier because less time has passed — not $0.",
     });
   };
@@ -201,6 +220,25 @@ export function LtvBuildCurves({
               </g>
             );
           })}
+          {targetY != null && targetLine ? (
+            <g className="mcfly-depth-curves__target" aria-hidden="true">
+              <line
+                className="mcfly-depth-curves__target-line"
+                x1={PAD_L}
+                y1={targetY}
+                x2={W - PAD_R}
+                y2={targetY}
+              />
+              <text
+                className="mcfly-depth-curves__target-k"
+                x={W - PAD_R}
+                y={targetY - 5}
+                textAnchor="end"
+              >
+                Target Line · average
+              </text>
+            </g>
+          ) : null}
         </svg>
         {tip ? (
           <div
@@ -236,7 +274,9 @@ export function LtvBuildCurves({
         })}
       </div>
       <p className="mcfly-chart__hint">
-        Hover or click a month · dollars per customer, averages not a promise
+        {targetLine
+          ? `Hover or click a month · Target Line from average · ${targetLine.windowLabel} · not a goal you set`
+          : "Hover or click a month · dollars per customer, averages not a promise"}
       </p>
     </section>
   );

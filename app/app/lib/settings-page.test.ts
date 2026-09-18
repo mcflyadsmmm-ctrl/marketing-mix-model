@@ -45,11 +45,13 @@ describe("Settings page", () => {
     expect(settings).not.toContain("dataModeAction");
   });
 
-  it("types optional LTV and returning-$ targets for the Goals board", () => {
+  it("types optional returning-$ only — LTV Target Line is the observed average", () => {
     expect(settings).toContain("Order-history targets");
     expect(settings).toContain('name="intent" value="save_habit_goals"');
-    expect(settings).toContain('name="ltvTarget"');
+    expect(settings).not.toContain('name="ltvTarget"');
     expect(settings).toContain('name="returningSalesTarget"');
+    expect(settings).toContain("LTV Target Line is");
+    expect(settings).toContain("observed average");
     expect(settings).toContain('href="/app/goals"');
   });
 });

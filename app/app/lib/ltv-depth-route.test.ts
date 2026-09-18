@@ -90,6 +90,8 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
   it("says the honest short-window and no-promise lines", () => {
     expect(curves).toContain("Younger months stop earlier");
     expect(curves).toContain("Waiting on a second month");
+    expect(curves).toContain("Target Line · average");
+    expect(curves).toContain("Target Line from average");
     expect(heat).toContain("not fully passed");
     expect(heat).toContain("Waiting on a second month");
     expect(paths).toContain("not a forecast");

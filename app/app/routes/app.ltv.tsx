@@ -44,6 +44,7 @@ import {
   buildShareableInsights,
   emptyShareableInsights,
   pickShareableLtvPeek,
+  shareableLtvWindowLabel,
 } from "../lib/shareable-insights";
 
 /** Stored month totals — desk LTV is per new customer. */
@@ -215,6 +216,18 @@ export default function LtvPage() {
         revenue365: ltv.avgRevenueD365,
         historyLimited,
       });
+  const chartLtvPeek = pickShareableLtvPeek({
+    revenue30: ltv.avgRevenueD30,
+    revenue90: ltv.avgRevenueD90,
+    revenue365: ltv.avgRevenueD365,
+    historyLimited,
+  });
+  const chartTargetLine = chartLtvPeek
+    ? {
+        value: chartLtvPeek.amount,
+        windowLabel: shareableLtvWindowLabel(chartLtvPeek.days),
+      }
+    : null;
   const insightView = metrics.salesPending
     ? emptyShareableInsights()
     : buildShareableInsights(
@@ -515,6 +528,7 @@ export default function LtvPage() {
           windows={buildWindows}
           newBuyers={metrics.tillLtv.newBuyers}
           caption={buildCaption}
+          targetLine={chartTargetLine}
         />
 
         <BookFactGrid facts={orderRows} />
@@ -554,7 +568,11 @@ export default function LtvPage() {
       <LtvProductBoard product={depth.productLtv} />
       {/* Placement: LTV tab, after Product→LTV, before spend-build explorers. */}
       <LtvPromoBoard promo={depth.promoLtv} />
-      <LtvBuildCurves curves={depth.curves} buyers={depth.buyers} />
+      <LtvBuildCurves
+        curves={depth.curves}
+        buyers={depth.buyers}
+        targetLine={chartTargetLine}
+      />
       <LtvRetentionHeat heat={depth.retention} buyers={depth.buyers} />
       <LtvTierTables aov={depth.aov} basket={depth.basket} />
       <LtvPathTable paths={depth.paths} clarity={depth.pathClarity} />

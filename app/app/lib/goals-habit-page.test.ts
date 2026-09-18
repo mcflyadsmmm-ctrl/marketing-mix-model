@@ -33,15 +33,22 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(goals).toContain("avgRevenueD90");
   });
 
-  it("lets Settings type the same two targets without a new sales-five tab", () => {
+  it("lets Settings type returning-$ only — LTV Target Line is the average", () => {
     expect(settings).toContain("save_habit_goals");
-    expect(settings).toContain("ltvTarget");
     expect(settings).toContain("returningSalesTarget");
     expect(settings).toContain("Order-history targets");
+    expect(settings).toContain("LTV Target Line is");
+    expect(settings).toContain("observed average");
     expect(settings).toContain('href="/app/goals"');
+    expect(settings).not.toContain('name="ltvTarget"');
     expect(nav).toContain('{ path: "/app/goals", label: "Goals" }');
     expect(nav).toContain('{ path: "/app/ltv", label: "LTV" }');
     expect(goals).not.toContain('href="/app/habit"');
+    expect(goals).not.toContain('name="ltvTarget"');
+    expect(board).not.toContain('name="ltvTarget"');
+    expect(board).toContain("Target Line from average");
+    expect(board).toContain("Save returning-$ target");
+    expect(board).not.toContain("First-window LTV target");
   });
 
   it("keeps the sales-plan gauges, year control, and spend-six Goals job", () => {
@@ -58,7 +65,7 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(board).toContain("mcfly-cust-kpi--action");
     expect(board.match(/<ActionCard[\s\n]/g)?.length).toBe(2);
     expect(board).toContain("mcfly-depth-formula__parts");
-    expect(lib).toContain("LTV progress = observed first-window $ ÷ your target");
+    expect(lib).toContain("Target Line = observed first-window average");
     expect(lib).toContain("Returning $ progress = year returning $ ÷ your target");
   });
 
@@ -72,6 +79,8 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(lib).toContain("never a fake year");
     expect(css).toContain(".mcfly-habit-goals__read");
     expect(css).toContain(".mcfly-habit-goals__track");
+    expect(css).toContain(".mcfly-habit-goals__target-line");
+    expect(css).toContain(".mcfly-chart__target-line");
   });
 
   it("is full-history aware and withholds a fake year", () => {
