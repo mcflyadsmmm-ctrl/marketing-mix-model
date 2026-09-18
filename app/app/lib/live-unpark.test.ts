@@ -192,6 +192,8 @@ describe("live unpark policy", () => {
     expect(LIVE_SYNC_LAW_PR_REF).toBe("cursor/sync-law-oneshot-webhook-6eb3");
     expect(checklist).toContain("MCFLY_SAMPLE_ONLY=true");
     expect(checklist).toContain("do **not** flip");
+    expect(checklist).toContain("ACCURACY_ONE_SHOP_SCORECARD.md");
+    expect(checklist).toContain("accuracy-one-shop.ts");
     expect(checklist).toContain(LIVE_SYNC_LAW_PR_REF);
     expect(checklist).toContain("90 closed days");
     expect(checklist).toContain("Paid **$39**");
