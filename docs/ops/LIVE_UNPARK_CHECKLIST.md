@@ -75,6 +75,8 @@ Until the sync PR lands, tip still re-enqueues the public window on Live tabs. C
 
 ## 4. Accuracy scorecard — **one shop** before “real-data demo”
 
+**Runnable sheet:** [`ACCURACY_ONE_SHOP_SCORECARD.md`](./ACCURACY_ONE_SHOP_SCORECARD.md) — fill that page on one Admin shop. Helpers: `app/app/lib/accuracy-one-shop.ts` (empty vs zero · SAMPLE guards · Admin compare). Same 10 rows as below.
+
 Shop: ____________ · TZ: ____________ · Paid $39? ☐ yes ☐ no · Stage: ____________
 
 | # | Check | How | ☐ |

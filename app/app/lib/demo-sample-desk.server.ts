@@ -53,6 +53,13 @@ export const SAMPLE_ACTIVE_CHANNELS = [
 /** Minimum new buyers per SAMPLE day — summer 2-order days stay honest. */
 export const SAMPLE_MIN_NEW_CUSTOMERS = 1;
 
+/**
+ * Premium-SMB lift so SAMPLE YoY / MoM windows read up-and-to-the-right —
+ * enough to want the $39 desk, not a cartoon 40% print. Formulas stay
+ * honest; only the Snowdevil book is biased.
+ */
+export const SAMPLE_YOY_GROWTH = 0.14;
+
 const ALL_CHANNELS: SpendChannel[] = [
   "meta",
   "google",
@@ -86,11 +93,37 @@ const AOV_SPAN = 180;
 const BASE_DAILY_SALES = 4100;
 
 function snowdevilSeason(month: number): number {
-  // Nov–Feb peak (boards). May–Aug wax/clearance. Sep–Oct pre-season.
-  if (month === 10 || month === 11 || month === 0 || month === 1) return 1.58;
-  if (month >= 4 && month <= 7) return 0.58;
-  if (month === 8 || month === 9) return 1.08;
-  return 0.82;
+  // Build into winter. Summer stays live (apparel / pre-order), not a crash,
+  // so MoM on the listing half-year reads up. Nov/Dec still the peak.
+  const byMonth = [
+    1.3, // Jan
+    1.26, // Feb
+    1.12, // Mar — only real cooling shoulder
+    1.08, // Apr
+    1.1, // May — turns back up
+    1.12, // Jun
+    1.14, // Jul
+    1.16, // Aug
+    1.2, // Sep — listing window
+    1.24, // Oct
+    1.32, // Nov peak
+    1.34, // Dec peak
+  ];
+  return byMonth[month] ?? 1;
+}
+
+/** Years back from the book end — 0 today, ~1 last year, ~2 at the start. */
+function yearsBackFromEnd(day: Date, end: Date): number {
+  return Math.max(0, (end.getTime() - day.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+}
+
+/**
+ * Compound SAMPLE lift vs the book end. Today is 1.00; one year back is
+ * ~1/(1+SAMPLE_YOY_GROWTH). Period totals beat the same window last year
+ * without flattening the winter peak.
+ */
+export function sampleYoyGrowthFactor(day: Date, end: Date): number {
+  return Math.pow(1 + SAMPLE_YOY_GROWTH, -yearsBackFromEnd(day, end));
 }
 
 function mulberry32(seed: number) {
@@ -155,11 +188,16 @@ export function buildThreeYearSampleDesk(options?: {
     const weekend = dow === 0 || dow === 6;
     const season = snowdevilSeason(month);
     const dayFactor = weekend ? 0.88 : 1;
-    const noise = 0.93 + rng() * 0.14;
+    // Tighter day noise so YoY windows stay green without cartoon days.
+    const noise = 0.95 + rng() * 0.10;
+    const growth = sampleYoyGrowthFactor(d, end);
     const sales =
-      Math.round(BASE_DAILY_SALES * season * dayFactor * noise * 100) / 100;
+      Math.round(BASE_DAILY_SALES * season * dayFactor * noise * growth * 100) /
+      100;
 
-    const aov = AOV_MIN + rng() * AOV_SPAN;
+    // Newer days: slightly tighter AOV so order density rises with the brand.
+    const habit = 1 - Math.min(1, yearsBackFromEnd(d, end) / 2);
+    const aov = (AOV_MIN + rng() * AOV_SPAN) * (1.04 - habit * 0.06);
     const orderCount = Math.max(
       SAMPLE_MIN_NEW_CUSTOMERS,
       Math.round(sales / aov),
@@ -174,7 +212,12 @@ export function buildThreeYearSampleDesk(options?: {
     const guestNetSales =
       Math.round(sales * (guestOrders / orderCount) * 100) / 100;
     const identifiedNetSales = Math.max(0, sales - guestNetSales);
-    const newShare = 0.28 + rng() * 0.1;
+    // Newer days lean more returning (habit compounding) — still a real
+    // new-buyer slice, never a 90% returning cartoon.
+    const newShare = Math.min(
+      0.38,
+      Math.max(0.22, 0.33 + rng() * 0.06 - habit * 0.07),
+    );
     const newCustomers = Math.max(
       SAMPLE_MIN_NEW_CUSTOMERS,
       Math.round(identifiedOrders * newShare),

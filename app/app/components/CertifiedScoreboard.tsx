@@ -121,9 +121,11 @@ export function CertifiedScoreboard({
               {yoy ? (
                 <span
                   className={`mcfly-scoreboard__delta${
-                    chip.yoySalesPct != null && chip.yoySalesPct < 0
-                      ? " mcfly-scoreboard__delta--down"
-                      : ""
+                    chip.yoySalesPct == null || chip.yoySalesPct === 0
+                      ? ""
+                      : chip.yoySalesPct > 0
+                        ? " mcfly-scoreboard__delta--up"
+                        : " mcfly-scoreboard__delta--down"
                   }`}
                 >
                   {yoy}

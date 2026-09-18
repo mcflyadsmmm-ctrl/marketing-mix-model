@@ -1,5 +1,8 @@
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
+import { chartSeriesId } from "../lib/chart-smooth";
+import { chartBarShellClassName } from "../lib/chart-bar";
+import { useChartHover } from "../lib/use-chart-hover";
 
 export type ShareBarItem = {
   label: string;
@@ -88,23 +91,40 @@ export function CountBarsChart({
 }) {
   const drill = useDeskDrill();
   const usable = items.filter((item) => item.count > 0).slice(-12);
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    usable.length,
+    chartSeriesId(usable.map((item) => item.label)),
+  );
   if (usable.length < 2) return null;
   const max = Math.max(...usable.map((item) => item.count), 1);
 
   return (
-    <section className="mcfly-chart" aria-label={title}>
+    <section
+      className={chartBarShellClassName("mcfly-chart", hoverIndex != null)}
+      aria-label={title}
+    >
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
           {title}
         </p>
       </div>
-      <div className="mcfly-chart__months">
-        {usable.map((item) => (
+      <div
+        className="mcfly-chart__months"
+        onPointerMove={moveFromEvent}
+        onPointerLeave={onPlotPointerLeave}
+      >
+        {usable.map((item, index) => (
           <button
             type="button"
-            className="mcfly-chart__month"
+            className={`mcfly-chart__month${hoverIndex === index ? " mcfly-chart__month--on" : ""}`}
             key={item.label}
+            onFocus={() => setHoverIndex(index)}
             onClick={() =>
               drill?.openDrill({
                 title: item.label,

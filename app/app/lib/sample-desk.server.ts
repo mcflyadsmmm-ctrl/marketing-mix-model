@@ -156,8 +156,8 @@ export const SAMPLE_DESK_TARGET_MER = 3.5;
 export const SAMPLE_DESK_MARGIN_PCT = 0.35;
 /** SAMPLE chrome brand — Shopify snowboard generated-data shop. */
 export const SAMPLE_DESK_SHOP_NAME = "Snowdevil";
-/** Spend note that marks the Snowdevil book (rewrites leftover Harbor rows). */
-export const SAMPLE_BOOK_NOTE = "sample:snowdevil-1";
+/** Spend note that marks the growth-story Snowdevil book (rewrites leftover Harbor / snowdevil-1). */
+export const SAMPLE_BOOK_NOTE = "sample:snowdevil-2";
 
 const sampleSeedInFlight = new Map<string, Promise<unknown>>();
 

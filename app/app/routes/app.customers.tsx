@@ -12,6 +12,7 @@ import { CustomerValueBands } from "../components/CustomerValueBands";
 import { CustomerWhaleTable } from "../components/CustomerWhaleTable";
 import { CustomerConcentrationChart } from "../components/CustomerConcentrationChart";
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
+import { DeskLane } from "../components/DeskLane";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 import { loadCustomerAnalytics } from "../lib/desk-customers-page.server";
@@ -148,36 +149,47 @@ export default function CustomersPage() {
 
       <p className="mcfly-book__lede">{deskBookLede(CUSTOMERS_CONTRAST)}</p>
 
-      {/* 1. Marquee explorer — new vs returning $ dual-axis, above the fold. */}
-      <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
+      <DeskLane rank="first" label="New vs returning $">
+        {/* 1. Marquee explorer — new vs returning $ dual-axis, above the fold. */}
+        <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
 
-      {/* 2. Compact returning hero — gauge + three unique facts, not a tile wall. */}
-      <CustomersScoreboard
-        book={book}
-        depth={metrics.shopifyDepth}
-        periodLabel={metrics.period.label}
-        salesPending={metrics.salesPending}
-        useSampleDesk={useSampleDesk}
-      />
+        {/* 2. Compact returning hero — gauge + three unique facts, not a tile wall. */}
+        <CustomersScoreboard
+          book={book}
+          depth={metrics.shopifyDepth}
+          periodLabel={metrics.period.label}
+          salesPending={metrics.salesPending}
+          useSampleDesk={useSampleDesk}
+        />
+      </DeskLane>
 
-      {/* 3. What to do — existing ActionCards stay; watchlist sits beside. */}
-      <div className="mcfly-cust-action-row">
-        <CustomerRetentionBoard analytics={analytics} />
-        <CustomerWhaleWatch rfm={analytics.rfm} />
-      </div>
+      <DeskLane rank="next" label="What to do">
+        {/* 3. What to do — existing ActionCards stay; watchlist sits beside. */}
+        <div className="mcfly-cust-action-row">
+          <CustomerRetentionBoard analytics={analytics} />
+          <CustomerWhaleWatch rfm={analytics.rfm} />
+        </div>
+      </DeskLane>
 
-      {/* 4. RFM-lite — recency / frequency / monetary, not a 5×5 dump. */}
-      <CustomerRfmBoard rfm={analytics.rfm} />
+      <DeskLane
+        rank="more"
+        label="Who the dollars sit with"
+        fold
+        defaultOpen={shotMode}
+      >
+        {/* 4. RFM-lite — recency / frequency / monetary, not a 5×5 dump. */}
+        <CustomerRfmBoard rfm={analytics.rfm} />
 
-      {/* 5. Value bands / whales as needed — who the dollars sit with. */}
-      <CustomerValueBands analytics={analytics} />
-      <CustomerWhaleTable analytics={analytics} />
+        {/* 5. Value bands / whales as needed — who the dollars sit with. */}
+        <CustomerValueBands analytics={analytics} />
+        <CustomerWhaleTable analytics={analytics} />
 
-      {!metrics.salesPending ? (
-        <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
-      ) : null}
+        {!metrics.salesPending ? (
+          <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
+        ) : null}
 
-      <ShareableInsightCards view={insightView} shotMode={shotMode} />
+        <ShareableInsightCards view={insightView} shotMode={shotMode} />
+      </DeskLane>
 
       {!metrics.customerMetricsAvailable ? (
         <p className="mcfly-book__lede">

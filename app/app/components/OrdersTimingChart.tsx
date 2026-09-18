@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import { chartBarShellClassName } from "../lib/chart-bar";
 import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency } from "../lib/mer-format";
@@ -116,7 +117,10 @@ export function OrdersTimingChart({
 
   return (
     <section
-      className={`mcfly-chart mcfly-chart--orders mcfly-chart--${grain} mcfly-chart--soft`}
+      className={chartBarShellClassName(
+        `mcfly-chart mcfly-chart--orders mcfly-chart--${grain} mcfly-chart--soft`,
+        hoverIndex != null,
+      )}
       aria-label="Sales by weekday or hour"
     >
       <div className="mcfly-chart__head mcfly-chart__board">

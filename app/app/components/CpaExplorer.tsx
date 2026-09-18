@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "../lib/mer-format";
 import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import {
+  chartBarLayout,
+  chartBarPlotClassName,
+  chartXAxisMaxLabels,
+} from "../lib/chart-bar";
 import { useChartHover } from "../lib/use-chart-hover";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
@@ -64,18 +69,21 @@ function ChartEmptyFrame({ copy }: { copy: string }) {
           role="presentation"
         >
           {ghost.map((h, i) => {
-            const band = PLOT_W / ghost.length;
-            const barW = band * 0.5;
+            const layout = chartBarLayout({
+              plotLeft: PLOT_LEFT,
+              plotWidth: PLOT_W,
+              count: ghost.length,
+            });
             const barH = PLOT_H * h;
             return (
               <rect
                 key={i}
                 className="mcfly-cust-mix__ghost-bar"
-                x={PLOT_LEFT + band * i + (band - barW) / 2}
+                x={layout.barX(i)}
                 y={PLOT_BOTTOM - barH}
-                width={barW}
+                width={layout.barW}
                 height={barH}
-                rx="2"
+                rx={layout.rx}
               />
             );
           })}
@@ -159,16 +167,19 @@ export function CpaExplorer({
   const cpaMax = Math.max(...cpaValues, typical ?? 0, 1);
   const leftAxis = overviewChartAxis(spendMax, 4);
   const rightAxis = overviewChartAxis(cpaMax, 4);
-  const band = PLOT_W / points.length;
-  const barW = Math.min(42, Math.max(1.2, band * 0.6));
+  const { barW, rx, barX, centerX } = chartBarLayout({
+    plotLeft: PLOT_LEFT,
+    plotWidth: PLOT_W,
+    count: points.length,
+  });
   const yForSpend = (value: number) =>
     PLOT_BOTTOM - Math.min(1, Math.max(0, value / leftAxis.max)) * PLOT_H;
   const yForCpa = (value: number) =>
     PLOT_BOTTOM - Math.min(1, Math.max(0, value / rightAxis.max)) * PLOT_H;
-  const centerX = (index: number) => PLOT_LEFT + band * index + band / 2;
-  const barX = (index: number) => PLOT_LEFT + band * index + (band - barW) / 2;
   const railY = typical != null ? yForCpa(typical) : null;
-  const labelIndices = new Set(overviewChartLabelIndices(points.length, 6));
+  const labelIndices = new Set(
+    overviewChartLabelIndices(points.length, chartXAxisMaxLabels(points.length)),
+  );
 
   let cpaLine = "";
   let started = false;
@@ -307,7 +318,7 @@ export function CpaExplorer({
       </div>
 
       <div
-        className="mcfly-chart__plot"
+        className={chartBarPlotClassName(hoverIndex != null)}
         onPointerMove={(event) =>
           moveFromEvent(event, {
             viewWidth: VIEW_W,
@@ -410,7 +421,7 @@ export function CpaExplorer({
                 y={PLOT_BOTTOM - barH}
                 width={barW}
                 height={barH}
-                rx={Math.min(3, barW / 2)}
+                rx={rx}
                 tabIndex={0}
                 role="button"
                 aria-label={`${point.label} spend ${point.spend > 0 ? formatCurrency(point.spend, currency) : "none"}`}

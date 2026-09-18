@@ -3,6 +3,17 @@ import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency } from "../lib/mer-format";
+import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import {
+  chartBarLayout,
+  chartBarPlotClassName,
+  chartXAxisMaxLabels,
+} from "../lib/chart-bar";
+import { useChartHover } from "../lib/use-chart-hover";
+import {
+  overviewChartAxis,
+  overviewChartLabelIndices,
+} from "../lib/overview-sales-chart";
 import {
   buildOrdersIntelKpis,
   ordersIntelDayLabel,
@@ -143,14 +154,6 @@ function OrdersAovTiers({
   );
 }
 
-function niceMax(value: number): number {
-  if (value <= 0) return 1;
-  const pow = 10 ** Math.floor(Math.log10(value));
-  const norm = value / pow;
-  const step = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
-  return step * pow;
-}
-
 /** Orders bars (left axis) + AOV line (right axis). Day / Week grain on chart. */
 function OrdersDualAxisChart({
   days,
@@ -162,7 +165,6 @@ function OrdersDualAxisChart({
   currency: string;
 }) {
   const [grain, setGrain] = useState<IntelGrain>("day");
-  const [activeKey, setActiveKey] = useState<string | null>(null);
   const points = useMemo<OrdersIntelDay[]>(
     () =>
       grain === "week"
@@ -174,6 +176,15 @@ function OrdersDualAxisChart({
           }))
         : days,
     [grain, days, weeks],
+  );
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    points.length,
+    chartSeriesId([grain, ...points.map((point) => point.dateKey)]),
   );
   const labelOf = (key: string) =>
     grain === "week" ? `Wk of ${ordersIntelDayLabel(key)}` : ordersIntelDayLabel(key);
@@ -188,21 +199,29 @@ function OrdersDualAxisChart({
   const padB = 34;
   const plotW = width - padL - padR;
   const plotH = height - padT - padB;
-  const ordersMax = niceMax(Math.max(...days2.map((d) => d.orders), 1));
-  const aovMax = niceMax(Math.max(...days2.map((d) => d.aov), 1));
-  const stepX = plotW / days2.length;
-  const barW = Math.max(2, stepX * (grain === "week" ? 0.7 : 0.66));
-  const baseY = padT + plotH;
-  const active =
-    days2.find((d) => d.dateKey === activeKey) ?? days2[days2.length - 1]!;
-  const activeIndex = days2.findIndex((d) => d.dateKey === active.dateKey);
-  const tipLeftPct = ((padL + (activeIndex + 0.5) * stepX) / width) * 100;
-
-  const linePoints = days2.map((day, index) => {
-    const x = padL + (index + 0.5) * stepX;
-    const y = padT + plotH - (day.aov / aovMax) * plotH;
-    return { x, y };
+  const leftAxis = overviewChartAxis(Math.max(...days2.map((d) => d.orders), 1), 4);
+  const rightAxis = overviewChartAxis(Math.max(...days2.map((d) => d.aov), 1), 4);
+  const { band, barW, rx, barX, centerX } = chartBarLayout({
+    plotLeft: padL,
+    plotWidth: plotW,
+    count: days2.length,
   });
+  const baseY = padT + plotH;
+  const yForOrders = (value: number) =>
+    padT + plotH - Math.min(1, Math.max(0, value / leftAxis.max)) * plotH;
+  const yForAov = (value: number) =>
+    padT + plotH - Math.min(1, Math.max(0, value / rightAxis.max)) * plotH;
+  const activeIndex = hoverIndex != null ? hoverIndex : days2.length - 1;
+  const active = days2[activeIndex] ?? days2[days2.length - 1]!;
+  const tipLeftPct = (centerX(activeIndex) / width) * 100;
+  const labelIndices = new Set(
+    overviewChartLabelIndices(days2.length, chartXAxisMaxLabels(days2.length)),
+  );
+
+  const linePoints = days2.map((day, index) => ({
+    x: centerX(index),
+    y: yForAov(day.aov),
+  }));
   const line = linePoints
     .map((pt, index) => `${index === 0 ? "M" : "L"}${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
     .join(" ");
@@ -212,10 +231,6 @@ function OrdersDualAxisChart({
           .map((pt) => `L${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`)
           .join(" ")} L${linePoints[linePoints.length - 1]!.x.toFixed(1)} ${baseY} Z`
       : "";
-
-  const ordersTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(ordersMax * t));
-  const aovTicks = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(aovMax * t));
-  const labelEvery = Math.max(1, Math.ceil(days2.length / 8));
 
   return (
     <div className="mcfly-orders-intel__chart mcfly-chart mcfly-chart--dual mcfly-chart--soft">
@@ -243,7 +258,6 @@ function OrdersDualAxisChart({
               aria-pressed={grain === value}
               onClick={() => {
                 setGrain(value);
-                setActiveKey(null);
               }}
             >
               {value === "day" ? "Day" : "Week"}
@@ -251,8 +265,22 @@ function OrdersDualAxisChart({
           ))}
         </div>
       </div>
-      <div className="mcfly-chart__plot">
-        <div className="mcfly-chart__tip mcfly-chart__tip--on" role="status" style={{ left: `${Math.min(88, Math.max(12, tipLeftPct))}%` }}>
+      <div
+        className={chartBarPlotClassName(hoverIndex != null)}
+        onPointerMove={(event) =>
+          moveFromEvent(event, {
+            viewWidth: width,
+            plotLeft: padL,
+            plotWidth: plotW,
+          })
+        }
+        onPointerLeave={onPlotPointerLeave}
+      >
+        <div
+          className={chartTipClassName({ open: true })}
+          role="status"
+          style={{ left: `${Math.min(88, Math.max(12, tipLeftPct))}%` }}
+        >
           <p className="mcfly-chart__tip-h">{labelOf(active.dateKey)}</p>
           <p className="mcfly-chart__tip-row">
             <span className="mcfly-chart__tip-k">Orders</span>
@@ -272,54 +300,65 @@ function OrdersDualAxisChart({
           viewBox={`0 0 ${width} ${height}`}
           role="img"
           aria-label={`${days2.length} ${grain === "week" ? "weeks" : "days"} of orders and average order value`}
-          onMouseLeave={() => setActiveKey(null)}
         >
-          {ordersTicks.map((tick, index) => {
-            const y = padT + plotH - (tick / ordersMax) * plotH;
+          {leftAxis.ticks.map((tick) => {
+            const y = yForOrders(tick);
             return (
-              <g key={`gl-${index}`}>
-                <line
-                  className="mcfly-chart__grid"
-                  x1={padL}
-                  y1={y}
-                  x2={padL + plotW}
-                  y2={y}
-                />
-                <text className="mcfly-chart__axis mcfly-chart__axis--l" x={padL - 6} y={y + 3} textAnchor="end">
-                  {tick.toLocaleString()}
-                </text>
-                <text className="mcfly-chart__axis mcfly-chart__axis--r" x={padL + plotW + 6} y={y + 3} textAnchor="start">
-                  {formatCurrency(aovTicks[index]!, currency)}
-                </text>
-              </g>
+              <line
+                key={`gl-${tick}`}
+                className="mcfly-chart__grid"
+                x1={padL}
+                y1={y}
+                x2={padL + plotW}
+                y2={y}
+              />
             );
           })}
+          {leftAxis.ticks.map((tick) => (
+            <text
+              key={`yl-${tick}`}
+              className="mcfly-chart__axis mcfly-chart__axis--l"
+              x={padL - 6}
+              y={yForOrders(tick) + 3}
+              textAnchor="end"
+            >
+              {tick.toLocaleString()}
+            </text>
+          ))}
+          {rightAxis.ticks.map((tick) => (
+            <text
+              key={`yr-${tick}`}
+              className="mcfly-chart__axis mcfly-chart__axis--r"
+              x={padL + plotW + 6}
+              y={yForAov(tick) + 3}
+              textAnchor="start"
+            >
+              {formatCurrency(tick, currency)}
+            </text>
+          ))}
           {days2.map((day, index) => {
-            const barH = (day.orders / ordersMax) * plotH;
-            const x = padL + index * stepX + (stepX - barW) / 2;
-            const y = baseY - barH;
+            const barH = Math.max(1, baseY - yForOrders(day.orders));
             return (
               <rect
                 key={day.dateKey}
                 className={`mcfly-chart__obar${active.dateKey === day.dateKey ? " mcfly-chart__obar--on" : ""}`}
-                x={x}
-                y={y}
+                x={barX(index)}
+                y={baseY - barH}
                 width={barW}
-                height={Math.max(1, barH)}
-                rx="1.5"
+                height={barH}
+                rx={rx}
               />
             );
           })}
           {aovFill ? <path className="mcfly-chart__aovfill" d={aovFill} /> : null}
           <path className="mcfly-chart__aovline" d={line} />
           {days2.map((day, index) => {
-            if (index % labelEvery !== 0) return null;
-            const x = padL + (index + 0.5) * stepX;
+            if (!labelIndices.has(index)) return null;
             return (
               <text
                 key={`xl-${day.dateKey}`}
                 className="mcfly-chart__axis mcfly-chart__axis--x"
-                x={x}
+                x={centerX(index)}
                 y={height - 8}
                 textAnchor="middle"
               >
@@ -327,25 +366,22 @@ function OrdersDualAxisChart({
               </text>
             );
           })}
-          {days2.map((day, index) => {
-            const x = padL + index * stepX;
-            return (
-              <rect
-                key={`hit-${day.dateKey}`}
-                className="mcfly-chart__hit"
-                x={x}
-                y={padT}
-                width={stepX}
-                height={plotH}
-                fill="transparent"
-                onMouseEnter={() => setActiveKey(day.dateKey)}
-                onFocus={() => setActiveKey(day.dateKey)}
-                tabIndex={0}
-                role="button"
-                aria-label={`${labelOf(day.dateKey)} ${day.orders} orders, AOV ${formatCurrency(day.aov, currency)}`}
-              />
-            );
-          })}
+          {days2.map((day, index) => (
+            <rect
+              key={`hit-${day.dateKey}`}
+              className="mcfly-chart__hit"
+              x={padL + index * band}
+              y={padT}
+              width={band}
+              height={plotH}
+              fill="transparent"
+              onFocus={() => setHoverIndex(index)}
+              onBlur={onPlotPointerLeave}
+              tabIndex={0}
+              role="button"
+              aria-label={`${labelOf(day.dateKey)} ${day.orders} orders, AOV ${formatCurrency(day.aov, currency)}`}
+            />
+          ))}
         </svg>
       </div>
     </div>

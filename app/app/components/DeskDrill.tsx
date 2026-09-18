@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { Link } from "react-router";
+import { DESK_DRILL_MORE } from "../lib/desk-lane";
 
 export type DeskDrillBlock = { k: string; v: string };
 
@@ -32,12 +33,68 @@ export function useDeskDrill(): DeskDrillContextValue | null {
   return useContext(DeskDrillContext);
 }
 
+function DeskDrillBlocks({
+  blocks,
+  moreOpen,
+  moreId,
+  onToggleMore,
+}: {
+  blocks: DeskDrillBlock[];
+  moreOpen: boolean;
+  moreId: string;
+  onToggleMore: () => void;
+}) {
+  const lead = blocks[0];
+  const rest = blocks.slice(1);
+  return (
+    <>
+      {lead ? (
+        <div className="mcfly-drill__block">
+          <dl>
+            <dt>{lead.k}</dt>
+            <dd>{lead.v}</dd>
+          </dl>
+        </div>
+      ) : null}
+      {rest.length > 0 ? (
+        <div className="mcfly-drill__more">
+          <button
+            type="button"
+            className="mcfly-drill__more-btn"
+            aria-expanded={moreOpen}
+            aria-controls={moreId}
+            onClick={onToggleMore}
+          >
+            {DESK_DRILL_MORE}
+          </button>
+          <div id={moreId} hidden={!moreOpen}>
+            {rest.map((block) => (
+              <div className="mcfly-drill__block" key={block.k}>
+                <dl>
+                  <dt>{block.k}</dt>
+                  <dd>{block.v}</dd>
+                </dl>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 export function DeskDrillProvider({ children }: { children: ReactNode }) {
   const [payload, setPayload] = useState<DeskDrillPayload | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const titleId = useId();
+  const moreId = useId();
 
-  const close = useCallback(() => setPayload(null), []);
+  const close = useCallback(() => {
+    setPayload(null);
+    setMoreOpen(false);
+  }, []);
   const openDrill = useCallback((next: DeskDrillPayload) => {
+    setMoreOpen(false);
     setPayload(next);
   }, []);
 
@@ -84,14 +141,12 @@ export function DeskDrillProvider({ children }: { children: ReactNode }) {
                 <p className="mcfly-drill__kicker">{payload.kicker}</p>
               ) : null}
               <p className="mcfly-drill__value">{payload.value}</p>
-              {(payload.blocks ?? []).map((block) => (
-                <div className="mcfly-drill__block" key={block.k}>
-                  <dl>
-                    <dt>{block.k}</dt>
-                    <dd>{block.v}</dd>
-                  </dl>
-                </div>
-              ))}
+              <DeskDrillBlocks
+                blocks={payload.blocks ?? []}
+                moreOpen={moreOpen}
+                moreId={moreId}
+                onToggleMore={() => setMoreOpen((value) => !value)}
+              />
               <div className="mcfly-drill__next">
                 <p className="mcfly-drill__next-kicker">What to do next</p>
                 <p>{payload.next}</p>
