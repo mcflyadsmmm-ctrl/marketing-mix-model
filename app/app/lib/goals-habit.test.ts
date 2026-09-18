@@ -41,7 +41,7 @@ function richInput(
 describe("habit goal floors + SAMPLE stretch", () => {
   it("names the 8-order floor and Snowdevil stretch targets", () => {
     expect(HABIT_GOALS_MIN_ORDERS).toBe(8);
-    expect(SAMPLE_HABIT_LTV_TARGET).toBe(400);
+    expect(SAMPLE_HABIT_LTV_TARGET).toBe(360);
     expect(SAMPLE_HABIT_RETURNING_TARGET).toBe(800_000);
   });
 });
@@ -49,7 +49,7 @@ describe("habit goal floors + SAMPLE stretch", () => {
 describe("resolveHabitTarget", () => {
   it("lets a typed target win, and SAMPLE paints when unset", () => {
     expect(resolveHabitTarget(420, SAMPLE_HABIT_LTV_TARGET, true)).toBe(420);
-    expect(resolveHabitTarget(null, SAMPLE_HABIT_LTV_TARGET, true)).toBe(400);
+    expect(resolveHabitTarget(null, SAMPLE_HABIT_LTV_TARGET, true)).toBe(360);
     expect(resolveHabitTarget(null, SAMPLE_HABIT_LTV_TARGET, false)).toBeNull();
     expect(resolveHabitTarget(0, SAMPLE_HABIT_RETURNING_TARGET, false)).toBeNull();
   });

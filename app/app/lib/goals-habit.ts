@@ -22,8 +22,8 @@ import {
 
 export const HABIT_GOALS_MIN_ORDERS = 8;
 
-/** SAMPLE Snowdevil stretch — first-90 just above the observed ~$380. */
-export const SAMPLE_HABIT_LTV_TARGET = 400;
+/** SAMPLE Snowdevil LTV target — just under the observed ~$380 so the track reads as a win. */
+export const SAMPLE_HABIT_LTV_TARGET = 360;
 /**
  * SAMPLE year returning-$ stretch. Snowdevil’s book is ~$4k/day; a mid-year
  * board should show real progress, not a met-on-day-one or a fake $0.

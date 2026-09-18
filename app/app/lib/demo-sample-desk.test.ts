@@ -4,6 +4,7 @@ import {
   SAMPLE_ACTIVE_CHANNELS,
   SAMPLE_BOOK_DAYS,
   SAMPLE_MIN_NEW_CUSTOMERS,
+  SAMPLE_YOY_GROWTH,
   sampleSpendBounds,
   sampleSpendUsesNoonStamp,
 } from "./demo-sample-desk.server";
@@ -20,6 +21,12 @@ function median(values: number[]): number {
 }
 
 describe("buildThreeYearSampleDesk", () => {
+  it("keeps SAMPLE YoY lift in the premium-SMB band — not flat, not cartoon", () => {
+    expect(SAMPLE_YOY_GROWTH).toBe(0.14);
+    expect(SAMPLE_YOY_GROWTH).toBeGreaterThanOrEqual(0.08);
+    expect(SAMPLE_YOY_GROWTH).toBeLessThanOrEqual(0.18);
+  });
+
   it("never shows 0 new customers or $0 new-customer sales", () => {
     const rows = buildThreeYearSampleDesk({
       now: new Date("2026-09-10T18:00:00Z"),

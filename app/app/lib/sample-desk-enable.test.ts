@@ -10,7 +10,7 @@ const state = {
   days: 0,
   spend: 0,
   hasGuests: true,
-  note: "sample:snowdevil-1",
+  note: "sample:snowdevil-2",
   settings: {
     shopId: "shop_1",
     useSampleDesk: false,
@@ -102,18 +102,26 @@ describe("applySampleDeskIntent use-sample", () => {
     state.days = 0;
     state.spend = 0;
     state.hasGuests = true;
-    state.note = "sample:snowdevil-1";
+    state.note = "sample:snowdevil-2";
     state.persistRows = true;
     state.settings.useSampleDesk = false;
     state.settings.samplePreviewAllowed = true;
     delete process.env.MCFLY_SAMPLE_ONLY;
   });
 
-  it("brands SAMPLE as Snowdevil and stamps sample:snowdevil-1", () => {
+  it("brands SAMPLE as Snowdevil and stamps sample:snowdevil-2", () => {
     expect(SAMPLE_DESK_SHOP_NAME).toBe("Snowdevil");
-    expect(SAMPLE_BOOK_NOTE).toBe("sample:snowdevil-1");
+    expect(SAMPLE_BOOK_NOTE).toBe("sample:snowdevil-2");
     expect(sampleDeskSource).toContain("note: SAMPLE_BOOK_NOTE");
     expect(sampleDeskSource).toContain('SAMPLE_DESK_SHOP_NAME = "Snowdevil"');
+  });
+
+  it("reseeds leftover snowdevil-1 books onto the growth-story stamp", async () => {
+    state.days = SAMPLE_BOOK_DAYS;
+    state.spend = 80;
+    state.hasGuests = true;
+    state.note = "sample:snowdevil-1";
+    await expect(sampleDeskNeedsSeed("shop_1")).resolves.toBe(true);
   });
 
   it("reseeds leftover Harbor rows when the spend note is not Snowdevil", async () => {

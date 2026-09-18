@@ -1123,10 +1123,11 @@ export async function seedSampleCohortFacts(
   let n = 0;
   for (let i = 0; i < months.length; i += 1) {
     const cohortMonth = months[i]!;
-    // Growing brand — more recent cohorts larger (index 0 = oldest).
-    const customers = 220 + i * 48;
-    // Mild AOV lift over the year; older cohorts get extra maturity on long windows.
-    const aovLift = 1 + i * 0.03;
+    // Growing brand — more recent cohorts larger + worth more (index 0 = oldest).
+    const customers = 220 + i * 52;
+    // AOV lift over the year so LTV reads up-and-to-the-right; older cohorts
+    // still get extra maturity on long windows.
+    const aovLift = 1 + i * 0.045;
     const maturity90 = 1 + (months.length - 1 - i) * 0.02;
     const maturity365 = 1 + (months.length - 1 - i) * 0.045;
     const rev30 = Math.round(customers * ltv30Base * aovLift);
