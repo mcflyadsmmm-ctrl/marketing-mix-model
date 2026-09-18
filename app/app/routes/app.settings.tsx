@@ -49,7 +49,6 @@ import { BILLING_HONESTY } from "../lib/entitlements";
 import { FLY_SUPPORT_URL } from "../lib/public-origin";
 import {
   parseHabitGoalInput,
-  SAMPLE_HABIT_LTV_TARGET,
   SAMPLE_HABIT_RETURNING_TARGET,
 } from "../lib/goals-habit";
 import prisma from "../db.server";
@@ -169,13 +168,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (intent === "save_habit_goals") {
-    const ltvTarget = parseHabitGoalInput(form.get("ltvTarget"));
     const returningSalesTarget = parseHabitGoalInput(
       form.get("returningSalesTarget"),
     );
-    if (Number.isNaN(ltvTarget) || Number.isNaN(returningSalesTarget)) {
+    if (Number.isNaN(returningSalesTarget)) {
       return {
-        error: "Enter non-negative dollar targets — or leave a field blank to unset",
+        error: "Enter a non-negative returning-$ target — or leave blank to unset",
         success: false as const,
         breakEvenMer: null as number | null,
         marginPct: null as number | null,
@@ -184,7 +182,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
     await prisma.settings.update({
       where: { shopId: shop.id },
-      data: { ltvTarget, returningSalesTarget },
+      data: { ltvTarget: null, returningSalesTarget },
     });
     return {
       error: null,
@@ -192,7 +190,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       breakEvenMer: null as number | null,
       marginPct: null as number | null,
       intent: "save_habit_goals" as const,
-      ltvTarget,
       returningSalesTarget,
     };
   }
@@ -351,7 +348,7 @@ export default function SettingsPage() {
       "intent" in actionData &&
       actionData.intent === "save_habit_goals"
     ) {
-      showAdminToast("Order-history targets saved", { duration: 4000 });
+      showAdminToast("Returning-$ target saved", { duration: 4000 });
       return;
     }
     if (actionData.success && "targetMer" in actionData) {
@@ -683,10 +680,10 @@ export default function SettingsPage() {
               Order-history targets
             </h2>
             <p className="mcfly-settings-template__copy">
-              First-window LTV and year returning $ — tracked from order
-              history on{" "}
-              <s-link href="/app/goals">Goals</s-link>. No spend, CPA, or
-              ROAS. Leave a field blank to unset.
+              Year returning $ — tracked from order history on{" "}
+              <s-link href="/app/goals">Goals</s-link>. LTV Target Line is
+              the observed average there and on LTV — no typing. No spend,
+              CPA, or ROAS. Leave blank to unset returning $.
             </p>
           </aside>
 
@@ -702,36 +699,8 @@ export default function SettingsPage() {
               <input type="hidden" name="intent" value="save_habit_goals" />
               <fieldset className="mcfly-settings-fields" disabled={isSaving}>
                 <legend className="mcfly-settings-fields__legend">
-                  LTV and returning-$ targets
+                  Year returning-$ target
                 </legend>
-                <div className="mcfly-settings-field">
-                  <label
-                    className="mcfly-settings-field__label"
-                    htmlFor={`${fieldIds}-ltv-target`}
-                  >
-                    First-window LTV target
-                  </label>
-                  <input
-                    id={`${fieldIds}-ltv-target`}
-                    className="mcfly-field mcfly-settings-field__input"
-                    name="ltvTarget"
-                    type="text"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    defaultValue={
-                      settings.ltvTarget != null && settings.ltvTarget > 0
-                        ? String(Math.round(settings.ltvTarget))
-                        : useSampleDesk
-                          ? String(SAMPLE_HABIT_LTV_TARGET)
-                          : ""
-                    }
-                    placeholder="e.g. 400"
-                  />
-                  <span className="mcfly-settings-field__hint">
-                    Observed first 90 days (then 30). Same field as Goals.
-                    Not a first-year on a short book.
-                  </span>
-                </div>
                 <div className="mcfly-settings-field">
                   <label
                     className="mcfly-settings-field__label"
@@ -758,7 +727,8 @@ export default function SettingsPage() {
                   />
                   <span className="mcfly-settings-field__hint">
                     Returning-buyer dollars in the Goals year. Guests stay
-                    out. Same field as Goals.
+                    out. Same field as Goals. LTV Target Line is the
+                    observed average — not set here.
                   </span>
                 </div>
                 <button
@@ -766,7 +736,7 @@ export default function SettingsPage() {
                   className="mcfly-btn mcfly-btn--primary"
                   disabled={isSaving || undefined}
                 >
-                  Save order-history targets
+                  Save returning-$ target
                 </button>
               </fieldset>
             </Form>

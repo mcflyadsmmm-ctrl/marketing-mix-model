@@ -336,7 +336,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       ltv90: periodMetrics.tillLtv.avgRevenueD90,
       ltv365: periodMetrics.tillLtv.avgRevenueD365,
       yearReturningSales: yearReturningSales,
-      typedLtvTarget: settings.ltvTarget,
       typedReturningTarget: settings.returningSalesTarget,
       historyLimited,
       sample: useSampleDesk,
@@ -358,25 +357,23 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   });
 
   if (intent === "save_habit_goals") {
-    const ltvTarget = parseHabitGoalInput(form.get("ltvTarget"));
     const returningSalesTarget = parseHabitGoalInput(
       form.get("returningSalesTarget"),
     );
-    if (Number.isNaN(ltvTarget) || Number.isNaN(returningSalesTarget)) {
+    if (Number.isNaN(returningSalesTarget)) {
       return {
         success: false as const,
         intent,
-        error: "Enter non-negative dollar targets — or leave a field blank to unset",
+        error: "Enter a non-negative returning-$ target — or leave blank to unset",
         year,
         goalsEnabled: null as boolean | null,
         targetMer: null as number | null,
-        ltvTarget: null as number | null,
         returningSalesTarget: null as number | null,
       };
     }
     await prisma.settings.update({
       where: { shopId: shop.id },
-      data: { ltvTarget, returningSalesTarget },
+      data: { ltvTarget: null, returningSalesTarget },
     });
     return {
       success: true as const,
@@ -385,7 +382,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       year,
       goalsEnabled: null as boolean | null,
       targetMer: null as number | null,
-      ltvTarget,
       returningSalesTarget,
     };
   }
@@ -592,7 +588,7 @@ export default function GoalsPage() {
     if (!actionData) return;
     if (actionData.success) {
       if (actionData.intent === "save_habit_goals") {
-        showAdminToast("Order-history targets saved", { duration: 4000 });
+        showAdminToast("Returning-$ target saved", { duration: 4000 });
         return;
       }
       if (actionData.intent === "save_target_mer") {
