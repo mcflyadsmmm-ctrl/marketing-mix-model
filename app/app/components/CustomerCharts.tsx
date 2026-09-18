@@ -1,5 +1,7 @@
-import { useState } from "react";
 import { useDeskDrill } from "./DeskDrill";
+import { chartSeriesId } from "../lib/chart-smooth";
+import { chartBarShellClassName } from "../lib/chart-bar";
+import { useChartHover } from "../lib/use-chart-hover";
 
 export type BarItem = {
   key: string;
@@ -34,15 +36,24 @@ export function VerticalBars({
     (best, it) => (best == null || it.value > best.value ? it : best),
     null,
   );
-  const [active, setActive] = useState<BarItem | null>(peak);
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    items.length,
+    chartSeriesId(items.map((item) => item.key)),
+  );
   const max = Math.max(...items.map((i) => i.value), 1);
   if (items.length === 0 || items.every((i) => i.value === 0)) {
     return <p className="mcfly-cust-note">{emptyCopy}</p>;
   }
-  const shown = active ?? peak;
+  const shown =
+    hoverIndex != null ? (items[hoverIndex] ?? peak) : peak;
 
   return (
-    <div className="mcfly-cust-vbars">
+    <div className={chartBarShellClassName("mcfly-cust-vbars", hoverIndex != null)}>
       <div className="mcfly-cust-vbars__head">
         <p className="mcfly-cust-vbars__title">
           {title}
@@ -56,15 +67,18 @@ export function VerticalBars({
           </p>
         ) : null}
       </div>
-      <div className="mcfly-cust-vbars__plot">
-        {items.map((it) => (
+      <div
+        className="mcfly-cust-vbars__plot"
+        onPointerMove={moveFromEvent}
+        onPointerLeave={onPlotPointerLeave}
+      >
+        {items.map((it, index) => (
           <button
             type="button"
             key={it.key}
             className={`mcfly-cust-col${shown?.key === it.key ? " mcfly-cust-col--on" : ""}`}
             aria-label={`${it.label} ${fmt(it.value)}${ariaUnit}`}
-            onMouseEnter={() => setActive(it)}
-            onFocus={() => setActive(it)}
+            onFocus={() => setHoverIndex(index)}
             onClick={() =>
               drill?.openDrill({
                 title: it.label,
@@ -124,15 +138,24 @@ export function DualBars({
   emptyCopy?: string;
 }) {
   const drill = useDeskDrill();
-  const [active, setActive] = useState<DualItem | null>(null);
+  const {
+    hoverIndex,
+    setHoverIndex,
+    moveFromEvent,
+    onPlotPointerLeave,
+  } = useChartHover(
+    items.length,
+    chartSeriesId(items.map((item) => item.key)),
+  );
   const maxA = Math.max(...items.map((i) => i.a), 1);
   const maxB = Math.max(...items.map((i) => i.b), 1);
   if (items.length === 0 || items.every((i) => i.a === 0 && i.b === 0)) {
     return <p className="mcfly-cust-note">{emptyCopy}</p>;
   }
+  const active = hoverIndex != null ? (items[hoverIndex] ?? null) : null;
 
   return (
-    <div className="mcfly-cust-dual">
+    <div className={chartBarShellClassName("mcfly-cust-dual", hoverIndex != null)}>
       <div className="mcfly-cust-vbars__head">
         <p className="mcfly-cust-vbars__title">
           {title}
@@ -147,15 +170,18 @@ export function DualBars({
           </p>
         ) : null}
       </div>
-      <div className="mcfly-cust-dual__plot">
-        {items.map((it) => (
+      <div
+        className="mcfly-cust-dual__plot"
+        onPointerMove={moveFromEvent}
+        onPointerLeave={onPlotPointerLeave}
+      >
+        {items.map((it, index) => (
           <button
             type="button"
             key={it.key}
             className={`mcfly-cust-dual__group${active?.key === it.key ? " mcfly-cust-dual__group--on" : ""}`}
             aria-label={`${it.label}: ${formatA(it.a)} ${aLabel}, ${formatB(it.b)} ${bLabel}`}
-            onMouseEnter={() => setActive(it)}
-            onFocus={() => setActive(it)}
+            onFocus={() => setHoverIndex(index)}
             onClick={() =>
               drill?.openDrill({
                 title: it.label,

@@ -3,6 +3,11 @@ import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { chartSeriesId, chartTipClassName } from "../lib/chart-smooth";
+import {
+  chartBarLayout,
+  chartBarPlotClassName,
+  chartXAxisMaxLabels,
+} from "../lib/chart-bar";
 import { useChartHover } from "../lib/use-chart-hover";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
@@ -117,12 +122,13 @@ export function YoyYearChart({
   );
   const leftAxis = overviewChartAxis(salesMax, 4);
   const rightAxis = yoyPctAxis(buckets.map((bucket) => bucket.yoyPct));
-  const band = PLOT_W / buckets.length;
-  const pairW = Math.min(46, Math.max(6, band * 0.62));
-  const barW = pairW / 2;
-  const pairX = (index: number) =>
-    PLOT_LEFT + band * index + (band - pairW) / 2;
-  const centerX = (index: number) => PLOT_LEFT + band * index + band / 2;
+  const { rx, pairW, pairGap, pairBarW, pairX, centerX } = chartBarLayout({
+    plotLeft: PLOT_LEFT,
+    plotWidth: PLOT_W,
+    count: buckets.length,
+    kind: "pair",
+  });
+  const barW = pairBarW;
   const yForSales = (value: number) =>
     PLOT_BOTTOM - Math.min(1, Math.max(0, value / leftAxis.max)) * PLOT_H;
   const yForPct = (value: number) => {
@@ -143,7 +149,9 @@ export function YoyYearChart({
     yoyLine += `${yoyLine ? " " : ""}${cmd}${centerX(index).toFixed(1)} ${yForPct(value).toFixed(1)}`;
   }
 
-  const labelIndices = new Set(overviewChartLabelIndices(buckets.length, 8));
+  const labelIndices = new Set(
+    overviewChartLabelIndices(buckets.length, chartXAxisMaxLabels(buckets.length)),
+  );
   let latestActual = -1;
   for (let index = buckets.length - 1; index >= 0; index -= 1) {
     if (buckets[index]?.actual != null) {
@@ -292,7 +300,7 @@ export function YoyYearChart({
       </div>
 
       <div
-        className="mcfly-chart__plot"
+        className={chartBarPlotClassName(hoverIndex != null)}
         onPointerMove={(event) =>
           moveFromEvent(event, {
             viewWidth: VIEW_W,
@@ -377,9 +385,9 @@ export function YoyYearChart({
                     className="mcfly-chart__bar mcfly-chart__bar--prior"
                     x={x0}
                     y={PLOT_BOTTOM - priorH}
-                    width={barW - 1}
+                    width={barW}
                     height={priorH}
-                    rx={Math.min(3, barW / 2)}
+                    rx={rx}
                   />
                 ) : null}
                 {bucket.actual != null ? (
@@ -392,11 +400,11 @@ export function YoyYearChart({
                     ]
                       .filter(Boolean)
                       .join(" ")}
-                    x={x0 + barW}
+                    x={x0 + barW + pairGap}
                     y={PLOT_BOTTOM - actualH}
-                    width={barW - 1}
+                    width={barW}
                     height={actualH}
-                    rx={Math.min(3, barW / 2)}
+                    rx={rx}
                     tabIndex={0}
                     role="button"
                     aria-label={`${bucket.label} ${money(bucket.actual)} vs ${money(bucket.prior)} last year`}

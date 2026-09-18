@@ -12122,10 +12122,30 @@ button.mcfly-chart__day {
 .mcfly-chart__bar {
   fill: var(--mcfly-accent);
   cursor: pointer;
+  transition:
+    fill var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease),
+    filter var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-chart__bar:hover {
   fill: var(--mcfly-accent-ink);
+}
+
+.mcfly-chart__bar--dim,
+.mcfly-chart__plot--hot .mcfly-chart__bar:not(.mcfly-chart__bar--on),
+.mcfly-chart__plot--hot .mcfly-chart__obar:not(.mcfly-chart__obar--on),
+.mcfly-chart__plot--hot .mcfly-cust-mix__col:not(.mcfly-cust-mix__col--on) {
+  opacity: 0.55;
+}
+
+.mcfly-chart--hot .mcfly-chart__day:not(.mcfly-chart__day--on) .mcfly-chart__day-bar,
+.mcfly-chart--hot .mcfly-chart__hour:not(.mcfly-chart__day--on) .mcfly-chart__day-bar,
+.mcfly-chart--hot .mcfly-chart__freq-col:not(.mcfly-chart__freq-col--on) .mcfly-chart__freq-bar,
+.mcfly-chart--hot .mcfly-chart__month:not(.mcfly-chart__month--on) .mcfly-chart__month-bar,
+.mcfly-chart--hot .mcfly-cust-col:not(.mcfly-cust-col--on) .mcfly-cust-col__bar,
+.mcfly-chart--hot .mcfly-cust-dual__group:not(.mcfly-cust-dual__group--on) .mcfly-cust-dual__bar {
+  opacity: 0.55;
 }
 
 .mcfly-chart__hover {
@@ -12160,7 +12180,7 @@ button.mcfly-chart__day {
 .mcfly-chart__days {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.35rem;
+  gap: 0.5rem;
   align-items: end;
   min-height: 7.5rem;
 }
@@ -12179,12 +12199,17 @@ button.mcfly-chart__day {
 
 .mcfly-chart__day-bar {
   width: 100%;
-  max-width: 2.1rem;
-  border-radius: 4px 4px 0 0;
+  max-width: 1.8rem;
+  border-radius: 6px 6px 2px 2px;
   background: var(--mcfly-accent);
+  transition:
+    background var(--mcfly-motion) var(--mcfly-ease),
+    height var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease);
 }
 
-.mcfly-chart__day:hover .mcfly-chart__day-bar {
+.mcfly-chart__day:hover .mcfly-chart__day-bar,
+.mcfly-chart__day--on .mcfly-chart__day-bar {
   background: var(--mcfly-accent-ink);
 }
 
@@ -12386,12 +12411,15 @@ button.mcfly-chart__month {
   height: 100%;
   border-radius: inherit;
   background: var(--mcfly-accent);
+  transition:
+    width var(--mcfly-motion) var(--mcfly-ease),
+    background var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-chart__months {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(2.4rem, 1fr));
-  gap: 0.35rem;
+  gap: 0.5rem;
   align-items: end;
   min-height: 7.5rem;
 }
@@ -12408,12 +12436,17 @@ button.mcfly-chart__month {
 
 .mcfly-chart__month-bar {
   width: 100%;
-  max-width: 1.8rem;
-  border-radius: 4px 4px 0 0;
+  max-width: 1.65rem;
+  border-radius: 6px 6px 2px 2px;
   background: var(--mcfly-accent);
+  transition:
+    background var(--mcfly-motion) var(--mcfly-ease),
+    height var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-chart__month:hover .mcfly-chart__month-bar,
+.mcfly-chart__month--on .mcfly-chart__month-bar,
 .mcfly-chart__hrow:hover .mcfly-chart__hfill {
   background: var(--mcfly-accent-ink);
 }
@@ -14114,7 +14147,7 @@ button.mcfly-chart__month {
 .mcfly-chart__hours {
   display: grid;
   grid-template-columns: repeat(24, minmax(0, 1fr));
-  gap: 0.12rem;
+  gap: 0.18rem;
   align-items: end;
   min-height: 8.25rem;
 }
@@ -14479,6 +14512,9 @@ button.mcfly-chart__hour {
 
 .mcfly-chart__obar {
   fill: color-mix(in srgb, var(--mcfly-accent) 55%, #fff);
+  transition:
+    fill var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-chart__obar--on {
@@ -14700,7 +14736,7 @@ button.mcfly-chart__hour {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  gap: 0.4rem;
+  gap: 0.55rem;
   align-items: end;
   min-height: 9rem;
   margin: 0.6rem 0 0;
@@ -14734,12 +14770,17 @@ button.mcfly-chart__hour {
 
 .mcfly-chart__freq-bar {
   width: 100%;
-  max-width: 3.2rem;
-  border-radius: 5px 5px 0 0;
+  max-width: 2.4rem;
+  border-radius: 6px 6px 2px 2px;
   background: var(--mcfly-accent);
+  transition:
+    background var(--mcfly-motion) var(--mcfly-ease),
+    height var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease);
 }
 
-.mcfly-chart__freq-col:hover .mcfly-chart__freq-bar {
+.mcfly-chart__freq-col:hover .mcfly-chart__freq-bar,
+.mcfly-chart__freq-col--on .mcfly-chart__freq-bar {
   background: var(--mcfly-accent-ink);
 }
 
@@ -15552,7 +15593,7 @@ button.mcfly-chart__hour {
 .mcfly-cust-vbars__plot {
   display: flex;
   align-items: flex-end;
-  gap: 0.4rem;
+  gap: 0.55rem;
 }
 
 .mcfly-cust-col {
@@ -15582,12 +15623,15 @@ button.mcfly-chart__hour {
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
-  width: 64%;
-  max-width: 2.6rem;
+  width: 56%;
+  max-width: 2.2rem;
   min-height: 2px;
-  border-radius: 4px 4px 0 0;
+  border-radius: 6px 6px 2px 2px;
   background: var(--mcfly-accent);
-  transition: height var(--mcfly-motion) var(--mcfly-ease);
+  transition:
+    height var(--mcfly-motion) var(--mcfly-ease),
+    background var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-cust-col--on .mcfly-cust-col__bar {
@@ -15619,7 +15663,7 @@ button.mcfly-chart__hour {
 .mcfly-cust-dual__plot {
   display: flex;
   align-items: flex-end;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .mcfly-cust-dual__group {
@@ -15649,11 +15693,13 @@ button.mcfly-chart__hour {
 }
 
 .mcfly-cust-dual__bar {
-  width: 40%;
-  max-width: 1.5rem;
+  width: 38%;
+  max-width: 1.35rem;
   min-height: 2px;
-  border-radius: 3px 3px 0 0;
-  transition: height var(--mcfly-motion) var(--mcfly-ease);
+  border-radius: 5px 5px 2px 2px;
+  transition:
+    height var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-cust-dual__bar--a {
@@ -15986,7 +16032,9 @@ button.mcfly-chart__hour {
 
 /* First-time (soft) below, returning (navy) stacked on top. */
 .mcfly-cust-mix__bar {
-  transition: fill var(--mcfly-motion) var(--mcfly-ease);
+  transition:
+    fill var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-cust-mix__bar--new {
@@ -16933,7 +16981,7 @@ button.mcfly-depth-legend__chip:focus-visible {
 .mcfly-chart--weekdays .mcfly-chart__days {
   align-items: stretch;
   min-height: 0;
-  gap: 0.4rem;
+  gap: 0.55rem;
 }
 
 .mcfly-chart--weekdays .mcfly-chart__day {
@@ -16954,15 +17002,19 @@ button.mcfly-depth-legend__chip:focus-visible {
 .mcfly-chart--weekdays .mcfly-chart__day-bar {
   position: relative;
   width: 100%;
-  max-width: 2.1rem;
+  max-width: 1.75rem;
   min-height: 0.35rem;
-  border-radius: 5px 5px 0 0;
+  border-radius: 6px 6px 2px 2px;
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--mcfly-accent) 74%, #fff) 0%,
     var(--mcfly-accent) 100%
   );
-  transition: filter var(--mcfly-motion) var(--mcfly-ease);
+  transition:
+    filter var(--mcfly-motion) var(--mcfly-ease),
+    height var(--mcfly-motion) var(--mcfly-ease),
+    opacity var(--mcfly-motion) var(--mcfly-ease),
+    background var(--mcfly-motion) var(--mcfly-ease);
 }
 
 .mcfly-chart--weekdays .mcfly-chart__day--weekend .mcfly-chart__day-bar {
