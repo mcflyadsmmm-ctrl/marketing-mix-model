@@ -10,6 +10,7 @@ function read(rel: string): string {
 }
 
 const customers = read("../routes/app.customers.tsx");
+const firstView = read("../components/CustomersFirstViewport.tsx");
 const scoreboard = read("../components/CustomersScoreboard.tsx");
 const retention = read("../components/CustomerRetentionBoard.tsx");
 const watch = read("../components/CustomerWhaleWatch.tsx");
@@ -26,10 +27,10 @@ const scoreboardLib = read("./customers-scoreboard.ts");
 /**
  * Authority: docs/ops/research/black-clover-depth/ + docs/ops/CRAFT_UNLOCK.md
  * + docs/ops/FULL_TAB_CRAFT_AUDIT_v339.md FAIL #5.
- * Customers is one spine: marquee explorer → compact returning hero →
- * What-to-do / watchlist → RFM-lite → value bands / whales. Not marquee +
- * six-tile wall + duplicate buyers catalog. Update toward one desk, never
- * toward a card stack.
+ * Customers is one spine: first-fold heroes (RFM-lite / whale / repurchase) →
+ * marquee explorer → compact returning hero → What-to-do / watchlist →
+ * RFM-lite → value bands / whales. Not a customer-list clone. Update toward
+ * one desk, never toward a card stack.
  */
 
 describe("Customers route — one RETAIN spine, order history only", () => {
@@ -39,9 +40,10 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers).toMatch(/returning/i);
   });
 
-  it("leads with the marquee explorer, then What-to-do — not a book dump", () => {
+  it("leads with the first-fold heroes, then marquee, then What-to-do — not a book dump", () => {
     expect(customers).toContain("loadCustomerAnalytics");
     const order = [
+      "<CustomersFirstViewport",
       "<CustomerMixChart",
       "<CustomersScoreboard",
       "<CustomerRetentionBoard",
@@ -288,6 +290,7 @@ describe("Zero spend / ROAS / Email on the whole Customers tab", () => {
   it("never paints spend, ROAS, CPA, Email product, or a 0.00× on any Customers file", () => {
     for (const source of [
       customers,
+      firstView,
       scoreboard,
       retention,
       watch,
