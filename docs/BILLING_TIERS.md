@@ -13,6 +13,8 @@ Billing is not a desk mode and **nothing is feature-gated**. Trial and paid both
 
 The only two desk views are **Sample data | Live data**.
 
+**Live ingest depth (not a feature gate):** unpaid/trial Live is a ~90-day slice — no free multi-year backfill. Paid $39 unlocks full order history immediately on subscribe (pay anytime day 1). SAMPLE stays full wow. LTV locked/90d states show **Unlock full history**. Price does not rise with sales.
+
 Do **not** reintroduce a Free tier or a Pro gate in the app. `entitlements.server.ts` allows every channel and every surface on every plan; `desk-claims-guard.test.ts` fails the build if plan-gate vocabulary returns.
 
 **Override (no charge):** `MCFLY_PRO_SHOPS=shop1.myshopify.com,...` — design partners / QA.

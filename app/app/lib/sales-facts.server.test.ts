@@ -15,8 +15,12 @@ vi.mock("../db.server", () => ({
 }));
 
 const ensureShopMetadata = vi.fn();
+const shopIsProForIngest = vi.fn();
 vi.mock("./shop-metadata.server", () => ({
   ensureShopMetadata: (...args: unknown[]) => ensureShopMetadata(...args),
+}));
+vi.mock("./live-ingest-depth.server", () => ({
+  shopIsProForIngest: (...args: unknown[]) => shopIsProForIngest(...args),
 }));
 
 const fetchShopifySales = vi.fn();
@@ -33,6 +37,7 @@ import {
   getSalesFactsCoverage,
   getSalesFactsTotals,
   getSalesFactsByDay,
+  getSalesFactsWindowRemainingDays,
   SALES_DAY_FACT_SOURCE,
 } from "./sales-facts.server";
 
@@ -57,6 +62,8 @@ describe("runSalesFactsBackfill", () => {
     count.mockReset();
     ensureShopMetadata.mockReset();
     fetchShopifySales.mockReset();
+    shopIsProForIngest.mockReset();
+    shopIsProForIngest.mockResolvedValue(false);
   });
 
   it("skips ingest entirely (honest) when ianaTimezone is unknown even after a sync attempt", async () => {
@@ -179,6 +186,49 @@ describe("runSalesFactsBackfill", () => {
     expect(result.written).toBe(0);
     expect(result.unseen).toHaveLength(1);
     expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it("counts remaining closed days without a SalesDayFact in the ingest window", async () => {
+    findMany.mockResolvedValue([
+      { day: new Date(Date.UTC(2026, 6, 14)) },
+    ]);
+    const remaining = await getSalesFactsWindowRemainingDays("shop_1", {
+      ianaTimezone: "UTC",
+      now: new Date("2026-07-15T12:00:00.000Z"),
+      scopesAllowDeep: false,
+    });
+    expect(remaining).toBeGreaterThan(50);
+    expect(remaining).toBeLessThan(60);
+  });
+
+  it("counts the Jan-1 × N-year book when scopes allow deep (paid full history)", async () => {
+    findMany.mockResolvedValue([]);
+    const remaining = await getSalesFactsWindowRemainingDays("shop_1", {
+      ianaTimezone: "UTC",
+      now: new Date("2026-09-17T12:00:00.000Z"),
+      scopesAllowDeep: true,
+    });
+    // Host not charging in this file — full granted window, not a 90d clamp.
+    expect(remaining).toBeGreaterThan(365 * 4);
+  });
+
+  it("clamps unpaid Live remaining days to ~90 when billing is on", async () => {
+    const prev = process.env.MCFLY_BILLING;
+    process.env.MCFLY_BILLING = "1";
+    shopIsProForIngest.mockResolvedValue(false);
+    findMany.mockResolvedValue([]);
+    try {
+      const remaining = await getSalesFactsWindowRemainingDays("shop_1", {
+        ianaTimezone: "UTC",
+        now: new Date("2026-09-17T12:00:00.000Z"),
+        scopesAllowDeep: true,
+      });
+      expect(remaining).toBeGreaterThan(80);
+      expect(remaining).toBeLessThanOrEqual(90);
+    } finally {
+      if (prev === undefined) delete process.env.MCFLY_BILLING;
+      else process.env.MCFLY_BILLING = prev;
+    }
   });
 });
 
