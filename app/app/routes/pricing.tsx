@@ -33,7 +33,6 @@ export default function PricingPage() {
             Shopify Total Sales
           </li>
           <li>Total ROAS = Shopify Total Sales ÷ spend you added</li>
-          <li>Break-even from optional profit margin</li>
           <li>Allocation mix, period filters, Email Overview</li>
           <li>Customer LTV from orders; Cash CAC payback when you add spend</li>
           <li>Full-year Goals board</li>

@@ -1,6 +1,7 @@
 /**
- * Light Total ROAS trust banners — coverage, recon, below-BE habit, mock guard,
- * optional margin stale. Fail-closed only (no sales-basis info card).
+ * Light Total ROAS trust banners — coverage, recon, below-BE habit, mock guard.
+ * Profit-margin / COGS setup is parked (Marty lock). Fail-closed only
+ * (no sales-basis info card).
  * Polaris chrome only; keep out of the Apps Script scoreboard island.
  * Below-BE habit only when caller passes belowBreakEven (cashActionReady).
  */
@@ -56,9 +57,9 @@ type Props = {
     breakEvenMer: number;
     totalSpend: number;
   } | null;
-  /** Soft warning — marginConfirmedAt older than 90 days. */
+  /** Parked — profit-margin reconfirm is not a merchant setup ask. */
   marginStale?: boolean;
-  /** Cold-path next step when advice is locked (margin / spend missing). */
+  /** Cold-path next step when advice is locked (spend missing). */
   onboarding?: { settingsSaved: boolean; hasSpend: boolean } | null;
 };
 
@@ -75,7 +76,7 @@ export function CashTrustBanners({
   cashActionReady = true,
   spendRecon = null,
   belowBreakEven = null,
-  marginStale = false,
+  marginStale: _marginStale = false,
   onboarding = null,
 }: Props) {
   const currency = useDeskCurrency();
@@ -155,16 +156,6 @@ export function CashTrustBanners({
           <s-paragraph>
             Couldn’t refresh today’s live orders. Closed-day sales facts still
             drive {periodLabel} — retry shortly for a complete today top-up.
-          </s-paragraph>
-        </s-banner>
-      ) : null}
-
-      {marginStale ? (
-        <s-banner tone="warning" heading="Reconfirm profit margin">
-          <s-paragraph>
-            Margin was last confirmed more than 90 days ago. Typical DTC is
-            25–45% — reconfirm so break-even stays right.{" "}
-            <s-link href="/app/settings">Open Settings</s-link>.
           </s-paragraph>
         </s-banner>
       ) : null}

@@ -244,6 +244,13 @@ describe("Spend day card", () => {
 describe("Import or backfill", () => {
   const spendImport = read("../routes/app.spend.import.tsx");
 
+  it("does not ask for profit margin or COGS on the scratch calculator", () => {
+    expect(spendImport).toContain("Calculators · sales ÷ spend");
+    expect(spendImport).not.toContain("sales ÷ spend and break-even");
+    expect(spendImport).not.toContain("Calculator margin percent");
+    expect(spendImport).not.toMatch(/<span>Margin %<\/span>/);
+  });
+
   it("sends merchants to Total ROAS after import, without remounting the explorer", () => {
     expect(spendImport).toContain("PRODUCT_NOUN.openTotalRoas");
     expect(spendImport).not.toContain("Open {PRODUCT_NOUN.marketingSection}");

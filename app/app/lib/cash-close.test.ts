@@ -107,12 +107,12 @@ describe("validateCloseDecision", () => {
 });
 
 describe("buildCloseExceptions + canLockCashClose", () => {
-  it("blocks lock without margin or spend", () => {
+  it("blocks lock without spend — margin confirm is not required", () => {
     expect(
       canLockCashClose(
         baseMetrics({ onboarding: { settingsSaved: false, hasSpend: true } }),
       ).ok,
-    ).toBe(false);
+    ).toBe(true);
     expect(
       canLockCashClose(
         baseMetrics({ onboarding: { settingsSaved: true, hasSpend: false } }),
@@ -130,7 +130,7 @@ describe("buildCloseExceptions + canLockCashClose", () => {
     ).toBe(false);
   });
 
-  it("marks margin unconfirmed and no spend as blocking", () => {
+  it("does not ask for profit margin — only missing spend blocks", () => {
     const ex = buildCloseExceptions(
       baseMetrics({
         onboarding: { settingsSaved: false, hasSpend: false },
@@ -138,9 +138,8 @@ describe("buildCloseExceptions + canLockCashClose", () => {
         spendRecon: null,
       }),
     );
-    expect(ex.some((e) => e.code === "margin_unconfirmed" && e.blocking)).toBe(
-      true,
-    );
+    expect(ex.some((e) => e.code === "margin_unconfirmed")).toBe(false);
+    expect(ex.some((e) => e.code === "margin_stale")).toBe(false);
     expect(ex.some((e) => e.code === "no_spend" && e.blocking)).toBe(true);
   });
 
@@ -167,7 +166,7 @@ describe("buildCloseExceptions + canLockCashClose", () => {
       true,
     );
     expect(ex.find((e) => e.code === "recon_drift")?.blocking).toBe(false);
-    expect(ex.find((e) => e.code === "margin_stale")?.blocking).toBe(false);
+    expect(ex.some((e) => e.code === "margin_stale")).toBe(false);
     expect(ex.find((e) => e.code === "cash_action_not_ready")?.blocking).toBe(
       false,
     );

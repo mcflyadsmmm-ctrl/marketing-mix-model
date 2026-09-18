@@ -152,13 +152,6 @@ export function canLockCashClose(metrics: CloseMetricsInput): {
         "Sales day facts are incomplete for this period. Wait for backfill before Save.",
     };
   }
-  if (!metrics.onboarding.settingsSaved) {
-    return {
-      ok: false,
-      reason:
-        "Confirm profit margin in Settings before Save this period.",
-    };
-  }
   if (!metrics.onboarding.hasSpend) {
     return {
       ok: false,
@@ -178,20 +171,6 @@ export function buildCloseExceptions(
   metrics: CloseMetricsInput,
 ): CloseException[] {
   const out: CloseException[] = [];
-
-  if (!metrics.onboarding.settingsSaved) {
-    out.push({
-      code: "margin_unconfirmed",
-      label: "Profit margin not confirmed — break-even is preview-only.",
-      blocking: true,
-    });
-  } else if (metrics.marginStale) {
-    out.push({
-      code: "margin_stale",
-      label: "Margin confirmed more than 90 days ago — reconfirm in Settings.",
-      blocking: false,
-    });
-  }
 
   if (!metrics.onboarding.hasSpend) {
     out.push({

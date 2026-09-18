@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId } from "react";
 import type {
   ActionFunctionArgs,
   HeadersFunction,
@@ -23,7 +23,7 @@ import {
   marginIsConfirmed,
   marginIsStale,
 } from "../lib/mer-dashboard.server";
-import { formatMer, formatPercent } from "../lib/mer-format";
+import { formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { parseSalesBasis } from "../lib/sales-basis";
 import {
@@ -270,8 +270,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function SettingsPage() {
   const {
     settings,
-    breakEvenMer,
-    marginStale,
     hasLiveSpend,
     shotMode,
     useSampleDesk,
@@ -284,9 +282,7 @@ export default function SettingsPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const fieldIds = useId();
-  const marginFieldId = `${fieldIds}-margin`;
   const targetFieldId = `${fieldIds}-target`;
-  const marginHintId = `${fieldIds}-margin-hint`;
   const targetHintId = `${fieldIds}-target-hint`;
 
   const isSaving = navigation.state === "submitting";
@@ -299,23 +295,6 @@ export default function SettingsPage() {
       sampleIntent === "use-real" ||
       sampleIntent === "allow-sample-preview" ||
       sampleIntent === "hide-sample-preview");
-
-  const marginConfirmed = settings.marginConfirmedAt != null;
-  const [marginInput, setMarginInput] = useState(() =>
-    marginConfirmed ? (settings.marginPct * 100).toFixed(1) : "",
-  );
-
-  useEffect(() => {
-    setMarginInput(
-      settings.marginConfirmedAt != null
-        ? (settings.marginPct * 100).toFixed(1)
-        : "",
-    );
-  }, [
-    settings.marginPct,
-    settings.marginConfirmedAt,
-    settings.updatedAt,
-  ]);
 
   useEffect(() => {
     if (!actionData) return;
@@ -366,22 +345,6 @@ export default function SettingsPage() {
     }
   }, [actionData]);
 
-  const handleDiscard = () => {
-    setMarginInput(
-      settings.marginConfirmedAt != null
-        ? (settings.marginPct * 100).toFixed(1)
-        : "",
-    );
-  };
-
-  const marginDecimal = parseFloat(marginInput) / 100;
-  const previewBreakEven =
-    marginInput.trim() !== "" && Number.isFinite(marginDecimal)
-      ? calculateBreakEvenMer(marginDecimal)
-      : marginConfirmed
-        ? breakEvenMer
-        : null;
-
   return (
     <s-page heading={shotMode ? undefined : "Settings"} inlineSize="base">
       <div
@@ -400,8 +363,8 @@ export default function SettingsPage() {
           <div>
             <p className="mcfly-topbar__def mcfly-topbar__def--solo">
               This page is your target {PRODUCT_NOUN.totalRoas}, Sample |
-              Live, and billing — not reports. Profit margin is optional —
-              only if you want break-even. SAMPLE dollars do not transfer.
+              Live, and billing — not reports. SAMPLE dollars do not
+              transfer.
             </p>
           </div>
         </header>
@@ -427,26 +390,15 @@ export default function SettingsPage() {
                 ? "Loading Sample data through today…"
                 : sampleBusy
                   ? "Switching Sample data | Live data…"
-                  : "Saving target and optional margin…"}
+                  : "Saving target…"}
             </p>
           </section>
-        ) : null}
-
-        {marginStale && !shotMode ? (
-          <s-banner tone="warning" heading="Reconfirm profit margin">
-            <s-paragraph>
-              Margin was last confirmed more than 90 days ago. Typical DTC
-              profit margin is 25–45% — reconfirm when COGS or AOV shifts.
-            </s-paragraph>
-          </s-banner>
         ) : null}
 
         {actionData?.success && !isSaving ? (
           <s-banner tone="success" heading="Saved">
             <s-paragraph>
-              {actionData.breakEvenMer != null
-                ? `Target updated. At ${formatPercent(actionData.marginPct ?? settings.marginPct)} margin, break-even is ${formatMer(actionData.breakEvenMer)}.`
-                : `Target ${PRODUCT_NOUN.totalRoas} updated. Profit margin stays optional — add it anytime for break-even.`}
+              {`Target ${PRODUCT_NOUN.totalRoas} updated.`}
               {hasLiveSpend
                 ? ` Open ${PRODUCT_NOUN.totalRoas} when ready.`
                 : " Next: add daily spend on Spend Upload."}
@@ -567,9 +519,7 @@ export default function SettingsPage() {
             </h2>
             <p className="mcfly-settings-template__copy">
               {PRODUCT_NOUN.definition}. Target is the operating goal (e.g. 4.0 =
-              $4 sales per $1 spend). Profit margin is optional — use average
-              contribution margin from AOV and cost of goods when you want
-              break-even on the desk.
+              $4 sales per $1 spend).
             </p>
           </aside>
 
@@ -577,7 +527,7 @@ export default function SettingsPage() {
             <div className="mcfly-panel__head">
               <h2>Desk targets</h2>
               <p className="mcfly-panel__muted">
-                Target required · margin optional
+                Target {PRODUCT_NOUN.totalRoas}
               </p>
             </div>
             <Form
@@ -585,7 +535,6 @@ export default function SettingsPage() {
               key={String(settings.updatedAt)}
               data-save-bar
               data-discard-confirmation
-              onReset={handleDiscard}
               aria-busy={isSaving || undefined}
             >
               <input type="hidden" name="salesBasis" value="total" />
@@ -597,7 +546,7 @@ export default function SettingsPage() {
                 }
               >
                 <legend className="mcfly-settings-fields__legend">
-                  Target {PRODUCT_NOUN.totalRoas} and optional margin
+                  Target {PRODUCT_NOUN.totalRoas}
                 </legend>
 
                 <div className="mcfly-settings-field">
@@ -623,43 +572,6 @@ export default function SettingsPage() {
                   <span id={targetHintId} className="mcfly-settings-field__hint">
                     Operating goal — e.g. 4.0 means $4 Shopify Total Sales per
                     $1 ad spend. Same field as Goals.
-                  </span>
-                </div>
-
-                <div className="mcfly-settings-field">
-                  <label
-                    className="mcfly-settings-field__label"
-                    htmlFor={marginFieldId}
-                  >
-                    Profit margin average{" "}
-                    <span className="mcfly-settings-field__optional">
-                      (optional)
-                    </span>
-                  </label>
-                  <input
-                    id={marginFieldId}
-                    className="mcfly-field mcfly-settings-field__input"
-                    name="marginPct"
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    max="100"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    aria-describedby={marginHintId}
-                    placeholder="e.g. 35"
-                    value={marginInput}
-                    onChange={(event) =>
-                      setMarginInput(event.currentTarget.value)
-                    }
-                  />
-                  <span id={marginHintId} className="mcfly-settings-field__hint">
-                    Completely optional. Contribution margin after product cost
-                    — roughly (AOV − average COGS) ÷ AOV. Typical DTC 25–45%.
-                    Leave blank to skip break-even.
-                    {previewBreakEven != null
-                      ? ` Break-even preview: ${formatMer(previewBreakEven)}.`
-                      : ""}
                   </span>
                 </div>
 

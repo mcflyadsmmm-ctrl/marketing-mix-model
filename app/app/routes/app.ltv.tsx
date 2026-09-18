@@ -240,9 +240,10 @@ export default function LtvPage() {
   const retCount = custOk ? metrics.returningCustomers : 0;
   const knownBuyers = newCount + retCount;
   const hasSpend = metrics.totalSpend > 0;
-  const marginNote = marginConfirmed
-    ? `After ${pct(metrics.marginPct)} margin from Settings.`
-    : `After ${pct(metrics.marginPct)} margin — the default until you confirm in Settings.`;
+  const showMarginKept = marginConfirmed || useSampleDesk;
+  const marginNote = showMarginKept
+    ? `After ${pct(metrics.marginPct)} margin.`
+    : "";
 
   const cashCac = isNum(ltv.cashCac)
     ? ltv.cashCac
@@ -320,7 +321,7 @@ export default function LtvPage() {
       k: "First year",
       v: formatCurrency(ltv.avgRevenueD365, currency),
       d: PRODUCT_NOUN.ltv365Def,
-      ...(hasSpend && contrib365 != null
+      ...(hasSpend && showMarginKept && contrib365 != null
         ? { x: [`${formatCurrency(contrib365, currency)} kept. ${marginNote}`] }
         : {}),
     });
@@ -346,7 +347,7 @@ export default function LtvPage() {
    * these show, but they never lead ahead of the order-revenue windows above.
    */
   const economicsRows: LtvRow[] = [];
-  if (contrib90 != null && hasSpend) {
+  if (showMarginKept && contrib90 != null && hasSpend) {
     economicsRows.push({
       k: "Kept after margin",
       v: formatCurrency(contrib90, currency),
@@ -375,7 +376,7 @@ export default function LtvPage() {
       k: "Value vs cost",
       v: `${ltv.ltvCacRatio.toFixed(2)}×`,
       d: "First 90 days of revenue ÷ Cash CAC. An average, not a causal claim.",
-      ...(contribRatio != null
+      ...(showMarginKept && contribRatio != null
         ? { x: [`${contribRatio.toFixed(2)}× after margin.`] }
         : {}),
     });

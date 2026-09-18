@@ -57,7 +57,6 @@ export const DESK_FEATURE_BULLETS = [
   "Whole desk: Spend, Overview, Channel Allocation, LTV, Goals",
   "Every named platform plus extras like billboard",
   "Total ROAS = Shopify sales ÷ the spend you add",
-  "Break-even from optional profit margin",
   "Customer LTV and payback on your store",
   "Full-year Goals board",
   "Sample data to click around before Live data",

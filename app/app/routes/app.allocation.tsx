@@ -411,7 +411,6 @@ export default function AllocationPage() {
         : "Add spend on Spend Upload, then come back for mix."
     : null;
 
-  const zeroMargin = !allocation && metrics.breakEvenMer == null && !shotMode;
   const channelRows = allocation
     ? buildPeriodChannelRows(allocation.inputs.channelEfficiencies)
     : buildPeriodChannelRowsFromMix(metrics.channelMix);
@@ -510,23 +509,6 @@ export default function AllocationPage() {
           </section>
         ) : null}
 
-        {zeroMargin ? (
-          <section
-            className="mcfly-state mcfly-state--warn mcfly-state--soft"
-            aria-label="Break-even margin required"
-          >
-            <p className="mcfly-state__copy">
-              Set profit margin so {PRODUCT_NOUN.breakEvenTotalRoas} can lock.{" "}
-              {PRODUCT_NOUN.mondayCall}.
-            </p>
-            <div className="mcfly-state__cta">
-              <s-button href="/app/settings" variant="primary">
-                Open Settings
-              </s-button>
-            </div>
-          </section>
-        ) : null}
-
         {cashLocked && lockCopy ? (
           <section
             className="mcfly-state mcfly-state--warn mcfly-state--soft"
@@ -593,7 +575,6 @@ export default function AllocationPage() {
 
         {channelRows.length === 0 &&
         metrics.totalSpend <= 0 &&
-        !zeroMargin &&
         !cashLocked &&
         !salesError ? (
           <section
@@ -671,7 +652,7 @@ function periodTakeaway(input: {
   }
   const vs =
     input.breakEvenMer == null
-      ? "Set margin in Settings for break-even."
+      ? "Sales ÷ spend."
       : input.mer >= input.breakEvenMer
         ? "Covering break-even."
         : "Below break-even.";
@@ -683,7 +664,7 @@ function vsBreakEvenLine(
   breakEvenMer: number | null,
 ): string {
   if (mer == null) return "Sales ÷ spend";
-  if (breakEvenMer == null) return "Sales ÷ spend · set margin for break-even";
+  if (breakEvenMer == null) return "Sales ÷ spend";
   const gap = mer - breakEvenMer;
   if (Math.abs(gap) < 0.005) {
     return `At break-even ${formatMer(breakEvenMer)}×`;
