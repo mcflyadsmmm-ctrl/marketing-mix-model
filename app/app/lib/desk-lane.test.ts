@@ -65,8 +65,8 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
   it("keeps the sales-five paint order and ranks the stacks", () => {
     const order = [
       'rank="first"',
-      "<OverviewYoyCards",
       "<OverviewFirstViewport",
+      "<OverviewYoyCards",
       'rank="next" label="Mix and month close"',
       "<OverviewMixForecast",
       "<ShareableInsightCards",
@@ -81,7 +81,7 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
       expect(order[i]!).toBeGreaterThan(order[i - 1]!);
     }
     expect(overview).toContain("<DeskLane");
-    expect(overview).toContain('label="This month vs last year"');
+    expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
     expect(overview).toContain('label="More order detail"');
     expect(overview).toContain("defaultOpen={shotMode}");
     expect(overview).not.toContain("<details");

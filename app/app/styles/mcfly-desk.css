@@ -13185,6 +13185,30 @@ button.mcfly-chart__month {
   margin: 0 0 0.5rem;
 }
 
+.mcfly-score .mcfly-score__greeting {
+  margin: 0 0 0.45rem;
+  font-size: 0.98rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
+  color: var(--mcfly-ink);
+  text-transform: none;
+}
+
+.mcfly-score .mcfly-score__trust {
+  margin: -0.15rem 0 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+  text-transform: none;
+}
+
+.mcfly-score .mcfly-kpi-grid--peeks-handoff {
+  margin-top: 0.15rem;
+}
+
 .mcfly-score .mcfly-kpi-grid--peeks {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;

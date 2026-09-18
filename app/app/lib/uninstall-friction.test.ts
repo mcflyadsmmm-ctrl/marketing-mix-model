@@ -20,7 +20,7 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
 
   it("1) Overview still ranks Look here first — pending does not add a peek graveyard", () => {
     expect(overview).toContain('rank="first"');
-    expect(overview).toContain('label="This month vs last year"');
+    expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
     expect(overview).toContain("<OverviewYoyCards");
     expect(firstView).toContain("if (salesPending)");
     expect(firstView).toContain("fill as closed days land");

@@ -18,8 +18,8 @@ const css = read("../styles/mcfly-desk.css");
 describe("Overview mix + month close — habit, not a dump", () => {
   it("sits after the glance peeks and before the sales chart", () => {
     const order = [
-      "<OverviewYoyCards",
       "<OverviewFirstViewport",
+      "<OverviewYoyCards",
       "<OverviewMixForecast",
       "<ShareableInsightCards",
       "<OverviewSalesChart",

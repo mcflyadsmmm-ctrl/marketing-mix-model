@@ -3,17 +3,26 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  OVERVIEW_ANALYTICS_CONTRAST,
   OVERVIEW_COVERAGE_LINE,
+  OVERVIEW_FIRST_FOLD_HEROES,
+  OVERVIEW_FIRST_LANE_LABEL,
   OVERVIEW_LIVE_HANDOFF_BODY,
   OVERVIEW_PENDING_ASOF,
   OVERVIEW_PENDING_LINE,
   OVERVIEW_SALES_ONLY_LINE,
+  OVERVIEW_THIN_EMPTY_LINE,
+  OVERVIEW_WINBACK_PAD_DAYS,
   overviewBusiestWeekday,
   overviewGreetingPending,
+  overviewHandoffPeeks,
+  overviewHeroBeatsShopifyAnalytics,
   overviewNoticeSentence,
+  overviewOperatorGreeting,
   overviewPeekThird,
   overviewReturningCompactDollars,
   overviewWeekendWeekday,
+  overviewWinBackDay,
 } from "./overview-first-viewport";
 
 /**
@@ -114,7 +123,7 @@ describe("overview first viewport", () => {
     expect(OVERVIEW_PENDING_ASOF).toMatch(/not \$0/);
   });
 
-  it("Overview home is YoY cards, then Shopify peeks, then sales charts", () => {
+  it("Overview home is Mcfly peeks, then YoY cards, then sales charts", () => {
     const overview = read("../routes/app._index.tsx");
     const yoyAt = overview.indexOf("<OverviewYoyCards");
     const viewportAt = overview.indexOf("<OverviewFirstViewport");
@@ -123,9 +132,9 @@ describe("overview first viewport", () => {
     const chartAt = overview.indexOf("<OverviewSalesChart");
     const depthAt = overview.indexOf("<OverviewDepthPeeks");
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
-    expect(yoyAt).toBeGreaterThan(-1);
-    expect(viewportAt).toBeGreaterThan(yoyAt);
-    expect(mixAt).toBeGreaterThan(viewportAt);
+    expect(viewportAt).toBeGreaterThan(-1);
+    expect(yoyAt).toBeGreaterThan(viewportAt);
+    expect(mixAt).toBeGreaterThan(yoyAt);
     expect(shareAt).toBeGreaterThan(mixAt);
     expect(chartAt).toBeGreaterThan(shareAt);
     expect(depthAt).toBeGreaterThan(chartAt);
@@ -194,7 +203,7 @@ describe("overview first viewport", () => {
   it("first viewport is YoY peeks + order KPIs, never a ROAS hero", () => {
     const firstView = read("../components/OverviewFirstViewport.tsx");
     expect(firstView).toContain(OVERVIEW_COVERAGE_LINE.slice(0, 8));
-    expect(firstView).toContain("mcfly-scoreboard__kicker");
+    expect(firstView).toContain("mcfly-score__greeting");
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
     expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
@@ -214,6 +223,13 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("Returning");
     expect(firstView).toContain("mixGreeting");
     expect(firstView).toContain("newSales");
+    expect(firstView).toContain("overviewOperatorGreeting");
+    expect(firstView).toContain("mcfly-score__greeting");
+    expect(firstView).toContain("Days to second");
+    expect(firstView).toContain("New-buyer worth");
+    expect(firstView).toContain("Month close");
+    expect(firstView).toContain("OVERVIEW_THIN_EMPTY_LINE");
+    expect(firstView).not.toContain("mcfly-scoreboard__kicker--sr");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
     expect(firstView).not.toContain("Upload Spend");
@@ -425,5 +441,116 @@ describe("overviewBusiestWeekday", () => {
         windowSales: 68_457,
       }),
     ).toBeNull();
+  });
+});
+
+describe("overviewOperatorGreeting", () => {
+  it("leads with typical order, returning $, and weekends vs Analytics", () => {
+    expect(
+      overviewOperatorGreeting({
+        salesPending: false,
+        orderCount: 1184,
+        typicalOrderLabel: "$631",
+        returningSalesShare: 0.66,
+        weekendSalesShare: 0.23,
+      }),
+    ).toBe(
+      "Typical order around $631. Returning buyers carry 66% of sales. Weekends are 23%. Shopify Analytics Overview is Total Sales and a returning-customer rate.",
+    );
+    expect(OVERVIEW_ANALYTICS_CONTRAST).not.toMatch(/sessions|ROAS|spend/i);
+    expect(OVERVIEW_FIRST_LANE_LABEL).toMatch(/Typical order/);
+    expect(OVERVIEW_THIN_EMPTY_LINE).toMatch(/not \$0/);
+  });
+
+  it("does not greet thin or pending shops as a Total Sales scoreboard", () => {
+    expect(
+      overviewOperatorGreeting({
+        salesPending: true,
+        orderCount: 0,
+        typicalOrderLabel: null,
+        returningSalesShare: null,
+        weekendSalesShare: null,
+      }),
+    ).toBe(OVERVIEW_PENDING_LINE);
+    expect(
+      overviewOperatorGreeting({
+        salesPending: false,
+        orderCount: 0,
+        typicalOrderLabel: null,
+        returningSalesShare: null,
+        weekendSalesShare: null,
+      }),
+    ).toBe("No orders in this window yet.");
+  });
+});
+
+describe("overviewHandoffPeeks", () => {
+  it("seals days-to-second, LTV, and month close — never a fake $0 row", () => {
+    expect(overviewWinBackDay(18)).toBe(18 + OVERVIEW_WINBACK_PAD_DAYS);
+    expect(overviewWinBackDay(null)).toBeNull();
+    expect(
+      overviewHandoffPeeks({
+        medianDaysToSecond: 18,
+        ltvPeek: 380,
+        ltvPeekDays: 90,
+        monthClose: 128_363,
+        monthCloseRemainingDays: 14,
+        monthCloseClosed: false,
+      }),
+    ).toEqual([
+      { kind: "daysToSecond", days: 18, winBack: 33 },
+      { kind: "ltvPeek", amount: 380, windowDays: 90 },
+      {
+        kind: "monthClose",
+        projected: 128_363,
+        remainingDays: 14,
+        closed: false,
+      },
+    ]);
+    expect(
+      overviewHandoffPeeks({
+        medianDaysToSecond: null,
+        ltvPeek: 720,
+        ltvPeekDays: 365,
+        historyLimited: true,
+        monthClose: 0,
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("Overview first-fold SCORECARD vs free Shopify Analytics", () => {
+  it("PASS only when every first-fold hero is Mcfly-differentiated", () => {
+    expect([...OVERVIEW_FIRST_FOLD_HEROES]).toEqual([
+      "typicalOrder",
+      "returningDollars",
+      "weekendWeekday",
+      "yoySameDays",
+      "newVsReturningMix",
+      "daysToSecond",
+      "orderLtvPeek",
+      "monthClosePeek",
+    ]);
+    for (const hero of OVERVIEW_FIRST_FOLD_HEROES) {
+      expect(overviewHeroBeatsShopifyAnalytics(hero)).toBe(true);
+    }
+    const overview = read("../routes/app._index.tsx");
+    const firstView = read("../components/OverviewFirstViewport.tsx");
+    expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
+    expect(overview).toContain("ltvPeek={ltvPeek?.amount ?? null}");
+    expect(overview).toContain("monthClose={mixView.forecast?.projected ?? null}");
+    expect(firstView).toContain("Days to second");
+    expect(firstView).toContain("New-buyer worth");
+    expect(firstView).toContain("Month close");
+    expect(firstView).toContain("overviewOperatorGreeting");
+    expect(firstView).not.toContain('label="Total Sales"');
+    expect(firstView).not.toContain("Sessions");
+    const fixture = read("./desk-phone-fixture.html");
+    expect(fixture).toContain("mcfly-score__greeting");
+    expect(fixture).toContain("Typical order around $631");
+    expect(fixture).toContain("Shopify Analytics Overview is Total Sales");
+    expect(fixture.indexOf("Typical order around $631")).toBeLessThan(
+      fixture.indexOf('aria-label="Sales versus last year"'),
+    );
   });
 });

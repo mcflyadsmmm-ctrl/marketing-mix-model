@@ -270,8 +270,8 @@ describe("Sample data | Live data UX", () => {
     expect(overview).toContain("<OverviewYoyCards");
     expect(overview).toContain("<OverviewFirstViewport");
     expect(overview).toContain("<OverviewSalesChart");
-    expect(overview.indexOf("<OverviewYoyCards")).toBeLessThan(
-      overview.indexOf("<OverviewFirstViewport"),
+    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+      overview.indexOf("<OverviewYoyCards"),
     );
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<ShopifyBookSection");
