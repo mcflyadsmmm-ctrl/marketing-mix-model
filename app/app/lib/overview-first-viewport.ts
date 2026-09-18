@@ -13,6 +13,36 @@ export const OVERVIEW_COVERAGE_LINE =
 export const OVERVIEW_PENDING_LINE =
   "Sales for closed days are still loading — not $0.";
 
+/** First-lane label — Mcfly-only heroes, not a Total Sales scoreboard. */
+export const OVERVIEW_FIRST_LANE_LABEL =
+  "Typical order, returning $, weekends";
+
+/**
+ * Uninstall-killer contrast. Shopify Analytics Overview is Total Sales +
+ * a returning-customer *rate*. Mcfly is dollars, typical ticket, weekends.
+ */
+export const OVERVIEW_ANALYTICS_CONTRAST =
+  "Shopify Analytics Overview is Total Sales and a returning-customer rate.";
+
+export const OVERVIEW_THIN_EMPTY_LINE =
+  "Typical order, returning $, and weekends fill after paid orders land — not $0.";
+
+/** Same pad as Growth / Customers — peek only; full clock stays on Growth. */
+export const OVERVIEW_WINBACK_PAD_DAYS = 15;
+
+export const OVERVIEW_FIRST_FOLD_HEROES = [
+  "typicalOrder",
+  "returningDollars",
+  "weekendWeekday",
+  "yoySameDays",
+  "newVsReturningMix",
+  "daysToSecond",
+  "orderLtvPeek",
+  "monthClosePeek",
+] as const;
+
+export type OverviewFirstFoldHero = (typeof OVERVIEW_FIRST_FOLD_HEROES)[number];
+
 /** Overview as-of chip — never “still loading sales days” next to a sealed $0. */
 export const OVERVIEW_PENDING_ASOF = " · still loading — not $0";
 
@@ -37,6 +67,30 @@ export type OverviewTakeawayInput = {
   salesPending: boolean;
   orderCount: number;
 };
+
+export type OverviewOperatorGreetingInput = {
+  salesPending: boolean;
+  orderCount: number;
+  typicalOrderLabel: string | null;
+  returningSalesShare: number | null;
+  weekendSalesShare?: number | null;
+};
+
+export type OverviewLtvPeekDays = 30 | 90 | 365;
+
+export type OverviewHandoffPeek =
+  | { kind: "daysToSecond"; days: number; winBack: number }
+  | {
+      kind: "ltvPeek";
+      amount: number;
+      windowDays: OverviewLtvPeekDays;
+    }
+  | {
+      kind: "monthClose";
+      projected: number;
+      remainingDays: number;
+      closed: boolean;
+    };
 
 export type OverviewGreetingInput = {
   salesPending: boolean;
@@ -130,6 +184,148 @@ export function overviewNoticeSentence(input: OverviewNoticeInput): string {
     return `${wholePercent(input.discountedOrderShare)}% of orders used a discount.`;
   }
   return OVERVIEW_SALES_ONLY_LINE;
+}
+
+/**
+ * Uninstall-killer greeting — typical order, returning $, weekends.
+ * Never a Total Sales-only scoreboard Shopify already shows.
+ */
+export function overviewOperatorGreeting(
+  input: OverviewOperatorGreetingInput,
+): string {
+  if (input.salesPending) {
+    return OVERVIEW_PENDING_LINE;
+  }
+  if (!(input.orderCount > 0)) {
+    return "No orders in this window yet.";
+  }
+  const typical = input.typicalOrderLabel
+    ? `Typical order around ${input.typicalOrderLabel}.`
+    : null;
+  const returning =
+    input.returningSalesShare != null &&
+    Number.isFinite(input.returningSalesShare)
+      ? `Returning buyers carry ${wholePercent(input.returningSalesShare)}% of sales.`
+      : null;
+  const weekend = overviewWeekendWeekday(input.weekendSalesShare);
+  const weekendLine = weekend ? `Weekends are ${weekend.weekendPct}%.` : null;
+  const parts = [typical, returning, weekendLine].filter(
+    (part): part is string => part != null,
+  );
+  if (parts.length === 0) {
+    return OVERVIEW_ANALYTICS_CONTRAST;
+  }
+  return `${parts.join(" ")} ${OVERVIEW_ANALYTICS_CONTRAST}`;
+}
+
+/**
+ * PASS only when the first-fold hero is Mcfly-differentiated — not a free
+ * Shopify Analytics Overview clone (Total Sales, sessions, returning rate).
+ */
+export function overviewHeroBeatsShopifyAnalytics(
+  hero: OverviewFirstFoldHero,
+): boolean {
+  switch (hero) {
+    case "typicalOrder":
+    case "returningDollars":
+    case "weekendWeekday":
+    case "yoySameDays":
+    case "newVsReturningMix":
+    case "daysToSecond":
+    case "orderLtvPeek":
+    case "monthClosePeek":
+      return true;
+    default: {
+      const _never: never = hero;
+      return _never;
+    }
+  }
+}
+
+/** Win-back peek = typical wait + 15. Null until a real days-to-second exists. */
+export function overviewWinBackDay(
+  medianDaysToSecond?: number | null,
+): number | null {
+  if (
+    medianDaysToSecond == null ||
+    !Number.isFinite(medianDaysToSecond) ||
+    medianDaysToSecond <= 0
+  ) {
+    return null;
+  }
+  return Math.round(medianDaysToSecond) + OVERVIEW_WINBACK_PAD_DAYS;
+}
+
+/**
+ * Second-row peeks — days-to-second / win-back, order LTV, month close.
+ * Missing truths stay off the row — never a fake $0 graveyard.
+ */
+export function overviewHandoffPeeks(input: {
+  medianDaysToSecond?: number | null;
+  ltvPeek?: number | null;
+  ltvPeekDays?: OverviewLtvPeekDays | null;
+  historyLimited?: boolean;
+  monthClose?: number | null;
+  monthCloseRemainingDays?: number | null;
+  monthCloseClosed?: boolean;
+}): OverviewHandoffPeek[] {
+  const peeks: OverviewHandoffPeek[] = [];
+  const days = input.medianDaysToSecond;
+  const winBack = overviewWinBackDay(days);
+  if (
+    days != null &&
+    Number.isFinite(days) &&
+    days > 0 &&
+    winBack != null
+  ) {
+    peeks.push({
+      kind: "daysToSecond",
+      days: Math.round(days),
+      winBack,
+    });
+  }
+  const worth = input.ltvPeek;
+  const windowDays = input.ltvPeekDays;
+  if (
+    worth != null &&
+    Number.isFinite(worth) &&
+    worth > 0 &&
+    (windowDays === 30 || windowDays === 90 || windowDays === 365)
+  ) {
+    if (!(windowDays === 365 && input.historyLimited)) {
+      peeks.push({ kind: "ltvPeek", amount: worth, windowDays });
+    }
+  }
+  const projected = input.monthClose;
+  if (projected != null && Number.isFinite(projected) && projected > 0) {
+    const remaining =
+      input.monthCloseRemainingDays != null &&
+      Number.isFinite(input.monthCloseRemainingDays)
+        ? Math.max(0, Math.trunc(input.monthCloseRemainingDays))
+        : 0;
+    peeks.push({
+      kind: "monthClose",
+      projected,
+      remainingDays: remaining,
+      closed: input.monthCloseClosed === true || remaining <= 0,
+    });
+  }
+  return peeks;
+}
+
+export function overviewLtvWindowLabel(days: OverviewLtvPeekDays): string {
+  switch (days) {
+    case 30:
+      return "first 30 days";
+    case 90:
+      return "first 90 days";
+    case 365:
+      return "first year";
+    default: {
+      const _exhaustive: never = days;
+      return _exhaustive;
+    }
+  }
 }
 
 /** Demo-desk takeaway — typical order + returning dollars, never an AI analyst. */

@@ -47,6 +47,7 @@ import {
 } from "../lib/desk-nav";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
+  OVERVIEW_FIRST_LANE_LABEL,
   OVERVIEW_LIVE_HANDOFF_BODY,
   OVERVIEW_PENDING_ASOF,
   overviewGreetingPending,
@@ -732,12 +733,7 @@ export default function Dashboard() {
                 className="mcfly-desk-anchor mcfly-scoreboard--overview"
                 id={DESK_SECTION.overview}
               >
-                <DeskLane rank="first" label="This month vs last year">
-                  <OverviewYoyCards
-                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
-                    salesPending={greetingPending}
-                    yoyHref={yoyHref}
-                  />
+                <DeskLane rank="first" label={OVERVIEW_FIRST_LANE_LABEL}>
                   <OverviewFirstViewport
                     orderCount={metrics.orderCount}
                     typicalOrder={metrics.shopifyDepth.medianAov}
@@ -756,9 +752,26 @@ export default function Dashboard() {
                     peakWeekday={metrics.shopifyDepth.peakWeekday}
                     weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
                     windowSales={metrics.sales}
+                    ltvPeek={ltvPeek?.amount ?? null}
+                    ltvPeekDays={ltvPeek?.days ?? null}
+                    ltvHistoryLimited={Boolean(
+                      !useSampleDesk &&
+                        (orderBackfillProgress?.historyLimited ||
+                          metrics.tillLtv.historyLimited),
+                    )}
+                    monthClose={mixView.forecast?.projected ?? null}
+                    monthCloseRemainingDays={
+                      mixView.forecast?.remainingDays ?? null
+                    }
+                    monthCloseClosed={mixView.forecast?.closed ?? false}
                     salesPending={greetingPending}
                     ordersHref={ordersHref}
                     useSampleDesk={useSampleDesk}
+                  />
+                  <OverviewYoyCards
+                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
+                    salesPending={greetingPending}
+                    yoyHref={yoyHref}
                   />
                 </DeskLane>
                 <DeskLane rank="next" label="Mix and month close">

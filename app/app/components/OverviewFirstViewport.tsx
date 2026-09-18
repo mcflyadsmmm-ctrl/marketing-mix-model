@@ -4,11 +4,16 @@ import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
-  OVERVIEW_COVERAGE_LINE,
   OVERVIEW_PENDING_LINE,
+  OVERVIEW_THIN_EMPTY_LINE,
   overviewBusiestWeekday,
+  overviewHandoffPeeks,
+  overviewLtvWindowLabel,
+  overviewOperatorGreeting,
   overviewReturningCompactDollars,
   overviewWeekendWeekday,
+  type OverviewHandoffPeek,
+  type OverviewLtvPeekDays,
 } from "../lib/overview-first-viewport";
 import { SAMPLE_OVERVIEW_DOOR } from "../lib/sample-live-handoff";
 import { useDeskCurrency } from "../lib/desk-currency";
@@ -29,6 +34,12 @@ export type OverviewPeekProps = {
   peakWeekday?: number | null;
   weekdaySalesShare?: number[] | null;
   windowSales?: number | null;
+  ltvPeek?: number | null;
+  ltvPeekDays?: OverviewLtvPeekDays | null;
+  ltvHistoryLimited?: boolean;
+  monthClose?: number | null;
+  monthCloseRemainingDays?: number | null;
+  monthCloseClosed?: boolean;
   salesPending: boolean;
   ordersHref: string;
   settingsHref?: string;
@@ -165,13 +176,73 @@ function useOverviewPeekValues({
   };
 }
 
+function handoffPeekCard(
+  peek: OverviewHandoffPeek,
+  currency: string,
+): {
+  to: string;
+  nextLabel: string;
+  next: string;
+  formulaBlock: string;
+  icon: DeskIconName;
+  label: string;
+  value: string;
+  sub?: string;
+  foot?: string;
+} {
+  switch (peek.kind) {
+    case "daysToSecond":
+      return {
+        to: "/app/growth",
+        nextLabel: `Open ${PRODUCT_NOUN.growthTitle}`,
+        next: "Open Growth for the habit clock and who to reach.",
+        formulaBlock:
+          "Typical wait is the median first→second gap. Win-back is that wait plus 15 days. Shopify Analytics Overview is a returning-customer rate.",
+        icon: "clock",
+        label: "Days to second",
+        value: `${peek.days}d`,
+        sub: `Reach around day ${peek.winBack}`,
+        foot: "Among buyers who came back. Guests stay out.",
+      };
+    case "ltvPeek":
+      return {
+        to: "/app/ltv",
+        nextLabel: PRODUCT_NOUN.openLtv,
+        next: "Open LTV for 30 / 90 / 365 and the written-out formula.",
+        formulaBlock: `Average dollars per new buyer in the ${overviewLtvWindowLabel(peek.windowDays)}. Observed order history — not an estimate.`,
+        icon: "sales",
+        label: "New-buyer worth",
+        value: formatCurrency(peek.amount, currency),
+        sub: overviewLtvWindowLabel(peek.windowDays),
+        foot: "Order history only. Refunds never invented.",
+      };
+    case "monthClose":
+      return {
+        to: "/app/customers",
+        nextLabel: `Open ${PRODUCT_NOUN.buyersTitle}`,
+        next: "Month close is so far plus remaining days × the typical day.",
+        formulaBlock: peek.closed
+          ? "This month is done. The close is so far — not remaining days times a typical day."
+          : "Month close = so far + remaining days × typical day. Typical day is the median of stored days with sales.",
+        icon: "chart",
+        label: "Month close",
+        value: formatCurrency(peek.projected, currency),
+        sub: peek.closed
+          ? "month done — so far"
+          : `${peek.remainingDays} days × typical day`,
+      };
+    default: {
+      const _never: never = peek;
+      return _never;
+    }
+  }
+}
+
 /**
- * Founder glance peeks under YoY — typical order, returning $, weekend.
- * SAMPLE Snowdevil is the craft canvas: paint the dense board (AOV ~$631,
- * YoY, returning $, weekend) and never thin this strip to match a live
- * store with fewer facts. Spend stays off Overview.
- * Depth peeks sit after the open sales chart so the first screen stays a
- * scoreboard, not a pamphlet.
+ * First-fold Mcfly peeks — typical order, returning $, weekend — then
+ * days-to-second / LTV / month-close handoffs. SAMPLE Snowdevil is the
+ * craft canvas. Spend stays off Overview. YoY sits beside this board.
+ * Depth peeks stay after the open sales chart.
  */
 export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Shopify sales this period",
@@ -183,6 +254,7 @@ export function OverviewFirstViewport({
   ...rest
 }: OverviewPeekProps) {
   const {
+    currency,
     typicalIsMedian,
     returningValue,
     returningShare,
@@ -195,20 +267,38 @@ export function OverviewFirstViewport({
     useSampleDesk,
     salesPending,
   });
-  const kicker = salesPending
+  const typicalLabel =
+    salesPending || typicalCardValue === "—" ? null : typicalCardValue;
+  const greeting = salesPending
     ? OVERVIEW_PENDING_LINE
-    : useSampleDesk
-      ? SAMPLE_OVERVIEW_DOOR
-      : mixGreeting
-        ? mixGreeting
-        : orderCount > 0
-          ? OVERVIEW_COVERAGE_LINE
-          : "No orders in this window yet.";
+    : overviewOperatorGreeting({
+        salesPending: false,
+        orderCount,
+        typicalOrderLabel: typicalLabel,
+        returningSalesShare: rest.returningSalesShare,
+        weekendSalesShare: rest.weekendSalesShare,
+      });
+  const trust = useSampleDesk
+    ? SAMPLE_OVERVIEW_DOOR
+    : mixGreeting && mixGreeting !== greeting
+      ? mixGreeting
+      : null;
+  const handoffs = salesPending
+    ? []
+    : overviewHandoffPeeks({
+        medianDaysToSecond: rest.medianDaysToSecond,
+        ltvPeek: rest.ltvPeek,
+        ltvPeekDays: rest.ltvPeekDays,
+        historyLimited: rest.ltvHistoryLimited,
+        monthClose: rest.monthClose,
+        monthCloseRemainingDays: rest.monthCloseRemainingDays,
+        monthCloseClosed: rest.monthCloseClosed,
+      });
 
   if (salesPending) {
     return (
       <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
-        <p className="mcfly-scoreboard__kicker">{kicker}</p>
+        <p className="mcfly-score__greeting">{greeting}</p>
         <p className="mcfly-state__copy">
           Typical order, returning $, and weekend fill as closed days land —
           not $0.
@@ -217,17 +307,19 @@ export function OverviewFirstViewport({
     );
   }
 
+  if (!useSampleDesk && !(orderCount > 0)) {
+    return (
+      <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
+        <p className="mcfly-score__greeting">{greeting}</p>
+        <p className="mcfly-state__copy">{OVERVIEW_THIN_EMPTY_LINE}</p>
+      </section>
+    );
+  }
+
   return (
     <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
-      <p
-        className={
-          useSampleDesk && !salesPending
-            ? "mcfly-scoreboard__kicker mcfly-scoreboard__kicker--sr"
-            : "mcfly-scoreboard__kicker"
-        }
-      >
-        {kicker}
-      </p>
+      <p className="mcfly-score__greeting">{greeting}</p>
+      {trust ? <p className="mcfly-score__trust">{trust}</p> : null}
 
       <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
         <PeekCard
@@ -304,6 +396,28 @@ export function OverviewFirstViewport({
           }
         />
       </div>
+
+      {handoffs.length > 0 ? (
+        <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--peeks-handoff mcfly-kpi-grid--soft">
+          {handoffs.map((peek) => {
+            const card = handoffPeekCard(peek, currency);
+            return (
+              <PeekCard
+                key={peek.kind}
+                to={card.to}
+                nextLabel={card.nextLabel}
+                next={card.next}
+                formulaBlock={card.formulaBlock}
+                icon={card.icon}
+                label={card.label}
+                value={card.value}
+                sub={card.sub}
+                foot={card.foot}
+              />
+            );
+          })}
+        </div>
+      ) : null}
     </section>
   );
 }

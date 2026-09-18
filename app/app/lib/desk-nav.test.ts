@@ -157,7 +157,7 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(DESK_OVERVIEW_TABS).toEqual([]);
   });
 
-  it("Overview live chrome is shop, trust chips, YoY cards, then peeks + chart", () => {
+  it("Overview live chrome is shop, trust chips, Mcfly peeks, then YoY + chart", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
     expect(overview).toContain("mcfly-ctx__brand");
@@ -165,8 +165,8 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(overview).toContain("<OverviewYoyCards");
     expect(overview).toContain("<OverviewFirstViewport");
     expect(overview).toContain("<OverviewSalesChart");
-    expect(overview.indexOf("<OverviewYoyCards")).toBeLessThan(
-      overview.indexOf("<OverviewFirstViewport"),
+    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+      overview.indexOf("<OverviewYoyCards"),
     );
     expect(overview).not.toContain("<DeskOverviewTabs");
     expect(overview).not.toContain("<DeskWindowRail");

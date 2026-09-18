@@ -20,8 +20,8 @@ const css = read("../styles/mcfly-desk.css");
 describe("Shareable insight cards — habit, not a dump", () => {
   it("sits after mix/close and before the sales chart on Overview", () => {
     const order = [
-      "<OverviewYoyCards",
       "<OverviewFirstViewport",
+      "<OverviewYoyCards",
       "<OverviewMixForecast",
       "<ShareableInsightCards",
       "<OverviewSalesChart",

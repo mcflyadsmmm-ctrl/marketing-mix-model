@@ -6,7 +6,7 @@ import {
 } from "../lib/desk-lane";
 
 /**
- * Page-rank wrapper — eyebrow + label so YoY / mix / chart / depth
+ * Page-rank wrapper — eyebrow + label so peeks / YoY / mix / chart / depth
  * do not land as equal-weight stacks. Soft dense cards stay inside.
  * Fold uses a button, not a native disclosure, so LTV can rank without a FAQ.
  */

@@ -168,8 +168,8 @@ describe("Overview vs Shopify Analytics", () => {
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<DualCloseLine");
     expect(overview.indexOf("<OverviewYoyCards")).toBeGreaterThan(-1);
-    expect(overview.indexOf("<OverviewYoyCards")).toBeLessThan(
-      overview.indexOf("<OverviewFirstViewport"),
+    expect(overview.indexOf("<OverviewFirstViewport")).toBeLessThan(
+      overview.indexOf("<OverviewYoyCards"),
     );
   });
 });
