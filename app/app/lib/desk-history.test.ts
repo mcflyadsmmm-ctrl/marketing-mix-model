@@ -141,6 +141,7 @@ describe("Customers / Growth / Orders honesty wiring", () => {
       );
       expect(src).toContain("includeShopifyOrderWindow: true");
       expect(src).toContain("deskBookLede");
+      expect(src).toContain("orderBackfillProgress={");
     }
   });
 

@@ -12,8 +12,9 @@ export function UnlockFullHistoryBanner() {
       aria-label="Unlock full history"
     >
       <p className="mcfly-state__copy">
-        Live orders on this desk use the recent ~90 days. $39 per store / month
-        unlocks full order history — the price does not rise with sales.
+        <strong>Unlock full history.</strong> Live orders on this desk use the
+        recent ~90 days. $39 per store / month unlocks the rest — the price
+        does not rise with sales.
       </p>
       <div className="mcfly-state__cta">
         <ProUpgradeButton

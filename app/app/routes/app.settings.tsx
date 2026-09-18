@@ -491,11 +491,14 @@ export default function SettingsPage() {
                   ? PRODUCT_NOUN.sampleData
                   : PRODUCT_NOUN.liveData}
               </strong>
+              {useSampleDesk
+                ? " — Snowdevil example numbers, not this shop."
+                : " — this shop’s Shopify orders."}
               {sampleOnlyFreeze
-                ? " · Sample-only freeze"
+                ? " Live is parked until launch."
                 : samplePreviewAllowed
-                  ? " · Sample data option is available"
-                  : " · Sample data option is hidden"}
+                  ? " Sample data option is available."
+                  : " Sample data option is hidden."}
             </p>
             {!sampleOnlyFreeze ? (
               <div
@@ -557,6 +560,27 @@ export default function SettingsPage() {
                 )}
               </div>
             ) : null}
+          </section>
+        ) : null}
+
+        {!shotMode ? (
+          <section
+            className="mcfly-panel mcfly-settings-panel--soft"
+            style={{ marginTop: "1.25rem" }}
+            aria-label="Support"
+          >
+            <h2 className="mcfly-settings-template__heading">Need help?</h2>
+            <p className="mcfly-panel__muted">
+              Email a human — no ticket form. Sample data is Snowdevil, not
+              this shop. Live data is this shop’s orders.
+            </p>
+            <p className="mcfly-panel__muted" style={{ marginTop: "0.5rem" }}>
+              <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>
+              {" · "}
+              <s-link href={FLY_SUPPORT_URL} target="_blank">
+                Open Support
+              </s-link>
+            </p>
           </section>
         ) : null}
 
@@ -903,9 +927,13 @@ export default function SettingsPage() {
           <footer className="mcfly-settings-footer-help">
             <s-stack alignItems="center">
               <s-text>
-                Learn more about{" "}
+                Stuck? Email{" "}
+                <s-link href="mailto:mcflyadsmmm@gmail.com">
+                  mcflyadsmmm@gmail.com
+                </s-link>
+                {" or "}
                 <s-link href={FLY_SUPPORT_URL} target="_blank">
-                  {PRODUCT_NOUN.totalRoas} support
+                  Open Support
                 </s-link>
                 .
               </s-text>

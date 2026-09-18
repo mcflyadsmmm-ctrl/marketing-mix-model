@@ -205,6 +205,18 @@ export function OverviewFirstViewport({
           ? OVERVIEW_COVERAGE_LINE
           : "No orders in this window yet.";
 
+  if (salesPending) {
+    return (
+      <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
+        <p className="mcfly-scoreboard__kicker">{kicker}</p>
+        <p className="mcfly-state__copy">
+          Typical order, returning $, and weekend fill as closed days land —
+          not $0.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
       <p

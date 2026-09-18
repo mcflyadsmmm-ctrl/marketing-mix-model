@@ -581,6 +581,31 @@ export default function Dashboard() {
     weekendSalesShare: metrics.shopifyDepth.weekendSalesShare,
   });
 
+  const salesFactsIncomplete =
+    !useSampleDesk &&
+    salesFactsCoverage != null &&
+    !salesFactsCoverage.complete &&
+    !salesFactsCoverage.periodExceedsFactWindow &&
+    salesFactsCoverage.expectedClosedDays > 0
+      ? {
+          factDays: salesFactsCoverage.factDays,
+          expectedClosedDays: salesFactsCoverage.expectedClosedDays,
+        }
+      : null;
+  const orderProgressInput =
+    !useSampleDesk && orderBackfillProgress
+      ? {
+          completeDays: orderBackfillProgress.completeDays,
+          windowDays: orderBackfillProgress.windowDays,
+          remainingDays: orderBackfillProgress.remainingDays,
+        }
+      : null;
+  const syncNeedsTop =
+    greetingPending ||
+    salesFactsIncomplete != null ||
+    Boolean(orderProgressInput && orderProgressInput.remainingDays > 0) ||
+    Boolean(orderBackfillProgress?.truncated);
+
   const trustBanners = (
     <CashTrustBanners
       blockedMockAsLive={Boolean(metrics.blockedMockAsLive)}
@@ -591,18 +616,9 @@ export default function Dashboard() {
         (Boolean(salesFactsCoverage?.periodExceedsFactWindow) ||
           periodMayExceedShopifyOrderWindow(metrics.period))
       }
-      salesFactsIncomplete={
-        !useSampleDesk &&
-        (metrics.orderCount > 0 || metrics.sales > 0) &&
-        salesFactsCoverage != null &&
-        !salesFactsCoverage.complete &&
-        !salesFactsCoverage.periodExceedsFactWindow
-          ? {
-              factDays: salesFactsCoverage.factDays,
-              expectedClosedDays: salesFactsCoverage.expectedClosedDays,
-            }
-          : null
-      }
+      salesFactsIncomplete={salesFactsIncomplete}
+      hasSpend={Boolean(metrics.onboarding.hasSpend)}
+      orderBackfillProgress={orderProgressInput}
       todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
       todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
       orderFactsTruncated={
@@ -658,8 +674,8 @@ export default function Dashboard() {
           </s-banner>
         ) : null}
 
-        {/* Cold path: trust can sit above the one empty. Live ready: defer below KPIs. */}
-        {coldEmpty || (!scoreboardReady && !useSampleDesk)
+        {/* Pending / incomplete sync stays above the glance so whales see progress. */}
+        {syncNeedsTop || coldEmpty || (!scoreboardReady && !useSampleDesk)
           ? trustBanners
           : null}
 
@@ -777,25 +793,27 @@ export default function Dashboard() {
                   fold
                   defaultOpen={shotMode}
                 >
-                  <OverviewDepthPeeks
-                    orderCount={metrics.orderCount}
-                    typicalOrder={metrics.shopifyDepth.medianAov}
-                    meanAov={
-                      metrics.orderCount > 0
-                        ? metrics.sales / metrics.orderCount
-                        : null
-                    }
-                    typicalDay={metrics.shopifyDepth.medianDailySales}
-                    returningSalesShare={shopBook.returningSalesShare}
-                    returningSales={shopBook.returningSales}
-                    weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
-                    peakWeekday={metrics.shopifyDepth.peakWeekday}
-                    weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                    windowSales={metrics.sales}
-                    salesPending={greetingPending}
-                    ordersHref={ordersHref}
-                    useSampleDesk={useSampleDesk}
-                  />
+                  {!greetingPending ? (
+                    <OverviewDepthPeeks
+                      orderCount={metrics.orderCount}
+                      typicalOrder={metrics.shopifyDepth.medianAov}
+                      meanAov={
+                        metrics.orderCount > 0
+                          ? metrics.sales / metrics.orderCount
+                          : null
+                      }
+                      typicalDay={metrics.shopifyDepth.medianDailySales}
+                      returningSalesShare={shopBook.returningSalesShare}
+                      returningSales={shopBook.returningSales}
+                      weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                      peakWeekday={metrics.shopifyDepth.peakWeekday}
+                      weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
+                      windowSales={metrics.sales}
+                      salesPending={greetingPending}
+                      ordersHref={ordersHref}
+                      useSampleDesk={useSampleDesk}
+                    />
+                  ) : null}
                   {!greetingPending ? (
                     <WeekdaySalesChart
                       shares={metrics.shopifyDepth.weekdaySalesShare}
@@ -823,7 +841,7 @@ export default function Dashboard() {
               </div>
             ) : null}
 
-            {!coldEmpty && onHome ? trustBanners : null}
+            {!syncNeedsTop && !coldEmpty && onHome ? trustBanners : null}
           </>
         ) : null}
       </div>

@@ -472,6 +472,7 @@ export default function AllocationPage() {
             periodLabel={metrics.period.label}
             shopifyOrderWindowLimited={shopifyOrderWindowLimited}
             salesFactsIncomplete={salesFactsIncomplete}
+            hasSpend={metrics.totalSpend > 0}
             todaySalesTruncated={todaySalesTruncated}
             todaySalesUnavailable={todaySalesUnavailable}
             shotMode={shotMode}

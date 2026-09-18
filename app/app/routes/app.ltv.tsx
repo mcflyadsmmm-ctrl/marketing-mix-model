@@ -454,6 +454,15 @@ export default function LtvPage() {
       orderFactsTruncated={
         !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
       }
+      orderBackfillProgress={
+        !useSampleDesk && orderBackfillProgress
+          ? {
+              completeDays: orderBackfillProgress.completeDays,
+              windowDays: orderBackfillProgress.windowDays,
+              remainingDays: orderBackfillProgress.remainingDays,
+            }
+          : null
+      }
       todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
       todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}
       shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}
@@ -476,6 +485,8 @@ export default function LtvPage() {
           </div>
         </section>
       ) : null}
+
+      {liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner /> : null}
 
       <DeskLane rank="first" label="What a new buyer is worth">
       <section className="mcfly-book" aria-label="What new customers spend">
@@ -514,8 +525,6 @@ export default function LtvPage() {
             Not $0.
           </p>
         ) : null}
-
-        {liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner /> : null}
       </section>
       </DeskLane>
 
