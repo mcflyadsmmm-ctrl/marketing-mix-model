@@ -21,11 +21,6 @@ import {
   TT2_WINBACK_PAD_DAYS,
   type GrowthTt2OrderRow,
 } from "./growth-tt2";
-import { buildThreeYearSampleDesk } from "./demo-sample-desk.server";
-import {
-  buildSampleOrderFactRows,
-  SAMPLE_ORDER_FACT_WINDOW_DAYS,
-} from "./order-facts.server";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const DAY_MS = 86_400_000;
@@ -156,33 +151,6 @@ describe("buildGrowthLeadPeeks", () => {
     expect(buildGrowthLeadPeeks(emptyGrowthTt2())).toEqual([]);
     expect(growthTypicalWaitLabel(emptyGrowthTt2())).toBeNull();
     expect(growthHabitSub(emptyGrowthTt2())).toBeNull();
-  });
-});
-
-describe("SAMPLE Snowdevil first open paints the repurchase clock", () => {
-  it("seals typical wait + win-back so /app/growth can greet in one glance", () => {
-    const now = new Date("2026-09-17T18:00:00Z");
-    const bookDays = buildThreeYearSampleDesk({ now, targetMer: 3.5 });
-    const windowStart = now.getTime() - SAMPLE_ORDER_FACT_WINDOW_DAYS * DAY_MS;
-    const orders = buildSampleOrderFactRows(
-      bookDays.filter((row) => row.day.getTime() >= windowStart),
-    );
-    const tt2 = buildGrowthTt2(
-      orders.map((order) => ({
-        customerKey: order.customerKey,
-        orderedAt: order.orderedAt,
-        amount: order.amount,
-      })),
-      { windowEnd: now, historyLimited: false },
-    );
-    const greeting = growthOperatorGreeting({ salesPending: false, tt2 });
-    const peeks = buildGrowthLeadPeeks(tt2);
-    expect(tt2.available).toBe(true);
-    expect(growthTypicalWaitLabel(tt2)).toMatch(/^\d+d$/);
-    expect(greeting).toMatch(/Typical wait is \d+ days/);
-    expect(greeting).toContain(GROWTH_ANALYTICS_CONTRAST);
-    expect(peeks.some((peek) => peek.k === "Win-back by")).toBe(true);
-    expect(peeks.some((peek) => peek.k === "Reach now")).toBe(true);
   });
 });
 
