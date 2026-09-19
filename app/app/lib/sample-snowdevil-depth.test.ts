@@ -39,6 +39,11 @@ import {
   growthOperatorGreeting,
   growthTypicalWaitLabel,
 } from "./growth-first-viewport";
+import {
+  buildCustomersHero,
+  buildCustomersLeadPeeks,
+  customersOperatorGreeting,
+} from "./customers-first-viewport";
 import { buildGrowthTt2 } from "./growth-tt2";
 import { resolvePeriod, resolvePriorPeriod, type PeriodPreset } from "./periods";
 
@@ -261,6 +266,47 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     // SAMPLE has 4+ order whales; at least the slipping list or the designed empty.
     expect(rfm.watchlist.length > 0 || rfm.watchEmpty != null).toBe(true);
     expect(rfm.watchlist.every((row) => /^Whale \d+$/.test(row.label))).toBe(true);
+
+    const analytics = buildCustomerAnalytics(
+      orders.map((o) => ({
+        customerKey: o.customerKey,
+        orderedAt: o.orderedAt,
+        amount: o.amount,
+      })),
+      { windowEnd: now, historyWindowDays: SAMPLE_ORDER_FACT_WINDOW_DAYS },
+    );
+    const atRisk = rfm.segments.find((row) => row.key === "at_risk");
+    const greeting = customersOperatorGreeting({
+      salesPending: false,
+      orderCount: analytics.windowOrders,
+      identifiedBuyers: analytics.identifiedBuyers,
+      repurchaseTypicalDays: analytics.repurchaseTypicalDays,
+      whaleCount: rfm.watchlist.length,
+      atRiskBuyers: atRisk?.buyers ?? null,
+    });
+    const hero = buildCustomersHero(analytics, rfm);
+    const peeks = buildCustomersLeadPeeks(analytics, rfm);
+    expect(greeting).toMatch(/Shopify Analytics Customers is a customer list/);
+    expect(hero?.kind).toBe("rfmLite");
+    expect(hero?.v).not.toBe("$0");
+    expect(peeks.map((peek) => peek.hero)).toEqual(
+      expect.arrayContaining(["repurchaseClock", "winBack"]),
+    );
+    expect(peeks.every((peek) => peek.v !== "$0" && peek.v !== "0%")).toBe(true);
+    expect(greeting).toBe(
+      "Typical repurchase day 24. 8 whales to reach. At risk: 32. Shopify Analytics Customers is a customer list.",
+    );
+    expect(hero).toMatchObject({
+      kind: "rfmLite",
+      k: "RFM-lite · At risk",
+      v: "32",
+    });
+    expect(peeks.map((peek) => peek.v)).toEqual([
+      "8 to reach",
+      "Day 24",
+      "Day 39",
+      "152",
+    ]);
   });
 
   it("feeds Growth TT2: habit clock and still-waiting fall-off", () => {

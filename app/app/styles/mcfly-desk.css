@@ -13982,6 +13982,129 @@ button.mcfly-chart__month {
   color: var(--mcfly-ink);
 }
 
+.mcfly-scoreboard--customers .mcfly-book__lede {
+  margin: 0 0 0.55rem;
+}
+
+.mcfly-customers-hero {
+  margin: 0 0 0.65rem;
+  padding: 0.85rem 0.95rem 0.8rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.mcfly-score--customers-hero .mcfly-kpi-grid--peeks-lead {
+  margin-top: 0.15rem;
+}
+
+.mcfly-customers-hero__k {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-customers-hero__v {
+  margin: 0.2rem 0 0;
+  font-family: var(--mcfly-display);
+  font-size: clamp(2.15rem, 8.4vw, 3.15rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-customers-hero__sub,
+.mcfly-customers-hero__def {
+  margin: 0.4rem 0 0;
+  max-width: 42rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-customers-hero__sub {
+  font-weight: 650;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-customers-rfmband {
+  display: block;
+  width: 100%;
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.7rem 0.6rem;
+  border: 1px solid var(--mcfly-line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mcfly-accent-soft) 45%, #fff);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mcfly-customers-rfmband__track {
+  display: flex;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mcfly-line) 55%, #fff);
+  overflow: hidden;
+}
+
+.mcfly-customers-rfmband__seg {
+  display: block;
+  min-width: 0.4rem;
+  height: 100%;
+}
+
+.mcfly-customers-rfmband__seg--champions {
+  background: color-mix(in srgb, var(--mcfly-accent-ink, #0369a1) 78%, #fff);
+}
+
+.mcfly-customers-rfmband__seg--rising {
+  background: color-mix(in srgb, var(--mcfly-accent-ink, #0369a1) 48%, #cbd5e1);
+}
+
+.mcfly-customers-rfmband__seg--at_risk {
+  background: color-mix(in srgb, #b45309 62%, #e2e8f0);
+}
+
+.mcfly-customers-rfmband__seg--quiet {
+  background: #cbd5e1;
+}
+
+.mcfly-customers-rfmband__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  margin: 0.55rem 0 0;
+}
+
+.mcfly-customers-rfmband__tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.mcfly-customers-rfmband__tag-k {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-customers-rfmband__tag-v {
+  font-size: 0.82rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
 /* Ticket distribution band — median vs the average, drawn. */
 .mcfly-orders-band {
   display: block;
@@ -14307,19 +14430,23 @@ button.mcfly-chart__hour {
 
 @media (max-width: 430px) {
   .mcfly-orders-hero,
-  .mcfly-growth-hero {
+  .mcfly-growth-hero,
+  .mcfly-customers-hero {
     padding: 0.7rem 0.7rem 0.65rem;
   }
 
   .mcfly-orders-hero__v,
-  .mcfly-growth-hero__v {
+  .mcfly-growth-hero__v,
+  .mcfly-customers-hero__v {
     font-size: clamp(1.85rem, 11vw, 2.45rem);
   }
 
   .mcfly-orders-hero__sub,
   .mcfly-orders-hero__def,
   .mcfly-growth-hero__sub,
-  .mcfly-growth-hero__def {
+  .mcfly-growth-hero__def,
+  .mcfly-customers-hero__sub,
+  .mcfly-customers-hero__def {
     font-size: 0.74rem;
     line-height: 1.35;
   }
@@ -17764,12 +17891,14 @@ button.mcfly-depth-legend__chip--on {
 .mcfly-score--soft.mcfly-score--orders-hero,
 .mcfly-score--soft.mcfly-score--orders-depth,
 .mcfly-score--soft.mcfly-score--orders-timing,
-.mcfly-score--soft.mcfly-score--growth-hero {
+.mcfly-score--soft.mcfly-score--growth-hero,
+.mcfly-score--soft.mcfly-score--customers-hero {
   gap: 0.55rem;
 }
 
 .mcfly-orders-hero--soft,
-.mcfly-growth-hero--soft {
+.mcfly-growth-hero--soft,
+.mcfly-customers-hero--soft {
   background: color-mix(in srgb, var(--mcfly-accent-soft) 28%, #fff);
   border: 1px solid color-mix(in srgb, var(--mcfly-line) 80%, #fff);
   border-radius: 16px;
@@ -18056,6 +18185,7 @@ ul.mcfly-chart__stats--soft .mcfly-chart__stat {
 
   .mcfly-orders-hero--soft,
   .mcfly-growth-hero--soft,
+  .mcfly-customers-hero--soft,
   .mcfly-yoy-board--soft,
   .mcfly-yoy-chan--soft {
     padding: 0.7rem 0.75rem 0.85rem;

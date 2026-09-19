@@ -63,6 +63,7 @@ describe("Shopify five books are visible cards", () => {
   });
 
   it("Customers keeps returning dollars and an honest empty — no buyers book dump", () => {
+    expect(customers).toContain("<CustomersFirstViewport");
     expect(customers).toContain("<CustomerMixChart");
     expect(customers).toContain("<CustomerRetentionBoard");
     expect(customers).toContain("<CustomerWhaleWatch");
