@@ -913,7 +913,7 @@ export default function GoalsPage() {
         </div>
 
         {!shotMode ? (
-          <details open className="mcfly-details mcfly-goals-plan-details mcfly-goals-plan-details--soft">
+          <details className="mcfly-details mcfly-goals-plan-details mcfly-goals-plan-details--soft">
             <summary>Monthly board · fine-tune</summary>
 
             <div className="mcfly-goals-toggle-bar" aria-label="Show sales goals">

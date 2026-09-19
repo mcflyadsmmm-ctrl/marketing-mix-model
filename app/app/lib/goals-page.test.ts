@@ -62,4 +62,16 @@ describe("Goals page", () => {
       goals.indexOf("mcfly-goals-hero--soft"),
     );
   });
+
+  it("keeps the monthly 12-month board collapsed until expand", () => {
+    expect(goals).toContain(
+      '<details className="mcfly-details mcfly-goals-plan-details mcfly-goals-plan-details--soft">',
+    );
+    expect(goals).not.toMatch(
+      /<details\s+open\b[^>]*mcfly-goals-plan-details/,
+    );
+    expect(goals).toContain("Monthly board · fine-tune");
+    expect(goals).toContain('aria-label="Monthly plan"');
+    expect(goals).toContain("Show 12-month sales plan");
+  });
 });
