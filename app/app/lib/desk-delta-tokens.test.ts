@@ -31,6 +31,12 @@ const DELTA_DOWN_SELECTORS = [
   ".mcfly-orders-intel__delta--down",
   ".mcfly-orders-ledger__delta--down",
   ".mcfly-chart__stat-delta--down",
+  // Polish FAIL #4 — Goals pace / table / bar missed by #103 sales-five
+  ".mcfly-goals-pace--down",
+  ".mcfly-goal-row__pace.mcfly-goals-pace--down",
+  ".mcfly-goals-table__row--down",
+  ".mcfly-goals-table__row--current.mcfly-goals-table__row--down",
+  ".mcfly-goals-month-bar__fill--down",
 ];
 
 function ruleBody(selector: string): string {
@@ -69,5 +75,22 @@ describe("desk delta tokens — green up, grey down", () => {
     );
     expect(scoreboard).toContain("mcfly-scoreboard__delta--up");
     expect(scoreboard).toContain("mcfly-scoreboard__delta--down");
+  });
+
+  it("keeps Goals pace / table / bar wins green — only downs go grey", () => {
+    expect(ruleBody(".mcfly-goals-pace--up")).toContain("var(--mcfly-truth)");
+    expect(ruleBody(".mcfly-goals-pace--up")).not.toContain("var(--mcfly-lie)");
+    expect(ruleBody(".mcfly-goal-row__pace.mcfly-goals-pace--up")).toContain(
+      "var(--mcfly-truth)",
+    );
+    expect(ruleBody(".mcfly-goals-table__row--up")).toContain(
+      "var(--mcfly-truth-soft)",
+    );
+    expect(ruleBody(".mcfly-goals-month-bar__fill--up")).toContain(
+      "var(--mcfly-truth)",
+    );
+    expect(ruleBody(".mcfly-goals-month-bar__fill--up")).not.toContain(
+      "var(--mcfly-lie)",
+    );
   });
 });
