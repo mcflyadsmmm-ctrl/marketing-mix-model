@@ -52,7 +52,7 @@ export function CustomerConcentrationChart({
       kicker: "Share of this window's sales",
       blocks: [{ k: "What this is", v: row.detail }],
       next: "The scoreboard above keeps the formula next to each number. LTV turns concentration into 30 / 90 / 365-day value.",
-      nextHref: "/app/ltv",
+      nextHref: "#mcfly-ltv",
       nextLabel: "Open LTV",
     });
 
@@ -97,7 +97,7 @@ export function CustomerConcentrationChart({
                 },
               ],
               next: "LTV shows what those top buyers are worth over 30 / 90 / 365 days.",
-              nextHref: "/app/ltv",
+              nextHref: "#mcfly-ltv",
               nextLabel: "Open LTV",
             })
           }

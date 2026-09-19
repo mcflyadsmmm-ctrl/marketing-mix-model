@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-19 · America/Denver · Site **v29** Pages `1a025e00` · Fly **395** · occupancy **0/4** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v29** · operator white KPI cards · live HTML Overview slices · `/demo` iframes Fly Remix SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **395** · `/health` 200 · public Remix `/demo` = Admin SAMPLE chrome, white cards, no session |
-| **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
+| **Updated** | 2026-09-19 · America/Denver · Site **v30** Pages `83cfac91` · Fly **396** · occupancy **0/4** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v30** · five analysis tabs plus Settings · operator white KPI cards · live HTML Overview slices · `/demo` iframes Fly Remix SAMPLE desk |
+| **Fly** | https://mcfly-analytics.fly.dev · version **396** · `/health` 200 · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings |
+| **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
@@ -91,7 +91,8 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **Ops smoke 2026-09-18** — site/demo/pricing/Fly `/health`/listing **5/5 PASS** · reviews **0** · journal [`ops/journal/STATUS_20260918_ops_smoke.md`](./ops/journal/STATUS_20260918_ops_smoke.md) · ads **NO** (gates 1 amber · 2–3 red · 4 green)
 - [x] **Site v28 + Fly 394** — sales page = live HTML Overview / spend / ROAS / Goals slices (not PNGs). `/demo` = Remix SAMPLE desk for listing stills. Pages `f2f6dba8`. Home lock $19,023 / $68,457 / 3.60×; Fly `/demo` rolls with the calendar.
 - [x] **Site v29 + Fly 395** — operator desk lock: white cards / navy ink / sky `#0284c7`. Charcoal marketing wells gone from Admin + live slices. Pages `1a025e00`. Journal [`ops/journal/STATUS_20260919_v29.md`](./ops/journal/STATUS_20260919_v29.md).
-- [ ] **Partner listing paste** — sales-first pack refreshed [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (YoY-first · 24mo · Live-only · honest MER). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v25** before paste.
+- [x] **Site v30 + Fly 396** — five analysis tabs plus Settings (fold never delete). Overview YoY year board · Customers returning $ + Growth/LTV · Spend MER + mix + CPA. Pages `83cfac91`. Journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md).
+- [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (Overview · Orders · Customers at $0 spend · Spend last · 24mo · Live-only · honest MER). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v30** before paste. Partner still says eleven until Save.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
 - [x] v11 app-first
@@ -109,9 +110,10 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v26 live** — demo P0 nav/ghost CTA · Amp 5/7 shot grid · Pages `4a154f4d` · journal [`ops/journal/STATUS_20260918_v26.md`](./ops/journal/STATUS_20260918_v26.md)
 - [x] **v27 live** — Opus v26 critic P0s · paper token · pricing ink · Pages `97dd9597` · journal [`ops/journal/STATUS_20260918_v27.md`](./ops/journal/STATUS_20260918_v27.md)
 - [x] **v29 live** — operator white KPI cards · Pages `1a025e00` · Fly **395** · journal [`ops/journal/STATUS_20260919_v29.md`](./ops/journal/STATUS_20260919_v29.md)
+- [x] **v30 live** — five analysis tabs · Pages `83cfac91` · Fly **396** · journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Occupancy **0/4**. Site **v29** · Fly **395**. **Marty:** Partner Save · recapture listing stills from **white** SAMPLE Snowdevil · reviews **0**. Ads **NO**.
+**Next:** Occupancy **0/4**. Marty Partner Save of five-tab listing paste + recapture listing stills from **Live Admin** (not SAMPLE `/demo`). Site **v30** · Fly **396**. Reviews **0**. Ads **NO**. Cursor does not Partner Submit.
 
 ---
 

@@ -16,13 +16,13 @@ const lib = read("./overview-mix-forecast.ts");
 const css = read("../styles/mcfly-desk.css");
 
 describe("Overview mix + month close — habit, not a dump", () => {
-  it("sits after the glance peeks and before the sales chart", () => {
+  it("sits after the sales chart in the mix-close fold", () => {
     const order = [
       "<OverviewFirstViewport",
       "<OverviewYoyCards",
+      "<OverviewSalesChart",
       "<OverviewMixForecast",
       "<ShareableInsightCards",
-      "<OverviewSalesChart",
       "<OverviewDepthPeeks",
       "<WeekdaySalesChart",
     ].map((tag) => overview.indexOf(tag));

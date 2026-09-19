@@ -6,11 +6,9 @@ import {
   DESK_OVERVIEW_TABS,
   DESK_PRIMARY_NAV,
   DESK_SECTION,
-  DESK_SCOREBOARD_NAV,
-  DESK_RETAIN_NAV,
-  DESK_SPEND_NAV,
   DESK_IFRAME_NAV,
   DESK_TOP_NAV,
+  compactDeskRedirect,
   deskNavHref,
   deskNavHrefFromSearch,
   deskStageFromHash,
@@ -19,6 +17,10 @@ import {
   isOverviewHomeStage,
   overviewSectionLocation,
 } from "./desk-nav";
+import {
+  DESK_PANEL_RAIL_BY_ADMIN_PATH,
+  deskPanelChipsForPath,
+} from "./desk-panel-rail";
 import { spendAddHref, SPEND_ADD_HREF } from "./number-honesty";
 
 describe("deskNavHref", () => {
@@ -54,32 +56,20 @@ describe("deskNavHref", () => {
 });
 
 describe("DESK_PRIMARY_NAV", () => {
-  it("Shopify five, then spend tools, then Goals and Settings", () => {
+  it("locks five analysis tabs then Settings — Spend not Spend Upload", () => {
     expect(DESK_PRIMARY_NAV.map((item) => item.label)).toEqual([
       "Overview",
-      "Customers",
-      "Growth",
       "Orders",
-      "LTV",
-      "Spend Upload",
-      "Total ROAS",
-      "Channel Allocation",
-      "YoY",
-      "CPA",
+      "Customers",
+      "Spend",
       "Goals",
       "Settings",
     ]);
     expect(DESK_PRIMARY_NAV.map((item) => item.path)).toEqual([
       "/app",
-      "/app/customers",
-      "/app/growth",
       "/app/orders",
-      "/app/ltv",
+      "/app/customers",
       "/app/spend",
-      "/app/roas",
-      "/app/allocation",
-      "/app/yoy",
-      "/app/cpa",
       "/app/goals",
       "/app/settings",
     ]);
@@ -89,47 +79,32 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain(
       "Marketing",
     );
-    expect(DESK_TOP_NAV.map((item) => item.label)).not.toContain("Settings");
-    expect(DESK_SCOREBOARD_NAV.map((item) => item.label)).toEqual([
-      "Overview",
-      "CPA",
-    ]);
-    expect(DESK_RETAIN_NAV.map((item) => item.label)).toEqual([
-      "Customers",
-      "Growth",
-      "Orders",
-      "LTV",
-    ]);
-    expect(DESK_SPEND_NAV.map((item) => item.label)).toEqual([
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain(
       "Spend Upload",
-      "Total ROAS",
+    );
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain("Growth");
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain("LTV");
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain("CPA");
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain("YoY");
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain(
       "Channel Allocation",
-      "YoY",
-      "Goals",
-    ]);
-    const grouped = [
-      ...DESK_SCOREBOARD_NAV,
-      ...DESK_RETAIN_NAV,
-      ...DESK_SPEND_NAV,
-    ].map((item) => item.path);
-    expect(DESK_IFRAME_NAV.map((item) => item.path)).toEqual(grouped);
+    );
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).not.toContain(
+      "Total ROAS",
+    );
+    expect(DESK_TOP_NAV.map((item) => item.label)).not.toContain("Settings");
+    expect(DESK_TOP_NAV).toHaveLength(5);
+    expect(DESK_IFRAME_NAV.map((item) => item.path)).toEqual(
+      DESK_TOP_NAV.map((item) => item.path),
+    );
     expect(DESK_IFRAME_NAV.map((item) => item.label)).toEqual([
       "Overview",
-      "CPA",
-      "Customers",
-      "Growth",
       "Orders",
-      "LTV",
-      "Spend Upload",
-      "Total ROAS",
-      "Channel Allocation",
-      "YoY",
+      "Customers",
+      "Spend",
       "Goals",
     ]);
-    expect(new Set(grouped).size).toBe(grouped.length);
-    expect(new Set(grouped)).toEqual(
-      new Set(DESK_TOP_NAV.map((item) => item.path)),
-    );
+    expect(DESK_IFRAME_NAV[1]?.label).toBe("Orders");
     expect(isDeskNavActive("/app", "/app")).toBe(true);
     expect(isDeskNavActive("/app", "/app/customers")).toBe(false);
     expect(isDeskNavActive("/app/customers", "/app/customers")).toBe(true);
@@ -142,11 +117,13 @@ describe("DESK_PRIMARY_NAV", () => {
     );
     expect(shell).toContain("<s-app-nav>");
     expect(shell).toContain("<DeskTopTabs");
+    expect(shell).toContain("5 analysis tabs + Settings");
     const tabs = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../components/DeskTopTabs.tsx"),
       "utf8",
     );
     expect(tabs).toContain("DESK_IFRAME_NAV");
+    expect(tabs).toContain("<DeskPanelRail");
     expect(tabs).toContain("<Link");
     expect(tabs).toContain("mcfly-desk-tabs--pills");
     expect(tabs).not.toContain("scrollIntoView");
@@ -154,6 +131,13 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(tabs).not.toContain('label="Scoreboard"');
     expect(tabs).not.toContain('label="Retain"');
     expect(tabs).toContain('aria-current={active ? "page" : undefined}');
+    const book = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../components/DeskBookPage.tsx"),
+      "utf8",
+    );
+    expect(book).toContain("useSearchParams");
+    expect(book).toContain("scrollIntoView({ block: \"start\" })");
+    expect(book).toContain("mcfly-${panel}");
   });
 
   it("puts spend tools on their own pages, not an Overview hash sitemap", () => {
@@ -200,5 +184,50 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(overviewSectionLocation(req, DESK_SECTION.orders)).toBe(
       "/app?period=mtd#mcfly-orders",
     );
+  });
+
+  it("compactDeskRedirect keeps search params, sets panel, and maps /demo", () => {
+    const admin = new Request(
+      "https://mcfly-analytics.fly.dev/app/growth?period=mtd&shot=1",
+    );
+    expect(compactDeskRedirect(admin, "/app/customers", "growth")).toBe(
+      "/app/customers?period=mtd&shot=1&panel=growth",
+    );
+    const demo = new Request(
+      "https://mcfly-analytics.fly.dev/demo/roas?period=ytd",
+    );
+    expect(compactDeskRedirect(demo, "/app/spend", "roas")).toBe(
+      "/demo/spend?period=ytd&panel=roas",
+    );
+    const overwrite = new Request(
+      "https://mcfly-analytics.fly.dev/app/cpa?panel=old",
+    );
+    expect(compactDeskRedirect(overwrite, "/app/spend", "cpa")).toBe(
+      "/app/spend?panel=cpa",
+    );
+  });
+});
+
+describe("DeskPanelRail map", () => {
+  it("maps analysis paths to chips and omits Goals", () => {
+    expect(
+      DESK_PANEL_RAIL_BY_ADMIN_PATH["/app"]?.map((c) => c.id),
+    ).toEqual([
+      "mcfly-yoy-glance",
+      "mcfly-chart",
+      "mcfly-mix-close",
+      "mcfly-yoy-year",
+    ]);
+    expect(
+      deskPanelChipsForPath("/app/orders").map((c) => c.panel),
+    ).toEqual(["typical", "clock", "timing"]);
+    expect(
+      deskPanelChipsForPath("/demo/customers").map((c) => c.panel),
+    ).toEqual(["returning", "ltv", "growth", "depth"]);
+    expect(
+      deskPanelChipsForPath("/app/spend").map((c) => c.panel),
+    ).toEqual(["roas", "explorer", "mix", "cpa", "spend-add"]);
+    expect(deskPanelChipsForPath("/app/goals")).toEqual([]);
+    expect(deskPanelChipsForPath("/demo/settings")).toEqual([]);
   });
 });

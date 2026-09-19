@@ -127,7 +127,7 @@ describe("Shopify App Store source verification", () => {
   it("1.3.1 ReviewAsk only after live spend and a week, never 5-star or incentive copy", () => {
     const ask = readRepo("app/app/components/ReviewAsk.tsx");
     const shell = readRepo("app/app/routes/app.tsx");
-    const ltv = readRepo("app/app/routes/app.ltv.tsx");
+    const ltv = readRepo("app/app/routes/app.customers.tsx");
     expect(ask).not.toContain("reviews?.request");
     expect(ask).toContain("reviewAskEligible");
     expect(ask).toContain("REVIEW_ASK_MIN_INSTALL_DAYS");

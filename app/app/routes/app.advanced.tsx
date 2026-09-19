@@ -200,10 +200,10 @@ export default function AdvancedMetricsPage() {
           <s-link href={`/app/orders?period=${preset}`}>
             Typical order and weekends are on Orders
           </s-link>
-          <s-link href={`/app/allocation?period=${preset}`}>
+          <s-link href={`/app/spend?period=${preset}&panel=mix`}>
             {PRODUCT_NOUN.nextAllocation}
           </s-link>
-          <s-link href={`/app/ltv?period=${preset}`}>
+          <s-link href={`/app/customers?panel=ltv&period=${preset}`}>
             {PRODUCT_NOUN.nextCustomerPayback}
           </s-link>
           <s-link href={`/app/spend?period=${preset}`}>

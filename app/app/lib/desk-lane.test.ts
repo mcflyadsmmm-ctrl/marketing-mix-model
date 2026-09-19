@@ -67,11 +67,10 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
       'rank="first"',
       "<OverviewFirstViewport",
       "<OverviewYoyCards",
+      "<OverviewSalesChart",
       'rank="next" label="Mix and month close"',
       "<OverviewMixForecast",
       "<ShareableInsightCards",
-      'rank="next" label="Sales by day"',
-      "<OverviewSalesChart",
       'rank="more"',
       "<OverviewDepthPeeks",
       "<WeekdaySalesChart",
@@ -94,14 +93,20 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
 describe("key-tab lanes — same ritual, heroes stay", () => {
   it("ranks Customers without dropping ActionCards or niche boards", () => {
     const order = [
+      'id="mcfly-returning"',
       'rank="first"',
       "<CustomersFirstViewport",
       "<CustomerMixChart",
       "<CustomersScoreboard",
-      'rank="next"',
+      'id="mcfly-ltv"',
+      "<UnlockFullHistoryBanner",
+      "<CustomersLtvWindows",
+      'id="mcfly-growth"',
+      "<CustomersGrowthSection",
+      'id="mcfly-depth"',
+      'rank="more"',
       "<CustomerRetentionBoard",
       "<CustomerWhaleWatch",
-      'rank="more"',
       "<CustomerRfmBoard",
       "<CustomerValueBands",
       "<CustomerWhaleTable",
@@ -113,25 +118,26 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
       expect(order[i]!).toBeGreaterThan(order[i - 1]!);
     }
     expect(customers).toContain("mcfly-cust-action-row");
-    expect(customers).toContain('label="What to do"');
-    expect(customers).toContain("defaultOpen={shotMode}");
+    expect(customers).toContain('label="Who the dollars sit with"');
+    expect(customers).toContain("defaultOpen={shotMode");
   });
 
   it("ranks Growth days-to-second first fold ahead of come-back explorer and TT2", () => {
+    const section = read("../components/CustomersGrowthSection.tsx");
     const order = [
-      'rank="first"',
       "<GrowthFirstViewport",
-      'rank="next" label="Who came back"',
       "<GrowthComebackChart",
       "<GrowthScoreboard",
-      'rank="next" label="Time to a second order"',
       "<GrowthTt2Board",
-    ].map((tag) => growth.indexOf(tag));
+    ].map((tag) => section.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]!).toBeGreaterThan(order[i - 1]!);
     }
-    expect(growth).toContain("GROWTH_FIRST_LANE_LABEL");
+    expect(customers).toContain("GROWTH_FIRST_LANE_LABEL");
+    expect(customers).toContain("<CustomersGrowthSection");
+    expect(growth).toContain("throw redirect");
+    expect(growth).toContain("/app/customers");
   });
 
   it("ranks Orders typical-order first fold ahead of intelligence and weekday charts", () => {
@@ -162,25 +168,31 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
   });
 
   it("ranks LTV value first, explorers next, spend last — no details FAQ", () => {
+    const section = read("../components/CustomersLtvSection.tsx");
     const order = [
-      'rank="first"',
       "<LtvValueBuild",
-      'rank="next"',
       "<LtvFlagshipBoard",
       "<LtvProductBoard",
       "<LtvPromoBoard",
       "<LtvBuildCurves",
       "<LtvWhaleRecency",
-      "<ShareableInsightCards",
-      'rank="more"',
       "facts={economicsRows}",
-    ].map((tag) => ltv.indexOf(tag));
+    ].map((tag) => section.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]!).toBeGreaterThan(order[i - 1]!);
     }
-    expect(ltv).not.toContain("<details");
-    expect(ltv).toContain("<UnlockFullHistoryBanner");
+    expect(customers.indexOf("<CustomersLtvWindows")).toBeLessThan(
+      customers.indexOf("<CustomersLtvDepth"),
+    );
+    expect(customers.indexOf("<CustomersLtvWindows")).toBeLessThan(
+      customers.indexOf("<CustomersLtvEconomics"),
+    );
+    expect(customers).toContain("<ShareableInsightCards");
+    expect(customers).not.toContain("<details");
+    expect(customers).toContain("<UnlockFullHistoryBanner");
+    expect(ltv).toContain("throw redirect");
+    expect(ltv).toContain("/app/customers");
   });
 });
 

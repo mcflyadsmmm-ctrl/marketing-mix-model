@@ -161,8 +161,6 @@ describe("Snowdevil founder leave-for-day bar", () => {
     const shopifyTabs = [
       chrome("../routes/app.orders.tsx"),
       chrome("../routes/app.customers.tsx"),
-      chrome("../routes/app.growth.tsx"),
-      chrome("../routes/app.ltv.tsx"),
     ].join("\n");
     expect(shopifyTabs).not.toContain("Edit spend");
     expect(shopifyTabs).not.toContain("Upload Spend");

@@ -160,7 +160,7 @@ export function GrowthComebackChart({
   firstTimeDollars,
   salesPending = false,
   drillNext = "Open LTV for what each first order is worth in 30 / 90 / 365 days.",
-  drillHref = "/app/ltv",
+  drillHref = "#mcfly-ltv",
   drillLabel,
 }: {
   depthBars: GrowthBar[];

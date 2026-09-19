@@ -12,19 +12,22 @@ function read(rel: string) {
 describe("Marketing spend room", () => {
   const spend = read("../routes/app.spend.tsx");
   const room = read("../components/MarketingSpendRoom.tsx");
+  const mix = read("../components/SpendMixSection.tsx");
 
-  it("keeps the Spend Upload route free of analysis rooms", () => {
-    expect(spend).not.toContain("<MarketingSpendRoom");
-    expect(spend).not.toContain('from "../components/MarketingSpendRoom"');
-    expect(spend).not.toContain("<SpendExplorer");
-    expect(spend).not.toContain("<DualCloseLine");
+  it("mounts analysis rooms on Spend, not a separate ROAS page", () => {
+    expect(spend).toContain("<MarketingSpendRoom");
+    expect(spend).toContain('from "../components/MarketingSpendRoom"');
+    expect(spend).toContain("<SpendExplorer");
+    expect(spend).toContain("<DualCloseLine");
+    expect(spend).toContain("<CertifiedScoreboard");
+    expect(spend).toContain("<MonthlyPacing");
     expect(spend).not.toContain("<MarketingSnapSection");
     expect(spend).not.toContain('from "../components/MarketingSnapSection"');
   });
 
-  it("does not build a spend analysis board on the input route", () => {
-    expect(spend).not.toContain("buildCashControlBoard");
-    expect(spend).not.toContain("spendRoom");
+  it("builds the spend analysis board on the Spend route", () => {
+    expect(spend).toContain("loadSpendAnalysis");
+    expect(spend).toContain("cashControl");
   });
 
   it("shows mix vs last month, a plan, a collapsed Every day ledger, and operating intel", () => {
@@ -47,6 +50,7 @@ describe("Marketing spend room", () => {
     expect(mixPlan).toContain("Last 7 days");
     expect(mixPlan).toContain("This quarter");
     expect(mixPlan).toContain("full last month");
+    expect(mix).toContain("<SpendMixPlan");
   });
 
   it("bans glossary labels on the spend room", () => {
@@ -67,6 +71,7 @@ describe("Marketing spend room", () => {
     expect(room).toContain("formatMer");
     expect(room).toContain('return "—";');
     expect(room).toMatch(/!\(spend > 0\) \|\| mer == null/);
+    expect(spend).not.toContain("0.00×");
   });
 
   it("does not remount the Overview control board or desk rail", () => {
@@ -78,64 +83,83 @@ describe("Marketing spend room", () => {
     expect(room).not.toContain("CashControlBoard.tsx");
   });
 
-  it("mounts full spend room on Total ROAS, not Spend Upload", () => {
-    const roas = read("../routes/app.roas.tsx");
-    expect(roas).toContain("<MarketingSpendRoom");
-    expect(roas).toContain('from "../components/MarketingSpendRoom"');
-    expect(roas).toContain("<CertifiedScoreboard");
-    expect(roas).not.toContain("intelOnly");
+  it("mounts full spend room on Spend with certified chips", () => {
+    expect(spend).toContain("<MarketingSpendRoom");
+    expect(spend).toContain("<CertifiedScoreboard");
+    expect(spend).not.toContain("intelOnly");
     expect(room).toContain("intelOnly = false");
   });
 });
 
-describe("Total ROAS page", () => {
+describe("Spend MER desk", () => {
+  const spend = read("../routes/app.spend.tsx");
+  const mix = read("../components/SpendMixSection.tsx");
   const roas = read("../routes/app.roas.tsx");
+  const allocation = read("../routes/app.allocation.tsx");
+  const cpa = read("../routes/app.cpa.tsx");
 
   it("contrasts Shopify Analytics vs sales÷typed spend, not platform ROAS", () => {
-    expect(roas).toContain("Shopify Analytics shows sales");
-    expect(roas).toContain("This page shows");
-    expect(roas).toContain("PRODUCT_NOUN.definition");
-    expect(roas).toContain("HONEST_MER_LINE");
-    expect(roas).toContain("SpendFindingStrip");
-    expect(roas).toContain("totalRoasEmptySpendFinding");
-    expect(roas).toMatch(/never 0×/);
+    expect(spend).toContain("Shopify Analytics shows sales");
+    expect(spend).toContain("This page shows");
+    expect(spend).toContain("PRODUCT_NOUN.definition");
+    expect(spend).toContain("HONEST_MER_LINE");
+    expect(spend).toContain("SpendFindingStrip");
+    expect(spend).toContain("totalRoasEmptySpendFinding");
+    expect(spend).toMatch(/never 0×/);
   });
 
   it("pending sales KPI is an em dash, never a painted $0", () => {
-    expect(roas).toContain("metrics.salesPending ? \"—\"");
-    expect(roas).toContain("Still loading — not $0");
+    expect(spend).toContain("metrics.salesPending ? \"—\"");
+    expect(spend).toContain("Still loading — not $0");
   });
 
   it("owns the explorer, dual-close, certified chips, and spend-only pacing", () => {
-    expect(roas).toContain("<SpendExplorer");
-    expect(roas).toContain('basePath="/app/roas"');
-    expect(roas).toContain("<DualCloseLine");
-    expect(roas).toContain("<CertifiedScoreboard");
-    expect(roas).toContain("<MonthlyPacing");
-    expect(roas).toMatch(/monthPace && cashControl && hasSpend/);
+    expect(spend).toContain("<SpendExplorer");
+    expect(spend).toContain('basePath="/app/spend"');
+    expect(spend).toContain("<DualCloseLine");
+    expect(spend).toContain("<CertifiedScoreboard");
+    expect(spend).toContain("<MonthlyPacing");
+    expect(spend).toMatch(/monthPace && cashControl && hasSpend/);
   });
 
-  it("mounts compare and ledger on Total ROAS without a mix pie", () => {
-    expect(roas).toContain("<MarketingSpendRoom");
-    expect(roas).not.toContain("intelOnly");
-    expect(roas).not.toContain("<SpendMixPlan");
+  it("mounts compare, mix pie, and CPA on the Spend spine", () => {
+    expect(spend).toContain("<MarketingSpendRoom");
+    expect(spend).toContain("<SpendMixSection");
+    expect(spend).toContain("<CpaWindowCards");
+    expect(spend).toContain("<CpaPaybackDesk");
+    expect(spend).toContain("<CpaExplorer");
+    expect(spend).toContain('id="mcfly-roas"');
+    expect(spend).toContain('id="mcfly-explorer"');
+    expect(mix).toContain('id="mcfly-mix"');
+    expect(spend).toContain('id="mcfly-cpa"');
+    expect(spend).toContain('id="mcfly-spend-add"');
   });
 
-  it("empty Total ROAS is an em dash, never 0.00×, with a Spend Upload link", () => {
-    expect(roas).toContain('? `${formatMer(metrics.mer)}×`');
-    expect(roas).toContain(': "—"');
-    expect(roas).not.toContain("0.00×");
-    expect(roas).toContain('href="/app/spend"');
+  it("empty Total ROAS is an em dash, never 0.00×, with an add-a-day link", () => {
+    expect(spend).toContain('? `${formatMer(metrics.mer)}×`');
+    expect(spend).toContain(': "—"');
+    expect(spend).not.toContain("0.00×");
+    expect(spend).toContain('href="#mcfly-spend-add"');
   });
 
-  it("does not mount mix pie, a CSV form, or 12-month goals", () => {
-    expect(roas).not.toContain("SpendSharePie");
-    expect(roas).not.toContain("<SpendMixPlan");
-    expect(roas).not.toContain("mcfly-alloc-v2__pie");
-    expect(roas).not.toContain('type="file"');
-    expect(roas).not.toContain("mcfly-spend-add");
-    expect(roas).not.toContain("export const action");
-    expect(roas).not.toContain("SalesGoalGauges");
-    expect(roas).not.toContain("12-month");
+  it("keeps upload forms after analysis and does not mount 12-month goals", () => {
+    const roasAt = spend.indexOf('id="mcfly-roas"');
+    const addAt = spend.indexOf('id="mcfly-spend-add"');
+    expect(roasAt).toBeGreaterThan(-1);
+    expect(addAt).toBeGreaterThan(roasAt);
+    expect(spend).not.toContain("SalesGoalGauges");
+    expect(spend).not.toContain("12-month");
+  });
+
+  it("converts roas, allocation, and cpa routes to Spend panel redirects", () => {
+    expect(roas).toContain('spendPanelRedirectPath(request.url, "roas"');
+    expect(roas).toContain("requireAdmin");
+    expect(roas).not.toContain("<SpendExplorer");
+    expect(allocation).toContain('spendPanelRedirectPath(request.url, "mix"');
+    expect(allocation).toContain("requireAdmin");
+    expect(allocation).not.toContain("<SpendMixPlan");
+    expect(cpa).toContain('spendPanelRedirectPath(request.url, "cpa"');
+    expect(cpa).toContain("requireAdmin");
+    expect(cpa).not.toContain("<CpaWindowCards");
   });
 });

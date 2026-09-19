@@ -1,12 +1,11 @@
 /**
- * Customers first viewport — RFM-lite, whale watch, repurchase clock,
- * win-back, and ActionCard peeks Shopify Analytics Customers does not put
- * next to a customer list. Spend / ROAS never enter these helpers.
+ * Customers first viewport — returning dollars vs new, dollars per buyer,
+ * and the mix chart Shopify Analytics Customers does not put next to a list.
+ * RFM / whales stay below the fold. Spend / ROAS never enter these helpers.
  */
 
 import type { DeskIconName } from "../components/DeskIcon";
-import type { CustomerAnalytics } from "./customers-analytics";
-import type { CustomerRfmView, RfmSegment, RfmSegmentKey } from "./customers-rfm";
+import type { ShopifyNativePeriodStats } from "./shopify-native-stats";
 
 export const CUSTOMERS_SPEND_BANS = [
   "Spend Upload",
@@ -19,88 +18,113 @@ export const CUSTOMERS_PENDING_LINE =
   "Sales for closed days are still loading — not $0.";
 
 export const CUSTOMERS_THIN_EMPTY_LINE =
-  "RFM-lite, whale watch, and the repurchase clock fill after identified buyers land — not $0.";
+  "Returning dollars fill after paid orders — not $0.";
 
-/** First-lane label — operator value vs Shopify’s customer list. */
-export const CUSTOMERS_FIRST_LANE_LABEL =
-  "RFM-lite, whales, repurchase clock";
+/** First-lane label — returning $ vs new, all store sizes, not RFM-lite. */
+export const CUSTOMERS_FIRST_LANE_LABEL = "Returning dollars vs new";
 
 /**
  * Uninstall-killer contrast. Shopify Analytics Customers is names, emails,
- * order counts, and amount spent. Mcfly is who to reach and when.
+ * order counts, and amount spent. Mcfly is returning dollars next to new.
  */
 export const CUSTOMERS_ANALYTICS_CONTRAST =
   "Shopify Analytics Customers is a customer list.";
 
 export const CUSTOMERS_FIRST_FOLD_HEROES = [
-  "rfmLite",
-  "whaleWatch",
-  "repurchaseClock",
-  "winBack",
-  "actionCards",
+  "returningDollars",
+  "newDollars",
+  "dollarsPerBuyer",
+  "mixChart",
 ] as const;
 
 export type CustomersFirstFoldHero =
   (typeof CUSTOMERS_FIRST_FOLD_HEROES)[number];
 
+export const CUSTOMERS_PANELS = [
+  "returning",
+  "ltv",
+  "growth",
+  "depth",
+] as const;
+
+export type CustomersPanel = (typeof CUSTOMERS_PANELS)[number];
+
+export function parseCustomersPanel(
+  raw: string | null | undefined,
+): CustomersPanel | null {
+  switch (raw) {
+    case "returning":
+    case "ltv":
+    case "growth":
+    case "depth":
+      return raw;
+    default:
+      return null;
+  }
+}
+
+/** Preserve hosted / shot / period / embed and set panel= for Growth / LTV redirects. */
+export function customersPanelRedirectPath(
+  request: Request,
+  dest: "/app/customers" | "/demo/customers",
+  panel: "growth" | "ltv",
+): string {
+  const url = new URL(request.url);
+  const next = new URLSearchParams(url.searchParams);
+  next.set("panel", panel);
+  return `${dest}?${next.toString()}`;
+}
+
 export type CustomersOperatorGreetingInput = {
   salesPending: boolean;
   orderCount: number;
   identifiedBuyers: number;
-  repurchaseTypicalDays?: number | null;
-  whaleCount?: number | null;
-  atRiskBuyers?: number | null;
+  returningShare?: number | null;
+  newShare?: number | null;
 };
 
-export type CustomersHeroKind = "rfmLite" | "repurchaseClock";
+export type CustomersHeroKind = "returningDollars" | "newDollars";
 
 export type CustomersHero = {
   kind: CustomersHeroKind;
   k: string;
-  v: string;
-  sub?: string;
+  amount: number;
+  counterpartAmount: number | null;
+  counterpartShare: number | null;
   def: string;
 };
 
 export type CustomersPeek = {
-  hero: Exclude<CustomersFirstFoldHero, "rfmLite">;
+  hero: Exclude<CustomersFirstFoldHero, "returningDollars" | "mixChart">;
   k: string;
-  v: string;
+  amount: number;
   s?: string;
   d: string;
   icon: DeskIconName;
   verb?: string;
 };
 
-export type CustomersRfmBandSlice = {
-  key: RfmSegmentKey;
-  label: string;
-  buyers: number;
-  share: number;
-  verb: string;
-};
-
 function isNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
 }
 
-function wholeDays(n: number): number {
-  return Math.max(1, Math.round(n));
+function wholePercent(share: number): number {
+  return Math.round(share * 100);
 }
 
 /**
  * PASS only when the first-fold hero is Mcfly-differentiated — not a free
- * Shopify Analytics Customers list clone (name, email, orders, amount spent).
+ * Shopify Analytics Customers list clone (name, email, orders, amount spent)
+ * and not a returning-customer headcount rate.
  */
 export function customersHeroBeatsShopifyAnalytics(
   hero: CustomersFirstFoldHero,
 ): boolean {
   switch (hero) {
-    case "rfmLite":
-    case "whaleWatch":
-    case "repurchaseClock":
-    case "winBack":
-    case "actionCards":
+    case "returningDollars":
+    case "newDollars":
+    case "dollarsPerBuyer":
+    case "mixChart":
       return true;
     default: {
       const _never: never = hero;
@@ -110,7 +134,7 @@ export function customersHeroBeatsShopifyAnalytics(
 }
 
 /**
- * One shop-owner sentence. Repurchase + whales + at-risk first — never an
+ * One shop-owner sentence. Returning vs new dollars first — never an
  * AI analyst, never a customer-count scoreboard Shopify already shows.
  */
 export function customersOperatorGreeting(
@@ -122,169 +146,118 @@ export function customersOperatorGreeting(
   if (!(input.orderCount > 0) && !(input.identifiedBuyers > 0)) {
     return "No identified buyers in this window yet.";
   }
-  const repurchase =
-    isNum(input.repurchaseTypicalDays) && input.repurchaseTypicalDays > 0
-      ? `Typical repurchase day ${wholeDays(input.repurchaseTypicalDays)}.`
+  const returningPct =
+    isNum(input.returningShare) && wholePercent(input.returningShare) > 0
+      ? wholePercent(input.returningShare)
       : null;
-  const whales =
-    isNum(input.whaleCount) && input.whaleCount > 0
-      ? `${input.whaleCount.toLocaleString()} ${input.whaleCount === 1 ? "whale" : "whales"} to reach.`
+  const newPct =
+    isNum(input.newShare) && wholePercent(input.newShare) > 0
+      ? wholePercent(input.newShare)
       : null;
-  const atRisk =
-    isNum(input.atRiskBuyers) && input.atRiskBuyers > 0
-      ? `At risk: ${input.atRiskBuyers.toLocaleString()}.`
-      : null;
-  const parts = [repurchase, whales, atRisk].filter(
-    (part): part is string => part != null,
-  );
-  if (parts.length === 0) {
-    return CUSTOMERS_ANALYTICS_CONTRAST;
+  if (returningPct != null && newPct != null) {
+    return `Returning dollars ${returningPct}% vs new ${newPct}%. ${CUSTOMERS_ANALYTICS_CONTRAST}`;
   }
-  return `${parts.join(" ")} ${CUSTOMERS_ANALYTICS_CONTRAST}`;
-}
-
-function segmentLine(segments: RfmSegment[], skip?: RfmSegmentKey): string {
-  return segments
-    .filter((row) => row.key !== skip && row.buyers > 0)
-    .map((row) => `${row.label} ${row.buyers.toLocaleString()}`)
-    .join(" · ");
+  if (returningPct != null) {
+    return `Returning dollars ${returningPct}% of this window. ${CUSTOMERS_ANALYTICS_CONTRAST}`;
+  }
+  if (newPct != null) {
+    return `New dollars ${newPct}% of this window. ${CUSTOMERS_ANALYTICS_CONTRAST}`;
+  }
+  return CUSTOMERS_ANALYTICS_CONTRAST;
 }
 
 /**
- * Giant first-fold hero. RFM-lite leads when sealed; otherwise the
- * repurchase clock. Missing truths stay off — never a fake $0 board.
+ * Giant first-fold hero. Returning dollars lead when on file; otherwise new
+ * dollars. Missing truths stay off — never a fake $0 board.
  */
 export function buildCustomersHero(
-  analytics: Pick<
-    CustomerAnalytics,
-    "repurchaseTypicalDays" | "winBackDay"
+  book: Pick<
+    ShopifyNativePeriodStats,
+    "returningSales" | "newSales" | "returningSalesShare" | "newSalesShare"
   >,
-  rfm: Pick<CustomerRfmView, "available" | "segments">,
 ): CustomersHero | null {
-  if (rfm.available) {
-    const atRisk = rfm.segments.find((row) => row.key === "at_risk");
-    const champions = rfm.segments.find((row) => row.key === "champions");
-    const lead =
-      atRisk && atRisk.buyers > 0
-        ? atRisk
-        : champions && champions.buyers > 0
-          ? champions
-          : rfm.segments.find((row) => row.buyers > 0) ?? null;
-    if (lead) {
-      const others = segmentLine(rfm.segments, lead.key);
-      return {
-        kind: "rfmLite",
-        k: `RFM-lite · ${lead.label}`,
-        v: lead.buyers.toLocaleString(),
-        sub: others || lead.verb,
-        def: "Recency / frequency / monetary bands from this shop's orders. Shopify Analytics Customers is a list.",
-      };
-    }
-  }
-  if (
-    isNum(analytics.repurchaseTypicalDays) &&
-    analytics.repurchaseTypicalDays > 0
-  ) {
-    const winBack =
-      isNum(analytics.winBackDay) && analytics.winBackDay > 0
-        ? `Win-back by day ${wholeDays(analytics.winBackDay)}`
-        : undefined;
+  if (isNum(book.returningSales) && book.returningSales > 0) {
+    const newSales =
+      isNum(book.newSales) && book.newSales > 0 ? book.newSales : null;
     return {
-      kind: "repurchaseClock",
-      k: "Typical repurchase",
-      v: `Day ${wholeDays(analytics.repurchaseTypicalDays)}`,
-      sub: winBack,
-      def: "Median first→second gap among identified buyers. Shopify Analytics Customers is a list.",
+      kind: "returningDollars",
+      k: "Returning dollars",
+      amount: book.returningSales,
+      counterpartAmount: newSales,
+      counterpartShare: isNum(book.newSalesShare) ? book.newSalesShare : null,
+      def: "Sales from buyers who had ordered before. Shopify Analytics Customers is a list — it does not put returning dollars next to new.",
+    };
+  }
+  if (isNum(book.newSales) && book.newSales > 0) {
+    return {
+      kind: "newDollars",
+      k: "New dollars",
+      amount: book.newSales,
+      counterpartAmount: null,
+      counterpartShare: isNum(book.returningSalesShare)
+        ? book.returningSalesShare
+        : null,
+      def: "Sales from first-time buyers in this window. Returning dollars fill after paid orders — not $0.",
     };
   }
   return null;
 }
 
-/** Four-segment RFM bar. Null until RFM-lite has sealed with buyers. */
-export function buildCustomersRfmBand(
-  rfm: Pick<CustomerRfmView, "available" | "segments">,
-): CustomersRfmBandSlice[] | null {
-  if (!rfm.available) return null;
-  const total = rfm.segments.reduce((sum, row) => sum + row.buyers, 0);
-  if (!(total > 0)) return null;
-  return rfm.segments.map((row) => ({
-    key: row.key,
-    label: row.label,
-    buyers: row.buyers,
-    share: row.buyers / total,
-    verb: row.verb,
-  }));
-}
-
 /**
- * Whale / repurchase / win-back / Save-now peeks that sit next to RFM-lite.
+ * New-dollar / $ per buyer peeks that sit next to the returning hero.
  * Missing truths stay off the row — never a fake $0 / 0% graveyard.
  */
 export function buildCustomersLeadPeeks(
-  analytics: Pick<
-    CustomerAnalytics,
-    | "repurchaseTypicalDays"
-    | "repurchaseFastDays"
-    | "repurchaseSlowDays"
-    | "winBackDay"
-    | "saveNowOneOrder"
+  book: Pick<
+    ShopifyNativePeriodStats,
+    | "newSales"
+    | "returningSales"
+    | "newBuyerArpu"
+    | "returningBuyerArpu"
+    | "newSalesShare"
   >,
-  rfm: Pick<CustomerRfmView, "watchlist">,
-  options: { hideRepurchase?: boolean } = {},
+  options: { hideNewDollars?: boolean } = {},
 ): CustomersPeek[] {
   const rows: CustomersPeek[] = [];
-  const leadWhale = rfm.watchlist[0];
-  if (leadWhale && rfm.watchlist.length > 0) {
-    rows.push({
-      hero: "whaleWatch",
-      k: "Whale watch",
-      v: `${rfm.watchlist.length.toLocaleString()} to reach`,
-      s: `Last seen ${leadWhale.daysSince}d`,
-      d: "High on-file dollars, last order past 30 days. Shopify Analytics Customers is a list — it does not flag slipping whales.",
-      icon: "customers",
-      verb: leadWhale.verb,
-    });
-  }
   if (
-    !options.hideRepurchase &&
-    isNum(analytics.repurchaseTypicalDays) &&
-    analytics.repurchaseTypicalDays > 0
+    !options.hideNewDollars &&
+    isNum(book.newSales) &&
+    book.newSales > 0
   ) {
-    const fastSlow =
-      isNum(analytics.repurchaseFastDays) &&
-      isNum(analytics.repurchaseSlowDays)
-        ? `fast ${wholeDays(analytics.repurchaseFastDays)}d · slow ${wholeDays(analytics.repurchaseSlowDays)}d`
+    const share =
+      isNum(book.newSalesShare) && wholePercent(book.newSalesShare) > 0
+        ? `${wholePercent(book.newSalesShare)}% of sales`
         : undefined;
     rows.push({
-      hero: "repurchaseClock",
-      k: "Typical repurchase",
-      v: `Day ${wholeDays(analytics.repurchaseTypicalDays)}`,
-      s: fastSlow,
-      d: "Median first→second order among identified buyers. Shopify Analytics Customers does not put a repurchase clock next to the list.",
-      icon: "clock",
-      verb: "Repurchase",
-    });
-  }
-  if (isNum(analytics.winBackDay) && analytics.winBackDay > 0) {
-    rows.push({
-      hero: "winBack",
-      k: "Win-back by",
-      v: `Day ${wholeDays(analytics.winBackDay)}`,
-      s: "typical repurchase + 15 days",
-      d: "Reach one-order buyers just past typical repurchase, before the slow tail. Not an email guess.",
-      icon: "clock",
-      verb: "Win-back",
-    });
-  }
-  if (isNum(analytics.saveNowOneOrder) && analytics.saveNowOneOrder > 0) {
-    rows.push({
-      hero: "actionCards",
-      k: "Save now",
-      v: analytics.saveNowOneOrder.toLocaleString(),
-      s: "one-order buyers past win-back",
-      d: "These one-order buyers are already past the win-back day. Prioritize them first — order-history timing, not an email list.",
+      hero: "newDollars",
+      k: "New dollars",
+      amount: book.newSales,
+      s: share,
+      d: "Sales from first-time buyers in this window. Shopify Analytics Customers is a list — it does not split returning vs new dollars.",
       icon: "customers",
-      verb: "Save now",
+      verb: "New",
+    });
+  }
+  const perBuyer =
+    isNum(book.returningBuyerArpu) && book.returningBuyerArpu > 0
+      ? book.returningBuyerArpu
+      : isNum(book.newBuyerArpu) && book.newBuyerArpu > 0
+        ? book.newBuyerArpu
+        : null;
+  if (perBuyer != null) {
+    const both =
+      isNum(book.returningBuyerArpu) &&
+      book.returningBuyerArpu > 0 &&
+      isNum(book.newBuyerArpu) &&
+      book.newBuyerArpu > 0;
+    rows.push({
+      hero: "dollarsPerBuyer",
+      k: "Dollars per buyer",
+      amount: perBuyer,
+      s: both ? "Returning vs new spend differently" : undefined,
+      d: "Window sales dollars per unique buyer. Shopify Analytics Customers lists amount spent per name — not the mix.",
+      icon: "customers",
+      verb: "Per buyer",
     });
   }
   return rows;

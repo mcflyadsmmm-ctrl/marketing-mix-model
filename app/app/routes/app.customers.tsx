@@ -14,32 +14,34 @@ import { CustomerConcentrationChart } from "../components/CustomerConcentrationC
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { DeskLane } from "../components/DeskLane";
 import { CustomersFirstViewport } from "../components/CustomersFirstViewport";
+import { CustomersGrowthSection } from "../components/CustomersGrowthSection";
+import {
+  CustomersLtvDepth,
+  CustomersLtvEconomics,
+  CustomersLtvWindows,
+} from "../components/CustomersLtvSection";
+import { UnlockFullHistoryBanner } from "../components/UnlockFullHistoryBanner";
+import { ReviewAsk } from "../components/ReviewAsk";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
-import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
-import { loadCustomerAnalytics } from "../lib/desk-customers-page.server";
+import { loadCustomersStackPage } from "../lib/desk-customers-stack.server";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { CUSTOMERS_FIRST_LANE_LABEL } from "../lib/customers-first-viewport";
+import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { flagshipDailyRead } from "../lib/ltv-flagship";
 import {
   buildShareableInsights,
   emptyShareableInsights,
   pickShareableLtvPeek,
 } from "../lib/shareable-insights";
 
-// Shopify Analytics Customers is a list. First fold is RFM-lite / whales /
-// repurchase / win-back; mix + What-to-do / RFM boards stay below.
 const CUSTOMERS_CONTRAST =
-  "Shopify Analytics Customers is a customer list. Deeper: RFM-lite, whale watch, repurchase clock, and win-back — plus returning dollars the list does not put next to names.";
+  "Shopify Analytics Customers is a customer list. Deeper: returning dollars vs new, dollars per buyer, then LTV, growth, and who the dollars sit with.";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const base = await loadDeskSalesPage(request, "/app/customers");
-  const analytics = await loadCustomerAnalytics(request, {
-    useSampleDesk: base.useSampleDesk,
-    windowEnd: base.metrics.period.end,
-  });
-  return { ...base, analytics };
+  return loadCustomersStackPage(request);
 };
 
 export default function CustomersPage() {
@@ -55,7 +57,14 @@ export default function CustomersPage() {
     factsIncomplete,
     orderBackfillProgress,
     analytics,
+    comeback,
+    depth,
+    marginConfirmed,
+    hasLiveSpend,
+    installedAt,
+    liveHistoryLocked,
     shopLabel,
+    panel,
   } = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
   const navigation = useNavigation();
@@ -89,12 +98,15 @@ export default function CustomersPage() {
     !useSampleDesk &&
       (orderBackfillProgress?.historyLimited || metrics.tillLtv.historyLimited),
   );
-  const ltvPeek = pickShareableLtvPeek({
-    revenue30: metrics.tillLtv.avgRevenueD30,
-    revenue90: metrics.tillLtv.avgRevenueD90,
-    revenue365: metrics.tillLtv.avgRevenueD365,
-    historyLimited,
-  });
+  const daily = flagshipDailyRead(depth.windows, depth.predictive);
+  const ltvPeek = daily
+    ? { amount: daily.worth, days: daily.worthDays }
+    : pickShareableLtvPeek({
+        revenue30: metrics.tillLtv.avgRevenueD30,
+        revenue90: metrics.tillLtv.avgRevenueD90,
+        revenue365: metrics.tillLtv.avgRevenueD365,
+        historyLimited,
+      });
   const insightView = metrics.salesPending
     ? emptyShareableInsights()
     : buildShareableInsights(
@@ -115,6 +127,22 @@ export default function CustomersPage() {
         },
         (n) => formatCurrency(n, currency),
       );
+  const ltvProps = {
+    metrics: {
+      tillLtv: metrics.tillLtv,
+      totalSpend: metrics.totalSpend,
+      marginPct: metrics.marginPct,
+      salesPending: Boolean(metrics.salesPending),
+      newCustomers: metrics.newCustomers,
+      returningCustomers: metrics.returningCustomers,
+      customerMetricsAvailable: metrics.customerMetricsAvailable,
+      period: { label: metrics.period.label },
+    },
+    depth,
+    marginConfirmed,
+    useSampleDesk,
+    orderBackfillProgress,
+  };
 
   return (
     <DeskBookPage
@@ -161,67 +189,85 @@ export default function CustomersPage() {
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
       <p className="mcfly-book__lede">{deskBookLede(CUSTOMERS_CONTRAST)}</p>
 
+      <div id="mcfly-returning">
       <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL}>
-        {/* 1. First fold — RFM-lite / whales / repurchase vs Shopify's list. */}
         <CustomersFirstViewport
           analytics={analytics}
-          rfm={analytics.rfm}
+          book={book}
           salesPending={metrics.salesPending}
           useSampleDesk={useSampleDesk}
         />
-
-        {/* 2. Marquee explorer — new vs returning $ stays, below the heroes. */}
         <CustomerMixChart analytics={analytics} salesPending={metrics.salesPending} />
-
-        {/* 3. Compact returning hero — gauge + three unique facts, not a tile wall. */}
         <CustomersScoreboard
           book={book}
           depth={metrics.shopifyDepth}
           periodLabel={metrics.period.label}
           salesPending={metrics.salesPending}
           useSampleDesk={useSampleDesk}
+          growthHref="#mcfly-growth"
+          ltvHref="#mcfly-ltv"
         />
       </DeskLane>
+      </div>
 
-      <DeskLane rank="next" label="What to do">
-        {/* 4. What to do — existing ActionCards stay; watchlist sits beside. */}
-        <div className="mcfly-cust-action-row">
-          <CustomerRetentionBoard analytics={analytics} />
-          <CustomerWhaleWatch rfm={analytics.rfm} />
-        </div>
+      <div id="mcfly-ltv">
+      {liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner /> : null}
+      <DeskLane rank="next" label="What a new buyer is worth">
+        <CustomersLtvWindows {...ltvProps} />
+        <CustomersLtvEconomics {...ltvProps} />
       </DeskLane>
+      </div>
 
+      <div id="mcfly-growth">
+      <DeskLane rank="next" label={GROWTH_FIRST_LANE_LABEL}>
+        <CustomersGrowthSection
+          book={book}
+          tt2={comeback.tt2}
+          depth={comeback.depth}
+          cohorts={metrics.tillLtv.cohorts}
+          repeatRate={metrics.tillLtv.repeatRate}
+          avgOrdersD90={metrics.tillLtv.avgOrdersD90}
+          salesPending={Boolean(metrics.salesPending)}
+          useSampleDesk={useSampleDesk}
+        />
+      </DeskLane>
+      </div>
+
+      <div id="mcfly-depth">
       <DeskLane
         rank="more"
         label="Who the dollars sit with"
         fold
-        defaultOpen={shotMode}
+        defaultOpen={shotMode || panel === "depth"}
       >
-        {/* 5. RFM-lite — recency / frequency / monetary, not a 5×5 dump. */}
+        <div className="mcfly-cust-action-row">
+          <CustomerRetentionBoard analytics={analytics} />
+          <CustomerWhaleWatch rfm={analytics.rfm} />
+        </div>
         <CustomerRfmBoard rfm={analytics.rfm} />
-
-        {/* 6. Value bands / whales as needed — who the dollars sit with. */}
         <CustomerValueBands analytics={analytics} />
         <CustomerWhaleTable analytics={analytics} />
-
         {!metrics.salesPending ? (
           <CustomerConcentrationChart book={book} depth={metrics.shopifyDepth} />
         ) : null}
-
+        <CustomersLtvDepth {...ltvProps} />
         <ShareableInsightCards view={insightView} shotMode={shotMode} />
       </DeskLane>
+      </div>
 
       {!metrics.customerMetricsAvailable ? (
         <p className="mcfly-book__lede">
           Returning dollars need identified buyers in this window — not $0.
         </p>
       ) : null}
-
-      <footer className="mcfly-book__links">
-        <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>
-        <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
-      </footer>
       </div>
+
+      <ReviewAsk
+        hasLiveSpend={hasLiveSpend}
+        useSampleDesk={useSampleDesk}
+        shotMode={shotMode}
+        installedAt={installedAt}
+      />
     </DeskBookPage>
   );
 }

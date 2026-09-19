@@ -149,8 +149,10 @@ export default function OrdersPage() {
         <footer className="mcfly-book__links">
           <s-link href="/app">{PRODUCT_NOUN.overviewTitle}</s-link>
           <s-link href="/app/customers">{PRODUCT_NOUN.buyersTitle}</s-link>
-          <s-link href="/app/growth">{PRODUCT_NOUN.growthTitle}</s-link>
-          <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
+          <s-link href="/app/customers?panel=growth">
+            {PRODUCT_NOUN.growthTitle}
+          </s-link>
+          <s-link href="/app/customers?panel=ltv">{PRODUCT_NOUN.openLtv}</s-link>
         </footer>
       </div>
     </DeskBookPage>

@@ -113,8 +113,8 @@ export function CustomersScoreboard({
   periodLabel,
   salesPending,
   useSampleDesk,
-  growthHref = "/app/growth",
-  ltvHref = "/app/ltv",
+  growthHref = "#mcfly-growth",
+  ltvHref = "#mcfly-ltv",
 }: {
   book: ShopifyNativePeriodStats;
   depth: ShopifyDepthStats;

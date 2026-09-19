@@ -182,10 +182,17 @@ describe("buildShareableInsights — 2–4 soft cards from desk truths", () => {
     expect(typical?.formula).toMatch(/median/i);
     expect(days?.value).toBe("18 days");
     expect(days?.formula).toMatch(/median first→second/);
+    expect(days?.nextHref).toBe("/app/customers");
+    expect(days?.nextLabel).toBe("Open Customers");
     expect(ltv?.line).toContain("first 90 days");
     expect(ltv?.line).toContain("$380");
     expect(ltv?.trust).toMatch(/Observed/);
     expect(ltv?.trust).toMatch(/not an estimate/);
+    expect(ltv?.nextHref).toBe("/app/customers");
+    expect(ltv?.nextLabel).toBe("Open Customers");
+    expect(typical?.nextHref).toBe("/app/orders");
+    expect(typical?.nextLabel).toBe("Open Orders");
+    expect(returning?.nextHref).toBe("/app/customers");
   });
 
   it("omits a missing truth instead of painting $0", () => {

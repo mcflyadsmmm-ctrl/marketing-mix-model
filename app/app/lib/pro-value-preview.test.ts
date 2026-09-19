@@ -12,7 +12,7 @@ function read(rel: string) {
 
 describe("Desk value previews", () => {
   it("never paywalls LTV on Overview or the LTV tab", () => {
-    const ltv = read("../routes/app.ltv.tsx");
+    const ltv = read("../routes/app.customers.tsx");
     const overview = read("../routes/app._index.tsx");
     // Founder lock: whole desk on trial and paid — LTV is not a Pro teaser.
     for (const src of [ltv, overview]) {

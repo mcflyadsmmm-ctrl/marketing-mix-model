@@ -1,6 +1,12 @@
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskHref } from "../lib/desk-base-path";
+import { deskNavHref } from "../lib/desk-nav";
+import {
+  OVERVIEW_YOY_GLANCE_ID,
+  OVERVIEW_YOY_YEAR_ID,
+  OVERVIEW_YOY_YEAR_PANEL,
+} from "../lib/overview-first-viewport";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import {
@@ -87,11 +93,20 @@ export function OverviewYoyCards({
 }) {
   const currency = useDeskCurrency();
   const deskHref = useDeskHref();
-  const nextHref = yoyHref ?? deskHref("/app/yoy");
+  const nextHref =
+    yoyHref ??
+    deskNavHref(deskHref("/app"), {
+      extra: { panel: OVERVIEW_YOY_YEAR_PANEL },
+      hash: OVERVIEW_YOY_YEAR_ID,
+    });
   const drill = useDeskDrill();
   if (salesPending) {
     return (
-      <section className="mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
+      <section
+        className="mcfly-desk-anchor mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft"
+        id={OVERVIEW_YOY_GLANCE_ID}
+        aria-label="Sales versus last year"
+      >
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_PENDING}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -104,7 +119,11 @@ export function OverviewYoyCards({
 
   if (cards.length === 0) {
     return (
-      <section className="mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
+      <section
+        className="mcfly-desk-anchor mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft"
+        id={OVERVIEW_YOY_GLANCE_ID}
+        aria-label="Sales versus last year"
+      >
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -120,7 +139,11 @@ export function OverviewYoyCards({
   const sameWindow = overviewWindowsCollapsed(cards);
 
   return (
-    <section className="mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
+    <section
+      className="mcfly-desk-anchor mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft"
+      id={OVERVIEW_YOY_GLANCE_ID}
+      aria-label="Sales versus last year"
+    >
       <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {
@@ -153,9 +176,9 @@ export function OverviewYoyCards({
                   ].filter(
                     (block): block is { k: string; v: string } => block != null,
                   ),
-                  next: "Open YoY for this month vs last month vs last year plus last 7.",
+                  next: "Open the 12-month board vs last year below on Overview.",
                   nextHref,
-                  nextLabel: "Open YoY",
+                  nextLabel: "Open year board",
                   foot: card.missingPrior ? OVERVIEW_YOY_MISSING : undefined,
                 })
               }

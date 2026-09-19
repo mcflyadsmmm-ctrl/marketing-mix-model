@@ -27,10 +27,8 @@ const scoreboardLib = read("./customers-scoreboard.ts");
 /**
  * Authority: docs/ops/research/black-clover-depth/ + docs/ops/CRAFT_UNLOCK.md
  * + docs/ops/FULL_TAB_CRAFT_AUDIT_v339.md FAIL #5.
- * Customers is one spine: first-fold heroes (RFM-lite / whale / repurchase) →
- * marquee explorer → compact returning hero → What-to-do / watchlist →
- * RFM-lite → value bands / whales. Not a customer-list clone. Update toward
- * one desk, never toward a card stack.
+ * Customers is one spine: returning $ first fold → full LTV pack → full Growth
+ * pack → RFM / whales / LTV flagship depth. Not a customer-list clone.
  */
 
 describe("Customers route — one RETAIN spine, order history only", () => {
@@ -40,18 +38,26 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers).toMatch(/returning/i);
   });
 
-  it("leads with the first-fold heroes, then marquee, then What-to-do — not a book dump", () => {
-    expect(customers).toContain("loadCustomerAnalytics");
+  it("leads with returning dollars, then LTV, Growth, then RFM depth", () => {
+    expect(customers).toContain("loadCustomersStackPage");
     const order = [
+      'id="mcfly-returning"',
       "<CustomersFirstViewport",
       "<CustomerMixChart",
       "<CustomersScoreboard",
+      'id="mcfly-ltv"',
+      "<UnlockFullHistoryBanner",
+      "<CustomersLtvWindows",
+      'id="mcfly-growth"',
+      "<CustomersGrowthSection",
+      'id="mcfly-depth"',
       "<CustomerRetentionBoard",
       "<CustomerWhaleWatch",
       "<CustomerRfmBoard",
       "<CustomerValueBands",
       "<CustomerWhaleTable",
       "<CustomerConcentrationChart",
+      "<CustomersLtvDepth",
       "<ShareableInsightCards",
     ].map((tag) => customers.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
@@ -80,10 +86,13 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers).toContain("orderFactsTruncated");
   });
 
-  it("links Growth and LTV and labels SAMPLE", () => {
-    expect(customers).toContain('href="/app/growth"');
-    expect(customers).toContain('href="/app/ltv"');
+  it("mounts Growth and LTV in-page instead of footer hops", () => {
+    expect(customers).toContain('id="mcfly-growth"');
+    expect(customers).toContain('id="mcfly-ltv"');
+    expect(customers).not.toContain('href="/app/growth"');
+    expect(customers).not.toContain('href="/app/ltv"');
     expect(customers).toContain("useSampleDesk");
+    expect(customers).toContain("<ReviewAsk");
   });
 });
 
@@ -286,8 +295,8 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
   });
 });
 
-describe("Zero spend / ROAS / Email on the whole Customers tab", () => {
-  it("never paints spend, ROAS, CPA, Email product, or a 0.00× on any Customers file", () => {
+describe("Zero spend / ROAS / Email on the Customers first fold", () => {
+  it("never paints spend, ROAS, CPA, Email product, or a 0.00× on the returning fold", () => {
     for (const source of [
       customers,
       firstView,

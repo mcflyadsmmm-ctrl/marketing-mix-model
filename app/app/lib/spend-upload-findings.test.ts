@@ -44,7 +44,7 @@ describe("spend upload findings", () => {
     expect(CERTIFIED_WINDOWS_KICKER).toMatch(/At goal vs Settings/i);
   });
 
-  it("mounts the finding strip on Spend Upload empty and Total ROAS empty", () => {
+  it("mounts the finding strip on Spend empty (pair + add-a-day)", () => {
     const spend = read("../routes/app.spend.tsx");
     const roas = read("../routes/app.roas.tsx");
     const strip = read("../components/SpendFindingStrip.tsx");
@@ -57,12 +57,13 @@ describe("spend upload findings", () => {
 
     expect(spend).toContain("SpendFindingStrip");
     expect(spend).toContain("spendUploadEmptyFinding");
+    expect(spend).toContain("totalRoasEmptySpendFinding");
     expect(spend).toContain("strangerEmpty");
+    expect(spend).toContain("HONEST_MER_LINE");
+    expect(spend).not.toContain("0.00×");
 
-    expect(roas).toContain("SpendFindingStrip");
-    expect(roas).toContain("totalRoasEmptySpendFinding");
-    expect(roas).toContain("HONEST_MER_LINE");
-    expect(roas).not.toContain("0.00×");
+    expect(roas).toContain('spendPanelRedirectPath(request.url, "roas"');
+    expect(roas).not.toContain("<SpendFindingStrip");
 
     expect(scoreboard).toContain("CERTIFIED_WINDOWS_KICKER");
     expect(scoreboard).toContain("At goal");

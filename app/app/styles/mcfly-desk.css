@@ -21082,3 +21082,60 @@ button.mcfly-habit-goals__read:focus-visible {
     min-height: 6rem;
   }
 }
+
+/* Compact desk: in-page panel rail + section scroll targets.
+   Operator wells stay white — do not retint .mcfly-well here. */
+[id^="mcfly-"] {
+  scroll-margin-top: 4.5rem;
+}
+
+.mcfly-desk-panel-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.28rem 0.32rem;
+  margin: -0.35rem 0 0.75rem;
+  padding: 0 0.2rem 0.12rem;
+  max-width: 100%;
+}
+
+.mcfly-desk-panel-rail a.mcfly-desk-panel-rail__chip,
+.mcfly-desk-panel-rail__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--mcfly-well-line);
+  border-radius: 999px;
+  background: var(--mcfly-well-bg);
+  color: var(--mcfly-well-ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mcfly-desk-panel-rail a.mcfly-desk-panel-rail__chip:hover,
+.mcfly-desk-panel-rail a.mcfly-desk-panel-rail__chip:focus-visible,
+.mcfly-desk-panel-rail__chip:hover,
+.mcfly-desk-panel-rail__chip:focus-visible {
+  border-color: var(--mcfly-well-ink);
+}
+
+.mcfly-desk-panel-rail a.mcfly-desk-panel-rail__chip:focus-visible,
+.mcfly-desk-panel-rail__chip:focus-visible {
+  outline: 2px solid var(--mcfly-well-accent);
+  outline-offset: 2px;
+}
+
+.mcfly-desk-panel-rail a.mcfly-desk-panel-rail__chip--on,
+.mcfly-desk-panel-rail a.mcfly-desk-panel-rail__chip--on:hover,
+.mcfly-desk-panel-rail__chip--on,
+.mcfly-desk-panel-rail__chip--on:hover {
+  background: var(--mcfly-well-ink);
+  border-color: var(--mcfly-well-ink);
+  color: var(--mcfly-well-bg);
+}

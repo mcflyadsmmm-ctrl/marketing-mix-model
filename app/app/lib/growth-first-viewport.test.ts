@@ -166,12 +166,14 @@ describe("Growth first-fold SCORECARD vs free Shopify Analytics", () => {
     for (const hero of GROWTH_FIRST_FOLD_HEROES) {
       expect(growthHeroBeatsShopifyAnalytics(hero)).toBe(true);
     }
-    const growth = read("../routes/app.growth.tsx");
+    const growth = read("../components/CustomersGrowthSection.tsx");
+    const customers = read("../routes/app.customers.tsx");
     const firstView = read("../components/GrowthFirstViewport.tsx");
     const css = read("../styles/mcfly-desk.css");
     expect(css).toContain(".mcfly-growth-hero");
     expect(css).toContain(".mcfly-score--growth-hero");
-    expect(growth).toContain("GROWTH_FIRST_LANE_LABEL");
+    expect(customers).toContain("GROWTH_FIRST_LANE_LABEL");
+    expect(customers).toContain("<CustomersGrowthSection");
     expect(growth).toContain("<GrowthFirstViewport");
     expect(growth.indexOf("<GrowthFirstViewport")).toBeLessThan(
       growth.indexOf("<GrowthComebackChart"),
@@ -201,6 +203,7 @@ describe("Growth first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(firstView).not.toContain("COGS");
     expect(growth).not.toContain("/app/spend");
     expect(growth).not.toContain("Total ROAS");
+    expect(customers).not.toContain("/app/spend");
     // Weekend / weekday timing is Orders + Overview — not a Growth first-fold steal.
     expect(firstView).not.toContain("Weekend");
     expect(firstView).not.toContain("weekday");

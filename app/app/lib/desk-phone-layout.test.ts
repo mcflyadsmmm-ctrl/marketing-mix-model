@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { DESK_IFRAME_NAV, DESK_PRIMARY_NAV } from "./desk-nav";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -21,9 +22,25 @@ describe("Admin desk phone / narrow iframe", () => {
   const css = read("../styles/mcfly-desk.css");
   const phone = lastBlock(css, PHONE_MARK);
 
-  it("keeps 11 analysis tabs + Settings and does not invent a 12th tab", () => {
+  it("keeps 5 analysis tabs + Settings and does not invent a 6th analysis tab", () => {
     const nav = read("./desk-nav.ts");
     const tabs = read("../components/DeskTopTabs.tsx");
+    expect(DESK_IFRAME_NAV.map((item) => item.label)).toEqual([
+      "Overview",
+      "Orders",
+      "Customers",
+      "Spend",
+      "Goals",
+    ]);
+    expect(DESK_PRIMARY_NAV.map((item) => item.label)).toEqual([
+      "Overview",
+      "Orders",
+      "Customers",
+      "Spend",
+      "Goals",
+      "Settings",
+    ]);
+    expect(DESK_IFRAME_NAV).toHaveLength(5);
     expect(nav).toContain("DESK_PRIMARY_NAV");
     expect(tabs).toContain("DESK_IFRAME_NAV");
     expect(tabs).toContain("mcfly-desk-tabs--pills");
@@ -61,7 +78,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).toContain("max-width: calc(33.333% - 0.24rem) !important");
   });
 
-  it("wraps 11 tabs as small spaced pills — never a smooshed nowrap strip", () => {
+  it("wraps 5 analysis tabs as small spaced pills — never a smooshed nowrap strip", () => {
     expect(phone).toMatch(/@media \(max-width: 640px\)/);
     const tabsStart = phone.indexOf(".mcfly-desk-tabs,");
     expect(tabsStart).toBeGreaterThan(-1);
@@ -101,7 +118,18 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).toContain("This month");
     expect(fixture).toContain("This quarter");
     expect(fixture).toContain("This year");
-    expect(fixture).toContain("Spend Upload");
+    expect(fixture).toContain(">Overview<");
+    expect(fixture).toContain(">Orders<");
+    expect(fixture).toContain(">Customers<");
+    expect(fixture).toContain(">Spend<");
+    expect(fixture).toContain(">Goals<");
+    expect(fixture).not.toContain("Spend Upload");
+    expect(fixture).not.toContain("Channel Allocation");
+    expect(fixture).not.toContain("Total ROAS");
+    expect(fixture).not.toContain(">Growth<");
+    expect(fixture).not.toContain(">LTV<");
+    expect(fixture).not.toContain(">CPA<");
+    expect(fixture).not.toContain(">YoY<");
     expect(fixture).not.toContain("mcfly-desk-tabs__k");
     expect(fixture).not.toContain("0.00×");
     expect(fixture).not.toContain("Edit spend");
@@ -111,7 +139,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toContain("Click for detail");
   });
 
-  it("ships a 390px fixture with Snowdevil SAMPLE dollars and the 11-tab rail", () => {
+  it("ships a 390px fixture with Snowdevil SAMPLE dollars and the 5-tab rail", () => {
     const fixture = read("./desk-phone-fixture.html");
     expect(fixture).toContain("$68,457");
     expect(fixture).toContain("$631");
@@ -137,8 +165,14 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture).not.toContain("0.00×");
     expect(fixture).not.toContain("Edit spend");
     expect(fixture).toContain("Overview");
-    expect(fixture).toContain("Channel Allocation");
-    expect(fixture).toContain("Spend Upload");
+    expect(fixture).toContain(">Orders<");
+    expect(fixture).toContain(">Customers<");
+    expect(fixture).toContain(">Spend<");
+    expect(fixture).toContain(">Goals<");
+    expect(fixture).not.toContain("Channel Allocation");
+    expect(fixture).not.toContain("Spend Upload");
+    expect(fixture).not.toContain(">Growth<");
+    expect(fixture).not.toContain(">CPA<");
     expect(fixture).toContain("mcfly-desk-tabs--pills");
     expect(fixture).not.toContain("mcfly-desk-tabs__k");
     expect(fixture).not.toContain("SCOREBOARD");

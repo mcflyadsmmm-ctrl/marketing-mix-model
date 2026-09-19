@@ -135,21 +135,14 @@ describe("Snowdevil SAMPLE math smoke", () => {
     const customers = read("../routes/app.customers.tsx");
     expect(customers).toMatch(/Returning dollars/i);
 
-    const growth = read("../routes/app.growth.tsx");
+    const growth = read("../components/CustomersGrowthSection.tsx");
     expect(growth).toMatch(/second/i);
     expect(growth + read("../lib/product-labels.ts")).toMatch(/30 days/);
 
-    const ltv = read("../routes/app.ltv.tsx");
+    const ltv = read("../components/CustomersLtvSection.tsx");
     expect(ltv).toMatch(/90/);
 
-    const spend = read("../routes/app.spend.tsx");
-    expect(spend).toMatch(/SAMPLE|sample/i);
-    expect(spend).toContain("Total ROAS");
-
-    const roas = read("../routes/app.roas.tsx");
-    expect(roas).toMatch(/certified|Certified/i);
-
-    const yoy = read("../routes/app.yoy.tsx");
+    const yoy = read("../components/OverviewYoyYearSection.tsx") + read("./yoy-workspace.ts");
     expect(yoy).toMatch(/This month/i);
     expect(yoy).toMatch(/Last month/i);
     expect(yoy).toMatch(/Last year/i);

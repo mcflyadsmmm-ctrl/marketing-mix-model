@@ -43,7 +43,7 @@ export type ShareableInsightCard = {
   formula: string;
   /** Trust line — observed vs estimate, guests out, not a guess. */
   trust: string;
-  nextHref: "/app/customers" | "/app/orders" | "/app/growth" | "/app/ltv";
+  nextHref: "/app/customers" | "/app/orders";
   nextLabel: string;
 };
 
@@ -267,8 +267,8 @@ function daysToSecondCard(
     line: `Typical wait to a second order is ${wait} — median first→second gap.`,
     formula: "Days to second = median first→second gap among buyers who came back.",
     trust: "Among buyers who came back. Guests stay out.",
-    nextHref: "/app/growth",
-    nextLabel: "Open Growth",
+    nextHref: "/app/customers",
+    nextLabel: "Open Customers",
   };
 }
 
@@ -288,8 +288,8 @@ function ltvPeekCard(
     line: `A new buyer is worth ${money(worth)} in the ${window} — observed order history.`,
     formula: `Worth = average dollars per new buyer in the ${window}.`,
     trust: "Observed order history — not an estimate. Refunds never invented.",
-    nextHref: "/app/ltv",
-    nextLabel: "Open LTV",
+    nextHref: "/app/customers",
+    nextLabel: "Open Customers",
   };
 }
 

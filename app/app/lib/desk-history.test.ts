@@ -129,7 +129,7 @@ describe("deskBookLede / honesty notices", () => {
 
 describe("Customers / Growth / Orders honesty wiring", () => {
   it("passes truncated today and the Shopify order window into DeskBookPage", () => {
-    for (const file of ["app.customers.tsx", "app.growth.tsx", "app.orders.tsx"]) {
+    for (const file of ["app.customers.tsx", "app.orders.tsx"]) {
       const src = readFileSync(join(here, `../routes/${file}`), "utf8");
       expect(src).toContain(
         "todaySalesTruncated={!useSampleDesk && todaySalesTruncated}",
@@ -141,19 +141,12 @@ describe("Customers / Growth / Orders honesty wiring", () => {
         "shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}",
       );
       expect(src).toContain("includeShopifyOrderWindow: true");
-      if (file !== "app.growth.tsx") {
-        expect(src).toContain("deskBookLede");
-      }
+      expect(src).toContain("deskBookLede");
     }
   });
 
   it("wires OrderFact progress into DeskBookPage on the Shopify five", () => {
-    for (const file of [
-      "app.customers.tsx",
-      "app.growth.tsx",
-      "app.orders.tsx",
-      "app.ltv.tsx",
-    ]) {
+    for (const file of ["app.customers.tsx", "app.orders.tsx"]) {
       const src = readFileSync(join(here, `../routes/${file}`), "utf8");
       expect(src, file).toContain("orderBackfillProgress={");
       expect(src, file).toContain("completeDays:");

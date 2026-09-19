@@ -4,7 +4,7 @@ import type {
   HeadersFunction,
   LoaderFunctionArgs,
 } from "react-router";
-import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router";
+import { Form, Link, redirect, useActionData, useLoaderData, useNavigation } from "react-router";
 import { DeskIcon, type DeskIconName } from "../components/DeskIcon";
 import { useDeskDrill } from "../components/DeskDrill";
 import { boundary } from "@shopify/shopify-app-react-router/server";
@@ -13,9 +13,20 @@ import {
   SPEND_CHANNEL_LABELS,
   type SpendChannel,
 } from "@mcfly/mer-engine";
+import { CertifiedScoreboard } from "../components/CertifiedScoreboard";
+import { DualCloseLine } from "../components/DualCloseLine";
+import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
+import { MonthlyPacing } from "../components/MonthlyPacing";
 import { PeriodControl } from "../components/PeriodControl";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { SpendFindingStrip } from "../components/SpendFindingStrip";
+import {
+  SpendExplorer,
+} from "../components/SpendExplorer";
+import { CpaExplorer } from "../components/CpaExplorer";
+import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
+import { CpaWindowCards } from "../components/CpaWindowCards";
+import { SpendMixSection, useSpendPanelScroll } from "../components/SpendMixSection";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import { requireAdmin } from "../lib/public-app-gate.server";
 import {
@@ -37,7 +48,8 @@ import {
   setSampleDeskEnabled,
   utcDayKey,
 } from "../lib/sample-desk.server";
-import { formatSpendAmount } from "../lib/mer-format";
+import { formatCurrency, formatMer, formatSpendAmount } from "../lib/mer-format";
+import { formatSpendOnFile, spendOnFileHint } from "../lib/spend-on-file";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import prisma from "../db.server";
 import {
@@ -62,7 +74,7 @@ import {
   stopRecurringSpend,
 } from "../lib/spend-recurring.server";
 import { roundMoney, shopCurrencyCode, toMoneyNumber } from "../lib/spend-money";
-import { spendFillDayHref } from "../lib/number-honesty";
+import { spendFillDayHref, NUMBER_HONESTY, formatTotalRoasEquation } from "../lib/number-honesty";
 import { spendEntrySourceLabel } from "../lib/spend-source-label";
 import {
   recurringFillConfirmRequiredError,
@@ -71,7 +83,19 @@ import {
   recurringFillPreviewCopy,
 } from "../lib/recurring-fill-preview";
 import { SAMPLE_LEDGER_HANDOFF } from "../lib/sample-live-handoff";
-import { spendUploadEmptyFinding } from "../lib/spend-upload-findings";
+import {
+  HONEST_MER_LINE,
+  spendUploadEmptyFinding,
+  totalRoasEmptySpendFinding,
+} from "../lib/spend-upload-findings";
+import { loadSpendAnalysis } from "../lib/desk-spend-stack.server";
+import { useDeskCurrency } from "../lib/desk-currency";
+import {
+  CPA_CONTRAST,
+  CPA_EMPTY_SPEND,
+  CPA_NO_BUYERS,
+  type CpaWindowId,
+} from "../lib/cpa-desk";
 
 const CUSTOM_CHANNEL_NAME_ERROR = "Name this channel (e.g. Influencers).";
 
@@ -152,7 +176,7 @@ function SpendPeek({
       next,
       nextHref,
       nextLabel,
-      foot: "This page records spend. Sales ÷ spend lives on Total ROAS.",
+      foot: "This page records spend. Sales ÷ spend is the pair at the top.",
     });
   const body = (
     <>
@@ -215,11 +239,16 @@ function HashDetails({
 }
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await requireAdmin(request);
+  const { admin, session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const url = new URL(request.url);
   const shotMode = url.searchParams.get("shot") === "1";
   const preset = parsePeriodPreset(url.searchParams.get("period"));
+  if (!shotMode && preset === "y3") {
+    const next = new URLSearchParams(url.searchParams);
+    next.set("period", "ytd");
+    throw redirect(`/app/spend?${next.toString()}`);
+  }
   const sampleDesk = await getSampleDeskStats(shop.id);
   const now = new Date();
   const timeZone = deskPeriodTimeZone(sampleDesk.enabled, shop.ianaTimezone);
@@ -242,7 +271,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sampleOn: sampleDesk.enabled,
   });
 
-  const [entryRows, dayCoverage, recurring] = await Promise.all([
+  const [entryRows, dayCoverage, recurring, analysis] = await Promise.all([
     prisma.spendEntry.findMany({
       where: { shopId: shop.id, ...spendSourceWhere, amount: { gt: 0 } },
       orderBy: { periodStart: "desc" },
@@ -250,6 +279,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }),
     loadSpendDayCoverage(shop.id, sampleDesk.enabled),
     sampleDesk.enabled ? Promise.resolve([]) : listRecurringSpend(shop.id),
+    loadSpendAnalysis({
+      request,
+      admin,
+      shopDomain: session.shop,
+      shop: {
+        id: shop.id,
+        ianaTimezone: shop.ianaTimezone ?? null,
+      },
+      useSampleDesk: sampleDesk.enabled,
+    }),
   ]);
 
   const entries = entryRows.map((entry) => ({
@@ -310,6 +349,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     yesterdayKey,
     currencyCode,
     fillDateKey,
+    metrics: analysis.metrics,
+    explorer: analysis.explorer,
+    cashControl: analysis.cashControl,
+    monthPace: analysis.monthPace,
+    history: analysis.history,
+    windowSets: analysis.windowSets,
+    cpa: analysis.cpa,
+    salesError: analysis.salesError,
+    todaySalesUnavailable: analysis.todaySalesUnavailable,
+    todaySalesTruncated: analysis.todaySalesTruncated,
+    salesFactsIncomplete: analysis.salesFactsIncomplete,
+    factsIncomplete: analysis.factsIncomplete,
+    shopifyOrderWindowLimited: analysis.shopifyOrderWindowLimited,
   };
 };
 
@@ -496,24 +548,57 @@ export default function SpendEntryPage() {
     fillDateKey,
     currencyCode,
     preset,
+    metrics,
+    explorer,
+    cashControl,
+    monthPace,
+    history,
+    windowSets,
+    cpa,
+    salesError,
+    todaySalesUnavailable,
+    todaySalesTruncated,
+    salesFactsIncomplete,
+    shopifyOrderWindowLimited,
   } = useLoaderData<typeof loader>();
+  const currency = useDeskCurrency();
+  useSpendPanelScroll();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const isLoading = navigation.state === "loading";
   const submittingIntent =
     navigation.formData?.get("intent")?.toString() ?? null;
   const isEmpty = entries.length === 0;
   /**
-   * Stranger on Live data with nothing typed yet: the page is the three doors
-   * and one honesty sentence. Coverage and status only earn room once a day
-   * of spend exists. SAMPLE still skips this lean gate (ledger is on file)
-   * but never mounts a ROAS/mix hero — TAB_LOCK §6 is input-only.
+   * Stranger on Live data with nothing typed yet: coverage and ledger wait.
+   * Sales | — | — plus add-a-day still paint (all-size). SAMPLE shows the pair.
    */
   const strangerEmpty = isEmpty && !sampleDesk.enabled && !shotMode;
-  const roasHref = deskNavHref("/app/roas", {
-    period: preset,
-    shot: shotMode,
+  const hasSpend = metrics.totalSpend > 0;
+  const roasValue =
+    hasSpend &&
+    !metrics.salesPending &&
+    metrics.mer != null &&
+    Number.isFinite(metrics.mer)
+      ? `${formatMer(metrics.mer)}×`
+      : "—";
+  const pairEquation = formatTotalRoasEquation({
+    sales: metrics.sales,
+    spend: metrics.totalSpend,
+    mer: metrics.mer,
+    salesPending: metrics.salesPending,
+    currency,
   });
+  const [cpaSelectedId, setCpaSelectedId] = useState<CpaWindowId>("this_month");
+  const cpaSelected =
+    cpa.windows.find((window) => window.id === cpaSelectedId) ?? cpa.windows[0]!;
+  const cpaPayback = cpa.paybacks[cpaSelected.id];
+  const cpaHasSpend = cpa.hasSpend;
+  const cpaBuyersMissing =
+    cpaSelected.spend > 0 &&
+    cpaSelected.buyersKnown &&
+    cpaSelected.identifiedBuyers === 0;
   const importHref = deskNavHref("/app/spend/import", {
     period: preset,
     shot: shotMode,
@@ -601,7 +686,7 @@ export default function SpendEntryPage() {
   });
 
   return (
-    <s-page heading="Spend Upload" inlineSize="large">
+    <s-page heading="Spend" inlineSize="large">
       {isEmpty && !shotMode ? (
         <s-button
           slot="primary-action"
@@ -618,12 +703,42 @@ export default function SpendEntryPage() {
           "mcfly-desk--chrome",
           "mcfly-spend-lean",
           "mcfly-spend-lean--soft",
+          "mcfly-roas--soft",
           shotMode ? "mcfly-desk--shot" : null,
           sampleDesk.enabled ? "mcfly-desk--sample" : null,
+          isLoading && !shotMode ? "mcfly-desk--loading" : null,
         ]
           .filter(Boolean)
           .join(" ")}
       >
+        {isLoading && !shotMode ? (
+          <section className="mcfly-state mcfly-state--loading mcfly-state--soft" aria-live="polite">
+            <p className="mcfly-state__copy">Refreshing Spend…</p>
+          </section>
+        ) : null}
+
+        {salesError && !shotMode ? (
+          <section
+            className="mcfly-state mcfly-state--critical mcfly-state--soft"
+            aria-label="Sales load error"
+          >
+            <p className="mcfly-state__copy">
+              Sales didn’t load. Retry to see Shopify Total Sales next to spend.
+            </p>
+            <div className="mcfly-state__cta">
+              <s-button href={`/app/spend?period=${preset}`} variant="primary">
+                Retry
+              </s-button>
+            </div>
+          </section>
+        ) : null}
+
+        {metrics.salesPending && !shotMode ? (
+          <s-banner tone="info" heading="Sales still loading">
+            <s-paragraph>{NUMBER_HONESTY.salesPending}</s-paragraph>
+          </s-banner>
+        ) : null}
+
         {shotMode ? (
           <div className="mcfly-ctx" aria-live="polite">
             <div className="mcfly-ctx__main">
@@ -641,7 +756,7 @@ export default function SpendEntryPage() {
             <s-paragraph>
               Your saved spend is ready for {PRODUCT_NOUN.totalRoas}.
               {" · "}
-              <s-link href={roasHref}>Same numbers on Total ROAS</s-link>
+              <s-link href="#mcfly-roas">Same numbers above</s-link>
               {" · "}or add another day below.
             </s-paragraph>
           </s-banner>
@@ -653,31 +768,182 @@ export default function SpendEntryPage() {
           </s-banner>
         ) : null}
 
-        <div className="mcfly-spend-lean__stack mcfly-spend-lean__stack--soft">
-          {sampleDesk.enabled && !shotMode ? (
-            <s-banner tone="info" heading="Example spend is on">
-              <s-paragraph>
-                {SAMPLE_LEDGER_HANDOFF}
-              </s-paragraph>
-            </s-banner>
+        {sampleDesk.enabled && !shotMode ? (
+          <s-banner tone="info" heading="Example spend is on">
+            <s-paragraph>
+              {SAMPLE_LEDGER_HANDOFF}
+            </s-paragraph>
+          </s-banner>
+        ) : null}
+
+        <section
+          id="mcfly-roas"
+          className="mcfly-well mcfly-well--scoreboard mcfly-book mcfly-book--soft mcfly-roas-book--soft"
+          aria-label="Sales, spend, and Total ROAS"
+        >
+          <p className="mcfly-book__lede">
+            Shopify Analytics shows sales, not {PRODUCT_NOUN.totalRoas}. This page shows {PRODUCT_NOUN.definition} — {HONEST_MER_LINE} Empty spend paints —, never 0×.
+          </p>
+          <div className="mcfly-book__glance mcfly-book__glance--kpis mcfly-book__glance--soft">
+            <div className="mcfly-book__kpi mcfly-book__kpi--soft">
+              <p className="mcfly-book__kpi-k">Sales</p>
+              <p className="mcfly-book__kpi-v">
+                {metrics.salesPending ? "—" : formatCurrency(metrics.sales, currency)}
+              </p>
+              <p className="mcfly-book__kpi-hint">
+                {metrics.salesPending
+                  ? "Still loading — not $0"
+                  : metrics.period.label}
+              </p>
+            </div>
+            <div className="mcfly-book__kpi mcfly-book__kpi--soft">
+              <p className="mcfly-book__kpi-k">Spend</p>
+              <p
+                className="mcfly-book__kpi-v"
+                data-empty={
+                  formatSpendOnFile(metrics.totalSpend, currency) === "—"
+                    ? "true"
+                    : undefined
+                }
+              >
+                {formatSpendOnFile(metrics.totalSpend, currency)}
+              </p>
+              <p className="mcfly-book__kpi-hint">
+                {spendOnFileHint(metrics.totalSpend)}
+              </p>
+            </div>
+            <div className="mcfly-book__kpi mcfly-book__kpi--soft mcfly-book__kpi--lead">
+              <p className="mcfly-book__kpi-k">{PRODUCT_NOUN.totalRoas}</p>
+              <p
+                className="mcfly-book__kpi-v"
+                data-empty={roasValue === "—" ? "true" : undefined}
+              >
+                {roasValue}
+              </p>
+              {hasSpend ? (
+                pairEquation ? (
+                  <p className="mcfly-book__kpi-hint">{pairEquation}</p>
+                ) : null
+              ) : (
+                <p className="mcfly-book__kpi-hint">
+                  <s-link href="#mcfly-spend-add">{PRODUCT_NOUN.uploadSpend}</s-link>
+                </p>
+              )}
+            </div>
+          </div>
+          {!hasSpend && !shotMode ? (
+            <SpendFindingStrip finding={totalRoasEmptySpendFinding()} />
           ) : null}
+        </section>
+
+        <section id="mcfly-explorer" aria-label="Certified windows and spend explorer">
+          {cashControl && cashControl.chips.length > 0 ? (
+            <CertifiedScoreboard
+              chips={cashControl.chips}
+              targetMer={cashControl.targetMer}
+              plan={cashControl.plan}
+            />
+          ) : null}
+
+          <SpendExplorer
+            series={explorer}
+            period={preset}
+            shotMode={shotMode}
+            basePath="/app/spend"
+            compare
+            quiet={false}
+          />
+
+          {cashControl?.dualClose ? (
+            <DualCloseLine
+              close={cashControl.dualClose}
+              targetMer={cashControl.targetMer}
+            />
+          ) : null}
+
+          {monthPace && cashControl && hasSpend ? (
+            <MonthlyPacing
+              sales={cashControl.dualClose?.mtd.sales ?? 0}
+              spend={cashControl.dualClose?.mtd.spend ?? 0}
+              mer={cashControl.dualClose?.mtd.mer ?? null}
+              targetMer={cashControl.targetMer}
+              heading="This month"
+              periodLabel={monthPace.densityLabel}
+              control={monthPace}
+            />
+          ) : null}
+
+          {cashControl ? (
+            <MarketingSpendRoom
+              board={cashControl}
+              channelLabels={explorer.channelLabels}
+            />
+          ) : null}
+        </section>
+
+        <SpendMixSection
+          metrics={metrics}
+          cashControl={cashControl}
+          history={history}
+          windowSets={windowSets}
+          preset={preset}
+          shotMode={shotMode}
+          useSampleDesk={sampleDesk.enabled}
+          salesError={salesError}
+          todaySalesUnavailable={todaySalesUnavailable}
+          todaySalesTruncated={todaySalesTruncated}
+          salesFactsIncomplete={salesFactsIncomplete}
+          shopifyOrderWindowLimited={shopifyOrderWindowLimited}
+          addSpendHref="#mcfly-spend-add"
+        />
+
+        <section
+          id="mcfly-cpa"
+          className="mcfly-well mcfly-well--scoreboard mcfly-book mcfly-cpa"
+          aria-label="Customer acquisition cost"
+        >
+          <p className="mcfly-book__lede">{CPA_CONTRAST}</p>
+          {!cpaHasSpend ? (
+            <p className="mcfly-book__lede">{CPA_EMPTY_SPEND}</p>
+          ) : (
+            <p className="mcfly-book__lede">
+              This month and Last 28 live on the cards. Cash CPA is entered spend ÷
+              Shopify buyers — not ads-manager CPA.
+            </p>
+          )}
+          {cpaHasSpend ? (
+            <CpaWindowCards
+              windows={cpa.windows}
+              selectedId={cpaSelected.id}
+              onSelect={setCpaSelectedId}
+            />
+          ) : null}
+          {cpaBuyersMissing ? (
+            <p className="mcfly-book__lede">{CPA_NO_BUYERS}</p>
+          ) : null}
+          {cpaHasSpend ? (
+            <CpaPaybackDesk
+              window={cpaSelected}
+              payback={cpaPayback}
+              historyLimited={cpa.paybackBase.historyLimited}
+            />
+          ) : null}
+          <CpaExplorer
+            days={cpa.days}
+            ranges={cpa.explorerRanges}
+            selectedWindow={cpaSelected.id}
+            onSelectWindow={setCpaSelectedId}
+          />
+        </section>
+
+        <div className="mcfly-spend-lean__stack mcfly-spend-lean__stack--soft">
           <p className="mcfly-spend-helper mcfly-spend-helper--soft">
             Shopify sales are already here. Empty spend is not a certified $0 —
             add a day. A deleted day stays $0. Empty spend is never 0×
             {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
             {strangerEmpty
               ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
-              : (
-                <>
-                  . Sales ÷ spend and mix live on{" "}
-                  <s-link href={roasHref}>{PRODUCT_NOUN.totalRoas}</s-link>
-                  {" and "}
-                  <s-link href={`/app/allocation?period=${preset}`}>
-                    {PRODUCT_NOUN.spendAllocation}
-                  </s-link>
-                  — this page records spend.
-                </>
-              )}
+              : ". Sales ÷ spend is the pair above. This section records typed, uploaded, or daily-rate spend."}
           </p>
 
           {strangerEmpty ? (
@@ -734,7 +1000,10 @@ export default function SpendEntryPage() {
                     className="mcfly-field"
                     name="channel"
                     value={addChannel}
-                    onChange={(event) => setAddChannel(event.target.value)}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      if (isSpendChannel(next)) setAddChannel(next);
+                    }}
                     aria-label="Spend channel"
                   >
                     {addSpendChannels.map((opt) => (
@@ -1062,7 +1331,7 @@ export default function SpendEntryPage() {
             <p className="mcfly-panel__muted">{SPEND_UPLOAD_CONTRAST}</p>
             <p className="mcfly-panel__muted">
               Empty spend is not a certified $0 — add a day. A deleted day stays
-              $0. Empty spend is never 0×. This page records spend.
+              $0. Empty spend is never 0×. The pair above is sales ÷ entered spend.
             </p>
           </HashDetails>
 
@@ -1273,11 +1542,13 @@ export default function SpendEntryPage() {
       </div>
       {entries.length > 0 ? (
         <p className="mcfly-overview-more" aria-label="Marketing tools">
-          <s-link href="/app/roas">{PRODUCT_NOUN.totalRoas}</s-link>
+          <s-link href="#mcfly-roas">{PRODUCT_NOUN.totalRoas}</s-link>
           {" · "}
-          <s-link href={`/app/allocation?period=${preset}`}>
+          <s-link href="#mcfly-mix">
             {PRODUCT_NOUN.spendAllocation}
           </s-link>
+          {" · "}
+          <s-link href="/app/spend/import">Import</s-link>
         </p>
       ) : null}
     </s-page>

@@ -126,7 +126,7 @@ describe("App Store 2.1.1 billing iframe guards", () => {
       "routes/app.billing.tsx",
       "routes/app.settings.tsx",
       "routes/app.spend.tsx",
-      "routes/app.ltv.tsx",
+      "routes/app.customers.tsx",
       "routes/app.goals.tsx",
       "routes/app.advanced.tsx",
       "routes/app._index.tsx",

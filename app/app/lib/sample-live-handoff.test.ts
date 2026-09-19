@@ -67,9 +67,9 @@ describe("SAMPLE → Live handoff", () => {
   });
 
   it("Growth stays order-history-first; SAMPLE door never mentions cash", () => {
-    const growth = read("../routes/app.growth.tsx");
+    const customers = read("../routes/app.customers.tsx");
     const firstView = read("../components/GrowthFirstViewport.tsx");
-    expect(growth).toContain("<GrowthFirstViewport");
+    expect(customers).toContain("<CustomersGrowthSection");
     expect(firstView).toContain("SAMPLE_GROWTH_DOOR");
     expect(firstView).not.toContain("SAMPLE_SPEND_NOT_LIVE");
     expect(firstView).not.toContain("Edit spend");

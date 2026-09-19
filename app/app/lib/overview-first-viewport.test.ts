@@ -19,12 +19,17 @@ import {
   overviewHeroBeatsShopifyAnalytics,
   overviewNoticeSentence,
   overviewOperatorGreeting,
+  overviewPanelElementId,
   overviewPeekThird,
   overviewPendingFinding,
   overviewReturningCompactDollars,
   overviewThinEmptyFinding,
   overviewWeekendWeekday,
   overviewWinBackDay,
+  OVERVIEW_MIX_CLOSE_ID,
+  OVERVIEW_YOY_GLANCE_ID,
+  OVERVIEW_YOY_YEAR_ID,
+  OVERVIEW_YOY_YEAR_PANEL,
 } from "./overview-first-viewport";
 
 /**
@@ -137,6 +142,7 @@ describe("overview first viewport", () => {
     const chartAt = overview.indexOf("<OverviewSalesChart");
     const depthAt = overview.indexOf("<OverviewDepthPeeks");
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
+    const yearAt = overview.indexOf("<OverviewYoyYearSection");
     expect(viewportAt).toBeGreaterThan(-1);
     expect(yoyAt).toBeGreaterThan(viewportAt);
     // Enterprise fold: chart sits in first lane after YoY for 1600×900 crops
@@ -145,12 +151,19 @@ describe("overview first viewport", () => {
     expect(shareAt).toBeGreaterThan(mixAt);
     expect(depthAt).toBeGreaterThan(shareAt);
     expect(weekdayAt).toBeGreaterThan(depthAt);
+    expect(yearAt).toBeGreaterThan(weekdayAt);
     expect(overview).toContain("medianDailySales");
     expect(overview).toContain("peakWeekday");
     expect(overview).toContain("windowSales");
     expect(overview).toContain("buildOverviewYoyCards");
     expect(overview).toContain("overviewGreetingPending");
     expect(overview).toContain("greetingPending");
+    expect(overview).toContain("OVERVIEW_YOY_YEAR_PANEL");
+    expect(overview).toContain("OVERVIEW_MIX_CLOSE_ID");
+    expect(overview).toContain("id={DESK_SECTION.chart}");
+    expect(overview).not.toContain('"/app/yoy"');
+    expect(overview).not.toContain('"/app/growth"');
+    expect(overview).not.toContain('"/app/ltv"');
     expect(overview).not.toContain("<PeriodControl");
     expect(overview).not.toContain("<DeskOverviewTabs");
     expect(overview).not.toContain("<DeskWindowRail");
@@ -204,6 +217,9 @@ describe("overview first viewport", () => {
     expect(cards).toContain("overviewWindowRange");
     expect(cards).toContain("overviewYoyZone");
     expect(cards).toContain("mcfly-yoy--glance");
+    expect(cards).toContain("OVERVIEW_YOY_GLANCE_ID");
+    expect(cards).toContain("OVERVIEW_YOY_YEAR_PANEL");
+    expect(cards).not.toContain('deskHref("/app/yoy")');
     expect(cards).toContain("overviewYoyDeltaPct");
     expect(cards).not.toContain("Click for detail");
   });
@@ -237,6 +253,11 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("Days to second");
     expect(firstView).toContain("New-buyer worth");
     expect(firstView).toContain("Month close");
+    expect(firstView).toContain('panel: "growth"');
+    expect(firstView).toContain('panel: "ltv"');
+    expect(firstView).toContain('deskHref("/app/customers")');
+    expect(firstView).not.toContain('deskHref("/app/growth")');
+    expect(firstView).not.toContain('deskHref("/app/ltv")');
     expect(firstView).toContain("OVERVIEW_THIN_EMPTY_LINE");
     expect(firstView).toContain("OVERVIEW_COVERAGE_LINE");
     expect(firstView).toContain("Signal");
@@ -325,6 +346,16 @@ describe("overview first viewport", () => {
     expect(yoy).toContain("overviewYoyZoneLabel");
     expect(firstView).toContain("bookTypicalDay");
     expect(firstView).toContain("bookBusiestWeekday");
+  });
+
+  it("maps Overview panel=yoy-year onto the year board id", () => {
+    expect(OVERVIEW_YOY_GLANCE_ID).toBe("mcfly-yoy-glance");
+    expect(OVERVIEW_MIX_CLOSE_ID).toBe("mcfly-mix-close");
+    expect(OVERVIEW_YOY_YEAR_ID).toBe("mcfly-yoy-year");
+    expect(OVERVIEW_YOY_YEAR_PANEL).toBe("yoy-year");
+    expect(overviewPanelElementId("yoy-year")).toBe("mcfly-yoy-year");
+    expect(overviewPanelElementId("growth")).toBeNull();
+    expect(overviewPanelElementId(null)).toBeNull();
   });
 
   it("feeds the sales chart a sales-only projection — payload spend never reaches a rendered prop", () => {

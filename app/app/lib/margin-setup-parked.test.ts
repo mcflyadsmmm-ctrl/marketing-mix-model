@@ -39,19 +39,20 @@ describe("Profit-margin / COGS setup is parked", () => {
     expect(allocation).not.toMatch(/Set profit margin/);
     expect(allocation).not.toMatch(/set margin for break-even/i);
     expect(allocation).not.toMatch(/Set margin in Settings/);
-    expect(allocation).toContain("Spend Upload");
+    expect(allocation).toContain("throw redirect");
+    expect(allocation).toContain('"mix"');
   });
 
   it("does not ask LTV merchants to confirm a default margin", () => {
-    const ltv = chrome("../routes/app.ltv.tsx");
+    const ltv = chrome("../components/CustomersLtvSection.tsx");
     expect(ltv).not.toMatch(/until you confirm in Settings/);
     expect(ltv).toContain("showMarginKept");
-    expect(ltv).toContain("UnlockFullHistoryBanner");
+    expect(read("../routes/app.customers.tsx")).toContain("UnlockFullHistoryBanner");
   });
 
   it("does not paint SAMPLE margin % as this shop on Overview or LTV first-lane", () => {
     const overview = chrome("../routes/app._index.tsx");
-    const ltv = chrome("../routes/app.ltv.tsx");
+    const ltv = chrome("../components/CustomersLtvSection.tsx");
     expect(overview).not.toMatch(/Margin \{Math\.round\(metrics\.marginPct/);
     expect(overview).not.toContain("mcfly-trust__chip--ok");
     const orderStart = ltv.indexOf("const orderRows: LtvRow[] = []");

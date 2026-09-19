@@ -12,7 +12,7 @@ function read(rel: string): string {
 describe("uninstall-friction pass — Overview / empties / sync / Unlock / Settings", () => {
   const overview = read("../routes/app._index.tsx");
   const firstView = read("../components/OverviewFirstViewport.tsx");
-  const ltv = read("../routes/app.ltv.tsx");
+  const customers = read("../routes/app.customers.tsx");
   const settings = read("../routes/app.settings.tsx");
   const pending = read("./desk-phone-pending-fixture.html");
   const trust = read("../components/CashTrustBanners.tsx");
@@ -52,10 +52,13 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
   });
 
   it("4) Unlock full history leads LTV when the live book is locked", () => {
-    const unlockAt = ltv.indexOf("{liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner");
-    const firstLaneAt = ltv.indexOf('rank="first" label="What a new buyer is worth"');
+    const unlockAt = customers.indexOf("{liveHistoryLocked && !shotMode ? <UnlockFullHistoryBanner");
+    const ltvLaneAt = customers.indexOf('id="mcfly-ltv"');
+    const valueAt = customers.indexOf("<CustomersLtvWindows");
     expect(unlockAt).toBeGreaterThan(-1);
-    expect(firstLaneAt).toBeGreaterThan(unlockAt);
+    expect(ltvLaneAt).toBeGreaterThan(-1);
+    expect(unlockAt).toBeGreaterThan(ltvLaneAt);
+    expect(valueAt).toBeGreaterThan(unlockAt);
     expect(unlock).toContain("24 months of orders");
     expect(unlock).not.toContain("~90 days");
   });

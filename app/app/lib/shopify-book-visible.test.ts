@@ -12,8 +12,8 @@ function read(rel: string): string {
 const book = read("../components/ShopifyBookSection.tsx");
 const orders = read("../routes/app.orders.tsx");
 const customers = read("../routes/app.customers.tsx");
-const growth = read("../routes/app.growth.tsx");
-const ltv = read("../routes/app.ltv.tsx");
+const growth = read("../components/CustomersGrowthSection.tsx");
+const ltv = read("../components/CustomersLtvSection.tsx");
 
 describe("Shopify five books are visible cards", () => {
   it("ShopifyBookSection paints a KPI grid, not a collapsed FAQ", () => {

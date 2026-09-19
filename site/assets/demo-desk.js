@@ -1,6 +1,6 @@
 /**
  * Mcfly SAMPLE Overview — Snowdevil.
- * YoY sales first. Shopify-five peek. Spend optional ($19,023 / $68,457 / 3.60×).
+ * YoY sales first. Overview · Orders · Customers peek. Spend optional ($19,023 / $68,457 / 3.60×).
  * Recomputed from buildThreeYearSampleDesk({ now: 2026-09-16T18:00:00Z }).
  * Demo data only. Loud SAMPLE labeling. No pixels / MTA / path credit.
  */
@@ -239,7 +239,14 @@
   }
 
   function showSection(key) {
-    var known = { overview: true, spend: true, goals: true, settings: true };
+    var known = {
+      overview: true,
+      orders: true,
+      customers: true,
+      spend: true,
+      goals: true,
+      settings: true,
+    };
     if (!known[key]) key = "overview";
     state.section = key;
     $$("[data-dd-section]").forEach(function (sec) {
@@ -260,8 +267,10 @@
     var title = $(".dd-topbar__title");
     var def = $(".dd-topbar__def");
     var labels = {
-      overview: ["Overview", "This month / quarter / year vs last year · KPI cards · spend optional"],
-      spend: ["Spend Upload", "Optional · type a day or paste CSV"],
+      overview: ["Overview", "This month / quarter / year vs last year · YoY year board · spend optional"],
+      orders: ["Orders", "Typical order · weekends · from Shopify"],
+      customers: ["Customers", "Returning dollars · LTV 30/90/365 · days-to-second"],
+      spend: ["Spend", "Optional · type a day or paste CSV · Total ROAS · mix · CPA"],
       goals: ["Goals", "Monthly sales plan · spend optional"],
       settings: ["Settings", "Sample data · Live is parked · $39/mo"],
     };
@@ -292,7 +301,7 @@
         "Typical order",
         "<p class=\"dd-drawer__value\">" +
           money(period.typicalOrder) +
-          "</p><p>Median ticket on the Shopify five. " +
+          "</p><p>Median ticket on Orders. " +
           formatInt(period.orders) +
           " orders this window. Spend is optional.</p>",
         trigger,

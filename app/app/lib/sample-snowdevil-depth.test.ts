@@ -44,6 +44,7 @@ import {
   buildCustomersLeadPeeks,
   customersOperatorGreeting,
 } from "./customers-first-viewport";
+import { shopifyNativePeriodStats } from "./shopify-native-stats";
 import { buildGrowthTt2 } from "./growth-tt2";
 import { resolvePeriod, resolvePriorPeriod, type PeriodPreset } from "./periods";
 
@@ -247,7 +248,7 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     expect(analytics.everRepeatShare!).toBeGreaterThan(0);
   });
 
-  it("feeds Customers RFM-lite: four segments and a whale watchlist", () => {
+  it("feeds Customers RFM depth under a returning-dollars first fold", () => {
     const rfm = buildCustomerRfm(
       orders.map((o) => ({
         customerKey: o.customerKey,
@@ -263,50 +264,56 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     const buyers = rfm.segments.reduce((s, row) => s + row.buyers, 0);
     expect(buyers).toBe(rfm.identifiedBuyers);
     expect(rfm.bands).toHaveLength(3);
-    // SAMPLE has 4+ order whales; at least the slipping list or the designed empty.
     expect(rfm.watchlist.length > 0 || rfm.watchEmpty != null).toBe(true);
     expect(rfm.watchlist.every((row) => /^Whale \d+$/.test(row.label))).toBe(true);
 
-    const analytics = buildCustomerAnalytics(
-      orders.map((o) => ({
-        customerKey: o.customerKey,
-        orderedAt: o.orderedAt,
-        amount: o.amount,
-      })),
-      { windowEnd: now, historyWindowDays: SAMPLE_ORDER_FACT_WINDOW_DAYS },
-    );
-    const atRisk = rfm.segments.find((row) => row.key === "at_risk");
+    let sales = 0;
+    let orderCount = 0;
+    let newCustomers = 0;
+    let returningCustomers = 0;
+    let guestOrders = 0;
+    let newCustomerNetSales = 0;
+    let guestNetSales = 0;
+    for (const row of windowDays) {
+      sales += row.sales;
+      orderCount += row.orderCount;
+      newCustomers += row.newCustomers;
+      returningCustomers += row.returningCustomers;
+      guestOrders += row.guestOrders;
+      newCustomerNetSales += row.newCustomerNetSales;
+      guestNetSales += row.guestNetSales;
+    }
+    const native = shopifyNativePeriodStats({
+      sales,
+      orderCount,
+      newCustomers,
+      returningCustomers,
+      guestOrders,
+      customerMetricsAvailable: true,
+      newCustomerNetSales,
+      returningCustomerNetSales: Math.max(
+        0,
+        sales - newCustomerNetSales - guestNetSales,
+      ),
+      grossSales: sales,
+      grossSalesKnown: true,
+    });
     const greeting = customersOperatorGreeting({
       salesPending: false,
-      orderCount: analytics.windowOrders,
-      identifiedBuyers: analytics.identifiedBuyers,
-      repurchaseTypicalDays: analytics.repurchaseTypicalDays,
-      whaleCount: rfm.watchlist.length,
-      atRiskBuyers: atRisk?.buyers ?? null,
+      orderCount: native.orderCount,
+      identifiedBuyers: native.newCustomers + native.returningCustomers,
+      returningShare: native.returningSalesShare,
+      newShare: native.newSalesShare,
     });
-    const hero = buildCustomersHero(analytics, rfm);
-    const peeks = buildCustomersLeadPeeks(analytics, rfm);
+    const hero = buildCustomersHero(native);
+    const peeks = buildCustomersLeadPeeks(native);
     expect(greeting).toMatch(/Shopify Analytics Customers is a customer list/);
-    expect(hero?.kind).toBe("rfmLite");
-    expect(hero?.v).not.toBe("$0");
+    expect(hero?.kind).toBe("returningDollars");
+    expect(hero?.amount).toBeGreaterThan(0);
     expect(peeks.map((peek) => peek.hero)).toEqual(
-      expect.arrayContaining(["repurchaseClock", "winBack"]),
+      expect.arrayContaining(["newDollars"]),
     );
-    expect(peeks.every((peek) => peek.v !== "$0" && peek.v !== "0%")).toBe(true);
-    expect(greeting).toBe(
-      "Typical repurchase day 24. 8 whales to reach. At risk: 32. Shopify Analytics Customers is a customer list.",
-    );
-    expect(hero).toMatchObject({
-      kind: "rfmLite",
-      k: "RFM-lite · At risk",
-      v: "32",
-    });
-    expect(peeks.map((peek) => peek.v)).toEqual([
-      "8 to reach",
-      "Day 24",
-      "Day 39",
-      "152",
-    ]);
+    expect(peeks.every((peek) => peek.amount > 0)).toBe(true);
   });
 
   it("feeds Growth TT2: habit clock and still-waiting fall-off", () => {

@@ -269,7 +269,7 @@ describe("first-session Shopify window resume", () => {
     const auth = read("../routes/auth.$.tsx");
     const overview = read("../routes/app._index.tsx");
     const desk = read("./desk-sales-page.server.ts");
-    const roas = read("../routes/app.roas.tsx");
+    const spendStack = read("./desk-spend-stack.server.ts");
     expect(auth).toContain("scheduleFirstSessionShopifyWindow");
     expect(auth).not.toMatch(/await runSalesFactsBackfill/);
     expect(auth).not.toMatch(/await runOrderFactsBackfill/);
@@ -277,8 +277,8 @@ describe("first-session Shopify window resume", () => {
     expect(overview).not.toContain("maxDays: 2");
     expect(desk).toContain("scheduleFirstSessionShopifyWindow");
     expect(desk).not.toContain("maxDays: 2");
-    expect(roas).toContain("scheduleFirstSessionShopifyWindow");
-    expect(roas).not.toContain("maxDays: 2");
+    expect(spendStack).toContain("scheduleFirstSessionShopifyWindow");
+    expect(spendStack).not.toContain("maxDays: 2");
     const window = read("./first-session-shopify-window.server.ts");
     expect(window).toContain("liveUnparkIngestPolicyFromEnv");
     expect(window).toContain("LIVE_SYNC_LAW_PR_REF");

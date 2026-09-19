@@ -16,7 +16,7 @@ describe("public /demo phone Snowdevil Overview", () => {
   const mark = "P0 phone / Snowdevil /demo narrow";
 
   it("ships the phone cache-bust and keeps Snowdevil SAMPLE dollars", () => {
-    expect(home).toContain("demo-desk.css?v=20260918v28");
+    expect(home).toMatch(/demo-desk\.css\?v=202609\d+v\d+/);
     expect(home).toContain("$68,457");
     expect(home).toContain("$19,023");
     expect(home).toContain("3.60");

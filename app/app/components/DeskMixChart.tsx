@@ -1,3 +1,4 @@
+import { useDeskHref } from "../lib/desk-base-path";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { chartSeriesId } from "../lib/chart-smooth";
@@ -90,6 +91,7 @@ export function CountBarsChart({
   items: CountBarItem[];
 }) {
   const drill = useDeskDrill();
+  const deskHref = useDeskHref();
   const usable = items.filter((item) => item.count > 0).slice(-12);
   const {
     hoverIndex,
@@ -132,7 +134,7 @@ export function CountBarsChart({
                 kicker: "First orders that month",
                 blocks: [{ k: "What this is", v: item.detail }],
                 next: "Open LTV for 30 / 90 / 365 day spend-back.",
-                nextHref: "/app/ltv",
+                nextHref: deskHref("/app/customers?panel=ltv"),
                 nextLabel: "Open LTV",
               })
             }

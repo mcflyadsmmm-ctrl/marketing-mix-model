@@ -136,7 +136,7 @@ export default function App() {
     <AppProvider embedded apiKey={apiKey}>
       <DeskCurrencyContext.Provider value={currencyCode}>
       <BillingExitProvider plansUrl={plansUrl}>
-        {/* Admin nav: 11 analysis tabs + Settings. period + shot stay on every href. */}
+        {/* Admin nav: 5 analysis tabs + Settings. period + shot stay on every href. */}
         <s-app-nav>
           {DESK_PRIMARY_NAV.map((item) => (
             <s-link

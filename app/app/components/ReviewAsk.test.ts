@@ -76,7 +76,7 @@ describe("ReviewAsk", () => {
   it("is gated on live spend plus install age and stays off Overview chrome", () => {
     const ask = read("ReviewAsk.tsx");
     const shell = read("../routes/app.tsx");
-    const ltv = read("../routes/app.ltv.tsx");
+    const customers = read("../routes/app.customers.tsx");
 
     expect(ask).toContain("hasLiveSpend");
     expect(ask).toContain("useSampleDesk");
@@ -102,11 +102,11 @@ describe("ReviewAsk", () => {
     expect(originChunk).toContain("OriginShell");
     expect(originChunk).not.toContain("ReviewAsk");
 
-    expect(ltv).toContain("<ReviewAsk");
-    expect(ltv).toContain("hasLiveSpend={hasLiveSpend}");
-    expect(ltv).toContain("installedAt={installedAt}");
-    expect(ltv.indexOf("<ReviewAsk")).toBeGreaterThan(
-      ltv.indexOf("PRODUCT_NOUN.ltvTitle"),
+    expect(customers).toContain("<ReviewAsk");
+    expect(customers).toContain("hasLiveSpend={hasLiveSpend}");
+    expect(customers).toContain("installedAt={installedAt}");
+    expect(customers.indexOf("<ReviewAsk")).toBeGreaterThan(
+      customers.indexOf("<CustomersLtvWindows"),
     );
   });
 

@@ -55,8 +55,22 @@ export function overviewThinEmptyFinding(): OverviewFinding {
   };
 }
 
-/** Same pad as Growth / Customers — peek only; full clock stays on Growth. */
+/** Same pad as Customers — peek only; full clock stays on Customers. */
 export const OVERVIEW_WINBACK_PAD_DAYS = 15;
+
+/** Overview section ids — daily scoreboard, then mix, then the year board. */
+export const OVERVIEW_YOY_GLANCE_ID = "mcfly-yoy-glance";
+export const OVERVIEW_MIX_CLOSE_ID = "mcfly-mix-close";
+export const OVERVIEW_YOY_YEAR_ID = "mcfly-yoy-year";
+export const OVERVIEW_YOY_YEAR_PANEL = "yoy-year";
+
+/** `?panel=` on Overview → section id. Unknown panels stay at the top. */
+export function overviewPanelElementId(
+  panel: string | null | undefined,
+): string | null {
+  if (panel === OVERVIEW_YOY_YEAR_PANEL) return OVERVIEW_YOY_YEAR_ID;
+  return null;
+}
 
 export const OVERVIEW_FIRST_FOLD_HEROES = [
   "typicalOrder",

@@ -204,11 +204,12 @@ describe("Sample data | Live data UX", () => {
 
   it("Pass A book routes exist and old URLs redirect", () => {
     const customers = read("../routes/app.customers.tsx");
-    const growth = read("../routes/app.growth.tsx");
+    const growth = read("../components/CustomersGrowthSection.tsx");
+    const growthRedirect = read("../routes/app.growth.tsx");
     const orders = read("../routes/app.orders.tsx");
     const buyers = read("../routes/app.buyers.tsx");
     const timing = read("../routes/app.timing.tsx");
-    expect(customers).toContain("loadDeskSalesPage");
+    expect(customers).toContain("loadCustomersStackPage");
     expect(customers).toContain("<CustomersFirstViewport");
     expect(customers).toContain("<CustomerMixChart");
     expect(customers).toContain("<CustomerRetentionBoard");
@@ -216,18 +217,17 @@ describe("Sample data | Live data UX", () => {
     expect(customers).not.toContain('groups={["buyers"]}');
     expect(customers).not.toContain("LtvSnapSection");
     expect(customers).not.toContain("cashCostPerCustomer");
-    expect(growth).toContain("loadDeskSalesPage");
     expect(growth).toContain("<GrowthFirstViewport");
     expect(growth).toContain("<GrowthComebackChart");
     expect(growth).toContain("<GrowthScoreboard");
     expect(growth).toContain("<GrowthTt2Board");
-    expect(growth).toContain("tillLtv.repeatRate");
-    expect(growth).toContain("/app/ltv");
+    expect(customers).toContain("tillLtv.repeatRate");
+    expect(growth).toContain("#mcfly-ltv");
     expect(growth).not.toContain("cashCac");
     expect(orders).toContain("<OrdersScoreboard");
     expect(orders).toContain("<OrdersTimingChart");
     expect(customers).toContain("orderFactsTruncated");
-    expect(growth).toContain("orderFactsTruncated");
+    expect(growthRedirect).toContain("throw redirect");
     expect(orders).toContain("orderFactsTruncated");
     const deskPage = read("../lib/desk-sales-page.server.ts");
     expect(deskPage).toContain("getOrderBackfillProgress");
@@ -411,14 +411,14 @@ describe("Sample data | Live data UX", () => {
       "../routes/app.timing.tsx",
       "../routes/app.goals.tsx",
       "../routes/app.spend.tsx",
-      "../routes/app.ltv.tsx",
+      "../routes/app.customers.tsx",
     ]) {
       expect(chrome(rel), rel).not.toContain("mcfly-ctx__brand");
       expect(chrome(rel), rel).not.toContain("mcfly-topbar__def");
     }
-    // Spend Upload keeps the nav tab's own name. Chart range lives on Total ROAS.
+    // Spend heading is the tab name. Chart range lives on the Spend explorer.
     const spend = read("../routes/app.spend.tsx");
-    expect(spend).toContain('heading="Spend Upload"');
+    expect(spend).toContain('heading="Spend"');
     expect(spend).not.toContain("Same dates as Overview");
     // Import is the same paper — no second Total ROAS brand in the rail.
     expect(chrome("../routes/app.spend.import.tsx")).not.toContain(
@@ -428,7 +428,7 @@ describe("Sample data | Live data UX", () => {
 
   it("Goals and LTV speak the same book language as Orders", () => {
     const goals = read("../routes/app.goals.tsx");
-    const ltv = read("../routes/app.ltv.tsx");
+    const ltv = read("../components/CustomersLtvSection.tsx");
     const gauges = read("../components/SalesGoalGauges.tsx");
 
     expect(goals).toContain("mcfly-book");
@@ -445,9 +445,9 @@ describe("Sample data | Live data UX", () => {
     expect(gauges).not.toMatch(/cash \$\{PRODUCT_NOUN\.totalRoas\}/);
     expect(gauges).not.toContain("cash Total ROAS");
 
-    expect(ltv).toContain("<DeskBookPage");
     expect(ltv).toContain('className="mcfly-book"');
     expect(ltv).toContain("<BookFactGrid");
+    expect(read("../routes/app.customers.tsx")).toContain("<DeskBookPage");
     expect(ltv).not.toContain("<details");
     expect(ltv).not.toContain("mcfly-acq-tile");
     expect(ltv).not.toContain("mcfly-ltv-summary");
@@ -456,8 +456,8 @@ describe("Sample data | Live data UX", () => {
 
   it("LTV chrome drops cohort / till / ARPU / aMER glossary", () => {
     // Stored field names (tillLtv.cohorts) are data, never merchant words.
-    const ltv = chrome("../routes/app.ltv.tsx").replace(
-      /cohortMonth|cohorts/g,
+    const ltv = chrome("../components/CustomersLtvSection.tsx").replace(
+      /cohortMonth|cohorts|tillLtv/g,
       "",
     );
     const ltvSnap = chrome("../components/LtvSnapSection.tsx");
@@ -477,10 +477,10 @@ describe("Sample data | Live data UX", () => {
 
   it("never prints a 0.0% — unknown shares stay a dash on the locked grid", () => {
     const book = read("../components/ShopifyBookSection.tsx");
-    const ltv = read("../routes/app.ltv.tsx");
+    const ltv = read("../components/CustomersLtvSection.tsx");
     for (const source of [
       book,
-      chrome("../routes/app.ltv.tsx"),
+      chrome("../components/CustomersLtvSection.tsx"),
       read("../components/OverviewFirstViewport.tsx"),
       read("../components/MarketingSnapSection.tsx"),
       read("../components/LtvSnapSection.tsx"),
@@ -501,7 +501,7 @@ describe("Sample data | Live data UX", () => {
 
   it("adds depth as visible KPI cards, not collapsed drills", () => {
     const book = read("../components/ShopifyBookSection.tsx");
-    const ltv = read("../routes/app.ltv.tsx");
+    const ltv = read("../components/CustomersLtvSection.tsx");
     expect(book).toContain("x?: string[]");
     expect(book).toContain("s?: string");
     expect(book).toContain("function weekdayBreakdown");
@@ -525,7 +525,7 @@ describe("Sample data | Live data UX", () => {
     expect(overview).not.toContain("<SpendExplorer");
     expect(overview).not.toContain("<CashControlBoard");
     expect(overview).not.toContain("<MarketingSnapSection");
-    expect(spend).not.toContain("<SpendExplorer");
+    expect(spend).toContain("<SpendExplorer");
     expect(explorer).toContain("quiet?: boolean");
     expect(explorer).toContain("quiet ? null : (");
     expect(explorer).toContain("!shotMode && !quiet");

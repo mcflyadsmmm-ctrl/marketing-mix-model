@@ -8,7 +8,7 @@ import {
  * Desk links keep the scoreboard clock (`period`) and listing-shot flag (`shot`).
  * Shopify App Bridge already owns `shop` / `host`.
  *
- * Admin nav is eleven analysis pages plus Settings. Time windows live on
+ * Admin nav is five analysis pages plus Settings. Time windows live on
  * cards, not as nav items. Retired hashes land on Overview home.
  */
 
@@ -108,71 +108,28 @@ export function deskStageHeading(stage: DeskSectionId): string {
 }
 
 /**
- * Shopify Admin left nav — sales intelligence first, then spend tools, then Goals.
+ * Shopify Admin left nav — five analysis pages, then Settings.
+ * Compact lock: Overview · Orders · Customers · Spend · Goals · Settings.
  */
 export const DESK_PRIMARY_NAV: readonly DeskNavItem[] = [
   { path: "/app", label: "Overview" },
-  { path: "/app/customers", label: "Customers" },
-  { path: "/app/growth", label: "Growth" },
   { path: "/app/orders", label: "Orders" },
-  { path: "/app/ltv", label: "LTV" },
-  { path: "/app/spend", label: "Spend Upload" },
-  { path: "/app/roas", label: "Total ROAS" },
-  { path: "/app/allocation", label: "Channel Allocation" },
-  { path: "/app/yoy", label: "YoY" },
-  { path: "/app/cpa", label: "CPA" },
+  { path: "/app/customers", label: "Customers" },
+  { path: "/app/spend", label: "Spend" },
   { path: "/app/goals", label: "Goals" },
   { path: "/app/settings", label: "Settings" },
 ];
 
-/** In-iframe top toggles — 11 analysis pages. Settings stays a side shortcut. */
+/** In-iframe top toggles — 5 analysis pages. Settings stays a side shortcut. */
 export const DESK_TOP_NAV: readonly DeskNavItem[] = DESK_PRIMARY_NAV.filter(
   (item) => item.path !== "/app/settings",
 );
 
 /**
- * Sales-first groups used only to build DESK_IFRAME_NAV. Each group is filtered
- * out of DESK_TOP_NAV so TAB_LOCK order survives inside every group and every
- * analysis tab lands in exactly one group. Names are never painted. Time
- * windows stay on cards.
+ * Painted iframe rail. Same order as DESK_TOP_NAV — no SCOREBOARD / RETAIN /
+ * SPEND path sets that parked CPA next to Overview.
  */
-const SCOREBOARD_PATHS = new Set<string>(["/app", "/app/cpa"]);
-const RETAIN_PATHS = new Set<string>([
-  "/app/customers",
-  "/app/growth",
-  "/app/orders",
-  "/app/ltv",
-]);
-const SPEND_PLAN_PATHS = new Set<string>([
-  "/app/spend",
-  "/app/roas",
-  "/app/allocation",
-  "/app/yoy",
-  "/app/goals",
-]);
-
-/** SCOREBOARD — sales-first read: Overview then CPA. Zero-spend safe. */
-export const DESK_SCOREBOARD_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.filter(
-  (item) => SCOREBOARD_PATHS.has(item.path),
-);
-/** RETAIN — order-history depth: Customers · Growth · Orders · LTV. */
-export const DESK_RETAIN_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.filter(
-  (item) => RETAIN_PATHS.has(item.path),
-);
-/** SPEND PLAN — needs entered spend: Spend Upload · Total ROAS · Channel Allocation · YoY · Goals. */
-export const DESK_SPEND_NAV: readonly DeskNavItem[] = DESK_TOP_NAV.filter(
-  (item) => SPEND_PLAN_PATHS.has(item.path),
-);
-
-/**
- * Painted iframe rail. Group names are code-only — never SCOREBOARD / RETAIN
- * chips. Concatenated sales-first order (not DESK_TOP_NAV, which parks CPA last).
- */
-export const DESK_IFRAME_NAV: readonly DeskNavItem[] = [
-  ...DESK_SCOREBOARD_NAV,
-  ...DESK_RETAIN_NAV,
-  ...DESK_SPEND_NAV,
-];
+export const DESK_IFRAME_NAV: readonly DeskNavItem[] = DESK_TOP_NAV;
 
 export function isDeskNavActive(path: string, pathname: string): boolean {
   const current = pathname.replace(/\/$/, "") || "/";
@@ -224,4 +181,21 @@ export function overviewSectionLocation(
   const url = new URL(request.url);
   const qs = url.searchParams.toString();
   return `/app${qs ? `?${qs}` : ""}#${hash}`;
+}
+
+/**
+ * Compact a retired analysis URL onto a dest Admin path + `panel` chip.
+ * Keeps existing search params. `/demo/*` stays under `/demo`.
+ */
+export function compactDeskRedirect(
+  request: Request,
+  destAppPath: string,
+  panel: string,
+): string {
+  const url = new URL(request.url);
+  const dest = withDeskBase(destAppPath, deskBaseFromPathname(url.pathname));
+  const next = new URLSearchParams(url.searchParams);
+  next.set("panel", panel);
+  const qs = next.toString();
+  return `${dest}${qs ? `?${qs}` : ""}`;
 }

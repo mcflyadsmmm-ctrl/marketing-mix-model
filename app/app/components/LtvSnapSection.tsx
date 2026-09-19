@@ -173,7 +173,7 @@ export function LtvSnapSection({
       ) : null}
 
       <p className="mcfly-book__cta">
-        <s-link href={`/app/ltv?period=${preset}`}>
+        <s-link href={`/app/customers?panel=ltv&period=${preset}`}>
           {PRODUCT_NOUN.openLtv}
         </s-link>
       </p>

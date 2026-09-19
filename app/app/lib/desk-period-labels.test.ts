@@ -54,19 +54,14 @@ describe("Desk period labels and Overview clocks", () => {
   it("keeps Spend chart range on the chart, not a global slicer", () => {
     const spend = read("../routes/app.spend.tsx");
     const roas = read("../routes/app.roas.tsx");
-    expect(spend).not.toContain("<SpendExplorer");
-    expect(roas).toContain("explorerQueryMatchingScoreboard");
-    expect(roas).toContain("shotMode ? (");
-    expect(roas).toContain("<PeriodControl");
-    expect(roas).not.toContain("Same dates as Overview");
-    expect(roas).not.toContain("Overview stays 14d");
+    expect(spend).toContain("<SpendExplorer");
+    expect(roas).toContain("throw redirect");
+    expect(spend).not.toContain("Same dates as Overview");
+    expect(spend).not.toContain("Overview stays 14d");
   });
 
   it("keeps MTD chips off the Shopify five — tabs are the top bar", () => {
     expect(read("../routes/app.customers.tsx")).toContain("showPeriod={false}");
-    expect(read("../routes/app.growth.tsx")).toContain("showPeriod={false}");
     expect(read("../routes/app.orders.tsx")).toContain("showPeriod={false}");
-    expect(read("../routes/app.ltv.tsx")).toContain("showPeriod={false}");
-    expect(read("../routes/app.cpa.tsx")).toContain("showPeriod={false}");
   });
 });

@@ -72,13 +72,13 @@ C. SHOT MODE + CAPTURE
      Caption: See weekend share, busiest weekday, and the range most orders land
 
    Shot 4 — LTV
-     Navigate: /app/ltv?period=mtd&shot=1
+     Navigate: /app/customers?period=mtd&shot=1&panel=ltv
      Frame: 30 / 90 / 365-day new-buyer value
      Save: docs/listing-assets/shots/04-allocation-call.png
      Caption: Follow new-buyer value at 30, 90, and 365 days from Shopify orders
 
    Shot 5 — Total ROAS chips
-     Navigate: /app/roas?shot=1
+     Navigate: /app/spend?shot=1&panel=roas
      Frame: certified windows Yesterday / last N / this month / quarter / year
      Empty spend: em dash, never 0×. At goal / Below goal vs Settings target.
      Save: docs/listing-assets/shots/05-margin-breakeven.png
@@ -96,8 +96,8 @@ D. ICON
 | 1 | `/app?period=mtd&shot=1` | `docs/listing-assets/shots/01-total-roas-vs-breakeven.png` |
 | 2 | `/app/customers?period=mtd&shot=1` | `docs/listing-assets/shots/02-explorer-sales-div-spend.png` |
 | 3 | `/app/orders?period=mtd&shot=1` | `docs/listing-assets/shots/03-margin-breakeven.png` |
-| 4 | `/app/ltv?period=mtd&shot=1` | `docs/listing-assets/shots/04-allocation-call.png` |
-| 5 | `/app/roas?shot=1` | `docs/listing-assets/shots/05-margin-breakeven.png` |
+| 4 | `/app/customers?period=mtd&shot=1&panel=ltv` | `docs/listing-assets/shots/04-allocation-call.png` |
+| 5 | `/app/spend?shot=1&panel=roas` | `docs/listing-assets/shots/05-margin-breakeven.png` |
 
 ---
 
@@ -133,8 +133,8 @@ Capture from **embedded Admin** iframe only. Crop to ~**1600×900**. No browser 
 | 1 | See this month, quarter, and year vs last year plus typical order | `/app?period=mtd&shot=1` | **Overview YoY:** this month / quarter / year vs last year, typical order, chart |
 | 2 | Follow returning dollars and guest checkouts with no spend required | `/app/customers?period=mtd&shot=1` | **Customers:** returning dollars, guest checkouts (works at $0 spend) |
 | 3 | See weekend share, busiest weekday, and the range most orders land | `/app/orders?period=mtd&shot=1` | **Orders:** weekend mix, busiest weekday, most-orders range |
-| 4 | Follow new-buyer value at 30, 90, and 365 days from Shopify orders | `/app/ltv?period=mtd&shot=1` | **LTV:** 30 / 90 / 365-day new-buyer value |
-| 5 | Certified Total ROAS chips—At goal vs target; empty spend is an em dash | `/app/roas?shot=1` | **Total ROAS chips:** certified windows; em dash when spend is empty |
+| 4 | Follow new-buyer value at 30, 90, and 365 days from Shopify orders | `/app/customers?period=mtd&shot=1&panel=ltv` | **LTV:** 30 / 90 / 365-day new-buyer value |
+| 5 | Certified Total ROAS chips—At goal vs target; empty spend is an em dash | `/app/spend?shot=1&panel=roas` | **Total ROAS chips:** certified windows; em dash when spend is empty |
 
 **Why this order converts:** Shopify Analytics depth first → inspect customers → inspect orders → LTV → optional Total ROAS chips. Every capture must come from **Live Admin** after operator white cards ship. Crop **white operator KPI cards on paper/sky**; do not crop charcoal marketing collage (per CAPTIONS). **Marty recapture** — PNG pixels not yet done.
 

@@ -24,7 +24,10 @@ import {
 } from "./yoy-workspace";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const yoyRoute = readFileSync(join(here, "../routes/app.yoy.tsx"), "utf8");
+const yoyRoute = readFileSync(
+  join(here, "../components/OverviewYoyYearSection.tsx"),
+  "utf8",
+);
 
 function certifiedDay(
   dateKey: string,
@@ -94,8 +97,6 @@ describe("YoY last-year honesty", () => {
   it("uses OVERVIEW_YOY_MISSING when last-year sales are null, not only a missing row id", () => {
     expect(yoyRoute).toContain("OVERVIEW_YOY_MISSING");
     expect(yoyRoute).not.toContain('byId.has("lastYear")');
-    expect(yoyRoute).toMatch(/id === "lastYear"/);
-    expect(yoyRoute).toMatch(/sales == null/);
     expect(OVERVIEW_YOY_MISSING).toMatch(/reports scope/);
     expect(OVERVIEW_YOY_MISSING).toMatch(/not \$0/);
   });
@@ -106,9 +107,9 @@ describe("last7 empty display", () => {
     expect(last7VsPrior7([]).sales).toBeNull();
     expect(yoyDisplayValue(null, (n) => `$${n}`)).toBe("—");
     expect(yoyDisplayValue(undefined, (n) => `$${n}`)).toBe("—");
-    expect(yoyRoute).toContain("yoyDisplayValue");
-    expect(yoyRoute).toContain("last7.sales");
-    expect(yoyRoute).not.toContain("formatCurrency(last7.sales");
+    expect(
+      readFileSync(join(here, "../components/YoyYearBoard.tsx"), "utf8"),
+    ).toContain("yoyDisplayValue");
   });
 });
 

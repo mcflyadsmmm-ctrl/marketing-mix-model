@@ -9,6 +9,12 @@ import {
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { OverviewYoyCards } from "../components/OverviewYoyCards";
+import {
+  OverviewYoyYearSection,
+  asOfFromCertifiedDays,
+  buildOverviewYoyYearModel,
+  useOverviewPanelScroll,
+} from "../components/OverviewYoyYearSection";
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
 import { useDeskHashScroll } from "../components/useDeskHashScroll";
@@ -16,6 +22,7 @@ import { useDeskHref } from "../lib/desk-base-path";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
   DESK_SECTION,
+  deskNavHref,
   deskNavHrefFromSearch,
   deskStageFromHash,
   deskStageHeading,
@@ -23,7 +30,12 @@ import {
 } from "../lib/desk-nav";
 import { formatCurrency } from "../lib/mer-format";
 import { formatCashFreshnessChip } from "../lib/mer-trust";
-import { OVERVIEW_FIRST_LANE_LABEL } from "../lib/overview-first-viewport";
+import {
+  OVERVIEW_FIRST_LANE_LABEL,
+  OVERVIEW_MIX_CLOSE_ID,
+  OVERVIEW_YOY_YEAR_ID,
+  OVERVIEW_YOY_YEAR_PANEL,
+} from "../lib/overview-first-viewport";
 import {
   emptyOverviewMixForecast,
   overviewMixForecastRead,
@@ -35,6 +47,7 @@ import {
   buildShareableInsights,
   pickShareableLtvPeek,
 } from "../lib/shareable-insights";
+import { parseYoyYear } from "../lib/yoy-workspace";
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
 
@@ -47,16 +60,50 @@ export default function PublicDemoOverview() {
   const currency = useDeskCurrency();
   const deskHref = useDeskHref();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   useDeskHashScroll();
+  useOverviewPanelScroll(searchParams.get("panel"));
   const isLoading = navigation.state === "loading";
   const stage = data.shotMode
     ? DESK_SECTION.overview
     : deskStageFromHash(location.hash);
   const onHome = isOverviewHomeStage(stage);
   const ordersHref = deskNavHrefFromSearch(deskHref("/app/orders"), searchParams);
-  const yoyHref = deskNavHrefFromSearch(deskHref("/app/yoy"), searchParams);
+  const yoyHref = deskNavHref(deskHref("/app"), {
+    period: searchParams.get("period"),
+    shot: searchParams.get("shot") === "1",
+    extra: { panel: OVERVIEW_YOY_YEAR_PANEL },
+    hash: OVERVIEW_YOY_YEAR_ID,
+  });
+  const customersHref = deskNavHrefFromSearch(
+    deskHref("/app/customers"),
+    searchParams,
+  );
+  const customersGrowthHref = deskNavHref(deskHref("/app/customers"), {
+    period: searchParams.get("period"),
+    shot: searchParams.get("shot") === "1",
+    extra: { panel: "growth" },
+  });
+  const customersLtvHref = deskNavHref(deskHref("/app/customers"), {
+    period: searchParams.get("period"),
+    shot: searchParams.get("shot") === "1",
+    extra: { panel: "ltv" },
+  });
+  const drillDays = data.cashControl?.drillDays ?? [];
+  const yoyAsOf = asOfFromCertifiedDays(drillDays, new Date());
+  const yoyYear = parseYoyYear(searchParams.get("year"), yoyAsOf.year);
+  const yoyYearWorkspace = buildOverviewYoyYearModel(
+    drillDays,
+    yoyYear,
+    yoyAsOf,
+  );
+  const onYoyYearChange = (next: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("year", next);
+    if (data.shotMode) params.set("shot", "1");
+    setSearchParams(params);
+  };
   const mixView = data.mixForecast ?? emptyOverviewMixForecast();
   const mixRead = overviewMixForecastRead(mixView);
   const ltvPeek = pickShareableLtvPeek({
@@ -164,23 +211,23 @@ export default function PublicDemoOverview() {
                 />
               )}
               {embed === "overview" || embed === "yoy" || embed === "typical" ? null : (
-                <OverviewSalesChart
-                  days={data.explorerDays}
-                  ordersHref={ordersHref}
-                  salesPending={false}
-                  typicalDay={data.depth.medianDailySales}
-                />
+                <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
+                  <OverviewSalesChart
+                    days={data.explorerDays}
+                    ordersHref={ordersHref}
+                    salesPending={false}
+                    typicalDay={data.depth.medianDailySales}
+                  />
+                </div>
               )}
             </DeskLane>
             {embed ? null : (
               <>
+                <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
                 <DeskLane rank="next" label="Mix and month close">
                   <OverviewMixForecast
                     view={mixView}
-                    customersHref={deskNavHrefFromSearch(
-                      deskHref("/app/customers"),
-                      searchParams,
-                    )}
+                    customersHref={customersHref}
                   />
                   <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
                 </DeskLane>
@@ -215,20 +262,29 @@ export default function PublicDemoOverview() {
                     peakWeekday={data.depth.peakWeekday}
                   />
                 </DeskLane>
+                </div>
+                <DeskLane rank="more" label="Year board vs last year">
+                  <OverviewYoyYearSection
+                    {...yoyYearWorkspace}
+                    salesPending={false}
+                    onYearChange={onYoyYearChange}
+                  />
+                </DeskLane>
                 <footer className="mcfly-book__links">
-                  <Link to={deskNavHrefFromSearch(deskHref("/app/customers"), searchParams)}>
-                    {PRODUCT_NOUN.buyersTitle}
-                  </Link>
-                  <Link to={deskNavHrefFromSearch(deskHref("/app/growth"), searchParams)}>
-                    {PRODUCT_NOUN.growthTitle}
-                  </Link>
+                  <Link to={customersHref}>{PRODUCT_NOUN.buyersTitle}</Link>
+                  <Link to={customersGrowthHref}>{PRODUCT_NOUN.growthTitle}</Link>
                   <Link to={ordersHref}>{PRODUCT_NOUN.ordersTitle}</Link>
-                  <Link to={deskNavHrefFromSearch(deskHref("/app/ltv"), searchParams)}>
-                    {PRODUCT_NOUN.openLtv}
-                  </Link>
+                  <Link to={customersLtvHref}>{PRODUCT_NOUN.openLtv}</Link>
                 </footer>
               </>
             )}
+            {embed === "yoy" ? (
+              <OverviewYoyYearSection
+                {...yoyYearWorkspace}
+                salesPending={false}
+                onYearChange={onYoyYearChange}
+              />
+            ) : null}
           </div>
         ) : null}
       </div>

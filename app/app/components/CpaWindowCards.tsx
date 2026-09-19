@@ -5,6 +5,7 @@ import {
   type CpaWindowId,
   type CpaWindowSnapshot,
 } from "../lib/cpa-desk";
+import { useDeskHref } from "../lib/desk-base-path";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
@@ -23,7 +24,9 @@ export function CpaWindowCards({
   onSelect: (id: CpaWindowId) => void;
 }) {
   const currency = useDeskCurrency();
+  const deskHref = useDeskHref();
   const drill = useDeskDrill();
+  const ltvHref = deskHref("/app/customers?panel=ltv");
 
   return (
     <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft mcfly-cpa__windows" aria-label="Cash CPA windows">
@@ -92,7 +95,7 @@ export function CpaWindowCards({
                     },
                   ],
                   next: "Open LTV for first-90 value next to this cost.",
-                  nextHref: "/app/ltv",
+                  nextHref: ltvHref,
                   nextLabel: "Open LTV",
                   foot:
                     hasSpend && window.buyersKnown && window.identifiedBuyers === 0

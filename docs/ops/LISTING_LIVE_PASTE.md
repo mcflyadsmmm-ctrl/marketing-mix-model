@@ -6,7 +6,7 @@
 **Price:** 7-day trial, then **$39**/store/month. **Reviews: 0** (do not invent).  
 **SoT copy:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) · shots [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md) · captions [`../listing-assets/shots/CAPTIONS.md`](../listing-assets/shots/CAPTIONS.md)
 
-**Refresh (2026-09-18):** Sales-first pack below. Lead Shopify five (Overview YoY → Customers → Growth → Orders → LTV) — depth Analytics skips — at $0 spend. Optional typed/CSV spend → Total ROAS (honest MER: sales ÷ entered spend; empty = —). Admin is **Live-only**; SAMPLE lives on https://mcflyads.com/demo only. Trial includes **24 months** of order history (not ~60d as the primary story). Flat **$39** / 7-day; no Free plan; plan name **Mcfly Analytics** (not Pro). **Marty Saves** each section. Cursor does not Submit. Reviews **0**.
+**Refresh (2026-09-19):** Sales-first pack below. Five analysis tabs plus Settings: Overview · Orders · Customers at $0 spend (YoY year board, typical order, returning dollars, LTV 30/90/365, days-to-second folded in). Spend last — optional typed/CSV → Total ROAS (honest MER: sales ÷ entered spend; empty = —), mix, CPA. Admin is **Live-only**; SAMPLE lives on https://mcflyads.com/demo only. Trial includes **24 months** of order history (not ~60d as the primary story). Flat **$39** / 7-day; no Free plan; plan name **Mcfly Analytics** (not Pro). **Marty Saves** each section. Cursor does not Submit. Reviews **0**. Matches Fly **396** + site **v30**.
 
 **Live listing gap (as of prior 2026-09-15 probe):** public page still led spend (“See every ad dollar next to Sales”) and still had **$39 in a feature bullet** (4.2.3). Tagline did **not** mention YoY. Public pricing card already said **Mcfly Analytics** $39 / 7-day (not Pro). Reviews **0**. Paste this pack so the listing matches the ready product (Fly **331** desk + site **v19**). Ops curl cannot see Partner Pricing itself — still confirm **no Free plan** in Partner before Save.
 
@@ -79,23 +79,18 @@ Shopify Analytics shows this period’s sales. Mcfly Analytics puts last year ne
 
 Overview is this month, this quarter, and this year versus last year, typical-order KPIs, and a sales chart. Install includes up to 24 months of Shopify order history so YoY and LTV have room to fill—never invent last year as zero while history is still loading.
 
-Customers, Growth, Orders, and LTV work with no spend: returning dollars, days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days. Admin opens on your live store orders. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
+Customers, Orders, and Overview work with no spend: returning dollars, days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days live on those pages. Admin opens on your live store orders. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
 
-Spend is optional. Type or CSV daily spend for Meta, Google, TikTok, billboards, or another channel when you want Total ROAS—the honest MER: Shopify Total Sales ÷ the marketing spend you entered. Certified windows are Yesterday, last N days, this month, this quarter, and this year, marked At goal or Below goal versus your Settings target. Empty spend is an em dash, not 0×. Ledger and dual-close sit on that page. Channel Allocation shows mix and spend left at goal. Total ROAS is not platform ROAS, not attributed campaign ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, “true ROAS,” Profit Agent theater, or a P&L suite.
+Spend is optional. Type or CSV daily spend for Meta, Google, TikTok, billboards, or another channel when you want Total ROAS—the honest MER: Shopify Total Sales ÷ the marketing spend you entered. Certified windows are Yesterday, last N days, this month, this quarter, and this year, marked At goal or Below goal versus your Settings target. Empty spend is an em dash, not 0×. Mix, CPA, ledger, and dual-close sit on Spend. Total ROAS is not platform ROAS, not attributed campaign ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, “true ROAS,” Profit Agent theater, or a P&L suite.
 
 WHAT YOU GET
-• Overview — this month / quarter / year vs last year, typical order, and a sales chart
-• Customers — returning dollars, guest checkouts, and repeat depth
-• Growth — days to a second order and who came back
+• Overview — this month / quarter / year vs last year, typical order, a sales chart, and the 12-month YoY year board
 • Orders — order range, discounts, returns, sources, weekend share, busiest weekday
-• LTV — new-buyer value at 30 / 90 / 365 days
-• Spend Upload — typed or CSV daily spend, including billboards
-• Total ROAS — honest MER (sales ÷ entered spend); certified windows Yesterday / last N / this month / quarter / year; At goal vs Settings target; empty spend is an em dash, not 0×. Ledger and dual-close on this page
-• Channel Allocation — mix plus spend left at goal
-• YoY — this month vs last month vs last year, plus last 7
-• CPA — cash cost per customer when spend exists
+• Customers — returning dollars vs new, LTV 30 / 90 / 365, days to a second order, RFM and whales below
+• Spend — optional typed or CSV daily spend, including billboards; Total ROAS (sales ÷ entered spend); mix; CPA; upload last. Empty spend is an em dash, not 0×
 • Goals — sales vs the calendar, with no spend required
-• Total ROAS = Shopify Total Sales ÷ spend you entered
+• Settings — target Total ROAS and plan
+• Five analysis tabs plus Settings. Total ROAS = Shopify Total Sales ÷ spend you entered
 
 WHAT WE NEVER DO
 • Pixels, view-through, or multi-touch attribution
@@ -199,8 +194,8 @@ Icon (keep / re-upload if missing): `docs/listing-assets/mcfly-app-icon-1200.png
 | 1 | `/app?period=mtd&shot=1` | `docs/listing-assets/shots/01-total-roas-vs-breakeven.png` | See this month, quarter, and year vs last year plus typical order |
 | 2 | `/app/customers?period=mtd&shot=1` | `docs/listing-assets/shots/02-explorer-sales-div-spend.png` | Follow returning dollars and guest checkouts with no spend required |
 | 3 | `/app/orders?period=mtd&shot=1` | `docs/listing-assets/shots/03-margin-breakeven.png` | See weekend share, busiest weekday, and the range most orders land |
-| 4 | `/app/ltv?period=mtd&shot=1` | `docs/listing-assets/shots/04-allocation-call.png` | Follow new-buyer value at 30, 90, and 365 days from Shopify orders |
-| 5 | `/app/roas?shot=1` | `docs/listing-assets/shots/05-margin-breakeven.png` | Total ROAS is honest MER—At goal vs target; empty spend is an em dash |
+| 4 | `/app/customers?period=mtd&shot=1&panel=ltv` | `docs/listing-assets/shots/04-allocation-call.png` | Follow new-buyer value at 30, 90, and 365 days from Shopify orders |
+| 5 | `/app/spend?shot=1&panel=roas` | `docs/listing-assets/shots/05-margin-breakeven.png` | Total ROAS is honest MER—At goal vs target; empty spend is an em dash |
 
 Captions SoT: [`CAPTIONS.md`](../listing-assets/shots/CAPTIONS.md).
 

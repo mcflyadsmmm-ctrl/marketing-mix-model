@@ -130,15 +130,13 @@ describe("every spend-labeling surface shares one resolver", () => {
     );
   });
 
-  it("Allocation and the public API resolve the custom label too", () => {
-    for (const rel of [
-      "../routes/app.allocation.tsx",
-      "./mcfly-api.server.ts",
-    ]) {
-      const src = read(rel);
-      expect(src, rel).toContain("spendChannelLabel");
-      expect(src, rel).toContain("customLabel");
-    }
+  it("Allocation stack and the public API resolve the custom label too", () => {
+    const stack = read("./desk-spend-stack.server.ts");
+    const api = read("./mcfly-api.server.ts");
+    expect(stack).toContain("historyChannelLabel");
+    expect(stack).toContain("customLabels");
+    expect(api).toContain("spendChannelLabel");
+    expect(api).toContain("customLabel");
   });
 
   /*
@@ -150,10 +148,10 @@ describe("every spend-labeling surface shares one resolver", () => {
     expect(explorer).toContain("customChannelLabels");
     expect(explorer).toContain('channel.split(":")[0]');
 
-    const allocation = read("../routes/app.allocation.tsx");
-    expect(allocation).toContain("historyChannelLabel");
+    const mix = read("./desk-spend-stack.server.ts");
+    expect(mix).toContain("historyChannelLabel");
     // Falls back to a readable slug, not the prefixed key.
-    expect(allocation).toContain('channel.split(":")');
-    expect(allocation).toContain("toHistoryDays(dailyRows, channelLabels)");
+    expect(mix).toContain('channel.split(":")');
+    expect(mix).toContain("toHistoryDays(dailyRows, channelLabels)");
   });
 });

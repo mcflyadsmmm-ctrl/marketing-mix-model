@@ -2,6 +2,7 @@
  * LTV route sales spine — HARD-STOP regression (source assert).
  * Same pattern as shopify-sales-sot: prove live path uses loadDeskSalesForPeriod,
  * never unbounded multi-day fetchShopifySales without maxPages.
+ * LTV boards now live on Customers; /app/ltv redirects with panel=ltv.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -11,128 +12,147 @@ import { ltvWindowCaption } from "./contrib-ltv";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const ltvSource = readFileSync(join(here, "../routes/app.ltv.tsx"), "utf8");
+const customers = readFileSync(join(here, "../routes/app.customers.tsx"), "utf8");
+const stack = readFileSync(join(here, "./desk-customers-stack.server.ts"), "utf8");
+const ltvSection = readFileSync(
+  join(here, "../components/CustomersLtvSection.tsx"),
+  "utf8",
+);
 
 describe("LTV sales spine (HARD-STOP)", () => {
   it("live path uses loadDeskSalesForPeriod (same as Home / Close / Allocation)", () => {
-    expect(ltvSource).toContain("loadDeskSalesForPeriod");
-    expect(ltvSource).toMatch(
-      /import\s*\{[^}]*loadDeskSalesForPeriod[^}]*\}\s*from\s*["']\.\.\/lib\/sales-facts\.server["']/,
-    );
-    expect(ltvSource).toContain("HARD-STOP");
+    expect(stack).toContain("loadDeskSalesForPeriod");
+    expect(stack).toContain("HARD-STOP");
+    expect(stack).toContain("loadDeskSalesPage");
+    expect(customers).toContain("loadCustomersStackPage");
   });
 
   it("does not import or call unbounded fetchShopifySales on the live path", () => {
-    expect(ltvSource).not.toMatch(
+    expect(stack).not.toMatch(
       /import\s*\{[^}]*fetchShopifySales[^}]*\}\s*from/,
     );
     expect(ltvSource).not.toContain("emptySales");
-    // No direct multi-day crawl — desk helper owns the capped today top-up.
-    expect(ltvSource).not.toMatch(/fetchShopifySales\s*\(/);
+    expect(stack).not.toMatch(/fetchShopifySales\s*\(/);
+    expect(customers).not.toMatch(/fetchShopifySales\s*\(/);
+    expect(ltvSection).not.toMatch(/fetchShopifySales\s*\(/);
   });
 
   it("wires desk.salesError (and truncated / unavailable flags) into the loader", () => {
-    expect(ltvSource).toContain("salesError = desk.salesError");
-    expect(ltvSource).toContain("todaySalesTruncated = desk.todaySalesTruncated");
-    expect(ltvSource).toContain(
-      "todaySalesUnavailable = desk.todaySalesUnavailable",
+    expect(customers).toContain("salesError={Boolean(salesError)");
+    expect(customers).toContain(
+      "todaySalesTruncated={!useSampleDesk && todaySalesTruncated}",
+    );
+    expect(customers).toContain(
+      "todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}",
     );
   });
 
   it("keeps SAMPLE path on fetchSampleSales", () => {
-    expect(ltvSource).toContain("fetchSampleSales");
-    expect(ltvSource).toMatch(/useSampleDesk[\s\S]*fetchSampleSales/);
+    expect(stack).toContain("fetchSampleSales");
+    expect(stack).toMatch(/SAMPLE path stays on fetchSampleSales/);
   });
 
   it("applies sample / Settings 0–1 margin via formatPercent, not toFixed(0)%", () => {
-    expect(ltvSource).toContain("formatPercent(metrics.marginPct)");
-    expect(ltvSource).not.toContain("marginPct.toFixed(0)");
-    expect(ltvSource).toContain("perCustomerRevenue");
+    expect(ltvSection).toContain("formatPercent(metrics.marginPct)");
+    expect(ltvSection).not.toContain("marginPct.toFixed(0)");
+    expect(ltvSection).toContain("perCustomerRevenue");
   });
 
   it("labels cohort windows vs period Cash CAC (never silently mix)", () => {
-    expect(ltvSource).toContain("ltvWindowCaption");
-    expect(ltvSource).toContain("Orders still syncing — not $0");
-    expect(ltvSource).toContain("not $0 LTV");
-    expect(ltvSource).not.toContain("Free shows the available window");
-    expect(ltvSource).toContain("getOrderBackfillProgress");
-    expect(ltvSource).toContain("orderFactsTruncated");
-    expect(ltvSource).toContain("scheduleFirstSessionShopifyWindow");
-    expect(ltvSource).not.toContain("until you confirm in Settings");
-    expect(ltvSource).toContain("showMarginKept");
-    expect(ltvSource).toContain("UnlockFullHistoryBanner");
-    expect(ltvSource).toContain("liveHistoryLocked");
+    expect(ltvSection).toContain("ltvWindowCaption");
+    expect(ltvSection).toContain("Orders still syncing — not $0");
+    expect(ltvSection).toContain("not $0 LTV");
+    expect(ltvSection).not.toContain("Free shows the available window");
+    expect(stack).toContain("getOrderBackfillProgress");
+    expect(customers).toContain("orderFactsTruncated");
+    expect(stack).toContain("scheduleFirstSessionShopifyWindow");
+    expect(ltvSection).not.toContain("until you confirm in Settings");
+    expect(ltvSection).toContain("showMarginKept");
+    expect(customers).toContain("UnlockFullHistoryBanner");
+    expect(customers).toContain("liveHistoryLocked");
   });
 
   it("LTV page shows avg orders in 90 days from order history", () => {
-    expect(ltvSource).toContain("avgOrdersD90");
-    expect(ltvSource).toMatch(/Orders in first 90 days on file/);
+    expect(ltvSection).toContain("avgOrdersD90");
+    expect(ltvSection).toMatch(/Orders in first 90 days on file/);
   });
 });
 
 describe("LTV tab vs Shopify Analytics", () => {
+  it("redirects /app/ltv onto Customers panel=ltv", () => {
+    expect(ltvSource).toContain("authenticate.admin");
+    expect(ltvSource).toContain('customersPanelRedirectPath');
+    expect(ltvSource).toContain('"ltv"');
+    expect(ltvSource).toContain("/app/customers");
+    expect(ltvSource).toContain("throw redirect");
+    expect(customers).toContain('id="mcfly-ltv"');
+  });
+
   it("contrasts Shopify Analytics LTV reports with order-history 90-day value", () => {
-    expect(ltvSource).toContain(
+    expect(ltvSection).toContain(
       "This page shows first 90 days after the first order on file",
     );
-    expect(ltvSource).toContain("PRODUCT_NOUN.ltvNotInShopify");
+    expect(ltvSection).toContain("PRODUCT_NOUN.ltvNotInShopify");
   });
 
   it("names avg orders in first 90 days", () => {
-    expect(ltvSource).toContain("avgOrdersD90");
-    expect(ltvSource).toMatch(/Orders in first 90 days on file/);
+    expect(ltvSection).toContain("avgOrdersD90");
+    expect(ltvSection).toMatch(/Orders in first 90 days on file/);
   });
 
   it("gates Cash CAC on hasSpend", () => {
-    expect(ltvSource).toMatch(/hasSpend && cashCac != null/);
-    expect(ltvSource).toContain("Cash CAC");
+    expect(ltvSection).toMatch(/hasSpend && cashCac != null/);
+    expect(ltvSection).toContain("Cash CAC");
   });
 
   it("links /app/cpa only when hasSpend", () => {
-    const cpaHref = ltvSource.indexOf('href="/app/cpa"');
+    const cpaHref = ltvSection.indexOf('href="/app/cpa"');
     expect(cpaHref).toBeGreaterThan(-1);
-    const around = ltvSource.slice(Math.max(0, cpaHref - 280), cpaHref + 24);
+    const around = ltvSection.slice(Math.max(0, cpaHref - 280), cpaHref + 24);
     expect(around).toMatch(/hasSpend/);
   });
 
   it("links Spend Upload when spend is missing instead of implying $0 CAC", () => {
-    expect(ltvSource).toContain('href="/app/spend"');
-    expect(ltvSource).toContain("Spend Upload");
-    expect(ltvSource).not.toMatch(/\$0 CAC/);
-    const spendHref = ltvSource.indexOf('href="/app/spend"');
+    expect(ltvSection).toContain('href="/app/spend"');
+    expect(ltvSection).toContain("Spend Upload");
+    expect(ltvSection).not.toMatch(/\$0 CAC/);
+    const spendHref = ltvSection.indexOf('href="/app/spend"');
     expect(spendHref).toBeGreaterThan(-1);
-    const around = ltvSource.slice(Math.max(0, spendHref - 400), spendHref + 40);
+    const around = ltvSection.slice(Math.max(0, spendHref - 400), spendHref + 40);
     expect(around).toMatch(/hasSpend/);
   });
 
   it("pending and empty order history is not $0 LTV", () => {
-    expect(ltvSource).toContain("not $0 LTV");
-    expect(ltvSource).toContain("Orders still syncing — not $0");
+    expect(ltvSection).toContain("not $0 LTV");
+    expect(ltvSection).toContain("Orders still syncing — not $0");
   });
 
   it("does not paint First year as a complete dollar when the year is unsealed", () => {
-    expect(ltvSource).toMatch(
+    expect(ltvSection).toMatch(
       /else if \(isNum\(ltv\.avgRevenueD90\) \|\| isNum\(ltv\.avgRevenueD30\)\) \{[\s\S]*k: "First year"[\s\S]*v: "—"[\s\S]*keepDash: true/,
     );
-    expect(ltvSource).toContain("isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0");
-    expect(ltvSource).toContain("d365 != null && d365 > 0");
+    expect(ltvSection).toContain("isNum(ltv.avgRevenueD365) && ltv.avgRevenueD365 > 0");
+    expect(ltvSection).toContain("d365 != null && d365 > 0");
   });
 
   it("passes truncated today and the ~60-day order window into DeskBookPage", () => {
-    expect(ltvSource).toContain(
+    expect(customers).toContain(
       "todaySalesTruncated={!useSampleDesk && todaySalesTruncated}",
     );
-    expect(ltvSource).toContain(
+    expect(customers).toContain(
       "todaySalesUnavailable={!useSampleDesk && todaySalesUnavailable}",
     );
-    expect(ltvSource).toContain(
+    expect(customers).toContain(
       "shopifyOrderWindowLimited={!useSampleDesk && shopifyOrderWindowLimited}",
     );
-    expect(ltvSource).toContain("periodMayExceedShopifyOrderWindow(range)");
-    expect(ltvSource).toContain("includeShopifyOrderWindow: true");
+    expect(stack).toContain("loadDeskSalesPage");
+    expect(customers).toContain("includeShopifyOrderWindow: true");
   });
 
   it("does not mount SpendExplorer", () => {
     expect(ltvSource).not.toContain("SpendExplorer");
+    expect(customers).not.toContain("SpendExplorer");
+    expect(ltvSection).not.toContain("SpendExplorer");
   });
 });
 

@@ -21,6 +21,11 @@ import {
   OverviewFirstViewport,
 } from "../components/OverviewFirstViewport";
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
+import {
+  OverviewYoyYearSection,
+  buildOverviewYoyYearModel,
+  useOverviewPanelScroll,
+} from "../components/OverviewYoyYearSection";
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import { WeekdaySalesChart } from "../components/WeekdaySalesChart";
@@ -33,13 +38,14 @@ import {
   ensureShop,
   getOrCreateSettings,
 } from "../lib/mer-dashboard.server";
-import { buildCashControlBoard } from "../lib/mer-control";
+import { buildCashControlBoard, certifyDailyRows } from "../lib/mer-control";
 import { buildOverviewYoyCards } from "../lib/overview-yoy";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import {
   DESK_SECTION,
+  deskNavHref,
   deskNavHrefFromSearch,
   deskStageFromHash,
   deskStageHeading,
@@ -49,7 +55,10 @@ import { formatCashFreshnessChip } from "../lib/mer-trust";
 import {
   OVERVIEW_FIRST_LANE_LABEL,
   OVERVIEW_LIVE_HANDOFF_BODY,
+  OVERVIEW_MIX_CLOSE_ID,
   OVERVIEW_PENDING_ASOF,
+  OVERVIEW_YOY_YEAR_ID,
+  OVERVIEW_YOY_YEAR_PANEL,
   overviewGreetingPending,
 } from "../lib/overview-first-viewport";
 import {
@@ -94,8 +103,10 @@ import {
   getSampleDeskEnabled,
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
+import { yearDateRange } from "../lib/sales-goals.server";
 import { shopLocalDayKey, shopLocalYmd } from "../lib/shop-local-day";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { parseYoyYear } from "../lib/yoy-workspace";
 import {
   isLiveHandoffGuide,
   LIVE_HANDOFF_HEADING,
@@ -328,35 +339,54 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesCoverage: salesFactsCoverageForBanner,
   });
 
+  const ymd = shopLocalYmd(now, deskTz);
+  const asOf = { year: ymd.y, month: ymd.m, day: ymd.d };
+  const yoyYear = parseYoyYear(url.searchParams.get("year"), asOf.year);
+
   let cashControl: ReturnType<typeof buildCashControlBoard> | null = null;
-  if (!metrics.salesPending) {
-    try {
-      const ytdRange = resolvePeriod("ytd", now, deskTz);
-      const priorYtd = resolvePriorPeriod("ytd", now, deskTz);
-      const controlRange = {
-        start:
-          priorYtd.start.getTime() < ytdRange.start.getTime()
-            ? priorYtd.start
-            : ytdRange.start,
-        end: ytdRange.end,
-        label: "Control",
-      };
-      const controlSalesByDay = useSampleDesk
-        ? await fetchSampleSalesByDay(shop.id, controlRange)
-        : await getSalesFactsByDay(shop.id, controlRange);
-      const { rows: controlRows } = await buildDailyRowsForWindow(shop.id, {
+  let yoyYearWorkspace = buildOverviewYoyYearModel([], yoyYear, asOf);
+  try {
+    const ytdRange = resolvePeriod("ytd", now, deskTz);
+    const priorYtd = resolvePriorPeriod("ytd", now, deskTz);
+    const startYear = Math.min(yoyYear, asOf.year) - 1;
+    const yoyStart = yearDateRange(startYear, deskTz).start;
+    const controlStartMs = Math.min(
+      priorYtd.start.getTime(),
+      ytdRange.start.getTime(),
+      yoyStart.getTime(),
+    );
+    const controlRange = {
+      start: new Date(controlStartMs),
+      end: now,
+      label: "Control",
+    };
+    const controlSalesByDay = useSampleDesk
+      ? await fetchSampleSalesByDay(shop.id, controlRange)
+      : await getSalesFactsByDay(shop.id, controlRange);
+    const { rows: controlRows, channelLabels } = await buildDailyRowsForWindow(
+      shop.id,
+      {
         sampleOnly: useSampleDesk,
         excludeSample: !useSampleDesk,
         salesByDay: controlSalesByDay,
         windowStart: controlRange.start,
         windowEnd: controlRange.end,
         timeZone: deskTz,
-      });
+      },
+    );
+    if (!metrics.salesPending) {
       const board = buildCashControlBoard(controlRows, metrics.targetMer);
       cashControl = board.chips.length > 0 ? board : null;
-    } catch {
-      cashControl = null;
     }
+    const { days } = certifyDailyRows(controlRows);
+    yoyYearWorkspace = buildOverviewYoyYearModel(
+      days,
+      yoyYear,
+      asOf,
+      channelLabels,
+    );
+  } catch {
+    cashControl = null;
   }
 
   const shareTz = deskPeriodTimeZone(useSampleDesk, ianaTimezone);
@@ -372,7 +402,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       sales: value.sales,
       orders: value.orders,
     }));
-  const ymd = shopLocalYmd(now, deskTz);
   const monthPrefix = `${ymd.y}-${String(ymd.m).padStart(2, "0")}`;
   const clock = overviewMonthClock(ymd.y, ymd.m, ymd.d);
   const mtdFromChip = cashControl?.chips.find((chip) => chip.id === "mtd")?.sales;
@@ -427,6 +456,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       })),
     salesExplorerDays: explorerDays,
     mixForecast,
+    yoyYearWorkspace,
   };
 };
 
@@ -440,8 +470,9 @@ export default function Dashboard() {
   const currency = useDeskCurrency();
   const data = useLoaderData<typeof loader>();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   useDeskHashScroll();
+  useOverviewPanelScroll(searchParams.get("panel"));
   if (!("metrics" in data)) {
     return null;
   }
@@ -463,6 +494,7 @@ export default function Dashboard() {
     salesDays = [],
     salesExplorerDays = [],
     mixForecast,
+    yoyYearWorkspace,
   } = data;
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
@@ -646,7 +678,29 @@ export default function Dashboard() {
 
   const shopBrand = shopLabel.replace(/\.myshopify\.com$/i, "");
   const ordersHref = deskNavHrefFromSearch("/app/orders", searchParams);
-  const yoyHref = deskNavHrefFromSearch("/app/yoy", searchParams);
+  const yoyHref = deskNavHref("/app", {
+    period: searchParams.get("period"),
+    shot: searchParams.get("shot") === "1",
+    extra: { panel: OVERVIEW_YOY_YEAR_PANEL },
+    hash: OVERVIEW_YOY_YEAR_ID,
+  });
+  const customersHref = deskNavHrefFromSearch("/app/customers", searchParams);
+  const customersGrowthHref = deskNavHref("/app/customers", {
+    period: searchParams.get("period"),
+    shot: searchParams.get("shot") === "1",
+    extra: { panel: "growth" },
+  });
+  const customersLtvHref = deskNavHref("/app/customers", {
+    period: searchParams.get("period"),
+    shot: searchParams.get("shot") === "1",
+    extra: { panel: "ltv" },
+  });
+  const onYoyYearChange = (next: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("year", next);
+    if (shotMode) params.set("shot", "1");
+    setSearchParams(params);
+  };
   const showLiveHandoff =
     !useSampleDesk && !shotMode && isLiveHandoffGuide(searchParams.get("guide"));
 
@@ -768,28 +822,28 @@ export default function Dashboard() {
                     salesPending={greetingPending}
                     yoyHref={yoyHref}
                   />
-                  <OverviewSalesChart
-                    days={
-                      salesExplorerDays.length >= 2
-                        ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
-                            dateKey,
-                            sales,
-                            orders,
-                          }))
-                        : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
-                    }
-                    ordersHref={ordersHref}
-                    salesPending={greetingPending}
-                    typicalDay={metrics.shopifyDepth.medianDailySales}
-                  />
+                  <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
+                    <OverviewSalesChart
+                      days={
+                        salesExplorerDays.length >= 2
+                          ? salesExplorerDays.map(({ dateKey, sales, orders }) => ({
+                              dateKey,
+                              sales,
+                              orders,
+                            }))
+                          : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
+                      }
+                      ordersHref={ordersHref}
+                      salesPending={greetingPending}
+                      typicalDay={metrics.shopifyDepth.medianDailySales}
+                    />
+                  </div>
                 </DeskLane>
+                <div className="mcfly-desk-anchor" id={OVERVIEW_MIX_CLOSE_ID}>
                 <DeskLane rank="next" label="Mix and month close">
                   <OverviewMixForecast
                     view={mixView}
-                    customersHref={deskNavHrefFromSearch(
-                      "/app/customers",
-                      searchParams,
-                    )}
+                    customersHref={customersHref}
                   />
                   <ShareableInsightCards view={insightView} shotMode={shotMode} />
                 </DeskLane>
@@ -826,18 +880,26 @@ export default function Dashboard() {
                     />
                   ) : null}
                 </DeskLane>
+                </div>
+                <DeskLane rank="more" label="Year board vs last year">
+                  <OverviewYoyYearSection
+                    {...yoyYearWorkspace}
+                    salesPending={greetingPending}
+                    onYearChange={onYoyYearChange}
+                  />
+                </DeskLane>
                 {!greetingPending ? (
                   <footer className="mcfly-book__links">
-                    <s-link href={deskNavHrefFromSearch("/app/customers", searchParams)}>
+                    <s-link href={customersHref}>
                       {PRODUCT_NOUN.buyersTitle}
                     </s-link>
-                    <s-link href={deskNavHrefFromSearch("/app/growth", searchParams)}>
+                    <s-link href={customersGrowthHref}>
                       {PRODUCT_NOUN.growthTitle}
                     </s-link>
                     <s-link href={ordersHref}>
                       {PRODUCT_NOUN.ordersTitle}
                     </s-link>
-                    <s-link href={deskNavHrefFromSearch("/app/ltv", searchParams)}>
+                    <s-link href={customersLtvHref}>
                       {PRODUCT_NOUN.openLtv}
                     </s-link>
                   </footer>

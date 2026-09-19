@@ -1,6 +1,7 @@
 import { Form } from "react-router";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
+import { useDeskHref } from "../lib/desk-base-path";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
   habitGoalTargetSourceLabel,
@@ -166,7 +167,10 @@ export function OrderHistoryGoalsBoard({
   busy?: boolean;
 }) {
   const currency = useDeskCurrency();
+  const deskHref = useDeskHref();
   const drill = useDeskDrill();
+  const ltvHref = deskHref("/app/customers?panel=ltv");
+  const customersHref = deskHref("/app/customers");
   const empty = view.empty;
   const read = habitGoalsDailyRead(view);
   const ltv = view.ltv;
@@ -201,7 +205,7 @@ export function OrderHistoryGoalsBoard({
                 },
               ],
               next: "Order history only — no spend required.",
-              nextHref: "/app/ltv",
+              nextHref: ltvHref,
               nextLabel: `Open ${PRODUCT_NOUN.ltvTitle}`,
             })
           }
@@ -284,7 +288,7 @@ export function OrderHistoryGoalsBoard({
                   : null,
               ].filter((b): b is { k: string; v: string } => b != null),
               next: "Order history only — no spend required.",
-              nextHref: "/app/ltv",
+              nextHref: ltvHref,
               nextLabel: `Open ${PRODUCT_NOUN.ltvTitle}`,
             })
           }
@@ -377,7 +381,7 @@ export function OrderHistoryGoalsBoard({
                 },
               ],
               next: "Observed order history — not an estimate.",
-              nextHref: "/app/ltv",
+              nextHref: ltvHref,
               nextLabel: `Open ${PRODUCT_NOUN.ltvTitle}`,
             })
           }
@@ -434,7 +438,7 @@ export function OrderHistoryGoalsBoard({
                 },
               ],
               next: "Dollars, not Shopify’s returning-customer rate. Guests stay out.",
-              nextHref: "/app/customers",
+              nextHref: customersHref,
               nextLabel: `Open ${PRODUCT_NOUN.buyersTitle}`,
             })
           }

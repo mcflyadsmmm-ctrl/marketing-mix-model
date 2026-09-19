@@ -22,6 +22,7 @@ import {
 import { SAMPLE_OVERVIEW_DOOR } from "../lib/sample-live-handoff";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskHref } from "../lib/desk-base-path";
+import { deskNavHref } from "../lib/desk-nav";
 
 export type OverviewPeekProps = {
   "aria-label"?: string;
@@ -206,9 +207,11 @@ function handoffPeekCard(
   switch (peek.kind) {
     case "daysToSecond":
       return {
-        to: deskHref("/app/growth"),
-        nextLabel: `Open ${PRODUCT_NOUN.growthTitle}`,
-        next: "Open Growth for the habit clock and who to reach.",
+        to: deskNavHref(deskHref("/app/customers"), {
+          extra: { panel: "growth" },
+        }),
+        nextLabel: `Open ${PRODUCT_NOUN.buyersTitle}`,
+        next: "Open Customers for the habit clock and who to reach.",
         formulaBlock:
           "Typical wait is the median first→second gap. Win-back is that wait plus 15 days. Shopify Analytics Overview is a returning-customer rate.",
         icon: "clock",
@@ -219,9 +222,11 @@ function handoffPeekCard(
       };
     case "ltvPeek":
       return {
-        to: deskHref("/app/ltv"),
-        nextLabel: PRODUCT_NOUN.openLtv,
-        next: "Open LTV for 30 / 90 / 365 and the written-out formula.",
+        to: deskNavHref(deskHref("/app/customers"), {
+          extra: { panel: "ltv" },
+        }),
+        nextLabel: `Open ${PRODUCT_NOUN.buyersTitle}`,
+        next: "Open Customers for 30 / 90 / 365 and the written-out formula.",
         formulaBlock: `Average dollars per new buyer in the ${overviewLtvWindowLabel(peek.windowDays)}. Observed order history — not an estimate.`,
         icon: "sales",
         label: "New-buyer worth",

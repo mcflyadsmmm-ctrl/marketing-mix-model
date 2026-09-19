@@ -23,7 +23,8 @@ function chrome(rel: string): string {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
-const ltv = read("../routes/app.ltv.tsx");
+const ltv = read("../components/CustomersLtvSection.tsx");
+const customers = read("../routes/app.customers.tsx");
 const build = read("../components/LtvValueBuild.tsx");
 
 function win(
@@ -118,13 +119,14 @@ describe("resolveLtvBuild (value-build honesty)", () => {
 describe("LTV route mounts the Black Clover value build", () => {
   it("imports and renders the value-build chart with the new-buyer count", () => {
     expect(ltv).toContain(
-      'import { LtvValueBuild, type LtvBuildWindow } from "../components/LtvValueBuild"',
+      'import { LtvValueBuild, type LtvBuildWindow } from "./LtvValueBuild"',
     );
     expect(ltv).toContain("<LtvValueBuild");
     expect(ltv).toContain("windows={buildWindows}");
     expect(ltv).toContain("newBuyers={metrics.tillLtv.newBuyers}");
     expect(ltv).toContain("targetLine={chartTargetLine}");
     expect(ltv).toContain("chartLtvPeek");
+    expect(customers).toContain("<CustomersLtvWindows");
   });
 
   it("builds 30 / 90 / first-year windows, year honest when history-limited", () => {

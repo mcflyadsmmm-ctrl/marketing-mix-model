@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
+import { useSearchParams } from "react-router";
 import { PeriodControl } from "./PeriodControl";
 import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
@@ -51,6 +52,22 @@ export function DeskBookPage({
   retryHref?: string;
   children: ReactNode;
 }) {
+  let panel: string | null = null;
+  try {
+    const [searchParams] = useSearchParams();
+    const raw = searchParams.get("panel")?.trim() ?? "";
+    panel = raw || null;
+  } catch {
+    panel = null;
+  }
+
+  useEffect(() => {
+    if (!panel || typeof document === "undefined") return;
+    document
+      .getElementById(`mcfly-${panel}`)
+      ?.scrollIntoView({ block: "start" });
+  }, [panel]);
+
   const notices = shotMode
     ? []
     : deskBookHonestyNotices({

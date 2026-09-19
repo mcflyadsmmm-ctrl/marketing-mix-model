@@ -16,29 +16,25 @@ describe("Spend day card", () => {
   const explorer = read("../components/SpendExplorer.tsx");
   const css = read("../styles/mcfly-desk.css");
 
-  it("keeps the Spend route titled Spend Upload under that nav tab", () => {
+  it("keeps the Spend route titled Spend", () => {
     expect(labels).toContain('uploadSpend: "Upload Spend"');
     expect(labels).toContain('setupAddSpend: "Upload Spend"');
     expect(appShell).toContain("DESK_PRIMARY_NAV");
-    expect(read("./desk-nav.ts")).toContain('label: "Spend Upload"');
-    expect(spend).toContain('heading="Spend Upload"');
+    expect(spend).toContain('heading="Spend"');
     expect(spend).not.toContain("heading={PRODUCT_NOUN.marketingSection}");
-    expect(spend).toContain("/app/roas");
-    expect(spend).toContain("Same numbers on Total ROAS");
+    expect(spend).toContain("Same numbers above");
     expect(spend).not.toContain("Same numbers on Overview");
   });
 
   it("contrasts Shopify Analytics with typed, uploaded, or daily-rate spend, not Ads Manager login", () => {
-    expect(spend).toContain('heading="Spend Upload"');
-    expect(spend).toContain("/app/roas");
-    expect(spend).toContain("Same numbers on Total ROAS");
+    expect(spend).toContain('heading="Spend"');
     expect(spend).toContain(
       "Shopify Analytics shows sales, not a spend ledger. This page records typed, uploaded, or daily-rate spend — not Ads Manager login.",
     );
     expect(spend).toContain("Days with no row have no spend entered");
-    expect(spend).not.toContain("<SpendExplorer");
-    expect(spend).not.toContain("<DualCloseLine");
-    expect(spend).not.toContain("<MarketingSpendRoom");
+    expect(spend).toContain("<SpendExplorer");
+    expect(spend).toContain("<DualCloseLine");
+    expect(spend).toContain("<MarketingSpendRoom");
   });
 
   it("labels recent rows as typed, uploaded, or daily-rate", () => {
@@ -48,7 +44,7 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Typed days are corrections");
   });
 
-  it("leads with yesterday’s day card and keeps Backfill off the first fold", () => {
+  it("keeps add-a-day after the MER pair and keeps Backfill off the first fold", () => {
     expect(spend).toContain('id="mcfly-spend-add"');
     expect(spend).toContain('id="mcfly-spend-backfill"');
     expect(spend).toContain("/app/spend/import");
@@ -59,36 +55,39 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Three ways to add spend");
     expect(spend).not.toContain("<h2>Period spend</h2>");
     expect(spend).not.toContain("SpendExportWalkthrough");
+    const roasAt = spend.indexOf('id="mcfly-roas"');
     const addAt = spend.indexOf('id="mcfly-spend-add"');
     const backfillAt = spend.indexOf('id="mcfly-spend-backfill"');
-    expect(addAt).toBeGreaterThan(-1);
+    expect(roasAt).toBeGreaterThan(-1);
+    expect(addAt).toBeGreaterThan(roasAt);
     expect(backfillAt).toBeGreaterThan(addAt);
   });
 
-  it("keeps Spend Upload input-only while retaining the coverage strip", () => {
+  it("keeps Spend forms and the coverage strip on the honest MER desk", () => {
     expect(spend).toContain("dayCoverage.total");
     expect(spend).toContain("shotMode ? (");
     expect(spend).toContain("<PeriodControl");
     expect(spend).toContain("Your spend is on the desk");
     expect(spend).toContain("Days with no row have no spend entered");
-    expect(spend).not.toContain("<SpendExplorer");
-    expect(spend).not.toContain("<MarketingSpendRoom");
-    expect(spend).not.toContain("<DualCloseLine");
+    expect(spend).toContain("<SpendExplorer");
+    expect(spend).toContain("<MarketingSpendRoom");
+    expect(spend).toContain("<DualCloseLine");
     expect(spend).not.toContain("<MarketingSnapSection");
     expect(spend).not.toContain("MarketingSnapSection");
-    expect(spend).not.toContain('aria-label="Sales, spend, and Total ROAS"');
-    expect(spend).not.toContain("mcfly-book__glance");
+    expect(spend).toContain('aria-label="Sales, spend, and Total ROAS"');
+    expect(spend).toContain("mcfly-book__glance");
     expect(spend).not.toContain('id="mcfly-spend-mix"');
   });
 
   it("keeps explorer drill-down on Spend when embedded", () => {
     expect(explorer).toContain(
-      'basePath?: "/app" | "/app/spend" | "/app/allocation" | "/app/roas"',
+      'basePath?: "/app" | "/app/spend" | "/demo/spend" | "/app/allocation" | "/app/roas"',
     );
     expect(explorer).toContain("pathname: basePath");
     expect(explorer).toContain("compareExplorerBuckets");
     expect(explorer).toContain('hash: "mcfly-spend-csv"');
     expect(explorer).toContain("explorerEmptyCopy");
+    expect(spend).toContain('basePath="/app/spend"');
   });
 
   it("shows From/To dates on the Spend explorer embed", () => {
@@ -162,36 +161,32 @@ describe("Spend day card", () => {
     expect(spend.slice(Math.max(0, footerAt - 80), footerAt)).toMatch(
       /entries\.length > 0/,
     );
-    expect(spend).toContain('<s-link href="/app/roas">');
+    expect(spend).toContain('href="#mcfly-roas"');
     expect(spend).toContain("PRODUCT_NOUN.spendAllocation");
     expect(spend).not.toContain("/app/advanced");
   });
 
-  it("never mounts MarketingSnapSection or a Total ROAS hero — SAMPLE or Live", () => {
+  it("never mounts MarketingSnapSection and never paints 0.00×", () => {
     expect(spend).not.toContain("<MarketingSnapSection");
     expect(spend).not.toContain("MarketingSnapSection");
-    expect(spend).not.toContain("buildDashboardMetrics");
-    expect(spend).not.toContain("fetchSampleSales");
     expect(spend).not.toContain("periodChannels");
     expect(spend).not.toContain("hasPeriodSpend");
     expect(spend).not.toContain("strangerEmpty || !metrics");
-    expect(spend).not.toContain('aria-label="Sales, spend, and Total ROAS"');
-    expect(spend).not.toContain("mcfly-book__glance");
+    expect(spend).toContain('aria-label="Sales, spend, and Total ROAS"');
+    expect(spend).toContain("mcfly-book__glance");
     expect(spend).not.toContain('id="mcfly-spend-mix"');
     expect(spend).not.toContain("<NumberHonestyPanel");
     expect(spend).toContain("SAMPLE_LEDGER_HANDOFF");
     expect(spend).toContain("spend is never 0×");
-    expect(spend).toContain("this page records spend");
     expect(spend).toContain("PRODUCT_NOUN.totalRoas");
     expect(spend).toContain("PRODUCT_NOUN.spendAllocation");
-    expect(spend).toContain('href="/app/roas"');
     expect(spend).not.toContain("0.00×");
-    expect(spend).not.toContain("<SpendExplorer");
-    expect(spend).not.toContain("<MarketingSpendRoom");
-    expect(spend).not.toContain("<DualCloseLine");
+    expect(spend).toContain("<SpendExplorer");
+    expect(spend).toContain("<MarketingSpendRoom");
+    expect(spend).toContain("<DualCloseLine");
   });
 
-  it("soft-denses the input ledger without a ROAS scoreboard", () => {
+  it("soft-denses the input ledger under the MER scoreboard", () => {
     expect(spend).toContain("mcfly-spend-lean--soft");
     expect(spend).toContain("mcfly-spend-panel--soft");
     expect(spend).toContain("mcfly-spend-cal--soft");
@@ -216,7 +211,7 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Why no ad-account connection?");
   });
 
-  it("keeps yesterday as the hero and puts the ledger behind a drill", () => {
+  it("keeps yesterday as the form hero and puts the ledger behind a drill", () => {
     expect(spend).toContain("mcfly-spend-add--hero");
     expect(spend).toContain("mcfly-spend-glance");
     expect(spend).toContain('id="mcfly-spend-how"');
@@ -361,29 +356,31 @@ describe("Import or backfill", () => {
 });
 
 describe("Total ROAS page", () => {
-  it("owns the explorer and formula, not spend entry", () => {
+  it("redirects Total ROAS onto Spend and keeps the formula on Spend", () => {
     const roas = read("../routes/app.roas.tsx");
-    expect(roas).toContain("<SpendExplorer");
-    expect(roas).toContain("<DualCloseLine");
-    expect(roas).toContain("<MonthlyPacing");
-    expect(roas).toContain("PRODUCT_NOUN.definition");
-    expect(roas).toContain("HONEST_MER_LINE");
-    expect(roas).toContain("SpendFindingStrip");
-    expect(roas).toContain("quiet={false}");
-    expect(roas).toContain('href="/app/spend"');
-    expect(roas).not.toContain("mcfly-spend-add");
-    expect(roas).not.toContain("0.00×");
-    expect(roas).not.toContain("export const action");
+    const spend = read("../routes/app.spend.tsx");
+    expect(roas).toContain('spendPanelRedirectPath(request.url, "roas"');
+    expect(roas).toContain("requireAdmin");
+    expect(roas).not.toContain("<SpendExplorer");
+    expect(spend).toContain("<SpendExplorer");
+    expect(spend).toContain("<DualCloseLine");
+    expect(spend).toContain("<MonthlyPacing");
+    expect(spend).toContain("PRODUCT_NOUN.definition");
+    expect(spend).toContain("HONEST_MER_LINE");
+    expect(spend).toContain("SpendFindingStrip");
+    expect(spend).toContain("quiet={false}");
+    expect(spend).toContain('href="#mcfly-spend-add"');
+    expect(spend).toContain("mcfly-spend-add");
+    expect(spend).not.toContain("0.00×");
   });
 
   it("dashes pending sales and pairs the equation only when spend is on file", () => {
-    const roas = read("../routes/app.roas.tsx");
-    expect(roas).toContain("salesCoverage");
-    expect(roas).toContain("NUMBER_HONESTY.salesPending");
-    expect(roas).toContain("metrics.salesPending ? \"—\"");
-    expect(roas).toContain("formatTotalRoasEquation");
-    expect(roas).toContain("!metrics.salesPending");
-    expect(roas).not.toContain("0.00×");
+    const spend = read("../routes/app.spend.tsx");
+    expect(spend).toContain("NUMBER_HONESTY.salesPending");
+    expect(spend).toContain("metrics.salesPending ? \"—\"");
+    expect(spend).toContain("formatTotalRoasEquation");
+    expect(spend).toContain("!metrics.salesPending");
+    expect(spend).not.toContain("0.00×");
   });
 });
 
@@ -398,22 +395,26 @@ describe("Goals, CPA, and Allocation honesty", () => {
     expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
   });
 
-  it("keeps CPA/CAC as dashes without spend and cards once spend exists", () => {
+  it("keeps CPA/CAC as dashes without spend and cards once spend exists on Spend", () => {
     const cpa = read("../routes/app.cpa.tsx");
-    expect(cpa).toContain("hasSpend ? (");
-    expect(cpa).toContain("<CpaWindowCards");
-    expect(cpa).toContain("<CpaPaybackDesk");
-    expect(cpa).toContain("CPA_EMPTY_SPEND");
-    expect(cpa).not.toContain("0.00×");
-    expect(cpa).not.toContain("<BookFactGrid");
+    const spend = read("../routes/app.spend.tsx");
+    expect(cpa).toContain('spendPanelRedirectPath(request.url, "cpa"');
+    expect(spend).toContain("cpaHasSpend ? (");
+    expect(spend).toContain("<CpaWindowCards");
+    expect(spend).toContain("<CpaPaybackDesk");
+    expect(spend).toContain("CPA_EMPTY_SPEND");
+    expect(spend).not.toContain("0.00×");
+    expect(spend).not.toContain("<BookFactGrid");
   });
 
-  it("shows Allocation snapshot cards and dashes sales while pending", () => {
+  it("shows Allocation mix on Spend and dashes sales while pending", () => {
     const allocation = read("../routes/app.allocation.tsx");
-    expect(allocation).toContain("salesCoverage");
-    expect(allocation).toContain("salesPending={metrics.salesPending}");
-    expect(allocation).toContain("salesPending ? \"—\"");
-    expect(allocation).toContain("mcfly-alloc-v2__snap-grid");
-    expect(allocation).not.toMatch(/0×/);
+    const spend = read("../routes/app.spend.tsx");
+    const mix = read("../components/SpendMixSection.tsx");
+    expect(allocation).toContain('spendPanelRedirectPath(request.url, "mix"');
+    expect(spend).toContain("salesFactsIncomplete");
+    expect(mix).toContain("salesFactsIncomplete");
+    expect(mix).toContain("<SpendMixPlan");
+    expect(mix).not.toMatch(/0×/);
   });
 });

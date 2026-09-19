@@ -122,7 +122,7 @@ export function GrowthScoreboard({
   avgOrdersD90,
   salesPending,
   useSampleDesk,
-  ltvHref = "/app/ltv",
+  ltvHref = "#mcfly-ltv",
 }: {
   book: ShopifyNativePeriodStats;
   depth: ShopifyDepthStats;

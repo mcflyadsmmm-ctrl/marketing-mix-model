@@ -5,7 +5,12 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const overview = readFileSync(join(here, "../routes/app._index.tsx"), "utf8");
-const ltv = readFileSync(join(here, "../routes/app.ltv.tsx"), "utf8");
+const customers = readFileSync(join(here, "../routes/app.customers.tsx"), "utf8");
+const ltvSection = readFileSync(
+  join(here, "../components/CustomersLtvSection.tsx"),
+  "utf8",
+);
+const history = readFileSync(join(here, "./desk-history.ts"), "utf8");
 const connections = readFileSync(
   join(here, "../routes/app.connections.tsx"),
   "utf8",
@@ -29,13 +34,15 @@ describe("Overview / LTV tillLabel honesty", () => {
   });
 
   it("LTV tillLabel refuses live when salesError", () => {
-    expect(ltv).toContain("sales unavailable");
-    expect(ltv).toMatch(/salesError[\s\S]*sales unavailable[\s\S]*live sales/);
+    expect(customers).toContain("deskPeriodTillLabel");
+    expect(customers).toContain("salesError");
+    expect(history).toContain("sales unavailable");
+    expect(history).toMatch(/salesError[\s\S]*sales unavailable[\s\S]*live sales/);
   });
 
   it("LTV route uses tillLtv.newBuyers rather than facts newCustomers", () => {
-    expect(ltv).toContain("const ltv = metrics.tillLtv");
-    expect(ltv).toContain("metrics.tillLtv.newBuyers");
+    expect(ltvSection).toContain("const ltv = metrics.tillLtv");
+    expect(ltvSection).toContain("metrics.tillLtv.newBuyers");
     expect(overview).not.toMatch(
       /cashCac[\s\S]{0,200}metrics\.newCustomers\s*>\s*0/,
     );

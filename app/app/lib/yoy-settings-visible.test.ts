@@ -17,7 +17,11 @@ function chrome(rel: string) {
     .replace(/^\s*\/\/.*$/gm, "");
 }
 
-const yoy = read("../routes/app.yoy.tsx");
+const yoy = [
+  read("../components/OverviewYoyYearSection.tsx"),
+  read("../components/OverviewYoyCards.tsx"),
+  read("./yoy-workspace.ts"),
+].join("\n");
 const settings = read("../routes/app.settings.tsx");
 const connections = read("../routes/app.connections.tsx");
 const connectionsChrome = chrome("../routes/app.connections.tsx");
@@ -35,15 +39,12 @@ describe("YoY is the comparison desk", () => {
 
   it("missing last year is OVERVIEW_YOY_MISSING (~60 days), not $0", () => {
     expect(yoy).toContain("OVERVIEW_YOY_MISSING");
-    expect(yoy).toMatch(/id === "lastYear"/);
-    expect(yoy).toMatch(/sales == null/);
-    expect(yoy).not.toContain("byId.has(\"lastYear\")");
+    expect(yoy).toContain("boardPriorMissing");
   });
 
   it("salesPending keeps the comparison grid with — still loading", () => {
     expect(yoy).toContain("salesPending");
     expect(yoy).toContain("OVERVIEW_YOY_PENDING");
-    expect(yoy).toContain("still loading");
     expect(yoy).toContain("mcfly-yoy__grid");
     expect(yoy).not.toMatch(/if \(salesPending\) return null/);
   });
@@ -53,7 +54,9 @@ describe("YoY is the comparison desk", () => {
     expect(yoy).toContain("YoyYearBoard");
     expect(yoy).toContain("YoyChannelBoard");
     expect(yoy).toContain("buildYoyYearBoard");
-    expect(yoy.indexOf("YoyYearChart")).toBeLessThan(yoy.indexOf("mcfly-yoy__grid--soft"));
+    expect(yoy.indexOf("<YoyYearChart")).toBeLessThan(
+      yoy.indexOf("<YoyYearBoard"),
+    );
   });
 });
 

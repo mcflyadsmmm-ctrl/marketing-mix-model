@@ -68,7 +68,7 @@ type SpendExplorerProps = {
    * Where range / granularity clicks stay. Overview defaults to `/app`.
    * Total ROAS, Upload Spend, and Spend Allocation keep drill-downs on-route.
    */
-  basePath?: "/app" | "/app/spend" | "/app/allocation" | "/app/roas";
+  basePath?: "/app" | "/app/spend" | "/demo/spend" | "/app/allocation" | "/app/roas";
   /**
    * This-period-vs-prior comparison (day vs previous day, week vs previous
    * week, …) in the ROAS tip + a summary row. Default off — Overview
@@ -726,7 +726,7 @@ export function SpendExplorer({
   return (
     <section
       id="mcfly-chart"
-      className={`mcfly-panel mcfly-explorer mcfly-explorer--lean${explorerVariantClass(variant)}${basePath === "/app/roas" ? " mcfly-explorer--soft" : ""}`}
+      className={`mcfly-panel mcfly-explorer mcfly-explorer--lean${explorerVariantClass(variant)}${basePath.endsWith("/spend") ? " mcfly-explorer--soft" : ""}`}
       aria-label={explorerTitle}
     >
       {quiet ? null : (

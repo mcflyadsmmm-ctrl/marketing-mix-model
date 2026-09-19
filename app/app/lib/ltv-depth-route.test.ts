@@ -6,7 +6,10 @@ import { describe, expect, it } from "vitest";
 const here = dirname(fileURLToPath(import.meta.url));
 const read = (rel: string) => readFileSync(join(here, rel), "utf8");
 
-const route = read("../routes/app.ltv.tsx");
+const customers = read("../routes/app.customers.tsx");
+const section = read("../components/CustomersLtvSection.tsx");
+const stack = read("../lib/desk-customers-stack.server.ts");
+const route = `${section}\n${customers}`;
 const curves = read("../components/LtvBuildCurves.tsx");
 const heat = read("../components/LtvRetentionHeat.tsx");
 const tiers = read("../components/LtvTierTables.tsx");
@@ -18,12 +21,14 @@ const promoBoard = read("../components/LtvPromoBoard.tsx");
 const depthPage = read("../lib/ltv-depth-page.server.ts");
 
 describe("LTV route mounts the depth pack", () => {
-  it("loads the depth view in the loader", () => {
-    expect(route).toContain(
-      'import { loadLtvDepth } from "../lib/ltv-depth-page.server"',
+  it("loads the depth view in the Customers stack loader", () => {
+    expect(stack).toContain(
+      'import { loadLtvDepth } from "./ltv-depth-page.server"',
     );
-    expect(route).toContain("loadLtvDepth({ shopId: shop.id, useSampleDesk })");
-    expect(route).toMatch(/return \{[\s\S]*?\bdepth,/);
+    expect(stack).toContain(
+      "loadLtvDepth({ shopId: shop.id, useSampleDesk: base.useSampleDesk })",
+    );
+    expect(stack).toMatch(/return \{[\s\S]*?\bdepth,/);
     expect(depthPage).toContain("{ end: asOf }");
     expect(depthPage).toContain("full stored");
   });
@@ -39,8 +44,8 @@ describe("LTV route mounts the depth pack", () => {
       "LtvProductBoard",
       "LtvPromoBoard",
     ]) {
-      expect(route).toContain(`import { ${tag} }`);
-      expect(route).toContain(`<${tag}`);
+      expect(section).toContain(`import { ${tag} }`);
+      expect(section).toContain(`<${tag}`);
     }
     expect(route).not.toContain("LtvComeBackWindows");
     expect(route).not.toContain("LtvRefundHonesty");
@@ -48,13 +53,19 @@ describe("LTV route mounts the depth pack", () => {
     expect(route).not.toMatch(/about 60 days/);
   });
 
-  it("leads with order history — depth sits after the value build, before spend", () => {
-    const build = route.indexOf("<LtvValueBuild");
-    const firstDepth = route.indexOf("<LtvBuildCurves");
-    const economics = route.indexOf("facts={economicsRows}");
-    expect(build).toBeGreaterThan(-1);
-    expect(firstDepth).toBeGreaterThan(build);
-    expect(economics).toBeGreaterThan(firstDepth);
+  it("leads with order history — value build, then spend economics, then depth fold", () => {
+    expect(customers.indexOf("<CustomersLtvWindows")).toBeLessThan(
+      customers.indexOf("<CustomersLtvEconomics"),
+    );
+    expect(customers.indexOf("<CustomersLtvEconomics")).toBeLessThan(
+      customers.indexOf("<CustomersLtvDepth"),
+    );
+    expect(section.indexOf("<LtvValueBuild")).toBeLessThan(
+      section.indexOf("<LtvFlagshipBoard"),
+    );
+    expect(section.indexOf("<LtvFlagshipBoard")).toBeLessThan(
+      section.indexOf("<LtvBuildCurves"),
+    );
   });
 
   it("drops the old per-month grid once the richer curve paints", () => {
@@ -184,15 +195,14 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
   });
 
   it("reuses shareable insight cards after the explorers, not inside the compete spine", () => {
-    const promoAt = route.indexOf("<LtvPromoBoard");
-    const curvesAt = route.indexOf("<LtvBuildCurves");
-    const whaleAt = route.indexOf("<LtvWhaleRecency");
-    const shareAt = route.indexOf("<ShareableInsightCards");
-    expect(shareAt).toBeGreaterThan(whaleAt);
-    expect(curvesAt).toBeGreaterThan(promoAt);
-    expect(shareAt).toBeGreaterThan(curvesAt);
-    expect(route).toContain("flagshipDailyRead");
-    expect(route).toContain("buildShareableInsights");
+    expect(section.indexOf("<LtvBuildCurves")).toBeGreaterThan(
+      section.indexOf("<LtvPromoBoard"),
+    );
+    expect(customers.indexOf("<ShareableInsightCards")).toBeGreaterThan(
+      customers.indexOf("<CustomersLtvDepth"),
+    );
+    expect(customers).toContain("flagshipDailyRead");
+    expect(customers).toContain("buildShareableInsights");
   });
 
   it("mounts Promo→LTV after Product→LTV and before the explorers", () => {
