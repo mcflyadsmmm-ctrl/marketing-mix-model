@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-18 · America/Denver · Site **v22** Amp-rhythm · Desk Spend/ROAS craft in tree (uncommitted) · occupancy **0/4** · ads **NO** · **Fly held** |
+| **Updated** | 2026-09-18 · America/Denver · Site **v22** · Fly **391** hybrid wells + Spend Signal · occupancy **0/4** · ads **NO** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v22** (Pages `f996569f`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **Fly** | https://mcfly-analytics.fly.dev · version **331** @ `6c8a86b` (PR #61) · `/health` 200 · Overview = YoY + typical/returning/weekend + day-vs-typical sales board · **zero spend on Overview** · SAMPLE labeled |
+| **Fly** | https://mcfly-analytics.fly.dev · version **391** @ `1e54a0a` · `/health` 200 · hybrid wells · Spend Signal/Evidence/Next · empty = — · SAMPLE on `/demo` only |
 | **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -104,7 +104,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v22 live** — Amp-rhythm product-frame · Pages `f996569f` · journal [`ops/journal/STATUS_20260918_v22.md`](./ops/journal/STATUS_20260918_v22.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Occupancy **0/4**. Desk Spend Upload + Total ROAS craft landed in tree (Signal/Evidence/Next · honest MER · empty = —; focused vitest green) — **uncommitted**; Fly held. Site **v22** live (`f996569f`). Listing paste + well-crop captions ready for Marty Save / recapture. Ads **NO**. Say **commit desk** then **Fly go** when ready. Human: Partner Save · listing stills · reviews **0**.
+**Next:** Occupancy **0/4**. Desk + site shipped: commit `1e54a0a` · Fly **391** · site **v22** (`f996569f`). App vitest **1608/1608**. **Marty:** Partner Save listing paste · recapture 5 Live Admin well stills (CAPTIONS) · reviews **0**. Ads **NO**.
 
 ---
 

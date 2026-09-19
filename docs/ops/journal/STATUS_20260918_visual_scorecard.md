@@ -20,7 +20,7 @@
 
 ## Marty recapture gate
 
-1. Say **Fly go** after suite green (desk craft uncommitted until then).
+1. ~~Say Fly go~~ — **done** Fly **391** @ `1e54a0a`
 2. Hard-refresh Admin on production.
 3. Capture five listing PNGs per [`LISTING_VISUAL_PACK.md`](../../LISTING_VISUAL_PACK.md) — crop dark wells.
 4. Upload in Partner (Cursor does not Submit).
