@@ -12,8 +12,8 @@
   <meta name="theme-color" content="#f2f5f8" />
   <title>Full Snowdevil SAMPLE demo | Mcfly Analytics</title>
   <meta name="description" content="Full Snowdevil SAMPLE showcase — no install. Spend $19,023 · sales $68,457 · 3.60× · BE 2.50× @ 40%. Overview, Spend Upload, Goals, Settings. Not a live client." />
-  <meta name="mcfly-version" content="v21" />
-  <meta name="mcfly-build" content="craft-v20" />
+  <meta name="mcfly-version" content="v23" />
+  <meta name="mcfly-build" content="demo-chrome-v23" />
   <link rel="canonical" href="https://mcflyads.com/demo" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
@@ -27,7 +27,7 @@
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
   <link rel="stylesheet" href="/assets/site.css?v=20260829v13" />
-  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260918v21" />
+  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260918chrome" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -58,51 +58,20 @@
   <div data-chrome></div>
 
   <main id="main">
-    <header class="page-hero">
+    <header class="page-hero page-hero--demo-tight">
       <p class="brand-kicker">Mcfly <span class="ads">Analytics</span></p>
       <h1>Full Snowdevil SAMPLE demo.</h1>
-      <p>This page is the complete Snowdevil showcase — no Shopify install. SAMPLE spend <strong>$19,023</strong> · sales <strong>$68,457</strong> · <strong>3.60×</strong> · BE <strong>2.50×</strong> @ 40% · not a live client. Walk Overview, Spend Upload, Goals, and Settings with the same math as the Live book.</p>
-      <aside class="demo-float-desk" aria-label="Snowdevil SAMPLE metrics">
-        <article class="demo-float-card">
-          <p class="demo-float-card__k">Entered spend</p>
-          <p class="demo-float-card__v">$19,023</p>
-          <p class="demo-float-card__s">This month</p>
-        </article>
-        <article class="demo-float-card">
-          <p class="demo-float-card__k">Shopify sales</p>
-          <p class="demo-float-card__v">$68,457</p>
-          <p class="demo-float-card__s">vs last year $69,891</p>
-        </article>
-        <article class="demo-float-card demo-float-card--accent">
-          <p class="demo-float-card__k">Total ROAS</p>
-          <p class="demo-float-card__v">3.60×</p>
-          <p class="demo-float-card__s">$68,457 ÷ $19,023</p>
-        </article>
-      </aside>
-      <p class="demo-mer-loud" aria-label="Total ROAS formula">
-        <span class="demo-mer-loud__k">MER · Total ROAS</span>
-        <span class="demo-mer-loud__line">Total ROAS = Shopify sales ÷ entered spend · empty = —</span>
-      </p>
+      <p>No Shopify install. SAMPLE spend <strong>$19,023</strong> · sales <strong>$68,457</strong> · <strong>3.60×</strong> · BE <strong>2.50×</strong> @ 40% · not a live client.</p>
       <div class="demo-hero-meta">
         <span class="demo-sample-badge"><i aria-hidden="true"></i> SAMPLE · not a live client</span>
+        <span class="demo-hero-meta__mer">Total ROAS = sales ÷ spend · empty = —</span>
       </div>
       <div class="cta-row demo-hero-actions">
         <a class="btn primary solid" href="#dd-desk">Open the full Snowdevil desk</a>
         <a class="btn ghost" href="/pricing">Pricing — $39/mo</a>
         <a class="btn ghost" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">Install</a>
       </div>
-      <p class="fine-line" style="margin-top:0.75rem">Installed Admin is this shop’s Live book only. The SAMPLE tour stays here on <a href="/demo">/demo</a>. One plan: <a href="/pricing">7-day trial then $39/store/mo</a> — trial includes 24 months of order history.</p>
     </header>
-
-    <aside class="demo-howto" aria-label="How to use this demo">
-      <p class="demo-howto__kicker">Upload → Total ROAS → Goals</p>
-      <ul class="demo-howto__list">
-        <li>This page is the <strong>full Snowdevil SAMPLE</strong> showcase — no install, not a live client</li>
-        <li>Peek <strong>Overview → Spend Upload → Goals → Settings</strong> with locked SAMPLE numbers ($19,023 · $68,457 · 3.60×)</li>
-        <li>After install, Admin is <strong>Live-only</strong> for this shop — no Sample|Live toggle. Yesterday / last-N chips live on <strong>Total ROAS</strong></li>
-        <li>When it clicks, see <a href="/pricing">pricing</a> (7-day trial then $39) — SAMPLE numbers stay on this site</li>
-      </ul>
-    </aside>
 
     <div class="demo-stage">
       <div
@@ -149,7 +118,54 @@
         </div>
 
         <div id="dd-sec-overview" class="dd-sec" data-dd-section="overview">
-          <section class="dd-yoy" aria-label="Sales versus last year">
+          <section class="dd-well dd-well--scoreboard" aria-label="SAMPLE scoreboard">
+            <div class="dd-well__head">
+              <p class="dd-well__kicker">Overview scoreboard</p>
+              <span class="dd-sample-pill"><i aria-hidden="true"></i> SAMPLE · Snowdevil · not a live client</span>
+            </div>
+            <div class="dd-kpi-grid dd-kpi-grid--hero">
+              <button type="button" class="dd-kpi dd-kpi--hero dd-kpi--drill" data-dd-kpi="sales" aria-haspopup="dialog">
+                <span class="dd-kpi__label">Total Sales</span>
+                <span class="dd-kpi__value" id="dd-kpi-sales">$68,457</span>
+                <span class="dd-kpi__sub" id="dd-kpi-sales-sub">Shopify orders · returns included</span>
+                <span class="dd-kpi__delta" id="dd-kpi-sales-delta">-$1,434 vs last year</span>
+                <span class="dd-kpi__hint">Click for detail</span>
+              </button>
+              <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="typical" aria-haspopup="dialog">
+                <span class="dd-kpi__label">Typical order</span>
+                <span class="dd-kpi__value" id="dd-kpi-typical">$631</span>
+                <span class="dd-kpi__sub">Median ticket · Shopify five</span>
+                <span class="dd-kpi__delta" id="dd-kpi-orders">110 orders</span>
+                <span class="dd-kpi__hint">Click for detail</span>
+              </button>
+              <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="returning" aria-haspopup="dialog">
+                <span class="dd-kpi__label">Returning dollars</span>
+                <span class="dd-kpi__value" id="dd-kpi-returning">$45,409</span>
+                <span class="dd-kpi__sub">66% of sales this window</span>
+                <span class="dd-kpi__delta" id="dd-kpi-new">37 new buyers</span>
+                <span class="dd-kpi__hint">Click for detail</span>
+              </button>
+            </div>
+            <div class="dd-mer-grid" aria-label="Optional spend snapshot">
+              <article class="dd-mer-tile">
+                <p class="dd-mer-tile__k">Ad spend</p>
+                <p class="dd-mer-tile__v" id="dd-kpi-spend">$19,023</p>
+                <p class="dd-mer-tile__s">Entered · this window</p>
+              </article>
+              <article class="dd-mer-tile dd-mer-tile--accent">
+                <p class="dd-mer-tile__k">Total ROAS</p>
+                <p class="dd-mer-tile__v" id="dd-kpi-mer">3.60×</p>
+                <p class="dd-mer-tile__s">$68,457 ÷ $19,023</p>
+              </article>
+              <article class="dd-mer-tile">
+                <p class="dd-mer-tile__k">Break-even</p>
+                <p class="dd-mer-tile__v">2.50×</p>
+                <p class="dd-mer-tile__s">At 40% profit margin</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="dd-well dd-yoy" aria-label="Sales versus last year">
             <p class="dd-yoy__lede">Shopify Analytics shows this period’s sales. This page shows last year next to it.</p>
             <div class="dd-yoy__grid">
               <article class="dd-yoy__card">
@@ -173,41 +189,7 @@
             </div>
           </section>
 
-          <section class="dd-decision" aria-labelledby="dd-decision-takeaway">
-            <p class="dd-decision__kicker">What to notice</p>
-            <p class="dd-decision__takeaway" id="dd-decision-takeaway">Typical order around $631. Returning buyers carry 66% of sales.</p>
-            <p class="dd-decision__why" id="dd-decision-why">This month SAMPLE: 110 orders and $68,457 sales. Spend is optional.</p>
-            <div class="dd-decision__actions">
-              <a class="dd-decision__verb" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">Install</a>
-              <a class="dd-decision__link" href="/product">Product →</a>
-            </div>
-          </section>
-
-          <div class="dd-kpi-grid">
-            <button type="button" class="dd-kpi dd-kpi--lead dd-kpi--drill" data-dd-kpi="sales" aria-haspopup="dialog">
-              <span class="dd-kpi__label">Total Sales</span>
-              <span class="dd-kpi__value" id="dd-kpi-sales">$68,457</span>
-              <span class="dd-kpi__sub" id="dd-kpi-sales-sub">Shopify orders · returns included</span>
-              <span class="dd-kpi__delta" id="dd-kpi-sales-delta">-$1,434 vs last year</span>
-              <span class="dd-kpi__hint">Click for detail</span>
-            </button>
-            <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="typical" aria-haspopup="dialog">
-              <span class="dd-kpi__label">Typical order</span>
-              <span class="dd-kpi__value" id="dd-kpi-typical">$631</span>
-              <span class="dd-kpi__sub">Median ticket · Shopify five</span>
-              <span class="dd-kpi__delta" id="dd-kpi-orders">110 orders</span>
-              <span class="dd-kpi__hint">Click for detail</span>
-            </button>
-            <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="returning" aria-haspopup="dialog">
-              <span class="dd-kpi__label">Returning dollars</span>
-              <span class="dd-kpi__value" id="dd-kpi-returning">$45,409</span>
-              <span class="dd-kpi__sub">66% of sales this window</span>
-              <span class="dd-kpi__delta" id="dd-kpi-new">37 new buyers</span>
-              <span class="dd-kpi__hint">Click for detail</span>
-            </button>
-          </div>
-
-          <div class="dd-compact" aria-label="Shopify-five peek">
+          <div class="dd-well dd-compact" aria-label="Shopify-five peek">
             <article class="dd-compact__cell">
               <p class="dd-compact__label">Orders</p>
               <p class="dd-compact__value" id="dd-compact-orders">110</p>
@@ -226,27 +208,13 @@
             </article>
           </div>
 
-          <section class="dd-panel dd-spend-optional" aria-labelledby="dd-spend-optional-title">
-            <div class="dd-panel__head">
-              <h2 id="dd-spend-optional-title">Spend is optional</h2>
-              <p class="dd-panel__muted">Snowdevil marketing snapshot · not the greeting</p>
-            </div>
-            <p class="dd-spend-optional__lede">
-              SAMPLE Snowdevil · spend <strong>$19,023</strong> · sales <strong>$68,457</strong> · <strong>3.60×</strong> · BE 2.50× @ 40% · not a live client.
-            </p>
-            <div class="dd-compact" aria-label="Optional spend snapshot">
-              <article class="dd-compact__cell">
-                <p class="dd-compact__label">Ad spend</p>
-                <p class="dd-compact__value" id="dd-kpi-spend">$19,023</p>
-              </article>
-              <article class="dd-compact__cell">
-                <p class="dd-compact__label">Total ROAS</p>
-                <p class="dd-compact__value" id="dd-kpi-mer">3.60×</p>
-              </article>
-              <article class="dd-compact__cell">
-                <p class="dd-compact__label">Break-even</p>
-                <p class="dd-compact__value">2.50×</p>
-              </article>
+          <section class="dd-decision" aria-labelledby="dd-decision-takeaway">
+            <p class="dd-decision__kicker">What to notice</p>
+            <p class="dd-decision__takeaway" id="dd-decision-takeaway">Typical order around $631. Returning buyers carry 66% of sales.</p>
+            <p class="dd-decision__why" id="dd-decision-why">This month SAMPLE: 110 orders and $68,457 sales. Spend is optional.</p>
+            <div class="dd-decision__actions">
+              <a class="dd-decision__verb" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">Install</a>
+              <a class="dd-decision__link" href="/product">Product →</a>
             </div>
           </section>
         </div>

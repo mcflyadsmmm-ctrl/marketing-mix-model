@@ -439,7 +439,7 @@ export function OverviewFirstViewport({
       </div>
 
       {handoffs.length > 0 ? (
-        <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--peeks-handoff mcfly-kpi-grid--soft">
+        <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-handoff mcfly-kpi-grid--soft">
           {handoffs.map((peek) => {
             const card = handoffPeekCard(peek, currency);
             return (

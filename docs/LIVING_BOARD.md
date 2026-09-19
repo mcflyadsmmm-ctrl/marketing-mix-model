@@ -4,7 +4,7 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-18 · America/Denver · Site **v22** · Fly **391** hybrid wells + Spend Signal · occupancy **0/4** · ads **NO** |
+| **Updated** | 2026-09-18 · America/Denver · Site **v23** product-shot homepage · `/demo` chrome · Desk fold B- · occupancy **0/4** · ads **NO** |
 | **Live** | https://mcflyads.com · `mcfly-version` **v22** (Pages `f996569f`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
 | **Fly** | https://mcfly-analytics.fly.dev · version **391** @ `1e54a0a` · `/health` 200 · hybrid wells · Spend Signal/Evidence/Next · empty = — · SAMPLE on `/demo` only |
 | **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
@@ -102,9 +102,10 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v19 live** — Snowdevil `/demo` home · Live-only Admin copy · Pages `4271f20c` · journal [`ops/journal/STATUS_20260918_v19.md`](./ops/journal/STATUS_20260918_v19.md)
 - [x] **v20 live** — Tier A craft elevation · Pages `a7862580` · journal [`ops/journal/STATUS_20260918_v20.md`](./ops/journal/STATUS_20260918_v20.md)
 - [x] **v22 live** — Amp-rhythm product-frame · Pages `f996569f` · journal [`ops/journal/STATUS_20260918_v22.md`](./ops/journal/STATUS_20260918_v22.md)
+- [x] **v23 shipping** — real `/demo` product shots as hero · journal [`ops/journal/STATUS_20260918_v23.md`](./ops/journal/STATUS_20260918_v23.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Occupancy **0/4**. Desk + site shipped: commit `1e54a0a` · Fly **391** · site **v22** (`f996569f`). App vitest **1608/1608**. **Marty:** Partner Save listing paste · recapture 5 Live Admin well stills (CAPTIONS) · reviews **0**. Ads **NO**.
+**Next:** Occupancy **0/4**. Enterprise visual closeout in flight (Pages + Fly after this commit). **Marty:** Partner Save · recapture 5 Live Admin wells after Fly · reviews **0**. Ads **NO**.
 
 ---
 
@@ -154,3 +155,4 @@ App + site are already live (Fly **331**, site **v19**). SAMPLE smoke **PASSed**
 | v20 | `a7862580` | Snowdevil SAMPLE lock · craft v20 |
 | v21 | `393719e1` | Product-chrome dark wells on paper/sky |
 | v22 | `f996569f` | Amp-rhythm · product-frame hero · facts strip · alternating rows |
+| v23 | (Pages after wrangler) | Real `/demo` screenshots as hero + feature rows |

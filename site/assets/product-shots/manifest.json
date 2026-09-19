@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-09-19T02:57:38.845Z",
+  "demoUrl": "https://mcflyads.com/demo",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "deviceScaleFactor": 2,
+  "sample": {
+    "spend": 19023,
+    "sales": 68457,
+    "totalRoas": 3.6,
+    "shop": "Snowdevil"
+  },
+  "shots": [
+    {
+      "file": "01-overview.png",
+      "bytes": 329617,
+      "note": "Desk Overview — YoY cards, KPI row, Shopify-five peek"
+    },
+    {
+      "file": "02-total-roas.png",
+      "bytes": 286028,
+      "note": "Desk spend optional / Total ROAS $19,023 · $68,457 · 3.60×"
+    },
+    {
+      "file": "03-goals.png",
+      "bytes": 133938,
+      "note": "Desk Goals tab — sales plan + optional Total ROAS"
+    },
+    {
+      "file": "04-customers-ltv.png",
+      "bytes": 294791,
+      "note": "Returning dollars + Orders/LTV compact row"
+    }
+  ]
+}

@@ -66,6 +66,9 @@ describe("spend upload findings", () => {
 
     expect(scoreboard).toContain("CERTIFIED_WINDOWS_KICKER");
     expect(scoreboard).toContain("At goal");
+    expect(scoreboard).toContain("mcfly-well");
+    expect(scoreboard).toContain("mcfly-scoreboard--certified");
+    expect(scoreboard).not.toContain("0.00×");
   });
 
   it("does not put spend doors on Overview", () => {

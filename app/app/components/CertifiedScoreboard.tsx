@@ -60,7 +60,10 @@ export function CertifiedScoreboard({
       : "Set a goal in Settings";
 
   return (
-    <section className="mcfly-scoreboard mcfly-scoreboard--soft" aria-label="Certified Total ROAS">
+    <section
+      className="mcfly-well mcfly-well--scoreboard mcfly-scoreboard mcfly-scoreboard--soft mcfly-scoreboard--certified"
+      aria-label="Certified Total ROAS"
+    >
       <p className="mcfly-scoreboard__kicker">
         {CERTIFIED_WINDOWS_KICKER} · {goal}
       </p>

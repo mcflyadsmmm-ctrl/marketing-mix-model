@@ -768,18 +768,6 @@ export default function Dashboard() {
                     salesPending={greetingPending}
                     yoyHref={yoyHref}
                   />
-                </DeskLane>
-                <DeskLane rank="next" label="Mix and month close">
-                  <OverviewMixForecast
-                    view={mixView}
-                    customersHref={deskNavHrefFromSearch(
-                      "/app/customers",
-                      searchParams,
-                    )}
-                  />
-                  <ShareableInsightCards view={insightView} shotMode={shotMode} />
-                </DeskLane>
-                <DeskLane rank="next" label="Sales by day">
                   <OverviewSalesChart
                     days={
                       salesExplorerDays.length >= 2
@@ -794,6 +782,16 @@ export default function Dashboard() {
                     salesPending={greetingPending}
                     typicalDay={metrics.shopifyDepth.medianDailySales}
                   />
+                </DeskLane>
+                <DeskLane rank="next" label="Mix and month close">
+                  <OverviewMixForecast
+                    view={mixView}
+                    customersHref={deskNavHrefFromSearch(
+                      "/app/customers",
+                      searchParams,
+                    )}
+                  />
+                  <ShareableInsightCards view={insightView} shotMode={shotMode} />
                 </DeskLane>
                 <DeskLane
                   rank="more"

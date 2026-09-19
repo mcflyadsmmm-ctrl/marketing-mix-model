@@ -31,6 +31,20 @@
   --dd-microsoft: #c4d4a8;
   --dd-email: #9aa8b8;
   --dd-max: 1160px;
+  /* Hybrid well tokens — match Admin MCFLY_WELL_TOKENS */
+  --dd-well-bg: #0c1219;
+  --dd-well-bg-elev: #141c26;
+  --dd-well-ink: #f4f7fb;
+  --dd-well-mute: #8b9aab;
+  --dd-well-line: rgba(244, 247, 251, 0.12);
+  --dd-well-accent: #5ee7f0;
+  --dd-well-accent-soft: rgba(94, 231, 240, 0.14);
+  --dd-well-truth: #34d399;
+  --dd-well-empty: #c5d0dc;
+  --dd-well-radius: 14px;
+  --dd-well-shadow: 0 8px 28px rgba(8, 12, 18, 0.35);
+  --dd-kpi-display: clamp(1.65rem, 2.4vw, 2.35rem);
+  --dd-kpi-hero: clamp(2.1rem, 3.2vw, 3rem);
 }
 
 /* —— Page shell (marketing chrome outside desk) —— */
@@ -2595,5 +2609,405 @@ body.dd-drawer-open {
   .dd-kpi__value,
   .dd-yoy__v {
     font-size: clamp(1.35rem, 8vw, 1.75rem);
+  }
+}
+
+/* =========================================================================
+ * v23 Demo Product Chrome — Lifetimely-density first fold
+ * Light Polaris shell + dark hybrid wells. Hero KPI + MER dominance.
+ * ========================================================================= */
+
+body.demo-page .page-hero--demo-tight {
+  padding-top: clamp(1.25rem, 3vw, 2rem);
+  padding-bottom: 0.85rem;
+}
+
+body.demo-page .page-hero--demo-tight h1 {
+  max-width: 22ch;
+  margin-bottom: 0.45rem;
+}
+
+body.demo-page .page-hero--demo-tight > p {
+  max-width: 52ch;
+  margin-bottom: 0;
+  font-size: 0.98rem;
+}
+
+.demo-hero-meta__mer {
+  font-family: var(--mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--dd-mute);
+}
+
+body.demo-page .demo-hero-actions {
+  margin-top: 0.85rem;
+}
+
+body.demo-page .demo-stage {
+  padding-top: 0.15rem;
+}
+
+/* Desk shell — Polaris-light frame */
+.dd-desk {
+  background:
+    linear-gradient(180deg, #f6f8fb 0%, var(--dd-bg) 48%);
+  border-color: #c9d4e0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 12px 40px rgba(12, 25, 41, 0.1);
+}
+
+/* Admin-like tab chrome */
+.dd-nav {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 10px;
+  background: #f1f4f8;
+  border: 1px solid #d0dae6;
+  padding: 0.2rem;
+  gap: 0.15rem;
+  overflow: hidden;
+}
+
+.dd-nav__btn {
+  flex: 1 1 0;
+  border-right: 0;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: #5a6f85;
+  background: transparent;
+}
+
+.dd-nav__btn:hover {
+  color: var(--dd-ink);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dd-nav__btn[aria-current="true"] {
+  color: var(--dd-ink);
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(12, 25, 41, 0.08),
+    inset 0 0 0 1px rgba(2, 132, 199, 0.18);
+}
+
+.dd-ctx {
+  background: color-mix(in srgb, #fff 78%, var(--dd-bg));
+  border-bottom-color: #c9d4e0;
+  border-radius: 0 0 8px 8px;
+  margin-bottom: 0.95rem;
+  padding: 0.6rem 0.55rem;
+}
+
+.dd-trust__chip--sample {
+  padding: 0.2rem 0.45rem;
+  border-radius: 5px;
+  border: 1px solid rgba(180, 83, 9, 0.32);
+  background: rgba(180, 83, 9, 0.1);
+}
+
+.dd-sample-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.12);
+  font-family: var(--mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  white-space: nowrap;
+}
+
+.dd-sample-pill i {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: #f59e0b;
+  display: inline-block;
+}
+
+/* Dark hybrid wells */
+.dd-well {
+  background: var(--dd-well-bg);
+  color: var(--dd-well-ink);
+  border: 1px solid var(--dd-well-line);
+  border-radius: var(--dd-well-radius);
+  box-shadow: var(--dd-well-shadow);
+  padding: 0.9rem 1rem 1.05rem;
+  margin: 0 0 0.85rem;
+}
+
+.dd-well--scoreboard {
+  padding: 1rem 1.05rem 1.15rem;
+}
+
+.dd-well__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem 1rem;
+  margin: 0 0 0.85rem;
+}
+
+.dd-well__kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dd-well-mute);
+}
+
+/* Hero KPI grid inside well */
+.dd-kpi-grid--hero {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0 0 0.75rem;
+}
+
+.dd-kpi-grid--hero > .dd-kpi--hero {
+  grid-column: 1 / -1;
+}
+
+.dd-well .dd-kpi {
+  background: var(--dd-well-bg-elev);
+  border: 1px solid var(--dd-well-line);
+  border-radius: 12px;
+  box-shadow: none;
+  color: var(--dd-well-ink);
+  padding: 0.95rem 1.05rem;
+}
+
+.dd-well .dd-kpi--drill:hover {
+  border-color: rgba(94, 231, 240, 0.35);
+  box-shadow: 0 0 0 1px rgba(94, 231, 240, 0.12);
+}
+
+.dd-well .dd-kpi--drill:focus-visible {
+  outline: 2px solid var(--dd-well-accent);
+  outline-offset: 2px;
+}
+
+.dd-well .dd-kpi--hero {
+  background: linear-gradient(145deg, var(--dd-well-bg-elev) 0%, #101820 100%);
+  border-color: var(--dd-well-accent-soft);
+  padding: 1.1rem 1.15rem 1.2rem;
+}
+
+.dd-well .dd-kpi__label {
+  color: var(--dd-well-mute);
+}
+
+.dd-well .dd-kpi__value {
+  font-size: var(--dd-kpi-display);
+  color: var(--dd-well-ink);
+  margin: 0.4rem 0 0.2rem;
+}
+
+.dd-well .dd-kpi--hero .dd-kpi__value {
+  font-size: var(--dd-kpi-hero);
+  color: var(--dd-well-accent);
+  letter-spacing: -0.035em;
+}
+
+.dd-well .dd-kpi__sub,
+.dd-well .dd-kpi__delta {
+  color: var(--dd-well-mute);
+}
+
+.dd-well .dd-kpi__hint {
+  color: var(--dd-well-accent);
+  opacity: 0.85;
+}
+
+/* MER spend / ROAS / BE row */
+.dd-mer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.dd-mer-tile {
+  margin: 0;
+  padding: 0.85rem 0.95rem 0.95rem;
+  background: var(--dd-well-bg-elev);
+  border: 1px solid var(--dd-well-line);
+  border-radius: 12px;
+}
+
+.dd-mer-tile--accent {
+  background: linear-gradient(145deg, #161f2a 0%, #101820 100%);
+  border-color: var(--dd-well-accent-soft);
+}
+
+.dd-mer-tile__k {
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--dd-well-mute);
+}
+
+.dd-mer-tile__v {
+  margin: 0.35rem 0 0;
+  font-family: var(--dd-display);
+  font-size: var(--dd-kpi-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--dd-well-ink);
+  line-height: 1.05;
+}
+
+.dd-mer-tile--accent .dd-mer-tile__v {
+  color: var(--dd-well-accent);
+  font-size: var(--dd-kpi-hero);
+}
+
+.dd-mer-tile__s {
+  margin: 0.3rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--dd-well-mute);
+}
+
+/* YoY well cards */
+.dd-well.dd-yoy {
+  margin-bottom: 0.85rem;
+}
+
+.dd-well .dd-yoy__lede {
+  color: var(--dd-well-mute);
+  font-size: 0.86rem;
+}
+
+.dd-well .dd-yoy__card {
+  background: var(--dd-well-bg-elev);
+  border: 1px solid var(--dd-well-line);
+}
+
+.dd-well .dd-yoy__k {
+  color: var(--dd-well-mute);
+}
+
+.dd-well .dd-yoy__v {
+  color: var(--dd-well-ink);
+  font-size: var(--dd-kpi-display);
+}
+
+.dd-well .dd-yoy__prior {
+  color: var(--dd-well-mute);
+}
+
+.dd-well .dd-yoy__vs {
+  color: var(--dd-well-truth);
+}
+
+/* Compact peek as well */
+.dd-well.dd-compact {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+  padding: 0.75rem 0.85rem;
+}
+
+.dd-well.dd-compact .dd-compact__cell {
+  background: transparent;
+  border: 0;
+  padding: 0.35rem 0.25rem;
+}
+
+.dd-well.dd-compact .dd-compact__label {
+  color: var(--dd-well-mute);
+}
+
+.dd-well.dd-compact .dd-compact__value {
+  color: var(--dd-well-ink);
+  font-size: 1.15rem;
+}
+
+/* Decision stays paper (Polaris) under wells */
+.dd-decision {
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 720px) {
+  .dd-mer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dd-well.dd-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dd-kpi-grid--hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dd-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dd-nav__btn {
+    flex: 0 0 auto;
+    min-width: 5.5rem;
+    min-height: 2.75rem;
+  }
+
+  .dd-well__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dd-sample-pill {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 430px) {
+  .dd-well {
+    padding: 0.8rem 0.75rem 0.95rem;
+  }
+
+  .dd-well .dd-kpi--hero .dd-kpi__value,
+  .dd-mer-tile--accent .dd-mer-tile__v {
+    font-size: clamp(1.85rem, 9vw, 2.4rem);
+  }
+
+  .dd-well .dd-kpi__value,
+  .dd-mer-tile__v,
+  .dd-well .dd-yoy__v {
+    font-size: clamp(1.45rem, 7vw, 1.9rem);
+  }
+}
+
+@media (max-width: 390px) {
+  .dd-desk {
+    padding: 0.65rem 0.6rem 0.95rem;
+    border-radius: 12px;
+  }
+
+  .dd-well--scoreboard {
+    padding: 0.75rem 0.7rem 0.9rem;
+  }
+
+  .demo-sample-badge,
+  .dd-sample-pill {
+    font-size: 0.62rem;
   }
 }

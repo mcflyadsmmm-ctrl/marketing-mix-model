@@ -139,10 +139,11 @@ describe("overview first viewport", () => {
     const weekdayAt = overview.indexOf("<WeekdaySalesChart");
     expect(viewportAt).toBeGreaterThan(-1);
     expect(yoyAt).toBeGreaterThan(viewportAt);
-    expect(mixAt).toBeGreaterThan(yoyAt);
+    // Enterprise fold: chart sits in first lane after YoY for 1600×900 crops
+    expect(chartAt).toBeGreaterThan(yoyAt);
+    expect(mixAt).toBeGreaterThan(chartAt);
     expect(shareAt).toBeGreaterThan(mixAt);
-    expect(chartAt).toBeGreaterThan(shareAt);
-    expect(depthAt).toBeGreaterThan(chartAt);
+    expect(depthAt).toBeGreaterThan(shareAt);
     expect(weekdayAt).toBeGreaterThan(depthAt);
     expect(overview).toContain("medianDailySales");
     expect(overview).toContain("peakWeekday");
