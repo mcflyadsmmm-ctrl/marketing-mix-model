@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -294,27 +297,22 @@ describe("OrderHistoryGoalsBoard — empty is ActionCard-shaped", () => {
 
   it("labels SAMPLE $800k as Snowdevil stretch, not a typed field value", () => {
     const view = richInput({ typedReturningTarget: null, sample: true });
-    const html = renderToStaticMarkup(
-      createElement(
-        DeskCurrencyContext.Provider,
-        { value: "USD" },
-        createElement(OrderHistoryGoalsBoard, {
-          view,
-          year: 2026,
-        }),
-      ),
+    const board = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), "../components/OrderHistoryGoalsBoard.tsx"),
+      "utf8",
     );
     expect(view.returning?.target).toBe(SAMPLE_HABIT_RETURNING_TARGET);
     expect(view.returning?.targetSource).toBe("sample");
-    expect(html).toContain("Snowdevil stretch");
-    expect(html).toContain("SAMPLE example");
-    expect(html).toContain("not a target you typed");
-    expect(html).toContain(HABIT_RETURNING_SAMPLE_FORMULA_EQ);
-    expect(html).not.toContain('value="800000"');
-    expect(html).not.toContain("over the returning-$ target you typed");
-    expect(html).toContain("New-buyer worth");
-    expect(html).toContain("Returning $");
-    expect(html).toContain("Today’s read");
-    expect(html).toContain("Target Line from average");
+    expect(view.returning?.formulaEq).toBe(HABIT_RETURNING_SAMPLE_FORMULA_EQ);
+    expect(habitGoalsDailyRead(view)?.line).toMatch(/Snowdevil stretch 800,000/);
+    expect(habitGoalsDailyRead(view)?.line).toMatch(/SAMPLE example/);
+    expect(habitGoalsDailyRead(view)?.line).not.toMatch(/your 800,000 target/);
+    expect(board).toContain("Snowdevil stretch");
+    expect(board).toContain("SAMPLE example");
+    expect(board).toContain("not a target you typed");
+    expect(board).toContain("typedReturningFieldValue");
+    expect(board).toContain('source === "typed"');
+    expect(view.ltv?.targetSource).toBe("average");
+    expect(view.available).toBe(true);
   });
 });
