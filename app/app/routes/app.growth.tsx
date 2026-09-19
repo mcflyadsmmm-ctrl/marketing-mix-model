@@ -4,6 +4,7 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { DeskBookPage } from "../components/DeskBookPage";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
 import { GrowthComebackChart } from "../components/GrowthComebackChart";
+import { GrowthFirstViewport } from "../components/GrowthFirstViewport";
 import { GrowthScoreboard } from "../components/GrowthScoreboard";
 import { GrowthTt2Board } from "../components/GrowthTt2Board";
 import { DeskLane } from "../components/DeskLane";
@@ -14,6 +15,7 @@ import {
   growthFirstOrderMonths,
   growthOrderDepthBars,
 } from "../lib/growth-comeback";
+import { GROWTH_FIRST_LANE_LABEL } from "../lib/growth-first-viewport";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 
@@ -120,41 +122,49 @@ export default function GrowthPage() {
         </p>
       ) : null}
 
-      <p className="mcfly-book__lede">{GROWTH_LEDE}</p>
+      <div className="mcfly-desk-anchor mcfly-scoreboard--growth">
+        <p className="mcfly-book__lede">{GROWTH_LEDE}</p>
 
-      <DeskLane rank="first" label="Who came back">
-        {/* Explorer first — comeback / first-order months at the Customers-marquee
-            craft bar. Soft cards sit under; the book hero + fact grid is gone. */}
-        <GrowthComebackChart
-          depthBars={orderDepthBars}
-          months={firstOrderMonths}
-          depth={depth}
-          repeatRate={repeatRate}
-          firstTimeDollars={book.newSales}
-          salesPending={metrics.salesPending}
-          drillNext="Open LTV for what each first order is worth in 30 / 90 / 365 days."
-          drillHref="/app/ltv"
-          drillLabel={PRODUCT_NOUN.openLtv}
-        />
+        <DeskLane rank="first" label={GROWTH_FIRST_LANE_LABEL}>
+          <GrowthFirstViewport
+            tt2={comeback.tt2}
+            salesPending={Boolean(metrics.salesPending)}
+            useSampleDesk={useSampleDesk}
+          />
+        </DeskLane>
 
-        <GrowthScoreboard
-          book={book}
-          depth={depth}
-          repeatRate={repeatRate}
-          avgOrdersD90={metrics.tillLtv.avgOrdersD90}
-          salesPending={metrics.salesPending}
-          useSampleDesk={useSampleDesk}
-        />
-      </DeskLane>
+        <DeskLane rank="next" label="Who came back">
+          <GrowthComebackChart
+            depthBars={orderDepthBars}
+            months={firstOrderMonths}
+            depth={depth}
+            repeatRate={repeatRate}
+            firstTimeDollars={book.newSales}
+            salesPending={metrics.salesPending}
+            drillNext="Open LTV for what each first order is worth in 30 / 90 / 365 days."
+            drillHref="/app/ltv"
+            drillLabel={PRODUCT_NOUN.openLtv}
+          />
 
-      <DeskLane rank="next" label="Time to a second order">
-        <GrowthTt2Board tt2={comeback.tt2} />
-      </DeskLane>
+          <GrowthScoreboard
+            book={book}
+            depth={depth}
+            repeatRate={repeatRate}
+            avgOrdersD90={metrics.tillLtv.avgOrdersD90}
+            salesPending={metrics.salesPending}
+            useSampleDesk={useSampleDesk}
+          />
+        </DeskLane>
 
-      <footer className="mcfly-book__links">
-        <s-link href="/app/customers">{PRODUCT_NOUN.buyersTitle}</s-link>
-        <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
-      </footer>
+        <DeskLane rank="next" label="Time to a second order">
+          <GrowthTt2Board tt2={comeback.tt2} />
+        </DeskLane>
+
+        <footer className="mcfly-book__links">
+          <s-link href="/app/customers">{PRODUCT_NOUN.buyersTitle}</s-link>
+          <s-link href="/app/ltv">{PRODUCT_NOUN.openLtv}</s-link>
+        </footer>
+      </div>
     </DeskBookPage>
   );
 }

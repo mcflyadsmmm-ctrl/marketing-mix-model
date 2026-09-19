@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { buildThreeYearSampleDesk } from "./demo-sample-desk.server";
 import { formatMer } from "./mer-format";
 import {
+  SAMPLE_GROWTH_DOOR,
   SAMPLE_LEDGER_HANDOFF,
   SAMPLE_OVERVIEW_DOOR,
   SAMPLE_SPEND_NOT_LIVE,
@@ -37,6 +38,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
   const sampleChrome = [
     chrome("../components/DataModeBar.tsx"),
     chrome("../components/OverviewFirstViewport.tsx"),
+    chrome("../components/GrowthFirstViewport.tsx"),
     chrome("./product-labels.ts"),
     chrome("./sample-live-handoff.ts"),
     chrome("./desk-phone-fixture.html"),
@@ -52,10 +54,14 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(PRODUCT_NOUN.sampleHint).toMatch(/Snowdevil/);
     expect(PRODUCT_NOUN.sampleHint).not.toMatch(/Harbor/);
     expect(SAMPLE_OVERVIEW_DOOR).toMatch(/Snowdevil/);
+    expect(SAMPLE_GROWTH_DOOR).toMatch(/Snowdevil/);
     expect(SAMPLE_SPEND_NOT_LIVE).toMatch(/Snowdevil/);
     expect(SAMPLE_LEDGER_HANDOFF).toMatch(/Snowdevil/);
     expect(
-      SAMPLE_OVERVIEW_DOOR + SAMPLE_SPEND_NOT_LIVE + SAMPLE_LEDGER_HANDOFF,
+      SAMPLE_OVERVIEW_DOOR +
+        SAMPLE_GROWTH_DOOR +
+        SAMPLE_SPEND_NOT_LIVE +
+        SAMPLE_LEDGER_HANDOFF,
     ).not.toMatch(/Harbor/);
   });
 
@@ -113,6 +119,7 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(bar).toContain("Live is parked until launch");
     expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
     expect(SAMPLE_OVERVIEW_DOOR).toContain("Live is parked");
+    expect(SAMPLE_GROWTH_DOOR).toContain("Live is parked");
     const fixture = readApp("./desk-phone-fixture.html");
     expect(fixture).toContain("Live is parked until launch");
     expect(fixture).not.toContain("Switch in Settings");

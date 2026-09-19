@@ -34,6 +34,12 @@ import {
 import { buildCustomerAnalytics } from "./customers-analytics";
 import { buildCustomerRfm } from "./customers-rfm";
 import {
+  GROWTH_ANALYTICS_CONTRAST,
+  buildGrowthLeadPeeks,
+  growthOperatorGreeting,
+  growthTypicalWaitLabel,
+} from "./growth-first-viewport";
+import {
   buildCustomersHero,
   buildCustomersLeadPeeks,
   customersOperatorGreeting,
@@ -320,6 +326,13 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     expect(tt2.daysToSecond.some((b) => b.buyers > 0)).toBe(true);
     expect(tt2.fallOff.length > 0 || tt2.fallEmpty != null).toBe(true);
     expect(tt2.historyLimited).toBe(false);
+    const greeting = growthOperatorGreeting({ salesPending: false, tt2 });
+    const peeks = buildGrowthLeadPeeks(tt2);
+    expect(growthTypicalWaitLabel(tt2)).toMatch(/^\d+d$/);
+    expect(greeting).toMatch(/Typical wait is \d+ days/);
+    expect(greeting).toContain(GROWTH_ANALYTICS_CONTRAST);
+    expect(peeks.some((peek) => peek.k === "Win-back by")).toBe(true);
+    expect(peeks.some((peek) => peek.k === "Reach now")).toBe(true);
   });
 
   it("feeds LTV cohorts: multi-order months with 90d repeat revenue", () => {

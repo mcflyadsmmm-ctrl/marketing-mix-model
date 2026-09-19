@@ -19,6 +19,10 @@ export const SAMPLE_OVERVIEW_DOOR =
 export const SAMPLE_ORDERS_DOOR =
   "Snowdevil example orders — not this shop. Live is parked until launch.";
 
+/** Growth door — days-to-second / win-back. Spend stays off this tab. */
+export const SAMPLE_GROWTH_DOOR =
+  "Snowdevil example order history — not this shop. Live is parked until launch.";
+
 /** Customers door — RFM-lite / whales / repurchase. Spend stays off this tab. */
 export const SAMPLE_CUSTOMERS_DOOR =
   "Snowdevil example buyers — not this shop. Live is parked until launch.";

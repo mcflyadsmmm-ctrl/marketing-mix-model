@@ -10,12 +10,14 @@ function read(rel: string): string {
 }
 
 const growth = read("../routes/app.growth.tsx");
+const firstView = read("../components/GrowthFirstViewport.tsx");
 const chart = read("../components/GrowthComebackChart.tsx");
 const board = read("../components/GrowthScoreboard.tsx");
 const tt2Board = read("../components/GrowthTt2Board.tsx");
 const helpers = read("./growth-comeback.ts");
 const tt2Lib = read("./growth-tt2.ts");
 const loader = read("./desk-growth-page.server.ts");
+const firstViewLib = read("./growth-first-viewport.ts");
 
 describe("Growth page", () => {
   it("contrasts Shopify Analytics returning rate with order-history come-back", () => {
@@ -24,8 +26,9 @@ describe("Growth page", () => {
     expect(growth).toMatch(/Order\s+history/);
   });
 
-  it("leads with the come-back explorer above the fold, then soft cards, then TT2", () => {
+  it("leads with the days-to-second first fold, then explorer, then TT2", () => {
     const order = [
+      "<GrowthFirstViewport",
       "<GrowthComebackChart",
       "<GrowthScoreboard",
       "<GrowthTt2Board",
@@ -33,6 +36,8 @@ describe("Growth page", () => {
     expect(order.every((i) => i > -1)).toBe(true);
     expect(order[0]!).toBeLessThan(order[1]!);
     expect(order[1]!).toBeLessThan(order[2]!);
+    expect(order[2]!).toBeLessThan(order[3]!);
+    expect(growth).toContain("GROWTH_FIRST_LANE_LABEL");
     expect(growth).not.toContain("<ShopifyBookSection");
     expect(growth).not.toContain("<BookFactGrid");
     expect(growth).not.toContain("<CountBarsChart");
@@ -93,7 +98,7 @@ describe("Growth page", () => {
   });
 
   it("is zero spend, zero ROAS, and zero CPA — order history only", () => {
-    for (const source of [growth, chart, board]) {
+    for (const source of [growth, firstView, chart, board]) {
       expect(source).not.toMatch(/ROAS/);
       expect(source).not.toMatch(/\bCPA\b/);
       expect(source).not.toMatch(/\bspend\b/i);
@@ -102,7 +107,7 @@ describe("Growth page", () => {
       expect(source).not.toMatch(/Klaviyo/i);
       expect(source).not.toContain("SpendExplorer");
     }
-    for (const source of [tt2Board, tt2Lib, loader]) {
+    for (const source of [tt2Board, tt2Lib, loader, firstViewLib]) {
       expect(source).not.toContain("Total ROAS");
       expect(source).not.toContain("Spend Upload");
       expect(source).not.toContain("SpendExplorer");
