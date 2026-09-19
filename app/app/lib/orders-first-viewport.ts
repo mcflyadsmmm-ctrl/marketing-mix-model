@@ -24,6 +24,12 @@ export const ORDERS_THIN_EMPTY_LINE =
 export const ORDERS_FIRST_LANE_LABEL = "Typical order vs Shopify’s average";
 
 /**
+ * Later lane — Total Sales clock + Order intelligence sit below the
+ * typical-order first fold so the greeting is not an Analytics-list stack.
+ */
+export const ORDERS_CLOCK_LANE_LABEL = "Sales clock and intelligence";
+
+/**
  * Uninstall-killer contrast. Shopify Analytics Orders / Average Order is the
  * mean. Mcfly is the middle ticket.
  */

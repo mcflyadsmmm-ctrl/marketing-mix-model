@@ -24,6 +24,12 @@ describe("Orders page", () => {
     expect(orders.indexOf("<OrdersScoreboard")).toBeLessThan(
       orders.indexOf("<OrdersTimingChart"),
     );
+    const firstStart = orders.indexOf('<DeskLane rank="first"');
+    const firstEnd = orders.indexOf("<DeskLane", firstStart + 1);
+    const firstLane = orders.slice(firstStart, firstEnd);
+    expect(firstLane).toContain("<OrdersFirstViewport");
+    expect(firstLane).not.toContain("<OrdersScoreboard");
+    expect(firstLane).not.toContain("<OrdersIntelligence");
   });
 
   it("pending sales are not $0", () => {

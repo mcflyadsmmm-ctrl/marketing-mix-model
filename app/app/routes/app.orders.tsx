@@ -11,7 +11,10 @@ import { OrdersFrequencyChart } from "../components/OrdersFrequencyChart";
 import { DeskLane } from "../components/DeskLane";
 import { deskBookLede, deskPeriodTillLabel } from "../lib/desk-history";
 import { PRODUCT_NOUN } from "../lib/product-labels";
-import { ORDERS_FIRST_LANE_LABEL } from "../lib/orders-first-viewport";
+import {
+  ORDERS_CLOCK_LANE_LABEL,
+  ORDERS_FIRST_LANE_LABEL,
+} from "../lib/orders-first-viewport";
 import { shopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import { loadDeskSalesPage } from "../lib/desk-sales-page.server";
 
@@ -111,6 +114,8 @@ export default function OrdersPage() {
             salesPending={Boolean(metrics.salesPending)}
             useSampleDesk={useSampleDesk}
           />
+        </DeskLane>
+        <DeskLane rank="next" label={ORDERS_CLOCK_LANE_LABEL}>
           <OrdersScoreboard
             book={book}
             depth={metrics.shopifyDepth}

@@ -330,15 +330,18 @@ describe("Orders page craft lock", () => {
 
   it("is a Black Clover scoreboard — first-fold typical, clock, depth, timing, then the open chart", () => {
     const firstAt = orders.indexOf("<OrdersFirstViewport");
+    const clockLaneAt = orders.indexOf('rank="next" label={ORDERS_CLOCK_LANE_LABEL}');
     const heroAt = orders.indexOf("<OrdersScoreboard");
     const intelAt = orders.indexOf("<OrdersIntelligence");
     const chartAt = orders.indexOf("<OrdersTimingChart");
     expect(firstAt).toBeGreaterThan(-1);
-    expect(heroAt).toBeGreaterThan(firstAt);
+    expect(clockLaneAt).toBeGreaterThan(firstAt);
+    expect(heroAt).toBeGreaterThan(clockLaneAt);
     expect(intelAt).toBeGreaterThan(heroAt);
     expect(chartAt).toBeGreaterThan(intelAt);
     expect(orders).toContain("mcfly-scoreboard--orders");
     expect(orders).toContain("ORDERS_FIRST_LANE_LABEL");
+    expect(orders).toContain("ORDERS_CLOCK_LANE_LABEL");
     expect(orders).toContain("salesPending");
     expect(orders).toContain("not $0");
     expect(orders).not.toContain("if (metrics.salesPending) return");
