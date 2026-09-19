@@ -3,10 +3,13 @@ import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { useDeskCurrency } from "../lib/desk-currency";
 import {
+  habitGoalTargetSourceLabel,
   habitGoalsDailyRead,
   habitGoalsHistoryLine,
+  SAMPLE_HABIT_RETURNING_TARGET,
   type HabitGoalEmpty,
   type HabitGoalEmptyKind,
+  type HabitGoalTargetSource,
   type HabitGoalTrack,
   type HabitGoalsView,
 } from "../lib/goals-habit";
@@ -119,6 +122,33 @@ function trackTone(track: HabitGoalTrack | null): Tone {
   return "warn";
 }
 
+function returningActionDetail(track: HabitGoalTrack | null): string {
+  const guests =
+    "Guests stay out. Shopify Analytics Overview is a returning-customer rate — headcount.";
+  if (track == null) {
+    return `Sales from returning buyers in this Goals year, over the returning-$ target. ${guests}`;
+  }
+  switch (track.targetSource) {
+    case "sample":
+      return `Sales from returning buyers in this Goals year, over the Snowdevil stretch (SAMPLE example — not a target you typed). ${guests}`;
+    case "typed":
+      return `Sales from returning buyers in this Goals year, over the returning-$ target you typed. ${guests}`;
+    case "average":
+      return `Sales from returning buyers in this Goals year, over the returning-$ target. ${guests}`;
+    default: {
+      const _exhaustive: never = track.targetSource;
+      return _exhaustive;
+    }
+  }
+}
+
+function typedReturningFieldValue(
+  target: number | null,
+  source: HabitGoalTargetSource | null,
+): string {
+  return source === "typed" ? formatGoalInput(target) : "";
+}
+
 /**
  * Soft LTV + returning-$ Goals board. Habit stickiness, zero spend.
  * Today’s read, two ActionCards, formula chips. LTV Target Line is the
@@ -196,6 +226,7 @@ export function OrderHistoryGoalsBoard({
           <HabitGoalFields
             year={year}
             returningTarget={view.returningTarget}
+            targetSource={null}
             busy={busy}
           />
         ) : null}
@@ -248,7 +279,7 @@ export function OrderHistoryGoalsBoard({
                 returning
                   ? {
                       k: "Returning $",
-                      v: `${returningMoney} this year vs ${formatCurrency(returning.target, currency)} target. ${returning.formulaPlug} Dollars, not Shopify’s returning-customer rate. Guests stay out.`,
+                      v: `${returningMoney} this year vs ${formatCurrency(returning.target, currency)} ${habitGoalTargetSourceLabel(returning.targetSource).toLowerCase()}. ${returning.formulaPlug} Dollars, not Shopify’s returning-customer rate. Guests stay out.`,
                     }
                   : null,
               ].filter((b): b is { k: string; v: string } => b != null),
@@ -287,7 +318,7 @@ export function OrderHistoryGoalsBoard({
           }
           tone={trackTone(returning)}
           verb={returning?.met ? "Met" : "Toward"}
-          detail="Sales from returning buyers in this Goals year, over the returning-$ target you typed. Guests stay out. Shopify Analytics Overview is a returning-customer rate — headcount."
+          detail={returningActionDetail(returning)}
         />
       </div>
 
@@ -392,7 +423,14 @@ export function OrderHistoryGoalsBoard({
                   k: "Still to go",
                   v: returning.met
                     ? "At the target — dollars, not headcount."
-                    : `${formatCurrency(returning.remaining, currency)} to the ${formatCurrency(returning.target, currency)} target.`,
+                    : `${formatCurrency(returning.remaining, currency)} to the ${formatCurrency(returning.target, currency)} ${habitGoalTargetSourceLabel(returning.targetSource).toLowerCase()}.`,
+                },
+                {
+                  k: "Source",
+                  v:
+                    returning.targetSource === "sample"
+                      ? "Snowdevil stretch — SAMPLE example, not a target you typed."
+                      : habitGoalTargetSourceLabel(returning.targetSource),
                 },
               ],
               next: "Dollars, not Shopify’s returning-customer rate. Guests stay out.",
@@ -423,6 +461,12 @@ export function OrderHistoryGoalsBoard({
                   : formatCurrency(returning.remaining, currency)}
               </span>
             </span>
+            <span className="mcfly-depth-formula__part">
+              <span className="mcfly-depth-formula__part-k">Source</span>
+              <span className="mcfly-depth-formula__part-v">
+                {habitGoalTargetSourceLabel(returning.targetSource)}
+              </span>
+            </span>
           </div>
           <p className="mcfly-depth-formula__plug">{returning.formulaPlug}</p>
           <p className="mcfly-depth-formula__obs">
@@ -434,6 +478,7 @@ export function OrderHistoryGoalsBoard({
       <HabitGoalFields
         year={year}
         returningTarget={view.returningTarget}
+        targetSource={returning?.targetSource ?? null}
         busy={busy}
       />
 
@@ -449,12 +494,15 @@ export function OrderHistoryGoalsBoard({
 function HabitGoalFields({
   year,
   returningTarget,
+  targetSource,
   busy,
 }: {
   year: number;
   returningTarget: number | null;
+  targetSource: HabitGoalTargetSource | null;
   busy: boolean;
 }) {
+  const sampleStretch = targetSource === "sample";
   return (
     <Form method="post" className="mcfly-habit-goals__form">
       <input type="hidden" name="intent" value="save_habit_goals" />
@@ -467,10 +515,17 @@ function HabitGoalFields({
           type="text"
           inputMode="decimal"
           autoComplete="off"
-          defaultValue={formatGoalInput(returningTarget)}
+          defaultValue={typedReturningFieldValue(returningTarget, targetSource)}
           placeholder="e.g. 800000"
           aria-label="Year returning-dollar target"
         />
+        {sampleStretch ? (
+          <span className="mcfly-habit-goals__field-k">
+            Canvas uses Snowdevil stretch $
+            {SAMPLE_HABIT_RETURNING_TARGET.toLocaleString("en-US")} — SAMPLE
+            example, not a target you typed.
+          </span>
+        ) : null}
       </label>
       <button
         type="submit"

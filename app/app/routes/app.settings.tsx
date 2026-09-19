@@ -655,9 +655,7 @@ export default function SettingsPage() {
                       settings.returningSalesTarget != null &&
                       settings.returningSalesTarget > 0
                         ? String(Math.round(settings.returningSalesTarget))
-                        : useSampleDesk
-                          ? String(SAMPLE_HABIT_RETURNING_TARGET)
-                          : ""
+                        : ""
                     }
                     placeholder="e.g. 800000"
                   />
@@ -665,6 +663,13 @@ export default function SettingsPage() {
                     Returning-buyer dollars in the Goals year. Guests stay
                     out. Same field as Goals. LTV Target Line is the
                     observed average — not set here.
+                    {useSampleDesk &&
+                    !(
+                      settings.returningSalesTarget != null &&
+                      settings.returningSalesTarget > 0
+                    )
+                      ? ` Goals paints a Snowdevil stretch $${SAMPLE_HABIT_RETURNING_TARGET.toLocaleString("en-US")} SAMPLE example until you type your own — not a number you typed.`
+                      : ""}
                   </span>
                 </div>
                 <button

@@ -67,6 +67,12 @@ describe("Order-history Goals — habit, not a dump", () => {
     expect(board).toContain("mcfly-depth-formula__parts");
     expect(lib).toContain("Target Line = observed first-window average");
     expect(lib).toContain("Returning $ progress = year returning $ ÷ your target");
+    expect(lib).toContain(
+      "Returning $ progress = year returning $ ÷ Snowdevil stretch",
+    );
+    expect(lib).toContain('"sample"');
+    expect(board).toContain("Snowdevil stretch");
+    expect(board).toContain("not a target you typed");
   });
 
   it("uses an ActionCard-shaped empty with the 8-order floor", () => {
