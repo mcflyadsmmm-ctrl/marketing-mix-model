@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   ORDERS_ANALYTICS_CONTRAST,
+  ORDERS_CLOCK_LANE_LABEL,
   ORDERS_FIRST_FOLD_HEROES,
   ORDERS_FIRST_LANE_LABEL,
   ORDERS_PENDING_LINE,
@@ -84,6 +85,8 @@ describe("ordersOperatorGreeting", () => {
     expect(ORDERS_ANALYTICS_CONTRAST).not.toMatch(/sessions|ROAS|spend/i);
     expect(ORDERS_FIRST_LANE_LABEL).toMatch(/Typical order/);
     expect(ORDERS_FIRST_LANE_LABEL).toMatch(/average/i);
+    expect(ORDERS_CLOCK_LANE_LABEL).toMatch(/clock/i);
+    expect(ORDERS_CLOCK_LANE_LABEL).toMatch(/intelligence/i);
     expect(ORDERS_THIN_EMPTY_LINE).toMatch(/not \$0/);
   });
 
@@ -149,6 +152,7 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     const orders = read("../routes/app.orders.tsx");
     const firstView = read("../components/OrdersFirstViewport.tsx");
     expect(orders).toContain("ORDERS_FIRST_LANE_LABEL");
+    expect(orders).toContain("ORDERS_CLOCK_LANE_LABEL");
     expect(orders).toContain("<OrdersFirstViewport");
     expect(orders.indexOf("<OrdersFirstViewport")).toBeLessThan(
       orders.indexOf("<OrdersScoreboard"),
@@ -168,5 +172,33 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     }
     expect(orders).not.toContain("/app/spend");
     expect(orders).not.toContain("Total ROAS");
+  });
+});
+
+describe("Uninstall FAIL #3 SCORECARD — first Orders lane is typical-order hero only", () => {
+  it("PASS when Total Sales clock and OrdersIntelligence sit below the first fold", () => {
+    const orders = read("../routes/app.orders.tsx");
+    const firstStart = orders.indexOf('<DeskLane rank="first"');
+    const firstEnd = orders.indexOf("<DeskLane", firstStart + 1);
+    expect(firstStart).toBeGreaterThan(-1);
+    expect(firstEnd).toBeGreaterThan(firstStart);
+    const firstLane = orders.slice(firstStart, firstEnd);
+    expect(firstLane).toContain("ORDERS_FIRST_LANE_LABEL");
+    expect(firstLane).toContain("<OrdersFirstViewport");
+    expect(firstLane).not.toContain("<OrdersScoreboard");
+    expect(firstLane).not.toContain("<OrdersIntelligence");
+    expect(firstLane).not.toContain("mcfly-book__clock");
+    expect(firstLane).not.toContain("totalSalesDisplay");
+
+    const clockLane = orders.slice(firstEnd);
+    expect(clockLane).toContain("ORDERS_CLOCK_LANE_LABEL");
+    expect(clockLane).toContain("<OrdersScoreboard");
+    expect(clockLane).toContain("<OrdersIntelligence");
+    expect(orders.indexOf("<OrdersFirstViewport")).toBeLessThan(
+      orders.indexOf('rank="next" label={ORDERS_CLOCK_LANE_LABEL}'),
+    );
+    expect(orders.indexOf('rank="next" label={ORDERS_CLOCK_LANE_LABEL}')).toBeLessThan(
+      orders.indexOf('rank="next" label="Weekday and hour"'),
+    );
   });
 });

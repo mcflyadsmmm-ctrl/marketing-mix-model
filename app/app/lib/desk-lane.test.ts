@@ -138,9 +138,10 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     const order = [
       'rank="first"',
       "<OrdersFirstViewport",
+      'rank="next" label={ORDERS_CLOCK_LANE_LABEL}',
       "<OrdersScoreboard",
       "<OrdersIntelligence",
-      'rank="next"',
+      'rank="next" label="Weekday and hour"',
       "<OrdersTimingChart",
       "<OrdersFrequencyChart",
     ].map((tag) => orders.indexOf(tag));
@@ -152,6 +153,12 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(scoreboard).toContain('rank="more"');
     expect(scoreboard).toContain("<OrdersClockBar");
     expect(scoreboard).not.toContain("<details");
+    const firstStart = orders.indexOf('<DeskLane rank="first"');
+    const firstEnd = orders.indexOf("<DeskLane", firstStart + 1);
+    const firstLane = orders.slice(firstStart, firstEnd);
+    expect(firstLane).toContain("<OrdersFirstViewport");
+    expect(firstLane).not.toContain("<OrdersScoreboard");
+    expect(firstLane).not.toContain("<OrdersIntelligence");
   });
 
   it("ranks LTV value first, explorers next, spend last — no details FAQ", () => {

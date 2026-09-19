@@ -161,6 +161,20 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(fixture.indexOf("mcfly-orders-hero")).toBeLessThan(
       fixture.indexOf("Order intelligence"),
     );
+    const ordersStart = fixture.indexOf('id="orders"');
+    const ordersFirst = fixture.indexOf("mcfly-lane--first", ordersStart);
+    const ordersNext = fixture.indexOf("mcfly-lane--next", ordersFirst);
+    expect(ordersFirst).toBeGreaterThan(-1);
+    expect(ordersNext).toBeGreaterThan(ordersFirst);
+    const firstLane = fixture.slice(ordersFirst, ordersNext);
+    expect(firstLane).toContain("mcfly-orders-hero");
+    expect(firstLane).toContain("Typical order vs Shopify");
+    expect(firstLane).not.toContain("mcfly-orders-intel");
+    expect(firstLane).not.toContain("mcfly-book__clock");
+    expect(firstLane).not.toContain("Order intelligence");
+    expect(fixture.slice(ordersNext)).toContain("Sales clock and intelligence");
+    expect(fixture.slice(ordersNext)).toContain("mcfly-orders-intel");
+    expect(fixture.slice(ordersNext)).toContain("mcfly-book__clock");
     expect(fixture).toContain("mcfly-scoreboard--customers");
     expect(fixture).toContain("mcfly-customers-hero");
     expect(fixture).toContain("RFM-lite, whales, repurchase clock");
