@@ -15,17 +15,19 @@ Premium analytics listings win when:
 3. **Shot 3 = Orders** — weekend share, busiest weekday, order range (Shopify-depth)
 4. **Shot 4 = LTV** — 30 / 90 / 365-day new-buyer value
 5. **Shot 5 = Total ROAS chips** — Yesterday / last N / this month / quarter / year; empty spend is an em dash
-6. **Polaris-native**, clean KPI density — never dashboard soup
+6. **Hybrid wells** — dark scoreboard wells + light Polaris shell (2026-09-18 visual blowaway). Crop the **well**, not empty chrome. Tokens: [`ops/MCFLY_WELL_TOKENS.md`](./ops/MCFLY_WELL_TOKENS.md).
 7. **3–6 unique** ~1600×900 shots; no browser chrome; no near-duplicates (4.4.4 / 4.4.5)
-8. **Live evidence** — **Marty recapture** from Fly 318 with Live data selected. Shots were **not** recaptured yet.
+8. **Live evidence** — **Marty recapture** after Fly ships wells. Captions + crop focus updated 2026-09-18 in [`listing-assets/shots/CAPTIONS.md`](./listing-assets/shots/CAPTIONS.md). PNG pixels were **not** recaptured yet (Marty-only Admin).
 
-Refuse for shots: marketing-site captures, pixel/ROAS theater UI, TW-clone clutter.
+Refuse for shots: marketing-site / `/demo` SAMPLE captures as live product, pixel/ROAS theater UI, TW-clone clutter, Profit Agent / P&L heroes.
+
+**Visual PASS before upload:** dark well readable at 1600×900; hero KPI dominates; empty = —; no spend on Overview shot.
 
 ---
 
 ## Data mode for shots
 
-**Marty recapture:** hard-refresh the embedded app on Fly **318**, open **Settings → Sample data**, click **Switch to Live data now**, and recapture all five shots. There is no top Sample | Live toggle. Do not use Harbor Sample data for the listing. The listing must show the product a merchant opens, including Total ROAS chips with empty spend as an em dash (not 0×).
+**Marty recapture:** hard-refresh the embedded app on Fly **331** (or current production). Admin is **Live-only** — there is no Sample|Live Settings door. Do **not** capture https://mcflyads.com/demo SAMPLE for App Store stills. The listing must show the product a merchant opens, including Total ROAS chips with empty spend as an em dash (not 0×).
 
 ---
 
@@ -42,9 +44,9 @@ A. OPEN
    1. https://admin.shopify.com/store/devmcflyads/apps
    2. Open Mcfly Analytics (stay inside Admin iframe — not mcflyads.com)
 
-B. LIVE DATA (required)
-   3. Settings → Sample data → Switch to Live data now.
-   4. Confirm the page says Live data. No SAMPLE DATA watermark.
+B. LIVE ADMIN (required)
+   3. Confirm Admin shows live store orders (not the public /demo SAMPLE).
+   4. No SAMPLE DATA watermark. Do not use mcflyads.com/demo for listing stills.
 
 C. SHOT MODE + CAPTURE
    Tooling: macOS Screenshot → Capture Selected Portion, or CleanShot.
@@ -80,7 +82,7 @@ C. SHOT MODE + CAPTURE
      Frame: certified windows Yesterday / last N / this month / quarter / year
      Empty spend: em dash, never 0×. At goal / Below goal vs Settings target.
      Save: docs/listing-assets/shots/05-margin-breakeven.png
-     Caption: Certified Total ROAS chips—At goal vs target; empty spend is an em dash
+     Caption: Total ROAS is honest MER—At goal vs target; empty spend is an em dash
 
 D. ICON
    Partner App icon: docs/listing-assets/mcfly-app-icon-1200.png
@@ -134,7 +136,7 @@ Capture from **embedded Admin** iframe only. Crop to ~**1600×900**. No browser 
 | 4 | Follow new-buyer value at 30, 90, and 365 days from Shopify orders | `/app/ltv?period=mtd&shot=1` | **LTV:** 30 / 90 / 365-day new-buyer value |
 | 5 | Certified Total ROAS chips—At goal vs target; empty spend is an em dash | `/app/roas?shot=1` | **Total ROAS chips:** certified windows; em dash when spend is empty |
 
-**Why this order converts:** Shopify Analytics depth first → inspect customers → inspect orders → LTV → optional Total ROAS chips. Every capture must come from Fly 318 with Live data selected. **Marty recapture** — not yet done.
+**Why this order converts:** Shopify Analytics depth first → inspect customers → inspect orders → LTV → optional Total ROAS chips. Every capture must come from **Live Admin** after hybrid wells ship. Crop **dark wells** per CAPTIONS. **Marty recapture** — PNG pixels not yet done.
 
 ### Screenshot uniqueness (mandatory)
 
@@ -156,6 +158,6 @@ Shopify rejects **near-duplicate** screenshots. Each shot uses a different Fly 3
 
 1. Distribution → Shopify App Store  
 2. PCD questionnaire  
-3. Hard-refresh Fly 318, Settings → **Switch to Live data now**, then install smoke
-4. Upload icon + 5 shots · Pricing **one plan $39 + 7-day trial (no Free)** · paste reviewer notes
-5. Publish Pages trust URLs · Submit  
+3. Hard-refresh production Admin (Fly after wells ship); crop dark wells only  
+4. Upload icon + 5 shots · Pricing **one plan $39 + 7-day trial (no Free)** · paste reviewer notes  
+5. Publish Pages trust URLs · Submit (Marty) 

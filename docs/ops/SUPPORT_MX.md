@@ -1,6 +1,8 @@
-# Support inbound — MX gate (2026-09-15)
+# Support inbound — MX gate (status 2026-09-18)
 
 **Lane:** Ops. Measure and write. **Do not change DNS.** Namecheap / Cloudflare MX is **HUMAN** leftover. **MX is not done.**
+
+**Ops 2026-09-18:** Status-only refresh after smoke. No DNS, no wrangler, no Pages. Mail path unchanged.
 
 ---
 
@@ -17,8 +19,6 @@ Gmail MCP was **not used** this run. Ops did not read the mailbox. Founder watch
 ---
 
 ## Leftover (not MX-complete)
-
-Curl 2026-09-15: Fly `/support` still shows **Partner review until listing is live** because Fly 318 copied **git HEAD** `site/support.html`. The working tree already has honest Install copy. Next Conductor Fly overlay must use the working-tree trust pages (or a commit of those files). Not an MX cutover.
 
 Until MX cutover:
 
@@ -41,7 +41,7 @@ When Marty has moved MX to Cloudflare and `support@mcflyads.com` receives a test
 
 ## 1-star / listing watch
 
-Listing is live with **0 reviews** as of the 2026-09-15 curl (**0.0 (0 Reviews)**, **No reviews yet**). Until MX exists, the early-warning loop is:
+Listing is live with **0 reviews** as of the 2026-09-18 Ops curl (**0.0/5**, **(0 Reviews)**, **No reviews yet**). Until MX exists, the early-warning loop is:
 
 - Gmail (`mcflyadsmmm@gmail.com`)
 - Public listing reviews on https://apps.shopify.com/mcfly-analytics-public

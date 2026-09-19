@@ -6,9 +6,11 @@
 **Price:** 7-day trial, then **$39**/store/month. **Reviews: 0** (do not invent).  
 **SoT copy:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) · shots [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md) · captions [`../listing-assets/shots/CAPTIONS.md`](../listing-assets/shots/CAPTIONS.md)
 
-**Rebuild (2026-09-15):** Fly **320** paste is below. Sell depth Shopify Analytics skips (Overview YoY first at $0 spend, typical order, Customers / Growth / Orders / LTV), then optional typed spend. Total ROAS certified chips, ledger, dual-close, and Channel Allocation stay chapter two. Marty Submits. Cursor does not Submit.
+**Refresh (2026-09-18):** Sales-first pack below. Lead Shopify five (Overview YoY → Customers → Growth → Orders → LTV) — depth Analytics skips — at $0 spend. Optional typed/CSV spend → Total ROAS (honest MER: sales ÷ entered spend; empty = —). Admin is **Live-only**; SAMPLE lives on https://mcflyads.com/demo only. Trial includes **24 months** of order history (not ~60d as the primary story). Flat **$39** / 7-day; no Free plan; plan name **Mcfly Analytics** (not Pro). **Marty Saves** each section. Cursor does not Submit. Reviews **0**.
 
-**Live listing fetch 2026-09-15 (re-probed 23:08 MT):** public page still leads spend (“See every ad dollar next to Sales”) and still has **$39 in a feature bullet** (4.2.3). Tagline does **not** mention YoY. Public pricing card already says **Mcfly Analytics** $39 / 7-day (not Pro). Reviews **0**. Paste this pack so the listing matches Fly **320**. Ops curl cannot see Partner Pricing itself — still confirm **no Free plan** in Partner before Save.
+**Live listing gap (as of prior 2026-09-15 probe):** public page still led spend (“See every ad dollar next to Sales”) and still had **$39 in a feature bullet** (4.2.3). Tagline did **not** mention YoY. Public pricing card already said **Mcfly Analytics** $39 / 7-day (not Pro). Reviews **0**. Paste this pack so the listing matches the ready product (Fly **331** desk + site **v19**). Ops curl cannot see Partner Pricing itself — still confirm **no Free plan** in Partner before Save.
+
+**Refuse in paste:** attribution · pixel · true ROAS · Profit Agent · P&L as hero · invented reviews / installs / GMV / ratings.
 
 ---
 
@@ -28,7 +30,7 @@ Work top → bottom. **Save each section.** Do **not** click Submit.
 6. **Short description** → paste §3.
 7. **Long description** → paste §4 (Website / Learn more gate in that section).
 8. **Feature bullets** → paste §5 in order.
-9. **Search keywords** → paste §6. Ban attribution / pixel / true ROAS.
+9. **Search keywords** → paste §6. Ban attribution / pixel / true ROAS / Profit Agent / P&L.
 10. **URLs**
     | Field | URL | Gate |
     | --- | --- | --- |
@@ -36,11 +38,13 @@ Work top → bottom. **Save each section.** Do **not** click Submit.
     | **Privacy** | `https://mcfly-analytics.fly.dev/privacy` | Fly — always |
     | **Support** | `https://mcfly-analytics.fly.dev/support` | Fly — always |
     | **Terms** | `https://mcfly-analytics.fly.dev/terms` | Fly — always |
-    | **Website** | `https://mcflyads.com` | Site **v17**. App URL stays Fly. |
+    | **Website** | `https://mcflyads.com` | Site **v20** live (Pages `a7862580`). Spot-check home / `/demo` / pricing, then keep Website = `https://mcflyads.com`. App URL stays Fly. |
 11. **Support email:** `mcflyadsmmm@gmail.com`.
 12. **App icon:** `docs/listing-assets/mcfly-app-icon-1200.png` (1200×1200, **M-only**).
-13. **Feature / header media + screenshots** → §8–§9 + captions §11.
+13. **Feature / header media + screenshots** → §8–§9 + captions §11. **Live Admin only** — do not upload SAMPLE /demo stills as the live product.
 14. **Save.** Cursor does not Submit. Founder decides whether Shopify’s listing editor requires a re-review.
+
+**24mo honesty check before Save:** long description, short description, and (if open) reviewer notes say trial includes **24 months** of order history — not “~60 days” as the primary install story. Empty YoY cells stay honest (never last year as zero); do not invent GMV or reviews.
 
 Optional after save: Partner Support handle request (§10).
 
@@ -68,16 +72,16 @@ No plan prices in this field (4.2.3).
 
 Paste the block below. **App URL / Privacy / Support / Terms stay Fly** — never App URL = `mcflyads.com`.
 
-Set Partner **Website** and the long-description **Learn more** line to `https://mcflyads.com`. Privacy / Support / Terms / App URL stay on Fly (`https://mcfly-analytics.fly.dev`).
+Set Partner **Website** and the long-description **Learn more** line to `https://mcflyads.com` (site **v19**; re-check if **v20** is live). Privacy / Support / Terms / App URL stay on Fly (`https://mcfly-analytics.fly.dev`).
 
 ```text
 Shopify Analytics shows this period’s sales. Mcfly Analytics puts last year next to it, plus typical order, returning dollars, weekends, and 30 / 90 / 365-day LTV—the depth high-volume merchants keep exporting orders to answer.
 
-Overview is this month, this quarter, and this year versus last year, typical-order KPIs, and a sales chart. If last year is not on file yet, the desk says Shopify shares about 60 days of orders on this install—never last year as zero.
+Overview is this month, this quarter, and this year versus last year, typical-order KPIs, and a sales chart. Install includes up to 24 months of Shopify order history so YoY and LTV have room to fill—never invent last year as zero while history is still loading.
 
-Customers, Growth, Orders, and LTV work with no spend: returning dollars, days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days.
+Customers, Growth, Orders, and LTV work with no spend: returning dollars, days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days. Admin opens on your live store orders. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
 
-Spend is optional. Type or CSV daily spend for Meta, Google, TikTok, billboards, or another channel when you want Total ROAS = Shopify Total Sales ÷ the spend you entered. Certified windows are Yesterday, last N days, this month, this quarter, and this year, marked At goal or Below goal versus your Settings target. Empty spend is an em dash, not 0×. Ledger and dual-close sit on that page. Channel Allocation shows mix and spend left at goal. Total ROAS is not platform ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, or “true ROAS.”
+Spend is optional. Type or CSV daily spend for Meta, Google, TikTok, billboards, or another channel when you want Total ROAS—the honest MER: Shopify Total Sales ÷ the marketing spend you entered. Certified windows are Yesterday, last N days, this month, this quarter, and this year, marked At goal or Below goal versus your Settings target. Empty spend is an em dash, not 0×. Ledger and dual-close sit on that page. Channel Allocation shows mix and spend left at goal. Total ROAS is not platform ROAS, not attributed campaign ROAS, not net profit, and not a claim about which ad caused a sale. Mcfly does not use pixels, multi-touch attribution, “true ROAS,” Profit Agent theater, or a P&L suite.
 
 WHAT YOU GET
 • Overview — this month / quarter / year vs last year, typical order, and a sales chart
@@ -86,7 +90,7 @@ WHAT YOU GET
 • Orders — order range, discounts, returns, sources, weekend share, busiest weekday
 • LTV — new-buyer value at 30 / 90 / 365 days
 • Spend Upload — typed or CSV daily spend, including billboards
-• Total ROAS — certified windows Yesterday / last N / this month / quarter / year, At goal vs Settings target; empty spend is an em dash, not 0×. Ledger and dual-close on this page
+• Total ROAS — honest MER (sales ÷ entered spend); certified windows Yesterday / last N / this month / quarter / year; At goal vs Settings target; empty spend is an em dash, not 0×. Ledger and dual-close on this page
 • Channel Allocation — mix plus spend left at goal
 • YoY — this month vs last month vs last year, plus last 7
 • CPA — cash cost per customer when spend exists
@@ -95,8 +99,9 @@ WHAT YOU GET
 
 WHAT WE NEVER DO
 • Pixels, view-through, or multi-touch attribution
-• Claim “true ROAS” or platform ROAS
+• Claim “true ROAS,” platform ROAS, or attributed campaign ROAS
 • Treating empty spend as 0× Total ROAS
+• Profit Agent theater or a multi-channel P&L as the install reason
 
 Learn more: https://mcflyads.com
 Privacy: https://mcfly-analytics.fly.dev/privacy · Support: https://mcfly-analytics.fly.dev/support
@@ -116,7 +121,7 @@ This month, quarter, and year vs last year plus the typical order Shopify Analyt
 Returning dollars, guest checkouts, and days to a second order with no spend
 Weekend share, busiest weekday, and the range where most Shopify orders land
 New-buyer value at 30 / 90 / 365 days and Goals vs the calendar
-Optional typed spend — Meta, Google, TikTok, or a billboard — Total ROAS = sales ÷ spend you added, not platform ROAS
+Optional typed spend (incl. billboards) — Total ROAS is honest MER (sales ÷ spend you added), not platform ROAS
 ```
 
 No plan prices, “one plan,” or “free trial” in this field (4.2.3).
@@ -131,7 +136,7 @@ Paste exactly (comma-separated if Partner wants a single field):
 shopify analytics, typical order, customer LTV, sales reports, ROAS
 ```
 
-**BAN:** attribution · pixel · true ROAS · MTA · Triple Whale · Lifetimely · “the first / best / only.”
+**BAN:** attribution · pixel · true ROAS · MTA · Triple Whale · Lifetimely · Profit Agent · P&L · “the first / best / only.”
 
 ---
 
@@ -154,16 +159,15 @@ In-app Start 7-day trial / Manage plan must match this one plan. No External cha
 
 ## 8. Hero / feature media (replace the stale ROAS hero)
 
-**Do not upload the current feature media unchanged.** It may still show **CUSTOM DATA SCIENCE / 4.42x** or a formula-only Total ROAS story. Both contradict Fly 318 and risk an unsupported performance claim.
+**Do not upload the current feature media unchanged.** It may still show **CUSTOM DATA SCIENCE / 4.42x** or a formula-only Total ROAS story. Both contradict sales-first Overview YoY and risk an unsupported performance claim.
 
-**Marty recapture** — Overview from Fly **318** with **Live data** selected (Settings → Sample data → **Switch to Live data now**) and overwrite `docs/listing-assets/feature-media-1600x900.png`. Shots in this repo were **not** recaptured for Fly 318.
+**Marty recapture** — Overview from Fly **331** (or current production) with **Live Admin** orders and overwrite `docs/listing-assets/feature-media-1600x900.png`. Admin is Live-only — there is no Sample|Live Settings door for listing. Do **not** capture https://mcflyads.com/demo SAMPLE for the live listing hero. Shots in this repo were **not** recaptured for this pack.
 
 ```text
 Store:  https://admin.shopify.com/store/devmcflyads/apps
 App:    Mcfly Analytics (stay in Admin iframe — not mcflyads.com)
 
-1. Settings → Sample data → Switch to Live data now.
-   Do not use Harbor Sample data for the live listing hero.
+1. Open Mcfly Analytics in Admin. Confirm Live store orders (not the public /demo SAMPLE).
 2. Overview: /app?period=mtd&shot=1
 3. Crop ~1600×900 of the APP BODY only.
    Frame: this month / quarter / year vs last year, typical-order KPIs, and the sales chart.
@@ -172,7 +176,7 @@ App:    Mcfly Analytics (stay in Admin iframe — not mcflyads.com)
    docs/listing-assets/feature-media-1600x900.png
 ```
 
-Full capture script: [`LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md). Do not use founder-pack shot 1 (`01-total-roas-vs-breakeven.png`) until it is overwritten with Fly 318 Overview YoY.
+Full capture script: [`LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md). Do not use founder-pack shot 1 (`01-total-roas-vs-breakeven.png`) until it is overwritten with Live Admin Overview YoY.
 
 Icon (keep / re-upload if missing): `docs/listing-assets/mcfly-app-icon-1200.png`.
 
@@ -188,7 +192,7 @@ Icon (keep / re-upload if missing): `docs/listing-assets/mcfly-app-icon-1200.png
 | `docs/listing-assets/shots/05-spend-csv.png` | July mock still says other platforms are on **Pro** (1.1.4) |
 | `docs/listing-assets/shots/05-HOLD-marketing-site-do-not-upload.png` | Marketing site — not embedded Admin |
 
-**Marty recapture all five screenshots from Fly 318 with Live data selected.** Founder-pack and Fly 238 files (Buyers / Timing / Marketing empty) do not match the eleven-tab desk. Overwrite the stable filenames; do not invent new files. Do **not** invent that these shots were already recaptured.
+**Marty recapture all five screenshots from Live Admin** (Fly **331** or current). Do not use Snowdevil `/demo` SAMPLE for App Store stills. Founder-pack and older Fly files do not match the ready desk. Overwrite the stable filenames; do not invent new files. Do **not** invent that these shots were already recaptured.
 
 | # | Capture | Save as | Caption (≤80) |
 | --- | --- | --- | --- |
@@ -196,7 +200,7 @@ Icon (keep / re-upload if missing): `docs/listing-assets/mcfly-app-icon-1200.png
 | 2 | `/app/customers?period=mtd&shot=1` | `docs/listing-assets/shots/02-explorer-sales-div-spend.png` | Follow returning dollars and guest checkouts with no spend required |
 | 3 | `/app/orders?period=mtd&shot=1` | `docs/listing-assets/shots/03-margin-breakeven.png` | See weekend share, busiest weekday, and the range most orders land |
 | 4 | `/app/ltv?period=mtd&shot=1` | `docs/listing-assets/shots/04-allocation-call.png` | Follow new-buyer value at 30, 90, and 365 days from Shopify orders |
-| 5 | `/app/roas?shot=1` | `docs/listing-assets/shots/05-margin-breakeven.png` | Certified Total ROAS chips—At goal vs target; empty spend is an em dash |
+| 5 | `/app/roas?shot=1` | `docs/listing-assets/shots/05-margin-breakeven.png` | Total ROAS is honest MER—At goal vs target; empty spend is an em dash |
 
 Captions SoT: [`CAPTIONS.md`](../listing-assets/shots/CAPTIONS.md).
 
@@ -230,7 +234,7 @@ Marty
 
 ## 11. Captions (from `CAPTIONS.md`)
 
-Paste under each screenshot. Unique captions (Shopify rejects near-duplicates). No `$` / mo, no attribution / pixel / true ROAS, no “the first / best / only.”
+Paste under each screenshot. Unique captions (Shopify rejects near-duplicates). No `$` / mo, no attribution / pixel / true ROAS, no Profit Agent / P&L hero, no “the first / best / only.”
 
 | # | File | Caption (paste ≤80) |
 | --- | --- | --- |
@@ -238,20 +242,21 @@ Paste under each screenshot. Unique captions (Shopify rejects near-duplicates). 
 | 2 | `02-explorer-sales-div-spend.png` | Follow returning dollars and guest checkouts with no spend required |
 | 3 | `03-margin-breakeven.png` | See weekend share, busiest weekday, and the range most orders land |
 | 4 | `04-allocation-call.png` | Follow new-buyer value at 30, 90, and 365 days from Shopify orders |
-| 5 | `05-margin-breakeven.png` | Certified Total ROAS chips—At goal vs target; empty spend is an em dash |
+| 5 | `05-margin-breakeven.png` | Total ROAS is honest MER—At goal vs target; empty spend is an em dash |
 
-Feature media has no caption field beyond the image itself. It must show the Fly 318 Overview YoY sales hero from Live data—not a Total ROAS claim. **Marty recapture** — not yet done.
+Feature media has no caption field beyond the image itself. It must show Live Admin Overview YoY—not a Total ROAS claim and not `/demo` SAMPLE. **Marty recapture** — not yet done.
 
 ---
 
 ## Human-only leftover (agents cannot do)
 
-- Partner save / Submit (do **not** Submit from Cursor)
+- Partner **Save** (do **not** Submit from Cursor; Marty decides Submit later)
 - Partner Pricing: rename **Pro** → **Mcfly Analytics**, confirm **no Free plan** (last warned **Free + Pro** on 2026-08-26)
-- Replace live hero **CUSTOM DATA SCIENCE / 4.42x** with a Fly 318 Live-data Overview YoY capture
-- **Marty recapture** all five shots from Fly 318 Live data in this order: Overview YoY → Customers → Orders → LTV → Total ROAS chips
-- Do not upload the three banned PNGs or any retired three-year Total ROAS capture
-- Website / Learn more → `https://mcflyads.com`. App URL stays Fly.
+- Replace live hero **CUSTOM DATA SCIENCE / 4.42x** with a Live Admin Overview YoY capture
+- **Marty recapture** all five shots from Live Admin in this order: Overview YoY → Customers → Orders → LTV → Total ROAS chips
+- Do not upload the three banned PNGs, `/demo` SAMPLE as live product, or any retired three-year Total ROAS capture
+- Website / Learn more → `https://mcflyads.com` (**v19**; re-check if **v20**). App URL stays Fly.
+- Confirm long copy says **24 months** of order history on trial — not ~60d as primary
 - Optional handle email to Partner Support
 - App testing information (if Shopify opens a listing re-review): [`PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md)
 

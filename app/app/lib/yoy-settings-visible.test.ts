@@ -58,22 +58,23 @@ describe("YoY is the comparison desk", () => {
 });
 
 describe("Settings Sample | Live", () => {
-  it("still has Sample and Live as the view switch", () => {
-    expect(settings).toContain("Sample | Live");
-    expect(settings).toContain("Sample data");
-    expect(settings).toContain("Live data");
-    expect(settings).toContain("SAMPLE dollars do not transfer");
-    expect(settings).toContain('name="intent" value="use-sample"');
-    expect(settings).toContain('name="intent" value="use-real"');
+  it("has no Sample | Live merchant switch — Live shop only", () => {
+    expect(settings).not.toContain("Sample | Live");
+    expect(settings).not.toContain("Switch to Sample data now");
+    expect(settings).not.toContain("Switch to Live data now");
+    expect(settings).not.toContain('name="intent" value="use-sample"');
+    expect(settings).not.toContain('name="intent" value="use-real"');
+    expect(settings).not.toContain("hide-sample-preview");
+    expect(settings).toContain("applySampleDeskIntent");
+    expect(settings).toContain("this shop’s Shopify orders");
   });
 
-  it("hides Live CTAs while the Sample-only freeze is on", () => {
+  it("keeps freeze honesty for ops SAMPLE without merchant CTAs", () => {
     expect(settings).toContain("Live is parked until launch");
     expect(settings).toContain("sampleOnlyFreeze");
     expect(settings).toContain("Snowdevil");
-    expect(settings).toMatch(/!sampleOnlyFreeze/);
-    expect(settings).toContain('sampleOnlyFreeze ? "Sample data" : "Sample | Live"');
     expect(settings).not.toContain("Harbor");
+    expect(settings).not.toContain("Switch to Sample data now");
   });
 
   it("does not ask for profit margin / COGS and keeps 7-day then $39 billing", () => {
@@ -99,11 +100,12 @@ describe("Connections has no Meta OAuth", () => {
 });
 
 describe("Data-mode is not a second Sample | Live door", () => {
-  it("GET redirects to Settings; POST keeps Sample data | Live data intents", () => {
+  it("GET redirects to Settings; POST keeps legacy sample intents without merchant Sample|Live chrome", () => {
     expect(dataMode).toContain('redirect(`/app/settings${url.search}`)');
-    expect(dataMode).toContain("Sample data | Live data");
     expect(dataMode).toContain("applySampleDeskIntent");
+    expect(dataMode).toContain("isSampleDeskIntent");
     expect(dataMode).toContain("export default function DataModeRoute");
+    expect(dataMode).not.toContain("Sample data | Live data");
   });
 });
 

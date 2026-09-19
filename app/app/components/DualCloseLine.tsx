@@ -35,7 +35,8 @@ function closeStatus(model: DualCloseLineModel): string {
 }
 
 /**
- * Black Clover Overview dual-close sentence. Hidden at $0 spend or month-end.
+ * Dual-close sentence for Total ROAS. Hidden at $0 spend or month-end.
+ * Rates use entered spend only — empty windows stay —, never 0×.
  */
 export function DualCloseLine({
   close,
@@ -62,7 +63,8 @@ export function DualCloseLine({
       {formatCurrency(model.monthRateSales, currency)} sales at{" "}
       {merLabel(model.monthRateMer, model.monthRateSpend)}. {recentHold}:{" "}
       {formatCurrency(model.last7RateSales, currency)} at{" "}
-      {merLabel(model.last7RateMer, model.last7RateSpend)}. {closeStatus(model)}
+      {merLabel(model.last7RateMer, model.last7RateSpend)}. {closeStatus(model)}{" "}
+      Dual-close uses entered spend only.
     </p>
   );
 }

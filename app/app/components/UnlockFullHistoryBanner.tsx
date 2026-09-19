@@ -1,24 +1,23 @@
 import { ProUpgradeButton } from "./ProUpgradeButton";
 
 /**
- * LTV locked / ~90d Live state — one click to Shopify plans.
- * Not a feature gate: the whole desk stays on. Paid $39 unlocks full
- * order history. Price does not rise with sales.
+ * Trial shops already have the same 24-month order book as paid.
+ * This is a plan reminder, not a history gate.
  */
 export function UnlockFullHistoryBanner() {
   return (
     <section
       className="mcfly-state mcfly-state--empty mcfly-state--soft"
-      aria-label="Unlock full history"
+      aria-label="Trial includes 24 months"
     >
       <p className="mcfly-state__copy">
-        <strong>Unlock full history.</strong> Live orders on this desk use the
-        recent ~90 days. $39 per store / month unlocks the rest — the price
-        does not rise with sales.
+        <strong>24 months of orders are already on this desk.</strong> Trial
+        and paid use the same book. After the trial, $39 per store / month
+        keeps it. The price does not rise with sales.
       </p>
       <div className="mcfly-state__cta">
         <ProUpgradeButton
-          label="Unlock full history"
+          label="See the plan"
           variant="primary"
           quiet
         />

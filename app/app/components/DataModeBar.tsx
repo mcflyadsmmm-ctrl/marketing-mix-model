@@ -2,7 +2,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 
 export type DataModeBarProps = {
   useSampleDesk: boolean;
-  samplePreviewAllowed: boolean;
+  samplePreviewAllowed?: boolean;
   /**
    * Listing capture (`?shot=1`). Keep SAMPLE labeled when sample is on (1.1.4).
    */
@@ -11,8 +11,8 @@ export type DataModeBarProps = {
 };
 
 /**
- * SAMPLE honesty only. Sample | Live switching lives in Settings — never a
- * leftover Sample vs Live control on every analysis page.
+ * SAMPLE honesty label for ops freeze / listing shot only.
+ * Merchants on Live hosts never see Sample | Live chrome.
  */
 export function DataModeBar({
   useSampleDesk,
@@ -20,7 +20,9 @@ export function DataModeBar({
   shotMode = false,
   sampleOnlyFreeze = false,
 }: DataModeBarProps) {
+  // Live hosts: no SAMPLE bar. Freeze + shot keep the honesty label.
   if (!useSampleDesk) return null;
+  if (!sampleOnlyFreeze && !shotMode) return null;
 
   return (
     <div
@@ -37,12 +39,6 @@ export function DataModeBar({
         <strong>{PRODUCT_NOUN.sampleData}</strong>
         <span aria-hidden="true"> · </span>
         {PRODUCT_NOUN.sampleHint}
-        {!shotMode && !sampleOnlyFreeze ? (
-          <>
-            <span aria-hidden="true"> · </span>
-            <s-link href="/app/settings">Switch in Settings</s-link>
-          </>
-        ) : null}
         {!shotMode && sampleOnlyFreeze ? (
           <>
             <span aria-hidden="true"> · </span>

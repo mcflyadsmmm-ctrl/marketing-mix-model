@@ -33,9 +33,9 @@ function withGuideParam(path: string, guide: string | null): string {
 }
 
 /**
- * Sample | Live UI lives in Settings only (same nouns: Sample data | Live data).
- * GET redirects there so this is never a second switch. POST stays for
- * UseSampleCta empty-state forms — same intents Settings posts.
+ * Legacy Sample | Live POST door. GET always redirects to Settings.
+ * Merchant `use-sample` no-ops on Live hosts (`applySampleDeskIntent`).
+ * Public Snowdevil lives on https://mcflyads.com/demo — not this route.
  *
  * Default export makes this a UI route so a SPA Form POST is encoded as
  * turbo-stream. Callers also use `reloadDocument` so Admin iframe toggles

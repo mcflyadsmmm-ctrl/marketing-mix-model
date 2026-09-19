@@ -12,7 +12,9 @@ export {
   liveIngestDepth,
   resolveLiveIngestWindowDays,
   shopMayIngestFullHistory,
-  TRIAL_LIVE_SLICE_DAYS,
+  ORDER_ROW_WINDOW_MONTHS,
+  orderRowWindowDayCount,
+  resolveOrderRowWindowDays,
   type LiveIngestDepth,
 } from "./live-ingest-depth";
 

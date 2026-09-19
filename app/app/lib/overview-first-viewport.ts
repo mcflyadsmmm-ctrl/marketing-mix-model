@@ -8,14 +8,14 @@ import { resolveSalesReadiness } from "./sales-pending";
  */
 
 export const OVERVIEW_COVERAGE_LINE =
-  "Shopify orders · last ~60 days available · returns included";
+  "Shopify sales · day totals when reports are on · up to 24 months of orders · returns included";
 
 export const OVERVIEW_PENDING_LINE =
-  "Sales for closed days are still loading — not $0.";
+  "Waiting on reports scope / sales totals ingest — not $0.";
 
 /** First-lane label — Mcfly-only heroes, not a Total Sales scoreboard. */
 export const OVERVIEW_FIRST_LANE_LABEL =
-  "Typical order, returning $, weekends";
+  "Typical order, returning $, weekends, typical day";
 
 /**
  * Uninstall-killer contrast. Shopify Analytics Overview is Total Sales +
@@ -26,6 +26,34 @@ export const OVERVIEW_ANALYTICS_CONTRAST =
 
 export const OVERVIEW_THIN_EMPTY_LINE =
   "Typical order, returning $, and weekends fill after paid orders land — not $0.";
+
+/**
+ * Deterministic empty-state rhythm (steal map craft) — never an AI analyst.
+ * Signal = what we see · Evidence = why the board is — · Next move = what fills.
+ */
+export type OverviewFinding = {
+  signal: string;
+  evidence: string;
+  next: string;
+};
+
+/** Pending sales — scoreboard shells stay up; values stay — not $0. */
+export function overviewPendingFinding(): OverviewFinding {
+  return {
+    signal: "Sales day totals still landing",
+    evidence: OVERVIEW_PENDING_LINE,
+    next: "Typical order, returning $, and weekend fill as closed days land — not $0.",
+  };
+}
+
+/** Thin live window — no paid orders yet; never a sealed $0 year. */
+export function overviewThinEmptyFinding(): OverviewFinding {
+  return {
+    signal: "No paid orders in this window yet",
+    evidence: OVERVIEW_THIN_EMPTY_LINE,
+    next: "After the first paid orders land, YoY and the sales board paint here — never a fake $0 year.",
+  };
+}
 
 /** Same pad as Growth / Customers — peek only; full clock stays on Growth. */
 export const OVERVIEW_WINBACK_PAD_DAYS = 15;

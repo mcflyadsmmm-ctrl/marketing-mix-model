@@ -65,7 +65,7 @@ describe("orderNetSalesAmount (subtotal)", () => {
 });
 
 describe("Shopify sales SoT (Total ROAS numerator)", () => {
-  it("queries total, currentTotal, and currentSubtotal price sets", () => {
+  it("parses total, currentTotal, and currentSubtotal price sets on order nodes", () => {
     expect(salesSource).toContain("totalPriceSet");
     expect(salesSource).toContain("currentTotalPriceSet");
     expect(salesSource).toContain("currentSubtotalPriceSet");
@@ -78,6 +78,13 @@ describe("Shopify sales SoT (Total ROAS numerator)", () => {
     expect(salesSource).not.toMatch(/net\s*>\s*0\s*\?\s*net\s*:\s*gross/);
   });
 
+  it("does not page orders(first:100) for desk / period sales totals", () => {
+    expect(salesSource).not.toContain("fetchShopifySales");
+    expect(salesSource).not.toContain("fetchShopifySalesByDay");
+    expect(salesSource).not.toMatch(/orders\s*\(\s*first:\s*100/);
+    expect(salesSource).not.toContain("LIVE_TODAY_MAX_PAGES");
+  });
+
   it("exposes honesty copy for Total Sales + Net toggle", () => {
     expect(PRODUCT_NOUN.salesBasis).toMatch(/Total Sales/i);
     expect(PRODUCT_NOUN.salesBasisShort).toMatch(/Total Sales/i);
@@ -86,9 +93,9 @@ describe("Shopify sales SoT (Total ROAS numerator)", () => {
     expect(PRODUCT_NOUN.cashClose).toMatch(/exact spend/i);
   });
 
-  it("sales query SoT excludes cancelled and test via formatPeriodQuery", () => {
-    expect(salesSource).toContain("formatPeriodQuery");
+  it("OrderFact ingest still excludes cancelled/test via formatPeriodQuery", () => {
     const periodsSource = readFileSync(join(here, "periods.ts"), "utf8");
+    expect(periodsSource).toContain("formatPeriodQuery");
     expect(periodsSource).toMatch(/cancelled/i);
   });
 });

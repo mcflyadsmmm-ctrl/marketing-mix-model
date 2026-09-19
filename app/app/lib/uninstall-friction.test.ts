@@ -18,14 +18,18 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
   const trust = read("../components/CashTrustBanners.tsx");
   const unlock = read("../components/UnlockFullHistoryBanner.tsx");
 
-  it("1) Overview still ranks Look here first — pending does not add a peek graveyard", () => {
+  it("1) Overview still ranks Look here first — pending keeps scoreboard shells as —, not a peek graveyard of $0", () => {
     expect(overview).toContain('rank="first"');
     expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
     expect(overview).toContain("<OverviewYoyCards");
     expect(firstView).toContain("if (salesPending)");
     expect(firstView).toContain("fill as closed days land");
+    expect(firstView).toContain("FindingStrip");
     expect(pending).toContain("Look here first");
-    expect(pending).not.toContain("mcfly-kpi-grid--peeks-lead");
+    expect(pending).toContain("Typical day");
+    expect(pending).toContain("Signal");
+    expect(pending).toContain("not $0");
+    expect(pending).not.toContain("0.00×");
   });
 
   it("2) pending / thin empties stay copy, not a blank chart wall", () => {
@@ -52,13 +56,14 @@ describe("uninstall-friction pass — Overview / empties / sync / Unlock / Setti
     const firstLaneAt = ltv.indexOf('rank="first" label="What a new buyer is worth"');
     expect(unlockAt).toBeGreaterThan(-1);
     expect(firstLaneAt).toBeGreaterThan(unlockAt);
-    expect(unlock).toContain("Unlock full history");
-    expect(unlock).toContain("~90 days");
+    expect(unlock).toContain("24 months of orders");
+    expect(unlock).not.toContain("~90 days");
   });
 
-  it("5) Settings names SAMPLE vs Live and a human support path", () => {
-    expect(settings).toContain('aria-label="Sample | Live"');
-    expect(settings).toContain("Snowdevil example numbers, not this shop");
+  it("5) Settings is Live-only with Snowdevil honesty and a human support path", () => {
+    expect(settings).not.toContain('aria-label="Sample | Live"');
+    expect(settings).toMatch(/one Live shop view|Live shop only|Live book/i);
+    expect(settings).toContain("Snowdevil");
     expect(settings).toContain('aria-label="Support"');
     expect(settings).toContain("Need help?");
     expect(settings).toContain("mcflyadsmmm@gmail.com");

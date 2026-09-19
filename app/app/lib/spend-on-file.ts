@@ -6,7 +6,7 @@
 
 import { formatCurrency } from "./mer-format";
 
-export const NO_SPEND_ENTERED = "no spend entered";
+export const NO_SPEND_ENTERED = "no spend entered — not a certified $0";
 
 export function hasSpendOnFile(amount: number | null | undefined): boolean {
   return amount != null && Number.isFinite(amount) && amount > 0;
@@ -19,5 +19,7 @@ export function formatSpendOnFile(amount: number, currency: string): string {
 }
 
 export function spendOnFileHint(amount: number): string {
-  return hasSpendOnFile(amount) ? "Entered ad spend" : NO_SPEND_ENTERED;
+  return hasSpendOnFile(amount)
+    ? "Entered ad spend"
+    : NO_SPEND_ENTERED;
 }

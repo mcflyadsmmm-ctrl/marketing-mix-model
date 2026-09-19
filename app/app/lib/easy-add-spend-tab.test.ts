@@ -149,6 +149,8 @@ describe("Spend day card", () => {
 
   it("holds coverage and status back until a day of spend exists", () => {
     expect(spend).toContain("const strangerEmpty =");
+    expect(spend).toContain("SpendFindingStrip");
+    expect(spend).toContain("spendUploadEmptyFinding");
     const gated = spend.split("{strangerEmpty ? null : (")[1] ?? "";
     expect(gated).toContain("mcfly-spend-cal");
     expect(gated).toContain("mcfly-spend-lean__status");
@@ -365,6 +367,8 @@ describe("Total ROAS page", () => {
     expect(roas).toContain("<DualCloseLine");
     expect(roas).toContain("<MonthlyPacing");
     expect(roas).toContain("PRODUCT_NOUN.definition");
+    expect(roas).toContain("HONEST_MER_LINE");
+    expect(roas).toContain("SpendFindingStrip");
     expect(roas).toContain("quiet={false}");
     expect(roas).toContain('href="/app/spend"');
     expect(roas).not.toContain("mcfly-spend-add");

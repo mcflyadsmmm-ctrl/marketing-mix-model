@@ -198,7 +198,7 @@ export default function YoyWorkspacePage() {
       isLoading={isLoading}
       showPeriod={false}
     >
-      <section className="mcfly-yoy" aria-label="Year over year">
+      <section className="mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance" aria-label="Year over year">
         {useSampleDesk && !shotMode ? (
           <SampleDeskBanner note="YoY below uses SAMPLE sales and typed SAMPLE spend." />
         ) : null}

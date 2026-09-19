@@ -94,8 +94,11 @@ describe("Total ROAS page", () => {
   it("contrasts Shopify Analytics vs sales÷typed spend, not platform ROAS", () => {
     expect(roas).toContain("Shopify Analytics shows sales");
     expect(roas).toContain("This page shows");
-    expect(roas).toMatch(/not platform ROAS/i);
     expect(roas).toContain("PRODUCT_NOUN.definition");
+    expect(roas).toContain("HONEST_MER_LINE");
+    expect(roas).toContain("SpendFindingStrip");
+    expect(roas).toContain("totalRoasEmptySpendFinding");
+    expect(roas).toMatch(/never 0×/);
   });
 
   it("pending sales KPI is an em dash, never a painted $0", () => {

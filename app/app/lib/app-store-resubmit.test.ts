@@ -85,7 +85,7 @@ describe("App Store resubmit path (email 2026-08-24 / ref 127166)", () => {
     expect(ltv).not.toMatch(/href=\{?[`'"]https:\/\/admin\.shopify\.com/);
     expect(ltv).not.toMatch(/window\.location\.(href|assign|replace)/);
     expect(readApp("components/UnlockFullHistoryBanner.tsx")).toContain(
-      "Unlock full history",
+      "24 months of orders",
     );
   });
 

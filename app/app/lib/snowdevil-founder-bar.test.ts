@@ -107,16 +107,19 @@ describe("Snowdevil founder leave-for-day bar", () => {
     expect(day.sales / spendOf(day)).toBeLessThan(4.0);
   });
 
-  it("5. Freeze parks Live switch and use-real", () => {
+  it("5. Freeze parks Live; Admin has no merchant Sample | Live switch", () => {
     const settings = chrome("../routes/app.settings.tsx");
     const spend = chrome("../routes/app.spend.tsx");
     const bar = chrome("../components/DataModeBar.tsx");
     const firstView = chrome("../components/OverviewFirstViewport.tsx");
     expect(settings).toContain("Live is parked until launch");
     expect(settings).toContain("sampleOnlyFreeze");
+    expect(settings).not.toContain("Switch to Sample data now");
+    expect(settings).not.toContain("Sample | Live");
     expect(spend).toContain("isSampleOnlyFreeze()");
     expect(spend).not.toContain("Switch to Live in Settings");
     expect(bar).toContain("Live is parked until launch");
+    expect(bar).not.toContain("Switch in Settings");
     expect(firstView).toContain("SAMPLE_OVERVIEW_DOOR");
     expect(SAMPLE_OVERVIEW_DOOR).toContain("Live is parked");
     expect(SAMPLE_GROWTH_DOOR).toContain("Live is parked");

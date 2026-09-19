@@ -1,14 +1,18 @@
 /**
  * Shopify-true period stats that do not wait on spend uploads.
  *
- * Always-on with `read_orders` + `read_customers` (~60-day order window):
- * sales, orders, AOV, new vs returning counts and sales $, guest share,
- * Gross − Total (returns/edits), till LTV 30/90/365 + repeat rate, goals vs calendar.
+ * Sales / AOV / New vs Returning $ come from SalesDayFact + ShopifyQL
+ * (`read_reports` for day totals and the New/Returning order split).
+ * Order-detail depth (median, repurchase, RFM) still needs OrderFact —
+ * up to 24 months with deep history, or ~60 days when historyLimited.
  *
  * Shopify Analytics / ShopifyQL already shows (we do not copy as the hero):
  * mean AOV, order count, total/gross/net, returning_customer_rate (headcount),
  * sessions, conversion, products. Those need `read_reports` or the free
- * Analytics UI — not our scopes.
+ * Analytics UI.
+ *
+ * New/Returning sales $ here are Shopify’s order-based split (New vs Returning
+ * on the order), not unique buyer headcount.
  *
  * Product contract (with `shopify-depth-stats.ts`): Overview tiles come from
  * this module + OrderFact depth. Total ROAS is Marketing, not the primary

@@ -86,7 +86,7 @@ const PRESETS: readonly { key: OverviewRangePreset; label: string; long: string 
 
 function ChartEmptyFrame({ copy }: { copy: string }) {
   return (
-    <section className="mcfly-chart mcfly-chart--empty" aria-label="Sales by day">
+    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--empty" aria-label="Sales by day">
       <div className="mcfly-chart__head">
         <p className="mcfly-chart__title">
           <DeskIcon name="chart" />
@@ -385,7 +385,7 @@ export function OverviewSalesChart({
   };
 
   return (
-    <section className="mcfly-chart mcfly-chart--sales mcfly-chart--soft" aria-label="Sales by day">
+    <section className="mcfly-well mcfly-well--scoreboard mcfly-chart mcfly-chart--sales mcfly-chart--soft" aria-label="Sales by day">
       <div className="mcfly-chart__head mcfly-chart__board">
         <div className="mcfly-chart__masthead">
           <h3 className="mcfly-chart__serif">Sales explorer</h3>

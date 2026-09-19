@@ -140,7 +140,7 @@ export function OrdersFirstViewport({
       </article>
 
       {peeks.length > 0 ? (
-        <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
+        <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
           {peeks.map((row) => (
             <PeekCard
               key={row.k}

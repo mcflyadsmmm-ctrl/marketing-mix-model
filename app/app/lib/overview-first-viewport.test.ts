@@ -20,7 +20,9 @@ import {
   overviewNoticeSentence,
   overviewOperatorGreeting,
   overviewPeekThird,
+  overviewPendingFinding,
   overviewReturningCompactDollars,
+  overviewThinEmptyFinding,
   overviewWeekendWeekday,
   overviewWinBackDay,
 } from "./overview-first-viewport";
@@ -113,9 +115,12 @@ describe("overview first viewport", () => {
     ).toBe(OVERVIEW_SALES_ONLY_LINE);
   });
 
-  it("coverage line names the 60-day order window and returns", () => {
-    expect(OVERVIEW_COVERAGE_LINE).toMatch(/60 days/);
+  it("coverage line names multi-year sales + 24mo orders, not a blanket 60d", () => {
+    expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
+    expect(OVERVIEW_COVERAGE_LINE).toMatch(/reports/i);
+    expect(OVERVIEW_COVERAGE_LINE).not.toMatch(/60 days/);
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/returns included/i);
+    expect(OVERVIEW_PENDING_LINE).toMatch(/reports scope|sales totals ingest/i);
     expect(OVERVIEW_SALES_ONLY_LINE).toMatch(/Shopify orders/i);
     expect(OVERVIEW_SALES_ONLY_LINE).not.toMatch(/optional|spend|ROAS/i);
     expect(OVERVIEW_LIVE_HANDOFF_BODY).toMatch(/Shopify sales/i);
@@ -209,6 +214,7 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("mcfly-kpi-grid");
     expect(firstView).toContain("mcfly-kpi-grid--peeks");
     expect(firstView).toContain("mcfly-kpi-grid--peeks-lead");
+    expect(firstView).toContain("mcfly-kpi-grid--peeks-4");
     expect(firstView).toContain("mcfly-kpi--peek");
     expect(firstView).toContain("orderCount > 0");
     expect(firstView).toContain("DeskIcon");
@@ -231,6 +237,13 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("New-buyer worth");
     expect(firstView).toContain("Month close");
     expect(firstView).toContain("OVERVIEW_THIN_EMPTY_LINE");
+    expect(firstView).toContain("OVERVIEW_COVERAGE_LINE");
+    expect(firstView).toContain("Signal");
+    expect(firstView).toContain("Evidence");
+    expect(firstView).toContain("Next move");
+    expect(firstView).toContain("FindingStrip");
+    expect(firstView).toContain("overviewPendingFinding");
+    expect(firstView).toContain("mcfly-book__clock");
     expect(firstView).not.toContain("mcfly-scoreboard__kicker--sr");
     expect(firstView).not.toContain("hideHero");
     expect(firstView).not.toContain("setupAddSpend");
@@ -245,6 +258,24 @@ describe("overview first viewport", () => {
     expect(firstView).not.toContain("spendHref");
     expect(firstView).not.toContain("spendEmpty");
     expect(firstView).not.toContain("hasSpend");
+  });
+
+  it("pending / thin empty keep scoreboard shells + Signal / Evidence / Next — not a pamphlet", () => {
+    const firstView = read("../components/OverviewFirstViewport.tsx");
+    expect(firstView).toContain("if (salesPending)");
+    expect(firstView).toContain("fill as closed days land");
+    expect(firstView).toMatch(/mcfly-kpi-grid--peeks-lead/);
+    expect(firstView).not.toMatch(
+      /if \(salesPending\) \{\s*return \(\s*<section[^>]*>\s*<p className="mcfly-score__greeting"/,
+    );
+    expect(overviewPendingFinding()).toEqual({
+      signal: "Sales day totals still landing",
+      evidence: OVERVIEW_PENDING_LINE,
+      next: "Typical order, returning $, and weekend fill as closed days land — not $0.",
+    });
+    expect(overviewThinEmptyFinding().evidence).toBe(OVERVIEW_THIN_EMPTY_LINE);
+    expect(overviewPendingFinding().next).not.toMatch(/Profit Agent|ROAS|spend/i);
+    expect(overviewThinEmptyFinding().next).not.toMatch(/Profit Agent|ROAS|spend/i);
   });
 
   it("never paints spend, upload, or ROAS copy on Overview", () => {

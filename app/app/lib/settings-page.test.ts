@@ -20,15 +20,19 @@ describe("Settings page", () => {
     expect(settings).toContain('href="/app/roas"');
   });
 
-  it("makes Sample vs Live and target Total ROAS obvious", () => {
-    expect(settings).toMatch(/Sample data|Live data/);
+  it("is Live shop only — no Sample | Live merchant toggle", () => {
     expect(settings).toContain("PRODUCT_NOUN.totalRoas");
     expect(settings).not.toMatch(/\baMER\b/);
-    expect(settings).toContain("Snowdevil example numbers, not this shop");
+    expect(settings).not.toContain("Sample | Live");
+    expect(settings).not.toContain("Switch to Sample data now");
+    expect(settings).not.toContain("Switch to Live data now");
+    expect(settings).not.toContain('name="intent" value="use-sample"');
+    expect(settings).not.toContain('name="intent" value="use-real"');
+    expect(settings).not.toContain("hide-sample-preview");
     expect(settings).toContain("this shop’s Shopify orders");
   });
 
-  it("keeps a visible support path next to Sample | Live", () => {
+  it("keeps a visible support path", () => {
     expect(settings).toContain('aria-label="Support"');
     expect(settings).toContain("Need help?");
     expect(settings).toContain("mcflyadsmmm@gmail.com");
@@ -37,11 +41,10 @@ describe("Settings page", () => {
     expect(settings).not.toContain("Learn more about");
   });
 
-  it("Switch to Sample data posts on Settings with a native submit", () => {
+  it("keeps sample intent handler for no-ops, without merchant Sample CTAs", () => {
     expect(settings).toContain("applySampleDeskIntent");
-    expect(settings).toContain('name="intent" value="use-sample"');
-    expect(settings).toContain('className="mcfly-btn mcfly-btn--primary"');
-    expect(settings).toContain("Switch to Sample data now");
+    expect(settings).toContain("isSampleDeskIntent");
+    expect(settings).not.toContain("Switch to Sample data now");
     expect(settings).not.toContain("dataModeAction");
   });
 

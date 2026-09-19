@@ -4,14 +4,18 @@ import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
+  OVERVIEW_COVERAGE_LINE,
   OVERVIEW_PENDING_LINE,
   OVERVIEW_THIN_EMPTY_LINE,
   overviewBusiestWeekday,
   overviewHandoffPeeks,
   overviewLtvWindowLabel,
   overviewOperatorGreeting,
+  overviewPendingFinding,
   overviewReturningCompactDollars,
+  overviewThinEmptyFinding,
   overviewWeekendWeekday,
+  type OverviewFinding,
   type OverviewHandoffPeek,
   type OverviewLtvPeekDays,
 } from "../lib/overview-first-viewport";
@@ -57,6 +61,7 @@ function PeekCard({
   foot,
   icon,
   extra,
+  hero = false,
 }: {
   to: string;
   nextLabel: string;
@@ -68,12 +73,18 @@ function PeekCard({
   foot?: string;
   icon: DeskIconName;
   extra?: ReactNode;
+  hero?: boolean;
 }) {
   const drill = useDeskDrill();
   return (
     <button
       type="button"
-      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft"
+      className={
+        hero
+          ? "mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft mcfly-kpi--hero"
+          : "mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft"
+      }
+      data-empty={value === "—" ? "true" : undefined}
       onClick={() =>
         drill?.openDrill({
           title: label,
@@ -238,11 +249,32 @@ function handoffPeekCard(
   }
 }
 
+function FindingStrip({ finding }: { finding: OverviewFinding }) {
+  return (
+    <div className="mcfly-book__clock" aria-label="What to notice">
+      <div>
+        <p className="mcfly-book__clock-k">Signal</p>
+        <p className="mcfly-book__clock-v">{finding.signal}</p>
+      </div>
+      <div>
+        <p className="mcfly-book__clock-k">Evidence</p>
+        <p className="mcfly-book__clock-v">{finding.evidence}</p>
+      </div>
+      <div>
+        <p className="mcfly-book__clock-k">Next move</p>
+        <p className="mcfly-book__clock-v">{finding.next}</p>
+      </div>
+    </div>
+  );
+}
+
 /**
- * First-fold Mcfly peeks — typical order, returning $, weekend — then
- * days-to-second / LTV / month-close handoffs. SAMPLE Snowdevil is the
+ * First-fold Mcfly peeks — typical order, returning $, weekend, typical day —
+ * then days-to-second / LTV / month-close handoffs. SAMPLE Snowdevil is the
  * craft canvas. Spend stays off Overview. YoY sits beside this board.
  * Depth peeks stay after the open sales chart.
+ * Pending / thin empty keep the KPI shells as — plus Signal / Evidence / Next
+ * move — never a pamphlet, never an AI analyst theater.
  */
 export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Shopify sales this period",
@@ -260,6 +292,7 @@ export function OverviewFirstViewport({
     returningShare,
     weekend,
     typicalCardValue,
+    typicalDayValue,
   } = useOverviewPeekValues({
     ...rest,
     orderCount,
@@ -295,34 +328,28 @@ export function OverviewFirstViewport({
         monthCloseClosed: rest.monthCloseClosed,
       });
 
+  let finding: OverviewFinding | null = null;
   if (salesPending) {
-    return (
-      <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
-        <p className="mcfly-score__greeting">{greeting}</p>
-        <p className="mcfly-state__copy">
-          Typical order, returning $, and weekend fill as closed days land —
-          not $0.
-        </p>
-      </section>
-    );
-  }
-
-  if (!useSampleDesk && !(orderCount > 0)) {
-    return (
-      <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
-        <p className="mcfly-score__greeting">{greeting}</p>
-        <p className="mcfly-state__copy">{OVERVIEW_THIN_EMPTY_LINE}</p>
-      </section>
-    );
+    finding = {
+      ...overviewPendingFinding(),
+      next: "Typical order, returning $, and weekend fill as closed days land — not $0.",
+    };
+  } else if (!useSampleDesk && !(orderCount > 0)) {
+    finding = {
+      ...overviewThinEmptyFinding(),
+      evidence: OVERVIEW_THIN_EMPTY_LINE,
+    };
   }
 
   return (
     <section className="mcfly-score mcfly-book mcfly-score--soft" aria-label={ariaLabel}>
       <p className="mcfly-score__greeting">{greeting}</p>
       {trust ? <p className="mcfly-score__trust">{trust}</p> : null}
+      {finding ? <FindingStrip finding={finding} /> : null}
 
-      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
+      <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--peeks-4 mcfly-kpi-grid--soft">
         <PeekCard
+          hero
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
           next="Typical order, discounts, and weekend sit on Orders — Shopify Analytics only shows the average."
@@ -335,7 +362,7 @@ export function OverviewFirstViewport({
           label={typicalIsMedian ? PRODUCT_NOUN.bookTypicalOrder : "AOV"}
           value={typicalCardValue}
           sub={
-            salesPending
+            salesPending || typicalCardValue === "—"
               ? undefined
               : typicalIsMedian
                 ? "Median"
@@ -395,6 +422,20 @@ export function OverviewFirstViewport({
             ) : null
           }
         />
+        <PeekCard
+          to={ordersHref}
+          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
+          next="Open Orders for typical day, discounts, and the sales clock. The open sales chart paints each day vs this typical."
+          formulaBlock={PRODUCT_NOUN.bookTypicalDayDef}
+          icon="clock"
+          label={PRODUCT_NOUN.bookTypicalDay}
+          value={typicalDayValue}
+          sub={
+            salesPending || typicalDayValue === "—"
+              ? undefined
+              : "Median daily sales · day vs typical on the chart"
+          }
+        />
       </div>
 
       {handoffs.length > 0 ? (
@@ -418,45 +459,34 @@ export function OverviewFirstViewport({
           })}
         </div>
       ) : null}
+
+      {!finding ? (
+        <p className="mcfly-score__trust">{OVERVIEW_COVERAGE_LINE}</p>
+      ) : null}
     </section>
   );
 }
 
-/** Typical day, orders, busiest weekday — after the open sales chart. */
+/** Orders + busiest weekday — after the open sales chart. Typical day leads above. */
 export function OverviewDepthPeeks({
   ordersHref,
   salesPending,
   orderCount,
   ...rest
 }: OverviewPeekProps) {
-  const { typicalDayValue, ordersValue, busiest, busiestValue } =
-    useOverviewPeekValues({
-      ...rest,
-      orderCount,
-      ordersHref,
-      salesPending,
-    });
+  const { ordersValue, busiest, busiestValue } = useOverviewPeekValues({
+    ...rest,
+    orderCount,
+    ordersHref,
+    salesPending,
+  });
 
   return (
     <section
       className="mcfly-score mcfly-book mcfly-score--depth mcfly-score--soft"
       aria-label="More Shopify order depth"
     >
-      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-depth mcfly-kpi-grid--soft">
-        <PeekCard
-          to={ordersHref}
-          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
-          next="Open Orders for typical day, discounts, and the sales clock."
-          formulaBlock={PRODUCT_NOUN.bookTypicalDayDef}
-          icon="clock"
-          label={PRODUCT_NOUN.bookTypicalDay}
-          value={typicalDayValue}
-          sub={
-            salesPending || typicalDayValue === "—"
-              ? undefined
-              : "Median daily sales"
-          }
-        />
+      <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-depth mcfly-kpi-grid--peeks-2 mcfly-kpi-grid--soft">
         <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}

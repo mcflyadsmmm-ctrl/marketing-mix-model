@@ -96,7 +96,8 @@ describe("YoY last-year honesty", () => {
     expect(yoyRoute).not.toContain('byId.has("lastYear")');
     expect(yoyRoute).toMatch(/id === "lastYear"/);
     expect(yoyRoute).toMatch(/sales == null/);
-    expect(OVERVIEW_YOY_MISSING).toMatch(/60 days/);
+    expect(OVERVIEW_YOY_MISSING).toMatch(/reports scope/);
+    expect(OVERVIEW_YOY_MISSING).toMatch(/not \$0/);
   });
 });
 

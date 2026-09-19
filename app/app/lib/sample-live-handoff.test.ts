@@ -93,6 +93,6 @@ describe("SAMPLE → Live handoff", () => {
     expect(spend).toContain("SAMPLE_LEDGER_HANDOFF");
     expect(goals).toContain("TRIAL_VS_VIEW");
     expect(settings).toContain("TRIAL_VS_VIEW");
-    expect(settings).toContain("SAMPLE dollars do not transfer");
+    expect(settings).not.toContain("Switch to Sample data now");
   });
 });

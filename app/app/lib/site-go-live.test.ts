@@ -105,14 +105,14 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     const support = readFileSync(join(siteRoot, "support.html"), "utf8");
     const pricing = readFileSync(join(siteRoot, "pricing.html"), "utf8");
     const privacy = readFileSync(join(siteRoot, "privacy.html"), "utf8");
-    expect(support).toMatch(/Try the demo/i);
+    expect(support).toMatch(/Try the demo|full Snowdevil demo/i);
     expect(support).toMatch(/every platform/i);
     expect(support).toMatch(/\$39/);
     expect(support).toMatch(/no.{0,40}shop-domain form/i);
     expect(pricing).toMatch(/every platform/i);
     expect(pricing).toMatch(/\$39/);
     expect(pricing).toMatch(/7-day/);
-    expect(pricing).toMatch(/~60 days/);
+    expect(pricing).toMatch(/24 months of order history/);
     expect(pricing).not.toMatch(/\$79/);
     expect(privacy).toMatch(/numberOfOrders/);
     expect(privacy).toMatch(/read_customers/);

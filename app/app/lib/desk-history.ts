@@ -2,6 +2,10 @@
  * Shared history horizon for Sample data and Live data, trial and paid.
  * Closed days from January 1 of (UTC year − N) through today.
  * Date slicers only change the view — they do not shrink this window.
+ *
+ * Sales day totals ask multi-year ShopifyQL (needs `read_reports`).
+ * Order detail stays up to 24 months. When Shopify history is actually
+ * limited (~60d without deep scope), callers pass shopifyOrderWindowLimited.
  */
 
 import { PRODUCT_NOUN } from "./product-labels";
@@ -20,8 +24,7 @@ export function deskHistoryFloorKey(now: Date = new Date()): string {
 
 /**
  * Merchant-facing scoreboard label.
- * Live Shopify sales on this install are ~60 days (`read_orders`), not the
- * five-year spend template floor — do not promise January {floor} here.
+ * Default copy matches 24mo order policy + multi-year sales ask — not a blanket ~60d.
  */
 export type DeskHistorySurface = "sales" | "spend";
 
@@ -30,9 +33,9 @@ export function deskHistoryCaption(
   surface: DeskHistorySurface = "sales",
 ): string {
   if (surface === "spend") {
-    return "Daily spend by channel · sales cover the last ~60 days.";
+    return "Daily spend by channel · sales day totals when reports are on · up to 24 months of orders.";
   }
-  return "Shopify orders · last ~60 days available · returns included";
+  return "Shopify sales · day totals when reports are on · up to 24 months of orders · returns included";
 }
 
 export function deskPeriodTillLabel(input: {
@@ -45,9 +48,9 @@ export function deskPeriodTillLabel(input: {
   factsIncomplete?: boolean;
   todaySalesTruncated?: boolean;
   todaySalesUnavailable?: boolean;
-  /** YTD / Last 12 months vs ~60-day `read_orders` — not a finished year. */
+  /** YTD / Last 12 months vs limited Shopify history (~60d) — not a finished year. */
   shopifyOrderWindowLimited?: boolean;
-  /** Book pages: mention the Shopify order window on the till. */
+  /** Book pages: mention the order-detail window on the till. */
   includeShopifyOrderWindow?: boolean;
 }): string {
   if (input.useSampleDesk) {
@@ -74,12 +77,12 @@ export function deskPeriodTillLabel(input: {
     return `${input.periodLabel} · today’s sales incomplete`;
   }
   if (input.includeShopifyOrderWindow) {
-    return `${input.periodLabel} · live sales · last ~60 days`;
+    return `${input.periodLabel} · live sales · up to 24 months of orders`;
   }
   return `${input.periodLabel} · live sales`;
 }
 
-/** Contrast vs native Analytics, plus the shared ~60-day Shopify book line. */
+/** Contrast vs native Analytics, plus the shared book coverage line. */
 export function deskBookLede(contrast: string): string {
   return `${contrast} ${PRODUCT_NOUN.shopifyBookMuted}`;
 }

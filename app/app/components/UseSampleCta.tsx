@@ -1,37 +1,11 @@
-import { Form, useLocation } from "react-router";
-
-type UseSampleCtaProps = {
-  /** Defaults to the current embedded page (keeps shop/host query). */
+/**
+ * Retired Admin Sample switch. Public Snowdevil lives on mcflyads.com/demo.
+ * Kept as a no-op export so old imports do not break builds.
+ */
+export function UseSampleCta(_props?: {
   returnTo?: string;
   label?: string;
   variant?: "primary" | "secondary" | "tertiary";
-};
-
-/**
- * One-click Sample data preview — POSTs the same data-mode switch as Settings.
- * Native submit: Polaris web submit does not POST this form in Admin (blank 200).
- * Never send merchants to /app/demo for this.
- */
-export function UseSampleCta({
-  returnTo,
-  label = "See Sample data",
-  variant = "secondary",
-}: UseSampleCtaProps) {
-  const location = useLocation();
-  const dest = returnTo ?? `${location.pathname}${location.search}`;
-
-  return (
-    <Form
-      method="post"
-      action={`/app/data-mode${location.search}`}
-      reloadDocument
-      className="mcfly-use-sample-cta"
-    >
-      <input type="hidden" name="intent" value="use-sample" />
-      <input type="hidden" name="returnTo" value={dest} />
-      <button type="submit" className={`mcfly-btn mcfly-btn--${variant}`}>
-        {label}
-      </button>
-    </Form>
-  );
+}) {
+  return null;
 }

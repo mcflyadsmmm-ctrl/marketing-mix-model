@@ -12,20 +12,20 @@ export const OVERVIEW_YOY_LABELS: Record<OverviewYoyId, string> = {
 
 /** Honest empty — never paint missing last year as $0. */
 export const OVERVIEW_YOY_MISSING =
-  "Same days last year not on file yet. Shopify orders on this install cover about 60 days — not $0.";
+  "Same days last year not on file yet. Waiting on sales day totals (reports scope) — not $0.";
 
 /** Pending sales — never paint this year as a finished $0. */
 export const OVERVIEW_YOY_PENDING =
-  "Sales for closed days are still loading — not $0.";
+  "Waiting on reports scope / sales totals ingest — not $0.";
 
 /** Shopify Analytics Overview is this period only; these cards add last year. */
 export const OVERVIEW_YOY_ANALYTICS_LEDE = "Same days last year";
 
 export type OverviewYoyZone = "up" | "down" | "even" | "empty";
 
-/** When MTD/QTD/YTD collapse to the same ~60-day pull. */
+/** When MTD/QTD/YTD collapse to the same thin pull (historyLimited or empty facts). */
 export const OVERVIEW_YOY_SAME_WINDOW =
-  "Month, quarter, and year are the same dollars until Shopify shares more than ~60 days of orders.";
+  "Month, quarter, and year are the same dollars until sales day totals cover more of the calendar — not $0 for the missing span.";
 
 export type OverviewYoyChip = {
   id: CashChipId | string;
@@ -167,7 +167,7 @@ export function buildOverviewYoyCards(
   return cards;
 }
 
-/** True when the three windows are the same pull (typical ~60-day install). */
+/** True when the three windows are the same pull (thin history or empty facts). */
 export function overviewWindowsCollapsed(cards: OverviewYoyCard[]): boolean {
   if (cards.length < 2) return false;
   const first = Math.round(cards[0]?.sales ?? NaN);

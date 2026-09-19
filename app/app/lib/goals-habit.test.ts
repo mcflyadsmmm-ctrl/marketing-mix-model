@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createElement } from "react";
+import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { OrderHistoryGoalsBoard } from "../components/OrderHistoryGoalsBoard";
 import { DeskCurrencyContext } from "./desk-currency";
 import {
@@ -22,6 +23,11 @@ import {
   resolveHabitReturningTargetSource,
   resolveHabitTarget,
 } from "./goals-habit";
+
+function renderGoalsBoard(node: ReactNode) {
+  const router = createMemoryRouter([{ path: "/", element: node }]);
+  return renderToStaticMarkup(createElement(RouterProvider, { router }));
+}
 
 function richInput(
   extra: Partial<Parameters<typeof buildHabitGoals>[0]> = {},
@@ -255,7 +261,7 @@ describe("habitGoalsDailyRead + history line", () => {
 
 describe("OrderHistoryGoalsBoard — empty is ActionCard-shaped", () => {
   it("paints an ActionCard-shaped empty, not a blank or $0 card", () => {
-    const html = renderToStaticMarkup(
+    const html = renderGoalsBoard(
       createElement(
         DeskCurrencyContext.Provider,
         { value: "USD" },
@@ -294,7 +300,7 @@ describe("OrderHistoryGoalsBoard — empty is ActionCard-shaped", () => {
 
   it("labels SAMPLE $800k as Snowdevil stretch, not a typed field value", () => {
     const view = richInput({ typedReturningTarget: null, sample: true });
-    const html = renderToStaticMarkup(
+    const html = renderGoalsBoard(
       createElement(
         DeskCurrencyContext.Provider,
         { value: "USD" },

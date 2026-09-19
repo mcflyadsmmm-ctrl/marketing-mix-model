@@ -102,7 +102,7 @@ export const PRODUCT_NOUN = {
     "Avg revenue per new-on-file buyer in the first 365 days after their first order in this Shopify window",
   shopifyBookTitle: "Deeper than Analytics",
   shopifyBookMuted:
-    "From this shop’s orders. Stats Overview skips. Last ~60 days. Spend optional.",
+    "From this shop’s orders. Stats Overview skips. Up to 24 months of order detail · multi-year sales day totals when reports are on. Spend optional.",
   bookGroupPeriod: "This period",
   bookGroupBuyers: "Buyers",
   bookGroupTiming: "Timing",
@@ -136,7 +136,7 @@ export const PRODUCT_NOUN = {
   bookTypicalDayEmpty: "Needs five days with sales — not $0.",
   bookSecondWithin30: "Second order in 30 days",
   bookSecondWithin30Def:
-    "First-time buyers who came back within 30 days. Last ~60 days of orders.",
+    "First-time buyers who came back within 30 days. Up to 24 months of orders on file.",
   bookSecondWithin30Empty:
     "Needs more first-time buyers with 30 days to come back.",
   bookSecondVsThird: "2nd vs 3rd+ buyers",
@@ -203,7 +203,7 @@ export const PRODUCT_NOUN = {
   spendJob:
     "Download the daily template → fill spend by channel → upload it. Same days replace.",
   /** LTV / Acquisition differentiator — till view Shopify Admin lacks */
-  factsIncompleteSuffix: " · still loading sales days",
+  factsIncompleteSuffix: " · waiting on reports scope / sales totals",
   ltvNotInShopify:
     "What a new customer spends in their first 30, 90, and 365 days — Shopify Analytics does not put this on one screen. Order history only, never email lists. Spend is optional.",
   controlAsOf: "Through",

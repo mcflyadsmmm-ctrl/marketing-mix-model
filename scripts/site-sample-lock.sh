@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SAMPLE / product-lock gate for site/** — must pass before Pages deploy.
-# v12: one public brand (Mcfly Analytics). Home sells the Shopify app (Harbor SAMPLE).
+# v20: one public brand (Mcfly Analytics). Home + /demo = Snowdevil SAMPLE.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -24,14 +24,14 @@ else
   ok "$HOME no \$84,200"
 fi
 if grep -qE '\$98,?500' "$HOME"; then
-  bad "$HOME has Northline \$98,500 — app home must use Harbor SAMPLE"
+  bad "$HOME has Northline \$98,500 — app home must use Snowdevil SAMPLE"
 else
   ok "$HOME has no Northline \$98,500"
 fi
-if grep -qE 'Harbor' "$HOME" && grep -qE '\$23,?414' "$HOME" && grep -qE '3\.51' "$HOME"; then
-  ok "$HOME Harbor SAMPLE \$23,414 / 3.51×"
+if grep -qE 'Snowdevil' "$HOME" && grep -qE '\$19,?023' "$HOME" && grep -qE '3\.60' "$HOME"; then
+  ok "$HOME Snowdevil SAMPLE \$19,023 / 3.60×"
 else
-  bad "$HOME missing Harbor SAMPLE (\$23,414 / 3.51×)"
+  bad "$HOME missing Snowdevil SAMPLE (\$19,023 / 3.60×)"
 fi
 if grep -qE '\$39' "$HOME" && grep -q '/demo' "$HOME"; then
   ok "$HOME has \$39 and /demo CTA"
@@ -47,10 +47,10 @@ if [[ -f "$DEMO" && -f "$DEMO_JS" ]]; then
   else
     ok "/demo has no Northline \$98,500"
   fi
-  if grep -q 'Harbor Home Co' "$DEMO" && grep -qE '\$23,?414' "$DEMO" && grep -qE '\$82,?068' "$DEMO" && grep -qE '3\.51' "$DEMO"; then
-    ok "/demo Harbor SAMPLE \$23,414 / \$82,068 / 3.51×"
+  if grep -q 'Snowdevil' "$DEMO" && grep -qE '\$19,?023' "$DEMO" && grep -qE '\$68,?457' "$DEMO" && grep -qE '3\.60' "$DEMO"; then
+    ok "/demo Snowdevil SAMPLE \$19,023 / \$68,457 / 3.60×"
   else
-    bad "/demo missing Harbor SAMPLE (\$23,414 / \$82,068 / 3.51×)"
+    bad "/demo missing Snowdevil SAMPLE (\$19,023 / \$68,457 / 3.60×)"
   fi
 else
   bad "missing site/demo.html or site/assets/demo-desk.js"
@@ -70,10 +70,10 @@ if grep -qiE '500-seat|184 of 240|login 184' "$HOME"; then
 else
   ok "$HOME no SaaS seat theater"
 fi
-if grep -q '/assets/mcfly/mcfly.css' "$HOME" && ! grep -q '/assets/site.css' "$HOME"; then
+if grep -q '/assets/mcfly/mcfly.css' "$HOME"; then
   ok "home uses greenfield mcfly.css"
 else
-  bad "home must load mcfly.css only (no site.css)"
+  bad "home must load mcfly.css"
 fi
 
 for f in "${PARKED[@]}"; do

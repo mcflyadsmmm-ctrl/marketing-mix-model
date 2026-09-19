@@ -214,7 +214,7 @@ export function LtvFlagshipBoard({
       ) : null}
 
       {windows ? (
-        <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--soft">
+        <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
           {windows.points.map((point) => {
             const money =
               point.revenue != null

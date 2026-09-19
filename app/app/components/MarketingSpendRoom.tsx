@@ -146,8 +146,8 @@ export function MarketingSpendRoom({
           </p>
           <table className="mcfly-control__table">
             <caption>
-              Last 7 and 28 days versus the windows before. Not which ad caused
-              a sale.
+              Last 7 and 28 days versus the windows before. Honest MER = sales ÷
+              entered spend — not which ad caused a sale.
             </caption>
             <thead>
               <tr>
@@ -203,7 +203,8 @@ export function MarketingSpendRoom({
           <table className="mcfly-control__table">
             <caption>
               Same calendar days so far versus last month and last year. Closed
-              spend days only. Not which ad caused a sale.
+              spend days only. Honest MER = sales ÷ entered spend — not which ad
+              caused a sale.
             </caption>
             <thead>
               <tr>

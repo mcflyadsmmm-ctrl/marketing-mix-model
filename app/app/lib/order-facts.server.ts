@@ -12,9 +12,7 @@ import {
   shopifyOrderHistoryIsLimited,
 } from "./shopify-order-window";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
-import { isBillingEnabled } from "./billing-flag.server";
-import { shopIsProForIngest } from "./live-ingest-depth.server";
-import { resolveLiveIngestWindowDays } from "./live-ingest-depth";
+import { resolveOrderRowWindowDays } from "./live-ingest-depth";
 import {
   adminGraphqlJson,
   ORDER_FACT_PAGES_COST_SAFE_CAP,
@@ -692,18 +690,16 @@ export async function runOrderFactsBackfill(
   }
 
   const state = await ensureBackfillState(shopId);
-  // When TOML/env declares read_all_orders, try the same Jan-1 × 4yr depth as SalesDayFact.
+  // Shopify-visible span, then cut to 24 months of order rows.
   const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
   let historyLimited = scopesAllowDeep ? false : state.historyLimited;
   const deepWindowDays = salesDayFactWindowDayCount(now);
   const paidWindowDays = historyLimited
     ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
     : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
-  const billingEnabled = isBillingEnabled();
-  const windowDays = resolveLiveIngestWindowDays({
-    billingEnabled,
-    isPro: billingEnabled ? await shopIsProForIngest(shopId) : false,
-    paidWindowDays,
+  const windowDays = resolveOrderRowWindowDays({
+    shopifyWindowDays: paidWindowDays,
+    now,
   });
 
   const timeZone = metadata.ianaTimezone;
@@ -939,11 +935,9 @@ export async function getOrderBackfillProgress(
     historyLimited && !scopesAllowDeep
       ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
       : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
-  const billingEnabled = isBillingEnabled();
-  const windowDaysCount = resolveLiveIngestWindowDays({
-    billingEnabled,
-    isPro: billingEnabled ? await shopIsProForIngest(shopId) : false,
-    paidWindowDays,
+  const windowDaysCount = resolveOrderRowWindowDays({
+    shopifyWindowDays: paidWindowDays,
+    now,
   });
   const windowDayKeys = listRecentClosedShopLocalDays(
     tz,

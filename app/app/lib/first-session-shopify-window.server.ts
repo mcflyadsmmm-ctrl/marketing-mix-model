@@ -3,17 +3,18 @@
  *
  * Product lock:
  * - Demo = SAMPLE full wow (this lane is Live ingest, not SAMPLE).
- * - Trial/unpaid = ~90d Live slice (billing hard-stop in `live-ingest-depth`).
- * - Paid $39 = FULL order history immediately on subscribe. "Sealed" means
- *   that same granted window is filled — never treat paid as 90d-only.
+ * - Trial and paid share one order pull: 24 months of order rows.
+ * - Daily sales totals come from ShopifyQL, not from paging those orders.
+ * - Order rows stop at 24 months for trial and paid. See live-ingest-depth.
+ * - Paid $39 does not extend order rows past 24 months.
  *
  * OAuth and first paint must not await the crawl. Enqueue resume jobs, then
  * fire-and-forget the default chunk (20 sales days / 7 order days) — never
  * the timid maxDays: 2 that left a sealed thin book.
  *
  * Live unpark: skip enqueue while SAMPLE freeze / stage parked
- * (`liveUnparkIngestPolicyFromEnv`). Sync law on tip: unpaid/trial ~90d,
- * paid $39 full history — never crawl paid as 90d-only.
+ * (`liveUnparkIngestPolicyFromEnv`). Order crawl is 24 months, not five years.
+ * One-shot contract lives in LIVE_SYNC_LAW_PR_REF.
  * One-shot after that full window seals: Live tabs skip enqueue/burst.
  * OAuth / first-session still kick while work remains. Refunds/cancels
  * re-arm OrderFact via webhook.
@@ -41,9 +42,14 @@ export const SHOPIFY_WINDOW_BACKFILL_MAX_ATTEMPTS = 40;
 
 export function salesDayFactsWindowShouldResume(result: {
   remainingMissingDays: number;
-  skippedReason: "no_timezone" | null;
+  skippedReason: "no_timezone" | "reports_scope_missing" | null;
 }): boolean {
-  if (result.skippedReason === "no_timezone") return false;
+  if (
+    result.skippedReason === "no_timezone" ||
+    result.skippedReason === "reports_scope_missing"
+  ) {
+    return false;
+  }
   return result.remainingMissingDays > 0;
 }
 

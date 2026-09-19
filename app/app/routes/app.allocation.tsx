@@ -722,7 +722,7 @@ function PeriodSnapshotSection({
 
   return (
     <section
-      className="mcfly-alloc-v2__snaps mcfly-alloc-v2__snaps--soft"
+      className="mcfly-well mcfly-well--scoreboard mcfly-alloc-v2__snaps mcfly-alloc-v2__snaps--soft"
       aria-label={`${periodLabel} snapshot`}
     >
       <div className="mcfly-alloc-v2__head">

@@ -2,13 +2,15 @@
 
 **Lane:** Ops. Empty table until Marty pastes. **Do not invent visits, installs, trials, paid, or reviews.**
 
+**Refreshed:** 2026-09-18 (Ops smoke). Rows still blank on purpose.
+
 **Listing:** https://apps.shopify.com/mcfly-analytics-public  
 **App (human):** https://dev.shopify.com/dashboard/227535001/apps/403721814017  
-**Price:** 7-day trial, then $39/store/month (public listing HTML 2026-09-15).
+**Price:** 7-day trial, then $39/store/month (public listing HTML 2026-09-18 still shows free trial + $39).
 
 Ads inherit this sheet. **No App Store ads until one organic week of Partner visits / installs / trials is pasted below.** That filled week is gate 3 for [`APP_STORE_ADS.md`](./APP_STORE_ADS.md).
 
-Public listing reviews as of 2026-09-15 stranger smoke: **0**. Not a Partner Insights number — do not put it in the table as if it were visits.
+Public listing reviews as of 2026-09-18 Ops curl: **0** (**0.0/5**, **No reviews yet**). Not a Partner Insights number — do not put it in the table as if it were visits.
 
 ---
 
@@ -53,7 +55,8 @@ Week of = Monday of that week, America/Denver, except the launch row kept as **2
 | Week of | Listing visits | Installs | Visit→install % | Trial starts | Shops that added spend | Paid | Uninstalls | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-09-08 |  |  |  |  |  |  |  | First public week after 7 Sep launch. **Paste Partner numbers. Ops left this row empty.** |
-| 2026-09-15 |  |  |  |  |  |  |  | Second public week. **Paste Partner numbers. Ops left this row empty.** |
+| 2026-09-15 |  |  |  |  |  |  |  | Week containing 2026-09-18 Ops refresh. **Paste Partner numbers. Ops left this row empty.** |
+| 2026-09-22 |  |  |  |  |  |  |  | Next Monday row ready. **Paste when the week closes. Ops left empty.** |
 
 No prior weeks: listing was not a live fully-visible App Store URL to measure before 7 Sep 2026. Do not backfill zeros as if they were measured.
 

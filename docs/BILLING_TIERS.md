@@ -11,9 +11,9 @@
 
 Billing is not a desk mode and **nothing is feature-gated**. Trial and paid both get Spend, Overview, Spend Allocation, Customer LTV, Goals, Advanced, and Settings, with every named platform plus typed extras (billboards, radio, retainers, …).
 
-The only two desk views are **Sample data | Live data**.
+Installed Admin is **Live shop only**. Snowdevil SAMPLE stays on the public site demo and the ops freeze kill-switch — not a merchant Sample | Live toggle.
 
-**Live ingest depth (not a feature gate):** unpaid/trial Live is a ~90-day slice — no free multi-year backfill. Paid $39 unlocks full order history immediately on subscribe (pay anytime day 1). SAMPLE stays full wow. LTV locked/90d states show **Unlock full history**. Price does not rise with sales.
+**Live ingest depth (not a feature gate):** order rows stop at 24 months for trial and paid. Daily sales totals are a ShopifyQL query (`read_reports`), not an order crawl, and go back as far as that query returns inside the ten-year ask. SAMPLE stays full wow. Price does not rise with sales.
 
 Do **not** reintroduce a Free tier or a Pro gate in the app. `entitlements.server.ts` allows every channel and every surface on every plan; `desk-claims-guard.test.ts` fails the build if plan-gate vocabulary returns.
 

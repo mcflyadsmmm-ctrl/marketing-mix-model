@@ -1,13 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   liveIngestDepth,
+  orderRowWindowDayCount,
+  ORDER_ROW_WINDOW_MONTHS,
   resolveLiveIngestWindowDays,
+  resolveOrderRowWindowDays,
   shopMayIngestFullHistory,
-  TRIAL_LIVE_SLICE_DAYS,
 } from "./live-ingest-depth";
 
-describe("Live ingest billing hard-stop", () => {
-  it("does not clamp when the host is not charging", () => {
+describe("Live ingest windows", () => {
+  it("does not clamp sales days when the host is not charging", () => {
     expect(
       shopMayIngestFullHistory({ billingEnabled: false, isPro: false }),
     ).toBe(true);
@@ -20,7 +22,7 @@ describe("Live ingest billing hard-stop", () => {
     ).toBe(1800);
   });
 
-  it("keeps unpaid/trial on the ~90d Live slice — no free multi-year backfill", () => {
+  it("gives trial the same sales window Shopify already granted", () => {
     expect(
       shopMayIngestFullHistory({ billingEnabled: true, isPro: false }),
     ).toBe(false);
@@ -33,7 +35,7 @@ describe("Live ingest billing hard-stop", () => {
         isPro: false,
         paidWindowDays: 1800,
       }),
-    ).toBe(TRIAL_LIVE_SLICE_DAYS);
+    ).toBe(1800);
     expect(
       resolveLiveIngestWindowDays({
         billingEnabled: true,
@@ -43,13 +45,7 @@ describe("Live ingest billing hard-stop", () => {
     ).toBe(60);
   });
 
-  it("unlocks the full paid book immediately on subscribe", () => {
-    expect(
-      shopMayIngestFullHistory({ billingEnabled: true, isPro: true }),
-    ).toBe(true);
-    expect(liveIngestDepth({ billingEnabled: true, isPro: true })).toBe(
-      "paid_full",
-    );
+  it("does not extend paid sales past the Shopify window", () => {
     expect(
       resolveLiveIngestWindowDays({
         billingEnabled: true,
@@ -57,5 +53,17 @@ describe("Live ingest billing hard-stop", () => {
         paidWindowDays: 1800,
       }),
     ).toBe(1800);
+  });
+
+  it("caps order rows at 24 months for trial and paid", () => {
+    expect(ORDER_ROW_WINDOW_MONTHS).toBe(24);
+    const now = new Date("2026-09-18T12:00:00.000Z");
+    const cap = orderRowWindowDayCount(now);
+    expect(cap).toBeGreaterThan(700);
+    expect(cap).toBeLessThan(750);
+    expect(
+      resolveOrderRowWindowDays({ shopifyWindowDays: 1800, now }),
+    ).toBe(cap);
+    expect(resolveOrderRowWindowDays({ shopifyWindowDays: 60, now })).toBe(60);
   });
 });

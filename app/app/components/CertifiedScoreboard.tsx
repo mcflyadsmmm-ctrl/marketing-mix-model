@@ -5,6 +5,7 @@ import {
   type CashChip,
   type MonthClosePlan,
 } from "../lib/mer-control";
+import { CERTIFIED_WINDOWS_KICKER, HONEST_MER_LINE } from "../lib/spend-upload-findings";
 import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
 
@@ -54,12 +55,14 @@ export function CertifiedScoreboard({
   if (chips.length === 0) return null;
 
   const goal =
-    targetMer > 0 ? `${formatMer(targetMer)}× goal` : "Set a goal in Settings";
+    targetMer > 0
+      ? `At goal vs Settings (${formatMer(targetMer)}×)`
+      : "Set a goal in Settings";
 
   return (
     <section className="mcfly-scoreboard mcfly-scoreboard--soft" aria-label="Certified Total ROAS">
       <p className="mcfly-scoreboard__kicker">
-        Certified windows · {PRODUCT_NOUN.definition} · {goal}
+        {CERTIFIED_WINDOWS_KICKER} · {goal}
       </p>
       <div className="mcfly-scoreboard__row">
         {chips.map((chip) => {
@@ -77,7 +80,11 @@ export function CertifiedScoreboard({
                   value,
                   kicker: goal,
                   blocks: [
-                    { k: "What this is", v: PRODUCT_NOUN.definition },
+                    { k: "What this is", v: HONEST_MER_LINE },
+                    {
+                      k: "Formula",
+                      v: PRODUCT_NOUN.definition,
+                    },
                     {
                       k: "Sales",
                       v: formatCurrency(chip.sales, currency),
@@ -87,7 +94,7 @@ export function CertifiedScoreboard({
                       v:
                         chip.spend > 0
                           ? formatCurrency(chip.spend, currency)
-                          : "Empty spend is not a ratio",
+                          : "Empty spend is not a ratio — paints —, never 0×",
                     },
                     yoy ? { k: "Last year", v: yoy } : null,
                     chip.fromKey && chip.toKey
@@ -103,7 +110,7 @@ export function CertifiedScoreboard({
                     (block): block is { k: string; v: string } =>
                       block != null,
                   ),
-                  next: "Explorer below is the same sales ÷ spend, by day.",
+                  next: "Explorer below is the same sales ÷ entered spend, by day.",
                   foot: zoneCopy(zone),
                 })
               }

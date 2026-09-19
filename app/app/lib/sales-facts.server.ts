@@ -2,13 +2,19 @@ import type { AdminApiContext } from "@shopify/shopify-app-react-router/server";
 import prisma from "../db.server";
 import {
   emptySales,
-  fetchShopifySales,
-  LIVE_TODAY_MAX_PAGES,
   shopLocalDayKey,
   shopLocalDayRange,
   listRecentClosedShopLocalDays,
   type SalesResult,
 } from "./shopify-sales.server";
+import {
+  fetchShopifySalesDayTotals,
+  ShopifyReportsScopeError,
+} from "./shopify-sales-totals.server";
+import {
+  salesTotalsWindowDayCount,
+  type SalesDayTotal,
+} from "./shopify-sales-totals";
 import { ensureShopMetadata } from "./shop-metadata.server";
 import { DESK_HISTORY_YEARS_BACK } from "./desk-history";
 import { countClosedDaysInPeriod } from "./mer-trust";
@@ -17,24 +23,17 @@ import {
   throwIfChartRequestAborted,
 } from "./chart-smooth";
 import type { DateRange } from "./periods";
-import { SHOPIFY_READ_ORDERS_WINDOW_DAYS } from "./periods";
 import {
   isCertifiedSalesDayFact,
-  isShopifyHistoryWindowError,
-  isUnseenShopifySalesDay,
   shopifyReadOrdersScopesAllowDeep,
 } from "./shopify-order-window";
-import { isBillingEnabled } from "./billing-flag.server";
-import { shopIsProForIngest } from "./live-ingest-depth.server";
-import { resolveLiveIngestWindowDays } from "./live-ingest-depth";
-
-/** SalesDayFact.source for rows written by this ingest lane. */
-export const SALES_DAY_FACT_SOURCE = "shopify_order_current_total_v1";
+/** SalesDayFact.source for rows written by the ShopifyQL totals lane. */
+export const SALES_DAY_FACT_SOURCE = "shopifyql_sales_day_v1";
 
 /**
- * Serving + backfill horizon: closed days back to **Jan 1 of (UTC year − N)**.
- * Example: mid-2026 → window starts 2021-01-01 so YTD / L12M / 5yr can complete
- * once facts are filled (requires `read_all_orders` for Shopify history).
+ * Desk horizon for charts and the spend template: Jan 1 of (UTC year − N).
+ * Ingest asks ShopifyQL for {@link salesTotalsWindowDayCount} and does not
+ * page orders. This constant stays at 5 so the spend CSV floor does not move.
  */
 export const SALES_DAY_FACT_WINDOW_YEARS_BACK = DESK_HISTORY_YEARS_BACK;
 
@@ -64,11 +63,10 @@ export function salesDayFactWindowDayCount(now: Date = new Date()): number {
 export const SALES_DAY_FACT_WINDOW_DAYS = 5 * 365 + 1;
 
 /**
- * Max days ingested per `runSalesFactsBackfill` call. Keeps a single invocation
- * (auth callback, cron tick) bounded — the next call resumes via missing dates.
- * Raised from 10 so a 4yr window fills in fewer ticks without blowing OAuth.
+ * Max closed days written per `runSalesFactsBackfill` call. One ShopifyQL
+ * query covers the batch; this only bounds the upserts.
  */
-export const SALES_DAY_FACT_MAX_DAYS_PER_RUN = 20;
+export const SALES_DAY_FACT_MAX_DAYS_PER_RUN = 366;
 
 /** Queue type: resume SalesDayFact until the public-app window is filled. */
 export const BACKFILL_SALES_DAY_FACTS_JOB = "backfill_sales_day_facts";
@@ -83,12 +81,15 @@ export interface SalesFactBackfillResult {
   /** Days whose Shopify fetch failed this call — left missing for the next run to retry. */
   failed: string[];
   /**
-   * Days Shopify did not share (history window / empty fetch outside ~60 days).
+   * Days Shopify did not share (history window / empty ShopifyQL row).
    * Left missing — never stored as $0.
    */
   unseen: string[];
-  /** Set when ianaTimezone was (and remains) unknown; ingest was skipped entirely. */
-  skippedReason: "no_timezone" | null;
+  /**
+   * Set when ianaTimezone was (and remains) unknown, or when the token lacks
+   * `read_reports` (sales totals ingest blocked — not an orders crawl).
+   */
+  skippedReason: "no_timezone" | "reports_scope_missing" | null;
   /** Missing days within the window not yet attempted this call (still to resume). */
   remainingMissingDays: number;
 }
@@ -105,7 +106,31 @@ function dayKeyToUtcDate(dayKey: string): Date {
   return new Date(Date.UTC(y, m - 1, d));
 }
 
-/** Which of `dayKeys` already have a SalesDayFact row for this shop. */
+function salesResultFromDayTotal(row: SalesDayTotal | undefined): SalesResult {
+  const customerMetricsAvailable = row?.customerMetricsAvailable === true;
+  return {
+    totalSales: row?.totalSales ?? 0,
+    netSales: row?.netSales ?? 0,
+    netSalesKnown: true,
+    grossSales: row?.grossSales ?? 0,
+    grossSalesKnown: true,
+    salesBasisUsed: "total",
+    orderCount: row?.orderCount ?? 0,
+    newCustomers: 0,
+    returningCustomers: 0,
+    // Field name is historical — amounts are ShopifyQL Total Sales $ on New/Returning orders.
+    newCustomerNetSales: customerMetricsAvailable
+      ? (row?.newCustomerNetSales ?? 0)
+      : 0,
+    returningCustomerNetSales: customerMetricsAvailable
+      ? (row?.returningCustomerNetSales ?? 0)
+      : 0,
+    guestOrders: 0,
+    customerMetricsAvailable,
+    source: "shopify",
+  };
+}
+
 async function existingFactDayKeys(
   shopId: string,
   dayKeys: string[],
@@ -201,19 +226,7 @@ export async function runSalesFactsBackfill(
   }
 
   const timeZone = metadata.ianaTimezone;
-  const scopesAllowDeep =
-    options?.scopesAllowDeep ?? shopifyReadOrdersScopesAllowDeep();
-  const paidWindowDays = scopesAllowDeep
-    ? salesDayFactWindowDayCount(now)
-    : SHOPIFY_READ_ORDERS_WINDOW_DAYS;
-  const billingEnabled = isBillingEnabled();
-  const ingestDayCount =
-    options?.windowDays ??
-    resolveLiveIngestWindowDays({
-      billingEnabled,
-      isPro: billingEnabled ? await shopIsProForIngest(shopId) : false,
-      paidWindowDays,
-    });
+  const ingestDayCount = options?.windowDays ?? salesTotalsWindowDayCount(now);
   const windowDayKeys = listRecentClosedShopLocalDays(
     timeZone,
     ingestDayCount,
@@ -226,44 +239,48 @@ export async function runSalesFactsBackfill(
   let written = 0;
   const failed: string[] = [];
   const unseen: string[] = [];
-  for (const dayKey of batch) {
+  if (batch.length > 0) {
     try {
-      const range = shopLocalDayRange(dayKey, timeZone);
-      const sales = await fetchShopifySales(admin, range);
-      if (
-        isUnseenShopifySalesDay({
-          day: dayKeyToUtcDate(dayKey),
-          orderCount: sales.orderCount,
-          totalSales: sales.totalSales,
+      const totals = await fetchShopifySalesDayTotals(admin, {
+        since: batch[0]!,
+        until: batch[batch.length - 1]!,
+      });
+      for (const dayKey of batch) {
+        await upsertSalesDayFact(
+          shopId,
+          dayKey,
+          salesResultFromDayTotal(totals.get(dayKey)),
+          metadata.currencyCode,
           now,
-          scopesAllowDeep,
-        })
-      ) {
-        unseen.push(dayKey);
-        continue;
+        );
+        written += 1;
       }
-      await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
-      written += 1;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (isShopifyHistoryWindowError(undefined, msg)) {
-        unseen.push(dayKey);
-        continue;
+      if (err instanceof ShopifyReportsScopeError) {
+        return {
+          shopId,
+          ranAt,
+          attempted: 0,
+          written: 0,
+          failed: [],
+          unseen: [],
+          skippedReason: "reports_scope_missing",
+          remainingMissingDays: missing.length,
+        };
       }
-      // Leave this day missing — the next call's missing-dates scan retries it.
-      failed.push(dayKey);
+      failed.push(...batch);
     }
   }
 
   return {
     shopId,
     ranAt,
-    attempted: batch.length,
+    attempted: failed.length > 0 ? batch.length : written,
     written,
     failed,
     unseen,
     skippedReason: null,
-    remainingMissingDays: Math.max(0, missing.length - batch.length),
+    remainingMissingDays: Math.max(0, missing.length - written),
   };
 }
 
@@ -272,8 +289,7 @@ export async function runSalesFactsBackfill(
  * `runSalesFactsBackfill` uses. Used by the first-session one-shot gate so a
  * sealed shop does not re-arm window jobs on every Live tab.
  *
- * Same window as `runSalesFactsBackfill`, including the billing hard-stop:
- * unpaid/trial is the ~90d Live slice; paid $39 is the Jan-1 × N-year book.
+ * Same window as `runSalesFactsBackfill`: ShopifyQL day totals, not order pages.
  */
 export async function getSalesFactsWindowRemainingDays(
   shopId: string,
@@ -284,17 +300,7 @@ export async function getSalesFactsWindowRemainingDays(
   },
 ): Promise<number> {
   const now = options.now ?? new Date();
-  const scopesAllowDeep =
-    options.scopesAllowDeep ?? shopifyReadOrdersScopesAllowDeep();
-  const paidWindowDays = scopesAllowDeep
-    ? salesDayFactWindowDayCount(now)
-    : SHOPIFY_READ_ORDERS_WINDOW_DAYS;
-  const billingEnabled = isBillingEnabled();
-  const ingestDayCount = resolveLiveIngestWindowDays({
-    billingEnabled,
-    isPro: billingEnabled ? await shopIsProForIngest(shopId) : false,
-    paidWindowDays,
-  });
+  const ingestDayCount = salesTotalsWindowDayCount(now);
   const windowDayKeys = listRecentClosedShopLocalDays(
     options.ianaTimezone,
     ingestDayCount,
@@ -319,7 +325,7 @@ export type SalesDayReconcileSkip =
    */
   | "day_not_closed"
   /** Older than the Jan-1 × N-year serving window — the day can no longer be recomputed. */
-  | "day_outside_window";
+  | "reports_scope_missing";
 
 export interface SalesDayReconcileResult {
   shopId: string;
@@ -363,16 +369,23 @@ export async function reconcileSalesDayFact(
     return { shopId, dayKey, written: false, skippedReason: "day_outside_window" };
   }
 
-  const sales = await fetchShopifySales(admin, range);
-  if (
-    isUnseenShopifySalesDay({
-      day: dayKeyToUtcDate(dayKey),
-      orderCount: sales.orderCount,
-      totalSales: sales.totalSales,
-      now,
-    })
-  ) {
-    return { shopId, dayKey, written: false, skippedReason: "day_outside_window" };
+  let sales: SalesResult;
+  try {
+    const totals = await fetchShopifySalesDayTotals(admin, {
+      since: dayKey,
+      until: dayKey,
+    });
+    sales = salesResultFromDayTotal(totals.get(dayKey));
+  } catch (err) {
+    if (err instanceof ShopifyReportsScopeError) {
+      return {
+        shopId,
+        dayKey,
+        written: false,
+        skippedReason: "reports_scope_missing",
+      };
+    }
+    throw err;
   }
   await upsertSalesDayFact(shopId, dayKey, sales, metadata.currencyCode, now);
   return { shopId, dayKey, written: true, skippedReason: null };
@@ -528,14 +541,22 @@ export interface SalesFactsTotals {
   orderCount: number;
   /**
    * Sum of per-day new/returning counts across `range` — NOT a unique cross-day count
-   * (the same customer ordering on two different days counts twice). Callers must not
-   * present this as live customer metrics; pair with `customerMetricsAvailable: false`.
+   * (the same customer ordering on two different days counts twice). Headcount stays
+   * dark on the ShopifyQL sales path; dollar split uses `customerMetricsAvailable`.
    */
   newCustomersSum: number;
   returningCustomersSum: number;
-  /** Additive new-customer sales across fact days (aMER numerator spine). */
+  /**
+   * Additive New/Returning Total Sales $ across fact days (Shopify order-based split,
+   * not unique headcount).
+   */
   newCustomerNetSalesSum: number;
   returningCustomerNetSalesSum: number;
+  /**
+   * True when every certified fact day in range has ShopifyQL New/Returning $.
+   * Partial windows stay false so we do not overclaim a period split.
+   */
+  customerMetricsAvailable: boolean;
   guestOrdersSum: number;
   dayCount: number;
   /**
@@ -548,8 +569,8 @@ export interface SalesFactsTotals {
 
 /**
  * Build a desk SalesResult from stored SalesDayFact totals (+ optional capped
- * today top-up). Per-day new/returning sums are not unique — customerMetricsAvailable
- * stays false.
+ * today top-up). New/Returning $ come from ShopifyQL’s order-based split when
+ * `customerMetricsAvailable` is true — not unique buyer headcount.
  *
  * Total Sales = `sales` column (currentTotalPriceSet).
  * Net Sales = `netSales` column when complete; otherwise netSalesKnown false.
@@ -563,6 +584,7 @@ export function salesResultFromFactsTotals(
     orderCount: number;
     newCustomerNetSales?: number;
     returningCustomerNetSales?: number;
+    customerMetricsAvailable?: boolean;
     truncatedByPageCap?: boolean;
   } | null,
 ): SalesResult {
@@ -570,6 +592,7 @@ export function salesResultFromFactsTotals(
   const todayNet = today?.netSales ?? today?.totalSales ?? 0;
   const todayGross = today?.grossSales ?? today?.totalSales ?? 0;
   const todayOrders = today?.orderCount ?? 0;
+  const todaySplitOk = today?.customerMetricsAvailable === true;
   const totalSales = facts.totalSales + todayTotal;
   const closedNet = facts.netSalesComplete ? facts.netSalesSum : null;
   const netSalesKnown = closedNet != null;
@@ -589,6 +612,12 @@ export function salesResultFromFactsTotals(
       : today != null
         ? todayGross
         : totalSales;
+  // Closed-day split only when every fact day has it; today-only windows use today's flag.
+  const customerMetricsAvailable =
+    facts.dayCount === 0
+      ? todaySplitOk
+      : facts.customerMetricsAvailable;
+  const useClosedSplit = facts.customerMetricsAvailable;
   return {
     totalSales,
     netSales,
@@ -600,12 +629,13 @@ export function salesResultFromFactsTotals(
     newCustomers: 0,
     returningCustomers: 0,
     newCustomerNetSales:
-      facts.newCustomerNetSalesSum + (today?.newCustomerNetSales ?? 0),
+      (useClosedSplit ? facts.newCustomerNetSalesSum : 0) +
+      (todaySplitOk ? (today?.newCustomerNetSales ?? 0) : 0),
     returningCustomerNetSales:
-      facts.returningCustomerNetSalesSum +
-      (today?.returningCustomerNetSales ?? 0),
+      (useClosedSplit ? facts.returningCustomerNetSalesSum : 0) +
+      (todaySplitOk ? (today?.returningCustomerNetSales ?? 0) : 0),
     guestOrders: 0,
-    customerMetricsAvailable: false,
+    customerMetricsAvailable,
     source: "shopify",
     ...(today?.truncatedByPageCap ? { truncatedByPageCap: true } : {}),
   };
@@ -633,6 +663,7 @@ export async function getSalesFactsTotals(
       returningCustomers: true,
       newCustomerNetSales: true,
       returningCustomerNetSales: true,
+      customerMetricsAvailable: true,
       guestOrders: true,
     },
   });
@@ -657,6 +688,7 @@ export async function getSalesFactsTotals(
   let newCustomerNetSalesSum = 0;
   let returningCustomerNetSalesSum = 0;
   let guestOrdersSum = 0;
+  let customerMetricDays = 0;
   for (const row of certified) {
     totalSales += row.sales;
     if (row.netSales != null && Number.isFinite(row.netSales)) {
@@ -670,9 +702,10 @@ export async function getSalesFactsTotals(
     orderCount += row.orderCount;
     newCustomersSum += row.newCustomers;
     returningCustomersSum += row.returningCustomers;
-    newCustomerNetSalesSum += row.newCustomerNetSales;
-    returningCustomerNetSalesSum += row.returningCustomerNetSales;
-    guestOrdersSum += row.guestOrders;
+    newCustomerNetSalesSum += row.newCustomerNetSales ?? 0;
+    returningCustomerNetSalesSum += row.returningCustomerNetSales ?? 0;
+    guestOrdersSum += row.guestOrders ?? 0;
+    if (row.customerMetricsAvailable) customerMetricDays += 1;
   }
 
   return {
@@ -687,16 +720,12 @@ export async function getSalesFactsTotals(
     returningCustomersSum,
     newCustomerNetSalesSum,
     returningCustomerNetSalesSum,
+    customerMetricsAvailable:
+      certified.length > 0 && customerMetricDays === certified.length,
     guestOrdersSum,
     dayCount: certified.length,
     rangeClampedToFactWindow,
   };
-}
-
-function todayPartialRange(now: Date, ianaTimezone: string): DateRange {
-  const dayKey = shopLocalDayKey(now, ianaTimezone);
-  const day = shopLocalDayRange(dayKey, ianaTimezone);
-  return { start: day.start, end: now, label: "Today (partial)" };
 }
 
 export interface LoadDeskSalesForPeriodResult {
@@ -753,15 +782,15 @@ export async function loadDeskSalesForPeriod(args: {
       const todayBounds = shopLocalDayRange(todayKey, ianaTimezone);
       if (range.end >= todayBounds.start) {
         try {
-          todaySales = await fetchShopifySales(
-            admin,
-            todayPartialRange(now, ianaTimezone),
-            { maxPages: LIVE_TODAY_MAX_PAGES },
-          );
+          const totals = await fetchShopifySalesDayTotals(admin, {
+            since: todayKey,
+            until: todayKey,
+          });
+          todaySales = salesResultFromDayTotal(totals.get(todayKey));
           throwIfChartRequestAborted(signal);
-          todaySalesTruncated = Boolean(todaySales.truncatedByPageCap);
         } catch (err) {
           if (isChartAbortError(err)) throw err;
+          // Reports scope / ShopifyQL failure — not an orders crawl for totals.
           todaySales = null;
           todaySalesUnavailable = true;
         }
@@ -769,7 +798,21 @@ export async function loadDeskSalesForPeriod(args: {
     }
 
     return {
-      sales: salesResultFromFactsTotals(factsTotals, todaySales),
+      sales: salesResultFromFactsTotals(
+        factsTotals,
+        todaySales
+          ? {
+              totalSales: todaySales.totalSales,
+              netSales: todaySales.netSales,
+              grossSales: todaySales.grossSales,
+              orderCount: todaySales.orderCount,
+              newCustomerNetSales: todaySales.newCustomerNetSales,
+              returningCustomerNetSales: todaySales.returningCustomerNetSales,
+              customerMetricsAvailable: todaySales.customerMetricsAvailable,
+              truncatedByPageCap: todaySales.truncatedByPageCap,
+            }
+          : null,
+      ),
       salesError: null,
       factsCoverage,
       todaySalesUnavailable,

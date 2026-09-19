@@ -123,7 +123,7 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     expect(long).toContain("https://mcfly-analytics.fly.dev/support");
     expect(long).not.toMatch(/https:\/\/mcflyads\.com\/(privacy|support|terms)/);
     expect(listing).toMatch(
-      /\|\s*Website\s*\|\s*https:\/\/mcfly-analytics\.fly\.dev\s*\|/,
+      /\|\s*Website\s*\|\s*https:\/\/mcflyads\.com\s*\|/,
     );
     expect(listing).toContain("https://mcfly-analytics.fly.dev/privacy");
     expect(listing).toContain("https://mcfly-analytics.fly.dev/support");

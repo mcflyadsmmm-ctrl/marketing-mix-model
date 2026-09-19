@@ -81,9 +81,10 @@ describe("buildOverviewYoyCards", () => {
     ]);
     expect(month?.missingPrior).toBe(true);
     expect(month?.delta).toBeNull();
-    expect(OVERVIEW_YOY_MISSING).toMatch(/60 days/);
+    expect(OVERVIEW_YOY_MISSING).toMatch(/reports scope|sales day totals/i);
+    expect(OVERVIEW_YOY_MISSING).not.toMatch(/60 days/);
     expect(OVERVIEW_YOY_MISSING).not.toMatch(/\$0 last year/);
-    expect(OVERVIEW_YOY_PENDING).toMatch(/still loading/);
+    expect(OVERVIEW_YOY_PENDING).toMatch(/reports scope|sales totals ingest/i);
     expect(OVERVIEW_YOY_PENDING).toMatch(/not \$0/);
   });
 
@@ -118,7 +119,8 @@ describe("buildOverviewYoyCards", () => {
       },
     ]);
     expect(overviewWindowsCollapsed(cards)).toBe(true);
-    expect(OVERVIEW_YOY_SAME_WINDOW).toMatch(/60 days/);
+    expect(OVERVIEW_YOY_SAME_WINDOW).not.toMatch(/60 days/);
+    expect(OVERVIEW_YOY_SAME_WINDOW).toMatch(/sales day totals|calendar/i);
   });
 
   it("labels certified windows and zones honest deltas", () => {

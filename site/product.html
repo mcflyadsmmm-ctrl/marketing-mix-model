@@ -12,8 +12,8 @@
   <meta name="theme-color" content="#f2f5f8" />
   <title>Shopify order desk | Mcfly Analytics</title>
   <meta name="description" content="Deeper Shopify numbers than Analytics Overview. Typical order, returning dollars, weekends, days to second, LTV. Spend optional. 7-day trial then $39/store/mo. No pixels." />
-  <meta name="mcfly-version" content="v17" />
-  <meta name="mcfly-build" content="fly318-desk" />
+  <meta name="mcfly-version" content="v21" />
+  <meta name="mcfly-build" content="craft-v20" />
   <link rel="canonical" href="https://mcflyads.com/product" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
@@ -238,6 +238,142 @@
       line-height: 1.55;
       font-size: 0.98rem;
     }
+
+    /* v20 craft — floating SAMPLE metrics + Signal / Evidence / Next move */
+    body.product-page .float-desk {
+      margin: 1.75rem auto 0;
+      max-width: 42rem;
+    }
+    body.product-page .float-desk__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0 0 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid rgba(94, 231, 240, 0.35);
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 0.64rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #5ee7f0;
+      background: rgba(12, 18, 25, 0.92);
+    }
+    body.product-page .float-desk__stack {
+      display: grid;
+      gap: 0.7rem;
+    }
+    @media (min-width: 720px) {
+      body.product-page .float-desk__stack {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    body.product-page .float-card {
+      display: grid;
+      gap: 0.15rem;
+      padding: 0.95rem 1rem 1rem;
+      border: 1px solid rgba(244, 247, 251, 0.12);
+      background: #0c1219;
+      border-radius: 14px;
+      color: #f4f7fb;
+      box-shadow: 0 16px 36px -18px rgba(8, 12, 18, 0.55);
+    }
+    body.product-page .float-card__k {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #8b9aab;
+    }
+    body.product-page .float-card__v {
+      margin: 0;
+      font-family: var(--display);
+      font-size: clamp(1.35rem, 2.8vw, 1.7rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #f4f7fb;
+      font-variant-numeric: tabular-nums;
+    }
+    body.product-page .float-card__v--accent {
+      color: #5ee7f0;
+    }
+    body.product-page .float-card__s {
+      margin: 0.1rem 0 0;
+      font-size: 0.8rem;
+      color: #8b9aab;
+      line-height: 1.35;
+    }
+    body.product-page .mer-loud {
+      margin: 1.35rem 0 0;
+      padding: 1.05rem 1.15rem 1.15rem;
+      border: 1px solid rgba(26, 184, 196, 0.35);
+      border-left: 3px solid var(--cyan-deep);
+      background:
+        linear-gradient(165deg, rgba(94, 231, 240, 0.1), transparent 55%),
+        #fff;
+      max-width: 46rem;
+    }
+    body.product-page .mer-loud__k {
+      margin: 0 0 0.35rem;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--cyan-deep);
+    }
+    body.product-page .mer-loud__line {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: clamp(0.92rem, 2vw, 1.05rem);
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    body.product-page .mer-loud__note {
+      margin: 0.5rem 0 0;
+      font-size: 0.88rem;
+      color: var(--mute);
+      line-height: 1.45;
+      max-width: 48ch;
+    }
+    body.product-page .signal-grid {
+      display: grid;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    @media (min-width: 800px) {
+      body.product-page .signal-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+    body.product-page .signal-card {
+      padding: 1.05rem 1.1rem 1.15rem;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    body.product-page .signal-card__role {
+      margin: 0 0 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cyan-deep);
+    }
+    body.product-page .signal-card strong {
+      display: block;
+      margin: 0 0 0.3rem;
+      font-family: var(--display);
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    body.product-page .signal-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      color: var(--mute);
+    }
   </style>
   <script type="application/ld+json">
   {
@@ -278,13 +414,38 @@
       <p class="brand-kicker">Mcfly <span class="ads">Analytics</span></p>
       <h1>Deeper than Shopify Analytics Overview.</h1>
       <p>Overview is this month, this quarter, and this year vs last year — KPI cards and a sales chart. Typical order, returning dollars, weekends, days to second, and LTV live on Customers, Growth, Orders, and LTV. Add spend on Spend Upload; Yesterday / last-N chips live on Total ROAS. 7-day trial, then $39/store/mo.</p>
-      <p class="product-thesis">Order intelligence that works before you add ad spend.</p>
+      <p class="product-thesis">Spend next to sales. Upload spend → see Total ROAS → hit Goals.</p>
+      <aside class="mer-loud" aria-label="Total ROAS formula">
+        <p class="mer-loud__k">MER · Total ROAS</p>
+        <p class="mer-loud__line">Total ROAS = Shopify sales ÷ entered spend</p>
+        <p class="mer-loud__note">Empty spend paints <strong>—</strong>, never 0×. Not platform ROAS. Not pixels.</p>
+      </aside>
+      <aside class="float-desk" aria-label="Snowdevil SAMPLE metrics">
+        <span class="float-desk__badge">SAMPLE · Snowdevil · not a live client</span>
+        <div class="float-desk__stack">
+          <article class="float-card">
+            <p class="float-card__k">Entered spend</p>
+            <p class="float-card__v">$19,023</p>
+            <p class="float-card__s">This month</p>
+          </article>
+          <article class="float-card">
+            <p class="float-card__k">Shopify sales</p>
+            <p class="float-card__v">$68,457</p>
+            <p class="float-card__s">Returns included</p>
+          </article>
+          <article class="float-card">
+            <p class="float-card__k">Total ROAS</p>
+            <p class="float-card__v float-card__v--accent">3.60×</p>
+            <p class="float-card__s">BE 2.50× @ 40%</p>
+          </article>
+        </div>
+      </aside>
     </header>
 
     <aside class="pitch-box" aria-labelledby="pitch-title">
       <p class="pitch-kicker">Sales reps</p>
       <h2 id="pitch-title">Pitch this in 30 seconds</h2>
-      <p>Install inside Admin. Read this month vs last year on Overview — no Meta or Google login. Typical order and returning dollars are on the Shopify five. Add spend later for Total ROAS. Eleven analysis tabs plus Settings after a 7-day trial at $39/store/mo. Empty spend is not 0×.</p>
+      <p>Install inside Admin. Read this month vs last year on Overview — no Meta or Google login. Typical order and returning dollars are on the Shopify five. Add spend later for Total ROAS. Eleven analysis tabs plus Settings after a 7-day trial at $39/store/mo. Empty spend is — , never 0×.</p>
     </aside>
 
     <div class="show-frame">
@@ -303,50 +464,68 @@
     <section class="band formula-band" aria-labelledby="product-formula-title">
       <div class="wrap">
         <p class="eyebrow">The math</p>
-        <h2 id="product-formula-title" class="display">One formula. Two numbers.</h2>
+        <h2 id="product-formula-title" class="display">MER is Total ROAS.<br />Say it loud.</h2>
         <div class="formula-panel reveal">
-          <p class="formula-line mono">Total ROAS = sales (period) ÷ ad spend (same period)</p>
+          <p class="formula-line mono">Total ROAS = Shopify sales ÷ entered spend</p>
           <p class="formula-line mono soft">Break-even Total ROAS ≈ 1 ÷ profit margin</p>
-          <p class="formula-note">Stay above break-even. Shift mix to protect it. Math a CFO will sign.</p>
+          <p class="formula-note">Empty spend = —. Stay above break-even. Shift mix to protect it.</p>
         </div>
       </div>
     </section>
 
     <section class="band ritual-band" aria-labelledby="ritual-title">
       <div class="wrap">
-        <p class="eyebrow">Decision ritual</p>
-        <h2 id="ritual-title" class="display">Ten minutes.<br />Same desk every week.</h2>
-        <p class="lede-soft">Read Overview first: YoY sales glance, KPI cards, sales chart. Add spend when you want Total ROAS vs break-even. No ad-network logins. No “which touchpoint won.”</p>
+        <p class="eyebrow">Copy rhythm</p>
+        <h2 id="ritual-title" class="display">Upload spend.<br />See Total ROAS.<br />Hit Goals.</h2>
+        <p class="lede-soft">Upload spend → see Total ROAS → hit Goals. Overview still works at $0 spend. No ad-network logins. No “which touchpoint won.”</p>
         <ol class="ritual-rail">
           <li>
             <span class="n" aria-hidden="true">01</span>
             <div>
-              <h3>Read Overview</h3>
-              <p>This month / quarter / year vs last year, KPI cards, and a sales chart. Works at $0 spend. Typical order, returning dollars, weekends, days to second, and LTV are on Customers, Growth, Orders, and LTV.</p>
+              <h3>Upload spend</h3>
+              <p>Shopify Total Sales are already in. Add one day’s spend (Meta or a billboard) or paste a CSV. SyncWith optional — you pay them. No ad-account OAuth. Trial includes 24 months of order history. <a href="#spend-csv">How spend gets in →</a></p>
             </div>
           </li>
           <li>
             <span class="n" aria-hidden="true">02</span>
             <div>
-              <h3>Optional: add spend</h3>
-              <p>Shopify Total Sales are already in. Add one day’s spend (Meta or a billboard) or paste a CSV. SyncWith optional — you pay them. No ad-account OAuth. <a href="#spend-csv">How spend gets in →</a></p>
+              <h3>See Total ROAS</h3>
+              <p>Sales ÷ entered spend for the same window, vs break-even. Yesterday / last N / this month / quarter / year chips live here — not on Overview. Empty spend is —, never 0×.</p>
             </div>
           </li>
           <li>
             <span class="n" aria-hidden="true">03</span>
             <div>
-              <h3>Read Total ROAS</h3>
-              <p>Sales ÷ spend for the same window, vs break-even. Yesterday / last N / this month / quarter / year chips live here — not on Overview. Empty spend is an em dash, never 0×. Above the floor: protect. At or below: cut or shift.</p>
-            </div>
-          </li>
-          <li>
-            <span class="n" aria-hidden="true">04</span>
-            <div>
-              <h3>One allocation call</h3>
-              <p>Rules-based mix shift with inputs shown — cut, protect, or move budget. Done in about ten minutes.</p>
+              <h3>Hit Goals</h3>
+              <p>Monthly sales plan next to optional Total ROAS. Above the floor: protect. At or below: cut or shift. One allocation call with inputs shown.</p>
             </div>
           </li>
         </ol>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="signal-title">
+      <div class="wrap">
+        <p class="eyebrow">One finding · deterministic</p>
+        <h2 id="signal-title" class="display">Signal. Evidence. Next move.</h2>
+        <p class="lede-soft">Structured operator note from SAMPLE Snowdevil — not an AI agent that “executes” campaigns.</p>
+        <div class="signal-grid">
+          <article class="signal-card">
+            <p class="signal-card__role">Signal</p>
+            <strong>Total ROAS 3.60× vs BE 2.50×</strong>
+            <p>Above break-even at 40% margin on the SAMPLE window.</p>
+          </article>
+          <article class="signal-card">
+            <p class="signal-card__role">Evidence</p>
+            <strong>Sales $68,457 · spend $19,023</strong>
+            <p>Shopify Total Sales ÷ entered spend. Same window. No path credit.</p>
+          </article>
+          <article class="signal-card">
+            <p class="signal-card__role">Next move</p>
+            <strong>Protect mix · set Goals</strong>
+            <p>Keep channels that clear the floor. Empty spend stays — until you upload.</p>
+          </article>
+        </div>
       </div>
     </section>
 
@@ -354,7 +533,7 @@
       <div class="wrap">
         <p class="eyebrow">Spend spine</p>
         <h2 id="spend-csv-title" class="display">Three doors into spend.<br />One Total ROAS.</h2>
-        <p class="lede-soft">We already have Shopify sales/orders/LTV. You add spend by day by channel — no Meta or Google OAuth. Spend dates can go back to 2021. Shopify sales on Overview cover the last ~60 days. <a href="/assets/mcfly-sheets-spend-guide">Sheets spend guide →</a></p>
+        <p class="lede-soft">We already have Shopify sales/orders/LTV. You add spend by day by channel — no Meta or Google OAuth. Spend dates can go back to 2021. Trial includes 24 months of order history. <a href="/assets/mcfly-sheets-spend-guide">Sheets spend guide →</a></p>
 
         <ol class="spend-flow">
           <li>
@@ -374,7 +553,7 @@
           </li>
         </ol>
 
-        <p class="lede-soft spend-platforms-intro">Eleven analysis tabs plus Settings: Overview, Customers, Growth, Orders, LTV, Spend Upload, Total ROAS, Channel Allocation, YoY, CPA, Goals. Spend dates can go back to 2021. Shopify sales cover the last ~60 days. Sample data | Live data — Live = this shop’s Shopify sales + uploaded spend.</p>
+        <p class="lede-soft spend-platforms-intro">Eleven analysis tabs plus Settings: Overview, Customers, Growth, Orders, LTV, Spend Upload, Total ROAS, Channel Allocation, YoY, CPA, Goals. Spend dates can go back to 2021. Trial includes 24 months of order history. Full Snowdevil SAMPLE demo on <a href="/demo">/demo</a> — install opens this shop’s Live book only.</p>
         <ul class="platform-tags" aria-label="Supported spend platforms">
           <li>Meta</li>
           <li>Google</li>
@@ -438,7 +617,7 @@
 
     <div class="prose">
       <h2>Same sales. Clearer decision math.</h2>
-      <p>Shopify Total Sales, then optional spend → Total ROAS, break-even, mix, Goals. Eleven analysis tabs plus Settings: Overview, Customers, Growth, Orders, LTV, Spend Upload, Total ROAS, Channel Allocation, YoY, CPA, Goals. Try it: <a href="/demo">Sample desk →</a> · <a href="/mer-calculator">ROAS calculator →</a> · <a href="/break-even-roas-calculator">Break-even ROAS →</a> · <a href="/pricing">Pricing →</a> · <a href="#spend-csv">How spend gets in →</a></p>
+      <p>Shopify Total Sales, then optional spend → Total ROAS, break-even, mix, Goals. Eleven analysis tabs plus Settings: Overview, Customers, Growth, Orders, LTV, Spend Upload, Total ROAS, Channel Allocation, YoY, CPA, Goals. Try it: <a href="/demo">full Snowdevil demo →</a> · <a href="/mer-calculator">ROAS calculator →</a> · <a href="/break-even-roas-calculator">Break-even ROAS →</a> · <a href="/pricing">Pricing →</a> · <a href="#spend-csv">How spend gets in →</a></p>
 
       <h2>What we refuse</h2>
       <ul class="refuse-list">
@@ -492,7 +671,7 @@
       <div class="wrap narrow">
         <p class="eyebrow">Get in</p>
         <h2 id="product-close-title" class="display">Install the desk.<br />Read Overview in ten minutes.</h2>
-        <p class="lede-soft">Try the <a href="/demo">Sample desk</a>, then install when ready. <strong>7-day full-access trial</strong>, then $39/store/mo for eleven analysis tabs plus Settings. Uninstall stops the charge. Install from the Shopify App Store.</p>
+        <p class="lede-soft">Try the <a href="/demo">full Snowdevil demo</a>, then install when ready. <strong>7-day full-access trial</strong>, then $39/store/mo for eleven analysis tabs plus Settings. Uninstall stops the charge. Install from the Shopify App Store.</p>
         <div class="cta-row">
           <a class="btn primary solid" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">Install</a>
           <a class="btn ghost" href="/pricing">See pricing</a>

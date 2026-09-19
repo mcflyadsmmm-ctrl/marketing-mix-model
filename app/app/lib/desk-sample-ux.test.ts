@@ -41,6 +41,7 @@ describe("Sample data | Live data UX", () => {
     expect(bar).toContain("mcfly-data-mode--shot");
     expect(bar).toContain("sampleHint");
     expect(bar).toContain("if (!useSampleDesk) return null");
+    expect(bar).toContain("if (!sampleOnlyFreeze && !shotMode) return null");
     const shell = read("../routes/app.tsx");
     expect(shell).toContain("shotMode={shotMode}");
     expect(shell).not.toMatch(/\{!shotMode \? \(/);
@@ -49,14 +50,15 @@ describe("Sample data | Live data UX", () => {
     expect(css).toMatch(/content:\s*"SAMPLE DATA"/);
   });
 
-  it("Sample | Live switching lives in Settings, not a leftover Viewing toggle", () => {
+  it("DataModeBar is SAMPLE honesty for freeze/shot only — no Settings switch", () => {
     const bar = read("../components/DataModeBar.tsx");
     expect(bar).toContain("sampleData");
     expect(bar).toContain("sampleHint");
-    expect(bar).toContain("Switch in Settings");
+    expect(bar).not.toContain("Switch in Settings");
     expect(bar).toContain("sampleOnlyFreeze");
     expect(bar).toContain("Live is parked until launch");
     expect(bar).toContain("if (!useSampleDesk) return null");
+    expect(bar).toContain("if (!sampleOnlyFreeze && !shotMode) return null");
     expect(bar).not.toContain("<Form");
     expect(bar).not.toContain('id="mcfly-data-mode-label"');
     expect(bar).not.toContain("liveDataHint");
@@ -67,20 +69,18 @@ describe("Sample data | Live data UX", () => {
     const labels = read("../lib/product-labels.ts");
     expect(labels).toContain('sampleData: "Sample data"');
     expect(labels).toContain('liveData: "Live data"');
-    expect(labels).toContain("Switch to Sample data in Settings");
     expect(labels).toMatch(/sampleHint:\s*"Snowdevil/);
     expect(labels).not.toMatch(/sampleHint:[\s\S]{0,200}Harbor/);
   });
 
-  it("Sample data preview uses the data-mode POST, not /app/demo", () => {
-    const cta = read("../components/UseSampleCta.tsx");
-    expect(cta).toContain('name="intent" value="use-sample"');
-    expect(cta).toContain('action={`/app/data-mode${location.search}`}');
-    expect(cta).toContain("reloadDocument");
-    expect(cta).toContain("mcfly-btn");
-    expect(cta).toContain('type="submit"');
-    expect(cta).not.toContain("s-button");
-    expect(cta).not.toContain('href="/app/demo"');
+  it("merchant Sample CTAs are retired — Live hosts have no use-sample door", () => {
+    const settings = read("../routes/app.settings.tsx");
+    expect(settings).not.toContain('name="intent" value="use-sample"');
+    expect(settings).not.toContain("Switch to Sample data now");
+    expect(settings).not.toContain("Switch to Live data now");
+    const sampleDesk = read("sample-desk.server.ts");
+    expect(sampleDesk).toContain("if (!isSampleOnlyFreeze()) return");
+    expect(sampleDesk).toContain("Merchants cannot switch to Sample");
   });
 
   it("Spend switches Sample to Live when saving spend", () => {
@@ -112,18 +112,17 @@ describe("Sample data | Live data UX", () => {
     expect(dataMode).toContain('intent === "use-real"');
   });
 
-  it("Settings Sample switch posts to Settings with a native submit, not a blank data-mode GET", () => {
+  it("Settings has no Sample | Live switch; leftover intents no-op via applySampleDeskIntent", () => {
     const bar = read("../components/DataModeBar.tsx");
     const settings = read("../routes/app.settings.tsx");
     expect(bar).not.toMatch(/reloadDocument/);
     expect(bar).not.toContain('name="intent" value="use-real"');
     expect(settings).toContain("applySampleDeskIntent");
-    expect(settings).toContain('name="intent" value="use-real"');
-    expect(settings).toContain('name="intent" value="use-sample"');
-    expect(settings).toContain('className="mcfly-btn mcfly-btn--primary"');
-    expect(settings).toContain('type="submit"');
+    expect(settings).not.toContain('name="intent" value="use-real"');
+    expect(settings).not.toContain('name="intent" value="use-sample"');
+    expect(settings).not.toContain("Switch to Sample data now");
+    expect(settings).not.toContain("Sample | Live");
     expect(settings).toContain('url.pathname = "/app"');
-    expect(settings).toContain("<Form method=\"post\" reloadDocument>");
     expect(settings).not.toMatch(/action=\{dataModeAction\} reloadDocument/);
     expect(settings).not.toContain("dataModeAction");
     expect(settings).not.toMatch(/window\.location\.(href|assign|replace)/);
@@ -538,12 +537,12 @@ describe("Sample data | Live data UX", () => {
     expect(read("../routes/app.advanced.tsx")).not.toContain('href="/app/demo"');
   });
 
-  it("Settings puts Your plan and Sample data on the main page", () => {
+  it("Settings puts Your plan on the main page — no Sample | Live section", () => {
     const settings = read("../routes/app.settings.tsx");
     expect(settings).toContain("Your plan");
-    expect(settings).toContain("Sample data");
     expect(settings).toContain("More — privacy");
-    expect(settings).toContain("Switch to Sample data now");
+    expect(settings).not.toContain("Switch to Sample data now");
+    expect(settings).not.toContain("Sample | Live");
     expect(settings).toContain("Live is parked until launch");
     expect(settings).toContain("ProUpgradeButton");
     expect(settings).not.toContain("Practice desk");
@@ -553,7 +552,7 @@ describe("Sample data | Live data UX", () => {
     expect(settings).not.toContain("on Upload Spend");
   });
 
-  it("SAMPLE book covers through today with a compact window", () => {
+  it("SAMPLE book covers through today; Live hosts ignore useSampleDesk flag", () => {
     // Two years so Overview YoY (MTD / QTD / YTD vs same days last year) always
     // has a full prior-year window, even at a quarter/year boundary.
     expect(SAMPLE_BOOK_DAYS).toBe(730);
@@ -571,6 +570,9 @@ describe("Sample data | Live data UX", () => {
       sampleDesk.indexOf("export async function getSamplePreviewAllowed"),
     );
     expect(enabledFn).not.toContain("ensureSampleBookThroughToday");
+    expect(enabledFn).toContain("isSampleOnlyFreeze()");
+    expect(enabledFn).toContain("return false");
+    expect(enabledFn).not.toContain("useSampleDesk");
   });
 
   it("Total ROAS Explorer is sized to the SVG, not clipped by a short plot box", () => {

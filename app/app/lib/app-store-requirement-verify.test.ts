@@ -262,7 +262,8 @@ describe("Shopify App Store source verification", () => {
   });
 
   it("PCD GraphQL selects only opaque customer id and numberOfOrders", () => {
-    const salesSource = readRepo("app/app/lib/shopify-sales.server.ts");
+    // Day sales moved to ShopifyQL (`shopify-sales-totals`); PCD customer fields live on OrderFact ingest.
+    const salesSource = readRepo("app/app/lib/order-facts.server.ts");
     const documents = graphqlDocuments(salesSource);
     const documentSurface = documents.join("\n");
     const customerBlocks = [

@@ -21,14 +21,13 @@ export function isSampleOnlyFreeze(): boolean {
   return value === "true" || value === "1";
 }
 
-export async function getSampleDeskEnabled(shopId: string): Promise<boolean> {
+/**
+ * Installed Admin desk is Live-only. SAMPLE is for the public site demo and
+ * the ops freeze kill-switch (`MCFLY_SAMPLE_ONLY`), not a merchant toggle.
+ */
+export async function getSampleDeskEnabled(_shopId: string): Promise<boolean> {
   if (isSampleOnlyFreeze()) return true;
-  const settings = await prisma.settings.findUnique({ where: { shopId } });
-  // Settings can hide Sample entirely — always serve real store.
-  if (settings?.samplePreviewAllowed === false) return false;
-  // Read-only. Seeding here ran inside every Admin loader and took Postgres down.
-  // Compact SAMPLE is written only when the merchant toggles Sample on.
-  return Boolean(settings?.useSampleDesk);
+  return false;
 }
 
 export async function getSamplePreviewAllowed(shopId: string): Promise<boolean> {
@@ -94,8 +93,8 @@ export function isSampleDeskIntent(value: string): value is SampleDeskIntent {
 }
 
 /**
- * Merchant Sample | Live switch. Seed the compact Snowdevil book before turning
- * SAMPLE on so Overview is never an empty 200 after the click.
+ * Merchant Sample | Live intents are retired. `use-sample` no-ops on Live hosts;
+ * freeze hydrate (`hydrateSampleOnlyFreeze`) remains the ops path for SAMPLE.
  */
 export async function applySampleDeskIntent(
   shopId: string,
@@ -103,6 +102,8 @@ export async function applySampleDeskIntent(
 ): Promise<void> {
   switch (intent) {
     case "use-sample":
+      // Merchants cannot switch to Sample. Freeze ops use hydrateSampleOnlyFreeze.
+      if (!isSampleOnlyFreeze()) return;
       await setSamplePreviewAllowed(shopId, true);
       await ensureSampleBookThroughToday(shopId);
       let stats = await getSampleDeskStats(shopId);
@@ -122,7 +123,7 @@ export async function applySampleDeskIntent(
       await setSampleDeskEnabled(shopId, false);
       return;
     case "allow-sample-preview":
-      await setSamplePreviewAllowed(shopId, true);
+      // No merchant Sample preview door — ignore.
       return;
     case "hide-sample-preview":
       if (isSampleOnlyFreeze()) return;

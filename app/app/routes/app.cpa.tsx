@@ -71,7 +71,7 @@ export default function CpaPage() {
         <SampleDeskBanner note="CPA below uses SAMPLE spend and buyers — not this shop’s live ledger." />
       ) : null}
 
-      <section className="mcfly-book mcfly-cpa" aria-label="Customer acquisition cost">
+      <section className="mcfly-well mcfly-well--scoreboard mcfly-book mcfly-cpa" aria-label="Customer acquisition cost">
         <p className="mcfly-book__lede">{CPA_CONTRAST}</p>
 
         {!hasSpend ? (

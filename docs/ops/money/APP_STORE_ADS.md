@@ -10,14 +10,14 @@ Significant ad spend is **illegal for this workspace until all four gates below 
 
 ## Four gates (checklist)
 
-Status as of Ops stranger smoke **2026-09-15**. Ops did not `fly deploy`, did not open Admin, and did not paste Partner numbers.
+Status as of Ops smoke **2026-09-18** ([`../journal/STATUS_20260918_ops_smoke.md`](../journal/STATUS_20260918_ops_smoke.md)). Ops did not `fly deploy`, did not open Admin, and did not paste Partner numbers.
 
 | # | Gate | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | Marty **Admin smoke PASS** (SAMPLE + one live spend day) | **AMBER** | SAMPLE greeting **PASS** 2026-09-15 (Overview YoY-first; no blank ROAS/Ad spend wall; Shopify five + LTV First year —). **Live spend day skipped. Trial CTA skipped.** Gate stays amber until those two lines PASS. |
-| 2 | **≥3 honest** App Store reviews | **RED** | Listing HTML **0.0 (0 Reviews)** / **No reviews yet**. Keep **0**. Do not invent. |
-| 3 | One **organic week** of Partner listing visits / installs / trials pasted in [`FUNNEL_WEEKLY.md`](./FUNNEL_WEEKLY.md) | **RED** | 2026-09-08 and 2026-09-15 rows **empty**. Marty has not pasted. Do not fill zeros. |
-| 4 | **P0 desk on Fly** | **GREEN** | Fly **320**, image `deployment-01M2M9P7T9FRRVNKNCSREG0YDK`. Overview YoY-first at $0 spend. Unfrozen after SAMPLE Result. Ops did not deploy this row — Conductor did. |
+| 1 | Marty **Admin smoke PASS** (SAMPLE + one live spend day) | **AMBER** | Ops curl smoke **PASS** 2026-09-18 (site v19, `/health` 200, listing 200). SAMPLE greeting **PASS** 2026-09-15. **Live spend day skipped. Trial CTA skipped.** Gate stays amber until those two lines PASS. |
+| 2 | **≥3 honest** App Store reviews | **RED** | Listing HTML 2026-09-18: **0.0/5**, **(0 Reviews)**, **No reviews yet**. Keep **0**. Do not invent. |
+| 3 | One **organic week** of Partner listing visits / installs / trials pasted in [`FUNNEL_WEEKLY.md`](./FUNNEL_WEEKLY.md) | **RED** | 2026-09-08 / 2026-09-15 / 2026-09-22 rows **empty**. Marty has not pasted. Do not fill zeros. |
+| 4 | **P0 desk on Fly** | **GREEN** | Live `/health` 200 (`ok` + `db:up`). Living Board: Fly **331** @ `6c8a86b`. Ops did not deploy this row. |
 
 **Start campaigns?** **NO.** Gate 1 amber, gates 2–3 red.
 
@@ -65,7 +65,7 @@ Those merchants want connectors Mcfly does not ship. Clicks with zero honest ins
 
 ---
 
-## Confirmation (2026-09-15)
+## Confirmation (2026-09-18)
 
 **Ops did not start campaigns. Ops did not set an ads budget. Do not buy ads yet.**
 

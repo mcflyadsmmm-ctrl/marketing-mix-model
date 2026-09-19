@@ -104,12 +104,24 @@ export function CashTrustBanners({
     salesFactsIncomplete &&
     salesFactsIncomplete.expectedClosedDays > 0 &&
     !shopifyOrderWindowLimited
-      ? salesFactsIncompleteMessage({
-          factDays: salesFactsIncomplete.factDays,
-          expectedClosedDays: salesFactsIncomplete.expectedClosedDays,
-          periodLabel,
-          hasSpend,
-        })
+      ? (() => {
+          const base = salesFactsIncompleteMessage({
+            factDays: salesFactsIncomplete.factDays,
+            expectedClosedDays: salesFactsIncomplete.expectedClosedDays,
+            periodLabel,
+            hasSpend,
+          });
+          // Sales totals are ShopifyQL ingest — not an orders crawl for day totals.
+          const ingest =
+            " Waiting on reports scope / sales totals ingest — not an orders crawl for sales totals.";
+          return {
+            heading:
+              salesFactsIncomplete.factDays <= 0
+                ? "Waiting on sales totals ingest"
+                : base.heading,
+            body: `${base.body}${ingest}`,
+          };
+        })()
       : null;
 
   const orderProgressCopy =

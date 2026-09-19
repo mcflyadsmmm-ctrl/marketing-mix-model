@@ -212,7 +212,7 @@ export function CustomersFirstViewport({
       ) : null}
 
       {lead.length > 0 ? (
-        <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
+        <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
           {lead.map((row) => (
             <PeekCard
               key={row.k}

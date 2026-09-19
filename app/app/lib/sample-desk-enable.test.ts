@@ -84,6 +84,7 @@ import { fileURLToPath } from "node:url";
 import { SAMPLE_BOOK_DAYS } from "./demo-sample-desk.server";
 import {
   applySampleDeskIntent,
+  getSampleDeskEnabled,
   hydrateSampleOnlyFreeze,
   isSampleOnlyFreeze,
   SAMPLE_BOOK_NOTE,
@@ -150,14 +151,35 @@ describe("applySampleDeskIntent use-sample", () => {
     await expect(sampleDeskNeedsSeed("shop_1")).resolves.toBe(true);
   });
 
-  it("seeds a complete Snowdevil book before useSampleDesk=true", async () => {
+  it("no-ops merchant use-sample on Live hosts (no freeze)", async () => {
+    await applySampleDeskIntent("shop_1", "use-sample");
+    expect(state.days).toBe(0);
+    expect(state.spend).toBe(0);
+    expect(state.settings.useSampleDesk).toBe(false);
+  });
+
+  it("getSampleDeskEnabled is false on Live hosts even if settings say Sample", async () => {
+    state.settings.useSampleDesk = true;
+    state.settings.samplePreviewAllowed = true;
+    await expect(getSampleDeskEnabled("shop_1")).resolves.toBe(false);
+  });
+
+  it("getSampleDeskEnabled is true under Sample-only freeze", async () => {
+    process.env.MCFLY_SAMPLE_ONLY = "true";
+    state.settings.useSampleDesk = false;
+    await expect(getSampleDeskEnabled("shop_1")).resolves.toBe(true);
+  });
+
+  it("seeds Snowdevil under freeze when use-sample is posted", async () => {
+    process.env.MCFLY_SAMPLE_ONLY = "true";
     await applySampleDeskIntent("shop_1", "use-sample");
     expect(state.days).toBeGreaterThan(0);
     expect(state.spend).toBeGreaterThan(0);
     expect(state.settings.useSampleDesk).toBe(true);
   });
 
-  it("does not flip SAMPLE on when the seed writes an empty book", async () => {
+  it("does not flip SAMPLE on when freeze seed writes an empty book", async () => {
+    process.env.MCFLY_SAMPLE_ONLY = "true";
     state.persistRows = false;
     await expect(applySampleDeskIntent("shop_1", "use-sample")).rejects.toThrow(
       /SAMPLE book/i,

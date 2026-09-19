@@ -175,7 +175,7 @@ export function OrderHistoryGoalsBoard({
   if (empty) {
     return (
       <section
-        className="mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-habit-goals"
+        className="mcfly-well mcfly-well--scoreboard mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-habit-goals"
         aria-label="Order-history targets"
       >
         <div className="mcfly-panel__head">
@@ -251,7 +251,7 @@ export function OrderHistoryGoalsBoard({
 
   return (
     <section
-      className="mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-habit-goals"
+      className="mcfly-well mcfly-well--scoreboard mcfly-panel mcfly-cust-card mcfly-cust-card--soft mcfly-habit-goals"
       aria-label="Order-history targets"
     >
       <div className="mcfly-panel__head">

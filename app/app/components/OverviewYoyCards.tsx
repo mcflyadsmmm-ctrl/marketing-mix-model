@@ -88,7 +88,7 @@ export function OverviewYoyCards({
   const drill = useDeskDrill();
   if (salesPending) {
     return (
-      <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
+      <section className="mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_PENDING}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -101,7 +101,7 @@ export function OverviewYoyCards({
 
   if (cards.length === 0) {
     return (
-      <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
+      <section className="mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
@@ -117,7 +117,7 @@ export function OverviewYoyCards({
   const sameWindow = overviewWindowsCollapsed(cards);
 
   return (
-    <section className="mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
+    <section className="mcfly-well mcfly-well--scoreboard mcfly-yoy mcfly-yoy--glance mcfly-yoy--soft" aria-label="Sales versus last year">
       <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
       <div className="mcfly-yoy__grid">
         {cards.map((card) => {

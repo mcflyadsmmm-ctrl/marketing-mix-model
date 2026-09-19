@@ -287,16 +287,18 @@ describe("first-session Shopify window resume", () => {
     expect(jobs).toContain("handleBackfillSalesDayFacts");
   });
 
-  it("keeps paid full-history depth and defers the 90d clamp to live-ingest-depth", () => {
+  it("caps order rows at 24 months and leaves sales on the Shopify window", () => {
     const gate = read("./first-session-shopify-window.server.ts");
     const sales = read("./sales-facts.server.ts");
+    const orders = read("./order-facts.server.ts");
     const depth = read("./live-ingest-depth.ts");
-    expect(gate).toContain("never treat paid as 90d-only");
+    expect(gate).toContain("Order rows stop at 24 months");
     expect(gate).toContain("live-ingest-depth");
-    expect(sales).toContain("resolveLiveIngestWindowDays");
-    expect(depth).toContain("TRIAL_LIVE_SLICE_DAYS = 90");
-    expect(depth).toContain("paid_full");
-    expect(depth).toContain("immediately on subscribe");
+    expect(sales).toContain("fetchShopifySalesDayTotals");
+    expect(sales).not.toContain("resolveOrderRowWindowDays");
+    expect(orders).toContain("resolveOrderRowWindowDays");
+    expect(depth).toContain("ORDER_ROW_WINDOW_MONTHS = 24");
+    expect(depth).not.toContain("TRIAL_LIVE_SLICE_DAYS = 90");
   });
 
   it("order webhook enqueues OrderFact backfill after clearing the day seal", () => {

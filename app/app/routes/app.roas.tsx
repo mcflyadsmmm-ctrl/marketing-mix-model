@@ -6,6 +6,7 @@ import { DualCloseLine } from "../components/DualCloseLine";
 import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
 import { MonthlyPacing } from "../components/MonthlyPacing";
 import { PeriodControl } from "../components/PeriodControl";
+import { SpendFindingStrip } from "../components/SpendFindingStrip";
 import {
   SpendExplorer,
   type SpendExplorerSeriesView,
@@ -56,6 +57,10 @@ import {
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
 import { useDeskCurrency } from "../lib/desk-currency";
+import {
+  HONEST_MER_LINE,
+  totalRoasEmptySpendFinding,
+} from "../lib/spend-upload-findings";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session } = await requireAdmin(request);
@@ -308,9 +313,9 @@ export default function TotalRoasPage() {
           </div>
         ) : null}
 
-        <section className="mcfly-book mcfly-book--soft mcfly-roas-book--soft" aria-label="Sales, spend, and Total ROAS">
+        <section className="mcfly-well mcfly-well--scoreboard mcfly-book mcfly-book--soft mcfly-roas-book--soft" aria-label="Sales, spend, and Total ROAS">
           <p className="mcfly-book__lede">
-            Shopify Analytics shows sales, not {PRODUCT_NOUN.totalRoas}. This page shows {PRODUCT_NOUN.definition} — not platform ROAS.
+            Shopify Analytics shows sales, not {PRODUCT_NOUN.totalRoas}. This page shows {PRODUCT_NOUN.definition} — {HONEST_MER_LINE} Empty spend paints —, never 0×.
           </p>
           <div className="mcfly-book__glance mcfly-book__glance--kpis mcfly-book__glance--soft">
             <div className="mcfly-book__kpi mcfly-book__kpi--soft">
@@ -326,7 +331,14 @@ export default function TotalRoasPage() {
             </div>
             <div className="mcfly-book__kpi mcfly-book__kpi--soft">
               <p className="mcfly-book__kpi-k">Spend</p>
-              <p className="mcfly-book__kpi-v">
+              <p
+                className="mcfly-book__kpi-v"
+                data-empty={
+                  formatSpendOnFile(metrics.totalSpend, currency) === "—"
+                    ? "true"
+                    : undefined
+                }
+              >
                 {formatSpendOnFile(metrics.totalSpend, currency)}
               </p>
               <p className="mcfly-book__kpi-hint">
@@ -335,7 +347,12 @@ export default function TotalRoasPage() {
             </div>
             <div className="mcfly-book__kpi mcfly-book__kpi--soft mcfly-book__kpi--lead">
               <p className="mcfly-book__kpi-k">{PRODUCT_NOUN.totalRoas}</p>
-              <p className="mcfly-book__kpi-v">{roasValue}</p>
+              <p
+                className="mcfly-book__kpi-v"
+                data-empty={roasValue === "—" ? "true" : undefined}
+              >
+                {roasValue}
+              </p>
               {hasSpend ? (
                 pairEquation ? (
                   <p className="mcfly-book__kpi-hint">{pairEquation}</p>
@@ -347,6 +364,9 @@ export default function TotalRoasPage() {
               )}
             </div>
           </div>
+          {!hasSpend && !shotMode ? (
+            <SpendFindingStrip finding={totalRoasEmptySpendFinding()} />
+          ) : null}
         </section>
 
         {cashControl && cashControl.chips.length > 0 ? (

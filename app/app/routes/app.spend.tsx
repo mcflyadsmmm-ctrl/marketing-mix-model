@@ -15,6 +15,7 @@ import {
 } from "@mcfly/mer-engine";
 import { PeriodControl } from "../components/PeriodControl";
 import { DeskRouteErrorBoundary } from "../components/DeskRouteErrorBoundary";
+import { SpendFindingStrip } from "../components/SpendFindingStrip";
 import { ensureShop } from "../lib/mer-dashboard.server";
 import { requireAdmin } from "../lib/public-app-gate.server";
 import {
@@ -70,6 +71,7 @@ import {
   recurringFillPreviewCopy,
 } from "../lib/recurring-fill-preview";
 import { SAMPLE_LEDGER_HANDOFF } from "../lib/sample-live-handoff";
+import { spendUploadEmptyFinding } from "../lib/spend-upload-findings";
 
 const CUSTOM_CHANNEL_NAME_ERROR = "Name this channel (e.g. Influencers).";
 
@@ -678,6 +680,10 @@ export default function SpendEntryPage() {
               )}
           </p>
 
+          {strangerEmpty ? (
+            <SpendFindingStrip finding={spendUploadEmptyFinding()} />
+          ) : null}
+
           <section
             id="mcfly-spend-add"
             className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft mcfly-spend-add--hero"
@@ -800,7 +806,7 @@ export default function SpendEntryPage() {
           {strangerEmpty ? null : (
             <>
               <div
-                className="mcfly-spend-glance mcfly-spend-glance--soft"
+                className="mcfly-well mcfly-well--scoreboard mcfly-spend-glance mcfly-spend-glance--soft"
                 aria-label="What’s on file"
               >
                 <SpendPeek

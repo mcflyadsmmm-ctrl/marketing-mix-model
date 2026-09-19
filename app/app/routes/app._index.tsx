@@ -801,27 +801,25 @@ export default function Dashboard() {
                   fold
                   defaultOpen={shotMode}
                 >
-                  {!greetingPending ? (
-                    <OverviewDepthPeeks
-                      orderCount={metrics.orderCount}
-                      typicalOrder={metrics.shopifyDepth.medianAov}
-                      meanAov={
-                        metrics.orderCount > 0
-                          ? metrics.sales / metrics.orderCount
-                          : null
-                      }
-                      typicalDay={metrics.shopifyDepth.medianDailySales}
-                      returningSalesShare={shopBook.returningSalesShare}
-                      returningSales={shopBook.returningSales}
-                      weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
-                      peakWeekday={metrics.shopifyDepth.peakWeekday}
-                      weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
-                      windowSales={metrics.sales}
-                      salesPending={greetingPending}
-                      ordersHref={ordersHref}
-                      useSampleDesk={useSampleDesk}
-                    />
-                  ) : null}
+                  <OverviewDepthPeeks
+                    orderCount={metrics.orderCount}
+                    typicalOrder={metrics.shopifyDepth.medianAov}
+                    meanAov={
+                      metrics.orderCount > 0
+                        ? metrics.sales / metrics.orderCount
+                        : null
+                    }
+                    typicalDay={metrics.shopifyDepth.medianDailySales}
+                    returningSalesShare={shopBook.returningSalesShare}
+                    returningSales={shopBook.returningSales}
+                    weekendSalesShare={metrics.shopifyDepth.weekendSalesShare}
+                    peakWeekday={metrics.shopifyDepth.peakWeekday}
+                    weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
+                    windowSales={metrics.sales}
+                    salesPending={greetingPending}
+                    ordersHref={ordersHref}
+                    useSampleDesk={useSampleDesk}
+                  />
                   {!greetingPending ? (
                     <WeekdaySalesChart
                       shares={metrics.shopifyDepth.weekdaySalesShare}

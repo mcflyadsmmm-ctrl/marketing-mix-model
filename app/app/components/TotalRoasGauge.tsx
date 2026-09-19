@@ -119,10 +119,11 @@ export function TotalRoasGauge({
           {PRODUCT_NOUN.definitionForPeriod}
         </p>
         <p className="mcfly-roas-gauge__aside-meta">
-          {PRODUCT_NOUN.notTrueRoas}
+          Honest MER = sales ÷ entered spend. Not platform ROAS.
         </p>
         <p className="mcfly-roas-gauge__aside-meta">
-          Target {formatMer(targetMer)} on the arc
+          Empty spend paints —, never 0×. Target {formatMer(targetMer)} on the
+          arc — At goal vs Settings.
         </p>
       </aside>
     </div>

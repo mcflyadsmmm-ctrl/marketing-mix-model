@@ -233,12 +233,23 @@ describe("fetchShopifySalesForShop (facts HARD-STOP)", () => {
     expect(apiSource).not.toMatch(
       /import\s*\{[^}]*fetchShopifySales[^}]*\}\s*from\s*["']\.\/shopify-sales\.server["']/,
     );
+    expect(apiSource).not.toContain("fetchShopifySalesByDay");
+    expect(apiSource).not.toContain("from \"./shopify-sales.server\"");
     expect(apiSource).toContain("HARD-STOP");
     expect(apiSource).toContain("ok: false");
   });
 });
 
 describe("v1 MER / allocation fail-closed (source)", () => {
+  it("routes sales through fetchShopifySalesForShop (facts), not order-paging helpers", () => {
+    for (const src of [merRouteSource, allocRouteSource]) {
+      expect(src).toContain("fetchShopifySalesForShop");
+      expect(src).not.toMatch(/\bfetchShopifySales\b/);
+      expect(src).not.toContain("fetchShopifySalesByDay");
+      expect(src).not.toContain("shopify-sales.server");
+    }
+  });
+
   it("does not build ranges with host-local T00:00:00", () => {
     expect(merRouteSource).not.toContain("T00:00:00`");
     expect(merRouteSource).not.toMatch(/\$\{from\}T00:00:00(?!\.000Z)/);

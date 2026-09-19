@@ -19,7 +19,6 @@ import {
 } from "../lib/mer-dashboard.server";
 import {
   getSampleDeskEnabled,
-  getSamplePreviewAllowed,
   hydrateSampleOnlyFreeze,
   isSampleOnlyFreeze,
 } from "../lib/sample-desk.server";
@@ -40,7 +39,6 @@ const PUBLIC_APP = {
   kind: "public" as const,
   apiKey: "",
   useSampleDesk: false,
-  samplePreviewAllowed: false,
   sampleOnlyFreeze: false,
   shotMode: false,
   plansUrl: null as string | null,
@@ -81,10 +79,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await getOrCreateSettings(shop.id);
   await hydrateSampleOnlyFreeze(shop.id);
   const shotMode = url.searchParams.get("shot") === "1";
-  const [useSampleDesk, samplePreviewAllowed] = await Promise.all([
-    getSampleDeskEnabled(shop.id),
-    getSamplePreviewAllowed(shop.id),
-  ]);
+  const useSampleDesk = await getSampleDeskEnabled(shop.id);
+  const sampleOnlyFreeze = isSampleOnlyFreeze();
 
   let plansUrl: string | null = null;
   if (isBillingEnabled()) {
@@ -100,8 +96,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     kind: "desk" as const,
     apiKey: process.env.SHOPIFY_API_KEY || "",
     useSampleDesk,
-    samplePreviewAllowed,
-    sampleOnlyFreeze: isSampleOnlyFreeze(),
+    sampleOnlyFreeze,
     shotMode,
     plansUrl,
     currencyCode: deskPaintCurrency(shop.currencyCode, {
@@ -131,7 +126,6 @@ export default function App() {
   const {
     apiKey,
     useSampleDesk,
-    samplePreviewAllowed,
     sampleOnlyFreeze,
     shotMode,
     plansUrl,
@@ -155,7 +149,6 @@ export default function App() {
         </s-app-nav>
         <DataModeBar
           useSampleDesk={useSampleDesk}
-          samplePreviewAllowed={samplePreviewAllowed}
           shotMode={shotMode}
           sampleOnlyFreeze={sampleOnlyFreeze}
         />

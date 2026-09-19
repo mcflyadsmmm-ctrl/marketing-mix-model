@@ -32,10 +32,10 @@ describe("desk history horizon", () => {
     expect(deskHistoryFloorYear(now)).toBe(2021);
     expect(deskHistoryFloorKey(now)).toBe("2021-01-01");
     expect(deskHistoryCaption(now)).toBe(
-      "Shopify orders · last ~60 days available · returns included",
+      "Shopify sales · day totals when reports are on · up to 24 months of orders · returns included",
     );
     expect(deskHistoryCaption(now, "spend")).toBe(
-      "Daily spend by channel · sales cover the last ~60 days.",
+      "Daily spend by channel · sales day totals when reports are on · up to 24 months of orders.",
     );
   });
 
@@ -56,13 +56,13 @@ describe("deskPeriodTillLabel", () => {
     ).toBe("This month · sales unavailable");
   });
 
-  it("mentions ~60 days on Shopify book pages", () => {
+  it("mentions up to 24 months on Shopify book pages", () => {
     expect(
       deskPeriodTillLabel({ ...liveTill, includeShopifyOrderWindow: true }),
-    ).toBe("This month · live sales · last ~60 days");
+    ).toBe("This month · live sales · up to 24 months of orders");
   });
 
-  it("does not label YTD / Last 12 months as live sales", () => {
+  it("keeps ~60 days only when Shopify history is actually limited", () => {
     expect(
       deskPeriodTillLabel({
         ...liveTill,
@@ -100,11 +100,12 @@ describe("deskPeriodTillLabel", () => {
 });
 
 describe("deskBookLede / honesty notices", () => {
-  it("keeps native contrast and the shared ~60-day muted line", () => {
+  it("keeps native contrast and the shared coverage muted line", () => {
     const lede = deskBookLede("Returning dollars, not headcount.");
     expect(lede).toContain("Returning dollars, not headcount.");
     expect(lede).toContain(PRODUCT_NOUN.shopifyBookMuted);
-    expect(lede).toMatch(/~60 days/);
+    expect(lede).toMatch(/24 months/);
+    expect(lede).not.toMatch(/~60 days/);
   });
 
   it("discloses YTD overclaim and truncated today — not $0", () => {

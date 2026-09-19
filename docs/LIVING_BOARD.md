@@ -4,8 +4,8 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-16 · America/Denver · Fly **331** · Overview Black Clover scoreboard (PR #61) · Snowdevil SAMPLE · Live parked · occupancy **0/4** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v17** (Pages `2f6ca3d0`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
+| **Updated** | 2026-09-18 · America/Denver · Site **v22** Amp-rhythm · Desk Spend/ROAS craft in tree (uncommitted) · occupancy **0/4** · ads **NO** · **Fly held** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v22** (Pages `f996569f`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
 | **Fly** | https://mcfly-analytics.fly.dev · version **331** @ `6c8a86b` (PR #61) · `/health` 200 · Overview = YoY + typical/returning/weekend + day-vs-typical sales board · **zero spend on Overview** · SAMPLE labeled |
 | **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
@@ -85,7 +85,11 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **Admin SAMPLE Result** — 2026-09-15 Harbor: Overview **PASS** · blank ROAS/Ad spend first **NO** · Shopify five at $0 **PASS** · LTV First year — **PASS**. Live spend day **skipped**. Trial CTA **skipped**. Journal [`ops/journal/STATUS_20260915_fly320_result.md`](./ops/journal/STATUS_20260915_fly320_result.md)
 - [x] App Store listing live → `MCFLY_APP_STORE_LIVE=true` · https://apps.shopify.com/mcfly-analytics-public
 - [x] **Site v17 Pages** — Fly 318 spine · Overview YoY glance · Shopify five at $0 spend · Harbor SAMPLE · Pages `2f6ca3d0` · journal [`ops/journal/STATUS_20260915_v17.md`](./ops/journal/STATUS_20260915_v17.md)
-- [ ] **Partner listing paste** — sales-first pack in [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md). Marty Submits. Reviews: **0**
+- [x] **Site v19 Pages** — `/demo` full Snowdevil SAMPLE home · no Sample|Live Settings door · 24mo trial honesty · Pages `4271f20c` · journal [`ops/journal/STATUS_20260918_v19.md`](./ops/journal/STATUS_20260918_v19.md)
+- [x] **Site v22 Pages** — Amp-rhythm product-frame · facts strip · alternating rows · Pages `f996569f` · journal [`ops/journal/STATUS_20260918_v22.md`](./ops/journal/STATUS_20260918_v22.md)
+- [x] **Site v20 Pages** — Snowdevil float heroes · Upload→Total ROAS→Goals · Signal/Evidence/Next · Pages `a7862580` · journal [`ops/journal/STATUS_20260918_v20.md`](./ops/journal/STATUS_20260918_v20.md)
+- [x] **Ops smoke 2026-09-18** — site/demo/pricing/Fly `/health`/listing **5/5 PASS** · reviews **0** · journal [`ops/journal/STATUS_20260918_ops_smoke.md`](./ops/journal/STATUS_20260918_ops_smoke.md) · ads **NO** (gates 1 amber · 2–3 red · 4 green)
+- [ ] **Partner listing paste** — sales-first pack refreshed [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (YoY-first · 24mo · Live-only · honest MER). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v20** before paste.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
 - [x] v11 app-first
@@ -95,15 +99,18 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v15 live** — sales-first H1 · Pages `c705a2ff` · journal [`ops/journal/STATUS_20260910_v15.md`](./ops/journal/STATUS_20260910_v15.md)
 - [x] **v16 live** — 11-tab desk copy · Pages `241ebffc` · journal [`ops/journal/STATUS_20260915_v16.md`](./ops/journal/STATUS_20260915_v16.md)
 - [x] **v17 live** — Fly 318 spine · Pages `2f6ca3d0` · journal [`ops/journal/STATUS_20260915_v17.md`](./ops/journal/STATUS_20260915_v17.md)
+- [x] **v19 live** — Snowdevil `/demo` home · Live-only Admin copy · Pages `4271f20c` · journal [`ops/journal/STATUS_20260918_v19.md`](./ops/journal/STATUS_20260918_v19.md)
+- [x] **v20 live** — Tier A craft elevation · Pages `a7862580` · journal [`ops/journal/STATUS_20260918_v20.md`](./ops/journal/STATUS_20260918_v20.md)
+- [x] **v22 live** — Amp-rhythm product-frame · Pages `f996569f` · journal [`ops/journal/STATUS_20260918_v22.md`](./ops/journal/STATUS_20260918_v22.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Occupancy **0/4**. Four Desk lanes on tree (71 tests), **not** on Fly 329. Sample freeze = **hold** on the standing Mac `fly deploy` order. Human leftover: Partner Save still wait; reviews **0**; ads off. Mac split: [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md).
+**Next:** Occupancy **0/4**. Desk Spend Upload + Total ROAS craft landed in tree (Signal/Evidence/Next · honest MER · empty = —; focused vitest green) — **uncommitted**; Fly held. Site **v22** live (`f996569f`). Listing paste + well-crop captions ready for Marty Save / recapture. Ads **NO**. Say **commit desk** then **Fly go** when ready. Human: Partner Save · listing stills · reviews **0**.
 
 ---
 
 ## Finish law (why Conductor “stops”)
 
-App + site are already live (Fly **320**, site **v17**). SAMPLE smoke **PASSed**. Finalize is **not** another Desk lane. It is listing Save → FUNNEL. Conductor idles on purpose when those are Marty-only. “Keep going / make it world class / steal Black Clover again” restarts Desk and **abandons** listing.
+App + site are already live (Fly **331**, site **v19**). SAMPLE smoke **PASSed**. Finalize is **not** another Desk lane. It is listing Save → FUNNEL. Conductor idles on purpose when those are Marty-only. “Keep going / make it world class / steal Black Clover again” restarts Desk and **abandons** listing.
 
 **Same chat.** Do not open a new Composer for “finalize the app.” If context dies, open this workspace and send `status` as the first message.
 
@@ -144,3 +151,6 @@ App + site are already live (Fly **320**, site **v17**). SAMPLE smoke **PASSed**
 | v15 | `c705a2ff` | Sales-first H1 · spend optional · Harbor SAMPLE below the fold |
 | v16 | `241ebffc` | 11-tab desk copy · Spend Upload · Fly 312 Shopify-gap ledes |
 | v17 | `2f6ca3d0` | Fly 318 spine · Overview YoY · Shopify five at $0 spend · Harbor SAMPLE |
+| v20 | `a7862580` | Snowdevil SAMPLE lock · craft v20 |
+| v21 | `393719e1` | Product-chrome dark wells on paper/sky |
+| v22 | `f996569f` | Amp-rhythm · product-frame hero · facts strip · alternating rows |

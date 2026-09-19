@@ -53,6 +53,21 @@
   --mcfly-tint-ltv: #f5f3ff;
   --mcfly-tint-ratio: #ecfdf5;
   --mcfly-tint-be: #fffbeb;
+  /* Hybrid scoreboard wells — TW/Lifetimely physics inside Polaris-light shell */
+  --mcfly-well-bg: #0c1219;
+  --mcfly-well-bg-elev: #141c26;
+  --mcfly-well-ink: #f4f7fb;
+  --mcfly-well-mute: #8b9aab;
+  --mcfly-well-line: rgba(244, 247, 251, 0.12);
+  --mcfly-well-accent: #5ee7f0;
+  --mcfly-well-accent-soft: rgba(94, 231, 240, 0.14);
+  --mcfly-well-truth: #34d399;
+  --mcfly-well-truth-soft: rgba(52, 211, 153, 0.14);
+  --mcfly-well-empty: #c5d0dc;
+  --mcfly-well-radius: 14px;
+  --mcfly-well-shadow: 0 8px 28px rgba(8, 12, 18, 0.35);
+  --mcfly-kpi-display: clamp(1.65rem, 2.4vw, 2.35rem);
+  --mcfly-kpi-hero: clamp(2.1rem, 3.2vw, 3rem);
 }
 
 /* Quiet motion — Apps Script viewFade, no enter theater */
@@ -20362,3 +20377,356 @@ button.mcfly-habit-goals__read:focus-visible {
   }
 }
 
+
+/* =========================================================================
+ * Hybrid scoreboard wells (2026-09-18 visual blowaway)
+ * Light Polaris shell + dark metric wells. Prefer .mcfly-well; auto-map
+ * legacy peeks / YoY / chart / ROAS glance for tab rollout.
+ * ========================================================================= */
+
+.mcfly-well,
+.mcfly-well--scoreboard {
+  --mcfly-ink: var(--mcfly-well-ink);
+  --mcfly-ink-soft: var(--mcfly-well-ink);
+  --mcfly-mute: var(--mcfly-well-mute);
+  --mcfly-paper: var(--mcfly-well-bg-elev);
+  --mcfly-line: var(--mcfly-well-line);
+  --mcfly-line-soft: var(--mcfly-well-line);
+  background: var(--mcfly-well-bg);
+  color: var(--mcfly-well-ink);
+  border: 1px solid var(--mcfly-well-line);
+  border-radius: var(--mcfly-well-radius);
+  box-shadow: var(--mcfly-well-shadow);
+  padding: 0.85rem 1rem 1rem;
+  animation: mcfly-well-in var(--mcfly-motion) var(--mcfly-ease) both;
+}
+
+@keyframes mcfly-well-in {
+  from {
+    opacity: 0.55;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mcfly-well,
+  .mcfly-well--scoreboard {
+    animation: none;
+  }
+}
+
+.mcfly-well--flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.mcfly-well + .mcfly-well,
+.mcfly-well + .mcfly-yoy--glance,
+.mcfly-yoy--glance + .mcfly-chart,
+.mcfly-well + .mcfly-chart {
+  margin-top: 0.75rem;
+}
+
+/* Auto-map primary scoreboard surfaces into wells */
+.mcfly-lane--first .mcfly-kpi-grid--peeks-lead,
+.mcfly-scoreboard--overview .mcfly-kpi-grid--peeks-lead,
+.mcfly-yoy--glance,
+.mcfly-chart--sales,
+.mcfly-chart--empty,
+.mcfly-book__glance--kpis,
+.mcfly-spend-glance,
+.mcfly-lane--first .mcfly-kpi-grid--peeks-depth,
+.mcfly-score--customers-hero .mcfly-kpi-grid--peeks,
+.mcfly-scoreboard--orders .mcfly-kpi-grid--peeks-lead,
+.mcfly-scoreboard--growth .mcfly-kpi-grid--peeks-lead,
+.mcfly-scoreboard--ltv .mcfly-kpi-grid--peeks-lead,
+.mcfly-scoreboard--goals .mcfly-kpi-grid--peeks-lead,
+.mcfly-scoreboard--cpa .mcfly-kpi-grid--peeks-lead,
+.mcfly-scoreboard--alloc .mcfly-kpi-grid--peeks-lead {
+  --mcfly-ink: var(--mcfly-well-ink);
+  --mcfly-ink-soft: var(--mcfly-well-ink);
+  --mcfly-mute: var(--mcfly-well-mute);
+  --mcfly-paper: var(--mcfly-well-bg-elev);
+  --mcfly-line: var(--mcfly-well-line);
+  background: var(--mcfly-well-bg);
+  color: var(--mcfly-well-ink);
+  border: 1px solid var(--mcfly-well-line);
+  border-radius: var(--mcfly-well-radius);
+  box-shadow: var(--mcfly-well-shadow);
+  padding: 0.85rem 1rem 1rem;
+}
+
+.mcfly-lane--first .mcfly-kpi-grid--peeks-lead,
+.mcfly-scoreboard--overview .mcfly-kpi-grid--peeks-lead {
+  display: grid;
+  gap: 0.65rem;
+}
+
+/* Soft KPI cards become elevated well tiles */
+.mcfly-well .mcfly-kpi--soft,
+.mcfly-kpi-grid--peeks-lead .mcfly-kpi--soft,
+.mcfly-yoy--glance .mcfly-yoy__card--soft,
+.mcfly-book__glance--kpis .mcfly-book__kpi--soft {
+  background: var(--mcfly-well-bg-elev);
+  border: 1px solid var(--mcfly-well-line);
+  border-radius: 12px;
+  box-shadow: none;
+  color: var(--mcfly-well-ink);
+}
+
+.mcfly-kpi-grid--peeks-lead .mcfly-kpi__label,
+.mcfly-well .mcfly-kpi__label,
+.mcfly-yoy--glance .mcfly-yoy__k,
+.mcfly-book__glance--kpis .mcfly-book__kpi-k,
+.mcfly-chart--sales .mcfly-chart__title,
+.mcfly-chart--sales .mcfly-chart__serif {
+  color: var(--mcfly-well-mute);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mcfly-kpi-grid--peeks-lead .mcfly-kpi__value,
+.mcfly-well .mcfly-kpi__value,
+.mcfly-yoy--glance .mcfly-yoy__v,
+.mcfly-book__glance--kpis .mcfly-book__kpi-v,
+.mcfly-chart--sales .mcfly-chart__hero {
+  font-family: var(--mcfly-display);
+  font-size: var(--mcfly-kpi-display);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-well-ink);
+}
+
+.mcfly-kpi-grid--peeks-lead > .mcfly-kpi:first-child,
+.mcfly-kpi--hero,
+.mcfly-book__kpi--lead {
+  grid-column: 1 / -1;
+  background: linear-gradient(
+    145deg,
+    var(--mcfly-well-bg-elev) 0%,
+    #101820 100%
+  );
+  border-color: var(--mcfly-well-accent-soft);
+}
+
+.mcfly-kpi-grid--peeks-lead > .mcfly-kpi:first-child .mcfly-kpi__value,
+.mcfly-kpi--hero .mcfly-kpi__value,
+.mcfly-book__kpi--lead .mcfly-book__kpi-v {
+  font-size: var(--mcfly-kpi-hero);
+  color: var(--mcfly-well-accent);
+}
+
+.mcfly-kpi-grid--peeks-lead .mcfly-kpi__sub,
+.mcfly-well .mcfly-kpi__sub,
+.mcfly-yoy--glance .mcfly-yoy__prior,
+.mcfly-book__glance--kpis .mcfly-book__kpi-hint {
+  color: var(--mcfly-well-mute);
+}
+
+/* Empty — as a visual event, not apologetic grey */
+.mcfly-kpi-grid--peeks-lead .mcfly-kpi__value:is(:empty),
+.mcfly-well .mcfly-kpi__value:is(:empty) {
+  color: var(--mcfly-well-empty);
+}
+
+.mcfly-kpi--soft .mcfly-kpi__value,
+.mcfly-yoy__v,
+.mcfly-book__kpi-v,
+.mcfly-chart__hero,
+.mcfly-chart__empty {
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-kpi__value:is([data-empty="true"]),
+.mcfly-well-empty,
+.mcfly-chart__empty,
+.mcfly-yoy__card--empty .mcfly-yoy__v {
+  color: var(--mcfly-well-empty) !important;
+  font-size: var(--mcfly-kpi-display);
+  font-weight: 500;
+  opacity: 1;
+}
+
+/* Finding strip — Signal / Evidence / Next inside wells */
+.mcfly-score--soft > .mcfly-book__clock,
+.mcfly-well .mcfly-book__clock,
+.mcfly-score .mcfly-book__clock {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.65rem 0 0.85rem;
+  padding: 0.7rem 0.75rem;
+  background: var(--mcfly-well-bg);
+  border: 1px solid var(--mcfly-well-line);
+  border-radius: var(--mcfly-well-radius);
+  box-shadow: var(--mcfly-well-shadow);
+  color: var(--mcfly-well-ink);
+}
+
+.mcfly-score--soft > .mcfly-book__clock .mcfly-book__clock-k,
+.mcfly-well .mcfly-book__clock-k {
+  color: var(--mcfly-well-accent);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.mcfly-score--soft > .mcfly-book__clock .mcfly-book__clock-v,
+.mcfly-well .mcfly-book__clock-v {
+  color: var(--mcfly-well-ink);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.mcfly-score--soft > .mcfly-book__clock > :first-child {
+  border-left: 2px solid var(--mcfly-well-accent);
+  padding-left: 0.55rem;
+}
+
+/* YoY / chart well interiors */
+.mcfly-yoy--glance .mcfly-yoy__lede,
+.mcfly-yoy--glance .mcfly-yoy__note,
+.mcfly-chart--sales .mcfly-chart__muted,
+.mcfly-chart--empty .mcfly-chart__empty {
+  color: var(--mcfly-well-mute);
+}
+
+.mcfly-yoy--glance .mcfly-yoy__v--up,
+.mcfly-chart__vs--up,
+.mcfly-chart__stat-delta--up {
+  color: var(--mcfly-well-truth);
+}
+
+.mcfly-chart--sales .mcfly-chart__sales-line,
+.mcfly-chart--sales .mcfly-chart__hero {
+  color: var(--mcfly-well-accent);
+}
+
+.mcfly-chart--sales svg .mcfly-chart__sales-fill,
+.mcfly-chart--sales .mcfly-chart__sales-fill {
+  fill: var(--mcfly-well-accent-soft);
+}
+
+.mcfly-chart--sales {
+  padding-bottom: 0.5rem;
+}
+
+.mcfly-chart--sales .mcfly-chart__board,
+.mcfly-chart--empty .mcfly-chart__head {
+  border-bottom-color: var(--mcfly-well-line);
+}
+
+/* ROAS lead chip accent */
+.mcfly-book__kpi--lead {
+  outline: 1px solid var(--mcfly-well-accent-soft);
+}
+
+.mcfly-book__kpi--lead .mcfly-book__kpi-v {
+  color: var(--mcfly-well-accent);
+}
+
+/* Spend glance / coverage well */
+.mcfly-spend-glance--soft,
+.mcfly-spend-cal--soft {
+  background: var(--mcfly-well-bg);
+  color: var(--mcfly-well-ink);
+  border-color: var(--mcfly-well-line);
+}
+
+.mcfly-spend-cal__day--filled .mcfly-spend-cal__tick {
+  background: var(--mcfly-well-accent);
+}
+
+.mcfly-spend-cal__day--empty .mcfly-spend-cal__tick {
+  background: transparent;
+  border: 1px solid var(--mcfly-well-line);
+}
+
+/* Soften shell so wells pop */
+.mcfly-desk-tabs--pills {
+  background: transparent;
+}
+
+.mcfly-ctx {
+  opacity: 0.92;
+}
+
+.mcfly-score--soft > .mcfly-score__greeting,
+.mcfly-score--soft > .mcfly-score__trust {
+  color: var(--mcfly-mute);
+}
+
+/* Phone: hero still dominates; 4-up stacks */
+@media (max-width: 430px) {
+  .mcfly-kpi-grid--peeks-lead > .mcfly-kpi:first-child,
+  .mcfly-kpi--hero {
+    grid-column: 1 / -1;
+  }
+
+  .mcfly-score--soft > .mcfly-book__clock,
+  .mcfly-well .mcfly-book__clock {
+    grid-template-columns: 1fr;
+  }
+
+  .mcfly-kpi-grid--peeks-lead .mcfly-kpi__value,
+  .mcfly-book__kpi-v {
+    font-size: clamp(1.45rem, 7vw, 2rem);
+  }
+
+  .mcfly-kpi-grid--peeks-lead > .mcfly-kpi:first-child .mcfly-kpi__value {
+    font-size: clamp(1.85rem, 9vw, 2.5rem);
+  }
+}
+
+/* Wave D — Goals / CPA / Allocation wells */
+.mcfly-habit-goals.mcfly-cust-card--soft,
+.mcfly-book.mcfly-cpa,
+.mcfly-alloc-v2__snaps--soft {
+  background: var(--mcfly-well-bg);
+  color: var(--mcfly-well-ink);
+  border: 1px solid var(--mcfly-well-line);
+  border-radius: var(--mcfly-well-radius);
+  box-shadow: var(--mcfly-well-shadow);
+  padding: 0.85rem 1rem 1rem;
+}
+
+.mcfly-habit-goals .mcfly-cust-kpi__k,
+.mcfly-habit-goals .mcfly-habit-goals__read-k,
+.mcfly-alloc-v2__snap-label,
+.mcfly-book.mcfly-cpa .mcfly-book__lede {
+  color: var(--mcfly-well-mute);
+}
+
+.mcfly-habit-goals .mcfly-cust-kpi__v,
+.mcfly-alloc-v2__snap-value {
+  font-family: var(--mcfly-display);
+  font-size: var(--mcfly-kpi-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-well-ink);
+}
+
+.mcfly-alloc-v2__snap--lead .mcfly-alloc-v2__snap-value {
+  color: var(--mcfly-well-accent);
+  font-size: var(--mcfly-kpi-hero);
+}
+
+.mcfly-alloc-v2__snap--soft {
+  background: var(--mcfly-well-bg-elev);
+  border: 1px solid var(--mcfly-well-line);
+  border-radius: 12px;
+}
+
+.mcfly-score--orders-hero .mcfly-kpi-grid--peeks-lead,
+.mcfly-score--growth-hero .mcfly-kpi-grid--peeks-lead,
+.mcfly-score--customers-hero .mcfly-kpi-grid--peeks-lead {
+  /* inherited well map + explicit hero grid */
+}

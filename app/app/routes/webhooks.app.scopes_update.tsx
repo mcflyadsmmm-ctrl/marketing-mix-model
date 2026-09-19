@@ -1,6 +1,8 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
+import { enqueueJob } from "../lib/job-queue.server";
+import { BACKFILL_SALES_DAY_FACTS_JOB } from "../lib/sales-facts.server";
 import {
   recordWebhookDelivery,
   releaseWebhookDelivery,
@@ -32,6 +34,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           scope: current.toString(),
         },
       });
+    }
+    if (current.includes("read_reports")) {
+      const row = await db.shop.findUnique({
+        where: { domain: shop },
+        select: { id: true },
+      });
+      if (row) {
+        await enqueueJob({
+          shopId: row.id,
+          type: BACKFILL_SALES_DAY_FACTS_JOB,
+          dedupeKey: "reports-scope",
+          payload: { reason: "read_reports" },
+          maxAttempts: 40,
+        });
+      }
     }
     return new Response();
   } catch (error) {
