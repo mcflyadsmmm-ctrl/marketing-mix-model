@@ -16,10 +16,22 @@ Real UI captures from [`https://mcflyads.com/demo`](https://mcflyads.com/demo) (
 
 | File | Subject |
 | --- | --- |
-| `01-overview.png` | Overview — YoY cards, KPI row, Shopify-five peek |
+| `01-overview.png` | Overview — full desk still (source) |
 | `02-total-roas.png` | Spend optional panel — Ad spend / Total ROAS / Break-even |
 | `03-goals.png` | Goals tab — month sales + optional Total ROAS |
 | `04-customers-ltv.png` | Returning dollars + Orders / 90-day LTV compact |
+| `hero-core.png` | v27 hero — 6 complete scoreboard cards, no sliced YoY |
+| `hero-core-phone.png` | v27 390 crop — sales + typical + returning, closed bottoms |
+| `row-roas.png` | Feature row — Spend optional $19,023 / 3.60× / 2.50× |
+| `row-goals.png` | Feature row — Goals tab SAMPLE |
+| `row-yoy.png` | Feature row — complete This month / quarter / year |
+| `row-shopify.png` | Feature row — typical / returning / LTV peek |
+| `micro-yoy.png` | Proof tile — one YoY card |
+| `micro-typical.png` | Typical order / returning dollars cluster |
+| `micro-spend.png` | Spend optional MER strip |
+| `micro-roas.png` | Isolated 3.60× Total ROAS well |
+| `micro-goals.png` | Goals numbers, no tab rail |
+| `micro-ltv.png` | Orders / weekend / days to second / 90-day LTV |
 
 Capture settings: viewport **1440×900**, `deviceScaleFactor` **2** (≈2× PNG). See `manifest.json` for byte sizes + timestamp.
 

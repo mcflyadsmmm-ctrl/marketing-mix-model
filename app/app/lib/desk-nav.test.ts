@@ -133,6 +133,9 @@ describe("DESK_PRIMARY_NAV", () => {
     expect(isDeskNavActive("/app", "/app")).toBe(true);
     expect(isDeskNavActive("/app", "/app/customers")).toBe(false);
     expect(isDeskNavActive("/app/customers", "/app/customers")).toBe(true);
+    expect(isDeskNavActive("/app", "/demo")).toBe(true);
+    expect(isDeskNavActive("/app", "/demo/customers")).toBe(false);
+    expect(isDeskNavActive("/app/customers", "/demo/customers")).toBe(true);
     const shell = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../routes/app.tsx"),
       "utf8",

@@ -12,8 +12,8 @@
   <meta name="theme-color" content="#f2f5f8" />
   <title>Pricing — 7-day then $39 | Mcfly Analytics</title>
   <meta name="description" content="One plan: 7-day full-access trial, then $39/store/mo. Eleven analysis tabs plus Settings. Shopify five at $0 spend; spend tools after. Uninstall stops the charge." />
-  <meta name="mcfly-version" content="v21" />
-  <meta name="mcfly-build" content="craft-v20" />
+  <meta name="mcfly-version" content="v27" />
+  <meta name="mcfly-build" content="opus-v26-p0" />
   <link rel="canonical" href="https://mcflyads.com/pricing" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
@@ -27,18 +27,17 @@
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
   <link rel="stylesheet" href="/assets/site.css?v=20260829v13" />
+  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260918v27" />
   <style>
     body.pricing-page {
-      background:
-        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(94, 231, 240, 0.12), transparent 55%),
-        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(26, 163, 122, 0.08), transparent 50%),
-        var(--paper-2);
+      background: var(--bg, #f2f5f8);
     }
     body.pricing-page .brand-kicker .ads {
       color: var(--cyan-deep);
     }
     body.pricing-page .page-hero h1 {
       max-width: 18ch;
+      font-size: clamp(40px, 3.6vw, 52px);
     }
     body.pricing-page .price-proof {
       margin: 1.25rem 0 0;
@@ -128,10 +127,8 @@
       max-width: 36rem;
     }
     body.pricing-page .tax-pane.mcfly {
-      border-color: rgba(26, 163, 122, 0.35);
-      background:
-        linear-gradient(165deg, rgba(94, 231, 240, 0.1), transparent 55%),
-        rgba(255, 255, 255, 0.55);
+      border-color: rgba(10, 18, 33, 0.14);
+      background: #fff;
     }
     body.pricing-page .tax-pane h3 {
       font-family: var(--display);
@@ -149,7 +146,7 @@
     body.pricing-page .tax-pane.mcfly .path {
       margin-top: 1.1rem;
       padding-top: 1rem;
-      border-top: 1px solid rgba(26, 163, 122, 0.25);
+      border-top: 1px solid rgba(10, 18, 33, 0.12);
       font-family: var(--mono);
       font-size: 0.88rem;
       letter-spacing: -0.02em;
@@ -235,9 +232,11 @@
     }
     body.pricing-page .float-card {
       padding: 0.9rem 1rem 1rem;
-      border: 1px solid rgba(10, 18, 33, 0.1);
-      background: #0c1219; border-radius: 14px; color: #f4f7fb;
-      box-shadow: 0 14px 32px -24px rgba(10, 18, 33, 0.4);
+      border: 1px solid rgba(10, 18, 33, 0.10);
+      background: #ffffff;
+      border-radius: 14px;
+      color: #0f1720;
+      box-shadow: 0 1px 2px rgba(15, 23, 32, 0.06);
     }
     body.pricing-page .float-card__k {
       margin: 0;
@@ -245,7 +244,7 @@
       font-size: 0.66rem;
       letter-spacing: 0.07em;
       text-transform: uppercase;
-      color: #8b9aab;
+      color: #5b6b7c;
     }
     body.pricing-page .float-card__v {
       margin: 0.15rem 0 0;
@@ -253,16 +252,16 @@
       font-size: 1.45rem;
       font-weight: 700;
       letter-spacing: -0.03em;
-      color: #f4f7fb;
+      color: #0f1720;
       font-variant-numeric: tabular-nums;
     }
     body.pricing-page .float-card__v--accent {
-      color: #5ee7f0;
+      color: #0284c7;
     }
     body.pricing-page .float-card__s {
       margin: 0.15rem 0 0;
       font-size: 0.8rem;
-      color: #8b9aab;
+      color: #5b6b7c;
     }
     body.pricing-page .rhythm-line {
       margin: 1rem 0 0;
@@ -270,6 +269,24 @@
       font-size: 0.95rem;
       color: var(--mute);
       line-height: 1.5;
+    }
+    body.pricing-page .btn.primary,
+    body.pricing-page .btn.primary.solid {
+      background: #0a1221;
+      color: #fff;
+      border-color: #0a1221;
+      min-height: 44px;
+      padding: 0.65rem 1.45rem;
+    }
+    body.pricing-page .btn.primary:hover,
+    body.pricing-page .btn.primary.solid:hover {
+      background: #000;
+      color: #fff;
+    }
+    body.pricing-page .btn.ghost {
+      color: #0a1221;
+      border-color: rgba(10, 18, 33, 0.18);
+      background: transparent;
     }
   </style>
   <script type="application/ld+json">
@@ -304,7 +321,7 @@
   </script>
   <!-- launch-v2-20260826 -->
 </head>
-<body class="pricing-page">
+<body class="pricing-page is-light is-mono">
   <a class="skip" href="#main">Skip to content</a>
   <div data-chrome></div>
 
@@ -408,7 +425,6 @@
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260915v17"></script>
-  <script src="/assets/chrome.js?v=20260915v17"></script>
-  <script src="/assets/app.js?v=20260826live"></script>
+  <script src="/assets/mcfly/chrome.js?v=20260918v27"></script>
 </body>
 </html>

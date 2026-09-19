@@ -21,6 +21,7 @@ import {
 } from "../lib/overview-first-viewport";
 import { SAMPLE_OVERVIEW_DOOR } from "../lib/sample-live-handoff";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { useDeskHref } from "../lib/desk-base-path";
 
 export type OverviewPeekProps = {
   "aria-label"?: string;
@@ -190,6 +191,7 @@ function useOverviewPeekValues({
 function handoffPeekCard(
   peek: OverviewHandoffPeek,
   currency: string,
+  deskHref: (adminPath: string) => string,
 ): {
   to: string;
   nextLabel: string;
@@ -204,7 +206,7 @@ function handoffPeekCard(
   switch (peek.kind) {
     case "daysToSecond":
       return {
-        to: "/app/growth",
+        to: deskHref("/app/growth"),
         nextLabel: `Open ${PRODUCT_NOUN.growthTitle}`,
         next: "Open Growth for the habit clock and who to reach.",
         formulaBlock:
@@ -217,7 +219,7 @@ function handoffPeekCard(
       };
     case "ltvPeek":
       return {
-        to: "/app/ltv",
+        to: deskHref("/app/ltv"),
         nextLabel: PRODUCT_NOUN.openLtv,
         next: "Open LTV for 30 / 90 / 365 and the written-out formula.",
         formulaBlock: `Average dollars per new buyer in the ${overviewLtvWindowLabel(peek.windowDays)}. Observed order history — not an estimate.`,
@@ -229,7 +231,7 @@ function handoffPeekCard(
       };
     case "monthClose":
       return {
-        to: "/app/customers",
+        to: deskHref("/app/customers"),
         nextLabel: `Open ${PRODUCT_NOUN.buyersTitle}`,
         next: "Month close is so far plus remaining days × the typical day.",
         formulaBlock: peek.closed
@@ -285,6 +287,7 @@ export function OverviewFirstViewport({
   mixGreeting = null,
   ...rest
 }: OverviewPeekProps) {
+  const deskHref = useDeskHref();
   const {
     currency,
     typicalIsMedian,
@@ -370,7 +373,7 @@ export function OverviewFirstViewport({
           }
         />
         <PeekCard
-          to="/app/customers"
+          to={deskHref("/app/customers")}
           nextLabel={`Open ${PRODUCT_NOUN.buyersTitle}`}
           next="Open Customers for returning dollars and guest checkouts."
           formulaBlock="Sales from returning customers in this window. Shopify Analytics Overview is a returning-customer rate."
@@ -441,7 +444,7 @@ export function OverviewFirstViewport({
       {handoffs.length > 0 ? (
         <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-handoff mcfly-kpi-grid--soft">
           {handoffs.map((peek) => {
-            const card = handoffPeekCard(peek, currency);
+            const card = handoffPeekCard(peek, currency, deskHref);
             return (
               <PeekCard
                 key={peek.kind}

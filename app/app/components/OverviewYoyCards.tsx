@@ -1,5 +1,6 @@
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { useDeskHref } from "../lib/desk-base-path";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import {
@@ -78,13 +79,15 @@ function PendingYoyShell({ id }: { id: OverviewYoyId }) {
 export function OverviewYoyCards({
   cards,
   salesPending,
-  yoyHref = "/app/yoy",
+  yoyHref,
 }: {
   cards: OverviewYoyCard[];
   salesPending: boolean;
   yoyHref?: string;
 }) {
   const currency = useDeskCurrency();
+  const deskHref = useDeskHref();
+  const nextHref = yoyHref ?? deskHref("/app/yoy");
   const drill = useDeskDrill();
   if (salesPending) {
     return (
@@ -151,7 +154,7 @@ export function OverviewYoyCards({
                     (block): block is { k: string; v: string } => block != null,
                   ),
                   next: "Open YoY for this month vs last month vs last year plus last 7.",
-                  nextHref: yoyHref,
+                  nextHref,
                   nextLabel: "Open YoY",
                   foot: card.missingPrior ? OVERVIEW_YOY_MISSING : undefined,
                 })

@@ -20,6 +20,8 @@ describe("Shopify embedded entry vs marketing site", () => {
     expect(isShopifyAppPath("/pricing")).toBe(false);
     expect(isShopifyAppPath("/app")).toBe(true);
     expect(isShopifyAppPath("/app/spend")).toBe(true);
+    expect(isShopifyAppPath("/demo")).toBe(true);
+    expect(isShopifyAppPath("/demo/roas")).toBe(true);
     expect(isShopifyAppPath("/auth/login")).toBe(true);
     expect(isShopifyAppPath("/app.data")).toBe(true);
     expect(isShopifyAppPath("/app/spend.data")).toBe(true);

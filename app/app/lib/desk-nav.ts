@@ -1,3 +1,9 @@
+import {
+  ADMIN_DESK_BASE,
+  deskBaseFromPathname,
+  withDeskBase,
+} from "./desk-base-path";
+
 /**
  * Desk links keep the scoreboard clock (`period`) and listing-shot flag (`shot`).
  * Shopify App Bridge already owns `shop` / `host`.
@@ -170,8 +176,11 @@ export const DESK_IFRAME_NAV: readonly DeskNavItem[] = [
 
 export function isDeskNavActive(path: string, pathname: string): boolean {
   const current = pathname.replace(/\/$/, "") || "/";
-  const target = path.replace(/\/$/, "") || "/";
-  if (target === "/app") return current === "/app";
+  const base = deskBaseFromPathname(pathname);
+  const target = withDeskBase(path, base).replace(/\/$/, "") || "/";
+  if (target === base || target === ADMIN_DESK_BASE) {
+    return current === base;
+  }
   return current === target || current.startsWith(`${target}/`);
 }
 

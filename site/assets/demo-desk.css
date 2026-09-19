@@ -31,18 +31,18 @@
   --dd-microsoft: #c4d4a8;
   --dd-email: #9aa8b8;
   --dd-max: 1160px;
-  /* Hybrid well tokens — match Admin MCFLY_WELL_TOKENS */
-  --dd-well-bg: #0c1219;
-  --dd-well-bg-elev: #141c26;
-  --dd-well-ink: #f4f7fb;
-  --dd-well-mute: #8b9aab;
-  --dd-well-line: rgba(244, 247, 251, 0.12);
-  --dd-well-accent: #5ee7f0;
-  --dd-well-accent-soft: rgba(94, 231, 240, 0.14);
-  --dd-well-truth: #34d399;
-  --dd-well-empty: #c5d0dc;
+  /* Hybrid well tokens — match operator desk (white / navy / sky) */
+  --dd-well-bg: #ffffff;
+  --dd-well-bg-elev: #f7fbfe;
+  --dd-well-ink: #0f1720;
+  --dd-well-mute: #5b6b7c;
+  --dd-well-line: rgba(15, 23, 32, 0.10);
+  --dd-well-accent: #0284c7;
+  --dd-well-accent-soft: rgba(2, 132, 199, 0.12);
+  --dd-well-truth: #047857;
+  --dd-well-empty: #7a8b9c;
   --dd-well-radius: 14px;
-  --dd-well-shadow: 0 8px 28px rgba(8, 12, 18, 0.35);
+  --dd-well-shadow: 0 1px 2px rgba(15, 23, 32, 0.06);
   --dd-kpi-display: clamp(1.65rem, 2.4vw, 2.35rem);
   --dd-kpi-hero: clamp(2.1rem, 3.2vw, 3rem);
 }
@@ -119,15 +119,15 @@ body.demo-page .page-hero p {
 }
 .demo-float-card {
   padding: 0.9rem 1rem 1rem;
-  border: 1px solid rgba(244, 247, 251, 0.12);
-  background: #0c1219;
-  border-radius: 14px;
-  color: #f4f7fb;
-  box-shadow: 0 16px 36px -18px rgba(8, 12, 18, 0.55);
+  border: 1px solid var(--dd-well-line);
+  background: var(--dd-well-bg);
+  border-radius: var(--dd-well-radius);
+  color: var(--dd-well-ink);
+  box-shadow: var(--dd-well-shadow);
 }
 .demo-float-card--accent {
-  border-color: rgba(94, 231, 240, 0.28);
-  background: linear-gradient(145deg, #141c26, #101820);
+  border-color: var(--dd-well-accent-soft);
+  background: var(--dd-well-bg-elev);
 }
 .demo-float-card__k {
   margin: 0;
@@ -135,7 +135,7 @@ body.demo-page .page-hero p {
   font-size: 0.66rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #8b9aab;
+  color: var(--dd-well-mute);
 }
 .demo-float-card__v {
   margin: 0.15rem 0 0;
@@ -143,11 +143,11 @@ body.demo-page .page-hero p {
   font-size: clamp(1.35rem, 2.8vw, 1.7rem);
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: #f4f7fb;
+  color: var(--dd-well-ink);
   font-variant-numeric: tabular-nums;
 }
 .demo-float-card--accent .demo-float-card__v {
-  color: #5ee7f0;
+  color: var(--dd-well-ink);
 }
 .demo-float-card__s {
   margin: 0.15rem 0 0;
@@ -2474,6 +2474,12 @@ body.dd-drawer-open {
   border-radius: var(--dd-radius);
 }
 
+a.dd-yoy__card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .dd-yoy__k {
   margin: 0 0 0.35rem;
   font-size: 0.72rem;
@@ -2734,7 +2740,7 @@ body.demo-page .demo-stage {
   display: inline-block;
 }
 
-/* Dark hybrid wells */
+/* Operator hybrid wells — white cards, navy ink, sky accent */
 .dd-well {
   background: var(--dd-well-bg);
   color: var(--dd-well-ink);
@@ -2788,8 +2794,8 @@ body.demo-page .demo-stage {
 }
 
 .dd-well .dd-kpi--drill:hover {
-  border-color: rgba(94, 231, 240, 0.35);
-  box-shadow: 0 0 0 1px rgba(94, 231, 240, 0.12);
+  border-color: rgba(2, 132, 199, 0.35);
+  box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.12);
 }
 
 .dd-well .dd-kpi--drill:focus-visible {
@@ -2798,7 +2804,7 @@ body.demo-page .demo-stage {
 }
 
 .dd-well .dd-kpi--hero {
-  background: linear-gradient(145deg, var(--dd-well-bg-elev) 0%, #101820 100%);
+  background: var(--dd-well-bg-elev);
   border-color: var(--dd-well-accent-soft);
   padding: 1.1rem 1.15rem 1.2rem;
 }
@@ -2815,7 +2821,7 @@ body.demo-page .demo-stage {
 
 .dd-well .dd-kpi--hero .dd-kpi__value {
   font-size: var(--dd-kpi-hero);
-  color: var(--dd-well-accent);
+  color: var(--dd-well-ink);
   letter-spacing: -0.035em;
 }
 
@@ -2845,7 +2851,7 @@ body.demo-page .demo-stage {
 }
 
 .dd-mer-tile--accent {
-  background: linear-gradient(145deg, #161f2a 0%, #101820 100%);
+  background: var(--dd-well-bg-elev);
   border-color: var(--dd-well-accent-soft);
 }
 
@@ -2870,7 +2876,7 @@ body.demo-page .demo-stage {
 }
 
 .dd-mer-tile--accent .dd-mer-tile__v {
-  color: var(--dd-well-accent);
+  color: var(--dd-well-ink);
   font-size: var(--dd-kpi-hero);
 }
 
@@ -3056,12 +3062,98 @@ body.demo-page .dd-well--scoreboard {
 
 @media (max-width: 719px) {
   body.demo-page main {
-    padding-top: 0.25rem;
-  }
-  body.demo-page .page-hero--demo-tight {
-    padding-top: 0.75rem;
+    padding-top: 0;
   }
   body.demo-page .dd-well--scoreboard {
     margin-top: 1rem;
   }
 }
+
+/* v26 — punch list P0: nav clearance, visible ghosts, no mint */
+body.demo-page header.nav#nav,
+body.demo-page header.nav {
+  display: block;
+}
+
+body.demo-page .page-hero--demo-tight {
+  padding-top: calc(var(--nav-h, 3.5rem) + 48px);
+}
+
+body.demo-page .btn.ghost,
+body.demo-page .page-hero--demo-tight .btn.ghost {
+  color: #0a1221;
+  border: 1px solid rgba(10, 18, 33, 0.18);
+  background: transparent;
+}
+
+body.demo-page .btn.ghost:hover {
+  color: #0a1221;
+  background: rgba(10, 18, 33, 0.04);
+}
+
+body.demo-page .btn.primary,
+body.demo-page .btn.primary.solid,
+body.demo-page .demo-hero-actions .btn.primary.solid {
+  background: #0a1221;
+  color: #fff;
+}
+
+body.demo-page .btn.primary:hover,
+body.demo-page .btn.primary.solid:hover {
+  background: #000;
+  color: #fff;
+}
+
+.demo-hero-install {
+  color: #0a1221;
+}
+
+@media (max-width: 720px) {
+  body.demo-page .top--studio .nav--studio {
+    display: none;
+  }
+  body.demo-page .page-hero--demo-tight {
+    padding-top: 96px;
+  }
+}
+
+/* v27 — Opus critic: KPI in first fold, solid Install, Settings label fits */
+@media (max-width: 719px) {
+  body.demo-page .page-hero--demo-tight {
+    padding-top: calc(var(--nav-h, 3.5rem) + 12px);
+    padding-bottom: 0.35rem;
+  }
+  body.demo-page .page-hero--demo-tight h1 {
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+    max-width: none;
+  }
+  body.demo-page .page-hero--demo-tight > p {
+    display: none;
+  }
+  body.demo-page .demo-hero-meta {
+    margin-top: 0.4rem;
+  }
+  body.demo-page .demo-hero-actions {
+    margin-top: 0.5rem;
+    gap: 0.45rem 0.75rem;
+  }
+  body.demo-page .demo-hero-actions .btn {
+    min-height: 44px;
+  }
+  body.demo-page .demo-hero-actions .btn.ghost[href="/pricing"] {
+    display: none;
+  }
+  .dd-nav {
+    overflow: hidden;
+    flex-wrap: nowrap;
+  }
+  .dd-nav__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.45rem 0.28rem;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+}
+

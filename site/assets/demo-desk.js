@@ -212,6 +212,7 @@
 
     setText("#dd-kpi-spend", money(period.spend));
     setText("#dd-kpi-mer", formatMer(mer));
+    setText("#dd-kpi-mer-eq", money(period.netSales) + " ÷ " + money(period.spend));
     setText("#dd-goals-act-sales", money(period.netSales));
     setText("#dd-goals-act-roas", formatMer(mer));
 

@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-18 · America/Denver · Site **v24** Pages `cefbef8a` · Fly **392** · occupancy **0/4** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v24** (Pages `cefbef8a`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
-| **Fly** | https://mcfly-analytics.fly.dev · version **392** @ `83c2a4e` · `/health` 200 · denser Overview/ROAS wells · SAMPLE on `/demo` only |
+| **Updated** | 2026-09-19 · America/Denver · Site **v29** Pages `1a025e00` · Fly **395** · occupancy **0/4** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v29** · operator white KPI cards · live HTML Overview slices · `/demo` iframes Fly Remix SAMPLE desk |
+| **Fly** | https://mcfly-analytics.fly.dev · version **395** · `/health` 200 · public Remix `/demo` = Admin SAMPLE chrome, white cards, no session |
 | **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
@@ -89,7 +89,9 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **Site v22 Pages** — Amp-rhythm product-frame · facts strip · alternating rows · Pages `f996569f` · journal [`ops/journal/STATUS_20260918_v22.md`](./ops/journal/STATUS_20260918_v22.md)
 - [x] **Site v20 Pages** — Snowdevil float heroes · Upload→Total ROAS→Goals · Signal/Evidence/Next · Pages `a7862580` · journal [`ops/journal/STATUS_20260918_v20.md`](./ops/journal/STATUS_20260918_v20.md)
 - [x] **Ops smoke 2026-09-18** — site/demo/pricing/Fly `/health`/listing **5/5 PASS** · reviews **0** · journal [`ops/journal/STATUS_20260918_ops_smoke.md`](./ops/journal/STATUS_20260918_ops_smoke.md) · ads **NO** (gates 1 amber · 2–3 red · 4 green)
-- [ ] **Partner listing paste** — sales-first pack refreshed [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (YoY-first · 24mo · Live-only · honest MER). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v20** before paste.
+- [x] **Site v28 + Fly 394** — sales page = live HTML Overview / spend / ROAS / Goals slices (not PNGs). `/demo` = Remix SAMPLE desk for listing stills. Pages `f2f6dba8`. Home lock $19,023 / $68,457 / 3.60×; Fly `/demo` rolls with the calendar.
+- [x] **Site v29 + Fly 395** — operator desk lock: white cards / navy ink / sky `#0284c7`. Charcoal marketing wells gone from Admin + live slices. Pages `1a025e00`. Journal [`ops/journal/STATUS_20260919_v29.md`](./ops/journal/STATUS_20260919_v29.md).
+- [ ] **Partner listing paste** — sales-first pack refreshed [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (YoY-first · 24mo · Live-only · honest MER). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v25** before paste.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
 - [x] v11 app-first
@@ -103,9 +105,13 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v20 live** — Tier A craft elevation · Pages `a7862580` · journal [`ops/journal/STATUS_20260918_v20.md`](./ops/journal/STATUS_20260918_v20.md)
 - [x] **v22 live** — Amp-rhythm product-frame · Pages `f996569f` · journal [`ops/journal/STATUS_20260918_v22.md`](./ops/journal/STATUS_20260918_v22.md)
 - [x] **v23 live** — real `/demo` product shots as hero · Pages `27c4f8ef` · journal [`ops/journal/STATUS_20260918_v23.md`](./ops/journal/STATUS_20260918_v23.md)
+- [x] **v25 live** — GUEST density · cropped hero + micro wells + typographic $39 · Pages `b8adfd1a` · journal [`ops/journal/STATUS_20260918_v25.md`](./ops/journal/STATUS_20260918_v25.md)
+- [x] **v26 live** — demo P0 nav/ghost CTA · Amp 5/7 shot grid · Pages `4a154f4d` · journal [`ops/journal/STATUS_20260918_v26.md`](./ops/journal/STATUS_20260918_v26.md)
+- [x] **v27 live** — Opus v26 critic P0s · paper token · pricing ink · Pages `97dd9597` · journal [`ops/journal/STATUS_20260918_v27.md`](./ops/journal/STATUS_20260918_v27.md)
+- [x] **v29 live** — operator white KPI cards · Pages `1a025e00` · Fly **395** · journal [`ops/journal/STATUS_20260919_v29.md`](./ops/journal/STATUS_20260919_v29.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Occupancy **0/4**. Site **v23** live (`27c4f8ef`) · Fly **392**. Hero is real `/demo` Overview shot. **Marty:** Partner Save · recapture 5 Live Admin wells · reviews **0**. Ads **NO**.
+**Next:** Occupancy **0/4**. Site **v29** · Fly **395**. **Marty:** Partner Save · recapture listing stills from **white** SAMPLE Snowdevil · reviews **0**. Ads **NO**.
 
 ---
 
@@ -156,3 +162,7 @@ App + site are already live (Fly **331**, site **v19**). SAMPLE smoke **PASSed**
 | v21 | `393719e1` | Product-chrome dark wells on paper/sky |
 | v22 | `f996569f` | Amp-rhythm · product-frame hero · facts strip · alternating rows |
 | v23 | `27c4f8ef` | Real `/demo` screenshots as hero + feature rows |
+| v24 | `cefbef8a` | Contain-fit shots + /demo nav fold |
+| v25 | `b8adfd1a` | GUEST density · cropped hero · micro wells · typographic $39 |
+| v26 | `4a154f4d` | Demo P0 nav/CTA · Amp 5/7 shot grid · contain kept |
+| v27 | `97dd9597` | Opus v26 critic · complete hero cards · paper `#f2f5f8` · pricing ink |

@@ -1,8 +1,8 @@
-# Listing screenshots — Live Admin recapture (hybrid wells · 1600×900)
+# Listing screenshots — Live Admin recapture (operator white cards · 1600×900)
 
-**Marty recapture** from production Fly (**331** or later after wells ship) — **Live Admin only**. Admin has **no** Sample|Live door. Do **not** invent that these shots were already recaptured. Do **not** use https://mcflyads.com/demo SAMPLE as App Store product stills.
+**Marty recapture** from production Fly (**395** or later) — **Live Admin only**. Admin has **no** Sample|Live door. Do **not** invent that these shots were already recaptured. Do **not** use https://mcflyads.com/demo SAMPLE as App Store product stills. Public `/demo` matches Admin SAMPLE chrome for marketing; listing PNGs still come from **devmcflyads** Admin.
 
-**Crop rule (2026-09-18 hybrid wells):** frame the **dark scoreboard well** + hero KPI. Exclude Polaris chrome noise, Admin left nav, URL bar. Overview shot: **zero spend** on the crop. Total ROAS shot: empty spend must read as **—** (em dash), never 0×.
+**Crop rule:** white operator KPI cards on paper/sky; do not crop charcoal marketing collage. Exclude Polaris chrome noise, Admin left nav, URL bar. Overview shot: **zero spend** on the crop. Total ROAS shot: empty spend must read as **—** (em dash), never 0×.
 
 ## Upload these (Admin app UI)
 
@@ -29,7 +29,7 @@ Shot paths SoT: [`LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md) · wells: 
 
 ## Notes
 
-- Founder pack PNGs (2026-07) and older Fly stills are **stale** vs hybrid wells. **Marty recapture all five** after Fly ships desk craft.
+- Founder pack PNGs (2026-07) and older Fly stills are **stale vs white operator cards**. **Marty recapture all five** after Fly 395.
 - Feature media (header): overwrite `../feature-media-1600x900.png` with Live Admin Overview YoY (well crop). Do **not** use Custom Data Science dark/cyan theater or unsubstantiated `4.42x` / `Above break-even 2.86x` claims.
 - Icon: `../mcfly-app-icon-1200.png`.
 - Visual PASS gate: [`STATUS_20260918_visual_scorecard.md`](../../ops/journal/STATUS_20260918_visual_scorecard.md).

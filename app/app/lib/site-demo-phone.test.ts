@@ -11,17 +11,19 @@ function readSite(rel: string) {
 
 describe("public /demo phone Snowdevil Overview", () => {
   const css = readSite("site/assets/demo-desk.css");
-  const html = readSite("site/demo.html");
+  const home = readSite("site/index.html");
+  const demo = readSite("site/demo.html");
   const mark = "P0 phone / Snowdevil /demo narrow";
 
   it("ships the phone cache-bust and keeps Snowdevil SAMPLE dollars", () => {
-    expect(html).toContain("demo-desk.css?v=20260918v21");
-    expect(html).toContain("$68,457");
-    expect(html).toContain("$19,023");
-    expect(html).toContain("3.60");
-    expect(html).toContain("$631");
-    expect(html).not.toMatch(/\$98,?500/);
-    expect(html).not.toMatch(/>—</);
+    expect(home).toContain("demo-desk.css?v=20260918v28");
+    expect(home).toContain("$68,457");
+    expect(home).toContain("$19,023");
+    expect(home).toContain("3.60");
+    expect(home).toContain("$631");
+    expect(demo).toContain("$68,457");
+    expect(home).not.toMatch(/\$98,?500/);
+    expect(home).not.toMatch(/>—</);
   });
 
   it("stacks Snowdevil KPIs at 430px and keeps nav finger-sized", () => {

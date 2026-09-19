@@ -89,6 +89,30 @@
 /download /demo 301
 /download/ /demo 301
 
+# Homepage live slices deep-link into the Fly SAMPLE desk via /demo?tab=
+/demo/spend /demo?tab=spend 301
+/demo/spend/ /demo?tab=spend 301
+/demo/roas /demo?tab=roas 301
+/demo/roas/ /demo?tab=roas 301
+/demo/goals /demo?tab=goals 301
+/demo/goals/ /demo?tab=goals 301
+/demo/customers /demo?tab=customers 301
+/demo/customers/ /demo?tab=customers 301
+/demo/growth /demo?tab=growth 301
+/demo/growth/ /demo?tab=growth 301
+/demo/orders /demo?tab=orders 301
+/demo/orders/ /demo?tab=orders 301
+/demo/ltv /demo?tab=ltv 301
+/demo/ltv/ /demo?tab=ltv 301
+/demo/cpa /demo?tab=cpa 301
+/demo/cpa/ /demo?tab=cpa 301
+/demo/allocation /demo?tab=allocation 301
+/demo/allocation/ /demo?tab=allocation 301
+/demo/yoy /demo?tab=yoy 301
+/demo/yoy/ /demo?tab=yoy 301
+/demo/settings /demo?tab=settings 301
+/demo/settings/ /demo?tab=settings 301
+
 # Keep calculators (app math)
 /calculator /mer-calculator 301
 

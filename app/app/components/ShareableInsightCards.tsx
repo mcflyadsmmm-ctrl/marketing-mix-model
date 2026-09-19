@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
+import { useDeskHref } from "../lib/desk-base-path";
 import {
   shareableInsightKicker,
   type ShareableInsightCard,
@@ -132,6 +133,7 @@ export function ShareableInsightCards({
   shotMode?: boolean;
 }) {
   const drill = useDeskDrill();
+  const deskHref = useDeskHref();
   const [copied, setCopied] = useState<ShareableInsightKind | null>(null);
   const empty = view.empty;
 
@@ -233,7 +235,7 @@ export function ShareableInsightCards({
                     { k: "Trust", v: card.trust },
                   ],
                   next: "Screenshot the card, copy the line, or save a PNG. Order history only.",
-                  nextHref: card.nextHref,
+                  nextHref: deskHref(card.nextHref),
                   nextLabel: card.nextLabel,
                 })
               }

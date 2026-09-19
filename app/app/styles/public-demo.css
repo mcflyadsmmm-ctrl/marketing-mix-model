@@ -1,0 +1,101 @@
+.mcfly-public-desk {
+  min-height: 100vh;
+  background: var(--mcfly-bg, #f6f6f7);
+}
+
+.mcfly-public-install {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.65rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid var(--mcfly-line, #d8e0e8);
+  font-family: var(--mcfly-font, "Source Sans 3", system-ui, sans-serif);
+  font-size: 0.9rem;
+  color: var(--mcfly-ink, #202223);
+}
+
+.mcfly-public-install__note {
+  margin: 0;
+  color: var(--mcfly-mute, #5a6f85);
+}
+
+.mcfly-public-install__cta {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  background: #152536;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.mcfly-public-desk--embed .mcfly-desk-tabs,
+.mcfly-public-desk--embed .mcfly-data-mode,
+.mcfly-public-desk--embed .mcfly-public-install,
+.mcfly-public-desk--hosted .mcfly-public-install {
+  display: none !important;
+}
+
+.mcfly-public-desk--embed {
+  min-height: 0;
+  background: transparent;
+}
+
+s-page:not(:defined) {
+  display: block;
+  padding: 0.35rem 0.25rem 2rem;
+}
+
+s-page:not(:defined)::before {
+  content: attr(heading);
+  display: block;
+  font-family: var(--mcfly-display, Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.75rem;
+  padding: 0 4px;
+}
+
+.mcfly-public-ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.mcfly-public-ledger th,
+.mcfly-public-ledger td {
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--mcfly-line-soft, #e8eef4);
+}
+
+.mcfly-public-mix {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.mcfly-public-mix__row {
+  display: grid;
+  grid-template-columns: minmax(5rem, 8rem) minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.mcfly-public-mix__bar {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--mcfly-line-soft, #e8eef4);
+  overflow: hidden;
+}
+
+.mcfly-public-mix__fill {
+  display: block;
+  height: 100%;
+  background: var(--mcfly-accent, #0284c7);
+}

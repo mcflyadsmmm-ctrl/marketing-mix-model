@@ -17,6 +17,7 @@ export function isShopifyAppPath(pathname) {
   const p = appRoutePath(pathname);
   if (p === "/health" || p.startsWith("/health/")) return true;
   if (p === "/app" || p.startsWith("/app/") || p.startsWith("/app.")) return true;
+  if (p === "/demo" || p.startsWith("/demo/") || p.startsWith("/demo.")) return true;
   if (p === "/auth" || p.startsWith("/auth")) return true;
   if (p === "/api" || p.startsWith("/api/")) return true;
   if (p === "/v1" || p.startsWith("/v1/")) return true;
