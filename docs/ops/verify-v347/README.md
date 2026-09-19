@@ -1,3 +1,6 @@
+> **Upgrade path:** Prefer `docs/ops/verify-shotmode-v347/` (real tip React + `?shot=1`).  
+> Static HTML fixtures here are **deprecated as craft SoT** — see `FIXTURES_DEPRECATED.md`.
+
 # verify-v347 — tip visual proof (interim)
 
 Interim Admin-desk visual gate while Shopify Admin session-service is broken.
