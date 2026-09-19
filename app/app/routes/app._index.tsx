@@ -711,11 +711,6 @@ export default function Dashboard() {
             <span className="mcfly-ctx__asof">{tillLabel}</span>
           </div>
           <div className="mcfly-trust" aria-label="Trust and freshness">
-            {metrics.breakEvenMer != null && metrics.marginPct > 0 ? (
-              <span className="mcfly-trust__chip mcfly-trust__chip--ok">
-                Margin {Math.round(metrics.marginPct * 100)}%
-              </span>
-            ) : null}
             {useSampleDesk ? (
               <span className="mcfly-trust__chip mcfly-trust__chip--sample">
                 SAMPLE

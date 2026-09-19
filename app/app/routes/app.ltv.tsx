@@ -266,10 +266,6 @@ export default function LtvPage() {
         ? metrics.totalSpend / ltv.newBuyers
         : null;
   const contrib90 = contributionAdjustedLtv(ltv.avgRevenueD90, metrics.marginPct);
-  const contrib365 = contributionAdjustedLtv(
-    ltv.avgRevenueD365,
-    metrics.marginPct,
-  );
   const contribRatio = contributionLtvCacRatio(contrib90, ltv.cashCac);
 
   /*
@@ -334,9 +330,6 @@ export default function LtvPage() {
       k: "First year",
       v: formatCurrency(ltv.avgRevenueD365, currency),
       d: PRODUCT_NOUN.ltv365Def,
-      ...(hasSpend && showMarginKept && contrib365 != null
-        ? { x: [`${formatCurrency(contrib365, currency)} kept. ${marginNote}`] }
-        : {}),
     });
   } else if (isNum(ltv.avgRevenueD90) || isNum(ltv.avgRevenueD30)) {
     orderRows.push({
