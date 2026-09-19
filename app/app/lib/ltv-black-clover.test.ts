@@ -153,8 +153,20 @@ describe("LTV is order-led first; margin & Cash CAC only on spend", () => {
     expect(ltv).toContain("showMarginKept && contrib90 != null && hasSpend");
     expect(ltv).toMatch(/hasSpend && cashCac != null/);
     expect(ltv).toContain("hasSpend && isNum(ltv.ltvCacRatio)");
-    // First-year "kept" hint only when spend exists — order value stays clean.
-    expect(ltv).toContain("hasSpend && showMarginKept && contrib365 != null");
+  });
+
+  it("does not footnote first-lane First year with kept-after-margin", () => {
+    const orderStart = ltv.indexOf("const orderRows: LtvRow[] = []");
+    const orderEnd = ltv.indexOf("const economicsRows: LtvRow[] = []");
+    const orderBlock = ltv.slice(orderStart, orderEnd);
+    expect(orderStart).toBeGreaterThan(-1);
+    expect(orderEnd).toBeGreaterThan(orderStart);
+    expect(orderBlock).toContain('k: "First year"');
+    expect(orderBlock).not.toContain("contrib365");
+    expect(orderBlock).not.toContain("kept.");
+    expect(orderBlock).not.toContain("marginNote");
+    expect(orderBlock).not.toMatch(/after margin/i);
+    expect(ltv).not.toContain("contrib365");
   });
 
   it("order-revenue rows never depend on spend", () => {

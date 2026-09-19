@@ -161,6 +161,8 @@ describe("overview first viewport", () => {
     expect(overview).not.toContain("<GoalsSnapSection");
     expect(overview).not.toContain("mcfly-tab-snaps");
     expect(overview).not.toContain("Coverage {Math.round(coveragePct)}%");
+    expect(overview).not.toContain("Margin {Math.round(metrics.marginPct * 100)}%");
+    expect(overview).not.toMatch(/Margin \{Math\.round\(metrics\.marginPct/);
     expect(overview).toContain("!greetingPending");
     expect(overview).toContain("factDays: salesFactsCoverage?.factDays");
     const chart = read("../components/OverviewSalesChart.tsx");

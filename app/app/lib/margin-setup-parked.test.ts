@@ -49,6 +49,23 @@ describe("Profit-margin / COGS setup is parked", () => {
     expect(ltv).toContain("UnlockFullHistoryBanner");
   });
 
+  it("does not paint SAMPLE margin % as this shop on Overview or LTV first-lane", () => {
+    const overview = chrome("../routes/app._index.tsx");
+    const ltv = chrome("../routes/app.ltv.tsx");
+    expect(overview).not.toMatch(/Margin \{Math\.round\(metrics\.marginPct/);
+    expect(overview).not.toContain("mcfly-trust__chip--ok");
+    const orderStart = ltv.indexOf("const orderRows: LtvRow[] = []");
+    const orderEnd = ltv.indexOf("const economicsRows: LtvRow[] = []");
+    const orderBlock = ltv.slice(orderStart, orderEnd);
+    expect(orderStart).toBeGreaterThan(-1);
+    expect(orderEnd).toBeGreaterThan(orderStart);
+    expect(orderBlock).toContain('k: "First year"');
+    expect(orderBlock).not.toContain("contrib365");
+    expect(orderBlock).not.toMatch(/kept\./);
+    expect(orderBlock).not.toMatch(/after margin/i);
+    expect(orderBlock).not.toContain("marginNote");
+  });
+
   it("drops margin % from the Spend import scratch calculator", () => {
     const spendImport = chrome("../routes/app.spend.import.tsx");
     expect(spendImport).not.toMatch(/Calculator margin percent/);
