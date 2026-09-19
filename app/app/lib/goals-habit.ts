@@ -1,11 +1,13 @@
 /**
  * Soft order-history Goals — LTV Target Line from the observed average +
- * a typed returning-$ target. Habit stickiness. Zero spend. No ads / upload.
+ * a returning-$ target. Habit stickiness. Zero spend. No ads / upload.
  *
  *   LTV Target Line   = observed first-90 $ (then 30; never a fake year)
  *                     — the average, not a goal the merchant types
  *   Returning progress = year returning $ (guests out)
  *                     ÷ returning-$ target
+ *                     — typed when the merchant set one;
+ *                       SAMPLE Snowdevil stretch when unset (never “you typed”)
  *
  * Thin shops stay honest empties (syncing / thin / young / unset). Floor is
  * 8 paid orders. Never a blank board, never a fake $0, never a fake year.
@@ -32,6 +34,8 @@ export const HABIT_LTV_FORMULA_EQ =
   "Target Line = observed first-window average";
 export const HABIT_RETURNING_FORMULA_EQ =
   "Returning $ progress = year returning $ ÷ your target";
+export const HABIT_RETURNING_SAMPLE_FORMULA_EQ =
+  "Returning $ progress = year returning $ ÷ Snowdevil stretch";
 
 export type HabitGoalKind = "ltv" | "returning";
 
@@ -45,14 +49,22 @@ export type HabitGoalEmpty = {
   verb: string;
 };
 
-export type HabitGoalTargetSource = "average" | "typed";
+export type HabitGoalTargetSource = "average" | "typed" | "sample";
+
+export type HabitReturningTargetSource = Exclude<
+  HabitGoalTargetSource,
+  "average"
+>;
 
 export type HabitGoalTrack = {
   kind: HabitGoalKind;
   label: string;
   actual: number;
   target: number;
-  /** Average Target Line (LTV) vs a number the merchant typed (returning $). */
+  /**
+   * Average Target Line (LTV), a number the merchant typed (returning $),
+   * or SAMPLE Snowdevil stretch (never merchant-entered).
+   */
   targetSource: HabitGoalTargetSource;
   remaining: number;
   /** 0–1+; may exceed 1 when they beat a typed target. Average line is 1. */
@@ -124,6 +136,71 @@ export function resolveHabitTarget(
   return sample ? sampleFallback : null;
 }
 
+/** Typed wins. SAMPLE overlay is stretch — never “you typed.” */
+export function resolveHabitReturningTargetSource(
+  typed: number | null | undefined,
+  sample: boolean,
+): HabitReturningTargetSource | null {
+  if (finitePositive(typed) != null) return "typed";
+  if (sample) return "sample";
+  return null;
+}
+
+export function habitGoalTargetSourceLabel(
+  source: HabitGoalTargetSource,
+): string {
+  switch (source) {
+    case "average":
+      return "Average";
+    case "typed":
+      return "You typed";
+    case "sample":
+      return "Snowdevil stretch";
+    default: {
+      const _exhaustive: never = source;
+      return _exhaustive;
+    }
+  }
+}
+
+export function habitReturningFormulaEq(
+  source: HabitGoalTargetSource,
+): string {
+  switch (source) {
+    case "sample":
+      return HABIT_RETURNING_SAMPLE_FORMULA_EQ;
+    case "typed":
+    case "average":
+      return HABIT_RETURNING_FORMULA_EQ;
+    default: {
+      const _exhaustive: never = source;
+      return _exhaustive;
+    }
+  }
+}
+
+export function habitReturningDailyLine(track: HabitGoalTrack): string {
+  const actual = wholeMoney(track.actual);
+  const target = wholeMoney(track.target);
+  const pct = wholePct(track.pct);
+  switch (track.targetSource) {
+    case "sample":
+      return track.met
+        ? `Returning buyers already carry ${actual} this year — at the Snowdevil stretch ${target} (SAMPLE example, not a target you typed).`
+        : `Returning buyers carry ${actual} this year — ${pct}% of the Snowdevil stretch ${target} (SAMPLE example, not a target you typed).`;
+    case "typed":
+      return track.met
+        ? `Returning buyers already carry ${actual} this year — at your ${target} target.`
+        : `Returning buyers carry ${actual} this year — ${pct}% of your ${target} target.`;
+    case "average":
+      return `Returning buyers carry ${actual} this year.`;
+    default: {
+      const _exhaustive: never = track.targetSource;
+      return _exhaustive;
+    }
+  }
+}
+
 /**
  * Empty / invalid → null (unset). Negative / NaN → NaN (reject).
  * Whole dollars; commas and $ stripped.
@@ -171,6 +248,7 @@ function returningTrack(
   target: number,
   year: number,
   historyLimited: boolean,
+  targetSource: HabitReturningTargetSource,
 ): HabitGoalTrack {
   const remaining = Math.max(0, target - actual);
   const pct = actual / target;
@@ -179,11 +257,11 @@ function returningTrack(
     label: "Returning $",
     actual,
     target,
-    targetSource: "typed",
+    targetSource,
     remaining,
     pct,
     met: actual >= target,
-    formulaEq: HABIT_RETURNING_FORMULA_EQ,
+    formulaEq: habitReturningFormulaEq(targetSource),
     formulaPlug: `${wholeMoney(actual)} ÷ ${wholeMoney(target)} = ${wholePct(pct)}%.`,
     windowLabel: historyLimited
       ? `${year} returning $ on file — not a full year`
@@ -258,6 +336,10 @@ export function buildHabitGoals(input: HabitGoalsInput): HabitGoalsView {
     SAMPLE_HABIT_RETURNING_TARGET,
     input.sample,
   );
+  const returningSource = resolveHabitReturningTargetSource(
+    input.typedReturningTarget,
+    input.sample,
+  );
   const peek = pickShareableLtvPeek({
     revenue30: input.ltv30,
     revenue90: input.ltv90,
@@ -269,12 +351,13 @@ export function buildHabitGoals(input: HabitGoalsInput): HabitGoalsView {
   const ltv =
     peek != null ? ltvTrack(peek, input.historyLimited) : null;
   const returning =
-    yearReturning != null && returningTarget != null
+    yearReturning != null && returningTarget != null && returningSource != null
       ? returningTrack(
           yearReturning,
           returningTarget,
           input.year,
           input.historyLimited,
+          returningSource,
         )
       : null;
   const sealed = (ltv ? 1 : 0) + (returning ? 1 : 0);
@@ -329,11 +412,7 @@ export function habitGoalsDailyRead(view: HabitGoalsView): HabitGoalsRead | null
     );
   }
   if (view.returning && returningPct != null) {
-    parts.push(
-      view.returning.met
-        ? `Returning buyers already carry ${wholeMoney(view.returning.actual)} this year — at your ${wholeMoney(view.returning.target)} target.`
-        : `Returning buyers carry ${wholeMoney(view.returning.actual)} this year — ${wholePct(returningPct)}% of your ${wholeMoney(view.returning.target)} target.`,
-    );
+    parts.push(habitReturningDailyLine(view.returning));
   }
   if (parts.length === 0) return null;
   return {
