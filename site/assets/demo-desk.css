@@ -3011,3 +3011,57 @@ body.demo-page .demo-stage {
     font-size: 0.62rem;
   }
 }
+
+/* v24 — punch list: black CTA, first-fold MER, no Amp mint */
+body.demo-page .btn.primary,
+body.demo-page .btn.primary.solid {
+  background: #111;
+  color: #fff;
+}
+body.demo-page .btn.primary:hover,
+body.demo-page .btn.primary.solid:hover {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.demo-hero-install {
+  align-self: center;
+  font-size: 0.88rem;
+  color: var(--cyan-deep, #0f7a84);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+body.demo-page .demo-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: center;
+}
+
+body.demo-page .page-hero--demo-tight {
+  padding-bottom: 0.5rem;
+  margin-bottom: 0;
+}
+
+body.demo-page .dd-well--scoreboard {
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 1100px) {
+  body.demo-page .dd-mer-grid {
+    margin-top: 0.65rem;
+  }
+}
+
+@media (max-width: 719px) {
+  body.demo-page main {
+    padding-top: 0.25rem;
+  }
+  body.demo-page .page-hero--demo-tight {
+    padding-top: 0.75rem;
+  }
+  body.demo-page .dd-well--scoreboard {
+    margin-top: 1rem;
+  }
+}
