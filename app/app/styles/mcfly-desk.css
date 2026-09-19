@@ -7281,7 +7281,7 @@
 }
 
 .mcfly-goals-table__row--down {
-  background: color-mix(in srgb, var(--mcfly-lie-soft) 50%, #fff);
+  background: color-mix(in srgb, var(--mcfly-delta-down) 12%, #fff);
 }
 
 .mcfly-goals-table__row--flat {
@@ -7293,7 +7293,7 @@
 }
 
 .mcfly-goals-table__row--current.mcfly-goals-table__row--down {
-  background: color-mix(in srgb, var(--mcfly-lie-soft) 65%, var(--mcfly-accent-soft));
+  background: color-mix(in srgb, var(--mcfly-delta-down) 14%, var(--mcfly-accent-soft));
 }
 
 .mcfly-goals-table__row--current.mcfly-goals-table__row--flat {
@@ -7334,7 +7334,7 @@
 }
 
 .mcfly-goals-month-bar__fill--down {
-  background: linear-gradient(90deg, #d97706, var(--mcfly-lie));
+  background: linear-gradient(90deg, #64748b, var(--mcfly-delta-down));
 }
 
 .mcfly-goals-month-bar__fill--flat {
@@ -7387,7 +7387,7 @@
 }
 
 .mcfly-goals-pace--down {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-goals-pace--flat {
@@ -8879,7 +8879,7 @@
 }
 
 .mcfly-goal-row__pace.mcfly-goals-pace--down {
-  color: var(--mcfly-lie);
+  color: var(--mcfly-delta-down);
 }
 
 .mcfly-goal-row__pace.mcfly-goals-pace--flat {
