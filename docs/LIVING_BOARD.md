@@ -4,8 +4,8 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-18 · America/Denver · Site **v23** Pages `27c4f8ef` · Fly **392** · occupancy **0/4** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v23** (Pages `27c4f8ef`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
+| **Updated** | 2026-09-18 · America/Denver · Site **v24** Pages `cefbef8a` · Fly **392** · occupancy **0/4** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v24** (Pages `cefbef8a`) · PR [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) |
 | **Fly** | https://mcfly-analytics.fly.dev · version **392** @ `83c2a4e` · `/health` 200 · denser Overview/ROAS wells · SAMPLE on `/demo` only |
 | **North star** | Paid **$39** installs that **stay**. Shopify five (Overview · Customers · Growth · Orders · LTV) must beat native Analytics at **$0 spend**. Spend Upload is the door, not the greeting. Any weak tab is an uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
