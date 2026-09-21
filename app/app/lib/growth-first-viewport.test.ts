@@ -8,6 +8,7 @@ import {
   GROWTH_FIRST_LANE_LABEL,
   GROWTH_PENDING_LINE,
   GROWTH_THIN_EMPTY_LINE,
+  buildGrowthHabitDepth,
   buildGrowthLeadPeeks,
   growthHabitSub,
   growthHeroBeatsShopifyAnalytics,
@@ -151,6 +152,72 @@ describe("buildGrowthLeadPeeks", () => {
     expect(buildGrowthLeadPeeks(emptyGrowthTt2())).toEqual([]);
     expect(growthTypicalWaitLabel(emptyGrowthTt2())).toBeNull();
     expect(growthHabitSub(emptyGrowthTt2())).toBeNull();
+    expect(buildGrowthHabitDepth(emptyGrowthTt2())).toBeNull();
+  });
+});
+
+describe("buildGrowthHabitDepth — days-to-second + weekends", () => {
+  it("densifies the second-order shape and a Mon–Fri habit without a 0% weekend", () => {
+    const depth = buildGrowthHabitDepth(sealedTt2());
+    expect(depth).not.toBeNull();
+    expect(depth!.days.map((bucket) => bucket.buyers)).toEqual([2, 1, 2, 0]);
+    expect(depth!.days.filter((bucket) => bucket.holdsTypical).map((b) => b.label)).toEqual([
+      "8–30d",
+    ]);
+    expect(depth!.daysLine).toMatch(/Typical wait sits in 8–30d/);
+    expect(depth!.weekend?.mode).toBe("weekday");
+    expect(depth!.weekend?.value).toBe("Weekday habit");
+    expect(depth!.weekend?.value).not.toBe("0%");
+    expect(depth!.weekend?.weekendFill).toBe(0);
+    expect(depth!.weekend?.sub).toMatch(/not 0%/);
+    expect(depth!.weekend?.detail).not.toMatch(/sales share|ROAS|spend|COGS|MRR/i);
+  });
+
+  it("paints Sat–Sun share from the shop calendar once five second orders exist", () => {
+    function local(isoDay: string): Date {
+      return new Date(`${isoDay}T00:00:00.000Z`);
+    }
+    const rows: GrowthTt2OrderRow[] = [];
+    const pairs: Array<[string, string, string]> = [
+      ["a", "2026-05-01", "2026-06-06"],
+      ["b", "2026-05-02", "2026-06-07"],
+      ["c", "2026-05-03", "2026-06-13"],
+      ["d", "2026-05-04", "2026-06-15"],
+      ["e", "2026-05-05", "2026-06-17"],
+    ];
+    for (const [key, first, second] of pairs) {
+      rows.push({
+        customerKey: key,
+        orderedAt: local(first),
+        shopLocalDate: local(first),
+        amount: 70,
+      });
+      rows.push({
+        customerKey: key,
+        orderedAt: local(second),
+        shopLocalDate: local(second),
+        amount: 80,
+      });
+    }
+    for (const day of ["2026-06-01", "2026-06-02", "2026-06-03"]) {
+      rows.push({
+        customerKey: `one-${day}`,
+        orderedAt: local(day),
+        shopLocalDate: local(day),
+        amount: 30,
+      });
+    }
+    const tt2 = buildGrowthTt2(rows, {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    const depth = buildGrowthHabitDepth(tt2);
+    expect(depth?.weekend?.mode).toBe("weekend");
+    expect(depth?.weekend?.value).toBe("60%");
+    expect(depth?.weekend?.sub).toMatch(/3 of 5 second orders on Sat–Sun/);
+    expect(depth?.weekend?.sub).toMatch(/Saturday/);
+    expect(depth?.weekend?.weekendFill).toBeCloseTo(0.6, 5);
+    expect(growthTypicalWaitLabel(tt2)).toMatch(/^\d+d$/);
   });
 });
 
@@ -201,12 +268,24 @@ describe("Growth first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(firstView).not.toContain("Edit spend");
     expect(firstView).not.toContain("MER");
     expect(firstView).not.toContain("COGS");
+    expect(firstView).not.toMatch(/\bMRR\b/);
+    expect(firstView).not.toMatch(/pixel/i);
     expect(growth).not.toContain("/app/spend");
     expect(growth).not.toContain("Total ROAS");
     expect(customers).not.toContain("/app/spend");
-    // Weekend / weekday timing is Orders + Overview — not a Growth first-fold steal.
-    expect(firstView).not.toContain("Weekend");
-    expect(firstView).not.toContain("weekday");
+    // Habit depth sits under the heroes. Orders weekend sales stay on Orders.
+    expect(firstView).toContain("buildGrowthHabitDepth");
+    expect(firstView).toContain("Days to a second order and weekends");
+    expect(firstView).toContain("mcfly-growth-habit__bar--green");
+    expect(firstView).toContain("mcfly-growth-habit__bar--grey");
+    expect(firstView).toContain("mcfly-growth-habit__fill--green");
+    expect(firstView).toContain("mcfly-growth-habit__fill--grey");
+    expect(css).toContain(".mcfly-growth-habit");
+    expect(css).toContain(".mcfly-growth-habit__bar--green");
+    expect(css).toContain(".mcfly-growth-habit__bar--grey");
+    expect(firstView).not.toContain("Weekend sales");
+    expect(firstView).not.toContain("busiest weekday");
+    expect(firstView).not.toContain("Online vs POS");
     // Shopify-already-free: first-time $ and returning rate stay off the hero.
     expect(firstView).not.toContain("first-time");
     expect(firstView).not.toContain("newCustomers");

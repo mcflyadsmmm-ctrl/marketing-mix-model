@@ -7,6 +7,7 @@
 
 import {
   growthTt2Read,
+  TT2_MIN_GAPS,
   type GrowthTt2View,
 } from "./growth-tt2";
 
@@ -157,4 +158,100 @@ export function buildGrowthLeadPeeks(tt2: GrowthTt2View): GrowthLeadPeek[] {
     });
   }
   return rows;
+}
+
+export type GrowthHabitDay = {
+  label: string;
+  buyers: number;
+  /** Green bar — the bucket that holds the typical wait. The rest stay grey. */
+  holdsTypical: boolean;
+};
+
+export type GrowthWeekendDepth = {
+  mode: "weekend" | "weekday";
+  /** Whole percent when Sat–Sun is a real share. Weekday habit never paints 0%. */
+  value: string;
+  sub: string;
+  /** Width of the green Sat–Sun slice, 0–1. Weekday habit is all grey. */
+  weekendFill: number;
+  detail: string;
+};
+
+export type GrowthHabitDepth = {
+  days: GrowthHabitDay[];
+  daysLine: string;
+  weekend: GrowthWeekendDepth | null;
+};
+
+function holdsTypicalWait(
+  bucket: { min: number; max: number | null },
+  typicalDays: number,
+): boolean {
+  return (
+    typicalDays >= bucket.min &&
+    (bucket.max == null || typicalDays <= bucket.max)
+  );
+}
+
+/**
+ * First-fold habit depth under the #115 heroes. Days-to-second shape plus
+ * when the second order landed (Sat–Sun vs Mon–Fri). Null until the clock
+ * has a real typical wait — never a 0d / 0% strip.
+ */
+export function buildGrowthHabitDepth(
+  tt2: GrowthTt2View,
+): GrowthHabitDepth | null {
+  if (!tt2.available || tt2.empty) return null;
+  if (!isNum(tt2.typicalDays) || tt2.typicalDays <= 0) return null;
+  const typicalDays = tt2.typicalDays;
+  const days = tt2.daysToSecond.map((bucket) => ({
+    label: bucket.label,
+    buyers: bucket.buyers,
+    holdsTypical: holdsTypicalWait(bucket, typicalDays),
+  }));
+  const home = days.find((bucket) => bucket.holdsTypical);
+  const daysLine = home
+    ? `Typical wait sits in ${home.label}. Green is that wait — grey is the rest of the second-order habit.`
+    : "Where second orders landed. Green marks the typical wait.";
+  return {
+    days,
+    daysLine,
+    weekend: growthWeekendDepth(tt2),
+  };
+}
+
+function growthWeekendDepth(tt2: GrowthTt2View): GrowthWeekendDepth | null {
+  const habit = tt2.weekend;
+  const secondOrders = habit.weekendCount + habit.weekdayCount;
+  if (secondOrders < TT2_MIN_GAPS) return null;
+  if (habit.weekendShare != null && Math.round(habit.weekendShare * 100) > 0) {
+    const pct = Math.round(habit.weekendShare * 100);
+    const peak =
+      habit.peakDay != null && habit.peakCount >= 2
+        ? ` Most second orders land ${habit.peakDay}.`
+        : "";
+    return {
+      mode: "weekend",
+      value: `${pct}%`,
+      sub: `${habit.weekendCount.toLocaleString()} of ${secondOrders.toLocaleString()} second orders on Sat–Sun.${peak}`,
+      weekendFill: habit.weekendShare,
+      detail:
+        "Share of identified buyers whose second order landed Saturday or Sunday, on the shop’s calendar. Order-history repurchase timing — not weekend sales, not an email list.",
+    };
+  }
+  if (habit.weekendCount === 0 && habit.weekdayCount >= TT2_MIN_GAPS) {
+    const peak =
+      habit.peakDay != null && habit.peakCount >= 2
+        ? ` Most second orders land ${habit.peakDay}.`
+        : "";
+    return {
+      mode: "weekday",
+      value: "Weekday habit",
+      sub: `Second orders are landing Mon–Fri. Weekend share stays off — not 0%.${peak}`,
+      weekendFill: 0,
+      detail:
+        "None of the second orders on file landed Saturday or Sunday. Weekend share stays off the card until Sat–Sun shows up — not a fake 0%. Order history only.",
+    };
+  }
+  return null;
 }

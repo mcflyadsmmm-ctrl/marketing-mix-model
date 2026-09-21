@@ -49,6 +49,35 @@ export type GrowthTt2OrderRow = {
   customerKey: string;
   orderedAt: Date;
   amount: number;
+  /**
+   * Shop-local calendar day (UTC midnight). Second-order weekend habit uses
+   * this when present — same Sat+Sun rule as order depth. Falls back to the
+   * UTC day of `orderedAt` only when the local day was not stored.
+   */
+  shopLocalDate?: Date | null;
+};
+
+const WEEKDAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
+
+export type GrowthWeekdayName = (typeof WEEKDAY_NAMES)[number];
+
+/** Sat+Sun share of second orders. Order-history repurchase habit — not weekend sales. */
+export type GrowthWeekendHabit = {
+  weekendCount: number;
+  weekdayCount: number;
+  /** Null under 5 second orders, and null when the share rounds to 0%. */
+  weekendShare: number | null;
+  /** Unique day with the most second orders, once at least two landed there. */
+  peakDay: GrowthWeekdayName | null;
+  peakCount: number;
 };
 
 export type GrowthTt2View = {
@@ -79,6 +108,8 @@ export type GrowthTt2View = {
   fallOffTruncatedAt: number | null;
   /** Designed first-win when every identified buyer already came back. */
   fallEmpty: GrowthTt2Empty | null;
+  /** When the second order landed — Sat+Sun vs Mon–Fri. Zeros until the clock seals. */
+  weekend: GrowthWeekendHabit;
 };
 
 export type GrowthTt2Read = {
@@ -198,6 +229,62 @@ function emptyBuckets(historyDays: number): {
   return collectBuckets(new Array(TIME_BUCKETS.length).fill(0), historyDays);
 }
 
+function emptyWeekend(): GrowthWeekendHabit {
+  return {
+    weekendCount: 0,
+    weekdayCount: 0,
+    weekendShare: null,
+    peakDay: null,
+    peakCount: 0,
+  };
+}
+
+function secondOrderDow(local: Date | null, orderedAtMs: number): number {
+  if (local instanceof Date && Number.isFinite(local.getTime())) {
+    return local.getUTCDay();
+  }
+  return new Date(orderedAtMs).getUTCDay();
+}
+
+/**
+ * Weekend habit of the second order. Share stays null until five gaps, and
+ * stays null when it would paint 0% — a weekday-only book is not a fake zero.
+ */
+function sealWeekend(
+  weekendCount: number,
+  weekdayCount: number,
+  dowCounts: number[],
+): GrowthWeekendHabit {
+  const total = weekendCount + weekdayCount;
+  const raw = total >= TT2_MIN_GAPS ? weekendCount / total : null;
+  const weekendShare = raw != null && Math.round(raw * 100) > 0 ? raw : null;
+  let peakIndex = -1;
+  let peakCount = 0;
+  let tied = false;
+  for (let i = 0; i < dowCounts.length; i += 1) {
+    const n = dowCounts[i] ?? 0;
+    if (n > peakCount) {
+      peakIndex = i;
+      peakCount = n;
+      tied = false;
+    } else if (n === peakCount && n > 0) {
+      tied = true;
+    }
+  }
+  const peakName =
+    peakIndex >= 0 && peakIndex < WEEKDAY_NAMES.length
+      ? WEEKDAY_NAMES[peakIndex]
+      : null;
+  const peakDay = !tied && peakCount >= 2 ? peakName ?? null : null;
+  return {
+    weekendCount,
+    weekdayCount,
+    weekendShare,
+    peakDay,
+    peakCount: peakDay ? peakCount : 0,
+  };
+}
+
 /**
  * One shop-owner sentence for the habit clock. Leads with typical wait,
  * then who to reach. Never a promise, never an email guess.
@@ -254,12 +341,24 @@ export function buildGrowthTt2(
   );
 
   let earliest = Number.POSITIVE_INFINITY;
-  const byCustomer = new Map<string, { times: number[]; total: number }>();
+  const byCustomer = new Map<
+    string,
+    { times: number[]; locals: Array<Date | null>; total: number }
+  >();
   for (const r of identified) {
     const t = ms(r.orderedAt);
     if (t < earliest) earliest = t;
-    const rec = byCustomer.get(r.customerKey) ?? { times: [], total: 0 };
+    const rec = byCustomer.get(r.customerKey) ?? {
+      times: [],
+      locals: [],
+      total: 0,
+    };
     rec.times.push(t);
+    rec.locals.push(
+      r.shopLocalDate instanceof Date && Number.isFinite(r.shopLocalDate.getTime())
+        ? r.shopLocalDate
+        : null,
+    );
     rec.total += finite(r.amount);
     byCustomer.set(r.customerKey, rec);
   }
@@ -273,22 +372,36 @@ export function buildGrowthTt2(
   const gaps: number[] = [];
   const gapCounts = new Array(TIME_BUCKETS.length).fill(0);
   const fallCounts = new Array(TIME_BUCKETS.length).fill(0);
+  const dowCounts = [0, 0, 0, 0, 0, 0, 0];
+  let weekendSecond = 0;
+  let weekdaySecond = 0;
   let oneOrderBuyers = 0;
   let eligible30 = 0;
   let within30 = 0;
   let maturedBuyers = 0;
 
   for (const rec of byCustomer.values()) {
-    const sorted = [...rec.times].sort((a, b) => a - b);
-    const first = sorted[0]!;
+    const paired = rec.times.map((t, i) => ({
+      t,
+      local: rec.locals[i] ?? null,
+    }));
+    paired.sort((a, b) => a.t - b.t);
+    const first = paired[0]!.t;
     const firstAge = (windowEndMs - first) / DAY_MS;
     if (firstAge >= TT2_MIN_FOLLOW_DAYS) maturedBuyers += 1;
 
-    if (sorted.length >= 2) {
-      const gapDays = (sorted[1]! - first) / DAY_MS;
+    if (paired.length >= 2) {
+      const second = paired[1]!;
+      const gapDays = (second.t - first) / DAY_MS;
       if (gapDays >= 0 && Number.isFinite(gapDays)) {
         gaps.push(gapDays);
         placeBucket(gapDays, gapCounts);
+        const dow = secondOrderDow(second.local, second.t);
+        if (dow >= 0 && dow <= 6) {
+          dowCounts[dow] = (dowCounts[dow] ?? 0) + 1;
+          if (dow === 0 || dow === 6) weekendSecond += 1;
+          else weekdaySecond += 1;
+        }
       }
     } else {
       oneOrderBuyers += 1;
@@ -297,14 +410,17 @@ export function buildGrowthTt2(
 
     if (windowEndMs - first >= TT2_MIN_FOLLOW_DAYS * DAY_MS) {
       eligible30 += 1;
-      if (sorted.length >= 2) {
-        const gapDays = (sorted[1]! - first) / DAY_MS;
+      if (paired.length >= 2) {
+        const gapDays = (paired[1]!.t - first) / DAY_MS;
         if (gapDays >= 0 && gapDays <= TT2_MIN_FOLLOW_DAYS) within30 += 1;
       }
     }
   }
 
   const empty = growthTt2EmptyState(identifiedBuyers, maturedBuyers);
+  const weekend = empty
+    ? emptyWeekend()
+    : sealWeekend(weekendSecond, weekdaySecond, dowCounts);
   const cadence = collectBuckets(gapCounts, historyDays);
   const waiting = collectBuckets(fallCounts, historyDays);
   const enoughGaps = gaps.length >= TT2_MIN_GAPS;
@@ -357,6 +473,7 @@ export function buildGrowthTt2(
         ? historyDays || zeros.truncatedAt
         : zeros.truncatedAt,
       fallEmpty: empty,
+      weekend,
     };
   }
 
@@ -391,6 +508,7 @@ export function buildGrowthTt2(
     fallOff: waiting.buckets,
     fallOffTruncatedAt,
     fallEmpty: oneOrderBuyers === 0 ? fallEmptyState(identifiedBuyers) : null,
+    weekend,
   };
 }
 

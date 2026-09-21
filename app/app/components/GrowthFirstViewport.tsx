@@ -6,10 +6,13 @@ import {
   GROWTH_ANALYTICS_CONTRAST,
   GROWTH_PENDING_LINE,
   GROWTH_THIN_EMPTY_LINE,
+  buildGrowthHabitDepth,
   buildGrowthLeadPeeks,
   growthHabitSub,
   growthOperatorGreeting,
   growthTypicalWaitLabel,
+  type GrowthHabitDepth,
+  type GrowthWeekendDepth,
 } from "../lib/growth-first-viewport";
 import { growthTt2Read, type GrowthTt2View } from "../lib/growth-tt2";
 
@@ -56,10 +59,116 @@ function PeekCard({
   );
 }
 
+function weekendValue(depth: GrowthWeekendDepth): string {
+  switch (depth.mode) {
+    case "weekend":
+    case "weekday":
+      return depth.value;
+    default: {
+      const _never: never = depth.mode;
+      return _never;
+    }
+  }
+}
+
+/**
+ * Compact repurchase habit under the #115 heroes — days-to-second shape
+ * (green = typical wait, grey = the rest) and Sat–Sun vs Mon–Fri. Not
+ * weekend sales, not a second scoreboard.
+ */
+function GrowthHabitStrip({ depth }: { depth: GrowthHabitDepth }) {
+  const drill = useDeskDrill();
+  const secondOrders = depth.days.reduce((sum, bucket) => sum + bucket.buyers, 0);
+  const maxBuyers = Math.max(...depth.days.map((bucket) => bucket.buyers), 1);
+  const weekend = depth.weekend;
+  const weekendFill = weekend
+    ? Math.min(1, Math.max(0, weekend.weekendFill))
+    : 0;
+  return (
+    <div
+      className="mcfly-growth-habit"
+      aria-label="Days to a second order and weekends"
+    >
+      <button
+        type="button"
+        className="mcfly-growth-habit__days"
+        onClick={() =>
+          drill?.openDrill({
+            title: "Days to a second order",
+            value: secondOrders.toLocaleString(),
+            blocks: [
+              { k: "What this is", v: depth.daysLine },
+              ...depth.days
+                .filter((bucket) => bucket.buyers > 0)
+                .map((bucket) => ({
+                  k: bucket.label,
+                  v: `${bucket.buyers.toLocaleString()} second ${bucket.buyers === 1 ? "order" : "orders"}${bucket.holdsTypical ? " · typical wait" : ""}`,
+                })),
+            ],
+            next: "Order history only — not email, not weekend sales.",
+          })
+        }
+      >
+        <span className="mcfly-growth-habit__k">Days to a second order</span>
+        <span className="mcfly-growth-habit__bars" aria-hidden="true">
+          {depth.days.map((bucket) => (
+            <span key={bucket.label} className="mcfly-growth-habit__col">
+              <span
+                className={
+                  bucket.holdsTypical
+                    ? "mcfly-growth-habit__bar mcfly-growth-habit__bar--green"
+                    : "mcfly-growth-habit__bar mcfly-growth-habit__bar--grey"
+                }
+                style={{
+                  height: `${bucket.buyers > 0 ? Math.max(12, (bucket.buyers / maxBuyers) * 100) : 8}%`,
+                }}
+              />
+              <span className="mcfly-growth-habit__tick">{bucket.label}</span>
+            </span>
+          ))}
+        </span>
+        <span className="mcfly-growth-habit__sub">{depth.daysLine}</span>
+      </button>
+      {weekend ? (
+        <button
+          type="button"
+          className="mcfly-growth-habit__weekends"
+          onClick={() =>
+            drill?.openDrill({
+              title: "Weekends",
+              value: weekendValue(weekend),
+              blocks: [
+                { k: "What this is", v: weekend.detail },
+                { k: "Also", v: weekend.sub },
+              ],
+              next: "Second-order timing from order history — not weekend sales.",
+            })
+          }
+        >
+          <span className="mcfly-growth-habit__k">Weekends</span>
+          <span className="mcfly-growth-habit__v">{weekendValue(weekend)}</span>
+          <span className="mcfly-growth-habit__split" aria-hidden="true">
+            <span
+              className="mcfly-growth-habit__fill mcfly-growth-habit__fill--green"
+              style={{ width: `${weekendFill * 100}%` }}
+            />
+            <span
+              className="mcfly-growth-habit__fill mcfly-growth-habit__fill--grey"
+              style={{ width: `${(1 - weekendFill) * 100}%` }}
+            />
+          </span>
+          <span className="mcfly-growth-habit__sub">{weekend.sub}</span>
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * First-fold Growth — typical wait to a second order vs Shopify’s
  * returning-customer rate, then win-back / reach-now / 30-day peeks
- * Analytics does not put next to that rate. SAMPLE Snowdevil is the craft
+ * Analytics does not put next to that rate. Habit depth (days-to-second
+ * shape + weekends) sits under those heroes. SAMPLE Snowdevil is the craft
  * canvas. Order history only.
  */
 export function GrowthFirstViewport({
@@ -76,6 +185,8 @@ export function GrowthFirstViewport({
   const habitSub = salesPending && !tt2.available ? null : growthHabitSub(tt2);
   const peeks =
     salesPending && !tt2.available ? [] : buildGrowthLeadPeeks(tt2);
+  const habit =
+    salesPending && !tt2.available ? null : buildGrowthHabitDepth(tt2);
   const trust = useSampleDesk && tt2.available ? SAMPLE_GROWTH_DOOR : null;
   const read = tt2.available ? growthTt2Read(tt2) : null;
   const heroDef = read?.line
@@ -147,6 +258,8 @@ export function GrowthFirstViewport({
           ))}
         </div>
       ) : null}
+
+      {habit ? <GrowthHabitStrip depth={habit} /> : null}
     </section>
   );
 }

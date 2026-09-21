@@ -4,6 +4,7 @@ import { VerticalBars } from "./CustomerCharts";
 import {
   growthTt2HistoryLine,
   growthTt2Read,
+  TT2_MIN_GAPS,
   type GrowthTt2Empty,
   type GrowthTt2EmptyKind,
   type GrowthTt2View,
@@ -359,6 +360,12 @@ export function GrowthTt2Board({ tt2 }: { tt2: GrowthTt2View }) {
         {isNum(tt2.habitSpanDays)
           ? ` · habit span ${Math.round(tt2.habitSpanDays)}d (slow minus fast)`
           : ""}
+        {isNum(tt2.weekend.weekendShare)
+          ? ` · weekends ${pct(tt2.weekend.weekendShare)} of second orders on Sat–Sun`
+          : tt2.weekend.weekdayCount >= TT2_MIN_GAPS &&
+              tt2.weekend.weekendCount === 0
+            ? " · second orders are a Mon–Fri habit — weekend share stays off, not 0%"
+            : ""}
       </p>
     </section>
   );

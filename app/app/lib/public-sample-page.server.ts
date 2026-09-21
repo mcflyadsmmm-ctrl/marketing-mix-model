@@ -352,10 +352,15 @@ export async function loadPublicSamplePage(
     timeZone: PUBLIC_SAMPLE_TZ,
     windowEnd: now,
   });
-  const tt2 = buildGrowthTt2(toRetention(book.orders), {
-    windowEnd: now,
-    historyLimited: false,
-  });
+  const tt2 = buildGrowthTt2(
+    book.orders.map((row) => ({
+      customerKey: row.customerKey,
+      orderedAt: row.orderedAt,
+      amount: row.amount,
+      shopLocalDate: row.shopLocalDate,
+    })),
+    { windowEnd: now, historyLimited: false },
+  );
 
   const cpaDays: CpaDayPoint[] = book.days.map((day) => ({
     dateKey: day.dateKey,
