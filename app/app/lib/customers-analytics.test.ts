@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   buildCustomerAnalytics,
+  bucketMixDays,
   bucketMixWeeks,
+  buildReturningMixPlays,
   emptyCustomerAnalytics,
   mixSummary,
+  resolveMixGrain,
   RETENTION_GUEST_KEY,
   type RetentionOrderRow,
 } from "./customers-analytics";
@@ -120,6 +123,20 @@ describe("new vs returning weekly mix", () => {
   it("reports a dollar-weighted returning-share rail", () => {
     expect(a.mixReturningShareAvg).toBeCloseTo(2000 / 7700, 4);
   });
+
+  it("splits the same dollars by day, guests staying first-time", () => {
+    expect(a.mixDaily.length).toBeGreaterThanOrEqual(2);
+    const newSum = a.mixDaily.reduce((s, d) => s + d.newDollars, 0);
+    const retSum = a.mixDaily.reduce((s, d) => s + d.returningDollars, 0);
+    expect(retSum).toBe(2000);
+    expect(newSum).toBe(5700);
+    for (const d of a.mixDaily) {
+      expect(d.total).toBe(d.newDollars + d.returningDollars);
+      expect(d.label).toMatch(/^\d{1,2}\/\d{1,2}$/);
+    }
+    const dayBuckets = bucketMixDays(a.mixDaily);
+    expect(dayBuckets.map((b) => b.total)).toEqual(a.mixDaily.map((d) => d.total));
+  });
 });
 
 describe("bucketMixWeeks + mixSummary — marquee grain toggle", () => {
@@ -188,6 +205,122 @@ describe("bucketMixWeeks + mixSummary — marquee grain toggle", () => {
     const s = mixSummary(bucketMixWeeks(a.mixWeekly, "week"));
     expect(s.total).toBe(s.newDollars + s.returningDollars);
     expect(s.returningShareAvg).toBeCloseTo(s.returningDollars / s.total, 8);
+  });
+});
+
+describe("returning $ mix plays — daily/weekly habit, not a days-to-second dump", () => {
+  it("compares the latest week with the prior week in green-or-grey tones", () => {
+    const rows: RetentionOrderRow[] = [
+      { customerKey: "a", orderedAt: new Date("2026-09-01T12:00:00Z"), amount: 100 },
+      { customerKey: "a", orderedAt: new Date("2026-09-08T12:00:00Z"), amount: 40 },
+      { customerKey: "b", orderedAt: new Date("2026-09-08T12:00:00Z"), amount: 60 },
+      { customerKey: "b", orderedAt: new Date("2026-09-15T12:00:00Z"), amount: 80 },
+    ];
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: new Date("2026-09-16T00:00:00Z"),
+      historyWindowDays: 90,
+    });
+    const weekly = bucketMixWeeks(built.mixWeekly, "week");
+    const plays = buildReturningMixPlays({
+      buckets: weekly,
+      grain: "week",
+      winBackDay: built.winBackDay,
+      saveNowOneOrder: built.saveNowOneOrder,
+    });
+    expect(plays.map((p) => p.id)).toEqual(["latest", "share", "winback"]);
+    const latest = plays[0]!;
+    expect(latest.label).toBe("Latest week");
+    expect(latest.amount).toBe(80);
+    expect(latest.delta?.tone).toBe("up");
+    expect(latest.delta?.unit).toBe("dollars");
+    expect(latest.delta?.amount).toBe(40);
+    expect(latest.delta?.versus).toBe("vs prior week");
+    const share = plays[1]!;
+    expect(share.delta?.unit).toBe("points");
+    expect(share.delta?.tone).toBe("up");
+    expect(share.delta?.versus).toBe("vs usual");
+    const winback = plays[2]!;
+    expect(winback.verb).toBe("Win-back");
+    expect(winback.amount).toBeNull();
+    expect(winback.sub).toContain("not $0");
+    expect(winback.delta).toBeNull();
+  });
+
+  it("names a down week in the grey tone and counts save-now buyers", () => {
+    const rows: RetentionOrderRow[] = [];
+    const gaps = [4, 8, 12, 16, 20];
+    gaps.forEach((gap, i) => {
+      rows.push({
+        customerKey: `rep-${i}`,
+        orderedAt: new Date("2026-07-01T12:00:00Z"),
+        amount: 100,
+      });
+      rows.push({
+        customerKey: `rep-${i}`,
+        orderedAt: new Date(Date.UTC(2026, 6, 1 + gap, 12)),
+        amount: 50,
+      });
+    });
+    rows.push({
+      customerKey: "late",
+      orderedAt: new Date("2026-08-01T12:00:00Z"),
+      amount: 200,
+    });
+    rows.push({
+      customerKey: "one",
+      orderedAt: new Date("2026-07-02T12:00:00Z"),
+      amount: 90,
+    });
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: new Date("2026-09-16T00:00:00Z"),
+      historyWindowDays: 120,
+    });
+    const weekly = bucketMixWeeks(built.mixWeekly, "week");
+    const plays = buildReturningMixPlays({
+      buckets: weekly,
+      grain: "week",
+      winBackDay: built.winBackDay,
+      saveNowOneOrder: built.saveNowOneOrder,
+    });
+    expect(built.winBackDay).not.toBeNull();
+    expect(built.saveNowOneOrder).toBeGreaterThan(0);
+    const latest = plays[0]!;
+    expect(latest.delta?.tone === "down" || latest.delta?.tone === "flat").toBe(true);
+    const winback = plays[2]!;
+    expect(winback.amount).toBe(built.saveNowOneOrder);
+    expect(winback.sub).toContain(`day ${built.winBackDay}`);
+    expect(winback.detail).toContain("Order-history");
+    expect(winback.detail).not.toMatch(/Klaviyo|pixel|ROAS|COGS/i);
+  });
+
+  it("switches the latest label with daily grain", () => {
+    const rows: RetentionOrderRow[] = [
+      { customerKey: "a", orderedAt: new Date("2026-09-13T12:00:00Z"), amount: 20 },
+      { customerKey: "a", orderedAt: new Date("2026-09-14T12:00:00Z"), amount: 40 },
+      { customerKey: "b", orderedAt: new Date("2026-09-15T12:00:00Z"), amount: 15 },
+    ];
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: new Date("2026-09-16T00:00:00Z"),
+      historyWindowDays: 90,
+    });
+    const plays = buildReturningMixPlays({
+      buckets: bucketMixDays(built.mixDaily),
+      grain: "day",
+      winBackDay: null,
+      saveNowOneOrder: 0,
+    });
+    expect(plays[0]?.label).toBe("Latest day");
+    expect(plays[0]?.amount).toBe(0);
+    expect(plays[0]?.delta?.versus).toBe("vs prior day");
+    expect(plays[0]?.delta?.amount).toBe(-40);
+    expect(plays[0]?.delta?.tone).toBe("down");
+  });
+
+  it("falls back from a grain that cannot paint", () => {
+    expect(resolveMixGrain("day", { day: false, week: true, month: false })).toBe("week");
+    expect(resolveMixGrain("month", { day: true, week: true, month: false })).toBe("week");
+    expect(resolveMixGrain("week", { day: true, week: false, month: false })).toBe("day");
+    expect(resolveMixGrain("week", { day: false, week: false, month: false })).toBe("week");
   });
 });
 

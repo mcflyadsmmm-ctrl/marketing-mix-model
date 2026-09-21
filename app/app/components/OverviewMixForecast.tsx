@@ -382,6 +382,10 @@ export function OverviewMixForecast({
         <DeskIcon name="customers" /> Dollars, not headcount. Shopify Analytics
         Overview is a returning-customer rate.
       </p>
+      <p className="mcfly-ov-mix__glance">
+        <a href={customersHref}>Daily and weekly returning $</a>
+        {" · win-back cards on Customers. Order history only."}
+      </p>
     </section>
   );
 }
