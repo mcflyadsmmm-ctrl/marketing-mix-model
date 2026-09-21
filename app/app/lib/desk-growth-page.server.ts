@@ -42,12 +42,18 @@ export type GrowthComeback = {
 const DAY_MS = 86_400_000;
 
 function toTt2Rows(
-  rows: Array<{ customerKey: string; orderedAt: Date; amount: number }>,
+  rows: Array<{
+    customerKey: string;
+    orderedAt: Date;
+    amount: number;
+    shopLocalDate: Date;
+  }>,
 ): GrowthTt2OrderRow[] {
   return rows.map((row) => ({
     customerKey: row.customerKey,
     orderedAt: row.orderedAt,
     amount: row.amount,
+    shopLocalDate: row.shopLocalDate,
   }));
 }
 

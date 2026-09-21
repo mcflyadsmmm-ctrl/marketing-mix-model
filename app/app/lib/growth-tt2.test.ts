@@ -164,6 +164,102 @@ describe("buildGrowthTt2 — habit clock + win-back", () => {
     expect(view.within30Count).toBe(3);
     expect(view.within30Share).toBeCloseTo(0.3, 5);
   });
+
+  it("withholds a 0% weekend share when every second order is Mon–Fri", () => {
+    expect(view.weekend.weekendCount).toBe(0);
+    expect(view.weekend.weekdayCount).toBe(5);
+    expect(view.weekend.weekendShare).toBeNull();
+    expect(view.weekend.peakDay).toBeNull();
+  });
+});
+
+describe("buildGrowthTt2 — second-order weekends", () => {
+  function local(isoDay: string): Date {
+    return new Date(`${isoDay}T00:00:00.000Z`);
+  }
+
+  function weekendBook(): GrowthTt2OrderRow[] {
+    const pairs: Array<[string, string, string, string]> = [
+      // Second order's UTC instant is Friday; shop-local Saturday wins.
+      ["w1", "2026-05-01", "2026-06-05T22:00:00.000Z", "2026-06-06"],
+      ["w2", "2026-05-02", "2026-06-07T15:00:00.000Z", "2026-06-07"],
+      ["w3", "2026-05-03", "2026-06-13T15:00:00.000Z", "2026-06-13"],
+      ["w4", "2026-05-04", "2026-06-15T15:00:00.000Z", "2026-06-15"],
+      ["w5", "2026-05-05", "2026-06-17T15:00:00.000Z", "2026-06-17"],
+    ];
+    const rows: GrowthTt2OrderRow[] = [];
+    for (const [key, first, secondAt, secondLocal] of pairs) {
+      rows.push({
+        customerKey: key,
+        orderedAt: local(first),
+        shopLocalDate: local(first),
+        amount: 80,
+      });
+      rows.push({
+        customerKey: key,
+        orderedAt: new Date(secondAt),
+        shopLocalDate: local(secondLocal),
+        amount: 90,
+      });
+    }
+    for (const day of ["2026-06-01", "2026-06-02", "2026-06-03"]) {
+      rows.push({
+        customerKey: `one-${day}`,
+        orderedAt: local(day),
+        shopLocalDate: local(day),
+        amount: 40,
+      });
+    }
+    rows.push({
+      customerKey: TT2_GUEST_KEY,
+      orderedAt: local("2026-06-06"),
+      shopLocalDate: local("2026-06-06"),
+      amount: 9999,
+    });
+    return rows;
+  }
+
+  it("counts Sat–Sun second orders on the shop calendar and ignores guests", () => {
+    const view = buildGrowthTt2(weekendBook(), {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(view.available).toBe(true);
+    expect(view.gapCount).toBe(5);
+    expect(view.weekend.weekendCount).toBe(3);
+    expect(view.weekend.weekdayCount).toBe(2);
+    expect(view.weekend.weekendShare).toBeCloseTo(0.6, 5);
+    expect(view.weekend.peakDay).toBe("Saturday");
+    expect(view.weekend.peakCount).toBe(2);
+  });
+
+  it("keeps weekend share null until five second orders", () => {
+    const rows = book(
+      Array.from({ length: 8 }, (_, i) => ({
+        key: `o${i}`,
+        orders: [{ d: 40, amt: 50 + i }],
+      })),
+    );
+    rows.push({
+      customerKey: "rep",
+      orderedAt: at(50),
+      amount: 80,
+      shopLocalDate: new Date("2026-07-28T00:00:00.000Z"),
+    });
+    rows.push({
+      customerKey: "rep",
+      orderedAt: at(20),
+      amount: 90,
+      shopLocalDate: new Date("2026-08-27T00:00:00.000Z"),
+    });
+    const view = buildGrowthTt2(rows, {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(view.gapCount).toBe(1);
+    expect(view.weekend.weekendShare).toBeNull();
+    expect(view.weekend.weekendCount + view.weekend.weekdayCount).toBe(1);
+  });
 });
 
 describe("growthTt2Read — one morning sentence", () => {
@@ -284,5 +380,7 @@ describe("emptyGrowthTt2", () => {
     expect(e.empty?.kind).toBe("syncing");
     expect(e.typicalDays).toBeNull();
     expect(e.reachNow).toBe(0);
+    expect(e.weekend.weekendShare).toBeNull();
+    expect(e.weekend.weekendCount).toBe(0);
   });
 });

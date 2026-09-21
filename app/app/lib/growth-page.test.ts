@@ -159,6 +159,8 @@ describe("Growth TT2 + win-back clock — habit, not a dump", () => {
     expect(tt2Board).toContain("Reach now");
     expect(tt2Board).toContain("Days-to-2nd habit");
     expect(tt2Board).toContain("Still waiting");
+    expect(tt2Board).toContain("Sat–Sun");
+    expect(tt2Board).toContain("not 0%");
     expect(tt2Board).toContain("Today’s read");
     expect(tt2Board).toContain("mcfly-cust-kpi--action");
     expect(tt2Board.match(/<ActionCard[\s\n]/g)?.length).toBe(3);

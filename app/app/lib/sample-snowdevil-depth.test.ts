@@ -331,6 +331,11 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     expect(tt2.typicalDays).not.toBeNull();
     expect(tt2.winBackDay).not.toBeNull();
     expect(tt2.daysToSecond.some((b) => b.buyers > 0)).toBe(true);
+    expect(tt2.weekend.weekendCount + tt2.weekend.weekdayCount).toBe(tt2.gapCount);
+    if (tt2.weekend.weekendShare != null) {
+      expect(tt2.weekend.weekendShare).toBeGreaterThan(0);
+      expect(tt2.weekend.weekendShare).toBeLessThanOrEqual(1);
+    }
     expect(tt2.fallOff.length > 0 || tt2.fallEmpty != null).toBe(true);
     expect(tt2.historyLimited).toBe(false);
     const greeting = growthOperatorGreeting({ salesPending: false, tt2 });
