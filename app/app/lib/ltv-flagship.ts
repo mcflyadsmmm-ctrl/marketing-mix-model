@@ -126,6 +126,10 @@ export interface FlagshipMonthRow {
   rev30: number | null;
   rev90: number | null;
   rev365: number | null;
+  /** Buyers in this month who have lived each window. 0 when none have. */
+  n30: number;
+  n90: number;
+  n365: number;
 }
 
 /**
@@ -226,9 +230,9 @@ function monthWindowCell(
   members: CustomerDepth[],
   asOf: Date,
   days: LtvFlagshipWindow,
-): { retain: number | null; revenue: number | null } {
+): { retain: number | null; revenue: number | null; n: number } {
   const mature = matureForWindow(members, asOf, days);
-  if (mature.length === 0) return { retain: null, revenue: null };
+  if (mature.length === 0) return { retain: null, revenue: null, n: 0 };
   let back = 0;
   for (const c of mature) {
     if (c.reorderDays != null && c.reorderDays <= days) back += 1;
@@ -236,6 +240,7 @@ function monthWindowCell(
   return {
     retain: back / mature.length,
     revenue: mean(mature.map((c) => windowSpend(c, days))),
+    n: mature.length,
   };
 }
 
@@ -273,9 +278,136 @@ export function flagshipMonthRows(
       rev30: d30.revenue,
       rev90: d90.revenue,
       rev365: d365.revenue,
+      n30: d30.n,
+      n90: d90.n,
+      n365: d365.n,
     });
   }
   return rows;
+}
+
+// —— 30 / 90 / 365 triangle + revenue by first-order month ————————————————
+
+export type WindowTriangleEmptyKind = "syncing" | "thin" | "young";
+
+export interface WindowTriangleCell {
+  days: LtvFlagshipWindow;
+  header: string;
+  /** Come-back share once enough buyers have lived the window. */
+  retention: number | null;
+  /** Dollars per buyer once enough buyers have lived the window. */
+  revenue: number | null;
+  /** Buyers who have lived the window, even when the cell stays blank. */
+  n: number;
+}
+
+export interface WindowTriangleRow {
+  monthKey: string;
+  label: string;
+  customers: number;
+  cells: WindowTriangleCell[];
+}
+
+export interface WindowTriangleView {
+  kind: "ready" | WindowTriangleEmptyKind;
+  rows: WindowTriangleRow[];
+  copy: string;
+  verb: string;
+}
+
+function triangleHeader(days: LtvFlagshipWindow): string {
+  switch (days) {
+    case 30:
+      return "30 days";
+    case 90:
+      return "90 days";
+    case 365:
+      return "First year";
+    default: {
+      const _exhaustive: never = days;
+      return _exhaustive;
+    }
+  }
+}
+
+/**
+ * A cell paints only after {@link FLAGSHIP_MIN_MATURE} buyers in that
+ * first-order month have lived the window. Fewer than that stays blank —
+ * one shopper is not a come-back rate, and a young month is not $0.
+ */
+function paintWindow(value: number | null, n: number): number | null {
+  if (value == null || n < FLAGSHIP_MIN_MATURE) return null;
+  return value;
+}
+
+function triangleCells(row: FlagshipMonthRow): WindowTriangleCell[] {
+  const specs: Array<{
+    days: LtvFlagshipWindow;
+    retention: number | null;
+    revenue: number | null;
+    n: number;
+  }> = [
+    { days: 30, retention: row.retain30, revenue: row.rev30, n: row.n30 },
+    { days: 90, retention: row.retain90, revenue: row.rev90, n: row.n90 },
+    { days: 365, retention: row.retain365, revenue: row.rev365, n: row.n365 },
+  ];
+  return specs.map((spec) => ({
+    days: spec.days,
+    header: triangleHeader(spec.days),
+    retention: paintWindow(spec.retention, spec.n),
+    revenue: paintWindow(spec.revenue, spec.n),
+    n: spec.n,
+  }));
+}
+
+/**
+ * 30 / 90 / 365 come-back triangle and the dollars beside it, one row per
+ * first-order month. Ready only when two months exist and at least one cell
+ * has sealed. Otherwise an honest empty — syncing, one month, or too young.
+ */
+export function firstOrderWindowTriangle(
+  rows: FlagshipMonthRow[],
+  buyers: number,
+): WindowTriangleView {
+  const shaped = rows.map((row) => ({
+    monthKey: row.cohortMonth,
+    label: row.label,
+    customers: row.customers,
+    cells: triangleCells(row),
+  }));
+  const sealed = shaped.some((row) =>
+    row.cells.some((cell) => cell.retention != null || cell.revenue != null),
+  );
+  if (sealed && shaped.length >= 2) {
+    return {
+      kind: "ready",
+      rows: shaped,
+      copy: "Each first-order month, then who came back and what they spent in 30 days, 90 days, and the first year. The blank corner is a window not lived by enough buyers yet — not 0%, not $0.",
+      verb: "Read the triangle",
+    };
+  }
+  if (buyers <= 0) {
+    return {
+      kind: "syncing",
+      rows: [],
+      copy: "Orders still syncing — not $0. Come-back and dollars by first-order month fill as identified buyers land.",
+      verb: "Refresh this page",
+    };
+  }
+  if (shaped.length < 2) {
+    return {
+      kind: "thin",
+      rows: shaped,
+      copy: "Needs two first-order months. Blank is not 0% — the triangle fills as months pass. Order history only.",
+      verb: "Watch the next month",
+    };
+  }
+  return {
+    kind: "young",
+    rows: shaped,
+    copy: `First 30 days seals once ${FLAGSHIP_MIN_MATURE} buyers in a first-order month have lived 30 days — not $0.`,
+    verb: "Wait for day 30",
+  };
 }
 
 // —— Transparent predictive LTV (historical analog, written out) ————————————

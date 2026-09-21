@@ -21139,3 +21139,15 @@ button.mcfly-habit-goals__read:focus-visible {
   border-color: var(--mcfly-well-ink);
   color: var(--mcfly-well-bg);
 }
+
+/* LTV first-order triangle — sealed cells are truth green (inline), blanks
+   reuse the grey hatch. Kickers sit inside the scrolling table wrap. */
+.mcfly-window-triangle__k {
+  margin: 0;
+  padding: 0.55rem 0.7rem 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute);
+}

@@ -3,6 +3,7 @@ import { rollUpCustomers, type DepthOrder } from "./ltv-depth";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 import {
   buildLtvFlagship,
+  firstOrderWindowTriangle,
   flagshipDailyRead,
   flagshipEmptyState,
   flagshipMonthRows,
@@ -361,5 +362,95 @@ describe("SAMPLE Snowdevil flagship is dense", () => {
     const newest = view.monthWindows[view.monthWindows.length - 1]!;
     expect(newest.rev365).toBeNull();
     expect(newest.retain365).toBeNull();
+    expect(newest.n365).toBe(0);
+  });
+
+  it("paints a 30/90/365 triangle and leaves the young corner blank", () => {
+    const triangle = firstOrderWindowTriangle(view.monthWindows, view.buyers);
+    expect(triangle.kind).toBe("ready");
+    expect(triangle.rows.length).toBeGreaterThanOrEqual(10);
+    const oldest = triangle.rows[0]!;
+    expect(oldest.cells.map((cell) => cell.header)).toEqual([
+      "30 days",
+      "90 days",
+      "First year",
+    ]);
+    expect(oldest.cells.every((cell) => cell.retention != null)).toBe(true);
+    expect(oldest.cells.every((cell) => cell.revenue != null && cell.revenue > 0)).toBe(
+      true,
+    );
+    const newest = triangle.rows[triangle.rows.length - 1]!;
+    const year = newest.cells.find((cell) => cell.days === 365)!;
+    expect(year.retention).toBeNull();
+    expect(year.revenue).toBeNull();
+    const sealedYear = triangle.rows.some((row) =>
+      row.cells.some((cell) => cell.days === 365 && cell.revenue != null),
+    );
+    expect(sealedYear).toBe(true);
+  });
+});
+
+describe("first-order window triangle", () => {
+  it("stays blank until eight buyers in that month have lived the window", () => {
+    const asOf = new Date("2024-08-01");
+    const thin = flagshipMonthRows(
+      rollUpCustomers([
+        ...Array.from({ length: 7 }, (_, i) => order(`t${i}`, "2024-01-10", 80)),
+        ...Array.from({ length: 7 }, (_, i) => order(`u${i}`, "2024-03-10", 80)),
+      ]),
+      asOf,
+    );
+    expect(thin[0]!.n30).toBe(7);
+    expect(thin[0]!.retain30).not.toBeNull();
+    const hidden = firstOrderWindowTriangle(thin, 14);
+    expect(hidden.kind).toBe("young");
+    expect(hidden.rows[0]!.cells.every((cell) => cell.retention == null)).toBe(
+      true,
+    );
+    expect(hidden.rows[0]!.cells.every((cell) => cell.revenue == null)).toBe(true);
+
+    const enough = flagshipMonthRows(
+      rollUpCustomers([
+        ...Array.from({ length: 8 }, (_, i) => order(`a${i}`, "2024-01-10", 80)),
+        ...Array.from({ length: 8 }, (_, i) => order(`b${i}`, "2024-03-10", 90)),
+      ]),
+      asOf,
+    );
+    const painted = firstOrderWindowTriangle(enough, 16);
+    expect(painted.kind).toBe("ready");
+    expect(painted.rows[0]!.cells.find((cell) => cell.days === 30)?.revenue).toBe(80);
+    expect(painted.rows[1]!.cells.find((cell) => cell.days === 365)?.revenue).toBeNull();
+  });
+
+  it("names syncing, one-month, and too-young books without a fake zero", () => {
+    const syncing = firstOrderWindowTriangle([], 0);
+    expect(syncing.kind).toBe("syncing");
+    expect(syncing.copy).toContain("not $0");
+    expect(syncing.verb).toBe("Refresh this page");
+
+    const oneMonth = flagshipMonthRows(
+      rollUpCustomers(
+        Array.from({ length: 8 }, (_, i) => order(`o${i}`, "2024-01-10", 40)),
+      ),
+      new Date("2024-08-01"),
+    );
+    const thin = firstOrderWindowTriangle(oneMonth, 8);
+    expect(thin.kind).toBe("thin");
+    expect(thin.copy).toContain("two first-order months");
+    expect(thin.copy).toContain("not 0%");
+
+    const young = flagshipMonthRows(
+      rollUpCustomers([
+        ...Array.from({ length: 8 }, (_, i) => order(`y${i}`, "2024-07-20", 40)),
+        ...Array.from({ length: 8 }, (_, i) => order(`z${i}`, "2024-08-02", 40)),
+      ]),
+      new Date("2024-08-10"),
+    );
+    const waiting = firstOrderWindowTriangle(young, 16);
+    expect(waiting.kind).toBe("young");
+    expect(waiting.copy).toContain("not $0");
+    expect(waiting.rows.every((row) => row.cells.every((cell) => cell.n === 0))).toBe(
+      true,
+    );
   });
 });
