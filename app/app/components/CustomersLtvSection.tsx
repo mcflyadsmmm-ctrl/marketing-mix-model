@@ -7,6 +7,7 @@ import { LtvPathTable } from "./LtvPathTable";
 import { LtvWhaleRecency } from "./LtvWhaleRecency";
 import { LtvFlagshipBoard } from "./LtvFlagshipBoard";
 import { LtvWindowTriangle } from "./LtvWindowTriangle";
+import { LtvFirstProductDrivers } from "./LtvFirstProductDrivers";
 import { LtvProductBoard } from "./LtvProductBoard";
 import { LtvPromoBoard } from "./LtvPromoBoard";
 import { formatCurrency } from "../lib/mer-format";
@@ -322,7 +323,7 @@ function useCustomersLtvPack({
   };
 }
 
-/** LTV 30/90/365 windows — first-90 hero, value build, order rows. */
+/** LTV 30/90/365 windows — first-90 hero, value build, triangle, then first-product LTV. */
 export function CustomersLtvWindows(props: LtvPackProps) {
   const {
     ltv,
@@ -385,6 +386,10 @@ export function CustomersLtvWindows(props: LtvPackProps) {
       <LtvWindowTriangle
         rows={depth.monthWindows}
         buyers={depth.buyers}
+        useSampleDesk={useSampleDesk}
+      />
+      <LtvFirstProductDrivers
+        drivers={depth.firstProductDrivers}
         useSampleDesk={useSampleDesk}
       />
     </section>
