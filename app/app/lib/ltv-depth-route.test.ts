@@ -96,6 +96,30 @@ describe("LTV route mounts the depth pack", () => {
     expect(triangle).toContain("rgba(4, 120, 87");
   });
 
+  it("keeps the triangle as the LTV hero and densifies predictive LTV under it", () => {
+    const windowsFn = section.slice(
+      section.indexOf("export function CustomersLtvWindows"),
+      section.indexOf("export function CustomersLtvDepth"),
+    );
+    expect(windowsFn).toContain("<LtvWindowTriangle");
+    expect(windowsFn.indexOf("<LtvWindowTriangle")).toBeLessThan(
+      windowsFn.indexOf("<LtvExpectedEstimate"),
+    );
+    expect(windowsFn).toContain("estimate={depth.expectedLtv}");
+    expect(windowsFn).toContain("useSampleDesk={useSampleDesk}");
+    const estimate = read("../components/LtvExpectedEstimate.tsx");
+    const model = read("../lib/expected-ltv.ts");
+    expect(estimate).toContain("{estimate.formula}");
+    expect(estimate).toContain("Not $0.");
+    expect(model).toContain(
+      "Estimate — formula: average order value × expected orders",
+    );
+    expect(estimate + model).not.toMatch(/\bCOGS\b/);
+    expect(estimate + model).not.toMatch(/pixel/i);
+    expect(estimate + model).not.toMatch(/\bGMV\b/);
+    expect(estimate + model).not.toMatch(/\bCAC\b/);
+  });
+
   it("drops the old per-month grid once the richer curve paints", () => {
     expect(route).toContain("monthRows.length > 0 && !depth.curves");
   });

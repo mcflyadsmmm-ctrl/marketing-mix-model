@@ -8,6 +8,7 @@ import { LtvWhaleRecency } from "./LtvWhaleRecency";
 import { LtvFlagshipBoard } from "./LtvFlagshipBoard";
 import { LtvWindowTriangle } from "./LtvWindowTriangle";
 import { LtvFirstProductDrivers } from "./LtvFirstProductDrivers";
+import { LtvExpectedEstimate } from "./LtvExpectedEstimate";
 import { LtvProductBoard } from "./LtvProductBoard";
 import { LtvPromoBoard } from "./LtvPromoBoard";
 import { formatCurrency } from "../lib/mer-format";
@@ -323,7 +324,7 @@ function useCustomersLtvPack({
   };
 }
 
-/** LTV 30/90/365 windows — first-90 hero, value build, triangle, then first-product LTV. */
+/** LTV 30/90/365 windows — first-90 hero, value build, triangle, first-product LTV, then the predictive formula. */
 export function CustomersLtvWindows(props: LtvPackProps) {
   const {
     ltv,
@@ -390,6 +391,10 @@ export function CustomersLtvWindows(props: LtvPackProps) {
       />
       <LtvFirstProductDrivers
         drivers={depth.firstProductDrivers}
+        useSampleDesk={useSampleDesk}
+      />
+      <LtvExpectedEstimate
+        estimate={depth.expectedLtv}
         useSampleDesk={useSampleDesk}
       />
     </section>

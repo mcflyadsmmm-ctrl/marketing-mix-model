@@ -21326,3 +21326,46 @@ button.mcfly-habit-goals__read:focus-visible {
 .mcfly-ov-mix__glance a:focus-visible {
   text-decoration: underline;
 }
+
+/* P1-D predictive LTV — secondary under the first-order triangle.
+   APPEND ONLY. The triangle stays the hero. Formula text stays readable. */
+.mcfly-ltv-estimate {
+  margin: 0.75rem 0 0;
+  padding: 0.55rem 0.75rem 0.65rem;
+  border: 1px solid var(--mcfly-line-soft);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.mcfly-ltv-estimate__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mcfly-ltv-estimate__summary::-webkit-details-marker {
+  display: none;
+}
+
+.mcfly-ltv-estimate__formula {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-ltv-estimate__value {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-ltv-estimate__inputs {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+}

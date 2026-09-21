@@ -20,6 +20,10 @@ import {
   type PathLtvRow,
 } from "./ltv-depth";
 import {
+  expectedLtvFromRetention,
+  type ExpectedLtvEstimate,
+} from "./expected-ltv";
+import {
   buildFirstProductDrivers,
   type FirstProductDriversView,
 } from "./ltv-first-product";
@@ -826,6 +830,11 @@ export interface LtvFlagshipView extends LtvDepthView {
   windows: FlagshipWindowCurve | null;
   monthWindows: FlagshipMonthRow[];
   predictive: PredictiveLtv | null;
+  /**
+   * P1-D expected value beside the realized triangle.
+   * Average order value × expected orders. Null inputs stay a dash.
+   */
+  expectedLtv: ExpectedLtvEstimate;
   refunds: RefundHonesty;
   pathClarity: PathClarity | null;
   /** First-product → LTV / path drivers from titled first-line items. */
@@ -852,6 +861,7 @@ export function buildLtvFlagship(
     windows: flagshipWindowCurve(customers, asOf),
     monthWindows: flagshipMonthRows(customers, asOf),
     predictive: predictiveLtv(customers, asOf),
+    expectedLtv: expectedLtvFromRetention(customers, asOf),
     refunds: refundHonesty(orders, options),
     pathClarity: pathClarity(view.paths, customers),
     productLtv: buildProductLtv(orders, asOf),
