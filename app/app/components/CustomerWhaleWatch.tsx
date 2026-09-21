@@ -2,7 +2,12 @@ import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency } from "../lib/mer-format";
-import type { CustomerRfmView, RfmEmpty, WhaleWatchRow } from "../lib/customers-rfm";
+import {
+  RFM_FROM_SHOPIFY_ORDERS,
+  type CustomerRfmView,
+  type RfmEmpty,
+  type WhaleWatchRow,
+} from "../lib/customers-rfm";
 
 function emptyValue(empty: RfmEmpty): string {
   switch (empty.kind) {
@@ -18,14 +23,23 @@ function emptyValue(empty: RfmEmpty): string {
   }
 }
 
+function repeatLabel(row: WhaleWatchRow, currency: string): string {
+  if (row.repeatRevenue == null) return "—";
+  return formatCurrency(row.repeatRevenue, currency);
+}
+
 function rowDetail(row: WhaleWatchRow, currency: string): string {
-  return `${formatCurrency(row.lifetime, currency)} on file · ${row.orders.toLocaleString()} orders · last seen ${row.daysSince}d. ${row.detail}`;
+  const repeat =
+    row.repeatRevenue == null
+      ? "Repeat revenue is blank — no second order, not $0."
+      : `Repeat revenue ${formatCurrency(row.repeatRevenue, currency)}.`;
+  return `${formatCurrency(row.lifetime, currency)} order LTV · ${row.orders.toLocaleString()} orders · last seen ${row.daysSince}d. ${repeat} ${row.detail}`;
 }
 
 /**
- * Whale watchlist — high on-file LTV buyers whose last order is past 30 days.
- * Actionable beside the existing What-to-do ActionCards. Opaque keys stay off
- * the desk. Soft table, designed empty, never a blank chart.
+ * Whale watchlist — top identified buyers by Shopify order LTV, with repeat
+ * revenue beside it. Thin books stay empty. No invented names. Soft table,
+ * designed empty, never a blank chart.
  */
 export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
   const currency = useDeskCurrency();
@@ -37,8 +51,8 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
       kind: "thin" as const,
       buyers: rfm.identifiedBuyers,
       need: 8,
-      copy: "No high-LTV buyers past 30 days since last order — not zero.",
-      verb: "Watch the next 30 days",
+      copy: "No positive order LTV to rank — not $0. No customers invented.",
+      verb: "Watch Shopify orders",
     };
     return (
       <section
@@ -47,9 +61,7 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
       >
         <div className="mcfly-panel__head">
           <h2>Whale watchlist</h2>
-          <p className="mcfly-panel__muted">
-            High LTV · recency risk · beside What to do
-          </p>
+          <p className="mcfly-panel__muted">{RFM_FROM_SHOPIFY_ORDERS}</p>
         </div>
         <button
           type="button"
@@ -64,7 +76,7 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
                 { k: "What this is", v: shown.copy },
                 {
                   k: "What fills next",
-                  v: "Floor: 8 identified buyers × 30 days. Then top-dollar buyers whose last order is past 30 days. Reach those first — order history, not email.",
+                  v: "Floor: 8 identified buyers × 30 days. Then the top order-LTV buyers from Shopify orders. Repeat revenue stays blank until a second order — not $0. No customers invented.",
                 },
               ],
               next: "What to do (left) still times the one-order win-back.",
@@ -98,7 +110,7 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
       <div className="mcfly-panel__head">
         <h2>Whale watchlist</h2>
         <p className="mcfly-panel__muted">
-          High on-file $ · last order past 30d · {rfm.watchlist.length.toLocaleString()} to reach
+          {RFM_FROM_SHOPIFY_ORDERS} {rfm.watchlist.length.toLocaleString()} by order LTV.
         </p>
       </div>
 
@@ -106,7 +118,10 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
         <div className="mcfly-cust-watch__head" role="row">
           <span role="columnheader">Buyer</span>
           <span role="columnheader" className="mcfly-cust-table__num">
-            On file
+            Order LTV
+          </span>
+          <span role="columnheader" className="mcfly-cust-table__num">
+            Repeat
           </span>
           <span role="columnheader" className="mcfly-cust-table__num">
             Last
@@ -127,10 +142,10 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
                   { k: "What to do", v: rowDetail(row, currency) },
                   {
                     k: "RFM-lite",
-                    v: `Recency ${row.recency} · frequency ${row.frequency} · monetary ${row.monetary} (terciles, 3 is high).`,
+                    v: `Recency ${row.recency} · frequency ${row.frequency} · monetary ${row.monetary} (3 is high on the documented thresholds).`,
                   },
                 ],
-                next: "What to do still times the one-order win-back. This list is high LTV first.",
+                next: "Win-back on Growth times the one-order ask. This list is top order LTV.",
               })
             }
           >
@@ -145,6 +160,9 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
                 · {row.orders.toLocaleString()} orders
               </span>
             </span>
+            <span className="mcfly-cust-table__num" role="cell">
+              {repeatLabel(row, currency)}
+            </span>
             <span className="mcfly-cust-table__num mcfly-cust-watch__last" role="cell">
               {row.daysSince}d
             </span>
@@ -152,8 +170,9 @@ export function CustomerWhaleWatch({ rfm }: { rfm: CustomerRfmView }) {
         ))}
       </div>
       <p className="mcfly-cust-note">
-        <DeskIcon name="customers" /> Identified buyers only — Shopify keys stay
-        off this desk. Order-history timing, not email.
+        <DeskIcon name="customers" /> Identified buyers only — Whale 1 is a rank,
+        not an invented name. Repeat stays blank with no second order.{" "}
+        <a href="#mcfly-win-back">Win-back</a> times the one-order ask.
       </p>
     </section>
   );

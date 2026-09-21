@@ -260,9 +260,14 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
     expect(rfm.available).toBe(true);
     expect(rfm.empty).toBeNull();
     expect(rfm.identifiedBuyers).toBeGreaterThan(50);
-    expect(rfm.segments).toHaveLength(4);
+    expect(rfm.segments.map((row) => row.key)).toEqual([
+      "champions",
+      "at_risk",
+      "new",
+      "hibernating",
+    ]);
     const buyers = rfm.segments.reduce((s, row) => s + row.buyers, 0);
-    expect(buyers).toBe(rfm.identifiedBuyers);
+    expect(buyers + rfm.outsideRules).toBe(rfm.identifiedBuyers);
     expect(rfm.bands).toHaveLength(3);
     expect(rfm.watchlist.length > 0 || rfm.watchEmpty != null).toBe(true);
     expect(rfm.watchlist.every((row) => /^Whale \d+$/.test(row.label))).toBe(true);

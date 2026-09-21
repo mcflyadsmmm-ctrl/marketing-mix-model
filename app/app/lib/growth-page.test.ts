@@ -55,6 +55,7 @@ describe("Growth page", () => {
       customers.indexOf("<CustomersGrowthSection"),
     );
     const section = read("../components/CustomersGrowthSection.tsx");
+    expect(section).toContain('id="mcfly-win-back"');
     expect(section.indexOf("<GrowthFirstViewport")).toBeLessThan(
       section.indexOf("<GrowthComebackChart"),
     );

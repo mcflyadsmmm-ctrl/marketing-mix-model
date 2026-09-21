@@ -52,11 +52,13 @@ export function CustomersGrowthSection({
   return (
     <>
       <p className="mcfly-book__lede">{GROWTH_LEDE}</p>
-      <GrowthFirstViewport
-        tt2={tt2}
-        salesPending={Boolean(salesPending)}
-        useSampleDesk={useSampleDesk}
-      />
+      <div id="mcfly-win-back">
+        <GrowthFirstViewport
+          tt2={tt2}
+          salesPending={Boolean(salesPending)}
+          useSampleDesk={useSampleDesk}
+        />
+      </div>
       <GrowthComebackChart
         depthBars={orderDepthBars}
         months={firstOrderMonths}
