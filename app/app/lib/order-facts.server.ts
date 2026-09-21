@@ -18,7 +18,8 @@ import {
   ORDER_FACT_PAGES_COST_SAFE_CAP,
   type GraphqlCost,
 } from "./shopify-graphql-cost.server";
-import { orderNetAmount } from "./shopify-sales.server";
+import { orderGrossAmount, orderNetAmount } from "./shopify-sales.server";
+import { sumCohortWindows } from "./ltv-depth";
 import { enqueueJob } from "./job-queue.server";
 
 /** OrderFact.source for live Shopify ingest — never write sample from this lane. */
@@ -244,6 +245,8 @@ export interface OrderFactRow {
   orderedAt: Date;
   shopLocalDate: Date;
   amount: number;
+  /** totalPriceSet shop amount. Null when Shopify did not send a gross. */
+  grossAmount: number | null;
   currency: string | null;
   discountAmount: number | null;
   sourceName: string | null;
@@ -254,9 +257,17 @@ export interface OrderFactRow {
 export interface CohortRollup {
   cohortMonth: string;
   customers: number;
+  /** Net dollars (order revenue − refunds in the window). Heroes read these. */
   revenueD30: number;
   revenueD90: number;
   revenueD365: number;
+  /**
+   * Gross order revenue in the window when every order carried a known gross.
+   * Null means gross is not on file — not $0. Not stored on CohortFact.
+   */
+  grossRevenueD30: number | null;
+  grossRevenueD90: number | null;
+  grossRevenueD365: number | null;
   ordersD30: number;
   ordersD90: number;
   ordersD365: number;
@@ -288,10 +299,6 @@ function cohortMonthFromDate(d: Date): string {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
-}
-
-function msDays(n: number): number {
-  return n * 86_400_000;
 }
 
 function parseMoneyAmount(raw: string | undefined): number {
@@ -326,12 +333,19 @@ export function computeCohortRollups(
     customerKey: string;
     orderedAt: Date;
     amount: number;
+    /** Order revenue before refunds, when known. Omit rather than invent. */
+    grossAmount?: number | null;
     lifetimeOrders?: number | null;
   }>,
 ): CohortRollup[] {
   const byCustomer = new Map<
     string,
-    Array<{ orderedAt: Date; amount: number; lifetimeOrders: number | null }>
+    Array<{
+      orderedAt: Date;
+      amount: number;
+      grossAmount: number | null;
+      lifetimeOrders: number | null;
+    }>
   >();
 
   for (const o of orders) {
@@ -341,11 +355,37 @@ export function computeCohortRollups(
         ? Math.max(0, Math.trunc(o.lifetimeOrders))
         : null;
     const list = byCustomer.get(o.customerKey) ?? [];
-    list.push({ orderedAt: o.orderedAt, amount: o.amount, lifetimeOrders: lifetime });
+    list.push({
+      orderedAt: o.orderedAt,
+      amount: o.amount,
+      grossAmount:
+        o.grossAmount != null && Number.isFinite(o.grossAmount)
+          ? o.grossAmount
+          : null,
+      lifetimeOrders: lifetime,
+    });
     byCustomer.set(o.customerKey, list);
   }
 
-  const byMonth = new Map<string, CohortRollup>();
+  const byMonth = new Map<
+    string,
+    {
+      cohortMonth: string;
+      customers: number;
+      revenueD30: number;
+      revenueD90: number;
+      revenueD365: number;
+      grossD30: number;
+      grossD90: number;
+      grossD365: number;
+      grossKnownD30: boolean;
+      grossKnownD90: boolean;
+      grossKnownD365: boolean;
+      ordersD30: number;
+      ordersD90: number;
+      ordersD365: number;
+    }
+  >();
 
   for (const list of byCustomer.values()) {
     list.sort((a, b) => a.orderedAt.getTime() - b.orderedAt.getTime());
@@ -360,32 +400,14 @@ export function computeCohortRollups(
       continue;
     }
     const cohortMonth = cohortMonthFromDate(first.orderedAt);
-    const firstMs = first.orderedAt.getTime();
-
-    let revenueD30 = 0;
-    let revenueD90 = 0;
-    let revenueD365 = 0;
-    let ordersD30 = 0;
-    let ordersD90 = 0;
-    let ordersD365 = 0;
-
-    for (const o of list) {
-      const delta = o.orderedAt.getTime() - firstMs;
-      if (delta < 0) continue;
-      const amount = Number.isFinite(o.amount) ? o.amount : 0;
-      if (delta <= msDays(30)) {
-        revenueD30 += amount;
-        ordersD30 += 1;
-      }
-      if (delta <= msDays(90)) {
-        revenueD90 += amount;
-        ordersD90 += 1;
-      }
-      if (delta <= msDays(365)) {
-        revenueD365 += amount;
-        ordersD365 += 1;
-      }
-    }
+    const sums = sumCohortWindows(
+      list.map((row) => ({
+        orderedAt: row.orderedAt,
+        amount: Number.isFinite(row.amount) ? row.amount : 0,
+        grossAmount: row.grossAmount,
+      })),
+      first.orderedAt,
+    );
 
     const row = byMonth.get(cohortMonth) ?? {
       cohortMonth,
@@ -393,23 +415,47 @@ export function computeCohortRollups(
       revenueD30: 0,
       revenueD90: 0,
       revenueD365: 0,
+      grossD30: 0,
+      grossD90: 0,
+      grossD365: 0,
+      grossKnownD30: true,
+      grossKnownD90: true,
+      grossKnownD365: true,
       ordersD30: 0,
       ordersD90: 0,
       ordersD365: 0,
     };
     row.customers += 1;
-    row.revenueD30 += revenueD30;
-    row.revenueD90 += revenueD90;
-    row.revenueD365 += revenueD365;
-    row.ordersD30 += ordersD30;
-    row.ordersD90 += ordersD90;
-    row.ordersD365 += ordersD365;
+    row.revenueD30 += sums.net30;
+    row.revenueD90 += sums.net90;
+    row.revenueD365 += sums.net365;
+    row.ordersD30 += sums.orders30;
+    row.ordersD90 += sums.orders90;
+    row.ordersD365 += sums.orders365;
+    if (sums.gross30 == null) row.grossKnownD30 = false;
+    else row.grossD30 += sums.gross30;
+    if (sums.gross90 == null) row.grossKnownD90 = false;
+    else row.grossD90 += sums.gross90;
+    if (sums.gross365 == null) row.grossKnownD365 = false;
+    else row.grossD365 += sums.gross365;
     byMonth.set(cohortMonth, row);
   }
 
-  return [...byMonth.values()].sort((a, b) =>
-    a.cohortMonth.localeCompare(b.cohortMonth),
-  );
+  return [...byMonth.values()]
+    .sort((a, b) => a.cohortMonth.localeCompare(b.cohortMonth))
+    .map((row) => ({
+      cohortMonth: row.cohortMonth,
+      customers: row.customers,
+      revenueD30: row.revenueD30,
+      revenueD90: row.revenueD90,
+      revenueD365: row.revenueD365,
+      grossRevenueD30: row.grossKnownD30 ? row.grossD30 : null,
+      grossRevenueD90: row.grossKnownD90 ? row.grossD90 : null,
+      grossRevenueD365: row.grossKnownD365 ? row.grossD365 : null,
+      ordersD30: row.ordersD30,
+      ordersD90: row.ordersD90,
+      ordersD365: row.ordersD365,
+    }));
 }
 
 async function upsertOrderFact(
@@ -426,6 +472,7 @@ async function upsertOrderFact(
     orderedAt: row.orderedAt,
     shopLocalDate: row.shopLocalDate,
     amount: row.amount,
+    grossAmount: row.grossAmount,
     currency: row.currency,
     discountAmount: row.discountAmount,
     sourceName: row.sourceName,
@@ -617,6 +664,7 @@ async function fetchOrdersForDay(
         orderedAt,
         shopLocalDate: dayKeyToUtcDate(localKey),
         amount,
+        grossAmount: orderGrossAmount(node),
         currency:
           node.currentTotalPriceSet?.shopMoney?.currencyCode ??
           node.totalPriceSet?.shopMoney?.currencyCode ??
@@ -791,6 +839,7 @@ export async function runOrderFactsBackfill(
             orderedAt: shopLocalDayRange(dayKey, timeZone).start,
             shopLocalDate: dayKeyToUtcDate(dayKey),
             amount: 0,
+            grossAmount: null,
             currency: metadata.currencyCode,
             discountAmount: 0,
             sourceName: null,
@@ -980,6 +1029,7 @@ export async function loadOrderDepthRows(
   Array<{
     customerKey: string;
     amount: number;
+    grossAmount: number | null;
     orderedAt: Date;
     shopLocalDate: Date;
     discountAmount: number | null;
@@ -999,6 +1049,7 @@ export async function loadOrderDepthRows(
     select: {
       customerKey: true,
       amount: true,
+      grossAmount: true,
       orderedAt: true,
       shopLocalDate: true,
       discountAmount: true,

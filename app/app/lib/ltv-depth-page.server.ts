@@ -58,6 +58,10 @@ export async function loadLtvDepth(options: {
       customerKey: row.customerKey,
       orderedAt: row.orderedAt,
       amount: Number.isFinite(row.amount) ? row.amount : 0,
+      grossAmount:
+        row.grossAmount != null && Number.isFinite(row.grossAmount)
+          ? row.grossAmount
+          : undefined,
       units: row.unitCount != null && row.unitCount > 0 ? row.unitCount : 1,
       // Live OrderFacts store units only — never SKU or title (Level 1).
       product: null,

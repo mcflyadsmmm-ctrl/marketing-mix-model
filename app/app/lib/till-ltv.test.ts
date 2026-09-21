@@ -283,6 +283,48 @@ describe("computeCohortRollups", () => {
     expect(rollups[0]!.ordersD30).toBe(2);
   });
 
+  it("moves cohort dollars when a refund is inside the window and leaves gross blank when unknown", () => {
+    const first = new Date("2026-01-15T12:00:00.000Z");
+    const inside90 = new Date(first.getTime() + 40 * 86_400_000);
+    const insideYear = new Date(first.getTime() + 200 * 86_400_000);
+    const rollups = computeCohortRollups([
+      {
+        customerKey: "c1",
+        orderedAt: first,
+        amount: 80,
+        grossAmount: 100,
+      },
+      {
+        customerKey: "c1",
+        orderedAt: inside90,
+        amount: 50,
+        grossAmount: 50,
+      },
+      {
+        customerKey: "c1",
+        orderedAt: insideYear,
+        amount: 10,
+        grossAmount: 40,
+      },
+    ]);
+    expect(rollups).toHaveLength(1);
+    const jan = rollups[0]!;
+    expect(jan.revenueD30).toBe(80);
+    expect(jan.grossRevenueD30).toBe(100);
+    expect(jan.revenueD90).toBe(130);
+    expect(jan.grossRevenueD90).toBe(150);
+    expect(jan.revenueD365).toBe(140);
+    expect(jan.grossRevenueD365).toBe(190);
+    expect(jan.revenueD30).toBeLessThan(jan.grossRevenueD30!);
+
+    const unknown = computeCohortRollups([
+      { customerKey: "c2", orderedAt: first, amount: 80 },
+    ]);
+    expect(unknown[0]!.revenueD30).toBe(80);
+    expect(unknown[0]!.grossRevenueD30).toBeNull();
+    expect(unknown[0]!.grossRevenueD90).toBeNull();
+  });
+
   it("ignores guest-only order lists", () => {
     const rollups = computeCohortRollups([
       {

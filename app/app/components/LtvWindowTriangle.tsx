@@ -1,10 +1,16 @@
+import { useState } from "react";
 import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskDrill } from "./DeskDrill";
 import { DeskIcon } from "./DeskIcon";
 import {
+  DEFAULT_COHORT_REVENUE_BASIS,
   FLAGSHIP_MIN_MATURE,
+  cohortCellRevenue,
+  cohortRevenueBasisLabel,
+  cohortRevenueFormula,
   firstOrderWindowTriangle,
+  type CohortRevenueBasis,
   type FlagshipMonthRow,
   type WindowTriangleCell,
   type WindowTriangleEmptyKind,
@@ -54,22 +60,58 @@ function maxSealed(rows: WindowTriangleRow[], pick: (cell: WindowTriangleCell) =
   return max;
 }
 
+function spentWhat(
+  row: WindowTriangleRow,
+  cell: WindowTriangleCell,
+  display: string,
+  sealed: boolean,
+  basis: CohortRevenueBasis,
+  grossMissing: boolean,
+): string {
+  if (grossMissing) {
+    return `Gross order revenue is not on file for ${row.label} through ${cell.header.toLowerCase()}. Not $0. We do not invent it.`;
+  }
+  if (!sealed) {
+    return cell.n > 0
+      ? `${cell.n.toLocaleString()} buyers have lived ${cell.header.toLowerCase()}. Dollars wait until ${FLAGSHIP_MIN_MATURE} have — not $0.`
+      : `No buyer from ${row.label} has lived ${cell.header.toLowerCase()} yet. Not $0.`;
+  }
+  switch (basis) {
+    case "includes_refunds":
+      return `${display} after refunds through ${cell.header.toLowerCase()} — order revenue − refunds attributed to cohort window.`;
+    case "gross_orders":
+      return `${display} order revenue before refunds through ${cell.header.toLowerCase()} among buyers who have lived it.`;
+    default: {
+      const _exhaustive: never = basis;
+      return _exhaustive;
+    }
+  }
+}
+
 function TriangleCell({
   row,
   cell,
   display,
   intensity,
   kind,
+  basis = DEFAULT_COHORT_REVENUE_BASIS,
 }: {
   row: WindowTriangleRow;
   cell: WindowTriangleCell;
   display: string;
   intensity: number | null;
   kind: "back" | "spent";
+  basis?: CohortRevenueBasis;
 }) {
   const drill = useDeskDrill();
   const sealed = intensity != null;
   const fill = sealed ? truthFill(intensity) : null;
+  const grossMissing =
+    kind === "spent" &&
+    basis === "gross_orders" &&
+    cell.grossRevenue == null &&
+    cell.revenue != null &&
+    cell.n >= FLAGSHIP_MIN_MATURE;
   const what =
     kind === "back"
       ? sealed
@@ -77,11 +119,7 @@ function TriangleCell({
         : cell.n > 0
           ? `${cell.n.toLocaleString()} buyers have lived ${cell.header.toLowerCase()}. The cell waits until ${FLAGSHIP_MIN_MATURE} have — not 0%.`
           : `No buyer from ${row.label} has lived ${cell.header.toLowerCase()} yet. Not 0%.`
-      : sealed
-        ? `${display} average net dollars through ${cell.header.toLowerCase()} among buyers who have lived it.`
-        : cell.n > 0
-          ? `${cell.n.toLocaleString()} buyers have lived ${cell.header.toLowerCase()}. Dollars wait until ${FLAGSHIP_MIN_MATURE} have — not $0.`
-          : `No buyer from ${row.label} has lived ${cell.header.toLowerCase()} yet. Not $0.`;
+      : spentWhat(row, cell, display, sealed, basis, grossMissing);
 
   return (
     <td
@@ -109,7 +147,9 @@ function TriangleCell({
                 ? `${cell.n.toLocaleString()} buyers have lived this window · ${row.customers.toLocaleString()} first ordered in ${row.label}`
                 : `${row.customers.toLocaleString()} first ordered in ${row.label}`,
             blocks: [{ k: "What this is", v: what }],
-            next: "Blank cells are the corner not lived yet — not 0%, not $0. Order history only.",
+            next: grossMissing
+              ? "Gross order revenue is not on file. Not $0. Includes refunds still uses the Shopify current total."
+              : "Blank cells are the corner not lived yet — not 0%, not $0. Order history only.",
             foot: "Order history only — never an email list.",
           })
         }
@@ -166,9 +206,16 @@ function ComeBackTable({ rows }: { rows: WindowTriangleRow[] }) {
   );
 }
 
-function RevenueTable({ rows }: { rows: WindowTriangleRow[] }) {
+function RevenueTable({
+  rows,
+  basis,
+}: {
+  rows: WindowTriangleRow[];
+  basis: CohortRevenueBasis;
+}) {
   const currency = useDeskCurrency();
-  const scale = maxSealed(rows, (cell) => cell.revenue) || 1;
+  const scale =
+    maxSealed(rows, (cell) => cohortCellRevenue(cell, basis)) || 1;
   return (
     <div className="mcfly-depth-tablewrap">
       <p className="mcfly-window-triangle__k">What each first-order month spent</p>
@@ -193,22 +240,24 @@ function RevenueTable({ rows }: { rows: WindowTriangleRow[] }) {
                   {row.customers.toLocaleString()}
                 </span>
               </th>
-              {row.cells.map((cell) => (
-                <TriangleCell
-                  key={cell.days}
-                  row={row}
-                  cell={cell}
-                  display={
-                    cell.revenue != null
-                      ? formatCurrency(cell.revenue, currency)
-                      : "—"
-                  }
-                  intensity={
-                    cell.revenue != null ? Math.min(1, cell.revenue / scale) : null
-                  }
-                  kind="spent"
-                />
-              ))}
+              {row.cells.map((cell) => {
+                const money = cohortCellRevenue(cell, basis);
+                return (
+                  <TriangleCell
+                    key={cell.days}
+                    row={row}
+                    cell={cell}
+                    basis={basis}
+                    display={
+                      money != null ? formatCurrency(money, currency) : "—"
+                    }
+                    intensity={
+                      money != null ? Math.min(1, money / scale) : null
+                    }
+                    kind="spent"
+                  />
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -232,6 +281,9 @@ export function LtvWindowTriangle({
   useSampleDesk?: boolean;
 }) {
   const view = firstOrderWindowTriangle(rows, buyers);
+  const [basis, setBasis] = useState<CohortRevenueBasis>(
+    DEFAULT_COHORT_REVENUE_BASIS,
+  );
 
   return (
     <section
@@ -251,10 +303,42 @@ export function LtvWindowTriangle({
         </p>
       </div>
 
+      <div className="mcfly-window-triangle__basis">
+        <div
+          className="mcfly-period__group"
+          role="group"
+          aria-label="Revenue basis"
+        >
+          <button
+            type="button"
+            className="mcfly-period__btn"
+            aria-pressed={basis === "includes_refunds"}
+            onClick={() => setBasis("includes_refunds")}
+          >
+            {cohortRevenueBasisLabel("includes_refunds")}
+          </button>
+          <button
+            type="button"
+            className="mcfly-period__btn"
+            aria-pressed={basis === "gross_orders"}
+            onClick={() => setBasis("gross_orders")}
+          >
+            {cohortRevenueBasisLabel("gross_orders")}
+          </button>
+        </div>
+        <p className="mcfly-chip mcfly-window-triangle__formula">
+          {cohortRevenueFormula(basis)}
+        </p>
+      </div>
+      <p className="mcfly-window-triangle__note">
+        Shopify order history on this window. Not audited books. Not a Meta
+        path-credit LTV. A blank cell is not 0% and not $0.
+      </p>
+
       {view.kind === "ready" ? (
         <>
           <ComeBackTable rows={view.rows} />
-          <RevenueTable rows={view.rows} />
+          <RevenueTable rows={view.rows} basis={basis} />
         </>
       ) : (
         <TriangleEmpty kind={view.kind} copy={view.copy} verb={view.verb} />

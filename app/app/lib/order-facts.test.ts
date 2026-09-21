@@ -105,6 +105,7 @@ describe("OrderFact amount = orderNetAmount", () => {
   it("reuses orderNetAmount (no local parseFloat coalesce)", () => {
     expect(orderFactsSource).toContain("orderNetAmount");
     expect(orderFactsSource).toMatch(/amount\s*=\s*orderNetAmount\(/);
+    expect(orderFactsSource).toContain("grossAmount: orderGrossAmount(node)");
     expect(orderFactsSource).not.toMatch(
       /parseFloat\(\s*netRaw\s*\?\?\s*grossRaw/,
     );

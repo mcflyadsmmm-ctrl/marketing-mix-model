@@ -56,6 +56,80 @@ function windowSpend(customer: CustomerDepth, days: LtvFlagshipWindow): number {
   }
 }
 
+/**
+ * Gross order revenue through the window. Null when any order in the window
+ * omitted a known gross — not $0 and not a filled-in net.
+ */
+function windowGross(
+  customer: CustomerDepth,
+  days: LtvFlagshipWindow,
+): number | null {
+  switch (days) {
+    case 30:
+      return customer.day30Gross;
+    case 90:
+      return customer.day90Gross;
+    case 365:
+      return customer.day365Gross;
+    default: {
+      const _exhaustive: never = days;
+      return _exhaustive;
+    }
+  }
+}
+
+/** Which dollars the revenue-by-first-order table is painting. */
+export type CohortRevenueBasis = "includes_refunds" | "gross_orders";
+
+/** Refund-honest path. Operators can defend this without calling it audited. */
+export const DEFAULT_COHORT_REVENUE_BASIS: CohortRevenueBasis = "includes_refunds";
+
+export function cohortRevenueBasisLabel(basis: CohortRevenueBasis): string {
+  switch (basis) {
+    case "includes_refunds":
+      return "Includes refunds";
+    case "gross_orders":
+      return "Gross orders";
+    default: {
+      const _exhaustive: never = basis;
+      return _exhaustive;
+    }
+  }
+}
+
+export function cohortRevenueFormula(basis: CohortRevenueBasis): string {
+  switch (basis) {
+    case "includes_refunds":
+      return "order revenue − refunds attributed to cohort window";
+    case "gross_orders":
+      return "order revenue in the cohort window, before refunds";
+    default: {
+      const _exhaustive: never = basis;
+      return _exhaustive;
+    }
+  }
+}
+
+/**
+ * Painted dollars for one triangle cell. Includes-refunds is net.
+ * Gross orders is null when gross was not on file — a dash, not $0.
+ */
+export function cohortCellRevenue(
+  cell: { revenue: number | null; grossRevenue: number | null },
+  basis: CohortRevenueBasis,
+): number | null {
+  switch (basis) {
+    case "includes_refunds":
+      return cell.revenue;
+    case "gross_orders":
+      return cell.grossRevenue;
+    default: {
+      const _exhaustive: never = basis;
+      return _exhaustive;
+    }
+  }
+}
+
 function windowOrders(customer: CustomerDepth, days: LtvFlagshipWindow): number {
   switch (days) {
     case 30:
@@ -126,6 +200,13 @@ export interface FlagshipMonthRow {
   rev30: number | null;
   rev90: number | null;
   rev365: number | null;
+  /**
+   * Gross order revenue per buyer. Null when the window is unlived or any
+   * order in it omitted a known gross — not $0.
+   */
+  grossRev30: number | null;
+  grossRev90: number | null;
+  grossRev365: number | null;
   /** Buyers in this month who have lived each window. 0 when none have. */
   n30: number;
   n90: number;
@@ -230,16 +311,34 @@ function monthWindowCell(
   members: CustomerDepth[],
   asOf: Date,
   days: LtvFlagshipWindow,
-): { retain: number | null; revenue: number | null; n: number } {
+): {
+  retain: number | null;
+  revenue: number | null;
+  grossRevenue: number | null;
+  n: number;
+} {
   const mature = matureForWindow(members, asOf, days);
-  if (mature.length === 0) return { retain: null, revenue: null, n: 0 };
+  if (mature.length === 0) {
+    return { retain: null, revenue: null, grossRevenue: null, n: 0 };
+  }
   let back = 0;
   for (const c of mature) {
     if (c.reorderDays != null && c.reorderDays <= days) back += 1;
   }
+  const grossValues: number[] = [];
+  let grossKnown = true;
+  for (const customer of mature) {
+    const gross = windowGross(customer, days);
+    if (gross == null) {
+      grossKnown = false;
+      break;
+    }
+    grossValues.push(gross);
+  }
   return {
     retain: back / mature.length,
     revenue: mean(mature.map((c) => windowSpend(c, days))),
+    grossRevenue: grossKnown ? mean(grossValues) : null,
     n: mature.length,
   };
 }
@@ -278,6 +377,9 @@ export function flagshipMonthRows(
       rev30: d30.revenue,
       rev90: d90.revenue,
       rev365: d365.revenue,
+      grossRev30: d30.grossRevenue,
+      grossRev90: d90.grossRevenue,
+      grossRev365: d365.grossRevenue,
       n30: d30.n,
       n90: d90.n,
       n365: d365.n,
@@ -295,8 +397,13 @@ export interface WindowTriangleCell {
   header: string;
   /** Come-back share once enough buyers have lived the window. */
   retention: number | null;
-  /** Dollars per buyer once enough buyers have lived the window. */
+  /** Net dollars per buyer once enough buyers have lived the window. */
   revenue: number | null;
+  /**
+   * Gross order revenue per buyer once enough buyers have lived the window
+   * and every order in it had a known gross. Null is a blank — not $0.
+   */
+  grossRevenue: number | null;
   /** Buyers who have lived the window, even when the cell stays blank. */
   n: number;
 }
@@ -345,17 +452,37 @@ function triangleCells(row: FlagshipMonthRow): WindowTriangleCell[] {
     days: LtvFlagshipWindow;
     retention: number | null;
     revenue: number | null;
+    grossRevenue: number | null;
     n: number;
   }> = [
-    { days: 30, retention: row.retain30, revenue: row.rev30, n: row.n30 },
-    { days: 90, retention: row.retain90, revenue: row.rev90, n: row.n90 },
-    { days: 365, retention: row.retain365, revenue: row.rev365, n: row.n365 },
+    {
+      days: 30,
+      retention: row.retain30,
+      revenue: row.rev30,
+      grossRevenue: row.grossRev30,
+      n: row.n30,
+    },
+    {
+      days: 90,
+      retention: row.retain90,
+      revenue: row.rev90,
+      grossRevenue: row.grossRev90,
+      n: row.n90,
+    },
+    {
+      days: 365,
+      retention: row.retain365,
+      revenue: row.rev365,
+      grossRevenue: row.grossRev365,
+      n: row.n365,
+    },
   ];
   return specs.map((spec) => ({
     days: spec.days,
     header: triangleHeader(spec.days),
     retention: paintWindow(spec.retention, spec.n),
     revenue: paintWindow(spec.revenue, spec.n),
+    grossRevenue: paintWindow(spec.grossRevenue, spec.n),
     n: spec.n,
   }));
 }

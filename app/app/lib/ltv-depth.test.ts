@@ -50,6 +50,9 @@ describe("rollUpCustomers", () => {
     expect(c.day30Spend).toBe(150);
     expect(c.day90Spend).toBe(225);
     expect(c.day365Spend).toBe(265);
+    expect(c.day30Gross).toBeNull();
+    expect(c.day90Gross).toBeNull();
+    expect(c.day365Gross).toBeNull();
     expect(c.lifetimeSpend).toBe(265);
     expect(c.ordersD30).toBe(2);
     expect(c.ordersD90).toBe(3);
