@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { PRODUCT_NOUN } from "./product-labels";
 import {
+  orderGrossAmount,
   orderNetAmount,
   orderNetSalesAmount,
   orderTotalSalesAmount,
@@ -61,6 +62,23 @@ describe("orderNetSalesAmount (subtotal)", () => {
         currentSubtotalPriceSet: { shopMoney: { amount: "90.00" } },
       }),
     ).toBe(90);
+  });
+});
+
+describe("orderGrossAmount (order revenue before refunds)", () => {
+  it("reads totalPriceSet and does not invent a gross from the current total", () => {
+    expect(
+      orderGrossAmount({
+        totalPriceSet: { shopMoney: { amount: "120.00" } },
+      }),
+    ).toBe(120);
+    expect(
+      orderGrossAmount({
+        totalPriceSet: { shopMoney: { amount: "" } },
+      }),
+    ).toBeNull();
+    expect(orderGrossAmount({})).toBeNull();
+    expect(orderGrossAmount(null)).toBeNull();
   });
 });
 

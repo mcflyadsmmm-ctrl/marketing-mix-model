@@ -346,6 +346,8 @@ model OrderFact {
   orderedAt      DateTime
   shopLocalDate  DateTime  @db.Date
   amount         Float
+  /// totalPriceSet shop amount — order revenue before refunds. Null when not crawled.
+  grossAmount    Float?
   currency       String?
   /// currentTotalDiscountsSet shop amount. 0 = none; null = not crawled yet.
   discountAmount Float?

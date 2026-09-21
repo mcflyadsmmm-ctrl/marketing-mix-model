@@ -27,9 +27,9 @@ export interface DepthOrder {
   /** Product name on the first line — SAMPLE only; null when Shopify hid titles. */
   product: string | null;
   /**
-   * Gross shop dollars before refunds, when known. SAMPLE can carry this so
-   * refund honesty is a real haircut. Live OrderFacts store net only
-   * (`currentTotalPriceSet`) — leave unset rather than invent a gross.
+   * Gross shop dollars before refunds (`totalPriceSet`), when known. SAMPLE
+   * always carries this. Live OrderFacts store it once a crawl sent it —
+   * leave unset rather than invent a gross from the current total.
    */
   grossAmount?: number;
   /**
@@ -125,6 +125,13 @@ export interface CustomerDepth {
   day30Spend: number;
   day90Spend: number;
   day365Spend: number;
+  /**
+   * Gross order revenue through the window when every order inside it carried
+   * a known gross. Null means gross is not on file — not $0, and not a guess.
+   */
+  day30Gross: number | null;
+  day90Gross: number | null;
+  day365Gross: number | null;
   /** Orders whose day-delta from first falls in each window (first counts). */
   ordersD30: number;
   ordersD90: number;
@@ -140,6 +147,97 @@ export interface CustomerDepth {
   spendByOffset: Map<number, number>;
   /** Whole-month offsets with at least one order (0 always present). */
   activeOffsets: Set<number>;
+}
+
+const COHORT_WINDOW_MS = 86_400_000;
+
+export interface CohortWindowSums {
+  net30: number;
+  net90: number;
+  net365: number;
+  /**
+   * Order revenue before refunds, only when every order in that window had a
+   * known gross. Null is “not on file” — never a stand-in $0.
+   */
+  gross30: number | null;
+  gross90: number | null;
+  gross365: number | null;
+  orders30: number;
+  orders90: number;
+  orders365: number;
+}
+
+/**
+ * Dollars and order counts inside 30 / 90 / 365 of the first order.
+ * Net is the amount already on the row (Shopify current total when that is
+ * what was stored). Gross is order revenue before refunds, and only when
+ * every order in the window carried a known gross — a missing gross is not
+ * filled in. Refunds outside the window do not move the shorter window.
+ */
+export function sumCohortWindows(
+  orders: Array<{ orderedAt: Date; amount: number; grossAmount?: number | null }>,
+  firstAt: Date,
+): CohortWindowSums {
+  const firstMs = firstAt.getTime();
+  let net30 = 0;
+  let net90 = 0;
+  let net365 = 0;
+  let gross30 = 0;
+  let gross90 = 0;
+  let gross365 = 0;
+  let known30 = true;
+  let known90 = true;
+  let known365 = true;
+  let seen30 = false;
+  let seen90 = false;
+  let seen365 = false;
+  let orders30 = 0;
+  let orders90 = 0;
+  let orders365 = 0;
+
+  for (const order of orders) {
+    const delta = order.orderedAt.getTime() - firstMs;
+    if (delta < 0) continue;
+    const amount = Number.isFinite(order.amount) ? order.amount : 0;
+    const rawGross = order.grossAmount;
+    const gross =
+      rawGross != null && Number.isFinite(rawGross)
+        ? Math.max(amount, rawGross)
+        : null;
+    if (delta <= 30 * COHORT_WINDOW_MS) {
+      seen30 = true;
+      net30 += amount;
+      orders30 += 1;
+      if (gross == null) known30 = false;
+      else gross30 += gross;
+    }
+    if (delta <= 90 * COHORT_WINDOW_MS) {
+      seen90 = true;
+      net90 += amount;
+      orders90 += 1;
+      if (gross == null) known90 = false;
+      else gross90 += gross;
+    }
+    if (delta <= 365 * COHORT_WINDOW_MS) {
+      seen365 = true;
+      net365 += amount;
+      orders365 += 1;
+      if (gross == null) known365 = false;
+      else gross365 += gross;
+    }
+  }
+
+  return {
+    net30,
+    net90,
+    net365,
+    gross30: seen30 && known30 ? gross30 : null,
+    gross90: seen90 && known90 ? gross90 : null,
+    gross365: seen365 && known365 ? gross365 : null,
+    orders30,
+    orders90,
+    orders365,
+  };
 }
 
 /**
@@ -165,32 +263,24 @@ export function rollUpCustomers(orders: DepthOrder[]): CustomerDepth[] {
     const spendByOffset = new Map<number, number>();
     const activeOffsets = new Set<number>();
     let lifetimeSpend = 0;
-    let day30 = 0;
-    let day90 = 0;
-    let day365 = 0;
-    let ordersD30 = 0;
-    let ordersD90 = 0;
-    let ordersD365 = 0;
     let refundedSpend = 0;
     let last = first.orderedAt;
     let reorderDays: number | null = null;
+    const windowOrders: Array<{
+      orderedAt: Date;
+      amount: number;
+      grossAmount?: number | null;
+    }> = [];
     for (const o of list) {
       const amount = Number.isFinite(o.amount) ? Math.max(0, o.amount) : 0;
       const deltaDays = (o.orderedAt.getTime() - firstMs) / 86_400_000;
       if (deltaDays < 0) continue;
       lifetimeSpend += amount;
-      if (deltaDays <= 30) {
-        day30 += amount;
-        ordersD30 += 1;
-      }
-      if (deltaDays <= 90) {
-        day90 += amount;
-        ordersD90 += 1;
-      }
-      if (deltaDays <= 365) {
-        day365 += amount;
-        ordersD365 += 1;
-      }
+      windowOrders.push({
+        orderedAt: o.orderedAt,
+        amount,
+        grossAmount: o.grossAmount,
+      });
       if (
         o.grossAmount != null &&
         Number.isFinite(o.grossAmount) &&
@@ -203,6 +293,7 @@ export function rollUpCustomers(orders: DepthOrder[]): CustomerDepth[] {
       activeOffsets.add(offset);
       if (o.orderedAt > last) last = o.orderedAt;
     }
+    const windows = sumCohortWindows(windowOrders, first.orderedAt);
     const second = list[1] ?? null;
     if (second) {
       reorderDays = Math.max(
@@ -226,12 +317,15 @@ export function rollUpCustomers(orders: DepthOrder[]): CustomerDepth[] {
           : null,
       firstDiscountCode: first.discountCode?.trim() || null,
       lifetimeSpend,
-      day30Spend: day30,
-      day90Spend: day90,
-      day365Spend: day365,
-      ordersD30,
-      ordersD90,
-      ordersD365,
+      day30Spend: windows.net30,
+      day90Spend: windows.net90,
+      day365Spend: windows.net365,
+      day30Gross: windows.gross30,
+      day90Gross: windows.gross90,
+      day365Gross: windows.gross365,
+      ordersD30: windows.orders30,
+      ordersD90: windows.orders90,
+      ordersD365: windows.orders365,
       reorderDays,
       refundedSpend,
       spendByOffset,

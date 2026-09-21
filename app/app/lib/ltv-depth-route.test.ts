@@ -94,6 +94,19 @@ describe("LTV route mounts the depth pack", () => {
     expect(triangle).toContain("SAMPLE Snowdevil");
     expect(triangle).toContain("firstOrderWindowTriangle");
     expect(triangle).toContain("rgba(4, 120, 87");
+    expect(triangle).toContain("DEFAULT_COHORT_REVENUE_BASIS");
+    expect(triangle).toContain("cohortRevenueFormula");
+    expect(triangle).toContain("includes_refunds");
+    expect(triangle).toContain("gross_orders");
+    expect(triangle).toContain("Not audited books");
+    expect(triangle).toContain("Not a Meta");
+    expect(triangle).not.toMatch(/true LTV/i);
+    expect(triangle).not.toMatch(/\bCOGS\b/);
+    const flagshipLib = read("../lib/ltv-flagship.ts");
+    expect(flagshipLib).toContain(
+      "order revenue − refunds attributed to cohort window",
+    );
+    expect(flagshipLib).toContain('DEFAULT_COHORT_REVENUE_BASIS: CohortRevenueBasis = "includes_refunds"');
   });
 
   it("keeps the triangle as the LTV hero and densifies predictive LTV under it", () => {

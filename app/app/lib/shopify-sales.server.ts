@@ -102,6 +102,20 @@ export function orderNetAmount(node: {
   return orderTotalSalesAmount(node);
 }
 
+/**
+ * Order revenue before refunds (`totalPriceSet`). Null when Shopify did not
+ * send a gross — never coerced to 0, and never copied from the current total.
+ */
+export function orderGrossAmount(node: {
+  totalPriceSet?: MoneySet;
+} | null | undefined): number | null {
+  const raw = node?.totalPriceSet?.shopMoney?.amount;
+  if (raw == null || raw === "") return null;
+  const n = parseFloat(raw);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
 /** Bucket an order `createdAt` ISO into a shop-local YYYY-MM-DD day key. */
 export function shopLocalDayKeyFromIso(iso: string, timeZone: string): string {
   const date = new Date(iso);

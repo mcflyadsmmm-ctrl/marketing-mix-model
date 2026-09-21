@@ -10,6 +10,10 @@ import {
   flagshipWindowCurve,
   pathClarity,
   predictiveLtv,
+  cohortCellRevenue,
+  cohortRevenueBasisLabel,
+  cohortRevenueFormula,
+  DEFAULT_COHORT_REVENUE_BASIS,
   refundHonesty,
   windowAddedAfterPrior,
   windowRetention,
@@ -379,10 +383,20 @@ describe("SAMPLE Snowdevil flagship is dense", () => {
     expect(oldest.cells.every((cell) => cell.revenue != null && cell.revenue > 0)).toBe(
       true,
     );
+    const moved = triangle.rows.some((row) =>
+      row.cells.some(
+        (cell) =>
+          cell.revenue != null &&
+          cell.grossRevenue != null &&
+          cell.grossRevenue > cell.revenue,
+      ),
+    );
+    expect(moved).toBe(true);
     const newest = triangle.rows[triangle.rows.length - 1]!;
     const year = newest.cells.find((cell) => cell.days === 365)!;
     expect(year.retention).toBeNull();
     expect(year.revenue).toBeNull();
+    expect(year.grossRevenue).toBeNull();
     const sealedYear = triangle.rows.some((row) =>
       row.cells.some((cell) => cell.days === 365 && cell.revenue != null),
     );
@@ -452,5 +466,83 @@ describe("first-order window triangle", () => {
     expect(waiting.rows.every((row) => row.cells.every((cell) => cell.n === 0))).toBe(
       true,
     );
+  });
+});
+
+describe("refund-adjusted cohort LTV vs gross orders", () => {
+  const asOf = new Date("2024-08-01T00:00:00.000Z");
+
+  function refundedBook(): DepthOrder[] {
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      // $20 refund on the first order, inside 30 and 90.
+      rows.push(order(`a${i}`, "2024-01-10", 80, { grossAmount: 100 }));
+      // Refunded later order sits inside the year, outside 90 days.
+      rows.push(order(`a${i}`, "2024-07-28", 0, { grossAmount: 40 }));
+    }
+    for (let i = 0; i < 8; i += 1) {
+      // No gross on file — Gross orders must stay blank, not a copied net.
+      rows.push(order(`b${i}`, "2024-03-10", 90));
+    }
+    return rows;
+  }
+
+  it("moves sealed LTV when a refund lands inside the cohort window", () => {
+    expect(DEFAULT_COHORT_REVENUE_BASIS).toBe("includes_refunds");
+    expect(cohortRevenueBasisLabel("includes_refunds")).toBe("Includes refunds");
+    expect(cohortRevenueBasisLabel("gross_orders")).toBe("Gross orders");
+    expect(cohortRevenueFormula("includes_refunds")).toBe(
+      "order revenue − refunds attributed to cohort window",
+    );
+
+    const rows = flagshipMonthRows(rollUpCustomers(refundedBook()), asOf);
+    const january = rows.find((row) => row.cohortMonth === "2024-01")!;
+    const march = rows.find((row) => row.cohortMonth === "2024-03")!;
+    expect(january.rev30).toBe(80);
+    expect(january.grossRev30).toBe(100);
+    expect(january.rev90).toBe(80);
+    expect(january.grossRev90).toBe(100);
+    // The July refund is outside 90 days, so 30/90 do not move for it.
+    expect(january.rev365).toBeNull();
+    expect(january.grossRev365).toBeNull();
+    expect(march.rev30).toBe(90);
+    expect(march.grossRev30).toBeNull();
+
+    const triangle = firstOrderWindowTriangle(rows, 16);
+    expect(triangle.kind).toBe("ready");
+    const janCells = triangle.rows.find((row) => row.monthKey === "2024-01")!;
+    const day30 = janCells.cells.find((cell) => cell.days === 30)!;
+    const year = janCells.cells.find((cell) => cell.days === 365)!;
+    expect(cohortCellRevenue(day30, "includes_refunds")).toBe(80);
+    expect(cohortCellRevenue(day30, "gross_orders")).toBe(100);
+    expect(day30.revenue).toBeLessThan(day30.grossRevenue!);
+    expect(cohortCellRevenue(year, "includes_refunds")).toBeNull();
+    expect(cohortCellRevenue(year, "gross_orders")).toBeNull();
+
+    const marchCells = triangle.rows.find((row) => row.monthKey === "2024-03")!;
+    const march30 = marchCells.cells.find((cell) => cell.days === 30)!;
+    expect(cohortCellRevenue(march30, "includes_refunds")).toBe(90);
+    expect(cohortCellRevenue(march30, "gross_orders")).toBeNull();
+    expect(march30.retention).not.toBeNull();
+  });
+
+  it("keeps a sealed full refund at $0 and an unlived year as a blank", () => {
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(order(`f${i}`, "2024-01-10", 0, { grossAmount: 120 }));
+      rows.push(order(`g${i}`, "2024-03-10", 40, { grossAmount: 40 }));
+    }
+    const triangle = firstOrderWindowTriangle(
+      flagshipMonthRows(rollUpCustomers(rows), asOf),
+      16,
+    );
+    const january = triangle.rows.find((row) => row.monthKey === "2024-01")!;
+    const day30 = january.cells.find((cell) => cell.days === 30)!;
+    const year = january.cells.find((cell) => cell.days === 365)!;
+    expect(cohortCellRevenue(day30, "includes_refunds")).toBe(0);
+    expect(cohortCellRevenue(day30, "gross_orders")).toBe(120);
+    expect(year.revenue).toBeNull();
+    expect(year.grossRevenue).toBeNull();
+    expect(year.retention).toBeNull();
   });
 });
