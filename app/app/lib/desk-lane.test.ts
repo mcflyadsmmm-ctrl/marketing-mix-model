@@ -194,6 +194,32 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(ltv).toContain("throw redirect");
     expect(ltv).toContain("/app/customers");
   });
+
+  it("ranks Spend pair first, explorer/mix/CPA next, add-a-day more — empty live promotes add", () => {
+    const spend = read("../routes/app.spend.tsx");
+    const order = [
+      'rank="first"',
+      'id="mcfly-roas"',
+      'id="mcfly-spend-add"',
+      'rank="next"',
+      'id="mcfly-explorer"',
+      "<SpendMixSection",
+      'id="mcfly-cpa"',
+      'rank="more"',
+    ].map((tag) => spend.indexOf(tag));
+    expect(order.every((i) => i > -1)).toBe(true);
+    for (let i = 1; i < order.length; i += 1) {
+      expect(order[i]!).toBeGreaterThan(order[i - 1]!);
+    }
+    expect(spend).toContain("<DeskLane");
+    expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
+    expect(spend).toContain("emptyLiveSpend");
+    expect(spend).toContain("fold={emptyLiveSpend}");
+    expect(spend).toContain("<CertifiedScoreboard");
+    expect(spend).toContain("<SpendExplorer");
+    expect(spend).toContain("<CpaExplorer");
+    expect(spend).not.toContain("0.00×");
+  });
 });
 
 describe("DeskDrill — one fact, then more about this number", () => {

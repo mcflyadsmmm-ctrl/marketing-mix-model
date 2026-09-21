@@ -49,6 +49,21 @@ describe("CPA page", () => {
     expect(cards).toContain("never $0");
   });
 
+  it("does not mount CpaExplorer when spend is empty — honest lede only", () => {
+    const cpaFoldStart = spend.indexOf('id="mcfly-cpa"');
+    const cpaFoldEnd = spend.indexOf("</DeskLane>", spend.indexOf('id="mcfly-cpa"'));
+    const cpaFold = spend.slice(cpaFoldStart, cpaFoldEnd);
+    expect(cpaFold).toContain("CPA_EMPTY_SPEND");
+    expect(cpaFold).toContain("{cpaHasSpend ? (");
+    expect(cpaFold).toContain("<CpaExplorer");
+    expect(cpaFold).toContain("<CpaWindowCards");
+    expect(cpaFold).not.toContain("<SpendExplorer");
+    const explorerAt = cpaFold.lastIndexOf("<CpaExplorer");
+    const gateAt = cpaFold.lastIndexOf("{cpaHasSpend ? (", explorerAt);
+    expect(gateAt).toBeGreaterThan(-1);
+    expect(gateAt).toBeLessThan(explorerAt);
+  });
+
   it("builds payback vs first-90 as a desk, not a second fact grid", () => {
     expect(spend).toContain("<CpaPaybackDesk");
     expect(payback).toContain("Payback vs first 90");
