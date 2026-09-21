@@ -16,11 +16,17 @@ import {
   overviewCompactMoney,
 } from "../lib/overview-sales-chart";
 import {
+  bucketMixDays,
   bucketMixWeeks,
+  buildReturningMixPlays,
   mixSummary,
+  resolveMixGrain,
   type CustomerAnalytics,
   type MixBucket,
-  type MixGrain,
+  type MixExplorerGrain,
+  type MixDeltaTone,
+  type ReturningMixDelta,
+  type ReturningMixPlay,
 } from "../lib/customers-analytics";
 
 // SVG paints the shapes; crisp HTML overlays paint axis text + the dark tooltip
@@ -56,7 +62,7 @@ function MixEmptyFrame({ pending }: { pending: boolean }) {
   return (
     <section
       className="mcfly-chart mcfly-cust-mix mcfly-cust-mix--empty mcfly-chart--soft mcfly-desk-anchor"
-      aria-label="New vs returning dollars by week"
+      aria-label="New vs returning dollars"
     >
       <div className="mcfly-chart__board">
         <div className="mcfly-chart__masthead">
@@ -64,7 +70,7 @@ function MixEmptyFrame({ pending }: { pending: boolean }) {
             <DeskIcon name="chart" /> New vs returning dollars
           </h3>
           <p className="mcfly-chart__muted">
-            First-time vs returning order dollars, week over week
+            First-time vs returning order dollars — daily, weekly, or monthly
           </p>
         </div>
       </div>
@@ -105,8 +111,8 @@ function MixEmptyFrame({ pending }: { pending: boolean }) {
       </div>
       <p className="mcfly-cust-mix__empty-copy">
         {pending
-          ? "Weekly returning dollars are still loading — not $0."
-          : "Needs at least two weeks of orders on file — not zero. Snowdevil SAMPLE fills this in; a fresh live shop fills in as orders land."}
+          ? "Returning dollars are still loading — not $0."
+          : "Needs at least two days of orders on file — not zero. Snowdevil SAMPLE fills this in; a fresh live shop fills in as orders land."}
       </p>
     </section>
   );
@@ -116,10 +122,112 @@ function MixEmptyFrame({ pending }: { pending: boolean }) {
  * The Customers marquee — an explorer-grade new-vs-returning dollars trend that
  * leads the tab above the fold. Stacked bars (first-time + returning $) on the
  * left axis, a returning-share line on the right axis, a dashed window-average
- * rail, a Weekly / Monthly grain toggle, a KPI strip, and a dark floating
- * tooltip that rides the hovered column. Order dollars only — no spend ever
- * overlays this. Hover/tap a column for the readout; click for the breakdown.
+ * rail, a Daily / Weekly / Monthly grain toggle, a KPI strip, a dark floating
+ * tooltip, and three win-back ActionCards. Order dollars only — no spend, no
+ * ad login. Hover/tap a column for the readout; click for the breakdown.
  */
+
+function mixNoun(grain: MixExplorerGrain): "day" | "week" | "month" {
+  switch (grain) {
+    case "day":
+    case "week":
+    case "month":
+      return grain;
+    default: {
+      const _never: never = grain;
+      return _never;
+    }
+  }
+}
+
+function deltaClass(tone: MixDeltaTone): string {
+  switch (tone) {
+    case "up":
+      return "mcfly-kpi__delta--up";
+    case "down":
+      return "mcfly-kpi__delta--down";
+    case "flat":
+      return "mcfly-kpi__delta--flat";
+    default: {
+      const _never: never = tone;
+      return _never;
+    }
+  }
+}
+
+function formatMixDelta(delta: ReturningMixDelta, currency: string): string {
+  const sign = delta.amount > 0 ? "+" : delta.amount < 0 ? "−" : "";
+  if (delta.unit === "points") {
+    return `${sign}${Math.abs(delta.amount)} pts ${delta.versus}`;
+  }
+  return `${sign}${formatCurrency(Math.abs(delta.amount), currency)} ${delta.versus}`;
+}
+
+function playValue(play: ReturningMixPlay, currency: string): string {
+  if (play.amount == null || !Number.isFinite(play.amount)) return "—";
+  switch (play.amountKind) {
+    case "money":
+      return formatCurrency(play.amount, currency);
+    case "share":
+      return `${Math.round(play.amount * 100)}%`;
+    case "count":
+      return play.amount.toLocaleString();
+    default: {
+      const _never: never = play.amountKind;
+      return _never;
+    }
+  }
+}
+
+function ActionCard({
+  play,
+  currency,
+}: {
+  play: ReturningMixPlay;
+  currency: string;
+}) {
+  const drill = useDeskDrill();
+  const value = playValue(play, currency);
+  const delta = play.delta;
+  const open = () =>
+    drill?.openDrill({
+      title: play.label,
+      value,
+      kicker: play.verb,
+      blocks: [
+        { k: "What to do", v: play.detail },
+        { k: "Also", v: play.sub },
+        delta
+          ? { k: "Versus", v: formatMixDelta(delta, currency) }
+          : null,
+      ].filter((b): b is { k: string; v: string } => b != null),
+      next: "Order history only — not an ad login, not a returning-customer rate.",
+    });
+  const body = (
+    <>
+      <p className="mcfly-cust-kpi__verb">{play.verb}</p>
+      <p className="mcfly-cust-kpi__k">{play.label}</p>
+      <p className="mcfly-cust-kpi__v">{value}</p>
+      <p className="mcfly-cust-kpi__sub">{play.sub}</p>
+      {delta ? (
+        <p
+          className={`mcfly-cust-mix__delta mcfly-kpi__delta ${deltaClass(delta.tone)}`}
+        >
+          {formatMixDelta(delta, currency)}
+        </p>
+      ) : null}
+    </>
+  );
+  const className = `mcfly-cust-kpi mcfly-cust-kpi--${play.tone} mcfly-cust-kpi--soft mcfly-cust-kpi--action`;
+  return drill ? (
+    <button type="button" className={className} onClick={open}>
+      {body}
+    </button>
+  ) : (
+    <div className={className}>{body}</div>
+  );
+}
+
 export function CustomerMixChart({
   analytics,
   salesPending = false,
@@ -130,15 +238,38 @@ export function CustomerMixChart({
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
   const weeks = analytics.mixWeekly;
+  const days = analytics.mixDaily;
 
-  const [grain, setGrain] = useState<MixGrain>("week");
+  const [grain, setGrain] = useState<MixExplorerGrain>("week");
 
+  const dayBuckets = useMemo(() => bucketMixDays(days), [days]);
   const weekBuckets = useMemo(() => bucketMixWeeks(weeks, "week"), [weeks]);
   const monthBuckets = useMemo(() => bucketMixWeeks(weeks, "month"), [weeks]);
-  const summary = useMemo(() => mixSummary(weekBuckets), [weekBuckets]);
+  const dayReady = dayBuckets.length >= 2;
+  const weekReady = weekBuckets.length >= 2;
   const monthReady = monthBuckets.length >= 2;
-  const effectiveGrain: MixGrain = grain === "month" && monthReady ? "month" : "week";
-  const buckets = effectiveGrain === "month" ? monthBuckets : weekBuckets;
+  const effectiveGrain = resolveMixGrain(grain, {
+    day: dayReady,
+    week: weekReady,
+    month: monthReady,
+  });
+  const buckets =
+    effectiveGrain === "day"
+      ? dayBuckets
+      : effectiveGrain === "month"
+        ? monthBuckets
+        : weekBuckets;
+  const summary = useMemo(() => mixSummary(buckets), [buckets]);
+  const plays = useMemo(
+    () =>
+      buildReturningMixPlays({
+        buckets,
+        grain: effectiveGrain,
+        winBackDay: analytics.winBackDay,
+        saveNowOneOrder: analytics.saveNowOneOrder,
+      }),
+    [buckets, effectiveGrain, analytics.winBackDay, analytics.saveNowOneOrder],
+  );
   const {
     hoverIndex,
     setHoverIndex,
@@ -149,10 +280,10 @@ export function CustomerMixChart({
     chartSeriesId([effectiveGrain, ...buckets.map((bucket) => bucket.key)]),
   );
 
-  if (weeks.length < 2) {
+  if (!dayReady && !weekReady) {
     return <MixEmptyFrame pending={salesPending} />;
   }
-  const noun = effectiveGrain === "month" ? "month" : "week";
+  const noun = mixNoun(effectiveGrain);
 
   const maxDollars = Math.max(...buckets.map((b) => b.total), 1);
   const leftAxis = overviewChartAxis(maxDollars, 4);
@@ -209,7 +340,7 @@ export function CustomerMixChart({
           v: "Returning = orders from buyers who had already ordered on file; first-time = their first order (or a guest). Order dollars only — no spend, no pixel.",
         },
       ],
-      next: "What to do (below) shows the repurchase clock behind this line.",
+      next: "Win-back cards under this chart name who to reach — order history only.",
     });
 
   const stats = [
@@ -229,7 +360,7 @@ export function CustomerMixChart({
       sub: "first orders",
     },
     {
-      k: "Best week $",
+      k: `Best ${noun} $`,
       v:
         summary.bestReturning != null
           ? formatCurrency(summary.bestReturning.returningDollars, currency)
@@ -241,7 +372,7 @@ export function CustomerMixChart({
   return (
     <section
       className="mcfly-chart mcfly-cust-mix mcfly-chart--soft mcfly-desk-anchor"
-      aria-label="New vs returning dollars by week"
+      aria-label={`New vs returning dollars by ${noun}`}
     >
       <div className="mcfly-chart__board">
         <div className="mcfly-chart__masthead">
@@ -281,8 +412,20 @@ export function CustomerMixChart({
         <div className="mcfly-period__group" role="group" aria-label="Trend grain">
           <button
             type="button"
+            className={`mcfly-period__btn${effectiveGrain === "day" ? " mcfly-period__btn--on" : ""}`}
+            aria-pressed={effectiveGrain === "day"}
+            disabled={!dayReady}
+            onClick={() => {
+              setGrain("day");
+            }}
+          >
+            Daily
+          </button>
+          <button
+            type="button"
             className={`mcfly-period__btn${effectiveGrain === "week" ? " mcfly-period__btn--on" : ""}`}
             aria-pressed={effectiveGrain === "week"}
+            disabled={!weekReady}
             onClick={() => {
               setGrain("week");
             }}
@@ -532,6 +675,17 @@ export function CustomerMixChart({
           Returning share
         </li>
       </ul>
+
+      <div className="mcfly-cust-mix__plays">
+        <p className="mcfly-cust-vbars__title">
+          <DeskIcon name="clock" /> Win-back
+        </p>
+        <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">
+          {plays.map((play) => (
+            <ActionCard key={play.id} play={play} currency={currency} />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

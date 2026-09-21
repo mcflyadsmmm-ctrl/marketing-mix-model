@@ -21279,3 +21279,45 @@ button.mcfly-habit-goals__read:focus-visible {
   text-transform: uppercase;
   color: var(--mcfly-mute);
 }
+
+/* Returning $ mix explorer — win-back cards under the marquee.
+   Deltas reuse green (up) and grey (down / flat). Never a danger red. */
+.mcfly-cust-mix__plays {
+  margin: 0.85rem 0 0;
+}
+
+.mcfly-cust-mix__plays .mcfly-cust-vbars__title {
+  display: flex;
+  margin: 0 0 0.45rem;
+}
+
+.mcfly-cust-mix__plays .mcfly-cust-kpis--actions {
+  margin-bottom: 0;
+}
+
+.mcfly-cust-mix__delta {
+  display: block;
+  margin: 0.28rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.mcfly-ov-mix__glance {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-ov-mix__glance a {
+  color: var(--mcfly-accent-ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.mcfly-ov-mix__glance a:hover,
+.mcfly-ov-mix__glance a:focus-visible {
+  text-decoration: underline;
+}

@@ -264,12 +264,36 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
     expect(mix).toContain("overviewChartAxis");
   });
 
-  it("offers a Weekly / Monthly grain toggle powered by pure bucketing", () => {
+  it("offers a Daily / Weekly / Monthly grain toggle powered by pure bucketing", () => {
+    expect(mix).toContain("bucketMixDays");
     expect(mix).toContain("bucketMixWeeks");
     expect(mix).toContain("mixSummary");
+    expect(mix).toContain("resolveMixGrain");
+    expect(mix).toContain("Daily");
     expect(mix).toContain("Weekly");
     expect(mix).toContain("Monthly");
     expect(mix).toContain("mcfly-period__btn");
+    expect(analyticsLib).toContain("mixDaily");
+  });
+
+  it("paints three win-back ActionCards with green and grey deltas", () => {
+    expect(mix).toContain("buildReturningMixPlays");
+    expect(mix).toContain("mcfly-cust-mix__plays");
+    expect(mix).toContain("Win-back");
+    expect(mix.match(/<ActionCard[\s\n]/g)?.length).toBe(1);
+    expect(analyticsLib).toContain('verb: "Win-back"');
+    expect(analyticsLib).toContain('label: "Save now"');
+    expect(analyticsLib).toContain('label: "Share vs usual"');
+    expect(analyticsLib).toContain('id: "latest"');
+    expect(analyticsLib).toContain('id: "share"');
+    expect(analyticsLib).toContain('id: "winback"');
+    expect(mix).toContain("mcfly-kpi__delta--up");
+    expect(mix).toContain("mcfly-kpi__delta--down");
+    expect(mix).toContain("mcfly-kpi__delta--flat");
+    expect(mix).not.toMatch(/delta--danger|#dc2626|#b91c1c/);
+    expect(analyticsLib).toContain("No ad login");
+    expect(analyticsLib).not.toMatch(/\bCOGS\b/);
+    expect(analyticsLib).not.toMatch(/\bROAS\b/);
   });
 
   it("draws a designed guest-empty ghost, never a bare em dash", () => {
@@ -287,6 +311,8 @@ describe("CustomerMixChart — explorer-grade marquee, above the fold", () => {
     expect(css).toContain("feTurbulence");
     expect(css).toContain(".mcfly-cust-mix__ghost-bar");
     expect(css).toContain(".mcfly-cust-mix__empty-copy");
+    expect(css).toContain(".mcfly-cust-mix__plays");
+    expect(css).toContain(".mcfly-cust-mix__delta");
     expect(css).toContain(".mcfly-cust-facts");
     expect(css).toContain(".mcfly-cust-empty__ghost");
     expect(css).toContain(".mcfly-cust-action-row");

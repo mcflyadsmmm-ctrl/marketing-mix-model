@@ -73,6 +73,17 @@ describe("Overview mix + month close — habit, not a dump", () => {
     expect(lib).toContain("FORECAST_MIN_DAYS = 8");
     expect(css).toContain(".mcfly-ov-mix__read");
     expect(css).toContain(".mcfly-ov-mix__track");
+    expect(css).toContain(".mcfly-ov-mix__glance");
+  });
+
+  it("glances at the Customers daily/weekly mix without a third card", () => {
+    expect(board).toContain("Daily and weekly returning $");
+    expect(board).toContain("win-back cards on Customers");
+    expect(board).toContain("customersHref");
+    expect(board).toContain("Order history only");
+    expect(board.match(/<ActionCard[\s\n]/g)?.length).toBe(2);
+    expect(firstView).toContain("Typical order");
+    expect(overview).toContain("<OverviewFirstViewport");
   });
 
   it("is full-history aware and withholds a fake year of pace", () => {

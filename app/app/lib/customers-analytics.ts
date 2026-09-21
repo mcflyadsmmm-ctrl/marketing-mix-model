@@ -43,6 +43,46 @@ export type MixWeek = {
 /** Grain the marquee explorer can roll the weekly mix up to. */
 export type MixGrain = "week" | "month";
 
+/** Front-door explorer grain — day is its own series, not a week rollup. */
+export type MixExplorerGrain = "day" | MixGrain;
+
+/** One UTC day of new vs returning order dollars. */
+export type MixDay = {
+  key: string;
+  label: string;
+  dayStart: number;
+  newDollars: number;
+  returningDollars: number;
+  total: number;
+  returningShare: number | null;
+};
+
+export type MixDeltaTone = "up" | "down" | "flat";
+
+export type ReturningMixDelta = {
+  tone: MixDeltaTone;
+  /** Signed whole units — dollars, or share points. */
+  amount: number;
+  unit: "dollars" | "points";
+  versus: string;
+};
+
+export type ReturningMixPlayId = "latest" | "share" | "winback";
+
+/** Three habit cards under the mix explorer. Order history only. */
+export type ReturningMixPlay = {
+  id: ReturningMixPlayId;
+  verb: string;
+  label: string;
+  /** Null is an em dash — never a fake $0. */
+  amount: number | null;
+  amountKind: "money" | "share" | "count";
+  sub: string;
+  tone: "good" | "warn" | "plain";
+  delta: ReturningMixDelta | null;
+  detail: string;
+};
+
 /** One plotted column of the new-vs-returning marquee, at either grain. */
 export type MixBucket = {
   key: string;
@@ -104,6 +144,8 @@ export type CustomerAnalytics = {
   whaleCount: number;
   whaleRecency: RecencyBucket[];
   whaleRecencyTruncatedAt: number | null;
+  /** New vs returning dollars by UTC day — the daily explorer grain. */
+  mixDaily: MixDay[];
   /** New vs returning dollars by ISO week (Mon start) — a trend, not a snapshot. */
   mixWeekly: MixWeek[];
   /** Dollar-weighted returning-share across the window — the trend's rail. */
@@ -118,9 +160,14 @@ function ms(d: Date): number {
   return d instanceof Date ? d.getTime() : new Date(d).getTime();
 }
 
+/** UTC midnight of the calendar day containing `d`. */
+function utcDayStart(d: Date): Date {
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
 /** Monday (UTC) of the week containing `d` — ISO week start for the mix trend. */
 function mondayUtc(d: Date): Date {
-  const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const x = utcDayStart(d);
   const mondayIndex = (x.getUTCDay() + 6) % 7;
   x.setUTCDate(x.getUTCDate() - mondayIndex);
   return x;
@@ -313,18 +360,45 @@ export function buildCustomerAnalytics(
   for (const [key, rec] of byCustomer) {
     firstByCustomer.set(key, Math.min(...rec.times));
   }
+  const dayMap = new Map<string, { start: number; newD: number; retD: number }>();
   const weekMap = new Map<string, { start: number; newD: number; retD: number }>();
   for (const r of clean) {
+    const day = utcDayStart(r.orderedAt);
     const monday = mondayUtc(r.orderedAt);
-    const key = monday.toISOString().slice(0, 10);
-    const rec = weekMap.get(key) ?? { start: monday.getTime(), newD: 0, retD: 0 };
+    const dayKey = day.toISOString().slice(0, 10);
+    const weekKey = monday.toISOString().slice(0, 10);
+    const dayRec = dayMap.get(dayKey) ?? { start: day.getTime(), newD: 0, retD: 0 };
+    const weekRec = weekMap.get(weekKey) ?? { start: monday.getTime(), newD: 0, retD: 0 };
     const isReturning =
       r.customerKey !== RETENTION_GUEST_KEY &&
       ms(r.orderedAt) > (firstByCustomer.get(r.customerKey) ?? Number.POSITIVE_INFINITY);
-    if (isReturning) rec.retD += finite(r.amount);
-    else rec.newD += finite(r.amount);
-    weekMap.set(key, rec);
+    if (isReturning) {
+      dayRec.retD += finite(r.amount);
+      weekRec.retD += finite(r.amount);
+    } else {
+      dayRec.newD += finite(r.amount);
+      weekRec.newD += finite(r.amount);
+    }
+    dayMap.set(dayKey, dayRec);
+    weekMap.set(weekKey, weekRec);
   }
+  const mixDaily: MixDay[] = [...dayMap.values()]
+    .sort((a, b) => a.start - b.start)
+    .map((d) => {
+      const day = new Date(d.start);
+      const newDollars = Math.round(d.newD);
+      const returningDollars = Math.round(d.retD);
+      const total = newDollars + returningDollars;
+      return {
+        key: day.toISOString().slice(0, 10),
+        label: `${day.getUTCMonth() + 1}/${day.getUTCDate()}`,
+        dayStart: d.start,
+        newDollars,
+        returningDollars,
+        total,
+        returningShare: total > 0 ? returningDollars / total : null,
+      };
+    });
   const mixWeekly: MixWeek[] = [...weekMap.values()]
     .sort((a, b) => a.start - b.start)
     .map((w) => {
@@ -412,6 +486,7 @@ export function buildCustomerAnalytics(
     whaleCount,
     whaleRecency,
     whaleRecencyTruncatedAt,
+    mixDaily,
     mixWeekly,
     mixReturningShareAvg,
   };
@@ -507,6 +582,195 @@ export function mixSummary(buckets: MixBucket[]): MixSummary {
     returningShareAvg: total > 0 ? returningDollars / total : null,
     bestReturning,
   };
+}
+
+/** Daily columns for the mix explorer — 1:1 with `mixDaily`. */
+export function bucketMixDays(days: MixDay[]): MixBucket[] {
+  return days.map((d) => ({
+    key: d.key,
+    label: d.label,
+    start: d.dayStart,
+    newDollars: d.newDollars,
+    returningDollars: d.returningDollars,
+    total: d.total,
+    returningShare: d.returningShare,
+  }));
+}
+
+/**
+ * Keep the requested grain when that series has at least two columns.
+ * Otherwise fall back to a grain that can paint — never an empty toggle.
+ */
+export function resolveMixGrain(
+  requested: MixExplorerGrain,
+  ready: { day: boolean; week: boolean; month: boolean },
+): MixExplorerGrain {
+  switch (requested) {
+    case "day":
+      if (ready.day) return "day";
+      if (ready.week) return "week";
+      if (ready.month) return "month";
+      return "day";
+    case "week":
+      if (ready.week) return "week";
+      if (ready.day) return "day";
+      if (ready.month) return "month";
+      return "week";
+    case "month":
+      if (ready.month) return "month";
+      if (ready.week) return "week";
+      if (ready.day) return "day";
+      return "month";
+    default: {
+      const _never: never = requested;
+      return _never;
+    }
+  }
+}
+
+function mixDeltaTone(delta: number): MixDeltaTone {
+  if (delta > 0) return "up";
+  if (delta < 0) return "down";
+  return "flat";
+}
+
+function latestMixLabel(grain: MixExplorerGrain): string {
+  switch (grain) {
+    case "day":
+      return "Latest day";
+    case "week":
+      return "Latest week";
+    case "month":
+      return "Latest month";
+    default: {
+      const _never: never = grain;
+      return _never;
+    }
+  }
+}
+
+function priorMixVersus(grain: MixExplorerGrain): string {
+  switch (grain) {
+    case "day":
+      return "vs prior day";
+    case "week":
+      return "vs prior week";
+    case "month":
+      return "vs prior month";
+    default: {
+      const _never: never = grain;
+      return _never;
+    }
+  }
+}
+
+function mixGrainNoun(grain: MixExplorerGrain): string {
+  switch (grain) {
+    case "day":
+      return "day";
+    case "week":
+      return "week";
+    case "month":
+      return "month";
+    default: {
+      const _never: never = grain;
+      return _never;
+    }
+  }
+}
+
+/**
+ * Three ActionCards for the returning-$ habit: latest column vs the one
+ * before it, share vs the dollar-weighted usual, and who to win back.
+ * Down and flat stay grey in the UI — this function only names the tone.
+ * Win-back uses the existing clock (typical + 15). It does not densify
+ * days-to-second. Order history only.
+ */
+export function buildReturningMixPlays(input: {
+  buckets: MixBucket[];
+  grain: MixExplorerGrain;
+  winBackDay: number | null;
+  saveNowOneOrder: number;
+}): ReturningMixPlay[] {
+  const buckets = input.buckets;
+  const latest = buckets.length > 0 ? buckets[buckets.length - 1]! : null;
+  const prior = buckets.length > 1 ? buckets[buckets.length - 2]! : null;
+  const summary = mixSummary(buckets);
+  const noun = mixGrainNoun(input.grain);
+  const dollarDelta =
+    latest != null && prior != null
+      ? latest.returningDollars - prior.returningDollars
+      : null;
+  const sharePoints =
+    latest?.returningShare != null &&
+    summary.returningShareAvg != null &&
+    buckets.length >= 2
+      ? Math.round((latest.returningShare - summary.returningShareAvg) * 100)
+      : null;
+  const winBackKnown =
+    input.winBackDay != null && Number.isFinite(input.winBackDay);
+
+  return [
+    {
+      id: "latest",
+      verb: "Returning $",
+      label: latestMixLabel(input.grain),
+      amount: latest ? latest.returningDollars : null,
+      amountKind: "money",
+      sub: latest
+        ? prior
+          ? latest.label
+          : `${latest.label} — one ${noun} on file`
+        : "Needs two periods — not $0.",
+      tone: dollarDelta != null && dollarDelta > 0 ? "good" : "plain",
+      delta:
+        dollarDelta != null
+          ? {
+              tone: mixDeltaTone(dollarDelta),
+              amount: dollarDelta,
+              unit: "dollars",
+              versus: priorMixVersus(input.grain),
+            }
+          : null,
+      detail:
+        "Returning order dollars in the latest column, next to the column before it. Guests stay in first-time. No ad login.",
+    },
+    {
+      id: "share",
+      verb: "Mix",
+      label: "Share vs usual",
+      amount: latest?.returningShare ?? null,
+      amountKind: "share",
+      sub: "of this column's dollars",
+      tone: sharePoints != null && sharePoints > 0 ? "good" : "plain",
+      delta:
+        sharePoints != null
+          ? {
+              tone: mixDeltaTone(sharePoints),
+              amount: sharePoints,
+              unit: "points",
+              versus: "vs usual",
+            }
+          : null,
+      detail:
+        "Returning share of the latest column minus the dollar-weighted share of every column in view. Usual is returning $ ÷ (new $ + returning $).",
+    },
+    {
+      id: "winback",
+      verb: "Win-back",
+      label: "Save now",
+      amount: winBackKnown ? input.saveNowOneOrder : null,
+      amountKind: "count",
+      sub: winBackKnown
+        ? `one-order buyers past day ${Math.round(input.winBackDay!)}`
+        : "Win-back day needs more repeat orders — not $0.",
+      tone: winBackKnown && input.saveNowOneOrder > 0 ? "warn" : "plain",
+      delta: null,
+      detail: winBackKnown
+        ? "Identified buyers with one order already past typical repurchase + 15 days. Order-history timing — not an email guess, not a returning-customer rate."
+        : "The win-back day is typical days to a second order plus 15. It stays blank until five second orders are on file — not $0.",
+    },
+  ];
 }
 
 /** Empty analytics for pending / no-data states — honest zeros, not fakes. */
