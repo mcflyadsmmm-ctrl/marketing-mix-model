@@ -19,6 +19,10 @@ import {
   type LtvDepthView,
   type PathLtvRow,
 } from "./ltv-depth";
+import {
+  buildFirstProductDrivers,
+  type FirstProductDriversView,
+} from "./ltv-first-product";
 import { buildProductLtv, type ProductLtvView } from "./ltv-product";
 import { buildPromoLtv, type PromoLtvView } from "./ltv-promo";
 
@@ -826,6 +830,8 @@ export interface LtvFlagshipView extends LtvDepthView {
   pathClarity: PathClarity | null;
   /** First-product → LTV / path drivers from titled first-line items. */
   productLtv: ProductLtvView;
+  /** LTV-chip table: first product, first-order count, revenue from those buyers. */
+  firstProductDrivers: FirstProductDriversView;
   /** First-order promo → LTV / lift vs full-price first. */
   promoLtv: PromoLtvView;
 }
@@ -849,6 +855,7 @@ export function buildLtvFlagship(
     refunds: refundHonesty(orders, options),
     pathClarity: pathClarity(view.paths, customers),
     productLtv: buildProductLtv(orders, asOf),
+    firstProductDrivers: buildFirstProductDrivers(orders),
     promoLtv: buildPromoLtv(orders, asOf),
   };
 }

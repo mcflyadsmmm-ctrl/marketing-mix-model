@@ -16708,6 +16708,11 @@ button.mcfly-depth-legend__chip:focus-visible {
   min-width: 8.5rem;
 }
 
+.mcfly-depth-table--drivers th[scope="row"] {
+  white-space: normal;
+  min-width: 8.5rem;
+}
+
 /* Retention heat cells: first column sticky, dollars-blue intensity inline. */
 .mcfly-depth-table--heat th[scope="row"] {
   position: sticky;
