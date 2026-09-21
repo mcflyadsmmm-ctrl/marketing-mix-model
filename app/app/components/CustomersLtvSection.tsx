@@ -7,6 +7,7 @@ import { LtvPathTable } from "./LtvPathTable";
 import { LtvWhaleRecency } from "./LtvWhaleRecency";
 import { LtvFlagshipBoard } from "./LtvFlagshipBoard";
 import { LtvWindowTriangle } from "./LtvWindowTriangle";
+import { LtvExpectedEstimate } from "./LtvExpectedEstimate";
 import { LtvProductBoard } from "./LtvProductBoard";
 import { LtvPromoBoard } from "./LtvPromoBoard";
 import { formatCurrency } from "../lib/mer-format";
@@ -385,6 +386,10 @@ export function CustomersLtvWindows(props: LtvPackProps) {
       <LtvWindowTriangle
         rows={depth.monthWindows}
         buyers={depth.buyers}
+        useSampleDesk={useSampleDesk}
+      />
+      <LtvExpectedEstimate
+        estimate={depth.expectedLtv}
         useSampleDesk={useSampleDesk}
       />
     </section>
