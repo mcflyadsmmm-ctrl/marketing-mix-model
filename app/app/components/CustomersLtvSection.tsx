@@ -6,6 +6,7 @@ import { LtvTierTables } from "./LtvTierTables";
 import { LtvPathTable } from "./LtvPathTable";
 import { LtvWhaleRecency } from "./LtvWhaleRecency";
 import { LtvFlagshipBoard } from "./LtvFlagshipBoard";
+import { LtvWindowTriangle } from "./LtvWindowTriangle";
 import { LtvProductBoard } from "./LtvProductBoard";
 import { LtvPromoBoard } from "./LtvPromoBoard";
 import { formatCurrency } from "../lib/mer-format";
@@ -332,7 +333,7 @@ export function CustomersLtvWindows(props: LtvPackProps) {
     chartTargetLine,
     emptyLine,
   } = useCustomersLtvPack(props);
-  const { metrics, useSampleDesk } = props;
+  const { metrics, useSampleDesk, depth } = props;
   const currency = useDeskCurrency();
 
   return (
@@ -380,6 +381,12 @@ export function CustomersLtvWindows(props: LtvPackProps) {
           below stay on that same book. Order history only, no spend.
         </p>
       ) : null}
+
+      <LtvWindowTriangle
+        rows={depth.monthWindows}
+        buyers={depth.buyers}
+        useSampleDesk={useSampleDesk}
+      />
     </section>
   );
 }

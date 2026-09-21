@@ -16,6 +16,7 @@ const tiers = read("../components/LtvTierTables.tsx");
 const paths = read("../components/LtvPathTable.tsx");
 const whales = read("../components/LtvWhaleRecency.tsx");
 const flagship = read("../components/LtvFlagshipBoard.tsx");
+const triangle = read("../components/LtvWindowTriangle.tsx");
 const productBoard = read("../components/LtvProductBoard.tsx");
 const promoBoard = read("../components/LtvPromoBoard.tsx");
 const depthPage = read("../lib/ltv-depth-page.server.ts");
@@ -61,11 +62,38 @@ describe("LTV route mounts the depth pack", () => {
       customers.indexOf("<CustomersLtvDepth"),
     );
     expect(section.indexOf("<LtvValueBuild")).toBeLessThan(
+      section.indexOf("<LtvWindowTriangle"),
+    );
+    expect(section.indexOf("<LtvWindowTriangle")).toBeLessThan(
       section.indexOf("<LtvFlagshipBoard"),
     );
     expect(section.indexOf("<LtvFlagshipBoard")).toBeLessThan(
       section.indexOf("<LtvBuildCurves"),
     );
+  });
+
+  it("mounts the 30/90/365 triangle on the LTV chip without dropping the heat", () => {
+    const demo = read("../routes/demo.customers.tsx");
+    expect(section).toContain("rows={depth.monthWindows}");
+    expect(section).toContain("<LtvWindowTriangle");
+    expect(customers).toContain('id="mcfly-ltv"');
+    expect(demo).toContain("<CustomersLtvWindows");
+    expect(section.indexOf("<LtvRetentionHeat")).toBeGreaterThan(
+      section.indexOf("<LtvWindowTriangle"),
+    );
+    expect(section).toContain("targetLine={chartTargetLine}");
+    expect(curves).toContain("Target Line · average");
+    expect(triangle).toContain("Who came back");
+    expect(triangle).toContain("What each first-order month spent");
+    expect(triangle).toContain("Revenue by first-order month");
+    expect(triangle).toContain("30 days");
+    expect(triangle).toContain("90 days");
+    expect(triangle).toContain("First year");
+    expect(triangle).toContain("not 0%");
+    expect(triangle).toContain("not $0");
+    expect(triangle).toContain("SAMPLE Snowdevil");
+    expect(triangle).toContain("firstOrderWindowTriangle");
+    expect(triangle).toContain("rgba(4, 120, 87");
   });
 
   it("drops the old per-month grid once the richer curve paints", () => {
@@ -78,7 +106,17 @@ describe("LTV route mounts the depth pack", () => {
 });
 
 describe("depth chrome stays honest and in shop-owner voice", () => {
-  const all = [curves, heat, tiers, paths, whales, flagship, productBoard, promoBoard];
+  const all = [
+    curves,
+    heat,
+    tiers,
+    paths,
+    whales,
+    flagship,
+    productBoard,
+    promoBoard,
+    triangle,
+  ];
 
   it("keeps the banned glossary words out of merchant chrome", () => {
     // Comments may explain a ban; strip block/line comments before scanning.
