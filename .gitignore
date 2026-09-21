@@ -10,7 +10,12 @@ reports/
 .DS_Store
 coverage/
 packages/**/node_modules/
-.cursor/
+# Local Cursor state. The project verification skill is source.
+.cursor/*
+!.cursor/skills/
+
+# verify-mcfly proof (screenshots and DOM). Cleanup must leave this directory.
+artifacts/verify-mcfly/
 **/node_modules/
 
 # Proprietary MER Apps Script clasp pull (never commit seeds / sheet IDs)
