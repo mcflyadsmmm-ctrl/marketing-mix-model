@@ -59,8 +59,16 @@ describe("spend upload findings", () => {
     expect(spend).toContain("spendUploadEmptyFinding");
     expect(spend).toContain("totalRoasEmptySpendFinding");
     expect(spend).toContain("strangerEmpty");
+    expect(spend).toContain("emptyLiveSpend");
     expect(spend).toContain("HONEST_MER_LINE");
     expect(spend).not.toContain("0.00×");
+
+    const firstLaneStart = spend.indexOf('<DeskLane rank="first"');
+    const firstLaneEnd = spend.indexOf("<DeskLane", firstLaneStart + 1);
+    const firstLane = spend.slice(firstLaneStart, firstLaneEnd);
+    expect(firstLane).toContain("totalRoasEmptySpendFinding");
+    expect(firstLane).toContain("spendUploadEmptyFinding");
+    expect(firstLane).toContain('id="mcfly-spend-add"');
 
     expect(roas).toContain('spendPanelRedirectPath(request.url, "roas"');
     expect(roas).not.toContain("<SpendFindingStrip");

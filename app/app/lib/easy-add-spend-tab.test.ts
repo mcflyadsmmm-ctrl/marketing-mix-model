@@ -44,6 +44,32 @@ describe("Spend day card", () => {
     expect(spend).not.toContain("Typed days are corrections");
   });
 
+  it("puts add-a-day in first-fold reach when live spend is empty, and folds mix/CPA", () => {
+    expect(spend).toContain("emptyLiveSpend");
+    expect(spend).toContain("<DeskLane");
+    expect(spend).toContain("SPEND_FIRST_LANE_LABEL");
+    expect(spend).toContain("fold={emptyLiveSpend}");
+    expect(spend).toContain('rank="next"');
+    const firstAdd = spend.indexOf('id="mcfly-spend-add"');
+    const mixAt = spend.indexOf("<SpendMixSection");
+    const cpaAt = spend.indexOf('id="mcfly-cpa"');
+    const explorerAt = spend.indexOf('id="mcfly-explorer"');
+    expect(firstAdd).toBeGreaterThan(-1);
+    expect(firstAdd).toBeLessThan(explorerAt);
+    expect(firstAdd).toBeLessThan(mixAt);
+    expect(firstAdd).toBeLessThan(cpaAt);
+    const firstLaneStart = spend.indexOf('<DeskLane rank="first"');
+    const firstLaneEnd = spend.indexOf("<DeskLane", firstLaneStart + 1);
+    const firstLane = spend.slice(firstLaneStart, firstLaneEnd);
+    expect(firstLane).toContain('id="mcfly-roas"');
+    expect(firstLane).toContain('id="mcfly-spend-add"');
+    expect(firstLane).toContain("emptyLiveSpend");
+    expect(firstLane).not.toContain("<SpendMixSection");
+    expect(firstLane).not.toContain("<CpaExplorer");
+    expect(spend).toContain("sampleDesk.enabled");
+    expect(spend).toContain("shotMode");
+  });
+
   it("keeps add-a-day after the MER pair and keeps Backfill off the first fold", () => {
     expect(spend).toContain('id="mcfly-spend-add"');
     expect(spend).toContain('id="mcfly-spend-backfill"');
