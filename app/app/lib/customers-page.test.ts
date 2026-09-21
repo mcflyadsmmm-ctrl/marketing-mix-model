@@ -137,6 +137,13 @@ describe("CustomerRetentionBoard — What-to-do retention flow", () => {
     expect(retention).not.toContain("RFM-lite");
   });
 
+  it("deep-links win-back and never paints a missing repurchase share as 0%", () => {
+    expect(retention).toContain('href="#mcfly-win-back"');
+    expect(retention).not.toContain("a.repeatShare : 0");
+    expect(retention).not.toContain("a.thirdPlusShare : 0");
+    expect(retention).toContain("pct(row.share)");
+  });
+
   it("never invents a 2nd-order product — honest about Level-1 scope", () => {
     expect(retention).toContain("read_orders");
     expect(retention).toMatch(/SKU|line item/i);
@@ -151,13 +158,19 @@ describe("CustomerRetentionBoard — What-to-do retention flow", () => {
   });
 });
 
-describe("CustomerWhaleWatch — high LTV recency risk beside ActionCards", () => {
-  it("is a watchlist of slipping whales, not a named-customer dump", () => {
+describe("CustomerWhaleWatch — top order LTV beside ActionCards", () => {
+  it("is a watchlist of ranked order LTV, not a named-customer dump", () => {
     expect(watch).toContain("Whale watchlist");
     expect(watch).toContain("row.verb");
     expect(watch).toContain("mcfly-cust-watch");
-    expect(watch).toContain("High LTV");
+    expect(watch).toContain("Order LTV");
+    expect(watch).toContain("RFM_FROM_SHOPIFY_ORDERS");
+    expect(watch).toContain("repeatRevenue == null");
+    expect(watch).toContain('href="#mcfly-win-back"');
+    expect(watch).toContain("No customers invented");
     expect(watch).not.toMatch(/gid:\/\/shopify\/Customer/);
+    expect(watch).not.toContain("Recharge");
+    expect(watch).not.toContain("Skio");
   });
 
   it("uses an ActionCard-shaped first-win empty, never a blank table", () => {
@@ -176,6 +189,12 @@ describe("CustomerRfmBoard — recency / frequency / monetary lite", () => {
     expect(rfmBoard).toContain("rfm.bands");
     expect(rfmBoard).toContain("seg.verb");
     expect(rfmLib).toContain("Champions");
+    expect(rfmLib).toContain("Hibernating");
+    expect(rfmLib).toContain("From Shopify orders");
+    expect(rfmLib).toContain("RFM_RECENT_DAYS = 30");
+    expect(rfmLib).toContain("RFM_HIBERNATE_DAYS = 90");
+    expect(rfmBoard).toContain("RFM_FROM_SHOPIFY_ORDERS");
+    expect(rfmBoard).toContain("RFM_RULES_LINE");
     expect(rfmBoard).not.toContain("Potential loyalist");
     expect(rfmBoard).not.toContain("Cannot lose them");
   });
@@ -198,7 +217,7 @@ describe("Customers loader — full stored book for RFM, 90-day mix kept", () =>
     expect(analyticsLoader).toContain("getOrderBackfillHistoryLimited");
     expect(analyticsLoader).toContain("full stored");
     expect(rfmLib).toContain("RFM_MIN_BUYERS = 8");
-    expect(rfmLib).toContain("WATCHLIST_COLD_DAYS = 30");
+    expect(rfmLib).toContain("WATCHLIST_MAX = 8");
   });
 });
 

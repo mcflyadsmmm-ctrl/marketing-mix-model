@@ -14224,6 +14224,14 @@ button.mcfly-chart__month {
   background: #cbd5e1;
 }
 
+.mcfly-customers-rfmband__seg--new {
+  background: color-mix(in srgb, var(--mcfly-accent-ink, #0369a1) 48%, #cbd5e1);
+}
+
+.mcfly-customers-rfmband__seg--hibernating {
+  background: #cbd5e1;
+}
+
 .mcfly-customers-rfmband__legend {
   display: flex;
   flex-wrap: wrap;
@@ -15898,6 +15906,13 @@ button.mcfly-chart__hour {
   border: 1px solid var(--mcfly-line-soft);
   border-radius: 10px;
   padding: 0.65rem 0.75rem;
+}
+
+a.mcfly-cust-kpi {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .mcfly-cust-kpi__k {
@@ -19756,7 +19771,7 @@ button.mcfly-depth-flag__empty:focus-visible {
 .mcfly-cust-watch__head,
 .mcfly-cust-watch__row {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) 3.1rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.8fr) 3.1rem;
   align-items: center;
   gap: 0.4rem;
 }
@@ -19835,7 +19850,7 @@ button.mcfly-depth-flag__empty:focus-visible {
 
   .mcfly-cust-watch__head,
   .mcfly-cust-watch__row {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.6rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.7fr) 2.4rem;
   }
 }
 

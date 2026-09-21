@@ -1,0 +1,37 @@
+{
+  "windowEnd": "2026-09-16T00:00:00.000Z",
+  "thin": [
+    { "customerKey": "thin-a", "daysBeforeEnd": 40, "amount": 80 },
+    { "customerKey": "thin-b", "daysBeforeEnd": 12, "amount": 40 }
+  ],
+  "zeroLtv": [
+    { "customerKey": "z0", "daysBeforeEnd": 40, "amount": 0 },
+    { "customerKey": "z1", "daysBeforeEnd": 41, "amount": 0 },
+    { "customerKey": "z2", "daysBeforeEnd": 42, "amount": 0 },
+    { "customerKey": "z3", "daysBeforeEnd": 43, "amount": 0 },
+    { "customerKey": "z4", "daysBeforeEnd": 44, "amount": 0 },
+    { "customerKey": "z5", "daysBeforeEnd": 45, "amount": 0 },
+    { "customerKey": "z6", "daysBeforeEnd": 46, "amount": 0 },
+    { "customerKey": "z7", "daysBeforeEnd": 47, "amount": 0 }
+  ],
+  "rich": [
+    { "customerKey": "champ-high", "daysBeforeEnd": 40, "amount": 200 },
+    { "customerKey": "champ-high", "daysBeforeEnd": 10, "amount": 400 },
+    { "customerKey": "champ-mid", "daysBeforeEnd": 50, "amount": 150 },
+    { "customerKey": "champ-mid", "daysBeforeEnd": 8, "amount": 250 },
+    { "customerKey": "risk", "daysBeforeEnd": 80, "amount": 300 },
+    { "customerKey": "risk", "daysBeforeEnd": 40, "amount": 350 },
+    { "customerKey": "risk2", "daysBeforeEnd": 70, "amount": 200 },
+    { "customerKey": "risk2", "daysBeforeEnd": 50, "amount": 220 },
+    { "customerKey": "new-a", "daysBeforeEnd": 6, "amount": 40 },
+    { "customerKey": "new-b", "daysBeforeEnd": 12, "amount": 30 },
+    { "customerKey": "hibernate", "daysBeforeEnd": 120, "amount": 90 },
+    { "customerKey": "hibernate2", "daysBeforeEnd": 140, "amount": 500 },
+    { "customerKey": "hibernate2", "daysBeforeEnd": 110, "amount": 400 },
+    { "customerKey": "outside-recent", "daysBeforeEnd": 20, "amount": 25 },
+    { "customerKey": "outside-recent", "daysBeforeEnd": 15, "amount": 20 },
+    { "customerKey": "outside-mid", "daysBeforeEnd": 45, "amount": 20 },
+    { "customerKey": "filler", "daysBeforeEnd": 60, "amount": 50 },
+    { "customerKey": "guest", "daysBeforeEnd": 10, "amount": 99999 }
+  ]
+}

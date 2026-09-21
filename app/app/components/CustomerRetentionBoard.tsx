@@ -7,7 +7,10 @@ function isNum(n: number | null | undefined): n is number {
   return n != null && Number.isFinite(n);
 }
 function pct(s: number | null | undefined): string {
-  return isNum(s) ? `${Math.round(s * 100)}%` : "—";
+  if (!isNum(s)) return "—";
+  const whole = Math.round(s * 100);
+  if (whole === 0 && s !== 0) return "—";
+  return `${whole}%`;
 }
 function day(n: number | null | undefined): string {
   return isNum(n) ? `Day ${Math.round(n)}` : "—";
@@ -22,6 +25,7 @@ function ActionCard({
   tone = "plain",
   verb,
   detail,
+  href,
 }: {
   label: string;
   value: string;
@@ -29,6 +33,7 @@ function ActionCard({
   tone?: Tone;
   verb: string;
   detail: string;
+  href?: string;
 }) {
   const drill = useDeskDrill();
   const open = () =>
@@ -50,6 +55,16 @@ function ActionCard({
       {sub ? <p className="mcfly-cust-kpi__sub">{sub}</p> : null}
     </>
   );
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={`mcfly-cust-kpi mcfly-cust-kpi--${tone} mcfly-cust-kpi--soft mcfly-cust-kpi--action`}
+      >
+        {body}
+      </a>
+    );
+  }
   return drill ? (
     <button
       type="button"
@@ -124,17 +139,17 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
     detail: `Buyers whose second order landed ${b.label.replace("d", " days")} after their first.`,
   }));
 
-  const funnel = [
+  const funnel: Array<{ k: string; v: number; share: number | null }> = [
     { k: "Identified buyers", v: a.identifiedBuyers, share: 1 },
     {
       k: "Placed a 2nd order",
       v: a.repeatBuyers,
-      share: isNum(a.repeatShare) ? a.repeatShare : 0,
+      share: isNum(a.repeatShare) ? a.repeatShare : null,
     },
     {
       k: "Placed a 3rd+ order",
       v: a.thirdPlusBuyers,
-      share: isNum(a.thirdPlusShare) ? a.thirdPlusShare : 0,
+      share: isNum(a.thirdPlusShare) ? a.thirdPlusShare : null,
     },
   ];
 
@@ -176,6 +191,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
           tone="warn"
           verb="Win-back"
           detail="Reach one-order buyers by this day — just past typical repurchase, before the slow tail falls off."
+          href="#mcfly-win-back"
         />
         <ActionCard
           label="Save now"
@@ -214,7 +230,7 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
               drill?.openDrill({
                 title: row.k,
                 value: row.v.toLocaleString(),
-                kicker: `${Math.round(row.share * 100)}% of identified buyers`,
+                kicker: `${pct(row.share)} of identified buyers`,
                 blocks: [
                   {
                     k: "What this is",
@@ -227,14 +243,16 @@ export function CustomerRetentionBoard({ analytics }: { analytics: CustomerAnaly
           >
             <span className="mcfly-cust-funnel__k">{row.k}</span>
             <span className="mcfly-cust-funnel__track" aria-hidden="true">
-              <span
-                className="mcfly-cust-funnel__bar"
-                style={{ width: `${Math.max(4, row.share * 100)}%` }}
-              />
+              {isNum(row.share) ? (
+                <span
+                  className="mcfly-cust-funnel__bar"
+                  style={{ width: `${Math.max(row.share > 0 ? 4 : 0, row.share * 100)}%` }}
+                />
+              ) : null}
             </span>
             <span className="mcfly-cust-funnel__v">
               {row.v.toLocaleString()}
-              <span className="mcfly-cust-funnel__pct"> · {Math.round(row.share * 100)}%</span>
+              <span className="mcfly-cust-funnel__pct"> · {pct(row.share)}</span>
             </span>
           </button>
         ))}

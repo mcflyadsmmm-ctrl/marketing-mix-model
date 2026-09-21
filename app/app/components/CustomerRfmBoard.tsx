@@ -2,15 +2,20 @@ import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { formatCurrency } from "../lib/mer-format";
-import type {
-  CustomerRfmView,
-  RfmEmpty,
-  RfmEmptyKind,
-  RfmSegment,
+import {
+  RFM_FROM_SHOPIFY_ORDERS,
+  RFM_RULES_LINE,
+  type CustomerRfmView,
+  type RfmEmpty,
+  type RfmEmptyKind,
+  type RfmSegment,
 } from "../lib/customers-rfm";
 
-function pct(share: number): string {
-  return `${Math.round(share * 100)}%`;
+function pct(share: number, buyers: number): string {
+  if (buyers <= 0) return "0%";
+  const whole = Math.round(share * 100);
+  if (whole === 0) return "—";
+  return `${whole}%`;
 }
 
 function emptyValue(empty: RfmEmpty): string {
@@ -51,12 +56,12 @@ function segmentTone(key: RfmSegment["key"]): "good" | "warn" | "plain" {
   switch (key) {
     case "champions":
       return "good";
-    case "rising":
+    case "new":
       return "plain";
     case "at_risk":
       return "warn";
-    case "quiet":
-      return "plain";
+    case "hibernating":
+      return "warn";
     default: {
       const _exhaustive: never = key;
       return _exhaustive;
@@ -65,9 +70,9 @@ function segmentTone(key: RfmSegment["key"]): "good" | "warn" | "plain" {
 }
 
 /**
- * RFM-lite — recency / frequency / monetary terciles and four actionable
- * segments from the stored order book. Soft dense, not a 5×5 dump. First-win
- * empties are ActionCard-shaped. Order history only.
+ * RFM-lite — Champions / At risk / New / Hibernating from simple R·F·M
+ * thresholds on the stored Shopify order book. Soft dense, not a 5×5 dump.
+ * First-win empties are ActionCard-shaped. No invented customers.
  */
 export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
   const currency = useDeskCurrency();
@@ -82,9 +87,7 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
       >
         <div className="mcfly-panel__head">
           <h2>RFM-lite</h2>
-          <p className="mcfly-panel__muted">
-            Recency · frequency · monetary · order history
-          </p>
+          <p className="mcfly-panel__muted">{RFM_FROM_SHOPIFY_ORDERS}</p>
         </div>
         <button
           type="button"
@@ -99,10 +102,10 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
                 { k: "What this is", v: empty.copy },
                 {
                   k: "What fills next",
-                  v: `Floor: ${empty.need} identified buyers who have lived 30 days. Then recency / frequency / monetary bands and the four segments. Same math — no spend required.`,
+                  v: `Floor: ${empty.need} identified buyers who have lived 30 days. Then Champions, At risk, New, and Hibernating. ${RFM_RULES_LINE} No customers invented.`,
                 },
               ],
-              next: "Order history only — not email, not a Shopify RFM export.",
+              next: RFM_FROM_SHOPIFY_ORDERS,
             })
           }
         >
@@ -138,8 +141,9 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
     >
       <div className="mcfly-panel__head">
         <h2>RFM-lite</h2>
-        <p className="mcfly-panel__muted">{historyLine(rfm)}</p>
+        <p className="mcfly-panel__muted">{RFM_FROM_SHOPIFY_ORDERS}</p>
       </div>
+      <p className="mcfly-cust-note">{RFM_RULES_LINE}</p>
 
       <div className="mcfly-cust-rfm__segs" aria-label="RFM segments">
         {rfm.segments.map((seg) => (
@@ -153,17 +157,17 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
                 value: `${seg.buyers.toLocaleString()} buyers`,
                 kicker: seg.verb,
                 blocks: [
-                  { k: "What to do", v: `${seg.verb} — ${pct(seg.share)} of identified buyers on file.` },
+                  { k: "What to do", v: `${seg.verb}. ${seg.rule}` },
                   {
                     k: "On-file dollars",
                     v: formatCurrency(seg.dollars, currency),
                   },
                   {
                     k: "How this is scored",
-                    v: "Recency, frequency, and monetary terciles from this shop’s stored orders. High dollars + cooling recency is At risk. Not a 5×5 export.",
+                    v: `${RFM_RULES_LINE} ${pct(seg.share, seg.buyers)} of identified buyers. Buyers outside these four rules stay unlabeled.`,
                   },
                 ],
-                next: "Whale watchlist above holds the high-LTV names to reach first.",
+                next: "Whale watchlist ranks top order LTV from Shopify orders. Win-back times the one-order ask.",
               })
             }
           >
@@ -171,7 +175,7 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
             <p className="mcfly-cust-kpi__k">{seg.label}</p>
             <p className="mcfly-cust-kpi__v">{seg.buyers.toLocaleString()}</p>
             <p className="mcfly-cust-kpi__sub">
-              {pct(seg.share)} · {formatCurrency(seg.dollars, currency)}
+              {pct(seg.share, seg.buyers)} · {formatCurrency(seg.dollars, currency)}
             </p>
           </button>
         ))}
@@ -192,7 +196,12 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
                   <span className="mcfly-cust-rfm__band-track" aria-hidden="true">
                     <span
                       className="mcfly-cust-rfm__band-fill"
-                      style={{ width: `${Math.max(6, (slice.buyers / max) * 100)}%` }}
+                      style={{
+                        width:
+                          slice.buyers <= 0
+                            ? "0%"
+                            : `${Math.max(6, (slice.buyers / max) * 100)}%`,
+                      }}
                     />
                   </span>
                   <span className="mcfly-cust-rfm__band-n">{slice.buyers.toLocaleString()}</span>
@@ -205,10 +214,19 @@ export function CustomerRfmBoard({ rfm }: { rfm: CustomerRfmView }) {
 
       {atRisk && atRisk.buyers > 0 ? (
         <p className="mcfly-cust-note">
-          {atRisk.buyers.toLocaleString()} high-dollar {atRisk.buyers === 1 ? "buyer is" : "buyers are"} cooling —
-          the watchlist beside What to do is the first reach.
+          {atRisk.buyers.toLocaleString()} high-LTV repeat{" "}
+          {atRisk.buyers === 1 ? "buyer is" : "buyers are"} cooling —{" "}
+          <a href="#mcfly-win-back">Open win-back</a>.
         </p>
       ) : null}
+      {rfm.outsideRules > 0 ? (
+        <p className="mcfly-cust-note">
+          {rfm.outsideRules.toLocaleString()} identified{" "}
+          {rfm.outsideRules === 1 ? "buyer sits" : "buyers sit"} outside these
+          four rules — unlabeled, not $0.
+        </p>
+      ) : null}
+      <p className="mcfly-cust-note">{historyLine(rfm)}</p>
       {rfm.recencyTruncatedAt != null ? (
         <p className="mcfly-cust-note">
           Recency past ~{rfm.recencyTruncatedAt} days needs more order history than
