@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildBuyerLifetimeSpan,
+  buildComebackNextWait,
   buildCustomerAnalytics,
   bucketMixDays,
   bucketMixWeeks,
   buildOrderSteps,
+  buildQuietBackDollars,
   buildReturningMixPlays,
+  buyerLifetimeSpanLine,
   emptyCustomerAnalytics,
   mixSummary,
   ORDER_STEP_MIN_BUYERS,
@@ -465,6 +469,13 @@ describe("emptyCustomerAnalytics", () => {
     expect(e.everRepeatShare).toBeNull();
     expect(e.repurchaseTypicalDays).toBeNull();
     expect(e.winBackDay).toBeNull();
+    expect(e.quietBack.sealed).toBe(false);
+    expect(e.quietBack.sales).toBeNull();
+    expect(e.comebackWait.sealed).toBe(false);
+    expect(e.comebackWait.waitDays).toBeNull();
+    expect(e.lifetimeSpan.sealed).toBe(false);
+    expect(e.lifetimeSpan.firstToLastDays).toBeNull();
+    expect(e.lifetimeSpan.interOrderGapDays).toBeNull();
     expect(e.orderSteps).toHaveLength(4);
     for (const row of e.orderSteps) {
       expect(row.sealed).toBe(false);
@@ -680,5 +691,261 @@ describe("order steps — ticket, reach, wait from the stored book", () => {
     expect(third.waitDays).toBe(110);
     const windowOnly = buildOrderSteps(windowRows);
     expect(stepOf(windowOnly, "third").sealed).toBe(false);
+  });
+});
+
+const PERIOD_START = at(15);
+const PERIOD_END = WINDOW_END;
+
+describe("quiet-then-back dollars — this period, not returning mix, not RFM", () => {
+  it("seals this period’s dollars at 8 identified reactivated buyers", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 11; i += 1) {
+      rows.push(
+        ...ordersFor(`cadence-${i}`, [
+          { daysBeforeEnd: 80, amount: 40 },
+          { daysBeforeEnd: 70, amount: 40 },
+        ]),
+      );
+    }
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        ...ordersFor(`quiet-${i}`, [
+          { daysBeforeEnd: 80, amount: 50 },
+          { daysBeforeEnd: 5, amount: 100 },
+        ]),
+      );
+    }
+    const built = buildQuietBackDollars({
+      rows,
+      periodStart: PERIOD_START,
+      periodEnd: PERIOD_END,
+    });
+    expect(ORDER_STEP_MIN_BUYERS).toBe(8);
+    expect(built.buyers).toBe(8);
+    expect(built.sealed).toBe(true);
+    expect(built.sales).toBe(800);
+  });
+
+  it("stays — under 8 reactivated buyers, never a 7-buyer total", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 11; i += 1) {
+      rows.push(
+        ...ordersFor(`cadence-${i}`, [
+          { daysBeforeEnd: 80, amount: 40 },
+          { daysBeforeEnd: 70, amount: 40 },
+        ]),
+      );
+    }
+    for (let i = 0; i < 7; i += 1) {
+      rows.push(
+        ...ordersFor(`quiet-${i}`, [
+          { daysBeforeEnd: 80, amount: 50 },
+          { daysBeforeEnd: 5, amount: 999 },
+        ]),
+      );
+    }
+    const built = buildQuietBackDollars({
+      rows,
+      periodStart: PERIOD_START,
+      periodEnd: PERIOD_END,
+    });
+    expect(built.buyers).toBe(7);
+    expect(built.sealed).toBe(false);
+    expect(built.sales).toBeNull();
+  });
+
+  it("never counts guests, first-time dollars, or a return still inside typical wait", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 11; i += 1) {
+      rows.push(
+        ...ordersFor(`cadence-${i}`, [
+          { daysBeforeEnd: 80, amount: 40 },
+          { daysBeforeEnd: 70, amount: 40 },
+        ]),
+      );
+    }
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(80), amount: 500 },
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(5), amount: 500 },
+      );
+      rows.push(...ordersFor(`new-${i}`, [{ daysBeforeEnd: 4, amount: 200 }]));
+      rows.push(
+        ...ordersFor(`soon-${i}`, [
+          { daysBeforeEnd: 20, amount: 60 },
+          { daysBeforeEnd: 12, amount: 60 },
+        ]),
+      );
+    }
+    const built = buildQuietBackDollars({
+      rows,
+      periodStart: PERIOD_START,
+      periodEnd: PERIOD_END,
+    });
+    expect(built.buyers).toBe(0);
+    expect(built.sealed).toBe(false);
+    expect(built.sales).toBeNull();
+  });
+
+  it("uses own median wait at 3+ orders, not a 90-day hibernating snapshot", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        ...ordersFor(`own-${i}`, [
+          { daysBeforeEnd: 80, amount: 30 },
+          { daysBeforeEnd: 70, amount: 30 },
+          { daysBeforeEnd: 5, amount: 120 },
+        ]),
+      );
+    }
+    rows.push(
+      ...ordersFor("still-quiet", [
+        { daysBeforeEnd: 200, amount: 400 },
+        { daysBeforeEnd: 120, amount: 400 },
+      ]),
+    );
+    const built = buildQuietBackDollars({
+      rows,
+      periodStart: PERIOD_START,
+      periodEnd: PERIOD_END,
+    });
+    expect(built.buyers).toBe(8);
+    expect(built.sealed).toBe(true);
+    expect(built.sales).toBe(960);
+    const tight: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      tight.push(
+        ...ordersFor(`tight-${i}`, [
+          { daysBeforeEnd: 25, amount: 30 },
+          { daysBeforeEnd: 15, amount: 30 },
+          { daysBeforeEnd: 5, amount: 120 },
+        ]),
+      );
+    }
+    const notQuiet = buildQuietBackDollars({
+      rows: tight,
+      periodStart: PERIOD_START,
+      periodEnd: PERIOD_END,
+    });
+    expect(notQuiet.buyers).toBe(0);
+    expect(notQuiet.sales).toBeNull();
+  });
+
+  it("does not classify 2-order buyers when typical wait has not sealed", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 4; i += 1) {
+      rows.push(
+        ...ordersFor(`thin-${i}`, [
+          { daysBeforeEnd: 80, amount: 50 },
+          { daysBeforeEnd: 5, amount: 90 },
+        ]),
+      );
+    }
+    const built = buildQuietBackDollars({
+      rows,
+      periodStart: PERIOD_START,
+      periodEnd: PERIOD_END,
+    });
+    expect(built.buyers).toBe(0);
+    expect(built.sealed).toBe(false);
+    expect(built.sales).toBeNull();
+  });
+});
+
+describe("next wait after they already came back — not the ticket column", () => {
+  it("seals median 2nd→3rd at 8 buyers and leaves 7 as —", () => {
+    const eight: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      eight.push(
+        ...ordersFor(`n-${i}`, [
+          { daysBeforeEnd: 80, amount: 40 },
+          { daysBeforeEnd: 50, amount: 60 },
+          { daysBeforeEnd: 30, amount: 80 },
+        ]),
+      );
+    }
+    const sealed = buildComebackNextWait(eight);
+    expect(sealed.buyers).toBe(8);
+    expect(sealed.sealed).toBe(true);
+    expect(sealed.waitDays).toBe(20);
+    expect(sealed.waitDays).not.toBe(30);
+
+    const seven = eight.filter((row) => row.customerKey !== "n-7");
+    const thin = buildComebackNextWait(seven);
+    expect(thin.buyers).toBe(7);
+    expect(thin.sealed).toBe(false);
+    expect(thin.waitDays).toBeNull();
+  });
+
+  it("never counts guests toward the next-wait floor", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(80), amount: 500 },
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(50), amount: 500 },
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(20), amount: 500 },
+      );
+      rows.push(
+        ...ordersFor(`two-${i}`, [
+          { daysBeforeEnd: 40, amount: 30 },
+          { daysBeforeEnd: 10, amount: 45 },
+        ]),
+      );
+    }
+    const built = buildComebackNextWait(rows);
+    expect(built.buyers).toBe(0);
+    expect(built.sealed).toBe(false);
+    expect(built.waitDays).toBeNull();
+  });
+});
+
+describe("first→last span and inter-order gap", () => {
+  it("seals median first→last and gap at 8 buyers with 2+ orders", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        ...ordersFor(`span-${i}`, [
+          { daysBeforeEnd: 80, amount: 20 },
+          { daysBeforeEnd: 10, amount: 40 },
+        ]),
+      );
+    }
+    const built = buildBuyerLifetimeSpan(rows, {
+      windowEnd: WINDOW_END,
+      historyLimited: true,
+    });
+    expect(built.buyers).toBe(8);
+    expect(built.sealed).toBe(true);
+    expect(built.firstToLastDays).toBe(70);
+    expect(built.interOrderGapDays).toBe(70);
+    expect(buyerLifetimeSpanLine(built)).toMatch(/not a fake short life/);
+  });
+
+  it("stays — under 8, keeps guests out, and does not invent a short life", () => {
+    const rows: RetentionOrderRow[] = [];
+    for (let i = 0; i < 7; i += 1) {
+      rows.push(
+        ...ordersFor(`short-${i}`, [
+          { daysBeforeEnd: 40, amount: 20 },
+          { daysBeforeEnd: 10, amount: 40 },
+        ]),
+      );
+    }
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(90), amount: 9 },
+        { customerKey: RETENTION_GUEST_KEY, orderedAt: at(1), amount: 9 },
+      );
+    }
+    const built = buildBuyerLifetimeSpan(rows, {
+      windowEnd: WINDOW_END,
+      historyLimited: true,
+    });
+    expect(built.buyers).toBe(7);
+    expect(built.sealed).toBe(false);
+    expect(built.firstToLastDays).toBeNull();
+    expect(built.interOrderGapDays).toBeNull();
+    expect(buyerLifetimeSpanLine(built)).toBeNull();
   });
 });

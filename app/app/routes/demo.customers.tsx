@@ -191,6 +191,9 @@ export default function PublicDemoCustomers() {
               shopLabel={data.shopLabel}
               shotMode={data.shotMode}
               orderSteps={data.customers.orderSteps}
+              quietBack={data.customers.quietBack}
+              comebackWait={data.customers.comebackWait}
+              lifetimeSpan={data.customers.lifetimeSpan}
             />
           </DeskLane>
         </div>

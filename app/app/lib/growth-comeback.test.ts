@@ -11,6 +11,7 @@ import {
   growthOrderDepthBars,
   growthResolveGrain,
   growthSecondVsFirst,
+  growthStandupCopyText,
   growthWholePct,
 } from "./growth-comeback";
 import {
@@ -251,5 +252,75 @@ describe("growthComebackSentence", () => {
     const sentence = growthComebackSentence(emptyDepth(), null);
     expect(sentence).toMatch(/order history/i);
     expect(sentence).not.toMatch(/\$0|0%/);
+  });
+});
+
+describe("growthStandupCopyText — first-time $, never pending or $0", () => {
+  const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
+
+  it("copies first-time dollars, 2nd vs 3rd when both seal, and reach-now", () => {
+    expect(
+      growthStandupCopyText({
+        salesPending: false,
+        newSales: 187_000,
+        money,
+        secondShare: 0.18,
+        thirdShare: 0.11,
+        reachNow: 5,
+        clockAvailable: true,
+      }),
+    ).toBe(
+      "First-time Shopify Total Sales this period is $187,000. 2nd 18% · 3rd+ 11%. Reach 5 one-order buyers already past win-back.",
+    );
+  });
+
+  it("omits $0, pending, and a money function that paints $0", () => {
+    expect(
+      growthStandupCopyText({
+        salesPending: true,
+        newSales: 187_000,
+        money,
+        secondShare: 0.18,
+        thirdShare: 0.11,
+        reachNow: 5,
+        clockAvailable: true,
+      }),
+    ).toBeNull();
+    expect(
+      growthStandupCopyText({
+        salesPending: false,
+        newSales: 0,
+        money,
+        secondShare: 0.18,
+        thirdShare: 0.11,
+        reachNow: 5,
+        clockAvailable: true,
+      }),
+    ).toBeNull();
+    expect(
+      growthStandupCopyText({
+        salesPending: false,
+        newSales: 187_000,
+        money: () => "$0",
+        secondShare: 0.18,
+        thirdShare: 0.11,
+        reachNow: 5,
+        clockAvailable: true,
+      }),
+    ).toBeNull();
+  });
+
+  it("drops 2nd vs 3rd when a share is missing, and reach-now when the clock is empty", () => {
+    expect(
+      growthStandupCopyText({
+        salesPending: false,
+        newSales: 4_200,
+        money,
+        secondShare: 0.18,
+        thirdShare: null,
+        reachNow: 0,
+        clockAvailable: false,
+      }),
+    ).toBe("First-time Shopify Total Sales this period is $4,200.");
   });
 });

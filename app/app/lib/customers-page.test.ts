@@ -100,7 +100,9 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(demo).toContain("<CustomersGrowthSection");
     expect(demo).toContain('id="mcfly-growth"');
     expect(demo).toContain("orderSteps=");
+    expect(demo).toContain("quietBack=");
     expect(customers).toContain("orderSteps=");
+    expect(customers).toContain("quietBack=");
     expect(analyticsLib).toContain("ORDER_STEP_MIN_BUYERS = 8");
     expect(analyticsLib).toContain("buildOrderSteps");
   });
@@ -226,12 +228,21 @@ describe("Customers loader — full stored book for RFM, 90-day mix kept", () =>
     expect(analyticsLoader).toContain("CUSTOMERS_ANALYTICS_WINDOW_DAYS");
     expect(analyticsLoader).toContain("getOrderBackfillHistoryLimited");
     expect(analyticsLoader).toContain("full stored");
+    expect(analyticsLoader).toContain("periodStart: options.periodStart");
+    expect(read("./desk-customers-stack.server.ts")).toContain(
+      "periodStart: base.metrics.period.start",
+    );
     expect(rfmLib).toContain("RFM_MIN_BUYERS = 8");
     expect(rfmLib).toContain("WATCHLIST_MAX = 8");
   });
 
   it("classifies returning dollars from the stored book and counts first-time buyers there", () => {
     expect(analyticsLoader).toContain("orderBook: mapped");
+    expect(analyticsLoader).toContain("periodStart: options.periodStart");
+    expect(analyticsLoader).toContain("periodEnd: options.periodEnd");
+    expect(analyticsLib).toContain("buildQuietBackDollars");
+    expect(analyticsLib).toContain("buildComebackNextWait");
+    expect(analyticsLib).toContain("buildBuyerLifetimeSpan");
     expect(analyticsLoader).toContain("lifetimeOrders");
     expect(analyticsLoader).not.toContain("sales-facts");
     expect(analyticsLoader).not.toContain("newCustomers");

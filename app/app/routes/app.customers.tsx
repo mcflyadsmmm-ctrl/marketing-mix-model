@@ -239,6 +239,9 @@ export default function CustomersPage() {
           shopLabel={shopLabel}
           shotMode={shotMode}
           orderSteps={analytics.orderSteps}
+          quietBack={analytics.quietBack}
+          comebackWait={analytics.comebackWait}
+          lifetimeSpan={analytics.lifetimeSpan}
         />
       </DeskLane>
       </div>

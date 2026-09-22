@@ -12,6 +12,7 @@ import {
   ltvPeekSlackInsight,
   daysToSecondSlackInsight,
   emptyShareableInsights,
+  firstTimeSlackInsight,
   pickShareableLtvPeek,
   shareableInsightEmptyState,
   shareableInsightKicker,
@@ -347,6 +348,30 @@ describe("Slack insight paste — one sealed number", () => {
         where: "On file",
       }),
     ).toBeNull();
+  });
+
+  it("shares first-time dollars only when the stand-up line is sealed, never $0", () => {
+    const sealed = firstTimeSlackInsight({
+      line: "First-time Shopify Total Sales this period is $187,000. 2nd 18% · 3rd+ 11%. Reach 5 one-order buyers already past win-back.",
+      shopLabel: "snowdevil.myshopify.com",
+      sample: true,
+      where: "This period",
+    });
+    expect(sealed?.id).toBe("firstTime");
+    expect(sealed?.line).toContain("$187,000");
+    expect(sealed?.slack).toContain("*First-time dollars*");
+    expect(firstTimeSlackInsight({
+      line: null,
+      shopLabel: "",
+      sample: false,
+      where: "This period",
+    })).toBeNull();
+    expect(firstTimeSlackInsight({
+      line: "First-time Shopify Total Sales this period is $0.",
+      shopLabel: "",
+      sample: false,
+      where: "This period",
+    })).toBeNull();
   });
 
   it("shares new-buyer worth at 90, and withholds a fake year", () => {

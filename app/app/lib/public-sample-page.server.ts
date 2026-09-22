@@ -342,6 +342,9 @@ export async function loadPublicSamplePage(
       windowEnd: now,
       historyWindowDays: CUSTOMERS_WINDOW_DAYS,
       orderBook: retention,
+      periodStart: range.start,
+      periodEnd: range.end,
+      historyLimited: false,
     }),
     rfm: buildCustomerRfm(retention, { windowEnd: now, historyLimited: false }),
   };

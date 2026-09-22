@@ -72,6 +72,11 @@ describe("Growth page", () => {
     expect(section).not.toContain("<BookFactGrid");
     expect(section).not.toContain("<CountBarsChart");
     expect(section).toContain("salesPending={salesPending}");
+    expect(section).toContain("quietBack={quietBack}");
+    expect(section).toContain("comebackWait={comebackWait}");
+    expect(section).toContain("lifetimeSpan={lifetimeSpan}");
+    expect(section).toContain("firstTimeSlackInsight");
+    expect(section).toContain("growthStandupCopyText");
     expect(section).not.toContain(
       "{!metrics.salesPending ? <GrowthComebackChart",
     );
@@ -85,6 +90,14 @@ describe("Growth page", () => {
     expect(section).toContain("Order history");
     expect(customers).toContain("not $0");
     expect(section).toContain("<GrowthScoreboard");
+    expect(board).toContain("CopyMorningSentence");
+    expect(board).toContain("growthStandupCopyText");
+    expect(board).toContain("Quiet, then back");
+    expect(board).toContain("Wait after they came back");
+    expect(board).toContain("First to last");
+    expect(board).toContain("Typical gap");
+    expect(board).toContain("not a fake short life");
+    expect(board).not.toContain("GrowthOrderStepsBoard");
   });
 
   it("keeps first-order months and repeat rate from order history", () => {
@@ -180,6 +193,9 @@ describe("Growth TT2 + win-back clock — habit, not a dump", () => {
     expect(section).toContain("<GrowthOrderStepsBoard");
     expect(section).toContain("steps={orderSteps}");
     expect(section.indexOf("<GrowthTt2Board")).toBeLessThan(
+      section.indexOf("<GrowthOrderStepsBoard"),
+    );
+    expect(section.indexOf("<GrowthScoreboard")).toBeLessThan(
       section.indexOf("<GrowthOrderStepsBoard"),
     );
     expect(stepsBoard).toContain("Ticket and wait at each step");

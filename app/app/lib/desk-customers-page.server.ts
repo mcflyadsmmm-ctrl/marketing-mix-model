@@ -62,7 +62,12 @@ function toRetentionRows(
  */
 export async function loadCustomerAnalytics(
   request: Request,
-  options: { useSampleDesk: boolean; windowEnd: Date },
+  options: {
+    useSampleDesk: boolean;
+    windowEnd: Date;
+    periodStart: Date;
+    periodEnd: Date;
+  },
 ): Promise<CustomerPageAnalytics> {
   const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
@@ -81,6 +86,9 @@ export async function loadCustomerAnalytics(
       windowEnd: end,
       historyWindowDays: CUSTOMERS_ANALYTICS_WINDOW_DAYS,
       orderBook: mapped,
+      periodStart: options.periodStart,
+      periodEnd: options.periodEnd,
+      historyLimited,
     }),
     rfm: buildCustomerRfm(mapped, { windowEnd: end, historyLimited }),
   };
