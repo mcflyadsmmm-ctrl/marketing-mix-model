@@ -1,8 +1,9 @@
 /**
  * Live paste buyer index — unique OrderFacts on shop-local days.
  * Interned ids stay on the client so Cash CPA can unique a buyer across
- * pasted days without sending customer keys. SAMPLE uses the same
- * interned index from `source = "sample"` OrderFacts — never a day-sum.
+ * pasted days without sending customer keys. SAMPLE Spend paste and
+ * SAMPLE import both pass `source: "sample"` so the painted Cash CPA
+ * uniques OrderFacts instead of day-summing SampleSalesDay counts.
  *
  * Quiet days inside the queried range are known-zero (`[]`), not omitted.
  * Missing keys mean the day is outside this book.
