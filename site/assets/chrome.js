@@ -7,8 +7,8 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v35");
-  ensureMeta("mcfly-build", "craft-steal-v35");
+  ensureMeta("mcfly-version", "v36");
+  ensureMeta("mcfly-build", "craft-steal-v36");
 
   var LISTING = "https://apps.shopify.com/mcfly-analytics-public";
   var primary =

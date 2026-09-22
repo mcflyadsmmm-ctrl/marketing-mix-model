@@ -52,6 +52,17 @@ describe("v35 competitor and native-Analytics honesty", () => {
     expect(pricing).toContain("Polar from $750");
   });
 
+  it("names TrueProfit from $35, ShopifyQL returning sales $, and kills all-or-nothing Admin", () => {
+    expect(index).toContain("TrueProfit from $35/mo");
+    expect(index).toContain("ShopifyQL can show returning sales $");
+    expect(index).not.toContain("Shopify itself is all-or-nothing Admin");
+    expect(faq).not.toContain("Shopify itself is all-or-nothing Admin");
+    expect(faq).toContain("Shopify Admin can export Orders CSV");
+    expect(pricing).toContain("TrueProfit from $35/mo");
+    expect(pricing).toContain("Mcfly reviews: 0");
+    expect(pricing).not.toMatch(/\$0\.30\/order|\$0\.3 per extra order/i);
+  });
+
   it("discloses the live App Store card is still spend-first", () => {
     expect(index).toContain(
       "The live App Store card still leads with ad spend next to store sales",

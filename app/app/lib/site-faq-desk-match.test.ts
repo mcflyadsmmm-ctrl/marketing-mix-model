@@ -23,6 +23,7 @@ const QUESTION_ORDER = [
   "Is this a Triple Whale replacement?",
   "Is this Repeat Customer Insights?",
   "Do I export Orders CSV?",
+  "Do I have to enter COGS before I see numbers?",
 ] as const;
 
 type FaqItem = { name: string; text: string };
@@ -188,6 +189,7 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
         "Better Reports from $19.90",
       ],
       ["No.", "reads orders in Admin"],
+      ["No.", "does not ingest COGS", "does not paint net profit"],
     ];
 
     visible.forEach((item, index) => {

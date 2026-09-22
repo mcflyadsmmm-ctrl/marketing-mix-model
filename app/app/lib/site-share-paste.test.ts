@@ -24,8 +24,8 @@ describe("home SAMPLE Slack paste board", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v35"');
-    expect(html).toContain("mcfly.css?v=20260922v35");
+    expect(html).toContain('content="v36"');
+    expect(html).toContain("mcfly.css?v=20260922v36");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
@@ -95,7 +95,10 @@ describe("home SAMPLE Slack paste board", () => {
     expect(sits).toContain("Polar’s App Store list price starts at $750/mo");
     expect(sits).toContain("We do not invent Polar $1,020");
     expect(sits).toContain("The live App Store card still leads with ad spend next to store sales");
-    expect(sits).not.toContain("Shopify numbers Analytics Overview skips");
+    expect(sits).toContain("TrueProfit from $35/mo");
+    expect(sits).toContain("ShopifyQL can show returning sales $");
+    expect(sits).toContain("apps.shopify.com/trueprofit");
+    expect(html).not.toContain("Shopify itself is all-or-nothing Admin");
     expect(html).not.toContain("Deeper than Shopify Analytics Overview.");
   });
 
