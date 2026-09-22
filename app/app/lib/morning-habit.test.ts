@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   MORNING_HABIT_FLOOR_SENTENCE,
+  growthCopyLine,
   habitMorningGoalLine,
   morningSentence,
 } from "./morning-habit";
@@ -88,6 +89,28 @@ describe("morningSentence", () => {
   });
 });
 
+describe("growthCopyLine", () => {
+  it("copies the one-order count and drops the not-$0 hedge", () => {
+    const onScreen =
+      "12 one-order buyers are still waiting on a second order. Typical wait needs 5 second orders on file — not $0.";
+    expect(growthCopyLine(onScreen)).toBe(
+      "12 one-order buyers are still waiting on a second order. Typical wait needs 5 second orders on file",
+    );
+    expect(
+      morningSentence({
+        history: "ready",
+        goalLine: growthCopyLine(onScreen),
+      }),
+    ).toBe(
+      "12 one-order buyers are still waiting on a second order. Typical wait needs 5 second orders on file.",
+    );
+    expect(
+      morningSentence({ history: "ready", goalLine: onScreen }),
+    ).toBe("Typical order and returning sales are not on this read.");
+    expect(growthCopyLine(onScreen)).not.toMatch(/\$0/);
+  });
+});
+
 describe("habitMorningGoalLine", () => {
   it("paints shop currency on the returning target", () => {
     expect(
@@ -164,7 +187,8 @@ describe("Morning habit strip and copy mounts", () => {
     expect(goals).toContain("habitMorningGoalLine");
     expect(goals).toContain("formatCurrency");
     const growth = read("../components/GrowthTt2Board.tsx");
-    expect(growth).toContain("goalLine: read.line");
+    expect(growth).toContain("goalLine: growthCopyLine(read.line)");
+    expect(growth).toContain("{read.line}");
     expect(growth).not.toMatch(/morningSentence\(\{\s*history:\s*"ready"\s*\}\)/);
   });
 });

@@ -1,4 +1,4 @@
-import { morningSentence } from "../lib/morning-habit";
+import { growthCopyLine, morningSentence } from "../lib/morning-habit";
 import { CopyMorningSentence } from "./MorningHabitStrip";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
@@ -235,7 +235,7 @@ export function GrowthTt2Board({ tt2 }: { tt2: GrowthTt2View }) {
         <CopyMorningSentence
           sentence={morningSentence({
             history: "ready",
-            goalLine: read.line,
+            goalLine: growthCopyLine(read.line),
           })}
         />
         </div>

@@ -112,6 +112,15 @@ function composeReadySentence(input: MorningSentenceInput): string {
   return sentence;
 }
 
+/**
+ * Growth's unsealed read ends in "— not $0." That hedge is honest on screen
+ * and would wipe the whole clipboard, because a painted $0 is refused.
+ * Keep the buyer count. Leave the on-screen line alone.
+ */
+export function growthCopyLine(line: string): string {
+  return line.replace(/\s*—\s*not \$0\.?/, "").trim();
+}
+
 export function morningSentence(
   input: MorningSentenceInput = {},
 ): string {
