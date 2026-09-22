@@ -60,6 +60,9 @@ describe("listing-trust pages sell one product (Shopify desk)", () => {
     expect(support).toMatch(/no.{0,40}shop-domain form/i);
     expect(support).not.toMatch(/full-access/i);
     expect(support).not.toContain("/custom-analytics");
+    expect(support).toMatch(/Overview · Orders · Customers · Spend · Goals/);
+    expect(support).toMatch(/Growth and LTV live on Customers/);
+    expect(support).not.toMatch(/whole desk \(Spend, Overview, LTV, Goals\)/);
   });
 
   it("Privacy keeps Shopify scopes and does not claim a parked inquire form", () => {
