@@ -68,6 +68,9 @@ describe("CPA page", () => {
   });
 
   it("builds payback vs first-90 as a desk, not a second fact grid", () => {
+    expect(spend).toContain(
+      'import { CpaPaybackDesk } from "../components/CpaPaybackDesk"',
+    );
     expect(spend).toContain("<CpaPaybackDesk");
     expect(payback).toContain("Payback vs first 90");
     expect(payback).toContain("Cash CAC");

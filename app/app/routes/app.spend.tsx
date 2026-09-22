@@ -25,6 +25,7 @@ import {
   SpendExplorer,
 } from "../components/SpendExplorer";
 import { CpaExplorer } from "../components/CpaExplorer";
+import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
 import { CopySpendPair } from "../components/MorningHabitStrip";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { SpendMixSection, useSpendPanelScroll } from "../components/SpendMixSection";
