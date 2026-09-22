@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v420 / tip `51af044` (merge of #169 book coverage) / image `deployment-01M34H64Y2K2P5DS8J50T5EZSR` / Live PARKED. Health ok 2026-09-22T12:25Z. v419 was Spend pair honesty.
+**Tip Fly note:** v421 / tip `0d22293` (merge of #170 Goals year clock) / image `deployment-01M34KJ95GDEJKY9ZBKS8FHQ90` / Live PARKED. Health ok 2026-09-22T13:07Z. v420 was book coverage.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v420 / tip `51af044` / Live PARKED |
+| Tip Fly SoT | v421 / tip `0d22293` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v420 / tip `51af044`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v421 / tip `0d22293`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 5 of that queue is the only cook. |
+| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 6 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**A blank February is not a $0 plan.** “I left February blank and year-to-date now looks ahead because the blank was $0. I picked 2025 and the forecast is still next month from today. Goals month-close treats missing and quiet days as $0. Overview does not.”
+**The fold follows the tap.** “I tapped Depth / Add spend / the weekday fold and the lane stayed shut.”
 
-Goals year board / month-close / order-history forecast. Admin `/app/goals` (and `/demo/goals`). A cleared month stays not on file in MTD/QTD/YTD. Empty input must not save a certified $0 plan unless they typed 0. A year picker that is not the live year must not print a next-month close from today. Month-close uses days with sales (same typical-day idea as Overview) or withholds while the book is incomplete. Stub months inside a 90-day unpaid slice are not on file — not $0, not the month. Goals MTD discloses a truncated today. Do not unpark Live. Do not change the 90.
+Customers Depth, Spend `?panel=spend-add`, Overview weekday fold. One component: `DeskLane`. `open` is `useState(fold ? defaultOpen : true)` and never follows a later `defaultOpen`. HashDetails on Spend already follows a later open and hash — the add form behind `DeskLane` does not. A later `defaultOpen` / `?panel=spend-add` / chip tap must open the fold. Public `/demo` and Admin `/app` match. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/goals-year-clock-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 6–12 of the next-pass queue stay queued. Do not rebuild book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/desk-lane-open-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 7–12 of the next-pass queue stay queued. Do not rebuild the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 5.
+Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 6.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
