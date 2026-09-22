@@ -4,7 +4,7 @@
 **Role:** product-site craft director  
 **Live then:** mcflyads.com **v34** (`ad054108`) paper/sky, sales-first, founder: not world-class yet  
 **This cook:** site **v35** on `cursor/site-world-class-5bc6`  
-**Honesty rebase:** onto `4838c8e` (v35 competitor/native-Analytics honesty). Craft structure kept; uniqueness claims refused. Native Reports Group by day of week, Repeat Customer Insights from $59, Better Reports from $19.90, Polar from $750 (not invented $1,020), listing still spend-first.  
+**Honesty rebase:** onto `4838c8e` then `884fbbe` (v36 harvest: ShopifyQL returning sales $, TrueProfit from $35, TW Free/Foundation/Automate, no all-or-nothing Admin). Craft structure kept; uniqueness claims refused. Native Reports Group by day of week, Repeat Customer Insights from $59, Better Reports from $19.90, Polar from $750 (not invented $1,020), listing still spend-first. Cache bust on live spine is `?v=20260922v36` after that harvest; this cook’s CSS comment stays **v35** append.  
 **Looked at:** polaranalytics.com + Polar listing · triplewhale.com (egress blocked) + Triple Whale listing · lifetimely.io + Lifetimely listing · TrueProfit listing · Repeat Customer Insights listing · mcflyads.com v34
 
 Steal **structure**. Do not steal claims. Forbidden: fake video, fake logos, fake 4.9, fake install counts, pixel screenshots, net-profit hero.
@@ -39,7 +39,7 @@ World-class miss: Polar puts proof **in the fold**, Lifetimely prices as a **scr
 | 3 | Polar / TW / Lifetimely / TrueProfit / RCI listings | **One** comparison table a roundup can screenshot | Polar $1,020, “we beat them”, net profit | `site/index.html` `#where-sits` · `site/pricing.html` tax table |
 | 4 | Polar “Executive summary to Slack” | Paste framed as a **weekly digest artifact** you copy | Auto-post to Slack, n8n, Gmail | `site/index.html` `#paste-slack` · `site/product.html` `#mailto-specimen` |
 | 5 | Lifetimely home FAQ | Home FAQ as objection handler (`<details>`) | Profit Agent, COGS, Slack Q&A | `site/index.html` `#faq-home` — added 0 reviews / trial window / GMV |
-| 6 | Lifetimely pricing | One-plan card a CFO can screenshot: fee, trial, in/out | Order slider, $149 @ 3,000, Amazon add-on | `site/pricing.html` `.cfo-shot` |
+| 6 | Lifetimely pricing | One-plan card a CFO can screenshot **in the first fold** (H1 + GMV + card) | Order slider, $149 @ 3,000, Amazon add-on | `site/pricing.html` `.cfo-shot` |
 | 7 | Repeat Customer Insights listing | Product as a **bookkeeper ledger** (line / is / is not / tab) | RFM, Klaviyo tags, 5.0 (14) as ours | `site/product.html` ledger table |
 | 8 | Polar “instant demo, no signup” | Demo lede names instant SAMPLE desk | Polar demo data, no-call as a sales motion we fake | `site/demo.html` |
 | 9 | Polar / Lifetimely 0-review honesty (by contrast) | Put **Reviews: 0** on fold, facts, FAQ, footer | Invented stars or install counts | `site/index.html` · `site/pricing.html` · `site/faq.html` · `site/about.html` · `site/assets/mcfly/chrome.js` |
@@ -92,4 +92,4 @@ Still remaining (structure we did not steal, or cannot steal without lying):
 7. Phone fold is still taller than Polar because the live HTML desk **is** the product — 390 hides extra YoY cards, not the desk.
 8. Comparison table is honest “from” prices, not Polar’s marketing 2×2 with logos. No fake logo row.
 9. Product page is a ledger + SAMPLE cards, not a pixel walkthrough. Bookkeeper-clear; less cinematic than TW.
-10. Pricing CFO card is one plan — no Lifetimely order-volume slider theater (we refuse that claim).
+10. Pricing now puts the CFO card in the first fold. Remaining: no Lifetimely order-volume slider (we refuse that claim). Duplicate “one plan” list still sits below the fold.

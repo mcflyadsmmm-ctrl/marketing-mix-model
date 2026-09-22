@@ -3408,6 +3408,37 @@ body.faq-page .faq-pillar + .faq-pillar {
   }
 }
 
+@media (min-width: 920px) {
+  body.product-page .float-desk,
+  body.pricing-page .float-desk {
+    max-width: 56rem;
+  }
+  body.product-page .float-desk__stack,
+  body.pricing-page .float-desk__stack,
+  body.product-page .print-board .float-desk__stack {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+body.pricing-page .page-hero .cfo-shot {
+  margin: 1.25rem 0 0;
+}
+body.pricing-page .cfo-shot .hero-cta {
+  margin: 1.15rem 0 0;
+}
+body.pricing-page .cfo-shot .amount {
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 5vw, 3.1rem);
+  letter-spacing: -0.04em;
+  margin: 0.2rem 0 0.65rem;
+  color: var(--ink);
+}
+body.pricing-page .cfo-shot .amount span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mute);
+}
+
 @media print {
   body.product-page .print-board,
   .cfo-shot,
