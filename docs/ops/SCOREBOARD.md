@@ -1,18 +1,18 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v433 / tip `d4ccd1c` (merge of #190 wrong-lane leftover) / image `deployment-01M355KB6BNF9R6M39F0R5NX05` / Live PARKED. Health ok 2026-09-22T18:22Z. v432 was spend leftover honesty. v431 was site trial leftover (fly.dev honest; mcflyads.com Pages still stale).
+**Tip Fly note:** v434 / PR #191 `fc9e618` / image `deployment-01M35BBAFG5GSNK1DN0GQVJJ0W` / Live PARKED. Health ok 2026-09-22T20:03Z. Parks `/lab` + Custom. Wrap CSS `3421267` is git-ahead of this image. Pages **v32** Direct Upload `2166ceed` live on mcflyads.com.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v433 / tip `d4ccd1c` / Live PARKED |
+| Tip Fly SoT | v434 / PR #191 `fc9e618` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
-| Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v433 / tip `d4ccd1c`; Live PARKED |
+| Site P0 on box | DONE — mcflyads.com **v32** Pages `2166ceed`; fly.dev honest on v434 (`/lab` 301) |
+| Money prep | Listing paste #192; Pages live v32; tip Fly v434 / PR #191; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
 
