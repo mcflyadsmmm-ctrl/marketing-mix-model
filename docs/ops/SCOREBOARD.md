@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v427 / tip `6fb0fa2` (merge of #184 Goals leftover honesty) / image `deployment-01M34XRFNS7H0DEKKYTPVH4P1E` / Live PARKED. Health ok 2026-09-22T16:05Z. v426 was buyer-life honesty.
+**Tip Fly note:** v428 / tip `7e2ea75` (merge of #185 mix-paint honesty) / image `deployment-01M34Y2D9B6KKC549XDF6HCN0T` / Live PARKED. Health ok 2026-09-22T16:10Z. v427 was Goals leftover honesty.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v427 / tip `6fb0fa2` / Live PARKED |
+| Tip Fly SoT | v428 / tip `7e2ea75` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,7 +12,7 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v427 / tip `6fb0fa2`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v428 / tip `7e2ea75`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 3 of that queue is the only cook. |
 
