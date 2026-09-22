@@ -385,6 +385,28 @@ describe("overview first viewport", () => {
     expect(overviewPanelElementId(null)).toBeNull();
   });
 
+  it("Mix close wraps Mix only — weekday stays a later fold", () => {
+    const overview = read("../routes/app._index.tsx");
+    const demo = read("../routes/demo._index.tsx");
+    for (const src of [overview, demo]) {
+      const mixIdAt = src.indexOf("id={OVERVIEW_MIX_CLOSE_ID}");
+      const weekdayAt = src.indexOf('label="More order detail"');
+      const wrapCloseAt = src.lastIndexOf("</div>", weekdayAt);
+      expect(mixIdAt).toBeGreaterThan(-1);
+      expect(weekdayAt).toBeGreaterThan(mixIdAt);
+      expect(wrapCloseAt).toBeGreaterThan(mixIdAt);
+      expect(wrapCloseAt).toBeLessThan(weekdayAt);
+      expect(src.slice(mixIdAt, wrapCloseAt)).toContain(
+        'label="Mix and month close"',
+      );
+      const weekdayHead = src.slice(
+        weekdayAt,
+        src.indexOf(">", weekdayAt + 80) + 1,
+      );
+      expect(weekdayHead).not.toContain("mix-close");
+    }
+  });
+
   it("feeds the sales chart a sales-only projection — payload spend never reaches a rendered prop", () => {
     const overview = read("../routes/app._index.tsx");
     // The Overview loader carries a per-day `spend` field in `salesDays`, but the

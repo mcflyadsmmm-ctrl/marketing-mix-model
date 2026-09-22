@@ -55,9 +55,24 @@ export function deskLaneHashId(hash: string): string | null {
 
 type FoldNode = {
   contains: (other: unknown) => boolean;
+  tagName?: string;
+  localName?: string;
 };
 
-/** Hash target is the fold, inside it, or wrapping it (chip id on a parent). */
+/** Nested native `<details>` owns its hash; the parent fold must not also open. */
+export function deskLaneTargetIsOwnDisclosure(
+  target: FoldNode | null | undefined,
+): boolean {
+  if (!target) return false;
+  const tag = (target.tagName ?? target.localName ?? "").toUpperCase();
+  return tag === "DETAILS";
+}
+
+/**
+ * Hash target is the fold, wrapping it (chip id on a parent), or inside it.
+ * A nested `<details>` (Coverage / ledger / rates / recurring) is its own
+ * disclosure — opening the parent Add-spend fold too dumps both on a phone.
+ */
 export function deskLaneTargetOpensFold(
   target: FoldNode | null | undefined,
   foldRoot: FoldNode | null | undefined,
@@ -65,6 +80,7 @@ export function deskLaneTargetOpensFold(
   if (!target || !foldRoot) return false;
   if (target === foldRoot) return true;
   if (target.contains(foldRoot)) return true;
+  if (deskLaneTargetIsOwnDisclosure(target)) return false;
   if (foldRoot.contains(target)) return true;
   return false;
 }

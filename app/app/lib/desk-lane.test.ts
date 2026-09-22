@@ -34,6 +34,27 @@ const css = read("../styles/mcfly-desk.css");
 const pills = read("../components/DeskTopTabs.tsx");
 const sample = read("../components/SampleDeskBanner.tsx");
 
+function mixCloseWrapClosesBeforeWeekday(src: string): boolean {
+  const mixIdAt = src.indexOf("id={OVERVIEW_MIX_CLOSE_ID}");
+  const weekdayAt = src.indexOf('label="More order detail"');
+  if (mixIdAt < 0 || weekdayAt < 0) return false;
+  const wrapCloseAt = src.lastIndexOf("</div>", weekdayAt);
+  if (wrapCloseAt <= mixIdAt || wrapCloseAt >= weekdayAt) return false;
+  const wrap = src.slice(mixIdAt, wrapCloseAt);
+  return (
+    wrap.includes('label="Mix and month close"') &&
+    !wrap.includes('label="More order detail"')
+  );
+}
+
+function weekdayFoldDefaultOpen(src: string): string | null {
+  const weekdayAt = src.indexOf('label="More order detail"');
+  if (weekdayAt < 0) return null;
+  const lane = src.slice(weekdayAt, src.indexOf(">", weekdayAt + 80) + 1);
+  const match = lane.match(/defaultOpen=\{[^}]+\}/);
+  return match?.[0] ?? null;
+}
+
 describe("deskLaneHint", () => {
   it("uses the rank eyebrow and honors a custom hint", () => {
     expect(DESK_LANE_RANKS).toEqual(["first", "next", "more"]);
@@ -89,10 +110,14 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
     expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
     expect(overview).toContain('label="More order detail"');
     expect(overview).toContain("defaultOpen={shotMode");
-    expect(overview).toContain('panel === "mix-close"');
     expect(demoOverview).toContain('label="More order detail"');
     expect(demoOverview).toContain("defaultOpen={data.shotMode");
-    expect(demoOverview).toContain('panel === "mix-close"');
+    expect(mixCloseWrapClosesBeforeWeekday(overview)).toBe(true);
+    expect(mixCloseWrapClosesBeforeWeekday(demoOverview)).toBe(true);
+    expect(weekdayFoldDefaultOpen(overview)).toBe("defaultOpen={shotMode}");
+    expect(weekdayFoldDefaultOpen(demoOverview)).toBe(
+      "defaultOpen={data.shotMode}",
+    );
     expect(overview).not.toContain("<details");
     expect(overview).not.toContain("Click for detail");
     expect(overview).not.toContain("<SpendExplorer");
@@ -267,6 +292,45 @@ describe("DeskLane follows a later defaultOpen — omit-path must fail", () => {
     expect(deskLaneTargetOpensFold(outside, fold)).toBe(false);
     expect(deskLaneTargetOpensFold(null, fold)).toBe(false);
     expect(deskLaneTargetOpensFold(fold, null)).toBe(false);
+
+    const coverageDetails = {
+      contains: () => false,
+      tagName: "DETAILS",
+    };
+    const addSection = {
+      contains: () => false,
+      tagName: "SECTION",
+    };
+    const addFold = {
+      contains: (other: unknown) =>
+        other === coverageDetails || other === addSection || other === child,
+    };
+    expect(deskLaneTargetOpensFold(coverageDetails, addFold)).toBe(false);
+    expect(deskLaneTargetOpensFold(addSection, addFold)).toBe(true);
+    expect(
+      deskLaneTargetOpensFold({ contains: () => false, localName: "details" }, addFold),
+    ).toBe(false);
+  });
+
+  it("Add-a-day fold does not wrap coverage / ledger / rates / recurring hashes", () => {
+    const addLaneOpen = spend.indexOf("label={SPEND_ADD_LANE_LABEL}");
+    expect(addLaneOpen).toBeGreaterThan(-1);
+    const addLaneClose = spend.indexOf("</DeskLane>", addLaneOpen);
+    const addLane = spend.slice(addLaneOpen, addLaneClose);
+    expect(addLane).toContain('id="mcfly-spend-add"');
+    expect(addLane).not.toContain('id="mcfly-spend-coverage"');
+    expect(addLane).not.toContain('id="mcfly-spend-ledger"');
+    expect(addLane).not.toContain('id="mcfly-spend-rates"');
+    expect(addLane).not.toContain('id="mcfly-spend-recurring"');
+
+    const coverageAt = spend.indexOf('id="mcfly-spend-coverage"');
+    const coverageLaneHead = spend.slice(
+      spend.lastIndexOf("<DeskLane", coverageAt),
+      coverageAt,
+    );
+    expect(coverageLaneHead).toContain('label="Coverage and import"');
+    expect(coverageLaneHead).not.toContain("SPEND_ADD_LANE_LABEL");
+    expect(coverageLaneHead).not.toMatch(/\bfold\b/);
   });
 
   it("DeskLane applies later defaultOpen and hash — grepping a prop is not enough", () => {

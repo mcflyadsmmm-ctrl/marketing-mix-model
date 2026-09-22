@@ -1371,17 +1371,16 @@ export default function SpendEntryPage() {
         </section>
         </DeskLane>
 
+        {!emptyLiveSpend ? (
         <DeskLane
           rank="more"
-          label={emptyLiveSpend ? "Coverage and import" : SPEND_ADD_LANE_LABEL}
+          label={SPEND_ADD_LANE_LABEL}
           fold
           defaultOpen={
             shotMode || Boolean(editing) || spendPanel === "spend-add"
           }
         >
         <div className="mcfly-spend-lean__stack mcfly-spend-lean__stack--soft">
-          {emptyLiveSpend ? null : (
-            <>
           <p className="mcfly-spend-helper mcfly-spend-helper--soft">
             Shopify sales are already here. Empty spend is not a certified $0 —
             add a day. A deleted day stays $0. Empty spend is never 0×
@@ -1418,8 +1417,12 @@ export default function SpendEntryPage() {
                 submittingIntent={submittingIntent}
               />
           </section>
-            </>
-          )}
+        </div>
+        </DeskLane>
+        ) : null}
+
+        <DeskLane rank="more" label="Coverage and import">
+        <div className="mcfly-spend-lean__stack mcfly-spend-lean__stack--soft">
 
           {strangerEmpty ? null : (
             <>
