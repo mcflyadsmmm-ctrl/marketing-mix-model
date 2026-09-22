@@ -1,18 +1,34 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { LtvFirstProductDrivers } from "../components/LtvFirstProductDrivers";
+import { LtvProductBoard } from "../components/LtvProductBoard";
+import { DeskCurrencyContext } from "./desk-currency";
 import { formatCurrency } from "./mer-format";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 import { buildLtvFlagship } from "./ltv-flagship";
 import type { DepthOrder } from "./ltv-depth";
+import { buildProductLtv } from "./ltv-product";
 import {
   FIRST_PRODUCT_LTV_DASH,
   FIRST_PRODUCT_NO_REPEAT_COPY,
+  FIRST_PRODUCT_SYNC_COPY,
   FIRST_PRODUCT_TITLES_COPY,
   buildFirstProductDrivers,
   firstProductLtvDisplay,
 } from "./ltv-first-product";
+
+const BOOK_DOES_NOT_STORE_PRODUCT_NAMES =
+  "The book does not store product names. Not $0.";
+
+function paint(node: ReturnType<typeof createElement>): string {
+  return renderToStaticMarkup(
+    createElement(DeskCurrencyContext.Provider, { value: "USD" }, node),
+  );
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const read = (rel: string) => readFileSync(join(here, rel), "utf8");
@@ -139,8 +155,11 @@ describe("buildFirstProductDrivers", () => {
     expect(view.rows).toEqual([]);
     expect(view.empty?.kind).toBe("titles");
     expect(view.empty?.copy).toBe(FIRST_PRODUCT_TITLES_COPY);
+    expect(view.empty?.copy).toBe(BOOK_DOES_NOT_STORE_PRODUCT_NAMES);
     expect(view.empty?.copy).toContain("Not $0");
     expect(view.empty?.copy).not.toContain("0%");
+    expect(view.empty?.copy).not.toMatch(/coming|titled line items|next sync/i);
+    expect(view.empty?.verb).not.toMatch(/coming|titled|sync/i);
   });
 
   it("uses the syncing empty when no buyers are on file", () => {
@@ -152,35 +171,21 @@ describe("buildFirstProductDrivers", () => {
   });
 });
 
-describe("SAMPLE Snowdevil proves first-product LTV", () => {
+describe("SAMPLE Snowdevil does not invent first products", () => {
   const NOW = new Date("2026-09-17T00:00:00Z");
   const orders = generateSnowdevilDepthOrders(NOW);
   const view = buildFirstProductDrivers(orders);
   const flagship = buildLtvFlagship(orders, NOW, { sample: true });
 
-  it("fills product title, first-order count, and a real average — never $0", () => {
-    expect(view.productsKnown).toBe(true);
-    expect(view.empty).toBeNull();
-    expect(view.rows.length).toBeGreaterThanOrEqual(2);
+  it("leaves the sales book untitled and says the book does not store product names", () => {
+    expect(orders.length).toBeGreaterThan(3000);
+    expect(orders.every((order) => order.amount > 0)).toBe(true);
+    expect(view.productsKnown).toBe(false);
+    expect(view.rows).toEqual([]);
+    expect(view.empty?.kind).toBe("titles");
+    expect(view.empty?.copy).toBe(BOOK_DOES_NOT_STORE_PRODUCT_NAMES);
     expect(flagship.firstProductDrivers).toEqual(view);
-    const priced = view.rows.filter((row) => row.avgLtv != null);
-    expect(priced.length).toBeGreaterThanOrEqual(2);
-    for (const row of view.rows) {
-      expect(row.product.trim().length).toBeGreaterThan(0);
-      expect(row.firstOrderCount).toBeGreaterThan(0);
-      expect(row.avgLtv).not.toBe(0);
-      const cell = firstProductLtvDisplay(row.avgLtv, (n) =>
-        formatCurrency(n, "USD"),
-      );
-      expect(cell).not.toBe("$0");
-      expect(cell).not.toBe("0%");
-      if (row.avgLtv == null) {
-        expect(cell).toBe(FIRST_PRODUCT_LTV_DASH);
-      } else {
-        expect(row.avgLtv).toBeGreaterThan(0);
-        expect(cell).not.toBe(FIRST_PRODUCT_LTV_DASH);
-      }
-    }
+    expect(JSON.stringify(view.rows)).not.toMatch(/goggle|wax|board/i);
   });
 });
 
@@ -197,8 +202,21 @@ describe("live orders stay on existing scopes", () => {
     expect(view.firstProductDrivers.productsKnown).toBe(false);
     expect(view.firstProductDrivers.rows).toEqual([]);
     expect(view.firstProductDrivers.empty?.kind).toBe("titles");
+    expect(view.firstProductDrivers.empty?.copy).toBe(
+      BOOK_DOES_NOT_STORE_PRODUCT_NAMES,
+    );
     expect(view.firstProductDrivers.empty?.copy).toContain("Not $0");
     expect(view.firstProductDrivers.empty?.copy).not.toContain("0%");
+    expect(view.firstProductDrivers.empty?.copy).not.toMatch(
+      /coming|titled line items|next sync/i,
+    );
+    expect(view.firstProductDrivers.empty?.verb).not.toMatch(
+      /coming|titled|sync/i,
+    );
+    expect(view.productLtv.empty?.kind).toBe("titles");
+    expect(FIRST_PRODUCT_SYNC_COPY).not.toMatch(
+      /titled line items|coming|next sync will/i,
+    );
   });
 
   it("does not crawl line-item titles or add a scope", () => {
@@ -276,5 +294,52 @@ describe("P1-A sits on the Customers LTV chip, below the fold", () => {
       "Goals",
       "Settings",
     ]);
+  });
+});
+
+describe("first-product empties name the missing title", () => {
+  const NOW = new Date("2026-09-17T00:00:00Z");
+
+  it("paints the book sentence on Live first-product and the product board", () => {
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 6; i += 1) {
+      rows.push(order(`c${i}`, "2024-01-01", 80, { units: i + 1 }));
+      if (i < 3) rows.push(order(`c${i}`, "2024-02-01", 40, { units: 2 }));
+    }
+    const drivers = buildFirstProductDrivers(rows);
+    const product = buildProductLtv(rows, new Date("2024-06-01"));
+    const driversHtml = paint(
+      createElement(LtvFirstProductDrivers, { drivers }),
+    );
+    const boardHtml = paint(createElement(LtvProductBoard, { product }));
+    for (const html of [driversHtml, boardHtml]) {
+      expect(html).toContain(BOOK_DOES_NOT_STORE_PRODUCT_NAMES);
+      expect(html).not.toMatch(/names are coming/i);
+      expect(html).not.toMatch(/waiting on product names/i);
+      expect(html).not.toMatch(/waits? for titled/i);
+      expect(html).not.toMatch(/waiting on titled/i);
+      expect(html).not.toMatch(/next sync/i);
+      expect(html).not.toMatch(/>\$0</);
+      expect(html).not.toContain("0×");
+    }
+    expect(driversHtml).not.toMatch(/goggle|wax|snowboard/i);
+    expect(boardHtml).not.toMatch(/goggle|wax|snowboard/i);
+  });
+
+  it("does not present SAMPLE catalog names as this shop’s first products", () => {
+    const orders = generateSnowdevilDepthOrders(NOW);
+    const drivers = buildFirstProductDrivers(orders);
+    const product = buildProductLtv(orders, NOW);
+    const driversHtml = paint(
+      createElement(LtvFirstProductDrivers, { drivers, useSampleDesk: true }),
+    );
+    const boardHtml = paint(createElement(LtvProductBoard, { product }));
+    for (const html of [driversHtml, boardHtml]) {
+      expect(html).toContain(BOOK_DOES_NOT_STORE_PRODUCT_NAMES);
+      expect(html).not.toMatch(/Snow Goggles|Ski Wax|Snowboard|goggles/i);
+      expect(html).not.toMatch(/names are coming|waits? for titled|next sync/i);
+      expect(html).not.toMatch(/>\$0</);
+      expect(html).not.toContain("0×");
+    }
   });
 });

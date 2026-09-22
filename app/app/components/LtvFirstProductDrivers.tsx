@@ -4,6 +4,7 @@ import { useDeskDrill } from "./DeskDrill";
 import { DeskIcon } from "./DeskIcon";
 import {
   FIRST_PRODUCT_NO_REPEAT_COPY,
+  FIRST_PRODUCT_TITLES_COPY,
   firstProductLtvDisplay,
   type FirstProductDriverRow,
   type FirstProductDriversView,
@@ -16,7 +17,7 @@ function emptyValue(empty: FirstProductEmpty): string {
     case "syncing":
       return "Waiting on orders";
     case "titles":
-      return "Waiting on product names";
+      return FIRST_PRODUCT_TITLES_COPY;
     default: {
       const _exhaustive: never = empty.kind;
       return _exhaustive;
@@ -27,8 +28,9 @@ function emptyValue(empty: FirstProductEmpty): string {
 function emptyFloor(kind: FirstProductEmptyKind): string {
   switch (kind) {
     case "syncing":
+      return "Orders are still syncing. Not $0.";
     case "titles":
-      return "Floor: a titled first line item, then a later order from one of those buyers. A dash is not $0.";
+      return FIRST_PRODUCT_TITLES_COPY;
     default: {
       const _exhaustive: never = kind;
       return _exhaustive;
@@ -80,9 +82,9 @@ export function LtvFirstProductDrivers({
           First product → LTV
         </h3>
         <p className="mcfly-chart__muted">
-          Buyers whose first order was this product, how many of those first
-          orders, and the average revenue from those buyers. A dash means no
-          repeat history yet — not $0. {source}
+          {empty?.kind === "titles"
+            ? FIRST_PRODUCT_TITLES_COPY
+            : `Buyers whose first order was this product, how many of those first orders, and the average revenue from those buyers. A dash means no repeat history yet — not $0. ${source}`}
         </p>
       </div>
 
@@ -107,10 +109,14 @@ export function LtvFirstProductDrivers({
           <span className="mcfly-depth-flag__empty-k">First product</span>
           <span className="mcfly-depth-flag__empty-verb">{empty.verb}</span>
           <span className="mcfly-depth-flag__empty-v">{emptyValue(empty)}</span>
-          <span className="mcfly-depth-flag__empty-line">{empty.copy}</span>
-          <span className="mcfly-depth-flag__empty-line">
-            {emptyFloor(empty.kind)}
-          </span>
+          {empty.kind === "titles" ? null : (
+            <>
+              <span className="mcfly-depth-flag__empty-line">{empty.copy}</span>
+              <span className="mcfly-depth-flag__empty-line">
+                {emptyFloor(empty.kind)}
+              </span>
+            </>
+          )}
         </button>
       ) : null}
 

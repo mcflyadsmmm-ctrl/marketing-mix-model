@@ -6,8 +6,8 @@
  * only when at least one of them placed a later order. No repeat history is
  * a dash — never $0, never 0%.
  *
- * Shopify orders only. SAMPLE Snowdevil carries titles. Live OrderFacts do
- * not (existing `read_orders` scope, no line-item crawl), so live stays the
+ * Shopify orders only. Neither SAMPLE nor Live OrderFacts store a product
+ * title (existing `read_orders` scope, no line-item crawl), so both stay the
  * titles empty instead of a guessed catalog. No product-cost column, no ad spend.
  *
  * Merchant chrome: first product, first orders, revenue. Never "cohort",
@@ -27,10 +27,12 @@ export const FIRST_PRODUCT_NO_REPEAT_COPY =
   "No repeat history yet — not $0.";
 
 export const FIRST_PRODUCT_TITLES_COPY =
-  "Product names are not on this shop’s stored orders. First-product value waits for titled line items already in scope. Not $0.";
+  "The book does not store product names. Not $0.";
+
+export const FIRST_PRODUCT_TITLES_VERB = "Not stored";
 
 export const FIRST_PRODUCT_SYNC_COPY =
-  "Orders still syncing — not $0. First-product value fills once titled line items land and a buyer orders again.";
+  "Orders still syncing — not $0.";
 
 export type FirstProductEmptyKind = "syncing" | "titles";
 
@@ -114,7 +116,7 @@ function emptyState(input: {
     return {
       kind: "titles",
       copy: FIRST_PRODUCT_TITLES_COPY,
-      verb: "Wait for titled line items",
+      verb: FIRST_PRODUCT_TITLES_VERB,
     };
   }
   return null;

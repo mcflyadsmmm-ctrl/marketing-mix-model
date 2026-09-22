@@ -1,10 +1,9 @@
 /**
  * Product→LTV — which first product / path drives higher lifetime value.
  *
- * First-product is the titled first-line item on the buyer's first order
- * (order-history line items). Buyers without a title do not form a product
- * row — live OrderFacts hide titles (Level 1), so the board stays an honest
- * empty instead of a guessed catalog. SAMPLE Snowdevil carries titles.
+ * First-product is a stored title on the buyer's first order. Buyers without
+ * a title do not form a product row. The book does not store a product title,
+ * so the board stays an honest empty instead of a guessed catalog.
  *
  * Windows seal the same way as the LTV flagship: enough buyers who started
  * with that product must have lived 30 / 90 / 365 days. A dash is not $0.
@@ -20,6 +19,11 @@ import {
   type CustomerDepth,
   type DepthOrder,
 } from "./ltv-depth";
+import {
+  FIRST_PRODUCT_SYNC_COPY,
+  FIRST_PRODUCT_TITLES_COPY,
+  FIRST_PRODUCT_TITLES_VERB,
+} from "./ltv-first-product";
 
 /** Same 30 / 90 / 365 seals as the LTV flagship — copied, not imported, to keep this chunk isolated. */
 type ProductWindow = 30 | 90 | 365;
@@ -359,7 +363,7 @@ export function productLtvEmptyState(input: {
       buyers: 0,
       namedBuyers: 0,
       need,
-      copy: "Orders still syncing — not $0. First-product value fills once titled line items land and those buyers have lived 30 days.",
+      copy: FIRST_PRODUCT_SYNC_COPY,
       verb: "Refresh this page",
     };
   }
@@ -369,8 +373,8 @@ export function productLtvEmptyState(input: {
       buyers: input.buyers,
       namedBuyers: 0,
       need,
-      copy: `${input.buyers.toLocaleString()} identified ${input.buyers === 1 ? "buyer" : "buyers"} on file. Product names are not on this shop’s stored orders — first-product value waits for titled line items. Not $0.`,
-      verb: "Wait for titled line items",
+      copy: FIRST_PRODUCT_TITLES_COPY,
+      verb: FIRST_PRODUCT_TITLES_VERB,
     };
   }
   if (input.namedBuyers < need) {
