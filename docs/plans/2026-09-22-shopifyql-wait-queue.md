@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Tip to branch from: `cursor/spend-trust-recurring` @ `2107ea876cf86e8195f172e88415520b5a450ef9` (Fly v406). Live stays PARKED (`MCFLY_SAMPLE_ONLY=true`).
+- Branch from `cursor/spend-trust-recurring` after docs merge #136 (`627b365`). Product commit under that merge is `2107ea876cf86e8195f172e88415520b5a450ef9`. Fly stays **v406** until the next craft deploy. Live stays PARKED (`MCFLY_SAMPLE_ONLY=true`).
 - Painted IA: `Overview → Orders → Customers → Spend → Goals`. Growth and LTV stay Customers chips.
 - Commercial lock: $39 flat / store / month, 7-day trial, unpaid Live ingest about 90 closed days.
 - Total ROAS = Shopify sales ÷ entered spend. Empty spend keeps Total ROAS, Cash CPA, and payback as `—`. Never `0×` and never `$0` CPA.
