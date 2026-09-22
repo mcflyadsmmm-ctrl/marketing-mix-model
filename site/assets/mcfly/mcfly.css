@@ -2233,6 +2233,12 @@ body.demo-page .demo-hero-actions {
   margin-bottom: 0.35rem;
 }
 
+body.demo-page .demo-desk-caption {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.15rem 1.25rem 0.45rem;
+}
+
 @media (max-width: 719px) {
   .shot-frame--live .shot-frame__viewport {
     max-height: none;

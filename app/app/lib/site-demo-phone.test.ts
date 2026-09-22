@@ -26,6 +26,14 @@ describe("public /demo phone Snowdevil Overview", () => {
     expect(home).not.toMatch(/>—</);
   });
 
+  it("phone hero is two CTAs, not a third Pricing fold button", () => {
+    const hero = demo.match(/<header class="page-hero[\s\S]*?<\/header>/)?.[0] ?? "";
+    expect(hero.match(/<a class="link-cta/g)?.length).toBe(2);
+    expect(hero).toContain("Install");
+    expect(hero).toContain("Open the full Snowdevil desk");
+    expect(hero).not.toContain('href="/pricing"');
+  });
+
   it("stacks Snowdevil KPIs at 430px and keeps nav finger-sized", () => {
     expect(css.lastIndexOf(mark)).toBeGreaterThan(-1);
     const phone = css.slice(css.lastIndexOf(mark));
