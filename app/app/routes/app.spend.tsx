@@ -25,7 +25,7 @@ import {
   SpendExplorer,
 } from "../components/SpendExplorer";
 import { CpaExplorer } from "../components/CpaExplorer";
-import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
+import { CopySpendPair } from "../components/MorningHabitStrip";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { SpendMixSection, useSpendPanelScroll } from "../components/SpendMixSection";
 import { ensureShop } from "../lib/mer-dashboard.server";
@@ -66,6 +66,7 @@ import {
   shouldContinueDailyAmount,
 } from "../lib/spend-continue-daily";
 import { loadSpendDayCoverage } from "../lib/spend-coverage.server";
+import { overlaySalesOnSpendCoverage } from "../lib/spend-pair-coverage";
 import { deleteSpendEntry, handleCsvImport, type SpendActionData } from "../lib/spend-write.server";
 import {
   listRecurringSpend,
@@ -75,7 +76,7 @@ import {
   stopRecurringSpend,
 } from "../lib/spend-recurring.server";
 import { roundMoney, shopCurrencyCode, toMoneyNumber } from "../lib/spend-money";
-import { spendFillDayHref, NUMBER_HONESTY, formatTotalRoasEquation } from "../lib/number-honesty";
+import { spendFillDayHref, NUMBER_HONESTY, formatTotalRoasEquation, formatOnlineRoasLine, spendPairCopyText } from "../lib/number-honesty";
 import { spendEntrySourceLabel } from "../lib/spend-source-label";
 import {
   recurringFillConfirmRequiredError,
@@ -527,6 +528,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesFactsIncomplete: analysis.salesFactsIncomplete,
     factsIncomplete: analysis.factsIncomplete,
     shopifyOrderWindowLimited: analysis.shopifyOrderWindowLimited,
+    pairCoverage: analysis.pairCoverage,
   };
 };
 
@@ -734,6 +736,7 @@ export default function SpendEntryPage() {
     todaySalesTruncated,
     salesFactsIncomplete,
     shopifyOrderWindowLimited,
+    pairCoverage,
   } = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
   const [searchParams] = useSearchParams();
@@ -752,22 +755,40 @@ export default function SpendEntryPage() {
    */
   const strangerEmpty = isEmpty && !sampleDesk.enabled && !shotMode;
   const hasSpend = metrics.totalSpend > 0;
+  const pairWithheld =
+    hasSpend && pairCoverage.withholdRatio && !metrics.salesPending;
+  const paintedMer = pairWithheld ? null : metrics.mer;
   /** Live thin / stranger-empty: pair + add-a-day in reach. SAMPLE/shot keep mix·CPA depth open. */
   const emptyLiveSpend = !hasSpend && !sampleDesk.enabled && !shotMode;
   const roasValue =
     hasSpend &&
     !metrics.salesPending &&
-    metrics.mer != null &&
-    Number.isFinite(metrics.mer)
-      ? `${formatMer(metrics.mer)}×`
+    paintedMer != null &&
+    Number.isFinite(paintedMer)
+      ? `${formatMer(paintedMer)}×`
       : "—";
   const pairEquation = formatTotalRoasEquation({
     sales: metrics.sales,
     spend: metrics.totalSpend,
-    mer: metrics.mer,
+    mer: paintedMer,
     salesPending: metrics.salesPending,
     currency,
   });
+  const pairCopyText = spendPairCopyText({
+    sales: metrics.sales,
+    spend: metrics.totalSpend,
+    mer: paintedMer,
+    salesPending: metrics.salesPending,
+    currency,
+  });
+  const onlineLine = hasSpend
+    ? formatOnlineRoasLine({
+        totalSales: metrics.sales,
+        spend: metrics.totalSpend,
+        mix: metrics.shopifyDepth.sourceSalesShare,
+        currency,
+      })
+    : null;
   const [cpaSelectedId, setCpaSelectedId] = useState<CpaWindowId>("this_month");
   const cpaSelected =
     cpa.windows.find((window) => window.id === cpaSelectedId) ?? cpa.windows[0]!;
@@ -851,7 +872,10 @@ export default function SpendEntryPage() {
   const coverageFromKey = coverageClosedDays[0]?.dateKey;
   const coverageToKey =
     coverageClosedDays[coverageClosedDays.length - 1]?.dateKey;
-  const stripDays = coverageClosedDays;
+  const stripDays = overlaySalesOnSpendCoverage(
+    coverageClosedDays,
+    certifiedSalesByDay,
+  );
   const spendSaved = Boolean(actionData?.success);
   const missingCount = coverageThroughYesterday.missing.length;
   const coveragePeekValue = sampleDesk.enabled
@@ -1043,7 +1067,10 @@ export default function SpendEntryPage() {
               </p>
               {hasSpend ? (
                 pairEquation ? (
-                  <p className="mcfly-book__kpi-hint">{pairEquation}</p>
+                  <div className="mcfly-spend-pair-copy-row">
+                    <p className="mcfly-book__kpi-hint">{pairEquation}</p>
+                    <CopySpendPair text={pairCopyText} />
+                  </div>
                 ) : null
               ) : (
                 <p className="mcfly-book__kpi-hint">
@@ -1052,6 +1079,12 @@ export default function SpendEntryPage() {
               )}
             </div>
           </div>
+          {hasSpend ? (
+            <p className="mcfly-book__kpi-hint">{pairCoverage.caption}</p>
+          ) : null}
+          {hasSpend && onlineLine ? (
+            <p className="mcfly-book__kpi-hint">{onlineLine}</p>
+          ) : null}
           {!hasSpend && !shotMode ? (
             <SpendFindingStrip finding={totalRoasEmptySpendFinding()} />
           ) : null}
@@ -1444,13 +1477,29 @@ export default function SpendEntryPage() {
                 }
               >
                 <div className="mcfly-spend-cal__strip" role="list">
-                  {stripDays.map((day) =>
-                    day.filled ? (
+                  {stripDays.map((day) => {
+                    const title = day.filled
+                      ? day.hasSales
+                        ? `${day.dateKey} has spend · sales on file`
+                        : `${day.dateKey} has spend · sales still waiting`
+                      : day.hasSales
+                        ? `${day.dateKey} — sales on file, no spend entered`
+                        : `${day.dateKey} — no spend entered`;
+                    const className = [
+                      "mcfly-spend-cal__day",
+                      day.filled
+                        ? "mcfly-spend-cal__day--filled"
+                        : "mcfly-spend-cal__day--empty",
+                      day.hasSales ? "mcfly-spend-cal__day--sales" : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" ");
+                    return day.filled ? (
                       <div
                         key={day.dateKey}
-                        className="mcfly-spend-cal__day mcfly-spend-cal__day--filled"
+                        className={className}
                         role="listitem"
-                        title={`${day.dateKey} has spend`}
+                        title={title}
                       >
                         <span className="mcfly-spend-cal__tick" />
                         <span className="mcfly-spend-cal__label">
@@ -1460,21 +1509,21 @@ export default function SpendEntryPage() {
                     ) : (
                       <Link
                         key={day.dateKey}
-                        className="mcfly-spend-cal__day mcfly-spend-cal__day--empty"
+                        className={className}
                         role="listitem"
                         to={spendFillDayHref(day.dateKey, {
                           period: preset,
                           shot: shotMode,
                         })}
-                        title={`${day.dateKey} — no spend entered`}
+                        title={title}
                       >
                         <span className="mcfly-spend-cal__tick" />
                         <span className="mcfly-spend-cal__label">
                           {day.label}
                         </span>
                       </Link>
-                    ),
-                  )}
+                    );
+                  })}
                 </div>
                 <div className="mcfly-spend-cal__legend">
                   <span className="mcfly-spend-cal__legend-item">
@@ -1482,6 +1531,12 @@ export default function SpendEntryPage() {
                       <span className="mcfly-spend-cal__tick" />
                     </span>
                     Has spend
+                  </span>
+                  <span className="mcfly-spend-cal__legend-item">
+                    <span className="mcfly-spend-cal__day mcfly-spend-cal__day--empty mcfly-spend-cal__day--sales mcfly-spend-cal__day--swatch">
+                      <span className="mcfly-spend-cal__tick" />
+                    </span>
+                    Sales, no spend
                   </span>
                   <span className="mcfly-spend-cal__legend-item">
                     <span className="mcfly-spend-cal__day mcfly-spend-cal__day--empty mcfly-spend-cal__day--swatch">

@@ -20,6 +20,7 @@ import {
   shopLocalDayRange,
   shopLocalYmd,
 } from "./shop-local-day";
+import type { SpendPasteLiveIndex } from "./spend-paste-preview";
 
 export const CPA_WINDOW_IDS = ["this_month", "last_28"] as const;
 export type CpaWindowId = (typeof CPA_WINDOW_IDS)[number];
@@ -76,6 +77,10 @@ export type CpaDayPoint = {
   returningCustomers: number;
   newCustomerSales: number;
   buyersKnown: boolean;
+  /** Interned identified buyer ids for unique week/month grain. */
+  identifiedIds?: number[];
+  /** Interned new-buyer ids for unique week/month grain. */
+  newIds?: number[];
 };
 
 export type CpaWindowSnapshot = {
@@ -338,6 +343,56 @@ export function applyUniqueBuyerCounts(
   };
 }
 
+function uniqueIdCount(ids: number[] | undefined): number {
+  if (!ids || ids.length === 0) return 0;
+  return new Set(ids).size;
+}
+
+/**
+ * Overlay interned OrderFact ids onto CPA days. Missing keys stay unknown
+ * (—), never SalesDayFact `newCustomers: 0`. Known-zero days are `[]`.
+ */
+export function applyLiveBuyerIndexToCpaDays(
+  days: CpaDayPoint[],
+  index: SpendPasteLiveIndex | null | undefined,
+): CpaDayPoint[] {
+  if (!index) return days;
+  return days.map((day) => {
+    const hasIdentified = Object.prototype.hasOwnProperty.call(
+      index.identifiedByDay,
+      day.dateKey,
+    );
+    const hasNew = Object.prototype.hasOwnProperty.call(
+      index.newByDay,
+      day.dateKey,
+    );
+    if (!hasIdentified && !hasNew) {
+      return {
+        ...day,
+        newCustomers: 0,
+        returningCustomers: 0,
+        buyersKnown: false,
+        identifiedIds: undefined,
+        newIds: undefined,
+      };
+    }
+    const identifiedIds = hasIdentified
+      ? [...(index.identifiedByDay[day.dateKey] ?? [])]
+      : [];
+    const newIds = hasNew ? [...(index.newByDay[day.dateKey] ?? [])] : [];
+    const identified = uniqueIdCount(identifiedIds);
+    const neu = uniqueIdCount(newIds);
+    return {
+      ...day,
+      newCustomers: neu,
+      returningCustomers: Math.max(0, identified - neu),
+      buyersKnown: true,
+      identifiedIds,
+      newIds,
+    };
+  });
+}
+
 export function buildCpaPaybackView(input: {
   cashCac: number | null;
   avgRevenueD30: number | null;
@@ -406,77 +461,142 @@ export function bucketCpaDays(
   days: CpaDayPoint[],
   grain: CpaGrain,
 ): CpaExplorerBucket[] {
-  if (grain === "day") {
-    return days.map((day) => {
-      const buyers = day.buyersKnown
-        ? Math.max(0, Math.trunc(day.newCustomers)) +
-          Math.max(0, Math.trunc(day.returningCustomers))
-        : null;
-      return {
-        key: day.dateKey,
-        label: overviewChartDayLabel(day.dateKey),
-        spend: day.spend > 0 ? day.spend : 0,
-        buyers,
-        newCustomers: day.buyersKnown ? Math.max(0, Math.trunc(day.newCustomers)) : 0,
-        returningCustomers: day.buyersKnown
-          ? Math.max(0, Math.trunc(day.returningCustomers))
-          : 0,
-        cashCpa:
-          day.buyersKnown && buyers != null
-            ? cashCostPerCustomer(day.spend, buyers)
-            : null,
-        weekend: overviewIsWeekendKey(day.dateKey),
+  switch (grain) {
+    case "day":
+      return days.map((day) => {
+        const fromIds = day.identifiedIds != null;
+        const identified = fromIds
+          ? uniqueIdCount(day.identifiedIds)
+          : day.buyersKnown
+            ? Math.max(0, Math.trunc(day.newCustomers)) +
+              Math.max(0, Math.trunc(day.returningCustomers))
+            : null;
+        const newCustomers = fromIds
+          ? uniqueIdCount(day.newIds)
+          : day.buyersKnown
+            ? Math.max(0, Math.trunc(day.newCustomers))
+            : 0;
+        const returningCustomers = fromIds
+          ? Math.max(0, (identified ?? 0) - newCustomers)
+          : day.buyersKnown
+            ? Math.max(0, Math.trunc(day.returningCustomers))
+            : 0;
+        const buyersKnown = fromIds || day.buyersKnown;
+        const buyers = buyersKnown ? identified : null;
+        return {
+          key: day.dateKey,
+          label: overviewChartDayLabel(day.dateKey),
+          spend: day.spend > 0 ? day.spend : 0,
+          buyers,
+          newCustomers,
+          returningCustomers,
+          cashCpa:
+            buyersKnown && buyers != null
+              ? cashCostPerCustomer(day.spend, buyers)
+              : null,
+          weekend: overviewIsWeekendKey(day.dateKey),
+        };
+      });
+    case "week":
+    case "month": {
+      type Acc = {
+        spend: number;
+        newCustomers: number;
+        returningCustomers: number;
+        buyersKnown: boolean;
+        identifiedIds: number[] | null;
+        newIds: number[] | null;
+        unknown: boolean;
       };
-    });
-  }
+      const map = new Map<string, Acc>();
+      for (const day of days) {
+        const key =
+          grain === "week"
+            ? `W:${overviewIsoWeekStartKey(day.dateKey)}`
+            : monthBucketKey(day.dateKey);
+        const prev = map.get(key) ?? {
+          spend: 0,
+          newCustomers: 0,
+          returningCustomers: 0,
+          buyersKnown: false,
+          identifiedIds: null,
+          newIds: null,
+          unknown: false,
+        };
+        prev.spend += day.spend > 0 ? day.spend : 0;
+        if (day.identifiedIds != null && day.newIds != null) {
+          if (prev.unknown) {
+            map.set(key, prev);
+            continue;
+          }
+          prev.identifiedIds = [
+            ...(prev.identifiedIds ?? []),
+            ...day.identifiedIds,
+          ];
+          prev.newIds = [...(prev.newIds ?? []), ...day.newIds];
+          prev.buyersKnown = true;
+        } else if (day.buyersKnown) {
+          if (prev.identifiedIds != null) {
+            prev.unknown = true;
+            prev.buyersKnown = false;
+          } else {
+            prev.buyersKnown = true;
+            prev.newCustomers += Math.max(0, Math.trunc(day.newCustomers));
+            prev.returningCustomers += Math.max(
+              0,
+              Math.trunc(day.returningCustomers),
+            );
+          }
+        } else {
+          prev.unknown = true;
+          prev.buyersKnown = false;
+        }
+        map.set(key, prev);
+      }
 
-  type Acc = {
-    spend: number;
-    newCustomers: number;
-    returningCustomers: number;
-    buyersKnown: boolean;
-  };
-  const map = new Map<string, Acc>();
-  for (const day of days) {
-    const key =
-      grain === "week"
-        ? `W:${overviewIsoWeekStartKey(day.dateKey)}`
-        : monthBucketKey(day.dateKey);
-    const prev = map.get(key) ?? {
-      spend: 0,
-      newCustomers: 0,
-      returningCustomers: 0,
-      buyersKnown: false,
-    };
-    prev.spend += day.spend > 0 ? day.spend : 0;
-    if (day.buyersKnown) {
-      prev.buyersKnown = true;
-      prev.newCustomers += Math.max(0, Math.trunc(day.newCustomers));
-      prev.returningCustomers += Math.max(0, Math.trunc(day.returningCustomers));
+      return [...map.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, acc]) => {
+          const fromIds =
+            !acc.unknown && acc.identifiedIds != null && acc.newIds != null;
+          const newCustomers = fromIds
+            ? uniqueIdCount(acc.newIds ?? [])
+            : acc.buyersKnown
+              ? acc.newCustomers
+              : 0;
+          const buyers = acc.unknown
+            ? null
+            : fromIds
+              ? uniqueIdCount(acc.identifiedIds ?? [])
+              : acc.buyersKnown
+                ? acc.newCustomers + acc.returningCustomers
+                : null;
+          const returningCustomers = fromIds
+            ? Math.max(0, (buyers ?? 0) - newCustomers)
+            : acc.buyersKnown
+              ? acc.returningCustomers
+              : 0;
+          const buyersKnown = !acc.unknown && (fromIds || acc.buyersKnown);
+          return {
+            key,
+            label: overviewChartDayLabel(key),
+            spend: acc.spend,
+            buyers: buyersKnown ? buyers : null,
+            newCustomers,
+            returningCustomers,
+            cashCpa:
+              buyersKnown && buyers != null
+                ? cashCostPerCustomer(acc.spend, buyers)
+                : null,
+            weekend: false,
+          };
+        });
     }
-    map.set(key, prev);
+    default: {
+      const _never: never = grain;
+      throw new Error(`Unknown CPA grain: ${_never}`);
+    }
   }
-
-  return [...map.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, acc]) => {
-      const buyers = acc.buyersKnown
-        ? acc.newCustomers + acc.returningCustomers
-        : null;
-      return {
-        key,
-        label: overviewChartDayLabel(key),
-        spend: acc.spend,
-        buyers,
-        newCustomers: acc.newCustomers,
-        returningCustomers: acc.returningCustomers,
-        cashCpa:
-          acc.buyersKnown && buyers != null
-            ? cashCostPerCustomer(acc.spend, buyers)
-            : null,
-        weekend: false,
-      };
-    });
 }
 
 /** Median Cash CPA across buckets that have one — never a fake $0. */

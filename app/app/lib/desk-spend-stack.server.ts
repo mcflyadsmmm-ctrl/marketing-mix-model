@@ -20,6 +20,7 @@ import {
   type WindowSets,
 } from "./allocation-history";
 import {
+  applyLiveBuyerIndexToCpaDays,
   applyUniqueBuyerCounts,
   buildCpaWindowSnapshot,
   cpaExplorerRangeOf,
@@ -49,6 +50,10 @@ import {
 } from "./order-facts.server";
 import { buildLivePasteBuyerIndex } from "./spend-paste-buyers.server";
 import type { SpendPasteLiveIndex } from "./spend-paste-preview";
+import {
+  spendPairCoverage,
+  type SpendPairCoverage,
+} from "./spend-pair-coverage";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -131,6 +136,7 @@ export type SpendAnalysisData = {
   } | null;
   factsIncomplete: boolean;
   shopifyOrderWindowLimited: boolean;
+  pairCoverage: SpendPairCoverage;
 };
 
 export function emptySpendWindowSets(): SpendWindowSets {
@@ -292,6 +298,7 @@ async function loadSpendCpa(args: {
   deskTz: string | null;
   dailyRows: ExplorerDailyRow[];
   dayKey: (instant: Date) => string;
+  liveBuyerIndex: SpendPasteLiveIndex | null;
 }): Promise<SpendCpaView> {
   const now = new Date();
   const deskWindows = resolveCpaDeskWindows(now, args.deskTz);
@@ -306,7 +313,10 @@ async function loadSpendCpa(args: {
   for (const row of rowsInWindow(args.dailyRows, explorerFrom, explorerTo)) {
     if (row.spend > 0) spendByDay.set(row.dateKey, row.spend);
   }
-  const days = joinCpaDays(spendByDay, buyerDays);
+  const days = applyLiveBuyerIndexToCpaDays(
+    joinCpaDays(spendByDay, buyerDays),
+    args.useSampleDesk ? null : args.liveBuyerIndex,
+  );
 
   let thisMonth = buildCpaWindowSnapshot(
     "this_month",
@@ -623,6 +633,7 @@ export async function loadSpendAnalysis(args: {
     deskTz,
     dailyRows,
     dayKey,
+    liveBuyerIndex: args.useSampleDesk ? null : liveBuyerIndex,
   });
   if (!args.useSampleDesk) {
     cpa.salesError = salesError;
@@ -636,6 +647,25 @@ export async function loadSpendAnalysis(args: {
   for (const [dateKey, sales] of salesByDay) {
     certifiedSalesByDay[dateKey] = sales;
   }
+
+  const periodFrom = dayKey(range.start);
+  const periodTo = dayKey(range.end);
+  const pairCoverage = spendPairCoverage({
+    salesDays: [...salesByDay.entries()]
+      .filter(
+        ([dateKey, sales]) =>
+          dateKey >= periodFrom && dateKey <= periodTo && sales > 0,
+      )
+      .map(([dateKey]) => dateKey),
+    spendDays: dailyRows
+      .filter(
+        (row) =>
+          row.dateKey >= periodFrom &&
+          row.dateKey <= periodTo &&
+          row.spend > 0,
+      )
+      .map((row) => row.dateKey),
+  });
 
   return {
     metrics,
@@ -653,5 +683,6 @@ export async function loadSpendAnalysis(args: {
     salesFactsIncomplete,
     factsIncomplete,
     shopifyOrderWindowLimited,
+    pairCoverage,
   };
 }

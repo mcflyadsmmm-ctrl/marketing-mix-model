@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyLiveBuyerIndexToCpaDays,
   applyUniqueBuyerCounts,
   bucketCpaDays,
   buildCpaPaybackView,
@@ -185,6 +186,34 @@ describe("applyUniqueBuyerCounts", () => {
   });
 });
 
+describe("applyLiveBuyerIndexToCpaDays", () => {
+  it("uses interned ids when the day is in the book, including known-zero", () => {
+    const days: CpaDayPoint[] = [
+      day("2026-09-14", 80, 9, 9, 0, false),
+      day("2026-09-15", 40, 0, 0, 0, false),
+    ];
+    const next = applyLiveBuyerIndexToCpaDays(days, {
+      identifiedByDay: { "2026-09-14": [1, 2], "2026-09-15": [] },
+      newByDay: { "2026-09-14": [1], "2026-09-15": [] },
+    });
+    expect(next[0]?.buyersKnown).toBe(true);
+    expect(next[0]?.newCustomers).toBe(1);
+    expect(next[0]?.identifiedIds).toEqual([1, 2]);
+    expect(next[1]?.buyersKnown).toBe(true);
+    expect(next[1]?.newCustomers).toBe(0);
+  });
+
+  it("does not treat a missing key as SalesDayFact zero buyers", () => {
+    const next = applyLiveBuyerIndexToCpaDays(
+      [day("2026-09-21", 200, 0, 0, 0, false)],
+      { identifiedByDay: {}, newByDay: {} },
+    );
+    expect(next[0]?.buyersKnown).toBe(false);
+    expect(next[0]?.newCustomers).toBe(0);
+    expect(next[0]?.identifiedIds).toBeUndefined();
+  });
+});
+
 describe("buildCpaPaybackView", () => {
   it("compares Cash CAC to first-90 LTV and keeps payback only when CAC exists", () => {
     const view = buildCpaPaybackView({
@@ -236,5 +265,45 @@ describe("explorer buckets", () => {
     expect(weeks[0]?.cashCpa).toBeCloseTo(100 / 6, 5);
     expect(typicalCpa(weeks)).toBeGreaterThan(0);
     expect(filterCpaDays(days, "2026-09-02", "2026-09-08")).toHaveLength(2);
+  });
+
+  it("uniques interned buyer ids across a live week grain", () => {
+    const live = [
+      {
+        dateKey: "2026-09-14",
+        spend: 50,
+        newCustomers: 1,
+        returningCustomers: 1,
+        newCustomerSales: 0,
+        buyersKnown: true,
+        identifiedIds: [1, 2],
+        newIds: [1],
+      },
+      {
+        dateKey: "2026-09-15",
+        spend: 50,
+        newCustomers: 1,
+        returningCustomers: 1,
+        newCustomerSales: 0,
+        buyersKnown: true,
+        identifiedIds: [2, 3],
+        newIds: [3],
+      },
+    ];
+    const weeks = bucketCpaDays(live, "week");
+    expect(weeks).toHaveLength(1);
+    expect(weeks[0]?.buyers).toBe(3);
+    expect(weeks[0]?.newCustomers).toBe(2);
+    expect(weeks[0]?.cashCpa).toBeCloseTo(100 / 3, 5);
+  });
+
+  it("keeps unknown live week buyers as — and never spend ÷ 0", () => {
+    const unknown = [
+      day("2026-09-14", 80, 0, 0, 0, false),
+      day("2026-09-15", 40, 0, 0, 0, false),
+    ];
+    const weeks = bucketCpaDays(unknown, "week");
+    expect(weeks[0]?.buyers).toBeNull();
+    expect(weeks[0]?.cashCpa).toBeNull();
   });
 });

@@ -6,7 +6,9 @@ import {
   NUMBER_HONESTY,
   SPEND_ADD_HREF,
   SPEND_CSV_HREF,
+  formatOnlineRoasLine,
   formatTotalRoasEquation,
+  spendPairCopyText,
 } from "./number-honesty";
 import { BILLING_HONESTY } from "./entitlements";
 
@@ -106,6 +108,106 @@ describe("formatTotalRoasEquation", () => {
         currency: "USD",
       }),
     ).toBe("$0 sales ÷ $650 spend = 0.00×");
+  });
+});
+
+describe("spendPairCopyText", () => {
+  it("copies nothing when spend is empty", () => {
+    expect(
+      spendPairCopyText({
+        sales: 12_400,
+        spend: 0,
+        mer: 0,
+        currency: "USD",
+      }),
+    ).toBeNull();
+  });
+
+  it("copies the loading line while sales are pending — not $0 and not 0×", () => {
+    const line = spendPairCopyText({
+      sales: 0,
+      spend: 650,
+      mer: 0,
+      salesPending: true,
+      currency: "USD",
+    });
+    expect(line).toBe(NUMBER_HONESTY.salesPending);
+    expect(line).not.toMatch(/\$0 sales/);
+    expect(line).not.toMatch(/=\s*0\.00×/);
+  });
+
+  it("does not copy 0× when mer is zero or missing", () => {
+    expect(
+      spendPairCopyText({
+        sales: 0,
+        spend: 650,
+        mer: 0,
+        salesPending: false,
+        currency: "USD",
+      }),
+    ).toBe("$0 sales ÷ $650 spend");
+    expect(
+      spendPairCopyText({
+        sales: 12_400,
+        spend: 3_100,
+        mer: null,
+        currency: "USD",
+      }),
+    ).toBe("$12,400 sales ÷ $3,100 spend");
+  });
+
+  it("copies the painted equation when Total ROAS is real", () => {
+    expect(
+      spendPairCopyText({
+        sales: 12_400,
+        spend: 3_100,
+        mer: 4,
+        currency: "USD",
+      }),
+    ).toBe("$12,400 sales ÷ $3,100 spend = 4.00×");
+  });
+});
+
+describe("formatOnlineRoasLine", () => {
+  it("labels Online Shopify Total Sales ÷ typed spend and names POS/Shop as excluded", () => {
+    const line = formatOnlineRoasLine({
+      totalSales: 10_000,
+      spend: 2_000,
+      mix: { online: 0.7, pos: 0.2, shop: 0.1, other: 0 },
+      currency: "USD",
+    });
+    expect(line).toMatch(/^Online /);
+    expect(line).toContain("$7,000");
+    expect(line).toContain("$2,000");
+    expect(line).toContain("3.50×");
+    expect(line).toMatch(/POS/);
+    expect(line).toMatch(/Shop/);
+    expect(line).toMatch(/not from Total ROAS/);
+    expect(line).not.toMatch(/attribution/i);
+    expect(line).not.toMatch(/drawer tape/i);
+  });
+
+  it("stays — when mix is not on file instead of inventing sources", () => {
+    const line = formatOnlineRoasLine({
+      totalSales: 10_000,
+      spend: 2_000,
+      mix: null,
+      currency: "USD",
+    });
+    expect(line).toMatch(/Online Shopify Total Sales/);
+    expect(line).toContain("—");
+    expect(line).not.toMatch(/0×/);
+  });
+
+  it("returns null when spend is empty", () => {
+    expect(
+      formatOnlineRoasLine({
+        totalSales: 10_000,
+        spend: 0,
+        mix: { online: 0.7, pos: 0.2, shop: 0.1, other: 0 },
+        currency: "USD",
+      }),
+    ).toBeNull();
   });
 });
 

@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ExplorerDailyRow } from "./spend-explorer";
+import {
+  explorerMer,
+  isUnpairedSpendDay,
+  type ExplorerDailyRow,
+} from "./spend-explorer";
 import {
   aggregateLedger,
   buildCashChips,
@@ -94,6 +98,8 @@ describe("mer-control certify + windows", () => {
     expect(totals.days).toBe(1);
     expect(totals.mer).toBe(4);
     expect(merOf(0, 40)).toBe(0);
+    expect(isUnpairedSpendDay(0, 40)).toBe(true);
+    expect(explorerMer(0, 40)).toBeNull();
   });
 
   it("adds Unmapped when residual is above 50 cents; MER still uses spend", () => {
