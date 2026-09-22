@@ -52,6 +52,28 @@ Reviewer chooses one:
 
 A FAIL is a change inside `app/app/lib/spend-paste-preview.ts` and its test, on a follow-up to #138, before the one Fly. It is not a new ship and not a new tab.
 
+## Subagents
+
+The parent session is Conductor. It holds this plan, dispatches, and does not edit `app/`. One writer touches the checkout at a time. A second writer on the same tree will collide. Read-only agents may run beside each other. They may not run beside a writer.
+
+This is not the six cloud-agent fleet. Compete Scout, Live Accuracy, and Warm Ops do not get a subagent on this cook. They do not share the branch, and a parallel brief or draft would be a third artifact, not v407 or v408.
+
+| Order | Subagent | Writes | Why this one | Model class |
+|-------|----------|--------|--------------|-------------|
+| 1a | Reviewer of #138 | No | Grades the merged paste against Brief 2 and the quiet-day question. Diff is `627b365..5b33d67`. | Judgment. The question is honesty, not a typo. |
+| 1b | Schema reader | No | While 1a runs. Confirms the October 2025 `Order` field for a discount code (`discountApplications` / `DiscountCodeApplication.code`, or `discountCodes` if that is still on the schema). Writes the field name into a note. Does not edit the query. | Fast read. |
+| 2 | Paste fixer | Yes, only if 1a returns FAIL | One branch from `5b33d67`. Only `spend-paste-preview.ts` and its test. | Standard. The change is local and the rule is already written. |
+| 3 | Paste re-review | No, only after a fixer | Same brief as 1a, plus the fix diff. | Same class as 1a. |
+| — | Deploy | Parent, after PASS | One `flyctl deploy`. No subagent. Scoreboard tip note updates in that same breath. | — |
+| 4 | Ship 2 implementer | Yes, one branch | All three Customers changes. They share `CustomersLtvSection.tsx` and `ltv-depth-page.server.ts`. Splitting them across writers is how a board gets mounted twice. | Integration. Multi-file, existing UI. |
+| 5 | Ship 2 task reviewer | No | Spec plus quality on that branch’s full diff, not on the last commit only. | Judgment, scaled to the Customers diff. |
+| 6 | One fixer | Yes, only for Critical and Important findings from 5 | The complete findings list in one dispatch. Not one fixer per finding. | Standard. |
+| 7 | Whole-branch review | No | Once, after 5 is clean. Then merge. Then one Fly. Then stop. | Most capable review available. |
+
+Do not dispatch 4 until the paste Fly has landed. Do not dispatch 5 until 4 has committed. Do not dispatch Scout, Accuracy, or Warm “so the fleet looks busy.”
+
+Each implementer gets a task brief file, the global constraints, and the interfaces it touches. It does not get this whole plan and it does not get the session history. Each reviewer gets the brief, the implementer report, and a diff package from the branch base to HEAD. The parent records one ledger line per finished gate in `.superpowers/sdd/progress.md` so a resumed session does not dispatch the paste again.
+
 ## Already on the tip — do not rebuild
 
 | PR | What is already true |
