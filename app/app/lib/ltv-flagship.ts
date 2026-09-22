@@ -979,7 +979,7 @@ export interface LtvFlagshipView extends LtvDepthView {
 export function buildLtvFlagship(
   orders: DepthOrder[],
   asOf: Date,
-  options: { sample: boolean },
+  options: { sample: boolean; historyLimited?: boolean },
 ): LtvFlagshipView {
   const view = buildLtvDepth(orders, asOf, options);
   const customers = rollUpCustomers(orders);
@@ -993,6 +993,8 @@ export function buildLtvFlagship(
     pathClarity: pathClarity(view.paths, customers),
     productLtv: buildProductLtv(orders, asOf),
     firstProductDrivers: buildFirstProductDrivers(orders),
-    promoLtv: buildPromoLtv(orders, asOf),
+    promoLtv: buildPromoLtv(orders, asOf, {
+      historyLimited: Boolean(options.historyLimited),
+    }),
   };
 }

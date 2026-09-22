@@ -6,9 +6,10 @@
  * first→second product journeys, or best-customer recency. This generator
  * produces a stable ~14-month Snowdevil order book (snow-sports shop: wax,
  * beanies, gloves, goggles, jackets, boards) so the SAMPLE desk can show the
- * full depth. A later pass stamps first-order promo codes (WELCOME10 /
- * POWDER15 / BUNDLE) without changing dollars. Clearly SAMPLE — never
- * presented as this shop's Shopify orders.
+ * full depth. A later pass stamps the same three first-order codes
+ * (WELCOME10 / POWDER15 / BUNDLE) and a discount depth on the pre-refund
+ * total, without changing order dollars or inventing a fourth code.
+ * Clearly SAMPLE — never presented as this shop's Shopify orders.
  *
  * Calibrated so the blended new customer spends ~$145 in the first 30 days,
  * ~$380 in 90 days, and ~$820 in the first year — the same neighborhood as the
@@ -199,9 +200,11 @@ function applySampleRefundGross(orders: DepthOrder[]): DepthOrder[] {
 
 /**
  * Third pass with its own seed — does not shift the book’s amounts, dates,
- * products, or refund gross. SAMPLE only: first-order discount codes so
- * Promo→LTV can name WELCOME10 / POWDER15 / BUNDLE. Later orders stay
- * full-price. Live OrderFacts never get these stamps.
+ * products, or refund gross. SAMPLE only: the same three first-order codes
+ * so Promo→LTV can name WELCOME10 / POWDER15 / BUNDLE. Discount $ is set
+ * from the pre-refund total so Light / Typical / Deep can seal. The digits
+ * in a code are not the percent. Later orders stay full-price. Live
+ * OrderFacts never get these stamps.
  */
 function applySamplePromos(orders: DepthOrder[]): DepthOrder[] {
   const rng = mulberry32(0xd15c0de);
@@ -213,31 +216,62 @@ function applySamplePromos(orders: DepthOrder[]): DepthOrder[] {
       return { ...order, discountAmount: 0, discountCode: null };
     }
     const r = rng();
-    // Low first tickets lean WELCOME10 (lower later LTV). Mid tickets lean
-    // POWDER15. Higher first tickets lean BUNDLE so the high-LTV promo still
-    // has enough year-matured starters on the 14-month book — not a whale-only
-    // sliver that can never seal the year.
+    // Low first tickets lean WELCOME10 (lower later LTV) at a light share.
+    // Mid tickets lean POWDER15 (typical). Higher first tickets lean BUNDLE
+    // (deep) so the high-LTV promo still has enough year-matured starters
+    // on the 14-month book — not a whale-only sliver that can never seal
+    // the year. No fourth code.
     if (order.amount < 90 && r < 0.68) {
-      return withSamplePromo(order, "WELCOME10", 0.1);
+      return withSamplePromo(order, "WELCOME10", 0.08);
     }
     if (order.amount >= 160 && r < 0.58) {
-      return withSamplePromo(order, "BUNDLE", 0.12);
+      return withSamplePromo(order, "BUNDLE", 0.4);
     }
     if (order.amount >= 90 && r < 0.52) {
-      return withSamplePromo(order, "POWDER15", 0.15);
+      return withSamplePromo(order, "POWDER15", 0.22);
     }
     return { ...order, discountAmount: 0, discountCode: null };
   });
 }
 
+/**
+ * Discount $ so discount ÷ (pre-refund total + discount) lands in the same
+ * depth band as `share`. A $1 nudge covers rounding. Order `amount` is untouched.
+ */
+function discountDollarsForShare(gross: number, share: number): number {
+  if (!(gross > 0) || !(share > 0) || !(share < 1)) return 1;
+  let dollars = Math.max(1, Math.round((share * gross) / (1 - share)));
+  const landed = () => dollars / (gross + dollars);
+  const light = share < 0.15;
+  const typical = share >= 0.15 && share < 0.3;
+  for (let i = 0; i < 4; i += 1) {
+    const got = landed();
+    if (light && got > 0 && got < 0.15) return dollars;
+    if (typical && got >= 0.15 && got < 0.3) return dollars;
+    if (!light && !typical && got >= 0.3) return dollars;
+    if ((light && got >= 0.15) || (typical && got >= 0.3)) {
+      dollars = Math.max(1, dollars - 1);
+    } else {
+      dollars += 1;
+    }
+  }
+  return dollars;
+}
+
 function withSamplePromo(
   order: DepthOrder,
   code: string,
-  rate: number,
+  share: number,
 ): DepthOrder {
+  const gross =
+    order.grossAmount != null &&
+    Number.isFinite(order.grossAmount) &&
+    order.grossAmount >= 0
+      ? order.grossAmount
+      : order.amount;
   return {
     ...order,
     discountCode: code,
-    discountAmount: Math.max(1, Math.round(order.amount * rate)),
+    discountAmount: discountDollarsForShare(gross, share),
   };
 }

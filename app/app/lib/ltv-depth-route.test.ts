@@ -26,9 +26,10 @@ describe("LTV route mounts the depth pack", () => {
     expect(stack).toContain(
       'import { loadLtvDepth } from "./ltv-depth-page.server"',
     );
-    expect(stack).toContain(
-      "loadLtvDepth({ shopId: shop.id, useSampleDesk: base.useSampleDesk })",
-    );
+    expect(stack).toContain("shopId: shop.id");
+    expect(stack).toContain("useSampleDesk: base.useSampleDesk");
+    expect(stack).toContain("historyLimited");
+    expect(stack).toContain("base.metrics.tillLtv.historyLimited");
     expect(stack).toMatch(/return \{[\s\S]*?\bdepth,/);
     expect(depthPage).toContain("{ end: asOf }");
     expect(depthPage).toContain("full stored");
@@ -290,6 +291,15 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(pathAt).toBeGreaterThan(promoAt);
     expect(route).toContain("promo={depth.promoLtv}");
     expect(route).toContain("after Product→LTV");
+    expect(promoBoard).toContain("Light");
+    expect(promoBoard).toContain("Typical");
+    expect(promoBoard).toContain("Deep");
+    expect(promoBoard).toContain("later orders at full price");
+    expect(promoBoard).toContain("is worth the most");
+    expect(promoBoard).toContain("After refunds");
+    expect(promoBoard).toContain("promoMedianOffCopy");
+    expect(promoBoard).not.toContain("discountApplications");
+    expect(route).not.toContain('href="/app/discount"');
   });
 
   it("product journeys only paint when titles are on file", () => {

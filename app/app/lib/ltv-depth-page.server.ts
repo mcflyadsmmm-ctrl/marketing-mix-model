@@ -38,12 +38,15 @@ export async function loadLtvDepth(options: {
   shopId: string;
   useSampleDesk: boolean;
   asOf?: Date;
+  /** Live shops on a short order window — first year on Promo → LTV stays a dash. */
+  historyLimited?: boolean;
 }): Promise<LtvFlagshipView> {
   const asOf = options.asOf ?? new Date();
+  const historyLimited = Boolean(options.historyLimited) && !options.useSampleDesk;
 
   if (options.useSampleDesk) {
     const orders = generateSnowdevilDepthOrders(asOf);
-    return buildLtvFlagship(orders, asOf, { sample: true });
+    return buildLtvFlagship(orders, asOf, { sample: true, historyLimited: false });
   }
 
   const rows = await loadOrderDepthRows(
@@ -70,5 +73,5 @@ export async function loadLtvDepth(options: {
       discountCode: null,
     });
   }
-  return buildLtvFlagship(orders, asOf, { sample: false });
+  return buildLtvFlagship(orders, asOf, { sample: false, historyLimited });
 }

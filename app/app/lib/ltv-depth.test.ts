@@ -59,6 +59,7 @@ describe("rollUpCustomers", () => {
     expect(c.ordersD365).toBe(4);
     expect(c.reorderDays).toBe(19);
     expect(c.firstDiscountAmount).toBeNull();
+    expect(c.firstGrossAmount).toBeNull();
     expect(c.firstDiscountCode).toBeNull();
   });
 
@@ -75,6 +76,7 @@ describe("rollUpCustomers", () => {
       },
     ]);
     expect(coded?.firstDiscountAmount).toBe(8);
+    expect(coded?.firstGrossAmount).toBeNull();
     expect(coded?.firstDiscountCode).toBe("BUNDLE");
 
     const [amountOnly] = rollUpCustomers([

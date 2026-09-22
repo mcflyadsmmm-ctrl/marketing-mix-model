@@ -119,6 +119,11 @@ export interface CustomerDepth {
   secondProduct: string | null;
   /** First-order discount $ when crawled. Null when the field was not on file. */
   firstDiscountAmount: number | null;
+  /**
+   * First-order pre-refund total (`grossAmount` / `totalPriceSet`) when known.
+   * Null means the total is not on file — not $0, and not a guessed percent.
+   */
+  firstGrossAmount: number | null;
   /** First-order discount code / title when present. Never guessed. */
   firstDiscountCode: string | null;
   lifetimeSpend: number;
@@ -314,6 +319,12 @@ export function rollUpCustomers(orders: DepthOrder[]): CustomerDepth[] {
       firstDiscountAmount:
         first.discountAmount != null && Number.isFinite(first.discountAmount)
           ? first.discountAmount
+          : null,
+      firstGrossAmount:
+        first.grossAmount != null &&
+        Number.isFinite(first.grossAmount) &&
+        first.grossAmount >= 0
+          ? first.grossAmount
           : null,
       firstDiscountCode: first.discountCode?.trim() || null,
       lifetimeSpend,

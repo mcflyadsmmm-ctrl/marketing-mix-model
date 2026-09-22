@@ -44,7 +44,15 @@ export async function loadCustomersStackPage(request: Request) {
         useSampleDesk: base.useSampleDesk,
         windowEnd: base.metrics.period.end,
       }),
-      loadLtvDepth({ shopId: shop.id, useSampleDesk: base.useSampleDesk }),
+      loadLtvDepth({
+        shopId: shop.id,
+        useSampleDesk: base.useSampleDesk,
+        historyLimited: Boolean(
+          !base.useSampleDesk &&
+            (base.orderBackfillProgress?.historyLimited ||
+              base.metrics.tillLtv.historyLimited),
+        ),
+      }),
       prisma.spendEntry.count({
         where: { shopId: shop.id, NOT: { source: "sample" } },
       }),
