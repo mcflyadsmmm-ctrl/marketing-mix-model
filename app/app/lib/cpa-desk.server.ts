@@ -21,6 +21,7 @@ import {
   type CpaWindowSnapshot,
 } from "./cpa-desk";
 import { deskPeriodTillLabel } from "./desk-history";
+import type { LiveIngestDepth } from "./live-ingest-depth";
 import { shopLiveIngestDepth } from "./live-ingest-depth.server";
 import {
   buildDailyRowsForWindow,
@@ -72,6 +73,7 @@ export type CpaDeskLoaderData = {
   todaySalesTruncated: boolean;
   todaySalesUnavailable: boolean;
   shopifyOrderWindowLimited: boolean;
+  orderBookDepth: LiveIngestDepth;
 };
 
 async function loadBuyerDays(
@@ -194,7 +196,10 @@ export async function loadCpaDesk(
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
   const now = new Date();
-  const deskWindows = resolveCpaDeskWindows(now, deskTz);
+  const orderBookDepth: LiveIngestDepth = useSampleDesk
+    ? "paid_full"
+    : await shopLiveIngestDepth(shop.id);
+  const deskWindows = resolveCpaDeskWindows(now, deskTz, orderBookDepth);
 
   let salesError: string | null = null;
   let todaySalesTruncated = false;
@@ -305,9 +310,7 @@ export async function loadCpaDesk(
     salesError,
     blockedMockAsLive: metrics?.blockedMockAsLive ?? false,
     salesSource: metrics?.salesSource ?? "shopify",
-    orderBookDepth: useSampleDesk
-      ? "paid_full"
-      : await shopLiveIngestDepth(shop.id),
+    orderBookDepth,
   });
 
   const explorerRanges = {
@@ -332,5 +335,6 @@ export async function loadCpaDesk(
     todaySalesTruncated,
     todaySalesUnavailable,
     shopifyOrderWindowLimited,
+    orderBookDepth,
   };
 }

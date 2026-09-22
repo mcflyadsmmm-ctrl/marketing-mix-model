@@ -10,8 +10,9 @@ const appSrc = join(repoRoot, "app/app");
  * Guards the locked product claims against drift back into the desk.
  *
  * LOCKED: Sample data | Live data are the only desk views. One paid plan —
- * 7-day full-access trial then $39/store/mo, whole desk, no feature gate.
- * No pixels, no MTA, no "true ROAS", no waitlist, no 90-day history cap.
+ * 7-day trial then $39/store/mo. Unpaid order rows stop at 90 closed days.
+ * Paid is up to 24 months. No feature gate. No pixels, no MTA, no "true ROAS",
+ * no waitlist. Do not sell a finished year on the unpaid book.
  *
  * Scope is the merchant-facing app only (app/app). Marketing lives in site/
  * and is covered by marketing-product-match.test.ts.
@@ -79,9 +80,11 @@ describe("desk never claims what the routes do not do", () => {
     expect(banned(/waitlist/i)).toEqual([]);
   });
 
-  it("has no 90-day history cap claim (history is Jan 1 of year minus five)", () => {
-    expect(claimed(/90[\s-]day (cap|limit|history)/i)).toEqual([]);
+  it("does not claim the whole desk is only the last 90 days", () => {
+    // Unpaid order rows are 90 closed days. Paid is 24 months. Sales day
+    // totals can be longer. A blanket "only 90 days of history" is the lie.
     expect(claimed(/only the last 90 days/i)).toEqual([]);
+    expect(claimed(/90[\s-]day (cap|limit|history)/i)).toEqual([]);
   });
 
   it("gates no feature behind a plan", () => {
@@ -142,14 +145,23 @@ describe("desk never claims what the routes do not do", () => {
     expect(labels).not.toMatch(/"Your store"/);
   });
 
-  it("prices one paid plan: 7-day full-access trial, then $39/store/mo", () => {
+  it("prices one paid plan: 7-day trial then $39/store/mo, 90 closed days vs 24 months", () => {
     const ent = readFileSync(join(appSrc, "lib/entitlements.ts"), "utf8");
-    expect(ent).toMatch(/7-day/);
+    expect(ent).toMatch(/7-day trial/);
     expect(ent).toMatch(/\$39/);
     expect(ent).toMatch(/not a percent of sales/i);
     expect(ent).toMatch(/not a per-order fee/i);
-    // Uninstall must be named as the way to stop the charge.
     expect(ent).toMatch(/Uninstall/);
+    expect(ent).not.toMatch(/full-access/);
+    expect(ent).not.toMatch(/Free plan/);
+    expect(ent).toMatch(/90 closed days|LIVE_UNPAID_INGEST_DAYS/);
+    expect(ent).toMatch(/24 months/);
+    const handoff = readFileSync(
+      join(appSrc, "lib/sample-live-handoff.ts"),
+      "utf8",
+    );
+    expect(handoff).not.toMatch(/whole desk is already on/i);
+    expect(handoff).not.toMatch(/full-access/);
   });
 
   it("keeps desk history at Jan 1 of (year - 5)", () => {

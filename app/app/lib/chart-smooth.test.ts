@@ -141,10 +141,18 @@ describe("chart smoothness helpers", () => {
       mode: "stacked" as const,
       showSales: false,
     };
-    expect(paintExplorerControls(current, null)).toEqual(current);
-    expect(paintExplorerControls(current, "?period=mtd")).toEqual(current);
     expect(
-      paintExplorerControls(current, "?exRange=30d&exGran=Week&exMode=total&exSales=1"),
+      paintExplorerControls(current, null, "paid_full"),
+    ).toEqual(current);
+    expect(
+      paintExplorerControls(current, "?period=mtd", "paid_full"),
+    ).toEqual(current);
+    expect(
+      paintExplorerControls(
+        current,
+        "?exRange=30d&exGran=Week&exMode=total&exSales=1",
+        "paid_full",
+      ),
     ).toEqual({
       range: "30d",
       granularity: "Week",

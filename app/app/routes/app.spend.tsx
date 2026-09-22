@@ -1261,6 +1261,7 @@ export default function SpendEntryPage() {
             basePath="/app/spend"
             compare
             quiet={false}
+            orderBookDepth={orderBookDepth}
           />
 
           {cashControl?.dualClose ? (
@@ -1339,6 +1340,7 @@ export default function SpendEntryPage() {
               windows={cpa.windows}
               selectedId={cpaSelected.id}
               onSelect={setCpaSelectedId}
+              todaySalesTruncated={cpa.todaySalesTruncated}
             />
           ) : null}
           {cpaBuyersMissing ? (
@@ -1357,6 +1359,8 @@ export default function SpendEntryPage() {
               ranges={cpa.explorerRanges}
               selectedWindow={cpaSelected.id}
               onSelectWindow={setCpaSelectedId}
+              orderBookDepth={orderBookDepth}
+              todaySalesTruncated={cpa.todaySalesTruncated}
             />
           ) : null}
         </section>

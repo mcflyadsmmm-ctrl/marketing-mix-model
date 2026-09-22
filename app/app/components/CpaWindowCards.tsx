@@ -1,7 +1,9 @@
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
+  CPA_CLOSED_DAY_CLOCK,
   CPA_NO_BUYERS,
+  CPA_TODAY_TRUNCATED,
   type CpaWindowId,
   type CpaWindowSnapshot,
 } from "../lib/cpa-desk";
@@ -18,10 +20,12 @@ export function CpaWindowCards({
   windows,
   selectedId,
   onSelect,
+  todaySalesTruncated,
 }: {
   windows: CpaWindowSnapshot[];
   selectedId: CpaWindowId;
   onSelect: (id: CpaWindowId) => void;
+  todaySalesTruncated: boolean;
 }) {
   const currency = useDeskCurrency();
   const deskHref = useDeskHref();
@@ -134,6 +138,10 @@ export function CpaWindowCards({
           );
         })}
       </div>
+      <p className="mcfly-book__lede">
+        {CPA_CLOSED_DAY_CLOCK}
+        {todaySalesTruncated ? ` ${CPA_TODAY_TRUNCATED}` : ""}
+      </p>
     </section>
   );
 }

@@ -34,6 +34,7 @@ import {
 } from "../lib/sample-desk.server";
 import { SampleDeskBanner } from "../components/SampleDeskBanner";
 import { TRIAL_VS_VIEW } from "../lib/sample-live-handoff";
+import { LIVE_UNPAID_INGEST_DAYS } from "../lib/live-unpark";
 import { ProUpgradeButton } from "../components/ProUpgradeButton";
 import {
   getComplianceDataExportPackage,
@@ -578,7 +579,9 @@ export default function SettingsPage() {
               </p>
             ) : null}
             <p className="mcfly-control__k" style={{ marginTop: "0.75rem" }}>
-              $39 per store / month after a 7-day full-access trial
+              $39 per store / month after a 7-day trial. Unpaid order rows
+              stop at {LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months.
+              One plan.
             </p>
             <ul className="mcfly-settings-guide">
               {billing.deskBullets.map((line) => (
@@ -606,9 +609,8 @@ export default function SettingsPage() {
                   className="mcfly-panel__muted"
                   style={{ marginTop: "0.75rem" }}
                 >
-                  Start 7-day trial opens when billing is on this host. The
-                  whole desk is included — one Live shop view, not a Sample
-                  plan.
+                  Start 7-day trial opens when billing is on this host. One Live shop view, not a Sample plan.
+                  Unpaid order rows stop at {LIVE_UNPAID_INGEST_DAYS} closed days. Paid is up to 24 months.
                 </p>
               )
             ) : (

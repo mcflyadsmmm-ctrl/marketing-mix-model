@@ -293,3 +293,34 @@ describe("book coverage honesty — Spend today cap and no 60-day truncated clau
     expect(PRODUCT_NOUN.bookSecondWithin30Def).not.toMatch(/about 60 days/i);
   });
 });
+
+describe("book coverage honesty — Settings / Spend leftover names the 90 vs 24 split", () => {
+  it("does not recook Overview coverage; Settings, explorer, and CPA name the unpaid book", () => {
+    expect(overviewCoverageLine("trial_slice")).toMatch(
+      new RegExp(`${LIVE_UNPAID_INGEST_DAYS} closed days`),
+    );
+    expect(OVERVIEW_COVERAGE_LINE).toMatch(/24 months/);
+
+    const settings = read("../routes/app.settings.tsx");
+    expect(settings).toContain("TRIAL_VS_VIEW");
+    expect(settings).not.toMatch(/full-access/);
+    expect(settings).not.toContain("UnlockFullHistoryBanner");
+
+    const explorer = read("../components/SpendExplorer.tsx");
+    expect(explorer).toContain("orderBookDepth: LiveIngestDepth");
+    expect(explorer).toContain("explorerRangeOptionsFor");
+
+    const cpa = read("../components/CpaExplorer.tsx");
+    expect(cpa).toContain("cpaExplorerRangesFor");
+    expect(cpa).toContain("orderBookDepth: LiveIngestDepth");
+
+    const customers = read("../routes/app.customers.tsx");
+    expect(customers).toContain("<UnlockFullHistoryBanner");
+    expect(read("../routes/app.spend.tsx")).not.toContain(
+      "UnlockFullHistoryBanner",
+    );
+    expect(read("../routes/app.goals.tsx")).not.toContain(
+      "UnlockFullHistoryBanner",
+    );
+  });
+});

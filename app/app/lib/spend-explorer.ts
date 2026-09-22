@@ -4,6 +4,8 @@
  */
 
 import type { PeriodPreset } from "./periods";
+import type { LiveIngestDepth } from "./live-ingest-depth";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   dateKeyFromYmd,
   listRecentClosedShopLocalDays,
@@ -125,6 +127,58 @@ export const EXPLORER_RANGE_OPTIONS: { value: ExplorerRange; label: string }[] =
     { value: "1y", label: "1 year" },
     { value: "All", label: "All" },
   ];
+
+/** Year-length chips that sell a finished year on a 90-day unpaid book. */
+export function explorerSellsFinishedYear(range: ExplorerRange): boolean {
+  return range === "YTD" || range === "1y" || range === "All";
+}
+
+export function explorerRangeAllowedOnBook(
+  range: ExplorerRange,
+  orderBookDepth: LiveIngestDepth,
+): boolean {
+  switch (orderBookDepth) {
+    case "paid_full":
+      return true;
+    case "trial_slice":
+      return !explorerSellsFinishedYear(range);
+    default: {
+      const _never: never = orderBookDepth;
+      return _never;
+    }
+  }
+}
+
+export function explorerRangeOptionsFor(
+  orderBookDepth: LiveIngestDepth,
+): { value: ExplorerRange; label: string }[] {
+  return EXPLORER_RANGE_OPTIONS.filter((opt) =>
+    explorerRangeAllowedOnBook(opt.value, orderBookDepth),
+  );
+}
+
+export function clampExplorerRangeToBook(
+  range: ExplorerRange,
+  orderBookDepth: LiveIngestDepth,
+): ExplorerRange {
+  if (explorerRangeAllowedOnBook(range, orderBookDepth)) return range;
+  return "90d";
+}
+
+export function explorerYearChipNote(
+  orderBookDepth: LiveIngestDepth,
+): string | null {
+  switch (orderBookDepth) {
+    case "paid_full":
+      return null;
+    case "trial_slice":
+      return `${LIVE_UNPAID_INGEST_DAYS} closed days of order rows on this unpaid till. This year / 1 year / All wait until you pay — day totals vs order rows.`;
+    default: {
+      const _never: never = orderBookDepth;
+      return _never;
+    }
+  }
+}
 
 export const EXPLORER_GRANULARITY_OPTIONS: {
   value: ExplorerGranularity;
@@ -311,8 +365,13 @@ export type ExplorerPaintControls = {
 export function paintExplorerControls(
   current: ExplorerPaintControls,
   pendingSearch: string | null | undefined,
+  orderBookDepth: LiveIngestDepth,
 ): ExplorerPaintControls {
-  if (!pendingSearch) return current;
+  const clamp = (range: ExplorerRange) =>
+    clampExplorerRangeToBook(range, orderBookDepth);
+  if (!pendingSearch) {
+    return { ...current, range: clamp(current.range) };
+  }
   const query = pendingSearch.startsWith("?")
     ? pendingSearch.slice(1)
     : pendingSearch;
@@ -324,11 +383,13 @@ export function paintExplorerControls(
     params.has("exSales") ||
     params.has("exFrom") ||
     params.has("exTo");
-  if (!touching) return current;
+  if (!touching) return { ...current, range: clamp(current.range) };
   return {
-    range: params.has("exRange")
-      ? parseExplorerRange(params.get("exRange"))
-      : current.range,
+    range: clamp(
+      params.has("exRange")
+        ? parseExplorerRange(params.get("exRange"))
+        : current.range,
+    ),
     granularity: params.has("exGran")
       ? parseExplorerGranularity(params.get("exGran"))
       : current.granularity,

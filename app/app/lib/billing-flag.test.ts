@@ -28,6 +28,11 @@ describe("billing flags", () => {
     expect(billingStatusCopy(true).tier).toBe("pro");
     expect(billingStatusCopy(true).detail).toMatch(/not a percent of sales/i);
     expect(billingStatusCopy(true).detail).toMatch(/next 30-day cycle/i);
+    expect(billingStatusCopy(true).detail).not.toMatch(/full-access/);
+    expect(billingStatusCopy(true).detail).toMatch(/90 closed days/);
+    expect(billingStatusCopy(true).detail).toMatch(/24 months/);
+    expect(billingStatusCopy(true).detail).toMatch(/\$39/);
+    expect(billingStatusCopy(true).detail).toMatch(/7-day trial/);
   });
 
   it("parses free import cap", () => {

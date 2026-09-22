@@ -64,6 +64,9 @@ describe("Goals page", () => {
     expect(retry).not.toContain("{salesError}");
     expect(retry).not.toContain("stay $0");
     expect(goals).toContain("TRIAL_VS_VIEW");
+    expect(goals).not.toMatch(/whole desk is already on/i);
+    expect(goals).not.toMatch(/full-access/);
+    expect(goals).not.toContain("UnlockFullHistoryBanner");
   });
 
   it("points spend CTAs at Spend Upload, not Marketing, and Settings for target ROAS", () => {

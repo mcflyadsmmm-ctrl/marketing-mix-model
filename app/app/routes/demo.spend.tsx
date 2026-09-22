@@ -179,7 +179,7 @@ export default function PublicDemoSpend() {
   );
   const mixTotal = data.channelSpend.reduce((sum, row) => sum + row.amount, 0);
   const explorerRanges = useMemo(() => {
-    const windows = resolveCpaDeskWindows(new Date(), PUBLIC_SAMPLE_TZ);
+    const windows = resolveCpaDeskWindows(new Date(), PUBLIC_SAMPLE_TZ, "paid_full");
     return {
       this_month: rangeDayKeys(
         cpaExplorerRangeOf("this_month", windows),
@@ -310,6 +310,7 @@ export default function PublicDemoSpend() {
             basePath="/demo/spend"
             compare
             quiet={false}
+            orderBookDepth="paid_full"
           />
           {data.cashControl.dualClose ? (
             <DualCloseLine
@@ -365,6 +366,7 @@ export default function PublicDemoSpend() {
               windows={data.cpaWindows}
               selectedId={cpaSelected.id}
               onSelect={setCpaSelectedId}
+              todaySalesTruncated={false}
             />
           )}
           {hasSpend ? (
@@ -379,6 +381,8 @@ export default function PublicDemoSpend() {
             ranges={explorerRanges}
             selectedWindow={cpaSelected.id}
             onSelectWindow={setCpaSelectedId}
+            orderBookDepth="paid_full"
+            todaySalesTruncated={false}
           />
         </section>
 

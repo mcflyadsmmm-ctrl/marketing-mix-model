@@ -109,7 +109,7 @@ describe("CPA page", () => {
   it("mounts an Overview-grade CPA explorer on Spend and refuses SpendExplorer inside CPA", () => {
     expect(spend).toContain("<CpaExplorer");
     expect(explorer).toContain("Cash CPA explorer");
-    expect(explorer).toContain("CPA_EXPLORER_RANGES");
+    expect(explorer).toContain("cpaExplorerRangesFor");
     expect(explorer).toContain("this_month");
     expect(explorer).toContain("last_28");
     expect(explorer).toContain("mcfly-chart__tip");
@@ -123,5 +123,30 @@ describe("CPA page", () => {
   it("links LTV and keep add-a-day on Spend", () => {
     expect(spend).toContain('id="mcfly-spend-add"');
     expect(spend).toContain('id="mcfly-cpa"');
+  });
+
+  it("unpaid CPA does not offer a finished YTD; Last 28 / This month use closed days", () => {
+    expect(desk).toContain("cpaExplorerRangesFor");
+    expect(desk).toContain("CPA_CLOSED_DAY_CLOCK");
+    expect(desk).toMatch(
+      /export function cpaExplorerRangesFor\(\s*orderBookDepth: LiveIngestDepth/,
+    );
+    expect(desk).toContain('case "trial_slice"');
+    expect(desk).toContain('case "paid_full"');
+    expect(desk).toMatch(/const _never: never = orderBookDepth/);
+    expect(explorer).toContain("orderBookDepth: LiveIngestDepth");
+    expect(explorer).not.toMatch(/orderBookDepth\?:/);
+    expect(explorer).toContain("cpaExplorerRangesFor(orderBookDepth)");
+    expect(explorer).toContain("todaySalesTruncated");
+    expect(explorer).toContain("CPA_CLOSED_DAY_CLOCK");
+    expect(cards).toContain("todaySalesTruncated");
+    expect(cards).toContain("CPA_CLOSED_DAY_CLOCK");
+    expect(spend).toMatch(/<CpaExplorer[\s\S]*orderBookDepth=\{orderBookDepth\}/);
+    expect(spend).toMatch(/<CpaExplorer[\s\S]*todaySalesTruncated=\{/);
+    expect(spend).toMatch(/<CpaWindowCards[\s\S]*todaySalesTruncated=\{/);
+    expect(spend).not.toContain("UnlockFullHistoryBanner");
+    expect(spend).toMatch(/never 0×|never a fake \$0/);
+    const demo = readFileSync(join(here, "../routes/demo.spend.tsx"), "utf8");
+    expect(demo).toMatch(/<CpaExplorer[\s\S]*orderBookDepth="paid_full"/);
   });
 });
