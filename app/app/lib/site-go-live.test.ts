@@ -159,4 +159,49 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     expect(llms).toMatch(/Overview, Orders, Customers/);
     expect(llms).not.toMatch(/Buyers, Timing/);
   });
+
+  it("v35 leftover hunter: spine drops invented Polar, cash OG, and parks calculator canonicals", () => {
+    const index = readFileSync(join(siteRoot, "index.html"), "utf8");
+    const pricing = readFileSync(join(siteRoot, "pricing.html"), "utf8");
+    const support = readFileSync(join(siteRoot, "support.html"), "utf8");
+    const chrome = readFileSync(join(siteRoot, "assets/mcfly/chrome.js"), "utf8");
+    const redirects = readFileSync(join(siteRoot, "_redirects"), "utf8");
+    const calc = readFileSync(
+      join(siteRoot, "break-even-roas-calculator.html"),
+      "utf8",
+    );
+    const mer = readFileSync(join(siteRoot, "mer-calculator.html"), "utf8");
+    const llms = readFileSync(join(siteRoot, "llms.txt"), "utf8");
+
+    expect(index).not.toMatch(/\$1,?020/);
+    expect(index).not.toContain("og-cash-mer");
+    expect(index).not.toMatch(/beat native Analytics/i);
+    expect(index).not.toContain("Harbor Home Co");
+    expect(index).not.toMatch(/\$98,?500/);
+    expect(index).not.toMatch(/4\.19×/);
+    expect(index).not.toMatch(/Custom inquire/);
+    expect(index).toMatch(/listing card is still spend-first/);
+    expect(pricing).not.toMatch(/beat native Analytics/i);
+    expect(pricing).not.toMatch(/full-access/i);
+    expect(support).toContain("no Sample|Live toggle");
+    expect(chrome).not.toContain("og-cash-mer");
+    expect(chrome).toContain('ensureMeta("mcfly-version", "v35")');
+
+    expect(redirects).toMatch(/\/mds-made-easy\/\* \/ 301/);
+    expect(redirects).toMatch(/\/break-even \/pricing 301/);
+    expect(redirects).toMatch(/\/break-even-roas-calculator \/pricing 301/);
+    expect(redirects).toMatch(/\/mer-calculator \/pricing 301/);
+    expect(redirects).toMatch(
+      /\/assets\/brand\/og-cash-mer\.jpg \/assets\/brand\/og-analytics\.jpg 301/,
+    );
+
+    expect(calc).toContain('href="https://mcflyads.com/pricing"');
+    expect(calc).toContain('name="robots" content="noindex,follow"');
+    expect(calc).not.toContain(
+      'href="https://mcflyads.com/break-even-roas-calculator"',
+    );
+    expect(mer).toContain('href="https://mcflyads.com/pricing"');
+    expect(mer).toContain('name="robots" content="noindex,follow"');
+    expect(llms).toMatch(/listing card is still spend-first/);
+  });
 });

@@ -20,5 +20,5 @@ This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.
 - https://mcflyads.com/security
 
 ## Refuse
-Pixels, MTA, path credit, view-through, “true ROAS.” Live listing: https://apps.shopify.com/mcfly-analytics-public — do not invent a different App Store URL.
+Pixels, MTA, path credit, view-through, “true ROAS.” Live listing: https://apps.shopify.com/mcfly-analytics-public — do not invent a different App Store URL. The listing card is still spend-first until founder Save.
 Custom Data Solutions is parked — not the public offer.

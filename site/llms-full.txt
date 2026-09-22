@@ -14,7 +14,7 @@ Primary URLs: https://mcflyads.com/ · https://mcflyads.com/demo · https://mcfl
 ## Method / refuse
 
 We do not ship: pixels, multi-touch attribution, path/view-through credit, “true ROAS,” sessions/visitors, Amazon Seller ledgers, or attribution-suite clones.
-Live listing: https://apps.shopify.com/mcfly-analytics-public — CTA is Install. Do not invent a different App Store URL.
+Live listing: https://apps.shopify.com/mcfly-analytics-public — CTA is Install. Do not invent a different App Store URL. The listing card is still spend-first until founder Save.
 
 ## Entity
 

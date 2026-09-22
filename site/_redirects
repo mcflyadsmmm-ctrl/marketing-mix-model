@@ -123,9 +123,14 @@
 # Park leftover calculators — one product, one price page
 /mer-calculator /pricing 301
 /mer-calculator/ /pricing 301
+/mer-calculator.html /pricing 301
 /break-even-roas-calculator /pricing 301
 /break-even-roas-calculator/ /pricing 301
+/break-even-roas-calculator.html /pricing 301
 /best-shopify-profit-apps / 301
 /best-shopify-profit-apps/ / 301
+
+# Old cash-MER OG must not stay a public 200
+/assets/brand/og-cash-mer.jpg /assets/brand/og-analytics.jpg 301
 
 /* /404.html 404

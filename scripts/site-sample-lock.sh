@@ -28,6 +28,24 @@ if grep -qE '\$98,?500' "$HOME"; then
 else
   ok "$HOME has no Northline \$98,500"
 fi
+if grep -qE '\$1,?020' "$HOME"; then
+  bad "$HOME still invents Polar \$1,020"
+else
+  ok "$HOME no invented Polar \$1,020"
+fi
+if grep -q 'og-cash-mer' "$HOME"; then
+  bad "$HOME still points at og-cash-mer.jpg"
+else
+  ok "$HOME has no og-cash-mer.jpg"
+fi
+if grep -q '/mds-made-easy/* / 301' site/_redirects \
+  && grep -q '/break-even /pricing 301' site/_redirects \
+  && grep -q '/break-even-roas-calculator /pricing 301' site/_redirects \
+  && grep -q '/mer-calculator /pricing 301' site/_redirects; then
+  ok "_redirects parks MDS + calculators"
+else
+  bad "_redirects missing MDS/calculator 301s"
+fi
 if grep -qE 'Snowdevil' "$HOME" && grep -qE '\$19,?023' "$HOME" && grep -qE '3\.60' "$HOME"; then
   ok "$HOME Snowdevil SAMPLE \$19,023 / 3.60×"
 else

@@ -7,8 +7,8 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v34");
-  ensureMeta("mcfly-build", "operator-desk-v34");
+  ensureMeta("mcfly-version", "v35");
+  ensureMeta("mcfly-build", "operator-desk-v35");
 
   var LISTING = "https://apps.shopify.com/mcfly-analytics-public";
   var primary =
