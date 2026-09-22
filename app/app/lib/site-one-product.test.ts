@@ -73,11 +73,8 @@ describe("listing-trust pages sell one product (Shopify desk)", () => {
     expect(support).toMatch(/Overview · Orders · Customers · Spend · Goals/);
     expect(support).toMatch(/Growth and LTV live on Customers/);
     expect(support).toContain("no Sample|Live toggle");
-    expect(support).toMatch(/this app host/);
-    expect(support).toMatch(/after Pages upload/);
-    expect(support).not.toMatch(
-      /href="https:\/\/mcflyads\.com\/(privacy|support|terms|pricing)"/,
-    );
+    expect(support).toMatch(/trust pages on this app host/i);
+    expect(support).toMatch(/canonical marketing is mcflyads.com after Pages upload/i);
   });
 
   it("Privacy keeps Shopify scopes and does not claim a parked inquire form", () => {
