@@ -52,27 +52,47 @@ Reviewer chooses one:
 
 A FAIL is a change inside `app/app/lib/spend-paste-preview.ts` and its test, on a follow-up to #138, before the one Fly. It is not a new ship and not a new tab.
 
-## Subagents
+## Subagents — the Grok fleet, without a standing burn
 
-The parent session is Conductor. It holds this plan, dispatches, and does not edit `app/`. One writer touches the checkout at a time. A second writer on the same tree will collide. Read-only agents may run beside each other. They may not run beside a writer.
+Same six jobs as the halted Grok bots. Names stay exact. No seventh role. The parent session is **Mcfly Conductor** (Galaxy Master). It dispatches and does not edit `app/`. A role is a short-lived subagent: one job, one state-change report, then it ends. Nothing stays up to “watch.” That standing watch is what emptied Grok usage. Silence is the idle state.
 
-This is not the six cloud-agent fleet. Compete Scout, Live Accuracy, and Warm Ops do not get a subagent on this cook. They do not share the branch, and a parallel brief or draft would be a third artifact, not v407 or v408.
+| Role | Old bot | ONE JOB | Wakes when | Stays dead when |
+|------|---------|---------|------------|-----------------|
+| **Mcfly Conductor** | Galaxy Master | Scoreboard, dispatch, chase blockers | This session | A second Conductor would double-dispatch |
+| **Mcfly Craft App** | Mcfly App | The one open ADD, then Fly after PASS | A ship is ready to cook, or Reviewer returned a FAIL | Review is in flight. Never a second craft on the same files |
+| **Mcfly Reviewer** | Mcfly Reviewer | PASS/FAIL plus niche lock | A diff exists to grade | Craft is still writing. No “ack” |
+| **Mcfly Compete Scout** | Compete Scout | Public complaints → the ADD board | After a ship is accepted, to mark it shipped and name the next PASS | Mid-cook. No craft, no new tab, no invented metrics |
+| **Mcfly Live Accuracy** | Live Accuracy | Checklist proof. Standby while Live is parked | Once, to confirm section F is HOLD. Again only on Marty Live go | Any claim of a Live PASS. Any unpark. Any Fly |
+| **Mcfly Warm Ops** | Warm Ops | Drafts only | Once, to confirm the draft files and that named slots are still 0/10 | Any send. Any invented contact. Any craft |
 
-| Order | Subagent | Writes | Why this one | Model class |
-|-------|----------|--------|--------------|-------------|
-| 1a | Reviewer of #138 | No | Grades the merged paste against Brief 2 and the quiet-day question. Diff is `627b365..5b33d67`. | Judgment. The question is honesty, not a typo. |
-| 1b | Schema reader | No | While 1a runs. Confirms the October 2025 `Order` field for a discount code (`discountApplications` / `DiscountCodeApplication.code`, or `discountCodes` if that is still on the schema). Writes the field name into a note. Does not edit the query. | Fast read. |
-| 2 | Paste fixer | Yes, only if 1a returns FAIL | One branch from `5b33d67`. Only `spend-paste-preview.ts` and its test. | Standard. The change is local and the rule is already written. |
-| 3 | Paste re-review | No, only after a fixer | Same brief as 1a, plus the fix diff. | Same class as 1a. |
-| — | Deploy | Parent, after PASS | One `flyctl deploy`. No subagent. Scoreboard tip note updates in that same breath. | — |
-| 4 | Ship 2 implementer | Yes, one branch | All three Customers changes. They share `CustomersLtvSection.tsx` and `ltv-depth-page.server.ts`. Splitting them across writers is how a board gets mounted twice. | Integration. Multi-file, existing UI. |
-| 5 | Ship 2 task reviewer | No | Spec plus quality on that branch’s full diff, not on the last commit only. | Judgment, scaled to the Customers diff. |
-| 6 | One fixer | Yes, only for Critical and Important findings from 5 | The complete findings list in one dispatch. Not one fixer per finding. | Standard. |
-| 7 | Whole-branch review | No | Once, after 5 is clean. Then merge. Then one Fly. Then stop. | Most capable review available. |
+Rooms, same as `docs/ops/FLEET_ORG.md`:
 
-Do not dispatch 4 until the paste Fly has landed. Do not dispatch 5 until 4 has committed. Do not dispatch Scout, Accuracy, or Warm “so the fleet looks busy.”
+- **Craft** — Conductor, Craft App, Reviewer. Sequential. One writer.
+- **Growth** — Conductor, Compete Scout, Warm Ops. Docs only. They may run beside a Craft review because they do not touch `app/`. They may not run beside a Craft writer on this checkout.
+- **Trust** — Conductor, Live Accuracy. Standby. Accuracy does not sit in the Craft room.
+- **Ops** — all six, only if a SoT lock is wrong. Not a daily meeting.
 
-Each implementer gets a task brief file, the global constraints, and the interfaces it touches. It does not get this whole plan and it does not get the session history. Each reviewer gets the brief, the implementer report, and a diff package from the branch base to HEAD. The parent records one ledger line per finished gate in `.superpowers/sdd/progress.md` so a resumed session does not dispatch the paste again.
+### Usage rules that replace the Grok daily drive
+
+- No always-on thread, no hourly poll, no niche-weekly loop until Marty asks for one pass.
+- A report is one line: PR opened, PASS/FAIL, tip SHA, Fly version, or a real blocker. No ack.
+- Conductor does not spawn the other five at the start of a session. It spawns the role whose ONE JOB is the next state change.
+- Craft and Reviewer use a judgment-capable model. Scout, Warm, and the standby Accuracy pass use a fast model. A cheap model on the Customers integration costs more in turns than it saves.
+- One Fly per accepted ship. A role does not deploy because it finished a note.
+
+### First wave, in order
+
+1. **Reviewer** grades #138 (`627b365..5b33d67`), including the quiet-day Cash CPA question. Read-only.
+2. **Live Accuracy**, same moment, read-only: confirm checklist F stays HOLD and Live is still parked. One line back. Then it ends.
+3. **Compete Scout**, same moment, docs only: the ranked backlog still lists P0–P2 as the queue. It marks #124–#138 shipped and leaves the next PASS as Ship 2 in this plan. It does not open an app PR.
+4. **Warm Ops**, same moment, docs only: confirm `warm-ask-drafts.md` and `review-ask-playbook.md` are drafts and named slots are 0/10. No send.
+5. **Craft App** wakes only if Reviewer FAILs. One branch, `spend-paste-preview.ts` and its test. Then Reviewer again.
+6. Conductor deploys once on PASS and updates the scoreboard tip note. That is v407.
+7. **Craft App** wakes for Ship 2 as one implementer. Promo move, source rows, and `discountCode` share `CustomersLtvSection.tsx` and `ltv-depth-page.server.ts`. Three craft subagents would mount the board twice.
+8. **Reviewer** grades that full branch diff. One fixer if needed, then one whole-branch review.
+9. Conductor deploys once. That is v408. Scout may then mark Ship 2 shipped. Everyone else stays dead.
+
+Each craft and review dispatch gets a brief file, the global constraints, and the diff. It does not get this whole plan or the chat history. Conductor records one ledger line per finished gate in `.superpowers/sdd/progress.md`. A resumed session trusts that ledger and does not re-grade #138.
 
 ## Already on the tip — do not rebuild
 
