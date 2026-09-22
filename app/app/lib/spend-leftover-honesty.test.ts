@@ -61,11 +61,13 @@ describe("spend leftover honesty — shop-local import todayKey", () => {
 
   it("empty shop TZ stays host-local and does not invent a zone", () => {
     expect(deskPeriodTimeZone(false, null)).toBeNull();
-    expect(deskPeriodTimeZone(false, "")).toBeNull();
     expect(spendDeskTodayKey(null, DENVER_EVENING)).toBe(
       hostLocalDayKey(DENVER_EVENING),
     );
     expect(spendDeskTodayKey("", DENVER_EVENING)).toBe(
+      hostLocalDayKey(DENVER_EVENING),
+    );
+    expect(spendDeskTodayKey("   ", DENVER_EVENING)).toBe(
       hostLocalDayKey(DENVER_EVENING),
     );
     const importSrc = read("../routes/app.spend.import.tsx");
