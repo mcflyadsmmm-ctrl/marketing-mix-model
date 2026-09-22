@@ -4,6 +4,16 @@
 
 **Prime objective:** Make money selling **Mcfly Analytics** (Shopify app · 7-day then $39). Custom Data Solutions is parked (301 home).
 
+## Spawn optimizer
+
+Before any Task or cloud subagent, read [`.cursor/skills/mcfly-cursor-optimizer/SKILL.md`](../../.cursor/skills/mcfly-cursor-optimizer/SKILL.md) and run:
+
+```bash
+node .cursor/skills/mcfly-cursor-optimizer/scripts/check-prompt.mjs path/to/prompt.md
+```
+
+Exit 0, then spawn. Long craft and Reviewer use `grok-4.7-xhigh`. Do not pin Grok 4.6. One implementer plus one Reviewer. The parent re-runs the prompt's `DONE` command.
+
 ## Authority
 
 | Role | May | Must not |
