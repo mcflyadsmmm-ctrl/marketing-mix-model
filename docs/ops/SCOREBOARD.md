@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v412 / tip `9defb77` (merge of #154 catalog empty) / image `deployment-01M3438P2VQN13SG1HTY677HN1` / Live PARKED. Health ok 2026-09-22T08:22Z. v411 was the period total.
+**Tip Fly note:** v413 / tip `c3f3fee` (merge of #155 new-buyer truth) / image `deployment-01M344GJ5ZT5QBHW8TE7K0PATK` / Live PARKED. Health ok 2026-09-22T08:44Z. v412 was the catalog empty.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v412 / tip `9defb77` / Live PARKED |
+| Tip Fly SoT | v413 / tip `c3f3fee` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v412 / tip `9defb77`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v413 / tip `c3f3fee`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | DONE — four notes on #148–#151, ranked in the enterprise cook queue. Do not re-run that wave. |
 
 ## Next significant ship (the only craft allowed)
 
-**A quiet buyer is not new.** “How many first-time buyers showed up each week — and why does someone who bought last spring count as new?”
+**The month the merchant picked.** “I picked this month — which codes took the money, and are returns climbing, or is this board still the last 90 days?”
 
-The returning mix must not call a buyer new because their previous order sits just outside a 90-day slice. Weekly first-time counts come from orders already stored. Guests stay out. A missing lifetime count stays unknown, never a fake zero. Do not paint the sales-day `newCustomers: 0` as that weekly count. Customers returning mix only. No new tab.
+Orders intelligence follows the selected period. The weekly ledger shows discount-code dollars and whether returns are climbing, from `discountCode`, `grossAmount`, and `amount` already on the row. New versus already-bought on those codes uses the stored book, not a second 90-day “new.” The public orders page mounts the same board. A code is not a percent. Automatic discount titles stay off. A return stays on the placed order’s current net, not a processing-day clock. No ShopifyQL.
 
-Branch `cursor/new-buyer-truth-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 4–6 stay queued. Do not rebuild the catalog empty, the period total, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/orders-month-board-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 5–6 stay queued. Do not rebuild new-buyer truth, the catalog empty, the period total, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 3.
+Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 4.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
