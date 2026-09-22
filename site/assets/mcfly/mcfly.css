@@ -3424,7 +3424,7 @@ body.pricing-page .page-hero .cfo-shot {
   margin: 1.25rem 0 0;
 }
 body.pricing-page .cfo-shot .hero-cta {
-  margin: 1.15rem 0 0;
+  margin: 0.85rem 0 1rem;
 }
 body.pricing-page .cfo-shot .amount {
   font-family: var(--display);
@@ -3445,5 +3445,205 @@ body.pricing-page .cfo-shot .amount span {
   .digest-artifact {
     box-shadow: none;
     break-inside: avoid;
+  }
+}
+
+/* =================================================================
+   v37 — listing chrome, one SAMPLE pass, Polar job cards.
+   Append-only. Paper/sky. No site.css. No cinematic dark hero.
+   ================================================================= */
+
+.proof-chips--listing {
+  max-width: 28rem;
+}
+
+.job-grid {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1.35rem 0 0;
+}
+@media (min-width: 860px) {
+  .job-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+.job-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.05rem 1.1rem 1.15rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  min-height: 8.5rem;
+}
+.job-card:hover,
+.job-card:focus-visible {
+  border-color: rgba(2, 132, 199, 0.45);
+  outline: none;
+}
+.job-card strong {
+  font-family: var(--display);
+  font-size: 1.12rem;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.job-card p {
+  margin: 0;
+  color: var(--mute-ink);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.cmp--listings {
+  min-width: 40rem;
+}
+.cmp--listings thead th:nth-child(2),
+.cmp--listings td:first-of-type {
+  background: transparent;
+}
+.cmp--listings .cmp-on-row th,
+.cmp--listings .cmp-on-row td {
+  background: rgba(2, 132, 199, 0.06);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.listing-reviews {
+  margin: 1.25rem 0 0;
+  max-width: 36rem;
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+.listing-reviews__chrome {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.listing-reviews__score {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 2.4rem;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--ink);
+}
+.listing-reviews__n {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.listing-reviews__bars {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.28rem;
+}
+.listing-reviews__bars li {
+  display: grid;
+  grid-template-columns: 1.2rem minmax(0, 1fr) 1.2rem;
+  gap: 0.45rem;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--mute);
+}
+.listing-reviews__track {
+  display: block;
+  height: 6px;
+  border-radius: 99px;
+  background: #e8eef3;
+  overflow: hidden;
+}
+.listing-reviews__track i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--cyan-deep);
+}
+.listing-reviews__empty {
+  margin: 0.95rem 0 0;
+  color: var(--mute);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.listing-reviews .text-link {
+  display: inline-block;
+  margin-top: 0.7rem;
+}
+
+.digest-artifact__job {
+  margin: 0;
+  padding: 0.85rem 1.2rem 0;
+  color: var(--ink);
+  font-size: 0.98rem;
+  line-height: 1.4;
+  max-width: 46ch;
+}
+.digest-artifact__dest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.65rem 1.2rem 0;
+  padding: 0;
+  list-style: none;
+}
+.digest-artifact__dest li {
+  margin: 0;
+  padding: 0.18rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--well-mute);
+  background: #f7fbfe;
+}
+
+body.pricing-page .page-hero > .cfo-shot {
+  margin-top: 1.15rem;
+}
+body.pricing-page .page-hero .gmv-wedge {
+  margin-bottom: 0;
+}
+
+@media (max-width: 859px) {
+  .hero--v37 .dd-yoy {
+    display: none;
+  }
+  .hero--v37 .dd-kpi__hint {
+    display: none;
+  }
+  .hero--v37 .dd-period {
+    display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .hero--v37 .dd-kpi-grid--hero .dd-kpi:nth-child(3) {
+    display: none;
+  }
+  .hero--v37 .shot-frame__cap {
+    display: none;
+  }
+  .hero--v37 {
+    padding-bottom: 0.75rem;
+  }
+  .listing-reviews {
+    padding: 1rem 0.9rem 1.1rem;
+  }
+  .digest-artifact__job,
+  .digest-artifact__dest {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
   }
 }
