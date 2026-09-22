@@ -15,7 +15,7 @@ import {
   type SuggestAllocationResult,
 } from "@mcfly/mer-core";
 import { deskPeriodTimeZone, type DateRange } from "./periods";
-import { localDayKey, utcDayKey, SAMPLE_DESK_MARGIN_PCT, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
+import { localDayKey, utcDayKey, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
 import {
   listRecentClosedShopLocalDays,
   nextShopLocalDayKey,
@@ -259,6 +259,18 @@ export function marginIsConfirmed(settings: {
   return settings.marginConfirmedAt != null;
 }
 
+/**
+ * Break-even Total ROAS only after the merchant confirmed margin.
+ * SAMPLE must not invent 35% profit. Empty BE is —.
+ */
+export function confirmedBreakEvenMer(settings: {
+  marginConfirmedAt: Date | null;
+  marginPct: number;
+}): number | null {
+  if (!marginIsConfirmed(settings)) return null;
+  return computeBreakEvenMer(settings.marginPct);
+}
+
 /** Soft stale — confirmed margin older than 90 days (no schema change). */
 export const MARGIN_STALE_DAYS = 90;
 
@@ -271,7 +283,7 @@ export function marginIsStale(settings: {
 }
 
 export interface RitualOnboarding {
-  /** Margin confirmed via Settings save (or sample desk treated as confirmed). */
+  /** Margin confirmed via Settings save. SAMPLE does not count as confirmed. */
   settingsSaved: boolean;
   hasSpend: boolean;
   /**
@@ -1087,10 +1099,8 @@ export async function buildDashboardMetrics(
     options?.salesBasis ?? settings.salesBasis,
     "total",
   );
-  // SAMPLE economics are read-time overlays — seed must not mutate merchant settings.
-  const effectiveMarginPct = useSampleDesk
-    ? SAMPLE_DESK_MARGIN_PCT
-    : settings.marginPct;
+  // SAMPLE must not invent a confirmed profit margin. Target ROAS overlay stays.
+  const effectiveMarginPct = settings.marginPct;
   const effectiveTargetMer = useSampleDesk
     ? SAMPLE_DESK_TARGET_MER
     : settings.targetMer;
@@ -1211,12 +1221,13 @@ export async function buildDashboardMetrics(
   /**
    * Marty product lock / existing NO COGS override: do not ask merchants
    * for profit margin or average COGS. Total ROAS unlocks without BE.
-   * Break-even / contrib formulas still run when margin is confirmed or SAMPLE.
+   * Break-even only when margin is confirmed. SAMPLE does not invent it.
    */
   const settingsSaved = true;
-  const breakEvenMerRaw = computeBreakEvenMer(effectiveMarginPct);
-  const breakEvenMer =
-    marginIsConfirmed(settings) || useSampleDesk ? breakEvenMerRaw : null;
+  const breakEvenMer = confirmedBreakEvenMer({
+    marginConfirmedAt: settings.marginConfirmedAt,
+    marginPct: effectiveMarginPct,
+  });
   const hasSpend = totalSpend > 0;
   const onboarding: RitualOnboarding = {
     settingsSaved,

@@ -89,8 +89,14 @@ describe("public Remix SAMPLE desk", () => {
     const ltv = view.targets.find((row) => row.kind === "ltv");
     expect(sales?.actual).toBeGreaterThan(0);
     expect(sales?.pct).toBeNull();
-    expect(returning?.note).toMatch(/Snowdevil stretch/);
+    expect(returning?.target).toBeNull();
+    expect(returning?.pct).toBeNull();
+    expect(returning?.note).not.toMatch(/Snowdevil stretch/);
+    expect(returning?.note).not.toMatch(/800,000/);
     expect(ltv?.actual).toBeGreaterThan(0);
+    expect(ltv?.pct).toBeNull();
+    expect(page.habitGoals.returning).toBeNull();
+    expect(page.habitGoals.returningTarget).toBeNull();
     expect(ltv?.pct).toBeNull();
   });
 

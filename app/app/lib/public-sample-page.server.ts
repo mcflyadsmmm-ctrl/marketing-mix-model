@@ -13,7 +13,7 @@ import {
   type GrowthCohortInput,
   type GrowthMonthBar,
 } from "./growth-comeback";
-import { SAMPLE_HABIT_RETURNING_TARGET } from "./goals-habit";
+import { buildHabitGoals, type HabitGoalsView } from "./goals-habit";
 import {
   buildOrderHistoryForecast,
   type OrderHistoryForecastView,
@@ -35,10 +35,7 @@ import {
   resolvePeriod,
   type PeriodPreset,
 } from "./periods";
-import {
-  SAMPLE_DESK_MARGIN_PCT,
-  SAMPLE_DESK_TARGET_MER,
-} from "./sample-desk.server";
+import { SAMPLE_DESK_MARGIN_PCT, SAMPLE_DESK_TARGET_MER } from "./sample-desk.server";
 import { shopifyNativePeriodStats, type ShopifyNativePeriodStats } from "./shopify-native-stats";
 import {
   shopifyDepthStats,
@@ -112,6 +109,8 @@ export type PublicSamplePage = {
   cpaDays: CpaDayPoint[];
   ledgerDays: PublicSampleDay[];
   channelSpend: Array<{ channel: string; amount: number }>;
+  habitGoals: HabitGoalsView;
+  goalsYear: number;
 };
 
 function toDepthRows(orders: SampleOrderFactRow[]): OrderDepthRow[] {
@@ -401,6 +400,19 @@ export async function loadPublicSamplePage(
   );
   const yearReturningSales = sampleSalesFromDays(yearDays).returningCustomerNetSales;
   const yearReturning = yearReturningSales > 0 ? yearReturningSales : null;
+  const yearOrderCount = yearDays.reduce((sum, day) => sum + day.orderCount, 0);
+  const habitGoals = buildHabitGoals({
+    salesPending: false,
+    orderCount: yearOrderCount,
+    ltv30: ltv.revenue30,
+    ltv90: ltv.revenue90,
+    ltv365: ltv.revenue365,
+    yearReturningSales: yearReturning,
+    typedReturningTarget: null,
+    historyLimited: false,
+    sample: true,
+    year: ymd.y,
+  });
   const orderHistoryForecast = buildOrderHistoryForecast({
     salesPending: false,
     dailySales: book.days.map((day) => day.sales),
@@ -412,9 +424,12 @@ export async function loadPublicSamplePage(
       salesActual: mtdSales > 0 ? mtdSales : null,
       salesGoal: null,
       returningActual: yearReturning,
-      returningTarget:
-        yearReturning != null ? SAMPLE_HABIT_RETURNING_TARGET : null,
-      returningSource: yearReturning != null ? "sample" : null,
+      returningTarget: habitGoals.returning?.target ?? null,
+      returningSource:
+        habitGoals.returning?.targetSource === "typed" ||
+        habitGoals.returning?.targetSource === "sample"
+          ? habitGoals.returning.targetSource
+          : null,
       ltvActual: ltvPeek?.amount ?? null,
       ltvWindow: ltvPeek ? shareableLtvWindowLabel(ltvPeek.days) : null,
     },
@@ -449,5 +464,7 @@ export async function loadPublicSamplePage(
     cpaDays,
     ledgerDays,
     channelSpend: channelTotals(periodDays),
+    habitGoals,
+    goalsYear: ymd.y,
   };
 }

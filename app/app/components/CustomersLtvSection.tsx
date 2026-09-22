@@ -13,10 +13,6 @@ import { LtvExpectedEstimate } from "./LtvExpectedEstimate";
 import { LtvProductBoard } from "./LtvProductBoard";
 import { LtvPromoBoard } from "./LtvPromoBoard";
 import { formatCurrency } from "../lib/mer-format";
-import {
-  contributionAdjustedLtv,
-  contributionLtvCacRatio,
-} from "../lib/contrib-ltv";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { flagshipDailyRead, type LtvFlagshipView } from "../lib/ltv-flagship";
@@ -101,7 +97,6 @@ type LtvPackProps = {
 function useCustomersLtvPack({
   metrics,
   depth,
-  marginConfirmed,
   useSampleDesk,
   orderBackfillProgress,
   shopLabel = "",
@@ -138,10 +133,6 @@ function useCustomersLtvPack({
   const retCount = custOk ? metrics.returningCustomers : 0;
   const knownBuyers = newCount + retCount;
   const hasSpend = metrics.totalSpend > 0;
-  const showMarginKept = marginConfirmed || useSampleDesk;
-  const marginNote = showMarginKept
-    ? `After ${pct(metrics.marginPct)} margin.`
-    : "";
 
   const cashCac = isNum(ltv.cashCac)
     ? ltv.cashCac
@@ -150,8 +141,6 @@ function useCustomersLtvPack({
       : hasSpend && ltv.newBuyers > 0
         ? metrics.totalSpend / ltv.newBuyers
         : null;
-  const contrib90 = contributionAdjustedLtv(ltv.avgRevenueD90, metrics.marginPct);
-  const contribRatio = contributionLtvCacRatio(contrib90, ltv.cashCac);
 
   /*
    * The signature LTV build — how a new customer's spend grows 30 → 90 → 365.
@@ -225,13 +214,6 @@ function useCustomersLtvPack({
   }
 
   const economicsRows: LtvRow[] = [];
-  if (showMarginKept && contrib90 != null && hasSpend) {
-    economicsRows.push({
-      k: "Kept after margin",
-      v: formatCurrency(contrib90, currency),
-      d: `First 90 days of revenue times your margin. ${marginNote}`,
-    });
-  }
   if (hasSpend && cashCac != null) {
     economicsRows.push({
       k: "Cash CAC",
@@ -254,9 +236,6 @@ function useCustomersLtvPack({
       k: "Value vs cost",
       v: `${ltv.ltvCacRatio.toFixed(2)}×`,
       d: "First 90 days of revenue ÷ Cash CAC. An average, not a causal claim.",
-      ...(showMarginKept && contribRatio != null
-        ? { x: [`${contribRatio.toFixed(2)}× after margin.`] }
-        : {}),
     });
   }
   if (hasSpend && knownBuyers > 0) {
