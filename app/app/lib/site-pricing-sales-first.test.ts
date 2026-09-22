@@ -18,6 +18,14 @@ function floatDeskHtml(src: string): string {
   return src.slice(start, end);
 }
 
+function heroHtml(src: string): string {
+  const start = src.indexOf('<header class="page-hero">');
+  expect(start).toBeGreaterThan(0);
+  const end = src.indexOf("</header>", start);
+  expect(end).toBeGreaterThan(start);
+  return src.slice(start, end);
+}
+
 describe("pricing.html sales-first first fold", () => {
   it("does not greet with the spend-first leftover rhythm", () => {
     expect(pricing).not.toContain("Upload spend → see Total ROAS");
@@ -37,15 +45,42 @@ describe("pricing.html sales-first first fold", () => {
   });
 
   it("keeps the price-forward H1 and names what $39 buys at $0 spend", () => {
-    expect(pricing).toContain(
-      "<h1>7-day free trial. Then $39/month. Full desk.</h1>",
-    );
+    expect(pricing).toContain("<h1>7-day free trial. Then $39/month.</h1>");
     expect(pricing).toMatch(/Overview/);
     expect(pricing).toMatch(/Orders/);
     expect(pricing).toMatch(/Customers/);
     expect(pricing).toMatch(/Growth and LTV live on Customers/);
     expect(pricing).toMatch(/beat native Analytics/);
     expect(pricing).toMatch(/second chapter|Spend is the second chapter/);
+  });
+
+  it("H1 and og are price-honest — no Full desk synonym", () => {
+    const h1 = pricing.match(/<h1>([\s\S]*?)<\/h1>/)?.[1] ?? "";
+    const og =
+      pricing.match(
+        /property="og:description"\s+content="([^"]*)"/,
+      )?.[1] ?? "";
+    expect(h1).not.toMatch(/Full desk/i);
+    expect(og).not.toMatch(/Full desk/i);
+    expect(h1).toMatch(/\$39/);
+    expect(h1).toMatch(/7-day/);
+  });
+
+  it("first fold names the GMV wedge: $39 stays $39 at $5M", () => {
+    const hero = heroHtml(pricing);
+    expect(hero).toMatch(/\$5M|GMV tax|stays \$39/);
+    expect(hero).toMatch(/\$39 stays \$39 at \$5M/);
+    expect(hero).toMatch(/Path suites often tax GMV/);
+    expect(pricing).not.toMatch(/\$0\.30\/order|\$0\.3 per extra order/i);
+  });
+
+  it("parked Live honesty: SAMPLE is /demo; Live Admin only when unparked", () => {
+    if (/opens this shop['\u2019]s Live book/i.test(pricing)) {
+      expect(pricing).toMatch(/when unparked/i);
+    }
+    expect(pricing).toMatch(/when unparked/);
+    expect(pricing).toMatch(/href="\/demo"/);
+    expect(pricing).toMatch(/SAMPLE is/);
   });
 
   it("SAMPLE float cards are sales-first Snowdevil — not Harbor/Northline", () => {
