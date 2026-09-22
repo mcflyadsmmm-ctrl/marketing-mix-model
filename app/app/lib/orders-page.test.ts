@@ -55,3 +55,39 @@ describe("Orders page", () => {
     );
   });
 });
+
+/** Opening JSX tag — a till that drops a required prop must fail this, not a name-only grep. */
+function jsxOpen(source: string, name: string): string {
+  const start = source.indexOf(`<${name}`);
+  expect(start).toBeGreaterThan(-1);
+  const self = source.indexOf("/>", start);
+  const open = source.indexOf(">", start);
+  const end =
+    self >= 0 && (open < 0 || self < open) ? self + 2 : open + 1;
+  return source.slice(start, end);
+}
+
+describe("Orders step mix call-site lock", () => {
+  it("omit-path: first viewport and timing chart require step mix props on both tills", () => {
+    for (const source of [orders, demoOrders]) {
+      const first = jsxOpen(source, "OrdersFirstViewport");
+      expect(first).toMatch(/\bdepth=/);
+      expect(first).toMatch(/\bstepMix=/);
+      expect(first).toMatch(/\btickets=/);
+      expect(first).not.toMatch(/\bwaitDays=/);
+      const timing = jsxOpen(source, "OrdersTimingChart");
+      expect(timing).toMatch(/\bweekdayShares=/);
+      expect(timing).toMatch(/\btimingSplit=/);
+    }
+    const desk = readFileSync(
+      join(here, "desk-sales-page.server.ts"),
+      "utf8",
+    );
+    expect(demoOrders).toContain("lastYearRows");
+    expect(desk).toContain("lastYearRows");
+    expect(orders).toContain('from "../components/OrdersFirstViewport"');
+    expect(demoOrders).toContain('from "../components/OrdersFirstViewport"');
+    expect(orders).toContain('from "../components/OrdersTimingChart"');
+    expect(demoOrders).toContain('from "../components/OrdersTimingChart"');
+  });
+});

@@ -9,8 +9,15 @@ import {
   ORDERS_PENDING_LINE,
   ORDERS_THIN_EMPTY_LINE,
   buildOrdersLeadPeeks,
+  buildOrdersTicketPeeks,
   ordersOperatorGreeting,
 } from "../lib/orders-first-viewport";
+import {
+  ORDERS_TICKET_BASIS,
+  ordersPaintStepSales,
+  type OrdersPeriodTickets,
+  type OrdersStepBar,
+} from "../lib/orders-intelligence";
 import { buildOrdersHero } from "../lib/orders-scoreboard";
 import { OrdersTicketBand } from "./OrdersVisuals";
 import type { ShopifyDepthStats } from "../lib/shopify-depth-stats";
@@ -67,10 +74,14 @@ export function OrdersFirstViewport({
   depth,
   salesPending,
   useSampleDesk = false,
+  stepMix,
+  tickets,
 }: {
   depth: ShopifyDepthStats;
   salesPending: boolean;
   useSampleDesk?: boolean;
+  stepMix: OrdersStepBar[] | null;
+  tickets: OrdersPeriodTickets | null;
 }) {
   const currency = useDeskCurrency();
   const hero = buildOrdersHero(depth, currency, salesPending);
@@ -90,7 +101,12 @@ export function OrdersFirstViewport({
     typicalOrderLabel: typicalLabel,
     averageOrderLabel: averageLabel,
   });
-  const peeks = salesPending ? [] : buildOrdersLeadPeeks(depth, currency);
+  const peeks = salesPending
+    ? []
+    : [
+        ...buildOrdersTicketPeeks(tickets, depth, currency),
+        ...buildOrdersLeadPeeks(depth, currency),
+      ];
   const trust = useSampleDesk && !salesPending ? SAMPLE_ORDERS_DOOR : null;
 
   if (salesPending) {
@@ -139,6 +155,10 @@ export function OrdersFirstViewport({
         <OrdersTicketBand depth={depth} pending={salesPending} />
       </article>
 
+      {stepMix && stepMix.length > 0 ? (
+        <OrdersStepMixBars bars={stepMix} />
+      ) : null}
+
       {peeks.length > 0 ? (
         <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--soft">
           {peeks.map((row) => (
@@ -154,5 +174,69 @@ export function OrdersFirstViewport({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function OrdersStepMixBars({ bars }: { bars: OrdersStepBar[] }) {
+  const currency = useDeskCurrency();
+  const drill = useDeskDrill();
+  const sealed = bars.filter((bar) => bar.sealed && bar.sales != null && bar.sales > 0);
+  const max = Math.max(...sealed.map((bar) => bar.sales ?? 0), 0.01);
+  return (
+    <div
+      className="mcfly-orders-step"
+      aria-label="This period’s sales by 1st, 2nd, 3rd, and 4th or later order"
+    >
+      <p className="mcfly-orders-step__cap">
+        This period’s Shopify Total Sales by 1st / 2nd / 3rd / 4th+ — not how
+        old the buyer is. {ORDERS_TICKET_BASIS}. Shipping + tax sits next to
+        typical.
+      </p>
+      <div className="mcfly-orders-step__rows">
+        {bars.map((bar) => {
+          const painted = ordersPaintStepSales(bar, currency);
+          const width =
+            bar.sealed && bar.sales != null && bar.sales > 0
+              ? (bar.sales / max) * 100
+              : 0;
+          const open = () =>
+            drill?.openDrill({
+              title: `${bar.label} order`,
+              value: painted,
+              kicker: "Order number this period",
+              blocks: [
+                {
+                  k: "What this is",
+                  v: "Shopify Total Sales on orders that were a 1st, 2nd, 3rd, or 4th-or-later for that identified buyer. Not how old the buyer is.",
+                },
+                {
+                  k: "Floor",
+                  v: bar.sealed
+                    ? `${bar.buyers.toLocaleString()} identified buyers in this step.`
+                    : "Needs 8 identified buyers in this step — not $0.",
+                },
+              ],
+              next: "Guests stay out. Unknown lifetime is its own bar, never stuffed into 1st.",
+            });
+          return (
+            <button
+              type="button"
+              className="mcfly-orders-step__row"
+              key={bar.id}
+              onClick={open}
+            >
+              <span className="mcfly-orders-step__k">{bar.label}</span>
+              <span className="mcfly-orders-step__track" aria-hidden="true">
+                <span
+                  className="mcfly-orders-step__fill"
+                  style={{ width: `${width}%` }}
+                />
+              </span>
+              <span className="mcfly-orders-step__v">{painted}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
