@@ -35,6 +35,7 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SPEND_CHANNEL_LABELS, type SpendChannel } from "@mcfly/mer-engine";
 import type { PeriodPreset } from "../lib/periods";
 import { useDeskCurrency } from "../lib/desk-currency";
+import { CopyWeekMonthSales } from "./MorningHabitStrip";
 
 export type SpendExplorerSeriesView = {
   buckets: ExplorerPlotBucket[];
@@ -59,6 +60,11 @@ export type SpendExplorerSeriesView = {
    * band is labelled Billboard here and on Overview, never "Other".
    */
   channelLabels?: Record<string, string>;
+  /**
+   * This-week / this-month Shopify Total Sales vs last year (weekday-shifted)
+   * or previous week when last year is not on file. Never a fake $0.
+   */
+  weekMonthCopy?: string | null;
 };
 
 type SpendExplorerProps = {
@@ -170,6 +176,8 @@ function granCompareNoun(granularity: ExplorerGranularity): string {
       return "last month";
     case "Quarter":
       return "last quarter";
+    case "Weekday":
+      return "the same weekday last week";
     default: {
       const _exhaustive: never = granularity;
       return _exhaustive;
@@ -375,6 +383,7 @@ function colMinPxFor(
   mode: ExplorerMode,
 ): number {
   if (gran === "Day") return 44;
+  if (gran === "Weekday") return 56;
   if (gran === "Quarter") return 64;
   if (mode === "total") return 48;
   return 52;
@@ -769,6 +778,18 @@ export function SpendExplorer({
           {yearChipNote ? (
             <p className="mcfly-panel__muted">{yearChipNote}</p>
           ) : null}
+          {series.weekMonthCopy ? (
+            <div className="mcfly-spend-pair-copy-row">
+              <div>
+                {series.weekMonthCopy.split("\n").map((line) => (
+                  <p key={line} className="mcfly-panel__muted">
+                    {line}
+                  </p>
+                ))}
+              </div>
+              <CopyWeekMonthSales text={series.weekMonthCopy} />
+            </div>
+          ) : null}
 
           <form
             className="mcfly-explorer__dates"
@@ -1102,7 +1123,7 @@ export function SpendExplorer({
                           height={PLOT_H}
                           onPointerDown={(e) => {
                             if (e.button !== 0) return;
-                            if (isOn && series.granularity !== "Day") {
+                            if (isOn && series.granularity !== "Day" && series.granularity !== "Weekday") {
                               openBucketDays(bucket.key);
                               return;
                             }
@@ -1141,7 +1162,7 @@ export function SpendExplorer({
                               onPointerDown={(e) => {
                                 if (e.button !== 0) return;
                                 e.stopPropagation();
-                                if (isOn && series.granularity !== "Day") {
+                                if (isOn && series.granularity !== "Day" && series.granularity !== "Weekday") {
                                   openBucketDays(bucket.key);
                                   return;
                                 }
@@ -1329,7 +1350,7 @@ export function SpendExplorer({
                 {" · "}
                 {bucketMerPhrase(selected, currency)}
               </p>
-              {series.granularity !== "Day" ? (
+              {series.granularity !== "Day" && series.granularity !== "Weekday" ? (
                 <button
                   type="button"
                   className="mcfly-explorer__btn"
@@ -1339,13 +1360,18 @@ export function SpendExplorer({
                 </button>
               ) : (
                 <span className="mcfly-explorer__picked-hint">
-                  Click another column to compare.
+                  {series.granularity === "Weekday"
+                    ? "Weekday sales ÷ typed spend on those weekdays. Empty spend is —."
+                    : "Click another column to compare."}
                 </span>
               )}
             </div>
           ) : null}
 
-          {compare && selectedCmp && !shotMode ? (
+          {compare &&
+          series.granularity !== "Weekday" &&
+          selectedCmp &&
+          !shotMode ? (
             <p className="mcfly-explorer__compare" aria-live="polite">
               {selectedCmp.hasPrior ? (
                 <>

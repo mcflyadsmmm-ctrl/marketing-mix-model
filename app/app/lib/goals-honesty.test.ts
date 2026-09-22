@@ -44,6 +44,14 @@ describe("Goals honesty — SAMPLE does not invent profit or an $800k stretch", 
     expect(yearBoard).not.toMatch(
       /settings\.useSampleDesk\s*\?\s*SAMPLE_DESK_MARGIN_PCT/,
     );
+    const spendImport = read("../routes/app.spend.import.tsx");
+    expect(spendImport).not.toMatch(
+      /sampleDesk\.enabled\s*\?\s*SAMPLE_DESK_MARGIN_PCT/,
+    );
+    expect(spendImport).not.toMatch(
+      /useSampleDesk\s*\?\s*SAMPLE_DESK_MARGIN_PCT/,
+    );
+    expect(spendImport).toContain("confirmedBreakEvenMer");
     expect(
       confirmedBreakEvenMer({
         marginConfirmedAt: null,

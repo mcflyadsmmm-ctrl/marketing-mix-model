@@ -102,8 +102,22 @@ export function spendPairCopyText(opts: {
   });
 }
 
+/** Retainer / billboard / named-other dollars — not Meta/Google/TikTok. */
+export function isNonOnlineSpendChannel(channel: string): boolean {
+  return channel === "other" || channel.startsWith("other:");
+}
+
+export function hasNonOnlineSpendOnFile(
+  rows: ReadonlyArray<{ channel: string; amount: number }>,
+): boolean {
+  return rows.some(
+    (row) => isNonOnlineSpendChannel(row.channel) && row.amount > 0,
+  );
+}
+
 /**
- * Second labeled Spend line: Online Shopify Total Sales ÷ typed spend.
+ * Second labeled Spend line: Online Shopify Total Sales ÷ every typed dollar.
+ * Withholds the multiple when retainers / billboards sit next to ads.
  * Does not replace Total ROAS. POS / Shop are named as excluded, not attributed.
  */
 export function formatOnlineRoasLine(opts: {
@@ -116,25 +130,31 @@ export function formatOnlineRoasLine(opts: {
     other: number;
   } | null;
   currency: string;
+  hasNonOnlineSpend?: boolean;
 }): string | null {
-  const { totalSales, spend, mix, currency } = opts;
+  const { totalSales, spend, mix, currency, hasNonOnlineSpend = false } = opts;
   if (!(spend > 0) || !Number.isFinite(spend)) return null;
   const excluded =
     "POS and Shop sales are excluded from this line, not from Total ROAS.";
+  const denom =
+    `${formatCurrency(spend, currency)} every typed dollar (ads, retainers, billboards)`;
+  if (hasNonOnlineSpend) {
+    return `Online Shopify Total Sales ÷ ${denom} is — because typed spend includes retainers and other non-ads dollars, not ads only. Total ROAS above uses every typed dollar. ${excluded}`;
+  }
   if (
     mix == null ||
     !Number.isFinite(mix.online) ||
     !Number.isFinite(totalSales)
   ) {
-    return `Online Shopify Total Sales ÷ typed spend is — until Online / POS / Shop mix is on file. ${excluded}`;
+    return `Online Shopify Total Sales ÷ ${denom} is — until Online / POS / Shop mix is on file. ${excluded}`;
   }
   const onlineSales = totalSales * mix.online;
   if (!(onlineSales > 0) || !Number.isFinite(onlineSales)) {
-    return `Online Shopify Total Sales ÷ ${formatCurrency(spend, currency)} spend is — (no Online sales on file). ${excluded}`;
+    return `Online Shopify Total Sales ÷ ${denom} is — (no Online sales on file). ${excluded}`;
   }
   const mer = onlineSales / spend;
   if (!Number.isFinite(mer) || mer <= 0) {
-    return `Online ${formatCurrency(onlineSales, currency)} ÷ ${formatCurrency(spend, currency)} spend. ${excluded}`;
+    return `Online ${formatCurrency(onlineSales, currency)} ÷ ${denom}. ${excluded}`;
   }
-  return `Online ${formatCurrency(onlineSales, currency)} ÷ ${formatCurrency(spend, currency)} spend = ${formatMer(mer)}×. ${excluded}`;
+  return `Online ${formatCurrency(onlineSales, currency)} ÷ ${denom} = ${formatMer(mer)}×. ${excluded}`;
 }

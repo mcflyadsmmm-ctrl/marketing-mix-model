@@ -72,6 +72,28 @@ export function CopySpendPair({ text }: { text: string | null }) {
   );
 }
 
+/** Copies this-week / this-month Shopify Total Sales plus last-year or last-week $. */
+export function CopyWeekMonthSales({ text }: { text: string | null }) {
+  const [copied, setCopied] = useState(false);
+  if (!text) return null;
+
+  return (
+    <button
+      type="button"
+      className="mcfly-share-card__btn mcfly-week-month-copy"
+      onClick={() => {
+        void copyDeskText(text).then((ok) => {
+          if (!ok) return;
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 1600);
+        });
+      }}
+    >
+      {copied ? "Copied" : "Copy week / month"}
+    </button>
+  );
+}
+
 /** Copies YTD Shopify Total Sales from the Overview year card. */
 export function CopyYtdSales({ text }: { text: string | null }) {
   const [copied, setCopied] = useState(false);

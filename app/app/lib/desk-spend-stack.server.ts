@@ -71,10 +71,10 @@ import {
 import {
   fetchSampleSales,
   fetchSampleSalesByDay,
-  localDayKey,
   utcDayKey,
 } from "./sample-desk.server";
-import { shopLocalDayKey } from "./shop-local-day";
+import { shopLocalDayKey, spendDeskClosedAsOfKey, spendDeskTodayKey } from "./shop-local-day";
+import { formatCurrency } from "./mer-format";
 import { scheduleFirstSessionShopifyWindow } from "./first-session-shopify-window.server";
 import { shopLiveIngestDepth } from "./live-ingest-depth.server";
 import type { LiveIngestDepth } from "./live-ingest-depth";
@@ -96,6 +96,7 @@ import {
   parseExplorerShowSales,
   resolveExplorerWindow,
   clampExplorerRangeToBook,
+  explorerWeekMonthCopyText,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
@@ -407,7 +408,7 @@ export async function loadSpendAnalysis(args: {
   request: Request;
   admin: AdminApiContext;
   shopDomain: string;
-  shop: { id: string; ianaTimezone: string | null | undefined };
+  shop: { id: string; ianaTimezone: string | null | undefined; currencyCode?: string | null };
   useSampleDesk: boolean;
 }): Promise<SpendAnalysisData> {
   const url = new URL(args.request.url);
@@ -565,6 +566,12 @@ export async function loadSpendAnalysis(args: {
     customerMetricsAvailable: false,
     bucketCount: explorerPlot.length,
   });
+  const copyAsOf = spendDeskClosedAsOfKey(deskTz, now);
+  const weekMonthCopy = explorerWeekMonthCopyText({
+    salesByDay,
+    asOfKey: copyAsOf,
+    money: (n) => formatCurrency(n, args.shop.currencyCode ?? ""),
+  });
   const explorer: SpendExplorerSeriesView = {
     buckets: explorerPlot,
     summary: explorerSummary,
@@ -579,6 +586,7 @@ export async function loadSpendAnalysis(args: {
     toKey: dayKey(explorerWindow.end),
     asOfKey: dayKey(explorerWindow.end),
     channelLabels,
+    weekMonthCopy: weekMonthCopy?.combined ?? null,
   };
 
   let cashControl: CashControlBoard | null = null;
@@ -605,7 +613,7 @@ export async function loadSpendAnalysis(args: {
   let history: AllocationHistoryView | null = null;
   let windowSets = emptySpendWindowSets();
   try {
-    const todayKey = deskTz ? shopLocalDayKey(now, deskTz) : localDayKey(now);
+    const todayKey = spendDeskTodayKey(deskTz, now);
     const asOfDateKey = shiftDateKey(todayKey, -1);
     const historyDays = capHistoryDays(
       toHistoryDays(dailyRows, channelLabels),
