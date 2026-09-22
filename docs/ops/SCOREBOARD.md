@@ -1,30 +1,31 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v406 / tip `2107ea8` (`2107ea876cf86e8195f172e88415520b5a450ef9`) / Live PARKED. The v403 lines below are the 2026-09-21 wave log.
+**Tip Fly note:** v407 / tip `5b33d67` (merge of #138 spend paste) / Live PARKED. `/health` ok · `/app` 200. Reviewer PASS on #138.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v406 / tip `2107ea8` / Live PARKED |
-| SAMPLE smoke | WAITING Marty demo PASS/FAIL |
+| Tip Fly SoT | v407 / tip `5b33d67` / Live PARKED |
+| SAMPLE smoke | WAIVED — continuous tip improve |
 | Live unpark | PARKED |
-| Partner Submit | READY (paste) — Marty tap |
+| Partner Submit | READY (paste) — Marty tap later |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
-| PCD L2 | Submitted (not SAMPLE blocker) |
+| PCD L2 | Submitted (not SAMPLE blocker) · ShopifyQL F = HOLD |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v406 / tip `2107ea8`; Live PARKED |
-| Reviewer gate | Required before growth greenlight |
-| Niche intel | DONE — COMPETE_COMPLAINTS_PACK.md (top pains vs native/Lifetimely/TW/Peel/TrueProfit/Putler; $39 flat wedge) |
+| Money prep | Listing paste ready for Marty later; tip Fly v407 / tip `5b33d67`; Live PARKED |
+| Reviewer gate | #138 PASS · next = Ship 2 starter LTV |
+| Niche intel | ADD board updated 2026-09-22 — next PASS = open-lane starter value |
 
 ## Accepted work log
 - Enterprise tip cooks through v387 wave + tip advanced to v403
 - Money packs + site P0 polish on box
 - Listing IA aligned to painted tabs
 - Competitive complaints pack written (Galaxy Master research 2026-09-21)
+- #138 Spend paste densify merged · Reviewer PASS · Fly **v407** · tip `5b33d67`
 
 
-## Compete fleet (2026-09-21)
-- ADD_BACKLOG_RANKED.md ready — product parallel Cursor on P0×3 (cohort LTV, returning$, days-to-second). Tip Fly SoT is v406 / tip `2107ea8`; Live PARKED.
+## Compete fleet (2026-09-22)
+- ADD_BACKLOG_RANKED.md absorb status matches tip: #124–#138 shipped. Next PASS = Customers open-lane starter value. Tip Fly SoT **v407** / tip `5b33d67`; Live PARKED.
 
 
 Source of truth: MASTER_OPERATING_PROMPT.md (2026-09-21)
