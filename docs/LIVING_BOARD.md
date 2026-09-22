@@ -4,9 +4,9 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-22 · America/Denver · Site **v41** Pages `bfdfb62c` · Fly **444** · occupancy **round-5 fleet** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v41** · Polar `$750` (no planted `$1,020`) · typical order is the median, not leftover cash · About H1 founder/firm · FAQ Faire mixed-shop · `/lab.html` 301 · cash OG 301 |
-| **Fly** | https://mcfly-analytics.fly.dev · version **444** · `/health` 200 · `/lab.html` and Custom `.html` **301** home · public Remix `/demo` = Admin SAMPLE chrome · fly.dev `/` marketing **v41** |
+| **Updated** | 2026-09-22 · America/Denver · Site **v42** Pages `575d709f` · Fly **445** · occupancy **round-5 fleet** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v42** · Goals is not a sales-plan product · `/inquire` 301 `/support` · Polar `$750` · typical order is the median · `/lab.html` 301 · cash OG 301 |
+| **Fly** | https://mcfly-analytics.fly.dev · version **445** · `/health` 200 · `/lab.html` and Custom `.html` **301** home · public Remix `/demo` = Admin SAMPLE chrome · fly.dev `/` marketing **v42** |
 | **North star** | Paid **$39** installs that **stay**. Leftover Analytics still does not ship is the **median ticket**. Native already Groups by weekday, can show ShopifyQL returning sales $, pins monthly sales targets, and has customer cohort reports. Repeat Customer Insights from $59 is the closer LTV/latency app. Spend is the door, not the greeting. Empty spend is **—** not 0×. Custom is **301 to home**. Do not assume the app or niche is perfected. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
