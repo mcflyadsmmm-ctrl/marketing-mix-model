@@ -66,7 +66,7 @@ import {
   shouldContinueDailyAmount,
 } from "../lib/spend-continue-daily";
 import { loadSpendDayCoverage } from "../lib/spend-coverage.server";
-import { deleteSpendEntry, type SpendActionData } from "../lib/spend-write.server";
+import { deleteSpendEntry, handleCsvImport, type SpendActionData } from "../lib/spend-write.server";
 import {
   listRecurringSpend,
   materializeRecurringSpendForShop,
@@ -97,6 +97,10 @@ import {
   CPA_NO_BUYERS,
   type CpaWindowId,
 } from "../lib/cpa-desk";
+import {
+  previewSpendPaste,
+  type SpendPasteBook,
+} from "../lib/spend-paste-preview";
 
 const CUSTOM_CHANNEL_NAME_ERROR = "Name this channel (e.g. Influencers).";
 
@@ -515,6 +519,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     history: analysis.history,
     windowSets: analysis.windowSets,
     cpa: analysis.cpa,
+    certifiedSalesByDay: analysis.certifiedSalesByDay,
+    liveBuyerIndex: analysis.liveBuyerIndex,
     salesError: analysis.salesError,
     todaySalesUnavailable: analysis.todaySalesUnavailable,
     todaySalesTruncated: analysis.todaySalesTruncated,
@@ -537,7 +543,10 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
   const currency = shopCurrencyCode(shop.currencyCode);
 
   if (
-    (intent === "manual" || intent === "recurring" || intent === "delete-entry") &&
+    (intent === "manual" ||
+      intent === "recurring" ||
+      intent === "delete-entry" ||
+      intent === "csv") &&
     sampleOn
   ) {
     if (isSampleOnlyFreeze()) {
@@ -548,6 +557,10 @@ export const action = async ({ request }: ActionFunctionArgs): Promise<SpendActi
       };
     }
     await setSampleDeskEnabled(shop.id, false);
+  }
+
+  if (intent === "csv") {
+    return handleCsvImport(shop.id, form, entitlements, currency);
   }
 
   if (intent === "delete-entry") {
@@ -714,6 +727,8 @@ export default function SpendEntryPage() {
     history,
     windowSets,
     cpa,
+    certifiedSalesByDay,
+    liveBuyerIndex,
     salesError,
     todaySalesUnavailable,
     todaySalesTruncated,
@@ -772,6 +787,7 @@ export default function SpendEntryPage() {
   const [addChannel, setAddChannel] = useState(
     editing && isSpendChannel(editing.channel) ? editing.channel : "meta",
   );
+  const [pasteText, setPasteText] = useState("");
   useEffect(() => {
     setAddChannel(
       editing && isSpendChannel(editing.channel) ? editing.channel : "meta",
@@ -783,6 +799,39 @@ export default function SpendEntryPage() {
     amount: Number.parseFloat(recurringAmount),
     currency: currencyCode,
   });
+  const pasteBook: SpendPasteBook = useMemo(
+    () => ({
+      certifiedSalesByDay,
+      buyerDays: cpa.days.map((day) => ({
+        dateKey: day.dateKey,
+        identifiedBuyers: day.newCustomers + day.returningCustomers,
+        newCustomers: day.newCustomers,
+        buyersKnown: day.buyersKnown,
+      })),
+      liveBuyerIndex,
+      salesFloorKey: spendHistoryFloorKey,
+      salesPending: Boolean(metrics.salesPending),
+      first30: cpa.paybackBase.avgRevenueD30,
+      first90: cpa.paybackBase.avgRevenueD90,
+      first365: cpa.paybackBase.avgRevenueD365,
+      historyLimited: cpa.paybackBase.historyLimited,
+    }),
+    [
+      certifiedSalesByDay,
+      liveBuyerIndex,
+      cpa.days,
+      cpa.paybackBase.avgRevenueD30,
+      cpa.paybackBase.avgRevenueD90,
+      cpa.paybackBase.avgRevenueD365,
+      cpa.paybackBase.historyLimited,
+      spendHistoryFloorKey,
+      metrics.salesPending,
+    ],
+  );
+  const pastePreview = useMemo(
+    () => previewSpendPaste(pasteText, pasteBook),
+    [pasteText, pasteBook],
+  );
   /** Route doors keep the date slicer; in-page doors stay plain anchors. */
   const doorHref = (href: string) =>
     href.startsWith("#")
@@ -803,7 +852,7 @@ export default function SpendEntryPage() {
   const coverageToKey =
     coverageClosedDays[coverageClosedDays.length - 1]?.dateKey;
   const stripDays = coverageClosedDays;
-  const manualSaved = Boolean(actionData?.success && !actionData.csv);
+  const spendSaved = Boolean(actionData?.success);
   const missingCount = coverageThroughYesterday.missing.length;
   const coveragePeekValue = sampleDesk.enabled
     ? "Sample on file"
@@ -914,10 +963,18 @@ export default function SpendEntryPage() {
           </div>
         ) : null}
 
-        {manualSaved ? (
+        {spendSaved ? (
           <s-banner tone="success" heading="Spend saved">
             <s-paragraph>
               Your saved spend is ready for {PRODUCT_NOUN.totalRoas}.
+              {cpaHasSpend &&
+              cpaSelected.cashCpa != null &&
+              Number.isFinite(cpaSelected.cashCpa)
+                ? ` Cash CPA is ${formatSpendAmount(cpaSelected.cashCpa, currencyCode)}.`
+                : ""}
+              {cpaHasSpend && cpaPayback.paybackDays != null
+                ? ` Payback is about ${cpaPayback.paybackDays} days versus first 90.`
+                : ""}
               {" · "}
               <s-link href="#mcfly-roas">Same numbers above</s-link>
               {" · "}or add another day below.
@@ -1003,7 +1060,7 @@ export default function SpendEntryPage() {
           <>
             <p className="mcfly-spend-helper mcfly-spend-helper--soft">
               Shopify sales are already here. Empty spend is not a certified $0 —
-              add a day. A deleted day stays $0. Empty spend is never 0×
+              add a day or paste. A deleted day stays $0. Empty spend is never 0×
               {currencyCode !== "USD" ? ` · amounts are ${currencyCode}` : ""}
               {strangerEmpty
                 ? ". Type yesterday — that $X/day continues until you change it. No ad-account login."
@@ -1034,6 +1091,108 @@ export default function SpendEntryPage() {
                 isSubmitting={isSubmitting}
                 submittingIntent={submittingIntent}
               />
+            </section>
+            <section
+              id="mcfly-spend-paste"
+              className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-panel--soft mcfly-spend-paste"
+              aria-label="Paste daily spend"
+            >
+              <div className="mcfly-panel__head mcfly-panel__head--tight">
+                <h2>Paste daily spend</h2>
+                <p className="mcfly-panel__muted">
+                  Optional. This file is ad spend only — sales stay in Shopify.
+                  {" "}
+                  <s-link href={importHref}>CSV file, template, or add one bill</s-link>
+                  {" "}stay on import.
+                </p>
+              </div>
+              <Form method="post">
+                <input type="hidden" name="intent" value="csv" />
+                <label className="mcfly-spend-lean__paste-label" htmlFor="mcfly-spend-csv-paste">
+                  Paste daily rows
+                </label>
+                <textarea
+                  id="mcfly-spend-csv-paste"
+                  name="csv"
+                  className="mcfly-spend-lean__paste"
+                  value={pasteText}
+                  onChange={(event) => setPasteText(event.target.value)}
+                  rows={6}
+                  spellCheck={false}
+                  placeholder={"Day,Meta,Google\n2026-08-01,120.00,80.00"}
+                  aria-label="Paste daily spend rows"
+                />
+                <div className="mcfly-spend-csv-preview" aria-live="polite">
+                  {pastePreview.writeNothing ? (
+                    <strong>
+                      {pastePreview.firstError ??
+                        "No positive daily amounts yet — Total ROAS, Cash CPA, and payback stay —."}
+                    </strong>
+                  ) : (
+                    <>
+                      <strong>
+                        {pastePreview.days} day
+                        {pastePreview.days === 1 ? "" : "s"} ·{" "}
+                        {pastePreview.labels.join(", ")} ·{" "}
+                        {money(pastePreview.totalAmount)}
+                      </strong>
+                      <span>these pasted days</span>
+                      {pastePreview.salesWindowWarning ? (
+                        <span>{pastePreview.salesWindowWarning}</span>
+                      ) : null}
+                      <div className="mcfly-spend-paste__trio">
+                        <p>
+                          <span>Total ROAS</span>
+                          <strong>
+                            {pastePreview.totalRoas != null
+                              ? `${formatMer(pastePreview.totalRoas)}×`
+                              : "—"}
+                          </strong>
+                          {pastePreview.roasReason ? (
+                            <em>{pastePreview.roasReason}</em>
+                          ) : null}
+                        </p>
+                        <p>
+                          <span>Cash CPA</span>
+                          <strong>
+                            {pastePreview.cashCpa != null
+                              ? money(pastePreview.cashCpa)
+                              : "—"}
+                          </strong>
+                          {pastePreview.cpaReason ? (
+                            <em>{pastePreview.cpaReason}</em>
+                          ) : null}
+                        </p>
+                        <p>
+                          <span>Payback vs first 90</span>
+                          <strong>
+                            {pastePreview.paybackDays != null
+                              ? `${pastePreview.paybackDays} days`
+                              : "—"}
+                          </strong>
+                          {pastePreview.paybackReason ? (
+                            <em>{pastePreview.paybackReason}</em>
+                          ) : null}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="mcfly-btn mcfly-btn--primary mcfly-spend-submit"
+                  disabled={
+                    pastePreview.writeNothing ||
+                    (isSubmitting && submittingIntent === "csv")
+                  }
+                >
+                  {isSubmitting && submittingIntent === "csv"
+                    ? "Saving…"
+                    : pastePreview.writeNothing
+                      ? "Paste positive daily spend"
+                      : `Save ${pastePreview.days} days · ${money(pastePreview.totalAmount)}`}
+                </button>
+              </Form>
             </section>
           </>
         ) : null}
