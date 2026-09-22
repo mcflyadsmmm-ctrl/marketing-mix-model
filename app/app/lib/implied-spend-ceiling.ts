@@ -27,7 +27,7 @@ export function impliedSpendCeilingCaption(
   const mer = formatMer(targetMer);
   switch (basis) {
     case "period_sales":
-      return `This period's Shopify sales ÷ ${mer}× target. Max spend to hold that Total ROAS — not a bid cap. Example: $80k sales at ${mer}× → do not spend more than the ceiling.`;
+      return `This period's Shopify sales ÷ ${mer}× target. Max spend to hold that Total ROAS — not a bid cap.`;
     case "sales_goal":
       return `Sales goal ÷ ${mer}× target. Max you can spend that month and still hit the goal. Not net profit.`;
     default: {

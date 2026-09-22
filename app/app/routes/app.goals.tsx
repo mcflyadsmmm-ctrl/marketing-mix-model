@@ -15,6 +15,7 @@ import {
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { requireAdmin } from "../lib/public-app-gate.server";
 import prisma from "../db.server";
+import { CashTrustBanners } from "../components/CashTrustBanners";
 import { PeriodControl } from "../components/PeriodControl";
 import {
   buildDashboardMetrics,
@@ -38,6 +39,14 @@ import {
   buildHabitGoals,
   parseHabitGoalInput,
 } from "../lib/goals-habit";
+import { spendFirstFoldSalesHint } from "../lib/cash-trust-copy";
+import { deskPeriodTillLabel } from "../lib/desk-history";
+import { shopLiveIngestDepth } from "../lib/live-ingest-depth.server";
+import {
+  getOrderBackfillProgress,
+  loadOrderDepthRows,
+  ORDER_FACT_SOURCE,
+} from "../lib/order-facts.server";
 import { buildOrderHistoryForecast } from "../lib/order-history-forecast";
 import { shopLocalYmd } from "../lib/shop-local-day";
 import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
@@ -47,13 +56,20 @@ import {
   impliedSpendCeilingCaption,
 } from "../lib/implied-spend-ceiling";
 import {
+  formatGoalInput,
+  goalsAtYoyGrowth,
+  impliedIdentifiedBuyers,
+  parseGoalInput,
+  returningSalesByMonthFromOrders,
+} from "../lib/sales-goals";
+import {
   buildSalesGoalPeriods,
   buildYearBoard,
   loadSalesByDayForGoalsRange,
   merVsRails,
   parseGoalsYear,
   salesByMonthFromDayMap,
-  spendByMonthMap,
+  spendByMonthMaps,
   upsertYearSalesGoals,
   yearDateRange,
 } from "../lib/sales-goals.server";
@@ -103,21 +119,6 @@ function deltaTone(delta: number | null, goal: number): GoalPaceTone {
   return "down";
 }
 
-function formatGoalInput(value: number): string {
-  if (!Number.isFinite(value) || value === 0) return "";
-  return String(Math.round(value));
-}
-
-function parseGoalInput(raw: FormDataEntryValue | null): number {
-  const cleaned = String(raw ?? "")
-    .replace(/[$,\s]/g, "")
-    .trim();
-  if (cleaned === "") return 0;
-  const n = Number.parseFloat(cleaned);
-  if (!Number.isFinite(n) || n < 0) return Number.NaN;
-  return n;
-}
-
 function parseTargetMerInput(raw: FormDataEntryValue | null): number {
   const cleaned = String(raw ?? "")
     .replace(/[×x,\s]/gi, "")
@@ -145,18 +146,6 @@ function parseYoyGrowthPct(raw: FormDataEntryValue | null): number {
   }
   // Clamp custom values to a sane band
   return Math.min(50, Math.max(0, Math.round(n)));
-}
-
-/** Prior-year actual × (1 + pct/100), whole dollars; missing/zero prior → no goal. */
-function goalsAtYoyGrowth(
-  priorYearMonthly: Array<number | null>,
-  growthPct: number,
-): number[] {
-  const factor = 1 + growthPct / 100;
-  return priorYearMonthly.map((prior) => {
-    if (prior == null || !(prior > 0)) return 0;
-    return Math.round(prior * factor);
-  });
 }
 
 function yoyPct(
@@ -200,17 +189,26 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     next.set("period", "ytd");
     throw redirect(`/app/goals?${next.toString()}`);
   }
-  const year = parseGoalsYear(url.searchParams.get("year"));
   const shop = await ensureShop(session.shop);
   const settings = await getOrCreateSettings(shop.id);
   const useSampleDesk = await getSampleDeskEnabled(shop.id);
   const deskTz = deskPeriodTimeZone(useSampleDesk, shop.ianaTimezone);
-  const periodRange = resolvePeriod(preset, new Date(), deskTz);
+  const now = new Date();
+  const year = parseGoalsYear(url.searchParams.get("year"), now, deskTz);
+  const periodRange = resolvePeriod(preset, now, deskTz);
   const range = yearDateRange(year, deskTz);
   const priorYear = year - 1;
   const priorRange = yearDateRange(priorYear, deskTz);
-
-  const thisYear = new Date().getFullYear();
+  const shopNow = deskTz
+    ? shopLocalYmd(now, deskTz)
+    : {
+        y: now.getFullYear(),
+        m: now.getMonth() + 1,
+        d: now.getDate(),
+      };
+  const orderBookDepth = useSampleDesk
+    ? "paid_full"
+    : await shopLiveIngestDepth(shop.id);
 
   // Same spend + sales spine as Overview for the selected PeriodControl window.
   let periodSalesError: string | null = null;
@@ -218,6 +216,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   let periodSalesCoverage: Awaited<
     ReturnType<typeof loadDeskSalesForPeriod>
   >["factsCoverage"] = null;
+  let todaySalesTruncated = false;
+  let todaySalesUnavailable = false;
   if (useSampleDesk) {
     periodSales = await fetchSampleSales(shop.id, periodRange);
   } else {
@@ -226,11 +226,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shopId: shop.id,
       range: periodRange,
       ianaTimezone: shop.ianaTimezone,
+      now,
       signal: request.signal,
     });
     periodSales = desk.sales;
     periodSalesError = desk.salesError;
     periodSalesCoverage = desk.factsCoverage;
+    todaySalesTruncated = desk.todaySalesTruncated;
+    todaySalesUnavailable = desk.todaySalesUnavailable;
   }
   const periodMetrics = await buildDashboardMetrics(
     session.shop,
@@ -242,29 +245,41 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
   );
 
-  const [currentSales, priorSales] = await Promise.all([
-    loadSalesByDayForGoalsRange(shop.id, deskTz, range, useSampleDesk),
-    loadSalesByDayForGoalsRange(
-      shop.id,
-      deskTz,
-      priorRange,
-      useSampleDesk,
-    ),
-  ]);
-
-  const salesByDay = currentSales.salesByDay;
-  const salesError = currentSales.salesError ?? periodSalesError;
-  const salesByMonth = salesByMonthFromDayMap(year, salesByDay);
-  const priorSalesByMonth = salesByMonthFromDayMap(
-    priorYear,
-    priorSales.salesByDay,
-  );
-  const priorYearMonthly = monthMapToArray(priorSalesByMonth);
-
   const spendOpts = useSampleDesk
     ? { sampleOnly: true as const, ianaTimezone: deskTz }
     : { excludeSample: true as const, ianaTimezone: deskTz };
-  const spendByMonth = await spendByMonthMap(shop.id, year, spendOpts);
+  const orderSource = useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
+  const [currentSales, priorSales, spendMaps, orderRows, orderBackfillProgress] =
+    await Promise.all([
+      loadSalesByDayForGoalsRange(shop.id, deskTz, range, useSampleDesk),
+      loadSalesByDayForGoalsRange(
+        shop.id,
+        deskTz,
+        priorRange,
+        useSampleDesk,
+      ),
+      spendByMonthMaps(shop.id, year, spendOpts, now),
+      loadOrderDepthRows(shop.id, range, orderSource),
+      useSampleDesk
+        ? Promise.resolve(null)
+        : getOrderBackfillProgress(shop.id, {
+            ianaTimezone: shop.ianaTimezone,
+            now,
+          }),
+    ]);
+
+  const salesByDay = currentSales.salesByDay;
+  const salesError = currentSales.salesError ?? periodSalesError;
+  const salesByMonth = salesByMonthFromDayMap(year, salesByDay, now, deskTz);
+  const priorSalesByMonth = salesByMonthFromDayMap(
+    priorYear,
+    priorSales.salesByDay,
+    now,
+    deskTz,
+  );
+  const priorYearMonthly = monthMapToArray(priorSalesByMonth);
+  const { spendByMonth, spendDaysByMonth } = spendMaps;
+  const returningByMonth = returningSalesByMonthFromOrders(year, orderRows);
 
   const board = await buildYearBoard(
     shop.id,
@@ -272,6 +287,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesByMonth,
     spendByMonth,
     settings.targetMer,
+    now,
+    deskTz,
+    {
+      salesByDay,
+      spendDaysByMonth,
+      returningByMonth,
+    },
   );
 
   const periods = buildSalesGoalPeriods({
@@ -280,12 +302,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     salesByMonth,
     spendByMonth,
     priorYearMonthly,
+    now,
+    ianaTimezone: deskTz,
     targetMer: board.targetMer,
     breakEvenMer: board.breakEvenMer,
   });
 
   const yearOptions = Array.from(
-    new Set([thisYear - 1, thisYear, thisYear + 1, year]),
+    new Set([shopNow.y - 1, shopNow.y, shopNow.y + 1, year]),
   ).sort((a, b) => a - b);
 
   const periodMerRails = merVsRails(
@@ -300,7 +324,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const yearSales = useSampleDesk
     ? await fetchSampleSales(shop.id, range)
-    : await getSalesFactsTotals(shop.id, range, new Date());
+    : await getSalesFactsTotals(shop.id, range, now);
   const yearReturningSales =
     "returningCustomerNetSalesSum" in yearSales
       ? yearSales.returningCustomerNetSalesSum
@@ -324,14 +348,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     sample: useSampleDesk,
     year,
   });
-  const forecastNow = new Date();
-  const shopNow = deskTz
-    ? shopLocalYmd(forecastNow, deskTz)
-    : {
-        y: forecastNow.getFullYear(),
-        m: forecastNow.getMonth() + 1,
-        d: forecastNow.getDate(),
-      };
   const currentGoalRow =
     year === shopNow.y
       ? (board.rows.find((row) => row.isCurrent) ?? null)
@@ -342,6 +358,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     dailySales: [...salesByDay.values()],
     todayYear: shopNow.y,
     todayMonth: shopNow.m,
+    bookYear: year,
     historyLimited,
     bookLabel: `${year} book`,
     targets: {
@@ -357,6 +374,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       ltvWindow: habitGoals.ltv?.windowLabel ?? null,
     },
   });
+  const impliedBuyers = impliedIdentifiedBuyers({
+    salesGoal: currentGoalRow?.salesGoal ?? null,
+    typicalOrder: periodMetrics.shopifyDepth.medianAov,
+    orderCount: periodMetrics.shopifyDepth.orderCount,
+  });
+  const shopifyOrderWindowLimited = Boolean(
+    !useSampleDesk && periodSalesCoverage?.periodExceedsFactWindow,
+  );
+  const salesFactsIncomplete =
+    !useSampleDesk &&
+    periodSalesCoverage &&
+    !periodSalesCoverage.complete &&
+    periodSalesCoverage.expectedClosedDays > 0 &&
+    !periodSalesCoverage.periodExceedsFactWindow
+      ? {
+          factDays: periodSalesCoverage.factDays,
+          expectedClosedDays: periodSalesCoverage.expectedClosedDays,
+        }
+      : null;
 
   return {
     board,
@@ -380,11 +416,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }),
     habitGoals,
     orderForecast,
+    impliedBuyers,
+    orderBookDepth,
+    todaySalesTruncated: !useSampleDesk && todaySalesTruncated,
+    todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
+    orderBackfillProgress: useSampleDesk ? null : orderBackfillProgress,
+    shopifyOrderWindowLimited,
+    salesFactsIncomplete,
   };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, session } = await requireAdmin(request);
+  const { session } = await requireAdmin(request);
   const shop = await ensureShop(session.shop);
   const form = await request.formData();
   const year = parseGoalsYear(String(form.get("year") ?? ""));
@@ -501,7 +544,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         yoyPct: growthPct,
       };
     }
-    const priorSalesByMonth = salesByMonthFromDayMap(priorYear, salesByDay);
+    const priorSalesByMonth = salesByMonthFromDayMap(
+      priorYear,
+      salesByDay,
+      new Date(),
+      deskTz,
+    );
     const monthly = goalsAtYoyGrowth(
       monthMapToArray(priorSalesByMonth),
       growthPct,
@@ -536,10 +584,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   // save_goals (default) — the full-year plan is part of the one desk.
-  const monthly: number[] = [];
+  const monthly: Array<number | null> = [];
   for (let m = 1; m <= 12; m++) {
     const n = parseGoalInput(form.get(`goal_${m}`));
-    if (Number.isNaN(n)) {
+    if (n != null && Number.isNaN(n)) {
       return {
         success: false as const,
         intent: "save_goals" as const,
@@ -596,6 +644,13 @@ export default function GoalsPage() {
     entitlements,
     habitGoals,
     orderForecast,
+    impliedBuyers,
+    orderBookDepth,
+    todaySalesTruncated,
+    todaySalesUnavailable,
+    orderBackfillProgress,
+    shopifyOrderWindowLimited,
+    salesFactsIncomplete,
   } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
@@ -618,7 +673,7 @@ export default function GoalsPage() {
   );
   const priorYearSales = knownPriorMonths.reduce((a, b) => a + b, 0);
   const previewTenPct = goalsAtYoyGrowth(priorYearMonthly, 10).reduce(
-    (a, b) => a + b,
+    (a, b) => a + (b ?? 0),
     0,
   );
   const canGrowFromPrior = knownPriorMonths.length > 0;
@@ -682,13 +737,26 @@ export default function GoalsPage() {
 
   const ytdTone = deltaTone(board.ytd.delta, board.ytd.goal);
   const forecast = board.forecast;
-  const tillLabel = useSampleDesk
-    ? `${periodMetrics.period.label}${PRODUCT_NOUN.samplePeriodSuffix}`
-    : salesError ||
-        periodMetrics.blockedMockAsLive ||
-        periodMetrics.salesSource === "mock"
-      ? `${periodMetrics.period.label} · sales unavailable`
-      : `${periodMetrics.period.label} · live sales`;
+  const tillLabel = deskPeriodTillLabel({
+    periodLabel: periodMetrics.period.label,
+    useSampleDesk,
+    shotMode,
+    salesError,
+    blockedMockAsLive: periodMetrics.blockedMockAsLive,
+    salesSource: periodMetrics.salesSource,
+    factsIncomplete: Boolean(salesFactsIncomplete),
+    todaySalesTruncated,
+    todaySalesUnavailable,
+    shopifyOrderWindowLimited,
+    includeShopifyOrderWindow: true,
+    orderBookDepth,
+  });
+  const salesHint = spendFirstFoldSalesHint({
+    salesPending: Boolean(periodMetrics.salesPending),
+    periodLabel: periodMetrics.period.label,
+    todaySalesTruncated,
+    todaySalesUnavailable,
+  });
 
   const onYearChange = (next: string) => {
     const params = new URLSearchParams(searchParams);
@@ -779,6 +847,34 @@ export default function GoalsPage() {
           <SampleDeskBanner note="Goals below use SAMPLE sales." />
         ) : null}
 
+        {!shotMode ? (
+          <CashTrustBanners
+            blockedMockAsLive={Boolean(periodMetrics.blockedMockAsLive)}
+            spendCoverage={null}
+            periodLabel={periodMetrics.period.label}
+            shopifyOrderWindowLimited={shopifyOrderWindowLimited}
+            salesFactsIncomplete={salesFactsIncomplete}
+            hasSpend={periodHasSpend}
+            orderBackfillProgress={
+              orderBackfillProgress
+                ? {
+                    completeDays: orderBackfillProgress.completeDays,
+                    windowDays: orderBackfillProgress.windowDays,
+                    remainingDays: orderBackfillProgress.remainingDays,
+                  }
+                : null
+            }
+            todaySalesTruncated={todaySalesTruncated}
+            todaySalesUnavailable={todaySalesUnavailable}
+            orderFactsTruncated={Boolean(orderBackfillProgress?.truncated)}
+            shotMode={shotMode}
+            cashActionReady={periodMetrics.cashActionReady}
+            spendRecon={null}
+            belowBreakEven={null}
+            onboarding={null}
+          />
+        ) : null}
+
         {salesError && !shotMode ? (
           <SalesLoadError
             body="Your plan still saves. Actuals stay — until you refresh. Nothing was written as $0."
@@ -857,8 +953,8 @@ export default function GoalsPage() {
                 {periodMetrics.salesPending
                   ? "Still loading — not $0"
                   : periodMetrics.sales === 0
-                    ? `Certified $0 · ${periodMetrics.period.label}`
-                    : `${PRODUCT_NOUN.totalSalesHeroHint} · ${periodMetrics.period.label}`}
+                    ? `Certified $0 · ${salesHint}`
+                    : `${PRODUCT_NOUN.totalSalesHeroHint} · ${salesHint}`}
               </p>
             </div>
             {periodHasSpend ? (
@@ -917,6 +1013,7 @@ export default function GoalsPage() {
               row={currentMonthRow}
               prior={currentMonthPrior}
               showGoal={goalsEnabled}
+              impliedBuyers={impliedBuyers}
             />
           ) : null}
 
@@ -1019,7 +1116,7 @@ export default function GoalsPage() {
 
             {goalsEnabled ? (
               <>
-                {forecast && forecast.monthGoal > 0 ? (
+                {forecast ? (
                   <section
                     className="mcfly-goals-forecast mcfly-goals-forecast--inline mcfly-goals-forecast--soft"
                     aria-label="Current month forecast"
@@ -1029,23 +1126,39 @@ export default function GoalsPage() {
                         {forecast.monthLong} close
                       </span>
                       {" · "}
-                      Projected {formatCurrency(forecast.projSales, currency)} vs{" "}
-                      {formatCurrency(forecast.monthGoal, currency)}
+                      {forecast.projSales != null ? (
+                        <>
+                          Projected {formatCurrency(forecast.projSales, currency)}{" "}
+                          {PRODUCT_NOUN.salesBasisShort}
+                          {forecast.monthGoal > 0 ? (
+                            <>
+                              {" "}
+                              vs {formatCurrency(forecast.monthGoal, currency)}
+                            </>
+                          ) : null}
+                        </>
+                      ) : (
+                        <>
+                          Projected {PRODUCT_NOUN.salesBasisShort} is — until a
+                          typical selling day seals
+                        </>
+                      )}
                       {" · "}
                       <span
                         className={`mcfly-goals-pace mcfly-goals-pace--${forecast.pace.tone}`}
                       >
                         {forecast.pace.label}
                       </span>
-                      {forecast.mtdSpend > 0 ? (
+                      {forecast.mtdSpend > 0 && forecast.projMer != null ? (
                         <ForecastMerLine
-                          mer={forecast.mtdMer}
+                          mer={forecast.projMer}
                           targetMer={forecast.targetMer}
                           breakEvenMer={board.breakEvenMer}
                           merRails={forecast.merRails}
                         />
                       ) : null}
                     </p>
+                    <p className="mcfly-panel__muted">{forecast.formula}</p>
                   </section>
                 ) : null}
 
@@ -1074,6 +1187,7 @@ export default function GoalsPage() {
                         row={currentMonthRow}
                         prior={currentMonthPrior}
                         showGoal
+                        impliedBuyers={impliedBuyers}
                       />
                     ) : null}
                     <div className="mcfly-goals-table-wrap">
@@ -1082,7 +1196,8 @@ export default function GoalsPage() {
                           <tr>
                             <th scope="col">Month</th>
                             <th scope="col">Goal</th>
-                            <th scope="col">Actual</th>
+                            <th scope="col">{PRODUCT_NOUN.salesBasisShort}</th>
+                            <th scope="col">Returning $</th>
                             {yearHasSpend ? (
                               <>
                                 <th scope="col">Spend</th>
@@ -1090,7 +1205,7 @@ export default function GoalsPage() {
                                 <th scope="col">MER</th>
                               </>
                             ) : null}
-                            <th scope="col">Prior</th>
+                            <th scope="col">Prior {PRODUCT_NOUN.salesBasisShort}</th>
                             <th scope="col">YoY</th>
                             <th scope="col">Pace</th>
                           </tr>
@@ -1140,6 +1255,7 @@ export default function GoalsPage() {
                     row={currentMonthRow}
                     prior={currentMonthPrior}
                     showGoal={false}
+                    impliedBuyers={null}
                   />
                 ) : null}
                 <div className="mcfly-goals-table-wrap">
@@ -1147,14 +1263,15 @@ export default function GoalsPage() {
                     <thead>
                       <tr>
                         <th scope="col">Month</th>
-                        <th scope="col">Actual</th>
+                        <th scope="col">{PRODUCT_NOUN.salesBasisShort}</th>
+                        <th scope="col">Returning $</th>
                         {yearHasSpend ? (
                           <>
                             <th scope="col">Spend</th>
                             <th scope="col">MER</th>
                           </>
                         ) : null}
-                        <th scope="col">Prior</th>
+                        <th scope="col">Prior {PRODUCT_NOUN.salesBasisShort}</th>
                         <th scope="col">YoY</th>
                       </tr>
                     </thead>
@@ -1181,6 +1298,9 @@ export default function GoalsPage() {
                               ) : null}
                             </th>
                             <td>{formatSalesOrDash(row.actual, currency)}</td>
+                            <td>
+                              {formatSalesOrDash(row.returningActual, currency)}
+                            </td>
                             {yearHasSpend ? (
                               <>
                                 <SpendCell spend={row.spend} />
@@ -1286,8 +1406,11 @@ function GoalRow({
   targetMer: number;
 }) {
   const currency = useDeskCurrency();
-  const hasGoal = row.salesGoal > 0;
-  const spendCeiling = impliedSpendCeiling(row.salesGoal, targetMer);
+  const hasGoal = row.salesGoal != null && row.salesGoal > 0;
+  const spendCeiling =
+    row.salesGoal != null
+      ? impliedSpendCeiling(row.salesGoal, targetMer)
+      : null;
   const barPct =
     hasGoal && row.pct != null && Number.isFinite(row.pct)
       ? Math.min(100, Math.max(0, row.pct))
@@ -1334,13 +1457,14 @@ function GoalRow({
             className="mcfly-goals-input"
             name={`goal_${row.month}`}
             inputMode="decimal"
-            placeholder="0"
+            placeholder=""
             defaultValue={defaultValue}
             aria-label={`${row.monthLong} sales goal`}
           />
         </td>
       ) : null}
       <td>{formatSalesOrDash(row.actual, currency)}</td>
+      <td>{formatSalesOrDash(row.returningActual, currency)}</td>
       {showSpend ? (
         <>
           <SpendCell spend={row.spend} />
@@ -1367,15 +1491,17 @@ function ThisMonthPlanStack({
   row,
   prior,
   showGoal,
+  impliedBuyers,
 }: {
   row: GoalMonthRow;
   prior: number | null;
   showGoal: boolean;
+  impliedBuyers: number | null;
 }) {
   const currency = useDeskCurrency();
   const goal =
     showGoal && row.salesGoal > 0
-      ? formatCurrency(row.salesGoal, currency)
+      ? formatCurrency(row.salesGoal ?? 0, currency)
       : "—";
   return (
     <section
@@ -1392,9 +1518,17 @@ function ThisMonthPlanStack({
           <span className="mcfly-goals-month-stack__value">{goal}</span>
         </div>
         <div className="mcfly-goals-month-stack__cell">
-          <span className="mcfly-goals-month-stack__label">Actual</span>
+          <span className="mcfly-goals-month-stack__label">
+            {PRODUCT_NOUN.salesBasisShort}
+          </span>
           <span className="mcfly-goals-month-stack__value">
             {formatSalesOrDash(row.actual, currency)}
+          </span>
+        </div>
+        <div className="mcfly-goals-month-stack__cell">
+          <span className="mcfly-goals-month-stack__label">Returning $</span>
+          <span className="mcfly-goals-month-stack__value">
+            {formatSalesOrDash(row.returningActual, currency)}
           </span>
         </div>
         <div className="mcfly-goals-month-stack__cell">
@@ -1403,7 +1537,24 @@ function ThisMonthPlanStack({
             {formatSalesOrDash(prior, currency)}
           </span>
         </div>
+        {showGoal ? (
+          <div className="mcfly-goals-month-stack__cell">
+            <span className="mcfly-goals-month-stack__label">Implied buyers</span>
+            <span className="mcfly-goals-month-stack__value">
+              {impliedBuyers != null
+                ? impliedBuyers.toLocaleString("en-US")
+                : "—"}
+            </span>
+          </div>
+        ) : null}
       </div>
+      {showGoal ? (
+        <p className="mcfly-panel__muted">
+          {impliedBuyers != null
+            ? `This month’s plan is about ${impliedBuyers.toLocaleString("en-US")} identified buyers at the typical order.`
+            : "Implied identified buyers stay — until the sales goal and typical order both seal (8-order floor). Empty spend stays off this sentence."}
+        </p>
+      ) : null}
     </section>
   );
 }
