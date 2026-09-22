@@ -2357,7 +2357,15 @@ body.demo-page .demo-desk-caption {
     display: none;
   }
   .hero--v25 .dd-kpi-grid--hero {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero--v25 .dd-period {
+    overflow-x: auto;
+    max-width: 100%;
+    flex-wrap: nowrap;
+  }
+  .faq-home summary {
+    overflow-wrap: anywhere;
   }
 }
 

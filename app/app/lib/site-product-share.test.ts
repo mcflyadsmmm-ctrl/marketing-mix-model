@@ -17,7 +17,7 @@ function section(id: string): string {
 }
 
 describe("/product shows the SAMPLE share artifacts", () => {
-  it("paints a Monday board of three named SAMPLE year windows", () => {
+  it("paints a year board of three named SAMPLE year windows", () => {
     const board = section("year-board");
     const ritual = product.indexOf("<h3>Overview</h3>");
     const boardAt = product.indexOf('id="year-board"');
@@ -81,6 +81,11 @@ describe("/product shows the SAMPLE share artifacts", () => {
 
   it("keeps parked SAMPLE honesty and refuses leftover share theater", () => {
     expect(product).toContain("Public demo is SAMPLE Snowdevil");
+    expect(product).toContain("A paste for Slack or WhatsApp. A paste for the books. A PNG for the agency.");
+    expect(product).toContain("Founder · Slack or WhatsApp");
+    expect(product).toContain("Books · email");
+    expect(product).toContain("Agency · Save PNG");
+    expect(product).toContain("does not split Faire vs Online Store");
     expect(product).toContain('href="/demo"');
     expect(product).toContain("Your shop is not on this page");
     expect(product).not.toMatch(/when unparked/);

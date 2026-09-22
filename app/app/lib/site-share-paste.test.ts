@@ -9,7 +9,7 @@ function readSite(rel: string) {
   return readFileSync(join(root, rel), "utf8");
 }
 
-describe("home SAMPLE Slack paste board", () => {
+describe("home SAMPLE share paste board", () => {
   const html = readSite("site/index.html");
   const pasteStart = html.indexOf('id="paste-slack"');
   const pasteEnd = html.indexOf('aria-labelledby="row-roas"');
@@ -20,12 +20,12 @@ describe("home SAMPLE Slack paste board", () => {
   const overviewSlice =
     overviewIdx >= 0 ? html.slice(overviewIdx, overviewIdx + 1800) : "";
 
-  it("keeps the locked H1, v35, and Snowdevil SAMPLE dollars", () => {
+  it("keeps the locked H1, v37, and Snowdevil SAMPLE dollars", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v36"');
-    expect(html).toContain("mcfly.css?v=20260922v36");
+    expect(html).toContain('content="v37"');
+    expect(html).toContain("mcfly.css?v=20260922v37");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
@@ -37,9 +37,10 @@ describe("home SAMPLE Slack paste board", () => {
 
   it("paints one paste-ready SAMPLE briefing with a Copy control", () => {
     expect(pasteStart).toBeGreaterThan(0);
-    expect(paste).toContain("Paste this to Slack.");
+    expect(paste).toContain("Copy this for Slack, WhatsApp, or email.");
     expect(paste).toContain("SAMPLE Snowdevil · not a live client");
     expect(paste).toContain("Mcfly never posts to Slack — you copy.");
+    expect(paste).toContain("Not a Slack bot");
 
     expect(paste).toContain("$68,457 vs last year $69,891");
     expect(paste).toContain("-$1,434");
@@ -52,15 +53,14 @@ describe("home SAMPLE Slack paste board", () => {
     expect(paste).toContain("$45,409");
     expect(paste).toContain("not headcount");
 
-    expect(paste).toContain("Weekend mix is 23%");
-    expect(paste).toContain("this window (SAMPLE)");
+    const brief = html.slice(
+      html.indexOf('id="paste-brief"'),
+      html.indexOf("</pre>", html.indexOf('id="paste-brief"')),
+    );
+    expect(brief).not.toContain("Weekend mix");
+    expect(brief).not.toContain("$890");
+    expect(brief).not.toContain("21 days");
     expect(paste).not.toMatch(/Saturday\s*\$/);
-
-    expect(paste).toContain("New-buyer 90-day worth $890");
-    expect(paste).toContain("not an estimate");
-
-    expect(paste).toContain("21 days");
-    expect(paste).toContain("median first→second gap");
 
     const copyButtons = paste.match(/>Copy<\/button>/g) ?? [];
     expect(copyButtons).toHaveLength(1);
@@ -100,6 +100,8 @@ describe("home SAMPLE Slack paste board", () => {
     expect(sits).toContain("apps.shopify.com/trueprofit");
     expect(html).not.toContain("Shopify itself is all-or-nothing Admin");
     expect(html).not.toContain("Deeper than Shopify Analytics Overview.");
+    expect(html).toContain("Basic Shopify has no staff seat");
+    expect(html).toContain("Not a Slack bot");
   });
 
   it("wraps the paste board instead of a nowrap six-column table", () => {

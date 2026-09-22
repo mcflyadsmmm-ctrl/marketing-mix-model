@@ -22,8 +22,8 @@
   <meta name="theme-color" content="#f2f5f8" />
   <title>Deeper Shopify numbers Analytics does not show. | Mcfly Analytics</title>
   <meta name="description" content="Deeper Shopify numbers Analytics does not show. Typical order is the median, not AOV. Returning dollars, not the returning-customer rate. Spend optional. Total ROAS = Shopify sales ÷ entered spend; empty = —. 7-day trial, then $39/store/mo." />
-  <meta name="mcfly-version" content="v36" />
-  <meta name="mcfly-build" content="craft-steal-v36" />
+  <meta name="mcfly-version" content="v37" />
+  <meta name="mcfly-build" content="craft-steal-v37" />
   <link rel="canonical" href="https://mcflyads.com/" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
@@ -36,8 +36,8 @@
   <meta name="twitter:title" content="Deeper Shopify numbers Analytics does not show. | Mcfly Analytics" />
   <meta name="twitter:description" content="Deeper Shopify numbers Analytics does not show. Typical order, returning dollars — spend optional. 7-day trial, then $39/store/mo." />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260829v13" />
-  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260922v36" />
-  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260922v36" />
+  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260922v37" />
+  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260922v37" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -143,24 +143,24 @@
                   <section class="dd-well dd-yoy" aria-label="Sales versus last year">
                     <p class="dd-yoy__lede">Shopify Overview can compare this range to last year. Mcfly keeps this month, this quarter, and this year on one board — last year on the card.</p>
                     <div class="dd-yoy__grid">
-                      <a class="dd-yoy__card live-slice" href="/demo">
+                      <article class="dd-yoy__card">
                         <p class="dd-yoy__k">This month</p>
                         <p class="dd-yoy__v" id="dd-yoy-mtd">$68,457</p>
                         <p class="dd-yoy__prior"><span>Last year</span><span id="dd-yoy-mtd-prior">$69,891</span></p>
                         <p class="dd-yoy__vs" id="dd-yoy-mtd-vs">-$1,434 · -2%</p>
-                      </a>
-                      <a class="dd-yoy__card live-slice" href="/demo">
+                      </article>
+                      <article class="dd-yoy__card">
                         <p class="dd-yoy__k">This quarter</p>
                         <p class="dd-yoy__v" id="dd-yoy-qtd">$210,622</p>
                         <p class="dd-yoy__prior"><span>Last year</span><span id="dd-yoy-qtd-prior">$210,817</span></p>
                         <p class="dd-yoy__vs" id="dd-yoy-qtd-vs">-$195 · 0%</p>
-                      </a>
-                      <a class="dd-yoy__card live-slice" href="/demo">
+                      </article>
+                      <article class="dd-yoy__card">
                         <p class="dd-yoy__k">This year</p>
                         <p class="dd-yoy__v" id="dd-yoy-ytd">$918,649</p>
                         <p class="dd-yoy__prior"><span>Last year</span><span id="dd-yoy-ytd-prior">$918,365</span></p>
                         <p class="dd-yoy__vs" id="dd-yoy-ytd-vs">+$283 · 0%</p>
-                      </a>
+                      </article>
                     </div>
                   </section>
                 </div>
@@ -325,16 +325,16 @@
     <section class="section section--spacious section--paper" id="paste-slack" aria-labelledby="paste-h">
       <div class="container overflow-safe">
         <p class="kicker"><span class="chip">SAMPLE</span> Snowdevil</p>
-        <h2 class="h2" id="paste-h">Paste this to Slack.</h2>
-        <p class="lede lede--tight">SAMPLE Snowdevil · not a live client · Mcfly never posts to Slack — you copy. Polar would call this a weekly digest and send it. Mcfly does not — one briefing for the books, the agency, or a partner.</p>
-        <article class="digest-artifact overflow-safe" aria-label="SAMPLE weekly digest you copy">
+        <h2 class="h2" id="paste-h">Copy this for Slack, WhatsApp, or email.</h2>
+        <p class="lede lede--tight">SAMPLE Snowdevil · not a live client · Mcfly never posts to Slack — you copy. Not a Slack bot. Polar would call this a weekly digest and send it. Mcfly does not — this month vs last year, typical order, returning dollars.</p>
+        <article class="digest-artifact overflow-safe" aria-label="SAMPLE briefing you copy">
           <header class="digest-artifact__head">
-            <strong>Weekly digest</strong>
+            <strong>This month vs last year</strong>
             <span>SAMPLE · Sep 1–16, 2026</span>
             <span>You copy · Mcfly never posts</span>
           </header>
           <div class="paste-card overflow-safe">
-            <pre id="paste-brief" class="paste-card__body" data-paste-line>SAMPLE Snowdevil · This month $68,457 vs last year $69,891 (-$1,434 · -2%). Typical order is $631 — the middle order, not Shopify's average. Returning buyers carry 66% of sales ($45,409) — dollars, not headcount. Weekend mix is 23% of this window (SAMPLE). New-buyer 90-day worth $890 — observed orders, not an estimate. Typical wait to a second order is 21 days — median first→second gap.</pre>
+            <pre id="paste-brief" class="paste-card__body" data-paste-line>SAMPLE Snowdevil · This month $68,457 vs last year $69,891 (-$1,434 · -2%). Typical order is $631 — the middle order, not Shopify's average. Returning buyers carry 66% of sales ($45,409) — dollars, not headcount.</pre>
             <button type="button" class="link-cta link-cta--ghost" data-copy-target="paste-brief">Copy</button>
           </div>
         </article>
@@ -422,35 +422,35 @@
           </details>
           <details>
             <summary>What does this show that Shopify Analytics Overview does not?</summary>
-            <p>Typical order (median, not AOV). Overview’s returning number is a headcount rate; ShopifyQL can show returning sales $. Weekend mix as a % of this window — Reports can already Group by day of week. Days-to-second. LTV 30/90/365 from orders you already have. Overview can already compare one range to last year — Mcfly keeps month, quarter, and year on one board. Repeat Customer Insights from $59 is the closer LTV / latency app if you want RFM and tagging.</p>
+            <p>Typical order (median, not AOV). Overview’s returning number is a headcount rate; ShopifyQL can show returning sales $. Weekend mix as a % of this window — Reports can already Group by day of week. Days-to-second. LTV 30/90/365 from orders you already have. Overview can already compare one range to last year — Mcfly keeps month, quarter, and year on one board. Repeat Customer Insights from $59 is the closer LTV / latency app if you want RFM and tagging. <a href="/faq">Full FAQ</a>.</p>
           </details>
           <details>
             <summary>Is this Triple Whale, Polar, or Repeat Customer Insights?</summary>
-            <p>No. Triple Whale listing is Free / Foundation $219 / Automate $749. Polar is from $750 GMV-based. Repeat Customer Insights from $59 does LTV, purchase latency, RFM, and tagging. Mcfly is one Shopify desk. Overview · Orders · Customers work at $0 spend. Spend is last and optional. $39 stays $39 at $5M / not a GMV tax.</p>
+            <p>No. Triple Whale listing is Free / Foundation $219 / Automate $749. Polar is from $750 GMV-based. Repeat Customer Insights from $59 does LTV, purchase latency, RFM, and tagging. Mcfly is one Shopify desk. Overview · Orders · Customers work at $0 spend. Spend is last and optional. $39 stays $39 at $5M / not a GMV tax. <a href="/faq">Full FAQ</a>.</p>
           </details>
           <details>
             <summary>Do I have to enter COGS before I see numbers?</summary>
-            <p>No. Typical order and returning dollars paint from orders you already have. Lifetimely and TrueProfit need costs for net profit. Mcfly does not ingest COGS and does not paint net profit.</p>
+            <p>No. Typical order and returning dollars paint from orders you already have. Lifetimely and TrueProfit need costs for net profit. Mcfly does not ingest COGS and does not paint net profit. <a href="/faq">Full FAQ</a>.</p>
           </details>
           <details>
             <summary>Can finance or an agency see this without a staff seat?</summary>
-            <p>You copy or Save PNG. Mcfly never posts to Slack, never sends mail, and does not write to a project board. Shopify staff with Analytics see every report, not one card. Polar and Lifetimely send Slack or mail; we do not.</p>
+            <p>You copy or Save PNG. Founder: this month vs last year, typical order, returning dollars — Slack or WhatsApp. Books: the same lines in email. Agency: the year board as PNG. Mcfly never posts. Shopify staff with Analytics see every report, not one card. Basic Shopify has no staff seat. <a href="/faq">Full FAQ</a>.</p>
           </details>
           <details>
             <summary>Are these numbers a real store?</summary>
-            <p>No. Snowdevil is SAMPLE, not a live client. Install reads your shop. The public desk is <a href="/demo">/demo</a>.</p>
+            <p>No. Snowdevil is SAMPLE, not a live client. Install reads your shop. The public desk is <a href="/demo">/demo</a>. <a href="/faq">Full FAQ</a>.</p>
           </details>
           <details>
             <summary>Why are there 0 reviews?</summary>
-            <p>The Shopify listing is live as mcfly-analytics-public. Reviews: 0. We do not invent a 4.9 or an install count. Polar lists 4.9 (117). Triple Whale lists 4.1 (91). Install reads your shop.</p>
+            <p>The Shopify listing is live as mcfly-analytics-public. Reviews: 0. We do not invent a 4.9 or an install count. Polar lists 4.9 (117). Triple Whale lists 4.1 (91). Install reads your shop. <a href="/faq">Full FAQ</a>.</p>
           </details>
           <details>
             <summary>What does the 7-day trial include?</summary>
-            <p>90 days of order history. Paid is up to 24 months. Then $39/store/mo. Uninstall stops the charge. No Free plan.</p>
+            <p>90 days of order history. Paid is up to 24 months. Then $39/store/mo. Uninstall stops the charge. No Free plan. <a href="/faq">Full FAQ</a>.</p>
           </details>
           <details>
             <summary>Does $39 climb with GMV or monthly orders?</summary>
-            <p>No. $39 stays $39 at $5M. Polar’s App Store list price starts at $750/mo and moves with GMV. Lifetimely lists $149/mo at 3,000 orders. TrueProfit lists from $35 plus a per-order surcharge. Repeat Customer Insights lists from $59/mo.</p>
+            <p>No. $39 stays $39 at $5M. Polar’s App Store list price starts at $750/mo and moves with GMV. Lifetimely lists $149/mo at 3,000 orders. TrueProfit lists from $35 plus a per-order surcharge. Repeat Customer Insights lists from $59/mo. <a href="/faq">Full FAQ</a>.</p>
           </details>
         </div>
       </div>
@@ -498,8 +498,8 @@
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260915v17"></script>
-  <script src="/assets/mcfly/chrome.js?v=20260922v36"></script>
-  <script src="/assets/demo-desk.js?v=20260922v36"></script>
+  <script src="/assets/mcfly/chrome.js?v=20260922v37"></script>
+  <script src="/assets/demo-desk.js?v=20260922v37"></script>
   <script>
     (function () {
       function pasteText(el) {
