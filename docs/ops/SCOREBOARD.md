@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v425 / tip `76c5395` (merge of #182 Orders step mix) / image `deployment-01M34SJ12645KM732TEPDZBVRQ` / Live PARKED. Health ok 2026-09-22T14:52Z. v424 was whale ticket.
+**Tip Fly note:** v426 / tip `eec452f` (merge of #183 buyer-life honesty) / image `deployment-01M34W3FMTPB0VV7PCQYAFM9SN` / Live PARKED. Health ok 2026-09-22T15:36Z. v425 was Orders step mix.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v425 / tip `76c5395` / Live PARKED |
+| Tip Fly SoT | v426 / tip `eec452f` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v425 / tip `76c5395`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v426 / tip `eec452f`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 1 of that queue is the only cook. |
+| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 2 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**Buyer-life honesty.** “Customers mix stuffed unidentified lifetime into first-time `$`. Shopify’s order count is today’s, so last January looks returning. Till LTV skipped the regulars whose Shopify life is longer than this book. The mix chart is still UTC.”
+**Goals leftover honesty.** “I planned January and March and left February blank — YTD still said I was ahead. I typed `$0` for a closed month and the phone stack showed —. Last year is not on file and Goals still filled 0% of the plan. Public `/demo/goals` said the same year plan as Admin; I got a habit board against a `$0` plan.”
 
-Customers mix + Spend → CPA new-buyers + Customers → LTV till / depth. Unknown `lifetimeOrders` is — on mix dollars and on CPA new-buyers, never stuffed into first-time `$`. Guests stay out of returning. New vs returning dollars from `orderedAt` on the stored book; `lifetimeOrders > stored` is its own empty, never silently returning. Till LTV names N identified buyers whose Shopify life is longer than this desk stored and withholds them as — (or “orders on this desk only”). Mix days use `shopLocalDayKey`. Do not unpark Live. Do not change the 90.
+Goals year board / gauges / `ThisMonthPlanStack`. Public `/demo/goals` and Admin `/app/goals`. YTD/QTD actual (and %) only sum months that have a plan, or withhold %. Typed `$0` is `$0`, cleared is —. Null actual + hasGoal → empty bar / —, never 0%. `/demo/goals` mounts the Admin year table read-only from SAMPLE’s typed-or-empty months. One copy control: Goal, Shopify Total Sales Actual, Prior when on file. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/buyer-life-honesty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 2–8 and 10–14 of the third-queue stay queued. Do not rebuild Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/goals-leftover-honesty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 3–8 and 10–14 of the third-queue stay queued. Do not rebuild buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 1.
+Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 2.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
