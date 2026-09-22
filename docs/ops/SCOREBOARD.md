@@ -14,13 +14,17 @@
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
 | Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v410 / tip `23bb8f9`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | DONE — four notes on #148–#151. Do not re-run that wave. Rank 1 of the enterprise cook queue is the next sentence. |
+| Niche intel | DONE — four notes on #148–#151, ranked in the enterprise cook queue. Do not re-run that wave. |
 
 ## Next significant ship (the only craft allowed)
 
-**Morning habit is on v410.** Three doors (month close, who to save, set a target) and a copyable sentence from the numbers on that board. No ad login. No spend required.
+**Period total on the phone.** “I opened Overview to see what this period sold, and on my phone I cannot read this month or last year.”
 
-The next sentence is not named here yet. It is rank 1 of `docs/plans/2026-09-22-enterprise-cook-queue.md` once that plan exists. Do not cook until that rank is written. Do not rebuild morning habit. Do not fly this scoreboard stamp.
+The hero peek is the selected period’s Shopify Total Sales, and the card says that name. Yesterday, this week, and this month to date are plain totals on that first fold. Under 36rem the three year windows stack, and last year’s dollars stay on the card. Typical order stays a smaller peek. The chart’s full-width number stays the hovered bucket, or the last bucket. No session tile. No gross profit.
+
+Branch `cursor/period-phone-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 2–6 stay queued. Do not rebuild morning habit. Do not fly this scoreboard stamp.
+
+Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md`.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
