@@ -58,12 +58,12 @@ describe("v38 native leftover and listing-star honesty", () => {
     expect(about).not.toContain("Monthly sales plan from Shopify orders");
   });
 
-  it("names Grow+ Dashboards vs Reports instead of every-report-not-one-card", () => {
+  it("names Grow Dashboards vs Reports instead of every-report-not-one-card", () => {
     expect(index).toContain(
-      "Grow+ staff can be Dashboards only (Overview + Live view)",
+      "Grow staff can be Dashboards only (Overview + Live view)",
     );
     expect(faq).toContain(
-      "Grow+ staff can be Dashboards only (Overview + Live view)",
+      "Grow staff can be Dashboards only (Overview + Live view)",
     );
     expect(index).not.toContain("every report, not one card");
     expect(faq).not.toContain("every report, not one card");

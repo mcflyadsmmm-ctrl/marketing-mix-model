@@ -20,12 +20,12 @@ describe("home SAMPLE share paste board", () => {
   const overviewSlice =
     overviewIdx >= 0 ? html.slice(overviewIdx, overviewIdx + 1800) : "";
 
-  it("keeps the locked H1, v41, and Snowdevil SAMPLE dollars", () => {
+  it("keeps the locked H1, v42, and Snowdevil SAMPLE dollars", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v41"');
-    expect(html).toContain("mcfly.css?v=20260922v41");
+    expect(html).toContain('content="v42"');
+    expect(html).toContain("mcfly.css?v=20260922v42");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");

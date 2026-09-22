@@ -61,8 +61,12 @@ describe("Fly honors Pages parked-lander redirects", () => {
       to: "/",
       code: 301,
     });
-    expect(matchSiteRedirect("/mds-made-easy/index.html", rules)).toMatchObject({
-      to: "/",
+    expect(matchSiteRedirect("/inquire", rules)).toMatchObject({
+      to: "/support",
+      code: 301,
+    });
+    expect(matchSiteRedirect("/inquire.html", rules)).toMatchObject({
+      to: "/support",
       code: 301,
     });
   });
