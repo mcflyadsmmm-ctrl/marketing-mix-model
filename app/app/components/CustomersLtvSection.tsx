@@ -319,6 +319,7 @@ function useCustomersLtvPack({
     chartTargetLine,
     depthHasAny,
     hasSpend,
+    historyLimited,
   };
 }
 
@@ -408,7 +409,7 @@ export function CustomersLtvWindows(props: LtvPackProps) {
 
 /** LTV flagship depth pack — FOLD NEVER DELETE. */
 export function CustomersLtvDepth(props: LtvPackProps) {
-  const { chartTargetLine, depthHasAny } = useCustomersLtvPack(props);
+  const { chartTargetLine, depthHasAny, historyLimited } = useCustomersLtvPack(props);
   const { depth, useSampleDesk, shopLabel = "", shotMode = false } = props;
 
   return (
@@ -449,6 +450,7 @@ export function CustomersLtvDepth(props: LtvPackProps) {
         shopLabel={shopLabel}
         sample={useSampleDesk}
         shotMode={shotMode}
+        historyLimited={historyLimited}
       />
     </>
   );

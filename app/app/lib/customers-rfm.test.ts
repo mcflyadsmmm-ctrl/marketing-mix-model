@@ -2,11 +2,16 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { RETENTION_GUEST_KEY, type RetentionOrderRow } from "./customers-analytics";
+import {
+  RETENTION_GUEST_KEY,
+  WHALE_MIN_ORDERS,
+  type RetentionOrderRow,
+} from "./customers-analytics";
 import {
   buildCustomerRfm,
   emptyCustomerRfm,
   rfmEmptyState,
+  whaleWatchRemainderLine,
   RFM_HIBERNATE_DAYS,
   RFM_MIN_BUYERS,
   RFM_MIN_FOLLOW_DAYS,
@@ -231,5 +236,210 @@ describe("emptyCustomerRfm", () => {
     expect(e.empty?.kind).toBe("syncing");
     expect(e.watchlist).toEqual([]);
     expect(e.medianOrderLtv).toBeNull();
+    expect(e.watchlistTotal).toBe(0);
+    expect(e.watchlistMoreMinOrders).toBe(0);
+    expect(e.championFlow.sealed).toBe(false);
+    expect(e.championFlow.cooledLifetime).toBeNull();
+  });
+});
+
+describe("whale ticket — typical / first / later so Whale 1 is not one huge first order", () => {
+  it("puts typical ticket (lifetime ÷ orders) on the row, blank when orders < 1", () => {
+    expect(WHALE_MIN_ORDERS).toBe(5);
+    expect(WATCHLIST_MAX).toBe(8);
+    const vip = book([
+      ...Array.from({ length: 7 }, (_, i) => ({
+        key: `fill-${i}`,
+        orders: [
+          { d: 80, amt: 40 },
+          { d: 10, amt: 40 },
+        ],
+      })),
+      {
+        key: "one-shot",
+        orders: [{ d: 8, amt: 1000 }],
+      },
+      {
+        key: "vip",
+        orders: Array.from({ length: 10 }, (_, i) => ({
+          d: 80 - i * 7,
+          amt: 100,
+        })),
+      },
+    ]);
+    const view = buildCustomerRfm(vip, {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(view.available).toBe(true);
+    const whale1 = view.watchlist[0];
+    expect(whale1?.lifetime).toBe(1000);
+    expect(whale1?.orders).toBe(10);
+    expect(whale1?.typicalTicket).toBe(100);
+    expect(whale1?.firstTicket).toBe(100);
+    expect(whale1?.laterTicket).toBe(100);
+    expect(whale1?.repeatRevenue).toBe(900);
+    const oneShot = view.watchlist.find((row) => row.orders === 1);
+    expect(oneShot?.lifetime).toBe(1000);
+    expect(oneShot?.typicalTicket).toBe(1000);
+    expect(oneShot?.firstTicket).toBe(1000);
+    expect(oneShot?.laterTicket).toBeNull();
+    expect(oneShot?.repeatRevenue).toBeNull();
+    expect(whale1?.typicalTicket).not.toBe(oneShot?.typicalTicket);
+    expect(JSON.stringify(view)).not.toContain("one-shot");
+    expect(JSON.stringify(view)).not.toContain("vip");
+  });
+
+  it("does not invent a typical ticket when there is no order", () => {
+    const row = buildCustomerRfm(rowsFrom(fixture.zeroLtv, WINDOW_END), {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(row.watchlist).toEqual([]);
+    expect(row.watchlist.every((w) => w.typicalTicket == null || w.orders >= 1)).toBe(
+      true,
+    );
+  });
+});
+
+describe("WATCHLIST_MAX remainder — Whale 8 of N, N more with 5+ orders", () => {
+  it("does not silently hide the rest of the 5+ order book", () => {
+    const rows = book([
+      ...Array.from({ length: 12 }, (_, i) => ({
+        key: `repeat-${i}`,
+        orders: Array.from({ length: WHALE_MIN_ORDERS }, (__, n) => ({
+          d: 80 - n * 10,
+          amt: 20,
+        })),
+      })),
+      ...Array.from({ length: 3 }, (_, i) => ({
+        key: `shot-${i}`,
+        orders: [{ d: 12, amt: 400 }],
+      })),
+    ]);
+    const view = buildCustomerRfm(rows, {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(view.watchlist).toHaveLength(WATCHLIST_MAX);
+    expect(view.watchlistTotal).toBe(15);
+    expect(view.watchlistMoreMinOrders).toBe(7);
+    const line = whaleWatchRemainderLine({
+      shown: view.watchlist.length,
+      total: view.watchlistTotal,
+      moreMinOrders: view.watchlistMoreMinOrders,
+      minOrders: WHALE_MIN_ORDERS,
+    });
+    expect(line).toBe("Whale 8 of 15. 7 more with 5+ orders.");
+    expect(JSON.stringify(view)).not.toContain("repeat-0");
+    expect(JSON.stringify(view)).not.toContain("shot-0");
+  });
+
+  it("stays — under the 8-buyer floor and keeps guests out", () => {
+    const thin = buildCustomerRfm(rowsFrom(fixture.thin, WINDOW_END), {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(thin.watchlist).toEqual([]);
+    expect(thin.watchlistTotal).toBe(0);
+    expect(thin.watchlistMoreMinOrders).toBe(0);
+    expect(
+      whaleWatchRemainderLine({
+        shown: 0,
+        total: thin.watchlistTotal,
+        moreMinOrders: thin.watchlistMoreMinOrders,
+        minOrders: WHALE_MIN_ORDERS,
+      }),
+    ).toBeNull();
+
+    const withGuest = book([
+      ...Array.from({ length: 8 }, (_, i) => ({
+        key: `gfill-${i}`,
+        orders: [
+          { d: 80, amt: 50 },
+          { d: 10, amt: 50 },
+        ],
+      })),
+    ]);
+    withGuest.push({
+      customerKey: RETENTION_GUEST_KEY,
+      orderedAt: at(4),
+      amount: 99_999,
+    });
+    const view = buildCustomerRfm(withGuest, {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(view.watchlistTotal).toBe(8);
+    expect(view.watchlistMoreMinOrders).toBe(0);
+    expect(view.identifiedBuyers).toBe(8);
+    expect(JSON.stringify(view)).not.toContain("99999");
+  });
+});
+
+describe("RFM champion flow — last month’s Champions who are At risk or Hibernating now", () => {
+  it("counts headcount and lifetime dollars, without opaque keys", () => {
+    const rows = book([
+      ...Array.from({ length: 8 }, (_, i) => ({
+        key: `stay-${i}`,
+        orders: [
+          { d: 80, amt: 80 },
+          { d: 50, amt: 80 },
+          { d: 5, amt: 80 },
+        ],
+      })),
+      {
+        key: "cooled-a",
+        orders: [
+          { d: 80, amt: 500 },
+          { d: 40, amt: 500 },
+        ],
+      },
+      {
+        key: "cooled-b",
+        orders: [
+          { d: 80, amt: 500 },
+          { d: 40, amt: 500 },
+        ],
+      },
+    ]);
+    rows.push({
+      customerKey: RETENTION_GUEST_KEY,
+      orderedAt: at(6),
+      amount: 88_000,
+    });
+    const view = buildCustomerRfm(rows, {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(view.available).toBe(true);
+    expect(view.championFlow.sealed).toBe(true);
+    expect(view.championFlow.lastMonthChampions).toBe(10);
+    expect(view.championFlow.cooledBuyers).toBe(2);
+    expect(view.championFlow.cooledLifetime).toBe(2000);
+    const packed = JSON.stringify(view);
+    expect(packed).not.toContain("stay-0");
+    expect(packed).not.toContain("cooled-a");
+    expect(packed).not.toContain("gid://");
+    expect(packed).not.toMatch(/@/);
+  });
+
+  it("stays — when last month has fewer than 8 identified buyers", () => {
+    const rows = book(
+      Array.from({ length: 8 }, (_, i) => ({
+        key: `young-${i}`,
+        orders: [
+          { d: 20, amt: 90 },
+          { d: 5, amt: 90 },
+        ],
+      })),
+    );
+    const view = buildCustomerRfm(rows, {
+      windowEnd: WINDOW_END,
+      historyLimited: false,
+    });
+    expect(view.championFlow.sealed).toBe(false);
+    expect(view.championFlow.cooledLifetime).toBeNull();
+    expect(view.championFlow.cooledBuyers).toBe(0);
   });
 });

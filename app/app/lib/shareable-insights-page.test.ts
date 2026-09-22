@@ -106,6 +106,8 @@ describe("Shareable insight cards — habit, not a dump", () => {
       ltv.indexOf("<LtvValueBuild"),
     );
     expect(whale).toContain("whaleSlackInsight");
+    expect(whale).toContain("coldShare: whales.coldShare");
+    expect(whale).toContain("historyLimited: historyLimited");
     expect(whale).toContain("<SlackInsightCard");
     expect(first).not.toContain("SlackInsightCard");
     expect(overview.indexOf('rank="first"')).toBeLessThan(

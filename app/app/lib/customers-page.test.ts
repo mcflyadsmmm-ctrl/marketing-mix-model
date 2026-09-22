@@ -180,6 +180,9 @@ describe("CustomerWhaleWatch — top order LTV beside ActionCards", () => {
     expect(watch).toContain("repeatRevenue == null");
     expect(watch).toContain('href="#mcfly-win-back"');
     expect(watch).toContain("No customers invented");
+    expect(watch).toContain("row.typicalTicket");
+    expect(watch).toContain("row.firstTicket");
+    expect(watch).toContain("row.laterTicket");
     expect(watch).not.toMatch(/gid:\/\/shopify\/Customer/);
     expect(watch).not.toContain("Recharge");
     expect(watch).not.toContain("Skio");
@@ -207,6 +210,7 @@ describe("CustomerRfmBoard — recency / frequency / monetary lite", () => {
     expect(rfmLib).toContain("RFM_HIBERNATE_DAYS = 90");
     expect(rfmBoard).toContain("RFM_FROM_SHOPIFY_ORDERS");
     expect(rfmBoard).toContain("RFM_RULES_LINE");
+    expect(rfmBoard).toContain("rfm.championFlow");
     expect(rfmBoard).not.toContain("Potential loyalist");
     expect(rfmBoard).not.toContain("Cannot lose them");
   });

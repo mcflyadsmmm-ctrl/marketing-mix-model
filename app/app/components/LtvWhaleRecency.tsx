@@ -20,11 +20,13 @@ export function LtvWhaleRecency({
   shopLabel = "",
   sample = false,
   shotMode = false,
+  historyLimited,
 }: {
   whales: WhaleRecency | null;
   shopLabel?: string;
   sample?: boolean;
   shotMode?: boolean;
+  historyLimited: boolean;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -33,6 +35,8 @@ export function LtvWhaleRecency({
     whaleCount: whales.whaleCount,
     salesShare: whales.salesShare,
     medianLifetime: whales.medianLifetime,
+    coldShare: whales.coldShare,
+    historyLimited: historyLimited,
     shopLabel,
     sample,
     where: "On file",
