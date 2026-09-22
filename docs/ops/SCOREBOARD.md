@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v413 / tip `c3f3fee` (merge of #155 new-buyer truth) / image `deployment-01M344GJ5ZT5QBHW8TE7K0PATK` / Live PARKED. Health ok 2026-09-22T08:44Z. v412 was the catalog empty.
+**Tip Fly note:** v414 / tip `12c9950` (merge of #156 orders month board) / image `deployment-01M345SQV30P8SXVBS6P7GZR06` / Live PARKED. Health ok 2026-09-22T09:06Z. v413 was new-buyer truth.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v413 / tip `c3f3fee` / Live PARKED |
+| Tip Fly SoT | v414 / tip `12c9950` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v413 / tip `c3f3fee`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v414 / tip `12c9950`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | DONE — four notes on #148–#151, ranked in the enterprise cook queue. Do not re-run that wave. |
 
 ## Next significant ship (the only craft allowed)
 
-**The month the merchant picked.** “I picked this month — which codes took the money, and are returns climbing, or is this board still the last 90 days?”
+**Same clock, those dates last year.** “Are we on track through this hour versus the same weekday last year, and how did this launch week do against those dates?”
 
-Orders intelligence follows the selected period. The weekly ledger shows discount-code dollars and whether returns are climbing, from `discountCode`, `grossAmount`, and `amount` already on the row. New versus already-bought on those codes uses the stored book, not a second 90-day “new.” The public orders page mounts the same board. A code is not a percent. Automatic discount titles stay off. A return stays on the placed order’s current net, not a processing-day clock. No ShopifyQL.
+Overview. Use the hour grain Orders already keeps. Not a new tab. Not a new hour store. This span compares to the same dates last year, labeled Shopify Total Sales. A custom from/to reads those dates one year earlier, not only the equal-length span immediately before (`overviewPriorWindow`). Month, quarter, and year cards already exist. Month close stays `so far + remaining days × typical day`. It is not this compare, and it is not Shopify’s forecast. A missing last year stays a dash / not on file, never $0. The chart’s full-width number stays the hovered or last bucket. The compare is a labeled line. It does not replace the period-total hero.
 
-Branch `cursor/orders-month-board-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 5–6 stay queued. Do not rebuild new-buyer truth, the catalog empty, the period total, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/same-clock-compare-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Rank 6 stays queued. Do not rebuild the orders month board, new-buyer truth, the catalog empty, the period total, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 4.
+Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 5.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
