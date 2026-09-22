@@ -258,6 +258,24 @@ export type CustomerAnalytics = {
   comebackWait: ComebackNextWait;
   /** Median first→last span and inter-order gap among 2+ order buyers. */
   lifetimeSpan: BuyerLifetimeSpan;
+  /**
+   * Same calendar window last year from the stored book. Missing last
+   * September stays not on file — never a fake $0 / 0% year.
+   */
+  lastYearMix: LastYearMix;
+};
+
+/** Same days last year on the stored book. Missing stays not on file. */
+export type LastYearMix = {
+  onFile: boolean;
+  returningSales: number | null;
+  newSales: number | null;
+};
+
+export const CUSTOMERS_LAST_YEAR_EMPTY: LastYearMix = {
+  onFile: false,
+  returningSales: null,
+  newSales: null,
 };
 
 function finite(n: number): number {
@@ -729,6 +747,51 @@ export function mixTotalPaint(bucket: {
 }): number | null {
   if (withheldMixDollars(bucket) > 0) return null;
   return bucket.total;
+}
+
+function shiftUtcYear(d: Date, deltaYears: number): Date | null {
+  const next = new Date(d.getTime());
+  const year = next.getUTCFullYear();
+  next.setUTCFullYear(year + deltaYears);
+  if (next.getUTCFullYear() !== year + deltaYears) return null;
+  return next;
+}
+
+function lastYearPeriodMix(
+  storedBook: RetentionOrderRow[],
+  files: Map<string, BuyerFile>,
+  periodStart: Date | undefined,
+  periodEnd: Date | undefined,
+): LastYearMix {
+  if (periodStart == null || periodEnd == null) return CUSTOMERS_LAST_YEAR_EMPTY;
+  const lastStart = shiftUtcYear(periodStart, -1);
+  const lastEnd = shiftUtcYear(periodEnd, -1);
+  if (!lastStart || !lastEnd) return CUSTOMERS_LAST_YEAR_EMPTY;
+  const startMs = lastStart.getTime();
+  const endMs = lastEnd.getTime();
+  const acc = freshMixAcc(startMs);
+  let identified = 0;
+  for (const row of storedBook) {
+    const t = ms(row.orderedAt);
+    if (t < startMs || t > endMs) continue;
+    const kind = orderMixKind(row, files.get(row.customerKey));
+    addMixAmount(acc, kind, finite(row.amount));
+    if (kind !== "guest") identified += 1;
+  }
+  if (identified <= 0) return CUSTOMERS_LAST_YEAR_EMPTY;
+  return {
+    onFile: true,
+    returningSales: mixReturningPaint({
+      returningDollars: Math.round(acc.retD),
+      unknownDollars: acc.unknownD,
+      truncatedDollars: acc.truncatedD,
+    }),
+    newSales: mixFirstTimePaint({
+      newDollars: Math.round(acc.newD),
+      unknownDollars: acc.unknownD,
+      truncatedDollars: acc.truncatedD,
+    }),
+  };
 }
 
 const SPEND_BANDS: Array<{ label: string; min: number; max: number | null }> = [
@@ -1234,6 +1297,12 @@ export function buildCustomerAnalytics(
   const storedBook = options.orderBook ?? rows;
   const periodStart = options.periodStart;
   const periodEnd = options.periodEnd ?? options.windowEnd;
+  const lastYearMix = lastYearPeriodMix(
+    storedBook,
+    files,
+    periodStart,
+    periodEnd,
+  );
   const quietBack =
     periodStart != null
       ? buildQuietBackDollars({
@@ -1287,6 +1356,7 @@ export function buildCustomerAnalytics(
     quietBack,
     comebackWait,
     lifetimeSpan,
+    lastYearMix,
   };
 }
 

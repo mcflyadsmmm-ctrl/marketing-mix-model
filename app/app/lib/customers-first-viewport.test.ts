@@ -6,14 +6,18 @@ import {
   CUSTOMERS_ANALYTICS_CONTRAST,
   CUSTOMERS_FIRST_FOLD_HEROES,
   CUSTOMERS_FIRST_LANE_LABEL,
+  CUSTOMERS_LAST_YEAR_NOT_ON_FILE,
   CUSTOMERS_PENDING_LINE,
   CUSTOMERS_SPEND_BANS,
   CUSTOMERS_THIN_EMPTY_LINE,
+  CUSTOMERS_TODAY_TRUNCATED_LINE,
   buildCustomersHero,
   buildCustomersLeadPeeks,
   customersHeroBeatsShopifyAnalytics,
+  customersLastYearLine,
   customersOperatorGreeting,
 } from "./customers-first-viewport";
+import { CUSTOMERS_LAST_YEAR_EMPTY } from "./customers-analytics";
 import type { ShopifyNativePeriodStats } from "./shopify-native-stats";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -55,6 +59,7 @@ describe("customersOperatorGreeting", () => {
         identifiedBuyers: 10,
         returningShare: 0.62,
         newShare: 0.38,
+        todaySalesTruncated: false,
       }),
     ).toBe(
       "Returning dollars 62% vs new 38%. Shopify Analytics Customers is a customer list.",
@@ -74,6 +79,7 @@ describe("customersOperatorGreeting", () => {
         identifiedBuyers: 0,
         returningShare: null,
         newShare: null,
+        todaySalesTruncated: false,
       }),
     ).toBe(CUSTOMERS_PENDING_LINE);
     expect(
@@ -82,19 +88,55 @@ describe("customersOperatorGreeting", () => {
         orderCount: 0,
         identifiedBuyers: 0,
         returningShare: null,
+        todaySalesTruncated: false,
       }),
     ).toBe("No identified buyers in this window yet.");
+  });
+
+  it("does not greet a capped live today as a finished closed returning mix", () => {
+    const greeting = customersOperatorGreeting({
+      salesPending: false,
+      orderCount: 24,
+      identifiedBuyers: 10,
+      returningShare: 0.62,
+      newShare: 0.38,
+      todaySalesTruncated: true,
+    });
+    expect(greeting).toBe(CUSTOMERS_TODAY_TRUNCATED_LINE);
+    expect(greeting).toMatch(/capped at ~100 orders/);
+    expect(greeting).toMatch(/not a closed day/);
+    expect(greeting).not.toBe(
+      "Returning dollars 62% vs new 38%. Shopify Analytics Customers is a customer list.",
+    );
+    expect(greeting).not.toMatch(/\$0/);
+    expect(
+      customersOperatorGreeting({
+        salesPending: true,
+        orderCount: 24,
+        identifiedBuyers: 10,
+        returningShare: 0.62,
+        newShare: 0.38,
+        todaySalesTruncated: true,
+      }),
+    ).toBe(CUSTOMERS_PENDING_LINE);
   });
 });
 
 describe("buildCustomersHero + lead peeks", () => {
   it("leads with returning dollars and elevates new $ / dollars per buyer", () => {
     const book = dollarBook();
-    const hero = buildCustomersHero(book);
+    const hero = buildCustomersHero(book, {
+      todaySalesTruncated: false,
+      lastYear: { onFile: true, returningSales: 500, newSales: 300 },
+    });
     expect(hero?.kind).toBe("returningDollars");
     expect(hero?.k).toMatch(/Returning dollars/);
     expect(hero?.amount).toBe(600);
     expect(hero?.amount).not.toBe(0);
+    expect(hero?.todayTruncated).toBe(false);
+    expect(hero?.lastYearOnFile).toBe(true);
+    expect(hero?.lastYearAmount).toBe(500);
+    expect(hero?.yoyPct).toBeNull();
 
     const peeks = buildCustomersLeadPeeks(book);
     expect(peeks.map((peek) => peek.hero)).toEqual([
@@ -113,7 +155,10 @@ describe("buildCustomersHero + lead peeks", () => {
       newSales: 400,
       newSalesShare: 1,
     });
-    const hero = buildCustomersHero(book);
+    const hero = buildCustomersHero(book, {
+      todaySalesTruncated: false,
+      lastYear: CUSTOMERS_LAST_YEAR_EMPTY,
+    });
     expect(hero?.kind).toBe("newDollars");
     const peeks = buildCustomersLeadPeeks(book, { hideNewDollars: true });
     expect(peeks.map((peek) => peek.hero)).not.toContain("newDollars");
@@ -130,7 +175,47 @@ describe("buildCustomersHero + lead peeks", () => {
       newBuyerArpu: null,
     });
     expect(buildCustomersLeadPeeks(empty)).toEqual([]);
-    expect(buildCustomersHero(empty)).toBeNull();
+    expect(
+      buildCustomersHero(empty, {
+        todaySalesTruncated: false,
+        lastYear: CUSTOMERS_LAST_YEAR_EMPTY,
+      }),
+    ).toBeNull();
+  });
+
+  it("does not paint $417,392 returning as a finished closed day when today is capped", () => {
+    const hero = buildCustomersHero(
+      dollarBook({ returningSales: 417_392, newSales: 180_000 }),
+      {
+        todaySalesTruncated: true,
+        lastYear: CUSTOMERS_LAST_YEAR_EMPTY,
+      },
+    );
+    expect(hero?.kind).toBe("returningDollars");
+    expect(hero?.amount).toBe(417_392);
+    expect(hero?.todayTruncated).toBe(true);
+    expect(hero?.amount).not.toBe(0);
+  });
+
+  it("says last year is not on file next to returning vs new — never 0% YoY", () => {
+    const hero = buildCustomersHero(dollarBook({ returningSales: 417_392 }), {
+      todaySalesTruncated: false,
+      lastYear: CUSTOMERS_LAST_YEAR_EMPTY,
+    });
+    expect(hero?.lastYearOnFile).toBe(false);
+    expect(hero?.lastYearAmount).toBeNull();
+    expect(hero?.yoyPct).toBeNull();
+    expect(customersLastYearLine(hero!)).toBe(
+      `Last year ${CUSTOMERS_LAST_YEAR_NOT_ON_FILE}`,
+    );
+    expect(customersLastYearLine(hero!)).not.toMatch(/0%/);
+    expect(customersLastYearLine(hero!)).not.toMatch(/\$0/);
+    expect(
+      customersLastYearLine({
+        lastYearOnFile: true,
+        lastYearAmount: null,
+      }),
+    ).toBe("Last year —");
   });
 });
 
@@ -172,7 +257,12 @@ describe("Customers first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(firstView).toContain("if (salesPending)");
     expect(firstView).toContain("CUSTOMERS_THIN_EMPTY_LINE");
     expect(firstView).toContain("SAMPLE_CUSTOMERS_DOOR");
+    expect(firstView).toContain("todaySalesTruncated");
+    expect(firstView).toContain("CUSTOMERS_TODAY_TRUNCATED_LINE");
+    expect(firstView).toContain("customersLastYearLine");
+    expect(firstView).not.toMatch(/todaySalesTruncated\s*=\s*false/);
     expect(firstView).not.toContain("0.00×");
+    expect(firstView).not.toMatch(/0%/);
     expect(firstView).not.toMatch(/>\$0</);
     expect(firstView).not.toContain("Klaviyo");
     expect(firstView).not.toContain("/app/email");

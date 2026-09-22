@@ -43,6 +43,7 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     const order = [
       'id="mcfly-returning"',
       "<CustomersFirstViewport",
+      "<ShareableInsightCards",
       "<CustomerMixChart",
       "<CustomersScoreboard",
       'id="mcfly-ltv"',
@@ -58,14 +59,19 @@ describe("Customers route — one RETAIN spine, order history only", () => {
       "<CustomerWhaleTable",
       "<CustomerConcentrationChart",
       "<CustomersLtvDepth",
-      "<ShareableInsightCards",
     ].map((tag) => customers.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {
       expect(order[i]).toBeGreaterThan(order[i - 1]!);
     }
+    expect(customers.indexOf("<ShareableInsightCards")).toBeLessThan(
+      customers.indexOf("<CustomerMixChart"),
+    );
     expect(customers.indexOf("<CustomerMixChart")).toBeLessThan(
       customers.indexOf("<CustomersScoreboard"),
+    );
+    expect(customers.lastIndexOf("<ShareableInsightCards")).toBeGreaterThan(
+      customers.indexOf("<CustomersLtvDepth"),
     );
     expect(customers).toContain("salesPending={metrics.salesPending}");
     expect(customers).not.toContain(
@@ -105,6 +111,39 @@ describe("Customers route — one RETAIN spine, order history only", () => {
     expect(customers).toContain("quietBack=");
     expect(analyticsLib).toContain("ORDER_STEP_MIN_BUYERS = 8");
     expect(analyticsLib).toContain("buildOrderSteps");
+  });
+});
+
+/** Opening JSX tag — a till that drops a required prop must fail this, not a name-only grep. */
+function jsxOpen(source: string, name: string): string {
+  const start = source.indexOf(`<${name}`);
+  expect(start).toBeGreaterThan(-1);
+  const self = source.indexOf("/>", start);
+  const open = source.indexOf(">", start);
+  const end =
+    self >= 0 && (open < 0 || self < open) ? self + 2 : open + 1;
+  return source.slice(start, end);
+}
+
+describe("Customers truncated-today leftover — first-fold omit-path", () => {
+  it("requires todaySalesTruncated on both tills; SAMPLE is explicitly not a capped live today", () => {
+    const demo = read("../routes/demo.customers.tsx");
+    for (const source of [customers, demo]) {
+      const first = jsxOpen(source, "CustomersFirstViewport");
+      expect(first).toMatch(/\btodaySalesTruncated=/);
+      expect(first).toMatch(/\bsalesPending=/);
+    }
+    expect(jsxOpen(demo, "CustomersFirstViewport")).toMatch(
+      /todaySalesTruncated=\{false\}/,
+    );
+    expect(customers).toContain("returningInsight");
+    expect(demo).toContain("returningInsight");
+    const firstStart = customers.indexOf('<DeskLane rank="first"');
+    const firstEnd = customers.indexOf("<DeskLane", firstStart + 1);
+    const firstLane = customers.slice(firstStart, firstEnd);
+    expect(firstLane).toContain("<CustomersFirstViewport");
+    expect(firstLane).toContain("<ShareableInsightCards");
+    expect(firstLane).toContain("returningInsight");
   });
 });
 

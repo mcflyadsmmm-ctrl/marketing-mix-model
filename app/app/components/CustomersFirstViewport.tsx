@@ -10,8 +10,10 @@ import type { ShopifyNativePeriodStats } from "../lib/shopify-native-stats";
 import {
   CUSTOMERS_PENDING_LINE,
   CUSTOMERS_THIN_EMPTY_LINE,
+  CUSTOMERS_TODAY_TRUNCATED_LINE,
   buildCustomersHero,
   buildCustomersLeadPeeks,
+  customersLastYearLine,
   customersOperatorGreeting,
   type CustomersPeek,
 } from "../lib/customers-first-viewport";
@@ -88,11 +90,13 @@ export function CustomersFirstViewport({
   book,
   salesPending,
   useSampleDesk = false,
+  todaySalesTruncated,
 }: {
   analytics: CustomerAnalytics;
   book: ShopifyNativePeriodStats;
   salesPending: boolean;
   useSampleDesk?: boolean;
+  todaySalesTruncated: boolean;
 }): ReactNode {
   const currency = useDeskCurrency();
   const money = (n: number) => formatCurrency(n, currency);
@@ -102,8 +106,14 @@ export function CustomersFirstViewport({
     identifiedBuyers: analytics.identifiedBuyers,
     returningShare: salesPending ? null : book.returningSalesShare,
     newShare: salesPending ? null : book.newSalesShare,
+    todaySalesTruncated,
   });
-  const hero = salesPending ? null : buildCustomersHero(book);
+  const hero = salesPending
+    ? null
+    : buildCustomersHero(book, {
+        todaySalesTruncated,
+        lastYear: analytics.lastYearMix,
+      });
   const peeks = salesPending
     ? []
     : buildCustomersLeadPeeks(book, {
@@ -151,11 +161,19 @@ export function CustomersFirstViewport({
             {hero.k}
           </p>
           <p className="mcfly-customers-hero__v">{money(hero.amount)}</p>
+          {todaySalesTruncated ? (
+            <p className="mcfly-customers-hero__sub">
+              {CUSTOMERS_TODAY_TRUNCATED_LINE}
+            </p>
+          ) : null}
           {hero.counterpartAmount != null ? (
             <p className="mcfly-customers-hero__sub">
               New {money(hero.counterpartAmount)}
             </p>
           ) : null}
+          <p className="mcfly-customers-hero__sub">
+            {customersLastYearLine(hero, money)}
+          </p>
           <p className="mcfly-customers-hero__def">{hero.def}</p>
         </article>
       ) : null}

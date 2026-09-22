@@ -71,6 +71,7 @@ export type ShareableInsightInput = {
   shopLabel: string;
   sample: boolean;
   periodLabel: string;
+  todaySalesTruncated?: boolean;
 };
 
 function finitePositive(n: number | null | undefined): number | null {
@@ -210,6 +211,7 @@ function returningCard(
   input: ShareableInsightInput,
   money: (n: number) => string,
 ): ShareableInsightCard | null {
+  if (input.todaySalesTruncated) return null;
   const ret = finitePositive(input.returningSales);
   const share =
     input.returningShare != null &&

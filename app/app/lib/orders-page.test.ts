@@ -74,11 +74,15 @@ describe("Orders step mix call-site lock", () => {
       expect(first).toMatch(/\bdepth=/);
       expect(first).toMatch(/\bstepMix=/);
       expect(first).toMatch(/\btickets=/);
+      expect(first).toMatch(/\btodaySalesTruncated=/);
       expect(first).not.toMatch(/\bwaitDays=/);
       const timing = jsxOpen(source, "OrdersTimingChart");
       expect(timing).toMatch(/\bweekdayShares=/);
       expect(timing).toMatch(/\btimingSplit=/);
     }
+    expect(jsxOpen(demoOrders, "OrdersFirstViewport")).toMatch(
+      /todaySalesTruncated=\{false\}/,
+    );
     const desk = readFileSync(
       join(here, "desk-sales-page.server.ts"),
       "utf8",

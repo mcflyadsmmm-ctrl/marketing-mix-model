@@ -125,9 +125,19 @@ export default function PublicDemoCustomers() {
       shopLabel: data.shopLabel,
       sample: true,
       periodLabel: data.rangeLabel,
+      todaySalesTruncated: false,
     },
     (n) => formatCurrency(n, currency),
   );
+  const returningInsight = {
+    ...insightView,
+    cards: insightView.cards.filter((card) => card.kind === "returning"),
+    empty: null,
+  };
+  const depthInsight = {
+    ...insightView,
+    cards: insightView.cards.filter((card) => card.kind !== "returning"),
+  };
 
   return (
     <DeskBookPage
@@ -159,7 +169,14 @@ export default function PublicDemoCustomers() {
               book={data.book}
               salesPending={false}
               useSampleDesk
+              todaySalesTruncated={false}
             />
+            {returningInsight.cards.length > 0 ? (
+              <ShareableInsightCards
+                view={returningInsight}
+                shotMode={data.shotMode}
+              />
+            ) : null}
             <CustomerMixChart analytics={data.customers} salesPending={false} />
             <CustomersScoreboard
               book={data.book}
@@ -214,7 +231,12 @@ export default function PublicDemoCustomers() {
             <CustomerWhaleTable analytics={data.customers} />
             <CustomerConcentrationChart book={data.book} depth={data.depth} />
             <CustomersLtvDepth {...ltvProps} />
-            <ShareableInsightCards view={insightView} shotMode={data.shotMode} />
+            {depthInsight.cards.length > 0 || depthInsight.empty ? (
+              <ShareableInsightCards
+                view={depthInsight}
+                shotMode={data.shotMode}
+              />
+            ) : null}
           </DeskLane>
         </div>
       </div>
