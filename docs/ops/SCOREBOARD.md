@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v423 / tip `8938134` (merge of #172 quiet-back dollars) / image `deployment-01M34P2H738QFSJG885KWKSWMT` / Live PARKED. Health ok 2026-09-22T13:51Z. v422 was DeskLane open.
+**Tip Fly note:** v424 / tip `3346136` (merge of #177 whale ticket) / image `deployment-01M34QNHWPNPZF21MYB5SQH576` / Live PARKED. Health ok 2026-09-22T14:19Z. v423 was quiet-back dollars.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v423 / tip `8938134` / Live PARKED |
+| Tip Fly SoT | v424 / tip `3346136` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v423 / tip `8938134`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v424 / tip `3346136`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 8 of that queue is the only cook. |
+| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 9 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**Whale ticket and RFM flow.** “Is Whale 1 a VIP who keeps coming back, or one huge first order? The watchlist stops at Whale 8 and does not say ticket.”
+**This month’s `$` by 1st / 2nd / 3rd / 4th+.** “Of this month’s Shopify Total Sales, how much was a first order, a second, a third, or a fourth-or-later — not how old the buyer is. Show this month’s first-time ticket and returning ticket, not one blended AOV.”
 
-Customers whale watchlist (Depth pack) + LTV whale recency. Typical ticket (lifetime ÷ orders) on the row. “Whale 8 of N” or “N more with 5+ orders.” Cold share in the existing Slack line when it is > 0. Seal under the 8-buyer floor. Guests out. No PII. No Admin door. RFM: of last month’s Champions, how many are At risk or Hibernating now, and what lifetime dollars moved. Headcount + lifetime dollars. Opaque keys stay off the desk. Do not unpark Live. Do not change the 90.
+Orders intelligence + first viewport. Four sealed bars (guests out; unknown lifetime its own bar or —; under 8 identified buyers in a step stays —). First-time ticket and returning ticket labeled Shopify Total Sales per order, with shipping + tax as a named slice — not Shopify’s AOV. Period concentration, new vs returning hour, discount `$` vs last September, placed-day kept share vs last year, first vs returning discount depth, dollars per unit, `$0` reship count. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/whale-ticket-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 9–12 of the next-pass queue stay queued. Do not rebuild quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/orders-step-mix-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 10–12 of the next-pass queue stay queued. Do not rebuild whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 8.
+Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 9.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
