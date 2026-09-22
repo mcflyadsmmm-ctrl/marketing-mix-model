@@ -5,7 +5,7 @@ import { useLoaderData, useNavigation } from "react-router";
 import { CertifiedScoreboard } from "../components/CertifiedScoreboard";
 import { CpaExplorer } from "../components/CpaExplorer";
 import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
-import { CopySpendPair } from "../components/MorningHabitStrip";
+import { CopySpendPair, CopyWeekMonthSales } from "../components/MorningHabitStrip";
 import { spendFirstFoldSalesHint } from "../lib/cash-trust-copy";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { DualCloseLine } from "../components/DualCloseLine";
@@ -32,7 +32,7 @@ import {
 import { cashPaybackDays } from "../lib/cash-payback";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { formatSpendOnFile, spendOnFileHint } from "../lib/spend-on-file";
-import { formatTotalRoasEquation, formatOnlineRoasLine, NUMBER_HONESTY, spendPairCopyText } from "../lib/number-honesty";
+import { formatTotalRoasEquation, formatOnlineRoasLine, hasNonOnlineSpendOnFile, NUMBER_HONESTY, spendPairCopyText } from "../lib/number-honesty";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { PUBLIC_SAMPLE_TZ } from "../lib/public-sample-constants";
@@ -43,6 +43,7 @@ import { HONEST_MER_LINE } from "../lib/spend-upload-findings";
 import {
   applyExplorerMode,
   bucketExplorerRows,
+  explorerWeekMonthCopyText,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "../lib/spend-explorer";
@@ -62,6 +63,7 @@ function publicExplorerSeries(
   cpaDays: CpaDayPoint[],
   targetMer: number,
   rangeLabel: string,
+  money: (n: number) => string,
 ): SpendExplorerSeriesView {
   const salesByDay = new Map(
     explorerDays.map((day) => [day.dateKey, day.sales]),
@@ -85,6 +87,13 @@ function publicExplorerSeries(
   const buckets = bucketExplorerRows(rows, "Day");
   const plot = applyExplorerMode(buckets, "total");
   const summary = summarizeExplorer(rows, { bucketCount: plot.length });
+  const weekMonthCopy = toKey
+    ? explorerWeekMonthCopyText({
+        salesByDay,
+        asOfKey: toKey,
+        money,
+      })?.combined ?? null
+    : null;
   return {
     buckets: plot,
     summary,
@@ -98,6 +107,7 @@ function publicExplorerSeries(
     fromKey,
     toKey,
     asOfKey: toKey,
+    weekMonthCopy,
   };
 }
 
@@ -150,6 +160,7 @@ export default function PublicDemoSpend() {
         spend: data.spend,
         mix: data.depth.sourceSalesShare,
         currency,
+        hasNonOnlineSpend: hasNonOnlineSpendOnFile(data.channelSpend),
       })
     : null;
   const [cpaSelectedId, setCpaSelectedId] = useState<CpaWindowId>("this_month");
@@ -174,8 +185,9 @@ export default function PublicDemoSpend() {
         data.cpaDays,
         data.targetMer,
         data.rangeLabel,
+        (n) => formatCurrency(n, currency),
       ),
-    [data.cpaDays, data.explorerDays, data.rangeLabel, data.targetMer],
+    [currency, data.cpaDays, data.explorerDays, data.rangeLabel, data.targetMer],
   );
   const mixTotal = data.channelSpend.reduce((sum, row) => sum + row.amount, 0);
   const explorerRanges = useMemo(() => {
@@ -285,6 +297,14 @@ export default function PublicDemoSpend() {
           ) : null}
           {hasSpend && onlineLine ? (
             <p className="mcfly-book__kpi-hint">{onlineLine}</p>
+          ) : null}
+          {explorer.weekMonthCopy ? (
+            <div className="mcfly-spend-pair-copy-row">
+              <p className="mcfly-book__kpi-hint" style={{ whiteSpace: "pre-wrap" }}>
+                {explorer.weekMonthCopy}
+              </p>
+              <CopyWeekMonthSales text={explorer.weekMonthCopy} />
+            </div>
           ) : null}
           {hasSpend ? null : (
             <SpendFindingStrip

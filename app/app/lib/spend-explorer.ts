@@ -9,13 +9,15 @@ import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   dateKeyFromYmd,
   listRecentClosedShopLocalDays,
+  mondayOfDayKey,
+  shiftCivilDayKey,
   shopLocalDayKey,
   shopLocalDayRange,
   shopLocalYmd,
 } from "./shop-local-day";
 
 export type ExplorerRange = "14d" | "30d" | "90d" | "YTD" | "1y" | "All" | "custom";
-export type ExplorerGranularity = "Day" | "Week" | "Month" | "Quarter";
+export type ExplorerGranularity = "Day" | "Week" | "Month" | "Quarter" | "Weekday";
 export type ExplorerMode = "stacked" | "share" | "total";
 
 export type ExplorerWindowOptions = {
@@ -112,6 +114,7 @@ const GRANULARITIES: ExplorerGranularity[] = [
   "Week",
   "Month",
   "Quarter",
+  "Weekday",
 ];
 const MODES: ExplorerMode[] = ["stacked", "share", "total"];
 
@@ -186,6 +189,7 @@ export const EXPLORER_GRANULARITY_OPTIONS: {
 }[] = [
   { value: "Day", label: "Day" },
   { value: "Week", label: "Week" },
+  { value: "Weekday", label: "Weekday" },
   { value: "Month", label: "Month" },
   { value: "Quarter", label: "Quarter" },
 ];
@@ -576,10 +580,19 @@ function mondayOf(d: Date): Date {
 
 type BucketMeta = { key: string; label: string; sortMs: number };
 
+function isoWeekdayFromDateKey(dateKey: string): number {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const utcDay = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return utcDay === 0 ? 7 : utcDay;
+}
+
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
 function bucketMetaForDay(
   date: Date,
   granularity: ExplorerGranularity,
   spansYears: boolean,
+  dateKey: string,
 ): BucketMeta {
   const y = date.getFullYear();
   const monthIndex = date.getMonth();
@@ -620,6 +633,14 @@ function bucketMetaForDay(
         key,
         label,
         sortMs: new Date(y, (q - 1) * 3, 1).getTime(),
+      };
+    }
+    case "Weekday": {
+      const iso = isoWeekdayFromDateKey(dateKey);
+      return {
+        key: `wd:${iso}`,
+        label: WEEKDAY_LABELS[iso - 1] ?? "Mon",
+        sortMs: iso,
       };
     }
     default: {
@@ -673,6 +694,7 @@ export function bucketExplorerRows(
     sales: number;
     spend: number;
     salesOnFile: boolean;
+    unpairedSpend: boolean;
     channels: Map<string, number>;
   };
   const map = new Map<string, Acc>();
@@ -680,7 +702,7 @@ export function bucketExplorerRows(
   for (const row of rows) {
     const d = parseDateKey(row.dateKey);
     if (!d) continue;
-    const meta = bucketMetaForDay(d, granularity, spansYears);
+    const meta = bucketMetaForDay(d, granularity, spansYears, row.dateKey);
     let acc = map.get(meta.key);
     if (!acc) {
       acc = {
@@ -689,6 +711,7 @@ export function bucketExplorerRows(
         sales: 0,
         spend: 0,
         salesOnFile: false,
+        unpairedSpend: false,
         channels: new Map(),
       };
       map.set(meta.key, acc);
@@ -698,6 +721,9 @@ export function bucketExplorerRows(
       acc.sales += row.sales;
     }
     acc.spend += row.spend;
+    if (granularity === "Weekday" && row.spend > 0 && row.salesOnFile === false) {
+      acc.unpairedSpend = true;
+    }
     mergeChannels(acc.channels, row.channels);
   }
 
@@ -706,12 +732,16 @@ export function bucketExplorerRows(
     .map(([key, acc]) => {
       const sales = round2(acc.sales);
       const spend = round2(acc.spend);
+      const mer =
+        granularity === "Weekday" && acc.unpairedSpend
+          ? null
+          : explorerMer(sales, spend, acc.salesOnFile);
       return {
         key,
         label: acc.label,
         sales,
         spend,
-        mer: explorerMer(sales, spend, acc.salesOnFile),
+        mer,
         channels: channelsFromMap(acc.channels),
       };
     });
@@ -787,6 +817,8 @@ export function priorExplorerBucketKey(
       const prevQ = q === 1 ? 4 : q - 1;
       return `q:${prevY}-Q${prevQ}`;
     }
+    case "Weekday":
+      return null;
     default: {
       const _exhaustive: never = granularity;
       throw new Error(`Unknown granularity: ${_exhaustive}`);
@@ -842,6 +874,8 @@ export function explorerBucketDateRange(
         toKey: `${m[1]}-${pad2(endMonth + 1)}-${pad2(last)}`,
       };
     }
+    case "Weekday":
+      return null;
     default: {
       const _exhaustive: never = granularity;
       throw new Error(`Unknown granularity: ${_exhaustive}`);
@@ -1138,6 +1172,8 @@ export function explorerGranLabel(granularity: ExplorerGranularity): string {
       return "month buckets";
     case "Quarter":
       return "quarter buckets";
+    case "Weekday":
+      return "weekday buckets";
     default: {
       const _exhaustive: never = granularity;
       return _exhaustive;
@@ -1176,9 +1212,13 @@ export function formatExplorerSubtitle(opts: {
             ? opts.bucketCount === 1
               ? "month bucket"
               : "month buckets"
-            : opts.bucketCount === 1
-              ? "quarter bucket"
-              : "quarter buckets";
+            : opts.granularity === "Weekday"
+              ? opts.bucketCount === 1
+                ? "weekday bucket"
+                : "weekday buckets"
+              : opts.bucketCount === 1
+                ? "quarter bucket"
+                : "quarter buckets";
   const asOf = opts.asOfKey ? ` · as of ${opts.asOfKey}` : "";
   return (
     `${opts.bucketCount} ${gran} · spend ${opts.formatCurrency(opts.totalSpend)}` +
@@ -1186,3 +1226,116 @@ export function formatExplorerSubtitle(opts: {
     ` · ${formula} · closed days only${asOf}`
   );
 }
+
+/** Same weekday last year — 52 weeks, not the calendar date. */
+export const EXPLORER_WEEKDAY_SHIFTED_YEAR_DAYS = -364;
+
+function eachCivilKeyInclusive(fromKey: string, toKey: string): string[] {
+  if (!DATE_KEY_RE.test(fromKey) || !DATE_KEY_RE.test(toKey) || fromKey > toKey) {
+    return [];
+  }
+  const keys: string[] = [];
+  let cursor = fromKey;
+  for (let i = 0; i < 400; i++) {
+    keys.push(cursor);
+    if (cursor === toKey) break;
+    cursor = shiftCivilDayKey(cursor, 1);
+  }
+  return keys;
+}
+
+function sumSalesOnFile(
+  salesByDay: ReadonlyMap<string, number>,
+  keys: readonly string[],
+): number | null {
+  let saw = false;
+  let sum = 0;
+  for (const key of keys) {
+    if (!salesByDay.has(key)) continue;
+    const amount = salesByDay.get(key);
+    if (amount == null || !Number.isFinite(amount)) continue;
+    saw = true;
+    sum += amount;
+  }
+  return saw ? round2(sum) : null;
+}
+
+function thisWeekKeys(asOfKey: string): string[] {
+  const monday = mondayOfDayKey(asOfKey);
+  return eachCivilKeyInclusive(monday, asOfKey);
+}
+
+function thisMonthKeys(asOfKey: string): string[] {
+  const start = `${asOfKey.slice(0, 7)}-01`;
+  return eachCivilKeyInclusive(start, asOfKey);
+}
+
+function shiftedKeys(keys: readonly string[], deltaDays: number): string[] {
+  return keys.map((key) => shiftCivilDayKey(key, deltaDays));
+}
+
+function formatPeriodCopy(opts: {
+  label: string;
+  current: number | null;
+  lastYear: number | null;
+  previousWeek: number | null;
+  money: (n: number) => string;
+}): string | null {
+  if (opts.current == null) return null;
+  const currentText = `Shopify Total Sales ${opts.label} is ${opts.money(opts.current)}`;
+  if (opts.lastYear != null) {
+    return `${currentText} versus ${opts.money(opts.lastYear)} the same weekdays last year.`;
+  }
+  if (opts.previousWeek != null) {
+    return `${currentText} versus ${opts.money(opts.previousWeek)} last week (same weekdays last year not on file).`;
+  }
+  return `${currentText}. Same weekdays last year and last week are not on file.`;
+}
+
+export type ExplorerWeekMonthCopy = {
+  week: string | null;
+  month: string | null;
+  combined: string;
+};
+
+/**
+ * Copyable this-week / this-month Shopify Total Sales and the same
+ * weekday-shifted last year $, or previous week $ when last year is missing.
+ * Never a fake $0. A percent-only chip is not enough.
+ */
+export function explorerWeekMonthCopyText(opts: {
+  salesByDay: ReadonlyMap<string, number>;
+  asOfKey: string;
+  money: (n: number) => string;
+}): ExplorerWeekMonthCopy | null {
+  if (!DATE_KEY_RE.test(opts.asOfKey)) return null;
+  const weekKeys = thisWeekKeys(opts.asOfKey);
+  const monthKeys = thisMonthKeys(opts.asOfKey);
+  const prevWeekKeys = shiftedKeys(weekKeys, -7);
+  const lastYearWeekKeys = shiftedKeys(
+    weekKeys,
+    EXPLORER_WEEKDAY_SHIFTED_YEAR_DAYS,
+  );
+  const lastYearMonthKeys = shiftedKeys(
+    monthKeys,
+    EXPLORER_WEEKDAY_SHIFTED_YEAR_DAYS,
+  );
+  const week = formatPeriodCopy({
+    label: "this week",
+    current: sumSalesOnFile(opts.salesByDay, weekKeys),
+    lastYear: sumSalesOnFile(opts.salesByDay, lastYearWeekKeys),
+    previousWeek: sumSalesOnFile(opts.salesByDay, prevWeekKeys),
+    money: opts.money,
+  });
+  const month = formatPeriodCopy({
+    label: "this month",
+    current: sumSalesOnFile(opts.salesByDay, monthKeys),
+    lastYear: sumSalesOnFile(opts.salesByDay, lastYearMonthKeys),
+    previousWeek: sumSalesOnFile(opts.salesByDay, prevWeekKeys),
+    money: opts.money,
+  });
+  if (!week && !month) return null;
+  const combined = [week, month].filter(Boolean).join("\n");
+  return { week, month, combined };
+}
+

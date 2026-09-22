@@ -26,7 +26,7 @@ import {
 } from "../components/SpendExplorer";
 import { CpaExplorer } from "../components/CpaExplorer";
 import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
-import { CopySpendPair } from "../components/MorningHabitStrip";
+import { CopySpendPair, CopyWeekMonthSales } from "../components/MorningHabitStrip";
 import { spendFirstFoldSalesHint } from "../lib/cash-trust-copy";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { SpendMixSection, useSpendPanelScroll } from "../components/SpendMixSection";
@@ -38,7 +38,7 @@ import {
 } from "../lib/sales-facts.server";
 import { deskPeriodTimeZone, parsePeriodPreset } from "../lib/periods";
 import { deskNavHref } from "../lib/desk-nav";
-import { shopLocalDayKey } from "../lib/shop-local-day";
+import { shopLocalDayKey, spendDeskTodayKey } from "../lib/shop-local-day";
 import { isSpendYmd } from "../lib/spend-day-entry";
 import { slugCustomChannelName } from "../lib/spend-custom-channel";
 import { isSpendChannel } from "../lib/spend-billing";
@@ -49,7 +49,6 @@ import {
   isSampleOnlyFreeze,
   localDayKey,
   setSampleDeskEnabled,
-  utcDayKey,
 } from "../lib/sample-desk.server";
 import { formatCurrency, formatMer, formatSpendAmount } from "../lib/mer-format";
 import { formatSpendOnFile, spendOnFileHint } from "../lib/spend-on-file";
@@ -78,7 +77,7 @@ import {
   stopRecurringSpend,
 } from "../lib/spend-recurring.server";
 import { roundMoney, shopCurrencyCode, toMoneyNumber } from "../lib/spend-money";
-import { spendFillDayHref, NUMBER_HONESTY, formatTotalRoasEquation, formatOnlineRoasLine, spendPairCopyText } from "../lib/number-honesty";
+import { spendFillDayHref, NUMBER_HONESTY, formatTotalRoasEquation, formatOnlineRoasLine, hasNonOnlineSpendOnFile, spendPairCopyText } from "../lib/number-honesty";
 import { spendEntrySourceLabel } from "../lib/spend-source-label";
 import {
   recurringFillConfirmRequiredError,
@@ -422,11 +421,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const spendSourceWhere = sampleDesk.enabled
     ? { source: "sample" as const }
     : { source: { not: "sample" } };
-  const todayKey = sampleDesk.enabled
-    ? utcDayKey(now)
-    : timeZone
-      ? shopLocalDayKey(now, timeZone)
-      : localDayKey(now);
+  const todayKey = spendDeskTodayKey(timeZone, now);
   const yesterdayKey = previousSpendYmd(todayKey);
   const spendHistoryFloorKey = salesDayFactWindowStartUtc().toISOString().slice(0, 10);
 
@@ -443,7 +438,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       orderBy: { periodStart: "desc" },
       take: 20,
     }),
-    loadSpendDayCoverage(shop.id, sampleDesk.enabled),
+    loadSpendDayCoverage(shop.id, sampleDesk.enabled, { now, timeZone }),
     sampleDesk.enabled ? Promise.resolve([]) : listRecurringSpend(shop.id),
     loadSpendAnalysis({
       request,
@@ -452,6 +447,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       shop: {
         id: shop.id,
         ianaTimezone: shop.ianaTimezone ?? null,
+        currencyCode: shop.currencyCode,
       },
       useSampleDesk: sampleDesk.enabled,
     }),
@@ -791,6 +787,7 @@ export default function SpendEntryPage() {
         spend: metrics.totalSpend,
         mix: metrics.shopifyDepth.sourceSalesShare,
         currency,
+        hasNonOnlineSpend: hasNonOnlineSpendOnFile(metrics.channelMix),
       })
     : null;
   const [cpaSelectedId, setCpaSelectedId] = useState<CpaWindowId>("this_month");
@@ -1092,6 +1089,14 @@ export default function SpendEntryPage() {
           ) : null}
           {hasSpend && onlineLine ? (
             <p className="mcfly-book__kpi-hint">{onlineLine}</p>
+          ) : null}
+          {explorer.weekMonthCopy ? (
+            <div className="mcfly-spend-pair-copy-row">
+              <p className="mcfly-book__kpi-hint" style={{ whiteSpace: "pre-wrap" }}>
+                {explorer.weekMonthCopy}
+              </p>
+              <CopyWeekMonthSales text={explorer.weekMonthCopy} />
+            </div>
           ) : null}
           {!hasSpend && !shotMode ? (
             <SpendFindingStrip finding={totalRoasEmptySpendFinding()} />

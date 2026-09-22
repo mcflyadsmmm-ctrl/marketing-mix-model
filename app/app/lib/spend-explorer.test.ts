@@ -9,6 +9,7 @@ import {
   closedDayEnd,
   compareExplorerBuckets,
   explorerBucketDateRange,
+  explorerWeekMonthCopyText,
   priorExplorerBucketKey,
   explorerMer,
   explorerMoneyCeil,
@@ -26,6 +27,7 @@ import {
   clampExplorerRangeToBook,
   explorerRangeOptionsFor,
   explorerYearChipNote,
+  EXPLORER_GRANULARITY_OPTIONS,
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "./spend-explorer";
@@ -63,6 +65,14 @@ describe("parseExplorer*", () => {
     expect(parseExplorerRange("All")).toBe("All");
     expect(parseExplorerGranularity("Month")).toBe("Month");
     expect(parseExplorerGranularity("Quarter")).toBe("Quarter");
+    expect(parseExplorerGranularity("Weekday")).toBe("Weekday");
+    expect(EXPLORER_GRANULARITY_OPTIONS.map((opt) => opt.value)).toEqual([
+      "Day",
+      "Week",
+      "Weekday",
+      "Month",
+      "Quarter",
+    ]);
     expect(parseExplorerMode("share")).toBe("share");
     expect(parseExplorerShowSales("1")).toBe(true);
     expect(parseExplorerShowSales("true")).toBe(true);
@@ -335,6 +345,42 @@ describe("bucketExplorerRows", () => {
     expect(buckets[0].mer).toBeCloseTo(10000 / 1500, 5);
     expect(buckets[1].key).toBe("q:2026-Q4");
     expect(buckets[1].label).toBe("Q4 ’26");
+  });
+
+  it("Weekday grain pairs shop-local weekday sales with typed spend and never paints 0×", () => {
+    const rows: ExplorerDailyRow[] = [
+      day("2026-09-14", 2100, { meta: 1000 }), // Mon 2.1×
+      day("2026-09-21", 2100, { meta: 1000 }), // next Mon
+      {
+        dateKey: "2026-09-20",
+        sales: 8000,
+        spend: 0,
+        channels: [],
+        salesOnFile: true,
+      }, // Sunday organic
+      {
+        dateKey: "2026-09-15",
+        sales: 0,
+        spend: 400,
+        channels: [{ channel: "meta", amount: 400 }],
+        salesOnFile: false,
+      }, // Tuesday spend, sales not on file
+    ];
+    const buckets = bucketExplorerRows(rows, "Weekday");
+    const mon = buckets.find((b) => b.key === "wd:1");
+    const tue = buckets.find((b) => b.key === "wd:2");
+    const sun = buckets.find((b) => b.key === "wd:7");
+    expect(mon?.label).toBe("Mon");
+    expect(mon?.sales).toBe(4200);
+    expect(mon?.spend).toBe(2000);
+    expect(mon?.mer).toBeCloseTo(2.1, 5);
+    expect(sun?.sales).toBe(8000);
+    expect(sun?.spend).toBe(0);
+    expect(sun?.mer).toBeNull();
+    expect(tue?.mer).toBeNull();
+    expect(JSON.stringify(buckets)).not.toMatch(/0×/);
+    expect(explorerBucketDateRange("wd:1", "Weekday")).toBeNull();
+    expect(priorExplorerBucketKey("wd:1", "Weekday")).toBeNull();
   });
 
   it("includes new SpendChannels in bucket mix", () => {
@@ -812,3 +858,87 @@ describe("unpaid explorer does not sell a finished year", () => {
     expect(spend).not.toContain("UnlockFullHistoryBanner");
   });
 });
+
+describe("explorerWeekMonthCopyText", () => {
+  const money = (n: number) => `$${n.toLocaleString("en-US")}`;
+
+  it("names this-week and this-month Shopify Total Sales plus last-year weekday-shifted $", () => {
+    const salesByDay = new Map<string, number>([
+      ["2026-09-14", 1000], // Mon this week
+      ["2026-09-15", 1100],
+      ["2026-09-16", 1200],
+      ["2026-09-17", 1300],
+      ["2026-09-18", 1400],
+      ["2026-09-19", 1500],
+      ["2026-09-20", 1600], // as-of Sunday
+      ["2026-09-01", 400],
+      ["2025-09-15", 900], // last year Monday (14th 2026 → 15th 2025)
+      ["2025-09-16", 910],
+      ["2025-09-17", 920],
+      ["2025-09-18", 930],
+      ["2025-09-19", 940],
+      ["2025-09-20", 950],
+      ["2025-09-21", 960],
+      ["2025-09-02", 300],
+      ["2025-09-03", 310],
+    ]);
+    const copy = explorerWeekMonthCopyText({
+      salesByDay,
+      asOfKey: "2026-09-20",
+      money,
+    });
+    expect(copy).not.toBeNull();
+    expect(copy?.week).toMatch(/this week is \$9,100/);
+    expect(copy?.week).toMatch(/\$6,510/);
+    expect(copy?.week).toMatch(/last year/i);
+    expect(copy?.week).not.toMatch(/%/);
+    expect(copy?.month).toMatch(/this month is \$9,500/);
+    expect(copy?.combined).toContain(copy?.week ?? "");
+    expect(copy?.combined).toContain(copy?.month ?? "");
+    expect(copy?.combined).not.toMatch(/\$0/);
+  });
+
+  it("falls back to previous week $ when last year is not on file — never a fake $0", () => {
+    const salesByDay = new Map<string, number>([
+      ["2026-09-14", 1000],
+      ["2026-09-15", 1100],
+      ["2026-09-16", 1200],
+      ["2026-09-17", 1300],
+      ["2026-09-18", 1400],
+      ["2026-09-19", 1500],
+      ["2026-09-20", 1600],
+      ["2026-09-07", 800],
+      ["2026-09-08", 810],
+      ["2026-09-09", 820],
+      ["2026-09-10", 830],
+      ["2026-09-11", 840],
+      ["2026-09-12", 850],
+      ["2026-09-13", 860],
+      ["2026-09-01", 400],
+    ]);
+    const copy = explorerWeekMonthCopyText({
+      salesByDay,
+      asOfKey: "2026-09-20",
+      money,
+    });
+    expect(copy?.week).toMatch(/this week is \$9,100/);
+    expect(copy?.week).toMatch(/\$5,810/);
+    expect(copy?.week).toMatch(/last week/i);
+    expect(copy?.week).toMatch(/not on file/i);
+    expect(copy?.week).not.toMatch(/is \$0/);
+    expect(copy?.month).toMatch(/this month is \$15,310/);
+    expect(copy?.month).toMatch(/last week/i);
+    expect(copy?.combined).not.toMatch(/is \$0/);
+  });
+
+  it("returns null when this week and this month have no sales on file", () => {
+    expect(
+      explorerWeekMonthCopyText({
+        salesByDay: new Map(),
+        asOfKey: "2026-09-20",
+        money,
+      }),
+    ).toBeNull();
+  });
+});
+

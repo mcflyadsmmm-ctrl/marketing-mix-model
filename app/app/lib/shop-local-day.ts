@@ -85,6 +85,43 @@ function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
 
+/** Host process calendar YYYY-MM-DD. Empty shop TZ only — never invent IANA. */
+export function hostLocalDayKey(date: Date): string {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+/**
+ * Desk "today" civil key. Pass `deskPeriodTimeZone(...)` so SAMPLE is UTC and
+ * Live is shop IANA. Null/blank TZ stays the host calendar.
+ */
+export function spendDeskTodayKey(
+  timeZone: string | null | undefined,
+  now = new Date(),
+): string {
+  const tz = timeZone?.trim() || null;
+  return tz ? shopLocalDayKey(now, tz) : hostLocalDayKey(now);
+}
+
+/**
+ * Last closed civil day on the desk clock. Incomplete today stays out.
+ * Empty TZ stays host-local — never invent IANA.
+ */
+export function spendDeskClosedAsOfKey(
+  timeZone: string | null | undefined,
+  now = new Date(),
+): string {
+  const tz = timeZone?.trim() || null;
+  if (tz) return listRecentClosedShopLocalDays(tz, 1, now)[0];
+  return shiftCivilDayKey(hostLocalDayKey(now), -1);
+}
+
+/** Shift a YYYY-MM-DD civil key by whole days. Arithmetic is on the key. */
+export function shiftCivilDayKey(dateKey: string, deltaDays: number): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const cursor = new Date(Date.UTC(y, m - 1, d + deltaDays, 12, 0, 0));
+  return `${cursor.getUTCFullYear()}-${pad2(cursor.getUTCMonth() + 1)}-${pad2(cursor.getUTCDate())}`;
+}
+
 /** Calendar YYYY-MM-DD from Y/M/D (1-indexed month). */
 export function dateKeyFromYmd(y: number, m: number, d: number): string {
   return `${y}-${pad2(m)}-${pad2(d)}`;
