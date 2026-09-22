@@ -2248,7 +2248,7 @@ body.demo-page .demo-desk-caption {
   }
 }
 
-/* v34 — roundup cards, one paste, home FAQ, 390px hero */
+/* v35 — roundup cards, one paste, home FAQ, 390px 1-col hero */
 .sits-grid {
   display: grid;
   gap: 1rem;
@@ -2356,7 +2356,16 @@ body.demo-page .demo-desk-caption {
   .hero--v25 .dd-yoy__grid .dd-yoy__card:nth-child(n + 2) {
     display: none;
   }
+  /* v35 — 1-col hero KPIs. v34’s 1fr 1fr beat demo-desk’s 430px stack and overflowed. */
   .hero--v25 .dd-kpi-grid--hero {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero--v25 .dd-period {
+    overflow-x: auto;
+    max-width: 100%;
+    flex-wrap: nowrap;
+  }
+  .faq-home summary {
+    overflow-wrap: anywhere;
   }
 }

@@ -3003,6 +3003,12 @@ body.demo-page .demo-stage {
 }
 
 @media (max-width: 390px) {
+  .hero--v25 .dd-kpi-grid--hero,
+  .dd-kpi-grid--hero,
+  .dd-kpi-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .dd-desk {
     padding: 0.65rem 0.6rem 0.95rem;
     border-radius: 12px;

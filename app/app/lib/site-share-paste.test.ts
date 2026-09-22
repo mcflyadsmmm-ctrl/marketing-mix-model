@@ -24,8 +24,8 @@ describe("home SAMPLE Slack paste board", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v34"');
-    expect(html).toContain("mcfly.css?v=20260922v34");
+    expect(html).toContain('content="v35"');
+    expect(html).toContain("mcfly.css?v=20260922v35");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
@@ -79,6 +79,9 @@ describe("home SAMPLE Slack paste board", () => {
     expect(html).not.toContain("Harbor Home Co");
     expect(html).not.toContain("Northline Supply");
     expect(html).not.toMatch(/\$98,?500/);
+    expect(html).not.toContain("Polar $1,020");
+    expect(html).not.toMatch(/<a class="dd-yoy__card/);
+    expect(html).toMatch(/App Store listing still leads with spend/);
     expect(html).not.toContain("/demo?tab=slack");
     expect(html).not.toContain("/demo?tab=paste");
     expect(overviewSlice).not.toMatch(/Total ROAS|Ad spend/i);

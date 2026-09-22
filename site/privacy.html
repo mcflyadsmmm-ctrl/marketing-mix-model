@@ -11,17 +11,17 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#f2f5f8" />
   <title>Privacy | Mcfly Analytics</title>
-  <meta name="description" content="Privacy for Mcfly Analytics (Shopify listing) / Mcfly Ads — order totals, opaque OrderFact / CohortFact for customer lifetime value, spend you enter. No name/email CRM. No pixels." />
+  <meta name="description" content="Privacy for Mcfly Analytics (Shopify listing) / Mcfly Ads — order totals, opaque OrderFact for 30/90/365 LTV, spend you enter. Scopes: read_orders, read_customers, read_all_orders. No name/email CRM. No pixels." />
   <link rel="canonical" href="https://mcflyads.com/privacy" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mcflyads.com/privacy" />
   <meta property="og:title" content="Privacy | Mcfly Analytics" />
-  <meta property="og:description" content="Total ROAS data diet: order totals, opaque OrderFact / CohortFact, spend you enter. No name/email CRM. 7-day trial then $39/store/mo." />
+  <meta property="og:description" content="Order totals, opaque customer id + numberOfOrders, spend you enter. Scopes: read_orders, read_customers, read_all_orders. No name/email CRM. 7-day trial then $39/store/mo." />
   <meta property="og:image" content="https://mcflyads.com/assets/brand/og-analytics.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Privacy | Mcfly Analytics" />
-  <meta name="twitter:description" content="Order totals + opaque OrderFact / CohortFact + spend you enter. No pixels, no CRM. 7-day trial then $39/store/mo." />
+  <meta name="twitter:description" content="Order totals + opaque OrderFact + spend you enter. No pixels, no CRM. 7-day trial then $39/store/mo." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-analytics.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
   <link rel="stylesheet" href="/assets/site.css?v=20260829v13" />
@@ -212,7 +212,7 @@
       <p>This policy applies to <strong>https://mcflyads.com</strong> and the Shopify app listed as <strong>Mcfly Analytics</strong> (product brand under Mcfly Ads).</p>
 
       <h2 id="why-we-process">Why we process data</h2>
-      <p>To run the Total ROAS dashboard, break-even Total ROAS, rules-based allocation, and customer lifetime value cohorts; to provide support and security; and to comply with law and Shopify’s app requirements (including GDPR webhooks). We measure money spent on ads against money Shopify recorded as sales — not who “won” the click.</p>
+      <p>To run the Shopify order desk (typical order, returning dollars, 30/90/365 LTV from orders), optional Total ROAS from spend you enter, and break-even from the margin you type; to provide support and security; and to comply with law and Shopify’s app requirements (including GDPR webhooks). We measure money spent on ads against money Shopify recorded as sales — not who “won” the click.</p>
 
       <h2 id="lawful-basis">Lawful basis (EU / UK GDPR)</h2>
       <p>Where GDPR / UK GDPR applies:</p>
@@ -270,8 +270,7 @@
         <li><strong>Managed Postgres</strong> (via Fly / Neon-class provider as configured) — application database.</li>
         <li><strong>Shopify</strong> — OAuth, Admin API, webhooks, App Store distribution.</li>
         <li><strong>Resend</strong> — transactional email when configured (<code>RESEND_API_KEY</code>) for support notifications when configured.</li>
-        
-        <li><strong>Google Fonts</strong> — font files loaded from Google’s CDN on the marketing site (see Cookies).</li>
+        <li><strong>Local fonts</strong> — Mcfly serves type from <code>/assets/fonts-local.css</code> on this host. We do not load Google Fonts CDN on mcflyads.com.</li>
       </ul>
       <p><strong>Merchant-chosen spend pipe tools (not Mcfly processors by default):</strong> You may optionally use SyncWith, Coupler, Supermetrics, Coefficient, or similar tools you contract and pay for to fill a Mcfly CSV / Sheets template, then import that file into Mcfly. Those tools are <strong>your</strong> processors under <strong>your</strong> agreements — Mcfly does not operate them, does not receive their OAuth tokens, and does not claim a “Works with” partnership. Mcfly only receives the ad-spend aggregates you paste or upload.</p>
 
@@ -279,7 +278,7 @@
       <p>Mcfly is operated from the United States. Hosting and processors (Cloudflare, Fly.io, database, email) may process data in the US and other countries. Where required, we rely on appropriate transfer mechanisms (for example Standard Contractual Clauses) and will provide a signed DPA / SCC package on request after legal review — see <a href="/dpa">/dpa</a>.</p>
 
       <h2 id="cookies">Cookies &amp; similar tech</h2>
-      <p>See <a href="/cookies">Cookies</a> for the short notice. Summary: we do not run marketing/analytics pixels on mcflyads.com. The site may use essential hosting cookies from Cloudflare, load Google Fonts from Google’s CDN, and load essential hosting assets. The embedded Shopify app runs inside Shopify Admin and follows Shopify’s session model.</p>
+      <p>See <a href="/cookies">Cookies</a> for the short notice. Summary: we do not run marketing/analytics pixels on mcflyads.com. The site may use essential hosting cookies from Cloudflare and load local font files from this host. The embedded Shopify app runs inside Shopify Admin and follows Shopify’s session model.</p>
 
       <h2 id="your-rights">Your rights</h2>
       <p>Depending on your location, you may request access, correction, deletion, restriction, objection, or export of personal data, and you may withdraw consent for support contact. Email <a href="mailto:mcflyadsmmm@gmail.com">mcflyadsmmm@gmail.com</a>. Merchants can also uninstall the app to stop processing store data through Mcfly. EU/UK residents may lodge a complaint with their supervisory authority.</p>
@@ -298,8 +297,7 @@
     </div>
   </main>
   <div data-footer></div>
-  <script src="/assets/cta-config.js?v=20260908v14"></script>
-  <script src="/assets/mcfly/chrome.js?v=20260922v34"></script>
-  <script src="/assets/app.js?v=20260825live"></script>
+  <script src="/assets/cta-config.js?v=20260915v17"></script>
+  <script src="/assets/mcfly/chrome.js?v=20260922v35"></script>
 </body>
 </html>
