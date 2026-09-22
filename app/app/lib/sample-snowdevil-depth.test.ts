@@ -309,6 +309,7 @@ describe("Snowdevil SAMPLE — repeat buyers, whales, frequency, cohorts", () =>
       identifiedBuyers: native.newCustomers + native.returningCustomers,
       returningShare: native.returningSalesShare,
       newShare: native.newSalesShare,
+      todaySalesTruncated: false,
     });
     const hero = buildCustomersHero(native);
     const peeks = buildCustomersLeadPeeks(native);

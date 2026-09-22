@@ -5,6 +5,10 @@
  */
 
 import type { DeskIconName } from "../components/DeskIcon";
+import {
+  CUSTOMERS_LAST_YEAR_EMPTY,
+  type LastYearMix,
+} from "./customers-analytics";
 import type { ShopifyNativePeriodStats } from "./shopify-native-stats";
 
 export const CUSTOMERS_SPEND_BANS = [
@@ -19,6 +23,13 @@ export const CUSTOMERS_PENDING_LINE =
 
 export const CUSTOMERS_THIN_EMPTY_LINE =
   "Returning dollars fill after paid orders — not $0.";
+
+/** Live today hit the ~100-order cap — returning $ is not a closed day. */
+export const CUSTOMERS_TODAY_TRUNCATED_LINE =
+  "Live today is capped at ~100 orders for a fast desk load. Returning dollars include an incomplete today — not a closed day.";
+
+/** Missing last-year returning $ — never a fake $0 or 0% YoY. */
+export const CUSTOMERS_LAST_YEAR_NOT_ON_FILE = "not on file";
 
 /** First-lane label — returning $ vs new, all store sizes, not RFM-lite. */
 export const CUSTOMERS_FIRST_LANE_LABEL = "Returning dollars vs new";
@@ -81,6 +92,7 @@ export type CustomersOperatorGreetingInput = {
   identifiedBuyers: number;
   returningShare?: number | null;
   newShare?: number | null;
+  todaySalesTruncated: boolean;
 };
 
 export type CustomersHeroKind = "returningDollars" | "newDollars";
@@ -92,6 +104,15 @@ export type CustomersHero = {
   counterpartAmount: number | null;
   counterpartShare: number | null;
   def: string;
+  todayTruncated: boolean;
+  lastYearOnFile: boolean;
+  lastYearAmount: number | null;
+  yoyPct: number | null;
+};
+
+export type CustomersHeroHonesty = {
+  todaySalesTruncated: boolean;
+  lastYear: LastYearMix;
 };
 
 export type CustomersPeek = {
@@ -143,6 +164,9 @@ export function customersOperatorGreeting(
   if (input.salesPending) {
     return CUSTOMERS_PENDING_LINE;
   }
+  if (input.todaySalesTruncated) {
+    return CUSTOMERS_TODAY_TRUNCATED_LINE;
+  }
   if (!(input.orderCount > 0) && !(input.identifiedBuyers > 0)) {
     return "No identified buyers in this window yet.";
   }
@@ -166,6 +190,41 @@ export function customersOperatorGreeting(
   return CUSTOMERS_ANALYTICS_CONTRAST;
 }
 
+export function customersLastYearLine(
+  hero: { lastYearOnFile: boolean; lastYearAmount: number | null },
+  money?: (n: number) => string,
+): string {
+  if (!hero.lastYearOnFile) {
+    return `Last year ${CUSTOMERS_LAST_YEAR_NOT_ON_FILE}`;
+  }
+  if (
+    hero.lastYearAmount != null &&
+    hero.lastYearAmount > 0 &&
+    money
+  ) {
+    return `Last year ${money(hero.lastYearAmount)}`;
+  }
+  return "Last year —";
+}
+
+function heroLastYear(lastYear: LastYearMix): {
+  lastYearOnFile: boolean;
+  lastYearAmount: number | null;
+  yoyPct: null;
+} {
+  const lastYearAmount =
+    lastYear.onFile &&
+    lastYear.returningSales != null &&
+    lastYear.returningSales > 0
+      ? lastYear.returningSales
+      : null;
+  return {
+    lastYearOnFile: lastYear.onFile,
+    lastYearAmount,
+    yoyPct: null,
+  };
+}
+
 /**
  * Giant first-fold hero. Returning dollars lead when on file; otherwise new
  * dollars. Missing truths stay off — never a fake $0 board.
@@ -175,7 +234,12 @@ export function buildCustomersHero(
     ShopifyNativePeriodStats,
     "returningSales" | "newSales" | "returningSalesShare" | "newSalesShare"
   >,
+  honesty: CustomersHeroHonesty = {
+    todaySalesTruncated: false,
+    lastYear: CUSTOMERS_LAST_YEAR_EMPTY,
+  },
 ): CustomersHero | null {
+  const year = heroLastYear(honesty.lastYear);
   if (isNum(book.returningSales) && book.returningSales > 0) {
     const newSales =
       isNum(book.newSales) && book.newSales > 0 ? book.newSales : null;
@@ -186,6 +250,8 @@ export function buildCustomersHero(
       counterpartAmount: newSales,
       counterpartShare: isNum(book.newSalesShare) ? book.newSalesShare : null,
       def: "Sales from buyers who had ordered before. Shopify Analytics Customers is a list — it does not put returning dollars next to new.",
+      todayTruncated: honesty.todaySalesTruncated,
+      ...year,
     };
   }
   if (isNum(book.newSales) && book.newSales > 0) {
@@ -198,6 +264,8 @@ export function buildCustomersHero(
         ? book.returningSalesShare
         : null,
       def: "Sales from first-time buyers in this window. Returning dollars fill after paid orders — not $0.",
+      todayTruncated: honesty.todaySalesTruncated,
+      ...year,
     };
   }
   return null;

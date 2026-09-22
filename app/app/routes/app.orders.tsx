@@ -119,6 +119,7 @@ export default function OrdersPage() {
             useSampleDesk={useSampleDesk}
             stepMix={ordersIntel?.stepMix ?? null}
             tickets={ordersIntel?.tickets ?? null}
+            todaySalesTruncated={!useSampleDesk && todaySalesTruncated}
           />
         </DeskLane>
         <DeskLane rank="next" label={ORDERS_CLOCK_LANE_LABEL}>

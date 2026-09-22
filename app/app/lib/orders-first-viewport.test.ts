@@ -9,6 +9,7 @@ import {
   ORDERS_FIRST_LANE_LABEL,
   ORDERS_PENDING_LINE,
   ORDERS_THIN_EMPTY_LINE,
+  ORDERS_TODAY_TRUNCATED_LINE,
   buildOrdersLeadPeeks,
   buildOrdersTicketPeeks,
   ordersHeroBeatsShopifyAnalytics,
@@ -80,6 +81,7 @@ describe("ordersOperatorGreeting", () => {
         orderCount: 108,
         typicalOrderLabel: "$631",
         averageOrderLabel: "$634",
+        todaySalesTruncated: false,
       }),
     ).toBe(
       "Typical order around $631. Average is $634. Shopify Analytics Orders is the average order.",
@@ -99,6 +101,7 @@ describe("ordersOperatorGreeting", () => {
         orderCount: 0,
         typicalOrderLabel: null,
         averageOrderLabel: null,
+        todaySalesTruncated: false,
       }),
     ).toBe(ORDERS_PENDING_LINE);
     expect(
@@ -107,8 +110,35 @@ describe("ordersOperatorGreeting", () => {
         orderCount: 0,
         typicalOrderLabel: null,
         averageOrderLabel: null,
+        todaySalesTruncated: false,
       }),
     ).toBe("No orders in this window yet.");
+  });
+
+  it("does not greet a capped live today as a finished closed typical/average day", () => {
+    const greeting = ordersOperatorGreeting({
+      salesPending: false,
+      orderCount: 108,
+      typicalOrderLabel: "$631",
+      averageOrderLabel: "$634",
+      todaySalesTruncated: true,
+    });
+    expect(greeting).toBe(ORDERS_TODAY_TRUNCATED_LINE);
+    expect(greeting).toMatch(/capped at ~100 orders/);
+    expect(greeting).toMatch(/not a closed day/);
+    expect(greeting).not.toBe(
+      "Typical order around $631. Average is $634. Shopify Analytics Orders is the average order.",
+    );
+    expect(greeting).not.toMatch(/\$0/);
+    expect(
+      ordersOperatorGreeting({
+        salesPending: true,
+        orderCount: 108,
+        typicalOrderLabel: "$631",
+        averageOrderLabel: "$634",
+        todaySalesTruncated: true,
+      }),
+    ).toBe(ORDERS_PENDING_LINE);
   });
 });
 
@@ -191,6 +221,9 @@ describe("Orders first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(firstView).toContain("if (salesPending)");
     expect(firstView).toContain("ORDERS_THIN_EMPTY_LINE");
     expect(firstView).toContain("SAMPLE_ORDERS_DOOR");
+    expect(firstView).toContain("todaySalesTruncated");
+    expect(firstView).toContain("ORDERS_TODAY_TRUNCATED_LINE");
+    expect(firstView).not.toMatch(/todaySalesTruncated\s*=\s*false/);
     expect(firstView).not.toContain("0.00×");
     for (const ban of ORDERS_SPEND_BANS) {
       expect(firstView).not.toContain(ban);

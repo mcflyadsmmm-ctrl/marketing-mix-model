@@ -657,6 +657,9 @@ describe("emptyCustomerAnalytics", () => {
     expect(e.lifetimeSpan.sealed).toBe(false);
     expect(e.lifetimeSpan.firstToLastDays).toBeNull();
     expect(e.lifetimeSpan.interOrderGapDays).toBeNull();
+    expect(e.lastYearMix.onFile).toBe(false);
+    expect(e.lastYearMix.returningSales).toBeNull();
+    expect(e.lastYearMix.newSales).toBeNull();
     expect(e.orderSteps).toHaveLength(4);
     for (const row of e.orderSteps) {
       expect(row.sealed).toBe(false);
@@ -1135,5 +1138,64 @@ describe("first→last span and inter-order gap", () => {
     expect(built.firstToLastDays).toBeNull();
     expect(built.interOrderGapDays).toBeNull();
     expect(buyerLifetimeSpanLine(built)).toBeNull();
+  });
+});
+
+describe("last-year returning mix — this month vs last September", () => {
+  const periodStart = new Date("2026-09-01T00:00:00Z");
+  const periodEnd = new Date("2026-09-16T00:00:00Z");
+
+  function row(
+    day: string,
+    amount: number,
+    customerKey: string,
+  ): RetentionOrderRow {
+    return {
+      customerKey,
+      amount,
+      orderedAt: new Date(`${day}T12:00:00Z`),
+      shopLocalDate: new Date(`${day}T00:00:00Z`),
+    };
+  }
+
+  it("says last September is not on this book — never a fake $0 / 0% year", () => {
+    const thisMonth = [
+      row("2026-09-02", 400, "a"),
+      row("2026-09-10", 200, "a"),
+      row("2026-09-12", 250, RETENTION_GUEST_KEY),
+    ];
+    const a = buildCustomerAnalytics(thisMonth, {
+      windowEnd: periodEnd,
+      historyWindowDays: 90,
+      orderBook: thisMonth,
+      periodStart,
+      periodEnd,
+      timeZone: "UTC",
+    });
+    expect(a.lastYearMix.onFile).toBe(false);
+    expect(a.lastYearMix.returningSales).toBeNull();
+    expect(a.lastYearMix.newSales).toBeNull();
+  });
+
+  it("keeps guests out of last-year returning $ and paints last year when it is on file", () => {
+    const book = [
+      row("2025-09-03", 100, "a"),
+      row("2025-09-12", 80, "a"),
+      row("2025-09-14", 50, RETENTION_GUEST_KEY),
+      row("2026-09-02", 400, "a"),
+      row("2026-09-10", 200, "b"),
+    ];
+    const a = buildCustomerAnalytics(book.slice(3), {
+      windowEnd: periodEnd,
+      historyWindowDays: 90,
+      orderBook: book,
+      periodStart,
+      periodEnd,
+      timeZone: "UTC",
+    });
+    expect(a.lastYearMix.onFile).toBe(true);
+    expect(a.lastYearMix.returningSales).toBe(80);
+    expect(a.lastYearMix.newSales).toBe(150);
+    expect(a.lastYearMix.returningSales).not.toBe(0);
   });
 });

@@ -106,6 +106,7 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
       'id="mcfly-returning"',
       'rank="first"',
       "<CustomersFirstViewport",
+      "<ShareableInsightCards",
       "<CustomerMixChart",
       "<CustomersScoreboard",
       'id="mcfly-ltv"',
@@ -121,7 +122,6 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
       "<CustomerValueBands",
       "<CustomerWhaleTable",
       "<CustomerConcentrationChart",
-      "<ShareableInsightCards",
     ].map((tag) => customers.indexOf(tag));
     expect(order.every((i) => i > -1)).toBe(true);
     for (let i = 1; i < order.length; i += 1) {

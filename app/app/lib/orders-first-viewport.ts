@@ -54,7 +54,12 @@ export type OrdersOperatorGreetingInput = {
   orderCount: number;
   typicalOrderLabel: string | null;
   averageOrderLabel?: string | null;
+  todaySalesTruncated: boolean;
 };
+
+/** Live today hit the ~100-order cap — typical/average are not a closed day. */
+export const ORDERS_TODAY_TRUNCATED_LINE =
+  "Live today is capped at ~100 orders for a fast desk load. Typical and average include an incomplete today — not a closed day.";
 
 /**
  * PASS only when the first-fold hero is Mcfly-differentiated — not a free
@@ -85,6 +90,9 @@ export function ordersOperatorGreeting(
 ): string {
   if (input.salesPending) {
     return ORDERS_PENDING_LINE;
+  }
+  if (input.todaySalesTruncated) {
+    return ORDERS_TODAY_TRUNCATED_LINE;
   }
   if (!(input.orderCount > 0)) {
     return "No orders in this window yet.";

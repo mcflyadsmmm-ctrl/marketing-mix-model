@@ -125,6 +125,7 @@ export default function PublicDemoOrders() {
             useSampleDesk
             stepMix={ordersIntel?.stepMix ?? null}
             tickets={ordersIntel?.tickets ?? null}
+            todaySalesTruncated={false}
           />
         </DeskLane>
         <DeskLane rank="next" label={ORDERS_CLOCK_LANE_LABEL}>

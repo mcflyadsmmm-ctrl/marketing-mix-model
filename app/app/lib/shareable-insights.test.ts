@@ -252,6 +252,29 @@ describe("buildShareableInsights — 2–4 soft cards from desk truths", () => {
     });
     expect(view.cards.some((c) => c.kind === "returning")).toBe(false);
   });
+
+  it("withholds the returning poster when live today is capped — never a closed-day copy", () => {
+    const view = richInput({
+      todaySalesTruncated: true,
+      returningSales: 417_392,
+      returningShare: 0.7,
+      newSales: 180_000,
+    });
+    expect(view.cards.some((c) => c.kind === "returning")).toBe(false);
+    expect(view.cards.every((c) => !c.line.includes("$0"))).toBe(true);
+  });
+
+  it("does not copy pending returning vs new as a finished mix", () => {
+    const view = richInput({
+      salesPending: true,
+      returningSales: 417_392,
+      returningShare: 0.7,
+      newSales: 180_000,
+    });
+    expect(view.available).toBe(false);
+    expect(view.cards).toEqual([]);
+    expect(view.empty?.kind).toBe("syncing");
+  });
 });
 
 describe("emptyShareableInsights", () => {

@@ -8,6 +8,7 @@ import { SAMPLE_ORDERS_DOOR } from "../lib/sample-live-handoff";
 import {
   ORDERS_PENDING_LINE,
   ORDERS_THIN_EMPTY_LINE,
+  ORDERS_TODAY_TRUNCATED_LINE,
   buildOrdersLeadPeeks,
   buildOrdersTicketPeeks,
   ordersOperatorGreeting,
@@ -76,12 +77,14 @@ export function OrdersFirstViewport({
   useSampleDesk = false,
   stepMix,
   tickets,
+  todaySalesTruncated,
 }: {
   depth: ShopifyDepthStats;
   salesPending: boolean;
   useSampleDesk?: boolean;
   stepMix: OrdersStepBar[] | null;
   tickets: OrdersPeriodTickets | null;
+  todaySalesTruncated: boolean;
 }) {
   const currency = useDeskCurrency();
   const hero = buildOrdersHero(depth, currency, salesPending);
@@ -100,6 +103,7 @@ export function OrdersFirstViewport({
     orderCount: depth.orderCount,
     typicalOrderLabel: typicalLabel,
     averageOrderLabel: averageLabel,
+    todaySalesTruncated,
   });
   const peeks = salesPending
     ? []
@@ -150,7 +154,11 @@ export function OrdersFirstViewport({
           {hero.k}
         </p>
         <p className="mcfly-orders-hero__v">{hero.v}</p>
-        {hero.sub ? <p className="mcfly-orders-hero__sub">{hero.sub}</p> : null}
+        {todaySalesTruncated ? (
+          <p className="mcfly-orders-hero__sub">{ORDERS_TODAY_TRUNCATED_LINE}</p>
+        ) : hero.sub ? (
+          <p className="mcfly-orders-hero__sub">{hero.sub}</p>
+        ) : null}
         <p className="mcfly-orders-hero__def">{hero.def}</p>
         <OrdersTicketBand depth={depth} pending={salesPending} />
       </article>
