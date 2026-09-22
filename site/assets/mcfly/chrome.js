@@ -1,4 +1,4 @@
-/* McFly chrome v39 — listing live. Product mark Mcfly Analytics. Firm Mcfly Ads in footer. */
+/* McFly chrome v40 — listing live. Product mark Mcfly Analytics. Firm Mcfly Ads in footer. */
 (function () {
   function ensureMeta(name, content) {
     if (document.querySelector('meta[name="' + name + '"]')) return;
@@ -7,8 +7,8 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v39");
-  ensureMeta("mcfly-build", "craft-steal-v39");
+  ensureMeta("mcfly-version", "v40");
+  ensureMeta("mcfly-build", "craft-steal-v40");
 
   var LISTING = "https://apps.shopify.com/mcfly-analytics-public";
   var primary =

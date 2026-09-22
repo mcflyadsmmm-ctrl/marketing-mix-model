@@ -3455,3 +3455,30 @@ body.pricing-page .cfo-shot .amount span {
     break-inside: avoid;
   }
 }
+
+
+/* v40 — listing-chrome first fold. Hide YoY + period rail on phone so
+   Install stays with typical / returning. Do not hide weekend KPI. */
+@media (max-width: 859px) {
+  .hero--v25 .dd-yoy {
+    display: none;
+  }
+  .hero--v25 .dd-period {
+    display: none;
+  }
+  .hero--v25 .lede--tight {
+    max-width: none;
+  }
+}
+body.faq-page .page-hero #listing-card {
+  max-width: 46rem;
+  margin: 0.85rem 0 0;
+  font-size: 0.98rem;
+  color: var(--mute);
+}
+body.demo-page .page-hero--demo-tight {
+  padding-bottom: 0.35rem;
+}
+body.demo-page .demo-live-frame {
+  min-height: calc(100vh - 5.5rem);
+}
