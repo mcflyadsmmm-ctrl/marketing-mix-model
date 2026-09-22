@@ -117,20 +117,66 @@ describe("book coverage honesty — unpaid 90 vs paid 24 months", () => {
   });
 
   it("Orders, Customers, Overview, and Spend tills pass the unpaid book", () => {
-    for (const file of [
-      "../routes/app.orders.tsx",
-      "../routes/app.customers.tsx",
-      "../routes/app._index.tsx",
-    ]) {
-      const src = read(file);
-      expect(src, file).toContain("orderBookDepth");
-      expect(src, file).toContain("includeShopifyOrderWindow: true");
-    }
+    const orders = read("../routes/app.orders.tsx");
+    expect(orders).toContain("includeShopifyOrderWindow: true");
+    expect(orders).toMatch(/includeShopifyOrderWindow:\s*true,\s*orderBookDepth,/);
+    expect(orders).toContain("orderBookDepth={orderBookDepth}");
+    expect(orders).toMatch(/deskBookLede\(\s*"[\s\S]*?",\s*orderBookDepth,/);
+
+    const customers = read("../routes/app.customers.tsx");
+    expect(customers).toContain("includeShopifyOrderWindow: true");
+    expect(customers).toMatch(
+      /includeShopifyOrderWindow:\s*true,\s*orderBookDepth,/,
+    );
+    expect(customers).toContain("orderBookDepth={orderBookDepth}");
+    expect(customers).toContain("deskBookLede(CUSTOMERS_CONTRAST, orderBookDepth)");
+
+    const overview = read("../routes/app._index.tsx");
+    expect(overview).toContain("includeShopifyOrderWindow: true");
+    expect(overview).toMatch(
+      /includeShopifyOrderWindow:\s*true,\s*orderBookDepth,/,
+    );
+    expect(overview).toContain("orderBookDepth={orderBookDepth}");
+
     const spend = read("../routes/app.spend.tsx");
-    expect(spend).toContain("orderBookDepth");
+    expect(spend).toContain("orderBookDepth={orderBookDepth}");
+
     const period = read("../components/PeriodControl.tsx");
-    expect(period).toContain("orderBookDepth");
+    expect(period).toContain("orderBookDepth: LiveIngestDepth;");
+    expect(period).not.toMatch(/orderBookDepth\?:/);
+    expect(period).not.toMatch(/orderBookDepth:\s*LiveIngestDepth\s*=/);
     expect(period).toContain("deskHistoryCaption");
+    expect(period).toMatch(
+      /deskHistoryCaption\(\s*new Date\(\),\s*language === "spend" \? "spend" : "sales",\s*orderBookDepth,/,
+    );
+
+    const firstView = read("../components/OverviewFirstViewport.tsx");
+    expect(firstView).toContain("orderBookDepth: LiveIngestDepth;");
+    expect(firstView).not.toMatch(/orderBookDepth\?:/);
+    expect(firstView).toContain("overviewCoverageLine(orderBookDepth)");
+
+    const deskPage = read("../components/DeskBookPage.tsx");
+    expect(deskPage).toContain("orderBookDepth: LiveIngestDepth;");
+    expect(deskPage).not.toMatch(/orderBookDepth\?:/);
+    expect(deskPage).toContain("orderBookDepth={orderBookDepth}");
+
+    const history = read("./desk-history.ts");
+    expect(history).not.toMatch(/orderBookDepth:\s*LiveIngestDepth\s*=/);
+    expect(history).not.toMatch(/\?\?\s*"paid_full"/);
+    expect(history).toMatch(
+      /export function deskHistoryCaption\(\s*_now: Date,\s*surface: DeskHistorySurface,\s*orderBookDepth: LiveIngestDepth,/,
+    );
+    expect(history).toMatch(
+      /export function deskBookLede\(\s*contrast: string,\s*orderBookDepth: LiveIngestDepth,/,
+    );
+
+    const coverage = read("./overview-first-viewport.ts");
+    expect(coverage).not.toMatch(/depth: LiveIngestDepth\s*=/);
+    expect(coverage).not.toMatch(/\?\?\s*"paid_full"/);
+    expect(coverage).toContain(
+      "export function overviewCoverageLine(depth: LiveIngestDepth): string",
+    );
+
     expect(read("./desk-sales-page.server.ts")).toContain("orderBookDepth");
     expect(read("./desk-spend-stack.server.ts")).toContain("orderBookDepth");
   });

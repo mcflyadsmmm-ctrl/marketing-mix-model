@@ -62,9 +62,9 @@ export function deskHistoryFloorKey(now: Date = new Date()): string {
 export type DeskHistorySurface = "sales" | "spend";
 
 export function deskHistoryCaption(
-  _now: Date = new Date(),
-  surface: DeskHistorySurface = "sales",
-  orderBookDepth: LiveIngestDepth = "paid_full",
+  _now: Date,
+  surface: DeskHistorySurface,
+  orderBookDepth: LiveIngestDepth,
 ): string {
   const window = deskOrderWindowPhrase(orderBookDepth);
   if (surface === "spend") {
@@ -87,10 +87,10 @@ export function deskPeriodTillLabel(input: {
   shopifyOrderWindowLimited?: boolean;
   /** Book pages: mention the order-detail window on the till. */
   includeShopifyOrderWindow?: boolean;
-  /** Unpaid = 90 closed days. Paid = up to 24 months. SAMPLE uses paid. */
-  orderBookDepth?: LiveIngestDepth;
+  /** Unpaid = 90 closed days. Paid = up to 24 months. SAMPLE uses paid. Required so an omit cannot paint 24 months. */
+  orderBookDepth: LiveIngestDepth;
 }): string {
-  const orderBookDepth = input.orderBookDepth ?? "paid_full";
+  const orderBookDepth = input.orderBookDepth;
   if (input.useSampleDesk) {
     return `${input.periodLabel}${PRODUCT_NOUN.samplePeriodSuffix}`;
   }
@@ -123,7 +123,7 @@ export function deskPeriodTillLabel(input: {
 /** Contrast vs native Analytics, plus the shared book coverage line. */
 export function deskBookLede(
   contrast: string,
-  orderBookDepth: LiveIngestDepth = "paid_full",
+  orderBookDepth: LiveIngestDepth,
 ): string {
   return `${contrast} ${shopifyBookMutedFor(orderBookDepth)}`;
 }

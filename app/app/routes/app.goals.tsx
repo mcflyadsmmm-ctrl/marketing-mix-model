@@ -726,7 +726,11 @@ export default function GoalsPage() {
             <div className="mcfly-ctx__main">
               <span className="mcfly-ctx__asof">{tillLabel}</span>
               {shotMode ? (
-                <PeriodControl preset={preset} shotMode={shotMode} />
+                <PeriodControl
+                  preset={preset}
+                  shotMode={shotMode}
+                  orderBookDepth="paid_full"
+                />
               ) : null}
             </div>
             <div className="mcfly-ctx__chips">

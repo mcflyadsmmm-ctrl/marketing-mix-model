@@ -4,6 +4,7 @@ import { MorningHabitStrip } from "./MorningHabitStrip";
 import { PeriodControl } from "./PeriodControl";
 import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
+import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import {
   orderHistoryProgressMessage,
   truncatedOrderFactsMessage,
@@ -19,6 +20,7 @@ export function DeskBookPage({
   useSampleDesk,
   isLoading,
   showPeriod = true,
+  orderBookDepth,
   orderFactsTruncated = false,
   orderBackfillProgress = null,
   todaySalesTruncated = false,
@@ -38,6 +40,8 @@ export function DeskBookPage({
   isLoading: boolean;
   /** False when clocks are baked into the cards (YoY this / last / last year). */
   showPeriod?: boolean;
+  /** Unpaid = 90 closed days. Paid / SAMPLE = up to 24 months. Required even when compact. */
+  orderBookDepth: LiveIngestDepth;
   /** Closed-day OrderFact crawl still running — typical order / LTV are not $0. */
   orderFactsTruncated?: boolean;
   /** Closed-day OrderFact crawl progress — X of Y when days remain. */
@@ -109,7 +113,12 @@ export function DeskBookPage({
           <div className="mcfly-ctx__main">
             <span className="mcfly-ctx__asof">{tillLabel}</span>
             {showPeriod ? (
-              <PeriodControl preset={preset} shotMode={shotMode} compact />
+              <PeriodControl
+                preset={preset}
+                shotMode={shotMode}
+                compact
+                orderBookDepth={orderBookDepth}
+              />
             ) : null}
           </div>
         </div>

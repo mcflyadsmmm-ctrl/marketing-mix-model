@@ -10,10 +10,8 @@ import { resolveSalesReadiness } from "./sales-pending";
  * Marketing tabs own entered cash later.
  */
 
-export function overviewCoverageLine(
-  depth: LiveIngestDepth = "paid_full",
-): string {
-  return deskHistoryCaption(undefined, "sales", depth);
+export function overviewCoverageLine(depth: LiveIngestDepth): string {
+  return deskHistoryCaption(new Date(), "sales", depth);
 }
 
 export const OVERVIEW_COVERAGE_LINE = overviewCoverageLine("paid_full");

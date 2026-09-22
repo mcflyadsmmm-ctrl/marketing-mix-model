@@ -228,6 +228,7 @@ export default function PublicDemoOverview() {
                   salesPending={false}
                   ordersHref={ordersHref}
                   useSampleDesk
+                  orderBookDepth="paid_full"
                   clock={data.sameClock}
                 />
               )}

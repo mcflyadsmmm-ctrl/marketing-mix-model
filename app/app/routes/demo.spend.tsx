@@ -208,7 +208,11 @@ export default function PublicDemoSpend() {
           .join(" ")}
       >
         {!data.shotMode ? (
-          <PeriodControl preset={data.preset} language="spend" />
+          <PeriodControl
+            preset={data.preset}
+            language="spend"
+            orderBookDepth="paid_full"
+          />
         ) : null}
 
         <s-banner tone="info" heading="Example spend is on">

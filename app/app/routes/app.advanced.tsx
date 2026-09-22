@@ -168,7 +168,11 @@ export default function AdvancedMetricsPage() {
             </p>
           </div>
           {shotMode ? (
-            <PeriodControl preset={preset} shotMode={shotMode} />
+            <PeriodControl
+              preset={preset}
+              shotMode={shotMode}
+              orderBookDepth="paid_full"
+            />
           ) : null}
         </header>
 

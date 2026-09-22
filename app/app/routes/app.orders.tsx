@@ -78,6 +78,7 @@ export default function OrdersPage() {
       shotMode={shotMode}
       useSampleDesk={useSampleDesk}
       isLoading={isLoading}
+      orderBookDepth={orderBookDepth}
       orderFactsTruncated={
         !useSampleDesk && Boolean(orderBackfillProgress?.truncated)
       }

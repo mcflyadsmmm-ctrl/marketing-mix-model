@@ -67,8 +67,8 @@ export type OverviewPeekProps = {
   ordersHref: string;
   settingsHref?: string;
   useSampleDesk?: boolean;
-  /** Unpaid = 90 closed days of order rows. Paid / SAMPLE = up to 24 months. */
-  orderBookDepth?: LiveIngestDepth;
+  /** Unpaid = 90 closed days of order rows. Paid / SAMPLE = up to 24 months. Required. */
+  orderBookDepth: LiveIngestDepth;
   /** Through this clock versus the same weekday last year. */
   clock?: OverviewClockPayload | null;
 };
@@ -319,7 +319,7 @@ export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Shopify sales this period",
   ordersHref,
   useSampleDesk = false,
-  orderBookDepth = "paid_full",
+  orderBookDepth,
   salesPending,
   orderCount,
   mixGreeting = null,

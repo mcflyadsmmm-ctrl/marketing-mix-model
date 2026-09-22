@@ -1050,6 +1050,7 @@ export default function SpendEntryPage() {
                 preset={preset}
                 shotMode={shotMode}
                 language="spend"
+                orderBookDepth="paid_full"
               />
             </div>
           </div>
