@@ -20,12 +20,12 @@ describe("home SAMPLE share paste board", () => {
   const overviewSlice =
     overviewIdx >= 0 ? html.slice(overviewIdx, overviewIdx + 1800) : "";
 
-  it("keeps the locked H1, v40, and Snowdevil SAMPLE dollars", () => {
+  it("keeps the locked H1, v41, and Snowdevil SAMPLE dollars", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v40"');
-    expect(html).toContain("mcfly.css?v=20260922v40");
+    expect(html).toContain('content="v41"');
+    expect(html).toContain("mcfly.css?v=20260922v41");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
@@ -93,7 +93,7 @@ describe("home SAMPLE share paste board", () => {
     expect(sits).toContain("Better Reports from $19.90");
     expect(sits).toContain("Group by day of week");
     expect(sits).toContain("Polar’s App Store list price starts at $750/mo");
-    expect(sits).toContain("We do not invent Polar $1,020");
+    expect(sits).not.toMatch(/\$1,?020/);
     expect(sits).toContain("The live App Store card still leads with ad spend next to store sales");
     expect(sits).toContain("TrueProfit from $35/mo");
     expect(sits).toContain("ShopifyQL can show returning sales $");

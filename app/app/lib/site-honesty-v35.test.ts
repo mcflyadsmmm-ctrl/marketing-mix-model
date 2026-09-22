@@ -1,6 +1,6 @@
 /**
  * v35: stop selling uniqueness Shopify Reports and RCI already ship.
- * Locked home H1 stays. Polar $1,020 stays invented-and-refused.
+ * Locked home H1 stays. Polar $1,020 is not planted, even as a refusal.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -41,13 +41,11 @@ describe("v35 competitor and native-Analytics honesty", () => {
     expect(about).toContain("Repeat Customer Insights from $59");
   });
 
-  it("cites Better Reports, Polar $750, refuses invented Polar $1,020", () => {
+  it("cites Better Reports, Polar $750, and does not plant Polar $1,020", () => {
     expect(index).toContain("Better Reports from $19.90");
     expect(index).toContain("apps.shopify.com/betterreports");
     expect(index).toContain("$750/mo");
-    expect(index).toContain("We do not invent Polar $1,020");
-    expect(index).not.toMatch(/Polar lists from \$1,?020/);
-    expect(index).not.toMatch(/Polar.{0,20}\$1,?020\/mo/);
+    expect(index).not.toMatch(/\$1,?020/);
     expect(pricing).toContain("Better Reports from $19.90");
     expect(pricing).toContain("Polar from $750");
   });

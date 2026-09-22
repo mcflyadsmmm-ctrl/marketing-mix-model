@@ -1,6 +1,6 @@
 /**
  * v38: leftover uniqueness Shopify already ships, plus TrueProfit listing stars.
- * Locked home H1 stays. Polar $1,020 stays invented-and-refused.
+ * Locked home H1 stays. Polar $1,020 is not planted, even as a refusal.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -20,17 +20,16 @@ describe("v38 native leftover and listing-star honesty", () => {
   const faq = readSite("site/faq.html");
   const about = readSite("site/about.html");
 
-  it("keeps the locked home H1 and refuses invented Polar $1,020", () => {
+  it("keeps the locked home H1 and does not plant Polar $1,020", () => {
     expect(index).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(index).toContain("We do not invent Polar $1,020");
-    expect(index).not.toMatch(/Polar lists from \$1,?020/);
+    expect(index).not.toMatch(/\$1,?020/);
   });
 
   it("sells median leftover instead of native returning/weekend/LTV as the gap", () => {
-    expect(index).toContain("Typical order is the leftover");
-    expect(faq).toContain("Typical order is the leftover");
+    expect(index).toContain("Typical order is the median");
+    expect(faq).toContain("Typical order is the median");
     expect(faq).toContain("no native median ticket");
     expect(faq).toContain("customer cohort reports");
     expect(faq).toContain("LTV 30/90/365 is observed orders");

@@ -7,8 +7,8 @@
     meta.setAttribute("content", content);
     document.head.appendChild(meta);
   }
-  ensureMeta("mcfly-version", "v40");
-  ensureMeta("mcfly-build", "craft-steal-v40");
+  ensureMeta("mcfly-version", "v41");
+  ensureMeta("mcfly-build", "craft-steal-v41");
 
   var LISTING = "https://apps.shopify.com/mcfly-analytics-public";
   var primary =
@@ -91,7 +91,7 @@
       '<a href="/support">Support</a>' +
       '<a href="/terms">Terms</a>' +
       "</nav>" +
-      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — deeper Shopify numbers Analytics does not show. 7-day trial, then $39/store/mo.</p>' +
+      '<p class="fine">© <span data-year></span> Mcfly Ads. Mcfly Analytics — typical order is the median, not Shopify AOV. 7-day trial, then $39/store/mo.</p>' +
       '<p class="foot__meta">App Store listing live · reviews 0 · we do not invent a 4.9</p>' +
       "</div>" +
       "</footer>";

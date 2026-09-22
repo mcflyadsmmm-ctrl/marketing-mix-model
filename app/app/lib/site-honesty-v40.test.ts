@@ -18,15 +18,15 @@ describe("v40 listing-chrome first fold", () => {
   const demo = readSite("site/demo.html");
   const css = readSite("site/assets/mcfly/mcfly.css");
 
-  it("keeps the locked home H1 and refuses invented Polar $1,020", () => {
+  it("keeps the locked home H1 and does not plant Polar $1,020", () => {
     expect(index).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(index).toContain("We do not invent Polar $1,020");
+    expect(index).not.toMatch(/\$1,?020/);
   });
 
   it("puts colon jobs and listing leftover in the home fold", () => {
-    expect(index).toContain("Typical order is the leftover median");
+    expect(index).toContain("Typical order is the median");
     expect(index).toContain("Shopify AOV is the mean");
     expect(index).toContain("Spend optional last");
     expect(index).toContain("$39 after 7-day");

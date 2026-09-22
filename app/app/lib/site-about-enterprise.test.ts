@@ -9,7 +9,7 @@ const about = readFileSync(join(root, "site/about.html"), "utf8");
 describe("site /about enterprise desk", () => {
   it("keeps the H1, founder, Utah firm, and Mcfly Analytics titles", () => {
     expect(about).toMatch(
-      /<h1[^>]*>Deeper Shopify numbers Analytics does not show\.<\/h1>/,
+      /<h1[^>]*>Mcfly Ads builds Mcfly Analytics\.<\/h1>/,
     );
     expect(about).toContain("Marty Smithson");
     expect(about).toContain("Utah");

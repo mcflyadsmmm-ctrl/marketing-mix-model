@@ -117,10 +117,9 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
   it("hero is deeper Shopify numbers — not See ad spend next to sales", () => {
     expect(heroText).toMatch(/Deeper Shopify numbers Analytics does not show/);
     expect(heroText).toMatch(/Typical order/);
-    expect(heroText).toMatch(/returning dollars/);
-    expect(heroText).toMatch(/weekends/);
-    expect(heroText).toMatch(/\bLTV\b/);
-    expect(heroText).toMatch(/spend is optional/);
+    expect(heroText).toMatch(/median/);
+    expect(heroText).toMatch(/ShopifyQL/);
+    expect(heroText).toMatch(/spend is optional/i);
     expect(heroText).toMatch(/7-day/);
     expect(heroText).toContain("$39");
     expect(heroText).toMatch(/90 days/);
@@ -149,7 +148,7 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
         "Spend is optional and last",
       ],
       [
-        "Typical order is the leftover",
+        "Typical order is the median",
         "Shopify AOV is the mean",
         "no native median ticket",
         "ShopifyQL can show returning sales $",
