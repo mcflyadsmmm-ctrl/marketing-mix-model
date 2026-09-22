@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v426 / tip `eec452f` (merge of #183 buyer-life honesty) / image `deployment-01M34W3FMTPB0VV7PCQYAFM9SN` / Live PARKED. Health ok 2026-09-22T15:36Z. v425 was Orders step mix.
+**Tip Fly note:** v427 / tip `6fb0fa2` (merge of #184 Goals leftover honesty) / image `deployment-01M34XRFNS7H0DEKKYTPVH4P1E` / Live PARKED. Health ok 2026-09-22T16:05Z. v426 was buyer-life honesty.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v426 / tip `eec452f` / Live PARKED |
+| Tip Fly SoT | v427 / tip `6fb0fa2` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v426 / tip `eec452f`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v427 / tip `6fb0fa2`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 2 of that queue is the only cook. |
+| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 3 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**Goals leftover honesty.** “I planned January and March and left February blank — YTD still said I was ahead. I typed `$0` for a closed month and the phone stack showed —. Last year is not on file and Goals still filled 0% of the plan. Public `/demo/goals` said the same year plan as Admin; I got a habit board against a `$0` plan.”
+**Unpaid-year leftover.** “Settings told me the whole desk is already on and the trial is full-access. I tapped This year on Spend. CPA offered YTD. Overview already said order rows stop at 90 closed days until I pay.”
 
-Goals year board / gauges / `ThisMonthPlanStack`. Public `/demo/goals` and Admin `/app/goals`. YTD/QTD actual (and %) only sum months that have a plan, or withhold %. Typed `$0` is `$0`, cleared is —. Null actual + hasGoal → empty bar / —, never 0%. `/demo/goals` mounts the Admin year table read-only from SAMPLE’s typed-or-empty months. One copy control: Goal, Shopify Total Sales Actual, Prior when on file. Do not unpark Live. Do not change the 90.
+Settings plan block · Goals muted `TRIAL_VS_VIEW` · Spend explorer chips · Spend → CPA ranges. Not the Customers Unlock banner. Not Overview coverage. Unpaid / trial copy: 90 closed days of order rows, paid = up to 24 months, `$39` after 7 days, one plan. Sample | Live stays a view. Public `/demo/settings` says SAMPLE is the paid-shaped book, Live trial is 90 closed days — or stays clearly SAMPLE-only without “full-access.” Unpaid explorer does not offer a finished This year / 1 year / All, or the chip names 90 closed days / day totals vs order rows. Unpaid CPA YTD names 90 closed days or stays off. Last 28 / This month either exclude incomplete today or say so. Empty spend stays —. Never `0×`. Do not add a history SKU. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/goals-leftover-honesty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 3–8 and 10–14 of the third-queue stay queued. Do not rebuild buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/unpaid-year-leftover-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 4–8 and 10–14 of the third-queue stay queued. Do not rebuild Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 2.
+Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 3.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
