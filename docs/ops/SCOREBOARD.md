@@ -14,7 +14,17 @@
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
 | Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v409 / tip `f0fa935`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | DONE — COMPETE_COMPLAINTS_PACK.md (top pains vs native/Lifetimely/TW/Peel/TrueProfit/Putler; $39 flat wedge) |
+| Niche intel | DONE — critical audit, compete, top apps, operator pains, gap-fill. Do not re-run until the next ship below is shipped or blank. |
+
+## Next significant ship (the only craft allowed)
+
+**Morning habit.** On first open, three named wins (month close, who to save, set a target) and one morning sentence the merchant can copy. No ad login. No spend required.
+
+That sentence is not true on v409 yet. Cook it. Do not open another research wave, another honesty pass, or a Fly for a scoreboard line.
+
+When this line is shipped or blank, wake the research fleet once (critical, competitors, niche, operator pains) and write the next merchant sentence here before any new craft.
+
+A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
 ## Accepted work log
 - Enterprise tip cooks through v387 wave + tip advanced to v403
