@@ -10,7 +10,15 @@ import { isShopifyAppPath } from "./shopify-app-path.mjs";
 
 function normalizePath(pathname) {
   const raw = String(pathname ?? "").split("?")[0] || "/";
-  const trimmed = raw.replace(/\/+$/, "");
+  let trimmed = raw.replace(/\/+$/, "");
+  // Pages pretty-URLs 308 /lab.html → /lab before _redirects. Fly express.static
+  // serves the file, so strip the suffix so parked rules still 301.
+  if (/\.html$/i.test(trimmed)) {
+    trimmed = trimmed.slice(0, -5);
+  }
+  if (/\/index$/i.test(trimmed)) {
+    trimmed = trimmed.slice(0, -6) || "/";
+  }
   return trimmed === "" ? "/" : trimmed;
 }
 

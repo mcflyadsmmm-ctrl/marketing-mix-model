@@ -186,7 +186,7 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
       ["No.", "tracking pixels", "MTA", "true ROAS", "sales ÷ entered spend"],
       ["median ticket", "Shopify AOV is the mean"],
       ["copy or Save PNG", "does not email or Slack"],
-      ["No.", "No pixel", "$39 stays $39"],
+      ["No.", "No pixel", "Free / Foundation $219 / Automate $749", "$39 stays $39"],
       [
         "No.",
         "Repeat Customer Insights from $59",
