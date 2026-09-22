@@ -25,6 +25,10 @@ import {
   isShopifyAppPath,
   shouldSkipMarketingSite,
 } from "./shopify-app-path.mjs";
+import {
+  matchSiteRedirect,
+  parseSiteRedirects,
+} from "./site-marketing-redirects.mjs";
 
 process.env.NODE_ENV = process.env.NODE_ENV ?? "production";
 
@@ -164,6 +168,10 @@ async function run() {
   }
 
   if (siteMounted) {
+    const redirectsFile = path.join(siteRoot, "_redirects");
+    const redirectRules = fs.existsSync(redirectsFile)
+      ? parseSiteRedirects(fs.readFileSync(redirectsFile, "utf8"))
+      : [];
     const siteStatic = express.static(siteRoot, {
       extensions: ["html"],
       index: "index.html",
@@ -179,6 +187,11 @@ async function run() {
       if (shouldSkipMarketingSite(req)) {
         res.setHeader("Cache-Control", "private, no-store");
         return res.redirect(302, embeddedAppRedirectLocation(req));
+      }
+      const parked = matchSiteRedirect(req.path, redirectRules);
+      if (parked) {
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        return res.redirect(parked.code, parked.to);
       }
       return siteStatic(req, res, next);
     });
