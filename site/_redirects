@@ -8,6 +8,8 @@
 /home/ / 301
 /mcfly-advertising / 301
 /advertising / 301
+/inquire /support 301
+/inquire/ /support 301
 
 # --- Custom Data Solutions + lab (parked) ---
 /custom / 301
@@ -66,7 +68,8 @@
 /cash-mer/ / 301
 /mer / 301
 /total-roas / 301
-/break-even /break-even-roas-calculator 301
+/break-even /pricing 301
+/break-even/ /pricing 301
 /glossary / 301
 /monday-close / 301
 /monday-close/ / 301
@@ -92,28 +95,41 @@
 # Homepage live slices deep-link into the Fly SAMPLE desk via /demo?tab=
 /demo/spend /demo?tab=spend 301
 /demo/spend/ /demo?tab=spend 301
-/demo/roas /demo?tab=roas 301
-/demo/roas/ /demo?tab=roas 301
+/demo/roas /demo?tab=spend 301
+/demo/roas/ /demo?tab=spend 301
 /demo/goals /demo?tab=goals 301
 /demo/goals/ /demo?tab=goals 301
 /demo/customers /demo?tab=customers 301
 /demo/customers/ /demo?tab=customers 301
-/demo/growth /demo?tab=growth 301
-/demo/growth/ /demo?tab=growth 301
+/demo/growth /demo?tab=customers 301
+/demo/growth/ /demo?tab=customers 301
 /demo/orders /demo?tab=orders 301
 /demo/orders/ /demo?tab=orders 301
-/demo/ltv /demo?tab=ltv 301
-/demo/ltv/ /demo?tab=ltv 301
-/demo/cpa /demo?tab=cpa 301
-/demo/cpa/ /demo?tab=cpa 301
-/demo/allocation /demo?tab=allocation 301
-/demo/allocation/ /demo?tab=allocation 301
-/demo/yoy /demo?tab=yoy 301
-/demo/yoy/ /demo?tab=yoy 301
+/demo/ltv /demo?tab=customers 301
+/demo/ltv/ /demo?tab=customers 301
+/demo/cpa /demo?tab=spend 301
+/demo/cpa/ /demo?tab=spend 301
+/demo/allocation /demo?tab=spend 301
+/demo/allocation/ /demo?tab=spend 301
+/demo/yoy /demo 301
+/demo/yoy/ /demo 301
 /demo/settings /demo?tab=settings 301
 /demo/settings/ /demo?tab=settings 301
 
-# Keep calculators (app math)
-/calculator /mer-calculator 301
+# Park leftover calculators and MDS course — one product
+/calculator /pricing 301
+/mds-made-easy / 301
+/mds-made-easy/ / 301
+/mds-made-easy/* / 301
+
+# Park leftover calculators — one product, one price page
+/mer-calculator /pricing 301
+/mer-calculator/ /pricing 301
+/break-even-roas-calculator /pricing 301
+/break-even-roas-calculator/ /pricing 301
+/best-shopify-profit-apps / 301
+/best-shopify-profit-apps/ / 301
+/assets/brand/og-cash-mer.jpg /assets/brand/og-analytics.jpg 301
+/assets/brand/og-cash-mer.jpg/ /assets/brand/og-analytics.jpg 301
 
 /* /404.html 404

@@ -1,18 +1,18 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v433 / tip `d4ccd1c` (merge of #190 wrong-lane leftover) / image `deployment-01M355KB6BNF9R6M39F0R5NX05` / Live PARKED. Health ok 2026-09-22T18:22Z. v432 was spend leftover honesty. v431 was site trial leftover (fly.dev honest; mcflyads.com Pages still stale).
+**Tip Fly note:** v445 / PR #191 / image `deployment-01M35NF9DV2DJFS0ZQMW8YA3M9` / fly.toml still SAMPLE-only parked. Health ok 2026-09-22T22:59Z. Parks `/lab.html` + Custom `.html`. Pages **v42** Direct Upload `575d709f` live on mcflyads.com. fly.dev `/` **v42**. Cloud Agent Pages Edit proved.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v433 / tip `d4ccd1c` / Live PARKED |
+| Tip Fly SoT | v445 / PR #191 / fly.toml Live PARKED |
 | SAMPLE smoke | WAIVED |
-| Live unpark | PARKED |
+| Live unpark | PARKED in git fly.toml (`true` / `parked`) |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
-| Site P0 on box | DONE — fly.dev static site honest on v431+; Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v433 / tip `d4ccd1c`; Live PARKED |
+| Site P0 on box | DONE — mcflyads.com **v42** Pages `575d709f`; fly.dev `/` **v42** on Fly 445 |
+| Money prep | Listing paste #192; Pages live v42 `575d709f`; tip Fly v445 / PR #191; fly.toml Live PARKED; Cloudflare Pages Edit connected |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
 

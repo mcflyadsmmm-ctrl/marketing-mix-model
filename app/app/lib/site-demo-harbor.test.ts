@@ -28,8 +28,8 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     expect(desk).not.toMatch(/4\.19×/);
     expect(js).not.toContain("0.00×");
     expect(js).toContain('return "—"');
-    expect(html).toMatch(/Live book only|Live-only/);
-    expect(html).toContain("no Sample|Live toggle");
+    expect(html).toMatch(/not your Live book|not a live/);
+    expect(html).not.toContain("no Sample|Live toggle");
   });
 
   it("sales page live Overview slice has YoY / Shopify-five (spend stays off Overview)", () => {
@@ -57,9 +57,9 @@ describe("public /demo matches Snowdevil Overview religion", () => {
     const html = readSite("site/index.html");
     const redirects = readSite("site/_redirects");
     expect(html).toContain("/demo?tab=spend");
-    expect(html).toContain("/demo?tab=roas");
     expect(html).toContain("/demo?tab=goals");
-    expect(html).toContain("/demo?tab=yoy");
+    expect(html).not.toContain("/demo?tab=yoy");
+    expect(html).not.toContain("/demo?tab=roas");
     expect(html).not.toContain('href="/demo/spend"');
     expect(redirects).toContain("/demo/spend /demo?tab=spend 301");
   });

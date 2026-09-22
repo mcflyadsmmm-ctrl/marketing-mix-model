@@ -2,13 +2,13 @@
 /**
  * Public CTA honesty gate.
  * Listing is live — Shopify primary CTA is Install on the App Store.
- * Custom Inquire must NOT use data-mcfly-cta="primary" (use "inquire" or plain href).
+ * Contact support must NOT use data-mcfly-cta="primary" (use "inquire" or plain href).
  * Never "Install free" → /support. Never a public shop-domain form.
  *
  * Tokens:
  *   data-mcfly-cta="primary"   → Install → App Store listing
  *   data-mcfly-cta="demo"      → Try the demo /demo
- *   data-mcfly-cta="inquire"   → Request engagement /custom-analytics#inquire
+ *   data-mcfly-cta="inquire"   → Contact support /support
  *   data-mcfly-cta="secondary" → left alone
  */
 (function (w) {
@@ -37,7 +37,7 @@
   }
 
   function inquire() {
-    return { label: "Request engagement", href: "/custom-analytics#inquire" };
+    return { label: "Contact support", href: "/support" };
   }
 
   function applyLink(el, spec) {

@@ -15,7 +15,7 @@
 
 ## Accounts
 
-- Cloudflare Pages / Wrangler: `martysmithson04@gmail.com` · project `mcflyads` · **Direct Upload**
+- Cloudflare Pages / Wrangler: `martysmithson04@gmail.com` · project `mcflyads` · **Direct Upload**. Cloud Agent env has `CLOUDFLARE_API_TOKEN` (Pages Edit) + `CLOUDFLARE_ACCOUNT_ID`. Proved 2026-09-22: `wrangler whoami`, `pages project list`, Pages project PATCH. MCP bindings/docs/observability ready. Cloudflare-builds MCP is Workers CI OAuth — not required for Pages Direct Upload.
 - GitHub: `mcflyadsmmm-ctrl/marketing-mix-model`
 - Gmail / Calendar: `mcflyadsmmm@gmail.com`
 

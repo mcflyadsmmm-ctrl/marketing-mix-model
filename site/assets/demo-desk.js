@@ -271,7 +271,7 @@
       orders: ["Orders", "Typical order · weekends · from Shopify"],
       customers: ["Customers", "Returning dollars · LTV 30/90/365 · days-to-second"],
       spend: ["Spend", "Optional · type a day or paste CSV · Total ROAS · mix · CPA"],
-      goals: ["Goals", "Monthly sales plan · spend optional"],
+      goals: ["Goals", "Optional Total ROAS vs break-even · spend last"],
       settings: ["Settings", "Sample data · Live is parked · $39/mo"],
     };
     var copy = labels[key] || labels.overview;
@@ -318,6 +318,16 @@
           ". Optional Total ROAS " +
           formatMer(mer) +
           " when spend is on file.</p>",
+        trigger,
+      );
+      return;
+    }
+    if (key === "weekend") {
+      openDrawer(
+        "Weekend mix",
+        "<p class=\"dd-drawer__value\">" +
+          Math.round(period.weekendShare * 100) +
+          "%</p><p>Saturday–Sunday share of this window on Orders. Not a Reports Group-by you add up. SAMPLE Snowdevil.</p>",
         trigger,
       );
     }

@@ -4,13 +4,13 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-19 · America/Denver · Site **v30** Pages `83cfac91` · Fly **396** · occupancy **0/4** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v30** · five analysis tabs plus Settings · operator white KPI cards · live HTML Overview slices · `/demo` iframes Fly Remix SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **396** · `/health` 200 · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings |
-| **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers must beat native Analytics at **$0 spend**. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. |
+| **Updated** | 2026-09-22 · America/Denver · Site **v42** Pages `575d709f` · Fly **445** · occupancy **round-5 fleet** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v42** · Goals is not a sales-plan product · `/inquire` 301 `/support` · Polar `$750` · typical order is the median · `/lab.html` 301 · cash OG 301 |
+| **Fly** | https://mcfly-analytics.fly.dev · version **445** · `/health` 200 · `/lab.html` and Custom `.html` **301** home · public Remix `/demo` = Admin SAMPLE chrome · fly.dev `/` marketing **v42** |
+| **North star** | Paid **$39** installs that **stay**. Leftover Analytics still does not ship is the **median ticket**. Native already Groups by weekday, can show ShopifyQL returning sales $, pins monthly sales targets, and has customer cohort reports. Repeat Customer Insights from $59 is the closer LTV/latency app. Spend is the door, not the greeting. Empty spend is **—** not 0×. Custom is **301 to home**. Do not assume the app or niche is perfected. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
-| **Pages** | Cloudflare `mcflyads` · Direct Upload · deploy from **non-git** temp dir |
+| **Pages** | Cloudflare `mcflyads` · Direct Upload · Cloud Agent env `CLOUDFLARE_API_TOKEN` (Pages Edit) + `CLOUDFLARE_ACCOUNT_ID` connected 2026-09-22 · deploy from **non-git** temp dir |
 | **App code** | **UNFROZEN** 2026-08-29 · Fly + `app/**` open for App Store approval |
 | **Conductor** | One Cursor chat · read board + skill every turn · Mac-shell split [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md) |
 
@@ -45,7 +45,7 @@ Restraint. Paper/sky. Original ribbon M. Phone = brand + hamburger.
 
 ## Product + SAMPLE lock
 
-App: deeper Shopify order analytics than Analytics Overview. Spend tools are their own pages after the Shopify five. Not pixels.  
+App: median ticket, returning dollars, month/quarter/year on one board. Native Reports already Group by weekday. Repeat Customer Insights from $59 is closer LTV/latency. Spend tools are their own pages after the Shopify five. Not pixels.  
 **Rebuild SoT:** [`plans/2026-09-16-snowdevil-sample-only.md`](./plans/2026-09-16-snowdevil-sample-only.md) (Grok paste: [`plans/2026-09-16-snowdevil-sample-only-PROMPT.md`](./plans/2026-09-16-snowdevil-sample-only-PROMPT.md)). Older save-the-desk plan still explains density. **2026-09-16 founder override:** Live path is **parked** until Marty agrees SAMPLE looks and calculates right. Next book is **Snowdevil**, not Harbor spend. No Live order seed. Grok Bot **may** `fly deploy` from this Mac; Marty remains Admin / Partner gate. Cursor does not Submit. Split: [`ops/GROKBOT_MAC_SPLIT.md`](./ops/GROKBOT_MAC_SPLIT.md).  
 **Harbor SAMPLE (home, below the fold):** spend **$23,414** · sales **$82,068** · **3.51×** · BE **2.50×** @ 40% · Harbor Home Co · not a live client.  
 Demo widget still uses the Northline SAMPLE book (listing desk numbers) — do not put Northline **$98,500** / **4.19×** on `/`.  
@@ -92,7 +92,9 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **Site v28 + Fly 394** — sales page = live HTML Overview / spend / ROAS / Goals slices (not PNGs). `/demo` = Remix SAMPLE desk for listing stills. Pages `f2f6dba8`. Home lock $19,023 / $68,457 / 3.60×; Fly `/demo` rolls with the calendar.
 - [x] **Site v29 + Fly 395** — operator desk lock: white cards / navy ink / sky `#0284c7`. Charcoal marketing wells gone from Admin + live slices. Pages `1a025e00`. Journal [`ops/journal/STATUS_20260919_v29.md`](./ops/journal/STATUS_20260919_v29.md).
 - [x] **Site v30 + Fly 396** — five analysis tabs plus Settings (fold never delete). Overview YoY year board · Customers returning $ + Growth/LTV · Spend MER + mix + CPA. Pages `83cfac91`. Journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md).
-- [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (Overview · Orders · Customers at $0 spend · Spend last · 24mo · Live-only · honest MER). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v30** before paste. Partner still says eleven until Save.
+- [x] **Site v36 + Fly 439** — ShopifyQL returning sales $, TrueProfit from $35, TW Free/$219/$749, no all-or-nothing Admin, cash OG 301, FAQ COGS Q. Pages `8ddad52e`. Journal [`ops/journal/STATUS_20260922_site_v36_shipped.md`](./ops/journal/STATUS_20260922_site_v36_shipped.md).
+- [x] **Site v37 + Fly 440** — share paste is YoY + typical + returning $; legal pages drop Google Fonts/waitlist/calculator leftovers; 390px hero stacks. Pages `92614e40`. Journal [`ops/journal/STATUS_20260922_site_v37_shipped.md`](./ops/journal/STATUS_20260922_site_v37_shipped.md).
+- [ ] **Partner listing paste** — five-tab pack [`ops/LISTING_LIVE_PASTE.md`](./ops/LISTING_LIVE_PASTE.md) (Overview · Orders · Customers at $0 spend · Spend last · 24mo · Live-only · honest MER). **Marty Save only** — Cursor does not Submit. Reviews: **0**. Spot-check Website **v37** before paste. Partner still says eleven until Save.
 - [ ] Namecheap MX → Cloudflare for `support@`
 - [x] v10 greenfield craft
 - [x] v11 app-first
@@ -113,7 +115,7 @@ Listing **live:** `MCFLY_APP_STORE_LIVE=true` → primary CTA **Install** → ht
 - [x] **v30 live** — five analysis tabs · Pages `83cfac91` · Fly **396** · journal [`ops/journal/STATUS_20260919_v30.md`](./ops/journal/STATUS_20260919_v30.md)
 - [ ] Merge [#28](https://github.com/mcflyadsmmm-ctrl/marketing-mix-model/pull/28) when convenient
 
-**Next:** Occupancy **0/4**. Marty Partner Save of five-tab listing paste + recapture listing stills from **Live Admin** (not SAMPLE `/demo`). Site **v30** · Fly **396**. Reviews **0**. Ads **NO**. Cursor does not Partner Submit.
+**Next:** Occupancy **round-4 gap fleet**. Marty Partner Save of five-tab listing paste + recapture listing stills from **Live Admin** (not SAMPLE `/demo`). Site **v37** · Fly **440**. Reviews **0**. Ads **NO**. Cursor does not Partner Submit. Do not assume the app or niche is perfected.
 
 ---
 
@@ -168,3 +170,4 @@ App + site are already live (Fly **331**, site **v19**). SAMPLE smoke **PASSed**
 | v25 | `b8adfd1a` | GUEST density · cropped hero · micro wells · typographic $39 |
 | v26 | `4a154f4d` | Demo P0 nav/CTA · Amp 5/7 shot grid · contain kept |
 | v27 | `97dd9597` | Opus v26 critic · complete hero cards · paper `#f2f5f8` · pricing ink |
+| v32 | `2166ceed` | Sales-first stack · Slack paste · Overview → Orders → Customers · `$39 stays $39 at $5M` · Direct Upload |
