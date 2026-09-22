@@ -740,7 +740,7 @@ export default function Dashboard() {
           "mcfly-desk",
           shotMode ? "mcfly-desk--shot" : null,
           useSampleDesk ? "mcfly-desk--sample" : null,
-          scoreboardReady && !useSampleDesk && !spendBlocked
+          scoreboardReady && !useSampleDesk
             ? "mcfly-desk--live-ready"
             : null,
           coldEmpty ? "mcfly-desk--cold-empty" : null,

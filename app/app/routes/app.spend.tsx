@@ -973,7 +973,7 @@ export default function SpendEntryPage() {
                 ? ` Cash CPA is ${formatSpendAmount(cpaSelected.cashCpa, currencyCode)}.`
                 : ""}
               {cpaHasSpend && cpaPayback.paybackDays != null
-                ? ` Payback is about ${cpaPayback.paybackDays} days versus first 90.`
+                ? ` Interpolated payback is about ${cpaPayback.paybackDays} days versus the first-90 average — not a recovery date.`
                 : ""}
               {" · "}
               <s-link href="#mcfly-roas">Same numbers above</s-link>
@@ -1202,7 +1202,7 @@ export default function SpendEntryPage() {
           rank="next"
           label={SPEND_EXPLORER_LANE_LABEL}
           fold={emptyLiveSpend}
-          defaultOpen={!emptyLiveSpend || spendPanel === "explorer"}
+          defaultOpen={true}
         >
         <section id="mcfly-explorer" aria-label="Certified windows and spend explorer">
           {cashControl && cashControl.chips.length > 0 ? (
@@ -1254,7 +1254,7 @@ export default function SpendEntryPage() {
           rank="next"
           label={SPEND_MIX_LANE_LABEL}
           fold={emptyLiveSpend}
-          defaultOpen={!emptyLiveSpend || spendPanel === "mix"}
+          defaultOpen={true}
         >
         <SpendMixSection
           metrics={metrics}
@@ -1277,7 +1277,7 @@ export default function SpendEntryPage() {
           rank="next"
           label={SPEND_CPA_LANE_LABEL}
           fold={emptyLiveSpend}
-          defaultOpen={!emptyLiveSpend || spendPanel === "cpa"}
+          defaultOpen={true}
         >
         <section
           id="mcfly-cpa"

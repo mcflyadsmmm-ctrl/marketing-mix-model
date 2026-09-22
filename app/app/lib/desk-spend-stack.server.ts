@@ -495,9 +495,11 @@ export async function loadSpendAnalysis(args: {
   );
   const unionRange = { start: unionStart, end: unionEnd, label: "Spend stack" };
 
-  const liveBuyerIndexPromise = args.useSampleDesk
-    ? Promise.resolve(null)
-    : buildLivePasteBuyerIndex(args.shop.id, unionRange);
+  const liveBuyerIndexPromise = buildLivePasteBuyerIndex(
+    args.shop.id,
+    unionRange,
+    { source: args.useSampleDesk ? "sample" : undefined },
+  );
 
   let salesByDay = new Map<string, number>();
   try {

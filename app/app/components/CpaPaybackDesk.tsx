@@ -23,10 +23,6 @@ export function CpaPaybackDesk({
     payback.cacShareOfFirst90 != null
       ? Math.min(100, Math.round(payback.cacShareOfFirst90 * 100))
       : null;
-  const recoveredPct =
-    payback.paybackDays != null
-      ? Math.min(100, Math.round((payback.paybackDays / 90) * 100))
-      : null;
 
   return (
     <section className="mcfly-cpa__payback" aria-label="Payback versus first 90 days">
@@ -92,7 +88,7 @@ export function CpaPaybackDesk({
             {payback.paybackDays != null ? `${payback.paybackDays}d` : "—"}
           </span>
           <span className="mcfly-chart__stat-sub">
-            {recoveredPct != null ? `${recoveredPct}% of first 90` : "order-history average"}
+            interpolated vs first-90 average — not a recovery date
           </span>
         </li>
         <li className="mcfly-chart__stat">

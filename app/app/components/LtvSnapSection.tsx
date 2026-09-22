@@ -65,7 +65,7 @@ function spendRows(
   if (isNum(tillLtv.cashCac)) {
     const payback =
       tillLtv.paybackDays != null
-        ? ` Recovered in about ${tillLtv.paybackDays} days on average.`
+        ? ` Interpolated average about ${tillLtv.paybackDays} days versus first 90 — not a recovery date.`
         : "";
     rows.push({
       k: "Cash CAC",

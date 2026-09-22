@@ -197,6 +197,43 @@ describe("Spend paste preview — honesty", () => {
   });
 });
 
+describe("Spend paste preview — unique buyers beat a SAMPLE day-sum", () => {
+  it("uses interned ids when SampleSalesDay counts would double-count", () => {
+    const preview = previewSpendPaste(
+      TWO_DAY_META_GOOGLE,
+      book({
+        buyerDays: [
+          {
+            dateKey: "2026-09-18",
+            identifiedBuyers: 10,
+            newCustomers: 4,
+            buyersKnown: true,
+          },
+          {
+            dateKey: "2026-09-19",
+            identifiedBuyers: 10,
+            newCustomers: 4,
+            buyersKnown: true,
+          },
+        ],
+        liveBuyerIndex: {
+          identifiedByDay: {
+            "2026-09-18": [1, 2],
+            "2026-09-19": [2, 3],
+          },
+          newByDay: {
+            "2026-09-18": [1],
+            "2026-09-19": [3],
+          },
+        },
+      }),
+    );
+    expect(preview.cashCpa).toBeCloseTo(350 / 3, 5);
+    expect(preview.cashCpa).not.toBeCloseTo(350 / 20, 5);
+    expect(preview.paybackDays).toBe(cashPaybackDays(350 / 2, 80, 120, 200));
+  });
+});
+
 describe("Spend paste preview — Live unique OrderFacts", () => {
   it("uniques a buyer who ordered on two pasted days, not the daily sum", () => {
     const preview = previewSpendPaste(
@@ -355,6 +392,8 @@ describe("Spend paste densify — first fold wiring", () => {
     );
     expect(spend).toContain("liveBuyerIndex");
     expect(spendStack).toContain("buildLivePasteBuyerIndex");
+    expect(spendStack).toContain('source: args.useSampleDesk ? "sample"');
+    expect(spendStack).not.toMatch(/useSampleDesk\s*\?\s*Promise\.resolve\(null\)/);
     expect(importRoute).toContain("liveBuyerIndex");
     expect(importRoute).toContain("buildLivePasteBuyerIndex");
     expect(importRoute).toContain("buildTillLtvSummary");

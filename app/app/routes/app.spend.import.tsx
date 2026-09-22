@@ -345,9 +345,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 
   const [liveBuyerIndex, tillLtv, sampleBuyerRows] = await Promise.all([
-    sampleDesk.enabled
-      ? Promise.resolve(null)
-      : buildLivePasteBuyerIndex(shop.id, dayFetchRange),
+    buildLivePasteBuyerIndex(shop.id, dayFetchRange, {
+      source: sampleDesk.enabled ? "sample" : undefined,
+    }),
     buildTillLtvSummary(shop.id, {
       totalSpend: 0,
       newCustomers: 0,
@@ -1511,7 +1511,7 @@ export default function SpendEntryPage() {
               <h3>Upload the filled template</h3>
               <p>
                 Keep the Date column and enter one amount per channel per day.
-                Empty cells count as $0.
+                Blank cells are not spend — they stay blank, not a certified $0.
               </p>
               <Form
                 id="mcfly-spend-template-upload-form"
