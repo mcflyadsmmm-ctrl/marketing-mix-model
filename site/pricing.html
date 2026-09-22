@@ -11,9 +11,9 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#f2f5f8" />
   <title>Pricing — 7-day then $39 | Mcfly Analytics</title>
-  <meta name="description" content="One plan: 7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Five analysis tabs plus Settings. Overview · Orders · Customers at $0 spend; Spend after you type it. Uninstall stops the charge." />
-  <meta name="mcfly-version" content="v27" />
-  <meta name="mcfly-build" content="opus-v26-p0" />
+  <meta name="description" content="One plan: 7-day trial, then $39/store/mo. Overview · Orders · Customers beat native Analytics at $0 spend. Growth and LTV live on Customers. Spend last — Total ROAS = Shopify sales ÷ entered spend. Trial is 90 days of orders; paid is up to 24 months." />
+  <meta name="mcfly-version" content="v31" />
+  <meta name="mcfly-build" content="pricing-sales-first-v31" />
   <link rel="canonical" href="https://mcflyads.com/pricing" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
@@ -265,10 +265,55 @@
     }
     body.pricing-page .rhythm-line {
       margin: 1rem 0 0;
-      max-width: 42ch;
+      max-width: 52ch;
       font-size: 0.95rem;
       color: var(--mute);
       line-height: 1.5;
+    }
+    body.pricing-page .buy-chapters {
+      display: grid;
+      gap: 0.75rem;
+      margin: 1.35rem 0 0;
+      max-width: 42rem;
+    }
+    @media (min-width: 720px) {
+      body.pricing-page .buy-chapters {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    body.pricing-page .buy-chapter {
+      padding: 1rem 1.1rem 1.15rem;
+      border: 1px solid rgba(10, 18, 33, 0.10);
+      background: #ffffff;
+      border-radius: 14px;
+    }
+    body.pricing-page .buy-chapter__k {
+      margin: 0 0 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #5b6b7c;
+    }
+    body.pricing-page .buy-chapter__h {
+      margin: 0 0 0.4rem;
+      font-family: var(--display);
+      font-size: 1.08rem;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: #0f1720;
+    }
+    body.pricing-page .buy-chapter p:last-child {
+      margin: 0;
+      color: var(--mute);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    body.pricing-page .float-card--lead {
+      border-color: rgba(2, 132, 199, 0.28);
+    }
+    body.pricing-page .float-card--lead .float-card__k {
+      color: #0284c7;
     }
     body.pricing-page .btn.primary,
     body.pricing-page .btn.primary.solid {
@@ -307,7 +352,7 @@
           "priceCurrency": "USD",
           "description": "7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Five analysis tabs plus Settings. Uninstall stops the charge."
         },
-        "description": "Deeper Shopify numbers than Analytics Overview. Spend optional. Whole desk after a 7-day trial."
+        "description": "Deeper Shopify numbers than Analytics Overview. Overview · Orders · Customers at $0 spend. Spend optional. Whole desk after a 7-day trial."
       },
       {
         "@type": "BreadcrumbList",
@@ -332,11 +377,22 @@
       <p>
         One plan for <strong>Mcfly Analytics</strong>: seven days, then
         <span class="mono formula-inline">$39</span>/store/mo. Trial is 90 days of order history; paid is up to 24 months. Five analysis tabs plus Settings.
-        Overview, Orders, and Customers work at $0 spend — Customers includes returning dollars, LTV 30/90/365, and days-to-second. Then Spend (Total ROAS, mix, and CPA after you type spend) and Goals.
         Uninstall stops the charge. Not a GMV tax. Billing is not a desk mode.
       </p>
-      <p class="price-proof" aria-label="What you pay for">Typical order, returning dollars, weekends, days to second, LTV — spend optional</p>
-      <p class="rhythm-line">Upload spend → see Total ROAS → hit Goals. Flat $39 — not an order-volume ladder.</p>
+      <p class="price-proof" aria-label="What you pay for">Overview · Orders · Customers beat native Analytics at $0 spend</p>
+      <p class="rhythm-line">Shopify numbers first. Spend is the second chapter. Flat $39 — not an order-volume ladder.</p>
+      <div class="buy-chapters" aria-label="What $39 buys">
+        <article class="buy-chapter">
+          <p class="buy-chapter__k">Chapter one · $0 spend</p>
+          <p class="buy-chapter__h">Overview · Orders · Customers beat native Analytics.</p>
+          <p>Typical order, returning dollars, weekends, LTV 30/90/365, days-to-second. Growth and LTV live on Customers — chips, not extra tabs.</p>
+        </article>
+        <article class="buy-chapter">
+          <p class="buy-chapter__k">Chapter two · spend last</p>
+          <p class="buy-chapter__h">Type or CSV last. Then Total ROAS.</p>
+          <p>Total ROAS = Shopify sales ÷ entered spend. Empty spend paints —. Mix, CPA, and Goals wait until you type it. Spend optional.</p>
+        </article>
+      </div>
       <aside class="mer-loud" aria-label="Total ROAS formula">
         <p class="mer-loud__k">MER · Total ROAS</p>
         <p class="mer-loud__line">Total ROAS = Shopify sales ÷ entered spend</p>
@@ -345,15 +401,15 @@
       <aside class="float-desk" aria-label="Snowdevil SAMPLE metrics">
         <span class="float-desk__badge">SAMPLE · Snowdevil · not a live client</span>
         <div class="float-desk__stack">
+          <article class="float-card float-card--lead">
+            <p class="float-card__k">Shopify sales</p>
+            <p class="float-card__v">$68,457</p>
+            <p class="float-card__s">Returns included</p>
+          </article>
           <article class="float-card">
             <p class="float-card__k">Entered spend</p>
             <p class="float-card__v">$19,023</p>
             <p class="float-card__s">This month</p>
-          </article>
-          <article class="float-card">
-            <p class="float-card__k">Shopify sales</p>
-            <p class="float-card__v">$68,457</p>
-            <p class="float-card__s">Returns included</p>
           </article>
           <article class="float-card">
             <p class="float-card__k">Total ROAS</p>
@@ -424,7 +480,7 @@
   </main>
 
   <div data-footer></div>
-  <script src="/assets/cta-config.js?v=20260915v17"></script>
-  <script src="/assets/mcfly/chrome.js?v=20260918v27"></script>
+  <script src="/assets/cta-config.js?v=20260922v31"></script>
+  <script src="/assets/mcfly/chrome.js?v=20260922v31"></script>
 </body>
 </html>
