@@ -256,6 +256,17 @@ describe("Customers loader — full stored book for RFM, 90-day mix kept", () =>
     expect(mix).toContain("firstTimeBuyers");
     expect(mix).toContain("First-time buyers");
     expect(mix).toContain("mixFirstTimePaint");
+    expect(mix).toContain("mixReturningPaint");
+    expect(mix).toContain("mixTotalPaint");
+    expect(mix).toContain("truncatedMixNote");
+    expect(mix).toContain("offTill");
+    expect(mix).toContain("paintedMixStack");
+    expect(mix).not.toMatch(
+      /formatCurrency\(\s*(b|active|summary)\.(returningDollars|total)/,
+    );
+    expect(mix).not.toContain("formatCurrency(summary.bestReturning.returningDollars");
+    expect(mix).not.toContain("yForD(b.newDollars)");
+    expect(mix).not.toContain("b.returningDollars / leftAxis.max");
     expect(analyticsLib).toContain("shopLocalDayKey");
     expect(analyticsLib).not.toContain("utcDayStart");
     expect(analyticsLoader).toContain("timeZone");

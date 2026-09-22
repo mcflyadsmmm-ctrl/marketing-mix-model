@@ -57,7 +57,7 @@ export type MixWeek = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
-  /** Identified first-time buyers that week. Null when a lifetime count is missing. */
+  /** Identified first-time buyers that week. Null when a lifetime is missing or the only buyers are off this till. */
   firstTimeBuyers: number | null;
   /** First-on-file $ with a missing lifetime — withheld from first-time $, never stuffed. */
   unknownDollars: number;
@@ -80,7 +80,7 @@ export type MixDay = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
-  /** Identified first-time buyers that day. Null when a lifetime count is missing. */
+  /** Identified first-time buyers that day. Null when a lifetime is missing or the only buyers are off this till. */
   firstTimeBuyers: number | null;
   unknownDollars: number;
   truncatedDollars: number;
@@ -121,7 +121,7 @@ export type MixBucket = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
-  /** Identified first-time buyers in the column. Null when a lifetime count is missing. */
+  /** Identified first-time buyers in the column. Null when a lifetime is missing or the only buyers are off this till. */
   firstTimeBuyers: number | null;
   unknownDollars: number;
   truncatedDollars: number;
@@ -681,20 +681,54 @@ export function buyerLifetimeSpanLine(span: BuyerLifetimeSpan): string | null {
   return `Full stored book · last ~${span.historyDays} days.`;
 }
 
+function withheldMixDollars(bucket: {
+  unknownDollars?: number;
+  truncatedDollars?: number;
+}): number {
+  return (bucket.unknownDollars ?? 0) + (bucket.truncatedDollars ?? 0);
+}
+
 /**
- * First-time $ the mix may paint. Unknown lifetime and truncated-only
- * buckets stay — , never `$0` and never stuffed into first-time dollars.
+ * First-time $ the mix may paint. Known guest and first-time dollars still
+ * paint when unclassified dollars share the column. Those withheld dollars
+ * stay out of this number. A column with no known first-time dollars paints
+ * —, never a certified `$0`.
  */
 export function mixFirstTimePaint(bucket: {
   newDollars: number;
   unknownDollars?: number;
   truncatedDollars?: number;
 }): number | null {
-  const unknown = bucket.unknownDollars ?? 0;
-  const truncated = bucket.truncatedDollars ?? 0;
-  if (unknown > 0) return null;
-  if (truncated > 0 && !(bucket.newDollars > 0)) return null;
+  if (bucket.newDollars > 0) return bucket.newDollars;
+  if (withheldMixDollars(bucket) > 0) return null;
   return bucket.newDollars;
+}
+
+/**
+ * Returning $ the mix may paint. Unclassified dollars in the same column
+ * (unknown lifetime, or earlier orders off this till) make a returning figure
+ * incomplete, so the paint is —, never a certified `$0`.
+ */
+export function mixReturningPaint(bucket: {
+  returningDollars: number;
+  unknownDollars?: number;
+  truncatedDollars?: number;
+}): number | null {
+  if (withheldMixDollars(bucket) > 0) return null;
+  return bucket.returningDollars;
+}
+
+/**
+ * Total the mix may paint. A sum that dropped unknown or truncated dollars
+ * is not a total — —, never `$0` of the remainder.
+ */
+export function mixTotalPaint(bucket: {
+  total: number;
+  unknownDollars?: number;
+  truncatedDollars?: number;
+}): number | null {
+  if (withheldMixDollars(bucket) > 0) return null;
+  return bucket.total;
 }
 
 const SPEND_BANDS: Array<{ label: string; min: number; max: number | null }> = [
@@ -838,7 +872,10 @@ function freshMixAcc(start: number): MixAcc {
 }
 
 function firstTimeCount(acc: MixAcc): number | null {
-  return acc.unknownNew ? null : acc.newBuyers;
+  if (acc.unknownNew) return null;
+  // Truncated-only: those buyers were skipped. 0 would read as "0 first-time buyers".
+  if (acc.newBuyers === 0 && acc.truncatedD > 0 && acc.retD === 0) return null;
+  return acc.newBuyers;
 }
 
 function mixCalendarKey(
@@ -1502,9 +1539,11 @@ export function buildReturningMixPlays(input: {
   const prior = buckets.length > 1 ? buckets[buckets.length - 2]! : null;
   const summary = mixSummary(buckets);
   const noun = mixGrainNoun(input.grain);
+  const latestReturning = latest != null ? mixReturningPaint(latest) : null;
+  const priorReturning = prior != null ? mixReturningPaint(prior) : null;
   const dollarDelta =
-    latest != null && prior != null
-      ? latest.returningDollars - prior.returningDollars
+    latestReturning != null && priorReturning != null
+      ? latestReturning - priorReturning
       : null;
   const sharePoints =
     latest?.returningShare != null &&
@@ -1520,7 +1559,7 @@ export function buildReturningMixPlays(input: {
       id: "latest",
       verb: "Returning $",
       label: latestMixLabel(input.grain),
-      amount: latest ? latest.returningDollars : null,
+      amount: latest != null ? latestReturning : null,
       amountKind: "money",
       sub: latest
         ? prior

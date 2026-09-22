@@ -20,6 +20,8 @@ import {
   bucketMixWeeks,
   buildReturningMixPlays,
   mixFirstTimePaint,
+  mixReturningPaint,
+  mixTotalPaint,
   mixSummary,
   resolveMixGrain,
   type CustomerAnalytics,
@@ -68,9 +70,14 @@ function mixMoney(amount: number | null, currency: string): string {
   return formatCurrency(amount, currency);
 }
 
-function truncatedMixNote(bucket: MixBucket): string | null {
+function truncatedMixNote(bucket: { truncatedDollars: number }): string | null {
   if (!(bucket.truncatedDollars > 0)) return null;
   return "Earlier orders exist off this till — not stuffed into returning dollars.";
+}
+
+/** Drawn stack — the dollars the column is willing to certify. */
+function paintedMixStack(bucket: MixBucket): number {
+  return (mixFirstTimePaint(bucket) ?? 0) + (mixReturningPaint(bucket) ?? 0);
 }
 
 function MixEmptyFrame({ pending }: { pending: boolean }) {
@@ -303,7 +310,7 @@ export function CustomerMixChart({
   }
   const noun = mixNoun(effectiveGrain);
 
-  const maxDollars = Math.max(...buckets.map((b) => b.total), 1);
+  const maxDollars = Math.max(...buckets.map((b) => paintedMixStack(b)), 1);
   const leftAxis = overviewChartAxis(maxDollars, 4);
   const avg = summary.returningShareAvg;
 
@@ -339,7 +346,10 @@ export function CustomerMixChart({
 
   const tipOpen = hoverIndex != null;
   const tipCenter = centerX(activeIndex);
-  const tipTopY = yForD(active.total);
+  const tipTopY = yForD(paintedMixStack(active));
+  const offTill = truncatedMixNote(
+    active.truncatedDollars > 0 ? active : summary,
+  );
   const tipEdge =
     xPct(tipCenter) < 26 ? "left" : xPct(tipCenter) > 74 ? "right" : "mid";
   const tipBelow = tipTopY < PLOT_TOP + 92;
@@ -347,13 +357,13 @@ export function CustomerMixChart({
   const openBucket = (b: MixBucket) =>
     drill?.openDrill({
       title: `${b.label} · new vs returning`,
-      value: formatCurrency(b.returningDollars, currency),
+      value: mixMoney(mixReturningPaint(b), currency),
       kicker: `${sharePct(b.returningShare)} of the ${noun}'s dollars are returning`,
       blocks: [
-        { k: "Returning dollars", v: formatCurrency(b.returningDollars, currency) },
+        { k: "Returning dollars", v: mixMoney(mixReturningPaint(b), currency) },
         { k: "First-time dollars", v: mixMoney(mixFirstTimePaint(b), currency) },
         { k: "First-time buyers", v: firstTimeBuyerLabel(b.firstTimeBuyers) },
-        { k: `Total this ${noun}`, v: formatCurrency(b.total, currency) },
+        { k: `Total this ${noun}`, v: mixMoney(mixTotalPaint(b), currency) },
         truncatedMixNote(b)
           ? { k: "Off this till", v: truncatedMixNote(b)! }
           : null,
@@ -368,7 +378,7 @@ export function CustomerMixChart({
   const stats = [
     {
       k: "Returning $",
-      v: formatCurrency(summary.returningDollars, currency),
+      v: mixMoney(mixReturningPaint(summary), currency),
       sub: `${buckets.length} ${noun}${buckets.length === 1 ? "" : "s"}`,
     },
     {
@@ -385,7 +395,7 @@ export function CustomerMixChart({
       k: `Best ${noun} $`,
       v:
         summary.bestReturning != null
-          ? formatCurrency(summary.bestReturning.returningDollars, currency)
+          ? mixMoney(mixReturningPaint(summary.bestReturning), currency)
           : "—",
       sub: summary.bestReturning?.label ?? "peak returning",
     },
@@ -402,7 +412,7 @@ export function CustomerMixChart({
             <DeskIcon name="chart" /> New vs returning dollars
           </h3>
           <p className="mcfly-chart__muted">
-            {sharePct(avg)} returning · {formatCurrency(summary.total, currency)}{" "}
+            {sharePct(avg)} returning · {mixMoney(mixTotalPaint(summary), currency)}{" "}
             over last ~{analytics.historyDays} days
           </p>
         </div>
@@ -411,13 +421,14 @@ export function CustomerMixChart({
             {active.label} · returning
           </p>
           <p className="mcfly-chart__hero">
-            {formatCurrency(active.returningDollars, currency)}
+            {mixMoney(mixReturningPaint(active), currency)}
           </p>
           <p className="mcfly-cust-mix__readsub">
             {sharePct(active.returningShare)} returning · first-time{" "}
             {mixMoney(mixFirstTimePaint(active), currency)} ·{" "}
             {firstTimeBuyerLabel(active.firstTimeBuyers)}
           </p>
+          {offTill ? <p className="mcfly-cust-mix__readsub">{offTill}</p> : null}
         </div>
       </div>
 
@@ -511,8 +522,10 @@ export function CustomerMixChart({
           ) : null}
 
           {buckets.map((b, i) => {
-            const newH = Math.max(0, PLOT_BOTTOM - yForD(b.newDollars));
-            const retH = Math.max(0, (b.returningDollars / leftAxis.max) * PLOT_H);
+            const paintedNew = mixFirstTimePaint(b) ?? 0;
+            const paintedRet = mixReturningPaint(b) ?? 0;
+            const newH = Math.max(0, PLOT_BOTTOM - yForD(paintedNew));
+            const retH = Math.max(0, (paintedRet / leftAxis.max) * PLOT_H);
             const on = activeIndex === i;
             return (
               <g
@@ -571,7 +584,7 @@ export function CustomerMixChart({
               height={PLOT_H}
               tabIndex={0}
               role="button"
-              aria-label={`${b.label}: returning ${formatCurrency(b.returningDollars, currency)}, first-time ${mixMoney(mixFirstTimePaint(b), currency)}, ${firstTimeBuyerLabel(b.firstTimeBuyers)}`}
+              aria-label={`${b.label}: returning ${mixMoney(mixReturningPaint(b), currency)}, total ${mixMoney(mixTotalPaint(b), currency)}, first-time ${mixMoney(mixFirstTimePaint(b), currency)}, ${firstTimeBuyerLabel(b.firstTimeBuyers)}${truncatedMixNote(b) ? `. ${truncatedMixNote(b)}` : ""}`}
               onMouseEnter={() => setHoverIndex(i)}
               onFocus={() => setHoverIndex(i)}
               onBlur={onPlotPointerLeave}
@@ -650,7 +663,7 @@ export function CustomerMixChart({
               <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--ret" />
               <span className="mcfly-chart__tip-k">Returning</span>
               <span className="mcfly-chart__tip-v">
-                {formatCurrency(active.returningDollars, currency)}
+                {mixMoney(mixReturningPaint(active), currency)}
               </span>
             </li>
             <li className="mcfly-chart__tip-row">
@@ -683,9 +696,10 @@ export function CustomerMixChart({
             </li>
           </ul>
           <p className="mcfly-chart__tip-foot">
-            {formatCurrency(active.returningDollars, currency)} of{" "}
-            {formatCurrency(active.total, currency)} ={" "}
+            {mixMoney(mixReturningPaint(active), currency)} of{" "}
+            {mixMoney(mixTotalPaint(active), currency)} ={" "}
             {sharePct(active.returningShare)} returning
+            {truncatedMixNote(active) ? `. ${truncatedMixNote(active)}` : ""}
           </p>
         </div>
         ) : null}

@@ -11,7 +11,9 @@ import {
   buyerLifetimeSpanLine,
   emptyCustomerAnalytics,
   mixFirstTimePaint,
+  mixReturningPaint,
   mixSummary,
+  mixTotalPaint,
   ORDER_STEP_MIN_BUYERS,
   orderStepFormula,
   orderStepReachLabel,
@@ -23,6 +25,13 @@ import {
   type OrderStepRow,
   type RetentionOrderRow,
 } from "./customers-analytics";
+import { formatCurrency } from "./mer-format";
+
+/** Chart mixMoney: a leaked 0 paints a certified $0, a withheld figure paints —. */
+function paintedMixMoney(amount: number | null): string {
+  if (amount == null || !Number.isFinite(amount)) return "—";
+  return formatCurrency(amount, "USD");
+}
 
 const DAY_MS = 86_400_000;
 const WINDOW_END = new Date("2026-09-16T00:00:00Z");
@@ -222,6 +231,15 @@ describe("new vs returning weekly mix", () => {
     expect(summary.firstTimeBuyers).toBeNull();
     expect(summary.unknownDollars).toBe(30);
     expect(mixFirstTimePaint(summary)).toBeNull();
+    // Remainder after dropping unknown $ is 0. Paint must not certify that zero.
+    expect(week.returningDollars).toBe(0);
+    expect(week.total).toBe(0);
+    expect(paintedMixMoney(mixReturningPaint(week))).toBe("—");
+    expect(paintedMixMoney(mixTotalPaint(week))).toBe("—");
+    expect(paintedMixMoney(mixReturningPaint(summary))).toBe("—");
+    expect(paintedMixMoney(mixTotalPaint(summary))).toBe("—");
+    expect(paintedMixMoney(mixReturningPaint(week))).not.toBe("$0");
+    expect(paintedMixMoney(mixTotalPaint(summary))).not.toBe("$0");
   });
 
   it("does not call a buyer new when stored lifetime orders exceed the book", () => {
@@ -241,6 +259,20 @@ describe("new vs returning weekly mix", () => {
     expect(week.returningShare).toBeNull();
     expect(mixFirstTimePaint(week)).toBeNull();
     expect(built.truncatedLifetimeBuyers).toBe(1);
+    // Off-till only: buyer count stays empty, and Returning/Total are not $0.
+    expect(week.firstTimeBuyers).toBeNull();
+    expect(built.mixDaily[0]!.firstTimeBuyers).toBeNull();
+    expect(week.returningDollars).toBe(0);
+    expect(week.total).toBe(0);
+    expect(paintedMixMoney(mixReturningPaint(week))).toBe("—");
+    expect(paintedMixMoney(mixTotalPaint(week))).toBe("—");
+    expect(paintedMixMoney(mixReturningPaint(week))).not.toBe("$0");
+    expect(paintedMixMoney(mixTotalPaint(week))).not.toBe("$0");
+    const summary = mixSummary(bucketMixWeeks(built.mixWeekly, "week"));
+    expect(summary.firstTimeBuyers).toBeNull();
+    expect(summary.truncatedDollars).toBe(70);
+    expect(paintedMixMoney(mixReturningPaint(summary))).toBe("—");
+    expect(paintedMixMoney(mixTotalPaint(summary))).toBe("—");
   });
 
   it("keeps guests out of returning and out of the first-time buyer count", () => {
@@ -263,6 +295,46 @@ describe("new vs returning weekly mix", () => {
     expect(built.mixWeekly[0]!.unknownDollars).toBe(0);
     expect(built.mixWeekly[0]!.firstTimeBuyers).toBe(0);
     expect(mixFirstTimePaint(built.mixWeekly[0]!)).toBe(15);
+    // A classified zero returning figure may still paint $0. Guests are not withheld.
+    expect(paintedMixMoney(mixReturningPaint(built.mixWeekly[0]!))).toBe("$0");
+    expect(paintedMixMoney(mixTotalPaint(built.mixWeekly[0]!))).toBe("$15");
+  });
+
+  it("keeps known first-time dollars when unknown dollars share the column", () => {
+    const rows: RetentionOrderRow[] = [
+      { customerKey: "known", orderedAt: at(5), amount: 40, lifetimeOrders: 1 },
+      { customerKey: "unsure", orderedAt: at(5), amount: 30, lifetimeOrders: null },
+      { customerKey: "back", orderedAt: at(40), amount: 10, lifetimeOrders: 2 },
+      { customerKey: "back", orderedAt: at(5), amount: 80, lifetimeOrders: 2 },
+    ];
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+      orderBook: rows,
+      timeZone: "UTC",
+    });
+    const week = built.mixWeekly.find((w) => w.unknownDollars === 30);
+    expect(week).toBeTruthy();
+    expect(week!.newDollars).toBe(40);
+    expect(week!.returningDollars).toBe(80);
+    expect(week!.unknownDollars).toBe(30);
+    expect(week!.newDollars).not.toBe(70);
+    // Known first-time $ stays. Unclassified $ stays out of it.
+    expect(mixFirstTimePaint(week!)).toBe(40);
+    expect(paintedMixMoney(mixFirstTimePaint(week!))).toBe("$40");
+    expect(paintedMixMoney(mixFirstTimePaint(week!))).not.toBe("—");
+    // Returning and Total are incomplete while unknown $ shares the column.
+    expect(mixReturningPaint(week!)).toBeNull();
+    expect(mixTotalPaint(week!)).toBeNull();
+    expect(paintedMixMoney(mixReturningPaint(week!))).toBe("—");
+    expect(paintedMixMoney(mixTotalPaint(week!))).toBe("—");
+    expect(paintedMixMoney(mixReturningPaint(week!))).not.toBe("$80");
+    expect(paintedMixMoney(mixTotalPaint(week!))).not.toBe("$120");
+    const summary = mixSummary(bucketMixWeeks(built.mixWeekly, "week"));
+    expect(summary.newDollars).toBeGreaterThanOrEqual(40);
+    expect(mixFirstTimePaint(summary)).toBe(summary.newDollars);
+    expect(paintedMixMoney(mixReturningPaint(summary))).toBe("—");
+    expect(paintedMixMoney(mixTotalPaint(summary))).toBe("—");
   });
 
   it("buckets mix days on the shop-local calendar, not the UTC host date", () => {
@@ -508,6 +580,29 @@ describe("returning $ mix plays — daily/weekly habit, not a days-to-second dum
     expect(plays[0]?.delta?.versus).toBe("vs prior day");
     expect(plays[0]?.delta?.amount).toBe(-40);
     expect(plays[0]?.delta?.tone).toBe("down");
+  });
+
+  it("does not paint a certified $0 returning card for an unknown-only column", () => {
+    const rows: RetentionOrderRow[] = [
+      { customerKey: "unsure", orderedAt: at(5), amount: 30, lifetimeOrders: null },
+      { customerKey: "also", orderedAt: at(12), amount: 20, lifetimeOrders: null },
+    ];
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+      orderBook: rows,
+      timeZone: "UTC",
+    });
+    const plays = buildReturningMixPlays({
+      buckets: bucketMixWeeks(built.mixWeekly, "week"),
+      grain: "week",
+      winBackDay: null,
+      saveNowOneOrder: 0,
+    });
+    expect(plays[0]?.amount).toBeNull();
+    expect(plays[0]?.delta).toBeNull();
+    expect(paintedMixMoney(plays[0]?.amount ?? null)).toBe("—");
+    expect(paintedMixMoney(plays[0]?.amount ?? null)).not.toBe("$0");
   });
 
   it("falls back from a grain that cannot paint", () => {
