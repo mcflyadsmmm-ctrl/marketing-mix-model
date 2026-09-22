@@ -1,18 +1,18 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v442 / PR #191 / image `deployment-01M35M5X428R46Y59ZQP78PAJ1` / fly.toml still SAMPLE-only parked. Health ok 2026-09-22T22:37Z. Parks `/lab.html` + Custom `.html`. Pages **v39** Direct Upload `95494333` live on mcflyads.com. fly.dev `/` **v39**. Cloud Agent Pages Edit proved.
+**Tip Fly note:** v443 / PR #191 / image `deployment-01M35MGE0WTXJZR7J0133HKEBX` / fly.toml still SAMPLE-only parked. Health ok 2026-09-22T22:43Z. Parks `/lab.html` + Custom `.html`. Pages **v40** Direct Upload `4c8dbeca` live on mcflyads.com. fly.dev `/` **v40**. Cloud Agent Pages Edit proved.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v442 / PR #191 / fly.toml Live PARKED |
+| Tip Fly SoT | v443 / PR #191 / fly.toml Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED in git fly.toml (`true` / `parked`) |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
-| Site P0 on box | DONE — mcflyads.com **v39** Pages `95494333`; fly.dev `/` **v39** on Fly 442 |
-| Money prep | Listing paste #192; Pages live v39 `95494333`; tip Fly v442 / PR #191; fly.toml Live PARKED; Cloudflare Pages Edit connected |
+| Site P0 on box | DONE — mcflyads.com **v40** Pages `4c8dbeca`; fly.dev `/` **v40** on Fly 443 |
+| Money prep | Listing paste #192; Pages live v40 `4c8dbeca`; tip Fly v443 / PR #191; fly.toml Live PARKED; Cloudflare Pages Edit connected |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 7 of that queue is the only cook. |
 
