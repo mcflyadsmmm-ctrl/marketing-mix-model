@@ -4,13 +4,46 @@
  * Date slicers only change the view — they do not shrink this window.
  *
  * Sales day totals ask multi-year ShopifyQL (needs `read_reports`).
- * Order detail stays up to 24 months. When Shopify history is actually
+ * Unpaid order rows are {@link LIVE_UNPAID_INGEST_DAYS} closed days.
+ * Paid order rows stay up to 24 months. When Shopify history is actually
  * limited (~60d without deep scope), callers pass shopifyOrderWindowLimited.
  */
 
+import type { LiveIngestDepth } from "./live-ingest-depth";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import { PRODUCT_NOUN } from "./product-labels";
 
 export const DESK_HISTORY_YEARS_BACK = 5;
+
+export type { LiveIngestDepth };
+
+/** Merchant-facing order-row window for this till. */
+export function deskOrderWindowPhrase(depth: LiveIngestDepth): string {
+  switch (depth) {
+    case "trial_slice":
+      return `${LIVE_UNPAID_INGEST_DAYS} closed days of orders`;
+    case "paid_full":
+      return "up to 24 months of orders";
+    default: {
+      const _never: never = depth;
+      return _never;
+    }
+  }
+}
+
+/** Coverage muted line — names the book this till actually has. */
+export function shopifyBookMutedFor(depth: LiveIngestDepth): string {
+  switch (depth) {
+    case "trial_slice":
+      return `From this shop’s orders. Stats Overview skips. ${LIVE_UNPAID_INGEST_DAYS} closed days of order rows · day totals when reports are on. Spend optional.`;
+    case "paid_full":
+      return PRODUCT_NOUN.shopifyBookMuted;
+    default: {
+      const _never: never = depth;
+      return _never;
+    }
+  }
+}
 
 /** UTC calendar year of the floor (e.g. 2026 → 2021). */
 export function deskHistoryFloorYear(now: Date = new Date()): number {
@@ -24,18 +57,20 @@ export function deskHistoryFloorKey(now: Date = new Date()): string {
 
 /**
  * Merchant-facing scoreboard label.
- * Default copy matches 24mo order policy + multi-year sales ask — not a blanket ~60d.
+ * Default copy matches paid 24mo order policy + multi-year sales ask — not a blanket ~60d.
  */
 export type DeskHistorySurface = "sales" | "spend";
 
 export function deskHistoryCaption(
   _now: Date = new Date(),
   surface: DeskHistorySurface = "sales",
+  orderBookDepth: LiveIngestDepth = "paid_full",
 ): string {
+  const window = deskOrderWindowPhrase(orderBookDepth);
   if (surface === "spend") {
-    return "Daily spend by channel · sales day totals when reports are on · up to 24 months of orders.";
+    return `Daily spend by channel · sales day totals when reports are on · ${window}.`;
   }
-  return "Shopify sales · day totals when reports are on · up to 24 months of orders · returns included";
+  return `Shopify sales · day totals when reports are on · ${window} · returns included`;
 }
 
 export function deskPeriodTillLabel(input: {
@@ -52,7 +87,10 @@ export function deskPeriodTillLabel(input: {
   shopifyOrderWindowLimited?: boolean;
   /** Book pages: mention the order-detail window on the till. */
   includeShopifyOrderWindow?: boolean;
+  /** Unpaid = 90 closed days. Paid = up to 24 months. SAMPLE uses paid. */
+  orderBookDepth?: LiveIngestDepth;
 }): string {
+  const orderBookDepth = input.orderBookDepth ?? "paid_full";
   if (input.useSampleDesk) {
     return `${input.periodLabel}${PRODUCT_NOUN.samplePeriodSuffix}`;
   }
@@ -77,14 +115,17 @@ export function deskPeriodTillLabel(input: {
     return `${input.periodLabel} · today’s sales incomplete`;
   }
   if (input.includeShopifyOrderWindow) {
-    return `${input.periodLabel} · live sales · up to 24 months of orders`;
+    return `${input.periodLabel} · live sales · ${deskOrderWindowPhrase(orderBookDepth)}`;
   }
   return `${input.periodLabel} · live sales`;
 }
 
 /** Contrast vs native Analytics, plus the shared book coverage line. */
-export function deskBookLede(contrast: string): string {
-  return `${contrast} ${PRODUCT_NOUN.shopifyBookMuted}`;
+export function deskBookLede(
+  contrast: string,
+  orderBookDepth: LiveIngestDepth = "paid_full",
+): string {
+  return `${contrast} ${shopifyBookMutedFor(orderBookDepth)}`;
 }
 
 export type DeskBookHonestyNotice = {

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import { DeskIcon, type DeskIconName } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
@@ -8,12 +9,14 @@ import {
 } from "../lib/overview-sales-chart";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
-  OVERVIEW_COVERAGE_LINE,
+  OVERVIEW_PENDING_IN_TOTAL_SALES,
   OVERVIEW_PENDING_LINE,
   OVERVIEW_PERIOD_TOTAL_LABEL,
   OVERVIEW_PERIOD_TOTAL_SENTENCE,
+  OVERVIEW_SHOP_NOT_COMPANY,
   OVERVIEW_THIN_EMPTY_LINE,
   overviewBusiestWeekday,
+  overviewCoverageLine,
   overviewHandoffPeeks,
   overviewLtvWindowLabel,
   overviewOperatorGreeting,
@@ -64,6 +67,8 @@ export type OverviewPeekProps = {
   ordersHref: string;
   settingsHref?: string;
   useSampleDesk?: boolean;
+  /** Unpaid = 90 closed days of order rows. Paid / SAMPLE = up to 24 months. */
+  orderBookDepth?: LiveIngestDepth;
   /** Through this clock versus the same weekday last year. */
   clock?: OverviewClockPayload | null;
 };
@@ -314,6 +319,7 @@ export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Shopify sales this period",
   ordersHref,
   useSampleDesk = false,
+  orderBookDepth = "paid_full",
   salesPending,
   orderCount,
   mixGreeting = null,
@@ -406,14 +412,14 @@ export function OverviewFirstViewport({
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
           next="Open Orders for the tickets inside this period’s Shopify Total Sales."
-          formulaBlock={OVERVIEW_PERIOD_TOTAL_SENTENCE}
+          formulaBlock={`${OVERVIEW_PERIOD_TOTAL_SENTENCE} ${OVERVIEW_PENDING_IN_TOTAL_SALES} ${OVERVIEW_SHOP_NOT_COMPANY}`}
           icon="sales"
           label={OVERVIEW_PERIOD_TOTAL_LABEL}
           value={periodTotal}
           sub={
             salesPending || periodTotal === "—"
               ? undefined
-              : OVERVIEW_PERIOD_TOTAL_SENTENCE
+              : `${OVERVIEW_PERIOD_TOTAL_SENTENCE} ${OVERVIEW_PENDING_IN_TOTAL_SALES} ${OVERVIEW_SHOP_NOT_COMPANY}`
           }
         />
         <PeekCard
@@ -553,7 +559,10 @@ export function OverviewFirstViewport({
       ) : null}
 
       {!finding ? (
-        <p className="mcfly-score__trust">{OVERVIEW_COVERAGE_LINE}</p>
+        <p className="mcfly-score__trust">
+          {overviewCoverageLine(orderBookDepth)} {OVERVIEW_PENDING_IN_TOTAL_SALES}{" "}
+          {OVERVIEW_SHOP_NOT_COMPANY}
+        </p>
       ) : null}
     </section>
   );

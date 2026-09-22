@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   orderHistoryProgressMessage,
   salesFactsIncompleteMessage,
+  spendFirstFoldSalesHint,
+  truncatedOrderFactsMessage,
 } from "./cash-trust-copy";
 
 describe("salesFactsIncompleteMessage", () => {
@@ -82,5 +84,26 @@ describe("orderHistoryProgressMessage", () => {
     expect(copy?.heading).toContain("12 of 90");
     expect(copy?.body).toContain("78 closed days left");
     expect(copy?.body.toLowerCase()).toContain("not $0");
+  });
+});
+
+describe("truncatedOrderFactsMessage", () => {
+  it("is still loading, not $0, and does not say about 60 days", () => {
+    const copy = truncatedOrderFactsMessage();
+    expect(copy.heading.toLowerCase()).toContain("order history still loading");
+    expect(copy.body.toLowerCase()).toContain("not $0");
+    expect(copy.body.toLowerCase()).not.toContain("about 60 days");
+  });
+});
+
+describe("spendFirstFoldSalesHint", () => {
+  it("names the live today cap on the Sales KPI", () => {
+    expect(
+      spendFirstFoldSalesHint({
+        salesPending: false,
+        periodLabel: "This month",
+        todaySalesTruncated: true,
+      }),
+    ).toMatch(/Live today is capped at ~100 orders for a fast desk load/);
   });
 });

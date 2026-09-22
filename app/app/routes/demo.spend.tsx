@@ -6,6 +6,7 @@ import { CertifiedScoreboard } from "../components/CertifiedScoreboard";
 import { CpaExplorer } from "../components/CpaExplorer";
 import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
 import { CopySpendPair } from "../components/MorningHabitStrip";
+import { spendFirstFoldSalesHint } from "../lib/cash-trust-copy";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { DualCloseLine } from "../components/DualCloseLine";
 import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
@@ -234,7 +235,14 @@ export default function PublicDemoSpend() {
               <p className="mcfly-book__kpi-v">
                 {formatCurrency(data.sales.totalSales, currency)}
               </p>
-              <p className="mcfly-book__kpi-hint">{data.rangeLabel}</p>
+              <p className="mcfly-book__kpi-hint">
+                {spendFirstFoldSalesHint({
+                  salesPending: false,
+                  periodLabel: data.rangeLabel,
+                  todaySalesTruncated: false,
+                  todaySalesUnavailable: false,
+                })}
+              </p>
             </div>
             <div className="mcfly-book__kpi mcfly-book__kpi--soft">
               <p className="mcfly-book__kpi-k">Spend</p>

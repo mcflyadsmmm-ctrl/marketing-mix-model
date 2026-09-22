@@ -1,5 +1,6 @@
 import { useSearchParams } from "react-router";
 import type { PeriodPreset } from "../lib/periods";
+import type { LiveIngestDepth } from "../lib/live-ingest-depth";
 import { deskHistoryCaption } from "../lib/desk-history";
 
 type PeriodControlProps = {
@@ -12,6 +13,8 @@ type PeriodControlProps = {
   language?: "desk" | "spend";
   /** Demo-desk chips: MTD / QTD / YTD / Last mo. No history caption. */
   compact?: boolean;
+  /** Unpaid = 90 closed days. Paid / SAMPLE = up to 24 months. */
+  orderBookDepth?: LiveIngestDepth;
 };
 
 type DeskPeriodPreset = "mtd" | "lm" | "qtd" | "ytd" | "l12m" | "y3";
@@ -42,6 +45,7 @@ export function PeriodControl({
   onChange,
   language = "desk",
   compact = false,
+  orderBookDepth = "paid_full",
 }: PeriodControlProps) {
   const [, setSearchParams] = useSearchParams();
   const periodOptions = compact
@@ -91,7 +95,11 @@ export function PeriodControl({
       </div>
       {compact ? null : (
         <p className="mcfly-period__history">
-          {deskHistoryCaption(undefined, language === "spend" ? "spend" : "sales")}
+          {deskHistoryCaption(
+            undefined,
+            language === "spend" ? "spend" : "sales",
+            orderBookDepth,
+          )}
         </p>
       )}
     </div>

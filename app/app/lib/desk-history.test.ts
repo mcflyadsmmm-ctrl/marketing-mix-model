@@ -56,10 +56,27 @@ describe("deskPeriodTillLabel", () => {
     ).toBe("This month · sales unavailable");
   });
 
-  it("mentions up to 24 months on Shopify book pages", () => {
+  it("mentions up to 24 months on paid Shopify book pages", () => {
     expect(
-      deskPeriodTillLabel({ ...liveTill, includeShopifyOrderWindow: true }),
+      deskPeriodTillLabel({
+        ...liveTill,
+        includeShopifyOrderWindow: true,
+        orderBookDepth: "paid_full",
+      }),
     ).toBe("This month · live sales · up to 24 months of orders");
+  });
+
+  it("names 90 closed days on an unpaid till, not 24 months", () => {
+    expect(
+      deskPeriodTillLabel({
+        ...liveTill,
+        includeShopifyOrderWindow: true,
+        orderBookDepth: "trial_slice",
+      }),
+    ).toBe("This month · live sales · 90 closed days of orders");
+    expect(
+      deskHistoryCaption(new Date(Date.UTC(2026, 7, 26)), "sales", "trial_slice"),
+    ).not.toMatch(/24 months/);
   });
 
   it("keeps ~60 days only when Shopify history is actually limited", () => {
@@ -106,6 +123,12 @@ describe("deskBookLede / honesty notices", () => {
     expect(lede).toContain(PRODUCT_NOUN.shopifyBookMuted);
     expect(lede).toMatch(/24 months/);
     expect(lede).not.toMatch(/~60 days/);
+    const unpaid = deskBookLede(
+      "Returning dollars, not headcount.",
+      "trial_slice",
+    );
+    expect(unpaid).toMatch(/90 closed days/);
+    expect(unpaid).not.toMatch(/24 months/);
   });
 
   it("discloses YTD overclaim and truncated today — not $0", () => {

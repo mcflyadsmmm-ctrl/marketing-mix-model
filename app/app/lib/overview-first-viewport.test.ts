@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import {
   OVERVIEW_ANALYTICS_CONTRAST,
   OVERVIEW_COVERAGE_LINE,
+  OVERVIEW_PENDING_IN_TOTAL_SALES,
+  OVERVIEW_SHOP_NOT_COMPANY,
   OVERVIEW_FIRST_FOLD_HEROES,
   OVERVIEW_FIRST_LANE_LABEL,
   OVERVIEW_LAST_YEAR_NOT_ON_FILE,
@@ -16,6 +18,7 @@ import {
   OVERVIEW_SALES_ONLY_LINE,
   OVERVIEW_THIN_EMPTY_LINE,
   OVERVIEW_WINBACK_PAD_DAYS,
+  overviewCoverageLine,
   overviewBusiestWeekday,
   overviewGreetingPending,
   overviewHandoffPeeks,
@@ -130,6 +133,10 @@ describe("overview first viewport", () => {
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/reports/i);
     expect(OVERVIEW_COVERAGE_LINE).not.toMatch(/60 days/);
     expect(OVERVIEW_COVERAGE_LINE).toMatch(/returns included/i);
+    expect(overviewCoverageLine("trial_slice")).toMatch(/90 closed days/);
+    expect(overviewCoverageLine("trial_slice")).not.toMatch(/24 months/);
+    expect(OVERVIEW_PENDING_IN_TOTAL_SALES).toMatch(/Klarna/);
+    expect(OVERVIEW_SHOP_NOT_COMPANY).toMatch(/not the company book/);
     expect(OVERVIEW_PENDING_LINE).toMatch(/reports scope|sales totals ingest/i);
     expect(OVERVIEW_SALES_ONLY_LINE).toMatch(/Shopify orders/i);
     expect(OVERVIEW_SALES_ONLY_LINE).not.toMatch(/optional|spend|ROAS/i);
@@ -277,7 +284,9 @@ describe("overview first viewport", () => {
     expect(firstView).not.toContain('deskHref("/app/growth")');
     expect(firstView).not.toContain('deskHref("/app/ltv")');
     expect(firstView).toContain("OVERVIEW_THIN_EMPTY_LINE");
-    expect(firstView).toContain("OVERVIEW_COVERAGE_LINE");
+    expect(firstView).toContain("overviewCoverageLine");
+    expect(firstView).toContain("OVERVIEW_PENDING_IN_TOTAL_SALES");
+    expect(firstView).toContain("OVERVIEW_SHOP_NOT_COMPANY");
     expect(firstView).toContain("Signal");
     expect(firstView).toContain("Evidence");
     expect(firstView).toContain("Next move");

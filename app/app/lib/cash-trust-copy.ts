@@ -60,3 +60,38 @@ export function orderHistoryProgressMessage(
     body: `Still filling in (${remainingDays} closed ${remainingDays === 1 ? "day" : "days"} left). Incomplete history is not $0. Refresh in a few minutes.`,
   };
 }
+
+/**
+ * Closed-day OrderFact crawl hit the page cap. Do not name a 60-day Shopify
+ * share here — unpaid is 90 closed days, paid order rows are 24 months.
+ */
+export function truncatedOrderFactsMessage(): {
+  heading: string;
+  body: string;
+} {
+  return {
+    heading: "Order history still loading",
+    body: "A busy closed day has more orders than one crawl can fetch. Typical order, returning dollars, and LTV wait — incomplete sales are not $0. Refresh in a few minutes.",
+  };
+}
+
+/** Spend first-fold Sales KPI — same today-cap honesty as CashTrustBanners. */
+export function spendFirstFoldSalesHint(input: {
+  salesPending: boolean;
+  periodLabel: string;
+  todaySalesTruncated?: boolean;
+  todaySalesUnavailable?: boolean;
+}): string {
+  if (input.salesPending) return "Still loading — not $0";
+  const period = input.periodLabel.trim();
+  if (input.todaySalesTruncated) {
+    const cap = "Live today is capped at ~100 orders for a fast desk load";
+    return period ? `${period} · ${cap}` : cap;
+  }
+  if (input.todaySalesUnavailable) {
+    return period
+      ? `${period} · today’s sales unavailable`
+      : "today’s sales unavailable";
+  }
+  return input.periodLabel;
+}

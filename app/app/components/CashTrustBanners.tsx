@@ -15,6 +15,7 @@ import { formatCurrency, formatMer } from "../lib/mer-format";
 import {
   orderHistoryProgressMessage,
   salesFactsIncompleteMessage,
+  truncatedOrderFactsMessage,
   type OrderHistoryProgressInput,
 } from "../lib/cash-trust-copy";
 import { PRODUCT_NOUN } from "../lib/product-labels";
@@ -128,6 +129,7 @@ export function CashTrustBanners({
     !shopifyOrderWindowLimited && orderBackfillProgress
       ? orderHistoryProgressMessage(orderBackfillProgress)
       : null;
+  const truncatedClosedDay = truncatedOrderFactsMessage();
 
   return (
     <>
@@ -175,13 +177,8 @@ export function CashTrustBanners({
       ) : null}
 
       {orderFactsTruncated && !orderProgressCopy && !shopifyOrderWindowLimited ? (
-        <s-banner tone="info" heading="Order history still loading">
-          <s-paragraph>
-            A busy closed day has more orders than one crawl can fetch. Typical
-            order, returning dollars, and LTV wait — incomplete sales are not
-            $0. Shopify shares about 60 days of orders on this install. Refresh
-            in a few minutes.
-          </s-paragraph>
+        <s-banner tone="info" heading={truncatedClosedDay.heading}>
+          <s-paragraph>{truncatedClosedDay.body}</s-paragraph>
         </s-banner>
       ) : null}
 

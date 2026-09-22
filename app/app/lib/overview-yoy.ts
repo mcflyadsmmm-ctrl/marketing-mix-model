@@ -1,4 +1,5 @@
 import type { CashChipId } from "./mer-control";
+import { formatCurrency } from "./mer-format";
 
 export const OVERVIEW_YOY_IDS = ["mtd", "qtd", "ytd"] as const;
 
@@ -173,4 +174,18 @@ export function overviewWindowsCollapsed(cards: OverviewYoyCard[]): boolean {
   const first = Math.round(cards[0]?.sales ?? NaN);
   if (!Number.isFinite(first)) return false;
   return cards.every((card) => Math.round(card.sales) === first);
+}
+
+/**
+ * Clipboard line for the Overview year card. Pending copies nothing.
+ * Fees, payout date, and bank match stay off this sentence.
+ */
+export function overviewYtdCopyText(input: {
+  salesPending: boolean;
+  amount: number | null;
+  currency: string;
+}): string | null {
+  if (input.salesPending) return null;
+  if (input.amount == null || !Number.isFinite(input.amount)) return null;
+  return `Shopify Total Sales YTD ${formatCurrency(input.amount, input.currency)} — this shop’s orders, not the company book.`;
 }

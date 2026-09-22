@@ -6,6 +6,7 @@ import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
 import {
   orderHistoryProgressMessage,
+  truncatedOrderFactsMessage,
   type OrderHistoryProgressInput,
 } from "../lib/cash-trust-copy";
 import type { PeriodPreset } from "../lib/periods";
@@ -81,6 +82,7 @@ export function DeskBookPage({
     !shotMode && !shopifyOrderWindowLimited && orderBackfillProgress
       ? orderHistoryProgressMessage(orderBackfillProgress)
       : null;
+  const truncatedClosedDay = truncatedOrderFactsMessage();
 
   return (
     <s-page heading={shotMode ? undefined : heading} inlineSize="large">
@@ -134,11 +136,7 @@ export function DeskBookPage({
         !orderProgress &&
         !shotMode &&
         !shopifyOrderWindowLimited ? (
-          <p className="mcfly-book__lede">
-            Order history still loading — incomplete typical order, returning
-            dollars, and LTV are not $0. Shopify shares about 60 days of orders
-            on this install. Refresh in a few minutes.
-          </p>
+          <p className="mcfly-book__lede">{truncatedClosedDay.body}</p>
         ) : null}
 
         {salesError && !shotMode && retryHref ? (

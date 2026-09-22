@@ -39,6 +39,8 @@ import {
 } from "./orders-intelligence";
 import { requireAdmin } from "./public-app-gate.server";
 import { scheduleFirstSessionShopifyWindow } from "./first-session-shopify-window.server";
+import { shopLiveIngestDepth } from "./live-ingest-depth.server";
+import type { LiveIngestDepth } from "./live-ingest-depth";
 
 function toOrderIntelRow(row: {
   customerKey: string;
@@ -119,6 +121,9 @@ export async function loadDeskSalesPage(
     : await getOrderBackfillProgress(shop.id, {
         ianaTimezone: shop.ianaTimezone,
       });
+  const orderBookDepth: LiveIngestDepth = useSampleDesk
+    ? "paid_full"
+    : await shopLiveIngestDepth(shop.id);
 
   let ordersIntel: OrdersIntelData | null = null;
   let ordersFrequency: OrdersFrequencyBucket[] | null = null;
@@ -170,6 +175,7 @@ export async function loadDeskSalesPage(
     shopifyOrderWindowLimited,
     factsIncomplete,
     orderBackfillProgress,
+    orderBookDepth,
     ordersIntel,
     ordersFrequency,
     shopLabel: session.shop,

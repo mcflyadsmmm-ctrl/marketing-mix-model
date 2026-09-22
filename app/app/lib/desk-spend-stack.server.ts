@@ -76,6 +76,8 @@ import {
 } from "./sample-desk.server";
 import { shopLocalDayKey } from "./shop-local-day";
 import { scheduleFirstSessionShopifyWindow } from "./first-session-shopify-window.server";
+import { shopLiveIngestDepth } from "./live-ingest-depth.server";
+import type { LiveIngestDepth } from "./live-ingest-depth";
 import type { SalesResult } from "./shopify-sales.server";
 import {
   isCertifiedSalesDayFact,
@@ -137,6 +139,7 @@ export type SpendAnalysisData = {
   factsIncomplete: boolean;
   shopifyOrderWindowLimited: boolean;
   pairCoverage: SpendPairCoverage;
+  orderBookDepth: LiveIngestDepth;
 };
 
 export function emptySpendWindowSets(): SpendWindowSets {
@@ -666,6 +669,9 @@ export async function loadSpendAnalysis(args: {
       )
       .map((row) => row.dateKey),
   });
+  const orderBookDepth: LiveIngestDepth = args.useSampleDesk
+    ? "paid_full"
+    : await shopLiveIngestDepth(args.shop.id);
 
   return {
     metrics,
@@ -684,5 +690,6 @@ export async function loadSpendAnalysis(args: {
     factsIncomplete,
     shopifyOrderWindowLimited,
     pairCoverage,
+    orderBookDepth,
   };
 }

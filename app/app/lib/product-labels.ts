@@ -136,7 +136,7 @@ export const PRODUCT_NOUN = {
   bookTypicalDayEmpty: "Needs five days with sales — not $0.",
   bookSecondWithin30: "Second order in 30 days",
   bookSecondWithin30Def:
-    "First-time buyers who came back within 30 days. Up to 24 months of orders on file.",
+    "First-time buyers who came back within 30 days. Unpaid order rows are 90 closed days; paid is up to 24 months.",
   bookSecondWithin30Empty:
     "Needs more first-time buyers with 30 days to come back.",
   bookSecondVsThird: "2nd vs 3rd+ buyers",

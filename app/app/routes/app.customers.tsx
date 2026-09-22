@@ -65,6 +65,7 @@ export default function CustomersPage() {
     liveHistoryLocked,
     shopLabel,
     panel,
+    orderBookDepth,
   } = useLoaderData<typeof loader>();
   const currency = useDeskCurrency();
   const navigation = useNavigation();
@@ -81,6 +82,7 @@ export default function CustomersPage() {
     todaySalesUnavailable: !useSampleDesk && todaySalesUnavailable,
     shopifyOrderWindowLimited: !useSampleDesk && shopifyOrderWindowLimited,
     includeShopifyOrderWindow: true,
+    orderBookDepth,
   });
   const book = shopifyNativePeriodStats({
     sales: metrics.sales,
@@ -189,7 +191,9 @@ export default function CustomersPage() {
       ) : null}
 
       <div className="mcfly-desk-anchor mcfly-scoreboard--customers">
-      <p className="mcfly-book__lede">{deskBookLede(CUSTOMERS_CONTRAST)}</p>
+      <p className="mcfly-book__lede">
+        {deskBookLede(CUSTOMERS_CONTRAST, orderBookDepth)}
+      </p>
 
       <div id="mcfly-returning">
       <DeskLane rank="first" label={CUSTOMERS_FIRST_LANE_LABEL}>
