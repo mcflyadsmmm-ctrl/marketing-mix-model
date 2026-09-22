@@ -51,7 +51,6 @@ import {
 } from "../lib/spend-custom-channel";
 import {
   customNamesToTemplateCols,
-  parseSpendCsv,
   parseForceChannel,
   buildSelectedPlatformTemplateCsv,
   groupCsvErrors,
@@ -59,6 +58,7 @@ import {
   type CsvImportSummary,
   type GroupedCsvErrors,
 } from "../lib/spend-csv";
+import { previewSpendPaste } from "../lib/spend-paste-preview";
 import { isSpendChannel } from "../lib/spend-billing";
 import {
   currentYearMonth,
@@ -109,7 +109,7 @@ import {
   setSampleDeskEnabled,
   utcDayKey,
 } from "../lib/sample-desk.server";
-import { formatSpendAmount } from "../lib/mer-format";
+import { formatMer, formatSpendAmount } from "../lib/mer-format";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { SAMPLE_LEDGER_HANDOFF } from "../lib/sample-live-handoff";
 import prisma from "../db.server";
@@ -356,6 +356,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     todayKey: sampleDesk.enabled ? utcDayKey(now) : localDayKey(now),
     currencyCode: shopCurrencyCode(shop.currencyCode),
     explorer,
+    certifiedSalesByDay: Object.fromEntries(salesByDay),
   };
 };
 
@@ -518,6 +519,7 @@ export default function SpendEntryPage() {
     todayKey,
     currencyCode,
     preset,
+    certifiedSalesByDay,
   } = useLoaderData<typeof loader>();
   const money = (n: number) => formatSpendAmount(n, currencyCode);
   const actionData = useActionData<typeof action>();
@@ -711,41 +713,38 @@ export default function SpendEntryPage() {
     customLabel: billResolvedChannel.customName,
   });
   const csvDraftPreview = useMemo(() => {
-    if (!csvPayload.trim()) return null;
-    const parsed = parseSpendCsv(
+    const preview = previewSpendPaste(
       csvPayload,
-      forceChannel ? { forceChannel } : {},
+      {
+        certifiedSalesByDay,
+        buyerDays: [],
+        salesFloorKey: spendHistoryFloorKey,
+        salesPending: false,
+        first30: null,
+        first90: null,
+        first365: null,
+        historyLimited: true,
+      },
+      forceChannel ? { forceChannel } : undefined,
     );
-    if (parsed.rows.length === 0) {
-      return {
-        days: 0,
-        channels: Array<string>(),
-        totalAmount: 0,
-        from: null,
-        to: null,
-        firstError: parsed.errors[0] ?? null,
-      };
-    }
-    const dates = [...new Set(parsed.rows.map((row) => row.date))].sort();
-    const channels = [
-      ...new Set(
-        parsed.rows.map((row) =>
-          spendChannelShortLabel({
-            channel: row.channel,
-            customLabel: row.customLabel,
-          }),
-        ),
-      ),
-    ];
+    if (!csvPayload.trim()) return null;
     return {
-      days: dates.length,
-      channels,
-      totalAmount: parsed.rows.reduce((sum, row) => sum + row.amount, 0),
-      from: dates[0] ?? null,
-      to: dates[dates.length - 1] ?? null,
-      firstError: parsed.errors[0] ?? null,
+      days: preview.days,
+      channels: preview.labels,
+      totalAmount: preview.totalAmount,
+      from: preview.from,
+      to: preview.to,
+      firstError: preview.firstError,
+      writeNothing: preview.writeNothing,
+      totalRoas: preview.totalRoas,
+      cashCpa: preview.cashCpa,
+      paybackDays: preview.paybackDays,
+      roasReason: preview.roasReason,
+      cpaReason: preview.cpaReason,
+      paybackReason: preview.paybackReason,
+      salesWindowWarning: preview.salesWindowWarning,
     };
-  }, [csvPayload, forceChannel]);
+  }, [csvPayload, forceChannel, certifiedSalesByDay, spendHistoryFloorKey]);
 
   const calcRoas = useMemo(() => {
     const sales = parseFloat(calcSales);
@@ -1580,7 +1579,27 @@ export default function SpendEntryPage() {
                       </strong>
                       <span>
                         {csvDraftPreview.from}
-                        {csvDraftPreview.to !== csvDraftPreview.from ? ` → ${csvDraftPreview.to}` : ""}
+                        {csvDraftPreview.to !== csvDraftPreview.from
+                          ? ` → ${csvDraftPreview.to}`
+                          : ""}
+                        {" · these pasted days"}
+                      </span>
+                      {csvDraftPreview.salesWindowWarning ? (
+                        <span>{csvDraftPreview.salesWindowWarning}</span>
+                      ) : null}
+                      <span>
+                        Total ROAS{" "}
+                        {csvDraftPreview.totalRoas != null
+                          ? `${formatMer(csvDraftPreview.totalRoas)}×`
+                          : "—"}
+                        {" · "}Cash CPA{" "}
+                        {csvDraftPreview.cashCpa != null
+                          ? money(csvDraftPreview.cashCpa)
+                          : "—"}
+                        {" · "}Payback{" "}
+                        {csvDraftPreview.paybackDays != null
+                          ? `${csvDraftPreview.paybackDays} days`
+                          : "—"}
                       </span>
                     </>
                   ) : (

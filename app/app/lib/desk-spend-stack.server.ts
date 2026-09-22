@@ -116,6 +116,8 @@ export type SpendAnalysisData = {
   history: AllocationHistoryView | null;
   windowSets: SpendWindowSets;
   cpa: SpendCpaView;
+  /** Certified SalesDayFact dollars keyed YYYY-MM-DD — missing key means no fact. */
+  certifiedSalesByDay: Record<string, number>;
   salesError: string | null;
   todaySalesUnavailable: boolean;
   todaySalesTruncated: boolean;
@@ -619,6 +621,11 @@ export async function loadSpendAnalysis(args: {
       cpa.shopifyOrderWindowLimited || shopifyOrderWindowLimited;
   }
 
+  const certifiedSalesByDay: Record<string, number> = {};
+  for (const [dateKey, sales] of salesByDay) {
+    certifiedSalesByDay[dateKey] = sales;
+  }
+
   return {
     metrics,
     explorer,
@@ -627,6 +634,7 @@ export async function loadSpendAnalysis(args: {
     history,
     windowSets,
     cpa,
+    certifiedSalesByDay,
     salesError,
     todaySalesUnavailable,
     todaySalesTruncated,

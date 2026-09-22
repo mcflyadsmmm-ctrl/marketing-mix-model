@@ -20412,6 +20412,56 @@ button.mcfly-habit-goals__read:focus-visible {
  * Import lead shares the same soft chrome. No ROAS hero / explorer here.
  * ========================================================================= */
 
+.mcfly-spend-paste {
+  margin-top: 0.75rem;
+}
+
+.mcfly-spend-paste__trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0.65rem 0 0;
+}
+
+.mcfly-spend-paste__trio p {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--mcfly-line) 82%, #fff);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.mcfly-spend-paste__trio span {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--mcfly-mute, #64748b);
+}
+
+.mcfly-spend-paste__trio strong {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+}
+
+.mcfly-spend-paste__trio em {
+  display: block;
+  margin-top: 0.25rem;
+  font-style: normal;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--mcfly-mute, #64748b);
+}
+
+@media (max-width: 720px) {
+  .mcfly-spend-paste__trio {
+    grid-template-columns: 1fr;
+  }
+}
+
 .mcfly-spend-add--hero {
   outline: 1px solid color-mix(in srgb, var(--mcfly-accent) 28%, transparent);
 }

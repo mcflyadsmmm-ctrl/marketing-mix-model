@@ -23,7 +23,7 @@ export function spendUploadEmptyFinding(): SpendFinding {
     signal: "No spend on file yet",
     evidence:
       "Empty spend is not a certified $0 — and never paints 0× on Total ROAS.",
-    next: "Type yesterday’s channel spend (or CSV import). Channel names are yours — no Ads Manager login.",
+    next: "Type yesterday’s channel spend, or paste daily rows. Channel names are yours — no Ads Manager login.",
   };
 }
 
