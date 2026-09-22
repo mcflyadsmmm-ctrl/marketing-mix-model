@@ -219,6 +219,18 @@ describe("Customers loader — full stored book for RFM, 90-day mix kept", () =>
     expect(rfmLib).toContain("RFM_MIN_BUYERS = 8");
     expect(rfmLib).toContain("WATCHLIST_MAX = 8");
   });
+
+  it("classifies returning dollars from the stored book and counts first-time buyers there", () => {
+    expect(analyticsLoader).toContain("orderBook: mapped");
+    expect(analyticsLoader).toContain("lifetimeOrders");
+    expect(analyticsLoader).not.toContain("sales-facts");
+    expect(analyticsLoader).not.toContain("newCustomers");
+    expect(analyticsLib).toContain("firstTimeBuyers");
+    expect(analyticsLib).toContain("orderBook");
+    expect(analyticsLib).not.toContain("sales-facts");
+    expect(mix).toContain("firstTimeBuyers");
+    expect(mix).toContain("First-time buyers");
+  });
 });
 
 describe("CustomerValueBands — whales vs minnows", () => {

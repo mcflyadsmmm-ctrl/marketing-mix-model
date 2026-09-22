@@ -131,6 +131,7 @@ function toRetention(orders: SampleOrderFactRow[]): RetentionOrderRow[] {
     customerKey: row.customerKey,
     orderedAt: row.orderedAt,
     amount: row.amount,
+    lifetimeOrders: row.lifetimeOrders,
   }));
 }
 
@@ -341,6 +342,7 @@ export async function loadPublicSamplePage(
     ...buildCustomerAnalytics(recent, {
       windowEnd: now,
       historyWindowDays: CUSTOMERS_WINDOW_DAYS,
+      orderBook: retention,
     }),
     rfm: buildCustomerRfm(retention, { windowEnd: now, historyLimited: false }),
   };

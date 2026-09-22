@@ -1119,6 +1119,7 @@ export async function loadOrderDepthRows(
     discountCode: string | null;
     sourceName: string | null;
     unitCount: number | null;
+    lifetimeOrders: number | null;
   }>
 > {
   return prisma.orderFact.findMany({
@@ -1140,6 +1141,7 @@ export async function loadOrderDepthRows(
       discountCode: true,
       sourceName: true,
       unitCount: true,
+      lifetimeOrders: true,
     },
     take: 20_000,
   });

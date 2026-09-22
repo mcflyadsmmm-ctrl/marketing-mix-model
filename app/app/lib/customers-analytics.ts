@@ -18,6 +18,12 @@ export type RetentionOrderRow = {
   customerKey: string;
   orderedAt: Date;
   amount: number;
+  /**
+   * Shopify `numberOfOrders` already stored on the order. Omit when the row
+   * was not loaded with that field. `null` means it was loaded and is missing —
+   * the first-time count stays unknown, never a fake zero.
+   */
+  lifetimeOrders?: number | null;
 };
 
 export type FrequencyBucket = { label: string; min: number; max: number | null; customers: number };
@@ -38,6 +44,8 @@ export type MixWeek = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
+  /** Identified first-time buyers that week. Null when a lifetime count is missing. */
+  firstTimeBuyers: number | null;
 };
 
 /** Grain the marquee explorer can roll the weekly mix up to. */
@@ -55,6 +63,8 @@ export type MixDay = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
+  /** Identified first-time buyers that day. Null when a lifetime count is missing. */
+  firstTimeBuyers: number | null;
 };
 
 export type MixDeltaTone = "up" | "down" | "flat";
@@ -92,6 +102,8 @@ export type MixBucket = {
   returningDollars: number;
   total: number;
   returningShare: number | null;
+  /** Identified first-time buyers in the column. Null when a lifetime count is missing. */
+  firstTimeBuyers: number | null;
 };
 
 /** Window roll-up powering the marquee's KPI strip and its average-share rail. */
@@ -101,6 +113,8 @@ export type MixSummary = {
   total: number;
   returningShareAvg: number | null;
   bestReturning: MixBucket | null;
+  /** Sum of known weekly counts. Null when any column's count is unknown — never a fake 0. */
+  firstTimeBuyers: number | null;
 };
 
 export type CustomerAnalytics = {
@@ -221,6 +235,77 @@ const FREQUENCY_LABELS: Array<{ label: string; min: number; max: number | null }
 /** A "whale" is a best customer with this many orders on file. */
 export const WHALE_MIN_ORDERS = 5;
 
+type BuyerFile = {
+  first: number;
+  stored: number;
+  /** `undefined` = not on the row. `null` = stored and missing. */
+  lifetime: number | null | undefined;
+};
+
+type MixAcc = {
+  start: number;
+  newD: number;
+  retD: number;
+  newBuyers: number;
+  unknownNew: boolean;
+};
+
+function knownLifetime(value: number | null | undefined): number | null | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return value;
+  return Math.max(0, Math.trunc(value));
+}
+
+function mergeLifetime(
+  prev: number | null | undefined,
+  next: number | null | undefined,
+): number | null | undefined {
+  const a = typeof prev === "number" ? prev : null;
+  const b = typeof next === "number" ? next : null;
+  if (a != null || b != null) return Math.max(a ?? 0, b ?? 0);
+  if (prev === null || next === null) return null;
+  return undefined;
+}
+
+/**
+ * One file per identified buyer. Same rule as `countNewBuyersInRange`: a known
+ * lifetime above the stored order count means they bought before this book.
+ * A null lifetime is kept null so the weekly count can stay unknown.
+ */
+function buyerFiles(rows: RetentionOrderRow[]): Map<string, BuyerFile> {
+  const files = new Map<string, BuyerFile>();
+  for (const row of rows) {
+    if (!row.customerKey || row.customerKey === RETENTION_GUEST_KEY) continue;
+    if (!Number.isFinite(row.amount)) continue;
+    const t = ms(row.orderedAt);
+    if (!Number.isFinite(t)) continue;
+    const lifetime = knownLifetime(row.lifetimeOrders);
+    const prev = files.get(row.customerKey);
+    if (!prev) {
+      files.set(row.customerKey, { first: t, stored: 1, lifetime });
+      continue;
+    }
+    prev.stored += 1;
+    if (t < prev.first) prev.first = t;
+    prev.lifetime = mergeLifetime(prev.lifetime, lifetime);
+  }
+  return files;
+}
+
+function orderIsReturning(row: RetentionOrderRow, file: BuyerFile | undefined): boolean {
+  if (!row.customerKey || row.customerKey === RETENTION_GUEST_KEY) return false;
+  if (!file) return false;
+  if (ms(row.orderedAt) > file.first) return true;
+  return typeof file.lifetime === "number" && file.lifetime > file.stored;
+}
+
+function freshMixAcc(start: number): MixAcc {
+  return { start, newD: 0, retD: 0, newBuyers: 0, unknownNew: false };
+}
+
+function firstTimeCount(acc: MixAcc): number | null {
+  return acc.unknownNew ? null : acc.newBuyers;
+}
+
 const RECENCY_BUCKETS: Array<{ label: string; min: number; max: number | null }> = [
   { label: "0–30d", min: 0, max: 30 },
   { label: "31–60d", min: 31, max: 60 },
@@ -233,7 +318,16 @@ const RECENCY_BUCKETS: Array<{ label: string; min: number; max: number | null }>
 
 export function buildCustomerAnalytics(
   rows: RetentionOrderRow[],
-  options: { windowEnd: Date; historyWindowDays: number },
+  options: {
+    windowEnd: Date;
+    historyWindowDays: number;
+    /**
+     * Full stored order book. The mix window stays `rows` (the 90-day slice).
+     * Classification uses this book so a prior order outside that slice is
+     * returning dollars, not new dollars.
+     */
+    orderBook?: RetentionOrderRow[];
+  },
 ): CustomerAnalytics {
   const clean = rows.filter((r) => r && Number.isFinite(r.amount));
   const windowOrders = clean.length;
@@ -354,24 +448,27 @@ export function buildCustomerAnalytics(
   const daysToSecondTruncatedAt =
     collectable.length < DAYS_BUCKETS.length ? historyDays : null;
 
-  // New vs returning dollars by week: an order is "returning" when it lands after
-  // the buyer's first order on file; guests can never be returning.
-  const firstByCustomer = new Map<string, number>();
-  for (const [key, rec] of byCustomer) {
-    firstByCustomer.set(key, Math.min(...rec.times));
+  // New vs returning dollars: an order is returning when the stored book has an
+  // earlier order, or a known lifetime count above the orders on file. Guests
+  // stay first-time dollars. Weekly first-time counts use that same book plus
+  // lifetimeOrders — not SalesDayFact newCustomers (that column is 0).
+  const files = buyerFiles(options.orderBook ?? rows);
+  const windowEarliest = new Map<string, number>();
+  for (const r of identified) {
+    const t = ms(r.orderedAt);
+    const prev = windowEarliest.get(r.customerKey);
+    if (prev == null || t < prev) windowEarliest.set(r.customerKey, t);
   }
-  const dayMap = new Map<string, { start: number; newD: number; retD: number }>();
-  const weekMap = new Map<string, { start: number; newD: number; retD: number }>();
+  const dayMap = new Map<string, MixAcc>();
+  const weekMap = new Map<string, MixAcc>();
   for (const r of clean) {
     const day = utcDayStart(r.orderedAt);
     const monday = mondayUtc(r.orderedAt);
     const dayKey = day.toISOString().slice(0, 10);
     const weekKey = monday.toISOString().slice(0, 10);
-    const dayRec = dayMap.get(dayKey) ?? { start: day.getTime(), newD: 0, retD: 0 };
-    const weekRec = weekMap.get(weekKey) ?? { start: monday.getTime(), newD: 0, retD: 0 };
-    const isReturning =
-      r.customerKey !== RETENTION_GUEST_KEY &&
-      ms(r.orderedAt) > (firstByCustomer.get(r.customerKey) ?? Number.POSITIVE_INFINITY);
+    const dayRec = dayMap.get(dayKey) ?? freshMixAcc(day.getTime());
+    const weekRec = weekMap.get(weekKey) ?? freshMixAcc(monday.getTime());
+    const isReturning = orderIsReturning(r, files.get(r.customerKey));
     if (isReturning) {
       dayRec.retD += finite(r.amount);
       weekRec.retD += finite(r.amount);
@@ -381,6 +478,25 @@ export function buildCustomerAnalytics(
     }
     dayMap.set(dayKey, dayRec);
     weekMap.set(weekKey, weekRec);
+  }
+  for (const [key, file] of files) {
+    const earliestInWindow = windowEarliest.get(key);
+    if (earliestInWindow == null || earliestInWindow !== file.first) continue;
+    if (typeof file.lifetime === "number" && file.lifetime > file.stored) continue;
+    const firstAt = new Date(file.first);
+    const dayKey = utcDayStart(firstAt).toISOString().slice(0, 10);
+    const weekKey = mondayUtc(firstAt).toISOString().slice(0, 10);
+    const unknown = file.lifetime === null;
+    const dayRec = dayMap.get(dayKey);
+    const weekRec = weekMap.get(weekKey);
+    if (dayRec) {
+      if (unknown) dayRec.unknownNew = true;
+      else dayRec.newBuyers += 1;
+    }
+    if (weekRec) {
+      if (unknown) weekRec.unknownNew = true;
+      else weekRec.newBuyers += 1;
+    }
   }
   const mixDaily: MixDay[] = [...dayMap.values()]
     .sort((a, b) => a.start - b.start)
@@ -397,6 +513,7 @@ export function buildCustomerAnalytics(
         returningDollars,
         total,
         returningShare: total > 0 ? returningDollars / total : null,
+        firstTimeBuyers: firstTimeCount(d),
       };
     });
   const mixWeekly: MixWeek[] = [...weekMap.values()]
@@ -416,6 +533,7 @@ export function buildCustomerAnalytics(
         returningDollars,
         total,
         returningShare: total > 0 ? returningDollars / total : null,
+        firstTimeBuyers: firstTimeCount(w),
       };
     });
   const mixTotals = mixWeekly.reduce(
@@ -522,11 +640,12 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
       returningDollars: w.returningDollars,
       total: w.total,
       returningShare: w.returningShare,
+      firstTimeBuyers: w.firstTimeBuyers,
     }));
   }
   const byMonth = new Map<
     string,
-    { start: number; newD: number; retD: number; month: number }
+    { start: number; newD: number; retD: number; month: number; buyers: number | null }
   >();
   for (const w of weeks) {
     const d = new Date(w.weekStart);
@@ -538,9 +657,12 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
       newD: 0,
       retD: 0,
       month,
+      buyers: 0,
     };
     rec.newD += w.newDollars;
     rec.retD += w.returningDollars;
+    if (w.firstTimeBuyers == null) rec.buyers = null;
+    else if (rec.buyers != null) rec.buyers += w.firstTimeBuyers;
     byMonth.set(key, rec);
   }
   return [...byMonth.entries()]
@@ -555,6 +677,7 @@ export function bucketMixWeeks(weeks: MixWeek[], grain: MixGrain): MixBucket[] {
         returningDollars: rec.retD,
         total,
         returningShare: total > 0 ? rec.retD / total : null,
+        firstTimeBuyers: rec.buyers,
       };
     });
 }
@@ -564,9 +687,12 @@ export function mixSummary(buckets: MixBucket[]): MixSummary {
   let returningDollars = 0;
   let newDollars = 0;
   let bestReturning: MixBucket | null = null;
+  let firstTimeBuyers: number | null = buckets.length === 0 ? null : 0;
   for (const b of buckets) {
     returningDollars += b.returningDollars;
     newDollars += b.newDollars;
+    if (b.firstTimeBuyers == null) firstTimeBuyers = null;
+    else if (firstTimeBuyers != null) firstTimeBuyers += b.firstTimeBuyers;
     if (
       b.returningDollars > 0 &&
       (bestReturning == null || b.returningDollars > bestReturning.returningDollars)
@@ -581,6 +707,7 @@ export function mixSummary(buckets: MixBucket[]): MixSummary {
     total,
     returningShareAvg: total > 0 ? returningDollars / total : null,
     bestReturning,
+    firstTimeBuyers,
   };
 }
 
@@ -594,6 +721,7 @@ export function bucketMixDays(days: MixDay[]): MixBucket[] {
     returningDollars: d.returningDollars,
     total: d.total,
     returningShare: d.returningShare,
+    firstTimeBuyers: d.firstTimeBuyers,
   }));
 }
 
