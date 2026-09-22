@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v409 / tip `f0fa935` (merge of #143 spend honesty) / Live PARKED. Smoke waived. v408 was open-lane starter value.
+**Tip Fly note:** v410 / tip `23bb8f9` (merge of #147 morning habit) / image `deployment-01M33ZMXRBQ2XEP3FM0XSBV45H` / Live PARKED. Health ok 2026-09-22T07:19Z. v409 was spend honesty.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v409 / tip `f0fa935` / Live PARKED |
+| Tip Fly SoT | v410 / tip `23bb8f9` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,17 +12,15 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v409 / tip `f0fa935`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v410 / tip `23bb8f9`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | DONE — critical audit, compete, top apps, operator pains, gap-fill. Do not re-run until the next ship below is shipped or blank. |
+| Niche intel | DONE — four notes on #148–#151. Do not re-run that wave. Rank 1 of the enterprise cook queue is the next sentence. |
 
 ## Next significant ship (the only craft allowed)
 
-**Morning habit.** On first open, three named wins (month close, who to save, set a target) and one morning sentence the merchant can copy. No ad login. No spend required.
+**Morning habit is on v410.** Three doors (month close, who to save, set a target) and a copyable sentence from the numbers on that board. No ad login. No spend required.
 
-That sentence is not true on v409 yet. Cook it. Do not open another research wave, another honesty pass, or a Fly for a scoreboard line.
-
-When this line is shipped or blank, wake the research fleet once (critical, competitors, niche, operator pains) and write the next merchant sentence here before any new craft.
+The next sentence is not named here yet. It is rank 1 of `docs/plans/2026-09-22-enterprise-cook-queue.md` once that plan exists. Do not cook until that rank is written. Do not rebuild morning habit. Do not fly this scoreboard stamp.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
