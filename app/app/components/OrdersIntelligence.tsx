@@ -16,21 +16,17 @@ import {
 } from "../lib/overview-sales-chart";
 import {
   buildOrdersIntelKpis,
+  ordersCodeTookLabel,
   ordersIntelDayLabel,
+  ordersMonthBoardSentence,
+  ordersPaintDollars,
   type OrdersAovTier,
-  type OrdersIntelAgg,
+  type OrdersIntelData,
   type OrdersIntelDay,
   type OrdersWeekRow,
 } from "../lib/orders-intelligence";
 
-export type OrdersIntel = {
-  windowLabel: string;
-  days: OrdersIntelDay[];
-  weeks: OrdersWeekRow[];
-  tiers: OrdersAovTier[];
-  current: OrdersIntelAgg;
-  prior: OrdersIntelAgg | null;
-};
+export type OrdersIntel = OrdersIntelData;
 
 type IntelGrain = "day" | "week";
 
@@ -41,12 +37,20 @@ function deltaCopy(dir: "up" | "down" | "flat", pct: number): string {
 }
 
 /**
- * Order intelligence (90d) — vs-prior KPI strip + a dual-axis daily chart
- * (Orders bars, AOV line). Order data only; zero spend / ROAS.
+ * Order intelligence for the period the merchant picked — vs-prior KPI strip,
+ * which codes took the money, and whether returns are climbing.
+ * Order data only; zero spend / ROAS.
  */
 export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
   const currency = useDeskCurrency();
   const kpis = buildOrdersIntelKpis(intel.current, intel.prior, currency);
+  const sentence = ordersMonthBoardSentence({
+    periodLabel: intel.periodLabel,
+    codes: intel.codes,
+    returnsDrag: intel.returnsDrag,
+    priorReturnsDrag: intel.priorReturnsDrag,
+    currency,
+  });
   return (
     <section
       className="mcfly-orders-intel mcfly-orders-intel--soft mcfly-desk-anchor"
@@ -56,9 +60,10 @@ export function OrdersIntelligence({ intel }: { intel: OrdersIntel }) {
         <p className="mcfly-orders-intel__title">
           <DeskIcon name="orders" />
           Order intelligence
-          <span className="mcfly-orders-intel__badge">90d</span>
+          <span className="mcfly-orders-intel__badge">{intel.badge}</span>
         </p>
         <p className="mcfly-orders-intel__window">{intel.windowLabel}</p>
+        <p className="mcfly-orders-intel__window">{sentence}</p>
       </div>
       <div className="mcfly-orders-intel__kpis">
         {kpis.map((kpi) => (
@@ -394,7 +399,22 @@ function deltaChipCopy(dir: "up" | "down" | "flat", pct: number): string {
   return `${sign}${Math.abs(Math.round(pct))}%`;
 }
 
-/** Audit-grade weekly ledger — Week · Orders (Δ) · Sales · AOV · Discount. */
+function codeCell(week: OrdersWeekRow, currency: string): string {
+  const labels = week.codeLines
+    .map((line) => ordersCodeTookLabel(line.code, line.sales, currency))
+    .filter((label): label is string => label != null);
+  return labels.length > 0 ? labels.join(" · ") : "—";
+}
+
+function returnsCell(week: OrdersWeekRow, currency: string): string {
+  const money = ordersPaintDollars(week.returnsDrag, currency);
+  if (week.returnsClimbing === "climbing") {
+    return money ? `${money} · climbing` : "climbing";
+  }
+  return money ?? "—";
+}
+
+/** Audit-grade weekly ledger — orders, sales, code dollars, returns. */
 function OrdersLedgerTable({
   weeks,
   currency,
@@ -407,7 +427,7 @@ function OrdersLedgerTable({
   const rows = [...weeks].reverse();
   return (
     <div className="mcfly-orders-ledger">
-      <p className="mcfly-orders-ledger__cap">Weekly ledger · Monday-start · this window</p>
+      <p className="mcfly-orders-ledger__cap">Weekly ledger · Monday-start · this period</p>
       <div className="mcfly-orders-ledger__wrap">
         <table className="mcfly-orders-ledger__table">
           <thead>
@@ -418,6 +438,8 @@ function OrdersLedgerTable({
               <th scope="col">Sales</th>
               <th scope="col">AOV</th>
               <th scope="col">Discount</th>
+              <th scope="col">Codes</th>
+              <th scope="col">Returns</th>
             </tr>
           </thead>
           <tbody>
@@ -432,6 +454,12 @@ function OrdersLedgerTable({
                     { k: "AOV", v: formatCurrency(week.aov, currency) },
                     week.discountDepth != null
                       ? { k: "Discount depth", v: `${Math.round(week.discountDepth * 100)}%` }
+                      : null,
+                    codeCell(week, currency) !== "—"
+                      ? { k: "Codes", v: codeCell(week, currency) }
+                      : null,
+                    returnsCell(week, currency) !== "—"
+                      ? { k: "Returns", v: returnsCell(week, currency) }
                       : null,
                   ].filter((b): b is { k: string; v: string } => b != null),
                   next: "Monday-start week from this shop's orders — not a platform pixel.",
@@ -462,6 +490,8 @@ function OrdersLedgerTable({
                       ? `${Math.round(week.discountDepth * 100)}%`
                       : "—"}
                   </td>
+                  <td>{codeCell(week, currency)}</td>
+                  <td>{returnsCell(week, currency)}</td>
                 </tr>
               );
             })}

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const orders = readFileSync(join(here, "../routes/app.orders.tsx"), "utf8");
+const demoOrders = readFileSync(join(here, "../routes/demo.orders.tsx"), "utf8");
 
 describe("Orders page", () => {
   it("contrast lede names average vs typical/median and Shopify Analytics", () => {
@@ -41,5 +42,16 @@ describe("Orders page", () => {
     expect(orders).not.toContain("SpendExplorer");
     expect(orders).not.toContain("Total ROAS");
     expect(orders).not.toContain("/app/spend");
+  });
+
+  it("mounts the same orders intelligence stack on the public orders page", () => {
+    expect(demoOrders).toContain("<OrdersIntelligence");
+    expect(demoOrders).toContain("<OrdersFrequencyChart");
+    expect(demoOrders.indexOf("<OrdersScoreboard")).toBeLessThan(
+      demoOrders.indexOf("<OrdersIntelligence"),
+    );
+    expect(demoOrders.indexOf("<OrdersIntelligence")).toBeLessThan(
+      demoOrders.indexOf("<OrdersTimingChart"),
+    );
   });
 });

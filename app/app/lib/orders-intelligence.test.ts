@@ -1,14 +1,26 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   aggregateOrderRows,
+  assembleOrdersIntelligence,
   buildOrdersAovTiers,
+  buildOrdersCodeMoney,
   buildOrdersFrequency,
   buildOrdersIntelDays,
   buildOrdersIntelKpis,
   buildOrdersWeeklyRows,
+  ordersCodeTookLabel,
   ordersIntelDelta,
+  ordersIntelPeriodBadge,
+  ordersIntelWindowLabel,
+  ordersMonthBoardSentence,
+  ordersReturnDrag,
   type OrderIntelRow,
 } from "./orders-intelligence";
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 function row(
   day: string,
@@ -84,6 +96,30 @@ describe("orders intelligence KPIs", () => {
     expect(byKey.discount?.delta).toBeUndefined();
   });
 
+  it("does not paint a missing lifetime as zero new orders", () => {
+    const current = aggregateOrderRows(
+      [
+        {
+          ...row("2026-09-08", 70, "unsure"),
+          lifetimeOrders: null,
+          discountCode: "BUNDLE",
+        },
+      ],
+      [
+        {
+          ...row("2026-09-08", 70, "unsure"),
+          lifetimeOrders: null,
+          discountCode: "BUNDLE",
+        },
+      ],
+    );
+    const kpis = buildOrdersIntelKpis(current, null, "USD");
+    const share = kpis.find((kpi) => kpi.key === "newShare");
+    expect(share?.value).toBe("—");
+    expect(share?.sub).toBe("New versus already-bought is unknown");
+    expect(share?.sub).not.toMatch(/0 new/);
+  });
+
   it("drops deltas when there is no complete prior window", () => {
     const current = aggregateOrderRows(sampleRows());
     const kpis = buildOrdersIntelKpis(current, null, "USD");
@@ -116,6 +152,48 @@ describe("orders weekly ledger", () => {
     // wk2 orders 1 vs wk1 orders 2 → down
     expect(weeks[1]!.ordersDelta?.dir).toBe("down");
     expect(weeks[1]!.label).toMatch(/Wk of Sep 14/);
+    expect(weeks[0]!.codeDollars).toBeNull();
+    expect(weeks[0]!.returnsDrag).toBeNull();
+  });
+
+  it("names the code's dollars and whether returns are climbing", () => {
+    const rows: OrderIntelRow[] = [
+      {
+        ...row("2026-09-07", 500, "a", 40),
+        discountCode: "WELCOME10",
+        grossAmount: 500,
+        lifetimeOrders: 1,
+      },
+      {
+        ...row("2026-09-14", 80, "b", 0),
+        discountCode: "POWDER15",
+        grossAmount: 130,
+        lifetimeOrders: 1,
+      },
+    ];
+    const weeks = buildOrdersWeeklyRows(rows);
+    expect(weeks[0]!.codeLines).toEqual([{ code: "WELCOME10", sales: 500 }]);
+    expect(weeks[0]!.codeDollars).toBe(500);
+    expect(weeks[0]!.returnsDrag).toBe(0);
+    expect(weeks[0]!.returnsClimbing).toBeNull();
+    expect(weeks[1]!.returnsDrag).toBe(50);
+    expect(weeks[1]!.returnsClimbing).toBe("climbing");
+    expect(ordersCodeTookLabel("WELCOME10", 500, "USD")).toBe("WELCOME10 $500");
+    expect(ordersCodeTookLabel("WELCOME10", 500, "USD")).not.toMatch(/%/);
+    expect(weeks[0]!.discountDepth).not.toBeCloseTo(0.1, 2);
+  });
+
+  it("keeps a missing code and a missing return as unknown, never $0", () => {
+    const rows: OrderIntelRow[] = [
+      { ...row("2026-09-07", 500, "a", 0), discountCode: null, grossAmount: null },
+      { ...row("2026-09-14", 80, "b", 0), discountCode: "  ", grossAmount: null },
+    ];
+    const weeks = buildOrdersWeeklyRows(rows);
+    expect(weeks[0]!.codeDollars).toBeNull();
+    expect(weeks[0]!.codeLines).toEqual([]);
+    expect(weeks[1]!.codeDollars).toBeNull();
+    expect(ordersReturnDrag(rows)).toBeNull();
+    expect(weeks.every((week) => week.returnsDrag == null)).toBe(true);
   });
 });
 
@@ -168,5 +246,187 @@ describe("orders frequency distribution", () => {
     // no customer has 4+ → those buckets are dropped
     expect(freq.some((b) => b.key === "4")).toBe(false);
     expect(freq.every((b) => b.customers > 0)).toBe(true);
+  });
+
+  it("uses stored lifetime instead of one order in the slice", () => {
+    const period: OrderIntelRow[] = [
+      { ...row("2026-09-08", 80, "quiet"), lifetimeOrders: 6 },
+      { ...row("2026-09-08", 40, "fresh"), lifetimeOrders: 1 },
+    ];
+    const book: OrderIntelRow[] = [
+      { ...row("2026-03-01", 55, "quiet"), lifetimeOrders: 6 },
+      ...period,
+    ];
+    const freq = buildOrdersFrequency(period, book);
+    const byKey = Object.fromEntries(freq.map((b) => [b.key, b.customers]));
+    expect(byKey["1"]).toBe(1);
+    expect(byKey["5-9"]).toBe(1);
+    expect(byKey["unknown"]).toBeUndefined();
+  });
+
+  it("keeps a missing lifetime unknown instead of a one-order buyer", () => {
+    const rows: OrderIntelRow[] = [
+      { ...row("2026-09-08", 80, "unsure"), lifetimeOrders: null },
+      { ...row("2026-09-08", 40, "fresh"), lifetimeOrders: 1 },
+    ];
+    const freq = buildOrdersFrequency(rows);
+    const byKey = Object.fromEntries(freq.map((b) => [b.key, b.customers]));
+    expect(byKey["1"]).toBe(1);
+    expect(byKey["unknown"]).toBe(1);
+    expect(freq.find((b) => b.key === "unknown")?.label).toBe("Lifetime unknown");
+  });
+});
+
+describe("orders code money for the selected month", () => {
+  it("treats an earlier stored order as already bought and leaves guests out", () => {
+    const earlier: OrderIntelRow = {
+      ...row("2026-03-02", 55, "quiet"),
+      lifetimeOrders: 2,
+    };
+    const again: OrderIntelRow = {
+      ...row("2026-09-08", 80, "quiet", 8),
+      discountCode: "WELCOME10",
+      grossAmount: 80,
+      lifetimeOrders: 2,
+    };
+    const fresh: OrderIntelRow = {
+      ...row("2026-09-09", 40, "fresh", 4),
+      discountCode: "WELCOME10",
+      grossAmount: 40,
+      lifetimeOrders: 1,
+    };
+    const guest: OrderIntelRow = {
+      ...row("2026-09-09", 25, "guest", 0),
+      discountCode: "WELCOME10",
+      grossAmount: 25,
+      lifetimeOrders: null,
+    };
+    const codes = buildOrdersCodeMoney([again, fresh, guest], [earlier, again, fresh, guest]);
+    expect(codes).toHaveLength(1);
+    expect(codes[0]).toMatchObject({
+      code: "WELCOME10",
+      sales: 145,
+      newSales: 40,
+      returningSales: 80,
+      unknownSales: null,
+      guestSales: 25,
+    });
+  });
+
+  it("keeps a missing lifetime unknown and never a fake zero", () => {
+    const rows: OrderIntelRow[] = [
+      {
+        ...row("2026-09-08", 70, "unsure"),
+        discountCode: "BUNDLE",
+        lifetimeOrders: null,
+        grossAmount: 70,
+      },
+    ];
+    const codes = buildOrdersCodeMoney(rows);
+    expect(codes[0]).toMatchObject({
+      sales: 70,
+      newSales: null,
+      returningSales: null,
+      unknownSales: 70,
+    });
+  });
+
+  it("does not read WELCOME10 as 10%", () => {
+    const rows: OrderIntelRow[] = [
+      {
+        ...row("2026-09-07", 500, "a", 40),
+        discountCode: "WELCOME10",
+        grossAmount: 540,
+        lifetimeOrders: 1,
+      },
+      {
+        ...row("2026-09-14", 200, "a", 0),
+        grossAmount: 260,
+        lifetimeOrders: 2,
+      },
+    ];
+    const prior: OrderIntelRow[] = [
+      {
+        ...row("2026-08-03", 200, "z"),
+        grossAmount: 200,
+        lifetimeOrders: 1,
+      },
+    ];
+    const sentence = ordersMonthBoardSentence({
+      periodLabel: "Month to date",
+      codes: buildOrdersCodeMoney(rows),
+      returnsDrag: ordersReturnDrag(rows),
+      priorReturnsDrag: ordersReturnDrag(prior),
+      currency: "USD",
+    });
+    expect(sentence).toBe(
+      "Month to date — WELCOME10 took $500 ($500 from new buyers). Returns are climbing.",
+    );
+    expect(sentence).not.toMatch(/10%/);
+    expect(sentence).not.toMatch(/\$0/);
+    expect(sentence).not.toContain("0×");
+    expect(sentence).not.toMatch(/\d+×/);
+  });
+
+  it("says when the selected month has no code and no return dollars", () => {
+    const sentence = ordersMonthBoardSentence({
+      periodLabel: "Month to date",
+      codes: [],
+      returnsDrag: null,
+      priorReturnsDrag: null,
+      currency: "USD",
+    });
+    expect(sentence).toBe(
+      "Month to date — no discount code on these orders. Return dollars are not on these orders.",
+    );
+    expect(sentence).not.toContain("90");
+    expect(sentence).not.toMatch(/\$0/);
+  });
+
+  it("follows the selected period instead of a trailing 90-day caption", () => {
+    const days = buildOrdersIntelDays([
+      row("2026-09-02", 100, "a"),
+      row("2026-09-18", 100, "b"),
+    ]);
+    expect(ordersIntelWindowLabel(days, "Month to date")).toBe(
+      "Sep 2 → Sep 18 · Month to date",
+    );
+    expect(ordersIntelWindowLabel(days, "Month to date")).not.toMatch(/90/);
+    expect(ordersIntelPeriodBadge("mtd")).toBe("MTD");
+    expect(ordersIntelPeriodBadge("lm")).toBe("Last mo");
+    expect(ordersIntelPeriodBadge("l12m")).not.toBe("90d");
+    const intel = assembleOrdersIntelligence({
+      rows: [row("2026-09-08", 80, "a"), row("2026-09-15", 40, "b")],
+      priorRows: [],
+      orderBook: [row("2026-09-08", 80, "a"), row("2026-09-15", 40, "b")],
+      periodLabel: "Month to date",
+      badge: ordersIntelPeriodBadge("mtd"),
+    });
+    expect(intel?.badge).toBe("MTD");
+    expect(intel?.windowLabel).toContain("Month to date");
+    expect(intel?.windowLabel).not.toMatch(/trailing 90/i);
+    expect(intel?.days).toHaveLength(2);
+  });
+});
+
+describe("orders month board wiring", () => {
+  it("loads the selected period on the admin desk and mounts the same stack on demo", () => {
+    const desk = readFileSync(join(here, "desk-sales-page.server.ts"), "utf8");
+    const demo = readFileSync(join(here, "../routes/demo.orders.tsx"), "utf8");
+    const board = readFileSync(join(here, "../components/OrdersIntelligence.tsx"), "utf8");
+    expect(desk).toContain("resolvePeriod");
+    expect(desk).toContain("resolvePriorPeriod");
+    expect(desk).toContain("assembleOrdersIntelligence");
+    expect(desk).not.toContain("ORDERS_INTEL_WINDOW_DAYS");
+    expect(desk).not.toContain("trailing 90");
+    expect(demo).toContain("<OrdersIntelligence");
+    expect(demo).toContain("<OrdersFrequencyChart");
+    expect(demo).toContain("assembleOrdersIntelligence");
+    expect(demo).toContain("resolvePeriod");
+    expect(board).toContain("{intel.badge}");
+    expect(board).toContain("ordersMonthBoardSentence");
+    expect(board).not.toContain(">90d<");
+    expect(board).toContain("Codes");
+    expect(board).toContain("Returns");
   });
 });
