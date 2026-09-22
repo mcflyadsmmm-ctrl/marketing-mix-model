@@ -1,9 +1,10 @@
 # v13 — niche cleanup: public origin sells Mcfly Analytics ($39 Shopify desk) only.
 # www → apex is zone-level. Splat 404 last.
 # No /page ↔ /page.html rewrites (CF already handles).
-# Listing-trust paths stay 200: /demo /pricing /product /privacy /support /terms /app /download.
+# Listing-trust paths stay 200: /demo /pricing /product /privacy /support /terms /app.
 # Desk comparisons stay 200: /vs-attribution-suites /triple-whale-alternative.
 # Custom/agency/CRM/pixel landers 301 → / or /vs-attribution-suites (no rewrite into a second product).
+# /download was a BE-ROAS/PWA second product — park to desk MER math.
 
 # --- Old homes / brand ---
 /home / 301
@@ -69,10 +70,12 @@
 /cash-mer/ / 301
 /mer /mer-calculator 301
 /total-roas / 301
-# Break-even ROAS as a public product fights the $39 desk niche → desk math only.
+# Break-even ROAS /download PWA as public products fight the $39 desk niche → desk math only.
 /break-even /mer-calculator 301
 /break-even-roas-calculator /mer-calculator 301
 /break-even-roas-calculator/ /mer-calculator 301
+/download /mer-calculator 301
+/download/ /mer-calculator 301
 /glossary / 301
 /monday-close / 301
 /monday-close/ / 301
