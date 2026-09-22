@@ -12,18 +12,18 @@
   <meta name="theme-color" content="#f2f5f8" />
   <title>Pricing — 7-day then $39 | Mcfly Analytics</title>
   <meta name="description" content="One plan: 7-day trial, then $39/store/mo. Overview · Orders · Customers beat native Analytics at $0 spend. Growth and LTV live on Customers. Spend last — Total ROAS = Shopify sales ÷ entered spend. Trial is 90 days of orders; paid is up to 24 months." />
-  <meta name="mcfly-version" content="v31" />
-  <meta name="mcfly-build" content="pricing-sales-first-v31" />
+  <meta name="mcfly-version" content="v32" />
+  <meta name="mcfly-build" content="pricing-gmv-wedge-v32" />
   <link rel="canonical" href="https://mcflyads.com/pricing" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mcflyads.com/pricing" />
   <meta property="og:title" content="Pricing — 7-day then $39 | Mcfly Analytics" />
-  <meta property="og:description" content="7-day free trial. Then $39/month. Full desk. Uninstall stops the charge." />
+  <meta property="og:description" content="7-day free trial. Then $39/month. $39 stays $39 at $5M. Uninstall stops the charge." />
   <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Pricing — 7-day then $39 | Mcfly Analytics" />
-  <meta name="twitter:description" content="7-day free trial. Then $39/month. Five analysis tabs plus Settings. Uninstall stops the charge." />
+  <meta name="twitter:description" content="7-day free trial. Then $39/month. $39 stays $39 at $5M. Uninstall stops the charge." />
   <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
   <link rel="stylesheet" href="/assets/site.css?v=20260829v13" />
@@ -38,6 +38,18 @@
     body.pricing-page .page-hero h1 {
       max-width: 18ch;
       font-size: clamp(40px, 3.6vw, 52px);
+    }
+    body.pricing-page .gmv-wedge {
+      margin: 0.9rem 0 0;
+      max-width: 46ch;
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    body.pricing-page .gmv-wedge span {
+      color: var(--cyan-deep);
     }
     body.pricing-page .price-proof {
       margin: 1.25rem 0 0;
@@ -347,12 +359,12 @@
         "url": "https://mcflyads.com/pricing",
         "offers": {
           "@type": "Offer",
-          "name": "Mcfly Analytics — whole desk",
+          "name": "Mcfly Analytics",
           "price": "39",
           "priceCurrency": "USD",
-          "description": "7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Five analysis tabs plus Settings. Uninstall stops the charge."
+          "description": "7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Five analysis tabs plus Settings. $39 stays $39 at $5M. Uninstall stops the charge."
         },
-        "description": "Deeper Shopify numbers than Analytics Overview. Overview · Orders · Customers at $0 spend. Spend optional. Whole desk after a 7-day trial."
+        "description": "Deeper Shopify numbers than Analytics Overview. Overview · Orders · Customers at $0 spend. Spend optional. Five analysis tabs plus Settings after a 7-day trial. $39 stays $39 at $5M."
       },
       {
         "@type": "BreadcrumbList",
@@ -373,11 +385,12 @@
   <main id="main">
     <header class="page-hero">
       <p class="brand-kicker">Mcfly <span class="ads">Analytics</span></p>
-      <h1>7-day free trial. Then $39/month. Full desk.</h1>
+      <h1>7-day free trial. Then $39/month.</h1>
+      <p class="gmv-wedge"><span>$39 stays $39 at $5M.</span> Path suites often tax GMV. Mcfly does not.</p>
       <p>
         One plan for <strong>Mcfly Analytics</strong>: seven days, then
         <span class="mono formula-inline">$39</span>/store/mo. Trial is 90 days of order history; paid is up to 24 months. Five analysis tabs plus Settings.
-        Uninstall stops the charge. Not a GMV tax. Billing is not a desk mode.
+        Uninstall stops the charge. Billing is not a desk mode.
       </p>
       <p class="price-proof" aria-label="What you pay for">Overview · Orders · Customers beat native Analytics at $0 spend</p>
       <p class="rhythm-line">Shopify numbers first. Spend is the second chapter. Flat $39 — not an order-volume ladder.</p>
@@ -425,10 +438,10 @@
       <div class="price-grid">
         <div class="plan plan-featured">
           <p class="plan-badge">One plan</p>
-          <h2>Whole desk</h2>
+          <h2>Mcfly Analytics</h2>
           <p class="amount">$39 <span>/ store / mo</span></p>
           <p class="plan-lede">
-            After a 7-day trial. Trial is 90 days of order history; paid is up to 24 months. Install opens this shop’s Live book — Shopify sales + the spend you upload. Full Snowdevil SAMPLE demo stays on <a href="/demo">/demo</a>.
+            After a 7-day trial. Trial is 90 days of order history; paid is up to 24 months. SAMPLE is <a href="/demo">/demo</a>. Live Admin is this shop when unparked. Uninstall stops the charge.
           </p>
           <ul class="plan-list">
             <li>Overview: this month, quarter, and year vs last year — KPI cards, a sales chart, and the YoY year board. Spend is optional</li>
@@ -445,11 +458,11 @@
       <section class="tax-band" aria-labelledby="tax-title">
         <p class="eyebrow">Why flat exists</p>
         <h2 id="tax-title">A desk fee shouldn’t climb with GMV.</h2>
-        <p class="tax-lede">Path suites often tax growth. Mcfly is one flat store fee after trial — the question stays <span class="mono formula-inline">are we above break-even Total ROAS?</span></p>
+        <p class="tax-lede">Path suites often tax GMV. Mcfly does not — one flat store fee after trial. The question stays <span class="mono formula-inline">are we above break-even Total ROAS?</span></p>
 
         <div class="tax-pane mcfly">
           <h3>Mcfly order desk</h3>
-          <p>Deeper Shopify numbers than Analytics Overview. Order stats first, then ad spend next to sales if you add it. Spend from every platform you buy, including billboards. Whole desk. Flat fee after trial.</p>
+          <p>Deeper Shopify numbers than Analytics Overview. Order stats first, then ad spend next to sales if you add it. Spend from every platform you buy, including billboards. Five analysis tabs plus Settings. Flat fee after trial.</p>
           <p class="path">Path: <span>Install</span> → 7-day trial → <span>$39/store/mo</span></p>
           <ul class="plan-list">
             <li>Fee stays flat when GMV grows</li>
