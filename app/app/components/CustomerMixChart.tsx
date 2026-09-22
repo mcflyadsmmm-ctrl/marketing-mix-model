@@ -55,6 +55,13 @@ function sharePct(share: number | null): string {
     : "—";
 }
 
+/** Headcount beside first-time dollars. Missing lifetime stays an em dash, never 0. */
+function firstTimeBuyerLabel(count: number | null): string {
+  if (count == null || !Number.isFinite(count)) return "—";
+  const noun = count === 1 ? "first-time buyer" : "first-time buyers";
+  return `${count.toLocaleString()} ${noun}`;
+}
+
 function MixEmptyFrame({ pending }: { pending: boolean }) {
   // A designed guest empty — a ghosted marquee, not a bare em dash. Placeholder
   // columns + a dotted share rail read as "a chart lands here", then honest copy.
@@ -334,10 +341,11 @@ export function CustomerMixChart({
       blocks: [
         { k: "Returning dollars", v: formatCurrency(b.returningDollars, currency) },
         { k: "First-time dollars", v: formatCurrency(b.newDollars, currency) },
+        { k: "First-time buyers", v: firstTimeBuyerLabel(b.firstTimeBuyers) },
         { k: `Total this ${noun}`, v: formatCurrency(b.total, currency) },
         {
           k: "What this is",
-          v: "Returning = orders from buyers who had already ordered on file; first-time = their first order (or a guest). Order dollars only — no spend, no pixel.",
+          v: "Returning = a buyer who already had an order on the stored book, including before this 90-day slice. First-time buyers are counted from those orders. Guests stay in first-time dollars and out of the buyer count.",
         },
       ],
       next: "Win-back cards under this chart name who to reach — order history only.",
@@ -357,7 +365,7 @@ export function CustomerMixChart({
     {
       k: "First-time $",
       v: formatCurrency(summary.newDollars, currency),
-      sub: "first orders",
+      sub: firstTimeBuyerLabel(summary.firstTimeBuyers),
     },
     {
       k: `Best ${noun} $`,
@@ -393,7 +401,8 @@ export function CustomerMixChart({
           </p>
           <p className="mcfly-cust-mix__readsub">
             {sharePct(active.returningShare)} returning · first-time{" "}
-            {formatCurrency(active.newDollars, currency)}
+            {formatCurrency(active.newDollars, currency)} ·{" "}
+            {firstTimeBuyerLabel(active.firstTimeBuyers)}
           </p>
         </div>
       </div>
@@ -548,7 +557,7 @@ export function CustomerMixChart({
               height={PLOT_H}
               tabIndex={0}
               role="button"
-              aria-label={`${b.label}: returning ${formatCurrency(b.returningDollars, currency)}, first-time ${formatCurrency(b.newDollars, currency)}`}
+              aria-label={`${b.label}: returning ${formatCurrency(b.returningDollars, currency)}, first-time ${formatCurrency(b.newDollars, currency)}, ${firstTimeBuyerLabel(b.firstTimeBuyers)}`}
               onMouseEnter={() => setHoverIndex(i)}
               onFocus={() => setHoverIndex(i)}
               onBlur={onPlotPointerLeave}
@@ -635,6 +644,13 @@ export function CustomerMixChart({
               <span className="mcfly-chart__tip-k">First-time</span>
               <span className="mcfly-chart__tip-v">
                 {formatCurrency(active.newDollars, currency)}
+              </span>
+            </li>
+            <li className="mcfly-chart__tip-row">
+              <span className="mcfly-chart__tip-dot mcfly-chart__tip-dot--new" />
+              <span className="mcfly-chart__tip-k">First-time buyers</span>
+              <span className="mcfly-chart__tip-v">
+                {firstTimeBuyerLabel(active.firstTimeBuyers)}
               </span>
             </li>
             <li className="mcfly-chart__tip-row">

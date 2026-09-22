@@ -137,6 +137,102 @@ describe("new vs returning weekly mix", () => {
     const dayBuckets = bucketMixDays(a.mixDaily);
     expect(dayBuckets.map((b) => b.total)).toEqual(a.mixDaily.map((d) => d.total));
   });
+
+  it("counts a buyer as returning when their previous order is stored outside the 90-day slice", () => {
+    const recent = at(10);
+    const spring = at(120);
+    const windowRows: RetentionOrderRow[] = [
+      { customerKey: "quiet", orderedAt: recent, amount: 80, lifetimeOrders: 2 },
+      { customerKey: "fresh", orderedAt: at(12), amount: 40, lifetimeOrders: 1 },
+      {
+        customerKey: RETENTION_GUEST_KEY,
+        orderedAt: at(11),
+        amount: 25,
+        lifetimeOrders: null,
+      },
+    ];
+    const book: RetentionOrderRow[] = [
+      { customerKey: "quiet", orderedAt: spring, amount: 55, lifetimeOrders: 2 },
+      ...windowRows,
+    ];
+    const built = buildCustomerAnalytics(windowRows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+      orderBook: book,
+    });
+    const newSum = built.mixWeekly.reduce((s, w) => s + w.newDollars, 0);
+    const retSum = built.mixWeekly.reduce((s, w) => s + w.returningDollars, 0);
+    // Spring dollars stay outside the 90-day mix. The quiet buyer's later
+    // order is returning. The guest stays first-time dollars, not returning.
+    expect(retSum).toBe(80);
+    expect(newSum).toBe(65);
+    expect(built.mixWeekly.some((w) => w.newDollars === 55 || w.returningDollars === 55)).toBe(
+      false,
+    );
+    const week = built.mixWeekly.find((w) => w.returningDollars === 80);
+    expect(week?.firstTimeBuyers).toBe(1);
+    expect(week?.returningDollars).toBe(80);
+    const quietDay = built.mixDaily.find((d) => d.returningDollars === 80);
+    expect(quietDay?.newDollars).toBe(0);
+    const month = bucketMixWeeks(built.mixWeekly, "month");
+    expect(month.reduce((s, b) => s + b.returningDollars, 0)).toBe(80);
+    expect(month.reduce((s, b) => s + (b.firstTimeBuyers ?? 0), 0)).toBe(1);
+    // Frequency still reads the 90-day slice, not the spring order.
+    expect(built.identifiedBuyers).toBe(2);
+    expect(built.guestOrders).toBe(1);
+  });
+
+  it("keeps a missing lifetime count unknown instead of a fake zero", () => {
+    const rows: RetentionOrderRow[] = [
+      { customerKey: "unsure", orderedAt: at(5), amount: 30, lifetimeOrders: null },
+    ];
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+      orderBook: rows,
+    });
+    expect(built.mixWeekly).toHaveLength(1);
+    expect(built.mixWeekly[0]!.newDollars).toBe(30);
+    expect(built.mixWeekly[0]!.returningDollars).toBe(0);
+    expect(built.mixWeekly[0]!.firstTimeBuyers).toBeNull();
+    expect(built.mixDaily[0]!.firstTimeBuyers).toBeNull();
+    const summary = mixSummary(bucketMixWeeks(built.mixWeekly, "week"));
+    expect(summary.firstTimeBuyers).toBeNull();
+    expect(summary.newDollars).toBe(30);
+  });
+
+  it("does not call a buyer new when stored lifetime orders exceed the book", () => {
+    const rows: RetentionOrderRow[] = [
+      { customerKey: "prior", orderedAt: at(4), amount: 70, lifetimeOrders: 5 },
+    ];
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+      orderBook: rows,
+    });
+    expect(built.mixWeekly[0]!.newDollars).toBe(0);
+    expect(built.mixWeekly[0]!.returningDollars).toBe(70);
+    expect(built.mixWeekly[0]!.firstTimeBuyers).toBe(0);
+  });
+
+  it("keeps guests out of returning and out of the first-time buyer count", () => {
+    const rows: RetentionOrderRow[] = [
+      {
+        customerKey: RETENTION_GUEST_KEY,
+        orderedAt: at(3),
+        amount: 15,
+        lifetimeOrders: null,
+      },
+    ];
+    const built = buildCustomerAnalytics(rows, {
+      windowEnd: WINDOW_END,
+      historyWindowDays: 90,
+      orderBook: rows,
+    });
+    expect(built.mixWeekly[0]!.newDollars).toBe(15);
+    expect(built.mixWeekly[0]!.returningDollars).toBe(0);
+    expect(built.mixWeekly[0]!.firstTimeBuyers).toBe(0);
+  });
 });
 
 describe("bucketMixWeeks + mixSummary — marquee grain toggle", () => {
