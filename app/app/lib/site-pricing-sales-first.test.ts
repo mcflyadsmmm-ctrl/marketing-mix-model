@@ -74,13 +74,10 @@ describe("pricing.html sales-first first fold", () => {
     expect(pricing).not.toMatch(/\$0\.30\/order|\$0\.3 per extra order/i);
   });
 
-  it("parked Live honesty: SAMPLE is /demo; Live Admin only when unparked", () => {
-    if (/opens this shop['\u2019]s Live book/i.test(pricing)) {
-      expect(pricing).toMatch(/when unparked/i);
-    }
-    expect(pricing).toMatch(/when unparked/);
+  it("parked Live honesty: public demo is SAMPLE, not your shop", () => {
+    expect(pricing).not.toMatch(/when unparked/);
     expect(pricing).toMatch(/href="\/demo"/);
-    expect(pricing).toMatch(/SAMPLE is/);
+    expect(pricing).toMatch(/Public demo is SAMPLE Snowdevil/);
   });
 
   it("SAMPLE float cards are sales-first Snowdevil — not Harbor/Northline", () => {
@@ -95,7 +92,7 @@ describe("pricing.html sales-first first fold", () => {
     expect(pricing).toContain("$19,023");
     expect(pricing).toContain("$68,457");
     expect(pricing).toMatch(/3\.60×/);
-    expect(pricing).toContain("BE 2.50× @ 40%");
+    expect(pricing).toContain("SAMPLE · empty BE is —");
     expect(pricing).toContain("SAMPLE · Snowdevil · not a live client");
     expect(pricing).toContain("Total ROAS = Shopify sales ÷ entered spend");
 

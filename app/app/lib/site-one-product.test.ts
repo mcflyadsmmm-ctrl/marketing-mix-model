@@ -68,7 +68,7 @@ describe("listing-trust pages sell one product (Shopify desk)", () => {
   it("Support does not promise Live while the host is parked", () => {
     const support = read("site/support.html");
     expect(support).not.toMatch(/Full desk/i);
-    expect(support).toMatch(/when Live is unparked|SAMPLE-only/);
+    expect(support).toMatch(/SAMPLE Snowdevil, not your shop|SAMPLE Snowdevil, not a live client/);
     expect(support).not.toContain("/custom-analytics");
     expect(support).toMatch(/Overview · Orders · Customers · Spend · Goals/);
     expect(support).toMatch(/Growth and LTV live on Customers/);

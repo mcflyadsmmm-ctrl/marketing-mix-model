@@ -20,19 +20,19 @@ describe("home SAMPLE Slack paste board", () => {
   const overviewSlice =
     overviewIdx >= 0 ? html.slice(overviewIdx, overviewIdx + 1800) : "";
 
-  it("keeps the locked H1, v32, and Snowdevil SAMPLE dollars", () => {
+  it("keeps the locked H1, v33, and Snowdevil SAMPLE dollars", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v32"');
-    expect(html).toContain("mcfly.css?v=20260922v32");
+    expect(html).toContain('content="v33"');
+    expect(html).toContain("mcfly.css?v=20260922v33");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
     expect(html).toContain("/demo?tab=spend");
-    expect(html).toContain("/demo?tab=roas");
     expect(html).toContain("/demo?tab=goals");
-    expect(html).toContain("/demo?tab=yoy");
+    expect(html).not.toContain("/demo?tab=yoy");
+    expect(html).not.toContain("/demo?tab=roas");
   });
 
   it("paints six paste-ready SAMPLE lines with Copy controls", () => {
@@ -56,9 +56,8 @@ describe("home SAMPLE Slack paste board", () => {
     expect(paste).toContain("this window (SAMPLE)");
     expect(paste).not.toMatch(/Saturday\s*\$/);
 
-    expect(paste).toContain("worth $890 in the first 90 days");
+    expect(paste).toContain("New-buyer 90-day worth $890");
     expect(paste).toContain("not an estimate");
-    expect(paste).toContain("never $0");
 
     expect(paste).toContain("21 days");
     expect(paste).toContain("median first→second gap");

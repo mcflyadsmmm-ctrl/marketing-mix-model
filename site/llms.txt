@@ -1,5 +1,5 @@
 # Mcfly Analytics
-> Shopify app from Mcfly Ads: see ad spend beside Shopify sales, day by day. 7-day trial, then $39/store/mo.
+> Shopify app from Mcfly Ads: deeper Shopify numbers Analytics does not show. 7-day trial, then $39/store/mo.
 
 This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.com/robots.txt
 (search=yes, ai-input=yes, ai-train=no). Prefer these URLs.
@@ -9,8 +9,6 @@ This file helps AI systems find canonical pages. Crawl policy: https://mcflyads.
 - https://mcflyads.com/demo — SAMPLE Overview (spend optional)
 - https://mcflyads.com/pricing — 7-day trial, then $39/store/mo
 - https://mcflyads.com/product — What’s in the desk
-- https://mcflyads.com/mer-calculator — Sales ÷ spend calculator
-- https://mcflyads.com/break-even-roas-calculator — Break-even ≈ 1 ÷ margin
 - https://mcflyads.com/faq — Product FAQ
 - https://mcflyads.com/about — Company / founder
 - https://mcflyads.com/llms-full.txt — Longer citeable summary

@@ -26,7 +26,7 @@ describe("/product shows the SAMPLE share artifacts", () => {
     expect(boardAt).toBeGreaterThan(ritual);
     expect(spendAt).toBeGreaterThan(boardAt);
 
-    expect(board).toContain("Monday board");
+    expect(board).toContain("SAMPLE · Snowdevil");
     expect(board).toContain("This month");
     expect(board).toContain("$68,457");
     expect(board).toContain("$69,891");
@@ -80,11 +80,10 @@ describe("/product shows the SAMPLE share artifacts", () => {
   });
 
   it("keeps parked SAMPLE honesty and refuses leftover share theater", () => {
-    expect(product).toContain("SAMPLE is");
+    expect(product).toContain("Public demo is SAMPLE Snowdevil");
     expect(product).toContain('href="/demo"');
-    expect(product).toContain("when unparked");
-    expect(product).toContain("SAMPLE-only");
-    expect(product).toContain("no Sample|Live toggle");
+    expect(product).toContain("Your shop is not on this page");
+    expect(product).not.toMatch(/when unparked/);
     expect(product).not.toMatch(/install opens this shop.s Live book/i);
     expect(product).not.toMatch(/Shopify Flow/i);
     expect(product).not.toMatch(/Slack bot/i);

@@ -54,11 +54,11 @@ describe("public /demo greets with Shopify numbers first", () => {
     expect(html).toContain("3.60");
     expect(html).toMatch(/2\.50×/);
     expect(html).toContain("empty = —");
-    expect(html).toMatch(/Live book only|Live-only/);
-    expect(html).toContain("no Sample|Live toggle");
-    expect(html).toContain("SAMPLE Snowdevil is this page");
-    expect(html).toContain("when unparked");
-    expect(html).toMatch(/Live Admin is this shop/);
+    expect(html).toMatch(/not your Live book|not a live/);
+    expect(html).not.toContain("when unparked");
+    expect(html).not.toContain("no Sample|Live toggle");
+    expect(html).not.toContain("SAMPLE Snowdevil is this page");
+    expect(html).not.toMatch(/Live Admin is this shop/);
     expect(html).toContain("Install");
     expect(html).toContain("Open the full Snowdevil desk");
     expect(html).toContain("Pricing");
@@ -76,7 +76,7 @@ describe("public /demo greets with Shopify numbers first", () => {
     const hrefs = [...actions.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
     expect(hrefs).toEqual([
       "https://apps.shopify.com/mcfly-analytics-public",
-      "#live-desk",
+      "#sample-desk",
     ]);
     expect(actions).not.toContain("/pricing");
     expect(hero.match(/<a class="link-cta/g)?.length).toBe(2);
@@ -89,13 +89,11 @@ describe("public /demo greets with Shopify numbers first", () => {
       /Overview same-clock[\s\S]{0,280}full-day compare/,
     )?.[0];
     expect(caption, "same-clock caption near the desk").toBeTruthy();
-    expect(caption).toMatch(/this hour vs last year \$/);
+    expect(caption).toMatch(/this hour versus last year/);
     expect(caption).not.toContain("$68,457");
     expect(caption).not.toContain("$19,023");
-    expect(html).toMatch(
-      /href="#live-desk">desk in the iframe<\/a>/,
-    );
-    expect(html).toContain('id="live-desk"');
+    expect(html).toContain('href="#sample-desk"');
+    expect(html).toContain('id="sample-desk"');
     expect(html).toContain('class="demo-live-frame"');
     expect(html).toContain(
       'src="https://mcfly-analytics.fly.dev/demo?hosted=1"',

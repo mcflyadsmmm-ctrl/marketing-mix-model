@@ -142,4 +142,21 @@ describe("mcflyads.com go-live copy (1.1.4)", () => {
     expect(pricing).toMatch(/Trial is 90 days of order history/);
     expect(pricing).toMatch(/paid is up to 24 months/i);
   });
+
+  it("spine does not greet with spend-first chrome, Custom inquire, or unparked standup", () => {
+    const chrome = readFileSync(
+      join(siteRoot, "assets/mcfly/chrome.js"),
+      "utf8",
+    );
+    const index = readFileSync(join(siteRoot, "index.html"), "utf8");
+    const demo = readFileSync(join(siteRoot, "demo.html"), "utf8");
+    const llms = readFileSync(join(siteRoot, "llms-full.txt"), "utf8");
+    expect(chrome).not.toMatch(/spend next to Shopify sales/i);
+    expect(index).not.toContain("overflow-safe inquire");
+    expect(index).not.toMatch(/Beat Analytics before you upload/i);
+    expect(demo).not.toMatch(/unparked/i);
+    expect(demo).toContain('id="sample-desk"');
+    expect(llms).toMatch(/Overview, Orders, Customers/);
+    expect(llms).not.toMatch(/Buyers, Timing/);
+  });
 });

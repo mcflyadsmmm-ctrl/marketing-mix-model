@@ -1,19 +1,19 @@
 # Mcfly Analytics — citeable summary
 
-> One product. Mcfly Ads (firm) ships Mcfly Analytics: spend beside Shopify sales. 7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Custom Data Solutions is parked.
+> One product. Mcfly Ads (firm) ships Mcfly Analytics: deeper Shopify numbers Analytics does not show. 7-day trial, then $39/store/mo. Trial is 90 days of orders; paid is up to 24 months. Custom Data Solutions is parked.
 
 ## Product (Shopify)
 
-Total ROAS = Shopify sales after returns (period) ÷ total ad spend (same period).
+Typical order is the median, not Shopify’s AOV. Returning dollars, not the returning-customer rate. Overview, Orders, and Customers work at $0 spend. Growth and LTV are Customers chips.
+Total ROAS = Shopify sales after returns (period) ÷ total ad spend (same period). Empty spend is —, never 0×.
 Break-even Total ROAS ≈ 1 ÷ contribution margin.
 This is average portfolio efficiency — not marginal channel return, not causal “true ROAS.”
-Desk: Overview, Orders, Buyers, Timing, Goals, Marketing (spend optional). SAMPLE demo at /demo. Install: https://apps.shopify.com/mcfly-analytics-public
+Desk: Overview, Orders, Customers, Spend (optional), Goals. SAMPLE demo at /demo. Install: https://apps.shopify.com/mcfly-analytics-public
 Primary URLs: https://mcflyads.com/ · https://mcflyads.com/demo · https://mcflyads.com/pricing · https://mcflyads.com/product
 
 ## Method / refuse
 
-Platforms over-claim conversions. Mcfly measures money spent on ads vs sales in the same period.
-We do not ship: pixels, multi-touch attribution, path/view-through credit, “true ROAS,” or attribution-suite clones.
+We do not ship: pixels, multi-touch attribution, path/view-through credit, “true ROAS,” sessions/visitors, Amazon Seller ledgers, or attribution-suite clones.
 Live listing: https://apps.shopify.com/mcfly-analytics-public — CTA is Install. Do not invent a different App Store URL.
 
 ## Entity
