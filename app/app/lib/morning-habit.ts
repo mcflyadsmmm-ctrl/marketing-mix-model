@@ -1,0 +1,130 @@
+/**
+ * One morning sentence from numbers already on the desk.
+ * Typical order label, returning-sales share, optional goal line.
+ * Thin or pending history is an honest floor. Never $0, never 0×,
+ * never a fake last year. Order history only — no ad login, no spend.
+ */
+
+export const MORNING_HABIT_FLOOR_SENTENCE =
+  "Morning read waits on a typical order and returning sales from this shop’s order history.";
+
+/** Ready history, but this read does not carry those numbers. */
+export const MORNING_HABIT_SPARSE_SENTENCE =
+  "Typical order and returning sales are not on this read.";
+
+export type MorningHistory = "ready" | "thin" | "pending";
+
+export type MorningEmptyKind = "syncing" | "thin" | "young" | "unset";
+
+export type MorningSentenceInput = {
+  /** Already formatted on the desk, such as "$84". */
+  typicalOrderLabel?: string | null;
+  /** Returning sales ÷ (new $ + returning $), from 0 to 1. */
+  returningSalesShare?: number | null;
+  /** Goal line already written on Goals. Optional. */
+  goalLine?: string | null;
+  history?: MorningHistory;
+};
+
+export function morningHistoryFromEmpty(kind: MorningEmptyKind): MorningHistory {
+  switch (kind) {
+    case "syncing":
+      return "pending";
+    case "thin":
+    case "young":
+      return "thin";
+    case "unset":
+      return "ready";
+    default: {
+      const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
+function moneyAmounts(text: string): number[] {
+  const matches = text.match(/[$£€]\s*\d[\d,]*(?:\.\d+)?/g) ?? [];
+  return matches
+    .map((match) => Number(match.replace(/[^0-9.]/g, "")))
+    .filter((amount) => Number.isFinite(amount));
+}
+
+function hasZeroMoney(text: string): boolean {
+  return moneyAmounts(text).some((amount) => amount === 0);
+}
+
+/** A zero multiple (0× / 0.00×). Leaves a real 10× alone — we still never invent one. */
+function hasZeroMultiple(text: string): boolean {
+  return /(?:^|[^\d.])0+(?:\.0+)?\s*×/.test(text);
+}
+
+function mentionsFakeLastYear(text: string): boolean {
+  return /last year/i.test(text);
+}
+
+function isUnsafeDeskText(text: string): boolean {
+  return (
+    mentionsFakeLastYear(text) || hasZeroMoney(text) || hasZeroMultiple(text)
+  );
+}
+
+function safeTypicalOrder(label: string | null | undefined): string | null {
+  if (label == null) return null;
+  const trimmed = label.trim();
+  if (!trimmed || trimmed === "—" || trimmed === "-" || /^n\/a$/i.test(trimmed)) {
+    return null;
+  }
+  if (isUnsafeDeskText(trimmed)) return null;
+  return trimmed;
+}
+
+function safeGoalLine(line: string | null | undefined): string | null {
+  if (line == null) return null;
+  const trimmed = line.trim();
+  if (!trimmed || isUnsafeDeskText(trimmed)) return null;
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+function returningLine(share: number | null | undefined): string | null {
+  if (share == null || !Number.isFinite(share) || share < 0 || share > 1) {
+    return null;
+  }
+  const pct = Math.round(share * 100);
+  if (pct <= 0) {
+    return share === 0
+      ? "Returning buyers are not carrying sales in this window."
+      : null;
+  }
+  return `Returning buyers carry ${pct}% of sales.`;
+}
+
+function composeReadySentence(input: MorningSentenceInput): string {
+  const typical = safeTypicalOrder(input.typicalOrderLabel);
+  const parts = [
+    typical ? `Typical order around ${typical}.` : null,
+    returningLine(input.returningSalesShare),
+    safeGoalLine(input.goalLine),
+  ].filter((part): part is string => part != null);
+
+  if (parts.length === 0) return MORNING_HABIT_SPARSE_SENTENCE;
+  const sentence = parts.join(" ");
+  if (isUnsafeDeskText(sentence)) return MORNING_HABIT_FLOOR_SENTENCE;
+  return sentence;
+}
+
+export function morningSentence(
+  input: MorningSentenceInput = {},
+): string {
+  const history: MorningHistory = input.history ?? "ready";
+  switch (history) {
+    case "thin":
+    case "pending":
+      return MORNING_HABIT_FLOOR_SENTENCE;
+    case "ready":
+      return composeReadySentence(input);
+    default: {
+      const _exhaustive: never = history;
+      return _exhaustive;
+    }
+  }
+}

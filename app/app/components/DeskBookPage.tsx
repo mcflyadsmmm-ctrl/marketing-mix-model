@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { useSearchParams } from "react-router";
+import { MorningHabitStrip } from "./MorningHabitStrip";
 import { PeriodControl } from "./PeriodControl";
 import { SalesLoadError } from "./SalesLoadError";
 import { deskBookHonestyNotices } from "../lib/desk-history";
@@ -110,6 +111,8 @@ export function DeskBookPage({
             ) : null}
           </div>
         </div>
+
+        {shotMode ? null : <MorningHabitStrip />}
 
         {notices.map((notice) => (
           <s-banner

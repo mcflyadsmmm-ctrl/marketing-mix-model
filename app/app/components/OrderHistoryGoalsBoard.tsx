@@ -14,6 +14,8 @@ import {
   type HabitGoalTrack,
   type HabitGoalsView,
 } from "../lib/goals-habit";
+import { morningSentence } from "../lib/morning-habit";
+import { CopyMorningSentence } from "./MorningHabitStrip";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 
@@ -264,6 +266,7 @@ export function OrderHistoryGoalsBoard({
       </div>
 
       {read ? (
+        <div className="mcfly-morning-on-read">
         <button
           type="button"
           className="mcfly-habit-goals__read"
@@ -297,6 +300,13 @@ export function OrderHistoryGoalsBoard({
           <span className="mcfly-habit-goals__read-v">{heroMoney}</span>
           <span className="mcfly-habit-goals__read-line">{read.line}</span>
         </button>
+        <CopyMorningSentence
+          sentence={morningSentence({
+            history: "ready",
+            goalLine: read.line,
+          })}
+        />
+        </div>
       ) : null}
 
       <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">

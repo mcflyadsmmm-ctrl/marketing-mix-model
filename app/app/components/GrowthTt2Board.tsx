@@ -1,3 +1,5 @@
+import { morningSentence } from "../lib/morning-habit";
+import { CopyMorningSentence } from "./MorningHabitStrip";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { VerticalBars } from "./CustomerCharts";
@@ -201,6 +203,7 @@ export function GrowthTt2Board({ tt2 }: { tt2: GrowthTt2View }) {
       </div>
 
       {read ? (
+        <div className="mcfly-morning-on-read">
         <button
           type="button"
           className="mcfly-growth-tt2__read"
@@ -229,6 +232,10 @@ export function GrowthTt2Board({ tt2 }: { tt2: GrowthTt2View }) {
           </span>
           <span className="mcfly-growth-tt2__read-line">{read.line}</span>
         </button>
+        <CopyMorningSentence
+          sentence={morningSentence({ history: "ready" })}
+        />
+        </div>
       ) : null}
 
       <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">

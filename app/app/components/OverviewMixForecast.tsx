@@ -8,6 +8,8 @@ import {
   type OverviewMixEmptyKind,
   type OverviewMixForecastView,
 } from "../lib/overview-mix-forecast";
+import { morningSentence } from "../lib/morning-habit";
+import { CopyMorningSentence } from "./MorningHabitStrip";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 
@@ -194,10 +196,11 @@ export function OverviewMixForecast({
       </div>
 
       {read ? (
-        <button
-          type="button"
-          className="mcfly-ov-mix__read"
-          onClick={() =>
+        <div className="mcfly-morning-on-read">
+          <button
+            type="button"
+            className="mcfly-ov-mix__read"
+            onClick={() =>
             drill?.openDrill({
               title: "New vs returning $",
               value:
@@ -233,12 +236,19 @@ export function OverviewMixForecast({
               nextHref: customersHref,
               nextLabel: `Open ${PRODUCT_NOUN.buyersTitle}`,
             })
-          }
-        >
-          <span className="mcfly-ov-mix__read-k">Today’s read</span>
-          <span className="mcfly-ov-mix__read-v">{closeMoney}</span>
-          <span className="mcfly-ov-mix__read-line">{read.line}</span>
-        </button>
+            }
+          >
+            <span className="mcfly-ov-mix__read-k">Today’s read</span>
+            <span className="mcfly-ov-mix__read-v">{closeMoney}</span>
+            <span className="mcfly-ov-mix__read-line">{read.line}</span>
+          </button>
+          <CopyMorningSentence
+            sentence={morningSentence({
+              history: "ready",
+              returningSalesShare: mix?.returningShare ?? null,
+            })}
+          />
+        </div>
       ) : null}
 
       <div className="mcfly-cust-kpis mcfly-cust-kpis--actions">
