@@ -65,6 +65,21 @@ describe("listing-trust pages sell one product (Shopify desk)", () => {
     expect(support).not.toMatch(/whole desk \(Spend, Overview, LTV, Goals\)/);
   });
 
+  it("Support does not promise Live while the host is parked", () => {
+    const support = read("site/support.html");
+    expect(support).not.toMatch(/Full desk/i);
+    expect(support).toMatch(/when Live is unparked|SAMPLE-only/);
+    expect(support).not.toContain("/custom-analytics");
+    expect(support).toMatch(/Overview · Orders · Customers · Spend · Goals/);
+    expect(support).toMatch(/Growth and LTV live on Customers/);
+    expect(support).toContain("no Sample|Live toggle");
+    expect(support).toMatch(/this app host/);
+    expect(support).toMatch(/after Pages upload/);
+    expect(support).not.toMatch(
+      /href="https:\/\/mcflyads\.com\/(privacy|support|terms|pricing)"/,
+    );
+  });
+
   it("Privacy keeps Shopify scopes and does not claim a parked inquire form", () => {
     const privacy = read("site/privacy.html");
     expect(privacy).toContain("read_orders");
