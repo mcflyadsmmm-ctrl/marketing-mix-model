@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v417 / tip `64a6189` (merge of #166 Goals honesty) / image `deployment-01M34BG9912D8MRM81DYA6TYE5` / Live PARKED. Health ok 2026-09-22T10:46Z. v416 was third-order steps.
+**Tip Fly note:** v418 / tip `59e8d27` (merge of #167 phone Goals board) / image `deployment-01M34CV26V2P0DP9PW5HFCJ9GE` / Live PARKED. Health ok 2026-09-22T11:10Z. v417 was Goals honesty.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v417 / tip `64a6189` / Live PARKED |
+| Tip Fly SoT | v418 / tip `59e8d27` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v417 / tip `64a6189`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v418 / tip `59e8d27`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 2 of that queue is the only cook. |
+| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 3 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**On my phone I cannot read this month versus the plan.** “On my phone I cannot read this month versus the plan without swiping a 720px table.”
+**Spend pair tells the truth.** “I added yesterday’s spend before closed sales landed. The explorer bar said 0×. I cannot copy Shopify Total Sales, typed spend, and Total ROAS. Weekday-only paste still makes the pair look like 6×.”
 
-Goals year board plus Orders / Customers chips plus Spend CPA window cards at `max-width: 36rem`. This month’s Goal / Actual / Prior stay on screen. The dollar may wrap. Missing last year stays —. CPA keeps `rangeLabel`. Orders peek text wraps (the `33.333%` lock may change in this cook only). Customers chips are readable. Never a fake `$0`. No new tab. No Goals formula change. One writer in `mcfly-desk.css`. Do not edit the morning-habit CSS block.
+Spend first lane (Sales · Spend · Total ROAS) and the explorer. Explorer MER is — when sales are not on file. `$0` sales is only a certified closed-day zero. Never 0× from `?? 0`. The pair names coverage or withholds; do not write `$0` spend onto missing days. One copy control using `formatTotalRoasEquation`. A second labeled line is **Online** Shopify Total Sales ÷ typed spend, with POS/Shop named as excluded. Live explorer week grain uses unique buyers or stays —. Public `/demo/spend` mounts the same payback book Admin SAMPLE uses. Day-0 `{ revenue: 0 }` is not a finished zero.
 
-Branch `cursor/phone-goals-chips-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 3–12 of the next-pass queue stay queued. Do not rebuild Goals honesty, third-order steps, same-clock, the orders month board, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/spend-pair-honesty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 4–12 of the next-pass queue stay queued. Do not rebuild the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 2.
+Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 3.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
