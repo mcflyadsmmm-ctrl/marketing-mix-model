@@ -4,10 +4,10 @@
 
 | Field | Value |
 | --- | --- |
-| **Updated** | 2026-09-22 · America/Denver · Site **v37** Pages `92614e40` · Fly **440** · occupancy **round-4 fleet** · ads **NO** |
-| **Live** | https://mcflyads.com · `mcfly-version` **v37** · Overview → Orders → Customers first · paste is this month vs last year + typical order + returning dollars · names native Reports Group-by + ShopifyQL returning sales $ + RCI from $59 + TrueProfit from $35 · `/lab` 301 · cash OG 301 · `/demo` iframes Fly Remix SAMPLE desk |
-| **Fly** | https://mcfly-analytics.fly.dev · version **440** · `/health` 200 · `/lab` 301 home · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings · fly.dev `/` marketing **v37** |
-| **North star** | Paid **$39** installs that **stay**. Overview · Orders · Customers package median ticket, returning dollars, and month/quarter/year on one board at **$0 spend**. Native Reports already Group by weekday. ShopifyQL already can show returning sales $. Repeat Customer Insights from $59 is the closer LTV/latency app. Spend is the door, not the greeting (Total ROAS / mix / CPA folded onto Spend). Empty first folds uninstall. Empty spend is **—** not 0×; pending sales are not $0. Custom is **301 to home**. Do not assume the app or niche is perfected. |
+| **Updated** | 2026-09-22 · America/Denver · Site **v38** Pages `dfb9f017` · Fly **441** · occupancy **round-5 fleet** · ads **NO** |
+| **Live** | https://mcflyads.com · `mcfly-version` **v38** · leftover is median ticket (not native returning/weekend/LTV) · TrueProfit listing 4.9 (898) · native Dashboard vs Reports staff named · Goals not a second sales plan · `/lab` 301 · cash OG 301 · `/demo` iframes Fly Remix SAMPLE desk |
+| **Fly** | https://mcfly-analytics.fly.dev · version **441** · `/health` 200 · `/lab` 301 home · public Remix `/demo` = Admin SAMPLE chrome · Overview · Orders · Customers · Spend · Goals · Settings · fly.dev `/` marketing **v38** |
+| **North star** | Paid **$39** installs that **stay**. Leftover Analytics still does not ship is the **median ticket**. Native already Groups by weekday, can show ShopifyQL returning sales $, pins monthly sales targets, and has customer cohort reports. Repeat Customer Insights from $59 is the closer LTV/latency app. Spend is the door, not the greeting. Empty spend is **—** not 0×. Custom is **301 to home**. Do not assume the app or niche is perfected. |
 | **Craft** | `site/assets/mcfly/` paper/sky · original ribbon `mcfly-m.png` · never stack into `site.css` for Tier A |
 | **Repo** | https://github.com/mcflyadsmmm-ctrl/marketing-mix-model |
 | **Pages** | Cloudflare `mcflyads` · Direct Upload · Cloud Agent env `CLOUDFLARE_API_TOKEN` (Pages Edit) + `CLOUDFLARE_ACCOUNT_ID` connected 2026-09-22 · deploy from **non-git** temp dir |
