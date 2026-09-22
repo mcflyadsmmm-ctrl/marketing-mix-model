@@ -128,3 +128,76 @@ export function morningSentence(
     }
   }
 }
+
+export type HabitMorningTargetSource = "typed" | "sample" | "average";
+
+function paintedMoney(label: string | null | undefined): string | null {
+  const safe = safeTypicalOrder(label);
+  if (!safe || /^[\d,.\s]+$/.test(safe)) return null;
+  return safe;
+}
+
+/**
+ * Goals copy uses shop-currency labels from the board.
+ * Bare "120,000" is not a sentence a teammate can paste.
+ */
+export function habitMorningGoalLine(input: {
+  returningActual?: string | null;
+  returningTarget?: string | null;
+  returningPct?: number | null;
+  returningMet?: boolean;
+  targetSource?: HabitMorningTargetSource | null;
+  ltvActual?: string | null;
+  ltvWindow?: string | null;
+}): string | null {
+  const parts: string[] = [];
+  const ltvActual = paintedMoney(input.ltvActual);
+  const ltvWindow = input.ltvWindow?.trim();
+  if (ltvActual && ltvWindow) {
+    parts.push(
+      `A new buyer is worth ${ltvActual} in the ${ltvWindow} — Target Line is that average, not a goal you set.`,
+    );
+  }
+
+  const actual = paintedMoney(input.returningActual);
+  const target = paintedMoney(input.returningTarget);
+  const source = input.targetSource;
+  if (actual && source) {
+    const pct =
+      input.returningPct != null && Number.isFinite(input.returningPct)
+        ? Math.round(input.returningPct * 100)
+        : null;
+    switch (source) {
+      case "sample":
+        if (target && (input.returningMet || pct != null)) {
+          parts.push(
+            input.returningMet
+              ? `Returning buyers already carry ${actual} this year — at the Snowdevil stretch ${target} (SAMPLE example, not a target you typed).`
+              : `Returning buyers carry ${actual} this year — ${pct}% of the Snowdevil stretch ${target} (SAMPLE example, not a target you typed).`,
+          );
+        }
+        break;
+      case "typed":
+        if (target && (input.returningMet || pct != null)) {
+          parts.push(
+            input.returningMet
+              ? `Returning buyers already carry ${actual} this year — at your ${target} target.`
+              : `Returning buyers carry ${actual} this year — ${pct}% of your ${target} target.`,
+          );
+        }
+        break;
+      case "average":
+        parts.push(`Returning buyers carry ${actual} this year.`);
+        break;
+      default: {
+        const _exhaustive: never = source;
+        return _exhaustive;
+      }
+    }
+  }
+
+  if (parts.length === 0) return null;
+  const line = parts.join(" ");
+  if (isUnsafeDeskText(line)) return null;
+  return line;
+}

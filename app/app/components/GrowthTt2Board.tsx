@@ -233,7 +233,10 @@ export function GrowthTt2Board({ tt2 }: { tt2: GrowthTt2View }) {
           <span className="mcfly-growth-tt2__read-line">{read.line}</span>
         </button>
         <CopyMorningSentence
-          sentence={morningSentence({ history: "ready" })}
+          sentence={morningSentence({
+            history: "ready",
+            goalLine: read.line,
+          })}
         />
         </div>
       ) : null}

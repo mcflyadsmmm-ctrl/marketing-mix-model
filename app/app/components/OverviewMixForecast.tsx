@@ -106,9 +106,14 @@ function pct(share: number): string {
 export function OverviewMixForecast({
   view,
   customersHref = "/app/customers",
+  typicalOrder = null,
+  meanAov = null,
 }: {
   view: OverviewMixForecastView;
   customersHref?: string;
+  /** Median order already on Overview. Mean fills only when the median is absent. */
+  typicalOrder?: number | null;
+  meanAov?: number | null;
 }) {
   const currency = useDeskCurrency();
   const drill = useDeskDrill();
@@ -184,6 +189,22 @@ export function OverviewMixForecast({
   const closeMoney = forecast
     ? formatCurrency(forecast.projected, currency)
     : "—";
+  const typicalValue =
+    typicalOrder != null && Number.isFinite(typicalOrder)
+      ? typicalOrder
+      : meanAov != null && Number.isFinite(meanAov)
+        ? meanAov
+        : null;
+  const typicalOrderLabel =
+    typicalValue != null && typicalValue > 0
+      ? formatCurrency(typicalValue, currency)
+      : null;
+  const monthCloseLine =
+    forecast && closeMoney !== "—"
+      ? forecast.closed
+        ? `This month closed at ${closeMoney}.`
+        : `Month close is ${closeMoney}.`
+      : null;
 
   return (
     <section
@@ -245,7 +266,9 @@ export function OverviewMixForecast({
           <CopyMorningSentence
             sentence={morningSentence({
               history: "ready",
+              typicalOrderLabel,
               returningSalesShare: mix?.returningShare ?? null,
+              goalLine: monthCloseLine,
             })}
           />
         </div>

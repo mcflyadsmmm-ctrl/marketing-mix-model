@@ -14,7 +14,7 @@ import {
   type HabitGoalTrack,
   type HabitGoalsView,
 } from "../lib/goals-habit";
-import { morningSentence } from "../lib/morning-habit";
+import { habitMorningGoalLine, morningSentence } from "../lib/morning-habit";
 import { CopyMorningSentence } from "./MorningHabitStrip";
 import { DeskIcon } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
@@ -254,6 +254,20 @@ export function OrderHistoryGoalsBoard({
     : returning
       ? formatCurrency(returning.actual, currency)
       : "—";
+  const goalLine = habitMorningGoalLine({
+    returningActual: returning
+      ? formatCurrency(returning.actual, currency)
+      : null,
+    returningTarget: returning
+      ? formatCurrency(returning.target, currency)
+      : null,
+    returningPct: returning?.pct ?? null,
+    returningMet: returning?.met,
+    targetSource: returning?.targetSource ?? null,
+    ltvActual: ltv ? formatCurrency(ltv.actual, currency) : null,
+    ltvWindow: ltv?.windowLabel ?? null,
+  });
+  const shownLine = goalLine ?? read?.line ?? null;
 
   return (
     <section
@@ -276,7 +290,7 @@ export function OrderHistoryGoalsBoard({
               value: heroMoney,
               kicker: "Today’s read",
               blocks: [
-                { k: "What this is", v: read.line },
+                { k: "What this is", v: shownLine ?? read.line },
                 ltv
                   ? {
                       k: "New-buyer worth",
@@ -298,12 +312,12 @@ export function OrderHistoryGoalsBoard({
         >
           <span className="mcfly-habit-goals__read-k">Today’s read</span>
           <span className="mcfly-habit-goals__read-v">{heroMoney}</span>
-          <span className="mcfly-habit-goals__read-line">{read.line}</span>
+          <span className="mcfly-habit-goals__read-line">{shownLine}</span>
         </button>
         <CopyMorningSentence
           sentence={morningSentence({
             history: "ready",
-            goalLine: read.line,
+            goalLine,
           })}
         />
         </div>

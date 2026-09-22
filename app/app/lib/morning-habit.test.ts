@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   MORNING_HABIT_FLOOR_SENTENCE,
+  habitMorningGoalLine,
   morningSentence,
 } from "./morning-habit";
 
@@ -14,7 +15,7 @@ function read(rel: string): string {
 }
 
 const FULL_SENTENCE =
-  "Typical order around $84. Returning buyers carry 42% of sales. Returning buyers carry 120,000 this year — 40% of your 300,000 target.";
+  "Typical order around $84. Returning buyers carry 42% of sales. Returning buyers carry $120,000 this year — 40% of your $300,000 target.";
 
 describe("morningSentence", () => {
   it("returns the floor sentence when history is thin or pending", () => {
@@ -26,7 +27,7 @@ describe("morningSentence", () => {
         history: "pending",
         typicalOrderLabel: "$84",
         returningSalesShare: 0.42,
-        goalLine: "Returning buyers carry 120,000 this year.",
+        goalLine: "Returning buyers carry $120,000 this year.",
       }),
     ).toBe(MORNING_HABIT_FLOOR_SENTENCE);
     expect(morningSentence({ history: "thin", typicalOrderLabel: "$0" })).toBe(
@@ -44,7 +45,7 @@ describe("morningSentence", () => {
         typicalOrderLabel: "$84",
         returningSalesShare: 0.42,
         goalLine:
-          "Returning buyers carry 120,000 this year — 40% of your 300,000 target.",
+          "Returning buyers carry $120,000 this year — 40% of your $300,000 target.",
       }),
     ).toBe(FULL_SENTENCE);
     expect(FULL_SENTENCE).not.toMatch(/\$0/);
@@ -72,7 +73,7 @@ describe("morningSentence", () => {
     const kept = morningSentence({
       typicalOrderLabel: "$84",
       returningSalesShare: 0.42,
-      goalLine: "A new buyer is worth 120 in the first year.",
+      goalLine: "A new buyer is worth $120 in the first year.",
     });
     expect(kept).toContain("first year");
     expect(kept).not.toMatch(/last year/i);
@@ -84,6 +85,41 @@ describe("morningSentence", () => {
     expect(morningSentence({ history: "ready" })).not.toBe(
       MORNING_HABIT_FLOOR_SENTENCE,
     );
+  });
+});
+
+describe("habitMorningGoalLine", () => {
+  it("paints shop currency on the returning target", () => {
+    expect(
+      habitMorningGoalLine({
+        returningActual: "$120,000",
+        returningTarget: "$300,000",
+        returningPct: 0.4,
+        returningMet: false,
+        targetSource: "typed",
+      }),
+    ).toBe(
+      "Returning buyers carry $120,000 this year — 40% of your $300,000 target.",
+    );
+  });
+
+  it("drops a bare amount and a $0 label", () => {
+    expect(
+      habitMorningGoalLine({
+        returningActual: "120,000",
+        returningTarget: "$300,000",
+        returningPct: 0.4,
+        targetSource: "typed",
+      }),
+    ).toBeNull();
+    expect(
+      habitMorningGoalLine({
+        returningActual: "$0",
+        returningTarget: "$300,000",
+        returningPct: 0,
+        targetSource: "typed",
+      }),
+    ).toBeNull();
   });
 });
 
@@ -121,5 +157,14 @@ describe("Morning habit strip and copy mounts", () => {
       expect(src).toContain("morningSentence(");
       expect(src).toContain("<CopyMorningSentence");
     }
+    const overview = read("../components/OverviewMixForecast.tsx");
+    expect(overview).toContain("typicalOrder");
+    expect(overview).toContain("Month close is");
+    const goals = read("../components/OrderHistoryGoalsBoard.tsx");
+    expect(goals).toContain("habitMorningGoalLine");
+    expect(goals).toContain("formatCurrency");
+    const growth = read("../components/GrowthTt2Board.tsx");
+    expect(growth).toContain("goalLine: read.line");
+    expect(growth).not.toMatch(/morningSentence\(\{\s*history:\s*"ready"\s*\}\)/);
   });
 });

@@ -230,6 +230,12 @@ export default function PublicDemoOverview() {
                   <OverviewMixForecast
                     view={mixView}
                     customersHref={customersHref}
+                    typicalOrder={data.depth.medianAov}
+                    meanAov={
+                      data.sales.orderCount > 0
+                        ? data.sales.totalSales / data.sales.orderCount
+                        : null
+                    }
                   />
                   <OrderHistoryForecast
                     view={data.orderHistoryForecast}
