@@ -34,6 +34,25 @@ describe("Fly honors Pages parked-lander redirects", () => {
     expect(matchSiteRedirect("/triple-whale-alternative", rules)).toMatchObject({
       to: "/",
     });
+    expect(matchSiteRedirect("/lab.html", rules)).toMatchObject({
+      to: "/",
+      code: 301,
+    });
+    expect(matchSiteRedirect("/custom-analytics.html", rules)).toMatchObject({
+      to: "/",
+      code: 301,
+    });
+    expect(matchSiteRedirect("/custom-analytics-engagement.html", rules)).toMatchObject(
+      { to: "/", code: 301 },
+    );
+    expect(matchSiteRedirect("/lead-gen-desk.html", rules)).toMatchObject({
+      to: "/",
+      code: 301,
+    });
+    expect(matchSiteRedirect("/cash-mer.html", rules)).toMatchObject({
+      to: "/",
+      code: 301,
+    });
   });
 
   it("never maps /app or /demo through marketing redirects", () => {

@@ -61,6 +61,20 @@ describe("v35 competitor and native-Analytics honesty", () => {
     expect(pricing).toContain("TrueProfit from $35/mo");
     expect(pricing).toContain("Mcfly reviews: 0");
     expect(pricing).not.toMatch(/\$0\.30\/order|\$0\.3 per extra order/i);
+    expect(index).toContain("TrueProfit listing 4.9 (898)");
+    expect(index).not.toContain("TrueProfit listing 5.0 (880)");
+    expect(index).toContain("Lifetimely from $49");
+    expect(pricing).toContain("Lifetimely from $49");
+  });
+
+  it("does not claim a Google Fonts CDN the site no longer loads", () => {
+    expect(index).not.toMatch(/Google Fonts CDN|fonts\.googleapis\.com/i);
+    const cookies = readSite("site/cookies.html");
+    const privacy = readSite("site/privacy.html");
+    const dpa = readSite("site/dpa.html");
+    expect(cookies).not.toMatch(/Google Fonts/);
+    expect(privacy).not.toMatch(/Google Fonts/);
+    expect(dpa).not.toMatch(/Google Fonts CDN|FormSubmit\.co/);
   });
 
   it("discloses the live App Store card is still spend-first", () => {
