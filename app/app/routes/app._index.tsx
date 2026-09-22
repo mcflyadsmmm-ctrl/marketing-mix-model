@@ -873,6 +873,12 @@ export default function Dashboard() {
                   <OverviewMixForecast
                     view={mixView}
                     customersHref={customersHref}
+                    typicalOrder={metrics.shopifyDepth.medianAov}
+                    meanAov={
+                      metrics.orderCount > 0
+                        ? metrics.sales / metrics.orderCount
+                        : null
+                    }
                   />
                   <OrderHistoryForecast
                     view={forecastView}

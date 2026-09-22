@@ -21674,3 +21674,42 @@ button.mcfly-habit-goals__read:focus-visible {
     text-align: left;
   }
 }
+
+/* Morning habit — three first wins + copy on Today’s read.
+ * APPEND ONLY. Order history only. No spend, no ad login. */
+
+.mcfly-morning-habit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.45rem;
+  margin: 0.15rem 0 0.75rem;
+}
+
+.mcfly-morning-habit__k {
+  margin: 0 0.15rem 0 0;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mcfly-accent-ink);
+}
+
+.mcfly-morning-on-read {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0 0 0.75rem;
+}
+
+.mcfly-morning-on-read > .mcfly-ov-mix__read,
+.mcfly-morning-on-read > .mcfly-habit-goals__read,
+.mcfly-morning-on-read > .mcfly-growth-tt2__read {
+  margin-bottom: 0;
+}
+
+.mcfly-desk--shot .mcfly-morning-copy,
+.mcfly-desk--shot .mcfly-morning-habit {
+  display: none;
+}
