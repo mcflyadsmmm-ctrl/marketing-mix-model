@@ -21405,3 +21405,136 @@ button.mcfly-habit-goals__read:focus-visible {
   line-height: 1.45;
   color: var(--mcfly-mute);
 }
+
+/* P2-A order-history forecast — next month from the typical day.
+   APPEND ONLY. Formula text stays on the page. Downs stay grey. */
+.mcfly-oh-forecast__period {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-oh-forecast__value {
+  margin: 0.15rem 0 0.35rem;
+  font-size: 1.65rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-oh-forecast__empty,
+.mcfly-oh-forecast__formula,
+.mcfly-oh-forecast__plug,
+.mcfly-oh-forecast__method,
+.mcfly-oh-forecast__days {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.mcfly-oh-forecast__formula {
+  font-weight: 700;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-oh-forecast__plug {
+  font-variant-numeric: tabular-nums;
+  color: var(--mcfly-ink);
+}
+
+.mcfly-oh-forecast__empty,
+.mcfly-oh-forecast__method,
+.mcfly-oh-forecast__days {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-oh-forecast__targets {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+
+.mcfly-oh-forecast__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "k v"
+    "sub delta";
+  gap: 0.12rem 0.75rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--mcfly-line-soft);
+}
+
+.mcfly-oh-forecast__row-k {
+  grid-area: k;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.mcfly-oh-forecast__row-v {
+  grid-area: v;
+  font-size: 0.95rem;
+  font-weight: 750;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.mcfly-oh-forecast__row-sub {
+  grid-area: sub;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-oh-forecast__delta {
+  grid-area: delta;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.mcfly-oh-forecast__delta--up {
+  color: var(--mcfly-delta-up);
+}
+
+.mcfly-oh-forecast__delta--down {
+  color: var(--mcfly-delta-down);
+}
+
+.mcfly-oh-forecast__delta--flat {
+  color: var(--mcfly-mute);
+}
+
+.mcfly-oh-forecast__glance {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--mcfly-mute);
+}
+
+.mcfly-oh-forecast__glance a {
+  color: inherit;
+  font-weight: 700;
+}
+
+@media (max-width: 420px) {
+  .mcfly-oh-forecast__value {
+    font-size: 1.35rem;
+  }
+
+  .mcfly-oh-forecast__row {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "k"
+      "v"
+      "delta"
+      "sub";
+  }
+
+  .mcfly-oh-forecast__row-v,
+  .mcfly-oh-forecast__delta {
+    text-align: left;
+  }
+}

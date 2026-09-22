@@ -9,7 +9,10 @@ import {
   stampPublicDemoDocumentHeaders,
 } from "./public-demo-headers";
 import { loadPublicSampleBook } from "./public-sample-book.server";
-import { sampleLtvAverages } from "./public-sample-page.server";
+import {
+  loadPublicSamplePage,
+  sampleLtvAverages,
+} from "./public-sample-page.server";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 
@@ -68,6 +71,27 @@ describe("public Remix SAMPLE desk", () => {
     expect(sales / spend).toBeLessThan(4.0);
     const ltv = sampleLtvAverages(book.orders, now);
     expect(ltv.revenue90).toBeGreaterThan(0);
+  });
+
+  it("SAMPLE forecast is next month from order history, with spend left out", async () => {
+    const page = await loadPublicSamplePage(
+      new Request("https://mcflyads.com/demo"),
+    );
+    const view = page.orderHistoryForecast;
+    expect(view.formula).toBe("Next month = typical day × days in that month");
+    expect(view.method).toMatch(/median of stored days with sales/i);
+    expect(view.estimate).not.toBeNull();
+    expect(view.estimate!).toBeGreaterThan(0);
+    expect(view.plug).toMatch(/×/);
+    expect(view.daysLine).toMatch(/Snowdevil book/);
+    const sales = view.targets.find((row) => row.kind === "sales");
+    const returning = view.targets.find((row) => row.kind === "returning");
+    const ltv = view.targets.find((row) => row.kind === "ltv");
+    expect(sales?.actual).toBeGreaterThan(0);
+    expect(sales?.pct).toBeNull();
+    expect(returning?.note).toMatch(/Snowdevil stretch/);
+    expect(ltv?.actual).toBeGreaterThan(0);
+    expect(ltv?.pct).toBeNull();
   });
 
   it("lets mcflyads.com iframe /demo after Shopify document headers", () => {

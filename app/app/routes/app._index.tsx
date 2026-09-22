@@ -20,6 +20,7 @@ import {
   OverviewDepthPeeks,
   OverviewFirstViewport,
 } from "../components/OverviewFirstViewport";
+import { OrderHistoryForecast } from "../components/OrderHistoryForecast";
 import { OverviewMixForecast } from "../components/OverviewMixForecast";
 import {
   OverviewYoyYearSection,
@@ -61,6 +62,10 @@ import {
   OVERVIEW_YOY_YEAR_PANEL,
   overviewGreetingPending,
 } from "../lib/overview-first-viewport";
+import {
+  buildOrderHistoryForecast,
+  emptyForecastTargets,
+} from "../lib/order-history-forecast";
 import {
   buildOverviewMixForecast,
   emptyOverviewMixForecast,
@@ -431,6 +436,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       explorerDays[explorerDays.length - 1]?.dateKey ?? null,
     ),
   });
+  const orderForecast = buildOrderHistoryForecast({
+    salesPending: Boolean(metrics.salesPending),
+    dailySales: explorerDays.map((day) => day.sales),
+    todayYear: ymd.y,
+    todayMonth: ymd.m,
+    historyLimited: Boolean(
+      !useSampleDesk && orderBackfillProgress?.historyLimited,
+    ),
+    targets: emptyForecastTargets(),
+  });
 
   return {
     metrics,
@@ -456,6 +471,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       })),
     salesExplorerDays: explorerDays,
     mixForecast,
+    orderForecast,
     yoyYearWorkspace,
   };
 };
@@ -494,6 +510,7 @@ export default function Dashboard() {
     salesDays = [],
     salesExplorerDays = [],
     mixForecast,
+    orderForecast,
     yoyYearWorkspace,
   } = data;
   const navigation = useNavigation();
@@ -563,6 +580,17 @@ export default function Dashboard() {
   const mixView = greetingPending
     ? emptyOverviewMixForecast()
     : (mixForecast ?? emptyOverviewMixForecast());
+  const forecastView = greetingPending
+    ? {
+        ...orderForecast,
+        available: false,
+        estimate: null,
+        typicalDay: null,
+        plug: null,
+        emptyCopy:
+          "Orders still syncing — not $0. Next month fills after 8 days with sales.",
+      }
+    : orderForecast;
   const mixRead = overviewMixForecastRead(mixView);
   const ltvPeek = pickShareableLtvPeek({
     revenue30: metrics.tillLtv.avgRevenueD30,
@@ -685,6 +713,7 @@ export default function Dashboard() {
     hash: OVERVIEW_YOY_YEAR_ID,
   });
   const customersHref = deskNavHrefFromSearch("/app/customers", searchParams);
+  const goalsHref = deskNavHrefFromSearch("/app/goals", searchParams);
   const customersGrowthHref = deskNavHref("/app/customers", {
     period: searchParams.get("period"),
     shot: searchParams.get("shot") === "1",
@@ -844,6 +873,11 @@ export default function Dashboard() {
                   <OverviewMixForecast
                     view={mixView}
                     customersHref={customersHref}
+                  />
+                  <OrderHistoryForecast
+                    view={forecastView}
+                    variant="overview"
+                    goalsHref={goalsHref}
                   />
                   <ShareableInsightCards view={insightView} shotMode={shotMode} />
                 </DeskLane>
