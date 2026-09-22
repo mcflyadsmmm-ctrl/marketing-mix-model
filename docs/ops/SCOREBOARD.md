@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v419 / tip `ff43ac8` (merge of #168 Spend pair honesty) / image `deployment-01M34EVV9A12BQ7D7SRZP2X2FX` / Live PARKED. Health ok 2026-09-22T11:45Z. v418 was the phone Goals board.
+**Tip Fly note:** v420 / tip `51af044` (merge of #169 book coverage) / image `deployment-01M34H64Y2K2P5DS8J50T5EZSR` / Live PARKED. Health ok 2026-09-22T12:25Z. v419 was Spend pair honesty.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v419 / tip `ff43ac8` / Live PARKED |
+| Tip Fly SoT | v420 / tip `51af044` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v419 / tip `ff43ac8`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v420 / tip `51af044`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 4 of that queue is the only cook. |
+| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 5 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**The till names the book it actually has.** “Trial and paid use the same book, and 24 months are already on this desk. Then this year vs last year is a dash. Nobody told me the crawl stopped at 90 closed days — or that pending Klarna sits in this Shopify Total Sales.”
+**A blank February is not a $0 plan.** “I left February blank and year-to-date now looks ahead because the blank was $0. I picked 2025 and the forecast is still next month from today. Goals month-close treats missing and quiet days as $0. Overview does not.”
 
-Overview first fold and every book till. Unpaid till = 90 closed days of order rows. Paid till = up to 24 months. Overview names pending / authorized / COD in this Shopify Total Sales, and that this is orders on this shop — not the company book. Spend first fold discloses a truncated today. Do not say “about 60 days” while unpaid is 90. YTD Shopify Total Sales is named and copyable on the Overview year card. Fees / bank stay REFUSE. Do not unpark Live. Do not change the 90.
+Goals year board / month-close / order-history forecast. Admin `/app/goals` (and `/demo/goals`). A cleared month stays not on file in MTD/QTD/YTD. Empty input must not save a certified $0 plan unless they typed 0. A year picker that is not the live year must not print a next-month close from today. Month-close uses days with sales (same typical-day idea as Overview) or withholds while the book is incomplete. Stub months inside a 90-day unpaid slice are not on file — not $0, not the month. Goals MTD discloses a truncated today. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/book-coverage-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 5–12 of the next-pass queue stay queued. Do not rebuild Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/goals-year-clock-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 6–12 of the next-pass queue stay queued. Do not rebuild book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 4.
+Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 5.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
