@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { buildGrowthTt2, growthTt2HistoryLine, growthTt2Read } from "./growth-tt2";
+import { buildLtvFlagship, flagshipDailyRead } from "./ltv-flagship";
+import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 import { ShareableInsightCards } from "../components/ShareableInsightCards";
+import { SlackInsightCard } from "../components/SlackInsightCard";
 import {
   SHARE_MIN_ORDERS,
   buildShareableInsights,
+  ltvPeekSlackInsight,
+  daysToSecondSlackInsight,
   emptyShareableInsights,
   pickShareableLtvPeek,
   shareableInsightEmptyState,
@@ -12,6 +18,8 @@ import {
   shareableInsightPngName,
   shareableLtvWindowLabel,
   shareableShopBrand,
+  slackInsightFromCard,
+  whaleSlackInsight,
 } from "./shareable-insights";
 
 function money(n: number): string {
@@ -265,7 +273,7 @@ describe("ShareableInsightCards render", () => {
     expect(html).toContain("Typical order is $186");
     expect(html).toContain("18 days");
     expect(html).toContain("first 90 days");
-    expect(html).toContain("Copy line");
+    expect(html).toContain("Copy for Slack");
     expect(html).toContain("Save PNG");
     expect(html).toContain("Snowdevil");
     expect(html).toContain("SAMPLE");
@@ -286,7 +294,209 @@ describe("ShareableInsightCards render", () => {
     expect(html).toContain("3 orders on file");
     expect(html).toContain("not $0");
     expect(html).toContain("Floor:");
-    expect(html).not.toContain("Copy line");
+    expect(html).not.toContain("Copy for Slack");
     expect(html).not.toContain(">$0<");
+  });
+});
+
+describe("Slack insight paste — one sealed number", () => {
+  it("formats a poster as Slack mrkdwn without a second formula", () => {
+    const view = richInput();
+    const card = view.cards.find((row) => row.kind === "returning");
+    expect(card).toBeTruthy();
+    const slack = slackInsightFromCard(card!, {
+      shopBrand: view.shopBrand,
+      sample: true,
+      periodLabel: view.periodLabel,
+    });
+    expect(slack.slack.startsWith("*Returning $* · Snowdevil · SAMPLE · This month")).toBe(
+      true,
+    );
+    expect(slack.slack).toContain(card!.line);
+    expect(slack.slack).toContain(card!.formula);
+    expect(slack.slack).not.toContain("$0");
+    expect(slack.slack).not.toMatch(/\bROAS\b/);
+  });
+
+  it("shares days-to-second only when a typical wait has sealed", () => {
+    const sealed = daysToSecondSlackInsight({
+      typicalDays: 18,
+      readLine: "Typical wait is 18 days. Reach the 4 one-order buyers already past day 33.",
+      shopLabel: "snowdevil.myshopify.com",
+      sample: true,
+      where: "Full stored book",
+    });
+    expect(sealed?.line).toContain("18 days");
+    expect(sealed?.slack).toContain("*Days to second*");
+    expect(sealed?.slack).toContain("Snowdevil · SAMPLE");
+    expect(
+      daysToSecondSlackInsight({
+        typicalDays: null,
+        readLine: "Still waiting — not $0.",
+        shopLabel: "",
+        sample: false,
+        where: "On file",
+      }),
+    ).toBeNull();
+    expect(
+      daysToSecondSlackInsight({
+        typicalDays: 0,
+        readLine: "Typical wait is 0 days.",
+        shopLabel: "",
+        sample: false,
+        where: "On file",
+      }),
+    ).toBeNull();
+  });
+
+  it("shares new-buyer worth at 90, and withholds a fake year", () => {
+    const peek = ltvPeekSlackInsight({
+      amount: 380,
+      days: 90,
+      historyLimited: false,
+      shopLabel: "",
+      sample: true,
+      where: "On file",
+      money,
+    });
+    expect(peek?.line).toContain("$380");
+    expect(peek?.line).toContain("first 90 days");
+    expect(peek?.slack).not.toContain("$0");
+    expect(
+      ltvPeekSlackInsight({
+        amount: 900,
+        days: 365,
+        historyLimited: true,
+        shopLabel: "",
+        sample: false,
+        where: "On file",
+        money,
+      }),
+    ).toBeNull();
+    expect(
+      ltvPeekSlackInsight({
+        amount: null,
+        days: 30,
+        historyLimited: false,
+        shopLabel: "",
+        sample: false,
+        where: "On file",
+        money,
+      }),
+    ).toBeNull();
+  });
+
+  it("shares best customers only when share and typical lifetime are real", () => {
+    const whale = whaleSlackInsight({
+      whaleCount: 6,
+      salesShare: 0.34,
+      medianLifetime: 1240,
+      shopLabel: "harbor.myshopify.com",
+      sample: false,
+      where: "On file",
+      money,
+    });
+    expect(whale?.line).toContain("34%");
+    expect(whale?.line).toContain("$1,240");
+    expect(whale?.slack).toContain("*Best customers* · harbor");
+    expect(
+      whaleSlackInsight({
+        whaleCount: 0,
+        salesShare: 0.34,
+        medianLifetime: 1240,
+        shopLabel: "",
+        sample: false,
+        where: "On file",
+        money,
+      }),
+    ).toBeNull();
+    expect(
+      whaleSlackInsight({
+        whaleCount: 4,
+        salesShare: 0,
+        medianLifetime: 1240,
+        shopLabel: "",
+        sample: false,
+        where: "On file",
+        money,
+      }),
+    ).toBeNull();
+  });
+
+  it("paints a selectable quote and stays quiet when the insight is missing", () => {
+    const insight = daysToSecondSlackInsight({
+      typicalDays: 18,
+      readLine: "Typical wait is 18 days.",
+      shopLabel: "",
+      sample: true,
+      where: "On file",
+    });
+    const html = renderToStaticMarkup(
+      createElement(SlackInsightCard, { insight }),
+    );
+    expect(html).toContain("Copy for Slack");
+    expect(html).toContain("Typical wait is 18 days.");
+    expect(html).toContain('data-slack-insight="daysToSecond"');
+    expect(html).toContain("*Days to second*");
+    expect(html).not.toContain(">$0<");
+    const empty = renderToStaticMarkup(
+      createElement(SlackInsightCard, { insight: null }),
+    );
+    expect(empty).toBe("");
+  });
+
+  it("seals Slack quotes from the Snowdevil SAMPLE book", () => {
+    const asOf = new Date("2026-09-22T12:00:00.000Z");
+    const orders = generateSnowdevilDepthOrders(asOf);
+    const depth = buildLtvFlagship(orders, asOf, { sample: true });
+    const tt2 = buildGrowthTt2(
+      orders.map((order) => ({
+        customerKey: order.customerKey,
+        orderedAt: order.orderedAt,
+        amount: order.amount,
+        shopLocalDate: null,
+      })),
+      { windowEnd: asOf, historyLimited: false },
+    );
+    const read = growthTt2Read(tt2);
+    const days = daysToSecondSlackInsight({
+      typicalDays: read?.typicalDays ?? null,
+      readLine: read?.line ?? null,
+      shopLabel: "Snowdevil",
+      sample: true,
+      where: growthTt2HistoryLine(tt2),
+    });
+    const daily = flagshipDailyRead(depth.windows, depth.predictive);
+    const worth = ltvPeekSlackInsight({
+      amount: daily?.worth ?? null,
+      days: daily?.worthDays ?? null,
+      historyLimited: false,
+      shopLabel: "Snowdevil",
+      sample: true,
+      where: "On file",
+      money,
+    });
+    const whales = depth.whales;
+    const whale = whaleSlackInsight({
+      whaleCount: whales?.whaleCount ?? 0,
+      salesShare: whales?.salesShare ?? null,
+      medianLifetime: whales?.medianLifetime ?? null,
+      shopLabel: "Snowdevil",
+      sample: true,
+      where: "On file",
+      money,
+    });
+    expect(days?.slack).toContain("Snowdevil · SAMPLE");
+    expect(days?.line).toMatch(/\d+ days/);
+    expect(days?.slack).not.toContain("$0");
+    expect(worth?.line).toMatch(/first (30|90) days|first year/);
+    expect(worth?.slack).not.toContain("$0");
+    expect(whale?.line).toMatch(/% of identified sales/);
+    expect(whale?.slack).not.toContain("$0");
+    expect(days?.slack).not.toMatch(/\bROAS\b/);
+    expect(worth?.slack).not.toMatch(/\bCOGS\b/);
+    expect(days?.line).toBeTruthy();
+    expect(worth?.line).toBeTruthy();
+    expect(whale?.line).toBeTruthy();
   });
 });

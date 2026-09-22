@@ -337,6 +337,176 @@ export function buildShareableInsights(
   };
 }
 
+export type SlackInsightId = ShareableInsightKind | "whale";
+
+/** One paste-ready insight. Missing numbers never become a card. */
+export type SlackInsight = {
+  id: SlackInsightId;
+  label: string;
+  line: string;
+  formula: string;
+  trust: string;
+  /** Slack mrkdwn. Copy button writes this; the line stays selectable. */
+  slack: string;
+};
+
+export function formatSlackInsightMessage(input: {
+  label: string;
+  line: string;
+  formula: string;
+  trust: string;
+  shopBrand: string;
+  sample: boolean;
+  where: string;
+}): string {
+  const shop = input.sample ? `${input.shopBrand} · SAMPLE` : input.shopBrand;
+  const where = [shop, input.where.trim()].filter((part) => part.length > 0).join(" · ");
+  return [
+    `*${input.label}* · ${where}`,
+    input.line.trim(),
+    input.formula.trim(),
+    `_${input.trust.trim()}_`,
+  ].join("\n");
+}
+
+function sealSlackInsight(input: {
+  id: SlackInsightId;
+  label: string;
+  line: string;
+  formula: string;
+  trust: string;
+  shopLabel: string;
+  sample: boolean;
+  where: string;
+}): SlackInsight {
+  const shopBrand = shareableShopBrand(input.shopLabel, input.sample);
+  return {
+    id: input.id,
+    label: input.label,
+    line: input.line,
+    formula: input.formula,
+    trust: input.trust,
+    slack: formatSlackInsightMessage({
+      label: input.label,
+      line: input.line,
+      formula: input.formula,
+      trust: input.trust,
+      shopBrand,
+      sample: input.sample,
+      where: input.where,
+    }),
+  };
+}
+
+/** Same poster, as a Slack message. Does not invent a second number. */
+export function slackInsightFromCard(
+  card: ShareableInsightCard,
+  meta: { shopBrand: string; sample: boolean; periodLabel: string },
+): SlackInsight {
+  return sealSlackInsight({
+    id: card.kind,
+    label: card.label,
+    line: card.line,
+    formula: card.formula,
+    trust: card.trust,
+    shopLabel: meta.shopBrand,
+    sample: meta.sample,
+    where: meta.periodLabel,
+  });
+}
+
+/**
+ * Growth chip. Only when a typical wait has sealed. The "still waiting"
+ * sentence is an empty, not a share card.
+ */
+export function daysToSecondSlackInsight(input: {
+  typicalDays: number | null;
+  readLine: string | null;
+  shopLabel: string;
+  sample: boolean;
+  where: string;
+}): SlackInsight | null {
+  if (finitePositive(input.typicalDays) == null) return null;
+  const line = input.readLine?.trim() ?? "";
+  if (!line || line.includes("$0")) return null;
+  return sealSlackInsight({
+    id: "daysToSecond",
+    label: "Days to second",
+    line,
+    formula: "Days to second = median first→second gap among buyers who came back.",
+    trust: "Among buyers who came back. Guests stay out.",
+    shopLabel: input.shopLabel,
+    sample: input.sample,
+    where: input.where,
+  });
+}
+
+/**
+ * LTV chip. Same 90-then-30 peek as the posters. Year stays off when
+ * history is limited — never a fake first year.
+ */
+export function ltvPeekSlackInsight(input: {
+  amount: number | null;
+  days: ShareableLtvPeekDays | null;
+  historyLimited: boolean;
+  shopLabel: string;
+  sample: boolean;
+  where: string;
+  money: (n: number) => string;
+}): SlackInsight | null {
+  const worth = finitePositive(input.amount);
+  const days = input.days;
+  if (worth == null || days == null) return null;
+  if (days === 365 && input.historyLimited) return null;
+  const window = shareableLtvWindowLabel(days);
+  return sealSlackInsight({
+    id: "ltvPeek",
+    label: "New-buyer worth",
+    line: `A new buyer is worth ${input.money(worth)} in the ${window} — observed order history.`,
+    formula: `Worth = average dollars per new buyer in the ${window}.`,
+    trust: "Observed order history — not an estimate. Refunds never invented.",
+    shopLabel: input.shopLabel,
+    sample: input.sample,
+    where: input.where,
+  });
+}
+
+/**
+ * Best-customer mix already on whale recency. Zero share or a $0 typical
+ * stays off the card.
+ */
+export function whaleSlackInsight(input: {
+  whaleCount: number;
+  salesShare: number | null;
+  medianLifetime: number | null;
+  shopLabel: string;
+  sample: boolean;
+  where: string;
+  money: (n: number) => string;
+}): SlackInsight | null {
+  const count = Math.trunc(Number.isFinite(input.whaleCount) ? input.whaleCount : 0);
+  const share =
+    input.salesShare != null &&
+    Number.isFinite(input.salesShare) &&
+    input.salesShare > 0
+      ? input.salesShare
+      : null;
+  const typical = finitePositive(input.medianLifetime);
+  if (count < 1 || share == null || typical == null) return null;
+  const pct = wholePercent(share);
+  return sealSlackInsight({
+    id: "whale",
+    label: "Best customers",
+    line: `Best customers carry ${pct}% of identified sales. A typical best customer is ${input.money(typical)}.`,
+    formula:
+      "Share = best-customer lifetime $ ÷ identified lifetime $. Typical = median lifetime in the top tenth.",
+    trust: "Top tenth by lifetime dollars. Guests stay out. Order history only.",
+    shopLabel: input.shopLabel,
+    sample: input.sample,
+    where: input.where,
+  });
+}
+
 /** Honest zeros for pending / no-data — not a fake poster. */
 export function emptyShareableInsights(): ShareableInsightView {
   return buildShareableInsights(

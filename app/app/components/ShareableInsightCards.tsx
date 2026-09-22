@@ -4,6 +4,7 @@ import { useDeskDrill } from "./DeskDrill";
 import { useDeskHref } from "../lib/desk-base-path";
 import {
   shareableInsightKicker,
+  slackInsightFromCard,
   type ShareableInsightCard,
   type ShareableInsightEmpty,
   type ShareableInsightEmptyKind,
@@ -11,6 +12,7 @@ import {
   type ShareableInsightView,
 } from "../lib/shareable-insights";
 import { downloadShareableInsightPng } from "../lib/shareable-insight-png";
+import { copyDeskText } from "./SlackInsightCard";
 
 type Tone = "returning" | "typicalOrder" | "daysToSecond" | "ltvPeek";
 
@@ -58,28 +60,6 @@ function cardIcon(kind: ShareableInsightKind): "customers" | "orders" | "clock" 
   }
 }
 
-async function copyInsightLine(line: string): Promise<boolean> {
-  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(line);
-      return true;
-    } catch {
-      // Fall through to the execCommand path in older admin embeds.
-    }
-  }
-  if (typeof document === "undefined") return false;
-  const ta = document.createElement("textarea");
-  ta.value = line;
-  ta.setAttribute("readonly", "true");
-  ta.style.position = "fixed";
-  ta.style.left = "-9999px";
-  document.body.appendChild(ta);
-  ta.select();
-  const ok = document.execCommand("copy");
-  ta.remove();
-  return ok;
-}
-
 function InsightPoster({
   card,
   shopBrand,
@@ -95,28 +75,26 @@ function InsightPoster({
 }) {
   const tone: Tone = card.kind;
   return (
-    <button
-      type="button"
-      className={`mcfly-share-card__poster mcfly-share-card__poster--${tone}`}
-      onClick={onOpen}
-    >
-      <span className="mcfly-share-card__mark">
-        <span className="mcfly-share-card__brand">Mcfly Analytics</span>
-        <span className="mcfly-share-card__shop">
-          {sample ? `${shopBrand} · SAMPLE` : shopBrand}
-          <span aria-hidden="true"> · </span>
-          {periodLabel}
+    <div className={`mcfly-share-card__poster mcfly-share-card__poster--${tone}`}>
+      <button type="button" className="mcfly-share-card__open" onClick={onOpen}>
+        <span className="mcfly-share-card__mark">
+          <span className="mcfly-share-card__brand">Mcfly Analytics</span>
+          <span className="mcfly-share-card__shop">
+            {sample ? `${shopBrand} · SAMPLE` : shopBrand}
+            <span aria-hidden="true"> · </span>
+            {periodLabel}
+          </span>
         </span>
-      </span>
-      <span className="mcfly-share-card__k">
-        <DeskIcon name={cardIcon(card.kind)} />
-        {card.label}
-      </span>
-      <span className="mcfly-share-card__v">{card.value}</span>
-      <span className="mcfly-share-card__line">{card.line}</span>
-      <span className="mcfly-share-card__formula">{card.formula}</span>
-      <span className="mcfly-share-card__trust">{card.trust}</span>
-    </button>
+        <span className="mcfly-share-card__k">
+          <DeskIcon name={cardIcon(card.kind)} />
+          {card.label}
+        </span>
+        <span className="mcfly-share-card__v">{card.value}</span>
+      </button>
+      <p className="mcfly-share-card__line">{card.line}</p>
+      <p className="mcfly-share-card__formula">{card.formula}</p>
+      <p className="mcfly-share-card__trust">{card.trust}</p>
+    </div>
   );
 }
 
@@ -234,7 +212,7 @@ export function ShareableInsightCards({
                     { k: "Formula", v: card.formula },
                     { k: "Trust", v: card.trust },
                   ],
-                  next: "Screenshot the card, copy the line, or save a PNG. Order history only.",
+                  next: "Screenshot the card, copy for Slack, or save a PNG. Order history only.",
                   nextHref: deskHref(card.nextHref),
                   nextLabel: card.nextLabel,
                 })
@@ -246,7 +224,12 @@ export function ShareableInsightCards({
                   type="button"
                   className="mcfly-share-card__btn"
                   onClick={() => {
-                    void copyInsightLine(card.line).then((ok) => {
+                    const slack = slackInsightFromCard(card, {
+                      shopBrand: view.shopBrand,
+                      sample: view.sample,
+                      periodLabel: view.periodLabel,
+                    }).slack;
+                    void copyDeskText(slack).then((ok) => {
                       if (!ok) return;
                       setCopied(card.kind);
                       window.setTimeout(() => {
@@ -255,7 +238,7 @@ export function ShareableInsightCards({
                     });
                   }}
                 >
-                  {copied === card.kind ? "Copied" : "Copy line"}
+                  {copied === card.kind ? "Copied" : "Copy for Slack"}
                 </button>
                 <button
                   type="button"
@@ -277,7 +260,7 @@ export function ShareableInsightCards({
       </div>
 
       <p className="mcfly-share-cards__meta">
-        <DeskIcon name="chart" /> Screenshot the card or copy the line. Same
+        <DeskIcon name="chart" /> Screenshot the card or copy for Slack. Same
         formulas as the desk — not a guess.
       </p>
     </section>

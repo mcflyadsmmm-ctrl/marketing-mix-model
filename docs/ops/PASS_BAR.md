@@ -67,6 +67,17 @@ Score every LTV chunk against all five. OWN_THE_NICHE + OBJECTIVE_LOCK still app
 | Stickiness | PASS | First-win empties are ActionCard-shaped (verb + floor): syncing / thin / young; forecast empty when typical day is missing — no blank charts, not $0 |
 | Empty-state | PASS | Floor 8 orders, then 8 days with sales for the typical day — on the card. Sparse shops stay amazing |
 
+## SCORECARD — Slack insight cards (P2-B)
+
+| Criterion | Verdict | Line |
+| --- | :---: | --- |
+| Accuracy | PASS | Same returning $ / days-to-second / observed 90-then-30 / best-customer median already on the desk; year withheld when history is limited; refunds never invented; a missing number is no card, never $0 |
+| Quality | PASS | One Slack quote under the Growth hero, one under the LTV hero, one on whale recency, and Copy for Slack on the existing Overview posters |
+| Organization | PASS | Painted chips only — Growth and LTV stay Customers chips; Overview posters stay in the mix lane after the first fold; sales-five IA untouched |
+| Ease | PASS | Selectable line plus one copy button; posters stay screenshot-ready; no new first-fold panel |
+| Stickiness | PASS | Paste the formula into Slack from a number the merchant already trusts |
+| Empty-state | PASS | Unsealed wait, unsealed worth, and a $0 best-customer share stay off the quote. Sparse shops stay amazing |
+
 ## SCORECARD — Shareable insight cards (this PR)
 
 | Criterion | Verdict | Line |
