@@ -44,6 +44,9 @@ import {
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { loadPublicSamplePage } from "../lib/public-sample-page.server";
+import { loadPublicSampleBook } from "../lib/public-sample-book.server";
+import { PUBLIC_SAMPLE_TZ } from "../lib/public-sample-constants";
+import { overviewClockPayloadFromOrders } from "../lib/overview-sales-chart";
 import {
   buildShareableInsights,
   pickShareableLtvPeek,
@@ -53,7 +56,21 @@ import { parseYoyYear } from "../lib/yoy-workspace";
 export const headers: HeadersFunction = () => publicDemoHeaders();
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  return loadPublicSamplePage(request);
+  const page = await loadPublicSamplePage(request);
+  const now = new Date();
+  const book = loadPublicSampleBook(now);
+  return {
+    ...page,
+    sameClock: overviewClockPayloadFromOrders({
+      now,
+      timeZone: PUBLIC_SAMPLE_TZ,
+      pending: false,
+      orders: book.orders.map((row) => ({
+        orderedAt: row.orderedAt,
+        amount: row.amount,
+      })),
+    }),
+  };
 };
 
 export default function PublicDemoOverview() {
@@ -211,6 +228,7 @@ export default function PublicDemoOverview() {
                   salesPending={false}
                   ordersHref={ordersHref}
                   useSampleDesk
+                  clock={data.sameClock}
                 />
               )}
               {embed === "typical" ? null : (
@@ -224,6 +242,11 @@ export default function PublicDemoOverview() {
                 <div className="mcfly-desk-anchor" id={DESK_SECTION.chart}>
                   <OverviewSalesChart
                     days={data.explorerDays}
+                    historyDays={drillDays.map((day) => ({
+                      dateKey: day.dateKey,
+                      sales: day.sales,
+                    }))}
+                    clock={data.sameClock}
                     ordersHref={ordersHref}
                     salesPending={false}
                     typicalDay={data.depth.medianDailySales}

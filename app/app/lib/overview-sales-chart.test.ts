@@ -5,14 +5,25 @@ import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { DeskCurrencyContext } from "./desk-currency";
+import { formatCurrency } from "./mer-format";
+import {
+  OVERVIEW_MIX_FORMULA_EQ,
+  overviewMonthClock,
+} from "./overview-mix-forecast";
+import {
+  OVERVIEW_PERIOD_TOTAL_LABEL,
+  OVERVIEW_PERIOD_TOTAL_SENTENCE,
+} from "./overview-first-viewport";
 import { OverviewSalesChart } from "../components/OverviewSalesChart";
 import {
   overviewAov,
   overviewBucketize,
   overviewChartAxis,
   overviewChartDayLabel,
+  overviewCalendarDateLastYear,
   overviewChartLabelIndices,
   overviewChartVsCopy,
+  overviewClockSentence,
   overviewCompactMoney,
   overviewCumulative,
   overviewDaySpan,
@@ -25,7 +36,11 @@ import {
   overviewMedian,
   overviewPresetRange,
   overviewPriorWindow,
+  overviewSameDatesLastYear,
+  overviewSameDatesSales,
+  overviewSameDatesSentence,
   overviewShiftDayKey,
+  overviewThroughClock,
   overviewVsTypical,
   overviewVsTypicalPctCopy,
 } from "./overview-sales-chart";
@@ -271,5 +286,345 @@ describe("overview sales chart labels + buckets", () => {
     expect(html).not.toContain("Spend Upload");
     expect(html).not.toContain("spend-line");
     expect(html).not.toContain("MER");
+    expect(html).toContain("mcfly-chart__hero");
+  });
+});
+
+const money = (amount: number) => formatCurrency(amount, "USD");
+
+function atUtc(iso: string): Date {
+  return new Date(iso);
+}
+
+describe("same dates last year", () => {
+  it("compares a custom launch week to those calendar dates, not the span before", () => {
+    const same = overviewSameDatesLastYear("2026-09-08", "2026-09-14");
+    expect(same).toMatchObject({
+      fromKey: "2025-09-08",
+      toKey: "2025-09-14",
+    });
+    expect(same?.dateKeys).toEqual([
+      "2025-09-08",
+      "2025-09-09",
+      "2025-09-10",
+      "2025-09-11",
+      "2025-09-12",
+      "2025-09-13",
+      "2025-09-14",
+    ]);
+    const prior = overviewPriorWindow("2026-09-08", "2026-09-14");
+    expect(prior.fromKey).toBe("2026-09-01");
+    expect(prior.toKey).toBe("2026-09-07");
+    expect(prior.fromKey).not.toBe("2025-09-08");
+  });
+
+  it("keeps a missing day inside the prior window off file, never $0", () => {
+    const days = [
+      "2025-09-08",
+      "2025-09-09",
+      "2025-09-10",
+      "2025-09-12",
+      "2025-09-13",
+      "2025-09-14",
+    ].map((dateKey) => ({ dateKey, sales: 100 }));
+    expect(overviewSameDatesSales(days, "2026-09-08", "2026-09-14")).toBeNull();
+    const sentence = overviewSameDatesSentence({
+      fromKey: "2026-09-08",
+      toKey: "2026-09-14",
+      sales: 1200,
+      priorSales: null,
+      money,
+    });
+    expect(sentence).toBe(
+      "Shopify Total Sales for Sep 8–14, 2026 versus those dates last year is — not on file.",
+    );
+    expect(sentence).not.toMatch(/\$0/);
+    expect(sentence).not.toMatch(/0%/);
+  });
+
+  it("sums a real zero when every prior day is on file and the stored sales are zero", () => {
+    const days = overviewSameDatesLastYear("2026-09-08", "2026-09-14")!.dateKeys.map(
+      (dateKey) => ({ dateKey, sales: 0 }),
+    );
+    expect(overviewSameDatesSales(days, "2026-09-08", "2026-09-14")).toBe(0);
+  });
+
+  it("does not treat Feb 29 as Feb 28", () => {
+    expect(overviewCalendarDateLastYear("2024-02-29")).toBeNull();
+    expect(overviewSameDatesLastYear("2024-02-29", "2024-02-29")).toBeNull();
+    expect(overviewSameDatesLastYear("2024-02-28", "2024-03-01")).toBeNull();
+    expect(overviewSameDatesSales([], "2024-02-28", "2024-03-01")).toBeNull();
+    const leapPrior = overviewSameDatesLastYear("2025-02-28", "2025-03-01");
+    expect(leapPrior?.dateKeys).toEqual(["2024-02-28", "2024-03-01"]);
+    expect(
+      overviewSameDatesSales(
+        [
+          { dateKey: "2024-02-28", sales: 10 },
+          { dateKey: "2024-03-01", sales: 20 },
+        ],
+        "2025-02-28",
+        "2025-03-01",
+      ),
+    ).toBe(30);
+  });
+
+  it("paints the launch week versus those dates", () => {
+    const priorKeys = overviewSameDatesLastYear("2026-09-08", "2026-09-14")!.dateKeys;
+    const days = priorKeys.map((dateKey) => ({ dateKey, sales: 1000 }));
+    const priorSales = overviewSameDatesSales(days, "2026-09-08", "2026-09-14");
+    expect(priorSales).toBe(7000);
+    expect(
+      overviewSameDatesSentence({
+        fromKey: "2026-09-08",
+        toKey: "2026-09-14",
+        sales: 8400,
+        priorSales,
+        money,
+      }),
+    ).toBe(
+      "Shopify Total Sales for Sep 8–14, 2026 is $8,400 versus $7,000 those dates last year (+20%).",
+    );
+  });
+});
+
+describe("through this clock", () => {
+  const now = atUtc("2026-09-19T14:55:00.000Z");
+  const todayKey = "2026-09-19";
+  const priorKey = overviewShiftDayKey(todayKey, -364);
+
+  function order(day: string, hour: number, minute: number, amount: number) {
+    return {
+      orderedAt: atUtc(
+        `${day}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00.000Z`,
+      ),
+      amount,
+    };
+  }
+
+  it("includes 14:50 and excludes 15:10 and last year's 21:00", () => {
+    const compare = overviewThroughClock({
+      now,
+      timeZone: "UTC",
+      pending: false,
+      todayOrders: [
+        order(todayKey, 14, 50, 400),
+        order(todayKey, 15, 10, 900),
+      ],
+      priorOrders: [
+        order(priorKey, 14, 50, 250),
+        order(priorKey, 21, 0, 5000),
+      ],
+    });
+    expect(compare.todayKey).toBe(todayKey);
+    expect(compare.priorKey).toBe(priorKey);
+    expect(compare.clockLabel).toBe("2:55 pm");
+    expect(compare.todaySales).toBe(400);
+    expect(compare.priorSales).toBe(250);
+    expect(compare.priorSales).not.toBe(5250);
+    expect(overviewClockSentence(compare, money)).toBe(
+      "Shopify Total Sales through 2:55 pm is $400 versus $250 the same weekday last year (+60%).",
+    );
+  });
+
+  it("stays not on file when that weekday's orders are missing, even if a day total exists", () => {
+    const compare = overviewThroughClock({
+      now,
+      timeZone: "UTC",
+      pending: false,
+      todayOrders: [order(todayKey, 14, 50, 400)],
+      priorOrders: null,
+    });
+    expect(compare.priorSales).toBeNull();
+    const sentence = overviewClockSentence(compare, money);
+    expect(sentence).toBe(
+      "Shopify Total Sales through 2:55 pm is $400, and the same weekday last year is — not on file.",
+    );
+    expect(sentence).not.toMatch(/\$0/);
+    expect(sentence).not.toMatch(/0%/);
+  });
+
+  it("allows a real zero only when today's orders are on file and none fall through the clock", () => {
+    const compare = overviewThroughClock({
+      now,
+      timeZone: "UTC",
+      pending: false,
+      todayOrders: [order(todayKey, 15, 10, 80)],
+      priorOrders: [order(priorKey, 14, 50, 250)],
+    });
+    expect(compare.todaySales).toBe(0);
+    expect(compare.priorSales).toBe(250);
+    expect(overviewClockSentence(compare, money)).toBe(
+      "Shopify Total Sales through 2:55 pm is $0 versus $250 the same weekday last year (−100%).",
+    );
+  });
+
+  it("does not paint a finished zero when the book has not synced", () => {
+    const compare = overviewThroughClock({
+      now,
+      timeZone: "UTC",
+      pending: true,
+      todayOrders: [],
+      priorOrders: [order(priorKey, 14, 50, 250)],
+    });
+    const sentence = overviewClockSentence(compare, money);
+    expect(sentence).toBe(
+      "Shopify Total Sales through this clock is still loading — not $0.",
+    );
+    expect(sentence).not.toMatch(/is \$0/);
+    expect(sentence).not.toMatch(/0%/);
+  });
+
+  it("does not pretend UTC is the shop clock when the timezone is missing", () => {
+    const compare = overviewThroughClock({
+      now,
+      timeZone: null,
+      pending: false,
+      todayOrders: [order(todayKey, 14, 50, 400)],
+      priorOrders: [order(priorKey, 14, 50, 250)],
+    });
+    expect(compare.status).toBe("no-timezone");
+    expect(compare.todaySales).toBeNull();
+    expect(compare.priorSales).toBeNull();
+    const sentence = overviewClockSentence(compare, money);
+    expect(sentence).toBe(
+      "Shopify Total Sales through this clock is — not on file.",
+    );
+    expect(sentence).not.toMatch(/\$0/);
+    expect(sentence).not.toContain("$400");
+  });
+});
+
+describe("month close and the period hero stay put", () => {
+  it("keeps month close as so far plus remaining days times a typical day", () => {
+    expect(OVERVIEW_MIX_FORMULA_EQ).toBe(
+      "Month close = so far + remaining days × typical day",
+    );
+    expect(overviewMonthClock(2026, 9, 16)).toEqual({
+      daysElapsed: 16,
+      daysInMonth: 30,
+      remainingDays: 14,
+    });
+  });
+
+  it("keeps the period-total hero labeled Shopify Total Sales", () => {
+    expect(OVERVIEW_PERIOD_TOTAL_LABEL).toBe("Shopify Total Sales");
+    expect(OVERVIEW_PERIOD_TOTAL_SENTENCE).toBe(
+      "Shopify Total Sales for this period.",
+    );
+    const first = readFileSync(
+      join(here, "../components/OverviewFirstViewport.tsx"),
+      "utf8",
+    );
+    expect(first).toContain("label={OVERVIEW_PERIOD_TOTAL_LABEL}");
+    expect(first).toContain("overviewClockSentenceFromPayload");
+    const chart = readFileSync(
+      join(here, "../components/OverviewSalesChart.tsx"),
+      "utf8",
+    );
+    expect(chart).toContain("overviewSameDatesSentence");
+    expect(chart).toContain("overviewPriorWindow");
+    expect(chart).toContain('data-overview-compare="same-dates"');
+    expect(chart).toContain("mcfly-chart__hero");
+  });
+});
+
+describe("Overview paints the labeled lines", () => {
+  it("paints a custom launch week versus those dates, and a missing year as not on file", () => {
+    const current = daySeries("2026-09-01", 21, 1200);
+    const prior = overviewSameDatesLastYear("2026-09-08", "2026-09-14")!.dateKeys.map(
+      (dateKey) => ({ dateKey, sales: 1000 }),
+    );
+    const html = renderToStaticMarkup(
+      createElement(
+        DeskCurrencyContext.Provider,
+        { value: "USD" },
+        createElement(OverviewSalesChart, {
+          days: current,
+          historyDays: prior,
+          initialPreset: "custom",
+          initialCustom: { fromKey: "2026-09-08", toKey: "2026-09-14" },
+          typicalDay: 1200,
+        }),
+      ),
+    );
+    expect(html).toContain(
+      "Shopify Total Sales for Sep 8–14, 2026 is $8,400 versus $7,000 those dates last year (+20%).",
+    );
+    expect(html).toContain("mcfly-chart__hero");
+    expect(html).not.toContain("same dates last year");
+
+    const gapped = prior.filter((day) => day.dateKey !== "2025-09-11");
+    const missing = renderToStaticMarkup(
+      createElement(
+        DeskCurrencyContext.Provider,
+        { value: "USD" },
+        createElement(OverviewSalesChart, {
+          days: current,
+          historyDays: gapped,
+          initialPreset: "custom",
+          initialCustom: { fromKey: "2026-09-08", toKey: "2026-09-14" },
+          typicalDay: 1200,
+        }),
+      ),
+    );
+    expect(missing).toContain(
+      "Shopify Total Sales for Sep 8–14, 2026 versus those dates last year is — not on file.",
+    );
+    expect(missing).not.toContain("those dates last year is $0");
+    expect(missing).not.toContain("those dates last year (");
+  });
+
+  it("paints an on-file clock and a missing clock", () => {
+    const days = daySeries("2026-09-01", 21, 100);
+    const now = atUtc("2026-09-19T14:55:00.000Z");
+    const todayKey = "2026-09-19";
+    const priorKey = overviewShiftDayKey(todayKey, -364);
+    const onFile = renderToStaticMarkup(
+      createElement(
+        DeskCurrencyContext.Provider,
+        { value: "USD" },
+        createElement(OverviewSalesChart, {
+          days,
+          clock: {
+            timeZone: "UTC",
+            nowIso: now.toISOString(),
+            pending: false,
+            todayOrders: [
+              { orderedAt: `${todayKey}T14:50:00.000Z`, amount: 400 },
+            ],
+            priorOrders: [
+              { orderedAt: `${priorKey}T14:50:00.000Z`, amount: 250 },
+              { orderedAt: `${priorKey}T21:00:00.000Z`, amount: 5000 },
+            ],
+          },
+        }),
+      ),
+    );
+    expect(onFile).toContain(
+      "Shopify Total Sales through 2:55 pm is $400 versus $250 the same weekday last year (+60%).",
+    );
+    expect(onFile).not.toContain("$5,000");
+
+    const missing = renderToStaticMarkup(
+      createElement(
+        DeskCurrencyContext.Provider,
+        { value: "USD" },
+        createElement(OverviewSalesChart, {
+          days,
+          clock: {
+            timeZone: "UTC",
+            nowIso: now.toISOString(),
+            pending: false,
+            todayOrders: [
+              { orderedAt: `${todayKey}T14:50:00.000Z`, amount: 400 },
+            ],
+            priorOrders: null,
+          },
+        }),
+      ),
+    );
+    expect(missing).toContain(
+      "Shopify Total Sales through 2:55 pm is $400, and the same weekday last year is — not on file.",
+    );
   });
 });
