@@ -3,8 +3,9 @@ import { resolveSalesReadiness } from "./sales-pending";
 
 /**
  * Overview first viewport — Shopify-order-data only.
- * Typical order, returning dollars, weekend vs weekday, and an open sales
- * chart live here. Marketing tabs own entered cash later.
+ * The hero is this period’s Shopify Total Sales. Typical order, returning
+ * dollars, weekend vs weekday, and typical day stay as smaller peeks.
+ * Marketing tabs own entered cash later.
  */
 
 export const OVERVIEW_COVERAGE_LINE =
@@ -13,9 +14,19 @@ export const OVERVIEW_COVERAGE_LINE =
 export const OVERVIEW_PENDING_LINE =
   "Waiting on reports scope / sales totals ingest — not $0.";
 
-/** First-lane label — Mcfly-only heroes, not a Total Sales scoreboard. */
+/** Card name for the selected period’s hero peek. */
+export const OVERVIEW_PERIOD_TOTAL_LABEL = "Shopify Total Sales";
+
+/** Sentence under the period hero when the total is on file. */
+export const OVERVIEW_PERIOD_TOTAL_SENTENCE =
+  "Shopify Total Sales for this period.";
+
+/** Missing last-year dollars — never a fake $0. */
+export const OVERVIEW_LAST_YEAR_NOT_ON_FILE = "not on file";
+
+/** First-lane label — period total, then the smaller peeks. */
 export const OVERVIEW_FIRST_LANE_LABEL =
-  "Typical order, returning $, weekends, typical day";
+  "Shopify Total Sales · Typical order, returning $, weekends, typical day";
 
 /**
  * Uninstall-killer contrast. Shopify Analytics Overview is Total Sales +
@@ -446,6 +457,173 @@ export function overviewPeekThird(input: {
     return { kind: "daysToSecond", days };
   }
   return { kind: "empty" };
+}
+
+export const OVERVIEW_PLAIN_WINDOW_IDS = ["yesterday", "week", "mtd"] as const;
+
+export type OverviewPlainWindowId = (typeof OVERVIEW_PLAIN_WINDOW_IDS)[number];
+
+export type OverviewStoredSalesDay = {
+  dateKey: string;
+  sales: number;
+};
+
+export type OverviewPlainWindow = {
+  id: OverviewPlainWindowId;
+  label: string;
+  /** Null when that window has no stored sales day — never a fake $0. */
+  sales: number | null;
+};
+
+const PLAIN_WINDOW_LABEL: Record<OverviewPlainWindowId, string> = {
+  yesterday: "Yesterday",
+  week: "This week",
+  mtd: "This month to date",
+};
+
+const DATE_KEY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function utcDateKey(year: number, month: number, day: number): string {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function parseDateKey(
+  dateKey: string,
+): { year: number; month: number; day: number } | null {
+  const match = DATE_KEY.exec(dateKey);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  return { year, month, day };
+}
+
+/** Monday of the ISO week that owns `dateKey`. */
+function isoWeekStartKey(dateKey: string): string | null {
+  const parts = parseDateKey(dateKey);
+  if (!parts) return null;
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  const isoDow = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() - (isoDow - 1));
+  return utcDateKey(
+    date.getUTCFullYear(),
+    date.getUTCMonth() + 1,
+    date.getUTCDate(),
+  );
+}
+
+function sumOnFile(
+  byKey: Map<string, number>,
+  predicate: (key: string) => boolean,
+): number | null {
+  let saw = false;
+  let sum = 0;
+  for (const [key, sales] of byKey) {
+    if (!predicate(key)) continue;
+    saw = true;
+    sum += sales;
+  }
+  return saw ? sum : null;
+}
+
+/**
+ * Yesterday, this week, and this month to date from stored sales-day totals.
+ * Yesterday is the latest stored day (the same day the year board already
+ * calls yesterday). This week is Monday through that day. This month uses
+ * `monthSales` when the year-over-year card already has it, so the two
+ * surfaces stay one number. A window with no stored day is null — not $0.
+ */
+export function overviewPlainSalesWindows(input: {
+  days: readonly OverviewStoredSalesDay[];
+  monthSales?: number | null;
+  asOfKey?: string | null;
+}): OverviewPlainWindow[] {
+  const byKey = new Map<string, number>();
+  for (const day of input.days) {
+    if (!parseDateKey(day.dateKey) || !Number.isFinite(day.sales)) continue;
+    byKey.set(day.dateKey, (byKey.get(day.dateKey) ?? 0) + day.sales);
+  }
+
+  let asOf: string | null = null;
+  if (input.asOfKey && parseDateKey(input.asOfKey)) {
+    asOf = input.asOfKey;
+  } else {
+    for (const key of byKey.keys()) {
+      if (asOf == null || key > asOf) asOf = key;
+    }
+  }
+
+  const yesterday =
+    asOf != null && byKey.has(asOf) ? (byKey.get(asOf) ?? null) : null;
+  const weekStart = asOf ? isoWeekStartKey(asOf) : null;
+  let week: number | null = null;
+  if (asOf && weekStart) {
+    const endKey = asOf;
+    const startKey = weekStart;
+    week = sumOnFile(byKey, (key) => key >= startKey && key <= endKey);
+  }
+
+  const monthFromCard =
+    input.monthSales != null && Number.isFinite(input.monthSales)
+      ? input.monthSales
+      : null;
+  const monthPrefix = asOf ? asOf.slice(0, 7) : null;
+  let monthFromDays: number | null = null;
+  if (asOf && monthPrefix) {
+    const endKey = asOf;
+    const prefix = monthPrefix;
+    monthFromDays = sumOnFile(
+      byKey,
+      (key) => key.startsWith(prefix) && key <= endKey,
+    );
+  }
+  const month = monthFromCard != null ? monthFromCard : monthFromDays;
+
+  return OVERVIEW_PLAIN_WINDOW_IDS.map((id) => ({
+    id,
+    label: PLAIN_WINDOW_LABEL[id],
+    sales: plainWindowSales(id, yesterday, week, month),
+  }));
+}
+
+function plainWindowSales(
+  id: OverviewPlainWindowId,
+  yesterday: number | null,
+  week: number | null,
+  month: number | null,
+): number | null {
+  switch (id) {
+    case "yesterday":
+      return yesterday;
+    case "week":
+      return week;
+    case "mtd":
+      return month;
+    default: {
+      const _never: never = id;
+      return _never;
+    }
+  }
+}
+
+export function overviewPlainWindowFormula(id: OverviewPlainWindowId): string {
+  switch (id) {
+    case "yesterday":
+      return "Shopify Total Sales on the latest stored sales day. Same stored days as the year cards. Not a new order crawl.";
+    case "week":
+      return "Shopify Total Sales this week, Monday through the latest stored day. Same stored days as the chart and the year cards.";
+    case "mtd":
+      return "Shopify Total Sales this month to date. The same month number as the year-over-year this month card. Last year stays on that card.";
+    default: {
+      const _never: never = id;
+      return _never;
+    }
+  }
 }
 
 /** Peak weekday dollars for the Overview busiest peek. */

@@ -93,6 +93,8 @@ export default function PublicDemoOverview() {
     extra: { panel: "ltv" },
   });
   const drillDays = data.cashControl?.drillDays ?? [];
+  const monthToDateSales =
+    data.yoyCards.find((card) => card.id === "mtd")?.sales ?? null;
   const yoyAsOf = asOfFromCertifiedDays(drillDays, new Date());
   const yoyYear = parseYoyYear(searchParams.get("year"), yoyAsOf.year);
   const yoyYearWorkspace = buildOverviewYoyYearModel(
@@ -194,6 +196,12 @@ export default function PublicDemoOverview() {
                   peakWeekday={data.depth.peakWeekday}
                   weekdaySalesShare={data.depth.weekdaySalesShare}
                   windowSales={data.sales.totalSales}
+                  storedSalesDays={drillDays.map((day) => ({
+                    dateKey: day.dateKey,
+                    sales: day.sales,
+                  }))}
+                  monthToDateSales={monthToDateSales}
+                  salesAsOfKey={data.cashControl?.asOfKey ?? null}
                   ltvPeek={ltvPeek?.amount ?? null}
                   ltvPeekDays={ltvPeek?.days ?? null}
                   ltvHistoryLimited={false}

@@ -51,7 +51,7 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(tabs).not.toContain("label=\"Ads\"");
   });
 
-  it("keeps a swipe rail in the phone block; Overview glance is a 3-up spine", () => {
+  it("keeps a swipe rail in the phone block; Overview glance stacks with last year visible", () => {
     expect(phone).toMatch(/@media \(max-width: 430px\)/);
     expect(phone).toContain(".mcfly-kpi-grid");
     expect(phone).toContain(".mcfly-score .mcfly-kpi-grid--with-roas");
@@ -75,7 +75,29 @@ describe("Admin desk phone / narrow iframe", () => {
     expect(css).toContain(".mcfly-chart__typical");
     expect(css).toContain(".mcfly-chart__hero");
     expect(css).toContain(".mcfly-chart__sales-fill");
-    expect(css).toContain("max-width: calc(33.333% - 0.24rem) !important");
+    expect(css).not.toContain("max-width: calc(33.333% - 0.24rem)");
+    const glanceAt = css.indexOf(
+      "@media (max-width: 36rem) {\n  .mcfly-yoy--glance .mcfly-yoy__grid,",
+    );
+    expect(glanceAt).toBeGreaterThan(-1);
+    const glanceBlock = css.slice(glanceAt, css.indexOf("@media", glanceAt + 10));
+    expect(glanceBlock).toContain("grid-template-columns: minmax(0, 1fr)");
+    expect(glanceBlock).toMatch(
+      /\.mcfly-yoy--glance \.mcfly-yoy__prior\s*\{[^}]*display:\s*flex/,
+    );
+    expect(glanceBlock).not.toMatch(/\.mcfly-yoy__prior[\s\S]*display:\s*none/);
+    expect(glanceBlock).not.toContain("33.333%");
+    expect(glanceBlock).toContain("white-space: normal");
+    const narrowAt = css.indexOf(
+      "@media (max-width: 430px) {\n  .mcfly-yoy--glance .mcfly-yoy__grid,",
+    );
+    expect(narrowAt).toBeGreaterThan(glanceAt);
+    const narrowBlock = css.slice(narrowAt, css.indexOf("@media", narrowAt + 10));
+    expect(narrowBlock).toContain("grid-template-columns: minmax(0, 1fr)");
+    expect(narrowBlock).not.toContain("33.333%");
+    expect(narrowBlock).toMatch(
+      /\.mcfly-yoy--glance \.mcfly-yoy__prior\s*\{[^}]*display:\s*flex/,
+    );
   });
 
   it("wraps 5 analysis tabs as small spaced pills — never a smooshed nowrap strip", () => {
