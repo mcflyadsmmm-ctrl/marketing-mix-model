@@ -513,6 +513,9 @@ export default function Dashboard() {
     orderForecast,
     yoyYearWorkspace,
   } = data;
+  const yoyCards = buildOverviewYoyCards(cashControl?.chips ?? []);
+  const monthToDateSales =
+    yoyCards.find((card) => card.id === "mtd")?.sales ?? null;
   const navigation = useNavigation();
   const isLoading = navigation.state === "loading";
   const stage = shotMode
@@ -830,6 +833,12 @@ export default function Dashboard() {
                     peakWeekday={metrics.shopifyDepth.peakWeekday}
                     weekdaySalesShare={metrics.shopifyDepth.weekdaySalesShare}
                     windowSales={metrics.sales}
+                    storedSalesDays={(cashControl?.drillDays ?? []).map((day) => ({
+                      dateKey: day.dateKey,
+                      sales: day.sales,
+                    }))}
+                    monthToDateSales={monthToDateSales}
+                    salesAsOfKey={cashControl?.asOfKey ?? null}
                     ltvPeek={ltvPeek?.amount ?? null}
                     ltvPeekDays={ltvPeek?.days ?? null}
                     ltvHistoryLimited={Boolean(
@@ -847,7 +856,7 @@ export default function Dashboard() {
                     useSampleDesk={useSampleDesk}
                   />
                   <OverviewYoyCards
-                    cards={buildOverviewYoyCards(cashControl?.chips ?? [])}
+                    cards={yoyCards}
                     salesPending={greetingPending}
                     yoyHref={yoyHref}
                   />

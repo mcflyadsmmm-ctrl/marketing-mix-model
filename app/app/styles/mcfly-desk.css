@@ -13726,10 +13726,11 @@ button.mcfly-chart__month {
   .mcfly-yoy--glance .mcfly-yoy__grid,
   .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid,
   .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__grid {
-    display: flex;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    flex-wrap: unset;
     overflow: visible;
-    gap: 0.35rem;
+    gap: 0.45rem;
     scroll-snap-type: none;
     width: 100%;
     max-width: 100%;
@@ -13738,18 +13739,21 @@ button.mcfly-chart__month {
   .mcfly-yoy--glance .mcfly-yoy__card,
   .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card,
   .mcfly-scoreboard--overview .mcfly-yoy--glance .mcfly-yoy__card {
-    flex: 1 1 0% !important;
+    flex: none !important;
     min-width: 0 !important;
-    width: 0 !important;
-    max-width: calc(33.333% - 0.24rem) !important;
+    width: 100% !important;
+    max-width: 100% !important;
     padding: 0.48rem 0.42rem 0.42rem;
     min-height: 0;
   }
 
   .mcfly-yoy--glance .mcfly-yoy__zone,
-  .mcfly-yoy--glance .mcfly-yoy__range,
-  .mcfly-yoy--glance .mcfly-yoy__prior {
+  .mcfly-yoy--glance .mcfly-yoy__range {
     display: none;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__prior {
+    display: flex;
   }
 
   .mcfly-yoy--glance .mcfly-yoy__k {
@@ -13762,6 +13766,8 @@ button.mcfly-chart__month {
   .mcfly-yoy--glance .mcfly-yoy__v {
     font-size: clamp(1.02rem, 4.6vw, 1.18rem);
     margin: 0.18rem 0 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .mcfly-yoy--glance .mcfly-yoy__delta {
@@ -13785,17 +13791,23 @@ button.mcfly-chart__month {
 @media (max-width: 430px) {
   .mcfly-yoy--glance .mcfly-yoy__grid,
   .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__grid {
-    display: flex;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    flex-wrap: unset;
     overflow: visible;
     scroll-snap-type: none;
   }
 
   .mcfly-yoy--glance .mcfly-yoy__card,
   .mcfly-desk-anchor .mcfly-yoy--glance .mcfly-yoy__card {
-    flex: 1 1 0% !important;
+    flex: none !important;
     min-width: 0 !important;
-    max-width: calc(33.333% - 0.24rem) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .mcfly-yoy--glance .mcfly-yoy__prior {
+    display: flex;
   }
 
   .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
@@ -13908,7 +13920,8 @@ button.mcfly-chart__month {
 }
 
 .mcfly-yoy--glance .mcfly-yoy__v {
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .mcfly-desk-anchor .mcfly-chart--sales .mcfly-chart__svg {
@@ -21029,11 +21042,11 @@ button.mcfly-habit-goals__read:focus-visible {
   padding: var(--mcfly-well-pad-fold);
 }
 
-/* Overview first lane: hero + 3 peeks grid (kill skinny founder flex strip) */
+/* Overview first lane: period hero + 4 smaller peeks (kill skinny founder flex strip) */
 .mcfly-scoreboard--overview .mcfly-kpi-grid--peeks-lead.mcfly-kpi-grid--peeks-4,
 .mcfly-scoreboard--overview .mcfly-lane--first .mcfly-kpi-grid--peeks-lead.mcfly-kpi-grid--peeks-4 {
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
   margin: 0 0 0.85rem;
   width: 100%;
@@ -21672,6 +21685,36 @@ button.mcfly-habit-goals__read:focus-visible {
   .mcfly-oh-forecast__row-v,
   .mcfly-oh-forecast__delta {
     text-align: left;
+  }
+}
+
+/* Yesterday / this week / this month — stack on a phone so the dollar fits. */
+.mcfly-scoreboard--overview .mcfly-kpi-grid--windows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0.75rem 0 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.mcfly-scoreboard--overview .mcfly-kpi-grid--windows > .mcfly-kpi {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 36rem) {
+  .mcfly-scoreboard--overview .mcfly-kpi-grid--peeks-lead.mcfly-kpi-grid--peeks-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mcfly-scoreboard--overview .mcfly-kpi-grid--windows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mcfly-scoreboard--overview .mcfly-kpi-grid--windows .mcfly-kpi__value {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 

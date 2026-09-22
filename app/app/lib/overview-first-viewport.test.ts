@@ -7,9 +7,12 @@ import {
   OVERVIEW_COVERAGE_LINE,
   OVERVIEW_FIRST_FOLD_HEROES,
   OVERVIEW_FIRST_LANE_LABEL,
+  OVERVIEW_LAST_YEAR_NOT_ON_FILE,
   OVERVIEW_LIVE_HANDOFF_BODY,
   OVERVIEW_PENDING_ASOF,
   OVERVIEW_PENDING_LINE,
+  OVERVIEW_PERIOD_TOTAL_LABEL,
+  OVERVIEW_PERIOD_TOTAL_SENTENCE,
   OVERVIEW_SALES_ONLY_LINE,
   OVERVIEW_THIN_EMPTY_LINE,
   OVERVIEW_WINBACK_PAD_DAYS,
@@ -22,6 +25,8 @@ import {
   overviewPanelElementId,
   overviewPeekThird,
   overviewPendingFinding,
+  overviewPlainSalesWindows,
+  overviewPlainWindowFormula,
   overviewReturningCompactDollars,
   overviewThinEmptyFinding,
   overviewWeekendWeekday,
@@ -196,6 +201,11 @@ describe("overview first viewport", () => {
     expect(chart).toContain("mcfly-chart__typical");
     expect(chart).toContain("mcfly-chart__sales-fill");
     expect(chart).toContain("mcfly-chart__hero");
+    expect(chart).toContain(
+      "const activeIndex = hoverIndex != null ? hoverIndex : points.length - 1",
+    );
+    expect(chart).toContain("formatCurrency(active.sales, currency)");
+    expect(chart).not.toContain("windowSales");
     expect(chart).toContain("overviewChartDayLabel");
     expect(chart).not.toContain("mcfly-chart__hint");
     expect(chart).not.toContain("mcfly-chart__spend-line");
@@ -217,6 +227,8 @@ describe("overview first viewport", () => {
     expect(cards).toContain("overviewWindowRange");
     expect(cards).toContain("overviewYoyZone");
     expect(cards).toContain("mcfly-yoy--glance");
+    expect(cards).toContain("OVERVIEW_LAST_YEAR_NOT_ON_FILE");
+    expect(cards).not.toContain("priorSales ?? 0");
     expect(cards).toContain("OVERVIEW_YOY_GLANCE_ID");
     expect(cards).toContain("OVERVIEW_YOY_YEAR_PANEL");
     expect(cards).not.toContain('deskHref("/app/yoy")');
@@ -241,6 +253,12 @@ describe("overview first viewport", () => {
     expect(firstView).toContain("Weekend vs weekday");
     expect(firstView).toContain("OVERVIEW_PENDING_LINE");
     expect(firstView).toContain("bookTypicalOrder");
+    expect(firstView).toContain("OVERVIEW_PERIOD_TOTAL_LABEL");
+    expect(firstView).toContain("overviewPlainSalesWindows");
+    expect(firstView).toContain("mcfly-kpi-grid--windows");
+    expect(firstView.indexOf("label={OVERVIEW_PERIOD_TOTAL_LABEL}")).toBeLessThan(
+      firstView.indexOf("PRODUCT_NOUN.bookTypicalOrder"),
+    );
     expect(firstView).toContain("bookTypicalDay");
     expect(firstView).toContain("bookBusiestWeekday");
     expect(firstView).toContain("mcfly-split");
@@ -485,6 +503,50 @@ describe("overviewWeekendWeekday", () => {
   });
 });
 
+describe("overviewPlainSalesWindows", () => {
+  const days = [
+    { dateKey: "2026-09-13", sales: 40 },
+    { dateKey: "2026-09-14", sales: 100 },
+    { dateKey: "2026-09-15", sales: 200 },
+    { dateKey: "2026-09-16", sales: 300 },
+    { dateKey: "2026-09-17", sales: 999 },
+  ];
+
+  it("reads yesterday, this week, and the year card’s month — never a fake $0", () => {
+    const windows = overviewPlainSalesWindows({
+      days,
+      monthSales: 10_000,
+      asOfKey: "2026-09-16",
+    });
+    expect(windows.map((window) => window.label)).toEqual([
+      "Yesterday",
+      "This week",
+      "This month to date",
+    ]);
+    expect(windows.map((window) => window.sales)).toEqual([300, 600, 10_000]);
+    expect(overviewPlainWindowFormula("mtd")).toMatch(/same month number/i);
+    expect(overviewPlainWindowFormula("mtd")).toMatch(/last year/i);
+    expect(overviewPlainSalesWindows({ days: [], monthSales: null }).map((w) => w.sales)).toEqual([
+      null,
+      null,
+      null,
+    ]);
+    expect(
+      overviewPlainSalesWindows({
+        days: [],
+        monthSales: 0,
+        asOfKey: "2026-09-16",
+      }).find((window) => window.id === "mtd")?.sales,
+    ).toBe(0);
+    expect(
+      overviewPlainSalesWindows({
+        days: [{ dateKey: "2026-09-14", sales: 100 }],
+        asOfKey: "2026-09-16",
+      }).find((window) => window.id === "yesterday")?.sales,
+    ).toBeNull();
+  });
+});
+
 describe("overviewBusiestWeekday", () => {
   it("names the peak weekday in dollars when window sales exist", () => {
     const shares = [0.11, 0.12, 0.19, 0.2, 0.13, 0.13, 0.12];
@@ -524,6 +586,12 @@ describe("overviewOperatorGreeting", () => {
     );
     expect(OVERVIEW_ANALYTICS_CONTRAST).not.toMatch(/sessions|ROAS|spend/i);
     expect(OVERVIEW_FIRST_LANE_LABEL).toMatch(/Typical order/);
+    expect(OVERVIEW_FIRST_LANE_LABEL).toMatch(/Shopify Total Sales/);
+    expect(OVERVIEW_PERIOD_TOTAL_LABEL).toBe("Shopify Total Sales");
+    expect(OVERVIEW_PERIOD_TOTAL_SENTENCE).toBe(
+      "Shopify Total Sales for this period.",
+    );
+    expect(OVERVIEW_LAST_YEAR_NOT_ON_FILE).toBe("not on file");
     expect(OVERVIEW_THIN_EMPTY_LINE).toMatch(/not \$0/);
   });
 
@@ -608,8 +676,10 @@ describe("Overview first-fold SCORECARD vs free Shopify Analytics", () => {
     expect(firstView).toContain("New-buyer worth");
     expect(firstView).toContain("Month close");
     expect(firstView).toContain("overviewOperatorGreeting");
+    expect(firstView).toContain("label={OVERVIEW_PERIOD_TOTAL_LABEL}");
     expect(firstView).not.toContain('label="Total Sales"');
     expect(firstView).not.toContain("Sessions");
+    expect(firstView).not.toContain("Gross profit");
     const fixture = read("./desk-phone-fixture.html");
     expect(fixture).toContain("mcfly-score__greeting");
     expect(fixture).toContain("Typical order around $631");

@@ -3,6 +3,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskHref } from "../lib/desk-base-path";
 import { deskNavHref } from "../lib/desk-nav";
 import {
+  OVERVIEW_LAST_YEAR_NOT_ON_FILE,
   OVERVIEW_YOY_GLANCE_ID,
   OVERVIEW_YOY_YEAR_ID,
   OVERVIEW_YOY_YEAR_PANEL,
@@ -61,7 +62,13 @@ function zoneClass(zone: OverviewYoyZone): string {
   }
 }
 
-function PendingYoyShell({ id }: { id: OverviewYoyId }) {
+function PendingYoyShell({
+  id,
+  prior = "—",
+}: {
+  id: OverviewYoyId;
+  prior?: string;
+}) {
   return (
     <article className="mcfly-yoy__card mcfly-yoy__card--empty mcfly-yoy__card--soft" key={id}>
       <p className="mcfly-yoy__k">
@@ -71,7 +78,7 @@ function PendingYoyShell({ id }: { id: OverviewYoyId }) {
       <p className="mcfly-yoy__v">—</p>
       <p className="mcfly-yoy__prior">
         <span>Last year</span>
-        <span>—</span>
+        <span>{prior}</span>
       </p>
     </article>
   );
@@ -127,7 +134,11 @@ export function OverviewYoyCards({
         <p className="mcfly-yoy__lede">{OVERVIEW_YOY_ANALYTICS_LEDE}</p>
         <div className="mcfly-yoy__grid">
           {OVERVIEW_YOY_IDS.map((id) => (
-            <PendingYoyShell id={id} key={id} />
+            <PendingYoyShell
+              id={id}
+              key={id}
+              prior={OVERVIEW_LAST_YEAR_NOT_ON_FILE}
+            />
           ))}
         </div>
         <p className="mcfly-yoy__note">{OVERVIEW_YOY_MISSING}</p>
@@ -152,9 +163,11 @@ export function OverviewYoyCards({
           const zoneLabel = overviewYoyZoneLabel(zone);
           const glancePct = overviewYoyDeltaPct(card);
           const range = overviewWindowRange(card.fromKey, card.toKey);
-          const priorLabel = card.missingPrior
-            ? "—"
-            : formatCurrency(card.priorSales ?? 0, currency);
+          const priorAmount =
+            card.missingPrior || card.priorSales == null
+              ? null
+              : formatCurrency(card.priorSales, currency);
+          const priorLabel = priorAmount ?? OVERVIEW_LAST_YEAR_NOT_ON_FILE;
           return (
             <button
               type="button"
@@ -206,7 +219,9 @@ export function OverviewYoyCards({
                 </p>
               ) : null}
               <p className="mcfly-yoy__prior">
-                <span>LY {priorLabel}</span>
+                <span>
+                  {priorAmount == null ? priorLabel : `LY ${priorAmount}`}
+                </span>
                 {vs ? (
                   <span className={`mcfly-yoy__vs mcfly-yoy__vs--${zone}`}>{vs}</span>
                 ) : null}

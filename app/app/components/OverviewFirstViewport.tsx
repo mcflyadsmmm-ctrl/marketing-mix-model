@@ -6,12 +6,16 @@ import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   OVERVIEW_COVERAGE_LINE,
   OVERVIEW_PENDING_LINE,
+  OVERVIEW_PERIOD_TOTAL_LABEL,
+  OVERVIEW_PERIOD_TOTAL_SENTENCE,
   OVERVIEW_THIN_EMPTY_LINE,
   overviewBusiestWeekday,
   overviewHandoffPeeks,
   overviewLtvWindowLabel,
   overviewOperatorGreeting,
   overviewPendingFinding,
+  overviewPlainSalesWindows,
+  overviewPlainWindowFormula,
   overviewReturningCompactDollars,
   overviewThinEmptyFinding,
   overviewWeekendWeekday,
@@ -40,6 +44,12 @@ export type OverviewPeekProps = {
   peakWeekday?: number | null;
   weekdaySalesShare?: number[] | null;
   windowSales?: number | null;
+  /** Stored sales days the chart and year cards already use. No order crawl. */
+  storedSalesDays?: ReadonlyArray<{ dateKey: string; sales: number }> | null;
+  /** Year-over-year “this month” sales. This month to date uses this number. */
+  monthToDateSales?: number | null;
+  /** Latest stored sales day — the day the year board calls yesterday. */
+  salesAsOfKey?: string | null;
   ltvPeek?: number | null;
   ltvPeekDays?: OverviewLtvPeekDays | null;
   ltvHistoryLimited?: boolean;
@@ -275,13 +285,24 @@ function FindingStrip({ finding }: { finding: OverviewFinding }) {
   );
 }
 
+function moneyOrDash(
+  salesPending: boolean,
+  amount: number | null | undefined,
+  currency: string,
+): string {
+  if (salesPending || amount == null || !Number.isFinite(amount)) return "—";
+  return formatCurrency(amount, currency);
+}
+
 /**
- * First-fold Mcfly peeks — typical order, returning $, weekend, typical day —
- * then days-to-second / LTV / month-close handoffs. SAMPLE Snowdevil is the
- * craft canvas. Spend stays off Overview. YoY sits beside this board.
+ * First-fold peeks — period Shopify Total Sales, then typical order,
+ * returning $, weekend, and typical day, then yesterday / this week /
+ * this month to date from stored sales days. Days-to-second / LTV /
+ * month-close handoffs follow. SAMPLE Snowdevil is the craft canvas.
+ * Spend stays off Overview. YoY sits beside this board.
  * Depth peeks stay after the open sales chart.
  * Pending / thin empty keep the KPI shells as — plus Signal / Evidence / Next
- * move — never a pamphlet, never an AI analyst theater.
+ * move — never a pamphlet, never an AI analyst theater, never a fake $0.
  */
 export function OverviewFirstViewport({
   "aria-label": ariaLabel = "Shopify sales this period",
@@ -290,6 +311,10 @@ export function OverviewFirstViewport({
   salesPending,
   orderCount,
   mixGreeting = null,
+  windowSales = null,
+  storedSalesDays = null,
+  monthToDateSales = null,
+  salesAsOfKey = null,
   ...rest
 }: OverviewPeekProps) {
   const deskHref = useDeskHref();
@@ -303,10 +328,17 @@ export function OverviewFirstViewport({
     typicalDayValue,
   } = useOverviewPeekValues({
     ...rest,
+    windowSales,
     orderCount,
     ordersHref,
     useSampleDesk,
     salesPending,
+  });
+  const periodTotal = moneyOrDash(salesPending, windowSales, currency);
+  const plainWindows = overviewPlainSalesWindows({
+    days: storedSalesDays ?? [],
+    monthSales: monthToDateSales,
+    asOfKey: salesAsOfKey,
   });
   const typicalLabel =
     salesPending || typicalCardValue === "—" ? null : typicalCardValue;
@@ -358,6 +390,20 @@ export function OverviewFirstViewport({
       <div className="mcfly-well mcfly-well--scoreboard mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--peeks-lead mcfly-kpi-grid--peeks-4 mcfly-kpi-grid--soft">
         <PeekCard
           hero
+          to={ordersHref}
+          nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
+          next="Open Orders for the tickets inside this period’s Shopify Total Sales."
+          formulaBlock={OVERVIEW_PERIOD_TOTAL_SENTENCE}
+          icon="sales"
+          label={OVERVIEW_PERIOD_TOTAL_LABEL}
+          value={periodTotal}
+          sub={
+            salesPending || periodTotal === "—"
+              ? undefined
+              : OVERVIEW_PERIOD_TOTAL_SENTENCE
+          }
+        />
+        <PeekCard
           to={ordersHref}
           nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
           next="Typical order, discounts, and weekend sit on Orders — Shopify Analytics only shows the average."
@@ -444,6 +490,25 @@ export function OverviewFirstViewport({
               : "Median daily sales · day vs typical on the chart"
           }
         />
+      </div>
+
+      <div
+        className="mcfly-kpi-grid mcfly-kpi-grid--windows"
+        aria-label="Yesterday, this week, and this month to date"
+      >
+        {plainWindows.map((plain) => (
+          <PeekCard
+            key={plain.id}
+            to={ordersHref}
+            nextLabel={`Open ${PRODUCT_NOUN.ordersTitle}`}
+            next="Open Orders for the tickets inside this Shopify Total Sales window."
+            formulaBlock={overviewPlainWindowFormula(plain.id)}
+            icon="sales"
+            label={plain.label}
+            value={moneyOrDash(salesPending, plain.sales, currency)}
+            sub={OVERVIEW_PERIOD_TOTAL_LABEL}
+          />
+        ))}
       </div>
 
       {handoffs.length > 0 ? (
