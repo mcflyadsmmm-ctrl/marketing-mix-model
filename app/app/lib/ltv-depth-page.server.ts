@@ -7,8 +7,9 @@
  * SAMPLE reads the deterministic Snowdevil order book (products + first-order
  * promo codes on file). Live reads the full stored OrderFact book (no product
  * titles — journeys and first-product LTV stay honest empties; discount $ is
- * on file so Promo→LTV can split promo vs full-price first, but codes are not
- * stored and are never invented) so year / long windows can seal. Thin shops
+ * on file so Promo→LTV can split promo vs full-price first; codes fill when
+ * Shopify stored one on the order — never invented; sourceName cohorts
+ * Online / POS / Shop) so year / long windows can seal. Thin shops
  * get empty-state craft, never a fake year. Order history only — no spend,
  * no ROAS.
  */
@@ -68,9 +69,10 @@ export async function loadLtvDepth(options: {
       units: row.unitCount != null && row.unitCount > 0 ? row.unitCount : 1,
       // Live OrderFacts store units only — never SKU or title (Level 1).
       product: null,
-      // Discount $ is crawled. Codes are not stored — never invent a title.
+      // Discount $ is crawled. Codes when Shopify stored one — never invent.
       discountAmount: row.discountAmount,
-      discountCode: null,
+      discountCode: row.discountCode ?? null,
+      sourceName: row.sourceName,
     });
   }
   return buildLtvFlagship(orders, asOf, { sample: false, historyLimited });

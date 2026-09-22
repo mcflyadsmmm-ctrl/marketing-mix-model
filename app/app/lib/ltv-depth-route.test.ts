@@ -208,7 +208,7 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(productBoard).not.toMatch(/about 60 days/);
     expect(promoBoard).toContain("not $0");
     expect(promoBoard).toContain("average first order");
-    expect(promoBoard).toContain("Promo → LTV");
+    expect(promoBoard).toContain("Which first orders are worth more");
     expect(promoBoard).toContain("Highest first-order promo");
     expect(promoBoard).toContain("empty.verb");
     expect(promoBoard).toContain("Floor:");
@@ -281,16 +281,25 @@ describe("depth chrome stays honest and in shop-owner voice", () => {
     expect(customers).toContain("buildShareableInsights");
   });
 
-  it("mounts Promo→LTV after Product→LTV and before the explorers", () => {
+  it("mounts starter value (promo + source) on the open LTV windows after first-product drivers", () => {
+    const windowsStart = section.indexOf("export function CustomersLtvWindows");
+    const windowsEnd = section.indexOf("export function CustomersLtvDepth");
+    const windows = section.slice(windowsStart, windowsEnd);
+    const depth = section.slice(windowsEnd);
+    expect(windows).toContain("<LtvPromoBoard");
+    expect(windows).toContain("bySource={depth.sourceLtv}");
+    expect(windows.indexOf("<LtvFirstProductDrivers")).toBeLessThan(
+      windows.indexOf("<LtvPromoBoard"),
+    );
+    expect(windows.indexOf("<LtvPromoBoard")).toBeLessThan(
+      windows.indexOf("<LtvExpectedEstimate"),
+    );
+    expect(depth).not.toContain("<LtvPromoBoard");
     const productAt = route.indexOf("<LtvProductBoard");
-    const promoAt = route.indexOf("<LtvPromoBoard");
     const curvesAt = route.indexOf("<LtvBuildCurves");
-    const pathAt = route.indexOf("<LtvPathTable");
-    expect(promoAt).toBeGreaterThan(productAt);
-    expect(curvesAt).toBeGreaterThan(promoAt);
-    expect(pathAt).toBeGreaterThan(promoAt);
-    expect(route).toContain("promo={depth.promoLtv}");
-    expect(route).toContain("after Product→LTV");
+    expect(curvesAt).toBeGreaterThan(productAt);
+    expect(promoBoard).toContain('aria-label="Which first orders are worth more"');
+    expect(promoBoard).toContain("LtvBySourceRows");
     expect(promoBoard).toContain("Light");
     expect(promoBoard).toContain("Typical");
     expect(promoBoard).toContain("Deep");

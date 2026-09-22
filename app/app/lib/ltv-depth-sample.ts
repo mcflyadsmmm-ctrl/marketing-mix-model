@@ -164,12 +164,16 @@ export function generateSnowdevilDepthOrders(now: Date = new Date()): DepthOrder
           isFirst ? seg.firstSpread : seg.aovSpread,
         );
         const units = drawUnits(rng, amount);
+        // Mostly Online, with POS / Shop slices so source → LTV can seal.
+        const sourceName =
+          i % 11 === 0 ? "pos" : i % 17 === 0 ? "shop" : "web";
         orders.push({
           customerKey,
           orderedAt,
           amount,
           units,
           product: snowdevilProductForAmount(amount),
+          sourceName,
         });
         // Reorder cadence widens with each order — the first gap clears 30 days
         // for most buyers so the first-30-days number stays close to one order.

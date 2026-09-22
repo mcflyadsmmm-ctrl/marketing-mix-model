@@ -171,9 +171,10 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     const section = read("../components/CustomersLtvSection.tsx");
     const order = [
       "<LtvValueBuild",
+      "<LtvFirstProductDrivers",
+      "<LtvPromoBoard",
       "<LtvFlagshipBoard",
       "<LtvProductBoard",
-      "<LtvPromoBoard",
       "<LtvBuildCurves",
       "<LtvWhaleRecency",
       "facts={economicsRows}",
