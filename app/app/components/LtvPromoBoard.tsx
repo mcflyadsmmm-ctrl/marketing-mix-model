@@ -2,11 +2,16 @@ import { formatCurrency } from "../lib/mer-format";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { useDeskDrill } from "./DeskDrill";
 import { DeskIcon } from "./DeskIcon";
-import type {
-  PromoEmpty,
-  PromoEmptyKind,
-  PromoLtvRow,
-  PromoLtvView,
+import {
+  promoMedianOffCopy,
+  type PromoDepthEmpty,
+  type PromoDepthEmptyKind,
+  type PromoDepthLine,
+  type PromoDepthRow,
+  type PromoEmpty,
+  type PromoEmptyKind,
+  type PromoLtvRow,
+  type PromoLtvView,
 } from "../lib/ltv-promo";
 
 function pct(share: number): string {
@@ -48,6 +53,47 @@ function liftCopy(lift: number | null): string | null {
   return `${lift.toFixed(1)}× vs full price`;
 }
 
+function yearNotOnFile(historyLimited: boolean): string {
+  return historyLimited
+    ? "First year is not on file yet. Not $0."
+    : "Not on file yet — not enough of these starters have lived a full year. Not $0.";
+}
+
+function depthMorningCopy(line: PromoDepthLine, currency: string): string {
+  const lift = line.lift != null ? `${line.lift.toFixed(1)}× vs full price` : "lift —";
+  const back =
+    line.comeBack != null ? `${pct(line.comeBack)} came back` : "come-back —";
+  const refunds = line.afterRefunds ? " · after refunds" : "";
+  return `${line.label} is worth the most · ${formatCurrency(line.worth, currency)} · ${line.worthLabel} · ${lift} · ${back}${refunds}`;
+}
+
+function depthEmptyValue(empty: PromoDepthEmpty): string {
+  switch (empty.kind) {
+    case "gross":
+      return "Pre-refund total not on file";
+    case "thin":
+    case "young":
+      return `${empty.buyers.toLocaleString()} in a depth band`;
+    default: {
+      const _exhaustive: never = empty.kind;
+      return _exhaustive;
+    }
+  }
+}
+
+function depthEmptyFloor(kind: PromoDepthEmptyKind, need: number): string {
+  switch (kind) {
+    case "gross":
+    case "thin":
+    case "young":
+      return `Floor: ${need} buyers in the same first-order depth × 30 days, then 90, then the first year. Not $0.`;
+    default: {
+      const _exhaustive: never = kind;
+      return _exhaustive;
+    }
+  }
+}
+
 /**
  * Promo / discount → LTV board. Which first-order promo starts the higher
  * lifetime path — 30 / 90 / year when those starters have lived it, lift vs
@@ -73,7 +119,25 @@ export function LtvPromoBoard({
   const showRead = Boolean(read);
   const showCards = promo.rows.length > 0 && read != null;
   const showMath = Boolean(best && best.predicted90 != null && best.formula90);
-  if (!showEmpty && !showRead && !showCards && !showMath) return null;
+  const depthLine = promo.depthLine;
+  const depthEmpty = promo.depthEmpty;
+  const showDepthCards = promo.depthBands.length > 0 && depthLine != null;
+  const showDepthEmpty = Boolean(
+    depthEmpty && empty?.kind !== "discounts" && empty?.kind !== "syncing",
+  );
+  const showAwaitingNote =
+    promo.depthAwaitingGross > 0 && depthEmpty?.kind !== "gross";
+  if (
+    !showEmpty &&
+    !showRead &&
+    !showCards &&
+    !showMath &&
+    !showDepthCards &&
+    !showDepthEmpty &&
+    !depthLine
+  ) {
+    return null;
+  }
 
   const first = best?.firstOrder90 ?? 0;
   const extra = best?.extraOrders90 ?? 0;
@@ -95,9 +159,11 @@ export function LtvPromoBoard({
           Promo → LTV
         </h3>
         <p className="mcfly-chart__muted">
-          Which first-order promo starts the higher-value path. Discount $ on
-          the first order, then 30 / 90 / first year among those starters.
-          Lift is vs full-price first. A dash is not $0. No spend required.
+          Which first-order promo starts the higher-value path. Discount depth
+          is Light (under 15%), Typical (15% to under 30%), or Deep (30% or
+          more) of the first order — discount $ divided by the pre-refund total
+          plus that discount, not the code name. Lift is vs full-price first.
+          A dash is not $0. No spend required.
         </p>
       </div>
 
@@ -172,9 +238,15 @@ export function LtvPromoBoard({
                   v: codesNote,
                 },
                 {
+                  k: "Discount depth",
+                  v: depthLine
+                    ? `${depthMorningCopy(depthLine, currency)}. Full price first stays the baseline.`
+                    : "Light, Typical, and Deep wait until a band has sealed 90 days, or 30 days when 90 has not.",
+                },
+                {
                   k: "First year",
                   v: read.yearPending
-                    ? "Not on file yet — not enough of these starters have lived a full year. Not $0."
+                    ? yearNotOnFile(promo.historyLimited)
                     : "On the year line of the promo cards below.",
                 },
               ],
@@ -193,17 +265,28 @@ export function LtvPromoBoard({
               ? ` · ${pct(read.comeBack)} came back`
               : " · come-back —"}
           </span>
+          {depthLine ? (
+            <span className="mcfly-depth-flag__read-line">
+              {depthMorningCopy(depthLine, currency)}
+            </span>
+          ) : null}
           <span className="mcfly-depth-flag__read-line">
             {read.estimate != null && read.observed != null
               ? `The math says ${formatCurrency(read.estimate, currency)} — those starters spent ${formatCurrency(read.observed, currency)}.`
               : read.yearPending
-                ? "First year is not on file yet — not $0."
+                ? yearNotOnFile(promo.historyLimited)
                 : "Averages from the starters who have lived this window."}
           </span>
           {!promo.codesKnown ? (
             <span className="mcfly-depth-flag__read-line">{codesNote}</span>
           ) : null}
         </button>
+      ) : null}
+
+      {depthLine && !showRead ? (
+        <p className="mcfly-depth-flag__read-line">
+          {depthMorningCopy(depthLine, currency)}
+        </p>
       ) : null}
 
       {showCards ? (
@@ -214,6 +297,63 @@ export function LtvPromoBoard({
               row={row}
               currency={currency}
               fullPrice90={promo.fullPrice90}
+              historyLimited={promo.historyLimited}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {showAwaitingNote ? (
+        <p className="mcfly-chart__muted">
+          The percent waits until the pre-refund total is on file.
+        </p>
+      ) : null}
+
+      {showDepthEmpty && depthEmpty ? (
+        <button
+          type="button"
+          className="mcfly-depth-flag__empty"
+          data-kind={depthEmpty.kind}
+          onClick={() =>
+            drill?.openDrill({
+              title: "Discount depth",
+              value: depthEmptyValue(depthEmpty),
+              kicker: depthEmpty.verb,
+              blocks: [
+                { k: "What this is", v: depthEmpty.copy },
+                {
+                  k: "The cuts",
+                  v: "Light is under 15% off the first order. Typical is 15% to under 30%. Deep is 30% or more, including an order fully covered by the discount. A code name is not a percent.",
+                },
+                {
+                  k: "What fills next",
+                  v: depthEmptyFloor(depthEmpty.kind, depthEmpty.need),
+                },
+              ],
+              next: "Averages from order history — not a promise, not email.",
+            })
+          }
+        >
+          <span className="mcfly-depth-flag__empty-k">Discount depth</span>
+          <span className="mcfly-depth-flag__empty-verb">{depthEmpty.verb}</span>
+          <span className="mcfly-depth-flag__empty-v">
+            {depthEmptyValue(depthEmpty)}
+          </span>
+          <span className="mcfly-depth-flag__empty-line">{depthEmpty.copy}</span>
+          <span className="mcfly-depth-flag__empty-line">
+            {depthEmptyFloor(depthEmpty.kind, depthEmpty.need)}
+          </span>
+        </button>
+      ) : null}
+
+      {showDepthCards ? (
+        <div className="mcfly-kpi-grid mcfly-kpi-grid--peeks mcfly-kpi-grid--soft">
+          {promo.depthBands.map((row) => (
+            <DepthBandCard
+              key={row.band}
+              row={row}
+              currency={currency}
+              historyLimited={promo.historyLimited}
             />
           ))}
         </div>
@@ -256,7 +396,7 @@ export function LtvPromoBoard({
                   v:
                     best.day365Ltv != null
                       ? formatCurrency(best.day365Ltv, currency)
-                      : "Not on file yet — not enough of these starters have lived a full year. Not $0.",
+                      : yearNotOnFile(promo.historyLimited),
                 },
               ],
               next: "An average from order history — not a promise for the next buyer.",
@@ -310,10 +450,12 @@ function PromoCard({
   row,
   currency,
   fullPrice90,
+  historyLimited,
 }: {
   row: PromoLtvRow;
   currency: string;
   fullPrice90: number | null;
+  historyLimited: boolean;
 }) {
   const drill = useDeskDrill();
   const money =
@@ -365,8 +507,19 @@ function PromoCard({
               v:
                 row.day365Ltv != null
                   ? `${formatCurrency(row.day365Ltv, currency)} among ${row.day365N.toLocaleString()} starters who have lived a year.`
-                  : "Not on file yet — not enough of these starters have lived a full year. Not $0.",
+                  : yearNotOnFile(historyLimited),
             },
+            ...(row.kind === "code"
+              ? [
+                  {
+                    k: "First-order depth",
+                    v:
+                      row.medianFirstShare != null
+                        ? promoMedianOffCopy(row.medianFirstShare)
+                        : "The percent stays off this card until 8 starters on this code have a known pre-refund total.",
+                  },
+                ]
+              : []),
             {
               k: "Vs full-price first",
               v:
@@ -393,6 +546,144 @@ function PromoCard({
         <span className="mcfly-depth-windows__add">{lift}</span>
       ) : row.kind === "full_price" ? (
         <span className="mcfly-depth-windows__add">Baseline</span>
+      ) : null}
+      {row.kind === "code" && row.medianFirstShare != null ? (
+        <span className="mcfly-depth-windows__sub">
+          {promoMedianOffCopy(row.medianFirstShare)}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function DepthBandCard({
+  row,
+  currency,
+  historyLimited,
+}: {
+  row: PromoDepthRow;
+  currency: string;
+  historyLimited: boolean;
+}) {
+  const drill = useDeskDrill();
+  const money =
+    row.day90Ltv != null
+      ? formatCurrency(row.day90Ltv, currency)
+      : row.day30Ltv != null
+        ? formatCurrency(row.day30Ltv, currency)
+        : "—";
+  const windowName =
+    row.day90Ltv != null
+      ? "First 90 days"
+      : row.day30Ltv != null
+        ? "First 30 days"
+        : "Not on file yet";
+  const lift =
+    row.day90Ltv != null
+      ? liftCopy(row.lift90)
+      : row.day30Ltv != null
+        ? liftCopy(row.lift30)
+        : null;
+  const back =
+    row.comeBack90 != null
+      ? `${pct(row.comeBack90)} came back`
+      : row.comeBack30 != null
+        ? `${pct(row.comeBack30)} came back`
+        : "Come-back —";
+  const afterRefunds =
+    row.day90Ltv != null
+      ? row.afterRefunds90
+      : row.day30Ltv != null
+        ? row.afterRefunds30
+        : false;
+
+  return (
+    <button
+      type="button"
+      className="mcfly-kpi mcfly-kpi--drill mcfly-kpi--peek mcfly-kpi--soft"
+      data-depth={row.band}
+      onClick={() =>
+        drill?.openDrill({
+          title: `${row.label} first discount`,
+          value: money,
+          kicker: `${row.buyers.toLocaleString()} buyers · ${row.cut}`,
+          blocks: [
+            {
+              k: "The cut",
+              v: `${row.cut}. Discount $ ÷ (pre-refund total + discount $). A code name is not a percent.`,
+            },
+            {
+              k: "First 30 days",
+              v:
+                row.day30Ltv != null
+                  ? `${formatCurrency(row.day30Ltv, currency)} among ${row.day30N.toLocaleString()} starters who have lived 30 days.${row.afterRefunds30 ? " After refunds." : ""}`
+                  : "Not on file yet — not enough of these starters have lived 30 days. Not $0.",
+            },
+            {
+              k: "First 90 days",
+              v:
+                row.day90Ltv != null
+                  ? `${formatCurrency(row.day90Ltv, currency)} among ${row.day90N.toLocaleString()} starters who have lived 90 days.${row.afterRefunds90 ? " After refunds." : ""}`
+                  : "Not on file yet — not enough of these starters have lived 90 days. Not $0.",
+            },
+            {
+              k: "First year",
+              v:
+                row.day365Ltv != null
+                  ? `${formatCurrency(row.day365Ltv, currency)} among ${row.day365N.toLocaleString()} starters who have lived a year.${row.afterRefunds365 ? " After refunds." : ""}`
+                  : yearNotOnFile(historyLimited),
+            },
+            {
+              k: "Came back",
+              v:
+                row.comeBack90 != null
+                  ? `${pct(row.comeBack90)} placed a second order inside 90 days.`
+                  : row.comeBack30 != null
+                    ? `${pct(row.comeBack30)} placed a second order inside 30 days.`
+                    : "Come-back share waits until enough starters have lived the window.",
+            },
+            {
+              k: "Vs full-price first",
+              v:
+                row.lift90 != null
+                  ? `${row.lift90.toFixed(1)}× full-price first in the first 90 days.`
+                  : row.lift30 != null
+                    ? `${row.lift30.toFixed(1)}× full-price first in the first 30 days.`
+                    : "Lift waits until this depth and full-price first have both sealed the same window.",
+            },
+            {
+              k: "Later orders at full price",
+              v:
+                row.laterFullPrice90 != null
+                  ? `${pct(row.laterFullPrice90)} of orders after the first, inside 90 days, had $0 discount — only orders with a discount field on file.`
+                  : "That share waits until 90 days has sealed and a later order has a known discount field.",
+            },
+          ],
+          next: "An average of people who already lived the window — not a promise.",
+        })
+      }
+    >
+      <span className="mcfly-kpi__top">
+        <DeskIcon name="sales" />
+        <span className="mcfly-kpi__label">{row.label}</span>
+      </span>
+      <span className="mcfly-kpi__value">{money}</span>
+      <span className="mcfly-depth-windows__sub">
+        {windowName} · {back}
+      </span>
+      <span className="mcfly-depth-windows__sub">{row.cut}</span>
+      {lift ? (
+        <span className="mcfly-depth-windows__add">{lift}</span>
+      ) : (
+        <span className="mcfly-depth-windows__add">Lift —</span>
+      )}
+      {row.laterFullPrice90 != null ? (
+        <span className="mcfly-depth-windows__sub">
+          {pct(row.laterFullPrice90)} later orders at full price
+        </span>
+      ) : null}
+      {afterRefunds ? (
+        <span className="mcfly-depth-windows__sub">After refunds</span>
       ) : null}
     </button>
   );

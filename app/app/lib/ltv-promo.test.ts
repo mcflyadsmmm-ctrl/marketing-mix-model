@@ -3,8 +3,12 @@ import { rollUpCustomers, type DepthOrder } from "./ltv-depth";
 import { generateSnowdevilDepthOrders } from "./ltv-depth-sample";
 import {
   buildPromoLtv,
+  firstOrderDiscountShare,
   firstPromoLabel,
+  promoDepthBand,
+  promoDepthEmptyState,
   promoLtvEmptyState,
+  promoMedianOffCopy,
   promoRowKind,
   PROMO_FULL_PRICE,
   PROMO_MIN_BUYERS,
@@ -111,6 +115,7 @@ describe("buildPromoLtv (first-order promo → LTV)", () => {
     expect(view.best?.observed90).toBe(390);
     expect(view.best?.formula90).toContain("average first order");
     expect(view.best?.formula90).toContain("90.00 + 1.00 × 300.00 = 390.00");
+    expect(view.best?.medianFirstShare).toBeNull();
 
     const welcome = view.rows.find((row) => row.promo === "WELCOME10")!;
     expect(welcome.day90Ltv).toBeCloseTo((4 * 40 + 6 * 20) / 10, 5);
@@ -171,6 +176,11 @@ describe("buildPromoLtv (first-order promo → LTV)", () => {
     expect(view.fullPrice90).toBe(100);
     expect(view.best?.lift90).toBeCloseTo(2.8, 5);
     expect(view.rows.every((row) => row.kind !== "code")).toBe(true);
+    expect(view.depthBands).toEqual([]);
+    expect(view.depthLine).toBeNull();
+    expect(view.depthEmpty?.kind).toBe("gross");
+    expect(view.depthEmpty?.copy).toContain("pre-refund");
+    expect(view.depthEmpty?.copy).toContain("Not $0");
   });
 
   it("drops groups below the buyer floor and missing discount fields", () => {
@@ -334,5 +344,328 @@ describe("SAMPLE Snowdevil promo → LTV is dense", () => {
     expect(worst.day90Ltv!).toBeLessThan(view.best!.day90Ltv!);
     const full = view.rows.find((row) => row.kind === "full_price");
     expect(full?.day90Ltv).not.toBeNull();
+  });
+
+  it("seals at least two discount-depth bands without a fourth code", () => {
+    const orders = generateSnowdevilDepthOrders(NOW);
+    const codes = new Set(
+      orders
+        .map((row) => row.discountCode)
+        .filter((code): code is string => Boolean(code?.trim())),
+    );
+    expect([...codes].sort()).toEqual(["BUNDLE", "POWDER15", "WELCOME10"]);
+    const sealed = view.depthBands.filter(
+      (band) => band.day90Ltv != null || band.day30Ltv != null,
+    );
+    expect(sealed.length).toBeGreaterThanOrEqual(2);
+    expect(view.depthLine).not.toBeNull();
+    expect(view.depthLine!.worthDays).toBe(90);
+    expect(view.depthLine!.lift).not.toBeNull();
+    expect(view.depthEmpty).toBeNull();
+    expect(new Set(sealed.map((band) => band.band)).size).toBeGreaterThanOrEqual(2);
+    expect(view.depthBands.every((band) => band.cut.includes("%"))).toBe(true);
+    expect(
+      view.depthBands.some((band) => band.day365Ltv != null && band.day365Ltv > 0),
+    ).toBe(true);
+    expect(
+      view.depthBands
+        .filter((band) => band.day90Ltv != null)
+        .every((band) => band.afterRefunds90),
+    ).toBe(true);
+    expect(view.depthBands.some((band) => band.laterFullPrice90 === 1)).toBe(
+      true,
+    );
+    const welcome = view.rows.find((row) => row.promo === "WELCOME10");
+    if (welcome?.medianFirstShare != null) {
+      expect(welcome.medianFirstShare).toBeGreaterThan(0);
+      expect(welcome.medianFirstShare).toBeLessThan(0.15);
+      expect(promoMedianOffCopy(welcome.medianFirstShare)).not.toContain("10%");
+    }
+  });
+});
+
+describe("first-order discount depth", () => {
+  it("cuts Light / Typical / Deep on the share, not on a code name", () => {
+    expect(firstOrderDiscountShare(10, 90)).toBeCloseTo(0.1, 5);
+    expect(promoDepthBand(0.149)).toBe("light");
+    expect(promoDepthBand(0.15)).toBe("typical");
+    expect(promoDepthBand(0.299)).toBe("typical");
+    expect(promoDepthBand(0.3)).toBe("deep");
+    expect(promoDepthBand(1)).toBe("deep");
+    expect(promoDepthBand(0)).toBeNull();
+    expect(firstOrderDiscountShare(0, 0)).toBeNull();
+    expect(promoMedianOffCopy(0.08)).toBe("about 8% off the first order");
+    expect(promoMedianOffCopy(0.08)).not.toBe("about 10% off the first order");
+  });
+
+  const asOf = new Date("2024-06-01");
+
+  function depthBook(): DepthOrder[] {
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(
+        order(`l${i}`, "2024-01-01", 90, {
+          discountAmount: 10,
+          grossAmount: 90,
+        }),
+      );
+      rows.push(
+        order(`l${i}`, "2024-02-15", 40, {
+          discountAmount: 0,
+          grossAmount: 40,
+        }),
+      );
+    }
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(
+        order(`t${i}`, "2024-01-01", 75, {
+          discountAmount: 25,
+          grossAmount: 75,
+        }),
+      );
+      if (i < 5) {
+        rows.push(
+          order(`t${i}`, "2024-02-15", 30, {
+            discountAmount: 5,
+            grossAmount: 30,
+          }),
+        );
+      }
+    }
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(
+        order(`d${i}`, "2024-01-01", 40, {
+          discountAmount: 40,
+          grossAmount: 40,
+        }),
+      );
+    }
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(
+        order(`f${i}`, "2024-01-01", 100, { discountAmount: 0, grossAmount: 100 }),
+      );
+      rows.push(
+        order(`f${i}`, "2024-02-15", 50, { discountAmount: 0, grossAmount: 50 }),
+      );
+    }
+    for (let i = 0; i < 2; i += 1) {
+      rows.push(order(`a${i}`, "2024-01-01", 80, { discountAmount: 20 }));
+    }
+    rows.push(order("u0", "2024-01-01", 80));
+    return rows;
+  }
+
+  it("seals depth windows, lift vs full price, later full price, and after refunds", () => {
+    const view = buildPromoLtv(depthBook(), asOf);
+    expect(view.depthEmpty).toBeNull();
+    expect(view.depthAwaitingGross).toBe(2);
+    expect(view.depthBands.map((band) => band.band)).toEqual([
+      "light",
+      "typical",
+      "deep",
+    ]);
+    const light = view.depthBands[0]!;
+    const typical = view.depthBands[1]!;
+    const deep = view.depthBands[2]!;
+    expect(light.buyers).toBe(10);
+    expect(light.day90Ltv).toBe(130);
+    expect(light.comeBack90).toBe(1);
+    expect(light.lift90).toBeCloseTo(130 / 150, 5);
+    expect(light.laterFullPrice90).toBe(1);
+    expect(light.afterRefunds90).toBe(true);
+    expect(light.day365Ltv).toBeNull();
+    expect(typical.day90Ltv).toBe(90);
+    expect(typical.comeBack90).toBeCloseTo(0.5, 5);
+    expect(typical.laterFullPrice90).toBe(0);
+    expect(deep.day90Ltv).toBe(40);
+    expect(deep.comeBack90).toBe(0);
+    expect(deep.laterFullPrice90).toBeNull();
+    expect(view.depthLine?.label).toBe("Light");
+    expect(view.depthLine?.worth).toBe(130);
+    expect(view.depthLine?.worthDays).toBe(90);
+    expect(view.depthLine?.lift).toBeCloseTo(130 / 150, 5);
+    expect(view.depthLine?.comeBack).toBe(1);
+    expect(view.rows.some((row) => row.promo === PROMO_FULL_PRICE)).toBe(true);
+    expect(view.rows.some((row) => row.promo === PROMO_UNNAMED)).toBe(true);
+  });
+
+  it("keeps a named-code percent off the card until 8 starters have a known share", () => {
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(
+        order(`w${i}`, "2024-01-01", 92, {
+          discountCode: "WELCOME10",
+          discountAmount: 8,
+          grossAmount: i < 3 ? 92 : undefined,
+        }),
+      );
+    }
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(order(`f${i}`, "2024-01-01", 100, { discountAmount: 0, grossAmount: 100 }));
+    }
+    const thin = buildPromoLtv(rows, asOf);
+    expect(thin.rows.find((row) => row.promo === "WELCOME10")?.medianFirstShare).toBeNull();
+
+    const known: DepthOrder[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      known.push(
+        order(`w${i}`, "2024-01-01", 92, {
+          discountCode: "WELCOME10",
+          discountAmount: 8,
+          grossAmount: 92,
+        }),
+      );
+    }
+    for (let i = 0; i < 8; i += 1) {
+      known.push(order(`f${i}`, "2024-01-01", 100, { discountAmount: 0, grossAmount: 100 }));
+    }
+    const view = buildPromoLtv(known, asOf);
+    const welcome = view.rows.find((row) => row.promo === "WELCOME10");
+    expect(welcome?.medianFirstShare).toBeCloseTo(0.08, 5);
+    expect(promoMedianOffCopy(welcome!.medianFirstShare!)).toBe(
+      "about 8% off the first order",
+    );
+  });
+
+  it("does not count later orders outside 90 days or with an unknown discount", () => {
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      rows.push(
+        order(`l${i}`, "2024-01-01", 90, {
+          discountAmount: 10,
+          grossAmount: 90,
+        }),
+      );
+      rows.push(order(`l${i}`, "2024-02-01", 20));
+      rows.push(
+        order(`l${i}`, "2024-05-15", 20, {
+          discountAmount: 0,
+          grossAmount: 20,
+        }),
+      );
+    }
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(order(`f${i}`, "2024-01-01", 80, { discountAmount: 0, grossAmount: 80 }));
+    }
+    const view = buildPromoLtv(rows, asOf);
+    expect(view.depthBands[0]?.laterFullPrice90).toBeNull();
+    expect(view.depthBands[0]?.afterRefunds90).toBe(false);
+  });
+
+  it("puts a fully covered first order in Deep", () => {
+    const rows: DepthOrder[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(
+        order(`d${i}`, "2024-01-01", 0, {
+          discountAmount: 50,
+          grossAmount: 0,
+        }),
+      );
+    }
+    for (let i = 0; i < 8; i += 1) {
+      rows.push(order(`f${i}`, "2024-01-01", 40, { discountAmount: 0, grossAmount: 40 }));
+    }
+    const view = buildPromoLtv(rows, asOf);
+    expect(view.depthBands.map((band) => band.band)).toEqual(["deep"]);
+    expect(view.depthBands[0]?.day90Ltv).toBe(0);
+    expect(firstOrderDiscountShare(50, 0)).toBe(1);
+  });
+
+  it("withholds the year when history is limited", () => {
+    const yearAsOf = new Date("2025-02-01");
+    const open = buildPromoLtv(depthBook(), yearAsOf);
+    expect(open.depthBands[0]?.day365Ltv).toBe(130);
+    const capped = buildPromoLtv(depthBook(), yearAsOf, { historyLimited: true });
+    expect(capped.historyLimited).toBe(true);
+    expect(capped.depthBands.every((band) => band.day365Ltv == null)).toBe(true);
+    expect(capped.rows.every((row) => row.day365Ltv == null)).toBe(true);
+    expect(capped.fullPrice365).toBeNull();
+    expect(capped.read?.yearPending).toBe(true);
+  });
+
+  it("uses thin and young empties instead of invented bands", () => {
+    const thinRows: DepthOrder[] = [];
+    for (let i = 0; i < 3; i += 1) {
+      thinRows.push(
+        order(`l${i}`, "2024-01-01", 90, { discountAmount: 10, grossAmount: 90 }),
+      );
+      thinRows.push(
+        order(`t${i}`, "2024-01-01", 80, { discountAmount: 20, grossAmount: 80 }),
+      );
+      thinRows.push(
+        order(`d${i}`, "2024-01-01", 40, { discountAmount: 40, grossAmount: 40 }),
+      );
+    }
+    for (let i = 0; i < 10; i += 1) {
+      thinRows.push(
+        order(`f${i}`, "2024-01-01", 50, { discountAmount: 0, grossAmount: 50 }),
+      );
+    }
+    const thin = buildPromoLtv(thinRows, asOf);
+    expect(thin.read).not.toBeNull();
+    expect(thin.depthBands).toEqual([]);
+    expect(thin.depthEmpty?.kind).toBe("thin");
+    expect(thin.depthEmpty?.verb).toBe("Watch first 30 days");
+
+    const youngRows: DepthOrder[] = [];
+    for (let i = 0; i < 10; i += 1) {
+      youngRows.push(
+        order(`l${i}`, "2024-05-20", 90, { discountAmount: 10, grossAmount: 90 }),
+      );
+    }
+    const young = buildPromoLtv(youngRows, new Date("2024-06-01"));
+    expect(young.depthLine).toBeNull();
+    expect(young.depthEmpty?.kind).toBe("young");
+    expect(young.depthEmpty?.verb).toBe("Wait for day 30");
+  });
+});
+
+describe("promoDepthEmptyState", () => {
+  it("names gross / thin / young and stays quiet once a band has sealed", () => {
+    expect(
+      promoDepthEmptyState({
+        discountsKnown: false,
+        sealed: false,
+        classifiable: 0,
+        awaitingGross: 4,
+        bandReady: false,
+      }),
+    ).toBeNull();
+    expect(
+      promoDepthEmptyState({
+        discountsKnown: true,
+        sealed: false,
+        classifiable: 0,
+        awaitingGross: 4,
+        bandReady: false,
+      })?.kind,
+    ).toBe("gross");
+    expect(
+      promoDepthEmptyState({
+        discountsKnown: true,
+        sealed: false,
+        classifiable: 3,
+        awaitingGross: 0,
+        bandReady: false,
+      })?.kind,
+    ).toBe("thin");
+    expect(
+      promoDepthEmptyState({
+        discountsKnown: true,
+        sealed: false,
+        classifiable: 10,
+        awaitingGross: 0,
+        bandReady: true,
+      })?.kind,
+    ).toBe("young");
+    expect(
+      promoDepthEmptyState({
+        discountsKnown: true,
+        sealed: true,
+        classifiable: 10,
+        awaitingGross: 1,
+        bandReady: true,
+      }),
+    ).toBeNull();
   });
 });

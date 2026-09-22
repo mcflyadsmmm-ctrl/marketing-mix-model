@@ -12,6 +12,10 @@
  * vs full-price-first buyers, not vs the shop blend. Order history only —
  * no spend, no COGS, no pixels.
  *
+ * Discount depth (Light / Typical / Deep) uses the first order only:
+ * discount $ ÷ (pre-refund total + discount $). A code name is not a percent.
+ * Buyers missing the pre-refund total stay on the promo row and out of a band.
+ *
  * Merchant chrome: promo first, full price first, came back, later order.
  * Never "cohort", "ARPU", "till", or "p25–p75".
  */
@@ -35,6 +39,74 @@ export const PROMO_UNNAMED = "Promo first";
 /** First order had $0 discount on file. */
 export const PROMO_FULL_PRICE = "Full price first";
 
+/** First-order discount share cuts. Not terciles, and not the digits in a code. */
+export const PROMO_DEPTH_LIGHT_MAX = 0.15;
+export const PROMO_DEPTH_TYPICAL_MAX = 0.3;
+
+export type PromoDepthBand = "light" | "typical" | "deep";
+
+const DEPTH_BANDS: PromoDepthBand[] = ["light", "typical", "deep"];
+
+/**
+ * First-order discount share. Pre-refund total is `grossAmount` /
+ * `totalPriceSet`. Null when either side is missing or the denominator is 0.
+ */
+export function firstOrderDiscountShare(
+  discountAmount: number,
+  preRefundTotal: number,
+): number | null {
+  if (!Number.isFinite(discountAmount) || !Number.isFinite(preRefundTotal)) {
+    return null;
+  }
+  if (discountAmount < 0 || preRefundTotal < 0) return null;
+  const denom = preRefundTotal + discountAmount;
+  if (!(denom > 0)) return null;
+  return discountAmount / denom;
+}
+
+/** Light under 15%, Typical 15% to under 30%, Deep 30% or more. Zero is not a band. */
+export function promoDepthBand(share: number): PromoDepthBand | null {
+  if (!Number.isFinite(share) || !(share > 0)) return null;
+  if (share < PROMO_DEPTH_LIGHT_MAX) return "light";
+  if (share < PROMO_DEPTH_TYPICAL_MAX) return "typical";
+  return "deep";
+}
+
+export function promoDepthLabel(band: PromoDepthBand): string {
+  switch (band) {
+    case "light":
+      return "Light";
+    case "typical":
+      return "Typical";
+    case "deep":
+      return "Deep";
+    default: {
+      const _exhaustive: never = band;
+      return _exhaustive;
+    }
+  }
+}
+
+export function promoDepthCut(band: PromoDepthBand): string {
+  switch (band) {
+    case "light":
+      return "Under 15% off the first order";
+    case "typical":
+      return "15% to under 30% off the first order";
+    case "deep":
+      return "30% or more off the first order";
+    default: {
+      const _exhaustive: never = band;
+      return _exhaustive;
+    }
+  }
+}
+
+/** Named-code card line. Omitted by the caller when fewer than 8 shares are known. */
+export function promoMedianOffCopy(share: number): string {
+  return `about ${Math.round(share * 100)}% off the first order`;
+}
+
 const DAY_MS = 86_400_000;
 
 export type PromoRowKind = "code" | "unnamed" | "full_price";
@@ -46,6 +118,15 @@ function daysBetween(a: Date, b: Date): number {
 function mean(values: number[]): number | null {
   if (values.length === 0) return null;
   return values.reduce((sum, n) => sum + n, 0) / values.length;
+}
+
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1]! + sorted[mid]!) / 2
+    : sorted[mid]!;
 }
 
 function matureForWindow(
@@ -130,6 +211,24 @@ function formulaLine(
     ` → ${firstOrder.toFixed(2)} + ${extraOrders.toFixed(2)} × ${later.toFixed(2)}` +
     ` = ${predicted.toFixed(2)}`
   );
+}
+
+function windowGross(
+  customer: CustomerDepth,
+  days: PromoWindow,
+): number | null {
+  switch (days) {
+    case 30:
+      return customer.day30Gross;
+    case 90:
+      return customer.day90Gross;
+    case 365:
+      return customer.day365Gross;
+    default: {
+      const _exhaustive: never = days;
+      return _exhaustive;
+    }
+  }
 }
 
 function windowLabel(days: PromoWindow): string {
@@ -223,6 +322,12 @@ export interface PromoLtvRow {
   predicted90: number | null;
   observed90: number | null;
   formula90: string | null;
+  /**
+   * Median first-order discount share for a named code, when at least
+   * {@link PROMO_MIN_BUYERS} starters have a known share. Null otherwise.
+   * Never read off the code name.
+   */
+  medianFirstShare: number | null;
 }
 
 export interface PromoLtvRead {
@@ -266,6 +371,66 @@ export interface PromoLtvView {
   best: PromoLtvRow | null;
   read: PromoLtvRead | null;
   empty: PromoEmpty | null;
+  /** Shop history is capped — first year on this board stays a dash. */
+  historyLimited: boolean;
+  /** Light / Typical / Deep rows with at least the buyer floor. */
+  depthBands: PromoDepthRow[];
+  /** Which sealed depth is worth the most. 90 days, else 30. Never a second hero. */
+  depthLine: PromoDepthLine | null;
+  /** Depth cannot seal, or the pre-refund total is not on file. */
+  depthEmpty: PromoDepthEmpty | null;
+  /** First orders with discount $ above 0 and no pre-refund total. */
+  depthAwaitingGross: number;
+}
+
+export interface PromoDepthRow {
+  band: PromoDepthBand;
+  label: string;
+  cut: string;
+  buyers: number;
+  day30Ltv: number | null;
+  day90Ltv: number | null;
+  day365Ltv: number | null;
+  day30N: number;
+  day90N: number;
+  day365N: number;
+  comeBack30: number | null;
+  comeBack90: number | null;
+  comeBack365: number | null;
+  lift30: number | null;
+  lift90: number | null;
+  lift365: number | null;
+  afterRefunds30: boolean;
+  afterRefunds90: boolean;
+  afterRefunds365: boolean;
+  /**
+   * Share of orders after the first, inside 90 days, whose discount $ is 0.
+   * Only later orders with a known discount field. Null until 90 days seals
+   * or when none of those later orders have a discount field.
+   */
+  laterFullPrice90: number | null;
+}
+
+export interface PromoDepthLine {
+  band: PromoDepthBand;
+  label: string;
+  worth: number;
+  worthDays: 30 | 90;
+  worthLabel: string;
+  buyers: number;
+  comeBack: number | null;
+  lift: number | null;
+  afterRefunds: boolean;
+}
+
+export type PromoDepthEmptyKind = "gross" | "thin" | "young";
+
+export interface PromoDepthEmpty {
+  kind: PromoDepthEmptyKind;
+  buyers: number;
+  need: number;
+  copy: string;
+  verb: string;
 }
 
 function sortPromoRows(rows: PromoLtvRow[]): PromoLtvRow[] {
@@ -395,6 +560,24 @@ export function promoLtvEmptyState(input: {
   };
 }
 
+function medianFirstShare(
+  members: CustomerDepth[],
+  minKnown: number,
+): number | null {
+  const shares: number[] = [];
+  for (const c of members) {
+    if (c.firstDiscountAmount == null || c.firstGrossAmount == null) continue;
+    const share = firstOrderDiscountShare(
+      c.firstDiscountAmount,
+      c.firstGrossAmount,
+    );
+    if (share == null) continue;
+    shares.push(share);
+  }
+  if (shares.length < minKnown) return null;
+  return median(shares);
+}
+
 function summarizePromo(
   promo: string,
   members: CustomerDepth[],
@@ -402,11 +585,14 @@ function summarizePromo(
   fullPrice90: number | null,
   fullPrice365: number | null,
   minMature: number,
+  historyLimited: boolean,
 ): PromoLtvRow | null {
   if (members.length < minMature) return null;
   const d30 = sealedWindow(members, asOf, 30, minMature);
   const d90 = sealedWindow(members, asOf, 90, minMature);
-  const d365 = sealedWindow(members, asOf, 365, minMature);
+  const d365 = historyLimited
+    ? { value: null, n: 0, comeBack: null }
+    : sealedWindow(members, asOf, 365, minMature);
   const lifetime = mean(members.map((c) => c.lifetimeSpend));
   if (lifetime == null) return null;
 
@@ -428,6 +614,8 @@ function summarizePromo(
   const kind = promoRowKind(promo);
   const vsFull90 = kind !== "full_price" ? fullPrice90 : null;
   const vsFull365 = kind !== "full_price" ? fullPrice365 : null;
+  const medianShare =
+    kind === "code" ? medianFirstShare(members, minMature) : null;
 
   return {
     promo,
@@ -468,6 +656,7 @@ function summarizePromo(
             predicted90,
           )
         : null,
+    medianFirstShare: medianShare,
   };
 }
 
@@ -488,9 +677,10 @@ function pickBoardRows(ranked: PromoLtvRow[]): PromoLtvRow[] {
 export function buildPromoLtv(
   orders: DepthOrder[],
   asOf: Date,
-  options?: { minBuyers?: number },
+  options?: { minBuyers?: number; historyLimited?: boolean },
 ): PromoLtvView {
   const minBuyers = options?.minBuyers ?? PROMO_MIN_BUYERS;
+  const historyLimited = Boolean(options?.historyLimited);
   const customers = rollUpCustomers(orders);
   const discountsKnown = orders.some(
     (o) =>
@@ -518,8 +708,11 @@ export function buildPromoLtv(
 
   const fullMembers =
     groups.get(promoGroupKey(PROMO_FULL_PRICE))?.members ?? [];
+  const fullPrice30 = sealedWindow(fullMembers, asOf, 30, minBuyers).value;
   const fullPrice90 = sealedWindow(fullMembers, asOf, 90, minBuyers).value;
-  const fullPrice365 = sealedWindow(fullMembers, asOf, 365, minBuyers).value;
+  const fullPrice365 = historyLimited
+    ? null
+    : sealedWindow(fullMembers, asOf, 365, minBuyers).value;
 
   const rows: PromoLtvRow[] = [];
   for (const { label, members } of groups.values()) {
@@ -530,6 +723,7 @@ export function buildPromoLtv(
       fullPrice90,
       fullPrice365,
       minBuyers,
+      historyLimited,
     );
     if (row) rows.push(row);
   }
@@ -550,6 +744,17 @@ export function buildPromoLtv(
     sealed: read != null,
     need: minBuyers,
   });
+  const depth = buildPromoDepth({
+    customers,
+    orders,
+    asOf,
+    minBuyers,
+    historyLimited,
+    discountsKnown,
+    fullPrice30,
+    fullPrice90,
+    fullPrice365,
+  });
 
   return {
     discountsKnown,
@@ -564,5 +769,276 @@ export function buildPromoLtv(
     best,
     read,
     empty,
+    historyLimited,
+    depthBands: depth.bands,
+    depthLine: depth.line,
+    depthEmpty: depth.empty,
+    depthAwaitingGross: depth.awaitingGross,
+  };
+}
+
+type DepthSlot = PromoDepthBand | "baseline" | "awaiting" | "unknown";
+
+function depthSlot(customer: CustomerDepth): DepthSlot {
+  const discount = customer.firstDiscountAmount;
+  if (discount == null || !Number.isFinite(discount) || discount < 0) {
+    return "unknown";
+  }
+  if (discount === 0) return "baseline";
+  const gross = customer.firstGrossAmount;
+  if (gross == null || !Number.isFinite(gross) || gross < 0) return "awaiting";
+  const share = firstOrderDiscountShare(discount, gross);
+  if (share == null) return "awaiting";
+  const band = promoDepthBand(share);
+  return band ?? "awaiting";
+}
+
+function ordersByCustomer(orders: DepthOrder[]): Map<string, DepthOrder[]> {
+  const map = new Map<string, DepthOrder[]>();
+  for (const order of orders) {
+    if (!order.customerKey || !Number.isFinite(order.amount)) continue;
+    const list = map.get(order.customerKey) ?? [];
+    list.push(order);
+    map.set(order.customerKey, list);
+  }
+  for (const list of map.values()) {
+    list.sort((a, b) => a.orderedAt.getTime() - b.orderedAt.getTime());
+  }
+  return map;
+}
+
+function windowAfterRefunds(
+  members: CustomerDepth[],
+  asOf: Date,
+  days: PromoWindow,
+  minMature: number,
+): boolean {
+  const mature = matureForWindow(members, asOf, days);
+  if (mature.length < minMature) return false;
+  return mature.every((c) => windowGross(c, days) != null);
+}
+
+/**
+ * Among sealed 90-day starters, orders after the first that fall inside 90
+ * days and have a known discount field. Share whose discount $ is 0.
+ */
+function laterFullPriceShare(
+  members: CustomerDepth[],
+  byCustomer: Map<string, DepthOrder[]>,
+  asOf: Date,
+  minMature: number,
+): number | null {
+  const mature = matureForWindow(members, asOf, 90);
+  if (mature.length < minMature) return null;
+  let known = 0;
+  let full = 0;
+  for (const customer of mature) {
+    const list = byCustomer.get(customer.customerKey);
+    if (!list || list.length < 2) continue;
+    const firstMs = customer.firstOrderedAt.getTime();
+    let skippedFirst = false;
+    for (const order of list) {
+      const delta = order.orderedAt.getTime() - firstMs;
+      if (delta < 0) continue;
+      if (!skippedFirst) {
+        skippedFirst = true;
+        continue;
+      }
+      if (delta > 90 * DAY_MS) continue;
+      if (order.discountAmount == null || !Number.isFinite(order.discountAmount)) {
+        continue;
+      }
+      known += 1;
+      if (order.discountAmount === 0) full += 1;
+    }
+  }
+  if (known === 0) return null;
+  return full / known;
+}
+
+function summarizeDepth(
+  band: PromoDepthBand,
+  members: CustomerDepth[],
+  byCustomer: Map<string, DepthOrder[]>,
+  asOf: Date,
+  fullPrice30: number | null,
+  fullPrice90: number | null,
+  fullPrice365: number | null,
+  minMature: number,
+  historyLimited: boolean,
+): PromoDepthRow {
+  const d30 = sealedWindow(members, asOf, 30, minMature);
+  const d90 = sealedWindow(members, asOf, 90, minMature);
+  const d365 = historyLimited
+    ? { value: null, n: 0, comeBack: null }
+    : sealedWindow(members, asOf, 365, minMature);
+  const lift = (value: number | null, baseline: number | null) =>
+    value != null && baseline != null && baseline > 0 ? value / baseline : null;
+  return {
+    band,
+    label: promoDepthLabel(band),
+    cut: promoDepthCut(band),
+    buyers: members.length,
+    day30Ltv: d30.value,
+    day90Ltv: d90.value,
+    day365Ltv: d365.value,
+    day30N: d30.n,
+    day90N: d90.n,
+    day365N: d365.n,
+    comeBack30: d30.comeBack,
+    comeBack90: d90.comeBack,
+    comeBack365: d365.comeBack,
+    lift30: lift(d30.value, fullPrice30),
+    lift90: lift(d90.value, fullPrice90),
+    lift365: lift(d365.value, fullPrice365),
+    afterRefunds30: windowAfterRefunds(members, asOf, 30, minMature),
+    afterRefunds90: windowAfterRefunds(members, asOf, 90, minMature),
+    afterRefunds365: historyLimited
+      ? false
+      : windowAfterRefunds(members, asOf, 365, minMature),
+    laterFullPrice90: laterFullPriceShare(members, byCustomer, asOf, minMature),
+  };
+}
+
+function depthMorning(rows: PromoDepthRow[]): PromoDepthLine | null {
+  const at90 = rows.filter((row) => row.day90Ltv != null);
+  const use90 = at90.length > 0;
+  const pool = use90 ? at90 : rows.filter((row) => row.day30Ltv != null);
+  if (pool.length === 0) return null;
+  const best = [...pool].sort((a, b) => {
+    const av = (use90 ? a.day90Ltv : a.day30Ltv) ?? 0;
+    const bv = (use90 ? b.day90Ltv : b.day30Ltv) ?? 0;
+    if (av !== bv) return bv - av;
+    return b.buyers - a.buyers;
+  })[0];
+  if (!best) return null;
+  const days: 30 | 90 = use90 ? 90 : 30;
+  const worth = days === 90 ? best.day90Ltv : best.day30Ltv;
+  if (worth == null) return null;
+  return {
+    band: best.band,
+    label: best.label,
+    worth,
+    worthDays: days,
+    worthLabel: windowLabel(days),
+    buyers: days === 90 ? best.day90N : best.day30N,
+    comeBack: days === 90 ? best.comeBack90 : best.comeBack30,
+    lift: days === 90 ? best.lift90 : best.lift30,
+    afterRefunds: days === 90 ? best.afterRefunds90 : best.afterRefunds30,
+  };
+}
+
+/**
+ * Depth that cannot seal. Gross waits for the pre-refund total. Thin / young
+ * use the same buyer floor as promo rows. A sealed line returns null.
+ */
+export function promoDepthEmptyState(input: {
+  discountsKnown: boolean;
+  sealed: boolean;
+  classifiable: number;
+  awaitingGross: number;
+  bandReady: boolean;
+  need?: number;
+}): PromoDepthEmpty | null {
+  const need = input.need ?? PROMO_MIN_BUYERS;
+  if (!input.discountsKnown || input.sealed) return null;
+  if (input.classifiable <= 0 && input.awaitingGross <= 0) return null;
+  if (input.classifiable <= 0) {
+    const n = input.awaitingGross;
+    return {
+      kind: "gross",
+      buyers: n,
+      need,
+      copy: `${n.toLocaleString()} first ${n === 1 ? "order has" : "orders have"} a discount $, but the pre-refund total is not on file. Light (under 15%), Typical (15% to under 30%), and Deep (30% or more) wait for that total. The percent is not invented. Not $0.`,
+      verb: "Wait for the pre-refund total",
+    };
+  }
+  if (!input.bandReady) {
+    const n = input.classifiable;
+    return {
+      kind: "thin",
+      buyers: n,
+      need,
+      copy: `${n.toLocaleString()} first ${n === 1 ? "order has" : "orders have"} a known discount depth. A band seals after ${need} buyers in the same cut — under 15%, 15% to under 30%, or 30% or more — have lived 30 days. Not $0.`,
+      verb: "Watch first 30 days",
+    };
+  }
+  return {
+    kind: "young",
+    buyers: input.classifiable,
+    need,
+    copy: `${input.classifiable.toLocaleString()} buyers are in a first-order discount band. First 30 days seals once ${need} of them have lived 30 days. Not $0.`,
+    verb: "Wait for day 30",
+  };
+}
+
+function buildPromoDepth(input: {
+  customers: CustomerDepth[];
+  orders: DepthOrder[];
+  asOf: Date;
+  minBuyers: number;
+  historyLimited: boolean;
+  discountsKnown: boolean;
+  fullPrice30: number | null;
+  fullPrice90: number | null;
+  fullPrice365: number | null;
+}): {
+  bands: PromoDepthRow[];
+  line: PromoDepthLine | null;
+  empty: PromoDepthEmpty | null;
+  awaitingGross: number;
+} {
+  if (!input.discountsKnown) {
+    return { bands: [], line: null, empty: null, awaitingGross: 0 };
+  }
+  const grouped = new Map<PromoDepthBand, CustomerDepth[]>();
+  for (const band of DEPTH_BANDS) grouped.set(band, []);
+  let classifiable = 0;
+  let awaitingGross = 0;
+  for (const customer of input.customers) {
+    const slot = depthSlot(customer);
+    if (slot === "awaiting") {
+      awaitingGross += 1;
+      continue;
+    }
+    if (slot === "baseline" || slot === "unknown") continue;
+    classifiable += 1;
+    const members = grouped.get(slot);
+    if (members) members.push(customer);
+  }
+  const indexed = ordersByCustomer(input.orders);
+  const bands: PromoDepthRow[] = [];
+  let bandReady = false;
+  for (const band of DEPTH_BANDS) {
+    const members = grouped.get(band) ?? [];
+    if (members.length < input.minBuyers) continue;
+    bandReady = true;
+    bands.push(
+      summarizeDepth(
+        band,
+        members,
+        indexed,
+        input.asOf,
+        input.fullPrice30,
+        input.fullPrice90,
+        input.fullPrice365,
+        input.minBuyers,
+        input.historyLimited,
+      ),
+    );
+  }
+  const line = depthMorning(bands);
+  return {
+    bands,
+    line,
+    empty: promoDepthEmptyState({
+      discountsKnown: true,
+      sealed: line != null,
+      classifiable,
+      awaitingGross,
+      bandReady,
+      need: input.minBuyers,
+    }),
+    awaitingGross,
   };
 }

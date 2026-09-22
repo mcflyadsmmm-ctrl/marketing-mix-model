@@ -302,6 +302,9 @@ function useCustomersLtvPack({
       depth.productLtv.empty ||
       depth.promoLtv.read ||
       depth.promoLtv.empty ||
+      depth.promoLtv.depthLine ||
+      depth.promoLtv.depthEmpty ||
+      depth.promoLtv.depthBands.length > 0 ||
       (depth.refunds && depth.refunds.orderCount > 0),
   );
 
