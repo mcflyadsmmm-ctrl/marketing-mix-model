@@ -550,8 +550,9 @@ export default function Dashboard() {
   const data = useLoaderData<typeof loader>();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const panel = searchParams.get("panel");
   useDeskHashScroll();
-  useOverviewPanelScroll(searchParams.get("panel"));
+  useOverviewPanelScroll(panel);
   if (!("metrics" in data)) {
     return null;
   }
@@ -991,7 +992,7 @@ export default function Dashboard() {
                   rank="more"
                   label="More order detail"
                   fold
-                  defaultOpen={shotMode}
+                  defaultOpen={shotMode || panel === "mix-close"}
                 >
                   <OverviewDepthPeeks
                     orderCount={metrics.orderCount}

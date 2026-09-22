@@ -7,7 +7,10 @@ import {
   DESK_LANE_HINT,
   DESK_LANE_RANKS,
   deskLaneFoldLabel,
+  deskLaneHashId,
   deskLaneHint,
+  deskLaneOpenAfterDefaultOpen,
+  deskLaneTargetOpensFold,
 } from "./desk-lane";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -17,7 +20,10 @@ function read(rel: string): string {
 }
 
 const overview = read("../routes/app._index.tsx");
+const demoOverview = read("../routes/demo._index.tsx");
 const customers = read("../routes/app.customers.tsx");
+const demoCustomers = read("../routes/demo.customers.tsx");
+const spend = read("../routes/app.spend.tsx");
 const growth = read("../routes/app.growth.tsx");
 const orders = read("../routes/app.orders.tsx");
 const ltv = read("../routes/app.ltv.tsx");
@@ -82,7 +88,11 @@ describe("Overview lanes — look first, then mix, then days, then more", () => 
     expect(overview).toContain("<DeskLane");
     expect(overview).toContain("OVERVIEW_FIRST_LANE_LABEL");
     expect(overview).toContain('label="More order detail"');
-    expect(overview).toContain("defaultOpen={shotMode}");
+    expect(overview).toContain("defaultOpen={shotMode");
+    expect(overview).toContain('panel === "mix-close"');
+    expect(demoOverview).toContain('label="More order detail"');
+    expect(demoOverview).toContain("defaultOpen={data.shotMode");
+    expect(demoOverview).toContain('panel === "mix-close"');
     expect(overview).not.toContain("<details");
     expect(overview).not.toContain("Click for detail");
     expect(overview).not.toContain("<SpendExplorer");
@@ -120,6 +130,10 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(customers).toContain("mcfly-cust-action-row");
     expect(customers).toContain('label="Who the dollars sit with"');
     expect(customers).toContain("defaultOpen={shotMode");
+    expect(customers).toContain('panel === "depth"');
+    expect(demoCustomers).toContain('label="Who the dollars sit with"');
+    expect(demoCustomers).toContain("defaultOpen={data.shotMode");
+    expect(demoCustomers).toContain('data.panel === "depth"');
   });
 
   it("ranks Growth days-to-second first fold ahead of come-back explorer and TT2", () => {
@@ -197,7 +211,6 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
   });
 
   it("ranks Spend pair first, explorer/mix/CPA next, add-a-day more — empty live promotes add", () => {
-    const spend = read("../routes/app.spend.tsx");
     const order = [
       'rank="first"',
       'id="mcfly-roas"',
@@ -220,6 +233,56 @@ describe("key-tab lanes — same ritual, heroes stay", () => {
     expect(spend).toContain("<SpendExplorer");
     expect(spend).toContain("<CpaExplorer");
     expect(spend).not.toContain("0.00×");
+    expect(spend).toContain('spendPanel === "spend-add"');
+    expect(spend).toContain('href="#mcfly-spend-add"');
+  });
+});
+
+describe("DeskLane follows a later defaultOpen — omit-path must fail", () => {
+  it("opens when defaultOpen flips true and does not force-close", () => {
+    expect(deskLaneOpenAfterDefaultOpen(false, false)).toBe(false);
+    expect(deskLaneOpenAfterDefaultOpen(false, true)).toBe(true);
+    expect(deskLaneOpenAfterDefaultOpen(true, true)).toBe(true);
+    expect(deskLaneOpenAfterDefaultOpen(true, false)).toBe(true);
+  });
+
+  it("opens when the hash target is the fold, inside it, or wrapping it", () => {
+    expect(deskLaneHashId("")).toBeNull();
+    expect(deskLaneHashId("#")).toBeNull();
+    expect(deskLaneHashId("#mcfly-spend-add")).toBe("mcfly-spend-add");
+    expect(deskLaneHashId("mcfly-depth")).toBe("mcfly-depth");
+
+    const child = { contains: () => false };
+    const fold = {
+      contains: (other: unknown) => other === child,
+    };
+    const wrap = {
+      contains: (other: unknown) => other === fold,
+    };
+    const outside = { contains: () => false };
+
+    expect(deskLaneTargetOpensFold(fold, fold)).toBe(true);
+    expect(deskLaneTargetOpensFold(child, fold)).toBe(true);
+    expect(deskLaneTargetOpensFold(wrap, fold)).toBe(true);
+    expect(deskLaneTargetOpensFold(outside, fold)).toBe(false);
+    expect(deskLaneTargetOpensFold(null, fold)).toBe(false);
+    expect(deskLaneTargetOpensFold(fold, null)).toBe(false);
+  });
+
+  it("DeskLane applies later defaultOpen and hash — grepping a prop is not enough", () => {
+    expect(lane).toContain("deskLaneOpenAfterDefaultOpen");
+    expect(lane).toContain("deskLaneTargetOpensFold");
+    expect(lane).toContain("deskLaneHashId");
+    expect(lane).toContain("useLayoutEffect");
+    expect(lane).toContain("useDeskLaneLayoutEffect");
+    expect(lane).toContain("hashchange");
+    expect(lane).toContain("aria-expanded={open}");
+    expect(lane).toContain("hidden={!open}");
+    expect(lane).toContain("mcfly-lane__toggle");
+    expect(lane).not.toContain("<details");
+    expect(lane).toMatch(
+      /useDeskLaneLayoutEffect\(\(\) => \{[\s\S]*deskLaneOpenAfterDefaultOpen/,
+    );
   });
 });
 

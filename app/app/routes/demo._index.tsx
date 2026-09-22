@@ -79,9 +79,10 @@ export default function PublicDemoOverview() {
   const deskHref = useDeskHref();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const panel = searchParams.get("panel");
   const navigation = useNavigation();
   useDeskHashScroll();
-  useOverviewPanelScroll(searchParams.get("panel"));
+  useOverviewPanelScroll(panel);
   const isLoading = navigation.state === "loading";
   const stage = data.shotMode
     ? DESK_SECTION.overview
@@ -279,7 +280,7 @@ export default function PublicDemoOverview() {
                   rank="more"
                   label="More order detail"
                   fold
-                  defaultOpen={data.shotMode}
+                  defaultOpen={data.shotMode || panel === "mix-close"}
                 >
                   <OverviewDepthPeeks
                     orderCount={data.sales.orderCount}
