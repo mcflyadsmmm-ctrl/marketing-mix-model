@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v411 / tip `32dc3a6` (merge of #153 period total) / image `deployment-01M341YGNP9SD0RMEM9TDG5YT7` / Live PARKED. Health ok 2026-09-22T07:59Z. v410 was the morning sentence.
+**Tip Fly note:** v412 / tip `9defb77` (merge of #154 catalog empty) / image `deployment-01M3438P2VQN13SG1HTY677HN1` / Live PARKED. Health ok 2026-09-22T08:22Z. v411 was the period total.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v411 / tip `32dc3a6` / Live PARKED |
+| Tip Fly SoT | v412 / tip `9defb77` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v411 / tip `32dc3a6`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v412 / tip `9defb77`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | DONE — four notes on #148–#151, ranked in the enterprise cook queue. Do not re-run that wave. |
 
 ## Next significant ship (the only craft allowed)
 
-**The live catalog empty.** “The demo names the first product. My shop says the names are coming. The stored orders never have them.”
+**A quiet buyer is not new.** “How many first-time buyers showed up each week — and why does someone who bought last spring count as new?”
 
-SAMPLE must not present goggles, wax, and boards as this shop’s catalog. The live empty says the book does not store product names. Do not add a title column. Do not invent names from units. Customers → LTV only. Not a Products tab.
+The returning mix must not call a buyer new because their previous order sits just outside a 90-day slice. Weekly first-time counts come from orders already stored. Guests stay out. A missing lifetime count stays unknown, never a fake zero. Do not paint the sales-day `newCustomers: 0` as that weekly count. Customers returning mix only. No new tab.
 
-Branch `cursor/live-product-empty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 3–6 stay queued. Do not rebuild the period total or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/new-buyer-truth-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 4–6 stay queued. Do not rebuild the catalog empty, the period total, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 2.
+Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 3.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
