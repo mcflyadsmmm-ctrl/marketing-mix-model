@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v410 / tip `23bb8f9` (merge of #147 morning habit) / image `deployment-01M33ZMXRBQ2XEP3FM0XSBV45H` / Live PARKED. Health ok 2026-09-22T07:19Z. v409 was spend honesty.
+**Tip Fly note:** v411 / tip `32dc3a6` (merge of #153 period total) / image `deployment-01M341YGNP9SD0RMEM9TDG5YT7` / Live PARKED. Health ok 2026-09-22T07:59Z. v410 was the morning sentence.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v410 / tip `23bb8f9` / Live PARKED |
+| Tip Fly SoT | v411 / tip `32dc3a6` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v410 / tip `23bb8f9`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v411 / tip `32dc3a6`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
 | Niche intel | DONE — four notes on #148–#151, ranked in the enterprise cook queue. Do not re-run that wave. |
 
 ## Next significant ship (the only craft allowed)
 
-**Period total on the phone.** “I opened Overview to see what this period sold, and on my phone I cannot read this month or last year.”
+**The live catalog empty.** “The demo names the first product. My shop says the names are coming. The stored orders never have them.”
 
-The hero peek is the selected period’s Shopify Total Sales, and the card says that name. Yesterday, this week, and this month to date are plain totals on that first fold. Under 36rem the three year windows stack, and last year’s dollars stay on the card. Typical order stays a smaller peek. The chart’s full-width number stays the hovered bucket, or the last bucket. No session tile. No gross profit.
+SAMPLE must not present goggles, wax, and boards as this shop’s catalog. The live empty says the book does not store product names. Do not add a title column. Do not invent names from units. Customers → LTV only. Not a Products tab.
 
-Branch `cursor/period-phone-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 2–6 stay queued. Do not rebuild morning habit. Do not fly this scoreboard stamp.
+Branch `cursor/live-product-empty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 3–6 stay queued. Do not rebuild the period total or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md`.
+Plan: `docs/plans/2026-09-22-enterprise-cook-queue.md` rank 2.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
