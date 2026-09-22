@@ -24,7 +24,7 @@ type FaqItem = { name: string; text: string };
 
 function stripTags(html: string): string {
   return html
-    .replace(/<[^>]+>/g, " ")
+    .replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
