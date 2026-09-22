@@ -161,8 +161,8 @@ describe("Spend MER desk", () => {
     expect(cpa).toContain('spendPanelRedirectPath(request.url, "cpa"');
     expect(cpa).toContain("requireAdmin");
     expect(cpa).not.toContain("<CpaWindowCards");
-    expect(spend).toContain('defaultOpen={!emptyLiveSpend || spendPanel === "explorer"}');
-    expect(spend).toContain('defaultOpen={!emptyLiveSpend || spendPanel === "mix"}');
-    expect(spend).toContain('defaultOpen={!emptyLiveSpend || spendPanel === "cpa"}');
+    expect(spend).toContain("fold={emptyLiveSpend}");
+    expect(spend).toContain("defaultOpen={true}");
+    expect(spend).not.toContain("defaultOpen={!emptyLiveSpend");
   });
 });

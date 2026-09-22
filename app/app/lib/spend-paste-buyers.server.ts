@@ -1,7 +1,8 @@
 /**
  * Live paste buyer index — unique OrderFacts on shop-local days.
  * Interned ids stay on the client so Cash CPA can unique a buyer across
- * pasted days without sending customer keys. SAMPLE keeps day-sum buyerDays.
+ * pasted days without sending customer keys. SAMPLE uses the same
+ * interned index from `source = "sample"` OrderFacts — never a day-sum.
  *
  * Quiet days inside the queried range are known-zero (`[]`), not omitted.
  * Missing keys mean the day is outside this book.
@@ -69,7 +70,9 @@ function emptyIndexForRange(range: {
 export async function buildLivePasteBuyerIndex(
   shopId: string,
   range: { start: Date; end: Date },
+  options?: { source?: string },
 ): Promise<SpendPasteLiveIndex> {
+  const source = options?.source ?? ORDER_FACT_SOURCE;
   const index = emptyIndexForRange(range);
   const intern = new Map<string, number>();
   const identifiedSets = new Map<string, Set<number>>();
@@ -84,7 +87,7 @@ export async function buildLivePasteBuyerIndex(
   const orders = await prisma.orderFact.findMany({
     where: {
       shopId,
-      source: ORDER_FACT_SOURCE,
+      source,
       customerKey: { not: ORDER_FACT_GUEST_KEY },
       NOT: { shopifyOrderId: { startsWith: ORDER_FACT_DAY_COMPLETE_PREFIX } },
     },

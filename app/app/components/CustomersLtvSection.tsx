@@ -239,7 +239,7 @@ function useCustomersLtvPack({
       d: `${PRODUCT_NOUN.cashCacDef}. Blended — not platform CAC, not per ad.`,
       x: [
         ltv.paybackDays != null
-          ? `Recovered in about ${ltv.paybackDays} days on average.`
+          ? `Interpolated average about ${ltv.paybackDays} days versus first 90 — not a recovery date.`
           : ltv.historyLimited
             ? "Payback past 90 days needs a full year of orders — not on file yet."
             : "Not recovered inside the first year on average.",
