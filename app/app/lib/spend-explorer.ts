@@ -34,6 +34,11 @@ export type ExplorerDailyRow = {
   sales: number;
   spend: number;
   channels: ExplorerChannelSlice[];
+  /**
+   * False when Shopify sales are not on file for this date (missing map key).
+   * Omitted / true means `sales` is a certified closed-day amount, including $0.
+   */
+  salesOnFile?: boolean;
 };
 
 export type ExplorerBucket = {
@@ -188,8 +193,32 @@ function parseDateKey(dateKey: string): Date | null {
   return dt;
 }
 
+/** Spend on file with no sales dollars — never paint 0× from `$0 / $spend`. */
+export function isUnpairedSpendDay(sales: number, spend: number): boolean {
+  return spend > 0 && !(sales > 0);
+}
+
+/**
+ * Explorer Total ROAS. Sales not on file stay —. Certified `$0` with spend
+ * is unpaired (—), never 0× from `sales ?? 0`.
+ */
+export function explorerMer(
+  sales: number,
+  spend: number,
+  salesOnFile = true,
+): number | null {
+  if (salesOnFile === false) return null;
+  if (isUnpairedSpendDay(sales, spend)) return null;
+  return merOf(sales, spend);
+}
+
 function merOf(sales: number, spend: number): number | null {
-  if (!Number.isFinite(sales) || !Number.isFinite(spend) || spend <= 0) {
+  if (
+    !Number.isFinite(sales) ||
+    !Number.isFinite(spend) ||
+    spend <= 0 ||
+    !(sales > 0)
+  ) {
     return null;
   }
   const mer = sales / spend;
@@ -582,6 +611,7 @@ export function bucketExplorerRows(
     sortMs: number;
     sales: number;
     spend: number;
+    salesOnFile: boolean;
     channels: Map<string, number>;
   };
   const map = new Map<string, Acc>();
@@ -597,11 +627,15 @@ export function bucketExplorerRows(
         sortMs: meta.sortMs,
         sales: 0,
         spend: 0,
+        salesOnFile: false,
         channels: new Map(),
       };
       map.set(meta.key, acc);
     }
-    acc.sales += row.sales;
+    if (row.salesOnFile !== false) {
+      acc.salesOnFile = true;
+      acc.sales += row.sales;
+    }
     acc.spend += row.spend;
     mergeChannels(acc.channels, row.channels);
   }
@@ -616,7 +650,7 @@ export function bucketExplorerRows(
         label: acc.label,
         sales,
         spend,
-        mer: merOf(sales, spend),
+        mer: explorerMer(sales, spend, acc.salesOnFile),
         channels: channelsFromMap(acc.channels),
       };
     });
@@ -902,10 +936,19 @@ export function summarizeExplorer(
   let totalSales = 0;
   let totalSpend = 0;
   let closedDays = 0;
+  let salesOnFile = false;
   for (const row of rows) {
-    totalSales += row.sales;
+    if (row.salesOnFile !== false) {
+      salesOnFile = true;
+      totalSales += row.sales;
+    }
     totalSpend += row.spend;
-    if (row.sales > 0 || row.spend > 0) closedDays += 1;
+    if (
+      row.spend > 0 ||
+      (row.salesOnFile !== false && row.sales > 0)
+    ) {
+      closedDays += 1;
+    }
   }
   totalSales = round2(totalSales);
   totalSpend = round2(totalSpend);
@@ -927,7 +970,7 @@ export function summarizeExplorer(
   return {
     totalSales,
     totalSpend,
-    overallMer: merOf(totalSales, totalSpend),
+    overallMer: explorerMer(totalSales, totalSpend, salesOnFile),
     costPerNew,
     costPerCustomer,
     closedDays,

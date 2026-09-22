@@ -5,7 +5,7 @@ import { useDeskCurrency } from "../lib/desk-currency";
 import { DeskIcon } from "./DeskIcon";
 
 function moneyOrDash(value: number | null, currency: string): string {
-  return value != null ? formatCurrency(value, currency) : "—";
+  return value != null && value > 0 ? formatCurrency(value, currency) : "—";
 }
 
 export function CpaPaybackDesk({
@@ -54,6 +54,11 @@ export function CpaPaybackDesk({
         </article>
       </div>
 
+      <p className="mcfly-cpa__payback-note">
+        Day 0 is the start of the curve ($0), not earned LTV. Anchors are first-30
+        and first-90 averages from order history — not ads-manager payback.
+      </p>
+
       <div className="mcfly-cpa__payback-track" aria-hidden="true">
         <div
           className={`mcfly-cpa__payback-fill${sharePct == null ? " mcfly-cpa__payback-fill--empty" : ""}`}
@@ -88,7 +93,8 @@ export function CpaPaybackDesk({
             {payback.paybackDays != null ? `${payback.paybackDays}d` : "—"}
           </span>
           <span className="mcfly-chart__stat-sub">
-            interpolated vs first-90 average — not a recovery date
+            interpolated vs first-90 average — day 0 is the start ($0), not earned
+            LTV, and not ads-manager payback
           </span>
         </li>
         <li className="mcfly-chart__stat">

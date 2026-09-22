@@ -6323,6 +6323,18 @@
   gap: 0.35rem;
 }
 
+.mcfly-spend-cal__day--sales:not(.mcfly-spend-cal__day--filled) .mcfly-spend-cal__tick {
+  border-style: solid;
+  box-shadow: inset 0 -3px 0 var(--mcfly-accent);
+}
+
+.mcfly-spend-pair-copy-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .mcfly-spend-reveal > .mcfly-spend-reveal__summary {
   cursor: pointer;
   list-style: none;
@@ -21929,6 +21941,7 @@ button.mcfly-habit-goals__read:focus-visible {
 }
 
 .mcfly-desk--shot .mcfly-morning-copy,
+.mcfly-desk--shot .mcfly-spend-pair-copy,
 .mcfly-desk--shot .mcfly-morning-habit {
   display: none;
 }

@@ -7,9 +7,11 @@ import {
   compareExplorerBuckets,
   explorerBucketDateRange,
   priorExplorerBucketKey,
+  explorerMer,
   explorerMoneyCeil,
   explorerSalesCeil,
   formatExplorerSubtitle,
+  isUnpairedSpendDay,
   orderBarsByLegend,
   parseExplorerDateParam,
   parseExplorerGranularity,
@@ -441,6 +443,69 @@ describe("summarizeExplorer", () => {
     });
     expect(s.costPerNew).toBeNull();
     expect(s.costPerCustomer).toBeNull();
+  });
+});
+
+describe("explorer unpaired MER", () => {
+  it("is unpaired when spend exists and sales are not positive", () => {
+    expect(isUnpairedSpendDay(0, 40)).toBe(true);
+    expect(isUnpairedSpendDay(100, 40)).toBe(false);
+    expect(isUnpairedSpendDay(100, 0)).toBe(false);
+  });
+
+  it("returns — not 0× when sales are missing or unpaired", () => {
+    expect(explorerMer(0, 650)).toBeNull();
+    expect(explorerMer(0, 650, true)).toBeNull();
+    expect(explorerMer(0, 400, false)).toBeNull();
+    expect(explorerMer(800, 400, false)).toBeNull();
+    expect(explorerMer(800, 400, true)).toBe(2);
+  });
+
+  it("day grain dashes MER for spend before closed sales land", () => {
+    const buckets = bucketExplorerRows(
+      [
+        {
+          dateKey: "2026-09-21",
+          sales: 0,
+          spend: 400,
+          channels: [{ channel: "meta", amount: 400 }],
+          salesOnFile: false,
+        },
+      ],
+      "Day",
+    );
+    expect(buckets[0]?.mer).toBeNull();
+    expect(buckets[0]?.spend).toBe(400);
+  });
+
+  it("does not paint 0× from a certified closed-day $0 with spend", () => {
+    const buckets = bucketExplorerRows(
+      [
+        {
+          dateKey: "2026-09-20",
+          sales: 0,
+          spend: 120,
+          channels: [{ channel: "meta", amount: 120 }],
+          salesOnFile: true,
+        },
+      ],
+      "Day",
+    );
+    expect(buckets[0]?.mer).toBeNull();
+  });
+
+  it("overall MER stays — when the window is spend-only", () => {
+    const summary = summarizeExplorer([
+      {
+        dateKey: "2026-09-21",
+        sales: 0,
+        spend: 400,
+        channels: [],
+        salesOnFile: false,
+      },
+    ]);
+    expect(summary.overallMer).toBeNull();
+    expect(summary.totalSpend).toBe(400);
   });
 });
 

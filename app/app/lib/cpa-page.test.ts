@@ -68,6 +68,9 @@ describe("CPA page", () => {
   });
 
   it("builds payback vs first-90 as a desk, not a second fact grid", () => {
+    expect(spend).toContain(
+      'import { CpaPaybackDesk } from "../components/CpaPaybackDesk"',
+    );
     expect(spend).toContain("<CpaPaybackDesk");
     expect(payback).toContain("Payback vs first 90");
     expect(payback).toContain("Cash CAC");
@@ -75,6 +78,32 @@ describe("CPA page", () => {
     expect(payback).toContain("Value vs cost");
     expect(payback).toContain("never a fake $0");
     expect(payback).not.toContain("BookFactGrid");
+  });
+
+  it("Spend first fold copies the pair and names an Online line", () => {
+    expect(spend).toContain("CopySpendPair");
+    expect(spend).toContain("spendPairCopyText");
+    expect(spend).toContain("formatOnlineRoasLine");
+    expect(spend).toContain("pairCoverage.caption");
+    expect(spend).not.toContain("true ROAS");
+  });
+
+  it("public SAMPLE payback uses the Snowdevil book and does not force historyLimited", () => {
+    const demo = readFileSync(join(here, "../routes/demo.spend.tsx"), "utf8");
+    expect(demo).toContain("data.ltv.revenue30");
+    expect(demo).toContain("data.ltv.revenue90");
+    expect(demo).toContain("cashPaybackDays");
+    expect(demo).toContain("historyLimited={false}");
+    expect(demo).not.toMatch(/avgRevenueD30:\s*null/);
+    expect(demo).not.toMatch(/<CpaPaybackDesk[\s\S]*historyLimited\s*\/>/);
+  });
+
+  it("payback names day-0 as the start, not earned $0 LTV or ads-manager payback", () => {
+    expect(payback).toContain("Day 0 is the start");
+    expect(payback).toContain("not earned LTV");
+    expect(payback).toContain("not ads-manager payback");
+    expect(payback).toContain("value > 0");
+    expect(payback).not.toContain("causal payback");
   });
 
   it("mounts an Overview-grade CPA explorer on Spend and refuses SpendExplorer inside CPA", () => {

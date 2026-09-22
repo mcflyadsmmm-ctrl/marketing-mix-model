@@ -8,6 +8,8 @@ export type SpendDayCoverageCell = {
   dateKey: string;
   label: string;
   filled: boolean;
+  /** SalesDayFact / SAMPLE day has sales > 0. Never fills spend. */
+  hasSales?: boolean;
 };
 
 export type SpendDayCoverage = {

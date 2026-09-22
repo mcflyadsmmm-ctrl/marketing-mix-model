@@ -74,3 +74,67 @@ export function formatTotalRoasEquation(opts: {
   if (mer == null || !Number.isFinite(mer)) return left;
   return `${left} = ${formatMer(mer)}×`;
 }
+
+/**
+ * Clipboard line for the Spend first fold. Empty spend copies nothing.
+ * Pending copies the loading line, not $0. Never copies 0×.
+ */
+export function spendPairCopyText(opts: {
+  sales: number;
+  spend: number;
+  mer: number | null;
+  salesPending?: boolean;
+  currency: string;
+}): string | null {
+  const { spend, salesPending = false } = opts;
+  if (!(spend > 0) || !Number.isFinite(spend)) return null;
+  if (salesPending) return NUMBER_HONESTY.salesPending;
+  const mer =
+    opts.mer != null && Number.isFinite(opts.mer) && opts.mer > 0
+      ? opts.mer
+      : null;
+  return formatTotalRoasEquation({
+    sales: opts.sales,
+    spend,
+    mer,
+    salesPending: false,
+    currency: opts.currency,
+  });
+}
+
+/**
+ * Second labeled Spend line: Online Shopify Total Sales ÷ typed spend.
+ * Does not replace Total ROAS. POS / Shop are named as excluded, not attributed.
+ */
+export function formatOnlineRoasLine(opts: {
+  totalSales: number;
+  spend: number;
+  mix: {
+    online: number;
+    pos: number;
+    shop: number;
+    other: number;
+  } | null;
+  currency: string;
+}): string | null {
+  const { totalSales, spend, mix, currency } = opts;
+  if (!(spend > 0) || !Number.isFinite(spend)) return null;
+  const excluded =
+    "POS and Shop sales are excluded from this line, not from Total ROAS.";
+  if (
+    mix == null ||
+    !Number.isFinite(mix.online) ||
+    !Number.isFinite(totalSales)
+  ) {
+    return `Online Shopify Total Sales ÷ typed spend is — until Online / POS / Shop mix is on file. ${excluded}`;
+  }
+  const onlineSales = totalSales * mix.online;
+  if (!(onlineSales > 0) || !Number.isFinite(onlineSales)) {
+    return `Online Shopify Total Sales ÷ ${formatCurrency(spend, currency)} spend is — (no Online sales on file). ${excluded}`;
+  }
+  const mer = onlineSales / spend;
+  if (!Number.isFinite(mer) || mer <= 0) {
+    return `Online ${formatCurrency(onlineSales, currency)} ÷ ${formatCurrency(spend, currency)} spend. ${excluded}`;
+  }
+  return `Online ${formatCurrency(onlineSales, currency)} ÷ ${formatCurrency(spend, currency)} spend = ${formatMer(mer)}×. ${excluded}`;
+}

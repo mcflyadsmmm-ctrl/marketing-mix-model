@@ -49,3 +49,25 @@ export function CopyMorningSentence({ sentence }: { sentence: string }) {
     </button>
   );
 }
+
+/** Copies Shopify Total Sales ÷ typed spend from the Spend first fold. */
+export function CopySpendPair({ text }: { text: string | null }) {
+  const [copied, setCopied] = useState(false);
+  if (!text) return null;
+
+  return (
+    <button
+      type="button"
+      className="mcfly-share-card__btn mcfly-spend-pair-copy"
+      onClick={() => {
+        void copyDeskText(text).then((ok) => {
+          if (!ok) return;
+          setCopied(true);
+          window.setTimeout(() => setCopied(false), 1600);
+        });
+      }}
+    >
+      {copied ? "Copied" : "Copy pair"}
+    </button>
+  );
+}

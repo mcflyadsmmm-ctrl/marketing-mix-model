@@ -36,6 +36,7 @@ import {
 import {
   applyExplorerMode,
   bucketExplorerRows,
+  explorerMer,
   summarizeExplorer,
   type ExplorerDailyRow,
   type ExplorerGranularity,
@@ -684,12 +685,15 @@ export async function buildDailyRowsForWindow(
    * working unchanged.
    */
   const channelLabels: Record<string, string> = {};
-  const byDay = new Map<string, { sales: number; channels: Map<string, number> }>();
+  const byDay = new Map<
+    string,
+    { sales: number; salesOnFile: boolean; channels: Map<string, number> }
+  >();
 
   const ensureDay = (key: string) => {
     let row = byDay.get(key);
     if (!row) {
-      row = { sales: 0, channels: new Map() };
+      row = { sales: 0, salesOnFile: false, channels: new Map() };
       byDay.set(key, row);
     }
     return row;
@@ -697,7 +701,9 @@ export async function buildDailyRowsForWindow(
 
   for (const [key, sales] of options.salesByDay) {
     if (key < startKey || key > endKey) continue;
-    ensureDay(key).sales += sales;
+    const row = ensureDay(key);
+    row.sales += sales;
+    row.salesOnFile = true;
   }
 
   for (const entry of entries) {
@@ -739,9 +745,11 @@ export async function buildDailyRowsForWindow(
       : [];
     const spend =
       Math.round(channels.reduce((s, c) => s + c.amount, 0) * 100) / 100;
-    const sales = Math.round((row?.sales ?? 0) * 100) / 100;
+    const salesOnFile = row?.salesOnFile === true;
+    const sales =
+      salesOnFile && row ? Math.round(row.sales * 100) / 100 : 0;
     if (sales <= 0 && spend <= 0) continue;
-    rows.push({ dateKey, sales, spend, channels });
+    rows.push({ dateKey, sales, spend, channels, salesOnFile });
   }
   return { rows, channelLabels };
 }
@@ -869,8 +877,9 @@ export async function buildDailySpine(
       amount: c.amount,
     }));
     const spend = row?.spend ?? 0;
-    const sales = row?.sales ?? 0;
-    const mer = computeMer(sales, spend);
+    const salesOnFile = row != null && row.salesOnFile !== false;
+    const sales = row != null && salesOnFile ? row.sales : 0;
+    const mer = explorerMer(sales, spend, salesOnFile);
     return {
       dateKey,
       label: dayLabel(dateKey),

@@ -5,6 +5,7 @@ import { useLoaderData, useNavigation } from "react-router";
 import { CertifiedScoreboard } from "../components/CertifiedScoreboard";
 import { CpaExplorer } from "../components/CpaExplorer";
 import { CpaPaybackDesk } from "../components/CpaPaybackDesk";
+import { CopySpendPair } from "../components/MorningHabitStrip";
 import { CpaWindowCards } from "../components/CpaWindowCards";
 import { DualCloseLine } from "../components/DualCloseLine";
 import { MarketingSpendRoom } from "../components/MarketingSpendRoom";
@@ -27,9 +28,10 @@ import {
   type CpaExplorerRange,
   type CpaWindowId,
 } from "../lib/cpa-desk";
+import { cashPaybackDays } from "../lib/cash-payback";
 import { formatCurrency, formatMer } from "../lib/mer-format";
 import { formatSpendOnFile, spendOnFileHint } from "../lib/spend-on-file";
-import { formatTotalRoasEquation, NUMBER_HONESTY } from "../lib/number-honesty";
+import { formatTotalRoasEquation, formatOnlineRoasLine, NUMBER_HONESTY, spendPairCopyText } from "../lib/number-honesty";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import { publicDemoHeaders } from "../lib/public-demo-headers";
 import { PUBLIC_SAMPLE_TZ } from "../lib/public-sample-constants";
@@ -43,6 +45,9 @@ import {
   summarizeExplorer,
   type ExplorerDailyRow,
 } from "../lib/spend-explorer";
+import {
+  spendPairCoverage,
+} from "../lib/spend-pair-coverage";
 import type { SpendExplorerSeriesView } from "../components/SpendExplorer";
 
 export const headers: HeadersFunction = () => publicDemoHeaders();
@@ -65,12 +70,17 @@ function publicExplorerSeries(
   const toKey = keys[keys.length - 1] ?? "";
   const rows: ExplorerDailyRow[] = cpaDays
     .filter((day) => day.dateKey >= fromKey && day.dateKey <= toKey)
-    .map((day) => ({
-      dateKey: day.dateKey,
-      sales: salesByDay.get(day.dateKey) ?? 0,
-      spend: day.spend,
-      channels: [],
-    }));
+    .map((day) => {
+      const sales = salesByDay.get(day.dateKey);
+      const salesOnFile = sales != null && Number.isFinite(sales);
+      return {
+        dateKey: day.dateKey,
+        sales: salesOnFile ? sales : 0,
+        spend: day.spend,
+        channels: [],
+        salesOnFile,
+      };
+    });
   const buckets = bucketExplorerRows(rows, "Day");
   const plot = applyExplorerMode(buckets, "total");
   const summary = summarizeExplorer(rows, { bucketCount: plot.length });
@@ -104,26 +114,57 @@ export default function PublicDemoSpend() {
   useSpendPanelScroll();
   const isLoading = navigation.state === "loading";
   const hasSpend = data.spend > 0;
+  const periodKeys = new Set(data.explorerDays.map((day) => day.dateKey));
+  const pairCoverage = spendPairCoverage({
+    salesDays: data.explorerDays
+      .filter((day) => day.sales > 0)
+      .map((day) => day.dateKey),
+    spendDays: data.cpaDays
+      .filter((day) => day.spend > 0 && periodKeys.has(day.dateKey))
+      .map((day) => day.dateKey),
+  });
+  const pairWithheld = hasSpend && pairCoverage.withholdRatio;
+  const paintedMer = pairWithheld ? null : data.mer;
   const roasValue =
-    hasSpend && data.mer != null && Number.isFinite(data.mer)
-      ? `${formatMer(data.mer)}×`
+    hasSpend && paintedMer != null && Number.isFinite(paintedMer)
+      ? `${formatMer(paintedMer)}×`
       : "—";
   const pairEquation = formatTotalRoasEquation({
     sales: data.sales.totalSales,
     spend: data.spend,
-    mer: data.mer,
+    mer: paintedMer,
     salesPending: false,
     currency,
   });
+  const pairCopyText = spendPairCopyText({
+    sales: data.sales.totalSales,
+    spend: data.spend,
+    mer: paintedMer,
+    salesPending: false,
+    currency,
+  });
+  const onlineLine = hasSpend
+    ? formatOnlineRoasLine({
+        totalSales: data.sales.totalSales,
+        spend: data.spend,
+        mix: data.depth.sourceSalesShare,
+        currency,
+      })
+    : null;
   const [cpaSelectedId, setCpaSelectedId] = useState<CpaWindowId>("this_month");
   const cpaSelected =
     data.cpaWindows.find((window) => window.id === cpaSelectedId) ??
     data.cpaWindows[0]!;
   const cpaPayback = buildCpaPaybackView({
     cashCac: cpaSelected.cashCac,
-    avgRevenueD30: null,
-    avgRevenueD90: null,
-    paybackDays: null,
+    avgRevenueD30: data.ltv.revenue30,
+    avgRevenueD90: data.ltv.revenue90,
+    paybackDays: cashPaybackDays(
+      cpaSelected.cashCac,
+      data.ltv.revenue30,
+      data.ltv.revenue90,
+      data.ltv.revenue365,
+    ),
   });
   const explorer = useMemo(
     () =>
@@ -218,12 +259,21 @@ export default function PublicDemoSpend() {
                 {roasValue}
               </p>
               {hasSpend && pairEquation ? (
-                <p className="mcfly-book__kpi-hint">{pairEquation}</p>
+                <div className="mcfly-spend-pair-copy-row">
+                  <p className="mcfly-book__kpi-hint">{pairEquation}</p>
+                  <CopySpendPair text={pairCopyText} />
+                </div>
               ) : (
                 <p className="mcfly-book__kpi-hint">{NUMBER_HONESTY.formula}</p>
               )}
             </div>
           </div>
+          {hasSpend ? (
+            <p className="mcfly-book__kpi-hint">{pairCoverage.caption}</p>
+          ) : null}
+          {hasSpend && onlineLine ? (
+            <p className="mcfly-book__kpi-hint">{onlineLine}</p>
+          ) : null}
           {hasSpend ? null : (
             <SpendFindingStrip
               finding={{
@@ -309,7 +359,7 @@ export default function PublicDemoSpend() {
             <CpaPaybackDesk
               window={cpaSelected}
               payback={cpaPayback}
-              historyLimited
+              historyLimited={false}
             />
           ) : null}
           <CpaExplorer

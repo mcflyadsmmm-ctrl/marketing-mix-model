@@ -3,6 +3,7 @@ import {
   computeCohortRollups,
   ORDER_FACT_GUEST_KEY,
 } from "./order-facts.server";
+import { cashPaybackAnchors } from "./cash-payback";
 import {
   cashPaybackDays,
   customerWeightedAvgRevenue,
@@ -77,6 +78,23 @@ describe("cashPaybackDays", () => {
 
   it("clamps to at least 1 day for near-instant recovery", () => {
     expect(cashPaybackDays(1, 100, null, null)).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe("cashPaybackAnchors", () => {
+  it("names day 0 as the start, not earned LTV", () => {
+    const anchors = cashPaybackAnchors(125, 380, 500);
+    expect(anchors[0]).toEqual({ day: 0, revenue: 0, earned: false });
+    expect(anchors.filter((row) => row.earned).map((row) => row.day)).toEqual([
+      30, 90, 365,
+    ]);
+    expect(anchors.some((row) => row.day === 0 && row.earned)).toBe(false);
+  });
+
+  it("does not treat a $0 first-30 as an earned anchor", () => {
+    const anchors = cashPaybackAnchors(0, 200, null);
+    expect(anchors.find((row) => row.day === 30)).toBeUndefined();
+    expect(anchors.find((row) => row.day === 90)?.earned).toBe(true);
   });
 });
 
