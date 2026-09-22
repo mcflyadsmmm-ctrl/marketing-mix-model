@@ -1,30 +1,30 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v430 / tip `ffddf0f` (merge of #187 truncated-today leftover) / image `deployment-01M3513KNXMD3T6KG54AAHT6G9` / Live PARKED. Health ok 2026-09-22T17:05Z. v429 was unpaid-year leftover.
+**Tip Fly note:** v431 / tip `54840ce` (merge of #188 site trial leftover) / image `deployment-01M3524TFKJWR4SM47YKG92N4X` / Live PARKED. Health ok 2026-09-22T17:22Z. v430 was truncated-today leftover.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v430 / tip `ffddf0f` / Live PARKED |
+| Tip Fly SoT | v431 / tip `54840ce` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
 | Warm installs named | 0 / 10 |
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
-| Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v430 / tip `ffddf0f`; Live PARKED |
+| Site P0 on box | DONE — fly.dev static site honest on v431; Pages deploy pending Marty/Mac |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v431 / tip `54840ce`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Site trial leftover is the only cook (founder: marketing still sells 24 months on trial). Rank 5 spend leftover waits. |
+| Niche intel | Third-queue on `cursor/enterprise-third-queue-5bc6` (#180). Rank 5 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**Site trial leftover.** “The website said trial includes 24 months of order history. I installed. Live trial is 90 days of orders. Paid is up to 24 months. SAMPLE on /demo is the paid-shaped book.”
+**Spend leftover honesty.** “I pasted yesterday on Spend import from a Denver laptop; the shop is Asia/Tokyo; the row landed on the wrong closed day. Coverage is still the host calendar. SAMPLE import still drew a 35% break-even rail. The pair said Online `$` ÷ typed spend — I typed Meta plus a retainer and read 2.1× as ads ROAS. Monday is 2.1× and Sunday looks like 8× because we do not buy ads; the explorer has no weekday grain.”
 
-Home · Pricing · Product · Support · FAQ · terms/privacy · llms-full. Drop “full-access.” Drop “Trial includes 24 months.” Name 90 days of order history on trial vs up to 24 months paid. `$39` after 7 days, one plan. Unlock `site-go-live.test.ts` so it no longer requires the lie. Remix origin `/pricing` and `/support` match. Do not Cloudflare Pages-deploy from this VM (wrangler unauthenticated — Marty/Mac Direct Upload). One Fly after PASS updates fly.dev static `site/`. mcflyads.com stays stale until Mac uploads. Do not recook truncated-today leftover, unpaid-year leftover, mix-paint honesty, Settings `TRIAL_VS_VIEW`, spend leftover, or listing paste. Do not change the 90. Do not unpark Live.
+Spend import · coverage strip · first-fold Online line · explorer. Import `todayKey` uses `deskPeriodTimeZone` + `shopLocalDayKey`. Coverage / explorer / closed-day keys same shop IANA. SAMPLE import `breakEvenMer` null unless Live Settings confirmed a margin (Settings has no margin field — so null). Online multiple names all-typed-dollar denominator or withholds when non-online spend is on file. Explorer weekday grain shop-local. Copyable this-week / this-month Shopify Total Sales and weekday-shifted last year `$` (or previous week when last year is not on file). Never `0×`. Never fake `$0`. Do not recook rank 3 year chips / CPA YTD. Do not recook rank 8 payback day-0. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/site-trial-honesty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 5–8 and 10–14 of the third-queue stay queued. Do not rebuild truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/spend-leftover-honesty-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 6–8 and 10–14 of the third-queue stay queued. Do not rebuild site trial leftover, truncated-today leftover, unpaid-year leftover, mix-paint honesty, Goals leftover honesty, buyer-life honesty, Orders step mix, whale ticket, quiet-back dollars, DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: founder follow-up after v430 — marketing still sells 24 months on trial.
+Plan: `docs/plans/2026-09-22-enterprise-third-queue.md` rank 5. After PASS, stamp wrong-lane leftover (`cursor/wrong-lane-leftover-5bc6`), not rank 7.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
