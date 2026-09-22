@@ -79,6 +79,16 @@ describe("/product shows the SAMPLE share artifacts", () => {
     expect(mail).not.toMatch(/\bsessions?\b/i);
   });
 
+  it("names competitor share artifacts without claiming a Mcfly bot", () => {
+    expect(product).toContain("They send.");
+    expect(product).toContain("You copy.");
+    expect(product).toContain("Slack channel");
+    expect(product).toContain("PDF, Excel, CSV, Sheets");
+    expect(product).toContain("Mcfly never posts");
+    expect(product).not.toMatch(/Slack bot/i);
+    expect(product).not.toMatch(/scheduled PDF/i);
+  });
+
   it("keeps parked SAMPLE honesty and refuses leftover share theater", () => {
     expect(product).toContain("Public demo is SAMPLE Snowdevil");
     expect(product).toContain('href="/demo"');

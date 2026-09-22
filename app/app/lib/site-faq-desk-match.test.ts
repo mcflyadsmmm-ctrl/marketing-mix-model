@@ -21,6 +21,9 @@ const QUESTION_ORDER = [
   "Is typical order the same as Shopify AOV?",
   "Can I share this with my bookkeeper or agency without a staff account?",
   "Is this a Triple Whale replacement?",
+  "Do I have to uninstall Triple Whale or Polar?",
+  "Will Mcfly lock a pixel into my theme?",
+  "Do I have to enter COGS before I see numbers?",
   "Do I export Orders CSV?",
 ] as const;
 
@@ -180,6 +183,9 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
       ["median ticket", "Shopify AOV is the mean"],
       ["copy or Save PNG", "does not email or Slack"],
       ["No.", "No pixel", "$39 stays $39"],
+      ["No.", "Keep their pixel", "not a replacement OS", "$39 stays $39"],
+      ["No.", "No storefront tag", "Uninstall stops the charge"],
+      ["No.", "does not ingest COGS", "does not paint net profit"],
       ["No.", "reads orders in Admin"],
     ];
 

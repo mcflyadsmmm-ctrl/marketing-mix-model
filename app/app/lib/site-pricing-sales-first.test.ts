@@ -71,7 +71,7 @@ describe("pricing.html sales-first first fold", () => {
     expect(hero).toMatch(/\$5M|GMV tax|stays \$39/);
     expect(hero).toMatch(/\$39 stays \$39 at \$5M/);
     expect(hero).toMatch(/Path suites often tax GMV/);
-    expect(pricing).not.toMatch(/\$0\.30\/order|\$0\.3 per extra order/i);
+    expect(hero).not.toMatch(/\$0\.30\/order|\$0\.3 per extra order/i);
   });
 
   it("parked Live honesty: public demo is SAMPLE, not your shop", () => {
@@ -100,5 +100,18 @@ describe("pricing.html sales-first first fold", () => {
     expect(pricing).not.toContain("Northline");
     expect(pricing).not.toMatch(/\$98,?500/);
     expect(pricing).not.toMatch(/4\.19×/);
+  });
+
+  it("cites listing from-prices, COGS homework, share contrast, and Mcfly reviews: 0", () => {
+    expect(pricing).toContain("Polar lists from $750/mo, GMV-based");
+    expect(pricing).toContain("Foundation from $219/mo");
+    expect(pricing).toContain("Automate $749/mo");
+    expect(pricing).toContain("Lifetimely $149/mo at 3,000 orders");
+    expect(pricing).toContain("TrueProfit from $35/mo");
+    expect(pricing).toMatch(/we do not invent Polar \$1,020/i);
+    expect(pricing).toContain("Mcfly reviews: 0");
+    expect(pricing).toContain("COGS homework");
+    expect(pricing).toContain("You copy or Save PNG. Mcfly never posts.");
+    expect(pricing).not.toMatch(/Polar lists from \$1,?020/);
   });
 });

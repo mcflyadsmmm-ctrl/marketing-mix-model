@@ -20,12 +20,12 @@ describe("home SAMPLE Slack paste board", () => {
   const overviewSlice =
     overviewIdx >= 0 ? html.slice(overviewIdx, overviewIdx + 1800) : "";
 
-  it("keeps the locked H1, v34, and Snowdevil SAMPLE dollars", () => {
+  it("keeps the locked H1, v35, and Snowdevil SAMPLE dollars", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v34"');
-    expect(html).toContain("mcfly.css?v=20260922v34");
+    expect(html).toContain('content="v35"');
+    expect(html).toContain("mcfly.css?v=20260922v35");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
@@ -68,6 +68,24 @@ describe("home SAMPLE Slack paste board", () => {
     expect(paste).toContain("data-copy-target");
     expect(html).toContain("navigator.clipboard.writeText");
     expect(paste).not.toMatch(/<textarea/i);
+  });
+
+  it("cites listing from-prices, refuses Polar $1,020, and names merchant objections", () => {
+    expect(html).toContain("Polar Core from $750");
+    expect(html).toContain("Foundation $219");
+    expect(html).toContain("Automate $749");
+    expect(html).toContain("$149/mo at 3,000 orders");
+    expect(html).toContain("TrueProfit from $35");
+    expect(html).toMatch(/we do not invent Polar \$1,020/i);
+    expect(html).toContain("Mcfly reviews: 0");
+    expect(html).not.toContain("from hundreds a month");
+    expect(html).toContain("Do I have to uninstall Triple Whale or Polar?");
+    expect(html).toContain("Will Mcfly lock a pixel into my theme?");
+    expect(html).toContain("Do I have to enter COGS before I see numbers?");
+    expect(html).toContain("Keep their pixel");
+    expect(html).toContain("does not ingest COGS");
+    expect(html).toContain("They send.");
+    expect(html).toContain("You copy.");
   });
 
   it("drops the Spend leftover, names the $39 GMV line, and stays Harbor-clean", () => {
