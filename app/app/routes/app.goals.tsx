@@ -623,6 +623,10 @@ export default function GoalsPage() {
   );
   const canGrowFromPrior = knownPriorMonths.length > 0;
   const noGoalsYet = board.rows.every((r) => !(r.salesGoal > 0));
+  const currentMonthRow = board.rows.find((row) => row.isCurrent) ?? null;
+  const currentMonthPrior = currentMonthRow
+    ? (priorYearMonthly[currentMonthRow.month - 1] ?? null)
+    : null;
 
   useEffect(() => {
     if (!actionData) return;
@@ -904,6 +908,14 @@ export default function GoalsPage() {
             breakEvenMer={board.breakEvenMer}
           />
 
+          {currentMonthRow ? (
+            <ThisMonthPlanStack
+              row={currentMonthRow}
+              prior={currentMonthPrior}
+              showGoal={goalsEnabled}
+            />
+          ) : null}
+
           {!shotMode ? (
             <section className="mcfly-book mcfly-book--soft mcfly-goals-plan--soft" aria-label="Year plan">
               <p className="mcfly-book__lede">
@@ -1053,6 +1065,13 @@ export default function GoalsPage() {
                   >
                     <input type="hidden" name="year" value={year} />
                     <input type="hidden" name="intent" value="save_goals" />
+                    {currentMonthRow ? (
+                      <ThisMonthPlanStack
+                        row={currentMonthRow}
+                        prior={currentMonthPrior}
+                        showGoal
+                      />
+                    ) : null}
                     <div className="mcfly-goals-table-wrap">
                       <table className="mcfly-goals-table mcfly-goals-table--sales">
                         <thead>
@@ -1112,6 +1131,13 @@ export default function GoalsPage() {
                     Actual vs {priorYear}. Turn plan On to set monthly targets.
                   </p>
                 </div>
+                {currentMonthRow ? (
+                  <ThisMonthPlanStack
+                    row={currentMonthRow}
+                    prior={currentMonthPrior}
+                    showGoal={false}
+                  />
+                ) : null}
                 <div className="mcfly-goals-table-wrap">
                   <table className="mcfly-goals-table mcfly-goals-table--sales">
                     <thead>
@@ -1330,6 +1356,51 @@ function GoalRow({
         </td>
       ) : null}
     </tr>
+  );
+}
+
+function ThisMonthPlanStack({
+  row,
+  prior,
+  showGoal,
+}: {
+  row: GoalMonthRow;
+  prior: number | null;
+  showGoal: boolean;
+}) {
+  const currency = useDeskCurrency();
+  const goal =
+    showGoal && row.salesGoal > 0
+      ? formatCurrency(row.salesGoal, currency)
+      : "—";
+  return (
+    <section
+      className="mcfly-goals-month-stack"
+      aria-label={`${row.monthLong} versus the plan`}
+    >
+      <p className="mcfly-goals-month-stack__k">
+        {row.monthLong}
+        {row.isCurrent ? " · MTD" : null}
+      </p>
+      <div className="mcfly-goals-month-stack__grid">
+        <div className="mcfly-goals-month-stack__cell">
+          <span className="mcfly-goals-month-stack__label">Goal</span>
+          <span className="mcfly-goals-month-stack__value">{goal}</span>
+        </div>
+        <div className="mcfly-goals-month-stack__cell">
+          <span className="mcfly-goals-month-stack__label">Actual</span>
+          <span className="mcfly-goals-month-stack__value">
+            {formatSalesOrDash(row.actual, currency)}
+          </span>
+        </div>
+        <div className="mcfly-goals-month-stack__cell">
+          <span className="mcfly-goals-month-stack__label">Prior</span>
+          <span className="mcfly-goals-month-stack__value">
+            {formatSalesOrDash(prior, currency)}
+          </span>
+        </div>
+      </div>
+    </section>
   );
 }
 

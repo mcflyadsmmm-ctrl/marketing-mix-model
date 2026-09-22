@@ -35,6 +35,15 @@ describe("Goals page", () => {
     expect(goals).not.toContain("formatCurrency(row.actual)");
   });
 
+  it("stacks this month Goal / Actual / Prior so a phone does not swipe a 720px table", () => {
+    expect(goals).toContain("mcfly-goals-month-stack");
+    expect(goals).toContain("ThisMonthPlanStack");
+    expect(goals).toContain("versus the plan");
+    expect(goals).toContain("showGoal && row.salesGoal > 0");
+    expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
+    expect(goals).toContain("formatSalesOrDash(prior, currency)");
+  });
+
   it("sales-load banner does not leak internals or paint actuals as $0", () => {
     const retryAt = goals.indexOf("<SalesLoadError");
     expect(retryAt).toBeGreaterThan(-1);
