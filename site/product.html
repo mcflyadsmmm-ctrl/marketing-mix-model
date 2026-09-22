@@ -12,8 +12,8 @@
   <meta name="theme-color" content="#f2f5f8" />
   <title>Shopify order desk | Mcfly Analytics</title>
   <meta name="description" content="Overview, Orders, and Customers first — typical order, returning dollars, weekends, days to second, LTV. Spend optional last. 7-day trial then $39/store/mo. No pixels." />
-  <meta name="mcfly-version" content="v31" />
-  <meta name="mcfly-build" content="desk-match-v31" />
+  <meta name="mcfly-version" content="v32" />
+  <meta name="mcfly-build" content="share-board-v32" />
   <link rel="canonical" href="https://mcflyads.com/product" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
@@ -403,6 +403,66 @@
       line-height: 1.45;
       color: var(--mute);
     }
+
+    body.product-page .print-board {
+      margin: 1.75rem 0 0;
+      padding: clamp(1.15rem, 3vw, 1.7rem);
+      border: 1px solid rgba(10, 18, 33, 0.12);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(242, 245, 248, 0.9)),
+        #fff;
+      box-shadow: 0 18px 40px -28px rgba(10, 18, 33, 0.35);
+    }
+    body.product-page .print-board .float-desk {
+      margin: 0;
+      max-width: none;
+    }
+    body.product-page .print-board__cap {
+      margin: 1rem 0 0;
+      max-width: 48ch;
+      color: var(--mute);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    body.product-page .print-board__png {
+      margin: 0.45rem 0 0;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      color: var(--cyan-deep);
+    }
+    body.product-page .share-pre {
+      margin: 1.5rem 0 0;
+      padding: 1.15rem 1.25rem 1.25rem;
+      border: 1px solid rgba(10, 18, 33, 0.12);
+      border-left: 3px solid var(--cyan-deep);
+      background:
+        linear-gradient(165deg, rgba(2, 132, 199, 0.06), transparent 55%),
+        #fff;
+      font-family: var(--mono);
+      font-size: 0.86rem;
+      line-height: 1.55;
+      color: var(--ink);
+      white-space: pre-wrap;
+      overflow-x: auto;
+      max-width: 46rem;
+    }
+    body.product-page .share-never {
+      margin: 0.95rem 0 0;
+      max-width: 46ch;
+      color: var(--ink);
+      font-size: 0.98rem;
+      line-height: 1.45;
+    }
+    body.product-page .share-mail {
+      margin: 0.85rem 0 0;
+    }
+    @media print {
+      body.product-page .print-board {
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
   </style>
   <script type="application/ld+json">
   {
@@ -595,7 +655,62 @@
             </tbody>
           </table>
         </div>
-        <p class="contrast-note">7-day trial, then $39/store/mo. Uninstall stops the charge. SAMPLE on <a href="/demo">/demo</a> — install opens this shop’s Live book only.</p>
+        <p class="contrast-note">7-day trial, then $39/store/mo. Uninstall stops the charge. SAMPLE is <a href="/demo">/demo</a>. Live Admin is this shop when unparked. Today the public Fly host is SAMPLE-only. no Sample|Live toggle.</p>
+      </div>
+    </section>
+
+    <section class="band" id="monday-board" aria-labelledby="monday-board-title">
+      <div class="wrap">
+        <p class="eyebrow">Monday board · SAMPLE</p>
+        <h2 id="monday-board-title" class="display">This month.<br />This quarter.<br />This year.</h2>
+        <p class="lede-soft">Three named year cards vs last year — the Overview board a bookkeeper can reopen on Monday.</p>
+        <div class="print-board">
+          <aside class="float-desk" aria-label="SAMPLE year cards versus last year">
+            <span class="float-desk__badge">SAMPLE · Snowdevil · not a live client</span>
+            <div class="float-desk__stack">
+              <article class="float-card">
+                <p class="float-card__k">This month</p>
+                <p class="float-card__v float-card__v--accent">$68,457</p>
+                <p class="float-card__s">vs last year $69,891</p>
+              </article>
+              <article class="float-card">
+                <p class="float-card__k">This quarter</p>
+                <p class="float-card__v float-card__v--accent">$210,622</p>
+                <p class="float-card__s">vs last year $210,817</p>
+              </article>
+              <article class="float-card">
+                <p class="float-card__k">This year</p>
+                <p class="float-card__v float-card__v--accent">$918,649</p>
+                <p class="float-card__s">vs last year $918,365</p>
+              </article>
+            </div>
+          </aside>
+          <p class="print-board__cap">Print this board in the app (Save PNG) or copy the dollars. SAMPLE Snowdevil · not a live client.</p>
+          <p class="print-board__png">Save PNG in the app — screenshot-ready, same formula.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="mailto-specimen" aria-labelledby="mailto-title">
+      <div class="wrap">
+        <p class="eyebrow">Share Overview</p>
+        <h2 id="mailto-title" class="display">Email the numbers.<br />Your mail app sends them.</h2>
+        <p class="lede-soft">Plain-text Overview share using the SAMPLE board above. Mcfly never sends mail — your mail app does.</p>
+        <pre class="share-pre">Total ROAS — Snowdevil
+This month
+
+Shopify Total Sales: $68,457
+  vs last year $69,891
+  Typical order: $631
+  Sales from returning customers: 66% / $45,409
+  Weekend sales: 23%
+
+Total Spend: $19,023
+
+Total ROAS: 3.60×
+Total ROAS = $68,457 ÷ $19,023</pre>
+        <p class="share-never"><strong>Mcfly never sends mail — your mail app does.</strong></p>
+        <p class="share-mail"><a class="text-link" href="mailto:?subject=Shopify%20sales%20%E2%80%94%20This%20month&amp;body=Total%20ROAS%20%E2%80%94%20Snowdevil%0AThis%20month%0A%0AShopify%20Total%20Sales%3A%20%2468%2C457%0A%20%20vs%20last%20year%20%2469%2C891%0A%20%20Typical%20order%3A%20%24631%0A%20%20Sales%20from%20returning%20customers%3A%2066%25%20%2F%20%2445%2C409%0A%20%20Weekend%20sales%3A%2023%25%0A%0ATotal%20Spend%3A%20%2419%2C023%0A%0ATotal%20ROAS%3A%203.60%C3%97%0ATotal%20ROAS%20%3D%20%2468%2C457%20%C3%B7%20%2419%2C023">Open this SAMPLE in your mail app</a></p>
       </div>
     </section>
 
@@ -628,7 +743,7 @@
           </li>
         </ol>
 
-        <p class="lede-soft spend-platforms-intro">SAMPLE Snowdevil on Spend this month: sales $68,457 · entered spend $19,023 · Total ROAS 3.60×. Empty spend on a live shop stays —. Full demo on <a href="/demo">/demo</a> — install opens this shop’s Live book only.</p>
+        <p class="lede-soft spend-platforms-intro">SAMPLE Snowdevil on Spend this month: sales $68,457 · entered spend $19,023 · Total ROAS 3.60×. Empty spend on a live shop stays —. SAMPLE is <a href="/demo">/demo</a>. Live Admin is this shop when unparked. Today the public Fly host is SAMPLE-only. no Sample|Live toggle.</p>
         <ul class="platform-tags" aria-label="Supported spend platforms">
           <li>Meta</li>
           <li>Google</li>
