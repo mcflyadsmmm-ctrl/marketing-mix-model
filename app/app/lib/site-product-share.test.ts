@@ -18,9 +18,9 @@ function section(id: string): string {
 
 describe("/product shows the SAMPLE share artifacts", () => {
   it("paints a Monday board of three named SAMPLE year windows", () => {
-    const board = section("monday-board");
+    const board = section("year-board");
     const ritual = product.indexOf("<h3>Overview</h3>");
-    const boardAt = product.indexOf('id="monday-board"');
+    const boardAt = product.indexOf('id="year-board"');
     const spendAt = product.indexOf("Add spend later.");
     expect(ritual).toBeGreaterThan(-1);
     expect(boardAt).toBeGreaterThan(ritual);

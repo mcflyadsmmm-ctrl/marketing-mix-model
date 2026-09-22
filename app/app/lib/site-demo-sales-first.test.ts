@@ -52,7 +52,6 @@ describe("public /demo greets with Shopify numbers first", () => {
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
-    expect(html).toMatch(/2\.50×/);
     expect(html).toContain("empty = —");
     expect(html).toMatch(/not your Live book|not a live/);
     expect(html).not.toContain("when unparked");

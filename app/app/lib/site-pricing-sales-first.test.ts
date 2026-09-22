@@ -50,7 +50,7 @@ describe("pricing.html sales-first first fold", () => {
     expect(pricing).toMatch(/Orders/);
     expect(pricing).toMatch(/Customers/);
     expect(pricing).toMatch(/Growth and LTV live on Customers/);
-    expect(pricing).toMatch(/beat native Analytics/);
+    expect(pricing).not.toMatch(/beat native Analytics/);
     expect(pricing).toMatch(/second chapter|Spend is the second chapter/);
   });
 

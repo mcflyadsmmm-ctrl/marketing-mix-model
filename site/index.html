@@ -21,22 +21,23 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#f2f5f8" />
   <title>Deeper Shopify numbers Analytics does not show. | Mcfly Analytics</title>
-  <meta name="description" content="Deeper Shopify numbers Analytics does not show. Typical order, returning dollars, weekends, LTV — spend optional. Total ROAS = Shopify sales ÷ entered spend; empty = —. 7-day trial, then $39/store/mo." />
-  <meta name="mcfly-version" content="v33" />
-  <meta name="mcfly-build" content="operator-desk-v33" />
+  <meta name="description" content="Deeper Shopify numbers Analytics does not show. Typical order is the median, not AOV. Returning dollars, not the returning-customer rate. Spend optional. Total ROAS = Shopify sales ÷ entered spend; empty = —. 7-day trial, then $39/store/mo." />
+  <meta name="mcfly-version" content="v34" />
+  <meta name="mcfly-build" content="operator-desk-v34" />
   <link rel="canonical" href="https://mcflyads.com/" />
   <meta property="og:site_name" content="Mcfly Analytics" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Deeper Shopify numbers Analytics does not show. | Mcfly Analytics" />
   <meta property="og:description" content="Deeper Shopify numbers Analytics does not show. Typical order, returning dollars, weekends — spend optional. 7-day trial, then $39/store/mo." />
-  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-analytics.jpg" />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-analytics.jpg" />
   <meta property="og:url" content="https://mcflyads.com/" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Deeper Shopify numbers Analytics does not show. | Mcfly Analytics" />
   <meta name="twitter:description" content="Deeper Shopify numbers Analytics does not show. Typical order, returning dollars — spend optional. 7-day trial, then $39/store/mo." />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260829v13" />
-  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260922v33" />
-  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260919v30" />
+  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260922v34" />
+  <link rel="stylesheet" href="/assets/demo-desk.css?v=20260922v34" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -77,7 +78,7 @@
           <div class="hero__copy">
             <p class="kicker">Typical order · returning dollars · spend optional</p>
             <h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>
-            <p class="lede lede--tight">Typical order is the median, not Shopify’s AOV. Returning dollars, not the returning-customer rate. Spend is optional. No ad-network login.</p>
+            <p class="lede lede--tight">Typical order is the median, not Shopify’s AOV. Returning dollars, not the returning-customer rate. Spend is optional. No pixel. No ad-network login.</p>
             <div class="cta-stack">
               <div class="cta-row">
                 <a class="link-cta link-cta--fill" data-mcfly-cta="primary" href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer"><span class="cta__full">Install</span><span class="cta__mob">Install</span></a>
@@ -123,16 +124,17 @@
                         <span class="dd-kpi__delta" id="dd-kpi-new">37 new buyers</span>
                         <span class="dd-kpi__hint">Click for detail</span>
                       </button>
-                      <a class="dd-kpi dd-kpi--drill live-slice" href="/demo">
-                        <span class="dd-kpi__label">Open the desk</span>
-                        <span class="dd-kpi__value">Full demo</span>
-                        <span class="dd-kpi__sub">Same UI as the Shopify app</span>
-                        <span class="dd-kpi__hint">Five tabs + Settings</span>
-                      </a>
+                      <button type="button" class="dd-kpi dd-kpi--drill" data-dd-kpi="weekend" aria-haspopup="dialog">
+                        <span class="dd-kpi__label">Weekend mix</span>
+                        <span class="dd-kpi__value" id="dd-kpi-weekend">23%</span>
+                        <span class="dd-kpi__sub">Of this window</span>
+                        <span class="dd-kpi__delta">110 SAMPLE orders</span>
+                        <span class="dd-kpi__hint">Click for detail</span>
+                      </button>
                     </div>
                   </section>
                   <section class="dd-well dd-yoy" aria-label="Sales versus last year">
-                    <p class="dd-yoy__lede">Shopify Analytics shows this period’s sales. This page shows last year next to it.</p>
+                    <p class="dd-yoy__lede">Shopify Overview can compare this range to last year. Mcfly keeps this month, this quarter, and this year on one board — last year on the card.</p>
                     <div class="dd-yoy__grid">
                       <a class="dd-yoy__card live-slice" href="/demo">
                         <p class="dd-yoy__k">This month</p>
@@ -165,9 +167,9 @@
 
     <section class="facts-strip" aria-label="Product facts">
       <div class="container facts-strip__inner">
-        <p><strong>No ad-network login</strong><span>From orders you already have</span></p>
+        <p><strong>No pixel</strong><span>No ad-network login</span></p>
         <p><strong>90 days</strong><span>Order history on trial</span></p>
-        <p><strong>$39/store/mo</strong><span>After 7-day trial</span></p>
+        <p><strong>$39/store/mo</strong><span>After 7-day trial · uninstall stops the charge</span></p>
         <p><strong>Shopify App Store</strong><span><a href="https://apps.shopify.com/mcfly-analytics-public" rel="noopener noreferrer">mcfly-analytics-public</a></span></p>
       </div>
     </section>
@@ -227,6 +229,29 @@
       </div>
     </section>
 
+    <section class="section section--spacious section--paper" id="where-sits" aria-labelledby="sits-h">
+      <div class="container">
+        <p class="kicker">On a 2026 analytics roundup</p>
+        <h2 class="h2" id="sits-h">Pixel suite, P&amp;L app, or Shopify-order desk.</h2>
+        <p class="lede lede--tight">Shopify Analytics already does this period’s sales, mean AOV, and returning-customer rate. Mcfly is the install when you want the median ticket, returning dollars, and last year next to this month — from orders you already have, at $0 spend.</p>
+        <div class="sits-grid">
+          <article class="sits-card">
+            <h3>Pixel / MTA / AI agent</h3>
+            <p>Triple Whale and Polar. First-party pixels, ad-network logins, from hundreds a month. Polar’s App Store list price starts at $750/mo and moves with GMV. Mcfly does not ship a pixel.</p>
+          </article>
+          <article class="sits-card">
+            <h3>Net profit / COGS / P&amp;L</h3>
+            <p>Lifetimely, TrueProfit. They need your costs. Lifetimely lists $149/mo at 3,000 orders. Mcfly does not ingest COGS and does not paint net profit.</p>
+          </article>
+          <article class="sits-card sits-card--on">
+            <h3>Shopify numbers Analytics Overview skips</h3>
+            <p>Median ticket, not AOV. Returning dollars, not the returning-customer rate. Days-to-second. LTV 30/90/365 from orders you already have. Spend optional, last. One flat store fee. $39 stays $39 at $5M.</p>
+          </article>
+        </div>
+        <p class="sits-note mono">Listing “from” prices, not a private quote: apps.shopify.com/polar-analytics · apps.shopify.com/triplewhale-1 (Foundation $219+) · apps.shopify.com/lifetimely-lifetime-value-and-profit-analytics. We do not invent Polar $1,020. Mcfly reviews: 0.</p>
+      </div>
+    </section>
+
     <section class="section section--spacious section--ink" aria-labelledby="row-shopify">
       <div class="container feature-row feature-row--shot">
         <div class="feature-row__copy">
@@ -265,73 +290,11 @@
       <div class="container overflow-safe">
         <p class="kicker"><span class="chip">SAMPLE</span> Snowdevil</p>
         <h2 class="h2" id="paste-h">Paste this to Slack.</h2>
-        <p class="lede lede--tight">SAMPLE Snowdevil · not a live client · Mcfly never posts to Slack — you copy.</p>
-
-        <article class="proof overflow-safe">
-          <div class="cta-row">
-            <strong>This month vs last year</strong>
-            <button type="button" class="link-cta link-cta--ghost" data-copy-target="paste-yoy">Copy</button>
-          </div>
-          <p>This month <strong>$68,457</strong> vs last year <strong>$69,891</strong> (−$1,434 · −2%). Percentages and dollars.</p>
-          <label for="paste-yoy">Slack line
-            <textarea id="paste-yoy" data-paste-line readonly rows="4">SAMPLE Snowdevil · This month $68,457 vs last year $69,891 (-$1,434 · -2%).</textarea>
-          </label>
-        </article>
-
-        <article class="proof overflow-safe">
-          <div class="cta-row">
-            <strong>Typical order</strong>
-            <button type="button" class="link-cta link-cta--ghost" data-copy-target="paste-typical">Copy</button>
-          </div>
-          <p>Typical order is <strong>$631</strong> — the middle order, not Shopify’s average.</p>
-          <label for="paste-typical">Slack line
-            <textarea id="paste-typical" data-paste-line readonly rows="4">SAMPLE Snowdevil · Typical order is $631 — the middle order, not Shopify's average.</textarea>
-          </label>
-        </article>
-
-        <article class="proof overflow-safe">
-          <div class="cta-row">
-            <strong>Returning dollars</strong>
-            <button type="button" class="link-cta link-cta--ghost" data-copy-target="paste-returning">Copy</button>
-          </div>
-          <p>Returning buyers carry <strong>66%</strong> of sales (<strong>$45,409</strong>) — dollars, not headcount. Guests stay out.</p>
-          <label for="paste-returning">Slack line
-            <textarea id="paste-returning" data-paste-line readonly rows="4">SAMPLE Snowdevil · Returning buyers carry 66% of sales ($45,409) — dollars, not headcount. Guests stay out.</textarea>
-          </label>
-        </article>
-
-        <article class="proof overflow-safe">
-          <div class="cta-row">
-            <strong>Weekend mix</strong>
-            <button type="button" class="link-cta link-cta--ghost" data-copy-target="paste-weekend">Copy</button>
-          </div>
-          <p>Weekend mix is <strong>23%</strong> of this window (SAMPLE).</p>
-          <label for="paste-weekend">Slack line
-            <textarea id="paste-weekend" data-paste-line readonly rows="3">SAMPLE Snowdevil · Weekend mix is 23% of this window (SAMPLE).</textarea>
-          </label>
-        </article>
-
-        <article class="proof overflow-safe">
-          <div class="cta-row">
-            <strong>New-buyer worth</strong>
-            <button type="button" class="link-cta link-cta--ghost" data-copy-target="paste-ltv">Copy</button>
-          </div>
-          <p>A new buyer is worth <strong>$890</strong> in the first 90 days — observed orders, not an estimate.</p>
-          <label for="paste-ltv">Slack line
-            <textarea id="paste-ltv" data-paste-line readonly rows="4">SAMPLE Snowdevil · New-buyer 90-day worth $890 — observed orders, not an estimate.</textarea>
-          </label>
-        </article>
-
-        <article class="proof overflow-safe">
-          <div class="cta-row">
-            <strong>Days to second</strong>
-            <button type="button" class="link-cta link-cta--ghost" data-copy-target="paste-second">Copy</button>
-          </div>
-          <p>Typical wait to a second order is <strong>21</strong> days — median first→second gap. Guests stay out.</p>
-          <label for="paste-second">Slack line
-            <textarea id="paste-second" data-paste-line readonly rows="4">SAMPLE Snowdevil · Typical wait to a second order is 21 days — median first→second gap. Guests stay out.</textarea>
-          </label>
-        </article>
+        <p class="lede lede--tight">SAMPLE Snowdevil · not a live client · Mcfly never posts to Slack — you copy. One briefing for the books, the agency, or a partner — not a Slack bot.</p>
+        <div class="paste-card overflow-safe">
+          <pre id="paste-brief" class="paste-card__body" data-paste-line>SAMPLE Snowdevil · This month $68,457 vs last year $69,891 (-$1,434 · -2%). Typical order is $631 — the middle order, not Shopify's average. Returning buyers carry 66% of sales ($45,409) — dollars, not headcount. Weekend mix is 23% of this window (SAMPLE). New-buyer 90-day worth $890 — observed orders, not an estimate. Typical wait to a second order is 21 days — median first→second gap.</pre>
+          <button type="button" class="link-cta link-cta--ghost" data-copy-target="paste-brief">Copy</button>
+        </div>
       </div>
     </section>
 
@@ -339,8 +302,8 @@
       <div class="container feature-row feature-row--shot">
         <div class="feature-row__copy">
           <p class="kicker">Optional · Spend last</p>
-          <h2 class="h2" id="row-roas">Total ROAS you can trust.</h2>
-          <p class="lede lede--tight">Shopify Total Sales ÷ the spend you entered. Same window. Empty is —.</p>
+          <h2 class="h2" id="row-roas">Total ROAS = Shopify Total Sales ÷ the spend you typed.</h2>
+          <p class="lede lede--tight">Same window. Empty is —. Not platform ROAS. Not a pixel.</p>
         </div>
         <figure class="shot-frame shot-frame--side shot-frame--micro shot-frame--live">
           <div class="shot-frame__viewport">
@@ -405,24 +368,32 @@
       </div>
     </section>
 
-    <section class="section section--spacious section--paper" aria-labelledby="what-h">
-      <div class="container feature-row feature-row--shot feature-row--flip">
-        <div class="feature-row__copy">
-          <p class="kicker"><span class="chip">SAMPLE</span> Snowdevil</p>
-          <h2 class="h2" id="what-h">Five analysis tabs plus Settings.</h2>
-          <p class="lede lede--tight">Open /demo for typical order, returning dollars, weekends. Spend is the last tab. Empty spend is —. One plan: $39/store/mo after a 7-day trial.</p>
-          <div class="cta-row cta-row--pad">
-            <a class="link-cta link-cta--fill" href="/demo">Open the full Snowdevil demo</a>
-          </div>
+    <section class="section section--spacious section--paper" id="faq-home" aria-labelledby="faq-h">
+      <div class="container">
+        <p class="kicker">Before you install</p>
+        <h2 class="h2" id="faq-h">No pixel. No ad login. SAMPLE is not a client.</h2>
+        <div class="faq-home">
+          <details>
+            <summary>Do you put a pixel on my storefront?</summary>
+            <p>No. No Mcfly pixel, no Meta/Google/TikTok login, no path credit, no “true ROAS.” Total ROAS is Shopify Total Sales ÷ spend you type. Empty spend paints —. <a href="/faq">Full FAQ</a>.</p>
+          </details>
+          <details>
+            <summary>What does this show that Shopify Analytics Overview does not?</summary>
+            <p>Typical order (median, not AOV). Returning dollars, not the returning-customer rate. Weekend mix as a % of this window. Days-to-second. LTV 30/90/365 from orders you already have. Overview can already compare one range to last year — Mcfly keeps month, quarter, and year on one board.</p>
+          </details>
+          <details>
+            <summary>Is this Triple Whale, Polar, or Lifetimely?</summary>
+            <p>No. Those are pixel, warehouse, or P&amp;L products. Mcfly is one Shopify desk. Overview · Orders · Customers work at $0 spend. Spend is last and optional. $39 stays $39 at $5M / not a GMV tax.</p>
+          </details>
+          <details>
+            <summary>Can finance or an agency see this without a staff seat?</summary>
+            <p>You copy or Save PNG. Mcfly never posts to Slack, never sends mail, and does not write to a project board. Shopify itself is all-or-nothing Admin.</p>
+          </details>
+          <details>
+            <summary>Are these numbers a real store?</summary>
+            <p>No. Snowdevil is SAMPLE, not a live client. Install reads your shop. The public desk is <a href="/demo">/demo</a>.</p>
+          </details>
         </div>
-        <figure class="shot-frame shot-frame--side shot-frame--micro shot-frame--live">
-          <a class="live-slice dd-kpi dd-kpi--hero" href="/demo">
-            <span class="dd-kpi__label">Typical order</span>
-            <span class="dd-kpi__value">$631</span>
-            <span class="dd-kpi__sub">Median ticket · 110 SAMPLE orders</span>
-            <span class="dd-kpi__hint">Open the full Snowdevil desk</span>
-          </a>
-        </figure>
       </div>
     </section>
 
@@ -437,7 +408,7 @@
           </div>
         </div>
         <p class="lede lede--tight">One plan. Not a cut of GMV. Trial is 90 days of order history. Paid is up to 24 months.</p>
-        <p class="fine">$39 stays $39 at $5M GMV. Not a Polar-class GMV tax. Not a per-order surcharge.</p>
+        <p class="fine">$39 stays $39 at $5M. Not a GMV tax. Not a per-order surcharge.</p>
         <a class="cta-demo" href="/pricing">See pricing</a>
       </div>
     </section>
@@ -468,8 +439,8 @@
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260915v17"></script>
-  <script src="/assets/mcfly/chrome.js?v=20260922v33"></script>
-  <script src="/assets/demo-desk.js?v=20260919v30"></script>
+  <script src="/assets/mcfly/chrome.js?v=20260922v34"></script>
+  <script src="/assets/demo-desk.js?v=20260922v34"></script>
   <script>
     (function () {
       function pasteText(el) {

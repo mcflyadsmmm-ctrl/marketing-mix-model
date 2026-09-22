@@ -2247,3 +2247,116 @@ body.demo-page .demo-desk-caption {
     min-height: 70vh;
   }
 }
+
+/* v34 — roundup cards, one paste, home FAQ, 390px hero */
+.sits-grid {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+}
+.sits-card {
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid var(--line, #d7dee6);
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 14px;
+}
+.sits-card h3 {
+  margin: 0 0 0.45rem;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+.sits-card p {
+  margin: 0;
+  color: var(--mute);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.sits-card--on {
+  background: #fff;
+  border-color: rgba(10, 18, 33, 0.16);
+}
+.sits-note {
+  margin: 1rem 0 0;
+  max-width: 62ch;
+  color: var(--mute);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.paste-card {
+  margin: 1.25rem 0 0;
+  padding: 1.15rem 1.2rem 1.2rem;
+  border: 1px solid var(--line, #d7dee6);
+  background: #fff;
+  border-radius: 14px;
+  max-width: 46rem;
+}
+.paste-card__body {
+  margin: 0 0 0.85rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.faq-home {
+  margin: 1.25rem 0 0;
+  max-width: 42rem;
+}
+.faq-home details {
+  border-top: 1px solid var(--line, #d7dee6);
+  padding: 0.85rem 0;
+}
+.faq-home details:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.faq-home summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.faq-home details p {
+  margin: 0.45rem 0 0;
+  color: var(--mute);
+  line-height: 1.5;
+}
+.cmp {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.15rem 0 0;
+  font-size: 0.92rem;
+}
+.cmp th,
+.cmp td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.65rem 0.7rem 0.65rem 0;
+  border-top: 1px solid var(--line, #d7dee6);
+}
+.cmp thead th {
+  border-top: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+@media (min-width: 860px) {
+  .sits-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 390px) {
+  .hero--v25 .dd-yoy__grid .dd-yoy__card:nth-child(n + 2) {
+    display: none;
+  }
+  .hero--v25 .dd-kpi-grid--hero {
+    grid-template-columns: 1fr 1fr;
+  }
+}

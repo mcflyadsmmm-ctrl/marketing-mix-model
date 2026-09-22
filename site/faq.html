@@ -18,14 +18,14 @@
   <meta property="og:url" content="https://mcflyads.com/faq" />
   <meta property="og:title" content="FAQ | Mcfly Analytics" />
   <meta property="og:description" content="Typical order, returning dollars, weekends, LTV — spend optional. Five tabs: Overview · Orders · Customers · Spend · Goals. 7-day trial then $39. Trial is 90 days of orders; paid is up to 24 months." />
-  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
+  <meta property="og:image" content="https://mcflyads.com/assets/brand/og-analytics.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="FAQ | Mcfly Analytics" />
   <meta name="twitter:description" content="Deeper Shopify numbers Analytics does not show. Typical order, returning dollars, LTV. 7-day then $39. Trial 90 days of orders; paid up to 24 months." />
-  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-cash-mer.jpg" />
+  <meta name="twitter:image" content="https://mcflyads.com/assets/brand/og-analytics.jpg" />
   <link rel="stylesheet" href="/assets/fonts-local.css?v=20260828v5" />
   <link rel="stylesheet" href="/assets/site.css?v=20260829v13" />
-  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260922v33" />
+  <link rel="stylesheet" href="/assets/mcfly/mcfly.css?v=20260922v34" />
   <style>
     body.faq-page {
       background:
@@ -100,7 +100,7 @@
         "name": "What is break-even Total ROAS?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Break-even ≈ 1 ÷ contribution margin — the floor where ads stop losing money on average. Stay above it, then make one allocation call. Calculator: https://mcflyads.com/break-even-roas-calculator"
+          "text": "Break-even ≈ 1 ÷ contribution margin — the floor where ads stop losing money on average. Stay above it, then change spend on Spend. Not a parked calculator. Product: https://mcflyads.com/product"
         }
       },
       {
@@ -111,14 +111,46 @@
           "text": "Install from the Shopify App Store: https://apps.shopify.com/mcfly-analytics-public. Steps on https://mcflyads.com/support. There is no “type your .myshopify.com” form on this site (including mcflyads.com)."
         }
       },
-      {
-        "@type": "Question",
-        "name": "Do you do MMM, pixels, or multi-touch attribution?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "No. Mcfly Analytics does not ship tracking pixels, MTA, path/view-through credit, or “true ROAS.” We measure sales ÷ entered spend."
+        {
+          "@type": "Question",
+          "name": "Do you do MMM, pixels, or multi-touch attribution?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Mcfly Analytics does not ship tracking pixels, MTA, path/view-through credit, or “true ROAS.” We measure sales ÷ entered spend."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is typical order the same as Shopify AOV?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Typical order is the median ticket. Shopify AOV is the mean. One wholesale order moves AOV; typical order does not."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I share this with my bookkeeper or agency without a staff account?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You copy or Save PNG. Mcfly does not email or Slack. Shopify itself is all-or-nothing Admin."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this a Triple Whale replacement?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. No pixel, no MTA. $39 flat for order-history numbers plus optional typed spend. If you need their pixel, stay there. $39 stays $39 at $5M."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I export Orders CSV?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Mcfly reads orders in Admin. CSV discount and refund columns are easy to double-count; we don’t make you."
+          }
         }
-      }
     ]
   }
   </script>
@@ -133,7 +165,7 @@
   }
   </script>
   <!-- launch-v2-20260728 -->
-  <meta name="robots" content="noindex,follow" />
+  <meta name="mcfly-version" content="v34" />
 </head>
 <body class="faq-page">
   <a class="skip" href="#main">Skip to content</a>
@@ -158,7 +190,7 @@
             </li>
             <li>
               <h2>What does Mcfly show that Analytics does not?</h2>
-              <p>Typical order, returning dollars, weekend mix, days-to-second, and LTV 30/90/365 from orders you already have. Empty spend paints —, never 0×. Add spend last when you want Total ROAS vs break-even. Try: <a href="/demo">the demo</a>.</p>
+              <p>Typical order, returning dollars, weekend mix, days-to-second, and LTV 30/90/365 from orders you already have. Overview’s AOV is the average; Overview’s returning number is a headcount rate. Empty spend paints —, never 0×. Add spend last when you want Total ROAS vs break-even. Try: <a href="/demo">the demo</a>.</p>
             </li>
             <li>
               <h2>What does it cost?</h2>
@@ -174,7 +206,7 @@
             </li>
             <li>
               <h2>What is break-even Total ROAS?</h2>
-              <p>Break-even ≈ <span class="mono">1 ÷ contribution margin</span> — the floor where ads stop losing money on average. Stay above it, then make one allocation call. Tool: <a href="/break-even-roas-calculator">break-even calculator</a>.</p>
+              <p>Break-even ≈ <span class="mono">1 ÷ contribution margin</span> — the floor where ads stop losing money on average. Stay above it, then change spend on Spend. Not a parked calculator. Formula: <a href="/product">Product</a>.</p>
             </li>
             <li>
               <h2>How do I install?</h2>
@@ -183,6 +215,22 @@
             <li>
               <h2>Do you do MMM, pixels, or multi-touch attribution?</h2>
               <p>No. Mcfly Analytics does not ship tracking pixels, MTA, path/view-through credit, or “true ROAS.” We measure sales ÷ entered spend.</p>
+            </li>
+            <li>
+              <h2>Is typical order the same as Shopify AOV?</h2>
+              <p>No. Typical order is the median ticket. Shopify AOV is the mean. One wholesale order moves AOV; typical order does not.</p>
+            </li>
+            <li>
+              <h2>Can I share this with my bookkeeper or agency without a staff account?</h2>
+              <p>You copy or Save PNG. Mcfly does not email or Slack. Shopify itself is all-or-nothing Admin.</p>
+            </li>
+            <li>
+              <h2>Is this a Triple Whale replacement?</h2>
+              <p>No. No pixel, no MTA. $39 flat for order-history numbers plus optional typed spend. If you need their pixel, stay there. $39 stays $39 at $5M.</p>
+            </li>
+            <li>
+              <h2>Do I export Orders CSV?</h2>
+              <p>No. Mcfly reads orders in Admin. CSV discount and refund columns are easy to double-count; we don’t make you.</p>
             </li>
           </ol>
         </div>
@@ -205,7 +253,7 @@
 
   <div data-footer></div>
   <script src="/assets/cta-config.js?v=20260908v14"></script>
-  <script src="/assets/mcfly/chrome.js?v=20260922v33"></script>
+  <script src="/assets/mcfly/chrome.js?v=20260922v34"></script>
   <script src="/assets/app.js?v=20260825live"></script>
 </body>
 </html>

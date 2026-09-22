@@ -320,6 +320,16 @@
           " when spend is on file.</p>",
         trigger,
       );
+      return;
+    }
+    if (key === "weekend") {
+      openDrawer(
+        "Weekend mix",
+        "<p class=\"dd-drawer__value\">" +
+          Math.round(period.weekendShare * 100) +
+          "%</p><p>Saturday–Sunday share of this window on Orders. Not a Reports Group-by you add up. SAMPLE Snowdevil.</p>",
+        trigger,
+      );
     }
   }
 

@@ -18,6 +18,10 @@ const QUESTION_ORDER = [
   "What is break-even Total ROAS?",
   "How do I install?",
   "Do you do MMM, pixels, or multi-touch attribution?",
+  "Is typical order the same as Shopify AOV?",
+  "Can I share this with my bookkeeper or agency without a staff account?",
+  "Is this a Triple Whale replacement?",
+  "Do I export Orders CSV?",
 ] as const;
 
 type FaqItem = { name: string; text: string };
@@ -167,12 +171,16 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
         "not MTA",
         "true ROAS",
       ],
-      ["1 ÷ contribution margin", "break-even"],
+      ["1 ÷ contribution margin", "Break-even"],
       [
         "Shopify App Store",
         "no “type your .myshopify.com” form",
       ],
       ["No.", "tracking pixels", "MTA", "true ROAS", "sales ÷ entered spend"],
+      ["median ticket", "Shopify AOV is the mean"],
+      ["copy or Save PNG", "does not email or Slack"],
+      ["No.", "No pixel", "$39 stays $39"],
+      ["No.", "reads orders in Admin"],
     ];
 
     visible.forEach((item, index) => {
@@ -205,6 +213,7 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
     expect(src).not.toMatch(/\bvisitors\b/i);
     expect(heroText).not.toMatch(/\bCOGS\b/);
     expect(heroText).not.toMatch(/\bP&L\b/);
+    expect(src).not.toMatch(/\bMonday\b/);
     expect(src).not.toMatch(/What does Mcfly Analytics show me\?/);
   });
 });

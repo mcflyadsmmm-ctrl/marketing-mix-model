@@ -66,7 +66,8 @@
 /cash-mer/ / 301
 /mer / 301
 /total-roas / 301
-/break-even /break-even-roas-calculator 301
+/break-even /pricing 301
+/break-even/ /pricing 301
 /glossary / 301
 /monday-close / 301
 /monday-close/ / 301
@@ -113,8 +114,11 @@
 /demo/settings /demo?tab=settings 301
 /demo/settings/ /demo?tab=settings 301
 
-# Keep calculators (app math)
+# Park leftover calculators and MDS course — one product
 /calculator /pricing 301
+/mds-made-easy / 301
+/mds-made-easy/ / 301
+/mds-made-easy/* / 301
 
 # Park leftover calculators — one product, one price page
 /mer-calculator /pricing 301

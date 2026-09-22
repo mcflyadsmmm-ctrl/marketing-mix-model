@@ -20,12 +20,12 @@ describe("home SAMPLE Slack paste board", () => {
   const overviewSlice =
     overviewIdx >= 0 ? html.slice(overviewIdx, overviewIdx + 1800) : "";
 
-  it("keeps the locked H1, v33, and Snowdevil SAMPLE dollars", () => {
+  it("keeps the locked H1, v34, and Snowdevil SAMPLE dollars", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v33"');
-    expect(html).toContain("mcfly.css?v=20260922v33");
+    expect(html).toContain('content="v34"');
+    expect(html).toContain("mcfly.css?v=20260922v34");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
@@ -35,7 +35,7 @@ describe("home SAMPLE Slack paste board", () => {
     expect(html).not.toContain("/demo?tab=roas");
   });
 
-  it("paints six paste-ready SAMPLE lines with Copy controls", () => {
+  it("paints one paste-ready SAMPLE briefing with a Copy control", () => {
     expect(pasteStart).toBeGreaterThan(0);
     expect(paste).toContain("Paste this to Slack.");
     expect(paste).toContain("SAMPLE Snowdevil · not a live client");
@@ -63,11 +63,11 @@ describe("home SAMPLE Slack paste board", () => {
     expect(paste).toContain("median first→second gap");
 
     const copyButtons = paste.match(/>Copy<\/button>/g) ?? [];
-    expect(copyButtons).toHaveLength(6);
-    const areas = paste.match(/<textarea\b[^>]*\breadonly\b/g) ?? [];
-    expect(areas).toHaveLength(6);
+    expect(copyButtons).toHaveLength(1);
+    expect(paste).toContain('id="paste-brief"');
     expect(paste).toContain("data-copy-target");
     expect(html).toContain("navigator.clipboard.writeText");
+    expect(paste).not.toMatch(/<textarea/i);
   });
 
   it("drops the Spend leftover, names the $39 GMV line, and stays Harbor-clean", () => {
