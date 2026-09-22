@@ -1,10 +1,10 @@
 # Mcfly accepted-work scoreboard
 **Updated:** 2026-09-22 · Count accepted outcomes, not PR spam
-**Tip Fly note:** v421 / tip `0d22293` (merge of #170 Goals year clock) / image `deployment-01M34KJ95GDEJKY9ZBKS8FHQ90` / Live PARKED. Health ok 2026-09-22T13:07Z. v420 was book coverage.
+**Tip Fly note:** v422 / tip `b80d263` (merge of #171 DeskLane open) / image `deployment-01M34MG7QX41A2DR1H13KAMN0V` / Live PARKED. Health ok 2026-09-22T13:23Z. v421 was the Goals year clock.
 
 | Metric | Status |
 |--------|--------|
-| Tip Fly SoT | v421 / tip `0d22293` / Live PARKED |
+| Tip Fly SoT | v422 / tip `b80d263` / Live PARKED |
 | SAMPLE smoke | WAIVED |
 | Live unpark | PARKED |
 | Partner Submit | READY (paste) — Marty tap |
@@ -12,19 +12,19 @@
 | App Store reviews | 0 |
 | PCD L2 | Submitted (not SAMPLE blocker) |
 | Site P0 on box | DONE — Pages deploy pending Marty/Mac |
-| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v421 / tip `0d22293`; Live PARKED |
+| Money prep | Listing paste ready; Pages deploy waiting Mac; tip Fly v422 / tip `b80d263`; Live PARKED |
 | Reviewer gate | Required before growth greenlight |
-| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 6 of that queue is the only cook. |
+| Niche intel | Next-pass queue on `cursor/next-cook-queue-5bc6`. Rank 7 of that queue is the only cook. |
 
 ## Next significant ship (the only craft allowed)
 
-**The fold follows the tap.** “I tapped Depth / Add spend / the weekday fold and the lane stayed shut.”
+**Quiet-then-back dollars, copyable first-time $.** “How much of this month came from buyers who had gone quiet — not everyone who ever bought before? I can copy days to a second order. I cannot copy the first-time dollars.”
 
-Customers Depth, Spend `?panel=spend-add`, Overview weekday fold. One component: `DeskLane`. `open` is `useState(fold ? defaultOpen : true)` and never follows a later `defaultOpen`. HashDetails on Spend already follows a later open and hash — the add form behind `DeskLane` does not. A later `defaultOpen` / `?panel=spend-add` / chip tap must open the fold. Public `/demo` and Admin `/app` match. Do not unpark Live. Do not change the 90.
+Customers → Growth (open lane). Not third-order tickets. Not compete row 2 (buyer age). This month’s Shopify Total Sales from identified buyers whose previous order was already past that shop’s wait. Copy first-time Shopify Total Sales plus 2nd vs 3rd when both seal, plus reach-now. Next wait after they already came back. Median days first→last and median inter-order gap, 8-buyer floor, guests out, thin side —. Do not unpark Live. Do not change the 90.
 
-Branch `cursor/desk-lane-open-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 7–12 of the next-pass queue stay queued. Do not rebuild the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
+Branch `cursor/quiet-back-dollars-5bc6`. One implementer. One Reviewer. One Fly only after PASS. Ranks 8–12 of the next-pass queue stay queued. Do not rebuild DeskLane open, the Goals year clock, book coverage, Spend pair honesty, the phone Goals board, Goals honesty, third-order steps, same-clock, or the morning sentence. Do not fly this scoreboard stamp.
 
-Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 6.
+Plan: `docs/plans/2026-09-22-enterprise-next-queue.md` rank 7.
 
 A Fly requires a new merchant sentence. Copy nits, SoT stamps, and re-audits of a hole already on the tip do not deploy.
 
