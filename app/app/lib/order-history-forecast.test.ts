@@ -83,7 +83,7 @@ describe("next month from the typical day", () => {
     expect(view.available).toBe(true);
   });
 
-  it("ignores $0 days and still uses only days with sales", () => {
+  it("counts selling days and still uses only days with sales", () => {
     const view = buildOrderHistoryForecast({
       salesPending: false,
       dailySales: [...eight, 0, 0, 0],
@@ -94,6 +94,44 @@ describe("next month from the typical day", () => {
     });
     expect(view.dayCount).toBe(8);
     expect(view.estimate).toBe(13_950);
+    expect(view.daysLine).toMatch(/selling days/i);
+    expect(view.method).toMatch(/selling days/i);
+  });
+
+  it("withholds next-month-from-today when the year picker is not the live year", () => {
+    const view = buildOrderHistoryForecast({
+      salesPending: false,
+      dailySales: eight,
+      todayYear: 2026,
+      todayMonth: 9,
+      bookYear: 2025,
+      historyLimited: false,
+      bookLabel: "2025 book",
+      targets: targets(),
+    });
+    expect(view.available).toBe(false);
+    expect(view.estimate).toBeNull();
+    expect(view.plug).toBeNull();
+    expect(view.periodLabel).not.toBe("October 2026");
+    expect(view.emptyCopy).toMatch(/not the live year/i);
+    expect(view.emptyCopy).toMatch(/not \$0/);
+  });
+
+  it("does not invent a fake $0 day where last year is missing", () => {
+    const view = buildOrderHistoryForecast({
+      salesPending: false,
+      dailySales: [],
+      todayYear: 2026,
+      todayMonth: 9,
+      bookYear: 2025,
+      historyLimited: true,
+      bookLabel: "2025 book",
+      targets: targets(),
+    });
+    expect(view.estimate).toBeNull();
+    expect(view.dayCount).toBe(0);
+    expect(view.emptyCopy).toMatch(/not \$0/);
+    expect(view.daysLine).not.toMatch(/\$0/);
   });
 
   it("withholds the number below 8 days — not $0", () => {
@@ -108,7 +146,7 @@ describe("next month from the typical day", () => {
     expect(view.estimate).toBeNull();
     expect(view.plug).toBeNull();
     expect(view.typicalDay).toBeNull();
-    expect(view.emptyCopy).toMatch(/3 days with sales/);
+    expect(view.emptyCopy).toMatch(/3 selling days/);
     expect(view.emptyCopy).toMatch(/not \$0/);
     expect(view.periodLabel).toBe("October 2026");
   });

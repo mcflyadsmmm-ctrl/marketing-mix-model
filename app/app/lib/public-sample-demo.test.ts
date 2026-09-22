@@ -79,7 +79,7 @@ describe("public Remix SAMPLE desk", () => {
     );
     const view = page.orderHistoryForecast;
     expect(view.formula).toBe("Next month = typical day × days in that month");
-    expect(view.method).toMatch(/median of stored days with sales/i);
+    expect(view.method).toMatch(/median of selling days/i);
     expect(view.estimate).not.toBeNull();
     expect(view.estimate!).toBeGreaterThan(0);
     expect(view.plug).toMatch(/×/);

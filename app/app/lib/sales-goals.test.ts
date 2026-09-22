@@ -5,9 +5,9 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../db.server", () => ({
   default: {
-    salesGoal: { findMany: vi.fn(), upsert: vi.fn() },
+    salesGoal: { findMany: vi.fn(), upsert: vi.fn(), deleteMany: vi.fn() },
     spendEntry: { findMany: vi.fn() },
-    $transaction: vi.fn(),
+    $transaction: vi.fn(async (ops: unknown[]) => Promise.all(ops as Promise<unknown>[])),
   },
 }));
 
@@ -17,31 +17,62 @@ vi.mock("./mer-dashboard.server", () => ({
 }));
 
 import { impliedSpendCeiling, impliedSpendCeilingCaption } from "./implied-spend-ceiling";
+import { FORECAST_MIN_DAYS } from "./overview-mix-forecast";
 import {
+  formatGoalInput,
+  goalsAtYoyGrowth,
+  impliedIdentifiedBuyers,
+  IMPLIED_IDENTIFIED_BUYERS_MIN_ORDERS,
+  parseGoalInput,
+  returningSalesByMonthFromOrders,
+} from "./sales-goals";
+import {
+  buildMonthCloseForecast,
   buildSalesGoalPeriods,
   calendarDaysElapsedInMonth,
+  daysInCalendarMonth,
   merVsRails,
   monthDateRange,
   paceStatus,
   salesByMonthFromDayMap,
   spendByMonthMap,
+  upsertYearSalesGoals,
   yearDateRange,
 } from "./sales-goals.server";
 import { shopLocalDayKey, shopLocalDayRange, shopLocalYmd } from "./shop-local-day";
 import prisma from "../db.server";
 
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+function dayKey(year: number, month: number, day: number): string {
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+function fillMonthDays(
+  year: number,
+  month: number,
+  throughDay: number,
+  salesForDay: number | ((day: number) => number),
+  into: Map<string, number> = new Map(),
+): Map<string, number> {
+  for (let d = 1; d <= throughDay; d += 1) {
+    const sales = typeof salesForDay === "function" ? salesForDay(d) : salesForDay;
+    into.set(dayKey(year, month, d), sales);
+  }
+  return into;
+}
+
 describe("salesByMonthFromDayMap", () => {
-  it("buckets day keys into months and caps current month at today", () => {
+  it("sums a finished month and caps the live month at shop-local today", () => {
     const now = new Date(2026, 6, 15); // Jul 15
-    const sales = new Map<string, number>([
-      ["2026-01-10", 1000],
-      ["2026-07-01", 200],
-      ["2026-07-15", 50],
-      ["2026-07-20", 999], // future day in month — excluded
-      ["2025-12-31", 50],
-    ]);
+    const sales = fillMonthDays(2026, 1, 31, 10);
+    fillMonthDays(2026, 7, 15, (d) => (d === 1 ? 200 : d === 15 ? 50 : 0), sales);
+    sales.set("2026-07-20", 999); // future day in month — excluded
+    sales.set("2025-12-31", 50);
     const months = salesByMonthFromDayMap(2026, sales, now);
-    expect(months.get(1)).toBe(1000);
+    expect(months.get(1)).toBe(310);
     expect(months.get(7)).toBe(250);
     expect(months.has(12)).toBe(false);
   });
@@ -50,6 +81,27 @@ describe("salesByMonthFromDayMap", () => {
     const months = salesByMonthFromDayMap(2026, new Map(), new Date(2026, 8, 16));
     expect(months.size).toBe(0);
     expect(months.get(1)).toBeUndefined();
+  });
+
+  it("does not paint a partial month as the month — eight days is still filling", () => {
+    const now = new Date(2026, 8, 22); // Sep 22 — July is closed
+    const sales = fillMonthDays(2026, 7, 8, 6_025);
+    const months = salesByMonthFromDayMap(2026, sales, now);
+    expect(months.has(7)).toBe(false);
+    expect(months.get(7)).toBeUndefined();
+  });
+
+  it("does not paint a stub unpaid slice as July Actual", () => {
+    const now = new Date(Date.UTC(2026, 8, 22));
+    const sales = new Map<string, number>();
+    // 90-day unpaid window starting ~Jun 24: July has eight days, not 31.
+    for (let d = 24; d <= 31; d += 1) {
+      sales.set(dayKey(2026, 7, d), 6_025);
+    }
+    const months = salesByMonthFromDayMap(2026, sales, now);
+    expect(months.has(7)).toBe(false);
+    expect([...months.values()].every((n) => n !== 0 || n > 0)).toBe(true);
+    expect(months.get(7)).not.toBe(0);
   });
 });
 
@@ -104,11 +156,9 @@ describe("Goals shop IANA under process TZ=Asia/Tokyo", () => {
       d: 31,
     });
 
-    const sales = new Map<string, number>([
-      ["2026-07-31", 100],
-      ["2026-08-01", 50],
-      ["2026-08-02", 999], // future for Tokyo Aug 1
-    ]);
+    const sales = fillMonthDays(2026, 7, 31, (d) => (d === 31 ? 100 : 0));
+    sales.set("2026-08-01", 50);
+    sales.set("2026-08-02", 999); // future for Tokyo Aug 1
 
     const tokyo = salesByMonthFromDayMap(2026, sales, now, "Asia/Tokyo");
     expect(tokyo.get(7)).toBe(100);
@@ -116,8 +166,8 @@ describe("Goals shop IANA under process TZ=Asia/Tokyo", () => {
 
     const denver = salesByMonthFromDayMap(2026, sales, now, "America/Denver");
     expect(denver.get(7)).toBe(100);
-    // Aug days are not the current Denver month — still summed (no MTD cap).
-    expect(denver.get(8)).toBe(50 + 999);
+    // August is future for Denver on Jul 31 — not painted as the month.
+    expect(denver.has(8)).toBe(false);
   });
 
   it("spendByMonthMap buckets UTC-midnight CSV stamps by UTC month (not shopLocalYmd)", async () => {
@@ -426,9 +476,286 @@ describe("impliedSpendCeiling", () => {
       /This period's Shopify sales ÷ 4\.00× target/,
     );
     expect(impliedSpendCeilingCaption("period_sales", 4)).toMatch(/not a bid cap/i);
+    expect(impliedSpendCeilingCaption("period_sales", 4)).not.toMatch(/\$80k/);
     expect(impliedSpendCeilingCaption("sales_goal", 3)).toMatch(
       /Sales goal ÷ 3\.00× target/,
     );
     expect(impliedSpendCeilingCaption("sales_goal", 3)).toMatch(/Not net profit/);
+  });
+});
+
+describe("parseGoalInput — empty vs typed $0", () => {
+  it("treats an empty field as not on file, and typed 0 as a real $0 plan", () => {
+    expect(parseGoalInput("")).toBeNull();
+    expect(parseGoalInput("   ")).toBeNull();
+    expect(parseGoalInput(null)).toBeNull();
+    expect(parseGoalInput("0")).toBe(0);
+    expect(parseGoalInput("0.00")).toBe(0);
+    expect(parseGoalInput("$0")).toBe(0);
+    expect(parseGoalInput("1000")).toBe(1000);
+    expect(parseGoalInput("$1,000")).toBe(1000);
+    expect(Number.isNaN(parseGoalInput("-1"))).toBe(true);
+  });
+
+  it("shows typed $0 in the field and leaves a cleared month blank", () => {
+    expect(formatGoalInput(null)).toBe("");
+    expect(formatGoalInput(undefined)).toBe("");
+    expect(formatGoalInput(0)).toBe("0");
+    expect(formatGoalInput(1200)).toBe("1200");
+  });
+});
+
+describe("cleared months stay out of YTD goal sums", () => {
+  it("skips a null plan month and keeps a typed $0 in the window", () => {
+    const now = new Date(2026, 6, 15);
+    const salesByMonth = new Map<number, number>();
+    for (let m = 1; m <= 7; m += 1) salesByMonth.set(m, 10_000);
+    const goals = [
+      100_000,
+      null,
+      100_000,
+      100_000,
+      100_000,
+      100_000,
+      100_000,
+      100_000,
+      100_000,
+      100_000,
+      100_000,
+      100_000,
+    ];
+    const skipped = buildSalesGoalPeriods({
+      year: 2026,
+      goals,
+      salesByMonth,
+      priorYearMonthly: Array.from({ length: 12 }, () => null),
+      now,
+    });
+    expect(skipped.ytd.goal).toBe(600_000);
+    expect(skipped.mtd.goal).toBe(100_000);
+
+    const typedZero = [...goals];
+    typedZero[1] = 0;
+    const withZero = buildSalesGoalPeriods({
+      year: 2026,
+      goals: typedZero,
+      salesByMonth,
+      priorYearMonthly: Array.from({ length: 12 }, () => null),
+      now,
+    });
+    expect(withZero.ytd.goal).toBe(600_000);
+    expect(goalsAtYoyGrowth([90_000, null, 0, 80_000], 10)).toEqual([
+      99_000,
+      null,
+      null,
+      88_000,
+    ]);
+  });
+});
+
+describe("upsertYearSalesGoals — empty deletes, typed 0 saves", () => {
+  it("deletes a cleared month instead of upserting $0", async () => {
+    vi.mocked(prisma.salesGoal.upsert).mockResolvedValue({} as never);
+    vi.mocked(prisma.salesGoal.deleteMany).mockResolvedValue({ count: 1 } as never);
+    const monthly = Array.from({ length: 12 }, (_, i) => {
+      if (i === 0) return 100_000;
+      if (i === 1) return null;
+      if (i === 2) return 0;
+      return null;
+    });
+    await upsertYearSalesGoals("shop_1", 2026, monthly);
+    expect(prisma.salesGoal.deleteMany).toHaveBeenCalledWith({
+      where: { shopId: "shop_1", year: 2026, month: 2 },
+    });
+    expect(prisma.salesGoal.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ month: 1, salesGoal: 100_000 }),
+        update: { salesGoal: 100_000 },
+      }),
+    );
+    expect(prisma.salesGoal.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ month: 3, salesGoal: 0 }),
+        update: { salesGoal: 0 },
+      }),
+    );
+    const upsertedMonths = vi
+      .mocked(prisma.salesGoal.upsert)
+      .mock.calls.map((call) => call[0]?.create?.month);
+    expect(upsertedMonths).toEqual([1, 3]);
+  });
+});
+
+describe("buildMonthCloseForecast — selling-day pace, not calendar $0", () => {
+  const now = new Date(2026, 6, 15);
+  const goals = Array.from({ length: 12 }, () => 100_000);
+
+  it("paces remaining Shopify Total Sales on selling days, keeping quiet $0 in so-far", () => {
+    const salesByDay = fillMonthDays(2026, 7, 15, (d) => {
+      if (d === 4 || d === 5) return 0;
+      if (d <= 8) return 1_000 + d * 10;
+      return 800 + d;
+    });
+    const salesByMonth = salesByMonthFromDayMap(2026, salesByDay, now);
+    const forecast = buildMonthCloseForecast({
+      year: 2026,
+      goals,
+      salesByMonth,
+      spendByMonth: new Map([[7, 4_000]]),
+      salesByDay,
+      spendDaysByMonth: new Map([[7, 10]]),
+      targetMer: 3,
+      breakEvenMer: null,
+      now,
+    });
+    expect(forecast).not.toBeNull();
+    expect(forecast?.mtdSales).toBe(salesByMonth.get(7));
+    expect(forecast?.projSales).not.toBeNull();
+    const calendarMean =
+      (forecast!.mtdSales / forecast!.daysElapsed) * forecast!.remainingDays +
+      forecast!.mtdSales;
+    expect(forecast!.projSales).not.toBeCloseTo(calendarMean, 5);
+    expect(forecast!.sellingDays).toBeGreaterThanOrEqual(FORECAST_MIN_DAYS);
+    expect(forecast!.formula).toMatch(/Shopify Total Sales/);
+    expect(forecast!.formula).toMatch(/selling day/i);
+    expect(forecast!.projSpend).toBe(
+      4_000 + (4_000 / 10) * forecast!.remainingDays,
+    );
+  });
+
+  it("does not let other months’ selling days set this month’s typical day", () => {
+    const salesByDay = fillMonthDays(2026, 1, 31, 9_000);
+    fillMonthDays(2026, 7, 15, (d) => (d === 4 || d === 5 ? 0 : 800), salesByDay);
+    const salesByMonth = salesByMonthFromDayMap(2026, salesByDay, now);
+    const forecast = buildMonthCloseForecast({
+      year: 2026,
+      goals,
+      salesByMonth,
+      spendByMonth: new Map(),
+      salesByDay,
+      targetMer: 3,
+      breakEvenMer: null,
+      now,
+    });
+    expect(forecast?.typicalDay).toBe(800);
+    expect(forecast?.sellingDays).toBe(13);
+  });
+
+  it("withholds remaining spend when there are no spend days", () => {
+    const salesByDay = fillMonthDays(2026, 7, 15, 900);
+    const salesByMonth = salesByMonthFromDayMap(2026, salesByDay, now);
+    const forecast = buildMonthCloseForecast({
+      year: 2026,
+      goals,
+      salesByMonth,
+      spendByMonth: new Map([[7, 0]]),
+      salesByDay,
+      spendDaysByMonth: new Map([[7, 0]]),
+      targetMer: 3,
+      breakEvenMer: null,
+      now,
+    });
+    expect(forecast?.projSpend).toBeNull();
+    expect(forecast?.projMer).toBeNull();
+  });
+
+  it("withholds the close while the current month is still a stub", () => {
+    const salesByDay = fillMonthDays(2026, 7, 8, 1_000);
+    const salesByMonth = salesByMonthFromDayMap(2026, salesByDay, now);
+    expect(salesByMonth.has(7)).toBe(false);
+    const forecast = buildMonthCloseForecast({
+      year: 2026,
+      goals,
+      salesByMonth,
+      spendByMonth: new Map(),
+      salesByDay,
+      targetMer: 3,
+      breakEvenMer: null,
+      now,
+    });
+    expect(forecast).toBeNull();
+  });
+});
+
+describe("implied identified buyers", () => {
+  it("is sales goal ÷ typical order only when the 8-order floor seals", () => {
+    expect(IMPLIED_IDENTIFIED_BUYERS_MIN_ORDERS).toBe(8);
+    expect(
+      impliedIdentifiedBuyers({
+        salesGoal: 80_000,
+        typicalOrder: 200,
+        orderCount: 8,
+      }),
+    ).toBe(400);
+    expect(
+      impliedIdentifiedBuyers({
+        salesGoal: 80_000,
+        typicalOrder: 200,
+        orderCount: 7,
+      }),
+    ).toBeNull();
+    expect(
+      impliedIdentifiedBuyers({
+        salesGoal: null,
+        typicalOrder: 200,
+        orderCount: 40,
+      }),
+    ).toBeNull();
+    expect(
+      impliedIdentifiedBuyers({
+        salesGoal: 80_000,
+        typicalOrder: null,
+        orderCount: 40,
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("returning $ by calendar month from OrderFact", () => {
+  it("sums identified returning dollars and leaves missing months absent", () => {
+    const day = (key: string) => new Date(`${key}T00:00:00.000Z`);
+    const months = returningSalesByMonthFromOrders(2026, [
+      {
+        customerKey: "buyer_a",
+        amount: 120,
+        shopLocalDate: day("2026-07-02"),
+        lifetimeOrders: 4,
+      },
+      {
+        customerKey: "buyer_b",
+        amount: 80,
+        shopLocalDate: day("2026-07-03"),
+        lifetimeOrders: 1,
+      },
+      {
+        customerKey: "guest",
+        amount: 500,
+        shopLocalDate: day("2026-07-04"),
+        lifetimeOrders: 9,
+      },
+      {
+        customerKey: "buyer_c",
+        amount: 40,
+        shopLocalDate: day("2026-07-05"),
+        lifetimeOrders: null,
+      },
+      {
+        customerKey: "buyer_d",
+        amount: 70,
+        shopLocalDate: day("2026-06-01"),
+        lifetimeOrders: 3,
+      },
+    ]);
+    expect(months.get(7)).toBe(120);
+    expect(months.get(6)).toBe(70);
+    expect(months.has(8)).toBe(false);
+    expect(months.get(8)).toBeUndefined();
+  });
+});
+
+describe("daysInCalendarMonth is used for stub expected length", () => {
+  it("keeps July at 31 so eight days cannot look finished", () => {
+    expect(daysInCalendarMonth(2026, 7)).toBe(31);
+    expect(daysInCalendarMonth(2024, 2)).toBe(29);
   });
 });
