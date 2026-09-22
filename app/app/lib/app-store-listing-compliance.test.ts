@@ -191,6 +191,32 @@ describe("App Store listing paste (4.2.2 / 4.2.3 / 4.3.3 / 4.3.7)", () => {
     }
   });
 
+  it("merchant long paste names trial 90 / paid 24 and five tabs — never 24 months on trial", () => {
+    const long = pasteBlock(listing, "long");
+    expect(long).toMatch(/Trial stores 90 days of Shopify order history/);
+    expect(long).toMatch(/Paid stores go up to 24 months/);
+    expect(long).toMatch(/Five analysis tabs plus Settings/);
+    expect(long).not.toMatch(/Install includes up to 24 months/i);
+    expect(long).not.toMatch(/Trial includes/i);
+    expect(long).not.toMatch(/full-access/i);
+    expect(long).not.toMatch(/eleven analysis/i);
+    expect(long).not.toMatch(/• Growth —/);
+  });
+
+  it("Partner testing paste is five tabs, 90 vs 24, no Harbor Live switch", () => {
+    const testing = readRepo("docs/PARTNER_TESTING_INSTRUCTIONS.md");
+    const paste = pasteBlock(testing, "testing");
+    expect(paste).toMatch(/five analysis tabs plus Settings/i);
+    expect(paste).toMatch(/90 days of order history/);
+    expect(paste).toMatch(/up to 24 months/);
+    expect(paste).toMatch(/Live data/);
+    expect(paste).not.toMatch(/eleven analysis/i);
+    expect(paste).not.toMatch(/Harbor/i);
+    expect(paste).not.toMatch(/full-access/i);
+    expect(paste).not.toMatch(/Switch to Live data now/i);
+    expect(paste).not.toMatch(/about 60 days/i);
+  });
+
   it("Partner listing URLs and Fly-landing nav pages match live Free vs Pro packaging (1.1.4)", () => {
     const pages = [
       "site/index.html",

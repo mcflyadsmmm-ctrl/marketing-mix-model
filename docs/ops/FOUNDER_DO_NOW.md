@@ -42,7 +42,8 @@ Same as before on **403721814017**:
   Full order: [`../RESUBMIT_PLAN.md`](../RESUBMIT_PLAN.md)
 
 Copy: [`APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)  
-Reviewer script: [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md)
+App testing paste: [`PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md)  
+Reviewer cold path (do **not** paste): [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md)
 
 ---
 
