@@ -20,12 +20,12 @@ describe("home SAMPLE Slack paste board", () => {
   const overviewSlice =
     overviewIdx >= 0 ? html.slice(overviewIdx, overviewIdx + 1800) : "";
 
-  it("keeps the locked H1, v34, and Snowdevil SAMPLE dollars", () => {
+  it("keeps the locked H1, v35, and Snowdevil SAMPLE dollars", () => {
     expect(html).toContain(
       '<h1 class="h1 h1--line" id="hero-h">Deeper Shopify numbers Analytics does not show.</h1>',
     );
-    expect(html).toContain('content="v34"');
-    expect(html).toContain("mcfly.css?v=20260922v34");
+    expect(html).toContain('content="v35"');
+    expect(html).toContain("mcfly.css?v=20260922v35");
     expect(html).toContain("$68,457");
     expect(html).toContain("$19,023");
     expect(html).toContain("3.60");
@@ -82,6 +82,21 @@ describe("home SAMPLE Slack paste board", () => {
     expect(html).not.toContain("/demo?tab=slack");
     expect(html).not.toContain("/demo?tab=paste");
     expect(overviewSlice).not.toMatch(/Total ROAS|Ad spend/i);
+  });
+
+  it("names native Reports, Repeat Customer Insights from $59, and the spend-first listing leftover", () => {
+    const sitsStart = html.indexOf('id="where-sits"');
+    expect(sitsStart).toBeGreaterThan(0);
+    const sits = html.slice(sitsStart, sitsStart + 4200);
+    expect(sits).toContain("Repeat Customer Insights from $59");
+    expect(sits).toContain("apps.shopify.com/repeat-customer-insights");
+    expect(sits).toContain("Better Reports from $19.90");
+    expect(sits).toContain("Group by day of week");
+    expect(sits).toContain("Polar’s App Store list price starts at $750/mo");
+    expect(sits).toContain("We do not invent Polar $1,020");
+    expect(sits).toContain("The live App Store card still leads with ad spend next to store sales");
+    expect(sits).not.toContain("Shopify numbers Analytics Overview skips");
+    expect(html).not.toContain("Deeper than Shopify Analytics Overview.");
   });
 
   it("wraps the paste board instead of a nowrap six-column table", () => {

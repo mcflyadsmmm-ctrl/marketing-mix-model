@@ -2248,7 +2248,7 @@ body.demo-page .demo-desk-caption {
   }
 }
 
-/* v34 — roundup cards, one paste, home FAQ, 390px hero */
+/* v35 — honest 2×2 roundup (native Reports, RCI, pixel, this desk), one paste, home FAQ, 390px hero */
 .sits-grid {
   display: grid;
   gap: 1rem;
@@ -2349,7 +2349,7 @@ body.demo-page .demo-desk-caption {
 }
 @media (min-width: 860px) {
   .sits-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 390px) {

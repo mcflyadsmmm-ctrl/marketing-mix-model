@@ -21,6 +21,7 @@ const QUESTION_ORDER = [
   "Is typical order the same as Shopify AOV?",
   "Can I share this with my bookkeeper or agency without a staff account?",
   "Is this a Triple Whale replacement?",
+  "Is this Repeat Customer Insights?",
   "Do I export Orders CSV?",
 ] as const;
 
@@ -180,6 +181,12 @@ describe("site FAQ matches the five-tab sales-first desk", () => {
       ["median ticket", "Shopify AOV is the mean"],
       ["copy or Save PNG", "does not email or Slack"],
       ["No.", "No pixel", "$39 stays $39"],
+      [
+        "No.",
+        "Repeat Customer Insights from $59",
+        "purchase latency",
+        "Better Reports from $19.90",
+      ],
       ["No.", "reads orders in Admin"],
     ];
 

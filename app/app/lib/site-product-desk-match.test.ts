@@ -11,6 +11,10 @@ const CHARCOAL = ["#0c1219", "#141c26", "#101820", "#161f2a"];
 describe("/product matches the five-tab Shopify desk", () => {
   it("leads Overview → Orders → Customers and keeps Spend optional last", () => {
     expect(product).toContain("Overview → Orders → Customers. Spend optional last.");
+    expect(product).toContain("<h1>Median ticket. Returning dollars. One board.</h1>");
+    expect(product).not.toContain("Deeper than Shopify Analytics Overview.");
+    expect(product).toMatch(/Repeat Customer Insights from \$59/);
+    expect(product).toMatch(/Shopify Reports can already Group by day of week/);
     expect(product).toMatch(/Growth and LTV are Customers chips/);
     const thesis = product.indexOf("Overview → Orders → Customers. Spend optional last.");
     const overviewH3 = product.indexOf("<h3>Overview</h3>");
