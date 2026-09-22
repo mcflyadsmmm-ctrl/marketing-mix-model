@@ -92,7 +92,11 @@ import {
   loadDeskSalesForPeriod,
   type SalesFactsCoverage,
 } from "../lib/sales-facts.server";
-import { getOrderBackfillProgress } from "../lib/order-facts.server";
+import {
+  getOrderBackfillProgress,
+  loadOrderDepthRows,
+  ORDER_FACT_SOURCE,
+} from "../lib/order-facts.server";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -109,7 +113,13 @@ import {
 } from "../lib/sample-desk.server";
 import { materializeRecurringSpendForShop } from "../lib/spend-recurring.server";
 import { yearDateRange } from "../lib/sales-goals.server";
-import { shopLocalDayKey, shopLocalYmd } from "../lib/shop-local-day";
+import { shopLocalDayKey, shopLocalDayRange, shopLocalYmd } from "../lib/shop-local-day";
+import {
+  OVERVIEW_SAME_WEEKDAY_SHIFT_DAYS,
+  overviewShiftDayKey,
+  type OverviewClockOrderInput,
+  type OverviewClockPayload,
+} from "../lib/overview-sales-chart";
 import { useDeskCurrency } from "../lib/desk-currency";
 import { parseYoyYear } from "../lib/yoy-workspace";
 import {
@@ -436,6 +446,52 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       explorerDays[explorerDays.length - 1]?.dateKey ?? null,
     ),
   });
+  const clockPending = Boolean(metrics.salesPending) || todaySalesUnavailable;
+  let clockTodayOrders: OverviewClockOrderInput[] | null = null;
+  let clockPriorOrders: OverviewClockOrderInput[] | null = null;
+  if (deskTz && !clockPending) {
+    const todayKey = shopLocalDayKey(now, deskTz);
+    const priorKey = overviewShiftDayKey(todayKey, OVERVIEW_SAME_WEEKDAY_SHIFT_DAYS);
+    const todayRange = shopLocalDayRange(todayKey, deskTz);
+    const priorDay = shopLocalDayRange(priorKey, deskTz);
+    const orderSource = useSampleDesk ? "sample" : ORDER_FACT_SOURCE;
+    try {
+      const [todayRows, priorRows] = await Promise.all([
+        loadOrderDepthRows(
+          shop.id,
+          { start: todayRange.start, end: todayRange.end },
+          orderSource,
+        ),
+        loadOrderDepthRows(
+          shop.id,
+          { start: priorDay.start, end: priorDay.end },
+          orderSource,
+        ),
+      ]);
+      clockTodayOrders = todayRows.map((row) => ({
+        orderedAt: row.orderedAt.toISOString(),
+        amount: row.amount,
+      }));
+      clockPriorOrders =
+        priorRows.length > 0
+          ? priorRows.map((row) => ({
+              orderedAt: row.orderedAt.toISOString(),
+              amount: row.amount,
+            }))
+          : null;
+    } catch {
+      clockTodayOrders = null;
+      clockPriorOrders = null;
+    }
+  }
+  const sameClock: OverviewClockPayload = {
+    timeZone: deskTz,
+    nowIso: now.toISOString(),
+    pending: clockPending || (deskTz != null && clockTodayOrders == null),
+    todayOrders: clockTodayOrders,
+    priorOrders: clockPriorOrders,
+  };
+
   const orderForecast = buildOrderHistoryForecast({
     salesPending: Boolean(metrics.salesPending),
     dailySales: explorerDays.map((day) => day.sales),
@@ -473,6 +529,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
+    sameClock,
   };
 };
 
@@ -512,6 +569,7 @@ export default function Dashboard() {
     mixForecast,
     orderForecast,
     yoyYearWorkspace,
+    sameClock,
   } = data;
   const yoyCards = buildOverviewYoyCards(cashControl?.chips ?? []);
   const monthToDateSales =
@@ -854,6 +912,14 @@ export default function Dashboard() {
                     salesPending={greetingPending}
                     ordersHref={ordersHref}
                     useSampleDesk={useSampleDesk}
+                    clock={
+                      sameClock
+                        ? {
+                            ...sameClock,
+                            pending: sameClock.pending || greetingPending,
+                          }
+                        : null
+                    }
                   />
                   <OverviewYoyCards
                     cards={yoyCards}
@@ -871,6 +937,10 @@ export default function Dashboard() {
                             }))
                           : salesDays.map(({ dateKey, sales }) => ({ dateKey, sales }))
                       }
+                      historyDays={(cashControl?.drillDays ?? []).map((day) => ({
+                        dateKey: day.dateKey,
+                        sales: day.sales,
+                      }))}
                       ordersHref={ordersHref}
                       salesPending={greetingPending}
                       typicalDay={metrics.shopifyDepth.medianDailySales}

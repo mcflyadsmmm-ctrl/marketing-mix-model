@@ -2,6 +2,10 @@ import type { ReactNode } from "react";
 import { DeskIcon, type DeskIconName } from "./DeskIcon";
 import { useDeskDrill } from "./DeskDrill";
 import { formatCurrency } from "../lib/mer-format";
+import {
+  overviewClockSentenceFromPayload,
+  type OverviewClockPayload,
+} from "../lib/overview-sales-chart";
 import { PRODUCT_NOUN } from "../lib/product-labels";
 import {
   OVERVIEW_COVERAGE_LINE,
@@ -60,6 +64,8 @@ export type OverviewPeekProps = {
   ordersHref: string;
   settingsHref?: string;
   useSampleDesk?: boolean;
+  /** Through this clock versus the same weekday last year. */
+  clock?: OverviewClockPayload | null;
 };
 
 function PeekCard({
@@ -315,6 +321,7 @@ export function OverviewFirstViewport({
   storedSalesDays = null,
   monthToDateSales = null,
   salesAsOfKey = null,
+  clock = null,
   ...rest
 }: OverviewPeekProps) {
   const deskHref = useDeskHref();
@@ -335,6 +342,12 @@ export function OverviewFirstViewport({
     salesPending,
   });
   const periodTotal = moneyOrDash(salesPending, windowSales, currency);
+  const clockSentence = clock
+    ? overviewClockSentenceFromPayload(
+        salesPending ? { ...clock, pending: true } : clock,
+        (amount) => formatCurrency(amount, currency),
+      )
+    : null;
   const plainWindows = overviewPlainSalesWindows({
     days: storedSalesDays ?? [],
     monthSales: monthToDateSales,
@@ -491,6 +504,12 @@ export function OverviewFirstViewport({
           }
         />
       </div>
+
+      {clockSentence ? (
+        <p className="mcfly-score__trust" data-overview-compare="clock">
+          {clockSentence}
+        </p>
+      ) : null}
 
       <div
         className="mcfly-kpi-grid mcfly-kpi-grid--windows"
