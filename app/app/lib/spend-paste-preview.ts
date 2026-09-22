@@ -20,9 +20,17 @@ export type SpendPasteBuyerDay = {
   buyersKnown: boolean;
 };
 
+/** Interned Live OrderFact ids per shop-local day. Same id across days is the same buyer. */
+export type SpendPasteLiveIndex = {
+  identifiedByDay: Record<string, number[]>;
+  newByDay: Record<string, number[]>;
+};
+
 export type SpendPasteBook = {
   certifiedSalesByDay: Record<string, number>;
   buyerDays: SpendPasteBuyerDay[];
+  /** Live unique OrderFacts. Null on SAMPLE — use buyerDays instead. */
+  liveBuyerIndex: SpendPasteLiveIndex | null;
   salesFloorKey: string;
   salesPending: boolean;
   first30: number | null;
@@ -113,6 +121,59 @@ export function pasteSalesWindowWarning(
   return null;
 }
 
+export function uniqueCountForDays(
+  byDay: Record<string, number[]>,
+  dateKeys: string[],
+): { known: boolean; count: number } {
+  const seen = new Set<number>();
+  for (const key of dateKeys) {
+    if (!Object.prototype.hasOwnProperty.call(byDay, key)) {
+      return { known: false, count: 0 };
+    }
+    for (const id of byDay[key] ?? []) seen.add(id);
+  }
+  return { known: true, count: seen.size };
+}
+
+function buyersOnPastedDays(
+  inWindowDates: string[],
+  book: SpendPasteBook,
+): { known: boolean; identified: number; newCustomers: number } {
+  if (book.liveBuyerIndex) {
+    const identified = uniqueCountForDays(
+      book.liveBuyerIndex.identifiedByDay,
+      inWindowDates,
+    );
+    const newCustomers = uniqueCountForDays(
+      book.liveBuyerIndex.newByDay,
+      inWindowDates,
+    );
+    if (!identified.known || !newCustomers.known) {
+      return { known: false, identified: 0, newCustomers: 0 };
+    }
+    return {
+      known: true,
+      identified: identified.count,
+      newCustomers: newCustomers.count,
+    };
+  }
+
+  const buyersByDate = new Map(
+    book.buyerDays.map((day) => [day.dateKey, day]),
+  );
+  let identified = 0;
+  let newCustomers = 0;
+  for (const dateKey of inWindowDates) {
+    const day = buyersByDate.get(dateKey);
+    if (!day?.buyersKnown) {
+      return { known: false, identified: 0, newCustomers: 0 };
+    }
+    identified += Math.max(0, Math.trunc(day.identifiedBuyers));
+    newCustomers += Math.max(0, Math.trunc(day.newCustomers));
+  }
+  return { known: true, identified, newCustomers };
+}
+
 export function previewSpendPaste(
   text: string,
   book: SpendPasteBook,
@@ -193,36 +254,21 @@ export function previewSpendPaste(
     preview.totalRoas = sales / inWindowSpend;
   }
 
-  const buyersByDate = new Map(
-    book.buyerDays.map((day) => [day.dateKey, day]),
-  );
-  let identified = 0;
-  let newCustomers = 0;
-  let buyersKnown = true;
-  for (const dateKey of inWindowDates) {
-    const day = buyersByDate.get(dateKey);
-    if (!day?.buyersKnown) {
-      buyersKnown = false;
-      break;
-    }
-    identified += Math.max(0, Math.trunc(day.identifiedBuyers));
-    newCustomers += Math.max(0, Math.trunc(day.newCustomers));
-  }
-
-  if (!buyersKnown) {
+  const buyers = buyersOnPastedDays(inWindowDates, book);
+  if (!buyers.known) {
     preview.cpaReason =
       "Buyer counts are not on file for every pasted day in the sales window.";
     preview.paybackReason = preview.cpaReason;
     return preview;
   }
 
-  preview.cashCpa = cashCostPerCustomer(inWindowSpend, identified);
+  preview.cashCpa = cashCostPerCustomer(inWindowSpend, buyers.identified);
   if (preview.cashCpa == null) {
     preview.cpaReason =
       "Shopify has not identified buyers for these pasted days, so Cash CPA stays — — not $0.";
   }
 
-  const cashCac = cashCostPerCustomer(inWindowSpend, newCustomers);
+  const cashCac = cashCostPerCustomer(inWindowSpend, buyers.newCustomers);
   if (
     book.historyLimited ||
     book.first90 == null ||

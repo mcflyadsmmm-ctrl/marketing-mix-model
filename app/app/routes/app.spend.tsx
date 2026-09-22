@@ -520,6 +520,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     windowSets: analysis.windowSets,
     cpa: analysis.cpa,
     certifiedSalesByDay: analysis.certifiedSalesByDay,
+    liveBuyerIndex: analysis.liveBuyerIndex,
     salesError: analysis.salesError,
     todaySalesUnavailable: analysis.todaySalesUnavailable,
     todaySalesTruncated: analysis.todaySalesTruncated,
@@ -727,6 +728,7 @@ export default function SpendEntryPage() {
     windowSets,
     cpa,
     certifiedSalesByDay,
+    liveBuyerIndex,
     salesError,
     todaySalesUnavailable,
     todaySalesTruncated,
@@ -806,6 +808,7 @@ export default function SpendEntryPage() {
         newCustomers: day.newCustomers,
         buyersKnown: day.buyersKnown,
       })),
+      liveBuyerIndex,
       salesFloorKey: spendHistoryFloorKey,
       salesPending: Boolean(metrics.salesPending),
       first30: cpa.paybackBase.avgRevenueD30,
@@ -815,6 +818,7 @@ export default function SpendEntryPage() {
     }),
     [
       certifiedSalesByDay,
+      liveBuyerIndex,
       cpa.days,
       cpa.paybackBase.avgRevenueD30,
       cpa.paybackBase.avgRevenueD90,
@@ -848,7 +852,7 @@ export default function SpendEntryPage() {
   const coverageToKey =
     coverageClosedDays[coverageClosedDays.length - 1]?.dateKey;
   const stripDays = coverageClosedDays;
-  const manualSaved = Boolean(actionData?.success && !actionData.csv);
+  const spendSaved = Boolean(actionData?.success);
   const missingCount = coverageThroughYesterday.missing.length;
   const coveragePeekValue = sampleDesk.enabled
     ? "Sample on file"
@@ -959,7 +963,7 @@ export default function SpendEntryPage() {
           </div>
         ) : null}
 
-        {manualSaved ? (
+        {spendSaved ? (
           <s-banner tone="success" heading="Spend saved">
             <s-paragraph>
               Your saved spend is ready for {PRODUCT_NOUN.totalRoas}.

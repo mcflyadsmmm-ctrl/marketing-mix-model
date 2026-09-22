@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { cashPaybackDays } from "./cash-payback";
 import {
   previewSpendPaste,
+  uniqueCountForDays,
   type SpendPasteBook,
 } from "./spend-paste-preview";
 
@@ -36,6 +37,7 @@ function book(partial: Partial<SpendPasteBook> = {}): SpendPasteBook {
     first90: 120,
     first365: 200,
     historyLimited: false,
+    liveBuyerIndex: null,
     ...partial,
   };
 }
@@ -195,6 +197,122 @@ describe("Spend paste preview — honesty", () => {
   });
 });
 
+describe("Spend paste preview — Live unique OrderFacts", () => {
+  it("uniques a buyer who ordered on two pasted days, not the daily sum", () => {
+    const preview = previewSpendPaste(
+      TWO_DAY_META_GOOGLE,
+      book({
+        buyerDays: [
+          {
+            dateKey: "2026-09-18",
+            identifiedBuyers: 4,
+            newCustomers: 2,
+            buyersKnown: false,
+          },
+          {
+            dateKey: "2026-09-19",
+            identifiedBuyers: 6,
+            newCustomers: 3,
+            buyersKnown: false,
+          },
+        ],
+        liveBuyerIndex: {
+          identifiedByDay: {
+            "2026-09-18": [1, 2, 3, 4],
+            "2026-09-19": [4, 5, 6, 7, 8, 9],
+          },
+          newByDay: {
+            "2026-09-18": [1, 2],
+            "2026-09-19": [5, 6, 7],
+          },
+        },
+      }),
+    );
+    expect(preview.cashCpa).toBeCloseTo(350 / 9, 5);
+    expect(preview.paybackDays).toBe(cashPaybackDays(350 / 5, 80, 120, 200));
+  });
+
+  it("keeps Cash CPA as — when any pasted day is missing from the Live index", () => {
+    const preview = previewSpendPaste(
+      TWO_DAY_META_GOOGLE,
+      book({
+        buyerDays: [],
+        liveBuyerIndex: {
+          identifiedByDay: { "2026-09-18": [1, 2] },
+          newByDay: { "2026-09-18": [1] },
+        },
+      }),
+    );
+    expect(preview.cashCpa).toBeNull();
+    expect(preview.paybackDays).toBeNull();
+    expect(preview.cpaReason).toMatch(/buyer/i);
+  });
+
+  it("treats a quiet Live day as known-zero so the other pasted days still unique", () => {
+    const preview = previewSpendPaste(
+      TWO_DAY_META_GOOGLE,
+      book({
+        buyerDays: [],
+        liveBuyerIndex: {
+          identifiedByDay: {
+            "2026-09-18": [1, 2, 3, 4],
+            "2026-09-19": [],
+          },
+          newByDay: {
+            "2026-09-18": [1, 2],
+            "2026-09-19": [],
+          },
+        },
+      }),
+    );
+    expect(preview.cashCpa).toBeCloseTo(350 / 4, 5);
+    expect(preview.paybackDays).toBe(cashPaybackDays(350 / 2, 80, 120, 200));
+  });
+
+  it("does not invent Cash CPA from Live daily CPA points with buyersKnown false", () => {
+    const preview = previewSpendPaste(
+      TWO_DAY_META_GOOGLE,
+      book({
+        liveBuyerIndex: null,
+        buyerDays: [
+          {
+            dateKey: "2026-09-18",
+            identifiedBuyers: 4,
+            newCustomers: 2,
+            buyersKnown: false,
+          },
+          {
+            dateKey: "2026-09-19",
+            identifiedBuyers: 6,
+            newCustomers: 3,
+            buyersKnown: false,
+          },
+        ],
+      }),
+    );
+    expect(preview.cashCpa).toBeNull();
+    expect(preview.paybackDays).toBeNull();
+  });
+});
+
+describe("uniqueCountForDays", () => {
+  it("unions interned ids across days and treats a missing day as unknown", () => {
+    expect(
+      uniqueCountForDays(
+        { "2026-09-18": [1, 2], "2026-09-19": [2, 3] },
+        ["2026-09-18", "2026-09-19"],
+      ),
+    ).toEqual({ known: true, count: 3 });
+    expect(
+      uniqueCountForDays({ "2026-09-18": [1] }, ["2026-09-18", "2026-09-19"]),
+    ).toEqual({ known: false, count: 0 });
+    expect(uniqueCountForDays({ "2026-09-18": [] }, ["2026-09-18"])).toEqual({
+      known: true,
+      count: 0,
+    });
+  });
+});
+
 describe("Spend paste densify — first fold wiring", () => {
   const spend = readFileSync(join(here, "../routes/app.spend.tsx"), "utf8");
   const previewSrc = readFileSync(join(here, "./spend-paste-preview.ts"), "utf8");
@@ -228,5 +346,28 @@ describe("Spend paste densify — first fold wiring", () => {
     expect(spend).not.toContain('label="Paste spend"');
     expect(overview).not.toContain("previewSpendPaste");
     expect(overview).not.toContain("mcfly-spend-paste");
+  });
+
+  it("Live paste book uses unique OrderFacts, not CPA daily buyersKnown", () => {
+    const spendStack = readFileSync(
+      join(here, "./desk-spend-stack.server.ts"),
+      "utf8",
+    );
+    expect(spend).toContain("liveBuyerIndex");
+    expect(spendStack).toContain("buildLivePasteBuyerIndex");
+    expect(importRoute).toContain("liveBuyerIndex");
+    expect(importRoute).toContain("buildLivePasteBuyerIndex");
+    expect(importRoute).toContain("buildTillLtvSummary");
+    expect(importRoute).not.toContain("buyerDays: []");
+  });
+
+  it("csv paste save shows the Spend saved banner", () => {
+    expect(spend).not.toContain("actionData?.success && !actionData.csv");
+    expect(spend).toContain("actionData?.success");
+  });
+
+  it("import paste write is a Live door while SAMPLE stays a read-only ledger", () => {
+    expect(importRoute).toContain("Paste is a Live door");
+    expect(importRoute).toContain("SAMPLE stays a read-only ledger");
   });
 });

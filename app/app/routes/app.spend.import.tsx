@@ -58,7 +58,9 @@ import {
   type CsvImportSummary,
   type GroupedCsvErrors,
 } from "../lib/spend-csv";
-import { previewSpendPaste } from "../lib/spend-paste-preview";
+import { previewSpendPaste, type SpendPasteBuyerDay } from "../lib/spend-paste-preview";
+import { buildLivePasteBuyerIndex } from "../lib/spend-paste-buyers.server";
+import { buildTillLtvSummary } from "../lib/till-ltv.server";
 import { isSpendChannel } from "../lib/spend-billing";
 import {
   currentYearMonth,
@@ -342,6 +344,44 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     channelLabels: explorerSeries.channelLabels,
   };
 
+  const [liveBuyerIndex, tillLtv, sampleBuyerRows] = await Promise.all([
+    sampleDesk.enabled
+      ? Promise.resolve(null)
+      : buildLivePasteBuyerIndex(shop.id, dayFetchRange),
+    buildTillLtvSummary(shop.id, {
+      totalSpend: 0,
+      newCustomers: 0,
+      periodLabel: explorerWindow.label,
+      useSampleDesk: sampleDesk.enabled,
+      ianaTimezone: shop.ianaTimezone,
+    }),
+    sampleDesk.enabled
+      ? prisma.sampleSalesDay.findMany({
+          where: {
+            shopId: shop.id,
+            day: { gte: dayFetchRange.start, lte: dayFetchRange.end },
+          },
+          select: {
+            day: true,
+            newCustomers: true,
+            returningCustomers: true,
+          },
+        })
+      : Promise.resolve(
+          [] as Array<{
+            day: Date;
+            newCustomers: number;
+            returningCustomers: number;
+          }>,
+        ),
+  ]);
+  const pasteBuyerDays: SpendPasteBuyerDay[] = sampleBuyerRows.map((row) => ({
+    dateKey: utcDayKey(row.day),
+    identifiedBuyers: row.newCustomers + row.returningCustomers,
+    newCustomers: row.newCustomers,
+    buyersKnown: true,
+  }));
+
   return {
     entries,
     sampleDesk,
@@ -357,6 +397,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     currencyCode: shopCurrencyCode(shop.currencyCode),
     explorer,
     certifiedSalesByDay: Object.fromEntries(salesByDay),
+    liveBuyerIndex,
+    pasteBuyerDays,
+    first30: tillLtv.avgRevenueD30,
+    first90: tillLtv.avgRevenueD90,
+    first365: tillLtv.avgRevenueD365,
+    historyLimited: tillLtv.historyLimited,
   };
 };
 
@@ -520,6 +566,12 @@ export default function SpendEntryPage() {
     currencyCode,
     preset,
     certifiedSalesByDay,
+    liveBuyerIndex,
+    pasteBuyerDays,
+    first30,
+    first90,
+    first365,
+    historyLimited,
   } = useLoaderData<typeof loader>();
   const money = (n: number) => formatSpendAmount(n, currencyCode);
   const actionData = useActionData<typeof action>();
@@ -717,13 +769,14 @@ export default function SpendEntryPage() {
       csvPayload,
       {
         certifiedSalesByDay,
-        buyerDays: [],
+        buyerDays: pasteBuyerDays,
+        liveBuyerIndex,
         salesFloorKey: spendHistoryFloorKey,
         salesPending: false,
-        first30: null,
-        first90: null,
-        first365: null,
-        historyLimited: true,
+        first30,
+        first90,
+        first365,
+        historyLimited,
       },
       forceChannel ? { forceChannel } : undefined,
     );
@@ -744,7 +797,18 @@ export default function SpendEntryPage() {
       paybackReason: preview.paybackReason,
       salesWindowWarning: preview.salesWindowWarning,
     };
-  }, [csvPayload, forceChannel, certifiedSalesByDay, spendHistoryFloorKey]);
+  }, [
+    csvPayload,
+    forceChannel,
+    certifiedSalesByDay,
+    spendHistoryFloorKey,
+    pasteBuyerDays,
+    liveBuyerIndex,
+    first30,
+    first90,
+    first365,
+    historyLimited,
+  ]);
 
   const calcRoas = useMemo(() => {
     const sales = parseFloat(calcSales);
@@ -1442,6 +1506,7 @@ export default function SpendEntryPage() {
                 </button>
               )}
             </div>
+            {sampleDesk.enabled ? null : (
             <div className="mcfly-spend-template-upload">
               <h3>Upload the filled template</h3>
               <p>
@@ -1511,8 +1576,25 @@ export default function SpendEntryPage() {
                 </button>
               </Form>
             </div>
+            )}
           </section>
 
+          {sampleDesk.enabled ? (
+          <section
+            className="mcfly-panel mcfly-panel--eq-compact"
+            aria-label="SAMPLE spend is read-only"
+          >
+            <div className="mcfly-panel__head mcfly-panel__head--tight">
+              <h2>SAMPLE stays a read-only ledger</h2>
+              <p className="mcfly-panel__muted">
+                Paste is a Live door. Snowdevil spend already on the SAMPLE
+                canvas keeps painting Total ROAS, Cash CPA, and payback.{" "}
+                {SAMPLE_LEDGER_HANDOFF}
+              </p>
+            </div>
+          </section>
+          ) : (
+          <>
           <section
             id="mcfly-spend-csv"
             className="mcfly-panel mcfly-panel--eq-compact mcfly-spend-door--secondary"
@@ -1841,6 +1923,8 @@ export default function SpendEntryPage() {
               </div>
             </Form>
           </section>
+          </>
+          )}
 
           <details
             id="mcfly-spend-calculators"

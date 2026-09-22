@@ -47,6 +47,8 @@ import {
   countIdentifiedBuyersInRange,
   countNewBuyersInRange,
 } from "./order-facts.server";
+import { buildLivePasteBuyerIndex } from "./spend-paste-buyers.server";
+import type { SpendPasteLiveIndex } from "./spend-paste-preview";
 import {
   deskPeriodTimeZone,
   parsePeriodPreset,
@@ -118,6 +120,8 @@ export type SpendAnalysisData = {
   cpa: SpendCpaView;
   /** Certified SalesDayFact dollars keyed YYYY-MM-DD — missing key means no fact. */
   certifiedSalesByDay: Record<string, number>;
+  /** Live unique OrderFacts for paste Cash CPA. Null on SAMPLE. */
+  liveBuyerIndex: SpendPasteLiveIndex | null;
   salesError: string | null;
   todaySalesUnavailable: boolean;
   todaySalesTruncated: boolean;
@@ -491,6 +495,10 @@ export async function loadSpendAnalysis(args: {
   );
   const unionRange = { start: unionStart, end: unionEnd, label: "Spend stack" };
 
+  const liveBuyerIndexPromise = args.useSampleDesk
+    ? Promise.resolve(null)
+    : buildLivePasteBuyerIndex(args.shop.id, unionRange);
+
   let salesByDay = new Map<string, number>();
   try {
     salesByDay = args.useSampleDesk
@@ -499,6 +507,7 @@ export async function loadSpendAnalysis(args: {
   } catch {
     salesByDay = new Map();
   }
+  const liveBuyerIndex = await liveBuyerIndexPromise;
 
   const { rows: dailyRows, channelLabels } = await buildDailyRowsForWindow(
     args.shop.id,
@@ -635,6 +644,7 @@ export async function loadSpendAnalysis(args: {
     windowSets,
     cpa,
     certifiedSalesByDay,
+    liveBuyerIndex,
     salesError,
     todaySalesUnavailable,
     todaySalesTruncated,
