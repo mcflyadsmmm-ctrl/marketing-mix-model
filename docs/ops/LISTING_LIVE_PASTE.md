@@ -6,9 +6,9 @@
 **Price:** 7-day trial, then **$39**/store/month. **Reviews: 0** (do not invent).  
 **SoT copy:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md) · shots [`../LISTING_VISUAL_PACK.md`](../LISTING_VISUAL_PACK.md) · captions [`../listing-assets/shots/CAPTIONS.md`](../listing-assets/shots/CAPTIONS.md)
 
-**Refresh (2026-09-19):** Sales-first pack below. Five analysis tabs plus Settings: Overview · Orders · Customers at $0 spend (YoY year board, typical order, returning dollars, LTV 30/90/365, days-to-second folded in). Spend last — optional typed/CSV → Total ROAS (honest MER: sales ÷ entered spend; empty = —), mix, CPA. Admin is **Live-only**; SAMPLE lives on https://mcflyads.com/demo only. Trial includes **24 months** of order history (not ~60d as the primary story). Flat **$39** / 7-day; no Free plan; plan name **Mcfly Analytics** (not Pro). **Marty Saves** each section. Cursor does not Submit. Reviews **0**. Matches Fly **396** + site **v30**.
+**Refresh (2026-09-22):** Sales-first pack below. Five analysis tabs plus Settings: Overview · Orders · Customers at $0 spend (YoY year board, typical order, returning dollars, LTV 30/90/365, days-to-second folded in). Spend last — optional typed/CSV → Total ROAS (honest MER: sales ÷ entered spend; empty = —), mix, CPA. SAMPLE lives on https://mcflyads.com/demo (and Fly `/demo`); Admin is this shop’s Live book when unparked. **Trial is 90 days of order history. Paid is up to 24 months.** Flat **$39** / 7-day; no Free plan; plan name **Mcfly Analytics** (not Pro). **Marty Saves** each section. Cursor does not Submit. Reviews **0**. Matches Fly **v433** + Fly-served `site/` (90-day trial). **mcflyads.com Pages is still the stale 24-month trial copy until Mac Direct Upload.**
 
-**Live listing gap (as of prior 2026-09-15 probe):** public page still led spend (“See every ad dollar next to Sales”) and still had **$39 in a feature bullet** (4.2.3). Tagline did **not** mention YoY. Public pricing card already said **Mcfly Analytics** $39 / 7-day (not Pro). Reviews **0**. Paste this pack so the listing matches the ready product (Fly **331** desk + site **v19**). Ops curl cannot see Partner Pricing itself — still confirm **no Free plan** in Partner before Save.
+**Live listing gap (as of 2026-09-22):** public page still led spend (“See every ad dollar next to Sales”) and still had **$39 in a feature bullet** (4.2.3). Tagline did **not** mention YoY. Public pricing card already said **Mcfly Analytics** $39 / 7-day (not Pro). Reviews **0**. Paste this pack so the listing matches Fly **v433** (sales-first desk, trial 90 / paid 24). Ops curl cannot see Partner Pricing itself — still confirm **no Free plan** in Partner before Save.
 
 **Refuse in paste:** attribution · pixel · true ROAS · Profit Agent · P&L as hero · invented reviews / installs / GMV / ratings.
 
@@ -38,13 +38,13 @@ Work top → bottom. **Save each section.** Do **not** click Submit.
     | **Privacy** | `https://mcfly-analytics.fly.dev/privacy` | Fly — always |
     | **Support** | `https://mcfly-analytics.fly.dev/support` | Fly — always |
     | **Terms** | `https://mcfly-analytics.fly.dev/terms` | Fly — always |
-    | **Website** | `https://mcflyads.com` | Site **v20** live (Pages `a7862580`). Spot-check home / `/demo` / pricing, then keep Website = `https://mcflyads.com`. App URL stays Fly. |
+    | **Website** | `https://mcflyads.com` | Only after Pages matches Fly (home facts = **90 days** on trial). Until Mac Direct Upload, reviewers who open Website still see **24 months on trial / full-access**. Do not Submit while Pages is stale. App URL stays Fly. |
 11. **Support email:** `mcflyadsmmm@gmail.com`.
 12. **App icon:** `docs/listing-assets/mcfly-app-icon-1200.png` (1200×1200, **M-only**).
 13. **Feature / header media + screenshots** → §8–§9 + captions §11. **Live Admin only** — do not upload SAMPLE /demo stills as the live product.
 14. **Save.** Cursor does not Submit. Founder decides whether Shopify’s listing editor requires a re-review.
 
-**24mo honesty check before Save:** long description, short description, and (if open) reviewer notes say trial includes **24 months** of order history — not “~60 days” as the primary install story. Empty YoY cells stay honest (never last year as zero); do not invent GMV or reviews.
+**History honesty check before Save:** long description, short description, and reviewer notes say **trial is 90 days of order history; paid is up to 24 months**. Never “full-access.” Never “trial includes 24 months.” Empty YoY cells stay honest (never last year as zero); do not invent GMV or reviews.
 
 Optional after save: Partner Support handle request (§10).
 
@@ -72,12 +72,12 @@ No plan prices in this field (4.2.3).
 
 Paste the block below. **App URL / Privacy / Support / Terms stay Fly** — never App URL = `mcflyads.com`.
 
-Set Partner **Website** and the long-description **Learn more** line to `https://mcflyads.com` (site **v19**; re-check if **v20** is live). Privacy / Support / Terms / App URL stay on Fly (`https://mcfly-analytics.fly.dev`).
+Set Partner **Website** and the long-description **Learn more** line to `https://mcflyads.com` **after Pages matches Fly** (home facts = **90 days** on trial). Until Mac Direct Upload, reviewers who open Website still see 24 months on trial. Privacy / Support / Terms / App URL stay on Fly (`https://mcfly-analytics.fly.dev`).
 
 ```text
 Shopify Analytics shows this period’s sales. Mcfly Analytics puts last year next to it, plus typical order, returning dollars, weekends, and 30 / 90 / 365-day LTV—the depth high-volume merchants keep exporting orders to answer.
 
-Overview is this month, this quarter, and this year versus last year, typical-order KPIs, and a sales chart. Install includes up to 24 months of Shopify order history so YoY and LTV have room to fill—never invent last year as zero while history is still loading.
+Overview is this month, this quarter, and this year versus last year, typical-order KPIs, and a sales chart. Trial stores 90 days of Shopify order history. Paid stores go up to 24 months. Missing last year stays an em dash—never invent last year as zero.
 
 Customers, Orders, and Overview work with no spend: returning dollars, days to a second order, weekend share, and new-buyer value at 30 / 90 / 365 days live on those pages. Admin opens on your live store orders. Try the labeled SAMPLE walkthrough anytime at https://mcflyads.com/demo — SAMPLE is not inside Admin.
 
@@ -156,7 +156,7 @@ In-app Start 7-day trial / Manage plan must match this one plan. No External cha
 
 **Do not upload the current feature media unchanged.** It may still show **CUSTOM DATA SCIENCE / 4.42x** or a formula-only Total ROAS story. Both contradict sales-first Overview YoY and risk an unsupported performance claim.
 
-**Marty recapture** — Overview from Fly **331** (or current production) with **Live Admin** orders and overwrite `docs/listing-assets/feature-media-1600x900.png`. Admin is Live-only — there is no Sample|Live Settings door for listing. Do **not** capture https://mcflyads.com/demo SAMPLE for the live listing hero. Shots in this repo were **not** recaptured for this pack.
+**Marty recapture** — Overview from Fly **v433** (or current production) with **Live Admin** orders (Live unparked) and overwrite `docs/listing-assets/feature-media-1600x900.png`. Admin is this shop’s Live book when unparked — there is no Sample|Live Settings door. Do **not** capture https://mcflyads.com/demo SAMPLE for the live listing hero. Shots in this repo were **not** recaptured for this pack.
 
 ```text
 Store:  https://admin.shopify.com/store/devmcflyads/apps
@@ -187,7 +187,7 @@ Icon (keep / re-upload if missing): `docs/listing-assets/mcfly-app-icon-1200.png
 | `docs/listing-assets/shots/05-spend-csv.png` | July mock still says other platforms are on **Pro** (1.1.4) |
 | `docs/listing-assets/shots/05-HOLD-marketing-site-do-not-upload.png` | Marketing site — not embedded Admin |
 
-**Marty recapture all five screenshots from Live Admin** (Fly **331** or current). Do not use Snowdevil `/demo` SAMPLE for App Store stills. Founder-pack and older Fly files do not match the ready desk. Overwrite the stable filenames; do not invent new files. Do **not** invent that these shots were already recaptured.
+**Marty recapture all five screenshots from Live Admin** (Fly **v433** or current, Live unparked). Do not use Snowdevil `/demo` SAMPLE for App Store stills. Founder-pack and older Fly files do not match the ready desk. Overwrite the stable filenames; do not invent new files. Do **not** invent that these shots were already recaptured.
 
 | # | Capture | Save as | Caption (≤80) |
 | --- | --- | --- | --- |
@@ -250,8 +250,10 @@ Feature media has no caption field beyond the image itself. It must show Live Ad
 - Replace live hero **CUSTOM DATA SCIENCE / 4.42x** with a Live Admin Overview YoY capture
 - **Marty recapture** all five shots from Live Admin in this order: Overview YoY → Customers → Orders → LTV → Total ROAS chips
 - Do not upload the three banned PNGs, `/demo` SAMPLE as live product, or any retired three-year Total ROAS capture
-- Website / Learn more → `https://mcflyads.com` (**v19**; re-check if **v20**). App URL stays Fly.
-- Confirm long copy says **24 months** of order history on trial — not ~60d as primary
+- Website / Learn more → `https://mcflyads.com` after Pages matches Fly (90 days on trial). App URL stays Fly.
+- Confirm long copy says **trial is 90 days of order history; paid is up to 24 months** — never full-access, never 24 months on trial
+- **Pages:** copy `site/` to a non-git temp dir, then `npx wrangler@3 pages deploy site --project-name=mcflyads --commit-dirty=true`. Probe mcflyads.com home + /pricing until they match Fly (90 days on trial). Do not Submit while Pages still says 24 months on trial.
+- **Live unpark** before Submit: `docs/ops/LIVE_UNPARK_CHECKLIST.md`. Fly is still `MCFLY_SAMPLE_ONLY=true` / `MCFLY_LIVE_STAGE=parked`. App Review on a parked install sees labeled SAMPLE, not their shop. Cursor does not flip the kill switch.
 - Optional handle email to Partner Support
 - App testing information (if Shopify opens a listing re-review): [`PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md)
 

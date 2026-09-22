@@ -87,6 +87,10 @@ const launchLies: Array<{ name: string; pattern: RegExp }> = [
     name: "History back to January 2021 as a sales promise",
     pattern: /History back to January 2021/i,
   },
+  {
+    name: "Shopify sales cover ~60 days",
+    pattern: /Shopify sales cover the last ~60 days/i,
+  },
   { name: "full-access trial", pattern: /full-access/i },
   { name: "full access trial", pattern: /full access/i },
   {

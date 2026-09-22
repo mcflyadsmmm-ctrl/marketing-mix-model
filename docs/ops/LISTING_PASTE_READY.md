@@ -1,7 +1,7 @@
 # Mcfly Analytics — Partner listing paste packet
-**Updated:** 2026-09-21 · Copy/paste-ready · No invented Partner metrics
+**Updated:** 2026-09-22 · **Do not paste this file.** Human paste SoT is [`LISTING_LIVE_PASTE.md`](./LISTING_LIVE_PASTE.md) (sales-first, trial **90 days** / paid **24 months**, five tabs + Settings). This sheet is leftover. Live Admin shots only — never SAMPLE as the live product.
 
-Use these fields in Shopify Partner. Keep pricing in the Pricing section only. Use SAMPLE screenshots until Live accuracy is approved.
+Use these fields in Shopify Partner. Keep pricing in the Pricing section only.
 
 ---
 

@@ -7,7 +7,7 @@
 **Reviewer paste:** [`../PARTNER_TESTING_INSTRUCTIONS.md`](../PARTNER_TESTING_INSTRUCTIONS.md) — **only** that `APP_STORE_PASTE:testing` block. Do **not** paste [`REVIEWER_TEST_SCRIPT.md`](./REVIEWER_TEST_SCRIPT.md).  
 **Listing copy + URLs:** [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)
 
-**Live (agent):** Fly `https://mcfly-analytics.fly.dev` · health `/health`. That origin serves the marketing `site/` (home, Support, Privacy, Terms, Pricing) plus the embedded app. Switch to **Live data** on the review store.
+**Live (agent):** Fly `https://mcfly-analytics.fly.dev` · health `/health`. That origin serves the marketing `site/` (home, Support, Privacy, Terms, Pricing) plus the embedded app. **Live must be unparked** before Submit so App Review sees this shop. Parked Fly paints labeled SAMPLE. Cursor does not flip the kill switch.
 
 ---
 
@@ -16,11 +16,12 @@
 | Field | Must be |
 | --- | --- |
 | **App URL** | `https://mcfly-analytics.fly.dev` — **not** mcflyads.com |
-| **Website / Privacy / Support / Terms** | `https://mcfly-analytics.fly.dev` · `/privacy` · `/support` · `/terms` (full URLs in [`../APP_STORE_LISTING.md`](../APP_STORE_LISTING.md)) — **not** live mcflyads.com |
+| **Privacy / Support / Terms** | Fly `https://mcfly-analytics.fly.dev` `/privacy` `/support` `/terms` |
+| **Website** | `https://mcflyads.com` **after** Pages matches Fly (trial 90 days / paid 24 months). Do not Submit while Pages is stale. |
 | **Pricing** | **Shopify App Pricing: one plan, $39/store/mo, 7-day free trial** (no Free plan) |
 | **Works with** | **Blank** (no Checkout / Meta / Google) |
 | **Testing form** | Username/Password **empty**, **check** “My app doesn't require an account to use it” |
-| **SAMPLE desk** | **OFF** on the review store |
+| **SAMPLE** | Chip **off** on the review shop. Unpark first. Public SAMPLE is `/demo` only. |
 
 ---
 
@@ -58,4 +59,4 @@ Captions: [`../listing-assets/shots/CAPTIONS.md`](../listing-assets/shots/CAPTIO
 
 1. **Partner clicks** — MFA / listing URLs / Pricing / testing checkbox / Spend → Upgrade smoke / Submit are human-only.  
 2. Recapture listing shots from Admin (`LISTING_VISUAL_PACK.md`) — July PNGs show SAMPLE + CSV-first Spend.  
-3. Optional: Wrangler-publish `site/` so mcflyads.com matches Fly (not required if Partner uses Fly URLs).
+3. Optional: Wrangler-publish `site/` from a non-git temp so mcflyads.com matches Fly (trial 90 / paid 24). Required before Website = mcflyads.com.

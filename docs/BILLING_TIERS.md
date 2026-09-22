@@ -1,6 +1,6 @@
 # Billing — one paid plan, $39 after a 7-day trial (Shopify App Pricing)
 
-**Founder lock (2026-08-26):** **one** plan. **7-day full-access trial, then $39/store/mo** for the whole desk. Flat — not a percent of sales, not a per-order fee. Shopify bills the app; **uninstall** in Admin stops the **next** 30-day cycle (the current cycle may still charge).
+**Founder lock (2026-08-26):** **one** plan. **7-day trial, then $39/store/mo** for the whole desk. Flat — not a percent of sales, not a per-order fee. Trial order rows are **90 closed days**. Paid is up to **24 months**. Shopify bills the app; **uninstall** in Admin stops the **next** 30-day cycle (the current cycle may still charge). Never call the trial “full-access.”
 
 **Status:** Start 7-day trial opens Shopify's hosted plan page.
 **Not** `appSubscriptionCreate` — this Public app is on **Shopify App Pricing** (Managed Pricing), which blocks the Billing API for creating charges.
