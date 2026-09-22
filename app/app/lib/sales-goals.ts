@@ -8,6 +8,8 @@
  * No pixel CAC.
  */
 
+import { formatCurrency } from "./mer-format";
+
 export const IMPLIED_IDENTIFIED_BUYERS_MIN_ORDERS = 8;
 
 export const MONTH_CLOSE_SALES_FORMULA =
@@ -36,6 +38,40 @@ export function formatGoalInput(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return "";
   if (value === 0) return "0";
   return String(Math.round(value));
+}
+
+/**
+ * Typed $0 is a real plan. Cleared / junk is not on file.
+ */
+export function typedGoalAmount(
+  salesGoal: number | null | undefined,
+): number | null {
+  if (salesGoal == null || !Number.isFinite(salesGoal)) return null;
+  return salesGoal;
+}
+
+/**
+ * Saturday finance line for ThisMonthPlanStack. Empty goal copies nothing.
+ * Missing last year is "not on file" — never a silent $0.
+ */
+export function thisMonthPlanCopyText(opts: {
+  goal: number | null;
+  actual: number | null;
+  prior: number | null;
+  currency: string;
+}): string | null {
+  const goal = typedGoalAmount(opts.goal);
+  if (goal == null) return null;
+  const goalText = formatCurrency(goal, opts.currency);
+  const actualText =
+    opts.actual == null || !Number.isFinite(opts.actual)
+      ? "—"
+      : formatCurrency(opts.actual, opts.currency);
+  const priorBit =
+    opts.prior == null || !Number.isFinite(opts.prior)
+      ? " Last year is not on file."
+      : ` Last year ${formatCurrency(opts.prior, opts.currency)}.`;
+  return `We are ${actualText} versus ${goalText} plan.${priorBit}`;
 }
 
 /**

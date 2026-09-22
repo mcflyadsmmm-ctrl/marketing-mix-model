@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const goals = readFileSync(join(here, "../routes/app.goals.tsx"), "utf8");
+const demoGoals = readFileSync(join(here, "../routes/demo.goals.tsx"), "utf8");
 
 describe("Goals page", () => {
   it("contrasts Shopify Analytics this-period sales with plan vs actual", () => {
@@ -39,9 +40,20 @@ describe("Goals page", () => {
     expect(goals).toContain("mcfly-goals-month-stack");
     expect(goals).toContain("ThisMonthPlanStack");
     expect(goals).toContain("versus the plan");
-    expect(goals).toContain("showGoal && row.salesGoal > 0");
+    expect(goals).toContain("typedGoalAmount(row.salesGoal)");
+    expect(goals).toContain("thisMonthPlanCopyText");
+    expect(goals).toContain("Copy plan");
     expect(goals).toContain("formatSalesOrDash(row.actual, currency)");
     expect(goals).toContain("formatSalesOrDash(prior, currency)");
+  });
+
+  it("omit-path: public /demo/goals mounts the Admin year table from typed-or-empty months", () => {
+    expect(demoGoals).toContain("mcfly-goals-table");
+    expect(demoGoals).toContain("buildGoalMonthRows");
+    expect(demoGoals).not.toMatch(
+      /Array\.from\(\{\s*length:\s*12\s*\},\s*\(\)\s*=>\s*0\)/,
+    );
+    expect(demoGoals).not.toMatch(/Same year plan as Admin/);
   });
 
   it("sales-load banner does not leak internals or paint actuals as $0", () => {

@@ -92,4 +92,19 @@ describe("Goals year clock / year-board honesty", () => {
     expect(phone).not.toContain("min-width: 720px");
     expect(phone).toContain(".mcfly-goals-month-stack__grid");
   });
+
+  it("YTD actual only sums planned months and does not treat typed $0 as a dash", () => {
+    const server = read("./sales-goals.server.ts");
+    const arith = read("./sales-goals.ts");
+    const gauges = read("../components/SalesGoalGauges.tsx");
+    const route = read("../routes/app.goals.tsx");
+    const demo = read("../routes/demo.goals.tsx");
+    expect(server).toContain("plannedMonthIndexes");
+    expect(arith).toContain("typedGoalAmount");
+    expect(arith).toContain("thisMonthPlanCopyText");
+    expect(gauges).not.toContain("period.progressPct ?? 0");
+    expect(route).toContain("typedGoalAmount(row.salesGoal)");
+    expect(demo).toContain("mcfly-goals-table");
+    expect(demo).not.toMatch(/Array\.from\(\{\s*length:\s*12\s*\},\s*\(\)\s*=>\s*0\)/);
+  });
 });
