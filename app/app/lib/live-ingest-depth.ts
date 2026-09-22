@@ -1,15 +1,21 @@
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
+
 /**
  * Live Shopify ingest depth — not a feature gate.
  *
- * Product lock (2026-09-18):
+ * Product lock:
  * - SAMPLE demo = full wow (this module is Live ingest only).
- * - Order rows stop at {@link ORDER_ROW_WINDOW_MONTHS} for trial and paid.
+ * - Unpaid / Shopify trial stops at {@link LIVE_UNPAID_INGEST_DAYS} closed days.
+ * - Paid, and a host that is not charging, keep the Shopify-visible window.
+ * - Order rows still stop at {@link ORDER_ROW_WINDOW_MONTHS}.
  * - Daily sales totals are a ShopifyQL query (`read_reports`), not an
  *   order-page crawl. Missing that scope skips the sales fill. It does not
  *   fall back to reading orders.
  *
  * Flat $39. Price does not rise with sales. No GMV cliffs.
  */
+
+export { LIVE_UNPAID_INGEST_DAYS };
 
 /** Order-level rows. 24 calendar months is the first-year LTV book. */
 export const ORDER_ROW_WINDOW_MONTHS = 24;
@@ -42,23 +48,47 @@ export function orderRowWindowDayCount(now: Date = new Date()): number {
 }
 
 /**
- * SalesDayFact width. Shopify already applied its cap in `paidWindowDays`.
- * Trial is not cut to 90 days. Billing flags stay in the signature so
- * callers do not fork.
+ * Sales width. `paidWindowDays` is the Shopify-visible window.
+ * Unpaid / Shopify trial (billing on, not paid) returns the smaller of
+ * that window and {@link LIVE_UNPAID_INGEST_DAYS} closed days.
+ * Paid, and a host that is not charging, return `paidWindowDays`.
  */
 export function resolveLiveIngestWindowDays(input: {
   billingEnabled: boolean;
   isPro: boolean;
   paidWindowDays: number;
 }): number {
-  void input.billingEnabled;
-  void input.isPro;
-  return input.paidWindowDays;
+  const granted = Math.max(0, input.paidWindowDays);
+  if (shopMayIngestFullHistory(input)) return granted;
+  return Math.min(LIVE_UNPAID_INGEST_DAYS, granted);
 }
 
 /**
- * OrderFact width. Never longer than 24 months, and never longer than the
- * Shopify-visible window (~60d when deep history is off).
+ * OrderFact width. Unpaid / trial slice first, then the 24-month row cap,
+ * and never longer than the Shopify-visible window.
+ */
+export function resolveCommercialOrderWindowDays(input: {
+  billingEnabled: boolean;
+  isPro: boolean;
+  shopifyWindowDays: number;
+  now?: Date;
+}): number {
+  const commercialDays = resolveLiveIngestWindowDays({
+    billingEnabled: input.billingEnabled,
+    isPro: input.isPro,
+    paidWindowDays: input.shopifyWindowDays,
+  });
+  return resolveOrderRowWindowDays({
+    shopifyWindowDays: commercialDays,
+    now: input.now,
+  });
+}
+
+/**
+ * Raw order-row cap. Never longer than 24 months, and never longer than the
+ * Shopify-visible window (~60d when deep history is off). Callers that know
+ * billing use {@link resolveCommercialOrderWindowDays} so unpaid/trial is
+ * already sliced to {@link LIVE_UNPAID_INGEST_DAYS}.
  */
 export function resolveOrderRowWindowDays(input: {
   shopifyWindowDays: number;

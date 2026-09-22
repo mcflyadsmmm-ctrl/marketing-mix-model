@@ -12,7 +12,9 @@ import {
   shopifyOrderHistoryIsLimited,
 } from "./shopify-order-window";
 import { salesDayFactWindowDayCount } from "./sales-facts.server";
-import { resolveOrderRowWindowDays } from "./live-ingest-depth";
+import { isBillingEnabled } from "./billing-flag.server";
+import { resolveCommercialOrderWindowDays } from "./live-ingest-depth";
+import { shopIsProForIngest } from "./live-ingest-depth.server";
 import {
   adminGraphqlJson,
   ORDER_FACT_PAGES_COST_SAFE_CAP,
@@ -704,15 +706,64 @@ async function fetchOrdersForDay(
   };
 }
 
+/** Deep scopes ignore a stale historyLimited flag when sizing the window. */
+function orderHistoryIsLimitedForWindow(
+  storedHistoryLimited: boolean,
+  scopesAllowDeep: boolean,
+): boolean {
+  return scopesAllowDeep ? false : storedHistoryLimited;
+}
+
+/** Shopify-visible order span before the commercial slice and 24-month cap. */
+function shopifyVisibleOrderDays(historyLimited: boolean, now: Date): number {
+  const deepWindowDays = salesDayFactWindowDayCount(now);
+  return historyLimited
+    ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
+    : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
+}
+
+/**
+ * Unpaid / trial stops at LIVE_UNPAID_INGEST_DAYS. Paid keeps the
+ * Shopify-visible span, then the 24-month order-row cap. An explicit
+ * `requestedWindowDays` can only shrink that result.
+ */
+async function clampedOrderWindowDays(input: {
+  shopId: string;
+  historyLimited: boolean;
+  now: Date;
+  requestedWindowDays?: number;
+}): Promise<number> {
+  const visible = shopifyVisibleOrderDays(input.historyLimited, input.now);
+  const billingEnabled = isBillingEnabled();
+  const isPro = billingEnabled ? await shopIsProForIngest(input.shopId) : false;
+  const commercial = resolveCommercialOrderWindowDays({
+    billingEnabled,
+    isPro,
+    shopifyWindowDays: visible,
+    now: input.now,
+  });
+  if (input.requestedWindowDays == null) return commercial;
+  const requested = Math.floor(input.requestedWindowDays);
+  if (!Number.isFinite(requested) || requested <= 0) return commercial;
+  return Math.min(commercial, requested);
+}
+
 /**
  * Chunked OrderFact backfill — up to `maxDays` closed shop-local days (default 7)
- * within the trailing Shopify order window (60d when historyLimited).
+ * within the commercial order window (unpaid/trial closed-day slice, else
+ * Shopify-visible, always inside 24 months).
  * Never writes sample source. After upserts, recomputes touched cohort months.
  */
 export async function runOrderFactsBackfill(
   admin: AdminApiContext,
   shopId: string,
-  options?: { maxDays?: number; now?: Date; maxPages?: number; enqueueRetry?: boolean },
+  options?: {
+    maxDays?: number;
+    now?: Date;
+    maxPages?: number;
+    enqueueRetry?: boolean;
+    windowDays?: number;
+  },
 ): Promise<OrderFactBackfillResult> {
   const now = options?.now ?? new Date();
   const maxDays = options?.maxDays ?? ORDER_FACT_MAX_DAYS_PER_RUN;
@@ -738,16 +789,16 @@ export async function runOrderFactsBackfill(
   }
 
   const state = await ensureBackfillState(shopId);
-  // Shopify-visible span, then cut to 24 months of order rows.
   const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
-  let historyLimited = scopesAllowDeep ? false : state.historyLimited;
-  const deepWindowDays = salesDayFactWindowDayCount(now);
-  const paidWindowDays = historyLimited
-    ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
-    : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
-  const windowDays = resolveOrderRowWindowDays({
-    shopifyWindowDays: paidWindowDays,
+  let historyLimited = orderHistoryIsLimitedForWindow(
+    state.historyLimited,
+    scopesAllowDeep,
+  );
+  const windowDays = await clampedOrderWindowDays({
+    shopId,
+    historyLimited,
     now,
+    requestedWindowDays: options?.windowDays,
   });
 
   const timeZone = metadata.ianaTimezone;
@@ -979,13 +1030,12 @@ export async function getOrderBackfillProgress(
   });
   const historyLimited = state?.historyLimited ?? false;
   const scopesAllowDeep = (process.env.SCOPES ?? "").includes("read_all_orders");
-  const deepWindowDays = salesDayFactWindowDayCount(now);
-  const paidWindowDays =
-    historyLimited && !scopesAllowDeep
-      ? SHOPIFY_READ_ORDERS_WINDOW_DAYS
-      : Math.max(SHOPIFY_READ_ORDERS_WINDOW_DAYS, deepWindowDays);
-  const windowDaysCount = resolveOrderRowWindowDays({
-    shopifyWindowDays: paidWindowDays,
+  const windowDaysCount = await clampedOrderWindowDays({
+    shopId,
+    historyLimited: orderHistoryIsLimitedForWindow(
+      historyLimited,
+      scopesAllowDeep,
+    ),
     now,
   });
   const windowDayKeys = listRecentClosedShopLocalDays(

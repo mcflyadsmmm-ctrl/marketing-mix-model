@@ -52,15 +52,18 @@ SoT on tip: [`docs/BILLING_TIERS.md`](../BILLING_TIERS.md) · `PRO_PLAN` = **$39
 | --- | --- | --- |
 | SAMPLE / demo | Full Snowdevil wow | **None** (freeze / parked) |
 | Trial or unpaid Live | Whole desk (no feature gate) | **90 closed days** — cheap slice, not a fake year |
-| Paid **$39** | Whole desk | **Full** order-history LTV (Jan-1 × 5 when `read_all_orders`) |
+| Paid **$39** | Whole desk | **Full** Shopify-visible order history, still cut at **24 months** of order rows |
+| Host not charging | Whole desk | Same window as paid. Billing off is not a trial slice. |
 
-`liveIngestPolicy()` is the stub. The **billing hard-stop clamp** (actually cutting the crawl to 90 vs full) is **not** on tip — honor it when the sync PR merges. Do not treat paid as a 90-closed-day book.
+`liveIngestPolicy()` names the slice. The crawl enforces it on this tip: `resolveLiveIngestWindowDays` and `scheduleFirstSessionShopifyWindow` stop unpaid/trial at **90 closed days** (`LIVE_UNPAID_INGEST_DAYS`). Paid keeps the Shopify-visible window; order rows still stop at 24 months. Do not treat paid as a 90-closed-day book.
+
+Sibling note: `cursor/sync-law-oneshot-webhook-6eb3`. The unpaid hard-stop does not wait on that PR.
 
 ---
 
 ## 3. Cheap-ops · sync HARD law (summary)
 
-`SAMPLE_TO_LIVE.md` / `cheap-ops` were not files on this tip. Law from first-session + sibling `cursor/sync-law-oneshot-webhook-6eb3` (open, **not merged** 2026-09-17):
+`SAMPLE_TO_LIVE.md` / `cheap-ops` were not files on this tip. Law on this tip (sibling note `cursor/sync-law-oneshot-webhook-6eb3`):
 
 1. **One-shot.** Finish the granted Shopify window once. Sealed shop → Live tabs do **not** enqueue/burst again.
 2. **OAuth / first paint never await the crawl.** Enqueue + fire-and-forget. Pending ≠ $0.
@@ -69,7 +72,7 @@ SoT on tip: [`docs/BILLING_TIERS.md`](../BILLING_TIERS.md) · `PRO_PLAN` = **$39
 5. **SAMPLE freeze skips Live ingest** (this PR). Kill switch is cheap.
 6. **Do not re-pull the book on every Admin load.** Worker / job tick resumes.
 
-Until the sync PR lands, tip still re-enqueues the public window on Live tabs. Checklist + `LIVE_SYNC_LAW_PR_REF` point at that PR. Do not re-implement the crawl here.
+One-shot seal is on this tip: a sealed shop does not re-enqueue from Live tabs. Unpaid/trial ingest is **90 closed days**. Paid order rows stay inside the Shopify-visible window and the 24-month cap. `cursor/sync-law-oneshot-webhook-6eb3` is the sibling note for one-shot + webhook. Do not flip `MCFLY_SAMPLE_ONLY`.
 
 ---
 
@@ -104,9 +107,11 @@ Prior SAMPLE-only audits (v336 / v339) are **not** a Live pass.
 | Hook | File | Behavior now |
 | --- | --- | --- |
 | Freeze | `isSampleOnlyFreeze()` / `fly.toml` | `MCFLY_SAMPLE_ONLY=true` — **unchanged** |
-| Stage + commercial stub | `app/app/lib/live-unpark.ts` | parked → no Live ingest; unpaid = 90 closed days policy; paid = full |
-| Ingest skip | `scheduleFirstSessionShopifyWindow` | No-ops when freeze or stage parked |
-| Sync clamp | upcoming `cursor/sync-law-oneshot-webhook-6eb3` | One-shot + webhook; must call `liveIngestPolicy()` — **not on tip** |
+| Stage + commercial policy | `app/app/lib/live-unpark.ts` | parked → no Live ingest; unpaid/trial = 90 closed days; paid = full Shopify-visible |
+| Ingest depth | `resolveLiveIngestWindowDays` | Unpaid/trial crawl stops at 90 closed days; paid keeps the granted window |
+| Order rows | `resolveCommercialOrderWindowDays` | After the unpaid slice, rows still stop at 24 months |
+| Schedule | `scheduleFirstSessionShopifyWindow` | No-ops when freeze or stage parked; unpaid_slice passes the 90 closed-day window |
+| Sync note | `cursor/sync-law-oneshot-webhook-6eb3` | One-shot + webhook context. Unpaid hard-stop is on this tip. |
 
 ---
 

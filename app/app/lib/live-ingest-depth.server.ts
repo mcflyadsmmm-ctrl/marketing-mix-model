@@ -3,8 +3,6 @@ import { isBillingEnabled } from "./billing-flag.server";
 import { isProShop } from "./entitlements.server";
 import {
   liveIngestDepth,
-  resolveLiveIngestWindowDays,
-  shopMayIngestFullHistory,
   type LiveIngestDepth,
 } from "./live-ingest-depth";
 
@@ -15,6 +13,7 @@ export {
   ORDER_ROW_WINDOW_MONTHS,
   orderRowWindowDayCount,
   resolveOrderRowWindowDays,
+  resolveCommercialOrderWindowDays,
   type LiveIngestDepth,
 } from "./live-ingest-depth";
 

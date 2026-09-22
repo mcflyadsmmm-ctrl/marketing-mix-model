@@ -43,6 +43,7 @@ vi.mock("./shopify-sales.server", async (importOriginal) => {
   };
 });
 
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   runSalesFactsBackfill,
   getSalesFactsCoverage,
@@ -288,10 +289,49 @@ describe("runSalesFactsBackfill", () => {
     expect(remaining).toBeGreaterThan(365 * 9);
   });
 
-  it("uses the same sales window for unpaid shops when billing is on", async () => {
+  it("clamps unpaid sales remaining days to the closed-day slice when billing is on", async () => {
     const prev = process.env.MCFLY_BILLING;
     process.env.MCFLY_BILLING = "1";
     shopIsProForIngest.mockResolvedValue(false);
+    ensureShopMetadata.mockResolvedValue({
+      ianaTimezone: "UTC",
+      currencyCode: "USD",
+    });
+    findMany.mockResolvedValue([]);
+    try {
+      const now = new Date("2026-09-17T12:00:00.000Z");
+      const remaining = await getSalesFactsWindowRemainingDays("shop_1", {
+        ianaTimezone: "UTC",
+        now,
+        scopesAllowDeep: true,
+      });
+      expect(remaining).toBe(LIVE_UNPAID_INGEST_DAYS);
+      expect(shopIsProForIngest).toHaveBeenCalledWith("shop_1");
+
+      const result = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
+        now,
+        maxDays: 10,
+      });
+      expect(result.attempted).toBe(10);
+      expect(result.remainingMissingDays).toBe(LIVE_UNPAID_INGEST_DAYS - 10);
+
+      const widened = await runSalesFactsBackfill(FAKE_ADMIN, "shop_1", {
+        now,
+        maxDays: 10,
+        windowDays: 500,
+      });
+      expect(widened.attempted).toBe(10);
+      expect(widened.remainingMissingDays).toBe(LIVE_UNPAID_INGEST_DAYS - 10);
+    } finally {
+      if (prev === undefined) delete process.env.MCFLY_BILLING;
+      else process.env.MCFLY_BILLING = prev;
+    }
+  });
+
+  it("keeps the ShopifyQL sales window for paid shops when billing is on", async () => {
+    const prev = process.env.MCFLY_BILLING;
+    process.env.MCFLY_BILLING = "1";
+    shopIsProForIngest.mockResolvedValue(true);
     findMany.mockResolvedValue([]);
     try {
       const remaining = await getSalesFactsWindowRemainingDays("shop_1", {

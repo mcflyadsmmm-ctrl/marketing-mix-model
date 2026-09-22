@@ -8,6 +8,7 @@ import {
   LIVE_UNPAID_INGEST_DAYS,
   liveDeskTabAllowed,
   liveIngestPolicy,
+  liveShopifyWindowSchedule,
   liveShopifyWindowShouldSchedule,
   liveUnparkIngestPolicyFromEnv,
   parseLiveUnparkStage,
@@ -159,6 +160,22 @@ describe("live unpark policy", () => {
       }),
     ).toBe(true);
     expect(liveShopifyWindowShouldSchedule({ kind: "paid_full" })).toBe(true);
+  });
+
+  it("passes the unpaid closed-day window and leaves paid unclamped", () => {
+    expect(
+      liveShopifyWindowSchedule({
+        kind: "unpaid_slice",
+        closedDays: LIVE_UNPAID_INGEST_DAYS,
+      }),
+    ).toEqual({ schedule: true, closedDays: LIVE_UNPAID_INGEST_DAYS });
+    expect(liveShopifyWindowSchedule({ kind: "paid_full" })).toEqual({
+      schedule: true,
+      closedDays: null,
+    });
+    expect(
+      liveShopifyWindowSchedule({ kind: "none", reason: "stage_parked" }),
+    ).toEqual({ schedule: false });
   });
 
   it("env stub is conservative — unknown shops are not paid-full", () => {

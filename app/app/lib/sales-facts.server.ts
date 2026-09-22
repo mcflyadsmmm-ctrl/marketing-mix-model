@@ -27,6 +27,9 @@ import {
   isCertifiedSalesDayFact,
   shopifyReadOrdersScopesAllowDeep,
 } from "./shopify-order-window";
+import { isBillingEnabled } from "./billing-flag.server";
+import { resolveLiveIngestWindowDays } from "./live-ingest-depth";
+import { shopIsProForIngest } from "./live-ingest-depth.server";
 /** SalesDayFact.source for rows written by the ShopifyQL totals lane. */
 export const SALES_DAY_FACT_SOURCE = "shopifyql_sales_day_v1";
 
@@ -188,8 +191,33 @@ async function upsertSalesDayFact(
 }
 
 /**
+ * Closed days this shop may ingest.
+ * Unpaid / Shopify trial stops at LIVE_UNPAID_INGEST_DAYS. Paid and a host
+ * that is not charging keep the ShopifyQL window. An explicit `windowDays`
+ * can only shrink that result.
+ */
+async function salesIngestDayCount(
+  shopId: string,
+  now: Date,
+  windowDays?: number,
+): Promise<number> {
+  const granted = salesTotalsWindowDayCount(now);
+  const billingEnabled = isBillingEnabled();
+  const isPro = billingEnabled ? await shopIsProForIngest(shopId) : false;
+  const commercial = resolveLiveIngestWindowDays({
+    billingEnabled,
+    isPro,
+    paidWindowDays: granted,
+  });
+  if (windowDays == null) return commercial;
+  const requested = Math.floor(windowDays);
+  if (!Number.isFinite(requested) || requested <= 0) return commercial;
+  return Math.min(commercial, requested);
+}
+
+/**
  * Backfill/resume up to `SALES_DAY_FACT_MAX_DAYS_PER_RUN` missing closed shop-local
- * days within the Jan-1 × N-year serving window. Idempotent and safe to call
+ * days in the commercial sales window. Idempotent and safe to call
  * repeatedly (auth callback, cron, manual) — each call re-derives the missing
  * dates from what's already in SalesDayFact, so it always resumes rather than restarts.
  *
@@ -202,7 +230,7 @@ export async function runSalesFactsBackfill(
   options?: {
     now?: Date;
     maxDays?: number;
-    /** Override ingest width — tests / ops. Default is 60d or the Jan-1 window. */
+    /** Shrink ingest width — tests / ops. Never wider than the commercial window. */
     windowDays?: number;
     scopesAllowDeep?: boolean;
   },
@@ -226,7 +254,11 @@ export async function runSalesFactsBackfill(
   }
 
   const timeZone = metadata.ianaTimezone;
-  const ingestDayCount = options?.windowDays ?? salesTotalsWindowDayCount(now);
+  const ingestDayCount = await salesIngestDayCount(
+    shopId,
+    now,
+    options?.windowDays,
+  );
   const windowDayKeys = listRecentClosedShopLocalDays(
     timeZone,
     ingestDayCount,
@@ -290,6 +322,7 @@ export async function runSalesFactsBackfill(
  * sealed shop does not re-arm window jobs on every Live tab.
  *
  * Same window as `runSalesFactsBackfill`: ShopifyQL day totals, not order pages.
+ * Unpaid / trial uses the same closed-day slice as the crawl.
  */
 export async function getSalesFactsWindowRemainingDays(
   shopId: string,
@@ -300,7 +333,7 @@ export async function getSalesFactsWindowRemainingDays(
   },
 ): Promise<number> {
   const now = options.now ?? new Date();
-  const ingestDayCount = salesTotalsWindowDayCount(now);
+  const ingestDayCount = await salesIngestDayCount(shopId, now);
   const windowDayKeys = listRecentClosedShopLocalDays(
     options.ianaTimezone,
     ingestDayCount,

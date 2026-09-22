@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { LIVE_UNPAID_INGEST_DAYS } from "./live-unpark";
 import {
   liveIngestDepth,
   orderRowWindowDayCount,
   ORDER_ROW_WINDOW_MONTHS,
+  resolveCommercialOrderWindowDays,
   resolveLiveIngestWindowDays,
   resolveOrderRowWindowDays,
   shopMayIngestFullHistory,
@@ -22,20 +24,21 @@ describe("Live ingest windows", () => {
     ).toBe(1800);
   });
 
-  it("gives trial the same sales window Shopify already granted", () => {
+  it("clamps trial and unpaid sales days to the closed-day slice", () => {
     expect(
       shopMayIngestFullHistory({ billingEnabled: true, isPro: false }),
     ).toBe(false);
     expect(liveIngestDepth({ billingEnabled: true, isPro: false })).toBe(
       "trial_slice",
     );
+    expect(LIVE_UNPAID_INGEST_DAYS).toBe(90);
     expect(
       resolveLiveIngestWindowDays({
         billingEnabled: true,
         isPro: false,
         paidWindowDays: 1800,
       }),
-    ).toBe(1800);
+    ).toBe(LIVE_UNPAID_INGEST_DAYS);
     expect(
       resolveLiveIngestWindowDays({
         billingEnabled: true,
@@ -55,7 +58,7 @@ describe("Live ingest windows", () => {
     ).toBe(1800);
   });
 
-  it("caps order rows at 24 months for trial and paid", () => {
+  it("caps a granted order window at 24 months", () => {
     expect(ORDER_ROW_WINDOW_MONTHS).toBe(24);
     const now = new Date("2026-09-18T12:00:00.000Z");
     const cap = orderRowWindowDayCount(now);
@@ -65,5 +68,42 @@ describe("Live ingest windows", () => {
       resolveOrderRowWindowDays({ shopifyWindowDays: 1800, now }),
     ).toBe(cap);
     expect(resolveOrderRowWindowDays({ shopifyWindowDays: 60, now })).toBe(60);
+  });
+
+  it("clamps unpaid order rows to 90 closed days and keeps paid at 24 months", () => {
+    const now = new Date("2026-09-18T12:00:00.000Z");
+    const cap = orderRowWindowDayCount(now);
+    expect(
+      resolveCommercialOrderWindowDays({
+        billingEnabled: true,
+        isPro: false,
+        shopifyWindowDays: 1800,
+        now,
+      }),
+    ).toBe(LIVE_UNPAID_INGEST_DAYS);
+    expect(
+      resolveCommercialOrderWindowDays({
+        billingEnabled: true,
+        isPro: false,
+        shopifyWindowDays: 60,
+        now,
+      }),
+    ).toBe(60);
+    expect(
+      resolveCommercialOrderWindowDays({
+        billingEnabled: true,
+        isPro: true,
+        shopifyWindowDays: 1800,
+        now,
+      }),
+    ).toBe(cap);
+    expect(
+      resolveCommercialOrderWindowDays({
+        billingEnabled: false,
+        isPro: false,
+        shopifyWindowDays: 1800,
+        now,
+      }),
+    ).toBe(cap);
   });
 });
